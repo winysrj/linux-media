@@ -1,1577 +1,357 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moh2-ve3.go2.pl ([193.17.41.208]:33549 "EHLO moh2-ve3.go2.pl"
+Received: from 7of9.schinagl.nl ([88.159.158.68]:49791 "EHLO 7of9.schinagl.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751454Ab2IVIvP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Sep 2012 04:51:15 -0400
-Received: from moh2-ve3.go2.pl (unknown [10.0.0.208])
-	by moh2-ve3.go2.pl (Postfix) with ESMTP id 57D2E373B3D
-	for <linux-media@vger.kernel.org>; Sat, 22 Sep 2012 10:51:10 +0200 (CEST)
-Received: from unknown (unknown [10.0.0.42])
-	by moh2-ve3.go2.pl (Postfix) with SMTP
-	for <linux-media@vger.kernel.org>; Sat, 22 Sep 2012 10:51:09 +0200 (CEST)
-Message-ID: <505D7BFB.5060000@tlen.pl>
-Date: Sat, 22 Sep 2012 10:51:07 +0200
-From: Wojciech Myrda <vojcek@tlen.pl>
+	id S1752624Ab2ISJws (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Sep 2012 05:52:48 -0400
+Message-ID: <505995D3.7010201@schinagl.nl>
+Date: Wed, 19 Sep 2012 11:52:19 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] [dvb-apps] DVB-S update scan dir 12.5W - 28.2E
-References: <6d7587d4.15f511eb.505acc59.9513e@tlen.pl>
-In-Reply-To: <6d7587d4.15f511eb.505acc59.9513e@tlen.pl>
-Content-Type: multipart/mixed;
- boundary="------------070902030200030900080305"
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus (attempt 2)
+References: <1348006936-6334-1-git-send-email-oliver+list@schinagl.nl> <5058F8F2.90106@iki.fi>
+In-Reply-To: <5058F8F2.90106@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------070902030200030900080305
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+On 19-09-12 00:42, Antti Palosaari wrote:
+> On 09/19/2012 01:22 AM, oliver@schinagl.nl wrote:
+>> From: Oliver Schinagl <oliver@schinagl.nl>
+>>
+>> This is initial support for the Asus MyCinema U3100Mini Plus. The driver
+>> in its current form gets detected and loads properly. It uses the
+>> af9035 USB Bridge chip, with an af9033 demodulator. The tuner used is
+>> the FCI FC2580.
+>>
+>> I have only done a quick dvb scan, but it failed to tune to anything.
+>> Using dvbv5-scan -I CHANNEL <channelfile> It did show 'signal 100%' but
+>> failed to tune to anything, so I don't think signal strength works at
+>> all. Since I have really bad reception where my dev PC is, I may simple
+>> not receive anything here.
+>
+> Signal strength is very worst indicator. It should not be 100% in any 
+> case. Switch off stupid % meter your are using and look plain numbers. 
+> It is should be something between 0-0xffff (0xffff == 100% ?).
+I know 100% says nothing :p and I think especially with this driver? I 
+didn't see the signal strength function implemented in the FC2580 (I 
+have some code for it, once I have the device actually working :) But 
+this is what dvbv5-scan reported.
 
-The attached patch includes updates to dvb-apps package for all
-satellites ranging from 12.5W to 28.5E. This patch replaces the few
-previous patches I send and adds several more sat positions.
+>
+> For me successful tzap reports (af9035 + tua9001):
+> status 1f | signal 5eb7 | snr 010e | ber 00000000 | unc 00000000 | 
+> FE_HAS_LOCK
+>
+> FE_HAS_LOCK is most important, it says demodulator is locked to 
+> channel and likely device is 100% working.
+I can't use tzap, as I can't scan for channel file. As I write this, I 
+remember that I may have one on another system so should be able to use 
+that to try tonight.
 
-Regards,
-Wojciech Myrda
+Furthermore, when checking debug while it's running a scan (either 
+dvbscan or dvbv5-scan) I notice that it passes the loop 5 times, but I 
+think that's normal from what I can tell from the code. Also 
+fc2580_get_if_frequency appears to be a stub, correct?
 
---------------070902030200030900080305
-Content-Type: text/x-patch;
- name="dvb_s_scan-12W-28E.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="dvb_s_scan-12W-28E.patch"
+>
+> Biggest problem of your patch is fc2580 frontend callback. fc2580 
+> driver does not use any callback and that code is simple dead. It is 
+> never called.
+Ah, assumption eh, I simply thought the callback is always used by the 
+driver. I noticed some tuners do have the callback, others do their init 
+just once. What's the cleanest solution, leave the code in the callback, 
+and call it from fc9035_tuner_attach? (As you otherwise get a huge 
+tuner_attach function). Anyway, why do some tuners have the callback and 
+others don't? I guess it's a design decision of the driver, but why 
+aren't they more equal?
+>
+> Otherwise it looks quite correct.
+I will fix the init, though I doubt it will change anything as it 
+appears the tuner is enabled per default.
+>
+> regards
+> Antti
+>
+>
+>> Signed-off-by: Oliver Schinagl <oliver@schinagl.nl>
+>> ---
+>>   drivers/media/dvb-core/dvb-usb-ids.h      |  1 +
+>>   drivers/media/dvb-frontends/af9033.c      |  4 +++
+>>   drivers/media/dvb-frontends/af9033.h      |  1 +
+>>   drivers/media/dvb-frontends/af9033_priv.h | 38 +++++++++++++++++++++++
+>>   drivers/media/tuners/fc2580.c             |  4 ++-
+>>   drivers/media/tuners/fc2580.h             | 10 +++++++
+>>   drivers/media/usb/dvb-usb-v2/Kconfig      |  1 +
+>>   drivers/media/usb/dvb-usb-v2/af9035.c     | 50 
+>> +++++++++++++++++++++++++++++++
+>>   drivers/media/usb/dvb-usb-v2/af9035.h     |  1 +
+>>   9 files changed, 109 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/dvb-core/dvb-usb-ids.h 
+>> b/drivers/media/dvb-core/dvb-usb-ids.h
+>> index d572307..58e0220 100644
+>> --- a/drivers/media/dvb-core/dvb-usb-ids.h
+>> +++ b/drivers/media/dvb-core/dvb-usb-ids.h
+>> @@ -329,6 +329,7 @@
+>>   #define USB_PID_ASUS_U3000                0x171f
+>>   #define USB_PID_ASUS_U3000H                0x1736
+>>   #define USB_PID_ASUS_U3100                0x173f
+>> +#define USB_PID_ASUS_U3100MINI_PLUS            0x1779
+>>   #define USB_PID_YUAN_EC372S                0x1edc
+>>   #define USB_PID_YUAN_STK7700PH                0x1f08
+>>   #define USB_PID_YUAN_PD378S                0x2edc
+>> diff --git a/drivers/media/dvb-frontends/af9033.c 
+>> b/drivers/media/dvb-frontends/af9033.c
+>> index 0979ada..b40f5a0 100644
+>> --- a/drivers/media/dvb-frontends/af9033.c
+>> +++ b/drivers/media/dvb-frontends/af9033.c
+>> @@ -314,6 +314,10 @@ static int af9033_init(struct dvb_frontend *fe)
+>>           len = ARRAY_SIZE(tuner_init_tda18218);
+>>           init = tuner_init_tda18218;
+>>           break;
+>> +    case AF9033_TUNER_FC2580:
+>> +        len = ARRAY_SIZE(tuner_init_fc2580);
+>> +        init = tuner_init_fc2580;
+>> +        break;
+>>       default:
+>>           dev_dbg(&state->i2c->dev, "%s: unsupported tuner ID=%d\n",
+>>                   __func__, state->cfg.tuner);
+>> diff --git a/drivers/media/dvb-frontends/af9033.h 
+>> b/drivers/media/dvb-frontends/af9033.h
+>> index 288622b..739137e 100644
+>> --- a/drivers/media/dvb-frontends/af9033.h
+>> +++ b/drivers/media/dvb-frontends/af9033.h
+>> @@ -42,6 +42,7 @@ struct af9033_config {
+>>   #define AF9033_TUNER_FC0011      0x28 /* Fitipower FC0011 */
+>>   #define AF9033_TUNER_MXL5007T    0xa0 /* MaxLinear MxL5007T */
+>>   #define AF9033_TUNER_TDA18218    0xa1 /* NXP TDA 18218HN */
+>> +#define AF9033_TUNER_FC2580      0x32 /* FIC FC2580 */
+>>       u8 tuner;
+>>
+>>       /*
+>> diff --git a/drivers/media/dvb-frontends/af9033_priv.h 
+>> b/drivers/media/dvb-frontends/af9033_priv.h
+>> index 0b783b9..d2c9ae6 100644
+>> --- a/drivers/media/dvb-frontends/af9033_priv.h
+>> +++ b/drivers/media/dvb-frontends/af9033_priv.h
+>> @@ -466,5 +466,43 @@ static const struct reg_val 
+>> tuner_init_tda18218[] = {
+>>       {0x80f1e6, 0x00},
+>>   };
+>>
+>> +/* FIC FC2580 tuner init
+>> +   AF9033_TUNER_FC2580      = 0x32 */
+>> +static const struct reg_val tuner_init_fc2580[] = {
+>> +    { 0x800046, AF9033_TUNER_FC2580 },
+>> +    { 0x800057, 0x01 },
+>> +    { 0x800058, 0x00 },
+>> +    { 0x80005f, 0x00 },
+>> +    { 0x800060, 0x00 },
+>> +    { 0x800071, 0x05 },
+>> +    { 0x800072, 0x02 },
+>> +    { 0x800074, 0x01 },
+>> +    { 0x800079, 0x01 },
+>> +    { 0x800093, 0x00 },
+>> +    { 0x800094, 0x00 },
+>> +    { 0x800095, 0x00 },
+>> +    { 0x800096, 0x05 },
+>> +    { 0x8000b3, 0x01 },
+>> +    { 0x8000c3, 0x01 },
+>> +    { 0x8000c4, 0x00 },
+>> +    { 0x80f007, 0x00 },
+>> +    { 0x80f00c, 0x19 },
+>> +    { 0x80f00d, 0x1A },
+>> +    { 0x80f00e, 0x00 },
+>> +    { 0x80f00f, 0x02 },
+>> +    { 0x80f010, 0x00 },
+>> +    { 0x80f011, 0x02 },
+>> +    { 0x80f012, 0x00 },
+>> +    { 0x80f013, 0x02 },
+>> +    { 0x80f014, 0x00 },
+>> +    { 0x80f015, 0x02 },
+>> +    { 0x80f01f, 0x96 },
+>> +    { 0x80f020, 0x00 },
+>> +    { 0x80f029, 0x96 },
+>> +    { 0x80f02a, 0x00 },
+>> +    { 0x80f077, 0x01 },
+>> +    { 0x80f1e6, 0x01 },
+>> +};
+>> +
+>>   #endif /* AF9033_PRIV_H */
+>>
+>> diff --git a/drivers/media/tuners/fc2580.c 
+>> b/drivers/media/tuners/fc2580.c
+>> index afc0491..4e7c802 100644
+>> --- a/drivers/media/tuners/fc2580.c
+>> +++ b/drivers/media/tuners/fc2580.c
+>> @@ -498,8 +498,10 @@ struct dvb_frontend *fc2580_attach(struct 
+>> dvb_frontend *fe,
+>>
+>>       dev_dbg(&priv->i2c->dev, "%s: chip_id=%02x\n", __func__, chip_id);
+>>
+>> -    if (chip_id != 0x56)
+>> +    if ((chip_id != 0x56) && (chip_id != 0x5a)) {
+>>           goto err;
+>> +    }
+>> +
+>>
+>>       dev_info(&priv->i2c->dev,
+>>               "%s: FCI FC2580 successfully identified\n",
+>> diff --git a/drivers/media/tuners/fc2580.h 
+>> b/drivers/media/tuners/fc2580.h
+>> index 222601e..952513d 100644
+>> --- a/drivers/media/tuners/fc2580.h
+>> +++ b/drivers/media/tuners/fc2580.h
+>> @@ -36,6 +36,16 @@ struct fc2580_config {
+>>       u32 clock;
+>>   };
+>>
+>> +/** enum fc2580_fe_callback_commands - Frontend callbacks
+>> + *
+>> + * @FC2580_FE_CALLBACK_POWER: Power on tuner hardware.
+>> + */
+>> +enum fc2580_fe_callback_commands {
+>> +    FC2580_FE_CALLBACK_POWER,
+>> +};
+>> +
+>> +
+>> +
+>>   #if defined(CONFIG_MEDIA_TUNER_FC2580) || \
+>>       (defined(CONFIG_MEDIA_TUNER_FC2580_MODULE) && defined(MODULE))
+>>   extern struct dvb_frontend *fc2580_attach(struct dvb_frontend *fe,
+>> diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig 
+>> b/drivers/media/usb/dvb-usb-v2/Kconfig
+>> index e09930c..834bfec 100644
+>> --- a/drivers/media/usb/dvb-usb-v2/Kconfig
+>> +++ b/drivers/media/usb/dvb-usb-v2/Kconfig
+>> @@ -40,6 +40,7 @@ config DVB_USB_AF9035
+>>       select MEDIA_TUNER_FC0011 if MEDIA_SUBDRV_AUTOSELECT
+>>       select MEDIA_TUNER_MXL5007T if MEDIA_SUBDRV_AUTOSELECT
+>>       select MEDIA_TUNER_TDA18218 if MEDIA_SUBDRV_AUTOSELECT
+>> +    select MEDIA_TUNER_FC2580 if MEDIA_SUBDRV_AUTOSELECT
+>>       help
+>>         Say Y here to support the Afatech AF9035 based DVB USB receiver.
+>>
+>> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c 
+>> b/drivers/media/usb/dvb-usb-v2/af9035.c
+>> index 89cc901..f6ca30e 100644
+>> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
+>> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+>> @@ -513,6 +513,7 @@ static int af9035_read_config(struct 
+>> dvb_usb_device *d)
+>>           case AF9033_TUNER_FC0011:
+>>           case AF9033_TUNER_MXL5007T:
+>>           case AF9033_TUNER_TDA18218:
+>> +        case AF9033_TUNER_FC2580:
+>>               state->af9033_config[i].spec_inv = 1;
+>>               break;
+>>           default:
+>> @@ -648,6 +649,41 @@ err:
+>>       return ret;
+>>   }
+>>
+>> +static int af9035_fc2580_tuner_callback(struct dvb_usb_device *d,
+>> +        int cmd, int arg)
+>> +{
+>> +    int ret;
+>> +
+>> +    switch (cmd) {
+>> +    case FC2580_FE_CALLBACK_POWER:
+>> +        /* Tuner enable */
+>> +        ret = af9035_wr_reg_mask(d, 0xd8eb, 1, 1);
+>> +        if (ret < 0)
+>> +            goto err;
+>> +
+>> +        ret = af9035_wr_reg_mask(d, 0xd8ec, 1, 1);
+>> +        if (ret < 0)
+>> +            goto err;
+>> +
+>> +        ret = af9035_wr_reg_mask(d, 0xd8ed, 1, 1);
+>> +        if (ret < 0)
+>> +            goto err;
+>> +
+>> +        usleep_range(10000, 50000);
+>> +        break;
+>> +    default:
+>> +        ret = -EINVAL;
+>> +        goto err;
+>> +    }
+>> +
+>> +    return 0;
+>> +
+>> +err:
+>> +    dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+>> +
+>> +    return ret;
+>> +}
+>> +
+>>   static int af9035_tuner_callback(struct dvb_usb_device *d, int cmd, 
+>> int arg)
+>>   {
+>>       struct state *state = d_to_priv(d);
+>> @@ -655,6 +691,8 @@ static int af9035_tuner_callback(struct 
+>> dvb_usb_device *d, int cmd, int arg)
+>>       switch (state->af9033_config[0].tuner) {
+>>       case AF9033_TUNER_FC0011:
+>>           return af9035_fc0011_tuner_callback(d, cmd, arg);
+>> +    case AF9033_TUNER_FC2580:
+>> +        return af9035_fc2580_tuner_callback(d, cmd, arg);
+>>       default:
+>>           break;
+>>       }
+>> @@ -750,6 +788,11 @@ static struct tda18218_config 
+>> af9035_tda18218_config = {
+>>       .i2c_wr_max = 21,
+>>   };
+>>
+>> +static struct fc2580_config af9035_fc2580_config = {
+>> +    .i2c_addr = 0x56,
+>> +    .clock = 16384000,
+>> +};
+>> +
+>>   static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
+>>   {
+>>       struct state *state = adap_to_priv(adap);
+>> @@ -851,6 +894,11 @@ static int af9035_tuner_attach(struct 
+>> dvb_usb_adapter *adap)
+>>           fe = dvb_attach(tda18218_attach, adap->fe[0],
+>>                   &d->i2c_adap, &af9035_tda18218_config);
+>>           break;
+>> +    case AF9033_TUNER_FC2580:
+>> +        /* attach tuner */
+>> +        fe = dvb_attach(fc2580_attach, adap->fe[0],
+>> +                &d->i2c_adap, &af9035_fc2580_config);
+>> +        break;
+>>       default:
+>>           fe = NULL;
+>>       }
+>> @@ -1075,6 +1123,8 @@ static const struct usb_device_id 
+>> af9035_id_table[] = {
+>>           &af9035_props, "AVerMedia HD Volar (A867)", NULL) },
+>>       { DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_TWINSTAR,
+>>           &af9035_props, "AVerMedia Twinstar (A825)", NULL) },
+>> +    { DVB_USB_DEVICE(USB_VID_ASUS, USB_PID_ASUS_U3100MINI_PLUS,
+>> +        &af9035_props, "Asus U3100Mini Plus", NULL) },
+>>       { }
+>>   };
+>>   MODULE_DEVICE_TABLE(usb, af9035_id_table);
+>> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h 
+>> b/drivers/media/usb/dvb-usb-v2/af9035.h
+>> index de8e761..75ef1ec 100644
+>> --- a/drivers/media/usb/dvb-usb-v2/af9035.h
+>> +++ b/drivers/media/usb/dvb-usb-v2/af9035.h
+>> @@ -28,6 +28,7 @@
+>>   #include "fc0011.h"
+>>   #include "mxl5007t.h"
+>>   #include "tda18218.h"
+>> +#include "fc2580.h"
+>>
+>>   struct reg_val {
+>>       u32 reg;
+>>
+>
+>
 
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Amos-4w dvb-apps/util/scan/dvb-s/Amos-4w
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Amos-4w	2012-09-13 14:36:09.000000000 +0200
-+++ dvb-apps/util/scan/dvb-s/Amos-4w	2012-09-22 09:51:09.867227015 +0200
-@@ -1,48 +1,37 @@
--# Amos 6 @ 4W
-+# Amos 2,3 @ 4W
-+# http://en.kingofsat.net/pos-4W.php
-+# 2012-Sep-21
- # freq pol sr fec
- S 10722000 H 27500000 3/4
--S 10722000 V 27500000 3/4
--S 10722000 V 30000000 2/3
--S 10758000 V 27500000 3/4
--S 10758000 V 30000000 2/3
-+S2 10723000 V 30000000 2/3 AUTO 8PSK
- S 10759000 H 30000000 3/4
--S 10806000 H 27500000 5/6
--S 10806000 V 27500000 3/4
--S 10842000 H 27500000 7/8
--S 10842000 V 27500000 3/4
--S 10842000 V 30000000 2/3
--S 10890000 H 27500000 7/8
--S 10890000 V 27500000 3/4
--S 10925000 H 27500000 7/8
--S 10925000 V 27500000 3/4
--S 10972000 V 27500000 3/4
--S 11008000 V 27500000 3/4
--S 11015000 H 2295000 3/4
--S 11123000 H 1850000 7/8
--S 11167000 H 12500000 5/6
--S 11179000 H 6666000 3/4
--S 11260000 H 27500000 3/4
--S 11304000 H 19540000 3/4
--S 11319000 H 2750000 3/4
--S 11329000 H 3333000 3/4
--S 11333000 H 3500000 3/4
--S 11347000 H 3350000 3/4
--S 11384000 H 19000000 5/6
--S 11411000 H 7925000 5/6
--S 11429000 H 5925000 3/4
--S 11435000 H 2089000 3/4
--S 11474000 V 27500000 3/4
--S 11510000 V 30000000 2/3
--S 11558000 V 27500000 3/4
--S 11559000 H 13400000 7/8
--S 11572000 H 8888000 3/4
--S 11592000 H 21350000 3/4
--S 11593000 V 27500000 3/4
--S 11625000 V 3000000 3/4
--S 11630000 H 2963000 3/4
--S 11630000 V 3000000 3/4
--S 11637000 V 1480000 3/4
--S 11647000 H 9167000 3/4
--S 11647000 V 8518000 3/4
--S 11654000 H 2000000 5/6
--S 11658000 V 8520000 5/6
-+S2 10759000 V 30000000 2/3 AUTO 8PSK
-+S 10806000 H 30000000 3/4
-+S2 10806000 V 30000000 2/3 AUTO 8PSK
-+# PowerVu encrypted Channels
-+#S 10842000 H 27500000 5/6
-+S2 10842000 V 30000000 2/3 AUTO 8PSK
-+# PowerVu encrypted Channels
-+#S2 10880000 H 13910000 3/4 AUTO 8PSK
-+S2 10889000 V 30000000 2/3 AUTO 8PSK
-+# PowerVu encrypted Channels
-+#S 10893000 H 7925000 5/6
-+S2 10925000 V 10833000 2/3 AUTO 8PSK
-+S 11149000 H 3500000 3/4
-+S 11157000 H 2222000 3/4
-+S2 11162000 H 3330000 2/3 AUTO 8PSK
-+S 11181000 H 5650000 3/4
-+S 11186000 H 3350000 5/6
-+S 11222000 H 30000000 5/6
-+S 11258000 H 27500000 5/6
-+S 11304000 H 13333000 3/4
-+S2 11314000 H 5000000 2/3 AUTO 8PSK
-+S 11336000 H 27500000 5/6
-+S 11389000 H 27500000 3/4
-+S 11543000 H 3700000 3/4
-+S 11572000 H 8887000 3/4
-+S2 11587000 H 10833000 2/3 AUTO 8PSK
-+S 11601000 H 10000000 3/4
-+S 11610000 H 3600000 3/4
-+S 11629000 H 2400000 5/6
-+S 11635000 H 6333000 3/4
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Astra1-28.2E dvb-apps/util/scan/dvb-s/Astra1-28.2E
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Astra1-28.2E	1970-01-01 01:00:00.000000000 +0100
-+++ dvb-apps/util/scan/dvb-s/Astra1-28.2E	2012-09-22 09:55:51.448413696 +0200
-@@ -0,0 +1,25 @@
-+# Astra 1N @ 28.2E
-+# UK Spot Beam
-+# http://en.kingofsat.net/sat-astra1n.php
-+# 2012-Sep-22
-+# freq pol sr fec
-+S 10714000 H 22000000 5/6
-+S 10729000 V 22000000 5/6
-+S 10744000 H 22000000 5/6
-+S 10758000 V 22000000 5/6
-+S 10773000 H 22000000 5/6
-+S 10788000 V 22000000 5/6
-+S 10803000 H 22000000 5/6
-+S 10818000 V 22000000 5/6
-+S 10832000 H 22000000 5/6
-+S2 10847000 V 23000000 8/9
-+S 10862000 H 22000000 5/6
-+S 10876000 V 22000000 5/6
-+S 10891000 H 22000000 5/6
-+S 10906000 V 22000000 5/6
-+S2 10921000 H 23000000 8/9
-+S2 10936000 V 23000000 8/9
-+S 10964000 H 22000000 5/6
-+S 10994000 H 22000000 5/6
-+S 11053000 H 22000000 5/6
-+S 11127000 V 22000000 5/6
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Astra-19.2E dvb-apps/util/scan/dvb-s/Astra-19.2E
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Astra-19.2E	2012-09-13 14:36:09.000000000 +0200
-+++ dvb-apps/util/scan/dvb-s/Astra-19.2E	2012-09-22 09:51:40.299248874 +0200
-@@ -1,3 +1,107 @@
--# Astra 19.2E SDT info service transponder
-+# Astra @ 19.2E
-+# http://en.kingofsat.net/pos-19.2E.php
-+# 2012-Sep-21
- # freq pol sr fec
-+S2 10729000 V 22000000 2/3 AUTO 8PSK
-+S 10744000 H 22000000 5/6
-+S 10758500 V 22000000 5/6
-+S2 10773000 H 22000000 3/4 AUTO 8PSK
-+S 10788000 V 22000000 5/6
-+S2 10803000 H 22000000 3/4 AUTO 8PSK
-+S2 10817500 V 22000000 2/3 AUTO 8PSK
-+S2 10832000 H 22000000 2/3 AUTO 8PSK
-+S 10847000 V 22000000 5/6
-+S 10862000 H 22000000 7/8
-+S 10876500 V 22000000 5/6
-+S 10921000 H 22000000 7/8
-+S2 10935500 V 22000000 2/3 AUTO 8PSK
-+S 10979000 V 22000000 5/6
-+S 11023000 H 22000000 5/6
-+S 11038000 V 22000000 5/6
-+S 11067500 V 22000000 5/6
-+S 11097000 V 22000000 5/6
-+S2 11126500 V 22000000 2/3 AUTO 8PSK
-+S 11156000 V 22000000 5/6
-+S2 11171000 H 22000000 2/3
-+S 11185500 V 22000000 5/6
-+S 11244000 H 22000000 5/6
-+S2 11258500 V 22000000 2/3 AUTO 8PSK
-+S 11303000 H 22000000 2/3
-+S 11317500 V 22000000 5/6
-+S2 11347000 V 22000000 2/3 AUTO 8PSK
-+S2 11362000 H 22000000 2/3 AUTO 8PSK
-+S2 11376500 V 22000000 2/3 AUTO 8PSK
-+S 11421000 H 22000000 5/6
-+S2 11435500 V 22000000 2/3 AUTO 8PSK
-+S2 11464000 H 22000000 2/3 AUTO 8PSK
-+S 11479000 V 22000000 5/6
-+S2 11494000 H 22000000 2/3 AUTO 8PSK
-+S 11508500 V 22000000 5/6
-+S 11523000 H 22000000 5/6
-+S 11538000 V 22000000 5/6
-+S 11567500 V 22000000 5/6
-+S2 11582000 H 22000000 2/3 AUTO 8PSK
-+S 11597000 V 22000000 5/6
-+S 11612000 H 22000000 5/6
-+S2 11626500 V 22000000 2/3 AUTO 8PSK
-+S2 11641000 H 22000000 3/4 AUTO 8PSK
-+# Test
-+#S 11656000 V 22000000 Auto
-+S2 11671000 H 22000000 2/3 AUTO 8PSK
-+S 11685500 V 22000000 5/6
-+S 11719500 H 27500000 3/4
-+S 11739000 V 27500000 3/4
-+S 11758500 H 27500000 3/4
-+S 11778000 V 27500000 3/4
-+S 11797500 H 27500000 3/4
-+S 11817000 V 27500000 3/4
-+S 11836500 H 27500000 3/4
-+S 11856000 V 27500000 3/4
-+S 11875500 H 27500000 9/10 AUTO QPSK
-+S 11895000 V 27500000 3/4
-+S 11914500 H 27500000 3/4
-+S 11934000 V 27500000 3/4
-+S 11953500 H 27500000 3/4
-+S 11973000 V 27500000 3/4
-+S2 11992500 H 27500000 9/10 AUTO QPSK
-+S2 12012000 V 29700000 2/3 AUTO QPSK
-+S 12031500 H 27500000 3/4
-+S 12051000 V 27500000 3/4
-+S 12070500 H 27500000 3/4
-+S 12090000 V 27500000 3/4
-+S 12109500 H 27500000 3/4
-+S 12129000 V 27500000 3/4
-+S 12148500 H 27500000 3/4
-+S2 12168000 V 29700000 2/3 AUTO 8PSK
-+S 12187500 H 27500000 3/4
-+S2 12207000 V 29700000 2/3 AUTO 8PSK
-+S 12226500 H 27500000 3/4
-+S2 12246000 V 29700000 2/3 AUTO 8PSK
-+S 12265500 H 27500000 3/4
-+S 12285000 V 27500000 3/4
-+S2 12304500 H 27500000 9/10 AUTO QPSK
-+S 12324000 V 27500000 3/4
-+S 12343500 H 27500000 3/4
-+S 12363000 V 27500000 3/4
-+S2 12382500 H 27500000 9/10 AUTO QPSK
-+S 12402000 V 27500000 3/4
-+S 12421500 H 27500000 3/4
-+S2 12441000 V 29700000 2/3 AUTO 8PSK
-+S 12460500 H 27500000 3/4
-+S 12480000 V 27500000 3/4
-+S 12515000 H 22000000 5/6
-+S 12522000 V 22000000 5/6
-+S 12545000 H 22000000 5/6
- S 12551500 V 22000000 5/6
-+S2 12574000 H 22000000 2/3 AUTO 8PSK
-+S 12581000 V 22000000 5/6
-+S 12604000 H 22000000 5/6
-+S 12610500 V 22000000 5/6
-+S 12633000 H 22000000 5/6
-+S 12640000 V 22000000 5/6
-+S 12663000 H 22000000 5/6
-+S2 12669500 V 22000000 2/3 AUTO 8PSK
-+S 12692000 H 22000000 5/6
-+S 12699000 V 22000000 5/6
-+S 12722000 H 22000000 5/6
-+S 12728500 V 22000000 5/6
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Astra2-28.2E dvb-apps/util/scan/dvb-s/Astra2-28.2E
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Astra2-28.2E	1970-01-01 01:00:00.000000000 +0100
-+++ dvb-apps/util/scan/dvb-s/Astra2-28.2E	2012-09-22 09:50:43.963209261 +0200
-@@ -0,0 +1,51 @@
-+# Astra 2A,B @ 28.2E
-+# http://en.kingofsat.net/sat-astra2a.php
-+# http://en.kingofsat.net/sat-astra2b.php
-+# 2012-Sep-22
-+# freq pol sr fec
-+
-+## Astra 2A
-+S 11719500 H 29500000 3/4
-+S2 11740000 V 29500000 3/4 AUTO QPSK
-+S2 11758000 H 29500000 3/4
-+# Test & Data
-+#S 11778000 V 27500000 2/3
-+S2 11798000 H 29500000 3/4 AUTO QPSK
-+S 11817000 V 27500000 2/3
-+S 11836000 H 27500000 2/3
-+S2 11856000 V 29500000 3/4 AUTO QPSK
-+S 11876000 H 27500000 2/3
-+S 11895000 V 27500000 2/3
-+#S2 11914000 H 29500000 3/4 AUTO QPSK
-+S 11934000 V 27500000 2/3
-+S 11954000 H 27500000 2/3
-+S 12051000 V 27500000 2/3
-+#S2 12129000 V 29500000 3/4 AUTO QPSK
-+S 12148000 H 27500000 2/3
-+S2 12168000 V 29500000 3/4 AUTO QPSK
-+S2 12226000 H 29500000 3/4 AUTO QPSK
-+S2 12246000 V 29500000 3/4 AUTO QPSK
-+#S2 12422000 H 29500000 3/4 AUTO QPSK
-+S 12480000 V 27500000 2/3
-+
-+## Astra 2B
-+S 11973000 V 27500000 2/3
-+S 11992000 H 27500000 2/3
-+S2 12012000 V 29500000 3/4 AUTO QPSK
-+S 12032000 H 27500000 2/3
-+# Test & Data
-+#S 12070000 H 27500000 2/3
-+S2 12090000 V 29500000 3/4 AUTO QPSK
-+S 12110000 H 27500000 2/3
-+S2 12188000 H 29500000 3/4 AUTO QPSK
-+S 12207000 V 27500000 2/3
-+S2 12266000 H 29500000 3/4 AUTO QPSK
-+S 12285000 V 27500000 2/3
-+S2 12304000 H 29500000 3/4 AUTO QPSK
-+S2 12324000 V 29500000 3/4 AUTO QPSK
-+S2 12344000 H 29500000 3/4 AUTO QPSK
-+S2 12363000 V 29500000 3/4 AUTO QPSK
-+S2 12382000 H 29500000 3/4 AUTO QPSK
-+#S2 12402000 V 29500000 3/4 AUTO QPSK
-+S2 12441000 V 29500000 3/4 AUTO QPSK
-+S2 12460000 H 29500000 3/4 AUTO QPSK
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Astra-23.5E dvb-apps/util/scan/dvb-s/Astra-23.5E
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Astra-23.5E	2012-09-13 14:36:09.000000000 +0200
-+++ dvb-apps/util/scan/dvb-s/Astra-23.5E	2012-09-22 09:51:57.978260971 +0200
-@@ -1,66 +1,44 @@
--# Astra 23.5E
-+# Astra 3A,B @ 23.5E
-+# http://en.kingofsat.net/pos-23.5E.php
-+# 2012-Sep-21
- # freq pol sr fec
--S 10758000 V 22000000 7/8
--S 10788000 V 22000000 5/6
--S 10802000 H 22000000 5/6
--S 10842000 V 13333000 5/6
--S 10862000 H 22000000 5/6
--# Astra2Connect
--# S2 10891250 H 22000000 3/4 AUTO 8PSK
--S 11475000 V 27500000 3/4
--S 11515000 H 27500000 3/4
--S2 11515000 V 28500000 9/10 AUTO QPSK
--S2 11555000 H 28500000 9/10 AUTO QPSK
--S2 11555000 V 28500000 9/10 AUTO QPSK
--S2 11592000 V 28500000 9/10 AUTO QPSK
--S2 11595000 H 28500000 9/10 AUTO QPSK
--S2 11635000 H 28500000 9/10 AUTO QPSK
--S2 11635000 V 28500000 9/10 AUTO QPSK
--S 11675000 H 27500000 3/4
--S2 11675000 V 28500000 9/10 AUTO QPSK
--S2 11719000 H 27500000 9/10 AUTO QPSK
--S 11739000 V 27500000 3/4
--# Astra2Connect
--# S2 11758000 H 27500000 5/6 AUTO 8PSK
-+S2 11739000 V 27500000 2/3 AUTO 8PSK
- S2 11778000 V 27500000 9/10 AUTO QPSK
--S 11798000 H 27500000 3/4
--S2 11817000 V 27500000 9/10 AUTO QPSK
--S 11836000 H 29900000 3/4
-+S2 11798000 H 27500000 3/4 AUTO 8PSK
-+S2 11817000 V 27500000 5/6 AUTO 8PSK
-+S 11836500 H 27500000 5/6
- S2 11856000 V 27500000 5/6 AUTO QPSK
--S 11875000 H 27500000 3/4
-+S 11875000 H 27500000 5/6
-+S 11895000 V 27500000 5/6
- S 11914000 H 27500000 3/4
-+S2 11934000 V 27500000 3/4 AUTO 8PSK
- # Astra2Connect
--# S2 11954000 H 27500000 3/4 AUTO 8PSK
--S 11992000 H 27500000 3/4
--S 12012000 V 27500000 3/4
-+#S2 11954000 H 27500000 5/6 AUTO 8PSK
-+S 11973000 V 27500000 5/6
- S2 12032000 H 27500000 9/10 AUTO QPSK
-+S2 12051000 V 27500000 3/4 AUTO 8PSK
- S 12070000 H 27500000 3/4
--S2 12109000 H 27500000 9/10 AUTO QPSK
-+S2 12109000 H 27500000 3/4 AUTO 8PSK
-+S2 12129000 V 27500000 2/3 AUTO 8PSK
- # Astra2Connect
--# S2 12148000 H 27500000 3/4 AUTO 8PSK
-+#S2 12148000 H 27500000 3/4 AUTO 8PSK
- S 12168000 V 27500000 3/4
-+S2 12187000 H 27500000 5/6 AUTO QPSK
-+S2 12207000 V 27500000 3/4 AUTO 8PSK
-+# Astra2Connect
-+#S2 12265000 H 28200000 5/6 AUTO 8PSK
- # Astra2Connect
--# S2 12226000 H 27500000 3/5 AUTO 8PSK
-+#S2 12304000 H 27500000 5/6 AUTO 8PSK
- # Astra2Connect
--# S2 12304000 H 27500000 5/6 AUTO 8PSK
-+#S2 12344000 H 27500000 5/6 AUTO 8PSK
- # Astra2Connect
--# S2 12344000 H 28200000 5/6 AUTO 8PSK
-+#S2 12382000 H 30000000 8/9 AUTO 8PSK
- # Astra2Connect
--# S2 12382000 H 27500000 3/4 AUTO 8PSK
--S 12525000 H 27500000 3/4
-+#S 12525000 H 27500000 5/6
- S 12525000 V 27500000 3/4
--S 12565000 H 27500000 2/3
--S 12565000 V 27500000 3/4
--S2 12605000 H 28500000 9/10 AUTO QPSK
--S2 12605000 V 28500000 9/10 AUTO QPSK
--S 12630000 V 6000000 3/4
--S 12631000 H 6666000 7/8
--S 12636000 V 2277000 5/6
--S 12641000 H 2220000 7/8
--S 12644000 H 2170000 3/4
--S 12649000 H 5600000 5/6
--S 12661000 H 2170000 5/6
--S 12685000 V 27500000 3/4
--S 12696000 H 3255000 1/2
--S 12711000 H 6111000 AUTO
--S 12725000 V 27500000 3/4
-+# Astra2Connect
-+#S2 12645000 H 30000000 8/9 AUTO 8PSK
-+# Astra2Connect
-+#S2 12685000 H 30000000 8/9 AUTO 8PSK
-+# Astra2Connect
-+#S2 12725000 H 30000000 8/9 AUTO 8PSK
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Astra-28.2E dvb-apps/util/scan/dvb-s/Astra-28.2E
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Astra-28.2E	2012-09-13 14:36:09.000000000 +0200
-+++ dvb-apps/util/scan/dvb-s/Astra-28.2E	1970-01-01 01:00:00.000000000 +0100
-@@ -1,186 +0,0 @@
--# Astra 28.2E SDT info service transponder
--# freq pol sr fec
--
--## Astra 2A
--# Transponder 1
--S 11720000 H 29500000 3/4
--# Transponder 2
--S 11740000 V 27500000 2/3
--# Transponder 3
--S 11758000 H 27500000 2/3
--# Transponder 4
--S 11778000 V 27500000 2/3
--# Transponder 5
--S 11798000 H 29500000 3/4
--# Transponder 6
--S 11817000 V 27500000 2/3
--# Transponder 7
--S 11836000 H 27500000 2/3
--# Transponder 8
--S 11856000 V 27500000 2/3
--# Transponder 9
--S 11876000 H 27500000 2/3
--# Transponder 10
--S 11895000 V 27500000 2/3
--# Transponder 11
--S 11914000 H 27500000 2/3
--# Transponder 12
--S 11934000 V 27500000 2/3
--# Transponder 13
--S 11954000 H 27500000 2/3
--# Transponder 18
--S 12051000 V 27500000 2/3
--# Transponder 22
--S 12129000 V 27500000 2/3
--# Transponder 23
--S 12148000 H 27500000 2/3
--# Transponder 24
--S 12168000 V 27500000 2/3
--# Transponder 27
--S 12226000 H 27500000 2/3
--# Transponder 28
--S 12246000 V 27500000 2/3
--# Transponder 37
--S 12422000 H 27500000 2/3
--# Transponder 40
--S 12480000 V 27500000 2/3
--
--## Astra 2B
--# Transponder 14
--S 11973000 V 27500000 2/3
--# Transponder 15
--S 11992000 H 27500000 2/3
--# Transponder 16
--S 12012000 V 27500000 2/3
--# Transponder 17
--S 12032000 H 27500000 2/3
--# Transponder 19
--S 12070000 H 27500000 2/3
--# Transponder 20
--S 12090000 V 27500000 2/3
--# Transponder 21
--S 12110000 H 27500000 2/3
--# Transponder 25
--S 12188000 H 27500000 2/3
--# Transponder 26
--S 12207000 V 27500000 2/3
--# Transponder 29
--S 12266000 H 27500000 2/3
--# Transponder 30
--S 12285000 V 27500000 2/3
--# Transponder 31
--S 12304000 H 27500000 2/3
--# Transponder 32
--S 12324000 V 29500000 3/4
--# Transponder 33
--S 12344000 H 29500000 3/4
--# Transponder 34
--S 12363000 V 29500000 3/4
--# Transponder 35
--S 12382000 H 27500000 2/3
--# Transponder 36
--S 12402000 V 27500000 2/3
--# Transponder 38
--S 12441000 V 27500000 2/3
--# Transponder 39
--S 12460000 H 27500000 2/3
--
--## Astra 2D
--# Transponder 41
--S 10714000 H 22000000 5/6
--# Transponder 42
--S 10729000 V 22000000 5/6
--# Transponder 43
--S 10744000 H 22000000 5/6
--# Transponder 44
--S 10758000 V 22000000 5/6
--# Transponder 45
--S 10773000 H 22000000 5/6
--# Transponder 46
--S 10788000 V 22000000 5/6
--# Transponder 47
--S 10803000 H 22000000 5/6
--# Transponder 48
--S 10818000 V 22000000 5/6
--# Transponder 49
--S 10832000 H 22000000 5/6
--# Transponder 50
--S 10847000 V 22000000 5/6
--# Transponder 51
--S 10862000 H 22000000 5/6
--# Transponder 52
--S 10876000 V 22000000 5/6
--# Transponder 53
--S 10891000 H 22000000 5/6
--# Transponder 54
--S 10906000 V 22000000 5/6
--# Transponder 55
--S 10921000 H 22000000 5/6
--# Transponder 56
--S 10936000 V 22000000 5/6
--
--## Eurobird 1
--# Transponder C1
--S 11222170 H 27500000 2/3
--# Transponder C2
--S 11223670 V 27500000 2/3
--# Transponder C2
--S 11259000 V 27500000 2/3
--# Transponder C1
--S 11261000 H 27500000 2/3
--# Transponder C3
--S 11307000 H 27500000 2/3
--# Transponder C4
--S 11307000 V 27500000 2/3
--# Transponder C4
--S 11343000 V 27500000 2/3
--# Transponder C3
--S 11344000 H 27500000 2/3
--# Transponder C5
--S 11390000 H 27500000 2/3
--# Transponder C6
--S 11390000 V 27500000 2/3
--# Transponder C5
--S 11426000 H 27500000 2/3
--# Transponder C6
--S 11426000 V 27500000 2/3
--# Transponder D1
--S 11469000 H 27500000 2/3
--# Transponder D2S
--S 11488000 V 27500000 2/3
--# Transponder D3S
--S 11508000 H 27500000 2/3
--# Transponder D4S
--S 11527000 V 27500000 2/3
--# Transponder D5
--S 11546000 H 27500000 2/3
--# Transponder D6
--S 11565000 V 27500000 2/3
--# Transponder D7
--S 11585000 H 27500000 2/3
--# Transponder D8
--S 11603850 V 27500000 2/3
--# Transponder D9
--S 11623000 H 27500000 2/3
--# Transponder D10
--S 11642000 V 27500000 2/3
--# Transponder D11
--S 11661540 H 27500000 2/3
--# Transponder D12
--S 11680770 V 27500000 2/3
--# Transponder F1
--S 12524000 H 27500000 2/3
--# Transponder F2
--S 12524000 V 27500000 2/3
--# Transponder F1
--S 12560000 H 27500000 2/3
--# Transponder F2
--S 12560000 V 27500000 2/3
--# Transponder F4
--S 12596000 V 27500000 2/3
--# Transponder F3
--S 12607000 H 27500000 3/4
--# Transponder F4
--S 12629000 V 6111000 3/4
--# Transponder F5
--S 12692000 V 19532000 1/2
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Atlantic-Bird-1-12.5W dvb-apps/util/scan/dvb-s/Atlantic-Bird-1-12.5W
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Atlantic-Bird-1-12.5W	2012-09-13 14:36:09.000000000 +0200
-+++ dvb-apps/util/scan/dvb-s/Atlantic-Bird-1-12.5W	1970-01-01 01:00:00.000000000 +0100
-@@ -1,30 +0,0 @@
--# Atlantic Bird 1 @ 12.5W
--# freq pol sr fec
--S 11099000 H 2000000 5/6
--S 11132000 H 3255000 3/4
--S 11136000 V 3700000 5/6
--S 11174000 H 15190000 3/4
--S 11179000 V 22400000 2/3
--S 11188000 H 5722000 5/6
--S 11332000 H 6428000 2/3
--S 11337000 H 1923000 7/8
--S 11340000 H 2279000 5/6
--S 11355000 H 11781000 7/8
--S 11408000 V 27500000 3/4
--S 11428000 H 30000000 5/6
--S 11595000 V 27500000 5/6
--S 11622000 H 3255000 AUTO
--S 11643000 H 2398000 AUTO
--S 11645000 V 4790000 AUTO
--S 11651000 V 3688000 AUTO
--S 12515000 H 17455000 3/4
--S 12535000 V 2000000 3/4
--S 12545000 H 17455000 3/4
--S 12594000 H 2170000 3/4
--S 12597000 H 1730000 3/4
--S 12604000 H 1481000 3/4
--S 12655000 H 4285000 3/4
--S 12659000 H 2141000 3/4
--S 12662000 V 3928000 3/4
--S 12720000 V 1808000 3/4
--S 12743000 V 3214000 3/4
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Atlantic-Bird-3-5.0W dvb-apps/util/scan/dvb-s/Atlantic-Bird-3-5.0W
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Atlantic-Bird-3-5.0W	2012-09-13 14:36:09.000000000 +0200
-+++ dvb-apps/util/scan/dvb-s/Atlantic-Bird-3-5.0W	1970-01-01 01:00:00.000000000 +0100
-@@ -1,4 +0,0 @@
--# Atlantic Bird 3 @ 5.0W
--# freq pol sr fec
--S 11096000 V 29950000 7/8
--S 11591000 V 20000000 2/3
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Bard-26.0E dvb-apps/util/scan/dvb-s/Bard-26.0E
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Bard-26.0E	1970-01-01 01:00:00.000000000 +0100
-+++ dvb-apps/util/scan/dvb-s/Bard-26.0E	2012-09-22 09:55:11.129389616 +0200
-@@ -0,0 +1,49 @@
-+# Bard 4,5,6 @ 26.0E
-+# http://en.kingofsat.net/pos-26E.php
-+# 2012-Sep-21
-+# freq pol sr fec
-+S 10730000 H 27500000 3/4
-+S 10730000 V 27500000 3/4
-+S 10770000 V 27500000 3/4
-+S 11537000 V 296000 3/4
-+S 11727000 H 27500000 3/4
-+S 11747000 V 27495000 3/4
-+S2 11766000 H 27500000 5/6 AUTO QPSK
-+S 11785000 V 27500000 3/4
-+S 11804000 H 27500000 3/4
-+S2 11823000 V 27500000 5/6 AUTO QPSK
-+S 11843000 H 27500000 3/4
-+S 11862000 V 27500000 3/4
-+S 11919000 H 27500000 3/4
-+S 11938000 V 27500000 3/4
-+S 11958000 H 27500000 3/4
-+S 11977000 V 27500000 3/4
-+S 11966000 H 27500000 3/4
-+S 12015000 V 27500000 3/4
-+S 12034000 H 27500000 3/4
-+S 12054000 V 27500000 3/4
-+S 12073000 H 27500000 3/4
-+S 12092000 V 27500000 3/4
-+S 12111000 H 27500000 3/4
-+S 12130000 V 27500000 3/4
-+S2 12149000 H 27500000 5/6 AUTO QPSK
-+S2 12169000 V 22000000 3/4 AUTO QPSK
-+S 12182000 H 16200000 3/4
-+S 12207000 V 27500000 3/4
-+S 12226000 H 27500000 3/4
-+S 12245000 V 27500000 3/4
-+S 12341000 H 27500000 3/4
-+S 12380000 H 27500000 3/4
-+S 12399000 V 27500000 3/4
-+S 12419000 H 27500000 3/4
-+S 12437000 V 27500000 3/4
-+S 12455000 H 27500000 3/4
-+S 12476000 V 27500000 3/4
-+S2 12522000 V 27500000 5/6 AUTO QPSK
-+S 12524000 H 27500000 3/4
-+S 12540000 V 3000000 3/4
-+S 12598000 H 2960000 3/4
-+S2 12605000 V 2960000 5/6 AUTO QPSK
-+S 12666000 H 2600000 3/4
-+S 12682000 V 27500000 3/4
-+S 12686000 H 3000000 3/4
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eurobird1-28.5E dvb-apps/util/scan/dvb-s/Eurobird1-28.5E
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eurobird1-28.5E	2012-09-13 14:36:09.000000000 +0200
-+++ dvb-apps/util/scan/dvb-s/Eurobird1-28.5E	1970-01-01 01:00:00.000000000 +0100
-@@ -1,5 +0,0 @@
--# Eurobird 28.5E SDT info service transponder
--# freq pol sr fec
--S 11623000 H 27500000 2/3
--S 11224000 V 27500000 2/3
--S 11527000 V 27500000 2/3
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat10-10.0E dvb-apps/util/scan/dvb-s/Eutelsat10-10.0E
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat10-10.0E	1970-01-01 01:00:00.000000000 +0100
-+++ dvb-apps/util/scan/dvb-s/Eutelsat10-10.0E	2012-09-22 09:52:13.051271282 +0200
-@@ -0,0 +1,28 @@
-+# Eutelsat 10A @ 10.0E
-+# http://en.kingofsat.net/pos-10E.php
-+# 2012-Sep-21
-+# freq pol sr fec
-+S 10832000 V 7637000 5/6 AUTO 8PSK
-+S 10840000 V 3255000 1/2
-+S 11134000 H 5064000 3/4
-+S 11221000 V 27500000 3/4
-+S2 11305000 V 30000000 5/6 AUTO 8PSK
-+S2 11345000 H 27500000 7/8
-+S2 11387000 V 30000000 3/4 AUTO 8PSK
-+S2 11399000 H 7814000 5/6 AUTO 8PSK
-+S 11554000 V 3700000 5/6
-+S 11624000 V 2500000 3/4
-+S2 11630000 H 1500000 5/6 AUTO 8PSK
-+S 11657000 V 2930000 3/4
-+S2 12590000 H 2240000 5/6 AUTO 8PSK
-+S 12596000 H 2930000 3/4
-+S 12603000 H 1630000 5/6
-+S 12611000 H 9260000 5/6
-+S2 12631000 V 8888000 2/3 AUTO 8PSK
-+S2 12637000 V 18400000 2/3 AUTO 8PSK
-+S 12720000 H 2035000 2/3
-+S 12724000 H 2352000 3/4
-+S 12727000 H 2893000 3/4
-+S 12732000 H 2603000 5/6
-+S2 12734000 H 2170000 2/3 AUTO 8PSK
-+S 12738000 H 2604000 5/6
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat12A-12.5W dvb-apps/util/scan/dvb-s/Eutelsat12A-12.5W
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat12A-12.5W	1970-01-01 01:00:00.000000000 +0100
-+++ dvb-apps/util/scan/dvb-s/Eutelsat12A-12.5W	2012-09-22 09:52:25.676279993 +0200
-@@ -0,0 +1,17 @@
-+# Eutelsat 12 @ 12.5W
-+# http://en.kingofsat.net/pos-12.5W.php
-+# 2012-Sep-21
-+# freq pol sr fec
-+S 11157000 H 2900000 3/4
-+S 11175000 H 15192000 3/4
-+S2 11181000 V 22400000 2/3 AUTO 8PSK
-+S 11340500 H 2142000 5/6
-+S 11407000 V 27500000 3/4
-+S2 11428000 H 30000000 3/43 AUTO 8PSK
-+S 11528000 V 1302000 3/4
-+S 11584000 H 2894000 3/4
-+S2 11606000 H 1333000 3/43 AUTO QPSK
-+S 11655000 H 4285000 3/4
-+S 11672000 H 2141000 3/4
-+S2 11683000 V 1707000 3/53 AUTO QPSK
-+S2 11718000 H 36512000 5/63 AUTO 8PSK
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat16A-16.0E dvb-apps/util/scan/dvb-s/Eutelsat16A-16.0E
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat16A-16.0E	1970-01-01 01:00:00.000000000 +0100
-+++ dvb-apps/util/scan/dvb-s/Eutelsat16A-16.0E	2012-09-22 09:52:34.459286128 +0200
-@@ -0,0 +1,51 @@
-+# Eutelsat 16A @ 16E
-+# http://en.kingofsat.net/pos-16E.php
-+# 2012-Sep-21
-+# freq pol sr fec
-+S 10762000 H 27500000 3/4
-+S2 10804000 H 30000000 3/5 AUTO QPSK
-+S 10845000 H 27500000 3/4
-+S2 10887000 H 30000000 3/5 AUTO 8PSK
-+S2 10928000 H 27500000 3/5 AUTO 8PSK
-+S 10972000 V 27500000 5/6
-+S 11011000 V 27500000 5/6
-+S 11045000 H 10555000 3/4
-+S 11054000 H 2894000 3/4
-+S 11108000 V 2821000 2/3
-+S 11131000 V 14185000 5/6
-+S 11177500 V 27500000 3/4
-+S 11221000 H 30000000 3/4
-+S 11231000 V 30000000 3/4
-+S 11262000 H 30000000 3/4
-+S 11283000 V 27500000 5/6
-+S 11324500 V 30000000 3/4
-+S 11345000 H 27500000 5/6
-+S 11366000 V 30000000 3/4
-+S 11387000 H 30000000 3/4
-+S 11471000 H 30000000 7/8
-+S 11471000 V 29950000 3/4
-+S2 11512000 H 30000000 3/4 AUTO 8PSK
-+S 11512000 V 29950000 3/4
-+S 11554000 H 30000000 7/8
-+S2 11595000 H 30000000 3/4 AUTO 8PSK
-+S2 11678000 V 30000000 3/4 AUTO 8PSK
-+S 12508000 V 2532000 3/4
-+S 12549000 V 2560000 3/4
-+S 12576000 V 5925000 5/6
-+S 12593000 V 2500000 2/3
-+S 12597000 V 2848000 2/3
-+S 12601000 V 2500000 1/2
-+# PowerVu encrypted Channels
-+#S 12605500 H 27500000 5/6
-+S 12621000 V 3364000 3/4
-+S 12633000 V 4883000 1/2
-+S 12640000 V 6510000 2/3
-+# PowerVu encrypted Channels
-+#S 12656000 H 11111000 2/3
-+S 12656000 V 4883000 1/2
-+S 12676000 H 2800000 3/4
-+# PowerVu encrypted Channels
-+#S 12701000 H 9880000 1/2
-+S2 12712000 H 5165000 3/5 AUTO 8PSK
-+S 12733000 H 5700000 2/3
-+S 12736000 V 3703000 7/8
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat25A-25.5E dvb-apps/util/scan/dvb-s/Eutelsat25A-25.5E
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat25A-25.5E	1970-01-01 01:00:00.000000000 +0100
-+++ dvb-apps/util/scan/dvb-s/Eutelsat25A-25.5E	2012-09-22 09:56:19.625430503 +0200
-@@ -0,0 +1,11 @@
-+# Eutelsat 25A @ 25.5E
-+# http://en.kingofsat.net/pos-25.5E.php
-+# 2012-Sep-21
-+# freq pol sr fec
-+S 10996000 V 2532000 3/4
-+S 11040000 V 1534000 3/4
-+S 11152000 V 2200000 3/4
-+S 11171000 V 1780000 3/4
-+S 11585000 V 27500000 3/4
-+S 11636000 H 2200000 3/4
-+S 11640000 H 2100000 3/4
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat28A-28.5E dvb-apps/util/scan/dvb-s/Eutelsat28A-28.5E
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat28A-28.5E	1970-01-01 01:00:00.000000000 +0100
-+++ dvb-apps/util/scan/dvb-s/Eutelsat28A-28.5E	2012-09-22 09:55:25.897398387 +0200
-@@ -0,0 +1,34 @@
-+# Eutelsat 28A @ 28.5E
-+# http://en.kingofsat.net/sat-eurobird1.php
-+# 2012-Sep-22
-+# freq pol sr fec
-+S 11222000 H 27500000 2/3
-+S 11224000 V 27500000 2/3
-+S 11259000 V 27500000 2/3
-+S 11261000 H 27500000 2/3
-+S 11307000 H 27500000 2/3
-+S 11307000 V 27500000 2/3
-+S 11343000 V 27500000 2/3
-+S 11344000 H 27500000 2/3
-+S 11389000 H 27500000 2/3
-+S 11390000 V 27500000 2/3
-+S 11426000 H 27500000 2/3
-+S 11426000 V 27500000 2/3
-+S 11469000 H 27500000 2/3
-+S 11488000 V 27500000 2/3
-+S 11508000 H 27500000 2/3
-+S 11527000 V 27500000 2/3
-+S 11546000 H 27500000 2/3
-+S 11565000 V 27500000 2/3
-+S 11585000 H 27500000 2/3
-+S 11604000 V 27500000 2/3
-+S 11623000 H 27500000 2/3
-+S 11661500 H 27500000 2/3
-+S 11681000 V 27500000 2/3
-+S 12524000 V 27500000 2/3
-+S 12560000 H 27500000 2/3
-+S 12560000 V 27500000 2/3
-+S 12606500 V 27500000 2/3
-+S 12607000 H 27500000 2/3
-+S 12643000 H 27500000 2/3
-+S 12643000 V 27500000 2/3
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat3C-3.0E dvb-apps/util/scan/dvb-s/Eutelsat3C-3.0E
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat3C-3.0E	1970-01-01 01:00:00.000000000 +0100
-+++ dvb-apps/util/scan/dvb-s/Eutelsat3C-3.0E	2012-09-22 09:52:43.914292696 +0200
-@@ -0,0 +1,19 @@
-+# Eutelsat 3C @ 3.0E
-+# http://en.kingofsat.net/pos-3E.php
-+# 2012-Sep-21
-+# freq pol sr fec
-+S2 11549000 H 1100000 9/10 AUTO 8PSK
-+S2 11570000 H 1000000 2/3 AUTO QPSK
-+S 11572000 V 6111000 3/4
-+S2 11579000 H 2300000 3/4 AUTO 8PSK
-+S 11582000 H 1500000 3/4
-+S2 12640000 V 15000000 3/4 AUTO 8PSK
-+S 12654000 H 27500000 3/4
-+S 12661000 V 2200000 3/4
-+S 12675000 V 2200000 3/4
-+S2 12682000 H 9535000 3/5 AUTO 8PSK
-+S 12684000 V 5800000 3/4
-+S2 12688000 V 1500000 5/6 AUTO 8PSK
-+S2 12694000 H 9535000 3/5 AUTO 8PSK
-+S 12730000 V 2600000 3/4
-+S2 12741000 H 12620000 2/3 AUTO 8PSK
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat5-5.0W dvb-apps/util/scan/dvb-s/Eutelsat5-5.0W
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat5-5.0W	1970-01-01 01:00:00.000000000 +0100
-+++ dvb-apps/util/scan/dvb-s/Eutelsat5-5.0W	2012-09-22 09:52:52.043298407 +0200
-@@ -0,0 +1,31 @@
-+# Eutelsat 5 @ 5.0W
-+# http://en.kingofsat.net/pos-5W.php
-+# 2012-Sep-21
-+# freq pol sr fec
-+S 10971000 V 29950000 7/8
-+# Data
-+#S 11017000 H 2048000 5/6
-+S 11054000 V 29950000 7/8
-+S 11059000 H 23700000 3/4
-+S2 11096000 V 29950000 3/4 AUTO 8PSK
-+# Data
-+#S 11103000 H 2043000 5/6
-+# Data
-+#S 11115000 H 2725000 5/6
-+# Data
-+#S 11157000 H 2720000 5/6
-+# Data
-+#S 11177000 H 2043000 5/6
-+S2 11471000 V 29950000 2/3 AUTO 8PSK
-+S 11472000 H 2100000 5/6
-+S 11512000 V 29950000 7/8
-+# Data
-+#S 11538000 H 8681000 7/8
-+S 11555000 V 29950000 7/8
-+S 11591000 V 20000000 2/3
-+S 11609000 V 5969000 1/2
-+S 11679000 V 29950000 7/8
-+S 12543000 H 27500000 3/4
-+S 12564000 V 29950000 7/8
-+S 12711000 H 30000000 1/2
-+
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat7A-7.0E dvb-apps/util/scan/dvb-s/Eutelsat7A-7.0E
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat7A-7.0E	1970-01-01 01:00:00.000000000 +0100
-+++ dvb-apps/util/scan/dvb-s/Eutelsat7A-7.0E	2012-09-22 09:53:03.450306275 +0200
-@@ -0,0 +1,30 @@
-+# Eutelsat7A-7.0E
-+# http://en.kingofsat.net/pos-7E.php
-+# 2012-Sep-21
-+# freq pol sr fec
-+S 10721000 H 22000000 3/4
-+S 10721000 V 27500000 3/4
-+S 10762000 V 30000000 3/4
-+S 10804000 H 29900000 3/4
-+S2 10845000 H 30000000 5/6 AUTO QPSK
-+S 10845000 V 30000000 3/4
-+S2 10886000 H 30000000 5/6 AUTO QPSK
-+S2 10886000 V 30000000 5/6 AUTO QPSK
-+S 10928000 H 30000000 3/4
-+S2 10928000 V 30000000 5/6 AUTO QPSK
-+S 11186000 V 2893000 5/6
-+S 11189000 V 2018000 5/6
-+S 11221000 H 27500000 3/4
-+S 11445500 V 20050000 3/4
-+S 11471000 H 30000000 3/4
-+S 11492000 V 30000000 3/4
-+S 11513000 H 29900000 3/4
-+S 11534000 V 30000000 3/4
-+S 11554000 H 30000000 3/4
-+S 11575000 V 30000000 3/4
-+S 11596000 H 30000000 3/4
-+S 11617000 V 30000000 3/4
-+S 11637000 H 30000000 3/4
-+S 11678000 H 30000000 3/4
-+S2 12520000 H 6144000 3/4 AUTO 8PSK
-+S2 12531000 V 1852000 2/3 AUTO 8PSK
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat8-8.0W dvb-apps/util/scan/dvb-s/Eutelsat8-8.0W
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat8-8.0W	1970-01-01 01:00:00.000000000 +0100
-+++ dvb-apps/util/scan/dvb-s/Eutelsat8-8.0W	2012-09-22 09:53:33.290327432 +0200
-@@ -0,0 +1,16 @@
-+# Eutelsat 8  @ 8.0W
-+# http://en.kingofsat.net/pos-8W.php
-+# 2012-Sep-21
-+# freq pol sr fec
-+S 11045000 H 8500000 3/4
-+S 11066000 H 2100000 3/4
-+S 11074000 H 3000000 3/4
-+S 11077000 H 1500000 3/4
-+S 11082000 H 2856000 3/4
-+S 11094000 H 2200000 3/4
-+S 11099000 H 2100000 3/4
-+S 11103000 H 2100000 3/4
-+S 11106000 H 2100000 3/4
-+S 11109000 H 2100000 5/6
-+S 11133000 H 17000000 2/3
-+S 11167000 H 2139000 3/4
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat9-9.0E dvb-apps/util/scan/dvb-s/Eutelsat9-9.0E
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Eutelsat9-9.0E	2012-09-13 14:36:09.000000000 +0200
-+++ dvb-apps/util/scan/dvb-s/Eutelsat9-9.0E	2012-09-22 09:53:44.074334918 +0200
-@@ -1,16 +1,36 @@
- # Eurobird 9.0E
-+# http://en.kingofsat.net/pos-9E.php
-+# 2012-Sep-21
- # freq pol sr fec
--S 11727000 V 27500000 5/6
-+S 11727000 V 27500000 3/4
- S 11747000 H 27500000 3/4
--S 11766000 V 27500000 5/6
--S 11785000 H 27500000 3/4
--S 11804000 V 27500000 3/4
-+S 11766000 V 27500000 3/4
-+S2 11785000 H 27500000 2/3 AUTO 8PSK
- S 11823000 H 27500000 3/4
- S 11843000 V 27500000 3/4
--S 11881000 V 26700000 3/4
--S 11919000 V 27500000 5/6
-+S2 11862000 H 27500000 2/3 AUTO 8PSK
-+S2 11881000 V 27500000 2/3 AUTO 8PSK
-+S2 11900000 H 27500000 2/3 AUTO 8PSK
-+S 11919000 V 27500000 3/4
- S 11938000 H 27500000 3/4
-+S2 11958000 V 27500000 2/3 AUTO 8PSK
- S 11977000 H 27500000 3/4
- S 11996000 V 27500000 3/4
--S 12054000 H 27500000 3/4
--S 12092000 H 27500000 3/4
-+S2 12015000 H 27500000 2/3 AUTO 8PSK
-+S2 12034000 V 27500000 3/4 AUTO 8PSK
-+S2 12054000 H 27500000 2/3 AUTO 8PSK
-+S2 12073000 V 27500000 3/4 AUTO 8PSK
-+S2 12111000 V 27500000 3/5 AUTO 8PSK
-+S 12130000 H 27500000 3/4
-+S2 12149000 V 27500000 2/3 AUTO 8PSK
-+S2 12226000 V 27500000 2/3 AUTO 8PSK
-+S2 12245000 H 27500000 3/4 AUTO 8PSK
-+S2 12265000 V 27500000 2/3 AUTO 8PSK
-+S2 12284000 H 27500000 2/3 AUTO 8PSK
-+S 12322000 H 27500000 3/4
-+# PowerVu encrypted Channels
-+#S 12341000 V 27500000 3/4
-+S2 12360000 H 27500000 2/3 AUTO 8PSK
-+S2 12399000 H 27500000 2/3 AUTO 8PSK
-+S 12418000 V 27500000 3/4
-+S2 12437000 H 27500000 2/3 AUTO 8PSK
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Express-3A-11.0W dvb-apps/util/scan/dvb-s/Express-3A-11.0W
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Express-3A-11.0W	2012-09-13 14:36:09.000000000 +0200
-+++ dvb-apps/util/scan/dvb-s/Express-3A-11.0W	1970-01-01 01:00:00.000000000 +0100
-@@ -1,4 +0,0 @@
--# Express 3A @ 11.0W
--# freq pol sr fec
--
--S 3675000 V 29623000 AUTO
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/ExpressAM44-11.0W dvb-apps/util/scan/dvb-s/ExpressAM44-11.0W
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/ExpressAM44-11.0W	1970-01-01 01:00:00.000000000 +0100
-+++ dvb-apps/util/scan/dvb-s/ExpressAM44-11.0W	2012-09-22 09:54:07.450350956 +0200
-@@ -0,0 +1,14 @@
-+# Express AM44 @ 11.0W
-+# http://en.kingofsat.net/pos-11W.php
-+# 2012-Sep-21
-+# freq pol sr fec
-+# C-Band
-+#S 3662000 R 10808000 1/2
-+S2 11524000 H 1666000 5/6 AUTO 8PSK
-+S2 11528000 H 1600000 5/6 AUTO 8PSK
-+S 11549000 H 1600000 5/6
-+S2 11559000 H 3600000 5/6 AUTO 8PSK
-+S 11565000 H 7090000 2/3
-+S 11678000 H 1241000 7/8
-+S2 11680000 H 1200000 5/6 AUTO 8PSK
-+S2 11686000 H 1091000 3/4 AUTO 8PSK
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/HellasSat-39.0E dvb-apps/util/scan/dvb-s/HellasSat-39.0E
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/HellasSat-39.0E	1970-01-01 01:00:00.000000000 +0100
-+++ dvb-apps/util/scan/dvb-s/HellasSat-39.0E	2012-09-20 15:58:27.654019204 +0200
-@@ -0,0 +1,19 @@
-+# HellasSat 39.0E
-+# freq pol sr fec
-+S2 10955000 V 4444000 3/4 AUTO 8PSK
-+S2 11012000 V 30000000 3/4 AUTO 8PSK
-+S 11052000 V 30000000 3/4
-+S 11104000 V 14400000 3/4
-+S2 11122000 V 8323000 3/4 AUTO 8PSK
-+S 11146000 V 3333000 3/4
-+S 12524000 H 30000000 7/8
-+S 12524000 V 30000000 7/8
-+S 12565000 H 30000000 7/8
-+S 12565000 V 30000000 7/8
-+S 12596000 V 30000000 7/8
-+S2 12606000 H 30000000 2/3 AUTO 8PSK
-+S2 12647000 H 30000000 3/4 AUTO 8PSK
-+S 12647000 V 30000000 7/8
-+S 12688000 H 30000000 7/8
-+S 12688000 V 30000000 7/8
-+S 12729000 V 30000000 7/8
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Hotbird-13.0E dvb-apps/util/scan/dvb-s/Hotbird-13.0E
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Hotbird-13.0E	2012-09-13 14:36:09.000000000 +0200
-+++ dvb-apps/util/scan/dvb-s/Hotbird-13.0E	2012-09-22 09:54:19.099358559 +0200
-@@ -1,96 +1,102 @@
--# EUTELSAT SkyPlex, Hotbird 13E
-+# EUTELSAT, Hotbird 13E
-+# http://en.kingofsat.net/pos-13E.php
-+# 2012-Sep-21
- # freq pol sr fec
--S 12539000 H 27500000 3/4
--S 10719000 V 27500000 3/4
-+S 10719000 V 27500000 5/6
- S 10723000 H 29900000 3/4
--S 10757000 V 27500000 3/4
--S 10775000 H 28000000 3/4
--S 10795000 V 27500000 3/4
--S 10834000 V 27500000 3/4
--S 10853000 H 27500000 3/4
--S 10872000 V 27500000 3/4
-+S 10758000 V 27500000 5/6
-+S 10775000 H 29900000 5/6
-+S 10796000 V 27500000 5/6
-+S 10815000 H 27500000 5/6
-+S2 10834000 V 27500000 3/4 AUTO 8PSK
-+S 10853500 H 29900000 5/6
-+S 10873000 V 27500000 3/4
- S 10892000 H 27500000 3/4
--S 10910000 V 27500000 3/4
--S 10930000 H 27500000 3/4
-+S2 10911000 V 27500000 3/4 AUTO 8PSK
-+S 10930000 H 29900000 3/4
- S 10949000 V 27500000 3/4
--S 10971000 H 27500000 3/4
-+S2 10971000 H 29700000 2/3 AUTO 8PSK
- S 10992000 V 27500000 2/3
--S 11013000 H 27500000 3/4
-+S2 11013000 H 27500000 2/3 AUTO 8PSK
- S 11034000 V 27500000 3/4
- S 11054000 H 27500000 5/6
- S 11075000 V 27500000 3/4
--S 11095000 H 28000000 3/4
-+S2 11096000 H 29900000 2/3 AUTO 8PSK
- S 11117000 V 27500000 3/4
- S 11137000 H 27500000 3/4
--S 11158000 V 27500000 3/4
--S 11178000 H 27500000 3/4
-+S 11158000 V 27500000 5/6
-+S 11179000 H 27500000 3/4
- S 11200000 V 27500000 5/6
--S 11219000 H 27500000 3/4
--S 11242000 V 27500000 3/4
--S 11278000 V 27500000 3/4
--S 11295000 H 27500000 3/4
--S 11334000 H 27500000 2/3
--S 11355000 V 27500000 3/4
--S 11373000 H 27500000 2/3
--S 11393000 V 27500000 3/4
--S 11411000 H 27500000 5/6
--S 11432000 V 27500000 2/3
-+S 11219250 H 29900000 5/6
-+S 11240000 V 27500000 3/4
-+S2 11258000 H 27500000 3/4 AUTO 8PSK
-+S2 11278000 V 27500000 3/4 AUTO 8PSK
-+S 11296000 H 27500000 3/4
-+S 11319500 V 27500000 3/4
-+S 11355000 V 29900000 5/6
-+S 11393500 V 27500000 5/6
-+S2 11411000 H 27500000 5/6 AUTO 8PSK
-+S2 11449000 H 27500000 3/4 AUTO 8PSK
- S 11470000 V 27500000 5/6
--S 11488000 H 27500000 3/4
-+S 11488000 H 27500000 5/6
-+S 11508000 V 27500000 5/6
- S 11526000 H 27500000 3/4
- S 11541000 V 22000000 5/6
--S 11565000 H 27500000 3/4
-+S 11566000 H 27500000 3/4
- S 11585000 V 27500000 3/4
- S 11604000 H 27500000 5/6
- S 11623000 V 27500000 3/4
--S 11645000 H 27500000 3/4
-+S 11642000 H 27500000 3/4
- S 11662000 V 27500000 3/4
--S 11677000 H 27500000 3/4
-+S2 11681000 H 27500000 3/4 AUTO 8PSK
- S 11727000 V 27500000 3/4
- S 11747000 H 27500000 3/4
--S 11765000 V 27500000 2/3
--S 11785000 H 27500000 3/4
-+S 11766000 V 27500000 2/3
-+S2 11785000 H 29900000 3/4 AUTO 8PSK
- S 11804000 V 27500000 2/3
- S 11823000 H 27500000 3/4
--S 11842000 V 27500000 3/4
--S 11861000 H 27500000 3/4
--S 11880000 V 27500000 3/4
--S 11900000 H 27500000 3/4
-+S2 11843000 V 29900000 3/4 AUTO 8PSK
-+S 11862000 H 29900000 5/6
-+S 11881000 V 27500000 3/4
-+S 11900000 H 29900000 5/6
- S 11919000 V 27500000 2/3
--S 11938000 H 27500000 3/4
-+S 11938000 H 29900000 3/4
- S 11958000 V 27500000 3/4
--S 11976000 H 27500000 3/4
-+S 11977000 H 29900000 5/6
-+S 11996000 V 29900000 3/4 AUTO 8PSK
- S 12015000 H 27500000 3/4
--S 12034000 V 27500000 3/4
--S 12054000 H 27500000 3/4
--S 12072000 V 27500000 3/4
--S 12092000 H 27500000 3/4
-+S 12034000 V 29900000 5/6
-+S 12054000 H 29900000 5/6
-+S 12073000 V 29900000 5/6
-+S2 12092000 H 29900000 3/4 AUTO 8PSK
- S 12111000 V 27500000 3/4
-+S2 12130000 H 27500000 3/4 AUTO 8PSK
- S 12149000 V 27500000 3/4
- S 12169000 H 27500000 3/4
--S 12188000 V 27500000 3/4
--S 12207000 H 27500000 3/4
--S 12226000 V 27500000 3/4
-+S 12188000 V 27500000 5/6
-+S2 12207000 H 29900000 3/4 AUTO 8PSK
-+S 12225000 V 27500000 3/4
- S 12245000 H 27500000 3/4
--S 12264000 V 27500000 3/4
--S 12284000 H 27500000 3/4
--S 12302000 V 27500000 3/4
-+S2 12265000 V 27500000 3/4 AUTO 8PSK
-+S 12284000 H 27500000 5/6
-+S2 12303000 V 27500000 2/3 AUTO 8PSK
- S 12322000 H 27500000 3/4
--S 12341000 V 27500000 3/4
--S 12360000 H 27500000 3/4
--S 12379000 V 27500000 3/4
--S 12398000 H 27500000 3/4
--S 12418000 V 27500000 3/4
-+S2 12341000 V 29900000 3/4 AUTO 8PSK
-+S2 12360000 H 29900000 3/4 AUTO 8PSK
-+S 12380000 V 27500000 3/4
-+S 12399000 H 27500000 3/4
-+S2 12418000 V 29900000 3/4 AUTO 8PSK
- S 12437000 H 27500000 3/4
--S 12475000 H 27500000 3/4
--S 12519000 V 27500000 3/4
-+S2 12466000 V 29900000 2/3 AUTO 8PSK
-+S2 12476000 H 29900000 3/4 AUTO 8PSK
-+S 12520000 V 27500000 3/4
- S 12558000 V 27500000 3/4
--S 12577000 H 27500000 3/4
--S 12596000 V 27500000 3/4
--S 12616000 H 27500000 3/4
--S 12635000 V 27500000 3/4
-+S2 12577000 H 27500000 2/3 AUTO 8PSK
-+S 12597000 V 27500000 3/4
-+S 12616000 H 29900000 5/6
-+S 12635000 V 29900000 5/6
- S 12654000 H 27500000 3/4
--S 12673000 V 27500000 3/4
--S 12692000 H 27500000 3/4
--S 12713000 V 27500000 3/4
--S 12731000 H 27500000 3/4
-+S 12673000 V 29900000 5/6
-+S2 12692000 H 27500000 3/4 AUTO 8PSK
-+S 12713000 V 29900000 5/6
-+S2 12731000 H 29900000 3/4 AUTO 8PSK
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Intelsat-1002-1.0W dvb-apps/util/scan/dvb-s/Intelsat-1002-1.0W
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Intelsat-1002-1.0W	2012-09-13 14:36:09.000000000 +0200
-+++ dvb-apps/util/scan/dvb-s/Intelsat-1002-1.0W	1970-01-01 01:00:00.000000000 +0100
-@@ -1,20 +0,0 @@
--# Intelsat 1002 @ 1.0W
--# freq pol sr fec
--S 4175000 V 28000000 AUTO
--S 4180000 H 21050000 AUTO
--S 11093000 H 19191000 7/8
--S 11166000 V 1450000 7/8
--S 11182000 V 3100000 7/8
--S 11606000 H 13356000 7/8
--S 12527000 H 27500000 3/4
--S 12563000 H 27500000 3/4
--S 12563000 V 27500000 3/4
--S 12607000 H 27500000 3/4
--S 12607000 V 27500000 3/4
--S 12643000 H 27500000 3/4
--S 12643000 V 27500000 3/4
--S 12687000 H 27500000 3/4
--S 12687000 V 27500000 3/4
--S 12718000 V 18400000 3/4
--S 12723000 H 27500000 3/4
--S 12735000 V 8800000 5/6
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Nilesat101+102-7.0W dvb-apps/util/scan/dvb-s/Nilesat101+102-7.0W
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Nilesat101+102-7.0W	2012-09-13 14:36:09.000000000 +0200
-+++ dvb-apps/util/scan/dvb-s/Nilesat101+102-7.0W	2012-09-22 10:35:42.899092371 +0200
-@@ -1,41 +1,73 @@
--# Nilesat 101/102 & Atlantic Bird @ 7W
-+# Nilesat 101/102 & Eutelsat7 West @ 7.0W
-+# http://en.kingofsat.net/pos-0.8W.php
-+# 2012-Sep-22
- # freq pol sr fec
--S 10719000 V 27500000 3/4
--S 10723000 H 27500000 3/4
--S 10758000 V 27500000 3/4
--S 10775000 H 27500000 3/4
-+S2 10719000 V 27500000 8/9 AUTO QPSK
-+S 10723000 H 27500000 5/6
-+S 10757500 V 27500000 3/4
-+S 10777000 H 27500000 3/4
- S 10796000 V 27500000 3/4
-+S 10815000 H 27500000 5/6
-+S2 10834000 V 27500000 2/3 AUTO 8PSK
-+S 10853500 H 27500000 3/4
-+S 10873000 V 27500000 3/4
- S 10892000 H 27500000 3/4
--S 10911000 V 27500000 3/4
--S 10930000 H 27500000 3/4
--S 11317000 V 27500000 3/4
-+S 10922000 V 27500000 3/4
-+S 10930000 H 27500000 5/6
-+S 11219000 H 27500000 3/4
-+S 11227000 V 27500000 3/4
-+S 11258000 H 27500000 3/4
-+S2 11277000 V 27500000 2/3 AUTO 8PSK
-+S 11296000 H 27500000 3/4
-+S 11315000 V 27500000 3/4
-+S 11334000 H 27500000 3/4
-+S 11353500 V 27500000 3/4
-+S2 11373000 H 27500000 2/3 AUTO 8PSK
-+S 11392000 V 27500000 3/4
-+S2 11411000 H 27500000 2/3 AUTO 8PSK
-+S 11430000 V 27500000 3/4
-+S 11488000 H 27500000 3/4
-+S 11526000 H 27500000 3/4
-+S 11603000 H 27500000 3/4
-+S 11641000 H 27500000 3/4
-+S 11679500 H 27500000 3/4
-+S 11727000 H 27500000 5/6
- S 11747000 V 27500000 3/4
--S 11766000 H 27500000 3/4
-+S 11766000 H 27500000 5/6
- S 11785000 V 27500000 3/4
--S 11804000 H 27500000 3/4
--S 11823000 V 27500000 3/4
--S 11843000 H 27500000 3/4
--S 11862000 V 27500000 3/4
--S 11881000 H 27500000 3/4
--S 11900000 V 27500000 3/4
--S 11919000 H 27500000 3/4
-+S2 11804000 H 27500000 5/6 AUTO QPSK
-+S 11823000 V 27500000 5/6
-+S 11843000 H 27500000 5/6
-+S2 11862000 V 27500000 3/4 AUTO 8PSK
-+S2 11881000 H 27500000 5/6 AUTO QPSK
-+S 11900000 V 27500000 5/6
-+S 11919000 H 27500000 5/6
- S 11938000 V 27500000 3/4
- S 11958000 H 27500000 3/4
--S 11977000 V 27600000 5/6
--S 11996000 H 27500000 3/4
--S 12015000 V 27500000 3/4
-+S 11977000 V 27500000 5/6
-+S2 11996000 H 27500000 2/3 AUTO 8PSK
-+S 12015000 V 27500000 5/6
- S 12034000 H 27500000 3/4
--S 12054000 V 27500000 3/4
--S 12073000 H 27500000 3/4
--S 12130000 V 27500000 3/4
-+S 12054000 V 27500000 5/6
-+S2 12073000 H 27500000 2/3 AUTO 8PSK
-+S2 12092000 V 27500000 5/6 AUTO QPSK
-+S2 12111000 H 27500000 5/6 AUTO QPSK
-+S 12130000 V 27500000 5/6
- S 12149000 H 27500000 3/4
-+S 12168000 V 27500000 3/4
-+S2 12188000 H 27500000 5/6 AUTO QPSK
- S 12207000 V 27500000 3/4
--S 12226000 H 27500000 3/4
-+S2 12226000 H 27500000 3/4 AUTO 8PSK
-+S 12245000 V 27500000 3/4
-+S 12265000 H 27500000 2/3
- S 12284000 V 27500000 3/4
--S 12303000 H 27500000 3/4
--S 12341000 V 27500000 3/4
--S 12360000 H 27500000 3/4
--S 12380000 V 27500000 3/4
--S 12399000 H 27500000 3/4
--S 12418000 V 27500000 3/4
--S 12476000 H 27500000 3/4
-+S 12303000 H 27500000 5/6
-+S 12322000 V 27500000 3/4
-+S 12341000 H 27500000 3/4
-+S 12360000 V 27500000 3/4
-+S 12380000 H 27500000 3/4
-+S 12399000 V 27500000 3/4
-+S 12418000 H 27500000 3/4
-+S 12437000 V 27500000 3/4
-+S 12467000 H 27500000 3/4
-+S 12476000 V 27500000 3/4
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Sirius-5.0E dvb-apps/util/scan/dvb-s/Sirius-5.0E
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Sirius-5.0E	2012-09-13 14:36:09.000000000 +0200
-+++ dvb-apps/util/scan/dvb-s/Sirius-5.0E	2012-09-22 09:54:26.889363304 +0200
-@@ -1,9 +1,8 @@
--# Sirius 5.0E
-+# Sirius @ 5.0E
-+# http://en.kingofsat.net/pos-4.8E.php
-+# 2012-Sep-21
- # freq pol sr fec
--S 11215000 V 6666000 1/2
--S 11227000 H 23145000 3/4
--S 11247000 V 23145000 3/4
--S 11420000 H 23145000 3/4
-+S2 11264000 V 30000000 3/4 AUTO 8PSK
- S 11727000 H 27500000 5/6
- S 11747000 V 27500000 3/4
- S 11766000 H 27500000 3/4
-@@ -26,37 +25,36 @@
- S 12092000 V 27500000 3/4
- S 12111000 H 27500000 5/6
- S 12130000 V 27500000 3/4
--S 12149000 H 27500000 3/4
--S 12169000 V 27500000 3/4
--S 12188000 H 27500000 7/8
--S 12207000 V 27500000 3/4
--S 12226000 H 25540000 7/8
-+# PowerVu encrypted Channels
-+#S 12149000 H 27500000 3/4
-+S2 12169000 V 27500000 3/4 AUTO 8PSK
-+S2 12188000 H 27500000 3/4 AUTO 8PSK
-+S2 12207000 V 30000000 3/4 AUTO 8PSK
-+# PowerVu encrypted Channels
-+#S 12226000 H 25540000 7/8
- S 12245000 V 27500000 3/4
--S 12265000 H 27500000 3/4
-+# Data
-+#S 12265000 H 27500000 3/4
- S 12284000 V 27500000 3/4
--S 12303000 H 25547000 7/8
--S 12322000 V 27500000 3/4
--S 12341000 H 27500000 3/4
--S 12360000 V 27500000 7/8
-+# PowerVu encrypted Channels
-+#S 12303000 H 25547000 7/8
-+# PowerVu encrypted Channels
-+#S 12322000 V 27500000 7/8
-+S2 12341000 H 27500000 3/4 AUTO 8PSK
-+S 12360000 V 27500000 3/4
- S 12379000 H 27500000 3/4
--S 12399000 V 27500000 2/3
--S 12418000 H 27500000 3/4
--S 12437000 V 27500000 2/3
--S 12456000 H 27500000 3/4
-+S2 12399000 V 27500000 3/4 AUTO 8PSK
-+# PowerVu encrypted Channels
-+#S 12418000 H 27500000 3/4
-+S2 12437000 V 27500000 3/4 AUTO 8PSK
-+S2 12456000 H 27500000 3/4 AUTO 8PSK
- S 12476000 V 27500000 3/4
- S 12608000 H 27500000 3/4
- S 12637000 H 14465000 3/4
--S 12668000 V 6666000 1/2
- S 12672000 H 3300000 3/4
--S 12674000 V 10000000 3/4
--S 12678000 V 13333000 5/6
--S 12680000 H 9404000 3/4
--S 12685000 V 4444000 3/4
--S 12690000 H 3330000 3/4
-+S2 12682000 V 1111000 2/3 AUTO 8PSK
-+S 12687000 V 6667000 5/6
- S 12693000 V 3333000 5/6
--S 12701000 H 6111000 3/4
--S 12715000 H 3330000 3/4
--S 12718000 V 23500000 3/4
--S 12724000 H 1772000 3/4
--S 12728000 V 19720000 3/4
--S 12737000 V 6150000 3/4
-+S 12703000 V 2963000 3/4
-+S 12718000 V 2960000 7/8
-+S2 12728000 V 1480000 9/10 AUTO 8PSK
-diff -Naur dvb-apps-3fc7dfa68484/util/scan/dvb-s/Thor-1.0W dvb-apps/util/scan/dvb-s/Thor-1.0W
---- dvb-apps-3fc7dfa68484/util/scan/dvb-s/Thor-1.0W	2012-09-13 14:36:09.000000000 +0200
-+++ dvb-apps/util/scan/dvb-s/Thor-1.0W	2012-09-22 09:54:37.050369402 +0200
-@@ -1,65 +1,69 @@
--# Thor 1.0W
-+# Thor @ 1.0W
-+# http://en.kingofsat.net/pos-0.8W.php
-+# 2012-Sep-21
- # freq pol sr fec
--S 10747000 H 25000000 3/4
--S 10778000 V 25000000 3/4
-+S 10716000 H 24500000 7/8
-+S2 10747000 H 25000000 3/4 AUTO 8PSK
-+S2 10747000 V 25000000 3/4 AUTO 8PSK
- S 10778000 H 24500000 7/8
--S 10809000 V 24500000 7/8
-+S2 10778000 V 25000000 3/4 AUTO 8PSK
- S 10809000 H 24500000 7/8
--S 10841000 V 24500000 7/8
-+S 10809000 V 24500000 7/8
- S 10841000 H 24500000 7/8
-+S 10841000 V 24500000 7/8
- S 10872000 V 24500000 7/8
--S 10872000 H 24500000 7/8
--S 10903000 V 25000000 3/4
--S 10903000 H 25000000 3/4
-+S2 10903000 H 25000000 3/4 AUTO 8PSK
-+S2 10903000 V 25000000 3/4 AUTO 8PSK
-+S2 10934000 H 25000000 3/4 AUTO 8PSK
- S 10934000 V 24500000 7/8
--S 10934000 H 25000000 3/4
-+S2 11188000 V 1005000 3/4 AUTO 8PSK
- S 11216000 V 24500000 7/8
- S 11229000 H 24500000 7/8
- S 11247000 V 24500000 7/8
- S 11261000 H 24500000 7/8
- S 11278000 V 24500000 7/8
--S 11293000 H 24500000 7/8
- S 11309000 V 24500000 7/8
- S 11325000 H 24500000 7/8
--S 11325000 V 24500000 7/8
--S 11325000 V 24500000 7/8
- S 11341000 V 24500000 7/8
- S 11357000 H 24500000 7/8
- S 11372000 V 24500000 7/8
- S 11389000 H 24500000 7/8
- S 11403000 V 24500000 7/8
- S 11421000 H 24500000 7/8
--S 11434000 V 24500000 7/8
- S 11727000 V 28000000 7/8
- S 11747000 H 28000000 5/6
- S 11766000 V 28000000 7/8
--S 11785000 H 30000000 3/4
-+S2 11785000 H 30000000 3/4 AUTO 8PSK
- S 11804000 V 28000000 7/8
--S 11823000 H 28000000 7/8
--S 11843000 V 30000000 3/4
-+S2 11843000 V 30000000 3/4 AUTO 8PSK
- S 11862000 H 28000000 7/8
--S 11881000 V 28000000 5/6
-+S2 11881000 V 30000000 3/4 AUTO 8PSK
- S 11900000 H 28000000 5/6
- S 11919000 V 28000000 7/8
--S 11938000 H 25000000 3/4
--S 11958000 V 28000000 7/8
-+S 11938000 H 28000000 7/8
- S 11977000 H 28000000 7/8
- S 11996000 V 28000000 7/8
--S 12015000 H 30000000 3/4
-+S2 12015000 H 30000000 3/4 AUTO 8PSK
- S 12034000 V 28000000 7/8
- S 12073000 V 28000000 7/8
--S 12092000 H 30000000 3/4
--S 12130000 H 30000000 3/4
--S 12149000 V 28000000 5/6
--S 12169000 H 28000000 7/8
--S 12188000 V 25000000 3/4
--S 12226000 V 28000000 3/4
--S 12245000 H 28000000 5/6
--S 12303000 V 28000000 5/6
--S 12322000 H 27800000 3/4
--S 12341000 V 28000000 7/8
-+S2 12092000 H 30000000 3/4 AUTO 8PSK
-+S 12188000 V 28000000 7/8
-+S 12226000 V 27500000 5/6
-+S 12265000 V 28000000 7/8
-+# PowerVu encrypted Channels
-+#S2 12303000 V 27500000 5/6 AUTO 8PSK
- S 12380000 V 28000000 5/6
--S 12399000 H 28000000 7/8
- S 12418000 V 28000000 7/8
--S 12456000 V 28000000 3/4
--S 12476000 H 28000000 5/6
-+S 12456000 V 28000000 7/8
-+S 12527000 H 27500000 3/4
-+S 12563000 H 27500000 3/4
-+S 12563000 V 27500000 3/4
-+S 12607000 V 27500000 3/4
-+S 12608000 H 27500000 3/4
-+S 12643000 H 27500000 3/4
-+S 12643000 V 27500000 3/4
-+S 12686000 V 27500000 3/4
-+S 12687000 H 27500000 3/4
-+S 12717500 V 18400000 3/4
-+S 12723000 H 27500000 3/4
-+S 12735000 V 8800000 5/6
-
---------------070902030200030900080305--
