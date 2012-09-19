@@ -1,82 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11969 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754418Ab2IWSOQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 14:14:16 -0400
-Message-ID: <505F5174.2020809@redhat.com>
-Date: Sun, 23 Sep 2012 15:14:12 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail.active-venture.com ([67.228.131.205]:55996 "EHLO
+	mail.active-venture.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752188Ab2ISDql (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Sep 2012 23:46:41 -0400
+Date: Tue, 18 Sep 2012 20:46:56 -0700
+From: Guenter Roeck <linux@roeck-us.net>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] [media] mceusb: Optimize DIV_ROUND_CLOSEST call
+Message-ID: <20120919034656.GA27994@roeck-us.net>
+References: <20120901205357.1a75d8a1@endymion.delvare>
+ <50589821.6000108@redhat.com>
+ <20120918203509.513cdb29@endymion.delvare>
 MIME-Version: 1.0
-To: Anders Thomson <aeriksson2@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: tda8290 regression fix
-References: <503F4E19.1050700@gmail.com> <20120915133417.27cb82a1@redhat.com> <5054BD53.7060109@gmail.com> <20120915145834.0b763f73@redhat.com> <5054C521.1090200@gmail.com> <20120915192530.74aedaa6@redhat.com> <50559241.6070408@gmail.com> <505844A0.30001@redhat.com> <5059C242.3010902@gmail.com> <5059F68F.4050009@redhat.com> <505A1C16.40507@gmail.com> <CAGncdOae+VoAAUWz3x84zUA-TCMeMmNONf_ktNFd1p7c-o5H_A@mail.gmail.com> <505C7E64.4040507@redhat.com> <8ed8c988-fa8c-41fc-9f33-cccdceb1b232@email.android.com> <505EF455.9080604@redhat.com> <505F4CBC.1000201@gmail.com>
-In-Reply-To: <505F4CBC.1000201@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120918203509.513cdb29@endymion.delvare>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 23-09-2012 14:54, Anders Thomson escreveu:
-> On 2012-09-23 13:36, Mauro Carvalho Chehab wrote:
->> Em 22-09-2012 11:32, Anders Eriksson escreveu:
-
->> I suspect that, in the case of your board, the LNA is at the antenna bundled
->> together with the device. If I'm right, by enabling LNA, your board is sending
->> some voltage through the cabling (you could easily check it with a voltmeter).
-> I actually have a multimeter somewhere. We're talking about the
-> antenna-in (unconnected) on the card, right? And what voltages
-> should I expect?
-
-zero (or close to zero) if LNA is disabled; some volts when LNA is enabled ;)
-According with Wikipedia[1]:
-
-Usually LNA require less operating voltage in the range of 2 .. 10 V. MAX 2640 operate at +2.7 .. +5.5 V.
-
-[1] http://en.wikipedia.org/wiki/Low-noise_amplifier
-
-(Satellites amplifiers are typically 13V-18V - I never actually tried to use LNA for
- terrestrial systems).
-
->>
->> What I think that your patch is actually doing is to disable LNA. As such, it
->> should be equivalent to:
->>
->>
->> diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
->> index bc08f1d..98b482e 100644
->> --- a/drivers/media/pci/saa7134/saa7134-cards.c
->> +++ b/drivers/media/pci/saa7134/saa7134-cards.c
->> @@ -3288,13 +3288,13 @@ struct saa7134_board saa7134_boards[] = {
->>           .name           = "Pinnacle PCTV 310i",
->>           .audio_clock    = 0x00187de7,
->>           .tuner_type     = TUNER_PHILIPS_TDA8290,
->>           .radio_type     = UNSET,
->>           .tuner_addr     = ADDR_UNSET,
->>           .radio_addr     = ADDR_UNSET,
->> -        .tuner_config   = 1,
->> +        .tuner_config   = 0,
->>           .mpeg           = SAA7134_MPEG_DVB,
->>           .gpiomask       = 0x000200000,
->>           .inputs         = {{
->>               .name = name_tv,
->>               .vmux = 4,
->>               .amux = TV,
->>
->>
->> Please test if the above patch fixes the issue you're suffering[1]. If so, then
->> we'll need to add a modprobe parameter to allow disabling LNA for saa7134 devices
->> with LNA.
->>
->> [1] Note: the above is not the fix, as some users of this board may be using the
->> original antenna, and changing tuner_config will break things for them; the right
->> fix is likely to allow controlling the LNA via userspace.
-> Tried that patch on 3.5.3. No improvement, unfortunately.
-
-That's weird. Well, then we need to read tda827x datasheets and to try get information
-data from Pinnacle about this specific device configuration.
-
+On Tue, Sep 18, 2012 at 08:35:09PM +0200, Jean Delvare wrote:
+> Hi Mauro,
 > 
-> Regards,
-> /Anders
+> On Tue, 18 Sep 2012 12:49:53 -0300, Mauro Carvalho Chehab wrote:
+> > Em 01-09-2012 15:53, Jean Delvare escreveu:
+> > > DIV_ROUND_CLOSEST is faster if the compiler knows it will only be
+> > > dealing with unsigned dividends.
+> > > 
+> > > Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> > > Cc: Andrew Morton <akpm@linux-foundation.org>
+> > > Cc: Guenter Roeck <linux@roeck-us.net>
+> > > Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> > > ---
+> > >  drivers/media/rc/mceusb.c |    2 +-
+> > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > 
+> > > --- linux-3.6-rc3.orig/drivers/media/rc/mceusb.c	2012-08-04 21:49:27.000000000 +0200
+> > > +++ linux-3.6-rc3/drivers/media/rc/mceusb.c	2012-09-01 18:53:32.053042123 +0200
+> > > @@ -627,7 +627,7 @@ static void mceusb_dev_printdata(struct
+> > >  			break;
+> > >  		case MCE_RSP_EQIRCFS:
+> > >  			period = DIV_ROUND_CLOSEST(
+> > > -					(1 << data1 * 2) * (data2 + 1), 10);
+> > > +					(1U << data1 * 2) * (data2 + 1), 10);
+> > >  			if (!period)
+> > >  				break;
+> > >  			carrier = (1000 * 1000) / period;
+> >
+> > Hmm... this generates the following warning with "W=1":
+> > 
+> > drivers/media/rc/mceusb.c:629:4: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
+> > drivers/media/rc/mceusb.c:629:4: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
+> 
+> I doubt this is the only warning of that kind. There must be a reason
+> why -Wextra isn't enabled by default.
+> 
+> > Perhaps it makes sense to use an optimized version for unsigned, or to
+> > change the macro to take the data types into account.
+> 
+> This was discussed before, but Andrew said he preferred a single macro.
+> And I agree with him, having two macros would induce a risk of the
+> wrong one being called.
+> 
+> If you can come up with a variant of DIV_ROUND_CLOSEST which performs
+> the same and doesn't trigger the warning above, we'll be happy to see
+> it, but neither Guenter nor myself could come up with one.
+> 
+I did some more research, and I think I found a fix. I'll send out a patch
+in a minute for people to try.
 
+Guenter
