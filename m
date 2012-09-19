@@ -1,102 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:37451 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754660Ab2IGNrP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:47:15 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org
-Subject: [PATCH] drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c: fix error return code
-Date: Fri,  7 Sep 2012 15:46:55 +0200
-Message-Id: <1347025615-11811-1-git-send-email-peter.senna@gmail.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:54704 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751842Ab2ISUye (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Sep 2012 16:54:34 -0400
+Received: by bkwj10 with SMTP id j10so779842bkw.19
+        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2012 13:54:32 -0700 (PDT)
+Message-ID: <505A3112.10207@googlemail.com>
+Date: Wed, 19 Sep 2012 22:54:42 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/4] gspca_pac7302: add support for green balance adjustment
+References: <1347811240-4000-1-git-send-email-fschaefer.oss@googlemail.com> <1347811240-4000-4-git-send-email-fschaefer.oss@googlemail.com> <5059FFF1.30104@googlemail.com> <505A2C52.4040001@redhat.com>
+In-Reply-To: <505A2C52.4040001@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Senna Tschudin <peter.senna@gmail.com>
+Am 19.09.2012 22:34, schrieb Hans de Goede:
+> Hi,
+>
+> On 09/19/2012 07:25 PM, Frank Schäfer wrote:
+>> Am 16.09.2012 18:00, schrieb Frank Schäfer:
+>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>>> ---
+>>>   drivers/media/usb/gspca/pac7302.c |   23 ++++++++++++++++++++++-
+>>>   1 files changed, 22 insertions(+), 1 deletions(-)
+>>>
+>>> diff --git a/drivers/media/usb/gspca/pac7302.c
+>>> b/drivers/media/usb/gspca/pac7302.c
+>>> index 8a0f4d6..9b62b74 100644
+>>> --- a/drivers/media/usb/gspca/pac7302.c
+>>> +++ b/drivers/media/usb/gspca/pac7302.c
+>>> @@ -78,6 +78,7 @@
+>>>    * Page | Register   | Function
+>>>    *
+>>> -----+------------+---------------------------------------------------
+>>>    *  0   | 0x01       | setredbalance()
+>>> + *  0   | 0x02       | setgreenbalance()
+>>>    *  0   | 0x03       | setbluebalance()
+>>>    *  0   | 0x0f..0x20 | setcolors()
+>>>    *  0   | 0xa2..0xab | setbrightcont()
+>>> @@ -121,6 +122,7 @@ struct sd {
+>>>       struct v4l2_ctrl *saturation;
+>>>       struct v4l2_ctrl *white_balance;
+>>>       struct v4l2_ctrl *red_balance;
+>>> +    struct v4l2_ctrl *green_balance;
+>>>       struct v4l2_ctrl *blue_balance;
+>>>       struct { /* flip cluster */
+>>>           struct v4l2_ctrl *hflip;
+>>> @@ -470,6 +472,17 @@ static void setredbalance(struct gspca_dev
+>>> *gspca_dev)
+>>>       reg_w(gspca_dev, 0xdc, 0x01);
+>>>   }
+>>>
+>>> +static void setgreenbalance(struct gspca_dev *gspca_dev)
+>>> +{
+>>> +    struct sd *sd = (struct sd *) gspca_dev;
+>>> +
+>>> +    reg_w(gspca_dev, 0xff, 0x00);            /* page 0 */
+>>> +    reg_w(gspca_dev, 0x02,
+>>> +          rgbbalance_ctrl_to_reg_value(sd->green_balance->val));
+>>> +
+>>> +    reg_w(gspca_dev, 0xdc, 0x01);
+>>> +}
+>>> +
+>>>   static void setbluebalance(struct gspca_dev *gspca_dev)
+>>>   {
+>>>       struct sd *sd = (struct sd *) gspca_dev;
+>>> @@ -620,6 +633,9 @@ static int sd_s_ctrl(struct v4l2_ctrl *ctrl)
+>>>       case V4L2_CID_RED_BALANCE:
+>>>           setredbalance(gspca_dev);
+>>>           break;
+>>> +    case V4L2_CID_GREEN_BALANCE:
+>>> +        setgreenbalance(gspca_dev);
+>>> +        break;
+>>>       case V4L2_CID_BLUE_BALANCE:
+>>>           setbluebalance(gspca_dev);
+>>>           break;
+>>> @@ -652,7 +668,7 @@ static int sd_init_controls(struct gspca_dev
+>>> *gspca_dev)
+>>>       struct v4l2_ctrl_handler *hdl = &gspca_dev->ctrl_handler;
+>>>
+>>>       gspca_dev->vdev.ctrl_handler = hdl;
+>>> -    v4l2_ctrl_handler_init(hdl, 12);
+>>> +    v4l2_ctrl_handler_init(hdl, 13);
+>>>
+>>>       sd->brightness = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
+>>>                       V4L2_CID_BRIGHTNESS, 0, 32, 1, 16);
+>>> @@ -669,6 +685,11 @@ static int sd_init_controls(struct gspca_dev
+>>> *gspca_dev)
+>>>                       PAC7302_RGB_BALANCE_MIN,
+>>>                       PAC7302_RGB_BALANCE_MAX,
+>>>                       1, PAC7302_RGB_BALANCE_DEFAULT);
+>>> +    sd->green_balance = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
+>>> +                    V4L2_CID_GREEN_BALANCE,
+>>> +                    PAC7302_RGB_BALANCE_MIN,
+>>> +                    PAC7302_RGB_BALANCE_MAX,
+>>> +                    1, PAC7302_RGB_BALANCE_DEFAULT);
+>>>       sd->blue_balance = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
+>>>                       V4L2_CID_BLUE_BALANCE,
+>>>                       PAC7302_RGB_BALANCE_MIN,
+>>
+>> Hans, it seems like you didn't pick up these patches up yet...
+>> Is there anything wrong with them ?
+>
+> I've somehow completely missed them. Can you resend the entire set
+> please?
 
-Convert a nonnegative error return code to a negative one, as returned
-elsewhere in the function.
+No problem, but I can't do that before weekend (I'm currently not at home).
+I've sent these 4 patches on last Sunday (16. Sept) evening.
+Maybe you can pick them up from patchwork ?
+http://patchwork.linuxtv.org/patch/14433/
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
+Regards,
+Frank
 
-// <smpl>
-(
-if@p1 (\(ret < 0\|ret != 0\))
- { ... return ret; }
-|
-ret@p1 = 0
-)
-... when != ret = e1
-    when != &ret
-*if(...)
-{
-  ... when != ret = e2
-      when forall
- return ret;
-}
-
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-
----
- drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
-
-diff --git a/../linux-next/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-index c8c94fb..273df94 100644
---- a/../linux-next/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-+++ b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-@@ -704,7 +704,6 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
- {
- 	struct sram_channel *sram_ch;
- 	u32 tmp;
--	int retval = 0;
- 	int err = 0;
- 	int data_frame_size = 0;
- 	int risc_buffer_size = 0;
-@@ -749,15 +748,19 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
- 		dev->_filename_ch2 = kmemdup(dev->input_filename_ch2,
- 					     str_length + 1, GFP_KERNEL);
- 
--		if (!dev->_filename_ch2)
-+		if (!dev->_filename_ch2) {
-+			err = -ENOENT;
- 			goto error;
-+		}
- 	} else {
- 		str_length = strlen(dev->_defaultname_ch2);
- 		dev->_filename_ch2 = kmemdup(dev->_defaultname_ch2,
- 					     str_length + 1, GFP_KERNEL);
- 
--		if (!dev->_filename_ch2)
-+		if (!dev->_filename_ch2) {
-+			err = -ENOENT;
- 			goto error;
-+		}
- 	}
- 
- 	/* Default if filename is empty string */
-@@ -773,7 +776,7 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
- 		}
- 	}
- 
--	retval = cx25821_sram_channel_setup_upstream(dev, sram_ch,
-+	err = cx25821_sram_channel_setup_upstream(dev, sram_ch,
- 						dev->_line_size_ch2, 0);
- 
- 	/* setup fifo + format */
-@@ -783,9 +786,9 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
- 	dev->upstream_databuf_size_ch2 = data_frame_size * 2;
- 
- 	/* Allocating buffers and prepare RISC program */
--	retval = cx25821_upstream_buffer_prepare_ch2(dev, sram_ch,
-+	err = cx25821_upstream_buffer_prepare_ch2(dev, sram_ch,
- 						dev->_line_size_ch2);
--	if (retval < 0) {
-+	if (err < 0) {
- 		pr_err("%s: Failed to set up Video upstream buffers!\n",
- 		       dev->name);
- 		goto error;
+>
+> Thanks,
+>
+> Hans
 
