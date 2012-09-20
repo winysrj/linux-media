@@ -1,67 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:47438 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757539Ab2IJPaQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 11:30:16 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:54606 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751200Ab2ITBGd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Sep 2012 21:06:33 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v4 14/16] ARM i.MX5: Add CODA7 to device tree for i.MX51 and i.MX53
-Date: Mon, 10 Sep 2012 17:29:58 +0200
-Message-Id: <1347291000-340-15-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
-References: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH 2/3] em28xx: PCTV 290e sleep tda18271 after attach
+Date: Thu, 20 Sep 2012 04:05:29 +0300
+Message-Id: <1348103130-1777-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1348103130-1777-1-git-send-email-crope@iki.fi>
+References: <1348103130-1777-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- arch/arm/boot/dts/imx51.dtsi |    6 ++++++
- arch/arm/boot/dts/imx53.dtsi |    6 ++++++
- 2 files changed, 12 insertions(+)
+This reduces device IDLE power consumption 180mA (260mA => 80mA).
 
-diff --git a/arch/arm/boot/dts/imx51.dtsi b/arch/arm/boot/dts/imx51.dtsi
-index aba28dc..8f38d83 100644
---- a/arch/arm/boot/dts/imx51.dtsi
-+++ b/arch/arm/boot/dts/imx51.dtsi
-@@ -278,6 +278,12 @@
- 				interrupts = <87>;
- 				status = "disabled";
- 			};
+I would like to see solution where tda18271 driver puts chips on
+sleep by default and leaves it powered according to driver config
+option. Michael declined it, as it could cause regression, and
+asked to sleep explicitly after attach.
+
+Cc: Michael Krufky <mkrufky@linuxtv.org>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/em28xx/em28xx-dvb.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index be242ac..c97ffc6 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1002,6 +1002,16 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 				goto out_free;
+ 			}
+ 
++			/*
++			 * We should put tda18271 explicitly sleep in order to
++			 * reduce IDLE power consumption 180mA
++			 */
++			result = dvb->fe[0]->ops.tuner_ops.sleep(dvb->fe[0]);
++			if (result) {
++				dvb_frontend_detach(dvb->fe[0]);
++				goto out_free;
++			}
 +
-+			vpu@83ff4000 {
-+				compatible = "fsl,imx51-vpu";
-+				reg = <0x83ff4000 0x1000>;
-+				interrupts = <9>;
-+			};
- 		};
- 	};
- };
-diff --git a/arch/arm/boot/dts/imx53.dtsi b/arch/arm/boot/dts/imx53.dtsi
-index cd37165..4cf59e5 100644
---- a/arch/arm/boot/dts/imx53.dtsi
-+++ b/arch/arm/boot/dts/imx53.dtsi
-@@ -336,6 +336,12 @@
- 				interrupts = <87>;
- 				status = "disabled";
- 			};
-+
-+			vpu@63ff4000 {
-+				compatible = "fsl,imx53-vpu";
-+				reg = <0x63ff4000 0x1000>;
-+				interrupts = <9>;
-+			};
- 		};
- 	};
- };
+ #ifdef CONFIG_GPIOLIB
+ 			/* enable LNA for DVB-T, DVB-T2 and DVB-C */
+ 			result = gpio_request_one(dvb->gpio,
 -- 
-1.7.10.4
+1.7.11.4
 
