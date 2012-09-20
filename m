@@ -1,45 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:54880 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755801Ab2IRB2c (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4918 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752612Ab2ITMHe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 21:28:32 -0400
-Received: by pbbrr13 with SMTP id rr13so9970254pbb.19
-        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2012 18:28:32 -0700 (PDT)
-Date: Tue, 18 Sep 2012 09:28:52 +0800
-From: Shawn Guo <shawn.guo@linaro.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 12/34] media: mx1_camera: remove the driver
-Message-ID: <20120918012848.GE1338@S2101-09.ap.freescale.net>
-References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
- <1347860103-4141-13-git-send-email-shawn.guo@linaro.org>
- <Pine.LNX.4.64.1209171031010.1689@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1209171031010.1689@axis700.grange>
+	Thu, 20 Sep 2012 08:07:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 09/14] vpif_display: fix cleanup code.
+Date: Thu, 20 Sep 2012 14:06:28 +0200
+Message-Id: <3cd9a57d4eadfcd1ec18760e0796d7485236fc73.1348142407.git.hans.verkuil@cisco.com>
+In-Reply-To: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
+References: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
+References: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 17, 2012 at 10:33:25AM +0200, Guennadi Liakhovetski wrote:
-> Ok, it used to compile not-so-long-ago, but it doesn't seem to be cared 
-> for a lot lately. Let's give Paulius a bit more time to react to this 
-> mail, otherwise I'll have no objections. Just as an idea, to make it a bit 
-> milder we could first mark it BROKEN and add to remove schedule... But I 
-> don't mind either way.
-> 
-I chose to remove the driver completely rather than marking it BROKEN
-because the removal of the driver cleans up platform code a lot :)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Ok, if we hear anything back from Paulius in the next couple of weeks,
-I keep the driver there with BROKEN marked.
+The cleanup sequence was incorrect and could cause a kernel oops.
 
-Regards,
-Shawn
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/davinci/vpif_display.c |   30 +++++++++++++++----------
+ 1 file changed, 18 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index e71c88f..66b4b32 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -1607,7 +1607,8 @@ static __init int vpif_probe(struct platform_device *pdev)
+ {
+ 	struct vpif_subdev_info *subdevdata;
+ 	struct vpif_display_config *config;
+-	int i, j = 0, k, q, m, err = 0;
++	int i, j = 0, k, err = 0;
++	int res_idx = 0;
+ 	struct i2c_adapter *i2c_adap;
+ 	struct common_obj *common;
+ 	struct channel_obj *ch;
+@@ -1630,21 +1631,21 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		return err;
+ 	}
+ 
+-	k = 0;
+-	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, k))) {
++	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, res_idx))) {
+ 		for (i = res->start; i <= res->end; i++) {
+ 			if (request_irq(i, vpif_channel_isr, IRQF_SHARED,
+ 					"VPIF_Display",
+-				(void *)(&vpif_obj.dev[k]->channel_id))) {
++					(void *)(&vpif_obj.dev[res_idx]->channel_id))) {
+ 				err = -EBUSY;
++				for (j = 0; j < i; j++)
++					free_irq(j, (void *)(&vpif_obj.dev[res_idx]->channel_id));
+ 				goto vpif_int_err;
+ 			}
+ 		}
+-		k++;
++		res_idx++;
+ 	}
+ 
+ 	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
+-
+ 		/* Get the pointer to the channel object */
+ 		ch = vpif_obj.dev[i];
+ 
+@@ -1698,7 +1699,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 	if (vpif_obj.sd == NULL) {
+ 		vpif_err("unable to allocate memory for subdevice pointers\n");
+ 		err = -ENOMEM;
+-		goto vpif_int_err;
++		goto vpif_sd_error;
+ 	}
+ 
+ 	for (i = 0; i < subdev_count; i++) {
+@@ -1775,14 +1776,19 @@ probe_out:
+ 	}
+ probe_subdev_out:
+ 	kfree(vpif_obj.sd);
++vpif_sd_error:
++	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
++		ch = vpif_obj.dev[i];
++		/* Note: does nothing if ch->video_dev == NULL */
++		video_device_release(ch->video_dev);
++	}
+ vpif_int_err:
+ 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+ 	vpif_err("VPIF IRQ request failed\n");
+-	for (q = k; k >= 0; k--) {
+-		for (m = i; m >= res->start; m--)
+-			free_irq(m, (void *)(&vpif_obj.dev[k]->channel_id));
+-		res = platform_get_resource(pdev, IORESOURCE_IRQ, k-1);
+-		m = res->end;
++	for (i = 0; i < res_idx; i++) {
++		res = platform_get_resource(pdev, IORESOURCE_IRQ, i);
++		for (j = res->start; j <= res->end; j++)
++			free_irq(j, (void *)(&vpif_obj.dev[i]->channel_id));
+ 	}
+ 
+ 	return err;
+-- 
+1.7.10.4
+
