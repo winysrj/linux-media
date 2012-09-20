@@ -1,67 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gw1.zacglen.com ([220.233.85.112]:44093 "EHLO zacglen.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751013Ab2IIBjt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Sep 2012 21:39:49 -0400
-Received: (from jw@localhost)
-	by zacglen.com (8.14.3/8.14.3) id q891XcmZ020470
-	for linux-media@vger.kernel.org; Sun, 9 Sep 2012 11:33:38 +1000
-Date: Sun, 9 Sep 2012 11:33:38 +1000
-Message-Id: <201209090133.q891XcmZ020470.zacglen.com@localhost>
-To: linux-media@vger.kernel.org
-Subject: dvb bug
-From: yvahk-xreary@zacglen.net
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:53958 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751817Ab2ITRrS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Sep 2012 13:47:18 -0400
+Received: by obbuo13 with SMTP id uo13so1738822obb.19
+        for <linux-media@vger.kernel.org>; Thu, 20 Sep 2012 10:47:18 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <5020175D.3070601@iki.fi>
+References: <500C5B9B.8000303@iki.fi>
+	<CAOcJUbw-8zG-j7YobgKy7k5vp-k_trkaB5fYGz605KdUQHKTGQ@mail.gmail.com>
+	<500F1DC5.1000608@iki.fi>
+	<CAOcJUbzXoLx10o8oprxPM1TELFxyGE7_wodcWsBr8MX4OR0N_w@mail.gmail.com>
+	<50200AC9.9080203@iki.fi>
+	<CAGoCfixmre37ph46E6U9mJ+tyt+OL7+RbDwg+W6DkL01im2nCg@mail.gmail.com>
+	<CAOcJUbwyNBEoPyE_6QZQ-6tbUsHFzurYBEavegQO1aVYNsQ_kA@mail.gmail.com>
+	<5020175D.3070601@iki.fi>
+Date: Thu, 20 Sep 2012 13:47:17 -0400
+Message-ID: <CAOcJUbw5+wfaZ6Os5gKbPzCf0_d_rh=apatQwA=0k5gKm_FfOQ@mail.gmail.com>
+Subject: Re: tda18271 driver power consumption
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, Aug 6, 2012 at 3:13 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 08/06/2012 09:57 PM, Michael Krufky wrote:
+>>
+>> On Mon, Aug 6, 2012 at 2:35 PM, Devin Heitmueller
+>> <dheitmueller@kernellabs.com> wrote:
+>>>
+>>> On Mon, Aug 6, 2012 at 2:19 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>>>
+>>>> You should understand from DVB driver model:
+>>>> * attach() called only once when driver is loaded
+>>>> * init() called to wake-up device
+>>>> * sleep() called to sleep device
+>>>>
+>>>> What I would like to say is that there is very big risk to shoot own leg
+>>>> when doing some initialization on attach(). For example resuming from
+>>>> the
+>>>> suspend could cause device reset and if you rely some settings that are
+>>>> done
+>>>> during attach() you will likely fail as Kernel / USB-host controller has
+>>>> reset your device.
+>>>>
+>>>> See reset_resume from Kernel documentation:
+>>>> Documentation/usb/power-management.txt
+>>>
+>>>
+>>> Be forewarned:  there is a very high likelihood that this patch will
+>>> cause regressions on hybrid devices due to known race conditions
+>>> related to dvb_frontend sleeping the tuner asynchronously on close.
+>>> This is a hybrid tuner, and unless code is specifically added to the
+>>> bridge or tuner driver, going from digital to analog mode too quickly
+>>> will cause the tuner to be shutdown while it's actively in analog
+>>> mode.
+>>>
+>>> (I discovered this the hard way when working on problems MythTV users
+>>> reported against the HVR-950q).
+>>>
+>>> Description of race:
+>>>
+>>> 1.  User opens DVB frontend tunes
+>>> 2.  User closes DVB frontend
+>>> 3.  User *immediately* opens V4L device using same tuner
+>>> 4.  User performs tuning request for analog
+>>> 5.  DVB frontend issues sleep() call to tuner, causing analog tuning to
+>>> fail.
+>>>
+>>> This class of problem isn't seen on DVB only devices or those that
+>>> have dedicated digital tuners not shared for analog usage.  And in
+>>> some cases it isn't noticed because a delay between closing the DVB
+>>> device and opening the analog devices causes the sleep() call to
+>>> happen before the analog tune (in which case you don't hit the race).
+>>>
+>>> I'm certainly not against improved power management, but it will
+>>> require the race conditions to be fixed first in order to avoid
+>>> regressions.
+>>>
+>>> Devin
+>>>
+>>> --
+>>> Devin J. Heitmueller - Kernel Labs
+>>> http://www.kernellabs.com
+>>
+>>
+>> Devin's right.  I'm sorry, please *don't* merge the patch, Mauro.
+>> Antti, you should just call sleep from your driver after attach(), as
+>> I had previously suggested.  We can revisit this some time in the
+>> future after we can be sure that these race conditions wont occur.
+>
+>
+> OK, maybe it is safer then. I have no any hybrid hardware to test...
+>
+> Anyhow, I wonder how many years it will take to resolve that V4L2/DVB API
+> hybrid usage pŕoblem. I ran thinking that recently when looked how to
+> implement DVB SDR for V4L2 API... I could guess problem will not disappear
+> near future even analog TV disappears, because there is surely coming new
+> nasty features which spreads over both V4L2 and DVB APIs.
 
-With recent kernels I get system freeze when running with
-the following hardware:
+Guys,
 
-    Intel DX58S02 motherboard
-    Xeon W5520 cpu
-    Hauppauge HVR-1700 PCIe DVB-T
-    Technisat SkyStar2 DVB-T PCI card
+Please take another look at this branch and test if possible -- I
+pushed an additional patch that takes Devin's concerns into account.
+After applying these patches, the tda18271 driver will behave as it
+always has, but it will sleep the tuner after attaching the first
+instance.  If there is only one instance, then this works exactly as
+Antti desires.  If there are more instances, then the tuner will only
+be woken up again during attach if the tda18271_need_cal_on_startup()
+returns non-zero.  The driver does not attempt to re-sleep the
+hardware again during successive attach() calls.
 
-If I run either DVB-T card on its own then everything is ok.
-Or if I run both cards on different motherboard and cpu then
-everything is ok. So seems to related to DX58S02 and/or CPU
-and/or some timing issue.
+I have not tested this yet myself, but I believe it resolves the
+matter -- please comment.
 
-But with both dvb cards and debug kernel, I get:
+Regards,
 
-    ? printk + 14/18
-    valid_state + 131/144
-    mark_lock + f2/1e1
-    ? check_usage_backwards + 0/65
-    __lock_acquire + 2dc/b91
-    ? sched_clock + 9/d
-    ? sched_clock_cpu + 46/13b
-    ? trace_hardirqs_off + b/d
-    ? cpu_clock + 3b/53
-    lock_acquire + 93/b1
-    ? dvb_dmx_swfilter + 26/104
-    _spin_lock + 23/53
-    ? dvb_dmx_swfilter + 26/104
-    dvb_dmx_swfilter + 26/104
-    videobuf_dvb_thread + b3/135
-    ? videobuf_dvb_thread + 0/135
-    kthread + 64/69
-    ? kthread + 0/69
-    kernel_thread_helper + 7/10
-
-And at that point everything freezes (the INFO printk
-wasn't visible on screen but I would have thought that this
-should have just been an informative trace and not something
-which would cause system to freeze).
-
-Without debug kernel I get either system freeze or
-other oops. And if there is any oops then the cx23885
-module is always in the trace.
-
-The user space application runs as two completely seperate instances
-and opens two completely (supposedly) independent devices.
-
-Can anybody make sense of the trace and point out what
-exactly is happening?
-
+Mike Krufky
