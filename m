@@ -1,63 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:47403 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757528Ab2IJPaP (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:49030 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754640Ab2ITMrP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 11:30:15 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v4 10/16] media: coda: fix sizeimage setting in try_fmt
-Date: Mon, 10 Sep 2012 17:29:54 +0200
-Message-Id: <1347291000-340-11-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
-References: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
+	Thu, 20 Sep 2012 08:47:15 -0400
+Date: Thu, 20 Sep 2012 08:47:10 -0400
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Shawn Guo <shawn.guo@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	alsa-devel@alsa-project.org,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	linux-fbdev@vger.kernel.org, Chris Ball <cjb@laptop.org>,
+	linux-mmc@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	rtc-linux@googlegroups.com,
+	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
+	linux-mtd@lists.infradead.org,
+	Wolfram Sang <w.sang@pengutronix.de>,
+	linux-i2c@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>,
+	linux-watchdog@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, Vinod Koul <vinod.koul@linux.intel.com>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+Subject: Re: [PATCH v2 00/34] i.MX multi-platform support
+Message-ID: <20120920124709.GN17666@opensource.wolfsonmicro.com>
+References: <1348123547-31082-1-git-send-email-shawn.guo@linaro.org>
+ <201209200739.34899.arnd@arndb.de>
+ <20120920114148.GH17666@opensource.wolfsonmicro.com>
+ <20120920115213.GF2450@S2101-09.ap.freescale.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120920115213.GF2450@S2101-09.ap.freescale.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VIDIOC_TRY_FMT would incorrectly return bytesperline * height,
-instead of width * height * 3 / 2.
+On Thu, Sep 20, 2012 at 07:52:15PM +0800, Shawn Guo wrote:
+> On Thu, Sep 20, 2012 at 07:41:50AM -0400, Mark Brown wrote:
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+> > It's usually pretty early but Takashi will be on holiday this time so
+> > I'm not sure if things might be different (he was going to send the pull
+> > request from holiday).  I also didn't guarantee that it'll be stable
+> > yet, can someone please tell me what the depenency is here?
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index fe8a397..e8ed427 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -407,8 +407,8 @@ static int vidioc_try_fmt(struct coda_dev *dev, struct v4l2_format *f)
- 				      W_ALIGN, &f->fmt.pix.height,
- 				      MIN_H, MAX_H, H_ALIGN, S_ALIGN);
- 		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 2);
--		f->fmt.pix.sizeimage = f->fmt.pix.height *
--					f->fmt.pix.bytesperline;
-+		f->fmt.pix.sizeimage = f->fmt.pix.width *
-+					f->fmt.pix.height * 3 / 2;
- 	} else { /*encoded formats h.264/mpeg4 */
- 		f->fmt.pix.bytesperline = 0;
- 		f->fmt.pix.sizeimage = CODA_MAX_FRAME_SIZE;
-@@ -492,11 +492,7 @@ static int vidioc_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f)
- 	q_data->fmt = find_format(ctx->dev, f);
- 	q_data->width = f->fmt.pix.width;
- 	q_data->height = f->fmt.pix.height;
--	if (q_data->fmt->fourcc == V4L2_PIX_FMT_YUV420) {
--		q_data->sizeimage = q_data->width * q_data->height * 3 / 2;
--	} else { /* encoded format h.264/mpeg-4 */
--		q_data->sizeimage = CODA_MAX_FRAME_SIZE;
--	}
-+	q_data->sizeimage = f->fmt.pix.sizeimage;
- 
- 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
- 		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
--- 
-1.7.10.4
+> We need the patch to have all imx drivers mach/* inclusion free,
+> so that we can enable multi-platform support for imx, which is the
+> whole point of the series.
 
+That doesn't answer the question.  What is the dependency - what is it
+about this patch that something else depends on?  Your cover letters
+just say you'd like to do this but don't mention dependencies at all and
+when I asked the question last night you said the same thing.  I've not
+seen the rest of the series...
+
+> If your for-3.7 is not stable anyway, I guess the easiest the way
+
+It probably *is* stable but I'm not enthused about people pulling
+unsigned tags.  I might rebase, though - I'm going to finalise the tree
+in the next few days.
+
+> to do it might be you drop the patch "ASoC: mx27vis: retrieve gpio
+> numbers from platform_data" from your tree and I have it be part of
+> the series to go via arm-soc tree as a whole.  (This is the original
+> plan that I mentioned in v1 cover letter)
+
+You just mentioned it as a preference (you said it's something you'd
+like to do), please if you're doing this sort of cross tree thing be
+explicit about what the inter-tree relationships are.  If things need to
+go in via the same tree say so explicitly (and ideally say way this is).
+
+The main reason I applied it straight away was that Javier mentioned
+that it was a bug fix and it's near the merge window and these random
+ARM cleanup serieses never seem to go in quickly.
