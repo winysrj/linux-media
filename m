@@ -1,107 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:31621 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753619Ab2IZNzU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 09:55:20 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH] dvb-usb: print small buffers via %*ph
-Date: Wed, 26 Sep 2012 16:55:14 +0300
-Message-Id: <1348667714-5782-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4586 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752166Ab2ITMHY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Sep 2012 08:07:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 03/14] vpif_capture: move input_idx to channel_obj.
+Date: Thu, 20 Sep 2012 14:06:22 +0200
+Message-Id: <f9e6bf38a5903721879205e315bd5e33eb55a2da.1348142407.git.hans.verkuil@cisco.com>
+In-Reply-To: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
+References: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
+References: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/media/usb/dvb-usb/a800.c           |    2 +-
- drivers/media/usb/dvb-usb/cinergyT2-core.c |    3 +--
- drivers/media/usb/dvb-usb/dibusb-common.c  |    2 +-
- drivers/media/usb/dvb-usb/digitv.c         |    2 +-
- drivers/media/usb/dvb-usb/dtt200u.c        |    2 +-
- drivers/media/usb/dvb-usb/m920x.c          |    2 +-
- 6 files changed, 6 insertions(+), 7 deletions(-)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/usb/dvb-usb/a800.c b/drivers/media/usb/dvb-usb/a800.c
-index 8d7fef8..83684ed 100644
---- a/drivers/media/usb/dvb-usb/a800.c
-+++ b/drivers/media/usb/dvb-usb/a800.c
-@@ -93,7 +93,7 @@ static int a800_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
- 	/* call the universal NEC remote processor, to find out the key's state and event */
- 	dvb_usb_nec_rc_key_to_event(d,key,event,state);
- 	if (key[0] != 0)
--		deb_rc("key: %x %x %x %x %x\n",key[0],key[1],key[2],key[3],key[4]);
-+		deb_rc("key: %*ph\n", 5, key);
- 	ret = 0;
- out:
- 	kfree(key);
-diff --git a/drivers/media/usb/dvb-usb/cinergyT2-core.c b/drivers/media/usb/dvb-usb/cinergyT2-core.c
-index 0a98548..9fd1527 100644
---- a/drivers/media/usb/dvb-usb/cinergyT2-core.c
-+++ b/drivers/media/usb/dvb-usb/cinergyT2-core.c
-@@ -172,8 +172,7 @@ static int cinergyt2_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
- 		if (*event != d->last_event)
- 			st->rc_counter = 0;
+input_idx does not belong to video_obj. Move it where it belongs.
+Also remove the bogus code in the open() function that suddenly
+changes the input to 0 for no reason.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c |    9 ++-------
+ drivers/media/platform/davinci/vpif_capture.h |    4 ++--
+ 2 files changed, 4 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 78edd01..4233554 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -888,8 +888,6 @@ static int vpif_open(struct file *filep)
+ 			if (vpif_obj.sd[i]) {
+ 				/* the sub device is registered */
+ 				ch->curr_subdev_info = &config->subdev_info[i];
+-				/* make first input as the current input */
+-				vid_ch->input_idx = 0;
+ 				break;
+ 			}
+ 		}
+@@ -1442,10 +1440,8 @@ static int vpif_g_input(struct file *file, void *priv, unsigned int *index)
+ {
+ 	struct vpif_fh *fh = priv;
+ 	struct channel_obj *ch = fh->channel;
+-	struct video_obj *vid_ch = &ch->video;
+-
+-	*index = vid_ch->input_idx;
  
--		deb_rc("key: %x %x %x %x %x\n",
--		       key[0], key[1], key[2], key[3], key[4]);
-+		deb_rc("key: %*ph\n", 5, key);
++	*index = ch->input_idx;
+ 	return 0;
+ }
+ 
+@@ -1462,7 +1458,6 @@ static int vpif_s_input(struct file *file, void *priv, unsigned int index)
+ 	struct vpif_fh *fh = priv;
+ 	struct channel_obj *ch = fh->channel;
+ 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+-	struct video_obj *vid_ch = &ch->video;
+ 	struct vpif_subdev_info *subdev_info;
+ 	int ret = 0, sd_index = 0;
+ 	u32 input = 0, output = 0;
+@@ -1517,7 +1512,7 @@ static int vpif_s_input(struct file *file, void *priv, unsigned int index)
+ 			return ret;
+ 		}
  	}
- 	return 0;
- }
-diff --git a/drivers/media/usb/dvb-usb/dibusb-common.c b/drivers/media/usb/dvb-usb/dibusb-common.c
-index a76bbb2..af0d432 100644
---- a/drivers/media/usb/dvb-usb/dibusb-common.c
-+++ b/drivers/media/usb/dvb-usb/dibusb-common.c
-@@ -473,7 +473,7 @@ int dibusb_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
- 	dvb_usb_generic_rw(d,&cmd,1,key,5,0);
- 	dvb_usb_nec_rc_key_to_event(d,key,event,state);
- 	if (key[0] != 0)
--		deb_info("key: %x %x %x %x %x\n",key[0],key[1],key[2],key[3],key[4]);
-+		deb_info("key: %*ph\n", 5, key);
- 	return 0;
- }
- EXPORT_SYMBOL(dibusb_rc_query);
-diff --git a/drivers/media/usb/dvb-usb/digitv.c b/drivers/media/usb/dvb-usb/digitv.c
-index ff34419..772bde3 100644
---- a/drivers/media/usb/dvb-usb/digitv.c
-+++ b/drivers/media/usb/dvb-usb/digitv.c
-@@ -253,7 +253,7 @@ static int digitv_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
- 	}
+-	vid_ch->input_idx = index;
++	ch->input_idx = index;
+ 	ch->curr_subdev_info = subdev_info;
+ 	ch->curr_sd_index = sd_index;
+ 	/* copy interface parameters to vpif */
+diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
+index 0a3904c..a284667 100644
+--- a/drivers/media/platform/davinci/vpif_capture.h
++++ b/drivers/media/platform/davinci/vpif_capture.h
+@@ -54,8 +54,6 @@ struct video_obj {
+ 	/* Currently selected or default standard */
+ 	v4l2_std_id stdid;
+ 	struct v4l2_dv_timings dv_timings;
+-	/* This is to track the last input that is passed to application */
+-	u32 input_idx;
+ };
  
- 	if (key[0] != 0)
--		deb_rc("key: %x %x %x %x %x\n",key[0],key[1],key[2],key[3],key[4]);
-+		deb_rc("key: %*ph\n", 5, key);
- 	return 0;
- }
- 
-diff --git a/drivers/media/usb/dvb-usb/dtt200u.c b/drivers/media/usb/dvb-usb/dtt200u.c
-index 66f205c..c357fb3 100644
---- a/drivers/media/usb/dvb-usb/dtt200u.c
-+++ b/drivers/media/usb/dvb-usb/dtt200u.c
-@@ -84,7 +84,7 @@ static int dtt200u_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
- 	dvb_usb_generic_rw(d,&cmd,1,key,5,0);
- 	dvb_usb_nec_rc_key_to_event(d,key,event,state);
- 	if (key[0] != 0)
--		deb_info("key: %x %x %x %x %x\n",key[0],key[1],key[2],key[3],key[4]);
-+		deb_info("key: %*ph\n", 5, key);
- 	return 0;
- }
- 
-diff --git a/drivers/media/usb/dvb-usb/m920x.c b/drivers/media/usb/dvb-usb/m920x.c
-index 288af29..661bb75 100644
---- a/drivers/media/usb/dvb-usb/m920x.c
-+++ b/drivers/media/usb/dvb-usb/m920x.c
-@@ -358,7 +358,7 @@ static int m920x_firmware_download(struct usb_device *udev, const struct firmwar
- 
- 	if ((ret = m920x_read(udev, M9206_FILTER, 0x0, 0x8000, read, 4)) != 0)
- 		goto done;
--	deb("%x %x %x %x\n", read[0], read[1], read[2], read[3]);
-+	deb("%*ph\n", 4, read);
- 
- 	if ((ret = m920x_read(udev, M9206_FW, 0x0, 0x0, read, 1)) != 0)
- 		goto done;
+ struct vpif_cap_buffer {
+@@ -121,6 +119,8 @@ struct channel_obj {
+ 	enum vpif_channel_id channel_id;
+ 	/* index into sd table */
+ 	int curr_sd_index;
++	/* Current input */
++	u32 input_idx;
+ 	/* ptr to current sub device information */
+ 	struct vpif_subdev_info *curr_subdev_info;
+ 	/* vpif configuration params */
 -- 
 1.7.10.4
 
