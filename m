@@ -1,58 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:34572 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932157Ab2I2Tkn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Sep 2012 15:40:43 -0400
-Date: Sat, 29 Sep 2012 13:40:41 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Albert Wang <twang13@marvell.com>
-Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	Libin Yang <lbyang@marvell.com>
-Subject: Re: [PATCH 2/4] [media] marvell-ccic: core: add soc camera support
- on marvell-ccic mcam-core
-Message-ID: <20120929134041.343c3d56@hpe.lwn.net>
-In-Reply-To: <1348840040-21390-1-git-send-email-twang13@marvell.com>
-References: <1348840040-21390-1-git-send-email-twang13@marvell.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2464 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751081Ab2ITMHU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Sep 2012 08:07:20 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 07/14] vpif_capture: first init subdevs, then register device nodes.
+Date: Thu, 20 Sep 2012 14:06:26 +0200
+Message-Id: <ae44074a4e31ff3f584835b072208718ed7608c4.1348142407.git.hans.verkuil@cisco.com>
+In-Reply-To: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
+References: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
+References: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 28 Sep 2012 21:47:20 +0800
-Albert Wang <twang13@marvell.com> wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> This patch adds the support of Soc Camera on marvell-ccic mcam-core.
-> The Soc Camera mode does not compatible with current mode.
-> Only one mode can be used at one time.
-> 
-> To use Soc Camera, CONFIG_VIDEO_MMP_SOC_CAMERA should be defined.
-> What's more, the platform driver should support Soc camera at the same time.
-> 
-> Also add MIPI interface and dual CCICs support in Soc Camera mode.
+When device nodes are registered they must be ready for use
+immediately, so make sure the subdevs are loaded first.
 
-I'm glad this work is being done, but I have some high-level grumbles
-to start with.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c |   47 +++++++++++--------------
+ 1 file changed, 20 insertions(+), 27 deletions(-)
 
-This patch is too big, and does several things. I think there needs to
-be one to add SOC support (but see below), one to add planar formats,
-one to add MIPI, one for the second CCIC, etc. That will make them all
-easier to review.
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index e40eacd1..98423b5 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -2139,24 +2139,6 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
+-		ch = vpif_obj.dev[j];
+-		ch->channel_id = j;
+-		common = &(ch->common[VPIF_VIDEO_INDEX]);
+-		spin_lock_init(&common->irqlock);
+-		mutex_init(&common->lock);
+-		ch->video_dev->lock = &common->lock;
+-		/* Initialize prio member of channel object */
+-		v4l2_prio_init(&ch->prio);
+-		err = video_register_device(ch->video_dev,
+-					    VFL_TYPE_GRABBER, (j ? 1 : 0));
+-		if (err)
+-			goto probe_out;
+-
+-		video_set_drvdata(ch->video_dev, ch);
+-
+-	}
+-
+ 	i2c_adap = i2c_get_adapter(1);
+ 	config = pdev->dev.platform_data;
+ 
+@@ -2166,7 +2148,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 	if (vpif_obj.sd == NULL) {
+ 		vpif_err("unable to allocate memory for subdevice pointers\n");
+ 		err = -ENOMEM;
+-		goto probe_out;
++		goto vpif_dev_alloc_err;
+ 	}
+ 
+ 	for (i = 0; i < subdev_count; i++) {
+@@ -2183,19 +2165,27 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		}
+ 		v4l2_info(&vpif_obj.v4l2_dev, "registered sub device %s\n",
+ 			  subdevdata->name);
+-
+-		if (vpif_obj.sd[i])
+-			vpif_obj.sd[i]->grp_id = 1 << i;
+ 	}
+ 
++	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
++		ch = vpif_obj.dev[j];
++		ch->channel_id = j;
++		common = &(ch->common[VPIF_VIDEO_INDEX]);
++		spin_lock_init(&common->irqlock);
++		mutex_init(&common->lock);
++		ch->video_dev->lock = &common->lock;
++		/* Initialize prio member of channel object */
++		v4l2_prio_init(&ch->prio);
++		video_set_drvdata(ch->video_dev, ch);
++
++		err = video_register_device(ch->video_dev,
++					    VFL_TYPE_GRABBER, (j ? 1 : 0));
++		if (err)
++			goto probe_out;
++	}
+ 	v4l2_info(&vpif_obj.v4l2_dev, "VPIF capture driver initialized\n");
+ 	return 0;
+ 
+-probe_subdev_out:
+-	/* free sub devices memory */
+-	kfree(vpif_obj.sd);
+-
+-	j = VPIF_CAPTURE_MAX_DEVICES;
+ probe_out:
+ 	for (k = 0; k < j; k++) {
+ 		/* Get the pointer to the channel object */
+@@ -2203,6 +2193,9 @@ probe_out:
+ 		/* Unregister video device */
+ 		video_unregister_device(ch->video_dev);
+ 	}
++probe_subdev_out:
++	/* free sub devices memory */
++	kfree(vpif_obj.sd);
+ 
+ vpif_dev_alloc_err:
+ 	k = VPIF_CAPTURE_MAX_DEVICES-1;
+-- 
+1.7.10.4
 
-The SOC camera stuff could maybe use a little more thought. Why does
-this driver *need* to be a SOC camera driver?  If that is truly
-necessary (or sufficiently beneficial), can we get to the point where
-that's the only mode?  I really dislike the two modes; we're
-essentially perpetuating the two-drivers concept in a #ifdef'd form; it
-would be good not to do that.
-
-If there is truly some reason why both modes need to exist, can we
-arrange things so that the core doesn't know the difference?  I'd like
-to see no new ifdefs there if possible, it already has way too many.
-
-That, I think, is how I'd like to go toward a cleaner, more reviewable,
-more maintainable solution.  Make sense?
-
-Thanks,
-
-jon
