@@ -1,67 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33635 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755945Ab2I0KZD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Sep 2012 06:25:03 -0400
-Message-ID: <506429D1.4090401@redhat.com>
-Date: Thu, 27 Sep 2012 12:26:25 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: qv4l2-bug / libv4lconvert API issue
-References: <50636DD2.3070508@googlemail.com>
-In-Reply-To: <50636DD2.3070508@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1852 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751014Ab2ITMH1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Sep 2012 08:07:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 13/14] davinci: move struct vpif_interface to chan_cfg.
+Date: Thu, 20 Sep 2012 14:06:32 +0200
+Message-Id: <3315239726b3c1a08b359c443f6bbe54c63d74d0.1348142407.git.hans.verkuil@cisco.com>
+In-Reply-To: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
+References: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
+References: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 09/26/2012 11:04 PM, Frank Schäfer wrote:
-> Hi,
->
-> I've noticed the following issues/bugs while playing with qv4l:
-> 1.) with pac7302-webcams, only the RGB3 (RGB24) format is working. BGR3,
-> YU12 and YV12 are broken
-> 2.) for upside-down-mounted devices with an entry in libv4lconvert,
-> automatic h/v-flipping doesn't work with some formats
->
-> I've been digging a bit deeper into the code and it seems that both
-> issues are caused by a problem with the libv4lconvert-API:
-> Besides image format conversion, function v4lconvert_convert() also does
-> the automatic image flipping and rotation (for devices with flags
-> V4LCONTROL_HFLIPPED, V4LCONTROL_VFLIPPED and V4LCONTROL_ROTATED_90_JPEG)
-> The problem is, that this function can be called multiple times for the
-> same frame, which then of course results in repeated flipping and
-> rotation...
->
-> And this is exactly what happens with qv4l2:
-> qv4l2 gets the frame from libv4l2, which calls v4lconvert_convert() in
-> v4l2_dequeue_and_convert() or v4l2_read_and_convert().
-> The retrieved frame has the requested format and is already flipped/rotated.
-> qv4l2 then calls v4lconvert_convert() again directly to convert the
-> frame to RGB24 for GUI-output and this is where things are going wrong.
-> In case of h/v-flip, the double conversion "only" equalizes the
-> V4LCONTROL_HFLIPPED, V4LCONTROL_VFLIPPED flags, but for rotated devices,
-> the image gets corrupted.
->
-> Sure, what qv4l2 does is a crazy. Applications usually request the
-> format needed for GUI-output directly from libv4l2.
-> Anyway, as long as it is valid to call libv4lconvert directly, we can
-> not assume that v4lconvert_convert() is called only one time.
->
-> At the moment, I see no possibility to fix this without changing the
-> libv4lconvert-API.
-> Thoughts ?
+struct vpif_interface is channel specific, not subdev specific.
+Move it to the channel config.
 
-What you've found is a qv4l2 bug (do you have the latest version?) one
-is supposed to either use libv4l2, or do raw device access and then
-call libv4lconvert directly. These are also the 2 modes qv4l2 has
-(for testing purposes), it is not supposed to do the manual convert call
-when using libv4l2 to access the device ...
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ arch/arm/mach-davinci/board-da850-evm.c       |   24 ++++++++++++------------
+ arch/arm/mach-davinci/board-dm646x-evm.c      |   24 ++++++++++++------------
+ drivers/media/platform/davinci/vpif_capture.c |    2 +-
+ include/media/davinci/vpif_types.h            |    2 +-
+ 4 files changed, 26 insertions(+), 26 deletions(-)
 
-Regards,
+diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
+index 514d4d4..3081ea4 100644
+--- a/arch/arm/mach-davinci/board-da850-evm.c
++++ b/arch/arm/mach-davinci/board-da850-evm.c
+@@ -1211,12 +1211,6 @@ static struct vpif_subdev_info da850_vpif_capture_sdev_info[] = {
+ 			I2C_BOARD_INFO("tvp5146", 0x5d),
+ 			.platform_data = &tvp5146_pdata,
+ 		},
+-		.vpif_if = {
+-			.if_type = VPIF_IF_BT656,
+-			.hd_pol  = 1,
+-			.vd_pol  = 1,
+-			.fid_pol = 0,
+-		},
+ 	},
+ 	{
+ 		.name = TVP5147_CH1,
+@@ -1224,12 +1218,6 @@ static struct vpif_subdev_info da850_vpif_capture_sdev_info[] = {
+ 			I2C_BOARD_INFO("tvp5146", 0x5c),
+ 			.platform_data = &tvp5146_pdata,
+ 		},
+-		.vpif_if = {
+-			.if_type = VPIF_IF_BT656,
+-			.hd_pol  = 1,
+-			.vd_pol  = 1,
+-			.fid_pol = 0,
+-		},
+ 	},
+ };
+ 
+@@ -1239,10 +1227,22 @@ static struct vpif_capture_config da850_vpif_capture_config = {
+ 	.chan_config[0] = {
+ 		.inputs = da850_ch0_inputs,
+ 		.input_count = ARRAY_SIZE(da850_ch0_inputs),
++		.vpif_if = {
++			.if_type = VPIF_IF_BT656,
++			.hd_pol  = 1,
++			.vd_pol  = 1,
++			.fid_pol = 0,
++		},
+ 	},
+ 	.chan_config[1] = {
+ 		.inputs = da850_ch1_inputs,
+ 		.input_count = ARRAY_SIZE(da850_ch1_inputs),
++		.vpif_if = {
++			.if_type = VPIF_IF_BT656,
++			.hd_pol  = 1,
++			.vd_pol  = 1,
++			.fid_pol = 0,
++		},
+ 	},
+ 	.card_name = "DA850/OMAP-L138 Video Capture",
+ };
+diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
+index 0daec7e..ad249c7 100644
+--- a/arch/arm/mach-davinci/board-dm646x-evm.c
++++ b/arch/arm/mach-davinci/board-dm646x-evm.c
+@@ -601,12 +601,6 @@ static struct vpif_subdev_info vpif_capture_sdev_info[] = {
+ 			I2C_BOARD_INFO("tvp5146", 0x5d),
+ 			.platform_data = &tvp5146_pdata,
+ 		},
+-		.vpif_if = {
+-			.if_type = VPIF_IF_BT656,
+-			.hd_pol = 1,
+-			.vd_pol = 1,
+-			.fid_pol = 0,
+-		},
+ 	},
+ 	{
+ 		.name	= TVP5147_CH1,
+@@ -614,12 +608,6 @@ static struct vpif_subdev_info vpif_capture_sdev_info[] = {
+ 			I2C_BOARD_INFO("tvp5146", 0x5c),
+ 			.platform_data = &tvp5146_pdata,
+ 		},
+-		.vpif_if = {
+-			.if_type = VPIF_IF_BT656,
+-			.hd_pol = 1,
+-			.vd_pol = 1,
+-			.fid_pol = 0,
+-		},
+ 	},
+ };
+ 
+@@ -659,10 +647,22 @@ static struct vpif_capture_config dm646x_vpif_capture_cfg = {
+ 	.chan_config[0] = {
+ 		.inputs = dm6467_ch0_inputs,
+ 		.input_count = ARRAY_SIZE(dm6467_ch0_inputs),
++		.vpif_if = {
++			.if_type = VPIF_IF_BT656,
++			.hd_pol = 1,
++			.vd_pol = 1,
++			.fid_pol = 0,
++		},
+ 	},
+ 	.chan_config[1] = {
+ 		.inputs = dm6467_ch1_inputs,
+ 		.input_count = ARRAY_SIZE(dm6467_ch1_inputs),
++		.vpif_if = {
++			.if_type = VPIF_IF_BT656,
++			.hd_pol = 1,
++			.vd_pol = 1,
++			.fid_pol = 0,
++		},
+ 	},
+ };
+ 
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index f97eb0b..4828888 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -1310,7 +1310,7 @@ static int vpif_set_input(
+ 	ch->input_idx = index;
+ 	ch->sd = sd;
+ 	/* copy interface parameters to vpif */
+-	ch->vpifparams.iface = subdev_info->vpif_if;
++	ch->vpifparams.iface = chan_cfg->vpif_if;
+ 
+ 	/* update tvnorms from the sub device input info */
+ 	ch->video_dev->tvnorms = chan_cfg->inputs[index].input.std;
+diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
+index a422ed0..65e8fe1 100644
+--- a/include/media/davinci/vpif_types.h
++++ b/include/media/davinci/vpif_types.h
+@@ -37,7 +37,6 @@ struct vpif_interface {
+ struct vpif_subdev_info {
+ 	const char *name;
+ 	struct i2c_board_info board_info;
+-	struct vpif_interface vpif_if;
+ };
+ 
+ struct vpif_display_config {
+@@ -59,6 +58,7 @@ struct vpif_input {
+ };
+ 
+ struct vpif_capture_chan_config {
++	struct vpif_interface vpif_if;
+ 	const struct vpif_input *inputs;
+ 	int input_count;
+ };
+-- 
+1.7.10.4
 
-Hans
