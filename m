@@ -1,133 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog102.obsmtp.com ([207.126.144.113]:44952 "EHLO
-	eu1sys200aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752526Ab2IGKLQ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Sep 2012 06:11:16 -0400
-From: Bhupesh SHARMA <bhupesh.sharma@st.com>
-To: Scott Jiang <Scott.Jiang.Linux@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Armando VISCONTI <armando.visconti@st.com>,
-	Shiraz HASHIM <shiraz.hashim@st.com>,
-	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>
-Date: Fri, 7 Sep 2012 18:10:47 +0800
-Subject: Using MMAP calls on a video capture device having underlying NOMMU
- arch
-Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FB084B206@EAPEX1MAIL1.st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1947 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751014Ab2ITMHX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Sep 2012 08:07:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 14/14] tvp514x: s_routing should just change routing, not try to detect a signal.
+Date: Thu, 20 Sep 2012 14:06:33 +0200
+Message-Id: <9bb567110718a2bef1908cd04396c0e83e1e2e51.1348142407.git.hans.verkuil@cisco.com>
+In-Reply-To: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
+References: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
+References: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I have been trying recently to make a usb-based-webcam device to work with
-Linux. The entire scheme is a bit complex:
+The s_routing function should not try to detect a signal. It is a really
+bad idea to try to detect a valid video signal and return an error if
+you can't. Changing input should do just that and nothing more.
 
-UVC gadget <--User Pointer--> User-Space Daemon <-- MMAP --> V4L2 capture device.
+Also don't power on the ADCs on s_routing, instead do that on querystd.
 
-The UVC gadget is internally a v4l2 based device supporting VB2_VMALLOC operations,
-whereas the V4L2 capture device supports VB2_DMA_CONTIG operations.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/tvp514x.c |   77 ++++---------------------------------------
+ 1 file changed, 6 insertions(+), 71 deletions(-)
 
-The application (user-space daemon), is responsible for getting memory allocated
-from the V4L2 capture device via REQBUF calls. The V4L2 capture side exposes a
-MMAP IO method, whereas the UVC gadget can get a USERPTR to the buffer filled with
-video data from the V4L2 capture device and then send the same on a USB bus.
+diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+index 1f3943b..d5e1021 100644
+--- a/drivers/media/i2c/tvp514x.c
++++ b/drivers/media/i2c/tvp514x.c
+@@ -519,6 +519,12 @@ static int tvp514x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std_id)
+ 
+ 	*std_id = V4L2_STD_UNKNOWN;
+ 
++	/* To query the standard the TVP514x must power on the ADCs. */
++	if (!decoder->streaming) {
++		tvp514x_s_stream(sd, 1);
++		msleep(LOCK_RETRY_DELAY);
++	}
++
+ 	/* query the current standard */
+ 	current_std = tvp514x_query_current_std(sd);
+ 	if (current_std == STD_INVALID)
+@@ -625,25 +631,12 @@ static int tvp514x_s_routing(struct v4l2_subdev *sd,
+ 	int err;
+ 	enum tvp514x_input input_sel;
+ 	enum tvp514x_output output_sel;
+-	u8 sync_lock_status, lock_mask;
+-	int try_count = LOCK_RETRY_COUNT;
+ 
+ 	if ((input >= INPUT_INVALID) ||
+ 			(output >= OUTPUT_INVALID))
+ 		/* Index out of bound */
+ 		return -EINVAL;
+ 
+-	/*
+-	 * For the sequence streamon -> streamoff and again s_input
+-	 * it fails to lock the signal, since streamoff puts TVP514x
+-	 * into power off state which leads to failure in sub-sequent s_input.
+-	 *
+-	 * So power up the TVP514x device here, since it is important to lock
+-	 * the signal at this stage.
+-	 */
+-	if (!decoder->streaming)
+-		tvp514x_s_stream(sd, 1);
+-
+ 	input_sel = input;
+ 	output_sel = output;
+ 
+@@ -660,64 +653,6 @@ static int tvp514x_s_routing(struct v4l2_subdev *sd,
+ 
+ 	decoder->tvp514x_regs[REG_INPUT_SEL].val = input_sel;
+ 	decoder->tvp514x_regs[REG_OUTPUT_FORMATTER1].val = output_sel;
+-
+-	/* Clear status */
+-	msleep(LOCK_RETRY_DELAY);
+-	err =
+-	    tvp514x_write_reg(sd, REG_CLEAR_LOST_LOCK, 0x01);
+-	if (err)
+-		return err;
+-
+-	switch (input_sel) {
+-	case INPUT_CVBS_VI1A:
+-	case INPUT_CVBS_VI1B:
+-	case INPUT_CVBS_VI1C:
+-	case INPUT_CVBS_VI2A:
+-	case INPUT_CVBS_VI2B:
+-	case INPUT_CVBS_VI2C:
+-	case INPUT_CVBS_VI3A:
+-	case INPUT_CVBS_VI3B:
+-	case INPUT_CVBS_VI3C:
+-	case INPUT_CVBS_VI4A:
+-		lock_mask = STATUS_CLR_SUBCAR_LOCK_BIT |
+-			STATUS_HORZ_SYNC_LOCK_BIT |
+-			STATUS_VIRT_SYNC_LOCK_BIT;
+-		break;
+-
+-	case INPUT_SVIDEO_VI2A_VI1A:
+-	case INPUT_SVIDEO_VI2B_VI1B:
+-	case INPUT_SVIDEO_VI2C_VI1C:
+-	case INPUT_SVIDEO_VI2A_VI3A:
+-	case INPUT_SVIDEO_VI2B_VI3B:
+-	case INPUT_SVIDEO_VI2C_VI3C:
+-	case INPUT_SVIDEO_VI4A_VI1A:
+-	case INPUT_SVIDEO_VI4A_VI1B:
+-	case INPUT_SVIDEO_VI4A_VI1C:
+-	case INPUT_SVIDEO_VI4A_VI3A:
+-	case INPUT_SVIDEO_VI4A_VI3B:
+-	case INPUT_SVIDEO_VI4A_VI3C:
+-		lock_mask = STATUS_HORZ_SYNC_LOCK_BIT |
+-			STATUS_VIRT_SYNC_LOCK_BIT;
+-		break;
+-	/* Need to add other interfaces*/
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	while (try_count-- > 0) {
+-		/* Allow decoder to sync up with new input */
+-		msleep(LOCK_RETRY_DELAY);
+-
+-		sync_lock_status = tvp514x_read_reg(sd,
+-				REG_STATUS1);
+-		if (lock_mask == (sync_lock_status & lock_mask))
+-			/* Input detected */
+-			break;
+-	}
+-
+-	if (try_count < 0)
+-		return -EINVAL;
+-
+ 	decoder->input = input;
+ 	decoder->output = output;
+ 
+-- 
+1.7.10.4
 
-This scheme works absolutely fine on an architecture having a MMU, but when I try
-the same on a NOMMU arch, I see MMAP calls from the user-space daemon failing.
-
-I have implemented a .get_unmapped_area callback in my V4L2 capture driver using
-the blackfin video capture driver as a reference (see [1]).
-
-I make a MMAP call from the user-space application in a sequence like this
-(pretty similar to the standard capture.c example, see[2]):
-
-static void init_mmap (void)
-{
-	struct v4l2_requestbuffers req;
-
-	CLEAR (req);
-
-	req.count               = 4;
-	req.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	req.memory              = V4L2_MEMORY_MMAP;
-
-	if (-1 == xioctl (fd, VIDIOC_REQBUFS, &req)) 
-	{
-		if (EINVAL == errno) 
-		{
-			fprintf (stderr, "%s does not support memory mapping\n", dev_name);
-			exit (EXIT_FAILURE);
-		} 
-		else 
-		{
-			errno_exit ("VIDIOC_REQBUFS");
-		}
-	}
-
-	if (req.count < 2) 
-	{
-		fprintf (stderr, "Insufficient buffer memory on %s\n",dev_name);
-		exit (EXIT_FAILURE);
-	}
-
-	buffers = (buffer*) calloc (req.count, sizeof (*buffers));
-
-	if (!buffers) 
-	{
-		fprintf (stderr, "Out of memory\n");
-		exit (EXIT_FAILURE);
-	}
-
-	for (n_buffers = 0; n_buffers < req.count; ++n_buffers) 
-	{
-		struct v4l2_buffer buf;
-
-		CLEAR (buf);
-
-		buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-		buf.memory      = V4L2_MEMORY_MMAP;
-		buf.index       = n_buffers;
-
-		if (-1 == xioctl (fd, VIDIOC_QUERYBUF, &buf))
-			errno_exit ("VIDIOC_QUERYBUF");
-
-		buffers[n_buffers].length = buf.length;
-		buffers[n_buffers].start =
-				mmap (NULL /* start anywhere */,
-					buf.length,
-					PROT_READ | PROT_WRITE /* required */,
-					MAP_SHARED /* recommended */,
-					fd, buf.m.offset);
-
-		if (MAP_FAILED == buffers[n_buffers].start)
-			errno_exit ("mmap");
-	}
-}
-
-Now, I see that the requested videobuffers are correctly allocated via 'vb2_dma_contig_alloc'
-call (see [3] for reference). But the MMAP call fails in 'vb2_dma_contig_alloc' function
-in mm/nommu.c (see [4] for reference) when it tries to make the following check:
-	
-	if (addr != (pfn << PAGE_SHIFT))
-		return -EINVAL;
-
-I address Scott also, as I see that he has worked on the Blackfin v4l2 capture driver using
-DMA contiguous method and may have seen this issue (on a NOMMU system) with a v4l2 application
-performing a MMAP operation.
-
-Any comments on what I could be doing wrong here?
-
-References:
-
-[1] Blackfin capture driver, http://lxr.linux.no/linux+v3.5.3/drivers/media/video/blackfin/bfin_capture.c#L243
-[2] capture.c, http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html
-[3] vb2_dma_contig_alloc, http://lxr.linux.no/linux+v3.5.3/drivers/media/video/videobuf2-dma-contig.c#L37
-[4] remap_pfn_range, http://lxr.linux.no/linux+v3.5.3/mm/nommu.c#L1819
-
-Regards,
-Bhupesh
