@@ -1,330 +1,324 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3316 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753244Ab2IWJUA (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:49998 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752991Ab2ITGrl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 05:20:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC] Timestamps and V4L2
-Date: Sun, 23 Sep 2012 11:18:45 +0200
-Cc: linux-media@vger.kernel.org, remi@remlab.net, daniel-gl@gmx.net,
-	sylwester.nawrocki@gmail.com, laurent.pinchart@ideasonboard.com
-References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <201209211133.24174.hverkuil@xs4all.nl> <505DB12F.1090600@iki.fi>
-In-Reply-To: <505DB12F.1090600@iki.fi>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209231118.45904.hverkuil@xs4all.nl>
+	Thu, 20 Sep 2012 02:47:41 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr13so4370522pbb.19
+        for <linux-media@vger.kernel.org>; Wed, 19 Sep 2012 23:47:41 -0700 (PDT)
+From: Shawn Guo <shawn.guo@linaro.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Sascha Hauer <s.hauer@pengutronix.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Shawn Guo <shawn.guo@linaro.org>, linux-media@vger.kernel.org
+Subject: [PATCH v2 26/34] media: mx2_camera: use managed functions to clean up code
+Date: Thu, 20 Sep 2012 14:45:39 +0800
+Message-Id: <1348123547-31082-27-git-send-email-shawn.guo@linaro.org>
+In-Reply-To: <1348123547-31082-1-git-send-email-shawn.guo@linaro.org>
+References: <1348123547-31082-1-git-send-email-shawn.guo@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat September 22 2012 14:38:07 Sakari Ailus wrote:
-> Hi Hans,
-> 
-> Thanks for the comments.
-> 
-> Hans Verkuil wrote:
-> > On Thu September 20 2012 22:21:22 Sakari Ailus wrote:
-> >> Hi all,
-> >>
-> >>
-> >> This RFC intends to summarise and further the recent discussion on
-> >> linux-media regarding the proposed changes of timestamping V4L2 buffers.
-> >>
-> >>
-> >> The problem
-> >> ===========
-> >>
-> >> The V4L2 has long used realtime timestamps (such as
-> >> clock_gettime(CLOCK_REALTIME, ...)) to stamp the video buffers before
-> >> handing them over to the user. This has been found problematic in
-> >> associating the video buffers with data from other sources: realtime clock
-> >> may jump around due to daylight saving time, for example, and ALSA
-> >> (audio-video synchronisation is a common use case) user space API does not
-> >> provide the user with realtime timestamps, but instead uses monotonic time
-> >> (i.e. clock_gettime(CLOCK_MONOTONIC, ...)).
-> >>
-> >> This is especially an issue in embedded systems where video recording is a
-> >> common use case. Drivers typically used in such systems have silently
-> >> switched to use monotonic timestamps. While against the spec, this is
-> >> necessary for those systems to operate properly.
-> >>
-> >> In general, realtime timestamps are seen of little use in other than
-> >> debugging purposes, but monotonic timestamps are fine for that as well. It's
-> >> still possible that an application I'm not aware of uses them in a peculiar
-> >> way that would be adversely affected by changing to monotonic timestamps.
-> >> Nevertheless, we're not supposed to break the API (or ABI). It'd be also
-> >> very important for the application to know what kind of timestamps are
-> >> provided by the device.
-> >>
-> >>
-> >> Requirements, wishes and constraints
-> >> ====================================
-> >>
-> >> Now that it seems to be about the time to fix these issues, it's worth
-> >> looking a little bit to the future to anticipate the coming changes to be
-> >> able to accommodate them better later on.
-> >>
-> >> - The new default should be monotonic. As the monotonic timestamps are seen
-> >> to be the most useful, they should be made the default.
-> >>
-> >> - timeval vs. timespec. The two structs can be used to store timestamp
-> >> information. They are not compatible with each other. It's a little bit
-> >> uncertain what's the case with all the architectures but it looks like the
-> >> timespec fits into the space of timeval in all cases. If timespec is
-> >> considered to be used somewhere the compatibility must be ensured. Timespec
-> >> is better than timeval since timespec has more precision and it's the same
-> >> struct that's used everywhere else in the V4L2 API: timespec does not need
-> >> conversion to timespec in the user space.
-> >>
-> >> struct timespec {
-> >>          __kernel_time_t tv_sec;                 /* seconds */
-> >>          long            tv_nsec;                /* nanoseconds */
-> >> };
-> >>
-> >> struct timeval {
-> >>          __kernel_time_t         tv_sec;         /* seconds */
-> >>          __kernel_suseconds_t    tv_usec;        /* microseconds */
-> >> };
-> >>
-> >> To be able to use timespec, the user would have to most likely explicitly
-> >> choose to do that.
-> >>
-> >> - Users should know what kind of timestamps the device produces. This
-> >> includes existing and future kernels. What should be considered are
-> >> uninformed porting drivers back and forth across kernel versions and
-> >> out-of-date kernel header files.
-> >>
-> >> - Device-dependent timestamps. Some devices such as the uvcvideo ones
-> >> produce device-dependent timestamps for synchronising video and audio, both
-> >> produced by the same physical hardware device. For uvcvideo these timestamps
-> >> are unsigned 32-bit integers.
-> >>
-> >> - There's also another clock, Linux-specific raw monotonic clock (as in
-> >> clock_gettime(CLOCK_RAW_MONOTONIC, ...)) that could be better in some use
-> >> cases than the regular monotonic clock. The difference is that the raw
-> >> monotonic clock is free from the NTP adjustments. It would be nice for the
-> >> user to be able to choose the clock used for timestamps. This is especially
-> >> important for device-dependent timestamps: not all applications can be
-> >> expected to be able to use them.
-> >>
-> >> - The field adjacent to timestamp, timecode, is 128 bits wide, and not used
-> >> by a single driver. This field could be re-used.
-> >>
-> >>
-> >> Possible solutions
-> >> ==================
-> >>
-> >> Not all of the solutions below that have been proposed are mutually
-> >> exclusive. That's also what's making the choice difficult: the ultimate
-> >> solution to the issue of timestamping may involve several of these --- or
-> >> possibly something better that's not on the list.
-> >>
-> >>
-> >> Use of timespec
-> >> ---------------
-> >>
-> >> If we can conclude timespec will always fit into the size of timeval (or
-> >> timecode) we could use timespec instead. The solution should still make
-> >> the use of timespec explicit to the user space. This seems to conflict with
-> >> the idea of making monotonic timestamps the default: the default can't be
-> >> anything incompatible with timeval, and at the same time it's the most
-> >> important that the monotonic timestamps are timespec.
-> >
-> > We have to keep timeval. Changing this will break the ABI. I see absolutely
-> > no reason to use timespec for video. At 60 Hz a frame takes 16.67 ms, and that's
-> > far, far removed from ns precisions. Should we ever have to support high-speed
-> > cameras running at 60000 Hz, then we'll talk again.
-> >
-> > For me this is a non-issue.
-> >
-> >> Kernel version as indicator of timestamp
-> >> ----------------------------------------
-> >>
-> >> Conversion of drivers to use monotonic timestamp is trivial, so the
-> >> conversion could be done once and for all drivers. The kernel version could
-> >> be used to indicate the type of the timestamp.
-> >>
-> >> If this approach is taken care must be taken when new drivers are
-> >> integrated: developers sometimes use old kernels for development and might
-> >> also use an old driver for guidance on timestamps, thus using real-time
-> >> timestamps when monotonic timestamps should be used.
-> >
-> > More importantly, this also fails when users use out-of-tree drivers.
-> 
-> Could you mention some examples what we could be breaking in particular?
+Use managed functions to clean up the error handling code and function
+mx2_camera_remove().  Along with the change, a few variables get removed
+from struct mx2_camera_dev.
 
-The version reported in QUERYCAP by out-of-tree drivers is unreliable. It has
-no relationship with a kernel version in general. Actually, even inside the
-kernel I've come across drivers that still fill in the version number themselves.
+Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Tested-by: Javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/video/mx2_camera.c |  149 ++++++++++++--------------------------
+ 1 file changed, 45 insertions(+), 104 deletions(-)
 
-> >> This approach has an
-> >> advantage over the capability flag below: which is that we don't populate
-> >> the interface with essentially dead definitions.
-> >
-> > Using a kernel version to decide whether some feature is available or not is
-> > IMHO something of a last resort. It's very application unfriendly.
-> 
-> Could be, but that's a passing pain. We're going to live with the flags 
-> for the foreseeable future, whether we need them or not.
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index 89c7e28..9bb9e8c 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -274,12 +274,9 @@ struct mx2_camera_dev {
+ 	struct soc_camera_device *icd;
+ 	struct clk		*clk_csi, *clk_emma_ahb, *clk_emma_ipg;
+ 
+-	unsigned int		irq_csi, irq_emma;
+ 	void __iomem		*base_csi, *base_emma;
+-	unsigned long		base_dma;
+ 
+ 	struct mx2_camera_platform_data *pdata;
+-	struct resource		*res_csi, *res_emma;
+ 	unsigned long		platform_flags;
+ 
+ 	struct list_head	capture;
+@@ -1607,64 +1604,59 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int __devinit mx27_camera_emma_init(struct mx2_camera_dev *pcdev)
++static int __devinit mx27_camera_emma_init(struct platform_device *pdev)
+ {
+-	struct resource *res_emma = pcdev->res_emma;
++	struct mx2_camera_dev *pcdev = platform_get_drvdata(pdev);
++	struct resource *res_emma;
++	int irq_emma;
+ 	int err = 0;
+ 
+-	if (!request_mem_region(res_emma->start, resource_size(res_emma),
+-				MX2_CAM_DRV_NAME)) {
+-		err = -EBUSY;
++	res_emma = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	irq_emma = platform_get_irq(pdev, 1);
++	if (!res_emma || !irq_emma) {
++		dev_err(pcdev->dev, "no EMMA resources\n");
+ 		goto out;
+ 	}
+ 
+-	pcdev->base_emma = ioremap(res_emma->start, resource_size(res_emma));
++	pcdev->base_emma = devm_request_and_ioremap(pcdev->dev, res_emma);
+ 	if (!pcdev->base_emma) {
+-		err = -ENOMEM;
+-		goto exit_release;
++		err = -EADDRNOTAVAIL;
++		goto out;
+ 	}
+ 
+-	err = request_irq(pcdev->irq_emma, mx27_camera_emma_irq, 0,
+-			MX2_CAM_DRV_NAME, pcdev);
++	err = devm_request_irq(pcdev->dev, irq_emma, mx27_camera_emma_irq, 0,
++			       MX2_CAM_DRV_NAME, pcdev);
+ 	if (err) {
+ 		dev_err(pcdev->dev, "Camera EMMA interrupt register failed \n");
+-		goto exit_iounmap;
++		goto out;
+ 	}
+ 
+-	pcdev->clk_emma_ipg = clk_get(pcdev->dev, "emma-ipg");
++	pcdev->clk_emma_ipg = devm_clk_get(pcdev->dev, "emma-ipg");
+ 	if (IS_ERR(pcdev->clk_emma_ipg)) {
+ 		err = PTR_ERR(pcdev->clk_emma_ipg);
+-		goto exit_free_irq;
++		goto out;
+ 	}
+ 
+ 	clk_prepare_enable(pcdev->clk_emma_ipg);
+ 
+-	pcdev->clk_emma_ahb = clk_get(pcdev->dev, "emma-ahb");
++	pcdev->clk_emma_ahb = devm_clk_get(pcdev->dev, "emma-ahb");
+ 	if (IS_ERR(pcdev->clk_emma_ahb)) {
+ 		err = PTR_ERR(pcdev->clk_emma_ahb);
+-		goto exit_clk_emma_ipg_put;
++		goto exit_clk_emma_ipg;
+ 	}
+ 
+ 	clk_prepare_enable(pcdev->clk_emma_ahb);
+ 
+ 	err = mx27_camera_emma_prp_reset(pcdev);
+ 	if (err)
+-		goto exit_clk_emma_ahb_put;
++		goto exit_clk_emma_ahb;
+ 
+ 	return err;
+ 
+-exit_clk_emma_ahb_put:
++exit_clk_emma_ahb:
+ 	clk_disable_unprepare(pcdev->clk_emma_ahb);
+-	clk_put(pcdev->clk_emma_ahb);
+-exit_clk_emma_ipg_put:
++exit_clk_emma_ipg:
+ 	clk_disable_unprepare(pcdev->clk_emma_ipg);
+-	clk_put(pcdev->clk_emma_ipg);
+-exit_free_irq:
+-	free_irq(pcdev->irq_emma, pcdev);
+-exit_iounmap:
+-	iounmap(pcdev->base_emma);
+-exit_release:
+-	release_mem_region(res_emma->start, resource_size(res_emma));
+ out:
+ 	return err;
+ }
+@@ -1672,9 +1664,8 @@ out:
+ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+ {
+ 	struct mx2_camera_dev *pcdev;
+-	struct resource *res_csi, *res_emma;
+-	void __iomem *base_csi;
+-	int irq_csi, irq_emma;
++	struct resource *res_csi;
++	int irq_csi;
+ 	int err = 0;
+ 
+ 	dev_dbg(&pdev->dev, "initialising\n");
+@@ -1687,21 +1678,20 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+ 		goto exit;
+ 	}
+ 
+-	pcdev = kzalloc(sizeof(*pcdev), GFP_KERNEL);
++	pcdev = devm_kzalloc(&pdev->dev, sizeof(*pcdev), GFP_KERNEL);
+ 	if (!pcdev) {
+ 		dev_err(&pdev->dev, "Could not allocate pcdev\n");
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
+ 
+-	pcdev->clk_csi = clk_get(&pdev->dev, "ahb");
++	pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
+ 	if (IS_ERR(pcdev->clk_csi)) {
+ 		dev_err(&pdev->dev, "Could not get csi clock\n");
+ 		err = PTR_ERR(pcdev->clk_csi);
+-		goto exit_kfree;
++		goto exit;
+ 	}
+ 
+-	pcdev->res_csi = res_csi;
+ 	pcdev->pdata = pdev->dev.platform_data;
+ 	if (pcdev->pdata) {
+ 		long rate;
+@@ -1711,11 +1701,11 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+ 		rate = clk_round_rate(pcdev->clk_csi, pcdev->pdata->clk * 2);
+ 		if (rate <= 0) {
+ 			err = -ENODEV;
+-			goto exit_dma_free;
++			goto exit;
+ 		}
+ 		err = clk_set_rate(pcdev->clk_csi, rate);
+ 		if (err < 0)
+-			goto exit_dma_free;
++			goto exit;
+ 	}
+ 
+ 	INIT_LIST_HEAD(&pcdev->capture);
+@@ -1723,50 +1713,36 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+ 	INIT_LIST_HEAD(&pcdev->discard);
+ 	spin_lock_init(&pcdev->lock);
+ 
+-	/*
+-	 * Request the regions.
+-	 */
+-	if (!request_mem_region(res_csi->start, resource_size(res_csi),
+-				MX2_CAM_DRV_NAME)) {
+-		err = -EBUSY;
+-		goto exit_dma_free;
++	pcdev->base_csi = devm_request_and_ioremap(&pdev->dev, res_csi);
++	if (!pcdev->base_csi) {
++		err = -EADDRNOTAVAIL;
++		goto exit;
+ 	}
+ 
+-	base_csi = ioremap(res_csi->start, resource_size(res_csi));
+-	if (!base_csi) {
+-		err = -ENOMEM;
+-		goto exit_release;
+-	}
+-	pcdev->irq_csi = irq_csi;
+-	pcdev->base_csi = base_csi;
+-	pcdev->base_dma = res_csi->start;
+ 	pcdev->dev = &pdev->dev;
++	platform_set_drvdata(pdev, pcdev);
+ 
+ 	if (cpu_is_mx25()) {
+-		err = request_irq(pcdev->irq_csi, mx25_camera_irq, 0,
+-				MX2_CAM_DRV_NAME, pcdev);
++		err = devm_request_irq(&pdev->dev, irq_csi, mx25_camera_irq, 0,
++				       MX2_CAM_DRV_NAME, pcdev);
+ 		if (err) {
+ 			dev_err(pcdev->dev, "Camera interrupt register failed \n");
+-			goto exit_iounmap;
++			goto exit;
+ 		}
+ 	}
+ 
+ 	if (cpu_is_mx27()) {
+-		/* EMMA support */
+-		res_emma = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+-		irq_emma = platform_get_irq(pdev, 1);
+-
+-		if (!res_emma || !irq_emma) {
+-			dev_err(&pdev->dev, "no EMMA resources\n");
+-			goto exit_free_irq;
+-		}
+-
+-		pcdev->res_emma = res_emma;
+-		pcdev->irq_emma = irq_emma;
+-		if (mx27_camera_emma_init(pcdev))
+-			goto exit_free_irq;
++		err = mx27_camera_emma_init(pdev);
++		if (err)
++			goto exit;
+ 	}
+ 
++	/*
++	 * We're done with drvdata here.  Clear the pointer so that
++	 * v4l2 core can start using drvdata on its purpose.
++	 */
++	platform_set_drvdata(pdev, NULL);
++
+ 	pcdev->soc_host.drv_name	= MX2_CAM_DRV_NAME,
+ 	pcdev->soc_host.ops		= &mx2_soc_camera_host_ops,
+ 	pcdev->soc_host.priv		= pcdev;
+@@ -1793,25 +1769,9 @@ exit_free_emma:
+ 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+ eallocctx:
+ 	if (cpu_is_mx27()) {
+-		free_irq(pcdev->irq_emma, pcdev);
+ 		clk_disable_unprepare(pcdev->clk_emma_ipg);
+-		clk_put(pcdev->clk_emma_ipg);
+ 		clk_disable_unprepare(pcdev->clk_emma_ahb);
+-		clk_put(pcdev->clk_emma_ahb);
+-		iounmap(pcdev->base_emma);
+-		release_mem_region(pcdev->res_emma->start, resource_size(pcdev->res_emma));
+ 	}
+-exit_free_irq:
+-	if (cpu_is_mx25())
+-		free_irq(pcdev->irq_csi, pcdev);
+-exit_iounmap:
+-	iounmap(base_csi);
+-exit_release:
+-	release_mem_region(res_csi->start, resource_size(res_csi));
+-exit_dma_free:
+-	clk_put(pcdev->clk_csi);
+-exit_kfree:
+-	kfree(pcdev);
+ exit:
+ 	return err;
+ }
+@@ -1821,35 +1781,16 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
+ 	struct soc_camera_host *soc_host = to_soc_camera_host(&pdev->dev);
+ 	struct mx2_camera_dev *pcdev = container_of(soc_host,
+ 			struct mx2_camera_dev, soc_host);
+-	struct resource *res;
+-
+-	clk_put(pcdev->clk_csi);
+-	if (cpu_is_mx25())
+-		free_irq(pcdev->irq_csi, pcdev);
+-	if (cpu_is_mx27())
+-		free_irq(pcdev->irq_emma, pcdev);
+ 
+ 	soc_camera_host_unregister(&pcdev->soc_host);
+ 
+ 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+ 
+-	iounmap(pcdev->base_csi);
+-
+ 	if (cpu_is_mx27()) {
+ 		clk_disable_unprepare(pcdev->clk_emma_ipg);
+-		clk_put(pcdev->clk_emma_ipg);
+ 		clk_disable_unprepare(pcdev->clk_emma_ahb);
+-		clk_put(pcdev->clk_emma_ahb);
+-		iounmap(pcdev->base_emma);
+-		res = pcdev->res_emma;
+-		release_mem_region(res->start, resource_size(res));
+ 	}
+ 
+-	res = pcdev->res_csi;
+-	release_mem_region(res->start, resource_size(res));
+-
+-	kfree(pcdev);
+-
+ 	dev_info(&pdev->dev, "MX2 Camera driver unloaded\n");
+ 
+ 	return 0;
+-- 
+1.7.9.5
 
-Never underestimate the glacial speed (or lack of speed) with which applications
-adapt to new features.
-
-> 
-> >>
-> >> Capability flag for monotonic timestamps
-> >> ----------------------------------------
-> >>
-> >> A capability flag can be used to tell whether the timestamp is monotonic.
-> >> However, it's not extensible cleanly to provide selectable timestamps. These
-> >> are not features that are needed right now, though.
-> >>
-> >> The upside of this option is ease of implementation and use, but it's not
-> >> extensible. Also we're left with a flag that's set for all drivers: in the
-> >> end it provides no information to the user and is only noise in the spec.
-> >>
-> >>
-> >> Control for timestamp type
-> >> --------------------------
-> >>
-> >> Using a control to tell the type of the timestamp is extensible but not as
-> >> easy to implement than the capability flag: each and every device would get
-> >> an additional control. The value should likely be also file handle specific,
-> >> and we do not have file handle specific controls yet.
-> >
-> > Yes, we do. You can make per-file handle controls. M2M devices need that.
-> 
-> Thanks for correcting me.
-> 
-> > I'm not sure why this would be filehandle specific, BTW.
-> 
-> Good point. I thought that as other properties of the buffers are 
-> specific to file handles, including format when using CREATE_BUFS, it'd 
-> make sense to make the timestamp source file-handle specific as well.
-> 
-> What do you think?
-
-I don't think it makes sense to have different streams from the same device
-use different clocks.
-
-> >> In the meantime the control could be read-only, and later made read-write
-> >> when the timestamp type can be made selectable. Much of he work of
-> >> timestamping can be done by the framework: drivers can use a single helper
-> >> function and need to create one extra standard control.
-> >>
-> >> Should the control also have an effect on the types of the timestamps in
-> >> V4L2 events? Likely yes.
-> >
-> > You are missing one other option:
-> >
-> > Using v4l2_buffer flags to report the clock
-> > -------------------------------------------
-> >
-> > By defining flags like this:
-> >
-> > V4L2_BUF_FLAG_CLOCK_MASK	0x7000
-> > /* Possible Clocks */
-> > V4L2_BUF_FLAG_CLOCK_UNKNOWN	0x0000  /* system or monotonic, we don't know */
-> > V4L2_BUF_FLAG_CLOCK_MONOTONIC   0x1000
-> >
-> > you could tell the application which clock is used.
-> >
-> > This does allow for more clocks to be added in the future and clock selection
-> > would then be done by a control or possibly an ioctl. For now there are no
-> > plans to do such things, so this flag should be sufficient. And it can be
-> > implemented very efficiently. It works with existing drivers as well, since
-> > they will report CLOCK_UNKNOWN.
-> >
-> > I am very much in favor of this approach.
-> 
-> Thanks for adding this. I knew I was forgetting something but didn't 
-> remember what --- I swear it was unintentional! :-)
-> 
-> If we'd add more clocks without providing an ability to choose the clock 
-> from the user space, how would the clock be selected? It certainly isn't 
-> the driver's job, nor I think it should be system-specific either 
-> (platform data on embedded systems).
-
-IF a driver supports more than one clock (which I really don't see happening
-anytime soon), then we either need a control to select the clock or an ioctl.
-And something as well to enumerate the available clocks. I'm leaning towards
-ioctls, but I think this should be decided if we ever get an actual use-case
-for this.
-
-> It's up to the application and its needs. That would suggest we should 
-> always provide monotonic timestamps to applications (besides a potential 
-> driver-specific timestamp), and for that purpose the capability flag --- 
-> I admit I disliked the idea at first --- is enough.
-> 
-> What comes to buffer flags, the application would also have to receive 
-> the first buffer from the device to even know what kind of timestamps 
-> the device uses, or at least call QUERYBUF. And in principle the flag 
-> should be checked on every buffer, unless we also specify the flag is 
-> the same for all buffers. And at certain point this will stop to make 
-> any sense...
-
-It should definitely be the same for all buffers. And since apps will
-typically call querybuf anyway I don't see this as a problem. These
-clocks are also specific to the streaming I/O API, so reporting this as
-part of that API makes sense to me as well.
-
-> A capability flag is cleaner solution from this perspective, and it can 
-> be amended by a control (or an ioctl) later on: the flag can be 
-> disregarded by applications whenever the control is present.
-
-Yuck.
-
-> If the 
-> application doesn't know about the control it can still rely on the 
-> flag. (I think this would be less clean than to go for the control right 
-> from the beginning, but better IMO.)
-> 
-> >>
-> >>
-> >> Device-dependent timestamp
-> >> --------------------------
-> >>
-> >> Should we agree on selectable timestamps, the existing timestamp field (or a
-> >> union with another field of different type) could be used for the
-> >> device-dependent timestamps.
-> >
-> > No. Device timestamps should get their own field. You want to be able to relate
-> > device timestamps with the monotonic timestamps, so you need both.
-> >
-> >> Alternatively we can choose to re-use the
-> >> existing timecode field.
-> >>
-> >> At the moment there's no known use case for passing device-dependent
-> >> timestamps at the same time with monotonic timestamps.
-> >
-> > Well, the use case is there, but there is no driver support. The device
-> > timestamps should be 64 bits to accomodate things like PTS and DTS from
-> > MPEG streams. Since timecode is 128 bits we might want to use two u64 fields
-> > or perhaps 4 u32 fields.
-> 
-> That should be an union for different kinds (or rather types) of 
-> device-dependent timestamps. On uvcvideo I think this is u32, not u64. 
-> We should be also able to tell what kind device dependent timestamp 
-> there is --- should buffer flags be used for that as well?
-
-That's definitely part of the buffer flags. The presence of timecode is already
-signalled using that. And not every buffer may have device timestamps (that
-depends on the hardware), so you have to signal it through the buffer flags.
-
-An anonymous union might be best with the buffer flags signalling the type of
-the union. What I don't know is how to specify the type. Shall we just specify
-the type of the union (e.g. 4 u32 fields or 2 u64 fields) and leave the
-interpretation of those fields up to the application based on the driver name?
-Or shall the type act more like a fourcc in that it also uniquely identifies
-the interpretation of the timestamps?
-
-Or should all device timestamps be converted to a timespec by the driver?
-
-Answers on a postcard.
-
-Regards,
-
-	Hans
