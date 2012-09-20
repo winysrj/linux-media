@@ -1,52 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1786 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753720Ab2IUMdO (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:36352 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752506Ab2ITJnw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Sep 2012 08:33:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [RFC PATCH 0/3] In non-blocking mode return EAGAIN in hwseek
-Date: Fri, 21 Sep 2012 14:33:09 +0200
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <1348227868-20895-1-git-send-email-hverkuil@xs4all.nl> <505C5D8F.5070007@redhat.com>
-In-Reply-To: <505C5D8F.5070007@redhat.com>
+	Thu, 20 Sep 2012 05:43:52 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209211433.09033.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Date: Thu, 20 Sep 2012 11:43:46 +0200
+From: =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+To: Sean Young <sean@mess.org>
+Cc: <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv3 2/9] ir-rx51: Handle signals properly
+In-Reply-To: <20120904124356.GB13018@pequod.mess.org>
+References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi> <1346349271-28073-3-git-send-email-timo.t.kokkonen@iki.fi> <20120901171420.GC6638@valkosipuli.retiisi.org.uk> <50437328.9050903@iki.fi> <504375FA.1030209@iki.fi> <20120902152027.GA5236@itanic.dhcp.inet.fi> <20120902194110.GA6834@valkosipuli.retiisi.org.uk> <5043BCB4.1040308@iki.fi> <20120903123653.GA7218@pequod.mess.org> <20120903214155.GA6393@hardeman.nu> <20120904124356.GB13018@pequod.mess.org>
+Message-ID: <24b0d7a51ff4595f65d7307d90cda144@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri September 21 2012 14:29:03 Hans de Goede wrote:
-> Hi,
-> 
-> Looks good, but for patch 3/3 you're missing the same changes to
-> sound/i2c/other/tea575x-tuner.c
+On Tue, 4 Sep 2012 13:43:56 +0100, Sean Young <sean@mess.org> wrote:
+> This interface is much better but it's also an ABI change. How should
+this
+> be handled? Should rc-core expose it's own /dev/rc[0-9] device with its
+> own ioctls?
 
-Thanks! I'll add that as another patch.
+That was the plan yes. I've posted a patchbomb in the past to the
+linux-media mailing list which implements a rc specific chardev with an
+ioctl/read/write based API.
 
-I keep forgetting about that one :-)
+Since the entire patchset is a bit much to digest and merging of patches
+has been slow lately, I'm trying to drip-feed the patches. The lirc TX
+rework was part of that process. It basically lays the groundwork for later
+patches.
 
-Regards,
+//David
 
-	Hans
-
-> On 09/21/2012 01:44 PM, Hans Verkuil wrote:
-> > This patch series resolves a problem with S_HW_FREQ_SEEK when called in
-> > non-blocking mode. Currently this would actually block during the seek.
-> >
-> > This is not a good idea. This patch changes the spec and the drivers to
-> > return -EAGAIN when called in non-blocking mode.
-> >
-> > In the future actual support for non-blocking mode might be added to
-> > selected drivers, but that will require a new event (SEEK_READY or something
-> > like that), and I am not convinced it is worth the effort anyway.
-> >
-> > Regards,
-> >
-> > 	Hans
-> >
-> 
