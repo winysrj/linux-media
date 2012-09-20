@@ -1,41 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:56938 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932609Ab2IFSAS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 14:00:18 -0400
-Message-ID: <5048E4A4.40901@gmx.net>
-Date: Thu, 06 Sep 2012 20:00:04 +0200
-From: Andreas Nagel <andreasnagel@gmx.net>
-MIME-Version: 1.0
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1322 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751014Ab2ITMHR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Sep 2012 08:07:17 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: Integrate camera interface of OMAP3530 in Angstrom Linux
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>
+Subject: [RFCv2 PATCH 00/14] davinci: clean up input/output/subdev config
+Date: Thu, 20 Sep 2012 14:06:19 +0200
+Message-Id: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Prabhakar,
 
-I am using an embedded module called TAO-3530 from Technexion, which has 
-an OMAP3530 processor.
-This processor has a camera interface, which is part of the ISP 
-submodule. For an ongoing project I want to capture a video signal from 
-this interface. After several days of excessive research I still don't 
-know, how to access it.
-I configured the Angstrom kernel (2.6.32), so that the driver for OMAP 3 
-camera controller (and all other OMAP 3 related things) is integrated, 
-but I don't see any new device nodes in the filesystem.
+This is the second patch series for a vpif driver cleanup.
 
-I also found some rumors, that the Media Controller Framework or driver 
-provides the device node /dev/media0, but I was not able to install it.
-I use OpenEmbedded, but I don't have a recipe for Media Controller. On 
-the Angstrom website ( http://www.angstrom-distribution.org/repo/ ) 
-there's actually a package called "media-ctl", but due to the missing 
-recipe, i can't install it. Can't say, I am an expert in OE.
+The first version can be found here:
 
-Can you help me point out, what's necessary to make the camera interface 
-accessible?
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg52136.html
 
-Best regards,
-Andreas
+Changes since RFCv1:
+
+- rebased to a newer git repo:
+  http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git/shortlog/refs/heads/da850_vpif_machine
+
+- fixed probe() cleanup code in both display and capture that was seriously
+  broken.
+
+- fixed a broken s_routing implementation in the tvp514x driver: if there
+  is no incoming video signal, then s_routing would return EINVAL and
+  leave the driver with an inconsistent internal state. This has always
+  been a problem, but with this patch series it suddenly became really
+  noticable. s_routing shouldn't try to wait for a valid signal, that's
+  not what s_routing should do.
+
+This patch series does some driver cleanup and reorganizes the config
+structs that are used to set up subdevices.
+
+The current driver associates an input or output with a subdev, but multiple
+inputs may use the same subdev and some inputs may not use a subdev at all
+(this is the case for our hardware).
+
+Several other things were also configured in the wrong structure. For
+example the vpif_interface struct is really part of the channel config
+and has nothing to do with the subdev.
+
+What is missing here is that the output doesn't have the same flexibility
+as the input when it comes to configuration. It would be good if someone
+can pick this up as a follow-up since it's unlikely I'll be working on
+that.
+
+What would also be nice is that by leaving the inputs or outputs for the
+second channel empty (NULL) in the configuration you can disable the second
+video node, e.g. trying to use it will always result in ENODEV or something.
+
+This patch series will at least make things more flexible.
+
+Regards,
+
+        Hans
 
