@@ -1,67 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:62459 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755827Ab2IRIUn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 04:20:43 -0400
-Received: by pbbrr13 with SMTP id rr13so10578482pbb.19
-        for <linux-media@vger.kernel.org>; Tue, 18 Sep 2012 01:20:42 -0700 (PDT)
-Date: Tue, 18 Sep 2012 16:20:58 +0800
-From: Shawn Guo <shawn.guo@linaro.org>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	alsa-devel@alsa-project.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	linux-fbdev@vger.kernel.org, Chris Ball <cjb@laptop.org>,
-	linux-mmc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	rtc-linux@googlegroups.com,
-	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
-	linux-mtd@lists.infradead.org,
-	Wolfram Sang <w.sang@pengutronix.de>,
-	linux-i2c@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>,
-	linux-watchdog@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, Vinod Koul <vinod.koul@linux.intel.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-Subject: Re: [PATCH 00/34] i.MX multi-platform support
-Message-ID: <20120918082055.GD6377@S2101-09.ap.freescale.net>
-References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
- <20120917075138.GN6180@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120917075138.GN6180@pengutronix.de>
+Received: from rekin10.go2.pl ([193.17.41.30]:59901 "EHLO moh2-ve3.go2.pl"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751439Ab2ITHxl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Sep 2012 03:53:41 -0400
+Received: from moh2-ve3.go2.pl (unknown [10.0.0.117])
+	by moh2-ve3.go2.pl (Postfix) with ESMTP id 64690A6A097
+	for <linux-media@vger.kernel.org>; Thu, 20 Sep 2012 09:53:40 +0200 (CEST)
+Received: from o2.pl (unknown [10.0.0.7])
+	by moh2-ve3.go2.pl (Postfix) with SMTP
+	for <linux-media@vger.kernel.org>; Thu, 20 Sep 2012 09:53:39 +0200 (CEST)
+Subject: =?UTF-8?Q?[PATCH]_[3/5]_dvb-apps_-_update_scan?=
+	=?UTF-8?Q?_file_DVB-S_9E?=
+From: =?UTF-8?Q?VoJcEK?= <vojcek@tlen.pl>
+To: linux-media@vger.kernel.org
+Mime-Version: 1.0
+Message-ID: <58f4a753.2403a8fb.505acb82.4babd@tlen.pl>
+Date: Thu, 20 Sep 2012 09:53:38 +0200
+Content-Type: multipart/mixed;
+	boundary="==o2.pl-WebMail-332f8354.374a73aa.4bac4=="
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 17, 2012 at 09:51:38AM +0200, Sascha Hauer wrote:
-> I gave it a test on i.MX1, i.MX27, i.MX31 and i.MX35. All run fine, but
-> the last patch breaks the imx_v4_v5_defconfig: Somehow it now defaults
-> to ARMv7 based machines. I haven't looked into it, just reenabled
-> ARMv4/ARMv5 and the boards again -> works. The config should be updated
-> with the last patch.
-> 
-Yes, I will rework the patch with all these and Arnd's comment on the
-last patch taken into account.
+This is a multi-part message in MIME format.
 
-> I'm fine with the changes to mx2-camera, but Javier should give his ok
-> to it, he has worked on it quite a lot recently.
-> 
-> One other issue related to imx-dma, see comment to that patch.
-> 
-> Otherwise:
-> 
-> Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
-> Tested-by: Sascha Hauer <s.hauer@pengutronix.de>
-> 
-Thanks a lot.
+--==o2.pl-WebMail-332f8354.374a73aa.4bac4==
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Shawn
+Eutelsat=209E
+--==o2.pl-WebMail-332f8354.374a73aa.4bac4==
+Content-Type: text/x-patch;
+	name="=?UTF-8?Q?dvb-apps=5Fscan=5F9E.patch?="
+Content-Disposition: attachment;
+	filename="=?UTF-8?Q?dvb-apps=5Fscan=5F9E.patch?="
+Content-Transfer-Encoding: quoted-printable
+
+---=20util/scan/dvb-s/Eutelsat9-9.0E.old=092012-09-20=2008:47:47.24636664=
+7=20+0200
++++=20util/scan/dvb-s/Eutelsat9-9.0E=092012-09-20=2008:57:30.217456457=20=
++0200
+@@=20-1,16=20+1,33=20@@
+=20#=20Eurobird=209.0E
+=20#=20freq=20pol=20sr=20fec
+-S=2011727000=20V=2027500000=205/6
++S=2011727000=20V=2027500000=203/4
+=20S=2011747000=20H=2027500000=203/4
+-S=2011766000=20V=2027500000=205/6
+-S=2011785000=20H=2027500000=203/4
+-S=2011804000=20V=2027500000=203/4
++S=2011766000=20V=2027500000=203/4
++S2=2011785000=20H=2027500000=202/3=20AUTO=208PSK
+=20S=2011823000=20H=2027500000=203/4
+=20S=2011843000=20V=2027500000=203/4
+-S=2011881000=20V=2026700000=203/4
+-S=2011919000=20V=2027500000=205/6
++S2=2011862000=20H=2027500000=202/3=20AUTO=208PSK
++S2=2011881000=20V=2027500000=202/3=20AUTO=208PSK
++S2=2011900000=20H=2027500000=202/3=20AUTO=208PSK
++S=2011919000=20V=2027500000=203/4
+=20S=2011938000=20H=2027500000=203/4
++S2=2011958000=20V=2027500000=202/3=20AUTO=208PSK
+=20S=2011977000=20H=2027500000=203/4
+=20S=2011996000=20V=2027500000=203/4
+-S=2012054000=20H=2027500000=203/4
+-S=2012092000=20H=2027500000=203/4
++S2=2012015000=20H=2027500000=202/3=20AUTO=208PSK
++S2=2012034000=20V=2027500000=203/4=20AUTO=208PSK
++S2=2012054000=20H=2027500000=202/3=20AUTO=208PSK
++S2=2012073000=20V=2027500000=203/4=20AUTO=208PSK
++S2=2012111000=20V=2027500000=203/5=20AUTO=208PSK
++S=2012130000=20H=2027500000=203/4
++S2=2012149000=20V=2027500000=202/3=20AUTO=208PSK
++S2=2012226000=20V=2027500000=202/3=20AUTO=208PSK
++S2=2012245000=20H=2027500000=203/4=20AUTO=208PSK
++S2=2012265000=20V=2027500000=202/3=20AUTO=208PSK
++S2=2012284000=20H=2027500000=202/3=20AUTO=208PSK
++S=2012322000=20H=2027500000=203/4
++S=2012341000=20V=2027500000=203/4
++S2=2012360000=20H=2027500000=202/3=20AUTO=208PSK
++S2=2012399000=20H=2027500000=202/3=20AUTO=208PSK
++S=2012418000=20V=2027500000=203/4
++S2=2012437000=20H=2027500000=202/3=20AUTO=208PSK
+
+--==o2.pl-WebMail-332f8354.374a73aa.4bac4==--
+
