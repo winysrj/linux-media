@@ -1,47 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:42694 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751754Ab2IDIUj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Sep 2012 04:20:39 -0400
-MIME-Version: 1.0
-In-Reply-To: <CAGA24MLnW-i0koFuAsnFQ2mNnrLupkmbxW5T8WYiV3QuoA2vig@mail.gmail.com>
-References: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<3937256.gcqPRVoNWN@avalon>
-	<1345528197.15491.8.camel@lappyti>
-	<3648908.jA5PYymWxV@avalon>
-	<CAGA24MLnW-i0koFuAsnFQ2mNnrLupkmbxW5T8WYiV3QuoA2vig@mail.gmail.com>
-Date: Tue, 4 Sep 2012 16:20:38 +0800
-Message-ID: <CAJATT-5=kQzUaubL--oRJdm6u8Z10Hus+SMLt3zG1ZSi4QUVWw@mail.gmail.com>
-Subject: Re: [RFC 0/5] Generic panel framework
-From: Zhou Zhu <zzhu84@gmail.com>
-To: Jun Nie <niej0001@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	Archit Taneja <archit@ti.com>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from moh2-ve2.go2.pl ([193.17.41.200]:57355 "EHLO moh2-ve2.go2.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753618Ab2ITHyr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Sep 2012 03:54:47 -0400
+Received: from moh2-ve2.go2.pl (unknown [10.0.0.200])
+	by moh2-ve2.go2.pl (Postfix) with ESMTP id 1FA05DA4070
+	for <linux-media@vger.kernel.org>; Thu, 20 Sep 2012 09:54:46 +0200 (CEST)
+Received: from o2.pl (unknown [10.0.0.7])
+	by moh2-ve2.go2.pl (Postfix) with SMTP
+	for <linux-media@vger.kernel.org>; Thu, 20 Sep 2012 09:54:45 +0200 (CEST)
+Subject: =?UTF-8?Q?[PATCH]_[4/5]_dvb-apps_-_update_scan?=
+	=?UTF-8?Q?_file_DVB-S_28.5E?=
+From: =?UTF-8?Q?VoJcEK?= <vojcek@tlen.pl>
+To: linux-media@vger.kernel.org
+Mime-Version: 1.0
+Message-ID: <1ef35aaa.31b0eb7d.505acbc5.91dca@tlen.pl>
+Date: Thu, 20 Sep 2012 09:54:45 +0200
+Content-Type: multipart/mixed;
+	boundary="==o2.pl-WebMail-7dfbf401.54b9c746.91dd1=="
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This is a multi-part message in MIME format.
 
-Basically I agree that we need a common panel framework. I just have
-some questions:
-1.  I think we should add color format in videomode - if we use such
-common video mode structure shared across subsystems.
-In HDMI, colors are bind with timings tightly. We need a combined
-videomode with timing and color format together.
-2. I think we should add "set_videomode" interface. It helps HDMI
-monitors to set EDIDs.
+--==o2.pl-WebMail-7dfbf401.54b9c746.91dd1==
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
--- 
-Thanks,
--Zhou
+Eurobird
+--==o2.pl-WebMail-7dfbf401.54b9c746.91dd1==
+Content-Type: text/x-patch;
+	name="=?UTF-8?Q?dvb-apps=5Fscan=5F28-Eurobird.patch?="
+Content-Disposition: attachment;
+	filename="=?UTF-8?Q?dvb-apps=5Fscan=5F28-Eurobird.patch?="
+Content-Transfer-Encoding: quoted-printable
+
+---=20util/scan/dvb-s/Eurobird1-28.5E=092012-09-19=2011:52:55.000000000=20=
++0200
++++=20/dev/null=092012-09-20=2010:05:33.314437212=20+0200
+@@=20-1,5=20+0,0=20@@
+-#=20Eurobird=2028.5E=20SDT=20info=20service=20transponder
+-#=20freq=20pol=20sr=20fec
+-S=2011623000=20H=2027500000=202/3
+-S=2011224000=20V=2027500000=202/3
+-S=2011527000=20V=2027500000=202/3
+
+--==o2.pl-WebMail-7dfbf401.54b9c746.91dd1==--
+
