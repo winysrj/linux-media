@@ -1,96 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gelbbaer.kn-bremen.de ([78.46.108.116]:48967 "EHLO
-	smtp.kn-bremen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754699Ab2IZUXP (ORCPT
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2039 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751202Ab2ITG3g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 16:23:15 -0400
-From: Juergen Lock <nox@jelal.kn-bremen.de>
-Date: Wed, 26 Sep 2012 22:11:42 +0200
-To: Juergen Lock <nox@jelal.kn-bremen.de>
-Cc: linux-media@vger.kernel.org, hselasky@c2i.net
-Subject: Re: [PATCH, RFC, updated] Fix DVB ioctls failing if frontend
- open/closed too fast
-Message-ID: <20120926201142.GA60610@triton8.kn-bremen.de>
-References: <20120731222216.GA36603@triton8.kn-bremen.de>
+	Thu, 20 Sep 2012 02:29:36 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [RFCv1 PATCH 3/6] videobuf2-core: move plane verification out of __fill_v4l2_buffer.
+Date: Thu, 20 Sep 2012 08:28:50 +0200
+Cc: linux-media@vger.kernel.org, Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1348065460-1624-1-git-send-email-hverkuil@xs4all.nl> <bf34157b75c930ab456dc977ebafbe895c7a3e8a.1348064901.git.hans.verkuil@cisco.com> <5059F8FD.8040403@samsung.com>
+In-Reply-To: <5059F8FD.8040403@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120731222216.GA36603@triton8.kn-bremen.de>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209200828.50628.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Aug 01, 2012 at 12:22:16AM +0200, Juergen Lock wrote:
-> That likely fixes this MythTV ticket:
+On Wed September 19 2012 18:55:25 Sylwester Nawrocki wrote:
+> On 09/19/2012 04:37 PM, Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > The plane verification should be done before actually queuing or
+> > dequeuing buffers, so move it out of __fill_v4l2_buffer and call it
+> > as a separate step.
+> > 
+> > The also makes it possible to change the return type of __fill_v4l2_buffer
+> > to void.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> 	http://code.mythtv.org/trac/ticket/10830
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 > 
-> (which btw affects all usb tuners I tested as well, pctv452e,
-> dib0700, af9015)  pctv452e is still possibly broken with MythTV
-> even after this fix; it does work with VDR here tho despite I2C
-> errors.
+> There are just two small comment below...
 > 
-> Reduced testcase:
+> > ---
+> >  drivers/media/v4l2-core/videobuf2-core.c |   29 +++++++++++++++++------------
+> >  1 file changed, 17 insertions(+), 12 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> > index 2e26e58..929cc99 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-core.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> > @@ -276,6 +276,9 @@ static void __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
+> >   */
+> >  static int __verify_planes_array(struct vb2_queue *q, const struct v4l2_buffer *b)
+> >  {
+> > +	if (!V4L2_TYPE_IS_MULTIPLANAR(b->type))
+> > +		return 0;
+> > +
+> >  	/* Is memory for copying plane information present? */
+> >  	if (NULL == b->m.planes) {
+> >  		dprintk(1, "Multi-planar buffer passed but "
+> > @@ -331,10 +334,9 @@ static bool __buffers_in_use(struct vb2_queue *q)
+> >   * __fill_v4l2_buffer() - fill in a struct v4l2_buffer with information to be
+> >   * returned to userspace
+> >   */
+> > -static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+> > +static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+> >  {
+> >  	struct vb2_queue *q = vb->vb2_queue;
+> > -	int ret;
+> >  
+> >  	/* Copy back data such as timestamp, flags, etc. */
+> >  	memcpy(b, &vb->v4l2_buf, offsetof(struct v4l2_buffer, m));
+> > @@ -342,10 +344,6 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+> >  	b->reserved = vb->v4l2_buf.reserved;
+> >  
+> >  	if (V4L2_TYPE_IS_MULTIPLANAR(q->type)) {
+> > -		ret = __verify_planes_array(q, b);
+> > -		if (ret)
+> > -			return ret;
+> > -
+> >  		/*
+> >  		 * Fill in plane-related data if userspace provided an array
+> >  		 * for it. The memory and size is verified above.
 > 
-> 	http://people.freebsd.org/~nox/tmp/ioctltst.c
-> 
-> Thanx to devinheitmueller and crope from #linuxtv for helping with
-> this fix! :)
-> 
-Updated patch for media tree for_3.7:
+> This comment should be updated, since __verify_planes_array() is now removed.
 
-Signed-off-by: Juergen Lock <nox@jelal.kn-bremen.de>
+Will do.
 
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -603,6 +603,7 @@ static int dvb_frontend_thread(void *dat
- 	enum dvbfe_algo algo;
- 
- 	bool re_tune = false;
-+	bool semheld = false;
- 
- 	dev_dbg(fe->dvb->device, "%s:\n", __func__);
- 
-@@ -626,6 +627,8 @@ restart:
- 
- 		if (kthread_should_stop() || dvb_frontend_is_exiting(fe)) {
- 			/* got signal or quitting */
-+			if (!down_interruptible (&fepriv->sem))
-+				semheld = true;
- 			fepriv->exit = DVB_FE_NORMAL_EXIT;
- 			break;
- 		}
-@@ -741,6 +744,8 @@ restart:
- 		fepriv->exit = DVB_FE_NO_EXIT;
- 	mb();
- 
-+	if (semheld)
-+		up(&fepriv->sem);
- 	dvb_frontend_wakeup(fe);
- 	return 0;
- }
-@@ -1819,16 +1824,20 @@ static int dvb_frontend_ioctl(struct fil
- 	int err = -ENOTTY;
- 
- 	dev_dbg(fe->dvb->device, "%s: (%d)\n", __func__, _IOC_NR(cmd));
--	if (fepriv->exit != DVB_FE_NO_EXIT)
-+	if (down_interruptible (&fepriv->sem))
-+		return -ERESTARTSYS;
-+
-+	if (fepriv->exit != DVB_FE_NO_EXIT) {
-+		up(&fepriv->sem);
- 		return -ENODEV;
-+	}
- 
- 	if ((file->f_flags & O_ACCMODE) == O_RDONLY &&
- 	    (_IOC_DIR(cmd) != _IOC_READ || cmd == FE_GET_EVENT ||
--	     cmd == FE_DISEQC_RECV_SLAVE_REPLY))
-+	     cmd == FE_DISEQC_RECV_SLAVE_REPLY)) {
-+		up(&fepriv->sem);
- 		return -EPERM;
--
--	if (down_interruptible (&fepriv->sem))
--		return -ERESTARTSYS;
-+	}
- 
- 	if ((cmd == FE_SET_PROPERTY) || (cmd == FE_GET_PROPERTY))
- 		err = dvb_frontend_ioctl_properties(file, cmd, parg);
+> > @@ -391,8 +389,6 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+> >  
+> >  	if (__buffer_in_use(q, vb))
+> >  		b->flags |= V4L2_BUF_FLAG_MAPPED;
+> > -
+> > -	return 0;
+> >  }
+> >  
+> >  /**
+> > @@ -411,6 +407,7 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+> >  int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b)
+> >  {
+> >  	struct vb2_buffer *vb;
+> > +	int ret;
+> >  
+> >  	if (b->type != q->type) {
+> >  		dprintk(1, "querybuf: wrong buffer type\n");
+> > @@ -422,8 +419,10 @@ int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b)
+> >  		return -EINVAL;
+> >  	}
+> >  	vb = q->bufs[b->index];
+> > -
+> > -	return __fill_v4l2_buffer(vb, b);
+> > +	ret = __verify_planes_array(q, b);
+> > +	if (!ret)
+> > +		__fill_v4l2_buffer(vb, b);
+> > +	return ret;
+> >  }
+> >  EXPORT_SYMBOL(vb2_querybuf);
+> >  
+> > @@ -1061,8 +1060,8 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b)
+> >  		dprintk(1, "%s(): invalid buffer state %d\n", __func__, vb->state);
+> >  		return -EINVAL;
+> >  	}
+> > -
+> > -	ret = __buf_prepare(vb, b);
+> > +	ret = __verify_planes_array(q, b);
+> > +	ret = ret ? ret : __buf_prepare(vb, b);
+> 
+> Could we just make it:
+> 
+> 	ret = __verify_planes_array(q, b);
+>   	if (ret < 0)
+>   		return ret;
+> 
+> 	ret = __buf_prepare(vb, b);
+>   	if (ret < 0)
+>   		return ret;
+> 
+> ?
+
+OK.
+
+Regards,
+
+	Hans
+
+> >  	if (ret < 0)
+> >  		return ret;
+> >  
+> > @@ -1149,6 +1148,9 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+> >  		ret = -EINVAL;
+> >  		goto unlock;
+> >  	}
+> > +	ret = __verify_planes_array(q, b);
+> > +	if (ret)
+> > +		return ret;
+> >  
+> >  	switch (vb->state) {
+> >  	case VB2_BUF_STATE_DEQUEUED:
+> > @@ -1337,6 +1339,9 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
+> >  		dprintk(1, "dqbuf: invalid buffer type\n");
+> >  		return -EINVAL;
+> >  	}
+> > +	ret = __verify_planes_array(q, b);
+> > +	if (ret)
+> > +		return ret;
+> >  
+> >  	ret = __vb2_get_done_vb(q, &vb, nonblocking);
+> >  	if (ret < 0) {
+> 
+> --
+> 
+> Regards,
+> Sylwester
+> 
