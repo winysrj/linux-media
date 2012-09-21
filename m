@@ -1,67 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49703 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751565Ab2IYAfL convert rfc822-to-8bit (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:39299 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751668Ab2IUQxX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 20:35:11 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>, remi@remlab.net
-Subject: Re: [RFC] Timestamps and V4L2
-Date: Tue, 25 Sep 2012 02:35:47 +0200
-Message-ID: <32114057.tIVjSTYujk@avalon>
-In-Reply-To: <505F57A4.3040409@gmail.com>
-References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <20120922202814.GA4891@minime.bse> <505F57A4.3040409@gmail.com>
+	Fri, 21 Sep 2012 12:53:23 -0400
+Received: by pbbrr4 with SMTP id rr4so3013395pbb.19
+        for <linux-media@vger.kernel.org>; Fri, 21 Sep 2012 09:53:23 -0700 (PDT)
+Date: Sat, 22 Sep 2012 00:53:08 +0800
+From: Shawn Guo <shawn.guo@linaro.org>
+To: Olof Johansson <olof@lixom.net>
+Cc: Arnd Bergmann <arnd@arndb.de>, alsa-devel@alsa-project.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
+	linux-fbdev@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>,
+	linux-mtd@lists.infradead.org, linux-i2c@vger.kernel.org,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	Chris Ball <cjb@laptop.org>, linux-media@vger.kernel.org,
+	linux-watchdog@vger.kernel.org, rtc-linux@googlegroups.com,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <rob.herring@calxeda.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Vinod Koul <vinod.koul@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, linux-mmc@vger.kernel.org,
+	Wolfram Sang <w.sang@pengutronix.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [alsa-devel] [PATCH v2 00/34] i.MX multi-platform support
+Message-ID: <20120921165305.GB5394@S2101-09.ap.freescale.net>
+References: <1348123547-31082-1-git-send-email-shawn.guo@linaro.org>
+ <201209200739.34899.arnd@arndb.de>
+ <20120920145342.GI2450@S2101-09.ap.freescale.net>
+ <201209201556.57171.arnd@arndb.de>
+ <20120921080123.GM2450@S2101-09.ap.freescale.net>
+ <CAOesGMi6CbvFikycJVdE8W-DxLD3W7+CyScz+YT103dxR31U9g@mail.gmail.com>
+ <20120921164622.GA5394@S2101-09.ap.freescale.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120921164622.GA5394@S2101-09.ap.freescale.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
-
-On Sunday 23 September 2012 20:40:36 Sylwester Nawrocki wrote:
-> On 09/22/2012 10:28 PM, Daniel Glöckner wrote:
-> > On Sat, Sep 22, 2012 at 07:12:52PM +0200, Sylwester Nawrocki wrote:
-> >> If we ever need the clock selection API I would vote for an IOCTL.
-> >> The controls API is a bad choice for something such fundamental as
-> >> type of clock for buffer timestamping IMHO. Let's stop making the
-> >> controls API a dumping ground for almost everything in V4L2! ;)
-> >> 
-> >> Perhaps VIDIOC_QUERYBUF and VIDIOC_DQBUF should be reporting
-> >> timestamps type only for the time they are being called. Not per buffer,
-> >> per device. And applications would be checking the flags any time they
-> >> want to find out what is the buffer timestamp type. Or every time if it
-> >> don't have full control over the device (S/G_PRIORITY).
-> > 
-> > I'm all for adding an IOCTL, but if we think about adding a
-> > VIDIOC_S_TIMESTAMP_TYPE in the future, we might as well add a
-> > VIDIOC_G_TIMESTAMP_TYPE right now. Old drivers will return ENOSYS,
-> > so the application knows it will have to guess the type (or take own
-> > timestamps).
+On Sat, Sep 22, 2012 at 12:46:26AM +0800, Shawn Guo wrote:
+> I just published the branch below with this series rebased on top of
+> the necessary dependant branches.
 > 
-> Hmm, would it make sense to design a single ioctl that would allow
-> getting and setting the clock type, e.g. VIDIOC_CLOCK/TIMESTAMP_TYPE ?
+>   git://git.linaro.org/people/shawnguo/linux-2.6.git staging/imx-multiplatform
 > 
-> > I can't imagine anything useful coming from an app that has to process
-> > timestamps that change their source every now and then and I seriously
-> > doubt anyone will go to such an extent that they check the timestamp
-> > type on every buffer. If they don't set their priority high enough to
-> > prevent others from changing the timestamp type, they also run the
-> > risk of someone else changing the image format. It should be enough to
-> > forbid changing the timestamp type while I/O is in progress, as it is
-> > done for VIDIOC_S_FMT.
+> The dependant branches include:
 > 
-> I agree, but mem-to-mem devices can have multiple logically independent,
-> "concurrent" streams active. If the clock type is per device it might
-> not be that straightforward...
 
-Does the clock type need to be selectable for mem-to-mem devices ? Do device-
-specific timestamps make sense there ?
+Forgot the base:
 
--- 
-Regards,
+  * arm-soc/next/multiplatform
 
-Laurent Pinchart
+Shawn
 
+> * arm-soc/multiplatform/platform-data
+> 
+> * arm-soc/multiplatform/smp_ops
+> 
+> * git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git for-3.7
+> 
+>   It contains dependant patch "ASoC: mx27vis: retrieve gpio numbers
+>   from platform_data"
+> 
+> * git://git.infradead.org/mtd-2.6.git master
+> 
+>   The series is based on this tree to solve some non-trivial conflicts
+>   on mxc_nand driver.  Because mtd tree completely missed 3.6 merge
+>   window, having the series base on 3.6-rc actually means 3.5 code base
+>   in term of mtd support.  There are currently two cycles changes
+>   accumulated on mtd, and we need to base the series on it to sort out
+>   the conflicts.
+> 
+> * git://linuxtv.org/mchehab/media-next.git master
+> 
+>   The media tree renames mx2/mx3 camera drivers twice.  I'm not sure
+>   if git merge can detect them, so I just rebased the series on media
+>   tree to solve that.  The bonus point is that a number of trivial
+>   conflicts with imx27-coda support on media tree gets solved as well.
+> 
+> I'm not requesting you to pull the branch into arm-soc as a stable
+> branch but staging one, because the external dependencies which might
+> not be stable.  I attempt to use it for exposing the series on
+> linux-next, so that we can send it to Linus for 3.7 if there is chance
+> for us to (e.g. all the dependant branches hit mainline early during
+> 3.7 merge window).
