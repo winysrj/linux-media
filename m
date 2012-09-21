@@ -1,118 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37168 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753342Ab2IAJ5N (ORCPT
+Received: from imr-ma02.mx.aol.com ([64.12.206.40]:42077 "EHLO
+	imr-ma02.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753371Ab2IUOc2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Sep 2012 05:57:13 -0400
-Date: Sat, 1 Sep 2012 12:57:07 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-doc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Rob Landley <rob@landley.net>,
-	LMML <linux-media@vger.kernel.org>,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH] [media] davinci: vpfe: Add documentation
-Message-ID: <20120901095707.GB6348@valkosipuli.retiisi.org.uk>
-References: <1342021166-6092-1-git-send-email-manjunath.hadli@ti.com>
- <20120802000756.GM26642@valkosipuli.retiisi.org.uk>
- <502331F8.3050503@ti.com>
- <20120816162318.GZ29636@valkosipuli.retiisi.org.uk>
- <CA+V-a8tNnevox8OcXc_jxDzHdrxdF9Z-Nf2Rn0QaBsnM=n5CfA@mail.gmail.com>
+	Fri, 21 Sep 2012 10:32:28 -0400
+Message-ID: <505C7ACF.9050006@netscape.net>
+Date: Fri, 21 Sep 2012 11:33:51 -0300
+From: =?ISO-8859-1?Q?Alfredo_Jes=FAs_Delaiti?=
+	<alfredodelaiti@netscape.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+V-a8tNnevox8OcXc_jxDzHdrxdF9Z-Nf2Rn0QaBsnM=n5CfA@mail.gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Mygica X8507 audio for YPbPr, AV and S-Video
+References: <50450FB5.3090503@netscape.net> <50589E52.5050602@redhat.com> <5059C949.6010808@netscape.net> <5059F2C1.7050302@redhat.com>
+In-Reply-To: <5059F2C1.7050302@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Hi 
 
-On Wed, Aug 29, 2012 at 08:11:50PM +0530, Prabhakar Lad wrote:
-...
-> >> >> +        unsigned short len;
-> >> >> +        void *config;
-> >> >> +    };
-> >> >> +
-> >> >> +5: IOCTL: VPFE_CMD_S_CCDC_RAW_PARAMS/VPFE_CMD_G_CCDC_RAW_PARAMS
-> >> >> +Description:
-> >> >> +    Sets/Gets the CCDC parameter
-> >> >> +Parameter:
-> >> >> +    /**
-> >> >> +     * struct ccdc_config_params_raw - structure for configuring
-> >> >> ccdc params
-> >> >> +     * @linearize: linearization parameters for image sensor data input
-> >> >> +     * @df_csc: data formatter or CSC
-> >> >> +     * @dfc: defect Pixel Correction (DFC) configuration
-> >> >> +     * @bclamp: Black/Digital Clamp configuration
-> >> >> +     * @gain_offset: Gain, offset adjustments
-> >> >> +     * @culling: Culling
-> >> >> +     * @pred: predictor for DPCM compression
-> >> >> +     * @horz_offset: horizontal offset for Gain/LSC/DFC
-> >> >> +     * @vert_offset: vertical offset for Gain/LSC/DFC
-> >> >> +     * @col_pat_field0: color pattern for field 0
-> >> >> +     * @col_pat_field1: color pattern for field 1
-> >> >> +     * @data_size: data size from 8 to 16 bits
-> >> >> +     * @data_shift: data shift applied before storing to SDRAM
-> >> >> +     * @test_pat_gen: enable input test pattern generation
-> >> >> +     */
-> >> >> +    struct ccdc_config_params_raw {
-> >> >> +        struct ccdc_linearize linearize;
-> >> >> +        struct ccdc_df_csc df_csc;
-> >> >> +        struct ccdc_dfc dfc;
-> >> >> +        struct ccdc_black_clamp bclamp;
-> >> >> +        struct ccdc_gain_offsets_adj gain_offset;
-> >> >> +        struct ccdc_cul culling;
-> >> >> +        enum ccdc_dpcm_predictor pred;
-> >> >> +        unsigned short horz_offset;
-> >> >> +        unsigned short vert_offset;
-> >> >> +        struct ccdc_col_pat col_pat_field0;
-> >> >> +        struct ccdc_col_pat col_pat_field1;
-> >> >> +        enum ccdc_data_size data_size;
-> >> >> +        enum ccdc_datasft data_shift;
-> >> >> +        unsigned char test_pat_gen;
-> >> >
-> >> > Are the struct definitions available somewhere? I bet more than the test
-> >> > pattern Laurent suggested might be implementable as controls. The dpcm
-> >> > predictor, for example.
-> >> I will check on the DPSM test pattern. The definitions are available
-> >> at:http://davinci-linux-open-source.1494791.n2.nabble.com/RESEND-RFC-PATCH-v4-00-15-RFC-for-Media-Controller-capture-driver-for-DM365-td7003648.html
-> >
-> > Thanks!
-> >
-> > I think the DPCM predictor should be made a control in the image processing
-> > controls class. The test pattern would fit there as well I think.
-> >
-> For test pattern you meant control to enable/disable it ?
+El 19/09/12 13:28, Mauro Carvalho Chehab escribió:
+> Em 19-09-2012 10:31, Alfredo Jesús Delaiti escreveu:
+>> El 18/09/12 13:16, Mauro Carvalho Chehab escribió:
+>>> Em 03-09-2012 17:14, Alfredo Jesús Delaiti escreveu:
+>>>> Hi
+>>>>
+>>>> This patch add audio support for input YPbPr, AV and S-Video for Mygica X8507 card.
+>>>> I tried it with the 3.4 and 3.5 kernel
+>>>>
+>>>> Remains to be done: IR, FM and ISDBT
+>>>>
+>>>> Sorry if I sent the patch improperly.
+>>>>
+>>>> Signed-off-by: Alfredo J. Delaiti <alfredodelaiti@netscape.net>
+>>>>
+....
+>>
+>> I resubmit the patch with the advice given.
+>> I apologize, but git and diff, still " aren't my friends"
+>>
+>> Thanks
+>>
+>>
+>> Signed-off-by: Alfredo J. Delaiti <alfredodelaiti@netscape.net>
+>>
+>> diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+>> index d889bd2..cb5f847 100644
+>> --- a/drivers/media/pci/cx23885/cx23885-cards.c
+>> +++ b/drivers/media/pci/cx23885/cx23885-cards.c
+>> @@ -530,42 +530,45 @@ struct cx23885_board cx23885_boards[] = {
+>>         [CX23885_BOARD_MYGICA_X8507] = {
+>>                 .name           = "Mygica X8507",
+>>                 .tuner_type = TUNER_XC5000,
+>>                 .tuner_addr = 0x61,
+>>                 .tuner_bus      = 1,
+>>                 .porta          = CX23885_ANALOG_VIDEO,
+>>                 .input          = {
+>>                         {
+>>                                 .type   = CX23885_VMUX_TELEVISION,
+>>                                 .vmux   = CX25840_COMPOSITE2,
+>>                                 .amux   = CX25840_AUDIO8,
+>>                         },
+>>                         {
+>>                                 .type   = CX23885_VMUX_COMPOSITE1,
+>>                                 .vmux   = CX25840_COMPOSITE8,
+>> +                               .amux   = CX25840_AUDIO7,
+>>                         },
+>>                         {
+>>                                 .type   = CX23885_VMUX_SVIDEO,
+>>                                 .vmux   = CX25840_SVIDEO_LUMA3 |
+>> CX25840_SVIDEO_CHROMA4,
+> 
+> It seems that your emailer is not your friend too - it broke your patch ;)
 
-There are two approaches I can think of.
+Grrr. You are right, mail setup is wron
+I applied this change:/usr/src/linux/Documentation/email-clients.txt., again
+I proved before send email and is ok.
 
-One is a menu control which can be used to choose the test pattern (or
-disable it). The control could be standardised but the menu items would have
-to be hardware-specific since the test patterns themselves are not
-standardised.
+> 
+> Please, be sure to not let your email break long lines like that, or the
+> patch won't apply.
+> 
+> IMO, the better is to submit patches with git send-email. There are some examples
+> at git-send-email manpage on how to use it with an smart host, if your sendmail
+> is not configured for that.
+> 
+> Regards,
+> Mauro.
+> 
 
-The alternative is to have a boolean control to enable (and disable) the
-test pattern and then a menu control to choose which one to use. Using or
-implemeting the control to select the test pattern isn't even strictly
-necessary to get a test pattern out of the device: one can enable it without
-knowing which one it is.
+diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+index d889bd2..cb5f847 100644
+--- a/drivers/media/pci/cx23885/cx23885-cards.c
++++ b/drivers/media/pci/cx23885/cx23885-cards.c
+@@ -530,42 +530,45 @@ struct cx23885_board cx23885_boards[] = {
+        [CX23885_BOARD_MYGICA_X8507] = {
+                .name           = "Mygica X8507",
+                .tuner_type = TUNER_XC5000,
+                .tuner_addr = 0x61,
+                .tuner_bus      = 1,
+                .porta          = CX23885_ANALOG_VIDEO,
+                .input          = {
+                        {
+                                .type   = CX23885_VMUX_TELEVISION,
+                                .vmux   = CX25840_COMPOSITE2,
+                                .amux   = CX25840_AUDIO8,
+                        },
+                        {
+                                .type   = CX23885_VMUX_COMPOSITE1,
+                                .vmux   = CX25840_COMPOSITE8,
++                               .amux   = CX25840_AUDIO7,
+                        },
+                        {
+                                .type   = CX23885_VMUX_SVIDEO,
+                                .vmux   = CX25840_SVIDEO_LUMA3 |
+                                                CX25840_SVIDEO_CHROMA4,
++                               .amux   = CX25840_AUDIO7,
+                        },
+                        {
+                                .type   = CX23885_VMUX_COMPONENT,
+                                .vmux   = CX25840_COMPONENT_ON |
+                                        CX25840_VIN1_CH1 |
+                                        CX25840_VIN6_CH2 |
+                                        CX25840_VIN7_CH3,
++                               .amux   = CX25840_AUDIO7,
+                        },
+                },
+        },
+        [CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL] = {
+                .name           = "TerraTec Cinergy T PCIe Dual",
+                .portb          = CX23885_MPEG_DVB,
+                .portc          = CX23885_MPEG_DVB,
+        },
+        [CX23885_BOARD_TEVII_S471] = {
+                .name           = "TeVii S471",
+                .portb          = CX23885_MPEG_DVB,
+        }
+ };
+ const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
+ 
+diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+index 22f8e7f..fcb3f22 100644
+--- a/drivers/media/pci/cx23885/cx23885-video.c
++++ b/drivers/media/pci/cx23885/cx23885-video.c
+@@ -496,31 +496,32 @@ static int cx23885_video_mux(struct cx23885_dev *dev, unsigned int input)
+                dev->board == CX23885_BOARD_MYGICA_X8507) {
+                /* Select Analog TV */
+                if (INPUT(input)->type == CX23885_VMUX_TELEVISION)
+                        cx23885_gpio_clear(dev, GPIO_0);
+        }
+ 
+        /* Tell the internal A/V decoder */
+        v4l2_subdev_call(dev->sd_cx25840, video, s_routing,
+                        INPUT(input)->vmux, 0, 0);
+ 
+        if ((dev->board == CX23885_BOARD_HAUPPAUGE_HVR1800) ||
+                (dev->board == CX23885_BOARD_MPX885) ||
+                (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1250) ||
+                (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1255) ||
+                (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1255_22111) ||
+-               (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1850)) {
++               (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1850) ||
++               (dev->board == CX23885_BOARD_MYGICA_X8507)) {
+                /* Configure audio routing */
+                v4l2_subdev_call(dev->sd_cx25840, audio, s_routing,
+                        INPUT(input)->amux, 0, 0);
+ 
+                if (INPUT(input)->amux == CX25840_AUDIO7)
+                        cx23885_flatiron_mux(dev, 1);
+                else if (INPUT(input)->amux == CX25840_AUDIO6)
+                        cx23885_flatiron_mux(dev, 2);
+        }
+ 
+        return 0;
+ }
+ 
+ static int cx23885_audio_mux(struct cx23885_dev *dev, unsigned int input)
+ {
 
-So which one would be better? Similar cases include V4L2_CID_SCENE_MODE
-which is used to choose the scene mode from a list of alternatives. The main
-difference to this case is that the menu items of the scene mode control are
-standardised, too.
-
-I'd be inclined to have a single menu control, even if the other menu items
-will be device-specific. The first value (0) still has to be documented to
-mean the test pattern is disabled.
-
-Laurent, Hans: what do you think?
-
-Kind regards,
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Dona tu voz
+http://www.voxforge.org/es
