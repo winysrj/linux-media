@@ -1,174 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:55984 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932142Ab2I2Tev (ORCPT
+Received: from mail-tx2.bigfish.com ([65.55.88.10]:18750 "EHLO
+	tx2outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753393Ab2IUBUr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Sep 2012 15:34:51 -0400
-Received: by obbuo13 with SMTP id uo13so3901890obb.19
-        for <linux-media@vger.kernel.org>; Sat, 29 Sep 2012 12:34:50 -0700 (PDT)
+	Thu, 20 Sep 2012 21:20:47 -0400
+Message-ID: <505BBD65.6090906@convergeddevices.net>
+Date: Thu, 20 Sep 2012 18:05:41 -0700
+From: "andrey.smirnov@convergeddevices.net"
+	<andrey.smirnov@convergeddevices.net>
 MIME-Version: 1.0
-From: =?UTF-8?Q?Ladislav_J=C3=B3zsa?= <l.jozsa@gmail.com>
-Date: Sat, 29 Sep 2012 21:34:30 +0200
-Message-ID: <CAJEuUsudgQHSktrDwHfELcUC0PMiRHmSw8S8buLcOGUFBqJ9Jw@mail.gmail.com>
-Subject: DiBcom 7000PC: Not able to scan for services on Raspberry Pi
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 1/3] Add a core driver for SI476x MFD
+References: <1347576013-28832-1-git-send-email-andrey.smirnov@convergeddevices.net> <1347576013-28832-2-git-send-email-andrey.smirnov@convergeddevices.net> <201209140844.01978.hverkuil@xs4all.nl>
+In-Reply-To: <201209140844.01978.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 09/13/2012 11:44 PM, Hans Verkuil wrote:
+> Hi Andrey!
+>
+> Thanks for posting this driver. One request for the future: please split this
+> patch up in smaller pieces: one for each c source for example. That makes it
+> easier to review.
 
-I'm having issues with tvheadend with Pinnacle PCTV 73e (DiBcom
-7000PC), firmware dvb-usb-dib0700-1.20.fw. I'm trying to run it on
-Raspberry Pi, I have cloned the latest compose from git. When scanning
-for services I'm getting errors
+Will do for next version.
 
-Sep 29 18:37:45 [ERROR]:dvb: "/dev/dvb/adapter0" tuning to "586,000
-kHz" -- Front configuration failed -- No such device, frequency:
-586000000
-Sep 29 18:38:05 [DEBUG]:dvb: "/dev/dvb/adapter0" tuning to "570,000
-kHz" (Initial autoscan)
-Sep 29 18:38:05 [ERROR]:dvb: "/dev/dvb/adapter0" tuning to "570,000
-kHz" -- Front configuration failed -- No such device, frequency:
-570000000
-Sep 29 18:38:25 [DEBUG]:dvb: "/dev/dvb/adapter0" tuning to "562,000
-kHz" (Initial autoscan)
-Sep 29 18:38:25 [ERROR]:dvb: "/dev/dvb/adapter0" tuning to "562,000
-kHz" -- Front configuration failed -- No such device, frequency:
-562000000
-Sep 29 18:38:45 [DEBUG]:dvb: "/dev/dvb/adapter0" tuning to "538,000
-kHz" (Initial autoscan)
-Sep 29 18:38:45 [ERROR]:dvb: "/dev/dvb/adapter0" tuning to "538,000
-kHz" -- Front configuration failed -- No such device, frequency:
-538000000
+> +
+> +/**
+> + * __core_send_command() - sends a command to si476x and waits its
+> + * response
+> + * @core:    si476x_device structure for the device we are
+> + *            communicating with
+> + * @command:  command id
+> + * @args:     command arguments we are sending
+> + * @argn:     actual size of @args
+> + * @response: buffer to place the expected response from the device
+> + * @respn:    actual size of @response
+> + * @usecs:    amount of time to wait before reading the response (in
+> + *            usecs)
+> + *
+> + * Function returns 0 on succsess and negative error code on
+> + * failure
+> + */
+> +static int __core_send_command(struct si476x_core *core,
+> +				    const u8 command,
+> +				    const u8 args[],
+> +				    const int argn,
+> +				    u8 resp[],
+> +				    const int respn,
+> +				    const int usecs)
+> +{
+> +	struct i2c_client *client = core->client;
+> +	int err;
+> +	u8  data[CMD_MAX_ARGS_COUNT + 1];
+> +
+> +	if (argn > CMD_MAX_ARGS_COUNT) {
+> +		err = -ENOMEM;
+> +		goto exit;
+> Why goto exit? There is no clean up after the exit label, so just return
+> immediately. Ditto for all the other goto exit's in this function.
 
-root@raspbmc:~# uname -a
-Linux raspbmc 3.2.27 #1 PREEMPT Fri Sep 28 19:36:30 UTC 2012 armv6l GNU/Linux
+To have only just on point of exit from the function that's just
+personal coding style preference.
+There are no technical reasons behind that, I can change that.
 
-According to tvheadebd developers this might be bug in the driver.
-Relevant output from strace:
+>
+>> +	}
+>> +
+>> +	if (!client->adapter) {
+>> +		err = -ENODEV;
+>> +		goto exit;
+>> +	}
+>> +
+>> +	/* First send the command and its arguments */
+>> +	data[0] = command;
+>> +	memcpy(&data[1], args, argn);
+>> +	DBG_BUFFER(&client->dev, "Command:\n", data, argn + 1);
+>> +
+>> +	err = si476x_i2c_xfer(core, SI476X_I2C_SEND, (char *) data, argn + 1);
+>> +	if (err != argn + 1) {
+>> +		dev_err(&core->client->dev,
+>> +			"Error while sending command 0x%02x\n",
+>> +			command);
+>> +		err = (err >= 0) ? -EIO : err;
+>> +		goto exit;
+>> +	}
+>> +	/* Set CTS to zero only after the command is send to avoid
+>> +	 * possible racing conditions when working in polling mode */
+>> +	atomic_set(&core->cts, 0);
+>> +
+>> +	if (!wait_event_timeout(core->command,
+>> +				atomic_read(&core->cts),
+>> +				usecs_to_jiffies(usecs) + 1))
+>> +		dev_warn(&core->client->dev,
+>> +			 "(%s) [CMD 0x%02x] Device took too much time to answer.\n",
+>> +			 __func__, command);
+>> +
+>> +	/*
+>> +	  When working in polling mode, for some reason the tuner will
+>> +	  report CTS bit as being set in the first status byte read,
+>> +	  but all the consequtive ones will return zros until the
+>> +	  tuner is actually completed the POWER_UP command. To
+>> +	  workaround that we wait for second CTS to be reported
+>> +	 */
+>> +	if (unlikely(!core->client->irq && command == CMD_POWER_UP)) {
+>> +		if (!wait_event_timeout(core->command,
+>> +					atomic_read(&core->cts),
+>> +					usecs_to_jiffies(usecs) + 1))
+>> +			dev_warn(&core->client->dev,
+>> +				 "(%s) Power up took too much time.\n",
+>> +				 __func__);
+>> +	}
+>> +
+>> +	/* Then get the response */
+>> +	err = si476x_i2c_xfer(core, SI476X_I2C_RECV, resp, respn);
+>> +	if (err != respn) {
+>> +		dev_err(&core->client->dev,
+>> +			"Error while reading response for command 0x%02x\n",
+>> +			command);
+>> +		err = (err >= 0) ? -EIO : err;
+>> +		goto exit;
+>> +	}
+>> +	DBG_BUFFER(&client->dev, "Response:\n", resp, respn);
+>> +
+>> +	err = 0;
+>> +
+>> +	if (resp[0] & SI476X_ERR) {
+>> +		dev_err(&core->client->dev, "Chip set error flag\n");
+>> +		err = si476x_core_parse_and_nag_about_error(core);
+>> +		goto exit;
+>> +	}
+>> +
+>> +	if (!(resp[0] & SI476X_CTS))
+>> +		err = -EBUSY;
+>> +exit:
+>> +	return err;
+>> +}
+>> +
+>> +#define CORE_SEND_COMMAND(core, cmd, args, resp, timeout)		\
+>> +	__core_send_command(core, cmd, args,				\
+>> +			    ARRAY_SIZE(args),				\
+>> +			    resp, ARRAY_SIZE(resp),			\
+>> +			    timeout)
+>> +
+>> +
+>> +static int __cmd_tune_seek_freq(struct si476x_core *core,
+>> +				uint8_t cmd,
+>> +				const uint8_t args[], size_t argn,
+>> +				uint8_t *resp, size_t respn,
+>> +				int (*clear_stcint) (struct si476x_core *core))
+>> +{
+>> +	int err;
+>> +
+>> +	atomic_set(&core->stc, 0);
+>> +	err = __core_send_command(core, cmd, args, argn,
+>> +				  resp, respn,
+>> +				  atomic_read(&core->timeouts.command));
+>> +	if (!err) {
+> Invert the test to simplify indentation.
+>
+>> +		if (!wait_event_timeout(core->tuning,
+>> +		atomic_read(&core->stc),
+>> +		usecs_to_jiffies(atomic_read(&core->timeouts.tune)) + 1)) {
+> Weird indentation above. Indent the arguments more to the right.
 
-rt_sigprocmask(SIG_BLOCK, [CHLD], ~[INT KILL TERM STOP RTMIN RT_1], 8) = 0
-nanosleep({1, 0}, Sep 29 21:31:26 [NOTICE]:dvb: New mux "522,000 kHz"
-created by built-in configuration from "dvb-t_sk_Bratislava"
-0xbeca85a0)           = 0
-wait4(-1, 0xbeca85a4, WNOHANG, NULL)    = -1 ECHILD (No child processes)
-gettimeofday({1348947087, 490961}, NULL) = 0
-gettimeofday({1348947087, 492256}, NULL) = 0
-gettimeofday({1348947087, 493494}, NULL) = 0
-futex(0x7e77c, FUTEX_CMP_REQUEUE_PRIVATE, 1, 2147483647, 0x7e758, 20) = 1
-futex(0x7e758, FUTEX_WAKE_PRIVATE, 1)   = 1
-ioctl(4, 0x40246f4c, 0xbeca8518)        = -1 ENODEV (No such device)
-gettimeofday({1348947087, 500534}, NULL) = 0
-send(5, "<27>Sep 29 21:31:27 tvheadend[26"..., 155, MSG_NOSIGNAL) = 155
-gettimeofday({1348947087, 506172}, NULL) = 0
-write(2, "\33[31mSep 29 21:31:27 [ERROR]:dvb"..., 152Sep 29 21:31:27
-[ERROR]:dvb: "/dev/dvb/adapter0" tuning to "522,000 kHz" -- Front
-configuration failed -- No such device, frequency: 522000000
-) = 152
-gettimeofday({1348947087, 509301}, NULL) = 0
-stat64("/home", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
-stat64("/home/pi", {st_mode=S_IFDIR|0755, st_size=4096, ...}) = 0
-stat64("/home/pi/.hts", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
-stat64("/home/pi/.hts/tvheadend", {st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
-stat64("/home/pi/.hts/tvheadend/dvbmuxes", {st_mode=S_IFDIR|0700,
-st_size=4096, ...}) = 0
-stat64("/home/pi/.hts/tvheadend/dvbmuxes/_dev_dvb_adapter0_DiBcom_7000PC",
-{st_mode=S_IFDIR|0700, st_size=4096, ...}) = 0
-open("/home/pi/.hts/tvheadend/dvbmuxes/_dev_dvb_adapter0_DiBcom_7000PC/_dev_dvb_adapter0_DiBcom_7000PC522000000.tmp",
-O_RDWR|O_CREAT|O_TRUNC|O_LARGEFILE, 0700) = 8
-fcntl64(8, F_GETFD)                     = 0
-fcntl64(8, F_SETFD, FD_CLOEXEC)         = 0
-write(8, "{\n\t\"quality\": 100,\n\t\"enabled\": 0"..., 292) = 292
-close(8)                                = 0
-rename("/home/pi/.hts/tvheadend/dvbmuxes/_dev_dvb_adapter0_DiBcom_7000PC/_dev_dvb_adapter0_DiBcom_7000PC522000000.tmp",
-"/home/pi/.hts/tvheadend/dvbmuxes/_dev_dvb_adapter0_DiBcom_7000PC/_dev_dvb_adapter0_DiBcom_7000PC522000000")
-= 0
-rt_sigprocmask(SIG_BLOCK, [CHLD], ~[INT KILL TERM STOP RTMIN RT_1], 8) = 0
-nanosleep({1, 0}, 0xbeca85a0)           = 0
-wait4(-1, 0xbeca85a4, WNOHANG, NULL)    = -1 ECHILD (No child processes)
-gettimeofday({1348947088, 552736}, NULL) = 0
-rt_sigprocmask(SIG_BLOCK, [CHLD], ~[INT KILL TERM STOP RTMIN RT_1], 8) = 0
-nanosleep({1, 0}, 0xbeca85a0)           = 0
-wait4(-1, 0xbeca85a4, WNOHANG, NULL)    = -1 ECHILD (No child processes)
-gettimeofday({1348947089, 558271}, NULL) = 0
-gettimeofday({1348947089, 559518}, NULL) = 0
-rt_sigprocmask(SIG_BLOCK, [CHLD], ~[INT KILL TERM STOP RTMIN RT_1], 8) = 0
-nanosleep({1, 0}, ^C <unfinished ...>
+80 symbol line length limit is the reason for that indentation.
 
-Additionally after termination of tvheadend I got following output on console:
+>
+> Andrey, you should look at the drivers/media/radio/si4713-i2c.c source.
+> It is for the same chip family and is much, much smaller.
+>
+> See if you can use some of the code that's there.
 
-pi@raspbmc:~$ Sep 29 21:31:30 [INFO]:epgdb: saved
-Sep 29 21:31:30 [INFO]:epgdb:   brands     0
-Sep 29 21:31:30 [INFO]:epgdb:   seasons    0
-Sep 29 21:31:30 [INFO]:epgdb:   episodes   0
-Sep 29 21:31:30 [INFO]:epgdb:   broadcasts 0
-Sep 29 21:31:30 [NOTICE]:STOP: Exiting HTS Tvheadend
+I did when I started writing the driver, that driver and driver for
+wl1273 were my two examples. In my initial version of the driver I tried
+to blend both si4713 and si476x into one generic driver, but the problem
+is: si4713 is a transmitter and si476x are receiver chips, the
+"impedance mismatch" in functionality of the two, IMHO, was too much to
+justify the unification.
 
-Message from syslogd@raspbmc at Sep 29 21:31:30 ...
- kernel:Internal error: Oops: 80000005 [#1] PREEMPT
+Thanks for review, and I'll try to incorporate your suggestions into my
+next version of the patches.
 
-Message from syslogd@raspbmc at Sep 29 21:31:30 ...
- kernel:Process tvheadend (pid: 2632, stack limit = 0xc2daa268)
+Andrey Smirnov
 
-Message from syslogd@raspbmc at Sep 29 21:31:30 ...
- kernel:Stack: (0xc2dabe80 to 0xc2dac000)
 
-Message from syslogd@raspbmc at Sep 29 21:31:30 ...
- kernel:be80: bf01aca0 c77c50e8 00000008 c65fb940 00000000 c74cb5d8
-c2dabedc c2dabea8
-
-Message from syslogd@raspbmc at Sep 29 21:31:30 ...
- kernel:bea0: c00a29d8 bf01acac 00000000 00000000 c2dabef4 c65fb940
-c7a74d60 00000000
-
-Message from syslogd@raspbmc at Sep 29 21:31:30 ...
- kernel:bec0: 00000010 c7a74d60 c2daa000 00000000 c2dabefc c2dabee0
-c009ef70 c00a2920
-
-Message from syslogd@raspbmc at Sep 29 21:31:30 ...
- kernel:bee0: c65fb940 00000000 00c0cfff c7a74d68 c2dabf24 c2dabf00
-c00269a0 c009ef10
-
-Message from syslogd@raspbmc at Sep 29 21:31:30 ...
- kernel:bf00: c7a74d60 c7b9fd60 40519774 000000f8 c000efe8 c2daa000
-c2dabf3c c2dabf28
-
-Message from syslogd@raspbmc at Sep 29 21:31:30 ...
- kernel:bf20: c0028054 c0026930 00000000 00000000 c2dabf7c c2dabf40
-c0028738 c0027fec
-
-Message from syslogd@raspbmc at Sep 29 21:31:30 ...
- kernel:bf40: c2daa000 00000100 c2dabf6c 00000001 c03d7788 c03d70f4
-60000013 00000000
-
-Message from syslogd@raspbmc at Sep 29 21:31:30 ...
- kernel:bf60: c2dabf7c c2dabf70 c03d77d8 000000f8 c2dabf94 c2dabf80
-c0028930 c002806c
-
-Message from syslogd@raspbmc at Sep 29 21:31:30 ...
- kernel:bf80: 00089884 40519774 c2dabfa4 c2dabf98 c00289d0 c00288f8
-00000000 c2dabfa8
-
-Message from syslogd@raspbmc at Sep 29 21:31:30 ...
- kernel:bfa0: c000efb8 c00289c4 00089884 40519774 00000000 00089864
-00000008 00000000
-
-Message from syslogd@raspbmc at Sep 29 21:31:30 ...
- kernel:bfc0: 00089884 40519774 40519774 000000f8 00000000 00000000
-4008f000 00000000
-
-Message from syslogd@raspbmc at Sep 29 21:31:30 ...
- kernel:bfe0: ffffffff beca86b0 4042b294 40491814 60000010 00000000
-4020b148 4020ab24
-
-Message from syslogd@raspbmc at Sep 29 21:31:30 ...
- kernel:Code: bad PC value
-^C
-
-Running the same on my x86_64 machine works and tvheadend sees
-multiplexes. What else information do you need from me in order to
-track the problem?
-
-Thanks,
-Ladislav
