@@ -1,80 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:52335 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754605Ab2IOSMy (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3483 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932343Ab2IULHt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Sep 2012 14:12:54 -0400
-Received: by lbbgj3 with SMTP id gj3so3428423lbb.19
-        for <linux-media@vger.kernel.org>; Sat, 15 Sep 2012 11:12:52 -0700 (PDT)
-Message-ID: <5054C521.1090200@gmail.com>
-Date: Sat, 15 Sep 2012 20:12:49 +0200
-From: Anders Thomson <aeriksson2@gmail.com>
+	Fri, 21 Sep 2012 07:07:49 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id q8LB7koY042849
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Fri, 21 Sep 2012 13:07:47 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id E68AA35C0026
+	for <linux-media@vger.kernel.org>; Fri, 21 Sep 2012 13:07:44 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: RFC: single+multiplanar API in one driver: possible or not?
+Date: Fri, 21 Sep 2012 13:07:45 +0200
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: tda8290 regression fix
-References: <503F4E19.1050700@gmail.com> <20120915133417.27cb82a1@redhat.com> <5054BD53.7060109@gmail.com> <20120915145834.0b763f73@redhat.com>
-In-Reply-To: <20120915145834.0b763f73@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201209211307.45495.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2012-09-15 19:58, Mauro Carvalho Chehab wrote:
-> Em Sat, 15 Sep 2012 19:39:31 +0200
-> Anders Thomson<aeriksson2@gmail.com>  escreveu:
->
-> >  On 2012-09-15 18:34, Mauro Carvalho Chehab wrote:
-> >  >  >   $ cat /TV_CARD.diff
-> >  >  >   diff --git a/drivers/media/common/tuners/tda8290.c
-> >  >  >   b/drivers/media/common/tuners/tda8290.c
-> >  >  >   index 064d14c..498cc7b 100644
-> >  >  >   --- a/drivers/media/common/tuners/tda8290.c
-> >  >  >   +++ b/drivers/media/common/tuners/tda8290.c
-> >  >  >   @@ -635,7 +635,11 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
-> >  >  >
-> >  >  >                    dvb_attach(tda827x_attach, fe, priv->tda827x_addr,
-> >  >  >                               priv->i2c_props.adap,&priv->cfg);
-> >  >  >   +               tuner_info("ANDERS: setting switch_addr. was 0x%02x, new
-> >  >  >   0x%02x\n",priv->cfg.switch_addr,priv->i2c_props.addr);
-> >  >  >                    priv->cfg.switch_addr = priv->i2c_props.addr;
-> >  >  >   +               priv->cfg.switch_addr = 0xc2 / 2;
-> >  >
-> >  >  No, this is wrong. The I2C address is passed by the bridge driver or by
-> >  >  the tuner_core attachment, being stored at priv->i2c_props.addr.
-> >  >
-> >  >  What's the driver and card you're using?
-> >  >
-> >  lspci -vv:
-> >  03:06.0 Multimedia controller: Philips Semiconductors
-> >  SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
-> >           Subsystem: Pinnacle Systems Inc. Device 002f
->
-> There are lots of Pinnacle device supported by saa7134 driver. Without its
-> PCI ID that's not much we can do.
-That here, right?
-lspci -nvv:
-03:06.0 0480: 1131:7133 (rev d1)
-         Subsystem: 11bd:002f
-         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-ParErr- Stepping- SERR- FastB2B- DisINTx-
-         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium 
- >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-         Latency: 64 (21000ns min, 8000ns max)
-         Interrupt: pin A routed to IRQ 21
-         Region 0: Memory at fdeff000 (32-bit, non-prefetchable) [size=2K]
-         Capabilities: [40] Power Management version 2
-                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA 
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-                 Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=1 PME-
-         Kernel driver in use: saa7134
-         Kernel modules: saa7134
+Hi all,
 
+I've been looking into multiplanar support recently, and I ran into some API
+ambiguities.
 
+In the examples below I stick to the capture case, but the same applies to
+output and m2m.
 
+There are two capabilities: V4L2_CAP_VIDEO_CAPTURE and V4L2_CAP_VIDEO_CAPTURE_MPLANE.
+These caps tell the application whether the single and/or multiplanar API is
+implemented by the driver.
 
-> Also, please post the dmesg showing what happens without and with your patch.
-Coming. Hold on...
-> Regards,
-> Mauro
+If the hardware only supports single planar formats, then only V4L2_CAP_VIDEO_CAPTURE
+is present. If the hardware only supports multiplanar formats, then only
+V4L2_CAP_VIDEO_CAPTURE_MPLANE is present. The problems occurs when the hardware
+supports both single and multiplanar formats.
 
+The first question is if we want to allow drivers to implement both. The
+advantages of that are:
+
+- easy to implement: if the hardware supports one or more multiplanar formats,
+  then the driver must implement only the multiplanar API. Applications will
+  only see V4L2_CAP_VIDEO_CAPTURE or V4L2_CAP_VIDEO_CAPTURE_MPLANE and never
+  both.
+- no confusion: what should be done if a multiplanar format is set up
+  and an application asks for the current single planar format? Return a
+  fake format? Some error? This is currently undefined.
+
+The disadvantages are:
+
+- it won't work with most/all existing applications since they only understand
+  single planar at the moment. However, all multiplanar drivers are for Samsung
+  embedded SoCs, so is this a real problem?
+
+If we would want to allow mixing the two, then we need to solve two problems:
+
+- Determine the behavior when calling G_FMT for a single planar buffer type
+  when the current format is a multiplanar format.
+- We probably want to make a bunch of helper functions that do the job of
+  handling the single planar case without requiring the driver to actually
+  implement both.
+
+The first is actually a major problem. Returning an error here is completely
+unexpected behavior. The only reasonable solution I see is to remember the last
+single planar format and return that. But then G_FMT for a single or a multiplanar
+format will return different things.
+
+The second problem is also difficult, in particular when dealing with the
+streaming I/O ioctls. It's doable, but a fair amount of work.
+
+A conversion from multiplanar to singleplanar might be something that can be
+done in libv4l2. But that too is a substantial amount of work.
+
+I am inclined to disallow mixing of single and multiplanar APIs in a driver.
+Let's keep things simple.
+
+Comments?
+
+	Hans
