@@ -1,74 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:41681 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752503Ab2IYKy7 (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1265 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752374Ab2IUM0X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 06:54:59 -0400
+	Fri, 21 Sep 2012 08:26:23 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] Timestamps and V4L2
-Date: Tue, 25 Sep 2012 12:54:34 +0200
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	remi@remlab.net, daniel-gl@gmx.net, sylwester.nawrocki@gmail.com
-References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <201209250847.45104.hverkuil@xs4all.nl> <1581681.Un0gYsdTxg@avalon>
-In-Reply-To: <1581681.Un0gYsdTxg@avalon>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [RFC] Processing context in the V4L2 subdev and V4L2 controls API ?
+Date: Fri, 21 Sep 2012 14:26:17 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans de Goede <hdegoede@redhat.com>,
+	"Seung-Woo Kim" <sw0312.kim@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+References: <50588E0E.9000307@samsung.com>
+In-Reply-To: <50588E0E.9000307@samsung.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201209251254.34483.hverkuil@xs4all.nl>
+Message-Id: <201209211426.17235.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 25 September 2012 12:48:01 Laurent Pinchart wrote:
-> Hi Hans,
+On Tue September 18 2012 17:06:54 Sylwester Nawrocki wrote:
+> Hi All,
 > 
-> On Tuesday 25 September 2012 08:47:45 Hans Verkuil wrote:
-> > On Tue September 25 2012 02:00:55 Laurent Pinchart wrote:
-> > BTW, I think we should also fix the description of the timestamp in the
-> > spec. Currently it says:
-> > 
-> > "For input streams this is the system time (as returned by the
-> > gettimeofday() function) when the first data byte was captured. For output
-> > streams the data will not be displayed before this time, secondary to the
-> > nominal frame rate determined by the current video standard in enqueued
-> > order. Applications can for example zero this field to display frames as
-> > soon as possible. The driver stores the time at which the first data byte
-> > was actually sent out in the timestamp field. This permits applications to
-> > monitor the drift between the video and system clock."
-> > 
-> > To my knowledge all capture drivers set the timestamp to the time the *last*
-> > data byte was captured, not the first.
+> I'm trying to fulfil following requirements with V4L2 API that are specific
+> to most of Samsung camera sensors with embedded SoC ISP and also for local 
+> SoC camera ISPs:
 > 
-> The uvcvideo driver uses the time the first image packet is received :-) Most 
-> other drivers use the time the last byte was *received*, not captured.
+>  - separate pixel format and pixel resolution needs to be configured
+>    in a device for camera preview and capture;
+> 
+>  - there is a need to set capture or preview mode in a device explicitly
+>    as it makes various adjustments (in firmware) in each operation mode
+>    and controls external devices accordingly (e.g. camera Flash);
+> 
+>  - some devices have more than two use case specific contexts that a user
+>    needs to choose from, e.g. video preview, video capture, still preview, 
+>    still capture; for each of these modes there are separate settings, 
+>    especially pixel resolution and others corresponding to existing v4l2 
+>    controls;
+> 
+>  - some devices can have two processing contexts enabled simultaneously,
+>    e.g. a sensor emitting YUYV and JPEG streams simultaneously (please see 
+>    discussion [1]).
+> 
+> This makes me considering making the v4l2 subdev (and maybe v4l2 controls)
+> API processing (capture) context aware.
+> 
+> If I remember correctly introducing processing context, as the per file 
+> handle device contexts in case of mem-to-mem devices was considered bad
+> idea in past discussions.
 
-Unless the hardware buffers more than a few lines there is very little
-difference between the time the last byte was received and when it was captured.
+I don't remember this. Controls can already be per-filehandle for m2m devices,
+so for m2m devices I see no problem. For other devices it is a different matter,
+though. The current V4L2 API does not allow per-filehandle contexts there.
 
-But you are correct, it is typically the time the last byte was received.
+> But this was more about v4ll2 video nodes.
+> 
+> And I was considering adding context only to v4l2 subdev API, and possibly
+> to the (extended) control API. The idea is to extend the subdev (and 
+> controls ?) ioctls so it is possible to preconfigure sets of parameters 
+> on subdevs, while V4L2 video node parameters would be switched "manually"
+> by applications to match a selected subdevs contest. There would also be
+> needed an API to select specific context (e.g. a control), or maybe 
+> multiple contexts like in case of a sensor from discussion [1].
 
-Should we signal this as well? First vs last byte? Or shall we standardize?
+We discussed the context idea before. The problem is how to implement it
+in a way that still keeps things from becoming overly complex.
 
-BTW, the human mind is amazingly tolerant when it comes to A/V synchronization.
-Audio can be up to 50 ms ahead of the video and up to I believe 120 ms lagging
-behind the video before most people will notice. So being off by one frame won't
-be noticable at all.
+What I do not want to see is an API with large structs that contain the whole
+context. That's a nightmare to maintain in the long run. So you want to be
+able to use the existing API as much as possible and build up the context
+bit by bit.
+
+I don't think using a control to select contexts is a good idea. I think this
+warrants one or more new ioctls.
+
+What contexts would you need? What context operations do you need?
+
+I would probably define a default or baseline context that all drivers have,
+then create a CLONE_CONTEXT ioctl (cloning an existing context into a new one)
+and an EDIT_CONTEXT ioctl (to edit an existing context) and any subsequent
+ioctls will apply to that context. After the FINISH_CONTEXT ioctl the context
+is finalized and any subsequent ioctls will apply again to the baseline context.
+With APPLY_CONTEXT you apply a context to the baseline context and activate it.
+
+Whether this context information is stored in the file handle (making it fh
+specific) or globally is an interesting question to which I don't have an
+answer.
+
+This is just a quick brainstorm, but I think something like this might be
+feasible.
+
+> I've seen various hacks in some v4l2 drivers trying to fulfil above
+> requirements, e.g. abusing struct v4l2_mbus_framefmt::colorspace field
+> to select between capture/preview in a device or using 32-bit integer
+> control where upper 16-bits are used for pixel width and lower 16 for
+> pixel height.
+
+Where is that? And what do you mean with pixel width and height? It this
+used to define a pixel aspect ratio? Is this really related to context?
+
+> This may suggest there something missing at the API.
+> 
+> Any suggestions, critics, please ?... :)
 
 Regards,
 
 	Hans
-
-> That's 
-> a very important difference, as it influences audio/video synchronization. 
-> Providing the time at which the first byte was captured is better than the 
-> time the last byte was captured in my opinion. Unfortunately when images are 
-> transferred by DMA it's often impossible to get any meaningful timestamp.
-> 
-> > And there are no output drivers able to handle a non-zero timestamp. And the
-> > output drivers also set the timestamp to the time the *last* data byte was
-> > sent out.
-> > 
-> > I think the spec should be updated to reflect this.
-> 
-> 
