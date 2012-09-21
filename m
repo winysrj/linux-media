@@ -1,101 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:47343 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753746Ab2IJPaL (ORCPT
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:62325 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752645Ab2IUFOY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 11:30:11 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Fri, 21 Sep 2012 01:14:24 -0400
+Received: by qcro28 with SMTP id o28so2325432qcr.19
+        for <linux-media@vger.kernel.org>; Thu, 20 Sep 2012 22:14:24 -0700 (PDT)
+From: Ido Yariv <ido@wizery.com>
+To: Tony Lindgren <tony@atomide.com>,
+	Russell King <linux@arm.linux.org.uk>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v4 01/16] media: coda: firmware loading for 64-bit AXI bus width
-Date: Mon, 10 Sep 2012 17:29:45 +0200
-Message-Id: <1347291000-340-2-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
-References: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
+	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org
+Cc: Ido Yariv <ido@wizery.com>
+Subject: [PATCH 1/3] [media] omap3isp: Fix compilation error in ispreg.h
+Date: Fri, 21 Sep 2012 01:14:06 -0400
+Message-Id: <1348204448-30855-1-git-send-email-ido@wizery.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for loading a raw firmware with 16-bit chars ordered in
-little-endian 64-bit words, corresponding to the memory access pattern
-of CODA7 and above: When writing the boot code into the code download
-register, the chars have to be reordered back.
+Commit c49f34bc ("ARM: OMAP2+ Move SoC specific headers to be local to
+mach-omap2") moved omap34xx.h to mach-omap2. This broke omap3isp, as it
+includes omap34xx.h.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Instead of moving omap34xx to platform_data, simply add the two
+definitions the driver needs and remove the include altogether.
+
+Signed-off-by: Ido Yariv <ido@wizery.com>
 ---
- drivers/media/platform/coda.c |   34 ++++++++++++++++++++++------------
- 1 file changed, 22 insertions(+), 12 deletions(-)
+ drivers/media/platform/omap3isp/ispreg.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 6908514..d4a5dd0 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1510,7 +1510,7 @@ static char *coda_product_name(int product)
- 	}
- }
+diff --git a/drivers/media/platform/omap3isp/ispreg.h b/drivers/media/platform/omap3isp/ispreg.h
+index 084ea77..e2c57f3 100644
+--- a/drivers/media/platform/omap3isp/ispreg.h
++++ b/drivers/media/platform/omap3isp/ispreg.h
+@@ -27,13 +27,13 @@
+ #ifndef OMAP3_ISP_REG_H
+ #define OMAP3_ISP_REG_H
  
--static int coda_hw_init(struct coda_dev *dev, const struct firmware *fw)
-+static int coda_hw_init(struct coda_dev *dev)
- {
- 	u16 product, major, minor, release;
- 	u32 data;
-@@ -1520,21 +1520,27 @@ static int coda_hw_init(struct coda_dev *dev, const struct firmware *fw)
- 	clk_prepare_enable(dev->clk_per);
- 	clk_prepare_enable(dev->clk_ahb);
+-#include <plat/omap34xx.h>
+-
+-
+ #define CM_CAM_MCLK_HZ			172800000	/* Hz */
  
--	/* Copy the whole firmware image to the code buffer */
--	memcpy(dev->codebuf.vaddr, fw->data, fw->size);
- 	/*
- 	 * Copy the first CODA_ISRAM_SIZE in the internal SRAM.
--	 * This memory seems to be big-endian here, which is weird, since
--	 * the internal ARM processor of the coda is little endian.
-+	 * The 16-bit chars in the code buffer are in memory access
-+	 * order, re-sort them to CODA order for register download.
- 	 * Data in this SRAM survives a reboot.
- 	 */
--	p = (u16 *)fw->data;
--	for (i = 0; i < (CODA_ISRAM_SIZE / 2); i++)  {
--		data = CODA_DOWN_ADDRESS_SET(i) |
--			CODA_DOWN_DATA_SET(p[i ^ 1]);
--		coda_write(dev, data, CODA_REG_BIT_CODE_DOWN);
-+	p = (u16 *)dev->codebuf.vaddr;
-+	if (dev->devtype->product == CODA_DX6) {
-+		for (i = 0; i < (CODA_ISRAM_SIZE / 2); i++)  {
-+			data = CODA_DOWN_ADDRESS_SET(i) |
-+				CODA_DOWN_DATA_SET(p[i ^ 1]);
-+			coda_write(dev, data, CODA_REG_BIT_CODE_DOWN);
-+		}
-+	} else {
-+		for (i = 0; i < (CODA_ISRAM_SIZE / 2); i++) {
-+			data = CODA_DOWN_ADDRESS_SET(i) |
-+				CODA_DOWN_DATA_SET(p[round_down(i, 4) +
-+							3 - (i % 4)]);
-+			coda_write(dev, data, CODA_REG_BIT_CODE_DOWN);
-+		}
- 	}
--	release_firmware(fw);
+ /* ISP Submodules offset */
  
- 	/* Tell the BIT where to find everything it needs */
- 	coda_write(dev, dev->workbuf.paddr,
-@@ -1630,7 +1636,11 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
- 		return;
- 	}
- 
--	ret = coda_hw_init(dev, fw);
-+	/* Copy the whole firmware image to the code buffer */
-+	memcpy(dev->codebuf.vaddr, fw->data, fw->size);
-+	release_firmware(fw);
++#define L4_34XX_BASE			0x48000000
++#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
 +
-+	ret = coda_hw_init(dev);
- 	if (ret) {
- 		v4l2_err(&dev->v4l2_dev, "HW initialization failed\n");
- 		return;
+ #define OMAP3ISP_REG_BASE		OMAP3430_ISP_BASE
+ #define OMAP3ISP_REG(offset)		(OMAP3ISP_REG_BASE + (offset))
+ 
 -- 
-1.7.10.4
+1.7.11.4
 
