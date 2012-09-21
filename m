@@ -1,121 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:61906 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754136Ab2IXNtB convert rfc822-to-8bit (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:58925 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754345Ab2IUI0o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 09:49:01 -0400
-Received: by pbbrr4 with SMTP id rr4so7183285pbb.19
-        for <linux-media@vger.kernel.org>; Mon, 24 Sep 2012 06:49:01 -0700 (PDT)
+	Fri, 21 Sep 2012 04:26:44 -0400
+Received: by lbbgj3 with SMTP id gj3so3527305lbb.19
+        for <linux-media@vger.kernel.org>; Fri, 21 Sep 2012 01:26:43 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <10375683.p3v6BRe8Fj@avalon>
-References: <CAFqH_53EY7BcMjn+fy=KfAhSU9Ut1pcLUyrmu2kiHznrBUB2XQ@mail.gmail.com>
-	<10375683.p3v6BRe8Fj@avalon>
-Date: Mon, 24 Sep 2012 15:49:01 +0200
-Message-ID: <CAFqH_52mu7ME9EBemVhnpLYDgxJ-g53Qeecx5xWR5S1O_awBCA@mail.gmail.com>
-Subject: Re: omap3isp: wrong image after resizer with mt9v034 sensor
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <20120921080123.GM2450@S2101-09.ap.freescale.net>
+References: <1348123547-31082-1-git-send-email-shawn.guo@linaro.org>
+	<201209200739.34899.arnd@arndb.de>
+	<20120920145342.GI2450@S2101-09.ap.freescale.net>
+	<201209201556.57171.arnd@arndb.de>
+	<20120921080123.GM2450@S2101-09.ap.freescale.net>
+Date: Fri, 21 Sep 2012 01:26:43 -0700
+Message-ID: <CAOesGMi6CbvFikycJVdE8W-DxLD3W7+CyScz+YT103dxR31U9g@mail.gmail.com>
+Subject: Re: [alsa-devel] [PATCH v2 00/34] i.MX multi-platform support
+From: Olof Johansson <olof@lixom.net>
+To: Shawn Guo <shawn.guo@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, alsa-devel@alsa-project.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
+	linux-fbdev@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>,
+	linux-mtd@lists.infradead.org, linux-i2c@vger.kernel.org,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	Chris Ball <cjb@laptop.org>, linux-media@vger.kernel.org,
+	linux-watchdog@vger.kernel.org, rtc-linux@googlegroups.com,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <rob.herring@calxeda.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Vinod Koul <vinod.koul@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, linux-mmc@vger.kernel.org,
+	Wolfram Sang <w.sang@pengutronix.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-2012/9/24 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Enric,
->
-> On Monday 24 September 2012 10:33:42 Enric Balletbò i Serra wrote:
->> Hi everybody,
+On Fri, Sep 21, 2012 at 1:01 AM, Shawn Guo <shawn.guo@linaro.org> wrote:
+> On Thu, Sep 20, 2012 at 03:56:56PM +0000, Arnd Bergmann wrote:
+>> Ok, fair enough. I think we can put it in arm-soc/for-next as a staging
+>> branch anyway to give it some exposure to linux-next, and then we can
+>> decide whether a rebase is necessary before sending it to Linus.
 >>
->> I'm trying to add support for MT9V034 Aptina image sensor to current
->> mainline, as a base of my current work I start using the latest
->> omap3isp-next branch from Laurent's git tree [1]. The MT9V034 image
->> sensor is very similar to MT9V032 sensor, so I modified current driver
->> to accept MT9V034 sensor adding the chip ID. The driver recognizes the
->> sensor and I'm able to capture some frames.
->>
->> I started capturing directly frames using the pipeline Sensor -> CCDC
->>
->>     ./media-ctl -r
->>     ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
->>     ./media-ctl -l '"OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
->>     ./media-ctl -f '"mt9v032 3-005c":0 [SGRBG10 752x480]'
->>     ./media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 752x480]'
->>
->>     # Test pattern
->>     ./yavta --set-control '0x00981901 1' /dev/v4l-subdev8
->>
->>     # ./yavta -p -f SGRBG10 -s 752x480 -n 4 --capture=3 /dev/video2
->> --file=img-#.bin
->>
->> To convert to jpg I used bayer2rgb [2] program executing following command,
->>
->>     $ convert -size 752x480  GRBG_BAYER:./img-000000.bin img-000000.jpg
->>
->> And the result image looks like this
->>
->>     http://downloads.isee.biz/pub/files/patterns/img-from-sensor.jpg
->>
->> Seems good, so I tried to use following pipeline Sensor -> CCDC ->
->> Preview -> Resizer
->>
->>     ./media-ctl -r
->>     ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
->>     ./media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
->>     ./media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
->>     ./media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
->>
->>     ./media-ctl -V '"mt9v032 3-005c":0[SGRBG10 752x480]'
->>     ./media-ctl -V  '"OMAP3 ISP CCDC":0 [SGRBG10 752x480]'
->>     ./media-ctl -V  '"OMAP3 ISP CCDC":2 [SGRBG10 752x480]'
->>     ./media-ctl -V  '"OMAP3 ISP preview":1 [UYVY 752x480]'
->>     ./media-ctl -V  '"OMAP3 ISP resizer":1 [UYVY 752x480]'
->>
->>     # Set Test pattern
->>
->>     ./yavta --set-control '0x00981901 1' /dev/v4l-subdev8
->>
->>     ./yavta -f UYVY -s 752x480 --capture=3 --file=img-#.uyvy /dev/video6
->>
->> I used 'convert' program to pass from UYVY to jpg,
->>
->>     $ convert -size 752x480 img-000000.uyvy img-000000.jpg
->>
->> and the result image looks like this
->>
->>     http://downloads.isee.biz/pub/files/patterns/img-from-resizer.jpg
->>
->> As you can see, the image is wrong and I'm not sure if the problem is
->> from the sensor, from the previewer, from the resizer or from my
->> conversion. Anyone have idea where should I look ? Or which is the
->> source of the problem ?
->
-> Could you please post the output of all the above media-ctl and yavta runs, as
-> well as the captured raw binary frame ?
-
-Of course,
-
-The log configuring the pipeline Sensor -> CCDC is
-    http://pastebin.com/WX8ex5x2
-and the raw image can be found
-    http://downloads.isee.biz/pub/files/patterns/img-000000.bin
+> I just saw the announcement from Olof - no more major merge for 3.7
+> will be accepted from now on.  Can this be an exception or should I
+> plan this for 3.8?
 
 
-And the log configuring the pipeline Sensor -> CCDC -> Previewer -> Resizer is
-    http://pastebin.com/wh5ZJwne
-and the raw image can be found
-    http://downloads.isee.biz/pub/files/patterns/img-000000.uyvy
+I'll take a look at merging it tomorrow after I've dealt with smp_ops;
+if it looks reasonably conflict-free I'll pull it in. We need the
+sound dependency sorted out (or agreed upon) first though.
 
 
->
->> [1] http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-
->> omap3isp-next
->> [2] https://github.com/jdthomas/bayer2rgb
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+-Olof
