@@ -1,110 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4032 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932517Ab2IUJgO (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:65041 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753297Ab2IUIB1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Sep 2012 05:36:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Federico Vaga <federico.vaga@gmail.com>
-Subject: Re: [PATCH 1/4] v4l: vb2: add prepare/finish callbacks to allocators
-Date: Fri, 21 Sep 2012 11:36:02 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jonathan Corbet <corbet@lwn.net>
-References: <1348219298-23273-1-git-send-email-federico.vaga@gmail.com>
-In-Reply-To: <1348219298-23273-1-git-send-email-federico.vaga@gmail.com>
+	Fri, 21 Sep 2012 04:01:27 -0400
+Received: by pbbrr4 with SMTP id rr4so2080786pbb.19
+        for <linux-media@vger.kernel.org>; Fri, 21 Sep 2012 01:01:27 -0700 (PDT)
+Date: Fri, 21 Sep 2012 16:01:26 +0800
+From: Shawn Guo <shawn.guo@linaro.org>
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: alsa-devel@alsa-project.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
+	linux-fbdev@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>,
+	linux-mtd@lists.infradead.org, linux-i2c@vger.kernel.org,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	Chris Ball <cjb@laptop.org>, linux-media@vger.kernel.org,
+	linux-watchdog@vger.kernel.org, rtc-linux@googlegroups.com,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <rob.herring@calxeda.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Vinod Koul <vinod.koul@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, linux-mmc@vger.kernel.org,
+	Wolfram Sang <w.sang@pengutronix.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [alsa-devel] [PATCH v2 00/34] i.MX multi-platform support
+Message-ID: <20120921080123.GM2450@S2101-09.ap.freescale.net>
+References: <1348123547-31082-1-git-send-email-shawn.guo@linaro.org>
+ <201209200739.34899.arnd@arndb.de>
+ <20120920145342.GI2450@S2101-09.ap.freescale.net>
+ <201209201556.57171.arnd@arndb.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209211136.02263.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201209201556.57171.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri September 21 2012 11:21:35 Federico Vaga wrote:
-> This patch adds support for prepare/finish callbacks in VB2 allocators.
-> These callback are used for buffer flushing.
+On Thu, Sep 20, 2012 at 03:56:56PM +0000, Arnd Bergmann wrote:
+> Ok, fair enough. I think we can put it in arm-soc/for-next as a staging
+> branch anyway to give it some exposure to linux-next, and then we can
+> decide whether a rebase is necessary before sending it to Linus.
 > 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Acked-by: Federico Vaga <federico.vaga@gmail.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 11 +++++++++++
->  include/media/videobuf2-core.h           |  7 +++++++
->  2 file modificati, 18 inserzioni(+)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 4da3df6..079fa79 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -790,6 +790,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->  {
->  	struct vb2_queue *q = vb->vb2_queue;
->  	unsigned long flags;
-> +	unsigned int plane;
->  
->  	if (vb->state != VB2_BUF_STATE_ACTIVE)
->  		return;
-> @@ -800,6 +801,10 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->  	dprintk(4, "Done processing on buffer %d, state: %d\n",
->  			vb->v4l2_buf.index, vb->state);
->  
-> +	/* sync buffers */
-> +	for (plane = 0; plane < vb->num_planes; ++plane)
-> +		call_memop(q, finish, vb->planes[plane].mem_priv);
-> +
->  	/* Add the buffer to the done buffers list */
->  	spin_lock_irqsave(&q->done_lock, flags);
->  	vb->state = state;
-> @@ -975,9 +980,15 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->  static void __enqueue_in_driver(struct vb2_buffer *vb)
->  {
->  	struct vb2_queue *q = vb->vb2_queue;
-> +	unsigned int plane;
->  
->  	vb->state = VB2_BUF_STATE_ACTIVE;
->  	atomic_inc(&q->queued_count);
-> +
-> +	/* sync buffers */
-> +	for (plane = 0; plane < vb->num_planes; ++plane)
-> +		call_memop(q, prepare, vb->planes[plane].mem_priv);
-> +
->  	q->ops->buf_queue(vb);
->  }
->  
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 8dd9b6c..f374f99 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -41,6 +41,10 @@ struct vb2_fileio_data;
->   *		 argument to other ops in this structure
->   * @put_userptr: inform the allocator that a USERPTR buffer will no longer
->   *		 be used
-> + * @prepare:	called everytime the buffer is passed from userspace to the
+I just saw the announcement from Olof - no more major merge for 3.7
+will be accepted from now on.  Can this be an exception or should I
+plan this for 3.8?
 
-nitpick: everytime -> every time
-
-> + *		driver, usefull for cache synchronisation, optional
-> + * @finish:	called everytime the buffer is passed back from the driver
-
-ditto.
-
-> + *		to the userspace, also optional
->   * @vaddr:	return a kernel virtual address to a given memory buffer
->   *		associated with the passed private structure or NULL if no
->   *		such mapping exists
-> @@ -65,6 +69,9 @@ struct vb2_mem_ops {
->  					unsigned long size, int write);
->  	void		(*put_userptr)(void *buf_priv);
->  
-> +	void		(*prepare)(void *buf_priv);
-> +	void		(*finish)(void *buf_priv);
-> +
->  	void		*(*vaddr)(void *buf_priv);
->  	void		*(*cookie)(void *buf_priv);
->  
-> 
+Shawn
