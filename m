@@ -1,62 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:33245 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757793Ab2IFPYR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 11:24:17 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 7/14] drivers/media/pci/ngene/ngene-core.c: fix error return code
-Date: Thu,  6 Sep 2012 17:23:54 +0200
-Message-Id: <1346945041-26676-7-git-send-email-peter.senna@gmail.com>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2215 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932999Ab2IUKHz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Sep 2012 06:07:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: s5p-tv/mixer_video.c weirdness
+Date: Fri, 21 Sep 2012 12:07:46 +0200
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209211207.46679.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Senna Tschudin <peter.senna@gmail.com>
+Hi Marek, Sylwester,
 
-Convert a nonnegative error return code to a negative one, as returned
-elsewhere in the function.
+I've been investigating how multiplanar is used in various drivers, and I
+came across this driver that is a bit weird.
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
+querycap sets both single and multiple planar output caps:
 
-// <smpl>
-(
-if@p1 (\(ret < 0\|ret != 0\))
- { ... return ret; }
-|
-ret@p1 = 0
-)
-... when != ret = e1
-    when != &ret
-*if(...)
-{
-  ... when != ret = e2
-      when forall
- return ret;
-}
+        cap->capabilities = V4L2_CAP_STREAMING |
+                V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_VIDEO_OUTPUT_MPLANE;
 
-// </smpl>
+This suggests that both the single and multiplanar APIs are supported.
 
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+But mxr_ioctl_ops only implements these:
 
----
- drivers/media/pci/ngene/ngene-core.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+        /* format handling */
+        .vidioc_enum_fmt_vid_out = mxr_enum_fmt,
+        .vidioc_s_fmt_vid_out_mplane = mxr_s_fmt,
+        .vidioc_g_fmt_vid_out_mplane = mxr_g_fmt,
 
-diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
-index c8e0d5b..6bb44f1 100644
---- a/drivers/media/pci/ngene/ngene-core.c
-+++ b/drivers/media/pci/ngene/ngene-core.c
-@@ -1691,7 +1691,8 @@ int __devinit ngene_probe(struct pci_dev *pci_dev,
- 	dev->i2c_current_bus = -1;
- 
- 	/* Register DVB adapters and devices for both channels */
--	if (init_channels(dev) < 0)
-+	stat = init_channels(dev);
-+	if (stat < 0)
- 		goto fail2;
- 
- 	return 0;
+Mixing single planar enum_fmt with multiplanar s/g_fmt makes little sense.
 
+I suspect everything should be multiplanar.
+
+BTW, I recommend running v4l2-compliance over your s5p drivers. I saw several
+things it would fail on.
+
+Regards,
+
+	Hans
