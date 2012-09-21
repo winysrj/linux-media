@@ -1,133 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39840 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753283Ab2IGSTp (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2904 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755631Ab2IULoj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Sep 2012 14:19:45 -0400
-Message-ID: <504A3B03.4090600@iki.fi>
-Date: Fri, 07 Sep 2012 21:20:51 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.lad@ti.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-kernel@vger.kernel.org,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-doc@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Landley <rob@landley.net>
-Subject: Re: [PATCH v2] media: v4l2-ctrls: add control for test pattern
-References: <1347007309-6913-1-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1347007309-6913-1-git-send-email-prabhakar.lad@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 21 Sep 2012 07:44:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [RFC PATCH 0/3] In non-blocking mode return EAGAIN in hwseek
+Date: Fri, 21 Sep 2012 13:44:25 +0200
+Message-Id: <1348227868-20895-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+This patch series resolves a problem with S_HW_FREQ_SEEK when called in
+non-blocking mode. Currently this would actually block during the seek.
 
-Thanks for the patch!
+This is not a good idea. This patch changes the spec and the drivers to
+return -EAGAIN when called in non-blocking mode.
 
-Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.lad@ti.com>
->
-> add V4L2_CID_TEST_PATTERN of type menu, which determines
-> the internal test pattern selected by the device.
->
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Hans de Goede <hdegoede@redhat.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Rob Landley <rob@landley.net>
-> ---
-> This patches has one checkpatch warning for line over
-> 80 characters altough it can be avoided I have kept it
-> for consistency.
->
-> Changes for v2:
-> 1: Included display devices in the description for test pattern
->     as pointed by Hans.
-> 2: In the menu replaced 'Test Pattern Disabled' by 'Disabled' as
->     pointed by Sylwester.
-> 3: Removed the test patterns from menu as the are hardware specific
->     as pointed by Sakari.
->
->   Documentation/DocBook/media/v4l/controls.xml |   20 ++++++++++++++++++++
->   drivers/media/v4l2-core/v4l2-ctrls.c         |    8 ++++++++
->   include/linux/videodev2.h                    |    4 ++++
->   3 files changed, 32 insertions(+), 0 deletions(-)
->
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index ad873ea..173934e 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -4311,6 +4311,26 @@ interface and may change in the future.</para>
->   	      </tbody>
->   	    </entrytbl>
->   	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN</constant></entry>
-> +	    <entry>menu</entry>
-> +	  </row>
-> +	  <row id="v4l2-test-pattern">
-> +	    <entry spanname="descr"> The Capture/Display/Sensors have the capability
-> +	    to generate internal test patterns and this are hardware specific. This
-> +	    test patterns are used to test a device is properly working and can generate
-> +	    the desired waveforms that it supports.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entrytbl spanname="descr" cols="2">
-> +	      <tbody valign="top">
-> +	        <row>
-> +	         <entry><constant>V4L2_TEST_PATTERN_DISABLED</constant></entry>
-> +	          <entry>Test pattern generation is disabled</entry>
-> +	        </row>
-> +	      </tbody>
-> +	    </entrytbl>
-> +	  </row>
->   	<row><entry></entry></row>
->   	</tbody>
->         </tgroup>
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 8f2f40b..d731422 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -430,6 +430,10 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->   		"Advanced",
->   		NULL,
->   	};
-> +	static const char * const test_pattern[] = {
-> +		"Disabled",
-> +		NULL,
-> +	};
->
->   	switch (id) {
->   	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-> @@ -509,6 +513,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->   		return jpeg_chroma_subsampling;
->   	case V4L2_CID_DPCM_PREDICTOR:
->   		return dpcm_predictor;
-> +	case V4L2_CID_TEST_PATTERN:
-> +		return test_pattern;
+In the future actual support for non-blocking mode might be added to
+selected drivers, but that will require a new event (SEEK_READY or something
+like that), and I am not convinced it is worth the effort anyway.
 
-I think it's not necessary to define test_pattern (nor be prepared to 
-return it) since the menu is going to be device specific. So the driver 
-is responsible for all of the menu items. Such menus are created using 
-v4l2_ctrl_new_custom() instead of v4l2_ctrl_new_std_menu().
+Regards,
 
-Looks good to me otherwise.
+	Hans
 
-Kind regards,
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
