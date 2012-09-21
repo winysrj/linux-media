@@ -1,54 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oyp.chewa.net ([91.121.6.101]:56051 "EHLO oyp.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757523Ab2IXULy convert rfc822-to-8bit (ORCPT
+Received: from mail-out.m-online.net ([212.18.0.9]:41095 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750972Ab2IUJ2X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 16:11:54 -0400
-Received: from leon.localnet (226.Red-80-33-141.staticIP.rima-tde.net [80.33.141.226])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: remi)
-	by oyp.chewa.net (Postfix) with ESMTPSA id 28D3C201D3
-	for <linux-media@vger.kernel.org>; Mon, 24 Sep 2012 22:11:53 +0200 (CEST)
-From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
-To: linux-media@vger.kernel.org
-Subject: Re: [RFC] Timestamps and V4L2
-Date: Mon, 24 Sep 2012 23:11:50 +0300
-References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <505DF194.9030007@gmail.com> <20120923114342.GF12025@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20120923114342.GF12025@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201209242311.51003@leon.remlab.net>
+	Fri, 21 Sep 2012 05:28:23 -0400
+Date: Fri, 21 Sep 2012 11:28:03 +0200
+From: Anatolij Gustschin <agust@denx.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>, dzu@denx.de
+Subject: Re: [PATCH 3/3] mt9v022: set y_skip_top field to zero
+Message-ID: <20120921112803.166fea4d@wker>
+In-Reply-To: <Pine.LNX.4.64.1209111047410.22084@axis700.grange>
+References: <1345799431-29426-1-git-send-email-agust@denx.de>
+	<1345799431-29426-4-git-send-email-agust@denx.de>
+	<Pine.LNX.4.64.1208241323030.20710@axis700.grange>
+	<20120824153420.66806bf1@wker>
+	<Pine.LNX.4.64.1209111047410.22084@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le dimanche 23 septembre 2012 14:43:42, Sakari Ailus a écrit :
-> > I think I like this idea best, it's relatively simple (even with adding
-> > support for reporting flags in VIDIOC_QUERYBUF) for the purpose.
+Hi Guennadi,
+
+On Tue, 11 Sep 2012 10:55:31 +0200 (CEST)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+...
+> > > On what systems have you checked this?
 > > 
-> > If we ever need the clock selection API I would vote for an IOCTL.
-> > The controls API is a bad choice for something such fundamental as
-> > type of clock for buffer timestamping IMHO. Let's stop making the
-> > controls API a dumping ground for almost everything in V4L2! ;)
+> > On camera systems from ifm, both using mt9v022.
 > 
-> Why would the control API be worse than an IOCTL for choosing the type of
-> the timestamp? The control API after all has functionality for exactly for
-> this: this is an obvious menu control.
-> 
-> What comes to the nature of things that can be configured using controls
-> and what can be done using IOCTLs I see no difference. It's just a
-> mechanism. That's what traditional Unix APIs do in general: provide
-> mechanism, not a policy.
+> Ok, I agree, this was a hack in the beginning, and, probably, there was a 
+> reason for the problem, that we've seen, that we didn't find a proper 
+> solution to, but I wouldn't like to punish those systems now. The 
+> y_skip_top field is only taken into account by the pxa driver, and there 
+> is only one pxa270 system, using mt9v022: pcm990-baseboard.c. Could you, 
+> please, add platform data to mt9v022 with only one parameter to initialise 
+> y_skip_top, use 0 as default and set it to 1 on pcm990-baseboard.c?
 
-Seriously? Timestamp is _not_ a controllable hardware feature like brightness 
-or flash. Controls are meant to build user interface controls for interaction 
-with the user. Timestamp is _not_ something the user should control directly. 
-The application should figure out what it gets and what it needs.
+Yes, I've reworked this patch as suggested and will resubmit.
 
-Or why do you use STREAMON/STREAMOFF instead of a STREAM boolean control, eh?
-
--- 
-Rémi Denis-Courmont
-http://www.remlab.net/
+Thanks,
+Anatolij
