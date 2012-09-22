@@ -1,62 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:16988 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754281Ab2IEQRj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2012 12:17:39 -0400
-Received: from eusync2.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M9V006QIXA9VT80@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 05 Sep 2012 17:18:09 +0100 (BST)
-Received: from [106.116.147.32] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0M9V00KJ7X9CPY10@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 05 Sep 2012 17:17:37 +0100 (BST)
-Message-id: <50477B20.1030902@samsung.com>
-Date: Wed, 05 Sep 2012 18:17:36 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Fabio Estevam <festevam@gmail.com>
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	=?UTF-8?B?R2HDq3RhbiA=?= =?UTF-8?B?Q2FybGllcg==?=
-	<gcembed@gmail.com>, Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: Camera not detected on linux-next
-References: <CAOMZO5D7Ar0SE9vmi41jSxbPqv8sSOQshbL6Uzv4Ltow5xKx4w@mail.gmail.com>
-In-reply-to: <CAOMZO5D7Ar0SE9vmi41jSxbPqv8sSOQshbL6Uzv4Ltow5xKx4w@mail.gmail.com>
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.126.171]:51161 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752503Ab2IVWEX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Sep 2012 18:04:23 -0400
+Date: Sun, 23 Sep 2012 00:04:20 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: P Jackson <pej02@yahoo.co.uk>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: mt9t031 driver support on OMAP3 system
+In-Reply-To: <1348335758.70304.YahooMailNeo@web28902.mail.ir2.yahoo.com>
+Message-ID: <Pine.LNX.4.64.1209230001390.26787@axis700.grange>
+References: <1348335758.70304.YahooMailNeo@web28902.mail.ir2.yahoo.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Pete
 
-On 09/05/2012 06:06 PM, Fabio Estevam wrote:
-> I am running linux-next 20120905 on a mx31pdk board with a ov2640 CMOS
-> and I am not able to get the ov2640 to be probed:
+On Sat, 22 Sep 2012, P Jackson wrote:
+
+> I'm trying to incorporate an MT9T031-based sensor into a commercial 
+> small form-factor OMAP3 DM3730-based system which is supplied with 
+> sources for a 2.6.37 kernel and is somewhat out-dated.The application 
+> I'm working on requires a single image to be acquired from the sensor 
+> every once in a while which is then processed off-line by another 
+> algorithm on the OMAP3
 > 
-> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
-> mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
-> mx3-camera mx3-camera.0: MX3 Camera driver detached from camera 0
-> .... (no messages showing ov2640 being probed)
-> 
-> I noticed that Kconfig changed the way to select the "Sensors used on
-> soc_camera driver" and I selected ov2640 in the .config.
-> 
-> camera worked fine on this board running 3.5.3. So before start
-> bisecting, I would like to know if there is anything obvious I am
-> missing.
-> 
-> Also tested on a mx27pdk and ov2640 could not be probed there as well.
+> I'd appreciate any advice from the list as to what the most suitable up 
+> to-date compatible kernel I should use would be and what other work I 
+> need to do in order to get things sorted.
 
-Maybe this is about the sensor/host driver linking order.
-If so, then this patch should help
+I would certainly advise to use a current kernel (e.g., 3.5). As for 
+"how," I know, that Laurent has worked on a similar tasks, you can find 
+his posts in mailing list archives, or maybe he'll be able to advise you 
+more specifically.
 
-http://git.linuxtv.org/snawrocki/media.git/commitdiff/458b9b5ab8cb970887c9d1f1fddf88399b2d9ef2
+> Thanks, Pete  
 
---
-
-Regards,
-Sylwester
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
