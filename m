@@ -1,58 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:34810 "EHLO vena.lwn.net"
+Received: from mail.kapsi.fi ([217.30.184.167]:39811 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754504Ab2IMRxy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 13:53:54 -0400
-Date: Thu, 13 Sep 2012 11:54:38 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Federico Vaga <federico.vaga@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 3/4] videobuf2-dma-streaming: new videobuf2 memory
- allocator
-Message-ID: <20120913115438.0557462f@lwn.net>
-In-Reply-To: <17733334.UmoCxqVfBu@harkonnen>
-References: <1347544368-30583-1-git-send-email-federico.vaga@gmail.com>
-	<1347544368-30583-3-git-send-email-federico.vaga@gmail.com>
-	<201209131608.05869.hverkuil@xs4all.nl>
-	<17733334.UmoCxqVfBu@harkonnen>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+	id S1752112Ab2IVQwk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Sep 2012 12:52:40 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 4/5] e4000: fix crash when attach fails
+Date: Sat, 22 Sep 2012 19:51:39 +0300
+Message-Id: <1348332700-10267-4-git-send-email-crope@iki.fi>
+In-Reply-To: <1348332700-10267-1-git-send-email-crope@iki.fi>
+References: <1348332700-10267-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 13 Sep 2012 17:42:33 +0200
-Federico Vaga <federico.vaga@gmail.com> wrote:
+Callbacks were set even attach failed. This leads calling
+.release() in error case and resulted crash.
 
-> > The header and esp. the source could really do with more
-> > documentation. It is not at all clear from the code what the
-> > dma-streaming allocator does and how it differs from other
-> > allocators.  
-> 
-> The other allocators are not documented and to understand them I read 
-> the code. All the memory allocators reflect a kind of DMA interface: SG 
-> for scatter/gather, contig for choerent and (now) streaming for 
-> streaming. So, I'm not sure to understand what do you think is the 
-> correct way to document a memory allocator; I can write one or two lines 
-> of comment to summarize each function. what do you think?
+Reported-by: Oliver Schinagl <oliver@schinagl.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/e4000.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-Well, there is some documentation here:
+diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+index ffaa482..1b33ed3 100644
+--- a/drivers/media/tuners/e4000.c
++++ b/drivers/media/tuners/e4000.c
+@@ -366,9 +366,6 @@ struct dvb_frontend *e4000_attach(struct dvb_frontend *fe,
+ 
+ 	priv->cfg = cfg;
+ 	priv->i2c = i2c;
+-	fe->tuner_priv = priv;
+-	memcpy(&fe->ops.tuner_ops, &e4000_tuner_ops,
+-			sizeof(struct dvb_tuner_ops));
+ 
+ 	/* check if the tuner is there */
+ 	ret = e4000_rd_reg(priv, 0x02, &chip_id);
+@@ -389,6 +386,10 @@ struct dvb_frontend *e4000_attach(struct dvb_frontend *fe,
+ 			"%s: Elonics E4000 successfully identified\n",
+ 			KBUILD_MODNAME);
+ 
++	fe->tuner_priv = priv;
++	memcpy(&fe->ops.tuner_ops, &e4000_tuner_ops,
++			sizeof(struct dvb_tuner_ops));
++
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 0);
+ 
+-- 
+1.7.11.4
 
-	https://lwn.net/Articles/447435/
-
-This reminds me that I've always meant to turn it into something to put
-into Documentation/.  I'll try to get to that soon.
-
-In general, the fact that a subsystem is insufficiently documented is not
-a good reason to add more poorly-documented code.  We are, after all,
-trying to make the kernel better over time...  
-
-Thanks,
-
-jon
