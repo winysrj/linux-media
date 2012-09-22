@@ -1,57 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:41379 "EHLO jenni2.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753251Ab2IBOyg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 Sep 2012 10:54:36 -0400
-Message-ID: <50437328.9050903@iki.fi>
-Date: Sun, 02 Sep 2012 17:54:32 +0300
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:42107 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752380Ab2IVQZW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Sep 2012 12:25:22 -0400
+Received: by bkcjk13 with SMTP id jk13so213531bkc.19
+        for <linux-media@vger.kernel.org>; Sat, 22 Sep 2012 09:25:21 -0700 (PDT)
+Message-ID: <505DE66B.1080303@gmail.com>
+Date: Sat, 22 Sep 2012 18:25:15 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCHv3 2/9] ir-rx51: Handle signals properly
-References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi> <1346349271-28073-3-git-send-email-timo.t.kokkonen@iki.fi> <20120901171420.GC6638@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20120901171420.GC6638@valkosipuli.retiisi.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: s5p-tv/mixer_video.c weirdness
+References: <201209211207.46679.hverkuil@xs4all.nl>
+In-Reply-To: <201209211207.46679.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Terve,
+Hi Hans,
 
-On 09/01/12 20:14, Sakari Ailus wrote:
-> Moi,
+On 09/21/2012 12:07 PM, Hans Verkuil wrote:
+> Hi Marek, Sylwester,
 > 
-> On Thu, Aug 30, 2012 at 08:54:24PM +0300, Timo Kokkonen wrote:
->> @@ -273,9 +281,18 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
->>  
->>  	/*
->>  	 * Don't return back to the userspace until the transfer has
->> -	 * finished
->> +	 * finished. However, we wish to not spend any more than 500ms
->> +	 * in kernel. No IR code TX should ever take that long.
->> +	 */
->> +	i = wait_event_timeout(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0,
->> +			HZ / 2);
+> I've been investigating how multiplanar is used in various drivers, and I
+> came across this driver that is a bit weird.
 > 
-> Why such an arbitrary timeout? In reality it might not bite the user space
-> in practice ever, but is it (and if so, why) really required in the first
-> place?
+> querycap sets both single and multiple planar output caps:
+> 
+>          cap->capabilities = V4L2_CAP_STREAMING |
+>                  V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_VIDEO_OUTPUT_MPLANE;
+> 
+> This suggests that both the single and multiplanar APIs are supported.
 
-Well, I can think of two cases:
+Thanks for spotting this. Somehow this driver wasn't fixed at the time
+this issue was addressed in s5p-mfc and s5p-fimc drivers in commits:
 
-1) Something goes wrong. Such before I converted the patch to use the up
-to date PM QoS implementation, the transmitting could take very long
-time because the interrupts were not waking up the MPU. Now that this is
-sorted out only unknown bugs can cause transmitting to hang indefinitely.
+8f401543e [media] s5p-fimc: Remove single-planar capability flags,
+43defb118 [media] v4l: s5p-mfc: fix reported capabilities.
 
-2) User is (intentionally?) doing something wrong. For example by
-feeding in an IR code that has got very long pulses, he could end up
-having the lircd process hung in kernel unkillable for long time. That
-could be avoided quite easily by counting the pulse lengths and
-rejecting any IR codes that are obviously too long. But since I'd like
-to also protect against 1) case, I think this solution works just fine.
+The reason why these drivers were setting the both capability type flags
+was that original idea was to have multi/single-plane buffer related 
+ioctls translated in the kernel. So the v4l2-core would be turning 
+a multi-plane only driver into a single-plane capable as well. But the 
+in kernel conversion code was stripped at last minute during merge for 
+known reasons. Looks like the s5p-tv driver haven't been receiving 
+enough love, probably because HDMI and TV-out support for these SoCs 
+now happens mainly in DRM.
 
-In the end, this is just safety measure that this driver behaves well.
+I'll make sure there is a patch queued for 3.7, correcting those 
+capabilities and enum_fmt.
 
--Timo
+BTW, I couldn't find a justification of making multi-planar a property
+of fourcc, rather than of the memory/buffer, which it really is. As in 
+this RFC [1]. Inventing multi-planar fourccs always seemed not a best
+idea to me..
+
+> But mxr_ioctl_ops only implements these:
+> 
+>          /* format handling */
+>          .vidioc_enum_fmt_vid_out = mxr_enum_fmt,
+>          .vidioc_s_fmt_vid_out_mplane = mxr_s_fmt,
+>          .vidioc_g_fmt_vid_out_mplane = mxr_g_fmt,
+> 
+> Mixing single planar enum_fmt with multiplanar s/g_fmt makes little sense.
+> 
+> I suspect everything should be multiplanar.
+
+Yes, it should be all multi-planar right from the beginning.
+
+> BTW, I recommend running v4l2-compliance over your s5p drivers. I saw several
+> things it would fail on.
+
+I have it queued on my todo list, I'll see if it can be done for v3.8.
+
+--
+
+Regards,
+Sylwester
+
+[1] http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/11212
