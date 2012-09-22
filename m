@@ -1,58 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40548 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932791Ab2IRLo5 (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:37033 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753426Ab2IVJej (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 07:44:57 -0400
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>, <julia.lawall@lip6.fr>,
-	Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv3 5/6] media: Convert struct i2c_msg initialization to C99 format
-Date: Tue, 18 Sep 2012 17:14:31 +0530
-Message-ID: <1347968672-10803-6-git-send-email-shubhrajyoti@ti.com>
-In-Reply-To: <1347968672-10803-1-git-send-email-shubhrajyoti@ti.com>
-References: <1347968672-10803-1-git-send-email-shubhrajyoti@ti.com>
+	Sat, 22 Sep 2012 05:34:39 -0400
+Received: by pbbrr4 with SMTP id rr4so4231313pbb.19
+        for <linux-media@vger.kernel.org>; Sat, 22 Sep 2012 02:34:39 -0700 (PDT)
+Date: Sat, 22 Sep 2012 17:34:32 +0800
+From: Shawn Guo <shawn.guo@linaro.org>
+To: Olof Johansson <olof@lixom.net>
+Cc: Arnd Bergmann <arnd@arndb.de>, alsa-devel@alsa-project.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
+	linux-fbdev@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>,
+	linux-mtd@lists.infradead.org, linux-i2c@vger.kernel.org,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	Chris Ball <cjb@laptop.org>, linux-media@vger.kernel.org,
+	linux-watchdog@vger.kernel.org, rtc-linux@googlegroups.com,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <rob.herring@calxeda.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Vinod Koul <vinod.koul@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, linux-mmc@vger.kernel.org,
+	Wolfram Sang <w.sang@pengutronix.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [alsa-devel] [PATCH v2 00/34] i.MX multi-platform support
+Message-ID: <20120922093430.GC5394@S2101-09.ap.freescale.net>
+References: <1348123547-31082-1-git-send-email-shawn.guo@linaro.org>
+ <201209200739.34899.arnd@arndb.de>
+ <20120920145342.GI2450@S2101-09.ap.freescale.net>
+ <201209201556.57171.arnd@arndb.de>
+ <20120921080123.GM2450@S2101-09.ap.freescale.net>
+ <CAOesGMi6CbvFikycJVdE8W-DxLD3W7+CyScz+YT103dxR31U9g@mail.gmail.com>
+ <20120921164622.GA5394@S2101-09.ap.freescale.net>
+ <20120921165305.GB5394@S2101-09.ap.freescale.net>
+ <CAOesGMiHJnt7zq19ZycxaNUD64QzLYw7o79pP-Y91-zi60ny6g@mail.gmail.com>
+ <CAOesGMg+FvoVmiCee5hhe+_ZtBpvsnsi2N3vvLmZz1Tq3pOBWw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOesGMg+FvoVmiCee5hhe+_ZtBpvsnsi2N3vvLmZz1Tq3pOBWw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-        Convert the struct i2c_msg initialization to C99 format. This makes
-        maintaining and editing the code simpler. Also helps once other fields
-        like transferred are added in future.
+On Sat, Sep 22, 2012 at 01:09:27AM -0700, Olof Johansson wrote:
+> > I've pulled this in now as staging/imx-multiplatform.
+> >
+> > As you mention, it might or might not make sense to send this up. It
+> > also accrued a few more merge conflicts with other branches in
+> > arm-soc, so we'll see how things play out.
+> >
+> > Either way, we'll for sure queue it for 3.8.
+> 
+> Hmm. Pulling it in gives me a few new build errors, in particular on
+> the configs that Russell use to build test omap3, as well as one of
+> his vexpress configs. So I dropped it again for now.
+> 
+> Let's have the current contents sit in linux-next for at least one
+> release before we bring in anything more, especially since it brings
+> in dependencies on external trees, and it also has a handful of new
+> merge conflicts. We're already exposing Stephen Rothwell to more merge
+> conflicts than I'm entirely comfortable with.
+> 
+Ok.  I will rebase the series against 3.7-rc1 and then send you then.
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- drivers/media/radio/saa7706h.c |   15 +++++++++++++--
- 1 files changed, 13 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/radio/saa7706h.c b/drivers/media/radio/saa7706h.c
-index bb953ef..54db36c 100644
---- a/drivers/media/radio/saa7706h.c
-+++ b/drivers/media/radio/saa7706h.c
-@@ -199,8 +199,19 @@ static int saa7706h_get_reg16(struct v4l2_subdev *sd, u16 reg)
- 	u8 buf[2];
- 	int err;
- 	u8 regaddr[] = {reg >> 8, reg};
--	struct i2c_msg msg[] = { {client->addr, 0, sizeof(regaddr), regaddr},
--				{client->addr, I2C_M_RD, sizeof(buf), buf} };
-+	struct i2c_msg msg[] = {
-+					{
-+						.addr = client->addr,
-+						.len = sizeof(regaddr),
-+						.buf = regaddr
-+					},
-+					{
-+						.addr = client->addr,
-+						.flags = I2C_M_RD,
-+						.len = sizeof(buf),
-+						.buf = buf
-+					}
-+				};
- 
- 	err = saa7706h_i2c_transfer(client, msg, ARRAY_SIZE(msg));
- 	if (err)
--- 
-1.7.5.4
-
+Shawn
