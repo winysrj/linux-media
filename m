@@ -1,170 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:50342 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753743Ab2IYOkC (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:42787 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752503Ab2IVWNq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 10:40:02 -0400
-Received: from eusync2.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MAW00KREU3BMO00@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 25 Sep 2012 15:40:23 +0100 (BST)
-Received: from [106.116.147.32] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MAW00I3HU2N9V00@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 25 Sep 2012 15:39:59 +0100 (BST)
-Message-id: <5061C23E.903@samsung.com>
-Date: Tue, 25 Sep 2012 16:39:58 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, a.hajda@samsung.com,
-	sakari.ailus@iki.fi, hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	sw0312.kim@samsung.com
-Subject: Re: [PATCH RFC 1/5] V4L: Add V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8 media bus
- format
-References: <1348498546-2652-1-git-send-email-s.nawrocki@samsung.com>
- <1348498546-2652-2-git-send-email-s.nawrocki@samsung.com>
- <2823843.qYtB3rcnKu@avalon>
-In-reply-to: <2823843.qYtB3rcnKu@avalon>
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
+	Sat, 22 Sep 2012 18:13:46 -0400
+Received: by pbbrr4 with SMTP id rr4so4941738pbb.19
+        for <linux-media@vger.kernel.org>; Sat, 22 Sep 2012 15:13:46 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CACxi0jMFigNEkot3wvY5YncMokkLuUWjfKD6tkxbJQVKZssjkA@mail.gmail.com>
+References: <CACxi0jMFigNEkot3wvY5YncMokkLuUWjfKD6tkxbJQVKZssjkA@mail.gmail.com>
+Date: Sun, 23 Sep 2012 00:13:45 +0200
+Message-ID: <CACxi0jOAq_shW1arcGNMsNh5M1g5_Gr_f9GmPRRXVaeng1rsaw@mail.gmail.com>
+Subject: MyGica T119 (siano sms) ir sensor is not recognized
+From: Pablo Sanzo Perez <sanzoperez@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hello,
 
-Thanks for your review.
+I have an usb MyGica T119 using the firmware dvb_nova_12mhz_b0.inp and
+modules smsdvb and smsmdtv from Siano.
+The IR is not being detected.
 
-On 09/25/2012 01:42 PM, Laurent Pinchart wrote:
-> On Monday 24 September 2012 16:55:42 Sylwester Nawrocki wrote:
->> This patch adds media bus pixel code for the interleaved JPEG/UYVY
->> image format used by S5C73MX Samsung cameras. This interleaved image
->> data is transferred on MIPI-CSI2 bus as User Defined Byte-based Data.
->>
->> It also defines an experimental vendor and device specific media bus
->> formats section and adds related DocBook documentation.
->>
->> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->> ---
->>  Documentation/DocBook/media/v4l/compat.xml         |  4 ++
->>  Documentation/DocBook/media/v4l/subdev-formats.xml | 45 +++++++++++++++++++
->>  include/linux/v4l2-mediabus.h                      |  5 +++
->>  3 files changed, 54 insertions(+)
->>
->> diff --git a/Documentation/DocBook/media/v4l/compat.xml
->> b/Documentation/DocBook/media/v4l/compat.xml index 98e8d08..5d2480b 100644
->> --- a/Documentation/DocBook/media/v4l/compat.xml
->> +++ b/Documentation/DocBook/media/v4l/compat.xml
->> @@ -2605,6 +2605,10 @@ ioctls.</para>
->>          <listitem>
->>  	  <para>Support for frequency band enumeration: &VIDIOC-ENUM-FREQ-BANDS;
->> ioctl.</para> </listitem>
->> +        <listitem>
->> +	  <para>Vendor and device specific media bus pixel formats.
->> +	    <xref linkend="v4l2-mbus-vendor-spec-fmts" />.</para>
->> +        </listitem>
->>        </itemizedlist>
->>      </section>
->>
->> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml
->> b/Documentation/DocBook/media/v4l/subdev-formats.xml index 49c532e..d7aa870
->> 100644
->> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
->> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
->> @@ -2565,5 +2565,50 @@
->>  	</tgroup>
->>        </table>
->>      </section>
->> +
->> +    <section id="v4l2-mbus-vendor-spec-fmts">
->> +      <title>Vendor and Device Specific Formats</title>
->> +
->> +      <note>
->> +	<title> Experimental </title>
-> 
-> I don't think you need spaces across the title.
+I have googled and looked in this email, I have only found some old
+patches but I could not find a solution.
 
-Thanks for spotting this, I'll fix it and any other occurrences there.
+Is there any way to make it recognized?
 
->> +	<para>This is an <link linkend="experimental">experimental</link>
->> +interface and may change in the future.</para>
->> +      </note>
->> +
->> +      <para> This section lists complex data formats that are either vendor
->> or
->> +	device specific. These formats comprise raw and compressed image data
->> +	and optional meta-data within a single frame.
-> 
-> That's currently true, but we could have other strange vendor-specific formats 
-> that don't interleave raw and compressed frames.
+dmesg shows this when the device is plugged:
 
-OK, let me remove that sentence then.
+[18359.699863] sms_ir_exit:
+[18373.290788] usb 2-2: new high-speed USB device number 4 using ehci_hcd
+[18373.986598] smscore_set_device_mode: firmware download success:
+dvb_nova_12mhz_b0.inp
+[18373.989903] DVB: registering new adapter (Siano Nova B Digital Receiver)
+[18373.990269] DVB: registering adapter 0 frontend 0 (Siano Mobile
+Digital MDTV Receiver)...
 
->> +      </para>
->> +
->> +      <para>The following table lists the existing vendor and device
->> specific
->> +	formats.</para>
->> +
->> +      <table pgwide="0" frame="none"
->> id="v4l2-mbus-pixelcode-vendor-specific"> +	<title>Vendor and device
->> specific formats</title>
->> +	<tgroup cols="3">
->> +	  <colspec colname="id" align="left" />
->> +	  <colspec colname="code" align="left"/>
->> +	  <colspec colname="remarks" align="left"/>
->> +	  <thead>
->> +	    <row>
->> +	      <entry>Identifier</entry>
->> +	      <entry>Code</entry>
->> +	      <entry>Comments</entry>
->> +	    </row>
->> +	  </thead>
->> +	  <tbody valign="top">
->> +	    <row id="V4L2-MBUS-FMT-S5C-UYVY-JPG-1X8">
->> +	      <entry>V4L2_MBUS_FMT_S5C_UYVY_JPG_1X8</entry>
->> +	      <entry>0x8001</entry>
->> +	      <entry>
->> +		Interleaved raw UYVY and JPEG image format with embedded
->> +		meta-data, produced by S3C73M3 camera sensors.
->> +	      </entry>
->> +	    </row>
->> +	  </tbody>
->> +	</tgroup>
->> +      </table>
->> +    </section>
->> +
->>    </section>
->>  </section>
->> diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
->> index 5ea7f75..b98c566 100644
->> --- a/include/linux/v4l2-mediabus.h
->> +++ b/include/linux/v4l2-mediabus.h
->> @@ -92,6 +92,11 @@ enum v4l2_mbus_pixelcode {
->>
->>  	/* JPEG compressed formats - next is 0x4002 */
->>  	V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
->> +
->> +	/* Vendor specific formats - next is 0x8002 */
-> 
-> Anything wrong with 0x5000 as a base value ? :-)
+lsmod | grep sms
+smsusb                 13808  0
+smsdvb                 18536  0
+dvb_core              110619  1 smsdvb
+smsmdtv                37242  2 smsusb,smsdvb
+rc_core                26412  8
+ir_lirc_codec,ir_mce_kbd_decoder,ir_sony_decoder,ir_jvc_decoder,ir_rc6_decoder,ir_rc5_decoder,ir_nec_decoder,smsmdtv
 
-I think I was originally using this value but during discussions
-the conclusion was to clearly separate this new range. I have no
-strong preference, I'm going to revert it to 0x5000 in the next
-iteration, unless someone raises objections.
+lsmod | grep irda
+irda                  201324  0
+crc_ccitt              12667  1 irda
 
->> +
->> +	/* S5C73M3 interleaved UYVY and JPEG */
->> +	V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8 = 0x8001,
->>  };
->>
->>  /**
-> 
+grep FIR /sys/bus/acpi/devices/*/path
+No result
 
-Regards,
--- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+lsusb
+Bus 002 Device 004: ID 187f:0201 Siano Mobile Silicon Nova B
+
+Any help would be much appreciated.
+Thanks in advance.
