@@ -1,83 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1547 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756192Ab2IGN3h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 09:29:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 API PATCH 21/28] v4l2: make vidioc_s_audout const.
-Date: Fri,  7 Sep 2012 15:29:21 +0200
-Message-Id: <1bd0bb8b0d2d0d4521de180dbd3ee2ed8e229363.1347023744.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
-References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
-References: <ea8cc4841a79893a29bafb9af7df2cb0f72af169.1347023744.git.hans.verkuil@cisco.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:64435 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754155Ab2IWUVw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Sep 2012 16:21:52 -0400
+Date: Sun, 23 Sep 2012 22:21:49 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+cc: maramaopercheseimorto@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/3] ov2640: select sensor register bank before applying
+ h/v-flip settings
+In-Reply-To: <1348424926-12864-1-git-send-email-fschaefer.oss@googlemail.com>
+Message-ID: <Pine.LNX.4.64.1209232217260.31250@axis700.grange>
+References: <1348424926-12864-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Frank
 
-Write-only ioctls should have a const argument in the ioctl op.
+On Sun, 23 Sep 2012, Frank Schäfer wrote:
 
-Do this conversion for vidioc_s_audout.
+> We currently don't select the register bank in ov2640_s_ctrl, so we can end up
+> writing to DSP register 0x04 instead of sensor register 0x04.
+> This happens for example when calling ov2640_s_ctrl after ov2640_s_fmt.
 
-Adding const for write-only ioctls was decided during the 2012 Media Workshop.
+Yes, in principle, I agree, bank switching in the driver is not very... 
+consistent and also this specific case looks buggy. But, we have to fix 
+your fix.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> Cc: stable@kernel.org
+> ---
+>  drivers/media/i2c/soc_camera/ov2640.c |    8 ++++++++
+>  1 Datei geändert, 8 Zeilen hinzugefügt(+)
+> 
+> diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
+> index 78ac574..e4fc79e 100644
+> --- a/drivers/media/i2c/soc_camera/ov2640.c
+> +++ b/drivers/media/i2c/soc_camera/ov2640.c
+> @@ -683,8 +683,16 @@ static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
+>  	struct v4l2_subdev *sd =
+>  		&container_of(ctrl->handler, struct ov2640_priv, hdl)->subdev;
+>  	struct i2c_client  *client = v4l2_get_subdevdata(sd);
+> +	struct regval_list regval;
+> +	int ret;
+>  	u8 val;
+>  
+> +	regval.reg_num = BANK_SEL;
+> +	regval.value = BANK_SEL_SENS;
+> +	ret = ov2640_write_array(client, &regval);
+
+This doesn't look right to me. ov2640_write_array() keeps writing register 
+address - value pairs to the hardware until it encounters an "ENDMARKER," 
+which you don't have here, so, it's hard to say what will be written to 
+the sensor... Secondly, you only have to write a single register here, for 
+this the driver is already using i2c_smbus_write_byte_data() directly, 
+please, do the same.
+
+Thanks
+Guennadi
+
+> +	if (ret < 0)
+> +		return ret;
+> +
+>  	switch (ctrl->id) {
+>  	case V4L2_CID_VFLIP:
+>  		val = ctrl->val ? REG04_VFLIP_IMG : 0x00;
+> -- 
+> 1.7.10.4
+> 
+
 ---
- drivers/media/pci/ivtv/ivtv-ioctl.c |    6 ++++--
- drivers/media/radio/radio-si4713.c  |    2 +-
- include/media/v4l2-ioctl.h          |    2 +-
- 3 files changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
-index 99e35dd..d5cbb61 100644
---- a/drivers/media/pci/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
-@@ -813,11 +813,13 @@ static int ivtv_g_audout(struct file *file, void *fh, struct v4l2_audioout *vin)
- 	return ivtv_get_audio_output(itv, vin->index, vin);
- }
- 
--static int ivtv_s_audout(struct file *file, void *fh, struct v4l2_audioout *vout)
-+static int ivtv_s_audout(struct file *file, void *fh, const struct v4l2_audioout *vout)
- {
- 	struct ivtv *itv = fh2id(fh)->itv;
- 
--	return ivtv_get_audio_output(itv, vout->index, vout);
-+	if (itv->card->video_outputs == NULL || vout->index != 0)
-+		return -EINVAL;
-+	return 0;
- }
- 
- static int ivtv_enum_input(struct file *file, void *fh, struct v4l2_input *vin)
-diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
-index 5f366d1..1e04101 100644
---- a/drivers/media/radio/radio-si4713.c
-+++ b/drivers/media/radio/radio-si4713.c
-@@ -83,7 +83,7 @@ static int radio_si4713_g_audout(struct file *file, void *priv,
- }
- 
- static int radio_si4713_s_audout(struct file *file, void *priv,
--					struct v4l2_audioout *vao)
-+					const struct v4l2_audioout *vao)
- {
- 	return vao->index ? -EINVAL : 0;
- }
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index babbe09..d4c7729 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -175,7 +175,7 @@ struct v4l2_ioctl_ops {
- 	int (*vidioc_g_audout)         (struct file *file, void *fh,
- 					struct v4l2_audioout *a);
- 	int (*vidioc_s_audout)         (struct file *file, void *fh,
--					struct v4l2_audioout *a);
-+					const struct v4l2_audioout *a);
- 	int (*vidioc_g_modulator)      (struct file *file, void *fh,
- 					struct v4l2_modulator *a);
- 	int (*vidioc_s_modulator)      (struct file *file, void *fh,
--- 
-1.7.10.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
