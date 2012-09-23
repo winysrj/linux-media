@@ -1,49 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:37137 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755539Ab2IYL46 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 07:56:58 -0400
-Received: from cobaltpc1.localnet (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-1.cisco.com (8.14.5/8.14.5) with ESMTP id q8PBuv7P010017
-	for <linux-media@vger.kernel.org>; Tue, 25 Sep 2012 11:56:57 GMT
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.7] Add missing vidioc-subdev-g-edid.xml.
-Date: Tue, 25 Sep 2012 13:56:34 +0200
+Received: from mx1.redhat.com ([209.132.183.28]:32673 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754119Ab2IWRjh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Sep 2012 13:39:37 -0400
+Message-ID: <505F4949.2090509@redhat.com>
+Date: Sun, 23 Sep 2012 14:39:21 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209251356.34176.hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+CC: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Fwd: [PATCH 5/5] drivers/media/platform/omap3isp/isp.c: fix error
+ return code
+References: <1346775269-12191-1-git-send-email-peter.senna@gmail.com>
+In-Reply-To: <1346775269-12191-1-git-send-email-peter.senna@gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------090503090104080708050501"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This is a multi-part message in MIME format.
+--------------090503090104080708050501
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-As requested!
+Laurent,
+
+Could you please review this patch?
+
+Peter,
+
+Please, always c/c the driver maintainer/author on patches you submit.
+
+You can check it with scripts/get_maintainer.pl.
 
 Regards,
+Mauro
 
-	Hans
+-------- Mensagem original --------
+Assunto: [PATCH 5/5] drivers/media/platform/omap3isp/isp.c: fix error return code
+Data: Tue,  4 Sep 2012 18:14:25 +0200
+De: Peter Senna Tschudin <peter.senna@gmail.com>
+Para: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The following changes since commit 4313902ebe33155209472215c62d2f29d117be29:
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 
-  [media] ivtv-alsa, ivtv: Connect ivtv PCM capture stream to ivtv-alsa interface driver (2012-09-18 13:29:07 -0300)
+Convert a nonnegative error return code to a negative one, as returned
+elsewhere in the function.
 
-are available in the git repository at:
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-  git://linuxtv.org/hverkuil/media_tree.git docfix
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
 
-for you to fetch changes up to 369832c0cb2cd8df37d4854997d31978a286348e:
+// </smpl>
 
-  DocBook: add missing vidioc-subdev-g-edid.xml. (2012-09-25 13:54:34 +0200)
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 
-----------------------------------------------------------------
-Hans Verkuil (1):
-      DocBook: add missing vidioc-subdev-g-edid.xml.
+---
+ drivers/media/platform/omap3isp/isp.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
- Documentation/DocBook/media/v4l/v4l2.xml                 |    1 +
- Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml |  152 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 153 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index e0096e0..91fcaef 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2102,8 +2102,10 @@ static int __devinit isp_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto error;
+ 
+-	if (__omap3isp_get(isp, false) == NULL)
++	if (__omap3isp_get(isp, false) == NULL) {
++		ret = -EBUSY; /* Not sure if EBUSY is best for here */
+ 		goto error;
++	}
+ 
+ 	ret = isp_reset(isp);
+ 	if (ret < 0)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+--------------090503090104080708050501
+Content-Type: text/plain; charset=UTF-8;
+ name="=?ISO-8859-1?Q?Se=E7=E3o_da_mensagem_anexada?="
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename*0*=ISO-8859-1''%53%65%E7%E3%6F%20%64%61%20%6D%65%6E%73%61%67%65;
+ filename*1*=%6D%20%61%6E%65%78%61%64%61
+
+
+--------------090503090104080708050501--
