@@ -1,68 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1341 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754631Ab2IWXR4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 19:17:56 -0400
-Date: Sun, 23 Sep 2012 20:17:42 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 07/16] rtl2830: use .get_if_frequency()
-Message-ID: <20120923201742.4eaf7455@redhat.com>
-In-Reply-To: <1347495837-3244-7-git-send-email-crope@iki.fi>
-References: <1347495837-3244-1-git-send-email-crope@iki.fi>
-	<1347495837-3244-7-git-send-email-crope@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:33078 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754362Ab2IWUld (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Sep 2012 16:41:33 -0400
+Received: by bkcjk13 with SMTP id jk13so562504bkc.19
+        for <linux-media@vger.kernel.org>; Sun, 23 Sep 2012 13:41:31 -0700 (PDT)
+Message-ID: <505F65E8.6040601@googlemail.com>
+Date: Sun, 23 Sep 2012 22:41:28 +0300
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: maramaopercheseimorto@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/3] ov2640: select sensor register bank before applying
+ h/v-flip settings
+References: <1348424926-12864-1-git-send-email-fschaefer.oss@googlemail.com> <Pine.LNX.4.64.1209232217260.31250@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1209232217260.31250@axis700.grange>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 13 Sep 2012 03:23:48 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
+Am 23.09.2012 23:21, schrieb Guennadi Liakhovetski:
+> Hi Frank
+>
+> On Sun, 23 Sep 2012, Frank Schäfer wrote:
+>
+>> We currently don't select the register bank in ov2640_s_ctrl, so we can end up
+>> writing to DSP register 0x04 instead of sensor register 0x04.
+>> This happens for example when calling ov2640_s_ctrl after ov2640_s_fmt.
+> Yes, in principle, I agree, bank switching in the driver is not very... 
+> consistent and also this specific case looks buggy. But, we have to fix 
+> your fix.
+>
+>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>> Cc: stable@kernel.org
+>> ---
+>>  drivers/media/i2c/soc_camera/ov2640.c |    8 ++++++++
+>>  1 Datei geändert, 8 Zeilen hinzugefügt(+)
+>>
+>> diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
+>> index 78ac574..e4fc79e 100644
+>> --- a/drivers/media/i2c/soc_camera/ov2640.c
+>> +++ b/drivers/media/i2c/soc_camera/ov2640.c
+>> @@ -683,8 +683,16 @@ static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
+>>  	struct v4l2_subdev *sd =
+>>  		&container_of(ctrl->handler, struct ov2640_priv, hdl)->subdev;
+>>  	struct i2c_client  *client = v4l2_get_subdevdata(sd);
+>> +	struct regval_list regval;
+>> +	int ret;
+>>  	u8 val;
+>>  
+>> +	regval.reg_num = BANK_SEL;
+>> +	regval.value = BANK_SEL_SENS;
+>> +	ret = ov2640_write_array(client, &regval);
+> This doesn't look right to me. ov2640_write_array() keeps writing register 
+> address - value pairs to the hardware until it encounters an "ENDMARKER," 
+> which you don't have here, so, it's hard to say what will be written to 
+> the sensor... Secondly, you only have to write a single register here, for 
+> this the driver is already using i2c_smbus_write_byte_data() directly, 
+> please, do the same.
 
-> Use .get_if_frequency() as all used tuner drivers
-> (mt2060/qt1010/mxl5005s) supports it.
-> 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
+Argh, yes, you're right.
+The mistake was to split this off from patch 3 to reduce changes for
+stable...
+I will combine both patches and resend the series.
 
-> @@ -240,26 +237,6 @@ static int rtl2830_init(struct dvb_frontend *fe)
->  	if (ret)
->  		goto err;
->  
-> -	num = priv->cfg.if_dvbt % priv->cfg.xtal;
-> -	num *= 0x400000;
-> -	num = div_u64(num, priv->cfg.xtal);
-> -	num = -num;
-> -	if_ctl = num & 0x3fffff;
-> -	dev_dbg(&priv->i2c->dev, "%s: if_ctl=%08x\n", __func__, if_ctl);
-> -
-> -	ret = rtl2830_rd_reg_mask(priv, 0x119, &tmp, 0xc0); /* b[7:6] */
-> -	if (ret)
-> -		goto err;
-> -
-> -	buf[0] = tmp << 6;
-> -	buf[0] |= (if_ctl >> 16) & 0x3f;
-> -	buf[1] = (if_ctl >>  8) & 0xff;
-> -	buf[2] = (if_ctl >>  0) & 0xff;
-
-Patch applied, but there was a context difference above:
-
- --- a/drivers/media/dvb-frontends/rtl2830.c
- +++ b/drivers/media/dvb-frontends/rtl2830.c
- @@ -182,9 +182,6 @@ static int rtl2830_init(struct dvb_frontend *fe)
-@@ -28,7 +50,7 @@ index eca1d72..3954760 100644
- -		goto err;
- -
- -	buf[0] = tmp << 6;
---	buf[0] = (if_ctl >> 16) & 0x3f;
-+-	buf[0] |= (if_ctl >> 16) & 0x3f;
- -	buf[1] = (if_ctl >>  8) & 0xff;
- -	buf[2] = (if_ctl >>  0) & 0xff;
- -
-
-(that's the diff between the patch applied and your original one)
-
--- 
 Regards,
-Mauro
+Frank
+
+>
+> Thanks
+> Guennadi
+>
+>> +	if (ret < 0)
+>> +		return ret;
+>> +
+>>  	switch (ctrl->id) {
+>>  	case V4L2_CID_VFLIP:
+>>  		val = ctrl->val ? REG04_VFLIP_IMG : 0x00;
+>> -- 
+>> 1.7.10.4
+>>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+
