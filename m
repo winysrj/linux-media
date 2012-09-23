@@ -1,108 +1,322 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moh1-ve2.go2.pl ([193.17.41.132]:38293 "EHLO moh1-ve2.go2.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753752Ab2ITH5T (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 03:57:19 -0400
-Received: from moh1-ve2.go2.pl (unknown [10.0.0.132])
-	by moh1-ve2.go2.pl (Postfix) with ESMTP id 9DA78106546D
-	for <linux-media@vger.kernel.org>; Thu, 20 Sep 2012 09:57:13 +0200 (CEST)
-Received: from o2.pl (unknown [10.0.0.7])
-	by moh1-ve2.go2.pl (Postfix) with SMTP
-	for <linux-media@vger.kernel.org>; Thu, 20 Sep 2012 09:57:13 +0200 (CEST)
-Subject: =?UTF-8?Q?Fwd:_[PATCH]_[1/5]_dvb-apps_-_update?=
-	=?UTF-8?Q?_scan_file_DVB-S_5E?=
-From: =?UTF-8?Q?VoJcEK?= <vojcek@tlen.pl>
+Received: from impaqm1.telefonica.net ([213.4.138.17]:8560 "EHLO
+	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754058Ab2IWTtC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Sep 2012 15:49:02 -0400
+From: Jose Alberto Reguero <jareguero@telefonica.net>
 To: linux-media@vger.kernel.org
-Mime-Version: 1.0
-Message-ID: <6d7587d4.15f511eb.505acc59.9513e@tlen.pl>
-Date: Thu, 20 Sep 2012 09:57:13 +0200
-Content-Type: multipart/mixed;
-	boundary="==o2.pl-WebMail-3452722c.195d3712.95146=="
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] v4 Add support to Avermedia Twinstar double tuner in af9035
+Date: Sun, 23 Sep 2012 21:48:47 +0200
+Message-ID: <1552985.E1xmo1hCEj@jar7.dominio>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
+This patch add support to the Avermedia Twinstar double tuner in the af9035
+driver. Version 4 of the patch. I split the patch as suggested by Antti. I send
+the changes to mxl5007 driver in another patch.
 
---==o2.pl-WebMail-3452722c.195d3712.95146==
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
 
-I=20do=20not=20know=20why=20mailing=20list=20filter=20caches=20my=20first=
-=20mails.=20But=20here=20they=20are=20without=20the=20explanations
+Jose Alberto
 
---==o2.pl-WebMail-3452722c.195d3712.95146==
-Content-Type: text/x-patch;
-	name="=?UTF-8?Q?dvb-apps=5Fscan=5F5E.patch?="
-Content-Disposition: attachment;
-	filename="=?UTF-8?Q?dvb-apps=5Fscan=5F5E.patch?="
-Content-Transfer-Encoding: quoted-printable
-
----=20util/scan/dvb-s/Sirius-5.0E.old=092012-09-20=2008:18:48.548053688=20=
-+0200
-+++=20util/scan/dvb-s/Sirius-5.0E=092012-09-20=2008:27:49.279133255=20+02=
-00
-@@=20-1,9=20+1,6=20@@
-=20#=20Sirius=205.0E
-=20#=20freq=20pol=20sr=20fec
--S=2011215000=20V=206666000=201/2
--S=2011227000=20H=2023145000=203/4
--S=2011247000=20V=2023145000=203/4
--S=2011420000=20H=2023145000=203/4
-+S2=2011264000=20V=2030000000=203/4=20AUTO=208PSK
-=20S=2011727000=20H=2027500000=205/6
-=20S=2011747000=20V=2027500000=203/4
-=20S=2011766000=20H=2027500000=203/4
-@@=20-27,36=20+24,29=20@@
-=20S=2012111000=20H=2027500000=205/6
-=20S=2012130000=20V=2027500000=203/4
-=20S=2012149000=20H=2027500000=203/4
--S=2012169000=20V=2027500000=203/4
--S=2012188000=20H=2027500000=207/8
--S=2012207000=20V=2027500000=203/4
-+S2=2012169000=20V=2027500000=203/4=20AUTO=208PSK
-+S2=2012188000=20H=2027500000=203/4=20AUTO=208PSK
-+S2=2012207000=20V=2030000000=203/4=20AUTO=208PSK
-=20S=2012226000=20H=2025540000=207/8
-=20S=2012245000=20V=2027500000=203/4
-=20S=2012265000=20H=2027500000=203/4
-=20S=2012284000=20V=2027500000=203/4
-=20S=2012303000=20H=2025547000=207/8
--S=2012322000=20V=2027500000=203/4
--S=2012341000=20H=2027500000=203/4
--S=2012360000=20V=2027500000=207/8
-+S=2012322000=20V=2027500000=207/8
-+S2=2012341000=20H=2027500000=203/4=20AUTO=208PSK
-+S=2012360000=20V=2027500000=203/4
-=20S=2012379000=20H=2027500000=203/4
--S=2012399000=20V=2027500000=202/3
-+S2=2012399000=20V=2027500000=203/4=20AUTO=208PSK
-=20S=2012418000=20H=2027500000=203/4
--S=2012437000=20V=2027500000=202/3
--S=2012456000=20H=2027500000=203/4
-+S2=2012437000=20V=2027500000=203/4=20AUTO=208PSK
-+S2=2012456000=20H=2027500000=203/4=20AUTO=208PSK
-=20S=2012476000=20V=2027500000=203/4
-=20S=2012608000=20H=2027500000=203/4
-=20S=2012637000=20H=2014465000=203/4
--S=2012668000=20V=206666000=201/2
-=20S=2012672000=20H=203300000=203/4
--S=2012674000=20V=2010000000=203/4
--S=2012678000=20V=2013333000=205/6
--S=2012680000=20H=209404000=203/4
--S=2012685000=20V=204444000=203/4
--S=2012690000=20H=203330000=203/4
-+S2=2012682000=20V=201111000=202/3=20AUTO=208PSK
-+S=2012687000=20V=206667000=205/6
-=20S=2012693000=20V=203333000=205/6
--S=2012701000=20H=206111000=203/4
--S=2012715000=20H=203330000=203/4
--S=2012718000=20V=2023500000=203/4
--S=2012724000=20H=201772000=203/4
--S=2012728000=20V=2019720000=203/4
--S=2012737000=20V=206150000=203/4
-+S=2012703000=20V=202963000=203/4
-+S=2012718000=20V=202960000=207/8
-+S2=2012728000=20V=201480000=209/10=20AUTO=208PSK
-
---==o2.pl-WebMail-3452722c.195d3712.95146==--
+diff -upr linux/drivers/media/dvb-frontends/af9033.c linux.new/drivers/media/dvb-frontends/af9033.c
+--- linux/drivers/media/dvb-frontends/af9033.c	2012-08-14 05:45:22.000000000 +0200
++++ linux.new/drivers/media/dvb-frontends/af9033.c	2012-09-13 22:22:29.012301231 +0200
+@@ -326,6 +326,18 @@ static int af9033_init(struct dvb_fronte
+ 			goto err;
+ 	}
+ 
++	if (state->cfg.ts_mode == AF9033_TS_MODE_SERIAL) {
++		ret = af9033_wr_reg_mask(state, 0x00d91c, 0x01, 0x01);
++		if (ret < 0)
++			goto err;
++		ret = af9033_wr_reg_mask(state, 0x00d917, 0x00, 0x01);
++		if (ret < 0)
++			goto err;
++		ret = af9033_wr_reg_mask(state, 0x00d916, 0x00, 0x01);
++		if (ret < 0)
++			goto err;
++	}
++
+ 	state->bandwidth_hz = 0; /* force to program all parameters */
+ 
+ 	return 0;
+diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
+--- linux/drivers/media/usb/dvb-usb-v2/af9035.c	2012-08-16 05:45:24.000000000 +0200
++++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2012-09-23 21:32:10.313657063 +0200
+@@ -209,10 +209,14 @@ static int af9035_i2c_master_xfer(struct
+ 		if (msg[0].len > 40 || msg[1].len > 40) {
+ 			/* TODO: correct limits > 40 */
+ 			ret = -EOPNOTSUPP;
+-		} else if (msg[0].addr == state->af9033_config[0].i2c_addr) {
++		} else if ((msg[0].addr == state->af9033_config[0].i2c_addr) ||
++			   (msg[0].addr == state->af9033_config[1].i2c_addr)) {
+ 			/* integrated demod */
+ 			u32 reg = msg[0].buf[0] << 16 | msg[0].buf[1] << 8 |
+ 					msg[0].buf[2];
++			if (state->af9033_config[1].i2c_addr &&
++			   (msg[0].addr == state->af9033_config[1].i2c_addr))
++				reg |= 0x100000;
+ 			ret = af9035_rd_regs(d, reg, &msg[1].buf[0],
+ 					msg[1].len);
+ 		} else {
+@@ -220,8 +224,9 @@ static int af9035_i2c_master_xfer(struct
+ 			u8 buf[5 + msg[0].len];
+ 			struct usb_req req = { CMD_I2C_RD, 0, sizeof(buf),
+ 					buf, msg[1].len, msg[1].buf };
++			req.mbox |= ((msg[0].addr & 0x80)  >>  3);
+ 			buf[0] = msg[1].len;
+-			buf[1] = msg[0].addr << 1;
++			buf[1] = (u8)(msg[0].addr << 1);
+ 			buf[2] = 0x00; /* reg addr len */
+ 			buf[3] = 0x00; /* reg addr MSB */
+ 			buf[4] = 0x00; /* reg addr LSB */
+@@ -232,10 +237,14 @@ static int af9035_i2c_master_xfer(struct
+ 		if (msg[0].len > 40) {
+ 			/* TODO: correct limits > 40 */
+ 			ret = -EOPNOTSUPP;
+-		} else if (msg[0].addr == state->af9033_config[0].i2c_addr) {
++		} else if ((msg[0].addr == state->af9033_config[0].i2c_addr) ||
++			   (msg[0].addr == state->af9033_config[1].i2c_addr)) {
+ 			/* integrated demod */
+ 			u32 reg = msg[0].buf[0] << 16 | msg[0].buf[1] << 8 |
+ 					msg[0].buf[2];
++			if (state->af9033_config[1].i2c_addr &&
++			   (msg[0].addr == state->af9033_config[1].i2c_addr))
++				reg |= 0x100000;
+ 			ret = af9035_wr_regs(d, reg, &msg[0].buf[3],
+ 					msg[0].len - 3);
+ 		} else {
+@@ -243,8 +252,9 @@ static int af9035_i2c_master_xfer(struct
+ 			u8 buf[5 + msg[0].len];
+ 			struct usb_req req = { CMD_I2C_WR, 0, sizeof(buf), buf,
+ 					0, NULL };
++			req.mbox |= ((msg[0].addr & 0x80)  >>  3);
+ 			buf[0] = msg[0].len;
+-			buf[1] = msg[0].addr << 1;
++			buf[1] = (u8)(msg[0].addr << 1);
+ 			buf[2] = 0x00; /* reg addr len */
+ 			buf[3] = 0x00; /* reg addr MSB */
+ 			buf[4] = 0x00; /* reg addr LSB */
+@@ -283,9 +293,30 @@ static int af9035_identify_state(struct 
+ 	int ret;
+ 	u8 wbuf[1] = { 1 };
+ 	u8 rbuf[4];
++	u8 tmp;
+ 	struct usb_req req = { CMD_FW_QUERYINFO, 0, sizeof(wbuf), wbuf,
+ 			sizeof(rbuf), rbuf };
+ 
++	/* check if there is dual tuners */
++	ret = af9035_rd_reg(d, EEPROM_DUAL_MODE, &tmp);
++	if (ret < 0)
++		goto err;
++
++	if (tmp) {
++		/* read 2nd demodulator I2C address */
++		ret = af9035_rd_reg(d, EEPROM_2WIREADDR, &tmp);
++		if (ret < 0)
++			goto err;
++
++		ret = af9035_wr_reg(d, 0x00417f, tmp);
++		if (ret < 0)
++			goto err;
++
++		ret = af9035_wr_reg(d, 0x00d81a, 1);
++		if (ret < 0)
++			goto err;
++	}
++
+ 	ret = af9035_ctrl_msg(d, &req);
+ 	if (ret < 0)
+ 		goto err;
+@@ -492,7 +523,14 @@ static int af9035_read_config(struct dvb
+ 
+ 	state->dual_mode = tmp;
+ 	pr_debug("%s: dual mode=%d\n", __func__, state->dual_mode);
+-
++	if (state->dual_mode) {
++		/* read 2nd demodulator I2C address */
++		ret = af9035_rd_reg(d, EEPROM_2WIREADDR, &tmp);
++		if (ret < 0)
++			goto err;
++		state->af9033_config[1].i2c_addr = tmp;
++		pr_debug("%s: 2nd demod I2C addr:%02x\n", __func__, tmp);
++	}
+ 	for (i = 0; i < state->dual_mode + 1; i++) {
+ 		/* tuner */
+ 		ret = af9035_rd_reg(d, EEPROM_1_TUNER_ID + eeprom_shift, &tmp);
+@@ -671,6 +709,12 @@ static int af9035_frontend_callback(void
+ 	return -EINVAL;
+ }
+ 
++static int af9035_get_adapter_count(struct dvb_usb_device *d)
++{
++	struct state *state = d_to_priv(d);
++	return state->dual_mode + 1;
++}
++
+ static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+ 	struct state *state = adap_to_priv(adap);
+@@ -726,13 +770,22 @@ static const struct fc0011_config af9035
+ 	.i2c_address = 0x60,
+ };
+ 
+-static struct mxl5007t_config af9035_mxl5007t_config = {
+-	.xtal_freq_hz = MxL_XTAL_24_MHZ,
+-	.if_freq_hz = MxL_IF_4_57_MHZ,
+-	.invert_if = 0,
+-	.loop_thru_enable = 0,
+-	.clk_out_enable = 0,
+-	.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
++static struct mxl5007t_config af9035_mxl5007t_config[] = {
++	{
++		.xtal_freq_hz = MxL_XTAL_24_MHZ,
++		.if_freq_hz = MxL_IF_4_57_MHZ,
++		.invert_if = 0,
++		.loop_thru_enable = 0,
++		.clk_out_enable = 0,
++		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
++	}, {
++		.xtal_freq_hz = MxL_XTAL_24_MHZ,
++		.if_freq_hz = MxL_IF_4_57_MHZ,
++		.invert_if = 0,
++		.loop_thru_enable = 1,
++		.clk_out_enable = 1,
++		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
++	}
+ };
+ 
+ static struct tda18218_config af9035_tda18218_config = {
+@@ -795,46 +848,52 @@ static int af9035_tuner_attach(struct dv
+ 				&d->i2c_adap, &af9035_fc0011_config);
+ 		break;
+ 	case AF9033_TUNER_MXL5007T:
+-		ret = af9035_wr_reg(d, 0x00d8e0, 1);
+-		if (ret < 0)
+-			goto err;
+-		ret = af9035_wr_reg(d, 0x00d8e1, 1);
+-		if (ret < 0)
+-			goto err;
+-		ret = af9035_wr_reg(d, 0x00d8df, 0);
+-		if (ret < 0)
+-			goto err;
++		state->tuner_address[adap->id] = 0x60;
++		/* hack, use b[7] to carry used I2C-bus */
++		state->tuner_address[adap->id] |= (adap->id << 7);
++		if (adap->id == 0) {
++			ret = af9035_wr_reg(d, 0x00d8e0, 1);
++			if (ret < 0)
++				goto err;
++			ret = af9035_wr_reg(d, 0x00d8e1, 1);
++			if (ret < 0)
++				goto err;
++			ret = af9035_wr_reg(d, 0x00d8df, 0);
++			if (ret < 0)
++				goto err;
+ 
+-		msleep(30);
++			msleep(30);
+ 
+-		ret = af9035_wr_reg(d, 0x00d8df, 1);
+-		if (ret < 0)
+-			goto err;
++			ret = af9035_wr_reg(d, 0x00d8df, 1);
++			if (ret < 0)
++				goto err;
+ 
+-		msleep(300);
++			msleep(300);
+ 
+-		ret = af9035_wr_reg(d, 0x00d8c0, 1);
+-		if (ret < 0)
+-			goto err;
+-		ret = af9035_wr_reg(d, 0x00d8c1, 1);
+-		if (ret < 0)
+-			goto err;
+-		ret = af9035_wr_reg(d, 0x00d8bf, 0);
+-		if (ret < 0)
+-			goto err;
+-		ret = af9035_wr_reg(d, 0x00d8b4, 1);
+-		if (ret < 0)
+-			goto err;
+-		ret = af9035_wr_reg(d, 0x00d8b5, 1);
+-		if (ret < 0)
+-			goto err;
+-		ret = af9035_wr_reg(d, 0x00d8b3, 1);
+-		if (ret < 0)
+-			goto err;
++			ret = af9035_wr_reg(d, 0x00d8c0, 1);
++			if (ret < 0)
++				goto err;
++			ret = af9035_wr_reg(d, 0x00d8c1, 1);
++			if (ret < 0)
++				goto err;
++			ret = af9035_wr_reg(d, 0x00d8bf, 0);
++			if (ret < 0)
++				goto err;
++			ret = af9035_wr_reg(d, 0x00d8b4, 1);
++			if (ret < 0)
++				goto err;
++			ret = af9035_wr_reg(d, 0x00d8b5, 1);
++			if (ret < 0)
++				goto err;
++			ret = af9035_wr_reg(d, 0x00d8b3, 1);
++			if (ret < 0)
++				goto err;
++		}
+ 
+ 		/* attach tuner */
+ 		fe = dvb_attach(mxl5007t_attach, adap->fe[0],
+-				&d->i2c_adap, 0x60, &af9035_mxl5007t_config);
++				&d->i2c_adap, state->tuner_address[adap->id],
++				&af9035_mxl5007t_config[adap->id]);
+ 		break;
+ 	case AF9033_TUNER_TDA18218:
+ 		/* attach tuner */
+@@ -879,8 +938,8 @@ static int af9035_init(struct dvb_usb_de
+ 		{ 0x00dd8a, (frame_size >> 0) & 0xff, 0xff},
+ 		{ 0x00dd8b, (frame_size >> 8) & 0xff, 0xff},
+ 		{ 0x00dd0d, packet_size, 0xff },
+-		{ 0x80f9a3, 0x00, 0x01 },
+-		{ 0x80f9cd, 0x00, 0x01 },
++		{ 0x80f9a3, state->dual_mode, 0x01 },
++		{ 0x80f9cd, state->dual_mode, 0x01 },
+ 		{ 0x80f99d, 0x00, 0x01 },
+ 		{ 0x80f9a4, 0x00, 0x01 },
+ 	};
+@@ -1001,7 +1060,7 @@ static const struct dvb_usb_device_prope
+ 	.init = af9035_init,
+ 	.get_rc_config = af9035_get_rc_config,
+ 
+-	.num_adapters = 1,
++	.get_adapter_count = af9035_get_adapter_count,
+ 	.adapter = {
+ 		{
+ 			.stream = DVB_USB_STREAM_BULK(0x84, 6, 87 * 188),
+diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.h linux.new/drivers/media/usb/dvb-usb-v2/af9035.h
+--- linux/drivers/media/usb/dvb-usb-v2/af9035.h	2012-08-14 05:45:22.000000000 +0200
++++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.h	2012-09-23 21:29:45.608466128 +0200
+@@ -54,6 +54,8 @@ struct state {
+ 	bool dual_mode;
+ 
+ 	struct af9033_config af9033_config[2];
++
++	u8 tuner_address[2];
+ };
+ 
+ u32 clock_lut[] = {
+@@ -87,6 +89,7 @@ u32 clock_lut_it9135[] = {
+ /* EEPROM locations */
+ #define EEPROM_IR_MODE            0x430d
+ #define EEPROM_DUAL_MODE          0x4326
++#define EEPROM_2WIREADDR          0x4327
+ #define EEPROM_IR_TYPE            0x4329
+ #define EEPROM_1_IFFREQ_L         0x432d
+ #define EEPROM_1_IFFREQ_H         0x432e
 
