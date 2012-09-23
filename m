@@ -1,94 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:56717 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755354Ab2IQV5Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 17:57:25 -0400
-Message-ID: <50579CC3.5040703@schinagl.nl>
-Date: Mon, 17 Sep 2012 23:57:23 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+Received: from moutng.kundenserver.de ([212.227.126.186]:57120 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754487Ab2IWVdi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Sep 2012 17:33:38 -0400
+Date: Sun, 23 Sep 2012 23:33:37 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+cc: maramaopercheseimorto@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH] ov2640: select sensor register bank before applying
+ h/v-flip settings
+In-Reply-To: <1348431394-30951-1-git-send-email-fschaefer.oss@googlemail.com>
+Message-ID: <Pine.LNX.4.64.1209232326090.31250@axis700.grange>
+References: <1348431394-30951-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus
-References: <1347223647-645-1-git-send-email-oliver+list@schinagl.nl> <504D00BC.4040109@schinagl.nl> <504D0F44.6030706@iki.fi> <504D17AA.8020807@schinagl.nl> <504D1859.5050201@iki.fi> <504DB9D4.6020502@schinagl.nl> <504DD311.7060408@iki.fi> <504DF950.8060006@schinagl.nl> <504E2345.5090800@schinagl.nl> <5055DD27.7080501@schinagl.nl> <505601B6.2010103@iki.fi> <5055EA30.8000200@schinagl.nl> <50560B82.7000205@iki.fi> <50564E58.20004@schinagl.nl> <50566260.1090108@iki.fi> <5056DE5C.70003@schinagl.nl> <50571F83.10708@schinagl.nl> <50572290.8090308@iki.fi> <505724F0.20502@schinagl.nl> <50572B1D.3080807@iki.fi> <50573FC5.40307@schinagl.nl> <50578B61.1040700@schinagl.nl> <5057910C.10408@iki.fi>
-In-Reply-To: <5057910C.10408@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/17/12 23:07, Antti Palosaari wrote:
-> On 09/17/2012 11:43 PM, Oliver Schinagl wrote:
->> On 09/17/12 17:20, Oliver Schinagl wrote:
->>
->>>>>> If tuner communication is really working and it says chip id is 0x5a
->>>>>> then it is different than driver knows. It could be new revision of
->>>>>> tuner. Change chip_id to match 0x5a
->>>>>>
->>>>> Ah, so it's called chip_id on one end, but tuner_id on the other end.
->>>>> If/when I got this link working properly, I'll write a patch to fix
->>>>> some
->>>>> naming consistencies.
->>>>
->>>> No, you are totally wrong now. Chip ID is value inside chip register.
->>>> Almost every chip has some chip id value which driver could detect it
->>>> is speaking with correct chip. In that case value is stored inside
->>>> fc2580.
->>>>
->>>> Tuner ID is value stored inside AF9035 chip / eeprom. It is
->>>> configuration value for AF9035 hardware design. It says "that AF9035
->>>> device uses FC2580 RF-tuner". AF9035 (FC2580) tuner ID and FC2580 chip
->>>> ID are different values having different meaning.
->>> Ok, I understand the difference between Chip ID and Tuner ID I guess,
->>> and with my new knowledge about dynamic debug I know also understand my
->>> findings and where it goes wrong. I also know understand the chipID is
->>> stored in fc2580.c under the fc2580_attach, where it checks for 0x56.
->>> Appearantly my chipID is 0x5a. I wasn't triggered by this as none of the
->>> other fc2580 or af9035 devices had such a change so it wasn't obvious.
->>> Tuner ID is actively being chechked/set in the source, so that seemed
->>> more obvious.
->> It can't be 0x5a as chipid. I actually found that the vendor driver also
->> reads from 0x01 once to test the chip.
->>
->> This function is a generic function which tests I2C interface's
->> availability by reading out it's I2C id data from reg. address '0x01'.
->>
->> int fc2580_i2c_test( void ) {
->>      return ( fc2580_i2c_read( 0x01 ) == 0x56 )? 0x01 : 0x00;
->> }
->>
->> So something else is going weird. chipid being 0x56 is good though; same
->> chip revision. However I now got my system to hang, got some soft-hang
->> errors and the driver only reported failure on loading. No other debug
->> that I saw from dmesg before the crash. Will investigate more.
->
-> huoh.
->
-> usb 2-2: rtl28xxu_ctrl_msg: c0 00 ac 01 00 03 01 00 <<< 56
-> usb 2-2: rtl28xxu_ctrl_msg: 40 00 ac 01 10 03 01 00 >>> ff
-> usb 2-2: rtl28xxu_ctrl_msg: c0 00 ac 01 00 03 01 00 <<< 56
-> usb 2-2: rtl28xxu_ctrl_msg: 40 00 ac 01 10 03 01 00 >>> 00
-> usb 2-2: rtl28xxu_ctrl_msg: c0 00 ac 01 00 03 01 00 <<< 56
-> i2c i2c-5: fc2580: FCI FC2580 successfully identified
->
-> Why do you think its value is static - it cannot be changed...
-I'm not saying it can be at all :p
+On Sun, 23 Sep 2012, Frank Schäfer wrote:
 
-according to debug output, I had
+> We currently don't select the register bank in ov2640_s_ctrl, so we can end up
+> writing to DSP register 0x04 instead of sensor register 0x04.
+> This happens for example when calling ov2640_s_ctrl after ov2640_s_fmt.
+> 
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> Cc: stable@kernel.org
 
-[  188.054019] i2c i2c-1: fc2580_attach: chip_id=5a
+Ok, if Linus decides to release 3.6 tomorrow, I anyway don't think it'd be 
+reasonable to try to convince him to pull this hours before the release:-) 
+So, I'll wait for those other 2 fixes from Peter Senna / coccinelle and 
+submit a normal fixes pull request some time tomorrow. Just wondering:
 
-so to your suggestion, I made it accept chip_id 0x5a as well.
-	if ((chip_id != 0x56) || (chip_id != 0x5a))
-		goto err;
+> ---
+>  drivers/media/i2c/soc_camera/ov2640.c |    5 +++++
+>  1 Datei geändert, 5 Zeilen hinzugefügt(+)
 
-But theoretically, it can't be 0x5a, as even the vendor driver would 
-only check for 0x56 (the function actually never gets called, so any 
-revision according the those sources could work).
+are we soon going to see this line in all possible languages / alphabets / 
+logographic systems? ;-)
 
-So I will investigate why it would return 0x5a for the chip id :)
+Thanks
+Guennadi
 
+> 
+> diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
+> index 78ac574..d2d298b 100644
+> --- a/drivers/media/i2c/soc_camera/ov2640.c
+> +++ b/drivers/media/i2c/soc_camera/ov2640.c
+> @@ -684,6 +684,11 @@ static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
+>  		&container_of(ctrl->handler, struct ov2640_priv, hdl)->subdev;
+>  	struct i2c_client  *client = v4l2_get_subdevdata(sd);
+>  	u8 val;
+> +	int ret;
+> +
+> +	ret = i2c_smbus_write_byte_data(client, BANK_SEL, BANK_SEL_SENS);
+> +	if (ret < 0)
+> +		return ret;
+>  
+>  	switch (ctrl->id) {
+>  	case V4L2_CID_VFLIP:
+> -- 
+> 1.7.10.4
+> 
 
->
-> Antti
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
