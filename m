@@ -1,105 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:57798 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757490Ab2INK6J (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:64663 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750964Ab2IWN3g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 06:58:09 -0400
-Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBk013688
-	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:56 GMT
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFCv3 API PATCH 15/31] v4l2-core: Add new V4L2_CAP_MONOTONIC_TS capability.
-Date: Fri, 14 Sep 2012 12:57:30 +0200
-Message-Id: <573d42b4b775afd8beeadc7a903cc2190a6f430a.1347619766.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
-References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+	Sun, 23 Sep 2012 09:29:36 -0400
+Received: by weyx8 with SMTP id x8so2868102wey.19
+        for <linux-media@vger.kernel.org>; Sun, 23 Sep 2012 06:29:35 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: hdegoede@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 2/4] gspca_pac7302: use registers 0x01 and 0x03 for red and blue balance controls
+Date: Sun, 23 Sep 2012 15:29:43 +0200
+Message-Id: <1348406983-3451-2-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1348406983-3451-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1348406983-3451-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new flag that tells userspace that the monotonic clock is used
-for timestamps and update the documentation accordingly.
+Currently used registers 0xc5 and 0xc7 provide only a very coarse
+adjustment possibility within a very small value range (0-3).
+With registers 0x01 and 0x03, a fine grained adjustment with
+255 steps is possible. This is also what the Windows driver does.
 
-We decided on this new flag during the 2012 Media Workshop.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- Documentation/DocBook/media/v4l/io.xml              |   10 +++++++---
- Documentation/DocBook/media/v4l/vidioc-dqevent.xml  |    3 ++-
- Documentation/DocBook/media/v4l/vidioc-querycap.xml |    7 +++++++
- include/linux/videodev2.h                           |    1 +
- 4 files changed, 17 insertions(+), 4 deletions(-)
+ drivers/media/usb/gspca/pac7302.c |   51 +++++++++++++++++++++++++++++--------
+ 1 files changed, 40 insertions(+), 11 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 2dc39d8..b680d66 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -582,10 +582,14 @@ applications when an output stream.</entry>
- 	    <entry>struct timeval</entry>
- 	    <entry><structfield>timestamp</structfield></entry>
- 	    <entry></entry>
--	    <entry><para>For input streams this is the
-+	    <entry><para>This is either the
- system time (as returned by the <function>gettimeofday()</function>
--function) when the first data byte was captured. For output streams
--the data will not be displayed before this time, secondary to the
-+function) or a monotonic timestamp (as returned by the
-+<function>clock_gettime(CLOCK_MONOTONIC, &amp;ts)</function> function).
-+A monotonic timestamp is used if the <constant>V4L2_CAP_MONOTONIC_TS</constant>
-+capability is set, otherwise the system time is used.
-+For input streams this is the timestamp when the first data byte was captured.
-+For output streams the data will not be displayed before this time, secondary to the
- nominal frame rate determined by the current video standard in
- enqueued order. Applications can for example zero this field to
- display frames as soon as possible. The driver stores the time at
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-index 98a856f..00757d4 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
-@@ -120,7 +120,8 @@
- 	    <entry>struct timespec</entry>
- 	    <entry><structfield>timestamp</structfield></entry>
-             <entry></entry>
--	    <entry>Event timestamp.</entry>
-+	    <entry>Event timestamp using the monotonic clock as returned by the
-+	    <function>clock_gettime(CLOCK_MONOTONIC, &amp;ts)</function> function.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>u32</entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-index 4c70215..fae2036 100644
---- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-@@ -315,6 +315,13 @@ linkend="async">asynchronous</link> I/O methods.</entry>
- linkend="mmap">streaming</link> I/O method.</entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_CAP_MONOTONIC_TS</constant></entry>
-+	    <entry>0x40000000</entry>
-+	    <entry>The driver uses a monotonic timestamp instead of wallclock time for the
-+	    &v4l2-buffer; <structfield>timestamp</structfield> field.
-+	    </entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_CAP_DEVICE_CAPS</constant></entry>
- 	    <entry>0x80000000</entry>
- 	    <entry>The driver fills the <structfield>device_caps</structfield>
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 292a2ef..3aad418 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -290,6 +290,7 @@ struct v4l2_capability {
- #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
- #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
+diff --git a/drivers/media/usb/gspca/pac7302.c b/drivers/media/usb/gspca/pac7302.c
+index 4894ac1..8a0f4d6 100644
+--- a/drivers/media/usb/gspca/pac7302.c
++++ b/drivers/media/usb/gspca/pac7302.c
+@@ -77,12 +77,12 @@
+  *
+  * Page | Register   | Function
+  * -----+------------+---------------------------------------------------
++ *  0   | 0x01       | setredbalance()
++ *  0   | 0x03       | setbluebalance()
+  *  0   | 0x0f..0x20 | setcolors()
+  *  0   | 0xa2..0xab | setbrightcont()
+  *  0   | 0xb6       | setsharpness()
+- *  0   | 0xc5       | setredbalance()
+  *  0   | 0xc6       | setwhitebalance()
+- *  0   | 0xc7       | setbluebalance()
+  *  0   | 0xdc       | setbrightcont(), setcolors()
+  *  3   | 0x02       | setexposure()
+  *  3   | 0x10, 0x12 | setgain()
+@@ -98,10 +98,13 @@
+ /* Include pac common sof detection functions */
+ #include "pac_common.h"
  
-+#define V4L2_CAP_MONOTONIC_TS           0x40000000  /* uses monotonic timestamps */
- #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
+-#define PAC7302_GAIN_DEFAULT      15
+-#define PAC7302_GAIN_KNEE         42
+-#define PAC7302_EXPOSURE_DEFAULT  66 /* 33 ms / 30 fps */
+-#define PAC7302_EXPOSURE_KNEE    133 /* 66 ms / 15 fps */
++#define PAC7302_RGB_BALANCE_MIN		  0
++#define PAC7302_RGB_BALANCE_MAX		200
++#define PAC7302_RGB_BALANCE_DEFAULT	100
++#define PAC7302_GAIN_DEFAULT		 15
++#define PAC7302_GAIN_KNEE 		 42
++#define PAC7302_EXPOSURE_DEFAULT	 66 /* 33 ms / 30 fps */
++#define PAC7302_EXPOSURE_KNEE		133 /* 66 ms / 15 fps */
  
- /*
+ MODULE_AUTHOR("Jean-Francois Moine <http://moinejf.free.fr>, "
+ 		"Thomas Kaiser thomas@kaiser-linux.li");
+@@ -438,12 +441,31 @@ static void setwhitebalance(struct gspca_dev *gspca_dev)
+ 	reg_w(gspca_dev, 0xdc, 0x01);
+ }
+ 
++static u8 rgbbalance_ctrl_to_reg_value(s32 rgb_ctrl_val)
++{
++	const unsigned int k = 1000;	/* precision factor */
++	unsigned int norm;
++
++	/* Normed value [0...k] */
++	norm = k * (rgb_ctrl_val - PAC7302_RGB_BALANCE_MIN)
++		    / (PAC7302_RGB_BALANCE_MAX - PAC7302_RGB_BALANCE_MIN);
++	/* Qudratic apporach improves control at small (register) values: */
++	return 64 * norm * norm / (k*k)  +  32 * norm / k  +  32;
++	/* Y = 64*X*X + 32*X + 32
++	 * => register values 0x20-0x80; Windows driver uses these limits */
++
++	/* NOTE: for full value range (0x00-0xff) use
++	 *         Y = 254*X*X + X
++	 *         => 254 * norm * norm / (k*k)  +  1 * norm / k	*/
++}
++
+ static void setredbalance(struct gspca_dev *gspca_dev)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 
+-	reg_w(gspca_dev, 0xff, 0x00);		/* page 0 */
+-	reg_w(gspca_dev, 0xc5, sd->red_balance->val);
++	reg_w(gspca_dev, 0xff, 0x00);			/* page 0 */
++	reg_w(gspca_dev, 0x01,
++	      rgbbalance_ctrl_to_reg_value(sd->red_balance->val));
+ 
+ 	reg_w(gspca_dev, 0xdc, 0x01);
+ }
+@@ -453,7 +475,8 @@ static void setbluebalance(struct gspca_dev *gspca_dev)
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 
+ 	reg_w(gspca_dev, 0xff, 0x00);			/* page 0 */
+-	reg_w(gspca_dev, 0xc7, sd->blue_balance->val);
++	reg_w(gspca_dev, 0x03,
++	      rgbbalance_ctrl_to_reg_value(sd->blue_balance->val));
+ 
+ 	reg_w(gspca_dev, 0xdc, 0x01);
+ }
+@@ -642,9 +665,15 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
+ 					V4L2_CID_WHITE_BALANCE_TEMPERATURE,
+ 					0, 255, 1, 55);
+ 	sd->red_balance = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
+-					V4L2_CID_RED_BALANCE, 0, 3, 1, 1);
++					V4L2_CID_RED_BALANCE,
++					PAC7302_RGB_BALANCE_MIN,
++					PAC7302_RGB_BALANCE_MAX,
++					1, PAC7302_RGB_BALANCE_DEFAULT);
+ 	sd->blue_balance = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
+-					V4L2_CID_BLUE_BALANCE, 0, 3, 1, 1);
++					V4L2_CID_BLUE_BALANCE,
++					PAC7302_RGB_BALANCE_MIN,
++					PAC7302_RGB_BALANCE_MAX,
++					1, PAC7302_RGB_BALANCE_DEFAULT);
+ 
+ 	gspca_dev->autogain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
+ 					V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
 -- 
-1.7.10.4
+1.7.7
 
