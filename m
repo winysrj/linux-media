@@ -1,75 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:49109 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758825Ab2IMVBN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 17:01:13 -0400
-Received: by eekc1 with SMTP id c1so2177715eek.19
-        for <linux-media@vger.kernel.org>; Thu, 13 Sep 2012 14:01:11 -0700 (PDT)
-Message-ID: <1347570063.2848.24.camel@Route3278>
-Subject: Re: ITE9135 on AMD SB700 - ehci_hcd bug
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Marx <acc.for.news@gmail.com>
-Cc: linux-media@vger.kernel.org
-Date: Thu, 13 Sep 2012 22:01:03 +0100
-In-Reply-To: <ksm5i9-2t1.ln1@wuwek.kopernik.gliwice.pl>
-References: <ksm5i9-2t1.ln1@wuwek.kopernik.gliwice.pl>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mx1.redhat.com ([209.132.183.28]:23026 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750898Ab2IWUEM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Sep 2012 16:04:12 -0400
+Date: Sun, 23 Sep 2012 17:03:13 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: volokh@telros.ru
+Cc: Adam Rosi-Kessel <adam@rosi-kessel.org>,
+	linux-media@vger.kernel.org, volokh84@gmail.com
+Subject: Re: go7007 question
+Message-ID: <20120923170313.318f3731@redhat.com>
+In-Reply-To: <20120907141831.GA12333@VPir.telros.ru>
+References: <5044F8DC.20509@rosi-kessel.org>
+	<20120906191014.GA2540@VPir.Home>
+	<20120907141831.GA12333@VPir.telros.ru>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2012-09-12 at 08:32 +0200, Marx wrote:
-> Hello
-> I'm trying to use dual DVB-T tuner based on ITE9135 tuner. I use Debian 
-> kernel 3.5-trunk-686-pae. My motherboard is AsRock E350M1 (no USB3 ports).
-> Tuner is detected ok, see log at the end of post.
+Em Fri, 7 Sep 2012 18:18:31 +0400
+volokh@telros.ru escreveu:
+
+> On Thu, Sep 06, 2012 at 11:10:14PM +0400, Volokh Konstantin wrote:
+> > On Mon, Sep 03, 2012 at 02:37:16PM -0400, Adam Rosi-Kessel wrote:
+> > > 
+> > > [469.928881] wis-saa7115: initializing SAA7115 at address 32 on WIS
+> > > GO7007SB EZ-USB
+> > > 
+> > > [469.989083] go7007: probing for module i2c:wis_saa7115 failed
+> > > 
+> > > [470.004785] wis-uda1342: initializing UDA1342 at address 26 on WIS
+> > > GO7007SB EZ-USB
+> > > 
+> > > [470.005454] go7007: probing for module i2c:wis_uda1342 failed
+> > > 
+> > > [470.011659] wis-sony-tuner: initializing tuner at address 96 on WIS
+> > > GO7007SB EZ-USB
+> Hi, I generated patchs, that u may in your own go7007/ folder
+> It contains go7007 initialization and i2c_subdev fixing
 > 
-> When I try to scan channels, bug happens:
-> Sep 11 17:16:31 wuwek kernel: [  209.291329] ehci_hcd 0000:00:13.2: 
-> force halt; handshake f821a024 00004000 00000000 -> -110
-> Sep 11 17:16:31 wuwek kernel: [  209.291401] ehci_hcd 0000:00:13.2: HC 
-> died; cleaning up
-> Sep 11 17:16:31 wuwek kernel: [  209.291606] usb 2-3: USB disconnect, 
-> device number 2
-> Sep 11 17:16:41 wuwek kernel: [  219.312848] dvb-usb: error while 
-> stopping stream.
-> Sep 11 17:16:41 wuwek kernel: [  219.320585] dvb-usb: ITE 9135(9006) 
-> Generic successfully deinitialized and disconnected.
-> 
-> After trying many ways I've read about problems with ehci on SB700 based 
-> boards and switched off ehci via command
-> sh -c 'echo -n "0000:00:13.2" > unbind'
-> and now ehci bug doesn't happen. Of course I can see only one tuner and 
-> in slower USB mode (see log at the end). But now I can scan succesfully 
-> without any errors.
-> 
-> Of course it isn't acceptable fix for my problem. Drivers for ITE9135 
-> seems ok, but there is a problem with ehci_hcd on my motherboard.
-> I would like to know what can I do to fix my problem.
-> 
-Hi Marx
+> It was checked for 3.6 branch (compile only)
 
-The only thing I can think of is the firmware for dual ite 9135(9006)
-chip version 1 may be different.
+Sorry, but I don't know what do you intend with this post. 
 
-Make sure you only scan on adapter 0 on ehci.
+I can't merge this patch upstream for a number of reasons:
 
-If you want to send me privately a copy of the IT9135BDA.sys file
-from /WINDOWS/system32/drivers directory. I can extract and test that
-firmware against the devices I have and eliminate the Linux driver.
+	- There's no Signed-off-by: on this patch;
+	- There's no description explaining what is there
+	  at the patch;
+	- the patch looks too complex - it is hard to believe
+	  that this is a single functional change. Merging
+	  lots of stuff into the same patch makes hard for it
+	  to be reviewed, so please break it into a proper,
+	  well-described patch series;
+	- scripts/checkpatch.pl also didn't like the patch:
+		ERROR: Missing Signed-off-by: line(s)
+		total: 5 errors, 44 warnings, 393 lines checked
 
-Regards
+Please fix it.
 
-
-Malcolm
-
-
-
-
-
-
-
-
-
+Thanks!
+Mauro
