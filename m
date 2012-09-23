@@ -1,63 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:55654 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756746Ab2IRIp4 convert rfc822-to-8bit (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:48570 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750964Ab2IWN3e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 04:45:56 -0400
-Received: by obbuo13 with SMTP id uo13so10131800obb.19
-        for <linux-media@vger.kernel.org>; Tue, 18 Sep 2012 01:45:56 -0700 (PDT)
+	Sun, 23 Sep 2012 09:29:34 -0400
+Received: by wgbdr13 with SMTP id dr13so2873853wgb.1
+        for <linux-media@vger.kernel.org>; Sun, 23 Sep 2012 06:29:33 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: hdegoede@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 1/4] gspca_pac7302: correct register documentation
+Date: Sun, 23 Sep 2012 15:29:42 +0200
+Message-Id: <1348406983-3451-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAGoCfiy4Ybymdd4Mym1JB3gwW9Suqdj3w6bEdMpxWWBHPhUvTQ@mail.gmail.com>
-References: <CAAnFQG_SrXyr8MtPDujciE2=QRQK8dAK_SPBE3rC_c-XNSC00w@mail.gmail.com>
- <CAGoCfiy4Ybymdd4Mym1JB3gwW9Suqdj3w6bEdMpxWWBHPhUvTQ@mail.gmail.com>
-From: Javier Marcet <jmarcet@gmail.com>
-Date: Tue, 18 Sep 2012 10:45:35 +0200
-Message-ID: <CAAnFQG_MMVU1uNvOQR1urrj8_KPEK3dJ=ZhKKTOS-GXpts-aCA@mail.gmail.com>
-Subject: Re: Terratec Cinergy T PCIe Dual doesn;t work nder the Xen hypervisor
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Sep 18, 2012 at 5:40 AM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
+R,G,B balance registers are 0x01-0x03 instead of 0x02-0x04,
+which lead to the wrong conclusion that values are inverted.
+Exposure is controlled via page 3 registers and this is already documented.
+Also fix a whitespace issue.
 
->> Initially I thought Xen would be the cause of the problem, but after
->> having written on
->> the Xen development mailing list and talked about it with a couple
->> developers, it isn't
->> very clear where the problem is. So far I haven't been able to get the
->> smallest warning
->> or error.
->
-> This is a very common problem when attempting to use any PCI/PCIe
-> tuner under a hypervisor.  Essentially the issue is all of the
-> virtualization solutions provide very poor interrupt latency, which
-> results in the data being lost.
->
-> Devices delivering a high bitrate stream of data in realtime are much
-> more likely for this problem to be visible since such devices have
-> very little buffering (it's not like a hard drive controller where it
-> can just deliver the data slower).  The problem is not specific to the
-> cx23885 - pretty much all of the PCI/PCIe bridges used in tuner cards
-> work this way, and they cannot really be blamed for expecting to run
-> in an environment with really crappy interrupt latency.
->
-> I won't go as far as to say, "abandon all hope", but you're not really
-> likely to find any help in this forum.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/gspca/pac7302.c |   11 +++++------
+ 1 files changed, 5 insertions(+), 6 deletions(-)
 
-Well, it is not what I wanted to hear but at least I know for sure what is
-happening.
-
-I´ve post your words on the xen ml, I´ll see what they have to say.
-I still don´t understand how graphics pass through works and a tuner
-card has problems. I also have read reports of people running vdr on
-a domU.
-
-Anyway, thanks for the prompt and quick answer.
-
-
+diff --git a/drivers/media/usb/gspca/pac7302.c b/drivers/media/usb/gspca/pac7302.c
+index 2d5c6d83..4894ac1 100644
+--- a/drivers/media/usb/gspca/pac7302.c
++++ b/drivers/media/usb/gspca/pac7302.c
+@@ -29,14 +29,13 @@
+  * Register page 0:
+  *
+  * Address	Description
+- * 0x02		Red balance control
+- * 0x03		Green balance control
+- * 0x04 	Blue balance control
+- *		     Valus are inverted (0=max, 255=min).
++ * 0x01		Red balance control
++ * 0x02		Green balance control
++ * 0x03		Blue balance control
+  *		     The Windows driver uses a quadratic approach to map
+  *		     the settable values (0-200) on register values:
+- *		     min=0x80, default=0x40, max=0x20
+- * 0x0f-0x20	Colors, saturation and exposure control
++ *		     min=0x20, default=0x40, max=0x80
++ * 0x0f-0x20	Color and saturation control
+  * 0xa2-0xab	Brightness, contrast and gamma control
+  * 0xb6		Sharpness control (bits 0-4)
+  *
 -- 
-Javier Marcet <jmarcet@gmail.com>
+1.7.7
+
