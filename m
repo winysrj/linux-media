@@ -1,62 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:62222 "EHLO
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:60687 "EHLO
 	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754387Ab2INIt2 (ORCPT
+	with ESMTP id S1754361Ab2IWRqy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 04:49:28 -0400
-Received: by wgbdr13 with SMTP id dr13so3335682wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 01:49:27 -0700 (PDT)
+	Sun, 23 Sep 2012 13:46:54 -0400
 MIME-Version: 1.0
-Date: Fri, 14 Sep 2012 10:49:27 +0200
-Message-ID: <CACKLOr1_KqsKovcpV06_nAzVKRGAf3z17S-XfNBw8d3BbTshZg@mail.gmail.com>
-Subject: Alignment problems: arm_memblock_steal() + dma_declare_coherent_memory()
-From: javier Martin <javier.martin@vista-silicon.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Cc: Russell King <linux@arm.linux.org.uk>
+In-Reply-To: <505F4949.2090509@redhat.com>
+References: <1346775269-12191-1-git-send-email-peter.senna@gmail.com>
+	<505F4949.2090509@redhat.com>
+Date: Sun, 23 Sep 2012 19:46:53 +0200
+Message-ID: <CA+MoWDree3U=o8kiMoz5L-3EKC8oBWov+qPbUr5VWMpGKnAZdA@mail.gmail.com>
+Subject: Re: [PATCH 5/5] drivers/media/platform/omap3isp/isp.c: fix error
+ return code
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-we use arm_memblock_steal() + dma_declare_coherent_memory() in order
-to reserve son contiguous video memory in our platform:
-http://git.linuxtv.org/media_tree.git/blob/refs/heads/staging/for_v3.7:/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
+On Sun, Sep 23, 2012 at 7:39 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Laurent,
+>
+> Could you please review this patch?
+>
+> Peter,
+>
+> Please, always c/c the driver maintainer/author on patches you submit.
+>
+> You can check it with scripts/get_maintainer.pl.
+Sorry for that. I'll be more careful next time. Thanks!
 
-We've noticed that some restrictive alignment constraints are being
-applied. For example, for coda driver, the following allocations are
-made:
+>
+> Regards,
+> Mauro
+>
+> -------- Mensagem original --------
+> Assunto: [PATCH 5/5] drivers/media/platform/omap3isp/isp.c: fix error return code
+> Data: Tue,  4 Sep 2012 18:14:25 +0200
+> De: Peter Senna Tschudin <peter.senna@gmail.com>
+> Para: Mauro Carvalho Chehab <mchehab@infradead.org>
+> CC: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+>
+> From: Peter Senna Tschudin <peter.senna@gmail.com>
+>
+> Convert a nonnegative error return code to a negative one, as returned
+> elsewhere in the function.
+>
+> A simplified version of the semantic match that finds this problem is as
+> follows: (http://coccinelle.lip6.fr/)
+>
+> // <smpl>
+> (
+> if@p1 (\(ret < 0\|ret != 0\))
+>  { ... return ret; }
+> |
+> ret@p1 = 0
+> )
+> ... when != ret = e1
+>     when != &ret
+> *if(...)
+> {
+>   ... when != ret = e2
+>       when forall
+>  return ret;
+> }
+>
+> // </smpl>
+>
+> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+>
+> ---
+>  drivers/media/platform/omap3isp/isp.c |    4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+> index e0096e0..91fcaef 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -2102,8 +2102,10 @@ static int __devinit isp_probe(struct platform_device *pdev)
+>         if (ret < 0)
+>                 goto error;
+>
+> -       if (__omap3isp_get(isp, false) == NULL)
+> +       if (__omap3isp_get(isp, false) == NULL) {
+> +               ret = -EBUSY; /* Not sure if EBUSY is best for here */
+>                 goto error;
+> +       }
+>
+>         ret = isp_reset(isp);
+>         if (ret < 0)
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
 
-coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 557056
-bytes, out of 8388608 (vaddr = 0xc6000000) PAGE_SHIFT = 0xc
-coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 65536
-bytes, out of 8388608 (vaddr = 0xc6100000) PAGE_SHIFT = 0xc
-coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 10240
-bytes, out of 8388608 (vaddr = 0xc6110000) PAGE_SHIFT = 0xc
-coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 622080
-bytes, out of 8388608 (vaddr = 0xc6200000) PAGE_SHIFT = 0xc
-coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 622080
-bytes, out of 8388608 (vaddr = 0xc6300000) PAGE_SHIFT = 0xc
-coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 622080
-bytes, out of 8388608 (vaddr = 0xc6400000) PAGE_SHIFT = 0xc
-coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 589824
-bytes, out of 8388608 (vaddr = 0xc6500000) PAGE_SHIFT = 0xc
-coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 589824
-bytes, out of 8388608 (vaddr = 0xc6600000) PAGE_SHIFT = 0xc
-coda coda-imx27.0: dma_alloc_from_coherent: try to allocate 622080
-bytes, out of 8388608 (vaddr = 0xc6700000) PAGE_SHIFT = 0xc
 
-If we take a look at the size of each allocation and the different
-vaddr values we find that the alignment is 0x100000 = 1MB for values
-like 622080 byte size. Why is that?
-A lot of memory is being wasted this way and our HW does not have such
-1MB alignment requirements.
 
-Regards.
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Peter
