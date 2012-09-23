@@ -1,71 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39086 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:45735 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750865Ab2IPBo7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Sep 2012 21:44:59 -0400
-Message-ID: <50552F08.1080401@iki.fi>
-Date: Sun, 16 Sep 2012 04:44:40 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1753853Ab2IWTat (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Sep 2012 15:30:49 -0400
+Message-ID: <505F6362.5090602@redhat.com>
+Date: Sun, 23 Sep 2012 16:30:42 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?UsOpbWkgQ2FyZG9uYQ==?= <remi.cardona@smartjog.com>
-CC: linux-media@vger.kernel.org, liplianin@me.by
-Subject: Re: [PATCH 5/6] [media] ds3000: properly report firmware probing
- issues
-References: <1347614846-19046-1-git-send-email-remi.cardona@smartjog.com> <1347614846-19046-6-git-send-email-remi.cardona@smartjog.com>
-In-Reply-To: <1347614846-19046-6-git-send-email-remi.cardona@smartjog.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: Peter Senna Tschudin <peter.senna@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Fwd: [PATCH v2] drivers/media/platform/s5p-tv/sdo_drv.c: fix error
+ return code
+References: <1346920709-8711-1-git-send-email-peter.senna@gmail.com>
+In-Reply-To: <1346920709-8711-1-git-send-email-peter.senna@gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------050604020401000706090902"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/14/2012 12:27 PM, Rémi Cardona wrote:
-> ds3000_readreg() returns negative values in case of i2c failures. The
-> old code would simply return 0 when failing to read the 0xb2 register,
-> misleading ds3000_initfe() into believing that the firmware had been
-> correctly loaded.
->
-> Also print out a message if the chip says a firmware is already loaded.
-> This should make it more obvious if the chip is in a weird state.
->
-> Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
+This is a multi-part message in MIME format.
+--------------050604020401000706090902
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Sylwester,
 
-I still suggest to use pr_info() / dev_info() instead of 
-printk(KERN_INFO...).
+Please review.
 
-Also printing "Firmware already uploaded, skipping" *every time* when 
-device is opened is not wise.
+Regards,
+Mauro
+
+-------- Mensagem original --------
+Assunto: [PATCH v2] drivers/media/platform/s5p-tv/sdo_drv.c: fix error return code
+Data: Thu,  6 Sep 2012 10:38:29 +0200
+De: Peter Senna Tschudin <peter.senna@gmail.com>
+Para: peter.senna@gmail.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+
+Convert a nonnegative error return code to a negative one, as returned
+elsewhere in the function.
+
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+(
+if@p1 (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret@p1 = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
+
+// </smpl>
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+
+---
+ drivers/media/platform/s5p-tv/sdo_drv.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/media/platform/s5p-tv/sdo_drv.c b/drivers/media/platform/s5p-tv/sdo_drv.c
+index ad68bbe..58cf56d 100644
+--- a/drivers/media/platform/s5p-tv/sdo_drv.c
++++ b/drivers/media/platform/s5p-tv/sdo_drv.c
+@@ -369,6 +369,7 @@ static int __devinit sdo_probe(struct platform_device *pdev)
+ 	sdev->fout_vpll = clk_get(dev, "fout_vpll");
+ 	if (IS_ERR_OR_NULL(sdev->fout_vpll)) {
+ 		dev_err(dev, "failed to get clock 'fout_vpll'\n");
++		ret = -ENXIO;
+ 		goto fail_dacphy;
+ 	}
+ 	dev_info(dev, "fout_vpll.rate = %lu\n", clk_get_rate(sclk_vpll));
+@@ -377,11 +378,13 @@ static int __devinit sdo_probe(struct platform_device *pdev)
+ 	sdev->vdac = devm_regulator_get(dev, "vdd33a_dac");
+ 	if (IS_ERR_OR_NULL(sdev->vdac)) {
+ 		dev_err(dev, "failed to get regulator 'vdac'\n");
++		ret = -ENXIO;
+ 		goto fail_fout_vpll;
+ 	}
+ 	sdev->vdet = devm_regulator_get(dev, "vdet");
+ 	if (IS_ERR_OR_NULL(sdev->vdet)) {
+ 		dev_err(dev, "failed to get regulator 'vdet'\n");
++		ret = -ENXIO;
+ 		goto fail_fout_vpll;
+ 	}
+ 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
-> ---
->   drivers/media/dvb/frontends/ds3000.c |    8 +++++++-
->   1 file changed, 7 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
-> index 162faaf..970963c 100644
-> --- a/drivers/media/dvb/frontends/ds3000.c
-> +++ b/drivers/media/dvb/frontends/ds3000.c
-> @@ -395,8 +395,14 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
->
->   	dprintk("%s()\n", __func__);
->
-> -	if (ds3000_readreg(state, 0xb2) <= 0)
-> +	ret = ds3000_readreg(state, 0xb2);
-> +	if (ret == 0) {
-> +		printk(KERN_INFO "%s: Firmware already uploaded, skipping\n",
-> +			__func__);
->   		return ret;
-> +	} else if (ret < 0) {
-> +		return ret;
-> +	}
->
->   	/* Load firmware */
->   	/* request the firmware, this will block until someone uploads it */
->
 
-regards
-Antti
+--------------050604020401000706090902
+Content-Type: text/plain; charset=UTF-8;
+ name="=?ISO-8859-1?Q?Se=E7=E3o_da_mensagem_anexada?="
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename*0*=ISO-8859-1''%53%65%E7%E3%6F%20%64%61%20%6D%65%6E%73%61%67%65;
+ filename*1*=%6D%20%61%6E%65%78%61%64%61
 
--- 
-http://palosaari.fi/
+
+--------------050604020401000706090902--
