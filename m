@@ -1,49 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 5571f1ba.dsl.concepts.nl ([85.113.241.186]:37108 "EHLO
-	his10.thuis.hoogenraad.info" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754579Ab2IUTMo (ORCPT
+Received: from 173-166-109-252-newengland.hfc.comcastbusiness.net ([173.166.109.252]:46980
+	"EHLO bombadil.infradead.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754200Ab2IWU3a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Sep 2012 15:12:44 -0400
-Received: from his10.thuis.hoogenraad.info (localhost.localdomain [127.0.0.1])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by his10.thuis.hoogenraad.info (Postfix) with ESMTPS id 0C90B34E0418
-	for <linux-media@vger.kernel.org>; Fri, 21 Sep 2012 21:12:43 +0200 (CEST)
-Message-ID: <505CBC2A.4010808@hoogenraad.net>
-Date: Fri, 21 Sep 2012 21:12:42 +0200
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: media_build error on header file not present in old linux in ivtv-alsa-pcm.c
-References: <20120819195423.8011935E0224@alastor.dyndns.org> <CAJL_dMuF1iDZ8vAXu7a0OFfozzKj31UOc-n6ZWWQGBxjTciTXQ@mail.gmail.com> <503149FC.5030501@iki.fi> <505C9388.8090500@hoogenraad.net>
-In-Reply-To: <505C9388.8090500@hoogenraad.net>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 23 Sep 2012 16:29:30 -0400
+Date: Sun, 23 Sep 2012 17:29:22 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c:
+ Replace kmemdup for kstrdup
+Message-ID: <20120923172922.29f26f5d@infradead.org>
+In-Reply-To: <1347281154-29515-1-git-send-email-peter.senna@gmail.com>
+References: <1347281154-29515-1-git-send-email-peter.senna@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I try to compile the media_build on an old Ubuntu Lucid system.
-2.6.32-42-generic-pae #96-Ubuntu SMP Wed Aug 15 19:12:17 UTC 2012 i686
-GNU/Linux
+Em Mon, 10 Sep 2012 14:45:54 +0200
+Peter Senna Tschudin <peter.senna@gmail.com> escreveu:
 
-The make job stops with
+> From: Peter Senna Tschudin <peter.senna@gmail.com>
+> 
+> Replace kmemdup for kstrdup and cleaning up the code.
+> 
+> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 
-/home/jhh/dvb/media_build/v4l/ivtv-alsa-pcm.c:29:26: error:
-linux/printk.h: No such file or directory
-make[3]: *** [/home/jhh/dvb/media_build/v4l/ivtv-alsa-pcm.o] Error 1
+Maintainers/interested parties not copied. Also:
 
-Apparently, this header file was not yet present in this version of
-linux. It is the only driver requesting this header file.
-Removing line 29
+Hunk #1 succeeded at 708 (offset 1 line).
+Hunk #2 FAILED at 742.
+1 out of 2 hunks FAILED -- saving rejects to file drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c.rej
+ tmp/cx25821-video-upstream-ch2.c |   27 +++++++++------------------
+ 1 file changed, 9 insertions(+), 18 deletions(-)
 
-#include <linux/printk.h>
+> 
+> ---
+> It depends on the patch http://patchwork.linuxtv.org/patch/14231/
+> 
+>  tmp/cx25821-video-upstream-ch2.c |   27 +++++++++------------------
+>  1 file changed, 9 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
+> index 273df94..b663dac 100644
+> --- a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
+> +++ b/tmp/cx25821-video-upstream-ch2.c
+> @@ -707,7 +707,6 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
+>  	int err = 0;
+>  	int data_frame_size = 0;
+>  	int risc_buffer_size = 0;
+> -	int str_length = 0;
+>  
+>  	if (dev->_is_running_ch2) {
+>  		pr_info("Video Channel is still running so return!\n");
+> @@ -743,24 +742,16 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
+>  	risc_buffer_size = dev->_isNTSC_ch2 ?
+>  		NTSC_RISC_BUF_SIZE : PAL_RISC_BUF_SIZE;
+>  
+> -	if (dev->input_filename_ch2) {
+> -		str_length = strlen(dev->input_filename_ch2);
+> -		dev->_filename_ch2 = kmemdup(dev->input_filename_ch2,
+> -					     str_length + 1, GFP_KERNEL);
+> -
+> -		if (!dev->_filename_ch2) {
+> -			err = -ENOENT;
+> -			goto error;
+> -		}
+> -	} else {
+> -		str_length = strlen(dev->_defaultname_ch2);
+> -		dev->_filename_ch2 = kmemdup(dev->_defaultname_ch2,
+> -					     str_length + 1, GFP_KERNEL);
+> +	if (dev->input_filename_ch2)
+> +		dev->_filename_ch2 = kstrdup(dev->input_filename_ch2,
+> +								GFP_KERNEL);
+> +	else
+> +		dev->_filename_ch2 = kstrdup(dev->_defaultname_ch2,
+> +								GFP_KERNEL);
+>  
+> -		if (!dev->_filename_ch2) {
+> -			err = -ENOENT;
+> -			goto error;
+> -		}
+> +	if (!dev->_filename_ch2) {
+> +		err = -ENOENT;
+> +		goto error;
+>  	}
+>  
+>  	/* Default if filename is empty string */
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-fixes the problem. All compiles well then.
 
 
 
--- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
+Cheers,
+Mauro
