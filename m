@@ -1,153 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:48223 "EHLO jenni2.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757295Ab2INH7I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 03:59:08 -0400
-Message-ID: <5052E3BD.9040502@iki.fi>
-Date: Fri, 14 Sep 2012 10:58:53 +0300
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:51855 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754287Ab2IWRyJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Sep 2012 13:54:09 -0400
+Received: by lbbgj3 with SMTP id gj3so5804365lbb.19
+        for <linux-media@vger.kernel.org>; Sun, 23 Sep 2012 10:54:07 -0700 (PDT)
+Message-ID: <505F4CBC.1000201@gmail.com>
+Date: Sun, 23 Sep 2012 19:54:04 +0200
+From: Anders Thomson <aeriksson2@gmail.com>
 MIME-Version: 1.0
-To: Sean Young <sean@mess.org>
-CC: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	Sakari Ailus <sakari.ailus@iki.fi>, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCHv3 2/9] ir-rx51: Handle signals properly
-References: <1346349271-28073-1-git-send-email-timo.t.kokkonen@iki.fi> <1346349271-28073-3-git-send-email-timo.t.kokkonen@iki.fi> <20120901171420.GC6638@valkosipuli.retiisi.org.uk> <50437328.9050903@iki.fi> <504375FA.1030209@iki.fi> <20120902152027.GA5236@itanic.dhcp.inet.fi> <20120902194110.GA6834@valkosipuli.retiisi.org.uk> <5043BCB4.1040308@iki.fi> <20120903123653.GA7218@pequod.mess.org>
-In-Reply-To: <20120903123653.GA7218@pequod.mess.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: tda8290 regression fix
+References: <503F4E19.1050700@gmail.com> <20120915133417.27cb82a1@redhat.com> <5054BD53.7060109@gmail.com> <20120915145834.0b763f73@redhat.com> <5054C521.1090200@gmail.com> <20120915192530.74aedaa6@redhat.com> <50559241.6070408@gmail.com> <505844A0.30001@redhat.com> <5059C242.3010902@gmail.com> <5059F68F.4050009@redhat.com> <505A1C16.40507@gmail.com> <CAGncdOae+VoAAUWz3x84zUA-TCMeMmNONf_ktNFd1p7c-o5H_A@mail.gmail.com> <505C7E64.4040507@redhat.com> <8ed8c988-fa8c-41fc-9f33-cccdceb1b232@email.android.com> <505EF455.9080604@redhat.com>
+In-Reply-To: <505EF455.9080604@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/03/12 15:36, Sean Young wrote:
-> On Sun, Sep 02, 2012 at 11:08:20PM +0300, Timo Kokkonen wrote:
->> On 09/02/12 22:41, Sakari Ailus wrote:
->>> On Sun, Sep 02, 2012 at 06:20:27PM +0300, Timo Kokkonen wrote:
->>>> On 09.02 2012 18:06:34, Sakari Ailus wrote:
->>>>> Heippa,
->>>>>
->>>>> Timo Kokkonen wrote:
->>>>>> Terve,
->>>>>>
->>>>>> On 09/01/12 20:14, Sakari Ailus wrote:
->>>>>>> Moi,
->>>>>>>
->>>>>>> On Thu, Aug 30, 2012 at 08:54:24PM +0300, Timo Kokkonen wrote:
->>>>>>>> @@ -273,9 +281,18 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
->>>>>>>>
->>>>>>>>   	/*
->>>>>>>>   	 * Don't return back to the userspace until the transfer has
->>>>>>>> -	 * finished
->>>>>>>> +	 * finished. However, we wish to not spend any more than 500ms
->>>>>>>> +	 * in kernel. No IR code TX should ever take that long.
->>>>>>>> +	 */
->>>>>>>> +	i = wait_event_timeout(lirc_rx51->wqueue, lirc_rx51->wbuf_index < 0,
->>>>>>>> +			HZ / 2);
->>>>>>>
->>>>>>> Why such an arbitrary timeout? In reality it might not bite the user space
->>>>>>> in practice ever, but is it (and if so, why) really required in the first
->>>>>>> place?
->>>>>>
->>>>>> Well, I can think of two cases:
->>>>>>
->>>>>> 1) Something goes wrong. Such before I converted the patch to use the up
->>>>>> to date PM QoS implementation, the transmitting could take very long
->>>>>> time because the interrupts were not waking up the MPU. Now that this is
->>>>>> sorted out only unknown bugs can cause transmitting to hang indefinitely.
->>>>>>
->>>>>> 2) User is (intentionally?) doing something wrong. For example by
->>>>>> feeding in an IR code that has got very long pulses, he could end up
->>>>>> having the lircd process hung in kernel unkillable for long time. That
->>>>>> could be avoided quite easily by counting the pulse lengths and
->>>>>> rejecting any IR codes that are obviously too long. But since I'd like
->>>>>> to also protect against 1) case, I think this solution works just fine.
->>>>>>
->>>>>> In the end, this is just safety measure that this driver behaves well.
->>>>>
->>>>> In that case I think you should use wait_event_interruptible() instead. 
->>>>
->>>> Well, that's what I had there in the first place. With interruptible
->>>> wait we are left with problem with signals. I was told by Sean Young
->>>> that the lirc API expects the write call to finish only after the IR
->>>> code is transmitted.
->>>>
->>>>> It's not the driver's job to decide what the user can do with the 
->>>>> hardware and what not, is it?
->>>>
->>>> Yeah, policy should be decided by the user space. However, kernel
->>>> should not leave any objvious denial of service holes open
->>>> either. Allowing a process to get stuck unkillable within kernel for
->>>> long time sounds like one to me.
-> 
-> It's not elegant, but this can't be used as a denial of service attack.
-> The driver waits for a maximum of a half a second after which signals
-> are serviced as normal.
-> 
->>> It's interruptible, so the user space can interrupt that wait if it chooses
->>> so. Besides, if you call this denial of service, then capturing video on
->>> V4L2 is, too, since others can't use the device in the meantime. :-)
->>>
->>
->> Well, of course there is no problem if we use interruptible waits. But I
->> was told by Sean that the lirc API expects the IR TX to be finished
->> always when the write call returns.
-> 
-> This is part of the ABI. The lircd deamon might want to do gap calculation
-> if there are large spaces in the IR code being sent. Maybe others can
-> enlighten us why such an ABI was choosen.
-> 
->> I guess the assumption is to avoid
->> breaking the transmission in the middle in case the process is signaled.
->> And that's why we shouldn't use interruptible waits.
->>
->> However, if we allow simply breaking the transmitting in case the
->> process is signaled any way during the transmission, then the handling
->> would be trivial in the driver. That is, if someone for example kills or
->> stops the lirc daemon process, then the IR code just wouldn't finish ever.
->>
->> Sean, do you have an opinion how this should or is allowed to work?
-> 
-> You want to know when the hardware is done sending the IR. If you return
-> EINTR to user space, how would user space know how much IR has been sent, 
-> if any?
-> 
-> This ABI is not particularily elegant so there are proposals for a better
-> interface which would obsolete the lirc interface. David Hardeman has
-> worked on this:
-> 
-> http://patchwork.linuxtv.org/patch/11411/
-> 
+On 2012-09-23 13:36, Mauro Carvalho Chehab wrote:
+> Em 22-09-2012 11:32, Anders Eriksson escreveu:
+> >  Not to my knowledge. It's a standard antenna cable to my cabletv box. I watch tv over hdmi to get HD. I only use analogue (and this htpc card) to record stuff.
+>
+> (please, don't top-post - it makes harder to preserve the history of the
+>   discussions)
+Sorry about that. I was using my notsosmartphone.
+>
+> Then, maybe that's the reason why you're having troubles with this board.
+>
+> The tda8290-based devices have two components:
+>
+> 	1) a tda8275 tuner, at address 0x61 at the 7-bit I2C address notation
+> 	  (or 0xc2, at the 8-bit notation);
+> 	2) a tda8290 analog demod at address 0x4b (7-bit notation).
+>
+> Some devices provide a way to send power to a low noise amplifier located at the
+> antenna or at the device itself (called LNA). The way to activate the LNA is
+> board-dependent.
+>
+> On some devices the tda8290 can also be used to enable/disable a linear amplifier
+> (LNA). Enabling/disabling the LNA and its gain affects the quality of the signal.
+>
+> In the case of tda8275/tda8290 based devices, the LNA setup type is stored at
+> priv->cfg->config, where:
+>
+> 	0 - means no LNA control at all - device won't use it;
+> 	1, 2 - LNA is via a pin at tda8290 (GPIO 0):
+> 		When config is 1, LNA high gain happens writing a 0;
+> 		When config is 2, LNA high gain happens writing a 1;
+> 	3 - The LNA gain control is via a pin at saa713x.
+>
+> For modes 1 and 2, the switch_addr should be equal to 0x4b, as the commands
+> sent to the device are for the tda8290 chip; sending them to tda8275 will
+> likely produce no results or would affect something else there.
+>
+> I suspect that, in the case of your board, the LNA is at the antenna bundled
+> together with the device. If I'm right, by enabling LNA, your board is sending
+> some voltage through the cabling (you could easily check it with a voltmeter).
+I actually have a multimeter somewhere. We're talking about the
+antenna-in (unconnected) on the card, right? And what voltages
+should I expect?
+>
+> What I think that your patch is actually doing is to disable LNA. As such, it
+> should be equivalent to:
+>
+>
+> diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
+> index bc08f1d..98b482e 100644
+> --- a/drivers/media/pci/saa7134/saa7134-cards.c
+> +++ b/drivers/media/pci/saa7134/saa7134-cards.c
+> @@ -3288,13 +3288,13 @@ struct saa7134_board saa7134_boards[] = {
+>   		.name           = "Pinnacle PCTV 310i",
+>   		.audio_clock    = 0x00187de7,
+>   		.tuner_type     = TUNER_PHILIPS_TDA8290,
+>   		.radio_type     = UNSET,
+>   		.tuner_addr     = ADDR_UNSET,
+>   		.radio_addr     = ADDR_UNSET,
+> -		.tuner_config   = 1,
+> +		.tuner_config   = 0,
+>   		.mpeg           = SAA7134_MPEG_DVB,
+>   		.gpiomask       = 0x000200000,
+>   		.inputs         = {{
+>   			.name = name_tv,
+>   			.vmux = 4,
+>   			.amux = TV,
+>
+>
+> Please test if the above patch fixes the issue you're suffering[1]. If so, then
+> we'll need to add a modprobe parameter to allow disabling LNA for saa7134 devices
+> with LNA.
+>
+> [1] Note: the above is not the fix, as some users of this board may be using the
+> original antenna, and changing tuner_config will break things for them; the right
+> fix is likely to allow controlling the LNA via userspace.
+Tried that patch on 3.5.3. No improvement, unfortunately.
 
-It appears that all "modern" lirc drivers are now using the rc-core
-functionalities to implement the common stuff. When the rx51 lirc driver
-was first written, the core was not in place yet. Therefore it is
-implementing the file operations in the driver, which other rc drivers
-won't do today.
-
-So, I think it would make sense to modify the rx51 driver to use the rc
-core functionality. But if there is an ABI change ongoing, I could wait
-until you have that done before I start working on the change?
-
-Considering this patch set, I think it makes sense still to apply these
-as they improve the existing code base. I'll just squash the one patch
-to the misc fixes, as pointed by Sakari, and then re-send the set.
-
--Timo
-
->>>> Anyway, we are trying to cover some rare corner cases here, I'm not
->>>> sure how it should work exactly..
->>>
->>> If there was a generic maximum timeout for sending a code, wouldn't it make
->>> sense to enforce that in the LIRC framework instead?
->>>
->>
->> Yes, I agree it makes sense to leave unrestricted. But in that case we
->> definitely have to use interruptible waits in case user space is doing
->> something stupid and regrets it later :)
-> 
-> Only for 500ms. 
-> 
-> 
-> Sean
-> 
-
+Regards,
+/Anders
