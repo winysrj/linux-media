@@ -1,87 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40913 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754900Ab2IXN6H (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:59086 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754441Ab2IWVXE convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 09:58:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, a.hajda@samsung.com,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	sw0312.kim@samsung.com
-Subject: Re: [PATCH RFC] V4L: Add s_rx_buffer subdev video operation
-Date: Mon, 24 Sep 2012 15:58:44 +0200
-Message-ID: <8816374.onnX7s7R5d@avalon>
-In-Reply-To: <20120924134453.GH12025@valkosipuli.retiisi.org.uk>
-References: <1348493213-32278-1-git-send-email-s.nawrocki@samsung.com> <20120924134453.GH12025@valkosipuli.retiisi.org.uk>
+	Sun, 23 Sep 2012 17:23:04 -0400
+Date: Sun, 23 Sep 2012 23:23:02 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+cc: maramaopercheseimorto@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 3/3] ov2640: simplify single register writes
+In-Reply-To: <505F6BAF.90307@googlemail.com>
+Message-ID: <Pine.LNX.4.64.1209232316160.31250@axis700.grange>
+References: <1348424926-12864-1-git-send-email-fschaefer.oss@googlemail.com>
+ <1348424926-12864-3-git-send-email-fschaefer.oss@googlemail.com>
+ <Pine.LNX.4.64.1209232239210.31250@axis700.grange> <505F6BAF.90307@googlemail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 24 September 2012 16:44:54 Sakari Ailus wrote:
-> On Mon, Sep 24, 2012 at 03:26:53PM +0200, Sylwester Nawrocki wrote:
-> > The s_rx_buffer callback allows the host to set buffer for non-image
-> > (meta) data at a subdev. This callback can be implemented by an image
-> > sensor or a MIPI-CSI receiver, allowing the host to retrieve the frame
-> > embedded data from a subdev.
-> > 
-> > Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > ---
-> > 
-> >  include/media/v4l2-subdev.h | 6 ++++++
-> >  1 file changed, 6 insertions(+)
-> > 
-> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> > index 22ab09e..28067ed 100644
-> > --- a/include/media/v4l2-subdev.h
-> > +++ b/include/media/v4l2-subdev.h
-> > @@ -274,6 +274,10 @@ struct v4l2_subdev_audio_ops {
-> > 
-> >     s_mbus_config: set a certain mediabus configuration. This operation is
-> >     added>  	
-> >  	for compatibility with soc-camera drivers and should not be used by 
-new
-> >  	software.
-> > 
-> > +
-> > +   s_rx_buffer: set a host allocated memory buffer for the subdev. The
-> > subdev +	can adjust @size to a lower value and must not write more data
-> > to the +	buffer starting at @data than the original value of @size.
-> > 
-> >   */
-> >  
-> >  struct v4l2_subdev_video_ops {
-> >  
-> >  	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32
-> >  	config);> 
-> > @@ -327,6 +331,8 @@ struct v4l2_subdev_video_ops {
-> > 
-> >  			     struct v4l2_mbus_config *cfg);
-> >  	
-> >  	int (*s_mbus_config)(struct v4l2_subdev *sd,
-> >  	
-> >  			     const struct v4l2_mbus_config *cfg);
-> > 
-> > +	int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
-> > +			   unsigned int *size);
-> > 
-> >  };
-> >  
-> >  /*
+On Sun, 23 Sep 2012, Frank Schäfer wrote:
+
+> Am 23.09.2012 23:43, schrieb Guennadi Liakhovetski:
+> > On Sun, 23 Sep 2012, Frank Schäfer wrote:
+> >
+> >> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> >> ---
+> >>  drivers/media/i2c/soc_camera/ov2640.c |   17 ++++++++---------
+> >>  1 Datei geändert, 8 Zeilen hinzugefügt(+), 9 Zeilen entfernt(-)
+> >>
+> >> diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
+> >> index 182d5a1..e71bf4c 100644
+> >> --- a/drivers/media/i2c/soc_camera/ov2640.c
+> >> +++ b/drivers/media/i2c/soc_camera/ov2640.c
+> >> @@ -639,17 +639,19 @@ static struct ov2640_priv *to_ov2640(const struct i2c_client *client)
+> >>  			    subdev);
+> >>  }
+> >>  
+> >> +static int ov2640_write_single(struct i2c_client *client, u8  reg, u8 val)
+> >> +{
+> >> +	dev_vdbg(&client->dev, "write: 0x%02x, 0x%02x", reg, val);
+> >> +	return i2c_smbus_write_byte_data(client, reg, val);
+> >> +}
+> > Well, I'm not convinced. I don't necessarily see it as a simplification. 
+> > You replace one perfectly ok function with another one with exactly the 
+> > same parameters. Ok, you also hide a debug printk() in your wrapper, but 
+> > that's not too useful either, IMHO.
 > 
-> How about useing a separate video buffer queue for the purpose? That would
-> provide a nice way to pass it to the user space where it's needed. It'd also
-> play nicely together with the frame layout descriptors.
+> Sure, at the moment this is not really needed. But that will change in
+> the future, when we need to do more single writes / can't use static
+> register sequences.
 
-Beside, a void *buf wouldn't support DMA. Only subdevs that use PIO to 
-transfer meta data could be supported by this.
+Why won't you be able to just use i2c_smbus_write_byte_data() directly 
+with those your sequences? Ok, if you just dislike the long name, and if 
+you have a number of them, I might buy that as a valid reason:-) And yes, 
+it'd be good to add such a helper function in a separate patch, preceding 
+the actual functional changes. But then I'd probably suggest to name, that 
+offers an even greater saving of your monitor real estate and is more 
+similar to what other drivers use, something like ov2640_reg_write() and 
+also add an ov2640_reg_read() for symmetry.
 
--- 
-Regards,
+Thanks
+Guennadi
 
-Laurent Pinchart
+> A good example is the powerline frequency filter control, which I'm
+> currently experimenting with.
+> But if you don't want to take it at the moment, it's ok for me.
+> 
+> 
+> > Besides, you're missing more calls to 
+> > i2c_smbus_write_byte_data() in ov2640_mask_set(), ov2640_s_register() and 
+> > ov2640_video_probe(). So, I'd just drop it.
+> 
+> I skipped that because of the different debug output (which could of
+> course be improved).
+> 
+> Regrads,
+> Frank
+> 
+> > Thanks
+> > Guennadi
+> >
+> >> +
+> >>  static int ov2640_write_array(struct i2c_client *client,
+> >>  			      const struct regval_list *vals)
+> >>  {
+> >>  	int ret;
+> >>  
+> >>  	while ((vals->reg_num != 0xff) || (vals->value != 0xff)) {
+> >> -		ret = i2c_smbus_write_byte_data(client,
+> >> -						vals->reg_num, vals->value);
+> >> -		dev_vdbg(&client->dev, "array: 0x%02x, 0x%02x",
+> >> -			 vals->reg_num, vals->value);
+> >> -
+> >> +		ret = ov2640_write_single(client, vals->reg_num, vals->value);
+> >>  		if (ret < 0)
+> >>  			return ret;
+> >>  		vals++;
+> >> @@ -704,13 +706,10 @@ static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
+> >>  	struct v4l2_subdev *sd =
+> >>  		&container_of(ctrl->handler, struct ov2640_priv, hdl)->subdev;
+> >>  	struct i2c_client  *client = v4l2_get_subdevdata(sd);
+> >> -	struct regval_list regval;
+> >>  	int ret;
+> >>  	u8 val;
+> >>  
+> >> -	regval.reg_num = BANK_SEL;
+> >> -	regval.value = BANK_SEL_SENS;
+> >> -	ret = ov2640_write_array(client, &regval);
+> >> +	ret = ov2640_write_single(client, BANK_SEL, BANK_SEL_SENS);
+> >>  	if (ret < 0)
+> >>  		return ret;
+> >>  
+> >> -- 
+> >> 1.7.10.4
+> >>
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
