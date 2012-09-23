@@ -1,81 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:37104 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757783Ab2IKLLu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Sep 2012 07:11:50 -0400
-Date: Tue, 11 Sep 2012 14:11:24 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch v3] [media] rc: divide by zero bugs in s_tx_carrier()
-Message-ID: <20120911111124.GA22259@elgon.mountain>
+Received: from mx1.redhat.com ([209.132.183.28]:48879 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754289Ab2IWRoO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Sep 2012 13:44:14 -0400
+Message-ID: <505F4A61.9080308@redhat.com>
+Date: Sun, 23 Sep 2012 14:44:01 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120909222629.GA28355@pequod.mess.org>
+To: Alain VOLMAT <alain.volmat@st.com>
+CC: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [media-workshop] [ANNOUNCE] media workshop in November
+References: <50597E1F.2010503@redhat.com> <5059807C.4050809@redhat.com> <E27519AE45311C49887BE8C438E68FAA01012C5F9496@SAFEX1MAIL1.st.com>
+In-Reply-To: <E27519AE45311C49887BE8C438E68FAA01012C5F9496@SAFEX1MAIL1.st.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-"carrier" comes from a get_user() in ir_lirc_ioctl().  We need to test
-that it's not zero before using it as a divisor.  It might have been
-nice to test for this ir_lirc_ioctl() but the mceusb driver uses zero to
-disable carrier modulation.
+Em 20-09-2012 18:19, Alain VOLMAT escreveu:
+> Hi Mauro,
+> 
+> I'd like to attend this one (couldn't attend the one last month in San-Diego).
+> That would be me and possibly another member (Silvano Vigna) also.
+> 
+> Amount various parts we have in our LinuxDVB/V4L2 model that need discussion with you, we would particularly like to discuss about a TSMux (a Mux rather than a demux) device within LinuxTV.
+> 
+> Can you confirm the possibility of our attendance?
 
-The bug in redrat3 is a little more subtle.  The ->carrier is passed to
-mod_freq_to_val() which uses it as a divisor.
+Sure. It will be a please to meet you there. What's Silvano's email? Please ask him
+to also subscribe to media-workshop ML.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
-v2: tried to add the check to ir_lirc_ioctl() but that doesn't work.
-v3: the same as v1 except that I've added a fix for redrat3 as well.
-
-diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
-index 647dd95..d05ac15 100644
---- a/drivers/media/rc/ene_ir.c
-+++ b/drivers/media/rc/ene_ir.c
-@@ -881,10 +881,13 @@ static int ene_set_tx_mask(struct rc_dev *rdev, u32 tx_mask)
- static int ene_set_tx_carrier(struct rc_dev *rdev, u32 carrier)
- {
- 	struct ene_device *dev = rdev->priv;
--	u32 period = 2000000 / carrier;
-+	u32 period;
- 
- 	dbg("TX: attempt to set tx carrier to %d kHz", carrier);
-+	if (carrier == 0)
-+		return -EINVAL;
- 
-+	period = 2000000 / carrier;
- 	if (period && (period > ENE_CIRMOD_PRD_MAX ||
- 			period < ENE_CIRMOD_PRD_MIN)) {
- 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index 699eef3..2ea913a 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -517,6 +517,9 @@ static int nvt_set_tx_carrier(struct rc_dev *dev, u32 carrier)
- 	struct nvt_dev *nvt = dev->priv;
- 	u16 val;
- 
-+	if (carrier == 0)
-+		return -EINVAL;
-+
- 	nvt_cir_reg_write(nvt, 1, CIR_CP);
- 	val = 3000000 / (carrier) - 1;
- 	nvt_cir_reg_write(nvt, val & 0xff, CIR_CC);
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index 2878b0e..bf8bc74 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -890,6 +890,9 @@ static int redrat3_set_tx_carrier(struct rc_dev *rcdev, u32 carrier)
- 	struct device *dev = rr3->dev;
- 
- 	rr3_dbg(dev, "Setting modulation frequency to %u", carrier);
-+	if (carrier == 0)
-+		return -EINVAL;
-+
- 	rr3->carrier = carrier;
- 
- 	return carrier;
+> 
+> Regards,
+> 
+> Alain
+> 
+>> -----Original Message-----
+>> From: media-workshop-bounces@linuxtv.org [mailto:media-workshop-bounces@linuxtv.org] On
+>> Behalf Of Mauro Carvalho Chehab
+>> Sent: mercredi 19 septembre 2012 10:21
+>> To: media-workshop@linuxtv.org; Linux Media Mailing List
+>> Subject: Re: [media-workshop] [ANNOUNCE] media workshop in November
+>>
+>> Em 19-09-2012 05:11, Mauro Carvalho Chehab escreveu:
+>>> Dear developers,
+>>>
+>>> We're feeling the need for one more media workshop this year.
+>>>
+>>> As there will be already several developers going to LinuxCon Europe
+>>> and Embedded Linux Conference Europe, we'll be co-locating the
+>>> workshop together with those two events.
+>>>
+>>> As there will be several developers speaking about the media subsystem
+>>> at both LinuxCon and ELCE, we decided to take just one day (September,
+>>> 8th)
+>>
+>> Sorry, I meant November, 8th.
+>>
+>>> for the media workshop (while we expect that we'll likely have some
+>>> other discussions during the week).
+>>>
+>>> In order to finish the arrangements, I need to know who will be
+>>> attending, and also we need to receive the theme proposals. Please
+>>> estimate how long do you think that it would be needed for the
+>>> proposed theme presentation and discussions.
+>>>
+>>> I have a theme proposal already:
+>>>
+>>> 	How to improve the patch submission workflow for media patches - 2 hours.
+>>>
+>>> So, please confirm your intention to be there and propose the themes
+>>> of your interests to media-workshop@linuxtv.org mailing list.
+>>>
+>>> Thanks!
+>>> Mauro
+>>>
+>>>
+>>>
+>>>
+>>> _______________________________________________
+>>> media-workshop mailing list
+>>> media-workshop@linuxtv.org
+>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/media-workshop
+>>>
+>>
+>>
+>> _______________________________________________
+>> media-workshop mailing list
+>> media-workshop@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/media-workshop
 
