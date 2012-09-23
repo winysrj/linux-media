@@ -1,52 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61313 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755591Ab2IIV4C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Sep 2012 17:56:02 -0400
-Message-ID: <504D10B9.2010406@redhat.com>
-Date: Sun, 09 Sep 2012 23:57:13 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:45528 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752477Ab2IWL0m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Sep 2012 07:26:42 -0400
+Received: by oago6 with SMTP id o6so4623958oag.19
+        for <linux-media@vger.kernel.org>; Sun, 23 Sep 2012 04:26:42 -0700 (PDT)
 MIME-Version: 1.0
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 02/10] pwc: Remove unneeded struct vb2_queue clearing
-References: <1345727311-27478-1-git-send-email-elezegarcia@gmail.com> <1345727311-27478-2-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1345727311-27478-2-git-send-email-elezegarcia@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sun, 23 Sep 2012 16:56:21 +0530
+Message-ID: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com>
+Subject: Gain controls in v4l2-ctrl framework
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi All,
 
-Thanks! Applied to my gspca / media / pwc tree and included in my pull-req for 3.7 which I just send out.
+The CCD/Sensors have the capability to adjust the R/ye, Gr/Cy, Gb/G,
+B/Mg gain values.
+Since these control can be re-usable I am planning to add the
+following gain controls as part
+of the framework:
 
-Regards,
+1: V4L2_CID_GAIN_RED
+2: V4L2_CID_GAIN_GREEN_RED
+3: V4L2_CID_GAIN_GREEN_BLUE
+4: V4L2_CID_GAIN_BLUE
+5: V4L2_CID_GAIN_OFFSET
 
-Hans
+I need your opinion's to get moving to add them.
 
-
-On 08/23/2012 03:08 PM, Ezequiel Garcia wrote:
-> struct vb2_queue is allocated through kzalloc as part of a larger struct,
-> there's no need to clear it.
->
-> Cc: Hans de Goede <hdegoede@redhat.com>
-> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
-> ---
->   drivers/media/usb/pwc/pwc-if.c |    1 -
->   1 files changed, 0 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-> index de7c7ba..825c61a 100644
-> --- a/drivers/media/usb/pwc/pwc-if.c
-> +++ b/drivers/media/usb/pwc/pwc-if.c
-> @@ -994,7 +994,6 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
->   	pdev->power_save = my_power_save;
->
->   	/* Init videobuf2 queue structure */
-> -	memset(&pdev->vb_queue, 0, sizeof(pdev->vb_queue));
->   	pdev->vb_queue.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->   	pdev->vb_queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
->   	pdev->vb_queue.drv_priv = pdev;
->
+Thanks and Regards,
+--Prabhakar Lad
