@@ -1,158 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35885 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754952Ab2I0Xb0 convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:64940 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754464Ab2IWVPi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Sep 2012 19:31:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Enric =?ISO-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: omap3isp: wrong image after resizer with mt9v034 sensor
-Date: Fri, 28 Sep 2012 01:32:04 +0200
-Message-ID: <12608216.Ba7kF04BeL@avalon>
-In-Reply-To: <CAFqH_5245L5XqEGy=fpR8VNd9EHwUMZFO=p2NoLF4g4J3K0hCg@mail.gmail.com>
-References: <CAFqH_53EY7BcMjn+fy=KfAhSU9Ut1pcLUyrmu2kiHznrBUB2XQ@mail.gmail.com> <2096827.TE4L9M8af3@avalon> <CAFqH_5245L5XqEGy=fpR8VNd9EHwUMZFO=p2NoLF4g4J3K0hCg@mail.gmail.com>
+	Sun, 23 Sep 2012 17:15:38 -0400
+Date: Sun, 23 Sep 2012 23:15:27 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: Re: Fwd: [PATCH 2/14] drivers/media/platform/soc_camera/mx2_camera.c:
+ fix error return code
+In-Reply-To: <505F6461.8090401@redhat.com>
+Message-ID: <Pine.LNX.4.64.1209232313500.31250@axis700.grange>
+References: <1346945041-26676-12-git-send-email-peter.senna@gmail.com>
+ <505F6461.8090401@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enric,
+Hi Peter
 
-On Thursday 27 September 2012 18:05:56 Enric Balletbò i Serra wrote:
-> 2012/9/27 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> > On Wednesday 26 September 2012 16:15:35 Enric Balletbò i Serra wrote:
-> >> 2012/9/26 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> >> > On Wednesday 26 September 2012 09:57:53 Enric Balletbò i Serra wrote:
-> >> > 
-> >> > [snip]
-> >> > 
-> >> >> You had reason. Checking the data lines of the camera bus with an
-> >> >> oscilloscope I see I had a problem, exactly in D8 /D9 data lines.
-> >> > 
-> >> > I'm curious, how have you fixed that ?
-> >> 
-> >> The board had a pull-down 4k7 resistor which I removed in these lines
-> >> (D8/D9). The board is prepared to accept sensors from 8 to 12 bits,
-> >> lines from D8 to D12 have a pull-down resistor to tie down the line by
-> >> default.
-> >> 
-> >> With the oscilloscope I saw that D8/D9 had problems to go to high
-> >> level like you said, then I checked the schematic and I saw these
-> >> resistors.
-> >> 
-> >> >> Now I can capture images but the color is still wrong, see the
-> >> >> following
-> >> >> image captured with pipeline SENSOR -> CCDC OUTPUT
-> >> >> 
-> >> >>     http://downloads.isee.biz/pub/files/patterns/img-000001.pnm
-> >> >> 
-> >> >> Now the image was converted using :
-> >> >>     ./raw2rgbpnm -s 752x480 -f SGRBG10 img-000001.bin img-000001.pnm
-> >> >> 
-> >> >> And the raw data can be found here:
-> >> >>     http://downloads.isee.biz/pub/files/patterns/img-000001.bin
-> >> >> 
-> >> >> Any idea where I can look ? Thanks.
-> >> > 
-> >> > Your sensors produces BGGR data if I'm not mistaken, not GRBG.
-> >> > raw2rgbpnm doesn't support BGGR (yet), but the OMAP3 ISP preview engine
-> >> > can convert that to YUV since v3.5. Just make your sensor driver expose
-> >> > the right media bus format and configure the pipeline accordingly.
-> >> 
-> >> The datasheet (p.10,11) says that the Pixel Color Pattern is as follows.
-> >> 
-> >> <------------------------ direction
-> >> n  4    3    2    1
-> >> .. GB GB GB GB
-> >> .. RG RG RG RG
-> >> 
-> >> So seems you're right, if the first byte is on the right the sensor
-> >> produces BGGR. But for some reason the mt9v032 driver uses GRBG data.
-> > 
-> > You can change the Bayer pattern by moving the crop rectangle. That how
-> > the mt9v032 driver ensures a GRBG pattern even though the first active
-> > pixel in the sensor array is a blue one. As the MT9V034 first active pixel
-> > is located at different coordinates you will have to modify the crop
-> > rectangle computation logic to get GRBG.
+Thanks for the patch, but I think it can be improved:
+
+On Sun, 23 Sep 2012, Mauro Carvalho Chehab wrote:
+
+> Please review,
 > 
-> Please, could you explain how to do this ? I'm a newbie into image
-> sensors world :-)
+> Regards,
+> Mauro.
+> 
+> 
+> -------- Mensagem original --------
+> Assunto: [PATCH 2/14] drivers/media/platform/soc_camera/mx2_camera.c: fix error return code
+> Data: Thu,  6 Sep 2012 17:23:59 +0200
+> De: Peter Senna Tschudin <peter.senna@gmail.com>
+> Para: Mauro Carvalho Chehab <mchehab@infradead.org>
+> CC: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+> 
+> From: Peter Senna Tschudin <peter.senna@gmail.com>
+> 
+> Convert a nonnegative error return code to a negative one, as returned
+> elsewhere in the function.
+> 
+> A simplified version of the semantic match that finds this problem is as
+> follows: (http://coccinelle.lip6.fr/)
+> 
+> // <smpl>
+> (
+> if@p1 (\(ret < 0\|ret != 0\))
+>  { ... return ret; }
+> |
+> ret@p1 = 0
+> )
+> ... when != ret = e1
+>     when != &ret
+> *if(...)
+> {
+>   ... when != ret = e2
+>       when forall
+>  return ret;
+> }
+> 
+> // </smpl>
+> 
+> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+> 
+> ---
+>  drivers/media/platform/soc_camera/mx2_camera.c |    5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+> index 256187f..f8884a7 100644
+> --- a/drivers/media/platform/soc_camera/mx2_camera.c
+> +++ b/drivers/media/platform/soc_camera/mx2_camera.c
+> @@ -1800,13 +1800,16 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+>  
+>  		if (!res_emma || !irq_emma) {
+>  			dev_err(&pdev->dev, "no EMMA resources\n");
+> +			err = -ENODEV;
+>  			goto exit_free_irq;
+>  		}
+>  
+>  		pcdev->res_emma = res_emma;
+>  		pcdev->irq_emma = irq_emma;
+> -		if (mx27_camera_emma_init(pcdev))
+> +		if (mx27_camera_emma_init(pcdev)) {
+> +			err = -ENODEV;
 
-Let's assume the following Bayer pattern (left to right and top to bottom 
-direction).
+I think, propagating the error, returned by mx27_camera_emma_init() to the 
+caller would be better, than using -ENODEV.
 
- | 1 2 3 4 5 6 7 8 ...
-----------------------
-1| G R G R G R G R ...
-2| B G B G B G B G ...
-3| G R G R G R G R ...
-4| B G B G B G B G ...
-5| G R G R G R G R ...
-6| B G B G B G B G ...
-7| G R G R G R G R ...
-8| B G B G B G B G ...
-.| ...................
+Thanks
+Guennadi
 
-If you crop the (1,1)/4x4 rectangle from that sensor you will get
+>  			goto exit_free_irq;
+> +		}
+>  	}
+>  
+>  	pcdev->soc_host.drv_name	= MX2_CAM_DRV_NAME,
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> 
 
- | 1 2 3 4
-----------
-1| G R G R
-2| B G B G
-3| G R G R
-4| B G B G
-
-which is clearly a GRBG pattern. If you crop the (2,1)/4x4 rectangle you will 
-get
-
- | 2 3 4 5
-----------
-1| R G R G
-2| G B G B
-3| R G R G
-4| G B G B
-
-which is now a RGGB pattern. The pattern you get out of your sensor thus 
-depends on the crop rectangle position.
-
-> >> Maybe is related with following lines which writes register 0x0D Read
-> >> Mode (p.26,27) and presumably flips row or column bytes (not sure
-> >> about this I need to check)
-> >> 
-> >> 334         /* Configure the window size and row/column bin */
-> >> 335         hratio = DIV_ROUND_CLOSEST(crop->width, format->width);
-> >> 336         vratio = DIV_ROUND_CLOSEST(crop->height, format->height);
-> >> 337
-> >> 338         ret = mt9v032_write(client, MT9V032_READ_MODE,
-> >> 339                     (hratio - 1) <<
-> >> MT9V032_READ_MODE_ROW_BIN_SHIFT |
-> >> 340                     (vratio - 1) <<
-> >> MT9V032_READ_MODE_COLUMN_BIN_SHIFT);
-> >> 
-> >> Nonetheless, I changed the driver to configure for BGGR pattern. Using
-> >> the Sensor->CCDC->Preview->Resizer pipeline I captured the data with
-> >> yavta and converted using raw2rgbpnm program.
-> >> 
-> >>     ./raw2rgbpnm -s 752x480 -f UYVY img-000001.uyvy img-000001.pnm
-> >> 
-> >> and the result is
-> >> 
-> >>     http://downloads.isee.biz/pub/files/patterns/img-000002.pnm
-> >>     http://downloads.isee.biz/pub/files/patterns/img-000002.bin
-> >> 
-> >> The image looks better than older, not perfect, but better. The image
-> >> is only a bit yellowish. Could be this a hardware issue ? We are close
-> >> to ...
-> > 
-> > It's like a white balance issue. The OMAP3 ISP hardware doesn't perform
-> > automatic white balance, you will need to implement an AWB algorithm in
-> > software. You can have a look at the omap3-isp-live project for sample
-> > code (http://git.ideasonboard.org/omap3-isp-live.git).
-
--- 
-Regards,
-
-Laurent Pinchart
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
