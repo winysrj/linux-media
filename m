@@ -1,47 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:56410 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753112Ab2INLPn (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:62824 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754340Ab2IWUrk convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 07:15:43 -0400
-Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id q8EBFghM000742
-	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 11:15:42 GMT
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFCv1 API PATCH 1/4] Two fixes and two v4l2-ctrl enhancements
-Date: Fri, 14 Sep 2012 13:15:32 +0200
-Message-Id: <1347621336-14108-1-git-send-email-hans.verkuil@cisco.com>
+	Sun, 23 Sep 2012 16:47:40 -0400
+Date: Sun, 23 Sep 2012 22:47:38 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+cc: maramaopercheseimorto@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/3] ov2640: select sensor register bank before applying
+ h/v-flip settings
+In-Reply-To: <505F65E8.6040601@googlemail.com>
+Message-ID: <Pine.LNX.4.64.1209232246570.31250@axis700.grange>
+References: <1348424926-12864-1-git-send-email-fschaefer.oss@googlemail.com>
+ <Pine.LNX.4.64.1209232217260.31250@axis700.grange> <505F65E8.6040601@googlemail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Sun, 23 Sep 2012, Frank Schäfer wrote:
 
-The first and last patches are bug fixes, and the second and third add
-two new features to the control framework:
+> Am 23.09.2012 23:21, schrieb Guennadi Liakhovetski:
+> > Hi Frank
+> >
+> > On Sun, 23 Sep 2012, Frank Schäfer wrote:
+> >
+> >> We currently don't select the register bank in ov2640_s_ctrl, so we can end up
+> >> writing to DSP register 0x04 instead of sensor register 0x04.
+> >> This happens for example when calling ov2640_s_ctrl after ov2640_s_fmt.
+> > Yes, in principle, I agree, bank switching in the driver is not very... 
+> > consistent and also this specific case looks buggy. But, we have to fix 
+> > your fix.
+> >
+> >> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> >> Cc: stable@kernel.org
+> >> ---
+> >>  drivers/media/i2c/soc_camera/ov2640.c |    8 ++++++++
+> >>  1 Datei geändert, 8 Zeilen hinzugefügt(+)
+> >>
+> >> diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
+> >> index 78ac574..e4fc79e 100644
+> >> --- a/drivers/media/i2c/soc_camera/ov2640.c
+> >> +++ b/drivers/media/i2c/soc_camera/ov2640.c
+> >> @@ -683,8 +683,16 @@ static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
+> >>  	struct v4l2_subdev *sd =
+> >>  		&container_of(ctrl->handler, struct ov2640_priv, hdl)->subdev;
+> >>  	struct i2c_client  *client = v4l2_get_subdevdata(sd);
+> >> +	struct regval_list regval;
+> >> +	int ret;
+> >>  	u8 val;
+> >>  
+> >> +	regval.reg_num = BANK_SEL;
+> >> +	regval.value = BANK_SEL_SENS;
+> >> +	ret = ov2640_write_array(client, &regval);
+> > This doesn't look right to me. ov2640_write_array() keeps writing register 
+> > address - value pairs to the hardware until it encounters an "ENDMARKER," 
+> > which you don't have here, so, it's hard to say what will be written to 
+> > the sensor... Secondly, you only have to write a single register here, for 
+> > this the driver is already using i2c_smbus_write_byte_data() directly, 
+> > please, do the same.
+> 
+> Argh, yes, you're right.
+> The mistake was to split this off from patch 3 to reduce changes for
+> stable...
+> I will combine both patches and resend the series.
 
-The first new feature adds a notifier to a control. When set the notifier
-will be called whenever the control changes value. This feature is needed
-to allow bridge drivers to detect changes in controls of a subdevice,
-even if those controls are private to the subdevice. It does for kernel
-drivers what the V4L2 event API does for userspace.
+No, please, don't. Just use i2c_smbus_write_byte_data() at this one 
+location for the fix patch.
 
-This functionality is initially required for the em28xx conversion to
-the control framework, but it is also required for drivers that have to
-deal with e.g. HDMI connectors with all the hotplug etc. events.
+Thanks
+Guennadi
 
-The second feature adds a filter function to the v4l2_ctrl_add_handler
-function that allows you to select more precisely which controls you
-want to add.
+> 
+> Regards,
+> Frank
+> 
+> >
+> > Thanks
+> > Guennadi
+> >
+> >> +	if (ret < 0)
+> >> +		return ret;
+> >> +
+> >>  	switch (ctrl->id) {
+> >>  	case V4L2_CID_VFLIP:
+> >>  		val = ctrl->val ? REG04_VFLIP_IMG : 0x00;
+> >> -- 
+> >> 1.7.10.4
+> >>
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> 
 
-The primary purpose is to add only the audio controls to a control handler
-for a radio device. Currently you will also see the video controls when
-listing controls from the radio device of a combine tv/radio card and with
-this filter function it is easy to fix that.
-
-Comments are welcome!
-
-Regards,
-
-	Hans
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
