@@ -1,71 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53810 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755388Ab2ISAcv (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46653 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751684Ab2IWQZh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 20:32:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Wanlong Gao <gaowanlong@cn.fujitsu.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/5] video:omap3isp:fix up ENOIOCTLCMD error handling
-Date: Wed, 19 Sep 2012 02:33:25 +0200
-Message-ID: <2908044.4diAvkzB1o@avalon>
-In-Reply-To: <20120915132437.74dd11bb@infradead.org>
-References: <1346052196-32682-1-git-send-email-gaowanlong@cn.fujitsu.com> <1946796.hhZ2Ot34qB@avalon> <20120915132437.74dd11bb@infradead.org>
+	Sun, 23 Sep 2012 12:25:37 -0400
+Message-ID: <505F3857.50603@iki.fi>
+Date: Sun, 23 Sep 2012 19:27:03 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: Re: Gain controls in v4l2-ctrl framework
+References: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com> <505F0C86.9070206@iki.fi> <3579105.beYuXk8XyG@avalon>
+In-Reply-To: <3579105.beYuXk8XyG@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Laurent,
 
-On Saturday 15 September 2012 13:24:37 Mauro Carvalho Chehab wrote:
-> Em Thu, 13 Sep 2012 06:03:21 +0200 Laurent Pinchart escreveu:
-> > On Monday 27 August 2012 15:23:15 Wanlong Gao wrote:
-> > > At commit 07d106d0, Linus pointed out that ENOIOCTLCMD should be
-> > > translated as ENOTTY to user mode.
-> > > 
-> > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> > > Cc: linux-media@vger.kernel.org
-> > > Signed-off-by: Wanlong Gao <gaowanlong@cn.fujitsu.com>
-> > > ---
-> > > 
-> > >  drivers/media/video/omap3isp/ispvideo.c | 10 +++++-----
-> > >  1 file changed, 5 insertions(+), 5 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/video/omap3isp/ispvideo.c
-> > > b/drivers/media/video/omap3isp/ispvideo.c index b37379d..2dd982e 100644
-> > > --- a/drivers/media/video/omap3isp/ispvideo.c
-> > > +++ b/drivers/media/video/omap3isp/ispvideo.c
-> > > @@ -337,7 +337,7 @@ __isp_video_get_format(struct isp_video *video,
-> > > struct
-> > > v4l2_format *format) fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> > > 
-> > >  	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
-> > >  	if (ret == -ENOIOCTLCMD)
-> > > 
-> > > -		ret = -EINVAL;
-> > > +		ret = -ENOTTY;
-> > 
-> > I don't think this location should be changed. __isp_video_get_format() is
-> > called by isp_video_check_format() only, which in turn is called by
-> > isp_video_streamon() only. A failure to retrieve the format in
-> > __isp_video_get_format() does not really mean the VIDIOC_STREAMON is not
-> > supported.
-> > 
-> > I'll apply hunks 2 to 5 and drop hunk 1 if that's fine with you.
-> 
-> Not quite sure how to tag it at patchwork... I guess I'll mark it as
-> "accepted", as, from what I understood, Laurent partially accepted it, and
-> will be adding on his tree.
+Laurent Pinchart wrote:
+> Hi,
+>
+> On Sunday 23 September 2012 16:20:06 Sakari Ailus wrote:
+>> Prabhakar Lad wrote:
+>>> Hi All,
+>>>
+>>> The CCD/Sensors have the capability to adjust the R/ye, Gr/Cy, Gb/G,
+>>> B/Mg gain values.
+>>> Since these control can be re-usable I am planning to add the
+>>> following gain controls as part
+>>> of the framework:
+>>>
+>>> 1: V4L2_CID_GAIN_RED
+>>> 2: V4L2_CID_GAIN_GREEN_RED
+>>> 3: V4L2_CID_GAIN_GREEN_BLUE
+>>> 4: V4L2_CID_GAIN_BLUE
+>>> 5: V4L2_CID_GAIN_OFFSET
+>>>
+>>> I need your opinion's to get moving to add them.
+>
+> We already have a V4L2_CID_GAIN control and a V4L2_CID_CHROMA_GAIN control in
+> the user controls class. I'd like to document how those controls and the new
+> proposed gain controls interact. At first glance they don't interact at all,
+> devices should not implement both, the user class gain controls are higher-
+> level than the controls you proposed - this should still be documented though,
+> to make sure driver and application authors will not get confused.
+>
+> A couple of quick questions about the new controls. Do we also need a common
+> gain controls for monochrome sensors ? Is the offset always common for the 4
 
-Yes I'll add a modified version to my tree.
+I think we should have a common gain control for sensors in general, 
+whether monochrome or not. Many sensors support global digital gain, 
+either only or besides the per-channel gains.
+
+Kind regards,
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Sakari Ailus
+sakari.ailus@iki.fi
