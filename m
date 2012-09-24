@@ -1,95 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:56414 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752650Ab2IORpA (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:49429 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753909Ab2IXKzf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Sep 2012 13:45:00 -0400
-Received: by lagy9 with SMTP id y9so3395486lag.19
-        for <linux-media@vger.kernel.org>; Sat, 15 Sep 2012 10:44:59 -0700 (PDT)
-Message-ID: <5054BE98.8020708@gmail.com>
-Date: Sat, 15 Sep 2012 19:44:56 +0200
-From: Anders Thomson <aeriksson2@gmail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: tda8290 regression fix
-References: <503F4E19.1050700@gmail.com> <20120915133417.27cb82a1@redhat.com> <5054BD53.7060109@gmail.com>
-In-Reply-To: <5054BD53.7060109@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 24 Sep 2012 06:55:35 -0400
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>,
+	Federico Vaga <federico.vaga@gmail.com>
+Subject: [PATCH v3 1/4] v4l: vb2: add prepare/finish callbacks to allocators
+Date: Mon, 24 Sep 2012 12:58:49 +0200
+Message-Id: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2012-09-15 19:39, Anders Thomson wrote:
-> On 2012-09-15 18:34, Mauro Carvalho Chehab wrote:
-> >  >   $ cat /TV_CARD.diff
-> >  >   diff --git a/drivers/media/common/tuners/tda8290.c
-> >  >   b/drivers/media/common/tuners/tda8290.c
-> >  >   index 064d14c..498cc7b 100644
-> >  >   --- a/drivers/media/common/tuners/tda8290.c
-> >  >   +++ b/drivers/media/common/tuners/tda8290.c
-> >  >   @@ -635,7 +635,11 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
-> >  >
-> >  >                    dvb_attach(tda827x_attach, fe, priv->tda827x_addr,
-> >  >                               priv->i2c_props.adap,&priv->cfg);
-> >  >   +               tuner_info("ANDERS: setting switch_addr. was 0x%02x, new
-> >  >   0x%02x\n",priv->cfg.switch_addr,priv->i2c_props.addr);
-> >  >                    priv->cfg.switch_addr = priv->i2c_props.addr;
-> >  >   +               priv->cfg.switch_addr = 0xc2 / 2;
-> >
-> >  No, this is wrong. The I2C address is passed by the bridge driver or by
-> >  the tuner_core attachment, being stored at priv->i2c_props.addr.
-> >
-> >  What's the driver and card you're using?
-> >
->
-...and here's the modules I'm using
-Module                  Size  Used by
-hid_sunplus             1321  0
-usbhid                 29765  0
-uinput                  6426  2
-saa7134_alsa            9359  0
-tda1004x               12639  1
-saa7134_dvb            22092  0
-videobuf_dvb            4106  1 saa7134_dvb
-dvb_core               78773  1 videobuf_dvb
-ir_kbd_i2c              4473  0
-tda827x                 8291  2
-tda8290                11906  1
-tuner                  13649  1
-uvcvideo               54515  0
-videobuf2_core         15467  1 uvcvideo
-snd_hda_codec_realtek    46581  1
-saa7134               149350  2 saa7134_alsa,saa7134_dvb
-videobuf_dma_sg         6504  3 saa7134_alsa,saa7134_dvb,saa7134
-videobuf_core          12866  3 videobuf_dvb,saa7134,videobuf_dma_sg
-snd_hda_intel          20144  1
-snd_hda_codec          59409  2 snd_hda_codec_realtek,snd_hda_intel
-v4l2_common             4558  2 tuner,saa7134
-videodev               68383  4 tuner,uvcvideo,saa7134,v4l2_common
-snd_usb_audio          81087  0
-lirc_dev                9954  0
-ir_mce_kbd_decoder      2838  0
-parport_pc             27310  0
-rc_imon_mce             1349  0
-v4l2_compat_ioctl32     6796  1 videodev
-ir_rc6_decoder          1946  0
-videobuf2_vmalloc       1812  1 uvcvideo
-snd_usbmidi_lib        15516  1 snd_usb_audio
-tveeprom               12721  1 saa7134
-snd_hwdep               5006  2 snd_hda_codec,snd_usb_audio
-asus_atk0110            7054  0
-parport                24807  1 parport_pc
-i2c_piix4               7680  0
-videobuf2_memops        1638  1 videobuf2_vmalloc
-ir_rc5_decoder          1433  0
-imon                   18432  1
-rc_core                10749  8 
-ir_kbd_i2c,saa7134,ir_mce_kbd_decoder,rc_imon_mce,ir_rc6_decoder,ir_rc5_decoder,imon
-pcspkr                  1659  0
-atiixp                  2404  0
-rtc_cmos                7570  0
-sg                     20980  0
-snd_rawmidi            14984  1 snd_usbmidi_lib
+This patch adds support for prepare/finish callbacks in VB2 allocators.
+These callback are used for buffer flushing.
 
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Federico Vaga <federico.vaga@gmail.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 11 +++++++++++
+ include/media/videobuf2-core.h           |  7 +++++++
+ 2 file modificati, 18 inserzioni(+)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 4da3df6..079fa79 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -790,6 +790,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+ 	unsigned long flags;
++	unsigned int plane;
+ 
+ 	if (vb->state != VB2_BUF_STATE_ACTIVE)
+ 		return;
+@@ -800,6 +801,10 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	dprintk(4, "Done processing on buffer %d, state: %d\n",
+ 			vb->v4l2_buf.index, vb->state);
+ 
++	/* sync buffers */
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		call_memop(q, finish, vb->planes[plane].mem_priv);
++
+ 	/* Add the buffer to the done buffers list */
+ 	spin_lock_irqsave(&q->done_lock, flags);
+ 	vb->state = state;
+@@ -975,9 +980,15 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
++	unsigned int plane;
+ 
+ 	vb->state = VB2_BUF_STATE_ACTIVE;
+ 	atomic_inc(&q->queued_count);
++
++	/* sync buffers */
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		call_memop(q, prepare, vb->planes[plane].mem_priv);
++
+ 	q->ops->buf_queue(vb);
+ }
+ 
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 8dd9b6c..2508609 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -41,6 +41,10 @@ struct vb2_fileio_data;
+  *		 argument to other ops in this structure
+  * @put_userptr: inform the allocator that a USERPTR buffer will no longer
+  *		 be used
++ * @prepare:	called every time the buffer is passed from userspace to the
++ *		driver, usefull for cache synchronisation, optional
++ * @finish:	called every time the buffer is passed back from the driver
++ *		to the userspace, also optional
+  * @vaddr:	return a kernel virtual address to a given memory buffer
+  *		associated with the passed private structure or NULL if no
+  *		such mapping exists
+@@ -65,6 +69,9 @@ struct vb2_mem_ops {
+ 					unsigned long size, int write);
+ 	void		(*put_userptr)(void *buf_priv);
+ 
++	void		(*prepare)(void *buf_priv);
++	void		(*finish)(void *buf_priv);
++
+ 	void		*(*vaddr)(void *buf_priv);
+ 	void		*(*cookie)(void *buf_priv);
+ 
+-- 
+1.7.11.4
 
