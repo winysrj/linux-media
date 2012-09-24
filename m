@@ -1,201 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36832 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752136Ab2ISWBK (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3141 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753216Ab2IXM6c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Sep 2012 18:01:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 01/14] davinci: vpfe: add dm3xx IPIPEIF hardware support module
-Date: Thu, 20 Sep 2012 00:01:45 +0200
-Message-ID: <2048611.Sb6fiWUyvr@avalon>
-In-Reply-To: <1347626804-5703-2-git-send-email-prabhakar.lad@ti.com>
-References: <1347626804-5703-1-git-send-email-prabhakar.lad@ti.com> <1347626804-5703-2-git-send-email-prabhakar.lad@ti.com>
+	Mon, 24 Sep 2012 08:58:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Prabhakar <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH v5] media: v4l2-ctrl: add a helper function to add standard control with driver specific menu
+Date: Mon, 24 Sep 2012 14:58:14 +0200
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LDOC <linux-doc@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	VGER <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Rob Landley <rob@landley.net>
+References: <1348491221-6068-1-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1348491221-6068-1-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209241458.14376.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
-
-Thanks for the patch.
-
-On Friday 14 September 2012 18:16:31 Prabhakar Lad wrote:
-> From: Manjunath Hadli <manjunath.hadli@ti.com>
+On Mon September 24 2012 14:53:40 Prabhakar wrote:
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
 > 
-> add support for dm3xx IPIPEIF hardware setup. This is the
-> lowest software layer for the dm3x vpfe driver which directly
-> accesses hardware. Add support for features like default
-> pixel correction, dark frame substraction and hardware setup.
-> 
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> ---
->  drivers/media/platform/davinci/dm3xx_ipipeif.c |  318 +++++++++++++++++++++
->  drivers/media/platform/davinci/dm3xx_ipipeif.h |  262 +++++++++++++++++++
->  include/linux/dm3xx_ipipeif.h                  |   62 +++++
+> Add helper function v4l2_ctrl_new_std_menu_items(), which adds
+> a standard menu control, with driver specific menu.
 
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
->  3 files changed, 642 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/platform/davinci/dm3xx_ipipeif.c
->  create mode 100644 drivers/media/platform/davinci/dm3xx_ipipeif.h
->  create mode 100644 include/linux/dm3xx_ipipeif.h
-> 
-> diff --git a/drivers/media/platform/davinci/dm3xx_ipipeif.c
-> b/drivers/media/platform/davinci/dm3xx_ipipeif.c new file mode 100644
-> index 0000000..7961a74
-> --- /dev/null
-> +++ b/drivers/media/platform/davinci/dm3xx_ipipeif.c
-
-[snip]
-
-> +#include <linux/io.h>
-> +#include <linux/module.h>
-> +#include <linux/kernel.h>
-> +#include <linux/uaccess.h>
-> +#include <linux/v4l2-mediabus.h>
-> +#include <linux/platform_device.h>
-
-Just a side note, I usually sort headers alphabetically, but feel free to use 
-whatever convention you like.
-
-> +#include "dm3xx_ipipeif.h"
-> +
-> +static void *__iomem ipipeif_base_addr;
-
-That's not good. You shouldn't have global constants like that. The value 
-should instead be stored in your device structure, that you will need to pass 
-around to all functions.
-
-> +static inline u32 regr_if(u32 offset)
-> +{
-> +	return readl(ipipeif_base_addr + offset);
-> +}
-> +
-> +static inline void regw_if(u32 val, u32 offset)
-> +{
-> +	writel(val, ipipeif_base_addr + offset);
-> +}
-
-Maybe ipipeif_read() and ipipeif_write() ?
-
-> +void ipipeif_set_enable()
-> +{
-> +	regw_if(1, IPIPEIF_ENABLE);
-> +}
-
-Please define constants in a header file for register values, masks and shifts 
-instead of hardcoding the raw numbers.
-
-[snip]
-
-> +static int __devinit dm3xx_ipipeif_probe(struct platform_device *pdev)
-> +{
-> +	static resource_size_t  res_len;
-> +	struct resource *res;
-> +	int status;
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (!res)
-> +		return -ENOENT;
-> +
-> +	res_len = resource_size(res);
-> +
-> +	res = request_mem_region(res->start, res_len, res->name);
-> +	if (!res)
-> +		return -EBUSY;
-> +
-> +	ipipeif_base_addr = ioremap_nocache(res->start, res_len);
-> +	if (!ipipeif_base_addr) {
-> +		status = -EBUSY;
-> +		goto fail;
-> +	}
-> +	return 0;
-> +
-> +fail:
-> +	release_mem_region(res->start, res_len);
-> +
-> +	return status;
-> +}
-> +
-> +static int dm3xx_ipipeif_remove(struct platform_device *pdev)
-> +{
-> +	struct resource *res;
-> +
-> +	iounmap(ipipeif_base_addr);
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (res)
-> +		release_mem_region(res->start, resource_size(res));
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver dm3xx_ipipeif_driver = {
-> +	.driver = {
-> +		.name   = "dm3xx_ipipeif",
-> +		.owner = THIS_MODULE,
-> +	},
-> +	.remove = __devexit_p(dm3xx_ipipeif_remove),
-> +	.probe = dm3xx_ipipeif_probe,
-> +};
-> +
-> +static int dm3xx_ipipeif_init(void)
-> +{
-> +	return platform_driver_register(&dm3xx_ipipeif_driver);
-> +}
-> +
-> +static void dm3xx_ipipeif_exit(void)
-> +{
-> +	platform_driver_unregister(&dm3xx_ipipeif_driver);
-> +}
-> +
-> +module_init(dm3xx_ipipeif_init);
-> +module_exit(dm3xx_ipipeif_exit);
-
-I'm not sure to like this. You're registering a module for a device that 
-essentially sits there without doing anything, except providing functions that 
-can be called by other modules.
-
-I somehow feel that the way the code is split amongst the different layers 
-isn't optimal. Could you briefly explain the rationale behind the current 
-architecture ?
-
-(BTW, please use the module_platform_driver() macro instead of 
-module_init/module_exit)
-
-[snip]
-
-> diff --git a/include/linux/dm3xx_ipipeif.h b/include/linux/dm3xx_ipipeif.h
-> new file mode 100644
-> index 0000000..1c1a830
-> --- /dev/null
-> +++ b/include/linux/dm3xx_ipipeif.h
-
-[snip]
-
-> +#include <media/davinci/vpfe_types.h>
-> +#include <media/davinci/vpfe.h>
-
-This header file defines part of the userspace API, but includes media/ 
-headers that are not exported to userspace.
-
-Header files should be split between 3 directories:
-
-- Definitions required by platform data used to go to media/ but the new 
-include/linux/platform_data/ directory might be preferred nowadays. I have no 
-strong opinion on this, as other headers are already in media/ you can 
-probably keep using it for now.
-
-- Definitions requires by userspace should go to include/linux/
-
-- The rest should go to drivers/media/platform/davinci/.
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
 
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Hans de Goede <hdegoede@redhat.com>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Rob Landley <rob@landley.net>
+> ---
+>  Changes for v5:
+>  1: Fixed some grammatical issues pointed by Hans.
+> 
+>  Changes for v4:
+>  1: Rather then adding a function to modify the menu, added a helper
+>    function, that creates a new standard control with user specific
+>    menu.
+> 
+>  Changes for v3:
+>  1: Fixed style/grammer issues as pointed by Hans.
+>    Thanks Hans for providing the description.
+> 
+>  Changes for v2:
+>  1: Fixed review comments from Hans, to have return type as
+>    void, add WARN_ON() for fail conditions, allow this fucntion
+>    to modify the menu of custom controls.
+> 
+>  Documentation/video4linux/v4l2-controls.txt |   24 +++++++++++++++++++++
+>  drivers/media/v4l2-core/v4l2-ctrls.c        |   30 +++++++++++++++++++++++++++
+>  include/media/v4l2-ctrls.h                  |   23 ++++++++++++++++++++
+>  3 files changed, 77 insertions(+), 0 deletions(-)
