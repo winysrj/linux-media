@@ -1,96 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:23260 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752094Ab2IQCTo (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47213 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932180Ab2IXUGi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Sep 2012 22:19:44 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 8BIT
-Content-type: text/plain; charset=EUC-KR
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MAH006T42GKPDJ0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 17 Sep 2012 11:19:32 +0900 (KST)
-Received: from [10.90.51.68] by mmp2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTPA id <0MAH00E6H2GH7170@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 17 Sep 2012 11:19:32 +0900 (KST)
-Message-id: <505688BD.2050403@samsung.com>
-Date: Mon, 17 Sep 2012 11:19:41 +0900
-From: =?EUC-KR?B?sei9wr/s?= <sw0312.kim@samsung.com>
-Reply-to: sw0312.kim@samsung.com
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: sw0312.kim@samsung.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	Sungchun Kang <sungchun.kang@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH] [media] gscaler: mark it as BROKEN
-References: <1347723514-18361-1-git-send-email-mchehab@redhat.com>
-In-reply-to: <1347723514-18361-1-git-send-email-mchehab@redhat.com>
+	Mon, 24 Sep 2012 16:06:38 -0400
+Date: Mon, 24 Sep 2012 23:06:34 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: Re: Gain controls in v4l2-ctrl framework
+Message-ID: <20120924200634.GK12025@valkosipuli.retiisi.org.uk>
+References: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Prabhakar,
 
-Hi Mauro,
-
-On 2012³â 09¿ù 16ÀÏ 00:38, Mauro Carvalho Chehab wrote:
-> -EMISSINGMAKEFILE
+On Sun, Sep 23, 2012 at 04:56:21PM +0530, Prabhakar Lad wrote:
+> Hi All,
 > 
-> Without a Makefile, the driver will not compile, causing
-> breakages for arm exynos5 sub-architecture.
+> The CCD/Sensors have the capability to adjust the R/ye, Gr/Cy, Gb/G,
+> B/Mg gain values.
+> Since these control can be re-usable I am planning to add the
+> following gain controls as part
+> of the framework:
 > 
-> Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>
-> Cc: Sungchun Kang <sungchun.kang@samsung.com>
-> Cc: "Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"  <sw0312.kim@samsung.com>
+> 1: V4L2_CID_GAIN_RED
+> 2: V4L2_CID_GAIN_GREEN_RED
+> 3: V4L2_CID_GAIN_GREEN_BLUE
+> 4: V4L2_CID_GAIN_BLUE
 
-Cc: Seung-Woo Kim <sw0312.kim@samsung.com> is enough, but it is not big
-deal.
+One more thing: There's an analogue gain control already in the image source
+class. I think we should explicitly say that the gains are digital (vs.
+analogue).
 
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/platform/Kconfig  | 1 +
->  drivers/media/platform/Makefile | 4 +++-
->  2 files changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index 682594e..aa84d1d 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -184,6 +184,7 @@ config VIDEO_MX2_EMMAPRP
->  config VIDEO_SAMSUNG_EXYNOS_GSC
->  	tristate "Samsung Exynos G-Scaler driver"
->  	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_EXYNOS5
-> +	depends on BROKEN
->  	select VIDEOBUF2_DMA_CONTIG
->  	select V4L2_MEM2MEM_DEV
->  	help
-> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-> index baaa550..12d34c4 100644
-> --- a/drivers/media/platform/Makefile
-> +++ b/drivers/media/platform/Makefile
-> @@ -33,7 +33,9 @@ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC)	+= s5p-mfc/
->  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
->  
->  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
-> -obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
-> +
-> +# FIXME!!! This driver is broken, as there's no makefile there!
-> +#obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
->  
->  obj-$(CONFIG_BLACKFIN)                  += blackfin/
->  
-> 
-
-Thanks and Regards,
-- Seung-Woo Kim
+Kind regards,
 
 -- 
-Seung-Woo Kim
-Samsung Software R&D Center
---
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
