@@ -1,99 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:65141 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755229Ab2ITNgk (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2884 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754366Ab2IXNhZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 09:36:40 -0400
-Received: by pbbrr4 with SMTP id rr4so224322pbb.19
-        for <linux-media@vger.kernel.org>; Thu, 20 Sep 2012 06:36:40 -0700 (PDT)
-Date: Thu, 20 Sep 2012 21:36:32 +0800
-From: Shawn Guo <shawn.guo@linaro.org>
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	alsa-devel@alsa-project.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	linux-fbdev@vger.kernel.org, Chris Ball <cjb@laptop.org>,
-	linux-mmc@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	rtc-linux@googlegroups.com,
-	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
-	linux-mtd@lists.infradead.org,
-	Wolfram Sang <w.sang@pengutronix.de>,
-	linux-i2c@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>,
-	linux-watchdog@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, Vinod Koul <vinod.koul@linux.intel.com>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-Subject: Re: [PATCH v2 00/34] i.MX multi-platform support
-Message-ID: <20120920133630.GG2450@S2101-09.ap.freescale.net>
-References: <1348123547-31082-1-git-send-email-shawn.guo@linaro.org>
- <201209200739.34899.arnd@arndb.de>
- <20120920114148.GH17666@opensource.wolfsonmicro.com>
- <20120920115213.GF2450@S2101-09.ap.freescale.net>
- <20120920124709.GN17666@opensource.wolfsonmicro.com>
+	Mon, 24 Sep 2012 09:37:25 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: davinci-linux-open-source@linux.davincidsp.com
+Subject: Re: [PATCH v3] media: v4l2-ctrls: add control for test pattern
+Date: Mon, 24 Sep 2012 15:37:17 +0200
+Cc: Prabhakar <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Rob Landley <rob@landley.net>,
+	LDOC <linux-doc@vger.kernel.org>,
+	VGER <linux-kernel@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <1348491221-6068-1-git-send-email-prabhakar.lad@ti.com> <1348491221-6068-2-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1348491221-6068-2-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120920124709.GN17666@opensource.wolfsonmicro.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209241537.17549.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 20, 2012 at 08:47:10AM -0400, Mark Brown wrote:
-> On Thu, Sep 20, 2012 at 07:52:15PM +0800, Shawn Guo wrote:
-> > On Thu, Sep 20, 2012 at 07:41:50AM -0400, Mark Brown wrote:
+On Mon September 24 2012 14:53:41 Prabhakar wrote:
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
 > 
-> > > It's usually pretty early but Takashi will be on holiday this time so
-> > > I'm not sure if things might be different (he was going to send the pull
-> > > request from holiday).  I also didn't guarantee that it'll be stable
-> > > yet, can someone please tell me what the depenency is here?
+> add V4L2_CID_TEST_PATTERN of type menu, which determines
+> the internal test pattern selected by the device.
 > 
-> > We need the patch to have all imx drivers mach/* inclusion free,
-> > so that we can enable multi-platform support for imx, which is the
-> > whole point of the series.
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Cc: Hans de Goede <hdegoede@redhat.com>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Rob Landley <rob@landley.net>
+> ---
+>  This patches has one checkpatch warning for line over
+>  80 characters altough it can be avoided I have kept it
+>  for consistency.
 > 
-> That doesn't answer the question.  What is the dependency - what is it
-> about this patch that something else depends on?  Your cover letters
-> just say you'd like to do this but don't mention dependencies at all and
-> when I asked the question last night you said the same thing.  I've not
-> seen the rest of the series...
+>  Changes for v3:
+>  1: Removed the menu for test pattern, pointed by Sakari.
 > 
-Ah, right.  You did get copied on the whole series.  So the whole point
-of patch "ASoC: mx27vis: retrieve gpio numbers from platform_data" is
-to get rid of inclusion mach/iomux-mx27.h.  This has to be done before
-we enable multi-platform support for imx, since mach/* has to be removed
-completely for multi-platform build.
+>  Changes for v2:
+>  1: Included display devices in the description for test pattern
+>    as pointed by Hans.
+>  2: In the menu replaced 'Test Pattern Disabled' by 'Disabled' as
+>    pointed by Sylwester.
+>  3: Removed the test patterns from menu as the are hardware specific
+>    as pointed by Sakari.
+> 
+>  Documentation/DocBook/media/v4l/controls.xml |   10 ++++++++++
+>  drivers/media/v4l2-core/v4l2-ctrls.c         |    2 ++
+>  include/linux/videodev2.h                    |    1 +
+>  3 files changed, 13 insertions(+), 0 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> index f0fb08d..51e9c4e 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -4313,6 +4313,16 @@ interface and may change in the future.</para>
+>  	      </tbody>
+>  	    </entrytbl>
+>  	  </row>
+> +	  <row>
+> +	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN</constant></entry>
+> +	    <entry>menu</entry>
+> +	  </row>
+> +	  <row id="v4l2-test-pattern">
+> +	    <entry spanname="descr"> The Capture/Display/Sensors have the capability
+> +	    to generate internal test patterns and this are hardware specific. This
+> +	    test patterns are used to test a device is properly working and can generate
+> +	    the desired waveforms that it supports.</entry>
 
-> > If your for-3.7 is not stable anyway, I guess the easiest the way
-> 
-> It probably *is* stable but I'm not enthused about people pulling
-> unsigned tags.  I might rebase, though - I'm going to finalise the tree
-> in the next few days.
-> 
-> > to do it might be you drop the patch "ASoC: mx27vis: retrieve gpio
-> > numbers from platform_data" from your tree and I have it be part of
-> > the series to go via arm-soc tree as a whole.  (This is the original
-> > plan that I mentioned in v1 cover letter)
-> 
-> You just mentioned it as a preference (you said it's something you'd
-> like to do), please if you're doing this sort of cross tree thing be
-> explicit about what the inter-tree relationships are.  If things need to
-> go in via the same tree say so explicitly (and ideally say way this is).
-> 
-Ok, my bad.
+Some grammar/style fixes:
 
-> The main reason I applied it straight away was that Javier mentioned
-> that it was a bug fix and it's near the merge window and these random
-> ARM cleanup serieses never seem to go in quickly.
+	    <entry spanname="descr"> Some capture/display/sensor devices have the
+	    capability to generate test pattern images. These hardware specific
+	    test patterns can be used to test if a device is working properly.</entry>
 
-The series is planned for 3.7 merge window.  Is it still possible for
-you to drop the patch from your tree to ease the process?  Or I will
-hold my pull-request to arm-soc until you tell me you have your tree
-finalized.
 
-Shawn
+> +	  </row>
+>  	<row><entry></entry></row>
+>  	</tbody>
+>        </tgroup>
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 8f2f40b..41b7732 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -740,6 +740,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
+>  	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
+>  	case V4L2_CID_DPCM_PREDICTOR:		return "DPCM Predictor";
+> +	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
+>  
+>  	default:
+>  		return NULL;
+> @@ -841,6 +842,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_EXPOSURE_METERING:
+>  	case V4L2_CID_SCENE_MODE:
+>  	case V4L2_CID_DPCM_PREDICTOR:
+> +	case V4L2_CID_TEST_PATTERN:
+>  		*type = V4L2_CTRL_TYPE_MENU;
+>  		break;
+>  	case V4L2_CID_LINK_FREQ:
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index ca9fb78..7014c0b 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -2005,6 +2005,7 @@ enum v4l2_dpcm_predictor {
+>  	V4L2_DPCM_PREDICTOR_SIMPLE	= 0,
+>  	V4L2_DPCM_PREDICTOR_ADVANCED	= 1,
+>  };
+> +#define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
+>  
+>  /*
+>   *	T U N I N G
+> 
+
+Regards,
+
+	Hans
