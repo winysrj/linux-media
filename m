@@ -1,82 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:45446 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752146Ab2INNyH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 09:54:07 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	David Oleszkiewicz <doleszki@adsyscontrols.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH] davinci: vpif: capture/display: fix race condition
-Date: Fri, 14 Sep 2012 19:23:56 +0530
-Message-Id: <1347630836-7545-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:59316 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753127Ab2IXM5s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Sep 2012 08:57:48 -0400
+Message-ID: <506058B5.8020003@iki.fi>
+Date: Mon, 24 Sep 2012 15:57:25 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Gianluca Gennari <gennarone@gmail.com>
+CC: linux-media@vger.kernel.org, mchehab@redhat.com
+Subject: Re: [PATCH 2/3 V2] fc2580: silence uninitialized variable warning
+References: <GmailId139f821bcaa99b1e> <1348491061-9627-1-git-send-email-gennarone@gmail.com>
+In-Reply-To: <1348491061-9627-1-git-send-email-gennarone@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
+On 09/24/2012 03:51 PM, Gianluca Gennari wrote:
+> fc2580.c: In function 'fc2580_set_params':
+> fc2580.c:118: warning: 'ret' may be used uninitialized in this function
+>
+> V2: fixed coding style.
+>
+> Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
 
-channel_first_int[][] variable is used as a flag for the ISR,
-This flag was being set after enabling the interrupts, There
-where suitaions when the isr ocuurend even before the flag was set
-dues to which it was causing the applicaiotn hang.
-This patch sets  channel_first_int[][] flag just before enabling the
-interrupt.
 
-Reported-by: David Oleszkiewicz <doleszki@adsyscontrols.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/davinci/vpif_capture.c |    2 +-
- drivers/media/platform/davinci/vpif_display.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 1b625b0..f64919b 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -339,6 +339,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	 * Set interrupt for both the fields in VPIF Register enable channel in
- 	 * VPIF register
- 	 */
-+	channel_first_int[VPIF_VIDEO_INDEX][ch->channel_id] = 1;
- 	if ((VPIF_CHANNEL0_VIDEO == ch->channel_id)) {
- 		channel0_intr_assert();
- 		channel0_intr_enable(1);
-@@ -350,7 +351,6 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 		channel1_intr_enable(1);
- 		enable_channel1(1);
- 	}
--	channel_first_int[VPIF_VIDEO_INDEX][ch->channel_id] = 1;
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 4a24848..523a840 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -302,6 +302,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 
- 	/* Set interrupt for both the fields in VPIF
- 	    Register enable channel in VPIF register */
-+	channel_first_int[VPIF_VIDEO_INDEX][ch->channel_id] = 1;
- 	if (VPIF_CHANNEL2_VIDEO == ch->channel_id) {
- 		channel2_intr_assert();
- 		channel2_intr_enable(1);
-@@ -318,7 +319,6 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 		if (vpif_config_data->ch3_clip_en)
- 			channel3_clipping_enable(1);
- 	}
--	channel_first_int[VPIF_VIDEO_INDEX][ch->channel_id] = 1;
- 
- 	return 0;
- }
+> ---
+>   drivers/media/tuners/fc2580.c |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
+> index 036e94b..3ad68e9 100644
+> --- a/drivers/media/tuners/fc2580.c
+> +++ b/drivers/media/tuners/fc2580.c
+> @@ -115,7 +115,7 @@ static int fc2580_set_params(struct dvb_frontend *fe)
+>   {
+>   	struct fc2580_priv *priv = fe->tuner_priv;
+>   	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+> -	int ret, i;
+> +	int ret = 0, i;
+>   	unsigned int r_val, n_val, k_val, k_val_reg, f_ref;
+>   	u8 tmp_val, r18_val;
+>   	u64 f_vco;
+>
+
+
 -- 
-1.7.4.1
-
+http://palosaari.fi/
