@@ -1,92 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1232 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753584Ab2IHLPv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Sep 2012 07:15:51 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [RFCv2 API PATCH 05/28] DocBook: bus_info can no longer be empty.
-Date: Sat, 8 Sep 2012 13:15:15 +0200
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <7d0e5a9425253ece02bb57adc9413a5558200f2d.1347023744.git.hans.verkuil@cisco.com> <504A5261.1090405@gmail.com>
-In-Reply-To: <504A5261.1090405@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from mx1.redhat.com ([209.132.183.28]:34082 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754410Ab2IXCqK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Sep 2012 22:46:10 -0400
+Date: Sun, 23 Sep 2012 23:46:00 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 07/16] rtl2830: use .get_if_frequency()
+Message-ID: <20120923234600.492bcada@redhat.com>
+In-Reply-To: <505FA933.6060708@iki.fi>
+References: <1347495837-3244-1-git-send-email-crope@iki.fi>
+	<1347495837-3244-7-git-send-email-crope@iki.fi>
+	<20120923201742.4eaf7455@redhat.com>
+	<505FA471.5010805@iki.fi>
+	<20120923212346.2ff462f1@redhat.com>
+	<505FA933.6060708@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201209081315.15411.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri September 7 2012 22:00:33 Sylwester Nawrocki wrote:
-> On 09/07/2012 03:29 PM, Hans Verkuil wrote:
-> > From: Hans Verkuil<hans.verkuil@cisco.com>
-> > 
-> > During the 2012 Media Workshop it was decided that bus_info as returned
-> > by VIDIOC_QUERYCAP can no longer be empty. It should be a unique identifier,
-> > and empty strings are obviously not unique.
-> > 
-> > Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
-> 
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> 
-> > ---
-> >   Documentation/DocBook/media/v4l/vidioc-querycap.xml |   14 ++++++++++----
-> >   1 file changed, 10 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> > index f33dd74..d5b1248 100644
-> > --- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> > +++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> > @@ -90,11 +90,17 @@ ambiguities.</entry>
-> >   	<entry>__u8</entry>
-> >   	<entry><structfield>bus_info</structfield>[32]</entry>
-> >   	<entry>Location of the device in the system, a
-> > -NUL-terminated ASCII string. For example: "PCI Slot 4". This
-> > +NUL-terminated ASCII string. For example: "PCI:0000:05:06.0". This
-> >   information is intended for users, to distinguish multiple
-> > -identical devices. If no such information is available the field may
-> > -simply count the devices controlled by the driver, or contain the
-> > -empty string (<structfield>bus_info</structfield>[0] = 0).<!-- XXX pci_dev->slot_name example --></entry>
-> > +identical devices. If no such information is available the field must
-> > +simply count the devices controlled by the driver ("vivi-000"). The bus_info
-> > +must start with "PCI:" for PCI boards, "PCIe:" for PCI Express boards,
-> > +"usb-" for USB devices, "I2C:" for i2c devices, "ISA:" for ISA devices and
-> > +"parport" for parallel port devices.
-> > +For devices without a bus it should start with the driver name, optionally
-> 
-> Most, if not all, devices are on some sort of bus. What would be an example
-> of a device "without a bus" ?
+Em Mon, 24 Sep 2012 03:28:35 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Virtual devices like vivi and platform devices. Or is there some sort of
-platform bus?
-
-> Could we just be saying here "For other devices" instead of "For devices
-> without a bus", or something similar ?
-
-Well, I'd like for any device on a bus to have a consistent naming convention
-so we can guarantee that bus_info is always unique.
-
-Regards,
-
-	Hans
-
+> On 09/24/2012 03:23 AM, Mauro Carvalho Chehab wrote:
+> > Em Mon, 24 Sep 2012 03:08:17 +0300
+> > Antti Palosaari <crope@iki.fi> escreveu:
+> >
+> >> On 09/24/2012 02:17 AM, Mauro Carvalho Chehab wrote:
+> >>> Em Thu, 13 Sep 2012 03:23:48 +0300
+> >>> Antti Palosaari <crope@iki.fi> escreveu:
+> >>>
+> >>>> Use .get_if_frequency() as all used tuner drivers
+> >>>> (mt2060/qt1010/mxl5005s) supports it.
+> >>>>
+> >>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> >>>
+> >>>> @@ -240,26 +237,6 @@ static int rtl2830_init(struct dvb_frontend *fe)
+> >>>>    	if (ret)
+> >>>>    		goto err;
+> >>>>
+> >>>> -	num = priv->cfg.if_dvbt % priv->cfg.xtal;
+> >>>> -	num *= 0x400000;
+> >>>> -	num = div_u64(num, priv->cfg.xtal);
+> >>>> -	num = -num;
+> >>>> -	if_ctl = num & 0x3fffff;
+> >>>> -	dev_dbg(&priv->i2c->dev, "%s: if_ctl=%08x\n", __func__, if_ctl);
+> >>>> -
+> >>>> -	ret = rtl2830_rd_reg_mask(priv, 0x119, &tmp, 0xc0); /* b[7:6] */
+> >>>> -	if (ret)
+> >>>> -		goto err;
+> >>>> -
+> >>>> -	buf[0] = tmp << 6;
+> >>>> -	buf[0] |= (if_ctl >> 16) & 0x3f;
+> >>>> -	buf[1] = (if_ctl >>  8) & 0xff;
+> >>>> -	buf[2] = (if_ctl >>  0) & 0xff;
+> >>>
+> >>> Patch applied, but there was a context difference above:
+> >>>
+> >>>    --- a/drivers/media/dvb-frontends/rtl2830.c
+> >>>    +++ b/drivers/media/dvb-frontends/rtl2830.c
+> >>>    @@ -182,9 +182,6 @@ static int rtl2830_init(struct dvb_frontend *fe)
+> >>> @@ -28,7 +50,7 @@ index eca1d72..3954760 100644
+> >>>    -		goto err;
+> >>>    -
+> >>>    -	buf[0] = tmp << 6;
+> >>> --	buf[0] = (if_ctl >> 16) & 0x3f;
+> >>> +-	buf[0] |= (if_ctl >> 16) & 0x3f;
+> >>>    -	buf[1] = (if_ctl >>  8) & 0xff;
+> >>>    -	buf[2] = (if_ctl >>  0) & 0xff;
+> >>>    -
+> >>>
+> >>> (that's the diff between the patch applied and your original one)
+> >>
+> >> Because of that:
+> >>
+> >> http://patchwork.linuxtv.org/patch/14066/
+> >
+> > That's why I ask driver maintainers to send me pull requests, instead of
+> > sending long series of patches at the mailing list, and tagging the patches
+> > for review at ML as RFC: it is not warranted that the patches will be merged
+> > at the order they're sent to the mailing list.
 > 
-> > +followed by "-" and an index if multiple instances of the device as possible.
-> > +Many platform devices can have only one instance, so in that case bus_info
-> > +is identical to the<structfield>driver</structfield>  field.</entry>
-> >   	</row>
-> >   	<row>
-> >   	<entry>__u32</entry>
+> Do you mean I start again review & pick those patches myself from the 
+> mailing list and pull-request then from git tree? It is fine for me.
 > 
-> --
-> 
-> Regards,
-> Sylwester
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> How about my own patches for my own drivers. Should I sent those to the 
+> mailing list and then pull-request via git? If yes, is there some tag 
+> which could be used to inform that this patch will be pull-requested via 
+> git tree?
+
+What I mean is that the better is for you to apply the patches for your
+driver on your tree (your patches and the ones from the others you acked).
+Then, from time to time[1], send me pull requests from the branch that contains
+them. That warrants that I'll apply the patches at the right order, and
+that I won't forget anything.
+
+As your patches also need to be reviewed, you can tag them as "RFC".
+
+[1] Don't accumulate too many patches there... finding time to review
+a series of 5-10 patches is easier than to review 20-30 patches.
+
+Thanks,
+Mauro
