@@ -1,80 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxout-07.mxes.net ([216.86.168.182]:61195 "EHLO
-	mxout-07.mxes.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752493Ab2IZGxx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 02:53:53 -0400
-Message-ID: <5062A679.8090007@cybermato.com>
-Date: Tue, 25 Sep 2012 23:53:45 -0700
-From: Chris MacGregor <chris@cybermato.com>
+Received: from mx1.redhat.com ([209.132.183.28]:27662 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755454Ab2IXOOr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Sep 2012 10:14:47 -0400
+Message-ID: <50606B26.6020406@redhat.com>
+Date: Mon, 24 Sep 2012 16:16:06 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: Re: Gain controls in v4l2-ctrl framework
-References: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com> <CA+V-a8v=_2vkuaYCAJNuyrqBX2bjU11KGASh7vkEQ4Qt2bFCGA@mail.gmail.com>
-In-Reply-To: <CA+V-a8v=_2vkuaYCAJNuyrqBX2bjU11KGASh7vkEQ4Qt2bFCGA@mail.gmail.com>
+To: elezegarcia@gmail.com
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/4] pwc: Add return code check at vb2_queue_init()
+References: <1347889658-15116-1-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1347889658-15116-1-git-send-email-elezegarcia@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All.
+Hi,
 
-On 09/25/2012 11:44 PM, Prabhakar Lad wrote:
-> Hi All,
+Thanks I've added this to my media tree and it will be included in
+my next pull-req to Mauro.
+
+Regards,
+
+Hans
+
+
+On 09/17/2012 03:47 PM, elezegarcia@gmail.com wrote:
+> From: Ezequiel Garcia <elezegarcia@gmail.com>
 >
-> On Sun, Sep 23, 2012 at 4:56 PM, Prabhakar Lad
-> <prabhakar.csengg@gmail.com> wrote:
->> Hi All,
->>
->> The CCD/Sensors have the capability to adjust the R/ye, Gr/Cy, Gb/G,
->> B/Mg gain values.
->> Since these control can be re-usable I am planning to add the
->> following gain controls as part
->> of the framework:
->>
->> 1: V4L2_CID_GAIN_RED
->> 2: V4L2_CID_GAIN_GREEN_RED
->> 3: V4L2_CID_GAIN_GREEN_BLUE
->> 4: V4L2_CID_GAIN_BLUE
->> 5: V4L2_CID_GAIN_OFFSET
->>
->> I need your opinion's to get moving to add them.
->>
-> I am listing out the gain controls which is the outcome of above discussion:-
+> This function returns an integer and it's mandatory
+> to check the return code.
 >
-> 1: V4L2_CID_GAIN_RED
-> 2: V4L2_CID_GAIN_GREEN_RED
-> 3: V4L2_CID_GAIN_GREEN_BLUE
-> 4: V4L2_CID_GAIN_BLUE
-> 5: V4L2_CID_GAIN_OFFSET
-> 6: V4L2_CID_BLUE_OFFSET
-> 7: V4L2_CID_RED_OFFSET
-> 8: V4L2_CID_GREEN_OFFSET
+> Cc: Hans de Goede <hdegoede@redhat.com>
+> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+> ---
+>   drivers/media/usb/pwc/pwc-if.c |    4 +++-
+>   1 files changed, 3 insertions(+), 1 deletions(-)
 >
-> Please let me know for any addition/deletion.
-
-I thought the consensus was that we would also need a 
-V4L2_CID_GAIN_GREEN, to handle devices for which there are not two 
-separate greens.
-
-Also, should there be a V4L2_CID_GREEN_RED_OFFSET and 
-V4L2_CID_GREEN_BLUE_OFFSET, for consistency and to handle hardware that 
-has such offsets?
-
-(Perhaps I missed an email in this thread, but I thought I caught them all.)
-
-> Regards,
-> --Prabhakar Lad
-
-Cheers,
-     Chris MacGregor (the Seattle one)
+> diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+> index 42e36ba..31d082e 100644
+> --- a/drivers/media/usb/pwc/pwc-if.c
+> +++ b/drivers/media/usb/pwc/pwc-if.c
+> @@ -1000,7 +1000,9 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+>   	pdev->vb_queue.buf_struct_size = sizeof(struct pwc_frame_buf);
+>   	pdev->vb_queue.ops = &pwc_vb_queue_ops;
+>   	pdev->vb_queue.mem_ops = &vb2_vmalloc_memops;
+> -	vb2_queue_init(&pdev->vb_queue);
+> +	rc = vb2_queue_init(&pdev->vb_queue);
+> +	if (rc)
+> +		goto err_free_mem;
+>
+>   	/* Init video_device structure */
+>   	memcpy(&pdev->vdev, &pwc_template, sizeof(pwc_template));
+>
