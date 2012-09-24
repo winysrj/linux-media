@@ -1,54 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57549 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754475Ab2IXMUo (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:57511 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754458Ab2IXLht (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 08:20:44 -0400
-Received: from avalon.localnet (unknown [91.178.17.105])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id CE9D73598C
-	for <linux-media@vger.kernel.org>; Mon, 24 Sep 2012 14:20:43 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: Re: [PULL FOR v3.7] OMAP3 ISP patches
-Date: Mon, 24 Sep 2012 14:21:21 +0200
-Message-ID: <4139151.yl0yH9AjyI@avalon>
-In-Reply-To: <2089319.1KIpnbuWf7@avalon>
-References: <2089319.1KIpnbuWf7@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 24 Sep 2012 07:37:49 -0400
+Received: by mail-we0-f174.google.com with SMTP id t9so144083wey.19
+        for <linux-media@vger.kernel.org>; Mon, 24 Sep 2012 04:37:48 -0700 (PDT)
+From: Gianluca Gennari <gennarone@gmail.com>
+To: linux-media@vger.kernel.org, crope@iki.fi
+Cc: mchehab@redhat.com, Gianluca Gennari <gennarone@gmail.com>
+Subject: [PATCH 3/3] fc2580: use macro for 64 bit division and reminder
+Date: Mon, 24 Sep 2012 13:37:18 +0200
+Message-Id: <1348486638-31169-4-git-send-email-gennarone@gmail.com>
+In-Reply-To: <1348486638-31169-1-git-send-email-gennarone@gmail.com>
+References: <1348486638-31169-1-git-send-email-gennarone@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Fixes the following warnings on a 32 bit system with GCC 4.4.3 and kernel Ubuntu 2.6.32-43 32 bit:
 
-Here's an additional patch if there's still time.
+WARNING: "__udivdi3" [fc2580.ko] undefined!
+WARNING: "__umoddi3" [fc2580.ko] undefined!
 
-The following changes since commit f9040ef3fab8f6f5f6fced5583203695d08efde3:                                                                                                                               
-                                                                                                                                                                                                           
-  [media] stv090x: add support for multistream (2012-09-23 21:27:19 -0300)                                                                                                                                 
-                                                                                                                                                                                                           
-are available in the git repository at:                                                                                                                                                                    
-  git://linuxtv.org/pinchartl/media.git omap3isp-omap3isp-next                                                                                                                                             
-                                                                                                                                                                                                           
-Laurent Pinchart (1):                                                                                                                                                                                      
-      omap3isp: Use monotonic timestamps for statistics buffers                                                                                                                                            
-                                                                                                                                                                                                           
-Peter Senna Tschudin (1):                                                                                                                                                                                  
-      omap3isp: Fix error return code in probe function                                                                                                                                                    
-                                                                                                                                                                                                           
-Wanlong Gao (1):                                                                                                                                                                                           
-      omap3isp: Fix up ENOIOCTLCMD error handling                                                                                                                                                          
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+---
+ drivers/media/tuners/fc2580.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
- drivers/media/platform/omap3isp/isp.c      |    4 +++-
- drivers/media/platform/omap3isp/ispstat.c  |    2 +-
- drivers/media/platform/omap3isp/ispstat.h  |    2 +-
- drivers/media/platform/omap3isp/ispvideo.c |    8 ++++----
- include/linux/omap3isp.h                   |    7 ++++++-
- 5 files changed, 15 insertions(+), 8 deletions(-)
-
+diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
+index 3ad68e9..2e8ebac 100644
+--- a/drivers/media/tuners/fc2580.c
++++ b/drivers/media/tuners/fc2580.c
+@@ -168,8 +168,7 @@ static int fc2580_set_params(struct dvb_frontend *fe)
+ 	}
+ 
+ 	f_ref = 2UL * priv->cfg->clock / r_val;
+-	n_val = f_vco / f_ref;
+-	k_val = f_vco % f_ref;
++	n_val = div_u64_rem(f_vco, f_ref, &k_val);
+ 	k_val_reg = 1UL * k_val * (1 << 20) / f_ref;
+ 
+ 	ret = fc2580_wr_reg(priv, 0x18, r18_val | ((k_val_reg >> 16) & 0xff));
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.0.4
 
