@@ -1,48 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:44237 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750727Ab2I3TWx convert rfc822-to-8bit (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:28419 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752009Ab2IXJQK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Sep 2012 15:22:53 -0400
-Received: by oagh16 with SMTP id h16so4420954oag.19
-        for <linux-media@vger.kernel.org>; Sun, 30 Sep 2012 12:22:53 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAGoCfixuTTcwmYXk+9mFsjYnQjPn3CtqLDGxRCz_NCnWGAyKRQ@mail.gmail.com>
-References: <CAJEuUsudgQHSktrDwHfELcUC0PMiRHmSw8S8buLcOGUFBqJ9Jw@mail.gmail.com>
- <CAGoCfixuTTcwmYXk+9mFsjYnQjPn3CtqLDGxRCz_NCnWGAyKRQ@mail.gmail.com>
-From: =?UTF-8?Q?Ladislav_J=C3=B3zsa?= <l.jozsa@gmail.com>
-Date: Sun, 30 Sep 2012 21:22:33 +0200
-Message-ID: <CAJEuUssC8nm8MYGqsACBvABcdudDQhS=AnGXpTzSFPZLJK3qyA@mail.gmail.com>
-Subject: Re: DiBcom 7000PC: Not able to scan for services on Raspberry Pi
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 24 Sep 2012 05:16:10 -0400
+Message-id: <506024D5.1050007@samsung.com>
+Date: Mon, 24 Sep 2012 11:16:05 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] drivers/media/platform/s5p-tv/sdo_drv.c: fix error
+ return code
+References: <1346775269-12191-4-git-send-email-peter.senna@gmail.com>
+ <1346920709-8711-1-git-send-email-peter.senna@gmail.com>
+In-reply-to: <1346920709-8711-1-git-send-email-peter.senna@gmail.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Sep 30, 2012 at 4:55 AM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Sat, Sep 29, 2012 at 3:34 PM, Ladislav Józsa <l.jozsa@gmail.com> wrote:
->> Running the same on my x86_64 machine works and tvheadend sees
->> multiplexes. What else information do you need from me in order to
->> track the problem?
->
-> Recompile your kernel with debug info so we can see the symbols for
-> the stack dump.  Otherwise there is no way for anybody to know where
-> the oops is occurring in the driver.
->
-> Devin
->
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
+Hi.
 
-Devin, thanks for the suggestion but it won't be necessary to
-recompile kernel as it emerged that the TV adapter didn't have
-sufficient power. When connected behind an active USB hub everything
-works like a charm. Sorry for the noise.
+On 09/06/2012 10:38 AM, Peter Senna Tschudin wrote:
+> From: Peter Senna Tschudin <peter.senna@gmail.com>
+> 
+> Convert a nonnegative error return code to a negative one, as returned
+> elsewhere in the function.
+> 
+> A simplified version of the semantic match that finds this problem is as
+> follows: (http://coccinelle.lip6.fr/)
+> 
+> // <smpl>
+> (
+> if@p1 (\(ret < 0\|ret != 0\))
+>  { ... return ret; }
+> |
+> ret@p1 = 0
+> )
+> ... when != ret = e1
+>     when != &ret
+> *if(...)
+> {
+>   ... when != ret = e2
+>       when forall
+>  return ret;
+> }
+> 
+> // </smpl>
+> 
+> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 
-Ladislav
-.
+Acked-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+
+> 
+> ---
+>  drivers/media/platform/s5p-tv/sdo_drv.c |    3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/platform/s5p-tv/sdo_drv.c b/drivers/media/platform/s5p-tv/sdo_drv.c
+> index ad68bbe..58cf56d 100644
+> --- a/drivers/media/platform/s5p-tv/sdo_drv.c
+> +++ b/drivers/media/platform/s5p-tv/sdo_drv.c
+> @@ -369,6 +369,7 @@ static int __devinit sdo_probe(struct platform_device *pdev)
+>  	sdev->fout_vpll = clk_get(dev, "fout_vpll");
+>  	if (IS_ERR_OR_NULL(sdev->fout_vpll)) {
+>  		dev_err(dev, "failed to get clock 'fout_vpll'\n");
+> +		ret = -ENXIO;
+>  		goto fail_dacphy;
+>  	}
+>  	dev_info(dev, "fout_vpll.rate = %lu\n", clk_get_rate(sclk_vpll));
+> @@ -377,11 +378,13 @@ static int __devinit sdo_probe(struct platform_device *pdev)
+>  	sdev->vdac = devm_regulator_get(dev, "vdd33a_dac");
+>  	if (IS_ERR_OR_NULL(sdev->vdac)) {
+>  		dev_err(dev, "failed to get regulator 'vdac'\n");
+> +		ret = -ENXIO;
+>  		goto fail_fout_vpll;
+>  	}
+>  	sdev->vdet = devm_regulator_get(dev, "vdet");
+>  	if (IS_ERR_OR_NULL(sdev->vdet)) {
+>  		dev_err(dev, "failed to get regulator 'vdet'\n");
+> +		ret = -ENXIO;
+>  		goto fail_fout_vpll;
+>  	}
+>  
+> 
