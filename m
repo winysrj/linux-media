@@ -1,47 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47956 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752809Ab2IZHyd (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4849 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754196Ab2IXNxh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 03:54:33 -0400
-Date: Wed, 26 Sep 2012 10:54:28 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Chris MacGregor <chris@cybermato.com>
-Subject: Re: Gain controls in v4l2-ctrl framework
-Message-ID: <20120926075427.GA14040@valkosipuli.retiisi.org.uk>
-References: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com>
- <CA+V-a8v=_2vkuaYCAJNuyrqBX2bjU11KGASh7vkEQ4Qt2bFCGA@mail.gmail.com>
- <20120926074240.GM12025@valkosipuli.retiisi.org.uk>
- <CA+V-a8vBXP=af_zWgiQzUhNBvexC6joddW7hioMqGziSTK9Dqw@mail.gmail.com>
+	Mon, 24 Sep 2012 09:53:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [RFCv1 PATCH 4/6] videobuf2-core: fill in length field for multiplanar buffers.
+Date: Mon, 24 Sep 2012 15:52:46 +0200
+Cc: linux-media@vger.kernel.org, Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1348065460-1624-1-git-send-email-hverkuil@xs4all.nl> <505C9A3A.4030500@samsung.com> <201209211854.12059.hverkuil@xs4all.nl>
+In-Reply-To: <201209211854.12059.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+V-a8vBXP=af_zWgiQzUhNBvexC6joddW7hioMqGziSTK9Dqw@mail.gmail.com>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209241552.46806.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 26, 2012 at 01:16:08PM +0530, Prabhakar Lad wrote:
-...
-> Currently I am need of following,
+On Fri September 21 2012 18:54:12 Hans Verkuil wrote:
+> On Fri September 21 2012 18:47:54 Sylwester Nawrocki wrote:
+> > On 09/21/2012 06:23 PM, Hans Verkuil wrote:
+> > > On Fri September 21 2012 18:13:20 Sylwester Nawrocki wrote:
+> > >> Hi Hans,
+> > >>
+> > >> On 09/19/2012 04:37 PM, Hans Verkuil wrote:
+> > >>> From: Hans Verkuil <hans.verkuil@cisco.com>
+> > >>>
+> > >>> length should be set to num_planes in __fill_v4l2_buffer(). That way the
+> > >>> caller knows how many planes there are in the buffer.
+> > >>>
+> > >>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > >>
+> > >> I think this would break VIDIOC_CREATE_BUFS. We need per buffer num_planes.
+> > >> Consider a use case where device is streaming with 2-planar pixel format
+> > >> and we invoke VIDIOC_CREATE_BUFS with single-planar format. On a single 
+> > >> queue there will be buffers with different number of planes. The number of 
+> > >> planes information must be attached to a buffer, otherwise VIDIOC_QUERYBUF 
+> > >> won't work.
+> > > 
+> > > That's a very good point and one I need to meditate on.
+> > > 
+> > > However, your comment applies to patch 1/6, not to this one.
+> > > This patch is about whether or not the length field of v4l2_buffer should
+> > > be filled in with the actual number of planes used by that buffer or not.
+> > 
+> > Yes, right. Sorry, I was editing response to multiple patches from this
+> > series and have mixed things a bit. I agree that it is logical and expected
+> > to update struct v4l2_buffer for user space.
 > 
->  1: V4L2_CID_GAIN_RED
->  2: V4L2_CID_GAIN_GREEN_RED
->  3: V4L2_CID_GAIN_GREEN_BLUE
->  4: V4L2_CID_GAIN_BLUE
->  5: V4L2_CID_GAIN_OFFSET
+> OK, great. That's was actually the main reason for working on this as this
+> unexpected behavior bit me when writing mplane streaming support for v4l2-ctl.
+> 
+> > I have spent some time on this series, and even prepared a patch for s5p-mfc,
+> > as it relies on num_planes being in struct vb2_buffer. But then a realized
+> > there could be buffers with distinct number of planes an a single queue.
+> 
+> I'll get back to you about this, probably on Monday. I need to think about the
+> implications of this.
 
-Are they analogue or digital?
+You are absolutely right about that. It makes my patch a bit more complex since
+you have to be careful in VIDIOC_DQBUF not to dequeue unless the provided
+v4l2_buffer struct has enough room to store the plane information.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Regards,
+
+	Hans
