@@ -1,75 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2397 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758825Ab2IMVAN (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:35668 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755921Ab2IXOm7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 17:00:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] [media] DocBook: Fix docbook compilation
-Date: Thu, 13 Sep 2012 23:00:03 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1347567100-2256-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1347567100-2256-1-git-send-email-mchehab@redhat.com>
+	Mon, 24 Sep 2012 10:42:59 -0400
+Received: by obbuo13 with SMTP id uo13so4682343obb.19
+        for <linux-media@vger.kernel.org>; Mon, 24 Sep 2012 07:42:58 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209132300.03671.hverkuil@xs4all.nl>
+In-Reply-To: <50603C39.9060105@redhat.com>
+References: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com>
+ <50603C39.9060105@redhat.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 24 Sep 2012 20:12:38 +0530
+Message-ID: <CA+V-a8uLhTTTOMNtz-iL=HZ0M+D6LgU4nbttcbb9Ej1cNDQMEQ@mail.gmail.com>
+Subject: Re: Gain controls in v4l2-ctrl framework
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu September 13 2012 22:11:40 Mauro Carvalho Chehab wrote:
-> changeset 1248c7cb66d734b60efed41be7c7b86909812c0e broke html compilation:
-> 
-> Documentation/DocBook/v4l2.xml:584: parser error : Entity 'sub-subdev-g-edid' not defined
-> Documentation/DocBook/v4l2.xml:626: parser error : chunk is not well balanced
-> Documentation/DocBook/media_api.xml:74: parser error : Failure to process entity sub-v4l2
-> Documentation/DocBook/media_api.xml:74: parser error : Entity 'sub-v4l2' not defined
-> 
-> I suspect that one file was simply missed at the patch.
+Hi Hans,
 
-Indeed. The missing vidioc-subdev-g-edid.xml file is here:
+On Mon, Sep 24, 2012 at 4:25 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+> Hi,
+>
+>
+> On 09/23/2012 01:26 PM, Prabhakar Lad wrote:
+>>
+>> Hi All,
+>>
+>> The CCD/Sensors have the capability to adjust the R/ye, Gr/Cy, Gb/G,
+>> B/Mg gain values.
+>> Since these control can be re-usable I am planning to add the
+>> following gain controls as part
+>> of the framework:
+>>
+>> 1: V4L2_CID_GAIN_RED
+>> 2: V4L2_CID_GAIN_GREEN_RED
+>> 3: V4L2_CID_GAIN_GREEN_BLUE
+>
+>
+> Not all sensors have separate V4L2_CID_GAIN_GREEN_RED /
+> V4L2_CID_GAIN_GREEN_BLUE,
+> so we will need a separate control for sensors which have one combined gain
+> called simply V4L2_CID_GAIN_GREEN
+>
+Agreed
 
-https://patchwork.kernel.org/patch/1209461/
+> Also do we really need separate V4L2_CID_GAIN_GREEN_RED /
+> V4L2_CID_GAIN_GREEN_BLUE
+> controls? I know hardware has them, but in my experience that is only done
+> as it
+> is simpler to make the hardware this way (fully symmetric sensor grid), have
+> you ever
+> tried actually using different gain settings for the 2 different green rows
+> ?
+>
+Never tried it.
 
-I forgot to do a git add when I made the RFCv3, but that documentation file
-hasn't changed since RFCv2, so you can just use the one from RFCv2 and revert
-this patch.
-
-My apologies, I haven't found a good way yet to check that I didn't forgot to
-add a file.
+> I've and that always results in an ugly checker board pattern. So I think we
+> can
+> and should only have a V4L2_CID_GAIN_GREEN, and for sensors with 2 green
+> gains
+> have that control both, forcing both to always have the same setting, which
+> is
+> really what you want anyways ...
+>
+Agreed.
 
 Regards,
+--Prabhakar Lad
 
-	Hans
-
-> Yet, keeping
-> it broken is a very bad idea, so we should either remove the broken
-> patch or to remove just the invalid include. Let's take the latter
-> approach.
-> 
-> Due to that, a warning is now produced:
-> 
-> Error: no ID for constraint linkend: v4l2-subdev-edid.
-> 
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  Documentation/DocBook/media/v4l/v4l2.xml | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-> index 10ccde9..0292ed1 100644
-> --- a/Documentation/DocBook/media/v4l/v4l2.xml
-> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
-> @@ -581,7 +581,6 @@ and discussions on the V4L mailing list.</revremark>
->      &sub-subdev-enum-frame-size;
->      &sub-subdev-enum-mbus-code;
->      &sub-subdev-g-crop;
-> -    &sub-subdev-g-edid;
->      &sub-subdev-g-fmt;
->      &sub-subdev-g-frame-interval;
->      &sub-subdev-g-selection;
-> 
+>> 4: V4L2_CID_GAIN_BLUE
+>> 5: V4L2_CID_GAIN_OFFSET
+>
+>
+> GAIN_OFFSET that sounds a bit weird... GAIN_OFFSET sounds like it is
+> a number which gets added to the 3/4 gain settings before the gain gets
+> applied,
+> but I assume that you just mean a number which gets added to the value from
+> the pixel, either before or after the gain is applied and I must admit I
+> cannot
+> come up with a better name.
+>
+> I believe (not sure) that some sensors have these per color ... The question
+> is if it makes sense to actually control this per color though, I don't
+> think it
+> does as it is meant to compensate for any fixed measuring errors, which are
+> the
+> same for all 3/4 colors. Note that all the sensor cells are exactly the
+> same,
+> later on a color grid gets added on top of the sensors to turn them into
+> r/g/b
+> cells, but physically they are the same cells, so with the same process and
+> temperature caused measuring errors...
+>
+> Regards,
+>
+> Hans
