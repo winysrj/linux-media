@@ -1,114 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41934 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754132Ab2IZLhr (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:8642 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755391Ab2IXOAc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 07:37:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: RFC: use of timestamp/sequence in v4l2_buffer
-Date: Wed, 26 Sep 2012 13:38:24 +0200
-Message-ID: <1837406.v5M1NO1NMK@avalon>
-In-Reply-To: <20120913184448.GJ6834@valkosipuli.retiisi.org.uk>
-References: <201209041238.07000.hverkuil@xs4all.nl> <20120913184448.GJ6834@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 24 Sep 2012 10:00:32 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MAU00H1KXKU35D0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 24 Sep 2012 23:00:30 +0900 (KST)
+Received: from amdc248.digital.local ([106.116.147.32])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MAU001W7XKKXC30@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 24 Sep 2012 23:00:30 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: a.hajda@samsung.com, sakari.ailus@iki.fi,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC] V4L: Add get/set_frame_desc subdev callbacks
+Date: Mon, 24 Sep 2012 16:00:17 +0200
+Message-id: <1348495217-32715-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Add subdev callbacks for setting up and retrieving parameters of the frame
+on media bus that are not exposed to user space directly.
 
-On Thursday 13 September 2012 21:44:48 Sakari Ailus wrote:
-> On Tue, Sep 04, 2012 at 12:38:06PM +0200, Hans Verkuil wrote:
-> > Hi all,
-> > 
-> > During the Media Workshop last week we discussed how the timestamp and
-> > sequence fields in struct v4l2_buffer should be used.
-> > 
-> > While trying to document the exact behavior I realized that there are a
-> > few missing pieces.
-> > 
-> > Open questions with regards to the sequence field:
-> > 
-> > 1) Should the first frame that was captured or displayed after starting
-> > streaming for the first time always start with sequence index 0? In my
-> > opinion it should.
-> 
-> I agree.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
 
-Agreed.
+Hi All,
 
-> > 2) Should the sequence counter be reset to 0 after a STREAMOFF? Or should
-> > it only be reset to 0 after REQBUFS/CREATE_BUFS is called?
-> 
-> Definitely not after CREATE_BUFS. Streaming may be ongoing when the IOCTL is
-> called, and this will cause a great deal of trouble. I'd propose resetting
-> it to zero at streamon (or streamoff) time.
+This patch is intended as an initial, mostly a stub, implementation of the
+media bus frame format descriptors idea outlined in Sakari's RFC [1].
+I included in this patch only what is necessary for the s5p-fimc driver to
+capture JPEG and interleaved JPEG/YUV image data from M-5MOLS and S5C73M3
+cameras. The union containing per media bus type structures describing
+bus specific configuration is not included here, it likely needs much
+discussions and I would like to get this patch merged for v3.7 if possible.
 
-Agreed.
+To follow is a patch adding users of these new subdev operations.
 
-> > 3) Should the sequence counter behave differently for mem2mem devices?
-> > With the current definition both the capture and display sides of a
-> > mem2mem device just have their own independent sequence counter.
+Comments are welcome.
 
-They need to be independent, as one frame can be encoded/decoded to several 
-frames (or the other way around).
+Thanks,
+Sylwester
 
-> > 4) If frames are skipped, should the sequence counter skip as well? In my
-> > opinion it shouldn't.
-> 
-> Do you mean skipping incrementing the counter, or skipping the frame number?
-> :-) In my opinion the sequence number must be increased in this case. Not
-> doing so would make it difficult to figure out frames have been skipped in
-> the first place. That may be important in some cases. I can't think of any
-> adverse effects this could result; the OMAP 3 ISP driver does so, for
-> example.
+[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg43530.html
+---
+ include/media/v4l2-subdev.h | 42 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
 
-I agree, I think the sequence counter should be incremented for skipped 
-frames. Not all drivers can detect frame skips though, or how many frames are 
-skipped.
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 28067ed..f5d8441 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -21,6 +21,7 @@
+ #ifndef _V4L2_SUBDEV_H
+ #define _V4L2_SUBDEV_H
 
-> On the side of additional positive effects, consider the following quite
-> realistic scenario: A frame is skipped on a single buffer queue of a device
-> producing two streams of the same source, e.g. a sensor, whereas no frame is
-> skipped on the second video buffer queue. Not incrementing the sequence
-> would make the sequence numbers out-of-sync, and the situation would even
-> be difficult to detect from the user space --- frame sequence numbers are
-> important in associating buffers from different streams to the same
-> original captured image.
-> 
-> > 5) Should the sequence counter always be monotonically increasing? I think
-> > it should.
-> 
-> With the exception of the above, in my opinion yes. I.e. you're not supposed
-> to have a decrease in field_count until it wraps around.
-> 
-> > Open questions with regards to the timestamp field:
-> > 
-> > 6) For output devices the timestamp field can be used to determine when to
-> > transmit the frame. In practice there are no output drivers that support
-> > this. It is also unclear how this would work: if the timestamp is 1 hour
-> > into the future, should the driver hold on to that frame for one hour? If
-> > another frame is queued with a timestamp that's earlier than the previous
-> > frame, should that frame be output first?
-> > 
-> > I am inclined to drop this behavior from the spec. Should we get drivers
-> > that actually implement this, then we need to clarify the spec and add a
-> > new capability flag somewhere to tell userspace that you can actually use
-> > the timestamp for this purpose.
-> > 
-> > 7) Should the timestamp field always be monotonically increasing? Or it is
-> > possible to get timestamps that jump around? This makes sense for encoders
-> > that create B-frames referring to frames captured earlier than an I-frame.
-> 
-> And for decoders that need to hold a key frame longer than others. (Or to
-> save system memory resources, return it to the user space with the proposed
-> READ_ONLY flag not agreed on yet.)
++#include <linux/types.h>
+ #include <linux/v4l2-subdev.h>
+ #include <media/media-entity.h>
+ #include <media/v4l2-common.h>
+@@ -45,6 +46,7 @@ struct v4l2_fh;
+ struct v4l2_subdev;
+ struct v4l2_subdev_fh;
+ struct tuner_setup;
++struct v4l2_mbus_frame_desc;
 
--- 
-Regards,
+ /* decode_vbi_line */
+ struct v4l2_decode_vbi_line {
+@@ -226,6 +228,36 @@ struct v4l2_subdev_audio_ops {
+ 	int (*s_stream)(struct v4l2_subdev *sd, int enable);
+ };
 
-Laurent Pinchart
++/* Indicates the @length field specifies maximum data length. */
++#define V4L2_MBUS_FRAME_DESC_FL_LEN_MAX		(1U << 0)
++/* Indicates user defined data format, i.e. non standard frame format. */
++#define V4L2_MBUS_FRAME_DESC_FL_BLOB		(1U << 1)
++
++/**
++ * struct v4l2_mbus_frame_desc_entry - media bus frame description structure
++ * @flags: V4L2_MBUS_FRAME_DESC_FL_* flags
++ * @pixelcode: media bus pixel code, valid if FRAME_DESC_FL_BLOB is not set
++ * @length: number of octets per frame, valid for compressed or unspecified
++ *          formats
++ */
++struct v4l2_mbus_frame_desc_entry {
++	u16 flags;
++	u32 pixelcode;
++	u32 length;
++};
++
++#define V4L2_FRAME_DESC_ENTRY_MAX	4
++
++/**
++ * struct v4l2_mbus_frame_desc - media bus data frame description
++ * @entry: frame descriptors array
++ * @num_entries: number of entries in @entry array
++ */
++struct v4l2_mbus_frame_desc {
++	struct v4l2_mbus_frame_desc_entry entry[V4L2_FRAME_DESC_ENTRY_MAX];
++	unsigned short num_entries;
++};
++
+ /*
+    s_std_output: set v4l2_std_id for video OUTPUT devices. This is ignored by
+ 	video input devices.
+@@ -461,6 +493,12 @@ struct v4l2_subdev_ir_ops {
+ 				struct v4l2_subdev_ir_parameters *params);
+ };
+
++/**
++ * struct v4l2_subdev_pad_ops - v4l2-subdev pad level operations
++ * @get_frame_desc: get the current low level media bus frame parameters.
++ * @get_frame_desc: set the low level media bus frame parameters, @fd array
++ *                  may be adjusted by the subdev driver to device capabilities.
++ */
+ struct v4l2_subdev_pad_ops {
+ 	int (*enum_mbus_code)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 			      struct v4l2_subdev_mbus_code_enum *code);
+@@ -489,6 +527,10 @@ struct v4l2_subdev_pad_ops {
+ 			     struct v4l2_subdev_format *source_fmt,
+ 			     struct v4l2_subdev_format *sink_fmt);
+ #endif /* CONFIG_MEDIA_CONTROLLER */
++	int (*get_frame_desc)(struct v4l2_subdev *sd, unsigned int pad,
++			      struct v4l2_mbus_frame_desc *fd);
++	int (*set_frame_desc)(struct v4l2_subdev *sd, unsigned int pad,
++			      struct v4l2_mbus_frame_desc *fd);
+ };
+
+ struct v4l2_subdev_ops {
+--
+1.7.11.3
 
