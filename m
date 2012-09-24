@@ -1,112 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1657 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754050Ab2IWTfV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 15:35:21 -0400
-Message-ID: <505F6461.8090401@redhat.com>
-Date: Sun, 23 Sep 2012 16:34:57 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:43093 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752183Ab2IXEtl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Sep 2012 00:49:41 -0400
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: Fwd: [PATCH 2/14] drivers/media/platform/soc_camera/mx2_camera.c:
- fix error return code
-References: <1346945041-26676-12-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1346945041-26676-12-git-send-email-peter.senna@gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------020800040104010701040105"
+In-Reply-To: <505F27B1.4000600@iki.fi>
+References: <1347626804-5703-1-git-send-email-prabhakar.lad@ti.com> <505F27B1.4000600@iki.fi>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 24 Sep 2012 10:19:20 +0530
+Message-ID: <CA+V-a8s8dhtTAmCaWNLTAMudFfei-7QH3yQD6G9qVsf9UNYoLw@mail.gmail.com>
+Subject: Re: [PATCH 00/14] Media Controller capture driver for DM365
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------020800040104010701040105
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Hi Sakari,
 
-Please review,
+On Sun, Sep 23, 2012 at 8:46 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Prabhakar,
+>
+>
+> Prabhakar Lad wrote:
+>>
+>> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+>>
+>> This patch set adds media controller based capture driver for
+>> DM365.
+>
+>
+> Thanks for the set. Do you happen to have an updated version of the same
+> documentation you posted to the list a while ago?
+>
+Yes I have included the documentation patch in same series.
+'Documentation/video4linux/davinci-vpfe-mc.txt' is the one
+which contains the documentation.
 
 Regards,
-Mauro.
+--Prabhakar Lad
 
-
--------- Mensagem original --------
-Assunto: [PATCH 2/14] drivers/media/platform/soc_camera/mx2_camera.c: fix error return code
-Data: Thu,  6 Sep 2012 17:23:59 +0200
-De: Peter Senna Tschudin <peter.senna@gmail.com>
-Para: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr, linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-
-Convert a nonnegative error return code to a negative one, as returned
-elsewhere in the function.
-
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-(
-if@p1 (\(ret < 0\|ret != 0\))
- { ... return ret; }
-|
-ret@p1 = 0
-)
-... when != ret = e1
-    when != &ret
-*if(...)
-{
-  ... when != ret = e2
-      when forall
- return ret;
-}
-
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-
----
- drivers/media/platform/soc_camera/mx2_camera.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-index 256187f..f8884a7 100644
---- a/drivers/media/platform/soc_camera/mx2_camera.c
-+++ b/drivers/media/platform/soc_camera/mx2_camera.c
-@@ -1800,13 +1800,16 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 
- 		if (!res_emma || !irq_emma) {
- 			dev_err(&pdev->dev, "no EMMA resources\n");
-+			err = -ENODEV;
- 			goto exit_free_irq;
- 		}
- 
- 		pcdev->res_emma = res_emma;
- 		pcdev->irq_emma = irq_emma;
--		if (mx27_camera_emma_init(pcdev))
-+		if (mx27_camera_emma_init(pcdev)) {
-+			err = -ENODEV;
- 			goto exit_free_irq;
-+		}
- 	}
- 
- 	pcdev->soc_host.drv_name	= MX2_CAM_DRV_NAME,
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
---------------020800040104010701040105
-Content-Type: text/plain; charset=UTF-8;
- name="=?ISO-8859-1?Q?Se=E7=E3o_da_mensagem_anexada?="
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename*0*=ISO-8859-1''%53%65%E7%E3%6F%20%64%61%20%6D%65%6E%73%61%67%65;
- filename*1*=%6D%20%61%6E%65%78%61%64%61
-
-
---------------020800040104010701040105--
+> Kind regards,
+>
+> --
+> Sakari Ailus
+> sakari.ailus@iki.fi
