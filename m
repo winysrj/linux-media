@@ -1,55 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43818 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757225Ab2IRMWv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 08:22:51 -0400
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>, <julia.lawall@lip6.fr>,
-	Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCHv4 1/6] media: Convert struct i2c_msg initialization to C99 format
-Date: Tue, 18 Sep 2012 17:52:31 +0530
-Message-ID: <1347970956-11158-2-git-send-email-shubhrajyoti@ti.com>
-In-Reply-To: <1347970956-11158-1-git-send-email-shubhrajyoti@ti.com>
-References: <1347970956-11158-1-git-send-email-shubhrajyoti@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:54440 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753143Ab2IXOas (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Sep 2012 10:30:48 -0400
+Received: by bkcjk13 with SMTP id jk13so952104bkc.19
+        for <linux-media@vger.kernel.org>; Mon, 24 Sep 2012 07:30:47 -0700 (PDT)
+From: Gianluca Gennari <gennarone@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com,
+	hans.verkuil@cisco.com
+Cc: Gianluca Gennari <gennarone@gmail.com>
+Subject: [PATCH] media_build: add module_pci_driver to compat.h
+Date: Mon, 24 Sep 2012 16:30:35 +0200
+Message-Id: <1348497035-28470-1-git-send-email-gennarone@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert the struct i2c_msg initialization to C99 format. This makes
-maintaining and editing the code simpler. Also helps once other fields
-like transferred are added in future.
+This patch corrects this warnings on a Ubuntu 10.04 system with kernel 2.6.32-43:
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+bt87x.c:972: warning: data definition has no type or storage class
+bt87x.c:972: warning: type defaults to 'int' in declaration of 'module_pci_driver'
+bt87x.c:972: warning: parameter names (without types) in function declaration
+bt87x.c:965: warning: 'bt87x_driver' defined but not used
+core.c:321: warning: data definition has no type or storage class
+core.c:321: warning: type defaults to 'int' in declaration of 'module_pci_driver'
+core.c:321: warning: parameter names (without types) in function declaration
+core.c:314: warning: 'solo_pci_driver' defined but not used
+
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
 ---
- drivers/media/i2c/ks0127.c |   13 +++++++++++--
- 1 files changed, 11 insertions(+), 2 deletions(-)
+ v4l/compat.h |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/i2c/ks0127.c b/drivers/media/i2c/ks0127.c
-index ee7ca2d..04a6efa 100644
---- a/drivers/media/i2c/ks0127.c
-+++ b/drivers/media/i2c/ks0127.c
-@@ -319,8 +319,17 @@ static u8 ks0127_read(struct v4l2_subdev *sd, u8 reg)
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	char val = 0;
- 	struct i2c_msg msgs[] = {
--		{ client->addr, 0, sizeof(reg), &reg },
--		{ client->addr, I2C_M_RD | I2C_M_NO_RD_ACK, sizeof(val), &val }
-+		{
-+			.addr = client->addr,
-+			.len = sizeof(reg),
-+			.buf = &reg
-+		},
-+		{
-+			.addr = client->addr,
-+			.flags = I2C_M_RD | I2C_M_NO_RD_ACK,
-+			.len = sizeof(val),
-+			.buf = &val
-+		}
- 	};
- 	int ret;
+diff --git a/v4l/compat.h b/v4l/compat.h
+index fdc6d4a..8d5c13a 100644
+--- a/v4l/compat.h
++++ b/v4l/compat.h
+@@ -1064,4 +1064,10 @@ static inline int usb_endpoint_maxp(const struct usb_endpoint_descriptor *epd)
+ #define printk_ratelimited printk
+ #endif
  
++#ifndef module_pci_driver
++#define module_pci_driver(__pci_driver) \
++       module_driver(__pci_driver, pci_register_driver, \
++                       pci_unregister_driver)
++#endif
++
+ #endif /*  _COMPAT_H */
 -- 
-1.7.5.4
+1.7.0.4
 
