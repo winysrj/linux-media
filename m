@@ -1,53 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:47044 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757690Ab2IJMp0 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57571 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754475Ab2IXMXn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 08:45:26 -0400
+	Mon, 24 Sep 2012 08:23:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: P Jackson <pej02@yahoo.co.uk>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: mt9t031 driver support on OMAP3 system
+Date: Mon, 24 Sep 2012 14:24:19 +0200
+Message-ID: <6813233.sAgYNN8Ius@avalon>
+In-Reply-To: <Pine.LNX.4.64.1209230001390.26787@axis700.grange>
+References: <1348335758.70304.YahooMailNeo@web28902.mail.ir2.yahoo.com> <Pine.LNX.4.64.1209230001390.26787@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <CALF0-+U_D4ipSbN=DHSdxRvE1sju-Uq0e_mTE9=QsjLOtpLe1w@mail.gmail.com>
-References: <1347112918-7738-1-git-send-email-peter.senna@gmail.com>
-	<CALF0-+U_D4ipSbN=DHSdxRvE1sju-Uq0e_mTE9=QsjLOtpLe1w@mail.gmail.com>
-Date: Mon, 10 Sep 2012 14:45:24 +0200
-Message-ID: <CA+MoWDq12HEtA4xODddMzqEOENQDgx4MzbogFe4uprm93CvvOw@mail.gmail.com>
-Subject: Re: [PATCH v2] drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c:
- fix error return code
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	kernel-janitors@vger.kernel.org, wharms@bfs.de,
-	Julia.Lawall@lip6.fr, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->
-> You're replacing kmemdup for kstrdup, which is great,
-> but that's not anywhere in the commit message.
-Sorry for that.
+Hi Pete,
 
->
-> I'm not sure if you should re-send, but you should definitely
-> try to have better commit messages in the future!
-I'll kindly ask to ignore the V2 of this patch. I'll send other patch
-to be applied after the V1. The second patch will replace kmemdup for
-kstrdup. Please ignore the patch:
-http://patchwork.linuxtv.org/patch/14237/
+On Sunday 23 September 2012 00:04:20 Guennadi Liakhovetski wrote:
+> On Sat, 22 Sep 2012, P Jackson wrote:
+> > I'm trying to incorporate an MT9T031-based sensor into a commercial
+> > small form-factor OMAP3 DM3730-based system which is supplied with
+> > sources for a 2.6.37 kernel and is somewhat out-dated.The application
+> > I'm working on requires a single image to be acquired from the sensor
+> > every once in a while which is then processed off-line by another
+> > algorithm on the OMAP3
+> > 
+> > I'd appreciate any advice from the list as to what the most suitable up
+> > to-date compatible kernel I should use would be and what other work I
+> > need to do in order to get things sorted.
+> 
+> I would certainly advise to use a current kernel (e.g., 3.5). As for
+> "how," I know, that Laurent has worked on a similar tasks, you can find
+> his posts in mailing list archives, or maybe he'll be able to advise you
+> more specifically.
 
->
-> Not to mention you're doing two things in one patch, and that makes
-> very difficult to bisect.
-This is really bad thing to do in a single patch. Sorry for that too.
-
->
-> Thanks (and sorry for the nitpick)...
-
-Thanks!
-
-> Ezequiel.
-
-
+You can have a look at 
+http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-
+sensors-board to see how I've modified the ov772x driver to make it usable 
+with the OMAP3 ISP. The patches are not upstreamable as such, I still need to 
+work on them. I've explained the issues in detail on the mailing list.
 
 -- 
-Peter
+Regards,
+
+Laurent Pinchart
+
