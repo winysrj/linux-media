@@ -1,94 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57404 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756298Ab2ICQkz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 12:40:55 -0400
-Subject: Re: [PATCH v3 07/16] media: coda: stop all queues in case of lockup
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38057 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753993Ab2IXLFF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Sep 2012 07:05:05 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
-In-Reply-To: <CACKLOr1jbotK2z4icas+1DGANGh=0xykBxXCTSGfVay6zq647A@mail.gmail.com>
-References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
-	 <1346400670-16002-8-git-send-email-p.zabel@pengutronix.de>
-	 <CACKLOr1jbotK2z4icas+1DGANGh=0xykBxXCTSGfVay6zq647A@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 03 Sep 2012 18:40:52 +0200
-Message-ID: <1346690452.2391.52.camel@pizza.hi.pengutronix.de>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: Re: Gain controls in v4l2-ctrl framework
+Date: Mon, 24 Sep 2012 13:05:41 +0200
+Message-ID: <2315690.D7OkA08Cfz@avalon>
+In-Reply-To: <505F3857.50603@iki.fi>
+References: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com> <3579105.beYuXk8XyG@avalon> <505F3857.50603@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+On Sunday 23 September 2012 19:27:03 Sakari Ailus wrote:
+> Laurent Pinchart wrote:
+> > On Sunday 23 September 2012 16:20:06 Sakari Ailus wrote:
+> >> Prabhakar Lad wrote:
+> >>> Hi All,
+> >>> 
+> >>> The CCD/Sensors have the capability to adjust the R/ye, Gr/Cy, Gb/G,
+> >>> B/Mg gain values.
+> >>> Since these control can be re-usable I am planning to add the
+> >>> following gain controls as part of the framework:
+> >>> 
+> >>> 1: V4L2_CID_GAIN_RED
+> >>> 2: V4L2_CID_GAIN_GREEN_RED
+> >>> 3: V4L2_CID_GAIN_GREEN_BLUE
+> >>> 4: V4L2_CID_GAIN_BLUE
+> >>> 5: V4L2_CID_GAIN_OFFSET
+> >>> 
+> >>> I need your opinion's to get moving to add them.
+> > 
+> > We already have a V4L2_CID_GAIN control and a V4L2_CID_CHROMA_GAIN control
+> > in the user controls class. I'd like to document how those controls and
+> > the new proposed gain controls interact. At first glance they don't
+> > interact at all, devices should not implement both, the user class gain
+> > controls are higher- level than the controls you proposed - this should
+> > still be documented though, to make sure driver and application authors
+> > will not get confused.
+> > 
+> > A couple of quick questions about the new controls. Do we also need a
+> > common gain controls for monochrome sensors ? Is the offset always common
+> > for the 4
+>
+> I think we should have a common gain control for sensors in general,
+> whether monochrome or not. Many sensors support global digital gain,
+> either only or besides the per-channel gains.
 
-Am Montag, den 03.09.2012, 14:01 +0200 schrieb javier Martin:
-> Hi Philipp,
-> 
-> On 31 August 2012 10:11, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> > Add a 1 second timeout for each PIC_RUN command to the CODA. In
-> > case it locks up, stop all queues and dequeue remaining buffers.
-> >
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> > Changes since v2:
-> >  - Call cancel_delayed_work in coda_stop_streaming instead of coda_irq_handler.
-> > ---
-> >  drivers/media/platform/coda.c |   21 +++++++++++++++++++++
-> >  1 file changed, 21 insertions(+)
-> >
-> > diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> > index 7bc2d87..6e3f026 100644
-> > --- a/drivers/media/platform/coda.c
-> > +++ b/drivers/media/platform/coda.c
-> > @@ -137,6 +137,7 @@ struct coda_dev {
-> >         struct vb2_alloc_ctx    *alloc_ctx;
-> >         struct list_head        instances;
-> >         unsigned long           instance_mask;
-> > +       struct delayed_work     timeout;
-> >  };
-> >
-> >  struct coda_params {
-> > @@ -723,6 +724,9 @@ static void coda_device_run(void *m2m_priv)
-> >                                 CODA7_REG_BIT_AXI_SRAM_USE);
-> >         }
-> >
-> > +       /* 1 second timeout in case CODA locks up */
-> > +       schedule_delayed_work(&dev->timeout, HZ);
-> > +
-> >         coda_command_async(ctx, CODA_COMMAND_PIC_RUN);
-> >  }
-> >
-> > @@ -1221,6 +1225,8 @@ static int coda_stop_streaming(struct vb2_queue *q)
-> >         }
-> >
-> >         if (!ctx->rawstreamon && !ctx->compstreamon) {
-> > +               cancel_delayed_work(&dev->timeout);
-> > +
-> 
-> This breaks compilation. There is no such variable 'dev' in this
-> function at this time.
-> I see you add it later in patch 9 but I think we should avoid breaking
-> bisect as long as possible.
-> 
->   CC      drivers/media/video/coda.o
-> drivers/media/video/coda.c: In function 'coda_stop_streaming':
-> drivers/media/video/coda.c:1227: error: 'dev' undeclared (first use in
-> this function)
-> drivers/media/video/coda.c:1227: error: (Each undeclared identifier is
-> reported only once
-> drivers/media/video/coda.c:1227: error: for each function it appears in.)
-> 
-> Could you please add it in this patch instead?
+Agreed. The documentation should clearly state that drivers must not implement 
+the common gain control as a shortcut to set all color gains to the same 
+value.
 
-Thank you, I'll fix this next round.
+-- 
+Regards,
 
-regards
-Philipp
-
+Laurent Pinchart
 
