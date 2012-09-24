@@ -1,65 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1322 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751014Ab2ITMHR (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60499 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753845Ab2IXK77 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 08:07:17 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
+	Mon, 24 Sep 2012 06:59:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans de Goede <hdegoede@redhat.com>
 Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>
-Subject: [RFCv2 PATCH 00/14] davinci: clean up input/output/subdev config
-Date: Thu, 20 Sep 2012 14:06:19 +0200
-Message-Id: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: Re: Gain controls in v4l2-ctrl framework
+Date: Mon, 24 Sep 2012 13:00:34 +0200
+Message-ID: <1440297.PvW0ZMD1YU@avalon>
+In-Reply-To: <50603C39.9060105@redhat.com>
+References: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com> <50603C39.9060105@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Hi Hans,
 
-This is the second patch series for a vpif driver cleanup.
+On Monday 24 September 2012 12:55:53 Hans de Goede wrote:
+> On 09/23/2012 01:26 PM, Prabhakar Lad wrote:
+> > Hi All,
+> > 
+> > The CCD/Sensors have the capability to adjust the R/ye, Gr/Cy, Gb/G,
+> > B/Mg gain values.
+> > Since these control can be re-usable I am planning to add the
+> > following gain controls as part of the framework:
+> > 
+> > 1: V4L2_CID_GAIN_RED
+> > 2: V4L2_CID_GAIN_GREEN_RED
+> > 3: V4L2_CID_GAIN_GREEN_BLUE
+> 
+> Not all sensors have separate V4L2_CID_GAIN_GREEN_RED /
+> V4L2_CID_GAIN_GREEN_BLUE, so we will need a separate control for sensors
+> which have one combined gain called simply V4L2_CID_GAIN_GREEN
+> 
+> Also do we really need separate V4L2_CID_GAIN_GREEN_RED /
+> V4L2_CID_GAIN_GREEN_BLUE controls? I know hardware has them, but in my
+> experience that is only done as it is simpler to make the hardware this way
+> (fully symmetric sensor grid), have you ever tried actually using different
+> gain settings for the 2 different green rows ?
+> 
+> I've and that always results in an ugly checker board pattern. So I think we
+> can and should only have a V4L2_CID_GAIN_GREEN, and for sensors with 2
+> green gains have that control both, forcing both to always have the same
+> setting, which is really what you want anyways ...
 
-The first version can be found here:
+I've never had to set different gains for the two green components either, 
+although I haven't done much with them.
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg52136.html
+> > 4: V4L2_CID_GAIN_BLUE
+> > 5: V4L2_CID_GAIN_OFFSET
+> 
+> GAIN_OFFSET that sounds a bit weird... GAIN_OFFSET sounds like it is
+> a number which gets added to the 3/4 gain settings before the gain gets
+> applied, but I assume that you just mean a number which gets added to the
+> value from the pixel, either before or after the gain is applied and I must
+> admit I cannot come up with a better name.
+> 
+> I believe (not sure) that some sensors have these per color ...
 
-Changes since RFCv1:
+Some might at least.
 
-- rebased to a newer git repo:
-  http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git/shortlog/refs/heads/da850_vpif_machine
+> The question is if it makes sense to actually control this per color though,
+> I don't think it does as it is meant to compensate for any fixed measuring
+> errors, which are the same for all 3/4 colors.
 
-- fixed probe() cleanup code in both display and capture that was seriously
-  broken.
+The offset is usually applied after the gain, so you might need different 
+offsets to compensate for a fixed error that is multiplied by different gains.
 
-- fixed a broken s_routing implementation in the tvp514x driver: if there
-  is no incoming video signal, then s_routing would return EINVAL and
-  leave the driver with an inconsistent internal state. This has always
-  been a problem, but with this patch series it suddenly became really
-  noticable. s_routing shouldn't try to wait for a valid signal, that's
-  not what s_routing should do.
+> Note that all the sensor cells are exactly the same, later on a color grid
+> gets added on top of the sensors to turn them into r/g/b cells, but
+> physically they are the same cells, so with the same process and temperature
+> caused measuring errors...
 
-This patch series does some driver cleanup and reorganizes the config
-structs that are used to set up subdevices.
-
-The current driver associates an input or output with a subdev, but multiple
-inputs may use the same subdev and some inputs may not use a subdev at all
-(this is the case for our hardware).
-
-Several other things were also configured in the wrong structure. For
-example the vpif_interface struct is really part of the channel config
-and has nothing to do with the subdev.
-
-What is missing here is that the output doesn't have the same flexibility
-as the input when it comes to configuration. It would be good if someone
-can pick this up as a follow-up since it's unlikely I'll be working on
-that.
-
-What would also be nice is that by leaving the inputs or outputs for the
-second channel empty (NULL) in the configuration you can disable the second
-video node, e.g. trying to use it will always result in ENODEV or something.
-
-This patch series will at least make things more flexible.
-
+-- 
 Regards,
 
-        Hans
+Laurent Pinchart
 
