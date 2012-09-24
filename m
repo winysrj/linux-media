@@ -1,68 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:59853 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756746Ab2IRIqW (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:33857 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755274Ab2IXIwH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 04:46:22 -0400
-Subject: [GIT PULL v2] Initial i.MX5/CODA7 support for the CODA driver
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Ezequiel =?ISO-8859-1?Q?Garc=EDa?= <elezegarcia@gmail.com>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 18 Sep 2012 10:46:18 +0200
-Message-ID: <1347957978.2529.4.camel@pizza.hi.pengutronix.de>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 24 Sep 2012 04:52:07 -0400
+Received: from eusync2.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MAU00HIAJBMXG90@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 24 Sep 2012 09:52:34 +0100 (BST)
+Received: from [106.116.147.108] by eusync2.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MAU00E2OJARYW10@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 24 Sep 2012 09:52:04 +0100 (BST)
+Message-id: <50601F32.5080700@samsung.com>
+Date: Mon, 24 Sep 2012 10:52:02 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	mchehab@infradead.org, patches@linaro.org
+Subject: Re: [PATCH] [media] s5p-tv: Fix potential NULL pointer dereference
+ error
+References: <1348299559-20952-1-git-send-email-sachin.kamat@linaro.org>
+In-reply-to: <1348299559-20952-1-git-send-email-sachin.kamat@linaro.org>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 09/22/2012 09:39 AM, Sachin Kamat wrote:
+> When mdev is NULL, the error print statement will try to dereference
+> the NULL pointer.
+> 
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> ---
+>  drivers/media/platform/s5p-tv/mixer_drv.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-tv/mixer_drv.c b/drivers/media/platform/s5p-tv/mixer_drv.c
+> index a15ca05..ca0f297 100644
+> --- a/drivers/media/platform/s5p-tv/mixer_drv.c
+> +++ b/drivers/media/platform/s5p-tv/mixer_drv.c
+> @@ -384,7 +384,7 @@ static int __devinit mxr_probe(struct platform_device *pdev)
+>  
+>  	mdev = kzalloc(sizeof *mdev, GFP_KERNEL);
+>  	if (!mdev) {
+> -		mxr_err(mdev, "not enough memory.\n");
+> +		dev_err(dev, "not enough memory.\n");
+>  		ret = -ENOMEM;
+>  		goto fail;
+>  	}
+> 
 
-please pull the following patches that fix a few issues in the coda
-driver and add initial firmware loading and encoding support for the
-CODA7 series VPU contained in i.MX51 and i.MX53 SoCs.
-I have dropped Ezequiel's vb2_queue_init commit and rebased onto current
-linux-media staging/for_v3.7.
-
-
-The following changes since commit 36aee5ff9098a871bda38dbbdad40ad59f6535cf:
-
-  [media] ir-rx51: Adjust dependencies (2012-09-15 19:44:30 -0300)
-
-are available in the git repository at:
-
-  git://git.pengutronix.de/git/pza/linux.git coda/for_v3.7
-
-for you to fetch changes up to 64a01774162824f4a39d67ee2a4913d5ea2c651e:
-
-  media: coda: set up buffers to be sized as negotiated with s_fmt (2012-09-18 10:34:45 +0200)
-
-----------------------------------------------------------------
-Philipp Zabel (13):
-      media: coda: firmware loading for 64-bit AXI bus width
-      media: coda: add i.MX53 / CODA7541 platform support
-      media: coda: fix IRAM/AXI handling for i.MX53
-      media: coda: allocate internal framebuffers separately from v4l2 buffers
-      media: coda: ignore coda busy status in coda_job_ready
-      media: coda: keep track of active instances
-      media: coda: stop all queues in case of lockup
-      media: coda: enable user pointer support
-      media: coda: wait for picture run completion in start/stop_streaming
-      media: coda: fix sizeimage setting in try_fmt
-      media: coda: add horizontal / vertical flipping support
-      media: coda: add byte size slice limit control
-      media: coda: set up buffers to be sized as negotiated with s_fmt
-
-Sylwester Nawrocki (1):
-      coda: Add V4L2_CAP_VIDEO_M2M capability flag
-
- drivers/media/platform/Kconfig |    3 +-
- drivers/media/platform/coda.c  |  431 +++++++++++++++++++++++++++++-----------
- drivers/media/platform/coda.h  |   30 ++-
- 3 files changed, 344 insertions(+), 120 deletions(-)
-
-
+Acked-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
