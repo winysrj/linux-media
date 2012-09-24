@@ -1,68 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:52628 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752927Ab2ITG6y (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4940 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755325Ab2IXIcM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 02:58:54 -0400
-Date: Thu, 20 Sep 2012 08:58:48 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] media: sh-vou: fix compilation breakage
-Message-ID: <Pine.LNX.4.64.1209200856260.25540@axis700.grange>
+	Mon, 24 Sep 2012 04:32:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC] Timestamps and V4L2
+Date: Mon, 24 Sep 2012 10:30:49 +0200
+Cc: linux-media@vger.kernel.org, remi@remlab.net, daniel-gl@gmx.net,
+	sylwester.nawrocki@gmail.com, laurent.pinchart@ideasonboard.com
+References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <201209231118.45904.hverkuil@xs4all.nl> <505F098C.9060405@iki.fi>
+In-Reply-To: <505F098C.9060405@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209241030.49333.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A recent commit
+On Sun September 23 2012 15:07:24 Sakari Ailus wrote:
+> Hi Hans,
+> 
+> Hans Verkuil wrote:
+> > On Sat September 22 2012 14:38:07 Sakari Ailus wrote:
+> >> Hi Hans,
+> >>
+> >> Thanks for the comments.
+> >>
+> >> Hans Verkuil wrote:
+> >>> On Thu September 20 2012 22:21:22 Sakari Ailus wrote:
+> ...
+> >>>>
+> >>>> Capability flag for monotonic timestamps
+> >>>> ----------------------------------------
+> >>>>
+> >>>> A capability flag can be used to tell whether the timestamp is monotonic.
+> >>>> However, it's not extensible cleanly to provide selectable timestamps. These
+> >>>> are not features that are needed right now, though.
+> >>>>
+> >>>> The upside of this option is ease of implementation and use, but it's not
+> >>>> extensible. Also we're left with a flag that's set for all drivers: in the
+> >>>> end it provides no information to the user and is only noise in the spec.
+> >>>>
+> >>>>
+> >>>> Control for timestamp type
+> >>>> --------------------------
+> >>>>
+> >>>> Using a control to tell the type of the timestamp is extensible but not as
+> >>>> easy to implement than the capability flag: each and every device would get
+> >>>> an additional control. The value should likely be also file handle specific,
+> >>>> and we do not have file handle specific controls yet.
+> >>>
+> >>> Yes, we do. You can make per-file handle controls. M2M devices need that.
+> >>
+> >> Thanks for correcting me.
+> >>
+> >>> I'm not sure why this would be filehandle specific, BTW.
+> >>
+> >> Good point. I thought that as other properties of the buffers are
+> >> specific to file handles, including format when using CREATE_BUFS, it'd
+> >> make sense to make the timestamp source file-handle specific as well.
+> >>
+> >> What do you think?
+> >
+> > I don't think it makes sense to have different streams from the same device
+> > use different clocks.
+> >
+> >>>> In the meantime the control could be read-only, and later made read-write
+> >>>> when the timestamp type can be made selectable. Much of he work of
+> >>>> timestamping can be done by the framework: drivers can use a single helper
+> >>>> function and need to create one extra standard control.
+> >>>>
+> >>>> Should the control also have an effect on the types of the timestamps in
+> >>>> V4L2 events? Likely yes.
+> >>>
+> >>> You are missing one other option:
+> >>>
+> >>> Using v4l2_buffer flags to report the clock
+> >>> -------------------------------------------
+> >>>
+> >>> By defining flags like this:
+> >>>
+> >>> V4L2_BUF_FLAG_CLOCK_MASK	0x7000
+> >>> /* Possible Clocks */
+> >>> V4L2_BUF_FLAG_CLOCK_UNKNOWN	0x0000  /* system or monotonic, we don't know */
+> >>> V4L2_BUF_FLAG_CLOCK_MONOTONIC   0x1000
+> >>>
+> >>> you could tell the application which clock is used.
+> >>>
+> >>> This does allow for more clocks to be added in the future and clock selection
+> >>> would then be done by a control or possibly an ioctl. For now there are no
+> >>> plans to do such things, so this flag should be sufficient. And it can be
+> >>> implemented very efficiently. It works with existing drivers as well, since
+> >>> they will report CLOCK_UNKNOWN.
+> >>>
+> >>> I am very much in favor of this approach.
+> >>
+> >> Thanks for adding this. I knew I was forgetting something but didn't
+> >> remember what --- I swear it was unintentional! :-)
+> >>
+> >> If we'd add more clocks without providing an ability to choose the clock
+> >> from the user space, how would the clock be selected? It certainly isn't
+> >> the driver's job, nor I think it should be system-specific either
+> >> (platform data on embedded systems).
+> >
+> > IF a driver supports more than one clock (which I really don't see happening
+> > anytime soon), then we either need a control to select the clock or an ioctl.
+> 
+> The timestamps can be taken from any standard clock using a helper 
+> function. Right now drivers call do_gettimeofday() or ktime_get_ts(), 
+> it's the same whether the function was called e.g. v4l2_get_ts(). The 
+> driver doesn't even need to know which timer is being used to make that 
+> timestamp. It used to be the realtime clock and soon it's the monotonic 
+> clock. So I really don't see why the timestamp source should depend on 
+> the driver. It rather depends on what the user wants.
+> 
+> That said, I also don't see use for other clocks _right now_ than the 
+> monotonic one.
+> 
+> > And something as well to enumerate the available clocks. I'm leaning towards
+> > ioctls, but I think this should be decided if we ever get an actual use-case
+> > for this.
+> 
+> I think it should be a control --- I see no reason to add new IOCTLs 
+> when controls are equally, or even better, fit for the same job. But 
+> let's decide this only when the functionality is needed.
 
-commit f135a8a224294fa0f60ec1b8bc120813b7cfc804
-Author: Hans Verkuil <hans.verkuil@cisco.com>
-Date:   Sun Jun 24 06:33:26 2012 -0300
+Yes, please. I think it is premature to talk about how to select a clock,
+since I doubt we will ever need it. We just need a way to tell the app which
+clock is being used (which in practice is either UNKNOWN or MONOTONIC), and
+keep the option of adding other clocks open.
 
-    [media] sh_vou: remove V4L2_FL_LOCK_ALL_FOPS
+For M2M devices it is possible to select different clocks per-filehandle,
+so that precludes having a QUERYCAP capability (that was a good point that
+Sylwester made). Adding a clock mask to the buffer flags does exactly what
+we need IMHO.
 
-broke compilation of sh_vou.c:
+> >> It's up to the application and its needs. That would suggest we should
+> >> always provide monotonic timestamps to applications (besides a potential
+> >> driver-specific timestamp), and for that purpose the capability flag ---
+> >> I admit I disliked the idea at first --- is enough.
+> >>
+> >> What comes to buffer flags, the application would also have to receive
+> >> the first buffer from the device to even know what kind of timestamps
+> >> the device uses, or at least call QUERYBUF. And in principle the flag
+> >> should be checked on every buffer, unless we also specify the flag is
+> >> the same for all buffers. And at certain point this will stop to make
+> >> any sense...
+> >
+> > It should definitely be the same for all buffers. And since apps will
+> > typically call querybuf anyway I don't see this as a problem. These
+> > clocks are also specific to the streaming I/O API, so reporting this as
+> > part of that API makes sense to me as well.
+>  >
+> >> A capability flag is cleaner solution from this perspective, and it can
+> >> be amended by a control (or an ioctl) later on: the flag can be
+> >> disregarded by applications whenever the control is present.
+> >
+> > Yuck.
+> 
+> What's so bad in it then? The user doesn't need to start dealing with 
+> buffers whenever (s)he needs to know what kind of timestamps the device 
+> provides.
+> 
+> Timestamps are also used on the event interface (and also on subdevs), 
+> which currently uses monotonic timestamps (at least it was intended to 
+> do so, it's missing from the documentation). The timestamps on V4L2 and 
+> V4L2 subdev must match to be useful for the application, so we should 
+> not allow using other clock than monotonic before we truly make the 
+> timestamp source selectable by the application.
+> 
+> A flash subdev, for example, could produce events while the driver 
+> producing timestamps for the video buffers doesn't know the type of the 
+> timestamp used by the flash driver. One still must be able to compare 
+> the two in the user space to make use of them.
+> 
+> I'm ok-ish with using video buffer flags to tell the type of the 
+> timestamp, but those flags might not be useful (like the capability 
+> flag) if the timestamp source is made selectable. What I still don't 
+> like is that you have to start dealing with buffers before you know what 
+> kind of timestamps you're getting.
 
-drivers/media/platform/sh_vou.c: In function 'sh_vou_mmap':
-drivers/media/platform/sh_vou.c:1227: error: 'vdev' undeclared (first use in this function)
-drivers/media/platform/sh_vou.c:1227: error: (Each undeclared identifier is reported only once
-drivers/media/platform/sh_vou.c:1227: error: for each function it appears in.)
-drivers/media/platform/sh_vou.c: In function 'sh_vou_poll':
-drivers/media/platform/sh_vou.c:1242: error: 'vdev' undeclared (first use in this function)
-make[2]: *** [drivers/media/platform/sh_vou.o] Error 1
+If in the future we want to be able to select clock sources, then that
+will automatically also provide a way of querying the current clock source
+outside of the buffer flags. In the meantime, having the clock source as
+part of the buffer flags solves the current problem with a minimum of fuss,
+and even allows for switching clock sources on the fly should we ever want
+that (highly unlikely, I admit).
 
-Add missing variable definitions.
+> I'd like to have Laurent's and Remi's opinion before proceeding to the 
+> implementation.
+> 
+> ...
+> 
+> >>>> Device-dependent timestamp
+> >>>> --------------------------
+> >>>>
+> >>>> Should we agree on selectable timestamps, the existing timestamp field (or a
+> >>>> union with another field of different type) could be used for the
+> >>>> device-dependent timestamps.
+> >>>
+> >>> No. Device timestamps should get their own field. You want to be able to relate
+> >>> device timestamps with the monotonic timestamps, so you need both.
+> >>>
+> >>>> Alternatively we can choose to re-use the
+> >>>> existing timecode field.
+> >>>>
+> >>>> At the moment there's no known use case for passing device-dependent
+> >>>> timestamps at the same time with monotonic timestamps.
+> >>>
+> >>> Well, the use case is there, but there is no driver support. The device
+> >>> timestamps should be 64 bits to accomodate things like PTS and DTS from
+> >>> MPEG streams. Since timecode is 128 bits we might want to use two u64 fields
+> >>> or perhaps 4 u32 fields.
+> >>
+> >> That should be an union for different kinds (or rather types) of
+> >> device-dependent timestamps. On uvcvideo I think this is u32, not u64.
+> >> We should be also able to tell what kind device dependent timestamp
+> >> there is --- should buffer flags be used for that as well?
+> >
+> > That's definitely part of the buffer flags. The presence of timecode is already
+> > signalled using that. And not every buffer may have device timestamps (that
+> > depends on the hardware), so you have to signal it through the buffer flags.
+> >
+> > An anonymous union might be best with the buffer flags signalling the type of
+> > the union. What I don't know is how to specify the type. Shall we just specify
+> > the type of the union (e.g. 4 u32 fields or 2 u64 fields) and leave the
+> > interpretation of those fields up to the application based on the driver name?
+> > Or shall the type act more like a fourcc in that it also uniquely identifies
+> > the interpretation of the timestamps?
+> 
+> I think it should uniquely identify it, at least if the MPEG timestamps 
+> produced by some devices are relevant for video buffers. In this case it 
+> wouldn't make much sense for the applications having to know what are 
+> the drivers producing such timestamps. And this might not be the only 
+> case like that.
+> 
+> > Or should all device timestamps be converted to a timespec by the driver?
+> 
+> Good question.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+I'm leaning towards this, actually. What's the point of a device timestamp if
+you don't know what the units are? And if you do, then you can convert it.
 
-This is a fix for 3.7
+> 
+> > Answers on a postcard.
+> 
+> Who are you going to send it? ;-)
 
- drivers/media/platform/sh_vou.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+What's your address? :-)
 
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index 9f62fd8..7f8b792 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -1224,6 +1224,7 @@ static int sh_vou_release(struct file *file)
- 
- static int sh_vou_mmap(struct file *file, struct vm_area_struct *vma)
- {
-+	struct video_device *vdev = video_devdata(file);
- 	struct sh_vou_device *vou_dev = video_get_drvdata(vdev);
- 	struct sh_vou_file *vou_file = file->private_data;
- 	int ret;
-@@ -1239,6 +1240,7 @@ static int sh_vou_mmap(struct file *file, struct vm_area_struct *vma)
- 
- static unsigned int sh_vou_poll(struct file *file, poll_table *wait)
- {
-+	struct video_device *vdev = video_devdata(file);
- 	struct sh_vou_device *vou_dev = video_get_drvdata(vdev);
- 	struct sh_vou_file *vou_file = file->private_data;
- 	unsigned int res;
--- 
-1.7.2.5
+Regards,
 
+	Hans
