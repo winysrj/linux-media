@@ -1,60 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41806 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:40536 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752153Ab2ISIVV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Sep 2012 04:21:21 -0400
-Message-ID: <5059807C.4050809@redhat.com>
-Date: Wed, 19 Sep 2012 05:21:16 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1754289Ab2IXL4N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Sep 2012 07:56:13 -0400
+Message-ID: <50604A48.7050900@iki.fi>
+Date: Mon, 24 Sep 2012 14:55:52 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: media-workshop@linuxtv.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [media-workshop] [ANNOUNCE] media workshop in November
-References: <50597E1F.2010503@redhat.com>
-In-Reply-To: <50597E1F.2010503@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Gianluca Gennari <gennarone@gmail.com>
+CC: linux-media@vger.kernel.org, mchehab@redhat.com
+Subject: Re: [PATCH 3/3] fc2580: use macro for 64 bit division and reminder
+References: <1348486638-31169-1-git-send-email-gennarone@gmail.com> <1348486638-31169-4-git-send-email-gennarone@gmail.com>
+In-Reply-To: <1348486638-31169-4-git-send-email-gennarone@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 19-09-2012 05:11, Mauro Carvalho Chehab escreveu:
-> Dear developers,
-> 
-> We're feeling the need for one more media workshop this year.
-> 
-> As there will be already several developers going to LinuxCon Europe and
-> Embedded Linux Conference Europe, we'll be co-locating the workshop together
-> with those two events.
-> 
-> As there will be several developers speaking about the media subsystem at
-> both LinuxCon and ELCE, we decided to take just one day (September, 8th)
+On 09/24/2012 02:37 PM, Gianluca Gennari wrote:
+> Fixes the following warnings on a 32 bit system with GCC 4.4.3 and kernel Ubuntu 2.6.32-43 32 bit:
+>
+> WARNING: "__udivdi3" [fc2580.ko] undefined!
+> WARNING: "__umoddi3" [fc2580.ko] undefined!
+>
+> Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
 
-Sorry, I meant November, 8th.
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-> for the media workshop (while we expect that we'll likely have some other
-> discussions during the week).
-> 
-> In order to finish the arrangements, I need to know who will be attending,
-> and also we need to receive the theme proposals. Please estimate how long
-> do you think that it would be needed for the proposed theme presentation
-> and discussions.
-> 
-> I have a theme proposal already:
-> 
-> 	How to improve the patch submission workflow for media patches - 2 hours.
-> 
-> So, please confirm your intention to be there and propose the themes of
-> your interests to media-workshop@linuxtv.org mailing list.
-> 
-> Thanks!
-> Mauro
-> 
-> 
-> 
-> 
-> _______________________________________________
-> media-workshop mailing list
-> media-workshop@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/media-workshop
-> 
 
+> ---
+>   drivers/media/tuners/fc2580.c |    3 +--
+>   1 files changed, 1 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
+> index 3ad68e9..2e8ebac 100644
+> --- a/drivers/media/tuners/fc2580.c
+> +++ b/drivers/media/tuners/fc2580.c
+> @@ -168,8 +168,7 @@ static int fc2580_set_params(struct dvb_frontend *fe)
+>   	}
+>
+>   	f_ref = 2UL * priv->cfg->clock / r_val;
+> -	n_val = f_vco / f_ref;
+> -	k_val = f_vco % f_ref;
+> +	n_val = div_u64_rem(f_vco, f_ref, &k_val);
+>   	k_val_reg = 1UL * k_val * (1 << 20) / f_ref;
+>
+>   	ret = fc2580_wr_reg(priv, 0x18, r18_val | ((k_val_reg >> 16) & 0xff));
+>
+
+
+-- 
+http://palosaari.fi/
