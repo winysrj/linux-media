@@ -1,119 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:47377 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757362Ab2IJPaN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 11:30:13 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v4 07/16] media: coda: stop all queues in case of lockup
-Date: Mon, 10 Sep 2012 17:29:51 +0200
-Message-Id: <1347291000-340-8-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
-References: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mx1.redhat.com ([209.132.183.28]:8688 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751398Ab2IXKq1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Sep 2012 06:46:27 -0400
+Message-ID: <50603A52.3040208@redhat.com>
+Date: Mon, 24 Sep 2012 12:47:46 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/4] gspca_pac7302: add support for green balance adjustment
+References: <1347811240-4000-1-git-send-email-fschaefer.oss@googlemail.com> <1347811240-4000-4-git-send-email-fschaefer.oss@googlemail.com> <5059FFF1.30104@googlemail.com> <505A2C52.4040001@redhat.com> <505A3112.10207@googlemail.com> <505ADD14.7070208@redhat.com> <505B03FC.3080707@googlemail.com>
+In-Reply-To: <505B03FC.3080707@googlemail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a 1 second timeout for each PIC_RUN command to the CODA. In
-case it locks up, stop all queues and dequeue remaining buffers.
+Hi,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v3:
- - Add struct coda_dev *dev pointer in coda_start_streaming.
- - Call cancel_delayed_work in coda_stop_streaming and in coda_irq_handler.
- - Lock the device mutex in coda_timeout to avoid a race with coda_release.
----
- drivers/media/platform/coda.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+Sorry for the slow response ...
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 159df08..7f6ec3a 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -136,6 +136,7 @@ struct coda_dev {
- 	struct vb2_alloc_ctx	*alloc_ctx;
- 	struct list_head	instances;
- 	unsigned long		instance_mask;
-+	struct delayed_work	timeout;
- };
- 
- struct coda_params {
-@@ -722,6 +723,9 @@ static void coda_device_run(void *m2m_priv)
- 				CODA7_REG_BIT_AXI_SRAM_USE);
- 	}
- 
-+	/* 1 second timeout in case CODA locks up */
-+	schedule_delayed_work(&dev->timeout, HZ);
-+
- 	coda_command_async(ctx, CODA_COMMAND_PIC_RUN);
- }
- 
-@@ -1208,6 +1212,7 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- static int coda_stop_streaming(struct vb2_queue *q)
- {
- 	struct coda_ctx *ctx = vb2_get_drv_priv(q);
-+	struct coda_dev *dev = ctx->dev;
- 
- 	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
- 		v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
-@@ -1220,6 +1225,8 @@ static int coda_stop_streaming(struct vb2_queue *q)
- 	}
- 
- 	if (!ctx->rawstreamon && !ctx->compstreamon) {
-+		cancel_delayed_work(&dev->timeout);
-+
- 		v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
- 			 "%s: sent command 'SEQ_END' to coda\n", __func__);
- 		if (coda_command_sync(ctx, CODA_COMMAND_SEQ_END)) {
-@@ -1492,6 +1499,8 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
- 	u32 wr_ptr, start_ptr;
- 	struct coda_ctx *ctx;
- 
-+	__cancel_delayed_work(&dev->timeout);
-+
- 	/* read status register to attend the IRQ */
- 	coda_read(dev, CODA_REG_BIT_INT_STATUS);
- 	coda_write(dev, CODA_REG_BIT_INT_CLEAR_SET,
-@@ -1564,6 +1573,22 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
- 	return IRQ_HANDLED;
- }
- 
-+static void coda_timeout(struct work_struct *work)
-+{
-+	struct coda_ctx *ctx;
-+	struct coda_dev *dev = container_of(to_delayed_work(work),
-+					    struct coda_dev, timeout);
-+
-+	v4l2_err(&dev->v4l2_dev, "CODA PIC_RUN timeout, stopping all streams\n");
-+
-+	mutex_lock(&dev->dev_mutex);
-+	list_for_each_entry(ctx, &dev->instances, list) {
-+		v4l2_m2m_streamoff(NULL, ctx->m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-+		v4l2_m2m_streamoff(NULL, ctx->m2m_ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
-+	}
-+	mutex_unlock(&dev->dev_mutex);
-+}
-+
- static u32 coda_supported_firmwares[] = {
- 	CODA_FIRMWARE_VERNUM(CODA_DX6, 2, 2, 5),
- 	CODA_FIRMWARE_VERNUM(CODA_7541, 13, 4, 29),
-@@ -1835,6 +1860,7 @@ static int __devinit coda_probe(struct platform_device *pdev)
- 
- 	spin_lock_init(&dev->irqlock);
- 	INIT_LIST_HEAD(&dev->instances);
-+	INIT_DELAYED_WORK(&dev->timeout, coda_timeout);
- 
- 	dev->plat_dev = pdev;
- 	dev->clk_per = devm_clk_get(&pdev->dev, "per");
--- 
-1.7.10.4
+On 09/20/2012 01:54 PM, Frank Schäfer wrote:
+> Hi,
+>
+> Am 20.09.2012 11:08, schrieb Hans de Goede:
 
+<snip>
+
+>> Many webcams have RGB gains, but we don't have standard CID-s for these,
+>> instead we've Blue and Red Balance. This has grown historically
+>> because of
+>> the bttv cards which actually have Blue and Red balance controls in
+>> hardware,
+>> rather then the usual RGB gain triplet. Various gspca drivers cope
+>> with this
+>> in different ways.
+>>
+>> If you look at the pac7302 driver before your latest 4 patches it has
+>> a Red and Blue balance control controlling the Red and Blue gain, and a
+>> Whitebalance control, which is not White balance at all, but simply
+>> controls the green gain...
+>
+> Ok, so if I understand you right, red+green+blue balance = white balance.
+> And because we already have defined red, blue and whitebalance controls
+> for historical reasons, we don't need green balance ?
+> Maybe that matches physics, but I don't think it's a sane approach for a
+> user interface...
+
+No what I was trying to say is that the balance controls are for hardware
+which actually has balance controls and not per color gains (such as the
+bt87x chips), but they are being abused by many drivers to add support for
+per color gains. And then you miss one control. And in the case of the pac7302
+driver the "original" route was taken of using whitebalance to control
+the green gain. Which is wrong IMHO, but it is what the driver does know.
+
+A proper fix would be to introduce new controls for all 3 gains, and use
+those instead of using the balance controls + adding a 3th balance control
+being discussed in the thread titled:
+"Gain controls in v4l2-ctrl framework".
+
+>> And as said other drivers have similar (albeit usually different) hacks.
+>>
+>> At a minimum I would like you to rework your patches to:
+>> 1) Not add the new Green balance, and instead modify the existing
+>> whitebalance
+>> to control the new green gain you've found. Keeping things as broken as
+>> they are, but not worse; and
+>
+> I prefer waiting for the results of the discussion you are proposing
+> further down.
+>
+
+I see in your next mail that you've changed your mind. So I would like to
+move forward with this by adding your 2 patches + 1 more patch to also
+make the whitebalance control (which really is the green gain control)
+use 0x02 rather then 0xc6. To do this we must make sure that 0xc6 has
+a proper fixed / default setting. So what does the windows driver use
+for this? 1 like with 0xc5 and 0xc7 ?
+
+And can you do a 3th patch to make the whitebalance control control
+0x02 rather then 0xc6 like you did for red and blue balance?
+
+Then later on when the "Gain controls in v4l2-ctrl framework" discussion
+is done we can change these controls to the new controls.
+
+>> 2) Try to use both the page 0 reg 0x01 - 0x03 and page 0 reg 0xc5 - 0xc7
+>> at the same time to get a wider ranged control. Maybe 0xc5 - 0xc7 are
+>> simply the most significant bits of a wider ranged gain ?
+>
+> I don't think so. The windows driver does not use them.
+> It even doesn't use the full range of registers 0x01-0x03.
+> Of course, I have expermiented with the full range and it works, but it
+> doesn't make much sense to use it.
+>
+
+Ok.
+
+
+Regards,
+
+Hans
