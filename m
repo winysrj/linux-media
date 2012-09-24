@@ -1,49 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2215 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932999Ab2IUKHz (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:39008 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754923Ab2IXGV2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Sep 2012 06:07:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: s5p-tv/mixer_video.c weirdness
-Date: Fri, 21 Sep 2012 12:07:46 +0200
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209211207.46679.hverkuil@xs4all.nl>
+	Mon, 24 Sep 2012 02:21:28 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr4so6542460pbb.19
+        for <linux-media@vger.kernel.org>; Sun, 23 Sep 2012 23:21:28 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, sachin.kamat@linaro.org,
+	m.szyprowski@samsung.com, pawel@osciak.com, patches@linaro.org
+Subject: [PATCH 2/4] [media] mem2mem_testdev: Add missing braces around sizeof
+Date: Mon, 24 Sep 2012 11:47:46 +0530
+Message-Id: <1348467468-19854-2-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1348467468-19854-1-git-send-email-sachin.kamat@linaro.org>
+References: <1348467468-19854-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek, Sylwester,
+Fixes the following checkpatch warnings:
+WARNING: sizeof *ctx should be sizeof(*ctx)
+WARNING: sizeof *dev should be sizeof(*dev)
 
-I've been investigating how multiplanar is used in various drivers, and I
-came across this driver that is a bit weird.
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/mem2mem_testdev.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-querycap sets both single and multiple planar output caps:
+diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
+index fc95559..570e880 100644
+--- a/drivers/media/platform/mem2mem_testdev.c
++++ b/drivers/media/platform/mem2mem_testdev.c
+@@ -895,7 +895,7 @@ static int m2mtest_open(struct file *file)
+ 
+ 	if (mutex_lock_interruptible(&dev->dev_mutex))
+ 		return -ERESTARTSYS;
+-	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
++	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+ 	if (!ctx) {
+ 		rc = -ENOMEM;
+ 		goto open_unlock;
+@@ -1020,7 +1020,7 @@ static int m2mtest_probe(struct platform_device *pdev)
+ 	struct video_device *vfd;
+ 	int ret;
+ 
+-	dev = kzalloc(sizeof *dev, GFP_KERNEL);
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+ 	if (!dev)
+ 		return -ENOMEM;
+ 
+-- 
+1.7.4.1
 
-        cap->capabilities = V4L2_CAP_STREAMING |
-                V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_VIDEO_OUTPUT_MPLANE;
-
-This suggests that both the single and multiplanar APIs are supported.
-
-But mxr_ioctl_ops only implements these:
-
-        /* format handling */
-        .vidioc_enum_fmt_vid_out = mxr_enum_fmt,
-        .vidioc_s_fmt_vid_out_mplane = mxr_s_fmt,
-        .vidioc_g_fmt_vid_out_mplane = mxr_g_fmt,
-
-Mixing single planar enum_fmt with multiplanar s/g_fmt makes little sense.
-
-I suspect everything should be multiplanar.
-
-BTW, I recommend running v4l2-compliance over your s5p drivers. I saw several
-things it would fail on.
-
-Regards,
-
-	Hans
