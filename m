@@ -1,157 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:24386 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756839Ab2INK6A (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40861 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754695Ab2IXNMF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 06:58:00 -0400
-Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBe013688
-	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:55 GMT
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFCv3 API PATCH 09/31] v4l2: remove experimental tag from a number of old drivers.
-Date: Fri, 14 Sep 2012 12:57:24 +0200
-Message-Id: <ea446295b563a6b52b6310c657f4ab1b87045bd2.1347619766.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
-References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+	Mon, 24 Sep 2012 09:12:05 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LDOC <linux-doc@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	VGER <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Rob Landley <rob@landley.net>
+Subject: Re: [PATCH v5] media: v4l2-ctrl: add a helper function to add standard control with driver specific menu
+Date: Mon, 24 Sep 2012 15:12:41 +0200
+Message-ID: <1896630.ZEAaQ0CUMY@avalon>
+In-Reply-To: <1348491221-6068-1-git-send-email-prabhakar.lad@ti.com>
+References: <1348491221-6068-1-git-send-email-prabhakar.lad@ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A number of old drivers still had the experimental tag. Time to remove it.
+On Monday 24 September 2012 18:23:40 Prabhakar wrote:
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+> 
+> Add helper function v4l2_ctrl_new_std_menu_items(), which adds
+> a standard menu control, with driver specific menu.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Hans de Goede <hdegoede@redhat.com>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Rob Landley <rob@landley.net>
 
-It concerns the following drivers:
+Thank you for not giving up despite the many change requests you have received 
+:-)
 
-VIDEO_TLV320AIC23B
-USB_STKWEBCAM
-VIDEO_CX18
-VIDEO_CX18_ALSA
-VIDEO_ZORAN_AVS6EYES
-DVB_USB_AF9005
-MEDIA_TUNER_TEA5761
-VIDEO_NOON010PC30
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-This decision was taken during the 2012 Media Workshop.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/i2c/Kconfig           |    4 ++--
- drivers/media/pci/cx18/Kconfig      |    4 ++--
- drivers/media/pci/zoran/Kconfig     |    4 ++--
- drivers/media/tuners/Kconfig        |    5 ++---
- drivers/media/usb/dvb-usb/Kconfig   |    2 +-
- drivers/media/usb/stkwebcam/Kconfig |    2 +-
- 6 files changed, 10 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 0e0793a..d3be0ca 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -117,7 +117,7 @@ config VIDEO_CS53L32A
- 
- config VIDEO_TLV320AIC23B
- 	tristate "Texas Instruments TLV320AIC23B audio codec"
--	depends on VIDEO_V4L2 && I2C && EXPERIMENTAL
-+	depends on VIDEO_V4L2 && I2C
- 	---help---
- 	  Support for the Texas Instruments TLV320AIC23B audio codec.
- 
-@@ -492,7 +492,7 @@ config VIDEO_SR030PC30
- 
- config VIDEO_NOON010PC30
- 	tristate "Siliconfile NOON010PC30 sensor support"
--	depends on I2C && VIDEO_V4L2 && EXPERIMENTAL && VIDEO_V4L2_SUBDEV_API
-+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
- 	depends on MEDIA_CAMERA_SUPPORT
- 	---help---
- 	  This driver supports NOON010PC30 CIF camera from Siliconfile
-diff --git a/drivers/media/pci/cx18/Kconfig b/drivers/media/pci/cx18/Kconfig
-index 9a9f765..c675b83 100644
---- a/drivers/media/pci/cx18/Kconfig
-+++ b/drivers/media/pci/cx18/Kconfig
-@@ -1,6 +1,6 @@
- config VIDEO_CX18
- 	tristate "Conexant cx23418 MPEG encoder support"
--	depends on VIDEO_V4L2 && DVB_CORE && PCI && I2C && EXPERIMENTAL
-+	depends on VIDEO_V4L2 && DVB_CORE && PCI && I2C
- 	select I2C_ALGOBIT
- 	select VIDEOBUF_VMALLOC
- 	depends on RC_CORE
-@@ -25,7 +25,7 @@ config VIDEO_CX18
- 
- config VIDEO_CX18_ALSA
- 	tristate "Conexant 23418 DMA audio support"
--	depends on VIDEO_CX18 && SND && EXPERIMENTAL
-+	depends on VIDEO_CX18 && SND
- 	select SND_PCM
- 	---help---
- 	  This is a video4linux driver for direct (DMA) audio on
-diff --git a/drivers/media/pci/zoran/Kconfig b/drivers/media/pci/zoran/Kconfig
-index a9b2318..26ca870 100644
---- a/drivers/media/pci/zoran/Kconfig
-+++ b/drivers/media/pci/zoran/Kconfig
-@@ -65,8 +65,8 @@ config VIDEO_ZORAN_LML33R10
- 	  card.
- 
- config VIDEO_ZORAN_AVS6EYES
--	tristate "AverMedia 6 Eyes support (EXPERIMENTAL)"
--	depends on VIDEO_ZORAN_ZR36060 && EXPERIMENTAL
-+	tristate "AverMedia 6 Eyes support"
-+	depends on VIDEO_ZORAN_ZR36060
- 	select VIDEO_BT856 if MEDIA_SUBDRV_AUTOSELECT
- 	select VIDEO_BT866 if MEDIA_SUBDRV_AUTOSELECT
- 	select VIDEO_KS0127 if MEDIA_SUBDRV_AUTOSELECT
-diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
-index 80238b9..901d886 100644
---- a/drivers/media/tuners/Kconfig
-+++ b/drivers/media/tuners/Kconfig
-@@ -28,7 +28,7 @@ config MEDIA_TUNER
- 	select MEDIA_TUNER_XC4000 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_MT20XX if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_TDA8290 if MEDIA_SUBDRV_AUTOSELECT
--	select MEDIA_TUNER_TEA5761 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_RADIO_SUPPORT && EXPERIMENTAL
-+	select MEDIA_TUNER_TEA5761 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_RADIO_SUPPORT
- 	select MEDIA_TUNER_TEA5767 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_RADIO_SUPPORT
- 	select MEDIA_TUNER_SIMPLE if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_TDA9887 if MEDIA_SUBDRV_AUTOSELECT
-@@ -78,9 +78,8 @@ config MEDIA_TUNER_TDA9887
- 	  analog IF demodulator.
- 
- config MEDIA_TUNER_TEA5761
--	tristate "TEA 5761 radio tuner (EXPERIMENTAL)"
-+	tristate "TEA 5761 radio tuner"
- 	depends on MEDIA_SUPPORT && I2C
--	depends on EXPERIMENTAL
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  Say Y here to include support for the Philips TEA5761 radio tuner.
-diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
-index 3c5fff8..fa0b293 100644
---- a/drivers/media/usb/dvb-usb/Kconfig
-+++ b/drivers/media/usb/dvb-usb/Kconfig
-@@ -227,7 +227,7 @@ config DVB_USB_OPERA1
- 
- config DVB_USB_AF9005
- 	tristate "Afatech AF9005 DVB-T USB1.1 support"
--	depends on DVB_USB && EXPERIMENTAL
-+	depends on DVB_USB
- 	select MEDIA_TUNER_MT2060 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_QT1010 if MEDIA_SUBDRV_AUTOSELECT
- 	help
-diff --git a/drivers/media/usb/stkwebcam/Kconfig b/drivers/media/usb/stkwebcam/Kconfig
-index 2fb0c2b..a6a00aa 100644
---- a/drivers/media/usb/stkwebcam/Kconfig
-+++ b/drivers/media/usb/stkwebcam/Kconfig
-@@ -1,6 +1,6 @@
- config USB_STKWEBCAM
- 	tristate "USB Syntek DC1125 Camera support"
--	depends on VIDEO_V4L2 && EXPERIMENTAL
-+	depends on VIDEO_V4L2
- 	---help---
- 	  Say Y here if you want to use this type of camera.
- 	  Supported devices are typically found in some Asus laptops,
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
