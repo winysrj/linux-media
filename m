@@ -1,249 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:40311 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754567Ab2IHSYH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Sep 2012 14:24:07 -0400
-Received: by eekc1 with SMTP id c1so337667eek.19
-        for <linux-media@vger.kernel.org>; Sat, 08 Sep 2012 11:24:06 -0700 (PDT)
-From: "Fergal Butler" <fbutler@blueyonder.co.uk>
-To: "'V4L Mailing List'" <linux-media@vger.kernel.org>
-References: <007201cd8dee$bef98990$3cec9cb0$@blueyonder.co.uk>
-In-Reply-To: <007201cd8dee$bef98990$3cec9cb0$@blueyonder.co.uk>
-Subject: v42l-ctl not working correctly with a em28xx device
-Date: Sat, 8 Sep 2012 19:24:05 +0100
-Message-ID: <008c01cd8def$22613af0$6723b0d0$@blueyonder.co.uk>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Language: en-gb
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:53648 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753777Ab2IXLaC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Sep 2012 07:30:02 -0400
+Received: by padhz1 with SMTP id hz1so860987pad.19
+        for <linux-media@vger.kernel.org>; Mon, 24 Sep 2012 04:30:02 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH] [media] media-devnode: Replace printk with pr_*
+Date: Mon, 24 Sep 2012 16:56:24 +0530
+Message-Id: <1348485984-22198-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Fixes checkpatch warnings related to printk.
 
-I was wondering if you could help me.
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/media-devnode.c |   14 ++++++++------
+ 1 files changed, 8 insertions(+), 6 deletions(-)
 
-I have an EzCAP 116 USB 2.0 Video Capture  device purchased directly from
-http://www.ezcap.tv/ 
-
-I can play audio from the device, however all my attempts to view video from
-it result in either a green or black screen
-
-v4l2-ctl appears to not be working correctly with it. This is illustrated by
-trying to set the standard on the device as shown below.
-
-Any advice on how to get both video and audio from the device would be much
-appreciated
-
-The device is connected to a raspberry pi running raspian: “Linux raspi1
-3.2.27+ #114 PREEMPT Tue Sep 4 00:15:33 BST 2012 armv6l GNU/Linux”
-
-Listing the available standards shows:
-pi@raspi1 ~/capture $ v4l2-ctl --list-standards supported by the device
-shows 
-ioctl: VIDIOC_ENUMSTD
-        Index       : 0
-        ID          : 0x000000000000B000
-        Name        : NTSC
-        Frame period: 1001/30000
-        Frame lines : 525
-        Index       : 1
-        ID          : 0x0000000000001000
-        Name        : NTSC-M
-        Frame period: 1001/30000
-        Frame lines : 525
-        Index       : 2
-        ID          : 0x0000000000002000
-        Name        : NTSC-M-JP
-        Frame period: 1001/30000
-        Frame lines : 525
-        Index       : 3
-        ID          : 0x0000000000008000
-        Name        : NTSC-M-KR
-        Frame period: 1001/30000
-        Frame lines : 525
-        Index       : 4
-        ID          : 0x0000000000004000
-        Name        : NTSC-443
-        Frame period: 1001/30000
-        Frame lines : 525
-        Index       : 5
-        ID          : 0x00000000000000FF
-        Name        : PAL
-        Frame period: 1/25
-        Frame lines : 625
-        Index       : 6
-        ID          : 0x0000000000000007
-        Name        : PAL-BG
-        Frame period: 1/25
-        Frame lines : 625
-        Index       : 7
-        ID          : 0x0000000000000008
-        Name        : PAL-H
-        Frame period: 1/25
-        Frame lines : 625
-        Index       : 8
-        ID          : 0x0000000000000010
-        Name        : PAL-I
-        Frame period: 1/25
-        Frame lines : 625
-        Index       : 9
-        ID          : 0x00000000000000E0
-        Name        : PAL-DK
-        Frame period: 1/25
-        Frame lines : 625
-        Index       : 10
-        ID          : 0x0000000000000100
-        Name        : PAL-M
-        Frame period: 1001/30000
-        Frame lines : 525
-        Index       : 11
-        ID          : 0x0000000000000200
-        Name        : PAL-N
-        Frame period: 1/25
-        Frame lines : 625
-        Index       : 12
-        ID          : 0x0000000000000400
-        Name        : PAL-Nc
-        Frame period: 1/25
-        Frame lines : 625
-        Index       : 13
-        ID          : 0x0000000000000800
-        Name        : PAL-60
-        Frame period: 1001/30000
-        Frame lines : 525
-        Index       : 14
-        ID          : 0x0000000000FF0000
-        Name        : SECAM
-        Frame period: 1/25
-        Frame lines : 625
-        Index       : 15
-        ID          : 0x0000000000010000
-        Name        : SECAM-B
-        Frame period: 1/25
-        Frame lines : 625
-        Index       : 16
-        ID          : 0x0000000000040000
-        Name        : SECAM-G
-        Frame period: 1/25
-        Frame lines : 625
-        Index       : 17
-        ID          : 0x0000000000080000
-        Name        : SECAM-H
-        Frame period: 1/25
-        Frame lines : 625
-        Index       : 18
-        ID          : 0x0000000000320000
-        Name        : SECAM-DK
-        Frame period: 1/25
-        Frame lines : 625
-        Index       : 19
-        ID          : 0x0000000000400000
-        Name        : SECAM-L
-        Frame period: 1/25
-        Frame lines : 625
-        Index       : 20
-        ID          : 0x0000000000800000
-        Name        : SECAM-Lc
-        Frame period: 1/25
-        Frame lines : 625        
-If I try and set the standard to PAL-60:
-
-pi@raspi1 ~/capture $  v4l2-ctl --set-standard PAL-60
-Standard set to 0000b000
-
-It sets the standard ID to 0000b000 which is NTSC rather than the 0000800 ID
-associated with PAL-60
-
-This confirmed by then reading the standard back from the device: 
-
-pi@raspi1 ~/capture $  v4l2-ctl --get-standard
-Video Standard = 0x0000b000
-        NTSC-M/M-JP/M-KR
-
-If however I set the standard using the index for PAL-60 it correctly sets
-the standard:
-
-pi@raspi1 ~/capture $ v4l2-ctl --set-standard 13
-Standard set to 00000800
-
-Which is confirmed by:
-
-pi@raspi1 ~/capture $  v4l2-ctl --get-standard
-Video Standard = 0x00000800
-        PAL-60
-
-The device is identified as follows by lsusb
-
-pi@raspi1 ~/capture $ lsusb -s 1:39
-Bus 001 Device 039: ID eb1a:2861 eMPIA Technology, Inc. 
-Dmesg shows the following when  the device is plugged in:
-[37368.868492] usb 1-1.3.1.3: new high-speed USB device number 39 using
-dwc_otg
-[37368.968977] usb 1-1.3.1.3: New USB device found, idVendor=eb1a,
-idProduct=2861
-[37368.969001] usb 1-1.3.1.3: New USB device strings: Mfr=0, Product=0,
-SerialNumber=0
-[37369.056218] em28xx: New device @ 480 Mbps (eb1a:2861, interface 0, class
-0)
-[37369.056440] em28xx #0: chip ID is em2860
-[37369.171780] em28xx #0: board has no eeprom
-[37369.283182] em28xx #0: found i2c device @ 0x4a [saa7113h]
-[37369.317938] em28xx #0: Your board has no unique USB ID.
-[37369.317961] em28xx #0: A hint were successfully done, based on i2c
-devicelist hash.
-[37369.317973] em28xx #0: This method is not 100% failproof.
-[37369.317982] em28xx #0: If the board were missdetected, please email this
-log to:
-[37369.317993] em28xx #0:       V4L Mailing List 
-<linux-media@vger.kernel.org>
-[37369.318004] em28xx #0: Board detected as EM2860/SAA711X Reference Design
-[37369.408323] em28xx #0: Identified as EM2860/SAA711X Reference Design
-(card=19)
-[37369.408346] em28xx #0: Registering snapshot button...
-[37369.415731] input: em28xx snapshot button as
-/devices/platform/bcm2708_usb/usb1/1-1/1-1.3/1-1.3.1/1-1.3.1.3/input/input12
-4
-[37370.049046] saa7115 0-0025: saa7113 found (1f7113d0e100000) @ 0x4a
-(em28xx #0)
-[37371.328710] em28xx #0: Config register raw data: 0x10
-[37371.368476] em28xx #0: AC97 vendor ID = 0x83847652
-[37371.388482] em28xx #0: AC97 features = 0x6a90
-[37371.388500] em28xx #0: Sigmatel audio processor detected(stac 9752)
-[37372.148451] em28xx #0: v4l2 driver version 0.1.3
-[37373.856981] em28xx #0: V4L2 video device registered as video0
-[37373.857009] em28xx #0: V4L2 VBI device registered as vbi0
-[37373.859948] usbcore: registered new interface driver em28xx
-[37373.859973] em28xx driver loaded 
-
-usb-devices for the device shows:
-T:  Bus=01 Lev=04 Prnt=05 Port=02 Cnt=02 Dev#= 39 Spd=480 MxCh= 0
-D:  Ver= 2.00 Cls=00(>ifc ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
-P:  Vendor=eb1a ProdID=2861 Rev=01.00
-C:  #Ifs= 3 Cfg#= 1 Atr=80 MxPwr=500mA
-I:  If#= 0 Alt= 0 #EPs= 3 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
-I:  If#= 1 Alt= 0 #EPs= 0 Cls=01(audio) Sub=01 Prot=00 Driver=snd-usb-audio
-I:  If#= 2 Alt= 0 #EPs= 1 Cls=01(audio) Sub=02 Prot=00 Driver=snd-usb-audio
-
-I’ve also tried using a few different card ID’s for the device using:
-
-pi@raspi1 ~/capture $ sudo rmmod ex28xx
-
-Followed by 
-
-pi@raspi1 ~/capture $  sudo modprobe em28xx card=<n> 
-
-With different values of <n> but given that there are 77 cards listed I
-haven’t managed to find one that works yet!
-
-Is it possible that the device is being incorrectly identified or is the
-device not currently supported?
-
-Let me know if you want me to do anything to further diagnose the issue.
-
-Thanks,
-
-Fergal
-
+diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+index f6b52d5..023b2a1 100644
+--- a/drivers/media/media-devnode.c
++++ b/drivers/media/media-devnode.c
+@@ -30,6 +30,8 @@
+  * counting.
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/errno.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+@@ -215,7 +217,7 @@ int __must_check media_devnode_register(struct media_devnode *mdev)
+ 	minor = find_next_zero_bit(media_devnode_nums, MEDIA_NUM_DEVICES, 0);
+ 	if (minor == MEDIA_NUM_DEVICES) {
+ 		mutex_unlock(&media_devnode_lock);
+-		printk(KERN_ERR "could not get a free minor\n");
++		pr_err("could not get a free minor\n");
+ 		return -ENFILE;
+ 	}
+ 
+@@ -230,7 +232,7 @@ int __must_check media_devnode_register(struct media_devnode *mdev)
+ 
+ 	ret = cdev_add(&mdev->cdev, MKDEV(MAJOR(media_dev_t), mdev->minor), 1);
+ 	if (ret < 0) {
+-		printk(KERN_ERR "%s: cdev_add failed\n", __func__);
++		pr_err("%s: cdev_add failed\n", __func__);
+ 		goto error;
+ 	}
+ 
+@@ -243,7 +245,7 @@ int __must_check media_devnode_register(struct media_devnode *mdev)
+ 	dev_set_name(&mdev->dev, "media%d", mdev->minor);
+ 	ret = device_register(&mdev->dev);
+ 	if (ret < 0) {
+-		printk(KERN_ERR "%s: device_register failed\n", __func__);
++		pr_err("%s: device_register failed\n", __func__);
+ 		goto error;
+ 	}
+ 
+@@ -287,18 +289,18 @@ static int __init media_devnode_init(void)
+ {
+ 	int ret;
+ 
+-	printk(KERN_INFO "Linux media interface: v0.10\n");
++	pr_info("Linux media interface: v0.10\n");
+ 	ret = alloc_chrdev_region(&media_dev_t, 0, MEDIA_NUM_DEVICES,
+ 				  MEDIA_NAME);
+ 	if (ret < 0) {
+-		printk(KERN_WARNING "media: unable to allocate major\n");
++		pr_warn("unable to allocate major\n");
+ 		return ret;
+ 	}
+ 
+ 	ret = bus_register(&media_bus_type);
+ 	if (ret < 0) {
+ 		unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
+-		printk(KERN_WARNING "media: bus_register failed\n");
++		pr_warn("bus_register failed\n");
+ 		return -EIO;
+ 	}
+ 
+-- 
+1.7.4.1
 
