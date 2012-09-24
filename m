@@ -1,66 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:18211 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751641Ab2IIVW5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Sep 2012 17:22:57 -0400
-Message-ID: <504D08F8.3070104@redhat.com>
-Date: Sun, 09 Sep 2012 23:24:08 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] libv4lconvert: pac7302-devices: remove unneeded flag
- V4LCONTROL_WANTS_WB
-References: <1347215768-9843-1-git-send-email-fschaefer.oss@googlemail.com> <1347215768-9843-2-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1347215768-9843-2-git-send-email-fschaefer.oss@googlemail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mailout4.samsung.com ([203.254.224.34]:21456 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753909Ab2IXN1I (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Sep 2012 09:27:08 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MAU00A1TW10TH31@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 24 Sep 2012 22:27:06 +0900 (KST)
+Received: from amdc248.digital.local ([106.116.147.32])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MAU0004CW0WP230@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 24 Sep 2012 22:27:06 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: a.hajda@samsung.com, sakari.ailus@iki.fi,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC] V4L: Add s_rx_buffer subdev video operation
+Date: Mon, 24 Sep 2012 15:26:53 +0200
+Message-id: <1348493213-32278-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The s_rx_buffer callback allows the host to set buffer for non-image
+(meta) data at a subdev. This callback can be implemented by an image
+sensor or a MIPI-CSI receiver, allowing the host to retrieve the frame
+embedded data from a subdev.
 
-On 09/09/2012 08:36 PM, Frank Schäfer wrote:
-> The gspca_pac7302 driver already provides this control.
->
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->   lib/libv4lconvert/control/libv4lcontrol.c |   12 ++++--------
->   1 files changed, 4 insertions(+), 8 deletions(-)
->
-> diff --git a/lib/libv4lconvert/control/libv4lcontrol.c b/lib/libv4lconvert/control/libv4lcontrol.c
-> index 1272256..3d7a816 100644
-> --- a/lib/libv4lconvert/control/libv4lcontrol.c
-> +++ b/lib/libv4lconvert/control/libv4lcontrol.c
-> @@ -202,14 +202,10 @@ static const struct v4lcontrol_flags_info v4lcontrol_flags[] = {
->   	{ 0x145f, 0x013a, 0,    NULL, NULL, V4LCONTROL_WANTS_WB, 1500 },
->   	{ 0x2001, 0xf115, 0,    NULL, NULL, V4LCONTROL_WANTS_WB, 1500 },
->   	/* Pac7302 based devices */
-> -	{ 0x093a, 0x2620, 0x0f, NULL, NULL,
-> -		V4LCONTROL_ROTATED_90_JPEG | V4LCONTROL_WANTS_WB, 1500 },
-> -	{ 0x06f8, 0x3009, 0,    NULL, NULL,
-> -		V4LCONTROL_ROTATED_90_JPEG | V4LCONTROL_WANTS_WB, 1500 },
-> -	{ 0x06f8, 0x301b, 0,    NULL, NULL,
-> -		V4LCONTROL_ROTATED_90_JPEG | V4LCONTROL_WANTS_WB, 1500 },
-> -	{ 0x145f, 0x013c, 0,    NULL, NULL,
-> -		V4LCONTROL_ROTATED_90_JPEG | V4LCONTROL_WANTS_WB, 1500 },
-> +	{ 0x093a, 0x2620, 0x0f, NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
-> +	{ 0x06f8, 0x3009, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
-> +	{ 0x06f8, 0x301b, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
-> +	{ 0x145f, 0x013c, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->   	/* Pac7311 based devices */
->   	{ 0x093a, 0x2600, 0x0f, NULL, NULL, V4LCONTROL_WANTS_WB },
->   	/* sq905 devices */
->
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ include/media/v4l2-subdev.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-WANTS_WB does not add a whitebalance control, which these cameras indeed
-already have, it adds a (software) autowhitebalance control, which enables
-libv4lconvert doing software whitebalance correction. Although your
-kernel patch for the pac7302 driver to pick a better default whitebalance
-value, probably helps a lot to get the colors less screwed up, in the end
-we still need some sort of awb to adjust to changing lightning conditions,
-that is what this flag adds, as the pac7302 driver lacks awb.
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 22ab09e..28067ed 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -274,6 +274,10 @@ struct v4l2_subdev_audio_ops {
+    s_mbus_config: set a certain mediabus configuration. This operation is added
+ 	for compatibility with soc-camera drivers and should not be used by new
+ 	software.
++
++   s_rx_buffer: set a host allocated memory buffer for the subdev. The subdev
++	can adjust @size to a lower value and must not write more data to the
++	buffer starting at @data than the original value of @size.
+  */
+ struct v4l2_subdev_video_ops {
+ 	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
+@@ -327,6 +331,8 @@ struct v4l2_subdev_video_ops {
+ 			     struct v4l2_mbus_config *cfg);
+ 	int (*s_mbus_config)(struct v4l2_subdev *sd,
+ 			     const struct v4l2_mbus_config *cfg);
++	int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
++			   unsigned int *size);
+ };
 
-Regards,
+ /*
+--
+1.7.11.3
 
-Hans
