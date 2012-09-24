@@ -1,81 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5845 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754044Ab2IJOr3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 10:47:29 -0400
-Message-ID: <504DFD60.8020809@redhat.com>
-Date: Mon, 10 Sep 2012 11:46:56 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Luis Henriques <luis.henriques@canonical.com>,
-	Jarod Wilson <jarod@redhat.com>
-CC: Matthijs Kooijman <matthijs@stdin.nl>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: (still) NULL pointer crashes with nuvoton_cir driver
-References: <20120815165153.GJ21274@login.drsnuggles.stderr.nl> <20120816080932.GP21274@login.drsnuggles.stderr.nl> <20120817150415.GC2693@zeus>
-In-Reply-To: <20120817150415.GC2693@zeus>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:11469 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756199Ab2IXO4T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Sep 2012 10:56:19 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MAV00HTS05535D0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 24 Sep 2012 23:56:18 +0900 (KST)
+Received: from amdc248.digital.local ([106.116.147.32])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MAV0044E052DB30@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 24 Sep 2012 23:56:18 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: a.hajda@samsung.com, sakari.ailus@iki.fi,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 5/5] m5mols: Implement .get_frame_desc subdev callback
+Date: Mon, 24 Sep 2012 16:55:46 +0200
+Message-id: <1348498546-2652-6-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1348498546-2652-1-git-send-email-s.nawrocki@samsung.com>
+References: <1348498546-2652-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 17-08-2012 12:04, Luis Henriques escreveu:
-> (Adding Mauro to CC has he is the maintainer)
+.get_frame_desc can be used by host interface driver to query
+properties of captured frames, e.g. required memory buffer size.
 
-I'm actually waiting for Jarod's comments on it, as he wrote this driver
-and the similar ones.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/i2c/m5mols/m5mols.h         |  9 ++++++
+ drivers/media/i2c/m5mols/m5mols_capture.c |  3 ++
+ drivers/media/i2c/m5mols/m5mols_core.c    | 47 +++++++++++++++++++++++++++++++
+ drivers/media/i2c/m5mols/m5mols_reg.h     |  1 +
+ 4 files changed, 60 insertions(+)
 
-Jarod?
-
-Regards,
-Mauro
-
-> 
-> On Thu, Aug 16, 2012 at 10:09:32AM +0200, Matthijs Kooijman wrote:
->> Hi folks,
->>
->>> I'm currently compiling a 3.5 kernel with just the rdev initialization
->>> moved up to see if this will fix my problem at all, but I'd like your
->>> view on this in the meantime as well.
->> Ok, this seems to fix my problem:
->>
->> --- a/drivers/media/rc/nuvoton-cir.c
->> +++ b/drivers/media/rc/nuvoton-cir.c
->> @@ -1066,6 +1066,7 @@
->>         /* tx bits */
->>         rdev->tx_resolution = XYZ;
->>  #endif
->> +       nvt->rdev = rdev;
-> 
-> This makes sense to me.  Note however that there are more drivers with
-> a similar problem (e.g., fintek-cir.c).
-> 
->>  
->>         ret = -EBUSY; /* now claim resources */ @@ -1090,7 +1091,6
->> @@ goto failure5;
->>  
->>         device_init_wakeup(&pdev->dev, true);
->> -       nvt->rdev = rdev;
->>         nvt_pr(KERN_NOTICE, "driver has been successfully loaded\n");
->>         if (debug) {
->>                 cir_dump_regs(nvt);
->>
->>
->> I'm still not sure if the rc_register_device shouldn't also be moved up. It
->> seems this doesn't trigger a problem right now, but if there is a problem, I
->> suspect its trigger window is a lot smaller than with the rdev initialization
->> problem...
-> 
-> I'm not sure as well, I'm not very familiar with this code.  However,
-> it looks like the IRQ request should actually be one of the last
-> things to do here.
-> 
-> Cheers,
-> --
-> Luis
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/i2c/m5mols/m5mols.h b/drivers/media/i2c/m5mols/m5mols.h
+index 15d3a4f..de3b755 100644
+--- a/drivers/media/i2c/m5mols/m5mols.h
++++ b/drivers/media/i2c/m5mols/m5mols.h
+@@ -19,6 +19,13 @@
+ #include <media/v4l2-subdev.h>
+ #include "m5mols_reg.h"
+ 
++
++/* An amount of data transmitted in addition to the value
++ * determined by CAPP_JPEG_SIZE_MAX register.
++ */
++#define M5MOLS_JPEG_TAGS_SIZE		0x20000
++#define M5MOLS_MAIN_JPEG_SIZE_MAX	(5 * SZ_1M)
++
+ extern int m5mols_debug;
+ 
+ enum m5mols_restype {
+@@ -67,12 +74,14 @@ struct m5mols_exif {
+ /**
+  * struct m5mols_capture - Structure for the capture capability
+  * @exif: EXIF information
++ * @buf_size: internal JPEG frame buffer size, in bytes
+  * @main: size in bytes of the main image
+  * @thumb: size in bytes of the thumb image, if it was accompanied
+  * @total: total size in bytes of the produced image
+  */
+ struct m5mols_capture {
+ 	struct m5mols_exif exif;
++	unsigned int buf_size;
+ 	u32 main;
+ 	u32 thumb;
+ 	u32 total;
+diff --git a/drivers/media/i2c/m5mols/m5mols_capture.c b/drivers/media/i2c/m5mols/m5mols_capture.c
+index cb243bd..ab34cce 100644
+--- a/drivers/media/i2c/m5mols/m5mols_capture.c
++++ b/drivers/media/i2c/m5mols/m5mols_capture.c
+@@ -105,6 +105,7 @@ static int m5mols_capture_info(struct m5mols_info *info)
+ 
+ int m5mols_start_capture(struct m5mols_info *info)
+ {
++	unsigned int framesize = info->cap.buf_size - M5MOLS_JPEG_TAGS_SIZE;
+ 	struct v4l2_subdev *sd = &info->sd;
+ 	int ret;
+ 
+@@ -121,6 +122,8 @@ int m5mols_start_capture(struct m5mols_info *info)
+ 	if (!ret)
+ 		ret = m5mols_write(sd, CAPP_MAIN_IMAGE_SIZE, info->resolution);
+ 	if (!ret)
++		ret = m5mols_write(sd, CAPP_JPEG_SIZE_MAX, framesize);
++	if (!ret)
+ 		ret = m5mols_set_mode(info, REG_CAPTURE);
+ 	if (!ret)
+ 		/* Wait until a frame is captured to ISP internal memory */
+diff --git a/drivers/media/i2c/m5mols/m5mols_core.c b/drivers/media/i2c/m5mols/m5mols_core.c
+index 933014f..c780689 100644
+--- a/drivers/media/i2c/m5mols/m5mols_core.c
++++ b/drivers/media/i2c/m5mols/m5mols_core.c
+@@ -599,6 +599,51 @@ static int m5mols_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	return ret;
+ }
+ 
++static int m5mols_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
++				 struct v4l2_mbus_frame_desc *fd)
++{
++	struct m5mols_info *info = to_m5mols(sd);
++
++	if (pad != 0 || fd == NULL)
++		return -EINVAL;
++
++	mutex_lock(&info->lock);
++	/*
++	 * .get_frame_desc is only used for compressed formats,
++	 * thus we always return the capture frame parameters here.
++	 */
++	fd->entry[0].length = info->cap.buf_size;
++	fd->entry[0].pixelcode = info->ffmt[M5MOLS_RESTYPE_CAPTURE].code;
++	mutex_unlock(&info->lock);
++
++	fd->entry[0].flags = V4L2_MBUS_FRAME_DESC_FL_LEN_MAX;
++	fd->num_entries = 1;
++
++	return 0;
++}
++
++static int m5mols_set_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
++				 struct v4l2_mbus_frame_desc *fd)
++{
++	struct m5mols_info *info = to_m5mols(sd);
++	struct v4l2_mbus_framefmt *mf = &info->ffmt[M5MOLS_RESTYPE_CAPTURE];
++
++	if (pad != 0 || fd == NULL)
++		return -EINVAL;
++
++	fd->entry[0].flags = V4L2_MBUS_FRAME_DESC_FL_LEN_MAX;
++	fd->num_entries = 1;
++	fd->entry[0].length = clamp_t(u32, fd->entry[0].length,
++				      mf->width * mf->height,
++				      M5MOLS_MAIN_JPEG_SIZE_MAX);
++	mutex_lock(&info->lock);
++	info->cap.buf_size = fd->entry[0].length;
++	mutex_unlock(&info->lock);
++
++	return 0;
++}
++
++
+ static int m5mols_enum_mbus_code(struct v4l2_subdev *sd,
+ 				 struct v4l2_subdev_fh *fh,
+ 				 struct v4l2_subdev_mbus_code_enum *code)
+@@ -615,6 +660,8 @@ static struct v4l2_subdev_pad_ops m5mols_pad_ops = {
+ 	.enum_mbus_code	= m5mols_enum_mbus_code,
+ 	.get_fmt	= m5mols_get_fmt,
+ 	.set_fmt	= m5mols_set_fmt,
++	.get_frame_desc	= m5mols_get_frame_desc,
++	.set_frame_desc	= m5mols_set_frame_desc,
+ };
+ 
+ /**
+diff --git a/drivers/media/i2c/m5mols/m5mols_reg.h b/drivers/media/i2c/m5mols/m5mols_reg.h
+index 14d4be7..58d8027 100644
+--- a/drivers/media/i2c/m5mols/m5mols_reg.h
++++ b/drivers/media/i2c/m5mols/m5mols_reg.h
+@@ -310,6 +310,7 @@
+ #define REG_JPEG		0x10
+ 
+ #define CAPP_MAIN_IMAGE_SIZE	I2C_REG(CAT_CAPT_PARM, 0x01, 1)
++#define CAPP_JPEG_SIZE_MAX	I2C_REG(CAT_CAPT_PARM, 0x0f, 4)
+ #define CAPP_JPEG_RATIO		I2C_REG(CAT_CAPT_PARM, 0x17, 1)
+ 
+ #define CAPP_MCC_MODE		I2C_REG(CAT_CAPT_PARM, 0x1d, 1)
+-- 
+1.7.11.3
 
