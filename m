@@ -1,61 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40861 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754695Ab2IXNMF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 09:12:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LDOC <linux-doc@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	VGER <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Rob Landley <rob@landley.net>
-Subject: Re: [PATCH v5] media: v4l2-ctrl: add a helper function to add standard control with driver specific menu
-Date: Mon, 24 Sep 2012 15:12:41 +0200
-Message-ID: <1896630.ZEAaQ0CUMY@avalon>
-In-Reply-To: <1348491221-6068-1-git-send-email-prabhakar.lad@ti.com>
-References: <1348491221-6068-1-git-send-email-prabhakar.lad@ti.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx1.redhat.com ([209.132.183.28]:11481 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754665Ab2IXAYA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 Sep 2012 20:24:00 -0400
+Date: Sun, 23 Sep 2012 21:23:46 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 07/16] rtl2830: use .get_if_frequency()
+Message-ID: <20120923212346.2ff462f1@redhat.com>
+In-Reply-To: <505FA471.5010805@iki.fi>
+References: <1347495837-3244-1-git-send-email-crope@iki.fi>
+	<1347495837-3244-7-git-send-email-crope@iki.fi>
+	<20120923201742.4eaf7455@redhat.com>
+	<505FA471.5010805@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 24 September 2012 18:23:40 Prabhakar wrote:
-> From: Lad, Prabhakar <prabhakar.lad@ti.com>
-> 
-> Add helper function v4l2_ctrl_new_std_menu_items(), which adds
-> a standard menu control, with driver specific menu.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Hans de Goede <hdegoede@redhat.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Rob Landley <rob@landley.net>
+Em Mon, 24 Sep 2012 03:08:17 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Thank you for not giving up despite the many change requests you have received 
-:-)
+> On 09/24/2012 02:17 AM, Mauro Carvalho Chehab wrote:
+> > Em Thu, 13 Sep 2012 03:23:48 +0300
+> > Antti Palosaari <crope@iki.fi> escreveu:
+> >
+> >> Use .get_if_frequency() as all used tuner drivers
+> >> (mt2060/qt1010/mxl5005s) supports it.
+> >>
+> >> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> >
+> >> @@ -240,26 +237,6 @@ static int rtl2830_init(struct dvb_frontend *fe)
+> >>   	if (ret)
+> >>   		goto err;
+> >>
+> >> -	num = priv->cfg.if_dvbt % priv->cfg.xtal;
+> >> -	num *= 0x400000;
+> >> -	num = div_u64(num, priv->cfg.xtal);
+> >> -	num = -num;
+> >> -	if_ctl = num & 0x3fffff;
+> >> -	dev_dbg(&priv->i2c->dev, "%s: if_ctl=%08x\n", __func__, if_ctl);
+> >> -
+> >> -	ret = rtl2830_rd_reg_mask(priv, 0x119, &tmp, 0xc0); /* b[7:6] */
+> >> -	if (ret)
+> >> -		goto err;
+> >> -
+> >> -	buf[0] = tmp << 6;
+> >> -	buf[0] |= (if_ctl >> 16) & 0x3f;
+> >> -	buf[1] = (if_ctl >>  8) & 0xff;
+> >> -	buf[2] = (if_ctl >>  0) & 0xff;
+> >
+> > Patch applied, but there was a context difference above:
+> >
+> >   --- a/drivers/media/dvb-frontends/rtl2830.c
+> >   +++ b/drivers/media/dvb-frontends/rtl2830.c
+> >   @@ -182,9 +182,6 @@ static int rtl2830_init(struct dvb_frontend *fe)
+> > @@ -28,7 +50,7 @@ index eca1d72..3954760 100644
+> >   -		goto err;
+> >   -
+> >   -	buf[0] = tmp << 6;
+> > --	buf[0] = (if_ctl >> 16) & 0x3f;
+> > +-	buf[0] |= (if_ctl >> 16) & 0x3f;
+> >   -	buf[1] = (if_ctl >>  8) & 0xff;
+> >   -	buf[2] = (if_ctl >>  0) & 0xff;
+> >   -
+> >
+> > (that's the diff between the patch applied and your original one)
+> 
+> Because of that:
+> 
+> http://patchwork.linuxtv.org/patch/14066/
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+That's why I ask driver maintainers to send me pull requests, instead of
+sending long series of patches at the mailing list, and tagging the patches
+for review at ML as RFC: it is not warranted that the patches will be merged
+at the order they're sent to the mailing list.
 
 -- 
 Regards,
-
-Laurent Pinchart
-
+Mauro
