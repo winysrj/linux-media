@@ -1,102 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39813 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756219Ab2I0Kyx (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47170 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757247Ab2IXS0v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Sep 2012 06:54:53 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	remi@remlab.net, daniel-gl@gmx.net, sylwester.nawrocki@gmail.com
-Subject: Re: [RFC] Timestamps and V4L2
-Date: Thu, 27 Sep 2012 12:55:31 +0200
-Message-ID: <2042961.UTB0pRMYu0@avalon>
-In-Reply-To: <506354C2.1030805@iki.fi>
-References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <84293169.Vi1CrtjK0W@avalon> <506354C2.1030805@iki.fi>
+	Mon, 24 Sep 2012 14:26:51 -0400
+Date: Mon, 24 Sep 2012 21:26:45 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, a.hajda@samsung.com,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com
+Subject: Re: [PATCH RFC] V4L: Add s_rx_buffer subdev video operation
+Message-ID: <20120924182645.GI12025@valkosipuli.retiisi.org.uk>
+References: <1348493213-32278-1-git-send-email-s.nawrocki@samsung.com>
+ <20120924134453.GH12025@valkosipuli.retiisi.org.uk>
+ <50608F9D.40304@samsung.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <50608F9D.40304@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Sylwester,
 
-On Wednesday 26 September 2012 22:17:22 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
-> > On Tuesday 25 September 2012 23:12:00 Sakari Ailus wrote:
-> >> Hans Verkuil wrote:
-> >>> On Tue 25 September 2012 12:48:01 Laurent Pinchart wrote:
-> >>>> On Tuesday 25 September 2012 08:47:45 Hans Verkuil wrote:
-> >>>>> On Tue September 25 2012 02:00:55 Laurent Pinchart wrote:
-> >>>>> BTW, I think we should also fix the description of the timestamp in
-> >>>>> the spec. Currently it says:
-> >>>>> 
-> >>>>> "For input streams this is the system time (as returned by the
-> >>>>> gettimeofday() function) when the first data byte was captured. For
-> >>>>> output streams the data will not be displayed before this time,
-> >>>>> secondary to the nominal frame rate determined by the current video
-> >>>>> standard in enqueued order. Applications can for example zero this
-> >>>>> field to display frames as soon as possible. The driver stores the
-> >>>>> time at which the first data byte was actually sent out in the
-> >>>>> timestamp field. This permits applications to monitor the drift
-> >>>>> between the video and system clock."
-> >>>>> 
-> >>>>> To my knowledge all capture drivers set the timestamp to the time the
-> >>>>> *last* data byte was captured, not the first.
-> >>>> 
-> >>>> The uvcvideo driver uses the time the first image packet is received
-> >>>> :-)
-> >>>> Most other drivers use the time the last byte was *received*, not
-> >>>> captured.
-> >>> 
-> >>> Unless the hardware buffers more than a few lines there is very little
-> >>> difference between the time the last byte was received and when it was
-> >>> captured.
-> >>> 
-> >>> But you are correct, it is typically the time the last byte was
-> >>> received.
-> >>> 
-> >>> Should we signal this as well? First vs last byte? Or shall we
-> >>> standardize?
-> >> 
-> >> My personal opinion would be to change the spec to say what almost every
-> >> driver does: it's the timestamp from the moment the last pixel has been
-> >> received. We have the frame sync event for telling when the frame starts
-> >> btw. The same event could be used for signalling whenever a given line
-> >> starts. I don't see frame end fitting to that quite as nicely but I
-> >> guess it could be possible.
-> > 
-> > The uvcvideo driver can timestamp the buffers with the system time at
-> > which the first packet in the frame is received, but has no way to
-> > generate a frame start event: the frame start event should correspond to
-> > the time the frame starts, not to the time the first packet in the frame
-> > is received. That information isn't available to the driver.
+On Mon, Sep 24, 2012 at 06:51:41PM +0200, Sylwester Nawrocki wrote:
+> Hi Sakari,
 > 
-> Aren't the two about equal, apart from the possible delays caused by the
-> USB bus?
+> On 09/24/2012 03:44 PM, Sakari Ailus wrote:
+> > How about useing a separate video buffer queue for the purpose? That would
+> > provide a nice way to pass it to the user space where it's needed. It'd also
+> > play nicely together with the frame layout descriptors.
+> 
+> It's tempting, but doing frame synchronisation in user space in this case
+> would have been painful, if at all possible in reliable manner. It would 
+> have significantly complicate applications and the drivers.
 
-Apart from the possible delays caused by buffering on the device side, by 
-transfers and by interrupt latency. For some applications that can matter. 
-That's why we need support for device timestamps in the first place.
+Let's face it: applications that are interested in this information have to
+do exactly the same frame number matching with the statistics buffers. Just
+stitching the data to the same video buffer isn't a generic solution.
 
-> The spec says about the frame sync event that it's "Triggered immediately
-> when the reception of a frame has begun."
+> VIDIOC_STREAMON, VIDIOC_QBUF/DQBUF calls would have been at least roughly
+> synchronized, and applications would have to know somehow which video nodes
+> needs to be opened together. I guess things like that could be abstracted
+> in a library, but what do we really gain for such effort ?
+> And now I can just ask kernel for 2-planar buffers where everything is in
+> place..
 
-Then the OMAP3 ISP driver got it wrong, as we send the event when the hardware 
-detects a vertical sync pulse :-)
+That's equally good --- some hardware can only do that after all, but do you
+need the callback in that case, if there's a single destination buffer
+anyway? Wouldn't the frame layout descriptor have enough information to do
+this?
 
-We will never be able to implement the exact same behaviour for all devices. 
-USB drivers typically don't receive VS events from the devices but can 
-generate an event when they receive the first packet of a frame. On the other 
-hand, DMA-based devices (PCI, SoC) usually only get notified of the end of the 
-transfer (as opposed to the beginning of the transfer), and often (?) support 
-generating an interrupt on VS detection. I think the best we can do is 
-document in the spec that those different behaviours exist. We could add a 
-capability flag to inform applications of the exact behaviour, but I don't 
-think that's really worth it.
+Kind regards,
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
