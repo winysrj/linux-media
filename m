@@ -1,113 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:45073 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751885Ab2I0FWJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Sep 2012 01:22:09 -0400
+Received: from mail.kapsi.fi ([217.30.184.167]:39215 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754302Ab2IXLwh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Sep 2012 07:52:37 -0400
+Message-ID: <5060496E.6090304@iki.fi>
+Date: Mon, 24 Sep 2012 14:52:14 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <20120926170737.5979b1e8@infradead.org>
-References: <1345125720-24059-1-git-send-email-prabhakar.lad@ti.com> <20120926170737.5979b1e8@infradead.org>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 27 Sep 2012 10:51:48 +0530
-Message-ID: <CA+V-a8v-7uMDxYLgH4FrbNrQwYq=8=yODDibhd7J7ix4vExdhQ@mail.gmail.com>
-Subject: Re: [PATCH] media: davinci: vpif: add check for NULL handler
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Prabhakar Lad <prabhakar.lad@ti.com>,
-	LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-kernel@vger.kernel.org,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Gianluca Gennari <gennarone@gmail.com>
+CC: linux-media@vger.kernel.org, mchehab@redhat.com
+Subject: Re: [PATCH 1/3] fc2580: define const as UL to silence a warning
+References: <1348486638-31169-1-git-send-email-gennarone@gmail.com> <1348486638-31169-2-git-send-email-gennarone@gmail.com>
+In-Reply-To: <1348486638-31169-2-git-send-email-gennarone@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 09/24/2012 02:37 PM, Gianluca Gennari wrote:
+> fc2580.c: In function 'fc2580_set_params':
+> fc2580.c:150: warning: this decimal constant is unsigned only in ISO C90
+>
+> Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
 
-On Thu, Sep 27, 2012 at 1:37 AM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
-> Em Thu, 16 Aug 2012 19:32:00 +0530
-> Prabhakar Lad <prabhakar.lad@ti.com> escreveu:
->
-> It is amazing how many SOB's/acks are in this patch and nobody
-> asked you to provide a patch description... the subject just
-> tells what the code is also telling. Could you please provide
-> a better patch description?
->
-My bad I'll post a v2.
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Regards,
---Prabhakar Lad
 
-> Thanks!
-> Mauro
+> ---
+>   drivers/media/tuners/fc2580.c |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
 >
->> From: Lad, Prabhakar <prabhakar.lad@ti.com>
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
->> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/video/davinci/vpif_capture.c |   12 +++++++-----
->>  drivers/media/video/davinci/vpif_display.c |   14 ++++++++------
->>  2 files changed, 15 insertions(+), 11 deletions(-)
->>
->> diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
->> index 266025e..a87b7a5 100644
->> --- a/drivers/media/video/davinci/vpif_capture.c
->> +++ b/drivers/media/video/davinci/vpif_capture.c
->> @@ -311,12 +311,14 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
->>       }
->>
->>       /* configure 1 or 2 channel mode */
->> -     ret = vpif_config_data->setup_input_channel_mode
->> -                                     (vpif->std_info.ycmux_mode);
->> +     if (vpif_config_data->setup_input_channel_mode) {
->> +             ret = vpif_config_data->setup_input_channel_mode
->> +                                             (vpif->std_info.ycmux_mode);
->>
->> -     if (ret < 0) {
->> -             vpif_dbg(1, debug, "can't set vpif channel mode\n");
->> -             return ret;
->> +             if (ret < 0) {
->> +                     vpif_dbg(1, debug, "can't set vpif channel mode\n");
->> +                     return ret;
->> +             }
->>       }
->>
->>       /* Call vpif_set_params function to set the parameters and addresses */
->> diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
->> index e129c98..1e35f92 100644
->> --- a/drivers/media/video/davinci/vpif_display.c
->> +++ b/drivers/media/video/davinci/vpif_display.c
->> @@ -280,12 +280,14 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
->>       }
->>
->>       /* clock settings */
->> -     ret =
->> -         vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
->> -                                     ch->vpifparams.std_info.hd_sd);
->> -     if (ret < 0) {
->> -             vpif_err("can't set clock\n");
->> -             return ret;
->> +     if (vpif_config_data->set_clock) {
->> +             ret =
->> +             vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
->> +                                             ch->vpifparams.std_info.hd_sd);
->> +             if (ret < 0) {
->> +                     vpif_err("can't set clock\n");
->> +                     return ret;
->> +             }
->>       }
->>
->>       /* set the parameters and addresses */
+> diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
+> index afc0491..036e94b 100644
+> --- a/drivers/media/tuners/fc2580.c
+> +++ b/drivers/media/tuners/fc2580.c
+> @@ -147,7 +147,7 @@ static int fc2580_set_params(struct dvb_frontend *fe)
+>   	f_vco = c->frequency;
+>   	f_vco *= fc2580_pll_lut[i].div;
 >
+> -	if (f_vco >= 2600000000)
+> +	if (f_vco >= 2600000000UL)
+>   		tmp_val = 0x0e | fc2580_pll_lut[i].band;
+>   	else
+>   		tmp_val = 0x06 | fc2580_pll_lut[i].band;
 >
->
->
-> Cheers,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+http://palosaari.fi/
