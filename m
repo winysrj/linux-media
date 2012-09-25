@@ -1,58 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:27662 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755454Ab2IXOOr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 10:14:47 -0400
-Message-ID: <50606B26.6020406@redhat.com>
-Date: Mon, 24 Sep 2012 16:16:06 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53578 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755429Ab2IYLa1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Sep 2012 07:30:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Enric =?ISO-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: omap3isp: wrong image after resizer with mt9v034 sensor
+Date: Tue, 25 Sep 2012 13:31:03 +0200
+Message-ID: <1982842.IhYcnQa0e6@avalon>
+In-Reply-To: <CAFqH_51CDRnLntYShEApUE+AuBKSBAP4Yr7EQKxnrV9SRO441w@mail.gmail.com>
+References: <CAFqH_53EY7BcMjn+fy=KfAhSU9Ut1pcLUyrmu2kiHznrBUB2XQ@mail.gmail.com> <2021377.tLq3KYvgLo@avalon> <CAFqH_51CDRnLntYShEApUE+AuBKSBAP4Yr7EQKxnrV9SRO441w@mail.gmail.com>
 MIME-Version: 1.0
-To: elezegarcia@gmail.com
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/4] pwc: Add return code check at vb2_queue_init()
-References: <1347889658-15116-1-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1347889658-15116-1-git-send-email-elezegarcia@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Enric,
 
-Thanks I've added this to my media tree and it will be included in
-my next pull-req to Mauro.
+On Tuesday 25 September 2012 13:23:20 Enric Balletbò i Serra wrote:
+> 2012/9/25 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> > On Tuesday 25 September 2012 09:44:42 Enric Balletbò i Serra wrote:
+> >> 2012/9/25 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> >> > On Monday 24 September 2012 15:49:01 Enric Balletbò i Serra wrote:
+> >> >> 2012/9/24 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> >> >> > On Monday 24 September 2012 10:33:42 Enric Balletbò i Serra wrote:
+> >> >> >> Hi everybody,
+> >> >> >> 
+> >> >> >> I'm trying to add support for MT9V034 Aptina image sensor to
+> >> >> >> current mainline, as a base of my current work I start using the
+> >> >> >> latest omap3isp-next branch from Laurent's git tree [1]. The
+> >> >> >> MT9V034 image sensor is very similar to MT9V032 sensor, so I
+> >> >> >> modified current driver to accept MT9V034 sensor adding the chip
+> >> >> >> ID. The driver recognizes the sensor and I'm able to capture some
+> >> >> >> frames.
+> >> >> >> 
+> >> >> >> I started capturing directly frames using the pipeline Sensor ->
+> >> >> >> CCDC
+> >> >> >> 
+> >> >> >>     ./media-ctl -r
+> >> >> >>     ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
+> >> >> >>     ./media-ctl -l '"OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC
+> >> >> >>     output":0[1]'
+> >> >> >>     ./media-ctl -f '"mt9v032 3-005c":0 [SGRBG10 752x480]'
+> >> >> >>     ./media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 752x480]'
+> >> >> >>     
+> >> >> >>     # Test pattern
+> >> >> >>     ./yavta --set-control '0x00981901 1' /dev/v4l-subdev8
+> >> >> >>     
+> >> >> >>     # ./yavta -p -f SGRBG10 -s 752x480 -n 4 --capture=3 /dev/video2
+> >> >> >> 
+> >> >> >> --file=img-#.bin
+> >> >> >> 
+> >> >> >> To convert to jpg I used bayer2rgb [2] program executing following
+> >> >> >> command,
+> >> >> >> 
+> >> >> >>     $ convert -size 752x480  GRBG_BAYER:./img-000000.bin
+> >> >> >>     img-000000.jpg
+> >> >> >> 
+> >> >> >> And the result image looks like this
+> >> >> >> 
+> >> >> >>     http://downloads.isee.biz/pub/files/patterns/img-from-sensor.jp
+> >> >> >>     g
+> >> >> >> 
+> >> >> >> Seems good, so I tried to use following pipeline Sensor -> CCDC ->
+> >> >> >> Preview -> Resizer
+> >> >> >> 
+> >> >> >>     ./media-ctl -r
+> >> >> >>     ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
+> >> >> >>     ./media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+> >> >> >>     ./media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP
+> >> >> >>     resizer":0[1]'
+> >> >> >>     ./media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
+> >> >> >>     output":0[1]'
+> >> >> >>     
+> >> >> >>     ./media-ctl -V '"mt9v032 3-005c":0[SGRBG10 752x480]'
+> >> >> >>     ./media-ctl -V  '"OMAP3 ISP CCDC":0 [SGRBG10 752x480]'
+> >> >> >>     ./media-ctl -V  '"OMAP3 ISP CCDC":2 [SGRBG10 752x480]'
+> >> >> >>     ./media-ctl -V  '"OMAP3 ISP preview":1 [UYVY 752x480]'
+> >> >> >>     ./media-ctl -V  '"OMAP3 ISP resizer":1 [UYVY 752x480]'
+> >> >> >>     
+> >> >> >>     # Set Test pattern
+> >> >> >>     
+> >> >> >>     ./yavta --set-control '0x00981901 1' /dev/v4l-subdev8
+> >> >> >>     
+> >> >> >>     ./yavta -f UYVY -s 752x480 --capture=3 --file=img-#.uyvy
+> >> >> >>     /dev/video6
+> >> >> >> 
+> >> >> >> I used 'convert' program to pass from UYVY to jpg,
+> >> >> >> 
+> >> >> >>     $ convert -size 752x480 img-000000.uyvy img-000000.jpg
+> >> >> >> 
+> >> >> >> and the result image looks like this
+> >> >> >> 
+> >> >> >>     http://downloads.isee.biz/pub/files/patterns/img-from-resizer.j
+> >> >> >>     pg
+> >> >> >> 
+> >> >> >> As you can see, the image is wrong and I'm not sure if the problem
+> >> >> >> is from the sensor, from the previewer, from the resizer or from my
+> >> >> >> conversion. Anyone have idea where should I look ? Or which is the
+> >> >> >> source of the problem ?
+> >> >> > 
+> >> >> > Could you please post the output of all the above media-ctl and
+> >> >> > yavta runs, as well as the captured raw binary frame ?
+> >> >> 
+> >> >> Of course,
+> >> >> 
+> >> >> The log configuring the pipeline Sensor -> CCDC is
+> >> >> 
+> >> >>     http://pastebin.com/WX8ex5x2
+> >> >> 
+> >> >> and the raw image can be found
+> >> >> 
+> >> >>     http://downloads.isee.biz/pub/files/patterns/img-000000.bin
+> >> > 
+> >> > It looks like D9 and D8 have trouble keeping their high-level. Possible
+> >> > reasons would be conflicts on the signal lines (with something actively
+> >> > driving them to a low-level, a pull-down wouldn't have such an effect),
+> >> > faulty cable/solder joints (but I doubt that), or sampling the data on
+> >> > the wrong edge.
+> >> 
+> >> In that case don't be the first image also wrong ? (the image that
+> >> outputs from sensor /dev/video2)
+> > 
+> > Yes, it should be, and
+> > http://downloads.isee.biz/pub/files/patterns/img-000000.bin is corrupted.
+> > That's the image captured at the CCDC output, isn't it ?
+> 
+> Yes it is.
+> 
+> >>  http://downloads.isee.biz/pub/files/patterns/img-from-sensor.jpg
+> > 
+> > How did you capture that one ?
+> 
+> This image is the img-000000.bin (that you say is corrupted) converted
+> to RGB using bayer2rgb [2] program. So seems I'm using wrong tools to
+> convert images. How you known that this file is corrupted ? Please,
+> could you provide the tools that you use ?
 
+I'm using raw2rgbpnm (https://gitorious.org/raw2rgbpnm). If you look at the 
+binary file in a hex editor you'll see that the MSBs are corrupted, instead of 
+being stable in the 01 and 02 regions (pixels 256-511 and 512-752 on each 
+line, so bytes 512-1023 and 1024-1503) they oscillate between 00 and 01, and 
+00 and 02 respectively.
+
+> >> I'll investigate a bit more following this line.
+> >> 
+> >> > The last option should be easy to test, just change the struct
+> >> > isp_v4l2_subdevs_group::bus::parallel::clk_pol field.
+> >> 
+> >> I tested and seems this is not the problem.
+> >> 
+> >> >> And the log configuring the pipeline Sensor -> CCDC -> Previewer ->
+> >> >> Resizer is http://pastebin.com/wh5ZJwne and the raw image can be found
+> >> >> 
+> >> >>     http://downloads.isee.biz/pub/files/patterns/img-000000.uyvy
+> >> >> >> 
+> >> >> >> [1]
+> >> >> >> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/
+> >> >> >> omap3isp-omap3isp-next
+> >> >> >> [2] https://github.com/jdthomas/bayer2rgb
+
+-- 
 Regards,
 
-Hans
+Laurent Pinchart
 
-
-On 09/17/2012 03:47 PM, elezegarcia@gmail.com wrote:
-> From: Ezequiel Garcia <elezegarcia@gmail.com>
->
-> This function returns an integer and it's mandatory
-> to check the return code.
->
-> Cc: Hans de Goede <hdegoede@redhat.com>
-> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
-> ---
->   drivers/media/usb/pwc/pwc-if.c |    4 +++-
->   1 files changed, 3 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-> index 42e36ba..31d082e 100644
-> --- a/drivers/media/usb/pwc/pwc-if.c
-> +++ b/drivers/media/usb/pwc/pwc-if.c
-> @@ -1000,7 +1000,9 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
->   	pdev->vb_queue.buf_struct_size = sizeof(struct pwc_frame_buf);
->   	pdev->vb_queue.ops = &pwc_vb_queue_ops;
->   	pdev->vb_queue.mem_ops = &vb2_vmalloc_memops;
-> -	vb2_queue_init(&pdev->vb_queue);
-> +	rc = vb2_queue_init(&pdev->vb_queue);
-> +	if (rc)
-> +		goto err_free_mem;
->
->   	/* Init video_device structure */
->   	memcpy(&pdev->vdev, &pwc_template, sizeof(pwc_template));
->
