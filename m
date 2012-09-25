@@ -1,146 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3667 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753569Ab2IHLLO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Sep 2012 07:11:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v2] media: v4l2-ctrls: add control for test pattern
-Date: Sat, 8 Sep 2012 13:11:04 +0200
-Cc: Prabhakar Lad <prabhakar.lad@ti.com>,
-	LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-kernel@vger.kernel.org,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-doc@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Landley <rob@landley.net>
-References: <1347007309-6913-1-git-send-email-prabhakar.lad@ti.com> <504A3B03.4090600@iki.fi>
-In-Reply-To: <504A3B03.4090600@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57997 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752503Ab2IYLIk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Sep 2012 07:08:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	remi@remlab.net, daniel-gl@gmx.net, sylwester.nawrocki@gmail.com
+Subject: Re: [RFC] Timestamps and V4L2
+Date: Tue, 25 Sep 2012 13:09:16 +0200
+Message-ID: <15868105.EeGOpqSRKh@avalon>
+In-Reply-To: <201209251254.34483.hverkuil@xs4all.nl>
+References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <1581681.Un0gYsdTxg@avalon> <201209251254.34483.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209081311.04861.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri September 7 2012 20:20:51 Sakari Ailus wrote:
-> Hi Prabhakar,
+Hi Hans,
+
+On Tuesday 25 September 2012 12:54:34 Hans Verkuil wrote:
+> On Tue 25 September 2012 12:48:01 Laurent Pinchart wrote:
+> > On Tuesday 25 September 2012 08:47:45 Hans Verkuil wrote:
+> > > On Tue September 25 2012 02:00:55 Laurent Pinchart wrote:
+> > > BTW, I think we should also fix the description of the timestamp in the
+> > > spec. Currently it says:
+> > > 
+> > > "For input streams this is the system time (as returned by the
+> > > gettimeofday() function) when the first data byte was captured. For
+> > > output streams the data will not be displayed before this time,
+> > > secondary to the nominal frame rate determined by the current video
+> > > standard in enqueued order. Applications can for example zero this field
+> > > to display frames as soon as possible. The driver stores the time at
+> > > which the first data byte was actually sent out in the timestamp field.
+> > > This permits applications to monitor the drift between the video and
+> > > system clock."
+> > > 
+> > > To my knowledge all capture drivers set the timestamp to the time the
+> > > *last* data byte was captured, not the first.
+> > 
+> > The uvcvideo driver uses the time the first image packet is received :-)
+> > Most other drivers use the time the last byte was *received*, not
+> > captured.
+>
+> Unless the hardware buffers more than a few lines there is very little
+> difference between the time the last byte was received and when it was
+> captured.
+
+It won't differ much, but if we want to change the spec to reflect the 
+reality, then we should be as precise as possible.
+ 
+> But you are correct, it is typically the time the last byte was received.
 > 
-> Thanks for the patch!
-> 
-> Prabhakar Lad wrote:
-> > From: Lad, Prabhakar <prabhakar.lad@ti.com>
-> >
-> > add V4L2_CID_TEST_PATTERN of type menu, which determines
-> > the internal test pattern selected by the device.
-> >
-> > Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> > Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> > Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> > Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> > Cc: Hans de Goede <hdegoede@redhat.com>
-> > Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> > Cc: Rob Landley <rob@landley.net>
-> > ---
-> > This patches has one checkpatch warning for line over
-> > 80 characters altough it can be avoided I have kept it
-> > for consistency.
-> >
-> > Changes for v2:
-> > 1: Included display devices in the description for test pattern
-> >     as pointed by Hans.
-> > 2: In the menu replaced 'Test Pattern Disabled' by 'Disabled' as
-> >     pointed by Sylwester.
-> > 3: Removed the test patterns from menu as the are hardware specific
-> >     as pointed by Sakari.
-> >
-> >   Documentation/DocBook/media/v4l/controls.xml |   20 ++++++++++++++++++++
-> >   drivers/media/v4l2-core/v4l2-ctrls.c         |    8 ++++++++
-> >   include/linux/videodev2.h                    |    4 ++++
-> >   3 files changed, 32 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> > index ad873ea..173934e 100644
-> > --- a/Documentation/DocBook/media/v4l/controls.xml
-> > +++ b/Documentation/DocBook/media/v4l/controls.xml
-> > @@ -4311,6 +4311,26 @@ interface and may change in the future.</para>
-> >   	      </tbody>
-> >   	    </entrytbl>
-> >   	  </row>
-> > +	  <row>
-> > +	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN</constant></entry>
-> > +	    <entry>menu</entry>
-> > +	  </row>
-> > +	  <row id="v4l2-test-pattern">
-> > +	    <entry spanname="descr"> The Capture/Display/Sensors have the capability
-> > +	    to generate internal test patterns and this are hardware specific. This
-> > +	    test patterns are used to test a device is properly working and can generate
-> > +	    the desired waveforms that it supports.</entry>
-> > +	  </row>
-> > +	  <row>
-> > +	    <entrytbl spanname="descr" cols="2">
-> > +	      <tbody valign="top">
-> > +	        <row>
-> > +	         <entry><constant>V4L2_TEST_PATTERN_DISABLED</constant></entry>
-> > +	          <entry>Test pattern generation is disabled</entry>
-> > +	        </row>
-> > +	      </tbody>
-> > +	    </entrytbl>
-> > +	  </row>
-> >   	<row><entry></entry></row>
-> >   	</tbody>
-> >         </tgroup>
-> > diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> > index 8f2f40b..d731422 100644
-> > --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> > +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> > @@ -430,6 +430,10 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
-> >   		"Advanced",
-> >   		NULL,
-> >   	};
-> > +	static const char * const test_pattern[] = {
-> > +		"Disabled",
-> > +		NULL,
-> > +	};
-> >
-> >   	switch (id) {
-> >   	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-> > @@ -509,6 +513,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
-> >   		return jpeg_chroma_subsampling;
-> >   	case V4L2_CID_DPCM_PREDICTOR:
-> >   		return dpcm_predictor;
-> > +	case V4L2_CID_TEST_PATTERN:
-> > +		return test_pattern;
-> 
-> I think it's not necessary to define test_pattern (nor be prepared to 
-> return it) since the menu is going to be device specific. So the driver 
-> is responsible for all of the menu items. Such menus are created using 
-> v4l2_ctrl_new_custom() instead of v4l2_ctrl_new_std_menu().
-> 
-> Looks good to me otherwise.
+> Should we signal this as well? First vs last byte? Or shall we standardize?
 
-I would suggest that we *do* make this a standard control, but the menu consists
-of just one item: "Disabled". After creating the control you can just set the
-ctrl->qmenu pointer to the device-specific menu. I like using standard controls
-because they guarantee standard naming and type conventions. They are also
-easier to use in an application.
+Good question. On one hand forcing drivers to report the timestamp of the last 
+captured byte when they can report the first is a step back, on the other hand 
+I'm not sure if it would be worth it to report what the device does exactly. 
+This could all fit in a couple of new clock-related ioctls though. I wasn't a 
+big fan of ioctls instead of a control for clock source selection, but if we 
+start to shove more information in there ioctls begin to make sense.
 
-This would obvious require good documentation, both in the code and in the
-spec.
+> BTW, the human mind is amazingly tolerant when it comes to A/V
+> synchronization. Audio can be up to 50 ms ahead of the video and up to I
+> believe 120 ms lagging behind the video before most people will notice. So
+> being off by one frame won't be noticable at all.
 
-BTW, see also this patch that needs to use the test pattern control:
-
-http://www.spinics.net/lists/linux-media/msg52747.html
-
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
+
