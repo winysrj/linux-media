@@ -1,49 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:23132 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757088Ab2INK6D (ORCPT
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:38303 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750785Ab2IYFld (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 06:58:03 -0400
-Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBm013688
-	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:56 GMT
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFCv3 API PATCH 17/31] DocBook: clarify that sequence is also set for output devices.
-Date: Fri, 14 Sep 2012 12:57:32 +0200
-Message-Id: <43be7ce4539b2bb5cf7715af61c59186803e9d8b.1347619766.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
-References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+	Tue, 25 Sep 2012 01:41:33 -0400
+MIME-Version: 1.0
+In-Reply-To: <201209241537.17549.hverkuil@xs4all.nl>
+References: <1348491221-6068-1-git-send-email-prabhakar.lad@ti.com>
+ <1348491221-6068-2-git-send-email-prabhakar.lad@ti.com> <201209241537.17549.hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 25 Sep 2012 11:11:12 +0530
+Message-ID: <CA+V-a8u-iXiMvD7EpfVjNXw-J-pkp477ZK+brSE_GaKe-hF8DA@mail.gmail.com>
+Subject: Re: [PATCH v3] media: v4l2-ctrls: add control for test pattern
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	LMML <linux-media@vger.kernel.org>,
+	Rob Landley <rob@landley.net>,
+	LDOC <linux-doc@vger.kernel.org>,
+	VGER <linux-kernel@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It was not entirely obvious that the sequence count should also
-be set for output devices. Also made it more explicit that this
-sequence counter counts frames, not fields.
+Hi Hans,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- Documentation/DocBook/media/v4l/io.xml |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Thanks for the review,
 
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index b680d66..c32cb0a 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -617,8 +617,8 @@ field is independent of the <structfield>timestamp</structfield> and
- 	    <entry>__u32</entry>
- 	    <entry><structfield>sequence</structfield></entry>
- 	    <entry></entry>
--	    <entry>Set by the driver, counting the frames in the
--sequence.</entry>
-+	    <entry>Set by the driver, counting the frames (not fields!) in
-+sequence. This field is set for both input and output devices.</entry>
- 	  </row>
- 	  <row>
- 	    <entry spanname="hspan"><para>In <link
--- 
-1.7.10.4
+On Mon, Sep 24, 2012 at 7:07 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Mon September 24 2012 14:53:41 Prabhakar wrote:
+>> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+>>
+>> add V4L2_CID_TEST_PATTERN of type menu, which determines
+>> the internal test pattern selected by the device.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+>> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Cc: Hans de Goede <hdegoede@redhat.com>
+>> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Rob Landley <rob@landley.net>
+>> ---
+>>  This patches has one checkpatch warning for line over
+>>  80 characters altough it can be avoided I have kept it
+>>  for consistency.
+>>
+>>  Changes for v3:
+>>  1: Removed the menu for test pattern, pointed by Sakari.
+>>
+>>  Changes for v2:
+>>  1: Included display devices in the description for test pattern
+>>    as pointed by Hans.
+>>  2: In the menu replaced 'Test Pattern Disabled' by 'Disabled' as
+>>    pointed by Sylwester.
+>>  3: Removed the test patterns from menu as the are hardware specific
+>>    as pointed by Sakari.
+>>
+>>  Documentation/DocBook/media/v4l/controls.xml |   10 ++++++++++
+>>  drivers/media/v4l2-core/v4l2-ctrls.c         |    2 ++
+>>  include/linux/videodev2.h                    |    1 +
+>>  3 files changed, 13 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+>> index f0fb08d..51e9c4e 100644
+>> --- a/Documentation/DocBook/media/v4l/controls.xml
+>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+>> @@ -4313,6 +4313,16 @@ interface and may change in the future.</para>
+>>             </tbody>
+>>           </entrytbl>
+>>         </row>
+>> +       <row>
+>> +         <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN</constant></entry>
+>> +         <entry>menu</entry>
+>> +       </row>
+>> +       <row id="v4l2-test-pattern">
+>> +         <entry spanname="descr"> The Capture/Display/Sensors have the capability
+>> +         to generate internal test patterns and this are hardware specific. This
+>> +         test patterns are used to test a device is properly working and can generate
+>> +         the desired waveforms that it supports.</entry>
+>
+> Some grammar/style fixes:
+>
+>             <entry spanname="descr"> Some capture/display/sensor devices have the
+>             capability to generate test pattern images. These hardware specific
+>             test patterns can be used to test if a device is working properly.</entry>
+>
+I'll fix it in next version.
 
+Regards,
+--Prabhakar Lad
+
+>
+>> +       </row>
+>>       <row><entry></entry></row>
+>>       </tbody>
+>>        </tgroup>
+>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> index 8f2f40b..41b7732 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> @@ -740,6 +740,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>>       case V4L2_CID_LINK_FREQ:                return "Link Frequency";
+>>       case V4L2_CID_PIXEL_RATE:               return "Pixel Rate";
+>>       case V4L2_CID_DPCM_PREDICTOR:           return "DPCM Predictor";
+>> +     case V4L2_CID_TEST_PATTERN:             return "Test Pattern";
+>>
+>>       default:
+>>               return NULL;
+>> @@ -841,6 +842,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>>       case V4L2_CID_EXPOSURE_METERING:
+>>       case V4L2_CID_SCENE_MODE:
+>>       case V4L2_CID_DPCM_PREDICTOR:
+>> +     case V4L2_CID_TEST_PATTERN:
+>>               *type = V4L2_CTRL_TYPE_MENU;
+>>               break;
+>>       case V4L2_CID_LINK_FREQ:
+>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+>> index ca9fb78..7014c0b 100644
+>> --- a/include/linux/videodev2.h
+>> +++ b/include/linux/videodev2.h
+>> @@ -2005,6 +2005,7 @@ enum v4l2_dpcm_predictor {
+>>       V4L2_DPCM_PREDICTOR_SIMPLE      = 0,
+>>       V4L2_DPCM_PREDICTOR_ADVANCED    = 1,
+>>  };
+>> +#define V4L2_CID_TEST_PATTERN                        (V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
+>>
+>>  /*
+>>   *   T U N I N G
+>>
+>
+> Regards,
+>
+>         Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
