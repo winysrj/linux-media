@@ -1,98 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58265 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750877Ab2IRQQ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Sep 2012 12:16:28 -0400
-Message-ID: <50589E52.5050602@redhat.com>
-Date: Tue, 18 Sep 2012 13:16:18 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:36186 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753973Ab2IYNpZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Sep 2012 09:45:25 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv1 API PATCH 4/4] tuner-core: map audmode to STEREO for radio devices.
+Date: Tue, 25 Sep 2012 15:45:00 +0200
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
+References: <1347621336-14108-1-git-send-email-hans.verkuil@cisco.com> <97c2130954d0c14e16e0e7b08b29405e48a9687e.1347620872.git.hans.verkuil@cisco.com> <20120925103340.76a5db3c@redhat.com>
+In-Reply-To: <20120925103340.76a5db3c@redhat.com>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Alfredo_Jes=FAs_Delaiti?=
-	<alfredodelaiti@netscape.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Mygica X8507 audio for YPbPr, AV and S-Video
-References: <50450FB5.3090503@netscape.net>
-In-Reply-To: <50450FB5.3090503@netscape.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209251545.00414.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 03-09-2012 17:14, Alfredo Jesús Delaiti escreveu:
-> Hi
+On Tue 25 September 2012 15:33:40 Mauro Carvalho Chehab wrote:
+> Em Fri, 14 Sep 2012 13:15:36 +0200
+> Hans Verkuil <hans.verkuil@cisco.com> escreveu:
 > 
-> This patch add audio support for input YPbPr, AV and S-Video for Mygica X8507 card.
-> I tried it with the 3.4 and 3.5 kernel
+> > Fixes a v4l2-compliance error: setting audmode to a value other than mono
+> > or stereo for a radio device should map to MODE_STEREO.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/v4l2-core/tuner-core.c |    5 ++++-
+> >  1 file changed, 4 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+> > index b5a819a..ea71371 100644
+> > --- a/drivers/media/v4l2-core/tuner-core.c
+> > +++ b/drivers/media/v4l2-core/tuner-core.c
+> > @@ -1235,8 +1235,11 @@ static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+> >  	if (set_mode(t, vt->type))
+> >  		return 0;
+> >  
+> > -	if (t->mode == V4L2_TUNER_RADIO)
+> > +	if (t->mode == V4L2_TUNER_RADIO) {
+> >  		t->audmode = vt->audmode;
+> > +		if (t->audmode > V4L2_TUNER_MODE_STEREO)
+> > +			t->audmode = V4L2_TUNER_MODE_STEREO;
 > 
-> Remains to be done: IR, FM and ISDBT
-> 
-> Sorry if I sent the patch improperly.
-> 
-> Signed-off-by: Alfredo J. Delaiti <alfredodelaiti@netscape.net>
-> 
-> 
-> 
-> diff --git a/media/video/cx23885/cx23885-cards.c b/media/video/cx23885/cx23885-cards.c
-> index 080e111..17e2576 100644
-> --- a/media/video/cx23885/cx23885-cards.c
-> +++ b/media/video/cx23885/cx23885-cards.c
+> NACK. It is not a core's task to fix driver's bugs. It would be ok to have here a
+> WARN_ON(), but, if a driver is reporting a wrong radio audmode, the fix should be
+> there at the drivers, and not here at the core.
 
-Wrong format... the "drivers/" is missing.
+tuner-core *is* the driver. A bridge driver just passes v4l2_tuner on to the
+subdev driver(s), and it is the subdev driver such as tuner-core that needs to
+process the audmode as specified by the user. Which in this case means mapping
+audmodes that are invalid when in radio mode to something that is valid as per
+the spec.
 
-Well, the location also changed to drivers/media/pci, but my scripts can
-fix it.
+So this is a real tuner-core bug, not a bridge driver bug since they don't
+generally touch the audmode field, they just pass it along. And the vt->audmode
+value comes straight from userspace, not from the bridge driver.
 
-> @@ -541,11 +541,13 @@ struct cx23885_board cx23885_boards[] = {
->                         {
->                                 .type   = CX23885_VMUX_COMPOSITE1,
->                                 .vmux   = CX25840_COMPOSITE8,
-> +                               .amux   = CX25840_AUDIO7,
+Regards,
 
-Didn't apply well. It seems it conflicted with some other patch.
-
-Please, re-generate it against the very latest tree.
-
-Also, when doing diffs for the boards entries, it is wise to have
-more context lines, in order that a patch made for one driver would
-be badly applied at some other board entry.
-
-The easiest way to do that is to do: 
-
-	$ git diff -U10
-		or
-	$ git show -U10
-		(if you've merged the patch at your local copy)
-
-(if you're generating the patch against the main media-tree.git)
-
-Where "10" is just an arbitrary large number that will allow to
-see the board name that will be modified, like:
-
---- a/drivers/media/pci/cx23885/cx23885-cards.c
-+++ b/drivers/media/pci/cx23885/cx23885-cards.c
-@@ -531,20 +531,21 @@ struct cx23885_board cx23885_boards[] = {
-                .name           = "Mygica X8507",
-                .tuner_type = TUNER_XC5000,
-                .tuner_addr = 0x61,
-                .tuner_bus      = 1,
-                .porta          = CX23885_ANALOG_VIDEO,
-                .input          = {
-                        {
-                                .type   = CX23885_VMUX_TELEVISION,
-                                .vmux   = CX25840_COMPOSITE2,
-                                .amux   = CX25840_AUDIO8,
-+ /* Some foo addition - just for testing */
-                        },
-                        {
-                                .type   = CX23885_VMUX_COMPOSITE1,
-                                .vmux   = CX25840_COMPOSITE8,
-                        },
-                        {
-                                .type   = CX23885_VMUX_SVIDEO,
-                                .vmux   = CX25840_SVIDEO_LUMA3 |
-                                                CX25840_SVIDEO_CHROMA4,
-                        },
-
-
-Thanks,
-Mauro
+	Hans
