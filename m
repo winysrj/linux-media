@@ -1,103 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59156 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756502Ab2IYNtf (ORCPT
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:42028 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753903Ab2IYP2D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 09:49:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	VGER <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH] media: davinci: vpif: set device capabilities
-Date: Tue, 25 Sep 2012 15:50:10 +0200
-Message-ID: <25447484.hfLC5SnrpW@avalon>
-In-Reply-To: <201209251548.10830.hansverk@cisco.com>
-References: <1348571784-4237-1-git-send-email-prabhakar.lad@ti.com> <CA+V-a8uLTmCSzY7xtp_TpAcmt=w5hMEWEpk24py1OD9qxOtYbw@mail.gmail.com> <201209251548.10830.hansverk@cisco.com>
+	Tue, 25 Sep 2012 11:28:03 -0400
+Received: by qadc26 with SMTP id c26so1879924qad.19
+        for <linux-media@vger.kernel.org>; Tue, 25 Sep 2012 08:28:02 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <5061B3FE.1030103@samsung.com>
+References: <1348571944-7139-1-git-send-email-sachin.kamat@linaro.org>
+	<5061B3FE.1030103@samsung.com>
+Date: Tue, 25 Sep 2012 20:58:02 +0530
+Message-ID: <CAK9yfHxa2PDjMtrsSH+Ocg6tRDnn9-G3HGY=6RgGimHy7Lndsw@mail.gmail.com>
+Subject: Re: [PATCH] [media] s5p-fimc: Fix incorrect condition in fimc_lite_reqbufs()
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	patches@linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 25 September 2012 15:48:10 Hans Verkuil wrote:
-> On Tue 25 September 2012 15:26:11 Prabhakar Lad wrote:
-> > On Tue, Sep 25, 2012 at 5:24 PM, Hans Verkuil <hansverk@cisco.com> wrote:
-> > > On Tue 25 September 2012 13:49:16 Laurent Pinchart wrote:
-> > >> Hi Hans,
-> > >> 
-> > >> On Tuesday 25 September 2012 13:43:36 Hans Verkuil wrote:
-> > >> > On Tue 25 September 2012 13:16:24 Prabhakar wrote:
-> > >> > > From: Lad, Prabhakar <prabhakar.lad@ti.com>
-> > >> > > 
-> > >> > > Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> > >> > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> > >> > > Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> > >> > > ---
-> > >> > > 
-> > >> > >  drivers/media/platform/davinci/vpif_capture.c |    4 +++-
-> > >> > >  drivers/media/platform/davinci/vpif_display.c |    4 +++-
-> > >> > >  2 files changed, 6 insertions(+), 2 deletions(-)
-> > >> > > 
-> > >> > > diff --git a/drivers/media/platform/davinci/vpif_capture.c
-> > >> > > b/drivers/media/platform/davinci/vpif_capture.c index
-> > >> > > 4828888..faeca98
-> > >> > > 100644
-> > >> > > --- a/drivers/media/platform/davinci/vpif_capture.c
-> > >> > > +++ b/drivers/media/platform/davinci/vpif_capture.c
-> > >> > > @@ -1630,7 +1630,9 @@ static int vpif_querycap(struct file *file,
-> > >> > > void
-> > >> > > *priv,>
-> > >> > > 
-> > >> > >  {
-> > >> > >  
-> > >> > >   struct vpif_capture_config *config = vpif_dev->platform_data;
-> > >> > > 
-> > >> > > - cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-> > >> > > + cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
-> > >> > > +                 V4L2_CAP_READWRITE;
-> > >> > > + cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-> > >> > > 
-> > >> > >   strlcpy(cap->driver, "vpif capture", sizeof(cap->driver));
-> > >> > 
-> > >> > This should be the real driver name which is 'vpif_capture'.
-> > >> > 
-> > >> > >   strlcpy(cap->bus_info, "VPIF Platform", sizeof(cap->bus_info));
-> > >> > 
-> > >> > For bus_info I would use: "platform:vpif_capture".
-> > >> > 
-> > >> > The 'platform:' prefix is going to be the standard for platform
-> > >> > drivers.
-> > >> 
-> > >> What about
-> > >> 
-> > >> snprintf(cap->driver, sizeof(cap->driver), "platform:%s",
-> > >> dev_name(vpif_dev));
-> > >> 
-> > >> That would handle cases where multiple platform devices of the same
-> > >> type are present.
-> > > 
-> > > Sure, that's even better. You do have to check that this gives you what
-> > > you'd expect (i.e., that you don't end up with
-> > > "platform:platform:vpif_capture").> 
-> > But the driver field is max 16, should i extend it to 32 ?
-> 
-> I'm certain Laurent meant to say:
-> 
-> snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
-> dev_name(vpif_dev));
+Hi Sylwester,
 
-Yes that's what I meant, sorry.
+On 25 September 2012 19:09, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
+> Hi Sachin,
+>
+> On 09/25/2012 01:19 PM, Sachin Kamat wrote:
+>> When precedence rules are applied, the condition always evaluates
+>> to be false which was not the intention. Adding the missing braces
+>> for correct evaluation of the expression and subsequent functionality.
+>>
+>> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+>> ---
+>>  drivers/media/platform/s5p-fimc/fimc-lite.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
+>> index 9289008..20e5e24 100644
+>> --- a/drivers/media/platform/s5p-fimc/fimc-lite.c
+>> +++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
+>> @@ -825,7 +825,7 @@ static int fimc_lite_reqbufs(struct file *file, void *priv,
+>>
+>>       reqbufs->count = max_t(u32, FLITE_REQ_BUFS_MIN, reqbufs->count);
+>>       ret = vb2_reqbufs(&fimc->vb_queue, reqbufs);
+>> -     if (!ret < 0)
+>> +     if (!(ret < 0))
+>>               fimc->reqbufs_count = reqbufs->count;
+>
+> Thanks for the catch. It looks like my search/replace oversight..
+> I think it's better to just make it
+>
+>         if (!ret)
+>                 fimc->reqbufs_count = reqbufs->count;
+>
+> Since this bug is relatively harmless I could queue it for v3.7, with the
+> above change if you are OK with that. Or would you like to resend this
+> patch with changed summary ?
 
-> It makes no sense to use cap->driver.
+Either option is OK with me :)
+Anyway I will update the patch as suggested by you and resend with a
+simple 1 line summary.
+
+>
+>>
+>>       return ret;
+>
+> Regards,
+> Sylwester
+
+
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+With warm regards,
+Sachin
