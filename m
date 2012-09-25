@@ -1,99 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:50796 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754609Ab2IIWiQ (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:41893 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750898Ab2IYV6E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Sep 2012 18:38:16 -0400
-Message-ID: <1347230281.5134.1.camel@deadeye.wl.decadent.org.uk>
-Subject: Re: [patch v2] [media] rc-core: prevent divide by zero bug in
- s_tx_carrier()
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Sean Young <sean@mess.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Paul Gortmaker <paul.gortmaker@windriver.com>,
-	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Date: Sun, 09 Sep 2012 23:38:01 +0100
-In-Reply-To: <20120909222629.GA28355@pequod.mess.org>
-References: <20120909203142.GA12296@elgon.mountain>
-	 <20120909222629.GA28355@pequod.mess.org>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-34PVV3Bggk5EDdtCKdHa"
-Mime-Version: 1.0
+	Tue, 25 Sep 2012 17:58:04 -0400
+Received: by bkcjk13 with SMTP id jk13so1534346bkc.19
+        for <linux-media@vger.kernel.org>; Tue, 25 Sep 2012 14:58:03 -0700 (PDT)
+Message-ID: <506228E8.1040704@gmail.com>
+Date: Tue, 25 Sep 2012 23:58:00 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+CC: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	mchehab@infradead.org, patches@linaro.org
+Subject: Re: [PATCH] [media] s5k6aa: Fix possible NULL pointer dereference
+References: <1348298907-20791-1-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1348298907-20791-1-git-send-email-sachin.kamat@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sachin,
 
---=-34PVV3Bggk5EDdtCKdHa
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On 09/22/2012 09:28 AM, Sachin Kamat wrote:
+> It is previously assumed that 'rect' could be NULL.
+> Hence add a check to print the members of 'rect' only when it is not
+> NULL.
+> 
+> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
+> ---
+>   drivers/media/i2c/s5k6aa.c |    5 +++--
+>   1 files changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/s5k6aa.c b/drivers/media/i2c/s5k6aa.c
+> index 045ca7f..7531edb 100644
+> --- a/drivers/media/i2c/s5k6aa.c
+> +++ b/drivers/media/i2c/s5k6aa.c
+> @@ -1177,8 +1177,9 @@ static int s5k6aa_get_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+> 
+>   	mutex_unlock(&s5k6aa->lock);
+> 
+> -	v4l2_dbg(1, debug, sd, "Current crop rectangle: (%d,%d)/%dx%d\n",
+> -		 rect->left, rect->top, rect->width, rect->height);
+> +	if (rect)
+> +		v4l2_dbg(1, debug, sd, "Current crop rectangle: (%d,%d)/%dx%d\n",
+> +			 rect->left, rect->top, rect->width, rect->height);
+> 
+>   	return 0;
+>   }
 
-On Sun, 2012-09-09 at 23:26 +0100, Sean Young wrote:
-> On Sun, Sep 09, 2012 at 11:31:42PM +0300, Dan Carpenter wrote:
-> > Several of the drivers use carrier as a divisor in their s_tx_carrier()
-> > functions.  We should do a sanity check here like we do for
-> > LIRC_SET_REC_CARRIER.
-> >=20
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > ---
-> > v2: Ben Hutchings pointed out that my first patch was not a complete
-> >     fix.
-> >=20
-> > diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lir=
-c-codec.c
-> > index 6ad4a07..28dc0f0 100644
-> > --- a/drivers/media/rc/ir-lirc-codec.c
-> > +++ b/drivers/media/rc/ir-lirc-codec.c
-> > @@ -211,6 +211,9 @@ static long ir_lirc_ioctl(struct file *filep, unsig=
-ned int cmd,
-> >  		if (!dev->s_tx_carrier)
-> >  			return -EINVAL;
->=20
-> This should be ENOSYS.
->=20
-> > =20
-> > +		if (val <=3D 0)
-> > +			return -EINVAL;
-> > +
->=20
-> 1) val is unsigned so it would never be less than zero.
->=20
-> 2) A value of zero means disabling carrier modulation, which is used by=
-=20
->    the mceusb driver.
->
-> So the check belongs in the individual drivers, as in the original patch.
+Thank you for the patch. I would attack this problem form slightly 
+different angle though, i.e. I would make sure __s5k6aa_get_crop_rect() 
+always returns valid pointer. There is similar issue in s5k6aa_set_crop(). 
+Since crop->which is already validated in 
+drivers/media/v4l2-core/v4l2-subdev.c and can have only values: 
+V4L2_SUBDEV_FORMAT_TRY, V4L2_SUBDEV_FORMAT_ACTIVE it's safe to do 
+something like:
 
-Oh well, sorry for pointing Dan in the wrong direction.  Is the special
-case documented somewhere?
+8<-------------------------------------------------------------------------
+>From 724aa5f1fefcaca2dee4f75ba960a1f620400e1a Mon Sep 17 00:00:00 2001
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Date: Tue, 25 Sep 2012 23:53:27 +0200
+Subject: [PATCH] s5k6aa: Fix potential null pointer dereference
 
-Ben.
+Make sure __s5k6aa_get_crop_rect() always returns valid pointer,
+as it is assumed at the callers.
 
---=20
-Ben Hutchings
-Time is nature's way of making sure that everything doesn't happen at once.
+crop->which is already validated when subdev set_crop and get_crop
+callbacks are called from within the v4l2-core. If it ever happens
+the crop operations are called directly for some reason in kernel
+space, with incorrect crop->which argument, just log it with WARN
+and return reference to the TRY crop.
 
---=-34PVV3Bggk5EDdtCKdHa
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+Reported-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+---
+ drivers/media/i2c/s5k6aa.c |   11 ++++-------
+ 1 files changed, 4 insertions(+), 7 deletions(-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+diff --git a/drivers/media/i2c/s5k6aa.c b/drivers/media/i2c/s5k6aa.c
+index 045ca7f..57cd4fa 100644
+--- a/drivers/media/i2c/s5k6aa.c
++++ b/drivers/media/i2c/s5k6aa.c
+@@ -1061,10 +1061,9 @@ __s5k6aa_get_crop_rect(struct s5k6aa *s5k6aa, struct v4l2_subdev_fh *fh,
+ {
+ 	if (which == V4L2_SUBDEV_FORMAT_ACTIVE)
+ 		return &s5k6aa->ccd_rect;
+-	if (which == V4L2_SUBDEV_FORMAT_TRY)
+-		return v4l2_subdev_get_try_crop(fh, 0);
+ 
+-	return NULL;
++	WARN_ON(which != V4L2_SUBDEV_FORMAT_TRY);
++	return v4l2_subdev_get_try_crop(fh, 0);
+ }
+ 
+ static void s5k6aa_try_format(struct s5k6aa *s5k6aa,
+@@ -1169,12 +1168,10 @@ static int s5k6aa_get_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	struct v4l2_rect *rect;
+ 
+ 	memset(crop->reserved, 0, sizeof(crop->reserved));
+-	mutex_lock(&s5k6aa->lock);
+ 
++	mutex_lock(&s5k6aa->lock);
+ 	rect = __s5k6aa_get_crop_rect(s5k6aa, fh, crop->which);
+-	if (rect)
+-		crop->rect = *rect;
+-
++	crop->rect = *rect;
+ 	mutex_unlock(&s5k6aa->lock);
+ 
+ 	v4l2_dbg(1, debug, sd, "Current crop rectangle: (%d,%d)/%dx%d\n",
+-- 
+1.7.4.1
+8<-------------------------------------------------------------------------
 
-iQIVAwUAUE0aSee/yOyVhhEJAQpmvQ//U2NF2R1HNHjqKol0yb5NjV0qRcHLo8nD
-ftpTHRpasx92ElSlVo4ARII77kwr1WnokYxHCYwS1DuNqpxVP7zRifp26NTDRjpz
-c9hg1yzcVOEl/kCXLw0A4IiBKy3L+D9cNClEIFJfFcdKsejuM+8Md5r/gypUPfTf
-cFAWDkCUXnWPEPB+/NQHB1R3cCHoolBR8lDRt3+XYo/QaV5Eb4A4KQPmcug6BKEX
-Onby85KjthbOdLN4gShRdJ0P3Ud15WxeZyMLXUAHN/Zm8gcy6PnQ4cLCQeuknvyu
-WdYzH69g8fby0aQbS0mdvGof3DzsA2sIA0SaVfW5uVIBd/d0BqdGX+4sTWE7ZU12
-NoLBX37Xm+aSyp8rKjXgFY+y9yop6saRjHj0duVqWALl+nXDRkeo9XzRTVhLUAJs
-xagNQ1cRrk9VD+BdU2TxKam6o5q17fhSaqELMiSDKwYwbiOabp4LtTWXPKW9xGZx
-ap0KoPxMaxM70kxEMc/pR325ymZg/sGxNHqpzzI6Xum34wXHRq6jsTysLZbgenVQ
-6k1CA/fBLSPbz0Kvi/LtH0b8p6m3S7456rCJL3frmAPxXudq+61DBZH9jFFeGp6S
-4MlcxOseevPdz7ywUUlJB7jCMNqqcVP2cwP1Ch9LM00Dp1Kl/LgMJWB2FimCG6FI
-AkbGYBTWfoA=
-=jE1d
------END PGP SIGNATURE-----
+I'm going to queue this patch for 3.7.
 
---=-34PVV3Bggk5EDdtCKdHa--
+--
+
+Thanks,
+Sylwester
