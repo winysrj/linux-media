@@ -1,45 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33590 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751282Ab2ILLLK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Sep 2012 07:11:10 -0400
-Message-ID: <50506DCB.6040101@redhat.com>
-Date: Wed, 12 Sep 2012 08:11:07 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: Kconfig DVB_CAPTURE_DRIVERS no longer exists?
-References: <201209120901.14575.hverkuil@xs4all.nl>
-In-Reply-To: <201209120901.14575.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:56770 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754810Ab2IYLWo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Sep 2012 07:22:44 -0400
+Received: by padhz1 with SMTP id hz1so1591877pad.19
+        for <linux-media@vger.kernel.org>; Tue, 25 Sep 2012 04:22:43 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, s.nawrocki@samsung.com,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH] [media] s5p-fimc: Fix incorrect condition in fimc_lite_reqbufs()
+Date: Tue, 25 Sep 2012 16:49:04 +0530
+Message-Id: <1348571944-7139-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 12-09-2012 04:01, Hans Verkuil escreveu:
-> Hi Mauro,
-> 
-> Two drivers, au0828 and cx2341xx depend on the DVB_CAPTURE_DRIVERS config
-> option, which no longer exists. So au0828 and the DVB part of cx231xx are
-> no longer built. Should this dependency be removed or was it renamed?
+When precedence rules are applied, the condition always evaluates
+to be false which was not the intention. Adding the missing braces
+for correct evaluation of the expression and subsequent functionality.
 
-Thanks for reporting it!
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/s5p-fimc/fimc-lite.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Those dependencies got somewhat renamed, somewhat removed ;)
-Truly, the logic was simplified.
+diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
+index 9289008..20e5e24 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-lite.c
++++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
+@@ -825,7 +825,7 @@ static int fimc_lite_reqbufs(struct file *file, void *priv,
+ 
+ 	reqbufs->count = max_t(u32, FLITE_REQ_BUFS_MIN, reqbufs->count);
+ 	ret = vb2_reqbufs(&fimc->vb_queue, reqbufs);
+-	if (!ret < 0)
++	if (!(ret < 0))
+ 		fimc->reqbufs_count = reqbufs->count;
+ 
+ 	return ret;
+-- 
+1.7.4.1
 
-At the usb menu, checking for MEDIA_DIGITAL_TV_SUPPORT is now enough.
-For hybrid drivers, like the two above, a "depends on DVB_CORE" is enough.
-
-So, we can simply drop the dependency for DVB_CAPTURE_DRIVERS, as both
-already depends on DVB_CORE (and MEDIA_DIGITAL_TV_SUPPORT is a boolean).
-
-> Can you take a look at it?
-
-Ok, I'll write a patch fixing it.
-
-Thanks for reporting it.
-
-Regards,
-Mauro
