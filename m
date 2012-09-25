@@ -1,88 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48387 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756486Ab2ISQpH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Sep 2012 12:45:07 -0400
-Message-ID: <5059F68F.4050009@redhat.com>
-Date: Wed, 19 Sep 2012 13:45:03 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49694 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751521Ab2IYAdc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Sep 2012 20:33:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>, remi@remlab.net,
+	daniel-gl@gmx.net
+Subject: Re: [RFC] Timestamps and V4L2
+Date: Tue, 25 Sep 2012 02:34:07 +0200
+Message-ID: <1389232.pNkvQadbzf@avalon>
+In-Reply-To: <505DF194.9030007@gmail.com>
+References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <505DB12F.1090600@iki.fi> <505DF194.9030007@gmail.com>
 MIME-Version: 1.0
-To: Anders Thomson <aeriksson2@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: tda8290 regression fix
-References: <503F4E19.1050700@gmail.com> <20120915133417.27cb82a1@redhat.com> <5054BD53.7060109@gmail.com> <20120915145834.0b763f73@redhat.com> <5054C521.1090200@gmail.com> <20120915192530.74aedaa6@redhat.com> <50559241.6070408@gmail.com> <505844A0.30001@redhat.com> <5059C242.3010902@gmail.com>
-In-Reply-To: <5059C242.3010902@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 19-09-2012 10:01, Anders Thomson escreveu:
-> On 2012-09-18 11:53, Mauro Carvalho Chehab wrote:
->> Em 16-09-2012 05:48, Anders Thomson escreveu:
->> >  It doesn't make any difference though :-( I still have the layer of noise...
->>
->> That's weird. Hmm... perhaps priv->cfg.config is being initialized
->> latter. Maybe you can then do, instead:
->>     
->>                   return -EREMOTEIO;
->>           }
->>
->> +        priv->cfg.switch_addr = priv->i2c_props.addr;
->>           if ((data == 0x83) || (data == 0x84)) {
->>                   priv->ver |= TDA18271;
->>                   tda829x_tda18271_config.config = priv->cfg.config;
->>
->>
-> No dice:
->  $ git diff | cat
-> diff --git a/drivers/media/common/tuners/tda8290.c b/drivers/media/common/tuners/tda8290.c
-> index 8c48521..16d7ff7 100644
-> --- a/drivers/media/common/tuners/tda8290.c
-> +++ b/drivers/media/common/tuners/tda8290.c
-> @@ -627,6 +627,9 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
->                 return -EREMOTEIO;
->         }
+Hi Sylwester,
+
+On Saturday 22 September 2012 19:12:52 Sylwester Nawrocki wrote:
+> On 09/22/2012 02:38 PM, Sakari Ailus wrote:
+> >> You are missing one other option:
+> >> 
+> >> Using v4l2_buffer flags to report the clock
+> >> -------------------------------------------
+> >> 
+> >> By defining flags like this:
+> >> 
+> >> V4L2_BUF_FLAG_CLOCK_MASK 0x7000
+> >> /* Possible Clocks */
+> >> V4L2_BUF_FLAG_CLOCK_UNKNOWN 0x0000 /* system or monotonic, we don't
+> >> know */
+> >> V4L2_BUF_FLAG_CLOCK_MONOTONIC 0x1000
+> >> 
+> >> you could tell the application which clock is used.
+> >> 
+> >> This does allow for more clocks to be added in the future and clock
+> >> selection would then be done by a control or possibly an ioctl. For now
+> >> there are no plans to do such things, so this flag should be sufficient.
+> >> And it can be implemented very efficiently. It works with existing
+> >> drivers as well, since they will report CLOCK_UNKNOWN.
+> >> 
+> >> I am very much in favor of this approach.
 > 
-> +       tuner_info("ANDERS: old priv->cfg.switch_addr %x\n", priv->cfg.switch_addr);
-> +       priv->cfg.switch_addr = priv->i2c_props.addr;
-> +       tuner_info("ANDERS: new priv->cfg.switch_addr %x\n", priv->cfg.switch_addr);
->         if ((data == 0x83) || (data == 0x84)) {
->                 priv->ver |= TDA18271;
->                 tda829x_tda18271_config.config = priv->cfg.config;
-> @@ -640,7 +643,6 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+> +1
 > 
->                 dvb_attach(tda827x_attach, fe, priv->tda827x_addr,
->                            priv->i2c_props.adap, &priv->cfg);
-> -               priv->cfg.switch_addr = priv->i2c_props.addr;
->         }
->         if (fe->ops.tuner_ops.init)
->                 fe->ops.tuner_ops.init(fe);
-> anders@tv /usr/src/linux $ dmesg | grep ANDERS
-> [    5.667022] tda829x 4-004b: ANDERS: old priv->cfg.switch_addr 0
-> [    5.667025] tda829x 4-004b: ANDERS: new priv->cfg.switch_addr 4b
-
-switch_addr got properly filled here.
-
+> I think I like this idea best, it's relatively simple (even with adding
+> support for reporting flags in VIDIOC_QUERYBUF) for the purpose.
 > 
-> Whereas to work, I need:
-> anders@tv /usr/src/linux $ grep ANDERS /3.3.8-d.patched
-> [    6.565254] tda829x 5-004b: ANDERS: setting switch_addr. was 0x00, new 0x4b
+> If we ever need the clock selection API I would vote for an IOCTL.
+> The controls API is a bad choice for something such fundamental as
+> type of clock for buffer timestamping IMHO. Let's stop making the
+> controls API a dumping ground for almost everything in V4L2! ;)
 
-What looks weird here is that the device number changed from 4 to 5.
+What's wrong in using the control API in this case ? :-)
 
-Do you have more than one board on your machine?
-
-> [    6.565265] tda829x 5-004b: ANDERS: new 0x61
-
-
-The 0x61 address should be filled already by the existing code, otherwise
-you wouldn't be able to switch from one channel to another one.
-
-If you're in doubt, you could add an extra printk at the initialization code,
-in order to see what's happening there.
+> > Thanks for adding this. I knew I was forgetting something but didn't
+> > remember what --- I swear it was unintentional! :-)
+> > 
+> > If we'd add more clocks without providing an ability to choose the clock
+> > from the user space, how would the clock be selected? It certainly isn't
+> > the driver's job, nor I think it should be system-specific either
+> > (platform data on embedded systems).
+> > 
+> > It's up to the application and its needs. That would suggest we should
+> > always provide monotonic timestamps to applications (besides a potential
+> > driver-specific timestamp), and for that purpose the capability flag ---
+> > I admit I disliked the idea at first --- is enough.
+> > 
+> > What comes to buffer flags, the application would also have to receive
+> > the first buffer from the device to even know what kind of timestamps
+> > the device uses, or at least call QUERYBUF. And in principle the flag
+> > should be checked on every buffer, unless we also specify the flag is
+> > the same for all buffers. And at certain point this will stop to make
+> > any sense...
 > 
-> The right data should come from some i2d property I gather...
-> Is there any i2c CONFIG I need to have enabled to have this working automagically?
+> Good point. Perhaps VIDIOC_QUERYBUF and VIDIOC_DQBUF should be reporting
+> timestamps type only for the time they are being called. Not per buffer,
+> per device. And applications would be checking the flags any time they
+> want to find out what is the buffer timestamp type. Or every time if it
+> don't have full control over the device (S/G_PRIORITY).
 > 
+> > A capability flag is cleaner solution from this perspective, and it can
+> > be amended by a control (or an ioctl) later on: the flag can be
+> > disregarded by applications whenever the control is present. If the
+> > application doesn't know about the control it can still rely on the
+> > flag. (I think this would be less clean than to go for the control right
+> > from the beginning, but better IMO.)
+> 
+> But with the capability flag we would only be able to report one type of
+> clock, right ?
+
+That's correct. The capability flag could mean "I support the clock selection 
+API and default to a monotonic timestamp" though.
+
+> >>> Device-dependent timestamp
+> >>> --------------------------
+> >>> 
+> >>> Should we agree on selectable timestamps, the existing timestamp field
+> >>> (or a union with another field of different type) could be used for the
+> >>> device-dependent timestamps.
+> >> 
+> >> No. Device timestamps should get their own field. You want to be able
+> >> to relate device timestamps with the monotonic timestamps, so you need
+> >> both.
+> >> 
+> >>> Alternatively we can choose to re-use the existing timecode field.
+> >>> 
+> >>> At the moment there's no known use case for passing device-dependent
+> >>> timestamps at the same time with monotonic timestamps.
+> >> 
+> >> Well, the use case is there, but there is no driver support. The device
+> >> timestamps should be 64 bits to accomodate things like PTS and DTS from
+> >> MPEG streams. Since timecode is 128 bits we might want to use two u64
+> >> fields or perhaps 4 u32 fields.
+> > 
+> > That should be an union for different kinds (or rather types) of
+> > device-dependent timestamps. On uvcvideo I think this is u32, not u64.
+> > We should be also able to tell what kind device dependent timestamp
+> > there is --- should buffer flags be used for that as well?
+> 
+> Timecode has 'type' and 'flags' fields, couldn't it be accommodated for
+> reporting device-dependant timestamps as well ?
+
+The timecode field is free for reuse, so we can definitely use it for device-
+specific timestamps.
+
+-- 
+Regards,
+
+Laurent Pinchart
 
