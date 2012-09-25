@@ -1,63 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43253 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752713Ab2INUXj (ORCPT
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:45453 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755444Ab2IYLsE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 16:23:39 -0400
-Message-ID: <5053929D.4050902@iki.fi>
-Date: Fri, 14 Sep 2012 23:25:01 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Tue, 25 Sep 2012 07:48:04 -0400
 MIME-Version: 1.0
-To: Hans Verkuil <hans.verkuil@cisco.com>
-CC: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFCv3 API PATCH 15/31] v4l2-core: Add new V4L2_CAP_MONOTONIC_TS
- capability.
-References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com> <573d42b4b775afd8beeadc7a903cc2190a6f430a.1347619766.git.hans.verkuil@cisco.com>
-In-Reply-To: <573d42b4b775afd8beeadc7a903cc2190a6f430a.1347619766.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <201209251343.36240.hansverk@cisco.com>
+References: <1348571784-4237-1-git-send-email-prabhakar.lad@ti.com> <201209251343.36240.hansverk@cisco.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 25 Sep 2012 17:17:41 +0530
+Message-ID: <CA+V-a8txW-bhAnG77iVNZbLBkUKD3RSdD4+VEkVQ-hKoqi+Bbw@mail.gmail.com>
+Subject: Re: [PATCH] media: davinci: vpif: set device capabilities
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	VGER <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Hans,
 
-Thanks for the patch.
+Thanks for the review.
 
-Hans Verkuil wrote:
-...
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -290,6 +290,7 @@ struct v4l2_capability {
->   #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
->   #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
+On Tue, Sep 25, 2012 at 5:13 PM, Hans Verkuil <hansverk@cisco.com> wrote:
+> On Tue 25 September 2012 13:16:24 Prabhakar wrote:
+>> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/platform/davinci/vpif_capture.c |    4 +++-
+>>  drivers/media/platform/davinci/vpif_display.c |    4 +++-
+>>  2 files changed, 6 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+>> index 4828888..faeca98 100644
+>> --- a/drivers/media/platform/davinci/vpif_capture.c
+>> +++ b/drivers/media/platform/davinci/vpif_capture.c
+>> @@ -1630,7 +1630,9 @@ static int vpif_querycap(struct file *file, void  *priv,
+>>  {
+>>       struct vpif_capture_config *config = vpif_dev->platform_data;
+>>
+>> -     cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+>> +     cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+>> +                     V4L2_CAP_READWRITE;
+>> +     cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+>>       strlcpy(cap->driver, "vpif capture", sizeof(cap->driver));
 >
-> +#define V4L2_CAP_MONOTONIC_TS           0x40000000  /* uses monotonic timestamps */
->   #define V4L2_CAP_DEVICE_CAPS            0x80000000  /* sets device capabilities field */
+> This should be the real driver name which is 'vpif_capture'.
+>
+Ok.
 
-I have to say I'm still not a big fan of this new capability flag.
+>>       strlcpy(cap->bus_info, "VPIF Platform", sizeof(cap->bus_info));
+>
+> For bus_info I would use: "platform:vpif_capture".
+>
+> The 'platform:' prefix is going to be the standard for platform drivers.
+>
+Ok.
 
-I had a quick discussion with Laurent, and what he suggested was to use 
-the kernel version to figure out the type of the timestamp. The drivers 
-that use the monotonic time right now wouldn't be affected by the new 
-flag on older kernels. If we've decided we're going to switch to 
-monotonic time anyway, why not just change all the drivers now and 
-forget the capability flag.
+>>       strlcpy(cap->card, config->card_name, sizeof(cap->card));
+>> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+>> index d94b8a2..171e449 100644
+>> --- a/drivers/media/platform/davinci/vpif_display.c
+>> +++ b/drivers/media/platform/davinci/vpif_display.c
+>> @@ -827,7 +827,9 @@ static int vpif_querycap(struct file *file, void  *priv,
+>>  {
+>>       struct vpif_display_config *config = vpif_dev->platform_data;
+>>
+>> -     cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+>> +     cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING |
+>> +                         V4L2_CAP_READWRITE;
+>> +     cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+>>       strlcpy(cap->driver, "vpif display", sizeof(cap->driver));
+>
+> vpif_driver
+>
+>>       strlcpy(cap->bus_info, "Platform", sizeof(cap->bus_info));
+>
+> Ditto: "platform:vpif_driver".
+>
+>>       strlcpy(cap->card, config->card_name, sizeof(cap->card));
+>>
+>
+Ok, I'll respin v2 with all the changes.
 
-Instead of a capability flag, the applications would know the type of 
-the timestamp based on the kernel version. In the end we wouldn't be 
-left with a useless flag that every single driver would have to set.
+Regards,
+--Prabhakar Lad
 
-It's true that there are some 70 such drivers that need to be converted 
-but it's still a trivial, mechanical task. It would be even easier to 
-implement a helper function called e.g. v4l2_buffer_timestamp() so that 
-every user wouldn't have to convert timespec to timeval.
-
-As a result we'd also have a very short transition period to the 
-timestamps we prefer.
-
-Kind regards,
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+> Regards,
+>
+>         Hans
