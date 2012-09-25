@@ -1,140 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:36503 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750957Ab2INMyK (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:44727 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752676Ab2IYOHH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 08:54:10 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Rob Landley <rob@landley.net>, <linux-doc@vger.kernel.org>
-Subject: [PATCH 14/14] [media] davinci: vpfe: Add documentation
-Date: Fri, 14 Sep 2012 18:16:44 +0530
-Message-Id: <1347626804-5703-15-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1347626804-5703-1-git-send-email-prabhakar.lad@ti.com>
-References: <1347626804-5703-1-git-send-email-prabhakar.lad@ti.com>
+	Tue, 25 Sep 2012 10:07:07 -0400
+Received: from eusync4.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MAW00K21SKHMO00@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 25 Sep 2012 15:07:29 +0100 (BST)
+Received: from [106.116.147.32] by eusync4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MAW00BKSSJTY440@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 25 Sep 2012 15:07:05 +0100 (BST)
+Message-id: <5061BA88.8010201@samsung.com>
+Date: Tue, 25 Sep 2012 16:07:04 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Kamil Debski <k.debski@samsung.com>
+Subject: Re: Fw: [PATCH] [media] s5p-mfc: Remove unreachable code
+References: <20120925102839.2a90ab26@redhat.com>
+In-reply-to: <20120925102839.2a90ab26@redhat.com>
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunath Hadli <manjunath.hadli@ti.com>
+Hi Mauro, Sachin,
 
-Add documentation on the Davinci VPFE driver. Document the subdevs,
-and private IOTCLs the driver implements
+On 09/25/2012 03:28 PM, Mauro Carvalho Chehab wrote:
+> Hi Sylwester,
+> 
+> Please review.
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Cc: Rob Landley <rob@landley.net>
-Cc: <linux-doc@vger.kernel.org>
----
- Documentation/video4linux/davinci-vpfe-mc.txt |   95 +++++++++++++++++++++++++
- 1 files changed, 95 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/video4linux/davinci-vpfe-mc.txt
+I checked it with Kamil and it seems the code being removed
+is required for proper driver operation. Thus please hold on
+with this patch. We will prepare a different fix after testing.
 
-diff --git a/Documentation/video4linux/davinci-vpfe-mc.txt b/Documentation/video4linux/davinci-vpfe-mc.txt
-new file mode 100644
-index 0000000..9dfc4f9
---- /dev/null
-+++ b/Documentation/video4linux/davinci-vpfe-mc.txt
-@@ -0,0 +1,95 @@
-+Davinci Video processing Front End (VPFE) driver
-+
-+Copyright (C) 2012 Texas Instruments Inc
-+
-+Contacts: Manjunath Hadli <manjunath.hadli@ti.com>
-+
-+
-+Introduction
-+============
-+
-+This file documents the Texas Instruments Davinci Video processing Front End
-+(VPFE) driver located under drivers/media/platform/davinci. The original driver
-+exists for Davinci VPFE, which is now being changed to Media Controller
-+Framework.
-+
-+Currently the driver has been successfully used on the following
-+version of Davinci:
-+
-+	DM365/DM368
-+
-+The driver implements V4L2, Media controller and v4l2_subdev interfaces. Sensor,
-+lens and flash drivers using the v4l2_subdev interface in the kernel are
-+supported.
-+
-+
-+Split to subdevs
-+================
-+
-+The Davinci VPFE is split into V4L2 subdevs, each of the blocks inside the VPFE
-+having one subdev to represent it. Each of the subdevs provide a V4L2 subdev
-+interface to userspace.
-+
-+	DAVINCI CCDC
-+	DAVINCI PREVIEWER
-+	DAVINCI RESIZER
-+
-+Each possible link in the VPFE is modeled by a link in the Media controller
-+interface. For an example program see [1].
-+
-+
-+Private IOCTLs
-+==============
-+
-+The Davinci Video processing Front End (VPFE) driver supports standard V4L2
-+IOCTLs and controls where possible and practical. Much of the functions provided
-+by the VPFE, however, does not fall under the standard IOCTL's.
-+
-+In general, there is a private ioctl for configuring each of the blocks
-+containing hardware-dependent functions.
-+
-+The following private IOCTLs are supported:
-+
-+	VIDIOC_VPFE_CCDC_[S/G]_RAW_PARAMS
-+	VIDIOC_VPFE_PRV_[S/G]_CONFIG
-+	VIDIOC_VPFE_RSZ_[S/G]_CONFIG
-+
-+The parameter structures used by these ioctl's are described in
-+include/linux/davinci_vpfe.h and include/linux/dm365_ccdc.h.
-+
-+The VIDIOC_VPFE_CCDC_S_RAW_PARAMS, VIDIOC_VPFE_PRV_S_CONFIG and
-+VIDIOC_VPFE_RSZ_S_CONFIG are used to configure, enable and disable functions in
-+the CCDC, preview and resizer blocks respectively. These IOCTL's control several
-+functions in the blocks they control. VIDIOC_VPFE_CCDC_S_RAW_PARAMS IOCTL
-+accepts a pointer to struct ccdc_config_params_raw as its argument. Similarly
-+VIDIOC_VPFE_PRV_S_CONFIG accepts a pointer to struct vpfe_prev_config. And
-+VIDIOC_VPFE_RSZ_S_CONFIG accepts a pointer to struct vpfe_rsz_config as its
-+argument. Similarly VIDIOC_VPFE_CCDC_G_RAW_PARAMS, VIDIOC_VPFE_PRV_G_CONFIG and
-+VIDIOC_VPFE_RSZ_G_CONFIG are used to get the current configuration set
-+in the CCDC, preview and resizer blocks respectively.
-+
-+The detailed functions of the VPFE itself related to a given VPFE block is
-+described in the Technical Reference Manuals (TRMs) --- see the end of the
-+document for those.
-+
-+
-+Technical reference manuals (TRMs) and other documentation
-+==========================================================
-+
-+Davinci DM365 TRM:
-+<URL:http://www.ti.com/lit/ds/sprs457e/sprs457e.pdf>
-+Referenced MARCH 2009-REVISED JUNE 2011
-+
-+Davinci DM368 TRM:
-+<URL:http://www.ti.com/lit/ds/sprs668c/sprs668c.pdf>
-+Referenced APRIL 2010-REVISED JUNE 2011
-+
-+Davinci Video Processing Front End (VPFE) DM36x
-+<URL:http://www.ti.com/lit/ug/sprufg8c/sprufg8c.pdf>
-+
-+
-+References
-+==========
-+
-+[1] http://git.ideasonboard.org/?p=media-ctl.git;a=summary
-+[2] include/linux/davinci_vpfe.h & include/linux/dm365_ccdc.h
--- 
-1.7.4.1
+Sachin, thanks for reporting that issue. The code below is needed
+to make sure the MFC is fully suspended after s5p_mfc_suspend()
+returns. The "return s5p_mfc_sleep(m_dev);" probably just needs
+to be moved after the while loop.
 
+> Thanks!
+> Mauro
+> 
+> Forwarded message:
+> 
+> Date: Fri, 14 Sep 2012 14:50:17 +0530
+> From: Sachin Kamat <sachin.kamat@linaro.org>
+> To: linux-media@vger.kernel.org
+> Cc: mchehab@infradead.org, s.nawrocki@samsung.com, k.debski@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
+> Subject: [PATCH] [media] s5p-mfc: Remove unreachable code
+> 
+> 
+> Code after return statement never gets executed.
+> Hence can be deleted.
+> 
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c |   21 +--------------------
+>  1 files changed, 1 insertions(+), 20 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> index e3e616d..56876be 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> @@ -1144,30 +1144,11 @@ static int s5p_mfc_suspend(struct device *dev)
+>  {
+>  	struct platform_device *pdev = to_platform_device(dev);
+>  	struct s5p_mfc_dev *m_dev = platform_get_drvdata(pdev);
+> -	int ret;
+>  
+>  	if (m_dev->num_inst == 0)
+>  		return 0;
+> -	return s5p_mfc_sleep(m_dev);
+> -	if (test_and_set_bit(0, &m_dev->enter_suspend) != 0) {
+> -		mfc_err("Error: going to suspend for a second time\n");
+> -		return -EIO;
+> -	}
+>  
+> -	/* Check if we're processing then wait if it necessary. */
+> -	while (test_and_set_bit(0, &m_dev->hw_lock) != 0) {
+> -		/* Try and lock the HW */
+> -		/* Wait on the interrupt waitqueue */
+> -		ret = wait_event_interruptible_timeout(m_dev->queue,
+> -			m_dev->int_cond || m_dev->ctx[m_dev->curr_ctx]->int_cond,
+> -			msecs_to_jiffies(MFC_INT_TIMEOUT));
+> -
+> -		if (ret == 0) {
+> -			mfc_err("Waiting for hardware to finish timed out\n");
+> -			return -EIO;
+> -		}
+> -	}
+> -	return 0;
+> +	return s5p_mfc_sleep(m_dev);
+>  }
+>  
+>  static int s5p_mfc_resume(struct device *dev)
+
+--
+
+Thanks,
+Sylwester
