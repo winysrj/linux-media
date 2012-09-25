@@ -1,137 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:59871 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755701Ab2IKKiu (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47845 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753349Ab2IYUKc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Sep 2012 06:38:50 -0400
-Received: by obbuo13 with SMTP id uo13so479251obb.19
-        for <linux-media@vger.kernel.org>; Tue, 11 Sep 2012 03:38:49 -0700 (PDT)
+	Tue, 25 Sep 2012 16:10:32 -0400
+Message-ID: <50621010.3070703@iki.fi>
+Date: Tue, 25 Sep 2012 23:12:00 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1347291000-340-3-git-send-email-p.zabel@pengutronix.de>
-References: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
-	<1347291000-340-3-git-send-email-p.zabel@pengutronix.de>
-Date: Tue, 11 Sep 2012 12:38:49 +0200
-Message-ID: <CACKLOr3qbdU5KjZLXOgJU0kY9C+R7TTWkEyW9h1LW7psNZeBtQ@mail.gmail.com>
-Subject: Re: [PATCH v4 02/16] media: coda: add i.MX53 / CODA7541 platform support
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, remi@remlab.net, daniel-gl@gmx.net,
+	sylwester.nawrocki@gmail.com
+Subject: Re: [RFC] Timestamps and V4L2
+References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <201209250847.45104.hverkuil@xs4all.nl> <1581681.Un0gYsdTxg@avalon> <201209251254.34483.hverkuil@xs4all.nl>
+In-Reply-To: <201209251254.34483.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10 September 2012 17:29, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/platform/coda.c |   31 +++++++++++++++++++++++++++++++
->  1 file changed, 31 insertions(+)
->
-> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> index d4a5dd0..8ec2ff4 100644
-> --- a/drivers/media/platform/coda.c
-> +++ b/drivers/media/platform/coda.c
-> @@ -84,6 +84,7 @@ enum coda_inst_type {
->
->  enum coda_product {
->         CODA_DX6 = 0xf001,
-> +       CODA_7541 = 0xf012,
->  };
->
->  struct coda_fmt {
-> @@ -261,6 +262,24 @@ static struct coda_fmt codadx6_formats[] = {
->         },
->  };
->
-> +static struct coda_fmt coda7_formats[] = {
-> +       {
-> +               .name = "YUV 4:2:0 Planar",
-> +               .fourcc = V4L2_PIX_FMT_YUV420,
-> +               .type = CODA_FMT_RAW,
-> +       },
-> +       {
-> +               .name = "H264 Encoded Stream",
-> +               .fourcc = V4L2_PIX_FMT_H264,
-> +               .type = CODA_FMT_ENC,
-> +       },
-> +       {
-> +               .name = "MPEG4 Encoded Stream",
-> +               .fourcc = V4L2_PIX_FMT_MPEG4,
-> +               .type = CODA_FMT_ENC,
-> +       },
-> +};
-> +
->  static struct coda_fmt *find_format(struct coda_dev *dev, struct v4l2_format *f)
->  {
->         struct coda_fmt *formats = dev->devtype->formats;
-> @@ -1485,6 +1504,7 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
->
->  static u32 coda_supported_firmwares[] = {
->         CODA_FIRMWARE_VERNUM(CODA_DX6, 2, 2, 5),
-> +       CODA_FIRMWARE_VERNUM(CODA_7541, 13, 4, 29),
->  };
->
->  static bool coda_firmware_supported(u32 vernum)
-> @@ -1504,6 +1524,8 @@ static char *coda_product_name(int product)
->         switch (product) {
->         case CODA_DX6:
->                 return "CodaDx6";
-> +       case CODA_7541:
-> +               return "CODA7541";
->         default:
->                 snprintf(buf, sizeof(buf), "(0x%04x)", product);
->                 return buf;
-> @@ -1695,6 +1717,7 @@ static int coda_firmware_request(struct coda_dev *dev)
->
->  enum coda_platform {
->         CODA_IMX27,
-> +       CODA_IMX53,
->  };
->
->  static const struct coda_devtype coda_devdata[] = {
-> @@ -1704,10 +1727,17 @@ static const struct coda_devtype coda_devdata[] = {
->                 .formats     = codadx6_formats,
->                 .num_formats = ARRAY_SIZE(codadx6_formats),
->         },
-> +       [CODA_IMX53] = {
-> +               .firmware    = "v4l-coda7541-imx53.bin",
-> +               .product     = CODA_7541,
-> +               .formats     = coda7_formats,
-> +               .num_formats = ARRAY_SIZE(coda7_formats),
-> +       },
->  };
->
->  static struct platform_device_id coda_platform_ids[] = {
->         { .name = "coda-imx27", .driver_data = CODA_IMX27 },
-> +       { .name = "coda-imx53", .driver_data = CODA_7541 },
->         { /* sentinel */ }
->  };
->  MODULE_DEVICE_TABLE(platform, coda_platform_ids);
-> @@ -1715,6 +1745,7 @@ MODULE_DEVICE_TABLE(platform, coda_platform_ids);
->  #ifdef CONFIG_OF
->  static const struct of_device_id coda_dt_ids[] = {
->         { .compatible = "fsl,imx27-vpu", .data = &coda_platform_ids[CODA_IMX27] },
-> +       { .compatible = "fsl,imx53-vpu", .data = &coda_devdata[CODA_IMX53] },
->         { /* sentinel */ }
->  };
->  MODULE_DEVICE_TABLE(of, coda_dt_ids);
-> --
-> 1.7.10.4
->
+Hi Hans,
 
+Hans Verkuil wrote:
+> On Tue 25 September 2012 12:48:01 Laurent Pinchart wrote:
+>> Hi Hans,
+>>
+>> On Tuesday 25 September 2012 08:47:45 Hans Verkuil wrote:
+>>> On Tue September 25 2012 02:00:55 Laurent Pinchart wrote:
+>>> BTW, I think we should also fix the description of the timestamp in the
+>>> spec. Currently it says:
+>>>
+>>> "For input streams this is the system time (as returned by the
+>>> gettimeofday() function) when the first data byte was captured. For output
+>>> streams the data will not be displayed before this time, secondary to the
+>>> nominal frame rate determined by the current video standard in enqueued
+>>> order. Applications can for example zero this field to display frames as
+>>> soon as possible. The driver stores the time at which the first data byte
+>>> was actually sent out in the timestamp field. This permits applications to
+>>> monitor the drift between the video and system clock."
+>>>
+>>> To my knowledge all capture drivers set the timestamp to the time the *last*
+>>> data byte was captured, not the first.
+>>
+>> The uvcvideo driver uses the time the first image packet is received :-) Most 
+>> other drivers use the time the last byte was *received*, not captured.
+> 
+> Unless the hardware buffers more than a few lines there is very little
+> difference between the time the last byte was received and when it was captured.
+> 
+> But you are correct, it is typically the time the last byte was received.
+> 
+> Should we signal this as well? First vs last byte? Or shall we standardize?
 
-Tested-by: Javier Martin <javier.martin@vista-silicon.com
+My personal opinion would be to change the spec to say what almost every
+driver does: it's the timestamp from the moment the last pixel has been
+received. We have the frame sync event for telling when the frame starts
+btw. The same event could be used for signalling whenever a given line
+starts. I don't see frame end fitting to that quite as nicely but I
+guess it could be possible.
+
+> BTW, the human mind is amazingly tolerant when it comes to A/V synchronization.
+> Audio can be up to 50 ms ahead of the video and up to I believe 120 ms lagging
+> behind the video before most people will notice. So being off by one frame won't
+> be noticable at all.
+
+I wonder if this is what most DVD players do. What they do is not
+pretty. The difference could be more, though. ;-)
+
+Cheers,
 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Sakari Ailus
+sakari.ailus@iki.fi
