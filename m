@@ -1,103 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 173-166-109-252-newengland.hfc.comcastbusiness.net ([173.166.109.252]:46980
-	"EHLO bombadil.infradead.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754200Ab2IWU3a (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59156 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756502Ab2IYNtf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 16:29:30 -0400
-Date: Sun, 23 Sep 2012 17:29:22 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Peter Senna Tschudin <peter.senna@gmail.com>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c:
- Replace kmemdup for kstrdup
-Message-ID: <20120923172922.29f26f5d@infradead.org>
-In-Reply-To: <1347281154-29515-1-git-send-email-peter.senna@gmail.com>
-References: <1347281154-29515-1-git-send-email-peter.senna@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 25 Sep 2012 09:49:35 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	VGER <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH] media: davinci: vpif: set device capabilities
+Date: Tue, 25 Sep 2012 15:50:10 +0200
+Message-ID: <25447484.hfLC5SnrpW@avalon>
+In-Reply-To: <201209251548.10830.hansverk@cisco.com>
+References: <1348571784-4237-1-git-send-email-prabhakar.lad@ti.com> <CA+V-a8uLTmCSzY7xtp_TpAcmt=w5hMEWEpk24py1OD9qxOtYbw@mail.gmail.com> <201209251548.10830.hansverk@cisco.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 10 Sep 2012 14:45:54 +0200
-Peter Senna Tschudin <peter.senna@gmail.com> escreveu:
-
-> From: Peter Senna Tschudin <peter.senna@gmail.com>
+On Tuesday 25 September 2012 15:48:10 Hans Verkuil wrote:
+> On Tue 25 September 2012 15:26:11 Prabhakar Lad wrote:
+> > On Tue, Sep 25, 2012 at 5:24 PM, Hans Verkuil <hansverk@cisco.com> wrote:
+> > > On Tue 25 September 2012 13:49:16 Laurent Pinchart wrote:
+> > >> Hi Hans,
+> > >> 
+> > >> On Tuesday 25 September 2012 13:43:36 Hans Verkuil wrote:
+> > >> > On Tue 25 September 2012 13:16:24 Prabhakar wrote:
+> > >> > > From: Lad, Prabhakar <prabhakar.lad@ti.com>
+> > >> > > 
+> > >> > > Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> > >> > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > >> > > Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> > >> > > ---
+> > >> > > 
+> > >> > >  drivers/media/platform/davinci/vpif_capture.c |    4 +++-
+> > >> > >  drivers/media/platform/davinci/vpif_display.c |    4 +++-
+> > >> > >  2 files changed, 6 insertions(+), 2 deletions(-)
+> > >> > > 
+> > >> > > diff --git a/drivers/media/platform/davinci/vpif_capture.c
+> > >> > > b/drivers/media/platform/davinci/vpif_capture.c index
+> > >> > > 4828888..faeca98
+> > >> > > 100644
+> > >> > > --- a/drivers/media/platform/davinci/vpif_capture.c
+> > >> > > +++ b/drivers/media/platform/davinci/vpif_capture.c
+> > >> > > @@ -1630,7 +1630,9 @@ static int vpif_querycap(struct file *file,
+> > >> > > void
+> > >> > > *priv,>
+> > >> > > 
+> > >> > >  {
+> > >> > >  
+> > >> > >   struct vpif_capture_config *config = vpif_dev->platform_data;
+> > >> > > 
+> > >> > > - cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+> > >> > > + cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+> > >> > > +                 V4L2_CAP_READWRITE;
+> > >> > > + cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+> > >> > > 
+> > >> > >   strlcpy(cap->driver, "vpif capture", sizeof(cap->driver));
+> > >> > 
+> > >> > This should be the real driver name which is 'vpif_capture'.
+> > >> > 
+> > >> > >   strlcpy(cap->bus_info, "VPIF Platform", sizeof(cap->bus_info));
+> > >> > 
+> > >> > For bus_info I would use: "platform:vpif_capture".
+> > >> > 
+> > >> > The 'platform:' prefix is going to be the standard for platform
+> > >> > drivers.
+> > >> 
+> > >> What about
+> > >> 
+> > >> snprintf(cap->driver, sizeof(cap->driver), "platform:%s",
+> > >> dev_name(vpif_dev));
+> > >> 
+> > >> That would handle cases where multiple platform devices of the same
+> > >> type are present.
+> > > 
+> > > Sure, that's even better. You do have to check that this gives you what
+> > > you'd expect (i.e., that you don't end up with
+> > > "platform:platform:vpif_capture").> 
+> > But the driver field is max 16, should i extend it to 32 ?
 > 
-> Replace kmemdup for kstrdup and cleaning up the code.
+> I'm certain Laurent meant to say:
 > 
-> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+> snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
+> dev_name(vpif_dev));
 
-Maintainers/interested parties not copied. Also:
+Yes that's what I meant, sorry.
 
-Hunk #1 succeeded at 708 (offset 1 line).
-Hunk #2 FAILED at 742.
-1 out of 2 hunks FAILED -- saving rejects to file drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c.rej
- tmp/cx25821-video-upstream-ch2.c |   27 +++++++++------------------
- 1 file changed, 9 insertions(+), 18 deletions(-)
+> It makes no sense to use cap->driver.
 
-> 
-> ---
-> It depends on the patch http://patchwork.linuxtv.org/patch/14231/
-> 
->  tmp/cx25821-video-upstream-ch2.c |   27 +++++++++------------------
->  1 file changed, 9 insertions(+), 18 deletions(-)
-> 
-> diff --git a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-> index 273df94..b663dac 100644
-> --- a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-> +++ b/tmp/cx25821-video-upstream-ch2.c
-> @@ -707,7 +707,6 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
->  	int err = 0;
->  	int data_frame_size = 0;
->  	int risc_buffer_size = 0;
-> -	int str_length = 0;
->  
->  	if (dev->_is_running_ch2) {
->  		pr_info("Video Channel is still running so return!\n");
-> @@ -743,24 +742,16 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
->  	risc_buffer_size = dev->_isNTSC_ch2 ?
->  		NTSC_RISC_BUF_SIZE : PAL_RISC_BUF_SIZE;
->  
-> -	if (dev->input_filename_ch2) {
-> -		str_length = strlen(dev->input_filename_ch2);
-> -		dev->_filename_ch2 = kmemdup(dev->input_filename_ch2,
-> -					     str_length + 1, GFP_KERNEL);
-> -
-> -		if (!dev->_filename_ch2) {
-> -			err = -ENOENT;
-> -			goto error;
-> -		}
-> -	} else {
-> -		str_length = strlen(dev->_defaultname_ch2);
-> -		dev->_filename_ch2 = kmemdup(dev->_defaultname_ch2,
-> -					     str_length + 1, GFP_KERNEL);
-> +	if (dev->input_filename_ch2)
-> +		dev->_filename_ch2 = kstrdup(dev->input_filename_ch2,
-> +								GFP_KERNEL);
-> +	else
-> +		dev->_filename_ch2 = kstrdup(dev->_defaultname_ch2,
-> +								GFP_KERNEL);
->  
-> -		if (!dev->_filename_ch2) {
-> -			err = -ENOENT;
-> -			goto error;
-> -		}
-> +	if (!dev->_filename_ch2) {
-> +		err = -ENOENT;
-> +		goto error;
->  	}
->  
->  	/* Default if filename is empty string */
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
 
+Laurent Pinchart
 
-
-
-Cheers,
-Mauro
