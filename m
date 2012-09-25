@@ -1,79 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40919 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758295Ab2IUXIk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Sep 2012 19:08:40 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/2] cypress_firmware: use Kernel dev_foo() logging
-Date: Sat, 22 Sep 2012 02:08:10 +0300
-Message-Id: <1348268891-15511-1-git-send-email-crope@iki.fi>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:37376 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750840Ab2IYPBA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Sep 2012 11:01:00 -0400
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>,
+	Federico Vaga <federico.vaga@gmail.com>
+Subject: [PATCH v3 1/4] v4l: vb2: add prepare/finish callbacks to allocators
+Date: Tue, 25 Sep 2012 17:04:00 +0200
+Message-Id: <1348585440-5385-1-git-send-email-federico.vaga@gmail.com>
+In-Reply-To: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com>
+References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/cypress_firmware.c | 21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-diff --git a/drivers/media/usb/dvb-usb-v2/cypress_firmware.c b/drivers/media/usb/dvb-usb-v2/cypress_firmware.c
-index 9f7c970..bb21eee 100644
---- a/drivers/media/usb/dvb-usb-v2/cypress_firmware.c
-+++ b/drivers/media/usb/dvb-usb-v2/cypress_firmware.c
-@@ -30,6 +30,9 @@ static const struct usb_cypress_controller cypress[] = {
- static int usb_cypress_writemem(struct usb_device *udev, u16 addr, u8 *data,
- 		u8 len)
+This patch adds support for prepare/finish callbacks in VB2 allocators.
+These callback are used for buffer flushing.
+
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Federico Vaga <federico.vaga@gmail.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 11 +++++++++++
+ include/media/videobuf2-core.h           |  7 +++++++
+ 2 file modificati, 18 inserzioni(+)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 4da3df6..079fa79 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -790,6 +790,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
  {
-+	dvb_usb_dbg_usb_control_msg(udev,
-+			0xa0, USB_TYPE_VENDOR, addr, 0x00, data, len);
-+
- 	return usb_control_msg(udev, usb_sndctrlpipe(udev, 0),
- 			0xa0, USB_TYPE_VENDOR, addr, 0x00, data, len, 5000);
- }
-@@ -45,24 +48,24 @@ int usbv2_cypress_load_firmware(struct usb_device *udev,
- 	reset = 1;
- 	ret = usb_cypress_writemem(udev, cypress[type].cs_reg, &reset, 1);
- 	if (ret != 1)
--		pr_err("%s: could not stop the USB controller CPU",
-+		dev_err(&udev->dev,
-+				"%s: could not stop the USB controller CPU\n",
- 				KBUILD_MODNAME);
+ 	struct vb2_queue *q = vb->vb2_queue;
+ 	unsigned long flags;
++	unsigned int plane;
  
- 	while ((ret = dvb_usbv2_get_hexline(fw, &hx, &pos)) > 0) {
--		pr_debug("%s: writing to address %04x (buffer: %02x %02x)\n",
--				__func__, hx.addr, hx.len, hx.chk);
--
- 		ret = usb_cypress_writemem(udev, hx.addr, hx.data, hx.len);
- 		if (ret != hx.len) {
--			pr_err("%s: error while transferring firmware " \
--					"(transferred size=%d, block size=%d)",
-+			dev_err(&udev->dev, "%s: error while transferring " \
-+					"firmware (transferred size=%d, " \
-+					"block size=%d)\n",
- 					KBUILD_MODNAME, ret, hx.len);
- 			ret = -EINVAL;
- 			break;
- 		}
- 	}
- 	if (ret < 0) {
--		pr_err("%s: firmware download failed at %d with %d",
-+		dev_err(&udev->dev,
-+				"%s: firmware download failed at %d with %d\n",
- 				KBUILD_MODNAME, pos, ret);
- 		return ret;
- 	}
-@@ -72,8 +75,8 @@ int usbv2_cypress_load_firmware(struct usb_device *udev,
- 		reset = 0;
- 		if (ret || usb_cypress_writemem(
- 				udev, cypress[type].cs_reg, &reset, 1) != 1) {
--			pr_err("%s: could not restart the USB controller CPU",
--					KBUILD_MODNAME);
-+			dev_err(&udev->dev, "%s: could not restart the USB " \
-+					"controller CPU\n", KBUILD_MODNAME);
- 			ret = -EINVAL;
- 		}
- 	} else
+ 	if (vb->state != VB2_BUF_STATE_ACTIVE)
+ 		return;
+@@ -800,6 +801,10 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	dprintk(4, "Done processing on buffer %d, state: %d\n",
+ 			vb->v4l2_buf.index, vb->state);
+ 
++	/* sync buffers */
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		call_memop(q, finish, vb->planes[plane].mem_priv);
++
+ 	/* Add the buffer to the done buffers list */
+ 	spin_lock_irqsave(&q->done_lock, flags);
+ 	vb->state = state;
+@@ -975,9 +980,15 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
++	unsigned int plane;
+ 
+ 	vb->state = VB2_BUF_STATE_ACTIVE;
+ 	atomic_inc(&q->queued_count);
++
++	/* sync buffers */
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		call_memop(q, prepare, vb->planes[plane].mem_priv);
++
+ 	q->ops->buf_queue(vb);
+ }
+ 
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 8dd9b6c..2508609 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -41,6 +41,10 @@ struct vb2_fileio_data;
+  *		 argument to other ops in this structure
+  * @put_userptr: inform the allocator that a USERPTR buffer will no longer
+  *		 be used
++ * @prepare:	called every time the buffer is passed from userspace to the
++ *		driver, usefull for cache synchronisation, optional
++ * @finish:	called every time the buffer is passed back from the driver
++ *		to the userspace, also optional
+  * @vaddr:	return a kernel virtual address to a given memory buffer
+  *		associated with the passed private structure or NULL if no
+  *		such mapping exists
+@@ -65,6 +69,9 @@ struct vb2_mem_ops {
+ 					unsigned long size, int write);
+ 	void		(*put_userptr)(void *buf_priv);
+ 
++	void		(*prepare)(void *buf_priv);
++	void		(*finish)(void *buf_priv);
++
+ 	void		*(*vaddr)(void *buf_priv);
+ 	void		*(*cookie)(void *buf_priv);
+ 
 -- 
 1.7.11.4
 
