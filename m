@@ -1,104 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.telros.ru ([83.136.244.21]:51311 "EHLO mail.telros.ru"
+Received: from mx1.redhat.com ([209.132.183.28]:22691 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752395Ab2IJGZy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 02:25:54 -0400
-Date: Mon, 10 Sep 2012 14:28:29 +0400
-From: volokh@telros.ru
-To: Adam Rosi-Kessel <adam@rosi-kessel.org>
-Cc: linux-media@vger.kernel.org, volokh84@gmail.com
-Subject: Re: go7007 question
-Message-ID: <20120910102829.GA2507@VPir.telros.ru>
-References: <5044F8DC.20509@rosi-kessel.org>
- <20120906191014.GA2540@VPir.Home>
- <20120907141831.GA12333@VPir.telros.ru>
- <20120909022331.GA28838@whitehail.bostoncoop.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120909022331.GA28838@whitehail.bostoncoop.net>
+	id S1755280Ab2IYLjd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Sep 2012 07:39:33 -0400
+Date: Tue, 25 Sep 2012 08:39:29 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 0/3] A driver for Si476x series of chips
+Message-ID: <20120925083929.3b4fa97b@redhat.com>
+In-Reply-To: <1347576013-28832-1-git-send-email-andrey.smirnov@convergeddevices.net>
+References: <1347576013-28832-1-git-send-email-andrey.smirnov@convergeddevices.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Sep 08, 2012 at 10:23:31PM -0400, Adam Rosi-Kessel wrote:
-> On Fri, Sep 07, 2012 at 06:18:31PM +0400, volokh@telros.ru wrote:
-> > On Thu, Sep 06, 2012 at 11:10:14PM +0400, Volokh Konstantin wrote:
-> > > On Mon, Sep 03, 2012 at 02:37:16PM -0400, Adam Rosi-Kessel wrote:
-> > > > 
-> > > > [469.928881] wis-saa7115: initializing SAA7115 at address 32 on WIS
-> > > > GO7007SB EZ-USB
-> > > > 
-> > > > [469.989083] go7007: probing for module i2c:wis_saa7115 failed
-> > > > 
-> > > > [470.004785] wis-uda1342: initializing UDA1342 at address 26 on WIS
-> > > > GO7007SB EZ-USB
-> > > > 
-> > > > [470.005454] go7007: probing for module i2c:wis_uda1342 failed
-> > > > 
-> > > > [470.011659] wis-sony-tuner: initializing tuner at address 96 on WIS
-> > > > GO7007SB EZ-USB
-> > Hi, I generated patchs, that u may in your own go7007/ folder
-> > It contains go7007 initialization and i2c_subdev fixing
-> > 
-> > It was checked for 3.6 branch (compile only)
-> 
-> So I have this installed now (patched with your 3.6 patch) but I'm not
-> seeing the device.
-> 
-> The module is there:
-> 
-> [  416.189030] Linux media interface: v0.10
-> [  416.198616] Linux video capture interface: v2.00
-> [  416.220656] wis_uda1342: module is from the staging directory, the quality is unknown, you have been warned.
-> 
-> # lsmod|grep -i go7
-> go7007_usb             10059  0 
-> go7007                 46966  1 go7007_usb
-> v4l2_common             4206  1 go7007
-> videodev               78250  2 go7007,v4l2_common
-> 
-> # uname -a
-> Linux storage 3.6.0-rc4.ajk+ #5 SMP Sat Sep 8 22:05:57 EDT 2012 i686 GNU/Linux
-> 
-> # grep -i go7 /boot/config-`uname -r`
-> CONFIG_VIDEO_GO7007=m
-> CONFIG_VIDEO_GO7007_USB=m
-> CONFIG_VIDEO_GO7007_OV7640=m
-> # CONFIG_VIDEO_GO7007_SAA7113 is not set
-Linux must autoload these modules for working:
-wis-saa7115
-wis-uda1342
-wis-sony-tuner,
-so need set m below:
-> # CONFIG_VIDEO_GO7007_SAA7115 is not set
-> CONFIG_VIDEO_GO7007_TW9903=m
-> CONFIG_VIDEO_GO7007_UDA1342=m
-> CONFIG_VIDEO_GO7007_SONY_TUNER=m
-> CONFIG_VIDEO_GO7007_TW2804=m
+Hi Andrey,
 
-after compilation need install modules, or handly load them.
-modprobe wis-saa7115, etc ... for each modules.
+Em Qui, 2012-09-13 às 15:40 -0700, Andrey Smirnov escreveu:
+This patchset contains a driver for a Silicon Laboratories 476x series
+> of radio tuners. The driver itself is implemented as an MFD devices
+> comprised of three parts:
+>  1. Core device that provides all the other devices with basic
+>  functionality and locking scheme.
+>  2. Radio device that translates between V4L2 subsystem requests into
+>  Core device commands.
+>  3. Codec device that does similar to the earlier described task, but
+>  for ALSA SoC subsystem.
+> 
+As this driver touches on 3 sub-systems (mfd, media and alsa), you need to copy not only media ML, but also mfd and alsa ones, as you'll need that one of the 3 involved maintainers to submit your patches with the ack of the other two ones, for the parts that are under their umbrella.
 
+As the main functionality here is related to media, I suspect that I'll be the one that will be submitting the driver. So, you'll need to c/c the MFD maintainer for the stuff under drivers/mfd/, and the alsa maintainer, for the stuff under sound/[1].
+
+Regards,
+Mauro
+
+[1] From MAINTAINERS file:
+
+MULTIFUNCTION DEVICES (MFD)
+M:	Samuel Ortiz <sameo@linux.intel.com>
+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/sameo/mfd-2.6.git
+S:	Supported
+F:	drivers/mfd/
+
+SOUND
+M:	Jaroslav Kysela <perex@perex.cz>
+M:	Takashi Iwai <tiwai@suse.de>
+L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
+W:	http://www.alsa-project.org/
+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound.git
+T:	git git://git.alsa-project.org/alsa-kernel.git
+S:	Maintained
+F:	Documentation/sound/
+F:	include/sound/
+F:	sound/
+
+
+
+
+> This driver has been tested to work in two different sytems:
+>  1. A custom Tegra-based ARM board(design is based on Harmony board)
+>  running linux kernel 3.1.10 kernel
+>  2. A standalone USB-connected board that has a dedicated Cortex M3
+>  working as a transparent USB to I2C bridge which was connected to a
+>  off-the-shelf x86-64 laptop running Ubuntu with 3.2.0 kernel.
 > 
-> But I'm not getting any device to appear:
+> As far as SubmitChecklist is concerned following criteria should be
+> satisfied: 2b, 3, 5, 7, 9, 10
 > 
-> # ls /dev/video*
-> ls: cannot access /dev/video*: No such file or directory
-> # gorecord -format mpeg4 test.avi
-> Driver loaded but no GO7007 devices found.
-> Is the device connected properly?
+> Andrey Smirnov (3):
+>   Add a core driver for SI476x MFD
+>   Add a V4L2 driver for SI476X MFD
+>   Add a codec driver for SI476X MFD
 > 
-> When I connect the device I see this:
+>  drivers/media/radio/Kconfig        |   17 +
+>  drivers/media/radio/radio-si476x.c | 1307 +++++++++++++++++++++++++++++++
+>  drivers/mfd/Kconfig                |   14 +
+>  drivers/mfd/Makefile               |    3 +
+>  drivers/mfd/si476x-cmd.c           | 1509 ++++++++++++++++++++++++++++++++++++
+>  drivers/mfd/si476x-i2c.c           | 1033 ++++++++++++++++++++++++
+>  drivers/mfd/si476x-prop.c          |  477 ++++++++++++
+>  include/linux/mfd/si476x-core.h    |  532 +++++++++++++
+>  include/media/si476x.h             |  461 +++++++++++
+>  sound/soc/codecs/Kconfig           |    4 +
+>  sound/soc/codecs/Makefile          |    2 +
+>  sound/soc/codecs/si476x.c          |  346 +++++++++
+>  12 files changed, 5705 insertions(+)
+>  create mode 100644 drivers/media/radio/radio-si476x.c
+>  create mode 100644 drivers/mfd/si476x-cmd.c
+>  create mode 100644 drivers/mfd/si476x-i2c.c
+>  create mode 100644 drivers/mfd/si476x-prop.c
+>  create mode 100644 include/linux/mfd/si476x-core.h
+>  create mode 100644 include/media/si476x.h
+>  create mode 100644 sound/soc/codecs/si476x.c
 > 
-> [  585.705406] usb 1-4: udev 4, busnum 1, minor = 3
-> [  585.705412] usb 1-4: New USB device found, idVendor=093b, idProduct=a004
-> [  585.705415] usb 1-4: New USB device strings: Mfr=0, Product=0, SerialNumber=0
-> [  585.705532] usb 1-4: usb_probe_device
-> [  585.705535] usb 1-4: configuration #1 chosen from 1 choice
-> [  585.706233] usb 1-4: adding 1-4:1.0 (config #1, interface 0)
 > 
-> But no video node.
-> 
-> Am I missing something?
-> 
-> Adam
