@@ -1,85 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:38091 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757608Ab2ILM4T (ORCPT
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:55664 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752503Ab2IYLD6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Sep 2012 08:56:19 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v2 7/8] drivers/media/platform/davinci/vpbe.c: Removes useless kfree()
-Date: Wed, 12 Sep 2012 14:55:58 +0200
-Message-Id: <1347454564-5178-2-git-send-email-peter.senna@gmail.com>
+	Tue, 25 Sep 2012 07:03:58 -0400
+MIME-Version: 1.0
+In-Reply-To: <1347968672-10803-1-git-send-email-shubhrajyoti@ti.com>
+References: <1347968672-10803-1-git-send-email-shubhrajyoti@ti.com>
+Date: Tue, 25 Sep 2012 08:03:57 -0300
+Message-ID: <CALF0-+UZGCpBcGFSyGirdAoKY5MGV-k6c9YefBHfvv5Qk=rTUg@mail.gmail.com>
+Subject: Re: [PATCHv3 0/6] media: convert to c99 format
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	julia.lawall@lip6.fr, Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Senna Tschudin <peter.senna@gmail.com>
+Shubhrajyoti,
 
-Remove useless kfree() and clean up code related to the removal.
+Thanks for your patches.
 
-The semantic patch that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
+I'm adding media maintainer (Mauro) in Cc. When you send
+patches for a file you should check who maintains them
+and put those people in Cc.
 
-// <smpl>
-@r exists@
-position p1,p2;
-expression x;
-@@
+This is really easy with get_maintainer.pl. You can also
+check with git log / git blame to see who has been working
+on that file.
 
-if (x@p1 == NULL) { ... kfree@p2(x); ... return ...; }
+You should read Documentation/SubmittingPatches
+if you haven't already (and read it again if you already have ;-)
 
-@unchanged exists@
-position r.p1,r.p2;
-expression e <= r.x,x,e1;
-iterator I;
-statement S;
-@@
+On Tue, Sep 18, 2012 at 8:44 AM, Shubhrajyoti D <shubhrajyoti@ti.com> wrote:
+> The series tries to convert the i2c_msg to c99 struct.
+> This may avoid issues like below if someone tries to add an
+> element to the structure.
+> http://www.mail-archive.com/linux-i2c@vger.kernel.org/msg08972.html
+>
+> Special thanks to Julia Lawall for helping it automate.
+> By the below script.
+> http://www.mail-archive.com/cocci@diku.dk/msg02753.html
+>
+> Changelogs
+> - Remove the zero inititialisation of the flags.
+>
+> Shubhrajyoti D (6):
+>   media: Convert struct i2c_msg initialization to C99 format
+>   media: Convert struct i2c_msg initialization to C99 format
+>   media: Convert struct i2c_msg initialization to C99 format
+>   media: Convert struct i2c_msg initialization to C99 format
+>   media: Convert struct i2c_msg initialization to C99 format
+>   media: Convert struct i2c_msg initialization to C99 format
+>
 
-if (x@p1 == NULL) { ... when != I(x,...) S
-                        when != e = e1
-                        when != e += e1
-                        when != e -= e1
-                        when != ++e
-                        when != --e
-                        when != e++
-                        when != e--
-                        when != &e
-   kfree@p2(x); ... return ...; }
+IMO, sending several different patches with the same commit
+subject is not the best thing to do.
 
-@ok depends on unchanged exists@
-position any r.p1;
-position r.p2;
-expression x;
-@@
+Perhaps this is too much to ask, but I'd prefer something
+like:
 
-... when != true x@p1 == NULL
-kfree@p2(x);
+media: saa7706h: Convert struct i2c_msg initialization to C99 format
 
-@depends on !ok && unchanged@
-position r.p2;
-expression x;
-@@
+>  drivers/media/i2c/ks0127.c                    |   13 +++++++-
+>  drivers/media/i2c/msp3400-driver.c            |   40 +++++++++++++++++++++----
+>  drivers/media/i2c/tvaudio.c                   |   13 +++++++-
+>  drivers/media/radio/radio-tea5764.c           |   13 ++++++--
+>  drivers/media/radio/saa7706h.c                |   15 ++++++++-
+>  drivers/media/radio/si470x/radio-si470x-i2c.c |   23 ++++++++++----
+>  6 files changed, 96 insertions(+), 21 deletions(-)
+>
 
-*kfree@p2(x);
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-
----
- drivers/media/platform/davinci/vpbe.c |    1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
-index c4a82a1..1125a87 100644
---- a/drivers/media/platform/davinci/vpbe.c
-+++ b/drivers/media/platform/davinci/vpbe.c
-@@ -771,7 +771,6 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
- 	return 0;
- 
- vpbe_fail_amp_register:
--	kfree(vpbe_dev->amp);
- vpbe_fail_sd_register:
- 	kfree(vpbe_dev->encoders);
- vpbe_fail_v4l2_device:
-
+Thanks!
+Ezequiel.
