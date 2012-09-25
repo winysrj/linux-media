@@ -1,176 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1852 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751014Ab2ITMH1 (ORCPT
+Received: from mx1.redhat.com ([209.132.183.28]:42134 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752855Ab2IYSkf convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 08:07:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 13/14] davinci: move struct vpif_interface to chan_cfg.
-Date: Thu, 20 Sep 2012 14:06:32 +0200
-Message-Id: <3315239726b3c1a08b359c443f6bbe54c63d74d0.1348142407.git.hans.verkuil@cisco.com>
-In-Reply-To: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
-References: <1348142793-27157-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
-References: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com>
+	Tue, 25 Sep 2012 14:40:35 -0400
+Date: Tue, 25 Sep 2012 15:40:22 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org, jwilson@redhat.com, sean@mess.org
+Subject: Re: [PATCH 4/8] rc-core: don't throw away protocol information
+Message-ID: <20120925154022.0d6b44c4@redhat.com>
+In-Reply-To: <20120825214708.22603.30247.stgit@localhost.localdomain>
+References: <20120825214520.22603.37194.stgit@localhost.localdomain>
+	<20120825214708.22603.30247.stgit@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Sat, 25 Aug 2012 23:47:08 +0200
+David Härdeman <david@hardeman.nu> escreveu:
 
-struct vpif_interface is channel specific, not subdev specific.
-Move it to the channel config.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- arch/arm/mach-davinci/board-da850-evm.c       |   24 ++++++++++++------------
- arch/arm/mach-davinci/board-dm646x-evm.c      |   24 ++++++++++++------------
- drivers/media/platform/davinci/vpif_capture.c |    2 +-
- include/media/davinci/vpif_types.h            |    2 +-
- 4 files changed, 26 insertions(+), 26 deletions(-)
+Pathes 1 to 3 are OK. Applied, thanks!
 
-diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
-index 514d4d4..3081ea4 100644
---- a/arch/arm/mach-davinci/board-da850-evm.c
-+++ b/arch/arm/mach-davinci/board-da850-evm.c
-@@ -1211,12 +1211,6 @@ static struct vpif_subdev_info da850_vpif_capture_sdev_info[] = {
- 			I2C_BOARD_INFO("tvp5146", 0x5d),
- 			.platform_data = &tvp5146_pdata,
- 		},
--		.vpif_if = {
--			.if_type = VPIF_IF_BT656,
--			.hd_pol  = 1,
--			.vd_pol  = 1,
--			.fid_pol = 0,
--		},
- 	},
- 	{
- 		.name = TVP5147_CH1,
-@@ -1224,12 +1218,6 @@ static struct vpif_subdev_info da850_vpif_capture_sdev_info[] = {
- 			I2C_BOARD_INFO("tvp5146", 0x5c),
- 			.platform_data = &tvp5146_pdata,
- 		},
--		.vpif_if = {
--			.if_type = VPIF_IF_BT656,
--			.hd_pol  = 1,
--			.vd_pol  = 1,
--			.fid_pol = 0,
--		},
- 	},
- };
- 
-@@ -1239,10 +1227,22 @@ static struct vpif_capture_config da850_vpif_capture_config = {
- 	.chan_config[0] = {
- 		.inputs = da850_ch0_inputs,
- 		.input_count = ARRAY_SIZE(da850_ch0_inputs),
-+		.vpif_if = {
-+			.if_type = VPIF_IF_BT656,
-+			.hd_pol  = 1,
-+			.vd_pol  = 1,
-+			.fid_pol = 0,
-+		},
- 	},
- 	.chan_config[1] = {
- 		.inputs = da850_ch1_inputs,
- 		.input_count = ARRAY_SIZE(da850_ch1_inputs),
-+		.vpif_if = {
-+			.if_type = VPIF_IF_BT656,
-+			.hd_pol  = 1,
-+			.vd_pol  = 1,
-+			.fid_pol = 0,
-+		},
- 	},
- 	.card_name = "DA850/OMAP-L138 Video Capture",
- };
-diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
-index 0daec7e..ad249c7 100644
---- a/arch/arm/mach-davinci/board-dm646x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm646x-evm.c
-@@ -601,12 +601,6 @@ static struct vpif_subdev_info vpif_capture_sdev_info[] = {
- 			I2C_BOARD_INFO("tvp5146", 0x5d),
- 			.platform_data = &tvp5146_pdata,
- 		},
--		.vpif_if = {
--			.if_type = VPIF_IF_BT656,
--			.hd_pol = 1,
--			.vd_pol = 1,
--			.fid_pol = 0,
--		},
- 	},
- 	{
- 		.name	= TVP5147_CH1,
-@@ -614,12 +608,6 @@ static struct vpif_subdev_info vpif_capture_sdev_info[] = {
- 			I2C_BOARD_INFO("tvp5146", 0x5c),
- 			.platform_data = &tvp5146_pdata,
- 		},
--		.vpif_if = {
--			.if_type = VPIF_IF_BT656,
--			.hd_pol = 1,
--			.vd_pol = 1,
--			.fid_pol = 0,
--		},
- 	},
- };
- 
-@@ -659,10 +647,22 @@ static struct vpif_capture_config dm646x_vpif_capture_cfg = {
- 	.chan_config[0] = {
- 		.inputs = dm6467_ch0_inputs,
- 		.input_count = ARRAY_SIZE(dm6467_ch0_inputs),
-+		.vpif_if = {
-+			.if_type = VPIF_IF_BT656,
-+			.hd_pol = 1,
-+			.vd_pol = 1,
-+			.fid_pol = 0,
-+		},
- 	},
- 	.chan_config[1] = {
- 		.inputs = dm6467_ch1_inputs,
- 		.input_count = ARRAY_SIZE(dm6467_ch1_inputs),
-+		.vpif_if = {
-+			.if_type = VPIF_IF_BT656,
-+			.hd_pol = 1,
-+			.vd_pol = 1,
-+			.fid_pol = 0,
-+		},
- 	},
- };
- 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index f97eb0b..4828888 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -1310,7 +1310,7 @@ static int vpif_set_input(
- 	ch->input_idx = index;
- 	ch->sd = sd;
- 	/* copy interface parameters to vpif */
--	ch->vpifparams.iface = subdev_info->vpif_if;
-+	ch->vpifparams.iface = chan_cfg->vpif_if;
- 
- 	/* update tvnorms from the sub device input info */
- 	ch->video_dev->tvnorms = chan_cfg->inputs[index].input.std;
-diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
-index a422ed0..65e8fe1 100644
---- a/include/media/davinci/vpif_types.h
-+++ b/include/media/davinci/vpif_types.h
-@@ -37,7 +37,6 @@ struct vpif_interface {
- struct vpif_subdev_info {
- 	const char *name;
- 	struct i2c_board_info board_info;
--	struct vpif_interface vpif_if;
- };
- 
- struct vpif_display_config {
-@@ -59,6 +58,7 @@ struct vpif_input {
- };
- 
- struct vpif_capture_chan_config {
-+	struct vpif_interface vpif_if;
- 	const struct vpif_input *inputs;
- 	int input_count;
- };
+...
+
+> +#define RC_SCANCODE_UNKNOWN(x) (x)
+> +#define RC_SCANCODE_OTHER(x) (x)
+> +#define RC_SCANCODE_NEC(addr, cmd) (((addr) << 8) | (cmd))
+> +#define RC_SCANCODE_NECX(addr, cmd) (((addr) << 8) | (cmd))
+> +#define RC_SCANCODE_NEC32(data) ((data) & 0xffffffff)
+> +#define RC_SCANCODE_RC5(sys, cmd) (((sys) << 8) | (cmd))
+> +#define RC_SCANCODE_RC5_SZ(sys, cmd) (((sys) << 8) | (cmd))
+> +#define RC_SCANCODE_RC6_0(sys, cmd) (((sys) << 8) | (cmd))
+> +#define RC_SCANCODE_RC6_6A(vendor, sys, cmd) (((vendor) << 16) | ((sys) << 8) | (cmd))
+
+
+Huh? You're defining the same code for NEC, NECX, RC5, ...
+
+Why? It seems better to have one macro for (up to) 16 bit protocols,
+and another one for the two 32 bit ones.
+
+Btw, on several drivers, you're using the wrong macro name. It doesn't seem
+fine to miss-use it.
+
+For example, see the generic I2C driver: several of the remote controllers
+there are NEC[1]. Yet, you're using there the RC5 variant.
+
+[1] Currently, they're using "other" because we don't have that IR's or the
+devices that use it here, in order to make it scan the full NEC (or NEC
+variant) code.
+
 -- 
-1.7.10.4
-
+Regards,
+Mauro
