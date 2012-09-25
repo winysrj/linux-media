@@ -1,63 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:59586 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751290Ab2I0G6f (ORCPT
+Received: from mx1.redhat.com ([209.132.183.28]:20729 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753105Ab2IYLJk convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Sep 2012 02:58:35 -0400
-Received: by weyt9 with SMTP id t9so426053wey.19
-        for <linux-media@vger.kernel.org>; Wed, 26 Sep 2012 23:58:34 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20120926104007.4de17d19@lwn.net>
-References: <1348652877-25816-1-git-send-email-javier.martin@vista-silicon.com>
-	<1348652877-25816-2-git-send-email-javier.martin@vista-silicon.com>
-	<20120926104007.4de17d19@lwn.net>
-Date: Thu, 27 Sep 2012 08:58:33 +0200
-Message-ID: <CACKLOr2+cWAgKspq+OKTQOvKcBGDSDZg05tx0mqNV1n=38Lr_g@mail.gmail.com>
-Subject: Re: [PATCH 1/5] media: ov7670: add support for ov7675.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	hverkuil@xs4all.nl
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 25 Sep 2012 07:09:40 -0400
+Message-ID: <1348571366.10028.4.camel@localhost.localdomain>
+Subject: Re: [PATCHv3 0/6] media: convert to c99 format
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, julia.lawall@lip6.fr
+Date: Tue, 25 Sep 2012 08:09:26 -0300
+In-Reply-To: <CALF0-+UZGCpBcGFSyGirdAoKY5MGV-k6c9YefBHfvv5Qk=rTUg@mail.gmail.com>
+References: <1347968672-10803-1-git-send-email-shubhrajyoti@ti.com>
+	 <CALF0-+UZGCpBcGFSyGirdAoKY5MGV-k6c9YefBHfvv5Qk=rTUg@mail.gmail.com>
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: 8BIT
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jonathan,
-thank you for your time.
+Em Ter, 2012-09-25 às 08:03 -0300, Ezequiel Garcia escreveu:
+> Shubhrajyoti,
+> 
+> Thanks for your patches.
+> 
+> I'm adding media maintainer (Mauro) in Cc. When you send
+> patches for a file you should check who maintains them
+> and put those people in Cc.
 
-On 26 September 2012 18:40, Jonathan Corbet <corbet@lwn.net> wrote:
-> This is going to have to be quick, sorry...
->
-> On Wed, 26 Sep 2012 11:47:53 +0200
-> Javier Martin <javier.martin@vista-silicon.com> wrote:
->
->> +static struct ov7670_win_size ov7670_win_sizes[2][4] = {
->> +     /* ov7670 */
->
-> I must confess I don't like this; now we've got constants in an array that
-> was automatically sized before and ov7670_win_sizes[info->model]
-> everywhere.  I'd suggest a separate array for each device and an
-> ov7670_get_wsizes(model) function.
->
->> +             /* CIF - WARNING: not tested for ov7675 */
->> +             {
->
-> ...and this is part of why I don't like it.  My experience with this
-> particular sensor says that, if it's not tested, it hasn't yet seen the
-> magic-number tweaking required to actually make it work.  Please don't
-> claim to support formats that you don't know actually work, or I'll get
-> stuck with the bug reports :)
+I actually prefer to not be c/c on the patches ;) Copying the
+linux-media mailing list and checking if the patch was caught by
+patchwork.linuxtv.kernel.org is enough, as I rely on patchwork to
+queue patches for me. So, I just discard any media patch sent to me
+directly.
 
-Your concern makes a lot of sense. In fact, that was one of my doubts
-whether to 'support' not tested formats or not.
+> 
+> This is really easy with get_maintainer.pl. You can also
+> check with git log / git blame to see who has been working
+> on that file.
+> 
+> You should read Documentation/SubmittingPatches
+> if you haven't already (and read it again if you already have ;-)
+> 
+> On Tue, Sep 18, 2012 at 8:44 AM, Shubhrajyoti D <shubhrajyoti@ti.com> wrote:
+> > The series tries to convert the i2c_msg to c99 struct.
+> > This may avoid issues like below if someone tries to add an
+> > element to the structure.
+> > http://www.mail-archive.com/linux-i2c@vger.kernel.org/msg08972.html
+> >
+> > Special thanks to Julia Lawall for helping it automate.
+> > By the below script.
+> > http://www.mail-archive.com/cocci@diku.dk/msg02753.html
+> >
+> > Changelogs
+> > - Remove the zero inititialisation of the flags.
+> >
+> > Shubhrajyoti D (6):
+> >   media: Convert struct i2c_msg initialization to C99 format
+> >   media: Convert struct i2c_msg initialization to C99 format
+> >   media: Convert struct i2c_msg initialization to C99 format
+> >   media: Convert struct i2c_msg initialization to C99 format
+> >   media: Convert struct i2c_msg initialization to C99 format
+> >   media: Convert struct i2c_msg initialization to C99 format
+> >
+> 
+> IMO, sending several different patches with the same commit
+> subject is not the best thing to do.
+> 
+> Perhaps this is too much to ask, but I'd prefer something
+> like:
+> 
+> media: saa7706h: Convert struct i2c_msg initialization to C99 format
+> 
+> >  drivers/media/i2c/ks0127.c                    |   13 +++++++-
+> >  drivers/media/i2c/msp3400-driver.c            |   40 +++++++++++++++++++++----
+> >  drivers/media/i2c/tvaudio.c                   |   13 +++++++-
+> >  drivers/media/radio/radio-tea5764.c           |   13 ++++++--
+> >  drivers/media/radio/saa7706h.c                |   15 ++++++++-
+> >  drivers/media/radio/si470x/radio-si470x-i2c.c |   23 ++++++++++----
+> >  6 files changed, 96 insertions(+), 21 deletions(-)
+> >
+> 
+> Thanks!
+> Ezequiel.
 
-Let me fix that in a new version.
-
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
