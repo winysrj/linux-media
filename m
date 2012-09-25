@@ -1,43 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:56770 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754810Ab2IYLWo (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:51964 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755444Ab2IYMQA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 07:22:44 -0400
-Received: by padhz1 with SMTP id hz1so1591877pad.19
-        for <linux-media@vger.kernel.org>; Tue, 25 Sep 2012 04:22:43 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, s.nawrocki@samsung.com,
-	sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH] [media] s5p-fimc: Fix incorrect condition in fimc_lite_reqbufs()
-Date: Tue, 25 Sep 2012 16:49:04 +0530
-Message-Id: <1348571944-7139-1-git-send-email-sachin.kamat@linaro.org>
+	Tue, 25 Sep 2012 08:16:00 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.7] In non-blocking mode return EAGAIN in hwseek
+Date: Tue, 25 Sep 2012 14:15:31 +0200
+Cc: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201209251415.31929.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When precedence rules are applied, the condition always evaluates
-to be false which was not the intention. Adding the missing braces
-for correct evaluation of the expression and subsequent functionality.
+When trying to do hardware seek in non-blocking mode just return EAGAIN
+instead of blocking while the seek is in progress.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/platform/s5p-fimc/fimc-lite.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+The following changes since commit 4313902ebe33155209472215c62d2f29d117be29:
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
-index 9289008..20e5e24 100644
---- a/drivers/media/platform/s5p-fimc/fimc-lite.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
-@@ -825,7 +825,7 @@ static int fimc_lite_reqbufs(struct file *file, void *priv,
- 
- 	reqbufs->count = max_t(u32, FLITE_REQ_BUFS_MIN, reqbufs->count);
- 	ret = vb2_reqbufs(&fimc->vb_queue, reqbufs);
--	if (!ret < 0)
-+	if (!(ret < 0))
- 		fimc->reqbufs_count = reqbufs->count;
- 
- 	return ret;
--- 
-1.7.4.1
+  [media] ivtv-alsa, ivtv: Connect ivtv PCM capture stream to ivtv-alsa interface driver (2012-09-18 13:29:07 -0300)
 
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git hwseek
+
+for you to fetch changes up to e4d14800264cd6c8a95c58818757e55698feef75:
+
+  radio drivers: in non-blocking mode return EAGAIN in hwseek (2012-09-21 14:33:35 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (3):
+      DocBook: EAGAIN == EWOULDBLOCK
+      DocBook: in non-blocking mode return EAGAIN in hwseek
+      radio drivers: in non-blocking mode return EAGAIN in hwseek
+
+ Documentation/DocBook/media/v4l/gen-errors.xml            |    9 +++------
+ Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml |   10 ++++++++++
+ drivers/media/radio/radio-mr800.c                         |    3 +++
+ drivers/media/radio/radio-tea5777.c                       |    3 +++
+ drivers/media/radio/radio-wl1273.c                        |    3 +++
+ drivers/media/radio/si470x/radio-si470x-common.c          |    3 +++
+ drivers/media/radio/wl128x/fmdrv_v4l2.c                   |    3 +++
+ sound/i2c/other/tea575x-tuner.c                           |    3 +++
+ 8 files changed, 31 insertions(+), 6 deletions(-)
