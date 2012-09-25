@@ -1,78 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.unixsol.org ([193.110.159.2]:57349 "EHLO ns.unixsol.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755249Ab2IQJHc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 05:07:32 -0400
-Message-ID: <5056E852.7050909@unixsol.org>
-Date: Mon, 17 Sep 2012 12:07:30 +0300
-From: Georgi Chorbadzhiyski <gf@unixsol.org>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1418 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750921Ab2IYGxM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Sep 2012 02:53:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: davinci-linux-open-source@linux.davincidsp.com
+Subject: Re: [PATCH v4] media: v4l2-ctrls: add control for test pattern
+Date: Tue, 25 Sep 2012 08:53:03 +0200
+Cc: Prabhakar <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Rob Landley <rob@landley.net>,
+	LDOC <linux-doc@vger.kernel.org>,
+	VGER <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1348553345-14296-1-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1348553345-14296-1-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Vasily Levin <vasaka@gmail.com>,
-	IOhannes m zmoelnig <zmoelnig@iem.at>,
-	Stefan Diewald <stefan.diewald@mytum.de>,
-	Anton Novikov <random.plant@gmail.com>
-Subject: Re: How to set pixelaspect in struct v4l2_cropcap returned by VIDIOC_CROPCAP?
-References: <5055F124.8020507@unixsol.org> <201209161828.44984.hverkuil@xs4all.nl> <505602FC.90502@unixsol.org> <201209171022.52930.hverkuil@xs4all.nl>
-In-Reply-To: <201209171022.52930.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201209250853.03216.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Around 09/17/2012 11:22 AM, Hans Verkuil scribbled:
-> On Sun September 16 2012 18:49:00 Georgi Chorbadzhiyski wrote:
->> On 9/16/12 7:28 PM, Hans Verkuil wrote:
->>> On Sun September 16 2012 17:32:52 Georgi Chorbadzhiyski wrote:
->>>> Guys I'm adding v4l2 output device support for VLC/ffmpeg/libav (I'm using
->>>> v4l2loopback [1] driver for testing) but I have a problem which I can't seem
->>>> to find a solution.
->>>>
->>>> VLC [2] uses VIDIOC_CROPCAP [3] to detect the pixelaspect ratio of the input
->>>> it receives from v4l2 device. But I can't seem to find a way to set struct
->>>> v4l2_cropcap.pixelaspect when I'm outputting data to the device and the
->>>> result is that VLC assumes pixelaspect is 1:1.
->>>>
->>>> I was hoping that VIDIOC_S_CROP [4] would allow setting pixelaspect but
->>>> according to docs that is not case. What am I missing?
->>>
->>> The pixelaspect ratio returned by CROPCAP depends on the current video standard
->>> of the video receiver or transmitter.
->>>
->>> So for video capture the pixelaspect depends on the standard (50 vs 60 Hz) and
->>> the horizontal sampling frequency of the video receiver (hardware specific).
->>>
->>> For video output the pixelaspect depends also on the standard and on how the
->>> transmitter goes from digital to analog pixels (the reverse of what a receiver
->>> does).
->>>
->>> It is *not* the pixelaspect of the video data itself. For output it is the
->>> pixel aspect that the transmitter expects. Any difference between the two will
->>> need to be resolved somehow, typically by software or hardware scaling.
->>
->> Since I'm using virtual output v4l2 loopback device this means I have to set the
->> standard somehow, right?
+On Tue September 25 2012 08:09:05 Prabhakar wrote:
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
 > 
-> Yes, just call VIDIOC_S_STD. But the loopback device driver needs to be modified to
-> have cropcap return the aspect ratio belonging to the given standard (or just 1x1
-> for non-PAL/NTSC resolutions).
+> add V4L2_CID_TEST_PATTERN of type menu, which determines
+> the internal test pattern selected by the device.
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
 > 
-> I wish personally that this driver was being upstreamed to the kernel. I know that
-> Mauro (subsystem maintainer) isn't too keen on it, but I think we can convince him
-> that it is really a useful driver to have. And if it is part of distros anyway,
-> then we should just accept it (after cleanup, of course).
-
-The drivers is very useful I can vote for that with two hands. Along with snd-aloop
-I'm able to create a stable video/audio source which was not possible before.
-
-I'll try to add support for S_FMT to v4l2loopback, lets see where this would lead me
-(for now I just hacked VLC to set the aspect from the command line instead of relying
-on CROPCAP).
-
-I don't know if the author(s) have any plans of upstreaming it (I've added them to cc,
-guys any opinion on that?).
-
--- 
-Georgi Chorbadzhiyski
-http://georgi.unixsol.org/
-
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Cc: Hans de Goede <hdegoede@redhat.com>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Rob Landley <rob@landley.net>
+> ---
+>  This patches has one checkpatch warning for line over
+>  80 characters altough it can be avoided I have kept it
+>  for consistency.
+> 
+>  Changes for v4:
+>  1: Fixed some grammar/style issues, pointed by Hans.
+> 
+>  Changes for v3:
+>  1: Removed the menu for test pattern, pointed by Sakari.
+> 
+>  Changes for v2:
+>  1: Included display devices in the description for test pattern
+>    as pointed by Hans.
+>  2: In the menu replaced 'Test Pattern Disabled' by 'Disabled' as
+>    pointed by Sylwester.
+>  3: Removed the test patterns from menu as the are hardware specific
+>    as pointed by Sakari.
+> 
+>  Documentation/DocBook/media/v4l/controls.xml |   10 ++++++++++
+>  drivers/media/v4l2-core/v4l2-ctrls.c         |    2 ++
+>  include/linux/videodev2.h                    |    1 +
+>  3 files changed, 13 insertions(+), 0 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> index f0fb08d..5450d31 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -4313,6 +4313,16 @@ interface and may change in the future.</para>
+>  	      </tbody>
+>  	    </entrytbl>
+>  	  </row>
+> +	  <row>
+> +	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN</constant></entry>
+> +	    <entry>menu</entry>
+> +	  </row>
+> +	  <row id="v4l2-test-pattern">
+> +	    <entry spanname="descr"> Some capture/display/sensor devices have
+> +	    the capability to generate test pattern images. These hardware
+> +	    specific test patterns can be used to test if a device is working
+> +	    properly.</entry>
+> +	  </row>
+>  	<row><entry></entry></row>
+>  	</tbody>
+>        </tgroup>
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 8f2f40b..41b7732 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -740,6 +740,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
+>  	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
+>  	case V4L2_CID_DPCM_PREDICTOR:		return "DPCM Predictor";
+> +	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
+>  
+>  	default:
+>  		return NULL;
+> @@ -841,6 +842,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_EXPOSURE_METERING:
+>  	case V4L2_CID_SCENE_MODE:
+>  	case V4L2_CID_DPCM_PREDICTOR:
+> +	case V4L2_CID_TEST_PATTERN:
+>  		*type = V4L2_CTRL_TYPE_MENU;
+>  		break;
+>  	case V4L2_CID_LINK_FREQ:
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index ca9fb78..7014c0b 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -2005,6 +2005,7 @@ enum v4l2_dpcm_predictor {
+>  	V4L2_DPCM_PREDICTOR_SIMPLE	= 0,
+>  	V4L2_DPCM_PREDICTOR_ADVANCED	= 1,
+>  };
+> +#define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
+>  
+>  /*
+>   *	T U N I N G
+> 
