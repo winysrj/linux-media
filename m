@@ -1,44 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:44710 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752598Ab2IMPit (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:25094 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754444Ab2IZJHB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 11:38:49 -0400
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH 3/4] videobuf2-dma-streaming: new videobuf2 memory allocator
-Date: Thu, 13 Sep 2012 17:42:33 +0200
-Message-ID: <17733334.UmoCxqVfBu@harkonnen>
-In-Reply-To: <201209131608.05869.hverkuil@xs4all.nl>
-References: <1347544368-30583-1-git-send-email-federico.vaga@gmail.com> <1347544368-30583-3-git-send-email-federico.vaga@gmail.com> <201209131608.05869.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 26 Sep 2012 05:07:01 -0400
+Received: from eusync3.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MAY00LWE9CM4490@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 26 Sep 2012 10:07:34 +0100 (BST)
+Received: from [106.116.147.32] by eusync3.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MAY008959BNVM30@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 26 Sep 2012 10:06:59 +0100 (BST)
+Message-id: <5062C5B2.7050004@samsung.com>
+Date: Wed, 26 Sep 2012 11:06:58 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media@vger.kernel.org, shaik.ameer@samsung.com,
+	patches@linaro.org
+Subject: Re: [PATCH 1/2] [media] exynos-gsc: Remove <linux/version.h> header
+ file inclusion
+References: <1348643884-4005-1-git-send-email-sachin.kamat@linaro.org>
+In-reply-to: <1348643884-4005-1-git-send-email-sachin.kamat@linaro.org>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> typo: steaming -> streaming :-)
+On 09/26/2012 09:18 AM, Sachin Kamat wrote:
+> version.h is not needed for these files.
+> 
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 
-fixed
-
-> The header and esp. the source could really do with more
-> documentation. It is not at all clear from the code what the
-> dma-streaming allocator does and how it differs from other
-> allocators.
-
-The other allocators are not documented and to understand them I read 
-the code. All the memory allocators reflect a kind of DMA interface: SG 
-for scatter/gather, contig for choerent and (now) streaming for 
-streaming. So, I'm not sure to understand what do you think is the 
-correct way to document a memory allocator; I can write one or two lines 
-of comment to summarize each function. what do you think?
-
--- 
-Federico Vaga
+Applied both, thank you.
