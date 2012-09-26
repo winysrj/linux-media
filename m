@@ -1,74 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6599 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754333Ab2IOQeU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Sep 2012 12:34:20 -0400
-Date: Sat, 15 Sep 2012 13:34:17 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Anders Thomson <aeriksson2@gmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: tda8290 regression fix
-Message-ID: <20120915133417.27cb82a1@redhat.com>
-In-Reply-To: <503F4E19.1050700@gmail.com>
-References: <503F4E19.1050700@gmail.com>
+Received: from 173-166-109-252-newengland.hfc.comcastbusiness.net ([173.166.109.252]:33483
+	"EHLO bombadil.infradead.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754475Ab2IZUUY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Sep 2012 16:20:24 -0400
+Date: Wed, 26 Sep 2012 17:20:16 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: Dror Cohen <dror@liveu.tv>, <linux-media@vger.kernel.org>,
+	<davinci-linux-open-source@linux.davincidsp.com>
+Subject: Re: [PATCH 0/1 v2] media/video: vpif: fixing function name start to
+ vpif_config_params
+Message-ID: <20120926172016.3b6b23c4@infradead.org>
+In-Reply-To: <50290B89.7070100@ti.com>
+References: <1344494017-18099-1-git-send-email-dror@liveu.tv>
+	<50290B89.7070100@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 30 Aug 2012 13:27:21 +0200
-Anders Thomson <aeriksson2@gmail.com> escreveu:
+Em Mon, 13 Aug 2012 19:43:29 +0530
+Manjunath Hadli <manjunath.hadli@ti.com> escreveu:
 
-> Hi,
+> Hi Dror,
 > 
-> Ever since 2.6.26 or so (where there was a code reorg) I had to carry 
-> this patch.
-> Without it the received signal is noisy, and the card worked fine prior 
-> to the code
-> reorg. This patch is a hack, mostly as a result of my inability to 
-> follow the code
-> paths (and bisect failing). I'd be more than willing to test whatever 
-> the proper
-> patch might be prior to any mainlining.
+> Thanks for the patch.
 > 
-> Thanks,
-> /Anders
+> Mauro,
 > 
-> 
-> 
-> $ cat /TV_CARD.diff
-> diff --git a/drivers/media/common/tuners/tda8290.c 
-> b/drivers/media/common/tuners/tda8290.c
-> index 064d14c..498cc7b 100644
-> --- a/drivers/media/common/tuners/tda8290.c
-> +++ b/drivers/media/common/tuners/tda8290.c
-> @@ -635,7 +635,11 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
-> 
->                  dvb_attach(tda827x_attach, fe, priv->tda827x_addr,
->                             priv->i2c_props.adap, &priv->cfg);
-> +               tuner_info("ANDERS: setting switch_addr. was 0x%02x, new 
-> 0x%02x\n",priv->cfg.switch_addr,priv->i2c_props.addr);
->                  priv->cfg.switch_addr = priv->i2c_props.addr;
-> +               priv->cfg.switch_addr = 0xc2 / 2;
+> I'll queue this patch for v3.7 through my tree.
 
-No, this is wrong. The I2C address is passed by the bridge driver or by
-the tuner_core attachment, being stored at priv->i2c_props.addr.
+Sure.
 
-What's the driver and card you're using?
-
-> +               tuner_info("ANDERS: new 0x%02x\n",priv->cfg.switch_addr);
-> +
->          }
->          if (fe->ops.tuner_ops.init)
->                  fe->ops.tuner_ops.init(fe);
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> On Thursday 09 August 2012 12:03 PM, Dror Cohen wrote:
+> > This patch address the issue that a function named config_vpif_params should
+> > be vpif_config_params. However this name is shared with two structures defined
+> > already. So I changed the structures to config_vpif_params (origin was
+> > vpif_config_params)
+> >
+> > v2 changes: softer wording in description and the structs are now
+> > defined without _t
 
+Hmm... I didn't understand what you're wanting with this change. Before this patch,
+there are:
 
--- 
+v4l@pedra ~/v4l/patchwork $ git grep config_vpif_params
+drivers/media/platform/davinci/vpif.c:/* config_vpif_params
+drivers/media/platform/davinci/vpif.c:static void config_vpif_params(struct vpif_params *vpifparams,
+drivers/media/platform/davinci/vpif.c:    config_vpif_params(vpifparams, channel_id, found);
+v4l@pedra ~/v4l/patchwork $ git grep vpif_config_params
+drivers/media/platform/davinci/vpif_capture.c:static struct vpif_config_params config_params = {
+drivers/media/platform/davinci/vpif_capture.h:struct vpif_config_params {
+drivers/media/platform/davinci/vpif_display.c:static struct vpif_config_params config_params = {
+drivers/media/platform/davinci/vpif_display.h:struct vpif_config_params {
+
+After that, there are:
+
+v4l@pedra ~/v4l/patchwork $ git grep vpif_config_params
+drivers/media/platform/davinci/vpif.c:/* vpif_config_params
+drivers/media/platform/davinci/vpif.c:static void vpif_config_params(struct vpif_params *vpifparams,
+drivers/media/platform/davinci/vpif.c:    vpif_config_params(vpifparams, channel_id, found);
+v4l@pedra ~/v4l/patchwork $ git grep config_vpif_params
+drivers/media/platform/davinci/vpif_capture.c:static struct config_vpif_params config_params = {
+drivers/media/platform/davinci/vpif_capture.h:struct config_vpif_params {
+drivers/media/platform/davinci/vpif_display.c:static struct config_vpif_params config_params = {
+drivers/media/platform/davinci/vpif_display.h:struct config_vpif_params {
+
+So, I can't really see any improvement on avoiding duplicate names.
+
+IMHO, the better would be to name those functions as:
+
+vpif:		vpif_config_params (or, even better, vpif_core_config_params)
+vpif_capture:	vpif_capture_config_params
+vpif_display:	vpif_display_config_params
+
+This way, duplication will be avoided and will avoid the confusing inversion between
+vpif and config.
+
 Regards,
 Mauro
