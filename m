@@ -1,94 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moh1-ve1.go2.pl ([193.17.41.131]:44957 "EHLO moh1-ve1.go2.pl"
+Received: from tex.lwn.net ([70.33.254.29]:47269 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932425Ab2ISQLP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Sep 2012 12:11:15 -0400
-Received: from moh1-ve1.go2.pl (unknown [10.0.0.131])
-	by moh1-ve1.go2.pl (Postfix) with ESMTP id DE2209288B4
-	for <linux-media@vger.kernel.org>; Wed, 19 Sep 2012 18:00:16 +0200 (CEST)
-Received: from o2.pl (unknown [10.0.0.144])
-	by moh1-ve1.go2.pl (Postfix) with SMTP
-	for <linux-media@vger.kernel.org>; Wed, 19 Sep 2012 18:00:14 +0200 (CEST)
-Subject: =?UTF-8?Q?[PATCH]_[3/3]_dvb-apps_-_update_scan?=
-	=?UTF-8?Q?_file_for_Hotrird_19E=2C_Astra_19E=2C_Thor_1W?=
-From: =?UTF-8?Q?VoJcEK?= <vojcek@tlen.pl>
-To: linux-media@vger.kernel.org
+	id S1756896Ab2IZQlG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Sep 2012 12:41:06 -0400
+Date: Wed, 26 Sep 2012 10:42:02 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	hverkuil@xs4all.nl
+Subject: Re: [PATCH 2/5] media: ov7670: make try_fmt() consistent with
+ 'min_height' and 'min_width'.
+Message-ID: <20120926104202.794c96c5@lwn.net>
+In-Reply-To: <1348652877-25816-3-git-send-email-javier.martin@vista-silicon.com>
+References: <1348652877-25816-1-git-send-email-javier.martin@vista-silicon.com>
+	<1348652877-25816-3-git-send-email-javier.martin@vista-silicon.com>
 Mime-Version: 1.0
-Message-ID: <44b3f1d7.20fd9b40.5059ec0e.bf2a1@tlen.pl>
-Date: Wed, 19 Sep 2012 18:00:14 +0200
-Content-Type: multipart/mixed;
-	boundary="==o2.pl-WebMail-7ba8ed85.48c9631e.bf2a7=="
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
+On Wed, 26 Sep 2012 11:47:54 +0200
+Javier Martin <javier.martin@vista-silicon.com> wrote:
 
---==o2.pl-WebMail-7ba8ed85.48c9631e.bf2a7==
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> 'min_height' and 'min_width' are variables that allow to specify the minimum
+> resolution that the sensor will achieve. This patch make v4l2 fmt callbacks
+> consider this parameters in order to return valid data to user space.
+> 
+I'd have preferred to do this differently, perhaps backing toward larger
+sizes if the minimum turns out to be violated.  But so be it...
 
-Thor=20patch
---==o2.pl-WebMail-7ba8ed85.48c9631e.bf2a7==
-Content-Type: application/octet-stream;
-	name="=?UTF-8?Q?dvb-apps=5Fscan=5F1W.patch?="
-Content-Disposition: attachment;
-	filename="=?UTF-8?Q?dvb-apps=5Fscan=5F1W.patch?="
-Content-Transfer-Encoding: base64
+Acked-by: Jonathan Corbet <corbet@lwn.net>
 
-LS0tIHV0aWwvc2Nhbi9kdmItcy9UaG9yLTEuMFcub2xkCTIwMTItMDktMTkgMTY6MzA6MjMu
-OTYwMTQ2MDE0ICswMjAwCisrKyB1dGlsL3NjYW4vZHZiLXMvVGhvci0xLjBXCTIwMTItMDkt
-MTkgMTY6NDY6NTguNzg2MTMyNjgzICswMjAwCkBAIC0xLDY1ICsxLDY1IEBACiAjIFRob3Ig
-MS4wVwogIyBmcmVxIHBvbCBzciBmZWMKLVMgMTA3NDcwMDAgSCAyNTAwMDAwMCAzLzQKLVMg
-MTA3NzgwMDAgViAyNTAwMDAwMCAzLzQKK1MgMTA3MTYwMDAgSCAyNDUwMDAwMCA3LzgKK1My
-IDEwNzQ3MDAwIEggMjUwMDAwMDAgMy80IEFVVE8gOFBTSworUzIgMTA3NDcwMDAgViAyNTAw
-MDAwMCAzLzQgQVVUTyA4UFNLCiBTIDEwNzc4MDAwIEggMjQ1MDAwMDAgNy84Ci1TIDEwODA5
-MDAwIFYgMjQ1MDAwMDAgNy84CitTMiAxMDc3ODAwMCBWIDI1MDAwMDAwIDMvNCBBVVRPIDhQ
-U0sKIFMgMTA4MDkwMDAgSCAyNDUwMDAwMCA3LzgKLVMgMTA4NDEwMDAgViAyNDUwMDAwMCA3
-LzgKK1MgMTA4MDkwMDAgViAyNDUwMDAwMCA3LzgKIFMgMTA4NDEwMDAgSCAyNDUwMDAwMCA3
-LzgKK1MgMTA4NDEwMDAgViAyNDUwMDAwMCA3LzgKIFMgMTA4NzIwMDAgViAyNDUwMDAwMCA3
-LzgKLVMgMTA4NzIwMDAgSCAyNDUwMDAwMCA3LzgKLVMgMTA5MDMwMDAgViAyNTAwMDAwMCAz
-LzQKLVMgMTA5MDMwMDAgSCAyNTAwMDAwMCAzLzQKLVMgMTA5MzQwMDAgViAyNDUwMDAwMCA3
-LzgKLVMgMTA5MzQwMDAgSCAyNTAwMDAwMCAzLzQKK1MyIDEwOTAzMDAwIEggMjUwMDAwMDAg
-My80CitTMiAxMDkwMzAwMCBWIDI1MDAwMDAwIDMvNAorUzIgMTA5MzQwMDAgSCAyNTAwMDAw
-MCAzLzQKK1MyIDEwOTM0MDAwIFYgMjQ1MDAwMDAgNy84CiBTIDExMjE2MDAwIFYgMjQ1MDAw
-MDAgNy84CiBTIDExMjI5MDAwIEggMjQ1MDAwMDAgNy84CiBTIDExMjQ3MDAwIFYgMjQ1MDAw
-MDAgNy84CiBTIDExMjYxMDAwIEggMjQ1MDAwMDAgNy84CiBTIDExMjc4MDAwIFYgMjQ1MDAw
-MDAgNy84Ci1TIDExMjkzMDAwIEggMjQ1MDAwMDAgNy84CiBTIDExMzA5MDAwIFYgMjQ1MDAw
-MDAgNy84CiBTIDExMzI1MDAwIEggMjQ1MDAwMDAgNy84Ci1TIDExMzI1MDAwIFYgMjQ1MDAw
-MDAgNy84Ci1TIDExMzI1MDAwIFYgMjQ1MDAwMDAgNy84CiBTIDExMzQxMDAwIFYgMjQ1MDAw
-MDAgNy84CiBTIDExMzU3MDAwIEggMjQ1MDAwMDAgNy84CiBTIDExMzcyMDAwIFYgMjQ1MDAw
-MDAgNy84CiBTIDExMzg5MDAwIEggMjQ1MDAwMDAgNy84CiBTIDExNDAzMDAwIFYgMjQ1MDAw
-MDAgNy84CiBTIDExNDIxMDAwIEggMjQ1MDAwMDAgNy84Ci1TIDExNDM0MDAwIFYgMjQ1MDAw
-MDAgNy84CiBTIDExNzI3MDAwIFYgMjgwMDAwMDAgNy84CiBTIDExNzQ3MDAwIEggMjgwMDAw
-MDAgNS82CiBTIDExNzY2MDAwIFYgMjgwMDAwMDAgNy84Ci1TIDExNzg1MDAwIEggMzAwMDAw
-MDAgMy80CitTMiAxMTc4NTAwMCBIIDMwMDAwMDAwIDMvNCBBVVRPIDhQU0sKIFMgMTE4MDQw
-MDAgViAyODAwMDAwMCA3LzgKLVMgMTE4MjMwMDAgSCAyODAwMDAwMCA3LzgKLVMgMTE4NDMw
-MDAgViAzMDAwMDAwMCAzLzQKK1MyIDExODQzMDAwIFYgMzAwMDAwMDAgMy80IEFVVE8gOFBT
-SwogUyAxMTg2MjAwMCBIIDI4MDAwMDAwIDcvOAotUyAxMTg4MTAwMCBWIDI4MDAwMDAwIDUv
-NgorUzIgMTE4ODEwMDAgViAzMDAwMDAwMCAzLzQgQVVUTyA4UFNLCiBTIDExOTAwMDAwIEgg
-MjgwMDAwMDAgNS82CiBTIDExOTE5MDAwIFYgMjgwMDAwMDAgNy84Ci1TIDExOTM4MDAwIEgg
-MjUwMDAwMDAgMy80Ci1TIDExOTU4MDAwIFYgMjgwMDAwMDAgNy84CitTIDExOTM4MDAwIEgg
-MjgwMDAwMDAgNy84CiBTIDExOTc3MDAwIEggMjgwMDAwMDAgNy84CiBTIDExOTk2MDAwIFYg
-MjgwMDAwMDAgNy84Ci1TIDEyMDE1MDAwIEggMzAwMDAwMDAgMy80CitTMiAxMjAxNTAwMCBI
-IDMwMDAwMDAwIDMvNCBBVVRPIDhQU0sKIFMgMTIwMzQwMDAgViAyODAwMDAwMCA3LzgKIFMg
-MTIwNzMwMDAgViAyODAwMDAwMCA3LzgKLVMgMTIwOTIwMDAgSCAzMDAwMDAwMCAzLzQKLVMg
-MTIxMzAwMDAgSCAzMDAwMDAwMCAzLzQKLVMgMTIxNDkwMDAgViAyODAwMDAwMCA1LzYKLVMg
-MTIxNjkwMDAgSCAyODAwMDAwMCA3LzgKLVMgMTIxODgwMDAgViAyNTAwMDAwMCAzLzQKLVMg
-MTIyMjYwMDAgViAyODAwMDAwMCAzLzQKLVMgMTIyNDUwMDAgSCAyODAwMDAwMCA1LzYKLVMg
-MTIzMDMwMDAgViAyODAwMDAwMCA1LzYKLVMgMTIzMjIwMDAgSCAyNzgwMDAwMCAzLzQKLVMg
-MTIzNDEwMDAgViAyODAwMDAwMCA3LzgKK1MyIDEyMDkyMDAwIEggMzAwMDAwMDAgMy80IEFV
-VE8gOFBTSworUyAxMjE4ODAwMCBWIDI4MDAwMDAwIDcvOAorUyAxMjIyNjAwMCBWIDI3NTAw
-MDAwIDUvNgorUyAxMjI2NTAwMCBWIDI4MDAwMDAwIDcvOAorUzIgMTIzMDMwMDAgViAyODAw
-MDAwMCA1LzYgQVVUTyA4UFNLCiBTIDEyMzgwMDAwIFYgMjgwMDAwMDAgNS82Ci1TIDEyMzk5
-MDAwIEggMjgwMDAwMDAgNy84CiBTIDEyNDE4MDAwIFYgMjgwMDAwMDAgNy84Ci1TIDEyNDU2
-MDAwIFYgMjgwMDAwMDAgMy80Ci1TIDEyNDc2MDAwIEggMjgwMDAwMDAgNS82CitTIDEyNDU2
-MDAwIFYgMjgwMDAwMDAgNy84CitTIDEyNTI3MDAwIEggMjc1MDAwMDAgMy80CitTIDEyNTYz
-MDAwIEggMjc1MDAwMDAgMy80CitTIDEyNTYzMDAwIFYgMjc1MDAwMDAgMy80CitTIDEyNjA3
-MDAwIFYgMjc1MDAwMDAgMy80CitTIDEyNjA4MDAwIEggMjc1MDAwMDAgMy80CitTIDEyNjQz
-MDAwIEggMjc1MDAwMDAgMy80CitTIDEyNTYzMDAwIFYgMjc1MDAwMDAgMy80CitTIDEyNjg2
-MDAwIFYgMjc1MDAwMDAgMy80CitTIDEyNjg3MDAwIEggMjc1MDAwMDAgMy80CitTIDEyNzE4
-MDAwIFYgMTg0MDAwMDAgMy80CitTIDEyNzIzMDAwIEggMjc1MDAwMDAgMy80CitTIDEyNzM1
-MDAwIFYgODgwMDAwMCA1LzYK
-
---==o2.pl-WebMail-7ba8ed85.48c9631e.bf2a7==--
-
+jon
