@@ -1,56 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41749 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753007Ab2ISLde (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:39605 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750835Ab2IZHVq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Sep 2012 07:33:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: media-workshop@linuxtv.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [media-workshop] [ANNOUNCE] media workshop in November
-Date: Wed, 19 Sep 2012 13:34:09 +0200
-Message-ID: <1607382.njAb2Pt0ha@avalon>
-In-Reply-To: <50597E1F.2010503@redhat.com>
-References: <50597E1F.2010503@redhat.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 26 Sep 2012 03:21:46 -0400
+Received: by padhz1 with SMTP id hz1so235782pad.19
+        for <linux-media@vger.kernel.org>; Wed, 26 Sep 2012 00:21:46 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, shaik.ameer@samsung.com,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 1/2] [media] exynos-gsc: Remove <linux/version.h> header file inclusion
+Date: Wed, 26 Sep 2012 12:48:03 +0530
+Message-Id: <1348643884-4005-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+version.h is not needed for these files.
 
-On Wednesday 19 September 2012 05:11:11 Mauro Carvalho Chehab wrote:
-> Dear developers,
-> 
-> We're feeling the need for one more media workshop this year.
-> 
-> As there will be already several developers going to LinuxCon Europe and
-> Embedded Linux Conference Europe, we'll be co-locating the workshop together
-> with those two events.
-> 
-> As there will be several developers speaking about the media subsystem at
-> both LinuxCon and ELCE, we decided to take just one day (September, 8th)
-> for the media workshop (while we expect that we'll likely have some other
-> discussions during the week).
-> 
-> In order to finish the arrangements, I need to know who will be attending,
-> and also we need to receive the theme proposals. Please estimate how long
-> do you think that it would be needed for the proposed theme presentation
-> and discussions.
-> 
-> I have a theme proposal already:
-> 
-> 	How to improve the patch submission workflow for media patches - 2 hours.
-> 
-> So, please confirm your intention to be there and propose the themes of
-> your interests to media-workshop@linuxtv.org mailing list.
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c |    1 -
+ drivers/media/platform/exynos-gsc/gsc-m2m.c  |    1 -
+ 2 files changed, 0 insertions(+), 2 deletions(-)
 
-I'll be there.
-
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index c5c7625..90a6c55 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -12,7 +12,6 @@
+ 
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+-#include <linux/version.h>
+ #include <linux/types.h>
+ #include <linux/errno.h>
+ #include <linux/bug.h>
+diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+index 2589cae..a4f327e 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
++++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+@@ -12,7 +12,6 @@
+ 
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+-#include <linux/version.h>
+ #include <linux/types.h>
+ #include <linux/errno.h>
+ #include <linux/bug.h>
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.4.1
 
