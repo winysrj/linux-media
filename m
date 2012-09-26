@@ -1,65 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.fr.smartjog.net ([95.81.144.3]:48003 "EHLO
-	mx.fr.smartjog.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758498Ab2INJ1o (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44072 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752725Ab2IZLdN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 05:27:44 -0400
-From: =?UTF-8?q?R=C3=A9mi=20Cardona?= <remi.cardona@smartjog.com>
-To: linux-media@vger.kernel.org
-Cc: liplianin@me.by
-Subject: [PATCH 6/6] [media] ds3000: add module parameter to force firmware upload
-Date: Fri, 14 Sep 2012 11:27:26 +0200
-Message-Id: <1347614846-19046-7-git-send-email-remi.cardona@smartjog.com>
-In-Reply-To: <1347614846-19046-1-git-send-email-remi.cardona@smartjog.com>
-References: <1347614846-19046-1-git-send-email-remi.cardona@smartjog.com>
+	Wed, 26 Sep 2012 07:33:13 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: John Tobias <john.tobias.ph@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: ISPsupport
+Date: Wed, 26 Sep 2012 13:33:51 +0200
+Message-ID: <33718976.0Yia9PWmdN@avalon>
+In-Reply-To: <CACUGKYPyquYDjHS0k1cuxWjyTX5+oypbe=Gm=nOz0-2jRYfbzg@mail.gmail.com>
+References: <CACUGKYPyquYDjHS0k1cuxWjyTX5+oypbe=Gm=nOz0-2jRYfbzg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
----
- drivers/media/dvb/frontends/ds3000.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+Hi John,
 
-diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
-index 970963c..3e0e9de 100644
---- a/drivers/media/dvb/frontends/ds3000.c
-+++ b/drivers/media/dvb/frontends/ds3000.c
-@@ -30,6 +30,7 @@
- #include "ds3000.h"
- 
- static int debug;
-+static int force_fw_upload;
- 
- #define dprintk(args...) \
- 	do { \
-@@ -396,10 +397,13 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
- 	dprintk("%s()\n", __func__);
- 
- 	ret = ds3000_readreg(state, 0xb2);
--	if (ret == 0) {
-+	if (ret == 0 && force_fw_upload == 0) {
- 		printk(KERN_INFO "%s: Firmware already uploaded, skipping\n",
- 			__func__);
- 		return ret;
-+	} else if (ret == 0 && force_fw_upload) {
-+		printk(KERN_INFO "%s: Firmware already uploaded, "
-+			"forcing upload\n", __func__);
- 	} else if (ret < 0) {
- 		return ret;
- 	}
-@@ -1308,6 +1312,9 @@ static struct dvb_frontend_ops ds3000_ops = {
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
- 
-+module_param(force_fw_upload, int, 0644);
-+MODULE_PARM_DESC(force_fw_upload, "Force firmware upload (default:0)");
-+
- MODULE_DESCRIPTION("DVB Frontend module for Montage Technology "
- 			"DS3000/TS2020 hardware");
- MODULE_AUTHOR("Konstantin Dimitrov");
+On Monday 10 September 2012 20:00:54 John Tobias wrote:
+> Hi all,
+> 
+> I tried devel-ISPSUPPORT-IPIPE and devel-ISPSUPPORT,
+
+It would help you you told use what hardware you're running on, what kernel 
+version you're using, and what devel-ISPSUPPORT-IPIPE and devel-ISPSUPPORT 
+are.
+
+> the kernel
+> detected my image sensor (ov5650). But, when I execute the "yavta
+> /dev/video0 -c4 -n1 -s2592x1944 -fSGRBG10 -Fov5650-2592x1944-#.bin" I
+> was getting "Unable to start streaming: Invalid argument (22).".
+> 
+> I would like to know if anyone here can guide me a bit in order to
+> have a working environment?.
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
