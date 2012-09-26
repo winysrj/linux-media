@@ -1,81 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3141 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753216Ab2IXM6c (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:19437 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756905Ab2IZPyy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 08:58:32 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Prabhakar <prabhakar.csengg@gmail.com>
-Subject: Re: [PATCH v5] media: v4l2-ctrl: add a helper function to add standard control with driver specific menu
-Date: Mon, 24 Sep 2012 14:58:14 +0200
-Cc: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LDOC <linux-doc@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	VGER <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Rob Landley <rob@landley.net>
-References: <1348491221-6068-1-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1348491221-6068-1-git-send-email-prabhakar.lad@ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209241458.14376.hverkuil@xs4all.nl>
+	Wed, 26 Sep 2012 11:54:54 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MAY00FPNS65AZJ0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 27 Sep 2012 00:54:53 +0900 (KST)
+Received: from amdc248.digital.local ([106.116.147.32])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MAY000JLS6LTOA0@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 27 Sep 2012 00:54:53 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: a.hajda@samsung.com, sakari.ailus@iki.fi,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v3 5/5] m5mols: Implement .get_frame_desc subdev callback
+Date: Wed, 26 Sep 2012 17:54:13 +0200
+Message-id: <1348674853-24596-6-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1348674853-24596-1-git-send-email-s.nawrocki@samsung.com>
+References: <1348674853-24596-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon September 24 2012 14:53:40 Prabhakar wrote:
-> From: Lad, Prabhakar <prabhakar.lad@ti.com>
-> 
-> Add helper function v4l2_ctrl_new_std_menu_items(), which adds
-> a standard menu control, with driver specific menu.
+.get_frame_desc can be used by host interface driver to query
+properties of captured frames, e.g. required memory buffer size.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/i2c/m5mols/m5mols.h         |  9 ++++++
+ drivers/media/i2c/m5mols/m5mols_capture.c |  3 ++
+ drivers/media/i2c/m5mols/m5mols_core.c    | 47 +++++++++++++++++++++++++++++++
+ drivers/media/i2c/m5mols/m5mols_reg.h     |  1 +
+ 4 files changed, 60 insertions(+)
 
-Regards,
+diff --git a/drivers/media/i2c/m5mols/m5mols.h b/drivers/media/i2c/m5mols/m5mols.h
+index 15d3a4f..de3b755 100644
+--- a/drivers/media/i2c/m5mols/m5mols.h
++++ b/drivers/media/i2c/m5mols/m5mols.h
+@@ -19,6 +19,13 @@
+ #include <media/v4l2-subdev.h>
+ #include "m5mols_reg.h"
+ 
++
++/* An amount of data transmitted in addition to the value
++ * determined by CAPP_JPEG_SIZE_MAX register.
++ */
++#define M5MOLS_JPEG_TAGS_SIZE		0x20000
++#define M5MOLS_MAIN_JPEG_SIZE_MAX	(5 * SZ_1M)
++
+ extern int m5mols_debug;
+ 
+ enum m5mols_restype {
+@@ -67,12 +74,14 @@ struct m5mols_exif {
+ /**
+  * struct m5mols_capture - Structure for the capture capability
+  * @exif: EXIF information
++ * @buf_size: internal JPEG frame buffer size, in bytes
+  * @main: size in bytes of the main image
+  * @thumb: size in bytes of the thumb image, if it was accompanied
+  * @total: total size in bytes of the produced image
+  */
+ struct m5mols_capture {
+ 	struct m5mols_exif exif;
++	unsigned int buf_size;
+ 	u32 main;
+ 	u32 thumb;
+ 	u32 total;
+diff --git a/drivers/media/i2c/m5mols/m5mols_capture.c b/drivers/media/i2c/m5mols/m5mols_capture.c
+index cb243bd..ab34cce 100644
+--- a/drivers/media/i2c/m5mols/m5mols_capture.c
++++ b/drivers/media/i2c/m5mols/m5mols_capture.c
+@@ -105,6 +105,7 @@ static int m5mols_capture_info(struct m5mols_info *info)
+ 
+ int m5mols_start_capture(struct m5mols_info *info)
+ {
++	unsigned int framesize = info->cap.buf_size - M5MOLS_JPEG_TAGS_SIZE;
+ 	struct v4l2_subdev *sd = &info->sd;
+ 	int ret;
+ 
+@@ -121,6 +122,8 @@ int m5mols_start_capture(struct m5mols_info *info)
+ 	if (!ret)
+ 		ret = m5mols_write(sd, CAPP_MAIN_IMAGE_SIZE, info->resolution);
+ 	if (!ret)
++		ret = m5mols_write(sd, CAPP_JPEG_SIZE_MAX, framesize);
++	if (!ret)
+ 		ret = m5mols_set_mode(info, REG_CAPTURE);
+ 	if (!ret)
+ 		/* Wait until a frame is captured to ISP internal memory */
+diff --git a/drivers/media/i2c/m5mols/m5mols_core.c b/drivers/media/i2c/m5mols/m5mols_core.c
+index 933014f..c780689 100644
+--- a/drivers/media/i2c/m5mols/m5mols_core.c
++++ b/drivers/media/i2c/m5mols/m5mols_core.c
+@@ -599,6 +599,51 @@ static int m5mols_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	return ret;
+ }
+ 
++static int m5mols_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
++				 struct v4l2_mbus_frame_desc *fd)
++{
++	struct m5mols_info *info = to_m5mols(sd);
++
++	if (pad != 0 || fd == NULL)
++		return -EINVAL;
++
++	mutex_lock(&info->lock);
++	/*
++	 * .get_frame_desc is only used for compressed formats,
++	 * thus we always return the capture frame parameters here.
++	 */
++	fd->entry[0].length = info->cap.buf_size;
++	fd->entry[0].pixelcode = info->ffmt[M5MOLS_RESTYPE_CAPTURE].code;
++	mutex_unlock(&info->lock);
++
++	fd->entry[0].flags = V4L2_MBUS_FRAME_DESC_FL_LEN_MAX;
++	fd->num_entries = 1;
++
++	return 0;
++}
++
++static int m5mols_set_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
++				 struct v4l2_mbus_frame_desc *fd)
++{
++	struct m5mols_info *info = to_m5mols(sd);
++	struct v4l2_mbus_framefmt *mf = &info->ffmt[M5MOLS_RESTYPE_CAPTURE];
++
++	if (pad != 0 || fd == NULL)
++		return -EINVAL;
++
++	fd->entry[0].flags = V4L2_MBUS_FRAME_DESC_FL_LEN_MAX;
++	fd->num_entries = 1;
++	fd->entry[0].length = clamp_t(u32, fd->entry[0].length,
++				      mf->width * mf->height,
++				      M5MOLS_MAIN_JPEG_SIZE_MAX);
++	mutex_lock(&info->lock);
++	info->cap.buf_size = fd->entry[0].length;
++	mutex_unlock(&info->lock);
++
++	return 0;
++}
++
++
+ static int m5mols_enum_mbus_code(struct v4l2_subdev *sd,
+ 				 struct v4l2_subdev_fh *fh,
+ 				 struct v4l2_subdev_mbus_code_enum *code)
+@@ -615,6 +660,8 @@ static struct v4l2_subdev_pad_ops m5mols_pad_ops = {
+ 	.enum_mbus_code	= m5mols_enum_mbus_code,
+ 	.get_fmt	= m5mols_get_fmt,
+ 	.set_fmt	= m5mols_set_fmt,
++	.get_frame_desc	= m5mols_get_frame_desc,
++	.set_frame_desc	= m5mols_set_frame_desc,
+ };
+ 
+ /**
+diff --git a/drivers/media/i2c/m5mols/m5mols_reg.h b/drivers/media/i2c/m5mols/m5mols_reg.h
+index 14d4be7..58d8027 100644
+--- a/drivers/media/i2c/m5mols/m5mols_reg.h
++++ b/drivers/media/i2c/m5mols/m5mols_reg.h
+@@ -310,6 +310,7 @@
+ #define REG_JPEG		0x10
+ 
+ #define CAPP_MAIN_IMAGE_SIZE	I2C_REG(CAT_CAPT_PARM, 0x01, 1)
++#define CAPP_JPEG_SIZE_MAX	I2C_REG(CAT_CAPT_PARM, 0x0f, 4)
+ #define CAPP_JPEG_RATIO		I2C_REG(CAT_CAPT_PARM, 0x17, 1)
+ 
+ #define CAPP_MCC_MODE		I2C_REG(CAT_CAPT_PARM, 0x1d, 1)
+-- 
+1.7.11.3
 
-	Hans
-
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Hans de Goede <hdegoede@redhat.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Rob Landley <rob@landley.net>
-> ---
->  Changes for v5:
->  1: Fixed some grammatical issues pointed by Hans.
-> 
->  Changes for v4:
->  1: Rather then adding a function to modify the menu, added a helper
->    function, that creates a new standard control with user specific
->    menu.
-> 
->  Changes for v3:
->  1: Fixed style/grammer issues as pointed by Hans.
->    Thanks Hans for providing the description.
-> 
->  Changes for v2:
->  1: Fixed review comments from Hans, to have return type as
->    void, add WARN_ON() for fail conditions, allow this fucntion
->    to modify the menu of custom controls.
-> 
->  Documentation/video4linux/v4l2-controls.txt |   24 +++++++++++++++++++++
->  drivers/media/v4l2-core/v4l2-ctrls.c        |   30 +++++++++++++++++++++++++++
->  include/media/v4l2-ctrls.h                  |   23 ++++++++++++++++++++
->  3 files changed, 77 insertions(+), 0 deletions(-)
