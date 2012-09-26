@@ -1,68 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37235 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48187 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752043Ab2IAQMC (ORCPT
+	by vger.kernel.org with ESMTP id S1758186Ab2IZTR0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Sep 2012 12:12:02 -0400
-Date: Sat, 1 Sep 2012 19:11:56 +0300
+	Wed, 26 Sep 2012 15:17:26 -0400
+Message-ID: <506354C2.1030805@iki.fi>
+Date: Wed, 26 Sep 2012 22:17:22 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-doc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Rob Landley <rob@landley.net>,
-	LMML <linux-media@vger.kernel.org>, hverkuil@xs4all.nl
-Subject: Re: [PATCH] [media] davinci: vpfe: Add documentation
-Message-ID: <20120901161156.GB6638@valkosipuli.retiisi.org.uk>
-References: <1342021166-6092-1-git-send-email-manjunath.hadli@ti.com>
- <CA+V-a8tNnevox8OcXc_jxDzHdrxdF9Z-Nf2Rn0QaBsnM=n5CfA@mail.gmail.com>
- <20120901095707.GB6348@valkosipuli.retiisi.org.uk>
- <8524664.XGp3WDre5y@avalon>
- <CA+V-a8sg+MR8TasN0p9kL0yQU1KtJEZZUQsknC6hrRysWA52UQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+V-a8sg+MR8TasN0p9kL0yQU1KtJEZZUQsknC6hrRysWA52UQ@mail.gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	remi@remlab.net, daniel-gl@gmx.net, sylwester.nawrocki@gmail.com
+Subject: Re: [RFC] Timestamps and V4L2
+References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <201209251254.34483.hverkuil@xs4all.nl> <50621010.3070703@iki.fi> <84293169.Vi1CrtjK0W@avalon>
+In-Reply-To: <84293169.Vi1CrtjK0W@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Hi Laurent,
+Laurent Pinchart wrote:
+> On Tuesday 25 September 2012 23:12:00 Sakari Ailus wrote:
+>> Hans Verkuil wrote:
+>>> On Tue 25 September 2012 12:48:01 Laurent Pinchart wrote:
+>>>> On Tuesday 25 September 2012 08:47:45 Hans Verkuil wrote:
+>>>>> On Tue September 25 2012 02:00:55 Laurent Pinchart wrote:
+>>>>> BTW, I think we should also fix the description of the timestamp in the
+>>>>> spec. Currently it says:
+>>>>>
+>>>>> "For input streams this is the system time (as returned by the
+>>>>> gettimeofday() function) when the first data byte was captured. For
+>>>>> output streams the data will not be displayed before this time,
+>>>>> secondary to the nominal frame rate determined by the current video
+>>>>> standard in enqueued order. Applications can for example zero this field
+>>>>> to display frames as soon as possible. The driver stores the time at
+>>>>> which the first data byte was actually sent out in the timestamp field.
+>>>>> This permits applications to monitor the drift between the video and
+>>>>> system clock."
+>>>>>
+>>>>> To my knowledge all capture drivers set the timestamp to the time the
+>>>>> *last* data byte was captured, not the first.
+>>>>
+>>>> The uvcvideo driver uses the time the first image packet is received :-)
+>>>> Most other drivers use the time the last byte was *received*, not
+>>>> captured.
+>>>
+>>> Unless the hardware buffers more than a few lines there is very little
+>>> difference between the time the last byte was received and when it was
+>>> captured.
+>>>
+>>> But you are correct, it is typically the time the last byte was received.
+>>>
+>>> Should we signal this as well? First vs last byte? Or shall we
+>>> standardize?
+>>
+>> My personal opinion would be to change the spec to say what almost every
+>> driver does: it's the timestamp from the moment the last pixel has been
+>> received. We have the frame sync event for telling when the frame starts
+>> btw. The same event could be used for signalling whenever a given line
+>> starts. I don't see frame end fitting to that quite as nicely but I
+>> guess it could be possible.
+>
+> The uvcvideo driver can timestamp the buffers with the system time at which
+> the first packet in the frame is received, but has no way to generate a frame
+> start event: the frame start event should correspond to the time the frame
+> starts, not to the time the first packet in the frame is received. That
+> information isn't available to the driver.
 
-On Sat, Sep 01, 2012 at 08:23:58PM +0530, Prabhakar Lad wrote:
-> On Sat, Sep 1, 2012 at 7:52 PM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
-> > Hi Sakari,
-> >
-> > On Saturday 01 September 2012 12:57:07 Sakari Ailus wrote:
-> >> On Wed, Aug 29, 2012 at 08:11:50PM +0530, Prabhakar Lad wrote:
-> >
-> > [snip]
-> >
-> >> > For test pattern you meant control to enable/disable it ?
-> >>
-> >> There are two approaches I can think of.
-> >>
-> >> One is a menu control which can be used to choose the test pattern (or
-> >> disable it). The control could be standardised but the menu items would have
-> >> to be hardware-specific since the test patterns themselves are not
-> >> standardised.
-> >
-> > Agreed. The test patterns themselves are highly hardware-specific.
-> >
-> > From personal experience with sensors, most devices implement a small, fixed
-> > set of test patterns that can be exposed through a menu control. However, some
-> > devices also implement more "configurable" test patterns. For instance the
-> > MT9V032 can generate horizontal, vertical or diagonal test patterns, or a
-> > uniform grey test pattern with a user-configurable value. This would then
-> > require two controls.
-> >
-> two controls I didn't get it ? When we have menu itself with a list of standard
-> patterns why would two controls be required ?
+Aren't the two about equal, apart from the possible delays caused by the 
+USB bus? The spec says about the frame sync event that it's "Triggered 
+immediately when the reception of a frame has begun."
 
-Two are not required. A single menu control will do.
+Cheers,
 
 -- 
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+sakari.ailus@iki.fi
