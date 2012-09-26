@@ -1,56 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:56761 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756195Ab2I1QBu (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47956 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752809Ab2IZHyd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Sep 2012 12:01:50 -0400
-Message-ID: <5065C9EA.1090206@canonical.com>
-Date: Fri, 28 Sep 2012 18:01:46 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+	Wed, 26 Sep 2012 03:54:33 -0400
+Date: Wed, 26 Sep 2012 10:54:28 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Chris MacGregor <chris@cybermato.com>
+Subject: Re: Gain controls in v4l2-ctrl framework
+Message-ID: <20120926075427.GA14040@valkosipuli.retiisi.org.uk>
+References: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com>
+ <CA+V-a8v=_2vkuaYCAJNuyrqBX2bjU11KGASh7vkEQ4Qt2bFCGA@mail.gmail.com>
+ <20120926074240.GM12025@valkosipuli.retiisi.org.uk>
+ <CA+V-a8vBXP=af_zWgiQzUhNBvexC6joddW7hioMqGziSTK9Dqw@mail.gmail.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?VGhvbWFzIEhlbGxzdHLDtm0=?= <thellstrom@vmware.com>
-CC: jakob@vmware.com, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, sumit.semwal@linaro.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 4/5] reservation: cross-device reservation support
-References: <20120928124148.14366.21063.stgit@patser.local> <20120928124313.14366.44686.stgit@patser.local> <5065C269.30406@vmware.com>
-In-Reply-To: <5065C269.30406@vmware.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+V-a8vBXP=af_zWgiQzUhNBvexC6joddW7hioMqGziSTK9Dqw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op 28-09-12 17:29, Thomas Hellström schreef:
-> On 9/28/12 2:43 PM, Maarten Lankhorst wrote:
->> This adds support for a generic reservations framework that can be
->> hooked up to ttm and dma-buf and allows easy sharing of reservations
->> across devices.
->>
->> The idea is that a dma-buf and ttm object both will get a pointer
->> to a struct reservation_object, which has to be reserved before
->> anything is done with the buffer.
-> "Anything is done with the buffer" should probably be rephrased, as different members of the buffer struct
-> may be protected by different locks. It may not be practical or even possible to
-> protect all buffer members with reservation.
-Agreed.
->> Some followup patches are needed in ttm so the lru_lock is no longer
->> taken during the reservation step. This makes the lockdep annotation
->> patch a lot more useful, and the assumption that the lru lock protects
->> atomic removal off the lru list will fail soon, anyway.
-> As previously discussed, I'm unfortunately not prepared to accept removal of the reserve-lru atomicity
->  into the TTM code at this point.
-> The current code is based on this assumption and removing it will end up with
-> efficiencies, breaking the delayed delete code and probably a locking nightmare when trying to write
-> new TTM code.
-The lru lock removal patch fixed the delayed delete code, it really is not different from the current
-situation. In fact it is more clear without the guarantee what various parts are trying to protect.
+On Wed, Sep 26, 2012 at 01:16:08PM +0530, Prabhakar Lad wrote:
+...
+> Currently I am need of following,
+> 
+>  1: V4L2_CID_GAIN_RED
+>  2: V4L2_CID_GAIN_GREEN_RED
+>  3: V4L2_CID_GAIN_GREEN_BLUE
+>  4: V4L2_CID_GAIN_BLUE
+>  5: V4L2_CID_GAIN_OFFSET
 
-Nothing prevents you from holding the lru_lock while trylocking,
-leaving that guarantee intact for that part. Can you really just review
-the patch and tell me where it breaks and/or makes the code unreadable?
+Are they analogue or digital?
 
-See my preemptive reply to patch 1/5 for details. I would prefer you
-followup there. :-)
-
-~Maarten
-
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
