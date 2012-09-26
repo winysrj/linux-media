@@ -1,156 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41633 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752679Ab2IVRV5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Sep 2012 13:21:57 -0400
-Message-ID: <505DF3A0.30806@iki.fi>
-Date: Sat, 22 Sep 2012 20:21:36 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Michael Krufky <mkrufky@linuxtv.org>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: tda18271 driver power consumption
-References: <500C5B9B.8000303@iki.fi> <CAOcJUbw-8zG-j7YobgKy7k5vp-k_trkaB5fYGz605KdUQHKTGQ@mail.gmail.com> <500F1DC5.1000608@iki.fi> <CAOcJUbzXoLx10o8oprxPM1TELFxyGE7_wodcWsBr8MX4OR0N_w@mail.gmail.com> <50200AC9.9080203@iki.fi> <CAGoCfixmre37ph46E6U9mJ+tyt+OL7+RbDwg+W6DkL01im2nCg@mail.gmail.com> <CAOcJUbwyNBEoPyE_6QZQ-6tbUsHFzurYBEavegQO1aVYNsQ_kA@mail.gmail.com> <5020175D.3070601@iki.fi> <CAOcJUbw5+wfaZ6Os5gKbPzCf0_d_rh=apatQwA=0k5gKm_FfOQ@mail.gmail.com> <CAOcJUbwCkNZCbNv=JHKhSMiuBre+cqWqhF5ihocRP9jbo1iEkw@mail.gmail.com>
-In-Reply-To: <CAOcJUbwCkNZCbNv=JHKhSMiuBre+cqWqhF5ihocRP9jbo1iEkw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48258 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751119Ab2IZVuj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Sep 2012 17:50:39 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: paul@pwsan.com, laurent.pinchart@ideasonboard.com,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: [PATCH v2 1/2] omap3: Provide means for changing CSI2 PHY configuration
+Date: Thu, 27 Sep 2012 00:50:35 +0300
+Message-Id: <1348696236-3470-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120926215001.GA14107@valkosipuli.retiisi.org.uk>
+References: <20120926215001.GA14107@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/20/2012 08:49 PM, Michael Krufky wrote:
-> On Thu, Sep 20, 2012 at 1:47 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
->> On Mon, Aug 6, 2012 at 3:13 PM, Antti Palosaari <crope@iki.fi> wrote:
->>> On 08/06/2012 09:57 PM, Michael Krufky wrote:
->>>>
->>>> On Mon, Aug 6, 2012 at 2:35 PM, Devin Heitmueller
->>>> <dheitmueller@kernellabs.com> wrote:
->>>>>
->>>>> On Mon, Aug 6, 2012 at 2:19 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>>>>
->>>>>> You should understand from DVB driver model:
->>>>>> * attach() called only once when driver is loaded
->>>>>> * init() called to wake-up device
->>>>>> * sleep() called to sleep device
->>>>>>
->>>>>> What I would like to say is that there is very big risk to shoot own leg
->>>>>> when doing some initialization on attach(). For example resuming from
->>>>>> the
->>>>>> suspend could cause device reset and if you rely some settings that are
->>>>>> done
->>>>>> during attach() you will likely fail as Kernel / USB-host controller has
->>>>>> reset your device.
->>>>>>
->>>>>> See reset_resume from Kernel documentation:
->>>>>> Documentation/usb/power-management.txt
->>>>>
->>>>>
->>>>> Be forewarned:  there is a very high likelihood that this patch will
->>>>> cause regressions on hybrid devices due to known race conditions
->>>>> related to dvb_frontend sleeping the tuner asynchronously on close.
->>>>> This is a hybrid tuner, and unless code is specifically added to the
->>>>> bridge or tuner driver, going from digital to analog mode too quickly
->>>>> will cause the tuner to be shutdown while it's actively in analog
->>>>> mode.
->>>>>
->>>>> (I discovered this the hard way when working on problems MythTV users
->>>>> reported against the HVR-950q).
->>>>>
->>>>> Description of race:
->>>>>
->>>>> 1.  User opens DVB frontend tunes
->>>>> 2.  User closes DVB frontend
->>>>> 3.  User *immediately* opens V4L device using same tuner
->>>>> 4.  User performs tuning request for analog
->>>>> 5.  DVB frontend issues sleep() call to tuner, causing analog tuning to
->>>>> fail.
->>>>>
->>>>> This class of problem isn't seen on DVB only devices or those that
->>>>> have dedicated digital tuners not shared for analog usage.  And in
->>>>> some cases it isn't noticed because a delay between closing the DVB
->>>>> device and opening the analog devices causes the sleep() call to
->>>>> happen before the analog tune (in which case you don't hit the race).
->>>>>
->>>>> I'm certainly not against improved power management, but it will
->>>>> require the race conditions to be fixed first in order to avoid
->>>>> regressions.
->>>>>
->>>>> Devin
->>>>>
->>>>> --
->>>>> Devin J. Heitmueller - Kernel Labs
->>>>> http://www.kernellabs.com
->>>>
->>>>
->>>> Devin's right.  I'm sorry, please *don't* merge the patch, Mauro.
->>>> Antti, you should just call sleep from your driver after attach(), as
->>>> I had previously suggested.  We can revisit this some time in the
->>>> future after we can be sure that these race conditions wont occur.
->>>
->>>
->>> OK, maybe it is safer then. I have no any hybrid hardware to test...
->>>
->>> Anyhow, I wonder how many years it will take to resolve that V4L2/DVB API
->>> hybrid usage pŕoblem. I ran thinking that recently when looked how to
->>> implement DVB SDR for V4L2 API... I could guess problem will not disappear
->>> near future even analog TV disappears, because there is surely coming new
->>> nasty features which spreads over both V4L2 and DVB APIs.
->>
->> Guys,
->>
->> Please take another look at this branch and test if possible -- I
->> pushed an additional patch that takes Devin's concerns into account.
->> After applying these patches, the tda18271 driver will behave as it
->> always has, but it will sleep the tuner after attaching the first
->> instance.  If there is only one instance, then this works exactly as
->> Antti desires.  If there are more instances, then the tuner will only
->> be woken up again during attach if the tda18271_need_cal_on_startup()
->> returns non-zero.  The driver does not attempt to re-sleep the
->> hardware again during successive attach() calls.
->>
->> I have not tested this yet myself, but I believe it resolves the
->> matter -- please comment.
->>
->> Regards,
->>
->> Mike Krufky
->
-> ...in case the URL got lost:
->
->
-> The following changes since commit 0c7d5a6da75caecc677be1fda207b7578936770d:
->
->    Linux 3.5-rc5 (2012-07-03 22:57:41 +0300)
->
-> are available in the git repository at:
->
->    git://linuxtv.org/mkrufky/tuners tda18271
->
-> for you to fetch changes up to 4e46c5d1bbb920165fecfe7de18b2c01d9787230:
->
->    tda18271: make 'low-power standby mode after attach' multi-instance
-> safe (2012-09-20 13:34:29 -0400)
->
-> ----------------------------------------------------------------
-> Michael Krufky (2):
->        tda18271: enter low-power standby mode at the end of tda18271_attach()
->        tda18271: make 'low-power standby mode after attach' multi-instance safe
->
->   drivers/media/common/tuners/tda18271-fe.c |    4 ++++
->   1 file changed, 4 insertions(+)
->
-> Best regards,
->
-> Mike
->
-Tested-by: Antti Palosaari <crope@iki.fi>
+The OMAP 3630 has configuration how the ISP CSI-2 PHY pins are connected to
+the actual CSI-2 receivers outside the ISP itself. Allow changing this
+configuration from the ISP driver.
 
-Tested with PCTV 290e, but I cannot test multi-instance. I tried to plug 
-PCTV 520e as a second stick, but it crashed as there is now that DRX-K 
-firmware download problem....
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ arch/arm/mach-omap2/control.c              |   86 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/control.h              |   15 +++++
+ arch/arm/mach-omap2/include/mach/control.h |   13 ++++
+ 3 files changed, 114 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/include/mach/control.h
 
-regards
-Antti
-
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 3223b81..11bb900 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -12,9 +12,12 @@
+  */
+ #undef DEBUG
+ 
++#include <linux/export.h>
+ #include <linux/kernel.h>
+ #include <linux/io.h>
+ 
++#include <mach/control.h>
++
+ #include <plat/hardware.h>
+ #include <plat/sdrc.h>
+ 
+@@ -607,4 +610,87 @@ int omap3_ctrl_save_padconf(void)
+ 	return 0;
+ }
+ 
++static int omap3630_ctrl_csi2_phy_cfg(u32 phy, u32 flags)
++{
++	u32 cam_phy_ctrl =
++		omap_ctrl_readl(OMAP3630_CONTROL_CAMERA_PHY_CTRL);
++	u32 shift, mode;
++
++	switch (phy) {
++	case OMAP3_CTRL_CSI2_PHY1_CCP2B:
++		cam_phy_ctrl &= ~OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
++		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
++		break;
++	case OMAP3_CTRL_CSI2_PHY1_CSI2C:
++		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
++		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
++		break;
++	case OMAP3_CTRL_CSI2_PHY2_CCP2B:
++		cam_phy_ctrl |= OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
++		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
++		break;
++	case OMAP3_CTRL_CSI2_PHY2_CSI2A:
++		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
++		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
++		break;
++	default:
++		pr_warn("bad phy %d\n", phy);
++		return -EINVAL;
++	}
++
++	/* Select data/clock or data/strobe mode for CCP2 */
++	switch (phy) {
++	case OMAP3_CTRL_CSI2_PHY1_CCP2B:
++	case OMAP3_CTRL_CSI2_PHY2_CCP2B:
++		if (flags & OMAP3_CTRL_CSI2_CFG_CCP2_DATA_STROBE)
++			mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_STROBE;
++		else
++			mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_CLOCK;
++		break;
++	}
++
++	cam_phy_ctrl &= ~(OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_MASK << shift);
++	cam_phy_ctrl |= mode << shift;
++
++	omap_ctrl_writel(cam_phy_ctrl,
++			 OMAP3630_CONTROL_CAMERA_PHY_CTRL);
++
++	return 0;
++}
++
++static int omap3430_ctrl_csi2_phy_cfg(u32 phy, bool on, u32 flags)
++{
++	uint32_t csirxfe = OMAP343X_CONTROL_CSIRXFE_PWRDNZ
++		| OMAP343X_CONTROL_CSIRXFE_RESET;
++
++	/* Nothing to configure here. */
++	if (phy == OMAP3_CTRL_CSI2_PHY2_CSI2A)
++		return 0;
++
++	if (phy != OMAP3_CTRL_CSI2_PHY1_CCP2B)
++		return -EINVAL;
++
++	if (!on) {
++		omap_ctrl_writel(0, OMAP343X_CONTROL_CSIRXFE);
++		return 0;
++	}
++
++	if (flags & OMAP3_CTRL_CSI2_CFG_CCP2_DATA_STROBE)
++		csirxfe |= OMAP343X_CONTROL_CSIRXFE_SELFORM;
++
++	omap_ctrl_writel(csirxfe, OMAP343X_CONTROL_CSIRXFE);
++
++	return 0;
++}
++
++int omap3_ctrl_csi2_phy_cfg(u32 phy, bool on, u32 flags)
++{
++	if (cpu_is_omap3630() && on)
++		return omap3630_ctrl_csi2_phy_cfg(phy, flags);
++	if (cpu_is_omap3430())
++		return omap3430_ctrl_csi2_phy_cfg(phy, on, flags);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(omap3_ctrl_csi2_phy_cfg);
++
+ #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index b8cdc85..7b2ee5d 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -132,6 +132,11 @@
+ #define OMAP343X_CONTROL_MEM_DFTRW1	(OMAP2_CONTROL_GENERAL + 0x000c)
+ #define OMAP343X_CONTROL_DEVCONF1	(OMAP2_CONTROL_GENERAL + 0x0068)
+ #define OMAP343X_CONTROL_CSIRXFE		(OMAP2_CONTROL_GENERAL + 0x006c)
++#define OMAP343X_CONTROL_CSIRXFE_CSIB_INV	(1 << 7)
++#define OMAP343X_CONTROL_CSIRXFE_RESENABLE	(1 << 8)
++#define OMAP343X_CONTROL_CSIRXFE_SELFORM	(1 << 10)
++#define OMAP343X_CONTROL_CSIRXFE_PWRDNZ		(1 << 12)
++#define OMAP343X_CONTROL_CSIRXFE_RESET		(1 << 13)
+ #define OMAP343X_CONTROL_SEC_STATUS		(OMAP2_CONTROL_GENERAL + 0x0070)
+ #define OMAP343X_CONTROL_SEC_ERR_STATUS		(OMAP2_CONTROL_GENERAL + 0x0074)
+ #define OMAP343X_CONTROL_SEC_ERR_STATUS_DEBUG	(OMAP2_CONTROL_GENERAL + 0x0078)
+@@ -189,6 +194,16 @@
+ #define OMAP3630_CONTROL_FUSE_OPP50_VDD2        (OMAP2_CONTROL_GENERAL + 0x0128)
+ #define OMAP3630_CONTROL_FUSE_OPP100_VDD2       (OMAP2_CONTROL_GENERAL + 0x012C)
+ #define OMAP3630_CONTROL_CAMERA_PHY_CTRL	(OMAP2_CONTROL_GENERAL + 0x02f0)
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT	2
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT	0
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY		0x0
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_STROBE 0x1
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_CLOCK 0x2
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_GPI		0x3
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_MASK		0x3
++/* CCP2B: set to receive data from PHY2 instead of PHY1 */
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2	(1 << 4)
++
+ 
+ /* OMAP44xx control efuse offsets */
+ #define OMAP44XX_CONTROL_FUSE_IVA_OPP50		0x22C
+diff --git a/arch/arm/mach-omap2/include/mach/control.h b/arch/arm/mach-omap2/include/mach/control.h
+new file mode 100644
+index 0000000..afd0bed
+--- /dev/null
++++ b/arch/arm/mach-omap2/include/mach/control.h
+@@ -0,0 +1,13 @@
++#ifndef __MACH_CONTROL_H__
++#define __MACH_CONTROL_H__
++
++#define OMAP3_CTRL_CSI2_PHY2_CSI2A	0
++#define OMAP3_CTRL_CSI2_PHY2_CCP2B	1
++#define OMAP3_CTRL_CSI2_PHY1_CCP2B	2
++#define OMAP3_CTRL_CSI2_PHY1_CSI2C	3
++
++#define OMAP3_CTRL_CSI2_CFG_CCP2_DATA_STROBE	(1 << 0)
++
++int omap3_ctrl_csi2_phy_cfg(u32 phy, bool on, u32 flags);
++
++#endif /* __MACH_CONTROL_H__ */
 -- 
-http://palosaari.fi/
+1.7.2.5
+
