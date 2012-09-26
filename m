@@ -1,140 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:54184 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761047Ab2ILSGz (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47940 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753000Ab2IZHmr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Sep 2012 14:06:55 -0400
-Received: by bkwj10 with SMTP id j10so63547bkw.19
-        for <linux-media@vger.kernel.org>; Wed, 12 Sep 2012 11:06:54 -0700 (PDT)
-Message-ID: <5050CF7B.9040204@gmail.com>
-Date: Wed, 12 Sep 2012 20:07:55 +0200
-From: Francesco Lavra <francescolavra.fl@gmail.com>
+	Wed, 26 Sep 2012 03:42:47 -0400
+Date: Wed, 26 Sep 2012 10:42:40 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: Re: Gain controls in v4l2-ctrl framework
+Message-ID: <20120926074240.GM12025@valkosipuli.retiisi.org.uk>
+References: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com>
+ <CA+V-a8v=_2vkuaYCAJNuyrqBX2bjU11KGASh7vkEQ4Qt2bFCGA@mail.gmail.com>
 MIME-Version: 1.0
-To: Sangwook Lee <sangwook.lee@linaro.org>
-CC: linux-media@vger.kernel.org, mchehab@infradead.org,
-	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
-	hans.verkuil@cisco.com, linaro-dev@lists.linaro.org,
-	patches@linaro.org, Scott Bambrough <scott.bambrough@linaro.org>,
-	Homin Lee <suapapa@insignal.co.kr>
-Subject: Re: [RFC PATCH v7] media: add v4l2 subdev driver for S5K4ECGX sensor
-References: <1347449164-6306-1-git-send-email-sangwook.lee@linaro.org>
-In-Reply-To: <1347449164-6306-1-git-send-email-sangwook.lee@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+V-a8v=_2vkuaYCAJNuyrqBX2bjU11KGASh7vkEQ4Qt2bFCGA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sangwook,
-two remarks from my review on September 9th haven't been addressed.
-I believe those remarks are correct, but please let me know if I'm
-missing something.
-See below.
+On Wed, Sep 26, 2012 at 12:14:36PM +0530, Prabhakar Lad wrote:
+> Hi All,
+> 
+> On Sun, Sep 23, 2012 at 4:56 PM, Prabhakar Lad
+> <prabhakar.csengg@gmail.com> wrote:
+> > Hi All,
+> >
+> > The CCD/Sensors have the capability to adjust the R/ye, Gr/Cy, Gb/G,
+> > B/Mg gain values.
+> > Since these control can be re-usable I am planning to add the
+> > following gain controls as part
+> > of the framework:
+> >
+> > 1: V4L2_CID_GAIN_RED
+> > 2: V4L2_CID_GAIN_GREEN_RED
+> > 3: V4L2_CID_GAIN_GREEN_BLUE
+> > 4: V4L2_CID_GAIN_BLUE
+> > 5: V4L2_CID_GAIN_OFFSET
+> >
+> > I need your opinion's to get moving to add them.
+> >
+> 
+> I am listing out the gain controls which is the outcome of above discussion:-
+> 
+> 1: V4L2_CID_GAIN_RED
+> 2: V4L2_CID_GAIN_GREEN_RED
+> 3: V4L2_CID_GAIN_GREEN_BLUE
+> 4: V4L2_CID_GAIN_BLUE
+> 5: V4L2_CID_GAIN_OFFSET
+> 6: V4L2_CID_BLUE_OFFSET
+> 7: V4L2_CID_RED_OFFSET
+> 8: V4L2_CID_GREEN_OFFSET
 
-On 09/12/2012 01:26 PM, Sangwook Lee wrote:
-> +static int s5k4ecgx_s_power(struct v4l2_subdev *sd, int on)
-> +{
-> +	struct s5k4ecgx *priv = to_s5k4ecgx(sd);
-> +	int ret;
-> +
-> +	v4l2_dbg(1, debug, sd, "Switching %s\n", on ? "on" : "off");
-> +
-> +	if (on) {
-> +		ret = __s5k4ecgx_power_on(priv);
-> +		if (ret < 0)
-> +			return ret;
-> +		/* Time to stabilize sensor */
-> +		msleep(100);
-> +		ret = s5k4ecgx_init_sensor(sd);
-> +		if (ret < 0)
-> +			__s5k4ecgx_power_off(priv);
-> +		else
-> +			priv->set_params = 1;
-> +	} else {
-> +		ret = __s5k4ecgx_power_off(priv);
-> +	}
-> +
-> +	return 0;
+Hi Prabhakar,
 
-return ret;
+As these are low level controls, I wonder whether it would make sense to
+make a difference between digital and analogue gain. I admit I'm not quite
+as certain whether there's such a large difference as there is for global
+gains for the camera control algorithms.
 
-> +static int s5k4ecgx_probe(struct i2c_client *client,
-> +			  const struct i2c_device_id *id)
-> +{
-> +	int	ret, i;
-> +	struct v4l2_subdev *sd;
-> +	struct s5k4ecgx *priv;
-> +	struct s5k4ecgx_platform_data *pdata = client->dev.platform_data;
-> +
-> +	if (pdata == NULL) {
-> +		dev_err(&client->dev, "platform data is missing!\n");
-> +		return -EINVAL;
-> +	}
-> +	priv = devm_kzalloc(&client->dev, sizeof(struct s5k4ecgx), GFP_KERNEL);
-> +	if (!priv)
-> +		return -ENOMEM;
-> +
-> +	mutex_init(&priv->lock);
-> +	priv->streaming = 0;
-> +
-> +	sd = &priv->sd;
-> +	/* Registering subdev */
-> +	v4l2_i2c_subdev_init(sd, client, &s5k4ecgx_ops);
-> +	strlcpy(sd->name, S5K4ECGX_DRIVER_NAME, sizeof(sd->name));
-> +
-> +	sd->internal_ops = &s5k4ecgx_subdev_internal_ops;
-> +	/* Support v4l2 sub-device user space API */
-> +	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +
-> +	priv->pad.flags = MEDIA_PAD_FL_SOURCE;
-> +	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-> +	ret = media_entity_init(&sd->entity, 1, &priv->pad, 0);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = s5k4ecgx_config_gpios(priv, pdata);
-> +	if (ret) {
-> +		dev_err(&client->dev, "Failed to set gpios\n");
-> +		goto out_err1;
-> +	}
-> +	for (i = 0; i < S5K4ECGX_NUM_SUPPLIES; i++)
-> +		priv->supplies[i].supply = s5k4ecgx_supply_names[i];
-> +
-> +	ret = devm_regulator_bulk_get(&client->dev, S5K4ECGX_NUM_SUPPLIES,
-> +				 priv->supplies);
-> +	if (ret) {
-> +		dev_err(&client->dev, "Failed to get regulators\n");
-> +		goto out_err2;
-> +	}
-> +	ret = s5k4ecgx_init_v4l2_ctrls(priv);
-> +	if (ret)
-> +		goto out_err2;
-> +
-> +	priv->curr_pixfmt = &s5k4ecgx_formats[0];
-> +	priv->curr_frmsize = &s5k4ecgx_prev_sizes[0];
-> +
-> +	return 0;
-> +
-> +out_err2:
-> +	s5k4ecgx_free_gpios(priv);
-> +out_err1:
-> +	media_entity_cleanup(&priv->sd.entity);
-> +
-> +	return ret;
-> +}
-> +
-> +static int s5k4ecgx_remove(struct i2c_client *client)
-> +{
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +	struct s5k4ecgx *priv = to_s5k4ecgx(sd);
-> +
-> +	mutex_destroy(&priv->lock);
-> +	v4l2_device_unregister_subdev(sd);
-> +	v4l2_ctrl_handler_free(&priv->handler);
-> +	media_entity_cleanup(&sd->entity);
-> +
-> +	return 0;
+Which ones do you need now?
 
-s5k4ecgx_free_gpios() should be called to release the GPIOs
+Kind regards,
 
-Thanks,
-Francesco
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
