@@ -1,53 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:33541 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754827Ab2IBXbo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Sep 2012 19:31:44 -0400
-Received: by wibhr14 with SMTP id hr14so3437275wib.1
-        for <linux-media@vger.kernel.org>; Sun, 02 Sep 2012 16:31:42 -0700 (PDT)
-From: Philipp Dreimann <philipp@dreimann.net>
-To: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
-	Thomas Mair <thomas.mair86@googlemail.com>
-Cc: Philipp Dreimann <philipp@dreimann.net>
-Subject: [PATCH] Add the usb id of the Trekstor DVB-T Stick Terres 2.0
-Date: Mon,  3 Sep 2012 01:30:54 +0200
-Message-Id: <1346628654-3348-1-git-send-email-philipp@dreimann.net>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:10771 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750895Ab2IZWAY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Sep 2012 18:00:24 -0400
+Date: Wed, 26 Sep 2012 15:00:19 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: paul@pwsan.com, laurent.pinchart@ideasonboard.com,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH v2 2/2] omap3isp: Configure CSI-2 phy based on platform
+ data
+Message-ID: <20120926220018.GJ4840@atomide.com>
+References: <20120926215001.GA14107@valkosipuli.retiisi.org.uk>
+ <1348696236-3470-2-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1348696236-3470-2-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It needs the e4000 tuner driver.
+Moi Sakari
 
-Signed-off-by: Philipp Dreimann <philipp@dreimann.net>
----
- drivers/media/dvb-core/dvb-usb-ids.h    |    1 +
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c |    2 ++
- 2 files changed, 3 insertions(+)
+* Sakari Ailus <sakari.ailus@iki.fi> [120926 14:51]:
+> Configure CSI-2 phy based on platform data in the ISP driver. For that, the
+> new V4L2_CID_IMAGE_SOURCE_PIXEL_RATE control is used. Previously the same
+> was configured from the board code.
+> 
+> This patch is dependent on "omap3: Provide means for changing CSI2 PHY
+> configuration".
 
-diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
-index 26c4481..fed6dcd 100644
---- a/drivers/media/dvb-core/dvb-usb-ids.h
-+++ b/drivers/media/dvb-core/dvb-usb-ids.h
-@@ -82,6 +82,7 @@
- #define USB_PID_AFATECH_AF9035_1003			0x1003
- #define USB_PID_AFATECH_AF9035_9035			0x9035
- #define USB_PID_TREKSTOR_DVBT				0x901b
-+#define USB_PID_TREKSTOR_TERRES_2_0			0xC803
- #define USB_VID_ALINK_DTU				0xf170
- #define USB_PID_ANSONIC_DVBT_USB			0x6000
- #define USB_PID_ANYSEE					0x861f
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 88b5ea1..d0d23f2 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1236,6 +1236,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
- 		&rtl2832u_props, "NOXON DAB/DAB+ USB dongle", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_REALTEK, 0x2838,
- 		&rtl2832u_props, "Realtek RTL2832U reference design", NULL) },
-+	{ DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_TREKSTOR_TERRES_2_0,
-+		&rtl2832u_props, "Trekstor DVB-T Stick Terres 2.0", NULL) },
- 	{ }
- };
- MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
--- 
-1.7.9.5
+Can you please do one more patch to get rid of the last remaining
+cpu_is_omapxxxx check in drivers/media/platform/omap3isp/isp.c?
 
+That data should come from platform_data (or device tree) as
+we going to make cpu_is_omap privat to mach-omap2.
+
+Regards,
+
+Tony
