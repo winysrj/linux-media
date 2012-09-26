@@ -1,108 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39145 "EHLO mail.kapsi.fi"
+Received: from tex.lwn.net ([70.33.254.29]:47332 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756653Ab2IMAY2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Sep 2012 20:24:28 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 16/16] ce6230: use Kernel dev_foo() logging
-Date: Thu, 13 Sep 2012 03:23:57 +0300
-Message-Id: <1347495837-3244-16-git-send-email-crope@iki.fi>
-In-Reply-To: <1347495837-3244-1-git-send-email-crope@iki.fi>
-References: <1347495837-3244-1-git-send-email-crope@iki.fi>
+	id S1756757Ab2IZQt6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Sep 2012 12:49:58 -0400
+Date: Wed, 26 Sep 2012 10:50:54 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	hverkuil@xs4all.nl
+Subject: Re: [PATCH 3/5] media: ov7670: calculate framerate properly for
+ ov7675.
+Message-ID: <20120926105054.12aca245@lwn.net>
+In-Reply-To: <1348652877-25816-4-git-send-email-javier.martin@vista-silicon.com>
+References: <1348652877-25816-1-git-send-email-javier.martin@vista-silicon.com>
+	<1348652877-25816-4-git-send-email-javier.martin@vista-silicon.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/ce6230.c | 28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+On Wed, 26 Sep 2012 11:47:55 +0200
+Javier Martin <javier.martin@vista-silicon.com> wrote:
 
-diff --git a/drivers/media/usb/dvb-usb-v2/ce6230.c b/drivers/media/usb/dvb-usb-v2/ce6230.c
-index 1c4357d..f67b14b 100644
---- a/drivers/media/usb/dvb-usb-v2/ce6230.c
-+++ b/drivers/media/usb/dvb-usb-v2/ce6230.c
-@@ -49,7 +49,8 @@ static int ce6230_ctrl_msg(struct dvb_usb_device *d, struct usb_req *req)
- 		requesttype = (USB_TYPE_VENDOR | USB_DIR_OUT);
- 		break;
- 	default:
--		pr_debug("%s: unknown command=%02x\n", __func__, req->cmd);
-+		dev_err(&d->udev->dev, "%s: unknown command=%02x\n",
-+				KBUILD_MODNAME, req->cmd);
- 		ret = -EINVAL;
- 		goto error;
- 	}
-@@ -78,8 +79,8 @@ static int ce6230_ctrl_msg(struct dvb_usb_device *d, struct usb_req *req)
- 			buf, req->data_len);
- 
- 	if (ret < 0)
--		pr_err("%s: usb_control_msg() failed=%d\n", KBUILD_MODNAME,
--				ret);
-+		dev_err(&d->udev->dev, "%s: usb_control_msg() failed=%d\n",
-+				KBUILD_MODNAME, ret);
- 	else
- 		ret = 0;
- 
-@@ -121,7 +122,8 @@ static int ce6230_i2c_master_xfer(struct i2c_adapter *adap,
- 				req.data = &msg[i+1].buf[0];
- 				ret = ce6230_ctrl_msg(d, &req);
- 			} else {
--				pr_err("%s: I2C read not implemented\n",
-+				dev_err(&d->udev->dev, "%s: I2C read not " \
-+						"implemented\n",
- 						KBUILD_MODNAME);
- 				ret = -EOPNOTSUPP;
- 			}
-@@ -176,10 +178,12 @@ static struct zl10353_config ce6230_zl10353_config = {
- 
- static int ce6230_zl10353_frontend_attach(struct dvb_usb_adapter *adap)
- {
--	pr_debug("%s:\n", __func__);
-+	struct dvb_usb_device *d = adap_to_d(adap);
-+
-+	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
- 	adap->fe[0] = dvb_attach(zl10353_attach, &ce6230_zl10353_config,
--			&adap_to_d(adap)->i2c_adap);
-+			&d->i2c_adap);
- 	if (adap->fe[0] == NULL)
- 		return -ENODEV;
- 
-@@ -205,12 +209,12 @@ static struct mxl5005s_config ce6230_mxl5003s_config = {
- 
- static int ce6230_mxl5003s_tuner_attach(struct dvb_usb_adapter *adap)
- {
-+	struct dvb_usb_device *d = adap_to_d(adap);
- 	int ret;
- 
--	pr_debug("%s:\n", __func__);
-+	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
--	ret = dvb_attach(mxl5005s_attach, adap->fe[0],
--			&adap_to_d(adap)->i2c_adap,
-+	ret = dvb_attach(mxl5005s_attach, adap->fe[0], &d->i2c_adap,
- 			&ce6230_mxl5003s_config) == NULL ? -ENODEV : 0;
- 	return ret;
- }
-@@ -219,14 +223,14 @@ static int ce6230_power_ctrl(struct dvb_usb_device *d, int onoff)
- {
- 	int ret;
- 
--	pr_debug("%s: onoff=%d\n", __func__, onoff);
-+	dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
- 
- 	/* InterfaceNumber 1 / AlternateSetting 0     idle
- 	   InterfaceNumber 1 / AlternateSetting 1     streaming */
- 	ret = usb_set_interface(d->udev, 1, onoff);
- 	if (ret)
--		pr_err("%s: usb_set_interface() failed=%d\n", KBUILD_MODNAME,
--				ret);
-+		dev_err(&d->udev->dev, "%s: usb_set_interface() failed=%d\n",
-+				KBUILD_MODNAME, ret);
- 
- 	return ret;
- }
--- 
-1.7.11.4
+> According to the datasheet ov7675 uses a formula to achieve
+> the desired framerate that is different from the operations
+> done in the current code.
+> 
+> In fact, this formula should apply to ov7670 too. This would
+> mean that current code is wrong but, in order to preserve
+> compatibility, the new formula will be used for ov7675 only.
 
+At this point I couldn't tell you what the real situation is; it's been a
+while and there's always a fair amount of black magic involved with
+ov7670 configuration.  I do appreciate attention to not breaking existing
+users.
+
+> +static void ov7670_get_framerate(struct v4l2_subdev *sd,
+> +				 struct v4l2_fract *tpf)
+
+This bugs me, though.  It's called ov7670_get_framerate() but it's getting
+the rate for the ov7675 - confusing.  Meanwhile the real ov7670 code
+remains inline while ov7675 has its own function.  
+
+Please make two functions, one of which is ov7675_get_framerate(), and call
+the right one for the model.  Same for the "set" functions, obviously.
+Maybe what's really needed is a structure full of sensor-specific
+operations?  The get_wsizes() function could go there too.  That would take
+a lot of if statements out of the code.
+
+> +	/*
+> +	 * The datasheet claims that clkrc = 0 will divide the input clock by 1
+> +	 * but we've checked with an oscilloscope that it divides by 2 instead.
+> +	 * So, if clkrc = 0 just bypass the divider.
+> +	 */
+
+Thanks for documenting this kind of thing.
+
+jon
