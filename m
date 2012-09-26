@@ -1,53 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:41817 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755828Ab2IXQvo (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:45145 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751493Ab2IZNAk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 12:51:44 -0400
-Received: from eusync2.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MAV0074W5J54G60@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 24 Sep 2012 17:52:17 +0100 (BST)
-Received: from [106.116.147.32] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MAV008TE5I5M220@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 24 Sep 2012 17:51:42 +0100 (BST)
-Message-id: <50608F9D.40304@samsung.com>
-Date: Mon, 24 Sep 2012 18:51:41 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, a.hajda@samsung.com,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com
-Subject: Re: [PATCH RFC] V4L: Add s_rx_buffer subdev video operation
-References: <1348493213-32278-1-git-send-email-s.nawrocki@samsung.com>
- <20120924134453.GH12025@valkosipuli.retiisi.org.uk>
-In-reply-to: <20120924134453.GH12025@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
+	Wed, 26 Sep 2012 09:00:40 -0400
+Received: by wibhq12 with SMTP id hq12so4892708wib.1
+        for <linux-media@vger.kernel.org>; Wed, 26 Sep 2012 06:00:39 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1348652877-25816-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1348652877-25816-1-git-send-email-javier.martin@vista-silicon.com>
+Date: Wed, 26 Sep 2012 15:00:39 +0200
+Message-ID: <CACKLOr39ObYOxy1DJuO5Lp5AwK6zc_HFiHHdV1tHEqYjeb8PfQ@mail.gmail.com>
+Subject: Re: [PATCH 0/5] media: ov7670: driver cleanup and support for ov7674.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: corbet@lwn.net, mchehab@infradead.org, hverkuil@xs4all.nl
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On 26 September 2012 11:47, Javier Martin
+<javier.martin@vista-silicon.com> wrote:
+> The following series includes all the changes discussed in [1] that
+> don't affect either bridge drivers that use ov7670 or soc-camera framework
+> For this reason they are considered non controversial and sent separately.
+> At least 1 more series will follow in order to implement all features
+> described in [1].
+>
+>
+>
+> [1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg51778.html
 
-On 09/24/2012 03:44 PM, Sakari Ailus wrote:
-> How about useing a separate video buffer queue for the purpose? That would
-> provide a nice way to pass it to the user space where it's needed. It'd also
-> play nicely together with the frame layout descriptors.
+Support is for ov7675, not ov7674, sorry for the typo.
 
-It's tempting, but doing frame synchronisation in user space in this case
-would have been painful, if at all possible in reliable manner. It would 
-have significantly complicate applications and the drivers.
-
-VIDIOC_STREAMON, VIDIOC_QBUF/DQBUF calls would have been at least roughly
-synchronized, and applications would have to know somehow which video nodes
-needs to be opened together. I guess things like that could be abstracted
-in a library, but what do we really gain for such effort ?
-And now I can just ask kernel for 2-planar buffers where everything is in
-place..
-
-
-Regards,
-Sylwester
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
