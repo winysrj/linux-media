@@ -1,125 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:57042 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756187Ab2INMux (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:29914 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757106Ab2IZPyj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 08:50:53 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>
-Subject: [PATCH 12/14] dm365: vpss: add vpss helper functions to be used in the main driver for setting hardware parameters
-Date: Fri, 14 Sep 2012 18:16:42 +0530
-Message-Id: <1347626804-5703-13-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1347626804-5703-1-git-send-email-prabhakar.lad@ti.com>
-References: <1347626804-5703-1-git-send-email-prabhakar.lad@ti.com>
+	Wed, 26 Sep 2012 11:54:39 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MAY00F2NS6UKE21@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 27 Sep 2012 00:54:38 +0900 (KST)
+Received: from amdc248.digital.local ([106.116.147.32])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MAY000JLS6LTOA0@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 27 Sep 2012 00:54:38 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: a.hajda@samsung.com, sakari.ailus@iki.fi,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v3 1/5] V4L: Add V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8 media bus
+ format
+Date: Wed, 26 Sep 2012 17:54:09 +0200
+Message-id: <1348674853-24596-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1348674853-24596-1-git-send-email-s.nawrocki@samsung.com>
+References: <1348674853-24596-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunath Hadli <manjunath.hadli@ti.com>
+This patch adds media bus pixel code for the interleaved JPEG/UYVY
+image format used by S5C73MX Samsung cameras. This interleaved image
+data is transferred on MIPI-CSI2 bus as User Defined Byte-based Data.
 
-add function to set sync polarity , interrupt completion and
-pageframe size in vpss to be used by the main driver.
+It also defines an experimental vendor and device specific media bus
+formats section and adds related DocBook documentation.
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/platform/davinci/vpss.c |   32 ++++++++++++++++++++++++++++++++
- include/media/davinci/vpss.h          |   16 ++++++++++++++++
- 2 files changed, 48 insertions(+), 0 deletions(-)
+ Documentation/DocBook/media/v4l/compat.xml         |  4 ++
+ Documentation/DocBook/media/v4l/subdev-formats.xml | 44 ++++++++++++++++++++++
+ include/linux/v4l2-mediabus.h                      |  5 +++
+ 3 files changed, 53 insertions(+)
 
-diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
-index 49bb045..3c195c0 100644
---- a/drivers/media/platform/davinci/vpss.c
-+++ b/drivers/media/platform/davinci/vpss.c
-@@ -97,6 +97,12 @@ struct vpss_hw_ops {
- 	void (*select_ccdc_source)(enum vpss_ccdc_source_sel src_sel);
- 	/* clear wbl overflow bit */
- 	int (*clear_wbl_overflow)(enum vpss_wbl_sel wbl_sel);
-+	/* set sync polarity */
-+	void (*set_sync_pol)(struct vpss_sync_pol);
-+	/* set the PG_FRAME_SIZE register*/
-+	void (*set_pg_frame_size)(struct vpss_pg_frame_size);
-+	/* check and clear interrupt if occured */
-+	int (*dma_complete_interrupt)(void);
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 802c1ab..b12cddb 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2612,6 +2612,10 @@ ioctls.</para>
+         <listitem>
+ 	  <para>Exporting DMABUF files using &VIDIOC-EXPBUF; ioctl.</para>
+         </listitem>
++        <listitem>
++	  <para>Vendor and device specific media bus pixel formats.
++	    <xref linkend="v4l2-mbus-vendor-spec-fmts" />.</para>
++        </listitem>
+       </itemizedlist>
+     </section>
+ 
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index 49c532e..a0a9364 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -2565,5 +2565,49 @@
+ 	</tgroup>
+       </table>
+     </section>
++
++    <section id="v4l2-mbus-vendor-spec-fmts">
++      <title>Vendor and Device Specific Formats</title>
++
++      <note>
++	<title>Experimental</title>
++	<para>This is an <link linkend="experimental">experimental</link>
++interface and may change in the future.</para>
++      </note>
++
++      <para>This section lists complex data formats that are either vendor or
++	device specific.
++      </para>
++
++      <para>The following table lists the existing vendor and device specific
++	formats.</para>
++
++      <table pgwide="0" frame="none" id="v4l2-mbus-pixelcode-vendor-specific">
++	<title>Vendor and device specific formats</title>
++	<tgroup cols="3">
++	  <colspec colname="id" align="left" />
++	  <colspec colname="code" align="left"/>
++	  <colspec colname="remarks" align="left"/>
++	  <thead>
++	    <row>
++	      <entry>Identifier</entry>
++	      <entry>Code</entry>
++	      <entry>Comments</entry>
++	    </row>
++	  </thead>
++	  <tbody valign="top">
++	    <row id="V4L2-MBUS-FMT-S5C-UYVY-JPEG-1X8">
++	      <entry>V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8</entry>
++	      <entry>0x5001</entry>
++	      <entry>
++		Interleaved raw UYVY and JPEG image format with embedded
++		meta-data used by Samsung S3C73MX camera sensors.
++	      </entry>
++	    </row>
++	  </tbody>
++	</tgroup>
++      </table>
++    </section>
++
+   </section>
+ </section>
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index 5ea7f75..7d64e0e 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -92,6 +92,11 @@ enum v4l2_mbus_pixelcode {
+ 
+ 	/* JPEG compressed formats - next is 0x4002 */
+ 	V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
++
++	/* Vendor specific formats - next is 0x5002 */
++
++	/* S5C73M3 sensor specific interleaved UYVY and JPEG */
++	V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8 = 0x5001,
  };
  
- /* vpss configuration */
-@@ -161,6 +167,14 @@ static void dm355_select_ccdc_source(enum vpss_ccdc_source_sel src_sel)
- 	bl_regw(src_sel << VPSS_HSSISEL_SHIFT, DM355_VPSSBL_CCDCMUX);
- }
- 
-+int vpss_dma_complete_interrupt(void)
-+{
-+	if (!oper_cfg.hw_ops.dma_complete_interrupt)
-+		return 2;
-+	return oper_cfg.hw_ops.dma_complete_interrupt();
-+}
-+EXPORT_SYMBOL(vpss_dma_complete_interrupt);
-+
- int vpss_select_ccdc_source(enum vpss_ccdc_source_sel src_sel)
- {
- 	if (!oper_cfg.hw_ops.select_ccdc_source)
-@@ -186,6 +200,15 @@ static int dm644x_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
- 	return 0;
- }
- 
-+void vpss_set_sync_pol(struct vpss_sync_pol sync)
-+{
-+	if (!oper_cfg.hw_ops.set_sync_pol)
-+		return;
-+
-+	oper_cfg.hw_ops.set_sync_pol(sync);
-+}
-+EXPORT_SYMBOL(vpss_set_sync_pol);
-+
- int vpss_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
- {
- 	if (!oper_cfg.hw_ops.clear_wbl_overflow)
-@@ -351,6 +374,15 @@ void dm365_vpss_set_sync_pol(struct vpss_sync_pol sync)
- }
- EXPORT_SYMBOL(dm365_vpss_set_sync_pol);
- 
-+void vpss_set_pg_frame_size(struct vpss_pg_frame_size frame_size)
-+{
-+	if (!oper_cfg.hw_ops.set_pg_frame_size)
-+		return;
-+
-+	oper_cfg.hw_ops.set_pg_frame_size(frame_size);
-+}
-+EXPORT_SYMBOL(vpss_set_pg_frame_size);
-+
- void dm365_vpss_set_pg_frame_size(struct vpss_pg_frame_size frame_size)
- {
- 	int current_reg = ((frame_size.hlpfr >> 1) - 1) << 16;
-diff --git a/include/media/davinci/vpss.h b/include/media/davinci/vpss.h
-index b586495..c5f6d9a 100644
---- a/include/media/davinci/vpss.h
-+++ b/include/media/davinci/vpss.h
-@@ -105,4 +105,20 @@ enum vpss_wbl_sel {
- };
- /* clear wbl overflow flag for DM6446 */
- int vpss_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel);
-+
-+/* set sync polarity*/
-+void vpss_set_sync_pol(struct vpss_sync_pol sync);
-+/* set the PG_FRAME_SIZE register */
-+void vpss_set_pg_frame_size(struct vpss_pg_frame_size frame_size);
-+/**
-+ * vpss_check_and_clear_interrupt - check and clear interrupt
-+ * @irq - common enumerator for IRQ
-+ *
-+ * Following return values used:-
-+ * 0 - interrupt occured and cleared
-+ * 1 - interrupt not occured
-+ * 2 - interrupt status not available
-+ */
-+int vpss_dma_complete_interrupt(void);
-+
- #endif
+ /**
 -- 
-1.7.4.1
+1.7.11.3
 
