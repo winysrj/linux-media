@@ -1,73 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:42192 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754484Ab2IDDGI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 23:06:08 -0400
+Received: from mxout-07.mxes.net ([216.86.168.182]:61195 "EHLO
+	mxout-07.mxes.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752493Ab2IZGxx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Sep 2012 02:53:53 -0400
+Message-ID: <5062A679.8090007@cybermato.com>
+Date: Tue, 25 Sep 2012 23:53:45 -0700
+From: Chris MacGregor <chris@cybermato.com>
 MIME-Version: 1.0
-In-Reply-To: <CABgQ-ThYGdvhmpf+=GcLpE-qFAhrDUc1j07+XqohDNRa9bStiw@mail.gmail.com>
-References: <1346464629-22458-1-git-send-email-changbin.du@gmail.com>
-	<20120903130357.GA7403@pequod.mess.org>
-	<CABgQ-ThYGdvhmpf+=GcLpE-qFAhrDUc1j07+XqohDNRa9bStiw@mail.gmail.com>
-Date: Tue, 4 Sep 2012 11:06:07 +0800
-Message-ID: <CABgQ-TjrXbqKaOd9fDptV2fUiyVTpzZ31K_iZ+HQ+3PGmWoHRw@mail.gmail.com>
-Subject: Re: [RFC PATCH] [media] rc: filter out not allowed protocols when decoding
-From: Changbin Du <changbin.du@gmail.com>
-To: sean@mess.org
-Cc: mchehab@infradead.org, paul.gortmaker@windriver.com,
-	sfr@canb.auug.org.au, srinivas.kandagatla@st.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: Re: Gain controls in v4l2-ctrl framework
+References: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com> <CA+V-a8v=_2vkuaYCAJNuyrqBX2bjU11KGASh7vkEQ4Qt2bFCGA@mail.gmail.com>
+In-Reply-To: <CA+V-a8v=_2vkuaYCAJNuyrqBX2bjU11KGASh7vkEQ4Qt2bFCGA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> >               mutex_lock(&ir_raw_handler_lock);
-> > -             list_for_each_entry(handler, &ir_raw_handler_list, list)
-> > -                     handler->decode(raw->dev, ev);
-> > +             list_for_each_entry(handler, &ir_raw_handler_list, list) {
-> > +                     /* use all protocol by default */
-> > +                     if (raw->dev->allowed_protos == RC_TYPE_UNKNOWN ||
-> > +                         raw->dev->allowed_protos & handler->protocols)
-> > +                             handler->decode(raw->dev, ev);
-> > +             }
->
-> Each IR protocol decoder already checks whether it is enabled or not;
-> should it not be so that only allowed protocols can be enabled rather
-> than checking both enabled_protocols and allowed_protocols?
->
-> Just from reading store_protocols it looks like decoders which aren't
-> in allowed_protocols can be enabled, which makes no sense. Also
-> ir_raw_event_register all protocols are enabled rather than the
-> allowed ones.
->
->
-> Lastely I don't know why raw ir drivers should dictate which protocols
-> can be enabled. Would it not be better to remove it entirely?
+Hi All.
 
-
-I agree with you. I just thought that the only thing a decoder should care
-is its decoding logic, but not including decoder management. My idaea is:
-     1) use enabled_protocols to select decoders in ir_raw.c, but not
-placed in decoders to do the judgement.
-     2) remove  allowed_protocols or just use it to set the default
-decoder (also should rename allowed_protocols  to default_protocol).
-
-I also have a question:
-     Is there a requirement that one more decoders are enabled for a
-IR device at the same time?
-    And if that will lead to a issue that each decoder may decode a
-same pulse sequence to different evnets since their protocol is
-different?
-
-[Du, Changbin]
+On 09/25/2012 11:44 PM, Prabhakar Lad wrote:
+> Hi All,
 >
+> On Sun, Sep 23, 2012 at 4:56 PM, Prabhakar Lad
+> <prabhakar.csengg@gmail.com> wrote:
+>> Hi All,
+>>
+>> The CCD/Sensors have the capability to adjust the R/ye, Gr/Cy, Gb/G,
+>> B/Mg gain values.
+>> Since these control can be re-usable I am planning to add the
+>> following gain controls as part
+>> of the framework:
+>>
+>> 1: V4L2_CID_GAIN_RED
+>> 2: V4L2_CID_GAIN_GREEN_RED
+>> 3: V4L2_CID_GAIN_GREEN_BLUE
+>> 4: V4L2_CID_GAIN_BLUE
+>> 5: V4L2_CID_GAIN_OFFSET
+>>
+>> I need your opinion's to get moving to add them.
+>>
+> I am listing out the gain controls which is the outcome of above discussion:-
 >
-> >               raw->prev_ev = ev;
-> >               mutex_unlock(&ir_raw_handler_lock);
-> >       }
-> > --
-> > 1.7.9.5
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 1: V4L2_CID_GAIN_RED
+> 2: V4L2_CID_GAIN_GREEN_RED
+> 3: V4L2_CID_GAIN_GREEN_BLUE
+> 4: V4L2_CID_GAIN_BLUE
+> 5: V4L2_CID_GAIN_OFFSET
+> 6: V4L2_CID_BLUE_OFFSET
+> 7: V4L2_CID_RED_OFFSET
+> 8: V4L2_CID_GREEN_OFFSET
+>
+> Please let me know for any addition/deletion.
+
+I thought the consensus was that we would also need a 
+V4L2_CID_GAIN_GREEN, to handle devices for which there are not two 
+separate greens.
+
+Also, should there be a V4L2_CID_GREEN_RED_OFFSET and 
+V4L2_CID_GREEN_BLUE_OFFSET, for consistency and to handle hardware that 
+has such offsets?
+
+(Perhaps I missed an email in this thread, but I thought I caught them all.)
+
+> Regards,
+> --Prabhakar Lad
+
+Cheers,
+     Chris MacGregor (the Seattle one)
