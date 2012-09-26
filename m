@@ -1,246 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46982 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:28800 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754513Ab2ITTPs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 15:15:48 -0400
-Message-ID: <505B6B4E.8010006@iki.fi>
-Date: Thu, 20 Sep 2012 22:15:26 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: oliver@schinagl.nl
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Support for Asus MyCinema U3100Mini Plus
-References: <1348167437-4371-1-git-send-email-oliver+list@schinagl.nl>
-In-Reply-To: <1348167437-4371-1-git-send-email-oliver+list@schinagl.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1754306Ab2IZJfa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Sep 2012 05:35:30 -0400
+Date: Wed, 26 Sep 2012 06:35:27 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hansverk@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFCv1 API PATCH 4/4] tuner-core: map audmode to STEREO for
+ radio devices.
+Message-ID: <20120926063527.1378e63a@redhat.com>
+In-Reply-To: <201209260903.13572.hverkuil@xs4all.nl>
+References: <1347621336-14108-1-git-send-email-hans.verkuil@cisco.com>
+	<201209251545.00414.hansverk@cisco.com>
+	<20120925232933.69c20987@redhat.com>
+	<201209260903.13572.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/20/2012 09:57 PM, oliver@schinagl.nl wrote:
-> From: Oliver Schinagl <oliver@schinagl.nl>
->
-> This is initial support for the Asus MyCinema U3100Mini Plus. The driver
-> in its current form gets detected and loads properly.
->
-> Scanning using dvbscan works without problems, Locking onto a channel
-> using tzap also works fine. Only playback using tzap -r + mplayer was
-> tested and was fully functional.
->
-> It uses the af9035 USB Bridge chip, with an af9033 demodulator. The tuner
-> used is the FCI FC2580.
->
-> Signed-off-by: Oliver Schinagl <oliver@schinagl.nl>
+Em Wed, 26 Sep 2012 09:03:13 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Acked-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+> On Wed September 26 2012 04:29:33 Mauro Carvalho Chehab wrote:
+> > Em Tue, 25 Sep 2012 15:45:00 +0200
+> > Hans Verkuil <hansverk@cisco.com> escreveu:
+> > 
+> > > On Tue 25 September 2012 15:33:40 Mauro Carvalho Chehab wrote:
+> > > > Em Fri, 14 Sep 2012 13:15:36 +0200
+> > > > Hans Verkuil <hans.verkuil@cisco.com> escreveu:
+> > > > 
+> > > > > Fixes a v4l2-compliance error: setting audmode to a value other than mono
+> > > > > or stereo for a radio device should map to MODE_STEREO.
+> > > > > 
+> > > > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > > > > ---
+> > > > >  drivers/media/v4l2-core/tuner-core.c |    5 ++++-
+> > > > >  1 file changed, 4 insertions(+), 1 deletion(-)
+> > > > > 
+> > > > > diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+> > > > > index b5a819a..ea71371 100644
+> > > > > --- a/drivers/media/v4l2-core/tuner-core.c
+> > > > > +++ b/drivers/media/v4l2-core/tuner-core.c
+> > > > > @@ -1235,8 +1235,11 @@ static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+> > > > >  	if (set_mode(t, vt->type))
+> > > > >  		return 0;
+> > > > >  
+> > > > > -	if (t->mode == V4L2_TUNER_RADIO)
+> > > > > +	if (t->mode == V4L2_TUNER_RADIO) {
+> > > > >  		t->audmode = vt->audmode;
+> > > > > +		if (t->audmode > V4L2_TUNER_MODE_STEREO)
+> > > > > +			t->audmode = V4L2_TUNER_MODE_STEREO;
+> > > > 
+> > > > NACK. It is not a core's task to fix driver's bugs. It would be ok to have here a
+> > > > WARN_ON(), but, if a driver is reporting a wrong radio audmode, the fix should be
+> > > > there at the drivers, and not here at the core.
+> > > 
+> > > tuner-core *is* the driver.
+> > 
+> > Not really... it is a driver's glue between the real I2C driver and the bridge
+> > driver.
+> > 
+> > > A bridge driver just passes v4l2_tuner on to the
+> > > subdev driver(s), and it is the subdev driver such as tuner-core that needs to
+> > > process the audmode as specified by the user. Which in this case means mapping
+> > > audmodes that are invalid when in radio mode to something that is valid as per
+> > > the spec.
+> > 
+> > Well, when the user is requesting an invalid mode, it should just return -EINVAL.
+> > It makes sense to add a check there at tuner-core to reject audmode if userspace
+> > is requesting, for example, a second language[1]. 
+> 
+> My interpretation of the spec is that it will map invalid audmodes to valid audmodes.
+> From the VIDIOC_S_TUNER documentation:
+> 
+> "The selected audio mode, see Table A.89, “Tuner Audio Modes” for valid values. The
+> audio mode does not affect audio subprogram detection, and like a control it does not
+> automatically change unless the requested mode is invalid or unsupported. See Table
+> A.90, “Tuner Audio Matrix” for possible results when the selected and received audio
+> programs do not match."
+> 
+> So my interpretation is that if an audmode is provided that is not valid for the
+> given device, then the device maps it to something valid rather than returning an
+> error. The error code list only states that -EINVAL is returned if the index field
+> is out-of-bounds, not for invalid audmodes.
+> 
+> I think this makes sense as well, otherwise apps would have to laboriously check
+> which audmodes are supported before they can call S_TUNER. It's much easier to
+> just give the 'best' audmode and let the driver downgrade if it isn't supported.
+> This is what happens today anyway, so we can't change that behavior. But the one
+> thing that should work is that the actual audmode is returned when calling G_TUNER,
+> which is why the current tuner-core fails with v4l2-compliance.
 
-It is OK. Mauro, please merge to the master.
+Ok, you convinced me on that. Please be more verbose at the patch description,
+describing why it is falling back to a different mode.
 
-@Oliver, you didn't fixed FC2580 useless braces as I requested. Anyway, 
-I will sent another patch to fix it later. Action not required.
+Also, please change that:
 
-regards
-Antti
+> > > > > +		if (t->audmode > V4L2_TUNER_MODE_STEREO)
+> > > > > +			t->audmode = V4L2_TUNER_MODE_STEREO;
 
+to something like:
 
-> ---
->   drivers/media/dvb-core/dvb-usb-ids.h      |  1 +
->   drivers/media/dvb-frontends/af9033.c      |  4 ++++
->   drivers/media/dvb-frontends/af9033.h      |  1 +
->   drivers/media/dvb-frontends/af9033_priv.h | 37 +++++++++++++++++++++++++++++++
->   drivers/media/tuners/fc2580.c             |  3 ++-
->   drivers/media/usb/dvb-usb-v2/Kconfig      |  1 +
->   drivers/media/usb/dvb-usb-v2/af9035.c     | 27 ++++++++++++++++++++++
->   drivers/media/usb/dvb-usb-v2/af9035.h     |  1 +
->   8 files changed, 74 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
-> index d572307..58e0220 100644
-> --- a/drivers/media/dvb-core/dvb-usb-ids.h
-> +++ b/drivers/media/dvb-core/dvb-usb-ids.h
-> @@ -329,6 +329,7 @@
->   #define USB_PID_ASUS_U3000				0x171f
->   #define USB_PID_ASUS_U3000H				0x1736
->   #define USB_PID_ASUS_U3100				0x173f
-> +#define USB_PID_ASUS_U3100MINI_PLUS			0x1779
->   #define USB_PID_YUAN_EC372S				0x1edc
->   #define USB_PID_YUAN_STK7700PH				0x1f08
->   #define USB_PID_YUAN_PD378S				0x2edc
-> diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-> index 0979ada..b40f5a0 100644
-> --- a/drivers/media/dvb-frontends/af9033.c
-> +++ b/drivers/media/dvb-frontends/af9033.c
-> @@ -314,6 +314,10 @@ static int af9033_init(struct dvb_frontend *fe)
->   		len = ARRAY_SIZE(tuner_init_tda18218);
->   		init = tuner_init_tda18218;
->   		break;
-> +	case AF9033_TUNER_FC2580:
-> +		len = ARRAY_SIZE(tuner_init_fc2580);
-> +		init = tuner_init_fc2580;
-> +		break;
->   	default:
->   		dev_dbg(&state->i2c->dev, "%s: unsupported tuner ID=%d\n",
->   				__func__, state->cfg.tuner);
-> diff --git a/drivers/media/dvb-frontends/af9033.h b/drivers/media/dvb-frontends/af9033.h
-> index 288622b..bfa4313 100644
-> --- a/drivers/media/dvb-frontends/af9033.h
-> +++ b/drivers/media/dvb-frontends/af9033.h
-> @@ -42,6 +42,7 @@ struct af9033_config {
->   #define AF9033_TUNER_FC0011      0x28 /* Fitipower FC0011 */
->   #define AF9033_TUNER_MXL5007T    0xa0 /* MaxLinear MxL5007T */
->   #define AF9033_TUNER_TDA18218    0xa1 /* NXP TDA 18218HN */
-> +#define AF9033_TUNER_FC2580      0x32 /* FCI FC2580 */
->   	u8 tuner;
->
->   	/*
-> diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
-> index 0b783b9..34dddcd 100644
-> --- a/drivers/media/dvb-frontends/af9033_priv.h
-> +++ b/drivers/media/dvb-frontends/af9033_priv.h
-> @@ -466,5 +466,42 @@ static const struct reg_val tuner_init_tda18218[] = {
->   	{0x80f1e6, 0x00},
->   };
->
-> +/* FCI FC2580 tuner init */
-> +static const struct reg_val tuner_init_fc2580[] = {
-> +	{ 0x800046, 0x32 },
-> +	{ 0x800057, 0x01 },
-> +	{ 0x800058, 0x00 },
-> +	{ 0x80005f, 0x00 },
-> +	{ 0x800060, 0x00 },
-> +	{ 0x800071, 0x05 },
-> +	{ 0x800072, 0x02 },
-> +	{ 0x800074, 0x01 },
-> +	{ 0x800079, 0x01 },
-> +	{ 0x800093, 0x00 },
-> +	{ 0x800094, 0x00 },
-> +	{ 0x800095, 0x00 },
-> +	{ 0x800096, 0x05 },
-> +	{ 0x8000b3, 0x01 },
-> +	{ 0x8000c3, 0x01 },
-> +	{ 0x8000c4, 0x00 },
-> +	{ 0x80f007, 0x00 },
-> +	{ 0x80f00c, 0x19 },
-> +	{ 0x80f00d, 0x1A },
-> +	{ 0x80f00e, 0x00 },
-> +	{ 0x80f00f, 0x02 },
-> +	{ 0x80f010, 0x00 },
-> +	{ 0x80f011, 0x02 },
-> +	{ 0x80f012, 0x00 },
-> +	{ 0x80f013, 0x02 },
-> +	{ 0x80f014, 0x00 },
-> +	{ 0x80f015, 0x02 },
-> +	{ 0x80f01f, 0x96 },
-> +	{ 0x80f020, 0x00 },
-> +	{ 0x80f029, 0x96 },
-> +	{ 0x80f02a, 0x00 },
-> +	{ 0x80f077, 0x01 },
-> +	{ 0x80f1e6, 0x01 },
-> +};
-> +
->   #endif /* AF9033_PRIV_H */
->
-> diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
-> index afc0491..51bc39c 100644
-> --- a/drivers/media/tuners/fc2580.c
-> +++ b/drivers/media/tuners/fc2580.c
-> @@ -498,8 +498,9 @@ struct dvb_frontend *fc2580_attach(struct dvb_frontend *fe,
->
->   	dev_dbg(&priv->i2c->dev, "%s: chip_id=%02x\n", __func__, chip_id);
->
-> -	if (chip_id != 0x56)
-> +	if ((chip_id != 0x56) && (chip_id != 0x5a)) {
->   		goto err;
-> +	}
->
->   	dev_info(&priv->i2c->dev,
->   			"%s: FCI FC2580 successfully identified\n",
-> diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
-> index e09930c..834bfec 100644
-> --- a/drivers/media/usb/dvb-usb-v2/Kconfig
-> +++ b/drivers/media/usb/dvb-usb-v2/Kconfig
-> @@ -40,6 +40,7 @@ config DVB_USB_AF9035
->   	select MEDIA_TUNER_FC0011 if MEDIA_SUBDRV_AUTOSELECT
->   	select MEDIA_TUNER_MXL5007T if MEDIA_SUBDRV_AUTOSELECT
->   	select MEDIA_TUNER_TDA18218 if MEDIA_SUBDRV_AUTOSELECT
-> +	select MEDIA_TUNER_FC2580 if MEDIA_SUBDRV_AUTOSELECT
->   	help
->   	  Say Y here to support the Afatech AF9035 based DVB USB receiver.
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-> index 89cc901..e7b2aff 100644
-> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
-> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-> @@ -513,6 +513,7 @@ static int af9035_read_config(struct dvb_usb_device *d)
->   		case AF9033_TUNER_FC0011:
->   		case AF9033_TUNER_MXL5007T:
->   		case AF9033_TUNER_TDA18218:
-> +		case AF9033_TUNER_FC2580:
->   			state->af9033_config[i].spec_inv = 1;
->   			break;
->   		default:
-> @@ -750,6 +751,11 @@ static struct tda18218_config af9035_tda18218_config = {
->   	.i2c_wr_max = 21,
->   };
->
-> +static const struct fc2580_config af9035_fc2580_config = {
-> +	.i2c_addr = 0x56,
-> +	.clock = 16384000,
-> +};
-> +
->   static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
->   {
->   	struct state *state = adap_to_priv(adap);
-> @@ -851,6 +857,25 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
->   		fe = dvb_attach(tda18218_attach, adap->fe[0],
->   				&d->i2c_adap, &af9035_tda18218_config);
->   		break;
-> +	case AF9033_TUNER_FC2580:
-> +		/* Tuner enable using gpiot2_o, gpiot2_en and gpiot2_on  */
-> +		ret = af9035_wr_reg_mask(d, 0xd8eb, 0x01, 0x01);
-> +		if (ret < 0)
-> +			goto err;
-> +
-> +		ret = af9035_wr_reg_mask(d, 0xd8ec, 0x01, 0x01);
-> +		if (ret < 0)
-> +			goto err;
-> +
-> +		ret = af9035_wr_reg_mask(d, 0xd8ed, 0x01, 0x01);
-> +		if (ret < 0)
-> +			goto err;
-> +
-> +		usleep_range(10000, 50000);
-> +		/* attach tuner */
-> +		fe = dvb_attach(fc2580_attach, adap->fe[0],
-> +				&d->i2c_adap, &af9035_fc2580_config);
-> +		break;
->   	default:
->   		fe = NULL;
->   	}
-> @@ -1075,6 +1100,8 @@ static const struct usb_device_id af9035_id_table[] = {
->   		&af9035_props, "AVerMedia HD Volar (A867)", NULL) },
->   	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_TWINSTAR,
->   		&af9035_props, "AVerMedia Twinstar (A825)", NULL) },
-> +	{ DVB_USB_DEVICE(USB_VID_ASUS, USB_PID_ASUS_U3100MINI_PLUS,
-> +		&af9035_props, "Asus U3100Mini Plus", NULL) },
->   	{ }
->   };
->   MODULE_DEVICE_TABLE(usb, af9035_id_table);
-> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
-> index de8e761..75ef1ec 100644
-> --- a/drivers/media/usb/dvb-usb-v2/af9035.h
-> +++ b/drivers/media/usb/dvb-usb-v2/af9035.h
-> @@ -28,6 +28,7 @@
->   #include "fc0011.h"
->   #include "mxl5007t.h"
->   #include "tda18218.h"
-> +#include "fc2580.h"
->
->   struct reg_val {
->   	u32 reg;
->
+	if (t->audmode != V4L2_TUNER_MODE_STEREO &&
+	    t->audmode != V4L2_TUNER_MODE_MONO)
+			t->audmode = V4L2_TUNER_MODE_STEREO;
+
+We use those enums/defines to not having to remember the actual numbers associated
+with them. By using operators like greater/lower than, people will actually need to
+dig into the videodev2.h, in order to know what's covered there.
+
+Besides that, the compiler will likely optimize it to greater than anyway, as audmode
+is unsigned.
+
+> > [1] Yet, I think that digital audio standards allow more than one audio channels.
+> > So, this may require to be pushed down into the drivers in some future.
+> > 
+> > What is invalid actually depends on the device. For example, AM ISA drivers
+> > don't support stereo. Ok, all tuners supported by tuner-core are FM. Even so,
+> > some of them may not support stereo[2].
+> > 
+> > [2] afaikt, some designs with tuner xc2028 don't support stereo. The driver currently
+> > doesn't handle such border cases, but the point is that such checks should happen
+> > at driver's level.
+> 
+> 99% of all those tuner drivers do support stereo, so let's do this simple check
+> in tuner-core so we don't have to fix all of them. The spec is also clear that
+> radio devices only support mono or stereo audmodes. Those tuner drivers that
+> only support mono can easily enforce that explicitly. Or they could, if tuner-core
+> would copy back the audmode value after calling analog_ops->set_params().
+
+It makes sense to do such change, allowing drivers to override it.
+
+> 
+> Just as we do basic checks in v4l2-ioctl.c, so we can do basic checks in tuner-core
+> as well.
+> 
+> Regards,
+> 
+> 	Hans
 
 
 -- 
-http://palosaari.fi/
+Regards,
+Mauro
