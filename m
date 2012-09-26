@@ -1,32 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:49838 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752228Ab2IHSyT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Sep 2012 14:54:19 -0400
-Received: by ieje11 with SMTP id e11so834842iej.19
-        for <linux-media@vger.kernel.org>; Sat, 08 Sep 2012 11:54:18 -0700 (PDT)
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:38855 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751150Ab2IZEWK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Sep 2012 00:22:10 -0400
+Received: by vcbfo13 with SMTP id fo13so172149vcb.19
+        for <linux-media@vger.kernel.org>; Tue, 25 Sep 2012 21:22:09 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAPxNeEZeo_KZ7RuRfD2qy3hw+86xc-phdgQL4QpobK4B-V6BDA@mail.gmail.com>
-References: <CAPxNeEZeo_KZ7RuRfD2qy3hw+86xc-phdgQL4QpobK4B-V6BDA@mail.gmail.com>
-Date: Sat, 8 Sep 2012 15:54:18 -0300
-Message-ID: <CALF0-+W6h2MjRTFY+kNUJXo=TtbgT4fVSfbFhP_oj=AfEG2Nzg@mail.gmail.com>
-Subject: Re: dvb-apps scan files
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: =?ISO-8859-1?Q?Hern=E1n_Rossetto?= <hmronline@gmail.com>
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <50621D5D.9020204@gmail.com>
+References: <1348477595-28493-1-git-send-email-sachin.kamat@linaro.org>
+	<50621D5D.9020204@gmail.com>
+Date: Wed, 26 Sep 2012 09:52:09 +0530
+Message-ID: <CAK9yfHyMgi_CD9Gpmp9sotbvMRwFcGE5C02PERu2MSDhA4TQ+A@mail.gmail.com>
+Subject: Re: [PATCH] [media] s5p-fimc: Use the new linux/sizes.h header file
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	s.nawrocki@samsung.com, patches@linaro.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Great!
+Hi Sylwester,
 
-On Sat, Sep 8, 2012 at 12:48 AM, Hernán Rossetto <hmronline@gmail.com> wrote:
-> Please add the attached files for Argentina and Brazil to the DVB-T scan list.
+On 26 September 2012 02:38, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> Hi Sachin,
 >
-> You will notice they have the same content already published here
-> http://www.linuxtv.org/wiki/index.php/ISDB-T_Frequency_Table
 >
+> On 09/24/2012 11:06 AM, Sachin Kamat wrote:
+>>
+>> Replaces asm/sizes.h with linux/sizes.h.
+>>
+>> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
+>
+>
+> Thanks, I have already applied similar patch to this one [1].
 
-Muchas gracias!
-Ezequiel.
+I just found that it is my own patch sent sometime in August for doing
+the same thing and which is already in your tree.
+Somehow I lost it from my tree and hence sent it again :). Sorry for the noise.
+
+>
+> You can see what's already queued at
+> http://git.infradead.org/users/kmpark/linux-samsung
+> branch v4l-next.
+>
+> As a side note, there is no need to Cc Mauro, please just send
+> your patches to linux-media and a copy to me so I don't miss them.
+
+Sure.
+
+>
+> Regards,
+> Sylwester
+>
+> [1]
+> http://git.infradead.org/users/kmpark/linux-samsung/commitdiff/9f3ad11ace7a41cd1b16f1e58601ac37513ad683
+
+
+
+-- 
+With warm regards,
+Sachin
