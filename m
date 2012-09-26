@@ -1,58 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:48570 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750964Ab2IWN3e (ORCPT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:47851 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753358Ab2IZJsR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 09:29:34 -0400
-Received: by wgbdr13 with SMTP id dr13so2873853wgb.1
-        for <linux-media@vger.kernel.org>; Sun, 23 Sep 2012 06:29:33 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: hdegoede@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 1/4] gspca_pac7302: correct register documentation
-Date: Sun, 23 Sep 2012 15:29:42 +0200
-Message-Id: <1348406983-3451-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Wed, 26 Sep 2012 05:48:17 -0400
+Received: by wibhr7 with SMTP id hr7so481354wib.1
+        for <linux-media@vger.kernel.org>; Wed, 26 Sep 2012 02:48:16 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: corbet@lwn.net, mchehab@infradead.org, hverkuil@xs4all.nl,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH 2/5] media: ov7670: make try_fmt() consistent with 'min_height' and 'min_width'.
+Date: Wed, 26 Sep 2012 11:47:54 +0200
+Message-Id: <1348652877-25816-3-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1348652877-25816-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1348652877-25816-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-R,G,B balance registers are 0x01-0x03 instead of 0x02-0x04,
-which lead to the wrong conclusion that values are inverted.
-Exposure is controlled via page 3 registers and this is already documented.
-Also fix a whitespace issue.
+'min_height' and 'min_width' are variables that allow to specify the minimum
+resolution that the sensor will achieve. This patch make v4l2 fmt callbacks
+consider this parameters in order to return valid data to user space.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
 ---
- drivers/media/usb/gspca/pac7302.c |   11 +++++------
- 1 files changed, 5 insertions(+), 6 deletions(-)
+ drivers/media/i2c/ov7670.c |   22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/usb/gspca/pac7302.c b/drivers/media/usb/gspca/pac7302.c
-index 2d5c6d83..4894ac1 100644
---- a/drivers/media/usb/gspca/pac7302.c
-+++ b/drivers/media/usb/gspca/pac7302.c
-@@ -29,14 +29,13 @@
-  * Register page 0:
-  *
-  * Address	Description
-- * 0x02		Red balance control
-- * 0x03		Green balance control
-- * 0x04 	Blue balance control
-- *		     Valus are inverted (0=max, 255=min).
-+ * 0x01		Red balance control
-+ * 0x02		Green balance control
-+ * 0x03		Blue balance control
-  *		     The Windows driver uses a quadratic approach to map
-  *		     the settable values (0-200) on register values:
-- *		     min=0x80, default=0x40, max=0x20
-- * 0x0f-0x20	Colors, saturation and exposure control
-+ *		     min=0x20, default=0x40, max=0x80
-+ * 0x0f-0x20	Color and saturation control
-  * 0xa2-0xab	Brightness, contrast and gamma control
-  * 0xb6		Sharpness control (bits 0-4)
-  *
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index 0478a7b..627fe5f 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -812,10 +812,11 @@ static int ov7670_try_fmt_internal(struct v4l2_subdev *sd,
+ 		struct ov7670_format_struct **ret_fmt,
+ 		struct ov7670_win_size **ret_wsize)
+ {
+-	int index;
++	int index, i;
+ 	struct ov7670_win_size *wsize;
+ 	struct ov7670_info *info = to_state(sd);
+ 	int n_win_sizes = ARRAY_SIZE(ov7670_win_sizes[info->model]);
++	int win_sizes_limit = n_win_sizes;
+ 
+ 	for (index = 0; index < N_OV7670_FMTS; index++)
+ 		if (ov7670_formats[index].mbus_code == fmt->code)
+@@ -831,15 +832,30 @@ static int ov7670_try_fmt_internal(struct v4l2_subdev *sd,
+ 	 * Fields: the OV devices claim to be progressive.
+ 	 */
+ 	fmt->field = V4L2_FIELD_NONE;
++
++	/*
++	 * Don't consider values that don't match min_height and min_width
++	 * constraints.
++	 */
++	if (info->min_width || info->min_height)
++		for (i = 0; i < n_win_sizes; i++) {
++			wsize = ov7670_win_sizes[info->model] + i;
++
++			if (wsize->width < info->min_width ||
++				wsize->height < info->min_height) {
++				win_sizes_limit = i;
++				break;
++			}
++		}
+ 	/*
+ 	 * Round requested image size down to the nearest
+ 	 * we support, but not below the smallest.
+ 	 */
+ 	for (wsize = ov7670_win_sizes[info->model];
+-	     wsize < ov7670_win_sizes[info->model] + n_win_sizes; wsize++)
++	     wsize < ov7670_win_sizes[info->model] + win_sizes_limit; wsize++)
+ 		if (fmt->width >= wsize->width && fmt->height >= wsize->height)
+ 			break;
+-	if (wsize >= ov7670_win_sizes[info->model] + n_win_sizes)
++	if (wsize >= ov7670_win_sizes[info->model] + win_sizes_limit)
+ 		wsize--;   /* Take the smallest one */
+ 	if (ret_wsize != NULL)
+ 		*ret_wsize = wsize;
 -- 
-1.7.7
+1.7.9.5
 
