@@ -1,112 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:34514 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754412Ab2IWVGL (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51129 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754077Ab2IZLU6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 17:06:11 -0400
-Received: by bkcjk13 with SMTP id jk13so568394bkc.19
-        for <linux-media@vger.kernel.org>; Sun, 23 Sep 2012 14:06:10 -0700 (PDT)
-Message-ID: <505F6BAF.90307@googlemail.com>
-Date: Sun, 23 Sep 2012 23:06:07 +0300
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+	Wed, 26 Sep 2012 07:20:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/4] uvc: Add return code check at vb2_queue_init()
+Date: Wed, 26 Sep 2012 13:21:35 +0200
+Message-ID: <3190813.MGRGtUxtHD@avalon>
+In-Reply-To: <1347889790-15187-1-git-send-email-elezegarcia@gmail.com>
+References: <1347889790-15187-1-git-send-email-elezegarcia@gmail.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: maramaopercheseimorto@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 3/3] ov2640: simplify single register writes
-References: <1348424926-12864-1-git-send-email-fschaefer.oss@googlemail.com> <1348424926-12864-3-git-send-email-fschaefer.oss@googlemail.com> <Pine.LNX.4.64.1209232239210.31250@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1209232239210.31250@axis700.grange>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 23.09.2012 23:43, schrieb Guennadi Liakhovetski:
-> On Sun, 23 Sep 2012, Frank Schäfer wrote:
->
->> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->> ---
->>  drivers/media/i2c/soc_camera/ov2640.c |   17 ++++++++---------
->>  1 Datei geändert, 8 Zeilen hinzugefügt(+), 9 Zeilen entfernt(-)
->>
->> diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
->> index 182d5a1..e71bf4c 100644
->> --- a/drivers/media/i2c/soc_camera/ov2640.c
->> +++ b/drivers/media/i2c/soc_camera/ov2640.c
->> @@ -639,17 +639,19 @@ static struct ov2640_priv *to_ov2640(const struct i2c_client *client)
->>  			    subdev);
->>  }
->>  
->> +static int ov2640_write_single(struct i2c_client *client, u8  reg, u8 val)
->> +{
->> +	dev_vdbg(&client->dev, "write: 0x%02x, 0x%02x", reg, val);
->> +	return i2c_smbus_write_byte_data(client, reg, val);
->> +}
-> Well, I'm not convinced. I don't necessarily see it as a simplification. 
-> You replace one perfectly ok function with another one with exactly the 
-> same parameters. Ok, you also hide a debug printk() in your wrapper, but 
-> that's not too useful either, IMHO.
+Hi Ezequiel,
 
-Sure, at the moment this is not really needed. But that will change in
-the future, when we need to do more single writes / can't use static
-register sequences.
-A good example is the powerline frequency filter control, which I'm
-currently experimenting with.
-But if you don't want to take it at the moment, it's ok for me.
+Thanks for the patch.
 
-
-> Besides, you're missing more calls to 
-> i2c_smbus_write_byte_data() in ov2640_mask_set(), ov2640_s_register() and 
-> ov2640_video_probe(). So, I'd just drop it.
-
-I skipped that because of the different debug output (which could of
-course be improved).
-
-Regrads,
-Frank
-
-> Thanks
-> Guennadi
->
->> +
->>  static int ov2640_write_array(struct i2c_client *client,
->>  			      const struct regval_list *vals)
->>  {
->>  	int ret;
->>  
->>  	while ((vals->reg_num != 0xff) || (vals->value != 0xff)) {
->> -		ret = i2c_smbus_write_byte_data(client,
->> -						vals->reg_num, vals->value);
->> -		dev_vdbg(&client->dev, "array: 0x%02x, 0x%02x",
->> -			 vals->reg_num, vals->value);
->> -
->> +		ret = ov2640_write_single(client, vals->reg_num, vals->value);
->>  		if (ret < 0)
->>  			return ret;
->>  		vals++;
->> @@ -704,13 +706,10 @@ static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
->>  	struct v4l2_subdev *sd =
->>  		&container_of(ctrl->handler, struct ov2640_priv, hdl)->subdev;
->>  	struct i2c_client  *client = v4l2_get_subdevdata(sd);
->> -	struct regval_list regval;
->>  	int ret;
->>  	u8 val;
->>  
->> -	regval.reg_num = BANK_SEL;
->> -	regval.value = BANK_SEL_SENS;
->> -	ret = ov2640_write_array(client, &regval);
->> +	ret = ov2640_write_single(client, BANK_SEL, BANK_SEL_SENS);
->>  	if (ret < 0)
->>  		return ret;
->>  
->> -- 
->> 1.7.10.4
->>
+On Monday 17 September 2012 10:49:50 Ezequiel Garcia wrote:
+> This function returns an integer and it's mandatory
+> to check the return code.
+> 
+> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
 > ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  drivers/media/usb/uvc/uvc_queue.c |    8 ++++++--
+>  drivers/media/usb/uvc/uvc_video.c |    4 +++-
+>  drivers/media/usb/uvc/uvcvideo.h  |    2 +-
+>  3 files changed, 10 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_queue.c
+> b/drivers/media/usb/uvc/uvc_queue.c index 5577381..2cec818 100644
+> --- a/drivers/media/usb/uvc/uvc_queue.c
+> +++ b/drivers/media/usb/uvc/uvc_queue.c
+> @@ -122,16 +122,20 @@ static struct vb2_ops uvc_queue_qops = {
+>  	.buf_finish = uvc_buffer_finish,
+>  };
+> 
+> -void uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
+> +int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
+> int drop_corrupted)
+>  {
+> +	int rc;
+> +
+
+Please use ret instead of rc. Other than that the patch looks good to me.
+
+>  	queue->queue.type = type;
+>  	queue->queue.io_modes = VB2_MMAP | VB2_USERPTR;
+>  	queue->queue.drv_priv = queue;
+>  	queue->queue.buf_struct_size = sizeof(struct uvc_buffer);
+>  	queue->queue.ops = &uvc_queue_qops;
+>  	queue->queue.mem_ops = &vb2_vmalloc_memops;
+> -	vb2_queue_init(&queue->queue);
+> +	rc = vb2_queue_init(&queue->queue);
+> +	if (rc)
+> +		return rc;
+> 
+>  	mutex_init(&queue->mutex);
+>  	spin_lock_init(&queue->irqlock);
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index 1c15b42..57c3076 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -1755,7 +1755,9 @@ int uvc_video_init(struct uvc_streaming *stream)
+>  	atomic_set(&stream->active, 0);
+> 
+>  	/* Initialize the video buffers queue. */
+> -	uvc_queue_init(&stream->queue, stream->type, !uvc_no_drop_param);
+> +	ret = uvc_queue_init(&stream->queue, stream->type, !uvc_no_drop_param);
+> +	if (ret)
+> +		return ret;
+> 
+>  	/* Alternate setting 0 should be the default, yet the XBox Live Vision
+>  	 * Cam (and possibly other devices) crash or otherwise misbehave if
+> diff --git a/drivers/media/usb/uvc/uvcvideo.h
+> b/drivers/media/usb/uvc/uvcvideo.h index 3764040..af216ec 100644
+> --- a/drivers/media/usb/uvc/uvcvideo.h
+> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> @@ -600,7 +600,7 @@ extern struct uvc_driver uvc_driver;
+>  extern struct uvc_entity *uvc_entity_by_id(struct uvc_device *dev, int id);
+> 
+>  /* Video buffers queue management. */
+> -extern void uvc_queue_init(struct uvc_video_queue *queue,
+> +extern int uvc_queue_init(struct uvc_video_queue *queue,
+>  		enum v4l2_buf_type type, int drop_corrupted);
+>  extern int uvc_alloc_buffers(struct uvc_video_queue *queue,
+>  		struct v4l2_requestbuffers *rb);
+-- 
+Regards,
+
+Laurent Pinchart
 
