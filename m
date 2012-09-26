@@ -1,121 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:33674 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750898Ab2IYWK7 (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:12666 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752119Ab2IZJ56 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 18:10:59 -0400
-Received: by yenm12 with SMTP id m12so2052323yen.19
-        for <linux-media@vger.kernel.org>; Tue, 25 Sep 2012 15:10:58 -0700 (PDT)
-From: Guilherme Herrmann Destefani <linuxtv@destefani.eng.br>
-To: linux-media@vger.kernel.org
-Cc: Guilherme Herrmann Destefani <linuxtv@destefani.eng.br>
-Subject: [PATCH v2] bt8xx: Add video4linux control V4L2_CID_COLOR_KILLER.
-Date: Tue, 25 Sep 2012 19:10:52 -0300
-Message-Id: <1348611052-26644-1-git-send-email-linuxtv@destefani.eng.br>
-In-Reply-To: <1347556331-7522-1-git-send-email-linuxtv@destefani.eng.br>
-References: <1347556331-7522-1-git-send-email-linuxtv@destefani.eng.br>
+	Wed, 26 Sep 2012 05:57:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv1 API PATCH 4/4] tuner-core: map audmode to STEREO for radio devices.
+Date: Wed, 26 Sep 2012 11:57:31 +0200
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
+References: <1347621336-14108-1-git-send-email-hans.verkuil@cisco.com> <201209260903.13572.hverkuil@xs4all.nl> <20120926063527.1378e63a@redhat.com>
+In-Reply-To: <20120926063527.1378e63a@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201209261157.31764.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Added V4L2_CID_COLOR_KILLER control to the bt8xx driver.
-The control V4L2_CID_PRIVATE_CHROMA_AGC was changed too because
-with this change the bttv driver must touch two bits in the
-SC Loop Control Registers, for controls V4L2_CID_COLOR_KILLER
-and V4L2_CID_PRIVATE_CHROMA_AGC.
+On Wed 26 September 2012 11:35:27 Mauro Carvalho Chehab wrote:
+> Em Wed, 26 Sep 2012 09:03:13 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > On Wed September 26 2012 04:29:33 Mauro Carvalho Chehab wrote:
+> > > Em Tue, 25 Sep 2012 15:45:00 +0200
+> > > Hans Verkuil <hansverk@cisco.com> escreveu:
+> > > 
+> > > > On Tue 25 September 2012 15:33:40 Mauro Carvalho Chehab wrote:
+> > > > > Em Fri, 14 Sep 2012 13:15:36 +0200
+> > > > > Hans Verkuil <hans.verkuil@cisco.com> escreveu:
+> > > > > 
+> > > > > > Fixes a v4l2-compliance error: setting audmode to a value other than mono
+> > > > > > or stereo for a radio device should map to MODE_STEREO.
+> > > > > > 
+> > > > > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > > > > > ---
+> > > > > >  drivers/media/v4l2-core/tuner-core.c |    5 ++++-
+> > > > > >  1 file changed, 4 insertions(+), 1 deletion(-)
+> > > > > > 
+> > > > > > diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+> > > > > > index b5a819a..ea71371 100644
+> > > > > > --- a/drivers/media/v4l2-core/tuner-core.c
+> > > > > > +++ b/drivers/media/v4l2-core/tuner-core.c
+> > > > > > @@ -1235,8 +1235,11 @@ static int tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+> > > > > >  	if (set_mode(t, vt->type))
+> > > > > >  		return 0;
+> > > > > >  
+> > > > > > -	if (t->mode == V4L2_TUNER_RADIO)
+> > > > > > +	if (t->mode == V4L2_TUNER_RADIO) {
+> > > > > >  		t->audmode = vt->audmode;
+> > > > > > +		if (t->audmode > V4L2_TUNER_MODE_STEREO)
+> > > > > > +			t->audmode = V4L2_TUNER_MODE_STEREO;
+> > > > > 
+> > > > > NACK. It is not a core's task to fix driver's bugs. It would be ok to have here a
+> > > > > WARN_ON(), but, if a driver is reporting a wrong radio audmode, the fix should be
+> > > > > there at the drivers, and not here at the core.
+> > > > 
+> > > > tuner-core *is* the driver.
+> > > 
+> > > Not really... it is a driver's glue between the real I2C driver and the bridge
+> > > driver.
+> > > 
+> > > > A bridge driver just passes v4l2_tuner on to the
+> > > > subdev driver(s), and it is the subdev driver such as tuner-core that needs to
+> > > > process the audmode as specified by the user. Which in this case means mapping
+> > > > audmodes that are invalid when in radio mode to something that is valid as per
+> > > > the spec.
+> > > 
+> > > Well, when the user is requesting an invalid mode, it should just return -EINVAL.
+> > > It makes sense to add a check there at tuner-core to reject audmode if userspace
+> > > is requesting, for example, a second language[1]. 
+> > 
+> > My interpretation of the spec is that it will map invalid audmodes to valid audmodes.
+> > From the VIDIOC_S_TUNER documentation:
+> > 
+> > "The selected audio mode, see Table A.89, “Tuner Audio Modes” for valid values. The
+> > audio mode does not affect audio subprogram detection, and like a control it does not
+> > automatically change unless the requested mode is invalid or unsupported. See Table
+> > A.90, “Tuner Audio Matrix” for possible results when the selected and received audio
+> > programs do not match."
+> > 
+> > So my interpretation is that if an audmode is provided that is not valid for the
+> > given device, then the device maps it to something valid rather than returning an
+> > error. The error code list only states that -EINVAL is returned if the index field
+> > is out-of-bounds, not for invalid audmodes.
+> > 
+> > I think this makes sense as well, otherwise apps would have to laboriously check
+> > which audmodes are supported before they can call S_TUNER. It's much easier to
+> > just give the 'best' audmode and let the driver downgrade if it isn't supported.
+> > This is what happens today anyway, so we can't change that behavior. But the one
+> > thing that should work is that the actual audmode is returned when calling G_TUNER,
+> > which is why the current tuner-core fails with v4l2-compliance.
+> 
+> Ok, you convinced me on that. Please be more verbose at the patch description,
+> describing why it is falling back to a different mode.
+> 
+> Also, please change that:
+> 
+> > > > > > +		if (t->audmode > V4L2_TUNER_MODE_STEREO)
+> > > > > > +			t->audmode = V4L2_TUNER_MODE_STEREO;
+> 
+> to something like:
+> 
+> 	if (t->audmode != V4L2_TUNER_MODE_STEREO &&
+> 	    t->audmode != V4L2_TUNER_MODE_MONO)
+> 			t->audmode = V4L2_TUNER_MODE_STEREO;
+> 
+> We use those enums/defines to not having to remember the actual numbers associated
+> with them. By using operators like greater/lower than, people will actually need to
+> dig into the videodev2.h, in order to know what's covered there.
+> 
+> Besides that, the compiler will likely optimize it to greater than anyway, as audmode
+> is unsigned.
+> 
+> > > [1] Yet, I think that digital audio standards allow more than one audio channels.
+> > > So, this may require to be pushed down into the drivers in some future.
+> > > 
+> > > What is invalid actually depends on the device. For example, AM ISA drivers
+> > > don't support stereo. Ok, all tuners supported by tuner-core are FM. Even so,
+> > > some of them may not support stereo[2].
+> > > 
+> > > [2] afaikt, some designs with tuner xc2028 don't support stereo. The driver currently
+> > > doesn't handle such border cases, but the point is that such checks should happen
+> > > at driver's level.
+> > 
+> > 99% of all those tuner drivers do support stereo, so let's do this simple check
+> > in tuner-core so we don't have to fix all of them. The spec is also clear that
+> > radio devices only support mono or stereo audmodes. Those tuner drivers that
+> > only support mono can easily enforce that explicitly. Or they could, if tuner-core
+> > would copy back the audmode value after calling analog_ops->set_params().
+> 
+> It makes sense to do such change, allowing drivers to override it.
 
-Signed-off-by: Guilherme Herrmann Destefani <linuxtv@destefani.eng.br>
----
-Ola Mauro,
+I'll make the requested changes and I'll post a pull request.
 
-This is the same patch without the parameter, just the control.
+Regards,
 
-Obrigado!
-
- drivers/media/video/bt8xx/bttv-driver.c | 30 ++++++++++++++++++++++++++----
- drivers/media/video/bt8xx/bttvp.h       |  1 +
- 2 files changed, 27 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
-index e581b37..55a1742 100644
---- a/drivers/media/video/bt8xx/bttv-driver.c
-+++ b/drivers/media/video/bt8xx/bttv-driver.c
-@@ -674,6 +674,12 @@ static const struct v4l2_queryctrl bttv_ctls[] = {
- 		.default_value = 32768,
- 		.type          = V4L2_CTRL_TYPE_INTEGER,
- 	},{
-+		.id            = V4L2_CID_COLOR_KILLER,
-+		.name          = "Color killer",
-+		.minimum       = 0,
-+		.maximum       = 1,
-+		.type          = V4L2_CTRL_TYPE_BOOLEAN,
-+	},{
- 		.id            = V4L2_CID_HUE,
- 		.name          = "Hue",
- 		.minimum       = 0,
-@@ -1475,6 +1481,9 @@ static int bttv_g_ctrl(struct file *file, void *priv,
- 	case V4L2_CID_SATURATION:
- 		c->value = btv->saturation;
- 		break;
-+	case V4L2_CID_COLOR_KILLER:
-+		c->value = btv->opt_color_killer;
-+		break;
- 
- 	case V4L2_CID_AUDIO_MUTE:
- 	case V4L2_CID_AUDIO_VOLUME:
-@@ -1527,7 +1536,6 @@ static int bttv_s_ctrl(struct file *file, void *f,
- 					struct v4l2_control *c)
- {
- 	int err;
--	int val;
- 	struct bttv_fh *fh = f;
- 	struct bttv *btv = fh->btv;
- 
-@@ -1548,6 +1556,16 @@ static int bttv_s_ctrl(struct file *file, void *f,
- 	case V4L2_CID_SATURATION:
- 		bt848_sat(btv, c->value);
- 		break;
-+	case V4L2_CID_COLOR_KILLER:
-+		btv->opt_color_killer = c->value;
-+		if (btv->opt_color_killer) {
-+			btor(BT848_SCLOOP_CKILL, BT848_E_SCLOOP);
-+			btor(BT848_SCLOOP_CKILL, BT848_O_SCLOOP);
-+		} else {
-+			btand(~BT848_SCLOOP_CKILL, BT848_E_SCLOOP);
-+			btand(~BT848_SCLOOP_CKILL, BT848_O_SCLOOP);
-+		}
-+		break;
- 	case V4L2_CID_AUDIO_MUTE:
- 		audio_mute(btv, c->value);
- 		/* fall through */
-@@ -1565,9 +1583,13 @@ static int bttv_s_ctrl(struct file *file, void *f,
- 
- 	case V4L2_CID_PRIVATE_CHROMA_AGC:
- 		btv->opt_chroma_agc = c->value;
--		val = btv->opt_chroma_agc ? BT848_SCLOOP_CAGC : 0;
--		btwrite(val, BT848_E_SCLOOP);
--		btwrite(val, BT848_O_SCLOOP);
-+		if (btv->opt_chroma_agc) {
-+			btor(BT848_SCLOOP_CAGC, BT848_E_SCLOOP);
-+			btor(BT848_SCLOOP_CAGC, BT848_O_SCLOOP);
-+		} else {
-+			btand(~BT848_SCLOOP_CAGC, BT848_E_SCLOOP);
-+			btand(~BT848_SCLOOP_CAGC, BT848_O_SCLOOP);
-+		}
- 		break;
- 	case V4L2_CID_PRIVATE_COMBFILTER:
- 		btv->opt_combfilter = c->value;
-diff --git a/drivers/media/video/bt8xx/bttvp.h b/drivers/media/video/bt8xx/bttvp.h
-index db943a8d..3979b7c 100644
---- a/drivers/media/video/bt8xx/bttvp.h
-+++ b/drivers/media/video/bt8xx/bttvp.h
-@@ -429,6 +429,7 @@ struct bttv {
- 	int opt_lumafilter;
- 	int opt_automute;
- 	int opt_chroma_agc;
-+	int opt_color_killer;
- 	int opt_adc_crush;
- 	int opt_vcr_hack;
- 	int opt_whitecrush_upper;
--- 
-1.7.11.4
-
+	Hans
