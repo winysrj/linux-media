@@ -1,85 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:3621 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751906Ab2IFLzG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Sep 2012 07:55:06 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Jun Nie <niej0001@gmail.com>
-Subject: Re: [Workshop-2011] Media summit/KS-2012 proposals
-Date: Thu, 6 Sep 2012 13:55:00 +0200
-Cc: workshop-2011@linuxtv.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20120713173708.GB17109@thunk.org> <201209060836.42059.hverkuil@xs4all.nl> <CAGA24MKWiDnbyLquTZx6KyOsBHo=xo3HmmqgmJw2YNxj6ha_Vg@mail.gmail.com>
-In-Reply-To: <CAGA24MKWiDnbyLquTZx6KyOsBHo=xo3HmmqgmJw2YNxj6ha_Vg@mail.gmail.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:56199 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753444Ab2IZH5y convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Sep 2012 03:57:54 -0400
+Received: by pbbrr4 with SMTP id rr4so1489590pbb.19
+        for <linux-media@vger.kernel.org>; Wed, 26 Sep 2012 00:57:53 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209061355.00726.hverkuil@xs4all.nl>
+In-Reply-To: <1982842.IhYcnQa0e6@avalon>
+References: <CAFqH_53EY7BcMjn+fy=KfAhSU9Ut1pcLUyrmu2kiHznrBUB2XQ@mail.gmail.com>
+	<2021377.tLq3KYvgLo@avalon>
+	<CAFqH_51CDRnLntYShEApUE+AuBKSBAP4Yr7EQKxnrV9SRO441w@mail.gmail.com>
+	<1982842.IhYcnQa0e6@avalon>
+Date: Wed, 26 Sep 2012 09:57:53 +0200
+Message-ID: <CAFqH_515+=O+s1rOZ85hzO8nnU=Fn9O=NxV_mM+4dfowb0pa7w@mail.gmail.com>
+Subject: Re: omap3isp: wrong image after resizer with mt9v034 sensor
+From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 6 September 2012 12:29:17 Jun Nie wrote:
-> 2012/9/6 Hans Verkuil <hverkuil@xs4all.nl>:
-> > On Thu September 6 2012 06:09:44 Jun Nie wrote:
-> >> 2012/9/5 Hans Verkuil <hverkuil@xs4all.nl>:
-> >> > On Wed 5 September 2012 10:04:41 Jun Nie wrote:
-> >> >> Is there any summary for this summit or presentation material? I am
-> >> >> looking forward for some idea on CEC. It is really complex in
-> >> >> functionality.
-> >> >> Maybe other guys is expecting simiar fruite from summit too.
-> >> >
-> >> > Yes, there will be a summit report. It's not quite finished yet, I think.
-> >> >
-> >> > With respect to CEC we had some useful discussions. It will have to be a
-> >> > new class of device (/dev/cecX), so the userspace API will be separate from
-> >> > drm or v4l.
-> >> >
-> >> > And the kernel will have to take care of the core CEC protocol w.r.t. control
-> >> > and discovery due to the HDMI 1.4a requirements.
-> >> >
-> >> > I plan on starting work on this within 1-2 weeks.
-> >> >
-> >> > My CEC presentation can be found here:
-> >> >
-> >> > http://hverkuil.home.xs4all.nl/presentations/v4l2-workshop-cec.odp
-> >> >
-> >> > Regards,
-> >> >
-> >> >         Hans
-> >>
-> >> Thanks for quick response! It's good to know that CEC is independent
-> >> with DRM/V4L for my HDMI implementation is FB/lcd-device based. CEC is
-> >> also deserved to have independent management in both hardware signal
-> >> and functionality. Someone also expressed similar thoughts before.
-> >> Will remote control protocal parsing are done in userspace reference
-> >> library? Or not decided yet?
-> >
-> > Are you referring to the remote control pass-through functionality?
-> > I don't know yet whether that will go through a userspace library or
-> > through the RC kernel subsystem, or possibly both.
+Hi Laurent
 
-> I mean all the feature that can involved in handhold remote control,
-> one touch play, standby, on screen display, etc, such as
-> play/pause/poweroff. I want to mention all non CDC features that can
-> be implemented in user space. They are hard to be covered by any
-> sub-system and user space library is more proper. Just like your
-> metaphor, kitchen sink for CEC. I like your words.
+2012/9/25 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Enric,
+>
+> On Tuesday 25 September 2012 13:23:20 Enric Balletbò i Serra wrote:
+>> 2012/9/25 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>> > On Tuesday 25 September 2012 09:44:42 Enric Balletbò i Serra wrote:
+>> >> 2012/9/25 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>> >> > On Monday 24 September 2012 15:49:01 Enric Balletbò i Serra wrote:
+>> >> >> 2012/9/24 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>> >> >> > On Monday 24 September 2012 10:33:42 Enric Balletbò i Serra wrote:
+>> >> >> >> Hi everybody,
+>> >> >> >>
+>> >> >> >> I'm trying to add support for MT9V034 Aptina image sensor to
+>> >> >> >> current mainline, as a base of my current work I start using the
+>> >> >> >> latest omap3isp-next branch from Laurent's git tree [1]. The
+>> >> >> >> MT9V034 image sensor is very similar to MT9V032 sensor, so I
+>> >> >> >> modified current driver to accept MT9V034 sensor adding the chip
+>> >> >> >> ID. The driver recognizes the sensor and I'm able to capture some
+>> >> >> >> frames.
+>> >> >> >>
+>> >> >> >> I started capturing directly frames using the pipeline Sensor ->
+>> >> >> >> CCDC
+>> >> >> >>
+>> >> >> >>     ./media-ctl -r
+>> >> >> >>     ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
+>> >> >> >>     ./media-ctl -l '"OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC
+>> >> >> >>     output":0[1]'
+>> >> >> >>     ./media-ctl -f '"mt9v032 3-005c":0 [SGRBG10 752x480]'
+>> >> >> >>     ./media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 752x480]'
+>> >> >> >>
+>> >> >> >>     # Test pattern
+>> >> >> >>     ./yavta --set-control '0x00981901 1' /dev/v4l-subdev8
+>> >> >> >>
+>> >> >> >>     # ./yavta -p -f SGRBG10 -s 752x480 -n 4 --capture=3 /dev/video2
+>> >> >> >>
+>> >> >> >> --file=img-#.bin
+>> >> >> >>
+>> >> >> >> To convert to jpg I used bayer2rgb [2] program executing following
+>> >> >> >> command,
+>> >> >> >>
+>> >> >> >>     $ convert -size 752x480  GRBG_BAYER:./img-000000.bin
+>> >> >> >>     img-000000.jpg
+>> >> >> >>
+>> >> >> >> And the result image looks like this
+>> >> >> >>
+>> >> >> >>     http://downloads.isee.biz/pub/files/patterns/img-from-sensor.jp
+>> >> >> >>     g
+>> >> >> >>
+>> >> >> >> Seems good, so I tried to use following pipeline Sensor -> CCDC ->
+>> >> >> >> Preview -> Resizer
+>> >> >> >>
+>> >> >> >>     ./media-ctl -r
+>> >> >> >>     ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
+>> >> >> >>     ./media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>> >> >> >>     ./media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP
+>> >> >> >>     resizer":0[1]'
+>> >> >> >>     ./media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
+>> >> >> >>     output":0[1]'
+>> >> >> >>
+>> >> >> >>     ./media-ctl -V '"mt9v032 3-005c":0[SGRBG10 752x480]'
+>> >> >> >>     ./media-ctl -V  '"OMAP3 ISP CCDC":0 [SGRBG10 752x480]'
+>> >> >> >>     ./media-ctl -V  '"OMAP3 ISP CCDC":2 [SGRBG10 752x480]'
+>> >> >> >>     ./media-ctl -V  '"OMAP3 ISP preview":1 [UYVY 752x480]'
+>> >> >> >>     ./media-ctl -V  '"OMAP3 ISP resizer":1 [UYVY 752x480]'
+>> >> >> >>
+>> >> >> >>     # Set Test pattern
+>> >> >> >>
+>> >> >> >>     ./yavta --set-control '0x00981901 1' /dev/v4l-subdev8
+>> >> >> >>
+>> >> >> >>     ./yavta -f UYVY -s 752x480 --capture=3 --file=img-#.uyvy
+>> >> >> >>     /dev/video6
+>> >> >> >>
+>> >> >> >> I used 'convert' program to pass from UYVY to jpg,
+>> >> >> >>
+>> >> >> >>     $ convert -size 752x480 img-000000.uyvy img-000000.jpg
+>> >> >> >>
+>> >> >> >> and the result image looks like this
+>> >> >> >>
+>> >> >> >>     http://downloads.isee.biz/pub/files/patterns/img-from-resizer.j
+>> >> >> >>     pg
+>> >> >> >>
+>> >> >> >> As you can see, the image is wrong and I'm not sure if the problem
+>> >> >> >> is from the sensor, from the previewer, from the resizer or from my
+>> >> >> >> conversion. Anyone have idea where should I look ? Or which is the
+>> >> >> >> source of the problem ?
+>> >> >> >
+>> >> >> > Could you please post the output of all the above media-ctl and
+>> >> >> > yavta runs, as well as the captured raw binary frame ?
+>> >> >>
+>> >> >> Of course,
+>> >> >>
+>> >> >> The log configuring the pipeline Sensor -> CCDC is
+>> >> >>
+>> >> >>     http://pastebin.com/WX8ex5x2
+>> >> >>
+>> >> >> and the raw image can be found
+>> >> >>
+>> >> >>     http://downloads.isee.biz/pub/files/patterns/img-000000.bin
+>> >> >
+>> >> > It looks like D9 and D8 have trouble keeping their high-level. Possible
+>> >> > reasons would be conflicts on the signal lines (with something actively
+>> >> > driving them to a low-level, a pull-down wouldn't have such an effect),
+>> >> > faulty cable/solder joints (but I doubt that), or sampling the data on
+>> >> > the wrong edge.
+>> >>
+>> >> In that case don't be the first image also wrong ? (the image that
+>> >> outputs from sensor /dev/video2)
+>> >
+>> > Yes, it should be, and
+>> > http://downloads.isee.biz/pub/files/patterns/img-000000.bin is corrupted.
+>> > That's the image captured at the CCDC output, isn't it ?
+>>
+>> Yes it is.
+>>
+>> >>  http://downloads.isee.biz/pub/files/patterns/img-from-sensor.jpg
+>> >
+>> > How did you capture that one ?
+>>
+>> This image is the img-000000.bin (that you say is corrupted) converted
+>> to RGB using bayer2rgb [2] program. So seems I'm using wrong tools to
+>> convert images. How you known that this file is corrupted ? Please,
+>> could you provide the tools that you use ?
+>
+> I'm using raw2rgbpnm (https://gitorious.org/raw2rgbpnm). If you look at the
+> binary file in a hex editor you'll see that the MSBs are corrupted, instead of
+> being stable in the 01 and 02 regions (pixels 256-511 and 512-752 on each
+> line, so bytes 512-1023 and 1024-1503) they oscillate between 00 and 01, and
+> 00 and 02 respectively.
 
-Yes, that will all be userspace.
+Thanks for the explanation, I really appreciate it.
 
-My plan is to have the CEC adapter driver handle the core CEC protocol,
-allow other drivers to intercept messages that are relevant for them and
-send messages themselves, and anything that remains will be available to
-userspace for which a new library will be created.
+>
+>> >> I'll investigate a bit more following this line.
 
-Now, don't ask me about any of the details, since I don't have them yet :-)
-My plan is to start working on this next week or the week after.
+You had reason. Checking the data lines of the camera bus with an
+oscilloscope I see I had a problem, exactly in D8 /D9 data lines. Now
+I can capture images but the color is still wrong, see the following
+image captured with pipeline SENSOR -> CCDC OUTPUT
 
-Are you willing to test early versions of this work? Can you test HDMI 1.4a
-features as well? Testing this might well be one of the harder things to do.
+    http://downloads.isee.biz/pub/files/patterns/img-000001.pnm
 
-Regards,
+Now the image was converted using :
 
-	Hans
+    ./raw2rgbpnm -s 752x480 -f SGRBG10 img-000001.bin img-000001.pnm
+
+And the raw data can be found here:
+
+    http://downloads.isee.biz/pub/files/patterns/img-000001.bin
+
+Any idea where I can look ? Thanks.
+
+>> >>
+>> >> > The last option should be easy to test, just change the struct
+>> >> > isp_v4l2_subdevs_group::bus::parallel::clk_pol field.
+>> >>
+>> >> I tested and seems this is not the problem.
+>> >>
+>> >> >> And the log configuring the pipeline Sensor -> CCDC -> Previewer ->
+>> >> >> Resizer is http://pastebin.com/wh5ZJwne and the raw image can be found
+>> >> >>
+>> >> >>     http://downloads.isee.biz/pub/files/patterns/img-000000.uyvy
+>> >> >> >>
+>> >> >> >> [1]
+>> >> >> >> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/
+>> >> >> >> omap3isp-omap3isp-next
+>> >> >> >> [2] https://github.com/jdthomas/bayer2rgb
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
