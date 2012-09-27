@@ -1,59 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:50312 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758762Ab2IKLTV (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41963 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752266Ab2I0LJ2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Sep 2012 07:19:21 -0400
-Subject: Re: [PATCH v4 12/16] media: coda: add byte size slice limit control
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
-In-Reply-To: <CACKLOr06ymPN8Upt0Z_Vdq8=qwAnXOaWd1k3nVMUB3GOCqv1+g@mail.gmail.com>
-References: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
-	 <1347291000-340-13-git-send-email-p.zabel@pengutronix.de>
-	 <CACKLOr06ymPN8Upt0Z_Vdq8=qwAnXOaWd1k3nVMUB3GOCqv1+g@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 11 Sep 2012 13:19:19 +0200
-Message-ID: <1347362359.2615.41.camel@pizza.hi.pengutronix.de>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 27 Sep 2012 07:09:28 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, a.hajda@samsung.com,
+	sakari.ailus@iki.fi, hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	sw0312.kim@samsung.com
+Subject: Re: [PATCH RFC v3 2/5] V4L: Add V4L2_PIX_FMT_S5C_UYVY_JPG fourcc definition
+Date: Thu, 27 Sep 2012 13:10:06 +0200
+Message-ID: <1883596.GzBn8PVzcb@avalon>
+In-Reply-To: <1348674853-24596-3-git-send-email-s.nawrocki@samsung.com>
+References: <1348674853-24596-1-git-send-email-s.nawrocki@samsung.com> <1348674853-24596-3-git-send-email-s.nawrocki@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+Hi Sylwester,
 
-Am Dienstag, den 11.09.2012, 12:50 +0200 schrieb javier Martin:
-> On 10 September 2012 17:29, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> >  drivers/media/platform/coda.c |   29 +++++++++++++++++++++++------
-> >  1 file changed, 23 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> > index 81e3401..863b96a 100644
-> > --- a/drivers/media/platform/coda.c
-> > +++ b/drivers/media/platform/coda.c
-[...]
-> > @@ -1346,10 +1361,12 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
-> >                 V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP, 1, 31, 1, 2);
-> >         v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
-> >                 V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE,
-> > -               V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB, 0,
-> > -               V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB);
-> > +               V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES, 0x7,
-> > +               V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE);
+Thank you for the patch.
+
+On Wednesday 26 September 2012 17:54:10 Sylwester Nawrocki wrote:
+> This patch adds definition of the Samsung S5C73M3 camera specific
+> image format. V4L2_PIX_FMT_S5C_UYVY_JPG is a two-planar format,
+> the  first plane contains interleaved UYVY and JPEG data followed
+> by meta-data. The second plane contains additional meta-data needed
+> for extracting JPEG and UYVY data stream from the first plane.
 > 
-> The mask must be 0x0 instead of 0x7. Otherwise you are forbidding all
-> the possible values for this ctrl and that won't work.
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  Documentation/DocBook/media/v4l/pixfmt.xml | 28 +++++++++++++++++++++++++++
+>  include/linux/videodev2.h                  |  1 +
+>  2 files changed, 29 insertions(+)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml
+> b/Documentation/DocBook/media/v4l/pixfmt.xml index 1ddbfab..21284ba 100644
+> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
+> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+> @@ -996,6 +996,34 @@ the other bits are set to 0.</entry>
+>  	    <entry>Old 6-bit greyscale format. Only the most significant 6 bits 
+of
+> each byte are used, the other bits are set to 0.</entry>
+>  	  </row>
+> +	  <row id="V4L2-PIX-FMT-S5C-UYVY-JPG">
+> +	    <entry><constant>V4L2_PIX_FMT_S5C_UYVY_JPG</constant></entry>
+> +	    <entry>'S5CI'</entry>
+> +	    <entry>Two-planar format used by Samsung S5C73MX cameras. The
+> +first plane contains interleaved JPEG and UYVY image data, followed by meta
+> data in form of an array of offsets to the UYVY data blocks. The actual
+> pointer array follows immediately the interleaved JPEG/UYVY data, the number
+> of entries in this array equals the height of the UYVY image. Each entry is
+> a 4-byte unsigned integer in big endian order and it's an offset to a single
+> pixel line of the UYVY image. The first plane can start either with JPEG or
+> UYVY data chunk. The size of a single UYVY block equals the UYVY image's
+> width multiplied by 2. The size of a JPEG chunk depends on the image and can
+> vary with each line.
+> +<para>The second plane, at an offset of 4084 bytes, contains a 4-byte
+> offset to the pointer array in the first plane. This offset is followed by a
+> 4-byte value indicating size of the pointer array. All numbers in the second
+> plane are also in big endian order. Remaining data in the first plane is
+> undefined.
 
-Thank you, will fix that.
+Do you mean "remaining data in the second plane is undefined." ?
 
-regards
-Philipp
+Can it still be useful for some applications, or is it complete garbage ?
+
+> The information in the second plane allows to easily find location of the
+> pointer array, which can be different for each frame. The size of the
+> pointer array is +constant for given UYVY image height.</para>
+> +<para>In order to extract UYVY and JPEG frames an application can initially
+> set a data pointer to the start of first plane and then add an offset from
+> the first entry of the pointers table. Such a pointer indicates start of an
+> UYVY image pixel line. Whole UYVY line can be copied to a separate buffer.
+> These steps should be repeated for each line, i.e. the number of entries in
+> the pointer array. Anything what's in between the UYVY lines is JPEG data
+> and should be concatenated to form the JPEG stream. </para>
+> +</entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 8d29bb2..6c82ff5 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -436,6 +436,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_KONICA420  v4l2_fourcc('K', 'O', 'N', 'I') /* YUV420
+> planar in blocks of 256 pixels */ #define
+> V4L2_PIX_FMT_JPGL	v4l2_fourcc('J', 'P', 'G', 'L') /* JPEG-Lite */ #define
+> V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu
+> compressed rgb */ +#define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5',
+> 'C', 'J') /* S5C73M3 interleaved UYVY/JPEG */
+> 
+>  /*
+>   *	F O R M A T   E N U M E R A T I O N
+-- 
+Regards,
+
+Laurent Pinchart
 
