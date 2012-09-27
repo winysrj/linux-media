@@ -1,190 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4470 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756411Ab2ICLyW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 07:54:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 1/1] v4l: Remove experimental tag from certain API elements
-Date: Mon, 3 Sep 2012 13:54:09 +0200
-Cc: linux-media@vger.kernel.org
-References: <1346568345-13916-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1346568345-13916-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:56546 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752635Ab2I0NUX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Sep 2012 09:20:23 -0400
+Received: by bkcjk13 with SMTP id jk13so1764769bkc.19
+        for <linux-media@vger.kernel.org>; Thu, 27 Sep 2012 06:20:21 -0700 (PDT)
+Message-ID: <50645295.1090609@googlemail.com>
+Date: Thu, 27 Sep 2012 15:20:21 +0200
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209031354.09124.hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
+Subject: Re: qv4l2-bug / libv4lconvert API issue
+References: <50636DD2.3070508@googlemail.com> <506429D1.4090401@redhat.com>
+In-Reply-To: <506429D1.4090401@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun September 2 2012 08:45:45 Sakari Ailus wrote:
-> Remove experimantal tag from the following API elements:
-> 
-> V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY buffer type.
-> V4L2_CAP_VIDEO_OUTPUT_OVERLAY capability flag.
-> VIDIOC_ENUM_FRAMESIZES IOCTL.
-> VIDIOC_G_ENC_INDEX IOCTL.
-> VIDIOC_ENCODER_CMD and VIDIOC_TRY_ENCODER_CMD IOCTLs.
-> VIDIOC_DECODER_CMD and VIDIOC_TRY_DECODER_CMD IOCTLs.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Hi,
 
-Thanks! I'm adding this to my new api branch that will contain more patches
-relating to the API ambiguities topic from the workshop.
+Am 27.09.2012 12:26, schrieb Hans de Goede:
+> Hi,
+>
+> On 09/26/2012 11:04 PM, Frank Schäfer wrote:
+>> Hi,
+>>
+>> I've noticed the following issues/bugs while playing with qv4l:
+>> 1.) with pac7302-webcams, only the RGB3 (RGB24) format is working. BGR3,
+>> YU12 and YV12 are broken
+>> 2.) for upside-down-mounted devices with an entry in libv4lconvert,
+>> automatic h/v-flipping doesn't work with some formats
+>>
+>> I've been digging a bit deeper into the code and it seems that both
+>> issues are caused by a problem with the libv4lconvert-API:
+>> Besides image format conversion, function v4lconvert_convert() also does
+>> the automatic image flipping and rotation (for devices with flags
+>> V4LCONTROL_HFLIPPED, V4LCONTROL_VFLIPPED and V4LCONTROL_ROTATED_90_JPEG)
+>> The problem is, that this function can be called multiple times for the
+>> same frame, which then of course results in repeated flipping and
+>> rotation...
+>>
+>> And this is exactly what happens with qv4l2:
+>> qv4l2 gets the frame from libv4l2, which calls v4lconvert_convert() in
+>> v4l2_dequeue_and_convert() or v4l2_read_and_convert().
+>> The retrieved frame has the requested format and is already
+>> flipped/rotated.
+>> qv4l2 then calls v4lconvert_convert() again directly to convert the
+>> frame to RGB24 for GUI-output and this is where things are going wrong.
+>> In case of h/v-flip, the double conversion "only" equalizes the
+>> V4LCONTROL_HFLIPPED, V4LCONTROL_VFLIPPED flags, but for rotated devices,
+>> the image gets corrupted.
+>>
+>> Sure, what qv4l2 does is a crazy. Applications usually request the
+>> format needed for GUI-output directly from libv4l2.
+>> Anyway, as long as it is valid to call libv4lconvert directly, we can
+>> not assume that v4lconvert_convert() is called only one time.
+>>
+>> At the moment, I see no possibility to fix this without changing the
+>> libv4lconvert-API.
+>> Thoughts ?
+>
+> What you've found is a qv4l2 bug (do you have the latest version?)
+
+Of course, I'm using the latest developer version.
+
+Even if this is just a qv4l2-bug: how do you want to fix it without
+removing the format selction feature ?
+
+> one
+> is supposed to either use libv4l2, or do raw device access and then
+> call libv4lconvert directly.
+
+Even when using libv4lconvert only, multiple frame conversions are still
+causing the same trouble.
+
+Hans, first of all, I would like to say that my intention is not to
+savage your work.
+I know API design and maintanance is very difficult and you are doing a
+great job.
+Things like this just happen and we have to make the best out of it.
+
+But saying that libv4l2 and libv4lconvert can't be used at the same
+(although they are separate public libraries) and that
+v4lconvert_convert() may only be called once per frame seems to me like
+a - I would say "weird" - reinterpretation of the API...
+I don't think this is what applications currently expect (qv4l2 doesn't
+;) ) and at least this would need public clarification.
+
+So let's see if there is a possibility to fix the issue by improving the
+libraries without breaking the API.
+
+What about the following solution:
+- make v4lconvert_convert_pixfmt() and v4lconvert_crop() public
+functions and fix qv4l2 to use them instead of v4lconvert_convert()
+- also make the flip and rotation functions (v4lconvert_flip(),
+v4lconvert_rotate90()) publicly available
+- modify libv4l2 to call v4lconvert_convert_pixfmt() and the
+flip+rotation+crop functions instead of v4lconvert_convert()
+- fix v4lconvert_convert() to not do transparent image flipping/rotation
+(means => call v4lconvert_convert_pixfmt() and v4lconvert_crop() only).
+For API-clean-up:
+- create a copy of (the fixed) v4lconvert_convert() called something
+like v4lconvert_convert_crop()
+- declare v4lconvert_convert() as deprecated so that we can remove it
+sometime in the future
+
+What do you think ?
 
 Regards,
+Frank
 
-	Hans
 
-> ---
-> VIDIOC_ENUM_FRAMEINTERVALS is already no longer experimental.
-> 
->  Documentation/DocBook/media/v4l/compat.xml         |   23 --------------------
->  Documentation/DocBook/media/v4l/dev-osd.xml        |    7 ------
->  Documentation/DocBook/media/v4l/io.xml             |    3 +-
->  .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |    7 ------
->  .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |    7 ------
->  .../DocBook/media/v4l/vidioc-enum-framesizes.xml   |    7 ------
->  .../DocBook/media/v4l/vidioc-g-enc-index.xml       |    7 ------
->  7 files changed, 1 insertions(+), 60 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-> index 98e8d08..578135e 100644
-> --- a/Documentation/DocBook/media/v4l/compat.xml
-> +++ b/Documentation/DocBook/media/v4l/compat.xml
-> @@ -2555,29 +2555,6 @@ and may change in the future.</para>
->  	  <para>Video Output Overlay (OSD) Interface, <xref
->  	    linkend="osd" />.</para>
->          </listitem>
-> -	<listitem>
-> -	  <para><constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY</constant>,
-> -	&v4l2-buf-type;, <xref linkend="v4l2-buf-type" />.</para>
-> -        </listitem>
-> -        <listitem>
-> -	  <para><constant>V4L2_CAP_VIDEO_OUTPUT_OVERLAY</constant>,
-> -&VIDIOC-QUERYCAP; ioctl, <xref linkend="device-capabilities" />.</para>
-> -        </listitem>
-> -        <listitem>
-> -	  <para>&VIDIOC-ENUM-FRAMESIZES; and
-> -&VIDIOC-ENUM-FRAMEINTERVALS; ioctls.</para>
-> -        </listitem>
-> -        <listitem>
-> -	  <para>&VIDIOC-G-ENC-INDEX; ioctl.</para>
-> -        </listitem>
-> -        <listitem>
-> -	  <para>&VIDIOC-ENCODER-CMD; and &VIDIOC-TRY-ENCODER-CMD;
-> -ioctls.</para>
-> -        </listitem>
-> -        <listitem>
-> -	  <para>&VIDIOC-DECODER-CMD; and &VIDIOC-TRY-DECODER-CMD;
-> -ioctls.</para>
-> -        </listitem>
->          <listitem>
->  	  <para>&VIDIOC-DBG-G-REGISTER; and &VIDIOC-DBG-S-REGISTER;
->  ioctls.</para>
-> diff --git a/Documentation/DocBook/media/v4l/dev-osd.xml b/Documentation/DocBook/media/v4l/dev-osd.xml
-> index 479d943..dd91d61 100644
-> --- a/Documentation/DocBook/media/v4l/dev-osd.xml
-> +++ b/Documentation/DocBook/media/v4l/dev-osd.xml
-> @@ -1,13 +1,6 @@
->    <title>Video Output Overlay Interface</title>
->    <subtitle>Also known as On-Screen Display (OSD)</subtitle>
->  
-> -  <note>
-> -    <title>Experimental</title>
-> -
-> -    <para>This is an <link linkend="experimental">experimental</link>
-> -interface and may change in the future.</para>
-> -  </note>
-> -
->    <para>Some video output devices can overlay a framebuffer image onto
->  the outgoing video signal. Applications can set up such an overlay
->  using this interface, which borrows structures and ioctls of the <link
-> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> index 1885cc0..2512649 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
-> @@ -827,8 +827,7 @@ should set this to 0.</entry>
->  	    <entry><constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY</constant></entry>
->  	    <entry>8</entry>
->  	    <entry>Buffer for video output overlay (OSD), see <xref
-> -		linkend="osd" />. Status: <link
-> -linkend="experimental">Experimental</link>.</entry>
-> +		linkend="osd" />.</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>V4L2_BUF_TYPE_PRIVATE</constant></entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-> index 74b87f6..9215627 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-> @@ -49,13 +49,6 @@
->    <refsect1>
->      <title>Description</title>
->  
-> -    <note>
-> -      <title>Experimental</title>
-> -
-> -      <para>This is an <link linkend="experimental">experimental</link>
-> -interface and may change in the future.</para>
-> -    </note>
-> -
->      <para>These ioctls control an audio/video (usually MPEG-) decoder.
->  <constant>VIDIOC_DECODER_CMD</constant> sends a command to the
->  decoder, <constant>VIDIOC_TRY_DECODER_CMD</constant> can be used to
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-> index f431b3b..0619ca5 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-> @@ -49,13 +49,6 @@
->    <refsect1>
->      <title>Description</title>
->  
-> -    <note>
-> -      <title>Experimental</title>
-> -
-> -      <para>This is an <link linkend="experimental">experimental</link>
-> -interface and may change in the future.</para>
-> -    </note>
-> -
->      <para>These ioctls control an audio/video (usually MPEG-) encoder.
->  <constant>VIDIOC_ENCODER_CMD</constant> sends a command to the
->  encoder, <constant>VIDIOC_TRY_ENCODER_CMD</constant> can be used to
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml b/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
-> index f77a13f..a78454b 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-enum-framesizes.xml
-> @@ -50,13 +50,6 @@ and pixel format and receives a frame width and height.</para>
->    <refsect1>
->      <title>Description</title>
->  
-> -    <note>
-> -      <title>Experimental</title>
-> -
-> -      <para>This is an <link linkend="experimental">experimental</link>
-> -interface and may change in the future.</para>
-> -    </note>
-> -
->      <para>This ioctl allows applications to enumerate all frame sizes
->  (&ie; width and height in pixels) that the device supports for the
->  given pixel format.</para>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-enc-index.xml b/Documentation/DocBook/media/v4l/vidioc-g-enc-index.xml
-> index 2aef02c..be25029 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-enc-index.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-enc-index.xml
-> @@ -48,13 +48,6 @@
->    <refsect1>
->      <title>Description</title>
->  
-> -    <note>
-> -      <title>Experimental</title>
-> -
-> -      <para>This is an <link linkend="experimental">experimental</link>
-> -interface and may change in the future.</para>
-> -    </note>
-> -
->      <para>The <constant>VIDIOC_G_ENC_INDEX</constant> ioctl provides
->  meta data about a compressed video stream the same or another
->  application currently reads from the driver, which is useful for
-> 
+
+> These are also the 2 modes qv4l2 has
+> (for testing purposes), it is not supposed to do the manual convert call
+> when using libv4l2 to access the device ...
+>
+> Regards,
+>
+> Hans
+
