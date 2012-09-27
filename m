@@ -1,137 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:64098 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754082Ab2ITLy0 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57574 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754952Ab2I0XVt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 07:54:26 -0400
-Received: by bkuw11 with SMTP id w11so159149bku.19
-        for <linux-media@vger.kernel.org>; Thu, 20 Sep 2012 04:54:25 -0700 (PDT)
-Message-ID: <505B03FC.3080707@googlemail.com>
-Date: Thu, 20 Sep 2012 13:54:36 +0200
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+	Thu, 27 Sep 2012 19:21:49 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, a.hajda@samsung.com,
+	sakari.ailus@iki.fi, hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	sw0312.kim@samsung.com
+Subject: Re: [PATCH RFC v3 2/5] V4L: Add V4L2_PIX_FMT_S5C_UYVY_JPG fourcc definition
+Date: Fri, 28 Sep 2012 01:22:23 +0200
+Message-ID: <3075124.qjBDGTqHZX@avalon>
+In-Reply-To: <50648A55.9020100@gmail.com>
+References: <1348674853-24596-1-git-send-email-s.nawrocki@samsung.com> <1883596.GzBn8PVzcb@avalon> <50648A55.9020100@gmail.com>
 MIME-Version: 1.0
-CC: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/4] gspca_pac7302: add support for green balance adjustment
-References: <1347811240-4000-1-git-send-email-fschaefer.oss@googlemail.com> <1347811240-4000-4-git-send-email-fschaefer.oss@googlemail.com> <5059FFF1.30104@googlemail.com> <505A2C52.4040001@redhat.com> <505A3112.10207@googlemail.com> <505ADD14.7070208@redhat.com>
-In-Reply-To: <505ADD14.7070208@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sylwester,
 
-Am 20.09.2012 11:08, schrieb Hans de Goede:
-> Hi,
->
->>>> Hans, it seems like you didn't pick up these patches up yet...
->>>> Is there anything wrong with them ?
->>>
->>> I've somehow completely missed them. Can you resend the entire set
->>> please?
->>
->> No problem, but I can't do that before weekend (I'm currently not at
->> home).
->> I've sent these 4 patches on last Sunday (16. Sept) evening.
->> Maybe you can pick them up from patchwork ?
->> http://patchwork.linuxtv.org/patch/14433/
->
-> Ah yes, patchwork, that will work. Unfortunately that only solves the
-> me having missed the patches problem.
->
-> First of all thanks for working on this! I'm afraid you've managed to
-> find
-> one of the weak spots in the v4l2 API, namely how we deal with RGB gains.
+On Thursday 27 September 2012 19:18:13 Sylwester Nawrocki wrote:
+> On 09/27/2012 01:10 PM, Laurent Pinchart wrote:
+> > On Wednesday 26 September 2012 17:54:10 Sylwester Nawrocki wrote:
+> >> This patch adds definition of the Samsung S5C73M3 camera specific
+> >> image format. V4L2_PIX_FMT_S5C_UYVY_JPG is a two-planar format,
+> >> the  first plane contains interleaved UYVY and JPEG data followed
+> >> by meta-data. The second plane contains additional meta-data needed
+> >> for extracting JPEG and UYVY data stream from the first plane.
+> >> 
+> >> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+> >> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+> >> ---
+> >> 
+> >>   Documentation/DocBook/media/v4l/pixfmt.xml | 28 +++++++++++++++++++++++
+> >>   include/linux/videodev2.h                  |  1 +
+> >>   2 files changed, 29 insertions(+)
+> >> 
+> >> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml
+> >> b/Documentation/DocBook/media/v4l/pixfmt.xml index 1ddbfab..21284ba
+> >> 100644
+> >> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
+> >> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+> >> @@ -996,6 +996,34 @@ the other bits are set to 0.</entry>
+> >> 
+> >>   	<entry>Old 6-bit greyscale format. Only the most significant 6 bits
+> > 
+> > of
+> > 
+> >> each byte are used, the other bits are set to 0.</entry>
+> >> 
+> >>   	</row>
+> >> 
+> >> +	<row id="V4L2-PIX-FMT-S5C-UYVY-JPG">
+> >> +	<entry><constant>V4L2_PIX_FMT_S5C_UYVY_JPG</constant></entry>
+> >> +	<entry>'S5CI'</entry>
+> >> +	<entry>Two-planar format used by Samsung S5C73MX cameras. The
+> >> +first plane contains interleaved JPEG and UYVY image data, followed by
+> >> meta data in form of an array of offsets to the UYVY data blocks. The
+> >> actual pointer array follows immediately the interleaved JPEG/UYVY data,
+> >> the number of entries in this array equals the height of the UYVY image.
+> >> Each entry is a 4-byte unsigned integer in big endian order and it's an
+> >> offset to a single pixel line of the UYVY image. The first plane can
+> >> start either with JPEG or UYVY data chunk. The size of a single UYVY
+> >> block equals the UYVY image's width multiplied by 2. The size of a JPEG
+> >> chunk depends on the image and can vary with each line.
+> >> +<para>The second plane, at an offset of 4084 bytes, contains a 4-byte
+> >> offset to the pointer array in the first plane. This offset is followed
+> >> by a 4-byte value indicating size of the pointer array. All numbers in
+> >> the second plane are also in big endian order. Remaining data in the
+> >> first plane is undefined.
+> > 
+> > Do you mean "remaining data in the second plane is undefined." ?
+> 
+> Ah, right. Thank you for catching it.
+> 
+> > Can it still be useful for some applications, or is it complete garbage ?
+> 
+> I don't really know... I don't have good documentation for this. It is
+> very likely there is some more interesting data in this 4 kiB buffer.
+> So by "undefined" I meant "has undefined meaning" or "I don't know what's
+> there at the moment"... From the requirements, it's only needed to decode
+> the interleaved data and very likely won't be needed for anything else.
+> 
+> Perhaps I should change this sentence to
+> "Remaining data in the first plane has undefined meaning." or drop it
+> entirely ?
 
-It seems like this is one of my talents... :(
+I'm fine with the text you proposed, I was just wondering.
 
->
-> Many webcams have RGB gains, but we don't have standard CID-s for these,
-> instead we've Blue and Red Balance. This has grown historically
-> because of
-> the bttv cards which actually have Blue and Red balance controls in
-> hardware,
-> rather then the usual RGB gain triplet. Various gspca drivers cope
-> with this
-> in different ways.
->
-> If you look at the pac7302 driver before your latest 4 patches it has
-> a Red and Blue balance control controlling the Red and Blue gain, and a
-> Whitebalance control, which is not White balance at all, but simply
-> controls the green gain...
+> >> The information in the second plane allows to easily find location of the
+> >> pointer array, which can be different for each frame. The size of the
+> >> pointer array is +constant for given UYVY image height.</para>
+> >> +<para>In order to extract UYVY and JPEG frames an application can
+> >> initially set a data pointer to the start of first plane and then add an
+> >> offset from the first entry of the pointers table. Such a pointer
+> >> indicates start of an UYVY image pixel line. Whole UYVY line can be
+> >> copied to a separate buffer. These steps should be repeated for each
+> >> line, i.e. the number of entries in the pointer array. Anything what's
+> >> in between the UYVY lines is JPEG data and should be concatenated to
+> >> form the JPEG stream.</para>
+> >> +</entry>
+> >> +	</row>
+> >> 
+> >>   	</tbody>
+> >>   	
+> >>         </tgroup>
+> >>       
+> >>       </table>
+> >> 
+> >> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> >> index 8d29bb2..6c82ff5 100644
+> >> --- a/include/linux/videodev2.h
+> >> +++ b/include/linux/videodev2.h
+> >> @@ -436,6 +436,7 @@ struct v4l2_pix_format {
+> >> 
+> >>   #define V4L2_PIX_FMT_KONICA420  v4l2_fourcc('K', 'O', 'N', 'I') /*
+> >>   YUV420
+> >> 
+> >> planar in blocks of 256 pixels */ #define
+> >> V4L2_PIX_FMT_JPGL	v4l2_fourcc('J', 'P', 'G', 'L') /* JPEG-Lite */ #define
+> >> V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu
+> >> compressed rgb */ +#define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S',
+> >> '5',
+> >> 'C', 'J') /* S5C73M3 interleaved UYVY/JPEG */
+> >> 
+> >>   /*
+> >>   
+> >>    *	F O R M A T   E N U M E R A T I O N
 
-Ok, so if I understand you right, red+green+blue balance = white balance.
-And because we already have defined red, blue and whitebalance controls
-for historical reasons, we don't need green balance ?
-Maybe that matches physics, but I don't think it's a sane approach for a
-user interface...
-
-
->
-> And as said other drivers have similar (albeit usually different) hacks.
->
-> At a minimum I would like you to rework your patches to:
-> 1) Not add the new Green balance, and instead modify the existing
-> whitebalance
-> to control the new green gain you've found. Keeping things as broken as
-> they are, but not worse; and
-
-I prefer waiting for the results of the discussion you are proposing
-further down.
-
-> 2) Try to use both the page 0 reg 0x01 - 0x03 and page 0 reg 0xc5 - 0xc7
-> at the same time to get a wider ranged control. Maybe 0xc5 - 0xc7 are
-> simply the most significant bits of a wider ranged gain ?
-
-I don't think so. The windows driver does not use them.
-It even doesn't use the full range of registers 0x01-0x03.
-Of course, I have expermiented with the full range and it works, but it
-doesn't make much sense to use it.
-
-Experimenting with the device to determine the meaing of unknown
-registerts, you will notice, that there are several registert which
-affect RGB.
-But that doesn't mean that they are suitable for a user control...
-
-> Note that if you cannot control them both from a single control in such
-> a way that you get a smooth control range, then lets just fix
-> 0xc5 - 0xc7 at a value of 2 for all 3 and be done with it, but at least
-> we should try :)
-
-There is no need to fix registers 0xc5 and 0xc7.
-The Windows driver sets them to 1, which is exactly the value we are
-currently using as default value with the blue and red value controls.
-
->
-> As said the above is the minimum, what I would really like is a
-> discussion
-> on linux-media about adding proper RGB gain controls for all the cameras
-> which have these.
->
-> Note this brings with itself the question should we export such lowlevel
-> controls at all ? In some drivers the per color gains are simply all
-> kept at the same level and controlled as part of the master gain control,
-> giving it a wider and/or more fine grained range, leading to better
-> autogain
-> behavior. Given how our sw autowhitebalance works (and that that works
-> reasonable well), their is not much added value in exporting them
-> separately,
-> while they do tend to improve the standard gain control when used as part
-> of it ...
-
-I would say, let the drivers decide how to do things. It also depends on
-the hardware design.
-
+-- 
 Regards,
-Frank
 
->
-> So what we really need is a plan how to deal with these controls, and
-> then
-> send an RFC for this to the list.
->
-> Regards,
->
-> Hans
+Laurent Pinchart
 
