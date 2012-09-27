@@ -1,132 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:38701 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756373Ab2ICMBO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 08:01:14 -0400
-Received: by wibhr14 with SMTP id hr14so3971592wib.1
-        for <linux-media@vger.kernel.org>; Mon, 03 Sep 2012 05:01:13 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1346400670-16002-8-git-send-email-p.zabel@pengutronix.de>
-References: <1346400670-16002-1-git-send-email-p.zabel@pengutronix.de>
-	<1346400670-16002-8-git-send-email-p.zabel@pengutronix.de>
-Date: Mon, 3 Sep 2012 14:01:12 +0200
-Message-ID: <CACKLOr1jbotK2z4icas+1DGANGh=0xykBxXCTSGfVay6zq647A@mail.gmail.com>
-Subject: Re: [PATCH v3 07/16] media: coda: stop all queues in case of lockup
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-out.m-online.net ([212.18.0.9]:60921 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755818Ab2I0WD4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Sep 2012 18:03:56 -0400
+From: Anatolij Gustschin <agust@denx.de>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 1/3] mt9v022: add v4l2 controls for blanking
+Date: Fri, 28 Sep 2012 00:03:45 +0200
+Message-Id: <1348783425-22934-1-git-send-email-agust@denx.de>
+In-Reply-To: <1345799431-29426-2-git-send-email-agust@denx.de>
+References: <1345799431-29426-2-git-send-email-agust@denx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+Add controls for horizontal and vertical blanking. Also add an error
+message for case that the control handler init failed. Since setting
+the blanking registers is done by controls now, we shouldn't change
+these registers outside of the control function. Use v4l2_ctrl_s_ctrl()
+to set them.
 
-On 31 August 2012 10:11, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> Add a 1 second timeout for each PIC_RUN command to the CODA. In
-> case it locks up, stop all queues and dequeue remaining buffers.
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
-> Changes since v2:
->  - Call cancel_delayed_work in coda_stop_streaming instead of coda_irq_handler.
-> ---
->  drivers/media/platform/coda.c |   21 +++++++++++++++++++++
->  1 file changed, 21 insertions(+)
->
-> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> index 7bc2d87..6e3f026 100644
-> --- a/drivers/media/platform/coda.c
-> +++ b/drivers/media/platform/coda.c
-> @@ -137,6 +137,7 @@ struct coda_dev {
->         struct vb2_alloc_ctx    *alloc_ctx;
->         struct list_head        instances;
->         unsigned long           instance_mask;
-> +       struct delayed_work     timeout;
->  };
->
->  struct coda_params {
-> @@ -723,6 +724,9 @@ static void coda_device_run(void *m2m_priv)
->                                 CODA7_REG_BIT_AXI_SRAM_USE);
->         }
->
-> +       /* 1 second timeout in case CODA locks up */
-> +       schedule_delayed_work(&dev->timeout, HZ);
-> +
->         coda_command_async(ctx, CODA_COMMAND_PIC_RUN);
->  }
->
-> @@ -1221,6 +1225,8 @@ static int coda_stop_streaming(struct vb2_queue *q)
->         }
->
->         if (!ctx->rawstreamon && !ctx->compstreamon) {
-> +               cancel_delayed_work(&dev->timeout);
-> +
+Signed-off-by: Anatolij Gustschin <agust@denx.de>
+---
+Changes since first version:
+ - drop analog and reg32 setting controls
+ - use more descriptive error message for handler init error
+ - revise commit log
+ - rebase on staging/for_v3.7 branch
 
-This breaks compilation. There is no such variable 'dev' in this
-function at this time.
-I see you add it later in patch 9 but I think we should avoid breaking
-bisect as long as possible.
+ drivers/media/i2c/soc_camera/mt9v022.c |   49 +++++++++++++++++++++++++++++--
+ 1 files changed, 45 insertions(+), 4 deletions(-)
 
-  CC      drivers/media/video/coda.o
-drivers/media/video/coda.c: In function 'coda_stop_streaming':
-drivers/media/video/coda.c:1227: error: 'dev' undeclared (first use in
-this function)
-drivers/media/video/coda.c:1227: error: (Each undeclared identifier is
-reported only once
-drivers/media/video/coda.c:1227: error: for each function it appears in.)
-
-Could you please add it in this patch instead?
-
-
->                 v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
->                          "%s: sent command 'SEQ_END' to coda\n", __func__);
->                 if (coda_command_sync(ctx, CODA_COMMAND_SEQ_END)) {
-> @@ -1565,6 +1571,20 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
->         return IRQ_HANDLED;
->  }
->
-> +static void coda_timeout(struct work_struct *work)
-> +{
-> +       struct coda_ctx *ctx;
-> +       struct coda_dev *dev = container_of(to_delayed_work(work),
-> +                                           struct coda_dev, timeout);
-> +
-> +       v4l2_err(&dev->v4l2_dev, "CODA PIC_RUN timeout, stopping all streams\n");
-> +
-> +       list_for_each_entry(ctx, &dev->instances, list) {
-> +               v4l2_m2m_streamoff(NULL, ctx->m2m_ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-> +               v4l2_m2m_streamoff(NULL, ctx->m2m_ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
-> +       }
-> +}
-> +
->  static u32 coda_supported_firmwares[] = {
->         CODA_FIRMWARE_VERNUM(CODA_DX6, 2, 2, 5),
->         CODA_FIRMWARE_VERNUM(CODA_7541, 13, 4, 29),
-> @@ -1836,6 +1856,7 @@ static int __devinit coda_probe(struct platform_device *pdev)
->
->         spin_lock_init(&dev->irqlock);
->         INIT_LIST_HEAD(&dev->instances);
-> +       INIT_DELAYED_WORK(&dev->timeout, coda_timeout);
->
->         dev->plat_dev = pdev;
->         dev->clk_per = devm_clk_get(&pdev->dev, "per");
-> --
-> 1.7.10.4
->
-
-
-
+diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/mt9v022.c
+index 350d0d8..3cb23c6 100644
+--- a/drivers/media/i2c/soc_camera/mt9v022.c
++++ b/drivers/media/i2c/soc_camera/mt9v022.c
+@@ -71,6 +71,13 @@ MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"");
+ #define MT9V022_COLUMN_SKIP		1
+ #define MT9V022_ROW_SKIP		4
+ 
++#define MT9V022_HORIZONTAL_BLANKING_MIN	43
++#define MT9V022_HORIZONTAL_BLANKING_MAX	1023
++#define MT9V022_HORIZONTAL_BLANKING_DEF	94
++#define MT9V022_VERTICAL_BLANKING_MIN	2
++#define MT9V022_VERTICAL_BLANKING_MAX	3000
++#define MT9V022_VERTICAL_BLANKING_DEF	45
++
+ #define is_mt9v024(id) (id == 0x1324)
+ 
+ /* MT9V022 has only one fixed colorspace per pixelcode */
+@@ -136,6 +143,8 @@ struct mt9v022 {
+ 		struct v4l2_ctrl *autogain;
+ 		struct v4l2_ctrl *gain;
+ 	};
++	struct v4l2_ctrl *hblank;
++	struct v4l2_ctrl *vblank;
+ 	struct v4l2_rect rect;	/* Sensor window */
+ 	const struct mt9v022_datafmt *fmt;
+ 	const struct mt9v022_datafmt *fmts;
+@@ -277,11 +286,10 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 		 * Default 94, Phytec driver says:
+ 		 * "width + horizontal blank >= 660"
+ 		 */
+-		ret = reg_write(client, MT9V022_HORIZONTAL_BLANKING,
+-				rect.width > 660 - 43 ? 43 :
+-				660 - rect.width);
++		ret = v4l2_ctrl_s_ctrl(mt9v022->hblank,
++				rect.width > 660 - 43 ? 43 : 660 - rect.width);
+ 	if (!ret)
+-		ret = reg_write(client, MT9V022_VERTICAL_BLANKING, 45);
++		ret = v4l2_ctrl_s_ctrl(mt9v022->vblank, 45);
+ 	if (!ret)
+ 		ret = reg_write(client, MT9V022_WINDOW_WIDTH, rect.width);
+ 	if (!ret)
+@@ -504,6 +512,18 @@ static int mt9v022_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+ 		range = exp->maximum - exp->minimum;
+ 		exp->val = ((data - 1) * range + 239) / 479 + exp->minimum;
+ 		return 0;
++	case V4L2_CID_HBLANK:
++		data = reg_read(client, MT9V022_HORIZONTAL_BLANKING);
++		if (data < 0)
++			return -EIO;
++		ctrl->val = data;
++		return 0;
++	case V4L2_CID_VBLANK:
++		data = reg_read(client, MT9V022_VERTICAL_BLANKING);
++		if (data < 0)
++			return -EIO;
++		ctrl->val = data;
++		return 0;
+ 	}
+ 	return -EINVAL;
+ }
+@@ -585,6 +605,16 @@ static int mt9v022_s_ctrl(struct v4l2_ctrl *ctrl)
+ 				return -EIO;
+ 		}
+ 		return 0;
++	case V4L2_CID_HBLANK:
++		if (reg_write(client, MT9V022_HORIZONTAL_BLANKING,
++				ctrl->val) < 0)
++			return -EIO;
++		return 0;
++	case V4L2_CID_VBLANK:
++		if (reg_write(client, MT9V022_VERTICAL_BLANKING,
++				ctrl->val) < 0)
++			return -EIO;
++		return 0;
+ 	}
+ 	return -EINVAL;
+ }
+@@ -852,10 +882,21 @@ static int mt9v022_probe(struct i2c_client *client,
+ 	mt9v022->exposure = v4l2_ctrl_new_std(&mt9v022->hdl, &mt9v022_ctrl_ops,
+ 			V4L2_CID_EXPOSURE, 1, 255, 1, 255);
+ 
++	mt9v022->hblank = v4l2_ctrl_new_std(&mt9v022->hdl, &mt9v022_ctrl_ops,
++			V4L2_CID_HBLANK, MT9V022_HORIZONTAL_BLANKING_MIN,
++			MT9V022_HORIZONTAL_BLANKING_MAX, 1,
++			MT9V022_HORIZONTAL_BLANKING_DEF);
++
++	mt9v022->vblank = v4l2_ctrl_new_std(&mt9v022->hdl, &mt9v022_ctrl_ops,
++			V4L2_CID_VBLANK, MT9V022_VERTICAL_BLANKING_MIN,
++			MT9V022_VERTICAL_BLANKING_MAX, 1,
++			MT9V022_VERTICAL_BLANKING_DEF);
++
+ 	mt9v022->subdev.ctrl_handler = &mt9v022->hdl;
+ 	if (mt9v022->hdl.error) {
+ 		int err = mt9v022->hdl.error;
+ 
++		dev_err(&client->dev, "control initialisation err %d\n", err);
+ 		kfree(mt9v022);
+ 		return err;
+ 	}
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.1
+
