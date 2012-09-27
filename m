@@ -1,199 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:56199 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753444Ab2IZH5y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Sep 2012 03:57:54 -0400
-Received: by pbbrr4 with SMTP id rr4so1489590pbb.19
-        for <linux-media@vger.kernel.org>; Wed, 26 Sep 2012 00:57:53 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:49262 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755394Ab2I0Wq7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Sep 2012 18:46:59 -0400
+Message-ID: <5064D74C.8090409@iki.fi>
+Date: Fri, 28 Sep 2012 01:46:36 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1982842.IhYcnQa0e6@avalon>
-References: <CAFqH_53EY7BcMjn+fy=KfAhSU9Ut1pcLUyrmu2kiHznrBUB2XQ@mail.gmail.com>
-	<2021377.tLq3KYvgLo@avalon>
-	<CAFqH_51CDRnLntYShEApUE+AuBKSBAP4Yr7EQKxnrV9SRO441w@mail.gmail.com>
-	<1982842.IhYcnQa0e6@avalon>
-Date: Wed, 26 Sep 2012 09:57:53 +0200
-Message-ID: <CAFqH_515+=O+s1rOZ85hzO8nnU=Fn9O=NxV_mM+4dfowb0pa7w@mail.gmail.com>
-Subject: Re: omap3isp: wrong image after resizer with mt9v034 sensor
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Michael Krufky <mkrufky@linuxtv.org>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: tda18271 driver power consumption
+References: <500C5B9B.8000303@iki.fi> <CAOcJUbw-8zG-j7YobgKy7k5vp-k_trkaB5fYGz605KdUQHKTGQ@mail.gmail.com> <500F1DC5.1000608@iki.fi> <CAOcJUbzXoLx10o8oprxPM1TELFxyGE7_wodcWsBr8MX4OR0N_w@mail.gmail.com> <CAOcJUbzJjBBMcLmeaOCsJRz44KVPqZ_sGctG8+ai=n1W+9P9xA@mail.gmail.com> <500F4140.1000202@iki.fi> <CAOcJUbzF8onCqoxv-xkZY3YUiUjgjokkstB5eSX8YKELYDrjag@mail.gmail.com> <CAOcJUbw4O_rHCN6PgXc7=XU5ZToTB3QqAWLPUPhW-TZZVZ9X5w@mail.gmail.com> <20120927161940.0f673e2e@redhat.com> <5064B01E.4070802@iki.fi> <CAOcJUbxhgwhMJuAF0sfbC-ddDFOawGBFekwdhQbcJ5z2-eaxYg@mail.gmail.com> <5064C741.1060306@iki.fi> <CAOcJUbxRP-7P-qrRsfP4RV4JHTi2Sc_5HuVtkWwhnBGW3K5OXw@mail.gmail.com> <5064D297.8040104@iki.fi> <CAOcJUbxwJD2VtmHv-XoWXa-3PmNoRBWNhkLY+iRyw=7HqyQfgw@mail.gmail.com>
+In-Reply-To: <CAOcJUbxwJD2VtmHv-XoWXa-3PmNoRBWNhkLY+iRyw=7HqyQfgw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent
-
-2012/9/25 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Enric,
->
-> On Tuesday 25 September 2012 13:23:20 Enric Balletbò i Serra wrote:
->> 2012/9/25 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> > On Tuesday 25 September 2012 09:44:42 Enric Balletbò i Serra wrote:
->> >> 2012/9/25 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> >> > On Monday 24 September 2012 15:49:01 Enric Balletbò i Serra wrote:
->> >> >> 2012/9/24 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> >> >> > On Monday 24 September 2012 10:33:42 Enric Balletbò i Serra wrote:
->> >> >> >> Hi everybody,
->> >> >> >>
->> >> >> >> I'm trying to add support for MT9V034 Aptina image sensor to
->> >> >> >> current mainline, as a base of my current work I start using the
->> >> >> >> latest omap3isp-next branch from Laurent's git tree [1]. The
->> >> >> >> MT9V034 image sensor is very similar to MT9V032 sensor, so I
->> >> >> >> modified current driver to accept MT9V034 sensor adding the chip
->> >> >> >> ID. The driver recognizes the sensor and I'm able to capture some
->> >> >> >> frames.
->> >> >> >>
->> >> >> >> I started capturing directly frames using the pipeline Sensor ->
->> >> >> >> CCDC
->> >> >> >>
->> >> >> >>     ./media-ctl -r
->> >> >> >>     ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
->> >> >> >>     ./media-ctl -l '"OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC
->> >> >> >>     output":0[1]'
->> >> >> >>     ./media-ctl -f '"mt9v032 3-005c":0 [SGRBG10 752x480]'
->> >> >> >>     ./media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 752x480]'
->> >> >> >>
->> >> >> >>     # Test pattern
->> >> >> >>     ./yavta --set-control '0x00981901 1' /dev/v4l-subdev8
->> >> >> >>
->> >> >> >>     # ./yavta -p -f SGRBG10 -s 752x480 -n 4 --capture=3 /dev/video2
->> >> >> >>
->> >> >> >> --file=img-#.bin
->> >> >> >>
->> >> >> >> To convert to jpg I used bayer2rgb [2] program executing following
->> >> >> >> command,
->> >> >> >>
->> >> >> >>     $ convert -size 752x480  GRBG_BAYER:./img-000000.bin
->> >> >> >>     img-000000.jpg
->> >> >> >>
->> >> >> >> And the result image looks like this
->> >> >> >>
->> >> >> >>     http://downloads.isee.biz/pub/files/patterns/img-from-sensor.jp
->> >> >> >>     g
->> >> >> >>
->> >> >> >> Seems good, so I tried to use following pipeline Sensor -> CCDC ->
->> >> >> >> Preview -> Resizer
->> >> >> >>
->> >> >> >>     ./media-ctl -r
->> >> >> >>     ./media-ctl -l '"mt9v032 3-005c":0->"OMAP3 ISP CCDC":0[1]'
->> >> >> >>     ./media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
->> >> >> >>     ./media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP
->> >> >> >>     resizer":0[1]'
->> >> >> >>     ./media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
->> >> >> >>     output":0[1]'
->> >> >> >>
->> >> >> >>     ./media-ctl -V '"mt9v032 3-005c":0[SGRBG10 752x480]'
->> >> >> >>     ./media-ctl -V  '"OMAP3 ISP CCDC":0 [SGRBG10 752x480]'
->> >> >> >>     ./media-ctl -V  '"OMAP3 ISP CCDC":2 [SGRBG10 752x480]'
->> >> >> >>     ./media-ctl -V  '"OMAP3 ISP preview":1 [UYVY 752x480]'
->> >> >> >>     ./media-ctl -V  '"OMAP3 ISP resizer":1 [UYVY 752x480]'
->> >> >> >>
->> >> >> >>     # Set Test pattern
->> >> >> >>
->> >> >> >>     ./yavta --set-control '0x00981901 1' /dev/v4l-subdev8
->> >> >> >>
->> >> >> >>     ./yavta -f UYVY -s 752x480 --capture=3 --file=img-#.uyvy
->> >> >> >>     /dev/video6
->> >> >> >>
->> >> >> >> I used 'convert' program to pass from UYVY to jpg,
->> >> >> >>
->> >> >> >>     $ convert -size 752x480 img-000000.uyvy img-000000.jpg
->> >> >> >>
->> >> >> >> and the result image looks like this
->> >> >> >>
->> >> >> >>     http://downloads.isee.biz/pub/files/patterns/img-from-resizer.j
->> >> >> >>     pg
->> >> >> >>
->> >> >> >> As you can see, the image is wrong and I'm not sure if the problem
->> >> >> >> is from the sensor, from the previewer, from the resizer or from my
->> >> >> >> conversion. Anyone have idea where should I look ? Or which is the
->> >> >> >> source of the problem ?
->> >> >> >
->> >> >> > Could you please post the output of all the above media-ctl and
->> >> >> > yavta runs, as well as the captured raw binary frame ?
->> >> >>
->> >> >> Of course,
->> >> >>
->> >> >> The log configuring the pipeline Sensor -> CCDC is
->> >> >>
->> >> >>     http://pastebin.com/WX8ex5x2
->> >> >>
->> >> >> and the raw image can be found
->> >> >>
->> >> >>     http://downloads.isee.biz/pub/files/patterns/img-000000.bin
->> >> >
->> >> > It looks like D9 and D8 have trouble keeping their high-level. Possible
->> >> > reasons would be conflicts on the signal lines (with something actively
->> >> > driving them to a low-level, a pull-down wouldn't have such an effect),
->> >> > faulty cable/solder joints (but I doubt that), or sampling the data on
->> >> > the wrong edge.
->> >>
->> >> In that case don't be the first image also wrong ? (the image that
->> >> outputs from sensor /dev/video2)
->> >
->> > Yes, it should be, and
->> > http://downloads.isee.biz/pub/files/patterns/img-000000.bin is corrupted.
->> > That's the image captured at the CCDC output, isn't it ?
+On 09/28/2012 01:43 AM, Michael Krufky wrote:
+> On Thu, Sep 27, 2012 at 6:26 PM, Antti Palosaari <crope@iki.fi> wrote:
+>> On 09/28/2012 12:58 AM, Michael Krufky wrote:
+>>>
+>>> On Thu, Sep 27, 2012 at 5:38 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>>>
+>>>> On 09/28/2012 12:20 AM, Michael Krufky wrote:
+>>>>>
+>>>>>
+>>>>> On Thu, Sep 27, 2012 at 3:59 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>>>>>
+>>>>>>
+>>>>>> On 09/27/2012 10:19 PM, Mauro Carvalho Chehab wrote:
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> Em Thu, 26 Jul 2012 08:48:58 -0400
+>>>>>>> Michael Krufky <mkrufky@linuxtv.org> escreveu:
+>>>>>>>
+>>>>>>>> Antti,
+>>>>>>>>
+>>>>>>>> This small patch should do the trick -- can you test it?
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> The following changes since commit
+>>>>>>>> 0c7d5a6da75caecc677be1fda207b7578936770d:
+>>>>>>>>
+>>>>>>>>       Linux 3.5-rc5 (2012-07-03 22:57:41 +0300)
+>>>>>>>>
+>>>>>>>> are available in the git repository at:
+>>>>>>>>
+>>>>>>>>       git://git.linuxtv.org/mkrufky/tuners tda18271
+>>>>>>>>
+>>>>>>>> for you to fetch changes up to
+>>>>>>>> 782b28e20d3b253d317cc71879639bf3c108b200:
+>>>>>>>>
+>>>>>>>>       tda18271: enter low-power standby mode at the end of
+>>>>>>>> tda18271_attach() (2012-07-26 08:34:37 -0400)
+>>>>>>>>
+>>>>>>>> ----------------------------------------------------------------
+>>>>>>>> Michael Krufky (1):
+>>>>>>>>           tda18271: enter low-power standby mode at the end of
+>>>>>>>> tda18271_attach()
+>>>>>>>>
+>>>>>>>>      drivers/media/common/tuners/tda18271-fe.c |    3 +++
+>>>>>>>>      1 file changed, 3 insertions(+)
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> Mike,
+>>>>>>>
+>>>>>>> Despite patchwork's way of handling, thinking that this is a pull
+>>>>>>> request,
+>>>>>>> I suspect that your intention here were simply offer some patches for
+>>>>>>> Antti
+>>>>>>> to test.
+>>>>>>>
+>>>>>>> In any case, please always send the patches via email to the ML before
+>>>>>>> sending a pull request. This was always a rule, but some developers
+>>>>>>> are
+>>>>>>> lazy with this duty, and, as I didn't use to have a tool to double
+>>>>>>> check,
+>>>>>>> bad things happen.
+>>>>>>>
+>>>>>>> I'm now finally able to check with a simple script if weather a patch
+>>>>>>> went to the ML or not. My script checks both reply-to/references email
+>>>>>>> tags and it looks for the same patch subject at the ML Inbox.
+>>>>>>> So, I'll be now be more grumpy with that ;) [1]
+>>>>>>>
+>>>>>>> So, please be sure to post those patches at the ML, with Antti's
+>>>>>>> tested-by:
+>>>>>>> tag, before sending a pull request.
+>>>>>>>
+>>>>>>> Thanks!
+>>>>>>> Mauro
+>>>>>>>
+>>>>>>> [1] Side note: it is not actually a matter of being grumpy; posted
+>>>>>>> patches
+>>>>>>> receive a lot more attention/review than simple pull requests. From
+>>>>>>> time
+>>>>>>> to time, patches that went via the wrong way (e. g. without a previous
+>>>>>>> post)
+>>>>>>> caused troubles for other developers. So, enforcing it is actually a
+>>>>>>> matter
+>>>>>>> of improving Kernel quality and avoiding regressions.
+>>>>>>>
+>>>>>>> -
+>>>>>>>
+>>>>>>> $ test_patch
+>>>>>>> testing if
+>>>>>>>
+>>>>>>> patches/0001-tda18271-enter-low-power-standby-mode-at-the-end-of-.patch
+>>>>>>> applies
+>>>>>>> patch -p1 -i
+>>>>>>>
+>>>>>>> patches/0001-tda18271-enter-low-power-standby-mode-at-the-end-of-.patch
+>>>>>>> --dry-run -t -N
+>>>>>>> patching file drivers/media/tuners/tda18271-fe.c
+>>>>>>>      drivers/media/tuners/tda18271-fe.c |    3 +++
+>>>>>>>      1 file changed, 3 insertions(+)
+>>>>>>> Subject: tda18271: enter low-power standby mode at the end of
+>>>>>>> tda18271_attach()
+>>>>>>> From: Michael Krufky <mkrufky@linuxtv.org>
+>>>>>>> Date: Thu, 26 Jul 2012 08:34:37 -0400
+>>>>>>> Patch applies OK
+>>>>>>> total: 0 errors, 0 warnings, 9 lines checked
+>>>>>>>
+>>>>>>>
+>>>>>>> patches/0001-tda18271-enter-low-power-standby-mode-at-the-end-of-.patch
+>>>>>>> has no obvious style problems and is ready for submission.
+>>>>>>> Didn't find any message with subject equal to 'tda18271: enter
+>>>>>>> low-power
+>>>>>>> standby mode at the end of tda18271_attach()'
+>>>>>>> Duplicated md5sum patches
+>>>>>>> Likely duplicated patches (need manual check)
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> If that tda18271 patch is not applied then these two should be:
+>>>>>>
+>>>>>> https://patchwork.kernel.org/patch/1481901/
+>>>>>> https://patchwork.kernel.org/patch/1481911/
+>>>>>>
+>>>>>>
+>>>>>> regards
+>>>>>> Antti
+>>>>>>
+>>>>>> --
+>>>>>> http://palosaari.fi/
+>>>>>
+>>>>>
+>>>>>
+>>>>> The tda18271 patch should indeed be applied -- I will send it to the
+>>>>> ML later on today and follow up with a pull request.  Thanks to all
+>>>>> who have commented :-)
+>>>>
+>>>>
+>>>>
+>>>> Mike, There is other problem too. PCTV 520e, which is Em28xx + DRX-K +
+>>>> TDA18271, fails to attach tuner now. Tuner is wired behind DRX-K I2C bus.
+>>>> TDA18271 driver does very much I/O during attach and I2C error is raised
+>>>> during attach now. Earlier it worked as DRX-K firmware was downloaded
+>>>> before
+>>>> tuner was attached, but now both DRX-K fw download and tuner attach
+>>>> happens
+>>>> same time leading that error.
+>>>
+>>>
+>>> Why is the DRX-K firmware downloading at the same time as tuner
+>>> attach?  Shouldn't the demod attach be finished before the tuner
+>>> attach begins?
 >>
->> Yes it is.
 >>
->> >>  http://downloads.isee.biz/pub/files/patterns/img-from-sensor.jpg
->> >
->> > How did you capture that one ?
+>> What I think all these should go in order bridge => demod => tuner. Attach
+>> and fw loading. I cannot see how it will never work generally unless those
+>> firmwares are loaded in that order.
+>> 1) bridge needs firmware up and running before demod could be attached. That
+>> is mostly because I2C adapter is behind bridge.
 >>
->> This image is the img-000000.bin (that you say is corrupted) converted
->> to RGB using bayer2rgb [2] program. So seems I'm using wrong tools to
->> convert images. How you known that this file is corrupted ? Please,
->> could you provide the tools that you use ?
+>> 2) demod needs firmware up and running before tuner could be attached. That
+>> is mostly because I2C adapter/bus for tuner is behind the demod.
+>>
+>> 3) tuner needs firmware up and running as there could be firmware controlled
+>> GPIO bus behind tuner. There is many times LNA, LNB controller, LED, antenna
+>> switch. I am not surprised if there is even I2C bus behind the tuner to
+>> control LNB or other equipment near antenna connector and tuner.
+>>
+>> Of course situation is not that bad usually - but surely there could be some
+>> existing device which is very near that. But as we *want* to do things as
+>> general as possible to avoid driver / device specific hacks that is the only
+>> reasonable model.
+>>
 >
-> I'm using raw2rgbpnm (https://gitorious.org/raw2rgbpnm). If you look at the
-> binary file in a hex editor you'll see that the MSBs are corrupted, instead of
-> being stable in the 01 and 02 regions (pixels 256-511 and 512-752 on each
-> line, so bytes 512-1023 and 1024-1503) they oscillate between 00 and 01, and
-> 00 and 02 respectively.
-
-Thanks for the explanation, I really appreciate it.
-
 >
->> >> I'll investigate a bit more following this line.
-
-You had reason. Checking the data lines of the camera bus with an
-oscilloscope I see I had a problem, exactly in D8 /D9 data lines. Now
-I can capture images but the color is still wrong, see the following
-image captured with pipeline SENSOR -> CCDC OUTPUT
-
-    http://downloads.isee.biz/pub/files/patterns/img-000001.pnm
-
-Now the image was converted using :
-
-    ./raw2rgbpnm -s 752x480 -f SGRBG10 img-000001.bin img-000001.pnm
-
-And the raw data can be found here:
-
-    http://downloads.isee.biz/pub/files/patterns/img-000001.bin
-
-Any idea where I can look ? Thanks.
-
->> >>
->> >> > The last option should be easy to test, just change the struct
->> >> > isp_v4l2_subdevs_group::bus::parallel::clk_pol field.
->> >>
->> >> I tested and seems this is not the problem.
->> >>
->> >> >> And the log configuring the pipeline Sensor -> CCDC -> Previewer ->
->> >> >> Resizer is http://pastebin.com/wh5ZJwne and the raw image can be found
->> >> >>
->> >> >>     http://downloads.isee.biz/pub/files/patterns/img-000000.uyvy
->> >> >> >>
->> >> >> >> [1]
->> >> >> >> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/
->> >> >> >> omap3isp-omap3isp-next
->> >> >> >> [2] https://github.com/jdthomas/bayer2rgb
+> I'm not sure how that relates to the problem you brought up.....
+> back to the issue:
 >
-> --
-> Regards,
+> I don't have the PCTV 520e schematics handy, but...  it's possible
+> that the DRX-K depends on XTOUT from the tda18271 --
 >
-> Laurent Pinchart
+> In your struct tda18271_config, are you using the .output_opt
+> configuration?  for example:
 >
+> struct tda18271_config hauppauge_tda18271_config = {
+>          .std_map = &hauppauge_tda18271_std_map,
+>          .gate    = TDA18271_GATE_ANALOG,
+>          .output_opt = TDA18271_OUTPUT_LT_OFF,
+> };
+>
+>
+> If so, try deleting the .output_opt line - see if that helps.
+
+I suspect it does not have nothing to do with tuner outputs. If I add 2 
+second sleep after demod attach and before tuner attach - it works. Also 
+if I use DRX-K internal firmware (not download newer) it works.
+
+Here is the debug (drx-k & tda18271):
+http://palosaari.fi/linux/v4l-dvb/em28xx_drxk_tda18271.txt
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
