@@ -1,128 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:47378 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757590Ab2IJPaN (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:53827 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752026Ab2I0FQj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 11:30:13 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Thu, 27 Sep 2012 01:16:39 -0400
+Received: by obbuo13 with SMTP id uo13so1388113obb.19
+        for <linux-media@vger.kernel.org>; Wed, 26 Sep 2012 22:16:37 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20120926172016.3b6b23c4@infradead.org>
+References: <1344494017-18099-1-git-send-email-dror@liveu.tv>
+ <50290B89.7070100@ti.com> <20120926172016.3b6b23c4@infradead.org>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 27 Sep 2012 10:46:17 +0530
+Message-ID: <CA+V-a8utUAJ6B6UJP32T118YXXhCkBWe8Hg+mr6OLv-ZeDQmPA@mail.gmail.com>
+Subject: Re: [PATCH 0/1 v2] media/video: vpif: fixing function name start to vpif_config_params
+To: Dror Cohen <dror@liveu.tv>
+Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
+	linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v4 06/16] media: coda: keep track of active instances
-Date: Mon, 10 Sep 2012 17:29:50 +0200
-Message-Id: <1347291000-340-7-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
-References: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Determining the next free instance just by incrementing and decrementing
-an instance counter does not work: if there are two instances opened,
-0 and 1, and instance 0 is released, the next call to coda_open will
-create a new instance with index 1, but instance 1 is already in use.
+Hi Dror,
 
-Instead, scan a bitfield of active instances to determine the first
-free instance index.
+On Thu, Sep 27, 2012 at 1:50 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> Em Mon, 13 Aug 2012 19:43:29 +0530
+> Manjunath Hadli <manjunath.hadli@ti.com> escreveu:
+>
+>> Hi Dror,
+>>
+>> Thanks for the patch.
+>>
+>> Mauro,
+>>
+>> I'll queue this patch for v3.7 through my tree.
+>
+> Sure.
+>
+>>
+>> On Thursday 09 August 2012 12:03 PM, Dror Cohen wrote:
+>> > This patch address the issue that a function named config_vpif_params should
+>> > be vpif_config_params. However this name is shared with two structures defined
+>> > already. So I changed the structures to config_vpif_params (origin was
+>> > vpif_config_params)
+>> >
+>> > v2 changes: softer wording in description and the structs are now
+>> > defined without _t
+>
+> Hmm... I didn't understand what you're wanting with this change. Before this patch,
+> there are:
+>
+> v4l@pedra ~/v4l/patchwork $ git grep config_vpif_params
+> drivers/media/platform/davinci/vpif.c:/* config_vpif_params
+> drivers/media/platform/davinci/vpif.c:static void config_vpif_params(struct vpif_params *vpifparams,
+> drivers/media/platform/davinci/vpif.c:    config_vpif_params(vpifparams, channel_id, found);
+> v4l@pedra ~/v4l/patchwork $ git grep vpif_config_params
+> drivers/media/platform/davinci/vpif_capture.c:static struct vpif_config_params config_params = {
+> drivers/media/platform/davinci/vpif_capture.h:struct vpif_config_params {
+> drivers/media/platform/davinci/vpif_display.c:static struct vpif_config_params config_params = {
+> drivers/media/platform/davinci/vpif_display.h:struct vpif_config_params {
+>
+> After that, there are:
+>
+> v4l@pedra ~/v4l/patchwork $ git grep vpif_config_params
+> drivers/media/platform/davinci/vpif.c:/* vpif_config_params
+> drivers/media/platform/davinci/vpif.c:static void vpif_config_params(struct vpif_params *vpifparams,
+> drivers/media/platform/davinci/vpif.c:    vpif_config_params(vpifparams, channel_id, found);
+> v4l@pedra ~/v4l/patchwork $ git grep config_vpif_params
+> drivers/media/platform/davinci/vpif_capture.c:static struct config_vpif_params config_params = {
+> drivers/media/platform/davinci/vpif_capture.h:struct config_vpif_params {
+> drivers/media/platform/davinci/vpif_display.c:static struct config_vpif_params config_params = {
+> drivers/media/platform/davinci/vpif_display.h:struct config_vpif_params {
+>
+> So, I can't really see any improvement on avoiding duplicate names.
+>
+> IMHO, the better would be to name those functions as:
+>
+> vpif:           vpif_config_params (or, even better, vpif_core_config_params)
+> vpif_capture:   vpif_capture_config_params
+> vpif_display:   vpif_display_config_params
+>
+> This way, duplication will be avoided and will avoid the confusing inversion between
+> vpif and config.
+>
+I agree with Mauro here, Can you do the above changes and post
+a v2.( Rebase it on
+http://git.linuxtv.org/media_tree.git/shortlog/refs/heads/staging/for_v3.7
+branch)
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c |   21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+Regards,
+--Prabhakar Lad
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index d069787..159df08 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -134,7 +134,8 @@ struct coda_dev {
- 	struct mutex		dev_mutex;
- 	struct v4l2_m2m_dev	*m2m_dev;
- 	struct vb2_alloc_ctx	*alloc_ctx;
--	int			instances;
-+	struct list_head	instances;
-+	unsigned long		instance_mask;
- };
- 
- struct coda_params {
-@@ -152,6 +153,7 @@ struct coda_params {
- 
- struct coda_ctx {
- 	struct coda_dev			*dev;
-+	struct list_head		list;
- 	int				aborting;
- 	int				rawstreamon;
- 	int				compstreamon;
-@@ -1357,14 +1359,22 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
- 	return vb2_queue_init(dst_vq);
- }
- 
-+static int coda_next_free_instance(struct coda_dev *dev)
-+{
-+	return ffz(dev->instance_mask);
-+}
-+
- static int coda_open(struct file *file)
- {
- 	struct coda_dev *dev = video_drvdata(file);
- 	struct coda_ctx *ctx = NULL;
- 	int ret = 0;
-+	int idx;
- 
--	if (dev->instances >= CODA_MAX_INSTANCES)
-+	idx = coda_next_free_instance(dev);
-+	if (idx >= CODA_MAX_INSTANCES)
- 		return -EBUSY;
-+	set_bit(idx, &dev->instance_mask);
- 
- 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
- 	if (!ctx)
-@@ -1374,6 +1384,7 @@ static int coda_open(struct file *file)
- 	file->private_data = &ctx->fh;
- 	v4l2_fh_add(&ctx->fh);
- 	ctx->dev = dev;
-+	ctx->idx = idx;
- 
- 	set_default_params(ctx);
- 	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx,
-@@ -1402,7 +1413,7 @@ static int coda_open(struct file *file)
- 	}
- 
- 	coda_lock(ctx);
--	ctx->idx = dev->instances++;
-+	list_add(&ctx->list, &dev->instances);
- 	coda_unlock(ctx);
- 
- 	clk_prepare_enable(dev->clk_per);
-@@ -1429,7 +1440,7 @@ static int coda_release(struct file *file)
- 		 ctx);
- 
- 	coda_lock(ctx);
--	dev->instances--;
-+	list_del(&ctx->list);
- 	coda_unlock(ctx);
- 
- 	dma_free_coherent(&dev->plat_dev->dev, CODA_PARA_BUF_SIZE,
-@@ -1440,6 +1451,7 @@ static int coda_release(struct file *file)
- 	clk_disable_unprepare(dev->clk_ahb);
- 	v4l2_fh_del(&ctx->fh);
- 	v4l2_fh_exit(&ctx->fh);
-+	clear_bit(ctx->idx, &dev->instance_mask);
- 	kfree(ctx);
- 
- 	return 0;
-@@ -1822,6 +1834,7 @@ static int __devinit coda_probe(struct platform_device *pdev)
- 	}
- 
- 	spin_lock_init(&dev->irqlock);
-+	INIT_LIST_HEAD(&dev->instances);
- 
- 	dev->plat_dev = pdev;
- 	dev->clk_per = devm_clk_get(&pdev->dev, "per");
--- 
-1.7.10.4
-
+> Regards,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
