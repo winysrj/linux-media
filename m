@@ -1,53 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:34973 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932379Ab2IRAGO (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48668 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754568Ab2I0Tti (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 20:06:14 -0400
-Received: by oago6 with SMTP id o6so5409465oag.19
-        for <linux-media@vger.kernel.org>; Mon, 17 Sep 2012 17:06:14 -0700 (PDT)
+	Thu, 27 Sep 2012 15:49:38 -0400
+Message-ID: <5064ADCE.3000708@iki.fi>
+Date: Thu, 27 Sep 2012 22:49:34 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-From: Javier Marcet <jmarcet@gmail.com>
-Date: Tue, 18 Sep 2012 02:05:53 +0200
-Message-ID: <CAAnFQG_SrXyr8MtPDujciE2=QRQK8dAK_SPBE3rC_c-XNSC00w@mail.gmail.com>
-Subject: Terratec Cinergy T PCIe Dual doesn;t work nder the Xen hypervisor
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Antoine Reversat <a.reversat@gmail.com>
+Subject: Re: [PATCH v2] omap3isp: Use monotonic timestamps for statistics
+ buffers
+References: <1347659868-17398-1-git-send-email-laurent.pinchart@ideasonboard.com> <20120927135233.3acd00a5@redhat.com>
+In-Reply-To: <20120927135233.3acd00a5@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Mauro,
 
-I recently began to investigate the Xen hypervisor. One key piece of
-the server I'm
-using is its DVB tuners. I'm using a Terratec Cinergy T PCIe Dual.
+Mauro Carvalho Chehab wrote:
+> Em Fri, 14 Sep 2012 23:57:48 +0200
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+>
+>> V4L2 buffers use the monotonic clock, while statistics buffers use wall
+>> time. This makes it difficult to correlate video frames and statistics.
+>>
+>> Switch statistics buffers to the monotonic clock to fix this, and
+>> replace struct timeval with struct timespec.
+>>
+>> Reported-by: Antoine Reversat <a.reversat@gmail.com>
+>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> ---
+>>   drivers/media/platform/omap3isp/ispstat.c |    2 +-
+>>   drivers/media/platform/omap3isp/ispstat.h |    2 +-
+>>   include/linux/omap3isp.h                  |    7 ++++++-
+>>   3 files changed, 8 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
+>> index b8640be..bb21c4e 100644
+>> --- a/drivers/media/platform/omap3isp/ispstat.c
+>> +++ b/drivers/media/platform/omap3isp/ispstat.c
+>> @@ -256,7 +256,7 @@ static int isp_stat_buf_queue(struct ispstat *stat)
+>>   	if (!stat->active_buf)
+>>   		return STAT_NO_BUF;
+>>
+>> -	do_gettimeofday(&stat->active_buf->ts);
+>> +	ktime_get_ts(&stat->active_buf->ts);
+>>
+>>   	stat->active_buf->buf_size = stat->buf_size;
+>>   	if (isp_stat_buf_check_magic(stat, stat->active_buf)) {
+>> diff --git a/drivers/media/platform/omap3isp/ispstat.h b/drivers/media/platform/omap3isp/ispstat.h
+>> index 9b7c865..8221d0c 100644
+>> --- a/drivers/media/platform/omap3isp/ispstat.h
+>> +++ b/drivers/media/platform/omap3isp/ispstat.h
+>> @@ -50,7 +50,7 @@ struct ispstat_buffer {
+>>   	struct iovm_struct *iovm;
+>>   	void *virt_addr;
+>>   	dma_addr_t dma_addr;
+>> -	struct timeval ts;
+>> +	struct timespec ts;
+>>   	u32 buf_size;
+>>   	u32 frame_number;
+>>   	u16 config_counter;
+>> diff --git a/include/linux/omap3isp.h b/include/linux/omap3isp.h
+>> index c090cf9..263a0c0 100644
+>> --- a/include/linux/omap3isp.h
+>> +++ b/include/linux/omap3isp.h
+>> @@ -27,6 +27,11 @@
+>>   #ifndef OMAP3_ISP_USER_H
+>>   #define OMAP3_ISP_USER_H
+>>
+>> +#ifdef __KERNEL__
+>> +#include <linux/time.h>     /* need struct timespec */
+>> +#else
+>> +#include <sys/time.h>
+>> +#endif
+>>   #include <linux/types.h>
+>>   #include <linux/videodev2.h>
+>>
+>> @@ -164,7 +169,7 @@ struct omap3isp_h3a_aewb_config {
+>>    * @config_counter: Number of the configuration associated with the data.
+>>    */
+>>   struct omap3isp_stat_data {
+>> -	struct timeval ts;
+>> +	struct timespec ts;
+>
+> NACK. That breaks userspace API, as this structure is part of an ioctl.
+>
+> It is too late to touch here. Please keep timeval. It is ok to fill it with
+> a mononotic time, but replacing it is an API breakage.
 
-When running on bare metal it works relatively well (it has other bugs
-I'll report later),
-but when running on a dom0 under the Xen hypervisor I get no data from
-the tuners,
-or very damaged data like if there was more noise than signal.
+I beg to present a differing opinion.
 
-Initially I thought Xen would be the cause of the problem, but after
-having written on
-the Xen development mailing list and talked about it with a couple
-developers, it isn't
-very clear where the problem is. So far I haven't been able to get the
-smallest warning
-or error.
+The timestamp that has been taken from a realtime clock has NOT been 
+useful to begin with in this context: the OMAP3ISP driver has used 
+monotonic time on video buffers since the very beginning of its 
+existence in mainline kernel. As no-one has complained about this --- 
+except Antoine very recently --- I'm pretty certain we wouldn't be 
+breaking any application by changing this. The statistics timestamp is 
+only useful when it's comparable to other timestamps (from video buffers 
+and events), which this patch achieves.
 
-I thought someone more involved with the DVB drivers could give us a
-hand. You can
-see the thread on the Xen development ml here:
-
-http://www.gossamer-threads.com/lists/xen/devel/256197#256197
-
-Neither raising the loglevel nor enabling the cx23885, cx25840, drxk
-and mt2063 debug
-options I get anything wrong. Just scrambled data from the tuners.
-
-I'd appreciate any help.
-
+Kind regards,
 
 -- 
-Javier Marcet <jmarcet@gmail.com>
+Sakari Ailus
+sakari.ailus@iki.fi
