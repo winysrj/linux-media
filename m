@@ -1,115 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:62058 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932152Ab2IJUcy (ORCPT
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:14814 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752578Ab2I0Tzd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Sep 2012 16:32:54 -0400
-Received: by eekc1 with SMTP id c1so1494297eek.19
-        for <linux-media@vger.kernel.org>; Mon, 10 Sep 2012 13:32:52 -0700 (PDT)
-Message-ID: <504E4E83.4050706@googlemail.com>
-Date: Mon, 10 Sep 2012 22:33:07 +0200
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+	Thu, 27 Sep 2012 15:55:33 -0400
+Date: Thu, 27 Sep 2012 12:55:26 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Ido Yariv <ido@wizery.com>
+Cc: Russell King <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] iommu/omap: Merge iommu2.h into iommu.h
+Message-ID: <20120927195526.GP4840@atomide.com>
+References: <1348204448-30855-1-git-send-email-ido@wizery.com>
+ <1348204448-30855-2-git-send-email-ido@wizery.com>
+ <20120927195313.GO4840@atomide.com>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] libv4lconvert: pac7302-devices: remove unneeded flag
- V4LCONTROL_WANTS_WB
-References: <1347215768-9843-1-git-send-email-fschaefer.oss@googlemail.com> <1347215768-9843-2-git-send-email-fschaefer.oss@googlemail.com> <504D08F8.3070104@redhat.com> <504E0A13.2050305@googlemail.com> <504E3275.8010806@redhat.com>
-In-Reply-To: <504E3275.8010806@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120927195313.GO4840@atomide.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 10.09.2012 20:33, schrieb Hans de Goede:
-> Hi,
->
-> On 09/10/2012 05:41 PM, Frank Schäfer wrote:
->> Am 09.09.2012 23:24, schrieb Hans de Goede:
->>> Hi,
->>>
->>> On 09/09/2012 08:36 PM, Frank Schäfer wrote:
->>>> The gspca_pac7302 driver already provides this control.
->>>>
->>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->>>> ---
->>>>    lib/libv4lconvert/control/libv4lcontrol.c |   12 ++++--------
->>>>    1 files changed, 4 insertions(+), 8 deletions(-)
->>>>
->>>> diff --git a/lib/libv4lconvert/control/libv4lcontrol.c
->>>> b/lib/libv4lconvert/control/libv4lcontrol.c
->>>> index 1272256..3d7a816 100644
->>>> --- a/lib/libv4lconvert/control/libv4lcontrol.c
->>>> +++ b/lib/libv4lconvert/control/libv4lcontrol.c
->>>> @@ -202,14 +202,10 @@ static const struct v4lcontrol_flags_info
->>>> v4lcontrol_flags[] = {
->>>>        { 0x145f, 0x013a, 0,    NULL, NULL, V4LCONTROL_WANTS_WB,
->>>> 1500 },
->>>>        { 0x2001, 0xf115, 0,    NULL, NULL, V4LCONTROL_WANTS_WB,
->>>> 1500 },
->>>>        /* Pac7302 based devices */
->>>> -    { 0x093a, 0x2620, 0x0f, NULL, NULL,
->>>> -        V4LCONTROL_ROTATED_90_JPEG | V4LCONTROL_WANTS_WB, 1500 },
->>>> -    { 0x06f8, 0x3009, 0,    NULL, NULL,
->>>> -        V4LCONTROL_ROTATED_90_JPEG | V4LCONTROL_WANTS_WB, 1500 },
->>>> -    { 0x06f8, 0x301b, 0,    NULL, NULL,
->>>> -        V4LCONTROL_ROTATED_90_JPEG | V4LCONTROL_WANTS_WB, 1500 },
->>>> -    { 0x145f, 0x013c, 0,    NULL, NULL,
->>>> -        V4LCONTROL_ROTATED_90_JPEG | V4LCONTROL_WANTS_WB, 1500 },
->>>> +    { 0x093a, 0x2620, 0x0f, NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->>>> +    { 0x06f8, 0x3009, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->>>> +    { 0x06f8, 0x301b, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->>>> +    { 0x145f, 0x013c, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->>>>        /* Pac7311 based devices */
->>>>        { 0x093a, 0x2600, 0x0f, NULL, NULL, V4LCONTROL_WANTS_WB },
->>>>        /* sq905 devices */
->>>>
->>>
->>> WANTS_WB does not add a whitebalance control, which these cameras
->>> indeed
->>> already have, it adds a (software) autowhitebalance control, which
->>> enables
->>> libv4lconvert doing software whitebalance correction. Although your
->>> kernel patch for the pac7302 driver to pick a better default
->>> whitebalance
->>> value, probably helps a lot to get the colors less screwed up, in
->>> the end
->>> we still need some sort of awb to adjust to changing lightning
->>> conditions,
->>> that is what this flag adds, as the pac7302 driver lacks awb.
->>
->> Ok, so WANTS_WB is actually WANTS_AUTOWB. ;)
->> But... IIRC... the software AWB control is always there, even without
->> this flag !?
->> Or is it just about switching AWB on by default ?
->
-> Correct, also note that the awb control will only show up for devices
-> which
-> have non standard formats, since those need to always go through
-> libv4lconvert
-> anyways, it does not get added to standard cams unless specifically
-> enabled
-> through a quirk list entry.
+* Tony Lindgren <tony@atomide.com> [120927 12:54]:
+> Hi Ido,
+> 
+> * Ido Yariv <ido@wizery.com> [120920 22:15]:
+> > Since iommu is not currently supported on OMAP1, merge plat/iommu2.h into
+> > iommu.h so only one file would have to move to platform_data/ as part of the
+> > single zImage effort.
+> 
+> Looks like you need patch 2.5/3 in this series too that
+> makes some of the things defined in iommu.h local.
+> 
+> We should only have platform data in include/linux/platform_data,
+> so things that are private to drivers should be defined in the
+> driver, and things that are private to arch/arm/mach-omap2 should
+> defined locally there.
+> 
+> Based on a quick grepping of files, looks like these should be
+> defined in omap-iommu.c driver and not in the platform_data header:
+> 
+> struct iotlb_lock
+> struct iotlb_lock
+> dev_to_omap_iommu
+> various register defines
+> omap_iommu_arch_version
+> omap_iotlb_cr_to_e
+> omap_iopgtable_store_entry
+> omap_iommu_save_ctx
+> omap_iommu_restore_ctx
+> omap_foreach_iommu_device
+> omap_iommu_dump_ctx
+> omap_dump_tlb_entries
 
-Good to know that, thanks !
-
->
->> And if AWB is on, the WB control should be disabled, right ?
->
-> No, the software AWB works by applying software rgb gains, so the
-> hardware
-> control is still useful, as the better the color balance of the input,
-> the better the end-result will be.
-
-Hmm... auto-whitebalance should compensate the setting made with the
-manual hardware controlled whitebalance.
-But I guess they are working too differenty.
-
-Regards,
-Frank
-
->
+And looks like while at it, you can also move plat/iopgtable.h
+and put it in some drivers/iommu/*.h file that's shared by
+omap-iommu*.c and omap-iovmm.c drivers ;)
+ 
 > Regards,
->
-> Hans
-
+> 
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
