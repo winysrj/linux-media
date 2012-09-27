@@ -1,86 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:42107 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752380Ab2IVQZW (ORCPT
+Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:12562 "EHLO
+	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751125Ab2I0Cmd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Sep 2012 12:25:22 -0400
-Received: by bkcjk13 with SMTP id jk13so213531bkc.19
-        for <linux-media@vger.kernel.org>; Sat, 22 Sep 2012 09:25:21 -0700 (PDT)
-Message-ID: <505DE66B.1080303@gmail.com>
-Date: Sat, 22 Sep 2012 18:25:15 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Wed, 26 Sep 2012 22:42:33 -0400
+Message-ID: <5063BD18.4060309@austin.rr.com>
+Date: Wed, 26 Sep 2012 21:42:32 -0500
+From: Keith Pyle <kpyle@austin.rr.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: s5p-tv/mixer_video.c weirdness
-References: <201209211207.46679.hverkuil@xs4all.nl>
-In-Reply-To: <201209211207.46679.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Subject: HD-PVR fails consistently on Linux, works on Windows
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+I recently purchased a Hauppauge HD-PVR (the 1212 version, label on 
+bottom 49001LF, Rev F2).  I have consistent capture failures on Linux 
+where data from the device simply stops, generally within a few minutes 
+of starting a capture.  Yet, the device works flawlessly on Windows with 
+the same USB and component cables, same power supply, and same physical 
+position.  This suggests that the device itself has acceptable power, is 
+not overheating, etc.  I'll detail below the testing I've done thus far 
+and would appreciate any suggestions on how to further test or address 
+the problem.
 
-On 09/21/2012 12:07 PM, Hans Verkuil wrote:
-> Hi Marek, Sylwester,
-> 
-> I've been investigating how multiplanar is used in various drivers, and I
-> came across this driver that is a bit weird.
-> 
-> querycap sets both single and multiple planar output caps:
-> 
->          cap->capabilities = V4L2_CAP_STREAMING |
->                  V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_VIDEO_OUTPUT_MPLANE;
-> 
-> This suggests that both the single and multiplanar APIs are supported.
+The good news is that I have a highly reproducible failure on Linux, but 
+then that's the bad news too.
 
-Thanks for spotting this. Somehow this driver wasn't fixed at the time
-this issue was addressed in s5p-mfc and s5p-fimc drivers in commits:
+Thanks.
 
-8f401543e [media] s5p-fimc: Remove single-planar capability flags,
-43defb118 [media] v4l: s5p-mfc: fix reported capabilities.
+Keith
 
-The reason why these drivers were setting the both capability type flags
-was that original idea was to have multi/single-plane buffer related 
-ioctls translated in the kernel. So the v4l2-core would be turning 
-a multi-plane only driver into a single-plane capable as well. But the 
-in kernel conversion code was stripped at last minute during merge for 
-known reasons. Looks like the s5p-tv driver haven't been receiving 
-enough love, probably because HDMI and TV-out support for these SoCs 
-now happens mainly in DRM.
+-- Linux tests --
+I started trying to use the HD-PVR directly with my MythTV backend. I 
+have subsequently switched all of my testing to simple direct captures 
+from the /dev/video? device using /bin/cat to eliminate as many 
+variables as possible.
 
-I'll make sure there is a patch queued for 3.7, correcting those 
-capabilities and enum_fmt.
+I've done a large number of tests with combinations of the following:
 
-BTW, I couldn't find a justification of making multi-planar a property
-of fourcc, rather than of the memory/buffer, which it really is. As in 
-this RFC [1]. Inventing multi-planar fourccs always seemed not a best
-idea to me..
+OS: gentoo 3.4.7, gentoo 3.5.4
+HD-PVR firmware: 1.5.7.0 (0x15), 1.7.1.30059 (0x1e)
+Input resolution: fixed to 720p, fixed to 1080i, floating based on input
+USB ports: motherboard ports on Intel DP45SG, motherboard ports on MSI 
+X58 Pro-E, ports on SIIG USB PCIe card
 
-> But mxr_ioctl_ops only implements these:
-> 
->          /* format handling */
->          .vidioc_enum_fmt_vid_out = mxr_enum_fmt,
->          .vidioc_s_fmt_vid_out_mplane = mxr_s_fmt,
->          .vidioc_g_fmt_vid_out_mplane = mxr_g_fmt,
-> 
-> Mixing single planar enum_fmt with multiplanar s/g_fmt makes little sense.
-> 
-> I suspect everything should be multiplanar.
+Captures fail consistently.
 
-Yes, it should be all multi-planar right from the beginning.
+I've verified that the HD-PVR is the only device on the USB bus and that 
+the bus shows as "Linux Foundation 2.0 root hub" in all tests. I've 
+increased the debug output level for the hdpvr driver to 6 
+(/sys/module/hdpvr/parameters/hdpvr_debug) and collected the following:
 
-> BTW, I recommend running v4l2-compliance over your s5p drivers. I saw several
-> things it would fail on.
+Sep 21 17:01:00 mythbe kernel: [535043.504450] usb 9-1: New USB device 
+found, idVendor=2040, idProduct=4903
+Sep 21 17:01:00 mythbe kernel: [535043.504453] usb 9-1: New USB device 
+strings: Mfr=1, Product=2, SerialNumber=3
+Sep 21 17:01:00 mythbe kernel: [535043.504456] usb 9-1: Product: 
+Hauppauge HD PVR
+Sep 21 17:01:00 mythbe kernel: [535043.504458] usb 9-1: Manufacturer: AMBA
+Sep 21 17:01:00 mythbe kernel: [535043.504459] usb 9-1: SerialNumber: 
+00A6DD48
+Sep 21 17:01:00 mythbe kernel: [535043.504523] usb 9-1: ep 0x1 - 
+rounding interval to 32768 microframes, ep desc says 0 microframes
+Sep 21 17:01:00 mythbe kernel: [535043.504528] usb 9-1: ep 0x81 - 
+rounding interval to 32768 microframes, ep desc says 0 microframes
+Sep 21 17:01:01 mythbe kernel: [535043.703947] hdpvr 9-1:1.0: firmware 
+version 0x15 dated Jun 17 2010 09:26:53
+Sep 21 17:01:01 mythbe kernel: [535043.889144] IR keymap rc-hauppauge 
+not found
+Sep 21 17:01:01 mythbe kernel: [535043.889146] Registered IR keymap 
+rc-empty
+Sep 21 17:01:01 mythbe kernel: [535043.889190] input: i2c IR (HD-PVR) as 
+/devices/virtual/rc/rc5/input16
+Sep 21 17:01:01 mythbe kernel: [535043.889415] rc5: i2c IR (HD-PVR) as 
+/devices/virtual/rc/rc5
+Sep 21 17:01:01 mythbe kernel: [535043.889417] ir-kbd-i2c: i2c IR 
+(HD-PVR) detected at i2c-8/8-0071/ir0 [Hauppage HD PVR I2C]
+Sep 21 17:01:01 mythbe kernel: [535043.889518] hdpvr 9-1:1.0: device now 
+attached to video6
+Sep 21 17:01:01 mythbe kernel: [535043.889534] usbcore: registered new 
+interface driver hdpvr
+Sep 21 17:05:11 mythbe kernel: [535293.776318] hdpvr 9-1:1.0: video 
+signal: 1920x1080@30hz
+Sep 21 17:05:14 mythbe kernel: [535297.312589] hdpvr 9-1:1.0: encoder 
+start control request returned 0
+Sep 21 17:05:15 mythbe kernel: [535297.670830] hdpvr 9-1:1.0: config 
+call request for value 0x700 returned 1
+Sep 21 17:05:15 mythbe kernel: [535297.670833] hdpvr 9-1:1.0: streaming 
+started
+Sep 21 17:05:15 mythbe kernel: [535297.670839] hdpvr 9-1:1.0: 
+hdpvr_read:442 buffer stat: 64 free, 0 proc
+Sep 21 17:05:15 mythbe kernel: [535297.670882] hdpvr 9-1:1.0: 
+hdpvr_submit_buffers:209 buffer stat: 0 free, 64 proc
+Sep 21 17:05:15 mythbe kernel: [535297.709079] hdpvr 9-1:1.0: 
+hdpvr_read:502 buffer stat: 1 free, 63 proc
+Sep 21 17:05:15 mythbe kernel: [535297.709088] hdpvr 9-1:1.0: 
+hdpvr_submit_buffers:209 buffer stat: 0 free, 64 proc
 
-I have it queued on my todo list, I'll see if it can be done for v3.8.
+(many repeats of the above two line sequence)
 
---
+Sep 21 17:17:09 mythbe kernel: [536011.936858] hdpvr 9-1:1.0: 
+hdpvr_read:502 buffer stat: 1 free, 63 proc
+Sep 21 17:17:09 mythbe kernel: [536011.936866] hdpvr 9-1:1.0: 
+hdpvr_submit_buffers:209 buffer stat: 0 free, 64 proc
+Sep 21 17:17:36 mythbe kernel: [536038.853044] hdpvr 9-1:1.0: config 
+call request for value 0x800 returned -110
+Sep 21 17:17:36 mythbe kernel: [536038.853052] hdpvr 9-1:1.0: transmit 
+worker exited
+Sep 21 17:17:36 mythbe kernel: [536038.996035] hdpvr 9-1:1.0: used 0 
+urbs to empty device buffers
 
-Regards,
-Sylwester
+If I understand correctly, this is showing a ETIMEDOUT error.  When I've 
+looked at the cat with strace, it is always blocked on a read. So, it 
+seems like the HD-PVR just stops sending.
 
-[1] http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/11212
+I also ran a USB capture with wireshark and see much the same thing.  
+While I haven't tried to decode the USB packets, the pattern is that the 
+HD-PVR sends, the host sends a message/ack, this pattern repeats, and 
+then nothing.  The majority of the failures occur in less than 15 minutes.
+
+-- Windows tests --
+
+I installed the Hauppauge software on a Windows 7 system and moved the 
+USB cable to the Windows system.  Nothing else was changed. I've run 
+many hours of successful captures.  I've checked each recording with 
+ffprobe and verified that each is the expected length (i.e., no data 
+drops at all).  The recordings are of good quality. This shows that the 
+HD-PVR is capable of working as expected and quite reliably.
