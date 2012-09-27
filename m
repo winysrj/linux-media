@@ -1,55 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38410 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757887Ab2IXUlv (ORCPT
+Received: from mail-out.m-online.net ([212.18.0.9]:56391 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754760Ab2I0VLG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 16:41:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: Re: Gain controls in v4l2-ctrl framework
-Date: Mon, 24 Sep 2012 22:42:27 +0200
-Message-ID: <51868809.nWmvjZBbrW@avalon>
-In-Reply-To: <20120924200634.GK12025@valkosipuli.retiisi.org.uk>
-References: <CA+V-a8vYDFhJzKVKsv7Q_JOQzDDYRyev15jDKio0tG2CP8iCCw@mail.gmail.com> <20120924200634.GK12025@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 27 Sep 2012 17:11:06 -0400
+Date: Thu, 27 Sep 2012 23:10:55 +0200
+From: Anatolij Gustschin <agust@denx.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Detlev Zundel <dzu@denx.de>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 1/3] mt9v022: add v4l2 controls for blanking and other
+ register settings
+Message-ID: <20120927231055.5bc02864@wker>
+In-Reply-To: <Pine.LNX.4.64.1209110935370.22084@axis700.grange>
+References: <1345799431-29426-1-git-send-email-agust@denx.de>
+	<1345799431-29426-2-git-send-email-agust@denx.de>
+	<Pine.LNX.4.64.1208241227140.20710@axis700.grange>
+	<m2pq6g5tm3.fsf@lamuella.denx.de>
+	<Pine.LNX.4.64.1208241527370.20710@axis700.grange>
+	<20120824182125.4d19ed64@wker>
+	<Pine.LNX.4.64.1208242305050.20710@axis700.grange>
+	<20120828154343.3c847dff@wker>
+	<Pine.LNX.4.64.1209110935370.22084@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Guennadi,
 
-On Monday 24 September 2012 23:06:34 Sakari Ailus wrote:
-> On Sun, Sep 23, 2012 at 04:56:21PM +0530, Prabhakar Lad wrote:
-> > Hi All,
-> > 
-> > The CCD/Sensors have the capability to adjust the R/ye, Gr/Cy, Gb/G,
-> > B/Mg gain values.
-> > Since these control can be re-usable I am planning to add the
-> > following gain controls as part
-> > of the framework:
-> > 
-> > 1: V4L2_CID_GAIN_RED
-> > 2: V4L2_CID_GAIN_GREEN_RED
-> > 3: V4L2_CID_GAIN_GREEN_BLUE
-> > 4: V4L2_CID_GAIN_BLUE
+On Tue, 11 Sep 2012 10:24:23 +0200 (CEST)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+
+> Hi Anatolij
 > 
-> One more thing: There's an analogue gain control already in the image source
-> class. I think we should explicitly say that the gains are digital (vs.
-> analogue).
+> On Tue, 28 Aug 2012, Anatolij Gustschin wrote:
+> 
+> > Hi Guennadi,
+> > 
+> > On Fri, 24 Aug 2012 23:23:37 +0200 (CEST)
+> > Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> > ...
+> > > > Every time the sensor is reset, it resets this register. Without setting
+> > > > the register after sensor reset to the needed value I only get garbage data
+> > > > from the sensor. Since the possibility to reset the sensor is provided on
+> > > > the hardware and also used, the register has to be set after each sensor
+> > > > reset. Only the instance controlling the reset gpio pin "knows" the time,
+> > > > when the register should be initialized again, so it is asynchronously and
+> > > > not related to the standard camera activities. But since the stuff is _not_
+> > > > documented, I can only speculate. Maybe it can be set to different values
+> > > > to achieve different things, currently I do not know.
+> > > 
+> > > How about adding that register write (if required by platform data) to 
+> > > mt9v022_s_power() in the "on" case? This is called (on soc-camera hosts at 
+> > > least) on each first open(), would this suffice?
+> > 
+> > This would suffice. But now I found some more info for this register.
+> > Rev3. errata
+> 
+> Yes, I've found that one too. But I don't understand the table they 
+> present there: have only default values of various registers changed, or 
+> have actually new features been added in Rev.3? If the latter we'd have to 
+> find out which revision we're running on.
 
-Some sensors have per-component analog and digital gains :-)
+Some issues have been fixed in Rev3 so that these register settings can
+work. I've found the technical note describing the snapshot mode and it
+says that register 0x20 bit 2 and bit 9 must be set in the snapshot mode.
+This applies to mt9v022 rev3 and mt9v024, so it should be configured
+dependent on revision, yes. I'll remove register 0x20 setting control
+entirely and provide separate patch configuring required settings in
+snapshot mode.
 
--- 
-Regards,
+> > mentions that the bit 9 of the register should be set when
+> > in snapshot mode (in my case this is the only mode that we can use).
+> 
+> Currently the snapshot mode is used in the mt9v022 driver to stop 
+> streaming. This means you've got more local changes in your driver to 
+> enable capture in the snapshot mode?
 
-Laurent Pinchart
+Yes, in my case the capture driver sets this mode in its start_streaming
+function. I'll submit the driver, too.
 
+> > Additionally the errata recommends to set bit 2 when the high dynamic
+> > range mode is used.
+> 
+> The HiDy mode is also not used so far in the driver.
+
+Yes. I think support for it could be added as V4L2_CID_WIDE_DYNAMIC_RANGE
+control.
+
+> > Now I'm not sure how to realise these settings.
+> > 
+> > The bit 9 should be set/unset when configuring the master/snapshot
+> > mode in mt9v022_s_stream(), I think.
+> 
+> As mentioned above, currently the snapshot mode is used by the driver to 
+> stop continuous data read-out by the sensor, so, unless we begin 
+> supporting capture in the snapshot mode, setting any further configuration 
+> parameters seems pretty useless to me.
+
+We need the snapshot mode, our camera doesn't work in normal mode,
+only external triggering is supported on it. I'll add required
+configuration by a separate patch.
+
+> > For setting bit 2 we could add V4L2_CID_WIDE_DYNAMIC_RANGE control
+> > which primarily configures the HiDy mode in register 0x0f and
+> > additionally sets/unsets bit 2 in register 0x20. But setting this
+> > bit 2 seems to be needed also in linear mode when manual exposure
+> > control is used. With the recommended register value 0x03D1 in linear
+> > mode the image quality is really bad when manual exposure mode is
+> > used, independent of the configured exposure time. Using 0x03D5
+> > in linear mode however gives good image quality here.
+> 
+> Doesn't this switch on the HiDy mode? What happens if you also set 0x0f:6 
+> to 1?
+
+No, it doesn't. It is supposed to lower pixel-wise FPN. If I configure
+HiDy mode by setting 0x0f:6 to 1, I get better image quality, the loss of
+detail in very bright or dark areas of a picture is reduced, as expected.
+
+> 
+> > So setting
+> > bit 2 should be independent of HiDy control. The errata states "the
+> > register setting recommendations are based on the characterization of
+> > the image sensor only and that camera module makers should test these
+> > recommendations on their module and evaluate the overall performance".
+> > These settings should be configurable independently of each other,
+> > I think.
+> 
+> Maybe we need some noise (PFN) related control?
+
+Maybe.
+
+Thanks,
+Anatolij
