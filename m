@@ -1,69 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:37878 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753709Ab2IWSjd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 14:39:33 -0400
-Received: by lbbgj3 with SMTP id gj3so5827789lbb.19
-        for <linux-media@vger.kernel.org>; Sun, 23 Sep 2012 11:39:32 -0700 (PDT)
-Message-ID: <505F5760.2030602@gmail.com>
-Date: Sun, 23 Sep 2012 20:39:28 +0200
-From: Anders Thomson <aeriksson2@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:51003 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754824Ab2I0Hih (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Sep 2012 03:38:37 -0400
+Message-ID: <5064025F.8040508@redhat.com>
+Date: Thu, 27 Sep 2012 04:38:07 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: tda8290 regression fix
-References: <503F4E19.1050700@gmail.com> <20120915133417.27cb82a1@redhat.com> <5054BD53.7060109@gmail.com> <20120915145834.0b763f73@redhat.com> <5054C521.1090200@gmail.com> <20120915192530.74aedaa6@redhat.com> <50559241.6070408@gmail.com> <505844A0.30001@redhat.com> <5059C242.3010902@gmail.com> <5059F68F.4050009@redhat.com> <505A1C16.40507@gmail.com> <CAGncdOae+VoAAUWz3x84zUA-TCMeMmNONf_ktNFd1p7c-o5H_A@mail.gmail.com> <505C7E64.4040507@redhat.com> <8ed8c988-fa8c-41fc-9f33-cccdceb1b232@email.android.com> <505EF455.9080604@redhat.com> <505F4CBC.1000201@gmail.com>
-In-Reply-To: <505F4CBC.1000201@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Shawn Guo <shawn.guo@linaro.org>,
+	linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	linux-media@vger.kernel.org, linux-fbdev@vger.kernel.org
+Subject: Re: [PATCH 14/34] dma: ipu: rename mach/ipu.h to include/linux/dma/ipu-dma.h
+References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org> <1347860103-4141-15-git-send-email-shawn.guo@linaro.org> <Pine.LNX.4.64.1209171124130.1689@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1209171124130.1689@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2012-09-23 19:54, Anders Thomson wrote:
-> >  diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
-> >  index bc08f1d..98b482e 100644
-> >  --- a/drivers/media/pci/saa7134/saa7134-cards.c
-> >  +++ b/drivers/media/pci/saa7134/saa7134-cards.c
-> >  @@ -3288,13 +3288,13 @@ struct saa7134_board saa7134_boards[] = {
-> >    		.name           = "Pinnacle PCTV 310i",
-> >    		.audio_clock    = 0x00187de7,
-> >    		.tuner_type     = TUNER_PHILIPS_TDA8290,
-> >    		.radio_type     = UNSET,
-> >    		.tuner_addr     = ADDR_UNSET,
-> >    		.radio_addr     = ADDR_UNSET,
-> >  -		.tuner_config   = 1,
-> >  +		.tuner_config   = 0,
-> >    		.mpeg           = SAA7134_MPEG_DVB,
-> >    		.gpiomask       = 0x000200000,
-> >    		.inputs         = {{
-> >    			.name = name_tv,
-> >    			.vmux = 4,
-> >    			.amux = TV,
-> >
-> >
-> >  Please test if the above patch fixes the issue you're suffering[1]. If so, then
-> >  we'll need to add a modprobe parameter to allow disabling LNA for saa7134 devices
-> >  with LNA.
-> >
-> >  [1] Note: the above is not the fix, as some users of this board may be using the
-> >  original antenna, and changing tuner_config will break things for them; the right
-> >  fix is likely to allow controlling the LNA via userspace.
-> Tried that patch on 3.5.3. No improvement, unfortunately.
-I have to retract that. It turns out that there is some strange interaction
-between the cabletv box and the card. When I rebooted into 'my' patch
-I still got the noisy signal. I then power cycled the cabletv box, and 
-voila,
-I got a good signal on my own patch. Wondering what I had actually tested
-with your patch, I tested it again, and indeed it works!
+Em 17-09-2012 06:26, Guennadi Liakhovetski escreveu:
+> On Mon, 17 Sep 2012, Shawn Guo wrote:
+> 
+>> The header ipu.h really belongs to dma subsystem rather than imx
+>> platform.  Rename it to ipu-dma.h and put it into include/linux/dma/.
+>>
+>> Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+>> Cc: Vinod Koul <vinod.koul@intel.com>
+>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+>> Cc: linux-media@vger.kernel.org
+>> Cc: linux-fbdev@vger.kernel.org
+> 
+> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-So, 1) you're on to something, that's for sure, and 2) there is 
-_something_ in
-the cabletv box which can make all this fall into a bad state too.
-
-Cheers,
-/Anders
-
-
-
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> Thanks
+> Guennadi
+> 
+>> ---
+>>  drivers/dma/ipu/ipu_idmac.c                        |    3 +--
+>>  drivers/dma/ipu/ipu_irq.c                          |    3 +--
+>>  drivers/media/video/mx3_camera.c                   |    2 +-
+>>  drivers/video/mx3fb.c                              |    2 +-
+>>  .../mach/ipu.h => include/linux/dma/ipu-dma.h      |    6 +++---
+>>  5 files changed, 7 insertions(+), 9 deletions(-)
+>>  rename arch/arm/mach-imx/include/mach/ipu.h => include/linux/dma/ipu-dma.h (97%)
+>>
+>> diff --git a/drivers/dma/ipu/ipu_idmac.c b/drivers/dma/ipu/ipu_idmac.c
+>> index c7573e5..6585537 100644
+>> --- a/drivers/dma/ipu/ipu_idmac.c
+>> +++ b/drivers/dma/ipu/ipu_idmac.c
+>> @@ -22,8 +22,7 @@
+>>  #include <linux/interrupt.h>
+>>  #include <linux/io.h>
+>>  #include <linux/module.h>
+>> -
+>> -#include <mach/ipu.h>
+>> +#include <linux/dma/ipu-dma.h>
+>>  
+>>  #include "../dmaengine.h"
+>>  #include "ipu_intern.h"
+>> diff --git a/drivers/dma/ipu/ipu_irq.c b/drivers/dma/ipu/ipu_irq.c
+>> index fa95bcc..a5ee37d 100644
+>> --- a/drivers/dma/ipu/ipu_irq.c
+>> +++ b/drivers/dma/ipu/ipu_irq.c
+>> @@ -15,8 +15,7 @@
+>>  #include <linux/irq.h>
+>>  #include <linux/io.h>
+>>  #include <linux/module.h>
+>> -
+>> -#include <mach/ipu.h>
+>> +#include <linux/dma/ipu-dma.h>
+>>  
+>>  #include "ipu_intern.h"
+>>  
+>> diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+>> index 1481b0d..892cba5 100644
+>> --- a/drivers/media/video/mx3_camera.c
+>> +++ b/drivers/media/video/mx3_camera.c
+>> @@ -17,6 +17,7 @@
+>>  #include <linux/vmalloc.h>
+>>  #include <linux/interrupt.h>
+>>  #include <linux/sched.h>
+>> +#include <linux/dma/ipu-dma.h>
+>>  
+>>  #include <media/v4l2-common.h>
+>>  #include <media/v4l2-dev.h>
+>> @@ -24,7 +25,6 @@
+>>  #include <media/soc_camera.h>
+>>  #include <media/soc_mediabus.h>
+>>  
+>> -#include <mach/ipu.h>
+>>  #include <linux/platform_data/camera-mx3.h>
+>>  #include <linux/platform_data/dma-imx.h>
+>>  
+>> diff --git a/drivers/video/mx3fb.c b/drivers/video/mx3fb.c
+>> index d738108..3b63ad8 100644
+>> --- a/drivers/video/mx3fb.c
+>> +++ b/drivers/video/mx3fb.c
+>> @@ -26,10 +26,10 @@
+>>  #include <linux/console.h>
+>>  #include <linux/clk.h>
+>>  #include <linux/mutex.h>
+>> +#include <linux/dma/ipu-dma.h>
+>>  
+>>  #include <linux/platform_data/dma-imx.h>
+>>  #include <mach/hardware.h>
+>> -#include <mach/ipu.h>
+>>  #include <linux/platform_data/video-mx3fb.h>
+>>  
+>>  #include <asm/io.h>
+>> diff --git a/arch/arm/mach-imx/include/mach/ipu.h b/include/linux/dma/ipu-dma.h
+>> similarity index 97%
+>> rename from arch/arm/mach-imx/include/mach/ipu.h
+>> rename to include/linux/dma/ipu-dma.h
+>> index 539e559..1803111 100644
+>> --- a/arch/arm/mach-imx/include/mach/ipu.h
+>> +++ b/include/linux/dma/ipu-dma.h
+>> @@ -9,8 +9,8 @@
+>>   * published by the Free Software Foundation.
+>>   */
+>>  
+>> -#ifndef _IPU_H_
+>> -#define _IPU_H_
+>> +#ifndef __LINUX_DMA_IPU_DMA_H
+>> +#define __LINUX_DMA_IPU_DMA_H
+>>  
+>>  #include <linux/types.h>
+>>  #include <linux/dmaengine.h>
+>> @@ -174,4 +174,4 @@ struct idmac_channel {
+>>  #define to_tx_desc(tx) container_of(tx, struct idmac_tx_desc, txd)
+>>  #define to_idmac_chan(c) container_of(c, struct idmac_channel, dma_chan)
+>>  
+>> -#endif
+>> +#endif /* __LINUX_DMA_IPU_DMA_H */
+>> -- 
+>> 1.7.9.5
+>>
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
