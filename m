@@ -1,63 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55132 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:33635 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750781Ab2IGQBN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Sep 2012 12:01:13 -0400
-Message-ID: <504A1A32.1010005@iki.fi>
-Date: Fri, 07 Sep 2012 19:00:50 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1755945Ab2I0KZD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Sep 2012 06:25:03 -0400
+Message-ID: <506429D1.4090401@redhat.com>
+Date: Thu, 27 Sep 2012 12:26:25 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Peter Senna Tschudin <peter.senna@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 9/10] drivers/media/dvb-frontends/tda10071.c: removes
- unnecessary semicolon
-References: <1347031488-26598-5-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1347031488-26598-5-git-send-email-peter.senna@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: qv4l2-bug / libv4lconvert API issue
+References: <50636DD2.3070508@googlemail.com>
+In-Reply-To: <50636DD2.3070508@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/07/2012 06:24 PM, Peter Senna Tschudin wrote:
-> From: Peter Senna Tschudin <peter.senna@gmail.com>
->
-> removes unnecessary semicolon
->
-> Found by Coccinelle: http://coccinelle.lip6.fr/
->
-> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
->
-> ---
->   drivers/media/dvb-frontends/tda10071.c |    4 ++--
->   1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff -u -p a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
-> --- a/drivers/media/dvb-frontends/tda10071.c
-> +++ b/drivers/media/dvb-frontends/tda10071.c
-> @@ -257,7 +257,7 @@ static int tda10071_set_voltage(struct d
->   				__func__);
->   		ret = -EINVAL;
->   		goto error;
-> -	};
-> +	}
->
->   	cmd.args[0] = CMD_LNB_SET_DC_LEVEL;
->   	cmd.args[1] = 0;
-> @@ -369,7 +369,7 @@ static int tda10071_diseqc_recv_slave_re
->   	if (ret)
->   		goto error;
->
-> -	reply->msg_len = tmp & 0x1f; /* [4:0] */;
-> +	reply->msg_len = tmp & 0x1f; /* [4:0] */
->   	if (reply->msg_len > sizeof(reply->msg))
->   		reply->msg_len = sizeof(reply->msg); /* truncate API max */
->
->
+Hi,
 
-Acked-by: Antti Palosaari <crope@iki.fi>
+On 09/26/2012 11:04 PM, Frank Schäfer wrote:
+> Hi,
+>
+> I've noticed the following issues/bugs while playing with qv4l:
+> 1.) with pac7302-webcams, only the RGB3 (RGB24) format is working. BGR3,
+> YU12 and YV12 are broken
+> 2.) for upside-down-mounted devices with an entry in libv4lconvert,
+> automatic h/v-flipping doesn't work with some formats
+>
+> I've been digging a bit deeper into the code and it seems that both
+> issues are caused by a problem with the libv4lconvert-API:
+> Besides image format conversion, function v4lconvert_convert() also does
+> the automatic image flipping and rotation (for devices with flags
+> V4LCONTROL_HFLIPPED, V4LCONTROL_VFLIPPED and V4LCONTROL_ROTATED_90_JPEG)
+> The problem is, that this function can be called multiple times for the
+> same frame, which then of course results in repeated flipping and
+> rotation...
+>
+> And this is exactly what happens with qv4l2:
+> qv4l2 gets the frame from libv4l2, which calls v4lconvert_convert() in
+> v4l2_dequeue_and_convert() or v4l2_read_and_convert().
+> The retrieved frame has the requested format and is already flipped/rotated.
+> qv4l2 then calls v4lconvert_convert() again directly to convert the
+> frame to RGB24 for GUI-output and this is where things are going wrong.
+> In case of h/v-flip, the double conversion "only" equalizes the
+> V4LCONTROL_HFLIPPED, V4LCONTROL_VFLIPPED flags, but for rotated devices,
+> the image gets corrupted.
+>
+> Sure, what qv4l2 does is a crazy. Applications usually request the
+> format needed for GUI-output directly from libv4l2.
+> Anyway, as long as it is valid to call libv4lconvert directly, we can
+> not assume that v4lconvert_convert() is called only one time.
+>
+> At the moment, I see no possibility to fix this without changing the
+> libv4lconvert-API.
+> Thoughts ?
 
-Antti
--- 
-http://palosaari.fi/
+What you've found is a qv4l2 bug (do you have the latest version?) one
+is supposed to either use libv4l2, or do raw device access and then
+call libv4lconvert directly. These are also the 2 modes qv4l2 has
+(for testing purposes), it is not supposed to do the manual convert call
+when using libv4l2 to access the device ...
+
+Regards,
+
+Hans
