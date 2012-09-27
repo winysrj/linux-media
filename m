@@ -1,53 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.unixsol.org ([193.110.159.2]:42626 "EHLO ns.unixsol.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751756Ab2IPQtD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Sep 2012 12:49:03 -0400
-Message-ID: <505602FC.90502@unixsol.org>
-Date: Sun, 16 Sep 2012 19:49:00 +0300
-From: Georgi Chorbadzhiyski <gf@unixsol.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48682 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752320Ab2I0UIM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Sep 2012 16:08:12 -0400
+Message-ID: <5064B229.7010707@iki.fi>
+Date: Thu, 27 Sep 2012 23:08:09 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: How to set pixelaspect in struct v4l2_cropcap returned by VIDIOC_CROPCAP?
-References: <5055F124.8020507@unixsol.org> <201209161828.44984.hverkuil@xs4all.nl>
-In-Reply-To: <201209161828.44984.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: paul@pwsan.com, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org
+Subject: Re: [PATCH v2 1/2] omap3: Provide means for changing CSI2 PHY configuration
+References: <20120926215001.GA14107@valkosipuli.retiisi.org.uk> <1348696236-3470-1-git-send-email-sakari.ailus@iki.fi> <2067951.ZTSQvUdPug@avalon>
+In-Reply-To: <2067951.ZTSQvUdPug@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 9/16/12 7:28 PM, Hans Verkuil wrote:
-> On Sun September 16 2012 17:32:52 Georgi Chorbadzhiyski wrote:
->> Guys I'm adding v4l2 output device support for VLC/ffmpeg/libav (I'm using
->> v4l2loopback [1] driver for testing) but I have a problem which I can't seem
->> to find a solution.
->>
->> VLC [2] uses VIDIOC_CROPCAP [3] to detect the pixelaspect ratio of the input
->> it receives from v4l2 device. But I can't seem to find a way to set struct
->> v4l2_cropcap.pixelaspect when I'm outputting data to the device and the
->> result is that VLC assumes pixelaspect is 1:1.
->>
->> I was hoping that VIDIOC_S_CROP [4] would allow setting pixelaspect but
->> according to docs that is not case. What am I missing?
->
-> The pixelaspect ratio returned by CROPCAP depends on the current video standard
-> of the video receiver or transmitter.
->
-> So for video capture the pixelaspect depends on the standard (50 vs 60 Hz) and
-> the horizontal sampling frequency of the video receiver (hardware specific).
->
-> For video output the pixelaspect depends also on the standard and on how the
-> transmitter goes from digital to analog pixels (the reverse of what a receiver
-> does).
->
-> It is *not* the pixelaspect of the video data itself. For output it is the
-> pixel aspect that the transmitter expects. Any difference between the two will
-> need to be resolved somehow, typically by software or hardware scaling.
+Hi Laurent,
 
-Since I'm using virtual output v4l2 loopback device this means I have to set the
-standard somehow, right?
+Thanks for the review!
+
+Laurent Pinchart wrote:
+> Hi Sakari,
+>
+> Thanks for the patch.
+>
+> On Thursday 27 September 2012 00:50:35 Sakari Ailus wrote:
+>> The OMAP 3630 has configuration how the ISP CSI-2 PHY pins are connected to
+>> the actual CSI-2 receivers outside the ISP itself. Allow changing this
+>> configuration from the ISP driver.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>
+> Just one small comment below, otherwise
+>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>
+>> ---
+>>   arch/arm/mach-omap2/control.c              |   86 +++++++++++++++++++++++++
+>>   arch/arm/mach-omap2/control.h              |   15 +++++
+>>   arch/arm/mach-omap2/include/mach/control.h |   13 ++++
+>>   3 files changed, 114 insertions(+), 0 deletions(-)
+>>   create mode 100644 arch/arm/mach-omap2/include/mach/control.h
+>>
+>> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+>> index 3223b81..11bb900 100644
+>> --- a/arch/arm/mach-omap2/control.c
+>> +++ b/arch/arm/mach-omap2/control.c
+...
+>> +	cam_phy_ctrl |= mode << shift;
+>> +
+>> +	omap_ctrl_writel(cam_phy_ctrl,
+>> +			 OMAP3630_CONTROL_CAMERA_PHY_CTRL);
+>
+> This can fit on one line.
+
+I'll fix that for the next version. I noticed there were a few too long 
+lines, too; I've broken them up where it makes sense, and removed a 
+useless break statement.
+
+Cheers,
 
 -- 
-Georgi Chorbadzhiyski
-http://georgi.unixsol.org/
+Sakari Ailus
+sakari.ailus@iki.fi
