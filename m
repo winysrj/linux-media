@@ -1,76 +1,314 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:34021 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751317Ab2ILQKw convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52352 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751561Ab2I0Jul (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Sep 2012 12:10:52 -0400
+	Thu, 27 Sep 2012 05:50:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: paul@pwsan.com, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org
+Subject: Re: [PATCH v2 2/2] omap3isp: Configure CSI-2 phy based on platform data
+Date: Thu, 27 Sep 2012 11:51:19 +0200
+Message-ID: <1720642.Sh1Cqyo78F@avalon>
+In-Reply-To: <1348696236-3470-2-git-send-email-sakari.ailus@iki.fi>
+References: <20120926215001.GA14107@valkosipuli.retiisi.org.uk> <1348696236-3470-2-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CA+MoWDquDi6+kY9z3rj79dJK6j5tSWO9oWHCkvt6J-XBB=HNvA@mail.gmail.com>
-References: <1347454564-5178-2-git-send-email-peter.senna@gmail.com>
-	<CAH0vN5+ZoexHtmgyZ+s9tiW3LYx+6PMT8aLyYt-T5mnaGXvYbQ@mail.gmail.com>
-	<CA+MoWDquDi6+kY9z3rj79dJK6j5tSWO9oWHCkvt6J-XBB=HNvA@mail.gmail.com>
-Date: Wed, 12 Sep 2012 13:10:50 -0300
-Message-ID: <CAH0vN5KeNB1JfW8n66fse=vuk-ak9LShni7FhVCJ=_kjyEzqcg@mail.gmail.com>
-Subject: Re: [PATCH v2 7/8] drivers/media/platform/davinci/vpbe.c: Removes
- useless kfree()
-From: Marcos Souza <marcos.souza.org@gmail.com>
-To: Peter Senna Tschudin <peter.senna@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Peter,
+Hi Sakari,
 
-2012/9/12 Peter Senna Tschudin <peter.senna@gmail.com>:
-> Marcos,
->
->> Now that you removed this kfree, you could remove this label too. Very
->> nice your cleanup :)
-> Thanks!
->
->>
->>>  vpbe_fail_sd_register:
->>>         kfree(vpbe_dev->encoders);
->>>  vpbe_fail_v4l2_device:
->
-> The problem removing the label is that it will require some more work
-> naming the labels. See:
-> if (!vpbe_dev->amp) {
-> ...
->         goto vpbe_fail_amp_register;
->
-> If I just remove the label vpbe_fail_amp_register, the label names
-> will not make sense any more as the next label is
-> vpbe_fail_sd_register. So I will need to change the name to something
-> different or rename all labels to out1, out2, out3 or err1, err2,
-> err3, or ....
+Thanks for the patch.
 
-I was looking at the code here, but this code is under
-drivers/media/video/davince/vpbe.c....
+On Thursday 27 September 2012 00:50:36 Sakari Ailus wrote:
+> Configure CSI-2 phy based on platform data in the ISP driver. For that, the
+> new V4L2_CID_IMAGE_SOURCE_PIXEL_RATE control is used. Previously the same
+> was configured from the board code.
+> 
+> This patch is dependent on "omap3: Provide means for changing CSI2 PHY
+> configuration".
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/platform/omap3isp/isp.h       |    3 -
+>  drivers/media/platform/omap3isp/ispcsiphy.c |  161 +++++++++++++-----------
+>  drivers/media/platform/omap3isp/ispcsiphy.h |   10 --
+>  3 files changed, 90 insertions(+), 84 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.h
+> b/drivers/media/platform/omap3isp/isp.h index 8be7487..a2f992c 100644
+> --- a/drivers/media/platform/omap3isp/isp.h
+> +++ b/drivers/media/platform/omap3isp/isp.h
+> @@ -127,9 +127,6 @@ struct isp_reg {
+> 
+>  struct isp_platform_callback {
+>  	u32 (*set_xclk)(struct isp_device *isp, u32 xclk, u8 xclksel);
+> -	int (*csiphy_config)(struct isp_csiphy *phy,
+> -			     struct isp_csiphy_dphy_cfg *dphy,
+> -			     struct isp_csiphy_lanes_cfg *lanes);
+>  };
+> 
+>  /*
+> diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c
+> b/drivers/media/platform/omap3isp/ispcsiphy.c index 348f67e..1d16e66 100644
+> --- a/drivers/media/platform/omap3isp/ispcsiphy.c
+> +++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+> @@ -28,41 +28,13 @@
+>  #include <linux/device.h>
+>  #include <linux/regulator/consumer.h>
+> 
+> +#include <mach/control.h>
+> +
+>  #include "isp.h"
+>  #include "ispreg.h"
+>  #include "ispcsiphy.h"
+> 
+>  /*
+> - * csiphy_lanes_config - Configuration of CSIPHY lanes.
+> - *
+> - * Updates HW configuration.
+> - * Called with phy->mutex taken.
+> - */
+> -static void csiphy_lanes_config(struct isp_csiphy *phy)
+> -{
+> -	unsigned int i;
+> -	u32 reg;
+> -
+> -	reg = isp_reg_readl(phy->isp, phy->cfg_regs, ISPCSI2_PHY_CFG);
+> -
+> -	for (i = 0; i < phy->num_data_lanes; i++) {
+> -		reg &= ~(ISPCSI2_PHY_CFG_DATA_POL_MASK(i + 1) |
+> -			 ISPCSI2_PHY_CFG_DATA_POSITION_MASK(i + 1));
+> -		reg |= (phy->lanes.data[i].pol <<
+> -			ISPCSI2_PHY_CFG_DATA_POL_SHIFT(i + 1));
+> -		reg |= (phy->lanes.data[i].pos <<
+> -			ISPCSI2_PHY_CFG_DATA_POSITION_SHIFT(i + 1));
+> -	}
+> -
+> -	reg &= ~(ISPCSI2_PHY_CFG_CLOCK_POL_MASK |
+> -		 ISPCSI2_PHY_CFG_CLOCK_POSITION_MASK);
+> -	reg |= phy->lanes.clk.pol << ISPCSI2_PHY_CFG_CLOCK_POL_SHIFT;
+> -	reg |= phy->lanes.clk.pos << ISPCSI2_PHY_CFG_CLOCK_POSITION_SHIFT;
+> -
+> -	isp_reg_writel(phy->isp, reg, phy->cfg_regs, ISPCSI2_PHY_CFG);
+> -}
+> -
+> -/*
+>   * csiphy_power_autoswitch_enable
+>   * @enable: Sets or clears the autoswitch function enable flag.
+>   */
+> @@ -107,46 +79,32 @@ static int csiphy_set_power(struct isp_csiphy *phy, u32
+> power) }
+> 
+>  /*
+> - * csiphy_dphy_config - Configure CSI2 D-PHY parameters.
+> - *
+> - * Called with phy->mutex taken.
+> + * TCLK values are OK at their reset values
+>   */
+> -static void csiphy_dphy_config(struct isp_csiphy *phy)
+> -{
+> -	u32 reg;
+> -
+> -	/* Set up ISPCSIPHY_REG0 */
+> -	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG0);
+> -
+> -	reg &= ~(ISPCSIPHY_REG0_THS_TERM_MASK |
+> -		 ISPCSIPHY_REG0_THS_SETTLE_MASK);
+> -	reg |= phy->dphy.ths_term << ISPCSIPHY_REG0_THS_TERM_SHIFT;
+> -	reg |= phy->dphy.ths_settle << ISPCSIPHY_REG0_THS_SETTLE_SHIFT;
+> -
+> -	isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG0);
+> -
+> -	/* Set up ISPCSIPHY_REG1 */
+> -	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG1);
+> -
+> -	reg &= ~(ISPCSIPHY_REG1_TCLK_TERM_MASK |
+> -		 ISPCSIPHY_REG1_TCLK_MISS_MASK |
+> -		 ISPCSIPHY_REG1_TCLK_SETTLE_MASK);
+> -	reg |= phy->dphy.tclk_term << ISPCSIPHY_REG1_TCLK_TERM_SHIFT;
+> -	reg |= phy->dphy.tclk_miss << ISPCSIPHY_REG1_TCLK_MISS_SHIFT;
+> -	reg |= phy->dphy.tclk_settle << ISPCSIPHY_REG1_TCLK_SETTLE_SHIFT;
+> -
+> -	isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
+> -}
+> +#define TCLK_TERM	0
+> +#define TCLK_MISS	1
+> +#define TCLK_SETTLE	14
+> 
+> -static int csiphy_config(struct isp_csiphy *phy,
+> -			 struct isp_csiphy_dphy_cfg *dphy,
+> -			 struct isp_csiphy_lanes_cfg *lanes)
+> +static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+>  {
+> +	struct isp_csi2_device *csi2 = phy->csi2;
+> +	struct isp_pipeline *pipe = to_isp_pipeline(&csi2->subdev.entity);
+> +	struct isp_v4l2_subdevs_group *subdevs = pipe->external->host_priv;
+> +	struct isp_csiphy_lanes_cfg *lanes;
+> +	int csi2_ddrclk_khz;
+>  	unsigned int used_lanes = 0;
+>  	unsigned int i;
+> +	unsigned int phy_num;
+> +	u32 reg;
+> +
+> +	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1
+> +	    || subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
+> +		lanes = &subdevs->bus.ccp2.lanecfg;
+> +	else
+> +		lanes = &subdevs->bus.csi2.lanecfg;
+> 
+>  	/* Clock and data lanes verification */
+> -	for (i = 0; i < phy->num_data_lanes; i++) {
+> +	for (i = 0; i < csi2->phy->num_data_lanes; i++) {
+>  		if (lanes->data[i].pol > 1 || lanes->data[i].pos > 3)
+>  			return -EINVAL;
+> 
+> @@ -162,10 +120,72 @@ static int csiphy_config(struct isp_csiphy *phy,
+>  	if (lanes->clk.pos == 0 || used_lanes & (1 << lanes->clk.pos))
+>  		return -EINVAL;
+> 
+> -	mutex_lock(&phy->mutex);
+> -	phy->dphy = *dphy;
+> -	phy->lanes = *lanes;
+> -	mutex_unlock(&phy->mutex);
+> +	switch (subdevs->interface) {
+> +	case ISP_INTERFACE_CSI2A_PHY2:
+> +		phy_num = OMAP3_CTRL_CSI2_PHY2_CSI2A;
+> +		break;
+> +	case ISP_INTERFACE_CSI2C_PHY1:
+> +		phy_num = OMAP3_CTRL_CSI2_PHY1_CSI2C;
+> +		break;
+> +	case ISP_INTERFACE_CCP2B_PHY1:
+> +		phy_num = OMAP3_CTRL_CSI2_PHY1_CCP2B;
+> +		break;
+> +	case ISP_INTERFACE_CCP2B_PHY2:
+> +		phy_num = OMAP3_CTRL_CSI2_PHY2_CCP2B;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	omap3_ctrl_csi2_phy_cfg(phy_num, true, 0);
+> +
+> +	/* DPHY timing configuration */
+> +	/* CSI-2 is DDR and we only count used lanes. */
+> +	csi2_ddrclk_khz = pipe->external_rate / 1000
+> +		/ (2 * hweight32(used_lanes)) * pipe->external_width;
 
-Are  you using the Linus tree?
+Board code previously used op_sys_clk_freq_hz / 1000 / (2 * 
+hweight32(used_lanes)). Looking at the SMIA++ PLL code, pipe->external_rate is 
+equal to op_sys_clk_freq_hz / bits_per_pixel * lane_op_clock_ratio. Both 
+values are identical if lane_op_clock_ratio is set to 1, which is the case if 
+the SMIAPP_QUIRK_FLAG_OP_PIX_CLOCK_PER_LANE quirk is not set. Have you 
+verified that the new CSI2 DDR clock frequency calculation is correct when the 
+quirk is set ?
 
-BTW, this label is only used once. AFAICS, you can GOTO to the next
-label, vpbe_fail_sd_register in this case, who frees another member of
-the vpbe_dev.
+> +	reg = isp_reg_readl(csi2->isp, csi2->phy->phy_regs, ISPCSIPHY_REG0);
 
-This make sense to you?
+Isn't csi2->phy == phy ? You could then just write
 
-> Any suggestions?
->
-> --
-> Peter
+	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG0);
 
+and similarly below.
 
-
+> +	reg &= ~(ISPCSIPHY_REG0_THS_TERM_MASK |
+> +		 ISPCSIPHY_REG0_THS_SETTLE_MASK);
+> +	/* THS_TERM: Programmed value = ceil(12.5 ns/DDRClk period) - 1. */
+> +	reg |= (DIV_ROUND_UP(25 * csi2_ddrclk_khz, 2000000) - 1)
+> +		<< ISPCSIPHY_REG0_THS_TERM_SHIFT;
+> +	/* THS_SETTLE: Programmed value = ceil(90 ns/DDRClk period) + 3. */
+> +	reg |= (DIV_ROUND_UP(90 * csi2_ddrclk_khz, 1000000) + 3)
+> +		<< ISPCSIPHY_REG0_THS_SETTLE_SHIFT;
+> +
+> +	isp_reg_writel(csi2->isp, reg, csi2->phy->phy_regs, ISPCSIPHY_REG0);
+> +
+> +	reg = isp_reg_readl(csi2->isp, csi2->phy->phy_regs, ISPCSIPHY_REG1);
+> +
+> +	reg &= ~(ISPCSIPHY_REG1_TCLK_TERM_MASK |
+> +		 ISPCSIPHY_REG1_TCLK_MISS_MASK |
+> +		 ISPCSIPHY_REG1_TCLK_SETTLE_MASK);
+> +	reg |= TCLK_TERM << ISPCSIPHY_REG1_TCLK_TERM_SHIFT;
+> +	reg |= TCLK_MISS << ISPCSIPHY_REG1_TCLK_MISS_SHIFT;
+> +	reg |= TCLK_SETTLE << ISPCSIPHY_REG1_TCLK_SETTLE_SHIFT;
+> +
+> +	isp_reg_writel(csi2->isp, reg, csi2->phy->phy_regs, ISPCSIPHY_REG1);
+> +
+> +	/* DPHY lane configuration */
+> +	reg = isp_reg_readl(csi2->isp, csi2->phy->cfg_regs, ISPCSI2_PHY_CFG);
+> +
+> +	for (i = 0; i < csi2->phy->num_data_lanes; i++) {
+> +		reg &= ~(ISPCSI2_PHY_CFG_DATA_POL_MASK(i + 1) |
+> +			 ISPCSI2_PHY_CFG_DATA_POSITION_MASK(i + 1));
+> +		reg |= (lanes->data[i].pol <<
+> +			ISPCSI2_PHY_CFG_DATA_POL_SHIFT(i + 1));
+> +		reg |= (lanes->data[i].pos <<
+> +			ISPCSI2_PHY_CFG_DATA_POSITION_SHIFT(i + 1));
+> +	}
+> +
+> +	reg &= ~(ISPCSI2_PHY_CFG_CLOCK_POL_MASK |
+> +		 ISPCSI2_PHY_CFG_CLOCK_POSITION_MASK);
+> +	reg |= lanes->clk.pol << ISPCSI2_PHY_CFG_CLOCK_POL_SHIFT;
+> +	reg |= lanes->clk.pos << ISPCSI2_PHY_CFG_CLOCK_POSITION_SHIFT;
+> +
+> +	isp_reg_writel(csi2->isp, reg, csi2->phy->cfg_regs, ISPCSI2_PHY_CFG);
+> 
+>  	return 0;
+>  }
+> @@ -190,8 +210,9 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
+>  	if (rval < 0)
+>  		goto done;
+> 
+> -	csiphy_dphy_config(phy);
+> -	csiphy_lanes_config(phy);
+> +	rval = omap3isp_csiphy_config(phy);
+> +	if (rval < 0)
+> +		goto done;
+> 
+>  	rval = csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_ON);
+>  	if (rval) {
+> @@ -227,8 +248,6 @@ int omap3isp_csiphy_init(struct isp_device *isp)
+>  	struct isp_csiphy *phy1 = &isp->isp_csiphy1;
+>  	struct isp_csiphy *phy2 = &isp->isp_csiphy2;
+> 
+> -	isp->platform_cb.csiphy_config = csiphy_config;
+> -
+>  	phy2->isp = isp;
+>  	phy2->csi2 = &isp->isp_csi2a;
+>  	phy2->num_data_lanes = ISP_CSIPHY2_NUM_DATA_LANES;
+> diff --git a/drivers/media/platform/omap3isp/ispcsiphy.h
+> b/drivers/media/platform/omap3isp/ispcsiphy.h index e93a661..14551fd 100644
+> --- a/drivers/media/platform/omap3isp/ispcsiphy.h
+> +++ b/drivers/media/platform/omap3isp/ispcsiphy.h
+> @@ -32,14 +32,6 @@
+>  struct isp_csi2_device;
+>  struct regulator;
+> 
+> -struct isp_csiphy_dphy_cfg {
+> -	u8 ths_term;
+> -	u8 ths_settle;
+> -	u8 tclk_term;
+> -	unsigned tclk_miss:1;
+> -	u8 tclk_settle;
+> -};
+> -
+>  struct isp_csiphy {
+>  	struct isp_device *isp;
+>  	struct mutex mutex;	/* serialize csiphy configuration */
+> @@ -52,8 +44,6 @@ struct isp_csiphy {
+>  	unsigned int phy_regs;
+> 
+>  	u8 num_data_lanes;	/* number of CSI2 Data Lanes supported */
+> -	struct isp_csiphy_lanes_cfg lanes;
+> -	struct isp_csiphy_dphy_cfg dphy;
+>  };
+> 
+>  int omap3isp_csiphy_acquire(struct isp_csiphy *phy);
 -- 
-Att,
+Regards,
 
-Marcos Paulo de Souza
-Acadêmico de Ciencia da Computação - FURB - SC
-"Uma vida sem desafios é uma vida sem razão"
-"A life without challenges, is a non reason life"
+Laurent Pinchart
+
