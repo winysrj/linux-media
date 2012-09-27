@@ -1,87 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46903 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753105Ab2IYLgb (ORCPT
+Received: from mail-da0-f46.google.com ([209.85.210.46]:51943 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754638Ab2I0Fd4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 07:36:31 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, a.hajda@samsung.com,
-	sakari.ailus@iki.fi, hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	sw0312.kim@samsung.com
-Subject: Re: [PATCH RFC v2 0/5] s5p-fimc: Add interleaved image data capture support
-Date: Tue, 25 Sep 2012 13:37:06 +0200
-Message-ID: <2532715.t0qPncDtcZ@avalon>
-In-Reply-To: <1348498546-2652-1-git-send-email-s.nawrocki@samsung.com>
-References: <1348498546-2652-1-git-send-email-s.nawrocki@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 27 Sep 2012 01:33:56 -0400
+From: Prabhakar <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	VGER <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2] media: davinci: vpif: add check for NULL handler
+Date: Thu, 27 Sep 2012 11:03:12 +0530
+Message-Id: <1348723992-3199-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-On Monday 24 September 2012 16:55:41 Sylwester Nawrocki wrote:
-> Hi All,
-> 
-> This patch series adds device/vendor specific media bus pixel code section
-> and defines S5C73MX camera specific media bus pixel code, along with
-> corresponding fourcc. I realize this isn't probably the best possible
-> solution but I don't know how to better handle this without major changes
-> in V4L2 API.
+for da850/omap-l138, there is no need to setup_input_channel_mode()
+and set_clock(), to avoid adding dummy code in board file just returning
+zero add a check in the driver itself to call the handler only if its
+not NULL.
 
-Well, given that the format is highly specific to your hardware, I don't think 
-it's such a bad solution. It actually looks OK to me.
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+---
+ Changes for v2:
+ 1: Added patch description, pointed by Mauro.
 
-> The third patch adds support for MIPI-CSI2 Embedded Data capture in
-> Samsung S5P/Exynos MIPI-CSIS device. It depends on patch
-> "[PATCH RFC] V4L: Add s_rx_buffer subdev video operation".
-> 
-> The fourth patch extends s5p-fimc driver to allow it to support
-> 2-planar V4L2_PIX_FMT_S5C_UYVY_JPG format. More details can be found
-> in the patch summary. The [get/set]_frame_desc subdev callback are
-> used only to retrive from a sensor subdev required buffer size.
-> It depends on patch
-> "[PATCH RFC] V4L: Add get/set_frame_desc subdev callbacks"
-> 
-> The fifth patch adds [get/set]_frame_desc op handlers to the m5mols
-> driver as an example. I prepared also similar patch for S5C73M3
-> sensor where 2 frame description entries are used, but that driver
-> is not yet mainlined due to a few missing items in V4L2 required
-> to fully control it, so I didn't include that patch in this series.
-> 
-> Comments, suggestions welcome.
-> 
-> Thanks,
-> Sylwester
-> 
-> Sylwester Nawrocki (5):
->   V4L: Add V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8 media bus format
->   V4L: Add V4L2_PIX_FMT_S5C_UYVY_JPG fourcc definition
->   s5p-csis: Add support for non-image data packets capture
->   s5p-fimc: Add support for V4L2_PIX_FMT_S5C_UYVY_JPG fourcc
->   m5mols: Implement .get_frame_desc subdev callback
-> 
->  Documentation/DocBook/media/v4l/compat.xml         |   4 +
->  Documentation/DocBook/media/v4l/pixfmt.xml         |   9 ++
->  Documentation/DocBook/media/v4l/subdev-formats.xml |  45 ++++++++
->  drivers/media/i2c/m5mols/m5mols.h                  |   9 ++
->  drivers/media/i2c/m5mols/m5mols_capture.c          |   3 +
->  drivers/media/i2c/m5mols/m5mols_core.c             |  47 ++++++++
->  drivers/media/i2c/m5mols/m5mols_reg.h              |   1 +
->  drivers/media/platform/s5p-fimc/fimc-capture.c     | 128 +++++++++++++++---
->  drivers/media/platform/s5p-fimc/fimc-core.c        |  19 ++-
->  drivers/media/platform/s5p-fimc/fimc-core.h        |  28 ++++-
->  drivers/media/platform/s5p-fimc/fimc-reg.c         |  23 +++-
->  drivers/media/platform/s5p-fimc/fimc-reg.h         |   3 +-
->  drivers/media/platform/s5p-fimc/mipi-csis.c        |  59 +++++++++-
->  include/linux/v4l2-mediabus.h                      |   5 +
->  include/linux/videodev2.h                          |   1 +
->  15 files changed, 351 insertions(+), 33 deletions(-)
+ drivers/media/platform/davinci/vpif_capture.c |   13 +++++++------
+ drivers/media/platform/davinci/vpif_display.c |   13 +++++++------
+ 2 files changed, 14 insertions(+), 12 deletions(-)
 
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 13aa46d..7b5e09a 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -311,12 +311,13 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	}
+ 
+ 	/* configure 1 or 2 channel mode */
+-	ret = vpif_config_data->setup_input_channel_mode
+-					(vpif->std_info.ycmux_mode);
+-
+-	if (ret < 0) {
+-		vpif_dbg(1, debug, "can't set vpif channel mode\n");
+-		return ret;
++	if (vpif_config_data->setup_input_channel_mode) {
++		ret = vpif_config_data->
++			setup_input_channel_mode(vpif->std_info.ycmux_mode);
++		if (ret < 0) {
++			vpif_dbg(1, debug, "can't set vpif channel mode\n");
++			return ret;
++		}
+ 	}
+ 
+ 	/* Call vpif_set_params function to set the parameters and addresses */
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index e401aea..e8a0286 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -280,12 +280,13 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	}
+ 
+ 	/* clock settings */
+-	ret =
+-	    vpif_config_data->set_clock(ch->vpifparams.std_info.ycmux_mode,
+-					ch->vpifparams.std_info.hd_sd);
+-	if (ret < 0) {
+-		vpif_err("can't set clock\n");
+-		return ret;
++	if (vpif_config_data->set_clock) {
++		ret = vpif_config_data->set_clock(ch->vpifparams.std_info.
++		ycmux_mode, ch->vpifparams.std_info.hd_sd);
++		if (ret < 0) {
++			vpif_err("can't set clock\n");
++			return ret;
++		}
+ 	}
+ 
+ 	/* set the parameters and addresses */
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.4.1
 
