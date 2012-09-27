@@ -1,117 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1265 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752374Ab2IUM0X (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:49794 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754815Ab2I0VUK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Sep 2012 08:26:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [RFC] Processing context in the V4L2 subdev and V4L2 controls API ?
-Date: Fri, 21 Sep 2012 14:26:17 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans de Goede <hdegoede@redhat.com>,
-	"Seung-Woo Kim" <sw0312.kim@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-References: <50588E0E.9000307@samsung.com>
-In-Reply-To: <50588E0E.9000307@samsung.com>
+	Thu, 27 Sep 2012 17:20:10 -0400
+Received: by lagh6 with SMTP id h6so616987lag.19
+        for <linux-media@vger.kernel.org>; Thu, 27 Sep 2012 14:20:08 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201209211426.17235.hverkuil@xs4all.nl>
+In-Reply-To: <5064B01E.4070802@iki.fi>
+References: <500C5B9B.8000303@iki.fi>
+	<CAOcJUbw-8zG-j7YobgKy7k5vp-k_trkaB5fYGz605KdUQHKTGQ@mail.gmail.com>
+	<500F1DC5.1000608@iki.fi>
+	<CAOcJUbzXoLx10o8oprxPM1TELFxyGE7_wodcWsBr8MX4OR0N_w@mail.gmail.com>
+	<CAOcJUbzJjBBMcLmeaOCsJRz44KVPqZ_sGctG8+ai=n1W+9P9xA@mail.gmail.com>
+	<500F4140.1000202@iki.fi>
+	<CAOcJUbzF8onCqoxv-xkZY3YUiUjgjokkstB5eSX8YKELYDrjag@mail.gmail.com>
+	<CAOcJUbw4O_rHCN6PgXc7=XU5ZToTB3QqAWLPUPhW-TZZVZ9X5w@mail.gmail.com>
+	<20120927161940.0f673e2e@redhat.com>
+	<5064B01E.4070802@iki.fi>
+Date: Thu, 27 Sep 2012 17:20:08 -0400
+Message-ID: <CAOcJUbxhgwhMJuAF0sfbC-ddDFOawGBFekwdhQbcJ5z2-eaxYg@mail.gmail.com>
+Subject: Re: tda18271 driver power consumption
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue September 18 2012 17:06:54 Sylwester Nawrocki wrote:
-> Hi All,
-> 
-> I'm trying to fulfil following requirements with V4L2 API that are specific
-> to most of Samsung camera sensors with embedded SoC ISP and also for local 
-> SoC camera ISPs:
-> 
->  - separate pixel format and pixel resolution needs to be configured
->    in a device for camera preview and capture;
-> 
->  - there is a need to set capture or preview mode in a device explicitly
->    as it makes various adjustments (in firmware) in each operation mode
->    and controls external devices accordingly (e.g. camera Flash);
-> 
->  - some devices have more than two use case specific contexts that a user
->    needs to choose from, e.g. video preview, video capture, still preview, 
->    still capture; for each of these modes there are separate settings, 
->    especially pixel resolution and others corresponding to existing v4l2 
->    controls;
-> 
->  - some devices can have two processing contexts enabled simultaneously,
->    e.g. a sensor emitting YUYV and JPEG streams simultaneously (please see 
->    discussion [1]).
-> 
-> This makes me considering making the v4l2 subdev (and maybe v4l2 controls)
-> API processing (capture) context aware.
-> 
-> If I remember correctly introducing processing context, as the per file 
-> handle device contexts in case of mem-to-mem devices was considered bad
-> idea in past discussions.
+On Thu, Sep 27, 2012 at 3:59 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 09/27/2012 10:19 PM, Mauro Carvalho Chehab wrote:
+>>
+>> Em Thu, 26 Jul 2012 08:48:58 -0400
+>> Michael Krufky <mkrufky@linuxtv.org> escreveu:
+>>
+>>> Antti,
+>>>
+>>> This small patch should do the trick -- can you test it?
+>>>
+>>>
+>>> The following changes since commit
+>>> 0c7d5a6da75caecc677be1fda207b7578936770d:
+>>>
+>>>    Linux 3.5-rc5 (2012-07-03 22:57:41 +0300)
+>>>
+>>> are available in the git repository at:
+>>>
+>>>    git://git.linuxtv.org/mkrufky/tuners tda18271
+>>>
+>>> for you to fetch changes up to 782b28e20d3b253d317cc71879639bf3c108b200:
+>>>
+>>>    tda18271: enter low-power standby mode at the end of
+>>> tda18271_attach() (2012-07-26 08:34:37 -0400)
+>>>
+>>> ----------------------------------------------------------------
+>>> Michael Krufky (1):
+>>>        tda18271: enter low-power standby mode at the end of
+>>> tda18271_attach()
+>>>
+>>>   drivers/media/common/tuners/tda18271-fe.c |    3 +++
+>>>   1 file changed, 3 insertions(+)
+>>
+>>
+>>
+>> Mike,
+>>
+>> Despite patchwork's way of handling, thinking that this is a pull request,
+>> I suspect that your intention here were simply offer some patches for
+>> Antti
+>> to test.
+>>
+>> In any case, please always send the patches via email to the ML before
+>> sending a pull request. This was always a rule, but some developers are
+>> lazy with this duty, and, as I didn't use to have a tool to double check,
+>> bad things happen.
+>>
+>> I'm now finally able to check with a simple script if weather a patch
+>> went to the ML or not. My script checks both reply-to/references email
+>> tags and it looks for the same patch subject at the ML Inbox.
+>> So, I'll be now be more grumpy with that ;) [1]
+>>
+>> So, please be sure to post those patches at the ML, with Antti's
+>> tested-by:
+>> tag, before sending a pull request.
+>>
+>> Thanks!
+>> Mauro
+>>
+>> [1] Side note: it is not actually a matter of being grumpy; posted patches
+>> receive a lot more attention/review than simple pull requests. From time
+>> to time, patches that went via the wrong way (e. g. without a previous
+>> post)
+>> caused troubles for other developers. So, enforcing it is actually a
+>> matter
+>> of improving Kernel quality and avoiding regressions.
+>>
+>> -
+>>
+>> $ test_patch
+>> testing if
+>> patches/0001-tda18271-enter-low-power-standby-mode-at-the-end-of-.patch
+>> applies
+>> patch -p1 -i
+>> patches/0001-tda18271-enter-low-power-standby-mode-at-the-end-of-.patch
+>> --dry-run -t -N
+>> patching file drivers/media/tuners/tda18271-fe.c
+>>   drivers/media/tuners/tda18271-fe.c |    3 +++
+>>   1 file changed, 3 insertions(+)
+>> Subject: tda18271: enter low-power standby mode at the end of
+>> tda18271_attach()
+>> From: Michael Krufky <mkrufky@linuxtv.org>
+>> Date: Thu, 26 Jul 2012 08:34:37 -0400
+>> Patch applies OK
+>> total: 0 errors, 0 warnings, 9 lines checked
+>>
+>> patches/0001-tda18271-enter-low-power-standby-mode-at-the-end-of-.patch
+>> has no obvious style problems and is ready for submission.
+>> Didn't find any message with subject equal to 'tda18271: enter low-power
+>> standby mode at the end of tda18271_attach()'
+>> Duplicated md5sum patches
+>> Likely duplicated patches (need manual check)
+>
+>
+> If that tda18271 patch is not applied then these two should be:
+>
+> https://patchwork.kernel.org/patch/1481901/
+> https://patchwork.kernel.org/patch/1481911/
+>
+>
+> regards
+> Antti
+>
+> --
+> http://palosaari.fi/
 
-I don't remember this. Controls can already be per-filehandle for m2m devices,
-so for m2m devices I see no problem. For other devices it is a different matter,
-though. The current V4L2 API does not allow per-filehandle contexts there.
+The tda18271 patch should indeed be applied -- I will send it to the
+ML later on today and follow up with a pull request.  Thanks to all
+who have commented :-)
 
-> But this was more about v4ll2 video nodes.
-> 
-> And I was considering adding context only to v4l2 subdev API, and possibly
-> to the (extended) control API. The idea is to extend the subdev (and 
-> controls ?) ioctls so it is possible to preconfigure sets of parameters 
-> on subdevs, while V4L2 video node parameters would be switched "manually"
-> by applications to match a selected subdevs contest. There would also be
-> needed an API to select specific context (e.g. a control), or maybe 
-> multiple contexts like in case of a sensor from discussion [1].
-
-We discussed the context idea before. The problem is how to implement it
-in a way that still keeps things from becoming overly complex.
-
-What I do not want to see is an API with large structs that contain the whole
-context. That's a nightmare to maintain in the long run. So you want to be
-able to use the existing API as much as possible and build up the context
-bit by bit.
-
-I don't think using a control to select contexts is a good idea. I think this
-warrants one or more new ioctls.
-
-What contexts would you need? What context operations do you need?
-
-I would probably define a default or baseline context that all drivers have,
-then create a CLONE_CONTEXT ioctl (cloning an existing context into a new one)
-and an EDIT_CONTEXT ioctl (to edit an existing context) and any subsequent
-ioctls will apply to that context. After the FINISH_CONTEXT ioctl the context
-is finalized and any subsequent ioctls will apply again to the baseline context.
-With APPLY_CONTEXT you apply a context to the baseline context and activate it.
-
-Whether this context information is stored in the file handle (making it fh
-specific) or globally is an interesting question to which I don't have an
-answer.
-
-This is just a quick brainstorm, but I think something like this might be
-feasible.
-
-> I've seen various hacks in some v4l2 drivers trying to fulfil above
-> requirements, e.g. abusing struct v4l2_mbus_framefmt::colorspace field
-> to select between capture/preview in a device or using 32-bit integer
-> control where upper 16-bits are used for pixel width and lower 16 for
-> pixel height.
-
-Where is that? And what do you mean with pixel width and height? It this
-used to define a pixel aspect ratio? Is this really related to context?
-
-> This may suggest there something missing at the API.
-> 
-> Any suggestions, critics, please ?... :)
-
-Regards,
-
-	Hans
+-Mike
