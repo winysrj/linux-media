@@ -1,76 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:43875 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755332Ab2IAB3H (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47644 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756729Ab2I0Kka (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Aug 2012 21:29:07 -0400
-Received: by vcbfk26 with SMTP id fk26so3931028vcb.19
-        for <linux-media@vger.kernel.org>; Fri, 31 Aug 2012 18:29:00 -0700 (PDT)
+	Thu, 27 Sep 2012 06:40:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>, remi@remlab.net,
+	Kamil Debski <k.debski@samsung.com>
+Subject: Re: [RFC] Timestamps and V4L2
+Date: Thu, 27 Sep 2012 12:41:08 +0200
+Message-ID: <21756413.MuViFDO8NB@avalon>
+In-Reply-To: <50638219.7020105@gmail.com>
+References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <32114057.tIVjSTYujk@avalon> <50638219.7020105@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1346419084-10879-2-git-send-email-s.hauer@pengutronix.de>
-References: <1346419084-10879-1-git-send-email-s.hauer@pengutronix.de> <1346419084-10879-2-git-send-email-s.hauer@pengutronix.de>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Fri, 31 Aug 2012 18:28:20 -0700
-Message-ID: <CAMm-=zCm6pN8Ty02m=9F8NjrHo6fthT89QXz7S_=MQeSWCF5rQ@mail.gmail.com>
-Subject: Re: [PATCH 1/2] media v4l2-mem2mem: Use list_first_entry
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: linux-media@vger.kernel.org, Pawel Osciak <p.osciak@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Aug 31, 2012 at 6:18 AM, Sascha Hauer <s.hauer@pengutronix.de> wrote:
-> Use list_first_entry instead of list_entry which makes the intention
-> of the code more clear.
->
-> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> ---
+Hi Sylwester,
 
-Acked-by: Pawel Osciak <pawel@osciak.com>
+On Thursday 27 September 2012 00:30:49 Sylwester Nawrocki wrote:
+> On 09/25/2012 02:35 AM, Laurent Pinchart wrote:
+> > Does the clock type need to be selectable for mem-to-mem devices ? Do
+> > device- specific timestamps make sense there ?
+> 
+> I'd like to clarify one thing here, i.e. if we select device-specific
+> timestamps how should the v4l2_buffer::timestamp field behave ?
+> 
+> Are these two things exclusive ? Or should v4l2_buffer::timestamp be
+> valid even if device-specific timestamps are enabled ?
 
-Thanks for the patch Sascha!
+That's a very good question. The use cases I have in mind don't need both at 
+the same time. The point of device-specific timestamps is to get a precise 
+timestamp corresponding to the frame capture time, instead of the frame 
+transfer time. They need to be correlated with system timestamps, but for that 
+we need device-specific APIs to pass correlation information to userspace. 
+Passing a "transfer time" system timestamp along with the device timestamp 
+would be useless, as there would be no good correlation between the two.
 
+> With regards to your question, I think device-specific timestamps make
+> sense for mem-to-mem devices. Maybe not for the very simple ones, that
+> process buffers 1-to-1, but codecs may need it. I was told the Exynos/
+> S5P Multi Format Codec device has some register the timestamps could
+> be read from, but it's currently not used by the s5p-mfc driver. Kamil
+> might provide more details on that.
 
->  drivers/media/video/v4l2-mem2mem.c |    6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/video/v4l2-mem2mem.c b/drivers/media/video/v4l2-mem2mem.c
-> index 975d0fa..aaa67d3 100644
-> --- a/drivers/media/video/v4l2-mem2mem.c
-> +++ b/drivers/media/video/v4l2-mem2mem.c
-> @@ -102,7 +102,7 @@ void *v4l2_m2m_next_buf(struct v4l2_m2m_queue_ctx *q_ctx)
->                 return NULL;
->         }
->
-> -       b = list_entry(q_ctx->rdy_queue.next, struct v4l2_m2m_buffer, list);
-> +       b = list_first_entry(&q_ctx->rdy_queue, struct v4l2_m2m_buffer, list);
->         spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
->         return &b->vb;
->  }
-> @@ -122,7 +122,7 @@ void *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx)
->                 spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
->                 return NULL;
->         }
-> -       b = list_entry(q_ctx->rdy_queue.next, struct v4l2_m2m_buffer, list);
-> +       b = list_first_entry(&q_ctx->rdy_queue, struct v4l2_m2m_buffer, list);
->         list_del(&b->list);
->         q_ctx->num_rdy--;
->         spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
-> @@ -175,7 +175,7 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
->                 return;
->         }
->
-> -       m2m_dev->curr_ctx = list_entry(m2m_dev->job_queue.next,
-> +       m2m_dev->curr_ctx = list_first_entry(&m2m_dev->job_queue,
->                                    struct v4l2_m2m_ctx, queue);
->         m2m_dev->curr_ctx->job_flags |= TRANS_RUNNING;
->         spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
-> --
-> 1.7.10.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+What kind of timestamps are they ?
+
+> I guess if capture and output devices can have their timestamping clocks
+> selectable it should be also possible for mem-to-mem devices.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
