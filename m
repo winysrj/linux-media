@@ -1,49 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:52458 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756866Ab2INK6A (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:46985 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753888Ab2I0HNw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Sep 2012 06:58:00 -0400
-Received: from cobaltpc1.cisco.com (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q8EAvqBi013688
-	for <linux-media@vger.kernel.org>; Fri, 14 Sep 2012 10:57:55 GMT
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [RFCv3 API PATCH 13/31] Feature removal: Remove CUSTOM_TIMINGS defines in 3.9.
-Date: Fri, 14 Sep 2012 12:57:28 +0200
-Message-Id: <3629d5063c36dfc2a570c7afa831b8d849814bb5.1347619766.git.hans.verkuil@cisco.com>
-In-Reply-To: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
-References: <7447a305817a5e6c63f089c2e1e948533f1d57ea.1347619765.git.hans.verkuil@cisco.com>
+	Thu, 27 Sep 2012 03:13:52 -0400
+Received: by wibhq12 with SMTP id hq12so5814686wib.1
+        for <linux-media@vger.kernel.org>; Thu, 27 Sep 2012 00:13:51 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20120926105054.12aca245@lwn.net>
+References: <1348652877-25816-1-git-send-email-javier.martin@vista-silicon.com>
+	<1348652877-25816-4-git-send-email-javier.martin@vista-silicon.com>
+	<20120926105054.12aca245@lwn.net>
+Date: Thu, 27 Sep 2012 09:13:50 +0200
+Message-ID: <CACKLOr0P7gy_PfPoeWxGdqE=jMAEug=zoWLJ3mbYMQcffBFOZA@mail.gmail.com>
+Subject: Re: [PATCH 3/5] media: ov7670: calculate framerate properly for ov7675.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	hverkuil@xs4all.nl
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These have been replaced by new defines without the "CUSTOM_" part.
-Get rid of the old ones.
+On 26 September 2012 18:50, Jonathan Corbet <corbet@lwn.net> wrote:
+> On Wed, 26 Sep 2012 11:47:55 +0200
+> Javier Martin <javier.martin@vista-silicon.com> wrote:
+>
+>> According to the datasheet ov7675 uses a formula to achieve
+>> the desired framerate that is different from the operations
+>> done in the current code.
+>>
+>> In fact, this formula should apply to ov7670 too. This would
+>> mean that current code is wrong but, in order to preserve
+>> compatibility, the new formula will be used for ov7675 only.
+>
+> At this point I couldn't tell you what the real situation is; it's been a
+> while and there's always a fair amount of black magic involved with
+> ov7670 configuration.  I do appreciate attention to not breaking existing
+> users.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/feature-removal-schedule.txt |    9 +++++++++
- 1 file changed, 9 insertions(+)
+Indeed, this sensor is the quirkier I've dealt with, with those magic
+values in non documented registers...
 
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index a52924e..4f7e6ad 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -646,3 +646,12 @@ Who:	Russell King <linux@arm.linux.org.uk>,
- 	Santosh Shilimkar <santosh.shilimkar@ti.com>
- 
- ----------------------------
-+
-+What:	Remove deprecated DV timings capability defines V4L2_IN_CAP_CUSTOM_TIMINGS
-+	and V4L2_OUT_CAP_CUSTOM_TIMINGS.
-+When:	3.9
-+Why:	These defines have been replaced by V4L2_IN_CAP_TIMINGS and
-+	V4L2_OUT_CAP_TIMINGS respectively.
-+Who:	Hans Verkuil <hans.verkuil@cisco.com>
-+
-+----------------------------
+>> +static void ov7670_get_framerate(struct v4l2_subdev *sd,
+>> +                              struct v4l2_fract *tpf)
+>
+> This bugs me, though.  It's called ov7670_get_framerate() but it's getting
+> the rate for the ov7675 - confusing.  Meanwhile the real ov7670 code
+> remains inline while ov7675 has its own function.
+
+Actually, I did this on purpose because I wanted to remark that this
+function should be valid for both models and because I expected that
+the old behaviour was removed sometime in the future.
+
+> Please make two functions, one of which is ov7675_get_framerate(), and call
+> the right one for the model.  Same for the "set" functions, obviously.
+> Maybe what's really needed is a structure full of sensor-specific
+> operations?  The get_wsizes() function could go there too.  That would take
+> a lot of if statements out of the code.
+
+The idea of a structure of sensor-specific operations seems
+reasonable. Furthermore, I think we should encourage users to use the
+right formula in the future. For this reason we could define 4
+functions
+
+ov7670_set_framerate_legacy()
+ov7670_get_framerate_legacy()
+ov7675_set_framerate()
+ov7675_get_framerate()
+
+>> +     /*
+>> +      * The datasheet claims that clkrc = 0 will divide the input clock by 1
+>> +      * but we've checked with an oscilloscope that it divides by 2 instead.
+>> +      * So, if clkrc = 0 just bypass the divider.
+>> +      */
+>
+> Thanks for documenting this kind of thing.
+
+You are welcome.
+
+
 -- 
-1.7.10.4
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
