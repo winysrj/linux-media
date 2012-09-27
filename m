@@ -1,95 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:42525 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754909Ab2IQKys (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35885 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754952Ab2I0Xb0 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 06:54:48 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 5/7] s5p-fimc: Remove unused platform data structure fields
-Date: Mon, 17 Sep 2012 12:54:31 +0200
-Message-id: <1347879273-30463-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1347879273-30463-1-git-send-email-s.nawrocki@samsung.com>
-References: <1347878888-30001-1-git-send-email-s.nawrocki@samsung.com>
- <1347879273-30463-1-git-send-email-s.nawrocki@samsung.com>
+	Thu, 27 Sep 2012 19:31:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Enric =?ISO-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: omap3isp: wrong image after resizer with mt9v034 sensor
+Date: Fri, 28 Sep 2012 01:32:04 +0200
+Message-ID: <12608216.Ba7kF04BeL@avalon>
+In-Reply-To: <CAFqH_5245L5XqEGy=fpR8VNd9EHwUMZFO=p2NoLF4g4J3K0hCg@mail.gmail.com>
+References: <CAFqH_53EY7BcMjn+fy=KfAhSU9Ut1pcLUyrmu2kiHznrBUB2XQ@mail.gmail.com> <2096827.TE4L9M8af3@avalon> <CAFqH_5245L5XqEGy=fpR8VNd9EHwUMZFO=p2NoLF4g4J3K0hCg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-alignment, fixed_phy_vdd and phy_enable fields are now unused
-so removed them. The data alignment is now derived directly
-from media bus pixel code, phy_enable callback has been replaced
-with direct function call and fixed_phy_vdd was dropped in commit
-438df3ebe5f0ce408490a777a758d5905f0dd58f
-"[media] s5p-csis: Handle all available power supplies".
+Hi Enric,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- include/linux/platform_data/mipi-csis.h | 15 ++++-----------
- include/media/s5p_fimc.h                |  2 --
- 2 files changed, 4 insertions(+), 13 deletions(-)
+On Thursday 27 September 2012 18:05:56 Enric Balletbò i Serra wrote:
+> 2012/9/27 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> > On Wednesday 26 September 2012 16:15:35 Enric Balletbò i Serra wrote:
+> >> 2012/9/26 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> >> > On Wednesday 26 September 2012 09:57:53 Enric Balletbò i Serra wrote:
+> >> > 
+> >> > [snip]
+> >> > 
+> >> >> You had reason. Checking the data lines of the camera bus with an
+> >> >> oscilloscope I see I had a problem, exactly in D8 /D9 data lines.
+> >> > 
+> >> > I'm curious, how have you fixed that ?
+> >> 
+> >> The board had a pull-down 4k7 resistor which I removed in these lines
+> >> (D8/D9). The board is prepared to accept sensors from 8 to 12 bits,
+> >> lines from D8 to D12 have a pull-down resistor to tie down the line by
+> >> default.
+> >> 
+> >> With the oscilloscope I saw that D8/D9 had problems to go to high
+> >> level like you said, then I checked the schematic and I saw these
+> >> resistors.
+> >> 
+> >> >> Now I can capture images but the color is still wrong, see the
+> >> >> following
+> >> >> image captured with pipeline SENSOR -> CCDC OUTPUT
+> >> >> 
+> >> >>     http://downloads.isee.biz/pub/files/patterns/img-000001.pnm
+> >> >> 
+> >> >> Now the image was converted using :
+> >> >>     ./raw2rgbpnm -s 752x480 -f SGRBG10 img-000001.bin img-000001.pnm
+> >> >> 
+> >> >> And the raw data can be found here:
+> >> >>     http://downloads.isee.biz/pub/files/patterns/img-000001.bin
+> >> >> 
+> >> >> Any idea where I can look ? Thanks.
+> >> > 
+> >> > Your sensors produces BGGR data if I'm not mistaken, not GRBG.
+> >> > raw2rgbpnm doesn't support BGGR (yet), but the OMAP3 ISP preview engine
+> >> > can convert that to YUV since v3.5. Just make your sensor driver expose
+> >> > the right media bus format and configure the pipeline accordingly.
+> >> 
+> >> The datasheet (p.10,11) says that the Pixel Color Pattern is as follows.
+> >> 
+> >> <------------------------ direction
+> >> n  4    3    2    1
+> >> .. GB GB GB GB
+> >> .. RG RG RG RG
+> >> 
+> >> So seems you're right, if the first byte is on the right the sensor
+> >> produces BGGR. But for some reason the mt9v032 driver uses GRBG data.
+> > 
+> > You can change the Bayer pattern by moving the crop rectangle. That how
+> > the mt9v032 driver ensures a GRBG pattern even though the first active
+> > pixel in the sensor array is a blue one. As the MT9V034 first active pixel
+> > is located at different coordinates you will have to modify the crop
+> > rectangle computation logic to get GRBG.
+> 
+> Please, could you explain how to do this ? I'm a newbie into image
+> sensors world :-)
 
-diff --git a/include/linux/platform_data/mipi-csis.h b/include/linux/platform_data/mipi-csis.h
-index 2e59e43..8b703e1 100644
---- a/include/linux/platform_data/mipi-csis.h
-+++ b/include/linux/platform_data/mipi-csis.h
-@@ -1,7 +1,7 @@
- /*
-  * Copyright (C) 2010-2011 Samsung Electronics Co., Ltd.
-  *
-- * S5P series MIPI CSI slave device support
-+ * Samsung S5P/Exynos SoC series MIPI CSIS device support
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -13,21 +13,14 @@
- 
- /**
-  * struct s5p_platform_mipi_csis - platform data for S5P MIPI-CSIS driver
-- * @clk_rate: bus clock frequency
-- * @lanes: number of data lanes used
-- * @alignment: data alignment in bits
-- * @hs_settle: HS-RX settle time
-- * @fixed_phy_vdd: false to enable external D-PHY regulator management in the
-- *		   driver or true in case this regulator has no enable function
-- * @phy_enable: pointer to a callback controlling D-PHY enable/reset
-+ * @clk_rate:    bus clock frequency
-+ * @lanes:       number of data lanes used
-+ * @hs_settle:   HS-RX settle time
-  */
- struct s5p_platform_mipi_csis {
- 	unsigned long clk_rate;
- 	u8 lanes;
--	u8 alignment;
- 	u8 hs_settle;
--	bool fixed_phy_vdd;
--	int (*phy_enable)(struct platform_device *pdev, bool on);
- };
- 
- /**
-diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
-index 09421a61..eaea62a 100644
---- a/include/media/s5p_fimc.h
-+++ b/include/media/s5p_fimc.h
-@@ -30,7 +30,6 @@ struct i2c_board_info;
-  * @board_info: pointer to I2C subdevice's board info
-  * @clk_frequency: frequency of the clock the host interface provides to sensor
-  * @bus_type: determines bus type, MIPI, ITU-R BT.601 etc.
-- * @csi_data_align: MIPI-CSI interface data alignment in bits
-  * @i2c_bus_num: i2c control bus id the sensor is attached to
-  * @mux_id: FIMC camera interface multiplexer index (separate for MIPI and ITU)
-  * @clk_id: index of the SoC peripheral clock for sensors
-@@ -40,7 +39,6 @@ struct s5p_fimc_isp_info {
- 	struct i2c_board_info *board_info;
- 	unsigned long clk_frequency;
- 	enum cam_bus_type bus_type;
--	u16 csi_data_align;
- 	u16 i2c_bus_num;
- 	u16 mux_id;
- 	u16 flags;
+Let's assume the following Bayer pattern (left to right and top to bottom 
+direction).
+
+ | 1 2 3 4 5 6 7 8 ...
+----------------------
+1| G R G R G R G R ...
+2| B G B G B G B G ...
+3| G R G R G R G R ...
+4| B G B G B G B G ...
+5| G R G R G R G R ...
+6| B G B G B G B G ...
+7| G R G R G R G R ...
+8| B G B G B G B G ...
+.| ...................
+
+If you crop the (1,1)/4x4 rectangle from that sensor you will get
+
+ | 1 2 3 4
+----------
+1| G R G R
+2| B G B G
+3| G R G R
+4| B G B G
+
+which is clearly a GRBG pattern. If you crop the (2,1)/4x4 rectangle you will 
+get
+
+ | 2 3 4 5
+----------
+1| R G R G
+2| G B G B
+3| R G R G
+4| G B G B
+
+which is now a RGGB pattern. The pattern you get out of your sensor thus 
+depends on the crop rectangle position.
+
+> >> Maybe is related with following lines which writes register 0x0D Read
+> >> Mode (p.26,27) and presumably flips row or column bytes (not sure
+> >> about this I need to check)
+> >> 
+> >> 334         /* Configure the window size and row/column bin */
+> >> 335         hratio = DIV_ROUND_CLOSEST(crop->width, format->width);
+> >> 336         vratio = DIV_ROUND_CLOSEST(crop->height, format->height);
+> >> 337
+> >> 338         ret = mt9v032_write(client, MT9V032_READ_MODE,
+> >> 339                     (hratio - 1) <<
+> >> MT9V032_READ_MODE_ROW_BIN_SHIFT |
+> >> 340                     (vratio - 1) <<
+> >> MT9V032_READ_MODE_COLUMN_BIN_SHIFT);
+> >> 
+> >> Nonetheless, I changed the driver to configure for BGGR pattern. Using
+> >> the Sensor->CCDC->Preview->Resizer pipeline I captured the data with
+> >> yavta and converted using raw2rgbpnm program.
+> >> 
+> >>     ./raw2rgbpnm -s 752x480 -f UYVY img-000001.uyvy img-000001.pnm
+> >> 
+> >> and the result is
+> >> 
+> >>     http://downloads.isee.biz/pub/files/patterns/img-000002.pnm
+> >>     http://downloads.isee.biz/pub/files/patterns/img-000002.bin
+> >> 
+> >> The image looks better than older, not perfect, but better. The image
+> >> is only a bit yellowish. Could be this a hardware issue ? We are close
+> >> to ...
+> > 
+> > It's like a white balance issue. The OMAP3 ISP hardware doesn't perform
+> > automatic white balance, you will need to implement an AWB algorithm in
+> > software. You can have a look at the omap3-isp-live project for sample
+> > code (http://git.ideasonboard.org/omap3-isp-live.git).
+
 -- 
-1.7.11.3
+Regards,
+
+Laurent Pinchart
 
