@@ -1,154 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:34774 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753200Ab2ITRtw convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47206 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751138Ab2I0LSm convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Sep 2012 13:49:52 -0400
-Received: by oago6 with SMTP id o6so2459095oag.19
-        for <linux-media@vger.kernel.org>; Thu, 20 Sep 2012 10:49:51 -0700 (PDT)
+	Thu, 27 Sep 2012 07:18:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Enric =?ISO-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: omap3isp: wrong image after resizer with mt9v034 sensor
+Date: Thu, 27 Sep 2012 13:19:20 +0200
+Message-ID: <2096827.TE4L9M8af3@avalon>
+In-Reply-To: <CAFqH_51XXMyN0W5tUJiUr9MUrXe1KUZT5LuD-95M7xCaFT5Kgg@mail.gmail.com>
+References: <CAFqH_53EY7BcMjn+fy=KfAhSU9Ut1pcLUyrmu2kiHznrBUB2XQ@mail.gmail.com> <4942603.aHqLq5MBAn@avalon> <CAFqH_51XXMyN0W5tUJiUr9MUrXe1KUZT5LuD-95M7xCaFT5Kgg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAOcJUbw5+wfaZ6Os5gKbPzCf0_d_rh=apatQwA=0k5gKm_FfOQ@mail.gmail.com>
-References: <500C5B9B.8000303@iki.fi>
-	<CAOcJUbw-8zG-j7YobgKy7k5vp-k_trkaB5fYGz605KdUQHKTGQ@mail.gmail.com>
-	<500F1DC5.1000608@iki.fi>
-	<CAOcJUbzXoLx10o8oprxPM1TELFxyGE7_wodcWsBr8MX4OR0N_w@mail.gmail.com>
-	<50200AC9.9080203@iki.fi>
-	<CAGoCfixmre37ph46E6U9mJ+tyt+OL7+RbDwg+W6DkL01im2nCg@mail.gmail.com>
-	<CAOcJUbwyNBEoPyE_6QZQ-6tbUsHFzurYBEavegQO1aVYNsQ_kA@mail.gmail.com>
-	<5020175D.3070601@iki.fi>
-	<CAOcJUbw5+wfaZ6Os5gKbPzCf0_d_rh=apatQwA=0k5gKm_FfOQ@mail.gmail.com>
-Date: Thu, 20 Sep 2012 13:49:51 -0400
-Message-ID: <CAOcJUbwCkNZCbNv=JHKhSMiuBre+cqWqhF5ihocRP9jbo1iEkw@mail.gmail.com>
-Subject: Re: tda18271 driver power consumption
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 20, 2012 at 1:47 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> On Mon, Aug 6, 2012 at 3:13 PM, Antti Palosaari <crope@iki.fi> wrote:
->> On 08/06/2012 09:57 PM, Michael Krufky wrote:
->>>
->>> On Mon, Aug 6, 2012 at 2:35 PM, Devin Heitmueller
->>> <dheitmueller@kernellabs.com> wrote:
->>>>
->>>> On Mon, Aug 6, 2012 at 2:19 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>>>
->>>>> You should understand from DVB driver model:
->>>>> * attach() called only once when driver is loaded
->>>>> * init() called to wake-up device
->>>>> * sleep() called to sleep device
->>>>>
->>>>> What I would like to say is that there is very big risk to shoot own leg
->>>>> when doing some initialization on attach(). For example resuming from
->>>>> the
->>>>> suspend could cause device reset and if you rely some settings that are
->>>>> done
->>>>> during attach() you will likely fail as Kernel / USB-host controller has
->>>>> reset your device.
->>>>>
->>>>> See reset_resume from Kernel documentation:
->>>>> Documentation/usb/power-management.txt
->>>>
->>>>
->>>> Be forewarned:  there is a very high likelihood that this patch will
->>>> cause regressions on hybrid devices due to known race conditions
->>>> related to dvb_frontend sleeping the tuner asynchronously on close.
->>>> This is a hybrid tuner, and unless code is specifically added to the
->>>> bridge or tuner driver, going from digital to analog mode too quickly
->>>> will cause the tuner to be shutdown while it's actively in analog
->>>> mode.
->>>>
->>>> (I discovered this the hard way when working on problems MythTV users
->>>> reported against the HVR-950q).
->>>>
->>>> Description of race:
->>>>
->>>> 1.  User opens DVB frontend tunes
->>>> 2.  User closes DVB frontend
->>>> 3.  User *immediately* opens V4L device using same tuner
->>>> 4.  User performs tuning request for analog
->>>> 5.  DVB frontend issues sleep() call to tuner, causing analog tuning to
->>>> fail.
->>>>
->>>> This class of problem isn't seen on DVB only devices or those that
->>>> have dedicated digital tuners not shared for analog usage.  And in
->>>> some cases it isn't noticed because a delay between closing the DVB
->>>> device and opening the analog devices causes the sleep() call to
->>>> happen before the analog tune (in which case you don't hit the race).
->>>>
->>>> I'm certainly not against improved power management, but it will
->>>> require the race conditions to be fixed first in order to avoid
->>>> regressions.
->>>>
->>>> Devin
->>>>
->>>> --
->>>> Devin J. Heitmueller - Kernel Labs
->>>> http://www.kernellabs.com
->>>
->>>
->>> Devin's right.  I'm sorry, please *don't* merge the patch, Mauro.
->>> Antti, you should just call sleep from your driver after attach(), as
->>> I had previously suggested.  We can revisit this some time in the
->>> future after we can be sure that these race conditions wont occur.
->>
->>
->> OK, maybe it is safer then. I have no any hybrid hardware to test...
->>
->> Anyhow, I wonder how many years it will take to resolve that V4L2/DVB API
->> hybrid usage pÅ•oblem. I ran thinking that recently when looked how to
->> implement DVB SDR for V4L2 API... I could guess problem will not disappear
->> near future even analog TV disappears, because there is surely coming new
->> nasty features which spreads over both V4L2 and DVB APIs.
->
-> Guys,
->
-> Please take another look at this branch and test if possible -- I
-> pushed an additional patch that takes Devin's concerns into account.
-> After applying these patches, the tda18271 driver will behave as it
-> always has, but it will sleep the tuner after attaching the first
-> instance.  If there is only one instance, then this works exactly as
-> Antti desires.  If there are more instances, then the tuner will only
-> be woken up again during attach if the tda18271_need_cal_on_startup()
-> returns non-zero.  The driver does not attempt to re-sleep the
-> hardware again during successive attach() calls.
->
-> I have not tested this yet myself, but I believe it resolves the
-> matter -- please comment.
->
-> Regards,
->
-> Mike Krufky
+Hi Enric,
 
-...in case the URL got lost:
+On Wednesday 26 September 2012 16:15:35 Enric Balletbò i Serra wrote:
+> 2012/9/26 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> > On Wednesday 26 September 2012 09:57:53 Enric Balletbò i Serra wrote:
+> > 
+> > [snip]
+> > 
+> >> You had reason. Checking the data lines of the camera bus with an
+> >> oscilloscope I see I had a problem, exactly in D8 /D9 data lines.
+> > 
+> > I'm curious, how have you fixed that ?
+> 
+> The board had a pull-down 4k7 resistor which I removed in these lines
+> (D8/D9). The board is prepared to accept sensors from 8 to 12 bits,
+> lines from D8 to D12 have a pull-down resistor to tie down the line by
+> default.
+> 
+> With the oscilloscope I saw that D8/D9 had problems to go to high
+> level like you said, then I checked the schematic and I saw these
+> resistors.
+> 
+> >> Now I can capture images but the color is still wrong, see the following
+> >> image captured with pipeline SENSOR -> CCDC OUTPUT
+> >> 
+> >>     http://downloads.isee.biz/pub/files/patterns/img-000001.pnm
+> >> 
+> >> Now the image was converted using :
+> >>     ./raw2rgbpnm -s 752x480 -f SGRBG10 img-000001.bin img-000001.pnm
+> >> 
+> >> And the raw data can be found here:
+> >>     http://downloads.isee.biz/pub/files/patterns/img-000001.bin
+> >> 
+> >> Any idea where I can look ? Thanks.
+> > 
+> > Your sensors produces BGGR data if I'm not mistaken, not GRBG. raw2rgbpnm
+> > doesn't support BGGR (yet), but the OMAP3 ISP preview engine can convert
+> > that to YUV since v3.5. Just make your sensor driver expose the right
+> > media bus format and configure the pipeline accordingly.
+> 
+> The datasheet (p.10,11) says that the Pixel Color Pattern is as follows.
+> 
+> <------------------------ direction
+> n  4    3    2    1
+> .. GB GB GB GB
+> .. RG RG RG RG
+> 
+> So seems you're right, if the first byte is on the right the sensor
+> produces BGGR. But for some reason the mt9v032 driver uses GRBG data.
 
+You can change the Bayer pattern by moving the crop rectangle. That how the 
+mt9v032 driver ensures a GRBG pattern even though the first active pixel in 
+the sensor array is a blue one. As the MT9V034 first active pixel is located 
+at different coordinates you will have to modify the crop rectangle 
+computation logic to get GRBG.
 
-The following changes since commit 0c7d5a6da75caecc677be1fda207b7578936770d:
+> Maybe is related with following lines which writes register 0x0D Read
+> Mode (p.26,27) and presumably flips row or column bytes (not sure
+> about this I need to check)
+> 
+> 334         /* Configure the window size and row/column bin */
+> 335         hratio = DIV_ROUND_CLOSEST(crop->width, format->width);
+> 336         vratio = DIV_ROUND_CLOSEST(crop->height, format->height);
+> 337
+> 338         ret = mt9v032_write(client, MT9V032_READ_MODE,
+> 339                     (hratio - 1) <<
+> MT9V032_READ_MODE_ROW_BIN_SHIFT |
+> 340                     (vratio - 1) << MT9V032_READ_MODE_COLUMN_BIN_SHIFT);
+> 
+> Nonetheless, I changed the driver to configure for BGGR pattern. Using
+> the Sensor->CCDC->Preview->Resizer pipeline I captured the data with
+> yavta and converted using raw2rgbpnm program.
+> 
+>     ./raw2rgbpnm -s 752x480 -f UYVY img-000001.uyvy img-000001.pnm
+> 
+> and the result is
+> 
+>     http://downloads.isee.biz/pub/files/patterns/img-000002.pnm
+>     http://downloads.isee.biz/pub/files/patterns/img-000002.bin
+> 
+> The image looks better than older, not perfect, but better. The image
+> is only a bit yellowish. Could be this a hardware issue ? We are close
+> to ...
 
-  Linux 3.5-rc5 (2012-07-03 22:57:41 +0300)
+It's like a white balance issue. The OMAP3 ISP hardware doesn't perform 
+automatic white balance, you will need to implement an AWB algorithm in 
+software. You can have a look at the omap3-isp-live project for sample code 
+(http://git.ideasonboard.org/omap3-isp-live.git).
 
-are available in the git repository at:
+-- 
+Regards,
 
-  git://linuxtv.org/mkrufky/tuners tda18271
+Laurent Pinchart
 
-for you to fetch changes up to 4e46c5d1bbb920165fecfe7de18b2c01d9787230:
-
-  tda18271: make 'low-power standby mode after attach' multi-instance
-safe (2012-09-20 13:34:29 -0400)
-
-----------------------------------------------------------------
-Michael Krufky (2):
-      tda18271: enter low-power standby mode at the end of tda18271_attach()
-      tda18271: make 'low-power standby mode after attach' multi-instance safe
-
- drivers/media/common/tuners/tda18271-fe.c |    4 ++++
- 1 file changed, 4 insertions(+)
-
-Best regards,
-
-Mike
