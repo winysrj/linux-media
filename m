@@ -1,135 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:42517 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754914Ab2IQKyq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Sep 2012 06:54:46 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 4/7] s5p-csis: Replace phy_enable platform data callback with
- direct call
-Date: Mon, 17 Sep 2012 12:54:30 +0200
-Message-id: <1347879273-30463-1-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1347878888-30001-1-git-send-email-s.nawrocki@samsung.com>
-References: <1347878888-30001-1-git-send-email-s.nawrocki@samsung.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:59663 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758224Ab2I1Sgl convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Sep 2012 14:36:41 -0400
+From: Albert Wang <twang13@marvell.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "corbet@lwn.net" <corbet@lwn.net>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Date: Fri, 28 Sep 2012 11:37:41 -0700
+Subject: RE: [PATCH 2/4] [media] marvell-ccic: core: add soc camera support
+ on marvell-ccic mcam-core
+Message-ID: <477F20668A386D41ADCC57781B1F7043083B590CA2@SC-VEXCH1.marvell.com>
+References: <1348840040-21390-1-git-send-email-twang13@marvell.com>
+ <201209281615.49420.hverkuil@xs4all.nl>
+In-Reply-To: <201209281615.49420.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The phy_enable callback is common for all Samsung SoC platforms,
-replace it with direct function call so the MIPI-CSI2 DPHY control
-is also possible on device tree instantiated platforms.
+Hi, Hans
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/mipi-csis.c | 13 +++++++------
- include/linux/platform_data/mipi-csis.h  | 11 +++++------
- 2 files changed, 12 insertions(+), 12 deletions(-)
+Thank you for reviewing the patches!
 
-diff --git a/drivers/media/video/s5p-fimc/mipi-csis.c b/drivers/media/video/s5p-fimc/mipi-csis.c
-index c9afb05..1a2db5d 100644
---- a/drivers/media/video/s5p-fimc/mipi-csis.c
-+++ b/drivers/media/video/s5p-fimc/mipi-csis.c
-@@ -150,6 +150,7 @@ static const struct s5pcsis_event s5pcsis_events[] = {
-  *        protecting @format and @flags members
-  * @pads: CSIS pads array
-  * @sd: v4l2_subdev associated with CSIS device instance
-+ * @index: the hardware instance index
-  * @pdev: CSIS platform device
-  * @regs: mmaped I/O registers memory
-  * @supplies: CSIS regulator supplies
-@@ -165,6 +166,7 @@ struct csis_state {
- 	struct mutex lock;
- 	struct media_pad pads[CSIS_PADS_NUM];
- 	struct v4l2_subdev sd;
-+	u8 index;
- 	struct platform_device *pdev;
- 	void __iomem *regs;
- 	struct regulator_bulk_data supplies[CSIS_NUM_SUPPLIES];
-@@ -619,14 +621,15 @@ static int __devinit s5pcsis_probe(struct platform_device *pdev)
- 	spin_lock_init(&state->slock);
+>>On Fri September 28 2012 15:47:20 Albert Wang wrote:
+>> 
+>> This patch adds the support of Soc Camera on marvell-ccic mcam-core.
+>> The Soc Camera mode does not compatible with current mode.
+>> Only one mode can be used at one time.
+>> 
+>> To use Soc Camera, CONFIG_VIDEO_MMP_SOC_CAMERA should be defined.
+>> What's more, the platform driver should support Soc camera at the same time.
+>> 
+>> Also add MIPI interface and dual CCICs support in Soc Camera mode.
+>> 
+>> Signed-off-by: Albert Wang <twang13@marvell.com>
+>> Signed-off-by: Libin Yang <lbyang@marvell.com>
+>> ---
+>>  drivers/media/platform/marvell-ccic/mcam-core.c | 1034 
+>> ++++++++++++++++++++++----  
+>> drivers/media/platform/marvell-ccic/mcam-core.h |  126 +++-
+>>  2 files changed, 997 insertions(+), 163 deletions(-)
+>> 
+>> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c 
+>> b/drivers/media/platform/marvell-ccic/mcam-core.c
+>> index ce2b7b4..4adb1ca 100755
+>> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
+>> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
 
- 	state->pdev = pdev;
-+	state->index = max(0, pdev->id);
+...
 
- 	pdata = pdev->dev.platform_data;
--	if (pdata == NULL || pdata->phy_enable == NULL) {
-+	if (pdata == NULL) {
- 		dev_err(&pdev->dev, "Platform data not fully specified\n");
- 		return -EINVAL;
- 	}
+>> +static int mcam_camera_querycap(struct soc_camera_host *ici,
+>> +			struct v4l2_capability *cap)
+>> +{
+>> +	struct v4l2_dbg_chip_ident id;
+>> +	struct mcam_camera *mcam = ici->priv;
+>> +	struct soc_camera_device *icd = mcam->icd;
+>> +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>> +	int ret = 0;
+>> +
+>> +	cap->version = KERNEL_VERSION(0, 0, 5);
 
--	if ((pdev->id == 1 && pdata->lanes > CSIS1_MAX_LANES) ||
-+	if ((state->index == 1 && pdata->lanes > CSIS1_MAX_LANES) ||
- 	    pdata->lanes > CSIS0_MAX_LANES) {
- 		dev_err(&pdev->dev, "Unsupported number of data lanes: %d\n",
- 			pdata->lanes);
-@@ -709,7 +712,6 @@ e_clkput:
+>Don't fill in version. It's set to the kernel version automatically.
 
- static int s5pcsis_pm_suspend(struct device *dev, bool runtime)
- {
--	struct s5p_platform_mipi_csis *pdata = dev->platform_data;
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
- 	struct csis_state *state = sd_to_csis_state(sd);
-@@ -721,7 +723,7 @@ static int s5pcsis_pm_suspend(struct device *dev, bool runtime)
- 	mutex_lock(&state->lock);
- 	if (state->flags & ST_POWERED) {
- 		s5pcsis_stop_stream(state);
--		ret = pdata->phy_enable(state->pdev, false);
-+		ret = s5p_csis_phy_enable(state->index, false);
- 		if (ret)
- 			goto unlock;
- 		ret = regulator_bulk_disable(CSIS_NUM_SUPPLIES,
-@@ -740,7 +742,6 @@ static int s5pcsis_pm_suspend(struct device *dev, bool runtime)
+OK, will remove it.
 
- static int s5pcsis_pm_resume(struct device *dev, bool runtime)
- {
--	struct s5p_platform_mipi_csis *pdata = dev->platform_data;
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
- 	struct csis_state *state = sd_to_csis_state(sd);
-@@ -758,7 +759,7 @@ static int s5pcsis_pm_resume(struct device *dev, bool runtime)
- 					    state->supplies);
- 		if (ret)
- 			goto unlock;
--		ret = pdata->phy_enable(state->pdev, true);
-+		ret = s5p_csis_phy_enable(state->index, true);
- 		if (!ret) {
- 			state->flags |= ST_POWERED;
- 		} else {
-diff --git a/include/linux/platform_data/mipi-csis.h b/include/linux/platform_data/mipi-csis.h
-index c45b1e8..2e59e43 100644
---- a/include/linux/platform_data/mipi-csis.h
-+++ b/include/linux/platform_data/mipi-csis.h
-@@ -11,8 +11,6 @@
- #ifndef __PLAT_SAMSUNG_MIPI_CSIS_H_
- #define __PLAT_SAMSUNG_MIPI_CSIS_H_ __FILE__
+>> +	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
 
--struct platform_device;
--
- /**
-  * struct s5p_platform_mipi_csis - platform data for S5P MIPI-CSIS driver
-  * @clk_rate: bus clock frequency
-@@ -34,10 +32,11 @@ struct s5p_platform_mipi_csis {
+>Please also set cap->device_caps. See the spec.
 
- /**
-  * s5p_csis_phy_enable - global MIPI-CSI receiver D-PHY control
-- * @pdev: MIPI-CSIS platform device
-- * @on: true to enable D-PHY and deassert its reset
-- *	false to disable D-PHY
-+ * @id:     MIPI-CSIS harware instance index (0...1)
-+ * @on:     true to enable D-PHY and deassert its reset
-+ *          false to disable D-PHY
-+ * @return: 0 on success, or negative error code on failure
-  */
--int s5p_csis_phy_enable(struct platform_device *pdev, bool on);
-+int s5p_csis_phy_enable(int id, bool on);
+OK, will update.
 
- #endif /* __PLAT_SAMSUNG_MIPI_CSIS_H_ */
---
-1.7.11.3
+>> +	ret = v4l2_subdev_call(sd, core, g_chip_ident, &id);
 
+>Yuck. Don't abuse this. g_chip_ident is for debugging purposes only.
+
+Yes, can remove it.
+
+>> +	if (ret < 0) {
+>> +		cam_err(mcam, "%s %d\n", __func__, __LINE__);
+>> +		return ret;
+>> +	}
+>> +
+>> +	strcpy(cap->card, mcam->card_name);
+>> +	strncpy(cap->driver, (const char *)&(id.ident), 4);
+
+>No, the name of the driver is the name of this module: marvell_ccic.
+>It's *not* the name of the sensor driver.
+
+Yes, maybe you are right, we misunderstood this usage.
+
+But I'm confused with how can we put the sensor module name to upper level?
+I mean upper level user want to know which sensor module is connecting to the controller.
+Currently, our user get the sensor module name by call this ioctl VIDIOC_QUERYCAP.
+
+Anyway, maybe we need change the usage model.
+
+>> +
+>> +	return 0;
+>> +}
+
+>Regards
+>
+>	Hans
+
+Thanks
+Albert Wang
