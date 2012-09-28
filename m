@@ -1,99 +1,566 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:47120 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751958Ab2IANdS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Sep 2012 09:33:18 -0400
-Received: by bkwj10 with SMTP id j10so1629019bkw.19
-        for <linux-media@vger.kernel.org>; Sat, 01 Sep 2012 06:33:17 -0700 (PDT)
-Message-ID: <50420E9A.6000800@gmail.com>
-Date: Sat, 01 Sep 2012 15:33:14 +0200
-From: poma <pomidorabelisima@gmail.com>
+Received: from smtp-outbound-2.vmware.com ([208.91.2.13]:53730 "EHLO
+	smtp-outbound-2.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757365Ab2I1PoD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Sep 2012 11:44:03 -0400
+Message-ID: <5065C269.30406@vmware.com>
+Date: Fri, 28 Sep 2012 17:29:45 +0200
+From: =?UTF-8?B?VGhvbWFzIEhlbGxzdHLDtm0=?= <thellstrom@vmware.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/5] rtl28xxu: stream did not start after stop on USB3.0
-References: <1345593382-11367-1-git-send-email-crope@iki.fi>
-In-Reply-To: <1345593382-11367-1-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=UTF-8
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+CC: jakob@vmware.com, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, sumit.semwal@linaro.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 4/5] reservation: cross-device reservation support
+References: <20120928124148.14366.21063.stgit@patser.local> <20120928124313.14366.44686.stgit@patser.local>
+In-Reply-To: <20120928124313.14366.44686.stgit@patser.local>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/22/2012 01:56 AM, Antti Palosaari wrote:
-> Stream did not start anymore after stream was stopped once.
-> 
-> Following error can be seen, xhci_hcd
-> WARN Set TR Deq Ptr cmd failed due to incorrect slot or ep state.
-> 
-> usb_clear_halt for streaming endpoint helps.
-> 
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
+On 9/28/12 2:43 PM, Maarten Lankhorst wrote:
+> This adds support for a generic reservations framework that can be
+> hooked up to ttm and dma-buf and allows easy sharing of reservations
+> across devices.
+>
+> The idea is that a dma-buf and ttm object both will get a pointer
+> to a struct reservation_object, which has to be reserved before
+> anything is done with the buffer.
+"Anything is done with the buffer" should probably be rephrased, as 
+different members of the buffer struct
+may be protected by different locks. It may not be practical or even 
+possible to
+protect all buffer members with reservation.
+
+> Some followup patches are needed in ttm so the lru_lock is no longer
+> taken during the reservation step. This makes the lockdep annotation
+> patch a lot more useful, and the assumption that the lru lock protects
+> atomic removal off the lru list will fail soon, anyway.
+As previously discussed, I'm unfortunately not prepared to accept 
+removal of the reserve-lru atomicity
+  into the TTM code at this point.
+The current code is based on this assumption and removing it will end up 
+with
+efficiencies, breaking the delayed delete code and probably a locking 
+nightmare when trying to write
+new TTM code.
+
+
+
+>
+> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 > ---
->  drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> index d2b1505..1ccb99b 100644
-> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> @@ -834,6 +834,7 @@ static int rtl28xxu_streaming_ctrl(struct dvb_frontend *fe , int onoff)
->  	if (onoff) {
->  		buf[0] = 0x00;
->  		buf[1] = 0x00;
-> +		usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x81));
->  	} else {
->  		buf[0] = 0x10; /* stall EPA */
->  		buf[1] = 0x02; /* reset EPA */
-> 
-
-After every soft/warm [re]boot only after first scandvb:
-------------[ cut here ]------------
-WARNING: at drivers/usb/host/ehci-hcd.c:1226
-ehci_endpoint_reset+0x111/0x120()
-Hardware name: M720-US3
-clear_halt for a busy endpoint
-Modules linked in: fc0012(O) rtl2832(O) dvb_usb_rtl28xxu(O) rtl2830(O)
-dvb_usbv2(O) dvb_core(O) nvidia(PO) tvaudio(O) tda7432(O) msp3400(O)
-tuner_simple(O) tuner_types(O) wm8775(O) snd_hda_codec_realtek
-tda9887(O) tda8290(O) tuner(O) cx25840(O) snd_hda_intel snd_bt87x
-bttv(O) ivtv(O) snd_hda_codec snd_hwdep tveeprom(O) cx2341x(O)
-btcx_risc(O) snd_pcm snd_page_alloc snd_timer snd soundcore ppdev
-videobuf_dma_sg(O) videobuf_core(O) v4l2_common(O) parport_serial
-parport_pc parport videodev(O) edac_core media(O) i2c_nforce2 rc_core(O)
-i2c_algo_bit microcode i2c_core edac_mce_amd vhost_net tun macvtap
-macvlan kvm_amd kvm uinput binfmt_misc raid1 r8169 ata_generic pata_acpi
-mii usb_storage skge pata_amd wmi sunrpc be2iscsi bnx2i cnic uio cxgb4i
-cxgb4 cxgb3i cxgb3 mdio libcxgbi libiscsi_tcp qla4xxx iscsi_boot_sysfs
-libiscsi scsi_transport_iscsi [last unloaded: scsi_wait_scan]
-Pid: 1170, comm: scandvb Tainted: P           O 3.5.2-3.fc17.x86_64 #1
-Call Trace:
- [<ffffffff810584bf>] warn_slowpath_common+0x7f/0xc0
- [<ffffffff810585b6>] warn_slowpath_fmt+0x46/0x50
- [<ffffffff81444a31>] ehci_endpoint_reset+0x111/0x120
- [<ffffffff8142c135>] usb_hcd_reset_endpoint+0x25/0x70
- [<ffffffff8142d468>] usb_reset_endpoint+0x28/0x40
- [<ffffffff8142e06e>] usb_clear_halt+0x6e/0x80
- [<ffffffffa0f2baed>] rtl28xxu_streaming_ctrl+0xad/0x110 [dvb_usb_rtl28xxu]
- [<ffffffffa0f50375>] dvb_usb_start_feed+0x235/0x440 [dvb_usbv2]
- [<ffffffff8115ca5d>] ? __vmalloc_node_range+0x17d/0x240
- [<ffffffffa0f111b9>] ? dvb_dmxdev_filter_start+0x2c9/0x3e0 [dvb_core]
- [<ffffffffa0f12b00>] dmx_section_feed_start_filtering+0xe0/0x180 [dvb_core]
- [<ffffffffa0f110fe>] dvb_dmxdev_filter_start+0x20e/0x3e0 [dvb_core]
- [<ffffffffa0f11945>] dvb_demux_do_ioctl+0x405/0x640 [dvb_core]
- [<ffffffffa0f11540>] ? dvb_dvr_do_ioctl+0x130/0x130 [dvb_core]
- [<ffffffffa0f0fa36>] dvb_usercopy+0x86/0x1d0 [dvb_core]
- [<ffffffff811976d1>] ? do_filp_open+0x41/0xa0
- [<ffffffffa0f0ffa5>] dvb_demux_ioctl+0x15/0x20 [dvb_core]
- [<ffffffff811996c9>] do_vfs_ioctl+0x99/0x580
- [<ffffffff812793da>] ? inode_has_perm.isra.31.constprop.61+0x2a/0x30
- [<ffffffff8127a9b7>] ? file_has_perm+0x97/0xb0
- [<ffffffff81199c49>] sys_ioctl+0x99/0xa0
- [<ffffffff81614969>] system_call_fastpath+0x16/0x1b
----[ end trace cce2913a24da6585 ]---
-
-media_build
-commit 420335f564c32517a791ecea3909af233925634d
-
-Cheers,
-poma
+>   Documentation/DocBook/device-drivers.tmpl |    2
+>   drivers/base/Makefile                     |    2
+>   drivers/base/reservation.c                |  285 +++++++++++++++++++++++++++++
+>   include/linux/reservation.h               |  179 ++++++++++++++++++
+>   4 files changed, 467 insertions(+), 1 deletion(-)
+>   create mode 100644 drivers/base/reservation.c
+>   create mode 100644 include/linux/reservation.h
+>
+> diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
+> index ad14396..24e6e80 100644
+> --- a/Documentation/DocBook/device-drivers.tmpl
+> +++ b/Documentation/DocBook/device-drivers.tmpl
+> @@ -129,6 +129,8 @@ X!Edrivers/base/interface.c
+>   !Edrivers/base/fence.c
+>   !Iinclude/linux/fence.h
+>   !Iinclude/linux/seqno-fence.h
+> +!Edrivers/base/reservation.c
+> +!Iinclude/linux/reservation.h
+>   !Edrivers/base/dma-coherent.c
+>   !Edrivers/base/dma-mapping.c
+>        </sect1>
+> diff --git a/drivers/base/Makefile b/drivers/base/Makefile
+> index 0026563..f6f731d 100644
+> --- a/drivers/base/Makefile
+> +++ b/drivers/base/Makefile
+> @@ -10,7 +10,7 @@ obj-$(CONFIG_CMA) += dma-contiguous.o
+>   obj-y			+= power/
+>   obj-$(CONFIG_HAS_DMA)	+= dma-mapping.o
+>   obj-$(CONFIG_HAVE_GENERIC_DMA_COHERENT) += dma-coherent.o
+> -obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o fence.o
+> +obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o fence.o reservation.o
+>   obj-$(CONFIG_ISA)	+= isa.o
+>   obj-$(CONFIG_FW_LOADER)	+= firmware_class.o
+>   obj-$(CONFIG_NUMA)	+= node.o
+> diff --git a/drivers/base/reservation.c b/drivers/base/reservation.c
+> new file mode 100644
+> index 0000000..93e2d9f
+> --- /dev/null
+> +++ b/drivers/base/reservation.c
+> @@ -0,0 +1,285 @@
+> +/*
+> + * Copyright (C) 2012 Canonical Ltd
+> + *
+> + * Based on bo.c which bears the following copyright notice,
+> + * but is dual licensed:
+> + *
+> + * Copyright (c) 2006-2009 VMware, Inc., Palo Alto, CA., USA
+> + * All Rights Reserved.
+> + *
+> + * Permission is hereby granted, free of charge, to any person obtaining a
+> + * copy of this software and associated documentation files (the
+> + * "Software"), to deal in the Software without restriction, including
+> + * without limitation the rights to use, copy, modify, merge, publish,
+> + * distribute, sub license, and/or sell copies of the Software, and to
+> + * permit persons to whom the Software is furnished to do so, subject to
+> + * the following conditions:
+> + *
+> + * The above copyright notice and this permission notice (including the
+> + * next paragraph) shall be included in all copies or substantial portions
+> + * of the Software.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> + * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> + * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
+> + * THE COPYRIGHT HOLDERS, AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
+> + * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+> + * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+> + * USE OR OTHER DEALINGS IN THE SOFTWARE.
+> + *
+> + **************************************************************************/
+> +/*
+> + * Authors: Thomas Hellstrom <thellstrom-at-vmware-dot-com>
+> + */
+> +
+> +#include <linux/fence.h>
+> +#include <linux/reservation.h>
+> +#include <linux/export.h>
+> +#include <linux/sched.h>
+> +#include <linux/slab.h>
+> +
+> +atomic64_t reservation_counter = ATOMIC64_INIT(1);
+> +EXPORT_SYMBOL(reservation_counter);
+> +
+> +int
+> +object_reserve(struct reservation_object *obj, bool intr, bool no_wait,
+> +	       reservation_ticket_t *ticket)
+> +{
+> +	int ret;
+> +	u64 sequence = ticket ? ticket->seqno : 1;
+> +	u64 oldseq;
+> +
+> +	while (unlikely(oldseq = atomic64_cmpxchg(&obj->reserved, 0, sequence))) {
+> +
+> +		/**
+> +		 * Deadlock avoidance for multi-obj reserving.
+> +		 */
+> +		if (sequence > 1 && oldseq > 1) {
+> +			/**
+> +			 * We've already reserved this one.
+> +			 */
+> +			if (unlikely(sequence == oldseq))
+> +				return -EDEADLK;
+> +			/**
+> +			 * Already reserved by a thread that will not back
+> +			 * off for us. We need to back off.
+> +			 */
+> +			if (unlikely(sequence - oldseq < (1ULL << 63)))
+> +				return -EAGAIN;
+> +		}
+> +
+> +		if (no_wait)
+> +			return -EBUSY;
+> +
+> +		ret = object_wait_unreserved(obj, intr);
+> +
+> +		if (unlikely(ret))
+> +			return ret;
+> +	}
+> +
+> +	/**
+> +	 * Wake up waiters that may need to recheck for deadlock,
+> +	 * if we decreased the sequence number.
+> +	 */
+> +	wake_up_all(&obj->event_queue);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(object_reserve);
+> +
+> +int
+> +object_wait_unreserved(struct reservation_object *obj, bool intr)
+> +{
+> +	if (intr) {
+> +		return wait_event_interruptible(obj->event_queue,
+> +				!object_is_reserved(obj));
+> +	} else {
+> +		wait_event(obj->event_queue,
+> +			   !object_is_reserved(obj));
+> +		return 0;
+> +	}
+> +}
+> +EXPORT_SYMBOL(object_wait_unreserved);
+> +
+> +void
+> +object_unreserve(struct reservation_object *obj,
+> +		 reservation_ticket_t *ticket)
+> +{
+> +	smp_mb();
+> +	atomic64_set(&obj->reserved, 0);
+> +	wake_up_all(&obj->event_queue);
+> +}
+> +EXPORT_SYMBOL(object_unreserve);
+> +
+> +/**
+> + * ticket_backoff - cancel a reservation
+> + * @ticket:	[in] a reservation_ticket
+> + * @entries:	[in] the list list of reservation_entry entries to unreserve
+> + *
+> + * This function cancels a previous reservation done by
+> + * ticket_reserve. This is useful in case something
+> + * goes wrong between reservation and committing.
+> + *
+> + * This should only be called after ticket_reserve returns success.
+> + */
+> +void
+> +ticket_backoff(struct reservation_ticket *ticket, struct list_head *entries)
+> +{
+> +	struct list_head *cur;
+> +
+> +	if (list_empty(entries))
+> +		return;
+> +
+> +	list_for_each(cur, entries) {
+> +		struct reservation_object *obj;
+> +
+> +		reservation_entry_get(cur, &obj, NULL);
+> +
+> +		object_unreserve(obj, ticket);
+> +	}
+> +	reservation_ticket_fini(ticket);
+> +}
+> +EXPORT_SYMBOL(ticket_backoff);
+> +
+> +static void
+> +ticket_backoff_early(struct reservation_ticket *ticket,
+> +			 struct list_head *list,
+> +			 struct reservation_entry *entry)
+> +{
+> +	list_for_each_entry_continue_reverse(entry, list, head) {
+> +		struct reservation_object *obj;
+> +
+> +		reservation_entry_get(&entry->head, &obj, NULL);
+> +		object_unreserve(obj, ticket);
+> +	}
+> +	reservation_ticket_fini(ticket);
+> +}
+> +
+> +/**
+> + * ticket_reserve - reserve a list of reservation_entry
+> + * @ticket:	[out]	a reservation_ticket
+> + * @entries:	[in]	a list of entries to reserve.
+> + *
+> + * Do not initialize ticket, it will be initialized by this function.
+> + *
+> + * XXX: Nuke rest
+> + * The caller will have to queue waits on those fences before calling
+> + * ufmgr_fence_buffer_objects, with either hardware specific methods,
+> + * fence_add_callback will, or fence_wait.
+> + *
+> + * As such, by incrementing refcount on reservation_entry before calling
+> + * fence_add_callback, and making the callback decrement refcount on
+> + * reservation_entry, or releasing refcount if fence_add_callback
+> + * failed, the reservation_entry will be freed when all the fences
+> + * have been signaled, and only after the last ref is released, which should
+> + * be after ufmgr_fence_buffer_objects. With proper locking, when the
+> + * list_head holding the list of reservation_entry's becomes empty it
+> + * indicates all fences for all bufs have been signaled.
+> + */
+> +int
+> +ticket_reserve(struct reservation_ticket *ticket,
+> +		   struct list_head *entries)
+> +{
+> +	struct list_head *cur;
+> +	int ret;
+> +
+> +	if (list_empty(entries))
+> +		return 0;
+> +
+> +retry:
+> +	reservation_ticket_init(ticket);
+> +
+> +	list_for_each(cur, entries) {
+> +		struct reservation_entry *entry;
+> +		struct reservation_object *bo;
+> +		bool shared;
+> +
+> +		entry = reservation_entry_get(cur, &bo, &shared);
+> +
+> +		ret = object_reserve(bo, true, false, ticket);
+> +		switch (ret) {
+> +		case 0:
+> +			break;
+> +		case -EAGAIN:
+> +			ticket_backoff_early(ticket, entries, entry);
+> +			ret = object_wait_unreserved(bo, true);
+> +			if (unlikely(ret != 0))
+> +				return ret;
+> +			goto retry;
+> +		default:
+> +			ticket_backoff_early(ticket, entries, entry);
+> +			return ret;
+> +		}
+> +
+> +		if (shared &&
+> +		    bo->fence_shared_count == BUF_MAX_SHARED_FENCE) {
+> +			WARN_ON_ONCE(1);
+> +			ticket_backoff_early(ticket, entries, entry);
+> +			return -EINVAL;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(ticket_reserve);
+> +
+> +/**
+> + * ticket_commit - commit a reservation with a new fence
+> + * @ticket:	[in]	the reservation_ticket returned by
+> + * ticket_reserve
+> + * @entries:	[in]	a linked list of struct reservation_entry
+> + * @fence:	[in]	the fence that indicates completion
+> + *
+> + * This function will call reservation_ticket_fini, no need
+> + * to do it manually.
+> + *
+> + * This function should be called after a hardware command submission is
+> + * completed succesfully. The fence is used to indicate completion of
+> + * those commands.
+> + */
+> +void
+> +ticket_commit(struct reservation_ticket *ticket,
+> +		  struct list_head *entries, struct fence *fence)
+> +{
+> +	struct list_head *cur;
+> +
+> +	if (list_empty(entries))
+> +		return;
+> +
+> +	if (WARN_ON(!fence)) {
+> +		ticket_backoff(ticket, entries);
+> +		return;
+> +	}
+> +
+> +	list_for_each(cur, entries) {
+> +		struct reservation_object *bo;
+> +		bool shared;
+> +
+> +		reservation_entry_get(cur, &bo, &shared);
+> +
+> +		if (!shared) {
+> +			int i;
+> +			for (i = 0; i < bo->fence_shared_count; ++i) {
+> +				fence_put(bo->fence_shared[i]);
+> +				bo->fence_shared[i] = NULL;
+> +			}
+> +			bo->fence_shared_count = 0;
+> +			if (bo->fence_excl)
+> +				fence_put(bo->fence_excl);
+> +
+> +			bo->fence_excl = fence;
+> +		} else {
+> +			if (WARN_ON(bo->fence_shared_count >=
+> +				    ARRAY_SIZE(bo->fence_shared))) {
+> +				continue;
+> +			}
+> +
+> +			bo->fence_shared[bo->fence_shared_count++] = fence;
+> +		}
+> +		fence_get(fence);
+> +
+> +		object_unreserve(bo, ticket);
+> +	}
+> +	reservation_ticket_fini(ticket);
+> +}
+> +EXPORT_SYMBOL(ticket_commit);
+> diff --git a/include/linux/reservation.h b/include/linux/reservation.h
+> new file mode 100644
+> index 0000000..93280af
+> --- /dev/null
+> +++ b/include/linux/reservation.h
+> @@ -0,0 +1,179 @@
+> +/*
+> + * Header file for reservations for dma-buf and ttm
+> + *
+> + * Copyright(C) 2011 Linaro Limited. All rights reserved.
+> + * Copyright (C) 2012 Canonical Ltd
+> + * Copyright (C) 2012 Texas Instruments
+> + *
+> + * Authors:
+> + * Rob Clark <rob.clark@linaro.org>
+> + * Maarten Lankhorst <maarten.lankhorst@canonical.com>
+> + * Thomas Hellstrom <thellstrom-at-vmware-dot-com>
+> + *
+> + * Based on bo.c which bears the following copyright notice,
+> + * but is dual licensed:
+> + *
+> + * Copyright (c) 2006-2009 VMware, Inc., Palo Alto, CA., USA
+> + * All Rights Reserved.
+> + *
+> + * Permission is hereby granted, free of charge, to any person obtaining a
+> + * copy of this software and associated documentation files (the
+> + * "Software"), to deal in the Software without restriction, including
+> + * without limitation the rights to use, copy, modify, merge, publish,
+> + * distribute, sub license, and/or sell copies of the Software, and to
+> + * permit persons to whom the Software is furnished to do so, subject to
+> + * the following conditions:
+> + *
+> + * The above copyright notice and this permission notice (including the
+> + * next paragraph) shall be included in all copies or substantial portions
+> + * of the Software.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> + * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> + * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
+> + * THE COPYRIGHT HOLDERS, AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
+> + * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+> + * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+> + * USE OR OTHER DEALINGS IN THE SOFTWARE.
+> + */
+> +#ifndef __RESERVATION_H__
+> +#define __RESERVATION_H__
+> +
+> +#define BUF_MAX_SHARED_FENCE 8
+> +
+> +#include <linux/fence.h>
+> +
+> +extern atomic64_t reservation_counter;
+> +
+> +struct reservation_object {
+> +	wait_queue_head_t event_queue;
+> +
+> +	atomic64_t reserved;
+> +
+> +	u32 fence_shared_count;
+> +	struct fence *fence_excl;
+> +	struct fence *fence_shared[BUF_MAX_SHARED_FENCE];
+> +};
+> +
+> +typedef struct reservation_ticket {
+> +	u64 seqno;
+> +} reservation_ticket_t;
+> +
+> +/**
+> + * struct reservation_entry - reservation structure for a
+> + * reservation_object
+> + * @head:	list entry
+> + * @obj_shared:	pointer to a reservation_object to reserve
+> + *
+> + * Bit 0 of obj_shared is set to bool shared, as such pointer has to be
+> + * converted back, which can be done with reservation_entry_get.
+> + */
+> +struct reservation_entry {
+> +	struct list_head head;
+> +	unsigned long obj_shared;
+> +};
+> +
+> +
+> +static inline void
+> +__reservation_object_init(struct reservation_object *obj)
+> +{
+> +	init_waitqueue_head(&obj->event_queue);
+> +}
+> +
+> +static inline void
+> +reservation_object_init(struct reservation_object *obj)
+> +{
+> +	memset(obj, 0, sizeof(*obj));
+> +	__reservation_object_init(obj);
+> +}
+> +
+> +static inline bool
+> +object_is_reserved(struct reservation_object *obj)
+> +{
+> +	return !!atomic64_read(&obj->reserved);
+> +}
+> +
+> +static inline void
+> +reservation_object_fini(struct reservation_object *obj)
+> +{
+> +	int i;
+> +
+> +	BUG_ON(waitqueue_active(&obj->event_queue));
+> +	BUG_ON(object_is_reserved(obj));
+> +
+> +	if (obj->fence_excl)
+> +		fence_put(obj->fence_excl);
+> +	for (i = 0; i < obj->fence_shared_count; ++i)
+> +		fence_put(obj->fence_shared[i]);
+> +}
+> +
+> +static inline void
+> +reservation_ticket_init(struct reservation_ticket *t)
+> +{
+> +	do {
+> +		t->seqno = atomic64_inc_return(&reservation_counter);
+> +	} while (unlikely(t->seqno < 2));
+> +}
+> +
+> +/**
+> + * reservation_ticket_fini - end a reservation ticket
+> + * @t:	[in]	reservation_ticket that completed all reservations
+> + *
+> + * This currently does nothing, but should be called after all reservations
+> + * made with this ticket have been unreserved. It is likely that in the future
+> + * it will be hooked up to perf events, or aid in debugging in other ways.
+> + */
+> +static inline void
+> +reservation_ticket_fini(struct reservation_ticket *t)
+> +{ }
+> +
+> +/**
+> + * reservation_entry_init - initialize and append a reservation_entry
+> + * to the list
+> + * @entry:	entry to initialize
+> + * @list:	list to append to
+> + * @obj:	reservation_object to initialize the entry with
+> + * @shared:	whether shared or exclusive access is requested
+> + */
+> +static inline void
+> +reservation_entry_init(struct reservation_entry *entry,
+> +			   struct list_head *list,
+> +			   struct reservation_object *obj, bool shared)
+> +{
+> +	entry->obj_shared = (unsigned long)obj | !!shared;
+> +}
+> +
+> +static inline struct reservation_entry *
+> +reservation_entry_get(struct list_head *list,
+> +			  struct reservation_object **obj, bool *shared)
+> +{
+> +	struct reservation_entry *e = container_of(list, struct reservation_entry, head);
+> +	unsigned long val = e->obj_shared;
+> +
+> +	if (obj)
+> +		*obj = (struct reservation_object*)(val & ~1);
+> +	if (shared)
+> +		*shared = val & 1;
+> +	return e;
+> +}
+> +
+> +extern int
+> +object_reserve(struct reservation_object *obj,
+> +			       bool intr, bool no_wait,
+> +			       reservation_ticket_t *ticket);
+> +
+> +extern void
+> +object_unreserve(struct reservation_object *,
+> +				 reservation_ticket_t *ticket);
+> +
+> +extern int
+> +object_wait_unreserved(struct reservation_object *, bool intr);
+> +
+> +extern int ticket_reserve(struct reservation_ticket *,
+> +					  struct list_head *entries);
+> +extern void ticket_backoff(struct reservation_ticket *,
+> +			       struct list_head *entries);
+> +extern void ticket_commit(struct reservation_ticket *,
+> +			      struct list_head *entries, struct fence *);
+> +
+> +#endif /* __BUF_MGR_H__ */
+>
 
