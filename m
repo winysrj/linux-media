@@ -1,75 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52116 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751335Ab2IAOWO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Sep 2012 10:22:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-doc@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Rob Landley <rob@landley.net>,
-	LMML <linux-media@vger.kernel.org>, hverkuil@xs4all.nl
-Subject: Re: [PATCH] [media] davinci: vpfe: Add documentation
-Date: Sat, 01 Sep 2012 16:22:30 +0200
-Message-ID: <8524664.XGp3WDre5y@avalon>
-In-Reply-To: <20120901095707.GB6348@valkosipuli.retiisi.org.uk>
-References: <1342021166-6092-1-git-send-email-manjunath.hadli@ti.com> <CA+V-a8tNnevox8OcXc_jxDzHdrxdF9Z-Nf2Rn0QaBsnM=n5CfA@mail.gmail.com> <20120901095707.GB6348@valkosipuli.retiisi.org.uk>
+Received: from moutng.kundenserver.de ([212.227.17.9]:51970 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757026Ab2I1Nag (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Sep 2012 09:30:36 -0400
+Date: Fri, 28 Sep 2012 15:30:33 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Anatolij Gustschin <agust@denx.de>
+cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] mt9v022: support required register settings in snapshot
+ mode
+In-Reply-To: <20120928151004.7741efce@wker>
+Message-ID: <Pine.LNX.4.64.1209281515480.5428@axis700.grange>
+References: <1348786362-28586-1-git-send-email-agust@denx.de>
+ <Pine.LNX.4.64.1209281428490.5428@axis700.grange> <20120928151004.7741efce@wker>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Fri, 28 Sep 2012, Anatolij Gustschin wrote:
 
-On Saturday 01 September 2012 12:57:07 Sakari Ailus wrote:
-> On Wed, Aug 29, 2012 at 08:11:50PM +0530, Prabhakar Lad wrote:
-
-[snip]
-
-> > For test pattern you meant control to enable/disable it ?
+> Hi Guennadi,
 > 
-> There are two approaches I can think of.
+> On Fri, 28 Sep 2012 14:33:34 +0200 (CEST)
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> ...
+> > > @@ -235,12 +238,32 @@ static int mt9v022_s_stream(struct v4l2_subdev *sd, int enable)
+> > >  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > >  	struct mt9v022 *mt9v022 = to_mt9v022(client);
+> > >  
+> > > -	if (enable)
+> > > +	if (enable) {
+> > >  		/* Switch to master "normal" mode */
+> > >  		mt9v022->chip_control &= ~0x10;
+> > > -	else
+> > > +		if (is_mt9v022_rev3(mt9v022->chip_version) ||
+> > > +		    is_mt9v024(mt9v022->chip_version)) {
+> > > +			/*
+> > > +			 * Unset snapshot mode specific settings: clear bit 9
+> > > +			 * and bit 2 in reg. 0x20 when in normal mode.
+> > > +			 */
+> > > +			if (reg_clear(client, MT9V022_REG32, 0x204))
+> > > +				return -EIO;
+> > > +		}
+> > > +	} else {
+> > >  		/* Switch to snapshot mode */
+> > >  		mt9v022->chip_control |= 0x10;
+> > > +		if (is_mt9v022_rev3(mt9v022->chip_version) ||
+> > > +		    is_mt9v024(mt9v022->chip_version)) {
+> > > +			/*
+> > > +			 * Required settings for snapshot mode: set bit 9
+> > > +			 * (RST enable) and bit 2 (CR enable) in reg. 0x20
+> > > +			 * See TechNote TN0960 or TN-09-225.
+> > > +			 */
+> > > +			if (reg_set(client, MT9V022_REG32, 0x204))
+> > > +				return -EIO;
+> > > +		}
+> > > +	}
+> > 
+> > Do I understand it right, that now on mt9v022 rev.3 and mt9v024 you 
+> > unconditionally added using REG32 for leaving the snapshot mode on 
+> > streamon and entering it on streamoff. This should be ok in principle, 
+> > since that's also what we're trying to do, using the CHIP_CONTROL 
+> > register. But in your comment you say, that on some _systems_ you can only 
+> > _operate_ in snapshot mode. I.e. the snapshot mode enabled during running 
+> > streaming, right? Then how does this patch help you with that?
 > 
-> One is a menu control which can be used to choose the test pattern (or
-> disable it). The control could be standardised but the menu items would have
-> to be hardware-specific since the test patterns themselves are not
-> standardised.
+> Yes. But i.e. the driver calling the sub-device stream control function
+> on streamon knows that the normal mode is not supported and therefore it
+> calls this function with argument enable == 0, effectively setting the
+> snapshot mode.
 
-Agreed. The test patterns themselves are highly hardware-specific.
+Right, I thought you could be doing that... Well, on the one hand I should 
+be happy, that the problem is solved without driver modifications, OTOH 
+this isn't pretty... In fact this shouldn't work at all. After a 
+stream-off the buffer queue should be stopped too. However, to properly 
+implement this you'd have to add a new V4L2 control to switch into 
+snapshot mode.
 
->From personal experience with sensors, most devices implement a small, fixed 
-set of test patterns that can be exposed through a menu control. However, some 
-devices also implement more "configurable" test patterns. For instance the 
-MT9V032 can generate horizontal, vertical or diagonal test patterns, or a 
-uniform grey test pattern with a user-configurable value. This would then 
-require two controls.
-
-> The alternative is to have a boolean control to enable (and disable) the
-> test pattern and then a menu control to choose which one to use. Using or
-> implemeting the control to select the test pattern isn't even strictly
-> necessary to get a test pattern out of the device: one can enable it without
-> knowing which one it is.
-> 
-> So which one would be better? Similar cases include V4L2_CID_SCENE_MODE
-> which is used to choose the scene mode from a list of alternatives. The main
-> difference to this case is that the menu items of the scene mode control
-> are standardised, too.
-> 
-> I'd be inclined to have a single menu control, even if the other menu items
-> will be device-specific. The first value (0) still has to be documented to
-> mean the test pattern is disabled.
-> 
-> Laurent, Hans: what do you think?
-
-A menu control with value 0 meaning test pattern disabled has my preference as 
-well.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
