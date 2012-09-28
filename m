@@ -1,41 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59422 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754687Ab2IMKQq (ORCPT
+Received: from smtp23.services.sfr.fr ([93.17.128.20]:43168 "EHLO
+	smtp23.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964867Ab2I1TAu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 06:16:46 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 API PATCH 04/28] DocBook: make the G/S/TRY_FMT specification more strict.
-Date: Thu, 13 Sep 2012 04:18:50 +0200
-Message-ID: <1876473.Ned5IQmK1Q@avalon>
-In-Reply-To: <5c449812e54fff0816282e712ab9e24c8b278cb6.1347023744.git.hans.verkuil@cisco.com>
-References: <1347024568-32602-1-git-send-email-hverkuil@xs4all.nl> <5c449812e54fff0816282e712ab9e24c8b278cb6.1347023744.git.hans.verkuil@cisco.com>
+	Fri, 28 Sep 2012 15:00:50 -0400
+Message-ID: <5065F3E0.1000006@free.fr>
+Date: Fri, 28 Sep 2012 21:00:48 +0200
+From: Damien Bally <biribi@free.fr>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org, tvboxspy@gmail.com
+Subject: Re: [PATCH] usb id addition for Terratec Cinergy T Stick Dual rev. 2
+References: <5064A3AD.70009@free.fr> <5064ABD2.2060106@iki.fi>
+	<5065D1AC.5030800@free.fr> <5065E487.80502@iki.fi>
+In-Reply-To: <5065E487.80502@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 07 September 2012 15:29:04 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> - S/TRY_FMT should always succeed, unless an invalid type field is passed
-> in. - TRY_FMT should give the same result as S_FMT, all other things being
-> equal. - ENUMFMT may return different formats for different inputs or
-> outputs.
-> 
-> This was decided during the 2012 Media Workshop.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-With the typo fix reported by Sylwester,
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Le 28/09/2012 19:55, Antti Palosaari a écrit :
 
--- 
-Regards,
+> I am not sure what you do here but let it be clear.
+> There is same ID used by af9015 and it913x. Both drivers are loaded when
+> that ID appears. What I understand *both* drivers, af9015 and it913x
+> should detect if device is correct or not. If device is af9015 then
+> it913x should reject it with -ENODEV most likely without a I/O. If
+> device is it913x then af9015 should reject the device similarly. And you
+> must find out how to do that. It is not acceptable both drivers starts
+> doing I/O for same device same time.
+>
 
-Laurent Pinchart
+I'd gladly implement this, but I'm not a developper, for the moment ;-)
 
+>>
+>> I'm unfortunately not able to rewrite the driver, but I'm willing to
+>> provide any information about the device to help its correct
+>> identification.
