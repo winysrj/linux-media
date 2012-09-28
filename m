@@ -1,77 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:55301 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754323Ab2IETqU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Sep 2012 15:46:20 -0400
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:26625 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751676Ab2I1AAJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Sep 2012 20:00:09 -0400
+Date: Thu, 27 Sep 2012 17:00:04 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, paul@pwsan.com,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH v2 2/2] omap3isp: Configure CSI-2 phy based on platform
+ data
+Message-ID: <20120928000001.GW4840@atomide.com>
+References: <20120926215001.GA14107@valkosipuli.retiisi.org.uk>
+ <1348696236-3470-2-git-send-email-sakari.ailus@iki.fi>
+ <20120926220018.GJ4840@atomide.com>
+ <2652285.trTHQxlDeP@avalon>
 MIME-Version: 1.0
-In-Reply-To: <1346775269-12191-2-git-send-email-peter.senna@gmail.com>
-References: <1346775269-12191-2-git-send-email-peter.senna@gmail.com>
-Date: Wed, 5 Sep 2012 16:46:20 -0300
-Message-ID: <CALF0-+UiJy-mcB7U003dCqmQp2ziiTKrTehh3E-2C6FU2bfvkQ@mail.gmail.com>
-Subject: Re: [PATCH 4/5] drivers/media/platform/vino.c: fix error return code
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Peter Senna Tschudin <peter.senna@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2652285.trTHQxlDeP@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Peter,
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [120927 02:52]:
+> Hi Tony,
+> 
+> On Wednesday 26 September 2012 15:00:19 Tony Lindgren wrote:
+> > Moi Sakari
+> > 
+> > * Sakari Ailus <sakari.ailus@iki.fi> [120926 14:51]:
+> > > Configure CSI-2 phy based on platform data in the ISP driver. For that,
+> > > the
+> > > new V4L2_CID_IMAGE_SOURCE_PIXEL_RATE control is used. Previously the same
+> > > was configured from the board code.
+> > > 
+> > > This patch is dependent on "omap3: Provide means for changing CSI2 PHY
+> > > configuration".
+> > 
+> > Can you please do one more patch to get rid of the last remaining
+> > cpu_is_omapxxxx check in drivers/media/platform/omap3isp/isp.c?
+> 
+> I'm working on that, I'll submit a patch.
 
-On Tue, Sep 4, 2012 at 1:14 PM, Peter Senna Tschudin
-<peter.senna@gmail.com> wrote:
-> From: Peter Senna Tschudin <peter.senna@gmail.com>
->
-> Convert a nonnegative error return code to a negative one, as returned
-> elsewhere in the function.
->
-> A simplified version of the semantic match that finds this problem is as
-> follows: (http://coccinelle.lip6.fr/)
->
-> // <smpl>
-> (
-> if@p1 (\(ret < 0\|ret != 0\))
->  { ... return ret; }
-> |
-> ret@p1 = 0
-> )
-> ... when != ret = e1
->     when != &ret
-> *if(...)
-> {
->   ... when != ret = e2
->       when forall
->  return ret;
-> }
->
-> // </smpl>
->
-> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
->
-> ---
->  drivers/media/platform/vino.c |    1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/media/platform/vino.c b/drivers/media/platform/vino.c
-> index cc9110c..6654a28 100644
-> --- a/drivers/media/platform/vino.c
-> +++ b/drivers/media/platform/vino.c
-> @@ -2061,6 +2061,7 @@ static int vino_capture_next(struct vino_channel_settings *vcs, int start)
->         }
->         if (incoming == 0) {
->                 dprintk("vino_capture_next(): no buffers available\n");
-> +               err = -ENOMEM;
->                 goto out;
->         }
->
+Thanks acked it.
 
-Mmm, this one doesn't look good.
+Regards,
 
-I think the intention was to return zero, without error.
-They driver tt's just double-checking for incoming data, if there's no incoming
-data, then he simply exits.
-
-Thanks,
-Ezequiel.
+Tony
