@@ -1,135 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:50076 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751675Ab2IPQAk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Sep 2012 12:00:40 -0400
-Received: by wibhi8 with SMTP id hi8so1638679wib.1
-        for <linux-media@vger.kernel.org>; Sun, 16 Sep 2012 09:00:39 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: hdegoede@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 2/4] gspca_pac7302: use registers 0x01 and 0x03 for red and blue balance controls
-Date: Sun, 16 Sep 2012 18:00:38 +0200
-Message-Id: <1347811240-4000-2-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1347811240-4000-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1347811240-4000-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:32804 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756672Ab2I1Rzl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Sep 2012 13:55:41 -0400
+Message-ID: <5065E487.80502@iki.fi>
+Date: Fri, 28 Sep 2012 20:55:19 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Damien Bally <biribi@free.fr>
+CC: linux-media@vger.kernel.org, tvboxspy@gmail.com
+Subject: Re: [PATCH] usb id addition for Terratec Cinergy T Stick Dual rev.
+ 2
+References: <5064A3AD.70009@free.fr> <5064ABD2.2060106@iki.fi> <5065D1AC.5030800@free.fr>
+In-Reply-To: <5065D1AC.5030800@free.fr>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently used registers 0xc5 and 0xc7 provide only a very coarse
-adjustment possibility within a very small value range (0-3).
-With registers 0x01 and 0x03, a fine grained adjustment with
-255 steps is possible. This is also what the Windows driver does.
+On 09/28/2012 07:34 PM, Damien Bally wrote:
+>   > I will NACK that initially because that USB ID already used by AF9015
+>> driver. You have to explain / study what happens when AF9015 driver
+>> claims that device same time.
+>>
+>
+> Hi Antti
+>
+> With the Cinergy stick alone, dvb_usb_af9015 is predictably loaded, but
+> doesn't prevent dvb_usb_it913x from working nicely.
+>
+> If an afatech 9015 stick is connected, such as an AverTV Volar Black HD
+> (A850), it will be recognized and doesn't affect the other device.
+>
+> *But* it runs into trouble if the two devices were connected at bootup,
+> or if the Cinergy stick is inserted after the other one :
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/gspca/pac7302.c |   51 +++++++++++++++++++++++++++++--------
- 1 files changed, 40 insertions(+), 11 deletions(-)
+I am not sure what you do here but let it be clear.
+There is same ID used by af9015 and it913x. Both drivers are loaded when 
+that ID appears. What I understand *both* drivers, af9015 and it913x 
+should detect if device is correct or not. If device is af9015 then 
+it913x should reject it with -ENODEV most likely without a I/O. If 
+device is it913x then af9015 should reject the device similarly. And you 
+must find out how to do that. It is not acceptable both drivers starts 
+doing I/O for same device same time.
 
-diff --git a/drivers/media/usb/gspca/pac7302.c b/drivers/media/usb/gspca/pac7302.c
-index 4894ac1..8a0f4d6 100644
---- a/drivers/media/usb/gspca/pac7302.c
-+++ b/drivers/media/usb/gspca/pac7302.c
-@@ -77,12 +77,12 @@
-  *
-  * Page | Register   | Function
-  * -----+------------+---------------------------------------------------
-+ *  0   | 0x01       | setredbalance()
-+ *  0   | 0x03       | setbluebalance()
-  *  0   | 0x0f..0x20 | setcolors()
-  *  0   | 0xa2..0xab | setbrightcont()
-  *  0   | 0xb6       | setsharpness()
-- *  0   | 0xc5       | setredbalance()
-  *  0   | 0xc6       | setwhitebalance()
-- *  0   | 0xc7       | setbluebalance()
-  *  0   | 0xdc       | setbrightcont(), setcolors()
-  *  3   | 0x02       | setexposure()
-  *  3   | 0x10, 0x12 | setgain()
-@@ -98,10 +98,13 @@
- /* Include pac common sof detection functions */
- #include "pac_common.h"
- 
--#define PAC7302_GAIN_DEFAULT      15
--#define PAC7302_GAIN_KNEE         42
--#define PAC7302_EXPOSURE_DEFAULT  66 /* 33 ms / 30 fps */
--#define PAC7302_EXPOSURE_KNEE    133 /* 66 ms / 15 fps */
-+#define PAC7302_RGB_BALANCE_MIN		  0
-+#define PAC7302_RGB_BALANCE_MAX		200
-+#define PAC7302_RGB_BALANCE_DEFAULT	100
-+#define PAC7302_GAIN_DEFAULT		 15
-+#define PAC7302_GAIN_KNEE 		 42
-+#define PAC7302_EXPOSURE_DEFAULT	 66 /* 33 ms / 30 fps */
-+#define PAC7302_EXPOSURE_KNEE		133 /* 66 ms / 15 fps */
- 
- MODULE_AUTHOR("Jean-Francois Moine <http://moinejf.free.fr>, "
- 		"Thomas Kaiser thomas@kaiser-linux.li");
-@@ -438,12 +441,31 @@ static void setwhitebalance(struct gspca_dev *gspca_dev)
- 	reg_w(gspca_dev, 0xdc, 0x01);
- }
- 
-+static u8 rgbbalance_ctrl_to_reg_value(s32 rgb_ctrl_val)
-+{
-+	const unsigned int k = 1000;	/* precision factor */
-+	unsigned int norm;
-+
-+	/* Normed value [0...k] */
-+	norm = k * (rgb_ctrl_val - PAC7302_RGB_BALANCE_MIN)
-+		    / (PAC7302_RGB_BALANCE_MAX - PAC7302_RGB_BALANCE_MIN);
-+	/* Qudratic apporach improves control at small (register) values: */
-+	return 64 * norm * norm / (k*k)  +  32 * norm / k  +  32;
-+	/* Y = 64*X*X + 32*X + 32
-+	 * => register values 0x20-0x80; Windows driver uses these limits */
-+
-+	/* NOTE: for full value range (0x00-0xff) use
-+	 *         Y = 254*X*X + X
-+	 *         => 254 * norm * norm / (k*k)  +  1 * norm / k	*/
-+}
-+
- static void setredbalance(struct gspca_dev *gspca_dev)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
--	reg_w(gspca_dev, 0xff, 0x00);		/* page 0 */
--	reg_w(gspca_dev, 0xc5, sd->red_balance->val);
-+	reg_w(gspca_dev, 0xff, 0x00);			/* page 0 */
-+	reg_w(gspca_dev, 0x01,
-+	      rgbbalance_ctrl_to_reg_value(sd->red_balance->val));
- 
- 	reg_w(gspca_dev, 0xdc, 0x01);
- }
-@@ -453,7 +475,8 @@ static void setbluebalance(struct gspca_dev *gspca_dev)
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
- 	reg_w(gspca_dev, 0xff, 0x00);			/* page 0 */
--	reg_w(gspca_dev, 0xc7, sd->blue_balance->val);
-+	reg_w(gspca_dev, 0x03,
-+	      rgbbalance_ctrl_to_reg_value(sd->blue_balance->val));
- 
- 	reg_w(gspca_dev, 0xdc, 0x01);
- }
-@@ -642,9 +665,15 @@ static int sd_init_controls(struct gspca_dev *gspca_dev)
- 					V4L2_CID_WHITE_BALANCE_TEMPERATURE,
- 					0, 255, 1, 55);
- 	sd->red_balance = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
--					V4L2_CID_RED_BALANCE, 0, 3, 1, 1);
-+					V4L2_CID_RED_BALANCE,
-+					PAC7302_RGB_BALANCE_MIN,
-+					PAC7302_RGB_BALANCE_MAX,
-+					1, PAC7302_RGB_BALANCE_DEFAULT);
- 	sd->blue_balance = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
--					V4L2_CID_BLUE_BALANCE, 0, 3, 1, 1);
-+					V4L2_CID_BLUE_BALANCE,
-+					PAC7302_RGB_BALANCE_MIN,
-+					PAC7302_RGB_BALANCE_MAX,
-+					1, PAC7302_RGB_BALANCE_DEFAULT);
- 
- 	gspca_dev->autogain = v4l2_ctrl_new_std(hdl, &sd_ctrl_ops,
- 					V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
+regards
+Antti
+
+> -----------------------------------------------------------------------
+> [    1.264018] usb 2-1: new high speed USB device using ehci_hcd and
+> address 2
+> [    1.382487] usb 2-1: New USB device found, idVendor=0ccd, idProduct=0099
+> [    1.382490] usb 2-1: New USB device strings: Mfr=1, Product=2,
+> SerialNumber=0
+> [    1.382492] usb 2-1: Product: DVB-T TV Stick
+> [    1.382494] usb 2-1: Manufacturer: ITE Technologies, Inc.
+> [    1.385073] input: ITE Technologies, Inc. DVB-T TV Stick as
+> /devices/pci0000:00/0000:00:1d.7/usb2/2-1/2-1:1.1/input/input1
+> [    1.385147] generic-usb 0003:0CCD:0099.0001: input,hidraw0: USB HID
+> v1.01 Keyboard [ITE Technologies, Inc. DVB-T TV Stick] on
+> usb-0000:00:1d.7-1 input1
+> [    5.045527] usbcore: registered new interface driver dvb_usb_it913x
+> [    5.147276] it913x: Chip Version=01 Chip Type=9135
+> [    5.147524] it913x: Firmware Version 33684956
+> [    5.148649] it913x: Remote HID mode NOT SUPPORTED
+> [    5.149024] it913x: Dual mode=3 Tuner Type=0
+> [    5.149028] usb 2-1: dvb_usbv2: found a 'ITE 9135(9006) Generic' in
+> warm state
+> [    5.149077] usb 2-1: dvb_usbv2: will pass the complete MPEG2
+> transport stream to the software demuxer
+> [    5.149307] DVB: registering new adapter (ITE 9135(9006) Generic)
+> [    5.174907] usb 1-4: dvb_usbv2: downloading firmware from file
+> 'dvb-usb-af9015.fw'
+> [    5.241934] usb 1-4: dvb_usbv2: found a 'AverMedia AVerTV Volar Black
+> HD (A850)' in warm state
+> [    5.614827] usb 1-4: dvb_usbv2: will pass the complete MPEG2
+> transport stream to the software demuxer
+> [    5.614866] DVB: registering new adapter (AverMedia AVerTV Volar
+> Black HD (A850))
+> [    5.710026] af9013: firmware version 4.95.0.0
+> [    5.712151] DVB: registering adapter 1 frontend 0 (Afatech AF9013)...
+> [    5.813139] MXL5005S: Attached at address 0xc6
+> [    5.818896] usb 1-4: dvb_usbv2: 'AverMedia AVerTV Volar Black HD
+> (A850)' successfully initialized and connected
+> [    7.266161] usb 2-1: dvb_usbv2: 2nd usb_bulk_msg() failed=-110
+> [    7.266247] it913x-fe: ADF table value    :00
+> [    9.267200] usb 2-1: dvb_usbv2: 2nd usb_bulk_msg() failed=-110
+> [   11.267153] usb 2-1: dvb_usbv2: 2nd usb_bulk_msg() failed=-110
+> [   13.267250] usb 2-1: dvb_usbv2: 2nd usb_bulk_msg() failed=-110
+> [   15.267089] usb 2-1: dvb_usbv2: 2nd usb_bulk_msg() failed=-110
+> [   17.267162] usb 2-1: dvb_usbv2: 2nd usb_bulk_msg() failed=-110
+> [   19.267139] usb 2-1: dvb_usbv2: 2nd usb_bulk_msg() failed=-110
+> [   19.267218] it913x-fe: Crystal Frequency :12000000 Adc Frequency
+> :20250000 ADC X2: 01
+> [   19.267296] usb 2-1: dvb_usbv2: 'ITE 9135(9006) Generic' error while
+> loading driver (-19)
+> [   19.267472] usb 2-1: dvb_usbv2: 'ITE 9135(9006) Generic' successfully
+> deinitialized and disconnected
+> -----------------------------------------------------------------------
+>
+> I'm unfortunately not able to rewrite the driver, but I'm willing to
+> provide any information about the device to help its correct
+> identification. Here is what lsusb yields :
+> -----------------------------------------------------------------------
+> Bus 002 Device 003: ID 0ccd:0099 TerraTec Electronic GmbH
+> Device Descriptor:
+>    bLength                18
+>    bDescriptorType         1
+>    bcdUSB               2.00
+>    bDeviceClass            0 (Defined at Interface level)
+>    bDeviceSubClass         0
+>    bDeviceProtocol         0
+>    bMaxPacketSize0        64
+>    idVendor           0x0ccd TerraTec Electronic GmbH
+>    idProduct          0x0099
+>    bcdDevice            2.00
+>    iManufacturer           1 ITE Technologies, Inc.
+>    iProduct                2 DVB-T TV Stick
+>    iSerial                 0
+>    bNumConfigurations      1
+>    Configuration Descriptor:
+>      bLength                 9
+>      bDescriptorType         2
+>      wTotalLength           71
+>      bNumInterfaces          2
+>      bConfigurationValue     1
+>      iConfiguration          0
+>      bmAttributes         0x80
+>        (Bus Powered)
+>      MaxPower              500mA
+>      Interface Descriptor:
+>        bLength                 9
+>        bDescriptorType         4
+>        bInterfaceNumber        0
+>        bAlternateSetting       0
+>        bNumEndpoints           4
+>        bInterfaceClass       255 Vendor Specific Class
+>        bInterfaceSubClass      0
+>        bInterfaceProtocol      0
+>        iInterface              0
+>        Endpoint Descriptor:
+>          bLength                 7
+>          bDescriptorType         5
+>          bEndpointAddress     0x81  EP 1 IN
+>          bmAttributes            2
+>            Transfer Type            Bulk
+>            Synch Type               None
+>            Usage Type               Data
+>          wMaxPacketSize     0x0200  1x 512 bytes
+>          bInterval               0
+>        Endpoint Descriptor:
+>          bLength                 7
+>          bDescriptorType         5
+>          bEndpointAddress     0x02  EP 2 OUT
+>          bmAttributes            2
+>            Transfer Type            Bulk
+>            Synch Type               None
+>            Usage Type               Data
+>          wMaxPacketSize     0x0200  1x 512 bytes
+>          bInterval               0
+>        Endpoint Descriptor:
+>          bLength                 7
+>          bDescriptorType         5
+>          bEndpointAddress     0x84  EP 4 IN
+>          bmAttributes            2
+>            Transfer Type            Bulk
+>            Synch Type               None
+>            Usage Type               Data
+>          wMaxPacketSize     0x0200  1x 512 bytes
+>          bInterval               0
+>        Endpoint Descriptor:
+>          bLength                 7
+>          bDescriptorType         5
+>          bEndpointAddress     0x85  EP 5 IN
+>          bmAttributes            2
+>            Transfer Type            Bulk
+>            Synch Type               None
+>            Usage Type               Data
+>          wMaxPacketSize     0x0200  1x 512 bytes
+>          bInterval               0
+>      Interface Descriptor:
+>        bLength                 9
+>        bDescriptorType         4
+>        bInterfaceNumber        1
+>        bAlternateSetting       0
+>        bNumEndpoints           1
+>        bInterfaceClass         3 Human Interface Device
+>        bInterfaceSubClass      0 No Subclass
+>        bInterfaceProtocol      1 Keyboard
+>        iInterface              0
+>          HID Device Descriptor:
+>            bLength                 9
+>            bDescriptorType        33
+>            bcdHID               1.01
+>            bCountryCode            0 Not supported
+>            bNumDescriptors         1
+>            bDescriptorType        34 Report
+>            wDescriptorLength      65
+>           Report Descriptors:
+>             ** UNAVAILABLE **
+>        Endpoint Descriptor:
+>          bLength                 7
+>          bDescriptorType         5
+>          bEndpointAddress     0x83  EP 3 IN
+>          bmAttributes            3
+>            Transfer Type            Interrupt
+>            Synch Type               None
+>            Usage Type               Data
+>          wMaxPacketSize     0x0040  1x 64 bytes
+>          bInterval              10
+> Device Qualifier (for other device speed):
+>    bLength                10
+>    bDescriptorType         6
+>    bcdUSB               2.00
+>    bDeviceClass            0 (Defined at Interface level)
+>    bDeviceSubClass         0
+>    bDeviceProtocol         0
+>    bMaxPacketSize0        64
+>    bNumConfigurations      1
+> Device Status:     0x0000
+>    (Bus Powered)
+>
+> Hope that helps...
+>
+> Damien
+
+
 -- 
-1.7.7
-
+http://palosaari.fi/
