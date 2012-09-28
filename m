@@ -1,96 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:35491 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756192Ab2IXPKt (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:34162 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758465Ab2I1SpU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Sep 2012 11:10:49 -0400
-Received: from eusync3.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MAV00EBQ0ULDX70@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 24 Sep 2012 16:11:09 +0100 (BST)
-Received: from [106.116.147.32] by eusync3.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MAV0048K0TYMF00@eusync3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 24 Sep 2012 16:10:47 +0100 (BST)
-Message-id: <506077F6.1010109@samsung.com>
-Date: Mon, 24 Sep 2012 17:10:46 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: linux-media@vger.kernel.org
-Cc: a.hajda@samsung.com, sakari.ailus@iki.fi,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com
-Subject: Re: [PATCH RFC v2 0/5] s5p-fimc: Add interleaved image data capture
- support
-References: <1348498546-2652-1-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1348498546-2652-1-git-send-email-s.nawrocki@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Fri, 28 Sep 2012 14:45:20 -0400
+Received: by bkcjk13 with SMTP id jk13so3820992bkc.19
+        for <linux-media@vger.kernel.org>; Fri, 28 Sep 2012 11:45:19 -0700 (PDT)
+Message-ID: <5065F03C.4000509@gmail.com>
+Date: Fri, 28 Sep 2012 20:45:16 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Albert Wang <twang13@marvell.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	"corbet@lwn.net" <corbet@lwn.net>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Subject: Re: [PATCH 2/4] [media] marvell-ccic: core: add soc camera support
+ on marvell-ccic mcam-core
+References: <1348840040-21390-1-git-send-email-twang13@marvell.com> <201209281615.49420.hverkuil@xs4all.nl> <477F20668A386D41ADCC57781B1F7043083B590CA2@SC-VEXCH1.marvell.com>
+In-Reply-To: <477F20668A386D41ADCC57781B1F7043083B590CA2@SC-VEXCH1.marvell.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/24/2012 04:55 PM, Sylwester Nawrocki wrote:
-> Hi All,
-> 
-> This patch series adds device/vendor specific media bus pixel code section
-> and defines S5C73MX camera specific media bus pixel code, along with
-> corresponding fourcc. I realize this isn't probably the best possible
-> solution but I don't know how to better handle this without major changes
-> in V4L2 API.
-> 
-> The third patch adds support for MIPI-CSI2 Embedded Data capture in
-> Samsung S5P/Exynos MIPI-CSIS device. It depends on patch
-> "[PATCH RFC] V4L: Add s_rx_buffer subdev video operation".
-> 
-> The fourth patch extends s5p-fimc driver to allow it to support
-> 2-planar V4L2_PIX_FMT_S5C_UYVY_JPG format. More details can be found
-> in the patch summary. The [get/set]_frame_desc subdev callback are
-> used only to retrive from a sensor subdev required buffer size.
-> It depends on patch
-> "[PATCH RFC] V4L: Add get/set_frame_desc subdev callbacks"
-> 
-> The fifth patch adds [get/set]_frame_desc op handlers to the m5mols
-> driver as an example. I prepared also similar patch for S5C73M3
-> sensor where 2 frame description entries are used, but that driver
-> is not yet mainlined due to a few missing items in V4L2 required
-> to fully control it, so I didn't include that patch in this series.
+Hi,
 
-I forgot to mention that this patch series with all dependencies
-can be found in git repository
+On 09/28/2012 08:37 PM, Albert Wang wrote:
+>>> +	ret = v4l2_subdev_call(sd, core, g_chip_ident,&id);
+> 
+>> Yuck. Don't abuse this. g_chip_ident is for debugging purposes only.
+> 
+> Yes, can remove it.
+> 
+>>> +	if (ret<  0) {
+>>> +		cam_err(mcam, "%s %d\n", __func__, __LINE__);
+>>> +		return ret;
+>>> +	}
+>>> +
+>>> +	strcpy(cap->card, mcam->card_name);
+>>> +	strncpy(cap->driver, (const char *)&(id.ident), 4);
+> 
+>> No, the name of the driver is the name of this module: marvell_ccic.
+>> It's *not* the name of the sensor driver.
+> 
+> Yes, maybe you are right, we misunderstood this usage.
+> 
+> But I'm confused with how can we put the sensor module name to upper level?
+> I mean upper level user want to know which sensor module is connecting to the controller.
+> Currently, our user get the sensor module name by call this ioctl VIDIOC_QUERYCAP.
+> 
+> Anyway, maybe we need change the usage model.
 
-git://git.infradead.org/users/kmpark/linux-samsung v4l-framedesc
+Is there anything preventing you from using VIDIOC_ENUM_INPUT/VIDIOC_G_INPUT
+ioctls for that ?
 
-http://git.infradead.org/users/kmpark/linux-samsung/shortlog/refs/heads/v4l-framedesc
+--
 
-> Comments, suggestions welcome.
-> 
-> Thanks,
-> Sylwester
-> 
-> Sylwester Nawrocki (5):
->   V4L: Add V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8 media bus format
->   V4L: Add V4L2_PIX_FMT_S5C_UYVY_JPG fourcc definition
->   s5p-csis: Add support for non-image data packets capture
->   s5p-fimc: Add support for V4L2_PIX_FMT_S5C_UYVY_JPG fourcc
->   m5mols: Implement .get_frame_desc subdev callback
-> 
->  Documentation/DocBook/media/v4l/compat.xml         |   4 +
->  Documentation/DocBook/media/v4l/pixfmt.xml         |   9 ++
->  Documentation/DocBook/media/v4l/subdev-formats.xml |  45 ++++++++
->  drivers/media/i2c/m5mols/m5mols.h                  |   9 ++
->  drivers/media/i2c/m5mols/m5mols_capture.c          |   3 +
->  drivers/media/i2c/m5mols/m5mols_core.c             |  47 ++++++++
->  drivers/media/i2c/m5mols/m5mols_reg.h              |   1 +
->  drivers/media/platform/s5p-fimc/fimc-capture.c     | 128 ++++++++++++++++++---
->  drivers/media/platform/s5p-fimc/fimc-core.c        |  19 ++-
->  drivers/media/platform/s5p-fimc/fimc-core.h        |  28 ++++-
->  drivers/media/platform/s5p-fimc/fimc-reg.c         |  23 +++-
->  drivers/media/platform/s5p-fimc/fimc-reg.h         |   3 +-
->  drivers/media/platform/s5p-fimc/mipi-csis.c        |  59 +++++++++-
->  include/linux/v4l2-mediabus.h                      |   5 +
->  include/linux/videodev2.h                          |   1 +
->  15 files changed, 351 insertions(+), 33 deletions(-)
-> 
-> --
-> 1.7.11.3
+Regards,
+Sylwester
