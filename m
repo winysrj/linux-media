@@ -1,182 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:64948 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757103Ab2IYQas (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Sep 2012 12:30:48 -0400
-Received: from eusync4.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MAW00DDEZ7Z9410@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 25 Sep 2012 17:31:11 +0100 (BST)
-Received: from [106.116.147.108] by eusync4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTPA id <0MAW004W5Z79WG60@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 25 Sep 2012 17:30:46 +0100 (BST)
-Message-id: <5061DC33.9090307@samsung.com>
-Date: Tue, 25 Sep 2012 18:30:43 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
+Received: from mail.kapsi.fi ([217.30.184.167]:46488 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758648Ab2I1Ro4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Sep 2012 13:44:56 -0400
+Message-ID: <5065E1FE.6050105@iki.fi>
+Date: Fri, 28 Sep 2012 20:44:30 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
-	robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
-	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de,
-	dmitriyz@google.com, s.nawrocki@samsung.com, k.debski@samsung.com
-Subject: Re: [PATCHv8 18/26] v4l: add buffer exporting via dmabuf
-References: <1344958496-9373-1-git-send-email-t.stanislaws@samsung.com>
- <1344958496-9373-19-git-send-email-t.stanislaws@samsung.com>
- <201208221341.06056.hverkuil@xs4all.nl>
-In-reply-to: <201208221341.06056.hverkuil@xs4all.nl>
-Content-type: text/plain; charset=ISO-8859-15
-Content-transfer-encoding: 7bit
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [git:v4l-dvb/for_v3.7] [media] add LNA support for DVB API
+References: <E1THIJb-0006hA-NK@www.linuxtv.org> <201209281621.35561.hverkuil@xs4all.nl> <20120928123005.6e1c4a74@redhat.com> <201209281907.47334.hverkuil@xs4all.nl>
+In-Reply-To: <201209281907.47334.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-Thank you for review.
-Please refer to the comments below.
-
-On 08/22/2012 01:41 PM, Hans Verkuil wrote:
-> On Tue August 14 2012 17:34:48 Tomasz Stanislawski wrote:
->> This patch adds extension to V4L2 api. It allow to export a mmap buffer as file
->> descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer offset used by
->> mmap and return a file descriptor on success.
+On 09/28/2012 08:07 PM, Hans Verkuil wrote:
+> On Fri September 28 2012 17:30:05 Mauro Carvalho Chehab wrote:
+>> Em Fri, 28 Sep 2012 16:21:35 +0200
+>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 >>
->> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
->> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->> ---
->>  drivers/media/video/v4l2-compat-ioctl32.c |    1 +
->>  drivers/media/video/v4l2-dev.c            |    1 +
->>  drivers/media/video/v4l2-ioctl.c          |   15 +++++++++++++++
->>  include/linux/videodev2.h                 |   26 ++++++++++++++++++++++++++
->>  include/media/v4l2-ioctl.h                |    2 ++
->>  5 files changed, 45 insertions(+)
+>>> On Fri September 28 2012 14:43:32 Hans Verkuil wrote:
+>>>> Hi Antti,
+>>>>
+>>>> Mauro asked me to look into LNA as well, in particular how this could be done
+>>>> on the analog side as well.
 >>
+>> Thanks for that!
+>>
+>>>>
+>>>> While reading through this patch I noticed that the new property was added to
+>>>> dtv_property_process_set, but not to dtv_property_process_get. Can you look
+>>>> into that and add 'get' support for this property?
+>>>
+>>> It's a sign of insanity when you start replying to your own email, but so
+>>> be it :-)
+>>
+>> :)
+>>
+>>>
+>>> I've been thinking how this can be implemented in such a way that it works
+>>> well in all the various board/tuner configurations.
+>>>
+>>> First, the property should be cached in dtv_frontend_properties, that way
+>>> tuners with a built-in LNA can use it. The initial value should be AUTO,
+>>> I guess.
+>>>
+>>> The property_process_set code changes to:
+>>>
+>>> 	case DTV_LNA:
+>>> 		if (fe->ops.set_lna)
+>>> 			r = fe->ops.set_lna(fe, tvp->u.data);
+>>> 		if (!r)
+>>> 			c->lna = tvp->u.data;
+>>> 		break;
+>>>
+>>> Tuners can now check the c->lna value when set_params is called and take the
+>>> appropriate steps if they have a built-in LNA.
+>>>
+>>> To be able to access the LNA from the V4L2 side you would need to add two
+>>> new tuner ops in include/media/v4l2-subdev.h:
+>>>
+>>> 	int (*g_lna)(struct v4l2_subdev *sd, u32 *lna);
+>>> 	int (*s_lna)(struct v4l2_subdev *sd, u32 lna);
+>>>
+>>> The tuner-core.c driver can implement these ops to get and set c->lna accordingly.
+>>>
+>>> A menu control would be needed to actually change the LNA.
+>>>
+>>> The code that handles that control would have to call a board-specific function
+>>> if necessary (if the LNA is on the board), and call the tuner's s_lna op otherwise.
+>>>
+>>
+>> Makes sense.
+>>
+>>>> The only question is whether the digital and analog APIs should share the same
+>>> LNA setting or keep different LNA states for each.
+>>>
+>>> So if I call DTV_LNA to set the LNA, and then check the LNA control value from V4L2,
+>>> should the two match? Or should we keep separate states and whenever you select
+>>> digital or analog mode the LNA is updated with the corresponding LNA value for that
+>>> mode.
+>>>
+>>> The latter is a bit more work (struct analog_parameters should probably be extended
+>>> with an LNA value), but I do think it is a cleaner solution.
+>>
+>> I think they both should share the same LNA state, as this depends on the physical
+>> connection (e. g. if the antenna has LNA; if the signal reception is weak or strong
+>> with that particular antenna).
+>>
+>>> I am not sure if the LNA work on the analog side should be done without having
+>>> hardware that actually uses it, but at least the LNA support on the digital side
+>>> should be done in such a way that it can be extended for analog as well.
+>>
+>> There are several saa7134 hardware with LNA support. I have one of such boards
+>> here, although never needed to dig into the LNA stuff on it.
+>
+> I'll wait until Antti makes the necessary changes on the digital side, after that
+> I'll see if I can make a patch for the analog part, and post that. There is an
+> outside chance that I have a board with an LNA as well: for ivtv there were issues
+> with a Samsung TCPN 2121P30A tuner where the LNA had to be turned on or off manually
+> (it should have been automatic but due to a hardware bug that didn't work). This
+> was never supported in ivtv, but this would make a good test case.
+>
+> The only problem is that I don't know if I still have that card or if I gave it
+> to Andy. I think it went to him, actually.
 
-[snip]
+Hans, your changes moving lna to property cache is fine for my eyes. I 
+can change it if you wish, but maybe Sunday or next week
 
->> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
->> index dffd3c9..c4e8c7e 100644
->> --- a/drivers/media/video/v4l2-ioctl.c
->> +++ b/drivers/media/video/v4l2-ioctl.c
->> @@ -458,6 +458,14 @@ static void v4l_print_buffer(const void *arg, bool write_only)
->>  			tc->type, tc->flags, tc->frames, *(__u32 *)tc->userbits);
->>  }
->>  
->> +static void v4l_print_exportbuffer(const void *arg, bool write_only)
->> +{
->> +	const struct v4l2_exportbuffer *p = arg;
->> +
->> +	pr_cont("fd=%d, mem_offset=%lx, flags=%lx\n",
->> +		p->fd, (unsigned long)p->mem_offset, (unsigned long)p->flags);
-> 
-> Why the unsigned long casts?
-> 
+I dropped get operation originally as I wanted to keep workload small on 
+that time. Also there was some other design issues, like one I selected 
+AUTO as minimum possible value to leave space for extending possible 
+values (both attenuation and gain). For now it is just on/off, but there 
+is existing LNAs having more gain levels, not to mention VGAs and LNAs 
+integrated to RF-tuners. Other design issue was units. Gains are 
+measured as units of decibels, but I decided to use device specific 
+steps instead of making some mechanism to enumerate supported gain levels.
 
-It is needed to avoid compiler warnings on machines where "%lx" is not
-compatible with u32.
+Here is some discussion behind that LNA.
 
->> +}
->> +
->>  static void v4l_print_create_buffers(const void *arg, bool write_only)
->>  {
->>  	const struct v4l2_create_buffers *p = arg;
+http://www.spinics.net/lists/linux-media/msg50132.html
+http://www.spinics.net/lists/linux-media/msg50133.html
+http://www.spinics.net/lists/linux-media/msg50139.html
 
-[snip]
+http://blog.palosaari.fi/2012/07/patch-rfc-add-lna-support-for-dvb-api.html
 
->> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
->> index 7f918dc..b5d058b 100644
->> --- a/include/linux/videodev2.h
->> +++ b/include/linux/videodev2.h
->> @@ -688,6 +688,31 @@ struct v4l2_buffer {
->>  #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
->>  #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
->>  
->> +/**
->> + * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
->> + *
->> + * @fd:		file descriptor associated with DMABUF (set by driver)
->> + * @mem_offset:	buffer memory offset as returned by VIDIOC_QUERYBUF in struct
->> + *		v4l2_buffer::m.offset (for single-plane formats) or
->> + *		v4l2_plane::m.offset (for multi-planar formats)
->> + * @flags:	flags for newly created file, currently only O_CLOEXEC is
->> + *		supported, refer to manual of open syscall for more details
->> + *
->> + * Contains data used for exporting a video buffer as DMABUF file descriptor.
->> + * The buffer is identified by a 'cookie' returned by VIDIOC_QUERYBUF
->> + * (identical to the cookie used to mmap() the buffer to userspace). All
->> + * reserved fields must be set to zero. The field reserved0 is expected to
->> + * become a structure 'type' allowing an alternative layout of the structure
->> + * content. Therefore this field should not be used for any other extensions.
->> + */
->> +struct v4l2_exportbuffer {
->> +	__u32		fd;
->> +	__u32		reserved0;
->> +	__u32		mem_offset;
->> +	__u32		flags;
->> +	__u32		reserved[12];
->> +};
-> 
-> OK, I realized that we also need a type field here: you need the type field
-> (same as in v4l2_buffer) to know which queue the mem_offset refers to. For
-> M2M devices you have two queues, so you need this information.
-
-I do not agree with you. The mmap() does not need buffer_type.
-So VIDIOC_EXPBUF should not need the field either.
-Please refer to patch "[PATCHv8 26/26] v4l: s5p-mfc: support for dmabuf exporting"
-for example how to deal without buffer_type.
-
-> 
-> Is there any reason not to use __u32 memory instead of __u32 reserved0?
-> I really dislike 'reserved0'. It's also very inconsistent with the other
-> buffer ioctls which all have type+memory fields.
-
-The type is not needed for exporting if mem_offset is available like in mmap() case.
-The memory is not needed because exporting is available only for MMAP buffers.
-
-I see two ways to describe a buffer for exporting:
-a) by mem_offset
-b) by (buffer_type, index, plane_index) tuple
-
-For know I prefer to implement only method (a) to avoid
-"single vs. multi plane" madness. Moreover it guarantees
-that only MMAP buffers are exported.
-
-The second method assisted by VIDIOC_PREPARE_BUF will allow
-userptr-to-dmabuf conversion or dmabuf reexporting.
-
-> 
-> Regarding mem_offset: I would prefer a union (possibly anonymous):
-
-I prefer not to add anonymous unions (though I like them) because
-the unions are not compatible with multiple C standards including C89.
-
-> 
->         union {
->                 __u32           mem_offset;
->                 unsigned long   reserved;
->         } m;
-> 
-> Again, it's more consistent with the existing buffer ioctls, and it prepares
-> the API for future pointer values. 'reserved' in the union above could even
-> safely be renamed to userptr, even though userptr isn't supported at the
-> moment.
-> 
-
-There is no guarantee that DMABUF could ever be created from user pointer.
-IMO, there is little need for support for such a feature.
-I prefer not to add any fields that to not immediately map to DMABUF
-functionalities. Let's keep the structures simple for now.
-
-Moreover I prefer not to add 'unsigned long' as union member because
-the size of the union would be different on 32 and 64 bit machines.
-
-The API is marked as experimental so it can change significantly.
-
-Regards,
-Tomasz Stanislawski
-
+regards
+Antti
+-- 
+http://palosaari.fi/
