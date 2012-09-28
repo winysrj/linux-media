@@ -1,192 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:37183 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756094Ab2ICJVQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Sep 2012 05:21:16 -0400
-Message-id: <50447688.4030004@samsung.com>
-Date: Mon, 03 Sep 2012 11:21:12 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Prabhakar Lad <prabhakar.lad@ti.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-kernel@vger.kernel.org,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-doc@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Landley <rob@landley.net>
-Subject: Re: [PATCH v3] media: v4l2-ctrls: add control for dpcm predictor
-References: <1346656851-20316-1-git-send-email-prabhakar.lad@ti.com>
-In-reply-to: <1346656851-20316-1-git-send-email-prabhakar.lad@ti.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from youngberry.canonical.com ([91.189.89.112]:56761 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756195Ab2I1QBu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Sep 2012 12:01:50 -0400
+Message-ID: <5065C9EA.1090206@canonical.com>
+Date: Fri, 28 Sep 2012 18:01:46 +0200
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?VGhvbWFzIEhlbGxzdHLDtm0=?= <thellstrom@vmware.com>
+CC: jakob@vmware.com, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, sumit.semwal@linaro.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 4/5] reservation: cross-device reservation support
+References: <20120928124148.14366.21063.stgit@patser.local> <20120928124313.14366.44686.stgit@patser.local> <5065C269.30406@vmware.com>
+In-Reply-To: <5065C269.30406@vmware.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/03/2012 09:20 AM, Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.lad@ti.com>
-> 
-> add V4L2_CID_DPCM_PREDICTOR control of type menu, which
-> determines the dpcm predictor. The predictor can be either
-> simple or advanced.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Hans de Goede <hdegoede@redhat.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Rob Landley <rob@landley.net>
-> Cc: HeungJun Kim <riverful.kim@samsung.com>
+Op 28-09-12 17:29, Thomas Hellström schreef:
+> On 9/28/12 2:43 PM, Maarten Lankhorst wrote:
+>> This adds support for a generic reservations framework that can be
+>> hooked up to ttm and dma-buf and allows easy sharing of reservations
+>> across devices.
+>>
+>> The idea is that a dma-buf and ttm object both will get a pointer
+>> to a struct reservation_object, which has to be reserved before
+>> anything is done with the buffer.
+> "Anything is done with the buffer" should probably be rephrased, as different members of the buffer struct
+> may be protected by different locks. It may not be practical or even possible to
+> protect all buffer members with reservation.
+Agreed.
+>> Some followup patches are needed in ttm so the lru_lock is no longer
+>> taken during the reservation step. This makes the lockdep annotation
+>> patch a lot more useful, and the assumption that the lru lock protects
+>> atomic removal off the lru list will fail soon, anyway.
+> As previously discussed, I'm unfortunately not prepared to accept removal of the reserve-lru atomicity
+>  into the TTM code at this point.
+> The current code is based on this assumption and removing it will end up with
+> efficiencies, breaking the delayed delete code and probably a locking nightmare when trying to write
+> new TTM code.
+The lru lock removal patch fixed the delayed delete code, it really is not different from the current
+situation. In fact it is more clear without the guarantee what various parts are trying to protect.
 
-Looks good.
+Nothing prevents you from holding the lru_lock while trylocking,
+leaving that guarantee intact for that part. Can you really just review
+the patch and tell me where it breaks and/or makes the code unreadable?
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+See my preemptive reply to patch 1/5 for details. I would prefer you
+followup there. :-)
 
-> ---
-> This patches has one checkpatch warning for line over
-> 80 characters altough it can be avoided I have kept it
-> for consistency.
-> 
-> Changes for v3:
-> 1: Added better explanation for DPCM, pointed by Hans.
-> 
-> Changes for v2:
-> 1: Added documentaion in controls.xml pointed by Sylwester.
-> 2: Chnaged V4L2_DPCM_PREDICTOR_ADVANCE to V4L2_DPCM_PREDICTOR_ADVANCED
->    pointed by Sakari.
-> 
->  Documentation/DocBook/media/v4l/controls.xml |   48 +++++++++++++++++++++++++-
->  drivers/media/v4l2-core/v4l2-ctrls.c         |    9 +++++
->  include/linux/videodev2.h                    |    5 +++
->  3 files changed, 61 insertions(+), 1 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index 93b9c68..f704218 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -4267,7 +4267,53 @@ interface and may change in the future.</para>
->  	    pixels / second.
->  	    </entry>
->  	  </row>
-> -	  <row><entry></entry></row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_DPCM_PREDICTOR</constant></entry>
-> +	    <entry>menu</entry>
-> +	  </row>
-> +	  <row id="v4l2-dpcm-predictor">
-> +	    <entry spanname="descr"> Differential pulse-code modulation (DPCM) is a signal
-> +	    encoder that uses the baseline of pulse-code modulation (PCM) but adds some
-> +	    functionalities based on the prediction of the samples of the signal. The input
-> +	    can be an analog signal or a digital signal.
-> +
-> +	    <para>If the input is a continuous-time
-> +	    analog signal, it needs to be sampled first so that a discrete-time signal is
-> +	    the input to the DPCM encoder.</para>
+~Maarten
 
-nit: this whole paragraph could fit in 2 lines.
-
-> +
-> +	    <para>Simple: take the values of two
-> +	    consecutive samples; if they are analog samples, quantize them; calculate the
-> +	    difference between the first one and the next; the output is the difference, and
-> +	    it can be further entropy coded.</para>
-> +
-> +	    <para>Advanced: instead of taking a difference relative to a previous input sample,
-> +	    take the difference relative to the output of a local model of the decoder process;
-> +	    in this option, the difference can be quantized, which allows a good way to
-> +	    incorporate a controlled loss in the encoding.</para>
-> +
-> +	    <para>Applying one of these two processes, short-term redundancy (positive correlation of
-> +	    nearby values) of the signal is eliminated; compression ratios on the order of 2 to 4
-> +	    can be achieved if differences are subsequently entropy coded, because the entropy of
-> +	    the difference signal is much smaller than that of the original discrete signal treated
-> +	    as independent samples.For more information about DPCM see <ulink
-> +	    url="http://en.wikipedia.org/wiki/Differential_pulse-code_modulation">Wikipedia</ulink>.</para>
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entrytbl spanname="descr" cols="2">
-> +	      <tbody valign="top">
-> +	        <row>
-> +	         <entry><constant>V4L2_DPCM_PREDICTOR_SIMPLE</constant></entry>
-> +	          <entry>Predictor type is simple</entry>
-> +	        </row>
-> +	        <row>
-> +	          <entry><constant>V4L2_DPCM_PREDICTOR_ADVANCED</constant></entry>
-> +	          <entry>Predictor type is advanced</entry>
-> +	        </row>
-> +	      </tbody>
-> +	    </entrytbl>
-> +	  </row>
-> +	<row><entry></entry></row>
->  	</tbody>
->        </tgroup>
->        </table>
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index b6a2ee7..2d7bc15 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -425,6 +425,11 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		"Gray",
->  		NULL,
->  	};
-> +	static const char * const dpcm_predictor[] = {
-> +		"Simple Predictor",
-> +		"Advanced Predictor",
-> +		NULL,
-> +	};
->  
->  	switch (id) {
->  	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-> @@ -502,6 +507,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		return mpeg4_profile;
->  	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
->  		return jpeg_chroma_subsampling;
-> +	case V4L2_CID_DPCM_PREDICTOR:
-> +		return dpcm_predictor;
->  
->  	default:
->  		return NULL;
-> @@ -732,6 +739,7 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_IMAGE_PROC_CLASS:		return "Image Processing Controls";
->  	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
->  	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
-> +	case V4L2_CID_DPCM_PREDICTOR:		return "DPCM Predictor";
->  
->  	default:
->  		return NULL;
-> @@ -832,6 +840,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_ISO_SENSITIVITY_AUTO:
->  	case V4L2_CID_EXPOSURE_METERING:
->  	case V4L2_CID_SCENE_MODE:
-> +	case V4L2_CID_DPCM_PREDICTOR:
->  		*type = V4L2_CTRL_TYPE_MENU;
->  		break;
->  	case V4L2_CID_LINK_FREQ:
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 6d6dfa7..ca9fb78 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -2000,6 +2000,11 @@ enum v4l2_jpeg_chroma_subsampling {
->  
->  #define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
->  #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
-> +#define V4L2_CID_DPCM_PREDICTOR			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
-> +enum v4l2_dpcm_predictor {
-> +	V4L2_DPCM_PREDICTOR_SIMPLE	= 0,
-> +	V4L2_DPCM_PREDICTOR_ADVANCED	= 1,
-> +};
->  
->  /*
->   *	T U N I N G
-
-Regards,
-Sylwester
