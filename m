@@ -1,79 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2520 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751190Ab2IOHnR convert rfc822-to-8bit (ORCPT
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:56451 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757484Ab2I1Qso convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Sep 2012 03:43:17 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFCv3 API PATCH 15/31] v4l2-core: Add new V4L2_CAP_MONOTONIC_TS capability.
-Date: Sat, 15 Sep 2012 09:41:59 +0200
-Cc: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1347620266-13767-1-git-send-email-hans.verkuil@cisco.com> <201209142327.47675@leon.remlab.net> <50539C29.2070209@iki.fi>
-In-Reply-To: <50539C29.2070209@iki.fi>
+	Fri, 28 Sep 2012 12:48:44 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Date: Fri, 28 Sep 2012 13:48:43 -0300
+Message-ID: <CAH0vN5+eo70t-R_jy7YGrjU8Fpx=yJQNrNgt=hGnCQL0wyp8xQ@mail.gmail.com>
+Subject: Error when doing build of media modules: WARNING: "snd_tea575x_init"
+ [drivers/media/radio/radio-shark.ko] undefined!
+From: Marcos Souza <marcos.souza.org@gmail.com>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	kernel-janitors <kernel-janitors@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Message-Id: <201209150941.59198.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri September 14 2012 23:05:45 Sakari Ailus wrote:
-> Hi Rémi,
-> 
-> Rémi Denis-Courmont wrote:
-> > Le vendredi 14 septembre 2012 23:25:01, Sakari Ailus a écrit :
-> >> I had a quick discussion with Laurent, and what he suggested was to use
-> >> the kernel version to figure out the type of the timestamp. The drivers
-> >> that use the monotonic time right now wouldn't be affected by the new
-> >> flag on older kernels. If we've decided we're going to switch to
-> >> monotonic time anyway, why not just change all the drivers now and
-> >> forget the capability flag.
-> >
-> > That does not work In Real Life.
-> >
-> > People do port old drivers forward to new kernels.
-> > People do port new drivers back to old kernels
-> 
-> Why would you port a driver from an old kernel to a new kernel? Or are 
-> you talking about out-of-tree drivers?
+Just giving a proper subject
 
-More likely the latter.
 
-> If you do port drivers across different kernel versions I guess you're 
-> supposed to use the appropriate interfaces for those kernels, too. Using 
-> a helper function helps here, so compiling a backported driver would 
-> fail w/o the helper function that produces the timestamp, forcing the 
-> backporter to notice the situation.
-> 
-> Anyway, I don't have a very strict opinion on this, so I'm okay with the 
-> flag, too, but I personally simply don't think it's the best choice we 
-> can make now. Also, without converting the drivers now the user space 
-> must live with different kinds of timestamps much longer.
+---------- Forwarded message ----------
+From: Marcos Souza <marcos.souza.org@gmail.com>
+Date: 2012/9/28
+Subject: Build
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
 
-There are a number of reasons why I want to go with a flag:
 
-- Out-of-tree drivers which are unlikely to switch to monotonic in practice
-- Backporting drivers
-- It makes it easy to verify in v4l2-compliance and enforce the use of
-  the monotonic clock.
-- It's easy for apps to check.
+Hi media guys,
 
-The third reason is probably the most important one for me. There tends to
-be a great deal of inertia before changes like this are applied to new drivers,
-and without being able to (easily) check this in v4l2-compliance more drivers
-will be merged that keep using gettimeofday. It's all too easy to miss in a
-review.
+After try to build the media drivers with some radios enabled, I got this error:
 
-That doesn't mean that it isn't a good idea to convert existing drivers asap.
-But it's not something I'm likely to take up myself.
+marcos@tux:/mnt/dados/gitroot/linux$ make M=drivers/media
+  Building modules, stage 2.
+  MODPOST 21 modules
+WARNING: "snd_tea575x_init" [drivers/media/radio/radio-shark.ko] undefined!
+WARNING: "snd_tea575x_exit" [drivers/media/radio/radio-shark.ko] undefined!
+WARNING: "snd_tea575x_init" [drivers/media/radio/radio-maxiradio.ko] undefined!
+WARNING: "snd_tea575x_exit" [drivers/media/radio/radio-maxiradio.ko] undefined!
 
-Creating a small helper function as you suggested elsewhere is a good idea as
-well. I'll write something for that.
+I saw that there is a EXPORT_SYMBOL of these functions in the file
+sound/i2c/other/tea575x-tuner.c
 
-Regards,
+But, I don't know how to find this...
 
-	Hans
+Can someone show me how can I fix this?
+
+Thanks since now!
+
+--
+Att,
+
+Marcos Paulo de Souza
+Acadêmico de Ciencia da Computação - FURB - SC
+Github: https://github.com/marcosps/
+"Uma vida sem desafios é uma vida sem razão"
+"A life without challenges, is a non reason life"
+
+
+-- 
+Att,
+
+Marcos Paulo de Souza
+Acadêmico de Ciencia da Computação - FURB - SC
+Github: https://github.com/marcosps/
+"Uma vida sem desafios é uma vida sem razão"
+"A life without challenges, is a non reason life"
