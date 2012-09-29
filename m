@@ -1,76 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:62754 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754263Ab2IGPZS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Sep 2012 11:25:18 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 7/10] drivers/media/tuners/tda18271-common.c: removes unnecessary semicolon
-Date: Fri,  7 Sep 2012 17:24:45 +0200
-Message-Id: <1347031488-26598-7-git-send-email-peter.senna@gmail.com>
+Received: from tex.lwn.net ([70.33.254.29]:34541 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757644Ab2I2TZ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Sep 2012 15:25:58 -0400
+Date: Sat, 29 Sep 2012 13:25:56 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl, rusty@rustcorp.com.au, dsd@laptop.org,
+	mchehab@infradead.org, hdegoede@redhat.com
+Subject: Re: [PATCH v3 0/4] ov7670: migrate this sensor and its users to
+ ctrl framework.
+Message-ID: <20120929132556.22c48312@hpe.lwn.net>
+In-Reply-To: <1348831603-18007-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1348831603-18007-1-git-send-email-javier.martin@vista-silicon.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Senna Tschudin <peter.senna@gmail.com>
+On Fri, 28 Sep 2012 13:26:39 +0200
+Javier Martin <javier.martin@vista-silicon.com> wrote:
 
-removes unnecessary semicolon
+> The following series migrate ov7670 sensor and current users to ctrl framework
+> as  discussed in [1]. This has been tested against mx2_camera soc-camera bridge,
+> so tests or acks will be required from people using cam-core and via-camera out
+> there.
 
-Found by Coccinelle: http://coccinelle.lip6.fr/
+Looking over the code, I can't really find much to get grumpy about.
+Certainly I like how it removes more code than it adds.  I'm not really
+up on the control framework, though.  What's really needed is to see
+this code actually work on the relevant systems.  I will *try* to do
+that testing, but it's going to take a little while; I don't think I
+can do it by the 3.7 merge window.  Mauro willing, perhaps it can go in
+this time around anyway with the idea that we can sort out any little
+difficulties after -rc1.
 
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-
----
- drivers/media/tuners/tda18271-common.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-diff -u -p a/drivers/media/tuners/tda18271-common.c b/drivers/media/tuners/tda18271-common.c
---- a/drivers/media/tuners/tda18271-common.c
-+++ b/drivers/media/tuners/tda18271-common.c
-@@ -275,7 +275,7 @@ int tda18271_init_regs(struct dvb_fronte
- 	case TDA18271HDC2:
- 		regs[R_ID]   = 0x84;
- 		break;
--	};
-+	}
- 
- 	regs[R_TM]   = 0x08;
- 	regs[R_PL]   = 0x80;
-@@ -300,7 +300,7 @@ int tda18271_init_regs(struct dvb_fronte
- 	case TDA18271HDC2:
- 		regs[R_EB1]  = 0xfc;
- 		break;
--	};
-+	}
- 
- 	regs[R_EB2]  = 0x01;
- 	regs[R_EB3]  = 0x84;
-@@ -320,7 +320,7 @@ int tda18271_init_regs(struct dvb_fronte
- 	case TDA18271HDC2:
- 		regs[R_EB12] = 0x33;
- 		break;
--	};
-+	}
- 
- 	regs[R_EB13] = 0xc1;
- 	regs[R_EB14] = 0x00;
-@@ -335,7 +335,7 @@ int tda18271_init_regs(struct dvb_fronte
- 	case TDA18271HDC2:
- 		regs[R_EB18] = 0x8c;
- 		break;
--	};
-+	}
- 
- 	regs[R_EB19] = 0x00;
- 	regs[R_EB20] = 0x20;
-@@ -347,7 +347,7 @@ int tda18271_init_regs(struct dvb_fronte
- 	case TDA18271HDC2:
- 		regs[R_EB21] = 0xb3;
- 		break;
--	};
-+	}
- 
- 	regs[R_EB22] = 0x48;
- 	regs[R_EB23] = 0xb0;
-
+jon
