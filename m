@@ -1,122 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:51212 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756264Ab2IMHgC (ORCPT
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:37477 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752512Ab2I2PRU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 03:36:02 -0400
-Received: by weyx8 with SMTP id x8so1500347wey.19
-        for <linux-media@vger.kernel.org>; Thu, 13 Sep 2012 00:36:01 -0700 (PDT)
+	Sat, 29 Sep 2012 11:17:20 -0400
 MIME-Version: 1.0
-In-Reply-To: <1347462158-20417-13-git-send-email-p.zabel@pengutronix.de>
-References: <1347462158-20417-1-git-send-email-p.zabel@pengutronix.de>
-	<1347462158-20417-13-git-send-email-p.zabel@pengutronix.de>
-Date: Thu, 13 Sep 2012 09:36:01 +0200
-Message-ID: <CACKLOr2aMBkwjUtwBmJRxXMOhSpguffyZb1VdALyHV4QuCSLoQ@mail.gmail.com>
-Subject: Re: [PATCH v5 12/13] media: coda: add byte size slice limit control
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
+In-Reply-To: <20120929143205.GN4587@mwanda>
+References: <20120929071253.GD10993@elgon.mountain>
+	<5066D2F6.10800@bfs.de>
+	<20120929143205.GN4587@mwanda>
+Date: Sat, 29 Sep 2012 12:17:18 -0300
+Message-ID: <CALF0-+XotD0ag4J3RwBP8i7pMVwr9q2Bv_x826jzYiWyOaQ5Nw@mail.gmail.com>
+Subject: Re: [patch] [media] cx25821: testing the wrong variable
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: walter harms <wharms@bfs.de>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
+	"Leonid V. Fedorenchik" <leonidsbox@gmail.com>,
+	Thomas Meyer <thomas@m3y3r.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
-it now works properly.
-
-On 12 September 2012 17:02, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
-> Changes since v4:
->  - Fix menu_skip_mask for V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE v4l2_ctrl.
-
-Tested-by: Javier Martin <javier.martin@vista-silicon.com>
-
-> ---
->  drivers/media/platform/coda.c |   29 +++++++++++++++++++++++------
->  1 file changed, 23 insertions(+), 6 deletions(-)
+On Sat, Sep 29, 2012 at 11:32 AM, Dan Carpenter
+<dan.carpenter@oracle.com> wrote:
+> On Sat, Sep 29, 2012 at 12:52:38PM +0200, walter harms wrote:
+>>
+>>
+>> Am 29.09.2012 09:12, schrieb Dan Carpenter:
+>> > ->input_filename could be NULL here.  The intent was to test
+>> > ->_filename.
+>> >
+>> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+>> > ---
+>> > I'm not totally convinced that using /root/vid411.yuv is the right idea.
+>> >
+>> > diff --git a/drivers/media/pci/cx25821/cx25821-video-upstream.c b/drivers/media/pci/cx25821/cx25821-video-upstream.c
+>> > index 52c13e0..6759fff 100644
+>> > --- a/drivers/media/pci/cx25821/cx25821-video-upstream.c
+>> > +++ b/drivers/media/pci/cx25821/cx25821-video-upstream.c
+>> > @@ -808,7 +808,7 @@ int cx25821_vidupstream_init_ch1(struct cx25821_dev *dev, int channel_select,
+>> >     }
+>> >
+>> >     /* Default if filename is empty string */
+>> > -   if (strcmp(dev->input_filename, "") == 0) {
+>> > +   if (strcmp(dev->_filename, "") == 0) {
+>> >             if (dev->_isNTSC) {
+>> >                     dev->_filename =
+>> >                             (dev->_pixel_format == PIXEL_FRMT_411) ?
+>> > diff --git a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
+>> > index c8c94fb..d33fc1a 100644
+>> > --- a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
+>> > +++ b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
+>> > @@ -761,7 +761,7 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
+>> >     }
+>> >
+>> >     /* Default if filename is empty string */
+>> > -   if (strcmp(dev->input_filename_ch2, "") == 0) {
+>> > +   if (strcmp(dev->_filename_ch2, "") == 0) {
+>> >             if (dev->_isNTSC_ch2) {
+>> >                     dev->_filename_ch2 = (dev->_pixel_format_ch2 ==
+>> >                             PIXEL_FRMT_411) ? "/root/vid411.yuv" :
+>> >
+>>
+>> In this case stcmp seems a bit of a overkill. A simple
+>> *(dev->_filename_ch2) == 0
+>> should be ok ?
 >
-> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> index 81e3401..0235f4e 100644
-> --- a/drivers/media/platform/coda.c
-> +++ b/drivers/media/platform/coda.c
-> @@ -151,6 +151,7 @@ struct coda_params {
->         enum v4l2_mpeg_video_multi_slice_mode slice_mode;
->         u32                     framerate;
->         u16                     bitrate;
-> +       u32                     slice_max_bits;
->         u32                     slice_max_mb;
->  };
->
-> @@ -1056,12 +1057,23 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
->                 return -EINVAL;
->         }
->
-> -       value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
-> -       value |= (1 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
-> -       if (ctx->params.slice_mode == V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB)
-> +       switch (ctx->params.slice_mode) {
-> +       case V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE:
-> +               value = 0;
-> +               break;
-> +       case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB:
-> +               value  = (ctx->params.slice_max_mb & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
-> +               value |= (1 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
-> +               value |=  1 & CODA_SLICING_MODE_MASK;
-> +               break;
-> +       case V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES:
-> +               value  = (ctx->params.slice_max_bits & CODA_SLICING_SIZE_MASK) << CODA_SLICING_SIZE_OFFSET;
-> +               value |= (0 & CODA_SLICING_UNIT_MASK) << CODA_SLICING_UNIT_OFFSET;
->                 value |=  1 & CODA_SLICING_MODE_MASK;
-> +               break;
-> +       }
->         coda_write(dev, value, CODA_CMD_ENC_SEQ_SLICE_MODE);
-> -       value  =  ctx->params.gop_size & CODA_GOP_SIZE_MASK;
-> +       value = ctx->params.gop_size & CODA_GOP_SIZE_MASK;
->         coda_write(dev, value, CODA_CMD_ENC_SEQ_GOP_SIZE);
->
->         if (ctx->params.bitrate) {
-> @@ -1308,6 +1320,9 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
->         case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB:
->                 ctx->params.slice_max_mb = ctrl->val;
->                 break;
-> +       case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES:
-> +               ctx->params.slice_max_bits = ctrl->val * 8;
-> +               break;
->         case V4L2_CID_MPEG_VIDEO_HEADER_MODE:
->                 break;
->         default:
-> @@ -1346,10 +1361,12 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
->                 V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP, 1, 31, 1, 2);
->         v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
->                 V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE,
-> -               V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB, 0,
-> -               V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB);
-> +               V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES, 0x0,
-> +               V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE);
->         v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
->                 V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB, 1, 0x3fffffff, 1, 1);
-> +       v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-> +               V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES, 1, 0x3fffffff, 1, 500);
->         v4l2_ctrl_new_std_menu(&ctx->ctrls, &coda_ctrl_ops,
->                 V4L2_CID_MPEG_VIDEO_HEADER_MODE,
->                 V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME,
-> --
-> 1.7.10.4
+> I prefer strcmp() actually.  More readable.
 >
 
+... and by no means an overkill.
+First, it's not a hotpath or a core component. So readability is the priority.
+Second, strcmp over empty string should be very very cheap (right?).
+In some arches it's even some asm code.
 
+"Premature optimization is the root of all evil".
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Regards,
+Ezequiel.
