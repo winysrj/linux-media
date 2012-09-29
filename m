@@ -1,78 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40806 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757857Ab2ILMp2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Sep 2012 08:45:28 -0400
-Message-ID: <505083DB.2010608@redhat.com>
-Date: Wed, 12 Sep 2012 09:45:15 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:40563 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964897Ab2I2CWJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Sep 2012 22:22:09 -0400
+Received: by lbon3 with SMTP id n3so2585951lbo.19
+        for <linux-media@vger.kernel.org>; Fri, 28 Sep 2012 19:22:08 -0700 (PDT)
 MIME-Version: 1.0
-To: David Waring <david.waring@rd.bbc.co.uk>
-CC: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 6/6] DVB API: LNA documentation
-References: <1345167310-8738-1-git-send-email-crope@iki.fi> <1345167310-8738-7-git-send-email-crope@iki.fi> <504F851B.5040600@redhat.com> <50506B9C.5080705@rd.bbc.co.uk>
-In-Reply-To: <50506B9C.5080705@rd.bbc.co.uk>
+In-Reply-To: <Pine.LNX.4.64.1209281420420.5428@axis700.grange>
+References: <1345799431-29426-4-git-send-email-agust@denx.de>
+ <1348783527-22997-1-git-send-email-agust@denx.de> <Pine.LNX.4.64.1209281413220.5428@axis700.grange>
+ <Pine.LNX.4.64.1209281420420.5428@axis700.grange>
+From: Eric Miao <eric.y.miao@gmail.com>
+Date: Sat, 29 Sep 2012 10:21:48 +0800
+Message-ID: <CAMPhdO9-SH_xR0ptt819vv9ztHY-f4ffbZcH9XhJ5CxAXPTu1w@mail.gmail.com>
+Subject: Re: [PATCH v2 3/3] mt9v022: set y_skip_top field to zero as default
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Anatolij Gustschin <agust@denx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 12-09-2012 08:01, David Waring escreveu:
-> On 11/09/12 19:38, Mauro Carvalho Chehab wrote:
->> Em 16-08-2012 22:35, Antti Palosaari escreveu:
->>> [snip]
->>> +	<para>Possible values: 0, 1, INT_MIN</para>
+On Fri, Sep 28, 2012 at 8:21 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Hi Eric
+>
+> On Fri, 28 Sep 2012, Guennadi Liakhovetski wrote:
+>
+>> Hi Anatolij
 >>
->> Hmm... INT_MIN... are you sure it is portable on all Linux compilers?
+>> I can take this patch, but we need an ack from a PXA / ARM maintainer.
+>
+> Could we have your ack, please?
+
+Yes, this looks completely good to me. Sorry for the delay.
+
+Acked-by: Eric Miao <eric.y.miao@gmail.com>
+
+>
+> Thanks
+> Guennadi
+>
+>> On Fri, 28 Sep 2012, Anatolij Gustschin wrote:
 >>
->> I don't like the idea on trusting on whatever C/C++/Java/... compiler (or some interpreter)
->> would define as "INT_MIN".
+>> > Set "y_skip_top" to zero and revise comment as I do not see this line
+>> > corruption on two different mt9v022 setups. The first read-out line
+>> > is perfectly fine. Add mt9v022 platform data configuring y_skip_top
+>> > for platforms that have issues with the first read-out line. Set
+>> > y_skip_top to 1 for pcm990 board.
+>> >
+>> > Signed-off-by: Anatolij Gustschin <agust@denx.de>
+>> > ---
+>> > Changes since first version:
+>> >  - add platform data to mt9v022 with only one parameter to initialise
+>> >    y_skip_top, use 0 as default and set it to 1 on pcm990-baseboard.c
+>> >  - revise commit log
+>> >  - rebase on staging/for_v3.7 branch
+>> >
+>> >  arch/arm/mach-pxa/pcm990-baseboard.c   |    6 ++++++
+>> >  drivers/media/i2c/soc_camera/mt9v022.c |    8 +++++---
+>> >  include/media/mt9v022.h                |   16 ++++++++++++++++
+>> >  3 files changed, 27 insertions(+), 3 deletions(-)
+>> >  create mode 100644 include/media/mt9v022.h
+>> >
+>> > diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
+>> > index cb723e8..e2973f2 100644
+>> > --- a/arch/arm/mach-pxa/pcm990-baseboard.c
+>> > +++ b/arch/arm/mach-pxa/pcm990-baseboard.c
+>> > @@ -26,6 +26,7 @@
+>> >  #include <linux/i2c/pxa-i2c.h>
+>> >  #include <linux/pwm_backlight.h>
+>> >
+>> > +#include <media/mt9v022.h>
+>> >  #include <media/soc_camera.h>
+>> >
+>> >  #include <mach/camera.h>
+>> > @@ -468,6 +469,10 @@ static struct i2c_board_info __initdata pcm990_i2c_devices[] = {
+>> >     },
+>> >  };
+>> >
+>> > +static struct mt9v022_platform_data mt9v022_pdata = {
+>> > +   .y_skip_top = 1,
+>> > +};
+>> > +
+>> >  static struct i2c_board_info pcm990_camera_i2c[] = {
+>> >     {
+>> >             I2C_BOARD_INFO("mt9v022", 0x48),
+>> > @@ -480,6 +485,7 @@ static struct soc_camera_link iclink[] = {
+>> >     {
+>> >             .bus_id                 = 0, /* Must match with the camera ID */
+>> >             .board_info             = &pcm990_camera_i2c[0],
+>> > +           .priv                   = &mt9v022_pdata,
+>> >             .i2c_adapter_id         = 0,
+>> >             .query_bus_param        = pcm990_camera_query_bus_param,
+>> >             .set_bus_param          = pcm990_camera_set_bus_param,
+>> > diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/mt9v022.c
+>> > index e0f4cb4..8feaddc 100644
+>> > --- a/drivers/media/i2c/soc_camera/mt9v022.c
+>> > +++ b/drivers/media/i2c/soc_camera/mt9v022.c
+>> > @@ -15,6 +15,7 @@
+>> >  #include <linux/log2.h>
+>> >  #include <linux/module.h>
+>> >
+>> > +#include <media/mt9v022.h>
+>> >  #include <media/soc_camera.h>
+>> >  #include <media/soc_mediabus.h>
+>> >  #include <media/v4l2-subdev.h>
+>> > @@ -849,6 +850,7 @@ static int mt9v022_probe(struct i2c_client *client,
+>> >     struct mt9v022 *mt9v022;
+>> >     struct soc_camera_link *icl = soc_camera_i2c_to_link(client);
+>> >     struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
+>> > +   struct mt9v022_platform_data *pdata = icl->priv;
+>> >     int ret;
+>> >
+>> >     if (!icl) {
+>> > @@ -912,10 +914,10 @@ static int mt9v022_probe(struct i2c_client *client,
+>> >     mt9v022->chip_control = MT9V022_CHIP_CONTROL_DEFAULT;
+>> >
+>> >     /*
+>> > -    * MT9V022 _really_ corrupts the first read out line.
+>> > -    * TODO: verify on i.MX31
+>> > +    * On some platforms the first read out line is corrupted.
+>> > +    * Workaround it by skipping if indicated by platform data.
+>> >      */
+>> > -   mt9v022->y_skip_top     = 1;
+>> > +   mt9v022->y_skip_top     = pdata ? pdata->y_skip_top : 0;
+>> >     mt9v022->rect.left      = MT9V022_COLUMN_SKIP;
+>> >     mt9v022->rect.top       = MT9V022_ROW_SKIP;
+>> >     mt9v022->rect.width     = MT9V022_MAX_WIDTH;
+>> > diff --git a/include/media/mt9v022.h b/include/media/mt9v022.h
+>> > new file mode 100644
+>> > index 0000000..4056180
+>> > --- /dev/null
+>> > +++ b/include/media/mt9v022.h
+>> > @@ -0,0 +1,16 @@
+>> > +/*
+>> > + * mt9v022 sensor
+>> > + *
+>> > + * This program is free software; you can redistribute it and/or modify
+>> > + * it under the terms of the GNU General Public License version 2 as
+>> > + * published by the Free Software Foundation.
+>> > + */
+>> > +
+>> > +#ifndef __MT9V022_H__
+>> > +#define __MT9V022_H__
+>> > +
+>> > +struct mt9v022_platform_data {
+>> > +   unsigned short y_skip_top;      /* Lines to skip at the top */
+>> > +};
+>> > +
+>> > +#endif
+>> > --
+>> > 1.7.1
+>> >
 >>
->> The better is to define a value for that, or, instead, to define something
->> at the API header file that won't cause troubles with 32 bits or 64 bits
->> userspace, like defining it as:
+>> ---
+>> Guennadi Liakhovetski, Ph.D.
+>> Freelance Open-Source Software Developer
+>> http://www.open-technology.de/
 >>
->> #define DVB_AUTO_LNA ((u32)~0)
->>
-> INT_MIN is defined in limits.h which is an ISO standard header. Other
-> parts of the kernel also use INT_MIN, e.g. linux/cpu.h and
-> linux/netfilter_ipv4.h both reference INT_MIN from limits.h.
-
-The linux/cpu.h is a Kernel internal header. There's no public userspace API 
-there. So, it uses kernel's own definition for INT_MIN.
-
-You're right with regards to netfilter. Btw, it is only places where INT_MIN 
-is used on an userspace-filtered headers are at the netfilter interface :
-
-/usr/include/linux/netfilter_ipv6.h:#include <limits.h> /* for INT_MIN, INT_MAX */
-/usr/include/linux/netfilter_ipv6.h:	NF_IP6_PRI_FIRST = INT_MIN,
-/usr/include/linux/netfilter_ipv4.h:#include <limits.h> /* for INT_MIN, INT_MAX */
-/usr/include/linux/netfilter_ipv4.h:	NF_IP_PRI_FIRST = INT_MIN,
-/usr/include/linux/netfilter_decnet.h:#include <limits.h> /* for INT_MIN, INT_MAX */
-/usr/include/linux/netfilter_decnet.h:	NF_DN_PRI_FIRST = INT_MIN,
-
-Even so, it got renamed inside a priorities enum:
-
-enum nf_ip_hook_priorities {
-	NF_IP_PRI_FIRST = INT_MIN,
-
-In the case of netfilter, as this is just a priority number, it actually
-make sense to use INT_MIN as the lowest priority, as INT_MIN is the lowest
-number that can be represented there.
-
-What we're doing here is something else: we're defining a special value to be 
-interpreted as "AUTO". In this case, if Kernel and userspace disagrees on what
-value should be used, the KAPI will be deadly broken.
-
-I might be wrong, but some C compilers on a few architectures (Tru64 C compiler comes
-on my mind) define "int" as 64 bit integers, with will affect the definition of INT_MIN.
-Ok, in this case, the definition will be compatible, but I'm wondering if some other
-compiler might be doing something else here.
-
-That's why I'm in favor of defining some constant for "AUTO" at the kernel headers,
-in a way that we'll be sure that we won't have any bad surprises on userspace.
-
-Regards,
-Mauro
-
-
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
