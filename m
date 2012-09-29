@@ -1,95 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:40652 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756690Ab2IKPXD (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:56248 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751965Ab2I2XbD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Sep 2012 11:23:03 -0400
-Message-ID: <504F5753.60407@wwwdotorg.org>
-Date: Tue, 11 Sep 2012 09:22:59 -0600
-From: Stephen Warren <swarren@wwwdotorg.org>
+	Sat, 29 Sep 2012 19:31:03 -0400
+Date: Sun, 30 Sep 2012 01:30:58 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Jonathan Corbet <corbet@lwn.net>
+cc: Albert Wang <twang13@marvell.com>, linux-media@vger.kernel.org,
+	Libin Yang <lbyang@marvell.com>
+Subject: Re: [PATCH 2/4] [media] marvell-ccic: core: add soc camera support
+ on marvell-ccic mcam-core
+In-Reply-To: <20120929134041.343c3d56@hpe.lwn.net>
+Message-ID: <Pine.LNX.4.64.1209300128020.20390@axis700.grange>
+References: <1348840040-21390-1-git-send-email-twang13@marvell.com>
+ <20120929134041.343c3d56@hpe.lwn.net>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	devicetree-discuss <devicetree-discuss@lists.ozlabs.org>,
-	linux-sh@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [RFC v5] V4L DT bindings
-References: <Pine.LNX.4.64.1208242356051.20710@axis700.grange> <Pine.LNX.4.64.1209051030230.16676@axis700.grange> <5047DEE6.9020607@wwwdotorg.org> <Pine.LNX.4.64.1209111555010.22084@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1209111555010.22084@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/11/2012 08:02 AM, Guennadi Liakhovetski wrote:
-> Hi Stephen
-> 
-> Thanks for the review.
-> 
-> On Wed, 5 Sep 2012, Stephen Warren wrote:
-> 
->> On 09/05/2012 04:57 AM, Guennadi Liakhovetski wrote:
->>> Hi all
->>>
->>> Version 5 of this RFC is a result of a discussion of its version 4, which 
->>> took place during the recent Linux Plumbers conference in San Diego. 
->>> Changes are:
->>>
->>> (1) remove bus-width properties from device (bridge and client) top level. 
->>> This has actually already been decided upon during our discussions with 
->>> Sylwester, I just forgot to actually remove them, sorry.
->>>
->>> (2) links are now grouped under "ports." This should help better describe 
->>> device connection topology by making clearer, which interfaces links are 
->>> attached to. (help needed: in my notes I see "port" optional if only one 
->>> port is present, but I seem to remember, that the final decision was - 
->>> make ports compulsory for uniformity. Which one is true?)
->>
->> I'd tend to make the port node compulsory.
->>
->> A related question: What code is going to parse all the port/link
->> sub-nodes in a device?
-> 
-> I think we'll have to make a generic V4L DT parser. We certainly don't 
-> want each driver reimplement this.
-> 
->> And, how does it know which sub-nodes are ports,
->> and which are something else entirely? Perhaps the algorithm is that all
->> port nodes must be named "port"?
-> 
-> Yes, that was the idea. Is anything speaking against it?
+On Sat, 29 Sep 2012, Jonathan Corbet wrote:
 
-I think that's fine; it's certainly a nice and simple requirement. It's
-just a rule that will have to be thought about when designing bindings
-for all the devices that use this feature, to make sure they don't
-define any other kind of "port" node that would confuse the parser.
+> On Fri, 28 Sep 2012 21:47:20 +0800
+> Albert Wang <twang13@marvell.com> wrote:
+> 
+> > This patch adds the support of Soc Camera on marvell-ccic mcam-core.
+> > The Soc Camera mode does not compatible with current mode.
+> > Only one mode can be used at one time.
+> > 
+> > To use Soc Camera, CONFIG_VIDEO_MMP_SOC_CAMERA should be defined.
+> > What's more, the platform driver should support Soc camera at the same time.
+> > 
+> > Also add MIPI interface and dual CCICs support in Soc Camera mode.
+> 
+> I'm glad this work is being done, but I have some high-level grumbles
+> to start with.
+> 
+> This patch is too big, and does several things. I think there needs to
+> be one to add SOC support (but see below), one to add planar formats,
+> one to add MIPI, one for the second CCIC, etc. That will make them all
+> easier to review.
+> 
+> The SOC camera stuff could maybe use a little more thought. Why does
+> this driver *need* to be a SOC camera driver?
 
-I suppose if this ever becomes a problem, an individual binding could
-choose to avoid conflicts by placing the "port" nodes in some specific
-child node of its device node, and the driver would pass the name of
-that node into the common parsing code, which would default to using the
-device's main node when not otherwise specified. However, we should
-avoid the conflicts if we can. In other words:
+It probably doesn't, but if the author wishes to do so - we can try to do 
+this cleanly.
 
-Normal:
+> If that is truly
+> necessary (or sufficiently beneficial), can we get to the point where
+> that's the only mode?  I really dislike the two modes; we're
+> essentially perpetuating the two-drivers concept in a #ifdef'd form; it
+> would be good not to do that.
+> 
+> If there is truly some reason why both modes need to exist, can we
+> arrange things so that the core doesn't know the difference?  I'd like
+> to see no new ifdefs there if possible, it already has way too many.
 
-/foo {
-    port@0 { ... };
-    port@1 { ... };
-};
+A strong +1. Ideally we should identify common code, add soc-camera mode 
+as a separate file and re-use the common stuff.
 
-If there's ever a need to resolve some conflict with that standard layout:
+> That, I think, is how I'd like to go toward a cleaner, more reviewable,
+> more maintainable solution.  Make sense?
 
-/foo {
-    media-ports {
-        port@0 { ... };
-        port@1 { ... };
-    };
-};
+Definitely!
+
+Thanks
+Guennadi
+
+> Thanks,
+> 
+> jon
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
