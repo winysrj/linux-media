@@ -1,80 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:64435 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754155Ab2IWUVw convert rfc822-to-8bit (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:46157 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759095Ab2I2BvR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Sep 2012 16:21:52 -0400
-Date: Sun, 23 Sep 2012 22:21:49 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-cc: maramaopercheseimorto@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/3] ov2640: select sensor register bank before applying
- h/v-flip settings
-In-Reply-To: <1348424926-12864-1-git-send-email-fschaefer.oss@googlemail.com>
-Message-ID: <Pine.LNX.4.64.1209232217260.31250@axis700.grange>
-References: <1348424926-12864-1-git-send-email-fschaefer.oss@googlemail.com>
+	Fri, 28 Sep 2012 21:51:17 -0400
+Received: by wgbdr13 with SMTP id dr13so2318372wgb.1
+        for <linux-media@vger.kernel.org>; Fri, 28 Sep 2012 18:51:16 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Date: Fri, 28 Sep 2012 19:51:16 -0600
+Message-ID: <CAEULaV+D3c=FBTVNRRxgQMMM6Xc4uG-QoB9WEThrxHpNOuyu=A@mail.gmail.com>
+Subject: Follow-up on resetting entire omap3isp to fix "CCDC Can't Stop" error
+From: Neil Johnson <realdealneil@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Frank
+Linux-media,
 
-On Sun, 23 Sep 2012, Frank Schäfer wrote:
+We are using a DM3730 board and using linux-3.0 (and currently porting
+to linux-3.4 and possibly newer).  We desire to hook up the omap3 isp
+to mutliple cameras by using an FPGA to multiplex the parallel camera
+interface pins.  We have proven the ability to capture from either of
+two different cameras (they have different interface types, one is
+YUV, the other is Bayer).  We use the media-controller interface to
+set up the media pipeline, then we start streaming on one camera.
+Then, we stop streaming, reset the media pipeline, set the pipeline
+for the other camera, and do a stream_on, but that typically doesn't
+work and we get a "CCDC can't stop" message that prints out after
+closing the first stream.
 
-> We currently don't select the register bank in ov2640_s_ctrl, so we can end up
-> writing to DSP register 0x04 instead of sensor register 0x04.
-> This happens for example when calling ov2640_s_ctrl after ov2640_s_fmt.
+We are guessing that the OMAP3 ISP is getting stuck after getting a
+partial frame, and it appears, according to this:
 
-Yes, in principle, I agree, bank switching in the driver is not very... 
-consistent and also this specific case looks buggy. But, we have to fix 
-your fix.
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg44111.html
 
-> 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> Cc: stable@kernel.org
-> ---
->  drivers/media/i2c/soc_camera/ov2640.c |    8 ++++++++
->  1 Datei geändert, 8 Zeilen hinzugefügt(+)
-> 
-> diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
-> index 78ac574..e4fc79e 100644
-> --- a/drivers/media/i2c/soc_camera/ov2640.c
-> +++ b/drivers/media/i2c/soc_camera/ov2640.c
-> @@ -683,8 +683,16 @@ static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
->  	struct v4l2_subdev *sd =
->  		&container_of(ctrl->handler, struct ov2640_priv, hdl)->subdev;
->  	struct i2c_client  *client = v4l2_get_subdevdata(sd);
-> +	struct regval_list regval;
-> +	int ret;
->  	u8 val;
->  
-> +	regval.reg_num = BANK_SEL;
-> +	regval.value = BANK_SEL_SENS;
-> +	ret = ov2640_write_array(client, &regval);
+that a fix would be implemented in the Linux-3.4 kernel that would
+allow for a complete reset of the ISP whenever it got into this
+hardware state:
 
-This doesn't look right to me. ov2640_write_array() keeps writing register 
-address - value pairs to the hardware until it encounters an "ENDMARKER," 
-which you don't have here, so, it's hard to say what will be written to 
-the sensor... Secondly, you only have to write a single register here, for 
-this the driver is already using i2c_smbus_write_byte_data() directly, 
-please, do the same.
+"""
 
-Thanks
-Guennadi
+Various OMAP3 ISP blocks can't be stopped
+before they have processed a complete frame once they have been started. The
+work around is to reset the whole ISP, which we will do in v3.4, but that
+won't solve the problem completely if one application uses the resizer in
+memory-to-memory mode and another application uses the rest of the ISP. In
+that case the driver won't be able to reset the ISP as long as the first
+application uses it.
 
-> +	if (ret < 0)
-> +		return ret;
-> +
->  	switch (ctrl->id) {
->  	case V4L2_CID_VFLIP:
->  		val = ctrl->val ? REG04_VFLIP_IMG : 0x00;
-> -- 
-> 1.7.10.4
-> 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+"""
+
+Has such a change been implemented?  I struggle to find a patch that
+implements this change or a note in the git logs about it.  We are
+hoping this is the last piece to the puzzle for allowing us to switch
+between cameras (one of which is free-running).
+
+Neil Johnson
