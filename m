@@ -1,55 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64873 "EHLO mx1.redhat.com"
+Received: from tex.lwn.net ([70.33.254.29]:34520 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757785Ab2IMMED (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Sep 2012 08:04:03 -0400
-Message-ID: <5051CBFB.9030200@redhat.com>
-Date: Thu, 13 Sep 2012 14:05:15 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: pac7302-webcams and libv4lconvert interaction
-References: <5048BDA2.7090203@googlemail.com> <504D080C.8020608@redhat.com> <504E0916.8010204@googlemail.com> <504E31F0.7080804@redhat.com> <504E4C96.8000207@googlemail.com> <504EE83C.5040503@redhat.com> <50509DDB.6030305@googlemail.com>
-In-Reply-To: <50509DDB.6030305@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+	id S1757789Ab2I2TUe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Sep 2012 15:20:34 -0400
+Date: Sat, 29 Sep 2012 13:20:32 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl, rusty@rustcorp.com.au, dsd@laptop.org,
+	mchehab@infradead.org, hdegoede@redhat.com
+Subject: Re: [PATCH v2 0/5] media: ov7670: driver cleanup and support for
+ ov7674.
+Message-ID: <20120929132032.7ce66793@hpe.lwn.net>
+In-Reply-To: <1348760305-7481-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1348760305-7481-1-git-send-email-javier.martin@vista-silicon.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, 27 Sep 2012 17:38:20 +0200
+Javier Martin <javier.martin@vista-silicon.com> wrote:
 
-On 09/12/2012 04:36 PM, Frank Schäfer wrote:
+> The following series includes all the changes discussed in [1] that
+> don't affect either bridge drivers that use ov7670 or soc-camera framework
+> For this reason they are considered non controversial and sent separately.
+> At least 1 more series will follow in order to implement all features
+> described in [1].
 
-<snip>
+I'd have preferred to avoid the unrelated white space changes in #1,
+but so be it; you can put my Acked-by on the whole set.
 
->
-> And a negative side effect is, that unknown pac7302 devices (with no
-> V4LCONTROL_ROTATED_90_JPEG entry in libv4lconvert) do not work.
-> With a consistent API behavior, they would work fine (output a rotated
-> image). Users would at least know that their device is working and most
-> of them know what to do next.
-> For image rotation, we still need to add an entry to libv4lconvert and
-> to modify it to invert the width and height values in v4l2_pix_format in
-> this case.
+Thanks,
 
-That is a good point, unfortunately we are stuck with how we are doing
-things now, since changing things would break the kernel ABI.
-
-Also ...
-
->
-> The device I have here is a good example: many people reported this
-> device as not working years ago, one of them even got a hint in a forum
-> that this could be a pac7302 device 2 years ago.
-> But with the gpsca-pac7302 driver, he got no picture and gave up.
-> And if I had not started q4vl2 from the terminal and had noticed the
-> error message from libv4lconvert, I would have needed much more time to
-> find out what's wrong...
-
-True, OTOH just having this fixed won't help a regular user, as he/she
-would still need to first add the new usb-id to the pac7302 driver...
-
-Regards,
-
-Hans
+jon
