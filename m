@@ -1,176 +1,362 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42292 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753649Ab2I0JUL (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:61205 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757779Ab2I2TUZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Sep 2012 05:20:11 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: paul@pwsan.com, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH v2 1/2] omap3: Provide means for changing CSI2 PHY configuration
-Date: Thu, 27 Sep 2012 11:20:48 +0200
-Message-ID: <2067951.ZTSQvUdPug@avalon>
-In-Reply-To: <1348696236-3470-1-git-send-email-sakari.ailus@iki.fi>
-References: <20120926215001.GA14107@valkosipuli.retiisi.org.uk> <1348696236-3470-1-git-send-email-sakari.ailus@iki.fi>
+	Sat, 29 Sep 2012 15:20:25 -0400
+Received: by lagh6 with SMTP id h6so1440426lag.19
+        for <linux-media@vger.kernel.org>; Sat, 29 Sep 2012 12:20:23 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CAOcJUbzRC2w5KO87L5nTxZA9x2d0zfGX-qiZ92VUVPA=MLYa5g@mail.gmail.com>
+References: <20120928084337.1db94b8c@redhat.com>
+	<1348844661-19114-1-git-send-email-mchehab@redhat.com>
+	<5065ECEB.30807@iki.fi>
+	<CAOcJUbzRC2w5KO87L5nTxZA9x2d0zfGX-qiZ92VUVPA=MLYa5g@mail.gmail.com>
+Date: Sat, 29 Sep 2012 15:20:23 -0400
+Message-ID: <CAOcJUbxC3vP53Lfoca+Qy5Zab9tHgj1oQ=GrOtTRNLe99Cue8A@mail.gmail.com>
+Subject: Re: [PATCH] tda18271-common: hold the I2C adapter during write transfers
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Fri, Sep 28, 2012 at 2:56 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> On Fri, Sep 28, 2012 at 2:31 PM, Antti Palosaari <crope@iki.fi> wrote:
+>> Hello,
+>> Did not fix the issue. Problem remains same. With the sleep + that patch it
+>> works still.
+>>
+>> On 09/28/2012 06:04 PM, Mauro Carvalho Chehab wrote:
+>>>
+>>> The tda18271 datasheet says:
+>>>
+>>>         "The image rejection calibration and RF tracking filter
+>>>          calibration must be launched exactly as described in the
+>>>          flowchart, otherwise bad calibration or even blocking of the
+>>>          TDA18211HD can result making it impossible to communicate
+>>>          via the I2C-bus."
+>>>
+>>> (yeah, tda18271 refers there to tda18211 - likely a typo at their
+>>>   datasheets)
+>>
+>>
+>> tda18211 is just same than tda18271 but without a analog.
+>>
+>>> That likely explains why sometimes tda18271 stops answering. That
+>>> is now happening more often on designs with drx-k chips, as the
+>>> firmware is now loaded asyncrousnly there.
+>>>
+>>> While the above text doesn't explicitly tell that the I2C bus
+>>> couldn't be used by other devices during such initialization,
+>>> that seems to be a requirement there.
+>>>
+>>> So, let's explicitly use the I2C lock there, avoiding I2C bus
+>>> share during those critical moments.
+>>>
+>>> Compile-tested only. Please test.
+>>>
+>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>> ---
+>>>   drivers/media/tuners/tda18271-common.c | 104
+>>> ++++++++++++++++++++++-----------
+>>>   1 file changed, 71 insertions(+), 33 deletions(-)
+>>>
+>>> diff --git a/drivers/media/tuners/tda18271-common.c
+>>> b/drivers/media/tuners/tda18271-common.c
+>>> index 221171e..18c77af 100644
+>>> --- a/drivers/media/tuners/tda18271-common.c
+>>> +++ b/drivers/media/tuners/tda18271-common.c
+>>> @@ -187,7 +187,8 @@ int tda18271_read_extended(struct dvb_frontend *fe)
+>>>         return (ret == 2 ? 0 : ret);
+>>>   }
+>>>
+>>> -int tda18271_write_regs(struct dvb_frontend *fe, int idx, int len)
+>>> +static int __tda18271_write_regs(struct dvb_frontend *fe, int idx, int
+>>> len,
+>>> +                       bool lock_i2c)
+>>>   {
+>>>         struct tda18271_priv *priv = fe->tuner_priv;
+>>>         unsigned char *regs = priv->tda18271_regs;
+>>> @@ -198,7 +199,6 @@ int tda18271_write_regs(struct dvb_frontend *fe, int
+>>> idx, int len)
+>>>
+>>>         BUG_ON((len == 0) || (idx + len > sizeof(buf)));
+>>>
+>>> -
+>>>         switch (priv->small_i2c) {
+>>>         case TDA18271_03_BYTE_CHUNK_INIT:
+>>>                 max = 3;
+>>> @@ -214,7 +214,19 @@ int tda18271_write_regs(struct dvb_frontend *fe, int
+>>> idx, int len)
+>>>                 max = 39;
+>>>         }
+>>>
+>>> -       tda18271_i2c_gate_ctrl(fe, 1);
+>>> +
+>>> +       /*
+>>> +        * If lock_i2c is true, it will take the I2C bus for tda18271
+>>> private
+>>> +        * usage during the entire write ops, as otherwise, bad things
+>>> could
+>>> +        * happen.
+>>> +        * During device init, several write operations will happen. So,
+>>> +        * tda18271_init_regs controls the I2C lock directly,
+>>> +        * disabling lock_i2c here.
+>>> +        */
+>>> +       if (lock_i2c) {
+>>> +               tda18271_i2c_gate_ctrl(fe, 1);
+>>> +               i2c_lock_adapter(priv->i2c_props.adap);
+>>> +       }
+>>>         while (len) {
+>>>                 if (max > len)
+>>>                         max = len;
+>>> @@ -226,14 +238,17 @@ int tda18271_write_regs(struct dvb_frontend *fe, int
+>>> idx, int len)
+>>>                 msg.len = max + 1;
+>>>
+>>>                 /* write registers */
+>>> -               ret = i2c_transfer(priv->i2c_props.adap, &msg, 1);
+>>> +               ret = __i2c_transfer(priv->i2c_props.adap, &msg, 1);
+>>>                 if (ret != 1)
+>>>                         break;
+>>>
+>>>                 idx += max;
+>>>                 len -= max;
+>>>         }
+>>> -       tda18271_i2c_gate_ctrl(fe, 0);
+>>> +       if (lock_i2c) {
+>>> +               i2c_unlock_adapter(priv->i2c_props.adap);
+>>> +               tda18271_i2c_gate_ctrl(fe, 0);
+>>> +       }
+>>>
+>>>         if (ret != 1)
+>>>                 tda_err("ERROR: idx = 0x%x, len = %d, "
+>>> @@ -242,10 +257,16 @@ int tda18271_write_regs(struct dvb_frontend *fe, int
+>>> idx, int len)
+>>>         return (ret == 1 ? 0 : ret);
+>>>   }
+>>>
+>>> +int tda18271_write_regs(struct dvb_frontend *fe, int idx, int len)
+>>> +{
+>>> +       return __tda18271_write_regs(fe, idx, len, true);
+>>> +}
+>>> +
+>>>
+>>> /*---------------------------------------------------------------------*/
+>>>
+>>> -int tda18271_charge_pump_source(struct dvb_frontend *fe,
+>>> -                               enum tda18271_pll pll, int force)
+>>> +static int __tda18271_charge_pump_source(struct dvb_frontend *fe,
+>>> +                                        enum tda18271_pll pll, int force,
+>>> +                                        bool lock_i2c)
+>>>   {
+>>>         struct tda18271_priv *priv = fe->tuner_priv;
+>>>         unsigned char *regs = priv->tda18271_regs;
+>>> @@ -255,9 +276,16 @@ int tda18271_charge_pump_source(struct dvb_frontend
+>>> *fe,
+>>>         regs[r_cp] &= ~0x20;
+>>>         regs[r_cp] |= ((force & 1) << 5);
+>>>
+>>> -       return tda18271_write_regs(fe, r_cp, 1);
+>>> +       return __tda18271_write_regs(fe, r_cp, 1, lock_i2c);
+>>> +}
+>>> +
+>>> +int tda18271_charge_pump_source(struct dvb_frontend *fe,
+>>> +                               enum tda18271_pll pll, int force)
+>>> +{
+>>> +       return __tda18271_charge_pump_source(fe, pll, force, true);
+>>>   }
+>>>
+>>> +
+>>>   int tda18271_init_regs(struct dvb_frontend *fe)
+>>>   {
+>>>         struct tda18271_priv *priv = fe->tuner_priv;
+>>> @@ -267,6 +295,13 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+>>>                 i2c_adapter_id(priv->i2c_props.adap),
+>>>                 priv->i2c_props.addr);
+>>>
+>>> +       /*
+>>> +        * Don't let any other I2C transfer to happen at adapter during
+>>> init,
+>>> +        * as those could cause bad things
+>>> +        */
+>>> +       tda18271_i2c_gate_ctrl(fe, 1);
+>>> +       i2c_lock_adapter(priv->i2c_props.adap);
+>>> +
+>>>         /* initialize registers */
+>>>         switch (priv->id) {
+>>>         case TDA18271HDC1:
+>>> @@ -352,28 +387,28 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+>>>         regs[R_EB22] = 0x48;
+>>>         regs[R_EB23] = 0xb0;
+>>>
+>>> -       tda18271_write_regs(fe, 0x00, TDA18271_NUM_REGS);
+>>> +       __tda18271_write_regs(fe, 0x00, TDA18271_NUM_REGS, false);
+>>>
+>>>         /* setup agc1 gain */
+>>>         regs[R_EB17] = 0x00;
+>>> -       tda18271_write_regs(fe, R_EB17, 1);
+>>> +       __tda18271_write_regs(fe, R_EB17, 1, false);
+>>>         regs[R_EB17] = 0x03;
+>>> -       tda18271_write_regs(fe, R_EB17, 1);
+>>> +       __tda18271_write_regs(fe, R_EB17, 1, false);
+>>>         regs[R_EB17] = 0x43;
+>>> -       tda18271_write_regs(fe, R_EB17, 1);
+>>> +       __tda18271_write_regs(fe, R_EB17, 1, false);
+>>>         regs[R_EB17] = 0x4c;
+>>> -       tda18271_write_regs(fe, R_EB17, 1);
+>>> +       __tda18271_write_regs(fe, R_EB17, 1, false);
+>>>
+>>>         /* setup agc2 gain */
+>>>         if ((priv->id) == TDA18271HDC1) {
+>>>                 regs[R_EB20] = 0xa0;
+>>> -               tda18271_write_regs(fe, R_EB20, 1);
+>>> +               __tda18271_write_regs(fe, R_EB20, 1, false);
+>>>                 regs[R_EB20] = 0xa7;
+>>> -               tda18271_write_regs(fe, R_EB20, 1);
+>>> +               __tda18271_write_regs(fe, R_EB20, 1, false);
+>>>                 regs[R_EB20] = 0xe7;
+>>> -               tda18271_write_regs(fe, R_EB20, 1);
+>>> +               __tda18271_write_regs(fe, R_EB20, 1, false);
+>>>                 regs[R_EB20] = 0xec;
+>>> -               tda18271_write_regs(fe, R_EB20, 1);
+>>> +               __tda18271_write_regs(fe, R_EB20, 1, false);
+>>>         }
+>>>
+>>>         /* image rejection calibration */
+>>> @@ -391,21 +426,21 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+>>>         regs[R_MD2] = 0x08;
+>>>         regs[R_MD3] = 0x00;
+>>>
+>>> -       tda18271_write_regs(fe, R_EP3, 11);
+>>> +       __tda18271_write_regs(fe, R_EP3, 11, false);
+>>>
+>>>         if ((priv->id) == TDA18271HDC2) {
+>>>                 /* main pll cp source on */
+>>> -               tda18271_charge_pump_source(fe, TDA18271_MAIN_PLL, 1);
+>>> +               __tda18271_charge_pump_source(fe, TDA18271_MAIN_PLL, 1,
+>>> false);
+>>>                 msleep(1);
+>>>
+>>>                 /* main pll cp source off */
+>>> -               tda18271_charge_pump_source(fe, TDA18271_MAIN_PLL, 0);
+>>> +               __tda18271_charge_pump_source(fe, TDA18271_MAIN_PLL, 0,
+>>> false);
+>>>         }
+>>>
+>>>         msleep(5); /* pll locking */
+>>>
+>>>         /* launch detector */
+>>> -       tda18271_write_regs(fe, R_EP1, 1);
+>>> +       __tda18271_write_regs(fe, R_EP1, 1, false);
+>>>         msleep(5); /* wanted low measurement */
+>>>
+>>>         regs[R_EP5] = 0x85;
+>>> @@ -413,11 +448,11 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+>>>         regs[R_CD1] = 0x66;
+>>>         regs[R_CD2] = 0x70;
+>>>
+>>> -       tda18271_write_regs(fe, R_EP3, 7);
+>>> +       __tda18271_write_regs(fe, R_EP3, 7, false);
+>>>         msleep(5); /* pll locking */
+>>>
+>>>         /* launch optimization algorithm */
+>>> -       tda18271_write_regs(fe, R_EP2, 1);
+>>> +       __tda18271_write_regs(fe, R_EP2, 1, false);
+>>>         msleep(30); /* image low optimization completion */
+>>>
+>>>         /* mid-band */
+>>> @@ -428,11 +463,11 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+>>>         regs[R_MD1] = 0x73;
+>>>         regs[R_MD2] = 0x1a;
+>>>
+>>> -       tda18271_write_regs(fe, R_EP3, 11);
+>>> +       __tda18271_write_regs(fe, R_EP3, 11, false);
+>>>         msleep(5); /* pll locking */
+>>>
+>>>         /* launch detector */
+>>> -       tda18271_write_regs(fe, R_EP1, 1);
+>>> +       __tda18271_write_regs(fe, R_EP1, 1, false);
+>>>         msleep(5); /* wanted mid measurement */
+>>>
+>>>         regs[R_EP5] = 0x86;
+>>> @@ -440,11 +475,11 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+>>>         regs[R_CD1] = 0x66;
+>>>         regs[R_CD2] = 0xa0;
+>>>
+>>> -       tda18271_write_regs(fe, R_EP3, 7);
+>>> +       __tda18271_write_regs(fe, R_EP3, 7, false);
+>>>         msleep(5); /* pll locking */
+>>>
+>>>         /* launch optimization algorithm */
+>>> -       tda18271_write_regs(fe, R_EP2, 1);
+>>> +       __tda18271_write_regs(fe, R_EP2, 1, false);
+>>>         msleep(30); /* image mid optimization completion */
+>>>
+>>>         /* high-band */
+>>> @@ -456,30 +491,33 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+>>>         regs[R_MD1] = 0x71;
+>>>         regs[R_MD2] = 0xcd;
+>>>
+>>> -       tda18271_write_regs(fe, R_EP3, 11);
+>>> +       __tda18271_write_regs(fe, R_EP3, 11, false);
+>>>         msleep(5); /* pll locking */
+>>>
+>>>         /* launch detector */
+>>> -       tda18271_write_regs(fe, R_EP1, 1);
+>>> +       __tda18271_write_regs(fe, R_EP1, 1, false);
+>>>         msleep(5); /* wanted high measurement */
+>>>
+>>>         regs[R_EP5] = 0x87;
+>>>         regs[R_CD1] = 0x65;
+>>>         regs[R_CD2] = 0x50;
+>>>
+>>> -       tda18271_write_regs(fe, R_EP3, 7);
+>>> +       __tda18271_write_regs(fe, R_EP3, 7, false);
+>>>         msleep(5); /* pll locking */
+>>>
+>>>         /* launch optimization algorithm */
+>>> -       tda18271_write_regs(fe, R_EP2, 1);
+>>> +       __tda18271_write_regs(fe, R_EP2, 1, false);
+>>>         msleep(30); /* image high optimization completion */
+>>>
+>>>         /* return to normal mode */
+>>>         regs[R_EP4] = 0x64;
+>>> -       tda18271_write_regs(fe, R_EP4, 1);
+>>> +       __tda18271_write_regs(fe, R_EP4, 1, false);
+>>>
+>>>         /* synchronize */
+>>> -       tda18271_write_regs(fe, R_EP1, 1);
+>>> +       __tda18271_write_regs(fe, R_EP1, 1, false);
+>>> +
+>>> +       i2c_unlock_adapter(priv->i2c_props.adap);
+>>> +       tda18271_i2c_gate_ctrl(fe, 0);
+>>>
+>>>         return 0;
+>>>   }
+>>>
+>>
+>>
+>> --
+>> http://palosaari.fi/
+>
+> I have to NACK this particular patch -- I saw Mauro's email about the
+> locked i2c -- it's a great idea.  In fact, it is the original use case
+> for adding this functionality into i2c, I just never got around to
+> implementing it in the tda18271 driver.   However, it shouldnt be
+> around *all* i2c transactions -- it should only lock the i2c bus
+> during the *critical* section.  Please wait for me to send a new patch
+> for testing.  I'll try to get to it before the end of the weekend.
+> (hopefully tonight or tomorrow morning)
 
-Thanks for the patch.
+On further inspection of the patch, I see that it *does* attempt to
+only lock the i2c bus during the initialization of the device.  The
+patch could be optimized a bit to specifically only lock the bus
+during the critical section of the initialization itself, but that is
+no reason to block this patch.  So, I retract my NACK.  If we decide
+to merge this, then we can optimize it afterwards.
 
-On Thursday 27 September 2012 00:50:35 Sakari Ailus wrote:
-> The OMAP 3630 has configuration how the ISP CSI-2 PHY pins are connected to
-> the actual CSI-2 receivers outside the ISP itself. Allow changing this
-> configuration from the ISP driver.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-
-Just one small comment below, otherwise
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  arch/arm/mach-omap2/control.c              |   86 +++++++++++++++++++++++++
->  arch/arm/mach-omap2/control.h              |   15 +++++
->  arch/arm/mach-omap2/include/mach/control.h |   13 ++++
->  3 files changed, 114 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/include/mach/control.h
-> 
-> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-> index 3223b81..11bb900 100644
-> --- a/arch/arm/mach-omap2/control.c
-> +++ b/arch/arm/mach-omap2/control.c
-> @@ -12,9 +12,12 @@
->   */
->  #undef DEBUG
-> 
-> +#include <linux/export.h>
->  #include <linux/kernel.h>
->  #include <linux/io.h>
-> 
-> +#include <mach/control.h>
-> +
->  #include <plat/hardware.h>
->  #include <plat/sdrc.h>
-> 
-> @@ -607,4 +610,87 @@ int omap3_ctrl_save_padconf(void)
->  	return 0;
->  }
-> 
-> +static int omap3630_ctrl_csi2_phy_cfg(u32 phy, u32 flags)
-> +{
-> +	u32 cam_phy_ctrl =
-> +		omap_ctrl_readl(OMAP3630_CONTROL_CAMERA_PHY_CTRL);
-> +	u32 shift, mode;
-> +
-> +	switch (phy) {
-> +	case OMAP3_CTRL_CSI2_PHY1_CCP2B:
-> +		cam_phy_ctrl &= ~OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
-> +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
-> +		break;
-> +	case OMAP3_CTRL_CSI2_PHY1_CSI2C:
-> +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
-> +		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
-> +		break;
-> +	case OMAP3_CTRL_CSI2_PHY2_CCP2B:
-> +		cam_phy_ctrl |= OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
-> +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
-> +		break;
-> +	case OMAP3_CTRL_CSI2_PHY2_CSI2A:
-> +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
-> +		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
-> +		break;
-> +	default:
-> +		pr_warn("bad phy %d\n", phy);
-> +		return -EINVAL;
-> +	}
-> +
-> +	/* Select data/clock or data/strobe mode for CCP2 */
-> +	switch (phy) {
-> +	case OMAP3_CTRL_CSI2_PHY1_CCP2B:
-> +	case OMAP3_CTRL_CSI2_PHY2_CCP2B:
-> +		if (flags & OMAP3_CTRL_CSI2_CFG_CCP2_DATA_STROBE)
-> +			mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_STROBE;
-> +		else
-> +			mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_CLOCK;
-> +		break;
-> +	}
-> +
-> +	cam_phy_ctrl &= ~(OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_MASK << 
-shift);
-> +	cam_phy_ctrl |= mode << shift;
-> +
-> +	omap_ctrl_writel(cam_phy_ctrl,
-> +			 OMAP3630_CONTROL_CAMERA_PHY_CTRL);
-
-This can fit on one line.
-
-> +
-> +	return 0;
-> +}
-> +
-> +static int omap3430_ctrl_csi2_phy_cfg(u32 phy, bool on, u32 flags)
-> +{
-> +	uint32_t csirxfe = OMAP343X_CONTROL_CSIRXFE_PWRDNZ
-> +		| OMAP343X_CONTROL_CSIRXFE_RESET;
-> +
-> +	/* Nothing to configure here. */
-> +	if (phy == OMAP3_CTRL_CSI2_PHY2_CSI2A)
-> +		return 0;
-> +
-> +	if (phy != OMAP3_CTRL_CSI2_PHY1_CCP2B)
-> +		return -EINVAL;
-> +
-> +	if (!on) {
-> +		omap_ctrl_writel(0, OMAP343X_CONTROL_CSIRXFE);
-> +		return 0;
-> +	}
-> +
-> +	if (flags & OMAP3_CTRL_CSI2_CFG_CCP2_DATA_STROBE)
-> +		csirxfe |= OMAP343X_CONTROL_CSIRXFE_SELFORM;
-> +
-> +	omap_ctrl_writel(csirxfe, OMAP343X_CONTROL_CSIRXFE);
-> +
-> +	return 0;
-> +}
-> +
-> +int omap3_ctrl_csi2_phy_cfg(u32 phy, bool on, u32 flags)
-> +{
-> +	if (cpu_is_omap3630() && on)
-> +		return omap3630_ctrl_csi2_phy_cfg(phy, flags);
-> +	if (cpu_is_omap3430())
-> +		return omap3430_ctrl_csi2_phy_cfg(phy, on, flags);
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(omap3_ctrl_csi2_phy_cfg);
-> +
->  #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
-> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-> index b8cdc85..7b2ee5d 100644
-> --- a/arch/arm/mach-omap2/control.h
-> +++ b/arch/arm/mach-omap2/control.h
-> @@ -132,6 +132,11 @@
->  #define OMAP343X_CONTROL_MEM_DFTRW1	(OMAP2_CONTROL_GENERAL + 0x000c)
->  #define OMAP343X_CONTROL_DEVCONF1	(OMAP2_CONTROL_GENERAL + 0x0068)
->  #define OMAP343X_CONTROL_CSIRXFE		(OMAP2_CONTROL_GENERAL + 0x006c)
-> +#define OMAP343X_CONTROL_CSIRXFE_CSIB_INV	(1 << 7)
-> +#define OMAP343X_CONTROL_CSIRXFE_RESENABLE	(1 << 8)
-> +#define OMAP343X_CONTROL_CSIRXFE_SELFORM	(1 << 10)
-> +#define OMAP343X_CONTROL_CSIRXFE_PWRDNZ		(1 << 12)
-> +#define OMAP343X_CONTROL_CSIRXFE_RESET		(1 << 13)
->  #define OMAP343X_CONTROL_SEC_STATUS		(OMAP2_CONTROL_GENERAL + 0x0070)
->  #define OMAP343X_CONTROL_SEC_ERR_STATUS		(OMAP2_CONTROL_GENERAL + 
-0x0074)
->  #define OMAP343X_CONTROL_SEC_ERR_STATUS_DEBUG	(OMAP2_CONTROL_GENERAL +
-> 0x0078)
-
--- 
-Regards,
-
-Laurent Pinchart
-
+-Mike
