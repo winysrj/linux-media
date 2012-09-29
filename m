@@ -1,109 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48688 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753287Ab2I0UTL (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:54414 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756873Ab2I2R0D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Sep 2012 16:19:11 -0400
-Message-ID: <5064B4BD.5090604@iki.fi>
-Date: Thu, 27 Sep 2012 23:19:09 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Sat, 29 Sep 2012 13:26:03 -0400
+Date: Sat, 29 Sep 2012 19:25:58 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Albert Wang <twang13@marvell.com>
+cc: corbet@lwn.net, linux-media@vger.kernel.org,
+	Libin Yang <lbyang@marvell.com>
+Subject: Re: [PATCH 1/4] [media] mmp: add register definition for marvell
+ ccic
+In-Reply-To: <1348840031-21357-1-git-send-email-twang13@marvell.com>
+Message-ID: <Pine.LNX.4.64.1209291922550.20390@axis700.grange>
+References: <1348840031-21357-1-git-send-email-twang13@marvell.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: paul@pwsan.com, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH v2 2/2] omap3isp: Configure CSI-2 phy based on platform
- data
-References: <20120926215001.GA14107@valkosipuli.retiisi.org.uk> <1348696236-3470-2-git-send-email-sakari.ailus@iki.fi> <1720642.Sh1Cqyo78F@avalon>
-In-Reply-To: <1720642.Sh1Cqyo78F@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Fri, 28 Sep 2012, Albert Wang wrote:
 
-Thanks for the review.
+> From: Libin Yang <lbyang@marvell.com>
+> 
+> This patch adds the definition of CCIC1/2 Clock Reset register address
+> 
+> Signed-off-by: Albert Wang <twang13@marvell.com>
+> Signed-off-by: Libin Yang <lbyang@marvell.com>
+> ---
+>  arch/arm/mach-mmp/include/mach/regs-apmu.h |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-mmp/include/mach/regs-apmu.h b/arch/arm/mach-mmp/include/mach/regs-apmu.h
+> index 7af8deb..f2cf231 100755
+> --- a/arch/arm/mach-mmp/include/mach/regs-apmu.h
+> +++ b/arch/arm/mach-mmp/include/mach/regs-apmu.h
+> @@ -16,7 +16,8 @@
+>  /* Clock Reset Control */
+>  #define APMU_IRE	APMU_REG(0x048)
+>  #define APMU_LCD	APMU_REG(0x04c)
+> -#define APMU_CCIC	APMU_REG(0x050)
+> +#define APMU_CCIC_RST	APMU_REG(0x050)
+> +#define APMU_CCIC2_RST	APMU_REG(0x0f4)
 
-Laurent Pinchart wrote:
-> On Thursday 27 September 2012 00:50:36 Sakari Ailus wrote:
->> Configure CSI-2 phy based on platform data in the ISP driver. For that, the
->> new V4L2_CID_IMAGE_SOURCE_PIXEL_RATE control is used. Previously the same
->> was configured from the board code.
->>
->> This patch is dependent on "omap3: Provide means for changing CSI2 PHY
->> configuration".
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
->> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> ---
->>   drivers/media/platform/omap3isp/isp.h       |    3 -
->>   drivers/media/platform/omap3isp/ispcsiphy.c |  161 +++++++++++++-----------
->>   drivers/media/platform/omap3isp/ispcsiphy.h |   10 --
->>   3 files changed, 90 insertions(+), 84 deletions(-)
->>
->> diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c
->> b/drivers/media/platform/omap3isp/ispcsiphy.c index 348f67e..1d16e66 100644
->> --- a/drivers/media/platform/omap3isp/ispcsiphy.c
->> +++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-...
->> @@ -162,10 +120,72 @@ static int csiphy_config(struct isp_csiphy *phy,
->>   	if (lanes->clk.pos == 0 || used_lanes & (1 << lanes->clk.pos))
->>   		return -EINVAL;
->>
->> -	mutex_lock(&phy->mutex);
->> -	phy->dphy = *dphy;
->> -	phy->lanes = *lanes;
->> -	mutex_unlock(&phy->mutex);
->> +	switch (subdevs->interface) {
->> +	case ISP_INTERFACE_CSI2A_PHY2:
->> +		phy_num = OMAP3_CTRL_CSI2_PHY2_CSI2A;
->> +		break;
->> +	case ISP_INTERFACE_CSI2C_PHY1:
->> +		phy_num = OMAP3_CTRL_CSI2_PHY1_CSI2C;
->> +		break;
->> +	case ISP_INTERFACE_CCP2B_PHY1:
->> +		phy_num = OMAP3_CTRL_CSI2_PHY1_CCP2B;
->> +		break;
->> +	case ISP_INTERFACE_CCP2B_PHY2:
->> +		phy_num = OMAP3_CTRL_CSI2_PHY2_CCP2B;
->> +		break;
->> +	default:
->> +		return -EINVAL;
->> +	}
->> +
->> +	omap3_ctrl_csi2_phy_cfg(phy_num, true, 0);
->> +
->> +	/* DPHY timing configuration */
->> +	/* CSI-2 is DDR and we only count used lanes. */
->> +	csi2_ddrclk_khz = pipe->external_rate / 1000
->> +		/ (2 * hweight32(used_lanes)) * pipe->external_width;
->
-> Board code previously used op_sys_clk_freq_hz / 1000 / (2 *
-> hweight32(used_lanes)). Looking at the SMIA++ PLL code, pipe->external_rate is
-> equal to op_sys_clk_freq_hz / bits_per_pixel * lane_op_clock_ratio. Both
-> values are identical if lane_op_clock_ratio is set to 1, which is the case if
-> the SMIAPP_QUIRK_FLAG_OP_PIX_CLOCK_PER_LANE quirk is not set. Have you
-> verified that the new CSI2 DDR clock frequency calculation is correct when the
-> quirk is set ?
+Assuming APMU_CCIC hasn't been used until now, changing its name is ok, 
+but I think, registers in this list are ordered by their addresses, so, 
+your addition should go between
 
-Good point. The presence of that quirk flag means that the bit rate (or 
-clock) is per-lane, and not all lanes together as it should be. This is 
-why the value is multiplied by the number of lanes. It should have no 
-visibility outside the SMIA++ driver itself; if it does, then it's a bug 
-in the SMIA++ driver.
+#define APMU_SDH3	APMU_REG(0x0ec)
+#define APMU_ETH	APMU_REG(0x0fc)
 
->> +	reg = isp_reg_readl(csi2->isp, csi2->phy->phy_regs, ISPCSIPHY_REG0);
->
-> Isn't csi2->phy == phy ? You could then just write
->
-> 	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG0);
->
-> and similarly below.
+Thanks
+Guennadi
 
-Fixed.
+>  #define APMU_SDH0	APMU_REG(0x054)
+>  #define APMU_SDH1	APMU_REG(0x058)
+>  #define APMU_USB	APMU_REG(0x05c)
+> -- 
+> 1.7.0.4
+> 
 
-Cheers,
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
