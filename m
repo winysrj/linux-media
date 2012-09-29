@@ -1,100 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43395 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752648Ab2IOMUA (ORCPT
+Received: from rcsinet15.oracle.com ([148.87.113.117]:32811 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753065Ab2I2Oct (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Sep 2012 08:20:00 -0400
-Message-ID: <505472BD.8090405@iki.fi>
-Date: Sat, 15 Sep 2012 15:21:17 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Sat, 29 Sep 2012 10:32:49 -0400
+Date: Sat, 29 Sep 2012 17:32:05 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: walter harms <wharms@bfs.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Leonid V. Fedorenchik" <leonidsbox@gmail.com>,
+	Thomas Meyer <thomas@m3y3r.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] cx25821: testing the wrong variable
+Message-ID: <20120929143205.GN4587@mwanda>
+References: <20120929071253.GD10993@elgon.mountain>
+ <5066D2F6.10800@bfs.de>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-CC: Nicolas THERY <nicolas.thery@st.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Jean-Marc VOLLE <jean-marc.volle@st.com>,
-	Pierre-yves TALOUD <pierre-yves.taloud@st.com>,
-	Willy POISSON <willy.poisson@st.com>,
-	Benjamin GAIGNARD <benjamin.gaignard@st.com>,
-	Vincent ABRIOU <vincent.abriou@st.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: how to crop/scale in mono-subdev camera sensor driver?
-References: <1345715489-30158-1-git-send-email-s.nawrocki@samsung.com> <50534688.7010805@st.com> <50539B6C.2060400@gmail.com>
-In-Reply-To: <50539B6C.2060400@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5066D2F6.10800@bfs.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester and Nicolas,
+On Sat, Sep 29, 2012 at 12:52:38PM +0200, walter harms wrote:
+> 
+> 
+> Am 29.09.2012 09:12, schrieb Dan Carpenter:
+> > ->input_filename could be NULL here.  The intent was to test
+> > ->_filename.
+> > 
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > ---
+> > I'm not totally convinced that using /root/vid411.yuv is the right idea.
+> > 
+> > diff --git a/drivers/media/pci/cx25821/cx25821-video-upstream.c b/drivers/media/pci/cx25821/cx25821-video-upstream.c
+> > index 52c13e0..6759fff 100644
+> > --- a/drivers/media/pci/cx25821/cx25821-video-upstream.c
+> > +++ b/drivers/media/pci/cx25821/cx25821-video-upstream.c
+> > @@ -808,7 +808,7 @@ int cx25821_vidupstream_init_ch1(struct cx25821_dev *dev, int channel_select,
+> >  	}
+> >  
+> >  	/* Default if filename is empty string */
+> > -	if (strcmp(dev->input_filename, "") == 0) {
+> > +	if (strcmp(dev->_filename, "") == 0) {
+> >  		if (dev->_isNTSC) {
+> >  			dev->_filename =
+> >  				(dev->_pixel_format == PIXEL_FRMT_411) ?
+> > diff --git a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
+> > index c8c94fb..d33fc1a 100644
+> > --- a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
+> > +++ b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
+> > @@ -761,7 +761,7 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
+> >  	}
+> >  
+> >  	/* Default if filename is empty string */
+> > -	if (strcmp(dev->input_filename_ch2, "") == 0) {
+> > +	if (strcmp(dev->_filename_ch2, "") == 0) {
+> >  		if (dev->_isNTSC_ch2) {
+> >  			dev->_filename_ch2 = (dev->_pixel_format_ch2 ==
+> >  				PIXEL_FRMT_411) ? "/root/vid411.yuv" :
+> >
+> 
+> In this case stcmp seems a bit of a overkill. A simple
+> *(dev->_filename_ch2) == 0
+> should be ok ?
 
-Sylwester Nawrocki wrote:
-> Hi,
->
-> On 09/14/2012 05:00 PM, Nicolas THERY wrote:
->> Hello,
->>
->> I'm studying how to support cropping and scaling (binning, skipping, digital
->> scaling if any) for different models for camera sensor drivers.  There seems to
->> be (at least) two kinds of sensor drivers:
->>
->> 1) The smiapp driver has 2 or 3 subdevs: pixel array ->  binning (->  scaling).
->> It gives clients full control over the various ways of cropping and scaling
->> thanks to the selection API.
->>
->> 2) The mt9p031 driver (and maybe others) has a single subdev.  Clients use the
->> obsolete SUBDEV_S_CROP ioctl for selecting a region of interest in the pixel
->> array and SUBDEV_S_FMT for setting the source pad mbus size.  If the mbus size
->> differs from the cropping rectangle size, scaling is enabled and the driver
->> decides internally how to combine skipping and binning to achieve the requested
->> scaling factors.
->>
->> As SUBDEV_S_CROP is obsolete, I wonder whether it is okay to support cropping
->> and scaling in a mono-subdev sensor driver by (a) setting the cropping
->> rectangle with SUBDEV_S_SELECTION on the source pad, and (b) setting the
->> scaling factors via the source pad mbus size as in the mt9p031 driver?
->
-> Cc: Sakari, Laurent
->
-> AFAICT in a single subdev with one pad configuration your steps as above
-> are valid, i.e. crop rectangle can be set with
-> VIDIOC_SUBDEV_S_SELECTION(V4L2_SEL_TGT_CROP) and the sensor's output
-> resolution with VIDIOC_SUBDEV_S_FMT.
->
-> I guess documentation [1] wasn't clear enough about that ?
->
-> The subdev crop ioctls are deprecated in favour of the selection API, so
-> now VIDIOC_SUBDEV_G/S_SELECTION ioctls and corresponding subdev ops needs
-> to be used anywhere you would have used SUBDEV_G/S_CROP before.
->
-> This reminds me there are still a few drivers that need to be converted
-> to use set/get_selection subdev pad level ops, rather than set/get_crop.
->
-> [1] http://linuxtv.org/downloads/v4l-dvb-apis/subdev.html
+I prefer strcmp() actually.  More readable.
 
-After the selection IOCTLs were implemented for the subdev API, the 
-subdev API then allowed explicitly configuring cropping after scaling 
-inside a single subdev, among other improvements.
+regards,
+dan carpenter
 
-Before the introduction of the selection extensions, the subdev API has 
-never allowed explicitly performing scaling and cropping using a single 
-subdev with only a single source pad but still some sensor drivers 
-implement it this way. It may well be that it is technically possible to 
-use the source pad media bus format to configure scaling after cropping 
-but that's against what's currently defined in the spec, for the reason 
-that we wanted to define explicitly which selection targets are used for 
-configuring cropping and scaling and in which order that configuration 
-is expected to be done, in order to be able to configure the subdev 
-without having to know anything else about it except that it implements 
-the selection API. The scaler in the ISP can now be configured using 
-exactly the same API as can the scaler in the sensor.
-
-If you wish to expose the scaling configuration of the sensor using the 
-V4L2 subdev interface, then I suggest doing what the SMIA++ driver does: 
-multiple subdevs. See "Order of configuration and format propagation" 
-behind the above URL.
-
-Kind regards,
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+> 
+> re,
+>  wh
+> --
+> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
