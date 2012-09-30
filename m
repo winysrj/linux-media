@@ -1,124 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:61132 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757317Ab2IKKsW convert rfc822-to-8bit (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:35601 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751148Ab2I3Mvj convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Sep 2012 06:48:22 -0400
-Received: by mail-ob0-f174.google.com with SMTP id uo13so487437obb.19
-        for <linux-media@vger.kernel.org>; Tue, 11 Sep 2012 03:48:21 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1347291000-340-12-git-send-email-p.zabel@pengutronix.de>
-References: <1347291000-340-1-git-send-email-p.zabel@pengutronix.de>
-	<1347291000-340-12-git-send-email-p.zabel@pengutronix.de>
-Date: Tue, 11 Sep 2012 12:48:21 +0200
-Message-ID: <CACKLOr1H0qubwrZJomHsxcjrzv8CCE5Jgt5Jw6zEcweD5j9HBQ@mail.gmail.com>
-Subject: Re: [PATCH v4 11/16] media: coda: add horizontal / vertical flipping support
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Richard Zhao <richard.zhao@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>, kernel@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 30 Sep 2012 08:51:39 -0400
+Received: by wgbdr13 with SMTP id dr13so3265739wgb.1
+        for <linux-media@vger.kernel.org>; Sun, 30 Sep 2012 05:51:37 -0700 (PDT)
+From: =?iso-8859-1?Q?David_R=F6thlisberger?= <david@rothlis.net>
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
+Subject: hdpvr driver and VIDIOC_G_FMT
+Date: Sun, 30 Sep 2012 13:51:36 +0100
+Message-Id: <76F043BB-BCE9-4521-A17E-5246BA2E812E@rothlis.net>
+Cc: will@williammanley.net
+To: linux-media@vger.kernel.org,
+	Discussion of the development of and with GStreamer
+	<gstreamer-devel@lists.freedesktop.org>,
+	Janne Grunau <j@jannau.net>
+Mime-Version: 1.0 (Apple Message framework v1283)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10 September 2012 17:29, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> The hardware can also rotate in 90° steps, but there is no
-> corresponding V4L2_CID defined yet.
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/platform/coda.c |   19 ++++++++++++++++++-
->  drivers/media/platform/coda.h |    9 +++++++++
->  2 files changed, 27 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> index e8ed427..81e3401 100644
-> --- a/drivers/media/platform/coda.c
-> +++ b/drivers/media/platform/coda.c
-> @@ -141,6 +141,7 @@ struct coda_dev {
->  };
->
->  struct coda_params {
-> +       u8                      rot_mode;
->         u8                      h264_intra_qp;
->         u8                      h264_inter_qp;
->         u8                      mpeg4_intra_qp;
-> @@ -695,7 +696,7 @@ static void coda_device_run(void *m2m_priv)
->         }
->
->         /* submit */
-> -       coda_write(dev, 0, CODA_CMD_ENC_PIC_ROT_MODE);
-> +       coda_write(dev, CODA_ROT_MIR_ENABLE | ctx->params.rot_mode, CODA_CMD_ENC_PIC_ROT_MODE);
->         coda_write(dev, quant_param, CODA_CMD_ENC_PIC_QS);
->
->
-> @@ -1271,6 +1272,18 @@ static int coda_s_ctrl(struct v4l2_ctrl *ctrl)
->                  "s_ctrl: id = %d, val = %d\n", ctrl->id, ctrl->val);
->
->         switch (ctrl->id) {
-> +       case V4L2_CID_HFLIP:
-> +               if (ctrl->val)
-> +                       ctx->params.rot_mode |= CODA_MIR_HOR;
-> +               else
-> +                       ctx->params.rot_mode &= ~CODA_MIR_HOR;
-> +               break;
-> +       case V4L2_CID_VFLIP:
-> +               if (ctrl->val)
-> +                       ctx->params.rot_mode |= CODA_MIR_VER;
-> +               else
-> +                       ctx->params.rot_mode &= ~CODA_MIR_VER;
-> +               break;
->         case V4L2_CID_MPEG_VIDEO_BITRATE:
->                 ctx->params.bitrate = ctrl->val / 1000;
->                 break;
-> @@ -1316,6 +1329,10 @@ static int coda_ctrls_setup(struct coda_ctx *ctx)
->         v4l2_ctrl_handler_init(&ctx->ctrls, 9);
->
->         v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-> +               V4L2_CID_HFLIP, 0, 1, 1, 0);
-> +       v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
-> +               V4L2_CID_VFLIP, 0, 1, 1, 0);
-> +       v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
->                 V4L2_CID_MPEG_VIDEO_BITRATE, 0, 32767000, 1, 0);
->         v4l2_ctrl_new_std(&ctx->ctrls, &coda_ctrl_ops,
->                 V4L2_CID_MPEG_VIDEO_GOP_SIZE, 1, 60, 1, 16);
-> diff --git a/drivers/media/platform/coda.h b/drivers/media/platform/coda.h
-> index 3324010..f3f5e43 100644
-> --- a/drivers/media/platform/coda.h
-> +++ b/drivers/media/platform/coda.h
-> @@ -188,6 +188,15 @@
->  #define CODA_CMD_ENC_PIC_SRC_ADDR_CR   0x188
->  #define CODA_CMD_ENC_PIC_QS            0x18c
->  #define CODA_CMD_ENC_PIC_ROT_MODE      0x190
-> +#define                CODA_ROT_MIR_ENABLE                             (1 << 4)
-> +#define                CODA_ROT_0                                      (0x0 << 0)
-> +#define                CODA_ROT_90                                     (0x1 << 0)
-> +#define                CODA_ROT_180                                    (0x2 << 0)
-> +#define                CODA_ROT_270                                    (0x3 << 0)
-> +#define                CODA_MIR_NONE                                   (0x0 << 2)
-> +#define                CODA_MIR_VER                                    (0x1 << 2)
-> +#define                CODA_MIR_HOR                                    (0x2 << 2)
-> +#define                CODA_MIR_VER_HOR                                (0x3 << 2)
->  #define CODA_CMD_ENC_PIC_OPTION        0x194
->  #define CODA_CMD_ENC_PIC_BB_START      0x198
->  #define CODA_CMD_ENC_PIC_BB_SIZE       0x19c
-> --
-> 1.7.10.4
->
+I am using the Hauppauge HD PVR video-capture device with a GStreamer
+"v4l2src". The HD PVR has an upstream driver called "hdpvr":
+http://git.kernel.org/?p=linux/kernel/git/stable/linux-stable.git;a=tree;f=drivers/media/video/hdpvr
 
-Tested-by: Javier Martin <javier.martin@vista-silicon.com
+When the HD PVR device does not have any video on its capture input, the
+VIDIOC_G_FMT ioctl fails. GStreamer ignores the error (and doesn't
+report it to my application); the HD PVR fails to start up so even if
+video is later established on the HD PVR's input, the GStreamer pipeline
+never receives video. (Bear with me, linuxtv folks; I have plenty of
+non-GStreamer questions for you.) :-)
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+It seems to me that the only reason the hdpvr's vidioc_g_fmt_vid_cap [1]
+fails, is because it doesn't know the video width & height until it
+has video on its input:
+
+    vid_info = get_video_info(dev);
+    if (!vid_info)
+    	return -EFAULT;
+    
+    f->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    f->fmt.pix.pixelformat	= V4L2_PIX_FMT_MPEG;
+    f->fmt.pix.width	= vid_info->width;
+    f->fmt.pix.height	= vid_info->height;
+    f->fmt.pix.sizeimage	= dev->bulk_in_size;
+    f->fmt.pix.colorspace	= 0;
+    f->fmt.pix.bytesperline	= 0;
+    f->fmt.pix.field	= V4L2_FIELD_ANY;
+
+Note that the v4l2 documentation for VIDIOC_G_FMT [2] says:
+
+    Drivers should not return an error code unless the type field is
+    invalid, this is a mechanism to fathom device capabilities and to
+    approach parameters acceptable for both the application and driver.
+
+The above discusses "device capabilities" whereas what the hdpvr driver
+does in this case describes properties of the input data. The difficulty
+is that the capabilities of the hardware include a whole bunch of
+different resolutions and frame-rates but these modes seem only
+available if they match the incoming signal.
+
+Question 1: Is this [return -EFAULT] a bug in the hdpvr driver? If the
+format is mpeg, why do we need to fill in width & height -- isn't this
+something the container or codec will tell you? It seems to me that all
+the other fields can be determined even without video on the device's
+capture input, so this function doesn't need to fail.
+
+Now looking at v4l2_fd_open: [3]
+
+    /* Get current cam format */
+    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if (dev_ops->ioctl(dev_ops_priv, fd, VIDIOC_G_FMT, &fmt)) {
+            int saved_err = errno;
+            V4L2_LOG_ERR("getting pixformat: %s\n", strerror(errno));
+            v4l2_plugin_cleanup(plugin_library, dev_ops_priv, dev_ops);
+            errno = saved_err;
+            return -1;
+    }
+
+Question 2: Is v4l2 mostly designed towards webcams (as the comment in
+the above code implies)? What about capturing a continuous video stream
+from a video-capture device, where I want to continue capturing even
+when the capture device loses video input? (Say, it's connected to a
+set-top box that reboots, and I want to capture the video from the
+set-top box before it reboots and after it reboots, with a blank image
+during the time the video was lost.)
+
+Now to GStreamer: gst_v4l2_open [4] ignores the error from v4l2_fd_open:
+
+    libv4l2_fd = v4l2_fd_open (v4l2object->video_fd,
+        V4L2_ENABLE_ENUM_FMT_EMULATION);
+    /* Note the v4l2_xxx functions are designed so that if they get passed an
+       unknown fd, the will behave exactly as their regular xxx counterparts, so
+       if v4l2_fd_open fails, we continue as normal (missing the libv4l2 custom
+       cam format to normal formats conversion). Chances are big we will still
+       fail then though, as normally v4l2_fd_open only fails if the device is not
+       a v4l2 device. */
+    if (libv4l2_fd != -1)
+      v4l2object->video_fd = libv4l2_fd;
+
+Again a comment mentioning "cams".
+
+Question 3: If "chances are big we will still fail" anyway, could we
+instead report the error up to the GStreamer pipeline/application?
+
+Thanks for your help, and I hope my ignorance doesn't show through too
+much in my questions. :-) What we haven't tried yet is just removing the
+call to get_video_info from VIDIOC_G_FMT and related calls in the kernel
+to avoid the failure condition, and see what happens; but in parallel
+with that task I thought I'd write to you for some guidance.
+
+David Rothlisberger
+http://stb-tester.com
+
+[1] http://git.kernel.org/?p=linux/kernel/git/stable/linux-stable.git;a=blob;f=drivers/media/video/hdpvr/hdpvr-video.c;h=0e9e156#l1142
+[2] http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-fmt.html
+[3] http://git.linuxtv.org/v4l-utils.git/blob/c7ffd22:/lib/libv4l2/libv4l2.c#l612
+[4] http://cgit.freedesktop.org/gstreamer/gst-plugins-good/tree/sys/v4l2/v4l2_calls.c?id=05d4f81#n407
+
