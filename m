@@ -1,84 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:35793 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758759Ab2J2LiS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Oct 2012 07:38:18 -0400
-Received: by mail-ie0-f174.google.com with SMTP id k13so6349198iea.19
-        for <linux-media@vger.kernel.org>; Mon, 29 Oct 2012 04:38:17 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20121029093251.1bb2acfa@redhat.com>
-References: <1351506118-2385-1-git-send-email-mchehab@redhat.com>
-	<508E6644.4040104@samsung.com>
-	<20121029093251.1bb2acfa@redhat.com>
-Date: Mon, 29 Oct 2012 08:38:17 -0300
-Message-ID: <CALF0-+W_KOUjMb+EYUYbsdD8avSG5Z7aSz38+kzXdeF0d_Rwdw@mail.gmail.com>
-Subject: Re: [PATCH 0/2] Fix a few more warnings
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:55904 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751843Ab2JAOpD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 10:45:03 -0400
+Received: from eusync2.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MB700G6UYBT6V90@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 01 Oct 2012 15:45:30 +0100 (BST)
+Received: from [106.116.147.32] by eusync2.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MB700JW9YAZAR30@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 01 Oct 2012 15:45:00 +0100 (BST)
+Message-id: <5069AC6B.80902@samsung.com>
+Date: Mon, 01 Oct 2012 16:44:59 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Antti Palosaari <crope@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>
+Subject: Re: [GIT PATCHES FOR v3.6] Samsung media driver fixes
+References: <5034991F.5040403@samsung.com> <50699C23.5000203@redhat.com>
+ <CALF0-+W=xRO0G9gz1oSGyDbL0JHTYmPUU11qCpaK7BXJwGFBYw@mail.gmail.com>
+ <201210011628.36850.hverkuil@xs4all.nl>
+In-reply-to: <201210011628.36850.hverkuil@xs4all.nl>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 29, 2012 at 8:32 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em Mon, 29 Oct 2012 12:19:32 +0100
-> Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
->
->> On 10/29/2012 11:21 AM, Mauro Carvalho Chehab wrote:
->> > Hans Verkuil yesterday's build still got two warnings at the
->> > generic drivers:
->> >         http://hverkuil.home.xs4all.nl/logs/Sunday.log
->> >
->> > They didn't appear at i386 build probably because of some
->> > optimization done there.
->> >
->> > Anyway, fixing them are trivial, so let's do it.
->> >
->> > After applying those patches, the only drivers left producing
->> > warnings are the following platform drivers:
->> >
->> > drivers/media/platform/davinci/dm355_ccdc.c
->> > drivers/media/platform/davinci/dm644x_ccdc.c
->> > drivers/media/platform/davinci/vpbe_osd.c
->> > drivers/media/platform/omap3isp/ispccdc.c
->> > drivers/media/platform/omap3isp/isph3a_aewb.c
->> > drivers/media/platform/omap3isp/isph3a_af.c
->> > drivers/media/platform/omap3isp/isphist.c
->> > drivers/media/platform/omap3isp/ispqueue.c
->> > drivers/media/platform/omap3isp/ispvideo.c
->> > drivers/media/platform/omap/omap_vout.c
->> > drivers/media/platform/s5p-fimc/fimc-capture.c
->> > drivers/media/platform/s5p-fimc/fimc-lite.c
+On 10/01/2012 04:28 PM, Hans Verkuil wrote:
+> On Mon October 1 2012 16:05:15 Ezequiel Garcia wrote:
+>> Mauro and folks,
 >>
->> For these two files I've sent already a pull request [1], which
->> includes a fixup patch
->> s5p-fimc: Don't ignore return value of vb2_queue_init()
+>> On Mon, Oct 1, 2012 at 10:35 AM, Mauro Carvalho Chehab
+>> <mchehab@redhat.com> wrote:
+>>> Hi Anti/Sylwester,
+>>>
+>>> Em 01-10-2012 08:50, Antti Palosaari escreveu:
+>>>> Hello
+>>>> I have had similar problems too. We need badly find out better procedures for patch handling. Something like parches are updated about once per week to the master. I have found I lose quite much time rebasing and res-sending stuff all the time.
+>>>>
+>>>> What I propose:
+>>>> 1) module maintainers sends all patches to the ML with some tag marking it will pull requested later. I used lately [PATCH RFC]
+>>>> 2) module maintainer will pick up all the "random" patches and pull request those. There is no way to mark patch as handled in patchwork....
+>>>> 3) PULL request are handled more often, like during one week or maximum two
+>>>
+>>> Yes, for sure we need to improve the workflow. After the return from KS,
+>>> I found ~400 patches/pull requests on my queue. I'm working hard to get rid
+>>> of that backlog, but still there are ~270 patches/pull requests on my
+>>> queue today.
+>>>
+>>> The thing is that patches come on a high rate at the ML, and there's no
+>>> obvious way to discover what patches are just the normal patch review
+>>> discussions (e. g. RFC) and what are real patches.
+>>>
+>>> To make things worse, we have nowadays 494 drivers. A very few of those
+>>> have an entry at MAINTAINERS, or a maintainer that care enough about
+>>> his drivers to handle patches sent to the mailing list (even the trivial
+>>> ones).
+>>>
+>>> Due to the missing MAINTAINERS entries, all patches go through the ML directly,
+>>> instead of going through the driver maintainer.
+>>>
+>>> So, I need to manually review every single email that looks to have a patch
+>>> inside, typically forwarding it to the driver maintainer, when it exists,
+>>> handling them myself otherwise.
+>>>
+>>> I'm counting with our discussions at the Barcelona's mini-summit in order
+>>> to be able to get fresh ideas and discuss some alternatives to improve
+>>> the patch workflow, but there are several things that could be done already,
+>>> like the ones you've proposed, and keeping the MAINTAINERS file updated.
+>>>
 >>
->> BTW, shouldn't things like these be taken care when someone does
->> a change at the core code ?
->
-> Sure. I remember I saw one patch with s5p on that series[1].
-> Can't remember anymore if it were acked and merged directly, if
-> it was opted to send it via your tree (or maybe that patch was just
-> incomplete, and got unnoticed on that time).
->
-> [1] https://patchwork.kernel.org/patch/1372871/
->
-> It is not easy to enforce those kind of things for platform drivers,
-> as there's not yet a single .config file that could be used to test
-> all arm drivers. Hans automatic builds might be useful, if there weren't
-> any warns at the -git tree build at the tested archs, but there are
-> so many warnings that I think I never saw any such report saying that
-> there's no warning.
->
-> Btw, are there anyone really consistently using his reports to fix things?
->
+>> Perhaps I'm missing something but I don't think there's an obvious
+>> solution for this,
+>> unless more maintainers are willing to start providing reviews / tests
+>> / acks / etc.
+>> for patches that arrive.
+>>
+>> Seems to me media/ has become a truly large subsystem,
+>> though I'm not sure how does it compare to others subsystems.
+>> Has anyone thought about breaking media/ down into smaller sub-subsystems,
+>> with respective sub-maintainer?
+> 
+> Yes, and this will be discussed next month during the Media Summit.
 
-I do.
+Something like this came through my mind as well. It seems handling all
+the drivers/media stuff is becoming simply too much to tackle by one person
+in quality and timely manner.
 
-    Ezequiel
+--
+Regards,
+Sylwester
