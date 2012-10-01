@@ -1,637 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:35505 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753742Ab2J3O3N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Oct 2012 10:29:13 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so229509wgb.1
-        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 07:29:13 -0700 (PDT)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, fabio.estevam@freescale.com,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH v2 1/4] media: mx2_camera: Remove i.mx25 support.
-Date: Tue, 30 Oct 2012 15:28:59 +0100
-Message-Id: <1351607342-18030-2-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1351607342-18030-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1351607342-18030-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from mx1.redhat.com ([209.132.183.28]:28519 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751777Ab2JANfq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Oct 2012 09:35:46 -0400
+Message-ID: <50699C23.5000203@redhat.com>
+Date: Mon, 01 Oct 2012 10:35:31 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>
+Subject: Re: [GIT PATCHES FOR v3.6] Samsung media driver fixes
+References: <5034991F.5040403@samsung.com> <506967F1.7040308@samsung.com> <50698393.3080908@iki.fi>
+In-Reply-To: <50698393.3080908@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i.MX25 support has been broken for several releases
-now and nobody seems to care about it.
+Hi Anti/Sylwester,
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- drivers/media/platform/soc_camera/Kconfig      |    7 +-
- drivers/media/platform/soc_camera/mx2_camera.c |  405 ++++++------------------
- 2 files changed, 103 insertions(+), 309 deletions(-)
+Em 01-10-2012 08:50, Antti Palosaari escreveu:
+> Hello
+> I have had similar problems too. We need badly find out better procedures for patch handling. Something like parches are updated about once per week to the master. I have found I lose quite much time rebasing and res-sending stuff all the time.
+> 
+> What I propose:
+> 1) module maintainers sends all patches to the ML with some tag marking it will pull requested later. I used lately [PATCH RFC]
+> 2) module maintainer will pick up all the "random" patches and pull request those. There is no way to mark patch as handled in patchwork....
+> 3) PULL request are handled more often, like during one week or maximum two
 
-diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-index 9afe1e7..9e006e0 100644
---- a/drivers/media/platform/soc_camera/Kconfig
-+++ b/drivers/media/platform/soc_camera/Kconfig
-@@ -69,13 +69,12 @@ config VIDEO_MX2_HOSTSUPPORT
- 	bool
- 
- config VIDEO_MX2
--	tristate "i.MX27/i.MX25 Camera Sensor Interface driver"
--	depends on VIDEO_DEV && SOC_CAMERA && (MACH_MX27 || (ARCH_MX25 && BROKEN))
-+	tristate "i.MX27 Camera Sensor Interface driver"
-+	depends on VIDEO_DEV && SOC_CAMERA && MACH_MX27
- 	select VIDEOBUF2_DMA_CONTIG
- 	select VIDEO_MX2_HOSTSUPPORT
- 	---help---
--	  This is a v4l2 driver for the i.MX27 and the i.MX25 Camera Sensor
--	  Interface
-+	  This is a v4l2 driver for the i.MX27 Camera Sensor Interface
- 
- config VIDEO_ATMEL_ISI
- 	tristate "ATMEL Image Sensor Interface (ISI) support"
-diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-index 9fd9d1c..e1b44b1 100644
---- a/drivers/media/platform/soc_camera/mx2_camera.c
-+++ b/drivers/media/platform/soc_camera/mx2_camera.c
-@@ -1,5 +1,5 @@
- /*
-- * V4L2 Driver for i.MX27/i.MX25 camera host
-+ * V4L2 Driver for i.MX27 camera host
-  *
-  * Copyright (C) 2008, Sascha Hauer, Pengutronix
-  * Copyright (C) 2010, Baruch Siach, Orex Computed Radiography
-@@ -65,9 +65,7 @@
- #define CSICR1_RF_OR_INTEN	(1 << 24)
- #define CSICR1_STATFF_LEVEL	(3 << 22)
- #define CSICR1_STATFF_INTEN	(1 << 21)
--#define CSICR1_RXFF_LEVEL(l)	(((l) & 3) << 19)	/* MX27 */
--#define CSICR1_FB2_DMA_INTEN	(1 << 20)		/* MX25 */
--#define CSICR1_FB1_DMA_INTEN	(1 << 19)		/* MX25 */
-+#define CSICR1_RXFF_LEVEL(l)	(((l) & 3) << 19)
- #define CSICR1_RXFF_INTEN	(1 << 18)
- #define CSICR1_SOF_POL		(1 << 17)
- #define CSICR1_SOF_INTEN	(1 << 16)
-@@ -92,11 +90,6 @@
- /* control reg 3 */
- #define CSICR3_FRMCNT		(0xFFFF << 16)
- #define CSICR3_FRMCNT_RST	(1 << 15)
--#define CSICR3_DMA_REFLASH_RFF	(1 << 14)
--#define CSICR3_DMA_REFLASH_SFF	(1 << 13)
--#define CSICR3_DMA_REQ_EN_RFF	(1 << 12)
--#define CSICR3_DMA_REQ_EN_SFF	(1 << 11)
--#define CSICR3_RXFF_LEVEL(l)	(((l) & 7) << 4)	/* MX25 */
- #define CSICR3_CSI_SUP		(1 << 3)
- #define CSICR3_ZERO_PACK_EN	(1 << 2)
- #define CSICR3_ECC_INT_EN	(1 << 1)
-@@ -108,8 +101,6 @@
- #define CSISR_SFF_OR_INT	(1 << 25)
- #define CSISR_RFF_OR_INT	(1 << 24)
- #define CSISR_STATFF_INT	(1 << 21)
--#define CSISR_DMA_TSF_FB2_INT	(1 << 20)	/* MX25 */
--#define CSISR_DMA_TSF_FB1_INT	(1 << 19)	/* MX25 */
- #define CSISR_RXFF_INT		(1 << 18)
- #define CSISR_EOF_INT		(1 << 17)
- #define CSISR_SOF_INT		(1 << 16)
-@@ -121,17 +112,11 @@
- 
- #define CSICR1			0x00
- #define CSICR2			0x04
--#define CSISR			(cpu_is_mx27() ? 0x08 : 0x18)
-+#define CSISR			0x08
- #define CSISTATFIFO		0x0c
- #define CSIRFIFO		0x10
- #define CSIRXCNT		0x14
--#define CSICR3			(cpu_is_mx27() ? 0x1C : 0x08)
--#define CSIDMASA_STATFIFO	0x20
--#define CSIDMATA_STATFIFO	0x24
--#define CSIDMASA_FB1		0x28
--#define CSIDMASA_FB2		0x2c
--#define CSIFBUF_PARA		0x30
--#define CSIIMAG_PARA		0x34
-+#define CSICR3			0x1C
- 
- /* EMMA PrP */
- #define PRP_CNTL			0x00
-@@ -430,20 +415,9 @@ static void mx27_update_emma_buf(struct mx2_camera_dev *pcdev,
- 
- static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
- {
--	unsigned long flags;
--
- 	clk_disable_unprepare(pcdev->clk_csi);
- 	writel(0, pcdev->base_csi + CSICR1);
--	if (cpu_is_mx27()) {
--		writel(0, pcdev->base_emma + PRP_CNTL);
--	} else if (cpu_is_mx25()) {
--		spin_lock_irqsave(&pcdev->lock, flags);
--		pcdev->fb1_active = NULL;
--		pcdev->fb2_active = NULL;
--		writel(0, pcdev->base_csi + CSIDMASA_FB1);
--		writel(0, pcdev->base_csi + CSIDMASA_FB2);
--		spin_unlock_irqrestore(&pcdev->lock, flags);
--	}
-+	writel(0, pcdev->base_emma + PRP_CNTL);
- }
- 
- /*
-@@ -464,10 +438,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
- 	if (ret < 0)
- 		return ret;
- 
--	csicr1 = CSICR1_MCLKEN;
--
--	if (cpu_is_mx27())
--		csicr1 |= CSICR1_PRP_IF_EN | CSICR1_FCC |
-+	csicr1 = CSICR1_MCLKEN | CSICR1_PRP_IF_EN | CSICR1_FCC |
- 			CSICR1_RXFF_LEVEL(0);
- 
- 	pcdev->csicr1 = csicr1;
-@@ -497,65 +468,6 @@ static void mx2_camera_remove_device(struct soc_camera_device *icd)
- 	pcdev->icd = NULL;
- }
- 
--static void mx25_camera_frame_done(struct mx2_camera_dev *pcdev, int fb,
--		int state)
--{
--	struct vb2_buffer *vb;
--	struct mx2_buffer *buf;
--	struct mx2_buffer **fb_active = fb == 1 ? &pcdev->fb1_active :
--		&pcdev->fb2_active;
--	u32 fb_reg = fb == 1 ? CSIDMASA_FB1 : CSIDMASA_FB2;
--	unsigned long flags;
--
--	spin_lock_irqsave(&pcdev->lock, flags);
--
--	if (*fb_active == NULL)
--		goto out;
--
--	vb = &(*fb_active)->vb;
--	dev_dbg(pcdev->dev, "%s (vb=0x%p) 0x%p %lu\n", __func__,
--		vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
--
--	do_gettimeofday(&vb->v4l2_buf.timestamp);
--	vb->v4l2_buf.sequence++;
--	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
--
--	if (list_empty(&pcdev->capture)) {
--		buf = NULL;
--		writel(0, pcdev->base_csi + fb_reg);
--	} else {
--		buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
--				internal.queue);
--		vb = &buf->vb;
--		list_del(&buf->internal.queue);
--		buf->state = MX2_STATE_ACTIVE;
--		writel(vb2_dma_contig_plane_dma_addr(vb, 0),
--		       pcdev->base_csi + fb_reg);
--	}
--
--	*fb_active = buf;
--
--out:
--	spin_unlock_irqrestore(&pcdev->lock, flags);
--}
--
--static irqreturn_t mx25_camera_irq(int irq_csi, void *data)
--{
--	struct mx2_camera_dev *pcdev = data;
--	u32 status = readl(pcdev->base_csi + CSISR);
--
--	if (status & CSISR_DMA_TSF_FB1_INT)
--		mx25_camera_frame_done(pcdev, 1, MX2_STATE_DONE);
--	else if (status & CSISR_DMA_TSF_FB2_INT)
--		mx25_camera_frame_done(pcdev, 2, MX2_STATE_DONE);
--
--	/* FIXME: handle CSISR_RFF_OR_INT */
--
--	writel(status, pcdev->base_csi + CSISR);
--
--	return IRQ_HANDLED;
--}
--
- /*
-  *  Videobuf operations
-  */
-@@ -636,54 +548,17 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
- 	buf->state = MX2_STATE_QUEUED;
- 	list_add_tail(&buf->internal.queue, &pcdev->capture);
- 
--	if (cpu_is_mx25()) {
--		u32 csicr3, dma_inten = 0;
--
--		if (pcdev->fb1_active == NULL) {
--			writel(vb2_dma_contig_plane_dma_addr(vb, 0),
--					pcdev->base_csi + CSIDMASA_FB1);
--			pcdev->fb1_active = buf;
--			dma_inten = CSICR1_FB1_DMA_INTEN;
--		} else if (pcdev->fb2_active == NULL) {
--			writel(vb2_dma_contig_plane_dma_addr(vb, 0),
--					pcdev->base_csi + CSIDMASA_FB2);
--			pcdev->fb2_active = buf;
--			dma_inten = CSICR1_FB2_DMA_INTEN;
--		}
--
--		if (dma_inten) {
--			list_del(&buf->internal.queue);
--			buf->state = MX2_STATE_ACTIVE;
--
--			csicr3 = readl(pcdev->base_csi + CSICR3);
--
--			/* Reflash DMA */
--			writel(csicr3 | CSICR3_DMA_REFLASH_RFF,
--					pcdev->base_csi + CSICR3);
--
--			/* clear & enable interrupts */
--			writel(dma_inten, pcdev->base_csi + CSISR);
--			pcdev->csicr1 |= dma_inten;
--			writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
--
--			/* enable DMA */
--			csicr3 |= CSICR3_DMA_REQ_EN_RFF | CSICR3_RXFF_LEVEL(1);
--			writel(csicr3, pcdev->base_csi + CSICR3);
--		}
--	}
--
- 	spin_unlock_irqrestore(&pcdev->lock, flags);
- }
- 
- static void mx2_videobuf_release(struct vb2_buffer *vb)
- {
-+#ifdef DEBUG
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx2_camera_dev *pcdev = ici->priv;
- 	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
--	unsigned long flags;
- 
--#ifdef DEBUG
- 	dev_dbg(icd->parent, "%s (vb=0x%p) 0x%p %lu\n", __func__,
- 		vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
- 
-@@ -702,29 +577,11 @@ static void mx2_videobuf_release(struct vb2_buffer *vb)
- #endif
- 
- 	/*
--	 * Terminate only queued but inactive buffers. Active buffers are
--	 * released when they become inactive after videobuf_waiton().
--	 *
- 	 * FIXME: implement forced termination of active buffers for mx27 and
- 	 * mx27 eMMA, so that the user won't get stuck in an uninterruptible
- 	 * state. This requires a specific handling for each of the these DMA
- 	 * types.
- 	 */
--
--	spin_lock_irqsave(&pcdev->lock, flags);
--	if (cpu_is_mx25() && buf->state == MX2_STATE_ACTIVE) {
--		if (pcdev->fb1_active == buf) {
--			pcdev->csicr1 &= ~CSICR1_FB1_DMA_INTEN;
--			writel(0, pcdev->base_csi + CSIDMASA_FB1);
--			pcdev->fb1_active = NULL;
--		} else if (pcdev->fb2_active == buf) {
--			pcdev->csicr1 &= ~CSICR1_FB2_DMA_INTEN;
--			writel(0, pcdev->base_csi + CSIDMASA_FB2);
--			pcdev->fb2_active = NULL;
--		}
--		writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
--	}
--	spin_unlock_irqrestore(&pcdev->lock, flags);
- }
- 
- static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
-@@ -835,86 +692,84 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
- 	unsigned long phys;
- 	int bytesperline;
- 
--	if (cpu_is_mx27()) {
--		unsigned long flags;
--		if (count < 2)
--			return -EINVAL;
-+	unsigned long flags;
-+	if (count < 2)
-+		return -EINVAL;
- 
--		spin_lock_irqsave(&pcdev->lock, flags);
-+	spin_lock_irqsave(&pcdev->lock, flags);
- 
--		buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
--				       internal.queue);
--		buf->internal.bufnum = 0;
--		vb = &buf->vb;
--		buf->state = MX2_STATE_ACTIVE;
-+	buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
-+			       internal.queue);
-+	buf->internal.bufnum = 0;
-+	vb = &buf->vb;
-+	buf->state = MX2_STATE_ACTIVE;
- 
--		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
--		mx27_update_emma_buf(pcdev, phys, buf->internal.bufnum);
--		list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
-+	phys = vb2_dma_contig_plane_dma_addr(vb, 0);
-+	mx27_update_emma_buf(pcdev, phys, buf->internal.bufnum);
-+	list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
- 
--		buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
--				       internal.queue);
--		buf->internal.bufnum = 1;
--		vb = &buf->vb;
--		buf->state = MX2_STATE_ACTIVE;
-+	buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
-+			       internal.queue);
-+	buf->internal.bufnum = 1;
-+	vb = &buf->vb;
-+	buf->state = MX2_STATE_ACTIVE;
- 
--		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
--		mx27_update_emma_buf(pcdev, phys, buf->internal.bufnum);
--		list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
-+	phys = vb2_dma_contig_plane_dma_addr(vb, 0);
-+	mx27_update_emma_buf(pcdev, phys, buf->internal.bufnum);
-+	list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
- 
--		bytesperline = soc_mbus_bytes_per_line(icd->user_width,
--				icd->current_fmt->host_fmt);
--		if (bytesperline < 0)
--			return bytesperline;
-+	bytesperline = soc_mbus_bytes_per_line(icd->user_width,
-+			icd->current_fmt->host_fmt);
-+	if (bytesperline < 0)
-+		return bytesperline;
- 
--		/*
--		 * I didn't manage to properly enable/disable the prp
--		 * on a per frame basis during running transfers,
--		 * thus we allocate a buffer here and use it to
--		 * discard frames when no buffer is available.
--		 * Feel free to work on this ;)
--		 */
--		pcdev->discard_size = icd->user_height * bytesperline;
--		pcdev->discard_buffer = dma_alloc_coherent(ici->v4l2_dev.dev,
--				pcdev->discard_size, &pcdev->discard_buffer_dma,
--				GFP_KERNEL);
--		if (!pcdev->discard_buffer)
--			return -ENOMEM;
-+	/*
-+	 * I didn't manage to properly enable/disable the prp
-+	 * on a per frame basis during running transfers,
-+	 * thus we allocate a buffer here and use it to
-+	 * discard frames when no buffer is available.
-+	 * Feel free to work on this ;)
-+	 */
-+	pcdev->discard_size = icd->user_height * bytesperline;
-+	pcdev->discard_buffer = dma_alloc_coherent(ici->v4l2_dev.dev,
-+			pcdev->discard_size, &pcdev->discard_buffer_dma,
-+			GFP_KERNEL);
-+	if (!pcdev->discard_buffer)
-+		return -ENOMEM;
- 
--		pcdev->buf_discard[0].discard = true;
--		list_add_tail(&pcdev->buf_discard[0].queue,
--				      &pcdev->discard);
-+	pcdev->buf_discard[0].discard = true;
-+	list_add_tail(&pcdev->buf_discard[0].queue,
-+			      &pcdev->discard);
- 
--		pcdev->buf_discard[1].discard = true;
--		list_add_tail(&pcdev->buf_discard[1].queue,
--				      &pcdev->discard);
-+	pcdev->buf_discard[1].discard = true;
-+	list_add_tail(&pcdev->buf_discard[1].queue,
-+			      &pcdev->discard);
- 
--		mx2_prp_resize_commit(pcdev);
-+	mx2_prp_resize_commit(pcdev);
- 
--		mx27_camera_emma_buf_init(icd, bytesperline);
-+	mx27_camera_emma_buf_init(icd, bytesperline);
- 
--		if (prp->cfg.channel == 1) {
--			writel(PRP_CNTL_CH1EN |
--				PRP_CNTL_CSIEN |
--				prp->cfg.in_fmt |
--				prp->cfg.out_fmt |
--				PRP_CNTL_CH1_LEN |
--				PRP_CNTL_CH1BYP |
--				PRP_CNTL_CH1_TSKIP(0) |
--				PRP_CNTL_IN_TSKIP(0),
--				pcdev->base_emma + PRP_CNTL);
--		} else {
--			writel(PRP_CNTL_CH2EN |
--				PRP_CNTL_CSIEN |
--				prp->cfg.in_fmt |
--				prp->cfg.out_fmt |
--				PRP_CNTL_CH2_LEN |
--				PRP_CNTL_CH2_TSKIP(0) |
--				PRP_CNTL_IN_TSKIP(0),
--				pcdev->base_emma + PRP_CNTL);
--		}
--		spin_unlock_irqrestore(&pcdev->lock, flags);
-+	if (prp->cfg.channel == 1) {
-+		writel(PRP_CNTL_CH1EN |
-+			PRP_CNTL_CSIEN |
-+			prp->cfg.in_fmt |
-+			prp->cfg.out_fmt |
-+			PRP_CNTL_CH1_LEN |
-+			PRP_CNTL_CH1BYP |
-+			PRP_CNTL_CH1_TSKIP(0) |
-+			PRP_CNTL_IN_TSKIP(0),
-+			pcdev->base_emma + PRP_CNTL);
-+	} else {
-+		writel(PRP_CNTL_CH2EN |
-+			PRP_CNTL_CSIEN |
-+			prp->cfg.in_fmt |
-+			prp->cfg.out_fmt |
-+			PRP_CNTL_CH2_LEN |
-+			PRP_CNTL_CH2_TSKIP(0) |
-+			PRP_CNTL_IN_TSKIP(0),
-+			pcdev->base_emma + PRP_CNTL);
- 	}
-+	spin_unlock_irqrestore(&pcdev->lock, flags);
- 
- 	return 0;
- }
-@@ -930,29 +785,27 @@ static int mx2_stop_streaming(struct vb2_queue *q)
- 	void *b;
- 	u32 cntl;
- 
--	if (cpu_is_mx27()) {
--		spin_lock_irqsave(&pcdev->lock, flags);
-+	spin_lock_irqsave(&pcdev->lock, flags);
- 
--		cntl = readl(pcdev->base_emma + PRP_CNTL);
--		if (prp->cfg.channel == 1) {
--			writel(cntl & ~PRP_CNTL_CH1EN,
--			       pcdev->base_emma + PRP_CNTL);
--		} else {
--			writel(cntl & ~PRP_CNTL_CH2EN,
--			       pcdev->base_emma + PRP_CNTL);
--		}
--		INIT_LIST_HEAD(&pcdev->capture);
--		INIT_LIST_HEAD(&pcdev->active_bufs);
--		INIT_LIST_HEAD(&pcdev->discard);
-+	cntl = readl(pcdev->base_emma + PRP_CNTL);
-+	if (prp->cfg.channel == 1) {
-+		writel(cntl & ~PRP_CNTL_CH1EN,
-+		       pcdev->base_emma + PRP_CNTL);
-+	} else {
-+		writel(cntl & ~PRP_CNTL_CH2EN,
-+		       pcdev->base_emma + PRP_CNTL);
-+	}
-+	INIT_LIST_HEAD(&pcdev->capture);
-+	INIT_LIST_HEAD(&pcdev->active_bufs);
-+	INIT_LIST_HEAD(&pcdev->discard);
- 
--		b = pcdev->discard_buffer;
--		pcdev->discard_buffer = NULL;
-+	b = pcdev->discard_buffer;
-+	pcdev->discard_buffer = NULL;
- 
--		spin_unlock_irqrestore(&pcdev->lock, flags);
-+	spin_unlock_irqrestore(&pcdev->lock, flags);
- 
--		dma_free_coherent(ici->v4l2_dev.dev,
--			pcdev->discard_size, b, pcdev->discard_buffer_dma);
--	}
-+	dma_free_coherent(ici->v4l2_dev.dev,
-+		pcdev->discard_size, b, pcdev->discard_buffer_dma);
- 
- 	return 0;
- }
-@@ -1082,16 +935,9 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
- 	if (bytesperline < 0)
- 		return bytesperline;
- 
--	if (cpu_is_mx27()) {
--		ret = mx27_camera_emma_prp_reset(pcdev);
--		if (ret)
--			return ret;
--	} else if (cpu_is_mx25()) {
--		writel((bytesperline * icd->user_height) >> 2,
--				pcdev->base_csi + CSIRXCNT);
--		writel((bytesperline << 16) | icd->user_height,
--				pcdev->base_csi + CSIIMAG_PARA);
--	}
-+	ret = mx27_camera_emma_prp_reset(pcdev);
-+	if (ret)
-+		return ret;
- 
- 	writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
- 
-@@ -1377,7 +1223,6 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx2_camera_dev *pcdev = ici->priv;
- 	struct mx2_fmt_cfg *emma_prp;
--	unsigned int width_limit;
- 	int ret;
- 
- 	dev_dbg(icd->parent, "%s: requested params: width = %d, height = %d\n",
-@@ -1391,39 +1236,6 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
- 
- 	/* FIXME: implement MX27 limits */
- 
--	/* limit to MX25 hardware capabilities */
--	if (cpu_is_mx25()) {
--		if (xlate->host_fmt->bits_per_sample <= 8)
--			width_limit = 0xffff * 4;
--		else
--			width_limit = 0xffff * 2;
--		/* CSIIMAG_PARA limit */
--		if (pix->width > width_limit)
--			pix->width = width_limit;
--		if (pix->height > 0xffff)
--			pix->height = 0xffff;
--
--		pix->bytesperline = soc_mbus_bytes_per_line(pix->width,
--				xlate->host_fmt);
--		if (pix->bytesperline < 0)
--			return pix->bytesperline;
--		pix->sizeimage = soc_mbus_image_size(xlate->host_fmt,
--						pix->bytesperline, pix->height);
--		/* Check against the CSIRXCNT limit */
--		if (pix->sizeimage > 4 * 0x3ffff) {
--			/* Adjust geometry, preserve aspect ratio */
--			unsigned int new_height = int_sqrt(div_u64(0x3ffffULL *
--					4 * pix->height, pix->bytesperline));
--			pix->width = new_height * pix->width / pix->height;
--			pix->height = new_height;
--			pix->bytesperline = soc_mbus_bytes_per_line(pix->width,
--							xlate->host_fmt);
--			BUG_ON(pix->bytesperline < 0);
--			pix->sizeimage = soc_mbus_image_size(xlate->host_fmt,
--						pix->bytesperline, pix->height);
--		}
--	}
--
- 	/* limit to sensor capabilities */
- 	mf.width	= pix->width;
- 	mf.height	= pix->height;
-@@ -1763,20 +1575,9 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 	pcdev->dev = &pdev->dev;
- 	platform_set_drvdata(pdev, pcdev);
- 
--	if (cpu_is_mx25()) {
--		err = devm_request_irq(&pdev->dev, irq_csi, mx25_camera_irq, 0,
--				       MX2_CAM_DRV_NAME, pcdev);
--		if (err) {
--			dev_err(pcdev->dev, "Camera interrupt register failed \n");
--			goto exit;
--		}
--	}
--
--	if (cpu_is_mx27()) {
--		err = mx27_camera_emma_init(pdev);
--		if (err)
--			goto exit;
--	}
-+	err = mx27_camera_emma_init(pdev);
-+	if (err)
-+		goto exit;
- 
- 	/*
- 	 * We're done with drvdata here.  Clear the pointer so that
-@@ -1789,8 +1590,6 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 	pcdev->soc_host.priv		= pcdev;
- 	pcdev->soc_host.v4l2_dev.dev	= &pdev->dev;
- 	pcdev->soc_host.nr		= pdev->id;
--	if (cpu_is_mx25())
--		pcdev->soc_host.capabilities = SOCAM_HOST_CAP_STRIDE;
- 
- 	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
- 	if (IS_ERR(pcdev->alloc_ctx)) {
-@@ -1809,10 +1608,8 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- exit_free_emma:
- 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
- eallocctx:
--	if (cpu_is_mx27()) {
--		clk_disable_unprepare(pcdev->clk_emma_ipg);
--		clk_disable_unprepare(pcdev->clk_emma_ahb);
--	}
-+	clk_disable_unprepare(pcdev->clk_emma_ipg);
-+	clk_disable_unprepare(pcdev->clk_emma_ahb);
- exit:
- 	return err;
- }
-@@ -1827,10 +1624,8 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
- 
- 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
- 
--	if (cpu_is_mx27()) {
--		clk_disable_unprepare(pcdev->clk_emma_ipg);
--		clk_disable_unprepare(pcdev->clk_emma_ahb);
--	}
-+	clk_disable_unprepare(pcdev->clk_emma_ipg);
-+	clk_disable_unprepare(pcdev->clk_emma_ahb);
- 
- 	dev_info(&pdev->dev, "MX2 Camera driver unloaded\n");
- 
-@@ -1858,7 +1653,7 @@ static void __exit mx2_camera_exit(void)
- module_init(mx2_camera_init);
- module_exit(mx2_camera_exit);
- 
--MODULE_DESCRIPTION("i.MX27/i.MX25 SoC Camera Host driver");
-+MODULE_DESCRIPTION("i.MX27 SoC Camera Host driver");
- MODULE_AUTHOR("Sascha Hauer <sha@pengutronix.de>");
- MODULE_LICENSE("GPL");
- MODULE_VERSION(MX2_CAM_VERSION);
--- 
-1.7.9.5
+Yes, for sure we need to improve the workflow. After the return from KS,
+I found ~400 patches/pull requests on my queue. I'm working hard to get rid
+of that backlog, but still there are ~270 patches/pull requests on my
+queue today.
+
+The thing is that patches come on a high rate at the ML, and there's no
+obvious way to discover what patches are just the normal patch review
+discussions (e. g. RFC) and what are real patches.
+
+To make things worse, we have nowadays 494 drivers. A very few of those
+have an entry at MAINTAINERS, or a maintainer that care enough about
+his drivers to handle patches sent to the mailing list (even the trivial
+ones).
+
+Due to the missing MAINTAINERS entries, all patches go through the ML directly,
+instead of going through the driver maintainer.
+
+So, I need to manually review every single email that looks to have a patch
+inside, typically forwarding it to the driver maintainer, when it exists,
+handling them myself otherwise.
+
+I'm counting with our discussions at the Barcelona's mini-summit in order
+to be able to get fresh ideas and discuss some alternatives to improve
+the patch workflow, but there are several things that could be done already,
+like the ones you've proposed, and keeping the MAINTAINERS file updated.
+
+Regards,
+Mauro
+
+> 
+> regards
+> Antti
+> 
+> 
+> On 10/01/2012 12:52 PM, Sylwester Nawrocki wrote:
+>> Hi Mauro,
+>>
+>> On 08/22/2012 10:32 AM, Sylwester Nawrocki wrote:
+>>
+>> It's been almost 6 weeks since I sent this pull request, now Linus
+>> released 3.6 kernel and this series is not included there. Moreover,
+>> I have been waiting with all patches for 3.7 until those get merged.
+>> Now it seems even too late for all these 3.7 patches. I cannot say
+>> I'm very happy about this situation. It's rather disappointing it
+>> takes so long for -rc patches to make it upstream, especially that
+>> not all of them are supposed to be allowed during late -rc periods.
+>> I wouldn't bother writing this email but AFAIR it's not the first
+>> time my -rc patches got missed.
+>>
+>> Is there anything I could do to improve this situation ?
+>>
+>> Regards,
+>> Sylwester
+>>
+>>> Hi Mauro,
+>>>
+>>> The following changes since commit f9cd49033b349b8be3bb1f01b39eed837853d880:
+>>>
+>>>    Merge tag 'v3.6-rc1' into staging/for_v3.6 (2012-08-03 22:41:33 -0300)
+>>>
+>>> are available in the git repository at:
+>>>
+>>>
+>>>    git://git.infradead.org/users/kmpark/linux-samsung v4l-fixes
+>>>
+>>> for you to fetch changes up to 0e59db054e30658c6955d6e27b0a252cef9bfafc:
+>>>
+>>>    s5p-mfc: Fix second memory bank alignment (2012-08-16 19:12:19 +0200)
+>>>
+>>> ----------------------------------------------------------------
+>>> Kamil Debski (1):
+>>>        s5p-mfc: Fix second memory bank alignment
+>>>
+>>> Sylwester Nawrocki (7):
+>>>        s5p-fimc: Enable FIMC-LITE driver only for SOC_EXYNOS4x12
+>>>        s5p-fimc: Don't allocate fimc-lite video device structure dynamically
+>>>        s5p-fimc: Don't allocate fimc-capture video device dynamically
+>>>        s5p-fimc: Don't allocate fimc-m2m video device dynamically
+>>>        m5mols: Add missing free_irq() on error path
+>>>        m5mols: Fix cast warnings from m5mols_[set/get]_ctrl_mode
+>>>        s5p-fimc: Fix setup of initial links to FIMC entities
+>>>
+>>>   drivers/media/video/m5mols/m5mols.h          |  4 +--
+>>>   drivers/media/video/m5mols/m5mols_controls.c |  4 +--
+>>>   drivers/media/video/m5mols/m5mols_core.c     |  4 ++-
+>>>   drivers/media/video/s5p-fimc/Kconfig         |  2 +-
+>>>   drivers/media/video/s5p-fimc/fimc-capture.c  | 31 +++++++-----------
+>>>   drivers/media/video/s5p-fimc/fimc-core.h     |  4 +--
+>>>   drivers/media/video/s5p-fimc/fimc-lite-reg.c |  2 +-
+>>>   drivers/media/video/s5p-fimc/fimc-lite.c     | 42 ++++++++++---------------
+>>>   drivers/media/video/s5p-fimc/fimc-lite.h     |  2 +-
+>>>   drivers/media/video/s5p-fimc/fimc-m2m.c      | 40 ++++++++---------------
+>>>   drivers/media/video/s5p-fimc/fimc-mdevice.c  |  9 ++++--
+>>>   drivers/media/video/s5p-fimc/fimc-mdevice.h  |  6 ++--
+>>>   drivers/media/video/s5p-fimc/fimc-reg.c      |  6 ++--
+>>>   drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c   |  2 +-
+>>>   14 files changed, 65 insertions(+), 93 deletions(-)
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> 
+> 
 
