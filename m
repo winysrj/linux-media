@@ -1,87 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:60123 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932266Ab2JCReF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 13:34:05 -0400
-Received: from eusync1.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBB0014UVHJYW00@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 03 Oct 2012 18:34:31 +0100 (BST)
-Received: from [106.116.147.32] by eusync1.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MBB00IHLVGQZJ80@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 03 Oct 2012 18:34:02 +0100 (BST)
-Message-id: <506C7709.8030905@samsung.com>
-Date: Wed, 03 Oct 2012 19:34:01 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.7] V4L: s5p-fimc: support for interleaved image data
- capture
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:56640 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755818Ab2JAUpp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 16:45:45 -0400
+Message-ID: <506A00F3.40909@gmail.com>
+Date: Mon, 01 Oct 2012 22:45:39 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 04/14] media: add V4L2 DT binding documentation
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <1348754853-28619-5-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1348754853-28619-5-git-send-email-g.liakhovetski@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Guennadi,
 
-The following changes since commit 2425bb3d4016ed95ce83a90b53bd92c7f31091e4:
+On 09/27/2012 04:07 PM, Guennadi Liakhovetski wrote:
+> This patch adds a document, describing common V4L2 device tree bindings.
+> 
+> Co-authored-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+> Signed-off-by: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
+> ---
+>   Documentation/devicetree/bindings/media/v4l2.txt |  162 ++++++++++++++++++++++
+>   1 files changed, 162 insertions(+), 0 deletions(-)
+>   create mode 100644 Documentation/devicetree/bindings/media/v4l2.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/v4l2.txt b/Documentation/devicetree/bindings/media/v4l2.txt
+> new file mode 100644
+> index 0000000..b8b3f41
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/v4l2.txt
+> @@ -0,0 +1,162 @@
+> +Video4Linux Version 2 (V4L2)
+> +
+> +General concept
+> +---------------
+> +
+> +Video pipelines consist of external devices, e.g. camera sensors, controlled
+> +over an I2C, SPI or UART bus, and SoC internal IP blocks, including video DMA
+> +engines and video data processors.
+> +
+> +SoC internal blocks are described by DT nodes, placed similarly to other SoC
+> +blocks. External devices are represented as child nodes of their respective bus
+> +controller nodes, e.g. I2C.
+> +
+> +Data interfaces on all video devices are described by "port" child DT nodes.
+> +Configuration of a port depends on other devices participating in the data
+> +transfer and is described by "link" DT nodes, specified as children of the
+> +"port" nodes:
+> +
+> +/foo {
+> +	port@0 {
+> +		link@0 { ... };
+> +		link@1 { ... };
+> +	};
+> +	port@1 { ... };
+> +};
+> +
+> +If a port can be configured to work with more than one other device on the same
+> +bus, a "link" child DT node must be provided for each of them. If more than one
+> +port is present on a device or more than one link is connected to a port, a
+> +common scheme, using "#address-cells," "#size-cells" and "reg" properties is
+> +used.
+> +
+> +Optional link properties:
+> +- remote: phandle to the other endpoint link DT node.
+> +- slave-mode: a boolean property, run the link in slave mode. Default is master
+> +  mode.
+> +- data-shift: on parallel data busses, if data-width is used to specify the
+> +  number of data lines, data-shift can be used to specify which data lines are
+> +  used, e.g. "data-width=<10>; data-shift=<2>;" means, that lines 9:2 are used.
+> +- hsync-active: 1 or 0 for active-high or -low HSYNC signal polarity
+> +  respectively.
+> +- vsync-active: ditto for VSYNC. Note, that if HSYNC and VSYNC polarities are
+> +  not specified, embedded synchronisation may be required, where supported.
+> +- data-active: similar to HSYNC and VSYNC specifies data line polarity.
+> +- field-even-active: field signal level during the even field data transmission.
+> +- pclk-sample: rising (1) or falling (0) edge to sample the pixel clock pin.
+> +- data-lanes: array of serial, e.g. MIPI CSI-2, data hardware lane numbers in
+> +  the ascending order, beginning with logical lane 0.
+> +- clock-lanes: hardware lane number, used for the clock lane.
 
-  em28xx: regression fix: use DRX-K sync firmware requests on em28xx (2012-10-02 17:15:22 -0300)
+It is not very clear we are using common contiguous range of logical indexes
+for the clock and the data lanes, IMO. Maybe something like this would be
+more explicit:
 
-are available in the git repository at:
+- data-lanes: an array of hardware data lane indexes. Position of an entry 
+  determines logical lane number, while the value of an entry indicates hardware
+  lane number, e.g. for 2-lane MIPI CSI-2 bus we could have data-lanes = <1>, <2>;,
+  assuming the clock lane is on hardware lane 0. This property is applicable to
+  serial buses only (e.g. MIPI CSI-2). 
 
-  git://git.infradead.org/users/kmpark/linux-samsung v4l_for_mauro
+?
 
-for you to fetch changes up to 7f06319c3a6e99fcdf9774556384c62661a31940:
-
-  m5mols: Implement .get_frame_desc subdev callback (2012-10-03 13:01:25 +0200)
-
-This includes a few more s5p-* driver updates and fixes, addition of 
-a fourcc and media bus pixel code for S5C73M3 camera, some new v4l2 
-subdev callbacks for low level media bus frame parameters and a helper
-for capture of frame embedded data.
-
-----------------------------------------------------------------
-Hans Verkuil (2):
-      s5p-g2d: fix compiler warning
-      s5p-fimc: fix compiler warning
-
-Sylwester Nawrocki (7):
-      V4L: Add s_rx_buffer subdev video operation
-      V4L: Add [get/set]_frame_desc subdev callbacks
-      V4L: Add V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8 media bus format
-      V4L: Add V4L2_PIX_FMT_S5C_UYVY_JPG fourcc definition
-      s5p-csis: Add support for non-image data packets capture
-      s5p-fimc: Add support for V4L2_PIX_FMT_S5C_UYVY_JPG fourcc
-      m5mols: Implement .get_frame_desc subdev callback
-
-Thomas Abraham (1):
-      s5p-jpeg: use clk_prepare_enable and clk_disable_unprepare
-
- Documentation/DocBook/media/v4l/compat.xml         |    4 +
- Documentation/DocBook/media/v4l/pixfmt.xml         |   28 ++++
- Documentation/DocBook/media/v4l/subdev-formats.xml |   44 +++++++
- drivers/media/i2c/m5mols/m5mols.h                  |    9 ++
- drivers/media/i2c/m5mols/m5mols_capture.c          |    3 +
- drivers/media/i2c/m5mols/m5mols_core.c             |   47 +++++++
- drivers/media/i2c/m5mols/m5mols_reg.h              |    1 +
- drivers/media/platform/s5p-fimc/fimc-capture.c     |  135 +++++++++++++++++---
- drivers/media/platform/s5p-fimc/fimc-core.c        |   19 ++-
- drivers/media/platform/s5p-fimc/fimc-core.h        |   28 +++-
- drivers/media/platform/s5p-fimc/fimc-m2m.c         |   25 ++--
- drivers/media/platform/s5p-fimc/fimc-reg.c         |   23 +++-
- drivers/media/platform/s5p-fimc/fimc-reg.h         |    3 +-
- drivers/media/platform/s5p-fimc/mipi-csis.c        |   52 +++++++-
- drivers/media/platform/s5p-g2d/g2d.c               |    2 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c        |    6 +-
- include/linux/v4l2-mediabus.h                      |    5 +
- include/linux/videodev2.h                          |    1 +
- include/media/v4l2-subdev.h                        |   48 +++++++
- 19 files changed, 433 insertions(+), 50 deletions(-)
-
----
+--
 
 Thanks,
 Sylwester
