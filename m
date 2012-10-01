@@ -1,89 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35347 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:6730 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751016Ab2JBTFV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Oct 2012 15:05:21 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q92J5Lb0000326
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 2 Oct 2012 15:05:21 -0400
+	id S1750991Ab2JAMBE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Oct 2012 08:01:04 -0400
+Message-ID: <506985F2.1020604@redhat.com>
+Date: Mon, 01 Oct 2012 09:00:50 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] drxk: allow loading firmware synchrousnously
-Date: Tue,  2 Oct 2012 16:05:15 -0300
-Message-Id: <1349204716-25971-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Antoine Reversat <a.reversat@gmail.com>
+Subject: Re: [PATCH v2] omap3isp: Use monotonic timestamps for statistics
+ buffers
+References: <1347659868-17398-1-git-send-email-laurent.pinchart@ideasonboard.com> <20120927135233.3acd00a5@redhat.com> <5064ADCE.3000708@iki.fi>
+In-Reply-To: <5064ADCE.3000708@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to udev-182, the firmware load was changed to be async, as
-otherwise udev would give up of loading a firmware.
+Em 27-09-2012 16:49, Sakari Ailus escreveu:
+> Hi Mauro,
+> 
+> Mauro Carvalho Chehab wrote:
+>> Em Fri, 14 Sep 2012 23:57:48 +0200
+>> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+...
+>>>   struct omap3isp_stat_data {
+>>> -    struct timeval ts;
+>>> +    struct timespec ts;
+>>
+>> NACK. That breaks userspace API, as this structure is part of an ioctl.
+>>
+>> It is too late to touch here. Please keep timeval. It is ok to fill it with
+>> a mononotic time, but replacing it is an API breakage.
+> 
+> I beg to present a differing opinion.
+> 
+> The timestamp that has been taken from a realtime clock has NOT been useful to begin with in this context: the OMAP3ISP driver has used monotonic time on video buffers since the very beginning of its existence in mainline kernel. As no-one has complained about this --- except Antoine very recently --- I'm pretty certain we wouldn't be breaking any application by changing this. The statistics timestamp is only useful when it's comparable to other timestamps (from video buffers and events), which this patch achieves.
 
-Add an option to return to the previous behaviour, async firmware
-loads cause failures with the tda18271 driver.
+Technically, the only gain here would be to improve the precision from microsseconds
+to nanosseconds.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-frontends/drxk.h      |  2 ++
- drivers/media/dvb-frontends/drxk_hard.c | 20 +++++++++++++++-----
- 2 files changed, 17 insertions(+), 5 deletions(-)
+Breaking the API due to that could only be justified if you have really fast
+sensors that would be able to take more than one picture at the 1 microssecond
+period of time.
 
-diff --git a/drivers/media/dvb-frontends/drxk.h b/drivers/media/dvb-frontends/drxk.h
-index d615d7d..94fecfb 100644
---- a/drivers/media/dvb-frontends/drxk.h
-+++ b/drivers/media/dvb-frontends/drxk.h
-@@ -28,6 +28,7 @@
-  *				A value of 0 (default) or lower indicates that
-  *				the correct number of parameters will be
-  *				automatically detected.
-+ * @load_firmware_sync:		Force the firmware load to be synchronous.
-  *
-  * On the *_gpio vars, bit 0 is UIO-1, bit 1 is UIO-2 and bit 2 is
-  * UIO-3.
-@@ -39,6 +40,7 @@ struct drxk_config {
- 	bool	parallel_ts;
- 	bool	dynamic_clk;
- 	bool	enable_merr_cfg;
-+	bool	load_firmware_sync;
- 
- 	bool	antenna_dvbt;
- 	u16	antenna_gpio;
-diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
-index 1ab8154..8b4c6d5 100644
---- a/drivers/media/dvb-frontends/drxk_hard.c
-+++ b/drivers/media/dvb-frontends/drxk_hard.c
-@@ -6609,15 +6609,25 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
- 
- 	/* Load firmware and initialize DRX-K */
- 	if (state->microcode_name) {
--		status = request_firmware_nowait(THIS_MODULE, 1,
-+		if (config->load_firmware_sync) {
-+			const struct firmware *fw = NULL;
-+
-+			status = request_firmware(&fw, state->microcode_name,
-+						  state->i2c->dev.parent);
-+			if (status < 0)
-+				fw = NULL;
-+			load_firmware_cb(fw, state);
-+		} else {
-+			status = request_firmware_nowait(THIS_MODULE, 1,
- 					      state->microcode_name,
- 					      state->i2c->dev.parent,
- 					      GFP_KERNEL,
- 					      state, load_firmware_cb);
--		if (status < 0) {
--			printk(KERN_ERR
--			"drxk: failed to request a firmware\n");
--			return NULL;
-+			if (status < 0) {
-+				printk(KERN_ERR
-+				       "drxk: failed to request a firmware\n");
-+				return NULL;
-+			}
- 		}
- 	} else if (init_drxk(state) < 0)
- 		goto error;
--- 
-1.7.11.4
+Regards,
+Mauro
+
+
 
