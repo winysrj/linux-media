@@ -1,49 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:34268 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932461Ab2JURxp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Oct 2012 13:53:45 -0400
-Received: by mail-wi0-f178.google.com with SMTP id hr7so1752706wib.1
-        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2012 10:53:44 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 18/23] em28xx: add fields for analog and DVB USB transfer type selection to struct em28xx
-Date: Sun, 21 Oct 2012 19:52:24 +0300
-Message-Id: <1350838349-14763-20-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout2.samsung.com ([203.254.224.25]:28635 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750708Ab2JAEhS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 00:37:18 -0400
+Received: from epcpsbge1.samsung.com (epcpsbge1 [203.254.230.11])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MB700KCC664H250@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 01 Oct 2012 13:37:16 +0900 (KST)
+Date: Mon, 01 Oct 2012 04:37:12 +0000 (GMT)
+From: Arun Kumar K <arun.kk@samsung.com>
+Subject: Re: [PATCH v7 5/6] [media] s5p-mfc: MFCv6 register definitions
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Jang-Hyuck Kim <janghyuck.kim@samsung.com>,
+	peter Oh <jaeryul.oh@samsung.com>,
+	NAVEEN KRISHNA CHATRADHI <ch.naveen@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"kmpark@infradead.org" <kmpark@infradead.org>,
+	SUNIL JOSHI <joshi@samsung.com>
+Reply-to: arun.kk@samsung.com
+MIME-version: 1.0
+Content-transfer-encoding: base64
+Content-type: text/plain; charset=windows-1252
+MIME-version: 1.0
+Message-id: <1111762.223871349066231473.JavaMail.weblogic@epml15>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx.h |    4 ++++
- 1 Datei geändert, 4 Zeilen hinzugefügt(+)
+SGkgU3lsd2VzdGVyLA0KVGhhbmsgeW91IGZvciB0aGUgY29tbWVudHMuDQpXaWxsIG1ha2UgbmVj
+ZXNzYXJ5IGNoYW5nZXMgYW5kIHBvc3QgdXBkYXRlZCBwYXRjaHNldC4NCg0KUmVnYXJkcw0KQXJ1
+bg0KDQotLS0tLS0tIE9yaWdpbmFsIE1lc3NhZ2UgLS0tLS0tLQ0KU2VuZGVyIDogU3lsd2VzdGVy
+IE5hd3JvY2tpPHN5bHZlc3Rlci5uYXdyb2NraUBnbWFpbC5jb20+IA0KRGF0ZSAgIDogU2VwIDI5
+LCAyMDEyIDIxOjA1IChHTVQrMDU6MzApDQpUaXRsZSAgOiBSZTogW1BBVENIIHY3IDUvNl0gW21l
+ZGlhXSBzNXAtbWZjOiBNRkN2NiByZWdpc3RlciBkZWZpbml0aW9ucw0KDQpIaSBBcnVuLA0KDQpJ
+IGhhdmUgYSBmZXcgbWlub3IgY29tbWVudHMuDQoNCk9uIDA5LzI4LzIwMTIgMDc6MDQgUE0sIEFy
+dW4gS3VtYXIgSyB3cm90ZToNCj4gRnJvbTogSmVvbmd0YWUgUGFyazxqdHAucGFya0BzYW1zdW5n
+LmNvbT4NCj4gDQo+IEFkZHMgcmVnaXN0ZXIgZGVmaW5pdGlvbnMgZm9yIE1GQyB2Ni54IGZpcm13
+YXJlDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBKZW9uZ3RhZSBQYXJrPGp0cC5wYXJrQHNhbXN1bmcu
+Y29tPg0KPiBTaWduZWQtb2ZmLWJ5OiBKYW5naHl1Y2sgS2ltPGphbmdoeXVjay5raW1Ac2Ftc3Vu
+Zy5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IEphZXJ5dWwgT2g8amFlcnl1bC5vaEBzYW1zdW5nLmNv
+bT4NCj4gU2lnbmVkLW9mZi1ieTogTmF2ZWVuIEtyaXNobmEgQ2hhdHJhZGhpPGNoLm5hdmVlbkBz
+YW1zdW5nLmNvbT4NCj4gU2lnbmVkLW9mZi1ieTogQXJ1biBLdW1hciBLPGFydW4ua2tAc2Ftc3Vu
+Zy5jb20+DQo+IC0tLQ0KPiAgIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vczVwLW1mYy9yZWdzLW1m
+Yy12Ni5oIHwgIDQwOCArKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiAgIDEgZmlsZXMgY2hh
+bmdlZCwgNDA4IGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pDQo+ICAgY3JlYXRlIG1vZGUg
+MTAwNjQ0IGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vczVwLW1mYy9yZWdzLW1mYy12Ni5oDQo+IA0K
+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zNXAtbWZjL3JlZ3MtbWZjLXY2
+LmggYi9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL3M1cC1tZmMvcmVncy1tZmMtdjYuaA0KPiBuZXcg
+ZmlsZSBtb2RlIDEwMDY0NA0KPiBpbmRleCAwMDAwMDAwLi5jY2UxODQxDQo+IC0tLSAvZGV2L251
+bGwNCj4gKysrIGIvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zNXAtbWZjL3JlZ3MtbWZjLXY2LmgN
+Cj4gQEAgLTAsMCArMSw0MDggQEANCj4gKy8qDQo+ICsgKiBSZWdpc3RlciBkZWZpbml0aW9uIGZp
+bGUgZm9yIFNhbXN1bmcgTUZDIFY2LnggSW50ZXJmYWNlIChGSU1WKSBkcml2ZXINCj4gKyAqDQo+
+ICsgKiBDb3B5cmlnaHQgKGMpIDIwMTIgU2Ftc3VuZyBFbGVjdHJvbmljcw0KDQpJIGJlbGlldmUg
+dGhlIHByb3BlciBub3RhdGlvbiBpcw0KDQoJQ29weXJpZ2h0IChjKSAyMDEyIFNhbXN1bmcgRWxl
+Y3Ryb25pY3MgQ28uLCBMdGQuDQoNClBsZWFzZSBtYWtlIHN1cmUgaXQncyBjb3JyZWN0IGluIGFs
+bCBmaWxlcyBhZGRlZCBpbiB0aGlzIHNlcmllcy4NCg0KPiArICoJCWh0dHA6Ly93d3cuc2Ftc3Vu
+Zy5jb20vDQo+ICsgKg0KPiArICogVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBj
+YW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2RpZnkNCj4gKyAqIGl0IHVuZGVyIHRoZSB0ZXJt
+cyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgdmVyc2lvbiAyIGFzDQo+ICsgKiBw
+dWJsaXNoZWQgYnkgdGhlIEZyZWUgU29mdHdhcmUgRm91bmRhdGlvbi4NCj4gKyAqLw0KPiArDQo+
+ICsjaWZuZGVmIF9SRUdTX0ZJTVZfVjZfSA0KPiArI2RlZmluZSBfUkVHU19GSU1WX1Y2X0gNCg0K
+UGxlYXNlIGFkZA0KDQojaW5jbHVkZSA8bGludXgva2VybmVsLmg+IA0KI2luY2x1ZGUgPGxpbnV4
+L3NpemVzLmg+IA0KDQo+ICsjZGVmaW5lIFM1UF9GSU1WX1JFR19TSVpFX1Y2CShTNVBfRklNVl9F
+TkRfQUREUiAtIFM1UF9GSU1WX1NUQVJUX0FERFIpDQo+ICsjZGVmaW5lIFM1UF9GSU1WX1JFR19D
+T1VOVF9WNgkoKFM1UF9GSU1WX0VORF9BRERSIC0gUzVQX0ZJTVZfU1RBUlRfQUREUikgLyA0KQ0K
+PiArDQo+ICsvKiBOdW1iZXIgb2YgYml0cyB0aGF0IHRoZSBidWZmZXIgYWRkcmVzcyBzaG91bGQg
+YmUgc2hpZnRlZCBmb3IgcGFydGljdWxhcg0KPiArICogTUZDIGJ1ZmZlcnMuICAqLw0KPiArI2Rl
+ZmluZSBTNVBfRklNVl9NRU1fT0ZGU0VUX1Y2CQkwDQo+ICsNCj4gKyNkZWZpbmUgUzVQX0ZJTVZf
+U1RBUlRfQUREUl9WNgkJMHgwMDAwDQo+ICsjZGVmaW5lIFM1UF9GSU1WX0VORF9BRERSX1Y2CQkw
+eGZkODANCj4gKw0KPiArI2RlZmluZSBTNVBfRklNVl9SRUdfQ0xFQVJfQkVHSU5fVjYJMHhmMDAw
+DQo+ICsjZGVmaW5lIFM1UF9GSU1WX1JFR19DTEVBUl9DT1VOVF9WNgkxMDI0DQo+ICsNCj4gKy8q
+IENvZGVjIENvbW1vbiBSZWdpc3RlcnMgKi8NCj4gKyNkZWZpbmUgUzVQX0ZJTVZfUklTQ19PTl9W
+NgkJCTB4MDAwMA0KPiArI2RlZmluZSBTNVBfRklNVl9SSVNDMkhPU1RfSU5UX1Y2CQkweDAwM0MN
+Cg0KQ291bGQgeW91IG1ha2Ugc3VyZSBhbGwgaGV4IG51bWJlcnMgYXJlIGluIGxvd2VyIGNhc2Ug
+aW4gdGhpcyBmaWxlID8NCg0KLi4uDQo+ICsjZGVmaW5lIFM1UF9GSU1WX05VTV9UTVZfQlVGRkVS
+U19WNgkJMg0KPiArDQo+ICsjZGVmaW5lIFM1UF9GSU1WX01BWF9GUkFNRV9TSVpFX1Y2CQkJKDIw
+NDggKiAxMDI0KQ0KDQooMiAqIFNaXzFNKQ0KDQo+ICsjZGVmaW5lIFM1UF9GSU1WX05VTV9QSVhF
+TFNfSU5fTUJfUk9XX1Y2CQkxNg0KPiArI2RlZmluZSBTNVBfRklNVl9OVU1fUElYRUxTX0lOX01C
+X0NPTF9WNgkJMTYNCj4gKw0KPiArLyogQnVmZmVyIHNpemUgcmVxdWlyZW1lbnRzIGRlZmluZWQg
+YnkgaGFyZHdhcmUgKi8NCj4gKyNkZWZpbmUgUzVQX0ZJTVZfVE1WX0JVRkZFUl9TSVpFX1Y2KHcs
+IGgpCSgodyArIDEpICogKGggKyAxKSAqIDgpDQoNClRoZSBhcmd1bWVudHMgc2hvdWxkIGJlIGlu
+IHBhcmVudGhlc2VzIGluIHRoZSBleHByZXNzaW9ucywgaS5lLg0KDQojZGVmaW5lIFM1UF9GSU1W
+X1RNVl9CVUZGRVJfU0laRV9WNih3LCBoKQkoKCh3KSArIDEpICogKChoKSArIDEpICogOCkNCg0K
+PiArI2RlZmluZSBTNVBfRklNVl9NRV9CVUZGRVJfU0laRV9WNihpbXcsIGltaCwgbWJ3LCBtYmgp
+IFxyDQo+ICsJCQkJCQkoKCgoKGltdys2MykvNjQpICogMTYpICogXHINCj4gKwkJCQkJCSgoKGlt
+aCs2MykvNjQpICogMTYpKSArIFxyDQo+ICsJCQkJCQkoKCgobWJ3Km1iaCkrMzEpLzMyKSAqIDE2
+KSkNCg0KQ291bGQgYmUgcmV3cml0dGVuIGFzOg0KDQojZGVmaW5lIFM1UF9GSU1WX01FX0JVRkZF
+Ul9TSVpFX1Y2KGltdywgaW1oLCBtYncsIG1iaCkgXHINCgkoKEFMSUdOKGltdywgNjQpICogIEFM
+SUdOKGltaCwgNjQpICogMjU2KSArIChBTElHTigobWJ3KSAqIChtYmgpLCAzMikgKiAxNikpDQoN
+Cg0KPiArI2RlZmluZSBTNVBfRklNVl9TQ1JBVENIX0JVRl9TSVpFX0gyNjRfREVDX1Y2KHcsIGgp
+CSgodyAqIDE5MikgKyA2NCkNCj4gKyNkZWZpbmUgUzVQX0ZJTVZfU0NSQVRDSF9CVUZfU0laRV9N
+UEVHNF9ERUNfVjYodywgaCkgXHINCj4gKwkJCQkJCSh3ICogKGggKiA2NCArIDE0NCkgKyBccg0K
+PiArCQkJCQkJKCgyMDQ4ICsgMTUpLzE2ICogaCAqIDY0KSArIFxyDQo+ICsJCQkJCQkoKDIwNDgg
+KyAxNSkvMTYgKiAyNTYgKyA4MzIwKSkNCg0KCSh3ICogKGggKiA2NCArIDE0NCkgKyAoMjA0OC8x
+NiAqIGggKiA2NCkgKyAoMjA0OC8xNiAqIDI1NiArIDgzMjApKQ0KDQo+ICsjZGVmaW5lIFM1UF9G
+SU1WX1NDUkFUQ0hfQlVGX1NJWkVfVkMxX0RFQ19WNih3LCBoKQkoMjA5NiAqICh3ICsgaCArIDEp
+KQ0KPiArI2RlZmluZSBTNVBfRklNVl9TQ1JBVENIX0JVRl9TSVpFX0gyNjNfREVDX1Y2KHcsIGgp
+CSh3ICogNDAwKQ0KPiArI2RlZmluZSBTNVBfRklNVl9TQ1JBVENIX0JVRl9TSVpFX1ZQOF9ERUNf
+VjYodywgaCkgXHINCj4gKwkJCQkJCSh3ICogMzIgKyBoICogMTI4ICsgXHINCj4gKwkJCQkJCSgo
+dyArIDEpIC8gMikgKiA2NCArIDIxMTIpDQoNClVubmVjZXNzYXJpbHkgYnJva2VuIGludG8gdHdv
+IGxpbmVzLg0KDQo+ICsjZGVmaW5lIFM1UF9GSU1WX1NDUkFUQ0hfQlVGX1NJWkVfSDI2NF9FTkNf
+VjYodywgaCkgXHINCj4gKwkJCQkJCSgodyAqIDY0KSArICgodyArIDEpICogMTYpICsgXHINCj4g
+KwkJCQkJCSg0MDk2ICogMTYpKQ0KDQpEaXR0by4NCg0KPiArI2RlZmluZSBTNVBfRklNVl9TQ1JB
+VENIX0JVRl9TSVpFX01QRUc0X0VOQ19WNih3LCBoKSBccg0KPiArCQkJCQkJKCh3ICogMTYpICsg
+KCh3ICsgMSkgKiAxNikpDQo+ICsNCj4gKy8qIE1GQyBDb250ZXh0IGJ1ZmZlciBzaXplcyAqLw0K
+PiArI2RlZmluZSBNRkNfQ1RYX0JVRl9TSVpFX1Y2CQkweDcwMDAJCS8qICAyOEtCICovDQoNClBl
+cmhhcHMgd2UgY291bGQgdXNlIHRoZSBTWl8qIG1hY3JvIGRlZmluaXRpb25zLCBlLmcuICgyOCAq
+IFNaXzFLKSA/DQoNCj4gKyNkZWZpbmUgTUZDX0gyNjRfREVDX0NUWF9CVUZfU0laRV9WNgkweDIw
+MDAwMAkvKiAxLjZNQiAqLw0KDQooMTYwMCAqIFNaXzFLKSAuLi4NCg0KPiArI2RlZmluZSBNRkNf
+T1RIRVJfREVDX0NUWF9CVUZfU0laRV9WNgkweDUwMDAJCS8qICAyMEtCICovDQo+ICsjZGVmaW5l
+IE1GQ19IMjY0X0VOQ19DVFhfQlVGX1NJWkVfVjYJMHgxOTAwMAkJLyogMTAwS0IgKi8NCj4gKyNk
+ZWZpbmUgTUZDX09USEVSX0VOQ19DVFhfQlVGX1NJWkVfVjYJMHgzMDAwCQkvKiAgMTJLQiAqLw0K
+PiArDQo+ICsvKiBNRkN2NiB2YXJpYW50IGRlZmluZXMgKi8NCj4gKyNkZWZpbmUgTUFYX0ZXX1NJ
+WkVfVjYJCQkweDEwMDAwMAkvKiAxTUIgKi8NCj4gKyNkZWZpbmUgTUFYX0NQQl9TSVpFX1Y2CQkJ
+MHgzMDAwMDAJLyogM01CICovDQoNCi4uLiAoMyAqIFNaXzFNKQ0KDQo+ICsjZGVmaW5lIE1GQ19W
+RVJTSU9OX1Y2CQkJMHg2MQ0KPiArI2RlZmluZSBNRkNfTlVNX1BPUlRTX1Y2CQkxDQo+ICsNCj4g
+KyNlbmRpZiAvKiBfUkVHU19GSU1WX1Y2X0ggKi8NCg0KVGhhbmtzLA0KU3lsd2VzdGVyDQo8cD4m
+bmJzcDs8L3A+PHA+Jm5ic3A7PC9wPg==
 
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 8b96413..f013650 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -587,9 +587,13 @@ struct em28xx {
- 	int max_pkt_size;	/* max packet size of the selected ep at alt */
- 	int num_alt;		/* number of alternative settings */
- 	unsigned int *alt_max_pkt_size_isoc; /* array of isoc wMaxPacketSize */
-+	unsigned int analog_xfer_bulk:1;	/* use bulk instead of isoc
-+						   transfers for analog      */
- 	int dvb_alt_isoc;	/* alternate setting for DVB isoc transfers */
- 	unsigned int dvb_max_pkt_size_isoc;	/* isoc max packet size of the
- 						   selected DVB ep at dvb_alt */
-+	unsigned int dvb_xfer_bulk:1;		/* use bulk instead of isoc
-+						   transfers for DVB          */
- 	char urb_buf[URB_MAX_CTRL_SIZE];	/* urb control msg buffer */
- 
- 	/* helper funcs that call usb_control_msg */
--- 
-1.7.10.4
 
