@@ -1,81 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:51519 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756022Ab2JQKWg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 06:22:36 -0400
-Message-ID: <507E83CA.7070308@schinagl.nl>
-Date: Wed, 17 Oct 2012 12:09:14 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:3426 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751993Ab2JAO3z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 10:29:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: [GIT PATCHES FOR v3.6] Samsung media driver fixes
+Date: Mon, 1 Oct 2012 16:28:36 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>
+References: <5034991F.5040403@samsung.com> <50699C23.5000203@redhat.com> <CALF0-+W=xRO0G9gz1oSGyDbL0JHTYmPUU11qCpaK7BXJwGFBYw@mail.gmail.com>
+In-Reply-To: <CALF0-+W=xRO0G9gz1oSGyDbL0JHTYmPUU11qCpaK7BXJwGFBYw@mail.gmail.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: AF9035 firmware repository
-References: <507E7872.8030300@schinagl.nl> <507E8205.2050705@iki.fi>
-In-Reply-To: <507E8205.2050705@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201210011628.36850.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17-10-12 12:01, Antti Palosaari wrote:
-> Hello Oliver
->
-> On 10/17/2012 12:20 PM, Oliver Schinagl wrote:
->> Hey antti, list,
->>
->> whilst trying to help some Asus U3100+ users with the recent patches I
->> ran into an issue. For some strange reason his chip_id was 0xff. I'd
->> hope this is somehow supplied by the firmware. I think I had the exact
->> same issue until I used Antti's latest firmware for the AF9035.
->>
->> Having said that, I know antti currently hosts the latest firmware for
->> the af9035, but there seem to be several out in the wild and people
->> googling for the firmware tend to find the really old one.
->
-> Yes, it is the firmware. AF9035/AF9033 firmware is aware of used tuner 
-> and there is some logic inside firmware for each tuner, like 
-> calculating signal strength and handling of tuner I2C bus. Same 
-> applies for AF9015/AF9013 too where this has caused some notable 
-> problems - I have asked few times if someone could reverse and fix 
-> that fw to behave better.
-Ok, then I'll await said test results with latest firmware.
->
->> I'm pretty certain that Afa-tech, IT-tech etc won't allow the firmware
->> to live in the kernel, or simply refuse to answer shuch a plead? They
->> could be persuaded by the maintainer to at least have it live in
->> http://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git or
->> if that fails, have it pulled by Documentation/dvb/get_dvb_firmware?
->> (Btw, why is it get_dvb_firmware? I didn't find a generic script or
->> other devices that did the same).
->
-> Feel free to try. I tried it ages back in 2009 but failed.
-i'll doubt anything has changed here :S
+On Mon October 1 2012 16:05:15 Ezequiel Garcia wrote:
+> Mauro and folks,
+> 
+> On Mon, Oct 1, 2012 at 10:35 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+> > Hi Anti/Sylwester,
+> >
+> > Em 01-10-2012 08:50, Antti Palosaari escreveu:
+> >> Hello
+> >> I have had similar problems too. We need badly find out better procedures for patch handling. Something like parches are updated about once per week to the master. I have found I lose quite much time rebasing and res-sending stuff all the time.
+> >>
+> >> What I propose:
+> >> 1) module maintainers sends all patches to the ML with some tag marking it will pull requested later. I used lately [PATCH RFC]
+> >> 2) module maintainer will pick up all the "random" patches and pull request those. There is no way to mark patch as handled in patchwork....
+> >> 3) PULL request are handled more often, like during one week or maximum two
+> >
+> > Yes, for sure we need to improve the workflow. After the return from KS,
+> > I found ~400 patches/pull requests on my queue. I'm working hard to get rid
+> > of that backlog, but still there are ~270 patches/pull requests on my
+> > queue today.
+> >
+> > The thing is that patches come on a high rate at the ML, and there's no
+> > obvious way to discover what patches are just the normal patch review
+> > discussions (e. g. RFC) and what are real patches.
+> >
+> > To make things worse, we have nowadays 494 drivers. A very few of those
+> > have an entry at MAINTAINERS, or a maintainer that care enough about
+> > his drivers to handle patches sent to the mailing list (even the trivial
+> > ones).
+> >
+> > Due to the missing MAINTAINERS entries, all patches go through the ML directly,
+> > instead of going through the driver maintainer.
+> >
+> > So, I need to manually review every single email that looks to have a patch
+> > inside, typically forwarding it to the driver maintainer, when it exists,
+> > handling them myself otherwise.
+> >
+> > I'm counting with our discussions at the Barcelona's mini-summit in order
+> > to be able to get fresh ideas and discuss some alternatives to improve
+> > the patch workflow, but there are several things that could be done already,
+> > like the ones you've proposed, and keeping the MAINTAINERS file updated.
+> >
+> 
+> Perhaps I'm missing something but I don't think there's an obvious
+> solution for this,
+> unless more maintainers are willing to start providing reviews / tests
+> / acks / etc.
+> for patches that arrive.
+> 
+> Seems to me media/ has become a truly large subsystem,
+> though I'm not sure how does it compare to others subsystems.
+> Has anyone thought about breaking media/ down into smaller sub-subsystems,
+> with respective sub-maintainer?
 
->
-> Someone should make some study of these firmwares and list what are 
-> differences, supported tuners etc. That was discussed at the time 
-> af9035 was merged to the Kernel... As rule of thumb test first newest 
-> firmware.
->
-> Currently there is no 100% automated script to dump those firmwares 
-> from the binary. AF9035 driver seems to contain multiple firmwares. 
-> Maybe making script that finds and dumps all firmwares found from 
-> binary could be handy.
-Maybe as an alternative, also have the firmwares linked/uploaded to 
-http://linuxtv.org/downloads/firmware/ ?
->
->> I'll update the af9035 wikipage to link to antti's firmware for now.
->
-> Good!
-and done.
+Yes, and this will be discussed next month during the Media Summit.
 
-those older firmwares for the af9035 are only there for archive 
-purpouse? Or are their known cases where older firmware is needed? At 
-this moment, it seems that the oldest one (11.5.9) brakes things.
+Regards,
 
-oliver
->
-> regards
-> Antti
->
+	Hans
 
+> I'm not really sure if this should improve or worsen Mauro's rate.
+> 
+> Just my two cents,
+> Ezequiel.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
