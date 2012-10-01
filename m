@@ -1,64 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58268 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756082Ab2JXN3G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Oct 2012 09:29:06 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: stable@kernel.org
-Cc: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH] [media] au0828: fix case where STREAMOFF being called on stopped stream causes BUG()
-Date: Wed, 24 Oct 2012 11:28:59 -0200
-Message-Id: <1351085339-826-1-git-send-email-mchehab@redhat.com>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3912 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753163Ab2JAKc4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 06:32:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.7] ivtv v4l2-compliance fixes
+Date: Mon, 1 Oct 2012 12:32:49 +0200
+Cc: Andy Walls <awalls@md.metrocast.net>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201210011232.49748.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Hi Mauro, Andy,
 
-We weren't checking whether the resource was in use before calling
-res_free(), so applications which called STREAMOFF on a v4l2 device that
-wasn't already streaming would cause a BUG() to be hit (MythTV).
+This is a series of ivtv compliance fixes. All video nodes except for the PCM capture
+node (obviously) and the YUV output node (a remaining issue with FIELD_ANY) now pass
+the tests.
 
-Reported-by: Larry Finger <larry.finger@lwfinger.net>
-Reported-by: Jay Harbeston <jharbestonus@gmail.com>
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
+Regards,
 
-Upstream commit: a595c1ce4c9d572cf53513570b9f1a263d7867f2
-Fixes Fedora BZ: https://bugzilla.redhat.com/show_bug.cgi?id=819321
+	Hans
 
- drivers/media/video/au0828/au0828-video.c | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+The following changes since commit 8928b6d1568eb9104cc9e2e6627d7086437b2fb3:
 
-diff --git a/drivers/media/video/au0828/au0828-video.c b/drivers/media/video/au0828/au0828-video.c
-index df92322..4d5b670 100644
---- a/drivers/media/video/au0828/au0828-video.c
-+++ b/drivers/media/video/au0828/au0828-video.c
-@@ -1702,14 +1702,18 @@ static int vidioc_streamoff(struct file *file, void *priv,
- 			(AUVI_INPUT(i).audio_setup)(dev, 0);
- 		}
- 
--		videobuf_streamoff(&fh->vb_vidq);
--		res_free(fh, AU0828_RESOURCE_VIDEO);
-+		if (res_check(fh, AU0828_RESOURCE_VIDEO)) {
-+			videobuf_streamoff(&fh->vb_vidq);
-+			res_free(fh, AU0828_RESOURCE_VIDEO);
-+		}
- 	} else if (fh->type == V4L2_BUF_TYPE_VBI_CAPTURE) {
- 		dev->vbi_timeout_running = 0;
- 		del_timer_sync(&dev->vbi_timeout);
- 
--		videobuf_streamoff(&fh->vb_vbiq);
--		res_free(fh, AU0828_RESOURCE_VBI);
-+		if (res_check(fh, AU0828_RESOURCE_VBI)) {
-+			videobuf_streamoff(&fh->vb_vbiq);
-+			res_free(fh, AU0828_RESOURCE_VBI);
-+		}
- 	}
- 
- 	return 0;
--- 
-1.7.11.7
+  [media] media: mx2_camera: use managed functions to clean up code (2012-09-27 15:56:47 -0300)
 
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git ivtv
+
+for you to fetch changes up to 91ee4e0011811752f389b925df370c897e96e4d7:
+
+  ivtv: fix format enumeration: don't show invalid formats. (2012-10-01 12:22:06 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (8):
+      sliced vbi: subdevs shouldn't clear the full v4l2_sliced_vbi_format struct.
+      ivtv: DECODER_CMD v4l2-compliance fixes.
+      ivtv: fix v4l2-compliance error: inconsistent std reporting.
+      ivtv: fix v4l2-compliance errors for the radio device.
+      ivtv: don't allow g/s_frequency for output device nodes.
+      ivtv: fix incorrect service_set for the decoder VBI capture.
+      ivtv: disable a bunch of ioctls that are invalid for the decoder VBI.
+      ivtv: fix format enumeration: don't show invalid formats.
+
+ drivers/media/i2c/cx25840/cx25840-vbi.c |    3 ++-
+ drivers/media/i2c/saa7115.c             |    3 ++-
+ drivers/media/i2c/saa7127.c             |    2 +-
+ drivers/media/i2c/tvp5150.c             |    2 +-
+ drivers/media/pci/cx18/cx18-av-vbi.c    |    4 +++-
+ drivers/media/pci/cx18/cx18-ioctl.c     |    4 ----
+ drivers/media/pci/ivtv/ivtv-driver.c    |    1 +
+ drivers/media/pci/ivtv/ivtv-fileops.c   |    5 +++--
+ drivers/media/pci/ivtv/ivtv-ioctl.c     |   92 ++++++++++++++++++++++++++++++++++++++++++++++++++++++-------------------------------
+ drivers/media/pci/ivtv/ivtv-streams.c   |   23 +++++++++++++++++++++-
+ 10 files changed, 94 insertions(+), 45 deletions(-)
