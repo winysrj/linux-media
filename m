@@ -1,62 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46599 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932673Ab2JaNRB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Oct 2012 09:17:01 -0400
-Date: Wed, 31 Oct 2012 14:16:52 +0100
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Fabio Estevam <fabio.estevam@freescale.com>, g.liakhovetski@gmx.de,
-	kernel@pengutronix.de, gcembed@gmail.com,
-	javier.martin@vista-silicon.com, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v4 1/2] ARM: clk-imx27: Add missing clock for mx2-camera
-Message-ID: <20121031131652.GM1641@pengutronix.de>
-References: <1351598606-8485-1-git-send-email-fabio.estevam@freescale.com>
- <20121031095632.536d9362@infradead.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:39932 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753098Ab2JAQdI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Oct 2012 12:33:08 -0400
+Message-ID: <5069C5AF.3030607@iki.fi>
+Date: Mon, 01 Oct 2012 19:32:47 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20121031095632.536d9362@infradead.org>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] MAINTAINERS: Add stk1160 driver
+References: <1349101213-21723-1-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1349101213-21723-1-git-send-email-elezegarcia@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 10/01/2012 05:20 PM, Ezequiel Garcia wrote:
+> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+> ---
+>   MAINTAINERS |    7 +++++++
+>   1 files changed, 7 insertions(+), 0 deletions(-)
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 0750c24..17f6fb0 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -3168,6 +3168,13 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
+>   S:	Maintained
+>   F:	drivers/media/usb/gspca/
+>
+> +STK1160 USB VIDEO CAPTURE DRIVER
+> +M:	Ezequiel Garcia <elezegarcia@redhat.com>
 
-On Wed, Oct 31, 2012 at 09:56:32AM -0200, Mauro Carvalho Chehab wrote:
-> Em Tue, 30 Oct 2012 10:03:25 -0200
-> Fabio Estevam <fabio.estevam@freescale.com> escreveu:
-> 
-> > During the clock conversion for mx27 the "per4_gate" clock was missed to get
-> > registered as a dependency of mx2-camera driver.
-> > 
-> > In the old mx27 clock driver we used to have:
-> > 
-> > DEFINE_CLOCK1(csi_clk, 0, NULL, 0, parent, &csi_clk1, &per4_clk);
-> > 
-> > ,so does the same in the new clock driver
-> > 
-> > Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-> > Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
-> 
-> As it seems that those patches depend on some patches at the arm tree,
-> the better is to merge them via -arm tree.
+Copy paste mistake?
 
-Quoting yourself:
+> +L:	linux-media@vger.kernel.org
+> +T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
+> +S:	Maintained
+> +F:	drivers/media/usb/stk1160/
+> +
+>   HARD DRIVE ACTIVE PROTECTION SYSTEM (HDAPS) DRIVER
+>   M:	Frank Seidel <frank@f-seidel.de>
+>   L:	platform-driver-x86@vger.kernel.org
+>
 
-> Forgot to comment: as patch 2 relies on this change, the better, IMHO, is
-> to send both via the same tree. If you decide to do so, please get arm
-> maintainer's ack, instead, and we can merge both via my tree.
-
-That's why Fabio resent these patches with my Ack. You are free to take
-these.
-
-Sascha
-
+regards
+Antti
 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+http://palosaari.fi/
