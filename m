@@ -1,64 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:34547 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752593Ab2JDHYl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 03:24:41 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBC00AFWXWZED70@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:39 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MBC006I9XWMLU10@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:39 +0900 (KST)
-From: Rahul Sharma <rahul.sharma@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Cc: t.stanislaws@samsung.com, inki.dae@samsung.com,
-	kyungmin.park@samsung.com, joshi@samsung.com
-Subject: [PATCH v1 03/14] drm: exynos: hdmi: fix interrupt handling
-Date: Thu, 04 Oct 2012 21:12:41 +0530
-Message-id: <1349365372-21417-4-git-send-email-rahul.sharma@samsung.com>
-In-reply-to: <1349365372-21417-1-git-send-email-rahul.sharma@samsung.com>
-References: <1349365372-21417-1-git-send-email-rahul.sharma@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:54793 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751217Ab2JAKme (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Oct 2012 06:42:34 -0400
+Date: Mon, 1 Oct 2012 07:42:19 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: mkrufky@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] tda18271-common: hold the I2C adapter during write
+ transfers
+Message-ID: <20121001074219.14ae1de0@redhat.com>
+In-Reply-To: <5065ECEB.30807@iki.fi>
+References: <20120928084337.1db94b8c@redhat.com>
+	<1348844661-19114-1-git-send-email-mchehab@redhat.com>
+	<5065ECEB.30807@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Em Fri, 28 Sep 2012 21:31:07 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-This patch fixes 'unsigned < 0' check in probe. Moreover it
-releases an interrupt at remove.
+> Hello,
+> Did not fix the issue. Problem remains same.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/gpu/drm/exynos/exynos_hdmi.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+Ok, that's what I was afraid: there's likely something at drxk firmware that 
+it is needed for tda18271 to be visible - maybe gpio settings.
 
-diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
-index b3a802b..3902917 100644
---- a/drivers/gpu/drm/exynos/exynos_hdmi.c
-+++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
-@@ -64,8 +64,8 @@ struct hdmi_context {
- 	struct mutex			hdmi_mutex;
- 
- 	void __iomem			*regs;
--	unsigned int			external_irq;
--	unsigned int			internal_irq;
-+	int				external_irq;
-+	int				internal_irq;
- 
- 	struct i2c_client		*ddc_port;
- 	struct i2c_client		*hdmiphy_port;
-@@ -2424,6 +2424,7 @@ static int __devexit hdmi_remove(struct platform_device *pdev)
- 	pm_runtime_disable(dev);
- 
- 	free_irq(hdata->internal_irq, hdata);
-+	free_irq(hdata->external_irq, hdata);
- 
- 	hdmi_resources_cleanup(hdata);
- 
--- 
-1.7.0.4
+> With the sleep + that patch 
+> it works still.
 
+Good, no regressions added.
+
+IMO, we should add a defer job at dvb_attach, that will postpone the
+tuner attach to happen after drxk firmware is loaded, or add there a
+wait queue. Still, I think that this patch is needed anyway, in order
+to avoid race conditions with CI and Remote Controller polls that may
+affect devices with tda18271.
+
+It should be easy to check if the firmware is loaded: all it is needed
+is to, for example, call:
+	drxk_ops.get_tune_settings()
+
+This function returns -ENODEV if firmware load fails; -EAGAIN if
+firmware was not loaded yet and 0 or -EINVAL if firmware is OK.
+
+So, instead of using sleep, you could do:
+
+static bool is_drxk_firmware_loaded(struct dvb_frontend *fe) {
+	struct dvb_frontend_tune_settings sets;
+	int ret = fe->ops.get_tune_settings(fe, &sets);
+
+	if (ret == -ENODEV || ret == -EAGAIN)
+		return false;
+	else
+		return true;
+};
+
+and, at the place you coded the sleep(), replace it by:
+
+	ret = wait_event_interruptible(waitq, is_drxk_firmware_loaded(dev->dvb->fe[0]));
+	if (ret < 0) {
+		dvb_frontend_detach(dev->dvb->fe[0]);
+		dev->dvb->fe[0] = NULL;
+		return -EINVAL;
+	}
+
+It might have sense to add an special callback to return the tuner
+state (firmware not loaded, firmware loaded, firmware load failed).
+
+Regards,
+Mauro
