@@ -1,100 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:46867 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751924Ab2JFSXF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Oct 2012 14:23:05 -0400
-Received: by mail-ee0-f46.google.com with SMTP id b15so2032750eek.19
-        for <linux-media@vger.kernel.org>; Sat, 06 Oct 2012 11:23:03 -0700 (PDT)
-Message-ID: <50707704.5030402@gmail.com>
-Date: Sat, 06 Oct 2012 20:23:00 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, a.hajda@samsung.com,
-	sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	sw0312.kim@samsung.com
-Subject: Re: Media_build broken by [PATCH RFC v3 5/5] m5mols: Implement .get_frame_desc
- subdev callback
-References: <1348674853-24596-1-git-send-email-s.nawrocki@samsung.com> <1348674853-24596-6-git-send-email-s.nawrocki@samsung.com> <50704D26.9020201@hoogenraad.net>
-In-Reply-To: <50704D26.9020201@hoogenraad.net>
-Content-Type: text/plain; charset=UTF-8
+Received: from mx1.redhat.com ([209.132.183.28]:48535 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753557Ab2JAUBo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Oct 2012 16:01:44 -0400
+Date: Mon, 1 Oct 2012 17:01:38 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFCv1 API PATCH 2/4] v4l2-ctrls: add a notify callback.
+Message-ID: <20121001170138.5501f4be@redhat.com>
+In-Reply-To: <201209270844.25497.hverkuil@xs4all.nl>
+References: <1347621336-14108-1-git-send-email-hans.verkuil@cisco.com>
+	<598b270f69d510c29436b51ef5cc0034afe77101.1347620872.git.hans.verkuil@cisco.com>
+	<1779382.8Ng3nlM3Km@avalon>
+	<201209270844.25497.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Jan,
+Em Thu, 27 Sep 2012 08:44:25 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On 10/06/2012 05:24 PM, Jan Hoogenraad wrote:
-> On my ubuntu 10.4 system
+> On Wed September 26 2012 12:50:11 Laurent Pinchart wrote:
+
+> > > +	if (notify == NULL) {
+> > > +		ctrl->call_notify = 0;
+> > > +		return;
+> > > +	}
+> > > +	/* Only one notifier is allowed. Should we ever need to support
+> > > +	   multiple notifiers, then some sort of linked list of notifiers
+> > > +	   should be implemented. But I don't see any real reason to implement
+> > > +	   that now. If you think you need multiple notifiers, then contact
+> > > +	   the linux-media mailinglist. */
+
+If only one notifier is allowed, then you should clearly state that at the
+API documentation.
+
+> > > +	if (WARN_ON(ctrl->handler->notify &&
+> > > +			(ctrl->handler->notify != notify ||
+> > > +			 ctrl->handler->notify_priv != priv)))
+> > > +		return;
+> > 
+> > I'm not sure whether I like that. It feels a bit hackish. Wouldn't it be 
+> > better to register the notifier with the handler explictly just once and then 
+> > enable/disable notifications on a per-control basis ?
 > 
-> Linux 2.6.32-43-generic-pae #97-Ubuntu SMP Wed Sep 5 16:59:17 UTC 2012
-> i686 GNU/Linux
-> 
-> this patch breaks compilation of media_build.
-> The constant SZ_1M is not defined in the includes on my system
-> 
-> Do you know what can be done about this ?
-> 
-> ---
-> 
-> /home/jhh/dvb/media_build/v4l/m5mols_core.c: In function
-> 'm5mols_set_frame_desc':
-> /home/jhh/dvb/media_build/v4l/m5mols_core.c:636: error: 'SZ_1M'
-> undeclared (first use in this function)
-> /home/jhh/dvb/media_build/v4l/m5mols_core.c:636: error: (Each undeclared
-> identifier is reported only once
-> /home/jhh/dvb/media_build/v4l/m5mols_core.c:636: error: for each
-> function it appears in.)
+> I thought about that, but I prefer this method because it allows me to switch
+> to per-control notifiers in the future. In addition, different controls can have
+> different handlers. If you have to set the notifier for handlers, then the
+> driver needs to figure out which handlers are involved for the controls it wants
+> to be notified on. It's much easier to do it like this.
 
-Thanks for reporting this issue. You most likely don't need the M-5MOLS
-camera sensor driver on you system so one option is to just disable it
-at kernel config. Make sure CONFIG_VIDEO_M5MOLS is not set, it can be 
-unselected at menuconfig
+That also sounded hackish on my eyes. If just one notifier is allowed, the
+function should simply refuse any other call to it, as any other call to it
+is a driver's bug. So:
 
- -> Device Drivers
-    -> Multimedia
-      -> Encoders, decoders, sensors and other helper chips
-         < > Fujitsu M-5MOLS 8MP sensor support
+	if (WARN_ON(ctrl->handler->notify))
+		return;
 
-The below patch which is intended to fix this issue won't work for
-media drivers backport builds on kernels older than 3.6, so m5mols
-driver should not be built for kernel versions < 3.6.
-
-8<-------------------------------------------------------------------
->From 3e138ea603c9e5102452554cb14e4b404ce306e0 Mon Sep 17 00:00:00 2001
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Date: Sat, 6 Oct 2012 20:04:40 +0200
-Subject: [PATCH] m5mols: Add missing #include <linux/sizes.h>
-
-Include <linux/sizes.h> header that is missing after commit ab7ef22419927
-"[media] m5mols: Implement .get_frame_desc subdev callback".
-It prevents possible build errors due to undefined SZ_1M.
-
-Reported-by: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
----
- drivers/media/i2c/m5mols/m5mols.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/i2c/m5mols/m5mols.h b/drivers/media/i2c/m5mols/m5mols.h
-index 4ab8b37..90a6c52 100644
---- a/drivers/media/i2c/m5mols/m5mols.h
-+++ b/drivers/media/i2c/m5mols/m5mols.h
-@@ -16,6 +16,7 @@
- #ifndef M5MOLS_H
- #define M5MOLS_H
- 
-+#include <linux/sizes.h>
- #include <media/v4l2-subdev.h>
- #include "m5mols_reg.h"
- 
--- 
-1.7.4.1
-8<-------------------------------------------------------------------
-
---
+seems to be enough.
 
 Regards,
-Sylwester
+Mauro
