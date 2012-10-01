@@ -1,219 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:10819 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S2992568Ab2JYTGv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Oct 2012 15:06:51 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] MAINTAINERS: update email and git tree
-Date: Thu, 25 Oct 2012 17:06:38 -0200
-Message-Id: <1351191998-13860-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:41686 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752099Ab2JAVhu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 17:37:50 -0400
+Message-ID: <506A0D28.10505@gmail.com>
+Date: Mon, 01 Oct 2012 23:37:44 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <1348754853-28619-6-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1348754853-28619-6-git-send-email-g.liakhovetski@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While mchehab@infradead.org is valid, I prefer to use just one email
-for all patches upstream, instead of receiving some things on one
-emails, and others on some other place.
+On 09/27/2012 04:07 PM, Guennadi Liakhovetski wrote:
+> Add a V4L2 OF parser, implementing bindings, documented in
+> Documentation/devicetree/bindings/media/v4l2.txt.
+> 
+> Signed-off-by: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
+> ---
+>   drivers/media/v4l2-core/Makefile  |    3 +
+>   drivers/media/v4l2-core/v4l2-of.c |  190 +++++++++++++++++++++++++++++++++++++
+>   include/media/v4l2-of.h           |   62 ++++++++++++
+>   3 files changed, 255 insertions(+), 0 deletions(-)
+>   create mode 100644 drivers/media/v4l2-core/v4l2-of.c
+>   create mode 100644 include/media/v4l2-of.h
+> 
+> diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+> index c2d61d4..00f64d6 100644
+> --- a/drivers/media/v4l2-core/Makefile
+> +++ b/drivers/media/v4l2-core/Makefile
+> @@ -9,6 +9,9 @@ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+>   ifeq ($(CONFIG_COMPAT),y)
+>     videodev-objs += v4l2-compat-ioctl32.o
+>   endif
+> +ifeq ($(CONFIG_OF),y)
+> +  videodev-objs += v4l2-of.o
+> +endif
+> 
+>   obj-$(CONFIG_VIDEO_DEV) += videodev.o v4l2-int-device.o
+>   obj-$(CONFIG_VIDEO_V4L2) += v4l2-common.o
+> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+> new file mode 100644
+> index 0000000..f45d64b
+> --- /dev/null
+> +++ b/drivers/media/v4l2-core/v4l2-of.c
+> @@ -0,0 +1,190 @@
+> +/*
+> + * V4L2 OF binding parsing library
+> + *
+> + * Copyright (C) 2012 Renesas Electronics Corp.
+> + * Author: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of version 2 of the GNU General Public License as
+> + * published by the Free Software Foundation.
+> + */
+> +#include<linux/kernel.h>
+> +#include<linux/module.h>
+> +#include<linux/of.h>
+> +#include<linux/types.h>
+> +
+> +#include<media/v4l2-of.h>
+> +
+> +/*
+> + * All properties are optional. If none are found, we don't set any flags. This
+> + * means, the port has a static configuration and no properties have to be
+> + * specified explicitly.
+> + * If any properties are found, that identify the bus as parallel, and
+> + * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we recognise the
+> + * bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
+> + * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
+> + * The caller should hold a reference to "node."
+> + */
+> +void v4l2_of_parse_link(const struct device_node *node,
+> +			struct v4l2_of_link *link)
+> +{
+> +	const struct device_node *port_node = of_get_parent(node);
+> +	int size;
+> +	unsigned int v;
+> +	u32 data_lanes[ARRAY_SIZE(link->mipi_csi_2.data_lanes)];
+> +	bool data_lanes_present;
+> +
+> +	memset(link, 0, sizeof(*link));
+> +
+> +	link->local_node = node;
+> +
+> +	/* Doesn't matter, whether the below two calls succeed */
+> +	of_property_read_u32(port_node, "reg",&link->port);
+> +	of_property_read_u32(node, "reg",&link->addr);
+> +
+> +	if (!of_property_read_u32(node, "bus-width",&v))
+> +		link->parallel.bus_width = v;
+> +
+> +	if (!of_property_read_u32(node, "data-shift",&v))
+> +		link->parallel.data_shift = v;
+> +
+> +	if (!of_property_read_u32(node, "hsync-active",&v))
+> +		link->mbus_flags |= v ? V4L2_MBUS_HSYNC_ACTIVE_HIGH :
+> +			V4L2_MBUS_HSYNC_ACTIVE_LOW;
+> +
+> +	if (!of_property_read_u32(node, "vsync-active",&v))
+> +		link->mbus_flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
+> +			V4L2_MBUS_VSYNC_ACTIVE_LOW;
+> +
+> +	if (!of_property_read_u32(node, "data-active",&v))
+> +		link->mbus_flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
+> +			V4L2_MBUS_DATA_ACTIVE_LOW;
+> +
+> +	if (!of_property_read_u32(node, "pclk-sample",&v))
+> +		link->mbus_flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
+> +			V4L2_MBUS_PCLK_SAMPLE_FALLING;
+> +
+> +	if (!of_property_read_u32(node, "field-even-active",&v))
+> +		link->mbus_flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
+> +			V4L2_MBUS_FIELD_EVEN_LOW;
+> +
+> +	if (of_get_property(node, "slave-mode",&size))
+> +		link->mbus_flags |= V4L2_MBUS_SLAVE;
+> +
+> +	/* If any parallel-bus properties have been found, skip serial ones */
+> +	if (link->parallel.bus_width || link->parallel.data_shift ||
+> +	    link->mbus_flags) {
+> +		/* Default parallel bus-master */
+> +		if (!(link->mbus_flags&  V4L2_MBUS_SLAVE))
+> +			link->mbus_flags |= V4L2_MBUS_MASTER;
+> +		return;
+> +	}
+> +
+> +	if (!of_property_read_u32(node, "clock-lanes",&v))
+> +		link->mipi_csi_2.clock_lane = v;
+> +
+> +	if (!of_property_read_u32_array(node, "data-lanes", data_lanes,
+> +					ARRAY_SIZE(data_lanes))) {
+> +		int i;
+> +		for (i = 0; i<  ARRAY_SIZE(data_lanes); i++)
+> +			link->mipi_csi_2.data_lanes[i] = data_lanes[i];
 
-While here, also update the main linux-media development tree,
-as the one at kernel.org is used mainly for patch merging and it
-is generally delayed.
+It doesn't look like what we aimed for. The data-lanes array is supposed
+to be of variable length, thus I don't think it can be parsed like that. 
+Or am I missing something ? I think we need more something like below 
+(based on of_property_read_u32_array(), not tested):
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- MAINTAINERS | 44 ++++++++++++++++++++++----------------------
- 1 file changed, 22 insertions(+), 22 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index e73060f..2bf8543 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1724,10 +1724,10 @@ F:	Documentation/filesystems/btrfs.txt
- F:	fs/btrfs/
- 
- BTTV VIDEO4LINUX DRIVER
--M:	Mauro Carvalho Chehab <mchehab@infradead.org>
-+M:	Mauro Carvalho Chehab <mchehab@redhat.com>
- L:	linux-media@vger.kernel.org
- W:	http://linuxtv.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	Documentation/video4linux/bttv/
- F:	drivers/media/pci/bt8xx/bttv*
-@@ -1757,7 +1757,7 @@ F:	fs/cachefiles/
- CAFE CMOS INTEGRATED CAMERA CONTROLLER DRIVER
- M:	Jonathan Corbet <corbet@lwn.net>
- L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	Documentation/video4linux/cafe_ccic
- F:	drivers/media/platform/marvell-ccic/
-@@ -2144,7 +2144,7 @@ CX18 VIDEO4LINUX DRIVER
- M:	Andy Walls <awalls@md.metrocast.net>
- L:	ivtv-devel@ivtvdriver.org (moderated for non-subscribers)
- L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- W:	http://linuxtv.org
- W:	http://www.ivtvdriver.org/index.php/Cx18
- S:	Maintained
-@@ -3318,56 +3318,56 @@ F:	drivers/net/ethernet/aeroflex/
- GSPCA FINEPIX SUBDRIVER
- M:	Frank Zago <frank@zago.net>
- L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/usb/gspca/finepix.c
- 
- GSPCA GL860 SUBDRIVER
- M:	Olivier Lorin <o.lorin@laposte.net>
- L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/usb/gspca/gl860/
- 
- GSPCA M5602 SUBDRIVER
- M:	Erik Andren <erik.andren@gmail.com>
- L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/usb/gspca/m5602/
- 
- GSPCA PAC207 SONIXB SUBDRIVER
- M:	Hans de Goede <hdegoede@redhat.com>
- L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/usb/gspca/pac207.c
- 
- GSPCA SN9C20X SUBDRIVER
- M:	Brian Johnson <brijohn@gmail.com>
- L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/usb/gspca/sn9c20x.c
- 
- GSPCA T613 SUBDRIVER
- M:	Leandro Costantino <lcostantino@gmail.com>
- L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/usb/gspca/t613.c
- 
- GSPCA USB WEBCAM DRIVER
- M:	Hans de Goede <hdegoede@redhat.com>
- L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/usb/gspca/
- 
- STK1160 USB VIDEO CAPTURE DRIVER
- M:	Ezequiel Garcia <elezegarcia@gmail.com>
- L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/usb/stk1160/
- 
-@@ -4095,7 +4095,7 @@ IVTV VIDEO4LINUX DRIVER
- M:	Andy Walls <awalls@md.metrocast.net>
- L:	ivtv-devel@ivtvdriver.org (moderated for non-subscribers)
- L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- W:	http://www.ivtvdriver.org
- S:	Maintained
- F:	Documentation/video4linux/*.ivtv
-@@ -4728,12 +4728,12 @@ F:	Documentation/hwmon/max6650
- F:	drivers/hwmon/max6650.c
- 
- MEDIA INPUT INFRASTRUCTURE (V4L/DVB)
--M:	Mauro Carvalho Chehab <mchehab@infradead.org>
-+M:	Mauro Carvalho Chehab <mchehab@redhat.com>
- P:	LinuxTV.org Project
- L:	linux-media@vger.kernel.org
- W:	http://linuxtv.org
- Q:	http://patchwork.kernel.org/project/linux-media/list/
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	Documentation/dvb/
- F:	Documentation/video4linux/
-@@ -5270,7 +5270,7 @@ F:	drivers/char/pcmcia/cm4040_cs.*
- OMNIVISION OV7670 SENSOR DRIVER
- M:	Jonathan Corbet <corbet@lwn.net>
- L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/i2c/ov7670.c
- 
-@@ -5813,7 +5813,7 @@ M:	Mike Isely <isely@pobox.com>
- L:	pvrusb2@isely.net	(subscribers-only)
- L:	linux-media@vger.kernel.org
- W:	http://www.isely.net/pvrusb2/
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	Documentation/video4linux/README.pvrusb2
- F:	drivers/media/usb/pvrusb2/
-@@ -6203,7 +6203,7 @@ F:	drivers/mmc/host/s3cmci.*
- SAA7146 VIDEO4LINUX-2 DRIVER
- M:	Michael Hunold <michael@mihu.de>
- L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- W:	http://www.mihu.de/linux/saa7146
- S:	Maintained
- F:	drivers/media/common/saa7146/
-@@ -6655,7 +6655,7 @@ F:	arch/ia64/sn/
- SOC-CAMERA V4L2 SUBSYSTEM
- M:	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
- L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	include/media/soc*
- F:	drivers/media/i2c/soc_camera/
-@@ -7690,7 +7690,7 @@ USB SN9C1xx DRIVER
- M:	Luca Risolia <luca.risolia@studio.unibo.it>
- L:	linux-usb@vger.kernel.org
- L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- W:	http://www.linux-projects.org
- S:	Maintained
- F:	Documentation/video4linux/sn9c102.txt
-@@ -7726,7 +7726,7 @@ USB VIDEO CLASS
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	linux-uvc-devel@lists.sourceforge.net (subscribers-only)
- L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- W:	http://www.ideasonboard.org/uvc/
- S:	Maintained
- F:	drivers/media/usb/uvc/
-@@ -7754,7 +7754,7 @@ USB ZR364XX DRIVER
- M:	Antoine Jacquet <royale@zerezo.com>
- L:	linux-usb@vger.kernel.org
- L:	linux-media@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+T:	git git://linuxtv.org/media_tree.git
- W:	http://royale.zerezo.com/zr364xx/
- S:	Maintained
- F:	Documentation/video4linux/zr364xx.txt
--- 
-1.7.11.7
+void v4l2_of_parse_mipi_csi2(const struct device_node *node,
+				struct mipi_csi2 *mipi_csi2)
+{
+	struct property *prop = of_find_property(node, "data-lanes", NULL);
+	u8 *out_data_lanes = mipi_csi_2->data_lanes;
+	int num_lanes;
+	const __be32 *val;
 
+	if (!prop)
+		return;
+
+	mipi_csi2->num_lanes = 0;
+
+	if (WARN (!prop->value, "Empty data-lanes property\n"))
+		return;
+
+	num_lanes = prop->length / sizeof(u32);
+	if (WARN_ON(num_lanes > ARRAY_SIZE(mipi_csi_2->data_lanes))
+		num_lanes = ARRAY_SIZE(mipi_csi_2->data_lanes);
+
+	val = prop->value;
+	while (num_lanes--)
+		*out_data_lanes++ = be32_to_cpup(val++);
+
+	mipi_csi2->num_lanes = num_lanes;
+}
+
+	v4l2_of_parse_mipi_csi2(node, &link->mipi_csi2);
+
+> +		data_lanes_present = true;
+> +	} else {
+> +		data_lanes_present = false;
+> +	}
+> +
+> +	if (of_get_property(node, "clock-noncontinuous",&size))
+> +		link->mbus_flags |= V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
+> +
+> +	if ((link->mipi_csi_2.clock_lane || data_lanes_present)&&
+> +	    !(link->mbus_flags&  V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK))
+> +		/* Default CSI-2: continuous clock */
+> +		link->mbus_flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
+> +}
+> +EXPORT_SYMBOL(v4l2_of_parse_link);
+> +
+...
+> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+> new file mode 100644
+> index 0000000..6fafedb
+> --- /dev/null
+> +++ b/include/media/v4l2-of.h
+> @@ -0,0 +1,62 @@
+> +/*
+> + * V4L2 OF binding parsing library
+> + *
+> + * Copyright (C) 2012 Renesas Electronics Corp.
+> + * Author: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of version 2 of the GNU General Public License as
+> + * published by the Free Software Foundation.
+> + */
+> +#ifndef _V4L2_OF_H
+> +#define _V4L2_OF_H
+> +
+> +#include<linux/list.h>
+> +#include<linux/types.h>
+> +
+> +#include<media/v4l2-mediabus.h>
+> +
+> +struct device_node;
+> +
+> +struct v4l2_of_link {
+> +	unsigned int port;
+> +	unsigned int addr;
+> +	struct list_head head;
+> +	const struct device_node *local_node;
+> +	const __be32 *remote;
+> +	unsigned int mbus_flags;
+> +	union {
+> +		struct {
+> +			unsigned char bus_width;
+> +			unsigned char data_shift;
+> +		} parallel;
+> +		struct {
+> +			unsigned char data_lanes[4];
+
+Some devices are interested only in absolute number of lanes.
+I can't see how we could specify the number of data lanes here.
+Shouldn't something like 'unsigned char num_data_lanes;' be
+added to this structure ?
+
+> +			unsigned char clock_lane;
+> +		} mipi_csi_2;
+> +	};
+> +};
+
+--
+
+Thanks,
+Sylwester
