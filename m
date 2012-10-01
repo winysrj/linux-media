@@ -1,77 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:34785 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751010Ab2JCIxQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 04:53:16 -0400
-Received: by ieak13 with SMTP id k13so16755007iea.19
-        for <linux-media@vger.kernel.org>; Wed, 03 Oct 2012 01:53:16 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <506BF93B.5010805@vmware.com>
-References: <20120928124148.14366.21063.stgit@patser.local>
-	<5065B0C9.7040209@canonical.com>
-	<5065FDAA.5080103@vmware.com>
-	<50696699.7020009@canonical.com>
-	<506A8DC8.5020706@vmware.com>
-	<20121002080341.GA5679@phenom.ffwll.local>
-	<506BED25.2060804@vmware.com>
-	<CAKMK7uGDaCCL-UT7JaArd3qrnMSc74r32fQ2dnouO3csRGvakg@mail.gmail.com>
-	<506BF93B.5010805@vmware.com>
-Date: Wed, 3 Oct 2012 10:53:16 +0200
-Message-ID: <CAKMK7uGg5pbReAUA+cKWk-jyS3YwkUaZXE7MTcv9w7sk-4a10A@mail.gmail.com>
-Subject: Re: [PATCH 1/5] dma-buf: remove fallback for !CONFIG_DMA_SHARED_BUFFER
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Thomas Hellstrom <thellstrom@vmware.com>
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, sumit.semwal@linaro.org,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.samsung.com ([203.254.224.33]:49364 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751695Ab2JAOKr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 10:10:47 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MB7008QDWPYFA20@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 01 Oct 2012 23:10:46 +0900 (KST)
+Received: from localhost.localdomain ([107.108.73.106])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MB7007SSWPA4JA0@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 01 Oct 2012 23:10:45 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, jtp.park@samsung.com,
+	janghyuck.kim@samsung.com, jaeryul.oh@samsung.com,
+	ch.naveen@samsung.com, arun.kk@samsung.com,
+	m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+	kmpark@infradead.org, joshi@samsung.com
+Subject: [PATCH v8 0/6] Update MFC v4l2 driver to support MFC6.x
+Date: Tue, 02 Oct 2012 03:34:53 +0530
+Message-id: <1349129099-6480-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 3, 2012 at 10:37 AM, Thomas Hellstrom <thellstrom@vmware.com> wrote:
->>> So if I understand you correctly, the reservation changes in TTM are
->>> motivated by the
->>> fact that otherwise, in the generic reservation code, lockdep can only be
->>> annotated for a trylock and not a waiting lock, when it *is* in fact a
->>> waiting lock.
->>>
->>> I'm completely unfamiliar with setting up lockdep annotations, but the
->>> only
->>> place a
->>> deadlock might occur is if the trylock fails and we do a
->>> wait_for_unreserve().
->>> Isn't it possible to annotate the call to wait_for_unreserve() just like
->>> an
->>> interruptible waiting lock
->>> (that is always interrupted, but at least any deadlock will be catched?).
->>
->> Hm, I have to admit that idea hasn't crossed my mind, but it's indeed
->> a hole in our current reservation lockdep annotations - since we're
->> blocking for the unreserve, other threads could potential block
->> waiting on us to release a lock we're holding already, resulting in a
->> deadlock.
->>
->> Since no other locking primitive that I know of has this
->> wait_for_unlocked interface, I don't know how we could map this in
->> lockdep. One idea is to grab the lock and release it again immediately
->> (only in the annotations, not the real lock ofc). But I need to check
->> the lockdep code to see whether that doesn't trip it up.
->
->
-> I imagine doing the same as mutex_lock_interruptible() does in the
-> interrupted path should work...
+The patchset adds support for MFCv6 firmware in s5p-mfc driver.
+The patches are rebased to the latest media-tree.
 
-It simply calls the unlock lockdep annotation function if it breaks
-out. So doing a lock/unlock cycle in wait_unreserve should do what we
-want.
+Changelog v8
+- Addressed comments by Sylwester Nawrocki
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg52942.html
 
-And to properly annotate the ttm reserve paths we could just add an
-unconditional wait_unreserve call at the beginning like you suggested
-(maybe with #ifdef CONFIG_PROVE_LOCKING in case ppl freak out about
-the added atomic read in the uncontended case).
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+Changelog v7
+- Removed unused macros from register files
+
+Changelog v6
+- Use s5p_mfc_hw_call macro to call all HW related ops and cmds
+- Rebased onto latest media-tree
+- Resending patches adding required v4l controls
+- Addressed review comments of Patch v5
+
+Changelog v5
+- Modified ops mechanism for macro based function call
+- Addressed all other review comments on Patch v4
+
+Changelog v4
+- Separate patch for callback based architecture.
+- Patches divided to enable incremental compilation.
+- Working MFCv6 encoder and decoder.
+- Addressed review comments given for v3 patchset.
+
+Changelog v3
+- Supports MFCv5 and v6 co-existence.
+- Tested for encoding & decoding in MFCv5.
+- Supports only decoding in MFCv6 now.
+- Can be compiled with kernel image and as module.
+- Config macros for MFC version selection removed.
+- All previous review comments addressed.
+
+Changelog v2
+- Addressed review comments received
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/45189
+
+Changelog v1
+- Fixed crash issue in Exynos4 SoCs running MFC 5.1
+- Encoder not tested
+
+Arun Kumar K (4):
+  [media] v4l: Add fourcc definitions for new formats
+  [media] v4l: Add control definitions for new H264 encoder features
+  [media] s5p-mfc: Update MFCv5 driver for callback based architecture
+  [media] s5p-mfc: Add MFC variant data to device context
+
+Jeongtae Park (2):
+  [media] s5p-mfc: MFCv6 register definitions
+  [media] s5p-mfc: Update MFC v4l2 driver to support MFC6.x
+
+ Documentation/DocBook/media/v4l/controls.xml     |  268 +++-
+ Documentation/DocBook/media/v4l/pixfmt-nv12m.xml |   17 +-
+ Documentation/DocBook/media/v4l/pixfmt.xml       |   10 +
+ drivers/media/platform/Kconfig                   |    4 +-
+ drivers/media/platform/s5p-mfc/Makefile          |    7 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h     |  409 +++++
+ drivers/media/platform/s5p-mfc/regs-mfc.h        |   41 +
+ drivers/media/platform/s5p-mfc/s5p_mfc.c         |  296 +++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c     |  109 +--
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd.h     |   15 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c  |  166 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.h  |   20 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c  |  156 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.h  |   20 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h  |  191 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c    |  194 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h    |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c     |  258 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.h     |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c     |  239 ++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.h     |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_intr.c    |   11 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.c     | 1386 +---------------
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h     |  133 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c  | 1763 +++++++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.h  |   85 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c  | 1956 ++++++++++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h  |   50 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_pm.c      |    3 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_shm.c     |   47 -
+ drivers/media/platform/s5p-mfc/s5p_mfc_shm.h     |   90 -
+ drivers/media/v4l2-core/v4l2-ctrls.c             |   42 +
+ include/linux/v4l2-controls.h                    |   41 +
+ include/linux/videodev2.h                        |    4 +
+ 34 files changed, 5941 insertions(+), 2093 deletions(-)
+ create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+ create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
+ create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.h
+ create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+ create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.h
+ create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+ create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.h
+ create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+ create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+ delete mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_shm.c
+ delete mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_shm.h
+
