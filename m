@@ -1,82 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from claranet-outbound-smtp05.uk.clara.net ([195.8.89.38]:57591 "EHLO
-	claranet-outbound-smtp05.uk.clara.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751388Ab2JSRHA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Oct 2012 13:07:00 -0400
-From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-To: intel-gfx@lists.freedesktop.org
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, bhelgaas@google.com,
-	linux-pci@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@infradead.org
-Subject: Re: [Intel-gfx] GPU RC6 breaks PCIe to PCI bridge connected to CPU PCIe slot on SandyBridge systems
-Date: Fri, 19 Oct 2012 18:06:41 +0100
-Message-ID: <2244094.6Dmq15viKH@f17simon>
-In-Reply-To: <2233216.7bl6QCud67@f17simon>
-References: <1704067.2NCOGYajHN@f17simon> <3896332.1fABn9rFR8@f17simon> <2233216.7bl6QCud67@f17simon>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart4058091.mohbLKXv11"; micalg="pgp-sha1"; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7Bit
+Received: from mx1.redhat.com ([209.132.183.28]:17670 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752894Ab2JATch (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Oct 2012 15:32:37 -0400
+Date: Mon, 1 Oct 2012 16:32:25 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v3.7] all the rest patches!
+Message-ID: <20121001163225.67ff5319@redhat.com>
+In-Reply-To: <506740E5.1030708@iki.fi>
+References: <5064CFEF.7040301@iki.fi>
+	<50657B0C.70706@iki.fi>
+	<506740E5.1030708@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Sat, 29 Sep 2012 21:41:41 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
---nextPart4058091.mohbLKXv11
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
-
-On Friday 19 October 2012 17:10:17 Simon Farnsworth wrote:
-> Mauro, Linux-Media
+> Updated, one new USB ID for RTL2832U.
 > 
-> I have an issue where an SAA7134-based TV capture card connected via a PCIe to
-> PCI bridge chip works when the GPU is kept out of RC6 state, but sometimes
-> "skips" updating lines of the capture when the GPU is in RC6. We've confirmed
-> that a CX23418 based chip doesn't have the problem, so the question is whether
-> the SAA7134 and the saa7134 driver are at fault, or whether it's the PCIe bus.
+> The following changes since commit 8928b6d1568eb9104cc9e2e6627d7086437b2fb3:
 > 
-> This manifests as a regression, as I had no problems with kernel 3.3 (which
-> never enabled RC6 on the Intel GPU), but I do have problems with 3.5 and with
-> current Linus git master. I'm happy to try anything, 
+>    [media] media: mx2_camera: use managed functions to clean up code 
+> (2012-09-27 15:56:47 -0300)
 > 
-> I've attached lspci -vvxxxxx output (suitable for feeding to lspci -F) for
-> when the corruption is present (lspci.faulty) and when it's not
-> (lspci.working). The speculation is that the SAA7134 is somehow more
-> sensitive to the changes in timings that RC6 introduces than the CX23418, and
-> that someone who understands the saa7134 driver might be able to make it less
-> sensitive.
+> are available in the git repository at:
 > 
-And timings are definitely the problem; I have a userspace provided pm_qos
-request asking for 0 exit latency, but I can see CPU cores entering C6. I'll
-take this problem to an appropriate list.
+>    git://linuxtv.org/anttip/media_tree.git for_v3.7_mauro-3
+> 
+> for you to fetch changes up to bf342b50ac6c5801a95d6a089086587446c8d6cf:
+> 
+>    rtl28xxu: [0ccd:00d3] TerraTec Cinergy T Stick RC (Rev. 3) 
+> (2012-09-29 21:39:26 +0300)
+> 
+> ----------------------------------------------------------------
+> Antti Palosaari (5):
+>        em28xx: implement FE set_lna() callback
+>        cxd2820r: use static GPIO config when GPIOLIB is undefined
+>        em28xx: do not set PCTV 290e LNA handler if fe attach fail
+>        em28xx: PCTV 520e workaround for DRX-K fw loading
 
-There is still be a bug in the SAA7134 driver, as the card clearly wants a
-pm_qos request when streaming to stop the DMA latency becoming too high; this
-doesn't directly affect me, as my userspace always requests minimal DMA
-latency anyway, so consider this message as just closing down the thread for
-now, and as a marker for the future (if people see such corruption, the
-saa7134 driver needs a pm_qos request when streaming that isn't currently
-present).
--- 
-Simon Farnsworth
-Software Engineer
-ONELAN Ltd
-http://www.onelan.com
+All applied except for the above.
 
---nextPart4058091.mohbLKXv11
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
+As I said before: sleeping for 2 seconds doesn't give any warranty that
+the firmware got loaded (and I know one system where firmware load generally
+takes more than 2 seconds to start - probably because the root fs is using
+nfs, and the machine uses an Atom single core processor).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
+As I've explained, if the driver needs to wait for a firmware load, it
+should use something that will actually wait for firmware load to complete,
+instead of just sleeping in the hope that the amount of sleeping time would
+be enough.
 
-iQEcBAABAgAGBQJQgYimAAoJEIKsye9/dtRWos4H/jaQFkVCaajyMsUJvu7Doe3/
-6XxuEdETC/4YX4SCzbTfRUQ7NaKHP/0H0YxeRQdsFnU640QLApQ8RrRKBZ5EUD2Y
-xG36GKSWyGxJ9MLnSEDFy6z3xL8qRkq9oTASkDkKshP/oZsZDwIooqEUy/QhX3Sb
-jUxumcyNsfbrcApFhNOkzDavl7n/KdjB0NuwZh7+ZUnljYHqse9dGpsrovPPoJzA
-KfvXzzI672IPHEGPtpkbUP3/eZrcJ71Te+JXeWf2COx39DtuWCSZHu3+IpT5dYEk
-bx1CuYA+kw6WxPBhOC3hk9Dptryj0JbBCtAdLvT7xrhPw1sS+dUsEvz/LRxr3m0=
-=QFbN
------END PGP SIGNATURE-----
-
---nextPart4058091.mohbLKXv11--
-
+Regards,
+Mauro
