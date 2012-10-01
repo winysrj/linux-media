@@ -1,45 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:64089 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810Ab2JHMcs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 08:32:48 -0400
-Received: by mail-qc0-f174.google.com with SMTP id d3so2796008qch.19
-        for <linux-media@vger.kernel.org>; Mon, 08 Oct 2012 05:32:48 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 8 Oct 2012 20:32:48 +0800
-Message-ID: <CAPgLHd-0c4D0cSVQBZA=bbaDvcu4yHBj_2DPPGrQMKQZxxGqBg@mail.gmail.com>
-Subject: [PATCH] [media] s5p-tv: remove unused including <linux/version.h>
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: kyungmin.park@samsung.com, t.stanislaws@samsung.com,
-	mchehab@infradead.org
-Cc: yongjun_wei@trendmicro.com.cn,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:60185 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750822Ab2JAHeE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 03:34:04 -0400
+Received: by mail-wi0-f172.google.com with SMTP id hq12so2308320wib.1
+        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2012 00:34:02 -0700 (PDT)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: linux-media@vger.kernel.org
+Subject: [media/usb] Trivial fix for 3.7 if not too late
+Date: Mon,  1 Oct 2012 09:33:52 +0200
+Message-Id: <1349076833-1864-1-git-send-email-pboettcher@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Hi Mauro,
 
-Remove including <linux/version.h> that don't need it.
 
-dpatch engine is used to auto generate this patch.
-(https://github.com/weiyj/dpatch)
+If it is not too late could you please incorporate the following patch to 3.7.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/media/platform/s5p-tv/mixer_video.c | 1 -
- 1 file changed, 1 deletion(-)
+It fixed the autoloading of the technisat-ubs2-module when the device is actually detected.
 
-diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
-index 0c1cd89..9b52f3a 100644
---- a/drivers/media/platform/s5p-tv/mixer_video.c
-+++ b/drivers/media/platform/s5p-tv/mixer_video.c
-@@ -19,7 +19,6 @@
- #include <linux/videodev2.h>
- #include <linux/mm.h>
- #include <linux/module.h>
--#include <linux/version.h>
- #include <linux/timer.h>
- #include <media/videobuf2-dma-contig.h>
- 
+- [PATCH] [media]: add MODULE_DEVICE_TABLE to technisat-usb2
 
+best regards,
+
+--
+Patrick.
+-
