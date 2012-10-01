@@ -1,66 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35863 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754467Ab2JCAil (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Oct 2012 20:38:41 -0400
-Message-ID: <506B88FB.1090707@iki.fi>
-Date: Wed, 03 Oct 2012 03:38:19 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49530 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752429Ab2JAJQQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Oct 2012 05:16:16 -0400
+Date: Mon, 1 Oct 2012 12:16:10 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Prabhakar <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LDOC <linux-doc@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	VGER <linux-kernel@vger.kernel.org>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Landley <rob@landley.net>
+Subject: Re: [PATCH v4] media: v4l2-ctrls: add control for test pattern
+Message-ID: <20121001091548.GB14107@valkosipuli.retiisi.org.uk>
+References: <1348553345-14296-1-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?UsOpbWkgQ2FyZG9uYQ==?= <remi.cardona@smartjog.com>
-CC: linux-media@vger.kernel.org, liplianin@me.by
-Subject: Re: [PATCH 6/7] [media] ds3000: add module parameter to force firmware
- upload
-References: <1348837172-11784-1-git-send-email-remi.cardona@smartjog.com> <1348837172-11784-7-git-send-email-remi.cardona@smartjog.com>
-In-Reply-To: <1348837172-11784-7-git-send-email-remi.cardona@smartjog.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <1348553345-14296-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/28/2012 03:59 PM, Rémi Cardona wrote:
-> Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
+Hi Prabhakar,
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-
-
+Prabhakar wrote:
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+>
+> add V4L2_CID_TEST_PATTERN of type menu, which determines
+> the internal test pattern selected by the device.
+>
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Cc: Hans de Goede <hdegoede@redhat.com>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Rob Landley <rob@landley.net>
 > ---
->   drivers/media/dvb-frontends/ds3000.c |    6 +++++-
->   1 file changed, 5 insertions(+), 1 deletion(-)
+>   This patches has one checkpatch warning for line over
+>   80 characters altough it can be avoided I have kept it
+>   for consistency.
 >
-> diff --git a/drivers/media/dvb-frontends/ds3000.c b/drivers/media/dvb-frontends/ds3000.c
-> index 59184a8..c66d731 100644
-> --- a/drivers/media/dvb-frontends/ds3000.c
-> +++ b/drivers/media/dvb-frontends/ds3000.c
-> @@ -30,6 +30,7 @@
->   #include "ds3000.h"
+>   Changes for v4:
+>   1: Fixed some grammar/style issues, pointed by Hans.
 >
->   static int debug;
-> +static int force_fw_upload;
+>   Changes for v3:
+>   1: Removed the menu for test pattern, pointed by Sakari.
 >
->   #define dprintk(args...) \
->   	do { \
-> @@ -396,7 +397,7 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
->   	dprintk("%s()\n", __func__);
+>   Changes for v2:
+>   1: Included display devices in the description for test pattern
+>     as pointed by Hans.
+>   2: In the menu replaced 'Test Pattern Disabled' by 'Disabled' as
+>     pointed by Sylwester.
+>   3: Removed the test patterns from menu as the are hardware specific
+>     as pointed by Sakari.
 >
->   	ret = ds3000_readreg(state, 0xb2);
-> -	if (ret == 0) {
-> +	if (ret == 0 && force_fw_upload == 0) {
->   		/* Firmware already uploaded, skipping */
->   		return ret;
->   	} else if (ret < 0) {
-> @@ -1307,6 +1308,9 @@ static struct dvb_frontend_ops ds3000_ops = {
->   module_param(debug, int, 0644);
->   MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
+>   Documentation/DocBook/media/v4l/controls.xml |   10 ++++++++++
+>   drivers/media/v4l2-core/v4l2-ctrls.c         |    2 ++
+>   include/linux/videodev2.h                    |    1 +
+>   3 files changed, 13 insertions(+), 0 deletions(-)
 >
-> +module_param(force_fw_upload, int, 0644);
-> +MODULE_PARM_DESC(force_fw_upload, "Force firmware upload (default:0)");
-> +
->   MODULE_DESCRIPTION("DVB Frontend module for Montage Technology "
->   			"DS3000/TS2020 hardware");
->   MODULE_AUTHOR("Konstantin Dimitrov");
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> index f0fb08d..5450d31 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -4313,6 +4313,16 @@ interface and may change in the future.</para>
+>   	      </tbody>
+>   	    </entrytbl>
+>   	  </row>
+> +	  <row>
+> +	    <entry spanname="id"><constant>V4L2_CID_TEST_PATTERN</constant></entry>
+> +	    <entry>menu</entry>
+> +	  </row>
+> +	  <row id="v4l2-test-pattern">
+> +	    <entry spanname="descr"> Some capture/display/sensor devices have
+> +	    the capability to generate test pattern images. These hardware
+> +	    specific test patterns can be used to test if a device is working
+> +	    properly.</entry>
+> +	  </row>
+>   	<row><entry></entry></row>
+>   	</tbody>
+>         </tgroup>
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 8f2f40b..41b7732 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -740,6 +740,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>   	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
+>   	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
+>   	case V4L2_CID_DPCM_PREDICTOR:		return "DPCM Predictor";
+> +	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
+>
+>   	default:
+>   		return NULL;
+> @@ -841,6 +842,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>   	case V4L2_CID_EXPOSURE_METERING:
+>   	case V4L2_CID_SCENE_MODE:
+>   	case V4L2_CID_DPCM_PREDICTOR:
+> +	case V4L2_CID_TEST_PATTERN:
+>   		*type = V4L2_CTRL_TYPE_MENU;
+>   		break;
+>   	case V4L2_CID_LINK_FREQ:
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index ca9fb78..7014c0b 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -2005,6 +2005,7 @@ enum v4l2_dpcm_predictor {
+>   	V4L2_DPCM_PREDICTOR_SIMPLE	= 0,
+>   	V4L2_DPCM_PREDICTOR_ADVANCED	= 1,
+>   };
+> +#define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
+>
+>   /*
+>    *	T U N I N G
 >
 
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+I'd suggest to rebase this under the DPCM predictor patch. As the choice of
+the predictor affects the resulting format, it has to be the same on the
+transmitter and the receiver, and also affects the in-memory pixel format.
+
+I'll prepare an RFC on the topic shortly.
+
+Kind regards,
 
 -- 
-http://palosaari.fi/
+Sakari Ailus
+sakari.ailus@iki.fi
