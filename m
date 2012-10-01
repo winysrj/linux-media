@@ -1,167 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:58402 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754057Ab2JMUId (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Oct 2012 16:08:33 -0400
-Received: by mail-ee0-f46.google.com with SMTP id b15so2414842eek.19
-        for <linux-media@vger.kernel.org>; Sat, 13 Oct 2012 13:08:32 -0700 (PDT)
-Message-ID: <5079CA3D.2030906@gmail.com>
-Date: Sat, 13 Oct 2012 22:08:29 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [RFC] Processing context in the V4L2 subdev and V4L2 controls
- API ?
-References: <50588E0E.9000307@samsung.com> <201209211426.17235.hverkuil@xs4all.nl>
-In-Reply-To: <201209211426.17235.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:61211 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752894Ab2JATje (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Oct 2012 15:39:34 -0400
+Date: Mon, 1 Oct 2012 16:39:16 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Martin Burnicki <martin.burnicki@burnicki.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Current media_build doesn't succeed building on kernel 3.1.10
+Message-ID: <20121001163916.1ec33cb2@redhat.com>
+In-Reply-To: <201210012131.13441.martin.burnicki@burnicki.net>
+References: <201209302052.42723.martin.burnicki@burnicki.net>
+	<20121001110241.2f5ab052@redhat.com>
+	<201210012131.13441.martin.burnicki@burnicki.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Mon, 1 Oct 2012 21:31:12 +0200
+Martin Burnicki <martin.burnicki@burnicki.net> escreveu:
 
-On 09/21/2012 02:26 PM, Hans Verkuil wrote:
-> On Tue September 18 2012 17:06:54 Sylwester Nawrocki wrote:
->> Hi All,
->>
->> I'm trying to fulfil following requirements with V4L2 API that are specific
->> to most of Samsung camera sensors with embedded SoC ISP and also for local
->> SoC camera ISPs:
->>
->>   - separate pixel format and pixel resolution needs to be configured
->>     in a device for camera preview and capture;
->>
->>   - there is a need to set capture or preview mode in a device explicitly
->>     as it makes various adjustments (in firmware) in each operation mode
->>     and controls external devices accordingly (e.g. camera Flash);
->>
->>   - some devices have more than two use case specific contexts that a user
->>     needs to choose from, e.g. video preview, video capture, still preview,
->>     still capture; for each of these modes there are separate settings,
->>     especially pixel resolution and others corresponding to existing v4l2
->>     controls;
->>
->>   - some devices can have two processing contexts enabled simultaneously,
->>     e.g. a sensor emitting YUYV and JPEG streams simultaneously (please see
->>     discussion [1]).
->>
->> This makes me considering making the v4l2 subdev (and maybe v4l2 controls)
->> API processing (capture) context aware.
->>
->> If I remember correctly introducing processing context, as the per file
->> handle device contexts in case of mem-to-mem devices was considered bad
->> idea in past discussions.
+> Hi,
 > 
-> I don't remember this. Controls can already be per-filehandle for m2m devices,
-> so for m2m devices I see no problem. For other devices it is a different matter,
-> though. The current V4L2 API does not allow per-filehandle contexts there.
-
-OK, if nothing else the per file handle contexts are painful in case of DMABUF
-sharing between multiple processes. I remember Laurent mentioning some
-inconveniences with omap3isp which uses per-file-handle contexts at the capture
-interface and a need to use VIDIOC_PREPARE_BUF/VIDIOC_CREATE_BUFS there instead.
-
->> But this was more about v4ll2 video nodes.
->>
->> And I was considering adding context only to v4l2 subdev API, and possibly
->> to the (extended) control API. The idea is to extend the subdev (and
->> controls ?) ioctls so it is possible to preconfigure sets of parameters
->> on subdevs, while V4L2 video node parameters would be switched "manually"
->> by applications to match a selected subdevs contest. There would also be
->> needed an API to select specific context (e.g. a control), or maybe
->> multiple contexts like in case of a sensor from discussion [1].
+> Mauro Carvalho Chehab wrote:
+> > Em Sun, 30 Sep 2012 20:52:42 +0200
+> >
+> > Martin Burnicki <martin.burnicki@burnicki.net> escreveu:
+> > > Hi all,
+> > >
+> > > is anybody out there who can help me with the media_build system? I'm
+> > > trying to build the current modules on an openSUSE 12.1 system (kernel
+> > > 3.1.10, x86_64), but I'm getting compilation errors because the s5k4ecgx
+> > > driver uses function devm_regulator_bulk_get() which AFAICS has been
+> > > introduced in kernel 3.4 only. When I run the ./build script compilation
+> > > stops with these messages:
+> > >
+> > >  CC [M]  /root/projects/media_build/v4l/s5k4ecgx.o
+> > > media_build/v4l/s5k4ecgx.c: In function 's5k4ecgx_load_firmware':
+> > > media_build/v4l/s5k4ecgx.c:346:2: warning: format '%d' expects argument
+> > > of \ type 'int', but argument 4 has type 'size_t' [-Wformat]
+> > > media_build/v4l/s5k4ecgx.c: In function 's5k4ecgx_probe':
+> > > media_build/v4l/s5k4ecgx.c:977:2: error: implicit declaration of \
+> > >     function 'devm_regulator_bulk_get'
+> > > [-Werror=implicit-function-declaration] cc1: some warnings being treated
+> > > as errors
+> >
+> > Those are warnings. It wil compile if you disable
+> > -Werror=implicit-function-declaration.
 > 
-> We discussed the context idea before. The problem is how to implement it
-> in a way that still keeps things from becoming overly complex.
+> Hm, yes. Even though the module would finally not load due to "missing 
+> symbols" this won't matter since I don't need this module. So I suppose I 
+> need something like
 > 
-> What I do not want to see is an API with large structs that contain the whole
-> context. That's a nightmare to maintain in the long run. So you want to be
-> able to use the existing API as much as possible and build up the context
-> bit by bit.
+> EXTRA_CFLAGS=-Wno-error=implicit-function-declaration
 > 
-> I don't think using a control to select contexts is a good idea. I think this
-> warrants one or more new ioctls.
-
-OK, it probably needs to be looked at from a wider perspective.
-
-> What contexts would you need? What context operations do you need?
-
-In our case these are mainly multiple set of parameters configuring a camera 
-ISP. So basically all subdev ioctls are involved here - format, selection, 
-frame interval. In simplest form the context could contain only image format 
-and a specific name tag assigned to it. The problem is mainly an ISP which 
-involves capture "scenarios" coded in firmware. It might sound rather bad, 
-but it is similar to the integrated sensor and ISPs, where you can set e.g. 
-different resolution for camera preview and still capture and switch between 
-them through some register setting.
-
-So when there are multiple subdevs in the pipeline some of them could be just 
-reconfigured as usual, but the ISP subdev needs to have it's context configured 
-and switched explicitly. I can imagine one would want a context spanning among
-multiple subdevs.
-
-> I would probably define a default or baseline context that all drivers have,
-> then create a CLONE_CONTEXT ioctl (cloning an existing context into a new one)
-> and an EDIT_CONTEXT ioctl (to edit an existing context) and any subsequent
-> ioctls will apply to that context. After the FINISH_CONTEXT ioctl the context
-> is finalized and any subsequent ioctls will apply again to the baseline context.
-> With APPLY_CONTEXT you apply a context to the baseline context and activate it.
+> to let this be treated like a warning and thus the build process will 
+> continue. However, I'm trying to use the ./build script from
 > 
-> Whether this context information is stored in the file handle (making it fh
-> specific) or globally is an interesting question to which I don't have an
-> answer.
+> git clone git://linuxtv.org/media_build.git
 > 
-> This is just a quick brainstorm, but I think something like this might be
-> feasible.
-
-It sounds like it _might_ work. I'm only concerned about using something
-like this with pipelines containing multiple subdevs. Let's say 4..5 subdevs
-where each one needs to have proper context activated in order for the whole
-pipeline to have consistent configuration. For /dev/video your approach makes 
-a lot of sense.
-
-I don't think storing the context in file handle would be sensible. These
-would be device contexts, would be cached in device's firmware or memory area
-shared between the device and a host CPU. So this isn't something that one
-can clone freely, for instance one context would have different set of (v4l2) 
-controls than the other. We would need to enumerate existing contexts and 
-be able to edit one when the other is e.g. in the streaming state.
-
-APPLY_CONTEXT would need to take a parameter saying which context is to be
-applied/selected. Similar with EDIT_CONTEXT. Or was your idea completely
-different ?
-
->> I've seen various hacks in some v4l2 drivers trying to fulfil above
->> requirements, e.g. abusing struct v4l2_mbus_framefmt::colorspace field
->> to select between capture/preview in a device or using 32-bit integer
->> control where upper 16-bits are used for pixel width and lower 16 for
->> pixel height.
+> which seems to be best practice to get new modules added to an older kernel. 
+> Can you or someone else tell me how to pass these EXTRA_CFLAGS to the ./build 
+> script?
 > 
-> Where is that? And what do you mean with pixel width and height? It this
-> used to define a pixel aspect ratio? Is this really related to context?
+> I've tried several ways without success.
 
-Sorry for my bad wording, I should have said "image width and image height
-in pixels". The above examples can be found in various drivers in Android
-kernels [1]. One example is function s5c73m3_s_fmt() at [2] (a copy of
-Samsung Galaxy S III GT-I9300 source code available at [3]).
- 
-[1] https://android.googlesource.com/
-[2] https://github.com/snawrocki/linux_galaxy/blob/master/drivers/media/video/s5c73m3.c
-[3] http://opensource.samsung.com
+It likely makes sense to modify the generated Makefile.media to disable the
+"warnings being treated as errors" behavior that seems to be default on newer
+distros.
 
---
+Probably, all it needs is to modify this script:
+	v4l/scripts/make_makefile.pl 
 
-Regards,
-Sylwester
+I'm very busy this week (merge window upstream). So, it is unlikely that
+I'll find time to work on that, but feel free to do the changes and submit
+us a patch for it.
+
+Thanks!
+Mauro
