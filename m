@@ -1,77 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:32603 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753971Ab2JBOaX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 10:30:23 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MB900EV3SA0IC00@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:30:22 +0900 (KST)
-Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MB9005A7S65K790@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:30:22 +0900 (KST)
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
-	k.debski@samsung.com
-Subject: [PATCHv9 21/25] v4l: vb2-dma-contig: add reference counting for a
- device from allocator context
-Date: Tue, 02 Oct 2012 16:27:32 +0200
-Message-id: <1349188056-4886-22-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
-References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39934 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753119Ab2JAKZB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 06:25:01 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Enric =?ISO-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: omap3isp: wrong image after resizer with mt9v034 sensor
+Date: Mon, 01 Oct 2012 12:25:40 +0200
+Message-ID: <2377629.Lqpv1qCszQ@avalon>
+In-Reply-To: <CAFqH_51khWJ6RBv707J8AC9YrMhzwqg5QPuo52EYVnBOmTRpFA@mail.gmail.com>
+References: <CAFqH_53EY7BcMjn+fy=KfAhSU9Ut1pcLUyrmu2kiHznrBUB2XQ@mail.gmail.com> <1378805.eK71Lgs3H4@avalon> <CAFqH_51khWJ6RBv707J8AC9YrMhzwqg5QPuo52EYVnBOmTRpFA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds taking reference to the device for MMAP buffers.
+Hi Enric,
 
-Such buffers, may be exported using DMABUF mechanism. If the driver that
-created a queue is unloaded then the queue is released, the device might be
-released too.  However, buffers cannot be released if they are referenced by
-DMABUF descriptor(s). The device pointer kept in a buffer must be valid for the
-whole buffer's lifetime. Therefore MMAP buffers should take a reference to the
-device to avoid risk of dangling pointers.
+On Friday 28 September 2012 17:32:36 Enric Balletbò i Serra wrote:
+> 2012/9/28 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> > On Friday 28 September 2012 10:21:56 Enric Balletbò i Serra wrote:
+> >> 2012/9/28 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> >> > On Thursday 27 September 2012 18:05:56 Enric Balletbò i Serra wrote:
+> >> >> 2012/9/27 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> >> >> > On Wednesday 26 September 2012 16:15:35 Enric Balletbò i Serra 
+wrote:
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
----
- drivers/media/video/videobuf2-dma-contig.c |    5 +++++
- 1 file changed, 5 insertions(+)
+[snip]
 
-diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-index b138b5c..b4d287a 100644
---- a/drivers/media/video/videobuf2-dma-contig.c
-+++ b/drivers/media/video/videobuf2-dma-contig.c
-@@ -148,6 +148,7 @@ static void vb2_dc_put(void *buf_priv)
- 		kfree(buf->sgt_base);
- 	}
- 	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
-+	put_device(buf->dev);
- 	kfree(buf);
- }
- 
-@@ -161,9 +162,13 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
- 	if (!buf)
- 		return ERR_PTR(-ENOMEM);
- 
-+	/* prevent the device from release while the buffer is exported */
-+	get_device(dev);
-+
- 	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, GFP_KERNEL);
- 	if (!buf->vaddr) {
- 		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
-+		put_device(dev);
- 		kfree(buf);
- 		return ERR_PTR(-ENOMEM);
- 	}
+> >> >> >> Nonetheless, I changed the driver to configure for BGGR pattern.
+> >> >> >> Using the Sensor->CCDC->Preview->Resizer pipeline I captured the
+> >> >> >> data with yavta and converted using raw2rgbpnm program.
+> >> >> >> 
+> >> >> >>     ./raw2rgbpnm -s 752x480 -f UYVY img-000001.uyvy img-000001.pnm
+> >> >> >> 
+> >> >> >> and the result is
+> >> >> >> 
+> >> >> >>     http://downloads.isee.biz/pub/files/patterns/img-000002.pnm
+> >> >> >>     http://downloads.isee.biz/pub/files/patterns/img-000002.bin
+> >> >> >> 
+> >> >> >> The image looks better than older, not perfect, but better. The
+> >> >> >> image is only a bit yellowish. Could be this a hardware issue ? We
+> >> >> >> are close to ...
+> >> >> > 
+> >> >> > It's like a white balance issue. The OMAP3 ISP hardware doesn't
+> >> >> > perform automatic white balance, you will need to implement an AWB
+> >> >> > algorithm in software. You can have a look at the omap3-isp-live
+> >> >> > project for sample code (http://git.ideasonboard.org/omap3-isp-
+> >> >> > live.git).
+> >> 
+> >> So you think the sensor is set well now ?
+> > 
+> > I think so, yes.
+> > 
+> >> The hardware can produce this issue ? Do you know if this algorithm is
+> >> implemented in gstreamer ?
+> > 
+> > I don't know, but if it is the implementation will be software-based, and
+> > will thus be slow. The OMAP3 ISP can compute AWB-related statistics in
+> > hardware and can apply per-color gains to the image. The only software
+> > you then need will retrieve the statistics, compute the gains from them
+> > and apply the gains. That's what the sample code in omap3-isp-live does.
+> > This should at some point be integrated as a libv4l plugin.
+> 
+> So I can use your software to test if it's a white balance issue ?
+
+Yes, but that's really a test application, it might not work out of the box.
+
+> (as the omap3-isp-live has this support if I understood). I'll try this,
+> do you can provide some tips on how use the omap3-isp-live ?
+
+Just compile and run it :-)
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
