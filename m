@@ -1,64 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:62989 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756958Ab2JWJtb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 05:49:31 -0400
-Received: by mail-la0-f46.google.com with SMTP id h6so2201308lag.19
-        for <linux-media@vger.kernel.org>; Tue, 23 Oct 2012 02:49:30 -0700 (PDT)
-Message-ID: <508667E3.4000509@mvista.com>
-Date: Tue, 23 Oct 2012 13:48:19 +0400
-From: Sergei Shtylyov <sshtylyov@mvista.com>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:63705 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751169Ab2JAOFP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 10:05:15 -0400
+Received: by ieak13 with SMTP id k13so12141312iea.19
+        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2012 07:05:15 -0700 (PDT)
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: LAK <linux-arm-kernel@lists.infradead.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RESEND] ARM: dm365: replace V4L2_OUT_CAP_CUSTOM_TIMINGS
- with V4L2_OUT_CAP_DV_TIMINGS
-References: <1350907972-11256-1-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1350907972-11256-1-git-send-email-prabhakar.lad@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <50699C23.5000203@redhat.com>
+References: <5034991F.5040403@samsung.com>
+	<506967F1.7040308@samsung.com>
+	<50698393.3080908@iki.fi>
+	<50699C23.5000203@redhat.com>
+Date: Mon, 1 Oct 2012 11:05:15 -0300
+Message-ID: <CALF0-+W=xRO0G9gz1oSGyDbL0JHTYmPUU11qCpaK7BXJwGFBYw@mail.gmail.com>
+Subject: Re: [GIT PATCHES FOR v3.6] Samsung media driver fixes
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Mauro and folks,
 
-On 22-10-2012 16:12, Prabhakar Lad wrote:
-
-> From: Lad, Prabhakar <prabhakar.lad@ti.com>
-
-> This patch replaces V4L2_OUT_CAP_CUSTOM_TIMINGS macro with
-> V4L2_OUT_CAP_DV_TIMINGS. As V4L2_OUT_CAP_CUSTOM_TIMINGS is being phased
-> out.
-
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Sekhar Nori <nsekhar@ti.com>
-> ---
->   Resending the patch since, it didn't reach the DLOS mailing list.
-
->   This patch is based on the following patch series,
->   ARM: davinci: dm365 EVM: add support for VPBE display
->   (https://patchwork.kernel.org/patch/1295071/)
-
->   arch/arm/mach-davinci/board-dm365-evm.c |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
+On Mon, Oct 1, 2012 at 10:35 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Hi Anti/Sylwester,
 >
-> diff --git a/arch/arm/mach-davinci/board-dm365-evm.c b/arch/arm/mach-davinci/board-dm365-evm.c
-> index 2924d61..771abb5 100644
-> --- a/arch/arm/mach-davinci/board-dm365-evm.c
-> +++ b/arch/arm/mach-davinci/board-dm365-evm.c
-> @@ -514,7 +514,7 @@ static struct vpbe_output dm365evm_vpbe_outputs[] = {
->   			.index		= 1,
->   			.name		= "Component",
->   			.type		= V4L2_OUTPUT_TYPE_ANALOG,
-> -			.capabilities	= V4L2_OUT_CAP_CUSTOM_TIMINGS,
-> +			.capabilities	=  V4L2_OUT_CAP_DV_TIMINGS,
+> Em 01-10-2012 08:50, Antti Palosaari escreveu:
+>> Hello
+>> I have had similar problems too. We need badly find out better procedures for patch handling. Something like parches are updated about once per week to the master. I have found I lose quite much time rebasing and res-sending stuff all the time.
+>>
+>> What I propose:
+>> 1) module maintainers sends all patches to the ML with some tag marking it will pull requested later. I used lately [PATCH RFC]
+>> 2) module maintainer will pick up all the "random" patches and pull request those. There is no way to mark patch as handled in patchwork....
+>> 3) PULL request are handled more often, like during one week or maximum two
+>
+> Yes, for sure we need to improve the workflow. After the return from KS,
+> I found ~400 patches/pull requests on my queue. I'm working hard to get rid
+> of that backlog, but still there are ~270 patches/pull requests on my
+> queue today.
+>
+> The thing is that patches come on a high rate at the ML, and there's no
+> obvious way to discover what patches are just the normal patch review
+> discussions (e. g. RFC) and what are real patches.
+>
+> To make things worse, we have nowadays 494 drivers. A very few of those
+> have an entry at MAINTAINERS, or a maintainer that care enough about
+> his drivers to handle patches sent to the mailing list (even the trivial
+> ones).
+>
+> Due to the missing MAINTAINERS entries, all patches go through the ML directly,
+> instead of going through the driver maintainer.
+>
+> So, I need to manually review every single email that looks to have a patch
+> inside, typically forwarding it to the driver maintainer, when it exists,
+> handling them myself otherwise.
+>
+> I'm counting with our discussions at the Barcelona's mini-summit in order
+> to be able to get fresh ideas and discuss some alternatives to improve
+> the patch workflow, but there are several things that could be done already,
+> like the ones you've proposed, and keeping the MAINTAINERS file updated.
+>
 
-    Why this extra space after '='?
+Perhaps I'm missing something but I don't think there's an obvious
+solution for this,
+unless more maintainers are willing to start providing reviews / tests
+/ acks / etc.
+for patches that arrive.
 
-WBR, Sergei
+Seems to me media/ has become a truly large subsystem,
+though I'm not sure how does it compare to others subsystems.
+Has anyone thought about breaking media/ down into smaller sub-subsystems,
+with respective sub-maintainer?
 
+I'm not really sure if this should improve or worsen Mauro's rate.
+
+Just my two cents,
+Ezequiel.
