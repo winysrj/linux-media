@@ -1,80 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:55224 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757547Ab2JKLVv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Oct 2012 07:21:51 -0400
-Message-ID: <1349954506.3611.9.camel@localhost>
-Subject: Re: [RFC 0/4] drm: add raw monotonic timestamp support
-From: Imre Deak <imre.deak@intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: dri-devel@lists.freedesktop.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Chris Wilson <chris@chris-wilson.co.uk>,
-	Kristian =?ISO-8859-1?Q?H=F8gsberg?= <krh@bitplanet.net>,
-	intel-gfx@lists.freedesktop.org, linux-media@vger.kernel.org,
-	Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
-Date: Thu, 11 Oct 2012 14:21:46 +0300
-In-Reply-To: <2461348.VAb9R0RWhW@avalon>
-References: <1349444222-22274-1-git-send-email-imre.deak@intel.com>
-	 <2461348.VAb9R0RWhW@avalon>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:44269 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753328Ab2JAQ5H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 12:57:07 -0400
+Received: by lbon3 with SMTP id n3so4249179lbo.19
+        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2012 09:57:06 -0700 (PDT)
+Message-ID: <5069CB5A.6060007@gmail.com>
+Date: Mon, 01 Oct 2012 18:56:58 +0200
+From: Anders Thomson <aeriksson2@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: tda8290 regression fix
+References: <503F4E19.1050700@gmail.com> <20120915133417.27cb82a1@redhat.com> <5054BD53.7060109@gmail.com> <20120915145834.0b763f73@redhat.com> <5054C521.1090200@gmail.com> <20120915192530.74aedaa6@redhat.com> <50559241.6070408@gmail.com> <505844A0.30001@redhat.com> <5059C242.3010902@gmail.com> <5059F68F.4050009@redhat.com> <505A1C16.40507@gmail.com> <CAGncdOae+VoAAUWz3x84zUA-TCMeMmNONf_ktNFd1p7c-o5H_A@mail.gmail.com> <505C7E64.4040507@redhat.com> <8ed8c988-fa8c-41fc-9f33-cccdceb1b232@email.android.com> <505EF455.9080604@redhat.com> <505F4CBC.1000201@gmail.com> <505F5760.2030602@gmail.com> <505F79CC.9080005@gmail.com>
+In-Reply-To: <505F79CC.9080005@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 2012-09-23 23:06, Anders Thomson wrote:
+> Awfully sorry about this. After having had the familty sit in and check
+> the differences,
+> I must say that the patch does not fix the issue. This time around I
+> have x11grabs with
+> ffmpeg to show if you want.
+>
+> I'll be away from the card until the end of the coming week. Then, I'll
+> bring out the multimeter...
+>
+>
+So, I got the multimeter working over the weekend and pretty much no 
+results there. :-(
+I tested vanilla 3.5.3, w/ my patch, w/ your "tuner" patch. All three 
+gave a (DC) reading of 0 to 30 mV (yes milli-). Given that the wiki page 
+you referred to spoke of a few volts, I guess this is just noise. Coming 
+to think of it, shouldn't any signal amplification done work on HF, so 
+I'd have to measure the AC on the carrier freq or something? This 
+multimeter is useless in the MHz range...
 
-On Thu, 2012-10-11 at 12:29 +0200, Laurent Pinchart wrote:
-> (CC'ing linux-media)
-> 
-> On Friday 05 October 2012 16:36:58 Imre Deak wrote:
-> > This is needed to make applications depending on vblank/page flip
-> > timestamps independent of time ajdustments.
-> 
-> We're in the process to switching to CLOCK_MONOTONIC timestamps in V4L2. The 
-> reason why we're using CLOCK_MONOTONIC and not CLOCK_MONOTONIC_RAW is that 
-> ALSA uses the former. It would make sense in my opinion to unify timestamps 
-> across our media APIs.
+While at it, I created these 20 sec snippets:
+http://pickup.famthomson.se/output-vanilla.avi
+vanilla 3.5.3
 
-yes, thanks for pointing this out.
+http://pickup.famthomson.se/output-test3.avi
+This patch:
+  # cat /TV_TEST3.diff
+diff --git a/drivers/media/video/saa7134/saa7134-cards.c 
+b/drivers/media/video/saa7134/saa7134-cards.c
+index bc08f1d..98b482e 100644
+--- a/drivers/media/video/saa7134/saa7134-cards.c
++++ b/drivers/media/video/saa7134/saa7134-cards.c
+@@ -3291,7 +3291,7 @@ struct saa7134_board saa7134_boards[] = {
+                 .radio_type     = UNSET,
+                 .tuner_addr     = ADDR_UNSET,
+                 .radio_addr     = ADDR_UNSET,
+-               .tuner_config   = 1,
++               .tuner_config   = 0,
+                 .mpeg           = SAA7134_MPEG_DVB,
+                 .gpiomask       = 0x000200000,
+                 .inputs         = {{
 
-Since I posted the RFC we made the decision to use CLOCK_MONOTONIC too.
-CLOCK_MONOTONIC_RAW is not adjusted against HW clock frequency
-variations, so it's not ideal for us. CLOCK_MONOTONIC doesn't have this
-problem, neither does it jump so it seems to be the ideal choice.
+http://pickup.famthomson.se/output-card.avi
+This patch:
+  # cat /TV_CARD.diff
+diff --git a/drivers/media/common/tuners/tda8290.c 
+b/drivers/media/common/tuners/tda8290.c
+index 064d14c..498cc7b 100644
+--- a/drivers/media/common/tuners/tda8290.c
++++ b/drivers/media/common/tuners/tda8290.c
+@@ -635,7 +635,11 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
 
---Imre
+                 dvb_attach(tda827x_attach, fe, priv->tda827x_addr,
+                            priv->i2c_props.adap, &priv->cfg);
++               tuner_info("ANDERS: setting switch_addr. was 0x%02x, new 
+0x%02x\n",priv->cfg.switch_addr,priv->i2c_props.addr);
+                 priv->cfg.switch_addr = priv->i2c_props.addr;
++               priv->cfg.switch_addr = 0xc2 / 2;
++               tuner_info("ANDERS: new 0x%02x\n",priv->cfg.switch_addr);
++
+         }
+         if (fe->ops.tuner_ops.init)
+                 fe->ops.tuner_ops.init(fe);
 
-> > I've tested these with an updated intel-gpu-test/flip_test and will send
-> > the update for that once there's no objection about this patchset.
-> > 
-> > The patchset is based on danvet's dinq branch with the following
-> > additional patches from the intel-gfx ML applied:
-> >     drm/i915: paper over a pipe-enable vs pageflip race
-> >     drm/i915: don't frob the vblank ts in finish_page_flip
-> >     drm/i915: call drm_handle_vblank before finish_page_flip
-> > 
-> > Imre Deak (4):
-> >   time: export getnstime_raw_and_real for DRM
-> >   drm: make memset/calloc for _vblank_time more robust
-> >   drm: use raw time in drm_calc_vbltimestamp_from_scanoutpos
-> >   drm: add support for raw monotonic vblank timestamps
-> > 
-> >  drivers/gpu/drm/drm_crtc.c                |    2 +
-> >  drivers/gpu/drm/drm_ioctl.c               |    3 ++
-> >  drivers/gpu/drm/drm_irq.c                 |   83 ++++++++++++++------------
-> >  drivers/gpu/drm/i915/i915_irq.c           |    2 +-
-> >  drivers/gpu/drm/i915/intel_display.c      |   12 ++---
-> >  drivers/gpu/drm/radeon/radeon_display.c   |   10 ++--
-> >  drivers/gpu/drm/radeon/radeon_drv.c       |    2 +-
-> >  drivers/gpu/drm/radeon/radeon_kms.c       |    2 +-
-> >  drivers/gpu/drm/shmobile/shmob_drm_crtc.c |    9 ++--
-> >  include/drm/drm.h                         |    5 +-
-> >  include/drm/drmP.h                        |   38 +++++++++++--
-> >  include/drm/drm_mode.h                    |    4 +-
-> >  kernel/time/timekeeping.c                 |    2 +-
-> >  13 files changed, 113 insertions(+), 61 deletions(-)
-> 
 
+Would looking again at the specifics on the 2.6.25->26 transition be of 
+any help? I expect some pain to go to such old kernel, but if I can add 
+some printks somewhere, maybe that could help?
+
+Cheers,
+-Anders
 
