@@ -1,69 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45283 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754217Ab2JIWVX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 18:21:23 -0400
-Date: Tue, 9 Oct 2012 19:21:20 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [GIT PULL for 3.7-rc1] media updates - part 1
-Message-ID: <20121009192120.3d071497@redhat.com>
-In-Reply-To: <CALF0-+XQW1RrHQN4=5fzLLsdJESrLnhSwW3yD9rK+huP5dUOqQ@mail.gmail.com>
-References: <20121005104259.03c94150@redhat.com>
-	<CALF0-+XQW1RrHQN4=5fzLLsdJESrLnhSwW3yD9rK+huP5dUOqQ@mail.gmail.com>
+Received: from node-sl2742.smtp.com ([173.192.74.74]:52452 "EHLO
+	node-sl2742.smtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752688Ab2JAJz7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 05:55:59 -0400
+Received: from offandawaymail.com (localhost [127.0.0.1])
+	by offandawaymail.com (Postfix) with ESMTP id 37A8D121F3
+	for <linux-media@vger.kernel.org>; Mon,  1 Oct 2012 06:37:53 +0000 (UTC)
+Message-Id: <EFQ7UFN-YDCD-U2TQ-HL56-DWZA2CO301U@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+From: Hannah Edwards <hannahedwards888@gmail.com>
+To: "Administrator" <linux-media@vger.kernel.org>
+Subject: Broken Link on Your Site About Photo Album Programs
+Date: Sun, 30 Sep 2012 23:46:28 -0700
+Content-Type: text/plain; charset=US-ASCII;
+	format=flowed
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 9 Oct 2012 14:43:46 -0300
-Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
+Hi Administrator,
 
-> On Fri, Oct 5, 2012 at 10:42 AM, Mauro Carvalho Chehab
-...
-> > Ezequiel García (13):
-> >       [media] em28xx: Remove useless runtime->private_data usage
-> >       [media] media: Add stk1160 new driver (easycap replacement)
-> >       [media] staging: media: Remove easycap driver
-> 
-> Hi Mauro,
-> 
-> We've replaced easycap staging driver with stk1160.
-> However, stk1160 still misses s-video input support, which I believe
-> easycap had.
-> 
-> This feature was missing because I couldn't get s-video devices to test with,
-> but now a couple users have provided the test and the patch is ready.
-> It's a tiny patch routing saa7115 properly.
+I came across your website and wanted to notify you about a broken link on your page in case you weren't aware of it. The link on http://cvs.linuxtv.org/vdrwiki/index.php/Graphtft-plugin which links to http://www.enlightenment.org/pages/imlib2.html is no longer working. I've included a link to a useful page on Photo Album Programs that you could replace the broken link with if you're interested in updating your website. Thanks for providing a great resource!
 
-Ok. Let's add it them.
+Link: http://www.learnstuff.com/learn-about-photo-album-programs-and-sites/
 
-> I think we should include this feature in v3.7 to complete easycap ->
-> stk1160 replacement.
+Best,
+Hannah Edwards
 
-Yes, that's make sense for me. As easycap is a new driver, there's no
-regression on adding a patch like that, even after the merge window,
-especially since input selection is typically a trivial change that
-won't cause bad effects.
-
-Please send the patch. I'll likely submit it upstream by next week,
-after giving some time for people to test it via the media tree.
-
-> Also, it seems to me there's no point in keeping the driver until v3.8,
-> since there aren't much users out there testing it.
-> 
-> On the other side, I don't want to mess with the flow, so it's
-> completely up to you.
-> If you think it's okey, then I can send the patch tonight and
-> hopefully you can pick
-> it for your second pull request.
-> 
-> Please let me know.
-> 
->     Ezequiel
-
-Regards,
-Mauro
