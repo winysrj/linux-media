@@ -1,86 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1501 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751208Ab2JHPtg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 11:49:36 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Florian Fainelli <f.fainelli@gmail.com>
-Subject: Re: Update on the CEC API
-Date: Mon, 8 Oct 2012 17:49:00 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	dri-devel@lists.freedesktop.org
-References: <201209271633.30812.hverkuil@xs4all.nl> <2013064.dUp2SJ3pm9@flexo>
-In-Reply-To: <2013064.dUp2SJ3pm9@flexo>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:51699 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751519Ab2JAOsQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 10:48:16 -0400
+Received: by ieak13 with SMTP id k13so12268651iea.19
+        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2012 07:48:16 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210081749.00190.hverkuil@xs4all.nl>
+In-Reply-To: <5069AC6B.80902@samsung.com>
+References: <5034991F.5040403@samsung.com>
+	<50699C23.5000203@redhat.com>
+	<CALF0-+W=xRO0G9gz1oSGyDbL0JHTYmPUU11qCpaK7BXJwGFBYw@mail.gmail.com>
+	<201210011628.36850.hverkuil@xs4all.nl>
+	<5069AC6B.80902@samsung.com>
+Date: Mon, 1 Oct 2012 11:48:16 -0300
+Message-ID: <CALF0-+XP3K9W_-d_HfANC=_E_ECv5iKM7ozemfDxKbtj_9+QbQ@mail.gmail.com>
+Subject: Re: [GIT PATCHES FOR v3.6] Samsung media driver fixes
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Antti Palosaari <crope@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon October 8 2012 17:06:20 Florian Fainelli wrote:
-> Hi Hans,
-> 
-> On Thursday 27 September 2012 16:33:30 Hans Verkuil wrote:
-> > Hi all,
-> > 
-> > During the Linux Plumbers Conference we (i.e. V4L2 and DRM developers) had a
-> > discussion on how to handle the CEC protocol that's part of the HDMI 
-> standard.
-> > 
-> > The decision was made to create a CEC bus with CEC clients, each represented
-> > by a /dev/cecX device. So this is independent of the V4L or DRM APIs. 
-> > 
-> > In addition interested subsystems (alsa for the Audio Return Channel, and
-> > possibly networking as well for ethernet over HDMI) can intercept/send CEC
-> > messages as well if needed. Particularly for the CEC additions made in
-> > HDMI 1.4a it is no longer possible to handle the CEC protocol completely in
-> > userspace, but part of the intelligence has to be moved to kernelspace.
-> 
-> What kind of "intelligence" are you talking about? I see nothing in HDMI 1.4a 
-> or earlier that requires doing stuff in kernelspace besides managing control to 
-> the hardware, but I might be missing something.
+On Mon, Oct 1, 2012 at 11:44 AM, Sylwester Nawrocki
+<s.nawrocki@samsung.com> wrote:
+> On 10/01/2012 04:28 PM, Hans Verkuil wrote:
+>> On Mon October 1 2012 16:05:15 Ezequiel Garcia wrote:
+>>> Mauro and folks,
+>>>
+>>> On Mon, Oct 1, 2012 at 10:35 AM, Mauro Carvalho Chehab
+>>> <mchehab@redhat.com> wrote:
+>>>> Hi Anti/Sylwester,
+>>>>
+>>>> Em 01-10-2012 08:50, Antti Palosaari escreveu:
+>>>>> Hello
+>>>>> I have had similar problems too. We need badly find out better procedures for patch handling. Something like parches are updated about once per week to the master. I have found I lose quite much time rebasing and res-sending stuff all the time.
+>>>>>
+>>>>> What I propose:
+>>>>> 1) module maintainers sends all patches to the ML with some tag marking it will pull requested later. I used lately [PATCH RFC]
+>>>>> 2) module maintainer will pick up all the "random" patches and pull request those. There is no way to mark patch as handled in patchwork....
+>>>>> 3) PULL request are handled more often, like during one week or maximum two
+>>>>
+>>>> Yes, for sure we need to improve the workflow. After the return from KS,
+>>>> I found ~400 patches/pull requests on my queue. I'm working hard to get rid
+>>>> of that backlog, but still there are ~270 patches/pull requests on my
+>>>> queue today.
+>>>>
+>>>> The thing is that patches come on a high rate at the ML, and there's no
+>>>> obvious way to discover what patches are just the normal patch review
+>>>> discussions (e. g. RFC) and what are real patches.
+>>>>
+>>>> To make things worse, we have nowadays 494 drivers. A very few of those
+>>>> have an entry at MAINTAINERS, or a maintainer that care enough about
+>>>> his drivers to handle patches sent to the mailing list (even the trivial
+>>>> ones).
+>>>>
+>>>> Due to the missing MAINTAINERS entries, all patches go through the ML directly,
+>>>> instead of going through the driver maintainer.
+>>>>
+>>>> So, I need to manually review every single email that looks to have a patch
+>>>> inside, typically forwarding it to the driver maintainer, when it exists,
+>>>> handling them myself otherwise.
+>>>>
+>>>> I'm counting with our discussions at the Barcelona's mini-summit in order
+>>>> to be able to get fresh ideas and discuss some alternatives to improve
+>>>> the patch workflow, but there are several things that could be done already,
+>>>> like the ones you've proposed, and keeping the MAINTAINERS file updated.
+>>>>
+>>>
+>>> Perhaps I'm missing something but I don't think there's an obvious
+>>> solution for this,
+>>> unless more maintainers are willing to start providing reviews / tests
+>>> / acks / etc.
+>>> for patches that arrive.
+>>>
+>>> Seems to me media/ has become a truly large subsystem,
+>>> though I'm not sure how does it compare to others subsystems.
+>>> Has anyone thought about breaking media/ down into smaller sub-subsystems,
+>>> with respective sub-maintainer?
+>>
+>> Yes, and this will be discussed next month during the Media Summit.
+>
+> Something like this came through my mind as well. It seems handling all
+> the drivers/media stuff is becoming simply too much to tackle by one person
+> in quality and timely manner.
+>
 
-Most notably: handling the new hotplug message. That's something that kernel
-drivers need to know. Some ARC messages might be relevant for ALSA drivers as
-well, but I need to look into those more carefully.
+Another issue that needs discussion is the vast amount of different devices
+(consider em28xx for instance) making maintainment particularly hard.
 
-Also remote control messages might optionally be handled through an input driver.
-
-> In my opinion ARC is just a control mechanism, and can be dealt with in user-
-> space, since you really want to just have hints about when ARC is 
-> enabled/disabled to take appropriate actions on the audio outputs or your 
-> system.
-> 
-> > 
-> > I've started working on this API but I am still at the stage of playing
-> > around with it and thinking about the best way this functionality should
-> > be exposed. At least I managed to get the first CEC packets transferred
-> > today :-)
-> > 
-> > It will probably be a few weeks before I post something, but in the meantime
-> > if you want to use CEC and have certain requirements that need to be met,
-> > please let me know. If only so that I can be certain I haven't forgotten
-> > anything.
-> 
-> Here is my wish-list, if I may:
-> - allow for a CEC adapter to be in "detached" / "attached" mode, particularly 
-> useful if the hardware doing CEC can process a basic set of messages to act a 
-> a global wake-up source for the system
-
-I have hardware that can do that, so I want to look into supporting this.
-
-> - allow for a CEC adapter to define several receive modes: unicast and 
-> "promiscuous", which is useful for dumping the CEC bus messages
-
-I don't think I have hardware for that, but it shouldn't be difficult to add.
-
-> - make the CEC adapter API asynchronous for the data path, so it is easy for a 
-> driver to report completion of a successfully transmitted/received CEC frame
-
-Already done.
+Perhaps, some sort of "Device donation request" (aimed at hw vendors)
+to distribute among developers could be helpful.
 
 Regards,
-
-	Hans
+Ezequiel.
