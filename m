@@ -1,61 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:36857 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754555Ab2JUUgv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Oct 2012 16:36:51 -0400
-Date: Sun, 21 Oct 2012 22:36:47 +0200
-From: Borislav Petkov <bp@alien8.de>
-To: "Artem S. Tashkinov" <t.artem@lycos.com>
-Cc: pavel@ucw.cz, linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	security@kernel.org, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org, zonque@gmail.com,
-	alsa-devel@alsa-project.org, stern@rowland.harvard.edu
-Subject: Re: Re: Re: Re: Re: Re: A reliable kernel panic (3.6.2) and system
- crash when visiting a particular website
-Message-ID: <20121021203647.GA13365@liondog.tnic>
-References: <966148591.30347.1350754909449.JavaMail.mail@webmail08>
- <20121020203227.GC555@elf.ucw.cz>
- <20121020225849.GA8976@liondog.tnic>
- <1781795634.31179.1350774917965.JavaMail.mail@webmail04>
- <20121021002424.GA16247@liondog.tnic>
- <1798605268.19162.1350784641831.JavaMail.mail@webmail17>
- <20121021110851.GA6504@liondog.tnic>
- <121566322.100103.1350820776893.JavaMail.mail@webmail20>
- <20121021170315.GB20642@liondog.tnic>
- <1906833625.122006.1350848941352.JavaMail.mail@webmail16>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1906833625.122006.1350848941352.JavaMail.mail@webmail16>
+Received: from mail.hauppauge.com ([167.206.143.4]:1961 "EHLO
+	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752503Ab2JAMuv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 08:50:51 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, Michael Krufky <mkrufky@linuxtv.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH 2/2] tda18271: make 'low-power standby mode after attach' multi-instance safe
+Date: Mon,  1 Oct 2012 08:34:24 -0400
+Message-Id: <1349094864-19293-2-git-send-email-mkrufky@linuxtv.org>
+In-Reply-To: <1349094864-19293-1-git-send-email-mkrufky@linuxtv.org>
+References: <1349094864-19293-1-git-send-email-mkrufky@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Oct 21, 2012 at 07:49:01PM +0000, Artem S. Tashkinov wrote:
-> I ran it this way: while :; do dmesg -c; done | scat /dev/sda11 (yes,
-> straight to a hdd partition to eliminate a FS cache)
+Ensure that unnecessary features are powered down at the end of the
+attach() function on attach of the tuner's first instance. If the
+configuration requires the loop thru or xtout features, they will
+remain enabled.
 
-Well, I'm no fs guy but this should still go through the buffer cache. I
-think the O_SYNC flag makes sure it all lands on the partition in time.
-Oh well, it doesn't matter.
+This must *only* be done after attaching the first instance of the tuner.
+If there are multiple instances of the tuner, the bridge driver will need
+to maintain power managament by itself.
 
-> Don't judge me harshly - I'm not a programmer.
+Cc: Antti Palosaari <crope@iki.fi>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+---
+ drivers/media/tuners/tda18271-fe.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-If you wrote that and you're not a programmer, it certainly looks cool,
-good job!.
-
- [ Btw, don't forget to free(buffer) at the end. ]
-
-Also, there was a patchset recently which added a blockconsole method to
-the kernel with which you can do something like that in a generic way.
-
-Back to the issue at hand: it looks like ehci_hcd is causing some list
-corruptions, maybe coming from the uvcvideo or whatever. I think the usb
-people will have a better idea.
-
-Btw, is there any particular reason you're running a 32-bit kernel?
-
-Thanks.
-
+diff --git a/drivers/media/tuners/tda18271-fe.c b/drivers/media/tuners/tda18271-fe.c
+index 5f5d866..de21197 100644
+--- a/drivers/media/tuners/tda18271-fe.c
++++ b/drivers/media/tuners/tda18271-fe.c
+@@ -1285,6 +1285,10 @@ struct dvb_frontend *tda18271_attach(struct dvb_frontend *fe, u8 addr,
+ 		    (priv->id == TDA18271HDC2))
+ 			tda18271c2_rf_cal_init(fe);
+ 
++		/* enter standby mode, with required output features enabled */
++		ret = tda18271_toggle_output(fe, 1);
++		tda_fail(ret);
++
+ 		mutex_unlock(&priv->lock);
+ 		break;
+ 	default:
+@@ -1323,9 +1327,6 @@ struct dvb_frontend *tda18271_attach(struct dvb_frontend *fe, u8 addr,
+ 	if (tda18271_debug & (DBG_MAP | DBG_ADV))
+ 		tda18271_dump_std_map(fe);
+ 
+-	ret = tda18271_sleep(fe);
+-	tda_fail(ret);
+-
+ 	return fe;
+ fail:
+ 	mutex_unlock(&tda18271_list_mutex);
 -- 
-Regards/Gruss,
-    Boris.
+1.7.9.5
+
