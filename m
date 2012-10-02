@@ -1,51 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:62308 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759089Ab2JLMLL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Oct 2012 08:11:11 -0400
-Received: by mail-bk0-f46.google.com with SMTP id jk13so1515607bkc.19
-        for <linux-media@vger.kernel.org>; Fri, 12 Oct 2012 05:11:10 -0700 (PDT)
-Subject: Re: hacking MT9P031 for i.mx
-From: Christoph Fritz <chf.fritz@googlemail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Chris MacGregor <chris@cybermato.com>, linux-media@vger.kernel.org,
-	Liu Ying <Ying.liu@freescale.com>,
-	"Hans J. Koch" <hjk@linutronix.de>, Daniel Mack <daniel@zonque.org>
-In-Reply-To: <4301383.IPfSC38GGz@avalon>
-References: <ade8080d-dbbf-4b60-804c-333d7340c01e@googlegroups.com>
-	 <3242652.yHvnWhQcZZ@avalon> <4FED31EC.7010705@cybermato.com>
-	 <4301383.IPfSC38GGz@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 12 Oct 2012 14:10:43 +0200
-Message-ID: <1350043843.3730.32.camel@mars>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.hauppauge.com ([167.206.143.4]:3547 "EHLO
+	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754712Ab2JBP5W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 11:57:22 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, Michael Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH 1/2] tda18271: delay IR & RF calibration until init() if delay_cal is set
+Date: Tue,  2 Oct 2012 11:57:05 -0400
+Message-Id: <1349193426-13313-1-git-send-email-mkrufky@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+if the configuration option 'delay_cal' is set, delay both IR & RF
+calibration until init() is called.
 
-On Mon, 2012-07-02 at 14:48 +0200, Laurent Pinchart wrote:
-> On Thursday 28 June 2012 21:41:16 Chris MacGregor wrote:
+both module option 'cal' or configuration option 'rf_cal_on_startup'
+will override this delay. it makes no sense to mix 'delay_cal' with
+'rf_cal_on_startup' as these options conflict with each other.
 
-> > > Where did you get the Aptina board code patch from ?
-> > 
-> >  From here: https://github.com/Aptina/BeagleBoard-xM
-> 
-> That's definitely outdated, the code is based on a very old OMAP3 ISP driver 
-> that was more or less broken by design. Nowadays anything other than the 
-> mainline version isn't supported by the community.
+Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+---
+ drivers/media/tuners/tda18271-fe.c |    5 +++++
+ drivers/media/tuners/tda18271.h    |    5 +++++
+ 2 files changed, 10 insertions(+)
 
-Is there a current (kernel ~3.6) git tree which shows how to add mt9p031
-to platform code?
-
-I'm also curious if it's possible to glue mt9p031 to a freescale i.mx35
-platform. As far as I can see,
-drivers/media/platform/soc_camera/mx3_camera.c would need v4l2_subdev
-support?
-
-Thanks
- -- Christoph
+diff --git a/drivers/media/tuners/tda18271-fe.c b/drivers/media/tuners/tda18271-fe.c
+index de21197..ca202da 100644
+--- a/drivers/media/tuners/tda18271-fe.c
++++ b/drivers/media/tuners/tda18271-fe.c
+@@ -1278,6 +1278,11 @@ struct dvb_frontend *tda18271_attach(struct dvb_frontend *fe, u8 addr,
+ 		if (tda_fail(ret))
+ 			goto fail;
+ 
++		/* if delay_cal is set, delay IR & RF calibration until init()
++		 * module option 'cal' overrides this delay */
++		if ((cfg->delay_cal) && (!tda18271_need_cal_on_startup(cfg)))
++			break;
++
+ 		mutex_lock(&priv->lock);
+ 		tda18271_init_regs(fe);
+ 
+diff --git a/drivers/media/tuners/tda18271.h b/drivers/media/tuners/tda18271.h
+index 640bae4..89b6c6d 100644
+--- a/drivers/media/tuners/tda18271.h
++++ b/drivers/media/tuners/tda18271.h
+@@ -105,6 +105,11 @@ struct tda18271_config {
+ 	/* force rf tracking filter calibration on startup */
+ 	unsigned int rf_cal_on_startup:1;
+ 
++	/* prevent any register access during attach(),
++	 * delaying both IR & RF calibration until init()
++	 * module option 'cal' overrides this delay */
++	unsigned int delay_cal:1;
++
+ 	/* interface to saa713x / tda829x */
+ 	unsigned int config;
+ };
+-- 
+1.7.9.5
 
