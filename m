@@ -1,48 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ia0-f174.google.com ([209.85.210.174]:46343 "EHLO
-	mail-ia0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751819Ab2JMDy4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Oct 2012 23:54:56 -0400
-MIME-Version: 1.0
-In-Reply-To: <alpine.LNX.2.00.0811091803320.23782@swampdragon.chaosbits.net>
-References: <alpine.LNX.2.00.0811091803320.23782@swampdragon.chaosbits.net>
-Date: Sat, 13 Oct 2012 00:54:55 -0300
-Message-ID: <CALF0-+Vtmwu9rCc9BYiDx2O2GQWezK40BYR2LP_ve2YjCt=Afg@mail.gmail.com>
-Subject: Re: [PATCH] [media] stk1160: Remove dead code from stk1160_i2c_read_reg()
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Jesper Juhl <jj@chaosbits.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:44346 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752696Ab2JBSjo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Oct 2012 14:39:44 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q92IdhvK014296
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 2 Oct 2012 14:39:43 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] em28xx: Make all em28xx extensions to be initialized asynchronously
+Date: Tue,  2 Oct 2012 15:39:38 -0300
+Message-Id: <1349203178-7782-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 9, 2008 at 2:04 PM, Jesper Juhl <jj@chaosbits.net> wrote:
-> There are two checks for 'rc' being less than zero with no change to
-> 'rc' between the two, so the second is just dead code - remove it.
->
-> Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-> ---
->  drivers/media/usb/stk1160/stk1160-i2c.c |    3 ---
->  1 files changed, 0 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/usb/stk1160/stk1160-i2c.c b/drivers/media/usb/stk1160/stk1160-i2c.c
-> index 176ac93..035cf8c 100644
-> --- a/drivers/media/usb/stk1160/stk1160-i2c.c
-> +++ b/drivers/media/usb/stk1160/stk1160-i2c.c
-> @@ -117,9 +117,6 @@ static int stk1160_i2c_read_reg(struct stk1160 *dev, u8 addr,
->                 return rc;
->
->         stk1160_read_reg(dev, STK1160_SBUSR_RD, value);
-> -       if (rc < 0)
-> -               return rc;
-> -
->         return 0;
->  }
->
+em28xx-dvb, em28xx-alsa and em28xx-ir are typically initialized
+asyncrhronously. The exception for it is when those modules
+are loaded before em28xx (or before an em28xx card insertion) or
+when they're built in.
 
-Thanks for doing this. Wouldn't you like to save stk1160_read_reg
-return code to rc, instead of this?
+Make the extentions to always load asynchronously. That allows
+having all DVB firmwares loaded synchronously with udev-182.
 
-    Ezequiel
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c | 22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index ca62b99..ab98d08 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2875,12 +2875,20 @@ static void em28xx_card_setup(struct em28xx *dev)
+ }
+ 
+ 
+-#if defined(CONFIG_MODULES) && defined(MODULE)
+ static void request_module_async(struct work_struct *work)
+ {
+ 	struct em28xx *dev = container_of(work,
+ 			     struct em28xx, request_module_wk);
+ 
++	/*
++	 * The em28xx extensions can be modules or builtin. If the
++	 * modules are already loaded or are built in, those extensions
++	 * can be initialised right now. Otherwise, the module init
++	 * code will do it.
++	 */
++	em28xx_init_extension(dev);
++
++#if defined(CONFIG_MODULES) && defined(MODULE)
+ 	if (dev->has_audio_class)
+ 		request_module("snd-usb-audio");
+ 	else if (dev->has_alsa_audio)
+@@ -2890,6 +2898,7 @@ static void request_module_async(struct work_struct *work)
+ 		request_module("em28xx-dvb");
+ 	if (dev->board.ir_codes && !disable_ir)
+ 		request_module("em28xx-rc");
++#endif /* CONFIG_MODULES */
+ }
+ 
+ static void request_modules(struct em28xx *dev)
+@@ -2902,10 +2911,6 @@ static void flush_request_modules(struct em28xx *dev)
+ {
+ 	flush_work_sync(&dev->request_module_wk);
+ }
+-#else
+-#define request_modules(dev)
+-#define flush_request_modules(dev)
+-#endif /* CONFIG_MODULES */
+ 
+ /*
+  * em28xx_release_resources()
+@@ -3324,13 +3329,6 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 	 */
+ 	mutex_unlock(&dev->lock);
+ 
+-	/*
+-	 * These extensions can be modules. If the modules are already
+-	 * loaded then we can initialise the device now, otherwise we
+-	 * will initialise it when the modules load instead.
+-	 */
+-	em28xx_init_extension(dev);
+-
+ 	return 0;
+ 
+ unlock_and_free:
+-- 
+1.7.11.4
+
