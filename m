@@ -1,85 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49630 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757738Ab2J3QWS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Oct 2012 12:22:18 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jun Nie <niej0001@gmail.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	Archit Taneja <archit@ti.com>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [RFC 0/5] Generic panel framework
-Date: Tue, 30 Oct 2012 17:23:09 +0100
-Message-ID: <1593234.uFiMq7ARmu@avalon>
-In-Reply-To: <CAGA24MLnW-i0koFuAsnFQ2mNnrLupkmbxW5T8WYiV3QuoA2vig@mail.gmail.com>
-References: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com> <3648908.jA5PYymWxV@avalon> <CAGA24MLnW-i0koFuAsnFQ2mNnrLupkmbxW5T8WYiV3QuoA2vig@mail.gmail.com>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:61200 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752642Ab2JBWiL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 18:38:11 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CABA=pqdRwA5_AVysq_0ynuChQ++oQ0j2BWyPg4Qq=LjYa-7P2A@mail.gmail.com>
+References: <1340285798-8322-1-git-send-email-mchehab@redhat.com>
+ <4FE37194.30407@redhat.com> <4FE8B8BC.3020702@iki.fi> <4FE8C4C4.1050901@redhat.com>
+ <4FE8CED5.104@redhat.com> <20120625223306.GA2764@kroah.com>
+ <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com>
+ <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com> <CABA=pqdRwA5_AVysq_0ynuChQ++oQ0j2BWyPg4Qq=LjYa-7P2A@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Tue, 2 Oct 2012 15:37:49 -0700
+Message-ID: <CA+55aFwi2F1PYv39FxTKz1zu2tFqVDSAAxeSRW1BVK+==5H-6g@mail.gmail.com>
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
+ callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
+To: Ivan Kalvachev <ikalvachev@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Lennart Poettering <lennart@poettering.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jun,
+On Tue, Oct 2, 2012 at 2:03 PM, Ivan Kalvachev <ikalvachev@gmail.com> wrote:
+>
+> I'm not kernel developer and probably my opinion would be a little
+> naive, but here it is.
+>
+> Please, make the kernel load firmware from the filesystem on its own.
 
-I've finally been able to resume my work on the panel framework (I hope to 
-post a v2 at the end of the week).
+We probably should do that, not just for firmware, but for modules
+too. It would also simplify the whole "built-in firmware" thing
 
-On Thursday 23 August 2012 14:23:01 Jun Nie wrote:
-> Hi Laurent,
->     Do you plan to add an API to get and parse EDID to mode list?
+Afaik, the only thing udev really does is to lok in
+/lib/firmware/updates and /lib/firmware for the file, load it, and
+pass it back to the kernel. We could make the kernel try to do it
+manually first, and only fall back to udev if that fails.
 
-An API to get the raw EDID data is likely needed. Parsing EDID data in the 
-panel driver and providing the modes to the caller isn't enough, as EDID 
-contains more than just video modes. I'm not sure whether a driver for an 
-EDID-aware panel should parse the EDID data internally and provide both modes 
-and raw EDID data, or only raw EDID data.
+Afaik, nobody ever does anything else anyway.
 
-> video mode is tightly coupled with panel that is capable of hot-plug.
-> Or you are busy on modifying EDID parsing code for sharing it amoung
-> DRM/FB/etc? I see you mentioned this in Mar.
+I'd prefer to not have to do that, but if the udev code is buggy or
+the maintainership is flaky, I guess we don't really have much choice.
 
-That's needed as well, but -ENOTIME :-S
+Doing the same thing for module loading is probably a good idea too.
+There were already people (from the google/Android camp) who wanted to
+do module loading based on filename rather than the buffer passed to
+it, because they have a "I trust this filesystem" model.
 
-> It is great if you are considering add more info into video mode, such as
-> pixel repeating, 3D timing related parameter.
+> I've heard that the udev userland piping of firmware is done to avoid
+> some licensing issues.
 
-Please have a look at "[PATCH 2/2 v6] of: add generic videomode description" 
-on dri-devel. There's a proposal for a common video mode structure.
+No, I think it was mainly a combination of
 
-> I have some code for CEA modes filtering and 3D parsing, but still tight
-> coupled with FB and with a little hack style.
-> 
->     My HDMI driver is implemented as lcd device as you mentioned here.
-> But more complex than other lcd devices for a kthread is handling
-> hot-plug/EDID/HDCP/ASoC etc.
-> 
->     I also feel a little weird to add code parsing HDMI audio related
-> info in fbmod.c in my current implementation, thought it is the only
-> place to handle EDID in kernel. Your panel framework provide a better
-> place to add panel related audio/HDCP code. panel notifier can also
-> trigger hot-plug related feature, such as HDCP start.
+ - some people like the whole "let's do things in user land" model
+even when it makes things more complicated
 
-That's a good idea. I was wondering whether to put the common EDID parser in 
-drivers/gpu/drm, drivers/video or drivers/media. Putting it wherever the panel 
-framework will be might be a good option as well.
+ - we do tend to try to punt "policy" issues to user space, and the
+whole "/lib/firmware" location is an example of such a policy issue.
 
->     Looking forward to your hot-plug panel patch. Or I can help add it
-> if you would like me to.
+along with the fact that we already had the hotplug model for these
+kinds of things (eg module loading used to actually have a big user
+space component that did the whole relocation etc, so we had real
+historical reasons to do that in user space)
 
-I'll try to post a v2 at the end of the week, but likely without much hot-plug 
-support. Patches and enhancement proposals will be welcome.
+Does anybody want to try to cook up a patch, leaving the udev path as
+a fallback?
 
--- 
-Regards,
+We already have the case of "builtin firmware" as one option, this
+would go after that..
 
-Laurent Pinchart
-
+                 Linus
