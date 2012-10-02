@@ -1,48 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:63489 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752419Ab2J0Umc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:42:32 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKgWMI020506
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:32 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 39/68] [media] gspca: warning fix: index is unsigned, so it will never be below 0
-Date: Sat, 27 Oct 2012 18:40:57 -0200
-Message-Id: <1351370486-29040-40-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout4.samsung.com ([203.254.224.34]:32558 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754053Ab2JBO3k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 10:29:40 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MB9001VGS9FFGL0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:29:40 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MB9005A7S65K790@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:29:39 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: [PATCHv9 15/25] v4l: s5p-fimc: support for dmabuf importing
+Date: Tue, 02 Oct 2012 16:27:26 +0200
+Message-id: <1349188056-4886-16-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
+References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/usb/gspca/gspca.c: In function 'vidioc_querybuf':
-drivers/media/usb/gspca/gspca.c:1590:6: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
+This patch enhances s5p-fimc with support for DMABUF importing via
+V4L2_MEMORY_DMABUF memory type.
 
-Cc: Hans de Goede <hdegoede@redhat.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/usb/gspca/gspca.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/video/s5p-fimc/fimc-capture.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
-index a2b9341..e0a431b 100644
---- a/drivers/media/usb/gspca/gspca.c
-+++ b/drivers/media/usb/gspca/gspca.c
-@@ -1586,8 +1586,7 @@ static int vidioc_querybuf(struct file *file, void *priv,
- 	struct gspca_dev *gspca_dev = video_drvdata(file);
- 	struct gspca_frame *frame;
- 
--	if (v4l2_buf->index < 0
--	    || v4l2_buf->index >= gspca_dev->nframes)
-+	if (v4l2_buf->index >= gspca_dev->nframes)
- 		return -EINVAL;
- 
- 	frame = &gspca_dev->frame[v4l2_buf->index];
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 8e413dd..3fcaf7d 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -1634,7 +1634,7 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
+ 	q = &fimc->vid_cap.vbq;
+ 	memset(q, 0, sizeof(*q));
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+-	q->io_modes = VB2_MMAP | VB2_USERPTR;
++	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+ 	q->drv_priv = fimc->vid_cap.ctx;
+ 	q->ops = &fimc_capture_qops;
+ 	q->mem_ops = &vb2_dma_contig_memops;
 -- 
-1.7.11.7
+1.7.9.5
 
