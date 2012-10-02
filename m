@@ -1,19 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:45610 "EHLO
+Received: from mailout3.samsung.com ([203.254.224.33]:26377 "EHLO
 	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932259Ab2JJPBk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 11:01:40 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+	with ESMTP id S1754095Ab2JBO3A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 10:29:00 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
  by mailout3.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBO00M2TN2FXZ20@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 11 Oct 2012 00:01:38 +0900 (KST)
+ 17 2011)) with ESMTP id <0MB900FNZS8A6O90@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:28:59 +0900 (KST)
 Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
  (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MBO002YDME0EC70@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 11 Oct 2012 00:01:38 +0900 (KST)
+ with ESMTPA id <0MB9005A7S65K790@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:28:58 +0900 (KST)
 From: Tomasz Stanislawski <t.stanislaws@samsung.com>
 To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
 Cc: airlied@redhat.com, m.szyprowski@samsung.com,
@@ -24,52 +23,90 @@ Cc: airlied@redhat.com, m.szyprowski@samsung.com,
 	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
 	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
 	k.debski@samsung.com
-Subject: [PATCHv10 21/26] v4l: vb2-dma-contig: add reference counting for a
- device from allocator context
-Date: Wed, 10 Oct 2012 16:46:40 +0200
-Message-id: <1349880405-26049-22-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
-References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
+Subject: [PATCHv9 09/25] v4l: vb2: add prepare/finish callbacks to allocators
+Date: Tue, 02 Oct 2012 16:27:20 +0200
+Message-id: <1349188056-4886-10-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
+References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds taking reference to the device for MMAP buffers.
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Such buffers, may be exported using DMABUF mechanism. If the driver that
-created a queue is unloaded then the queue is released, the device might be
-released too.  However, buffers cannot be released if they are referenced by
-DMABUF descriptor(s). The device pointer kept in a buffer must be valid for the
-whole buffer's lifetime. Therefore MMAP buffers should take a reference to the
-device to avoid risk of dangling pointers.
+This patch adds support for prepare/finish callbacks in VB2 allocators. These
+callback are used for buffer flushing.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/v4l2-core/videobuf2-dma-contig.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/video/videobuf2-core.c |   11 +++++++++++
+ include/media/videobuf2-core.h       |    7 +++++++
+ 2 files changed, 18 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index b138b5c..2d661fd 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -148,6 +148,7 @@ static void vb2_dc_put(void *buf_priv)
- 		kfree(buf->sgt_base);
- 	}
- 	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
-+	put_device(buf->dev);
- 	kfree(buf);
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 901bc56..05da3b4 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -844,6 +844,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+ 	unsigned long flags;
++	unsigned int plane;
+ 
+ 	if (vb->state != VB2_BUF_STATE_ACTIVE)
+ 		return;
+@@ -854,6 +855,10 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	dprintk(4, "Done processing on buffer %d, state: %d\n",
+ 			vb->v4l2_buf.index, vb->state);
+ 
++	/* sync buffers */
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		call_memop(q, finish, vb->planes[plane].mem_priv);
++
+ 	/* Add the buffer to the done buffers list */
+ 	spin_lock_irqsave(&q->done_lock, flags);
+ 	vb->state = state;
+@@ -1148,9 +1153,15 @@ err:
+ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
++	unsigned int plane;
+ 
+ 	vb->state = VB2_BUF_STATE_ACTIVE;
+ 	atomic_inc(&q->queued_count);
++
++	/* sync buffers */
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		call_memop(q, prepare, vb->planes[plane].mem_priv);
++
+ 	q->ops->buf_queue(vb);
  }
  
-@@ -168,6 +169,9 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
- 		return ERR_PTR(-ENOMEM);
- 	}
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 84f11f2..c306fec 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -56,6 +56,10 @@ struct vb2_fileio_data;
+  *		dmabuf
+  * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
+  *		  that this driver is done using the dmabuf for now
++ * @prepare:	called everytime the buffer is passed from userspace to the
++ *		driver, usefull for cache synchronisation, optional
++ * @finish:	called everytime the buffer is passed back from the driver
++ *		to the userspace, also optional
+  * @vaddr:	return a kernel virtual address to a given memory buffer
+  *		associated with the passed private structure or NULL if no
+  *		such mapping exists
+@@ -82,6 +86,9 @@ struct vb2_mem_ops {
+ 					unsigned long size, int write);
+ 	void		(*put_userptr)(void *buf_priv);
  
-+	/* prevent the device from release while the buffer is exported */
-+	get_device(dev);
++	void		(*prepare)(void *buf_priv);
++	void		(*finish)(void *buf_priv);
 +
- 	buf->dev = dev;
- 	buf->size = size;
- 
+ 	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
+ 				unsigned long size, int write);
+ 	void		(*detach_dmabuf)(void *buf_priv);
 -- 
 1.7.9.5
 
