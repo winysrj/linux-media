@@ -1,111 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54934 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750953Ab2JHUdS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 16:33:18 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, linux-media@vger.kernel.org,
-	Tony Lindgren <tony@atomide.com>
-Subject: Re: [git:v4l-dvb/for_v3.7] [media] omap3isp: Replace cpu_is_omap3630() with ISP revision check
-Date: Mon, 08 Oct 2012 22:33:59 +0200
-Message-ID: <1525824.Ct8mi0Nuxy@avalon>
-In-Reply-To: <E1TKWPT-000144-3I@www.linuxtv.org>
-References: <E1TKWPT-000144-3I@www.linuxtv.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:45706 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751188Ab2JBLQa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 07:16:30 -0400
+Received: from eusync4.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MB9009P6JCAIY90@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Oct 2012 12:16:58 +0100 (BST)
+Received: from AMDN157 ([106.116.147.102])
+ by eusync4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MB900G2PJBFPV20@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Oct 2012 12:16:28 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Arun Kumar K' <arun.kk@samsung.com>, linux-media@vger.kernel.org
+Cc: jtp.park@samsung.com, janghyuck.kim@samsung.com,
+	jaeryul.oh@samsung.com, ch.naveen@samsung.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	hverkuil@xs4all.nl, kmpark@infradead.org, joshi@samsung.com
+References: <1349189741-22259-1-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1349189741-22259-1-git-send-email-arun.kk@samsung.com>
+Subject: RE: [PATCH v9 0/6] Update MFC v4l2 driver to support MFC6.x
+Date: Tue, 02 Oct 2012 13:16:27 +0200
+Message-id: <01b901cda08f$5e382e00$1aa88a00$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: en-gb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Hi Arun,
 
-On Saturday 06 October 2012 17:31:58 Mauro Carvalho Chehab wrote:
-> This is an automatic generated email to let you know that the following
-> patch were queued at the http://git.linuxtv.org/media_tree.git tree:
+Thank you for your hard work with these patches.
+I think that they are ready to be merged.
 
-Please don't. I haven't even sent a pull request for that patch. I don't 
-consider it as being ready yet, as Sakari pointed out we need to investigate 
-whether the right fix shouldn't be at the OMAP3 clocks level instead.
+Best wishes,
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
 
-> Subject: [media] omap3isp: Replace cpu_is_omap3630() with ISP revision check
-> Author:  Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Date:    Thu Sep 27 10:38:18 2012 -0300
-> 
-> Drivers must not rely on cpu_is_omap* macros (they will soon become
-> private). Use the ISP revision instead to identify the hardware.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
->  drivers/media/platform/omap3isp/isp.c |   25 ++++++++++++++++---------
->  1 files changed, 16 insertions(+), 9 deletions(-)
-> 
-> ---
-> 
-> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=947c48086623d9ca2207dd0
-> 434bd58458af4ba86
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index d7aa513..6034dca 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -1345,10 +1345,7 @@ static int isp_enable_clocks(struct isp_device *isp)
->  	 * has to be twice of what is set on OMAP3430 to get
->  	 * the required value for cam_mclk
->  	 */
-> -	if (cpu_is_omap3630())
-> -		divisor = 1;
-> -	else
-> -		divisor = 2;
-> +	divisor = isp->revision == ISP_REVISION_15_0 ? 1 : 2;
-> 
->  	r = clk_enable(isp->clock[ISP_CLK_CAM_ICK]);
->  	if (r) {
-> @@ -2093,7 +2090,11 @@ static int __devinit isp_probe(struct platform_device
-> *pdev) isp->isp_csiphy1.vdd = regulator_get(&pdev->dev, "VDD_CSIPHY1");
-> isp->isp_csiphy2.vdd = regulator_get(&pdev->dev, "VDD_CSIPHY2");
-> 
-> -	/* Clocks */
-> +	/* Clocks
-> +	 *
-> +	 * The ISP clock tree is revision-dependent. We thus need to enable ICLK
-> +	 * manually to read the revision before calling __omap3isp_get().
-> +	 */
->  	ret = isp_map_mem_resource(pdev, isp, OMAP3_ISP_IOMEM_MAIN);
->  	if (ret < 0)
->  		goto error;
-> @@ -2102,6 +2103,16 @@ static int __devinit isp_probe(struct platform_device
-> *pdev) if (ret < 0)
->  		goto error;
-> 
-> +	ret = clk_enable(isp->clock[ISP_CLK_CAM_ICK]);
-> +	if (ret < 0)
-> +		goto error;
-> +
-> +	isp->revision = isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, ISP_REVISION);
-> +	dev_info(isp->dev, "Revision %d.%d found\n",
-> +		 (isp->revision & 0xf0) >> 4, isp->revision & 0x0f);
-> +
-> +	clk_disable(isp->clock[ISP_CLK_CAM_ICK]);
-> +
->  	if (__omap3isp_get(isp, false) == NULL) {
->  		ret = -ENODEV;
->  		goto error;
-> @@ -2112,10 +2123,6 @@ static int __devinit isp_probe(struct platform_device
-> *pdev) goto error_isp;
-> 
->  	/* Memory resources */
-> -	isp->revision = isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, ISP_REVISION);
-> -	dev_info(isp->dev, "Revision %d.%d found\n",
-> -		 (isp->revision & 0xf0) >> 4, isp->revision & 0x0f);
-> -
->  	for (m = 0; m < ARRAY_SIZE(isp_res_maps); m++)
->  		if (isp->revision == isp_res_maps[m].isp_rev)
->  			break;
--- 
-Regards,
 
-Laurent Pinchart
+> From: Arun Kumar K [mailto:arun.kk@samsung.com]
+> Sent: 02 October 2012 16:56
+> 
+> The patchset adds support for MFCv6 firmware in s5p-mfc driver.
+> The patches are rebased to the latest media-tree.
+> 
+> Changelog v9
+> - Addressed review comments by Hans Verkuil
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg53016.html
+> 
+> Changelog v8
+> - Addressed review comments by Sylwester Nawrocki
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg52942.html
+> 
+> Changelog v7
+> - Removed unused macros from register files
+> 
+> Changelog v6
+> - Use s5p_mfc_hw_call macro to call all HW related ops and cmds
+> - Rebased onto latest media-tree
+> - Resending patches adding required v4l controls
+> - Addressed review comments of Patch v5
+> 
+> Changelog v5
+> - Modified ops mechanism for macro based function call
+> - Addressed all other review comments on Patch v4
+> 
+> Changelog v4
+> - Separate patch for callback based architecture.
+> - Patches divided to enable incremental compilation.
+> - Working MFCv6 encoder and decoder.
+> - Addressed review comments given for v3 patchset.
+> 
+> Changelog v3
+> - Supports MFCv5 and v6 co-existence.
+> - Tested for encoding & decoding in MFCv5.
+> - Supports only decoding in MFCv6 now.
+> - Can be compiled with kernel image and as module.
+> - Config macros for MFC version selection removed.
+> - All previous review comments addressed.
+> 
+> Changelog v2
+> - Addressed review comments received
+>
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/45189
+> 
+> Changelog v1
+> - Fixed crash issue in Exynos4 SoCs running MFC 5.1
+> - Encoder not tested
+> 
+> Arun Kumar K (4):
+>   [media] v4l: Add fourcc definitions for new formats
+>   [media] v4l: Add control definitions for new H264 encoder features
+>   [media] s5p-mfc: Update MFCv5 driver for callback based architecture
+>   [media] s5p-mfc: Add MFC variant data to device context
+> 
+> Jeongtae Park (2):
+>   [media] s5p-mfc: MFCv6 register definitions
+>   [media] s5p-mfc: Update MFC v4l2 driver to support MFC6.x
+> 
+>  Documentation/DocBook/media/v4l/controls.xml     |  268 +++-
+>  Documentation/DocBook/media/v4l/pixfmt-nv12m.xml |   17 +-
+>  Documentation/DocBook/media/v4l/pixfmt.xml       |   10 +
+>  drivers/media/platform/Kconfig                   |    4 +-
+>  drivers/media/platform/s5p-mfc/Makefile          |    7 +-
+>  drivers/media/platform/s5p-mfc/regs-mfc-v6.h     |  408 +++++
+>  drivers/media/platform/s5p-mfc/regs-mfc.h        |   41 +
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c         |  296 +++--
+>  drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c     |  109 +--
+>  drivers/media/platform/s5p-mfc/s5p_mfc_cmd.h     |   15 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c  |  166 ++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.h  |   20 +
+>  drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c  |  156 ++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.h  |   20 +
+>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h  |  191 ++-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c    |  194 ++-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h    |    1 +
+>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c     |  258 ++-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.h     |    1 +
+>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c     |  239 ++--
+>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.h     |    1 +
+>  drivers/media/platform/s5p-mfc/s5p_mfc_intr.c    |   11 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr.c     | 1386 +---------------
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr.h     |  133 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c  | 1763 +++++++++++++++++++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.h  |   85 +
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c  | 1956
+++++++++++++++++++++++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h  |   50 +
+>  drivers/media/platform/s5p-mfc/s5p_mfc_pm.c      |    3 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_shm.c     |   47 -
+>  drivers/media/platform/s5p-mfc/s5p_mfc_shm.h     |   90 -
+>  drivers/media/v4l2-core/v4l2-ctrls.c             |   42 +
+>  include/linux/v4l2-controls.h                    |   41 +
+>  include/linux/videodev2.h                        |    4 +
+>  34 files changed, 5940 insertions(+), 2093 deletions(-)
+>  create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+>  create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
+>  create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.h
+>  create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+>  create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.h
+>  create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+>  create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.h
+>  create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+>  create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+>  delete mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_shm.c
+>  delete mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_shm.h
 
