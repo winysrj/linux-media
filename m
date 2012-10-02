@@ -1,79 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:59841 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752310Ab2JHHe0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 03:34:26 -0400
-Date: Mon, 8 Oct 2012 09:34:13 +0200
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>,
-	devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2 v6] of: add helper to parse display timings
-Message-ID: <20121008073413.GA20800@pengutronix.de>
-References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
- <506F0911.1050808@wwwdotorg.org>
- <20121005163858.GD2053@pengutronix.de>
- <9190603.vEUidl99Ca@avalon>
+Received: from mail.kapsi.fi ([217.30.184.167]:52115 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752093Ab2JBTZM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Oct 2012 15:25:12 -0400
+Message-ID: <506B3F81.3040404@iki.fi>
+Date: Tue, 02 Oct 2012 22:24:49 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9190603.vEUidl99Ca@avalon>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] em28xx: Make all em28xx extensions to be initialized
+ asynchronously
+References: <1349203178-7782-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1349203178-7782-1-git-send-email-mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Oct 07, 2012 at 03:38:25PM +0200, Laurent Pinchart wrote:
-> Hi Steffen,
-> 
-> On Friday 05 October 2012 18:38:58 Steffen Trumtrar wrote:
-> > On Fri, Oct 05, 2012 at 10:21:37AM -0600, Stephen Warren wrote:
-> > > On 10/05/2012 10:16 AM, Steffen Trumtrar wrote:
-> > > > On Thu, Oct 04, 2012 at 12:47:16PM -0600, Stephen Warren wrote:
-> > > >> On 10/04/2012 11:59 AM, Steffen Trumtrar wrote:
-> > > ...
-> > > 
-> > > >>> +	for_each_child_of_node(timings_np, entry) {
-> > > >>> +		struct signal_timing *st;
-> > > >>> +
-> > > >>> +		st = of_get_display_timing(entry);
-> > > >>> +
-> > > >>> +		if (!st)
-> > > >>> +			continue;
-> > > >> 
-> > > >> I wonder if that shouldn't be an error?
-> > > > 
-> > > > In the sense of a pr_err not a -EINVAL I presume?! It is a little bit
-> > > > quiet in case of a faulty spec, that is right.
-> > > 
-> > > I did mean return an error; if we try to parse something and can't,
-> > > shouldn't we return an error?
-> > > 
-> > > I suppose it may be possible to limp on and use whatever subset of modes
-> > > could be parsed and drop the others, which is what this code does, but
-> > > the code after the loop would definitely return an error if zero timings
-> > > were parseable.
-> > 
-> > If a display supports multiple modes, I think it is better to have a working
-> > mode (even if it is not the preferred one) than have none at all.
-> > If there is no mode at all, that should be an error, right.
-> 
-> If we fail completely in case of an error, DT writers will notice their bugs. 
-> If we ignore errors silently they won't, and we'll end up with buggy DTs (or, 
-> to be accurate, even more buggy DTs :-)). I'd rather fail completely in the 
-> first implementation and add workarounds later only if we need to.
-> 
+On 10/02/2012 09:39 PM, Mauro Carvalho Chehab wrote:
+> em28xx-dvb, em28xx-alsa and em28xx-ir are typically initialized
+> asyncrhronously. The exception for it is when those modules
+> are loaded before em28xx (or before an em28xx card insertion) or
+> when they're built in.
+>
+> Make the extentions to always load asynchronously. That allows
+> having all DVB firmwares loaded synchronously with udev-182.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Okay, that is two against one. And if you say it like this, Stephen and you are
-right I guess. Fail completely it is then.
+Tested-by: Antti Palosaari <crope@iki.fi>
 
-Regards,
+Hauppauge WinTV HVR 930C
+MaxMedia UB425-TC
+PCTV QuatroStick nano (520e)
 
-Steffen
+
+> ---
+>   drivers/media/usb/em28xx/em28xx-cards.c | 22 ++++++++++------------
+>   1 file changed, 10 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+> index ca62b99..ab98d08 100644
+> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+> @@ -2875,12 +2875,20 @@ static void em28xx_card_setup(struct em28xx *dev)
+>   }
+>
+>
+> -#if defined(CONFIG_MODULES) && defined(MODULE)
+>   static void request_module_async(struct work_struct *work)
+>   {
+>   	struct em28xx *dev = container_of(work,
+>   			     struct em28xx, request_module_wk);
+>
+> +	/*
+> +	 * The em28xx extensions can be modules or builtin. If the
+> +	 * modules are already loaded or are built in, those extensions
+> +	 * can be initialised right now. Otherwise, the module init
+> +	 * code will do it.
+> +	 */
+> +	em28xx_init_extension(dev);
+> +
+> +#if defined(CONFIG_MODULES) && defined(MODULE)
+>   	if (dev->has_audio_class)
+>   		request_module("snd-usb-audio");
+>   	else if (dev->has_alsa_audio)
+> @@ -2890,6 +2898,7 @@ static void request_module_async(struct work_struct *work)
+>   		request_module("em28xx-dvb");
+>   	if (dev->board.ir_codes && !disable_ir)
+>   		request_module("em28xx-rc");
+> +#endif /* CONFIG_MODULES */
+>   }
+>
+>   static void request_modules(struct em28xx *dev)
+> @@ -2902,10 +2911,6 @@ static void flush_request_modules(struct em28xx *dev)
+>   {
+>   	flush_work_sync(&dev->request_module_wk);
+>   }
+> -#else
+> -#define request_modules(dev)
+> -#define flush_request_modules(dev)
+> -#endif /* CONFIG_MODULES */
+>
+>   /*
+>    * em28xx_release_resources()
+> @@ -3324,13 +3329,6 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+>   	 */
+>   	mutex_unlock(&dev->lock);
+>
+> -	/*
+> -	 * These extensions can be modules. If the modules are already
+> -	 * loaded then we can initialise the device now, otherwise we
+> -	 * will initialise it when the modules load instead.
+> -	 */
+> -	em28xx_init_extension(dev);
+> -
+>   	return 0;
+>
+>   unlock_and_free:
+>
+
 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+http://palosaari.fi/
