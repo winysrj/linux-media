@@ -1,53 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39932 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753098Ab2JAQdI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Oct 2012 12:33:08 -0400
-Message-ID: <5069C5AF.3030607@iki.fi>
-Date: Mon, 01 Oct 2012 19:32:47 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.126.171]:65305 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753344Ab2JBWJc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 18:09:32 -0400
+Date: Wed, 3 Oct 2012 00:09:29 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Anatolij Gustschin <agust@denx.de>
+cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 2/2] V4L: soc_camera: disable I2C subdev streamon for
+ mpc52xx_csi
+In-Reply-To: <1348822255-30875-2-git-send-email-agust@denx.de>
+Message-ID: <Pine.LNX.4.64.1210030001440.15778@axis700.grange>
+References: <1348822255-30875-1-git-send-email-agust@denx.de>
+ <1348822255-30875-2-git-send-email-agust@denx.de>
 MIME-Version: 1.0
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] MAINTAINERS: Add stk1160 driver
-References: <1349101213-21723-1-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1349101213-21723-1-git-send-email-elezegarcia@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/01/2012 05:20 PM, Ezequiel Garcia wrote:
-> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
-> ---
->   MAINTAINERS |    7 +++++++
->   1 files changed, 7 insertions(+), 0 deletions(-)
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 0750c24..17f6fb0 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -3168,6 +3168,13 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
->   S:	Maintained
->   F:	drivers/media/usb/gspca/
->
-> +STK1160 USB VIDEO CAPTURE DRIVER
-> +M:	Ezequiel Garcia <elezegarcia@redhat.com>
+Hi Anatolij
 
-Copy paste mistake?
+> > > +#if !defined(CONFIG_VIDEO_MPC52xx_CSI) && \
+> > > +    !defined(CONFIG_VIDEO_MPC52xx_CSI_MODULE)
+> > 
+> > No, we're not adding any preprocessor or run-time hardware dependencies to 
+> > soc-camera or to any other generic code. I have no idea what those "IFM 
+> > O2D" cameras are. If it's their common feature, that they cannot take any 
+> > further I2C commands, while streaming, their drivers have to do that 
+> > themselves.
+> 
+> I'm not sure I understand you. To do what themselves?
 
-> +L:	linux-media@vger.kernel.org
-> +T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-> +S:	Maintained
-> +F:	drivers/media/usb/stk1160/
-> +
->   HARD DRIVE ACTIVE PROTECTION SYSTEM (HDAPS) DRIVER
->   M:	Frank Seidel <frank@f-seidel.de>
->   L:	platform-driver-x86@vger.kernel.org
->
+They - subdevice drivers of such IFM O2D cameras - should take care to avoid 
+any I2C commands during a running read-out. Neither the bridge driver nor 
+the framework core can or should know these details. This is just a generic 
+call to a subdevice's .s_stream() method. What the driver does in it is 
+totally its own business. Nobody says, that you have to issue I2C commands 
+in it.
 
-regards
-Antti
-
--- 
-http://palosaari.fi/
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
