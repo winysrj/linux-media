@@ -1,59 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:41285 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751754Ab2J0J7i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 05:59:38 -0400
-MIME-Version: 1.0
-In-Reply-To: <508B9EEB.2070806@ti.com>
-References: <1350920203-21978-1-git-send-email-m-karicheri2@ti.com>
- <CA+V-a8sbCyTTAm-x2Jr2_XxccRo0kjhVAYaVAibXHCqjZL7-nA@mail.gmail.com>
- <508AB1D2.40908@ti.com> <508B9EEB.2070806@ti.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sat, 27 Oct 2012 15:29:16 +0530
-Message-ID: <CA+V-a8uLMViQvg8YKR8=m0k8hw885qqqZmF9MRjHd5w2RMjezQ@mail.gmail.com>
-Subject: Re: [RESEND-PATCH] media:davinci: clk - {prepare/unprepare} for
- common clk
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Murali Karicheri <m-karicheri2@ti.com>,
-	davinci-linux-open-source@linux.davincidsp.com,
-	linux-kernel@vger.kernel.org, mchehab@infradead.org,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:16964 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754187Ab2JBIY3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 04:24:29 -0400
+Received: from eusync3.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MB9009ZTBDKIY50@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Oct 2012 09:24:56 +0100 (BST)
+Received: from [106.116.147.32] by eusync3.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MB900H7IBCQ8K70@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Oct 2012 09:24:27 +0100 (BST)
+Message-id: <506AA4B9.7030303@samsung.com>
+Date: Tue, 02 Oct 2012 10:24:25 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: arun.kk@samsung.com
+Cc: Jeongtae Park <jtp.park@samsung.com>,
+	'Sylwester Nawrocki' <sylvester.nawrocki@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jang-Hyuck Kim <janghyuck.kim@samsung.com>,
+	peter Oh <jaeryul.oh@samsung.com>,
+	NAVEEN KRISHNA CHATRADHI <ch.naveen@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"kmpark@infradead.org" <kmpark@infradead.org>,
+	SUNIL JOSHI <joshi@samsung.com>
+Subject: Re: [PATCH v7 5/6] [media] s5p-mfc: MFCv6 register definitions
+References: <33463275.230081349157793594.JavaMail.weblogic@epml10>
+In-reply-to: <33463275.230081349157793594.JavaMail.weblogic@epml10>
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sekhar,
+Hi Arun,
 
-On Sat, Oct 27, 2012 at 2:14 PM, Sekhar Nori <nsekhar@ti.com> wrote:
-> Hi Murali,
->
-> On 10/26/2012 9:22 PM, Murali Karicheri wrote:
->> On 10/25/2012 09:12 AM, Prabhakar Lad wrote:
->>> Hi Murali,
->>>
->>> Thanks for the patch.  I'll  queue this patch for 3.8.
->> Please check with Sekhar as well. This is a preparation patch for common
->> clk framework support. ALso fixes some bugs on the existing code. As the
->> clk
->> patches are dependent on these patches, I would suggest you queue this
->> against 3.7 rcx.
->
-> The -rc cycle is for fixes only so this cannot get merged into v3.7
-> as-is. If the patch has some fixes embedded, its a good idea to separate
-> them out (and have the feature parts come after the fixes in the patch
-> series) so they can be considered for -rc cycle. The current description
-> does not detail what the issue is and what its impact is so when you do
-> separate it out, please mention those as well. It will help determine
-> the severity of the issue and convince maintainers to include it in v3.7.
->
-Splitting the patch into fixes + features would make sense, Since the features
-patch would again change the same piece of code changed by the fixes patch.
-The fixes are not so critical enough so as to go into the rc-cycle. I think
-merging in 3.8 would be a good idea.
+On 10/02/2012 08:03 AM, Arun Kumar K wrote:
+> Hi Jeongtae Park,
+> 
+> I have verified the calculation.
+> The ALIGN macro is giving a wrong result and I used the macro DIV_ROUND_UP
+> in the v8 patchset which is giving the proper result.
+
+Sorry about this misleading suggestion. It should have been DIV_ROUND_UP 
+indeed. Your v9 series in general looks good to me, I'd like to send a pull 
+request with Kamil's Ack today. 
+
+Well done, thanks!
 
 Regards,
---Prabhakar
-
-> Thanks,
-> Sekhar
+Sylwester
