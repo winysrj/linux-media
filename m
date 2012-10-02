@@ -1,61 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45078 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756232Ab2JLHVO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Oct 2012 03:21:14 -0400
-Date: Fri, 12 Oct 2012 09:21:02 +0200
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2 v6] of: add helper to parse display timings
-Message-ID: <20121012072102.GA32500@pengutronix.de>
-References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
- <1349373560-11128-2-git-send-email-s.trumtrar@pengutronix.de>
- <1349680065.3227.25.camel@deskari>
- <20121008074921.GB20800@pengutronix.de>
- <20121011193118.GA27599@avionic-0098.mockup.avionic-design.de>
+Received: from acsinet15.oracle.com ([141.146.126.227]:39291 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754225Ab2JBIbB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 04:31:01 -0400
+Date: Tue, 2 Oct 2012 11:30:50 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: hfvogt@gmx.net
+Cc: linux-media@vger.kernel.org
+Subject: re: [media] af9035: add Avermedia Volar HD (A867R) support
+Message-ID: <20121002083049.GK12398@elgon.mountain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20121011193118.GA27599@avionic-0098.mockup.avionic-design.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 11, 2012 at 09:31:18PM +0200, Thierry Reding wrote:
-> On Mon, Oct 08, 2012 at 09:49:21AM +0200, Steffen Trumtrar wrote:
-> > On Mon, Oct 08, 2012 at 10:07:45AM +0300, Tomi Valkeinen wrote:
-> > > On Thu, 2012-10-04 at 19:59 +0200, Steffen Trumtrar wrote:
-> [...]
-> > > > +
-> > > > +	disp->num_timings = 0;
-> > > > +
-> > > > +	for_each_child_of_node(timings_np, entry) {
-> > > > +		disp->num_timings++;
-> > > > +	}
-> > > 
-> > > No need for { }
-> > > 
-> > 
-> > Okay.
-> 
-> Or you could just use of_get_child_count().
-> 
-> Thierry
+Hello Hans-Frieder Vogt,
 
-Ah, very nice. That's definitely better. Didn't know about that function.
+The patch 540fd4ba0533: "[media] af9035: add Avermedia Volar HD
+(A867R) support" from Apr 2, 2012, leads to the following Clang warning:
+	drivers/media/dvb-frontends/af9033.c:467:20: warning: comparison
+	of unsigned expression >= 0 is always true
+	[-Wtautological-compare]
 
-Thanks,
-Steffen
+drivers/media/dvb-frontends/af9033.c
+   464                  while (if_frequency > (adc_freq / 2))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+if_frequency is unsigned.  I worry that this loop doesn't handle integer
+underflow properly.
 
+   465                          if_frequency -= adc_freq;
+   466  
+   467                  if (if_frequency >= 0)
+                            ^^^^^^^^^^^^^^^^^
+This is always true.
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+   468                          spec_inv *= -1;
+   469                  else
+   470                          if_frequency *= -1;
+
+regards,
+dan carpenter
+
