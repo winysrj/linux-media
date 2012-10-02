@@ -1,84 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:62930 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753236Ab2JAWq4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 18:46:56 -0400
-Received: by mail-qa0-f46.google.com with SMTP id c26so86179qad.19
-        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2012 15:46:56 -0700 (PDT)
-From: Ido Yariv <ido@wizery.com>
-To: Tony Lindgren <tony@atomide.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Ido Yariv <ido@wizery.com>
-Subject: [PATCH v2 5/5] arm: omap: Move iopgtable header to drivers/iommu/
-Date: Mon,  1 Oct 2012 18:46:31 -0400
-Message-Id: <1349131591-10804-5-git-send-email-ido@wizery.com>
-In-Reply-To: <1349131591-10804-1-git-send-email-ido@wizery.com>
-References: <20120927195526.GP4840@atomide.com>
- <1349131591-10804-1-git-send-email-ido@wizery.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:48713 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754986Ab2JBQdZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 12:33:25 -0400
+MIME-Version: 1.0
+In-Reply-To: <20121002100319.59146693@redhat.com>
+References: <1340285798-8322-1-git-send-email-mchehab@redhat.com>
+ <4FE37194.30407@redhat.com> <4FE8B8BC.3020702@iki.fi> <4FE8C4C4.1050901@redhat.com>
+ <4FE8CED5.104@redhat.com> <20120625223306.GA2764@kroah.com>
+ <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Tue, 2 Oct 2012 09:33:03 -0700
+Message-ID: <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
+ callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Lennart Poettering <lennart@poettering.net>
+Cc: Greg KH <gregkh@suse.de>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The iopgtable header file is only used by the iommu & iovmm drivers, so
-move it to drivers/iommu/, as part of the single zImage effort.
+On Tue, Oct 2, 2012 at 6:03 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+>
+> I basically tried a few different approaches, including deferred probe(),
+> as you suggested, and request_firmware_async(), as Kay suggested.
 
-Signed-off-by: Ido Yariv <ido@wizery.com>
----
- drivers/iommu/omap-iommu-debug.c                                       | 3 +--
- drivers/iommu/omap-iommu.c                                             | 3 +--
- .../include/plat/iopgtable.h => drivers/iommu/omap-iopgtable.h         | 0
- drivers/iommu/omap-iovmm.c                                             | 3 +--
- 4 files changed, 3 insertions(+), 6 deletions(-)
- rename arch/arm/plat-omap/include/plat/iopgtable.h => drivers/iommu/omap-iopgtable.h (100%)
+Stop this crazy. FIX UDEV ALREADY, DAMMIT.
 
-diff --git a/drivers/iommu/omap-iommu-debug.c b/drivers/iommu/omap-iommu-debug.c
-index 8c1e30b..84dbfd2 100644
---- a/drivers/iommu/omap-iommu-debug.c
-+++ b/drivers/iommu/omap-iommu-debug.c
-@@ -22,8 +22,7 @@
- #include <linux/platform_data/iommu-omap.h>
- #include <linux/platform_data/iovmm-omap.h>
- 
--#include <plat/iopgtable.h>
--
-+#include "omap-iopgtable.h"
- #include "omap-iommu.h"
- 
- #define MAXCOLUMN 100 /* for short messages */
-diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index 6100334..1ca33b0 100644
---- a/drivers/iommu/omap-iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -26,8 +26,7 @@
- 
- #include <linux/platform_data/iommu-omap.h>
- 
--#include <plat/iopgtable.h>
--
-+#include "omap-iopgtable.h"
- #include "omap-iommu.h"
- 
- #define for_each_iotlb_cr(obj, n, __i, cr)				\
-diff --git a/arch/arm/plat-omap/include/plat/iopgtable.h b/drivers/iommu/omap-iopgtable.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/plat/iopgtable.h
-rename to drivers/iommu/omap-iopgtable.h
-diff --git a/drivers/iommu/omap-iovmm.c b/drivers/iommu/omap-iovmm.c
-index b5ac2cd..2820e3a 100644
---- a/drivers/iommu/omap-iovmm.c
-+++ b/drivers/iommu/omap-iovmm.c
-@@ -24,8 +24,7 @@
- #include <linux/platform_data/iommu-omap.h>
- #include <linux/platform_data/iovmm-omap.h>
- 
--#include <plat/iopgtable.h>
--
-+#include "omap-iopgtable.h"
- #include "omap-iommu.h"
- 
- static struct kmem_cache *iovm_area_cachep;
--- 
-1.7.11.4
+Who maintains udev these days? Is it Lennart/Kai, as part of systemd?
 
+Lennart/Kai, fix the udev regression already. Lennart was the one who
+brought up kernel ABI regressions at some conference, and if you now
+you have the *gall* to break udev in an incompatible manner that
+requires basically impossible kernel changes for the kernel to "fix"
+the udev interface, I don't know what to say.
+
+"Two-faced lying weasel" would be the most polite thing I could say.
+But it almost certainly will involve a lot of cursing.
+
+> However, for 3.7 or 3.8, I think that the better is to revert changeset 177bc7dade38b5
+> and to stop with udev's insanity of requiring asynchronous firmware load during
+> device driver initialization. If udev's developers are not willing to do that,
+> we'll likely need to add something at the drivers core to trick udev for it to
+> think that the modules got probed before the probe actually happens.
+
+The fact is, udev made new - and insane - rules that are simply
+*invalid*. Modern udev is broken, and needs to be fixed.
+
+I don't know where the problem started in udev, but the report I saw
+was that udev175 was fine, and udev182 was broken, and would deadlock
+if module_init() did a request_firmware(). That kind of nested
+behavior is absolutely *required* to work, in order to not cause
+idiotic problems for the kernel for no good reason.
+
+What kind of insane udev maintainership do we have? And can we fix it?
+
+Greg, I think you need to step up here too. You were the one who let
+udev go. If the new maintainers are causing problems, they need to be
+fixed some way.
+
+                Linus
