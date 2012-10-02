@@ -1,104 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:50627 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751095Ab2JVPaS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Oct 2012 11:30:18 -0400
-Message-ID: <5085667A.70408@gmail.com>
-Date: Mon, 22 Oct 2012 17:30:02 +0200
-From: Daniel Mack <zonque@gmail.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1513 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752023Ab2JBGg0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 02:36:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv1 API PATCH 2/4] v4l2-ctrls: add a notify callback.
+Date: Tue, 2 Oct 2012 08:36:17 +0200
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+References: <1347621336-14108-1-git-send-email-hans.verkuil@cisco.com> <201209270844.25497.hverkuil@xs4all.nl> <20121001170138.5501f4be@redhat.com>
+In-Reply-To: <20121001170138.5501f4be@redhat.com>
 MIME-Version: 1.0
-To: Alan Stern <stern@rowland.harvard.edu>
-CC: "Artem S. Tashkinov" <t.artem@lycos.com>, bp@alien8.de,
-	pavel@ucw.cz, linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	security@kernel.org, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: Re: A reliable kernel panic (3.6.2) and system crash when visiting
- a particular website
-References: <Pine.LNX.4.44L0.1210221116040.1724-100000@iolanthe.rowland.org>
-In-Reply-To: <Pine.LNX.4.44L0.1210221116040.1724-100000@iolanthe.rowland.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201210020836.17999.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22.10.2012 17:17, Alan Stern wrote:
-> On Sun, 21 Oct 2012, Artem S. Tashkinov wrote:
+On Mon October 1 2012 22:01:38 Mauro Carvalho Chehab wrote:
+> Em Thu, 27 Sep 2012 08:44:25 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
->> dmesg messages up to a crash can be seen here: https://bugzilla.kernel.org/attachment.cgi?id=84221
+> > On Wed September 26 2012 12:50:11 Laurent Pinchart wrote:
 > 
-> The first problem in the log is endpoint list corruption.  Here's a 
-> debugging patch which should provide a little more information.
-
-Maybe add a BUG() after each of these dev_err() so we stop at the first
-occurance and also see where we're coming from?
-
-
-
-
->  drivers/usb/core/hcd.c |   36 ++++++++++++++++++++++++++++++++++++
->  1 file changed, 36 insertions(+)
+> > > > +	if (notify == NULL) {
+> > > > +		ctrl->call_notify = 0;
+> > > > +		return;
+> > > > +	}
+> > > > +	/* Only one notifier is allowed. Should we ever need to support
+> > > > +	   multiple notifiers, then some sort of linked list of notifiers
+> > > > +	   should be implemented. But I don't see any real reason to implement
+> > > > +	   that now. If you think you need multiple notifiers, then contact
+> > > > +	   the linux-media mailinglist. */
 > 
-> Index: usb-3.6/drivers/usb/core/hcd.c
-> ===================================================================
-> --- usb-3.6.orig/drivers/usb/core/hcd.c
-> +++ usb-3.6/drivers/usb/core/hcd.c
-> @@ -1083,6 +1083,8 @@ EXPORT_SYMBOL_GPL(usb_calc_bus_time);
->  
->  /*-------------------------------------------------------------------------*/
->  
-> +static bool list_error;
-> +
->  /**
->   * usb_hcd_link_urb_to_ep - add an URB to its endpoint queue
->   * @hcd: host controller to which @urb was submitted
-> @@ -1126,6 +1128,20 @@ int usb_hcd_link_urb_to_ep(struct usb_hc
->  	 */
->  	if (HCD_RH_RUNNING(hcd)) {
->  		urb->unlinked = 0;
-> +
-> +		{
-> +			struct list_head *cur = &urb->ep->urb_list;
-> +			struct list_head *prev = cur->prev;
-> +
-> +			if (prev->next != cur && !list_error) {
-> +				list_error = true;
-> +				dev_err(&urb->dev->dev,
-> +					"ep %x list add corruption: %p %p %p\n",
-> +					urb->ep->desc.bEndpointAddress,
-> +					cur, prev, prev->next);
-> +			}
-> +		}
-> +
->  		list_add_tail(&urb->urb_list, &urb->ep->urb_list);
->  	} else {
->  		rc = -ESHUTDOWN;
-> @@ -1193,6 +1209,26 @@ void usb_hcd_unlink_urb_from_ep(struct u
->  {
->  	/* clear all state linking urb to this dev (and hcd) */
->  	spin_lock(&hcd_urb_list_lock);
-> +	{
-> +		struct list_head *cur = &urb->urb_list;
-> +		struct list_head *prev = cur->prev;
-> +		struct list_head *next = cur->next;
-> +
-> +		if (prev->next != cur && !list_error) {
-> +			list_error = true;
-> +			dev_err(&urb->dev->dev,
-> +				"ep %x list del corruption prev: %p %p %p\n",
-> +				urb->ep->desc.bEndpointAddress,
-> +				cur, prev, prev->next);
-> +		}
-> +		if (next->prev != cur && !list_error) {
-> +			list_error = true;
-> +			dev_err(&urb->dev->dev,
-> +				"ep %x list del corruption next: %p %p %p\n",
-> +				urb->ep->desc.bEndpointAddress,
-> +				cur, next, next->prev);
-> +		}
-> +	}
->  	list_del_init(&urb->urb_list);
->  	spin_unlock(&hcd_urb_list_lock);
->  }
-> 
+> If only one notifier is allowed, then you should clearly state that at the
+> API documentation.
 
+Well, v4l2-controls.txt says:
+
+"There can be only one notify function per control handler. Any attempt
+to set another notify function will cause a WARN_ON."
+
+And it is documented as well in the header, so what more do you want?
+
+> > > > +	if (WARN_ON(ctrl->handler->notify &&
+> > > > +			(ctrl->handler->notify != notify ||
+> > > > +			 ctrl->handler->notify_priv != priv)))
+> > > > +		return;
+> > > 
+> > > I'm not sure whether I like that. It feels a bit hackish. Wouldn't it be 
+> > > better to register the notifier with the handler explictly just once and then 
+> > > enable/disable notifications on a per-control basis ?
+> > 
+> > I thought about that, but I prefer this method because it allows me to switch
+> > to per-control notifiers in the future. In addition, different controls can have
+> > different handlers. If you have to set the notifier for handlers, then the
+> > driver needs to figure out which handlers are involved for the controls it wants
+> > to be notified on. It's much easier to do it like this.
+> 
+> That also sounded hackish on my eyes. If just one notifier is allowed, the
+> function should simply refuse any other call to it, as any other call to it
+> is a driver's bug. So:
+> 
+> 	if (WARN_ON(ctrl->handler->notify))
+> 		return;
+> 
+> seems to be enough.
+
+No, it's not. Multiple controls share the same handler, so this would only work
+for the first control and block any attempts to set the notifier for other
+controls of the same handler.
+
+The point is that in today's implementation the notifier is stored in the handler
+because that was the easiest implementation and because it is all we need today.
+But in the future we may have to support different notifiers and also more than
+one notifier per control, and in that case the notifier would move to the control
+data structure.
+
+I want to be able to make such a change without having to change all drivers that
+use today's implementation.
+
+The API for setting a notifier should act on a control, not on a control handler.
+The 'hack' above is just a check that ensures that you don't violate the constraints
+of the current implementation. If anyone hits that warning and contacts the ml, then
+I can see if there are good enough reasons to go the extra mile and remove this
+constraint.
+
+So I really don't want to change this patch.
+
+Regards,
+
+	Hans
