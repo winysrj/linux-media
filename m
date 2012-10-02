@@ -1,52 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:42153 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932335Ab2JJPWC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 11:22:02 -0400
-Received: by mail-bk0-f46.google.com with SMTP id jk13so393692bkc.19
-        for <linux-media@vger.kernel.org>; Wed, 10 Oct 2012 08:22:01 -0700 (PDT)
-Message-ID: <507592A9.4010400@googlemail.com>
-Date: Wed, 10 Oct 2012 17:22:17 +0200
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:35089 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752991Ab2JBMt7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Oct 2012 08:49:59 -0400
+Message-ID: <506AE2DE.80306@iki.fi>
+Date: Tue, 02 Oct 2012 15:49:34 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] qv4l2: avoid empty titles for the video control tabs
-References: <1349793964-22825-1-git-send-email-fschaefer.oss@googlemail.com> <201210091724.56456.hverkuil@xs4all.nl>
-In-Reply-To: <201210091724.56456.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Michael Krufky <mkrufky@linuxtv.org>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH RFC] em28xx: PCTV 520e switch tda18271 to tda18271c2dd
+References: <1349139145-22113-1-git-send-email-crope@iki.fi> <CAGoCfiwfTkTs1DPa0cWHLOgGcgS0Df3h7zZ=4YW51dr_AS78nQ@mail.gmail.com> <CAOcJUbw+ToEAaqKPx1phWsKdWvPRXUOhtWwm7VaESwkW=fpqyg@mail.gmail.com> <506ABA2B.3070908@iki.fi> <20121002080503.76869be7@redhat.com> <506ADE45.6000708@iki.fi> <CAOcJUbxYzdXwe2Njut=KYwKuoyKpXNZDfm-mgtyG2OQ7Kiau1g@mail.gmail.com>
+In-Reply-To: <CAOcJUbxYzdXwe2Njut=KYwKuoyKpXNZDfm-mgtyG2OQ7Kiau1g@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 09.10.2012 17:24, schrieb Hans Verkuil:
-> On Tue October 9 2012 16:46:04 Frank Schäfer wrote:
->> The video control class names are used as titles for the GUI-tabs.
->> The current code relies on the driver enumerating the control classes
->> properly when using V4L2_CTRL_FLAG_NEXT_CTRL.
->> But the UVC-driver (and likely others, too) don't do that, so we can end
->> up with an empty class name string.
+On 10/02/2012 03:42 PM, Michael Krufky wrote:
+> On Tue, Oct 2, 2012 at 8:29 AM, Antti Palosaari <crope@iki.fi> wrote:
+>> On 10/02/2012 02:05 PM, Mauro Carvalho Chehab wrote:
+>>>
+>>> Em Tue, 02 Oct 2012 12:55:55 +0300
+>>> Antti Palosaari <crope@iki.fi> escreveu:
+>>>
+>>>> On 10/02/2012 06:17 AM, Michael Krufky wrote:
+>>>>>
+>>>>> On Mon, Oct 1, 2012 at 9:58 PM, Devin Heitmueller
+>>>>> <dheitmueller@kernellabs.com> wrote:
+>>>>>>
+>>>>>> On Mon, Oct 1, 2012 at 8:52 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>>>>>>
+>>>>>>> New drxk firmware download does not work with tda18271. Actual
+>>>>>>> reason is more drxk driver than tda18271. Anyhow, tda18271c2dd
+>>>>>>> will work as it does not do as much I/O during attach than tda18271.
+>>>>>>>
+>>>>>>> Root of cause is tuner I/O during drx-k asynchronous firmware
+>>>>>>> download. request_firmware_nowait()... :-/
+>>>>>>
+>>>>>>
+>>>>>> This seems like it's just changing the timing of the initialization
+>>>>>> process, which isn't really any better than the "msleep(2000)".  It's
+>>>>>> just dumb luck that it happens to work on the developer's system.
+>>>>>>
+>>>>>> Don't get me wrong, I agree with Michael that this whole situation is
+>>>>>> ridiculous, but I don't see why swapping out the entire driver is a
+>>>>>> reasonable fix.
+>>>>>
+>>>>>
+>>>>> I just send out a patch entitled, "tda18271: prevent register access
+>>>>> during attach() if delay_cal is set"   Antti, could you set
+>>>>> tda18271_config.delay_cal = 1 with this patch applied and see if it
+>>>>> solves your problem?
+>>>>>
+>>>>> Again, although this may solve the problem for this particular device,
+>>>>> the *real* problem is this asynchronous firmware download in the demod
+>>>>> driver.
+>>>>>
+>>>>> Nonetheless, Antti has been asking for this feature, to not allow
+>>>>> register access during attach, I was against it and I have my reasons,
+>>>>> but I believe that this patch is a fair compromise.
+>>>>>
+>>>>> After somebody can test it, I think we should merge this -- any
+>>>>> comments?
+>>>>>
+>>>>> http://patchwork.linuxtv.org/patch/14799/
+>>>>
+>>>>
+>>>> I tested. It does not help. I also looked it more and it really bails
+>>>> out with error much earlier, in function where it reads chip ID. That
+>>>> makes me look the tda18271c2dd driver.
+>>>
+>>>
+>>> I saw Antti's logs: basically, tda18271_get_id() reads all registers at
+>>> the
+>>> chip during attach(), returning -EINVAL if tda18271_read_regs(fe) can't
+>>> read the value for R_ID register.
+>>>
+>>> Btw, why do you need to read 16 registers at once, instead of just reading
+>>> the needed register? read_extended and write operations are even more
+>>> evil:
+>>> they read/write the full set of 39 registers on each operation. That seems
+>>> to be overkill, especially on places like tda18271_get_id(), where
+>>> all the driver is doing is to check for the ID register.
+>>>
+>>> Worse than that, tda18271_get_id() doesn't even check if the read()
+>>> operation failed: it assumes that it will always work, letting the
+>>> switch(regs[R_ID]) to print a wrong message (device unknown) when
+>>> what actually failed where the 16 registers dump.
+>>>
+>>>> I found that for some reason
+>>>> these drivers uses different method for register read. tda18271 uses I2C
+>>>> transaction with 2 messages, write and read with REPEATED START
+>>>> condition. tda18271c2dd driver is just simple I2C read. So which one is
+>>>> correct?
+>>>
+>>>
+>>> That's due to the I2C locking schema: if you do two separate I2C
+>>> transfers, the I2C core will allow an event to happen between the
+>>> two operations. That typically causes troubles on read operations.
+>>> So, it is recommended to use just one i2c_transfer() call for read
+>>> operations that are mapped via a write and a read.
 >>
->> Make sure we always have a control class title:
->> If the driver didn't enumrate a class along with the controls, call
->> VIDIOC_QUERYCTRL for the class explicitly.
->> If that fails, fall back to an internal string list.
-> NACK.
+>>
+>> I know rather well how I2C works. As many messages you put to single
+>> transfer those are aimed to do with REPEATED START condition without a STOP.
+>> And naturally, when you split to multiple transactions then there is STOP.
+>> STOP is send after the last I2C message in one transaction.
+>>
+>> But what I tried to say there was a different communication schema used
+>> between the drivers. Other must (quite likely) be wrong. There is no any
+>> mention about hacks. I don't see how that I2C locking you mention is
+>> related, as it is *one* I2C transfer in question for both cases.
+>>
+>> Here is difference what I mean:
+>> tda18271: START c0|Ack|00|Ack|START c1|data read|NAck|STOP
+>> tda18271cc: START c1|data read|NAck|STOP
 >
-> qv4l2 is for testing drivers, so I *want* to see if a driver doesn't provide
-> the control class name. They really should provide it, and it is not something
-> that should be papered over.
-
-Hehe, ok.
-Then you might want to remove all the "papering-over" code a few lines
-above, too ? ;)
-
-Regards,
-Frank
-
-> Regards,
+> As per section 9.1 of the NXP TDA18271 datasheet (page 8) (download
+> from http://www.nxp.com/documents/data_sheet/TDA18271HD.pdf)
 >
-> 	Hans
+> 9.1 I2C-bus format, Write/Read mode
+> Remark: The I2C-bus read in the TDA18271HD must read the entire
+> I2C-bus map, with
+> required subaddress 00h. The number of bytes read is 16, or 39 in
+> extended register
+> mode; see Table 7. Reading write-only bits can return values that are
+> different from the
+> programmed values
+>
+> tda18271 is doing the right thing, tda18271cc is not.
+>
+> -Mike Krufky
+
+Yes, you are correct! Thanks.
+
+I will still test if it makes any difference.
+
+regards
+Antti
 
 
+-- 
+http://palosaari.fi/
