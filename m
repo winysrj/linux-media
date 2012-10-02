@@ -1,43 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44101 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:48833 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753479Ab2JCJrI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Oct 2012 05:47:08 -0400
-Message-ID: <506C0984.606@iki.fi>
-Date: Wed, 03 Oct 2012 12:46:44 +0300
+	id S1751593Ab2JBAwx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Oct 2012 20:52:53 -0400
 From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>
-CC: Hans-Frieder Vogt <hfvogt@gmx.net>,
-	Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [GIT PULL FOR v3.7] small af9033 correction
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH RFC] em28xx: PCTV 520e switch tda18271 to tda18271c2dd
+Date: Tue,  2 Oct 2012 03:52:25 +0300
+Message-Id: <1349139145-22113-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 2425bb3d4016ed95ce83a90b53bd92c7f31091e4:
+New drxk firmware download does not work with tda18271. Actual
+reason is more drxk driver than tda18271. Anyhow, tda18271c2dd
+will work as it does not do as much I/O during attach than tda18271.
 
-   em28xx: regression fix: use DRX-K sync firmware requests on em28xx 
-(2012-10-02 17:15:22 -0300)
+Root of cause is tuner I/O during drx-k asynchronous firmware
+download. request_firmware_nowait()... :-/
 
-are available in the git repository at:
+Cc: Michael Krufky <mkrufky@linuxtv.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/em28xx/em28xx-dvb.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-   git://linuxtv.org/anttip/media_tree.git for_v3.7_mauro-4
-
-for you to fetch changes up to cac7edcf11c48801b40cb8bc32c545da506e8435:
-
-   af9033: prevent unintended underflow (2012-10-03 12:36:53 +0300)
-
-----------------------------------------------------------------
-Hans-Frieder Vogt (1):
-       af9033: prevent unintended underflow
-
-  drivers/media/dvb-frontends/af9033.c | 16 +++++++++-------
-  1 file changed, 9 insertions(+), 7 deletions(-)
-
-
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 770a5af..fd750d4 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -1122,9 +1122,8 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 
+ 		if (dvb->fe[0]) {
+ 			/* attach tuner */
+-			if (!dvb_attach(tda18271_attach, dvb->fe[0], 0x60,
+-					&dev->i2c_adap,
+-					&em28xx_cxd2820r_tda18271_config)) {
++			if (!dvb_attach(tda18271c2dd_attach, dvb->fe[0],
++					&dev->i2c_adap, 0x60)) {
+ 				dvb_frontend_detach(dvb->fe[0]);
+ 				result = -EINVAL;
+ 				goto out_free;
 -- 
-http://palosaari.fi/
+1.7.11.4
 
