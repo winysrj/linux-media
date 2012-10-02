@@ -1,98 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59844 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752280Ab2JWKWO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 06:22:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	media-workshop@linuxtv.org,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [media-workshop] Tentative Agenda for the November workshop
-Date: Tue, 23 Oct 2012 12:22:59 +0200
-Message-ID: <32168825.Mb9aigaepW@avalon>
-In-Reply-To: <201210230846.22024.hverkuil@xs4all.nl>
-References: <201210221035.56897.hverkuil@xs4all.nl> <2105402.EQpZdH2E13@avalon> <201210230846.22024.hverkuil@xs4all.nl>
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:34474 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753485Ab2JBH4t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 03:56:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] media: add a VEU MEM2MEM format conversion and scaling driver
+Date: Tue, 2 Oct 2012 09:56:37 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <Pine.LNX.4.64.1209111459340.22084@axis700.grange> <201209111544.29596.hverkuil@xs4all.nl> <Pine.LNX.4.64.1210011940380.3573@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1210011940380.3573@axis700.grange>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201210020956.37709.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Tuesday 23 October 2012 08:46:21 Hans Verkuil wrote:
-> On Tue October 23 2012 03:03:35 Laurent Pinchart wrote:
-> > On Monday 22 October 2012 14:06:06 Hans Verkuil wrote:
-> > > On Mon October 22 2012 13:18:46 Laurent Pinchart wrote:
-> > > > On Monday 22 October 2012 12:53:02 Sylwester Nawrocki wrote:
-> > > > > On 10/22/2012 12:39 PM, Laurent Pinchart wrote:
-> > > > > > On Monday 22 October 2012 10:35:56 Hans Verkuil wrote:
-> > > > > >> Hi all,
-> > > > > >> 
-> > > > > >> This is the tentative agenda for the media workshop on November
-> > > > > >> 8, 2012. If you have additional things that you want to discuss,
-> > > > > >> or something is wrong or incomplete in this list, please let me
-> > > > > >> know so I can update the list.
-> > > > > > 
-> > > > > > Thank you Hans for taking care of the agenda.
-> > > > > > 
-> > > > > >> - Explain current merging process (Mauro)
-> > > > > >> - Open floor for discussions on how to improve it (Mauro)
-> > > > > >> - Write down minimum requirements for new V4L2 (and DVB?)
-> > > > > >>   drivers, both for staging and mainline acceptance: which
-> > > > > >>   frameworks to use, v4l2-compliance, etc. (Hans Verkuil)
-> > > > > >> - V4L2 ambiguities (Hans Verkuil)
-> > > > > >> - TSMux device (a mux rather than a demux): Alain Volmat
-> > > > > >> - dmabuf status, esp. with regards to being able to test
-> > > > > >>   (Mauro/Samsung)
-> > > > > >> - Device tree support (Guennadi, not known yet whether this topic
-> > > > > >>   is needed) - Creating/selecting contexts for hardware that
-> > > > > >>   supports this (Samsung, only if time is available)
-> > > > > > 
-> > > > > > This last topic will likely require lots of brainstorming, and
-> > > > > > thus time. If the schedule permits, would anyone be interested in
-> > > > > > meeting earlier during the week already ?
-> > > > > 
-> > > > > My intention was to also possibly discuss it with others before the
-> > > > > actual media workshop. Would be nice if we could have arranged such
-> > > > > a meeting. I'm not sure about the room conditions though. It's
-> > > > > probably not a big issue, unless there is really many people
-> > > > > interested in that topic.
-> > > > 
-> > > > A small room with a projector would be nice if possible, although not
-> > > > required. Who would be interested in attending a brainstorming session
-> > > > on contexts ?
-> > > 
-> > > I would be, but the problem is that the conference is also interesting.
-> > 
-> > More interesting than a brainstorming session about hardware contexts ?
-> > ;-) There's of course talks I want to attend, but I can probably skip some
-> > of them.
-> > 
-> > > The only day I have really available is the Friday *after* the summit.
-> > 
-> > We'll probably need several brainstorming sessions anyway. I'd like to
-> > organize one before the media summit though, as we'll have limited time to
-> > discuss the topic during the summit, which doesn't suit brainstorming
-> > sessions very well.
+On Mon 1 October 2012 19:51:18 Guennadi Liakhovetski wrote:
+> Hi Hans
 > 
-> Sylwester, would Samsung be able to prepare for a brainstorming session on
-> Monday or Tuesday? Both Laurent and myself have presentations on Wednesday,
-> so that's not the best day for such a session.
+> Thanks for the review. As you might have seen, I just posted v2 of this 
+> driver. In it I addressed almost all your comments. As for the rest:
 > 
-> Do you think we should do a half-day or a full day session on this?
+> On Tue, 11 Sep 2012, Hans Verkuil wrote:
+> 
+> > On Tue 11 September 2012 15:01:19 Guennadi Liakhovetski wrote:
+> 
+> [snip]
+> 
+> > > +struct sh_veu_dev;
+> > > +
+> > > +struct sh_veu_file {
+> > 
+> > struct v4l2_fh is missing here: needed to implement control events.
+> 
+> I removed ctrls completely instead. Don't think mine were useful for 
+> anything.
+> 
+> [snip]
+> 
+> > > +static int sh_veu_try_fmt(struct v4l2_format *f, const struct sh_veu_format *fmt)
+> > > +{
+> > > +	struct v4l2_pix_format *pix = &f->fmt.pix;
+> > > +	unsigned int y_bytes_used;
+> > > +
+> > > +	/*
+> > > +	 * V4L2 specification suggests, that the driver should correct the
+> > > +	 * format struct if any of the dimensions is unsupported
+> > > +	 */
+> > > +	switch (pix->field) {
+> > > +	case V4L2_FIELD_ANY:
+> > > +		pix->field = V4L2_FIELD_NONE;
+> > 
+> > Add a 'break' here.
+> 
+> That's a matter of taste, I think:-) The logic here is, that after setting 
+> the field to NONE the "rest" should be identical with the case, where NONE 
+> is already set by the user, so, just fall through.
 
-Half a day should be more than enough to start with. The topic is quite 
-complex, and we'll need to sleep over it, several times. A full day would just 
-result in brain overheat. I was thinking more in the line of starting our 
-thought process, so maybe twice an hour or two hours would be good. That would 
-allow us to attend the ELCE talks as well :-) (there's definitely a couple of 
-them that I would like to listen to).
+Can you add a /* fall through */ comment in that case? That clarifies that it
+is intentional.
 
--- 
+> 
+> [snip]
+> 
+> > > +static void sh_veu_colour_offset(struct sh_veu_dev *veu, struct sh_veu_vfmt *vfmt)
+> > > +{
+> > > +	/* dst_left and dst_top validity will be verified in CROP / COMPOSE */
+> > > +	unsigned int left = vfmt->frame.left & ~0x03;
+> > > +	unsigned int top = vfmt->frame.top;
+> > > +	dma_addr_t offset = ((left * veu->vfmt_out.fmt->depth) >> 3) +
+> > > +		top * veu->vfmt_out.bytesperline;
+> > > +	unsigned int y_line;
+> > > +
+> > > +	vfmt->offset_y = offset;
+> > > +
+> > > +	switch (vfmt->fmt->fourcc) {
+> > > +	case V4L2_PIX_FMT_NV12:
+> > > +	case V4L2_PIX_FMT_NV16:
+> > > +	case V4L2_PIX_FMT_NV24:
+> > > +		y_line = ALIGN(vfmt->frame.width, 16);
+> > > +		vfmt->offset_c = offset + y_line * vfmt->frame.height;
+> > > +		break;
+> > > +	case V4L2_PIX_FMT_RGB332:
+> > > +	case V4L2_PIX_FMT_RGB444:
+> > > +	case V4L2_PIX_FMT_RGB565:
+> > > +	case V4L2_PIX_FMT_BGR666:
+> > > +	case V4L2_PIX_FMT_RGB24:
+> > > +		vfmt->offset_c = 0;
+> > > +		break;
+> > > +	default:
+> > > +		BUG();
+> > 
+> > Wouldn't WARN_ON be more polite?
+> 
+> This "default" can be entered only if someone modifies the driver and does 
+> this wrongly, so, I just make sure, that the author realises their mistake 
+> before shipping to the user;-)
+> 
+> [snip]
+> 
+> > > +static int sh_veu_s_input(struct file *file, void *fh, unsigned int i)
+> > > +{
+> > > +	return i ? -EINVAL : 0;
+> > > +}
+> > > +
+> > > +static int sh_veu_g_input(struct file *file, void *fh, unsigned int *i)
+> > > +{
+> > > +	*i = 0;
+> > > +	return 0;
+> > > +}
+> > > +
+> > > +static int sh_veu_enum_input(struct file *file, void *fh,
+> > > +			     struct v4l2_input *inp)
+> > > +{
+> > > +	return inp->index ? -EINVAL : 0;
+> > > +}
+> > 
+> > Why implement the input ioctls at all? I'm not sure whether they are
+> > relevant here. If you do, then enum_input really has to fill in the
+> > other fields of struct v4l2_input as well. But I would just remove
+> > support for these ioctls.
+> 
+> Right, I don't need them, but in the beginning I tried using gstreamer for 
+> testing, and, I think, it required them... In the end I anyway gave up on 
+> it and used my own test program, so, yeah, can remove them...
+> 
+> [snip]
+> 
+> > Please run v4l2-compliance (the latest version from v4l-utils.git) over this
+> > driver. Most if not all of the issues I've highlighted above would have been
+> > found by v4l2-compliance.
+> 
+> As I also mentioned in v2, I think, the spec should be extended to also 
+> allow other errors from REQBUFS.
+
+EBUSY should be documented. Perhaps you can make a patch for that? :-)
+
+BTW, in the second version of your patch you return -EPERM if the filehandle
+was set up for streaming. But that isn't right. It is REQBUFS (or CREATE_BUFS
+or read/write) that sets up a filehandle for streaming. Only after calling one
+of those functions is everything locked into place. Until that time it is
+perfectly valid to change formats.
+
+If an app want to get exclusive access and prevent anyone else from messing
+with formats, then it should use the priority ioctls.
+
 Regards,
 
-Laurent Pinchart
-
+	Hans
