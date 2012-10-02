@@ -1,49 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:45787 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753452Ab2JCUc1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 16:32:27 -0400
+Received: from mail.kapsi.fi ([217.30.184.167]:55032 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751589Ab2JBT0c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Oct 2012 15:26:32 -0400
+Message-ID: <506B3FD3.1090006@iki.fi>
+Date: Tue, 02 Oct 2012 22:26:11 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <20121003194819.GA2490@shutemov.name>
-References: <4FE8CED5.104@redhat.com> <20120625223306.GA2764@kroah.com>
- <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com>
- <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
- <20121002221239.GA30990@kroah.com> <20121002222333.GA32207@kroah.com>
- <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
- <506C562E.5090909@redhat.com> <CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
- <20121003194819.GA2490@shutemov.name>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Wed, 3 Oct 2012 13:32:06 -0700
-Message-ID: <CA+55aFy+AgfVTP=_0n0k2Zq39RVx6ywZpx8FkHvDjsJWGS+RkQ@mail.gmail.com>
-Subject: Re: Access files from kernel
-To: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ming Lei <ming.lei@canonical.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Kay Sievers <kay@vrfy.org>,
-	Lennart Poettering <lennart@poettering.net>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Kay Sievers <kay@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Ivan Kalvachev <ikalvachev@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 2/2] em28xx: regression fix: use DRX-K sync firmware requests
+ on em28xx
+References: <1349204716-25971-1-git-send-email-mchehab@redhat.com> <1349204716-25971-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1349204716-25971-2-git-send-email-mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 3, 2012 at 12:48 PM, Kirill A. Shutemov
-<kirill@shutemov.name> wrote:
+On 10/02/2012 10:05 PM, Mauro Carvalho Chehab wrote:
+> As em28xx-dvb will always be initialized asynchronously, there's
+> no need anymore for a separate thread to load the DRX-K firmware.
 >
-> AFAIK, accessing files on filesystem form kernel directly was no-go for a
-> long time. What's the new rule here?
+> Fixes a known regression with kernel 3.6 with tda18271 driver
+> and asynchronous DRX-K firmware load.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Oh, we've *always* accessed files from the kernel.
+Tested-by: Antti Palosaari <crope@iki.fi>
 
-What we don't want is random drivers doing so directly and without a
-good abstraction layer, because that just ends up being a total
-nightmare.
+Hauppauge WinTV HVR 930C
+MaxMedia UB425-TC
+PCTV QuatroStick nano (520e)
 
-Still, they've done that too. Ugh. Too many drivers having random
-hacks like that.
 
-            Linus
+> ---
+>   drivers/media/usb/em28xx/em28xx-dvb.c | 5 +++++
+>   1 file changed, 5 insertions(+)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+> index 1662b70..913e522 100644
+> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+> @@ -318,6 +318,7 @@ static struct drxk_config terratec_h5_drxk = {
+>   	.no_i2c_bridge = 1,
+>   	.microcode_name = "dvb-usb-terratec-h5-drxk.fw",
+>   	.qam_demod_parameter_count = 2,
+> +	.load_firmware_sync = true,
+>   };
+>
+>   static struct drxk_config hauppauge_930c_drxk = {
+> @@ -327,6 +328,7 @@ static struct drxk_config hauppauge_930c_drxk = {
+>   	.microcode_name = "dvb-usb-hauppauge-hvr930c-drxk.fw",
+>   	.chunk_size = 56,
+>   	.qam_demod_parameter_count = 2,
+> +	.load_firmware_sync = true,
+>   };
+>
+>   struct drxk_config terratec_htc_stick_drxk = {
+> @@ -340,12 +342,14 @@ struct drxk_config terratec_htc_stick_drxk = {
+>   	.antenna_dvbt = true,
+>   	/* The windows driver uses the same. This will disable LNA. */
+>   	.antenna_gpio = 0x6,
+> +	.load_firmware_sync = true,
+>   };
+>
+>   static struct drxk_config maxmedia_ub425_tc_drxk = {
+>   	.adr = 0x29,
+>   	.single_master = 1,
+>   	.no_i2c_bridge = 1,
+> +	.load_firmware_sync = true,
+>   };
+>
+>   static struct drxk_config pctv_520e_drxk = {
+> @@ -356,6 +360,7 @@ static struct drxk_config pctv_520e_drxk = {
+>   	.chunk_size = 58,
+>   	.antenna_dvbt = true, /* disable LNA */
+>   	.antenna_gpio = (1 << 2), /* disable LNA */
+> +	.load_firmware_sync = true,
+>   };
+>
+>   static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
+>
+
+
+-- 
+http://palosaari.fi/
