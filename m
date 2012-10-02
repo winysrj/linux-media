@@ -1,68 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:10843 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933457Ab2J0UoZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:44:25 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKiOth020759
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:44:25 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 19/68] [media] radio-isa: get rid of warning: no previous prototype
-Date: Sat, 27 Oct 2012 18:40:37 -0200
-Message-Id: <1351370486-29040-20-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35131 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754984Ab2JBQcG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 12:32:06 -0400
+Date: Tue, 2 Oct 2012 09:31:58 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Ido Yariv <ido@wizery.com>
+Cc: Russell King <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] [media] omap3isp: Fix compilation error in
+ ispreg.h
+Message-ID: <20121002163158.GR4840@atomide.com>
+References: <20120927195526.GP4840@atomide.com>
+ <1349131591-10804-1-git-send-email-ido@wizery.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1349131591-10804-1-git-send-email-ido@wizery.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/radio/radio-isa.c:194:24: warning: no previous prototype for 'radio_isa_alloc' [-Wmissing-prototypes]
-drivers/media/radio/radio-isa.c:210:5: warning: no previous prototype for 'radio_isa_common_probe' [-Wmissing-prototypes]
-drivers/media/radio/radio-isa.c:290:5: warning: no previous prototype for 'radio_isa_common_remove' [-Wmissing-prototypes]
+* Ido Yariv <ido@wizery.com> [121001 15:48]:
+> Commit c49f34bc ("ARM: OMAP2+ Move SoC specific headers to be local to
+> mach-omap2") moved omap34xx.h to mach-omap2. This broke omap3isp, as it
+> includes omap34xx.h.
+> 
+> Instead of moving omap34xx to platform_data, simply add the two
+> definitions the driver needs and remove the include altogether.
+> 
+> Signed-off-by: Ido Yariv <ido@wizery.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/radio/radio-isa.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+I'm assuming that Mauro picks this one up, sorry
+for breaking it.
 
-diff --git a/drivers/media/radio/radio-isa.c b/drivers/media/radio/radio-isa.c
-index 3c0067d..84b7b9f 100644
---- a/drivers/media/radio/radio-isa.c
-+++ b/drivers/media/radio/radio-isa.c
-@@ -191,7 +191,7 @@ static bool radio_isa_valid_io(const struct radio_isa_driver *drv, int io)
- 	return false;
- }
- 
--struct radio_isa_card *radio_isa_alloc(struct radio_isa_driver *drv,
-+static struct radio_isa_card *radio_isa_alloc(struct radio_isa_driver *drv,
- 				struct device *pdev)
- {
- 	struct v4l2_device *v4l2_dev;
-@@ -207,8 +207,9 @@ struct radio_isa_card *radio_isa_alloc(struct radio_isa_driver *drv,
- 	return isa;
- }
- 
--int radio_isa_common_probe(struct radio_isa_card *isa, struct device *pdev,
--				int radio_nr, unsigned region_size)
-+static int radio_isa_common_probe(struct radio_isa_card *isa,
-+				  struct device *pdev,
-+				  int radio_nr, unsigned region_size)
- {
- 	const struct radio_isa_driver *drv = isa->drv;
- 	const struct radio_isa_ops *ops = drv->ops;
-@@ -287,7 +288,8 @@ err_dev_reg:
- 	return res;
- }
- 
--int radio_isa_common_remove(struct radio_isa_card *isa, unsigned region_size)
-+static int radio_isa_common_remove(struct radio_isa_card *isa,
-+				   unsigned region_size)
- {
- 	const struct radio_isa_ops *ops = isa->drv->ops;
- 
--- 
-1.7.11.7
+Acked-by: Tony Lindgren <tony@atomide.com>
 
+> ---
+>  drivers/media/platform/omap3isp/ispreg.h | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/ispreg.h b/drivers/media/platform/omap3isp/ispreg.h
+> index 084ea77..e2c57f3 100644
+> --- a/drivers/media/platform/omap3isp/ispreg.h
+> +++ b/drivers/media/platform/omap3isp/ispreg.h
+> @@ -27,13 +27,13 @@
+>  #ifndef OMAP3_ISP_REG_H
+>  #define OMAP3_ISP_REG_H
+>  
+> -#include <plat/omap34xx.h>
+> -
+> -
+>  #define CM_CAM_MCLK_HZ			172800000	/* Hz */
+>  
+>  /* ISP Submodules offset */
+>  
+> +#define L4_34XX_BASE			0x48000000
+> +#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
+> +
+>  #define OMAP3ISP_REG_BASE		OMAP3430_ISP_BASE
+>  #define OMAP3ISP_REG(offset)		(OMAP3ISP_REG_BASE + (offset))
+>  
+> -- 
+> 1.7.11.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
