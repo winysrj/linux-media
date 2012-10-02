@@ -1,67 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:52415 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750878Ab2JSKRG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Oct 2012 06:17:06 -0400
-Date: Fri, 19 Oct 2012 11:17:04 +0100
-From: Sean Young <sean@mess.org>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com
-Subject: Re: [PATCH] rc-core: add separate defines for protocol bitmaps and
- numbers
-Message-ID: <20121019101703.GA20317@pequod.mess.org>
-References: <20121011231154.22683.2502.stgit@zeus.hardeman.nu>
- <20121017161856.GA10964@pequod.mess.org>
- <20121018215921.GA18904@hardeman.nu>
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:56340 "EHLO
+	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754230Ab2JBWXf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Oct 2012 18:23:35 -0400
+Date: Tue, 2 Oct 2012 15:23:33 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>,
+	Kay Sievers <kay@vrfy.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
+ callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use
+ request_firmware_nowait()
+Message-ID: <20121002222333.GA32207@kroah.com>
+References: <1340285798-8322-1-git-send-email-mchehab@redhat.com>
+ <4FE37194.30407@redhat.com>
+ <4FE8B8BC.3020702@iki.fi>
+ <4FE8C4C4.1050901@redhat.com>
+ <4FE8CED5.104@redhat.com>
+ <20120625223306.GA2764@kroah.com>
+ <4FE9169D.5020300@redhat.com>
+ <20121002100319.59146693@redhat.com>
+ <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
+ <20121002221239.GA30990@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20121018215921.GA18904@hardeman.nu>
+In-Reply-To: <20121002221239.GA30990@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 18, 2012 at 11:59:21PM +0200, David Härdeman wrote:
-> On Wed, Oct 17, 2012 at 05:18:56PM +0100, Sean Young wrote:
-> >On Fri, Oct 12, 2012 at 01:11:54AM +0200, David Härdeman wrote:
-> >> The RC_TYPE_* defines are currently used both where a single protocol is
-> >> expected and where a bitmap of protocols is expected. This patch tries
-> >> to separate the two in preparation for the following patches.
-> >
-> >I'm not sure why this is needed.
+On Tue, Oct 02, 2012 at 03:12:39PM -0700, Greg KH wrote:
+> On Tue, Oct 02, 2012 at 09:33:03AM -0700, Linus Torvalds wrote:
+> > I don't know where the problem started in udev, but the report I saw
+> > was that udev175 was fine, and udev182 was broken, and would deadlock
+> > if module_init() did a request_firmware(). That kind of nested
+> > behavior is absolutely *required* to work, in order to not cause
+> > idiotic problems for the kernel for no good reason.
+> > 
+> > What kind of insane udev maintainership do we have? And can we fix it?
+> > 
+> > Greg, I think you need to step up here too. You were the one who let
+> > udev go. If the new maintainers are causing problems, they need to be
+> > fixed some way.
 > 
-> I'm not sure I can explain it much better.
+> I've talked about this with Kay in the past (Plumbers conference I
+> think) and I thought he said it was all fixed in the latest version of
+> udev so there shouldn't be any problems anymore with this.
 > 
-> Something like rc_keydown() or functions which add/remove entries to the
-> keytable want a single protocol. Future userspace APIs would also
-> benefit from numeric protocols (rather than bitmap ones). Keytables are
-> smaller if they can use a small(ish) integer rather than a bitmap.
+> Mauro, what version of udev are you using that is still showing this
+> issue?
 > 
-> Other functions or struct members (e.g. allowed_protos,
-> enabled_protocols, etc) accept multiple protocols and need a bitmap.
-> 
-> Using different types reduces the risk of programmer error. Using a
-> protocol enum whereever possible also makes for a more future-proof
-> user-space API as we don't need to worry about a sufficient number of
-> bits being available (e.g. in structs used for ioctl() calls).
-> 
-> The use of both a number and a corresponding bit is dalso one in e.g.
-> the input subsystem as well (see all the references to set/clear bit when
-> changing keytables for example).
-> 
-> >
-> >> The intended use is also clearer to anyone reading the code. Where a
-> >> single protocol is expected, enum rc_type is used, where one or more
-> >> protocol(s) are expected, something like u64 is used.
-> >
-> >Having two sets of #define and enums for the same information is not
-> >necessarily clearer.
-> 
-> Not only two set of define and enum, two different data types. To me it
-> helps a lot to be able to tell from a function declaration whether it
-> expects *a* protocol or protocols.
+> Kay, didn't you resolve this already?  If not, what was the reason why?
 
-Right, thanks for elaborating. Makes sense.
+Hm, in digging through the udev tree, the only change I found was this
+one:
 
+commit 39177382a4f92a834b568d6ae5d750eb2a5a86f9
+Author: Kay Sievers <kay@vrfy.org>
+Date:   Thu Jul 19 12:32:24 2012 +0200
 
-Sean
+    udev: firmware - do not cancel requests in the initrd
+
+diff --git a/src/udev/udev-builtin-firmware.c b/src/udev/udev-builtin-firmware.c
+index 56dc8fc..de93d7b 100644
+--- a/src/udev/udev-builtin-firmware.c
++++ b/src/udev/udev-builtin-firmware.c
+@@ -129,7 +129,13 @@ static int builtin_firmware(struct udev_device *dev, int argc, char *argv[], boo
+                                 err = -errno;
+                 } while (err == -ENOENT);
+                 rc = EXIT_FAILURE;
+-                set_loading(udev, loadpath, "-1");
++                /*
++                 * Do not cancel the request in the initrd, the real root might have
++                 * the firmware file and the 'coldplug' run in the real root will find
++                 * this pending request and fulfill or cancel it.
++                 * */
++                if (!in_initrd())
++                        set_loading(udev, loadpath, "-1");
+                 goto exit;
+         }
+ 
+
+which went into udev release 187 which I think corresponds to the place
+when people started having problems, right Mauro?
+
+If so, Mauro, is the solution just putting the firmware into the initrd?
+No wait, it looks like this change was trying to fix the problem where
+firmware files were not in the initrd, so it would stick around for the
+real root to show up so that they could be loaded.  So this looks like
+it was fixing firmware loading problems for people?
+
+Kay, am I just looking at the totally wrong place here, and this file in
+udev didn't have anything to do with the breakage?
+
+thanks,
+
+greg k-h
