@@ -1,52 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:65089 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752494Ab2J2RXa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Oct 2012 13:23:30 -0400
-Received: by mail-vb0-f46.google.com with SMTP id ff1so5557764vbb.19
-        for <linux-media@vger.kernel.org>; Mon, 29 Oct 2012 10:23:29 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 29 Oct 2012 12:23:29 -0500
-Message-ID: <CALLhW=76TG1sFXHmukJ+JN12j9CdbRLMzJdiOvrdorUehrts0g@mail.gmail.com>
-Subject: tidspbridge: ARM common zImage?
-From: Omar Ramirez Luna <omar.luna@linaro.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Joerg Roedel <joerg.roedel@amd.com>,
-	linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout4.samsung.com ([203.254.224.34]:32603 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753971Ab2JBOaX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 10:30:23 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MB900EV3SA0IC00@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:30:22 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MB9005A7S65K790@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:30:22 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: [PATCHv9 21/25] v4l: vb2-dma-contig: add reference counting for a
+ device from allocator context
+Date: Tue, 02 Oct 2012 16:27:32 +0200
+Message-id: <1349188056-4886-22-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
+References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This patch adds taking reference to the device for MMAP buffers.
 
-On 26 October 2012 13:00, Tony Lindgren <tony@atomide.com> wrote:
-...
->> > I would also like to move the tidspbridge to the DMA API, but I think we'll
->> > need to move step by step there, and using the OMAP IOMMU and IOVMM APIs as an
->> > intermediate step would allow splitting patches in reviewable chunks. I know
->> > it's a step backwards in term of OMAP IOMMU usage, but that's in my opinion a
->> > temporary nuisance to make the leap easier.
->>
->> Since tidspbridge is in staging I guess it's not a problem, though it
->> sounds to me like using the correct API in the first place is going to
->> make less churn.
->
-> Not related to these patches, but also sounds like we may need to drop
-> some staging/tidspbridge code to be able to move forward with the
-> ARM common zImage plans. See the "[GIT PULL] omap plat header removal
-> for v3.8 merge window, part1" thread for more info.
+Such buffers, may be exported using DMABUF mechanism. If the driver that
+created a queue is unloaded then the queue is released, the device might be
+released too.  However, buffers cannot be released if they are referenced by
+DMABUF descriptor(s). The device pointer kept in a buffer must be valid for the
+whole buffer's lifetime. Therefore MMAP buffers should take a reference to the
+device to avoid risk of dangling pointers.
 
-I was trying to find some more info on this, but only found one patch
-for tidspbridge to delete an include... it seems that I must try with
-these patches and see what explodes since we heavily abuse prcm code
-too.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+---
+ drivers/media/video/videobuf2-dma-contig.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-Thanks,
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index b138b5c..b4d287a 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -148,6 +148,7 @@ static void vb2_dc_put(void *buf_priv)
+ 		kfree(buf->sgt_base);
+ 	}
+ 	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
++	put_device(buf->dev);
+ 	kfree(buf);
+ }
+ 
+@@ -161,9 +162,13 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ 	if (!buf)
+ 		return ERR_PTR(-ENOMEM);
+ 
++	/* prevent the device from release while the buffer is exported */
++	get_device(dev);
++
+ 	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, GFP_KERNEL);
+ 	if (!buf->vaddr) {
+ 		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
++		put_device(dev);
+ 		kfree(buf);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+-- 
+1.7.9.5
 
-Omar
