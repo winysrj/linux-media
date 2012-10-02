@@ -1,56 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ch1ehsobe004.messaging.microsoft.com ([216.32.181.184]:37101
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750746Ab2J3MDv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Oct 2012 08:03:51 -0400
-From: Fabio Estevam <fabio.estevam@freescale.com>
-To: <g.liakhovetski@gmx.de>
-CC: <kernel@pengutronix.de>, <mchehab@infradead.org>,
-	<gcembed@gmail.com>, <javier.martin@vista-silicon.com>,
-	<linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH v4 1/2] ARM: clk-imx27: Add missing clock for mx2-camera
-Date: Tue, 30 Oct 2012 10:03:25 -0200
-Message-ID: <1351598606-8485-1-git-send-email-fabio.estevam@freescale.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail.hauppauge.com ([167.206.143.4]:3974 "EHLO
+	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750837Ab2JBEE5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 00:04:57 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, Michael Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH 7/8] MAINTAINERS: add Michael Krufky as tda8290 maintainer
+Date: Tue,  2 Oct 2012 00:04:11 -0400
+Message-Id: <1349150652-12171-7-git-send-email-mkrufky@linuxtv.org>
+In-Reply-To: <1349150652-12171-1-git-send-email-mkrufky@linuxtv.org>
+References: <1349150652-12171-1-git-send-email-mkrufky@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-During the clock conversion for mx27 the "per4_gate" clock was missed to get
-registered as a dependency of mx2-camera driver.
-
-In the old mx27 clock driver we used to have:
-
-DEFINE_CLOCK1(csi_clk, 0, NULL, 0, parent, &csi_clk1, &per4_clk);
-
-,so does the same in the new clock driver
-
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
 ---
-Changes since v3:
-- Use imx27-camera.0 instead of mx2-camera.0, due to recent changes in the
-imx27 clock (commit 27b76486a3: media: mx2_camera: remove cpu_is_xxx by using platform_device_id)
+ MAINTAINERS |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
- arch/arm/mach-imx/clk-imx27.c |    1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/arch/arm/mach-imx/clk-imx27.c b/arch/arm/mach-imx/clk-imx27.c
-index 585ab25..2880bd9 100644
---- a/arch/arm/mach-imx/clk-imx27.c
-+++ b/arch/arm/mach-imx/clk-imx27.c
-@@ -224,6 +224,7 @@ int __init mx27_clocks_init(unsigned long fref)
- 	clk_register_clkdev(clk[lcdc_ipg_gate], "ipg", "imx21-fb.0");
- 	clk_register_clkdev(clk[lcdc_ahb_gate], "ahb", "imx21-fb.0");
- 	clk_register_clkdev(clk[csi_ahb_gate], "ahb", "imx27-camera.0");
-+	clk_register_clkdev(clk[per4_gate], "per", "imx27-camera.0");
- 	clk_register_clkdev(clk[usb_div], "per", "fsl-usb2-udc");
- 	clk_register_clkdev(clk[usb_ipg_gate], "ipg", "fsl-usb2-udc");
- 	clk_register_clkdev(clk[usb_ahb_gate], "ahb", "fsl-usb2-udc");
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 1a4d7dd..3d43576 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7061,6 +7061,16 @@ T:	git git://linuxtv.org/mkrufky/tuners.git
+ S:	Maintained
+ F:	drivers/media/tuners/tda18271*
+ 
++TDA8290 MEDIA DRIVER
++M:	Michael Krufky <mkrufky@linuxtv.org>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++W:	http://github.com/mkrufky
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++T:	git git://linuxtv.org/mkrufky/tuners.git
++S:	Maintained
++F:	drivers/media/tuners/tda8290.*
++
+ TEAM DRIVER
+ M:	Jiri Pirko <jpirko@redhat.com>
+ L:	netdev@vger.kernel.org
 -- 
 1.7.9.5
-
 
