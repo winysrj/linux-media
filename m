@@ -1,66 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:59569 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752701Ab2JINFo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 09:05:44 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so4721942wgb.1
-        for <linux-media@vger.kernel.org>; Tue, 09 Oct 2012 06:05:43 -0700 (PDT)
-Message-ID: <507420E3.2010902@gmail.com>
-Date: Tue, 09 Oct 2012 15:04:35 +0200
-From: =?UTF-8?B?R2HDq3RhbiBDYXJsaWVy?= <gcembed@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:56446 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753686Ab2JBOYT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Oct 2012 10:24:19 -0400
+Message-ID: <506AF8F9.1090600@iki.fi>
+Date: Tue, 02 Oct 2012 17:23:53 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Fabio Estevam <fabio.estevam@freescale.com>
-CC: kernel@pengutronix.de, g.liakhovetski@gmx.de,
-	mchehab@infradead.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, javier.martin@vista-silicon.com
-Subject: Re: [PATCH 1/2] ARM: clk-imx27: Add missing clock for mx2-camera
-References: <1349473981-15084-1-git-send-email-fabio.estevam@freescale.com> <1349473981-15084-2-git-send-email-fabio.estevam@freescale.com>
-In-Reply-To: <1349473981-15084-2-git-send-email-fabio.estevam@freescale.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Michael Krufky <mkrufky@linuxtv.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH RFC] em28xx: PCTV 520e switch tda18271 to tda18271c2dd
+References: <1349139145-22113-1-git-send-email-crope@iki.fi> <CAGoCfiwfTkTs1DPa0cWHLOgGcgS0Df3h7zZ=4YW51dr_AS78nQ@mail.gmail.com> <CAOcJUbw+ToEAaqKPx1phWsKdWvPRXUOhtWwm7VaESwkW=fpqyg@mail.gmail.com> <506ABA2B.3070908@iki.fi> <20121002080503.76869be7@redhat.com> <CAOcJUbzpf=ZsUYxYJ+MHNtC-YaAGfE1Hegk12Vqk+mSYuQ8Qyw@mail.gmail.com> <20121002101746.3dc259d0@redhat.com>
+In-Reply-To: <20121002101746.3dc259d0@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-On 10/05/2012 11:53 PM, Fabio Estevam wrote:
-> During the clock conversion for mx27 the "per4_gate" clock was missed to get
-> registered as a dependency of mx2-camera driver.
+On 10/02/2012 04:17 PM, Mauro Carvalho Chehab wrote:
+> Em Tue, 2 Oct 2012 08:22:28 -0400
+> Michael Krufky <mkrufky@linuxtv.org> escreveu:
 >
-> In the old mx27 clock driver we used to have:
+>> On Tue, Oct 2, 2012 at 7:05 AM, Mauro Carvalho Chehab
+>> <mchehab@redhat.com> wrote:
+>>> Btw, why do you need to read 16 registers at once, instead of just reading
+>>> the needed register? read_extended and write operations are even more evil:
+>>> they read/write the full set of 39 registers on each operation. That seems
+>>> to be overkill, especially on places like tda18271_get_id(), where
+>>> all the driver is doing is to check for the ID register.
+>>
+>> TDA18271 does not support subaddressing for read operations.  The only
+>> way to read a register is by dumping full register contents.  16
+>> registers in simple mode, 39 registers in extended mode.
 >
-> DEFINE_CLOCK1(csi_clk, 0, NULL, 0, parent, &csi_clk1, &per4_clk);
+> Well, at least at get_id() I think you should just read the ID register
+> and not the full set.
 >
-> ,so does the same in the new clock driver.
+>>> Worse than that, tda18271_get_id() doesn't even check if the read()
+>>> operation failed: it assumes that it will always work, letting the
+>>> switch(regs[R_ID]) to print a wrong message (device unknown) when
+>>> what actually failed where the 16 registers dump.
+>>
+>> That's a pretty standard operation to be able to read a chip's ID in
+>> its driver attach function.  You even have some drivers that continue
+>> trying to attach frontends and tuners as long as they continue to get
+>> an error in the attach() function.  If we dont read the chip's ID
+>> during attach() then how do we know we're attaching to the correct
+>> chip?
 >
-> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-> ---
->   arch/arm/mach-imx/clk-imx27.c |    1 +
->   1 file changed, 1 insertion(+)
+> Yes, reading the chip ID there seems ok.
 >
-> diff --git a/arch/arm/mach-imx/clk-imx27.c b/arch/arm/mach-imx/clk-imx27.c
-> index 3b6b640..5ef0f08 100644
-> --- a/arch/arm/mach-imx/clk-imx27.c
-> +++ b/arch/arm/mach-imx/clk-imx27.c
-> @@ -224,6 +224,7 @@ int __init mx27_clocks_init(unsigned long fref)
->   	clk_register_clkdev(clk[lcdc_ipg_gate], "ipg", "imx-fb.0");
->   	clk_register_clkdev(clk[lcdc_ahb_gate], "ahb", "imx-fb.0");
->   	clk_register_clkdev(clk[csi_ahb_gate], "ahb", "mx2-camera.0");
-> +	clk_register_clkdev(clk[per4_gate], "per", "mx2-camera.0");
->   	clk_register_clkdev(clk[usb_div], "per", "fsl-usb2-udc");
->   	clk_register_clkdev(clk[usb_ipg_gate], "ipg", "fsl-usb2-udc");
->   	clk_register_clkdev(clk[usb_ahb_gate], "ahb", "fsl-usb2-udc");
+> Btw, I think we should re-visit the I2C gate control logic where implemented.
 >
-I only test detection at kernel boot not streaming using Gstreamer due 
-to lack of time.
+> Antti pasted me yesterday the logs from the driver:
+>
+> By looking on those messages:
+>
+> Sep 28 01:35:57 localhost kernel: [44798.782787] drxk: i2c_read: read from 63 42 c0 00, value =  00 00
+> Sep 28 01:35:57 localhost kernel: [44798.782804] tda18271_read_regs: [5-0060|M] ERROR: i2c_transfer returned: -19
+> ...
+> Sep 28 01:35:57 localhost kernel: [44798.782980] Unknown device (16) detected @ 5-0060, device not supported.
+> Sep 28 01:35:57 localhost kernel: [44798.782985] tda18271_attach: [5-0060|M] error -22 on line 1274
+> Sep 28 01:35:57 localhost kernel: [44798.782989] tda18271 5-0060: destroying instance
+> Sep 28 01:35:57 localhost kernel: [44798.783003] drxk: drxk_release
+>
+> I'm almost sure that the I2C gate control is at the wrong state there.
+>
+> Very likely, the tda code is trying to access the I2C bus before DRX-K to
+> restore the I2C switch back to its original way.
+>
+> In other words, I think that drivers with an I2C switch should be doing:
+> 	- take I2C lock;
+> 	- switch I2C gate;
+> 	- do writes and/or read ops;
+> 	- switch I2C gate back;
+> 	- release I2C lock.
+>
+> What's implemented, however, is:
+>
+> 	- switch I2C gate;
+> 	- take I2C lock;
+> 	- do writes and/or read ops;
+> 	- release I2C lock.
+> 	- switch I2C gate back;
 
-On imx27_3ds board with ov2640 sensor:
-ov2640 0-0030: ov2640 Product ID 26:42 Manufacturer ID 7f:a2
-mx2-camera mx2-camera.0: MX2 Camera (CSI) driver probed, clock 
-frequency: 44333333
+I am not sure at all about that I2C-gate. tda18271cc does not implement 
+gate control and it is working. If I disable DRX-K gate control (by 
+setting callback to NULL) tda18271 still fails similarly. No matter if 
+gate control is used or not. So it is not behind gate or drx-k is broken 
+driver is broken what goes to gate control.
 
-On clone imx27_3ds board with mt9v111 sensor (draft driver):
-mt9v111 0-0048: Detected a MT9V111 chip ID 823a
-mx2-camera mx2-camera.0: MX2 Camera (CSI) driver probed, clock 
-frequency: 44333333
+I took two new logs with em28xx I2C debugs enabled.
+http://palosaari.fi/linux/v4l-dvb/em28xx_drxk_tda18271_gate_disabled.txt
+http://palosaari.fi/linux/v4l-dvb/em28xx_drxk_tda18271_gate_enabled.txt
 
-Tested-by: Gaëtan Carlier <gcembed@gmail.com>
+Do you see reason here?
+
+> So, there is a chance of a race condition where a pending I2C
+> operation will be handled with the I2C gate switch at the wrong
+> state.
+>
+> Such change is not trivial, as it requires reviewing all drivers. Also,
+> the I2C switching may also require access to the I2C bus, making it
+> harder to do.
+>
+> I know khali coded something for I2C switch at I2C core. We should likely
+> visit it and see if it could improve things there.
+>
+>> I'll look at the fact that it doesn't check for a read error -- that
+>> can be easily fixed.
+>
+> Please do so.
+>
+>>> Whenever it should be at attach() or later is a good point for discussions.
+>>
+>> The tda18271 driver supports running multiple tda18271 devices in
+>> tandem with one another, including the ability to share xtal input and
+>> rf loop thru.  In some cases, the order in which we initialize the
+>> different tda18271's (when there are multiples) must be carefully
+>> controlled, and we do this by attaching them to the bridge driver in
+>> the order needed, such as in the saa7164 driver -- we need to be ABLE
+>> to initialize the tuner during the attach, but being able to defer it
+>> *as an option* is OK with me.
+>
+> Just wrote an email to Greg, c/c the involved parts, with regards to it.
+>
+> I think the better, in the short term, is to apply the change for tda18271dd.
+>
+> For the long term, to revert the drx-k asynchronous load, as I suspect
+> that, while delaying tda18271 init would fix for this device, we'll end
+> by getting problems on other parts.
+>
+> That OOPS pointed by Antti shows that, by using an async load there, we'll
+> need to add some task to kill the deferred firmware loads if the I2C
+> bus got removed. I'm sure we'll also find other regressions by deferring
+> initialization task.
+>
+> Regards,
+> Mauro
+>
+
+
+Antti
+
+-- 
+http://palosaari.fi/
