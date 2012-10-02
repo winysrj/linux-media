@@ -1,148 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog112.obsmtp.com ([207.126.144.133]:55829 "EHLO
-	eu1sys200aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1422686Ab2JLOde convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Oct 2012 10:33:34 -0400
-From: Alain VOLMAT <alain.volmat@st.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Linux Media Mailing List (linux-media@vger.kernel.org)"
-	<linux-media@vger.kernel.org>
-Date: Fri, 12 Oct 2012 16:33:20 +0200
-Subject: RE: Proposal for the addition of a binary V4L2 control type
-Message-ID: <E27519AE45311C49887BE8C438E68FAA01012C91183C@SAFEX1MAIL1.st.com>
-References: <E27519AE45311C49887BE8C438E68FAA01012C91166A@SAFEX1MAIL1.st.com>
- <4301765.LiL07lAPUi@avalon>
- <E27519AE45311C49887BE8C438E68FAA01012C9116A3@SAFEX1MAIL1.st.com>
- <201210120820.59902.hverkuil@xs4all.nl>
-In-Reply-To: <201210120820.59902.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:63234 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751239Ab2JBBnx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 21:43:53 -0400
+Received: by lbon3 with SMTP id n3so4680746lbo.19
+        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2012 18:43:52 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <1349139145-22113-1-git-send-email-crope@iki.fi>
+References: <1349139145-22113-1-git-send-email-crope@iki.fi>
+Date: Mon, 1 Oct 2012 21:43:51 -0400
+Message-ID: <CAOcJUbwGnm=jDkvqcJeQWr4ShraGbSNO9fGgkRgwr+18=h6H8g@mail.gmail.com>
+Subject: Re: [PATCH RFC] em28xx: PCTV 520e switch tda18271 to tda18271c2dd
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans
+On Mon, Oct 1, 2012 at 8:52 PM, Antti Palosaari <crope@iki.fi> wrote:
+> New drxk firmware download does not work with tda18271. Actual
+> reason is more drxk driver than tda18271. Anyhow, tda18271c2dd
+> will work as it does not do as much I/O during attach than tda18271.
+>
+> Root of cause is tuner I/O during drx-k asynchronous firmware
+> download. request_firmware_nowait()... :-/
+>
+> Cc: Michael Krufky <mkrufky@linuxtv.org>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  drivers/media/usb/em28xx/em28xx-dvb.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+> index 770a5af..fd750d4 100644
+> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+> @@ -1122,9 +1122,8 @@ static int em28xx_dvb_init(struct em28xx *dev)
+>
+>                 if (dvb->fe[0]) {
+>                         /* attach tuner */
+> -                       if (!dvb_attach(tda18271_attach, dvb->fe[0], 0x60,
+> -                                       &dev->i2c_adap,
+> -                                       &em28xx_cxd2820r_tda18271_config)) {
+> +                       if (!dvb_attach(tda18271c2dd_attach, dvb->fe[0],
+> +                                       &dev->i2c_adap, 0x60)) {
+>                                 dvb_frontend_detach(dvb->fe[0]);
+>                                 result = -EINVAL;
+>                                 goto out_free;
+> --
+> 1.7.11.4
+>
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Friday, October 12, 2012 8:21 AM
-> To: Alain VOLMAT
-> Cc: Laurent Pinchart; Linux Media Mailing List (linux-media@vger.kernel.org)
-> Subject: Re: Proposal for the addition of a binary V4L2 control type
-> 
-> On Fri October 12 2012 00:41:37 Alain VOLMAT wrote:
-> > Hi Laurent,
-> >
-> > > -----Original Message-----
-> > > From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> > > Sent: vendredi 12 octobre 2012 00:22
-> > > To: Alain VOLMAT
-> > > Cc: Linux Media Mailing List (linux-media@vger.kernel.org)
-> > > Subject: Re: Proposal for the addition of a binary V4L2 control type
-> > >
-> > > Hi Alain,
-> > >
-> > > On Thursday 11 October 2012 22:50:29 Alain VOLMAT wrote:
-> > > > Hi guys,
-> > > >
-> > > > In the context of supporting the control of our HDMI-TX via V4L2
-> > > > in our SetTopBox, we are facing interface issue with V4L2 when
-> > > > trying to set some information from the application into the H/W.
-> > > >
-> > > > As an example, in the HDCP context, an application controlling the
-> > > > HDMI-TX have the possibility to inform the transmitter that it
-> > > > should fail authentication to some identified HDMI-RX because for
-> > > > example they might be known to be "bad" HDMI receiver that cannot
-> be trusted.
-> > > > This is basically done by setting the list of key (BKSV) into the HDMI-TX
-> H/W.
-> > > >
-> > > > Currently, V4L2 ext control can be of the following type:
-> > > >
-> > > > enum v4l2_ctrl_type {
-> > > >         V4L2_CTRL_TYPE_INTEGER       = 1,
-> > > >         V4L2_CTRL_TYPE_BOOLEAN       = 2,
-> > > >         V4L2_CTRL_TYPE_MENU          = 3,
-> > > >         V4L2_CTRL_TYPE_BUTTON        = 4,
-> > > >         V4L2_CTRL_TYPE_INTEGER64     = 5,
-> > > >         V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
-> > > >         V4L2_CTRL_TYPE_STRING        = 7,
-> > > >         V4L2_CTRL_TYPE_BITMASK       = 8,
-> > > > }
-> > > >
-> > > > There is nothing here than could efficiently be used to push this
-> > > > kind of long (several bytes long .. not fitting into an int64) key
-> information.
-> > > > STRING exists but actually since they are supposed to be strings,
-> > > > the
-> > > > V4L2 core code (v4l2-ctrls.c) is using strlen to figure out the
-> > > > length of data to be copied and it thus cannot be used to push this kind
-> of blob data.
-> > > >
-> > > > Would you consider the addition of a new v4l2_ctrl_type, for
-> > > > example called V4L2_CTRL_TYPE_BINARY or so, that basically would
-> > > > be pointer + length. That would be helpful to pass this kind of
-> > > > control from the application to the driver. (here I took the
-> > > > example of HDCP key blob but that isn't of course the only example we
-> can find of course).
-> > >
-> > > If I remember correctly Hans Verkuil wasn't happy with the concept of
-> binary controls.
-> 
-> That's correct. Controls should be 1) fairly elementary types and 2) have clear
-> semantics. Binary blobs are neither.
-> 
-> > > While I'm
-> > > not totally against it, I agree with him that it could open the door
-> > > to abuses. There are valid use cases though, both for binary
-> > > "strings" (such as encryption keys) and binary arrays (such as gamma
-> tables).
-> > > Completely random binary blobs are not a good idea though.
-> > >
-> > > So far we've worked around the absence of binary controls by using
-> > > custom ioctls (or even standardizing new ioctls). It might or might
-> > > not be a good solution for your problem, depending on your exact use
-> cases.
-> >
-> > Ok, at least for the HDCP keys table we could for an ioctl if that's already
-> the case in some other situations.
-> 
-> Look at the EDID ioctls in v4l2-subdev.h. The HDCP ioctls should be next to
-> them.
-> If I remember correctly you need a get ioctl to obtains the keys from a
-> receiver and a set ioctl to set the keys for a transmitter.
 
-Well, yes, if keys goes up to the user space, yes those 2 ioctls will be needed.
-But another ioctl or control will also be needed to ENABLE & DiSABLE the HDCP / HDCP encryption I think.
-This doesn't always have to be enable so it should be necessary to allow triggering that.
+utterly ridiculous.  I understand why Antti is making this patch, so I
+cannot blame him for it, but this whole idea of asynchronous firmware
+load instead of allowing the bridge driver to orchestrate things is a
+major problem -- THAT is what needs fixing.  let's fix the ACTUAL
+problem.
 
-> > I can however think about some cases where passing such binary controls is
-> better than ioctl in case of it is necessary achieve several settings in an atomic
-> way (which is I believe one of the merit of ext_control). Still in the field of
-> HDMI-TX I can at least think about setting video post processing setting
-> tables & mode change at the same time for example.
-> > If one setting is already available via a control and the other one has to be
-> done via an ioctl, then it becomes hard to ensure that this is done in an
-> atomic way back at the driver level.
-> >
-> > So, in short, for HDCP keys, there might not be a problem with ioctl but for
-> other HDMI-TX settings, I'm afraid we will face problems.
-> >
-> > I am preparing some proposal for some new HDMI-TX controls (or ioctl ?)
-> for things like SPD, AVMUTE, CONTENT_TYPE etc, I guess we could discuss
-> about that problem again at that time.
-> 
-> A lot of the stuff that's in InfoFrames lends itself perfectly to controls.
-> They are both simple types and have clear semantics.
+(if we have to merge this for the short-term, i understand... i just
+reiterate - we set a horrible president by merging a second tda18271
+driver)
 
-Well at least SPD data that are (product name, vendor name, type) are a group of data.
-So if this is provided via controls (ext), then it will require to the application to set all 3 controls (string, string, integer) in a same s_ext_control in order to avoid getting only a partial SPD data update.
-Or we can rely on yet another ioctl (s_spd) to pass all 3 datas at the same time.
-
-> 
-> Regards,
-> 
-> 	Hans
+-Mike
