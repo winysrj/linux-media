@@ -1,121 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:59579 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753587Ab2JAQxN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 12:53:13 -0400
-Message-ID: <5069CA74.7040409@wwwdotorg.org>
-Date: Mon, 01 Oct 2012 10:53:08 -0600
-From: Stephen Warren <swarren@wwwdotorg.org>
+Received: from moutng.kundenserver.de ([212.227.17.9]:54798 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751311Ab2JBLXJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 07:23:09 -0400
+Date: Tue, 2 Oct 2012 13:23:06 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] media: add a VEU MEM2MEM format conversion and scaling
+ driver
+In-Reply-To: <201210020956.37709.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1210021311260.15778@axis700.grange>
+References: <Pine.LNX.4.64.1209111459340.22084@axis700.grange>
+ <201209111544.29596.hverkuil@xs4all.nl> <Pine.LNX.4.64.1210011940380.3573@axis700.grange>
+ <201210020956.37709.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-CC: devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	kernel@pengutronix.de, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] of: add helper to parse display specs
-References: <1348500924-8551-1-git-send-email-s.trumtrar@pengutronix.de> <1348500924-8551-2-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1348500924-8551-2-git-send-email-s.trumtrar@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/24/2012 09:35 AM, Steffen Trumtrar wrote:
-> Parse a display-node with timings and hardware-specs from devictree.
+Hi Hans
 
-> diff --git a/Documentation/devicetree/bindings/video/display b/Documentation/devicetree/bindings/video/display
-> new file mode 100644
-> index 0000000..722766a
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/video/display
+On Tue, 2 Oct 2012, Hans Verkuil wrote:
 
-This should be display.txt.
+> On Mon 1 October 2012 19:51:18 Guennadi Liakhovetski wrote:
+> > Hi Hans
+> > 
+> > Thanks for the review. As you might have seen, I just posted v2 of this 
+> > driver. In it I addressed almost all your comments. As for the rest:
+> > 
+> > On Tue, 11 Sep 2012, Hans Verkuil wrote:
+> > 
+> > > On Tue 11 September 2012 15:01:19 Guennadi Liakhovetski wrote:
+> > 
+> > [snip]
+> > 
+> > > > +struct sh_veu_dev;
+> > > > +
+> > > > +struct sh_veu_file {
+> > > 
+> > > struct v4l2_fh is missing here: needed to implement control events.
+> > 
+> > I removed ctrls completely instead. Don't think mine were useful for 
+> > anything.
+> > 
+> > [snip]
+> > 
+> > > > +static int sh_veu_try_fmt(struct v4l2_format *f, const struct sh_veu_format *fmt)
+> > > > +{
+> > > > +	struct v4l2_pix_format *pix = &f->fmt.pix;
+> > > > +	unsigned int y_bytes_used;
+> > > > +
+> > > > +	/*
+> > > > +	 * V4L2 specification suggests, that the driver should correct the
+> > > > +	 * format struct if any of the dimensions is unsupported
+> > > > +	 */
+> > > > +	switch (pix->field) {
+> > > > +	case V4L2_FIELD_ANY:
+> > > > +		pix->field = V4L2_FIELD_NONE;
+> > > 
+> > > Add a 'break' here.
+> > 
+> > That's a matter of taste, I think:-) The logic here is, that after setting 
+> > the field to NONE the "rest" should be identical with the case, where NONE 
+> > is already set by the user, so, just fall through.
+> 
+> Can you add a /* fall through */ comment in that case? That clarifies that it
+> is intentional.
+> 
+> > 
+> > [snip]
+> > 
+> > > > +static void sh_veu_colour_offset(struct sh_veu_dev *veu, struct sh_veu_vfmt *vfmt)
+> > > > +{
+> > > > +	/* dst_left and dst_top validity will be verified in CROP / COMPOSE */
+> > > > +	unsigned int left = vfmt->frame.left & ~0x03;
+> > > > +	unsigned int top = vfmt->frame.top;
+> > > > +	dma_addr_t offset = ((left * veu->vfmt_out.fmt->depth) >> 3) +
+> > > > +		top * veu->vfmt_out.bytesperline;
+> > > > +	unsigned int y_line;
+> > > > +
+> > > > +	vfmt->offset_y = offset;
+> > > > +
+> > > > +	switch (vfmt->fmt->fourcc) {
+> > > > +	case V4L2_PIX_FMT_NV12:
+> > > > +	case V4L2_PIX_FMT_NV16:
+> > > > +	case V4L2_PIX_FMT_NV24:
+> > > > +		y_line = ALIGN(vfmt->frame.width, 16);
+> > > > +		vfmt->offset_c = offset + y_line * vfmt->frame.height;
+> > > > +		break;
+> > > > +	case V4L2_PIX_FMT_RGB332:
+> > > > +	case V4L2_PIX_FMT_RGB444:
+> > > > +	case V4L2_PIX_FMT_RGB565:
+> > > > +	case V4L2_PIX_FMT_BGR666:
+> > > > +	case V4L2_PIX_FMT_RGB24:
+> > > > +		vfmt->offset_c = 0;
+> > > > +		break;
+> > > > +	default:
+> > > > +		BUG();
+> > > 
+> > > Wouldn't WARN_ON be more polite?
+> > 
+> > This "default" can be entered only if someone modifies the driver and does 
+> > this wrongly, so, I just make sure, that the author realises their mistake 
+> > before shipping to the user;-)
+> > 
+> > [snip]
+> > 
+> > > > +static int sh_veu_s_input(struct file *file, void *fh, unsigned int i)
+> > > > +{
+> > > > +	return i ? -EINVAL : 0;
+> > > > +}
+> > > > +
+> > > > +static int sh_veu_g_input(struct file *file, void *fh, unsigned int *i)
+> > > > +{
+> > > > +	*i = 0;
+> > > > +	return 0;
+> > > > +}
+> > > > +
+> > > > +static int sh_veu_enum_input(struct file *file, void *fh,
+> > > > +			     struct v4l2_input *inp)
+> > > > +{
+> > > > +	return inp->index ? -EINVAL : 0;
+> > > > +}
+> > > 
+> > > Why implement the input ioctls at all? I'm not sure whether they are
+> > > relevant here. If you do, then enum_input really has to fill in the
+> > > other fields of struct v4l2_input as well. But I would just remove
+> > > support for these ioctls.
+> > 
+> > Right, I don't need them, but in the beginning I tried using gstreamer for 
+> > testing, and, I think, it required them... In the end I anyway gave up on 
+> > it and used my own test program, so, yeah, can remove them...
+> > 
+> > [snip]
+> > 
+> > > Please run v4l2-compliance (the latest version from v4l-utils.git) over this
+> > > driver. Most if not all of the issues I've highlighted above would have been
+> > > found by v4l2-compliance.
+> > 
+> > As I also mentioned in v2, I think, the spec should be extended to also 
+> > allow other errors from REQBUFS.
+> 
+> EBUSY should be documented. Perhaps you can make a patch for that? :-)
 
-> @@ -0,0 +1,208 @@
-> +display bindings
-> +==================
-> +
-> +display-node
-> +------------
+...and ENOMEM too. And then I don't see why EPERM shouldn't be allowed 
+either;-)
 
-I'm not personally convinced about the direction this is going. While I
-think it's reasonable to define DT bindings for displays, and DT
-bindings for display modes, I'm not sure that it's reasonable to couple
-them together into a single binding.
+> BTW, in the second version of your patch you return -EPERM if the filehandle
+> was set up for streaming.
 
-I think creating a well-defined timing binding first will be much
-simpler than doing so within the context of a display binding; the
-scope/content of a general display binding seems much less well-defined
-to me at least, for reasons I mentioned before.
+You mean if a different filehandle has been assigned as the stream owner, 
+yes.
 
-> +required properties:
-> + - none
-> +
-> +optional properties:
-> + - default-timing: the default timing value
-> + - width-mm, height-mm: Display dimensions in mm
+> But that isn't right. It is REQBUFS (or CREATE_BUFS
+> or read/write) that sets up a filehandle for streaming. Only after calling one
+> of those functions is everything locked into place. Until that time it is
+> perfectly valid to change formats.
 
-> + - hsync-active-high (bool): Hsync pulse is active high
-> + - vsync-active-high (bool): Vsync pulse is active high
+Hm, S_FMT? If one process allocated (and possibly queued) buffers and 
+another one is trying to set a format, for which buffers wouldn't be 
+suitable any more? For this reason I also consider S_FMT to be a 
+"privileged" operation. With CREATE_BUFS we can support several formats 
+without re-initialising the queue, but still, since S_FMT is so closely 
+related to buffer allocation, I reserve it too for the stream "owner." 
+This is summarised in this comment:
 
-At least those two properties should exist in the display timing instead
-(or perhaps as well). There are certainly cases where different similar
-display modes are differentiated by hsync/vsync polarity more than
-anything else. This is probably more likely with analog display
-connectors than digital, but I see no reason why a DT binding for
-display timing shouldn't cover both.
+/*
+ * It is not unusual to have video nodes open()ed multiple times. While some
+ * V4L2 operations are non-intrusive, like querying formats and various
+ * parameters, others, like setting formats, starting and stopping streaming,
+ * queuing and dequeuing buffers, directly affect hardware configuration and /
+ * or execution. This function verifies availability of the requested interface
+ * and, if available, reserves it for the requesting user.
+ */
 
-> + - de-active-high (bool): Data-Enable pulse is active high
-> + - pixelclk-inverted (bool): pixelclock is inverted
+> If an app want to get exclusive access and prevent anyone else from messing
+> with formats, then it should use the priority ioctls.
 
-> + - pixel-per-clk
+Yes, I looked at those. But if they are not used, we still put some policy 
+in place, right? Say, we don't allow queuing and dequeuing of buffers via 
+2 different file-handles.
 
-pixel-per-clk is probably something that should either be part of the
-timing definition, or something computed internally to the display
-driver based on rules for the signal type, rather than something
-represented in DT.
-
-The above comment assumes this property is intended to represent DVI's
-requirement for pixel clock doubling for low-pixel-clock-rate modes. If
-it's something to do with e.g. a single-data-rate vs. double-data-rate
-property of the underlying physical connection, that's most likely
-something that should be defined in a binding specific to e.g. LVDS,
-rather than something generic.
-
-> + - link-width: number of channels (e.g. LVDS)
-> + - bpp: bits-per-pixel
-> +
-> +timings-subnode
-> +---------------
-> +
-> +required properties:
-> +subnodes that specify
-> + - hactive, vactive: Display resolution
-> + - hfront-porch, hback-porch, hsync-len: Horizontal Display timing parameters
-> +   in pixels
-> +   vfront-porch, vback-porch, vsync-len: Vertical display timing parameters in
-> +   lines
-> + - clock: displayclock in Hz
-> +
-> +There are different ways of describing a display and its capabilities. The devicetree
-> +representation corresponds to the one commonly found in datasheets for displays.
-> +The description of the display and its timing is split in two parts: first the display
-> +properties like size in mm and (optionally) multiple subnodes with the supported timings.
-> +If a display supports multiple signal timings, the default-timing can be specified.
-> +
-> +Example:
-> +
-> +	display@0 {
-> +		width-mm = <800>;
-> +		height-mm = <480>;
-> +		default-timing = <&timing0>;
-> +		timings {
-> +			timing0: timing@0 {
-
-If you're going to use a unit address ("@0") to ensure that node names
-are unique (which is not mandatory), then each node also needs a reg
-property with matching value, and #address-cells/#size-cells in the
-parent. Instead, you could name the nodes something unique based on the
-mode name to avoid this, e.g. 1080p24 { ... }.
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
