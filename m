@@ -1,88 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ia0-f174.google.com ([209.85.210.174]:34685 "EHLO
-	mail-ia0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932394Ab2JUSNg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Oct 2012 14:13:36 -0400
-Received: by mail-ia0-f174.google.com with SMTP id y32so1526970iag.19
-        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2012 11:13:35 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-Date: Sun, 21 Oct 2012 14:13:35 -0400
-Message-ID: <CAGoCfiw-nL03s=JSc_MVzR0+hQEfHV5i+FMf41EbEME8jw3wQg@mail.gmail.com>
-Subject: Re: [PATCH 00/23] em28xx: add support fur USB bulk transfers
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:44383 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752774Ab2JBNSB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Oct 2012 09:18:01 -0400
+Date: Tue, 2 Oct 2012 10:17:46 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Michael Krufky <mkrufky@linuxtv.org>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH RFC] em28xx: PCTV 520e switch tda18271 to tda18271c2dd
+Message-ID: <20121002101746.3dc259d0@redhat.com>
+In-Reply-To: <CAOcJUbzpf=ZsUYxYJ+MHNtC-YaAGfE1Hegk12Vqk+mSYuQ8Qyw@mail.gmail.com>
+References: <1349139145-22113-1-git-send-email-crope@iki.fi>
+	<CAGoCfiwfTkTs1DPa0cWHLOgGcgS0Df3h7zZ=4YW51dr_AS78nQ@mail.gmail.com>
+	<CAOcJUbw+ToEAaqKPx1phWsKdWvPRXUOhtWwm7VaESwkW=fpqyg@mail.gmail.com>
+	<506ABA2B.3070908@iki.fi>
+	<20121002080503.76869be7@redhat.com>
+	<CAOcJUbzpf=ZsUYxYJ+MHNtC-YaAGfE1Hegk12Vqk+mSYuQ8Qyw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Frank,
+Em Tue, 2 Oct 2012 08:22:28 -0400
+Michael Krufky <mkrufky@linuxtv.org> escreveu:
 
-On Sun, Oct 21, 2012 at 12:52 PM, Frank Schäfer
-<fschaefer.oss@googlemail.com> wrote:
-> This patch series adds support for USB bulk transfers to the em28xx driver.
+> On Tue, Oct 2, 2012 at 7:05 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+> > Btw, why do you need to read 16 registers at once, instead of just reading
+> > the needed register? read_extended and write operations are even more evil:
+> > they read/write the full set of 39 registers on each operation. That seems
+> > to be overkill, especially on places like tda18271_get_id(), where
+> > all the driver is doing is to check for the ID register.
+> 
+> TDA18271 does not support subaddressing for read operations.  The only
+> way to read a register is by dumping full register contents.  16
+> registers in simple mode, 39 registers in extended mode.
 
-This is a welcome change that some users have been asking about for a while.
+Well, at least at get_id() I think you should just read the ID register
+and not the full set.
 
-> Patch 1 is a bugfix for the image data processing with non-interlaced devices (webcams)
-> that should be considered for stable (see commit message).
->
-> Patches 2-21 extend the driver to support USB bulk transfers.
-> USB endpoint mapping had to be extended and is a bit tricky.
-> It might still not be sufficient to handle ALL isoc/bulk endpoints of ALL existing devices,
-> but it should work with the devices we have seen so far and (most important !)
-> preserves backwards compatibility to the current driver behavior.
-> Isoc endpoints/transfers are preffered by default, patch 21 adds a module parameter to change this behavior.
->
-> The last two patches are follow-up patches not really related to USB tranfers.
-> Patch 22 reduces the code size in em28xx-video by merging the two URB data processing functions
+> > Worse than that, tda18271_get_id() doesn't even check if the read()
+> > operation failed: it assumes that it will always work, letting the
+> > switch(regs[R_ID]) to print a wrong message (device unknown) when
+> > what actually failed where the 16 registers dump.
+> 
+> That's a pretty standard operation to be able to read a chip's ID in
+> its driver attach function.  You even have some drivers that continue
+> trying to attach frontends and tuners as long as they continue to get
+> an error in the attach() function.  If we dont read the chip's ID
+> during attach() then how do we know we're attaching to the correct
+> chip?
 
-This is generally good stuff.  When I originally added the VBI
-support, I kept the URB handlers separate initially to reduce the risk
-of breaking existing devices, and always assumed that at some point
-the two routines would be merged.  You did regression test without VBI
-support enabled though, right?
+Yes, reading the chip ID there seems ok.
 
-> and patch 23 enables VBI-support for em2840-devices.
+Btw, I think we should re-visit the I2C gate control logic where implemented.
 
-Patch 23 shouldn't be applied unless somebody has an em2840 device to
-test with first.  Nobody has complained about this so far, and it's
-better to not support VBI than to possibly break existing support.
+Antti pasted me yesterday the logs from the driver:
 
-> Please note that I could test the changes with an analog non-interlaced non-VBI device only !
-> So further tests with DVB/interlaced/VBI devices are strongly recommended !
+By looking on those messages:
 
-So here's the problem:  I don't have the cycles to test this, and all
-the refactoring presents a very real risk that breakage of existing
-support could occur.  You've basically got three options if you want
-to see this merged upstream:
+Sep 28 01:35:57 localhost kernel: [44798.782787] drxk: i2c_read: read from 63 42 c0 00, value =  00 00
+Sep 28 01:35:57 localhost kernel: [44798.782804] tda18271_read_regs: [5-0060|M] ERROR: i2c_transfer returned: -19
+...
+Sep 28 01:35:57 localhost kernel: [44798.782980] Unknown device (16) detected @ 5-0060, device not supported.
+Sep 28 01:35:57 localhost kernel: [44798.782985] tda18271_attach: [5-0060|M] error -22 on line 1274
+Sep 28 01:35:57 localhost kernel: [44798.782989] tda18271 5-0060: destroying instance
+Sep 28 01:35:57 localhost kernel: [44798.783003] drxk: drxk_release
 
-1.  Wait for me to eventually do the testing.
-2.  Plead for users to do testing, in particular of the VBI support
-for interlaced devices (which is 99% of devices out there)
-3.  See if Mauro has time to do the testing.
-4.  Spend $30 and buy one of the dozens of em28xx based analog capture
-devices out there and do the validation yourself (a huge percentage of
-the "Video tape capture devices" are em28xx based.  For example, when
-I did the original VBI work, I used the following:
+I'm almost sure that the I2C gate control is at the wrong state there.
 
-KWorld DVD Maker USB 2.0 VS- USB2800 USB 2.0 Interface
-http://www.newegg.com/Product/Product.aspx?Item=N82E16815100112
+Very likely, the tda code is trying to access the I2C bus before DRX-K to
+restore the I2C switch back to its original way.
 
-If you're in the United States, I can mail you a device for testing.
-But given how dirt-cheap they are, buying one yourself might be easier
-(and if the money is really the issue, send me your paypal details
-offline and I'll give you the $30.00).
+In other words, I think that drivers with an I2C switch should be doing:
+	- take I2C lock;
+	- switch I2C gate;
+	- do writes and/or read ops;
+	- switch I2C gate back;
+	- release I2C lock.
 
-Thanks for you hard work on this, and it will be great to get this
-stuff into the mainline.
+What's implemented, however, is:
 
-Devin
+	- switch I2C gate;
+	- take I2C lock;
+	- do writes and/or read ops;
+	- release I2C lock.
+	- switch I2C gate back;
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+So, there is a chance of a race condition where a pending I2C
+operation will be handled with the I2C gate switch at the wrong
+state.
+
+Such change is not trivial, as it requires reviewing all drivers. Also,
+the I2C switching may also require access to the I2C bus, making it
+harder to do.
+
+I know khali coded something for I2C switch at I2C core. We should likely
+visit it and see if it could improve things there.
+
+> I'll look at the fact that it doesn't check for a read error -- that
+> can be easily fixed.
+
+Please do so.
+
+> > Whenever it should be at attach() or later is a good point for discussions.
+> 
+> The tda18271 driver supports running multiple tda18271 devices in
+> tandem with one another, including the ability to share xtal input and
+> rf loop thru.  In some cases, the order in which we initialize the
+> different tda18271's (when there are multiples) must be carefully
+> controlled, and we do this by attaching them to the bridge driver in
+> the order needed, such as in the saa7164 driver -- we need to be ABLE
+> to initialize the tuner during the attach, but being able to defer it
+> *as an option* is OK with me.
+
+Just wrote an email to Greg, c/c the involved parts, with regards to it.
+
+I think the better, in the short term, is to apply the change for tda18271dd.
+
+For the long term, to revert the drx-k asynchronous load, as I suspect
+that, while delaying tda18271 init would fix for this device, we'll end
+by getting problems on other parts.
+
+That OOPS pointed by Antti shows that, by using an async load there, we'll
+need to add some task to kill the deferred firmware loads if the I2C
+bus got removed. I'm sure we'll also find other regressions by deferring
+initialization task.
+
+Regards,
+Mauro
