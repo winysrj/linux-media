@@ -1,386 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28128 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750754Ab2JGMme (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Oct 2012 08:42:34 -0400
-Date: Sun, 7 Oct 2012 09:42:20 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] tda18271-common: hold the I2C adapter during write
- transfers
-Message-ID: <20121007094220.53666e94@redhat.com>
-In-Reply-To: <CAOcJUbxC3vP53Lfoca+Qy5Zab9tHgj1oQ=GrOtTRNLe99Cue8A@mail.gmail.com>
-References: <20120928084337.1db94b8c@redhat.com>
-	<1348844661-19114-1-git-send-email-mchehab@redhat.com>
-	<5065ECEB.30807@iki.fi>
-	<CAOcJUbzRC2w5KO87L5nTxZA9x2d0zfGX-qiZ92VUVPA=MLYa5g@mail.gmail.com>
-	<CAOcJUbxC3vP53Lfoca+Qy5Zab9tHgj1oQ=GrOtTRNLe99Cue8A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:30188 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751767Ab2JBQ6u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 12:58:50 -0400
+Received: from eusync4.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MB900DJCZ6Y4470@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Oct 2012 17:59:22 +0100 (BST)
+Received: from [106.116.147.32] by eusync4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MB900L98Z5ZO6B0@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Oct 2012 17:58:47 +0100 (BST)
+Message-id: <506B1D47.8040602@samsung.com>
+Date: Tue, 02 Oct 2012 18:58:47 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [GIT PULL FOR 3.7] Samsung Exynos MFC driver update
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 29 Sep 2012 15:20:23 -0400
-Michael Krufky <mkrufky@linuxtv.org> escreveu:
+Hi Mauro,
 
-> On Fri, Sep 28, 2012 at 2:56 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> > On Fri, Sep 28, 2012 at 2:31 PM, Antti Palosaari <crope@iki.fi> wrote:
-> >> Hello,
-> >> Did not fix the issue. Problem remains same. With the sleep + that patch it
-> >> works still.
-> >>
-> >> On 09/28/2012 06:04 PM, Mauro Carvalho Chehab wrote:
-> >>>
-> >>> The tda18271 datasheet says:
-> >>>
-> >>>         "The image rejection calibration and RF tracking filter
-> >>>          calibration must be launched exactly as described in the
-> >>>          flowchart, otherwise bad calibration or even blocking of the
-> >>>          TDA18211HD can result making it impossible to communicate
-> >>>          via the I2C-bus."
-> >>>
-> >>> (yeah, tda18271 refers there to tda18211 - likely a typo at their
-> >>>   datasheets)
-> >>
-> >>
-> >> tda18211 is just same than tda18271 but without a analog.
-> >>
-> >>> That likely explains why sometimes tda18271 stops answering. That
-> >>> is now happening more often on designs with drx-k chips, as the
-> >>> firmware is now loaded asyncrousnly there.
-> >>>
-> >>> While the above text doesn't explicitly tell that the I2C bus
-> >>> couldn't be used by other devices during such initialization,
-> >>> that seems to be a requirement there.
-> >>>
-> >>> So, let's explicitly use the I2C lock there, avoiding I2C bus
-> >>> share during those critical moments.
-> >>>
-> >>> Compile-tested only. Please test.
-> >>>
-> >>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> >>> ---
-> >>>   drivers/media/tuners/tda18271-common.c | 104
-> >>> ++++++++++++++++++++++-----------
-> >>>   1 file changed, 71 insertions(+), 33 deletions(-)
-> >>>
-> >>> diff --git a/drivers/media/tuners/tda18271-common.c
-> >>> b/drivers/media/tuners/tda18271-common.c
-> >>> index 221171e..18c77af 100644
-> >>> --- a/drivers/media/tuners/tda18271-common.c
-> >>> +++ b/drivers/media/tuners/tda18271-common.c
-> >>> @@ -187,7 +187,8 @@ int tda18271_read_extended(struct dvb_frontend *fe)
-> >>>         return (ret == 2 ? 0 : ret);
-> >>>   }
-> >>>
-> >>> -int tda18271_write_regs(struct dvb_frontend *fe, int idx, int len)
-> >>> +static int __tda18271_write_regs(struct dvb_frontend *fe, int idx, int
-> >>> len,
-> >>> +                       bool lock_i2c)
-> >>>   {
-> >>>         struct tda18271_priv *priv = fe->tuner_priv;
-> >>>         unsigned char *regs = priv->tda18271_regs;
-> >>> @@ -198,7 +199,6 @@ int tda18271_write_regs(struct dvb_frontend *fe, int
-> >>> idx, int len)
-> >>>
-> >>>         BUG_ON((len == 0) || (idx + len > sizeof(buf)));
-> >>>
-> >>> -
-> >>>         switch (priv->small_i2c) {
-> >>>         case TDA18271_03_BYTE_CHUNK_INIT:
-> >>>                 max = 3;
-> >>> @@ -214,7 +214,19 @@ int tda18271_write_regs(struct dvb_frontend *fe, int
-> >>> idx, int len)
-> >>>                 max = 39;
-> >>>         }
-> >>>
-> >>> -       tda18271_i2c_gate_ctrl(fe, 1);
-> >>> +
-> >>> +       /*
-> >>> +        * If lock_i2c is true, it will take the I2C bus for tda18271
-> >>> private
-> >>> +        * usage during the entire write ops, as otherwise, bad things
-> >>> could
-> >>> +        * happen.
-> >>> +        * During device init, several write operations will happen. So,
-> >>> +        * tda18271_init_regs controls the I2C lock directly,
-> >>> +        * disabling lock_i2c here.
-> >>> +        */
-> >>> +       if (lock_i2c) {
-> >>> +               tda18271_i2c_gate_ctrl(fe, 1);
-> >>> +               i2c_lock_adapter(priv->i2c_props.adap);
-> >>> +       }
-> >>>         while (len) {
-> >>>                 if (max > len)
-> >>>                         max = len;
-> >>> @@ -226,14 +238,17 @@ int tda18271_write_regs(struct dvb_frontend *fe, int
-> >>> idx, int len)
-> >>>                 msg.len = max + 1;
-> >>>
-> >>>                 /* write registers */
-> >>> -               ret = i2c_transfer(priv->i2c_props.adap, &msg, 1);
-> >>> +               ret = __i2c_transfer(priv->i2c_props.adap, &msg, 1);
-> >>>                 if (ret != 1)
-> >>>                         break;
-> >>>
-> >>>                 idx += max;
-> >>>                 len -= max;
-> >>>         }
-> >>> -       tda18271_i2c_gate_ctrl(fe, 0);
-> >>> +       if (lock_i2c) {
-> >>> +               i2c_unlock_adapter(priv->i2c_props.adap);
-> >>> +               tda18271_i2c_gate_ctrl(fe, 0);
-> >>> +       }
-> >>>
-> >>>         if (ret != 1)
-> >>>                 tda_err("ERROR: idx = 0x%x, len = %d, "
-> >>> @@ -242,10 +257,16 @@ int tda18271_write_regs(struct dvb_frontend *fe, int
-> >>> idx, int len)
-> >>>         return (ret == 1 ? 0 : ret);
-> >>>   }
-> >>>
-> >>> +int tda18271_write_regs(struct dvb_frontend *fe, int idx, int len)
-> >>> +{
-> >>> +       return __tda18271_write_regs(fe, idx, len, true);
-> >>> +}
-> >>> +
-> >>>
-> >>> /*---------------------------------------------------------------------*/
-> >>>
-> >>> -int tda18271_charge_pump_source(struct dvb_frontend *fe,
-> >>> -                               enum tda18271_pll pll, int force)
-> >>> +static int __tda18271_charge_pump_source(struct dvb_frontend *fe,
-> >>> +                                        enum tda18271_pll pll, int force,
-> >>> +                                        bool lock_i2c)
-> >>>   {
-> >>>         struct tda18271_priv *priv = fe->tuner_priv;
-> >>>         unsigned char *regs = priv->tda18271_regs;
-> >>> @@ -255,9 +276,16 @@ int tda18271_charge_pump_source(struct dvb_frontend
-> >>> *fe,
-> >>>         regs[r_cp] &= ~0x20;
-> >>>         regs[r_cp] |= ((force & 1) << 5);
-> >>>
-> >>> -       return tda18271_write_regs(fe, r_cp, 1);
-> >>> +       return __tda18271_write_regs(fe, r_cp, 1, lock_i2c);
-> >>> +}
-> >>> +
-> >>> +int tda18271_charge_pump_source(struct dvb_frontend *fe,
-> >>> +                               enum tda18271_pll pll, int force)
-> >>> +{
-> >>> +       return __tda18271_charge_pump_source(fe, pll, force, true);
-> >>>   }
-> >>>
-> >>> +
-> >>>   int tda18271_init_regs(struct dvb_frontend *fe)
-> >>>   {
-> >>>         struct tda18271_priv *priv = fe->tuner_priv;
-> >>> @@ -267,6 +295,13 @@ int tda18271_init_regs(struct dvb_frontend *fe)
-> >>>                 i2c_adapter_id(priv->i2c_props.adap),
-> >>>                 priv->i2c_props.addr);
-> >>>
-> >>> +       /*
-> >>> +        * Don't let any other I2C transfer to happen at adapter during
-> >>> init,
-> >>> +        * as those could cause bad things
-> >>> +        */
-> >>> +       tda18271_i2c_gate_ctrl(fe, 1);
-> >>> +       i2c_lock_adapter(priv->i2c_props.adap);
-> >>> +
-> >>>         /* initialize registers */
-> >>>         switch (priv->id) {
-> >>>         case TDA18271HDC1:
-> >>> @@ -352,28 +387,28 @@ int tda18271_init_regs(struct dvb_frontend *fe)
-> >>>         regs[R_EB22] = 0x48;
-> >>>         regs[R_EB23] = 0xb0;
-> >>>
-> >>> -       tda18271_write_regs(fe, 0x00, TDA18271_NUM_REGS);
-> >>> +       __tda18271_write_regs(fe, 0x00, TDA18271_NUM_REGS, false);
-> >>>
-> >>>         /* setup agc1 gain */
-> >>>         regs[R_EB17] = 0x00;
-> >>> -       tda18271_write_regs(fe, R_EB17, 1);
-> >>> +       __tda18271_write_regs(fe, R_EB17, 1, false);
-> >>>         regs[R_EB17] = 0x03;
-> >>> -       tda18271_write_regs(fe, R_EB17, 1);
-> >>> +       __tda18271_write_regs(fe, R_EB17, 1, false);
-> >>>         regs[R_EB17] = 0x43;
-> >>> -       tda18271_write_regs(fe, R_EB17, 1);
-> >>> +       __tda18271_write_regs(fe, R_EB17, 1, false);
-> >>>         regs[R_EB17] = 0x4c;
-> >>> -       tda18271_write_regs(fe, R_EB17, 1);
-> >>> +       __tda18271_write_regs(fe, R_EB17, 1, false);
-> >>>
-> >>>         /* setup agc2 gain */
-> >>>         if ((priv->id) == TDA18271HDC1) {
-> >>>                 regs[R_EB20] = 0xa0;
-> >>> -               tda18271_write_regs(fe, R_EB20, 1);
-> >>> +               __tda18271_write_regs(fe, R_EB20, 1, false);
-> >>>                 regs[R_EB20] = 0xa7;
-> >>> -               tda18271_write_regs(fe, R_EB20, 1);
-> >>> +               __tda18271_write_regs(fe, R_EB20, 1, false);
-> >>>                 regs[R_EB20] = 0xe7;
-> >>> -               tda18271_write_regs(fe, R_EB20, 1);
-> >>> +               __tda18271_write_regs(fe, R_EB20, 1, false);
-> >>>                 regs[R_EB20] = 0xec;
-> >>> -               tda18271_write_regs(fe, R_EB20, 1);
-> >>> +               __tda18271_write_regs(fe, R_EB20, 1, false);
-> >>>         }
-> >>>
-> >>>         /* image rejection calibration */
-> >>> @@ -391,21 +426,21 @@ int tda18271_init_regs(struct dvb_frontend *fe)
-> >>>         regs[R_MD2] = 0x08;
-> >>>         regs[R_MD3] = 0x00;
-> >>>
-> >>> -       tda18271_write_regs(fe, R_EP3, 11);
-> >>> +       __tda18271_write_regs(fe, R_EP3, 11, false);
-> >>>
-> >>>         if ((priv->id) == TDA18271HDC2) {
-> >>>                 /* main pll cp source on */
-> >>> -               tda18271_charge_pump_source(fe, TDA18271_MAIN_PLL, 1);
-> >>> +               __tda18271_charge_pump_source(fe, TDA18271_MAIN_PLL, 1,
-> >>> false);
-> >>>                 msleep(1);
-> >>>
-> >>>                 /* main pll cp source off */
-> >>> -               tda18271_charge_pump_source(fe, TDA18271_MAIN_PLL, 0);
-> >>> +               __tda18271_charge_pump_source(fe, TDA18271_MAIN_PLL, 0,
-> >>> false);
-> >>>         }
-> >>>
-> >>>         msleep(5); /* pll locking */
-> >>>
-> >>>         /* launch detector */
-> >>> -       tda18271_write_regs(fe, R_EP1, 1);
-> >>> +       __tda18271_write_regs(fe, R_EP1, 1, false);
-> >>>         msleep(5); /* wanted low measurement */
-> >>>
-> >>>         regs[R_EP5] = 0x85;
-> >>> @@ -413,11 +448,11 @@ int tda18271_init_regs(struct dvb_frontend *fe)
-> >>>         regs[R_CD1] = 0x66;
-> >>>         regs[R_CD2] = 0x70;
-> >>>
-> >>> -       tda18271_write_regs(fe, R_EP3, 7);
-> >>> +       __tda18271_write_regs(fe, R_EP3, 7, false);
-> >>>         msleep(5); /* pll locking */
-> >>>
-> >>>         /* launch optimization algorithm */
-> >>> -       tda18271_write_regs(fe, R_EP2, 1);
-> >>> +       __tda18271_write_regs(fe, R_EP2, 1, false);
-> >>>         msleep(30); /* image low optimization completion */
-> >>>
-> >>>         /* mid-band */
-> >>> @@ -428,11 +463,11 @@ int tda18271_init_regs(struct dvb_frontend *fe)
-> >>>         regs[R_MD1] = 0x73;
-> >>>         regs[R_MD2] = 0x1a;
-> >>>
-> >>> -       tda18271_write_regs(fe, R_EP3, 11);
-> >>> +       __tda18271_write_regs(fe, R_EP3, 11, false);
-> >>>         msleep(5); /* pll locking */
-> >>>
-> >>>         /* launch detector */
-> >>> -       tda18271_write_regs(fe, R_EP1, 1);
-> >>> +       __tda18271_write_regs(fe, R_EP1, 1, false);
-> >>>         msleep(5); /* wanted mid measurement */
-> >>>
-> >>>         regs[R_EP5] = 0x86;
-> >>> @@ -440,11 +475,11 @@ int tda18271_init_regs(struct dvb_frontend *fe)
-> >>>         regs[R_CD1] = 0x66;
-> >>>         regs[R_CD2] = 0xa0;
-> >>>
-> >>> -       tda18271_write_regs(fe, R_EP3, 7);
-> >>> +       __tda18271_write_regs(fe, R_EP3, 7, false);
-> >>>         msleep(5); /* pll locking */
-> >>>
-> >>>         /* launch optimization algorithm */
-> >>> -       tda18271_write_regs(fe, R_EP2, 1);
-> >>> +       __tda18271_write_regs(fe, R_EP2, 1, false);
-> >>>         msleep(30); /* image mid optimization completion */
-> >>>
-> >>>         /* high-band */
-> >>> @@ -456,30 +491,33 @@ int tda18271_init_regs(struct dvb_frontend *fe)
-> >>>         regs[R_MD1] = 0x71;
-> >>>         regs[R_MD2] = 0xcd;
-> >>>
-> >>> -       tda18271_write_regs(fe, R_EP3, 11);
-> >>> +       __tda18271_write_regs(fe, R_EP3, 11, false);
-> >>>         msleep(5); /* pll locking */
-> >>>
-> >>>         /* launch detector */
-> >>> -       tda18271_write_regs(fe, R_EP1, 1);
-> >>> +       __tda18271_write_regs(fe, R_EP1, 1, false);
-> >>>         msleep(5); /* wanted high measurement */
-> >>>
-> >>>         regs[R_EP5] = 0x87;
-> >>>         regs[R_CD1] = 0x65;
-> >>>         regs[R_CD2] = 0x50;
-> >>>
-> >>> -       tda18271_write_regs(fe, R_EP3, 7);
-> >>> +       __tda18271_write_regs(fe, R_EP3, 7, false);
-> >>>         msleep(5); /* pll locking */
-> >>>
-> >>>         /* launch optimization algorithm */
-> >>> -       tda18271_write_regs(fe, R_EP2, 1);
-> >>> +       __tda18271_write_regs(fe, R_EP2, 1, false);
-> >>>         msleep(30); /* image high optimization completion */
-> >>>
-> >>>         /* return to normal mode */
-> >>>         regs[R_EP4] = 0x64;
-> >>> -       tda18271_write_regs(fe, R_EP4, 1);
-> >>> +       __tda18271_write_regs(fe, R_EP4, 1, false);
-> >>>
-> >>>         /* synchronize */
-> >>> -       tda18271_write_regs(fe, R_EP1, 1);
-> >>> +       __tda18271_write_regs(fe, R_EP1, 1, false);
-> >>> +
-> >>> +       i2c_unlock_adapter(priv->i2c_props.adap);
-> >>> +       tda18271_i2c_gate_ctrl(fe, 0);
-> >>>
-> >>>         return 0;
-> >>>   }
-> >>>
-> >>
-> >>
-> >> --
-> >> http://palosaari.fi/
-> >
-> > I have to NACK this particular patch -- I saw Mauro's email about the
-> > locked i2c -- it's a great idea.  In fact, it is the original use case
-> > for adding this functionality into i2c, I just never got around to
-> > implementing it in the tda18271 driver.   However, it shouldnt be
-> > around *all* i2c transactions -- it should only lock the i2c bus
-> > during the *critical* section.  Please wait for me to send a new patch
-> > for testing.  I'll try to get to it before the end of the weekend.
-> > (hopefully tonight or tomorrow morning)
-> 
-> On further inspection of the patch, I see that it *does* attempt to
-> only lock the i2c bus during the initialization of the device.  The
-> patch could be optimized a bit to specifically only lock the bus
-> during the critical section of the initialization itself, but that is
-> no reason to block this patch. 
+The following changes since commit 34a6b7d093d8fe738ada191b36648d00bc18b7eb:
 
-Yesh, I took the care of not locking all transactions, locking just the
-init code.
+  [media] v4l2-ctrls: add a filter function to v4l2_ctrl_add_handler
+(2012-10-01 17:07:07 -0300)
 
-> So, I retract my NACK. 
+are available in the git repository at:
 
-Ok, I'll apply it then.
+  git://git.infradead.org/users/kmpark/linux-2.6-samsung v4l_mfc_for_mauro
 
-> If we decide
-> to merge this, then we can optimize it afterwards.
+for you to fetch changes up to 8312d9d2d254ab289a322fcfdba1d1ecf5e36256:
 
-Yeah, for sure optimization there is very welcome.
+  s5p-mfc: Update MFC v4l2 driver to support MFC6.x (2012-10-02 15:28:42 +0200)
 
-> 
-> -Mike
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This is an update of the s5p-mfc driver and related V4L2 API additions
+to support the Multi Format Codec device on the Exynos5 SoC series.
 
+----------------------------------------------------------------
+Arun Kumar K (4):
+      v4l: Add fourcc definitions for new formats
+      v4l: Add control definitions for new H264 encoder features
+      s5p-mfc: Update MFCv5 driver for callback based architecture
+      s5p-mfc: Add MFC variant data to device context
 
--- 
-Regards,
-Mauro
+Jeongtae Park (2):
+      s5p-mfc: MFCv6 register definitions
+      s5p-mfc: Update MFC v4l2 driver to support MFC6.x
+
+ Documentation/DocBook/media/v4l/controls.xml       |  268 ++-
+ Documentation/DocBook/media/v4l/pixfmt-nv12m.xml   |   17 +-
+ Documentation/DocBook/media/v4l/pixfmt.xml         |   10 +
+ drivers/media/platform/Kconfig                     |    4 +-
+ drivers/media/platform/s5p-mfc/Makefile            |    7 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h       |  408 ++++
+ drivers/media/platform/s5p-mfc/regs-mfc.h          |   41 +
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |  296 +--
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c       |  109 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd.h       |   15 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c    |  166 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.h    |   20 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c    |  156 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.h    |   20 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  191 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |  194 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h      |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |  258 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.h       |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |  239 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.h       |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_intr.c      |   11 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.c       | 1386 +-------------
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h       |  133 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c    | 1763 ++++++++++++++++++
+ .../s5p-mfc/{s5p_mfc_shm.h => s5p_mfc_opr_v5.h}    |   41 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    | 1956 ++++++++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |   50 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_pm.c        |    3 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_shm.c       |   47 -
+ drivers/media/v4l2-core/v4l2-ctrls.c               |   42 +
+ include/linux/v4l2-controls.h                      |   41 +
+ include/linux/videodev2.h                          |    4 +
+ 33 files changed, 5873 insertions(+), 2026 deletions(-)
+ create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+ create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
+ create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.h
+ create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+ create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.h
+ create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+ rename drivers/media/platform/s5p-mfc/{s5p_mfc_shm.h => s5p_mfc_opr_v5.h} (76%)
+ create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+ create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+ delete mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_shm.c
+
+---
+
+Thank you,
+
+Sylwester Nawrocki
+Samsung Poland R&D Center
