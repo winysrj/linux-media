@@ -1,118 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:65439 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751862Ab2JHCLv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 22:11:51 -0400
-Message-ID: <50723661.6040107@gmail.com>
-Date: Mon, 08 Oct 2012 13:11:45 +1100
-From: Ryan Mallon <rmallon@gmail.com>
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:19243 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753597Ab2JBNMq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 09:12:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] media: add a VEU MEM2MEM format conversion and scaling driver
+Date: Tue, 2 Oct 2012 15:12:33 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <Pine.LNX.4.64.1209111459340.22084@axis700.grange> <201210020956.37709.hverkuil@xs4all.nl> <Pine.LNX.4.64.1210021311260.15778@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1210021311260.15778@axis700.grange>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Joe Perches <joe@perches.com>, Julia Lawall <julia.lawall@lip6.fr>,
-	walter harms <wharms@bfs.de>, Antti Palosaari <crope@iki.fi>,
-	kernel-janitors@vger.kernel.org, shubhrajyoti@ti.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for i2c_msg
- initialization
-References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr> <5071AEF3.6080108@bfs.de> <alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6> <5071B834.1010200@bfs.de> <alpine.DEB.2.02.1210071917040.2745@localhost6.localdomain6> <1349633780.15802.8.camel@joe-AO722> <alpine.DEB.2.02.1210072053550.2745@localhost6.localdomain6> <1349645970.15802.12.camel@joe-AO722> <alpine.DEB.2.02.1210072342460.2745@localhost6.localdomain6> <1349646718.15802.16.camel@joe-AO722> <20121007225639.364a41b4@infradead.org>
-In-Reply-To: <20121007225639.364a41b4@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201210021512.33606.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/10/12 12:56, Mauro Carvalho Chehab wrote:
-> Em Sun, 07 Oct 2012 14:51:58 -0700
-> Joe Perches <joe@perches.com> escreveu:
+On Tue 2 October 2012 13:23:06 Guennadi Liakhovetski wrote:
+> Hi Hans
 > 
->> On Sun, 2012-10-07 at 23:43 +0200, Julia Lawall wrote:
->>> On Sun, 7 Oct 2012, Joe Perches wrote:
->>>>> Are READ and WRITE the action names?  They are really the important
->>>>> information in this case.
->>>>
->>>> Yes, most (all?) uses of _READ and _WRITE macros actually
->>>> perform some I/O.
->>>
->>> I2C_MSG_READ_DATA?
->>> I2C_MSG_READ_INFO?
->>> I2C_MSG_READ_INIT?
->>> I2C_MSG_PREPARE_READ?
->>
->> Dunno, naming is hard.  Maybe:
->>
->> I2C_INPUT_MSG
->> I2C_OUTPUT_MSG
->> I2C_OP_MSG
+> On Tue, 2 Oct 2012, Hans Verkuil wrote:
 > 
-> READ/WRITE sounds better, IMHO, as it will generally match with the
-> function names (they're generally named like foo_i2c_read or foo_reg_read).
-> I think none of them uses input or output. Btw, with I2C buses, a
-> register read is coded as a write ops, that sets the register's sub-address,
-> followed by a read ops from that (and subsequent) registers.
+> > On Mon 1 October 2012 19:51:18 Guennadi Liakhovetski wrote:
+> > > Hi Hans
+> > > 
+> > > Thanks for the review. As you might have seen, I just posted v2 of this 
+> > > driver. In it I addressed almost all your comments. As for the rest:
+> > > 
+> > > On Tue, 11 Sep 2012, Hans Verkuil wrote:
+> > > 
+> > > > On Tue 11 September 2012 15:01:19 Guennadi Liakhovetski wrote:
+> > > 
+> > > [snip]
+> > > 
+> > > > > +struct sh_veu_dev;
+> > > > > +
+> > > > > +struct sh_veu_file {
+> > > > 
+> > > > struct v4l2_fh is missing here: needed to implement control events.
+> > > 
+> > > I removed ctrls completely instead. Don't think mine were useful for 
+> > > anything.
+> > > 
+> > > [snip]
+> > > 
+> > > > > +static int sh_veu_try_fmt(struct v4l2_format *f, const struct sh_veu_format *fmt)
+> > > > > +{
+> > > > > +	struct v4l2_pix_format *pix = &f->fmt.pix;
+> > > > > +	unsigned int y_bytes_used;
+> > > > > +
+> > > > > +	/*
+> > > > > +	 * V4L2 specification suggests, that the driver should correct the
+> > > > > +	 * format struct if any of the dimensions is unsupported
+> > > > > +	 */
+> > > > > +	switch (pix->field) {
+> > > > > +	case V4L2_FIELD_ANY:
+> > > > > +		pix->field = V4L2_FIELD_NONE;
+> > > > 
+> > > > Add a 'break' here.
+> > > 
+> > > That's a matter of taste, I think:-) The logic here is, that after setting 
+> > > the field to NONE the "rest" should be identical with the case, where NONE 
+> > > is already set by the user, so, just fall through.
+> > 
+> > Can you add a /* fall through */ comment in that case? That clarifies that it
+> > is intentional.
+> > 
+> > > 
+> > > [snip]
+> > > 
+> > > > > +static void sh_veu_colour_offset(struct sh_veu_dev *veu, struct sh_veu_vfmt *vfmt)
+> > > > > +{
+> > > > > +	/* dst_left and dst_top validity will be verified in CROP / COMPOSE */
+> > > > > +	unsigned int left = vfmt->frame.left & ~0x03;
+> > > > > +	unsigned int top = vfmt->frame.top;
+> > > > > +	dma_addr_t offset = ((left * veu->vfmt_out.fmt->depth) >> 3) +
+> > > > > +		top * veu->vfmt_out.bytesperline;
+> > > > > +	unsigned int y_line;
+> > > > > +
+> > > > > +	vfmt->offset_y = offset;
+> > > > > +
+> > > > > +	switch (vfmt->fmt->fourcc) {
+> > > > > +	case V4L2_PIX_FMT_NV12:
+> > > > > +	case V4L2_PIX_FMT_NV16:
+> > > > > +	case V4L2_PIX_FMT_NV24:
+> > > > > +		y_line = ALIGN(vfmt->frame.width, 16);
+> > > > > +		vfmt->offset_c = offset + y_line * vfmt->frame.height;
+> > > > > +		break;
+> > > > > +	case V4L2_PIX_FMT_RGB332:
+> > > > > +	case V4L2_PIX_FMT_RGB444:
+> > > > > +	case V4L2_PIX_FMT_RGB565:
+> > > > > +	case V4L2_PIX_FMT_BGR666:
+> > > > > +	case V4L2_PIX_FMT_RGB24:
+> > > > > +		vfmt->offset_c = 0;
+> > > > > +		break;
+> > > > > +	default:
+> > > > > +		BUG();
+> > > > 
+> > > > Wouldn't WARN_ON be more polite?
+> > > 
+> > > This "default" can be entered only if someone modifies the driver and does 
+> > > this wrongly, so, I just make sure, that the author realises their mistake 
+> > > before shipping to the user;-)
+> > > 
+> > > [snip]
+> > > 
+> > > > > +static int sh_veu_s_input(struct file *file, void *fh, unsigned int i)
+> > > > > +{
+> > > > > +	return i ? -EINVAL : 0;
+> > > > > +}
+> > > > > +
+> > > > > +static int sh_veu_g_input(struct file *file, void *fh, unsigned int *i)
+> > > > > +{
+> > > > > +	*i = 0;
+> > > > > +	return 0;
+> > > > > +}
+> > > > > +
+> > > > > +static int sh_veu_enum_input(struct file *file, void *fh,
+> > > > > +			     struct v4l2_input *inp)
+> > > > > +{
+> > > > > +	return inp->index ? -EINVAL : 0;
+> > > > > +}
+> > > > 
+> > > > Why implement the input ioctls at all? I'm not sure whether they are
+> > > > relevant here. If you do, then enum_input really has to fill in the
+> > > > other fields of struct v4l2_input as well. But I would just remove
+> > > > support for these ioctls.
+> > > 
+> > > Right, I don't need them, but in the beginning I tried using gstreamer for 
+> > > testing, and, I think, it required them... In the end I anyway gave up on 
+> > > it and used my own test program, so, yeah, can remove them...
+> > > 
+> > > [snip]
+> > > 
+> > > > Please run v4l2-compliance (the latest version from v4l-utils.git) over this
+> > > > driver. Most if not all of the issues I've highlighted above would have been
+> > > > found by v4l2-compliance.
+> > > 
+> > > As I also mentioned in v2, I think, the spec should be extended to also 
+> > > allow other errors from REQBUFS.
+> > 
+> > EBUSY should be documented. Perhaps you can make a patch for that? :-)
 > 
-> I'm afraid that using INPUT/OUTPUT will sound confusing.
+> ...and ENOMEM too. And then I don't see why EPERM shouldn't be allowed 
+> either;-)
 > 
-> So, IMHO, I2C_READ_MSG and I2C_WRITE_MSG sounds better.
+> > BTW, in the second version of your patch you return -EPERM if the filehandle
+> > was set up for streaming.
 > 
-> Btw, as the WRITE + READ operation is very common (I think it is
-> much more common than a simple READ msg), it could make sense to have
-> just one macro for it, like:
-> 
-> INIT_I2C_READ_SUBADDR() that would take both write and read values.
-> 
-> I also don't like the I2C_MSG_OP. The operations there are always
-> read or write.
-> 
-> So, IMHO, the better would be to code the read and write message init message 
-> as something similar to:
-> 
-> #define DECLARE_I2C_MSG_READ(_msg, _addr, _buf, _len, _flags)					\
-> 	struct i2c_msg _msg[1] = {								\
-> 		{.addr = _addr, .buf = _buf, .len = _len, .flags = (_flags) | I2C_M_RD }	\
-> 	}
-> 
-> #define DECLARE_I2C_MSG_WRITE(_msg, _addr, _buf, _len, _flags)					\
-> 	struct i2c_msg _msg[1] = {								\
-> 		{.addr = _addr, .buf = _buf, .len = _len, .flags = (_flags) & ~I2C_M_RD }	\
-> 	}
-> 
-> #define DECLARE_I2C_MSG_READ_SUBADDR(_msg, _addr, _subaddr, _sublen,_subflags, _buf,_len, _flags)	\
-> 	struct i2c_msg _msg[2] = {									\
-> 		{.addr = _addr, .buf = _subbuf, .len = _sublen, .flags = (_subflags) & ~I2C_M_RD }	\
-> 		{.addr = _addr, .buf = _buf, .len = _len, .flags = (_flags) | I2C_M_RD }		\
-> 	}
+> You mean if a different filehandle has been assigned as the stream owner, 
+> yes.
 
-I think this is probably more confusing, not less. The macro takes 8
-arguments, and in many cases will wrap onto two or more lines. The large
-number of arguments also makes it difficult for a casual reader to
-determine exactly what it does. In comparison:
+In the this context it should return -EBUSY (as in: another filehandle
+is busy with the hardware), not EPERM.
 
-	I2C_MSG_WRITE(info->i2c_addr, &reg, 1);
-	I2C_MSG_READ(info->i2c_addr, buf, sizeof(buf));
-
-is fairly self-explanatory, especially for someone familiar with i2c,
-without having to look up the macro definitions.
-
-> Notes:
 > 
-> 1) in the case of DECLARE_I2C_MSG_READ_SUBADDR(), I'm almost sure that, in all cases, the
-> first message will always have buffer size equal to 1. If so, you can simplify the number
-> of arguments there.
+> > But that isn't right. It is REQBUFS (or CREATE_BUFS
+> > or read/write) that sets up a filehandle for streaming. Only after calling one
+> > of those functions is everything locked into place. Until that time it is
+> > perfectly valid to change formats.
 > 
-> 2) It could make sense to have, in fact, two versions for each, one with _FLAGS and another one
-> without. On most cases, the one without flags are used.
+> Hm, S_FMT? If one process allocated (and possibly queued) buffers and 
+> another one is trying to set a format, for which buffers wouldn't be 
+> suitable any more? For this reason I also consider S_FMT to be a 
+> "privileged" operation. With CREATE_BUFS we can support several formats 
+> without re-initialising the queue, but still, since S_FMT is so closely 
+> related to buffer allocation, I reserve it too for the stream "owner." 
+> This is summarised in this comment:
 > 
-> 3) I bet that most of the cases where 2 messages are used, the first message has length equal
-> to one, and it uses a fixed u8 constant with the I2C sub-address. So, maybe it would be nice
-> to have a variant for this case.
+> /*
+>  * It is not unusual to have video nodes open()ed multiple times. While some
+>  * V4L2 operations are non-intrusive, like querying formats and various
+>  * parameters, others, like setting formats, starting and stopping streaming,
+>  * queuing and dequeuing buffers, directly affect hardware configuration and /
+>  * or execution. This function verifies availability of the requested interface
+>  * and, if available, reserves it for the requesting user.
+>  */
 
-That ends up with a whole bunch of variants of the macro for something
-which should be very simple. The proposal has three macros, and the
-I2C_MSG_OP macro is only required for a one or two corner cases where
-non-standard flags are used.
+I understand what you want to do here, but the spec *does* allow other
+filehandles to change format as long as the buffers aren't setup yet.
 
-~Ryan
+Most drivers are fine with that, and we need to keep things consistent.
+It's the way the API was designed: any filehandle can do anything unless
+that's absolutely impossible.
 
+> > If an app want to get exclusive access and prevent anyone else from messing
+> > with formats, then it should use the priority ioctls.
+> 
+> Yes, I looked at those. But if they are not used, we still put some policy 
+> in place, right? Say, we don't allow queuing and dequeuing of buffers via 
+> 2 different file-handles.
 
+Sure, but if we do policies, then those should be subsystem-wide and well
+documented. Right now each driver has its own policies, and I *hate* all these
+inconsistencies between drivers.
 
+In general, restrictions should be minimal and only used if it would cause
+real problems in the driver (such as changing the format after REQBUFS is called).
 
+If we want to extend these restrictions, then that should be discussed first.
+
+Regards,
+
+	Hans
