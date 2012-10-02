@@ -1,143 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from elasmtp-galgo.atl.sa.earthlink.net ([209.86.89.61]:60451 "EHLO
-	elasmtp-galgo.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753431Ab2JMP2C (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Oct 2012 11:28:02 -0400
-Received: from [69.22.83.79] (helo=localhost.localdomain)
-	by elasmtp-galgo.atl.sa.earthlink.net with esmtpa (Exim 4.67)
-	(envelope-from <jonathan.625266@earthlink.net>)
-	id 1TN3dB-0002N0-5R
-	for linux-media@vger.kernel.org; Sat, 13 Oct 2012 11:28:01 -0400
-Date: Sat, 13 Oct 2012 11:28:00 -0400
-From: Jonathan <jonathan.625266@earthlink.net>
-To: linux-media@vger.kernel.org
-Subject: Re: HD-PVR fails consistently on Linux, works on Windows
-Message-ID: <20121013112800.2d7a1a42@earthlink.net>
-In-Reply-To: <5063BD18.4060309@austin.rr.com>
-References: <5063BD18.4060309@austin.rr.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:36624 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754063Ab2JBOaQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 10:30:16 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MB900KCXSAFGZ70@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:30:15 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MB9005A7S65K790@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:30:15 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: [PATCHv9 20/25] v4l: vb2-dma-contig: add support for DMABUF exporting
+Date: Tue, 02 Oct 2012 16:27:31 +0200
+Message-id: <1349188056-4886-21-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
+References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 26 Sep 2012 21:42:32 -0500
-Keith Pyle <kpyle@austin.rr.com> wrote:
+This patch adds support for exporting a dma-contig buffer using
+DMABUF interface.
 
-> I recently purchased a Hauppauge HD-PVR (the 1212 version, label on 
-> bottom 49001LF, Rev F2).  I have consistent capture failures on Linux 
-> where data from the device simply stops, generally within a few minutes 
-> of starting a capture.  Yet, the device works flawlessly on Windows with 
-> the same USB and component cables, same power supply, and same physical 
-> position.  This suggests that the device itself has acceptable power, is 
-> not overheating, etc.  I'll detail below the testing I've done thus far 
-> and would appreciate any suggestions on how to further test or address 
-> the problem.
-> 
-> The good news is that I have a highly reproducible failure on Linux, but 
-> then that's the bad news too.
-> 
-> Thanks.
-> 
-> Keith
-> 
-> -- Linux tests --
-> I started trying to use the HD-PVR directly with my MythTV backend. I 
-> have subsequently switched all of my testing to simple direct captures 
-> from the /dev/video? device using /bin/cat to eliminate as many 
-> variables as possible.
-> 
-> I've done a large number of tests with combinations of the following:
-> 
-> OS: gentoo 3.4.7, gentoo 3.5.4
-> HD-PVR firmware: 1.5.7.0 (0x15), 1.7.1.30059 (0x1e)
-> Input resolution: fixed to 720p, fixed to 1080i, floating based on input
-> USB ports: motherboard ports on Intel DP45SG, motherboard ports on MSI 
-> X58 Pro-E, ports on SIIG USB PCIe card
-> 
-> Captures fail consistently.
-> 
-> I've verified that the HD-PVR is the only device on the USB bus and that 
-> the bus shows as "Linux Foundation 2.0 root hub" in all tests. I've 
-> increased the debug output level for the hdpvr driver to 6 
-> (/sys/module/hdpvr/parameters/hdpvr_debug) and collected the following:
-> 
-> Sep 21 17:01:00 mythbe kernel: [535043.504450] usb 9-1: New USB device 
-> found, idVendor=2040, idProduct=4903
-> Sep 21 17:01:00 mythbe kernel: [535043.504453] usb 9-1: New USB device 
-> strings: Mfr=1, Product=2, SerialNumber=3
-> Sep 21 17:01:00 mythbe kernel: [535043.504456] usb 9-1: Product: 
-> Hauppauge HD PVR
-> Sep 21 17:01:00 mythbe kernel: [535043.504458] usb 9-1: Manufacturer: AMBA
-> Sep 21 17:01:00 mythbe kernel: [535043.504459] usb 9-1: SerialNumber: 
-> 00A6DD48
-> Sep 21 17:01:00 mythbe kernel: [535043.504523] usb 9-1: ep 0x1 - 
-> rounding interval to 32768 microframes, ep desc says 0 microframes
-> Sep 21 17:01:00 mythbe kernel: [535043.504528] usb 9-1: ep 0x81 - 
-> rounding interval to 32768 microframes, ep desc says 0 microframes
-> Sep 21 17:01:01 mythbe kernel: [535043.703947] hdpvr 9-1:1.0: firmware 
-> version 0x15 dated Jun 17 2010 09:26:53
-> Sep 21 17:01:01 mythbe kernel: [535043.889144] IR keymap rc-hauppauge 
-> not found
-> Sep 21 17:01:01 mythbe kernel: [535043.889146] Registered IR keymap 
-> rc-empty
-> Sep 21 17:01:01 mythbe kernel: [535043.889190] input: i2c IR (HD-PVR) as 
-> /devices/virtual/rc/rc5/input16
-> Sep 21 17:01:01 mythbe kernel: [535043.889415] rc5: i2c IR (HD-PVR) as 
-> /devices/virtual/rc/rc5
-> Sep 21 17:01:01 mythbe kernel: [535043.889417] ir-kbd-i2c: i2c IR 
-> (HD-PVR) detected at i2c-8/8-0071/ir0 [Hauppage HD PVR I2C]
-> Sep 21 17:01:01 mythbe kernel: [535043.889518] hdpvr 9-1:1.0: device now 
-> attached to video6
-> Sep 21 17:01:01 mythbe kernel: [535043.889534] usbcore: registered new 
-> interface driver hdpvr
-> Sep 21 17:05:11 mythbe kernel: [535293.776318] hdpvr 9-1:1.0: video 
-> signal: 1920x1080@30hz
-> Sep 21 17:05:14 mythbe kernel: [535297.312589] hdpvr 9-1:1.0: encoder 
-> start control request returned 0
-> Sep 21 17:05:15 mythbe kernel: [535297.670830] hdpvr 9-1:1.0: config 
-> call request for value 0x700 returned 1
-> Sep 21 17:05:15 mythbe kernel: [535297.670833] hdpvr 9-1:1.0: streaming 
-> started
-> Sep 21 17:05:15 mythbe kernel: [535297.670839] hdpvr 9-1:1.0: 
-> hdpvr_read:442 buffer stat: 64 free, 0 proc
-> Sep 21 17:05:15 mythbe kernel: [535297.670882] hdpvr 9-1:1.0: 
-> hdpvr_submit_buffers:209 buffer stat: 0 free, 64 proc
-> Sep 21 17:05:15 mythbe kernel: [535297.709079] hdpvr 9-1:1.0: 
-> hdpvr_read:502 buffer stat: 1 free, 63 proc
-> Sep 21 17:05:15 mythbe kernel: [535297.709088] hdpvr 9-1:1.0: 
-> hdpvr_submit_buffers:209 buffer stat: 0 free, 64 proc
-> 
-> (many repeats of the above two line sequence)
-> 
-> Sep 21 17:17:09 mythbe kernel: [536011.936858] hdpvr 9-1:1.0: 
-> hdpvr_read:502 buffer stat: 1 free, 63 proc
-> Sep 21 17:17:09 mythbe kernel: [536011.936866] hdpvr 9-1:1.0: 
-> hdpvr_submit_buffers:209 buffer stat: 0 free, 64 proc
-> Sep 21 17:17:36 mythbe kernel: [536038.853044] hdpvr 9-1:1.0: config 
-> call request for value 0x800 returned -110
-> Sep 21 17:17:36 mythbe kernel: [536038.853052] hdpvr 9-1:1.0: transmit 
-> worker exited
-> Sep 21 17:17:36 mythbe kernel: [536038.996035] hdpvr 9-1:1.0: used 0 
-> urbs to empty device buffers
-> 
-> If I understand correctly, this is showing a ETIMEDOUT error.  When I've 
-> looked at the cat with strace, it is always blocked on a read. So, it 
-> seems like the HD-PVR just stops sending.
-> 
-> I also ran a USB capture with wireshark and see much the same thing.  
-> While I haven't tried to decode the USB packets, the pattern is that the 
-> HD-PVR sends, the host sends a message/ack, this pattern repeats, and 
-> then nothing.  The majority of the failures occur in less than 15 minutes.
-> 
-> -- Windows tests --
-> 
-> I installed the Hauppauge software on a Windows 7 system and moved the 
-> USB cable to the Windows system.  Nothing else was changed. I've run 
-> many hours of successful captures.  I've checked each recording with 
-> ffprobe and verified that each is the expected length (i.e., no data 
-> drops at all).  The recordings are of good quality. This shows that the 
-> HD-PVR is capable of working as expected and quite reliably.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/videobuf2-dma-contig.c |  200 ++++++++++++++++++++++++++++
+ 1 file changed, 200 insertions(+)
 
-It may be a coincidence  but I since I started using  irqbalance ( https://code.google.com/p/irqbalance/ ) my HD-PVR has been  completely stable.  Before that I was experiencing daily lockups. 
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index 0e065ce..b138b5c 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -36,6 +36,7 @@ struct vb2_dc_buf {
+ 	/* MMAP related */
+ 	struct vb2_vmarea_handler	handler;
+ 	atomic_t			refcount;
++	struct sg_table			*sgt_base;
+ 
+ 	/* USERPTR related */
+ 	struct vm_area_struct		*vma;
+@@ -142,6 +143,10 @@ static void vb2_dc_put(void *buf_priv)
+ 	if (!atomic_dec_and_test(&buf->refcount))
+ 		return;
+ 
++	if (buf->sgt_base) {
++		sg_free_table(buf->sgt_base);
++		kfree(buf->sgt_base);
++	}
+ 	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
+ 	kfree(buf);
+ }
+@@ -213,6 +218,200 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ }
+ 
+ /*********************************************/
++/*         DMABUF ops for exporters          */
++/*********************************************/
++
++struct vb2_dc_attachment {
++	struct sg_table sgt;
++	enum dma_data_direction dir;
++};
++
++static int vb2_dc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
++	struct dma_buf_attachment *dbuf_attach)
++{
++	struct vb2_dc_attachment *attach;
++	unsigned int i;
++	struct scatterlist *rd, *wr;
++	struct sg_table *sgt;
++	struct vb2_dc_buf *buf = dbuf->priv;
++	int ret;
++
++	attach = kzalloc(sizeof(*attach), GFP_KERNEL);
++	if (!attach)
++		return -ENOMEM;
++
++	sgt = &attach->sgt;
++	/* Copy the buf->base_sgt scatter list to the attachment, as we can't
++	 * map the same scatter list to multiple attachments at the same time.
++	 */
++	ret = sg_alloc_table(sgt, buf->sgt_base->orig_nents, GFP_KERNEL);
++	if (ret) {
++		kfree(attach);
++		return -ENOMEM;
++	}
++
++	rd = buf->sgt_base->sgl;
++	wr = sgt->sgl;
++	for (i = 0; i < sgt->orig_nents; ++i) {
++		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
++		rd = sg_next(rd);
++		wr = sg_next(wr);
++	}
++
++	attach->dir = DMA_NONE;
++	dbuf_attach->priv = attach;
++
++	return 0;
++}
++
++static void vb2_dc_dmabuf_ops_detach(struct dma_buf *dbuf,
++	struct dma_buf_attachment *db_attach)
++{
++	struct vb2_dc_attachment *attach = db_attach->priv;
++	struct sg_table *sgt;
++
++	if (!attach)
++		return;
++
++	sgt = &attach->sgt;
++
++	/* release the scatterlist cache */
++	if (attach->dir != DMA_NONE)
++		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
++			attach->dir);
++	sg_free_table(sgt);
++	kfree(attach);
++	db_attach->priv = NULL;
++}
++
++static struct sg_table *vb2_dc_dmabuf_ops_map(
++	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
++{
++	struct vb2_dc_attachment *attach = db_attach->priv;
++	/* stealing dmabuf mutex to serialize map/unmap operations */
++	struct mutex *lock = &db_attach->dmabuf->lock;
++	struct sg_table *sgt;
++	int ret;
++
++	mutex_lock(lock);
++
++	sgt = &attach->sgt;
++	/* return previously mapped sg table */
++	if (attach->dir == dir) {
++		mutex_unlock(lock);
++		return sgt;
++	}
++
++	/* release any previous cache */
++	if (attach->dir != DMA_NONE) {
++		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->orig_nents,
++			attach->dir);
++		attach->dir = DMA_NONE;
++	}
++
++	/* mapping to the client with new direction */
++	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
++	if (ret <= 0) {
++		pr_err("failed to map scatterlist\n");
++		mutex_unlock(lock);
++		return ERR_PTR(-EIO);
++	}
++
++	attach->dir = dir;
++
++	mutex_unlock(lock);
++
++	return sgt;
++}
++
++static void vb2_dc_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
++	struct sg_table *sgt, enum dma_data_direction dir)
++{
++	/* nothing to be done here */
++}
++
++static void vb2_dc_dmabuf_ops_release(struct dma_buf *dbuf)
++{
++	/* drop reference obtained in vb2_dc_get_dmabuf */
++	vb2_dc_put(dbuf->priv);
++}
++
++static void *vb2_dc_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
++{
++	struct vb2_dc_buf *buf = dbuf->priv;
++
++	return buf->vaddr + pgnum * PAGE_SIZE;
++}
++
++static void *vb2_dc_dmabuf_ops_vmap(struct dma_buf *dbuf)
++{
++	struct vb2_dc_buf *buf = dbuf->priv;
++
++	return buf->vaddr;
++}
++
++static int vb2_dc_dmabuf_ops_mmap(struct dma_buf *dbuf,
++	struct vm_area_struct *vma)
++{
++	return vb2_dc_mmap(dbuf->priv, vma);
++}
++
++static struct dma_buf_ops vb2_dc_dmabuf_ops = {
++	.attach = vb2_dc_dmabuf_ops_attach,
++	.detach = vb2_dc_dmabuf_ops_detach,
++	.map_dma_buf = vb2_dc_dmabuf_ops_map,
++	.unmap_dma_buf = vb2_dc_dmabuf_ops_unmap,
++	.kmap = vb2_dc_dmabuf_ops_kmap,
++	.kmap_atomic = vb2_dc_dmabuf_ops_kmap,
++	.vmap = vb2_dc_dmabuf_ops_vmap,
++	.mmap = vb2_dc_dmabuf_ops_mmap,
++	.release = vb2_dc_dmabuf_ops_release,
++};
++
++static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
++{
++	int ret;
++	struct sg_table *sgt;
++
++	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
++	if (!sgt) {
++		dev_err(buf->dev, "failed to alloc sg table\n");
++		return NULL;
++	}
++
++	ret = dma_get_sgtable(buf->dev, sgt, buf->vaddr, buf->dma_addr,
++		buf->size);
++	if (ret < 0) {
++		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
++		kfree(sgt);
++		return NULL;
++	}
++
++	return sgt;
++}
++
++static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++	struct dma_buf *dbuf;
++
++	if (!buf->sgt_base)
++		buf->sgt_base = vb2_dc_get_base_sgt(buf);
++
++	if (WARN_ON(!buf->sgt_base))
++		return NULL;
++
++	dbuf = dma_buf_export(buf, &vb2_dc_dmabuf_ops, buf->size, 0);
++	if (IS_ERR(dbuf))
++		return NULL;
++
++	/* dmabuf keeps reference to vb2 buffer */
++	atomic_inc(&buf->refcount);
++
++	return dbuf;
++}
++
++/*********************************************/
+ /*       callbacks for USERPTR buffers       */
+ /*********************************************/
+ 
+@@ -519,6 +718,7 @@ static void *vb2_dc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
+ const struct vb2_mem_ops vb2_dma_contig_memops = {
+ 	.alloc		= vb2_dc_alloc,
+ 	.put		= vb2_dc_put,
++	.get_dmabuf	= vb2_dc_get_dmabuf,
+ 	.cookie		= vb2_dc_cookie,
+ 	.vaddr		= vb2_dc_vaddr,
+ 	.mmap		= vb2_dc_mmap,
+-- 
+1.7.9.5
+
