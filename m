@@ -1,89 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51756 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753688Ab2JGUHz (ORCPT
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:45826 "EHLO
+	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751475Ab2JBWMl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Oct 2012 16:07:55 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, tony@atomide.com
-Subject: [PATCH v3 1/3] omap3isp: Add CSI configuration registers from control block to ISP resources
-Date: Sun,  7 Oct 2012 23:07:50 +0300
-Message-Id: <1349640472-1425-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20121007200730.GD14107@valkosipuli.retiisi.org.uk>
-References: <20121007200730.GD14107@valkosipuli.retiisi.org.uk>
+	Tue, 2 Oct 2012 18:12:41 -0400
+Date: Tue, 2 Oct 2012 15:12:39 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>,
+	Kay Sievers <kay@vrfy.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
+ callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use
+ request_firmware_nowait()
+Message-ID: <20121002221239.GA30990@kroah.com>
+References: <1340285798-8322-1-git-send-email-mchehab@redhat.com>
+ <4FE37194.30407@redhat.com>
+ <4FE8B8BC.3020702@iki.fi>
+ <4FE8C4C4.1050901@redhat.com>
+ <4FE8CED5.104@redhat.com>
+ <20120625223306.GA2764@kroah.com>
+ <4FE9169D.5020300@redhat.com>
+ <20121002100319.59146693@redhat.com>
+ <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the registers used to configure the CSI-2 receiver PHY on OMAP3430 and
-3630 and map them in the ISP driver. The register is part of the control
-block but it only is needed by the ISP driver.
+On Tue, Oct 02, 2012 at 09:33:03AM -0700, Linus Torvalds wrote:
+> I don't know where the problem started in udev, but the report I saw
+> was that udev175 was fine, and udev182 was broken, and would deadlock
+> if module_init() did a request_firmware(). That kind of nested
+> behavior is absolutely *required* to work, in order to not cause
+> idiotic problems for the kernel for no good reason.
+> 
+> What kind of insane udev maintainership do we have? And can we fix it?
+> 
+> Greg, I think you need to step up here too. You were the one who let
+> udev go. If the new maintainers are causing problems, they need to be
+> fixed some way.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- arch/arm/mach-omap2/devices.c         |   10 ++++++++++
- drivers/media/platform/omap3isp/isp.c |    6 ++++--
- drivers/media/platform/omap3isp/isp.h |    2 ++
- 3 files changed, 16 insertions(+), 2 deletions(-)
+I've talked about this with Kay in the past (Plumbers conference I
+think) and I thought he said it was all fixed in the latest version of
+udev so there shouldn't be any problems anymore with this.
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index c00c689..9e4d5da 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -201,6 +201,16 @@ static struct resource omap3isp_resources[] = {
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
-+		.start		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE,
-+		.end		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE + 3,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL,
-+		.end		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL + 3,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
- 		.start		= INT_34XX_CAM_IRQ,
- 		.flags		= IORESOURCE_IRQ,
- 	}
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index d7aa513..88fba2c 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -100,7 +100,8 @@ static const struct isp_res_mapping isp_res_maps[] = {
- 		       1 << OMAP3_ISP_IOMEM_RESZ |
- 		       1 << OMAP3_ISP_IOMEM_SBL |
- 		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
--		       1 << OMAP3_ISP_IOMEM_CSIPHY2,
-+		       1 << OMAP3_ISP_IOMEM_CSIPHY2 |
-+		       1 << OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE,
- 	},
- 	{
- 		.isp_rev = ISP_REVISION_15_0,
-@@ -117,7 +118,8 @@ static const struct isp_res_mapping isp_res_maps[] = {
- 		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS2 |
- 		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS1 |
- 		       1 << OMAP3_ISP_IOMEM_CSIPHY1 |
--		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2,
-+		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2 |
-+		       1 << OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL,
- 	},
- };
- 
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index 8be7487..6fed222 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -72,6 +72,8 @@ enum isp_mem_resources {
- 	OMAP3_ISP_IOMEM_CSI2C_REGS1,
- 	OMAP3_ISP_IOMEM_CSIPHY1,
- 	OMAP3_ISP_IOMEM_CSI2C_REGS2,
-+	OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE,
-+	OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL,
- 	OMAP3_ISP_IOMEM_LAST
- };
- 
--- 
-1.7.2.5
+Mauro, what version of udev are you using that is still showing this
+issue?
 
+Kay, didn't you resolve this already?  If not, what was the reason why?
+
+thanks,
+
+greg k-h
