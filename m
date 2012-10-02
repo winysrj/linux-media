@@ -1,113 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44647 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750917Ab2J0Ulv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:41:51 -0400
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKfpd7004729
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:41:51 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 26/68] [media] au0828: get rid of warning: no previous prototype
-Date: Sat, 27 Oct 2012 18:40:44 -0200
-Message-Id: <1351370486-29040-27-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout4.samsung.com ([203.254.224.34]:32629 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753971Ab2JBOan (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 10:30:43 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MB900EW3SB6IC00@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:30:42 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MB9005A7S65K790@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:30:42 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: [PATCHv9 24/25] v4l: s5p-tv: mixer: support for dmabuf exporting
+Date: Tue, 02 Oct 2012 16:27:35 +0200
+Message-id: <1349188056-4886-25-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
+References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/usb/au0828/au0828-cards.c:28:6: warning: no previous prototype for 'hvr950q_cs5340_audio' [-Wmissing-prototypes]
-drivers/media/usb/au0828/au0828-video.c:161:6: warning: no previous prototype for 'au0828_uninit_isoc' [-Wmissing-prototypes]
-drivers/media/usb/au0828/au0828-video.c:200:5: warning: no previous prototype for 'au0828_init_isoc' [-Wmissing-prototypes]
-drivers/media/usb/au0828/au0828-video.c:786:5: warning: no previous prototype for 'au0828_analog_stream_enable' [-Wmissing-prototypes]
-drivers/media/usb/au0828/au0828-video.c:813:6: warning: no previous prototype for 'au0828_analog_stream_reset' [-Wmissing-prototypes]
-drivers/media/usb/au0828/au0828-video.c:916:6: warning: no previous prototype for 'au0828_vid_buffer_timeout' [-Wmissing-prototypes]
-drivers/media/usb/au0828/au0828-video.c:940:6: warning: no previous prototype for 'au0828_vbi_buffer_timeout' [-Wmissing-prototypes]
+This patch enhances s5p-tv with support for DMABUF exporting via
+VIDIOC_EXPBUF ioctl.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/usb/au0828/au0828-cards.c |  2 +-
- drivers/media/usb/au0828/au0828-video.c | 16 ++++++++--------
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/media/video/s5p-tv/mixer_video.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/media/usb/au0828/au0828-cards.c b/drivers/media/usb/au0828/au0828-cards.c
-index 448361c..0cb7c28 100644
---- a/drivers/media/usb/au0828/au0828-cards.c
-+++ b/drivers/media/usb/au0828/au0828-cards.c
-@@ -25,7 +25,7 @@
- #include "media/tuner.h"
- #include "media/v4l2-common.h"
- 
--void hvr950q_cs5340_audio(void *priv, int enable)
-+static void hvr950q_cs5340_audio(void *priv, int enable)
- {
- 	/* Because the HVR-950q shares an i2s bus between the cs5340 and the
- 	   au8522, we need to hold cs5340 in reset when using the au8522 */
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 8705855..45387aa 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -158,7 +158,7 @@ static void au0828_irq_callback(struct urb *urb)
- /*
-  * Stop and Deallocate URBs
-  */
--void au0828_uninit_isoc(struct au0828_dev *dev)
-+static void au0828_uninit_isoc(struct au0828_dev *dev)
- {
- 	struct urb *urb;
- 	int i;
-@@ -197,9 +197,9 @@ void au0828_uninit_isoc(struct au0828_dev *dev)
- /*
-  * Allocate URBs and start IRQ
-  */
--int au0828_init_isoc(struct au0828_dev *dev, int max_packets,
--		     int num_bufs, int max_pkt_size,
--		     int (*isoc_copy) (struct au0828_dev *dev, struct urb *urb))
-+static int au0828_init_isoc(struct au0828_dev *dev, int max_packets,
-+			    int num_bufs, int max_pkt_size,
-+			    int (*isoc_copy) (struct au0828_dev *dev, struct urb *urb))
- {
- 	struct au0828_dmaqueue *dma_q = &dev->vidq;
- 	int i;
-@@ -783,7 +783,7 @@ static int au0828_i2s_init(struct au0828_dev *dev)
-  * Auvitek au0828 analog stream enable
-  * Please set interface0 to AS5 before enable the stream
-  */
--int au0828_analog_stream_enable(struct au0828_dev *d)
-+static int au0828_analog_stream_enable(struct au0828_dev *d)
- {
- 	dprintk(1, "au0828_analog_stream_enable called\n");
- 	au0828_writereg(d, AU0828_SENSORCTRL_VBI_103, 0x00);
-@@ -810,7 +810,7 @@ int au0828_analog_stream_disable(struct au0828_dev *d)
- 	return 0;
+diff --git a/drivers/media/video/s5p-tv/mixer_video.c b/drivers/media/video/s5p-tv/mixer_video.c
+index 2c299db..d1641b6 100644
+--- a/drivers/media/video/s5p-tv/mixer_video.c
++++ b/drivers/media/video/s5p-tv/mixer_video.c
+@@ -697,6 +697,15 @@ static int mxr_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+ 	return vb2_dqbuf(&layer->vb_queue, p, file->f_flags & O_NONBLOCK);
  }
  
--void au0828_analog_stream_reset(struct au0828_dev *dev)
-+static void au0828_analog_stream_reset(struct au0828_dev *dev)
++static int mxr_expbuf(struct file *file, void *priv,
++	struct v4l2_exportbuffer *eb)
++{
++	struct mxr_layer *layer = video_drvdata(file);
++
++	mxr_dbg(layer->mdev, "%s:%d\n", __func__, __LINE__);
++	return vb2_expbuf(&layer->vb_queue, eb);
++}
++
+ static int mxr_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
  {
- 	dprintk(1, "au0828_analog_stream_reset called\n");
- 	au0828_writereg(dev, AU0828_SENSORCTRL_100, 0x0);
-@@ -913,7 +913,7 @@ static int get_ressource(struct au0828_fh *fh)
- /* This function ensures that video frames continue to be delivered even if
-    the ITU-656 input isn't receiving any data (thereby preventing applications
-    such as tvtime from hanging) */
--void au0828_vid_buffer_timeout(unsigned long data)
-+static void au0828_vid_buffer_timeout(unsigned long data)
- {
- 	struct au0828_dev *dev = (struct au0828_dev *) data;
- 	struct au0828_dmaqueue *dma_q = &dev->vidq;
-@@ -937,7 +937,7 @@ void au0828_vid_buffer_timeout(unsigned long data)
- 	spin_unlock_irqrestore(&dev->slock, flags);
- }
- 
--void au0828_vbi_buffer_timeout(unsigned long data)
-+static void au0828_vbi_buffer_timeout(unsigned long data)
- {
- 	struct au0828_dev *dev = (struct au0828_dev *) data;
- 	struct au0828_dmaqueue *dma_q = &dev->vbiq;
+ 	struct mxr_layer *layer = video_drvdata(file);
+@@ -724,6 +733,7 @@ static const struct v4l2_ioctl_ops mxr_ioctl_ops = {
+ 	.vidioc_querybuf = mxr_querybuf,
+ 	.vidioc_qbuf = mxr_qbuf,
+ 	.vidioc_dqbuf = mxr_dqbuf,
++	.vidioc_expbuf = mxr_expbuf,
+ 	/* Streaming control */
+ 	.vidioc_streamon = mxr_streamon,
+ 	.vidioc_streamoff = mxr_streamoff,
 -- 
-1.7.11.7
+1.7.9.5
 
