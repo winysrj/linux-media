@@ -1,35 +1,23 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:46936 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752285Ab2JDSiG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 14:38:06 -0400
-Received: by mail-vc0-f174.google.com with SMTP id fo13so958943vcb.19
-        for <linux-media@vger.kernel.org>; Thu, 04 Oct 2012 11:38:06 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1349374975-5934-1-git-send-email-martin.blumenstingl@googlemail.com>
-References: <1349374975-5934-1-git-send-email-martin.blumenstingl@googlemail.com>
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Date: Thu, 4 Oct 2012 20:37:45 +0200
-Message-ID: <CAFBinCBpr_cL1ofQp09e6DTDnNvOh_1eXErHpNniMf1creZk0A@mail.gmail.com>
-Subject: Re: [PATCH 1/2] em28xx: Better support for the Terratec Cinergy HTC
- USB XS. This intializes the card just like the windows driver does.
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:53444 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753112Ab2JBI5d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 04:57:33 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
 To: linux-media@vger.kernel.org
-Cc: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Cc: Anatolij Gustschin <agust@denx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RFC PATCH 0/3] Three more patches to fix const issues
+Date: Tue,  2 Oct 2012 10:57:17 +0200
+Message-Id: <1349168240-29269-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-I forgot to add some clarification:
-- the "HTC USB XS HD" uses the same firmware as the "HTC Stick HD".
-- both have different GPIO and reg init sequences
-- I tested my changes only with DVB-C, but I guess DVB-T will work
-fine (unfortunately
-  I can't test that, but it was working fine on the "HTC Stick HD"
-back when I tested it).
-  I tested with and without firmware - it was working fine in both cases.
-- the remote control should work fine now (also untested)
+Several ioctl ops now use const, but there was some fall-out from that
+in drivers. Most drivers already have patches pending fixing such issues,
+but I didn't see any for these three.
 
 Regards,
-Martin
+
+	Hans
+
