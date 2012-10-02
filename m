@@ -1,50 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:57147 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932525Ab2JURxw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Oct 2012 13:53:52 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so1632849wgb.1
-        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2012 10:53:52 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 23/23] em28xx: enable VBI-support for em2840 devices
-Date: Sun, 21 Oct 2012 19:52:29 +0300
-Message-Id: <1350838349-14763-25-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mx1.redhat.com ([209.132.183.28]:56153 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751650Ab2JBSGL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Oct 2012 14:06:11 -0400
+Date: Tue, 2 Oct 2012 15:06:03 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR 3.7] Samsung Exynos MFC driver update
+Message-ID: <20121002150603.31b6b72d@redhat.com>
+In-Reply-To: <506B1D47.8040602@samsung.com>
+References: <506B1D47.8040602@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I just noticed that the eMPIA hardware specification from
-02/01/2004 says that the em2840 supports VBI, too.
+Em Tue, 02 Oct 2012 18:58:47 +0200
+Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
 
-I don't have this device, so this patch is compilation tested only !
+> Hi Mauro,
+> 
+> The following changes since commit 34a6b7d093d8fe738ada191b36648d00bc18b7eb:
+> 
+>   [media] v4l2-ctrls: add a filter function to v4l2_ctrl_add_handler
+> (2012-10-01 17:07:07 -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://git.infradead.org/users/kmpark/linux-2.6-samsung v4l_mfc_for_mauro
+> 
+> for you to fetch changes up to 8312d9d2d254ab289a322fcfdba1d1ecf5e36256:
+> 
+>   s5p-mfc: Update MFC v4l2 driver to support MFC6.x (2012-10-02 15:28:42 +0200)
+> 
+> This is an update of the s5p-mfc driver and related V4L2 API additions
+> to support the Multi Format Codec device on the Exynos5 SoC series.
+> 
+> ----------------------------------------------------------------
+> Arun Kumar K (4):
+>       v4l: Add fourcc definitions for new formats
+>       v4l: Add control definitions for new H264 encoder features
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-core.c |    3 ++-
- 1 Datei geändert, 2 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+OK.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index c78d38b..2a9b94f 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -678,7 +678,8 @@ int em28xx_vbi_supported(struct em28xx *dev)
- 	if (disable_vbi == 1)
- 		return 0;
- 
--	if (dev->chip_id == CHIP_ID_EM2860 ||
-+	if (dev->chip_id == CHIP_ID_EM2840 ||
-+	    dev->chip_id == CHIP_ID_EM2860 ||
- 	    dev->chip_id == CHIP_ID_EM2883)
- 		return 1;
- 
+>       s5p-mfc: Update MFCv5 driver for callback based architecture
+
+This one doesn't apply:
+
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@@ -496,11 -499,14 +498,20 @@@ static int vidioc_reqbufs(struct file *
+                        s5p_mfc_clock_off();
+                        return -ENOMEM;
+                }
+++<<<<<<< HEAD
+ +          if (s5p_mfc_ctx_ready(ctx))
+ +                  set_work_bit_irqsave(ctx);
+ +          s5p_mfc_try_run(dev);
+++=======
++           if (s5p_mfc_ctx_ready(ctx)) {
++                   spin_lock_irqsave(&dev->condlock, flags);
++                   set_bit(ctx->num, &dev->ctx_work_bits);
++                   spin_unlock_irqrestore(&dev->condlock, flags);
++           }
++           s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
+++>>>>>>> e67ff71... s5p-mfc: Update MFCv5 driver for callback based architecture
+...
+
+@@@ -582,18 -589,24 +593,30 @@@ static int vidioc_streamon(struct file 
+                        ctx->src_bufs_cnt = 0;
+                        ctx->capture_state = QUEUE_FREE;
+                        ctx->output_state = QUEUE_FREE;
+++<<<<<<< HEAD
+ +                  s5p_mfc_alloc_instance_buffer(ctx);
+ +                  s5p_mfc_alloc_dec_temp_buffers(ctx);
+ +                  set_work_bit_irqsave(ctx);
+++=======
++                   s5p_mfc_hw_call(dev->mfc_ops, alloc_instance_buffer,
++                                   ctx);
++                   s5p_mfc_hw_call(dev->mfc_ops, alloc_dec_temp_buffers,
++                                   ctx);
++                   spin_lock_irqsave(&dev->condlock, flags);
++                   set_bit(ctx->num, &dev->ctx_work_bits);
++                   spin_unlock_irqrestore(&dev->condlock, flags);
+++>>>>>>> e67ff71... s5p-mfc: Update MFCv5 driver for callback based architecture
+
+and more...
+
+Also, there are too many changes on this patch, making it harder for
+review, especially since there are also some code renames and function
+rearrangements.
+
+The better is to split it into smaller and more logical changes, instead
+of what it sounds like a driver replacement.
+
 -- 
-1.7.10.4
-
+Regards,
+Mauro
