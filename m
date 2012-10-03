@@ -1,91 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57621 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S933068Ab2JWPmy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 11:42:54 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: timo.ahonen@nokia.com, laurent.pinchart@ideasonboard.com
-Subject: [PATCH 3/6] smiapp: Input for PLL configuration is mostly static
-Date: Tue, 23 Oct 2012 18:42:47 +0300
-Message-Id: <1351006971-32308-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20121023154231.GB23685@valkosipuli.retiisi.org.uk>
-References: <20121023154231.GB23685@valkosipuli.retiisi.org.uk>
+Received: from mail.kapsi.fi ([217.30.184.167]:33740 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751806Ab2JCIiY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Oct 2012 04:38:24 -0400
+Message-ID: <506BF969.5080202@iki.fi>
+Date: Wed, 03 Oct 2012 11:38:01 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Oliver Endriss <o.endriss@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 1/2] drxk: allow loading firmware synchrousnously
+References: <1349204716-25971-1-git-send-email-mchehab@redhat.com> <201210030913.51397.o.endriss@gmx.de>
+In-Reply-To: <201210030913.51397.o.endriss@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The input values for PLL configuration are mostly static. So set them when
-the sensor is registered.
+On 10/03/2012 10:13 AM, Oliver Endriss wrote:
+> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+>> Due to udev-182, the firmware load was changed to be async, as
+>> otherwise udev would give up of loading a firmware.
+>>
+>> Add an option to return to the previous behaviour, async firmware
+>> loads cause failures with the tda18271 driver.
+>>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> ---
+>>   drivers/media/dvb-frontends/drxk.h      |  2 ++
+>>   drivers/media/dvb-frontends/drxk_hard.c | 20 +++++++++++++++-----
+>>   2 files changed, 17 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/media/dvb-frontends/drxk.h b/drivers/media/dvb-frontends/drxk.h
+>> index d615d7d..94fecfb 100644
+>> --- a/drivers/media/dvb-frontends/drxk.h
+>> +++ b/drivers/media/dvb-frontends/drxk.h
+>> @@ -28,6 +28,7 @@
+>>    *				A value of 0 (default) or lower indicates that
+>>    *				the correct number of parameters will be
+>>    *				automatically detected.
+>> + * @load_firmware_sync:		Force the firmware load to be synchronous.
+>>    *
+>>    * On the *_gpio vars, bit 0 is UIO-1, bit 1 is UIO-2 and bit 2 is
+>>    * UIO-3.
+>> @@ -39,6 +40,7 @@ struct drxk_config {
+>>   	bool	parallel_ts;
+>>   	bool	dynamic_clk;
+>>   	bool	enable_merr_cfg;
+>> +	bool	load_firmware_sync;
+>>
+>>   	bool	antenna_dvbt;
+>>   	u16	antenna_gpio;
+>> diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
+>> index 1ab8154..8b4c6d5 100644
+>> --- a/drivers/media/dvb-frontends/drxk_hard.c
+>> +++ b/drivers/media/dvb-frontends/drxk_hard.c
+>> @@ -6609,15 +6609,25 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
+>>
+>>   	/* Load firmware and initialize DRX-K */
+>>   	if (state->microcode_name) {
+>> -		status = request_firmware_nowait(THIS_MODULE, 1,
+>> +		if (config->load_firmware_sync) {
+>> +			const struct firmware *fw = NULL;
+>> +
+>> +			status = request_firmware(&fw, state->microcode_name,
+>> +						  state->i2c->dev.parent);
+>> +			if (status < 0)
+>> +				fw = NULL;
+>> +			load_firmware_cb(fw, state);
+>> +		} else {
+>> +			status = request_firmware_nowait(THIS_MODULE, 1,
+>>   					      state->microcode_name,
+>>   					      state->i2c->dev.parent,
+>>   					      GFP_KERNEL,
+>>   					      state, load_firmware_cb);
+>> -		if (status < 0) {
+>> -			printk(KERN_ERR
+>> -			"drxk: failed to request a firmware\n");
+>> -			return NULL;
+>> +			if (status < 0) {
+>> +				printk(KERN_ERR
+>> +				       "drxk: failed to request a firmware\n");
+>> +				return NULL;
+>> +			}
+>>   		}
+>>   	} else if (init_drxk(state) < 0)
+>>   		goto error;
+>>
+>
+> Sorry. loading the firmware asynchronously is simply crap! Remove this!
+>
+> If you intend to load a firmware, firmware loading must be the first
+> thing you do with the drxk. You must not access the device, before
+> firmware loading has completed, or correct operation will not be
+> guaranteed.
+>
+> If you insist to keep this option, I request that you make synchronous
+> loading the default, and you enable asynchronous loading only for
+> devices _you_ have tested. I will never use asynchronous loading.
+> (In fact, I have already backed-out your firmware patches from my
+> drivers and forked off my own version of the drxk.)
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/i2c/smiapp/smiapp-core.c |   24 ++++++++++++------------
- 1 files changed, 12 insertions(+), 12 deletions(-)
++1, indeed. Broken by design.
+That was quite what I explained earlier too. You are not allowed to 
+continue attach path until previous attach is done and chip is ready to 
+offer interface(s) to the chips which are next in attach path. It is not 
+only that, but general rule.
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index e08e588..868ad0b 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -276,11 +276,6 @@ static int smiapp_pll_update(struct smiapp_sensor *sensor)
- 	struct smiapp_pll *pll = &sensor->pll;
- 	int rval;
- 
--	memset(&sensor->pll, 0, sizeof(sensor->pll));
--
--	pll->lanes = sensor->platform_data->lanes;
--	pll->ext_clk_freq_hz = sensor->platform_data->ext_clk;
--
- 	if (sensor->minfo.smiapp_profile == SMIAPP_PROFILE_0) {
- 		/*
- 		 * Fill in operational clock divisors limits from the
-@@ -296,20 +291,13 @@ static int smiapp_pll_update(struct smiapp_sensor *sensor)
- 		lim.max_op_sys_clk_freq_hz = lim.max_vt_sys_clk_freq_hz;
- 		lim.min_op_pix_clk_freq_hz = lim.min_vt_pix_clk_freq_hz;
- 		lim.max_op_pix_clk_freq_hz = lim.max_vt_pix_clk_freq_hz;
--		/* Profile 0 sensors have no separate OP clock branch. */
--		pll->flags |= SMIAPP_PLL_FLAG_NO_OP_CLOCKS;
- 	}
- 
--	if (smiapp_needs_quirk(sensor,
--			       SMIAPP_QUIRK_FLAG_OP_PIX_CLOCK_PER_LANE))
--		pll->flags |= SMIAPP_PLL_FLAG_OP_PIX_CLOCK_PER_LANE;
--
- 	pll->binning_horizontal = sensor->binning_horizontal;
- 	pll->binning_vertical = sensor->binning_vertical;
- 	pll->link_freq =
- 		sensor->link_freq->qmenu_int[sensor->link_freq->val];
- 	pll->scale_m = sensor->scale_m;
--	pll->scale_n = sensor->limits[SMIAPP_LIMIT_SCALER_N_MIN];
- 	pll->bits_per_pixel = sensor->csi_format->compressed;
- 
- 	rval = smiapp_pll_calculate(&client->dev, &lim, pll);
-@@ -2369,6 +2357,7 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- {
- 	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
- 	struct i2c_client *client = v4l2_get_subdevdata(subdev);
-+	struct smiapp_pll *pll = &sensor->pll;
- 	struct smiapp_subdev *last = NULL;
- 	u32 tmp;
- 	unsigned int i;
-@@ -2635,6 +2624,17 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
- 	if (rval < 0)
- 		goto out_nvm_release;
- 
-+	/* prepare PLL configuration input values */
-+	pll->lanes = sensor->platform_data->lanes;
-+	pll->ext_clk_freq_hz = sensor->platform_data->ext_clk;
-+	/* Profile 0 sensors have no separate OP clock branch. */
-+	if (sensor->minfo.smiapp_profile == SMIAPP_PROFILE_0)
-+		pll->flags |= SMIAPP_PLL_FLAG_NO_OP_CLOCKS;
-+	if (smiapp_needs_quirk(sensor,
-+			       SMIAPP_QUIRK_FLAG_OP_PIX_CLOCK_PER_LANE))
-+		pll->flags |= SMIAPP_PLL_FLAG_OP_PIX_CLOCK_PER_LANE;
-+	pll->scale_n = sensor->limits[SMIAPP_LIMIT_SCALER_N_MIN];
-+
- 	rval = smiapp_update_mode(sensor);
- 	if (rval) {
- 		dev_err(&client->dev, "update mode failed\n");
+I don't see any reason why this code should be left here.
+
+regards
+Antti
+
 -- 
-1.7.2.5
-
+http://palosaari.fi/
