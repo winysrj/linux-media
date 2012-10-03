@@ -1,43 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0159.b.hostedemail.com ([64.98.42.159]:58665 "EHLO
-	smtprelay.b.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754368Ab2JUUnR (ORCPT
+Received: from smtp-outbound-2.vmware.com ([208.91.2.13]:48865 "EHLO
+	smtp-outbound-2.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753941Ab2JCHpq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Oct 2012 16:43:17 -0400
-Date: Sun, 21 Oct 2012 20:43:15 +0000 (GMT)
-From: "Artem S. Tashkinov" <t.artem@lycos.com>
-To: zonque@gmail.com
-Cc: bp@alien8.de, pavel@ucw.cz, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, security@kernel.org,
-	linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-	alsa-devel@alsa-project.org, stern@rowland.harvard.edu
-Message-ID: <1651404200.40745.1350852195790.JavaMail.mail@webmail04>
-References: <2104474742.26357.1350734815286.JavaMail.mail@webmail05>
- <20121020162759.GA12551@liondog.tnic>
- <966148591.30347.1350754909449.JavaMail.mail@webmail08>
- <20121020203227.GC555@elf.ucw.cz> <20121020225849.GA8976@liondog.tnic>
- <1781795634.31179.1350774917965.JavaMail.mail@webmail04>
- <20121021002424.GA16247@liondog.tnic>
- <1798605268.19162.1350784641831.JavaMail.mail@webmail17>
- <20121021110851.GA6504@liondog.tnic>
- <121566322.100103.1350820776893.JavaMail.mail@webmail20>
- <20121021170315.GB20642@liondog.tnic>
- <1906833625.122006.1350848941352.JavaMail.mail@webmail16>
- <5084530B.6030209@gmail.com>
-Subject: Re: Re: A reliable kernel panic (3.6.2) and system crash when
- visiting a particular website
+	Wed, 3 Oct 2012 03:45:46 -0400
+Message-ID: <506BED25.2060804@vmware.com>
+Date: Wed, 03 Oct 2012 09:45:41 +0200
+From: Thomas Hellstrom <thellstrom@vmware.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, sumit.semwal@linaro.org,
+	linux-media@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [PATCH 1/5] dma-buf: remove fallback for !CONFIG_DMA_SHARED_BUFFER
+References: <20120928124148.14366.21063.stgit@patser.local> <5065B0C9.7040209@canonical.com> <5065FDAA.5080103@vmware.com> <50696699.7020009@canonical.com> <506A8DC8.5020706@vmware.com> <20121002080341.GA5679@phenom.ffwll.local>
+In-Reply-To: <20121002080341.GA5679@phenom.ffwll.local>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Nice. Could you do that again with the patch applied I sent yo some
-> hours ago?
+On 10/02/2012 10:03 AM, Daniel Vetter wrote:
+> On Tue, Oct 02, 2012 at 08:46:32AM +0200, Thomas Hellstrom wrote:
+>> On 10/01/2012 11:47 AM, Maarten Lankhorst wrote:
+>>> I was doing a evil hack where I 'released' lru_lock to lockdep before doing the annotation
+>>> for a blocking acquire, and left trylock annotations as they were. This made lockdep do the
+>>> right thing.
+>> I've never looked into how lockdep works. Is this something that can
+>> be done permanently or just for testing
+>> purposes? Although not related to this, is it possible to do
+>> something similar to the trylock reversal in the
+>> fault() code where mmap_sem() and reserve() change order using a
+>> reserve trylock?
+> lockdep just requires a bunch of annotations, is a compile-time configure
+> option CONFIG_PROVE_LOCKING and if disabled, has zero overhead. And it's
+> rather awesome in detected deadlocks and handling crazy locking schemes
+> correctly:
+> - correctly handles trylocks
+> - correctly handles nested locking (i.e. grabbing a global lock, then
+>    grabbing subordinate locks in an unordered sequence since the global
+>    lock ensures that no deadlocks can happen).
+> - any kinds of inversions with special contexts like hardirq, softirq
+> - same for page-reclaim, i.e. it will yell if you could (potentially)
+>    deadlock because your shrinker grabs a lock that you hold while calling
+>    kmalloc.
+> - there are special annotates for various subsystems, e.g. to check for
+>    del_timer_sync vs. locks held by that timer. Or the console_lock
+>    annotations I've just recently submitted.
+> - all that with a really flexible set of annotation primitives that afaics
+>    should work for almost any insane locking scheme. The fact that Maarten
+>    could come up with proper reservation annotations without any changes to
+>    lockdep testifies this (he only had to fix a tiny thing to make it a bit
+>    more strict in a corner case).
+>
+> In short I think it's made of awesome. The only downside is that it lacks
+> documentation, you have to read the code to understand it :(
+>
+> The reason I've suggested to Maarten to abolish the trylock_reservation
+> within the lru_lock is that in that way lockdep only ever sees the
+> trylock, and hence is less strict about complainig about deadlocks. But
+> semantically it's an unconditional reserve. Maarten had some horrible
+> hacks that leaked the lockdep annotations out of the new reservation code,
+> which allowed ttm to be properly annotated.  But those also reduced the
+> usefulness for any other users of the reservation code, and so Maarten
+> looked into whether he could remove that trylock dance in ttm.
+>
+> Imo having excellent lockdep support for cross-device reservations is a
+> requirment, and ending up with less strict annotations for either ttm
+> based drivers or other drivers is not good. And imo the ugly layering that
+> Maarten had in his first proof-of-concept also indicates that something is
+> amiss in the design.
+>
+>
+So if I understand you correctly, the reservation changes in TTM are 
+motivated by the
+fact that otherwise, in the generic reservation code, lockdep can only be
+annotated for a trylock and not a waiting lock, when it *is* in fact a 
+waiting lock.
 
-That patch was of no help - the system has crashed and I couldn't spot relevant
-messages.
+I'm completely unfamiliar with setting up lockdep annotations, but the 
+only place a
+deadlock might occur is if the trylock fails and we do a 
+wait_for_unreserve().
+Isn't it possible to annotate the call to wait_for_unreserve() just like 
+an interruptible waiting lock
+(that is always interrupted, but at least any deadlock will be catched?).
 
-I've no idea what it means.
+/Thomas
 
-Artem
+
