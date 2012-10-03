@@ -1,279 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54294 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752398Ab2JNKby (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Oct 2012 06:31:54 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, tony@atomide.com,
-	khilman@deeprootsystems.com
-Subject: [PATCH v5 3/3] omap3isp: Configure CSI-2 phy based on platform data
-Date: Sun, 14 Oct 2012 13:31:50 +0300
-Message-Id: <1350210710-15122-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20121014103122.GA21261@valkosipuli.retiisi.org.uk>
-References: <20121014103122.GA21261@valkosipuli.retiisi.org.uk>
+Received: from youngberry.canonical.com ([91.189.89.112]:45543 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752825Ab2JCH5Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 03:57:24 -0400
+Message-ID: <506BEFE0.2060906@canonical.com>
+Date: Wed, 03 Oct 2012 09:57:20 +0200
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+MIME-Version: 1.0
+To: Thomas Hellstrom <thellstrom@vmware.com>
+CC: linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, sumit.semwal@linaro.org,
+	linux-media@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [PATCH 1/5] dma-buf: remove fallback for !CONFIG_DMA_SHARED_BUFFER
+References: <20120928124148.14366.21063.stgit@patser.local> <5065B0C9.7040209@canonical.com> <5065FDAA.5080103@vmware.com> <50696699.7020009@canonical.com> <506A8DC8.5020706@vmware.com> <20121002080341.GA5679@phenom.ffwll.local> <506BED25.2060804@vmware.com>
+In-Reply-To: <506BED25.2060804@vmware.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Configure CSI-2 phy based on platform data in the ISP driver. For that, the
-new V4L2_CID_IMAGE_SOURCE_PIXEL_RATE control is used. Previously the same
-was configured from the board code.
+Hey,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/isp.h       |    3 -
- drivers/media/platform/omap3isp/ispcsiphy.c |  153 +++++++++++++++------------
- drivers/media/platform/omap3isp/ispcsiphy.h |   10 --
- 3 files changed, 83 insertions(+), 83 deletions(-)
+Op 03-10-12 09:45, Thomas Hellstrom schreef:
+> On 10/02/2012 10:03 AM, Daniel Vetter wrote:
+>> On Tue, Oct 02, 2012 at 08:46:32AM +0200, Thomas Hellstrom wrote:
+>>> On 10/01/2012 11:47 AM, Maarten Lankhorst wrote:
+>>>> I was doing a evil hack where I 'released' lru_lock to lockdep before doing the annotation
+>>>> for a blocking acquire, and left trylock annotations as they were. This made lockdep do the
+>>>> right thing.
+>>> I've never looked into how lockdep works. Is this something that can
+>>> be done permanently or just for testing
+>>> purposes? Although not related to this, is it possible to do
+>>> something similar to the trylock reversal in the
+>>> fault() code where mmap_sem() and reserve() change order using a
+>>> reserve trylock?
+>> lockdep just requires a bunch of annotations, is a compile-time configure
+>> option CONFIG_PROVE_LOCKING and if disabled, has zero overhead. And it's
+>> rather awesome in detected deadlocks and handling crazy locking schemes
+>> correctly:
+>> - correctly handles trylocks
+>> - correctly handles nested locking (i.e. grabbing a global lock, then
+>>    grabbing subordinate locks in an unordered sequence since the global
+>>    lock ensures that no deadlocks can happen).
+>> - any kinds of inversions with special contexts like hardirq, softirq
+>> - same for page-reclaim, i.e. it will yell if you could (potentially)
+>>    deadlock because your shrinker grabs a lock that you hold while calling
+>>    kmalloc.
+>> - there are special annotates for various subsystems, e.g. to check for
+>>    del_timer_sync vs. locks held by that timer. Or the console_lock
+>>    annotations I've just recently submitted.
+>> - all that with a really flexible set of annotation primitives that afaics
+>>    should work for almost any insane locking scheme. The fact that Maarten
+>>    could come up with proper reservation annotations without any changes to
+>>    lockdep testifies this (he only had to fix a tiny thing to make it a bit
+>>    more strict in a corner case).
+>>
+>> In short I think it's made of awesome. The only downside is that it lacks
+>> documentation, you have to read the code to understand it :(
+>>
+>> The reason I've suggested to Maarten to abolish the trylock_reservation
+>> within the lru_lock is that in that way lockdep only ever sees the
+>> trylock, and hence is less strict about complainig about deadlocks. But
+>> semantically it's an unconditional reserve. Maarten had some horrible
+>> hacks that leaked the lockdep annotations out of the new reservation code,
+>> which allowed ttm to be properly annotated.  But those also reduced the
+>> usefulness for any other users of the reservation code, and so Maarten
+>> looked into whether he could remove that trylock dance in ttm.
+>>
+>> Imo having excellent lockdep support for cross-device reservations is a
+>> requirment, and ending up with less strict annotations for either ttm
+>> based drivers or other drivers is not good. And imo the ugly layering that
+>> Maarten had in his first proof-of-concept also indicates that something is
+>> amiss in the design.
+>>
+>>
+> So if I understand you correctly, the reservation changes in TTM are motivated by the
+> fact that otherwise, in the generic reservation code, lockdep can only be
+> annotated for a trylock and not a waiting lock, when it *is* in fact a waiting lock.
+>
+> I'm completely unfamiliar with setting up lockdep annotations, but the only place a
+> deadlock might occur is if the trylock fails and we do a wait_for_unreserve().
+> Isn't it possible to annotate the call to wait_for_unreserve() just like an interruptible waiting lock
+> (that is always interrupted, but at least any deadlock will be catched?).
+That would not find all bugs, lockdep is meant to find even theoretical bugs, so annotating it as a
+waiting lock makes more sense. Otherwise lockdep will only barf when the initial trylock fails.
 
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index 6fed222..accb3b0 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -129,9 +129,6 @@ struct isp_reg {
- 
- struct isp_platform_callback {
- 	u32 (*set_xclk)(struct isp_device *isp, u32 xclk, u8 xclksel);
--	int (*csiphy_config)(struct isp_csiphy *phy,
--			     struct isp_csiphy_dphy_cfg *dphy,
--			     struct isp_csiphy_lanes_cfg *lanes);
- };
- 
- /*
-diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
-index c808b6a..48f8ba7 100644
---- a/drivers/media/platform/omap3isp/ispcsiphy.c
-+++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-@@ -122,36 +122,6 @@ static void csiphy_routing_cfg(struct isp_csiphy *phy, u32 iface, bool on,
- }
- 
- /*
-- * csiphy_lanes_config - Configuration of CSIPHY lanes.
-- *
-- * Updates HW configuration.
-- * Called with phy->mutex taken.
-- */
--static void csiphy_lanes_config(struct isp_csiphy *phy)
--{
--	unsigned int i;
--	u32 reg;
--
--	reg = isp_reg_readl(phy->isp, phy->cfg_regs, ISPCSI2_PHY_CFG);
--
--	for (i = 0; i < phy->num_data_lanes; i++) {
--		reg &= ~(ISPCSI2_PHY_CFG_DATA_POL_MASK(i + 1) |
--			 ISPCSI2_PHY_CFG_DATA_POSITION_MASK(i + 1));
--		reg |= (phy->lanes.data[i].pol <<
--			ISPCSI2_PHY_CFG_DATA_POL_SHIFT(i + 1));
--		reg |= (phy->lanes.data[i].pos <<
--			ISPCSI2_PHY_CFG_DATA_POSITION_SHIFT(i + 1));
--	}
--
--	reg &= ~(ISPCSI2_PHY_CFG_CLOCK_POL_MASK |
--		 ISPCSI2_PHY_CFG_CLOCK_POSITION_MASK);
--	reg |= phy->lanes.clk.pol << ISPCSI2_PHY_CFG_CLOCK_POL_SHIFT;
--	reg |= phy->lanes.clk.pos << ISPCSI2_PHY_CFG_CLOCK_POSITION_SHIFT;
--
--	isp_reg_writel(phy->isp, reg, phy->cfg_regs, ISPCSI2_PHY_CFG);
--}
--
--/*
-  * csiphy_power_autoswitch_enable
-  * @enable: Sets or clears the autoswitch function enable flag.
-  */
-@@ -196,43 +166,28 @@ static int csiphy_set_power(struct isp_csiphy *phy, u32 power)
- }
- 
- /*
-- * csiphy_dphy_config - Configure CSI2 D-PHY parameters.
-- *
-- * Called with phy->mutex taken.
-+ * TCLK values are OK at their reset values
-  */
--static void csiphy_dphy_config(struct isp_csiphy *phy)
--{
--	u32 reg;
--
--	/* Set up ISPCSIPHY_REG0 */
--	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG0);
--
--	reg &= ~(ISPCSIPHY_REG0_THS_TERM_MASK |
--		 ISPCSIPHY_REG0_THS_SETTLE_MASK);
--	reg |= phy->dphy.ths_term << ISPCSIPHY_REG0_THS_TERM_SHIFT;
--	reg |= phy->dphy.ths_settle << ISPCSIPHY_REG0_THS_SETTLE_SHIFT;
--
--	isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG0);
--
--	/* Set up ISPCSIPHY_REG1 */
--	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG1);
--
--	reg &= ~(ISPCSIPHY_REG1_TCLK_TERM_MASK |
--		 ISPCSIPHY_REG1_TCLK_MISS_MASK |
--		 ISPCSIPHY_REG1_TCLK_SETTLE_MASK);
--	reg |= phy->dphy.tclk_term << ISPCSIPHY_REG1_TCLK_TERM_SHIFT;
--	reg |= phy->dphy.tclk_miss << ISPCSIPHY_REG1_TCLK_MISS_SHIFT;
--	reg |= phy->dphy.tclk_settle << ISPCSIPHY_REG1_TCLK_SETTLE_SHIFT;
-+#define TCLK_TERM	0
-+#define TCLK_MISS	1
-+#define TCLK_SETTLE	14
- 
--	isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
--}
--
--static int csiphy_config(struct isp_csiphy *phy,
--			 struct isp_csiphy_dphy_cfg *dphy,
--			 struct isp_csiphy_lanes_cfg *lanes)
-+static int omap3isp_csiphy_config(struct isp_csiphy *phy)
- {
-+	struct isp_csi2_device *csi2 = phy->csi2;
-+	struct isp_pipeline *pipe = to_isp_pipeline(&csi2->subdev.entity);
-+	struct isp_v4l2_subdevs_group *subdevs = pipe->external->host_priv;
-+	struct isp_csiphy_lanes_cfg *lanes;
-+	int csi2_ddrclk_khz;
- 	unsigned int used_lanes = 0;
- 	unsigned int i;
-+	u32 reg;
-+
-+	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1
-+	    || subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
-+		lanes = &subdevs->bus.ccp2.lanecfg;
-+	else
-+		lanes = &subdevs->bus.csi2.lanecfg;
- 
- 	/* Clock and data lanes verification */
- 	for (i = 0; i < phy->num_data_lanes; i++) {
-@@ -251,10 +206,61 @@ static int csiphy_config(struct isp_csiphy *phy,
- 	if (lanes->clk.pos == 0 || used_lanes & (1 << lanes->clk.pos))
- 		return -EINVAL;
- 
--	mutex_lock(&phy->mutex);
--	phy->dphy = *dphy;
--	phy->lanes = *lanes;
--	mutex_unlock(&phy->mutex);
-+	/*
-+	 * The PHY configuration is lost in off mode, that's not an
-+	 * issue since the MPU power domain is forced on whilst the
-+	 * ISP is in use.
-+	 */
-+	csiphy_routing_cfg(phy, subdevs->interface, true,
-+			   subdevs->bus.ccp2.phy_layer);
-+
-+	/* DPHY timing configuration */
-+	/* CSI-2 is DDR and we only count used lanes. */
-+	csi2_ddrclk_khz = pipe->external_rate / 1000
-+		/ (2 * hweight32(used_lanes)) * pipe->external_width;
-+
-+	reg = isp_reg_readl(csi2->isp, phy->phy_regs, ISPCSIPHY_REG0);
-+
-+	reg &= ~(ISPCSIPHY_REG0_THS_TERM_MASK |
-+		 ISPCSIPHY_REG0_THS_SETTLE_MASK);
-+	/* THS_TERM: Programmed value = ceil(12.5 ns/DDRClk period) - 1. */
-+	reg |= (DIV_ROUND_UP(25 * csi2_ddrclk_khz, 2000000) - 1)
-+		<< ISPCSIPHY_REG0_THS_TERM_SHIFT;
-+	/* THS_SETTLE: Programmed value = ceil(90 ns/DDRClk period) + 3. */
-+	reg |= (DIV_ROUND_UP(90 * csi2_ddrclk_khz, 1000000) + 3)
-+		<< ISPCSIPHY_REG0_THS_SETTLE_SHIFT;
-+
-+	isp_reg_writel(csi2->isp, reg, phy->phy_regs, ISPCSIPHY_REG0);
-+
-+	reg = isp_reg_readl(csi2->isp, phy->phy_regs, ISPCSIPHY_REG1);
-+
-+	reg &= ~(ISPCSIPHY_REG1_TCLK_TERM_MASK |
-+		 ISPCSIPHY_REG1_TCLK_MISS_MASK |
-+		 ISPCSIPHY_REG1_TCLK_SETTLE_MASK);
-+	reg |= TCLK_TERM << ISPCSIPHY_REG1_TCLK_TERM_SHIFT;
-+	reg |= TCLK_MISS << ISPCSIPHY_REG1_TCLK_MISS_SHIFT;
-+	reg |= TCLK_SETTLE << ISPCSIPHY_REG1_TCLK_SETTLE_SHIFT;
-+
-+	isp_reg_writel(csi2->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
-+
-+	/* DPHY lane configuration */
-+	reg = isp_reg_readl(csi2->isp, phy->cfg_regs, ISPCSI2_PHY_CFG);
-+
-+	for (i = 0; i < phy->num_data_lanes; i++) {
-+		reg &= ~(ISPCSI2_PHY_CFG_DATA_POL_MASK(i + 1) |
-+			 ISPCSI2_PHY_CFG_DATA_POSITION_MASK(i + 1));
-+		reg |= (lanes->data[i].pol <<
-+			ISPCSI2_PHY_CFG_DATA_POL_SHIFT(i + 1));
-+		reg |= (lanes->data[i].pos <<
-+			ISPCSI2_PHY_CFG_DATA_POSITION_SHIFT(i + 1));
-+	}
-+
-+	reg &= ~(ISPCSI2_PHY_CFG_CLOCK_POL_MASK |
-+		 ISPCSI2_PHY_CFG_CLOCK_POSITION_MASK);
-+	reg |= lanes->clk.pol << ISPCSI2_PHY_CFG_CLOCK_POL_SHIFT;
-+	reg |= lanes->clk.pos << ISPCSI2_PHY_CFG_CLOCK_POSITION_SHIFT;
-+
-+	isp_reg_writel(csi2->isp, reg, phy->cfg_regs, ISPCSI2_PHY_CFG);
- 
- 	return 0;
- }
-@@ -279,8 +285,9 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
- 	if (rval < 0)
- 		goto done;
- 
--	csiphy_dphy_config(phy);
--	csiphy_lanes_config(phy);
-+	rval = omap3isp_csiphy_config(phy);
-+	if (rval < 0)
-+		goto done;
- 
- 	rval = csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_ON);
- 	if (rval) {
-@@ -300,6 +307,14 @@ void omap3isp_csiphy_release(struct isp_csiphy *phy)
- {
- 	mutex_lock(&phy->mutex);
- 	if (phy->phy_in_use) {
-+		struct isp_csi2_device *csi2 = phy->csi2;
-+		struct isp_pipeline *pipe =
-+			to_isp_pipeline(&csi2->subdev.entity);
-+		struct isp_v4l2_subdevs_group *subdevs =
-+			pipe->external->host_priv;
-+
-+		csiphy_routing_cfg(phy, subdevs->interface, false,
-+				   subdevs->bus.ccp2.phy_layer);
- 		csiphy_power_autoswitch_enable(phy, false);
- 		csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_OFF);
- 		regulator_disable(phy->vdd);
-@@ -316,8 +331,6 @@ int omap3isp_csiphy_init(struct isp_device *isp)
- 	struct isp_csiphy *phy1 = &isp->isp_csiphy1;
- 	struct isp_csiphy *phy2 = &isp->isp_csiphy2;
- 
--	isp->platform_cb.csiphy_config = csiphy_config;
--
- 	phy2->isp = isp;
- 	phy2->csi2 = &isp->isp_csi2a;
- 	phy2->num_data_lanes = ISP_CSIPHY2_NUM_DATA_LANES;
-diff --git a/drivers/media/platform/omap3isp/ispcsiphy.h b/drivers/media/platform/omap3isp/ispcsiphy.h
-index e93a661..14551fd 100644
---- a/drivers/media/platform/omap3isp/ispcsiphy.h
-+++ b/drivers/media/platform/omap3isp/ispcsiphy.h
-@@ -32,14 +32,6 @@
- struct isp_csi2_device;
- struct regulator;
- 
--struct isp_csiphy_dphy_cfg {
--	u8 ths_term;
--	u8 ths_settle;
--	u8 tclk_term;
--	unsigned tclk_miss:1;
--	u8 tclk_settle;
--};
--
- struct isp_csiphy {
- 	struct isp_device *isp;
- 	struct mutex mutex;	/* serialize csiphy configuration */
-@@ -52,8 +44,6 @@ struct isp_csiphy {
- 	unsigned int phy_regs;
- 
- 	u8 num_data_lanes;	/* number of CSI2 Data Lanes supported */
--	struct isp_csiphy_lanes_cfg lanes;
--	struct isp_csiphy_dphy_cfg dphy;
- };
- 
- int omap3isp_csiphy_acquire(struct isp_csiphy *phy);
--- 
-1.7.2.5
+~Maarten
 
