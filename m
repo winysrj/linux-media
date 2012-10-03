@@ -1,80 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52388 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753173Ab2JIGIE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Oct 2012 02:08:04 -0400
-Date: Tue, 9 Oct 2012 09:08:00 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	tony@atomide.com
-Subject: Re: [PATCH v3 2/3] omap3isp: Add PHY routing configuration
-Message-ID: <20121009060800.GK14107@valkosipuli.retiisi.org.uk>
-References: <20121007200730.GD14107@valkosipuli.retiisi.org.uk>
- <1349640472-1425-2-git-send-email-sakari.ailus@iki.fi>
- <21772459.IFXEUjhVJS@avalon>
+Received: from mailfe05.c2i.net ([212.247.154.130]:33420 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750698Ab2JCTG5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Oct 2012 15:06:57 -0400
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+Subject: Re: [PATCH] Add toggle to the tt3650_rc_query function  of the ttusb2 driver
+Date: Wed, 3 Oct 2012 21:08:19 +0200
+Cc: linux-media@vger.kernel.org
+References: <2504977.yNAtCnX8Pk@jar7.dominio> <201210022152.11115.hselasky@c2i.net> <201210032057.07711.hselasky@c2i.net>
+In-Reply-To: <201210032057.07711.hselasky@c2i.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <21772459.IFXEUjhVJS@avalon>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201210032108.19904.hselasky@c2i.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Laurent!
-
-Thanks for the comments!
-
-On Tue, Oct 09, 2012 at 02:17:48AM +0200, Laurent Pinchart wrote:
-...
-> > @@ -32,6 +32,92 @@
-> >  #include "ispreg.h"
-> >  #include "ispcsiphy.h"
+On Wednesday 03 October 2012 20:57:07 Hans Petter Selasky wrote:
+> On Tuesday 02 October 2012 21:52:11 Hans Petter Selasky wrote:
+> > On Saturday 08 September 2012 19:08:22 Jose Alberto Reguero wrote:
+> > > This patch add the toggle bit to the tt3650_rc_query function of the
+> > > ttusb2 driver.
+> > > 
+> > > Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+> > > 
+> > > Jose Alberto
 > > 
-> > +static void csiphy_routing_cfg_3630(struct isp_csiphy *phy, u32 iface,
-> > +				    bool ccp2_strobe)
-> > +{
-> > +	u32 cam_phy_ctrl =
+> > Hi,
+> > 
+> > This patch looks OK.
 > 
-> If you call the variable "value" or "ctrl" two statements below could fit on 
-> one line, but that's up to you :-)
-
-I'll call it "reg". :)
-
-
-> > +		isp_reg_readl(phy->isp,
-> > +			      OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL, 0);
-> > +	u32 shift, mode;
-> > +
-> > +	switch (iface) {
-> > +	case ISP_INTERFACE_CCP2B_PHY1:
-> > +		cam_phy_ctrl &=
-> > +			~OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
-> > +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
-> > +		break;
-> > +	case ISP_INTERFACE_CSI2C_PHY1:
-> > +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
-> > +		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
-> > +		break;
-> > +	case ISP_INTERFACE_CCP2B_PHY2:
-> > +		cam_phy_ctrl |=
-> > +			OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
-> > +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
-> > +		break;
-> > +	case ISP_INTERFACE_CSI2A_PHY2:
-> > +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
-> > +		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
-> > +		break;
-> > +	default:
-> > +		pr_warn("bad iface %d\n", iface);
+> Hi,
 > 
-> As you already know, dev_warn() is a better idea. Can this actually happen ?
+> > Regarding the TTUSB2 support, I see an issue where the IR polling
+> > interference with the CAM access. If a IR poll request happens exactly
+> > between a write/read CAM request, then that CAM request will fail. How
+> > can this issue be solved without disabling the IR support entirely?
+> 
+> I checked the code and see that "dvb_usb_generic_rw()" will synchronize the
+> requests, so this can't be the root cause. Currently I suspect the not
+> brand new AMD based EHCI controller I'm using to connect my TTUSB adapter
+> to be at fault. This is FreeBSD, not Linux. What I see when I dump all the
+> transactions is that I have quite frequent timeouts on some of the I2C/CAM
+> and IR commands going on the BULK endpoints. For example grepp'ed log
+> extract looks like this:
+> 
+>  0000  55 3B 42 02 00 A0 01 DF  00 00 00 00 00 FB F5 81  |U;B.............|
+>  0000  AA 3C 42 02 00 01 -- --  -- -- -- -- -- -- -- --  |.<B...          |
+>  0000  55 3C 42 02 00 01 01 DF  00 00 00 00 00 FB F5 81  |U<B.............|
+>  0000  AA 3D 42 02 00 01 -- --  -- -- -- -- -- -- -- --  |.=B...          |
+> 18:46:16.972329 usbus1.3 DONE-BULK-
+> EP=00000081,SPD=HIGH,NFR=0,SLEN=0,IVAL=0,ERR=TIMEOUT
+>  0000  AA 3E 31 04 11 01 01 1A  -- -- -- -- -- -- -- --  |.>1.....        |
+>  0000  55 3E 31 04 10 01 01 DF  00 00 00 00 00 FB F5 81  |U>1.............|
+>  0000  AA 3D 42 02 00 01 -- --  -- -- -- -- -- -- -- --  |.=B...          |
+>  0000  55 3D 42 02 00 01 01 DF  00 00 00 00 00 FB F5 81  |U=B.............|
+>  0000  AA 40 41 01 01 -- -- --  -- -- -- -- -- -- -- --  |.@A..           |
+> 
+> I'm now trying some EHCI quirks, and will see what results I get later this
+> week.
+> 
+> I can also say that VDR receives a ring buffer overflow at exactly the same
+> time the USB BULK endpoint timeout happens ....
+> 
+> If this sounds familar to anyone, please let me know.
+> 
+> Thank you,
+> 
+> --HPS
 
-I don't think so; it's checked in isp.c in isp_register_entities().. I'll
-remove it.
+More info if anyone cares to look at it:
 
-Cheers.
+vdr: [680141312] ERROR: can't write to CI adapter on device 0: Device not configured
+vdr: [680142848] ERROR: 7 ring buffer overflows (1316 bytes dropped)
+vdr: [680141312] CAM 1: module present
+vdr: [680141312] CAM 1: module ready
+vdr: [680141312] CAM 1: Conax Conditional Access, 01, 0B00, 0001
+vdr: [680141312] CAM 1: doesn't reply to QUERY - only a single channel can be decrypted
+vdr: [680141312] ERROR: can't write to CI adapter on device 0: Device not configured
+vdr: [680142848] ERROR: 11 ring buffer overflows (2068 bytes dropped)
+vdr: [680141312] CAM 1: module present
+vdr: [680141312] CAM 1: module ready
+vdr: [680141312] CAM 1: Conax Conditional Access, 01, 0B00, 0001
+vdr: [680141312] CAM 1: doesn't reply to QUERY - only a single channel can be decrypted
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Happens regularly, interrupts the stream and is very annoying :-)
+
+--HPS
+
