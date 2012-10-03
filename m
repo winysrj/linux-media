@@ -1,74 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:33790 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932319Ab2JETLl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 15:11:41 -0400
-Message-ID: <506F30E8.10206@gmail.com>
-Date: Fri, 05 Oct 2012 21:11:36 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 10/14] media: soc-camera: support OF cameras
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <1348754853-28619-11-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1348754853-28619-11-git-send-email-g.liakhovetski@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:49563 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753388Ab2JCJfI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 05:35:08 -0400
+Received: from eusync4.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBB005DT9B3QB20@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 03 Oct 2012 10:35:27 +0100 (BST)
+Received: from [106.116.147.32] by eusync4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MBB004T09AHM980@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 03 Oct 2012 10:35:06 +0100 (BST)
+Message-id: <506C06C8.7060703@samsung.com>
+Date: Wed, 03 Oct 2012 11:35:04 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Arun Kumar K <arunkk.samsung@gmail.com>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Arun Kumar K <arun.kk@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>,
+	Sunil Joshi <joshi@samsung.com>
+Subject: Re: [GIT PULL FOR 3.7] Samsung Exynos MFC driver update
+References: <506B1D47.8040602@samsung.com> <20121002150603.31b6b72d@redhat.com>
+ <506B4733.3070505@gmail.com>
+ <CALt3h7-YQ6PAv+5Yy+x-9jFpKf0XEA6GY_U9v59PiC5FkcdC1w@mail.gmail.com>
+In-reply-to: <CALt3h7-YQ6PAv+5Yy+x-9jFpKf0XEA6GY_U9v59PiC5FkcdC1w@mail.gmail.com>
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/27/2012 04:07 PM, Guennadi Liakhovetski wrote:
-> With OF we aren't getting platform data any more. To minimise changes we
-> create all the missing data ourselves, including compulsory struct
-> soc_camera_link objects. Host-client linking is now done, based on the OF
-> data. Media bus numbers also have to be assigned dynamically.
->
-> Signed-off-by: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
-> ---
-...
->   static int soc_camera_i2c_notify(struct notifier_block *nb,
->   				 unsigned long action, void *data)
->   {
-> @@ -1203,13 +1434,20 @@ static int soc_camera_i2c_notify(struct notifier_block *nb,
->   	struct v4l2_subdev *subdev;
->   	int ret;
->
-> -	if (client->addr != icl->board_info->addr ||
-> -	    client->adapter->nr != icl->i2c_adapter_id)
-> +	dev_dbg(dev, "%s(%lu): %x on %u\n", __func__, action,
-> +		client->addr, client->adapter->nr);
-> +
-> +	if (!soc_camera_i2c_client_match(icl, client))
->   		return NOTIFY_DONE;
->
->   	switch (action) {
->   	case BUS_NOTIFY_BIND_DRIVER:
->   		client->dev.platform_data = icl;
-> +		if (icl->of_link) {
-> +			struct soc_camera_of_client *sofc = container_of(icl->of_link,
-> +						struct soc_camera_of_client, of_link);
-> +			soc_camera_of_i2c_ifill(sofc, client);
-> +		}
->
->   		return NOTIFY_OK;
->   	case BUS_NOTIFY_BOUND_DRIVER:
+Hi Arun,
 
-There is no need for different handling of this event as well ?
-Further, there is code like:
+On 10/03/2012 07:38 AM, Arun Kumar K wrote:
+>> Indeed it looks like big blob patch. I think this reflects how these patches
+>> were created, were one person creates practically new driver for new device
+>> revision, with not much care about the old one, and then somebody else is
+>> trying to make it a step by step process and ensuring support for all H/W
+>> revisions is properly maintained.
+>>
+>> Anyway, Arun, can you please rebase your patch series onto latest linuxtv
+>> for_v3.7 branch and try to split this above patch. AFAICS there are following
+>> things done there that could be separated:
+>>
+>> 1. Move contents of file s5p_mfc_opr.c to new file s5p_mfc_opr_v5.c
+>> 2. Rename functions in s5p_mfc_opr_v5.c
+>> 3. Use s5p_mfc_hw_call for H/W specific function calls
+>> 4. Do S5P_FIMV/S5P_MFC whatever magic.
+> 
+> I couldnt go with more finer splits, as I wanted to keep a working driver
+> between all successive patches. Now I will try to make the splits as
+> suggested and see if it can still be done.
+> 
+>> Also I've noticed some patches do break compilation. There are some definitions
+>> used there which are added only in subsequent patches. Arun, can you please make
+>> sure there is no build break after each single patch is applied ?
+> 
+> I have checked this while applying and I didnt see any break in
+> compilation after each patch is applied. I ensured not only compilation
+> but also a working driver after applying each patch. I will ensure
+> this again on the next rebase.
 
-	adap = i2c_get_adapter(icl->i2c_adapter_id);
+Sorry, I wrongly concluded from looking at the diffs only. Preserving
+working driver is a good thing, but it is not really required AFAICT. Still 
+it would be nice split the patch as above keeping the v5 driver working.
+Probably splitting it in 3 is enough. It is worthwhile as long as it makes 
+the total diffs smaller (e.g. file renames don't need to be a huge diff with 
+git rename detection enabled). I understand you've got now an additional
+work due to conflict with Andrzej's patches. All pending s5p-mfc patches 
+seems to be in Mauro's tree for_v3.7 and nothing should get in before your 
+patches now.
 
-which is clearly not going to work in OF case. Could you clarify how
-it is supposed to work ?
+> I will make these suggested changes and post an updated patchset today.
+
+Thanks.
 
 --
-
-Thanks,
+Regards,
 Sylwester
