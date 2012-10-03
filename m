@@ -1,55 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:60300 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751897Ab2JVMNm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Oct 2012 08:13:42 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LAK <linux-arm-kernel@lists.infradead.org>
-Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
-	Sekhar Nori <nsekhar@ti.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>
-Subject: [PATCH RESEND] ARM: dm365: replace V4L2_OUT_CAP_CUSTOM_TIMINGS with V4L2_OUT_CAP_DV_TIMINGS
-Date: Mon, 22 Oct 2012 17:42:52 +0530
-Message-Id: <1350907972-11256-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:40572 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753488Ab2JCWRi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 18:17:38 -0400
+MIME-Version: 1.0
+In-Reply-To: <CAKi4VAJgRr0JkuCbMW1vEgEbr5OUiJ-zHTHtAWTbOYFcsfFodg@mail.gmail.com>
+References: <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com>
+ <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
+ <20121002221239.GA30990@kroah.com> <20121002222333.GA32207@kroah.com>
+ <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
+ <506C562E.5090909@redhat.com> <CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
+ <20121003170907.GA23473@ZenIV.linux.org.uk> <CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
+ <20121003195059.GA13541@kroah.com> <CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
+ <CAKi4VAJgRr0JkuCbMW1vEgEbr5OUiJ-zHTHtAWTbOYFcsfFodg@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Wed, 3 Oct 2012 15:17:15 -0700
+Message-ID: <CA+55aFw9-8cfcGrnLhjDn_zoq44TbSByPkqxkPquUsk=x+Ez9g@mail.gmail.com>
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
+ callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
+To: Lucas De Marchi <lucas.de.marchi@gmail.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>,
+	Al Viro <viro@zeniv.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ming Lei <ming.lei@canonical.com>, Kay Sievers <kay@vrfy.org>,
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Ivan Kalvachev <ikalvachev@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
+On Wed, Oct 3, 2012 at 2:58 PM, Lucas De Marchi
+<lucas.de.marchi@gmail.com> wrote:
+>
+> So maintaining the fallback or adding a configurable entry to set the
+> firmware paths might be good.
 
-This patch replaces V4L2_OUT_CAP_CUSTOM_TIMINGS macro with
-V4L2_OUT_CAP_DV_TIMINGS. As V4L2_OUT_CAP_CUSTOM_TIMINGS is being phased
-out.
+Yeah, I do think we need to make it configurable. Probably both at
+kernel compile time and dynamically.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>
----
- Resending the patch since, it didn't reach the DLOS mailing list.
+The aim of having a user-mode daemon do this was that it would be easy
+to configure. Sadly, if we can't trust the daemon, that is all totally
+worthless.
 
- This patch is based on the following patch series,
- ARM: davinci: dm365 EVM: add support for VPBE display
- (https://patchwork.kernel.org/patch/1295071/)
-
- arch/arm/mach-davinci/board-dm365-evm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-davinci/board-dm365-evm.c b/arch/arm/mach-davinci/board-dm365-evm.c
-index 2924d61..771abb5 100644
---- a/arch/arm/mach-davinci/board-dm365-evm.c
-+++ b/arch/arm/mach-davinci/board-dm365-evm.c
-@@ -514,7 +514,7 @@ static struct vpbe_output dm365evm_vpbe_outputs[] = {
- 			.index		= 1,
- 			.name		= "Component",
- 			.type		= V4L2_OUTPUT_TYPE_ANALOG,
--			.capabilities	= V4L2_OUT_CAP_CUSTOM_TIMINGS,
-+			.capabilities	=  V4L2_OUT_CAP_DV_TIMINGS,
- 		},
- 		.subdev_name	= VPBE_VENC_SUBDEV_NAME,
- 		.default_mode	= "480p59_94",
--- 
-1.7.4.1
-
+               Linus
