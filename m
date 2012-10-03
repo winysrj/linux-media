@@ -1,23 +1,24 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:39686 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753728Ab2JBWr5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 18:47:57 -0400
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:47658 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932810Ab2JCANR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 20:13:17 -0400
 MIME-Version: 1.0
-In-Reply-To: <20121002222333.GA32207@kroah.com>
+In-Reply-To: <alpine.LRH.2.00.1210030159440.31999@twin.jikos.cz>
 References: <1340285798-8322-1-git-send-email-mchehab@redhat.com>
  <4FE37194.30407@redhat.com> <4FE8B8BC.3020702@iki.fi> <4FE8C4C4.1050901@redhat.com>
  <4FE8CED5.104@redhat.com> <20120625223306.GA2764@kroah.com>
  <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com>
  <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
  <20121002221239.GA30990@kroah.com> <20121002222333.GA32207@kroah.com>
+ <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com> <alpine.LRH.2.00.1210030159440.31999@twin.jikos.cz>
 From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Tue, 2 Oct 2012 15:47:36 -0700
-Message-ID: <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
+Date: Tue, 2 Oct 2012 17:12:55 -0700
+Message-ID: <CA+55aFwz_7sksJRnFHZQFHD001ihF7ejkk5+-6Punc2dFtoqVQ@mail.gmail.com>
 Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
  callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Kay Sievers <kay@vrfy.org>,
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: Greg KH <gregkh@linuxfoundation.org>, Kay Sievers <kay@vrfy.org>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Lennart Poettering <lennart@poettering.net>,
 	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
@@ -28,38 +29,44 @@ Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 2, 2012 at 3:23 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
+On Tue, Oct 2, 2012 at 5:01 PM, Jiri Kosina <jkosina@suse.cz> wrote:
+> On Tue, 2 Oct 2012, Linus Torvalds wrote:
 >
-> which went into udev release 187 which I think corresponds to the place
-> when people started having problems, right Mauro?
+>> And see this email from Kay Sievers that shows that it was all known
+>> about and intentional in the udev camp:
+>>
+>>   http://www.spinics.net/lists/netdev/msg185742.html
+>
+> This seems confusing indeed.
+>
+> That e-mail referenced above is talking about loading firmware at ifup
+> time. While that might work for network device drivers (I am not sure even
+> about that), what are the udev maintainers advice for other drivers, where
+> there is no analogy to ifup?
 
-According to what I've seen, people started complaining in 182, not 187.
+Yeah, it's an udev bug. It really is that simple.
 
-See for example
+This is why I'm complaining. There's no way in hell we're fixing this
+in kernel space, unless we call the "bypass udev entirely because the
+maintainership quality of it has taken a nose dive". Yes, I've seen
+some work-around patches, but quite frankly, I think it would be
+absolutely insane for the kernel to work around the fact that udev is
+buggy.
 
-  http://patchwork.linuxtv.org/patch/13085/
+The fact is, doing request_firmware() from within module_init() is
+simply the easiest approach for some devices.
 
-which is a thread where you were involved too..
+Now, at the same time, I do agree that network devices should
+generally try to delay it until ifup time, so I'm not arguing against
+that part per se. I do think that when possible, people should aim to
+delay firmware loading until as late as reasonable.
 
-See also the arch linux thread:
+But as you point out, it's simply not always reasonable, and the media
+people are clearly hitting the cases where it's just painful. Now,
+those cases seem to be happily fairly *rare*, so this isn't getting a
+ton of attention, but we should fix it.
 
-  https://bbs.archlinux.org/viewtopic.php?id=134012&p=1
+Because the udev behavior is all pain, no gain. There's no *reason*
+for udev to be pissy about this. And it didn't use to be.
 
-And see this email from Kay Sievers that shows that it was all known
-about and intentional in the udev camp:
-
-  http://www.spinics.net/lists/netdev/msg185742.html
-
-There's a possible patch suggested here:
-
-  http://lists.freedesktop.org/archives/systemd-devel/2012-August/006357.html
-
-but quite frankly, I am leery of the fact that the udev maintenance
-seems to have gone into some "crazy mode" where they have made changes
-that were known to be problematic, and are pure and utter stupidity.
-
-Having the module init path load the firmware IS THE SENSIBLE AND
-OBVIOUS THING TO DO for many cases. The fact that udev people have
-apparently unilaterally decided that it's somehow wrong is scary.
-
-               Linus
+                    Linus
