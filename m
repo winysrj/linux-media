@@ -1,58 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:48259 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754174Ab2JDHjf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 03:39:35 -0400
-Received: from epcpsbge7.samsung.com (epcpsbge7 [203.254.230.17])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBC004AQYLRKYR0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:39:33 +0900 (KST)
-Date: Thu, 04 Oct 2012 07:39:33 +0000 (GMT)
-From: RAHUL SHARMA <rahul.sharma@samsung.com>
-Subject: Re: [PATCH v1 01/14] media: s5p-hdmi: add HPD GPIO to platform data
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Cc: In-Ki Dae <inki.dae@samsung.com>, SUNIL JOSHI <joshi@samsung.com>,
-	"r.sh.open@gmail.com" <r.sh.open@gmail.com>
-Reply-to: rahul.sharma@samsung.com
-MIME-version: 1.0
-Content-transfer-encoding: base64
-Content-type: text/plain; charset=windows-1252
-MIME-version: 1.0
-Message-id: <8952601.531301349336373038.JavaMail.weblogic@epml07>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:61130 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753419Ab2JCOhP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 10:37:15 -0400
+Received: by bkcjk13 with SMTP id jk13so6173296bkc.19
+        for <linux-media@vger.kernel.org>; Wed, 03 Oct 2012 07:37:13 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20121002221239.GA30990@kroah.com>
+References: <1340285798-8322-1-git-send-email-mchehab@redhat.com>
+ <4FE37194.30407@redhat.com> <4FE8B8BC.3020702@iki.fi> <4FE8C4C4.1050901@redhat.com>
+ <4FE8CED5.104@redhat.com> <20120625223306.GA2764@kroah.com>
+ <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com>
+ <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com> <20121002221239.GA30990@kroah.com>
+From: Kay Sievers <kay@vrfy.org>
+Date: Wed, 3 Oct 2012 16:36:53 +0200
+Message-ID: <CAPXgP11UQUHyCAo=GbAigQMqKWta12L19EsVaocU0ia6JKmd1Q@mail.gmail.com>
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
+ callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgTXIuIFRvbWFzeiwgTXIuIFBhcmssIGxpc3QsDQoNCkZpcnN0IHBhdGNoIGluIHRoZSBmb2xs
-b3dpbmcgc2V0IGJlbG9uZ3MgdG8gczVwLW1lZGlhLCByZXN0IHRvIGV4eW5vcy1kcm0uDQpQbGVh
-c2UgcmV2aWV3IHRoZSBtZWRpYSBwYXRjaCBzbyB0aGF0IEl0IGNhbiBiZSBtZXJnZWQgZm9yIG1h
-aW5saW5lLg0KDQpyZWdhcmRzLA0KUmFodWwgU2hhcm1hDQoNCk9uIFRodSwgT2N0IDQsIDIwMTIg
-YXQgOToxMiBQTSwgUmFodWwgU2hhcm1hIDxyYWh1bC5zaGFybWFAc2Ftc3VuZy5jb20+IHdyb3Rl
-Og0KPiBGcm9tOiBUb21hc3ogU3RhbmlzbGF3c2tpIDx0LnN0YW5pc2xhd3NAc2Ftc3VuZy5jb20+
-DQo+DQo+IFRoaXMgcGF0Y2ggZXh0ZW5kcyBzNXAtaGRtaSBwbGF0Zm9ybSBkYXRhIGJ5IGEgR1BJ
-TyBpZGVudGlmaWVyIGZvcg0KPiBIb3QtUGx1Zy1EZXRlY3Rpb24gcGluLg0KPg0KPiBTaWduZWQt
-b2ZmLWJ5OiBUb21hc3ogU3RhbmlzbGF3c2tpIDx0LnN0YW5pc2xhd3NAc2Ftc3VuZy5jb20+DQo+
-IFNpZ25lZC1vZmYtYnk6IEt5dW5nbWluIFBhcmsgPGt5dW5nbWluLnBhcmtAc2Ftc3VuZy5jb20+
-DQo+IC0tLQ0KPiAgaW5jbHVkZS9tZWRpYS9zNXBfaGRtaS5oIHwgICAgMiArKw0KPiAgMSBmaWxl
-cyBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pDQo+DQo+IGRpZmYgLS1n
-aXQgYS9pbmNsdWRlL21lZGlhL3M1cF9oZG1pLmggYi9pbmNsdWRlL21lZGlhL3M1cF9oZG1pLmgN
-Cj4gaW5kZXggMzYxYTc1MS4uMTgxNjQyYiAxMDA2NDQNCj4gLS0tIGEvaW5jbHVkZS9tZWRpYS9z
-NXBfaGRtaS5oDQo+ICsrKyBiL2luY2x1ZGUvbWVkaWEvczVwX2hkbWkuaA0KPiBAQCAtMjAsNiAr
-MjAsNyBAQCBzdHJ1Y3QgaTJjX2JvYXJkX2luZm87DQo+ICAgKiBAaGRtaXBoeV9pbmZvOiB0ZW1w
-bGF0ZSBmb3IgSERNSVBIWSBJMkMgZGV2aWNlDQo+ICAgKiBAbWhsX2J1czogY29udHJvbGxlciBp
-ZCBmb3IgTUhMIGNvbnRyb2wgYnVzDQo+ICAgKiBAbWhsX2luZm86IHRlbXBsYXRlIGZvciBNSEwg
-STJDIGRldmljZQ0KPiArICogQGhwZF9ncGlvOiBHUElPIGZvciBIb3QtUGx1Zy1EZXRlY3QgcGlu
-DQo+ICAgKg0KPiAgICogTlVMTCBwb2ludGVyIGZvciAqX2luZm8gZmllbGRzIGluZGljYXRlcyB0
-aGF0DQo+ICAgKiB0aGUgY29ycmVzcG9uZGluZyBjaGlwIGlzIG5vdCBwcmVzZW50DQo+IEBAIC0y
-OSw2ICszMCw3IEBAIHN0cnVjdCBzNXBfaGRtaV9wbGF0Zm9ybV9kYXRhIHsNCj4gICAgICAgICBz
-dHJ1Y3QgaTJjX2JvYXJkX2luZm8gKmhkbWlwaHlfaW5mbzsNCj4gICAgICAgICBpbnQgbWhsX2J1
-czsNCj4gICAgICAgICBzdHJ1Y3QgaTJjX2JvYXJkX2luZm8gKm1obF9pbmZvOw0KPiArICAgICAg
-IGludCBocGRfZ3BpbzsNCj4gIH07DQo+DQo+ICAjZW5kaWYgLyogUzVQX0hETUlfSCAqLw0KPiAt
-LQ0KPiAxLjcuMC40DQo+DQo+DQo+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fDQo+IGxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0DQo+IGxpbnV4LWFy
-bS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZw0KPiBodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWw=
+On Wed, Oct 3, 2012 at 12:12 AM, Greg KH <gregkh@linuxfoundation.org> wrote:
 
+> Mauro, what version of udev are you using that is still showing this
+> issue?
+>
+> Kay, didn't you resolve this already?  If not, what was the reason why?
 
+It's the same in the current release, we still haven't wrapped our
+head around how to fix it/work around it.
+
+Unlike what the heated and pretty uncivilized and rude emails here
+claim, udev does not dead-lock or "break" things, it's just "slow".
+The modprobe event handling runs into a ~30 second event timeout.
+Everything is still fully functional though, there's only this delay.
+
+Udev ensures full dependency resolution between parent and child
+events. Parent events have to finish the event handling and have to
+return, before child event handlers are started. We need to ensure
+such things so that (among other things) disk events have finished
+their operations before the partition events are started, so they can
+rely and access their fully set up parent devices.
+
+What happens here is that the module_init() call blocks in a userspace
+transaction, creating a child event that is not started until the
+parent event has finished. The event handler for modprobe times out
+then the child event loads the firmware.
+
+Having kernel module relying on a running and fully functional
+userspace to return from module_init() is surely a broken driver
+model, at least it's not how things should work. If userspace does not
+respond to firmware requests, module_init() locks up until the
+firmware timeout happens.
+
+This all is not so much about how probe() should behave, it's about a
+fragile dependency on a specific userspace transaction to link a
+loadable module into the kernel. Drivers should avoid such loops for
+many reasons. Also, it's unclear in many cases how such a model should
+work at all if the module is compiled in and initialized when no
+userspace is running.
+
+If that unfortunate module_init() lockup can't be solved properly in
+the kernel, we need to find out if we need to make the modprobe
+handling in udev async, or let firmware events bypass dependency
+resolving. As mentioned, we haven't decided as of now which road to
+take here.
+
+Thanks,
+Kay
