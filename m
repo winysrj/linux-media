@@ -1,54 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:42343 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755530Ab2JQLQi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 07:16:38 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so6997024pad.19
-        for <linux-media@vger.kernel.org>; Wed, 17 Oct 2012 04:16:37 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org,
-	patches@linaro.org, Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH 3/8] [media] s5p-mfc: Use clk_prepare_enable and clk_disable_unprepare
-Date: Wed, 17 Oct 2012 16:41:46 +0530
-Message-Id: <1350472311-9748-3-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org>
-References: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mailout-de.gmx.net ([213.165.64.22]:50253 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752287Ab2JCJZs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 05:25:48 -0400
+From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
+To: Dan Carpenter <dan.carpenter@oracle.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] af9033: prevent unintended underflow
+Date: Wed, 3 Oct 2012 11:25:40 +0200
+Cc: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201210031125.40850.hfvogt@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace clk_enable/clk_disable with clk_prepare_enable/clk_disable_unprepare
-as required by the common clock framework.
+As spotted by Dan Carpenter <dan.carpenter@oracle.com> (thanks!), we have
+improperly used an unsigned variable in a calculation that may result in a
+negative number. This may cause an unintended underflow if the interface
+frequency of the tuner is > approx. 40MHz.
+This patch should resolve the issue, following an approach similar to what is
+used in af9013.c.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Kamil Debski <k.debski@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_pm.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-index 367db75..f7c5c5a 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-@@ -100,7 +100,7 @@ int s5p_mfc_clock_on(void)
- 	atomic_inc(&clk_ref);
- 	mfc_debug(3, "+ %d", atomic_read(&clk_ref));
- #endif
--	ret = clk_enable(pm->clock_gate);
-+	ret = clk_prepare_enable(pm->clock_gate);
- 	return ret;
- }
+ drivers/media/dvb-frontends/af9033.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+--- a/drivers/media/dvb-frontends/af9033.c	2012-09-28 05:45:17.000000000 +0200
++++ b/drivers/media/dvb-frontends/af9033.c	2012-10-03 11:08:18.160894181 +0200
+@@ -408,7 +408,7 @@ static int af9033_set_frontend(struct dv
+ {
+ 	struct af9033_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-	int ret, i, spec_inv;
++	int ret, i, spec_inv, sampling_freq;
+ 	u8 tmp, buf[3], bandwidth_reg_val;
+ 	u32 if_frequency, freq_cw, adc_freq;
  
-@@ -110,7 +110,7 @@ void s5p_mfc_clock_off(void)
- 	atomic_dec(&clk_ref);
- 	mfc_debug(3, "- %d", atomic_read(&clk_ref));
- #endif
--	clk_disable(pm->clock_gate);
-+	clk_disable_unprepare(pm->clock_gate);
- }
+@@ -465,18 +465,20 @@ static int af9033_set_frontend(struct dv
+ 		else
+ 			if_frequency = 0;
  
- int s5p_mfc_power_on(void)
--- 
-1.7.4.1
+-		while (if_frequency > (adc_freq / 2))
+-			if_frequency -= adc_freq;
++		sampling_freq = if_frequency;
+ 
+-		if (if_frequency >= 0)
++		while (sampling_freq > (adc_freq / 2))
++			sampling_freq -= adc_freq;
++
++		if (sampling_freq >= 0)
+ 			spec_inv *= -1;
+ 		else
+-			if_frequency *= -1;
++			sampling_freq *= -1;
+ 
+-		freq_cw = af9033_div(state, if_frequency, adc_freq, 23ul);
++		freq_cw = af9033_div(state, sampling_freq, adc_freq, 23ul);
+ 
+ 		if (spec_inv == -1)
+-			freq_cw *= -1;
++			freq_cw = 0x800000 - freq_cw;
+ 
+ 		/* get adc multiplies */
+ 		ret = af9033_rd_reg(state, 0x800045, &tmp);
 
+Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
