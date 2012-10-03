@@ -1,102 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59438 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754356Ab2JIWZn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Oct 2012 18:25:43 -0400
-Date: Tue, 9 Oct 2012 19:25:40 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] [for 3.7] stk1160: Add support for S-Video input
-Message-ID: <20121009192540.61875a29@redhat.com>
-In-Reply-To: <1349820063-21955-1-git-send-email-elezegarcia@gmail.com>
-References: <1349820063-21955-1-git-send-email-elezegarcia@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.17.9]:55022 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755406Ab2JCHGL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 03:06:11 -0400
+Date: Wed, 3 Oct 2012 09:06:09 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Alex Pollard <apollard@eos-aus.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Previewing PAL fields on framebuffer
+In-Reply-To: <5F8EBA134B205E4088143663B38B1DC910D5DA0F@EOSMX01.EOSAUS.LOCAL>
+Message-ID: <Pine.LNX.4.64.1210030844220.26201@axis700.grange>
+References: <5F8EBA134B205E4088143663B38B1DC910D5DA0F@EOSMX01.EOSAUS.LOCAL>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue,  9 Oct 2012 19:01:03 -0300
-Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
+Hi Alex
 
-> In order to fully replace easycap driver with stk1160,
-> it's also necessary to add S-Video support.
-> 
-> A similar patch backported for v3.2 kernel has been
-> tested by three different users.
-> 
-> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
-> ---
-> Hi Mauro,
-> 
-> I'm sending this for inclusion in v3.7 second media pull request.
-> I realize it's very late, so I understand if you don't
-> want to pick it.
-> 
->  drivers/media/usb/stk1160/stk1160-core.c |   15 +++++++++++----
->  drivers/media/usb/stk1160/stk1160-v4l.c  |    7 ++++++-
->  drivers/media/usb/stk1160/stk1160.h      |    3 ++-
->  3 files changed, 19 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/usb/stk1160/stk1160-core.c
-> index b627408..34a26e0 100644
-> --- a/drivers/media/usb/stk1160/stk1160-core.c
-> +++ b/drivers/media/usb/stk1160/stk1160-core.c
-> @@ -100,12 +100,21 @@ int stk1160_write_reg(struct stk1160 *dev, u16 reg, u16 value)
->  
->  void stk1160_select_input(struct stk1160 *dev)
->  {
-> +	int route;
->  	static const u8 gctrl[] = {
-> -		0x98, 0x90, 0x88, 0x80
-> +		0x98, 0x90, 0x88, 0x80, 0x98
->  	};
->  
-> -	if (dev->ctl_input < ARRAY_SIZE(gctrl))
-> +	if (dev->ctl_input == STK1160_SVIDEO_INPUT)
-> +		route = SAA7115_SVIDEO3;
-> +	else
-> +		route = SAA7115_COMPOSITE0;
-> +
-> +	if (dev->ctl_input < ARRAY_SIZE(gctrl)) {
-> +		v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
-> +				route, 0, 0);
->  		stk1160_write_reg(dev, STK1160_GCTRL, gctrl[dev->ctl_input]);
-> +	}
->  }
->  
->  /* TODO: We should break this into pieces */
-> @@ -351,8 +360,6 @@ static int stk1160_probe(struct usb_interface *interface,
->  
->  	/* i2c reset saa711x */
->  	v4l2_device_call_all(&dev->v4l2_dev, 0, core, reset, 0);
-> -	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
-> -				0, 0, 0);
->  	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_stream, 0);
->  
->  	/* reset stk1160 to default values */
-> diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
-> index fe6e857..6694f9e 100644
-> --- a/drivers/media/usb/stk1160/stk1160-v4l.c
-> +++ b/drivers/media/usb/stk1160/stk1160-v4l.c
-> @@ -419,7 +419,12 @@ static int vidioc_enum_input(struct file *file, void *priv,
->  	if (i->index > STK1160_MAX_INPUT)
->  		return -EINVAL;
->  
-> -	sprintf(i->name, "Composite%d", i->index);
-> +	/* S-Video special handling */
-> +	if (i->index == STK1160_SVIDEO_INPUT)
-> +		sprintf(i->name, "S-Video");
-> +	else
-> +		sprintf(i->name, "Composite%d", i->index);
-> +
+(added linux-media to CC on your request)
 
-Had you ever test this patch with the v4l2-compliance tool?
+On Wed, 3 Oct 2012, Alex Pollard wrote:
 
-It seems broken to me: this driver has just two inputs. So, it should return
--EINVAL for all inputs after that, or otherwise userspace applications that
-query the inputs will loop forever!
+> Hi,
+> 
+> I am wondering if it is possible to use the DMA features in 
+> drivers/dma/ipu/ipu_idmac.c to write the top field of a PAL frame into a 
+> framebuffer on alternating lines, and write the bottom field of the PAL 
+> frame to the other lines ie deinterlace.
 
-Regards,
-Mauro
+Looking at the i.MX31 CSI documentation it seems it could be possible to 
+use CSI_SENS_FRM_SIZE and CSI_ACT_FRM_SIZE to specify stride != width to 
+basically do stride = 2 * width and then do 2 transfers per frame - one 
+beginning with line 0 and one beginning with line 1? But that's just an 
+idea, the description of those registers is vague and I'm also not sure 
+how to implement that.
+
+Good luck
+Guennadi
+
+> Do you know a good discussion 
+> list where I could post the question? I am using an i.MX53 but the 
+> support "community" is a bit quiet.
+> 
+> Thanks
+> 
+> Alex Pollard
+> Software Engineer
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
