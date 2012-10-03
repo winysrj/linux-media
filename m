@@ -1,59 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:61755 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753195Ab2JVLRn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Oct 2012 07:17:43 -0400
-Received: from eusync4.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MCA00HVWKPZ4R00@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 22 Oct 2012 12:17:59 +0100 (BST)
-Received: from [106.116.147.32] by eusync4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTPA id <0MCA00CD0KPGXE40@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 22 Oct 2012 12:17:41 +0100 (BST)
-Message-id: <50852B54.1040002@samsung.com>
-Date: Mon, 22 Oct 2012 13:17:40 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Alain VOLMAT <alain.volmat@st.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [media-workshop] Tentative Agenda for the November workshop
-References: <201210221035.56897.hverkuil@xs4all.nl>
- <10009130.xLxCsb7QR7@avalon> <5085258E.6090803@samsung.com>
- <E27519AE45311C49887BE8C438E68FAA01012DA81D4A@SAFEX1MAIL1.st.com>
-In-reply-to: <E27519AE45311C49887BE8C438E68FAA01012DA81D4A@SAFEX1MAIL1.st.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from haggis.pcug.org.au ([203.10.76.10]:32862 "EHLO
+	members.tip.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932111Ab2JCWyA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 18:54:00 -0400
+Date: Thu, 4 Oct 2012 08:53:45 +1000
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Greg KH <gregkh@linuxfoundation.org>,
+	Al Viro <viro@zeniv.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ming Lei <ming.lei@canonical.com>, Kay Sievers <kay@vrfy.org>,
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Ivan Kalvachev <ikalvachev@gmail.com>
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
+ callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use
+ request_firmware_nowait()
+Message-Id: <20121004085345.daf125b4f0e29179f999107f@canb.auug.org.au>
+In-Reply-To: <CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
+References: <4FE9169D.5020300@redhat.com>
+	<20121002100319.59146693@redhat.com>
+	<CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
+	<20121002221239.GA30990@kroah.com>
+	<20121002222333.GA32207@kroah.com>
+	<CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
+	<506C562E.5090909@redhat.com>
+	<CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
+	<20121003170907.GA23473@ZenIV.linux.org.uk>
+	<CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
+	<20121003195059.GA13541@kroah.com>
+	<CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Thu__4_Oct_2012_08_53_45_+1000_Kdwsv0b+MA2NHVOJ"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+--Signature=_Thu__4_Oct_2012_08_53_45_+1000_Kdwsv0b+MA2NHVOJ
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 10/22/2012 12:57 PM, Alain VOLMAT wrote:
-> Hi all,
-> 
-> Could someone summaries very rapidly what is this create/select context stuff ? 
-> For now I do not plan to be in Barcelona more than 1 day but at the same time
-> don't want to miss something that might be useful for us.
+Hi Linus,
 
-Please see this thread for more details:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg52168.html
+On Wed, 3 Oct 2012 13:39:23 -0700 Linus Torvalds <torvalds@linux-foundation=
+.org> wrote:
+>
+> Ok, I wish this had been getting more testing in Linux-next or
+> something
 
-This is about creating, selecting device configuration contexts and
-handling e.g. camera modes like viewfinder and still capture.
-Currently only mem-to-mem devices in V4L2 API are allowed to support
-multiple device contexts, and those are per file handle.
+If you ever want a patch tested for a few days, just send it to me and I
+will put it in my "fixes" tree which is merged into linux-next
+immediately on top of your tree.  If nothing else, that will give it wide
+build testing (see http://kisskb.ellerman.id.au/linux-next).
 
-I hope this clarifies it a bit for you.
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
---
-Regards,
-Sylwester
+--Signature=_Thu__4_Oct_2012_08_53_45_+1000_Kdwsv0b+MA2NHVOJ
+Content-Type: application/pgp-signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
+iQIcBAEBCAAGBQJQbMH5AAoJEECxmPOUX5FEdeMQAKM+wwysU+FkMNWi8Pa4zzm6
+pqRFM8iMx0GodJvuNgh2ZwaVwOAGsnfwbOyetZLwAjsithMogU2YRbimTJjXmXff
+1HCBIGvME/5hitVxQKWYDkQbPNxz8uduFVTRv84xgrSBCF2tt0RnlzaJn5oVVWFR
+AVEmLVZIoeZ3tj5knPXmgvHUFfLad0abop8Hdm4e4kc76ThSSM/TGh5ye5RKSuSy
+wMjs3nhxjliGTjkF2y1tkJ90m0MHn4VHHh4wfedS1V/qGJdte1hNkJ6eJy2W6lQQ
+zrOhAWkKLMJ7CpCAbjKSZSX9Zj0z1ZjBScYHWmm/8YXYYAqx5XhmkoiHVsFkVFqd
+8Yjep6C/nXz+vo1SKZyuywLDI0AXxj9IN5QxT6+xs+9XTJH1trx7/tTlNVyuf+pX
+/n5USD1reVGIXjvhFyk6oXD4fZN9Hwxzds06i1LJ4aOpNBpqoW8O1UbJjfmRjsHa
+71xqkA6b9ukPQqyQKlc84jhS+2of6G4II3Aqvqcfr4rtvuEjBhUrzEdH4ZL9yYP/
+NQEakKaIV1mkO1y0zEd6Y49uXDq0DzGiQqG8xGmyfEATAlvU6lGVaYjIp4XH0Tc7
+wOl0sZZ6iQryVEgUpu3V0M2tOlVAZAzBX/mzukKO66mtQKaj/SK/+W/UAaM0/KsI
+wbZH7ghzCAPQL4lY47NO
+=85pQ
+-----END PGP SIGNATURE-----
 
+--Signature=_Thu__4_Oct_2012_08_53_45_+1000_Kdwsv0b+MA2NHVOJ--
