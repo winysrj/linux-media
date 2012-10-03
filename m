@@ -1,37 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:55914 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750942Ab2JYVam (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50434 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932435Ab2JCP0k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Oct 2012 17:30:42 -0400
+	Wed, 3 Oct 2012 11:26:40 -0400
+Message-ID: <506C592C.1000304@iki.fi>
+Date: Wed, 03 Oct 2012 18:26:36 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <20121012173205.49844867@pyramind.ukuu.org.uk>
-References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
-	<20121010191702.404edace@pyramind.ukuu.org.uk>
-	<CAF6AEGvzfr2-QHpX4zwm2EPz-vxCDe9SaLUjo4_Fn7HhjWJFsg@mail.gmail.com>
-	<201210110857.15660.hverkuil@xs4all.nl>
-	<20121011123407.63b5ecbe@pyramind.ukuu.org.uk>
-	<CAPM=9txkSXAOu5Q_H3LWuMrJ+Q_paLPrORtRuHNg6qvsukNdyw@mail.gmail.com>
-	<20121012173205.49844867@pyramind.ukuu.org.uk>
-Date: Fri, 26 Oct 2012 07:30:40 +1000
-Message-ID: <CAPM=9twFedvRKHZjy=2wO1X0s_8DDetOk3Zb7Jb5e-vztP1yyw@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: Use EXPORT_SYMBOL
-From: Dave Airlie <airlied@gmail.com>
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Prabhakar <prabhakar.csengg@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	VGER <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Paul Gortmaker <paul.gortmaker@windriver.com>,
+	Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH v5] media: mt9p031/mt9t001/mt9v032: use V4L2_CID_TEST_PATTERN
+ for test pattern control
+References: <1349272385-24980-1-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1349272385-24980-1-git-send-email-prabhakar.lad@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Unlikely as most of the code I've written belongs to Intel or Red Hat. I
-> also have better things to do with life than sue Nvidia and start an all
-> out copyright and patent war in Linuxspace.
+Prabhakar wrote:
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+>
+> V4L2_CID_TEST_PATTERN is now a standard control.
+> This patch replaces the user defined control for test
+> pattern to make use of standard control V4L2_CID_TEST_PATTERN.
+>
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+> Cc: Jean Delvare <khali@linux-fr.org>
 
-I forgot to ask, but after your petty G+ trolling, if most of the code
-belings to Intel or Red Hat, why do we need to listen to *your*
-lawyers advice? It seems like you aren't a major rights holder but a
-troll.
+Thanks!
 
-Dave.
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
