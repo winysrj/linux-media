@@ -1,53 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:46768 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756337Ab2JZNkz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Oct 2012 09:40:55 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH 1/2] dvb-frontends: use %*ph[N] to dump small buffers
-Date: Fri, 26 Oct 2012 16:40:45 +0300
-Message-Id: <1351258846-17829-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:60123 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932266Ab2JCReF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 13:34:05 -0400
+Received: from eusync1.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBB0014UVHJYW00@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 03 Oct 2012 18:34:31 +0100 (BST)
+Received: from [106.116.147.32] by eusync1.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MBB00IHLVGQZJ80@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 03 Oct 2012 18:34:02 +0100 (BST)
+Message-id: <506C7709.8030905@samsung.com>
+Date: Wed, 03 Oct 2012 19:34:01 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.7] V4L: s5p-fimc: support for interleaved image data
+ capture
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Hi Mauro,
+
+The following changes since commit 2425bb3d4016ed95ce83a90b53bd92c7f31091e4:
+
+  em28xx: regression fix: use DRX-K sync firmware requests on em28xx (2012-10-02 17:15:22 -0300)
+
+are available in the git repository at:
+
+  git://git.infradead.org/users/kmpark/linux-samsung v4l_for_mauro
+
+for you to fetch changes up to 7f06319c3a6e99fcdf9774556384c62661a31940:
+
+  m5mols: Implement .get_frame_desc subdev callback (2012-10-03 13:01:25 +0200)
+
+This includes a few more s5p-* driver updates and fixes, addition of 
+a fourcc and media bus pixel code for S5C73M3 camera, some new v4l2 
+subdev callbacks for low level media bus frame parameters and a helper
+for capture of frame embedded data.
+
+----------------------------------------------------------------
+Hans Verkuil (2):
+      s5p-g2d: fix compiler warning
+      s5p-fimc: fix compiler warning
+
+Sylwester Nawrocki (7):
+      V4L: Add s_rx_buffer subdev video operation
+      V4L: Add [get/set]_frame_desc subdev callbacks
+      V4L: Add V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8 media bus format
+      V4L: Add V4L2_PIX_FMT_S5C_UYVY_JPG fourcc definition
+      s5p-csis: Add support for non-image data packets capture
+      s5p-fimc: Add support for V4L2_PIX_FMT_S5C_UYVY_JPG fourcc
+      m5mols: Implement .get_frame_desc subdev callback
+
+Thomas Abraham (1):
+      s5p-jpeg: use clk_prepare_enable and clk_disable_unprepare
+
+ Documentation/DocBook/media/v4l/compat.xml         |    4 +
+ Documentation/DocBook/media/v4l/pixfmt.xml         |   28 ++++
+ Documentation/DocBook/media/v4l/subdev-formats.xml |   44 +++++++
+ drivers/media/i2c/m5mols/m5mols.h                  |    9 ++
+ drivers/media/i2c/m5mols/m5mols_capture.c          |    3 +
+ drivers/media/i2c/m5mols/m5mols_core.c             |   47 +++++++
+ drivers/media/i2c/m5mols/m5mols_reg.h              |    1 +
+ drivers/media/platform/s5p-fimc/fimc-capture.c     |  135 +++++++++++++++++---
+ drivers/media/platform/s5p-fimc/fimc-core.c        |   19 ++-
+ drivers/media/platform/s5p-fimc/fimc-core.h        |   28 +++-
+ drivers/media/platform/s5p-fimc/fimc-m2m.c         |   25 ++--
+ drivers/media/platform/s5p-fimc/fimc-reg.c         |   23 +++-
+ drivers/media/platform/s5p-fimc/fimc-reg.h         |    3 +-
+ drivers/media/platform/s5p-fimc/mipi-csis.c        |   52 +++++++-
+ drivers/media/platform/s5p-g2d/g2d.c               |    2 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        |    6 +-
+ include/linux/v4l2-mediabus.h                      |    5 +
+ include/linux/videodev2.h                          |    1 +
+ include/media/v4l2-subdev.h                        |   48 +++++++
+ 19 files changed, 433 insertions(+), 50 deletions(-)
+
 ---
- drivers/media/dvb-frontends/ix2505v.c |    2 +-
- drivers/media/dvb-frontends/or51211.c |    5 +----
- 2 files changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/ix2505v.c b/drivers/media/dvb-frontends/ix2505v.c
-index bc5a820..0e3387e 100644
---- a/drivers/media/dvb-frontends/ix2505v.c
-+++ b/drivers/media/dvb-frontends/ix2505v.c
-@@ -212,7 +212,7 @@ static int ix2505v_set_params(struct dvb_frontend *fe)
- 		lpf = 0xb;
- 
- 	deb_info("Osc=%x b_w=%x lpf=%x\n", local_osc, b_w, lpf);
--	deb_info("Data 0=[%x%x%x%x]\n", data[0], data[1], data[2], data[3]);
-+	deb_info("Data 0=[%4phN]\n", data);
- 
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1);
-diff --git a/drivers/media/dvb-frontends/or51211.c b/drivers/media/dvb-frontends/or51211.c
-index c625b57..1af997e 100644
---- a/drivers/media/dvb-frontends/or51211.c
-+++ b/drivers/media/dvb-frontends/or51211.c
-@@ -471,10 +471,7 @@ static int or51211_init(struct dvb_frontend* fe)
- 			  i--;
- 			}
- 		}
--		dprintk("read_fwbits %x %x %x %x %x %x %x %x %x %x\n",
--			rec_buf[0], rec_buf[1], rec_buf[2], rec_buf[3],
--			rec_buf[4], rec_buf[5], rec_buf[6], rec_buf[7],
--			rec_buf[8], rec_buf[9]);
-+		dprintk("read_fwbits %10ph\n", rec_buf);
- 
- 		printk(KERN_INFO "or51211: ver TU%02x%02x%02x VSB mode %02x"
- 		       " Status %02x\n",
--- 
-1.7.10.4
-
+Thanks,
+Sylwester
