@@ -1,111 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:55092 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092Ab2JHB5D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 21:57:03 -0400
-Date: Sun, 7 Oct 2012 22:56:39 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Joe Perches <joe@perches.com>
-Cc: Julia Lawall <julia.lawall@lip6.fr>, walter harms <wharms@bfs.de>,
-	Antti Palosaari <crope@iki.fi>,
-	kernel-janitors@vger.kernel.org, rmallon@gmail.com,
-	shubhrajyoti@ti.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for
- i2c_msg initialization
-Message-ID: <20121007225639.364a41b4@infradead.org>
-In-Reply-To: <1349646718.15802.16.camel@joe-AO722>
-References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
-	<1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr>
-	<5071AEF3.6080108@bfs.de>
-	<alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6>
-	<5071B834.1010200@bfs.de>
-	<alpine.DEB.2.02.1210071917040.2745@localhost6.localdomain6>
-	<1349633780.15802.8.camel@joe-AO722>
-	<alpine.DEB.2.02.1210072053550.2745@localhost6.localdomain6>
-	<1349645970.15802.12.camel@joe-AO722>
-	<alpine.DEB.2.02.1210072342460.2745@localhost6.localdomain6>
-	<1349646718.15802.16.camel@joe-AO722>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:62788 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753722Ab2JCUjo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 16:39:44 -0400
+MIME-Version: 1.0
+In-Reply-To: <20121003195059.GA13541@kroah.com>
+References: <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com>
+ <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
+ <20121002221239.GA30990@kroah.com> <20121002222333.GA32207@kroah.com>
+ <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
+ <506C562E.5090909@redhat.com> <CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
+ <20121003170907.GA23473@ZenIV.linux.org.uk> <CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
+ <20121003195059.GA13541@kroah.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Wed, 3 Oct 2012 13:39:23 -0700
+Message-ID: <CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
+ callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ming Lei <ming.lei@canonical.com>, Kay Sievers <kay@vrfy.org>,
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Ivan Kalvachev <ikalvachev@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 07 Oct 2012 14:51:58 -0700
-Joe Perches <joe@perches.com> escreveu:
+On Wed, Oct 3, 2012 at 12:50 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
+>>
+>> Ok, like this?
+>
+> This looks good to me.  Having udev do firmware loading and tieing it to
+> the driver model may have not been such a good idea so many years ago.
+> Doing it this way makes more sense.
 
-> On Sun, 2012-10-07 at 23:43 +0200, Julia Lawall wrote:
-> > On Sun, 7 Oct 2012, Joe Perches wrote:
-> > >> Are READ and WRITE the action names?  They are really the important
-> > >> information in this case.
-> > >
-> > > Yes, most (all?) uses of _READ and _WRITE macros actually
-> > > perform some I/O.
-> > 
-> > I2C_MSG_READ_DATA?
-> > I2C_MSG_READ_INFO?
-> > I2C_MSG_READ_INIT?
-> > I2C_MSG_PREPARE_READ?
-> 
-> Dunno, naming is hard.  Maybe:
-> 
-> I2C_INPUT_MSG
-> I2C_OUTPUT_MSG
-> I2C_OP_MSG
+Ok, I wish this had been getting more testing in Linux-next or
+something, but I suspect that what I'll do is to commit this patch
+asap, and then commit another patch that turns off udev firmware
+loading entirely for the synchronous firmware loading case.
 
-READ/WRITE sounds better, IMHO, as it will generally match with the
-function names (they're generally named like foo_i2c_read or foo_reg_read).
-I think none of them uses input or output. Btw, with I2C buses, a
-register read is coded as a write ops, that sets the register's sub-address,
-followed by a read ops from that (and subsequent) registers.
+Why? Just to get more testing, and seeing if there are reports of
+breakage. Maybe some udev out there has a different search path (or
+because udev runs in a different filesystem namespace or whatever), in
+which case running udev as a fallback would otherwise hide the fact
+that he direct kernel firmware loading isn't working.
 
-I'm afraid that using INPUT/OUTPUT will sound confusing.
+We can (and will) revert things if that turns out to break things, but
+I'd like to make any failures of the firmware direct-load path be fast
+and hard, so that we can see when/what it breaks.
 
-So, IMHO, I2C_READ_MSG and I2C_WRITE_MSG sounds better.
+Ok? Comments?
 
-Btw, as the WRITE + READ operation is very common (I think it is
-much more common than a simple READ msg), it could make sense to have
-just one macro for it, like:
-
-INIT_I2C_READ_SUBADDR() that would take both write and read values.
-
-I also don't like the I2C_MSG_OP. The operations there are always
-read or write.
-
-So, IMHO, the better would be to code the read and write message init message 
-as something similar to:
-
-#define DECLARE_I2C_MSG_READ(_msg, _addr, _buf, _len, _flags)					\
-	struct i2c_msg _msg[1] = {								\
-		{.addr = _addr, .buf = _buf, .len = _len, .flags = (_flags) | I2C_M_RD }	\
-	}
-
-#define DECLARE_I2C_MSG_WRITE(_msg, _addr, _buf, _len, _flags)					\
-	struct i2c_msg _msg[1] = {								\
-		{.addr = _addr, .buf = _buf, .len = _len, .flags = (_flags) & ~I2C_M_RD }	\
-	}
-
-#define DECLARE_I2C_MSG_READ_SUBADDR(_msg, _addr, _subaddr, _sublen,_subflags, _buf,_len, _flags)	\
-	struct i2c_msg _msg[2] = {									\
-		{.addr = _addr, .buf = _subbuf, .len = _sublen, .flags = (_subflags) & ~I2C_M_RD }	\
-		{.addr = _addr, .buf = _buf, .len = _len, .flags = (_flags) | I2C_M_RD }		\
-	}
-
-
-Notes:
-
-1) in the case of DECLARE_I2C_MSG_READ_SUBADDR(), I'm almost sure that, in all cases, the
-first message will always have buffer size equal to 1. If so, you can simplify the number
-of arguments there.
-
-2) It could make sense to have, in fact, two versions for each, one with _FLAGS and another one
-without. On most cases, the one without flags are used.
-
-3) I bet that most of the cases where 2 messages are used, the first message has length equal
-to one, and it uses a fixed u8 constant with the I2C sub-address. So, maybe it would be nice
-to have a variant for this case.
-
-
-Cheers,
-Mauro
+              Linus
