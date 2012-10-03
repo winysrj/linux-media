@@ -1,132 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:35815 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753272Ab2JROrN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Oct 2012 10:47:13 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: pawel@osciak.com
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH V2] drivers/media/v4l2-core/videobuf2-core.c: fix error return code
-Date: Thu, 18 Oct 2012 16:47:04 +0200
-Message-Id: <1350571624-4666-1-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <5075AB4F.3030709@samsung.com>
-References: <5075AB4F.3030709@samsung.com>
-cc: kernel-janitors@vger.kernel.org
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1754 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752579Ab2JCGh4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 02:37:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Prabhakar <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH] media: davinci: vpfe: fix build error
+Date: Wed, 3 Oct 2012 08:37:14 +0200
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	VGER <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1349095968-14257-1-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1349095968-14257-1-git-send-email-prabhakar.lad@ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201210030837.14378.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes a NULL pointer dereference bug at __vb2_init_fileio().
-The NULL pointer deference happens at videobuf2-core.c:
+On Mon October 1 2012 14:52:48 Prabhakar wrote:
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+> 
+> recent patch with commit id 4f996594ceaf6c3f9bc42b40c40b0f7f87b79c86
+> which makes vidioc_s_crop const, was causing a following build error.
+> 
+> vpfe_capture.c: In function 'vpfe_s_crop':
+> vpfe_capture.c:1695: error: assignment of read-only location '*crop'
+> vpfe_capture.c:1706: warning: passing argument 1 of
+> 'ccdc_dev->hw_ops.set_image_window' discards qualifiers from pointer target type
+> vpfe_capture.c:1706: note: expected 'struct v4l2_rect *' but argument is of
+> type 'const struct v4l2_rect *'
+> make[4]: *** [drivers/media/platform/davinci/vpfe_capture.o] Error 1
 
-static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_t count,
-                loff_t *ppos, int nonblock, int read)
-{
-...
-        if (!q->fileio) {
-                ret = __vb2_init_fileio(q, read);
-                dprintk(3, "file io: vb2_init_fileio result: %d\n", ret);
-                if (ret)
-                        return ret;
-        }
-        fileio = q->fileio; // NULL pointer deference here
-...
-}
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-It was tested with vivi driver and qv4l2 for selecting read() as capture method.
-The OOPS happened when I've artificially forced the error by commenting the line:
-	if (fileio->bufs[i].vaddr == NULL)
-
-But it was fixed after applying this patch.
-
-[ 9002.451154] BUG: unable to handle kernel NULL pointer dereference at 0000000000000370
-[ 9002.451266] IP: [<ffffffffa038c429>] __vb2_perform_fileio+0x69/0x620 [videobuf2_core]
-[ 9002.451365] PGD 1df491067 PUD 196d12067 PMD 0
-[ 9002.451431] Oops: 0000 [#1] SMP
-[ 9002.451481] Modules linked in: vivi(O) v4l2_common videobuf2_core(O) videobuf2_vmalloc(O) videobuf2_memops(O) videodev hidp fuse ebtable_nat ebtables snd_hda_codec_hdmi snd_hda_codec_realtek ipt_MASQUERADE iptable_nat nf_nat xt_CHECKSUM iptable_mangle lockd sunrpc bridge stp llc rfcomm bnep btusb bluetooth pl2303 ip6t_REJECT snd_usb_audio nf_conntrack_ipv6 nf_defrag_ipv6 snd_usbmidi_lib snd_rawmidi ip6table_filter nf_conntrack_ipv4 ip6_tables nf_defrag_ipv4 xt_state nf_conntrack be2iscsi iscsi_boot_sysfs bnx2i cnic uio cxgb4i cxgb4 cxgb3i cxgb3 mdio libcxgbi ib_iser rdma_cm ib_addr iw_cm ib_cm ib_sa ib_mad ib_core iscsi_tcp libiscsi_tcp \
-libiscsi scsi_transport_iscsi iTCO_wdt iTCO_vendor_support arc4 binfmt_misc media iwldvm mac80211 coretemp snd_hda_intel snd_hda_codec crc32c_intel snd_hwdep ghash_clmulni_intel snd_seq snd_seq_device microcode snd_pcm cdc_ncm usbnet mii cdc_wdm cdc_acm i915 snd_page_alloc i2c_algo_bit drm_kms_helper iwlwifi lpc_ich snd_timer sdhci_pci mfd_core drm toshiba_acpi sdhci snd sparse_keymap e1000e mmc_core cfg80211 i2c_core soundcore mei rfkill wmi video toshiba_bluetooth vhost_net tun macvtap macvlan kvm_intel kvm uinput [last unloaded: videobuf2_memops]
-[ 9002.453105] CPU 1
-[ 9002.453136] Pid: 13830, comm: qv4l2 Tainted: G           O 3.6.1-1.local.fc17.x86_64 #1 TOSHIBA PORTEGE R830/Portable PC
-[ 9002.453251] RIP: 0010:[<ffffffffa038c429>]  [<ffffffffa038c429>] __vb2_perform_fileio+0x69/0x620 [videobuf2_core]
-[ 9002.453368] RSP: 0018:ffff8801ed37fdf8  EFLAGS: 00010246
-[ 9002.453427] RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000011b55
-[ 9002.453502] RDX: 0000000000011b54 RSI: ffff88024e256f68 RDI: ffff88023fdc9c00
-[ 9002.453576] RBP: ffff8801ed37fe58 R08: 0000000000016aa0 R09: 0000000000000001
-[ 9002.453651] R10: 0000000000000075 R11: 0000000000000800 R12: ffff8801bcde0580
-[ 9002.453726] R13: ffff8801bcde0608 R14: 00000000000e1000 R15: 00000000024f0ee0
-[ 9002.453801] FS:  00007f19308f17c0(0000) GS:ffff88024e240000(0000) knlGS:0000000000000000
-[ 9002.453886] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[ 9002.453948] CR2: 0000000000000370 CR3: 00000001df7df000 CR4: 00000000000407e0
-[ 9002.454023] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[ 9002.454098] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-[ 9002.454175] Process qv4l2 (pid: 13830, threadinfo ffff8801ed37e000, task ffff8801f24b9710)
-[ 9002.454260] Stack:
-[ 9002.454284]  0000000000000000 0000000000000000 0000000000000800 0000000000000001
-[ 9002.454379]  ffff8801ed37ff50 0000000000000000 ffff88023d56c610 ffff8801bcde0108
-[ 9002.454473]  ffff8801bcde0580 00000000000e1000 ffff8801ed37ff50 ffff88023d56c600
-[ 9002.454566] Call Trace:
-[ 9002.454604]  [<ffffffffa038cb54>] vb2_read+0x14/0x20 [videobuf2_core]
-[ 9002.454676]  [<ffffffffa038cc07>] vb2_fop_read+0xa7/0x4a0 [videobuf2_core]
-[ 9002.454757]  [<ffffffffa03dc5e0>] v4l2_read+0xf0/0x140 [videodev]
-[ 9002.454853]  [<ffffffff8118e911>] ? rw_verify_area+0x61/0xf0
-[ 9002.454918]  [<ffffffff8118eda9>] vfs_read+0xa9/0x180
-[ 9002.454976]  [<ffffffff8118eeca>] sys_read+0x4a/0x90
-[ 9002.455035]  [<ffffffff816226e9>] system_call_fastpath+0x16/0x1b
-[ 9002.455100] Code: 4d 85 ff 48 c7 c0 ea ff ff ff 0f 84 b1 00 00 00 49 8b 9d f8 01 00 00 48 85 db 0f 84 32 04 00 00 49 c7 85 f8 01 00 00 00 00 00 00 <8b> 83 70 03 00 00 4c 63 c0 89 45 cc 4b 8d 04 40 4c 8d 64 c3 70
-[ 9002.455605] RIP  [<ffffffffa038c429>] __vb2_perform_fileio+0x69/0x620 [videobuf2_core]
-[ 9002.455697]  RSP <ffff8801ed37fdf8>
-[ 9002.455746] CR2: 0000000000000370
-[ 9002.485830] ---[ end trace e865b84b28e31f5b ]---
-
-This was found when looking for functions that return non-negative
-values on error. A simplified version of the semantic match that 
-finds this problem is as follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-(
-if@p1 (\(ret < 0\|ret != 0\))
- { ... return ret; }
-|
-ret@p1 = 0
-)
-... when != ret = e1
-    when != &ret
-*if(...)
-{
-  ... when != ret = e2
-      when forall
- return ret;
-}
-
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
-Changes from V1:
-	Updated commit message
-
- drivers/media/v4l2-core/videobuf2-core.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 432df11..dad10af 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1878,8 +1878,10 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 	 */
- 	for (i = 0; i < q->num_buffers; i++) {
- 		fileio->bufs[i].vaddr = vb2_plane_vaddr(q->bufs[i], 0);
--		if (fileio->bufs[i].vaddr == NULL)
-+		if (fileio->bufs[i].vaddr == NULL) {
-+			ret = -EFAULT;
- 			goto err_reqbufs;
-+		}
- 		fileio->bufs[i].size = vb2_plane_size(q->bufs[i], 0);
- 	}
- 
--- 
-1.7.11.7
-
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/platform/davinci/vpfe_capture.c |   17 +++++++++--------
+>  1 files changed, 9 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+> index 48052cb..8be492c 100644
+> --- a/drivers/media/platform/davinci/vpfe_capture.c
+> +++ b/drivers/media/platform/davinci/vpfe_capture.c
+> @@ -1669,6 +1669,7 @@ static int vpfe_s_crop(struct file *file, void *priv,
+>  			     const struct v4l2_crop *crop)
+>  {
+>  	struct vpfe_device *vpfe_dev = video_drvdata(file);
+> +	struct v4l2_rect rect = crop->c;
+>  	int ret = 0;
+>  
+>  	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_crop\n");
+> @@ -1684,7 +1685,7 @@ static int vpfe_s_crop(struct file *file, void *priv,
+>  	if (ret)
+>  		return ret;
+>  
+> -	if (crop->c.top < 0 || crop->c.left < 0) {
+> +	if (rect.top < 0 || rect.left < 0) {
+>  		v4l2_err(&vpfe_dev->v4l2_dev,
+>  			"doesn't support negative values for top & left\n");
+>  		ret = -EINVAL;
+> @@ -1692,26 +1693,26 @@ static int vpfe_s_crop(struct file *file, void *priv,
+>  	}
+>  
+>  	/* adjust the width to 16 pixel boundary */
+> -	crop->c.width = ((crop->c.width + 15) & ~0xf);
+> +	rect.width = ((rect.width + 15) & ~0xf);
+>  
+>  	/* make sure parameters are valid */
+> -	if ((crop->c.left + crop->c.width >
+> +	if ((rect.left + rect.width >
+>  		vpfe_dev->std_info.active_pixels) ||
+> -	    (crop->c.top + crop->c.height >
+> +	    (rect.top + rect.height >
+>  		vpfe_dev->std_info.active_lines)) {
+>  		v4l2_err(&vpfe_dev->v4l2_dev, "Error in S_CROP params\n");
+>  		ret = -EINVAL;
+>  		goto unlock_out;
+>  	}
+> -	ccdc_dev->hw_ops.set_image_window(&crop->c);
+> -	vpfe_dev->fmt.fmt.pix.width = crop->c.width;
+> -	vpfe_dev->fmt.fmt.pix.height = crop->c.height;
+> +	ccdc_dev->hw_ops.set_image_window(&rect);
+> +	vpfe_dev->fmt.fmt.pix.width = rect.width;
+> +	vpfe_dev->fmt.fmt.pix.height = rect.height;
+>  	vpfe_dev->fmt.fmt.pix.bytesperline =
+>  		ccdc_dev->hw_ops.get_line_length();
+>  	vpfe_dev->fmt.fmt.pix.sizeimage =
+>  		vpfe_dev->fmt.fmt.pix.bytesperline *
+>  		vpfe_dev->fmt.fmt.pix.height;
+> -	vpfe_dev->crop = crop->c;
+> +	vpfe_dev->crop = rect;
+>  unlock_out:
+>  	mutex_unlock(&vpfe_dev->lock);
+>  	return ret;
+> 
