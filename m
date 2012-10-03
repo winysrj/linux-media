@@ -1,145 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54588 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933157Ab2JYNes (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Oct 2012 09:34:48 -0400
-Date: Thu, 25 Oct 2012 11:34:35 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Andrey Mandychev <andreymandychev@gmail.com>,
-	"Taneja, Archit" <archit@ti.com>,
-	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	"Semwal, Sumit" <sumit.semwal@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Andrei Mandychev <andrei.mandychev@parrot.com>
-Subject: Re: [PATCH] Fixed list_del corruption in videobuf-core.c :
- videobuf_queue_cancel()
-Message-ID: <20121025113435.69e4e96f@redhat.com>
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB3A67D@DBDE01.ent.ti.com>
-References: <1349451865-26678-1-git-send-email-andrei.mandychev@parrot.com>
-	<79CD15C6BA57404B839C016229A409A83EB38F54@DBDE01.ent.ti.com>
-	<CAH9bG+Cp8gURyZ=cc3doCd_TR2CzLMrcKSGMKpe55jmCNYr+KQ@mail.gmail.com>
-	<79CD15C6BA57404B839C016229A409A83EB3A67D@DBDE01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3317 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754958Ab2JCGlE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 02:41:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Prabhakar <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH] media: davinci: vpbe: fix build warning
+Date: Wed, 3 Oct 2012 08:40:53 +0200
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	VGER <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <1349245658-7125-1-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1349245658-7125-1-git-send-email-prabhakar.lad@ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201210030840.53813.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vaibhav/Andrei,
-
-Em Tue, 9 Oct 2012 17:32:25 +0000
-"Hiremath, Vaibhav" <hvaibhav@ti.com> escreveu:
-
-> On Tue, Oct 09, 2012 at 14:08:18, Andrey Mandychev wrote:
-> > Hi,
-> > 
-> > Please find below some additional comments.
-> > 
-> > Actually it's not a real issue. It's more warning than issue. When you
-> > are trying to delete element from the queue the implementation of
-> > list_del (in list_debug.c) checks that previous element and next element
-> > of the element you are going to delete reference to this element
-> > properly. In other words the method checks the integrity of the queue
-> > before deleting the element and it generates warning if something is
-> > wrong. In my case the head looses a pointer to the next element because
-> > of INIT_LIST_HEAD() 
-> > and when we try to delete this element from the
-> > queue the list_del() generates warning because the previous element
-> > (i.e. head) doesn't reference to this element (element we want to
-> > delete).
-> > 
-> > void __list_del_entry(struct list_head *entry)
-> > {
-> >     struct list_head *prev, *next;
-> > 
-> >     prev = entry->prev;
-> >     next = entry->next;
-> > 
-> >     if (WARN(next == LIST_POISON1,
-> >         "list_del corruption, %p->next is LIST_POISON1 (%p)\n",
-> >         entry, LIST_POISON1) ||
-> >         WARN(prev == LIST_POISON2,
-> >         "list_del corruption, %p->prev is LIST_POISON2 (%p)\n",
-> >         entry, LIST_POISON2) ||
-> >         WARN(prev->next != entry,
-> >         "list_del corruption. prev->next should be %p, "
-> >         "but was %p\n", entry, prev->next) ||
-> >         WARN(next->prev != entry,
-> >         "list_del corruption. next->prev should be %p, "
-> >         "but was %p\n", entry, next->prev))
-> >         return;
-> > 
-> >     __list_del(prev, next);
-> > }
-> > 
-> > So my patch is a small improvement that avoids generating this kind of
-> > warning.
-> > 
+On Wed October 3 2012 08:27:38 Prabhakar wrote:
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
 > 
-> Any mechanism or suggestion to reproduce this issue, which I can 
-> use to reproduce this issue. Just switching between LCD<=>TV, will be enough 
-> to hit this issue?
+> recent patch with commit id 4f996594ceaf6c3f9bc42b40c40b0f7f87b79c86
+> which makes vidioc_s_crop const, was causing a following build warning,
 > 
-> Thanks,
-> Vaibhav
-> > --
-> > BR,
-> > Andrei
-> > 
-> > 
-> > On Mon, Oct 8, 2012 at 4:50 PM, Hiremath, Vaibhav <hvaibhav@ti.com>
-> > wrote:
-> > 
-> > 
-> > 	On Fri, Oct 05, 2012 at 21:14:25, Andrei Mandychev wrote:
-> > 	> If there is a buffer with VIDEOBUF_QUEUED state it won't be
-> > deleted properly
-> > 	> because the head of queue loses its elements by calling
-> > INIT_LIST_HEAD()
-> > 	> before videobuf_streamoff().
-> > 	
-> > 	
-> > 	"dma_queue" is driver internal queue and videobuf_streamoff()
-> > function
-> > 	will end up into buf_release() callback, which in our case
-> > doesn't do
-> > 	anything with dmaqueue.
-> > 	
-> > 	
-> > 	Did you face any runtime issues with this? I still did not
-> > understand
-> > 	about this corruption thing.
-> > 	
-> > 	Thanks,
-> > 	Vaibhav
-> > 	
-> > 	> ---
-> > 	>  drivers/media/video/omap/omap_vout.c |    2 +-
-> > 	>  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 	>
-> > 	> diff --git a/drivers/media/video/omap/omap_vout.c
-> > b/drivers/media/video/omap/omap_vout.c
-> > 	> index 409da0f..f02eb8e 100644
-> > 	> --- a/drivers/media/video/omap/omap_vout.c
-> > 	> +++ b/drivers/media/video/omap/omap_vout.c
-> > 	> @@ -1738,8 +1738,8 @@ static int vidioc_streamoff(struct file
-> > *file, void *fh, enum v4l2_buf_type i)
-> > 	>               v4l2_err(&vout->vid_dev->v4l2_dev, "failed to
-> > change mode in"
-> > 	>                               " streamoff\n");
-> > 	>
-> > 	> -     INIT_LIST_HEAD(&vout->dma_queue);
-> > 	>       ret = videobuf_streamoff(&vout->vbq);
-> > 	> +     INIT_LIST_HEAD(&vout->dma_queue);
+> vpbe_display.c: In function 'vpbe_display_s_crop':
+> vpbe_display.c:640: warning: initialization discards qualifiers from pointer target type
+> 
+> This patch fixes the above build warning.
 
-Why do we ever need to call INIT_LIST_HEAD() here in the first place?
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-List initialization should happen only once, when vout is created.
-After that, list add/del macros should be used.
-
-Having a code like this here seems to indicate that there are something
-wrong somewhere.
+Prabhaker, can you make a pull request for this patch, the "CUSTOM_TIMINGS"
+rename patch and the earlier "vpfe: fix build error" patch? These things
+should be fast-tracked.
 
 Regards,
-Mauro
+
+	Hans
+
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+>  drivers/media/platform/davinci/vpbe_display.c |   20 ++++++++++----------
+>  1 files changed, 10 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+> index 1b238fe..161c776 100644
+> --- a/drivers/media/platform/davinci/vpbe_display.c
+> +++ b/drivers/media/platform/davinci/vpbe_display.c
+> @@ -637,7 +637,7 @@ static int vpbe_display_s_crop(struct file *file, void *priv,
+>  	struct vpbe_device *vpbe_dev = disp_dev->vpbe_dev;
+>  	struct osd_layer_config *cfg = &layer->layer_info.config;
+>  	struct osd_state *osd_device = disp_dev->osd_device;
+> -	struct v4l2_rect *rect = &crop->c;
+> +	struct v4l2_rect rect = crop->c;
+>  	int ret;
+>  
+>  	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
+> @@ -648,21 +648,21 @@ static int vpbe_display_s_crop(struct file *file, void *priv,
+>  		return -EINVAL;
+>  	}
+>  
+> -	if (rect->top < 0)
+> -		rect->top = 0;
+> -	if (rect->left < 0)
+> -		rect->left = 0;
+> +	if (rect.top < 0)
+> +		rect.top = 0;
+> +	if (rect.left < 0)
+> +		rect.left = 0;
+>  
+> -	vpbe_disp_check_window_params(disp_dev, rect);
+> +	vpbe_disp_check_window_params(disp_dev, &rect);
+>  
+>  	osd_device->ops.get_layer_config(osd_device,
+>  			layer->layer_info.id, cfg);
+>  
+>  	vpbe_disp_calculate_scale_factor(disp_dev, layer,
+> -					rect->width,
+> -					rect->height);
+> -	vpbe_disp_adj_position(disp_dev, layer, rect->top,
+> -					rect->left);
+> +					rect.width,
+> +					rect.height);
+> +	vpbe_disp_adj_position(disp_dev, layer, rect.top,
+> +					rect.left);
+>  	ret = osd_device->ops.set_layer_config(osd_device,
+>  				layer->layer_info.id, cfg);
+>  	if (ret < 0) {
+> 
