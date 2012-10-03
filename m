@@ -1,38 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45289 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755165Ab2JIW2f (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Oct 2012 18:28:35 -0400
-Date: Tue, 9 Oct 2012 19:28:30 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-Subject: Re: [git:v4l-dvb/for_v3.7] [media] omap3isp: Replace
- cpu_is_omap3630() with ISP revision check
-Message-ID: <20121009192830.7063fc05@redhat.com>
-In-Reply-To: <1525824.Ct8mi0Nuxy@avalon>
-References: <E1TKWPT-000144-3I@www.linuxtv.org>
-	<1525824.Ct8mi0Nuxy@avalon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:52581 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754822Ab2JCHyV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 03:54:21 -0400
+Received: by obbuo13 with SMTP id uo13so6990009obb.19
+        for <linux-media@vger.kernel.org>; Wed, 03 Oct 2012 00:54:20 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <506BED25.2060804@vmware.com>
+References: <20120928124148.14366.21063.stgit@patser.local>
+	<5065B0C9.7040209@canonical.com>
+	<5065FDAA.5080103@vmware.com>
+	<50696699.7020009@canonical.com>
+	<506A8DC8.5020706@vmware.com>
+	<20121002080341.GA5679@phenom.ffwll.local>
+	<506BED25.2060804@vmware.com>
+Date: Wed, 3 Oct 2012 09:54:20 +0200
+Message-ID: <CAKMK7uGDaCCL-UT7JaArd3qrnMSc74r32fQ2dnouO3csRGvakg@mail.gmail.com>
+Subject: Re: [PATCH 1/5] dma-buf: remove fallback for !CONFIG_DMA_SHARED_BUFFER
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Thomas Hellstrom <thellstrom@vmware.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, sumit.semwal@linaro.org,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 08 Oct 2012 22:33:59 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+On Wed, Oct 3, 2012 at 9:45 AM, Thomas Hellstrom <thellstrom@vmware.com> wrote:
+> On 10/02/2012 10:03 AM, Daniel Vetter wrote:
+>>
+>> On Tue, Oct 02, 2012 at 08:46:32AM +0200, Thomas Hellstrom wrote:
+>>>
+>>> On 10/01/2012 11:47 AM, Maarten Lankhorst wrote:
+>>>>
+>>>> I was doing a evil hack where I 'released' lru_lock to lockdep before
+>>>> doing the annotation
+>>>> for a blocking acquire, and left trylock annotations as they were. This
+>>>> made lockdep do the
+>>>> right thing.
+>>>
+>>> I've never looked into how lockdep works. Is this something that can
+>>> be done permanently or just for testing
+>>> purposes? Although not related to this, is it possible to do
+>>> something similar to the trylock reversal in the
+>>> fault() code where mmap_sem() and reserve() change order using a
+>>> reserve trylock?
+>>
+>> lockdep just requires a bunch of annotations, is a compile-time configure
+>> option CONFIG_PROVE_LOCKING and if disabled, has zero overhead. And it's
+>> rather awesome in detected deadlocks and handling crazy locking schemes
+>> correctly:
+>> - correctly handles trylocks
+>> - correctly handles nested locking (i.e. grabbing a global lock, then
+>>    grabbing subordinate locks in an unordered sequence since the global
+>>    lock ensures that no deadlocks can happen).
+>> - any kinds of inversions with special contexts like hardirq, softirq
+>> - same for page-reclaim, i.e. it will yell if you could (potentially)
+>>    deadlock because your shrinker grabs a lock that you hold while calling
+>>    kmalloc.
+>> - there are special annotates for various subsystems, e.g. to check for
+>>    del_timer_sync vs. locks held by that timer. Or the console_lock
+>>    annotations I've just recently submitted.
+>> - all that with a really flexible set of annotation primitives that afaics
+>>    should work for almost any insane locking scheme. The fact that Maarten
+>>    could come up with proper reservation annotations without any changes
+>> to
+>>    lockdep testifies this (he only had to fix a tiny thing to make it a
+>> bit
+>>    more strict in a corner case).
+>>
+>> In short I think it's made of awesome. The only downside is that it lacks
+>> documentation, you have to read the code to understand it :(
+>>
+>> The reason I've suggested to Maarten to abolish the trylock_reservation
+>> within the lru_lock is that in that way lockdep only ever sees the
+>> trylock, and hence is less strict about complainig about deadlocks. But
+>> semantically it's an unconditional reserve. Maarten had some horrible
+>> hacks that leaked the lockdep annotations out of the new reservation code,
+>> which allowed ttm to be properly annotated.  But those also reduced the
+>> usefulness for any other users of the reservation code, and so Maarten
+>> looked into whether he could remove that trylock dance in ttm.
+>>
+>> Imo having excellent lockdep support for cross-device reservations is a
+>> requirment, and ending up with less strict annotations for either ttm
+>> based drivers or other drivers is not good. And imo the ugly layering that
+>> Maarten had in his first proof-of-concept also indicates that something is
+>> amiss in the design.
+>>
+>>
+> So if I understand you correctly, the reservation changes in TTM are
+> motivated by the
+> fact that otherwise, in the generic reservation code, lockdep can only be
+> annotated for a trylock and not a waiting lock, when it *is* in fact a
+> waiting lock.
+>
+> I'm completely unfamiliar with setting up lockdep annotations, but the only
+> place a
+> deadlock might occur is if the trylock fails and we do a
+> wait_for_unreserve().
+> Isn't it possible to annotate the call to wait_for_unreserve() just like an
+> interruptible waiting lock
+> (that is always interrupted, but at least any deadlock will be catched?).
 
-> Mauro,
-> 
-> On Saturday 06 October 2012 17:31:58 Mauro Carvalho Chehab wrote:
-> > This is an automatic generated email to let you know that the following
-> > patch were queued at the http://git.linuxtv.org/media_tree.git tree:
-> 
-> Please don't. I haven't even sent a pull request for that patch. I don't 
-> consider it as being ready yet, as Sakari pointed out we need to investigate 
-> whether the right fix shouldn't be at the OMAP3 clocks level instead.
+Hm, I have to admit that idea hasn't crossed my mind, but it's indeed
+a hole in our current reservation lockdep annotations - since we're
+blocking for the unreserve, other threads could potential block
+waiting on us to release a lock we're holding already, resulting in a
+deadlock.
 
-Reverting it, as requested.
+Since no other locking primitive that I know of has this
+wait_for_unlocked interface, I don't know how we could map this in
+lockdep. One idea is to grab the lock and release it again immediately
+(only in the annotations, not the real lock ofc). But I need to check
+the lockdep code to see whether that doesn't trip it up.
 
-Regards,
-Mauro
+Cheers, Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
