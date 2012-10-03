@@ -1,79 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-outbound-1.vmware.com ([208.91.2.12]:51027 "EHLO
-	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750955Ab2JCKxH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Oct 2012 06:53:07 -0400
-Message-ID: <506C190E.5050803@vmware.com>
-Date: Wed, 03 Oct 2012 12:53:02 +0200
-From: Thomas Hellstrom <thellstrom@vmware.com>
+Received: from mailfe08.c2i.net ([212.247.154.226]:38494 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932945Ab2JCSzn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Oct 2012 14:55:43 -0400
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+Subject: Re: [PATCH] Add toggle to the tt3650_rc_query function  of the ttusb2 driver
+Date: Wed, 3 Oct 2012 20:57:07 +0200
+Cc: linux-media@vger.kernel.org
+References: <2504977.yNAtCnX8Pk@jar7.dominio> <201210022152.11115.hselasky@c2i.net>
+In-Reply-To: <201210022152.11115.hselasky@c2i.net>
 MIME-Version: 1.0
-To: Daniel Vetter <daniel@ffwll.ch>
-CC: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, sumit.semwal@linaro.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/5] dma-buf: remove fallback for !CONFIG_DMA_SHARED_BUFFER
-References: <20120928124148.14366.21063.stgit@patser.local> <5065B0C9.7040209@canonical.com> <5065FDAA.5080103@vmware.com> <50696699.7020009@canonical.com> <506A8DC8.5020706@vmware.com> <20121002080341.GA5679@phenom.ffwll.local> <506BED25.2060804@vmware.com> <CAKMK7uGDaCCL-UT7JaArd3qrnMSc74r32fQ2dnouO3csRGvakg@mail.gmail.com> <506BF93B.5010805@vmware.com> <CAKMK7uGg5pbReAUA+cKWk-jyS3YwkUaZXE7MTcv9w7sk-4a10A@mail.gmail.com>
-In-Reply-To: <CAKMK7uGg5pbReAUA+cKWk-jyS3YwkUaZXE7MTcv9w7sk-4a10A@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201210032057.07711.hselasky@c2i.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/03/2012 10:53 AM, Daniel Vetter wrote:
-> On Wed, Oct 3, 2012 at 10:37 AM, Thomas Hellstrom <thellstrom@vmware.com> wrote:
->>>> So if I understand you correctly, the reservation changes in TTM are
->>>> motivated by the
->>>> fact that otherwise, in the generic reservation code, lockdep can only be
->>>> annotated for a trylock and not a waiting lock, when it *is* in fact a
->>>> waiting lock.
->>>>
->>>> I'm completely unfamiliar with setting up lockdep annotations, but the
->>>> only
->>>> place a
->>>> deadlock might occur is if the trylock fails and we do a
->>>> wait_for_unreserve().
->>>> Isn't it possible to annotate the call to wait_for_unreserve() just like
->>>> an
->>>> interruptible waiting lock
->>>> (that is always interrupted, but at least any deadlock will be catched?).
->>> Hm, I have to admit that idea hasn't crossed my mind, but it's indeed
->>> a hole in our current reservation lockdep annotations - since we're
->>> blocking for the unreserve, other threads could potential block
->>> waiting on us to release a lock we're holding already, resulting in a
->>> deadlock.
->>>
->>> Since no other locking primitive that I know of has this
->>> wait_for_unlocked interface, I don't know how we could map this in
->>> lockdep. One idea is to grab the lock and release it again immediately
->>> (only in the annotations, not the real lock ofc). But I need to check
->>> the lockdep code to see whether that doesn't trip it up.
->>
->> I imagine doing the same as mutex_lock_interruptible() does in the
->> interrupted path should work...
-> It simply calls the unlock lockdep annotation function if it breaks
-> out. So doing a lock/unlock cycle in wait_unreserve should do what we
-> want.
->
-> And to properly annotate the ttm reserve paths we could just add an
-> unconditional wait_unreserve call at the beginning like you suggested
-> (maybe with #ifdef CONFIG_PROVE_LOCKING in case ppl freak out about
-> the added atomic read in the uncontended case).
-> -Daniel
+On Tuesday 02 October 2012 21:52:11 Hans Petter Selasky wrote:
+> On Saturday 08 September 2012 19:08:22 Jose Alberto Reguero wrote:
+> > This patch add the toggle bit to the tt3650_rc_query function of the
+> > ttusb2 driver.
+> > 
+> > Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+> > 
+> > Jose Alberto
+> 
+> Hi,
+> 
+> This patch looks OK.
+> 
 
-I think atomic_read()s are cheap, at least on intel as IIRC they don't 
-require bus locking,
-still I think we should keep it within CONFIG_PROVE_LOCKING
+Hi,
 
-which btw reminds me there's an optimization that can be done in that 
-one should really only
-call atomic_cmpxchg() if a preceding atomic_read() hints that it will 
-succeed.
+> Regarding the TTUSB2 support, I see an issue where the IR polling
+> interference with the CAM access. If a IR poll request happens exactly
+> between a write/read CAM request, then that CAM request will fail. How can
+> this issue be solved without disabling the IR support entirely?
 
-Now, does this mean TTM can keep the atomic reserve <-> lru list removal?
+I checked the code and see that "dvb_usb_generic_rw()" will synchronize the 
+requests, so this can't be the root cause. Currently I suspect the not brand 
+new AMD based EHCI controller I'm using to connect my TTUSB adapter to be at 
+fault. This is FreeBSD, not Linux. What I see when I dump all the transactions 
+is that I have quite frequent timeouts on some of the I2C/CAM and IR commands 
+going on the BULK endpoints. For example grepp'ed log extract looks like this:
 
-Thanks,
-Thomas
+ 0000  55 3B 42 02 00 A0 01 DF  00 00 00 00 00 FB F5 81  |U;B.............|
+ 0000  AA 3C 42 02 00 01 -- --  -- -- -- -- -- -- -- --  |.<B...          |
+ 0000  55 3C 42 02 00 01 01 DF  00 00 00 00 00 FB F5 81  |U<B.............|
+ 0000  AA 3D 42 02 00 01 -- --  -- -- -- -- -- -- -- --  |.=B...          |
+18:46:16.972329 usbus1.3 DONE-BULK-
+EP=00000081,SPD=HIGH,NFR=0,SLEN=0,IVAL=0,ERR=TIMEOUT
+ 0000  AA 3E 31 04 11 01 01 1A  -- -- -- -- -- -- -- --  |.>1.....        |
+ 0000  55 3E 31 04 10 01 01 DF  00 00 00 00 00 FB F5 81  |U>1.............|
+ 0000  AA 3D 42 02 00 01 -- --  -- -- -- -- -- -- -- --  |.=B...          |
+ 0000  55 3D 42 02 00 01 01 DF  00 00 00 00 00 FB F5 81  |U=B.............|
+ 0000  AA 40 41 01 01 -- -- --  -- -- -- -- -- -- -- --  |.@A..           |
 
+I'm now trying some EHCI quirks, and will see what results I get later this 
+week.
 
+I can also say that VDR receives a ring buffer overflow at exactly the same 
+time the USB BULK endpoint timeout happens ....
+
+If this sounds familar to anyone, please let me know.
+
+Thank you,
+
+--HPS
