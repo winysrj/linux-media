@@ -1,60 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:53299 "EHLO
-	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932279Ab2JDRm5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Oct 2012 13:42:57 -0400
-Date: Thu, 4 Oct 2012 10:42:54 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Kay Sievers <kay@vrfy.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ming Lei <ming.lei@canonical.com>,
-	Lennart Poettering <lennart@poettering.net>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Kay Sievers <kay@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Ivan Kalvachev <ikalvachev@gmail.com>
-Subject: Re: udev breakages -
-Message-ID: <20121004174254.GA14301@kroah.com>
-References: <506C562E.5090909@redhat.com>
- <CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
- <20121003170907.GA23473@ZenIV.linux.org.uk>
- <CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
- <20121003195059.GA13541@kroah.com>
- <CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
- <3560b86d-e2ad-484d-ab6e-2b9048894a12@email.android.com>
- <CA+55aFwVFtUU4TCjz4EDgGDaeR_QwLjmBAJA0kijHkQQ+jxLCw@mail.gmail.com>
- <CAPXgP1189dn=vHqWrp1JgHs7Yv=BP3dbLyT3zb31Sp8mcEhAvg@mail.gmail.com>
- <87zk42tab4.fsf@xmission.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:34925 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751845Ab2JCJcV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Oct 2012 05:32:21 -0400
+Message-ID: <506C060D.1020600@iki.fi>
+Date: Wed, 03 Oct 2012 12:31:57 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <87zk42tab4.fsf@xmission.com>
+To: Hans-Frieder Vogt <hfvogt@gmx.net>
+CC: Dan Carpenter <dan.carpenter@oracle.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] af9033: prevent unintended underflow
+References: <201210031125.40850.hfvogt@gmx.net>
+In-Reply-To: <201210031125.40850.hfvogt@gmx.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 04, 2012 at 10:29:51AM -0700, Eric W. Biederman wrote:
-> There are still quite a few interesting cases that devtmpfs does not
-> even think about supporting.  Cases that were reported when devtmpfs was
-> being reviewed. 
+On 10/03/2012 12:25 PM, Hans-Frieder Vogt wrote:
+> As spotted by Dan Carpenter <dan.carpenter@oracle.com> (thanks!), we have
+> improperly used an unsigned variable in a calculation that may result in a
+> negative number. This may cause an unintended underflow if the interface
+> frequency of the tuner is > approx. 40MHz.
+> This patch should resolve the issue, following an approach similar to what is
+> used in af9013.c.
+>
+> Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
 
-Care to refresh my memory?
+Acked-by: Antti Palosaari <crope@iki.fi>
 
-> Additionally the devtmpfs maintainership has not dealt with legitimate
-> concerns any better than this firmware issue has been dealt with.  I
-> still haven't even hear a productive suggestion back on the hole
-> /dev/ptmx mess.
+I will PULL-request that via my tree for 3.7. I don't see any reason 
+this should go older ones.
 
-I don't know how to handle the /dev/ptmx issue properly from within
-devtmpfs, does anyone?  Proposals are always welcome, the last time this
-came up a week or so ago, I don't recall seeing any proposals, just a
-general complaint.
+regards
+Antti
 
-thanks,
 
-greg k-h
+>
+>   drivers/media/dvb-frontends/af9033.c |   16 +++++++++-------
+>   1 file changed, 9 insertions(+), 7 deletions(-)
+>
+> --- a/drivers/media/dvb-frontends/af9033.c	2012-09-28 05:45:17.000000000 +0200
+> +++ b/drivers/media/dvb-frontends/af9033.c	2012-10-03 11:08:18.160894181 +0200
+> @@ -408,7 +408,7 @@ static int af9033_set_frontend(struct dv
+>   {
+>   	struct af9033_state *state = fe->demodulator_priv;
+>   	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+> -	int ret, i, spec_inv;
+> +	int ret, i, spec_inv, sampling_freq;
+>   	u8 tmp, buf[3], bandwidth_reg_val;
+>   	u32 if_frequency, freq_cw, adc_freq;
+>
+> @@ -465,18 +465,20 @@ static int af9033_set_frontend(struct dv
+>   		else
+>   			if_frequency = 0;
+>
+> -		while (if_frequency > (adc_freq / 2))
+> -			if_frequency -= adc_freq;
+> +		sampling_freq = if_frequency;
+>
+> -		if (if_frequency >= 0)
+> +		while (sampling_freq > (adc_freq / 2))
+> +			sampling_freq -= adc_freq;
+> +
+> +		if (sampling_freq >= 0)
+>   			spec_inv *= -1;
+>   		else
+> -			if_frequency *= -1;
+> +			sampling_freq *= -1;
+>
+> -		freq_cw = af9033_div(state, if_frequency, adc_freq, 23ul);
+> +		freq_cw = af9033_div(state, sampling_freq, adc_freq, 23ul);
+>
+>   		if (spec_inv == -1)
+> -			freq_cw *= -1;
+> +			freq_cw = 0x800000 - freq_cw;
+>
+>   		/* get adc multiplies */
+>   		ret = af9033_rd_reg(state, 0x800045, &tmp);
+>
+> Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+-- 
+http://palosaari.fi/
