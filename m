@@ -1,111 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:19991 "EHLO
-	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751172Ab2JGQu7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Oct 2012 12:50:59 -0400
-Date: Sun, 7 Oct 2012 18:50:31 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: walter harms <wharms@bfs.de>
-cc: Julia Lawall <Julia.Lawall@lip6.fr>, Michael Buesch <m@bues.ch>,
-	kernel-janitors@vger.kernel.org, rmallon@gmail.com,
-	shubhrajyoti@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 9/13] drivers/media/tuners/fc0011.c: use macros for
- i2c_msg initialization
-In-Reply-To: <5071B147.3010708@bfs.de>
-Message-ID: <alpine.DEB.2.02.1210071845030.2745@localhost6.localdomain6>
-References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-11-git-send-email-Julia.Lawall@lip6.fr> <5071B147.3010708@bfs.de>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:50539 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755369Ab2JCVS1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 17:18:27 -0400
+Received: by oagh16 with SMTP id h16so7947561oag.19
+        for <linux-media@vger.kernel.org>; Wed, 03 Oct 2012 14:18:26 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+In-Reply-To: <20121003210532.GA10941@kroah.com>
+References: <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
+ <20121002221239.GA30990@kroah.com> <20121002222333.GA32207@kroah.com>
+ <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
+ <506C562E.5090909@redhat.com> <CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
+ <20121003170907.GA23473@ZenIV.linux.org.uk> <CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
+ <20121003195059.GA13541@kroah.com> <CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
+ <20121003210532.GA10941@kroah.com>
+From: Kay Sievers <kay@vrfy.org>
+Date: Wed, 3 Oct 2012 23:18:06 +0200
+Message-ID: <CAPXgP13h+7+WoZ2jVjroLWU495wDPwzbhefX8ziuQMznKBWyLQ@mail.gmail.com>
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
+ callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Al Viro <viro@zeniv.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ming Lei <ming.lei@canonical.com>,
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Ivan Kalvachev <ikalvachev@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 7 Oct 2012, walter harms wrote:
+On Wed, Oct 3, 2012 at 11:05 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
 
->
->
-> Am 07.10.2012 17:38, schrieb Julia Lawall:
->> From: Julia Lawall <Julia.Lawall@lip6.fr>
->>
->> Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
->>
->> A length expressed as an explicit constant is also re-expressed as the size
->> of the buffer in each case.
->>
->> A simplified version of the semantic patch that makes this change is as
->> follows: (http://coccinelle.lip6.fr/)
->>
->> // <smpl>
->> @@
->> expression a,b,c;
->> identifier x;
->> @@
->>
->> struct i2c_msg x =
->> - {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
->> + I2C_MSG_READ(a,b,c)
->>  ;
->>
->> @@
->> expression a,b,c;
->> identifier x;
->> @@
->>
->> struct i2c_msg x =
->> - {.addr = a, .buf = b, .len = c, .flags = 0}
->> + I2C_MSG_WRITE(a,b,c)
->>  ;
->>
->> @@
->> expression a,b,c,d;
->> identifier x;
->> @@
->>
->> struct i2c_msg x =
->> - {.addr = a, .buf = b, .len = c, .flags = d}
->> + I2C_MSG_OP(a,b,c,d)
->>  ;
->> // </smpl>
->>
->> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
->>
->> ---
->>  drivers/media/tuners/fc0011.c |    9 +++------
->>  1 file changed, 3 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/media/tuners/fc0011.c b/drivers/media/tuners/fc0011.c
->> index e488254..5dbba98 100644
->> --- a/drivers/media/tuners/fc0011.c
->> +++ b/drivers/media/tuners/fc0011.c
->> @@ -80,8 +80,7 @@ struct fc0011_priv {
->>  static int fc0011_writereg(struct fc0011_priv *priv, u8 reg, u8 val)
->>  {
->>  	u8 buf[2] = { reg, val };
->> -	struct i2c_msg msg = { .addr = priv->addr,
->> -		.flags = 0, .buf = buf, .len = 2 };
->> +	struct i2c_msg msg = I2C_MSG_WRITE(priv->addr, buf, sizeof(buf));
->>
->>  	if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
->>  		dev_err(&priv->i2c->dev,
->> @@ -97,10 +96,8 @@ static int fc0011_readreg(struct fc0011_priv *priv, u8 reg, u8 *val)
->>  {
->>  	u8 dummy;
->>  	struct i2c_msg msg[2] = {
->> -		{ .addr = priv->addr,
->> -		  .flags = 0, .buf = &reg, .len = 1 },
->> -		{ .addr = priv->addr,
->> -		  .flags = I2C_M_RD, .buf = val ? : &dummy, .len = 1 },
->> +		I2C_MSG_WRITE(priv->addr, &reg, sizeof(reg)),
->> +		I2C_MSG_READ(priv->addr, val ? : &dummy, sizeof(dummy)),
->>  	};
->>
->
-> This dummy looks strange, can it be that this is used uninitialised ?
+> As for the firmware path, maybe we should
+> change that to be modified by userspace (much like /sbin/hotplug was) in
+> a proc file so that distros can override the location if they need to.
 
-I'm not sure to understand the question.  The read, when it happens in 
-i2c_transfer will initialize dummy.  On the other hand, I don't know what 
-i2c_transfer does when the buffer is NULL and the size is 1.  It does not 
-look very elegant at least.
+If that's needed, a CONFIG_FIRMWARE_PATH= with the array of locations
+would probably be sufficient.
 
-julia
+Like udev's defaults here:
+  http://cgit.freedesktop.org/systemd/systemd/tree/configure.ac#n550
+
+Kay
