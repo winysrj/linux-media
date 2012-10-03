@@ -1,67 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:32611 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753971Ab2JBOa3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 10:30:29 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MB900EV3SA0IC00@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:30:28 +0900 (KST)
-Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MB9005A7S65K790@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:30:28 +0900 (KST)
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
-	k.debski@samsung.com
-Subject: [PATCHv9 22/25] v4l: vb2-dma-contig: fail if user ptr buffer is not
- correctly aligned
-Date: Tue, 02 Oct 2012 16:27:33 +0200
-Message-id: <1349188056-4886-23-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
-References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:42278 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932624Ab2JCPOC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Oct 2012 11:14:02 -0400
+Message-ID: <506C562E.5090909@redhat.com>
+Date: Wed, 03 Oct 2012 12:13:50 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Greg KH <gregkh@linuxfoundation.org>, Kay Sievers <kay@vrfy.org>,
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
+ callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use
+ request_firmware_nowait()
+References: <1340285798-8322-1-git-send-email-mchehab@redhat.com> <4FE37194.30407@redhat.com> <4FE8B8BC.3020702@iki.fi> <4FE8C4C4.1050901@redhat.com> <4FE8CED5.104@redhat.com> <20120625223306.GA2764@kroah.com> <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com> <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com> <20121002221239.GA30990@kroah.com> <20121002222333.GA32207@kroah.com> <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
+In-Reply-To: <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Marek Szyprowski <m.szyprowski@samsung.com>
+Em 02-10-2012 19:47, Linus Torvalds escreveu:
+> On Tue, Oct 2, 2012 at 3:23 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
+>>
+>> which went into udev release 187 which I think corresponds to the place
+>> when people started having problems, right Mauro?
+> 
+> According to what I've seen, people started complaining in 182, not 187.
 
-The DMA transfer must be aligned to a specific value. If userptr is not aligned
-to DMA requirements then unexpected corruptions of the memory may occur before
-or after a buffer.  To prevent such situations, all unligned userptr buffers
-are rejected at VIDIOC_QBUF.
+Yes. The issue was noticed with media drivers when people started using the
+drivers on Fedora 17, witch came with udev-182. There's an open
+bugzilla there:
+	https://bugzilla.redhat.com/show_bug.cgi?id=827538
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/video/videobuf2-dma-contig.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+> See for example
+> 
+>   http://patchwork.linuxtv.org/patch/13085/
+> 
+> which is a thread where you were involved too..
+> 
+> See also the arch linux thread:
+> 
+>   https://bbs.archlinux.org/viewtopic.php?id=134012&p=1
+> 
+> And see this email from Kay Sievers that shows that it was all known
+> about and intentional in the udev camp:
+> 
+>   http://www.spinics.net/lists/netdev/msg185742.html
+> 
+> There's a possible patch suggested here:
+> 
+>   http://lists.freedesktop.org/archives/systemd-devel/2012-August/006357.html
+> 
+> but quite frankly, I am leery of the fact that the udev maintenance
+> seems to have gone into some "crazy mode" where they have made changes
+> that were known to be problematic, and are pure and utter stupidity.
+> 
+> Having the module init path load the firmware IS THE SENSIBLE AND
+> OBVIOUS THING TO DO for many cases. 
 
-diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-index b4d287a..55f8c80 100644
---- a/drivers/media/video/videobuf2-dma-contig.c
-+++ b/drivers/media/video/videobuf2-dma-contig.c
-@@ -494,6 +494,13 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	struct vm_area_struct *vma;
- 	struct sg_table *sgt;
- 	unsigned long contig_size;
-+	unsigned long dma_align = dma_get_cache_alignment();
-+
-+	/* Only cache aligned DMA transfers are reliable */
-+	if (!IS_ALIGNED(vaddr | size, dma_align)) {
-+		pr_err("user data must be aligned to %lu bytes\n", dma_align);
-+		return ERR_PTR(-EINVAL);
-+	}
- 
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
--- 
-1.7.9.5
+Yes, that is the case for most media devices. Some devices can only be
+detected as a supported device after the firmware load, as we need the
+firmware for the USB (or PCI) bridge to be there, in order to talk with
+the media components under the board's internal I2C bus, as sometimes
+the same USB/PCI ID is used by boards with different internal components.
 
+> The fact that udev people have
+> apparently unilaterally decided that it's somehow wrong is scary.
+>
+
+Thanks,
+Mauro
