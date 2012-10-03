@@ -1,78 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:58442 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.187]:55314 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755191Ab2JTLfF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Oct 2012 07:35:05 -0400
-Date: Sat, 20 Oct 2012 13:35:00 +0200
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: Leela Krishna Amudala <l.krishna@samsung.com>,
-	linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	dri-devel@lists.freedesktop.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/2 v6] of: add display helper
-Message-ID: <20121020113500.GA12978@avionic-0098.mockup.avionic-design.de>
-References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
- <CAL1wa8fP8LBCUBVJS1=dy3cyFe+bY-Gu2+wtJyuCrgbP93m3Wg@mail.gmail.com>
- <20121015141751.GA11396@pengutronix.de>
+	with ESMTP id S1755741Ab2JCH54 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 03:57:56 -0400
+Date: Wed, 3 Oct 2012 09:57:54 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Alex Pollard <apollard@eos-aus.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: RE: Previewing PAL fields on framebuffer
+In-Reply-To: <5F8EBA134B205E4088143663B38B1DC910D5DA74@EOSMX01.EOSAUS.LOCAL>
+Message-ID: <Pine.LNX.4.64.1210030939080.26201@axis700.grange>
+References: <5F8EBA134B205E4088143663B38B1DC910D5DA0F@EOSMX01.EOSAUS.LOCAL>
+ <Pine.LNX.4.64.1210030844220.26201@axis700.grange>
+ <5F8EBA134B205E4088143663B38B1DC910D5DA74@EOSMX01.EOSAUS.LOCAL>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="a8Wt8u1KmwUX3Y2C"
-Content-Disposition: inline
-In-Reply-To: <20121015141751.GA11396@pengutronix.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Please, don't drop the mailing list from the CC list.
 
---a8Wt8u1KmwUX3Y2C
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Wed, 3 Oct 2012, Alex Pollard wrote:
 
-On Mon, Oct 15, 2012 at 04:17:51PM +0200, Steffen Trumtrar wrote:
-> Hi Leela,
->=20
-> On Mon, Oct 15, 2012 at 04:24:43PM +0530, Leela Krishna Amudala wrote:
-> > Hello Steffen,
-> >=20
-> > To which version of the kernel we can expect this patch set to be merge=
-d into?
-> > Because I'm waiting for this from long time to add DT support for my
-> > display controller :)
-> >=20
->=20
-> I have no idea, sorry. It seems like we have almost settled with the bind=
-ing
-> (clock-name needs to be changed), but I'm not responsible for any merging=
-/inclusions
-> in the kernel.
+> Thanks!
+> 
+> I have found that in their demo application the capture board developer 
+> (e-consystems) supports various interlacing options thru ioctl calls. So 
+> I think I will find a solution.
 
-I want to use this in the Tegra DRM driver which I hope to get into 3.8.
-If you need any help with this, please let me know.
+Isn't specifying one of V4L2_FIELD_INTERLACED* values in standard V4L2 
+ioctl()s enough? Or is this what you mean?
 
-Thierry
+> The main issue now is the ability to do 
+> overlays on the low-latency framebuffer preview, I am guessing 
+> ipu_prp_vf_sdc_bg.c provides a way to accomplish this.
 
---a8Wt8u1KmwUX3Y2C
-Content-Type: application/pgp-signature
+Sorry, I don't know what file you mean. In any case you'd have to 
+implement overlay support in the mx3fb.c framebuffer driver.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
+Thanks
+Guennadi
 
-iQIcBAEBAgAGBQJQgoxkAAoJEN0jrNd/PrOhgOMQAJW6PHzJr2s96wUKJnSpPErY
-Ydw2VxX2ouNc7BIwLYibMzwzCDy6CWQCITWHWx6KIIg4Vi4gg5J65fuS9a/lQlMK
-7Iuo7T3j0EYUiOw44omjmJbPm2o1iUEvx3B0GJvV2Udkvo3O8DcDpVZ/f/KH4+JF
-GBwjOZFQIttTHdTOwmAKrUolVk9Iqax1ILUqmG6SBs8cfe2p5qR8nYEQSFcZmuGQ
-6JBix2QHifR9ke/c9xhu9kKODjcRXd7MxqK8bILB7eqYppnXrdjktarwLBUduYEk
-DN8ozclyolwY7q1VtcUHS5hNF2QoEzyuA1cE3Ofkd+Gu6PuCQBFXLqHGOHQPq1lx
-TGoU+yLHU0MeUjt/iRVoII468z1J66lCPbECaKBCSvP0CJcVEDSNSERkIsS+KCpG
-W4W2eqh/BASWR6Bfnto0NSUSlXLB/5+OhEfCto4mTLyfkM2dG6Jr0lbqiuhHhN3E
-ZUNHicAnZKJLAUaQm/Ac+QH437b604I/LHEJzn4t5MBIEFCgnZhdihGAk4Nj6zao
-Me1HLN1UK2Hr9KrEB/gFATvYS6maiTHeNy/xSp9cN+sz5sdS2HhRIKze1cn3m76r
-sDRUf/5u1UV4kcOy/KFuYxnxxyc9Bykl2cSF0zsGxV98KkZx26rUJNEfnFKlnWkt
-WpzhT8aTF9kittx0VjyV
-=wh+K
------END PGP SIGNATURE-----
+> Cheers,
+> Alex
+> 
+> -----Original Message-----
+> From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de] 
+> Sent: Wednesday, 3 October 2012 5:06 PM
+> To: Alex Pollard
+> Cc: Linux Media Mailing List
+> Subject: Re: Previewing PAL fields on framebuffer
+> 
+> Hi Alex
+> 
+> (added linux-media to CC on your request)
+> 
+> On Wed, 3 Oct 2012, Alex Pollard wrote:
+> 
+> > Hi,
+> > 
+> > I am wondering if it is possible to use the DMA features in 
+> > drivers/dma/ipu/ipu_idmac.c to write the top field of a PAL frame into a 
+> > framebuffer on alternating lines, and write the bottom field of the PAL 
+> > frame to the other lines ie deinterlace.
+> 
+> Looking at the i.MX31 CSI documentation it seems it could be possible to 
+> use CSI_SENS_FRM_SIZE and CSI_ACT_FRM_SIZE to specify stride != width to 
+> basically do stride = 2 * width and then do 2 transfers per frame - one 
+> beginning with line 0 and one beginning with line 1? But that's just an 
+> idea, the description of those registers is vague and I'm also not sure 
+> how to implement that.
+> 
+> Good luck
+> Guennadi
+> 
+> > Do you know a good discussion 
+> > list where I could post the question? I am using an i.MX53 but the 
+> > support "community" is a bit quiet.
+> > 
+> > Thanks
+> > 
+> > Alex Pollard
+> > Software Engineer
+> > 
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
 
---a8Wt8u1KmwUX3Y2C--
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
