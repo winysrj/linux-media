@@ -1,139 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxout-07.mxes.net ([216.86.168.182]:17501 "EHLO
-	mxout-07.mxes.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755403Ab2JPBZj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Oct 2012 21:25:39 -0400
-Message-ID: <507CB78C.10902@cybermato.com>
-Date: Mon, 15 Oct 2012 18:25:32 -0700
-From: Chris MacGregor <chris@cybermato.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:59440 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965392Ab2JCRYz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 13:24:55 -0400
+Received: by obbuo13 with SMTP id uo13so7544229obb.19
+        for <linux-media@vger.kernel.org>; Wed, 03 Oct 2012 10:24:54 -0700 (PDT)
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, hverkuil@xs4all.nl, remi@remlab.net,
-	daniel-gl@gmx.net, sylwester.nawrocki@gmail.com
-Subject: Re: [RFC] Timestamps and V4L2
-References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <20121015160549.GE21261@valkosipuli.retiisi.org.uk> <2316067.OFTCziv4Z5@avalon> <507C5BC4.7060700@cybermato.com> <20121015195906.GG21261@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20121015195906.GG21261@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20121003165726.GA24577@kroah.com>
+References: <4FE37194.30407@redhat.com> <4FE8B8BC.3020702@iki.fi>
+ <4FE8C4C4.1050901@redhat.com> <4FE8CED5.104@redhat.com> <20120625223306.GA2764@kroah.com>
+ <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com>
+ <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
+ <20121002221239.GA30990@kroah.com> <CAPXgP11UQUHyCAo=GbAigQMqKWta12L19EsVaocU0ia6JKmd1Q@mail.gmail.com>
+ <20121003165726.GA24577@kroah.com>
+From: Kay Sievers <kay@vrfy.org>
+Date: Wed, 3 Oct 2012 19:24:34 +0200
+Message-ID: <CAPXgP120SFAV4ZF_fYC3EdW0P6ZfaHFuLFFeNArgM5C9K7WXqA@mail.gmail.com>
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
+ callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Tom Gundersen <tomegun@archlinux.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Sakari.
+On Wed, Oct 3, 2012 at 6:57 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
 
-On 10/15/2012 12:59 PM, Sakari Ailus wrote:
-> Hi Chris,
+>> It's the same in the current release, we still haven't wrapped our
+>> head around how to fix it/work around it.
 >
-> On Mon, Oct 15, 2012 at 11:53:56AM -0700, Chris MacGregor wrote:
->> On 10/15/2012 11:45 AM, Laurent Pinchart wrote:
->>> Hi Sakari,
->>>
->>> On Monday 15 October 2012 19:05:49 Sakari Ailus wrote:
->>>> Hi all,
->>>>
->>>> As a summar from the discussion, I think we have reached the following
->>>> conclusion. Please say if you agree or disagree with what's below. :-)
->>>>
->>>> - The drivers will be moved to use monotonic timestamps for video buffers.
->>>> - The user space will learn about the type of the timestamp through buffer
->>>> flags.
->>>> - The timestamp source may be made selectable in the future, but buffer
->>>> flags won't be the means for this, primarily since they're not available on
->>>> subdevs. Possible way to do this include a new V4L2 control or a new IOCTL.
->>> That's my understanding as well. For the concept,
->>>
->>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> I wasn't able to participate in the discussion that led to this, but
->> I'd like to suggest and request now that an explicit requirement (of
->> whatever scheme is selected) be that a userspace app have a
->> reasonable and straightforward way to translate the timestamps to
->> real wall-clock time, ideally with enough precision to allow
->> synchronization of cameras across multiple computers.
->>
->> In the systems I work on, for instance, we are recording real-world
->> biological processes, some of which vary based on the time of day,
->> and it is important to know when a given frame was captured so that
->> information can be stored with the raw frame and the data derived
->> from it. For many such purposes, an accuracy measured in multiple
->> seconds (or even minutes) is fine.
->>
->> However, when we are using multiple cameras on multiple computers
->> (e.g., two or more BeagleBoard xM's, each with a camera connected),
->> we would want to synchronize with an accuracy of less than 1 frame
->> time - e.g. 10 ms or less.
-> I think you have two use cases actually: knowing when an image has been
-> taken, and synchronisation of images from multiple sources. The first one is
-> easy: you just call clock_gettime() for the realtime clock. The precision
-> will certainly be enough.
+> Ick, as this is breaking people's previously-working machines, shouldn't
+> this be resolved quickly?
 
-I assume you mean that I would, for instance:
+Nothing really "breaks", It's "slow" and it will surely be fixed when
+we know what's the right fix, which we haven't sorted out at this
+moment.
 
-clock_gettime(CLOCK_REALTIME, &realtime);
-clock_gettime(CLOCK_MONOTONIC, &monotime);
-(compute realtime-monotime and save the result)
-...
-(later add that result to the timestamp on a frame to recover the 
-approximate real-world capture time)
+> module_init() can do lots of "bad" things, sleeping, asking for
+> firmware, and lots of other things.  To have userspace block because of
+> this doesn't seem very wise.
 
-Agreed, for this purpose - getting a reasonable real-world timestamp on 
-the frame - the precision is fine...worst case, my process gets 
-rescheduled between the two clock_gettime() calls, but even that won't 
-matter for this purpose.
+Not saying that it is right or nice, but it's the kernel itself that
+blocks. Run init=/bin/sh and do a modprobe of one of these drivers and
+it hangs un-interruptible until the kernel's internal firmware loading
+request times out, just because userspace is not there.
 
-> For the latter the realtime clock fits poorly to begin with: it jumps around
-> e.g. when the daylight saving time changes.
+> But previously this all "just worked" as we ran 'modprobe' in a new
+> thread/process right?
+
+No, we used to un-queue events which had a timeout specified in the
+environment, that code caused other issues and was removed.
+
+> it can do without worrying about stopping anything else in the system that might
+> want to happen at the same time (like load multiple modules in a row).
+
+It should not be an issue, the serialization is strictly parent <->
+child, everything else runs in parallel.
+
+>> If that unfortunate module_init() lockup can't be solved properly in
+>> the kernel, we need to find out if we need to make the modprobe
+>> handling in udev async, or let firmware events bypass dependency
+>> resolving. As mentioned, we haven't decided as of now which road to
+>> take here.
 >
-> I think what I'd do is this: figure out the difference between the monotonic
-> clocks of your systems and use that as basis for synchronisation. I wonder
-> if there are existing solutions for this based e.g. on the NTP.
->
-> The pace of the monotonic clocks on different systems is the same as the
-> real-time ones; the same NTP adjustments are done to the monotonic clock as
-> well. As an added bonus you also won't be affected by daylight saving time
-> or someone setting the clock manually.
+> It's not a lockup, there have never been rules about what a driver could
+> and could not do in its module_init() function.  Sure, there are some
+> not-nice drivers out there, but don't halt the whole system just because
+> of them.
 
-Yes, I believe that this could work. My concern is that there is some 
-unpredictability in the timing of the two clock_gettime() calls, and 
-thus some inaccuracy in the conversion, and while I could likely get the 
-two systems sufficiently sync'd using NTP or the like at the real-world 
-level, the conversion from that (on each system) to the system's 
-monotonic time would contain an unpredictable (though bounded) 
-inaccuracy. I suppose that as long as I sync the cameras at the hardware 
-level (e.g. by tying the strobe line of one to the trigger lines of the 
-rest, or tying all the trigger lines to a GPIO), the inaccuracy would be 
-less than a frame time, and so I could know reliably enough which frames 
-go together.
+It is a kind of lock up, just try modprobe with the init=/bin/sh boot.
 
-However, it seems much cleaner to have a more direct way to convert the 
-monotonic time to real-world time, or to get real-world time on the 
-frames in the first place (for applications that want that). I don't 
-know of a way to do the former.
+> I recommend making module loading async, like it used to be, and then
+> all should be fine, right?
 
-> The conversion of the two clocks requires the knowledge of the values of
-> kernel internal variables, so performing the conversion in user space later
-> on is not an option.
+That's the current idea, and Tom is looking into it how it could look like.
 
-Sorry, you lost me on this one, unless you're talking about what I refer 
-to in my paragraph just above - converting the monotonic timestamp on 
-the frame to real-world time...?
+I also have no issues at all if the kernel does load the firmware from
+the filesystem on its own; it sounds like the simplest and most robust
+solution from a general look at the problem. It would also make the
+difference between in-kernel firmware and out-of-kernel firmware less
+visible, which sounds good.
+Honestly, requiring firmware-loading userspace-transactions to
+successfully link a module into the kernel sounds like a pretty bad
+idea to start with. Unlike module loading which needs the depmod alias
+database and userspace configuration; with firmware loading, there is
+no policy involved where userspace would add any single additional
+value to that step.
 
-> Alternatively you could just call clock_gettime() after every DQBUF call,
-> but that's indeed less precise than if the driver would get the timestamp
-> for you.
-
-And also less efficient. The platforms I'm working on are already 
-hard-pressed to keep up with all the pixels I'm trying to capture and 
-process, so I don't really want to waste time trapping into kernel mode 
-again if I can avoid it.
-
-> How would this work for you?
-
-Better than nothing, and probably I could live with it. But I think 
-perhaps we can do better than that, and now seems like the right time to 
-figure it out.
-
-> Best regards,
-
-Cheers,
-Chris MacGregor (the Seattle one)
+Thanks,
+Kay
