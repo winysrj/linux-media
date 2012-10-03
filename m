@@ -1,54 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:34268 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932491Ab2JURx1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Oct 2012 13:53:27 -0400
-Received: by mail-wi0-f178.google.com with SMTP id hr7so1752706wib.1
-        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2012 10:53:27 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 07/23] em28xx: update description of em28xx_irq_callback
-Date: Sun, 21 Oct 2012 19:52:12 +0300
-Message-Id: <1350838349-14763-8-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:35863 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754467Ab2JCAil (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Oct 2012 20:38:41 -0400
+Message-ID: <506B88FB.1090707@iki.fi>
+Date: Wed, 03 Oct 2012 03:38:19 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+To: =?UTF-8?B?UsOpbWkgQ2FyZG9uYQ==?= <remi.cardona@smartjog.com>
+CC: linux-media@vger.kernel.org, liplianin@me.by
+Subject: Re: [PATCH 6/7] [media] ds3000: add module parameter to force firmware
+ upload
+References: <1348837172-11784-1-git-send-email-remi.cardona@smartjog.com> <1348837172-11784-7-git-send-email-remi.cardona@smartjog.com>
+In-Reply-To: <1348837172-11784-7-git-send-email-remi.cardona@smartjog.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-em28xx_irq_callback can be used for isoc and bulk transfers.
+On 09/28/2012 03:59 PM, Rémi Cardona wrote:
+> Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-core.c |    3 ++-
- 1 Datei geändert, 2 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 0892d92..8f50f5c 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -919,7 +919,7 @@ EXPORT_SYMBOL_GPL(em28xx_set_mode);
-    ------------------------------------------------------------------*/
- 
- /*
-- * IRQ callback, called by URB callback
-+ * URB completion handler for isoc/bulk transfers
-  */
- static void em28xx_irq_callback(struct urb *urb)
- {
-@@ -946,6 +946,7 @@ static void em28xx_irq_callback(struct urb *urb)
- 
- 	/* Reset urb buffers */
- 	for (i = 0; i < urb->number_of_packets; i++) {
-+		/* isoc only (bulk: number_of_packets = 0) */
- 		urb->iso_frame_desc[i].status = 0;
- 		urb->iso_frame_desc[i].actual_length = 0;
- 	}
+
+> ---
+>   drivers/media/dvb-frontends/ds3000.c |    6 +++++-
+>   1 file changed, 5 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/dvb-frontends/ds3000.c b/drivers/media/dvb-frontends/ds3000.c
+> index 59184a8..c66d731 100644
+> --- a/drivers/media/dvb-frontends/ds3000.c
+> +++ b/drivers/media/dvb-frontends/ds3000.c
+> @@ -30,6 +30,7 @@
+>   #include "ds3000.h"
+>
+>   static int debug;
+> +static int force_fw_upload;
+>
+>   #define dprintk(args...) \
+>   	do { \
+> @@ -396,7 +397,7 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
+>   	dprintk("%s()\n", __func__);
+>
+>   	ret = ds3000_readreg(state, 0xb2);
+> -	if (ret == 0) {
+> +	if (ret == 0 && force_fw_upload == 0) {
+>   		/* Firmware already uploaded, skipping */
+>   		return ret;
+>   	} else if (ret < 0) {
+> @@ -1307,6 +1308,9 @@ static struct dvb_frontend_ops ds3000_ops = {
+>   module_param(debug, int, 0644);
+>   MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
+>
+> +module_param(force_fw_upload, int, 0644);
+> +MODULE_PARM_DESC(force_fw_upload, "Force firmware upload (default:0)");
+> +
+>   MODULE_DESCRIPTION("DVB Frontend module for Montage Technology "
+>   			"DS3000/TS2020 hardware");
+>   MODULE_AUTHOR("Konstantin Dimitrov");
+>
+
+
 -- 
-1.7.10.4
-
+http://palosaari.fi/
