@@ -1,69 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:39716 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932436Ab2J2Lhc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Oct 2012 07:37:32 -0400
-Received: by mail-ie0-f174.google.com with SMTP id k13so6348393iea.19
-        for <linux-media@vger.kernel.org>; Mon, 29 Oct 2012 04:37:32 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:44101 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753479Ab2JCJrI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Oct 2012 05:47:08 -0400
+Message-ID: <506C0984.606@iki.fi>
+Date: Wed, 03 Oct 2012 12:46:44 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1351370486-29040-36-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-	<1351370486-29040-36-git-send-email-mchehab@redhat.com>
-Date: Mon, 29 Oct 2012 08:37:31 -0300
-Message-ID: <CALF0-+VAVX=b9iEvQS88x5Ndr=7GGBuyi4k=18-2uJjwFL95HA@mail.gmail.com>
-Subject: Re: [PATCH 35/68] [media] pwc-if: must check vb2_queue_init() success
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
+CC: Hans-Frieder Vogt <hfvogt@gmx.net>,
+	Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [GIT PULL FOR v3.7] small af9033 correction
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Oct 27, 2012 at 5:40 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> drivers/media/usb/pwc/pwc-if.c: In function 'usb_pwc_probe':
-> drivers/media/usb/pwc/pwc-if.c:1003:16: warning: ignoring return value of 'vb2_queue_init', declared with attribute warn_unused_result [-Wunused-result]
-> In the past, it used to have a logic there at queue init that would
-> BUG() on errors. This logic got removed. Drivers are now required
-> to explicitly handle the queue initialization errors, or very bad
-> things may happen.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/usb/pwc/pwc-if.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-> index e191572..5210239 100644
-> --- a/drivers/media/usb/pwc/pwc-if.c
-> +++ b/drivers/media/usb/pwc/pwc-if.c
-> @@ -1000,7 +1000,11 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
->         pdev->vb_queue.buf_struct_size = sizeof(struct pwc_frame_buf);
->         pdev->vb_queue.ops = &pwc_vb_queue_ops;
->         pdev->vb_queue.mem_ops = &vb2_vmalloc_memops;
-> -       vb2_queue_init(&pdev->vb_queue);
-> +       rc = vb2_queue_init(&pdev->vb_queue);
-> +       if (rc < 0) {
-> +               PWC_ERROR("Oops, could not initialize vb2 queue.\n");
-> +               goto err_free_mem;
-> +       }
->
->         /* Init video_device structure */
->         memcpy(&pdev->vdev, &pwc_template, sizeof(pwc_template));
-> --
-> 1.7.11.7
->
+The following changes since commit 2425bb3d4016ed95ce83a90b53bd92c7f31091e4:
 
-Weird, I thought this was already fixed...
+   em28xx: regression fix: use DRX-K sync firmware requests on em28xx 
+(2012-10-02 17:15:22 -0300)
 
-https://patchwork.kernel.org/patch/1467211/
+are available in the git repository at:
 
-And even weirder...
-now all my patches are marked as 'New' by patchwork...
+   git://linuxtv.org/anttip/media_tree.git for_v3.7_mauro-4
 
-https://patchwork.kernel.org/project/linux-media/list/?submitter=37031&state=*
+for you to fetch changes up to cac7edcf11c48801b40cb8bc32c545da506e8435:
 
-(this must be the last name mess I did...)
+   af9033: prevent unintended underflow (2012-10-03 12:36:53 +0300)
 
-    Ezequiel
+----------------------------------------------------------------
+Hans-Frieder Vogt (1):
+       af9033: prevent unintended underflow
+
+  drivers/media/dvb-frontends/af9033.c | 16 +++++++++-------
+  1 file changed, 9 insertions(+), 7 deletions(-)
+
+
+-- 
+http://palosaari.fi/
+
