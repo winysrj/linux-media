@@ -1,92 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34925 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751845Ab2JCJcV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Oct 2012 05:32:21 -0400
-Message-ID: <506C060D.1020600@iki.fi>
-Date: Wed, 03 Oct 2012 12:31:57 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Hans-Frieder Vogt <hfvogt@gmx.net>
-CC: Dan Carpenter <dan.carpenter@oracle.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] af9033: prevent unintended underflow
-References: <201210031125.40850.hfvogt@gmx.net>
-In-Reply-To: <201210031125.40850.hfvogt@gmx.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:59442 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752678Ab2JCG15 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 02:27:57 -0400
+From: Prabhakar <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	VGER <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH] media: davinci: vpbe: fix build warning
+Date: Wed,  3 Oct 2012 11:57:38 +0530
+Message-Id: <1349245658-7125-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/03/2012 12:25 PM, Hans-Frieder Vogt wrote:
-> As spotted by Dan Carpenter <dan.carpenter@oracle.com> (thanks!), we have
-> improperly used an unsigned variable in a calculation that may result in a
-> negative number. This may cause an unintended underflow if the interface
-> frequency of the tuner is > approx. 40MHz.
-> This patch should resolve the issue, following an approach similar to what is
-> used in af9013.c.
->
-> Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-Acked-by: Antti Palosaari <crope@iki.fi>
+recent patch with commit id 4f996594ceaf6c3f9bc42b40c40b0f7f87b79c86
+which makes vidioc_s_crop const, was causing a following build warning,
 
-I will PULL-request that via my tree for 3.7. I don't see any reason 
-this should go older ones.
+vpbe_display.c: In function 'vpbe_display_s_crop':
+vpbe_display.c:640: warning: initialization discards qualifiers from pointer target type
 
-regards
-Antti
+This patch fixes the above build warning.
 
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/platform/davinci/vpbe_display.c |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
 
->
->   drivers/media/dvb-frontends/af9033.c |   16 +++++++++-------
->   1 file changed, 9 insertions(+), 7 deletions(-)
->
-> --- a/drivers/media/dvb-frontends/af9033.c	2012-09-28 05:45:17.000000000 +0200
-> +++ b/drivers/media/dvb-frontends/af9033.c	2012-10-03 11:08:18.160894181 +0200
-> @@ -408,7 +408,7 @@ static int af9033_set_frontend(struct dv
->   {
->   	struct af9033_state *state = fe->demodulator_priv;
->   	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-> -	int ret, i, spec_inv;
-> +	int ret, i, spec_inv, sampling_freq;
->   	u8 tmp, buf[3], bandwidth_reg_val;
->   	u32 if_frequency, freq_cw, adc_freq;
->
-> @@ -465,18 +465,20 @@ static int af9033_set_frontend(struct dv
->   		else
->   			if_frequency = 0;
->
-> -		while (if_frequency > (adc_freq / 2))
-> -			if_frequency -= adc_freq;
-> +		sampling_freq = if_frequency;
->
-> -		if (if_frequency >= 0)
-> +		while (sampling_freq > (adc_freq / 2))
-> +			sampling_freq -= adc_freq;
-> +
-> +		if (sampling_freq >= 0)
->   			spec_inv *= -1;
->   		else
-> -			if_frequency *= -1;
-> +			sampling_freq *= -1;
->
-> -		freq_cw = af9033_div(state, if_frequency, adc_freq, 23ul);
-> +		freq_cw = af9033_div(state, sampling_freq, adc_freq, 23ul);
->
->   		if (spec_inv == -1)
-> -			freq_cw *= -1;
-> +			freq_cw = 0x800000 - freq_cw;
->
->   		/* get adc multiplies */
->   		ret = af9033_rd_reg(state, 0x800045, &tmp);
->
-> Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 1b238fe..161c776 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -637,7 +637,7 @@ static int vpbe_display_s_crop(struct file *file, void *priv,
+ 	struct vpbe_device *vpbe_dev = disp_dev->vpbe_dev;
+ 	struct osd_layer_config *cfg = &layer->layer_info.config;
+ 	struct osd_state *osd_device = disp_dev->osd_device;
+-	struct v4l2_rect *rect = &crop->c;
++	struct v4l2_rect rect = crop->c;
+ 	int ret;
+ 
+ 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
+@@ -648,21 +648,21 @@ static int vpbe_display_s_crop(struct file *file, void *priv,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (rect->top < 0)
+-		rect->top = 0;
+-	if (rect->left < 0)
+-		rect->left = 0;
++	if (rect.top < 0)
++		rect.top = 0;
++	if (rect.left < 0)
++		rect.left = 0;
+ 
+-	vpbe_disp_check_window_params(disp_dev, rect);
++	vpbe_disp_check_window_params(disp_dev, &rect);
+ 
+ 	osd_device->ops.get_layer_config(osd_device,
+ 			layer->layer_info.id, cfg);
+ 
+ 	vpbe_disp_calculate_scale_factor(disp_dev, layer,
+-					rect->width,
+-					rect->height);
+-	vpbe_disp_adj_position(disp_dev, layer, rect->top,
+-					rect->left);
++					rect.width,
++					rect.height);
++	vpbe_disp_adj_position(disp_dev, layer, rect.top,
++					rect.left);
+ 	ret = osd_device->ops.set_layer_config(osd_device,
+ 				layer->layer_info.id, cfg);
+ 	if (ret < 0) {
 -- 
-http://palosaari.fi/
+1.7.4.1
+
