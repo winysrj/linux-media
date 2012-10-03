@@ -1,339 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 173-160-178-141-Washington.hfc.comcastbusiness.net ([173.160.178.141]:46306
-	"EHLO relay" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932749Ab2JWSob (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 14:44:31 -0400
-From: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
-To: andrey.smirnov@convergeddevices.net
-Cc: hverkuil@xs4all.nl, mchehab@redhat.com, sameo@linux.intel.com,
-	broonie@opensource.wolfsonmicro.com, perex@perex.cz, tiwai@suse.de,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v3 6/6] Add a codec driver for SI476X MFD
-Date: Tue, 23 Oct 2012 11:44:32 -0700
-Message-Id: <1351017872-32488-7-git-send-email-andrey.smirnov@convergeddevices.net>
-In-Reply-To: <1351017872-32488-1-git-send-email-andrey.smirnov@convergeddevices.net>
-References: <1351017872-32488-1-git-send-email-andrey.smirnov@convergeddevices.net>
+Received: from mail.kapsi.fi ([217.30.184.167]:52560 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753055Ab2JCAhs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Oct 2012 20:37:48 -0400
+Message-ID: <506B88C7.4030305@iki.fi>
+Date: Wed, 03 Oct 2012 03:37:27 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: =?UTF-8?B?UsOpbWkgQ2FyZG9uYQ==?= <remi.cardona@smartjog.com>
+CC: linux-media@vger.kernel.org, liplianin@me.by
+Subject: Re: [PATCH 4/7] [media] ds3000: bail out early on i2c failures during
+ firmware load
+References: <1348837172-11784-1-git-send-email-remi.cardona@smartjog.com> <1348837172-11784-5-git-send-email-remi.cardona@smartjog.com>
+In-Reply-To: <1348837172-11784-5-git-send-email-remi.cardona@smartjog.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This commit add a sound codec driver for Silicon Laboratories 476x
-series of AM/FM radio chips.
+On 09/28/2012 03:59 PM, Rémi Cardona wrote:
+>   - if kmalloc() returns NULL, we can return immediately without trying
+>     to kfree() a NULL pointer.
+>   - if i2c_transfer() fails, error out immediately instead of trying to
+>     upload the remaining bytes of the firmware.
+>   - the error code is then properly propagated down to ds3000_initfe().
+>
+> Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
 
-Signed-off-by: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
----
- sound/soc/codecs/Kconfig  |    4 +
- sound/soc/codecs/Makefile |    2 +
- sound/soc/codecs/si476x.c |  259 +++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 265 insertions(+)
- create mode 100644 sound/soc/codecs/si476x.c
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
-index 9f8e859..37b2911 100644
---- a/sound/soc/codecs/Kconfig
-+++ b/sound/soc/codecs/Kconfig
-@@ -53,6 +53,7 @@ config SND_SOC_ALL_CODECS
- 	select SND_SOC_PCM3008
- 	select SND_SOC_RT5631 if I2C
- 	select SND_SOC_SGTL5000 if I2C
-+	select SND_SOC_SI476X if MFD_SI476X_CORE
- 	select SND_SOC_SN95031 if INTEL_SCU_IPC
- 	select SND_SOC_SPDIF
- 	select SND_SOC_SSM2602 if SND_SOC_I2C_AND_SPI
-@@ -272,6 +273,9 @@ config SND_SOC_RT5631
- config SND_SOC_SGTL5000
- 	tristate
- 
-+config SND_SOC_SI476X
-+	tristate
-+
- config SND_SOC_SIGMADSP
- 	tristate
- 	select CRC32
-diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
-index 34148bb..d9ed4e4 100644
---- a/sound/soc/codecs/Makefile
-+++ b/sound/soc/codecs/Makefile
-@@ -44,6 +44,7 @@ snd-soc-sgtl5000-objs := sgtl5000.o
- snd-soc-alc5623-objs := alc5623.o
- snd-soc-alc5632-objs := alc5632.o
- snd-soc-sigmadsp-objs := sigmadsp.o
-+snd-soc-si476x-objs := si476x.o
- snd-soc-sn95031-objs := sn95031.o
- snd-soc-spdif-tx-objs := spdif_transciever.o
- snd-soc-spdif-rx-objs := spdif_receiver.o
-@@ -161,6 +162,7 @@ obj-$(CONFIG_SND_SOC_PCM3008)	+= snd-soc-pcm3008.o
- obj-$(CONFIG_SND_SOC_RT5631)	+= snd-soc-rt5631.o
- obj-$(CONFIG_SND_SOC_SGTL5000)  += snd-soc-sgtl5000.o
- obj-$(CONFIG_SND_SOC_SIGMADSP)	+= snd-soc-sigmadsp.o
-+obj-$(CONFIG_SND_SOC_SI476X)	+= snd-soc-si476x.o
- obj-$(CONFIG_SND_SOC_SN95031)	+=snd-soc-sn95031.o
- obj-$(CONFIG_SND_SOC_SPDIF)	+= snd-soc-spdif-rx.o snd-soc-spdif-tx.o
- obj-$(CONFIG_SND_SOC_SSM2602)	+= snd-soc-ssm2602.o
-diff --git a/sound/soc/codecs/si476x.c b/sound/soc/codecs/si476x.c
-new file mode 100644
-index 0000000..1f34913
---- /dev/null
-+++ b/sound/soc/codecs/si476x.c
-@@ -0,0 +1,259 @@
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <sound/pcm.h>
-+#include <sound/pcm_params.h>
-+#include <sound/soc.h>
-+#include <sound/initval.h>
-+
-+#include <linux/i2c.h>
-+
-+#include <linux/mfd/si476x-core.h>
-+
-+enum si476x_audio_registers {
-+	SI476X_DIGITAL_IO_OUTPUT_FORMAT		= 0x0203,
-+	SI476X_DIGITAL_IO_OUTPUT_SAMPLE_RATE	= 0x0202,
-+};
-+
-+enum si476x_digital_io_output_format {
-+	SI476X_DIGITAL_IO_SLOT_SIZE_SHIFT	= 11,
-+	SI476X_DIGITAL_IO_SAMPLE_SIZE_SHIFT	= 8,
-+};
-+
-+#define SI476X_DIGITAL_IO_OUTPUT_WIDTH_MASK	((0b111 << SI476X_DIGITAL_IO_SLOT_SIZE_SHIFT) | \
-+						  (0b111 << SI476X_DIGITAL_IO_SAMPLE_SIZE_SHIFT))
-+#define SI476X_DIGITAL_IO_OUTPUT_FORMAT_MASK	(0b1111110)
-+
-+enum si476x_daudio_formats {
-+	SI476X_DAUDIO_MODE_I2S		= (0x0 << 1),
-+	SI476X_DAUDIO_MODE_DSP_A	= (0x6 << 1),
-+	SI476X_DAUDIO_MODE_DSP_B	= (0x7 << 1),
-+	SI476X_DAUDIO_MODE_LEFT_J	= (0x8 << 1),
-+	SI476X_DAUDIO_MODE_RIGHT_J	= (0x9 << 1),
-+
-+	SI476X_DAUDIO_MODE_IB		= (1 << 5),
-+	SI476X_DAUDIO_MODE_IF		= (1 << 6),
-+};
-+
-+enum si476x_pcm_format {
-+	SI476X_PCM_FORMAT_S8		= 2,
-+	SI476X_PCM_FORMAT_S16_LE	= 4,
-+	SI476X_PCM_FORMAT_S20_3LE	= 5,
-+	SI476X_PCM_FORMAT_S24_LE	= 6,
-+};
-+
-+static unsigned int si476x_codec_read(struct snd_soc_codec *codec,
-+				      unsigned int reg)
-+{
-+	int err;
-+	unsigned int val;
-+	struct si476x_core *core = codec->control_data;
-+
-+	si476x_core_lock(core);
-+	err = regmap_read(core->regmap, reg, &val);
-+	si476x_core_unlock(core);
-+
-+	if (err < 0)
-+		return err;
-+
-+	return val;
-+}
-+
-+static int si476x_codec_write(struct snd_soc_codec *codec,
-+			      unsigned int reg, unsigned int val)
-+{
-+	int err;
-+	struct si476x_core *core = codec->control_data;
-+
-+	si476x_core_lock(core);
-+	err = regmap_write(core->regmap, reg, val);
-+	si476x_core_unlock(core);
-+
-+	return err;
-+}
-+
-+static int si476x_codec_set_dai_fmt(struct snd_soc_dai *codec_dai,
-+				    unsigned int fmt)
-+{
-+	int err;
-+	u16 format = 0;
-+
-+	if ((fmt & SND_SOC_DAIFMT_MASTER_MASK) != SND_SOC_DAIFMT_CBS_CFS)
-+		return -EINVAL;
-+
-+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-+	case SND_SOC_DAIFMT_DSP_A:
-+		format |= SI476X_DAUDIO_MODE_DSP_A;
-+		break;
-+	case SND_SOC_DAIFMT_DSP_B:
-+		format |= SI476X_DAUDIO_MODE_DSP_B;
-+		break;
-+	case SND_SOC_DAIFMT_I2S:
-+		format |= SI476X_DAUDIO_MODE_I2S;
-+		break;
-+	case SND_SOC_DAIFMT_RIGHT_J:
-+		format |= SI476X_DAUDIO_MODE_RIGHT_J;
-+		break;
-+	case SND_SOC_DAIFMT_LEFT_J:
-+		format |= SI476X_DAUDIO_MODE_LEFT_J;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
-+	case SND_SOC_DAIFMT_DSP_A:
-+	case SND_SOC_DAIFMT_DSP_B:
-+		switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
-+		case SND_SOC_DAIFMT_NB_NF:
-+			break;
-+		case SND_SOC_DAIFMT_IB_NF:
-+			format |= SI476X_DAUDIO_MODE_IB;
-+			break;
-+		default:
-+			return -EINVAL;
-+		}
-+		break;
-+	case SND_SOC_DAIFMT_I2S:
-+	case SND_SOC_DAIFMT_RIGHT_J:
-+	case SND_SOC_DAIFMT_LEFT_J:
-+		switch (fmt & SND_SOC_DAIFMT_INV_MASK) {
-+		case SND_SOC_DAIFMT_NB_NF:
-+			break;
-+		case SND_SOC_DAIFMT_IB_IF:
-+			format |= SI476X_DAUDIO_MODE_IB |
-+				SI476X_DAUDIO_MODE_IF;
-+			break;
-+		case SND_SOC_DAIFMT_IB_NF:
-+			format |= SI476X_DAUDIO_MODE_IB;
-+			break;
-+		case SND_SOC_DAIFMT_NB_IF:
-+			format |= SI476X_DAUDIO_MODE_IF;
-+			break;
-+		default:
-+			return -EINVAL;
-+		}
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	err = snd_soc_update_bits(codec_dai->codec, SI476X_DIGITAL_IO_OUTPUT_FORMAT,
-+				  SI476X_DIGITAL_IO_OUTPUT_FORMAT_MASK,
-+				  format);
-+	if (err < 0) {
-+		dev_err(codec_dai->codec->dev, "Failed to set output format\n");
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+
-+static int si476x_codec_hw_params(struct snd_pcm_substream *substream,
-+				  struct snd_pcm_hw_params *params,
-+				  struct snd_soc_dai *dai)
-+{
-+	int rate, width, err;
-+
-+	rate = params_rate(params);
-+	if (rate < 32000 || rate > 48000) {
-+		dev_err(dai->codec->dev, "Rate: %d is not supported\n", rate);
-+		return -EINVAL;
-+	}
-+
-+	switch (params_format(params)) {
-+	case SNDRV_PCM_FORMAT_S8:
-+		width = SI476X_PCM_FORMAT_S8;
-+	case SNDRV_PCM_FORMAT_S16_LE:
-+		width = SI476X_PCM_FORMAT_S16_LE;
-+		break;
-+	case SNDRV_PCM_FORMAT_S20_3LE:
-+		width = SI476X_PCM_FORMAT_S20_3LE;
-+		break;
-+	case SNDRV_PCM_FORMAT_S24_LE:
-+		width = SI476X_PCM_FORMAT_S24_LE;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	err = snd_soc_write(dai->codec, SI476X_DIGITAL_IO_OUTPUT_SAMPLE_RATE,
-+			    rate);
-+	if (err < 0) {
-+		dev_err(dai->codec->dev, "Failed to set sample rate\n");
-+		return err;
-+	}
-+
-+	err = snd_soc_update_bits(dai->codec, SI476X_DIGITAL_IO_OUTPUT_FORMAT,
-+				  SI476X_DIGITAL_IO_OUTPUT_WIDTH_MASK,
-+				  (width << SI476X_DIGITAL_IO_SLOT_SIZE_SHIFT) |
-+				  (width << SI476X_DIGITAL_IO_SAMPLE_SIZE_SHIFT));
-+	if (err < 0) {
-+		dev_err(dai->codec->dev, "Failed to set output width\n");
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+
-+static int si476x_codec_probe(struct snd_soc_codec *codec)
-+{
-+	codec->control_data = i2c_mfd_cell_to_core(codec->dev);
-+	return 0;
-+}
-+
-+static struct snd_soc_dai_ops si476x_dai_ops = {
-+	.hw_params	= si476x_codec_hw_params,
-+	.set_fmt	= si476x_codec_set_dai_fmt,
-+};
-+
-+static struct snd_soc_dai_driver si476x_dai = {
-+	.name		= "si476x-codec",
-+	.capture	= {
-+		.stream_name	= "Capture",
-+		.channels_min	= 2,
-+		.channels_max	= 2,
-+
-+		.rates = SNDRV_PCM_RATE_32000 |
-+		SNDRV_PCM_RATE_44100 |
-+		SNDRV_PCM_RATE_48000,
-+		.formats = SNDRV_PCM_FMTBIT_S8 |
-+		SNDRV_PCM_FMTBIT_S16_LE |
-+		SNDRV_PCM_FMTBIT_S20_3LE |
-+		SNDRV_PCM_FMTBIT_S24_LE
-+	},
-+	.ops		= &si476x_dai_ops,
-+};
-+
-+static struct snd_soc_codec_driver soc_codec_dev_si476x = {
-+	.probe  = si476x_codec_probe,
-+	.read   = si476x_codec_read,
-+	.write  = si476x_codec_write,
-+};
-+
-+static int __devinit si476x_platform_probe(struct platform_device *pdev)
-+{
-+	return snd_soc_register_codec(&pdev->dev, &soc_codec_dev_si476x,
-+				      &si476x_dai, 1);
-+}
-+
-+static int __devexit si476x_platform_remove(struct platform_device *pdev)
-+{
-+	snd_soc_unregister_codec(&pdev->dev);
-+	return 0;
-+}
-+
-+MODULE_ALIAS("platform:si476x-codec");
-+
-+static struct platform_driver si476x_platform_driver = {
-+	.driver		= {
-+		.name	= "si476x-codec",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= si476x_platform_probe,
-+	.remove		= __devexit_p(si476x_platform_remove),
-+};
-+module_platform_driver(si476x_platform_driver);
-+
-+MODULE_AUTHOR("Andrey Smirnov <andrey.smirnov@convergeddevices.net>");
-+MODULE_DESCRIPTION("ASoC Si4761/64 codec driver");
-+MODULE_LICENSE("GPL");
+> ---
+>   drivers/media/dvb-frontends/ds3000.c |   12 +++++++-----
+>   1 file changed, 7 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/media/dvb-frontends/ds3000.c b/drivers/media/dvb-frontends/ds3000.c
+> index 6752222..162faaf 100644
+> --- a/drivers/media/dvb-frontends/ds3000.c
+> +++ b/drivers/media/dvb-frontends/ds3000.c
+> @@ -280,15 +280,14 @@ static int ds3000_tuner_writereg(struct ds3000_state *state, int reg, int data)
+>   static int ds3000_writeFW(struct ds3000_state *state, int reg,
+>   				const u8 *data, u16 len)
+>   {
+> -	int i, ret = -EREMOTEIO;
+> +	int i, ret = 0;
+>   	struct i2c_msg msg;
+>   	u8 *buf;
+>
+>   	buf = kmalloc(33, GFP_KERNEL);
+>   	if (buf == NULL) {
+>   		printk(KERN_ERR "Unable to kmalloc\n");
+> -		ret = -ENOMEM;
+> -		goto error;
+> +		return -ENOMEM;
+>   	}
+>
+>   	*(buf) = reg;
+> @@ -308,8 +307,10 @@ static int ds3000_writeFW(struct ds3000_state *state, int reg,
+>   			printk(KERN_ERR "%s: write error(err == %i, "
+>   				"reg == 0x%02x\n", __func__, ret, reg);
+>   			ret = -EREMOTEIO;
+> +			goto error;
+>   		}
+>   	}
+> +	ret = 0;
+>
+>   error:
+>   	kfree(buf);
+> @@ -426,6 +427,7 @@ static int ds3000_load_firmware(struct dvb_frontend *fe,
+>   					const struct firmware *fw)
+>   {
+>   	struct ds3000_state *state = fe->demodulator_priv;
+> +	int ret = 0;
+>
+>   	dprintk("%s\n", __func__);
+>   	dprintk("Firmware is %zu bytes (%02x %02x .. %02x %02x)\n",
+> @@ -438,10 +440,10 @@ static int ds3000_load_firmware(struct dvb_frontend *fe,
+>   	/* Begin the firmware load process */
+>   	ds3000_writereg(state, 0xb2, 0x01);
+>   	/* write the entire firmware */
+> -	ds3000_writeFW(state, 0xb0, fw->data, fw->size);
+> +	ret = ds3000_writeFW(state, 0xb0, fw->data, fw->size);
+>   	ds3000_writereg(state, 0xb2, 0x00);
+>
+> -	return 0;
+> +	return ret;
+>   }
+>
+>   static int ds3000_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
+>
+
+
 -- 
-1.7.10.4
-
+http://palosaari.fi/
