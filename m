@@ -1,52 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:42343 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756530Ab2JQLQn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 07:16:43 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so6997024pad.19
-        for <linux-media@vger.kernel.org>; Wed, 17 Oct 2012 04:16:43 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 5/8] [media] exynos-gsc: Use clk_prepare_enable and clk_disable_unprepare
-Date: Wed, 17 Oct 2012 16:41:48 +0530
-Message-Id: <1350472311-9748-5-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org>
-References: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:33835 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753012Ab2JCMSu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 08:18:50 -0400
+Received: by wgbdr13 with SMTP id dr13so6076907wgb.1
+        for <linux-media@vger.kernel.org>; Wed, 03 Oct 2012 05:18:49 -0700 (PDT)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: [GIT PULL] for 3.7 (technisat-usb2)
+Date: Wed, 03 Oct 2012 14:18:45 +0200
+Message-ID: <1889603.SWYgrEojeU@dibcom294>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace clk_enable/clk_disable with clk_prepare_enable/clk_disable_unprepare
-as required by the common clock framework.
+Hi Mauro,
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/platform/exynos-gsc/gsc-core.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+The following changes since commit 2425bb3d4016ed95ce83a90b53bd92c7f31091e4:
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index bfec9e6..d11668b 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1009,7 +1009,7 @@ static int gsc_clk_get(struct gsc_dev *gsc)
- 	if (IS_ERR(gsc->clock))
- 		goto err_print;
- 
--	ret = clk_prepare(gsc->clock);
-+	ret = clk_prepare_enable(gsc->clock);
- 	if (ret < 0) {
- 		clk_put(gsc->clock);
- 		gsc->clock = NULL;
-@@ -1186,7 +1186,7 @@ static int gsc_runtime_suspend(struct device *dev)
- 
- 	ret = gsc_m2m_suspend(gsc);
- 	if (!ret)
--		clk_disable(gsc->clock);
-+		clk_disable_unprepare(gsc->clock);
- 
- 	pr_debug("gsc%d: state: 0x%lx", gsc->id, gsc->state);
- 	return ret;
--- 
-1.7.4.1
+  em28xx: regression fix: use DRX-K sync firmware requests on em28xx 
 
+are available in the git repository at:
+
+  http://linuxtv.org/git/pb/media_tree.git staging/for_v3.7
+
+for you to fetch changes up to e196a346d5d2e4695a587ca2f99da5e5491d4e95:
+
+  [media]: add MODULE_DEVICE_TABLE to technisat-usb2 
+
+----------------------------------------------------------------
+Patrick Boettcher (1):
+      [media]: add MODULE_DEVICE_TABLE to technisat-usb2
+
+ drivers/media/usb/dvb-usb/technisat-usb2.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+regards,
+
+--
+Patrick.
