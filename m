@@ -1,55 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40866 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758357Ab2JKMv5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Oct 2012 08:51:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linaro-mm-sig@lists.linaro.org, Rob Clark <rob@ti.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] dma-buf: Use EXPORT_SYMBOL
-Date: Thu, 11 Oct 2012 14:52:41 +0200
-Message-ID: <2608521.UUolBFecrg@avalon>
-In-Reply-To: <201210111336.45574.hverkuil@xs4all.nl>
-References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com> <20121011123407.63b5ecbe@pyramind.ukuu.org.uk> <201210111336.45574.hverkuil@xs4all.nl>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:52010 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754249Ab2JCGpk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 02:45:40 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <201210030840.53813.hverkuil@xs4all.nl>
+References: <1349245658-7125-1-git-send-email-prabhakar.lad@ti.com> <201210030840.53813.hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 3 Oct 2012 12:15:19 +0530
+Message-ID: <CA+V-a8svunZb3WQaap++7aPUHaUcaci5yHpjCETJJHWa5oTqZg@mail.gmail.com>
+Subject: Re: [PATCH] media: davinci: vpbe: fix build warning
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	VGER <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Hans,
 
-On Thursday 11 October 2012 13:36:45 Hans Verkuil wrote:
-> On Thu 11 October 2012 13:34:07 Alan Cox wrote:
-> > > The whole purpose of this API is to let DRM and V4L drivers share
-> > > buffers for zero-copy pipelines. Unfortunately it is a fact that
-> > > several popular DRM drivers are closed source. So we have a choice
-> > > between keeping the export symbols GPL and forcing those closed-source
-> > > drivers to make their own incompatible API, thus defeating the whole
-> > > point of DMABUF, or using EXPORT_SYMBOL and letting the closed source
-> > > vendors worry about the legality. They are already using such functions
-> > > (at least nvidia is), so they clearly accept that risk.
-> > 
-> > Then they can accept the risk of ignoring EXPORT_SYMBOL_GPL and
-> > calling into it anyway can't they. Your argument makes no rational sense
-> > of any kind.
-> 
-> Out of curiosity: why do we have both an EXPORT_SYMBOL and an
-> EXPORT_SYMBOL_GPL if there is no legal difference?
-> 
-> And if there is a difference between the two, then what is it?
+On Wed, Oct 3, 2012 at 12:10 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Wed October 3 2012 08:27:38 Prabhakar wrote:
+>> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+>>
+>> recent patch with commit id 4f996594ceaf6c3f9bc42b40c40b0f7f87b79c86
+>> which makes vidioc_s_crop const, was causing a following build warning,
+>>
+>> vpbe_display.c: In function 'vpbe_display_s_crop':
+>> vpbe_display.c:640: warning: initialization discards qualifiers from pointer target type
+>>
+>> This patch fixes the above build warning.
+>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Prabhaker, can you make a pull request for this patch, the "CUSTOM_TIMINGS"
+> rename patch and the earlier "vpfe: fix build error" patch? These things
+> should be fast-tracked.
+>
+Yes I will issue a pull request today.
 
-As far as I understand, EXPORT_SYMBOL_GPL means "I consider closed-source 
-kernel modules as a GPL violation, you can have a different opinion, but then 
-don't use my APIs".
-
--- 
 Regards,
+--Prabhakar Lad
 
-Laurent Pinchart
-
+> Regards,
+>
+>         Hans
+>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> ---
+>>  drivers/media/platform/davinci/vpbe_display.c |   20 ++++++++++----------
+>>  1 files changed, 10 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+>> index 1b238fe..161c776 100644
+>> --- a/drivers/media/platform/davinci/vpbe_display.c
+>> +++ b/drivers/media/platform/davinci/vpbe_display.c
+>> @@ -637,7 +637,7 @@ static int vpbe_display_s_crop(struct file *file, void *priv,
+>>       struct vpbe_device *vpbe_dev = disp_dev->vpbe_dev;
+>>       struct osd_layer_config *cfg = &layer->layer_info.config;
+>>       struct osd_state *osd_device = disp_dev->osd_device;
+>> -     struct v4l2_rect *rect = &crop->c;
+>> +     struct v4l2_rect rect = crop->c;
+>>       int ret;
+>>
+>>       v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
+>> @@ -648,21 +648,21 @@ static int vpbe_display_s_crop(struct file *file, void *priv,
+>>               return -EINVAL;
+>>       }
+>>
+>> -     if (rect->top < 0)
+>> -             rect->top = 0;
+>> -     if (rect->left < 0)
+>> -             rect->left = 0;
+>> +     if (rect.top < 0)
+>> +             rect.top = 0;
+>> +     if (rect.left < 0)
+>> +             rect.left = 0;
+>>
+>> -     vpbe_disp_check_window_params(disp_dev, rect);
+>> +     vpbe_disp_check_window_params(disp_dev, &rect);
+>>
+>>       osd_device->ops.get_layer_config(osd_device,
+>>                       layer->layer_info.id, cfg);
+>>
+>>       vpbe_disp_calculate_scale_factor(disp_dev, layer,
+>> -                                     rect->width,
+>> -                                     rect->height);
+>> -     vpbe_disp_adj_position(disp_dev, layer, rect->top,
+>> -                                     rect->left);
+>> +                                     rect.width,
+>> +                                     rect.height);
+>> +     vpbe_disp_adj_position(disp_dev, layer, rect.top,
+>> +                                     rect.left);
+>>       ret = osd_device->ops.set_layer_config(osd_device,
+>>                               layer->layer_info.id, cfg);
+>>       if (ret < 0) {
+>>
