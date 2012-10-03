@@ -1,67 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:42421 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752004Ab2JBMWa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 08:22:30 -0400
-Received: by lbon3 with SMTP id n3so5044063lbo.19
-        for <linux-media@vger.kernel.org>; Tue, 02 Oct 2012 05:22:28 -0700 (PDT)
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:46511 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932105Ab2JCWsw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Oct 2012 18:48:52 -0400
+References: <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com> <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com> <20121002221239.GA30990@kroah.com> <20121002222333.GA32207@kroah.com> <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com> <506C562E.5090909@redhat.com> <CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com> <20121003170907.GA23473@ZenIV.linux.org.uk> <CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com> <20121003195059.GA13541@kroah.com> <CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
+In-Reply-To: <CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20121002080503.76869be7@redhat.com>
-References: <1349139145-22113-1-git-send-email-crope@iki.fi>
-	<CAGoCfiwfTkTs1DPa0cWHLOgGcgS0Df3h7zZ=4YW51dr_AS78nQ@mail.gmail.com>
-	<CAOcJUbw+ToEAaqKPx1phWsKdWvPRXUOhtWwm7VaESwkW=fpqyg@mail.gmail.com>
-	<506ABA2B.3070908@iki.fi>
-	<20121002080503.76869be7@redhat.com>
-Date: Tue, 2 Oct 2012 08:22:28 -0400
-Message-ID: <CAOcJUbzpf=ZsUYxYJ+MHNtC-YaAGfE1Hegk12Vqk+mSYuQ8Qyw@mail.gmail.com>
-Subject: Re: [PATCH RFC] em28xx: PCTV 520e switch tda18271 to tda18271c2dd
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Wed, 03 Oct 2012 18:48:52 -0400
+To: Linus Torvalds <torvalds@linux-foundation.org>,
+	Greg KH <gregkh@linuxfoundation.org>
+CC: Al Viro <viro@zeniv.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ming Lei <ming.lei@canonical.com>, Kay Sievers <kay@vrfy.org>,
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Ivan Kalvachev <ikalvachev@gmail.com>
+Message-ID: <3560b86d-e2ad-484d-ab6e-2b9048894a12@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 2, 2012 at 7:05 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Btw, why do you need to read 16 registers at once, instead of just reading
-> the needed register? read_extended and write operations are even more evil:
-> they read/write the full set of 39 registers on each operation. That seems
-> to be overkill, especially on places like tda18271_get_id(), where
-> all the driver is doing is to check for the ID register.
+Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-TDA18271 does not support subaddressing for read operations.  The only
-way to read a register is by dumping full register contents.  16
-registers in simple mode, 39 registers in extended mode.
+>On Wed, Oct 3, 2012 at 12:50 PM, Greg KH <gregkh@linuxfoundation.org>
+>wrote:
+>>>
+>>> Ok, like this?
+>>
+>> This looks good to me.  Having udev do firmware loading and tieing it
+>to
+>> the driver model may have not been such a good idea so many years
+>ago.
+>> Doing it this way makes more sense.
+>
+>Ok, I wish this had been getting more testing in Linux-next or
+>something, but I suspect that what I'll do is to commit this patch
+>asap, and then commit another patch that turns off udev firmware
+>loading entirely for the synchronous firmware loading case.
+>
+>Why? Just to get more testing, and seeing if there are reports of
+>breakage. Maybe some udev out there has a different search path (or
+>because udev runs in a different filesystem namespace or whatever), in
+>which case running udev as a fallback would otherwise hide the fact
+>that he direct kernel firmware loading isn't working.
+>
+>We can (and will) revert things if that turns out to break things, but
+>I'd like to make any failures of the firmware direct-load path be fast
+>and hard, so that we can see when/what it breaks.
+>
+>Ok? Comments?
+>
+>              Linus
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> Worse than that, tda18271_get_id() doesn't even check if the read()
-> operation failed: it assumes that it will always work, letting the
-> switch(regs[R_ID]) to print a wrong message (device unknown) when
-> what actually failed where the 16 registers dump.
+I don't know if you can remove the /sys/.../firmware ABI altogether, because there is at least one, somewhat popular udev replacement that also uses it: mdev
 
-That's a pretty standard operation to be able to read a chip's ID in
-its driver attach function.  You even have some drivers that continue
-trying to attach frontends and tuners as long as they continue to get
-an error in the attach() function.  If we dont read the chip's ID
-during attach() then how do we know we're attaching to the correct
-chip?
-
-I'll look at the fact that it doesn't check for a read error -- that
-can be easily fixed.
-
-> Whenever it should be at attach() or later is a good point for discussions.
-
-The tda18271 driver supports running multiple tda18271 devices in
-tandem with one another, including the ability to share xtal input and
-rf loop thru.  In some cases, the order in which we initialize the
-different tda18271's (when there are multiples) must be carefully
-controlled, and we do this by attaching them to the bridge driver in
-the order needed, such as in the saa7164 driver -- we need to be ABLE
-to initialize the tuner during the attach, but being able to defer it
-*as an option* is OK with me.
+http://git.busybox.net/busybox/plain/docs/mdev.txt
 
 Regards,
-
-Mike Krufky
+Andy
