@@ -1,48 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oproxy7-pub.bluehost.com ([67.222.55.9]:58605 "HELO
-	oproxy7-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755972Ab2JPUSH (ORCPT
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:36790 "EHLO
+	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932581Ab2JCQ52 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Oct 2012 16:18:07 -0400
-Message-ID: <507DC0F7.207@xenotime.net>
-Date: Tue, 16 Oct 2012 13:17:59 -0700
-From: Randy Dunlap <rdunlap@xenotime.net>
-MIME-Version: 1.0
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-CC: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
+	Wed, 3 Oct 2012 12:57:28 -0400
+Date: Wed, 3 Oct 2012 09:57:26 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Kay Sievers <kay@vrfy.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sangwook Lee <sangwook.lee@linaro.org>,
-	Seok-Young Jang <quartz.jang@samsung.com>
-Subject: [PATCH -next] media: fix i2c/s5k4ecgx printk format warning
-References: <20121016145856.cfddc9c898c31b1c686804d7@canb.auug.org.au>
-In-Reply-To: <20121016145856.cfddc9c898c31b1c686804d7@canb.auug.org.au>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
+ callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use
+ request_firmware_nowait()
+Message-ID: <20121003165726.GA24577@kroah.com>
+References: <4FE37194.30407@redhat.com>
+ <4FE8B8BC.3020702@iki.fi>
+ <4FE8C4C4.1050901@redhat.com>
+ <4FE8CED5.104@redhat.com>
+ <20120625223306.GA2764@kroah.com>
+ <4FE9169D.5020300@redhat.com>
+ <20121002100319.59146693@redhat.com>
+ <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
+ <20121002221239.GA30990@kroah.com>
+ <CAPXgP11UQUHyCAo=GbAigQMqKWta12L19EsVaocU0ia6JKmd1Q@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPXgP11UQUHyCAo=GbAigQMqKWta12L19EsVaocU0ia6JKmd1Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <rdunlap@xenotime.net>
+On Wed, Oct 03, 2012 at 04:36:53PM +0200, Kay Sievers wrote:
+> On Wed, Oct 3, 2012 at 12:12 AM, Greg KH <gregkh@linuxfoundation.org> wrote:
+> 
+> > Mauro, what version of udev are you using that is still showing this
+> > issue?
+> >
+> > Kay, didn't you resolve this already?  If not, what was the reason why?
+> 
+> It's the same in the current release, we still haven't wrapped our
+> head around how to fix it/work around it.
 
-Fix printk format warning for size_t variable:
+Ick, as this is breaking people's previously-working machines, shouldn't
+this be resolved quickly?
 
-drivers/media/i2c/s5k4ecgx.c:346:2: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
+> Unlike what the heated and pretty uncivilized and rude emails here
+> claim, udev does not dead-lock or "break" things, it's just "slow".
+> The modprobe event handling runs into a ~30 second event timeout.
+> Everything is still fully functional though, there's only this delay.
 
-Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Sangwook Lee <sangwook.lee@linaro.org>
-Cc: Seok-Young Jang <quartz.jang@samsung.com>
----
- drivers/media/i2c/s5k4ecgx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Mauro said it broke the video drivers.  Mauro, if you wait 30 seconds,
+does everything then "work"?
 
---- linux-next-20121016.orig/drivers/media/i2c/s5k4ecgx.c
-+++ linux-next-20121016/drivers/media/i2c/s5k4ecgx.c
-@@ -343,7 +343,7 @@ static int s5k4ecgx_load_firmware(struct
- 	}
- 	regs_num = le32_to_cpu(get_unaligned_le32(fw->data));
- 
--	v4l2_dbg(3, debug, sd, "FW: %s size %d register sets %d\n",
-+	v4l2_dbg(3, debug, sd, "FW: %s size %zu register sets %d\n",
- 		 S5K4ECGX_FIRMWARE, fw->size, regs_num);
- 
- 	regs_num++; /* Add header */
+Not to say that waiting 30 seconds is a correct thing here...
+
+> Udev ensures full dependency resolution between parent and child
+> events. Parent events have to finish the event handling and have to
+> return, before child event handlers are started. We need to ensure
+> such things so that (among other things) disk events have finished
+> their operations before the partition events are started, so they can
+> rely and access their fully set up parent devices.
+> 
+> What happens here is that the module_init() call blocks in a userspace
+> transaction, creating a child event that is not started until the
+> parent event has finished. The event handler for modprobe times out
+> then the child event loads the firmware.
+
+module_init() can do lots of "bad" things, sleeping, asking for
+firmware, and lots of other things.  To have userspace block because of
+this doesn't seem very wise.
+
+> Having kernel module relying on a running and fully functional
+> userspace to return from module_init() is surely a broken driver
+> model, at least it's not how things should work. If userspace does not
+> respond to firmware requests, module_init() locks up until the
+> firmware timeout happens.
+
+But previously this all "just worked" as we ran 'modprobe' in a new
+thread/process right?  What's wrong with going back to just execing
+modprobe and letting that process go off and do what ever it wants to
+do?  It can't be that "expensive" as modprobe is a very slow thing, and
+it should solve this issue.  udev will then have handled the 'a device
+has shown up, run modprobe' event in the correct order, and then
+anything else that the module_init() process wants to do, it can do
+without worrying about stopping anything else in the system that might
+want to happen at the same time (like load multiple modules in a row).
+
+> This all is not so much about how probe() should behave, it's about a
+> fragile dependency on a specific userspace transaction to link a
+> loadable module into the kernel. Drivers should avoid such loops for
+> many reasons. Also, it's unclear in many cases how such a model should
+> work at all if the module is compiled in and initialized when no
+> userspace is running.
+> 
+> If that unfortunate module_init() lockup can't be solved properly in
+> the kernel, we need to find out if we need to make the modprobe
+> handling in udev async, or let firmware events bypass dependency
+> resolving. As mentioned, we haven't decided as of now which road to
+> take here.
+
+It's not a lockup, there have never been rules about what a driver could
+and could not do in its module_init() function.  Sure, there are some
+not-nice drivers out there, but don't halt the whole system just because
+of them.
+
+I recommend making module loading async, like it used to be, and then
+all should be fine, right?
+
+That's also the way the mdev works, and I don't think that people have
+been having problems there. :)
+
+thanks,
+
+greg k-h
