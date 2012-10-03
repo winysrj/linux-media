@@ -1,70 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:47645 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751969Ab2JVKxG (ORCPT
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:38517 "EHLO
+	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751698Ab2JCTvB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Oct 2012 06:53:06 -0400
-Received: from eusync4.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MCA000Z7JLCLS80@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 22 Oct 2012 11:53:36 +0100 (BST)
-Received: from [106.116.147.32] by eusync4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTPA id <0MCA009E7JKE7ZD0@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 22 Oct 2012 11:53:03 +0100 (BST)
-Message-id: <5085258E.6090803@samsung.com>
-Date: Mon, 22 Oct 2012 12:53:02 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: media-workshop@linuxtv.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [media-workshop] Tentative Agenda for the November workshop
-References: <201210221035.56897.hverkuil@xs4all.nl> <10009130.xLxCsb7QR7@avalon>
-In-reply-to: <10009130.xLxCsb7QR7@avalon>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Wed, 3 Oct 2012 15:51:01 -0400
+Date: Wed, 3 Oct 2012 12:50:59 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ming Lei <ming.lei@canonical.com>, Kay Sievers <kay@vrfy.org>,
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Ivan Kalvachev <ikalvachev@gmail.com>
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
+ callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use
+ request_firmware_nowait()
+Message-ID: <20121003195059.GA13541@kroah.com>
+References: <4FE9169D.5020300@redhat.com>
+ <20121002100319.59146693@redhat.com>
+ <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
+ <20121002221239.GA30990@kroah.com>
+ <20121002222333.GA32207@kroah.com>
+ <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
+ <506C562E.5090909@redhat.com>
+ <CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
+ <20121003170907.GA23473@ZenIV.linux.org.uk>
+ <CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On 10/22/2012 12:39 PM, Laurent Pinchart wrote:
-> Hello,
+On Wed, Oct 03, 2012 at 10:32:08AM -0700, Linus Torvalds wrote:
+> On Wed, Oct 3, 2012 at 10:09 AM, Al Viro <viro@zeniv.linux.org.uk> wrote:
+> >
+> > +       if (!S_ISREG(inode->i_mode))
+> > +               return false;
+> > +       size = i_size_read(inode);
+> >
+> > Probably better to do vfs_getattr() and check mode and size in kstat; if
+> > it's sufficiently hot for that to hurt, we are fucked anyway.
+> >
+> > +               file = filp_open(path, O_RDONLY, 0);
+> > +               if (IS_ERR(file))
+> > +                       continue;
+> > +printk("from file '%s' ", path);
+> > +               success = fw_read_file_contents(file, fw);
+> > +               filp_close(file, NULL);
+> >
+> > fput(file), please.  We have enough misuses of filp_close() as it is...
 > 
-> On Monday 22 October 2012 10:35:56 Hans Verkuil wrote:
->> Hi all,
->>
->> This is the tentative agenda for the media workshop on November 8, 2012.
->> If you have additional things that you want to discuss, or something is
->> wrong or incomplete in this list, please let me know so I can update the
->> list.
-> 
-> Thank you Hans for taking care of the agenda.
-> 
->> - Explain current merging process (Mauro)
->> - Open floor for discussions on how to improve it (Mauro)
->> - Write down minimum requirements for new V4L2 (and DVB?) drivers, both for
->>   staging and mainline acceptance: which frameworks to use, v4l2-compliance,
->> etc. (Hans Verkuil)
->> - V4L2 ambiguities (Hans Verkuil)
->> - TSMux device (a mux rather than a demux): Alain Volmat
->> - dmabuf status, esp. with regards to being able to test (Mauro/Samsung)
->> - Device tree support (Guennadi, not known yet whether this topic is needed)
->> - Creating/selecting contexts for hardware that supports this (Samsung,
->> only if time is available)
-> 
-> This last topic will likely require lots of brainstorming, and thus time. If 
-> the schedule permits, would anyone be interested in meeting earlier during the 
-> week already ?
+> Ok, like this?
 
-My intention was to also possibly discuss it with others before the actual
-media workshop. Would be nice if we could have arranged such a meeting.
-I'm not sure about the room conditions though. It's probably not a big issue,
-unless there is really many people interested in that topic.
+This looks good to me.  Having udev do firmware loading and tieing it to
+the driver model may have not been such a good idea so many years ago.
+Doing it this way makes more sense.
 
---
-Regards,
-Sylwester
-
+greg k-h
