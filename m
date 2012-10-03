@@ -1,125 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:45553 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751379Ab2JAR3H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 13:29:07 -0400
-Date: Mon, 1 Oct 2012 18:29:06 +0100
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 3/3] Add a codec driver for SI476X MFD
-Message-ID: <20121001172906.GB25335@sirena.org.uk>
-References: <1347576013-28832-1-git-send-email-andrey.smirnov@convergeddevices.net>
- <1347576013-28832-4-git-send-email-andrey.smirnov@convergeddevices.net>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:52326 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751478Ab2JCFiu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 01:38:50 -0400
+Received: by ieak13 with SMTP id k13so16511776iea.19
+        for <linux-media@vger.kernel.org>; Tue, 02 Oct 2012 22:38:49 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1347576013-28832-4-git-send-email-andrey.smirnov@convergeddevices.net>
+In-Reply-To: <506B4733.3070505@gmail.com>
+References: <506B1D47.8040602@samsung.com>
+	<20121002150603.31b6b72d@redhat.com>
+	<506B4733.3070505@gmail.com>
+Date: Wed, 3 Oct 2012 11:08:49 +0530
+Message-ID: <CALt3h7-YQ6PAv+5Yy+x-9jFpKf0XEA6GY_U9v59PiC5FkcdC1w@mail.gmail.com>
+Subject: Re: [GIT PULL FOR 3.7] Samsung Exynos MFC driver update
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Arun Kumar K <arun.kk@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>,
+	Sunil Joshi <joshi@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 13, 2012 at 03:40:13PM -0700, Andrey Smirnov wrote:
-> This commit add a sound codec driver for Silicon Laboratories 476x
-> series of AM/FM radio chips.
+Hi Sylwester,
 
-*Always* CC both maintainers and lists on patches.  There's a few
-problems here, though none of them terribly substantial.
+>
+> Indeed it looks like big blob patch. I think this reflects how these patches
+> were created, were one person creates practically new driver for new device
+> revision, with not much care about the old one, and then somebody else is
+> trying to make it a step by step process and ensuring support for all H/W
+> revisions is properly maintained.
+>
+> Anyway, Arun, can you please rebase your patch series onto latest linuxtv
+> for_v3.7 branch and try to split this above patch. AFAICS there are following
+> things done there that could be separated:
+>
+> 1. Move contents of file s5p_mfc_opr.c to new file s5p_mfc_opr_v5.c
+> 2. Rename functions in s5p_mfc_opr_v5.c
+> 3. Use s5p_mfc_hw_call for H/W specific function calls
+> 4. Do S5P_FIMV/S5P_MFC whatever magic.
 
->  	select SND_SOC_UDA1380 if I2C
->  	select SND_SOC_WL1273 if MFD_WL1273_CORE
-> +	select SND_SOC_SI476X if MFD_SI476X_CORE
->  	select SND_SOC_WM1250_EV1 if I2C
+I couldnt go with more finer splits, as I wanted to keep a working driver
+between all successive patches. Now I will try to make the splits as
+suggested and see if it can still be done.
 
+>
+> Also I've noticed some patches do break compilation. There are some definitions
+> used there which are added only in subsequent patches. Arun, can you please make
+> sure there is no build break after each single patch is applied ?
 
-Keep the Makefile and Kconfig sorted.
+I have checked this while applying and I didnt see any break in
+compilation after each patch is applied. I ensured not only compilation
+but also a working driver after applying each patch. I will ensure
+this again on
+the next rebase.
 
-> +struct si476x_codec {
-> +	struct si476x_core *core;
-> +};
+I will make these suggested changes and post an updated patchset today.
 
-control_data.
-
-> +static int si476x_codec_set_daudio_params(struct snd_soc_codec *codec,
-> +					  int width, int rate)
-> +{
-
-Just inline this into the one user.
-
-> +	int err;
-> +	u16 digital_io_output_format = \
-> +		snd_soc_read(codec,
-> +			     SI476X_DIGITAL_IO_OUTPUT_FORMAT);
-
-Throughout the driver you're randomly using \ for no visible reason -
-don't do that.
-
-> +	if ((rate < 32000) || (rate > 48000)) {
-> +		dev_dbg(codec->dev, "Rate: %d is not supported\n", rate);
-
-dev_err.
-
-> +	digital_io_output_format &= SI476X_DIGITAL_IO_OUTPUT_WIDTH_MASK;
-> +	digital_io_output_format |= (width << 11) | (width << 8);
-> +
-> +	return snd_soc_write(codec, SI476X_DIGITAL_IO_OUTPUT_FORMAT,
-> +			     digital_io_output_format);
-
-snd_soc_update_bits().
-
-> +static int si476x_codec_volume_get(struct snd_kcontrol *kcontrol,
-> +				   struct snd_ctl_elem_value *ucontrol)
-> +{
-> +	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
-> +
-> +	ucontrol->value.integer.value[0] =
-> +		snd_soc_read(codec, SI476X_AUDIO_VOLUME);
-> +	return 0;
-> +}
-
-Why are you open coding this?  Looks like a standard register...
-
-> +static int si476x_codec_digital_mute(struct snd_soc_dai *codec_dai, int mute)
-> +{
-> +	if (mute)
-> +		snd_soc_write(codec_dai->codec, SI476X_AUDIO_MUTE, 0x3);
-> +
-> +	return 0;
-> +}
-
-This will never disable the mute once it's been activated; are you sure
-this code has been tested?
-
-> +	switch (params_format(params)) {
-> +	case SNDRV_PCM_FORMAT_S8:
-> +		width = SI476X_PCM_FORMAT_S8;
-> +	case SNDRV_PCM_FORMAT_S16_LE:
-
-Missing break;
-
-> +static int si476x_codec_probe(struct snd_soc_codec *codec)
-> +{
-> +	struct si476x_core **core = codec->dev->platform_data;
-> +	struct si476x_codec *si476x;
-> +
-> +	if (!core) {
-> +		dev_err(codec->dev, "Platform data is missing.\n");
-> +		return -EINVAL;
-> +	}
-
-You should use dev->parent to find the parent rather than use platform
-data like this.
-
-> +	si476x = kzalloc(sizeof(*si476x), GFP_KERNEL);
-> +	if (si476x == NULL) {
-
-devm_kzalloc(), and this should be in the device level probe (as should
-the previous check for the core).  Though as the struct ought to be
-empty now this'll presumably go away.
-
-> +static int __init si476x_init(void)
-> +{
-> +	return platform_driver_register(&si476x_platform_driver);
-> +}
-> +module_init(si476x_init);
-
-module_platform_driver()
+Regards
+Arun
