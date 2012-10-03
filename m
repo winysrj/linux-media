@@ -1,103 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:35548 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751952Ab2JVMSJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Oct 2012 08:18:09 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>
-Subject: [PATCH RESEND] media: davinci: vpbe: fix build warning
-Date: Mon, 22 Oct 2012 17:47:51 +0530
-Message-Id: <1350908271-11448-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:51145 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965071Ab2JCRBE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 13:01:04 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
+References: <1340285798-8322-1-git-send-email-mchehab@redhat.com>
+ <4FE37194.30407@redhat.com> <4FE8B8BC.3020702@iki.fi> <4FE8C4C4.1050901@redhat.com>
+ <4FE8CED5.104@redhat.com> <20120625223306.GA2764@kroah.com>
+ <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com>
+ <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
+ <20121002221239.GA30990@kroah.com> <20121002222333.GA32207@kroah.com>
+ <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
+ <506C562E.5090909@redhat.com> <CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Wed, 3 Oct 2012 10:00:43 -0700
+Message-ID: <CA+55aFwpmUPF4MR+rVJ=MOYGseWGN9DvMTivbwxQ4gh_izrryg@mail.gmail.com>
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
+ callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ming Lei <ming.lei@canonical.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>, Kay Sievers <kay@vrfy.org>,
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Ivan Kalvachev <ikalvachev@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
+On Wed, Oct 3, 2012 at 9:38 AM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+>
+> Anyway. Attached is a really stupid patch that tries to do the "direct
+> firmware load" as suggested by Ivan. It has not been tested very
+> extensively at all (but I did test that it loaded the brcmsmac
+> firmware images on my laptop so it has the *potential* to work).
 
-Warnings were generated because of the following commit changed data type for
-address pointer
+Oh, and I stupidly put the new functions next to the builtin firmware
+loading function, which means that the patch only works if you have
+CONFIG_FW_LOADER enabled.
 
-195bbca ARM: 7500/1: io: avoid writeback addressing modes for __raw_ accessors
-add  __iomem annotation to fix following warnings
+That's bogus, and the functions should be moved out of that #ifdef,
+but I don't think it should hurt testing.
 
-drivers/media/platform/davinci/vpbe_osd.c: In function ‘osd_read’:
-drivers/media/platform/davinci/vpbe_osd.c:49:2: warning: passing
- argument 1 of ‘__raw_readl’ makes pointer from integer without a cast [enabled by default]
-arch/arm/include/asm/io.h:104:19: note: expected ‘const volatile
- void *’ but argument is of type ‘long unsigned int’
-
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
----
-  Resending the patch since, it didn't reach the DLOS mailing list.
-
- drivers/media/platform/davinci/vpbe_osd.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/platform/davinci/vpbe_osd.c b/drivers/media/platform/davinci/vpbe_osd.c
-index bba299d..9ab9280 100644
---- a/drivers/media/platform/davinci/vpbe_osd.c
-+++ b/drivers/media/platform/davinci/vpbe_osd.c
-@@ -46,14 +46,14 @@ static inline u32 osd_read(struct osd_state *sd, u32 offset)
- {
- 	struct osd_state *osd = sd;
- 
--	return readl(osd->osd_base + offset);
-+	return readl(IOMEM(osd->osd_base + offset));
- }
- 
- static inline u32 osd_write(struct osd_state *sd, u32 val, u32 offset)
- {
- 	struct osd_state *osd = sd;
- 
--	writel(val, osd->osd_base + offset);
-+	writel(val, IOMEM(osd->osd_base + offset));
- 
- 	return val;
- }
-@@ -63,9 +63,9 @@ static inline u32 osd_set(struct osd_state *sd, u32 mask, u32 offset)
- 	struct osd_state *osd = sd;
- 
- 	u32 addr = osd->osd_base + offset;
--	u32 val = readl(addr) | mask;
-+	u32 val = readl(IOMEM(addr)) | mask;
- 
--	writel(val, addr);
-+	writel(val, IOMEM(addr));
- 
- 	return val;
- }
-@@ -75,9 +75,9 @@ static inline u32 osd_clear(struct osd_state *sd, u32 mask, u32 offset)
- 	struct osd_state *osd = sd;
- 
- 	u32 addr = osd->osd_base + offset;
--	u32 val = readl(addr) & ~mask;
-+	u32 val = readl(IOMEM(addr)) & ~mask;
- 
--	writel(val, addr);
-+	writel(val, IOMEM(addr));
- 
- 	return val;
- }
-@@ -88,9 +88,9 @@ static inline u32 osd_modify(struct osd_state *sd, u32 mask, u32 val,
- 	struct osd_state *osd = sd;
- 
- 	u32 addr = osd->osd_base + offset;
--	u32 new_val = (readl(addr) & ~mask) | (val & mask);
-+	u32 new_val = (readl(IOMEM(addr)) & ~mask) | (val & mask);
- 
--	writel(new_val, addr);
-+	writel(new_val, IOMEM(addr));
- 
- 	return new_val;
- }
--- 
-1.7.4.1
-
+                    Linus
