@@ -1,79 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:54703 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752665Ab2JZJVc (ORCPT
+Received: from smtp-outbound-1.vmware.com ([208.91.2.12]:50092 "EHLO
+	smtp-outbound-1.vmware.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752688Ab2JCMeE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Oct 2012 05:21:32 -0400
-Received: by mail-wi0-f170.google.com with SMTP id hm2so239359wib.1
-        for <linux-media@vger.kernel.org>; Fri, 26 Oct 2012 02:21:31 -0700 (PDT)
+	Wed, 3 Oct 2012 08:34:04 -0400
+Message-ID: <506C30B6.5020403@vmware.com>
+Date: Wed, 03 Oct 2012 14:33:58 +0200
+From: Thomas Hellstrom <thellstrom@vmware.com>
 MIME-Version: 1.0
-In-Reply-To: <20121025135047.30674062@redhat.com>
-References: <1348831603-18007-1-git-send-email-javier.martin@vista-silicon.com>
-	<20120929132556.22c48312@hpe.lwn.net>
-	<CACKLOr0DQZ9q0yN7NEShAtEMaXf50HgWwaq2s1c84yAj7HShSw@mail.gmail.com>
-	<20121025135047.30674062@redhat.com>
-Date: Fri, 26 Oct 2012 11:21:31 +0200
-Message-ID: <CACKLOr0dvarRhemat3a9JRuJ-132bg2+4-j9Bbat7_6EQMMFvA@mail.gmail.com>
-Subject: Re: [PATCH v3 0/4] ov7670: migrate this sensor and its users to ctrl framework.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	rusty@rustcorp.com.au, dsd@laptop.org, hdegoede@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+CC: jakob@vmware.com, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, sumit.semwal@linaro.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 4/5] reservation: cross-device reservation support
+References: <20120928124148.14366.21063.stgit@patser.local> <20120928124313.14366.44686.stgit@patser.local>
+In-Reply-To: <20120928124313.14366.44686.stgit@patser.local>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+I took a quick look on the fencing and added some thoughts on
+shared fences:
 
-
-On 25 October 2012 17:50, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> Hi Javier,
+On 09/28/2012 02:43 PM, Maarten Lankhorst wrote:
+> This adds support for a generic reservations framework that can be
+> hooked up to ttm and dma-buf and allows easy sharing of reservations
+> across devices.
 >
-> Em Thu, 25 Oct 2012 15:27:08 +0200
-> javier Martin <javier.martin@vista-silicon.com> escreveu:
+> The idea is that a dma-buf and ttm object both will get a pointer
+> to a struct reservation_object, which has to be reserved before
+> anything is done with the buffer.
 >
->> Hi Mauro, Jon,
->> any more issues related with this series?
+> Some followup patches are needed in ttm so the lru_lock is no longer
+> taken during the reservation step. This makes the lockdep annotation
+> patch a lot more useful, and the assumption that the lru lock protects
+> atomic removal off the lru list will fail soon, anyway.
 >
-> Patch doesn't apply anymore:
+> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 >
-> patching file drivers/media/i2c/ov7670.c
-> Hunk #2 succeeded at 191 (offset -32 lines).
-> Hunk #3 succeeded at 220 (offset -35 lines).
-> Hunk #4 succeeded at 1062 (offset -153 lines).
-> Hunk #5 succeeded at 1091 (offset -153 lines).
-> Hunk #6 succeeded at 1127 (offset -153 lines).
-> Hunk #7 succeeded at 1147 (offset -153 lines).
-> Hunk #8 succeeded at 1195 (offset -153 lines).
-> Hunk #9 succeeded at 1211 (offset -153 lines).
-> Hunk #10 succeeded at 1237 (offset -153 lines).
-> Hunk #11 succeeded at 1255 (offset -153 lines).
-> Hunk #12 succeeded at 1351 (offset -153 lines).
-> Hunk #13 FAILED at 1605.
-> Hunk #14 FAILED at 1616.
-> Hunk #15 succeeded at 1434 (offset -189 lines).
-> 2 out of 15 hunks FAILED -- rejects in file drivers/media/i2c/ov7670.c
+> +
+> +/**
+> + * ticket_commit - commit a reservation with a new fence
+> + * @ticket:	[in]	the reservation_ticket returned by
+> + * ticket_reserve
+> + * @entries:	[in]	a linked list of struct reservation_entry
+> + * @fence:	[in]	the fence that indicates completion
+> + *
+> + * This function will call reservation_ticket_fini, no need
+> + * to do it manually.
+> + *
+> + * This function should be called after a hardware command submission is
+> + * completed succesfully. The fence is used to indicate completion of
+> + * those commands.
+> + */
+> +void
+> +ticket_commit(struct reservation_ticket *ticket,
+> +		  struct list_head *entries, struct fence *fence)
+> +{
+> +	struct list_head *cur;
+> +
+> +	if (list_empty(entries))
+> +		return;
+> +
+> +	if (WARN_ON(!fence)) {
+> +		ticket_backoff(ticket, entries);
+> +		return;
+> +	}
+> +
+> +	list_for_each(cur, entries) {
+> +		struct reservation_object *bo;
+> +		bool shared;
+> +
+> +		reservation_entry_get(cur, &bo, &shared);
+> +
+> +		if (!shared) {
+> +			int i;
+> +			for (i = 0; i < bo->fence_shared_count; ++i) {
+> +				fence_put(bo->fence_shared[i]);
+> +				bo->fence_shared[i] = NULL;
+> +			}
+> +			bo->fence_shared_count = 0;
+> +			if (bo->fence_excl)
+> +				fence_put(bo->fence_excl);
+> +
+> +			bo->fence_excl = fence;
+I assume here that the validation code has made sure that fences are
+either ordered or expired so that "fence" signals *after* all other fences
+have signaled.
+
+> +		} else {
+> +			if (WARN_ON(bo->fence_shared_count >=
+> +				    ARRAY_SIZE(bo->fence_shared))) {
+> +				continue;
+> +			}
+This is bad. Failure to fence a buffer is a catastrophic error that can lead
+to pages being reused for other stuff while still being read by the GPU,
+and the caller must be informed with an error code and sync on the fence.
+
+I guess this has been discussed previously, but I think it might be more
+appropriate with a list of pointers to fences. There is an allocation 
+overhead,
+for this, but allocation from a mem cache should really be fast enough, and
+the list entries can be allocated during ticket_reserve to avoid errors in
+the commit code.
+
+> +
+> +			bo->fence_shared[bo->fence_shared_count++] = fence;
+
+It might be good if this function had access to a light version of a 
+cross-device
+struct fence * order_fences(struct fence *a, struct fence *b)
+function that can quickly check two fences and determine whether 
+signaling one means that the other
+one also is signaled. In that case one or more of the shared fences can 
+be unreferenced,
+putting less pressure on the fence_shared array.
+The lightweight version of order_fences is allowed to fail if there is 
+no simple
+and quick way of ordering them. Could perhaps be added to the fence API.
+
+And (even though not part of the reservation API)
+There is a heavyweight version of that cross-device function
+int order_fence(struct fence *a, int gpu_engine) needed for the 
+validation code
+exclusive fencing that
+*makes sure* fence a has signaled before the current gpu_engine executes 
+its commands.
+For some gpu - fence pairs the ordering is done implicitly since they 
+share the same command
+stream, for some it's possible to insert barriers in the gpu_engine 
+command stream
+(radeon and nouveau is doing that), and if there is no other way of 
+doing it, the code will need to
+wait for the fence.
+
+> +		}
+> +		fence_get(fence);
+
+Hmm. Perhaps a fence_get(fence, NUM) to avoid a huge number of atomic incs?
+
+> +
+> +		object_unreserve(bo, ticket);
+> +	}
+> +	reservation_ticket_fini(ticket);
+> +}
+> +EXPORT_SYMBOL(ticket_commit);
 >
-> Could you please rebase it? I tried to force its merge, but
-> it seemed that the conflicts are not that trivial, so I prefer
-> if you could do it and test if everything still applies.
 
-You need to apply the series in the following order:
+Thomas
 
-Firstly: [PATCH v2 0/5] media: ov7670: driver cleanup and support for ov7674.
-Secondly: [PATCH v3 0/4] ov7670: migrate this sensor and its users to
-ctrl framework.
-
-This shouldn't cause any troubles. Otherwise, please let me know.
-
-Regards.
-
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
