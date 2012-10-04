@@ -1,106 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail4-relais-sop.national.inria.fr ([192.134.164.105]:42652
-	"EHLO mail4-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753408Ab2JGPjZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Oct 2012 11:39:25 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Antti Palosaari <crope@iki.fi>
-Cc: kernel-janitors@vger.kernel.org, rmallon@gmail.com,
-	shubhrajyoti@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 8/13] drivers/media/tuners/fc2580.c: use macros for i2c_msg initialization
-Date: Sun,  7 Oct 2012 17:38:39 +0200
-Message-Id: <1349624323-15584-10-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
+Received: from smtp1.work.de ([212.12.40.178]:48977 "EHLO smtp.work.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965008Ab2JDOqo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Oct 2012 10:46:44 -0400
+From: Julian Scheel <julian@jusst.de>
+To: linux-media@vger.kernel.org
+Cc: Julian Scheel <julian@jusst.de>
+Subject: [PATCH] tm6000: Add parameter to keep urb bufs allocated.
+Date: Thu,  4 Oct 2012 16:04:28 +0200
+Message-Id: <1349359468-18965-1-git-send-email-julian@jusst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+On systems where it cannot be assured that enough continous memory is available
+all the time it can be very useful to only allocate the memory once when it is
+needed the first time. Afterwards the initially allocated memory will be
+reused, so it is ensured that the memory will stay available until the driver
+is unloaded.
 
-Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
-
-A length expressed as an explicit constant is also re-expressed as the size
-of the buffer in each case.
-
-A simplified version of the semantic patch that makes this change is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-@@
-expression a,b,c;
-identifier x;
-@@
-
-struct i2c_msg x =
-- {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
-+ I2C_MSG_READ(a,b,c)
- ;
-
-@@
-expression a,b,c;
-identifier x;
-@@
-
-struct i2c_msg x =
-- {.addr = a, .buf = b, .len = c, .flags = 0}
-+ I2C_MSG_WRITE(a,b,c)
- ;
-
-@@
-expression a,b,c,d;
-identifier x;
-@@
-
-struct i2c_msg x = 
-- {.addr = a, .buf = b, .len = c, .flags = d}
-+ I2C_MSG_OP(a,b,c,d)
- ;
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+Signed-off-by: Julian Scheel <julian@jusst.de>
 ---
- drivers/media/tuners/fc2580.c |   20 +++-----------------
- 1 file changed, 3 insertions(+), 17 deletions(-)
+ drivers/media/video/tm6000/tm6000-video.c | 111 +++++++++++++++++++++++++-----
+ drivers/media/video/tm6000/tm6000.h       |   5 ++
+ 2 files changed, 97 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
-index aff39ae..d0c0ff1 100644
---- a/drivers/media/tuners/fc2580.c
-+++ b/drivers/media/tuners/fc2580.c
-@@ -45,12 +45,7 @@ static int fc2580_wr_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
- 	int ret;
- 	u8 buf[1 + len];
- 	struct i2c_msg msg[1] = {
--		{
--			.addr = priv->cfg->i2c_addr,
--			.flags = 0,
--			.len = sizeof(buf),
--			.buf = buf,
--		}
-+		I2C_MSG_WRITE(priv->cfg->i2c_addr, buf, sizeof(buf))
- 	};
+diff --git a/drivers/media/video/tm6000/tm6000-video.c b/drivers/media/video/tm6000/tm6000-video.c
+index 03de3d8..1b8db35 100644
+--- a/drivers/media/video/tm6000/tm6000-video.c
++++ b/drivers/media/video/tm6000/tm6000-video.c
+@@ -49,12 +49,15 @@
+ #define TM6000_MIN_BUF 4
+ #define TM6000_DEF_BUF 8
  
- 	buf[0] = reg;
-@@ -73,17 +68,8 @@ static int fc2580_rd_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
- 	int ret;
- 	u8 buf[len];
- 	struct i2c_msg msg[2] = {
--		{
--			.addr = priv->cfg->i2c_addr,
--			.flags = 0,
--			.len = 1,
--			.buf = &reg,
--		}, {
--			.addr = priv->cfg->i2c_addr,
--			.flags = I2C_M_RD,
--			.len = sizeof(buf),
--			.buf = buf,
--		}
-+		I2C_MSG_WRITE(priv->cfg->i2c_addr, &reg, sizeof(reg)),
-+		I2C_MSG_READ(priv->cfg->i2c_addr, buf, sizeof(buf))
- 	};
++#define TM6000_NUM_URB_BUF 8
++
+ #define TM6000_MAX_ISO_PACKETS	46	/* Max number of ISO packets */
  
- 	ret = i2c_transfer(priv->i2c, msg, 2);
+ /* Declare static vars that will be used as parameters */
+ static unsigned int vid_limit = 16;	/* Video memory limit, in Mb */
+ static int video_nr = -1;		/* /dev/videoN, -1 for autodetect */
+ static int radio_nr = -1;		/* /dev/radioN, -1 for autodetect */
++static int keep_urb = 0;		/* keep urb buffers allocated */
+ 
+ /* Debug level */
+ int tm6000_debug;
+@@ -570,6 +573,70 @@ static void tm6000_irq_callback(struct urb *urb)
+ }
+ 
+ /*
++ * Allocate URB buffers
++ */
++static int tm6000_alloc_urb_buffers(struct tm6000_core *dev)
++{
++	int num_bufs = TM6000_NUM_URB_BUF;
++	int i;
++
++	if (dev->urb_buffer != NULL)
++		return 0;
++
++	dev->urb_buffer = kmalloc(sizeof(void *)*num_bufs, GFP_KERNEL);
++	if (!dev->urb_buffer) {
++		tm6000_err("cannot allocate memory for urb buffers\n");
++		return -ENOMEM;
++	}
++
++	dev->urb_dma = kmalloc(sizeof(dma_addr_t *)*num_bufs, GFP_KERNEL);
++	if (!dev->urb_dma) {
++		tm6000_err("cannot allocate memory for urb dma pointers\n");
++		return -ENOMEM;
++	}
++
++	for (i = 0; i < num_bufs; i++) {
++		dev->urb_buffer[i] = usb_alloc_coherent(dev->udev, dev->urb_size,
++					GFP_KERNEL, &dev->urb_dma[i]);
++		if (!dev->urb_buffer[i]) {
++			tm6000_err("unable to allocate %i bytes for transfer"
++					" buffer %i\n", dev->urb_size, i);
++			return -ENOMEM;
++		}
++		memset(dev->urb_buffer[i], 0, dev->urb_size);
++	}
++
++	return 0;
++}
++
++/*
++ * Free URB buffers
++ */
++static int tm6000_free_urb_buffers(struct tm6000_core *dev)
++{
++	int i;
++
++	if (dev->urb_buffer == NULL)
++		return 0;
++
++	for (i = 0; i < TM6000_NUM_URB_BUF; i++) {
++		if (dev->urb_buffer[i]) {
++			usb_free_coherent(dev->udev,
++					dev->urb_size,
++					dev->urb_buffer[i],
++					dev->urb_dma[i]);
++			dev->urb_buffer[i] = NULL;
++		}
++	}
++	kfree (dev->urb_buffer);
++	kfree (dev->urb_dma);
++	dev->urb_buffer = NULL;
++	dev->urb_dma = NULL;
++
++	return 0;
++}
++
++/*
+  * Stop and Deallocate URBs
+  */
+ static void tm6000_uninit_isoc(struct tm6000_core *dev)
+@@ -585,18 +652,15 @@ static void tm6000_uninit_isoc(struct tm6000_core *dev)
+ 		if (urb) {
+ 			usb_kill_urb(urb);
+ 			usb_unlink_urb(urb);
+-			if (dev->isoc_ctl.transfer_buffer[i]) {
+-				usb_free_coherent(dev->udev,
+-						urb->transfer_buffer_length,
+-						dev->isoc_ctl.transfer_buffer[i],
+-						urb->transfer_dma);
+-			}
+ 			usb_free_urb(urb);
+ 			dev->isoc_ctl.urb[i] = NULL;
+ 		}
+ 		dev->isoc_ctl.transfer_buffer[i] = NULL;
+ 	}
+ 
++	if (!keep_urb)
++		tm6000_free_urb_buffers(dev);
++
+ 	kfree(dev->isoc_ctl.urb);
+ 	kfree(dev->isoc_ctl.transfer_buffer);
+ 
+@@ -606,12 +670,12 @@ static void tm6000_uninit_isoc(struct tm6000_core *dev)
+ }
+ 
+ /*
+- * Allocate URBs and start IRQ
++ * Assign URBs and start IRQ
+  */
+ static int tm6000_prepare_isoc(struct tm6000_core *dev)
+ {
+ 	struct tm6000_dmaqueue *dma_q = &dev->vidq;
+-	int i, j, sb_size, pipe, size, max_packets, num_bufs = 8;
++	int i, j, sb_size, pipe, size, max_packets, num_bufs = TM6000_NUM_URB_BUF;
+ 	struct urb *urb;
+ 
+ 	/* De-allocates all pending stuff */
+@@ -634,6 +698,7 @@ static int tm6000_prepare_isoc(struct tm6000_core *dev)
+ 
+ 	max_packets = TM6000_MAX_ISO_PACKETS;
+ 	sb_size = max_packets * size;
++	dev->urb_size = sb_size;
+ 
+ 	dev->isoc_ctl.num_bufs = num_bufs;
+ 
+@@ -656,6 +721,17 @@ static int tm6000_prepare_isoc(struct tm6000_core *dev)
+ 		    max_packets, num_bufs, sb_size,
+ 		    dev->isoc_in.maxsize, size);
+ 
++
++	if (!dev->urb_buffer && tm6000_alloc_urb_buffers(dev) < 0) {
++		tm6000_err("cannot allocate memory for urb buffers\n");
++
++		/* call free, as some buffers might have been allocated */
++		tm6000_free_urb_buffers(dev);
++		kfree(dev->isoc_ctl.urb);
++		kfree(dev->isoc_ctl.transfer_buffer);
++		return -ENOMEM;
++	}
++
+ 	/* allocate urbs and transfer buffers */
+ 	for (i = 0; i < dev->isoc_ctl.num_bufs; i++) {
+ 		urb = usb_alloc_urb(max_packets, GFP_KERNEL);
+@@ -667,17 +743,8 @@ static int tm6000_prepare_isoc(struct tm6000_core *dev)
+ 		}
+ 		dev->isoc_ctl.urb[i] = urb;
+ 
+-		dev->isoc_ctl.transfer_buffer[i] = usb_alloc_coherent(dev->udev,
+-			sb_size, GFP_KERNEL, &urb->transfer_dma);
+-		if (!dev->isoc_ctl.transfer_buffer[i]) {
+-			tm6000_err("unable to allocate %i bytes for transfer"
+-					" buffer %i%s\n",
+-					sb_size, i,
+-					in_interrupt() ? " while in int" : "");
+-			tm6000_uninit_isoc(dev);
+-			return -ENOMEM;
+-		}
+-		memset(dev->isoc_ctl.transfer_buffer[i], 0, sb_size);
++		urb->transfer_dma = dev->urb_dma[i];
++		dev->isoc_ctl.transfer_buffer[i] = dev->urb_buffer[i];
+ 
+ 		usb_fill_bulk_urb(urb, dev->udev, pipe,
+ 				  dev->isoc_ctl.transfer_buffer[i], sb_size,
+@@ -1833,6 +1900,9 @@ int tm6000_v4l2_unregister(struct tm6000_core *dev)
+ {
+ 	video_unregister_device(dev->vfd);
+ 
++	/* if URB buffers are still allocated free them now */
++	tm6000_free_urb_buffers(dev);
++
+ 	if (dev->radio_dev) {
+ 		if (video_is_registered(dev->radio_dev))
+ 			video_unregister_device(dev->radio_dev);
+@@ -1858,3 +1928,6 @@ MODULE_PARM_DESC(debug, "activates debug info");
+ module_param(vid_limit, int, 0644);
+ MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
+ 
++module_param(keep_urb, bool, 0);
++MODULE_PARM_DESC(keep_urb, "Keep urb buffers allocated even when the device "
++				"is closed by the user");
+diff --git a/drivers/media/video/tm6000/tm6000.h b/drivers/media/video/tm6000/tm6000.h
+index 6531d16..4bd3a0d 100644
+--- a/drivers/media/video/tm6000/tm6000.h
++++ b/drivers/media/video/tm6000/tm6000.h
+@@ -267,6 +267,11 @@ struct tm6000_core {
+ 
+ 	spinlock_t                   slock;
+ 
++	/* urb dma buffers */
++	char				**urb_buffer;
++	dma_addr_t			*urb_dma;
++	unsigned int			urb_size;
++
+ 	unsigned long quirks;
+ };
+ 
+-- 
+1.7.12.2
 
