@@ -1,237 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:64052 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932512Ab2JURxm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Oct 2012 13:53:42 -0400
-Received: by mail-wi0-f172.google.com with SMTP id hq12so1759055wib.1
-        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2012 10:53:41 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 16/23] em28xx: rename usb debugging module parameter and macro
-Date: Sun, 21 Oct 2012 19:52:22 +0300
-Message-Id: <1350838349-14763-18-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:43251 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752496Ab2JDKHL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Oct 2012 06:07:11 -0400
+Message-ID: <506D5FBF.8010601@ti.com>
+Date: Thu, 4 Oct 2012 15:36:55 +0530
+From: Prabhakar Lad <prabhakar.lad@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: LMML <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Sekhar Nori <nsekhar@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [GIT PULL FOR v3.7] Davinci VPIF driver cleanup
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename module parameter isoc_debug to usb_debug and macro
-em28xx_isocdbg to em28xx_usb dbg to reflect that they are
-used for isoc and bulk USB transfers.
+Hi Mauro,
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |   58 +++++++++++++++----------------
- 1 Datei geändert, 28 Zeilen hinzugefügt(+), 30 Zeilen entfernt(-)
+Can you please pull the following patches for davinci VPIF driver.
+There are patches which affect davinci platform code, on top
+of which cleanup was done, So to avoid conflicts these patches
+need to go through media tree. Patches affecting davinci platform
+code have been Acked by Sekhar.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index d6de1cc..f435206 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -58,13 +58,13 @@
- 		printk(KERN_INFO "%s %s :"fmt, \
- 			 dev->name, __func__ , ##arg); } while (0)
- 
--static unsigned int isoc_debug;
--module_param(isoc_debug, int, 0644);
--MODULE_PARM_DESC(isoc_debug, "enable debug messages [isoc transfers]");
-+static unsigned int usb_debug;
-+module_param(usb_debug, int, 0644);
-+MODULE_PARM_DESC(usb_debug, "enable debug messages [isoc transfers]");
- 
--#define em28xx_isocdbg(fmt, arg...) \
-+#define em28xx_usbdbg(fmt, arg...) \
- do {\
--	if (isoc_debug) { \
-+	if (usb_debug) { \
- 		printk(KERN_INFO "%s %s :"fmt, \
- 			 dev->name, __func__ , ##arg); \
- 	} \
-@@ -161,7 +161,7 @@ static inline void buffer_filled(struct em28xx *dev,
- 				  struct em28xx_buffer *buf)
- {
- 	/* Advice that buffer was filled */
--	em28xx_isocdbg("[%p/%d] wakeup\n", buf, buf->vb.i);
-+	em28xx_usbdbg("[%p/%d] wakeup\n", buf, buf->vb.i);
- 	buf->vb.state = VIDEOBUF_DONE;
- 	buf->vb.field_count++;
- 	do_gettimeofday(&buf->vb.ts);
-@@ -177,7 +177,7 @@ static inline void vbi_buffer_filled(struct em28xx *dev,
- 				     struct em28xx_buffer *buf)
- {
- 	/* Advice that buffer was filled */
--	em28xx_isocdbg("[%p/%d] wakeup\n", buf, buf->vb.i);
-+	em28xx_usbdbg("[%p/%d] wakeup\n", buf, buf->vb.i);
- 
- 	buf->vb.state = VIDEOBUF_DONE;
- 	buf->vb.field_count++;
-@@ -226,9 +226,9 @@ static void em28xx_copy_video(struct em28xx *dev,
- 	lencopy = lencopy > remain ? remain : lencopy;
- 
- 	if ((char *)startwrite + lencopy > (char *)outp + buf->vb.size) {
--		em28xx_isocdbg("Overflow of %zi bytes past buffer end (1)\n",
--			       ((char *)startwrite + lencopy) -
--			       ((char *)outp + buf->vb.size));
-+		em28xx_usbdbg("Overflow of %zi bytes past buffer end (1)\n",
-+			      ((char *)startwrite + lencopy) -
-+			      ((char *)outp + buf->vb.size));
- 		remain = (char *)outp + buf->vb.size - (char *)startwrite;
- 		lencopy = remain;
- 	}
-@@ -251,7 +251,7 @@ static void em28xx_copy_video(struct em28xx *dev,
- 
- 		if ((char *)startwrite + lencopy > (char *)outp +
- 		    buf->vb.size) {
--			em28xx_isocdbg("Overflow of %zi bytes past buffer end"
-+			em28xx_usbdbg("Overflow of %zi bytes past buffer end"
- 				       "(2)\n",
- 				       ((char *)startwrite + lencopy) -
- 				       ((char *)outp + buf->vb.size));
-@@ -280,24 +280,24 @@ static void em28xx_copy_vbi(struct em28xx *dev,
- 	int bytesperline;
- 
- 	if (dev == NULL) {
--		em28xx_isocdbg("dev is null\n");
-+		em28xx_usbdbg("dev is null\n");
- 		return;
- 	}
- 	bytesperline = dev->vbi_width;
- 
- 	if (dma_q == NULL) {
--		em28xx_isocdbg("dma_q is null\n");
-+		em28xx_usbdbg("dma_q is null\n");
- 		return;
- 	}
- 	if (buf == NULL) {
- 		return;
- 	}
- 	if (p == NULL) {
--		em28xx_isocdbg("p is null\n");
-+		em28xx_usbdbg("p is null\n");
- 		return;
- 	}
- 	if (outp == NULL) {
--		em28xx_isocdbg("outp is null\n");
-+		em28xx_usbdbg("outp is null\n");
- 		return;
- 	}
- 
-@@ -351,9 +351,9 @@ static inline void print_err_status(struct em28xx *dev,
- 		break;
- 	}
- 	if (packet < 0) {
--		em28xx_isocdbg("URB status %d [%s].\n",	status, errmsg);
-+		em28xx_usbdbg("URB status %d [%s].\n",	status, errmsg);
- 	} else {
--		em28xx_isocdbg("URB packet %d, status %d [%s].\n",
-+		em28xx_usbdbg("URB packet %d, status %d [%s].\n",
- 			       packet, status, errmsg);
- 	}
- }
-@@ -368,7 +368,7 @@ static inline void get_next_buf(struct em28xx_dmaqueue *dma_q,
- 	char *outp;
- 
- 	if (list_empty(&dma_q->active)) {
--		em28xx_isocdbg("No active queue to serve\n");
-+		em28xx_usbdbg("No active queue to serve\n");
- 		dev->usb_ctl.vid_buf = NULL;
- 		*buf = NULL;
- 		return;
-@@ -396,7 +396,7 @@ static inline void vbi_get_next_buf(struct em28xx_dmaqueue *dma_q,
- 	char *outp;
- 
- 	if (list_empty(&dma_q->active)) {
--		em28xx_isocdbg("No active queue to serve\n");
-+		em28xx_usbdbg("No active queue to serve\n");
- 		dev->usb_ctl.vbi_buf = NULL;
- 		*buf = NULL;
- 		return;
-@@ -457,8 +457,7 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
- 
- 			actual_length = urb->iso_frame_desc[i].actual_length;
- 			if (actual_length > dev->max_pkt_size) {
--				em28xx_isocdbg("packet bigger than "
--					       "packet size");
-+				em28xx_usbdbg("packet bigger than packet size");
- 				continue;
- 			}
- 
-@@ -476,12 +475,12 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
- 		   logic simpler. Impacts of those changes should be evaluated
- 		 */
- 		if (p[0] == 0x33 && p[1] == 0x95 && p[2] == 0x00) {
--			em28xx_isocdbg("VBI HEADER!!!\n");
-+			em28xx_usbdbg("VBI HEADER!!!\n");
- 			/* FIXME: Should add vbi copy */
- 			continue;
- 		}
- 		if (p[0] == 0x22 && p[1] == 0x5a) {
--			em28xx_isocdbg("Video frame %d, length=%i, %s\n", p[2],
-+			em28xx_usbdbg("Video frame %d, length=%i, %s\n", p[2],
- 				       len, (p[2] & 1) ? "odd" : "even");
- 
- 			if (dev->progressive || !(p[2] & 1)) {
-@@ -507,7 +506,7 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
- 			if (p[0] != 0x88 && p[0] != 0x22) {
- 				/* NOTE: no intermediate data packet header
- 				 * 88 88 88 88 when using bulk transfers */
--				em28xx_isocdbg("frame is not complete\n");
-+				em28xx_usbdbg("frame is not complete\n");
- 				len = actual_length;
- 			} else {
- 				len = actual_length - 4;
-@@ -569,8 +568,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
- 
- 			actual_length = urb->iso_frame_desc[i].actual_length;
- 			if (actual_length > dev->max_pkt_size) {
--				em28xx_isocdbg("packet bigger than "
--					       "packet size");
-+				em28xx_usbdbg("packet bigger than packet size");
- 				continue;
- 			}
- 
-@@ -590,7 +588,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
- 		if (p[0] == 0x33 && p[1] == 0x95) {
- 			dev->capture_type = 0;
- 			dev->vbi_read = 0;
--			em28xx_isocdbg("VBI START HEADER!!!\n");
-+			em28xx_usbdbg("VBI START HEADER!!!\n");
- 			dev->cur_field = p[2];
- 			p += 4;
- 			len = actual_length - 4;
-@@ -615,7 +613,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
- 			if (dev->vbi_read >= vbi_size) {
- 				/* We've already read all the VBI data, so
- 				   treat the rest as video */
--				em28xx_isocdbg("dev->vbi_read > vbi_size\n");
-+				em28xx_usbdbg("dev->vbi_read > vbi_size\n");
- 			} else if ((dev->vbi_read + len) < vbi_size) {
- 				/* This entire frame is VBI data */
- 				if (dev->vbi_read == 0 &&
-@@ -687,7 +685,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
- 				len -= 4;
- 			}
- 			if (len >= 4 && p[0] == 0x22 && p[1] == 0x5a) {
--				em28xx_isocdbg("Video frame %d, len=%i, %s\n",
-+				em28xx_usbdbg("Video frame %d, len=%i, %s\n",
- 					       p[2], len, (p[2] & 1) ?
- 					       "odd" : "even");
- 				p += 4;
-@@ -837,7 +835,7 @@ static void buffer_release(struct videobuf_queue *vq,
- 	struct em28xx_fh       *fh   = vq->priv_data;
- 	struct em28xx          *dev  = (struct em28xx *)fh->dev;
- 
--	em28xx_isocdbg("em28xx: called buffer_release\n");
-+	em28xx_usbdbg("em28xx: called buffer_release\n");
- 
- 	free_buffer(vq, buf);
- }
--- 
-1.7.10.4
+Thanks and Regards,
+--Prabhakar Lad
 
+The following changes since commit 2425bb3d4016ed95ce83a90b53bd92c7f31091e4:
+
+  em28xx: regression fix: use DRX-K sync firmware requests on em28xx
+(2012-10-02 17:15:22 -0300)
+
+are available in the git repository at:
+  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git da850_vpif_machine
+
+Hans Verkuil (14):
+      vpif_capture: remove unused data structure.
+      vpif_display: remove unused data structures.
+      vpif_capture: move input_idx to channel_obj.
+      vpif_display: move output_id to channel_obj.
+      vpif_capture: remove unnecessary can_route flag.
+      vpif_capture: move routing info from subdev to input.
+      vpif_capture: first init subdevs, then register device nodes.
+      vpif_display: first init subdevs, then register device nodes.
+      vpif_display: fix cleanup code.
+      vpif_capture: fix cleanup code.
+      vpif_capture: separate subdev from input.
+      vpif_display: use a v4l2_subdev pointer to call a subdev.
+      davinci: move struct vpif_interface to chan_cfg.
+      tvp514x: s_routing should just change routing, not try to detect a
+signal.
+
+Lad, Prabhakar (4):
+      media: davinci: vpif: add check for NULL handler
+      media: davinci: vpif: display: separate out subdev from output
+      media: davinci: vpif: Add return code check at vb2_queue_init()
+      media: davinci: vpif: set device capabilities
+
+Manjunath Hadli (2):
+      ARM: davinci: da850: Add SoC related definitions for VPIF
+      ARM: davinci: da850 evm: Add EVM specific code for VPIF to work
+
+ arch/arm/mach-davinci/Kconfig                 |    7 +
+ arch/arm/mach-davinci/board-da850-evm.c       |  179 ++++++++++++
+ arch/arm/mach-davinci/board-dm646x-evm.c      |   80 ++++--
+ arch/arm/mach-davinci/da850.c                 |  152 ++++++++++
+ arch/arm/mach-davinci/include/mach/da8xx.h    |   11 +
+ arch/arm/mach-davinci/include/mach/mux.h      |   42 +++
+ arch/arm/mach-davinci/include/mach/psc.h      |    1 +
+ drivers/media/i2c/tvp514x.c                   |   77 +-----
+ drivers/media/platform/davinci/vpif_capture.c |  370
+++++++++++++-------------
+ drivers/media/platform/davinci/vpif_capture.h |   16 +-
+ drivers/media/platform/davinci/vpif_display.c |  275 ++++++++++++------
+ drivers/media/platform/davinci/vpif_display.h |   18 +-
+ include/media/davinci/vpif_types.h            |   26 ++-
+ 13 files changed, 837 insertions(+), 417 deletions(-)
