@@ -1,71 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2187 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754399Ab2JQGeY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 02:34:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [media-workshop] RFC: V4L2 API ambiguities
-Date: Wed, 17 Oct 2012 08:34:05 +0200
-Cc: media-workshop@linuxtv.org, Sakari Ailus <sakari.ailus@iki.fi>,
-	"linux-media" <linux-media@vger.kernel.org>
-References: <201210151335.45477.hverkuil@xs4all.nl> <1758580.dogfQVcdf2@avalon>
-In-Reply-To: <1758580.dogfQVcdf2@avalon>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:47298 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751229Ab2JDBm5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 21:42:57 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210170834.05701.hverkuil@xs4all.nl>
+In-Reply-To: <CACVXFVNTZmG+zTQNi9mCn9ynsCjkM084TmHKDcYYggtqLfhqNQ@mail.gmail.com>
+References: <1340285798-8322-1-git-send-email-mchehab@redhat.com>
+ <4FE37194.30407@redhat.com> <4FE8B8BC.3020702@iki.fi> <4FE8C4C4.1050901@redhat.com>
+ <4FE8CED5.104@redhat.com> <20120625223306.GA2764@kroah.com>
+ <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com>
+ <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
+ <20121002221239.GA30990@kroah.com> <20121002222333.GA32207@kroah.com>
+ <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
+ <506C562E.5090909@redhat.com> <CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
+ <CACVXFVNTZmG+zTQNi9mCn9ynsCjkM084TmHKDcYYggtqLfhqNQ@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Wed, 3 Oct 2012 18:42:34 -0700
+Message-ID: <CA+55aFxJ=Z+c3NxWgOajYD6MOK-7cT=8gfPN9BP_jjhYbs6Z6g@mail.gmail.com>
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
+ callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
+To: Ming Lei <ming.lei@canonical.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Kay Sievers <kay@vrfy.org>,
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Ivan Kalvachev <ikalvachev@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed October 17 2012 02:25:00 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Monday 15 October 2012 13:35:45 Hans Verkuil wrote:
-> > During the Plumbers Conference a few weeks ago we had a session to resolve
-> > V4L2 ambiguities. It was very successful, but we didn't manage to tackle
-> > two of the harder topics, and a third one (timestamps) cause a lot of
-> > discussion on the mailinglist after the conference.
-> > 
-> > So here is the list I have today. Any other ambiguities or new features that
-> > should be added to the list?
-> 
-> Small topic that we've briefly discussed on IRC: if a device doesn't tell the 
-> driver what color space it uses, should the driver guess or tell the 
-> application that the color space is unknown ? I've ran into that issue for the 
-> uvcvideo driver, while I agree with you that in that case the color space is 
-> very likely sRGB, and that the driver is probably in a better position to make 
-> that guess than the userspace application (as the driver knows it handles a 
-> webcam), what should be the rule ?
+On Wed, Oct 3, 2012 at 6:33 PM, Ming Lei <ming.lei@canonical.com> wrote:
+>
+> Yes, the patch will make firmware cache not working, I would like to fix
+> that when I return from one trip next week.
+>
+> BTW, firmware cache is still needed even direct loading is taken.
 
-I'll add it to the list.
+I agree 100%, I'd have liked to do the caching for the direct-loading
+case too. It's just that the freeing case for that is so intimately
+tied to the firmware_buf format which is actually very inconvenient
+for direct-loading, that making that happen looked a lot more
+involved.
 
-> > 1) Make a decision how to tell userspace that the monotonic timestamp is
-> > used.
-> > 
-> > Several proposals were made, but no decision was taken AFAIK. Can someone
-> > (Sakari?) make a summary/current status of this?
-> > 
-> > 
-> > 2) Pixel Aspect Ratio
-> > 
-> > Pixel aspect: currently this is only available through VIDIOC_CROPCAP. It
-> > never really belonged to VIDIOC_CROPCAP IMHO. It's just not a property of
-> > cropping or composing. It really belongs to the input/output timings (STD
-> > or DV_TIMINGS). That's where the pixel aspect ratio is determined.
-> > 
-> > While it is possible to add it to the dv_timings struct, I see no way of
-> > cleanly adding it to struct v4l2_standard (mostly because VIDIOC_ENUMSTD is
-> > now handled inside the V4L2 core and doesn't call the drivers anymore).
-> 
-> Isn't that an implementation issue instead of an API issue ?
+And I was indeed hoping you'd look at it, since you touched the code
+last.  "Tag, you're it"
 
-True, but it will require changing all drivers. But adding it to v4l2_standard
-would be the best place for this, so perhaps we should think about doing all
-this work.
+It shouldn't be *too* bad to instead of doing the "vmalloc()" allocate
+an array of pages and then using "vmap()" instead in order to read
+them (we end up doing the vmap anyway, since the firmware *user* wants
+a virtually contiguous buffer), but the code will definitely get a bit
+more opaque.
 
-Regards,
-
-	Hans
+                        Linus
