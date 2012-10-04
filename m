@@ -1,181 +1,570 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:35017 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753821Ab2JUAY2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Oct 2012 20:24:28 -0400
-Date: Sun, 21 Oct 2012 02:24:24 +0200
-From: Borislav Petkov <bp@alien8.de>
-To: "Artem S. Tashkinov" <t.artem@lycos.com>
-Cc: pavel@ucw.cz, linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	security@kernel.org, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org
-Subject: Re: Re: Re: A reliable kernel panic (3.6.2) and system crash when
- visiting a particular website
-Message-ID: <20121021002424.GA16247@liondog.tnic>
-References: <2104474742.26357.1350734815286.JavaMail.mail@webmail05>
- <20121020162759.GA12551@liondog.tnic>
- <966148591.30347.1350754909449.JavaMail.mail@webmail08>
- <20121020203227.GC555@elf.ucw.cz>
- <20121020225849.GA8976@liondog.tnic>
- <1781795634.31179.1350774917965.JavaMail.mail@webmail04>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51955 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750811Ab2JDR7o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 13:59:44 -0400
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	<linux-fbdev@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<linux-media@vger.kernel.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: =?UTF-8?q?=5BPATCH=201/2=20v6=5D=20of=3A=20add=20helper=20to=20parse=20display=20timings?=
+Date: Thu,  4 Oct 2012 19:59:19 +0200
+Message-Id: <1349373560-11128-2-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1781795634.31179.1350774917965.JavaMail.mail@webmail04>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Oct 20, 2012 at 11:15:17PM +0000, Artem S. Tashkinov wrote:
-> You don't get me - I have *no* VirtualBox (or any proprietary) modules
-> running
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+---
+ .../devicetree/bindings/video/display-timings.txt  |  222 ++++++++++++++++++++
+ drivers/of/Kconfig                                 |    5 +
+ drivers/of/Makefile                                |    1 +
+ drivers/of/of_display_timings.c                    |  183 ++++++++++++++++
+ include/linux/of_display_timings.h                 |   85 ++++++++
+ 5 files changed, 496 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/video/display-timings.txt
+ create mode 100644 drivers/of/of_display_timings.c
+ create mode 100644 include/linux/of_display_timings.h
 
-Ok, good. We got that out of the way - I wanted to make sure after you
-replied with two other possibilities of the system freezing.
-
-> - but I can reproduce this problem using *the same system running
-> under* VirtualBox in Windows 7 64.
-
-That's windoze as host and linux as a guest, correct?
-
-If so, that's virtualbox's problem, I'd say.
-
-> It's almost definitely either a USB driver bug or video4linux driver
-> bug:
-
-And you're assuming that because the freeze happens when using your usb
-webcam, correct? And not otherwise?
-
-Maybe you can describe in more detail what exactly you're doing so that
-people could try to reproduce your issue.
-
-> I'm CC'ing linux-media and linux-usb mailing lists, the problem is described here:
-> https://lkml.org/lkml/2012/10/20/35
-> https://lkml.org/lkml/2012/10/20/148
-
-Yes, good idea. Maybe the folks there have some more ideas how to debug
-this.
-
-I'm leaving in the rest for reference.
-
-What should be pointed out, though, is that you don't have any more
-random corruptions causing oopses now that virtualbox is gone. The
-freeze below is a whole another issue.
-
-Thanks.
-
-> Here are  the last lines from my dmesg (with usbmon loaded):
-> 
-> [  292.164833] hub 1-0:1.0: state 7 ports 8 chg 0000 evt 0002
-> [  292.168091] ehci_hcd 0000:00:1f.5: GetStatus port:1 status 00100a 0  ACK POWER sig=se0 PEC CSC
-> [  292.172063] hub 1-0:1.0: port 1, status 0100, change 0003, 12 Mb/s
-> [  292.174883] usb 1-1: USB disconnect, device number 2
-> [  292.178045] usb 1-1: unregistering device
-> [  292.183539] usb 1-1: unregistering interface 1-1:1.0
-> [  292.197034] usb 1-1: unregistering interface 1-1:1.1
-> [  292.204317] usb 1-1: unregistering interface 1-1:1.2
-> [  292.234519] usb 1-1: unregistering interface 1-1:1.3
-> [  292.236175] usb 1-1: usb_disable_device nuking all URBs
-> [  292.364429] hub 1-0:1.0: debounce: port 1: total 100ms stable 100ms status 0x100
-> [  294.364279] hub 1-0:1.0: hub_suspend
-> [  294.366045] usb usb1: bus auto-suspend, wakeup 1
-> [  294.367375] ehci_hcd 0000:00:1f.5: suspend root hub
-> [  296.501084] usb usb1: usb wakeup-resume
-> [  296.508311] usb usb1: usb auto-resume
-> [  296.509833] ehci_hcd 0000:00:1f.5: resume root hub
-> [  296.560149] hub 1-0:1.0: hub_resume
-> [  296.562240] ehci_hcd 0000:00:1f.5: GetStatus port:1 status 001003 0  ACK POWER sig=se0 CSC CONNECT
-> [  296.566141] hub 1-0:1.0: port 1: status 0501 change 0001
-> [  296.670413] hub 1-0:1.0: state 7 ports 8 chg 0002 evt 0000
-> [  296.673222] hub 1-0:1.0: port 1, status 0501, change 0000, 480 Mb/s
-> [  297.311720] usb 1-1: new high-speed USB device number 3 using ehci_hcd
-> [  300.547237] usb 1-1: skipped 1 descriptor after configuration
-> [  300.549443] usb 1-1: skipped 4 descriptors after interface
-> [  300.552273] usb 1-1: skipped 2 descriptors after interface
-> [  300.556499] usb 1-1: skipped 1 descriptor after endpoint
-> [  300.559392] usb 1-1: skipped 2 descriptors after interface
-> [  300.560960] usb 1-1: skipped 1 descriptor after endpoint
-> [  300.562169] usb 1-1: skipped 2 descriptors after interface
-> [  300.563440] usb 1-1: skipped 1 descriptor after endpoint
-> [  300.564639] usb 1-1: skipped 2 descriptors after interface
-> [  300.565828] usb 1-1: skipped 2 descriptors after endpoint
-> [  300.567084] usb 1-1: skipped 9 descriptors after interface
-> [  300.569205] usb 1-1: skipped 1 descriptor after endpoint
-> [  300.570484] usb 1-1: skipped 53 descriptors after interface
-> [  300.595843] usb 1-1: default language 0x0409
-> [  300.602503] usb 1-1: USB interface quirks for this device: 2
-> [  300.605700] usb 1-1: udev 3, busnum 1, minor = 2
-> [  300.606959] usb 1-1: New USB device found, idVendor=046d, idProduct=081d
-> [  300.610298] usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=1
-> [  300.613742] usb 1-1: SerialNumber: 48C5D2B0
-> [  300.617703] usb 1-1: usb_probe_device
-> [  300.620594] usb 1-1: configuration #1 chosen from 1 choice
-> [  300.639218] usb 1-1: adding 1-1:1.0 (config #1, interface 0)
-> [  300.640736] snd-usb-audio 1-1:1.0: usb_probe_interface
-> [  300.642307] snd-usb-audio 1-1:1.0: usb_probe_interface - got id
-> [  301.050296] usb 1-1: adding 1-1:1.1 (config #1, interface 1)
-> [  301.054897] usb 1-1: adding 1-1:1.2 (config #1, interface 2)
-> [  301.056934] uvcvideo 1-1:1.2: usb_probe_interface
-> [  301.058072] uvcvideo 1-1:1.2: usb_probe_interface - got id
-> [  301.059395] uvcvideo: Found UVC 1.00 device <unnamed> (046d:081d)
-> [  301.090173] input: UVC Camera (046d:081d) as /devices/pci0000:00/0000:00:1f.5/usb1/1-1/1-1:1.2/input/input7
-> [  301.111289] usb 1-1: adding 1-1:1.3 (config #1, interface 3)
-> [  301.131207] usb 1-1: link qh16-0001/f48d64c0 start 2 [1/0 us]
-> [  301.137066] usb 1-1: unlink qh16-0001/f48d64c0 start 2 [1/0 us]
-> [  301.156451] ehci_hcd 0000:00:1f.5: reused qh f48d64c0 schedule
-> [  301.158310] usb 1-1: link qh16-0001/f48d64c0 start 2 [1/0 us]
-> [  301.160238] usb 1-1: unlink qh16-0001/f48d64c0 start 2 [1/0 us]
-> [  301.196606] set resolution quirk: cval->res = 384
-> [  371.309569] e1000: eth1 NIC Link is Up 1000 Mbps Full Duplex, Flow Control: RX
-> [  390.729568] ehci_hcd 0000:00:1f.5: reused qh f48d64c0 schedule
-> f5ade900 2296555[  390.730023] usb 1-1: link qh16-0001/f48d64c0 start 2 [1/0 us]
-> 437 S Ii:1:003:7[  390.736394] usb 1-1: unlink qh16-0001/f48d64c0 start 2 [1/0 us]
->  -115:128 16 <
-> f5ade900 2296566256 C Ii:1:003:7 -2:128 0
-> [  391.100896] ehci_hcd 0000:00:1f.5: reused qh f48d64c0 schedule
-> [  391.103188] usb 1-1: link qh16-0001/f48d64c0 start 2 [1/0 us]
-> f5ade900 2296926929 S Ii:1:003:7[  391.104889] usb 1-1: unlink qh16-0001/f48d64c0 start 2 [1/0 us]
->  -115:128 16 <
-> f5ade900 2296937889 C Ii:1:003:7 -2:128 0
-> f5272300 2310382508 S Co:1:003:0 s 01 0b 0004 0001 0000 0
-> f5272300 2310407888 C Co:1:003:0 0 0
-> f5272300 2310408051 S Co:1:003:0 s 22 01 0100 0086 0003 3 = 80bb00
-> f5272300 2310412456 C Co:1:003:0 0 3 >
-> f5272300 2310412521 S Ci:1:003:0 s a2 81 0100 0086 0003 3 <
-> f5272300 2310415909 C Ci:1:003:0 0 0
-> f5272300 2310418133 S Zi:1:003:6 -115:8:0 1 -18:0:100 100 <
-> f5272600 2310418219 S Zi:1:003:6 -115:8:0 1 -18:0:100 100 <
-> f52720c0 2310418239 S Zi:1:003:6 -115:8:0 1 -18:0:100 100 <
-> f5272a80 2310418247 S Zi:1:003:6 -115:8:0 1 -18:0:100 100 <
-> f5272480 2310418256 S Zi:1:003:6 -115:8:0 1 -18:0:100 100 <
-> f52723c0 2310418264 S Zi:1:003:6 -115:8:0 1 -18:0:100 100 <
-> f5272d80 2310418272 S Zi:1:003:6 -115:8:0 1 -18:0:100 100 <
-> f5272b40 2310418280 S Zi:1:003:6 -115:8:0 1 -18:0:100 100 <
-> 
-> Hard freeze with 100% CPU usage at this point as if some driver got into an
-> infinite loop or something.
-> 
-> All debug options from https://lkml.org/lkml/2012/10/20/116 are enabled, but
-> serial console is empty.
-> 
-> Best wishes,
-> 
-> Artem
-> 
-> 
-> On Oct 21, 2012, Borislav Petkov wrote: 
-> 
-> > I don't think that's the problem - I rather suspect the fact that he's
-> > using virtualbox which is causing random corruptions by writing to
-> > arbitrary locations.
-> > 
-> > 
-> > 
-> > please remove virtualbox completely from your system, rebuild the kernel
-> > and make sure the virtualbox kernel modules don't get loaded - simply
-> > delete them so that they are completely gone; *and* *then* retest again.
-> 
-> 
-
+diff --git a/Documentation/devicetree/bindings/video/display-timings.txt b/Documentation/devicetree/bindings/video/display-timings.txt
+new file mode 100644
+index 0000000..45e39bd
+--- /dev/null
++++ b/Documentation/devicetree/bindings/video/display-timings.txt
+@@ -0,0 +1,222 @@
++display-timings bindings
++==================
++
++display-timings-node
++------------
++
++required properties:
++ - none
++
++optional properties:
++ - default-timing: the default timing value
++
++timings-subnode
++---------------
++
++required properties:
++ - hactive, vactive: Display resolution
++ - hfront-porch, hback-porch, hsync-len: Horizontal Display timing parameters
++   in pixels
++   vfront-porch, vback-porch, vsync-len: Vertical display timing parameters in
++   lines
++ - clock: displayclock in Hz
++
++optional properties:
++ - hsync-active-high (bool): Hsync pulse is active high
++ - vsync-active-high (bool): Vsync pulse is active high
++ - de-active-high (bool): Data-Enable pulse is active high
++ - pixelclk-inverted (bool): pixelclock is inverted
++ - interlaced (bool)
++ - doublescan (bool)
++
++There are different ways of describing the capabilities of a display. The devicetree
++representation corresponds to the one commonly found in datasheets for displays.
++If a display supports multiple signal timings, the default-timing can be specified.
++
++The parameters are defined as
++
++struct signal_timing
++===================
++
++  +----------+---------------------------------------------+----------+-------+
++  |          |                ↑                            |          |       |
++  |          |                |vback_porch                 |          |       |
++  |          |                ↓                            |          |       |
++  +----------###############################################----------+-------+
++  |          #                ↑                            #          |       |
++  |          #                |                            #          |       |
++  |  hback   #                |                            #  hfront  | hsync |
++  |   porch  #                |       hactive              #  porch   |  len  |
++  |<-------->#<---------------+--------------------------->#<-------->|<----->|
++  |          #                |                            #          |       |
++  |          #                |vactive                     #          |       |
++  |          #                |                            #          |       |
++  |          #                ↓                            #          |       |
++  +----------###############################################----------+-------+
++  |          |                ↑                            |          |       |
++  |          |                |vfront_porch                |          |       |
++  |          |                ↓                            |          |       |
++  +----------+---------------------------------------------+----------+-------+
++  |          |                ↑                            |          |       |
++  |          |                |vsync_len                   |          |       |
++  |          |                ↓                            |          |       |
++  +----------+---------------------------------------------+----------+-------+
++
++
++Example:
++
++	display-timings {
++		default-timing = <&timing0>;
++		timing0: 1920p24 {
++			/* 1920x1080p24 */
++			clock = <52000000>;
++			hactive = <1920>;
++			vactive = <1080>;
++			hfront-porch = <25>;
++			hback-porch = <25>;
++			hsync-len = <25>;
++			vback-porch = <2>;
++			vfront-porch = <2>;
++			vsync-len = <2>;
++			hsync-active-high;
++		};
++	};
++
++Every property also supports the use of ranges, so the commonly used datasheet
++description with <min typ max>-tuples can be used.
++
++Example:
++
++	timing1: timing {
++		/* 1920x1080p24 */
++		clock = <148500000>;
++		hactive = <1920>;
++		vactive = <1080>;
++		hsync-len = <0 44 60>;
++		hfront-porch = <80 88 95>;
++		hback-porch = <100 148 160>;
++		vfront-porch = <0 4 6>;
++		vback-porch = <0 36 50>;
++		vsync-len = <0 5 6>;
++	};
++
++Usage in backend
++================
++
++A backend driver may choose to use the display-timings directly and convert the timing
++ranges to a suitable mode. Or it may just use the conversion of the display timings
++to the required mode via the generic videomode struct.
++
++					dtb
++					 |
++					 |  of_get_display_timing_list
++					 ↓
++			      struct display_timings
++					 |
++					 |  videomode_from_timing
++					 ↓
++			    ---  struct videomode ---
++			    |			    |
++ videomode_to_displaymode   |			    |   videomode_to_fb_videomode
++		            ↓			    ↓
++		     drm_display_mode         fb_videomode
++
++The functions of_get_fb_videomode and of_get_display_mode are provided
++to conveniently get the respective mode representation from the devicetree.
++
++Conversion to videomode
++=======================
++
++As device drivers normally work with some kind of video mode, the timings can be
++converted (may be just a simple copying of the typical value) to a generic videomode
++structure which then can be converted to the according mode used by the backend.
++
++Supported modes
++===============
++
++The generic videomode read in by the driver can be converted to the following
++modes with the following parameters
++
++struct fb_videomode
++===================
++
++  +----------+---------------------------------------------+----------+-------+
++  |          |                ↑                            |          |       |
++  |          |                |upper_margin                |          |       |
++  |          |                ↓                            |          |       |
++  +----------###############################################----------+-------+
++  |          #                ↑                            #          |       |
++  |          #                |                            #          |       |
++  |          #                |                            #          |       |
++  |          #                |                            #          |       |
++  |   left   #                |                            #  right   | hsync |
++  |  margin  #                |       xres                 #  margin  |  len  |
++  |<-------->#<---------------+--------------------------->#<-------->|<----->|
++  |          #                |                            #          |       |
++  |          #                |                            #          |       |
++  |          #                |                            #          |       |
++  |          #                |yres                        #          |       |
++  |          #                |                            #          |       |
++  |          #                |                            #          |       |
++  |          #                |                            #          |       |
++  |          #                |                            #          |       |
++  |          #                |                            #          |       |
++  |          #                |                            #          |       |
++  |          #                |                            #          |       |
++  |          #                |                            #          |       |
++  |          #                ↓                            #          |       |
++  +----------###############################################----------+-------+
++  |          |                ↑                            |          |       |
++  |          |                |lower_margin                |          |       |
++  |          |                ↓                            |          |       |
++  +----------+---------------------------------------------+----------+-------+
++  |          |                ↑                            |          |       |
++  |          |                |vsync_len                   |          |       |
++  |          |                ↓                            |          |       |
++  +----------+---------------------------------------------+----------+-------+
++
++clock in nanoseconds
++
++struct drm_display_mode
++=======================
++
++  +----------+---------------------------------------------+----------+-------+
++  |          |                                             |          |       |  ↑
++  |          |                                             |          |       |  |
++  |          |                                             |          |       |  |
++  +----------###############################################----------+-------+  |
++  |          #   ↑         ↑          ↑                    #          |       |  |
++  |          #   |         |          |                    #          |       |  |
++  |          #   |         |          |                    #          |       |  |
++  |          #   |         |          |                    #          |       |  |
++  |          #   |         |          |                    #          |       |  |
++  |          #   |         |          |       hdisplay     #          |       |  |
++  |          #<--+--------------------+------------------->#          |       |  |
++  |          #   |         |          |                    #          |       |  |
++  |          #   |vsync_start         |                    #          |       |  |
++  |          #   |         |          |                    #          |       |  |
++  |          #   |         |vsync_end |                    #          |       |  |
++  |          #   |         |          |vdisplay            #          |       |  |
++  |          #   |         |          |                    #          |       |  |
++  |          #   |         |          |                    #          |       |  |
++  |          #   |         |          |                    #          |       |  | vtotal
++  |          #   |         |          |                    #          |       |  |
++  |          #   |         |          |     hsync_start    #          |       |  |
++  |          #<--+---------+----------+------------------------------>|       |  |
++  |          #   |         |          |                    #          |       |  |
++  |          #   |         |          |     hsync_end      #          |       |  |
++  |          #<--+---------+----------+-------------------------------------->|  |
++  |          #   |         |          ↓                    #          |       |  |
++  +----------####|#########|################################----------+-------+  |
++  |          |   |         |                               |          |       |  |
++  |          |   |         |                               |          |       |  |
++  |          |   ↓         |                               |          |       |  |
++  +----------+-------------+-------------------------------+----------+-------+  |
++  |          |             |                               |          |       |  |
++  |          |             |                               |          |       |  |
++  |          |             ↓                               |          |       |  ↓
++  +----------+---------------------------------------------+----------+-------+
++                                   htotal
++   <------------------------------------------------------------------------->
++
++clock in kilohertz
+diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
+index dfba3e6..646deb0 100644
+--- a/drivers/of/Kconfig
++++ b/drivers/of/Kconfig
+@@ -83,4 +83,9 @@ config OF_MTD
+ 	depends on MTD
+ 	def_bool y
+ 
++config OF_DISPLAY_TIMINGS
++	def_bool y
++	help
++	  helper to parse display timings from the devicetree
++
+ endmenu # OF
+diff --git a/drivers/of/Makefile b/drivers/of/Makefile
+index e027f44..c8e9603 100644
+--- a/drivers/of/Makefile
++++ b/drivers/of/Makefile
+@@ -11,3 +11,4 @@ obj-$(CONFIG_OF_MDIO)	+= of_mdio.o
+ obj-$(CONFIG_OF_PCI)	+= of_pci.o
+ obj-$(CONFIG_OF_PCI_IRQ)  += of_pci_irq.o
+ obj-$(CONFIG_OF_MTD)	+= of_mtd.o
++obj-$(CONFIG_OF_DISPLAY_TIMINGS) += of_display_timings.o
+diff --git a/drivers/of/of_display_timings.c b/drivers/of/of_display_timings.c
+new file mode 100644
+index 0000000..e47bc63
+--- /dev/null
++++ b/drivers/of/of_display_timings.c
+@@ -0,0 +1,183 @@
++/*
++ * OF helpers for parsing display timings
++ * 
++ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
++ * 
++ * based on of_videomode.c by Sascha Hauer <s.hauer@pengutronix.de>
++ *
++ * This file is released under the GPLv2
++ */
++#include <linux/of.h>
++#include <linux/slab.h>
++#include <linux/export.h>
++#include <linux/of_display_timings.h>
++
++/* every signal_timing can be specified with either
++ * just the typical value or a range consisting of
++ * min/typ/max.
++ * This function helps handling this
++ */
++static int parse_property(struct device_node *np, char *name,
++				struct timing_entry *result)
++{
++	struct property *prop;
++	int length;
++	int cells;
++	int ret;
++
++	prop = of_find_property(np, name, &length);
++	if (!prop) {
++		pr_err("%s: could not find property %s\n", __func__, name);
++		return -EINVAL;
++	}
++
++	cells = length / sizeof(u32);
++
++	if (cells == 1)
++		ret = of_property_read_u32_array(np, name, &result->typ, cells);
++	else if (cells == 3)
++		ret = of_property_read_u32_array(np, name, &result->min, cells);
++	else {
++		pr_err("%s: illegal timing specification in %s\n", __func__,
++			name);
++		return -EINVAL;
++	}
++
++	return ret;
++}
++
++struct signal_timing *of_get_display_timing(struct device_node *np)
++{
++	struct signal_timing *st;
++	int ret = 0;
++
++	st = kzalloc(sizeof(*st), GFP_KERNEL);
++
++	if (!st) {
++		pr_err("%s: could not allocate signal_timing struct\n", __func__);
++		return NULL;
++	}
++
++	ret |= parse_property(np, "hback-porch", &st->hback_porch);
++	ret |= parse_property(np, "hfront-porch", &st->hfront_porch);
++	ret |= parse_property(np, "hactive", &st->hactive);
++	ret |= parse_property(np, "hsync-len", &st->hsync_len);
++	ret |= parse_property(np, "vback-porch", &st->vback_porch);
++	ret |= parse_property(np, "vfront-porch", &st->vfront_porch);
++	ret |= parse_property(np, "vactive", &st->vactive);
++	ret |= parse_property(np, "vsync-len", &st->vsync_len);
++	ret |= parse_property(np, "clock", &st->pixelclock);
++
++	st->vsync_pol_active_high = of_property_read_bool(np, "vsync-active-high");
++	st->hsync_pol_active_high = of_property_read_bool(np, "hsync-active-high");
++	st->de_pol_active_high = of_property_read_bool(np, "de-active-high");
++	st->pixelclk_pol_inverted = of_property_read_bool(np, "pixelclk-inverted");
++	st->interlaced = of_property_read_bool(np, "interlaced");
++	st->doublescan = of_property_read_bool(np, "doublescan");
++
++	if (ret) {
++		pr_err("%s: error reading timing properties\n", __func__);
++		return NULL;
++	}
++
++	return st;
++}
++EXPORT_SYMBOL_GPL(of_get_display_timing);
++
++struct display_timings *of_get_display_timing_list(struct device_node *np)
++{
++	struct device_node *timings_np;
++	struct device_node *entry;
++	struct display_timings *disp;
++	char *default_timing;
++
++	if (!np) {
++		pr_err("%s: no devicenode given\n", __func__);
++		return NULL;
++	}
++
++	timings_np = of_find_node_by_name(np, "display-timings");
++
++	if (!timings_np) {
++		pr_err("%s: could not find display-timings node\n", __func__);
++		return NULL;
++	}
++
++	disp = kzalloc(sizeof(*disp), GFP_KERNEL);
++
++	entry = of_parse_phandle(timings_np, "default-timing", 0);
++
++	if (!entry) {
++		pr_info("%s: no default-timing specified\n", __func__);
++		entry = of_find_node_by_name(np, "timing");
++	}
++
++	if (!entry) {
++		pr_info("%s: no timing specifications given\n", __func__);
++		return disp;
++	}
++
++	pr_info("%s: using %s as default timing\n", __func__, entry->name);
++
++	default_timing = (char *)entry->full_name;
++
++	disp->num_timings = 0;
++
++	for_each_child_of_node(timings_np, entry) {
++		disp->num_timings++;
++	}
++
++	disp->timings = kzalloc(sizeof(struct signal_timing *)*disp->num_timings,
++				GFP_KERNEL);
++
++	disp->num_timings = 0;
++
++	for_each_child_of_node(timings_np, entry) {
++		struct signal_timing *st;
++
++		st = of_get_display_timing(entry);
++
++		if (!st)
++			continue;
++
++		if (strcmp(default_timing, entry->full_name) == 0)
++			disp->default_timing = disp->num_timings;
++
++		disp->timings[disp->num_timings] = st;
++		disp->num_timings++;
++	}
++
++
++	of_node_put(timings_np);
++
++	if (disp->num_timings >= 0)
++		pr_info("%s: got %d timings. Using timing #%d as default\n", __func__,
++			disp->num_timings , disp->default_timing + 1);
++	else
++		pr_info("%s: no timings specified\n", __func__);
++
++	return disp;
++}
++EXPORT_SYMBOL_GPL(of_get_display_timing_list);
++
++int of_display_timings_exists(struct device_node *np)
++{
++	struct device_node *timings_np;
++	struct device_node *default_np;
++
++	if (!np)
++		return -EINVAL;
++
++	timings_np = of_parse_phandle(np, "display-timings", 0);
++
++	if (!timings_np)
++		return -EINVAL;
++
++	default_np = of_parse_phandle(np, "default-timing", 0);
++
++	if (default_np)
++		return 0;
++
++	return -EINVAL;
++}
++EXPORT_SYMBOL_GPL(of_display_timings_exists);
+diff --git a/include/linux/of_display_timings.h b/include/linux/of_display_timings.h
+new file mode 100644
+index 0000000..1ad719e
+--- /dev/null
++++ b/include/linux/of_display_timings.h
+@@ -0,0 +1,85 @@
++/*
++ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
++ *
++ * description of display timings
++ *
++ * This file is released under the GPLv2
++ */
++
++#ifndef __LINUX_OF_DISPLAY_TIMINGS_H
++#define __LINUX_OF_DISPLAY_TIMINGS_H
++
++#define OF_DEFAULT_TIMING -1
++
++struct display_timings {
++	unsigned int num_timings;
++	unsigned int default_timing;
++
++	struct signal_timing **timings;
++};
++
++struct timing_entry {
++	u32 min;
++	u32 typ;
++	u32 max;
++};
++
++struct signal_timing {
++	struct timing_entry pixelclock;
++
++	struct timing_entry hactive;
++	struct timing_entry hfront_porch;
++	struct timing_entry hback_porch;
++	struct timing_entry hsync_len;
++
++	struct timing_entry vactive;
++	struct timing_entry vfront_porch;
++	struct timing_entry vback_porch;
++	struct timing_entry vsync_len;
++
++	bool vsync_pol_active_high;
++	bool hsync_pol_active_high;
++	bool de_pol_active_high;
++	bool pixelclk_pol_inverted;
++	bool interlaced;
++	bool doublescan;
++};
++
++struct display_timings *of_get_display_timing_list(struct device_node *np);
++struct signal_timing *of_get_display_timing(struct device_node *np);
++int of_display_timings_exists(struct device_node *np);
++
++/* placeholder function until ranges are really needed */
++static inline u32 signal_timing_get_value(struct timing_entry *te, int index)
++{
++	return te->typ;
++}
++
++static inline void timings_release(struct display_timings *disp)
++{
++	int i;
++
++	for (i = 0; i < disp->num_timings; i++)
++		kfree(disp->timings[i]);
++}
++
++static inline void display_timings_release(struct display_timings *disp)
++{
++	timings_release(disp);
++	kfree(disp->timings);
++}
++
++static inline struct signal_timing *display_timings_get(struct display_timings *disp,
++							 int index)
++{
++	struct signal_timing *st;
++
++	if (disp->num_timings > index) {
++		st = disp->timings[index];
++		return st;
++	}
++	else
++		return NULL;
++}
++
++#endif
 -- 
-Regards/Gruss,
-    Boris.
+1.7.10.4
+
