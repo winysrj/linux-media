@@ -1,123 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:56264 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750799Ab2JHMBO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Oct 2012 08:01:14 -0400
-Message-ID: <5072C07F.90100@schinagl.nl>
-Date: Mon, 08 Oct 2012 14:01:03 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
-MIME-Version: 1.0
-To: Jens Bauer <jens-lists@gpio.dk>
-CC: linux-media@vger.kernel.org
-Subject: Re: Zolid USB DVB-T Tuner Pictures
-References: <20121007175602425458.288c6720@gpio.dk> <5072A5BF.50101@schinagl.nl> <20121008131229269874.8db8d46c@gpio.dk>
-In-Reply-To: <20121008131229269874.8db8d46c@gpio.dk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.samsung.com ([203.254.224.34]:64396 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754194Ab2JDKzT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 06:55:19 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBD002EB7NZUOU0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 04 Oct 2012 19:55:17 +0900 (KST)
+Received: from localhost.localdomain ([107.108.73.106])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MBD00M257NWB340@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 04 Oct 2012 19:55:16 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, s.nawrocki@samsung.com, arun.kk@samsung.com,
+	joshi@samsung.com
+Subject: [PATCH] [media] s5p-mfc: Set vfl_dir for encoder
+Date: Fri, 05 Oct 2012 00:44:56 +0530
+Message-id: <1349378096-15696-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08-10-12 13:12, Jens Bauer wrote:
-> Hi Oliver.
->
-> Thank you for your reply. I do think I need a little more guidance, though. ;)
->
-> I've been trying to figure out how to make just a simple change to a dot for the last hour, but always end up on the page saying that I do not have permission to edit 'this template'...
-> Do I need to be granted some editing rights to existing device entries ?
-> (I must admit that I find it a bit confusing when 'Edit' does not do what I expect, but there's probably a reason for that).
-I assume you have created an account and can edit various pages;
+The vfl_dir flag is presently set to VFL_DIR_M2M only for decoder.
+The encoder is not working because of this. So adding this flag
+to the encoder part also.
 
-I opened the DVB-T Usb page and clicked on the 'edit' icon to the right 
-of the Zolid mini dvb-t stick. I then jumped to the 
-zolid-mini-dvb-t-stick-v1 section on the Template:USB_Device_Data page. 
-There is a [edit] 'button' to the right of th title. This opens the 
-template 'table' for your dvice. Where it says 
-'pic=[[image:Mini.jpg|120px]] you can replace that with the filename of 
-your image.
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-If you haven't uploaded it yet, going back to the regular DVB-T USB 
-overview page should now show a missing picture. Clicking on that should 
-allow you to upload your image :)
-
-Furthermore, you can make a wikilink from the device field to link to a 
-specific device page (or create one) to place more pictures. See for 
-example the device=[[ASUS_My_Cinema ...|My Cinema U3100 ...]] bit for 
-the Asus U3100 Mini.
-
-oliver
->
-> What I said below, about not having much knowledge of USB; it might have changed slightly. During the night, I've been making an application, which communicates with a USB-device I made (AVR), and it can turn on some LEDs and sometimes it can successfully receive a reply... But still, I am not an expert (not on Wiki either).
->
->
-> Love
-> Jens
->
-> On Mon, 08 Oct 2012 12:06:55 +0200, Oliver Schinagl wrote:
->> On 07-10-12 17:56, Jens Bauer wrote:
->>> Hi...
->>>
->>> I saw on this page...
->>> <http://linuxtv.org/wiki/index.php/DVB-T_USB_Devices>
->>> ...That I can contribute to the project by writing to this list.
->>>
->>> Now, I don't have much knowledge about USB; I don't even have Linux
->>> (but I probably will within a few months).
->>> I saw that some of the mentioned devices on the above page, are
->>> missing a picture.
->>> So what I can do, is that I have a Zolid USB DVB-T Tuner "bought
->>> from Aldi - like they all are".
->>> I've taken some pictures, cut them in Photoshop, scaled, saved as
->>> png and finally optimized them using pngout.
->>> Sizes are: Approx. 2100x500 for the originals, 1024x500..600 for the
->>> large ones, 512x190..300 for medium-size, 128x51..80 for the smaller
->>> ones.
->>> (Whoa, 5 hours work for 5 pictures!)
->>>
->>> Note: This is only one device, it seems a little difficult to figure
->>> out which version it is, but as I have the original box and a
->>> USB-Probe dump, it might be possible to identify it fully.
->>>
->>> What I can say, is that it uses the IT9135 chip.
->>> VID/PID 0x048D/00x9135.
->>> Descriptor Version Number is 0x0200.
->>> Device MaxPacketSize is 64 (see below)
->>> Device Version Number is 0x0200
->>> It has two configurations, each configuration has 4 interfaces.
->>> The first configuration's interfaces have a max packet size of 512
->>> The second configuration's interfaces have a max packet size of 64.
->>> Apart from that, the configurations match eachother.
->>>
->>> -So my guess is that this is a v2 device.
->>>
->>> When looking at the above mentioned page, and I search the table for
->>> 'Zolid', I find an entry saying "ITE Inc. Zolid Mini DVB-T Stick
->>> Version 2".
->>> My box says "Mini USB DVB-T Tuner" and the markings on the device
->>> just says "SMART GROUP" "Made in Taiwan", "www.unisupport.net",
->>> "PS0712" and "05/2011".
->>> (In fact, I bought exactly this device, because I believe this is
->>> the one that's listed here!)
->>>
->>> ...Now...Who wants those pictures ? :)
->> I think you can quite safely upload those to the wiki. I'll admit, I
->> didn't know how to upload an image, but I referenced the image from
->> the document and thus getting a missing image link in the document.
->> Clicking the link allowed me to upload said missing picture.
->>
->> oliver
->>>
->>> Love
->>> Jens
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index aa55133..130f4ac 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1155,6 +1155,7 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 	vfd->release	= video_device_release,
+ 	vfd->lock	= &dev->mfc_mutex;
+ 	vfd->v4l2_dev	= &dev->v4l2_dev;
++	vfd->vfl_dir	= VFL_DIR_M2M;
+ 	snprintf(vfd->name, sizeof(vfd->name), "%s", S5P_MFC_ENC_NAME);
+ 	dev->vfd_enc	= vfd;
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+-- 
+1.7.0.4
 
