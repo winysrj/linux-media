@@ -1,42 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:35141 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750979Ab2JBB6k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 21:58:40 -0400
-Received: by ieak13 with SMTP id k13so13690148iea.19
-        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2012 18:58:39 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1349139145-22113-1-git-send-email-crope@iki.fi>
-References: <1349139145-22113-1-git-send-email-crope@iki.fi>
-Date: Mon, 1 Oct 2012 21:58:39 -0400
-Message-ID: <CAGoCfiwfTkTs1DPa0cWHLOgGcgS0Df3h7zZ=4YW51dr_AS78nQ@mail.gmail.com>
-Subject: Re: [PATCH RFC] em28xx: PCTV 520e switch tda18271 to tda18271c2dd
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, Michael Krufky <mkrufky@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:55459 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755454Ab2JDTM3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 15:12:29 -0400
+Date: Thu, 4 Oct 2012 20:17:04 +0100
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>,
+	Kay Sievers <kay@vrfy.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Al Viro <viro@zeniv.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ming Lei <ming.lei@canonical.com>,
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Ivan Kalvachev <ikalvachev@gmail.com>
+Subject: Re: udev breakages -
+Message-ID: <20121004201704.36d35755@pyramind.ukuu.org.uk>
+In-Reply-To: <20121004174254.GA14301@kroah.com>
+References: <506C562E.5090909@redhat.com>
+	<CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
+	<20121003170907.GA23473@ZenIV.linux.org.uk>
+	<CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
+	<20121003195059.GA13541@kroah.com>
+	<CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
+	<3560b86d-e2ad-484d-ab6e-2b9048894a12@email.android.com>
+	<CA+55aFwVFtUU4TCjz4EDgGDaeR_QwLjmBAJA0kijHkQQ+jxLCw@mail.gmail.com>
+	<CAPXgP1189dn=vHqWrp1JgHs7Yv=BP3dbLyT3zb31Sp8mcEhAvg@mail.gmail.com>
+	<87zk42tab4.fsf@xmission.com>
+	<20121004174254.GA14301@kroah.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 1, 2012 at 8:52 PM, Antti Palosaari <crope@iki.fi> wrote:
-> New drxk firmware download does not work with tda18271. Actual
-> reason is more drxk driver than tda18271. Anyhow, tda18271c2dd
-> will work as it does not do as much I/O during attach than tda18271.
->
-> Root of cause is tuner I/O during drx-k asynchronous firmware
-> download. request_firmware_nowait()... :-/
+> I don't know how to handle the /dev/ptmx issue properly from within
+> devtmpfs, does anyone?  Proposals are always welcome, the last time this
+> came up a week or so ago, I don't recall seeing any proposals, just a
+> general complaint.
 
-This seems like it's just changing the timing of the initialization
-process, which isn't really any better than the "msleep(2000)".  It's
-just dumb luck that it happens to work on the developer's system.
+Is it really a problem - devtmpfs is optional. It's a problem for the
+userspace folks to handle and if they made it mandatory in their code
+diddums, someone better go fork working versions.
 
-Don't get me wrong, I agree with Michael that this whole situation is
-ridiculous, but I don't see why swapping out the entire driver is a
-reasonable fix.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Alan
