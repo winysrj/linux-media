@@ -1,86 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39964 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755718Ab2JQAUd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Oct 2012 20:20:33 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Enric Balletbo Serra <eballetbo@gmail.com>
-Cc: John Weber <rjohnweber@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: Using omap3-isp-live example application on beagleboard with DVI
-Date: Wed, 17 Oct 2012 02:21:20 +0200
-Message-ID: <4949132.OD6tNZX2Jk@avalon>
-In-Reply-To: <CAFqH_50FiyMiQHiTwhu82shJVb-boZ+KSu8sTwaFQxsPGA=sfA@mail.gmail.com>
-References: <090701cd8c4e$be38bea0$3aaa3be0$@gmail.com> <7805846.LU2Ezfa4XS@avalon> <CAFqH_50FiyMiQHiTwhu82shJVb-boZ+KSu8sTwaFQxsPGA=sfA@mail.gmail.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:47475 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754971Ab2JDSvD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 14:51:03 -0400
+Message-ID: <506DDA94.1090702@wwwdotorg.org>
+Date: Thu, 04 Oct 2012 12:51:00 -0600
+From: Stephen Warren <swarren@wwwdotorg.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+CC: devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2 v6] of: add generic videomode description
+References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de> <1349373560-11128-3-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1349373560-11128-3-git-send-email-s.trumtrar@pengutronix.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enric,
+On 10/04/2012 11:59 AM, Steffen Trumtrar wrote:
+> Get videomode from devicetree in a format appropriate for the
+> backend. drm_display_mode and fb_videomode are supported atm.
+> Uses the display signal timings from of_display_timings
 
-On Monday 15 October 2012 14:03:20 Enric Balletbo Serra wrote:
-> 2012/10/11 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> > On Thursday 11 October 2012 10:14:26 Enric Balletbò i Serra wrote:
-> >> 2012/10/10 Enric Balletbò i Serra <eballetbo@gmail.com>:
-> >> > 2012/9/6 John Weber <rjohnweber@gmail.com>:
-> >> >> Hello,
-> >> >> 
-> >> >> My goal is to better understand how to write an application that makes
-> >> >> use of the omap3isp and media controller frameworks and v4l2.  I'm
-> >> >> attempting to make use of Laurent's omap3-isp-live example application
-> >> >> as a starting point and play with the AEC/WB capability.
-> >> >> 
-> >> >> My problem is that when I start the live application, the display
-> >> >> turns blue (it seems when the chromakey fill is done), but no video
-> >> >> appears on the display.  I do think that I'm getting good (or at least
-> >> >> statistics) from the ISP because I can change the view in front of the
-> >> >> camera (by putting my hand in front of the lens) and the gain settings
-> >> >> change.
+> +++ b/drivers/of/of_videomode.c
 
-[snip]
+> +int videomode_from_timing(struct display_timings *disp, struct videomode *vm,
 
-> >> > I've exactly the same problem. Before try to debug the problem I would
-> >> > like to know if you solved the problem. Did you solved ?
-> >> 
-> >> The first change I made and worked (just luck). I made the following
-> >> change:
-> >> 
-> >> -       vo_enable_colorkey(vo, 0x123456);
-> >> +       // vo_enable_colorkey(vo, 0x123456);
-> >> 
-> >> And now the live application works like a charm. Seems this function
-> >> enables a chromakey and the live application can't paint over the
-> >> chromakey. Laurent, just to understand what I did, can you explain
-> >> this ? Thanks.
-> > 
-> > My guess is that the live application fails to paint the frame buffer with
-> > the color key. If fb_init() failed the live application would stop, so
-> > the function succeeds. My guess is thus that the application either
-> > paints the wrong frame buffer (how many /dev/fb* devices do you have on
-> > your system ?),
->
-> I checked again and no, it opens the correct framebuffer.
-> 
-> > or paints it with the wrong color. The code assumes that the frame buffer
-> > is configured in 32 bit, maybe that's not the case on your system ?
-> 
-> This was my problem, and I suspect it's the John problem. My system was
-> configured in 16 bit instead of 32 bit.
-> 
-> FYI, I made a patch that adds this check to the live application. I did not
-> know where send the patch so I attached to this email.
+> +	st = display_timings_get(disp, index);
+> +
+> +	if (!st) {
 
-Thank you for the patch.
+It's a little odd to leave a blank line between those two lines.
 
-Instead of failing what would be more interesting would be to get the 
-application to work in 16bpp mode as well. For that you will need to paint the 
-frame buffer with a 16bpp color, and set the colorkey to the same value. Would 
-you be able to try that ?
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Only half of the code in this file seems OF-related; the routines to
+convert a timing to a videomode or drm display mode seem like they'd be
+useful outside device tree, so I wonder if putting them into
+of_videomode.c is the correct thing to do. Still, it's probably not a
+big deal.
