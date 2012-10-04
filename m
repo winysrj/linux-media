@@ -1,44 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31229 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752280Ab2J0Uni (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:43:38 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKhbqw004978
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:43:37 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 05/68] [media] stb0899_drv: get rid of warning: no previous prototype
-Date: Sat, 27 Oct 2012 18:40:23 -0200
-Message-Id: <1351370486-29040-6-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout4.samsung.com ([203.254.224.34]:33845 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752593Ab2JDHYn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 03:24:43 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBC00CTLXVK9PN0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:43 +0900 (KST)
+Received: from localhost.localdomain ([107.108.73.106])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MBC006I9XWMLU10@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:42 +0900 (KST)
+From: Rahul Sharma <rahul.sharma@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Cc: t.stanislaws@samsung.com, inki.dae@samsung.com,
+	kyungmin.park@samsung.com, joshi@samsung.com
+Subject: [PATCH v1 05/14] drm: exynos: hdmi: turn off HPD interrupt in HDMI chip
+Date: Thu, 04 Oct 2012 21:12:43 +0530
+Message-id: <1349365372-21417-6-git-send-email-rahul.sharma@samsung.com>
+In-reply-to: <1349365372-21417-1-git-send-email-rahul.sharma@samsung.com>
+References: <1349365372-21417-1-git-send-email-rahul.sharma@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/dvb-frontends/stb0899_drv.c:1263:5: warning: no previous prototype for 'stb0899_get_dev_id' [-Wmissing-prototypes]
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+The plug/unplug interrupt are handled by a separate interrupt.
+So there is no need to replicate this mechanism in HDMI core.
+
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/dvb-frontends/stb0899_drv.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/exynos/exynos_hdmi.c |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/stb0899_drv.c b/drivers/media/dvb-frontends/stb0899_drv.c
-index 79e29de..cc278b3 100644
---- a/drivers/media/dvb-frontends/stb0899_drv.c
-+++ b/drivers/media/dvb-frontends/stb0899_drv.c
-@@ -1260,7 +1260,7 @@ static inline void CONVERT32(u32 x, char *str)
- 	*str	= '\0';
- }
+diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
+index 90dce8c..e3ab840 100644
+--- a/drivers/gpu/drm/exynos/exynos_hdmi.c
++++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
+@@ -1532,12 +1532,9 @@ static void hdmi_conf_reset(struct hdmi_context *hdata)
  
--int stb0899_get_dev_id(struct stb0899_state *state)
-+static int stb0899_get_dev_id(struct stb0899_state *state)
+ static void hdmi_conf_init(struct hdmi_context *hdata)
  {
- 	u8 chip_id, release;
- 	u16 id;
+-	/* enable HPD interrupts */
++	/* disable HPD interrupts */
+ 	hdmi_reg_writemask(hdata, HDMI_INTC_CON, 0, HDMI_INTC_EN_GLOBAL |
+ 		HDMI_INTC_EN_HPD_PLUG | HDMI_INTC_EN_HPD_UNPLUG);
+-	mdelay(10);
+-	hdmi_reg_writemask(hdata, HDMI_INTC_CON, ~0, HDMI_INTC_EN_GLOBAL |
+-		HDMI_INTC_EN_HPD_PLUG | HDMI_INTC_EN_HPD_UNPLUG);
+ 
+ 	/* choose HDMI mode */
+ 	hdmi_reg_writemask(hdata, HDMI_MODE_SEL,
 -- 
-1.7.11.7
+1.7.0.4
 
