@@ -1,139 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4682 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754260Ab2JWG2q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 02:28:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Kirill Smelkov <kirr@mns.spb.ru>
-Subject: Re: [PATCH 2/2] [media] vivi: Teach it to tune FPS
-Date: Tue, 23 Oct 2012 08:27:44 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-References: <1350914084-31618-1-git-send-email-kirr@mns.spb.ru> <20121022170139.GA23735@tugrik.mns.mnsspb.ru> <20121022172901.GA24720@tugrik.mns.mnsspb.ru>
-In-Reply-To: <20121022172901.GA24720@tugrik.mns.mnsspb.ru>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210230827.44179.hverkuil@xs4all.nl>
+Received: from mailout2.samsung.com ([203.254.224.25]:48259 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754174Ab2JDHjf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 03:39:35 -0400
+Received: from epcpsbge7.samsung.com (epcpsbge7 [203.254.230.17])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBC004AQYLRKYR0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:39:33 +0900 (KST)
+Date: Thu, 04 Oct 2012 07:39:33 +0000 (GMT)
+From: RAHUL SHARMA <rahul.sharma@samsung.com>
+Subject: Re: [PATCH v1 01/14] media: s5p-hdmi: add HPD GPIO to platform data
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Cc: In-Ki Dae <inki.dae@samsung.com>, SUNIL JOSHI <joshi@samsung.com>,
+	"r.sh.open@gmail.com" <r.sh.open@gmail.com>
+Reply-to: rahul.sharma@samsung.com
+MIME-version: 1.0
+Content-transfer-encoding: base64
+Content-type: text/plain; charset=windows-1252
+MIME-version: 1.0
+Message-id: <8952601.531301349336373038.JavaMail.weblogic@epml07>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon October 22 2012 19:29:01 Kirill Smelkov wrote:
-> On Mon, Oct 22, 2012 at 09:01:39PM +0400, Kirill Smelkov wrote:
-> > On Mon, Oct 22, 2012 at 04:16:14PM +0200, Hans Verkuil wrote:
-> > > On Mon October 22 2012 15:54:44 Kirill Smelkov wrote:
-> > > > I was testing my video-over-ethernet subsystem today, and vivi seemed to
-> > > > be perfect video source for testing when one don't have lots of capture
-> > > > boards and cameras. Only its framerate was hardcoded to NTSC's 30fps,
-> > > > while in my country we usually use PAL (25 fps). That's why the patch.
-> > > > Thanks.
-> > > 
-> > > Rather than introducing a module option, it's much nicer if you can
-> > > implement enum_frameintervals and g/s_parm. This can be made quite flexible
-> > > allowing you to also support 50/59.94/60 fps.
-> > 
-> > Thanks for feedback. I've reworked the patch for FPS to be set via
-> > ->{g,s}_parm(), and yes now it is more flexble, because one can set
-> 
-> By the way, here is what I've found while working on the abovementioned
-> patch:
-> 
-> ---- 8< ----
-> From: Kirill Smelkov <kirr@mns.spb.ru>
-> Date: Mon, 22 Oct 2012 21:14:01 +0400
-> Subject: [PATCH] v4l2: Fix typo in struct v4l2_captureparm description
-> 
-> Judging from what drivers do and from my experience temeperframe
-> fraction is set in seconds - look e.g. here
-> 
->     static int bttv_g_parm(struct file *file, void *f,
->                                     struct v4l2_streamparm *parm)
->     {
->             struct bttv_fh *fh = f;
->             struct bttv *btv = fh->btv;
-> 
->             v4l2_video_std_frame_period(bttv_tvnorms[btv->tvnorm].v4l2_id,
->                                         &parm->parm.capture.timeperframe);
-> 
->     ...
-> 
->     void v4l2_video_std_frame_period(int id, struct v4l2_fract *frameperiod)
->     {
->             if (id & V4L2_STD_525_60) {
->                     frameperiod->numerator = 1001;
->                     frameperiod->denominator = 30000;
->             } else {
->                     frameperiod->numerator = 1;
->                     frameperiod->denominator = 25;
->             }
-> 
-> and also v4l2-ctl in userspace decodes this as seconds:
-> 
->     if (doioctl(fd, VIDIOC_G_PARM, &parm, "VIDIOC_G_PARM") == 0) {
->             const struct v4l2_fract &tf = parm.parm.capture.timeperframe;
-> 
->             ...
-> 
->             printf("\tFrames per second: %.3f (%d/%d)\n",
->                             (1.0 * tf.denominator) / tf.numerator,
->                             tf.denominator, tf.numerator);
-> 
-> The typo was there from day 1 - added in 2002 in e028b61b ([PATCH]
-> add v4l2 api)(*)
-> 
-> (*) found in history tree
->     git://git.kernel.org/pub/scm/linux/kernel/git/tglx/history.git
-> 
-> Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
+SGkgTXIuIFRvbWFzeiwgTXIuIFBhcmssIGxpc3QsDQoNCkZpcnN0IHBhdGNoIGluIHRoZSBmb2xs
+b3dpbmcgc2V0IGJlbG9uZ3MgdG8gczVwLW1lZGlhLCByZXN0IHRvIGV4eW5vcy1kcm0uDQpQbGVh
+c2UgcmV2aWV3IHRoZSBtZWRpYSBwYXRjaCBzbyB0aGF0IEl0IGNhbiBiZSBtZXJnZWQgZm9yIG1h
+aW5saW5lLg0KDQpyZWdhcmRzLA0KUmFodWwgU2hhcm1hDQoNCk9uIFRodSwgT2N0IDQsIDIwMTIg
+YXQgOToxMiBQTSwgUmFodWwgU2hhcm1hIDxyYWh1bC5zaGFybWFAc2Ftc3VuZy5jb20+IHdyb3Rl
+Og0KPiBGcm9tOiBUb21hc3ogU3RhbmlzbGF3c2tpIDx0LnN0YW5pc2xhd3NAc2Ftc3VuZy5jb20+
+DQo+DQo+IFRoaXMgcGF0Y2ggZXh0ZW5kcyBzNXAtaGRtaSBwbGF0Zm9ybSBkYXRhIGJ5IGEgR1BJ
+TyBpZGVudGlmaWVyIGZvcg0KPiBIb3QtUGx1Zy1EZXRlY3Rpb24gcGluLg0KPg0KPiBTaWduZWQt
+b2ZmLWJ5OiBUb21hc3ogU3RhbmlzbGF3c2tpIDx0LnN0YW5pc2xhd3NAc2Ftc3VuZy5jb20+DQo+
+IFNpZ25lZC1vZmYtYnk6IEt5dW5nbWluIFBhcmsgPGt5dW5nbWluLnBhcmtAc2Ftc3VuZy5jb20+
+DQo+IC0tLQ0KPiAgaW5jbHVkZS9tZWRpYS9zNXBfaGRtaS5oIHwgICAgMiArKw0KPiAgMSBmaWxl
+cyBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pDQo+DQo+IGRpZmYgLS1n
+aXQgYS9pbmNsdWRlL21lZGlhL3M1cF9oZG1pLmggYi9pbmNsdWRlL21lZGlhL3M1cF9oZG1pLmgN
+Cj4gaW5kZXggMzYxYTc1MS4uMTgxNjQyYiAxMDA2NDQNCj4gLS0tIGEvaW5jbHVkZS9tZWRpYS9z
+NXBfaGRtaS5oDQo+ICsrKyBiL2luY2x1ZGUvbWVkaWEvczVwX2hkbWkuaA0KPiBAQCAtMjAsNiAr
+MjAsNyBAQCBzdHJ1Y3QgaTJjX2JvYXJkX2luZm87DQo+ICAgKiBAaGRtaXBoeV9pbmZvOiB0ZW1w
+bGF0ZSBmb3IgSERNSVBIWSBJMkMgZGV2aWNlDQo+ICAgKiBAbWhsX2J1czogY29udHJvbGxlciBp
+ZCBmb3IgTUhMIGNvbnRyb2wgYnVzDQo+ICAgKiBAbWhsX2luZm86IHRlbXBsYXRlIGZvciBNSEwg
+STJDIGRldmljZQ0KPiArICogQGhwZF9ncGlvOiBHUElPIGZvciBIb3QtUGx1Zy1EZXRlY3QgcGlu
+DQo+ICAgKg0KPiAgICogTlVMTCBwb2ludGVyIGZvciAqX2luZm8gZmllbGRzIGluZGljYXRlcyB0
+aGF0DQo+ICAgKiB0aGUgY29ycmVzcG9uZGluZyBjaGlwIGlzIG5vdCBwcmVzZW50DQo+IEBAIC0y
+OSw2ICszMCw3IEBAIHN0cnVjdCBzNXBfaGRtaV9wbGF0Zm9ybV9kYXRhIHsNCj4gICAgICAgICBz
+dHJ1Y3QgaTJjX2JvYXJkX2luZm8gKmhkbWlwaHlfaW5mbzsNCj4gICAgICAgICBpbnQgbWhsX2J1
+czsNCj4gICAgICAgICBzdHJ1Y3QgaTJjX2JvYXJkX2luZm8gKm1obF9pbmZvOw0KPiArICAgICAg
+IGludCBocGRfZ3BpbzsNCj4gIH07DQo+DQo+ICAjZW5kaWYgLyogUzVQX0hETUlfSCAqLw0KPiAt
+LQ0KPiAxLjcuMC40DQo+DQo+DQo+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fDQo+IGxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0DQo+IGxpbnV4LWFy
+bS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZw0KPiBodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWw=
 
-Good catch. Luckily the V4L2 spec is correct, it is just that single comment
-that's wrong.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Thanks!
-
-	Hans
-
-> ---
->  include/uapi/linux/videodev2.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 57bfa59..2fff7ff 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -726,29 +726,29 @@ struct v4l2_window {
->  	__u32			field;	 /* enum v4l2_field */
->  	__u32			chromakey;
->  	struct v4l2_clip	__user *clips;
->  	__u32			clipcount;
->  	void			__user *bitmap;
->  	__u8                    global_alpha;
->  };
->  
->  /*
->   *	C A P T U R E   P A R A M E T E R S
->   */
->  struct v4l2_captureparm {
->  	__u32		   capability;	  /*  Supported modes */
->  	__u32		   capturemode;	  /*  Current mode */
-> -	struct v4l2_fract  timeperframe;  /*  Time per frame in .1us units */
-> +	struct v4l2_fract  timeperframe;  /*  Time per frame in seconds */
->  	__u32		   extendedmode;  /*  Driver-specific extensions */
->  	__u32              readbuffers;   /*  # of buffers for read */
->  	__u32		   reserved[4];
->  };
->  
->  /*  Flags for 'capability' and 'capturemode' fields */
->  #define V4L2_MODE_HIGHQUALITY	0x0001	/*  High quality imaging mode */
->  #define V4L2_CAP_TIMEPERFRAME	0x1000	/*  timeperframe field is supported */
->  
->  struct v4l2_outputparm {
->  	__u32		   capability;	 /*  Supported modes */
->  	__u32		   outputmode;	 /*  Current mode */
->  	struct v4l2_fract  timeperframe; /*  Time per frame in seconds */
->  	__u32		   extendedmode; /*  Driver-specific extensions */
-> 
