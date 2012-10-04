@@ -1,81 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39934 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753119Ab2JAKZB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 06:25:01 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Enric =?ISO-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: omap3isp: wrong image after resizer with mt9v034 sensor
-Date: Mon, 01 Oct 2012 12:25:40 +0200
-Message-ID: <2377629.Lqpv1qCszQ@avalon>
-In-Reply-To: <CAFqH_51khWJ6RBv707J8AC9YrMhzwqg5QPuo52EYVnBOmTRpFA@mail.gmail.com>
-References: <CAFqH_53EY7BcMjn+fy=KfAhSU9Ut1pcLUyrmu2kiHznrBUB2XQ@mail.gmail.com> <1378805.eK71Lgs3H4@avalon> <CAFqH_51khWJ6RBv707J8AC9YrMhzwqg5QPuo52EYVnBOmTRpFA@mail.gmail.com>
+Received: from out01.mta.xmission.com ([166.70.13.231]:45772 "EHLO
+	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756315Ab2JDRaA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 13:30:00 -0400
+From: ebiederm@xmission.com (Eric W. Biederman)
+To: Kay Sievers <kay@vrfy.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Al Viro <viro@zeniv.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ming Lei <ming.lei@canonical.com>,
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Ivan Kalvachev <ikalvachev@gmail.com>
+References: <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com>
+	<CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
+	<20121002221239.GA30990@kroah.com> <20121002222333.GA32207@kroah.com>
+	<CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
+	<506C562E.5090909@redhat.com>
+	<CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
+	<20121003170907.GA23473@ZenIV.linux.org.uk>
+	<CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
+	<20121003195059.GA13541@kroah.com>
+	<CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
+	<3560b86d-e2ad-484d-ab6e-2b9048894a12@email.android.com>
+	<CA+55aFwVFtUU4TCjz4EDgGDaeR_QwLjmBAJA0kijHkQQ+jxLCw@mail.gmail.com>
+	<CAPXgP1189dn=vHqWrp1JgHs7Yv=BP3dbLyT3zb31Sp8mcEhAvg@mail.gmail.com>
+Date: Thu, 04 Oct 2012 10:29:51 -0700
+In-Reply-To: <CAPXgP1189dn=vHqWrp1JgHs7Yv=BP3dbLyT3zb31Sp8mcEhAvg@mail.gmail.com>
+	(Kay Sievers's message of "Thu, 4 Oct 2012 04:39:57 +0200")
+Message-ID: <87zk42tab4.fsf@xmission.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain
+Subject: Re: udev breakages -
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enric,
+Kay Sievers <kay@vrfy.org> writes:
 
-On Friday 28 September 2012 17:32:36 Enric Balletbò i Serra wrote:
-> 2012/9/28 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> > On Friday 28 September 2012 10:21:56 Enric Balletbò i Serra wrote:
-> >> 2012/9/28 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> >> > On Thursday 27 September 2012 18:05:56 Enric Balletbò i Serra wrote:
-> >> >> 2012/9/27 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> >> >> > On Wednesday 26 September 2012 16:15:35 Enric Balletbò i Serra 
-wrote:
+> If that works out, it would a bit like devtmpfs which turned out to be
+> very simple, reliable and absolutely the right thing we could do to
+> primarily mange /dev content.
 
-[snip]
+ROFL.
 
-> >> >> >> Nonetheless, I changed the driver to configure for BGGR pattern.
-> >> >> >> Using the Sensor->CCDC->Preview->Resizer pipeline I captured the
-> >> >> >> data with yavta and converted using raw2rgbpnm program.
-> >> >> >> 
-> >> >> >>     ./raw2rgbpnm -s 752x480 -f UYVY img-000001.uyvy img-000001.pnm
-> >> >> >> 
-> >> >> >> and the result is
-> >> >> >> 
-> >> >> >>     http://downloads.isee.biz/pub/files/patterns/img-000002.pnm
-> >> >> >>     http://downloads.isee.biz/pub/files/patterns/img-000002.bin
-> >> >> >> 
-> >> >> >> The image looks better than older, not perfect, but better. The
-> >> >> >> image is only a bit yellowish. Could be this a hardware issue ? We
-> >> >> >> are close to ...
-> >> >> > 
-> >> >> > It's like a white balance issue. The OMAP3 ISP hardware doesn't
-> >> >> > perform automatic white balance, you will need to implement an AWB
-> >> >> > algorithm in software. You can have a look at the omap3-isp-live
-> >> >> > project for sample code (http://git.ideasonboard.org/omap3-isp-
-> >> >> > live.git).
-> >> 
-> >> So you think the sensor is set well now ?
-> > 
-> > I think so, yes.
-> > 
-> >> The hardware can produce this issue ? Do you know if this algorithm is
-> >> implemented in gstreamer ?
-> > 
-> > I don't know, but if it is the implementation will be software-based, and
-> > will thus be slow. The OMAP3 ISP can compute AWB-related statistics in
-> > hardware and can apply per-color gains to the image. The only software
-> > you then need will retrieve the statistics, compute the gains from them
-> > and apply the gains. That's what the sample code in omap3-isp-live does.
-> > This should at some point be integrated as a libv4l plugin.
-> 
-> So I can use your software to test if it's a white balance issue ?
+There are still quite a few interesting cases that devtmpfs does not
+even think about supporting.  Cases that were reported when devtmpfs was
+being reviewed. 
 
-Yes, but that's really a test application, it might not work out of the box.
+Additionally the devtmpfs maintainership has not dealt with legitimate
+concerns any better than this firmware issue has been dealt with.  I
+still haven't even hear a productive suggestion back on the hole
+/dev/ptmx mess.
 
-> (as the omap3-isp-live has this support if I understood). I'll try this,
-> do you can provide some tips on how use the omap3-isp-live ?
+As it happens devtmpfs wound up being a userspace process that happens
+to reside in the kernel and call mknod.  How it makes sense two layers
+of messaging and device management instead of just one I don't know.
+Certainly I would not crow about that being a success of anything except
+passing the buck.
 
-Just compile and run it :-)
+There is debacle written all over the user space interface for dealing
+with devices right now.
 
--- 
-Regards,
-
-Laurent Pinchart
-
+Eric
