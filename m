@@ -1,42 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:49560 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750857Ab2JHQMw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 12:12:52 -0400
-Message-ID: <5072FB6B.8070205@wwwdotorg.org>
-Date: Mon, 08 Oct 2012 10:12:27 -0600
-From: Stephen Warren <swarren@wwwdotorg.org>
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:57270 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750765Ab2JDJiH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 05:38:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Prabhakar <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH v3] media: davinci: vpif: set device capabilities
+Date: Thu, 4 Oct 2012 11:37:52 +0200
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1349342998-31804-1-git-send-email-prabhakar.lad@ti.com> <1349342998-31804-2-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1349342998-31804-2-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2 v6] of: add helper to parse display timings
-References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>  <Pine.LNX.4.64.1210081000530.11034@axis700.grange>  <1349686878.3227.40.camel@deskari> <1479122.2xVsV4MZ4o@avalon> <1349698816.9437.5.camel@deskari>
-In-Reply-To: <1349698816.9437.5.camel@deskari>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201210041137.52523.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/08/2012 06:20 AM, Tomi Valkeinen wrote:
-> On Mon, 2012-10-08 at 14:04 +0200, Laurent Pinchart wrote:
->> On Monday 08 October 2012 12:01:18 Tomi Valkeinen wrote:
->>> On Mon, 2012-10-08 at 10:25 +0200, Guennadi Liakhovetski
->>> wrote:
-...
->>> Of course, if this is about describing the hardware, the
->>> default-mode property doesn't really fit in...
->> 
->> Maybe we should rename it to native-mode then ?
+On Thu 4 October 2012 11:29:58 Prabhakar wrote:
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
 > 
-> Hmm, right, if it means native mode, then it is describing the
-> hardware. But would it make sense to require that the native mode
-> is the first mode in the list, then? This would make the separate 
-> default-mode/native-mode property not needed.
+> set device_caps and also change the driver and
+> bus_info to proper values as per standard.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
 
-I'm not sure if device-tree guarantees that the nodes enumerate in a
-specific order. If it does, then that may be a reasonable solution.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
+Regards,
+
+	Hans
+
+> ---
+>  Changes for v3:
+>  1: Removed READWRITE flag for device_caps pointed by Hans.
+> 
+>  Changes for v2:
+>  1: Change the bus_info and driver to proper values,
+>     pointed by Hans.
+> 
+>  drivers/media/platform/davinci/vpif_capture.c |    8 +++++---
+>  drivers/media/platform/davinci/vpif_display.c |    8 +++++---
+>  2 files changed, 10 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+> index cabd5a2..fcabc02 100644
+> --- a/drivers/media/platform/davinci/vpif_capture.c
+> +++ b/drivers/media/platform/davinci/vpif_capture.c
+> @@ -1635,9 +1635,11 @@ static int vpif_querycap(struct file *file, void  *priv,
+>  {
+>  	struct vpif_capture_config *config = vpif_dev->platform_data;
+>  
+> -	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+> -	strlcpy(cap->driver, "vpif capture", sizeof(cap->driver));
+> -	strlcpy(cap->bus_info, "VPIF Platform", sizeof(cap->bus_info));
+> +	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+> +	snprintf(cap->driver, sizeof(cap->driver), "%s", dev_name(vpif_dev));
+> +	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
+> +		 dev_name(vpif_dev));
+>  	strlcpy(cap->card, config->card_name, sizeof(cap->card));
+>  
+>  	return 0;
+> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+> index 7f20ca5..b716fbd 100644
+> --- a/drivers/media/platform/davinci/vpif_display.c
+> +++ b/drivers/media/platform/davinci/vpif_display.c
+> @@ -827,9 +827,11 @@ static int vpif_querycap(struct file *file, void  *priv,
+>  {
+>  	struct vpif_display_config *config = vpif_dev->platform_data;
+>  
+> -	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+> -	strlcpy(cap->driver, "vpif display", sizeof(cap->driver));
+> -	strlcpy(cap->bus_info, "Platform", sizeof(cap->bus_info));
+> +	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+> +	snprintf(cap->driver, sizeof(cap->driver), "%s", dev_name(vpif_dev));
+> +	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
+> +		 dev_name(vpif_dev));
+>  	strlcpy(cap->card, config->card_name, sizeof(cap->card));
+>  
+>  	return 0;
+> 
