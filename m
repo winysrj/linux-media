@@ -1,31 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.fr.smartjog.net ([95.81.144.3]:52860 "EHLO
-	mx.fr.smartjog.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753122Ab2JAKQv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 06:16:51 -0400
-Message-ID: <50696D5E.1020405@smartjog.com>
-Date: Mon, 01 Oct 2012 12:15:58 +0200
-From: =?ISO-8859-1?Q?R=E9mi_Cardona?= <remi.cardona@smartjog.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH v3 0/7] ds3000/dw2102 improvements
-References: <1348837172-11784-1-git-send-email-remi.cardona@smartjog.com>
-In-Reply-To: <1348837172-11784-1-git-send-email-remi.cardona@smartjog.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:45084 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755843Ab2JDJbA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 05:31:00 -0400
+From: Prabhakar <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v3] media: davinci: vpif: set device capabilities
+Date: Thu,  4 Oct 2012 14:59:58 +0530
+Message-Id: <1349342998-31804-2-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1349342998-31804-1-git-send-email-prabhakar.lad@ti.com>
+References: <1349342998-31804-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antti,
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-I realized I forgot to CC you on those patches. Thanks for any further
-comments you might have.
+set device_caps and also change the driver and
+bus_info to proper values as per standard.
 
-Cheers,
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Changes for v3:
+ 1: Removed READWRITE flag for device_caps pointed by Hans.
 
-Rémi Cardona
+ Changes for v2:
+ 1: Change the bus_info and driver to proper values,
+    pointed by Hans.
 
+ drivers/media/platform/davinci/vpif_capture.c |    8 +++++---
+ drivers/media/platform/davinci/vpif_display.c |    8 +++++---
+ 2 files changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index cabd5a2..fcabc02 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -1635,9 +1635,11 @@ static int vpif_querycap(struct file *file, void  *priv,
+ {
+ 	struct vpif_capture_config *config = vpif_dev->platform_data;
+ 
+-	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+-	strlcpy(cap->driver, "vpif capture", sizeof(cap->driver));
+-	strlcpy(cap->bus_info, "VPIF Platform", sizeof(cap->bus_info));
++	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
++	snprintf(cap->driver, sizeof(cap->driver), "%s", dev_name(vpif_dev));
++	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
++		 dev_name(vpif_dev));
+ 	strlcpy(cap->card, config->card_name, sizeof(cap->card));
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index 7f20ca5..b716fbd 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -827,9 +827,11 @@ static int vpif_querycap(struct file *file, void  *priv,
+ {
+ 	struct vpif_display_config *config = vpif_dev->platform_data;
+ 
+-	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+-	strlcpy(cap->driver, "vpif display", sizeof(cap->driver));
+-	strlcpy(cap->bus_info, "Platform", sizeof(cap->bus_info));
++	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
++	snprintf(cap->driver, sizeof(cap->driver), "%s", dev_name(vpif_dev));
++	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
++		 dev_name(vpif_dev));
+ 	strlcpy(cap->card, config->card_name, sizeof(cap->card));
+ 
+ 	return 0;
 -- 
-SmartJog | T: +33 1 5868 6229
-27 Blvd Hippolyte Marquès, 94200 Ivry-sur-Seine, France www.smartjog.com
-| a TDF Group company
+1.7.4.1
+
