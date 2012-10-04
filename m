@@ -1,333 +1,273 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:45001 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932253Ab2JJOwE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 10:52:04 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBO00MW4MMOXZ10@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:52:03 +0900 (KST)
-Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MBO002YDME0EC70@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:52:03 +0900 (KST)
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
-	k.debski@samsung.com
-Subject: [PATCHv10 08/26] v4l: vb2-dma-contig: add support for scatterlist in
- userptr mode
-Date: Wed, 10 Oct 2012 16:46:27 +0200
-Message-id: <1349880405-26049-9-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
-References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:11443 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752651Ab2JDWFW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 18:05:22 -0400
+Subject: [PATCH 16/16] ARM: OMAP: Make plat/omap-pm.h local to mach-omap2
+To: linux-arm-kernel@lists.infradead.org
+From: Tony Lindgren <tony@atomide.com>
+Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Thu, 04 Oct 2012 15:05:10 -0700
+Message-ID: <20121004220510.26676.36302.stgit@muffinssi.local>
+In-Reply-To: <20121004213950.26676.21898.stgit@muffinssi.local>
+References: <20121004213950.26676.21898.stgit@muffinssi.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch introduces usage of dma_map_sg to map memory behind
-a userspace pointer to a device as dma-contiguous mapping.
+We must move this for ARM common zImage support.
 
-This patch contains some of the code kindly provided by Marek Szyprowski
-<m.szyprowski@samsung.com> and Kamil Debski <k.debski@samsung.com> and Andrzej
-Pietrasiewicz <andrzej.p@samsung.com>. Kind thanks for bug reports from Laurent
-Pinchart <laurent.pinchart@ideasonboard.com> and Seung-Woo Kim
-<sw0312.kim@samsung.com>.
+Note that neither drivers/media/rc/ir-rx51.c or
+drivers/media/platform/omap3isp/ispvideo.c need
+to include omap-pm.h, so this patch removes the
+include for those files.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/media/v4l2-core/videobuf2-dma-contig.c |  226 ++++++++++++++++++++++--
- 1 file changed, 210 insertions(+), 16 deletions(-)
+ arch/arm/mach-omap1/pm_bus.c                 |    2 --
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
+ arch/arm/mach-omap2/display.c                |    2 +-
+ arch/arm/mach-omap2/dsp.c                    |    2 +-
+ arch/arm/mach-omap2/gpio.c                   |    2 +-
+ arch/arm/mach-omap2/hsmmc.c                  |    2 +-
+ arch/arm/mach-omap2/i2c.c                    |    2 +-
+ arch/arm/mach-omap2/io.c                     |    2 +-
+ arch/arm/mach-omap2/omap-pm.h                |    0 
+ arch/arm/mach-omap2/pm-debug.c               |    2 +-
+ arch/arm/mach-omap2/pm.c                     |    2 +-
+ arch/arm/mach-omap2/serial.c                 |    2 +-
+ arch/arm/mach-omap2/timer.c                  |    2 +-
+ arch/arm/plat-omap/dmtimer.c                 |    3 ++-
+ arch/arm/plat-omap/omap-pm-noop.c            |    4 +---
+ drivers/media/platform/omap3isp/ispvideo.c   |    1 -
+ drivers/media/rc/ir-rx51.c                   |    1 -
+ 17 files changed, 14 insertions(+), 19 deletions(-)
+ rename arch/arm/{plat-omap/include/plat/omap-pm.h => mach-omap2/omap-pm.h} (100%)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index daac2b2..8486e06 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -11,6 +11,8 @@
-  */
+diff --git a/arch/arm/mach-omap1/pm_bus.c b/arch/arm/mach-omap1/pm_bus.c
+index 8a74ec5..16bf2f9 100644
+--- a/arch/arm/mach-omap1/pm_bus.c
++++ b/arch/arm/mach-omap1/pm_bus.c
+@@ -19,8 +19,6 @@
+ #include <linux/clk.h>
+ #include <linux/err.h>
  
- #include <linux/module.h>
-+#include <linux/scatterlist.h>
-+#include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/dma-mapping.h>
- 
-@@ -27,6 +29,8 @@ struct vb2_dc_buf {
- 	void				*vaddr;
- 	unsigned long			size;
- 	dma_addr_t			dma_addr;
-+	enum dma_data_direction		dma_dir;
-+	struct sg_table			*dma_sgt;
- 
- 	/* MMAP related */
- 	struct vb2_vmarea_handler	handler;
-@@ -37,6 +41,44 @@ struct vb2_dc_buf {
- };
- 
- /*********************************************/
-+/*        scatterlist table functions        */
-+/*********************************************/
-+
-+
-+static void vb2_dc_sgt_foreach_page(struct sg_table *sgt,
-+	void (*cb)(struct page *pg))
-+{
-+	struct scatterlist *s;
-+	unsigned int i;
-+
-+	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
-+		struct page *page = sg_page(s);
-+		unsigned int n_pages = PAGE_ALIGN(s->offset + s->length)
-+			>> PAGE_SHIFT;
-+		unsigned int j;
-+
-+		for (j = 0; j < n_pages; ++j, ++page)
-+			cb(page);
-+	}
-+}
-+
-+static unsigned long vb2_dc_get_contiguous_size(struct sg_table *sgt)
-+{
-+	struct scatterlist *s;
-+	dma_addr_t expected = sg_dma_address(sgt->sgl);
-+	unsigned int i;
-+	unsigned long size = 0;
-+
-+	for_each_sg(sgt->sgl, s, sgt->nents, i) {
-+		if (sg_dma_address(s) != expected)
-+			break;
-+		expected = sg_dma_address(s) + sg_dma_len(s);
-+		size += sg_dma_len(s);
-+	}
-+	return size;
-+}
-+
-+/*********************************************/
- /*         callbacks for all buffers         */
- /*********************************************/
- 
-@@ -122,42 +164,194 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
- /*       callbacks for USERPTR buffers       */
- /*********************************************/
- 
-+static inline int vma_is_io(struct vm_area_struct *vma)
-+{
-+	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
-+}
-+
-+static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
-+	int n_pages, struct vm_area_struct *vma, int write)
-+{
-+	if (vma_is_io(vma)) {
-+		unsigned int i;
-+
-+		for (i = 0; i < n_pages; ++i, start += PAGE_SIZE) {
-+			unsigned long pfn;
-+			int ret = follow_pfn(vma, start, &pfn);
-+
-+			if (ret) {
-+				pr_err("no page for address %lu\n", start);
-+				return ret;
-+			}
-+			pages[i] = pfn_to_page(pfn);
-+		}
-+	} else {
-+		int n;
-+
-+		n = get_user_pages(current, current->mm, start & PAGE_MASK,
-+			n_pages, write, 1, pages, NULL);
-+		/* negative error means that no page was pinned */
-+		n = max(n, 0);
-+		if (n != n_pages) {
-+			pr_err("got only %d of %d user pages\n", n, n_pages);
-+			while (n)
-+				put_page(pages[--n]);
-+			return -EFAULT;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static void vb2_dc_put_dirty_page(struct page *page)
-+{
-+	set_page_dirty_lock(page);
-+	put_page(page);
-+}
-+
-+static void vb2_dc_put_userptr(void *buf_priv)
-+{
-+	struct vb2_dc_buf *buf = buf_priv;
-+	struct sg_table *sgt = buf->dma_sgt;
-+
-+	dma_unmap_sg(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
-+	if (!vma_is_io(buf->vma))
-+		vb2_dc_sgt_foreach_page(sgt, vb2_dc_put_dirty_page);
-+
-+	sg_free_table(sgt);
-+	kfree(sgt);
-+	vb2_put_vma(buf->vma);
-+	kfree(buf);
-+}
-+
- static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
--					unsigned long size, int write)
-+	unsigned long size, int write)
+-#include <plat/omap-pm.h>
+-
+ #ifdef CONFIG_PM_RUNTIME
+ static int omap1_pm_runtime_suspend(struct device *dev)
  {
-+	struct vb2_dc_conf *conf = alloc_ctx;
- 	struct vb2_dc_buf *buf;
-+	unsigned long start;
-+	unsigned long end;
-+	unsigned long offset;
-+	struct page **pages;
-+	int n_pages;
-+	int ret = 0;
- 	struct vm_area_struct *vma;
--	dma_addr_t dma_addr = 0;
--	int ret;
-+	struct sg_table *sgt;
-+	unsigned long contig_size;
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index ed85fb8..0199b24 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -33,7 +33,7 @@
+ #include "common.h"
+ #include <plat/dma.h>
+ #include <plat/gpmc.h>
+-#include <plat/omap-pm.h>
++#include "omap-pm.h"
+ #include "gpmc-smc91x.h"
  
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
- 		return ERR_PTR(-ENOMEM);
+ #include "board-rx51.h"
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index 261f79f..bfa3e4c 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -27,7 +27,7 @@
+ #include <video/omapdss.h>
+ #include "omap_hwmod.h"
+ #include "omap_device.h"
+-#include <plat/omap-pm.h>
++#include "omap-pm.h"
+ #include "common.h"
  
--	ret = vb2_get_contig_userptr(vaddr, size, &vma, &dma_addr);
-+	buf->dev = conf->dev;
-+	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+
-+	start = vaddr & PAGE_MASK;
-+	offset = vaddr & ~PAGE_MASK;
-+	end = PAGE_ALIGN(vaddr + size);
-+	n_pages = (end - start) >> PAGE_SHIFT;
-+
-+	pages = kmalloc(n_pages * sizeof(pages[0]), GFP_KERNEL);
-+	if (!pages) {
-+		ret = -ENOMEM;
-+		pr_err("failed to allocate pages table\n");
-+		goto fail_buf;
-+	}
-+
-+	/* current->mm->mmap_sem is taken by videobuf2 core */
-+	vma = find_vma(current->mm, vaddr);
-+	if (!vma) {
-+		pr_err("no vma for address %lu\n", vaddr);
-+		ret = -EFAULT;
-+		goto fail_pages;
-+	}
-+
-+	if (vma->vm_end < vaddr + size) {
-+		pr_err("vma at %lu is too small for %lu bytes\n", vaddr, size);
-+		ret = -EFAULT;
-+		goto fail_pages;
-+	}
-+
-+	buf->vma = vb2_get_vma(vma);
-+	if (!buf->vma) {
-+		pr_err("failed to copy vma\n");
-+		ret = -ENOMEM;
-+		goto fail_pages;
-+	}
-+
-+	/* extract page list from userspace mapping */
-+	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma, write);
- 	if (ret) {
--		printk(KERN_ERR "Failed acquiring VMA for vaddr 0x%08lx\n",
--				vaddr);
--		kfree(buf);
--		return ERR_PTR(ret);
-+		pr_err("failed to get user pages\n");
-+		goto fail_vma;
-+	}
-+
-+	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
-+	if (!sgt) {
-+		pr_err("failed to allocate sg table\n");
-+		ret = -ENOMEM;
-+		goto fail_get_user_pages;
-+	}
-+
-+	ret = sg_alloc_table_from_pages(sgt, pages, n_pages,
-+		offset, size, GFP_KERNEL);
-+	if (ret) {
-+		pr_err("failed to initialize sg table\n");
-+		goto fail_sgt;
-+	}
-+
-+	/* pages are no longer needed */
-+	kfree(pages);
-+	pages = NULL;
-+
-+	sgt->nents = dma_map_sg(buf->dev, sgt->sgl, sgt->orig_nents,
-+		buf->dma_dir);
-+	if (sgt->nents <= 0) {
-+		pr_err("failed to map scatterlist\n");
-+		ret = -EIO;
-+		goto fail_sgt_init;
-+	}
-+
-+	contig_size = vb2_dc_get_contiguous_size(sgt);
-+	if (contig_size < size) {
-+		pr_err("contiguous mapping is too small %lu/%lu\n",
-+			contig_size, size);
-+		ret = -EFAULT;
-+		goto fail_map_sg;
- 	}
+ #include "iomap.h"
+diff --git a/arch/arm/mach-omap2/dsp.c b/arch/arm/mach-omap2/dsp.c
+index 9838810..b155500 100644
+--- a/arch/arm/mach-omap2/dsp.c
++++ b/arch/arm/mach-omap2/dsp.c
+@@ -27,7 +27,7 @@
+ #include "cm2xxx_3xxx.h"
+ #include "prm2xxx_3xxx.h"
+ #ifdef CONFIG_BRIDGE_DVFS
+-#include <plat/omap-pm.h>
++#include "omap-pm.h"
+ #endif
  
-+	buf->dma_addr = sg_dma_address(sgt->sgl);
- 	buf->size = size;
--	buf->dma_addr = dma_addr;
--	buf->vma = vma;
-+	buf->dma_sgt = sgt;
+ #include <linux/platform_data/dsp-omap.h>
+diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+index 80b1e1a..399acab 100644
+--- a/arch/arm/mach-omap2/gpio.c
++++ b/arch/arm/mach-omap2/gpio.c
+@@ -25,7 +25,7 @@
  
- 	return buf;
--}
+ #include "omap_hwmod.h"
+ #include "omap_device.h"
+-#include <plat/omap-pm.h>
++#include "omap-pm.h"
  
--static void vb2_dc_put_userptr(void *mem_priv)
--{
--	struct vb2_dc_buf *buf = mem_priv;
-+fail_map_sg:
-+	dma_unmap_sg(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
+ #include "powerdomain.h"
  
--	if (!buf)
--		return;
-+fail_sgt_init:
-+	if (!vma_is_io(buf->vma))
-+		vb2_dc_sgt_foreach_page(sgt, put_page);
-+	sg_free_table(sgt);
-+
-+fail_sgt:
-+	kfree(sgt);
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index b0b11be..1d5957e 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -18,7 +18,7 @@
+ #include <linux/platform_data/gpio-omap.h>
  
-+fail_get_user_pages:
-+	if (pages && !vma_is_io(buf->vma))
-+		while (n_pages)
-+			put_page(pages[--n_pages]);
-+
-+fail_vma:
- 	vb2_put_vma(buf->vma);
-+
-+fail_pages:
-+	kfree(pages); /* kfree is NULL-proof */
-+
-+fail_buf:
- 	kfree(buf);
-+
-+	return ERR_PTR(ret);
- }
+ #include "mmc.h"
+-#include <plat/omap-pm.h>
++#include "omap-pm.h"
+ #include "omap_device.h"
  
- /*********************************************/
--- 
-1.7.9.5
+ #include "mux.h"
+diff --git a/arch/arm/mach-omap2/i2c.c b/arch/arm/mach-omap2/i2c.c
+index 5904a7a..af4e0de 100644
+--- a/arch/arm/mach-omap2/i2c.c
++++ b/arch/arm/mach-omap2/i2c.c
+@@ -24,7 +24,7 @@
+ #include "common.h"
+ #include "omap_hwmod.h"
+ #include "omap_device.h"
+-#include <plat/omap-pm.h>
++#include "omap-pm.h"
+ 
+ #include "mux.h"
+ #include "i2c.h"
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 1e0ba6f..fe807d1 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -26,7 +26,7 @@
+ #include <asm/mach/map.h>
+ 
+ #include <plat/sdrc.h>
+-#include <plat/omap-pm.h>
++#include "omap-pm.h"
+ #include "omap_hwmod.h"
+ #include <plat/dma.h>
+ 
+diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/mach-omap2/omap-pm.h
+similarity index 100%
+rename from arch/arm/plat-omap/include/plat/omap-pm.h
+rename to arch/arm/mach-omap2/omap-pm.h
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 3e1345f..d6d575f 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -31,7 +31,7 @@
+ #include "powerdomain.h"
+ #include "clockdomain.h"
+ #include <plat/dmtimer.h>
+-#include <plat/omap-pm.h>
++#include "omap-pm.h"
+ 
+ #include "cm2xxx_3xxx.h"
+ #include "prm2xxx_3xxx.h"
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index bb01ac6..29c82ad 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -19,7 +19,7 @@
+ 
+ #include <asm/system_misc.h>
+ 
+-#include <plat/omap-pm.h>
++#include "omap-pm.h"
+ #include "omap_device.h"
+ #include "common.h"
+ 
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 60374a4..6084e02f 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -33,7 +33,7 @@
+ #include <plat/dma.h>
+ #include "omap_hwmod.h"
+ #include "omap_device.h"
+-#include <plat/omap-pm.h>
++#include "omap-pm.h"
+ 
+ #include "prm2xxx_3xxx.h"
+ #include "pm.h"
+diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
+index b888051..17b069f 100644
+--- a/arch/arm/mach-omap2/timer.c
++++ b/arch/arm/mach-omap2/timer.c
+@@ -46,7 +46,7 @@
+ #include "omap_hwmod.h"
+ #include "omap_device.h"
+ #include <plat/dmtimer.h>
+-#include <plat/omap-pm.h>
++#include "omap-pm.h"
+ 
+ #include "soc.h"
+ #include "common.h"
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 938b50a..4a0b30a 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -42,10 +42,11 @@
+ #include <linux/pm_runtime.h>
+ 
+ #include <plat/dmtimer.h>
+-#include <plat/omap-pm.h>
+ 
+ #include <mach/hardware.h>
+ 
++#include "../mach-omap2/omap-pm.h"
++
+ static u32 omap_reserved_systimers;
+ static LIST_HEAD(omap_timer_list);
+ static DEFINE_SPINLOCK(dm_timer_lock);
+diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
+index c498dd2..114c1f8 100644
+--- a/arch/arm/plat-omap/omap-pm-noop.c
++++ b/arch/arm/plat-omap/omap-pm-noop.c
+@@ -22,10 +22,8 @@
+ #include <linux/device.h>
+ #include <linux/platform_device.h>
+ 
+-/* Interface documentation is in mach/omap-pm.h */
+-#include <plat/omap-pm.h>
+-
+ #include "../mach-omap2/omap_device.h"
++#include "../mach-omap2/omap-pm.h"
+ 
+ static bool off_mode_enabled;
+ static int dummy_context_loss_counter;
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 3a5085e..4039674 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -36,7 +36,6 @@
+ #include <media/v4l2-ioctl.h>
+ #include <plat/iommu.h>
+ #include <plat/iovmm.h>
+-#include <plat/omap-pm.h>
+ 
+ #include "ispvideo.h"
+ #include "isp.h"
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index 546199e..82e6c1e 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -28,7 +28,6 @@
+ 
+ #include <plat/dmtimer.h>
+ #include <plat/clock.h>
+-#include <plat/omap-pm.h>
+ 
+ #include <media/lirc.h>
+ #include <media/lirc_dev.h>
 
