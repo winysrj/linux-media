@@ -1,87 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:62148 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753742Ab2J3O3Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Oct 2012 10:29:16 -0400
-Received: by mail-we0-f174.google.com with SMTP id t9so153339wey.19
-        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 07:29:15 -0700 (PDT)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, fabio.estevam@freescale.com,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH v2 3/4] media: mx2_camera: Remove 'buf_cleanup' callback.
-Date: Tue, 30 Oct 2012 15:29:01 +0100
-Message-Id: <1351607342-18030-4-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1351607342-18030-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1351607342-18030-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:28067 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755293Ab2JDJgR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 05:36:17 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.7] Fix fsl-viu compiler warning
+Date: Thu, 4 Oct 2012 11:36:02 +0200
+Cc: Anatolij Gustschin <agust@denx.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201210041136.02959.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All necessary tasks to end the streaming properly are
-already implemented in mx2_stop_streaming() and nothing
-remains to be done in this callback.
+Hi Mauro,
 
-Furthermore, it only included debug messages so it can
-be removed.
+Here is a quick fix for a compiler warning due to the constifying of vidioc_s_fbuf.
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- drivers/media/platform/soc_camera/mx2_camera.c |   34 ------------------------
- 1 file changed, 34 deletions(-)
+Regards,
 
-diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-index bf1178c..8202cb9 100644
---- a/drivers/media/platform/soc_camera/mx2_camera.c
-+++ b/drivers/media/platform/soc_camera/mx2_camera.c
-@@ -551,39 +551,6 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&pcdev->lock, flags);
- }
- 
--static void mx2_videobuf_release(struct vb2_buffer *vb)
--{
--#ifdef DEBUG
--	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
--	struct mx2_camera_dev *pcdev = ici->priv;
--	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
--
--	dev_dbg(icd->parent, "%s (vb=0x%p) 0x%p %lu\n", __func__,
--		vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
--
--	switch (buf->state) {
--	case MX2_STATE_ACTIVE:
--		dev_info(icd->parent, "%s (active)\n", __func__);
--		break;
--	case MX2_STATE_QUEUED:
--		dev_info(icd->parent, "%s (queued)\n", __func__);
--		break;
--	default:
--		dev_info(icd->parent, "%s (unknown) %d\n", __func__,
--				buf->state);
--		break;
--	}
--#endif
--
--	/*
--	 * FIXME: implement forced termination of active buffers for mx27 and
--	 * mx27 eMMA, so that the user won't get stuck in an uninterruptible
--	 * state. This requires a specific handling for each of the these DMA
--	 * types.
--	 */
--}
--
- static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
- 		int bytesperline)
- {
-@@ -814,7 +781,6 @@ static struct vb2_ops mx2_videobuf_ops = {
- 	.queue_setup	 = mx2_videobuf_setup,
- 	.buf_prepare	 = mx2_videobuf_prepare,
- 	.buf_queue	 = mx2_videobuf_queue,
--	.buf_cleanup	 = mx2_videobuf_release,
- 	.start_streaming = mx2_start_streaming,
- 	.stop_streaming	 = mx2_stop_streaming,
- };
--- 
-1.7.9.5
+	Hans
 
+The following changes since commit 2425bb3d4016ed95ce83a90b53bd92c7f31091e4:
+
+  em28xx: regression fix: use DRX-K sync firmware requests on em28xx (2012-10-02 17:15:22 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git const2
+
+for you to fetch changes up to c6419c4e74aa986d234f2ce8e13ea3c9d53f1015:
+
+  fsl-viu: fix compiler warning. (2012-10-04 08:46:00 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      fsl-viu: fix compiler warning.
+
+ drivers/media/platform/fsl-viu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
