@@ -1,54 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:52983 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751544Ab2JEHRp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 03:17:45 -0400
-Date: Fri, 5 Oct 2012 09:17:40 +0200
-From: Robert Schwebel <r.schwebel@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	devicetree-discuss@lists.ozlabs.org,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Philipp Zabel <pza@pengutronix.de>
-Subject: Re: [PATCH 1/2 v6] of: add helper to parse display timings
-Message-ID: <20121005071740.GI23204@pengutronix.de>
-References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
- <1349373560-11128-2-git-send-email-s.trumtrar@pengutronix.de>
- <Pine.LNX.4.64.1210042307300.3744@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1210042307300.3744@axis700.grange>
+Received: from mailout4.samsung.com ([203.254.224.34]:33859 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753020Ab2JDHZB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 03:25:01 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBC00CTLXVK9PN0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:54 +0900 (KST)
+Received: from localhost.localdomain ([107.108.73.106])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MBC006I9XWMLU10@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:54 +0900 (KST)
+From: Rahul Sharma <rahul.sharma@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Cc: t.stanislaws@samsung.com, inki.dae@samsung.com,
+	kyungmin.park@samsung.com, joshi@samsung.com
+Subject: [PATCH v1 11/14] drm: exynos: hdmi: add support for exynos5 mixer
+Date: Thu, 04 Oct 2012 21:12:49 +0530
+Message-id: <1349365372-21417-12-git-send-email-rahul.sharma@samsung.com>
+In-reply-to: <1349365372-21417-1-git-send-email-rahul.sharma@samsung.com>
+References: <1349365372-21417-1-git-send-email-rahul.sharma@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 04, 2012 at 11:35:35PM +0200, Guennadi Liakhovetski wrote:
-> > +optional properties:
-> > + - hsync-active-high (bool): Hsync pulse is active high
-> > + - vsync-active-high (bool): Vsync pulse is active high
->
-> For the above two we also considered using bool properties but eventually
-> settled down with integer ones:
->
-> - hsync-active = <1>
->
-> for active-high and 0 for active low. This has the added advantage of
-> being able to omit this property in the .dts, which then doesn't mean,
-> that the polarity is active low, but rather, that the hsync line is not
-> used on this hardware. So, maybe it would be good to use the same binding
-> here too?
+This patch adds support for exynos5 mixer with device tree enabled.
 
-Philipp, this is the same argumentation as we discussed yesterday for
-the dual-link LVDS option, so that one could be modelled in a similar
-way.
+Signed-off-by: Rahul Sharma <rahul.sharma@samsung.com>
+Signed-off-by: Fahad Kunnathadi <fahad.k@samsung.com>
+---
+ drivers/gpu/drm/exynos/exynos_mixer.c |   49 +++++++++++++++++++++++++++++++--
+ drivers/gpu/drm/exynos/regs-mixer.h   |    3 ++
+ 2 files changed, 49 insertions(+), 3 deletions(-)
 
-rsc
+diff --git a/drivers/gpu/drm/exynos/exynos_mixer.c b/drivers/gpu/drm/exynos/exynos_mixer.c
+index 1677345..39d2b95 100644
+--- a/drivers/gpu/drm/exynos/exynos_mixer.c
++++ b/drivers/gpu/drm/exynos/exynos_mixer.c
+@@ -481,6 +481,18 @@ static void vp_video_buffer(struct mixer_context *ctx, int win)
+ 	vp_regs_dump(ctx);
+ }
+ 
++static void mixer_layer_update(struct mixer_context *ctx)
++{
++	struct mixer_resources *res = &ctx->mixer_res;
++	u32 val;
++
++	val = mixer_reg_read(res, MXR_CFG);
++
++	/* allow one update per vsync only */
++	if (!(val & MXR_CFG_LAYER_UPDATE_COUNT_MASK))
++		mixer_reg_writemask(res, MXR_CFG, ~0, MXR_CFG_LAYER_UPDATE);
++}
++
+ static void mixer_graph_buffer(struct mixer_context *ctx, int win)
+ {
+ 	struct mixer_resources *res = &ctx->mixer_res;
+@@ -561,6 +573,11 @@ static void mixer_graph_buffer(struct mixer_context *ctx, int win)
+ 	mixer_cfg_scan(ctx, win_data->mode_height);
+ 	mixer_cfg_rgb_fmt(ctx, win_data->mode_height);
+ 	mixer_cfg_layer(ctx, win, true);
++
++	/* layer update mandatory for mixer 16.0.33.0 */
++	if (ctx->mxr_ver == MXR_VER_16_0_33_0)
++		mixer_layer_update(ctx);
++
+ 	mixer_run(ctx);
+ 
+ 	mixer_vsync_set_update(ctx, true);
+@@ -1065,6 +1082,11 @@ fail:
+ 	return ret;
+ }
+ 
++static struct mixer_drv_data exynos5_mxr_drv_data = {
++	.version = MXR_VER_16_0_33_0,
++	.is_vp_enabled = 0,
++};
++
+ static struct mixer_drv_data exynos4_mxr_drv_data = {
+ 	.version = MXR_VER_0_0_0_16,
+ 	.is_vp_enabled = 1,
+@@ -1075,6 +1097,18 @@ static struct platform_device_id mixer_driver_types[] = {
+ 		.name		= "s5p-mixer",
+ 		.driver_data	= (unsigned long)&exynos4_mxr_drv_data,
+ 	}, {
++		.name		= "exynos5-mixer",
++		.driver_data	= (unsigned long)&exynos5_mxr_drv_data,
++	}, {
++		/* end node */
++	}
++};
++
++static struct of_device_id mixer_match_types[] = {
++	{
++		.compatible = "samsung,exynos5-mixer",
++		.data	= &exynos5_mxr_drv_data,
++	}, {
+ 		/* end node */
+ 	}
+ };
+@@ -1104,8 +1138,16 @@ static int __devinit mixer_probe(struct platform_device *pdev)
+ 
+ 	mutex_init(&ctx->mixer_mutex);
+ 
+-	drv = (struct mixer_drv_data *)platform_get_device_id(
+-			pdev)->driver_data;
++	if (dev->of_node) {
++		const struct of_device_id *match;
++		match = of_match_node(of_match_ptr(mixer_match_types),
++							  pdev->dev.of_node);
++		drv = match->data;
++	} else {
++		drv = (struct mixer_drv_data *)
++			platform_get_device_id(pdev)->driver_data;
++	}
++
+ 	ctx->dev = &pdev->dev;
+ 	drm_hdmi_ctx->ctx = (void *)ctx;
+ 	ctx->vp_enabled = drv->is_vp_enabled;
+@@ -1167,9 +1209,10 @@ static SIMPLE_DEV_PM_OPS(mixer_pm_ops, mixer_suspend, NULL);
+ 
+ struct platform_driver mixer_driver = {
+ 	.driver = {
+-		.name = "s5p-mixer",
++		.name = "exynos-mixer",
+ 		.owner = THIS_MODULE,
+ 		.pm = &mixer_pm_ops,
++		.of_match_table = mixer_match_types,
+ 	},
+ 	.probe = mixer_probe,
+ 	.remove = __devexit_p(mixer_remove),
+diff --git a/drivers/gpu/drm/exynos/regs-mixer.h b/drivers/gpu/drm/exynos/regs-mixer.h
+index fd2f4d1..5d8dbc0 100644
+--- a/drivers/gpu/drm/exynos/regs-mixer.h
++++ b/drivers/gpu/drm/exynos/regs-mixer.h
+@@ -69,6 +69,7 @@
+ 	(((val) << (low_bit)) & MXR_MASK(high_bit, low_bit))
+ 
+ /* bits for MXR_STATUS */
++#define MXR_STATUS_SOFT_RESET		(1 << 8)
+ #define MXR_STATUS_16_BURST		(1 << 7)
+ #define MXR_STATUS_BURST_MASK		(1 << 7)
+ #define MXR_STATUS_BIG_ENDIAN		(1 << 3)
+@@ -77,6 +78,8 @@
+ #define MXR_STATUS_REG_RUN		(1 << 0)
+ 
+ /* bits for MXR_CFG */
++#define MXR_CFG_LAYER_UPDATE		(1 << 31)
++#define MXR_CFG_LAYER_UPDATE_COUNT_MASK (3 << 29)
+ #define MXR_CFG_RGB601_0_255		(0 << 9)
+ #define MXR_CFG_RGB601_16_235		(1 << 9)
+ #define MXR_CFG_RGB709_0_255		(2 << 9)
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.7.0.4
+
