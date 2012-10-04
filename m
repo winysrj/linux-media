@@ -1,65 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:40084 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755977Ab2JIWyz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 18:54:55 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so5714475pad.19
-        for <linux-media@vger.kernel.org>; Tue, 09 Oct 2012 15:54:55 -0700 (PDT)
-Date: Tue, 9 Oct 2012 15:54:46 -0700
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: =?utf-8?Q?Martin-=C3=89ric?= Racine <martin-eric.racine@iki.fi>
-Cc: Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>, 677533@bugs.debian.org,
-	linux-media@vger.kernel.org, debian-kernel@lists.debian.org
-Subject: Re: video: USB webcam fails since kernel 3.2
-Message-ID: <20121009225446.GA7396@elie.Belkin>
-References: <20120711100436.2305b098@armhf>
- <CAPZXPQdJC5yCYY6YRzuKj-ukFLzbY_yUzbogzbDx1S0bL1GrgQ@mail.gmail.com>
- <20120711124441.346a86b3@armhf>
- <CAPZXPQcvGqPjeyZh=vHtbSOoA91Htsg6DeyYyhYLeDgay8GSBg@mail.gmail.com>
- <20120711132739.6b527a27@armhf>
- <CAPZXPQeDKLAu13Qs-MhhxJEBrF-5620HNZDmPiH+4NRmkxx3Ag@mail.gmail.com>
- <4FFD7F48.6060905@redhat.com>
- <CAPZXPQfMrWySzx9=61WqoZ7zwzw19p69nN6_fuwAHjZVqGLDBw@mail.gmail.com>
- <20120711191835.1be1c8ef@armhf>
- <CAPZXPQeWC+pKJNLr12y_AybYCCKZr6ayBAa=EhaiyfN4iU8g5g@mail.gmail.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:56738 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751998Ab2JDEh4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 00:37:56 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <CAPZXPQeWC+pKJNLr12y_AybYCCKZr6ayBAa=EhaiyfN4iU8g5g@mail.gmail.com>
+In-Reply-To: <2224867.hMfXSgyTsI@avalon>
+References: <1349272385-24980-1-git-send-email-prabhakar.lad@ti.com> <2224867.hMfXSgyTsI@avalon>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 4 Oct 2012 10:07:35 +0530
+Message-ID: <CA+V-a8u_SeTmRLWhpGnbBowgU2SAKYtTuOo6-WjEVFgKogeDoQ@mail.gmail.com>
+Subject: Re: [PATCH v5] media: mt9p031/mt9t001/mt9v032: use
+ V4L2_CID_TEST_PATTERN for test pattern control
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	LMML <linux-media@vger.kernel.org>,
+	VGER <linux-kernel@vger.kernel.org>,
+	Paul Gortmaker <paul.gortmaker@windriver.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Jean Delvare <khali@linux-fr.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Laurent,
 
-In June, Martin-Éric Racine wrote:
-
-> Since recent kernels, this ASUS W5F's built-in webcam fails to be
-> detected. Gstreamer-based applications (Cheese,
-> gstreamer-properties) immediately crash whenever trying to access
-> the video device.
-[...]
-> video_source:sr[3246]: segfault at 0 ip   (null) sp ab36de1c error
-> 14 in cheese[8048000+21000]
-
-In July, Martin-Éric Racine wrote:
-
-> As far as I can tell, yes, the modules in Jean-François' tarball work
-> as-is to fix the problem.
-[...]
-> [   11.834852] gspca_main: v2.15.18 registered
-> [   11.844262] gspca_main: vc032x-2.15.18 probing 0ac8:0321
-> [   11.844682] gspca_vc032x: vc0321 check sensor header 2c
-> [   11.850304] gspca_vc032x: Sensor ID 3130 (0)
-> [   11.850309] gspca_vc032x: Find Sensor PO3130NC
-> [   11.851809] gspca_main: video0 created
+On Wed, Oct 3, 2012 at 7:43 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Prabhakar,
 >
-> Backport would be needed against 3.2.21 as this is what Debian will
-> (probably) release with.
+> On Wednesday 03 October 2012 19:23:05 Prabhakar wrote:
+>> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+>>
+>> V4L2_CID_TEST_PATTERN is now a standard control.
+>> This patch replaces the user defined control for test
+>> pattern to make use of standard control V4L2_CID_TEST_PATTERN.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+>> Cc: Jean Delvare <khali@linux-fr.org>
+>
+> Should I push this patch through my tree ? If so I'll wait until the
+> V4L2_CID_TEST_PATTERN control patch hits Mauro's tree.
+>
+I will issue a pull request for this patch plus
+V4L2_CID_TEST_PATTERN today thanks.
 
-Sorry to have lost track of this.  Do you know what patch fixed it?
-Does 3.5.y from experimental work?
+Regards,
+--Prabhakar
 
-Curious,
-Jonathan
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
