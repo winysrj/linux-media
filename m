@@ -1,99 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:62157 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933486Ab2JWT71 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 15:59:27 -0400
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-Cc: Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 21/23] dvb-frontends: Replace memcpy with struct assignment
-Date: Tue, 23 Oct 2012 16:57:24 -0300
-Message-Id: <1351022246-8201-21-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
-References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:57775 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753018Ab2JDCkT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 22:40:19 -0400
+Received: by mail-bk0-f46.google.com with SMTP id jk13so4784bkc.19
+        for <linux-media@vger.kernel.org>; Wed, 03 Oct 2012 19:40:18 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CA+55aFwVFtUU4TCjz4EDgGDaeR_QwLjmBAJA0kijHkQQ+jxLCw@mail.gmail.com>
+References: <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com>
+ <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
+ <20121002221239.GA30990@kroah.com> <20121002222333.GA32207@kroah.com>
+ <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
+ <506C562E.5090909@redhat.com> <CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
+ <20121003170907.GA23473@ZenIV.linux.org.uk> <CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
+ <20121003195059.GA13541@kroah.com> <CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
+ <3560b86d-e2ad-484d-ab6e-2b9048894a12@email.android.com> <CA+55aFwVFtUU4TCjz4EDgGDaeR_QwLjmBAJA0kijHkQQ+jxLCw@mail.gmail.com>
+From: Kay Sievers <kay@vrfy.org>
+Date: Thu, 4 Oct 2012 04:39:57 +0200
+Message-ID: <CAPXgP1189dn=vHqWrp1JgHs7Yv=BP3dbLyT3zb31Sp8mcEhAvg@mail.gmail.com>
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
+ callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Al Viro <viro@zeniv.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ming Lei <ming.lei@canonical.com>,
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Ivan Kalvachev <ikalvachev@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This kind of memcpy() is error-prone. Its replacement with a struct
-assignment is prefered because it's type-safe and much easier to read.
+On Thu, Oct 4, 2012 at 12:58 AM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+> That said, there's clearly enough variation here that I think that for
+> now I won't take the step to disable the udev part. I'll do the patch
+> to support "direct filesystem firmware loading" using the udev default
+> paths, and that hopefully fixes the particular case people see with
+> media modules.
 
-Found by coccinelle. Hand patched and reviewed.
-Tested by compilation only.
+If that approach looks like it works out, please aim for full
+in-kernel-*only* support. I would absolutely like to get udev entirely
+out of the sick game of firmware loading here. I would welcome if we
+are not falling back to the blocking timeouted behaviour again.
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
+The whole story would be contained entirely in the kernel, and we get
+rid of the rather fragile "userspace transaction" to execute
+module_init(), where the kernel has no idea if userspace is even up to
+ever responding to its requests.
 
-// <smpl>
-@@
-identifier struct_name;
-struct struct_name to;
-struct struct_name from;
-expression E;
-@@
--memcpy(&(to), &(from), E);
-+to = from;
-// </smpl>
+There would be no coordination with userspace tools needed, which
+sounds like a better fit in the way we develop things with the loosely
+coupled kernel <-> udev requirements.
 
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/dvb-frontends/cx24116.c   |    2 +-
- drivers/media/dvb-frontends/drxd_hard.c |    5 ++---
- drivers/media/dvb-frontends/stv0299.c   |    2 +-
- 3 files changed, 4 insertions(+), 5 deletions(-)
+If that works out, it would a bit like devtmpfs which turned out to be
+very simple, reliable and absolutely the right thing we could do to
+primarily mange /dev content.
 
-diff --git a/drivers/media/dvb-frontends/cx24116.c b/drivers/media/dvb-frontends/cx24116.c
-index b488791..2916d7c 100644
---- a/drivers/media/dvb-frontends/cx24116.c
-+++ b/drivers/media/dvb-frontends/cx24116.c
-@@ -819,7 +819,7 @@ static int cx24116_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- static void cx24116_clone_params(struct dvb_frontend *fe)
- {
- 	struct cx24116_state *state = fe->demodulator_priv;
--	memcpy(&state->dcur, &state->dnxt, sizeof(state->dcur));
-+	state->dcur = state->dnxt;
- }
- 
- /* Wait for LNB */
-diff --git a/drivers/media/dvb-frontends/drxd_hard.c b/drivers/media/dvb-frontends/drxd_hard.c
-index 6d98537..dca1752 100644
---- a/drivers/media/dvb-frontends/drxd_hard.c
-+++ b/drivers/media/dvb-frontends/drxd_hard.c
-@@ -2963,7 +2963,7 @@ struct dvb_frontend *drxd_attach(const struct drxd_config *config,
- 		return NULL;
- 	memset(state, 0, sizeof(*state));
- 
--	memcpy(&state->ops, &drxd_ops, sizeof(struct dvb_frontend_ops));
-+	state->ops = drxd_ops;
- 	state->dev = dev;
- 	state->config = *config;
- 	state->i2c = i2c;
-@@ -2974,8 +2974,7 @@ struct dvb_frontend *drxd_attach(const struct drxd_config *config,
- 	if (Read16(state, 0, 0, 0) < 0)
- 		goto error;
- 
--	memcpy(&state->frontend.ops, &drxd_ops,
--	       sizeof(struct dvb_frontend_ops));
-+	state->frontend.ops = drxd_ops;
- 	state->frontend.demodulator_priv = state;
- 	ConfigureMPEGOutput(state, 0);
- 	return &state->frontend;
-diff --git a/drivers/media/dvb-frontends/stv0299.c b/drivers/media/dvb-frontends/stv0299.c
-index 92a6075..b57ecf4 100644
---- a/drivers/media/dvb-frontends/stv0299.c
-+++ b/drivers/media/dvb-frontends/stv0299.c
-@@ -420,7 +420,7 @@ static int stv0299_send_legacy_dish_cmd (struct dvb_frontend* fe, unsigned long
- 
- 	do_gettimeofday (&nexttime);
- 	if (debug_legacy_dish_switch)
--		memcpy (&tv[0], &nexttime, sizeof (struct timeval));
-+		tv[0] = nexttime;
- 	stv0299_writeregI (state, 0x0c, reg0x0c | 0x50); /* set LNB to 18V */
- 
- 	dvb_frontend_sleep_until(&nexttime, 32000);
--- 
-1.7.4.4
+The whole dance with the fake firmware struct device, which has a 60
+second timeout to wait for userspace, is a long story of weird
+failures at various aspects.
 
+It would not only solve the unfortunate modprobe lockup with
+init=/bin/sh we see here, also big servers with an insane amount of
+devices happen to run into the 60 sec timeout, because udev, which
+runs with 4000-8000 threads in parallel handling things like 30.000
+disks is not scheduled in time to fulfill network card firmware
+requests. It would be nice if we don't have that arbitrary timeout at
+all.
+
+Having any timeout at all to answer the simple question if a file
+stored in the rootfs exists, should be a hint that there is something
+really wrong with the model that stuff is done.
+
+Thanks,
+Kay
