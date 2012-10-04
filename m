@@ -1,68 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zose-mta-15.w4a.fr ([176.31.217.10]:58362 "EHLO
-	zose-mta15.web4all.fr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752896Ab2JPVJj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Oct 2012 17:09:39 -0400
-Date: Tue, 16 Oct 2012 23:04:36 +0200 (CEST)
-From: =?utf-8?Q?Beno=C3=AEt_Th=C3=A9baudeau?=
-	<benoit.thebaudeau@advansee.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Chris MacGregor <chris@cybermato.com>,
-	linux-media@vger.kernel.org, Liu Ying <Ying.liu@freescale.com>,
-	"Hans J. Koch" <hjk@linutronix.de>,
-	Daniel Mack <daniel@zonque.org>,
-	Christoph Fritz <chf.fritz@googlemail.com>
-Message-ID: <135335921.6991961.1350421476631.JavaMail.root@advansee.com>
-In-Reply-To: <2180583.3hl5tPmpSx@avalon>
-Subject: Re: hacking MT9P031 for i.mx
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:46800 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750718Ab2JDJhg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 05:37:36 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Prabhakar <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH v2] media: davinci: vpif: Add return code check at vb2_queue_init()
+Date: Thu, 4 Oct 2012 11:37:20 +0200
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1349342998-31804-1-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1349342998-31804-1-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201210041137.20910.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
-
-On Tuesday, October 16, 2012 10:04:57 PM, Laurent Pinchart wrote:
-> On Friday 12 October 2012 14:10:43 Christoph Fritz wrote:
-> > On Mon, 2012-07-02 at 14:48 +0200, Laurent Pinchart wrote:
-> > > On Thursday 28 June 2012 21:41:16 Chris MacGregor wrote:
-> > > > > Where did you get the Aptina board code patch from ?
-> > > >  
-> > > >  From here: https://github.com/Aptina/BeagleBoard-xM
-> > > 
-> > > That's definitely outdated, the code is based on a very old OMAP3
-> > > ISP
-> > > driver that was more or less broken by design. Nowadays anything
-> > > other
-> > > than the mainline version isn't supported by the community.
-> > 
-> > Is there a current (kernel ~3.6) git tree which shows how to add
-> > mt9p031
-> > to platform code?
+On Thu 4 October 2012 11:29:57 Prabhakar wrote:
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
 > 
-> Yes, at
-> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-
-> sensors-board
+> from commit with id 896f38f582730a19eb49677105b4fe4c0270b82e
+> it's mandatory to check the return code of vb2_queue_init().
 > 
-> > I'm also curious if it's possible to glue mt9p031 to a freescale
-> > i.mx35
-> > platform. As far as I can see,
-> > drivers/media/platform/soc_camera/mx3_camera.c would need
-> > v4l2_subdev
-> > support?
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
 
-I have not followed this thread, so I don't know exactly your issue, but FYI I
-have an MT9M131 (of which the driver should hopefully be close to the MT9P031's)
-working on i.MX35 with Linux 3.4.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-I have local changes for that adding support for all possible formats to
-mx3_camera and its IPU. I still have to upgrade to the latest Linux and to
-prepare patches before posting them. I won't be able to do that before a few
-weeks. However, if someone needs it, I can share my local changeset as a global
-patch.
+Regards,
 
-Best regards,
-Benoît
+	Hans
+
+> ---
+>  Changes for v2:
+>  1: Added vb2_dma_contig_cleanup_ctx() on failure of
+>     vb2_queue_init() to avoid memory leak, pointed by Hans.
+> 
+>  drivers/media/platform/davinci/vpif_capture.c |    9 +++++++--
+>  drivers/media/platform/davinci/vpif_display.c |    9 +++++++--
+>  2 files changed, 14 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+> index 83b80ba..cabd5a2 100644
+> --- a/drivers/media/platform/davinci/vpif_capture.c
+> +++ b/drivers/media/platform/davinci/vpif_capture.c
+> @@ -976,6 +976,7 @@ static int vpif_reqbufs(struct file *file, void *priv,
+>  	struct common_obj *common;
+>  	u8 index = 0;
+>  	struct vb2_queue *q;
+> +	int ret;
+>  
+>  	vpif_dbg(2, debug, "vpif_reqbufs\n");
+>  
+> @@ -1015,8 +1016,12 @@ static int vpif_reqbufs(struct file *file, void *priv,
+>  	q->mem_ops = &vb2_dma_contig_memops;
+>  	q->buf_struct_size = sizeof(struct vpif_cap_buffer);
+>  
+> -	vb2_queue_init(q);
+> -
+> +	ret = vb2_queue_init(q);
+> +	if (ret) {
+> +		vpif_err("vpif_capture: vb2_queue_init() failed\n");
+> +		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+> +		return ret;
+> +	}
+>  	/* Set io allowed member of file handle to TRUE */
+>  	fh->io_allowed[index] = 1;
+>  	/* Increment io usrs member of channel object to 1 */
+> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+> index ae8329d..7f20ca5 100644
+> --- a/drivers/media/platform/davinci/vpif_display.c
+> +++ b/drivers/media/platform/davinci/vpif_display.c
+> @@ -936,6 +936,7 @@ static int vpif_reqbufs(struct file *file, void *priv,
+>  	enum v4l2_field field;
+>  	struct vb2_queue *q;
+>  	u8 index = 0;
+> +	int ret;
+>  
+>  	/* This file handle has not initialized the channel,
+>  	   It is not allowed to do settings */
+> @@ -981,8 +982,12 @@ static int vpif_reqbufs(struct file *file, void *priv,
+>  	q->mem_ops = &vb2_dma_contig_memops;
+>  	q->buf_struct_size = sizeof(struct vpif_disp_buffer);
+>  
+> -	vb2_queue_init(q);
+> -
+> +	ret = vb2_queue_init(q);
+> +	if (ret) {
+> +		vpif_err("vpif_display: vb2_queue_init() failed\n");
+> +		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+> +		return ret;
+> +	}
+>  	/* Set io allowed member of file handle to TRUE */
+>  	fh->io_allowed[index] = 1;
+>  	/* Increment io usrs member of channel object to 1 */
+> 
