@@ -1,87 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45653 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759414Ab2JKVsv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Oct 2012 17:48:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
-	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
-	zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
-	k.debski@samsung.com
-Subject: Re: [PATCHv10 21/26] v4l: vb2-dma-contig: add reference counting for a device from allocator context
-Date: Thu, 11 Oct 2012 23:49:36 +0200
-Message-ID: <1557711.XL0Wq5VHNW@avalon>
-In-Reply-To: <1349880405-26049-22-git-send-email-t.stanislaws@samsung.com>
-References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com> <1349880405-26049-22-git-send-email-t.stanislaws@samsung.com>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:51927 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933044Ab2JDNjm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 09:39:42 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CA+55aFwVFtUU4TCjz4EDgGDaeR_QwLjmBAJA0kijHkQQ+jxLCw@mail.gmail.com>
+References: <4FE9169D.5020300@redhat.com>
+	<20121002100319.59146693@redhat.com>
+	<CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
+	<20121002221239.GA30990@kroah.com>
+	<20121002222333.GA32207@kroah.com>
+	<CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
+	<506C562E.5090909@redhat.com>
+	<CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
+	<20121003170907.GA23473@ZenIV.linux.org.uk>
+	<CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
+	<20121003195059.GA13541@kroah.com>
+	<CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
+	<3560b86d-e2ad-484d-ab6e-2b9048894a12@email.android.com>
+	<CA+55aFwVFtUU4TCjz4EDgGDaeR_QwLjmBAJA0kijHkQQ+jxLCw@mail.gmail.com>
+Date: Thu, 4 Oct 2012 09:39:41 -0400
+Message-ID: <CA+5PVA5J0OhmSsy3zOi=z8Ck7QJHVXng=q7OZNOu4nzi6qNA-A@mail.gmail.com>
+Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
+ callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
+From: Josh Boyer <jwboyer@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Al Viro <viro@zeniv.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ming Lei <ming.lei@canonical.com>, Kay Sievers <kay@vrfy.org>,
+	Lennart Poettering <lennart@poettering.net>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Ivan Kalvachev <ikalvachev@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+On Wed, Oct 3, 2012 at 6:58 PM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+> On Wed, Oct 3, 2012 at 3:48 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+>>
+>> I don't know if you can remove the /sys/.../firmware ABI altogether, because there is at least one, somewhat popular udev replacement that also uses it: mdev
+>>
+>> http://git.busybox.net/busybox/plain/docs/mdev.txt
+>
+> Heh. That web doc documents /lib/firmware as being the place to be.
+>
+> That said, there's clearly enough variation here that I think that for
+> now I won't take the step to disable the udev part. I'll do the patch
+> to support "direct filesystem firmware loading" using the udev default
+> paths, and that hopefully fixes the particular case people see with
+> media modules.
 
-Thanks for the patch.
+As you probably noticed, we had a tester in the RH bug report success
+with the commit you included yesterday.
 
-On Wednesday 10 October 2012 16:46:40 Tomasz Stanislawski wrote:
-> This patch adds taking reference to the device for MMAP buffers.
-> 
-> Such buffers, may be exported using DMABUF mechanism. If the driver that
-> created a queue is unloaded then the queue is released, the device might be
-> released too.  However, buffers cannot be released if they are referenced by
-> DMABUF descriptor(s). The device pointer kept in a buffer must be valid for
-> the whole buffer's lifetime. Therefore MMAP buffers should take a reference
-> to the device to avoid risk of dangling pointers.
-> 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Do you think this is something worth including in the stable kernels
+after it gets some further testing during the merge window?  Perhaps
+not that specific commit as there seems to be some additional changes
+needed for configurable paths, etc, but a backport of the fleshed out
+changeset might be wanted.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+We have a new enough udev in Fedora 17 to hit this issue with 3.5 and
+3.6 when we rebase.  I'm sure other distributions will be in similar
+circumstances soon if they aren't already.  Udev isn't going to be
+fixed, so having something working in these cases would be great.
 
-But two small comments below.
-
-> ---
->  drivers/media/v4l2-core/videobuf2-dma-contig.c |    4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index b138b5c..2d661fd
-> 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -148,6 +148,7 @@ static void vb2_dc_put(void *buf_priv)
->  		kfree(buf->sgt_base);
->  	}
->  	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
-> +	put_device(buf->dev);
->  	kfree(buf);
->  }
-> 
-> @@ -168,6 +169,9 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long
-> size) return ERR_PTR(-ENOMEM);
->  	}
-> 
-> +	/* prevent the device from release while the buffer is exported */
-
-s/prevent/Prevent/ ?
-
-> +	get_device(dev);
-> +
->  	buf->dev = dev;
-
-What about just
-
-	buf->dev = get_device(dev);
-
->  	buf->size = size;
--- 
-Regards,
-
-Laurent Pinchart
-
+josh
