@@ -1,119 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1463 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752538Ab2JHNDm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 09:03:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: Media_build broken by [PATCH RFC v3 5/5] m5mols: Implement .get_frame_desc subdev callback
-Date: Mon, 8 Oct 2012 15:03:36 +0200
-Cc: Michael West <michael@iposs.co.nz>,
-	Jan Hoogenraad <jan-conceptronic@hoogenraad.net>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"a.hajda@samsung.com" <a.hajda@samsung.com>,
-	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"sw0312.kim@samsung.com" <sw0312.kim@samsung.com>
-References: <1348674853-24596-1-git-send-email-s.nawrocki@samsung.com> <DCBB30B3D32C824F800041EE82CABAAE03203D63BB2A@duckworth.iposs.co.nz> <507163E0.7040602@gmail.com>
-In-Reply-To: <507163E0.7040602@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210081503.36502.hverkuil@xs4all.nl>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:47702 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753281Ab2JDJaT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 05:30:19 -0400
+From: Prabhakar <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v2] media: davinci: vpif: Add return code check at vb2_queue_init()
+Date: Thu,  4 Oct 2012 14:59:57 +0530
+Message-Id: <1349342998-31804-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun October 7 2012 13:13:36 Sylwester Nawrocki wrote:
-> On 10/07/2012 03:19 AM, Michael West wrote:
-> > This patch changes versions.txt and disables  VIDEO_M5MOLS which 
-> > fixed the build for my 3.2 kernel but looking at the logs it looks
-> > like this is not the way to fix it as it's not just a 3.6+ problem
-> > as it does not build on 3.6 as well...  So probably best to find 
-> > why it doesn't build on the current kernel first.
-> 
-> To fix the build on kernels 3.6+ <linux/sizes.h> just needs to be 
-> inclcuded in m5mols.h. This is what my patch from previous message 
-> in this thread does. But this will break again on kernel versions 
-> _3.5 and lower_ where <linux/sizes.h> doesn't exist. I thought
-> originally it could have been simply replaced there with <asm/sizes.h>, 
-> but not all architectures have it
-> 
-> $ git grep  "#define SZ_1M" v2.6.32
-> v2.6.32:arch/arm/include/asm/sizes.h:#define SZ_1M                           0x00100000
-> v2.6.32:arch/sh/include/asm/sizes.h:#define SZ_1M                           0x00100000
-> 
-> $ git grep  "#define SZ_1M" v3.6-rc5
-> v3.6-rc5:drivers/base/dma-contiguous.c:#define SZ_1M (1 << 20)
-> v3.6-rc5:include/linux/sizes.h:#define SZ_1M                            0x00100000
-> 
-> 
-> Let's just use the below patch to solve this build break, this way
-> there is no need to touch anything at media_build.
-> 
-> From 11adc6956f3fe87c897aa6add08f8437422969a8 Mon Sep 17 00:00:00 2001
-> From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-> Date: Sun, 7 Oct 2012 13:04:37 +0200
-> Subject: [PATCH] m5mols: Replace SZ_1M with explicit value
-> 
-> SZ_1M macro definition was introduced in commit ab7ef22419927
-> "[media] m5mols: Implement .get_frame_desc subdev callback"
-> but required <linux/sizes.h> header was not included. To prevent
-> build errors with older kernels where <linux/sizes.h> doesn't exist
-> use explicit value rather than SZ_1M.
-> 
-> Reported-by: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-> Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+from commit with id 896f38f582730a19eb49677105b4fe4c0270b82e
+it's mandatory to check the return code of vb2_queue_init().
 
-Note: until this patch is merged I am disabling this driver in media_build
-since right now it doesn't compile at all. Please notify me when this is
-fixed in media_tree.git so that I can enable it again.
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Changes for v2:
+ 1: Added vb2_dma_contig_cleanup_ctx() on failure of
+    vb2_queue_init() to avoid memory leak, pointed by Hans.
 
-Regards,
+ drivers/media/platform/davinci/vpif_capture.c |    9 +++++++--
+ drivers/media/platform/davinci/vpif_display.c |    9 +++++++--
+ 2 files changed, 14 insertions(+), 4 deletions(-)
 
-	Hans
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 83b80ba..cabd5a2 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -976,6 +976,7 @@ static int vpif_reqbufs(struct file *file, void *priv,
+ 	struct common_obj *common;
+ 	u8 index = 0;
+ 	struct vb2_queue *q;
++	int ret;
+ 
+ 	vpif_dbg(2, debug, "vpif_reqbufs\n");
+ 
+@@ -1015,8 +1016,12 @@ static int vpif_reqbufs(struct file *file, void *priv,
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->buf_struct_size = sizeof(struct vpif_cap_buffer);
+ 
+-	vb2_queue_init(q);
+-
++	ret = vb2_queue_init(q);
++	if (ret) {
++		vpif_err("vpif_capture: vb2_queue_init() failed\n");
++		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
++		return ret;
++	}
+ 	/* Set io allowed member of file handle to TRUE */
+ 	fh->io_allowed[index] = 1;
+ 	/* Increment io usrs member of channel object to 1 */
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index ae8329d..7f20ca5 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -936,6 +936,7 @@ static int vpif_reqbufs(struct file *file, void *priv,
+ 	enum v4l2_field field;
+ 	struct vb2_queue *q;
+ 	u8 index = 0;
++	int ret;
+ 
+ 	/* This file handle has not initialized the channel,
+ 	   It is not allowed to do settings */
+@@ -981,8 +982,12 @@ static int vpif_reqbufs(struct file *file, void *priv,
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->buf_struct_size = sizeof(struct vpif_disp_buffer);
+ 
+-	vb2_queue_init(q);
+-
++	ret = vb2_queue_init(q);
++	if (ret) {
++		vpif_err("vpif_display: vb2_queue_init() failed\n");
++		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
++		return ret;
++	}
+ 	/* Set io allowed member of file handle to TRUE */
+ 	fh->io_allowed[index] = 1;
+ 	/* Increment io usrs member of channel object to 1 */
+-- 
+1.7.4.1
 
-> ---
->  drivers/media/i2c/m5mols/m5mols.h |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/m5mols/m5mols.h b/drivers/media/i2c/m5mols/m5mols.h
-> index 4ab8b37..30654f5 100644
-> --- a/drivers/media/i2c/m5mols/m5mols.h
-> +++ b/drivers/media/i2c/m5mols/m5mols.h
-> @@ -24,7 +24,7 @@
->   * determined by CAPP_JPEG_SIZE_MAX register.
->   */
->  #define M5MOLS_JPEG_TAGS_SIZE		0x20000
-> -#define M5MOLS_MAIN_JPEG_SIZE_MAX	(5 * SZ_1M)
-> +#define M5MOLS_MAIN_JPEG_SIZE_MAX	(5 * 1024 * 1024)
->  
->  extern int m5mols_debug;
->  
-> > ---
-> >   v4l/versions.txt |    2 ++
-> >   1 file changed, 2 insertions(+)
-> > 
-> > diff --git a/v4l/versions.txt b/v4l/versions.txt
-> > index 328651e..349695c 100644
-> > --- a/v4l/versions.txt
-> > +++ b/v4l/versions.txt
-> > @@ -4,6 +4,8 @@
-> >   [3.6.0]
-> >   # needs devm_clk_get, clk_enable, clk_disable
-> >   VIDEO_CODA
-> > +# broken add reason here
-> > +VIDEO_M5MOLS
-> 
-> This was supposed to be under [3.5.0].
-> 
-> > 
-> >   [3.4.0]
-> >   # needs devm_regulator_bulk_get
-> > -- 1.7.9.5
-> 
