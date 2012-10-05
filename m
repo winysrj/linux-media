@@ -1,46 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3541 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750925Ab2JOH75 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Oct 2012 03:59:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCHv10 17/26] Documentation: media: description of DMABUF exporting in V4L2
-Date: Mon, 15 Oct 2012 09:59:35 +0200
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
-	robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
-	subashrp@gmail.com, mchehab@redhat.com, zhangfei.gao@gmail.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com,
-	linux-doc@vger.kernel.org
-References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com> <1349880405-26049-18-git-send-email-t.stanislaws@samsung.com>
-In-Reply-To: <1349880405-26049-18-git-send-email-t.stanislaws@samsung.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:62105 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752711Ab2JELh4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 07:37:56 -0400
+Date: Fri, 5 Oct 2012 13:37:43 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Rob Herring <robherring2@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-sh@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	Robert Schwebel <r.schwebel@pengutronix.de>,
+	Philipp Zabel <pza@pengutronix.de>
+Subject: Re: [PATCH 04/14] media: add V4L2 DT binding documentation
+In-Reply-To: <201210051331.18586.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1210051335390.13761@axis700.grange>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
+ <506CA5F7.3060807@gmail.com> <Pine.LNX.4.64.1210051119420.13761@axis700.grange>
+ <201210051331.18586.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210150959.35878.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed October 10 2012 16:46:36 Tomasz Stanislawski wrote:
-> This patch adds description and usage examples for exporting
-> DMABUF file descriptor in V4L2.
-> 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> CC: linux-doc@vger.kernel.org
-> ---
->  Documentation/DocBook/media/v4l/compat.xml        |    3 +
->  Documentation/DocBook/media/v4l/io.xml            |    3 +
->  Documentation/DocBook/media/v4l/v4l2.xml          |    1 +
->  Documentation/DocBook/media/v4l/vidioc-expbuf.xml |  212 +++++++++++++++++++++
->  4 files changed, 219 insertions(+)
->  create mode 100644 Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-> 
+On Fri, 5 Oct 2012, Hans Verkuil wrote:
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> On Fri October 5 2012 11:43:27 Guennadi Liakhovetski wrote:
+> > On Wed, 3 Oct 2012, Rob Herring wrote:
+> > 
+> > > On 10/02/2012 09:33 AM, Guennadi Liakhovetski wrote:
+> > > > Hi Rob
+> > > > 
+> > > > On Tue, 2 Oct 2012, Rob Herring wrote:
+> > > > 
+> > > >> On 09/27/2012 09:07 AM, Guennadi Liakhovetski wrote:
+
+[snip]
+
+> > > >>> +Optional link properties:
+> > > >>> +- remote: phandle to the other endpoint link DT node.
+> > > >>
+> > > >> This name is a little vague. Perhaps "endpoint" would be better.
+> > > > 
+> > > > "endpoint" can also refer to something local like in USB case. Maybe 
+> > > > rather the description of the "remote" property should be improved?
+> > > 
+> > > remote-endpoint?
+> > 
+> > Sorry, I really don't want to pull in yet another term here. We've got 
+> > ports and links already, now you're proposing to also use "endpoind." 
+> > Until now everyone was happy with "remote," any more opinions on this?
+> 
+> Actually, when I was reviewing the patch series today I got confused as
+> well by 'remote'. What about 'remote-link'?
+
+Yes, I was thinking about this one too, it looks a bit clumsy, but it does 
+make it clearer, what is meant.
+
+> And v4l2_of_get_remote() can be renamed to v4l2_of_get_remote_link() which
+> I think is a lot clearer.
+> 
+> The text can be improved as well since this:
+> 
+> - remote: phandle to the other endpoint link DT node.
+> 
+> is a bit vague. How about:
+> 
+> - remote-link: phandle to the remote end of this link.
+
+Looks good to me.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
