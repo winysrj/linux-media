@@ -1,61 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:22423 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752125Ab2J0UmI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:42:08 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKg818006308
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:08 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 29/68] [media] az6027: get rid of warning: no previous prototype
-Date: Sat, 27 Oct 2012 18:40:47 -0200
-Message-Id: <1351370486-29040-30-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from moutng.kundenserver.de ([212.227.126.186]:58440 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750750Ab2JEPrS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 11:47:18 -0400
+Date: Fri, 5 Oct 2012 17:47:14 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Albert Wang <twang13@marvell.com>
+Subject: [PATCH] media: soc-camera: remove superfluous JPEG checking
+Message-ID: <Pine.LNX.4.64.1210051743120.13761@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/usb/dvb-usb/az6027.c:1054:5: warning: no previous prototype for 'az6027_identify_state' [-Wmissing-prototypes]
-drivers/media/usb/dvb-usb/az6027.c:301:5: warning: no previous prototype for 'az6027_usb_in_op' [-Wmissing-prototypes]
+Explicit checks for the JPEG pixel format in soc_mbus_bytes_per_line() and 
+soc_mbus_image_size() are superfluous, because also without them these 
+functions will perform correctly. The former will return 0 based on 
+packing == SOC_MBUS_PACKING_VARIABLE and the latter will simply multiply 
+the user-provided line length by the image height to obtain a frame buffer 
+size estimate. The original version of the "media: soc_camera: don't clear 
+pix->sizeimage in JPEG mode" patch was correct and my amendment, adding 
+these two checks was superfluous.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/usb/dvb-usb/az6027.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/usb/dvb-usb/az6027.c b/drivers/media/usb/dvb-usb/az6027.c
-index 5e45ae6..91e0119 100644
---- a/drivers/media/usb/dvb-usb/az6027.c
-+++ b/drivers/media/usb/dvb-usb/az6027.c
-@@ -298,7 +298,8 @@ struct stb6100_config az6027_stb6100_config = {
+diff --git a/drivers/media/platform/soc_camera/soc_mediabus.c b/drivers/media/platform/soc_camera/soc_mediabus.c
+index a397812..89dce09 100644
+--- a/drivers/media/platform/soc_camera/soc_mediabus.c
++++ b/drivers/media/platform/soc_camera/soc_mediabus.c
+@@ -378,9 +378,6 @@ EXPORT_SYMBOL(soc_mbus_samples_per_pixel);
  
- 
- /* check for mutex FIXME */
--int az6027_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen)
-+static int az6027_usb_in_op(struct dvb_usb_device *d, u8 req,
-+			    u16 value, u16 index, u8 *b, int blen)
+ s32 soc_mbus_bytes_per_line(u32 width, const struct soc_mbus_pixelfmt *mf)
  {
- 	int ret = -1;
- 	if (mutex_lock_interruptible(&d->usb_mutex))
-@@ -1051,10 +1052,10 @@ static struct i2c_algorithm az6027_i2c_algo = {
- 	.functionality = az6027_i2c_func,
- };
+-	if (mf->fourcc == V4L2_PIX_FMT_JPEG)
+-		return 0;
+-
+ 	if (mf->layout != SOC_MBUS_LAYOUT_PACKED)
+ 		return width * mf->bits_per_sample / 8;
  
--int az6027_identify_state(struct usb_device *udev,
--			  struct dvb_usb_device_properties *props,
--			  struct dvb_usb_device_description **desc,
--			  int *cold)
-+static int az6027_identify_state(struct usb_device *udev,
-+				 struct dvb_usb_device_properties *props,
-+				 struct dvb_usb_device_description **desc,
-+				 int *cold)
+@@ -403,9 +400,6 @@ EXPORT_SYMBOL(soc_mbus_bytes_per_line);
+ s32 soc_mbus_image_size(const struct soc_mbus_pixelfmt *mf,
+ 			u32 bytes_per_line, u32 height)
  {
- 	u8 *b;
- 	s16 ret;
--- 
-1.7.11.7
-
+-	if (mf->fourcc == V4L2_PIX_FMT_JPEG)
+-		return 0;
+-
+ 	if (mf->layout == SOC_MBUS_LAYOUT_PACKED)
+ 		return bytes_per_line * height;
+ 
