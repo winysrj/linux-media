@@ -1,98 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:33809 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752611Ab2JDHYi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 03:24:38 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBC00CTLXVK9PN0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:37 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MBC006I9XWMLU10@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:37 +0900 (KST)
-From: Rahul Sharma <rahul.sharma@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Cc: t.stanislaws@samsung.com, inki.dae@samsung.com,
-	kyungmin.park@samsung.com, joshi@samsung.com
-Subject: [PATCH v1 02/14] drm: exynos: hdmi: support for platform variants
-Date: Thu, 04 Oct 2012 21:12:40 +0530
-Message-id: <1349365372-21417-3-git-send-email-rahul.sharma@samsung.com>
-In-reply-to: <1349365372-21417-1-git-send-email-rahul.sharma@samsung.com>
-References: <1349365372-21417-1-git-send-email-rahul.sharma@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:37476 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932876Ab2JEUzI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Oct 2012 16:55:08 -0400
+Message-ID: <506F4915.1090908@iki.fi>
+Date: Fri, 05 Oct 2012 23:54:45 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Michael Krufky <mkrufky@linuxtv.org>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] mxl111sf: revert patch: fix error on stream stop in mxl111sf_ep6_streaming_ctrl()
+References: <1349469857-21396-1-git-send-email-crope@iki.fi> <CAOcJUby_4x_bqOE_YGLPQR7FfDXGidt+r-QVqKe14eAypzcGuQ@mail.gmail.com>
+In-Reply-To: <CAOcJUby_4x_bqOE_YGLPQR7FfDXGidt+r-QVqKe14eAypzcGuQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+On 10/05/2012 11:49 PM, Michael Krufky wrote:
+> On Fri, Oct 5, 2012 at 4:44 PM, Antti Palosaari <crope@iki.fi> wrote:
+>> This reverts commits:
+>> 3fd7e4341e04f80e2605f56bbd8cb1e8b027901a
+>> [media] mxl111sf: remove an unused variable
+>> 3be5bb71fbf18f83cb88b54a62a78e03e5a4f30a
+>> [media] mxl111sf: fix error on stream stop in mxl111sf_ep6_streaming_ctrl()
+>>
+>> ...as bug behind these is fixed by the DVB USB v2.
+>>
+>> Cc: Michael Krufky <mkrufky@linuxtv.org>
+>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>> ---
+>>   drivers/media/usb/dvb-usb-v2/mxl111sf.c | 7 +++++--
+>>   1 file changed, 5 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+>> index efdcb15..fcfe124 100644
+>> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+>> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+>> @@ -343,6 +343,7 @@ static int mxl111sf_ep6_streaming_ctrl(struct dvb_frontend *fe, int onoff)
+>>          struct mxl111sf_state *state = fe_to_priv(fe);
+>>          struct mxl111sf_adap_state *adap_state = &state->adap_state[fe->id];
+>>          int ret = 0;
+>> +       u8 tmp;
+>>
+>>          deb_info("%s(%d)\n", __func__, onoff);
+>>
+>> @@ -353,13 +354,15 @@ static int mxl111sf_ep6_streaming_ctrl(struct dvb_frontend *fe, int onoff)
+>>                                                adap_state->ep6_clockphase,
+>>                                                0, 0);
+>>                  mxl_fail(ret);
+>> -#if 0
+>>          } else {
+>>                  ret = mxl111sf_disable_656_port(state);
+>>                  mxl_fail(ret);
+>> -#endif
+>>          }
+>>
+>> +       mxl111sf_read_reg(state, 0x12, &tmp);
+>> +       tmp &= ~0x04;
+>> +       mxl111sf_write_reg(state, 0x12, tmp);
+>> +
+>>          return ret;
+>>   }
+>>
+>
+>
+> I disabled that code on purpose - its redundant.  please do not apply
+> this patch.
 
-This patch implements check if HDMI is version 1.3 by using a driver variant
-instead of platform data.
+According to comments you have added patch changelog you disabled it doe 
+to that bug:
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/gpu/drm/exynos/exynos_hdmi.c |   25 ++++++++++++++++++++++++-
- 1 files changed, 24 insertions(+), 1 deletions(-)
+[media] mxl111sf: fix error on stream stop in mxl111sf_ep6_streaming_ctrl()
 
-diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
-index a6aea6f..b3a802b 100644
---- a/drivers/gpu/drm/exynos/exynos_hdmi.c
-+++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
-@@ -2262,6 +2262,26 @@ void hdmi_attach_hdmiphy_client(struct i2c_client *hdmiphy)
- 		hdmi_hdmiphy = hdmiphy;
- }
- 
-+enum hdmi_type {
-+	HDMI_TYPE13,
-+	HDMI_TYPE14,
-+};
-+
-+static struct platform_device_id hdmi_driver_types[] = {
-+	{
-+		.name		= "s5pv210-hdmi",
-+		.driver_data    = HDMI_TYPE13,
-+	}, {
-+		.name		= "exynos4-hdmi",
-+		.driver_data    = HDMI_TYPE13,
-+	}, {
-+		.name		= "exynos4-hdmi14",
-+		.driver_data    = HDMI_TYPE14,
-+	}, {
-+		/* end node */
-+	}
-+};
-+
- static int __devinit hdmi_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
-@@ -2270,6 +2290,7 @@ static int __devinit hdmi_probe(struct platform_device *pdev)
- 	struct exynos_drm_hdmi_pdata *pdata;
- 	struct resource *res;
- 	int ret;
-+	enum hdmi_type hdmi_type;
- 
- 	DRM_DEBUG_KMS("[%d]\n", __LINE__);
- 
-@@ -2300,7 +2321,8 @@ static int __devinit hdmi_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, drm_hdmi_ctx);
- 
--	hdata->is_v13 = pdata->is_v13;
-+	hdmi_type = platform_get_device_id(pdev)->driver_data;
-+	hdata->is_v13 = (hdmi_type == HDMI_TYPE13);
- 	hdata->cfg_hpd = pdata->cfg_hpd;
- 	hdata->get_hpd = pdata->get_hpd;
- 	hdata->dev = dev;
-@@ -2447,6 +2469,7 @@ static SIMPLE_DEV_PM_OPS(hdmi_pm_ops, hdmi_suspend, hdmi_resume);
- struct platform_driver hdmi_driver = {
- 	.probe		= hdmi_probe,
- 	.remove		= __devexit_p(hdmi_remove),
-+	.id_table = hdmi_driver_types,
- 	.driver		= {
- 		.name	= "exynos4-hdmi",
- 		.owner	= THIS_MODULE,
+Remove unnecessary register access in mxl111sf_ep6_streaming_ctrl()
+
+This code breaks driver operation in kernel 3.3 and later, although
+it works properly in 3.2  Disable register access to 0x12 for now.
+
+
+
+are you saying there is some other reason than mentioned here? I am 
+quite 100% sure I fixed that bug in dvb-usb.
+
+regards
+Antti
 -- 
-1.7.0.4
-
+http://palosaari.fi/
