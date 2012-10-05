@@ -1,54 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50647 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755963Ab2JLNKZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Oct 2012 09:10:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Christoph Fritz <chf.fritz@googlemail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Chris MacGregor <chris@cybermato.com>,
-	linux-media@vger.kernel.org, Liu Ying <Ying.liu@freescale.com>,
-	"Hans J. Koch" <hjk@linutronix.de>, Daniel Mack <daniel@zonque.org>
-Subject: Re: hacking MT9P031 for i.mx
-Date: Fri, 12 Oct 2012 15:11:09 +0200
-Message-ID: <4808568.nuAMlGIafB@avalon>
-In-Reply-To: <1350043843.3730.32.camel@mars>
-References: <ade8080d-dbbf-4b60-804c-333d7340c01e@googlegroups.com> <4301383.IPfSC38GGz@avalon> <1350043843.3730.32.camel@mars>
+Received: from moutng.kundenserver.de ([212.227.126.187]:58916 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932108Ab2JEK6g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 06:58:36 -0400
+Date: Fri, 5 Oct 2012 12:58:21 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
+In-Reply-To: <201210051241.52205.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1210051250210.13761@axis700.grange>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
+ <Pine.LNX.4.64.1210021142210.15778@axis700.grange> <506ABE40.9070504@samsung.com>
+ <201210051241.52205.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Christoph,
+On Fri, 5 Oct 2012, Hans Verkuil wrote:
 
-On Friday 12 October 2012 14:10:43 Christoph Fritz wrote:
-> On Mon, 2012-07-02 at 14:48 +0200, Laurent Pinchart wrote:
-> > On Thursday 28 June 2012 21:41:16 Chris MacGregor wrote:
-> > > > Where did you get the Aptina board code patch from ?
-> > >  
-> > >  From here: https://github.com/Aptina/BeagleBoard-xM
+> On Tue October 2 2012 12:13:20 Sylwester Nawrocki wrote:
+> > Hi Guennadi,
 > > 
-> > That's definitely outdated, the code is based on a very old OMAP3 ISP
-> > driver that was more or less broken by design. Nowadays anything other
-> > than the mainline version isn't supported by the community.
+> > On 10/02/2012 11:49 AM, Guennadi Liakhovetski wrote:
+> > >>> +	if (!of_property_read_u32_array(node, "data-lanes", data_lanes,
+> > >>> +					ARRAY_SIZE(data_lanes))) {
+> > >>> +		int i;
+> > >>> +		for (i = 0; i<  ARRAY_SIZE(data_lanes); i++)
+> > >>> +			link->mipi_csi_2.data_lanes[i] = data_lanes[i];
+> > >>
+> > >> It doesn't look like what we aimed for. The data-lanes array is supposed
+> > >> to be of variable length, thus I don't think it can be parsed like that. 
+> > >> Or am I missing something ? I think we need more something like below 
+> > >> (based on of_property_read_u32_array(), not tested):
+> > > 
+> > > Ok, you're right, that my version only was suitable for fixed-size arrays, 
+> > > which wasn't our goal. But I don't think we should go down to manually 
+> > > parsing property data. How about (tested;-))
+> > > 
+> > > 	data = of_find_property(node, "data-lanes", NULL);
+> > > 	if (data) {
+> > > 		int i = 0;
+> > > 		const __be32 *lane = NULL;
+> > > 		do {
+> > > 			lane = of_prop_next_u32(data, lane, &data_lanes[i]);
+> > > 		} while (lane && i++ < ARRAY_SIZE(data_lanes));
+> > > 		link->mipi_csi_2.num_data_lanes = i;
+> > > 		while (i--)
+> > > 			link->mipi_csi_2.data_lanes[i] = data_lanes[i];
+> > > 	}
+> > 
+> > Yes, that looks neat and does what it is supposed to do. :) Thanks!
+> > For now, I'll trust you it works ;)
+> > 
+> > With regards to the remaining patches, it looks a bit scary to me how
+> > complicated it got, perhaps mostly because of requirement to reference
+> > host devices from subdevs. And it seems to rely on the existing SoC
+> > camera infrastructure, which might imply lot's of work need to be done
+> > for non soc-camera drivers. But I'm going to take a closer look and
+> > comment more on the details at the corresponding patches.
 > 
-> Is there a current (kernel ~3.6) git tree which shows how to add mt9p031
-> to platform code?
+> I have to say that I agree with Sylwester here. It seems awfully complicated,
+> but I can't really put my finger on the actual cause.
+
+Well, which exactly part? The V4L2 OF part is quite simple.
+
+> It would be really
+> interesting to see this implemented for a non-SoC device and to compare the
+> two.
+
+Sure, volunteers? ;-) In principle, if I find time, I could try to convert 
+sh_vou, which is also interesting, because it's an output driver.
+
+> One area that I do not yet completely understand is the i2c bus notifications
+> (or asynchronous loading or i2c modules).
 > 
-> I'm also curious if it's possible to glue mt9p031 to a freescale i.mx35
-> platform. As far as I can see,
-> drivers/media/platform/soc_camera/mx3_camera.c would need v4l2_subdev
-> support?
+> I would have expected that using OF the i2c devices are still initialized
+> before the host/bridge driver is initialized. But I gather that's not the
+> case?
 
-soc-camera already uses v4l2_subdev, but requires soc-camera specific support 
-in the sensor drivers. I've started working on a fix for that some time ago, 
-some cleanup patches have reached mainline but I haven't been able to complete 
-the work yet due to lack of time.
+No, it's not. I'm not sure, whether it depends on the order of devices in 
+the .dts, but, I think, it's better to not have to mandate a certain order 
+and I also seem to have seen devices being registered in different order 
+with the same DT, but I'm not 100% sure about that.
 
--- 
-Regards,
+> If this deferred probing is a general problem, then I think we need a general
+> solution as well that's part of the v4l2 core.
 
-Laurent Pinchart
+That can be done, perhaps. But we can do it as a next step. As soon as 
+we're happy with the OF implementation as such, we can commit that, 
+possibly leaving soc-camera patches out for now, then we can think where 
+to put async I2C handling.
 
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
