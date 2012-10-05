@@ -1,180 +1,363 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57579 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753680Ab2JEQCv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 12:02:51 -0400
-Date: Fri, 5 Oct 2012 18:02:42 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 04/14] media: add V4L2 DT binding documentation
-Message-ID: <20121005160242.GX1322@pengutronix.de>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
- <1348754853-28619-5-git-send-email-g.liakhovetski@gmx.de>
- <20121005151057.GA5125@pengutronix.de>
- <Pine.LNX.4.64.1210051735360.13761@axis700.grange>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3168 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754350Ab2JEIpH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 04:45:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCHv9 17/25] Documentation: media: description of DMABUF exporting in V4L2
+Date: Fri, 5 Oct 2012 10:44:22 +0200
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
+	robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
+	subashrp@gmail.com, mchehab@redhat.com, zhangfei.gao@gmail.com,
+	s.nawrocki@samsung.com, k.debski@samsung.com,
+	linux-doc@vger.kernel.org
+References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com> <1349188056-4886-18-git-send-email-t.stanislaws@samsung.com>
+In-Reply-To: <1349188056-4886-18-git-send-email-t.stanislaws@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1210051735360.13761@axis700.grange>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201210051044.23099.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 05, 2012 at 05:41:00PM +0200, Guennadi Liakhovetski wrote:
-> Hi Sascha
+More stylistic comments and a suggestion for re-ordering the fields in the expbuf struct.
+
+On Tue October 2 2012 16:27:28 Tomasz Stanislawski wrote:
+> This patch adds description and usage examples for exporting
+> DMABUF file descriptor in V4L2.
 > 
-> > > +
-> > > +	ceu0: ceu@0xfe910000 {
-> > > +		compatible = "renesas,sh-mobile-ceu";
-> > > +		reg = <0xfe910000 0xa0>;
-> > > +		interrupts = <0x880>;
-> > > +
-> > > +		mclk: master_clock {
-> > > +			compatible = "renesas,ceu-clock";
-> > > +			#clock-cells = <1>;
-> > > +			clock-frequency = <50000000>;	/* max clock frequency */
-> > > +			clock-output-names = "mclk";
-> > > +		};
-> > > +
-> > > +		port {
-> > > +			#address-cells = <1>;
-> > > +			#size-cells = <0>;
-> > > +
-> > > +			ceu0_1: link@1 {
-> > > +				reg = <1>;		/* local link # */
-> > > +				remote = <&ov772x_1_1>;	/* remote phandle */
-> > > +				bus-width = <8>;	/* used data lines */
-> > > +				data-shift = <0>;	/* lines 7:0 are used */
-> > > +
-> > > +				/* If [hv]sync-active are missing, embedded bt.605 sync is used */
-> > > +				hsync-active = <1>;	/* active high */
-> > > +				vsync-active = <1>;	/* active high */
-> > > +				data-active = <1>;	/* active high */
-> > > +				pclk-sample = <1>;	/* rising */
-> > > +			};
-> > > +
-> > > +			ceu0_0: link@0 {
-> > > +				reg = <0>;
-> > > +				remote = <&csi2_2>;
-> > > +				immutable;
-> > > +			};
-> > > +		};
-> > > +	};
-> > > +
-> > > +	i2c0: i2c@0xfff20000 {
-> > > +		...
-> > > +		ov772x_1: camera@0x21 {
-> > > +			compatible = "omnivision,ov772x";
-> > > +			reg = <0x21>;
-> > > +			vddio-supply = <&regulator1>;
-> > > +			vddcore-supply = <&regulator2>;
-> > > +
-> > > +			clock-frequency = <20000000>;
-> > > +			clocks = <&mclk 0>;
-> > > +			clock-names = "xclk";
-> > > +
-> > > +			port {
-> > > +				/* With 1 link per port no need in addresses */
-> > > +				ov772x_1_1: link {
-> > > +					bus-width = <8>;
-> > > +					remote = <&ceu0_1>;
-> > > +					hsync-active = <1>;
-> > > +					vsync-active = <0>;	/* who came up with an inverter here?... */
-> > > +					data-active = <1>;
-> > > +					pclk-sample = <1>;
-> > > +				};
-> > 
-> > I currently do not understand why these properties are both in the sensor
-> > and in the link. What happens if they conflict? Are inverters assumed
-> > like suggested above? I think the bus can only have a single bus-width,
-> > why allow multiple bus widths here?
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> CC: linux-doc@vger.kernel.org
+> ---
+>  Documentation/DocBook/media/v4l/compat.xml        |    3 +
+>  Documentation/DocBook/media/v4l/io.xml            |    3 +
+>  Documentation/DocBook/media/v4l/v4l2.xml          |    1 +
+>  Documentation/DocBook/media/v4l/vidioc-expbuf.xml |  212 +++++++++++++++++++++
+>  4 files changed, 219 insertions(+)
+>  create mode 100644 Documentation/DocBook/media/v4l/vidioc-expbuf.xml
 > 
-> Yes, these nodes represent port configuration of each party on a certain 
-> link. And they can differ in certain properties, like - as you correctly 
-> notice - in the case, when there's an inverter on a line. As for other 
-> properties, some of them must be identical, like bus-width, still, they 
-> have to be provided on both ends, because generally drivers have to be 
-> able to perform all the required configuration based only on the 
-> information from their own nodes, without looking at "remote" partner node 
-> properties.
+> diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+> index a46f95b..f0512aa 100644
+> --- a/Documentation/DocBook/media/v4l/compat.xml
+> +++ b/Documentation/DocBook/media/v4l/compat.xml
+> @@ -2625,6 +2625,9 @@ ioctls.</para>
+>  	  <para>Importing DMABUF file descriptors as a new IO method described
+>  	  in <xref linkend="dmabuf" />.</para>
+>          </listitem>
+> +        <listitem>
+> +	  <para>Exporting DMABUF files using &VIDIOC-EXPBUF; ioctl.</para>
+> +        </listitem>
+>        </itemizedlist>
+>      </section>
+>  
+> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+> index 5b58657..476f448 100644
+> --- a/Documentation/DocBook/media/v4l/io.xml
+> +++ b/Documentation/DocBook/media/v4l/io.xml
+> @@ -488,6 +488,9 @@ DMA buffer from userspace using a file descriptor previously exported for a
+>  different or the same device (known as the importer role), or both. This
+>  section describes the DMABUF importer role API in V4L2.</para>
+>  
+> +    <para>Refer to <link linked="vidioc-expbuf"> DMABUF exporting </link> for
+> +details about exporting a V4L2 buffers as DMABUF file descriptors.</para>
 
-So the port associated to the ov772x_1 only describes how to configure
-the ov772x and it's up to me to make sure that this configuration
-matches the partner device. If I don't then it won't work but soc-camera
-will happily continue.
-Ok, that's good, I thought there would be some kind of matching
-mechanism take place here. It may be worth to make this more explicit in
-the docs.
+"exporting a" -> "exporting"
 
+> +
+>  <para>Input and output devices support the streaming I/O method when the
+>  <constant>V4L2_CAP_STREAMING</constant> flag in the
+>  <structfield>capabilities</structfield> field of &v4l2-capability; returned by
+> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+> index eee6908..d8c2597 100644
+> --- a/Documentation/DocBook/media/v4l/v4l2.xml
+> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
+> @@ -543,6 +543,7 @@ and discussions on the V4L mailing list.</revremark>
+>      &sub-enuminput;
+>      &sub-enumoutput;
+>      &sub-enumstd;
+> +    &sub-expbuf;
+>      &sub-g-audio;
+>      &sub-g-audioout;
+>      &sub-g-crop;
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
+> new file mode 100644
+> index 0000000..bf28e7d
+> --- /dev/null
+> +++ b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
+> @@ -0,0 +1,212 @@
+> +<refentry id="vidioc-expbuf">
+> +
+> +  <refmeta>
+> +    <refentrytitle>ioctl VIDIOC_EXPBUF</refentrytitle>
+> +    &manvol;
+> +  </refmeta>
+> +
+> +  <refnamediv>
+> +    <refname>VIDIOC_EXPBUF</refname>
+> +    <refpurpose>Export a buffer as a DMABUF file descriptor.</refpurpose>
+> +  </refnamediv>
+> +
+> +  <refsynopsisdiv>
+> +    <funcsynopsis>
+> +      <funcprototype>
+> +	<funcdef>int <function>ioctl</function></funcdef>
+> +	<paramdef>int <parameter>fd</parameter></paramdef>
+> +	<paramdef>int <parameter>request</parameter></paramdef>
+> +	<paramdef>struct v4l2_exportbuffer *<parameter>argp</parameter></paramdef>
+> +      </funcprototype>
+> +    </funcsynopsis>
+> +  </refsynopsisdiv>
+> +
+> +  <refsect1>
+> +    <title>Arguments</title>
+> +
+> +    <variablelist>
+> +      <varlistentry>
+> +	<term><parameter>fd</parameter></term>
+> +	<listitem>
+> +	  <para>&fd;</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><parameter>request</parameter></term>
+> +	<listitem>
+> +	  <para>VIDIOC_EXPBUF</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><parameter>argp</parameter></term>
+> +	<listitem>
+> +	  <para></para>
+> +	</listitem>
+> +      </varlistentry>
+> +    </variablelist>
+> +  </refsect1>
+> +
+> +  <refsect1>
+> +    <title>Description</title>
+> +
+> +    <note>
+> +      <title>Experimental</title>
+> +      <para>This is an <link linkend="experimental"> experimental </link>
+> +      interface and may change in the future.</para>
+> +    </note>
+> +
+> +<para>This ioctl is an extension to the <link linkend="mmap">memory
+> +mapping</link> I/O method therefore it is available only for
+
+"method therefore" -> "method, therefore"
+
+> +<constant>V4L2_MEMORY_MMAP</constant> buffers.  It can be used to export a
+> +buffer as a DMABUF file at any time after buffers have been allocated with the
+> +&VIDIOC-REQBUFS; ioctl.</para>
+> +
+> +<para> To export a buffer, applicationis fill &v4l2-exportbuffer;.  The
+
+applicationis -> applications
+
+> +<structfield> type </structfield> field is set to the same buffer type as was
+> +previously used with  &v4l2-requestbuffers;<structfield> type </structfield>.
+> +Applications must also set the <structfield> index </structfield> field. Valid
+> +index numbers range from zero to the number of buffers allocated with
+> +&VIDIOC-REQBUFS; (&v4l2-requestbuffers;<structfield> count </structfield>)
+> +minus one.  For multi plane API, applications set the <structfield> plane
+
+"multi plane" -> "the multi-planar"
+
+> +</structfield> field to the index of the plane to be exported. Valid planes
+> +range from zero to the maximal number of valid planes for currently active
+
+"for" -> "for the"
+
+> +format. For single plane API, applications must set <structfield> plane
+
+"single plane" -> "the single-planar"
+
+> +</structfield> to zero.  Additional flags may be posted in the <structfield>
+> +flags </structfield> field.  Refer to a manual for open() for details.
+> +Currently only O_CLOEXEC is supported.  All other fields must be set to zero.
+> +In a case of multi-planar API, every plane is exported separately using
+
+"a case of" -> "the case of the"
+
+> +multiple <constant> VIDIOC_EXPBUF </constant> calls. </para>
+> +
+> +<para> After calling <constant>VIDIOC_EXPBUF</constant> the <structfield> fd
+> +</structfield> field will be set by a driver.  This is a DMABUF file
+> +descriptor. The application may pass it to other API. Refer to <link
+
+"API" -> "APIs"
+
+or alternatively (and I like that better):
+
+"API" -> "DMABUF-aware devices"
+
+> +linkend="dmabuf">DMABUF importing</link> for details about importing DMABUF
+> +files into V4L2 nodes. A developer is encouraged to close a DMABUF file when it
+> +is no longer used to avoid a resource leak.  </para>
+
+I'm not sure I like that last sentence. Perhaps something like this:
+
+"It is recommended to close a DMABUF file when it is no longer used to allow
+the associated memory to be reclaimed."
+
+> +
+> +  </refsect1>
+> +  <refsect1>
+> +   <section>
+> +      <title>Examples</title>
+> +
+> +      <example>
+> +	<title>Exporting a buffer.</title>
+> +	<programlisting>
+> +int buffer_export(int v4lfd, &v4l2-buf-type; bt, int index, int *dmafd)
+> +{
+> +	&v4l2-exportbuffer; expbuf;
+> +
+> +	memset(&amp;expbuf, 0, sizeof expbuf);
+
+sizeof expbuf -> sizeof(expbuf)
+
+> +	expbuf.type = bt;
+> +	expbuf.index = index;
+> +	if (ioctl(v4lfd, &VIDIOC-EXPBUF;, &amp;expbuf) == -1) {
+> +		perror("VIDIOC_EXPBUF");
+> +		return -1;
+> +	}
+> +
+> +	*dmafd = expbuf.fd;
+> +
+> +	return 0;
+> +}
+> +        </programlisting>
+> +      </example>
+> +
+> +      <example>
+> +	<title>Exporting a buffer using multi plane API.</title>
+
+"multi plane" -> "the multi-planar"
+
+> +	<programlisting>
+> +int buffer_export_mp(int v4lfd, &v4l2-buf-type; bt, int index,
+> +	int dmafd[], int n_planes)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i &lt; n_planes; ++i) {
+> +		&v4l2-exportbuffer; expbuf;
+> +
+> +		memset(&amp;expbuf, 0, sizeof expbuf);
+
+sizeof(expbuf)
+
+> +		expbuf.type = bt;
+> +		expbuf.index = index;
+> +		expbuf.plane = i;
+> +		if (ioctl(v4lfd, &VIDIOC-EXPBUF;, &amp;expbuf) == -1) {
+> +			perror("VIDIOC_EXPBUF");
+> +			while (i)
+> +				close(dmafd[--i]);
+> +			return -1;
+> +		}
+> +		dmafd[i] = expbuf.fd;
+> +	}
+> +
+> +	return 0;
+> +}
+> +        </programlisting>
+> +      </example>
+> +   </section>
+> +  </refsect1>
+> +
+> +  <refsect1>
+> +    <table pgwide="1" frame="none" id="v4l2-exportbuffer">
+> +      <title>struct <structname>v4l2_exportbuffer</structname></title>
+> +      <tgroup cols="3">
+> +	&cs-str;
+> +	<tbody valign="top">
+> +	  <row>
+> +	    <entry>__s32</entry>
+> +	    <entry><structfield>fd</structfield></entry>
+> +	    <entry>The DMABUF file descriptor associated with a buffer. Set by
+> +		a driver.</entry>
+
+a -> the
+
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>flags</structfield></entry>
+> +	    <entry>Flags for newly created file, currently only <constant>
+
+for -> for the
+
+> +O_CLOEXEC </constant> is supported, refer to the manual of open() for more
+> +details.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>type</structfield></entry>
+> +	    <entry>Type of the buffer, same as &v4l2-format;
+> +<structfield>type</structfield> or &v4l2-requestbuffers;
+> +<structfield>type</structfield>, set by the application. See <xref
+> +linkend="v4l2-buf-type" /></entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>index</structfield></entry>
+> +	    <entry>Number of the buffer, set by the application. This field is
+> +only used for <link linkend="mmap">memory mapping</link> I/O and can range from
+> +zero to the number of buffers allocated with the &VIDIOC-REQBUFS; ioctl
+
+This really also includes any buffers allocated with VIDIOC_CREATE_BUFS.
+
+> +(&v4l2-requestbuffers; <structfield>count</structfield>) minus one.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>plane</structfield></entry>
+> +	    <entry>Index of the plane to be exported when using multi plane
+
+multi plane -> the multi-planar
+
+> +API. Otherwise this value must be set to zero. </entry>
+> +	  </row>
+
+Shouldn't type, index and plane comes first in this struct? That feels more
+natural.
+
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>reserved[11]</structfield></entry>
+> +	    <entry>Reserved field for future use. Must be set to zero.</entry>
+> +	  </row>
+> +	</tbody>
+> +      </tgroup>
+> +    </table>
+> +
+> +  </refsect1>
+> +
+> +  <refsect1>
+> +    &return-value;
+> +    <variablelist>
+> +      <varlistentry>
+> +	<term><errorcode>EINVAL</errorcode></term>
+> +	<listitem>
+> +	  <para>A queue is not in MMAP mode or DMABUF exporting is not
+> +supported or <structfield> flags </structfield> or <structfield> type
+> +</structfield> or <structfield> index </structfield> or <structfield> plane
+> +</structfield> fields are invalid.</para>
+> +	</listitem>
+> +      </varlistentry>
+> +    </variablelist>
+> +  </refsect1>
+> +
+> +</refentry>
 > 
-> > > +		reg = <0xffc90000 0x1000>;
-> > > +		interrupts = <0x17a0>;
-> > > +		#address-cells = <1>;
-> > > +		#size-cells = <0>;
-> > > +
-> > > +		port@1 {
-> > > +			compatible = "renesas,csi2c";	/* one of CSI2I and CSI2C */
-> > > +			reg = <1>;			/* CSI-2 PHY #1 of 2: PHY_S, PHY_M has port address 0, is unused */
-> > > +
-> > > +			csi2_1: link {
-> > > +				clock-lanes = <0>;
-> > > +				data-lanes = <2>, <1>;
-> > > +				remote = <&imx074_1>;
-> > > +			};
-> > > +		};
-> > > +		port@2 {
-> > > +			reg = <2>;			/* port 2: link to the CEU */
-> > > +
-> > > +			csi2_2: link {
-> > > +				immutable;
-> > > +				remote = <&ceu0_0>;
-> > > +			};
-> > > +		};
-> > 
-> > Maybe the example would be clearer if you split it up in two, one simple
-> > case with the csi2_1 <-> imx074_1 and a more advanced with the link in
-> > between.
-> 
-> With no link between two ports no connection is possible, so, only 
-> examples with links make sense.
-
-I should have said with the renesas,sh-mobile-ceu in between.
-
-So simple example: csi2_1 <-l-> imx074_1
-advanced: csi2_2 <-l-> ceu <-l-> ov772x
-
-> 
-> > It took me some time until I figured out that these are two
-> > separate camera/sensor pairs. Somehow I was looking for a multiplexer
-> > between them.
-> 
-> Maybe I can add more comments to the file, perhaps, add an ASCII-art 
-> chart.
-
-That would be good.
-
-> 
-> > I am not sure we really want to have these circular phandles here.
-> 
-> It has been suggested and accepted during a discussion at the KS / LPC a 
-> month ago. The original version only had phandle referencing in one 
-> direction.
-
-Ok.
-
-Sascha
-
-
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
