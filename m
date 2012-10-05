@@ -1,126 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx01.sz.bfs.de ([194.94.69.103]:35555 "EHLO mx01.sz.bfs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750749Ab2JGQd7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Oct 2012 12:33:59 -0400
-Message-ID: <5071AEF3.6080108@bfs.de>
-Date: Sun, 07 Oct 2012 18:33:55 +0200
-From: walter harms <wharms@bfs.de>
-Reply-To: wharms@bfs.de
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4796 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753625Ab2JEISZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 04:18:25 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCHv9 03/25] v4l: vb2: add support for shared buffer (dma_buf)
+Date: Fri, 5 Oct 2012 10:17:35 +0200
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
+	robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
+	subashrp@gmail.com, mchehab@redhat.com, zhangfei.gao@gmail.com,
+	s.nawrocki@samsung.com, k.debski@samsung.com,
+	Sumit Semwal <sumit.semwal@linaro.org>
+References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com> <1349188056-4886-4-git-send-email-t.stanislaws@samsung.com>
+In-Reply-To: <1349188056-4886-4-git-send-email-t.stanislaws@samsung.com>
 MIME-Version: 1.0
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-CC: Antti Palosaari <crope@iki.fi>, kernel-janitors@vger.kernel.org,
-	rmallon@gmail.com, shubhrajyoti@ti.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for i2c_msg
- initialization
-References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201210051017.35297.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Just a small heads-up for an upcoming change...
 
-
-Am 07.10.2012 17:38, schrieb Julia Lawall:
-> From: Julia Lawall <Julia.Lawall@lip6.fr>
+On Tue October 2 2012 16:27:14 Tomasz Stanislawski wrote:
+> From: Sumit Semwal <sumit.semwal@ti.com>
 > 
-> Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
+> This patch adds support for DMABUF memory type in videobuf2. It calls relevant
+> APIs of dma_buf for v4l reqbuf / qbuf / dqbuf operations.
 > 
-> In the second i2c_msg structure, a length expressed as an explicit constant
-> is also re-expressed as the size of the buffer, reg.
+> For this version, the support is for videobuf2 as a user of the shared buffer;
+> so the allocation of the buffer is done outside of V4L2. [A sample allocator of
+> dma-buf shared buffer is given at [1]]
 > 
-> A simplified version of the semantic patch that makes this change is as
-> follows: (http://coccinelle.lip6.fr/)
+> [1]: Rob Clark's DRM:
+>    https://github.com/robclark/kernel-omap4/commits/drmplane-dmabuf
 > 
-> // <smpl>
-> @@
-> expression a,b,c;
-> identifier x;
-> @@
-> 
-> struct i2c_msg x =
-> - {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
-> + I2C_MSG_READ(a,b,c)
->  ;
-> 
-> @@
-> expression a,b,c;
-> identifier x;
-> @@
-> 
-> struct i2c_msg x =
-> - {.addr = a, .buf = b, .len = c, .flags = 0}
-> + I2C_MSG_WRITE(a,b,c)
->  ;
-> 
-> @@
-> expression a,b,c,d;
-> identifier x;
-> @@
-> 
-> struct i2c_msg x = 
-> - {.addr = a, .buf = b, .len = c, .flags = d}
-> + I2C_MSG_OP(a,b,c,d)
->  ;
-> // </smpl>
-> 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-> 
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+>    [original work in the PoC for buffer sharing]
+> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 > ---
->  drivers/media/tuners/e4000.c |   20 +++-----------------
->  1 file changed, 3 insertions(+), 17 deletions(-)
+>  drivers/media/video/Kconfig          |    1 +
+>  drivers/media/video/videobuf2-core.c |  207 +++++++++++++++++++++++++++++++++-
+>  include/media/videobuf2-core.h       |   27 +++++
+>  3 files changed, 232 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
-> index 1b33ed3..8f182fc 100644
-> --- a/drivers/media/tuners/e4000.c
-> +++ b/drivers/media/tuners/e4000.c
-> @@ -26,12 +26,7 @@ static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
->  	int ret;
->  	u8 buf[1 + len];
->  	struct i2c_msg msg[1] = {
-> -		{
-> -			.addr = priv->cfg->i2c_addr,
-> -			.flags = 0,
-> -			.len = sizeof(buf),
-> -			.buf = buf,
-> -		}
-> +		I2C_MSG_WRITE(priv->cfg->i2c_addr, buf, sizeof(buf))
->  	};
+
+<snip>
+
+> @@ -970,6 +1040,109 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+>  }
 >  
+>  /**
+> + * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
+> + */
+> +static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+> +{
+> +	struct v4l2_plane planes[VIDEO_MAX_PLANES];
+> +	struct vb2_queue *q = vb->vb2_queue;
+> +	void *mem_priv;
+> +	unsigned int plane;
+> +	int ret;
+> +	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
+> +
+> +	/* Verify and copy relevant information provided by the userspace */
+> +	ret = __fill_vb2_buffer(vb, b, planes);
 
-Any reason why struct i2c_msg is an array ?
+Note that this code will have to change a bit when my multiplanar fixes go in:
 
-re,
- wh
+http://www.spinics.net/lists/linux-media/msg54601.html
 
->  	buf[0] = reg;
-> @@ -54,17 +49,8 @@ static int e4000_rd_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
->  	int ret;
->  	u8 buf[len];
->  	struct i2c_msg msg[2] = {
-> -		{
-> -			.addr = priv->cfg->i2c_addr,
-> -			.flags = 0,
-> -			.len = 1,
-> -			.buf = &reg,
-> -		}, {
-> -			.addr = priv->cfg->i2c_addr,
-> -			.flags = I2C_M_RD,
-> -			.len = sizeof(buf),
-> -			.buf = buf,
-> -		}
-> +		I2C_MSG_WRITE(priv->cfg->i2c_addr, &reg, sizeof(reg)),
-> +		I2C_MSG_READ(priv->cfg->i2c_addr, buf, sizeof(buf))
->  	};
->  
->  	ret = i2c_transfer(priv->i2c, msg, 2);
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+__fill_vb2_buffer is now a void function, so there won't be any need to check
+the error.
+
+> +	if (ret)
+> +		return ret;
+> +
+> +	for (plane = 0; plane < vb->num_planes; ++plane) {
+> +		struct dma_buf *dbuf = dma_buf_get(planes[plane].m.fd);
+> +
+> +		if (IS_ERR_OR_NULL(dbuf)) {
+> +			dprintk(1, "qbuf: invalid dmabuf fd for plane %d\n",
+> +				plane);
+> +			ret = -EINVAL;
+> +			goto err;
+> +		}
+> +
+> +		/* use DMABUF size if length is not provided */
+> +		if (planes[plane].length == 0)
+> +			planes[plane].length = dbuf->size;
+> +
+> +		if (planes[plane].length < planes[plane].data_offset +
+> +		    q->plane_sizes[plane]) {
+> +			ret = -EINVAL;
+> +			goto err;
+> +		}
+> +
+> +		/* Skip the plane if already verified */
+> +		if (dbuf == vb->planes[plane].dbuf &&
+> +		    vb->v4l2_planes[plane].length == planes[plane].length) {
+> +			dma_buf_put(dbuf);
+> +			continue;
+> +		}
+> +
+> +		dprintk(1, "qbuf: buffer for plane %d changed\n", plane);
+> +
+> +		/* Release previously acquired memory if present */
+> +		__vb2_plane_dmabuf_put(q, &vb->planes[plane]);
+> +		memset(&vb->v4l2_planes[plane], 0, sizeof(struct v4l2_plane));
+> +
+> +		/* Acquire each plane's memory */
+> +		mem_priv = call_memop(q, attach_dmabuf, q->alloc_ctx[plane],
+> +			dbuf, planes[plane].length, write);
+> +		if (IS_ERR(mem_priv)) {
+> +			dprintk(1, "qbuf: failed to attach dmabuf\n");
+> +			ret = PTR_ERR(mem_priv);
+> +			dma_buf_put(dbuf);
+> +			goto err;
+> +		}
+> +
+> +		vb->planes[plane].dbuf = dbuf;
+> +		vb->planes[plane].mem_priv = mem_priv;
+> +	}
+> +
+> +	/* TODO: This pins the buffer(s) with  dma_buf_map_attachment()).. but
+> +	 * really we want to do this just before the DMA, not while queueing
+> +	 * the buffer(s)..
+> +	 */
+> +	for (plane = 0; plane < vb->num_planes; ++plane) {
+> +		ret = call_memop(q, map_dmabuf, vb->planes[plane].mem_priv);
+> +		if (ret) {
+> +			dprintk(1, "qbuf: failed to map dmabuf for plane %d\n",
+> +				plane);
+> +			goto err;
+> +		}
+> +		vb->planes[plane].dbuf_mapped = 1;
+> +	}
+> +
+> +	/*
+> +	 * Call driver-specific initialization on the newly acquired buffer,
+> +	 * if provided.
+> +	 */
+> +	ret = call_qop(q, buf_init, vb);
+> +	if (ret) {
+> +		dprintk(1, "qbuf: buffer initialization failed\n");
+> +		goto err;
+> +	}
+> +
+> +	/*
+> +	 * Now that everything is in order, copy relevant information
+> +	 * provided by userspace.
+> +	 */
+> +	for (plane = 0; plane < vb->num_planes; ++plane)
+> +		vb->v4l2_planes[plane] = planes[plane];
+> +
+> +	return 0;
+> +err:
+> +	/* In case of errors, release planes that were already acquired */
+> +	__vb2_buf_dmabuf_put(vb);
+> +
+> +	return ret;
+> +}
