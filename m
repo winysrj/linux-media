@@ -1,49 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:45779 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756539Ab2JQLQq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 07:16:46 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rr4so7059174pbb.19
-        for <linux-media@vger.kernel.org>; Wed, 17 Oct 2012 04:16:46 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 6/8] [media] exynos-gsc: Fix compilation warning
-Date: Wed, 17 Oct 2012 16:41:49 +0530
-Message-Id: <1350472311-9748-6-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org>
-References: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org>
+Received: from moutng.kundenserver.de ([212.227.126.187]:50431 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755680Ab2JEOlZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 10:41:25 -0400
+Date: Fri, 5 Oct 2012 16:41:14 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+cc: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 00/14] V4L2 DT support
+In-Reply-To: <506ED344.2020407@gmail.com>
+Message-ID: <Pine.LNX.4.64.1210051639160.13761@axis700.grange>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
+ <506ED344.2020407@gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Used type casting to avoid the following compilation warning:
+Hi Sylwester
 
-drivers/media/platform/exynos-gsc/gsc-core.c:983:37: warning:
-incorrect type in assignment (different modifiers)
-drivers/media/platform/exynos-gsc/gsc-core.c:983:37:
-expected struct gsc_driverdata *driver_data
-drivers/media/platform/exynos-gsc/gsc-core.c:983:37:
-got void const *data
+On Fri, 5 Oct 2012, Sylwester Nawrocki wrote:
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> Hi Guennadi,
+> 
+> Any chance for a GIT tree including this patch series ? I'd like
+> to see all these pieces put together and I don't seem to find any
+> base tree that this series would have applied cleanly to.
+
+Ok, I pushed the patches to
+
+git://linuxtv.org/gliakhovetski/v4l-dvb.git dt-soc_camera
+
+Please, give it a go.
+
+Thanks
+Guennadi
+
+> 
+> ...(20121005_media_for_v3.7-dt)$ git am -3 \[PATCH\ *
+> Applying: i2c: add dummy inline functions for when CONFIG_OF_I2C(_MODULE) isn't defined
+> Applying: of: add a dummy inline function for when CONFIG_OF is not defined
+> Applying: OF: make a function pointer argument const
+> Applying: media: add V4L2 DT binding documentation
+> Applying: media: add a V4L2 OF parser
+> Applying: media: soc-camera: prepare for asynchronous client probing
+> Applying: media: soc-camera: support deferred probing of clients
+> fatal: sha1 information is lacking or useless (drivers/media/platform/soc_camera/soc_camera.c).
+> Repository lacks necessary blobs to fall back on 3-way merge.
+> Cannot fall back to three-way merge.
+> Patch failed at 0007 media: soc-camera: support deferred probing of clients
+> When you have resolved this problem run "git am --resolved".
+> If you would prefer to skip this patch, instead run "git am --skip".
+> To restore the original branch and stop patching run "git am --abort".
+> 
+> --
+> 
+> Thanks,
+> Sylwester
+> 
+
 ---
- drivers/media/platform/exynos-gsc/gsc-core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index d11668b..9b86ef6 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -980,7 +980,7 @@ static void *gsc_get_drv_data(struct platform_device *pdev)
- 		match = of_match_node(of_match_ptr(exynos_gsc_match),
- 					pdev->dev.of_node);
- 		if (match)
--			driver_data =  match->data;
-+			driver_data = (struct gsc_driverdata *)match->data;
- 	} else {
- 		driver_data = (struct gsc_driverdata *)
- 			platform_get_device_id(pdev)->driver_data;
--- 
-1.7.4.1
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
