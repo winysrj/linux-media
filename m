@@ -1,193 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:57147 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932353Ab2JURx3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Oct 2012 13:53:29 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so1632849wgb.1
-        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2012 10:53:28 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 08/23] em28xx: rename function em28xx_uninit_isoc to em28xx_uninit_usb_xfer
-Date: Sun, 21 Oct 2012 19:52:13 +0300
-Message-Id: <1350838349-14763-9-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2590 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755058Ab2JEJYn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 05:24:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCHv9 00/25] Integration of videobuf2 with DMABUF
+Date: Fri, 5 Oct 2012 11:24:24 +0200
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
+	robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
+	subashrp@gmail.com, mchehab@redhat.com, zhangfei.gao@gmail.com,
+	s.nawrocki@samsung.com, k.debski@samsung.com
+References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
+In-Reply-To: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201210051124.24844.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This function will be used to uninitialize USB bulk transfers, too.
-Also rename the local variable isoc_bufs to usb_bufs.
+On Tue October 2 2012 16:27:11 Tomasz Stanislawski wrote:
+> Hello everyone,
+> This patchset adds support for DMABUF [2] importing and exporting to V4L2
+> stack.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c |    4 +--
- drivers/media/usb/em28xx/em28xx-core.c  |   43 ++++++++++++++++---------------
- drivers/media/usb/em28xx/em28xx-video.c |    2 +-
- drivers/media/usb/em28xx/em28xx.h       |    2 +-
- 4 Dateien geändert, 26 Zeilen hinzugefügt(+), 25 Zeilen entfernt(-)
+Hi Tomasz,
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 8b40111..fee68d8 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -3385,7 +3385,7 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
- 		     video_device_node_name(dev->vdev));
- 
- 		dev->state |= DEV_MISCONFIGURED;
--		em28xx_uninit_isoc(dev, dev->mode);
-+		em28xx_uninit_usb_xfer(dev, dev->mode);
- 		dev->state |= DEV_DISCONNECTED;
- 	} else {
- 		dev->state |= DEV_DISCONNECTED;
-@@ -3393,7 +3393,7 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
- 	}
- 
- 	/* free DVB isoc buffers */
--	em28xx_uninit_isoc(dev, EM28XX_DIGITAL_MODE);
-+	em28xx_uninit_usb_xfer(dev, EM28XX_DIGITAL_MODE);
- 
- 	mutex_unlock(&dev->lock);
- 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 8f50f5c..a1ebd08 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -962,49 +962,50 @@ static void em28xx_irq_callback(struct urb *urb)
- /*
-  * Stop and Deallocate URBs
-  */
--void em28xx_uninit_isoc(struct em28xx *dev, enum em28xx_mode mode)
-+void em28xx_uninit_usb_xfer(struct em28xx *dev, enum em28xx_mode mode)
- {
- 	struct urb *urb;
--	struct em28xx_usb_bufs *isoc_bufs;
-+	struct em28xx_usb_bufs *usb_bufs;
- 	int i;
- 
--	em28xx_isocdbg("em28xx: called em28xx_uninit_isoc in mode %d\n", mode);
-+	em28xx_isocdbg("em28xx: called em28xx_uninit_usb_xfer in mode %d\n",
-+		       mode);
- 
- 	if (mode == EM28XX_DIGITAL_MODE)
--		isoc_bufs = &dev->usb_ctl.digital_bufs;
-+		usb_bufs = &dev->usb_ctl.digital_bufs;
- 	else
--		isoc_bufs = &dev->usb_ctl.analog_bufs;
-+		usb_bufs = &dev->usb_ctl.analog_bufs;
- 
--	for (i = 0; i < isoc_bufs->num_bufs; i++) {
--		urb = isoc_bufs->urb[i];
-+	for (i = 0; i < usb_bufs->num_bufs; i++) {
-+		urb = usb_bufs->urb[i];
- 		if (urb) {
- 			if (!irqs_disabled())
- 				usb_kill_urb(urb);
- 			else
- 				usb_unlink_urb(urb);
- 
--			if (isoc_bufs->transfer_buffer[i]) {
-+			if (usb_bufs->transfer_buffer[i]) {
- 				usb_free_coherent(dev->udev,
- 					urb->transfer_buffer_length,
--					isoc_bufs->transfer_buffer[i],
-+					usb_bufs->transfer_buffer[i],
- 					urb->transfer_dma);
- 			}
- 			usb_free_urb(urb);
--			isoc_bufs->urb[i] = NULL;
-+			usb_bufs->urb[i] = NULL;
- 		}
--		isoc_bufs->transfer_buffer[i] = NULL;
-+		usb_bufs->transfer_buffer[i] = NULL;
- 	}
- 
--	kfree(isoc_bufs->urb);
--	kfree(isoc_bufs->transfer_buffer);
-+	kfree(usb_bufs->urb);
-+	kfree(usb_bufs->transfer_buffer);
- 
--	isoc_bufs->urb = NULL;
--	isoc_bufs->transfer_buffer = NULL;
--	isoc_bufs->num_bufs = 0;
-+	usb_bufs->urb = NULL;
-+	usb_bufs->transfer_buffer = NULL;
-+	usb_bufs->num_bufs = 0;
- 
- 	em28xx_capture_start(dev, 0);
- }
--EXPORT_SYMBOL_GPL(em28xx_uninit_isoc);
-+EXPORT_SYMBOL_GPL(em28xx_uninit_usb_xfer);
- 
- /*
-  * Stop URBs
-@@ -1051,7 +1052,7 @@ int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 		isoc_bufs = &dev->usb_ctl.analog_bufs;
- 
- 	/* De-allocates all pending stuff */
--	em28xx_uninit_isoc(dev, mode);
-+	em28xx_uninit_usb_xfer(dev, mode);
- 
- 	isoc_bufs->num_bufs = num_bufs;
- 
-@@ -1081,7 +1082,7 @@ int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 		urb = usb_alloc_urb(isoc_bufs->num_packets, GFP_KERNEL);
- 		if (!urb) {
- 			em28xx_err("cannot alloc usb_ctl.urb %i\n", i);
--			em28xx_uninit_isoc(dev, mode);
-+			em28xx_uninit_usb_xfer(dev, mode);
- 			return -ENOMEM;
- 		}
- 		isoc_bufs->urb[i] = urb;
-@@ -1093,7 +1094,7 @@ int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 					" buffer %i%s\n",
- 					sb_size, i,
- 					in_interrupt() ? " while in int" : "");
--			em28xx_uninit_isoc(dev, mode);
-+			em28xx_uninit_usb_xfer(dev, mode);
- 			return -ENOMEM;
- 		}
- 		memset(isoc_bufs->transfer_buffer[i], 0, sb_size);
-@@ -1171,7 +1172,7 @@ int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 		if (rc) {
- 			em28xx_err("submit of urb %i failed (error=%i)\n", i,
- 				   rc);
--			em28xx_uninit_isoc(dev, mode);
-+			em28xx_uninit_usb_xfer(dev, mode);
- 			return rc;
- 		}
- 	}
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index b334885..1207a73 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -2272,7 +2272,7 @@ static int em28xx_v4l2_close(struct file *filp)
- 		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
- 
- 		/* do this before setting alternate! */
--		em28xx_uninit_isoc(dev, EM28XX_ANALOG_MODE);
-+		em28xx_uninit_usb_xfer(dev, EM28XX_ANALOG_MODE);
- 		em28xx_set_mode(dev, EM28XX_SUSPEND);
- 
- 		/* set alternate 0 */
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index c28e47f..3ffadf9 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -666,7 +666,7 @@ int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
- int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 		     int num_packets, int num_bufs, int max_pkt_size,
- 		     int (*isoc_copy) (struct em28xx *dev, struct urb *urb));
--void em28xx_uninit_isoc(struct em28xx *dev, enum em28xx_mode mode);
-+void em28xx_uninit_usb_xfer(struct em28xx *dev, enum em28xx_mode mode);
- void em28xx_stop_urbs(struct em28xx *dev);
- int em28xx_isoc_dvb_max_packetsize(struct em28xx *dev);
- int em28xx_set_mode(struct em28xx *dev, enum em28xx_mode set_mode);
--- 
-1.7.10.4
+Thanks for this patch series! I've finished reviewing it, and only found minor
+things. The only (minor) API issue I found is in patch 18 where I would suggest
+that reordering the fields will make things a bit more natural.
 
+For patches 1, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22,
+23, 24, 25:
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+After fixing the typos you can also add my Acked-by for patch 9.
+
+Regards,
+
+	Hans
+
+> v9:
+> - rebase on 3.6
+> - change type for fs to __s32
+> - add support for vb2_ioctl_expbuf
+> - remove patch 'v4l: vb2: add support for DMA_ATTR_NO_KERNEL_MAPPING',
+>   it will be posted as a separate patch
+> - fix typos and style in Documentation (from Hans Verkuil)
+> - only vb2-core and vb2-dma-contig selects DMA_SHARED_BUFFER in Kconfig
+> - use data_offset and length while queueing DMABUF
+> - return the most recently used fd at VIDIOC_DQBUF
+> - use (buffer-type, index, plane) tuple instead of mem_offset
+>   to identify a for exporting (from Hans Verkuil)
+> - support for DMABUF mmap in vb2-dma-contig (from Laurent Pinchart)
+> - add testing alignment of vaddr and size while verifying userptr
+>   against DMA capabilities (from Laurent Pinchart)
+> - substitute VM_DONTDUMP with VM_RESERVED
+> - simplify error handling in vb2_dc_get_dmabuf (from Laurent Pinchart)
+> 
+> v8:
+> - rebased on 3.6-rc1
+> - merged importer and exporter patchsets
+> - fixed missing fields in v4l2_plane32 and v4l2_buffer32 structs
+> - fixed typos/style in documentation
+> - significant reduction of warnings from checkpatch.pl
+> - fixed STREAMOFF issues reported by Dima Zavin [4] by adding
+>   __vb2_dqbuf helper to vb2-core
+> - DC fails if userptr is not correctly aligned
+> - add support for DMA attributes in DC
+> - add support for buffers with no kernel mapping
+> - add reference counting on device from allocator context
+> - dummy support for mmap
+> - use dma_get_sgtable, drop vb2_dc_kaddr_to_pages hack and
+>   vb2_dc_get_base_sgt helper
+> 
+> v7:
+> - support for V4L2_MEMORY_DMABUF in v4l2-compact-ioctl32.c
+> - cosmetic fixes to the documentation
+> - added importing for vmalloc because vmap support in dmabuf for 3.5
+>   was pull-requested
+> - support for dmabuf importing for VIVI
+> - resurrect allocation of dma-contig context
+> - remove reference of alloc_ctx in dma-contig buffer
+> - use sg_alloc_table_from_pages
+> - fix DMA scatterlist calls to use orig_nents instead of nents
+> - fix memleak in vb2_dc_sgt_foreach_page (use orig_nents instead of nents)
+> 
+> v6:
+> - fixed missing entry in v4l2_memory_names
+> - fixed a bug occuring after get_user_pages failure
+> - fixed a bug caused by using invalid vma for get_user_pages
+> - prepare/finish no longer call dma_sync for dmabuf buffers
+> 
+> v5:
+> - removed change of importer/exporter behaviour
+> - fixes vb2_dc_pages_to_sgt basing on Laurent's hints
+> - changed pin/unpin words to lock/unlock in Doc
+> 
+> v4:
+> - rebased on mainline 3.4-rc2
+> - included missing importing support for s5p-fimc and s5p-tv
+> - added patch for changing map/unmap for importers
+> - fixes to Documentation part
+> - coding style fixes
+> - pairing {map/unmap}_dmabuf in vb2-core
+> - fixing variable types and semantic of arguments in videobufb2-dma-contig.c
+> 
+> v3:
+> - rebased on mainline 3.4-rc1
+> - split 'code refactor' patch to multiple smaller patches
+> - squashed fixes to Sumit's patches
+> - patchset is no longer dependant on 'DMA mapping redesign'
+> - separated path for handling IO and non-IO mappings
+> - add documentation for DMABUF importing to V4L
+> - removed all DMABUF exporter related code
+> - removed usage of dma_get_pages extension
+> 
+> v2:
+> - extended VIDIOC_EXPBUF argument from integer memoffset to struct
+>   v4l2_exportbuffer
+> - added patch that breaks DMABUF spec on (un)map_atachment callcacks but allows
+>   to work with existing implementation of DMABUF prime in DRM
+> - all dma-contig code refactoring patches were squashed
+> - bugfixes
+> 
+> v1: List of changes since [1].
+> - support for DMA api extension dma_get_pages, the function is used to retrieve
+>   pages used to create DMA mapping.
+> - small fixes/code cleanup to videobuf2
+> - added prepare and finish callbacks to vb2 allocators, it is used keep
+>   consistency between dma-cpu acess to the memory (by Marek Szyprowski)
+> - support for exporting of DMABUF buffer in V4L2 and Videobuf2, originated from
+>   [3].
+> - support for dma-buf exporting in vb2-dma-contig allocator
+> - support for DMABUF for s5p-tv and s5p-fimc (capture interface) drivers,
+>   originated from [3]
+> - changed handling for userptr buffers (by Marek Szyprowski, Andrzej
+>   Pietrasiewicz)
+> - let mmap method to use dma_mmap_writecombine call (by Marek Szyprowski)
+> 
+> [1] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/42966/focus=42968
+> [2] https://lkml.org/lkml/2011/12/26/29
+> [3] http://thread.gmane.org/gmane.linux.kernel.cross-arch/12819
+> [4] http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/49700
+> 
+> Laurent Pinchart (2):
+>   v4l: vb2-dma-contig: shorten vb2_dma_contig prefix to vb2_dc
+>   v4l: vb2-dma-contig: reorder functions
+> 
+> Marek Szyprowski (4):
+>   v4l: vb2: add prepare/finish callbacks to allocators
+>   v4l: vb2-dma-contig: add prepare/finish to dma-contig allocator
+>   v4l: vb2-dma-contig: let mmap method to use dma_mmap_coherent call
+>   v4l: vb2-dma-contig: fail if user ptr buffer is not correctly aligned
+> 
+> Sumit Semwal (4):
+>   v4l: Add DMABUF as a memory type
+>   v4l: vb2: add support for shared buffer (dma_buf)
+>   v4l: vb: remove warnings about MEMORY_DMABUF
+>   v4l: vb2-dma-contig: add support for dma_buf importing
+> 
+> Tomasz Stanislawski (15):
+>   Documentation: media: description of DMABUF importing in V4L2
+>   v4l: vb2-dma-contig: remove reference of alloc_ctx from a buffer
+>   v4l: vb2-dma-contig: add support for scatterlist in userptr mode
+>   v4l: vb2-vmalloc: add support for dmabuf importing
+>   v4l: vivi: support for dmabuf importing
+>   v4l: s5p-tv: mixer: support for dmabuf importing
+>   v4l: s5p-fimc: support for dmabuf importing
+>   Documentation: media: description of DMABUF exporting in V4L2
+>   v4l: add buffer exporting via dmabuf
+>   v4l: vb2: add buffer exporting via dmabuf
+>   v4l: vb2-dma-contig: add support for DMABUF exporting
+>   v4l: vb2-dma-contig: add reference counting for a device from
+>     allocator context
+>   v4l: s5p-fimc: support for dmabuf exporting
+>   v4l: s5p-tv: mixer: support for dmabuf exporting
+>   v4l: s5p-mfc: support for dmabuf exporting
+> 
+>  Documentation/DocBook/media/v4l/compat.xml         |    7 +
+>  Documentation/DocBook/media/v4l/io.xml             |  183 +++++-
+>  Documentation/DocBook/media/v4l/v4l2.xml           |    1 +
+>  .../DocBook/media/v4l/vidioc-create-bufs.xml       |   16 +-
+>  Documentation/DocBook/media/v4l/vidioc-expbuf.xml  |  212 ++++++
+>  Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |   17 +
+>  Documentation/DocBook/media/v4l/vidioc-reqbufs.xml |   47 +-
+>  drivers/media/video/Kconfig                        |    2 +
+>  drivers/media/video/s5p-fimc/fimc-capture.c        |   11 +-
+>  drivers/media/video/s5p-mfc/s5p_mfc_dec.c          |   14 +
+>  drivers/media/video/s5p-mfc/s5p_mfc_enc.c          |   14 +
+>  drivers/media/video/s5p-tv/mixer_video.c           |   12 +-
+>  drivers/media/video/v4l2-compat-ioctl32.c          |   19 +
+>  drivers/media/video/v4l2-dev.c                     |    1 +
+>  drivers/media/video/v4l2-ioctl.c                   |   11 +
+>  drivers/media/video/videobuf-core.c                |    4 +
+>  drivers/media/video/videobuf2-core.c               |  300 ++++++++-
+>  drivers/media/video/videobuf2-dma-contig.c         |  695 ++++++++++++++++++--
+>  drivers/media/video/videobuf2-memops.c             |   40 --
+>  drivers/media/video/videobuf2-vmalloc.c            |   56 ++
+>  drivers/media/video/vivi.c                         |    2 +-
+>  include/linux/videodev2.h                          |   35 +
+>  include/media/v4l2-ioctl.h                         |    2 +
+>  include/media/videobuf2-core.h                     |   38 ++
+>  include/media/videobuf2-memops.h                   |    5 -
+>  25 files changed, 1608 insertions(+), 136 deletions(-)
+>  create mode 100644 Documentation/DocBook/media/v4l/vidioc-expbuf.xml
+> 
+> 
