@@ -1,68 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48535 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:55653 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753557Ab2JAUBo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Oct 2012 16:01:44 -0400
-Date: Mon, 1 Oct 2012 17:01:38 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFCv1 API PATCH 2/4] v4l2-ctrls: add a notify callback.
-Message-ID: <20121001170138.5501f4be@redhat.com>
-In-Reply-To: <201209270844.25497.hverkuil@xs4all.nl>
-References: <1347621336-14108-1-git-send-email-hans.verkuil@cisco.com>
-	<598b270f69d510c29436b51ef5cc0034afe77101.1347620872.git.hans.verkuil@cisco.com>
-	<1779382.8Ng3nlM3Km@avalon>
-	<201209270844.25497.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	id S1751743Ab2JEV7Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Oct 2012 17:59:25 -0400
+Message-ID: <506F4E1D.3060106@iki.fi>
+Date: Sat, 06 Oct 2012 00:16:13 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Michael Krufky <mkrufky@linuxtv.org>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] mxl111sf: revert patch: fix error on stream stop in mxl111sf_ep6_streaming_ctrl()
+References: <1349469857-21396-1-git-send-email-crope@iki.fi> <CAOcJUby_4x_bqOE_YGLPQR7FfDXGidt+r-QVqKe14eAypzcGuQ@mail.gmail.com> <506F4915.1090908@iki.fi> <CAOcJUbxK-JpUk2UNE39qGhaEG2xvDpRy=T5zp=cT=D71rZUHmQ@mail.gmail.com>
+In-Reply-To: <CAOcJUbxK-JpUk2UNE39qGhaEG2xvDpRy=T5zp=cT=D71rZUHmQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 27 Sep 2012 08:44:25 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 10/05/2012 11:58 PM, Michael Krufky wrote:
+> On Fri, Oct 5, 2012 at 4:54 PM, Antti Palosaari <crope@iki.fi> wrote:
+>> On 10/05/2012 11:49 PM, Michael Krufky wrote:
+>>>
+>>> On Fri, Oct 5, 2012 at 4:44 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>>>
+>>>> This reverts commits:
+>>>> 3fd7e4341e04f80e2605f56bbd8cb1e8b027901a
+>>>> [media] mxl111sf: remove an unused variable
+>>>> 3be5bb71fbf18f83cb88b54a62a78e03e5a4f30a
+>>>> [media] mxl111sf: fix error on stream stop in
+>>>> mxl111sf_ep6_streaming_ctrl()
+>>>>
+>>>> ...as bug behind these is fixed by the DVB USB v2.
+>>>>
+>>>> Cc: Michael Krufky <mkrufky@linuxtv.org>
+>>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>>> ---
+>>>>    drivers/media/usb/dvb-usb-v2/mxl111sf.c | 7 +++++--
+>>>>    1 file changed, 5 insertions(+), 2 deletions(-)
+>>>>
+>>>> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+>>>> b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+>>>> index efdcb15..fcfe124 100644
+>>>> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+>>>> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+>>>> @@ -343,6 +343,7 @@ static int mxl111sf_ep6_streaming_ctrl(struct
+>>>> dvb_frontend *fe, int onoff)
+>>>>           struct mxl111sf_state *state = fe_to_priv(fe);
+>>>>           struct mxl111sf_adap_state *adap_state =
+>>>> &state->adap_state[fe->id];
+>>>>           int ret = 0;
+>>>> +       u8 tmp;
+>>>>
+>>>>           deb_info("%s(%d)\n", __func__, onoff);
+>>>>
+>>>> @@ -353,13 +354,15 @@ static int mxl111sf_ep6_streaming_ctrl(struct
+>>>> dvb_frontend *fe, int onoff)
+>>>>
+>>>> adap_state->ep6_clockphase,
+>>>>                                                 0, 0);
+>>>>                   mxl_fail(ret);
+>>>> -#if 0
+>>>>           } else {
+>>>>                   ret = mxl111sf_disable_656_port(state);
+>>>>                   mxl_fail(ret);
+>>>> -#endif
+>>>>           }
+>>>>
+>>>> +       mxl111sf_read_reg(state, 0x12, &tmp);
+>>>> +       tmp &= ~0x04;
+>>>> +       mxl111sf_write_reg(state, 0x12, tmp);
+>>>> +
+>>>>           return ret;
+>>>>    }
+>>>>
+>>>
+>>>
+>>> I disabled that code on purpose - its redundant.  please do not apply
+>>> this patch.
+>>
+>>
+>> According to comments you have added patch changelog you disabled it doe to
+>> that bug:
+>>
+>>
+>> [media] mxl111sf: fix error on stream stop in mxl111sf_ep6_streaming_ctrl()
+>>
+>> Remove unnecessary register access in mxl111sf_ep6_streaming_ctrl()
+>>
+>> This code breaks driver operation in kernel 3.3 and later, although
+>> it works properly in 3.2  Disable register access to 0x12 for now.
+>>
+>>
+>>
+>> are you saying there is some other reason than mentioned here? I am quite
+>> 100% sure I fixed that bug in dvb-usb.
+>>
+>> regards
+>> Antti
+>> --
+>> http://palosaari.fi/
+>
+> Yup... there is indeed another reason.  However, if you want to push a
+> new patch that just removes the #if 0's, that would be fine.  Please
+> test first, of course.
+>
+> Just a warning, MH support is broken now and I haven't yet had a
+> chance to track that down yet...  Luckily, merge window rules dont
+> apply to regressions.  (it worked in 3.5 w/ dvb-usb before the forced
+> change to 'dvb-usb-v2')
+>
+> I plan to (hopefully) do a full qual this weekend and hopefully push
+> patches as needed.
 
-> On Wed September 26 2012 12:50:11 Laurent Pinchart wrote:
+I cannot test it properly with DVB-T as EP6 is not used for DVB-T. Only 
+some stupid "dry rans". Did you saw yourself "dvb-usb: error while 
+stopping stream." ? If yes, then you could likely test it. But in any 
+case, you know what that reg bit is and if it is necessary or not. 
+Likely not important.
 
-> > > +	if (notify == NULL) {
-> > > +		ctrl->call_notify = 0;
-> > > +		return;
-> > > +	}
-> > > +	/* Only one notifier is allowed. Should we ever need to support
-> > > +	   multiple notifiers, then some sort of linked list of notifiers
-> > > +	   should be implemented. But I don't see any real reason to implement
-> > > +	   that now. If you think you need multiple notifiers, then contact
-> > > +	   the linux-media mailinglist. */
+regards
+Antti
 
-If only one notifier is allowed, then you should clearly state that at the
-API documentation.
-
-> > > +	if (WARN_ON(ctrl->handler->notify &&
-> > > +			(ctrl->handler->notify != notify ||
-> > > +			 ctrl->handler->notify_priv != priv)))
-> > > +		return;
-> > 
-> > I'm not sure whether I like that. It feels a bit hackish. Wouldn't it be 
-> > better to register the notifier with the handler explictly just once and then 
-> > enable/disable notifications on a per-control basis ?
-> 
-> I thought about that, but I prefer this method because it allows me to switch
-> to per-control notifiers in the future. In addition, different controls can have
-> different handlers. If you have to set the notifier for handlers, then the
-> driver needs to figure out which handlers are involved for the controls it wants
-> to be notified on. It's much easier to do it like this.
-
-That also sounded hackish on my eyes. If just one notifier is allowed, the
-function should simply refuse any other call to it, as any other call to it
-is a driver's bug. So:
-
-	if (WARN_ON(ctrl->handler->notify))
-		return;
-
-seems to be enough.
-
-Regards,
-Mauro
+-- 
+http://palosaari.fi/
