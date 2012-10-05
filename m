@@ -1,88 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:45491 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752462Ab2JDHYr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 03:24:47 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBC00LFOXWSZVQ0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:46 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MBC006I9XWMLU10@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:46 +0900 (KST)
-From: Rahul Sharma <rahul.sharma@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Cc: t.stanislaws@samsung.com, inki.dae@samsung.com,
-	kyungmin.park@samsung.com, joshi@samsung.com
-Subject: [PATCH v1 07/14] drm: exynos: hdmi: add support for exynos5 ddc
-Date: Thu, 04 Oct 2012 21:12:45 +0530
-Message-id: <1349365372-21417-8-git-send-email-rahul.sharma@samsung.com>
-In-reply-to: <1349365372-21417-1-git-send-email-rahul.sharma@samsung.com>
-References: <1349365372-21417-1-git-send-email-rahul.sharma@samsung.com>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:37711 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964786Ab2JEU6g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 16:58:36 -0400
+Received: by mail-wg0-f44.google.com with SMTP id dr13so1825319wgb.1
+        for <linux-media@vger.kernel.org>; Fri, 05 Oct 2012 13:58:35 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <506F4915.1090908@iki.fi>
+References: <1349469857-21396-1-git-send-email-crope@iki.fi>
+	<CAOcJUby_4x_bqOE_YGLPQR7FfDXGidt+r-QVqKe14eAypzcGuQ@mail.gmail.com>
+	<506F4915.1090908@iki.fi>
+Date: Fri, 5 Oct 2012 16:58:34 -0400
+Message-ID: <CAOcJUbxK-JpUk2UNE39qGhaEG2xvDpRy=T5zp=cT=D71rZUHmQ@mail.gmail.com>
+Subject: Re: [PATCH] mxl111sf: revert patch: fix error on stream stop in mxl111sf_ep6_streaming_ctrl()
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for exynos5 ddc with device tree enabled.
+On Fri, Oct 5, 2012 at 4:54 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 10/05/2012 11:49 PM, Michael Krufky wrote:
+>>
+>> On Fri, Oct 5, 2012 at 4:44 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>>
+>>> This reverts commits:
+>>> 3fd7e4341e04f80e2605f56bbd8cb1e8b027901a
+>>> [media] mxl111sf: remove an unused variable
+>>> 3be5bb71fbf18f83cb88b54a62a78e03e5a4f30a
+>>> [media] mxl111sf: fix error on stream stop in
+>>> mxl111sf_ep6_streaming_ctrl()
+>>>
+>>> ...as bug behind these is fixed by the DVB USB v2.
+>>>
+>>> Cc: Michael Krufky <mkrufky@linuxtv.org>
+>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
+>>> ---
+>>>   drivers/media/usb/dvb-usb-v2/mxl111sf.c | 7 +++++--
+>>>   1 file changed, 5 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+>>> b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+>>> index efdcb15..fcfe124 100644
+>>> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+>>> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+>>> @@ -343,6 +343,7 @@ static int mxl111sf_ep6_streaming_ctrl(struct
+>>> dvb_frontend *fe, int onoff)
+>>>          struct mxl111sf_state *state = fe_to_priv(fe);
+>>>          struct mxl111sf_adap_state *adap_state =
+>>> &state->adap_state[fe->id];
+>>>          int ret = 0;
+>>> +       u8 tmp;
+>>>
+>>>          deb_info("%s(%d)\n", __func__, onoff);
+>>>
+>>> @@ -353,13 +354,15 @@ static int mxl111sf_ep6_streaming_ctrl(struct
+>>> dvb_frontend *fe, int onoff)
+>>>
+>>> adap_state->ep6_clockphase,
+>>>                                                0, 0);
+>>>                  mxl_fail(ret);
+>>> -#if 0
+>>>          } else {
+>>>                  ret = mxl111sf_disable_656_port(state);
+>>>                  mxl_fail(ret);
+>>> -#endif
+>>>          }
+>>>
+>>> +       mxl111sf_read_reg(state, 0x12, &tmp);
+>>> +       tmp &= ~0x04;
+>>> +       mxl111sf_write_reg(state, 0x12, tmp);
+>>> +
+>>>          return ret;
+>>>   }
+>>>
+>>
+>>
+>> I disabled that code on purpose - its redundant.  please do not apply
+>> this patch.
+>
+>
+> According to comments you have added patch changelog you disabled it doe to
+> that bug:
+>
+>
+> [media] mxl111sf: fix error on stream stop in mxl111sf_ep6_streaming_ctrl()
+>
+> Remove unnecessary register access in mxl111sf_ep6_streaming_ctrl()
+>
+> This code breaks driver operation in kernel 3.3 and later, although
+> it works properly in 3.2  Disable register access to 0x12 for now.
+>
+>
+>
+> are you saying there is some other reason than mentioned here? I am quite
+> 100% sure I fixed that bug in dvb-usb.
+>
+> regards
+> Antti
+> --
+> http://palosaari.fi/
 
-Signed-off-by: Rahul Sharma <rahul.sharma@samsung.com>
----
- drivers/gpu/drm/exynos/exynos_ddc.c |   22 +++++++++++++++++-----
- 1 files changed, 17 insertions(+), 5 deletions(-)
+Yup... there is indeed another reason.  However, if you want to push a
+new patch that just removes the #if 0's, that would be fine.  Please
+test first, of course.
 
-diff --git a/drivers/gpu/drm/exynos/exynos_ddc.c b/drivers/gpu/drm/exynos/exynos_ddc.c
-index 7e1051d..ef28779 100644
---- a/drivers/gpu/drm/exynos/exynos_ddc.c
-+++ b/drivers/gpu/drm/exynos/exynos_ddc.c
-@@ -26,29 +26,41 @@ static int s5p_ddc_probe(struct i2c_client *client,
- {
- 	hdmi_attach_ddc_client(client);
- 
--	dev_info(&client->adapter->dev, "attached s5p_ddc "
--		"into i2c adapter successfully\n");
-+	dev_info(&client->adapter->dev,
-+		"attached %s into i2c adapter successfully\n",
-+		client->name);
- 
- 	return 0;
- }
- 
- static int s5p_ddc_remove(struct i2c_client *client)
- {
--	dev_info(&client->adapter->dev, "detached s5p_ddc "
--		"from i2c adapter successfully\n");
-+	dev_info(&client->adapter->dev,
-+		"detached %s from i2c adapter successfully\n",
-+		client->name);
- 
- 	return 0;
- }
- 
- static struct i2c_device_id ddc_idtable[] = {
- 	{"s5p_ddc", 0},
-+	{"exynos5-hdmiddc", 0},
- 	{ },
- };
- 
-+static struct of_device_id hdmiddc_match_types[] = {
-+	{
-+		.compatible = "samsung,exynos5-hdmiddc",
-+	}, {
-+		/* end node */
-+	}
-+};
-+
- struct i2c_driver ddc_driver = {
- 	.driver = {
--		.name = "s5p_ddc",
-+		.name = "exynos-hdmiddc",
- 		.owner = THIS_MODULE,
-+		.of_match_table = hdmiddc_match_types,
- 	},
- 	.id_table	= ddc_idtable,
- 	.probe		= s5p_ddc_probe,
--- 
-1.7.0.4
+Just a warning, MH support is broken now and I haven't yet had a
+chance to track that down yet...  Luckily, merge window rules dont
+apply to regressions.  (it worked in 3.5 w/ dvb-usb before the forced
+change to 'dvb-usb-v2')
 
+I plan to (hopefully) do a full qual this weekend and hopefully push
+patches as needed.
+
+-Mike
