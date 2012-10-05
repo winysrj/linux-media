@@ -1,66 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:42120 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750733Ab2JHJSG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 05:18:06 -0400
-Received: by mail-we0-f174.google.com with SMTP id t9so2427762wey.19
-        for <linux-media@vger.kernel.org>; Mon, 08 Oct 2012 02:18:04 -0700 (PDT)
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:60335 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754753Ab2JESbF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 14:31:05 -0400
+Message-ID: <506F2763.6050808@gmail.com>
+Date: Fri, 05 Oct 2012 20:30:59 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1210081108130.12203@axis700.grange>
-References: <1349473981-15084-1-git-send-email-fabio.estevam@freescale.com>
-	<Pine.LNX.4.64.1210081108130.12203@axis700.grange>
-Date: Mon, 8 Oct 2012 11:18:02 +0200
-Message-ID: <CACKLOr25nBY1VPWhLZYv7AOM4tXS8wJjqp_e-wjXHNdDJRiRuA@mail.gmail.com>
-Subject: Re: [PATCH 2/2] [media]: mx2_camera: Fix regression caused by clock conversion
-From: javier Martin <javier.martin@vista-silicon.com>
 To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Fabio Estevam <fabio.estevam@freescale.com>, kernel@pengutronix.de,
-	mchehab@infradead.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1210021142210.15778@axis700.grange> <506ABE40.9070504@samsung.com> <201210051241.52205.hverkuil@xs4all.nl> <Pine.LNX.4.64.1210051250210.13761@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1210051250210.13761@axis700.grange>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 8 October 2012 11:09, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> Hi Fabio
->
-> On Fri, 5 Oct 2012, Fabio Estevam wrote:
->
->> Since mx27 transitioned to the commmon clock framework in 3.5, the correct way
->> to acquire the csi clock is to get csi_ahb and csi_per clocks separately.
+On 10/05/2012 12:58 PM, Guennadi Liakhovetski wrote:
+>> One area that I do not yet completely understand is the i2c bus notifications
+>> (or asynchronous loading of i2c modules).
 >>
->> By not doing so the camera sensor does not probe correctly:
->>
->> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
->> mx2-camera mx2-camera.0: Camera driver attached to camera 0
->> ov2640 0-0030: Product ID error fb:fb
->> mx2-camera mx2-camera.0: Camera driver detached from camera 0
->> mx2-camera mx2-camera.0: MX2 Camera (CSI) driver probed, clock frequency: 66500000
->>
->> Adapt the mx2_camera driver to the new clock framework and make it functional
->> again.
->
-> Do I understand it right, that since the driver is currently broken, it
-> doesn't matter any more in which order these two patches get applied, so,
-> we can push them via different trees - ARM and media?
->
-> Thanks
-> Guennadi
->
+>> I would have expected that using OF the i2c devices are still initialized
+>> before the host/bridge driver is initialized. But I gather that's not the
+>> case?
+> 
+> No, it's not. I'm not sure, whether it depends on the order of devices in
+> the .dts, but, I think, it's better to not have to mandate a certain order
+> and I also seem to have seen devices being registered in different order
+> with the same DT, but I'm not 100% sure about that.
 
-Please,
-hold on a couple of days before merging this one.
+The device instantiation (and initialization) order is not something that
+is supposed to be ensured by a specific device tree source layout, IIUC.
+The initialization sequence is probably something that is specific to a
+particular operating system. I checked the device tree compiler but couldn't
+find if it is free to reorder anything when converting from the human 
+readable device tree to its binary representation.
 
-This driver is currently working in our Visstrim M10 platform without
-this patch and I need to test it to confirm whether it breaks
-something or not.
+The deferred probing was introduced in Linux to resolve resource 
+inter-dependencies in case of FDT based booting AFAIK.
 
-Regards.
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+>> If this deferred probing is a general problem, then I think we need a general
+>> solution as well that's part of the v4l2 core.
+> 
+> That can be done, perhaps. But we can do it as a next step. As soon as
+> we're happy with the OF implementation as such, we can commit that,
+> possibly leaving soc-camera patches out for now, then we can think where
+> to put async I2C handling.
+
+I would really like to see more than one user until we add any core code.
+No that it couldn't be changed afterwards, but it would be nice to ensure 
+the concepts are right and proven in real life.
+
+--
+
+Regards,
+Sylwester
