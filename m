@@ -1,65 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:38517 "EHLO
-	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751698Ab2JCTvB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Oct 2012 15:51:01 -0400
-Date: Wed, 3 Oct 2012 12:50:59 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ming Lei <ming.lei@canonical.com>, Kay Sievers <kay@vrfy.org>,
-	Lennart Poettering <lennart@poettering.net>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Kay Sievers <kay@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Ivan Kalvachev <ikalvachev@gmail.com>
-Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
- callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use
- request_firmware_nowait()
-Message-ID: <20121003195059.GA13541@kroah.com>
-References: <4FE9169D.5020300@redhat.com>
- <20121002100319.59146693@redhat.com>
- <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
- <20121002221239.GA30990@kroah.com>
- <20121002222333.GA32207@kroah.com>
- <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
- <506C562E.5090909@redhat.com>
- <CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
- <20121003170907.GA23473@ZenIV.linux.org.uk>
- <CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:60286 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754012Ab2JEOPi convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Oct 2012 10:15:38 -0400
+From: Albert Wang <twang13@marvell.com>
+To: Jonathan Corbet <corbet@lwn.net>
+CC: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Date: Fri, 5 Oct 2012 07:16:42 -0700
+Subject: RE: [PATCH 2/4] [media] marvell-ccic: core: add soc camera support
+ on marvell-ccic mcam-core
+Message-ID: <477F20668A386D41ADCC57781B1F7043083B6575DC@SC-VEXCH1.marvell.com>
+References: <1348840040-21390-1-git-send-email-twang13@marvell.com>
+ <20120929134041.343c3d56@hpe.lwn.net>
+In-Reply-To: <20120929134041.343c3d56@hpe.lwn.net>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 03, 2012 at 10:32:08AM -0700, Linus Torvalds wrote:
-> On Wed, Oct 3, 2012 at 10:09 AM, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> >
-> > +       if (!S_ISREG(inode->i_mode))
-> > +               return false;
-> > +       size = i_size_read(inode);
-> >
-> > Probably better to do vfs_getattr() and check mode and size in kstat; if
-> > it's sufficiently hot for that to hurt, we are fucked anyway.
-> >
-> > +               file = filp_open(path, O_RDONLY, 0);
-> > +               if (IS_ERR(file))
-> > +                       continue;
-> > +printk("from file '%s' ", path);
-> > +               success = fw_read_file_contents(file, fw);
-> > +               filp_close(file, NULL);
-> >
-> > fput(file), please.  We have enough misuses of filp_close() as it is...
-> 
-> Ok, like this?
+Hi, Jonathan
 
-This looks good to me.  Having udev do firmware loading and tieing it to
-the driver model may have not been such a good idea so many years ago.
-Doing it this way makes more sense.
+We really appreciate you can review these patches!
+Sorry for late response.
 
-greg k-h
+>-----Original Message-----
+>From: Jonathan Corbet [mailto:corbet@lwn.net]
+>Sent: Sunday, 30 September, 2012 03:41
+>To: Albert Wang
+>Cc: g.liakhovetski@gmx.de; linux-media@vger.kernel.org; Libin Yang
+>Subject: Re: [PATCH 2/4] [media] marvell-ccic: core: add soc camera support on
+>marvell-ccic mcam-core
+>
+>On Fri, 28 Sep 2012 21:47:20 +0800
+>Albert Wang <twang13@marvell.com> wrote:
+>
+>> This patch adds the support of Soc Camera on marvell-ccic mcam-core.
+>> The Soc Camera mode does not compatible with current mode.
+>> Only one mode can be used at one time.
+>>
+>> To use Soc Camera, CONFIG_VIDEO_MMP_SOC_CAMERA should be defined.
+>> What's more, the platform driver should support Soc camera at the same time.
+>>
+>> Also add MIPI interface and dual CCICs support in Soc Camera mode.
+>
+>I'm glad this work is being done, but I have some high-level grumbles to start with.
+>
+>This patch is too big, and does several things. I think there needs to be one to add SOC
+>support (but see below), one to add planar formats, one to add MIPI, one for the
+>second CCIC, etc. That will make them all easier to review.
+>
+Yes. Your concern is reasonable, I can understand it.
+Actually, we ever try to split the patch into some smaller ones, but it looks will let thing be more complicated.
+So we keep the 2 big patches and look forward your comments and suggestions firstly.
+
+We will continue to discuss how to split them if you insist.
+
+>The SOC camera stuff could maybe use a little more thought. Why does this driver
+>*need* to be a SOC camera driver?  If that is truly necessary (or sufficiently beneficial),
+>can we get to the point where that's the only mode?  I really dislike the two modes; we're
+>essentially perpetuating the two-drivers concept in a #ifdef'd form; it would be good not
+>to do that.
+>
+Yes, #ifdef is indeed not a good method.
+
+We will continue to discuss how to remove them.
+
+Maybe I can describe that why we add SOC camera mode:
+SOC camera is optional for camera driver, so we try to keep the original method of marvell-ccic
+Just let user to select use SOC camera or not use it
+ 
+>If there is truly some reason why both modes need to exist, can we arrange things so
+>that the core doesn't know the difference?  I'd like to see no new ifdefs there if possible,
+>it already has way too many.
+>
+>That, I think, is how I'd like to go toward a cleaner, more reviewable, more maintainable
+>solution.  Make sense?
+>
+Yes. We agree with you! :)
+
+>Thanks,
+>
+>jon
+
+Thanks
+Albert Wang
+86-21-61092656
