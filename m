@@ -1,57 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.poss.co.nz ([210.54.213.75]:1753 "EHLO riffraff.iposs.co.nz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750860Ab2JGBTy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Oct 2012 21:19:54 -0400
-From: Michael West <michael@iposs.co.nz>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"a.hajda@samsung.com" <a.hajda@samsung.com>,
-	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"sw0312.kim@samsung.com" <sw0312.kim@samsung.com>
-Date: Sun, 7 Oct 2012 14:19:48 +1300
-Subject: RE: Media_build broken by [PATCH RFC v3 5/5] m5mols: Implement
- .get_frame_desc subdev callback
-Message-ID: <DCBB30B3D32C824F800041EE82CABAAE03203D63BB2A@duckworth.iposs.co.nz>
-References: <1348674853-24596-1-git-send-email-s.nawrocki@samsung.com>
- <1348674853-24596-6-git-send-email-s.nawrocki@samsung.com>
- <50704D26.9020201@hoogenraad.net> <50707704.5030402@gmail.com>
- <50707BE0.9010209@hoogenraad.net> <5070A3C9.8040409@gmail.com>
-In-Reply-To: <5070A3C9.8040409@gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mail.kapsi.fi ([217.30.184.167]:38878 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757185Ab2JEUwi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Oct 2012 16:52:38 -0400
+Message-ID: <506F487F.5010903@iki.fi>
+Date: Fri, 05 Oct 2012 23:52:15 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
+To: Michael Krufky <mkrufky@linuxtv.org>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] mxl111sf: revert patch: fix error on stream stop in mxl111sf_ep6_streaming_ctrl()
+References: <1349469857-21396-1-git-send-email-crope@iki.fi>
+In-Reply-To: <1349469857-21396-1-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VGhpcyBwYXRjaCBjaGFuZ2VzIHZlcnNpb25zLnR4dCBhbmQgZGlzYWJsZXMgIFZJREVPX001TU9M
-UyB3aGljaCBmaXhlZCB0aGUgYnVpbGQgZm9yIG15IDMuMiBrZXJuZWwgYnV0IGxvb2tpbmcgYXQg
-dGhlIGxvZ3MgaXQgbG9va3MgbGlrZSB0aGlzIGlzIG5vdCB0aGUgd2F5IHRvIGZpeCBpdCBhcyBp
-dCdzIG5vdCBqdXN0IGEgMy42KyBwcm9ibGVtIGFzIGl0IGRvZXMgbm90IGJ1aWxkIG9uIDMuNiBh
-cyB3ZWxsLi4uICBTbyBwcm9iYWJseSBiZXN0IHRvIGZpbmQgd2h5IGl0IGRvZXNuJ3QgYnVpbGQg
-b24gdGhlIGN1cnJlbnQga2VybmVsIGZpcnN0Lg0KDQotLS0NCiB2NGwvdmVyc2lvbnMudHh0IHwg
-ICAgMiArKw0KIDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKykNCg0KZGlmZiAtLWdpdCBh
-L3Y0bC92ZXJzaW9ucy50eHQgYi92NGwvdmVyc2lvbnMudHh0DQppbmRleCAzMjg2NTFlLi4zNDk2
-OTVjIDEwMDY0NA0KLS0tIGEvdjRsL3ZlcnNpb25zLnR4dA0KKysrIGIvdjRsL3ZlcnNpb25zLnR4
-dA0KQEAgLTQsNiArNCw4IEBADQogWzMuNi4wXQ0KICMgbmVlZHMgZGV2bV9jbGtfZ2V0LCBjbGtf
-ZW5hYmxlLCBjbGtfZGlzYWJsZQ0KIFZJREVPX0NPREENCisjIGJyb2tlbiBhZGQgcmVhc29uIGhl
-cmUNCitWSURFT19NNU1PTFMNCiANCiBbMy40LjBdDQogIyBuZWVkcyBkZXZtX3JlZ3VsYXRvcl9i
-dWxrX2dldA0KLS0gDQoxLjcuOS41DQoNCj5PbiAxMC8wNi8yMDEyIDA4OjQzIFBNLCBKYW4gSG9v
-Z2VucmFhZCB3cm90ZToNCj4+IFRoYW5rcy4NCj4+DQo+PiBJIHNlZSBzZXZlcmFsIGRyaXZlcnMg
-ZGlzYWJsZWQgZm9yIGxvd2VyIGtlcm5lbCB2ZXJzaW9ucyBpbiBteSBLY29uZmlnIGZpbGUuDQo+
-PiBJIGFtIG5vdCBzdXJlIGhvdyB0aGlzIGlzIGFjY29tcGxpc2hlZCwgYnV0IGl0IHdvdWxkIGJl
-IGhlbHBmdWwgaWYgdGhlIA0KPj4gRnVqaXRzdSBNLTVNT0xTIDhNUCBzZW5zb3Igc3VwcG9ydCBp
-cyBhdXRvbWF0aWNhbGx5IGRpc2FibGVkIGZvciANCj4+IGtlcm5lbDwgIDMuNg0KPj4NCj4+IEkg
-Zml4ZWQgaXQgaW4gbXkgdmVyc2lvbiBieSByZXBsYWNpbmcgU1pfMU0gYnkgKDEwMjQqMTAyNCku
-DQo+PiBJIGRpZCBub3QgbmVlZCB0aGUgZHJpdmVyLCBidXQgYXQgbGVhc3QgaXQgY29tcGlsZWQg
-Li4uDQo+DQo+QSBwYXRjaCBmb3IgdjRsL3ZlcnNpb25zLnR4dCBpcyBuZWVkZWQgWzFdLg0KPkkn
-bGwgc2VlIGlmIEkgY2FuIHByZXBhcmUgdGhhdC4NCj5odHRwOi8vZ2l0LmxpbnV4dHYub3JnL21l
-ZGlhX2J1aWxkLmdpdC9oaXN0b3J5LzVkMDBkYmE2YWFmMGY5MWE3NDJkOTBmZDFlMTJlMGZiMmQz
-NjI1M2U6L3Y0bC92ZXJzaW9ucy50eHQgDQoNCg==
+I was wondering if that fix USB host controller reset I am seeing but it 
+didn't :-(
+
+Anyhow, that should be still fixed.
+
+Oct  5 23:21:05 localhost kernel: [  216.670807] hub 2-0:1.0: >port 2 
+disabled by hub (EMI?), re-enabling...
+Oct  5 23:21:05 localhost kernel: [  216.670812] usb 2-2: >USB 
+disconnect, device number 6
+Oct  5 23:21:05 localhost kernel: [  216.671022] dvb-usb: recv bulk 
+message failed: -108
+
+Linux localhost.localdomain 3.5.4-2.fc17.x86_64 #1 SMP Wed Sep 26 
+21:58:50 UTC 2012 x86_64 x86_64 x86_64 GNU/Linux
+
+Same happens for latest 3.6/3.7 too:
+Oct  5 23:28:37 localhost kernel: [  319.837639] usb 2-2: dvb_usb_v2: 
+'Hauppauge WinTV-Aero-M' successfully initialized and connected
+Oct  5 23:28:41 localhost kernel: [  324.551834] hub 2-0:1.0: port 2 
+disabled by hub (EMI?), re-enabling...
+Oct  5 23:28:41 localhost kernel: [  324.551849] usb 2-2: USB 
+disconnect, device number 9
+Oct  5 23:28:41 localhost kernel: [  324.561541] usb 2-2: dvb_usb_v2: 
+usb_bulk_msg() failed=-71
+
+Linux localhost.localdomain 3.6.0+ #4 SMP Fri Oct 5 23:09:53 EEST 2012 
+x86_64 x86_64 x86_64 GNU/Linux
+
+I am quite sure it is some problem (race condition) when powering off 
+and starting frontends. It could be reproduced quite easily making 
+tuning attempts quickly for frontend 0 and 1. Usually zap -f 1; zap -f 
+0; zap -f 1; and kaboom, it reboots USB HCI. AMD SB700 USB HCI used.
+
+When you do that fe switching slowly it does not happen.
+
+regards
+Antti
+
+
+On 10/05/2012 11:44 PM, Antti Palosaari wrote:
+> This reverts commits:
+> 3fd7e4341e04f80e2605f56bbd8cb1e8b027901a
+> [media] mxl111sf: remove an unused variable
+> 3be5bb71fbf18f83cb88b54a62a78e03e5a4f30a
+> [media] mxl111sf: fix error on stream stop in mxl111sf_ep6_streaming_ctrl()
+>
+> ...as bug behind these is fixed by the DVB USB v2.
+>
+> Cc: Michael Krufky <mkrufky@linuxtv.org>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>   drivers/media/usb/dvb-usb-v2/mxl111sf.c | 7 +++++--
+>   1 file changed, 5 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+> index efdcb15..fcfe124 100644
+> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
+> @@ -343,6 +343,7 @@ static int mxl111sf_ep6_streaming_ctrl(struct dvb_frontend *fe, int onoff)
+>   	struct mxl111sf_state *state = fe_to_priv(fe);
+>   	struct mxl111sf_adap_state *adap_state = &state->adap_state[fe->id];
+>   	int ret = 0;
+> +	u8 tmp;
+>
+>   	deb_info("%s(%d)\n", __func__, onoff);
+>
+> @@ -353,13 +354,15 @@ static int mxl111sf_ep6_streaming_ctrl(struct dvb_frontend *fe, int onoff)
+>   					      adap_state->ep6_clockphase,
+>   					      0, 0);
+>   		mxl_fail(ret);
+> -#if 0
+>   	} else {
+>   		ret = mxl111sf_disable_656_port(state);
+>   		mxl_fail(ret);
+> -#endif
+>   	}
+>
+> +	mxl111sf_read_reg(state, 0x12, &tmp);
+> +	tmp &= ~0x04;
+> +	mxl111sf_write_reg(state, 0x12, tmp);
+> +
+>   	return ret;
+>   }
+>
+>
+
+
+-- 
+http://palosaari.fi/
