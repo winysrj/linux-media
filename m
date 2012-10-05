@@ -1,61 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:61542 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933441Ab2JWT7E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 15:59:04 -0400
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-Cc: Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 12/23] tuners/xc4000: Replace memcpy with struct assignment
-Date: Tue, 23 Oct 2012 16:57:15 -0300
-Message-Id: <1351022246-8201-12-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
-References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:52983 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751544Ab2JEHRp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 03:17:45 -0400
+Date: Fri, 5 Oct 2012 09:17:40 +0200
+From: Robert Schwebel <r.schwebel@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Philipp Zabel <pza@pengutronix.de>
+Subject: Re: [PATCH 1/2 v6] of: add helper to parse display timings
+Message-ID: <20121005071740.GI23204@pengutronix.de>
+References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1349373560-11128-2-git-send-email-s.trumtrar@pengutronix.de>
+ <Pine.LNX.4.64.1210042307300.3744@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1210042307300.3744@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This kind of memcpy() is error-prone. Its replacement with a struct
-assignment is prefered because it's type-safe and much easier to read.
+On Thu, Oct 04, 2012 at 11:35:35PM +0200, Guennadi Liakhovetski wrote:
+> > +optional properties:
+> > + - hsync-active-high (bool): Hsync pulse is active high
+> > + - vsync-active-high (bool): Vsync pulse is active high
+>
+> For the above two we also considered using bool properties but eventually
+> settled down with integer ones:
+>
+> - hsync-active = <1>
+>
+> for active-high and 0 for active low. This has the added advantage of
+> being able to omit this property in the .dts, which then doesn't mean,
+> that the polarity is active low, but rather, that the hsync line is not
+> used on this hardware. So, maybe it would be good to use the same binding
+> here too?
 
-Found by coccinelle. Hand patched and reviewed.
-Tested by compilation only.
+Philipp, this is the same argumentation as we discussed yesterday for
+the dual-link LVDS option, so that one could be modelled in a similar
+way.
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-@@
-identifier struct_name;
-struct struct_name to;
-struct struct_name from;
-expression E;
-@@
--memcpy(&(to), &(from), E);
-+to = from;
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/tuners/xc4000.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/tuners/xc4000.c b/drivers/media/tuners/xc4000.c
-index 4937712..d178dee 100644
---- a/drivers/media/tuners/xc4000.c
-+++ b/drivers/media/tuners/xc4000.c
-@@ -1066,7 +1066,7 @@ check_device:
- 		goto fail;
- 	}
- 
--	memcpy(&priv->cur_fw, &new_fw, sizeof(priv->cur_fw));
-+	priv->cur_fw = new_fw;
- 
- 	/*
- 	 * By setting BASE in cur_fw.type only after successfully loading all
+rsc
 -- 
-1.7.4.4
-
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
