@@ -1,57 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:65215 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755088Ab2J3PJv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Oct 2012 11:09:51 -0400
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: mchehab@infradead.org
-Cc: crope@iki.fi, remi.schwartz@gmail.com, kyle@kyle.strickland.name,
-	pinusdtv@hotmail.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH] drivers/media/pci/saa7134/saa7134-dvb.c: Test if videobuf_dvb_get_frontend return NULL
-Date: Tue, 30 Oct 2012 16:09:41 +0100
-Message-Id: <1351609781-16148-1-git-send-email-peter.senna@gmail.com>
+Received: from mail-out.m-online.net ([212.18.0.9]:47892 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753535Ab2JEPmr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 11:42:47 -0400
+Date: Fri, 5 Oct 2012 17:42:31 +0200
+From: Anatolij Gustschin <agust@denx.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Detlev Zundel <dzu@denx.de>
+Subject: Re: [PATCH 2/2] V4L: soc_camera: disable I2C subdev streamon for
+ mpc52xx_csi
+Message-ID: <20121005174231.32119433@wker>
+In-Reply-To: <Pine.LNX.4.64.1210051605070.13761@axis700.grange>
+References: <1348822255-30875-1-git-send-email-agust@denx.de>
+	<1348822255-30875-2-git-send-email-agust@denx.de>
+	<Pine.LNX.4.64.1210030001440.15778@axis700.grange>
+	<20121005151803.248b9480@wker>
+	<Pine.LNX.4.64.1210051605070.13761@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Based on commit: e66131cee501ee720b7b58a4b87073b8fbaaaba6
+On Fri, 5 Oct 2012 16:31:58 +0200 (CEST)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 
-Not testing videobuf_dvb_get_frontend output may cause OOPS if it return
-NULL. This patch fixes this issue.
+> Hi Anatolij
+> 
+> On Fri, 5 Oct 2012, Anatolij Gustschin wrote:
+> 
+> > Hi Guennadi,
+> > 
+> > On Wed, 3 Oct 2012 00:09:29 +0200 (CEST)
+> > Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> > 
+> > > Hi Anatolij
+> > > 
+> > > > > > +#if !defined(CONFIG_VIDEO_MPC52xx_CSI) && \
+> > > > > > +    !defined(CONFIG_VIDEO_MPC52xx_CSI_MODULE)
+> > > > > 
+> > > > > No, we're not adding any preprocessor or run-time hardware dependencies to 
+> > > > > soc-camera or to any other generic code. I have no idea what those "IFM 
+> > > > > O2D" cameras are. If it's their common feature, that they cannot take any 
+> > > > > further I2C commands, while streaming, their drivers have to do that 
+> > > > > themselves.
+> > > > 
+> > > > I'm not sure I understand you. To do what themselves?
+> > > 
+> > > They - subdevice drivers of such IFM O2D cameras - should take care to avoid 
+> > > any I2C commands during a running read-out. Neither the bridge driver nor 
+> > > the framework core can or should know these details. This is just a generic 
+> > > call to a subdevice's .s_stream() method. What the driver does in it is 
+> > > totally its own business. Nobody says, that you have to issue I2C commands 
+> > > in it.
+> 
+> Unfortunately you still haven't explained what "IFM O2D" cameras are and 
+> why they have that I2C command restriction.
 
-The semantic patch that found this issue is(http://coccinelle.lip6.fr/):
-// <smpl>
-@@
-identifier i,a,b;
-statement S, S2;
-@@
-i = videobuf_dvb_get_frontend(...);
-... when != if (!i) S
-* if (i->a.b)
-S2
-// </smpl>
+This is not true. I did. And I did it even _before_ anyone has asked me to
+explain it. Please read the commit log of this patch again.
 
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
- drivers/media/pci/saa7134/saa7134-dvb.c | 3 +++
- 1 file changed, 3 insertions(+)
+> > The fact that many I2C commands are permitted during streaming doesn't 
+> > necessary mean that an application must use them during streaming. Our 
+> > camera application is aware of I2C bus access limitations during steaming 
+> > and after streamon it doesn't use configurations resulting in I2C accesses
+> > to the sensor. But I'm not arguing for the ifdef here.
+> 
+> But that's the only thing, that your patch is doing. So, this patch can be 
+> dropped?
 
-diff --git a/drivers/media/pci/saa7134/saa7134-dvb.c b/drivers/media/pci/saa7134/saa7134-dvb.c
-index b209de4..27915e5 100644
---- a/drivers/media/pci/saa7134/saa7134-dvb.c
-+++ b/drivers/media/pci/saa7134/saa7134-dvb.c
-@@ -607,6 +607,9 @@ static int configure_tda827x_fe(struct saa7134_dev *dev,
- 	/* Get the first frontend */
- 	fe0 = videobuf_dvb_get_frontend(&dev->frontends, 1);
- 
-+	if (!fe0)
-+		return -EINVAL;
-+
- 	fe0->dvb.frontend = dvb_attach(tda10046_attach, cdec_conf, &dev->i2c_adap);
- 	if (fe0->dvb.frontend) {
- 		if (cdec_conf->i2c_gate)
--- 
-1.7.11.7
+Only if there will be another possibility to isolate I2C access after
+streamon. Otherwise the capturing won't work.
 
+> > We are using mt9v022
+> > subdevice driver and I'd really avoid creating new custom subdevice driver, 
+> > duplicating the mt9v022 driver functionality. This custom duplicated driver 
+> > also won't be accepted in mainline, I think.
+> 
+> Correct.
+> 
+> > I was thinking about a proposal 
+> > for adding I2C bus access limitation awareness to the mt9v022 subdev driver.
+> 
+> I think I begin to understand. This is exactly why you need the snapshot 
+> mode in mt9v022, right?
+
+No! Not only. There are many different requirements for industrial camera
+applications. I.e. one requirement is to trigger a single frame on some
+external event and to capture exactly this triggered frame. Streaming mode
+is not suitable here.
+
+> And in your camera host driver you issue a 
+> "stream-off" command on stream-on to switch into the snapshot mode, then 
+> you have to suppress the stream-on in soc-camera core. If I understand 
+> correctly, then this is broken. Your host driver will stop streaming on 
+> all sensor drivers and the ifdef will suppress the streamon from the 
+> soc-camera core, so, your host driver will only work on this specific 
+> board, where you have to use the snapshot mode on mt9v022.
+
+What is wrong with this? Nothing is broken at all. This host driver is
+written for this specific board family and is not used on other boards.
+It cannot be used on other boards at all since these do not provide
+needed sensor glue logic. Even if other sensor drivers should ever be
+used on this board (most probably it will never be the case), they have
+to be used in snapshot mode anyway.
+
+> The proper solution, as I already suggested before, would be to implement 
+> a snapshot mode support. In that case the mt9v022 driver will be aware, 
+> that it has to work in the snapshot mode and will not switch over into the 
+> streaming mode.
+> 
+> This topic has been raised several times on the mailing list, but until 
+> now nobody had a real need for a snapshot mode. The easiest way to do this 
+> would be to add a camera class control, however, I suspect, this is a much 
+> more complex topic, see, e.g. this recent thread:
+> 
+> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/54079
+> 
+> Maybe you could review that thread and reply to it with your requirements?
+
+I did already read this thread partially. Unfortunately I do not have time
+for it now, maybe later.
+
+Thanks,
+Anatolij
