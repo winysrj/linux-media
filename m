@@ -1,61 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:33957 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757389Ab2JLJfS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Oct 2012 05:35:18 -0400
-Date: Fri, 12 Oct 2012 10:35:16 +0100
-From: Sean Young <sean@mess.org>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:50210 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751638Ab2JEPvc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 11:51:32 -0400
+Date: Fri, 5 Oct 2012 17:51:21 +0200
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] [media] winbond: remove space from driver name
-Message-ID: <20121012093516.GA14311@pequod.mess.org>
-References: <1348821873-32527-1-git-send-email-sean@mess.org>
- <20121011231636.GA22453@hardeman.nu>
+Subject: Re: [PATCH 2/2 v6] of: add generic videomode description
+Message-ID: <20121005155121.GA2053@pengutronix.de>
+References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1349373560-11128-3-git-send-email-s.trumtrar@pengutronix.de>
+ <506DDA94.1090702@wwwdotorg.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20121011231636.GA22453@hardeman.nu>
+In-Reply-To: <506DDA94.1090702@wwwdotorg.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 12, 2012 at 01:16:36AM +0200, David Härdeman wrote:
-> On Fri, Sep 28, 2012 at 09:44:33AM +0100, Sean Young wrote:
-> >[root@pequod ~]# udevadm test /sys/class/rc/rc0
-> >-snip-
-> >ACTION=add
-> >DEVPATH=/devices/pnp0/00:04/rc/rc0
-> >DRV_NAME=Winbond CIR
-> >NAME=rc-rc6-mce
-> >SUBSYSTEM=rc
-> >UDEV_LOG=6
-> >USEC_INITIALIZED=88135858
-> >run: '/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s rc0'
-> >
-> >Having a space makes it impossible to match in /etc/rc_maps.cfg.
-> >
-> >Signed-off-by: Sean Young <sean@mess.org>
-> >---
-> > drivers/media/rc/winbond-cir.c | 2 +-
-> > 1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> >diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
-> >index 30ae1f2..7c9b5f3 100644
-> >--- a/drivers/media/rc/winbond-cir.c
-> >+++ b/drivers/media/rc/winbond-cir.c
-> >@@ -184,7 +184,7 @@ enum wbcir_txstate {
-> > };
-> > 
-> > /* Misc */
-> >-#define WBCIR_NAME	"Winbond CIR"
-> >+#define WBCIR_NAME	"winbond-cir"
+On Thu, Oct 04, 2012 at 12:51:00PM -0600, Stephen Warren wrote:
+> On 10/04/2012 11:59 AM, Steffen Trumtrar wrote:
+> > Get videomode from devicetree in a format appropriate for the
+> > backend. drm_display_mode and fb_videomode are supported atm.
+> > Uses the display signal timings from of_display_timings
 > 
-> I'm not opposed to the change per se, but WBCIR_NAME is used for
-> input_name as well and a quick "lsinput" on my laptop shows that all
-> evdev devices (18 in total) have properly capitalized names.
+> > +++ b/drivers/of/of_videomode.c
+> 
+> > +int videomode_from_timing(struct display_timings *disp, struct videomode *vm,
+> 
+> > +	st = display_timings_get(disp, index);
+> > +
+> > +	if (!st) {
+> 
+> It's a little odd to leave a blank line between those two lines.
 
-You're right, I had missed that. I'll post a patch to correct it.
+Hm, well okay. That can be remedied
+
+> 
+> Only half of the code in this file seems OF-related; the routines to
+> convert a timing to a videomode or drm display mode seem like they'd be
+> useful outside device tree, so I wonder if putting them into
+> of_videomode.c is the correct thing to do. Still, it's probably not a
+> big deal.
+> 
+
+I am not sure, what the appropriate way to do this is. I can split it up (again).
 
 
-Sean
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
