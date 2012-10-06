@@ -1,59 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:34032 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422636Ab2JYN1J (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Oct 2012 09:27:09 -0400
-Received: by mail-oa0-f46.google.com with SMTP id h16so1556151oag.19
-        for <linux-media@vger.kernel.org>; Thu, 25 Oct 2012 06:27:08 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20120929132556.22c48312@hpe.lwn.net>
-References: <1348831603-18007-1-git-send-email-javier.martin@vista-silicon.com>
-	<20120929132556.22c48312@hpe.lwn.net>
-Date: Thu, 25 Oct 2012 15:27:08 +0200
-Message-ID: <CACKLOr0DQZ9q0yN7NEShAtEMaXf50HgWwaq2s1c84yAj7HShSw@mail.gmail.com>
-Subject: Re: [PATCH v3 0/4] ov7670: migrate this sensor and its users to ctrl framework.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, rusty@rustcorp.com.au, dsd@laptop.org,
-	mchehab@infradead.org, hdegoede@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from casper.infradead.org ([85.118.1.10]:38980 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751088Ab2JFLR7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Oct 2012 07:17:59 -0400
+Date: Sat, 6 Oct 2012 08:17:42 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+Cc: kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 4/14] drivers/media/v4l2-core/videobuf2-core.c: fix
+ error return code
+Message-ID: <20121006081742.48d5e5e8@infradead.org>
+In-Reply-To: <1346945041-26676-10-git-send-email-peter.senna@gmail.com>
+References: <1346945041-26676-10-git-send-email-peter.senna@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro, Jon,
-any more issues related with this series?
+Em Thu,  6 Sep 2012 17:23:57 +0200
+Peter Senna Tschudin <peter.senna@gmail.com> escreveu:
 
-Regards.
+> From: Peter Senna Tschudin <peter.senna@gmail.com>
+> 
+> Convert a nonnegative error return code to a negative one, as returned
+> elsewhere in the function.
+> 
+> A simplified version of the semantic match that finds this problem is as
+> follows: (http://coccinelle.lip6.fr/)
+> 
+> // <smpl>
+> (
+> if@p1 (\(ret < 0\|ret != 0\))
+>  { ... return ret; }
+> |
+> ret@p1 = 0
+> )
+> ... when != ret = e1
+>     when != &ret
+> *if(...)
+> {
+>   ... when != ret = e2
+>       when forall
+>  return ret;
+> }
+> 
+> // </smpl>
+> 
+> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+> 
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c |    4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 4da3df6..f6bc240 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1876,8 +1876,10 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+>  	 */
+>  	for (i = 0; i < q->num_buffers; i++) {
+>  		fileio->bufs[i].vaddr = vb2_plane_vaddr(q->bufs[i], 0);
+> -		if (fileio->bufs[i].vaddr == NULL)
+> +		if (fileio->bufs[i].vaddr == NULL) {
+> +			ret = -EFAULT;
+>  			goto err_reqbufs;
+> +		}
 
-On 29 September 2012 21:25, Jonathan Corbet <corbet@lwn.net> wrote:
-> On Fri, 28 Sep 2012 13:26:39 +0200
-> Javier Martin <javier.martin@vista-silicon.com> wrote:
->
->> The following series migrate ov7670 sensor and current users to ctrl framework
->> as  discussed in [1]. This has been tested against mx2_camera soc-camera bridge,
->> so tests or acks will be required from people using cam-core and via-camera out
->> there.
->
-> Looking over the code, I can't really find much to get grumpy about.
-> Certainly I like how it removes more code than it adds.  I'm not really
-> up on the control framework, though.  What's really needed is to see
-> this code actually work on the relevant systems.  I will *try* to do
-> that testing, but it's going to take a little while; I don't think I
-> can do it by the 3.7 merge window.  Mauro willing, perhaps it can go in
-> this time around anyway with the idea that we can sort out any little
-> difficulties after -rc1.
->
-> jon
+Had you test this patch? I suspect it breaks the driver, as there are failures under
+streaming handling that are acceptable, as it may indicate that userspace was not
+able to handle all queued frames in time. On such cases, what the Kernel does is to
+just discard the frame. Userspace is able to detect it, by looking inside the timestamp
+added on each frame.
+
+>  		fileio->bufs[i].size = vb2_plane_size(q->bufs[i], 0);
+>  	}
+>  
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+
+Cheers,
+Mauro
