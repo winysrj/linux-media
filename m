@@ -1,169 +1,1008 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43570 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756991Ab2JBXuP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Oct 2012 19:50:15 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC v2] dvb: LNA implementation changes
-Date: Wed,  3 Oct 2012 02:49:47 +0300
-Message-Id: <1349221787-23121-1-git-send-email-crope@iki.fi>
+Received: from 173-160-178-141-Washington.hfc.comcastbusiness.net ([173.160.178.141]:45990
+	"EHLO relay" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750773Ab2JFBzE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Oct 2012 21:55:04 -0400
+From: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
+To: andrey.smrinov@convergeddevices.net
+Cc: hverkuil@xs4all.nl, mchehab@redhat.com, sameo@linux.intel.com,
+	broonie@opensource.wolfsonmicro.com, perex@perex.cz, tiwai@suse.de,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2 2/6] Add the main bulk of core driver for SI476x code
+Date: Fri,  5 Oct 2012 18:54:58 -0700
+Message-Id: <1349488502-11293-3-git-send-email-andrey.smirnov@convergeddevices.net>
+In-Reply-To: <1349488502-11293-1-git-send-email-andrey.smirnov@convergeddevices.net>
+References: <1349488502-11293-1-git-send-email-andrey.smirnov@convergeddevices.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* use dvb property cache
-* implement get (thus API minor++)
-* PCTV 290e: 1=LNA ON, all the other values LNA OFF
-  Also fix PCTV 290e LNA comment, it is disabled by default
+This patch adds main part(out of three) of the I2C driver for the
+"core" of MFD device.
 
-Hans and Mauro proposed use of cache implementation of get as they
-were planning to extend LNA usage for analog side too.
-
-LNA_AUTO value was changed from (~0U) to INT_MIN as (~0U) resulted
-only -1 which is waste of numeric range if need to extend that in
-the future.
-
-Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
 ---
- drivers/media/dvb-core/dvb_frontend.c | 18 ++++++++++++++----
- drivers/media/dvb-core/dvb_frontend.h |  4 +++-
- drivers/media/usb/em28xx/em28xx-dvb.c | 13 +++++++------
- include/linux/dvb/version.h           |  2 +-
- 4 files changed, 25 insertions(+), 12 deletions(-)
+ drivers/mfd/si476x-i2c.c |  972 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 972 insertions(+)
+ create mode 100644 drivers/mfd/si476x-i2c.c
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 8f58f24..246a3c5 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -966,6 +966,8 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
- 		break;
- 	}
- 
-+	c->lna = LNA_AUTO;
+diff --git a/drivers/mfd/si476x-i2c.c b/drivers/mfd/si476x-i2c.c
+new file mode 100644
+index 0000000..ec79da5
+--- /dev/null
++++ b/drivers/mfd/si476x-i2c.c
+@@ -0,0 +1,972 @@
++/*
++ * include/media/si476x-i2c.c -- Core device driver for si476x MFD
++ * device
++ *
++ * Copyright (C) 2012 Innovative Converged Devices(ICD)
++ *
++ * Author: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ */
++#include <linux/module.h>
 +
- 	return 0;
- }
- 
-@@ -1054,6 +1056,8 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
- 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_B, 0, 0),
- 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_C, 0, 0),
- 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_D, 0, 0),
++#include <linux/slab.h>
++#include <linux/interrupt.h>
++#include <linux/delay.h>
++#include <linux/gpio.h>
++#include <linux/regulator/consumer.h>
++#include <linux/i2c.h>
++#include <linux/err.h>
 +
-+	_DTV_CMD(DTV_LNA, 0, 0),
- };
- 
- static void dtv_property_dump(struct dvb_frontend *fe, struct dtv_property *tvp)
-@@ -1440,6 +1444,10 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
- 		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_d;
- 		break;
- 
-+	case DTV_LNA:
-+		tvp->u.data = c->lna;
-+		break;
++#include <linux/mfd/si476x-core.h>
 +
- 	default:
- 		return -EINVAL;
- 	}
-@@ -1731,10 +1739,6 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- 	case DTV_INTERLEAVING:
- 		c->interleaving = tvp->u.data;
- 		break;
--	case DTV_LNA:
--		if (fe->ops.set_lna)
--			r = fe->ops.set_lna(fe, tvp->u.data);
--		break;
- 
- 	/* ISDB-T Support here */
- 	case DTV_ISDBT_PARTIAL_RECEPTION:
-@@ -1806,6 +1810,12 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- 		fe->dtv_property_cache.atscmh_rs_frame_ensemble = tvp->u.data;
- 		break;
- 
-+	case DTV_LNA:
-+		c->lna = tvp->u.data;
-+		if (fe->ops.set_lna)
-+			r = fe->ops.set_lna(fe);
-+		break;
++/* Command Timeouts */
++#define DEFAULT_TIMEOUT				100000
++#define TIMEOUT_TUNE				700000
++#define TIMEOUT_POWER_UP			330000
 +
- 	default:
- 		return -EINVAL;
- 	}
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index 44a445c..97112cd 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -303,7 +303,7 @@ struct dvb_frontend_ops {
- 	int (*dishnetwork_send_legacy_command)(struct dvb_frontend* fe, unsigned long cmd);
- 	int (*i2c_gate_ctrl)(struct dvb_frontend* fe, int enable);
- 	int (*ts_bus_ctrl)(struct dvb_frontend* fe, int acquire);
--	int (*set_lna)(struct dvb_frontend *, int);
-+	int (*set_lna)(struct dvb_frontend *);
- 
- 	/* These callbacks are for devices that implement their own
- 	 * tuning algorithms, rather than a simple swzigzag
-@@ -391,6 +391,8 @@ struct dtv_frontend_properties {
- 	u8			atscmh_sccc_code_mode_b;
- 	u8			atscmh_sccc_code_mode_c;
- 	u8			atscmh_sccc_code_mode_d;
++#define MAX_IO_ERRORS 10
 +
-+	u32			lna;
- };
- 
- struct dvb_frontend {
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index 913e522..13ae821 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -574,18 +574,19 @@ static void pctv_520e_init(struct em28xx *dev)
- 		i2c_master_send(&dev->i2c_client, regs[i].r, regs[i].len);
- };
- 
--static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe, int val)
-+static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct em28xx *dev = fe->dvb->priv;
- #ifdef CONFIG_GPIOLIB
- 	struct em28xx_dvb *dvb = dev->dvb;
- 	int ret;
- 	unsigned long flags;
- 
--	if (val)
--		flags = GPIOF_OUT_INIT_LOW;
-+	if (c->lna == 1)
-+		flags = GPIOF_OUT_INIT_HIGH; /* enable LNA */
- 	else
--		flags = GPIOF_OUT_INIT_HIGH;
-+		flags = GPIOF_OUT_INIT_LOW; /* disable LNA */
- 
- 	ret = gpio_request_one(dvb->lna_gpio, flags, NULL);
- 	if (ret)
-@@ -595,8 +596,8 @@ static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe, int val)
- 
- 	return ret;
- #else
--	dev_warn(&dev->udev->dev, "%s: LNA control is disabled\n",
--			KBUILD_MODNAME);
-+	dev_warn(&dev->udev->dev, "%s: LNA control is disabled (lna=%u)\n",
-+			KBUILD_MODNAME, c->lna);
- 	return 0;
- #endif
- }
-diff --git a/include/linux/dvb/version.h b/include/linux/dvb/version.h
-index 20e5eac..827cce7 100644
---- a/include/linux/dvb/version.h
-+++ b/include/linux/dvb/version.h
-@@ -24,6 +24,6 @@
- #define _DVBVERSION_H_
- 
- #define DVB_API_VERSION 5
--#define DVB_API_VERSION_MINOR 8
-+#define DVB_API_VERSION_MINOR 9
- 
- #endif /*_DVBVERSION_H_*/
++#define SI476X_DRIVER_RDS_FIFO_DEPTH		128
++
++#define SI476X_STATUS_POLL_US 0
++
++/**
++ * si476x_core_config_pinmux() - pin function configuration function
++ *
++ * @core: Core device structure
++ *
++ * Configure the functions of the pins of the radio chip.
++ *
++ * The function returns zero in case of succes or negative error code
++ * otherwise.
++ */
++static int si476x_core_config_pinmux(struct si476x_core *core)
++{
++	int err;
++	dev_dbg(&core->client->dev, "Configuring pinmux\n");
++	err = si476x_core_cmd_dig_audio_pin_cfg(core,
++						core->pinmux.dclk,
++						core->pinmux.dfs,
++						core->pinmux.dout,
++						core->pinmux.xout);
++	if (err < 0) {
++		dev_err(&core->client->dev,
++			"Failed to configure digital audio pins(err = %d)\n",
++			err);
++		return err;
++	}
++
++	err = si476x_core_cmd_zif_pin_cfg(core,
++					  core->pinmux.iqclk,
++					  core->pinmux.iqfs,
++					  core->pinmux.iout,
++					  core->pinmux.qout);
++	if (err < 0) {
++		dev_err(&core->client->dev,
++			"Failed to configure ZIF pins(err = %d)\n",
++			err);
++		return err;
++	}
++
++	err = si476x_core_cmd_ic_link_gpo_ctl_pin_cfg(core,
++						      core->pinmux.icin,
++						      core->pinmux.icip,
++						      core->pinmux.icon,
++						      core->pinmux.icop);
++	if (err < 0) {
++		dev_err(&core->client->dev,
++			"Failed to configure IC-Link/GPO pins(err = %d)\n",
++			err);
++		return err;
++	}
++
++	err = si476x_core_cmd_ana_audio_pin_cfg(core,
++						core->pinmux.lrout);
++	if (err < 0) {
++		dev_err(&core->client->dev,
++			"Failed to configure analog audio pins(err = %d)\n",
++			err);
++		return err;
++	}
++
++	err = si476x_core_cmd_intb_pin_cfg(core,
++					   core->pinmux.intb,
++					   core->pinmux.a1);
++	if (err < 0) {
++		dev_err(&core->client->dev,
++			"Failed to configure interrupt pins(err = %d)\n",
++			err);
++		return err;
++	}
++
++	return 0;
++}
++
++static inline void si476x_schedule_polling_work(struct si476x_core *core)
++{
++	schedule_delayed_work(&core->status_monitor,
++			usecs_to_jiffies(atomic_read(&core->polling_interval)));
++}
++
++/**
++ * si476x_core_start() - early chip startup function
++ * @core: Core device structure
++ * @soft: When set, this flag forces "soft" startup, where "soft"
++ * power down is the one done by sending appropriate command instead
++ * of using reset pin of the tuner
++ *
++ * Perform required startup sequence to correctly power
++ * up the chip and perform initial configuration. It does the
++ * following sequence of actions:
++ *       1. Claims and enables the power supplies VD and VIO1 required
++ *          for I2C interface of the chip operation.
++ *       2. Waits for 100us, pulls the reset line up, enables irq,
++ *          waits for another 100us as it is specified by the
++ *          datasheet.
++ *       3. Sends 'POWER_UP' command to the device with all provided
++ *          information about power-up parameters.
++ *       4. Configures, pin multiplexor, disables digital audio and
++ *          configures interrupt sources.
++ *
++ * The function returns zero in case of succes or negative error code
++ * otherwise.
++ */
++int si476x_core_start(struct si476x_core *core, bool soft)
++{
++	struct i2c_client *client = core->client;
++	int err;
++
++	if (!soft) {
++		if (gpio_is_valid(core->gpio_reset))
++			gpio_set_value_cansleep(core->gpio_reset, 1);
++
++		if (client->irq)
++			enable_irq(client->irq);
++
++		udelay(100);
++
++		if (!client->irq) {
++			atomic_set(&core->is_alive, 1);
++			si476x_schedule_polling_work(core);
++		}
++	} else {
++		if (client->irq)
++			enable_irq(client->irq);
++		else {
++			atomic_set(&core->is_alive, 1);
++			si476x_schedule_polling_work(core);
++		}
++	}
++
++	err = si476x_core_cmd_power_up(core,
++				       &core->power_up_parameters);
++
++	if (err < 0) {
++		dev_err(&core->client->dev,
++			"Power up failure(err = %d)\n",
++			err);
++		goto disable_irq;
++	}
++
++	if (client->irq)
++		atomic_set(&core->is_alive, 1);
++
++	err = si476x_core_config_pinmux(core);
++	if (err < 0) {
++		dev_err(&core->client->dev,
++			"Failed to configure pinmux(err = %d)\n",
++			err);
++		goto disable_irq;
++	}
++
++
++	err = si476x_core_disable_digital_audio(core);
++	if (err < 0) {
++		dev_err(&core->client->dev,
++			"Failed to disable digital audio(err = %d)\n",
++			err);
++		goto disable_irq;
++	}
++
++	if (client->irq) {
++		err = si476x_core_set_int_ctl_enable(core,
++						     SI476X_RDSIEN |
++						     SI476X_STCIEN |
++						     SI476X_CTSIEN);
++		if (err < 0) {
++			dev_err(&core->client->dev,
++				"Failed to configure interrupt sources"
++				"(err = %d)\n", err);
++			goto disable_irq;
++		}
++	}
++
++	if (core->power_up_parameters.func == SI476X_FUNC_FM_RECEIVER &&
++	    core->diversity_mode) {
++		err = si476x_core_cmd_fm_phase_diversity(core,
++							 core->diversity_mode);
++		if (err < 0) {
++			dev_err(&core->client->dev,
++				"Failed to configure diversitymode role"
++				"(err = %d)\n", err);
++			goto disable_irq;
++		}
++	}
++
++	return 0;
++
++disable_irq:
++	if (err == -ENODEV)
++		atomic_set(&core->is_alive, 0);
++
++	if (client->irq)
++		disable_irq(client->irq);
++	else
++		cancel_delayed_work_sync(&core->status_monitor);
++
++	if (gpio_is_valid(core->gpio_reset))
++		gpio_set_value_cansleep(core->gpio_reset, 0);
++
++	return err;
++}
++EXPORT_SYMBOL_GPL(si476x_core_start);
++
++/**
++ * si476x_core_stop() - chip power-down function
++ * @core: Core device structure
++ * @soft: When set, function sends a POWER_DOWN command instead of
++ * bringing reset line low
++ *
++ * Power down the chip by performing following actions:
++ * 1. Disable IRQ or stop the polling worker
++ * 2. Send the POWER_DOWN command if the power down is soft or bring
++ *    reset line low if not.
++ *
++ * The function returns zero in case of succes or negative error code
++ * otherwise.
++ */
++int si476x_core_stop(struct si476x_core *core, bool soft)
++{
++	int err;
++	if (core->client->irq)
++		disable_irq(core->client->irq);
++	else
++		cancel_delayed_work_sync(&core->status_monitor);
++
++	atomic_set(&core->is_alive, 0);
++
++	if (soft) {
++		/* TODO: This probably shoud be a configurable option,
++		 * so it is possible to have the chips keep their
++		 * oscillators running
++		 */
++		struct si476x_power_down_args args = {
++			.xosc = false,
++		};
++		err = si476x_core_cmd_power_down(core, &args);
++	} else {
++		err = 0;
++		if (gpio_is_valid(core->gpio_reset))
++			gpio_set_value_cansleep(core->gpio_reset, 0);
++	}
++
++	return err;
++}
++EXPORT_SYMBOL_GPL(si476x_core_stop);
++
++/**
++ * si476x_core_set_power_state() - set the level at which the power is
++ * supplied for the chip.
++ * @core: Core device structure
++ * @next_state: enum si476x_power_state describing power state to
++ *              switch to.
++ *
++ * Switch on all the required power supplies
++ *
++ * This function returns 0 in case of suvccess and negative error code
++ * otherwise.
++ */
++int si476x_core_set_power_state(struct si476x_core *core,
++				enum si476x_power_state next_state)
++{
++	/*
++	   It is not clear form the datasheet if it is possible to
++	   work with device if not all power domains are operational.
++	   So for now the power-up policy is "power-up all the things!"
++	 */
++	int err = 0;
++
++	if (core->power_state == SI476X_POWER_INCONSISTENT) {
++		dev_err(&core->client->dev,
++			"The device in inconsistent power state\n");
++		return -EINVAL;
++	}
++
++	if (next_state != core->power_state) {
++		switch (next_state) {
++		case SI476X_POWER_UP_FULL:
++
++			err = regulator_enable(core->supplies.va);
++			if (err < 0)
++				break;
++			
++			err = regulator_enable(core->supplies.vio2);
++			if (err < 0)
++				goto disable_va;
++
++			err = regulator_enable(core->supplies.vd);
++			if (err < 0)
++				goto disable_vio2;
++			
++			err = regulator_enable(core->supplies.vio1);
++			if (err < 0)
++				goto disable_vd;
++
++			/*
++			 * Startup timing diagram recommends to have a
++			 * 100 us delay between enabling of the power
++			 * supplies and turning the tuner on.
++			 */
++			udelay(100);
++
++			err = si476x_core_start(core, false);
++			if (err < 0)
++				goto disable_vio1;
++
++			core->power_state = next_state;
++			break;
++
++		case SI476X_POWER_DOWN:
++			core->power_state = next_state;
++			err = si476x_core_stop(core, false);
++			if (err < 0)
++				core->power_state = SI476X_POWER_INCONSISTENT;
++disable_vio1:
++			err = regulator_disable(core->supplies.vio1);
++			if (err < 0)
++				core->power_state = SI476X_POWER_INCONSISTENT;
++disable_vd:
++			err = regulator_disable(core->supplies.vd);
++			if (err < 0)
++				core->power_state = SI476X_POWER_INCONSISTENT;
++disable_vio2:
++			err = regulator_disable(core->supplies.vio2);
++			if (err < 0)
++				core->power_state = SI476X_POWER_INCONSISTENT;
++disable_va:
++			err = regulator_disable(core->supplies.va);
++			if (err < 0)
++				core->power_state = SI476X_POWER_INCONSISTENT;
++			break;
++		default:
++			BUG();
++		}
++	}
++
++	return err;
++}
++EXPORT_SYMBOL_GPL(si476x_core_set_power_state);
++
++/**
++ * si476x_core_report_drainer_stop() - mark the completion of the RDS
++ * buffer drain porcess by the worker.
++ *
++ * @core: Core device structure
++ */
++static inline void si476x_core_report_drainer_stop(struct si476x_core *core)
++{
++	mutex_lock(&core->rds_drainer_status_lock);
++	core->rds_drainer_is_working = false;
++	mutex_unlock(&core->rds_drainer_status_lock);
++}
++
++/**
++ * si476x_core_start_rds_drainer_once() - start RDS drainer worker if
++ * ther is none working, do nothing otherwise
++ *
++ * @core: Datastructure corresponding to the chip.
++ */
++static inline void si476x_core_start_rds_drainer_once(struct si476x_core *core)
++{
++	mutex_lock(&core->rds_drainer_status_lock);
++	if (!core->rds_drainer_is_working) {
++		core->rds_drainer_is_working = true;
++		schedule_work(&core->rds_fifo_drainer);
++	}
++	mutex_unlock(&core->rds_drainer_status_lock);
++}
++/**
++ * si476x_drain_rds_fifo() - RDS buffer drainer.
++ * @work: struct work_struct being ppassed to the function by the
++ * kernel.
++ *
++ * Drain the contents of the RDS FIFO of
++ */
++static void si476x_drain_rds_fifo(struct work_struct *work)
++{
++	int err;
++
++	struct si476x_core *core = container_of(work, struct si476x_core,
++						rds_fifo_drainer);
++
++	struct si476x_rds_status_report report;
++
++	si476x_core_lock(core);
++	err = si476x_core_cmd_fm_rds_status(core, true, false, false, &report);
++	if (!err) {
++		int i = report.rdsfifoused;
++		dev_dbg(&core->client->dev,
++			"%d elements in RDS FIFO. Draining.\n", i);
++		for (; i > 0; --i) {
++			err = si476x_core_cmd_fm_rds_status(core, false, false,
++							    (i == 1), &report);
++			if (err < 0)
++				goto unlock;
++
++			kfifo_in(&core->rds_fifo, report.rds,
++				 sizeof(report.rds));
++			DBG_BUFFER(&core->client->dev, "RDS data:\n",
++				   report.rds, sizeof(report.rds));
++		}
++		dev_dbg(&core->client->dev, "Drrrrained!\n");
++		wake_up_interruptible(&core->rds_read_queue);
++	}
++
++unlock:
++	si476x_core_unlock(core);
++	si476x_core_report_drainer_stop(core);
++}
++
++/**
++ * si476x_core_pronounce_dead()
++ *
++ * @core: Core device structure
++ *
++ * Mark the device as being dead and wake up all potentially waiting
++ * threads of execution.
++ *
++ */
++static void si476x_core_pronounce_dead(struct si476x_core *core)
++{
++	dev_info(&core->client->dev, "Core device is dead.\n");
++
++	atomic_set(&core->is_alive, 0);
++
++	/* Wake up al possible waiting processes */
++	wake_up_interruptible(&core->rds_read_queue);
++
++	atomic_set(&core->cts, 1);
++	wake_up(&core->command);
++
++	atomic_set(&core->stc, 1);
++	wake_up(&core->tuning);
++}
++
++/**
++ * si476x_i2c_xfer()
++ *
++ * @core: Core device structure
++ * @type: Transfer type
++ * @buf: Transfer buffer for/with data
++ * @count: Transfer buffer size
++ *
++ * Perfrom and I2C transfer(either read or write) and keep a counter
++ * of I/O errors. If the error counter rises above the threshold
++ * pronounce device dead.
++ *
++ * The function returns zero on succes or negative error code on
++ * failure.
++ */
++int si476x_i2c_xfer(struct si476x_core *core,
++		    enum si476x_i2c_type type,
++		    char *buf, int count)
++{
++	static int io_errors_count;
++	int err;
++	if (type == SI476X_I2C_SEND)
++		err = i2c_master_send(core->client, buf, count);
++	else
++		err = i2c_master_recv(core->client, buf, count);
++
++	if (err < 0) {
++		if (io_errors_count++ > MAX_IO_ERRORS)
++			si476x_core_pronounce_dead(core);
++	} else {
++		io_errors_count = 0;
++	}
++
++	return err;
++}
++EXPORT_SYMBOL_GPL(si476x_i2c_xfer);
++
++/**
++ * si476x_get_status()
++ * @core: Core device structure
++ *
++ * Get the status byte of the core device by berforming one byte I2C
++ * read.
++ *
++ * The function returns a status value or a negative error code on
++ * error.
++ */
++static int si476x_get_status(struct si476x_core *core)
++{
++	u8 response;
++	int err = si476x_i2c_xfer(core, SI476X_I2C_RECV,
++				  &response, sizeof(response));
++
++	return (err < 0) ? err : response;
++}
++
++/**
++ * si476x_get_and_signal_status() - IRQ dispatcher
++ * @core: Core device structure
++ *
++ * Dispatch the arrived interrupt request based on the value of the
++ * status byte reported by the tuner.
++ *
++ */
++static void si476x_get_and_signal_status(struct si476x_core *core)
++{
++	int status = si476x_get_status(core);
++	if (status < 0) {
++		dev_err(&core->client->dev, "Failed to get status\n");
++		return;
++	}
++
++	if (status & SI476X_CTS) {
++		/* Unfortunately completions could not be used for
++		 * signalling CTS since this flag cannot be cleared
++		 * in status byte, and therefore once it becomes true
++		 * multiple calls to 'complete' would cause the
++		 * commands following the current one to be completed
++		 * before they actually are */
++		dev_dbg(&core->client->dev, "[interrupt] CTSINT\n");
++		atomic_set(&core->cts, 1);
++		wake_up(&core->command);
++	}
++
++	if (status & SI476X_FM_RDS_INT) {
++		dev_dbg(&core->client->dev, "[interrupt] RDSINT\n");
++		si476x_core_start_rds_drainer_once(core);
++	}
++
++	if (status & SI476X_STC_INT) {
++		dev_dbg(&core->client->dev, "[interrupt] STCINT\n");
++		atomic_set(&core->stc, 1);
++		wake_up(&core->tuning);
++	}
++}
++
++static void si476x_poll_loop(struct work_struct *work)
++{
++	struct si476x_core *core = SI476X_WORK_TO_CORE(work);
++
++	si476x_get_and_signal_status(core);
++
++	if (atomic_read(&core->is_alive))
++		si476x_schedule_polling_work(core);
++}
++/**
++ */
++static irqreturn_t si476x_interrupt(int irq, void *dev)
++{
++	struct si476x_core *core = dev;
++
++	si476x_get_and_signal_status(core);
++
++	return IRQ_HANDLED;
++}
++
++/**
++ * si476x_firmware_version_to_revision()
++ * @core: Core device structure
++ * @major:  Firmware major number
++ * @minor1: Firmware first minor number
++ * @minor2: Firmware second minor number
++ *
++ * Convert a chip's firmware version number into an offset that later
++ * will be used to as offset in "vtable" of tuner functions
++ *
++ * This function returns a positive offset in case of success and a -1
++ * in case of failure.
++ */
++static inline int si476x_firmware_version_to_revision(struct si476x_core *core,
++						      int func, int major,
++						      int minor1, int minor2)
++{
++	switch (func) {
++	case SI476X_FUNC_FM_RECEIVER:
++		switch (major) {
++		case 5:
++			return SI476X_REVISION_A10;
++		case 8:
++			return SI476X_REVISION_A20;
++		case 10:
++			return SI476X_REVISION_A30;
++		default:
++			goto unknown_revision;
++		}
++	case SI476X_FUNC_AM_RECEIVER:
++		switch (major) {
++		case 5:
++			return SI476X_REVISION_A10;
++		case 7:
++			return SI476X_REVISION_A20;
++		case 9:
++			return SI476X_REVISION_A30;
++		default:
++			goto unknown_revision;
++		}
++	case SI476X_FUNC_WB_RECEIVER:
++		switch (major) {
++		case 3:
++			return SI476X_REVISION_A10;
++		case 5:
++			return SI476X_REVISION_A20;
++		case 7:
++			return SI476X_REVISION_A30;
++		default:
++			goto unknown_revision;
++		}
++	case SI476X_FUNC_BOOTLOADER:
++	default:		/* FALLTHROUG */
++		BUG();
++		return -1;
++	}
++
++unknown_revision:
++	dev_err(&core->client->dev,
++		"Unsupported version of the firmware: %d.%d.%d, "
++		"reverting to A10 comptible functions\n",
++		major, minor1, minor2);
++
++	return SI476X_REVISION_A10;
++}
++
++/**
++ * si476x_get_revision_info()
++ * @core: Core device structure
++ *
++ * Get the firmware version number of the device. It is done in
++ * following three steps:
++ *    1. Power-up the device
++ *    2. Send the 'FUNC_INFO' command
++ *    3. Powering the device down.
++ *
++ * The function return zero on success and a negative error code on
++ * failure.
++ */
++static int si476x_get_revision_info(struct si476x_core *core)
++{
++	int rval;
++	struct si476x_func_info info;
++
++	si476x_core_lock(core);
++	rval = si476x_core_set_power_state(core,
++					   SI476X_POWER_UP_FULL);
++	if (!rval) {
++		rval = si476x_core_cmd_func_info(core, &info);
++		if (!rval)
++			core->revision = \
++				si476x_firmware_version_to_revision(core,
++						    info.func,
++						    info.firmware.major,
++						    info.firmware.minor[0],
++						    info.firmware.minor[1]);
++		si476x_core_set_power_state(core,
++					    SI476X_POWER_DOWN);
++	}
++
++	si476x_core_unlock(core);
++
++	return rval;
++}
++
++#define ATOMIC_CORE_DEV_ATTR(__attr_name, __field_name)			\
++	static ssize_t __attr_name##_show(struct device *dev,		\
++					  struct device_attribute *attr, \
++					  char *buf)			\
++	{								\
++		struct i2c_client  *client;				\
++		struct si476x_core *core;				\
++									\
++		client = container_of(dev, struct i2c_client, dev);	\
++		core   = i2c_get_clientdata(client);			\
++									\
++		return sprintf(buf, "%u", atomic_read(&core->__field_name)); \
++	}								\
++	static ssize_t __attr_name##_store(struct device *dev,		\
++					   struct device_attribute *attr, \
++					   const char *buf, size_t count) \
++	{								\
++		unsigned int delay;					\
++									\
++		struct i2c_client  *client;				\
++		struct si476x_core *core;				\
++									\
++		if (sscanf(buf, "%u", &delay) != 1)			\
++			return -EINVAL;					\
++									\
++		client = container_of(dev, struct i2c_client, dev);	\
++		core   = i2c_get_clientdata(client);			\
++									\
++		atomic_set(&core->__field_name, delay);			\
++		return count;						\
++	}								\
++	static DEVICE_ATTR(__attr_name, S_IWUSR|S_IRUGO,		\
++			   __attr_name##_show, __attr_name##_store)
++
++
++ATOMIC_CORE_DEV_ATTR(polling_interval_us, polling_interval);
++ATOMIC_CORE_DEV_ATTR(tune_timeout_us, timeouts.tune);
++ATOMIC_CORE_DEV_ATTR(command_timeout_us, timeouts.command);
++ATOMIC_CORE_DEV_ATTR(power_up_timeout_us, timeouts.power_up);
++
++static struct attribute *si476x_core_attrs[] = {
++	&dev_attr_polling_interval_us.attr,
++	&dev_attr_tune_timeout_us.attr,
++	&dev_attr_command_timeout_us.attr,
++	&dev_attr_power_up_timeout_us.attr,
++	NULL
++};
++
++static struct attribute_group si476x_core_attr_group = {
++	.attrs = si476x_core_attrs,
++};
++
++
++static int __devinit si476x_core_probe(struct i2c_client *client,
++				       const struct i2c_device_id *id)
++{
++	int rval;
++	struct si476x_core          *core;
++	struct si476x_platform_data *pdata;
++	struct mfd_cell *cell;
++	int              cell_num;
++
++	core = devm_kzalloc(&client->dev, sizeof(*core), GFP_KERNEL);
++	if (!core) {
++		pr_err("si476x-core: failed to allocate 'struct si476x_core'\n");
++		return -ENOMEM;
++	}
++
++	core->client = client;
++	i2c_set_clientdata(client, core);
++
++	atomic_set(&core->is_alive, 0);
++	core->power_state = SI476X_POWER_DOWN;
++
++	pdata = client->dev.platform_data;
++	if (pdata) {
++		memcpy(&core->power_up_parameters,
++		       &pdata->power_up_parameters,
++		       sizeof(core->power_up_parameters));
++
++		core->gpio_reset = -1;
++		if (gpio_is_valid(pdata->gpio_reset)) {
++			rval = gpio_request(pdata->gpio_reset, "si476x reset");
++			if (rval) {
++				dev_err(&client->dev,
++					"Failed to request gpio: %d\n", rval);
++				return rval;
++			}
++			core->gpio_reset = pdata->gpio_reset;
++			gpio_direction_output(core->gpio_reset, 0);
++		}
++
++		core->diversity_mode = pdata->diversity_mode;
++		memcpy(&core->pinmux, &pdata->pinmux,
++		       sizeof(struct si476x_pinmux));
++	} else {
++		dev_err(&client->dev, "No platform data provided\n");
++		return -EINVAL;
++	}
++
++	core->supplies.vio1 = devm_regulator_get(&client->dev, "vio1");
++	if (IS_ERR_OR_NULL(core->supplies.vio1)) {
++		dev_info(&client->dev, "No vio1 regulator found\n");
++		goto free_gpio;
++	}
++
++	core->supplies.vd = devm_regulator_get(&client->dev, "vd");
++	if (IS_ERR_OR_NULL(core->supplies.vd)) {
++		dev_info(&client->dev, "No vd regulator found" "\n");
++		goto free_gpio;
++	}
++
++	core->supplies.va = devm_regulator_get(&client->dev, "va");
++	if (IS_ERR_OR_NULL(core->supplies.va)) {
++		dev_info(&client->dev, "No va regulator found\n");
++		goto free_gpio;
++	}
++
++	core->supplies.vio2 = devm_regulator_get(&client->dev, "vio2");
++	if (IS_ERR_OR_NULL(core->supplies.vio2)) {
++		dev_err(&client->dev, "No vio2 regulator found\n");
++		goto free_gpio;
++	}
++
++	mutex_init(&core->cmd_lock);
++	init_waitqueue_head(&core->command);
++	init_waitqueue_head(&core->tuning);
++
++	rval = kfifo_alloc(&core->rds_fifo,
++			   SI476X_DRIVER_RDS_FIFO_DEPTH * \
++			   sizeof(struct v4l2_rds_data),
++			   GFP_KERNEL);
++	if (rval) {
++		dev_err(&client->dev, "Could not alloate the FIFO\n");
++		goto free_gpio;
++	}
++	mutex_init(&core->rds_drainer_status_lock);
++	init_waitqueue_head(&core->rds_read_queue);
++	INIT_WORK(&core->rds_fifo_drainer, si476x_drain_rds_fifo);
++
++	atomic_set(&core->polling_interval, SI476X_STATUS_POLL_US);
++
++	atomic_set(&core->timeouts.tune, TIMEOUT_TUNE);
++	atomic_set(&core->timeouts.power_up, TIMEOUT_POWER_UP);
++	atomic_set(&core->timeouts.command, DEFAULT_TIMEOUT);
++
++
++	rval = sysfs_create_group(&client->dev.kobj, &si476x_core_attr_group);
++	if (rval < 0) {
++		dev_err(&client->dev, "Failed to create sysfs attributes\n");
++		goto free_kfifo;
++	}
++
++	if (client->irq) {
++		rval = devm_request_threaded_irq(&client->dev, 
++						 client->irq, NULL, si476x_interrupt,
++						 IRQF_TRIGGER_FALLING,
++						 client->name, core);
++		if (rval < 0) {
++			dev_err(&client->dev, "Could not request IRQ %d\n",
++				client->irq);
++			goto free_sysfs;
++		}
++		disable_irq(client->irq);
++		dev_dbg(&client->dev, "IRQ requested.\n");
++
++		core->rds_fifo_depth = 20;
++	} else {
++		INIT_DELAYED_WORK(&core->status_monitor,
++				  si476x_poll_loop);
++		dev_info(&client->dev,
++			 "No IRQ number specified, will use polling\n");
++
++		core->rds_fifo_depth = 5;
++	}
++
++	core->chip_id = id->driver_data;
++
++	rval = si476x_get_revision_info(core);
++	if (rval < 0) {
++		rval = -ENODEV;
++		goto free_sysfs;
++	}
++
++	cell_num = 0;
++
++	cell = &core->cells[SI476X_RADIO_CELL];
++	cell->name          = "si476x-radio";
++	cell_num++;
++
++#ifdef CONFIG_SND_SOC_SI476X
++	if (core->chip_id < 5                           &&
++	    core->pinmux.dclk == SI476X_DCLK_DAUDIO     &&
++	    core->pinmux.dfs  == SI476X_DFS_DAUDIO      &&
++	    core->pinmux.dout == SI476X_DOUT_I2S_OUTPUT &&
++	    core->pinmux.xout == SI476X_XOUT_TRISTATE) {
++		cell = &core->cells[SI476X_CODEC_CELL];
++		cell->name          = "si476x-codec";
++		cell_num++;
++	}
++#endif
++	rval = mfd_add_devices(&client->dev,
++			       (client->adapter->nr << 8) + client->addr,
++			       core->cells, cell_num, NULL, 0, NULL);
++	if (!rval)
++		return 0;
++
++
++free_sysfs:
++	sysfs_remove_group(&client->dev.kobj, &si476x_core_attr_group);
++free_kfifo:
++	kfifo_free(&core->rds_fifo);
++
++free_gpio:
++	if (gpio_is_valid(core->gpio_reset))
++		gpio_free(core->gpio_reset);
++
++	return rval;
++}
++
++static int si476x_core_remove(struct i2c_client *client)
++{
++	struct si476x_core *core = i2c_get_clientdata(client);
++
++	si476x_core_pronounce_dead(core);
++	mfd_remove_devices(&client->dev);
++
++	if (client->irq) {
++		disable_irq(client->irq);
++	} else {
++		cancel_delayed_work_sync(&core->status_monitor);
++	}
++
++	sysfs_remove_group(&client->dev.kobj, &si476x_core_attr_group);
++
++	kfifo_free(&core->rds_fifo);
++
++	if (gpio_is_valid(core->gpio_reset))
++		gpio_free(core->gpio_reset);
++
++	return 0;
++}
++
++
++static const struct i2c_device_id si476x_id[] = {
++	{ "si4761", SI476X_CHIP_SI4761 },
++	{ "si4764", SI476X_CHIP_SI4764 },
++	{ "si4768", SI476X_CHIP_SI4768 },
++	{ },
++};
++MODULE_DEVICE_TABLE(i2c, si476x_id);
++
++static struct i2c_driver si476x_core_driver = {
++	.driver		= {
++		.name	= "si476x-core",
++		.owner  = THIS_MODULE,
++	},
++	.probe		= si476x_core_probe,
++	.remove         = __devexit_p(si476x_core_remove),
++	.id_table       = si476x_id,
++};
++
++static int __init si476x_core_init(void)
++{
++	return i2c_add_driver(&si476x_core_driver);
++}
++
++static void __exit si476x_core_exit(void)
++{
++	i2c_del_driver(&si476x_core_driver);
++}
++late_initcall(si476x_core_init);
++module_exit(si476x_core_exit);
++
++
++MODULE_AUTHOR("Andrey Smirnov <andrey.smirnov@convergeddevices.net>");
++MODULE_DESCRIPTION("Si4761/64/68 AM/FM MFD core device driver");
++MODULE_LICENSE("GPL");
 -- 
-1.7.11.4
+1.7.9.5
 
