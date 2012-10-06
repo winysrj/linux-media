@@ -1,69 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44735 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756674Ab2JJOXT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 10:23:19 -0400
-Message-ID: <507584BD.20908@iki.fi>
-Date: Wed, 10 Oct 2012 17:22:53 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:55137 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752089Ab2JFIQi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Oct 2012 04:16:38 -0400
+Received: by mail-pa0-f46.google.com with SMTP id hz1so2574392pad.19
+        for <linux-media@vger.kernel.org>; Sat, 06 Oct 2012 01:16:38 -0700 (PDT)
+Date: Sat, 6 Oct 2012 16:16:30 +0800
+From: Shawn Guo <shawn.guo@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: javier Martin <javier.martin@vista-silicon.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 28/34] media: mx2_camera: remove mach/hardware.h inclusion
+Message-ID: <20121006081626.GA20231@S2101-09.ap.freescale.net>
+References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
+ <1347860103-4141-29-git-send-email-shawn.guo@linaro.org>
+ <Pine.LNX.4.64.1209171120550.1689@axis700.grange>
+ <CACKLOr10vWKUzZxjKQ=HWcpKP-9cDfhhfJtuyW39UJsyPpcs_w@mail.gmail.com>
+ <Pine.LNX.4.64.1209171559100.1689@axis700.grange>
+ <CACKLOr2f_iVAjxGN4DM5pUY7LC_hsuT4hZNUDnAPdB+ySxM2uw@mail.gmail.com>
+ <50640218.1060008@redhat.com>
 MIME-Version: 1.0
-To: Antonio Ospite <ospite@studenti.unina.it>
-CC: linux-media@vger.kernel.org, Aapo Tahkola <aet@rasterburn.org>,
-	CityK <cityk@rogers.com>
-Subject: Re: [PATCH 0/5] v4l-utils: add some scripts from the wiki.
-References: <1349876363-12098-1-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1349876363-12098-1-git-send-email-ospite@studenti.unina.it>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <50640218.1060008@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/10/2012 04:39 PM, Antonio Ospite wrote:
-> Hi,
->
-> I recently used some scripts I found on the linuxtv.org wiki to extract
-> a firmware for a m920x device from USB dumps made with UsbSniff2.0 on
-> WIndows XP.
->
-> I thought these scripts may be collected in v4l-utils where it is easier
-> to change them.
->
-> The first two patches add the scripts as they are now on the wiki, I am
-> sending them on behalf of the original author even if I was not able to
-> contact him, I hope this is OK.
+On Thu, Sep 27, 2012 at 04:36:56AM -0300, Mauro Carvalho Chehab wrote:
+> I'm understanding that this patch will flow through arm tree[1]. So:
 
-I am almost 100% it is not OK to sign those to Kernel behalf of Aapo. 
-Maybe it is possible to keep Aapo as a author, but sign with yourself.
+Yes, it will go through arm-soc tree for 3.8.
 
+> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+Thanks, Mauro.
 
->
-> The subsequent changes are little fixes to make m920x_parse.pl work for me.
->
-> Regards,
->     Antonio
->
->
-> Aapo Tahkola (2):
->    contrib: add some scripts to extract m920x firmwares from USB dumps
->    contrib: add a script to convert usbmon captures to usbsnoop
->
-> Antonio Ospite (3):
->    m920x_parse.pl: use string comparison operators
->    m920x_parse.pl: fix strict and warnings checks
->    m920x_parse.pl: add support for consuming the output of
->      parse-sniffusb2.pl
->
->   contrib/m920x/m920x_parse.pl       |  295 ++++++++++++++++++++++++++++++++++++
->   contrib/m920x/m920x_sp_firmware.pl |  115 ++++++++++++++
->   contrib/usbmon2usbsnoop.pl         |   53 +++++++
->   3 files changed, 463 insertions(+)
->   create mode 100755 contrib/m920x/m920x_parse.pl
->   create mode 100755 contrib/m920x/m920x_sp_firmware.pl
->   create mode 100755 contrib/usbmon2usbsnoop.pl
->
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+Shawn
