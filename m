@@ -1,78 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate03.nvidia.com ([216.228.121.140]:6623 "EHLO
-	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752918Ab2JPVWM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Oct 2012 17:22:12 -0400
-Date: Tue, 16 Oct 2012 14:22:08 -0700
-From: Robert Morell <rmorell@nvidia.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sumit Semwal <sumit.semwal@linaro.org>, Rob Clark <rob@ti.com>
-CC: Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] dma-buf: Use EXPORT_SYMBOL
-Message-ID: <20121016212208.GB10462@morell.nvidia.com>
-References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
- <20121010191702.404edace@pyramind.ukuu.org.uk>
- <CAF6AEGvzfr2-QHpX4zwm2EPz-vxCDe9SaLUjo4_Fn7HhjWJFsg@mail.gmail.com>
- <201210110857.15660.hverkuil@xs4all.nl>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:37561 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753174Ab2JFI0q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Oct 2012 04:26:46 -0400
+Received: by mail-da0-f46.google.com with SMTP id n41so673292dak.19
+        for <linux-media@vger.kernel.org>; Sat, 06 Oct 2012 01:26:46 -0700 (PDT)
+Date: Sat, 6 Oct 2012 16:26:40 +0800
+From: Shawn Guo <shawn.guo@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 27/34] media: mx2_camera: remove cpu_is_xxx by using
+ platform_device_id
+Message-ID: <20121006082638.GB20231@S2101-09.ap.freescale.net>
+References: <1348123547-31082-1-git-send-email-shawn.guo@linaro.org>
+ <1348123547-31082-28-git-send-email-shawn.guo@linaro.org>
+ <20120927160321.56420910@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <201210110857.15660.hverkuil@xs4all.nl>
+In-Reply-To: <20120927160321.56420910@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 10, 2012 at 11:57:15PM -0700, Hans Verkuil wrote:
-> On Wed October 10 2012 23:02:06 Rob Clark wrote:
-> > On Wed, Oct 10, 2012 at 1:17 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
-> > > On Wed, 10 Oct 2012 08:56:32 -0700
-> > > Robert Morell <rmorell@nvidia.com> wrote:
-> > >
-> > >> EXPORT_SYMBOL_GPL is intended to be used for "an internal implementation
-> > >> issue, and not really an interface".  The dma-buf infrastructure is
-> > >> explicitly intended as an interface between modules/drivers, so it
-> > >> should use EXPORT_SYMBOL instead.
-> > >
-> > > NAK. This needs at the very least the approval of all rights holders for
-> > > the files concerned and all code exposed by this change.
-> > 
-> > Well, for my contributions to dmabuf, I don't object.. and I think
-> > because we are planning to use dma-buf in userspace for dri3 /
-> > dri-next, I think that basically makes it a userspace facing kernel
-> > infrastructure which would be required for open and proprietary
-> > drivers alike.  So I don't see much alternative to making this
-> > EXPORT_SYMBOL().  Of course, IANAL.
+On Thu, Sep 27, 2012 at 04:03:21PM -0300, Mauro Carvalho Chehab wrote:
+> It seems that it depends on some stuff that got merged via the arm tree.
 > 
-> The whole purpose of this API is to let DRM and V4L drivers share buffers for
-> zero-copy pipelines. Unfortunately it is a fact that several popular DRM drivers
-> are closed source. So we have a choice between keeping the export symbols GPL
-> and forcing those closed-source drivers to make their own incompatible API,
-> thus defeating the whole point of DMABUF, or using EXPORT_SYMBOL and letting
-> the closed source vendors worry about the legality. They are already using such
-> functions (at least nvidia is), so they clearly accept that risk.
+> Not sure what would the better way to handle that, as applying it via -arm
+> will likely generate conflicts when merging from both trees upstream.
 > 
-> I prefer the evil where the DMABUF API uses EXPORT_SYMBOL to prevent the worse
-> evil where an incompatible API is created to work around the EXPORT_SYMBOL_GPL
-> limitation. Neither situation is paradise, but at least one is a slightly less
-> depressing world than the other :-)
+> If this change is not urgent, maybe it would be better to apply it after
+> the end of the merge window, via either one of the trees.
 > 
-> In other words, I'm OK with EXPORT_SYMBOL for whatever it is worth as I did not
-> do any coding but only some initial design help and reviewing.
+That's the original plan, having it merged via arm-soc tree at the end
+of 3.7 merge window.  But I was told by arm-soc folks that we already
+have enough conflicts to sort out for this window, and we do not want
+any more.  And we have to postpone it to 3.8.
 
-Thanks for the discussion.
+I will publish a topic branch for this series after 3.7-rc1 comes out.
 
-My intention is not to steal any code from the kernel or change any licenses.
-The goal here is to allow interoperation between drivers.  I understand that it
-can be difficult to debug the kernel when the nvidia binary module is loaded;
-I'm not trying to force anyone to do that.  You're free to continue to use your
-debug environment without change after this patch is applied.
-
-I believe that the developers and maintainers of dma-buf have provided
-the needed signoff, both in person and in this thread.  If there are any
-objections from that group, I'm happy to discuss any changes necessary to get
-this merged.
-
-- Robert
+Shawn
