@@ -1,48 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:47663 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752464Ab2JULIz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Oct 2012 07:08:55 -0400
-Date: Sun, 21 Oct 2012 13:08:51 +0200
-From: Borislav Petkov <bp@alien8.de>
-To: "Artem S. Tashkinov" <t.artem@lycos.com>
-Cc: pavel@ucw.cz, linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	security@kernel.org, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org
-Subject: Re: Re: Re: Re: A reliable kernel panic (3.6.2) and system crash
- when visiting a particular website
-Message-ID: <20121021110851.GA6504@liondog.tnic>
-References: <2104474742.26357.1350734815286.JavaMail.mail@webmail05>
- <20121020162759.GA12551@liondog.tnic>
- <966148591.30347.1350754909449.JavaMail.mail@webmail08>
- <20121020203227.GC555@elf.ucw.cz>
- <20121020225849.GA8976@liondog.tnic>
- <1781795634.31179.1350774917965.JavaMail.mail@webmail04>
- <20121021002424.GA16247@liondog.tnic>
- <1798605268.19162.1350784641831.JavaMail.mail@webmail17>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:46867 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751924Ab2JFSXF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Oct 2012 14:23:05 -0400
+Received: by mail-ee0-f46.google.com with SMTP id b15so2032750eek.19
+        for <linux-media@vger.kernel.org>; Sat, 06 Oct 2012 11:23:03 -0700 (PDT)
+Message-ID: <50707704.5030402@gmail.com>
+Date: Sat, 06 Oct 2012 20:23:00 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1798605268.19162.1350784641831.JavaMail.mail@webmail17>
+To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, a.hajda@samsung.com,
+	sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	sw0312.kim@samsung.com
+Subject: Re: Media_build broken by [PATCH RFC v3 5/5] m5mols: Implement .get_frame_desc
+ subdev callback
+References: <1348674853-24596-1-git-send-email-s.nawrocki@samsung.com> <1348674853-24596-6-git-send-email-s.nawrocki@samsung.com> <50704D26.9020201@hoogenraad.net>
+In-Reply-To: <50704D26.9020201@hoogenraad.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Oct 21, 2012 at 01:57:21AM +0000, Artem S. Tashkinov wrote:
-> The freeze happens on my *host* Linux PC. For an experiment I decided
-> to check if I could reproduce the freeze under a virtual machine - it
-> turns out the Linux kernel running under it also freezes.
+Hello Jan,
 
-I know that - but a freeze != oops - at least not necessarily. Which
-means it could very well be a different issue now that vbox is gone.
+On 10/06/2012 05:24 PM, Jan Hoogenraad wrote:
+> On my ubuntu 10.4 system
+> 
+> Linux 2.6.32-43-generic-pae #97-Ubuntu SMP Wed Sep 5 16:59:17 UTC 2012
+> i686 GNU/Linux
+> 
+> this patch breaks compilation of media_build.
+> The constant SZ_1M is not defined in the includes on my system
+> 
+> Do you know what can be done about this ?
+> 
+> ---
+> 
+> /home/jhh/dvb/media_build/v4l/m5mols_core.c: In function
+> 'm5mols_set_frame_desc':
+> /home/jhh/dvb/media_build/v4l/m5mols_core.c:636: error: 'SZ_1M'
+> undeclared (first use in this function)
+> /home/jhh/dvb/media_build/v4l/m5mols_core.c:636: error: (Each undeclared
+> identifier is reported only once
+> /home/jhh/dvb/media_build/v4l/m5mols_core.c:636: error: for each
+> function it appears in.)
 
-Or, it could be the same issue with different incarnations: with vbox
-you get the corruptions and without it, you get the freezes. I'm
-assuming you do the same flash player thing in both cases?
+Thanks for reporting this issue. You most likely don't need the M-5MOLS
+camera sensor driver on you system so one option is to just disable it
+at kernel config. Make sure CONFIG_VIDEO_M5MOLS is not set, it can be 
+unselected at menuconfig
 
-Here's a crazy idea: can you try to reproduce it in KVM?
+ -> Device Drivers
+    -> Multimedia
+      -> Encoders, decoders, sensors and other helper chips
+         < > Fujitsu M-5MOLS 8MP sensor support
 
-Thanks.
+The below patch which is intended to fix this issue won't work for
+media drivers backport builds on kernels older than 3.6, so m5mols
+driver should not be built for kernel versions < 3.6.
 
+8<-------------------------------------------------------------------
+>From 3e138ea603c9e5102452554cb14e4b404ce306e0 Mon Sep 17 00:00:00 2001
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Date: Sat, 6 Oct 2012 20:04:40 +0200
+Subject: [PATCH] m5mols: Add missing #include <linux/sizes.h>
+
+Include <linux/sizes.h> header that is missing after commit ab7ef22419927
+"[media] m5mols: Implement .get_frame_desc subdev callback".
+It prevents possible build errors due to undefined SZ_1M.
+
+Reported-by: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+---
+ drivers/media/i2c/m5mols/m5mols.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/i2c/m5mols/m5mols.h b/drivers/media/i2c/m5mols/m5mols.h
+index 4ab8b37..90a6c52 100644
+--- a/drivers/media/i2c/m5mols/m5mols.h
++++ b/drivers/media/i2c/m5mols/m5mols.h
+@@ -16,6 +16,7 @@
+ #ifndef M5MOLS_H
+ #define M5MOLS_H
+ 
++#include <linux/sizes.h>
+ #include <media/v4l2-subdev.h>
+ #include "m5mols_reg.h"
+ 
 -- 
-Regards/Gruss,
-    Boris.
+1.7.4.1
+8<-------------------------------------------------------------------
+
+--
+
+Regards,
+Sylwester
