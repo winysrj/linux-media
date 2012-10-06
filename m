@@ -1,55 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog108.obsmtp.com ([207.126.144.125]:43662 "EHLO
-	eu1sys200aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752637Ab2JJSez (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 14:34:55 -0400
-From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-To: mchehab@redhat.com
-Cc: srinivas.kandagatla@st.com, Scott.Jiang.Linux@gmail.com,
-	javier.martin@vista-silicon.com, linux-media@vger.kernel.org,
-	kernel@pengutronix.de, g.liakhovetski@gmx.de
-Subject: [PATCH 3.6.0- 1/5] media/bfin: use module_platform_driver macro
-Date: Wed, 10 Oct 2012 19:33:38 +0100
-Message-Id: <1349894018-8017-1-git-send-email-srinivas.kandagatla@st.com>
+Received: from mail-out.m-online.net ([212.18.0.10]:56972 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750749Ab2JFLAe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Oct 2012 07:00:34 -0400
+Date: Sat, 6 Oct 2012 13:00:17 +0200
+From: Anatolij Gustschin <agust@denx.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v2 1/3] mt9v022: add v4l2 controls for blanking
+Message-ID: <20121006130017.2f95b740@wker>
+In-Reply-To: <1348783425-22934-1-git-send-email-agust@denx.de>
+References: <1345799431-29426-2-git-send-email-agust@denx.de>
+	<1348783425-22934-1-git-send-email-agust@denx.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+Hi Guennadi,
 
-This patch removes some code duplication by using
-module_platform_driver.
+On Fri, 28 Sep 2012 00:03:45 +0200
+Anatolij Gustschin <agust@denx.de> wrote:
 
-Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
----
- drivers/media/platform/blackfin/bfin_capture.c |   14 +-------------
- 1 files changed, 1 insertions(+), 13 deletions(-)
+> Add controls for horizontal and vertical blanking. Also add an error
+> message for case that the control handler init failed. Since setting
+> the blanking registers is done by controls now, we shouldn't change
+> these registers outside of the control function. Use v4l2_ctrl_s_ctrl()
+> to set them.
+> 
+> Signed-off-by: Anatolij Gustschin <agust@denx.de>
+> ---
+> Changes since first version:
+>  - drop analog and reg32 setting controls
+>  - use more descriptive error message for handler init error
+>  - revise commit log
+>  - rebase on staging/for_v3.7 branch
+> 
+>  drivers/media/i2c/soc_camera/mt9v022.c |   49 +++++++++++++++++++++++++++++--
+>  1 files changed, 45 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index cb2eb26..ec476ef 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -1050,19 +1050,7 @@ static struct platform_driver bcap_driver = {
- 	.probe = bcap_probe,
- 	.remove = __devexit_p(bcap_remove),
- };
--
--static __init int bcap_init(void)
--{
--	return platform_driver_register(&bcap_driver);
--}
--
--static __exit void bcap_exit(void)
--{
--	platform_driver_unregister(&bcap_driver);
--}
--
--module_init(bcap_init);
--module_exit(bcap_exit);
-+module_platform_driver(bcap_driver);
- 
- MODULE_DESCRIPTION("Analog Devices blackfin video capture driver");
- MODULE_AUTHOR("Scott Jiang <Scott.Jiang.Linux@gmail.com>");
--- 
-1.7.0.4
+Can these mt9v022 patches be queued for mainlining, please?
 
+Thanks,
+Anatolij
