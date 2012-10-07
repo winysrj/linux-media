@@ -1,112 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:60594 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750799Ab2JHMA2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 08:00:28 -0400
-Date: Mon, 8 Oct 2012 14:00:18 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: tingtingyang@rdamicro.com
-cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: Re: host driver of camera
-In-Reply-To: <201210081934560685555@rdamicro.com>
-Message-ID: <Pine.LNX.4.64.1210081356320.12203@axis700.grange>
-References: <201210081914515571551@rdamicro.com>,
- <Pine.LNX.4.64.1210081320270.12203@axis700.grange> <201210081934560685555@rdamicro.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail4-relais-sop.national.inria.fr ([192.134.164.105]:42652
+	"EHLO mail4-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753408Ab2JGPjZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Oct 2012 11:39:25 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Antti Palosaari <crope@iki.fi>
+Cc: kernel-janitors@vger.kernel.org, rmallon@gmail.com,
+	shubhrajyoti@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 8/13] drivers/media/tuners/fc2580.c: use macros for i2c_msg initialization
+Date: Sun,  7 Oct 2012 17:38:39 +0200
+Message-Id: <1349624323-15584-10-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-On Mon, 8 Oct 2012, tingtingyang@rdamicro.com wrote:
+Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
 
->  Dear Guennadi,
-> I am sorry , see you reply just now.
-> I am in a puzzle about the soc camera 's init.
-> In the following,
-> 1. in soc_camera.c file
-> 
-> static struct platform_driver __refdata soc_camera_pdrv = {
-> .remove  = __devexit_p(soc_camera_pdrv_remove),
-> .driver  = {
-> .name = "soc-camera-pdrv",
-> .owner = THIS_MODULE,
-> },
-> };
-> 
-> 2.in pxa_camera.c  file
-> 
-> static struct platform_driver pxa_camera_driver = {
-> .driver  = {
-> .name = PXA_CAM_DRV_NAME,
-> .pm = &pxa_camera_pm,
-> },
-> .probe = pxa_camera_probe,
-> .remove = __devexit_p(pxa_camera_remove),
-> };
-> 
-> My question is :
-> In the soc board init file ,for example Devices.c . 
+A length expressed as an explicit constant is also re-expressed as the size
+of the buffer in each case.
 
-arch/arm/mach-pxa/devices.c is not a board init file, it is common for all 
-PXA27x boards.
+A simplified version of the semantic patch that makes this change is as
+follows: (http://coccinelle.lip6.fr/)
 
-> I only find one 
-> platform_device declare , soc-camera-pdrv or PXA_CAM_DRV_NAME .
-> 
-> But ,I think the two drivers should be both init . How the kernel do that  ?
+// <smpl>
+@@
+expression a,b,c;
+identifier x;
+@@
 
-See, e.g. in arch/arm/mach-pxa/pcm990-baseboard.c:
+struct i2c_msg x =
+- {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
++ I2C_MSG_READ(a,b,c)
+ ;
 
-	pxa_set_camera_info(&pcm990_pxacamera_platform_data);
+@@
+expression a,b,c;
+identifier x;
+@@
 
-registers a platform device for the pxa_camera.c driver and
+struct i2c_msg x =
+- {.addr = a, .buf = b, .len = c, .flags = 0}
++ I2C_MSG_WRITE(a,b,c)
+ ;
 
-	platform_device_register(&pcm990_camera[0]);
-	platform_device_register(&pcm990_camera[1]);
+@@
+expression a,b,c,d;
+identifier x;
+@@
 
-register two platform devices for the soc_camera.c driver, correcponding 
-to two camera sensors mt9v022 and mt9m001.
+struct i2c_msg x = 
+- {.addr = a, .buf = b, .len = c, .flags = d}
++ I2C_MSG_OP(a,b,c,d)
+ ;
+// </smpl>
 
-Thanks
-Guennadi
-
-> 
-> Regards
-> tingtingyang
-> 
-> From: Guennadi Liakhovetski
-> Date: 2012-10-08 19:20
-> To: tingtingyang
-> Subject: Re: host driver of camera
-> On Mon, 8 Oct 2012, tingtingyang@rdamicro.com wrote:
-> 
-> > Dear Guennadi 
-> 
-> I asked you to CC linux-media.
-> 
-> Regards
-> Guennadi
-> 
-> > I am studing linux kernel 3.4.0 driver coed.
-> > In the file of soc_camera.txt, has a word " 
-> > - camera host - an interface, to which a camera is connected. Typically a
-> > specialised interface, present on many SoCs, e.g., PXA27x and PXA3xx, SuperH,
-> > AVR32, i.MX27, i.MX31.
-> > "
-> > But,I can not find the driver of camera host driver in pxa27x.c .
-> > I know ,the host driver in the pxa_camera.c ,but I do not understand how the function be called or init ,because there are nothing about the camera host in the file pxa27x.c  .
-> > 
-> > Where could I get some example code of camera host driver being probe ?
-> > Best Wishes.
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/tuners/fc2580.c |   20 +++-----------------
+ 1 file changed, 3 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
+index aff39ae..d0c0ff1 100644
+--- a/drivers/media/tuners/fc2580.c
++++ b/drivers/media/tuners/fc2580.c
+@@ -45,12 +45,7 @@ static int fc2580_wr_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
+ 	int ret;
+ 	u8 buf[1 + len];
+ 	struct i2c_msg msg[1] = {
+-		{
+-			.addr = priv->cfg->i2c_addr,
+-			.flags = 0,
+-			.len = sizeof(buf),
+-			.buf = buf,
+-		}
++		I2C_MSG_WRITE(priv->cfg->i2c_addr, buf, sizeof(buf))
+ 	};
+ 
+ 	buf[0] = reg;
+@@ -73,17 +68,8 @@ static int fc2580_rd_regs(struct fc2580_priv *priv, u8 reg, u8 *val, int len)
+ 	int ret;
+ 	u8 buf[len];
+ 	struct i2c_msg msg[2] = {
+-		{
+-			.addr = priv->cfg->i2c_addr,
+-			.flags = 0,
+-			.len = 1,
+-			.buf = &reg,
+-		}, {
+-			.addr = priv->cfg->i2c_addr,
+-			.flags = I2C_M_RD,
+-			.len = sizeof(buf),
+-			.buf = buf,
+-		}
++		I2C_MSG_WRITE(priv->cfg->i2c_addr, &reg, sizeof(reg)),
++		I2C_MSG_READ(priv->cfg->i2c_addr, buf, sizeof(buf))
+ 	};
+ 
+ 	ret = i2c_transfer(priv->i2c, msg, 2);
+
