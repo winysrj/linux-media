@@ -1,110 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:63784 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752262Ab2JAKtt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 06:49:49 -0400
-Received: by pbbrr4 with SMTP id rr4so7568812pbb.19
-        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2012 03:49:49 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41456 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753047Ab2JGNh4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 09:37:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
+	zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: Re: [PATCHv9 22/25] v4l: vb2-dma-contig: fail if user ptr buffer is not correctly aligned
+Date: Sun, 07 Oct 2012 15:38:37 +0200
+Message-ID: <2975726.pfZgGt5FAy@avalon>
+In-Reply-To: <1349188056-4886-23-git-send-email-t.stanislaws@samsung.com>
+References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com> <1349188056-4886-23-git-send-email-t.stanislaws@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <2377629.Lqpv1qCszQ@avalon>
-References: <CAFqH_53EY7BcMjn+fy=KfAhSU9Ut1pcLUyrmu2kiHznrBUB2XQ@mail.gmail.com>
-	<1378805.eK71Lgs3H4@avalon>
-	<CAFqH_51khWJ6RBv707J8AC9YrMhzwqg5QPuo52EYVnBOmTRpFA@mail.gmail.com>
-	<2377629.Lqpv1qCszQ@avalon>
-Date: Mon, 1 Oct 2012 12:49:48 +0200
-Message-ID: <CAFqH_53nVK_MYwuRxAFWNBtK8P++zHv8MsSGCpiGFvXLbCc9zw@mail.gmail.com>
-Subject: Re: omap3isp: wrong image after resizer with mt9v034 sensor
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/10/1 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Enric,
->
-> On Friday 28 September 2012 17:32:36 Enric Balletbò i Serra wrote:
->> 2012/9/28 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> > On Friday 28 September 2012 10:21:56 Enric Balletbò i Serra wrote:
->> >> 2012/9/28 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> >> > On Thursday 27 September 2012 18:05:56 Enric Balletbò i Serra wrote:
->> >> >> 2012/9/27 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> >> >> > On Wednesday 26 September 2012 16:15:35 Enric Balletbò i Serra
-> wrote:
->
-> [snip]
->
->> >> >> >> Nonetheless, I changed the driver to configure for BGGR pattern.
->> >> >> >> Using the Sensor->CCDC->Preview->Resizer pipeline I captured the
->> >> >> >> data with yavta and converted using raw2rgbpnm program.
->> >> >> >>
->> >> >> >>     ./raw2rgbpnm -s 752x480 -f UYVY img-000001.uyvy img-000001.pnm
->> >> >> >>
->> >> >> >> and the result is
->> >> >> >>
->> >> >> >>     http://downloads.isee.biz/pub/files/patterns/img-000002.pnm
->> >> >> >>     http://downloads.isee.biz/pub/files/patterns/img-000002.bin
->> >> >> >>
->> >> >> >> The image looks better than older, not perfect, but better. The
->> >> >> >> image is only a bit yellowish. Could be this a hardware issue ? We
->> >> >> >> are close to ...
->> >> >> >
->> >> >> > It's like a white balance issue. The OMAP3 ISP hardware doesn't
->> >> >> > perform automatic white balance, you will need to implement an AWB
->> >> >> > algorithm in software. You can have a look at the omap3-isp-live
->> >> >> > project for sample code (http://git.ideasonboard.org/omap3-isp-
->> >> >> > live.git).
->> >>
->> >> So you think the sensor is set well now ?
->> >
->> > I think so, yes.
->> >
->> >> The hardware can produce this issue ? Do you know if this algorithm is
->> >> implemented in gstreamer ?
->> >
->> > I don't know, but if it is the implementation will be software-based, and
->> > will thus be slow. The OMAP3 ISP can compute AWB-related statistics in
->> > hardware and can apply per-color gains to the image. The only software
->> > you then need will retrieve the statistics, compute the gains from them
->> > and apply the gains. That's what the sample code in omap3-isp-live does.
->> > This should at some point be integrated as a libv4l plugin.
->>
->> So I can use your software to test if it's a white balance issue ?
->
-> Yes, but that's really a test application, it might not work out of the box.
->
+Hi Tomasz,
 
-I'm getting following error
+Thanks for the patch.
 
-# ./live
-    Device /dev/video6 opened: OMAP3 ISP resizer output (media).
-    viewfinder configured for 2011 1024x768
-    AEWB: #win 10x7 start 6x0 size 74x68 inc 10x8
-    Device /dev/video7 opened: omap_vout ().
-    3 buffers requested.
-    Buffer 0 mapped at address 0xb6e16000.
-    Buffer 1 mapped at address 0xb6c96000.
-    Buffer 2 mapped at address 0xb6b16000.
-    3 buffers requested.
-    Buffer 0 valid.
-    Buffer 1 valid.
-    Buffer 2 valid.
-    unable to retrieve AEWB event: Inappropriate ioctl for device (25).
-    unable to retrieve AEWB event: Inappropriate ioctl for device (25).
-    unable to retrieve AEWB event: Inappropriate ioctl for device (25).
-    ...
+On Tuesday 02 October 2012 16:27:33 Tomasz Stanislawski wrote:
+> From: Marek Szyprowski <m.szyprowski@samsung.com>
+> 
+> The DMA transfer must be aligned to a specific value. If userptr is not
+> aligned to DMA requirements then unexpected corruptions of the memory may
+> occur before or after a buffer.  To prevent such situations, all unligned
+> userptr buffers are rejected at VIDIOC_QBUF.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+>  drivers/media/video/videobuf2-dma-contig.c |    7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/drivers/media/video/videobuf2-dma-contig.c
+> b/drivers/media/video/videobuf2-dma-contig.c index b4d287a..55f8c80 100644
+> --- a/drivers/media/video/videobuf2-dma-contig.c
+> +++ b/drivers/media/video/videobuf2-dma-contig.c
+> @@ -494,6 +494,13 @@ static void *vb2_dc_get_userptr(void *alloc_ctx,
+> unsigned long vaddr, struct vm_area_struct *vma;
+>  	struct sg_table *sgt;
+>  	unsigned long contig_size;
+> +	unsigned long dma_align = dma_get_cache_alignment();
+> +
+> +	/* Only cache aligned DMA transfers are reliable */
+> +	if (!IS_ALIGNED(vaddr | size, dma_align)) {
+> +		pr_err("user data must be aligned to %lu bytes\n", dma_align);
+> +		return ERR_PTR(-EINVAL);
 
-and a blue screen appears on my monitor. Maybe I missed a patch ?
+Do you think EFAULT would be more descriptive ? EINVAL is already used quite 
+extensively. We could then possibly turn pr_err() into pr_dbg() to avoid 
+flooding the kernel log.
 
->> (as the omap3-isp-live has this support if I understood). I'll try this,
->> do you can provide some tips on how use the omap3-isp-live ?
->
-> Just compile and run it :-)
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+> +	}
+> 
+>  	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+>  	if (!buf)
+
+-- 
+Regards,
+
+Laurent Pinchart
