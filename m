@@ -1,68 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([75.149.91.89]:57409 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750994Ab2JZESS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Oct 2012 00:18:18 -0400
-Date: Thu, 25 Oct 2012 23:13:09 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] pvr2: fix minor storage
-In-Reply-To: <20121025143816.17307.17929.stgit@localhost.localdomain>
-Message-ID: <alpine.DEB.2.00.1210252307550.14936@ivanova.isely.net>
-References: <20121025143816.17307.17929.stgit@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mail4-relais-sop.national.inria.fr ([192.134.164.105]:3043 "EHLO
+	mail4-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753229Ab2JGPjY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Oct 2012 11:39:24 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Antti Palosaari <crope@iki.fi>
+Cc: kernel-janitors@vger.kernel.org, rmallon@gmail.com,
+	shubhrajyoti@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 7/13] drivers/media/tuners/tua9001.c: use macros for i2c_msg initialization
+Date: Sun,  7 Oct 2012 17:38:38 +0200
+Message-Id: <1349624323-15584-9-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Completely agree!  Thanks for spotting that one.
+Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
 
-Signed-off-by: Mike Isely <isely@pobox.com>
+A simplified version of the semantic patch that makes this change is as
+follows: (http://coccinelle.lip6.fr/)
 
-  -Mike
+// <smpl>
+@@
+expression a,b,c;
+identifier x;
+@@
 
+struct i2c_msg x =
+- {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
++ I2C_MSG_READ(a,b,c)
+ ;
 
-On Thu, 25 Oct 2012, Alan Cox wrote:
+@@
+expression a,b,c;
+identifier x;
+@@
 
-> From: Alan Cox <alan@linux.intel.com>
-> 
-> This should have break statements in it.
-> 
-> Signed-off-by: Alan Cox <alan@linux.intel.com>
-> ---
-> 
->  drivers/media/usb/pvrusb2/pvrusb2-hdw.c |    6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-> index fb828ba..299751a 100644
-> --- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-> +++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-> @@ -3563,9 +3563,9 @@ void pvr2_hdw_v4l_store_minor_number(struct pvr2_hdw *hdw,
->  				     enum pvr2_v4l_type index,int v)
->  {
->  	switch (index) {
-> -	case pvr2_v4l_type_video: hdw->v4l_minor_number_video = v;
-> -	case pvr2_v4l_type_vbi: hdw->v4l_minor_number_vbi = v;
-> -	case pvr2_v4l_type_radio: hdw->v4l_minor_number_radio = v;
-> +	case pvr2_v4l_type_video: hdw->v4l_minor_number_video = v;break;
-> +	case pvr2_v4l_type_vbi: hdw->v4l_minor_number_vbi = v;break;
-> +	case pvr2_v4l_type_radio: hdw->v4l_minor_number_radio = v;break;
->  	default: break;
->  	}
->  }
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+struct i2c_msg x =
+- {.addr = a, .buf = b, .len = c, .flags = 0}
++ I2C_MSG_WRITE(a,b,c)
+ ;
 
--- 
+@@
+expression a,b,c,d;
+identifier x;
+@@
 
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+struct i2c_msg x = 
+- {.addr = a, .buf = b, .len = c, .flags = d}
++ I2C_MSG_OP(a,b,c,d)
+ ;
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
+---
+ drivers/media/tuners/tua9001.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/drivers/media/tuners/tua9001.c b/drivers/media/tuners/tua9001.c
+index 3896684..a9e7e91 100644
+--- a/drivers/media/tuners/tua9001.c
++++ b/drivers/media/tuners/tua9001.c
+@@ -27,12 +27,7 @@ static int tua9001_wr_reg(struct tua9001_priv *priv, u8 reg, u16 val)
+ 	int ret;
+ 	u8 buf[3] = { reg, (val >> 8) & 0xff, (val >> 0) & 0xff };
+ 	struct i2c_msg msg[1] = {
+-		{
+-			.addr = priv->cfg->i2c_addr,
+-			.flags = 0,
+-			.len = sizeof(buf),
+-			.buf = buf,
+-		}
++		I2C_MSG_WRITE(priv->cfg->i2c_addr, buf, sizeof(buf))
+ 	};
+ 
+ 	ret = i2c_transfer(priv->i2c, msg, 1);
+
