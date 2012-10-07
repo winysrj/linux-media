@@ -1,47 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:40449 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750740Ab2JJIvg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 04:51:36 -0400
-Date: Wed, 10 Oct 2012 17:51:27 +0900
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 04/14] media: add V4L2 DT binding documentation
-Message-ID: <20121010085124.GJ17288@opensource.wolfsonmicro.com>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
- <1348754853-28619-5-git-send-email-g.liakhovetski@gmx.de>
- <20121005151057.GA5125@pengutronix.de>
- <Pine.LNX.4.64.1210051735360.13761@axis700.grange>
- <20121005160242.GX1322@pengutronix.de>
- <Pine.LNX.4.64.1210080950350.11034@axis700.grange>
- <20121010084006.GQ27665@pengutronix.de>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:42252 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752858Ab2JGNw4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 09:52:56 -0400
+Received: by mail-bk0-f46.google.com with SMTP id jk13so1618676bkc.19
+        for <linux-media@vger.kernel.org>; Sun, 07 Oct 2012 06:52:55 -0700 (PDT)
+Message-ID: <5071893F.9030002@googlemail.com>
+Date: Sun, 07 Oct 2012 15:53:03 +0200
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20121010084006.GQ27665@pengutronix.de>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Subject: Re: How to add support for the em2765 webcam Speedlink VAD Laplace
+ to the kernel ?
+References: <5032225A.9080305@googlemail.com> <50323559.7040107@redhat.com> <50328E22.4090805@redhat.com> <50337293.8050808@googlemail.com> <50337FF4.2030200@redhat.com> <5033B177.8060609@googlemail.com> <5033C573.2000304@redhat.com> <50349017.4020204@googlemail.com> <503521B4.6050207@redhat.com> <503A7097.4050709@googlemail.com> <505F16AD.8010909@googlemail.com> <20121006085624.128f7f2c@redhat.com> <CAGoCfiycAyFDpTvX+kJ9xChJdbQg+A-PLWencL6GN8PJYW546g@mail.gmail.com>
+In-Reply-To: <CAGoCfiycAyFDpTvX+kJ9xChJdbQg+A-PLWencL6GN8PJYW546g@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 10, 2012 at 10:40:06AM +0200, Sascha Hauer wrote:
+Am 07.10.2012 04:56, schrieb Devin Heitmueller:
+> On Sat, Oct 6, 2012 at 7:56 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> AFAIKT, newer em28xx chips are using this concept. The em28xx-i2c code require
+>> changes to support two I2C buses, and to handle 16 bit eeproms. We never cared
+>> of doing that because we never needed, so far, to read anything from those
+>> devices' eeproms.
+> I actually wrote the code to read the 16-bit eeprom from the em2874,
+> but removed it before submitting it upstream because I was afraid
+> well-intentioned em28xx users trying to add support for their boards
+> would trash their eeprom.  This is because performing a read against a
+> 16-bit eeprom is equivalent to a write on an 8-bit eeprom.  Hence if
+> the user didn't know what he/she was doing, and used the 16-bit eeprom
+> code against an older eeprom, the eeprom would get trashed (this
+> actually happened to me once when I was doing the em2874 device
+> support originally).
 
-> Mark, when do we get the same for aSoC? ;)
+Yes, I've read the comment in the code...
 
-Well, I'm unlikely to work on it as I don't have any systems which can
-boot with device tree.
+According to the (possibly outdated) em2580/em2585 datasheet I've found,
+these chips support 16bit eeproms ONLY.
+What do we know about the others ? Are there any chips which support
+both 8bit and 16bit eeproms ?
+Maybe we can make it depending on the chip_id.
 
-The big, big problem you've got doing this is lots of dynamic changes at 
-runtime and in general complicated systems.  It's trivial to describe
-the physical links but they don't provide anything like enough
-information to use things.  Quite frankly I'm not sure device tree is a
-useful investment of time for advanced audio systems anyway, it's really
-not solving any problems people actually have.
+With regards to eeprom type probing:
+I've made some experiments to find out what happens when trying to
+access the 16bit eeprom in my device as 8bit eeprom.
+My hope was to get a clear result like an i2c error, no data or all
+bytes beeing 0x00 or 0xff.
+Unfortunately, there is no error and I'm getting random data (would have
+to cerify if it's really "random").
+So probing will be difficult.
+
+> If we really want that code back in the tree, I can dig it up -- but I
+> won't be responsible for users killing their devices.
+
+Indeed, we should be very careful.
+
+Regards,
+Frank
+
+> Devin
+>
+
+
