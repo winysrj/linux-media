@@ -1,112 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54574 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756040Ab2JJNV2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 09:21:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
-Date: Wed, 10 Oct 2012 15:22:12 +0200
-Message-ID: <4911109.4UeH6qZopn@avalon>
-In-Reply-To: <201210081741.43546.hverkuil@xs4all.nl>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1210081708240.14454@axis700.grange> <201210081741.43546.hverkuil@xs4all.nl>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:48544 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751339Ab2JGWOb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 18:14:31 -0400
+Message-ID: <5071FEC1.10507@gmail.com>
+Date: Mon, 08 Oct 2012 09:14:25 +1100
+From: Ryan Mallon <rmallon@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kernel-janitors@vger.kernel.org, shubhrajyoti@ti.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 12/13] drivers/media/tuners/max2165.c: use macros for
+ i2c_msg initialization
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-14-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1349624323-15584-14-git-send-email-Julia.Lawall@lip6.fr>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Monday 08 October 2012 17:41:43 Hans Verkuil wrote:
-> On Mon October 8 2012 17:15:53 Guennadi Liakhovetski wrote:
-> > On Mon, 8 Oct 2012, Hans Verkuil wrote:
-> > > On Mon October 8 2012 16:30:53 Guennadi Liakhovetski wrote:
-> > > > On Mon, 8 Oct 2012, Hans Verkuil wrote:
-
-[snip]
-
-> > > > > I wonder, don't we have the necessary code already? V4L2 subdev
-> > > > > drivers can have internal_ops with register/unregister ops. These
-> > > > > are called by v4l2_device_register_subdev. This happens during the
-> > > > > bridge driver's probe.
-> > > > > 
-> > > > > Suppose the subdev's probe does not actually access the i2c device,
-> > > > > but instead defers that to the register callback? The bridge driver
-> > > > > will turn on the clock before calling v4l2_device_register_subdev to
-> > > > > ensure that the register callback can access the i2c registers. The
-> > > > > register callback will do any initialization and can return an
-> > > > > error. In case of an error the i2c client is automatically
-> > > > > unregistered as well.
-> > > > 
-> > > > Yes, if v4l2_i2c_new_subdev_board() is used. This has been discussed
-> > > > several times before and always what I didn't like in this is, that
-> > > > I2C device probe() in this case succeeds without even trying to access
-> > > > the hardware. And think about DT. In this case we don't instantiate
-> > > > the I2C device, OF code does it for us. What do you do then? If you
-> > > > let probe() succeed, then you will have to somehow remember the
-> > > > subdevice to later match it against bridges...
-> > > 
-> > > Yes, but you need that information anyway. The bridge still needs to
-> > > call v4l2_device_register_subdev so it needs to know which subdevs are
-> > > loaded.
-> > 
-> > But how do you get the subdev pointer? With the notifier I get it from
-> > i2c_get_clientdata(client) and what do you do without it? How do you get
-> > to the client?
-> > 
-> > > And can't it get that from DT as well?
-> > 
-> > No, I don't think there is a way to get a device pointer from a DT node.
+On 08/10/12 02:38, Julia Lawall wrote:
+> From: Julia Lawall <Julia.Lawall@lip6.fr>
 > 
-> Not a device pointer, but the i2c bus and i2c address. With that information
-> you can get the i2c_client, and with that you can get the subdev pointer.
-
-That could work as well, but it might be easier to keep a mapping from the DT 
-node to struct device or struct v4l2_subdev instead. I have no strong opinion 
-on this at the moment.
-
-> If there is no way to get that information from the proposed V4L2 DT, then
-> it needs to be modified since a bridge driver really needs to know which
-> subdevs it has to register with the v4l2_device struct. That information is
-> also board specific so it should be part of the DT.
+> Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
 > 
-> > > In my view you cannot do a proper initialization unless you have both
-> > > the bridge driver and all subdev drivers loaded and instantiated. They
-> > > need one another. So I am perfectly fine with letting the probe function
-> > > do next to nothing and postponing that until register() is called. I2C
-> > > and actual probing to check if it's the right device is a bad idea in
-> > > general since you have no idea what a hardware access to an unknown i2c
-> > > device will do. There are still some corner cases where that is needed,
-> > > but I do not think that that is an issue here.
-> > > 
-> > > It would simplify things a lot IMHO. Also note that the register() op
-> > > will work with any device, not just i2c. That may be a useful property
-> > > as well.
-> > 
-> > And what if the subdevice device is not yet instantiated by OF by the time
-> > your bridge driver probes?
+> A length expressed as an explicit constant is also re-expressed as the size
+> of the buffer, when this is possible.
 > 
-> That is where you still need to have a bus notifier mechanism. You have to
-> be able to wait until all dependent drivers are loaded/instantiated, or
-> alternatively you have to be able to load them explicitly. But this should
-> be relatively easy to implement in a generic manner.
+> The second case is simplified to use simple variables rather than arrays.
+> The variable b0 is dropped completely, and the variable reg that it
+> contains is used instead.  The variable b1 is replaced by a u8-typed
+> variable named buf (the name used earlier in the file).  The uses of b1 are
+> then adjusted accordingly.
 > 
-> I still think this sucks (excuse my language), but I see no way around it as
-> long as there is no explicit probe order one can rely on.
+> A simplified version of the semantic patch that makes this change is as
+> follows: (http://coccinelle.lip6.fr/)
+> 
+> // <smpl>
+> @@
+> expression a,b,c;
+> identifier x;
+> @@
+> 
+> struct i2c_msg x =
+> - {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
+> + I2C_MSG_READ(a,b,c)
+>  ;
+> 
+> @@
+> expression a,b,c;
+> identifier x;
+> @@
+> 
+> struct i2c_msg x =
+> - {.addr = a, .buf = b, .len = c, .flags = 0}
+> + I2C_MSG_WRITE(a,b,c)
+>  ;
+> 
+> @@
+> expression a,b,c,d;
+> identifier x;
+> @@
+> 
+> struct i2c_msg x = 
+> - {.addr = a, .buf = b, .len = c, .flags = d}
+> + I2C_MSG_OP(a,b,c,d)
+>  ;
+> // </smpl>
+> 
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+> 
+> ---
+> 
+>  drivers/media/tuners/max2165.c |   13 ++++++-------
+>  1 file changed, 6 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/tuners/max2165.c b/drivers/media/tuners/max2165.c
+> index ba84936..6638617 100644
+> --- a/drivers/media/tuners/max2165.c
+> +++ b/drivers/media/tuners/max2165.c
+> @@ -47,7 +47,7 @@ static int max2165_write_reg(struct max2165_priv *priv, u8 reg, u8 data)
+>  {
+>  	int ret;
+>  	u8 buf[] = { reg, data };
+> -	struct i2c_msg msg = { .flags = 0, .buf = buf, .len = 2 };
+> +	struct i2c_msg msg = I2C_MSG_WRITE(0, buf, sizeof(buf));
+>  
+>  	msg.addr = priv->config->i2c_address;
+>  
+> @@ -68,11 +68,10 @@ static int max2165_read_reg(struct max2165_priv *priv, u8 reg, u8 *p_data)
+>  	int ret;
+>  	u8 dev_addr = priv->config->i2c_address;
+>  
+> -	u8 b0[] = { reg };
+> -	u8 b1[] = { 0 };
+> +	u8 buf;
+>  	struct i2c_msg msg[] = {
+> -		{ .addr = dev_addr, .flags = 0, .buf = b0, .len = 1 },
+> -		{ .addr = dev_addr, .flags = I2C_M_RD, .buf = b1, .len = 1 },
+> +		I2C_MSG_WRITE(dev_addr, &reg, sizeof(reg)),
+> +		I2C_MSG_READ(dev_addr, &buf, sizeof(buf)),
+>  	};
 
--- 
-Regards,
+Not sure if the array changes should be done here or as a separate
+patch. Some of the other patches also have cases where single index
+arrays (both buffers and messages) could be converted. Should either
+convert all or none of them. I think its probably best to do as a
+separate series on top of this though.
 
-Laurent Pinchart
+~Ryan
+
+>  
+>  	ret = i2c_transfer(priv->i2c, msg, 2);
+> @@ -81,10 +80,10 @@ static int max2165_read_reg(struct max2165_priv *priv, u8 reg, u8 *p_data)
+>  		return -EIO;
+>  	}
+>  
+> -	*p_data = b1[0];
+> +	*p_data = buf;
+>  	if (debug >= 2)
+>  		dprintk("%s: reg=0x%02X, data=0x%02X\n",
+> -			__func__, reg, b1[0]);
+> +			__func__, reg, buf);
+>  	return 0;
+>  }
+>  
+> 
 
