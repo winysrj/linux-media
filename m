@@ -1,70 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:3601 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:52853 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752240Ab2JASZD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Oct 2012 14:25:03 -0400
-Date: Mon, 1 Oct 2012 15:24:56 -0300
+	id S1750794Ab2JGNDG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Oct 2012 09:03:06 -0400
+Date: Sun, 7 Oct 2012 10:03:01 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [GIT PULL FOR v3.7] Add missing vidioc-subdev-g-edid.xml.
-Message-ID: <20121001152456.16923835@redhat.com>
-In-Reply-To: <201209261033.51510.hverkuil@xs4all.nl>
-References: <201209251356.34176.hverkuil@xs4all.nl>
-	<201209261033.51510.hverkuil@xs4all.nl>
+To: Wolfgang Bail <wolfgang.bail@t-online.de>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH] rc-msi-digivox-ii: Add full scan keycodes - Was: Re: v4l
+Message-ID: <20121007100301.3870ef32@redhat.com>
+In-Reply-To: <201209300549.26996.wolfgang.bail@t-online.de>
+References: <201209300549.26996.wolfgang.bail@t-online.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 26 Sep 2012 10:33:51 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Em Sun, 30 Sep 2012 05:49:26 +0200
+Wolfgang Bail <wolfgang.bail@t-online.de> escreveu:
 
-> On Tue 25 September 2012 13:56:34 Hans Verkuil wrote:
-> > Hi Mauro,
-> > 
-> > As requested!
+> Hello,
 > 
-> I've respun this tree, fixing one documentation bug (the max value for
-> 'blocks' is 256, not 255) and adding an overflow check in v4l2-ioctl.c as
-> reported by Dan Carpenter:
+> the ir-rc from my msi DigiVox mini II Version 3 (af9015) will not work since 
+> kernel 3.2.x (kubuntu 12.04), same with s2-liplianin or v4l.
 > 
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg52640.html
-
-It seems you forgot to send the patches for review at the ML (at least, I'm
-not seeing it on my linux-media local inbox).
-
-Also, please document it better. Only after reading Dan's email I was able
-to understand *why* you wrote such patch, as your patch description is bogus:
-
-> Subject: Return -EINVAL if blocks > 256.
->
->...
->
->@@ -2205,6 +2205,10 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
->                struct v4l2_subdev_edid *edid = parg;
+> sudo ir-keytable -t shows:
 > 
->                if (edid->blocks) {
->+                       if (edid->blocks > 256) {
->+                               ret = -EINVAL;
->+                               break;
+> Testing events. Please, press CTRL-C to abort.
+> 1348890734.303273: event MSC: scancode = 317
+> 1348890734.303280: event key down: KEY_POWER (0x0074)
+> 1348890734.303282: event sync
+> 1348890734.553961: event key up: KEY_POWER (0x0074)
+> 1348890734.553963: event sync
+> 1348890741.303451: event MSC: scancode = 30d
+> 1348890741.303457: event key down: KEY_DOWN (0x006c)
+> 1348890741.303459: event sync
+> ^[[B1348890741.553956: event key up: KEY_DOWN (0x006c)
+> 
+> So I changed in rc-msi-digivox-ii.c { 0x0002, KEY_2 }, to { 0x0302, KEY_2 }, 
+> and so on. And now it works well.
+> 
+> I hope, my mini patch is standard, the first I made. 
 
-Well, Kernel developers are generally able to read C, so you don't need to repeat
-what's written at the code as the patch subject ;)
+Well, you should have using a subject like:
 
-Dan's comment provides the reason why this patch is needed:
+[PATCH] rc-msi-digivox-ii: Add full scan keycodes
 
->  2207                          *array_size = edid->blocks * 128;
->                                              ^^^^^^^^^^^^^^^^^^
-> This can overflow.
+And your signed-off-by. There are some pages at linuxtv.org wiki that points
+how to write a patch.
 
-So, the patch subject should be saying, instead:
+Yet, as this is a really trivial one, I'll accept it without your Signed-off-by.
 
-v4l2-ioctl: limit the max amount of edid blocks to avoid overflow
+> I don't know, whether 
+> there are different variants of remote controls. But I don't believe it, 
+> because it was ok with kernel 2.6.x.
 
-and putting Dan's comments in the body of the patch description.
+No, this seems just yet-another-regression caused by some patch that changed 
+the code that gets IR scancode to report the 16-bit keycode, instead of
+just the last 8 bits.
 
-Thanks!
+Thanks for it.
+
+> 
+> @Mauro, thank you for the reply.
+> 
+
+Regards,
 Mauro
+
+-
+
+FYI, this is how I applied it.
+
+
+From: Wolfgang Bail <wolfgang.bail@t-online.de>
+Date: Sat, 29 Sep 2012 23:49:26 -0300
+Subject: [PATCH] [media] rc-msi-digivox-ii: Add full scan keycodes
+
+The ir-rc from my MSI DigiVox mini II Version 3 (af9015) will not work since
+kernel 3.2.x.
+
+sudo ir-keytable -t shows:
+
+	1348890734.303273: event MSC: scancode = 317
+	1348890734.303280: event key down: KEY_POWER (0x0074)
+	1348890734.303282: event sync
+	1348890734.553961: event key up: KEY_POWER (0x0074)
+	1348890734.553963: event sync
+	1348890741.303451: event MSC: scancode = 30d
+	1348890741.303457: event key down: KEY_DOWN (0x006c)
+	1348890741.303459: event sync
+	1348890741.553956: event key up: KEY_DOWN (0x006c)
+
+So I changed in rc-msi-digivox-ii.c { 0x0002, KEY_2 }, to { 0x0302, KEY_2 },
+and so on. And now it works well.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/rc/keymaps/rc-msi-digivox-ii.c b/drivers/media/rc/keymaps/rc-msi-digivox-ii.c
+index c64e9e3..2fa71d0 100644
+--- a/drivers/media/rc/keymaps/rc-msi-digivox-ii.c
++++ b/drivers/media/rc/keymaps/rc-msi-digivox-ii.c
+@@ -22,24 +22,24 @@
+ #include <linux/module.h>
+ 
+ static struct rc_map_table msi_digivox_ii[] = {
+-	{ 0x0002, KEY_2 },
+-	{ 0x0003, KEY_UP },              /* up */
+-	{ 0x0004, KEY_3 },
+-	{ 0x0005, KEY_CHANNELDOWN },
+-	{ 0x0008, KEY_5 },
+-	{ 0x0009, KEY_0 },
+-	{ 0x000b, KEY_8 },
+-	{ 0x000d, KEY_DOWN },            /* down */
+-	{ 0x0010, KEY_9 },
+-	{ 0x0011, KEY_7 },
+-	{ 0x0014, KEY_VOLUMEUP },
+-	{ 0x0015, KEY_CHANNELUP },
+-	{ 0x0016, KEY_OK },
+-	{ 0x0017, KEY_POWER2 },
+-	{ 0x001a, KEY_1 },
+-	{ 0x001c, KEY_4 },
+-	{ 0x001d, KEY_6 },
+-	{ 0x001f, KEY_VOLUMEDOWN },
++	{ 0x0302, KEY_2 },
++	{ 0x0303, KEY_UP },              /* up */
++	{ 0x0304, KEY_3 },
++	{ 0x0305, KEY_CHANNELDOWN },
++	{ 0x0308, KEY_5 },
++	{ 0x0309, KEY_0 },
++	{ 0x030b, KEY_8 },
++	{ 0x030d, KEY_DOWN },            /* down */
++	{ 0x0310, KEY_9 },
++	{ 0x0311, KEY_7 },
++	{ 0x0314, KEY_VOLUMEUP },
++	{ 0x0315, KEY_CHANNELUP },
++	{ 0x0316, KEY_OK },
++	{ 0x0317, KEY_POWER2 },
++	{ 0x031a, KEY_1 },
++	{ 0x031c, KEY_4 },
++	{ 0x031d, KEY_6 },
++	{ 0x031f, KEY_VOLUMEDOWN },
+ };
+ 
+ static struct rc_map_list msi_digivox_ii_map = {
+
