@@ -1,178 +1,322 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:55590 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750718Ab2JHObE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 10:31:04 -0400
-Date: Mon, 8 Oct 2012 16:30:53 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
-In-Reply-To: <201210081548.11207.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1210081619200.14454@axis700.grange>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
- <201210051323.45571.hverkuil@xs4all.nl> <Pine.LNX.4.64.1210081306240.12203@axis700.grange>
- <201210081548.11207.hverkuil@xs4all.nl>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:43932 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751196Ab2JGNTw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 09:19:52 -0400
+Received: by mail-wi0-f178.google.com with SMTP id hr7so2573997wib.1
+        for <linux-media@vger.kernel.org>; Sun, 07 Oct 2012 06:19:51 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <E1TKqkK-0005vN-Nl@www.linuxtv.org>
+References: <E1TKqkK-0005vN-Nl@www.linuxtv.org>
+Date: Sun, 7 Oct 2012 09:19:51 -0400
+Message-ID: <CAOcJUbzHUA4bCc2FRfThC80BjBc2RkT25-LuYZzQMANjtTTy2w@mail.gmail.com>
+Subject: Re: [git:v4l-dvb/for_v3.7] [media] tda18271-common: hold the I2C
+ adapter during write transfers
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: linuxtv-commits@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 8 Oct 2012, Hans Verkuil wrote:
+umm, again, i didn't actually ACK the patch, I verbally said "ok, i guess"
 
-> On Mon October 8 2012 14:23:25 Guennadi Liakhovetski wrote:
-> > Hi Hans
-> > 
-> > On Fri, 5 Oct 2012, Hans Verkuil wrote:
-> > 
-> > [snip]
-> > 
-> > > I think the soc_camera patches should be left out for now. I suspect that
-> > > by adding core support for async i2c handling first,
-> > 
-> > Ok, let's think, what this meacs - async I2C in media / V4L2 core.
-> > 
-> > The main reason for our probing order problem is the master clock, 
-> > typically supplied from the camera bridge to I2C subdevices, which we only 
-> > want to start when necessary, i.e. when accessing the subdevice. And the 
-> > subdevice driver needs that clock running during its .probe() to be able 
-> > to access and verify or configure the hardware. Our current solution is to 
-> > not register I2C subdevices from the platform data, as is usual for all 
-> > I2C devices, but from the bridge driver and only after it has switched on 
-> > the master clock. After the subdevice driver has completed its probing we 
-> > switch the clock back off until the subdevice has to be activated, e.g. 
-> > for video capture.
-> > 
-> > Also important - when we want to unregister the bridge driver we just also 
-> > unregister the I2C device.
-> > 
-> > Now, to reverse the whole thing and to allow I2C devices be registered as 
-> > usual - via platform data or OF, first of all we have to teach I2C 
-> > subdevice drivers to recognise the "too early" situation and request 
-> > deferred probing in such a case. Then it will be reprobed after each new 
-> > successful probe or unregister on the system. After the bridge driver has 
-> > successfully probed the subdevice driver will be re-probed and at that 
-> > time it should succeed. Now, there is a problem here too: who should 
-> > switch on and off the master clock?
-> > 
-> > If we do it from the bridge driver, we could install an I2C bus-notifier, 
-> > _before_ the subdevice driver is probed, i.e. upon the 
-> > BUS_NOTIFY_BIND_DRIVER event we could turn on the clock. If subdevice 
-> > probing was successful, we can then wait for the BUS_NOTIFY_BOUND_DRIVER 
-> > event to switch the clock back off. BUT - if the subdevice fails probing? 
-> > How do we find out about that and turn the clock back off? There is no 
-> > notification event for that... Possible solutions:
-> > 
-> > 1. timer - ugly and unreliable.
-> > 2. add a "probing failed" notifier event to the device core - would this 
-> >    be accepted?
-> > 3. let the subdevice turn the master clock on and off for the duration of 
-> >    probing.
-> > 
-> > My vote goes for (3). Ideally this should be done using the generic clock 
-> > framework. But can we really expect all drivers and platforms to switch to 
-> > it quickly enough? If not, we need a V4L2-specific callback from subdevice 
-> > drivers to bridge drivers to turn the clock on and off. That's what I've 
-> > done "temporarily" in this patch series for soc-camera.
-> > 
-> > Suppose we decide to do the same for V4L2 centrally - add call-backs. Then 
-> > we can think what else we need to add to V4L2 to support asynchronous 
-> > subdevice driver probing.
-> 
-> I wonder, don't we have the necessary code already? V4L2 subdev drivers can
-> have internal_ops with register/unregister ops. These are called by
-> v4l2_device_register_subdev. This happens during the bridge driver's probe.
-> 
-> Suppose the subdev's probe does not actually access the i2c device, but
-> instead defers that to the register callback? The bridge driver will turn on
-> the clock before calling v4l2_device_register_subdev to ensure that the
-> register callback can access the i2c registers. The register callback will
-> do any initialization and can return an error. In case of an error the i2c
-> client is automatically unregistered as well.
+You shouldn't forge someone's signature, Mauro.  :-(
 
-Yes, if v4l2_i2c_new_subdev_board() is used. This has been discussed 
-several times before and always what I didn't like in this is, that I2C 
-device probe() in this case succeeds without even trying to access the 
-hardware. And think about DT. In this case we don't instantiate the I2C 
-device, OF code does it for us. What do you do then? If you let probe() 
-succeed, then you will have to somehow remember the subdevice to later 
-match it against bridges...
-
-> In addition, during the register op the subdev driver can call into the
-> bridge driver since it knows the v4l2_device struct.
-> 
-> This has also the advantage that subdev drivers can change to this model
-> gradually. Only drivers that need master clocks, etc. need to move any probe
-> code that actually accesses hardware to the register op. Others can remain
-> as. Nor should this change behavior of existing drivers as this happens
-> all in the V4L2 core.
-> 
-> The bridge driver may still have to wait until all i2c drivers are loaded,
-> though. But that can definitely be handled centrally (i.e.: 'I need these
-> drivers, wait until all are loaded').
-> 
-> > 1. We'll have to create these V4L2 clock start and stop functions, that, 
-> > supplied (in case of I2C) with client address and adapter number will find 
-> > the correct v4l2_device instance and call its callbacks.
-> > 
-> > 2. The I2C notifier. I'm not sure, whether this one should be common. Of 
-> > common tasks we have to refcount the I2C adapter and register the 
-> > subdevice. Then we'd have to call the bridge driver's callback. Is it 
-> > worth it doing this centrally or rather allow individual drivers to do 
-> > that themselves?
-> > 
-> > Also, ideally OF-compatible (I2C) drivers should run with no platform 
-> > data, but soc-camera is using I2C device platform data intensively. To 
-> > avoid modifying the soc-camera core and all drivers, I also trigger on the 
-> > BUS_NOTIFY_BIND_DRIVER event and assign a reference to the dynamically 
-> > created platform data to the I2C device. Would we also want to do this for 
-> > all V4L2 bridge drivers? We could call this a "prepare" callback or 
-> > something similar...
-> 
-> Well, subdev drivers should either parse the OF data, or use the platform_data.
-> The way soc_camera uses platform_data is one reason why it is so hard to
-> reuse subdevs for non-soc_camera drivers. All the callbacks in soc_camera_link
-> should be replaced by calls to the v4l2_device notify() callback. After that we
-> can see what is needed to drop struct soc_camera_link altogether as platform_data.
-
-They don't have to be, they are not (or should not be) called by 
-subdevices.
-
-> > 3. Bridge driver unregistering. Here we have to put the subdevice driver 
-> > back into the deferred-probe state... Ugliness alert: I'm doing this by 
-> > unregistering and re-registering the I2C device... For that I also have to 
-> > create a copy of devices I2C board-info data. Lovely, ain't it? This I'd 
-> > be happy to move to the V4L2 core;-)
-> 
-> By just using the unregister ops this should be greatly simplified as well.
-
-Sorry, which unregister ops do you mean? internal_ops->unregistered()? 
-Yes, but only if we somehow go your way and use dummy probe() methods...
-
-Thanks
-Guennadi
-
-> Unless I am missing something, which is perfectly possible :-)
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > Thanks
-> > Guennadi
-> > 
-> > > the soc_camera patches
-> > > will become a lot easier to understand.
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+On Sun, Oct 7, 2012 at 8:43 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> This is an automatic generated email to let you know that the following patch were queued at the
+> http://git.linuxtv.org/media_tree.git tree:
+>
+> Subject: [media] tda18271-common: hold the I2C adapter during write transfers
+> Author:  Mauro Carvalho Chehab <mchehab@redhat.com>
+> Date:    Fri Sep 28 11:04:21 2012 -0300
+>
+> The tda18271 datasheet says:
+>         "The image rejection calibration and RF tracking filter
+>          calibration must be launched exactly as described in the
+>          flowchart, otherwise bad calibration or even blocking of the
+>          TDA18211HD can result making it impossible to communicate
+>          via the I2C-bus."
+> (yeah, tda18271 refers there to tda18211 - likely a typo at their
+>  datasheets)
+> That likely explains why sometimes tda18271 stops answering. That
+> is now happening more often on designs with drx-k chips, as the
+> firmware is now loaded asyncrousnly there.
+> While the above text doesn't explicitly tell that the I2C bus
+> couldn't be used by other devices during such initialization,
+> that seems to be a requirement there.
+> So, let's explicitly use the I2C lock there, avoiding I2C bus
+> share during those critical moments.
+> Compile-tested only. Please test.
+>
+> Acked-by: Michael Krufky <mkrufky@linuxtv.org>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+>  drivers/media/tuners/tda18271-common.c |  104 ++++++++++++++++++++++----------
+>  1 files changed, 71 insertions(+), 33 deletions(-)
+>
+> ---
+>
+> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=78ef81f6ea9649fd09d1fafcfa0ad68763172c42
+>
+> diff --git a/drivers/media/tuners/tda18271-common.c b/drivers/media/tuners/tda18271-common.c
+> index 221171e..18c77af 100644
+> --- a/drivers/media/tuners/tda18271-common.c
+> +++ b/drivers/media/tuners/tda18271-common.c
+> @@ -187,7 +187,8 @@ int tda18271_read_extended(struct dvb_frontend *fe)
+>         return (ret == 2 ? 0 : ret);
+>  }
+>
+> -int tda18271_write_regs(struct dvb_frontend *fe, int idx, int len)
+> +static int __tda18271_write_regs(struct dvb_frontend *fe, int idx, int len,
+> +                       bool lock_i2c)
+>  {
+>         struct tda18271_priv *priv = fe->tuner_priv;
+>         unsigned char *regs = priv->tda18271_regs;
+> @@ -198,7 +199,6 @@ int tda18271_write_regs(struct dvb_frontend *fe, int idx, int len)
+>
+>         BUG_ON((len == 0) || (idx + len > sizeof(buf)));
+>
+> -
+>         switch (priv->small_i2c) {
+>         case TDA18271_03_BYTE_CHUNK_INIT:
+>                 max = 3;
+> @@ -214,7 +214,19 @@ int tda18271_write_regs(struct dvb_frontend *fe, int idx, int len)
+>                 max = 39;
+>         }
+>
+> -       tda18271_i2c_gate_ctrl(fe, 1);
+> +
+> +       /*
+> +        * If lock_i2c is true, it will take the I2C bus for tda18271 private
+> +        * usage during the entire write ops, as otherwise, bad things could
+> +        * happen.
+> +        * During device init, several write operations will happen. So,
+> +        * tda18271_init_regs controls the I2C lock directly,
+> +        * disabling lock_i2c here.
+> +        */
+> +       if (lock_i2c) {
+> +               tda18271_i2c_gate_ctrl(fe, 1);
+> +               i2c_lock_adapter(priv->i2c_props.adap);
+> +       }
+>         while (len) {
+>                 if (max > len)
+>                         max = len;
+> @@ -226,14 +238,17 @@ int tda18271_write_regs(struct dvb_frontend *fe, int idx, int len)
+>                 msg.len = max + 1;
+>
+>                 /* write registers */
+> -               ret = i2c_transfer(priv->i2c_props.adap, &msg, 1);
+> +               ret = __i2c_transfer(priv->i2c_props.adap, &msg, 1);
+>                 if (ret != 1)
+>                         break;
+>
+>                 idx += max;
+>                 len -= max;
+>         }
+> -       tda18271_i2c_gate_ctrl(fe, 0);
+> +       if (lock_i2c) {
+> +               i2c_unlock_adapter(priv->i2c_props.adap);
+> +               tda18271_i2c_gate_ctrl(fe, 0);
+> +       }
+>
+>         if (ret != 1)
+>                 tda_err("ERROR: idx = 0x%x, len = %d, "
+> @@ -242,10 +257,16 @@ int tda18271_write_regs(struct dvb_frontend *fe, int idx, int len)
+>         return (ret == 1 ? 0 : ret);
+>  }
+>
+> +int tda18271_write_regs(struct dvb_frontend *fe, int idx, int len)
+> +{
+> +       return __tda18271_write_regs(fe, idx, len, true);
+> +}
+> +
+>  /*---------------------------------------------------------------------*/
+>
+> -int tda18271_charge_pump_source(struct dvb_frontend *fe,
+> -                               enum tda18271_pll pll, int force)
+> +static int __tda18271_charge_pump_source(struct dvb_frontend *fe,
+> +                                        enum tda18271_pll pll, int force,
+> +                                        bool lock_i2c)
+>  {
+>         struct tda18271_priv *priv = fe->tuner_priv;
+>         unsigned char *regs = priv->tda18271_regs;
+> @@ -255,9 +276,16 @@ int tda18271_charge_pump_source(struct dvb_frontend *fe,
+>         regs[r_cp] &= ~0x20;
+>         regs[r_cp] |= ((force & 1) << 5);
+>
+> -       return tda18271_write_regs(fe, r_cp, 1);
+> +       return __tda18271_write_regs(fe, r_cp, 1, lock_i2c);
+> +}
+> +
+> +int tda18271_charge_pump_source(struct dvb_frontend *fe,
+> +                               enum tda18271_pll pll, int force)
+> +{
+> +       return __tda18271_charge_pump_source(fe, pll, force, true);
+>  }
+>
+> +
+>  int tda18271_init_regs(struct dvb_frontend *fe)
+>  {
+>         struct tda18271_priv *priv = fe->tuner_priv;
+> @@ -267,6 +295,13 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+>                 i2c_adapter_id(priv->i2c_props.adap),
+>                 priv->i2c_props.addr);
+>
+> +       /*
+> +        * Don't let any other I2C transfer to happen at adapter during init,
+> +        * as those could cause bad things
+> +        */
+> +       tda18271_i2c_gate_ctrl(fe, 1);
+> +       i2c_lock_adapter(priv->i2c_props.adap);
+> +
+>         /* initialize registers */
+>         switch (priv->id) {
+>         case TDA18271HDC1:
+> @@ -352,28 +387,28 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+>         regs[R_EB22] = 0x48;
+>         regs[R_EB23] = 0xb0;
+>
+> -       tda18271_write_regs(fe, 0x00, TDA18271_NUM_REGS);
+> +       __tda18271_write_regs(fe, 0x00, TDA18271_NUM_REGS, false);
+>
+>         /* setup agc1 gain */
+>         regs[R_EB17] = 0x00;
+> -       tda18271_write_regs(fe, R_EB17, 1);
+> +       __tda18271_write_regs(fe, R_EB17, 1, false);
+>         regs[R_EB17] = 0x03;
+> -       tda18271_write_regs(fe, R_EB17, 1);
+> +       __tda18271_write_regs(fe, R_EB17, 1, false);
+>         regs[R_EB17] = 0x43;
+> -       tda18271_write_regs(fe, R_EB17, 1);
+> +       __tda18271_write_regs(fe, R_EB17, 1, false);
+>         regs[R_EB17] = 0x4c;
+> -       tda18271_write_regs(fe, R_EB17, 1);
+> +       __tda18271_write_regs(fe, R_EB17, 1, false);
+>
+>         /* setup agc2 gain */
+>         if ((priv->id) == TDA18271HDC1) {
+>                 regs[R_EB20] = 0xa0;
+> -               tda18271_write_regs(fe, R_EB20, 1);
+> +               __tda18271_write_regs(fe, R_EB20, 1, false);
+>                 regs[R_EB20] = 0xa7;
+> -               tda18271_write_regs(fe, R_EB20, 1);
+> +               __tda18271_write_regs(fe, R_EB20, 1, false);
+>                 regs[R_EB20] = 0xe7;
+> -               tda18271_write_regs(fe, R_EB20, 1);
+> +               __tda18271_write_regs(fe, R_EB20, 1, false);
+>                 regs[R_EB20] = 0xec;
+> -               tda18271_write_regs(fe, R_EB20, 1);
+> +               __tda18271_write_regs(fe, R_EB20, 1, false);
+>         }
+>
+>         /* image rejection calibration */
+> @@ -391,21 +426,21 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+>         regs[R_MD2] = 0x08;
+>         regs[R_MD3] = 0x00;
+>
+> -       tda18271_write_regs(fe, R_EP3, 11);
+> +       __tda18271_write_regs(fe, R_EP3, 11, false);
+>
+>         if ((priv->id) == TDA18271HDC2) {
+>                 /* main pll cp source on */
+> -               tda18271_charge_pump_source(fe, TDA18271_MAIN_PLL, 1);
+> +               __tda18271_charge_pump_source(fe, TDA18271_MAIN_PLL, 1, false);
+>                 msleep(1);
+>
+>                 /* main pll cp source off */
+> -               tda18271_charge_pump_source(fe, TDA18271_MAIN_PLL, 0);
+> +               __tda18271_charge_pump_source(fe, TDA18271_MAIN_PLL, 0, false);
+>         }
+>
+>         msleep(5); /* pll locking */
+>
+>         /* launch detector */
+> -       tda18271_write_regs(fe, R_EP1, 1);
+> +       __tda18271_write_regs(fe, R_EP1, 1, false);
+>         msleep(5); /* wanted low measurement */
+>
+>         regs[R_EP5] = 0x85;
+> @@ -413,11 +448,11 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+>         regs[R_CD1] = 0x66;
+>         regs[R_CD2] = 0x70;
+>
+> -       tda18271_write_regs(fe, R_EP3, 7);
+> +       __tda18271_write_regs(fe, R_EP3, 7, false);
+>         msleep(5); /* pll locking */
+>
+>         /* launch optimization algorithm */
+> -       tda18271_write_regs(fe, R_EP2, 1);
+> +       __tda18271_write_regs(fe, R_EP2, 1, false);
+>         msleep(30); /* image low optimization completion */
+>
+>         /* mid-band */
+> @@ -428,11 +463,11 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+>         regs[R_MD1] = 0x73;
+>         regs[R_MD2] = 0x1a;
+>
+> -       tda18271_write_regs(fe, R_EP3, 11);
+> +       __tda18271_write_regs(fe, R_EP3, 11, false);
+>         msleep(5); /* pll locking */
+>
+>         /* launch detector */
+> -       tda18271_write_regs(fe, R_EP1, 1);
+> +       __tda18271_write_regs(fe, R_EP1, 1, false);
+>         msleep(5); /* wanted mid measurement */
+>
+>         regs[R_EP5] = 0x86;
+> @@ -440,11 +475,11 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+>         regs[R_CD1] = 0x66;
+>         regs[R_CD2] = 0xa0;
+>
+> -       tda18271_write_regs(fe, R_EP3, 7);
+> +       __tda18271_write_regs(fe, R_EP3, 7, false);
+>         msleep(5); /* pll locking */
+>
+>         /* launch optimization algorithm */
+> -       tda18271_write_regs(fe, R_EP2, 1);
+> +       __tda18271_write_regs(fe, R_EP2, 1, false);
+>         msleep(30); /* image mid optimization completion */
+>
+>         /* high-band */
+> @@ -456,30 +491,33 @@ int tda18271_init_regs(struct dvb_frontend *fe)
+>         regs[R_MD1] = 0x71;
+>         regs[R_MD2] = 0xcd;
+>
+> -       tda18271_write_regs(fe, R_EP3, 11);
+> +       __tda18271_write_regs(fe, R_EP3, 11, false);
+>         msleep(5); /* pll locking */
+>
+>         /* launch detector */
+> -       tda18271_write_regs(fe, R_EP1, 1);
+> +       __tda18271_write_regs(fe, R_EP1, 1, false);
+>         msleep(5); /* wanted high measurement */
+>
+>         regs[R_EP5] = 0x87;
+>         regs[R_CD1] = 0x65;
+>         regs[R_CD2] = 0x50;
+>
+> -       tda18271_write_regs(fe, R_EP3, 7);
+> +       __tda18271_write_regs(fe, R_EP3, 7, false);
+>         msleep(5); /* pll locking */
+>
+>         /* launch optimization algorithm */
+> -       tda18271_write_regs(fe, R_EP2, 1);
+> +       __tda18271_write_regs(fe, R_EP2, 1, false);
+>         msleep(30); /* image high optimization completion */
+>
+>         /* return to normal mode */
+>         regs[R_EP4] = 0x64;
+> -       tda18271_write_regs(fe, R_EP4, 1);
+> +       __tda18271_write_regs(fe, R_EP4, 1, false);
+>
+>         /* synchronize */
+> -       tda18271_write_regs(fe, R_EP1, 1);
+> +       __tda18271_write_regs(fe, R_EP1, 1, false);
+> +
+> +       i2c_unlock_adapter(priv->i2c_props.adap);
+> +       tda18271_i2c_gate_ctrl(fe, 0);
+>
+>         return 0;
+>  }
