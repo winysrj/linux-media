@@ -1,190 +1,340 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37568 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932747Ab2JCAAg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Oct 2012 20:00:36 -0400
-Message-ID: <506B800D.70809@iki.fi>
-Date: Wed, 03 Oct 2012 03:00:13 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:38853 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752906Ab2JGNli (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 09:41:38 -0400
+Received: by mail-bk0-f46.google.com with SMTP id jk13so1616095bkc.19
+        for <linux-media@vger.kernel.org>; Sun, 07 Oct 2012 06:41:37 -0700 (PDT)
+Message-ID: <5071869E.1090400@googlemail.com>
+Date: Sun, 07 Oct 2012 15:41:50 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH RFC v2] dvb: LNA implementation changes
-References: <1349221787-23121-1-git-send-email-crope@iki.fi>
-In-Reply-To: <1349221787-23121-1-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Subject: Re: How to add support for the em2765 webcam Speedlink VAD Laplace
+ to the kernel ?
+References: <5032225A.9080305@googlemail.com> <50323559.7040107@redhat.com> <50328E22.4090805@redhat.com> <50337293.8050808@googlemail.com> <50337FF4.2030200@redhat.com> <5033B177.8060609@googlemail.com> <5033C573.2000304@redhat.com> <50349017.4020204@googlemail.com> <503521B4.6050207@redhat.com> <503A7097.4050709@googlemail.com> <505F16AD.8010909@googlemail.com> <20121006085624.128f7f2c@redhat.com>
+In-Reply-To: <20121006085624.128f7f2c@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I changed LNA value from signed to unsigned as API data-type was u32. 
-That was just to avoid shooting own leg at some possible signed/unsigned 
-cast etc. The idea of use signed value was just to leave room for extend 
-usage later.
+Am 06.10.2012 13:56, schrieb Mauro Carvalho Chehab:
+> Em Sun, 23 Sep 2012 16:03:25 +0200
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>
+>> Ping !
+> Sorry, too busy those days.
 
-Also I increased API minor by one as there is GET operation now supported.
+No problem.
 
-I think it is ready, just merge for the 3.7 if possible!
+>> Am 26.08.2012 20:53, schrieb Frank Schäfer:
+>>> Sorry for the delayed reply, I got distracted by something with higher
+>>> prority.
+>>>
+>>>
+>>> Am 22.08.2012 20:15, schrieb Mauro Carvalho Chehab:
+>>>> Em 22-08-2012 04:53, Frank Schäfer escreveu:
+>>>>> Am 21.08.2012 19:29, schrieb Mauro Carvalho Chehab:
+>>>>>> Hmm... before reading the rest of this email... I found some doc saying that
+>>>>>> em2765 is UVC compliant. Doesn't the uvcdriver work with this device?
+>>>>> Yeah, I stumbled over that, too. :D
+>>>>> But this device is definitely not UVC compliant. Take a look at the
+>>>>> lsusb output.
+>>>>> Maybe they are using a different firmware or something like that, but I
+>>>>> have no idea why the hell they should make a UVC compliant device
+>>>>> non-UVC-compliant...
+>>>>> Another notable difference to the devices we've seen so far is the
+>>>>> em25xx-style EEPROM. Maybe there is a connection.
+>>>>>
+>>>>> Btw, do we know any em25xx devices ???
+>>>> No, I never heard about em25xx. It seems that there are some new em275xx
+>>>> chips, but I don't have any technical data.
+>>> Maybe they changed the name and there was never a em2580/em2585.
+>>> But I assume this is an older chip design.
+>> In the mean time I was told that em2580/em2585 devices really exists.
+>> They are used for example in intraoral cameras for dentists.
+>> The em2765 seems to be a kind of relabled em25xx.
+> Ok.
+>
+>> Both chips have two i2c busses and work only with 16 bit address
+>> eeproms, which have to be connected to bus A.
+>> The sensor read/write procedure used for this webcam is very likely the
+>> standard method for accessing i2c bus B of these chips.
+>> It COULD also be vendor specific procedure, but I don't think 3 other
+>> slave addresses would be probed in that case...
+> AFAIKT, newer em28xx chips are using this concept. The em28xx-i2c code require
+> changes to support two I2C buses, and to handle 16 bit eeproms. We never cared
+> of doing that because we never needed, so far, to read anything from those
+> devices' eeproms.
+>
+>
+>> <snip>
+>>>>>> You'll see several supported devices using the secondary bus for TV and
+>>>>>> demod. As, currently, the TV eeprom is not read on those devices, nobody
+>>>>>> cared enough to add a separate I2C bus code for it, as all access used
+>>>>>> by the driver happen just on the second bus.
+>>>>> Well, the same applies to this webcam. We do not really need to read the
+>>>>> EEPROM at the moment.
+>>>>>
+>>>>>
+>>>>>>>> A proper mapping for it to use ov2640 driver is to create two i2c
+>>>>>>>> buses, one used by eeprom access, and another one for sensor.
+>>>>>>> Sure.
+>>>>>>>
+>>>>>>>>> Interestingly, the standard I2C reads are used, too, for reading the
+>>>>>>>>> EEPROM. So maybe there is a "physical" difference.
+>>>>>>>>>
+>>>>>>>>> "Proprietary" is probably not the best name, but I don't have e better
+>>>>>>>>> one at the moment (suggestions ?).
+>>>>>>>> It is just another bus: instead of using req 3/4 for read/write, it uses
+>>>>>>>> req 6 for both reads/writes at the i2c-like sensor bus.
+>>>>>>>>
+>>>>>>>>>>>> - uses 16bit eeprom
+>>>>>>>>>>>> - em25xx-eeprom with different layout
+>>>>>>>>>> There are other supported chips with 16bit eeproms. Currently,
+>>>>>>>>>> support for 16bit eeproms is disabled just because this weren't
+>>>>>>>>>> needed so far, but I'm sure this is a need there.
+>>>>>>>>> Yes, I've read the comment in em28xx_i2c_eeprom():
+>>>>>>>>> "...there is the risk that we could corrupt the eeprom (since a 16-bit
+>>>>>>>>> read call is interpreted as a write call by 8-bit eeproms)..."
+>>>>>>>>> How can we know if a device uses an 8bit or 16bit EEPROM ? Can we derive
+>>>>>>>>> that from the uses em27xx/28xx-chip ?
+>>>>>>>> I don't know any other way to check it than to read the chip ID, at register
+>>>>>>>> 0x0a. Those are the chip ID's that we currently know:
+>>>>>>>>
+>>>>>>>> enum em28xx_chip_id {
+>>>>>>>> 	CHIP_ID_EM2800 = 7,
+>>>>>>>> 	CHIP_ID_EM2710 = 17,
+>>>>>>>> 	CHIP_ID_EM2820 = 18,	/* Also used by some em2710 */
+>>>>>>>> 	CHIP_ID_EM2840 = 20,
+>>>>>>>> 	CHIP_ID_EM2750 = 33,
+>>>>>>>> 	CHIP_ID_EM2860 = 34,
+>>>>>>>> 	CHIP_ID_EM2870 = 35,
+>>>>>>>> 	CHIP_ID_EM2883 = 36,
+>>>>>>>> 	CHIP_ID_EM2874 = 65,
+>>>>>>>> 	CHIP_ID_EM2884 = 68,
+>>>>>>>> 	CHIP_ID_EM28174 = 113,
+>>>>>>>> };
+>>>>>>>>
+>>>>>>>> Even if we add it as a separate driver, it is likely wise to re-use the
+>>>>>>>> registers description at drivers/media/usb/em28xx/em28xx-reg.h, moving it
+>>>>>>>> to drivers/include/media, as em2765 likely uses the same registers. 
+>>>>>>>> It also makes sense to add a chip detection at the existing driver, 
+>>>>>>>> for it to bail out if it detects an em2765 (and the reverse on the new
+>>>>>>>> driver).
+>>>>>>> em2765 has chip-id 0x36 = 54.
+>>>>>>> Do you want me to send a patch ?
+>>>>>> Yes, please send it when you'll be ready for driver submission.
+>>>>> Will do that.
+>>>>>
+>>>>>>> Do you really think the em28xx driver should always bail out when it
+>>>>>>> detects the em2765 ?
+>>>>>> Well, having 2 drivers for the same chipset is a very bad idea. Either
+>>>>>> one should use it.
+>>>>>>
+>>>>>> Another option would be to have a generic em28xx dispatcher driver
+>>>>>> that would handle all of them, probe the board, and then starting
+>>>>>> either one, depending if the driver is webcam or not.
+>>>>> Sounds good.
+>>>>>
+>>>>>> Btw, this is on my TODO list (with low priority), as there are several
+>>>>>> devices that have only DVB. So, it makes sense to split the analog
+>>>>>> TV driver, just like we did with the DVB and alsa drivers. This way,
+>>>>>> an em28xx core driver will contain only the probe and the core functions
+>>>>>> like i2c and the common helper functions, while all the rest would be
+>>>>>> on separate drivers.
+>>>>> Yeah, a compact bridge module providing chip info, bridge register r/w
+>>>>> functions and access to the 2 + 1 i2c busses sounds good.
+>>>>> If I understand you right, this module should also do the probing and
+>>>>> then call the right driver for the device, e.g. gspca for webcams ?
+>>>>> Sounds complicating, because the bridge module is still needed after the
+>>>>> handover to the other driver, but I know nearly nothing about the
+>>>>> modules interaction possibilites (except that one module can call
+>>>>> another ;) ).
+>>>> It is not complicated.
+>>>>
+>>>> At the main driver, take a look at request_module_async(), at em28xx-cards: 
+>>>> it basically schedules a deferred work that will load the needed drivers,
+>>>> after em28xx finishes probing.
+>>>>
+>>>> At the sub-drivers, they use em28xx_register_extension() on their init
+>>>> code. This function uses a table with 4 parameters, like this one:
+>>>>
+>>>> static struct em28xx_ops audio_ops = {
+>>>> 	.id   = EM28XX_AUDIO,
+>>>> 	.name = "Em28xx Audio Extension",
+>>>> 	.init = em28xx_audio_init,
+>>>> 	.fini = em28xx_audio_fini,
+>>>> };
+>>>>
+>>>> The .init() function will then do everything that it is needed for the
+>>>> device to run. It is called when the main driver detects a new card,
+>>>> and it is ready for that (the main driver has some code there to avoid
+>>>> race conditions, serializing the extensions load).
+>>>>
+>>>> The .fini() is called when the device got removed, or when the driver
+>>>> calls em28xx_unregister_extension().
+>>>>
+>>>> The struct em28xx *dev is passed as a parameter on both calls, to allow
+>>>> the several drivers to share common data.
+>>>>
+>>>> This logic works pretty well, even on SMP environments with lots of CPU.
+>>>> The only care needed there (with won't affect a webcam driver) is to
+>>>> properly lock the driver to avoid two different sub-drivers to access the
+>>>> same device resources at the same time (this is needed between DVB and video
+>>>> parts of the driver).
+>>>>
+>>>> By moving the TV part to a separate driver, it makes sense to also create
+>>>> an em28xx_video structure, moving there everything that it is not common,
+>>>> but this is an optimization that could be done anytime.
+>>>>
+>>>> I suggest you to create an em28xx_webcam struct and put there data that it
+>>>> is specifics to the webcam driver there, if any.
+>>> Ok, thanks for your explanations.
+>>> I will see what I can do.
+>>>
+>>>>>> IMO, doing that that could be better than coding em2765 as a
+>>>>>> completely separate driver.
+>>>>> Sounds like the best approach. But also lots of non-trivial work which
+>>>>> someone has to do first. I'm afraid too much for a beginner like me...
+>>>>> And we should keep in mind that this probably means that people will
+>>>>> have to wait several further kernel releases before their device gets
+>>>>> supported.
+>>>> Well, it is not that hard. If I had any time, I would do it right now.
+>>>> It probably won't take more than a few hours of work to split the video
+>>>> part into a separate driver, as 99% of the work is to move a few functions
+>>>> between the .c files, and move the init code from em28xx-cards.c to
+>>>> em28xx-video.
+>>>>
+>>>> I can seek for doing that after the media workshop that will happen
+>>>> next week.
+>>> Ok.
+>>> Trying to summarize the plan, I'm not sure that I understand the driver
+>>> layout completely yet..
+>>> We are going to
+>>> - separate the video part of the em28xx driver and create a compact
+>>> module providing just the core fucntions
+>>> - let this module do the probing an then either call "the rest" of the
+>>> em28xx driver for DVB-devices or a gspca module for all em27xx/em28xx
+>>> based webcams
+> Yes.
+>
+>>> - use sub-modules for the sensors and possibly other commonly used
+>>> features (e.g. an eeprom module) in the webcam module
+> I think that this should also be part of the em28xx core, as 2 I2C buses
+> and 16-bit eeproms are also used on newer em28xx chips (em2874/em2875 for
+> example). The way request_module_async works allow the main em28xx to load
+> a gspca-based em25xx/em27xx module that, in turn, will use symbols defined
+> on the main em28xx module.
 
-regards
-Antti
+Ok.
+
+>>> Ist that correct ?
+>> Mauro, could you please elaborate your plan ?
+>> What exactly do you want me to do to get this device supported by the
+>> kernel ?
+> Basically, the core em28xx module will have:
+> 	drivers/media/usb/em28xx/em28xx-cards.c
+> 	drivers/media/usb/em28xx/em28xx-i2c.c
+> 	drivers/media/usb/em28xx/em28xx-core.c
+>
+> Eventually, part of the functions under em28xx-core could be moved
+> to em28xx-video, as they would be used just there. For the already
+> supported em2710/em2750 webcams, we should need to change the logic
+> there to use the new gspca-em2xxx module, but this change can be
+> done later.
+>
+> The em28xx-alsa module already have:
+> 	drivers/media/usb/em28xx/em28xx-audio.c
+> Nothing changes on it.
+>
+> The em28xx-dvb module already have:
+> 	drivers/media/usb/em28xx/em28xx-dvb.c
+> Nothing changes on it.
+>
+> The new em28xx-v4l module will have:
+> 	drivers/media/usb/em28xx/em28xx-vbi.c
+> 	drivers/media/usb/em28xx/em28xx-video.c
+>
+> The em28xx-rc module already have:
+> 	drivers/media/usb/em28xx/em28xx-input.c
+> It makes sense to split it into two separate files, one with just the
+> remote control stuff, and the other one with the webcam snapshot buttons.
+>
+> The file with the webcam buttons support should be merged with the em28xx
+> gspca module, together with the code you wrote.
+
+Ok, but then there is not much left in the gspca driver. ;)
+The two main remaining things feature blocks are
+- USB-bulk-support
+- data/frame processing
+and I think it would make sense to have them both in em28xx, too.
+
+I would say that the main reason for a gspca subdriver would be
+- the different code for i2c bus B (there is still a chance that this is
+something SpeedLink specific !)
+- the complicating buttons stuff
+- the ov2640 code (as long as no sub-module is used for that)
+which would require adding lots of new code to the em28xx-driver not
+needed by 95% of the devices.
+
+The big question is, which devices can we expect to appear in the future ?
+I'm pretty sure there are much more cameras (like the mentioned
+intraoral camera devices fro dentists). As I said before, I can see the
+Windows driver probing 4 ic2 slave addresses.
+Tuner i2c clients are also mentioned in the em2580/em2585 datasheet, so
+these chips could be designed for TV stuff, too (although we haven't
+seen such a device yet).
 
 
-On 10/03/2012 02:49 AM, Antti Palosaari wrote:
-> * use dvb property cache
-> * implement get (thus API minor++)
-> * PCTV 290e: 1=LNA ON, all the other values LNA OFF
->    Also fix PCTV 290e LNA comment, it is disabled by default
 >
-> Hans and Mauro proposed use of cache implementation of get as they
-> were planning to extend LNA usage for analog side too.
->
-> LNA_AUTO value was changed from (~0U) to INT_MIN as (~0U) resulted
-> only -1 which is waste of numeric range if need to extend that in
-> the future.
->
-> Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
-> Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->   drivers/media/dvb-core/dvb_frontend.c | 18 ++++++++++++++----
->   drivers/media/dvb-core/dvb_frontend.h |  4 +++-
->   drivers/media/usb/em28xx/em28xx-dvb.c | 13 +++++++------
->   include/linux/dvb/version.h           |  2 +-
->   4 files changed, 25 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-> index 8f58f24..246a3c5 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb-core/dvb_frontend.c
-> @@ -966,6 +966,8 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
->   		break;
->   	}
->
-> +	c->lna = LNA_AUTO;
-> +
->   	return 0;
->   }
->
-> @@ -1054,6 +1056,8 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
->   	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_B, 0, 0),
->   	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_C, 0, 0),
->   	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_D, 0, 0),
-> +
-> +	_DTV_CMD(DTV_LNA, 0, 0),
->   };
->
->   static void dtv_property_dump(struct dvb_frontend *fe, struct dtv_property *tvp)
-> @@ -1440,6 +1444,10 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
->   		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_d;
->   		break;
->
-> +	case DTV_LNA:
-> +		tvp->u.data = c->lna;
-> +		break;
-> +
->   	default:
->   		return -EINVAL;
->   	}
-> @@ -1731,10 +1739,6 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
->   	case DTV_INTERLEAVING:
->   		c->interleaving = tvp->u.data;
->   		break;
-> -	case DTV_LNA:
-> -		if (fe->ops.set_lna)
-> -			r = fe->ops.set_lna(fe, tvp->u.data);
-> -		break;
->
->   	/* ISDB-T Support here */
->   	case DTV_ISDBT_PARTIAL_RECEPTION:
-> @@ -1806,6 +1810,12 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
->   		fe->dtv_property_cache.atscmh_rs_frame_ensemble = tvp->u.data;
->   		break;
->
-> +	case DTV_LNA:
-> +		c->lna = tvp->u.data;
-> +		if (fe->ops.set_lna)
-> +			r = fe->ops.set_lna(fe);
-> +		break;
-> +
->   	default:
->   		return -EINVAL;
->   	}
-> diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-> index 44a445c..97112cd 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.h
-> +++ b/drivers/media/dvb-core/dvb_frontend.h
-> @@ -303,7 +303,7 @@ struct dvb_frontend_ops {
->   	int (*dishnetwork_send_legacy_command)(struct dvb_frontend* fe, unsigned long cmd);
->   	int (*i2c_gate_ctrl)(struct dvb_frontend* fe, int enable);
->   	int (*ts_bus_ctrl)(struct dvb_frontend* fe, int acquire);
-> -	int (*set_lna)(struct dvb_frontend *, int);
-> +	int (*set_lna)(struct dvb_frontend *);
->
->   	/* These callbacks are for devices that implement their own
->   	 * tuning algorithms, rather than a simple swzigzag
-> @@ -391,6 +391,8 @@ struct dtv_frontend_properties {
->   	u8			atscmh_sccc_code_mode_b;
->   	u8			atscmh_sccc_code_mode_c;
->   	u8			atscmh_sccc_code_mode_d;
-> +
-> +	u32			lna;
->   };
->
->   struct dvb_frontend {
-> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-> index 913e522..13ae821 100644
-> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
-> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-> @@ -574,18 +574,19 @@ static void pctv_520e_init(struct em28xx *dev)
->   		i2c_master_send(&dev->i2c_client, regs[i].r, regs[i].len);
->   };
->
-> -static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe, int val)
-> +static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe)
->   {
-> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->   	struct em28xx *dev = fe->dvb->priv;
->   #ifdef CONFIG_GPIOLIB
->   	struct em28xx_dvb *dvb = dev->dvb;
->   	int ret;
->   	unsigned long flags;
->
-> -	if (val)
-> -		flags = GPIOF_OUT_INIT_LOW;
-> +	if (c->lna == 1)
-> +		flags = GPIOF_OUT_INIT_HIGH; /* enable LNA */
->   	else
-> -		flags = GPIOF_OUT_INIT_HIGH;
-> +		flags = GPIOF_OUT_INIT_LOW; /* disable LNA */
->
->   	ret = gpio_request_one(dvb->lna_gpio, flags, NULL);
->   	if (ret)
-> @@ -595,8 +596,8 @@ static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe, int val)
->
->   	return ret;
->   #else
-> -	dev_warn(&dev->udev->dev, "%s: LNA control is disabled\n",
-> -			KBUILD_MODNAME);
-> +	dev_warn(&dev->udev->dev, "%s: LNA control is disabled (lna=%u)\n",
-> +			KBUILD_MODNAME, c->lna);
->   	return 0;
->   #endif
->   }
-> diff --git a/include/linux/dvb/version.h b/include/linux/dvb/version.h
-> index 20e5eac..827cce7 100644
-> --- a/include/linux/dvb/version.h
-> +++ b/include/linux/dvb/version.h
-> @@ -24,6 +24,6 @@
->   #define _DVBVERSION_H_
->
->   #define DVB_API_VERSION 5
-> -#define DVB_API_VERSION_MINOR 8
-> +#define DVB_API_VERSION_MINOR 9
->
->   #endif /*_DVBVERSION_H_*/
->
+>> In the mean time I have ported the gspca driver to the ic2 interface,
+>> which was necessary to experiment with the ov2640 soc-camera driver,
+> Good!
 
+It still needs some issues to be resolved (there seems to be a nice
+USB-locking issue cause by the interaction with the gspca_main module...).
 
--- 
-http://palosaari.fi/
+>
+>> but also increased the code size enormously.
+> Why?
+
+Additional functions (i2c_xfer, i2c_xfer, ...), structs (i2c_algorithm,
+i2c_adapter, i2c_client, ...).
+Also some code duplication is required (e.g. i2c_check_for_device methods)
+And of course everything times 2 because we have two busses.
+
+>
+>> Unfortunately, lots of changes to the ov2640 driver would be necessary
+>> use it. It starts with the init sequence and continues with a long
+>> sequence of sensor register writes at capturing start.
+>> My hope was, that the differences can be neglected, but unfortunately
+>> this is not the case.
+>> Given the amount of work, the fact that most of these registers are
+>> undocumented and the high risk to break things for other users of the
+>> driver, I think we should stay with the "custom" code for this webcam at
+>> least for the moment.
+> Well, then do a new ov2640 i2c driver. We can later try to merge both, if
+> we can get enough spec data.
+
+I'm not sure we will ever get them.
+The datasheet we have is already detailed and manufacturers never
+document everything (even for there customers).
+
+I will see what I can do to use the existing driver, but it's definitely
+a bigger task...
+
+Regards,
+Frank
+
+>> Please also consider the time factor.
+>>
+>> Regards,
+>> Frank
+>>
+> Regards,
+> Mauro
+
