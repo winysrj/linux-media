@@ -1,104 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm24-vm4.bullet.mail.ird.yahoo.com ([212.82.109.195]:48135 "HELO
-	nm24-vm4.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754042Ab2JIIGI convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Oct 2012 04:06:08 -0400
-References: <1349531264.14555.YahooMailNeo@web28905.mail.ir2.yahoo.com> <20121008223311.GI14107@valkosipuli.retiisi.org.uk>
-Message-ID: <1349769964.36347.YahooMailNeo@web28903.mail.ir2.yahoo.com>
-Date: Tue, 9 Oct 2012 09:06:04 +0100 (BST)
-From: P Jackson <pej02@yahoo.co.uk>
-Reply-To: P Jackson <pej02@yahoo.co.uk>
-Subject: Re: omap3isp: no pixel rate control in subdev
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>
-In-Reply-To: <20121008223311.GI14107@valkosipuli.retiisi.org.uk>
+Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:26302 "EHLO
+	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751342Ab2JGRTA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Oct 2012 13:19:00 -0400
+Date: Sun, 7 Oct 2012 19:18:57 +0200 (CEST)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: walter harms <wharms@bfs.de>
+cc: Julia Lawall <julia.lawall@lip6.fr>,
+	Antti Palosaari <crope@iki.fi>,
+	kernel-janitors@vger.kernel.org, rmallon@gmail.com,
+	shubhrajyoti@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for
+ i2c_msg initialization
+In-Reply-To: <5071B834.1010200@bfs.de>
+Message-ID: <alpine.DEB.2.02.1210071917040.2745@localhost6.localdomain6>
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr> <5071AEF3.6080108@bfs.de> <alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6> <5071B834.1010200@bfs.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Sun, 7 Oct 2012, walter harms wrote:
 
+>
+>
+> Am 07.10.2012 18:44, schrieb Julia Lawall:
+>> On Sun, 7 Oct 2012, walter harms wrote:
+>>
+>>>
+>>>
+>>> Am 07.10.2012 17:38, schrieb Julia Lawall:
+>>>> From: Julia Lawall <Julia.Lawall@lip6.fr>
+>>>>
+>>>> Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
+>>>>
+>>>> In the second i2c_msg structure, a length expressed as an explicit
+>>>> constant
+>>>> is also re-expressed as the size of the buffer, reg.
+>>>>
+>>>> A simplified version of the semantic patch that makes this change is as
+>>>> follows: (http://coccinelle.lip6.fr/)
+>>>>
+>>>> // <smpl>
+>>>> @@
+>>>> expression a,b,c;
+>>>> identifier x;
+>>>> @@
+>>>>
+>>>> struct i2c_msg x =
+>>>> - {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
+>>>> + I2C_MSG_READ(a,b,c)
+>>>>  ;
+>>>>
+>>>> @@
+>>>> expression a,b,c;
+>>>> identifier x;
+>>>> @@
+>>>>
+>>>> struct i2c_msg x =
+>>>> - {.addr = a, .buf = b, .len = c, .flags = 0}
+>>>> + I2C_MSG_WRITE(a,b,c)
+>>>>  ;
+>>>>
+>>>> @@
+>>>> expression a,b,c,d;
+>>>> identifier x;
+>>>> @@
+>>>>
+>>>> struct i2c_msg x =
+>>>> - {.addr = a, .buf = b, .len = c, .flags = d}
+>>>> + I2C_MSG_OP(a,b,c,d)
+>>>>  ;
+>>>> // </smpl>
+>>>>
+>>>> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+>>>>
+>>>> ---
+>>>>  drivers/media/tuners/e4000.c |   20 +++-----------------
+>>>>  1 file changed, 3 insertions(+), 17 deletions(-)
+>>>>
+>>>> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+>>>> index 1b33ed3..8f182fc 100644
+>>>> --- a/drivers/media/tuners/e4000.c
+>>>> +++ b/drivers/media/tuners/e4000.c
+>>>> @@ -26,12 +26,7 @@ static int e4000_wr_regs(struct e4000_priv *priv,
+>>>> u8 reg, u8 *val, int len)
+>>>>      int ret;
+>>>>      u8 buf[1 + len];
+>>>>      struct i2c_msg msg[1] = {
+>>>> -        {
+>>>> -            .addr = priv->cfg->i2c_addr,
+>>>> -            .flags = 0,
+>>>> -            .len = sizeof(buf),
+>>>> -            .buf = buf,
+>>>> -        }
+>>>> +        I2C_MSG_WRITE(priv->cfg->i2c_addr, buf, sizeof(buf))
+>>>>      };
+>>>>
+>>>
+>>> Any reason why struct i2c_msg is an array ?
+>>
+>> I assumed that it looked more harmonious with the other uses of
+>> i2c_transfer, which takes as arguments an array and the number of elements.
+>>
+>> But there are some files that instead use i2c_transfer(priv->i2c, &msg, 1).
+>> I can change them all to do that if that is preferred.  But maybe I will
+>> wait a little bit to see if there are other issues to address at the
+>> same time.
+>>
+>> thanks,
+>> julia
+>>
+>
+> Hi Julia,
+> please be aware i am not the maintainer only a distant watcher :)
+>
+> do you really thing that a macro is appropriate here ? I feel uneasy about it
+> but i can not offer an other solution.
 
+Some people thought that it would be nice to have the macros rather than 
+the inlined field initializations, especially since there is no flag for 
+write.  A separate question is whether an array of one element is useful, 
+or whether one should systematically use & on a simple variable of the 
+structure type.  I'm open to suggestions about either point.
 
-
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Sent: Monday, 8 October 2012, 23:33
-
-Hi,
-
-On Sat, Oct 06, 2012 at 02:47:44PM +0100, P Jackson wrote:
-> I'm trying to get an mt9t001 sensor board working on a Gumstix Overo board using the latest omap3isp-omap3isp-stable branch from the linuxtv.org/media.git repository.
-> 
-> When I 'modprobe omap3-isp' I see:
-> 
-> Linux media interface: v0.10
-> Linux video capture interface: v2.00
-> omap3isp omap3isp: Revision 15.0 found
-> omap-iommu omap-iommu.0: isp: version 1.1
-> mt9t001 3-005d: Probing MT9T001 at address 0x5d
-> mt9t001 3-005d: MT9T001 detected at address 0x5d
-> 
-> I then do:
-> 
-> media-ctl -r
-> media-ctl -l '"mt9t001 3-005d":0->"OMAP3 ISP CCDC":0[1]'
-> media-ctl -l '"OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> media-ctl -V '"mt9t001 3-005d":0 [SGRBG10 2048x1536]'
-> media-ctl -V '"OMAP3 ISP CCDC":1 [SGRBG10 2048x1536]'
-> 
-> Followed by:
-> 
-> yavta -p -f SGRBG10 -s 2048x1536 -n 4 --capture=1 /dev/video2 file=m.bin
-> 
-> 
-> For which I get:
-> 
-> Device /dev/video2 opened.
-> Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
-> Video format set: SGRBG10 (30314142) 2048x1536 (stride 4096) buffer size 6291456
-> Video format: SGRBG10 (30314142) 2048x1536 (stride 4096) buffer size 6291456
-> 4 buffers requested.
-> length: 6291456 offset: 0
-> Buffer 0 mapped at address 0x40272000.
-> length: 6291456 offset: 6291456
-> Buffer 1 mapped at address 0x4096b000.
-> length: 6291456 offset: 12582912
-> Buffer 2 mapped at address 0x4102f000.
-> length: 6291456 offset: 18874368
-> Buffer 3 mapped at address 0x416ac000.
-> Press enter to start capture
-> 
-> After pressing enter I get:
-> 
-> omap3isp omap3isp: no pixel rate control in subdev mt9t001 3-005d
-> Unable to start streaming: Invalid argument (22).
-
-Really?
-
-Could you check if you have this patch in your tree?
-
----
-commit 0bc77f3f06fcf2ca7b7fad782d70926cd4d235f1
-Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date:   Wed May 9 09:55:57 2012 -0300
-
-    [media] mt9t001: Implement V4L2_CID_PIXEL_RATE control
-    
-    The pixel rate control is required by the OMAP3 ISP driver and should be
-    implemented by all media controller-compatible sensor drivers.
-    
-    Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-    Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
-
-I have checked my tree and cannot find that patch.
-
-Regards,
-
-Pete
+julia
