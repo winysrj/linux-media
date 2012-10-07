@@ -1,114 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:48198 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752557Ab2JIOqT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 10:46:19 -0400
-Received: by mail-we0-f174.google.com with SMTP id t9so3280013wey.19
-        for <linux-media@vger.kernel.org>; Tue, 09 Oct 2012 07:46:17 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH] qv4l2: avoid empty titles for the video control tabs
-Date: Tue,  9 Oct 2012 16:46:04 +0200
-Message-Id: <1349793964-22825-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mx1.redhat.com ([209.132.183.28]:16643 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750794Ab2JGN1k (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Oct 2012 09:27:40 -0400
+Date: Sun, 7 Oct 2012 10:27:30 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH RFC v3] dvb: LNA implementation changes
+Message-ID: <20121007102730.5d61657a@redhat.com>
+In-Reply-To: <1349252936-2728-1-git-send-email-crope@iki.fi>
+References: <1349252936-2728-1-git-send-email-crope@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The video control class names are used as titles for the GUI-tabs.
-The current code relies on the driver enumerating the control classes
-properly when using V4L2_CTRL_FLAG_NEXT_CTRL.
-But the UVC-driver (and likely others, too) don't do that, so we can end
-up with an empty class name string.
+Em Wed,  3 Oct 2012 11:28:56 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Make sure we always have a control class title:
-If the driver didn't enumrate a class along with the controls, call
-VIDIOC_QUERYCTRL for the class explicitly.
-If that fails, fall back to an internal string list.
+> * use dvb property cache
+> * implement get (thus API minor++)
+> * PCTV 290e: 1=LNA ON, all the other values LNA OFF
+>   Also fix PCTV 290e LNA comment, it is disabled by default
+> 
+> Hans and Mauro proposed use of cache implementation of get as they
+> were planning to extend LNA usage for analog side too.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- utils/qv4l2/ctrl-tab.cpp |   15 ++++++++++++++-
- utils/qv4l2/v4l2-api.cpp |   25 +++++++++++++++++++++++++
- utils/qv4l2/v4l2-api.h   |    3 +++
- 3 files changed, 42 insertions(+), 1 deletions(-)
+Looks sane for me. I'll apply it, as Hans also acked.
 
-diff --git a/utils/qv4l2/ctrl-tab.cpp b/utils/qv4l2/ctrl-tab.cpp
-index 5bafbbd..6a4b630 100644
---- a/utils/qv4l2/ctrl-tab.cpp
-+++ b/utils/qv4l2/ctrl-tab.cpp
-@@ -133,7 +133,20 @@ void ApplicationWindow::addTabs()
- 		m_col = m_row = 0;
- 		m_cols = 4;
- 
--		const v4l2_queryctrl &qctrl = m_ctrlMap[id];
-+		v4l2_queryctrl &qctrl = m_ctrlMap[id];
-+		/* No real control, it's just the control class description.
-+		   Verify that the driver did enumerate the class properly 
-+		   and add the class name if missing */
-+		if (!strlen((char *)qctrl.name))
-+		{
-+			/* Try to request control class name from API */
-+			qctrl.id = id;
-+			qctrl.type = V4L2_CTRL_TYPE_CTRL_CLASS;
-+			if (!queryctrl(qctrl) || !strlen((char *)qctrl.name))
-+				/* Fall back to a local string list */
-+				strcpy((char *)qctrl.name, ctrl_class_name(ctrl_class).toAscii());
-+		}
-+
- 		QWidget *t = new QWidget(m_tabs);
- 		QVBoxLayout *vbox = new QVBoxLayout(t);
- 		QWidget *w = new QWidget(t);
-diff --git a/utils/qv4l2/v4l2-api.cpp b/utils/qv4l2/v4l2-api.cpp
-index 86cf388..5811cd7 100644
---- a/utils/qv4l2/v4l2-api.cpp
-+++ b/utils/qv4l2/v4l2-api.cpp
-@@ -638,3 +638,28 @@ bool v4l2::get_interval(v4l2_fract &interval)
- 
- 	return false;
- }
-+
-+QString v4l2::ctrl_class_name(__u32 ctrl_class)
-+{
-+	switch (ctrl_class) {
-+	case V4L2_CTRL_CLASS_USER:
-+		return "User Controls";
-+	case V4L2_CTRL_CLASS_MPEG:
-+		return "MPEG-compression Controls";
-+	case V4L2_CTRL_CLASS_CAMERA:
-+		return "Camera Controls";
-+	case V4L2_CTRL_CLASS_FM_TX:
-+		return "FM Transmitter Controls";
-+	case V4L2_CTRL_CLASS_FLASH:
-+		return "Flash Device Controls";
-+	case V4L2_CTRL_CLASS_JPEG:
-+		return "JPEG-compression Controls";
-+	case V4L2_CTRL_CLASS_IMAGE_SOURCE:
-+		return "Image Source Controls";
-+	case V4L2_CTRL_CLASS_IMAGE_PROC:
-+		return "Image Processing Controls";
-+	case V4L2_CTRL_CLASS_DV:
-+		return "Digital Video Controls";
-+	}
-+	return "Controls (unknown class)";
-+}
-diff --git a/utils/qv4l2/v4l2-api.h b/utils/qv4l2/v4l2-api.h
-index 4c10466..74e69a8 100644
---- a/utils/qv4l2/v4l2-api.h
-+++ b/utils/qv4l2/v4l2-api.h
-@@ -163,6 +163,9 @@ public:
- 
- 	bool set_interval(v4l2_fract interval);
- 	bool get_interval(v4l2_fract &interval);
-+
-+	QString ctrl_class_name(__u32 ctrl_class);
-+
- private:
- 	void clear() { error(QString()); }
- 
+Regards,
+Mauro
+
+> 
+> Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
+> Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/dvb-core/dvb_frontend.c | 18 ++++++++++++++----
+>  drivers/media/dvb-core/dvb_frontend.h |  4 +++-
+>  drivers/media/usb/em28xx/em28xx-dvb.c | 13 +++++++------
+>  include/linux/dvb/version.h           |  2 +-
+>  4 files changed, 25 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+> index 8f58f24..246a3c5 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb-core/dvb_frontend.c
+> @@ -966,6 +966,8 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+>  		break;
+>  	}
+>  
+> +	c->lna = LNA_AUTO;
+> +
+>  	return 0;
+>  }
+>  
+> @@ -1054,6 +1056,8 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
+>  	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_B, 0, 0),
+>  	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_C, 0, 0),
+>  	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_D, 0, 0),
+> +
+> +	_DTV_CMD(DTV_LNA, 0, 0),
+>  };
+>  
+>  static void dtv_property_dump(struct dvb_frontend *fe, struct dtv_property *tvp)
+> @@ -1440,6 +1444,10 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
+>  		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_d;
+>  		break;
+>  
+> +	case DTV_LNA:
+> +		tvp->u.data = c->lna;
+> +		break;
+> +
+>  	default:
+>  		return -EINVAL;
+>  	}
+> @@ -1731,10 +1739,6 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+>  	case DTV_INTERLEAVING:
+>  		c->interleaving = tvp->u.data;
+>  		break;
+> -	case DTV_LNA:
+> -		if (fe->ops.set_lna)
+> -			r = fe->ops.set_lna(fe, tvp->u.data);
+> -		break;
+>  
+>  	/* ISDB-T Support here */
+>  	case DTV_ISDBT_PARTIAL_RECEPTION:
+> @@ -1806,6 +1810,12 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+>  		fe->dtv_property_cache.atscmh_rs_frame_ensemble = tvp->u.data;
+>  		break;
+>  
+> +	case DTV_LNA:
+> +		c->lna = tvp->u.data;
+> +		if (fe->ops.set_lna)
+> +			r = fe->ops.set_lna(fe);
+> +		break;
+> +
+>  	default:
+>  		return -EINVAL;
+>  	}
+> diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+> index 44a445c..97112cd 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.h
+> +++ b/drivers/media/dvb-core/dvb_frontend.h
+> @@ -303,7 +303,7 @@ struct dvb_frontend_ops {
+>  	int (*dishnetwork_send_legacy_command)(struct dvb_frontend* fe, unsigned long cmd);
+>  	int (*i2c_gate_ctrl)(struct dvb_frontend* fe, int enable);
+>  	int (*ts_bus_ctrl)(struct dvb_frontend* fe, int acquire);
+> -	int (*set_lna)(struct dvb_frontend *, int);
+> +	int (*set_lna)(struct dvb_frontend *);
+>  
+>  	/* These callbacks are for devices that implement their own
+>  	 * tuning algorithms, rather than a simple swzigzag
+> @@ -391,6 +391,8 @@ struct dtv_frontend_properties {
+>  	u8			atscmh_sccc_code_mode_b;
+>  	u8			atscmh_sccc_code_mode_c;
+>  	u8			atscmh_sccc_code_mode_d;
+> +
+> +	u32			lna;
+>  };
+>  
+>  struct dvb_frontend {
+> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+> index 913e522..13ae821 100644
+> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+> @@ -574,18 +574,19 @@ static void pctv_520e_init(struct em28xx *dev)
+>  		i2c_master_send(&dev->i2c_client, regs[i].r, regs[i].len);
+>  };
+>  
+> -static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe, int val)
+> +static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe)
+>  {
+> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>  	struct em28xx *dev = fe->dvb->priv;
+>  #ifdef CONFIG_GPIOLIB
+>  	struct em28xx_dvb *dvb = dev->dvb;
+>  	int ret;
+>  	unsigned long flags;
+>  
+> -	if (val)
+> -		flags = GPIOF_OUT_INIT_LOW;
+> +	if (c->lna == 1)
+> +		flags = GPIOF_OUT_INIT_HIGH; /* enable LNA */
+>  	else
+> -		flags = GPIOF_OUT_INIT_HIGH;
+> +		flags = GPIOF_OUT_INIT_LOW; /* disable LNA */
+>  
+>  	ret = gpio_request_one(dvb->lna_gpio, flags, NULL);
+>  	if (ret)
+> @@ -595,8 +596,8 @@ static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe, int val)
+>  
+>  	return ret;
+>  #else
+> -	dev_warn(&dev->udev->dev, "%s: LNA control is disabled\n",
+> -			KBUILD_MODNAME);
+> +	dev_warn(&dev->udev->dev, "%s: LNA control is disabled (lna=%u)\n",
+> +			KBUILD_MODNAME, c->lna);
+>  	return 0;
+>  #endif
+>  }
+> diff --git a/include/linux/dvb/version.h b/include/linux/dvb/version.h
+> index 20e5eac..827cce7 100644
+> --- a/include/linux/dvb/version.h
+> +++ b/include/linux/dvb/version.h
+> @@ -24,6 +24,6 @@
+>  #define _DVBVERSION_H_
+>  
+>  #define DVB_API_VERSION 5
+> -#define DVB_API_VERSION_MINOR 8
+> +#define DVB_API_VERSION_MINOR 9
+>  
+>  #endif /*_DVBVERSION_H_*/
+
+
 -- 
-1.7.7
-
+Regards,
+Mauro
