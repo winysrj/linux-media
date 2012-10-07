@@ -1,87 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2834 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932072Ab2JEKox (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 06:44:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
-Date: Fri, 5 Oct 2012 12:41:52 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Grant Likely <grant.likely@secretlab.ca>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1210021142210.15778@axis700.grange> <506ABE40.9070504@samsung.com>
-In-Reply-To: <506ABE40.9070504@samsung.com>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:54886 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752003Ab2JGVwo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 17:52:44 -0400
+Message-ID: <5071F9A6.9090701@gmail.com>
+Date: Mon, 08 Oct 2012 08:52:38 +1100
+From: Ryan Mallon <rmallon@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Julia Lawall <julia.lawall@lip6.fr>
+CC: walter harms <wharms@bfs.de>, Antti Palosaari <crope@iki.fi>,
+	kernel-janitors@vger.kernel.org, shubhrajyoti@ti.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for i2c_msg
+ initialization
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr> <5071AEF3.6080108@bfs.de> <alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6>
+In-Reply-To: <alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201210051241.52205.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue October 2 2012 12:13:20 Sylwester Nawrocki wrote:
-> Hi Guennadi,
+On 08/10/12 03:44, Julia Lawall wrote:
+> On Sun, 7 Oct 2012, walter harms wrote:
 > 
-> On 10/02/2012 11:49 AM, Guennadi Liakhovetski wrote:
-> >>> +	if (!of_property_read_u32_array(node, "data-lanes", data_lanes,
-> >>> +					ARRAY_SIZE(data_lanes))) {
-> >>> +		int i;
-> >>> +		for (i = 0; i<  ARRAY_SIZE(data_lanes); i++)
-> >>> +			link->mipi_csi_2.data_lanes[i] = data_lanes[i];
-> >>
-> >> It doesn't look like what we aimed for. The data-lanes array is supposed
-> >> to be of variable length, thus I don't think it can be parsed like that. 
-> >> Or am I missing something ? I think we need more something like below 
-> >> (based on of_property_read_u32_array(), not tested):
-> > 
-> > Ok, you're right, that my version only was suitable for fixed-size arrays, 
-> > which wasn't our goal. But I don't think we should go down to manually 
-> > parsing property data. How about (tested;-))
-> > 
-> > 	data = of_find_property(node, "data-lanes", NULL);
-> > 	if (data) {
-> > 		int i = 0;
-> > 		const __be32 *lane = NULL;
-> > 		do {
-> > 			lane = of_prop_next_u32(data, lane, &data_lanes[i]);
-> > 		} while (lane && i++ < ARRAY_SIZE(data_lanes));
-> > 		link->mipi_csi_2.num_data_lanes = i;
-> > 		while (i--)
-> > 			link->mipi_csi_2.data_lanes[i] = data_lanes[i];
-> > 	}
+>>
+>>
+>> Am 07.10.2012 17:38, schrieb Julia Lawall:
+>>> From: Julia Lawall <Julia.Lawall@lip6.fr>
+>>>
+>>> Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
+>>>
+>>> In the second i2c_msg structure, a length expressed as an explicit
+>>> constant
+>>> is also re-expressed as the size of the buffer, reg.
+>>>
+>>> A simplified version of the semantic patch that makes this change is as
+>>> follows: (http://coccinelle.lip6.fr/)
+>>>
+>>> // <smpl>
+>>> @@
+>>> expression a,b,c;
+>>> identifier x;
+>>> @@
+>>>
+>>> struct i2c_msg x =
+>>> - {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
+>>> + I2C_MSG_READ(a,b,c)
+>>>  ;
+>>>
+>>> @@
+>>> expression a,b,c;
+>>> identifier x;
+>>> @@
+>>>
+>>> struct i2c_msg x =
+>>> - {.addr = a, .buf = b, .len = c, .flags = 0}
+>>> + I2C_MSG_WRITE(a,b,c)
+>>>  ;
+>>>
+>>> @@
+>>> expression a,b,c,d;
+>>> identifier x;
+>>> @@
+>>>
+>>> struct i2c_msg x =
+>>> - {.addr = a, .buf = b, .len = c, .flags = d}
+>>> + I2C_MSG_OP(a,b,c,d)
+>>>  ;
+>>> // </smpl>
+>>>
+>>> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+>>>
+>>> ---
+>>>  drivers/media/tuners/e4000.c |   20 +++-----------------
+>>>  1 file changed, 3 insertions(+), 17 deletions(-)
+>>>
+>>> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+>>> index 1b33ed3..8f182fc 100644
+>>> --- a/drivers/media/tuners/e4000.c
+>>> +++ b/drivers/media/tuners/e4000.c
+>>> @@ -26,12 +26,7 @@ static int e4000_wr_regs(struct e4000_priv *priv,
+>>> u8 reg, u8 *val, int len)
+>>>      int ret;
+>>>      u8 buf[1 + len];
+>>>      struct i2c_msg msg[1] = {
+>>> -        {
+>>> -            .addr = priv->cfg->i2c_addr,
+>>> -            .flags = 0,
+>>> -            .len = sizeof(buf),
+>>> -            .buf = buf,
+>>> -        }
+>>> +        I2C_MSG_WRITE(priv->cfg->i2c_addr, buf, sizeof(buf))
+>>>      };
+>>>
+>>
+>> Any reason why struct i2c_msg is an array ?
 > 
-> Yes, that looks neat and does what it is supposed to do. :) Thanks!
-> For now, I'll trust you it works ;)
+> I assumed that it looked more harmonious with the other uses of
+> i2c_transfer, which takes as arguments an array and the number of elements.
 > 
-> With regards to the remaining patches, it looks a bit scary to me how
-> complicated it got, perhaps mostly because of requirement to reference
-> host devices from subdevs. And it seems to rely on the existing SoC
-> camera infrastructure, which might imply lot's of work need to be done
-> for non soc-camera drivers. But I'm going to take a closer look and
-> comment more on the details at the corresponding patches.
+> But there are some files that instead use i2c_transfer(priv->i2c, &msg, 1).
+> I can change them all to do that if that is preferred.  But maybe I will
+> wait a little bit to see if there are other issues to address at the
+> same time.
 
-I have to say that I agree with Sylwester here. It seems awfully complicated,
-but I can't really put my finger on the actual cause. It would be really
-interesting to see this implemented for a non-SoC device and to compare the
-two.
+This is probably a good thing to do, but the initial patch series should
+just do the conversion to the macros. Too many additional changes runs
+the risk of introducing bugs and making bisection difficult.
 
-One area that I do not yet completely understand is the i2c bus notifications
-(or asynchronous loading or i2c modules).
+~Ryan
 
-I would have expected that using OF the i2c devices are still initialized
-before the host/bridge driver is initialized. But I gather that's not the
-case?
-
-If this deferred probing is a general problem, then I think we need a general
-solution as well that's part of the v4l2 core.
-
-Regards,
-
-	Hans
