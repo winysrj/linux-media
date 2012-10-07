@@ -1,123 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0080.b.hostedemail.com ([64.98.42.80]:45995 "EHLO
-	smtprelay.b.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754288Ab2JUTtE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Oct 2012 15:49:04 -0400
-Date: Sun, 21 Oct 2012 19:49:01 +0000 (GMT)
-From: "Artem S. Tashkinov" <t.artem@lycos.com>
-To: bp@alien8.de
-Cc: pavel@ucw.cz, linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	security@kernel.org, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org, zonque@gmail.com,
-	alsa-devel@alsa-project.org, stern@rowland.harvard.edu
-Message-ID: <1906833625.122006.1350848941352.JavaMail.mail@webmail16>
-References: <2104474742.26357.1350734815286.JavaMail.mail@webmail05>
- <20121020162759.GA12551@liondog.tnic>
- <966148591.30347.1350754909449.JavaMail.mail@webmail08>
- <20121020203227.GC555@elf.ucw.cz> <20121020225849.GA8976@liondog.tnic>
- <1781795634.31179.1350774917965.JavaMail.mail@webmail04>
- <20121021002424.GA16247@liondog.tnic>
- <1798605268.19162.1350784641831.JavaMail.mail@webmail17>
- <20121021110851.GA6504@liondog.tnic>
- <121566322.100103.1350820776893.JavaMail.mail@webmail20>
- <20121021170315.GB20642@liondog.tnic>
-Subject: Re: Re: Re: Re: Re: Re: A reliable kernel panic (3.6.2) and system
- crash when visiting a particular website
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41420 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752989Ab2JGNhi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 09:37:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
+	zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: Re: [PATCHv9 21/25] v4l: vb2-dma-contig: add reference counting for a device from allocator context
+Date: Sun, 07 Oct 2012 15:38:20 +0200
+Message-ID: <5632939.khdjxQCaCl@avalon>
+In-Reply-To: <1349188056-4886-22-git-send-email-t.stanislaws@samsung.com>
+References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com> <1349188056-4886-22-git-send-email-t.stanislaws@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Tomasz,
+
+Thanks for the patch.
+
+On Tuesday 02 October 2012 16:27:32 Tomasz Stanislawski wrote:
+> This patch adds taking reference to the device for MMAP buffers.
 > 
-> On Oct 21, 2012, Borislav Petkov <bp@alien8.de> wrote: 
+> Such buffers, may be exported using DMABUF mechanism. If the driver that
+> created a queue is unloaded then the queue is released, the device might be
+> released too.  However, buffers cannot be released if they are referenced by
+> DMABUF descriptor(s). The device pointer kept in a buffer must be valid for
+> the whole buffer's lifetime. Therefore MMAP buffers should take a reference
+> to the device to avoid risk of dangling pointers.
 > 
-> On Sun, Oct 21, 2012 at 11:59:36AM +0000, Artem S. Tashkinov wrote:
-> > http://imageshack.us/a/img685/9452/panicz.jpg
-> > 
-> > list_del corruption. prev->next should be ... but was ...
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+>
+> ---
+>  drivers/media/video/videobuf2-dma-contig.c |    5 +++++
+>  1 file changed, 5 insertions(+)
 > 
-> Btw, this is one of the debug options I told you to enable.
+> diff --git a/drivers/media/video/videobuf2-dma-contig.c
+> b/drivers/media/video/videobuf2-dma-contig.c index b138b5c..b4d287a 100644
+> --- a/drivers/media/video/videobuf2-dma-contig.c
+> +++ b/drivers/media/video/videobuf2-dma-contig.c
+> @@ -148,6 +148,7 @@ static void vb2_dc_put(void *buf_priv)
+>  		kfree(buf->sgt_base);
+>  	}
+>  	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
+> +	put_device(buf->dev);
+>  	kfree(buf);
+>  }
 > 
-> > I cannot show you more as I have no serial console to use :( and the kernel
-> > doesn't have enough time to push error messages to rsyslog and fsync
-> > /var/log/messages
+> @@ -161,9 +162,13 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned
+> long size) if (!buf)
+>  		return ERR_PTR(-ENOMEM);
 > 
-> I already told you how to catch that oops: boot with "pause_on_oops=600"
-> on the kernel command line and photograph the screen when the first oops
-> happens. This'll show us where the problem begins.
+> +	/* prevent the device from release while the buffer is exported */
+> +	get_device(dev);
+> +
 
-This option didn't have any effect, or maybe it's because it's such a serious crash
-the kernel has no time to actually print an ooops/panic message.
+What about moving this below the dma_alloc_coherent() call ? You could then 
+avoid the put_device() call in the error path.
 
-dmesg messages up to a crash can be seen here: https://bugzilla.kernel.org/attachment.cgi?id=84221
+>  	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, GFP_KERNEL);
+>  	if (!buf->vaddr) {
+>  		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
+> +		put_device(dev);
+>  		kfree(buf);
+>  		return ERR_PTR(-ENOMEM);
+>  	}
 
-I dumped them using this application:
+Something like
 
-$ cat scat.c
+-	buf->dev = dev;
++	buf->dev = get_device(dev);
+	buf->size = size
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+-- 
+Regards,
 
-#define O_LARGEFILE 0100000
-#define BUFFER 4096
-#define __USE_FILE_OFFSET64 1
-#define __USE_LARGEFILE64 1
-
-int main(int argc, char *argv[])
-{
-	int fd_out;
-	int64_t bytes_read;
-	void *buffer;
-
-	if (argc!=2) {
-		printf("Usage is: scat destination\n");
-		return 1;
-	}
-
-	buffer = malloc(BUFFER * sizeof(char));
-	if (buffer == NULL) {
-		printf("Error: can't allocate buffers\n");
-		return 2;		
-	}
-	memset(buffer, 0, BUFFER);
-
-	printf("Dumping to \"%s\" ... ", argv[1]);
-	fflush(NULL);
-
-	if ((fd_out = open64(argv[1], O_WRONLY | O_LARGEFILE | O_SYNC | O_NOFOLLOW, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1) {
-		printf("Error: destination file can't be created\n");
-		perror("open() ");
-		return 2;
-	}
-
-	bytes_read = 1;
-
-	while (bytes_read) {
-		bytes_read = fread(buffer, sizeof(char), BUFFER, stdin);
-
-		if (write(fd_out, (void *) buffer, bytes_read) != bytes_read)
-		{
-			printf("Error: can't write data to the destination file! Possibly a target disk is full\n");
-			return 3;
-		}
-
-	}
-
-	close(fd_out);
-
-	printf(" OK\n");
-	return 0;
-}
-
-
-I ran it this way: while :; do dmesg -c; done | scat /dev/sda11 (yes, straight to a hdd partition to eliminate a FS cache)
-
-Don't judge me harshly - I'm not a programmer.
-
+Laurent Pinchart
