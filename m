@@ -1,108 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:47511 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751327Ab2JOXOc (ORCPT
+Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:10388 "EHLO
+	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751661Ab2JGVoI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Oct 2012 19:14:32 -0400
-MIME-Version: 1.0
-In-Reply-To: <alpine.LNX.2.00.1210160051100.1682@swampdragon.chaosbits.net>
-References: <alpine.LNX.2.00.0811091803320.23782@swampdragon.chaosbits.net>
-	<CALF0-+Vtmwu9rCc9BYiDx2O2GQWezK40BYR2LP_ve2YjCt=Afg@mail.gmail.com>
-	<alpine.LNX.2.00.1210152025300.1038@swampdragon.chaosbits.net>
-	<alpine.LNX.2.00.1210160051100.1682@swampdragon.chaosbits.net>
-Date: Mon, 15 Oct 2012 20:14:30 -0300
-Message-ID: <CALF0-+UuB0y_8+SLE05Sn997HDcP5u=AJsoGvjmfSUBB__DkhQ@mail.gmail.com>
-Subject: Re: [PATCH] [media] stk1160: Check return value of stk1160_read_reg()
- in stk1160_i2c_read_reg()
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Jesper Juhl <jj@chaosbits.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sun, 7 Oct 2012 17:44:08 -0400
+Date: Sun, 7 Oct 2012 23:43:58 +0200 (CEST)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Joe Perches <joe@perches.com>
+cc: Julia Lawall <julia.lawall@lip6.fr>, walter harms <wharms@bfs.de>,
+	Antti Palosaari <crope@iki.fi>,
+	kernel-janitors@vger.kernel.org, rmallon@gmail.com,
+	shubhrajyoti@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
 	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for
+ i2c_msg initialization
+In-Reply-To: <1349645970.15802.12.camel@joe-AO722>
+Message-ID: <alpine.DEB.2.02.1210072342460.2745@localhost6.localdomain6>
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>  <1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr>  <5071AEF3.6080108@bfs.de>  <alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6>  <5071B834.1010200@bfs.de>
+ <alpine.DEB.2.02.1210071917040.2745@localhost6.localdomain6>  <1349633780.15802.8.camel@joe-AO722>  <alpine.DEB.2.02.1210072053550.2745@localhost6.localdomain6> <1349645970.15802.12.camel@joe-AO722>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 15, 2012 at 7:52 PM, Jesper Juhl <jj@chaosbits.net> wrote:
-> On Mon, 15 Oct 2012, Jesper Juhl wrote:
->
->> On Sat, 13 Oct 2012, Ezequiel Garcia wrote:
+On Sun, 7 Oct 2012, Joe Perches wrote:
+
+> On Sun, 2012-10-07 at 20:56 +0200, Julia Lawall wrote:
+>>>> Some people thought that it would be nice to have the macros rather than
+>>>> the inlined field initializations, especially since there is no flag for
+>>>> write.  A separate question is whether an array of one element is useful,
+>>>> or whether one should systematically use & on a simple variable of the
+>>>> structure type.  I'm open to suggestions about either point.
+>>>
+>>> I think the macro naming is not great.
+>>>
+>>> Maybe add DEFINE_/DECLARE_/_INIT or something other than an action
+>>> name type to the macro names.
 >>
->> > On Sun, Nov 9, 2008 at 2:04 PM, Jesper Juhl <jj@chaosbits.net> wrote:
->> > > There are two checks for 'rc' being less than zero with no change to
->> > > 'rc' between the two, so the second is just dead code - remove it.
->> > >
->> > > Signed-off-by: Jesper Juhl <jj@chaosbits.net>
->> > > ---
->> > >  drivers/media/usb/stk1160/stk1160-i2c.c |    3 ---
->> > >  1 files changed, 0 insertions(+), 3 deletions(-)
->> > >
->> > > diff --git a/drivers/media/usb/stk1160/stk1160-i2c.c b/drivers/media/usb/stk1160/stk1160-i2c.c
->> > > index 176ac93..035cf8c 100644
->> > > --- a/drivers/media/usb/stk1160/stk1160-i2c.c
->> > > +++ b/drivers/media/usb/stk1160/stk1160-i2c.c
->> > > @@ -117,9 +117,6 @@ static int stk1160_i2c_read_reg(struct stk1160 *dev, u8 addr,
->> > >                 return rc;
->> > >
->> > >         stk1160_read_reg(dev, STK1160_SBUSR_RD, value);
->> > > -       if (rc < 0)
->> > > -               return rc;
->> > > -
->> > >         return 0;
->> > >  }
->> > >
->> >
->> > Thanks for doing this. Wouldn't you like to save stk1160_read_reg
->> > return code to rc, instead of this?
->> >
->> Ahh yes, I guess I was too quick to just assume it was dead code.
->> Looking at it again; what you suggest must have been the original
->> intention. I'll cook up a new patch.
+>> DEFINE and DECLARE usually have a declared variable as an argument, which
+>> is not the case here.
 >>
->> Thanks.
->>
-> From: Jesper Juhl <jj@chaosbits.net>
-> Date: Sat, 13 Oct 2012 00:16:37 +0200
-> Subject: [PATCH] [media] stk1160: Check return value of stk1160_read_reg() in stk1160_i2c_read_reg()
+>> These macros are like the macros PCI_DEVICE and PCI_DEVICE_CLASS.
 >
-> Currently there are two checks for 'rc' being less than zero with no
-> change to 'rc' between the two, so the second is just dead code.
-> The intention seems to have been to assign the return value of
-> 'stk1160_read_reg()' to 'rc' before the (currently dead) second check
-> and then test /that/. This patch does that.
+> I understand that.
 >
-
-
-This is an overly complicated explanation for such a small patch.
-Can you try to simplify it?
-
-
-> Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-> ---
->  drivers/media/usb/stk1160/stk1160-i2c.c |    3 +--
->  1 files changed, 1 insertions(+), 2 deletions(-)
+>> Are READ and WRITE the action names?  They are really the important
+>> information in this case.
 >
-> diff --git a/drivers/media/usb/stk1160/stk1160-i2c.c b/drivers/media/usb/stk1160/stk1160-i2c.c
-> index 176ac93..a2370e4 100644
-> --- a/drivers/media/usb/stk1160/stk1160-i2c.c
-> +++ b/drivers/media/usb/stk1160/stk1160-i2c.c
-> @@ -116,10 +116,9 @@ static int stk1160_i2c_read_reg(struct stk1160 *dev, u8 addr,
->         if (rc < 0)
->                 return rc;
->
-> -       stk1160_read_reg(dev, STK1160_SBUSR_RD, value);
-> +       rc = stk1160_read_reg(dev, STK1160_SBUSR_RD, value);
->         if (rc < 0)
->                 return rc;
+> Yes, most (all?) uses of _READ and _WRITE macros actually
+> perform some I/O.
 
-Why are you removing this line?
+I2C_MSG_READ_DATA?
+I2C_MSG_READ_INFO?
+I2C_MSG_READ_INIT?
+I2C_MSG_PREPARE_READ?
 
-
-> -
->         return 0;
->  }
->
-
-
-Thanks,
-
-    Ezequiel
+julia
