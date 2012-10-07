@@ -1,93 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:48633 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750952Ab2JGNR1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 09:17:27 -0400
-Date: Sun, 7 Oct 2012 10:17:18 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ido Yariv <ido@wizery.com>, Russell King <linux@arm.linux.org.uk>,
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] [media] omap3isp: Fix compilation error in
- ispreg.h
-Message-ID: <20121007101718.073aed3b@infradead.org>
-In-Reply-To: <20121002163158.GR4840@atomide.com>
-References: <20120927195526.GP4840@atomide.com>
-	<1349131591-10804-1-git-send-email-ido@wizery.com>
-	<20121002163158.GR4840@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:63595 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753013Ab2JGNzs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 09:55:48 -0400
+Received: by mail-bk0-f46.google.com with SMTP id jk13so1619317bkc.19
+        for <linux-media@vger.kernel.org>; Sun, 07 Oct 2012 06:55:47 -0700 (PDT)
+Message-ID: <507189F1.1080306@googlemail.com>
+Date: Sun, 07 Oct 2012 15:56:01 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] libv4lconvert: clarify the behavior and resulting restrictions
+ of v4lconvert_convert()
+References: <1349282919-15332-1-git-send-email-fschaefer.oss@googlemail.com> <50717DFF.8000004@redhat.com>
+In-Reply-To: <50717DFF.8000004@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 2 Oct 2012 09:31:58 -0700
-Tony Lindgren <tony@atomide.com> escreveu:
+Hi Hans,
 
-> * Ido Yariv <ido@wizery.com> [121001 15:48]:
-> > Commit c49f34bc ("ARM: OMAP2+ Move SoC specific headers to be local to
-> > mach-omap2") moved omap34xx.h to mach-omap2. This broke omap3isp, as it
-> > includes omap34xx.h.
-> > 
-> > Instead of moving omap34xx to platform_data, simply add the two
-> > definitions the driver needs and remove the include altogether.
-> > 
-> > Signed-off-by: Ido Yariv <ido@wizery.com>
-> 
-> I'm assuming that Mauro picks this one up, sorry
-> for breaking it.
+Am 07.10.2012 15:05, schrieb Hans de Goede:
+> Hi Frank,
+>
+> Thanks for all your work on this. I'm afraid that atm I'm very busy
+> with work, so I don't have time to review your patches. I hope to
+> find some time for this next weekend...
 
-Picked, thanks. 
+No problem, I will send you a reminder in 2 weeks. ;)
+I didn't have much time yet to work on further libv4lconvert patches, too.
 
-With regards to the other patches in this series, IMHO, it
-makes more sense to go through arm omap tree, so, for the
-patches on this series that touch at drivers/media/platform/*:
+Regards,
+Frank
 
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+> Regards,
+>
+> Hans
+>
+>
+> On 10/03/2012 06:48 PM, Frank Schäfer wrote:
+>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>> ---
+>>   lib/include/libv4lconvert.h |   20 ++++++++++++++++++--
+>>   1 Datei geändert, 18 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
+>>
+>> diff --git a/lib/include/libv4lconvert.h b/lib/include/libv4lconvert.h
+>> index 167b57d..509655e 100644
+>> --- a/lib/include/libv4lconvert.h
+>> +++ b/lib/include/libv4lconvert.h
+>> @@ -89,8 +89,24 @@ LIBV4L_PUBLIC int
+>> v4lconvert_needs_conversion(struct v4lconvert_data *data,
+>>           const struct v4l2_format *src_fmt,   /* in */
+>>           const struct v4l2_format *dest_fmt); /* in */
+>>
+>> -/* return value of -1 on error, otherwise the amount of bytes
+>> written to
+>> -   dest */
+>> +/* This function does the following conversions:
+>> +    - format conversion
+>> +    - cropping
+>> +   if enabled:
+>> +    - processing (auto whitebalance, auto gain, gamma correction)
+>> +    - horizontal/vertical flipping
+>> +    - 90 degree (clockwise) rotation
+>> +
+>> +   NOTE: the last 3 steps are enabled/disabled depending on
+>> +    - the internal device list
+>> +    - the state of the (software emulated) image controls
+>> +
+>> +   Therefore this function should
+>> +    - not be used when getting the frames from libv4l
+>> +    - be called only once per frame
+>> +   Otherwise this may result in unintended double conversions !
+>> +
+>> +   Returns the amount of bytes written to dest an -1 on error */
+>>   LIBV4L_PUBLIC int v4lconvert_convert(struct v4lconvert_data *data,
+>>           const struct v4l2_format *src_fmt,  /* in */
+>>           const struct v4l2_format *dest_fmt, /* in */
+>>
 
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> 
-> > ---
-> >  drivers/media/platform/omap3isp/ispreg.h | 6 +++---
-> >  1 file changed, 3 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/omap3isp/ispreg.h b/drivers/media/platform/omap3isp/ispreg.h
-> > index 084ea77..e2c57f3 100644
-> > --- a/drivers/media/platform/omap3isp/ispreg.h
-> > +++ b/drivers/media/platform/omap3isp/ispreg.h
-> > @@ -27,13 +27,13 @@
-> >  #ifndef OMAP3_ISP_REG_H
-> >  #define OMAP3_ISP_REG_H
-> >  
-> > -#include <plat/omap34xx.h>
-> > -
-> > -
-> >  #define CM_CAM_MCLK_HZ			172800000	/* Hz */
-> >  
-> >  /* ISP Submodules offset */
-> >  
-> > +#define L4_34XX_BASE			0x48000000
-> > +#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
-> > +
-> >  #define OMAP3ISP_REG_BASE		OMAP3430_ISP_BASE
-> >  #define OMAP3ISP_REG(offset)		(OMAP3ISP_REG_BASE + (offset))
-> >  
-> > -- 
-> > 1.7.11.4
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
-
-Cheers,
-Mauro
