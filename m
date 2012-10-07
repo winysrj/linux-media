@@ -1,35 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:61138 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932126Ab2J3MUQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Oct 2012 08:20:16 -0400
-Received: by mail-oa0-f46.google.com with SMTP id h16so162285oag.19
-        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 05:20:15 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41428 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753013Ab2JGNho (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 09:37:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: Stephen Warren <swarren@wwwdotorg.org>,
+	devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2 v6] of: add helper to parse display timings
+Date: Sun, 07 Oct 2012 15:38:25 +0200
+Message-ID: <9190603.vEUidl99Ca@avalon>
+In-Reply-To: <20121005163858.GD2053@pengutronix.de>
+References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de> <506F0911.1050808@wwwdotorg.org> <20121005163858.GD2053@pengutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <1351599395-16833-2-git-send-email-javier.martin@vista-silicon.com>
-References: <1351599395-16833-1-git-send-email-javier.martin@vista-silicon.com>
-	<1351599395-16833-2-git-send-email-javier.martin@vista-silicon.com>
-Date: Tue, 30 Oct 2012 10:20:15 -0200
-Message-ID: <CAOMZO5C0yvvXs38B4zt46zsjphif-tg=FoEjBeoLx7iQUut62Q@mail.gmail.com>
-Subject: Re: [PATCH 1/4] media: mx2_camera: Remove i.mx25 support.
-From: Fabio Estevam <festevam@gmail.com>
-To: Javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	fabio.estevam@freescale.com
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Javier,
+Hi Steffen,
 
-On Tue, Oct 30, 2012 at 10:16 AM, Javier Martin
-<javier.martin@vista-silicon.com> wrote:
-> i.MX25 support has been broken for several releases
-> now and nobody seems to care about it.
+On Friday 05 October 2012 18:38:58 Steffen Trumtrar wrote:
+> On Fri, Oct 05, 2012 at 10:21:37AM -0600, Stephen Warren wrote:
+> > On 10/05/2012 10:16 AM, Steffen Trumtrar wrote:
+> > > On Thu, Oct 04, 2012 at 12:47:16PM -0600, Stephen Warren wrote:
+> > >> On 10/04/2012 11:59 AM, Steffen Trumtrar wrote:
+> > ...
+> > 
+> > >>> +	for_each_child_of_node(timings_np, entry) {
+> > >>> +		struct signal_timing *st;
+> > >>> +
+> > >>> +		st = of_get_display_timing(entry);
+> > >>> +
+> > >>> +		if (!st)
+> > >>> +			continue;
+> > >> 
+> > >> I wonder if that shouldn't be an error?
+> > > 
+> > > In the sense of a pr_err not a -EINVAL I presume?! It is a little bit
+> > > quiet in case of a faulty spec, that is right.
+> > 
+> > I did mean return an error; if we try to parse something and can't,
+> > shouldn't we return an error?
+> > 
+> > I suppose it may be possible to limp on and use whatever subset of modes
+> > could be parsed and drop the others, which is what this code does, but
+> > the code after the loop would definitely return an error if zero timings
+> > were parseable.
+> 
+> If a display supports multiple modes, I think it is better to have a working
+> mode (even if it is not the preferred one) than have none at all.
+> If there is no mode at all, that should be an error, right.
 
-I will work on fixing camera support for mx25. Please do not remove its support.
+If we fail completely in case of an error, DT writers will notice their bugs. 
+If we ignore errors silently they won't, and we'll end up with buggy DTs (or, 
+to be accurate, even more buggy DTs :-)). I'd rather fail completely in the 
+first implementation and add workarounds later only if we need to.
 
-Thanks,
+-- 
+Regards,
 
-Fabio Estevam
+Laurent Pinchart
