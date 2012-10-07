@@ -1,77 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:30737 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932770Ab2JYNqo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Oct 2012 09:46:44 -0400
-Date: Thu, 25 Oct 2012 11:46:24 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Fabio Estevam <fabio.estevam@freescale.com>,
-	<kernel@pengutronix.de>, <g.liakhovetski@gmx.de>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>, <javier.martin@vista-silicon.com>
-Subject: Re: [PATCH 1/2] ARM: clk-imx27: Add missing clock for mx2-camera
-Message-ID: <20121025114624.7896b5d9@redhat.com>
-In-Reply-To: <20121025113841.4e06cc3b@redhat.com>
-References: <1349473981-15084-1-git-send-email-fabio.estevam@freescale.com>
-	<1349473981-15084-2-git-send-email-fabio.estevam@freescale.com>
-	<20121025113841.4e06cc3b@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from youngberry.canonical.com ([91.189.89.112]:35917 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750718Ab2JGQb2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 12:31:28 -0400
+Message-ID: <5071AE5A.7050204@canonical.com>
+Date: Sun, 07 Oct 2012 18:31:22 +0200
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+MIME-Version: 1.0
+To: jakob@vmware.com, thellstrom@vmware.com,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	sumit.semwal@linaro.org, linux-media@vger.kernel.org
+CC: linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/5] fence: dma-buf cross-device synchronization (v9)
+References: <20120928124148.14366.21063.stgit@patser.local> <20120928124224.14366.27842.stgit@patser.local>
+In-Reply-To: <20120928124224.14366.27842.stgit@patser.local>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 25 Oct 2012 11:38:41 -0200
-Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+Op 28-09-12 14:42, Maarten Lankhorst schreef:
+> A fence can be attached to a buffer which is being filled or consumed
+> by hw, to allow userspace to pass the buffer without waiting to another
+> device.  For example, userspace can call page_flip ioctl to display the
+> next frame of graphics after kicking the GPU but while the GPU is still
+> rendering.  The display device sharing the buffer with the GPU would
+> attach a callback to get notified when the GPU's rendering-complete IRQ
+> fires, to update the scan-out address of the display, without having to
+> wake up userspace.
+>
+> A fence is transient, one-shot deal.  It is allocated and attached
+> to one or more dma-buf's.  When the one that attached it is done, with
+> the pending operation, it can signal the fence:
+>   + fence_signal()
+>
+> To have a rough approximation whether a fence is fired, call:
+>   + fence_is_signaled()
+>
+> The dma-buf-mgr handles tracking, and waiting on, the fences associated
+> with a dma-buf.
+>
+> The one pending on the fence can add an async callback:
+>   + fence_add_callback()
+>
+> The callback can optionally be cancelled with:
+>   + fence_remove_callback()
+>
+> To wait synchronously, optionally with a timeout:
+>   + fence_wait()
+>   + fence_wait_timeout()
+>
+...
 
-> Hi Fábio,
-> 
-> Em Fri, 5 Oct 2012 18:53:01 -0300
-> Fabio Estevam <fabio.estevam@freescale.com> escreveu:
-> 
-> > During the clock conversion for mx27 the "per4_gate" clock was missed to get
-> > registered as a dependency of mx2-camera driver.
-> > 
-> > In the old mx27 clock driver we used to have:
-> > 
-> > DEFINE_CLOCK1(csi_clk, 0, NULL, 0, parent, &csi_clk1, &per4_clk);
-> > 
-> > ,so does the same in the new clock driver.
-> > 
-> > Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-> > ---
-> >  arch/arm/mach-imx/clk-imx27.c |    1 +
-> 
-> As this patch is for arch/arm, I'm understanding that it will be merged
-> via arm tree. So,
-> 
-> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Implementing this makes the locking feel weird, instead of abusing
+fence->event_queue.lock I think it would make sense to remove this part entirely,
+and have a simply linked list plus a pointer to a spinlock.
 
-Forgot to comment: as patch 2 relies on this change, the better, IMHO, is
-to send both via the same tree. If you decide to do so, please get arm
-maintainer's ack, instead, and we can merge both via my tree.
+enable_signaling should be called with this spinlock held. This way,
+the enable_signaling callback would be easier to implement
+and doesn't have to double check for races as much in there.
 
-> 
-> >  1 file changed, 1 insertion(+)
-> > 
-> > diff --git a/arch/arm/mach-imx/clk-imx27.c b/arch/arm/mach-imx/clk-imx27.c
-> > index 3b6b640..5ef0f08 100644
-> > --- a/arch/arm/mach-imx/clk-imx27.c
-> > +++ b/arch/arm/mach-imx/clk-imx27.c
-> > @@ -224,6 +224,7 @@ int __init mx27_clocks_init(unsigned long fref)
-> >  	clk_register_clkdev(clk[lcdc_ipg_gate], "ipg", "imx-fb.0");
-> >  	clk_register_clkdev(clk[lcdc_ahb_gate], "ahb", "imx-fb.0");
-> >  	clk_register_clkdev(clk[csi_ahb_gate], "ahb", "mx2-camera.0");
-> > +	clk_register_clkdev(clk[per4_gate], "per", "mx2-camera.0");
-> >  	clk_register_clkdev(clk[usb_div], "per", "fsl-usb2-udc");
-> >  	clk_register_clkdev(clk[usb_ipg_gate], "ipg", "fsl-usb2-udc");
-> >  	clk_register_clkdev(clk[usb_ahb_gate], "ahb", "fsl-usb2-udc");
-> 
-> 
+Also __fence_signal should be exported which would be the
+same as fence_signal, but without taking the spinlock as separate
+step, so it can be called with the spinlock held.
 
+How do you feel about these proposed changes?
 
--- 
-Regards,
-Mauro
+~Maarten
+
