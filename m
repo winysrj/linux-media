@@ -1,52 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from redaccionline.com ([207.218.180.67]:60648 "EHLO
-	correo.fcctpdom.usmp.edu.pe" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S965393Ab2J3TFQ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Oct 2012 15:05:16 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by correo.fcctpdom.usmp.edu.pe (Postfix) with ESMTP id 417E71F02AF
-	for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 13:37:51 -0500 (PET)
-Received: from correo.fcctpdom.usmp.edu.pe ([127.0.0.1])
-	by localhost (correo.fcctpdom.usmp.edu.pe [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 72Elh56aP69S for <linux-media@vger.kernel.org>;
-	Tue, 30 Oct 2012 13:37:51 -0500 (PET)
-Received: from [10.1.1.1] (unknown [120.139.104.255])
-	by correo.fcctpdom.usmp.edu.pe (Postfix) with ESMTPSA id 0900F1F02A9
-	for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 13:37:49 -0500 (PET)
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from mail-da0-f46.google.com ([209.85.210.46]:52385 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751886Ab2JGVzq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 17:55:46 -0400
+Message-ID: <5071FA5D.30003@gmail.com>
+Date: Mon, 08 Oct 2012 08:55:41 +1100
+From: Ryan Mallon <rmallon@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Description: Mail message body
-Subject: Payment Sent!!
-To: linux-media@vger.kernel.org
-From: "Western Union Transfer" <info@westernunion.com>
-Date: Wed, 31 Oct 2012 02:58:10 +0800
-Reply-To: westernuniont12@yahoo.cn
-Message-Id: <20121030183750.0900F1F02A9@correo.fcctpdom.usmp.edu.pe>
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+CC: Antti Palosaari <crope@iki.fi>, kernel-janitors@vger.kernel.org,
+	shubhrajyoti@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 3/13] drivers/media/tuners/qt1010.c: use macros for i2c_msg
+ initialization
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-5-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1349624323-15584-5-git-send-email-Julia.Lawall@lip6.fr>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We write to inform you that we have transferred $400,000 dollars.  deposited for transfer to you by one MR Bernard Harry from BLACKBERRY MOBILE COMPANY for transfer as a winning prize from the promotion lottery held by the communication company to encourage usage and appreciate already users of their product.
- 
- The money is available for pick up by receiver(you) to be cashed on daily installment of $10,000 for 40days. We tried calling to give you the information over the phone but we could not reach you so we decided to email you the information to pick up the first $10,000  already transferred to you. for you to be able to pick the first payment,
-You will have to pay $250 to get it re-activated in your name for you to start picking up your money because we de-activate the transaction for security reason, by making the status to display pick up.
- 
- 
-Use this link to track the below information 
-https://wumt.westernunion.com/asp/orderStatus.asp?country=global
- 
- Sender's Fist name: Ronald
- Sender's Last Name: Mundy
- MTCN: 6605740058
- Question: Who Is Great
- Answer: God
- Amount: $10,000.00USD
- 
- Thanks
- Best Regards
- Mr.Mcferrin Phoenix .
- +60169162934
- western union Office,
- MALAYSIA OFFICE.
- Western Union® Money Transfer
+On 08/10/12 02:38, Julia Lawall wrote:
+> From: Julia Lawall <Julia.Lawall@lip6.fr>
+> 
+> Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
+> 
+> A length expressed as an explicit constant is also re-expressed as the size
+> of the buffer, when this is possible.
+> 
+> A simplified version of the semantic patch that makes this change is as
+> follows: (http://coccinelle.lip6.fr/)
+> 
+> // <smpl>
+> @@
+> expression a,b,c;
+> identifier x;
+> @@
+> 
+> struct i2c_msg x =
+> - {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
+> + I2C_MSG_READ(a,b,c)
+>  ;
+> 
+> @@
+> expression a,b,c;
+> identifier x;
+> @@
+> 
+> struct i2c_msg x =
+> - {.addr = a, .buf = b, .len = c, .flags = 0}
+> + I2C_MSG_WRITE(a,b,c)
+>  ;
+> 
+> @@
+> expression a,b,c,d;
+> identifier x;
+> @@
+> 
+> struct i2c_msg x = 
+> - {.addr = a, .buf = b, .len = c, .flags = d}
+> + I2C_MSG_OP(a,b,c,d)
+>  ;
+> // </smpl>
+> 
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+> 
+> ---
+>  drivers/media/tuners/qt1010.c |   10 ++++------
+>  1 file changed, 4 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/tuners/qt1010.c b/drivers/media/tuners/qt1010.c
+> index bc419f8..37ff254 100644
+> --- a/drivers/media/tuners/qt1010.c
+> +++ b/drivers/media/tuners/qt1010.c
+> @@ -25,10 +25,8 @@
+>  static int qt1010_readreg(struct qt1010_priv *priv, u8 reg, u8 *val)
+>  {
+>  	struct i2c_msg msg[2] = {
+> -		{ .addr = priv->cfg->i2c_address,
+> -		  .flags = 0, .buf = &reg, .len = 1 },
+> -		{ .addr = priv->cfg->i2c_address,
+> -		  .flags = I2C_M_RD, .buf = val, .len = 1 },
+> +		I2C_MSG_WRITE(priv->cfg->i2c_address, &reg, sizeof(reg)),
+> +		I2C_MSG_READ(priv->cfg->i2c_address, val, 1),
+
+This is a bit inconsistent. For single length values we should either
+consistently use sizeof(val) or 1. This has both.
+
+~Ryan
+
