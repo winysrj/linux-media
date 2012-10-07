@@ -1,194 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:52239 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752417Ab2JXVWo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Oct 2012 17:22:44 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org
-Subject: =?UTF-8?q?=5BPATCH=203/3=5D=20=5Bmedia=5D=20winbond-cir=3A=20add=20carrier=20detection?=
-Date: Wed, 24 Oct 2012 22:22:42 +0100
-Message-Id: <1351113762-5530-3-git-send-email-sean@mess.org>
-In-Reply-To: <1351113762-5530-1-git-send-email-sean@mess.org>
-References: <1351113762-5530-1-git-send-email-sean@mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail4-relais-sop.national.inria.fr ([192.134.164.105]:18945
+	"EHLO mail4-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753448Ab2JGPj1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Oct 2012 11:39:27 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, rmallon@gmail.com,
+	shubhrajyoti@ti.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 12/13] drivers/media/tuners/max2165.c: use macros for i2c_msg initialization
+Date: Sun,  7 Oct 2012 17:38:43 +0200
+Message-Id: <1349624323-15584-14-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The winbond hardware has a counter for leading edges, which increases as
-they are received. As we read raw IR from a fifo in an interrupt handler,
-we cannot correlate them to specific IR pulses so we simply count all
-pulses and edges until we go idle and disable the receiver.
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Signed-off-by: Sean Young <sean@mess.org>
+Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
+
+A length expressed as an explicit constant is also re-expressed as the size
+of the buffer, when this is possible.
+
+The second case is simplified to use simple variables rather than arrays.
+The variable b0 is dropped completely, and the variable reg that it
+contains is used instead.  The variable b1 is replaced by a u8-typed
+variable named buf (the name used earlier in the file).  The uses of b1 are
+then adjusted accordingly.
+
+A simplified version of the semantic patch that makes this change is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression a,b,c;
+identifier x;
+@@
+
+struct i2c_msg x =
+- {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
++ I2C_MSG_READ(a,b,c)
+ ;
+
+@@
+expression a,b,c;
+identifier x;
+@@
+
+struct i2c_msg x =
+- {.addr = a, .buf = b, .len = c, .flags = 0}
++ I2C_MSG_WRITE(a,b,c)
+ ;
+
+@@
+expression a,b,c,d;
+identifier x;
+@@
+
+struct i2c_msg x = 
+- {.addr = a, .buf = b, .len = c, .flags = d}
++ I2C_MSG_OP(a,b,c,d)
+ ;
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
 ---
- drivers/media/rc/winbond-cir.c | 80 +++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 75 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
-index 1ff47eb..f033ecf 100644
---- a/drivers/media/rc/winbond-cir.c
-+++ b/drivers/media/rc/winbond-cir.c
-@@ -7,6 +7,7 @@
-  *  with minor modifications.
-  *
-  *  Original Author: David Härdeman <david@hardeman.nu>
-+ *     Copyright (C) 2012 Sean Young <sean@mess.org>
-  *     Copyright (C) 2009 - 2011 David Härdeman <david@hardeman.nu>
-  *
-  *  Dedicated to my daughter Matilda, without whose loving attention this
-@@ -22,9 +23,7 @@
-  *    o IR Receive
-  *    o IR Transmit
-  *    o Wake-On-CIR functionality
-- *
-- *  To do:
-- *    o Learning
-+ *    o Carrier detection
-  *
-  *  This program is free software; you can redistribute it and/or modify
-  *  it under the terms of the GNU General Public License as published by
-@@ -149,6 +148,12 @@
- #define WBCIR_REGSEL_MASK	0x20
- /* Starting address of selected register in WBCIR_REG_WCEIR_INDEX */
- #define WBCIR_REG_ADDR0		0x00
-+/* Enable carrier counter */
-+#define WBCIR_CNTR_EN		0x01
-+/* Reset carrier counter */
-+#define WBCIR_CNTR_R		0x02
-+/* Invert TX */
-+#define WBCIR_IRTX_INV		0x04
- 
- /* Valid banks for the SP3 UART */
- enum wbcir_bank {
-@@ -207,6 +212,8 @@ struct wbcir_data {
- 	/* RX state */
- 	enum wbcir_rxstate rxstate;
- 	struct led_trigger *rxtrigger;
-+	int carrier_report_enabled;
-+	u32 pulse_duration;
- 
- 	/* TX state */
- 	enum wbcir_txstate txstate;
-@@ -329,6 +336,30 @@ wbcir_to_rc6cells(u8 val)
-  *****************************************************************************/
- 
- static void
-+wbcir_carrier_report(struct wbcir_data *data)
-+{
-+	unsigned counter = inb(data->ebase + WBCIR_REG_ECEIR_CNT_LO) |
-+			inb(data->ebase + WBCIR_REG_ECEIR_CNT_HI) << 8;
-+
-+	if (counter > 0 && counter < 0xffff) {
-+		DEFINE_IR_RAW_EVENT(ev);
-+
-+		ev.carrier_report = 1;
-+		ev.carrier = DIV_ROUND_CLOSEST(counter * 1000000u,
-+						data->pulse_duration);
-+
-+		ir_raw_event_store(data->dev, &ev);
-+	}
-+
-+	/* reset and restart the counter */
-+	data->pulse_duration = 0;
-+	wbcir_set_bits(data->ebase + WBCIR_REG_ECEIR_CCTL, WBCIR_CNTR_R,
-+						WBCIR_CNTR_EN | WBCIR_CNTR_R);
-+	wbcir_set_bits(data->ebase + WBCIR_REG_ECEIR_CCTL, WBCIR_CNTR_EN,
-+						WBCIR_CNTR_EN | WBCIR_CNTR_R);
-+}
-+
-+static void
- wbcir_idle_rx(struct rc_dev *dev, bool idle)
+ drivers/media/tuners/max2165.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/media/tuners/max2165.c b/drivers/media/tuners/max2165.c
+index ba84936..6638617 100644
+--- a/drivers/media/tuners/max2165.c
++++ b/drivers/media/tuners/max2165.c
+@@ -47,7 +47,7 @@ static int max2165_write_reg(struct max2165_priv *priv, u8 reg, u8 data)
  {
- 	struct wbcir_data *data = dev->priv;
-@@ -341,6 +372,10 @@ wbcir_idle_rx(struct rc_dev *dev, bool idle)
- 	if (idle && data->rxstate != WBCIR_RXSTATE_INACTIVE) {
- 		data->rxstate = WBCIR_RXSTATE_INACTIVE;
- 		led_trigger_event(data->rxtrigger, LED_OFF);
-+
-+		if (data->carrier_report_enabled)
-+			wbcir_carrier_report(data);
-+
- 		/* Tell hardware to go idle by setting RXINACTIVE */
- 		outb(WBCIR_RX_DISABLE, data->sbase + WBCIR_REG_SP3_ASCR);
- 	}
-@@ -351,14 +386,21 @@ wbcir_irq_rx(struct wbcir_data *data, struct pnp_dev *device)
- {
- 	u8 irdata;
- 	DEFINE_IR_RAW_EVENT(rawir);
-+	unsigned duration;
+ 	int ret;
+ 	u8 buf[] = { reg, data };
+-	struct i2c_msg msg = { .flags = 0, .buf = buf, .len = 2 };
++	struct i2c_msg msg = I2C_MSG_WRITE(0, buf, sizeof(buf));
  
- 	/* Since RXHDLEV is set, at least 8 bytes are in the FIFO */
- 	while (inb(data->sbase + WBCIR_REG_SP3_LSR) & WBCIR_RX_AVAIL) {
- 		irdata = inb(data->sbase + WBCIR_REG_SP3_RXDATA);
- 		if (data->rxstate == WBCIR_RXSTATE_ERROR)
- 			continue;
-+
-+		duration = ((irdata & 0x7F) + 1) * 2;
- 		rawir.pulse = irdata & 0x80 ? false : true;
--		rawir.duration = US_TO_NS(((irdata & 0x7F) + 1) * 2);
-+		rawir.duration = US_TO_NS(duration);
-+
-+		if (rawir.pulse)
-+			data->pulse_duration += duration;
-+
- 		ir_raw_event_store_with_filter(data->dev, &rawir);
+ 	msg.addr = priv->config->i2c_address;
+ 
+@@ -68,11 +68,10 @@ static int max2165_read_reg(struct max2165_priv *priv, u8 reg, u8 *p_data)
+ 	int ret;
+ 	u8 dev_addr = priv->config->i2c_address;
+ 
+-	u8 b0[] = { reg };
+-	u8 b1[] = { 0 };
++	u8 buf;
+ 	struct i2c_msg msg[] = {
+-		{ .addr = dev_addr, .flags = 0, .buf = b0, .len = 1 },
+-		{ .addr = dev_addr, .flags = I2C_M_RD, .buf = b1, .len = 1 },
++		I2C_MSG_WRITE(dev_addr, &reg, sizeof(reg)),
++		I2C_MSG_READ(dev_addr, &buf, sizeof(buf)),
+ 	};
+ 
+ 	ret = i2c_transfer(priv->i2c, msg, 2);
+@@ -81,10 +80,10 @@ static int max2165_read_reg(struct max2165_priv *priv, u8 reg, u8 *p_data)
+ 		return -EIO;
  	}
  
-@@ -488,6 +530,33 @@ wbcir_irq_handler(int irqno, void *cookie)
-  *****************************************************************************/
+-	*p_data = b1[0];
++	*p_data = buf;
+ 	if (debug >= 2)
+ 		dprintk("%s: reg=0x%02X, data=0x%02X\n",
+-			__func__, reg, b1[0]);
++			__func__, reg, buf);
+ 	return 0;
+ }
  
- static int
-+wbcir_set_carrier_report(struct rc_dev *dev, int enable)
-+{
-+	struct wbcir_data *data = dev->priv;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&data->spinlock, flags);
-+
-+	if (data->carrier_report_enabled == enable) {
-+		spin_unlock_irqrestore(&data->spinlock, flags);
-+		return 0;
-+	}
-+
-+	data->pulse_duration = 0;
-+	wbcir_set_bits(data->ebase + WBCIR_REG_ECEIR_CCTL, WBCIR_CNTR_R,
-+						WBCIR_CNTR_EN | WBCIR_CNTR_R);
-+
-+	if (enable && data->dev->idle)
-+		wbcir_set_bits(data->ebase + WBCIR_REG_ECEIR_CCTL,
-+				WBCIR_CNTR_EN, WBCIR_CNTR_EN | WBCIR_CNTR_R);
-+
-+	data->carrier_report_enabled = enable;
-+	spin_unlock_irqrestore(&data->spinlock, flags);
-+
-+	return 0;
-+}
-+
-+static int
- wbcir_txcarrier(struct rc_dev *dev, u32 carrier)
- {
- 	struct wbcir_data *data = dev->priv;
-@@ -833,7 +902,7 @@ wbcir_init_hw(struct wbcir_data *data)
- 
- 	/* Set IRTX_INV */
- 	if (invert)
--		outb(0x04, data->ebase + WBCIR_REG_ECEIR_CCTL);
-+		outb(WBCIR_IRTX_INV, data->ebase + WBCIR_REG_ECEIR_CCTL);
- 	else
- 		outb(0x00, data->ebase + WBCIR_REG_ECEIR_CCTL);
- 
-@@ -1014,6 +1083,7 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
- 	data->dev->input_id.version = WBCIR_ID_CHIP;
- 	data->dev->map_name = RC_MAP_RC6_MCE;
- 	data->dev->s_idle = wbcir_idle_rx;
-+	data->dev->s_carrier_report = wbcir_set_carrier_report;
- 	data->dev->s_tx_mask = wbcir_txmask;
- 	data->dev->s_tx_carrier = wbcir_txcarrier;
- 	data->dev->tx_ir = wbcir_tx;
--- 
-1.7.11.7
-
