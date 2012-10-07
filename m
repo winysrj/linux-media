@@ -1,151 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:34732 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754162Ab2JWWJo (ORCPT
+Received: from mail4-relais-sop.national.inria.fr ([192.134.164.105]:37315
+	"EHLO mail4-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750761Ab2JGQoS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 18:09:44 -0400
-Subject: Re: [PATCH 15/23] ivtv: Replace memcpy with struct assignment
-From: Andy Walls <awalls@md.metrocast.net>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Date: Tue, 23 Oct 2012 18:08:48 -0400
-In-Reply-To: <1351022246-8201-15-git-send-email-elezegarcia@gmail.com>
-References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
-	 <1351022246-8201-15-git-send-email-elezegarcia@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1351030129.2459.17.camel@palomino.walls.org>
-Mime-Version: 1.0
+	Sun, 7 Oct 2012 12:44:18 -0400
+Date: Sun, 7 Oct 2012 18:44:14 +0200 (CEST)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: walter harms <wharms@bfs.de>
+cc: Julia Lawall <Julia.Lawall@lip6.fr>,
+	Antti Palosaari <crope@iki.fi>,
+	kernel-janitors@vger.kernel.org, rmallon@gmail.com,
+	shubhrajyoti@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for
+ i2c_msg initialization
+In-Reply-To: <5071AEF3.6080108@bfs.de>
+Message-ID: <alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6>
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr> <5071AEF3.6080108@bfs.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2012-10-23 at 16:57 -0300, Ezequiel Garcia wrote:
-> This kind of memcpy() is error-prone. Its replacement with a struct
-> assignment is prefered because it's type-safe and much easier to read.
+On Sun, 7 Oct 2012, walter harms wrote:
 
-This one is a code maintenance win. :)
+>
+>
+> Am 07.10.2012 17:38, schrieb Julia Lawall:
+>> From: Julia Lawall <Julia.Lawall@lip6.fr>
+>>
+>> Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
+>>
+>> In the second i2c_msg structure, a length expressed as an explicit constant
+>> is also re-expressed as the size of the buffer, reg.
+>>
+>> A simplified version of the semantic patch that makes this change is as
+>> follows: (http://coccinelle.lip6.fr/)
+>>
+>> // <smpl>
+>> @@
+>> expression a,b,c;
+>> identifier x;
+>> @@
+>>
+>> struct i2c_msg x =
+>> - {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
+>> + I2C_MSG_READ(a,b,c)
+>>  ;
+>>
+>> @@
+>> expression a,b,c;
+>> identifier x;
+>> @@
+>>
+>> struct i2c_msg x =
+>> - {.addr = a, .buf = b, .len = c, .flags = 0}
+>> + I2C_MSG_WRITE(a,b,c)
+>>  ;
+>>
+>> @@
+>> expression a,b,c,d;
+>> identifier x;
+>> @@
+>>
+>> struct i2c_msg x =
+>> - {.addr = a, .buf = b, .len = c, .flags = d}
+>> + I2C_MSG_OP(a,b,c,d)
+>>  ;
+>> // </smpl>
+>>
+>> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+>>
+>> ---
+>>  drivers/media/tuners/e4000.c |   20 +++-----------------
+>>  1 file changed, 3 insertions(+), 17 deletions(-)
+>>
+>> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
+>> index 1b33ed3..8f182fc 100644
+>> --- a/drivers/media/tuners/e4000.c
+>> +++ b/drivers/media/tuners/e4000.c
+>> @@ -26,12 +26,7 @@ static int e4000_wr_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
+>>  	int ret;
+>>  	u8 buf[1 + len];
+>>  	struct i2c_msg msg[1] = {
+>> -		{
+>> -			.addr = priv->cfg->i2c_addr,
+>> -			.flags = 0,
+>> -			.len = sizeof(buf),
+>> -			.buf = buf,
+>> -		}
+>> +		I2C_MSG_WRITE(priv->cfg->i2c_addr, buf, sizeof(buf))
+>>  	};
+>>
+>
+> Any reason why struct i2c_msg is an array ?
 
-See my comments at the end for the difference in assembled code on an
-AMD x86_64 CPU using
-$ gcc --version
-gcc (GCC) 4.6.3 20120306 (Red Hat 4.6.3-2)
+I assumed that it looked more harmonious with the other uses of 
+i2c_transfer, which takes as arguments an array and the number of 
+elements.
 
+But there are some files that instead use i2c_transfer(priv->i2c, &msg, 1).
+I can change them all to do that if that is preferred.  But maybe I 
+will wait a little bit to see if there are other issues to address at 
+the same time.
 
-> Found by coccinelle. Hand patched and reviewed.
-> Tested by compilation only.
-> 
-> A simplified version of the semantic match that finds this problem is as
-> follows: (http://coccinelle.lip6.fr/)
-> 
-> // <smpl>
-> @@
-> identifier struct_name;
-> struct struct_name to;
-> struct struct_name from;
-> expression E;
-> @@
-> -memcpy(&(to), &(from), E);
-> +to = from;
-> // </smpl>
-> 
-> Cc: Andy Walls <awalls@md.metrocast.net>
+thanks,
+julia
 
-Signed-off-by: Andy Walls <awalls@md.metrocast.net>
-
-
-> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
-> ---
->  drivers/media/pci/ivtv/ivtv-i2c.c |   12 ++++--------
->  1 files changed, 4 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/pci/ivtv/ivtv-i2c.c b/drivers/media/pci/ivtv/ivtv-i2c.c
-> index d47f41a..27a8466 100644
-> --- a/drivers/media/pci/ivtv/ivtv-i2c.c
-> +++ b/drivers/media/pci/ivtv/ivtv-i2c.c
-> @@ -719,13 +719,10 @@ int init_ivtv_i2c(struct ivtv *itv)
->  		return -ENODEV;
->  	}
->  	if (itv->options.newi2c > 0) {
-> -		memcpy(&itv->i2c_adap, &ivtv_i2c_adap_hw_template,
-> -		       sizeof(struct i2c_adapter));
-> +		itv->i2c_adap = ivtv_i2c_adap_hw_template;
->  	} else {
-> -		memcpy(&itv->i2c_adap, &ivtv_i2c_adap_template,
-> -		       sizeof(struct i2c_adapter));
-> -		memcpy(&itv->i2c_algo, &ivtv_i2c_algo_template,
-> -		       sizeof(struct i2c_algo_bit_data));
-> +		itv->i2c_adap = ivtv_i2c_adap_template;
-> +		itv->i2c_algo = ivtv_i2c_algo_template;
->  	}
->  	itv->i2c_algo.udelay = itv->options.i2c_clock_period / 2;
->  	itv->i2c_algo.data = itv;
-> @@ -735,8 +732,7 @@ int init_ivtv_i2c(struct ivtv *itv)
->  		itv->instance);
->  	i2c_set_adapdata(&itv->i2c_adap, &itv->v4l2_dev);
->  
-> -	memcpy(&itv->i2c_client, &ivtv_i2c_client_template,
-> -	       sizeof(struct i2c_client));
-> +	itv->i2c_client = ivtv_i2c_client_template;
->  	itv->i2c_client.adapter = &itv->i2c_adap;
->  	itv->i2c_adap.dev.parent = &itv->pdev->dev;
->  
-
-I looked at the generated assembly with only this last change
-implemented:
-
-$ objdump -h -r -d -l -s orig-ivtv-i2c.o.sav | less
-[...]
- 07e0 00000000 69767476 20696e74 65726e61  ....ivtv interna
- 07f0 6c000000 00000000 00000000 00000000  l...............
- 0800 00000000 00000000 00000000 00000000  ................
- 0810 00000000 00000000 00000000 00000000  ................
- 0820 00000000 00000000 00000000 00000000  ................
- 0830 00000000 00000000 00000000 00000000  ................
-[...]
-init_ivtv_i2c():
-/home/andy/cx18dev/git/media_tree/drivers/media/video/ivtv/ivtv-i2c.c:738
-    13bb:       48 c7 c6 00 00 00 00    mov    $0x0,%rsi
-                        13be: R_X86_64_32S      .rodata+0x7e0
-    13c2:       48 8d bb 30 04 01 00    lea    0x10430(%rbx),%rdi
-    13c9:       b9 5a 00 00 00          mov    $0x5a,%ecx
-    13ce:       f3 48 a5                rep movsq %ds:(%rsi),%es:(%rdi)
-
-
-$ objdump -h -r -d -l -s orig-ivtv-i2c.o.sav | less
-[...]
- 07e0 00000000 69767476 20696e74 65726e61  ....ivtv interna
- 07f0 6c000000 00000000 00000000 00000000  l...............
- 0800 00000000 00000000 00000000 00000000  ................
- 0810 00000000 00000000 00000000 00000000  ................
- 0820 00000000 00000000 00000000 00000000  ................
- 0830 00000000 00000000 00000000 00000000  ................
-[...]
-init_ivtv_i2c():
-/home/andy/cx18dev/git/media_tree/drivers/media/video/ivtv/ivtv-i2c.c:738
-    13bb:       48 8d bb 30 04 01 00    lea    0x10430(%rbx),%rdi
-    13c2:       48 c7 c6 00 00 00 00    mov    $0x0,%rsi
-                        13c5: R_X86_64_32S      .rodata+0x7e0
-    13c9:       b9 5a 00 00 00          mov    $0x5a,%ecx
-    13ce:       f3 48 a5                rep movsq %ds:(%rsi),%es:(%rdi)
-
-
-The generated code is reordered, but essentially identical.  So I guess
-in this instance, the preprocessor defines resolved such that an x86-64
-optimized memcpy() function was not used from the linux kernel source.
-
-Since all of these memcpy()'s are only called once for each board at
-board initialization, performance here really doesn't matter here
-anyway.  (Unless one is insanely trying to shave microseconds off boot
-time :P )
-
-With other memcpy()/assignement_operator replacement patches, you may
-wish to keep performance in mind, if you are patching a frequently
-called function.
-
-Regards,
-Andy
-
-
+>
+> re,
+> wh
+>
+>>  	buf[0] = reg;
+>> @@ -54,17 +49,8 @@ static int e4000_rd_regs(struct e4000_priv *priv, u8 reg, u8 *val, int len)
+>>  	int ret;
+>>  	u8 buf[len];
+>>  	struct i2c_msg msg[2] = {
+>> -		{
+>> -			.addr = priv->cfg->i2c_addr,
+>> -			.flags = 0,
+>> -			.len = 1,
+>> -			.buf = &reg,
+>> -		}, {
+>> -			.addr = priv->cfg->i2c_addr,
+>> -			.flags = I2C_M_RD,
+>> -			.len = sizeof(buf),
+>> -			.buf = buf,
+>> -		}
+>> +		I2C_MSG_WRITE(priv->cfg->i2c_addr, &reg, sizeof(reg)),
+>> +		I2C_MSG_READ(priv->cfg->i2c_addr, buf, sizeof(buf))
+>>  	};
+>>
+>>  	ret = i2c_transfer(priv->i2c, msg, 2);
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
