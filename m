@@ -1,105 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41437 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753047Ab2JGNhs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 09:37:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
-	subashrp@gmail.com, mchehab@redhat.com, zhangfei.gao@gmail.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com
-Subject: Re: [PATCHv9 18/25] v4l: add buffer exporting via dmabuf
-Date: Sun, 07 Oct 2012 15:38:30 +0200
-Message-ID: <1481309.1Xrun8GG9o@avalon>
-In-Reply-To: <201210051055.40904.hverkuil@xs4all.nl>
-References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com> <1349188056-4886-19-git-send-email-t.stanislaws@samsung.com> <201210051055.40904.hverkuil@xs4all.nl>
+Received: from www.poss.co.nz ([210.54.213.75]:1753 "EHLO riffraff.iposs.co.nz"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750860Ab2JGBTy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Oct 2012 21:19:54 -0400
+From: Michael West <michael@iposs.co.nz>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"a.hajda@samsung.com" <a.hajda@samsung.com>,
+	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"sw0312.kim@samsung.com" <sw0312.kim@samsung.com>
+Date: Sun, 7 Oct 2012 14:19:48 +1300
+Subject: RE: Media_build broken by [PATCH RFC v3 5/5] m5mols: Implement
+ .get_frame_desc subdev callback
+Message-ID: <DCBB30B3D32C824F800041EE82CABAAE03203D63BB2A@duckworth.iposs.co.nz>
+References: <1348674853-24596-1-git-send-email-s.nawrocki@samsung.com>
+ <1348674853-24596-6-git-send-email-s.nawrocki@samsung.com>
+ <50704D26.9020201@hoogenraad.net> <50707704.5030402@gmail.com>
+ <50707BE0.9010209@hoogenraad.net> <5070A3C9.8040409@gmail.com>
+In-Reply-To: <5070A3C9.8040409@gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Friday 05 October 2012 10:55:40 Hans Verkuil wrote:
-> On Tue October 2 2012 16:27:29 Tomasz Stanislawski wrote:
-> > This patch adds extension to V4L2 api. It allow to export a mmap buffer as
-> > file descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer
-> > offset used by mmap and return a file descriptor on success.
-> > 
-> > Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-
-[snip]
-
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index e04a73e..f429b6a 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -688,6 +688,33 @@ struct v4l2_buffer {
-> > 
-> >  #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
-> >  #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
-> > 
-> > +/**
-> > + * struct v4l2_exportbuffer - export of video buffer as DMABUF file
-> > descriptor + *
-> > + * @fd:		file descriptor associated with DMABUF (set by driver)
-> > + * @flags:	flags for newly created file, currently only O_CLOEXEC is
-> > + *		supported, refer to manual of open syscall for more details
-> > + * @index:	id number of the buffer
-> > + * @type:	enum v4l2_buf_type; buffer type (type == *_MPLANE for
-> > + *		multiplanar buffers);
-> > + * @plane:	index of the plane to be exported, 0 for single plane queues
-> > + *
-> > + * Contains data used for exporting a video buffer as DMABUF file
-> > descriptor. + * The buffer is identified by a 'cookie' returned by
-> > VIDIOC_QUERYBUF + * (identical to the cookie used to mmap() the buffer to
-> > userspace). All + * reserved fields must be set to zero. The field
-> > reserved0 is expected to + * become a structure 'type' allowing an
-> > alternative layout of the structure + * content. Therefore this field
-> > should not be used for any other extensions. + */
-> > +struct v4l2_exportbuffer {
-> > +	__s32		fd;
-> > +	__u32		flags;
-> > +	__u32		type; /* enum v4l2_buf_type */
-> > +	__u32		index;
-> > +	__u32		plane;
-> 
-> As suggested in my comments in the previous patch, I think it is a more
-> natural order to have the type/index/plane fields first in this struct.
-> 
-> Actually, I think that flags should also come before fd:
-> 
-> struct v4l2_exportbuffer {
-> 	__u32		type; /* enum v4l2_buf_type */
-> 	__u32		index;
-> 	__u32		plane;
-> 	__u32		flags;
-> 	__s32		fd;
-> 	__u32		reserved[11];
-> };
-
-It would indeed feel more natural, but putting them right before the reserved 
-fields allows creating an anonymous union around type, index and plane and 
-extending it with reserved fields if needed. That's (at least to my 
-understanding) the rationale behind the current structure layout.
-
-> > +	__u32		reserved[11];
-> > +};
-> > +
-> > 
-> >  /*
-> >  
-> >   *	O V E R L A Y   P R E V I E W
-> >   */
-
--- 
-Regards,
-
-Laurent Pinchart
+VGhpcyBwYXRjaCBjaGFuZ2VzIHZlcnNpb25zLnR4dCBhbmQgZGlzYWJsZXMgIFZJREVPX001TU9M
+UyB3aGljaCBmaXhlZCB0aGUgYnVpbGQgZm9yIG15IDMuMiBrZXJuZWwgYnV0IGxvb2tpbmcgYXQg
+dGhlIGxvZ3MgaXQgbG9va3MgbGlrZSB0aGlzIGlzIG5vdCB0aGUgd2F5IHRvIGZpeCBpdCBhcyBp
+dCdzIG5vdCBqdXN0IGEgMy42KyBwcm9ibGVtIGFzIGl0IGRvZXMgbm90IGJ1aWxkIG9uIDMuNiBh
+cyB3ZWxsLi4uICBTbyBwcm9iYWJseSBiZXN0IHRvIGZpbmQgd2h5IGl0IGRvZXNuJ3QgYnVpbGQg
+b24gdGhlIGN1cnJlbnQga2VybmVsIGZpcnN0Lg0KDQotLS0NCiB2NGwvdmVyc2lvbnMudHh0IHwg
+ICAgMiArKw0KIDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKykNCg0KZGlmZiAtLWdpdCBh
+L3Y0bC92ZXJzaW9ucy50eHQgYi92NGwvdmVyc2lvbnMudHh0DQppbmRleCAzMjg2NTFlLi4zNDk2
+OTVjIDEwMDY0NA0KLS0tIGEvdjRsL3ZlcnNpb25zLnR4dA0KKysrIGIvdjRsL3ZlcnNpb25zLnR4
+dA0KQEAgLTQsNiArNCw4IEBADQogWzMuNi4wXQ0KICMgbmVlZHMgZGV2bV9jbGtfZ2V0LCBjbGtf
+ZW5hYmxlLCBjbGtfZGlzYWJsZQ0KIFZJREVPX0NPREENCisjIGJyb2tlbiBhZGQgcmVhc29uIGhl
+cmUNCitWSURFT19NNU1PTFMNCiANCiBbMy40LjBdDQogIyBuZWVkcyBkZXZtX3JlZ3VsYXRvcl9i
+dWxrX2dldA0KLS0gDQoxLjcuOS41DQoNCj5PbiAxMC8wNi8yMDEyIDA4OjQzIFBNLCBKYW4gSG9v
+Z2VucmFhZCB3cm90ZToNCj4+IFRoYW5rcy4NCj4+DQo+PiBJIHNlZSBzZXZlcmFsIGRyaXZlcnMg
+ZGlzYWJsZWQgZm9yIGxvd2VyIGtlcm5lbCB2ZXJzaW9ucyBpbiBteSBLY29uZmlnIGZpbGUuDQo+
+PiBJIGFtIG5vdCBzdXJlIGhvdyB0aGlzIGlzIGFjY29tcGxpc2hlZCwgYnV0IGl0IHdvdWxkIGJl
+IGhlbHBmdWwgaWYgdGhlIA0KPj4gRnVqaXRzdSBNLTVNT0xTIDhNUCBzZW5zb3Igc3VwcG9ydCBp
+cyBhdXRvbWF0aWNhbGx5IGRpc2FibGVkIGZvciANCj4+IGtlcm5lbDwgIDMuNg0KPj4NCj4+IEkg
+Zml4ZWQgaXQgaW4gbXkgdmVyc2lvbiBieSByZXBsYWNpbmcgU1pfMU0gYnkgKDEwMjQqMTAyNCku
+DQo+PiBJIGRpZCBub3QgbmVlZCB0aGUgZHJpdmVyLCBidXQgYXQgbGVhc3QgaXQgY29tcGlsZWQg
+Li4uDQo+DQo+QSBwYXRjaCBmb3IgdjRsL3ZlcnNpb25zLnR4dCBpcyBuZWVkZWQgWzFdLg0KPkkn
+bGwgc2VlIGlmIEkgY2FuIHByZXBhcmUgdGhhdC4NCj5odHRwOi8vZ2l0LmxpbnV4dHYub3JnL21l
+ZGlhX2J1aWxkLmdpdC9oaXN0b3J5LzVkMDBkYmE2YWFmMGY5MWE3NDJkOTBmZDFlMTJlMGZiMmQz
+NjI1M2U6L3Y0bC92ZXJzaW9ucy50eHQgDQoNCg==
