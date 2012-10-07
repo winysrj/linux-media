@@ -1,83 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 173-160-178-141-Washington.hfc.comcastbusiness.net ([173.160.178.141]:45984
-	"EHLO relay" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751319Ab2JFBzE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Oct 2012 21:55:04 -0400
-From: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
-To: andrey.smrinov@convergeddevices.net
-Cc: hverkuil@xs4all.nl, mchehab@redhat.com, sameo@linux.intel.com,
-	broonie@opensource.wolfsonmicro.com, perex@perex.cz, tiwai@suse.de,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2 0/6] A driver for Si476x series of chips
-Date: Fri,  5 Oct 2012 18:54:56 -0700
-Message-Id: <1349488502-11293-1-git-send-email-andrey.smirnov@convergeddevices.net>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51756 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753688Ab2JGUHz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Oct 2012 16:07:55 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, tony@atomide.com
+Subject: [PATCH v3 1/3] omap3isp: Add CSI configuration registers from control block to ISP resources
+Date: Sun,  7 Oct 2012 23:07:50 +0300
+Message-Id: <1349640472-1425-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20121007200730.GD14107@valkosipuli.retiisi.org.uk>
+References: <20121007200730.GD14107@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a second version of the patchset originaly posted here:
-https://lkml.org/lkml/2012/9/13/590
+Add the registers used to configure the CSI-2 receiver PHY on OMAP3430 and
+3630 and map them in the ISP driver. The register is part of the control
+block but it only is needed by the ISP driver.
 
-To save everyone's time I'll repost the original description of it:
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ arch/arm/mach-omap2/devices.c         |   10 ++++++++++
+ drivers/media/platform/omap3isp/isp.c |    6 ++++--
+ drivers/media/platform/omap3isp/isp.h |    2 ++
+ 3 files changed, 16 insertions(+), 2 deletions(-)
 
-
-This patchset contains a driver for a Silicon Laboratories 476x series
-of radio tuners. The driver itself is implemented as an MFD devices
-comprised of three parts: 1. Core device that provides all the other
-devices with basic functionality and locking scheme. 2. Radio device
-that translates between V4L2 subsystem requests into Core device
-commands. 3. Codec device that does similar to the earlier described
-task, but for ALSA SoC subsystem.
-
-This driver has been tested to work in two different sytems: 1. A
- custom Tegra-based ARM board(design is based on Harmony board)
- running linux kernel 3.1.10 kernel 2. A standalone USB-connected
- board that has a dedicated Cortex M3 working as a transparent USB to
- I2C bridge which was connected to a off-the-shelf x86-64 laptop
- running Ubuntu with 3.2.0 kernel.
-
-As far as SubmitChecklist is concerned following criteria should be
-satisfied: 2b, 3, 5, 7, 9, 10
-
-
-Now it is made against git.linuxtv.org/media_tree.git repository
-instead of linux-stable.
-
-I tried to take into account all the flaws pointed by Mark and Hans,
-but since the amount of changes I had to made was not trivial I
-wouldn't be surprized if I missed something that was shown to me. I
-would like to appologize in advance if this patchset contains some
-unfixed problems pointed out in the previous version.
-
-Andrey Smirnov (6):
-  Add header files and Kbuild plumbing for SI476x MFD core
-  Add the main bulk of core driver for SI476x code
-  Add commands abstraction layer for SI476X MFD
-  Add chip properties handling code for SI476X MFD
-  Add a V4L2 driver for SI476X MFD
-  Add a codec driver for SI476X MFD
-
- drivers/media/radio/Kconfig        |   17 +
- drivers/media/radio/Makefile       |    1 +
- drivers/media/radio/radio-si476x.c | 1159 ++++++++++++++++++++++++++++
- drivers/mfd/Kconfig                |   14 +
- drivers/mfd/Makefile               |    3 +
- drivers/mfd/si476x-cmd.c           | 1493 ++++++++++++++++++++++++++++++++++++
- drivers/mfd/si476x-i2c.c           |  974 +++++++++++++++++++++++
- drivers/mfd/si476x-prop.c          |  477 ++++++++++++
- include/linux/mfd/si476x-core.h    |  529 +++++++++++++
- include/media/si476x.h             |  449 +++++++++++
- sound/soc/codecs/Kconfig           |    4 +
- sound/soc/codecs/Makefile          |    2 +
- sound/soc/si476x.c                 |  255 ++++++
- 13 files changed, 5377 insertions(+)
- create mode 100644 drivers/media/radio/radio-si476x.c
- create mode 100644 drivers/mfd/si476x-cmd.c
- create mode 100644 drivers/mfd/si476x-i2c.c
- create mode 100644 drivers/mfd/si476x-prop.c
- create mode 100644 include/linux/mfd/si476x-core.h
- create mode 100644 include/media/si476x.h
- create mode 100644 sound/soc/si476x.c
-
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index c00c689..9e4d5da 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -201,6 +201,16 @@ static struct resource omap3isp_resources[] = {
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
++		.start		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE,
++		.end		= OMAP343X_CTRL_BASE + OMAP343X_CONTROL_CSIRXFE + 3,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL,
++		.end		= OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL + 3,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
+ 		.start		= INT_34XX_CAM_IRQ,
+ 		.flags		= IORESOURCE_IRQ,
+ 	}
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index d7aa513..88fba2c 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -100,7 +100,8 @@ static const struct isp_res_mapping isp_res_maps[] = {
+ 		       1 << OMAP3_ISP_IOMEM_RESZ |
+ 		       1 << OMAP3_ISP_IOMEM_SBL |
+ 		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS1 |
+-		       1 << OMAP3_ISP_IOMEM_CSIPHY2,
++		       1 << OMAP3_ISP_IOMEM_CSIPHY2 |
++		       1 << OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE,
+ 	},
+ 	{
+ 		.isp_rev = ISP_REVISION_15_0,
+@@ -117,7 +118,8 @@ static const struct isp_res_mapping isp_res_maps[] = {
+ 		       1 << OMAP3_ISP_IOMEM_CSI2A_REGS2 |
+ 		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS1 |
+ 		       1 << OMAP3_ISP_IOMEM_CSIPHY1 |
+-		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2,
++		       1 << OMAP3_ISP_IOMEM_CSI2C_REGS2 |
++		       1 << OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL,
+ 	},
+ };
+ 
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index 8be7487..6fed222 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -72,6 +72,8 @@ enum isp_mem_resources {
+ 	OMAP3_ISP_IOMEM_CSI2C_REGS1,
+ 	OMAP3_ISP_IOMEM_CSIPHY1,
+ 	OMAP3_ISP_IOMEM_CSI2C_REGS2,
++	OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE,
++	OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL,
+ 	OMAP3_ISP_IOMEM_LAST
+ };
+ 
 -- 
-1.7.9.5
+1.7.2.5
 
