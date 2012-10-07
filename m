@@ -1,45 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29699 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:20198 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752713Ab2JJALH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Oct 2012 20:11:07 -0400
-Date: Tue, 9 Oct 2012 21:11:04 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] [for 3.7] stk1160: Add support for S-Video input
-Message-ID: <20121009211104.31893c80@redhat.com>
-In-Reply-To: <20121009210446.2abf0059@redhat.com>
-References: <1349820063-21955-1-git-send-email-elezegarcia@gmail.com>
-	<20121009192540.61875a29@redhat.com>
-	<CALF0-+W-eGegmb2WPozG1qVhm7sa_E-vqZqt4x4veNCnY-BY1Q@mail.gmail.com>
-	<20121009210446.2abf0059@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1750794Ab2JGNDe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Oct 2012 09:03:34 -0400
+Message-ID: <50717DFF.8000004@redhat.com>
+Date: Sun, 07 Oct 2012 15:05:03 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] libv4lconvert: clarify the behavior and resulting restrictions
+ of v4lconvert_convert()
+References: <1349282919-15332-1-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1349282919-15332-1-git-send-email-fschaefer.oss@googlemail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 9 Oct 2012 21:04:46 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+Hi Frank,
 
-> Em Tue, 9 Oct 2012 20:52:06 -0300
-> Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
-> 
-> > On Tue, Oct 9, 2012 at 7:25 PM, Mauro Carvalho Chehab
-> > <mchehab@redhat.com> wrote:
-> > > Em Tue,  9 Oct 2012 19:01:03 -0300
-> > > Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
-> > >
+Thanks for all your work on this. I'm afraid that atm I'm very busy
+with work, so I don't have time to review your patches. I hope to
+find some time for this next weekend...
 
-> > Let me know if you want me to change something.
+Regards,
 
-Hmm... patchwork didn't get it. The MIME type for the attachment
-is wrong... it is "text/plain". That may explain why patchwork
-didn't get it. Could you please re-submit it with the patch
-inlined, or if you really can't do it, using the proper MIME
-types for patch?
+Hans
 
-Thanks!
-Mauro
+
+On 10/03/2012 06:48 PM, Frank Schäfer wrote:
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>   lib/include/libv4lconvert.h |   20 ++++++++++++++++++--
+>   1 Datei geändert, 18 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
+>
+> diff --git a/lib/include/libv4lconvert.h b/lib/include/libv4lconvert.h
+> index 167b57d..509655e 100644
+> --- a/lib/include/libv4lconvert.h
+> +++ b/lib/include/libv4lconvert.h
+> @@ -89,8 +89,24 @@ LIBV4L_PUBLIC int v4lconvert_needs_conversion(struct v4lconvert_data *data,
+>   		const struct v4l2_format *src_fmt,   /* in */
+>   		const struct v4l2_format *dest_fmt); /* in */
+>
+> -/* return value of -1 on error, otherwise the amount of bytes written to
+> -   dest */
+> +/* This function does the following conversions:
+> +    - format conversion
+> +    - cropping
+> +   if enabled:
+> +    - processing (auto whitebalance, auto gain, gamma correction)
+> +    - horizontal/vertical flipping
+> +    - 90 degree (clockwise) rotation
+> +
+> +   NOTE: the last 3 steps are enabled/disabled depending on
+> +    - the internal device list
+> +    - the state of the (software emulated) image controls
+> +
+> +   Therefore this function should
+> +    - not be used when getting the frames from libv4l
+> +    - be called only once per frame
+> +   Otherwise this may result in unintended double conversions !
+> +
+> +   Returns the amount of bytes written to dest an -1 on error */
+>   LIBV4L_PUBLIC int v4lconvert_convert(struct v4lconvert_data *data,
+>   		const struct v4l2_format *src_fmt,  /* in */
+>   		const struct v4l2_format *dest_fmt, /* in */
+>
