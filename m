@@ -1,46 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f46.google.com ([209.85.213.46]:46717 "EHLO
-	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750752Ab2JJEIJ (ORCPT
+Received: from mail4-relais-sop.national.inria.fr ([192.134.164.105]:3043 "EHLO
+	mail4-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752835Ab2JGPjW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 00:08:09 -0400
-Received: by mail-yh0-f46.google.com with SMTP id m54so21613yhm.19
-        for <linux-media@vger.kernel.org>; Tue, 09 Oct 2012 21:08:08 -0700 (PDT)
-From: Fabio Estevam <festevam@gmail.com>
-To: mchehab@infradead.org
-Cc: p.zabel@pengutronix.de, javier.martin@vista-silicon.com,
-	kernel@pengutronix.de, linux-media@vger.kernel.org,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH] [media] coda: Fix 'driver_data' for mx53
-Date: Wed, 10 Oct 2012 01:07:38 -0300
-Message-Id: <1349842058-16458-1-git-send-email-festevam@gmail.com>
+	Sun, 7 Oct 2012 11:39:22 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Antti Palosaari <crope@iki.fi>
+Cc: kernel-janitors@vger.kernel.org, rmallon@gmail.com,
+	shubhrajyoti@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 4/13] drivers/media/tuners/tda18212.c: use macros for i2c_msg initialization
+Date: Sun,  7 Oct 2012 17:38:35 +0200
+Message-Id: <1349624323-15584-6-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@freescale.com>
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-CODA_7541 is the coda_product type for mx53.
+Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
 
-The 'driver_data' for mx53 is CODA_IMX53 instead.
+In the second initialization, a length expressed as an explicit constant is
+also re-expressed as the size of the buffer (reg).
 
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+A simplified version of the semantic patch that makes this change is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+expression a,b,c;
+identifier x;
+@@
+
+struct i2c_msg x =
+- {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
++ I2C_MSG_READ(a,b,c)
+ ;
+
+@@
+expression a,b,c;
+identifier x;
+@@
+
+struct i2c_msg x =
+- {.addr = a, .buf = b, .len = c, .flags = 0}
++ I2C_MSG_WRITE(a,b,c)
+ ;
+
+@@
+expression a,b,c,d;
+identifier x;
+@@
+
+struct i2c_msg x = 
+- {.addr = a, .buf = b, .len = c, .flags = d}
++ I2C_MSG_OP(a,b,c,d)
+ ;
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
 ---
- drivers/media/platform/coda.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/tuners/tda18212.c |   20 +++-----------------
+ 1 file changed, 3 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 7640505..7b8b547 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1877,7 +1877,7 @@ static const struct coda_devtype coda_devdata[] = {
+diff --git a/drivers/media/tuners/tda18212.c b/drivers/media/tuners/tda18212.c
+index 5d9f028..fb810ce 100644
+--- a/drivers/media/tuners/tda18212.c
++++ b/drivers/media/tuners/tda18212.c
+@@ -34,12 +34,7 @@ static int tda18212_wr_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
+ 	int ret;
+ 	u8 buf[len+1];
+ 	struct i2c_msg msg[1] = {
+-		{
+-			.addr = priv->cfg->i2c_address,
+-			.flags = 0,
+-			.len = sizeof(buf),
+-			.buf = buf,
+-		}
++		I2C_MSG_WRITE(priv->cfg->i2c_address, buf, sizeof(buf))
+ 	};
  
- static struct platform_device_id coda_platform_ids[] = {
- 	{ .name = "coda-imx27", .driver_data = CODA_IMX27 },
--	{ .name = "coda-imx53", .driver_data = CODA_7541 },
-+	{ .name = "coda-imx53", .driver_data = CODA_IMX53 },
- 	{ /* sentinel */ }
- };
- MODULE_DEVICE_TABLE(platform, coda_platform_ids);
--- 
-1.7.9.5
+ 	buf[0] = reg;
+@@ -63,17 +58,8 @@ static int tda18212_rd_regs(struct tda18212_priv *priv, u8 reg, u8 *val,
+ 	int ret;
+ 	u8 buf[len];
+ 	struct i2c_msg msg[2] = {
+-		{
+-			.addr = priv->cfg->i2c_address,
+-			.flags = 0,
+-			.len = 1,
+-			.buf = &reg,
+-		}, {
+-			.addr = priv->cfg->i2c_address,
+-			.flags = I2C_M_RD,
+-			.len = sizeof(buf),
+-			.buf = buf,
+-		}
++		I2C_MSG_WRITE(priv->cfg->i2c_address, &reg, sizeof(reg)),
++		I2C_MSG_READ(priv->cfg->i2c_address, buf, sizeof(buf))
+ 	};
+ 
+ 	ret = i2c_transfer(priv->i2c, msg, 2);
 
