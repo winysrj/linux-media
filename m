@@ -1,13 +1,12 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1921 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752789Ab2JEL0n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 07:26:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
-Date: Fri, 5 Oct 2012 13:23:45 +0200
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+Received: from moutng.kundenserver.de ([212.227.17.10]:55590 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750718Ab2JHObE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 10:31:04 -0400
+Date: Mon, 8 Oct 2012 16:30:53 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
 	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -16,115 +15,164 @@ Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	Stephen Warren <swarren@wwwdotorg.org>,
 	Arnd Bergmann <arnd@arndb.de>,
 	Grant Likely <grant.likely@secretlab.ca>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <201210051241.52205.hverkuil@xs4all.nl> <Pine.LNX.4.64.1210051250210.13761@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1210051250210.13761@axis700.grange>
+Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
+In-Reply-To: <201210081548.11207.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1210081619200.14454@axis700.grange>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
+ <201210051323.45571.hverkuil@xs4all.nl> <Pine.LNX.4.64.1210081306240.12203@axis700.grange>
+ <201210081548.11207.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210051323.45571.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri October 5 2012 12:58:21 Guennadi Liakhovetski wrote:
-> On Fri, 5 Oct 2012, Hans Verkuil wrote:
-> 
-> > On Tue October 2 2012 12:13:20 Sylwester Nawrocki wrote:
-> > > Hi Guennadi,
-> > > 
-> > > On 10/02/2012 11:49 AM, Guennadi Liakhovetski wrote:
-> > > >>> +	if (!of_property_read_u32_array(node, "data-lanes", data_lanes,
-> > > >>> +					ARRAY_SIZE(data_lanes))) {
-> > > >>> +		int i;
-> > > >>> +		for (i = 0; i<  ARRAY_SIZE(data_lanes); i++)
-> > > >>> +			link->mipi_csi_2.data_lanes[i] = data_lanes[i];
-> > > >>
-> > > >> It doesn't look like what we aimed for. The data-lanes array is supposed
-> > > >> to be of variable length, thus I don't think it can be parsed like that. 
-> > > >> Or am I missing something ? I think we need more something like below 
-> > > >> (based on of_property_read_u32_array(), not tested):
-> > > > 
-> > > > Ok, you're right, that my version only was suitable for fixed-size arrays, 
-> > > > which wasn't our goal. But I don't think we should go down to manually 
-> > > > parsing property data. How about (tested;-))
-> > > > 
-> > > > 	data = of_find_property(node, "data-lanes", NULL);
-> > > > 	if (data) {
-> > > > 		int i = 0;
-> > > > 		const __be32 *lane = NULL;
-> > > > 		do {
-> > > > 			lane = of_prop_next_u32(data, lane, &data_lanes[i]);
-> > > > 		} while (lane && i++ < ARRAY_SIZE(data_lanes));
-> > > > 		link->mipi_csi_2.num_data_lanes = i;
-> > > > 		while (i--)
-> > > > 			link->mipi_csi_2.data_lanes[i] = data_lanes[i];
-> > > > 	}
-> > > 
-> > > Yes, that looks neat and does what it is supposed to do. :) Thanks!
-> > > For now, I'll trust you it works ;)
-> > > 
-> > > With regards to the remaining patches, it looks a bit scary to me how
-> > > complicated it got, perhaps mostly because of requirement to reference
-> > > host devices from subdevs. And it seems to rely on the existing SoC
-> > > camera infrastructure, which might imply lot's of work need to be done
-> > > for non soc-camera drivers. But I'm going to take a closer look and
-> > > comment more on the details at the corresponding patches.
+On Mon, 8 Oct 2012, Hans Verkuil wrote:
+
+> On Mon October 8 2012 14:23:25 Guennadi Liakhovetski wrote:
+> > Hi Hans
 > > 
-> > I have to say that I agree with Sylwester here. It seems awfully complicated,
-> > but I can't really put my finger on the actual cause.
-> 
-> Well, which exactly part? The V4L2 OF part is quite simple.
-
-No, the soc_camera part. The V4L2 OF part looks OK. Sorry, I should have
-mentioned that!
-
-> > It would be really
-> > interesting to see this implemented for a non-SoC device and to compare the
-> > two.
-> 
-> Sure, volunteers? ;-) In principle, if I find time, I could try to convert 
-> sh_vou, which is also interesting, because it's an output driver.
-> 
-> > One area that I do not yet completely understand is the i2c bus notifications
-> > (or asynchronous loading or i2c modules).
+> > On Fri, 5 Oct 2012, Hans Verkuil wrote:
 > > 
-> > I would have expected that using OF the i2c devices are still initialized
-> > before the host/bridge driver is initialized. But I gather that's not the
-> > case?
+> > [snip]
+> > 
+> > > I think the soc_camera patches should be left out for now. I suspect that
+> > > by adding core support for async i2c handling first,
+> > 
+> > Ok, let's think, what this meacs - async I2C in media / V4L2 core.
+> > 
+> > The main reason for our probing order problem is the master clock, 
+> > typically supplied from the camera bridge to I2C subdevices, which we only 
+> > want to start when necessary, i.e. when accessing the subdevice. And the 
+> > subdevice driver needs that clock running during its .probe() to be able 
+> > to access and verify or configure the hardware. Our current solution is to 
+> > not register I2C subdevices from the platform data, as is usual for all 
+> > I2C devices, but from the bridge driver and only after it has switched on 
+> > the master clock. After the subdevice driver has completed its probing we 
+> > switch the clock back off until the subdevice has to be activated, e.g. 
+> > for video capture.
+> > 
+> > Also important - when we want to unregister the bridge driver we just also 
+> > unregister the I2C device.
+> > 
+> > Now, to reverse the whole thing and to allow I2C devices be registered as 
+> > usual - via platform data or OF, first of all we have to teach I2C 
+> > subdevice drivers to recognise the "too early" situation and request 
+> > deferred probing in such a case. Then it will be reprobed after each new 
+> > successful probe or unregister on the system. After the bridge driver has 
+> > successfully probed the subdevice driver will be re-probed and at that 
+> > time it should succeed. Now, there is a problem here too: who should 
+> > switch on and off the master clock?
+> > 
+> > If we do it from the bridge driver, we could install an I2C bus-notifier, 
+> > _before_ the subdevice driver is probed, i.e. upon the 
+> > BUS_NOTIFY_BIND_DRIVER event we could turn on the clock. If subdevice 
+> > probing was successful, we can then wait for the BUS_NOTIFY_BOUND_DRIVER 
+> > event to switch the clock back off. BUT - if the subdevice fails probing? 
+> > How do we find out about that and turn the clock back off? There is no 
+> > notification event for that... Possible solutions:
+> > 
+> > 1. timer - ugly and unreliable.
+> > 2. add a "probing failed" notifier event to the device core - would this 
+> >    be accepted?
+> > 3. let the subdevice turn the master clock on and off for the duration of 
+> >    probing.
+> > 
+> > My vote goes for (3). Ideally this should be done using the generic clock 
+> > framework. But can we really expect all drivers and platforms to switch to 
+> > it quickly enough? If not, we need a V4L2-specific callback from subdevice 
+> > drivers to bridge drivers to turn the clock on and off. That's what I've 
+> > done "temporarily" in this patch series for soc-camera.
+> > 
+> > Suppose we decide to do the same for V4L2 centrally - add call-backs. Then 
+> > we can think what else we need to add to V4L2 to support asynchronous 
+> > subdevice driver probing.
 > 
-> No, it's not. I'm not sure, whether it depends on the order of devices in 
-> the .dts, but, I think, it's better to not have to mandate a certain order 
-> and I also seem to have seen devices being registered in different order 
-> with the same DT, but I'm not 100% sure about that.
+> I wonder, don't we have the necessary code already? V4L2 subdev drivers can
+> have internal_ops with register/unregister ops. These are called by
+> v4l2_device_register_subdev. This happens during the bridge driver's probe.
 > 
-> > If this deferred probing is a general problem, then I think we need a general
-> > solution as well that's part of the v4l2 core.
+> Suppose the subdev's probe does not actually access the i2c device, but
+> instead defers that to the register callback? The bridge driver will turn on
+> the clock before calling v4l2_device_register_subdev to ensure that the
+> register callback can access the i2c registers. The register callback will
+> do any initialization and can return an error. In case of an error the i2c
+> client is automatically unregistered as well.
+
+Yes, if v4l2_i2c_new_subdev_board() is used. This has been discussed 
+several times before and always what I didn't like in this is, that I2C 
+device probe() in this case succeeds without even trying to access the 
+hardware. And think about DT. In this case we don't instantiate the I2C 
+device, OF code does it for us. What do you do then? If you let probe() 
+succeed, then you will have to somehow remember the subdevice to later 
+match it against bridges...
+
+> In addition, during the register op the subdev driver can call into the
+> bridge driver since it knows the v4l2_device struct.
 > 
-> That can be done, perhaps. But we can do it as a next step. As soon as 
-> we're happy with the OF implementation as such, we can commit that, 
-> possibly leaving soc-camera patches out for now, then we can think where 
-> to put async I2C handling.
-
-It would be good to have a number of 'Reviewed-by's or 'Acked-by's for the
-DT binding documentation at least before it is merged.
-
-I think the soc_camera patches should be left out for now. I suspect that
-by adding core support for async i2c handling first, the soc_camera patches
-will become a lot easier to understand.
-
-Regards,
-
-	Hans
-
+> This has also the advantage that subdev drivers can change to this model
+> gradually. Only drivers that need master clocks, etc. need to move any probe
+> code that actually accesses hardware to the register op. Others can remain
+> as. Nor should this change behavior of existing drivers as this happens
+> all in the V4L2 core.
 > 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> The bridge driver may still have to wait until all i2c drivers are loaded,
+> though. But that can definitely be handled centrally (i.e.: 'I need these
+> drivers, wait until all are loaded').
 > 
+> > 1. We'll have to create these V4L2 clock start and stop functions, that, 
+> > supplied (in case of I2C) with client address and adapter number will find 
+> > the correct v4l2_device instance and call its callbacks.
+> > 
+> > 2. The I2C notifier. I'm not sure, whether this one should be common. Of 
+> > common tasks we have to refcount the I2C adapter and register the 
+> > subdevice. Then we'd have to call the bridge driver's callback. Is it 
+> > worth it doing this centrally or rather allow individual drivers to do 
+> > that themselves?
+> > 
+> > Also, ideally OF-compatible (I2C) drivers should run with no platform 
+> > data, but soc-camera is using I2C device platform data intensively. To 
+> > avoid modifying the soc-camera core and all drivers, I also trigger on the 
+> > BUS_NOTIFY_BIND_DRIVER event and assign a reference to the dynamically 
+> > created platform data to the I2C device. Would we also want to do this for 
+> > all V4L2 bridge drivers? We could call this a "prepare" callback or 
+> > something similar...
+> 
+> Well, subdev drivers should either parse the OF data, or use the platform_data.
+> The way soc_camera uses platform_data is one reason why it is so hard to
+> reuse subdevs for non-soc_camera drivers. All the callbacks in soc_camera_link
+> should be replaced by calls to the v4l2_device notify() callback. After that we
+> can see what is needed to drop struct soc_camera_link altogether as platform_data.
+
+They don't have to be, they are not (or should not be) called by 
+subdevices.
+
+> > 3. Bridge driver unregistering. Here we have to put the subdevice driver 
+> > back into the deferred-probe state... Ugliness alert: I'm doing this by 
+> > unregistering and re-registering the I2C device... For that I also have to 
+> > create a copy of devices I2C board-info data. Lovely, ain't it? This I'd 
+> > be happy to move to the V4L2 core;-)
+> 
+> By just using the unregister ops this should be greatly simplified as well.
+
+Sorry, which unregister ops do you mean? internal_ops->unregistered()? 
+Yes, but only if we somehow go your way and use dummy probe() methods...
+
+Thanks
+Guennadi
+
+> Unless I am missing something, which is perfectly possible :-)
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > Thanks
+> > Guennadi
+> > 
+> > > the soc_camera patches
+> > > will become a lot easier to understand.
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
