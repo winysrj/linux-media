@@ -1,102 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:60568 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751550Ab2JJLL5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 07:11:57 -0400
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37301 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751002Ab2JHU7j (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 16:59:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Rob Herring <robherring2@gmail.com>, linux-sh@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 04/14] media: add V4L2 DT binding documentation
+Date: Mon, 08 Oct 2012 23:00:21 +0200
+Message-ID: <4043536.qVaHVXMbPA@avalon>
+In-Reply-To: <507330E6.1010409@wwwdotorg.org>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1210021626220.15778@axis700.grange> <507330E6.1010409@wwwdotorg.org>
 MIME-Version: 1.0
-In-Reply-To: <20121010075418.6a18a867@redhat.com>
-References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
-	<20121010075418.6a18a867@redhat.com>
-Date: Wed, 10 Oct 2012 20:11:55 +0900
-Message-ID: <CAH9JG2VBQSmiBYgVTaFYbgeaE35WMB-J4exT3Uqd9+fnsM0d-A@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCHv9 00/25] Integration of videobuf2 with DMABUF
-From: Kyungmin Park <kyungmin.park@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	arm-linux <linux-arm-kernel@lists.infradead.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	k.debski@samsung.com, s.nawrocki@samsung.com, pawel@osciak.com,
-	sumit.semwal@ti.com, robdclark@gmail.com,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	laurent.pinchart@ideasonboard.com, airlied@redhat.com,
-	remi@remlab.net, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/10/12, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> Hi,
->
-> Em Tue, 02 Oct 2012 16:27:11 +0200
-> Tomasz Stanislawski <t.stanislaws@samsung.com> escreveu:
->
->> Hello everyone,
->> This patchset adds support for DMABUF [2] importing and exporting to V4L2
->> stack.
->>
->> v9:
->> - rebase on 3.6
->> - change type for fs to __s32
->> - add support for vb2_ioctl_expbuf
->> - remove patch 'v4l: vb2: add support for DMA_ATTR_NO_KERNEL_MAPPING',
->>   it will be posted as a separate patch
->> - fix typos and style in Documentation (from Hans Verkuil)
->> - only vb2-core and vb2-dma-contig selects DMA_SHARED_BUFFER in Kconfig
->> - use data_offset and length while queueing DMABUF
->> - return the most recently used fd at VIDIOC_DQBUF
->> - use (buffer-type, index, plane) tuple instead of mem_offset
->>   to identify a for exporting (from Hans Verkuil)
->> - support for DMABUF mmap in vb2-dma-contig (from Laurent Pinchart)
->> - add testing alignment of vaddr and size while verifying userptr
->>   against DMA capabilities (from Laurent Pinchart)
->> - substitute VM_DONTDUMP with VM_RESERVED
->> - simplify error handling in vb2_dc_get_dmabuf (from Laurent Pinchart)
->
-> For now, NACK. See below.
+On Monday 08 October 2012 14:00:38 Stephen Warren wrote:
+> On 10/02/2012 08:33 AM, Guennadi Liakhovetski wrote:
+> > On Tue, 2 Oct 2012, Rob Herring wrote:
+> >> On 09/27/2012 09:07 AM, Guennadi Liakhovetski wrote:
+> >>> This patch adds a document, describing common V4L2 device tree bindings.
+> >>> 
+> >>> diff --git a/Documentation/devicetree/bindings/media/v4l2.txt
+> >>> b/Documentation/devicetree/bindings/media/v4l2.txt>> 
+> >> One other comment below:
+> >>> +
+> >>> +General concept
+> >>> +---------------
+> >>> +
+> >>> +Video pipelines consist of external devices, e.g. camera sensors,
+> >>> controlled +over an I2C, SPI or UART bus, and SoC internal IP blocks,
+> >>> including video DMA +engines and video data processors.
+> >>> +
+> >>> +SoC internal blocks are described by DT nodes, placed similarly to
+> >>> other SoC +blocks. External devices are represented as child nodes of
+> >>> their respective bus +controller nodes, e.g. I2C.
+> >>> +
+> >>> +Data interfaces on all video devices are described by "port" child DT
+> >>> nodes. +Configuration of a port depends on other devices participating
+> >>> in the data +transfer and is described by "link" DT nodes, specified as
+> >>> children of the +"port" nodes:
+> >>> +
+> >>> +/foo {
+> >>> +	port@0 {
+> >>> +		link@0 { ... };
+> >>> +		link@1 { ... };
+> >>> +	};
+> >>> +	port@1 { ... };
+> >>> +};
+> >>> +
+> >>> +If a port can be configured to work with more than one other device on
+> >>> the same +bus, a "link" child DT node must be provided for each of
+> >>> them. If more than one +port is present on a device or more than one
+> >>> link is connected to a port, a +common scheme, using "#address-cells,"
+> >>> "#size-cells" and "reg" properties is +used.
+> >>> +
+> >>> +Optional link properties:
+> >>> +- remote: phandle to the other endpoint link DT node.
+> >> 
+> >> This name is a little vague. Perhaps "endpoint" would be better.
+> > 
+> > "endpoint" can also refer to something local like in USB case. Maybe
+> > rather the description of the "remote" property should be improved?
+> 
+> The documentation doesn't show up in all the .dts files that use it; it
+> might be useful to try and make the .dts file as obviously readable as
+> possible.
+> 
+> Perhaps "remote-port" or "connected-port" would be sufficiently descriptive.
 
-Sad news!
-It's failed to merge by very poor samsung board support at mainline.
+I like remote-port better than the already proposed remote-link.
 
-CC arm & samsung mailing list.
+> (and yes, I know I'm probably bike-shedding now).
 
-Thank you,
-Kyungmin Park
->
-> I spent 4 days trying to setup an environment that would allow testing
-> DMABUF with video4linux without success (long story, see below). Also,
-> Laurent tried the same without any luck, and it seems that it even
-> corrupted his test machine.
->
-> Basically Samsung generously donated me two boards that it could be
-> used on this test (Origen and SMDK310). None of them actually worked
-> with the upstream kernel: patches are needed to avoid OOPSes on
-> Origen; both Origen/SMDK310 defconfigs are completely broken, and drivers
-> don't even boot if someone tries to use the Kernel's defconfigs.
->
-> Even after spending _days_ trying to figure out the needed .config options
-> (as the config files are not easily available), both boards have... issues:
->
-> 	- lack of any display output driver at SMDK310;
->
-> 	- lack of any network driver at Origen: it seems that none of
-> the available network options on Origen was upstreamed: no Bluetooth, no
-> OTG,
-> no Wifi.
->
-> The only test I was able to do (yesterday, late night), the DMABUF caused
-> an OOPS at the Origen board. So, for sure it is not ready for upstream.
->
-> It is now, too late for 3.7. I might consider it to 3.8, if something
-> can be done to fix the existing issues, and setup a proper setup, using
-> the upstream Kernel.
->
-> Regards,
-> Mauro
->
-> _______________________________________________
-> Linaro-mm-sig mailing list
-> Linaro-mm-sig@lists.linaro.org
-> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
->
+-- 
+Regards,
+
+Laurent Pinchart
+
