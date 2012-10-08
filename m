@@ -1,118 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:10820 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750851Ab2JGMfC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 08:35:02 -0400
-Date: Sun, 7 Oct 2012 09:34:43 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: =?UTF-8?B?UsOpbWk=?= Cardona <remi.cardona@smartjog.com>,
-	linux-media@vger.kernel.org, liplianin@me.by
-Subject: Re: [PATCH 6/7] [media] ds3000: add module parameter to force
- firmware upload
-Message-ID: <20121007093443.5626783f@redhat.com>
-In-Reply-To: <506B88FB.1090707@iki.fi>
-References: <1348837172-11784-1-git-send-email-remi.cardona@smartjog.com>
-	<1348837172-11784-7-git-send-email-remi.cardona@smartjog.com>
-	<506B88FB.1090707@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Received: from co1ehsobe003.messaging.microsoft.com ([216.32.180.186]:29592
+	"EHLO co1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753977Ab2JHHqo convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Oct 2012 03:46:44 -0400
+From: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: omap3-isp-live does not allocate big enough buffers?
+Date: Mon, 8 Oct 2012 07:46:35 +0000
+Message-ID: <6EE9CD707FBED24483D4CB0162E8546710061917@AM2PRD0710MB375.eurprd07.prod.outlook.com>
+Content-Language: de-DE
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 03 Oct 2012 03:38:19 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
+Hi Laurent
 
-> On 09/28/2012 03:59 PM, Rémi Cardona wrote:
-> > Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
+I am working on a demo-application for displaying a videostream on a 
+beagleboard. Now I have seen that you have done something similar, 
+but if I run your "live" application out of the omap3-isp-live repo,
+then I get the following error:
 
-Next time, please provide a better comment: why such change is
-needed?
+root@beagleboard:~# modprobe omap_vout video1_numbuffers=3 
+video2_numbuffers=3 video1_bufsize=771200 video2_bufsize=771200 
+vid1_static_vrfb_alloc=n vid2_static_vrfb_alloc=n
+root@beagleboard:~# ./live
+fb size is 800x480
+Device /dev/video6 opened: OMAP3 ISP resizer output (media).
+viewfinder configured for 2011 800x482
+AEWB: #win 10x7 start 16x74 size 256x256 inc 30x30
+trying to allocate 800x480
+Device /dev/video7 opened: omap_vout ().
+3 buffers requested.
+Buffer 0 mapped at address 0xb6d68000.
+Buffer 1 mapped at address 0xb6cac000.
+Buffer 2 mapped at address 0xb6bf0000.
+3 buffers requested.
+Buffer 0 too small (771200 bytes required, 770048 bytes available).
+error: unable to allocate buffers for viewfinder.
+error: unable to set buffers pool
 
-> 
-> Reviewed-by: Antti Palosaari <crope@iki.fi>
-> 
-> 
-> > ---
-> >   drivers/media/dvb-frontends/ds3000.c |    6 +++++-
-> >   1 file changed, 5 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/media/dvb-frontends/ds3000.c b/drivers/media/dvb-frontends/ds3000.c
-> > index 59184a8..c66d731 100644
-> > --- a/drivers/media/dvb-frontends/ds3000.c
-> > +++ b/drivers/media/dvb-frontends/ds3000.c
-> > @@ -30,6 +30,7 @@
-> >   #include "ds3000.h"
-> >
-> >   static int debug;
-> > +static int force_fw_upload;
-> >
-> >   #define dprintk(args...) \
-> >   	do { \
-> > @@ -396,7 +397,7 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
-> >   	dprintk("%s()\n", __func__);
-> >
-> >   	ret = ds3000_readreg(state, 0xb2);
-> > -	if (ret == 0) {
-> > +	if (ret == 0 && force_fw_upload == 0) {
+This seems to happen in the v4l2_alloc_buffers function of v4l2.c
+when memtype is V4L2_MEMORY_USERPTR. Has it been broken in the
+newer kernel versions? Do you have hint where I should start fixing?
 
-This hunk got a conflict. I solved it manually and applied. See below.
+I am using the following config:
+beagleboard-xm
+linux-omap branch, tag v3.5
+leopard imaging li-5m03 with mt9p031
 
-Regards,
-Mauro
+Greetings,
+Florian
 
--
-
-[PATCH] [media] ds3000: add module parameter to force firmware upload
-
-From: Rémi Cardona <remi.cardona@smartjog.com>
-
-[mchehab@redhat.com: Fix a merge conflict]
-Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/dvb-frontends/ds3000.c b/drivers/media/dvb-frontends/ds3000.c
-index 4c8ac26..5b63908 100644
---- a/drivers/media/dvb-frontends/ds3000.c
-+++ b/drivers/media/dvb-frontends/ds3000.c
-@@ -30,6 +30,7 @@
- #include "ds3000.h"
- 
- static int debug;
-+static int force_fw_upload;
- 
- #define dprintk(args...) \
- 	do { \
-@@ -392,11 +393,13 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
- 
- 	dprintk("%s()\n", __func__);
- 
--	if (ds3000_readreg(state, 0xb2) <= 0)
-+	ret = ds3000_readreg(state, 0xb2);
-+	if (ret < 0)
- 		return ret;
- 
--	if (state->skip_fw_load)
--		return 0;
-+	if (state->skip_fw_load || !force_fw_upload)
-+		return 0;	/* Firmware already uploaded, skipping */
-+
- 	/* Load firmware */
- 	/* request the firmware, this will block until someone uploads it */
- 	printk(KERN_INFO "%s: Waiting for firmware upload (%s)...\n", __func__,
-@@ -1306,6 +1309,9 @@ static struct dvb_frontend_ops ds3000_ops = {
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
- 
-+module_param(force_fw_upload, int, 0644);
-+MODULE_PARM_DESC(force_fw_upload, "Force firmware upload (default:0)");
-+
- MODULE_DESCRIPTION("DVB Frontend module for Montage Technology "
- 			"DS3000/TS2020 hardware");
- MODULE_AUTHOR("Konstantin Dimitrov");
-
--- 
-Regards,
-Mauro
