@@ -1,192 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48744 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751198Ab2JJXr3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 19:47:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	tony@atomide.com, khilman@deeprootsystems.com
-Subject: Re: [PATCH v4 2/3] omap3isp: Add PHY routing configuration
-Date: Thu, 11 Oct 2012 01:48:12 +0200
-Message-ID: <2439138.6ymQVbVvlT@avalon>
-In-Reply-To: <1349899302-9041-2-git-send-email-sakari.ailus@iki.fi>
-References: <20121010200115.GO14107@valkosipuli.retiisi.org.uk> <1349899302-9041-2-git-send-email-sakari.ailus@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.17.9]:55135 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752597Ab2JHIZI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 04:25:08 -0400
+Date: Mon, 8 Oct 2012 10:25:04 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Stephen Warren <swarren@wwwdotorg.org>
+cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	dri-devel@lists.freedesktop.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2 v6] of: add helper to parse display timings
+In-Reply-To: <506F0833.1090704@wwwdotorg.org>
+Message-ID: <Pine.LNX.4.64.1210081000530.11034@axis700.grange>
+References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1349373560-11128-2-git-send-email-s.trumtrar@pengutronix.de>
+ <Pine.LNX.4.64.1210042307300.3744@axis700.grange> <506F0833.1090704@wwwdotorg.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Fri, 5 Oct 2012, Stephen Warren wrote:
 
-Thanks for the patch.
-
-On Wednesday 10 October 2012 23:01:41 Sakari Ailus wrote:
-> Add PHY routing configuration for both 3430 and 3630. Also add register bit
-> definitions of CSIRXFE and CAMERA_PHY_CTRL registers on OMAP 3430 and 3630,
-> respectively.
+> On 10/04/2012 03:35 PM, Guennadi Liakhovetski wrote:
+> > Hi Steffen
+> > 
+> > Sorry for chiming in so late in the game, but I've long been wanting to 
+> > have a look at this and compare with what we do for V4L2, so, this seems a 
+> > great opportunity to me:-)
+> > 
+> > On Thu, 4 Oct 2012, Steffen Trumtrar wrote:
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/platform/omap3isp/ispcsiphy.c |   92 ++++++++++++++++++++++++
->  drivers/media/platform/omap3isp/ispreg.h    |   22 +++++++
->  2 files changed, 114 insertions(+), 0 deletions(-)
+> >> diff --git a/Documentation/devicetree/bindings/video/display-timings.txt b/Documentation/devicetree/bindings/video/display-timings.txt
 > 
-> diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c
-> b/drivers/media/platform/omap3isp/ispcsiphy.c index 348f67e..12ae394 100644
-> --- a/drivers/media/platform/omap3isp/ispcsiphy.c
-> +++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-> @@ -32,6 +32,98 @@
->  #include "ispreg.h"
->  #include "ispcsiphy.h"
+> >> +timings-subnode
+> >> +---------------
+> >> +
+> >> +required properties:
+> >> + - hactive, vactive: Display resolution
+> >> + - hfront-porch, hback-porch, hsync-len: Horizontal Display timing parameters
+> >> +   in pixels
+> >> +   vfront-porch, vback-porch, vsync-len: Vertical display timing parameters in
+> >> +   lines
+> >> + - clock: displayclock in Hz
+> > 
+> > You're going to hate me for this, but eventually we want to actually 
+> > reference clock objects in our DT bindings. For now, even if you don't 
+> > want to actually add clock phandles and stuff here, I think, using the 
+> > standard "clock-frequency" property would be much better!
 > 
-> +static void csiphy_routing_cfg_3630(struct isp_csiphy *phy, u32 iface,
-> +				    bool ccp2_strobe)
-> +{
-> +	u32 reg = isp_reg_readl(
-> +		phy->isp, OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL, 0);
-> +	u32 shift, mode;
-> +
-> +	switch (iface) {
-> +	case ISP_INTERFACE_CCP2B_PHY1:
-> +		reg &= ~OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
-> +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
-> +		break;
-> +	case ISP_INTERFACE_CSI2C_PHY1:
-> +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
-> +		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
-> +		break;
-> +	case ISP_INTERFACE_CCP2B_PHY2:
-> +		reg |= OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
-> +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
-> +		break;
-> +	case ISP_INTERFACE_CSI2A_PHY2:
-> +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
-> +		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
-> +		break;
-> +	}
-> +
-> +	/* Select data/clock or data/strobe mode for CCP2 */
-> +	switch (iface) {
-> +	case ISP_INTERFACE_CCP2B_PHY1:
-> +	case ISP_INTERFACE_CCP2B_PHY2:
-> +		if (ccp2_strobe)
-> +			mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_STROBE;
-> +		else
-> +			mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_CLOCK;
-> +	}
-> +
-> +	reg &= ~(OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_MASK << shift);
-> +	reg |= mode << shift;
-> +
-> +	isp_reg_writel(phy->isp, reg,
-> +		       OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL, 0);
-> +}
-> +
-> +static void csiphy_routing_cfg_3430(struct isp_csiphy *phy, u32 iface, bool
-> on,
-> +				    bool ccp2_strobe)
-> +{
-> +	uint32_t csirxfe = OMAP343X_CONTROL_CSIRXFE_PWRDNZ
-> +		| OMAP343X_CONTROL_CSIRXFE_RESET;
+> In a definition of a display timing, we will never need to use the clock
+> binding; the clock binding would be used by the HW module that is
+> generating a timing, not by the timing definition itself.
 
-Anything wrong with u32 ? :-)
+You mean clock consumer bindings will be in the display device DT node? 
+And the display-timings node will be its child?
 
-(I would also align the | with the = but that's nitpicking)
-
-> +
-> +	/* Nothing to configure here. */
-> +	if (iface == ISP_INTERFACE_CSI2A_PHY2)
-> +		return;
-> +
-> +	if (iface != ISP_INTERFACE_CCP2B_PHY1)
-> +		return;
-
-Can't you get rid of the first check ?
-
-> +	if (!on) {
-> +		isp_reg_writel(phy->isp, 0,
-> +			       OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE, 0);
-> +		return;
-> +	}
-> +
-> +	if (ccp2_strobe)
-> +		csirxfe |= OMAP343X_CONTROL_CSIRXFE_SELFORM;
-> +
-> +	isp_reg_writel(phy->isp, csirxfe,
-> +		       OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE, 0);
-> +}
-> +
-> +/**
-> + * Configure OMAP 3 CSI PHY routing.
-> + *
-> + * Note that the underlying routing configuration registers are part
-> + * of the control (SCM) register space and part of the CORE power
-> + * domain on both 3430 and 3630, so they will not hold their contents
-> + * in off-mode.
-
-Could you please add a sentence to explain why that's not an issue ?
-
-> + * @phy: relevant phy device
-> + * @iface: ISP_INTERFACE_*
-> + * @on: power on or off
-> + * @ccp2_strobe: false: data/clock, true: data/strobe
-> + */
-> +static void csiphy_routing_cfg(struct isp_csiphy *phy, u32 iface, bool on,
-> +			       bool ccp2_strobe)
-> +{
-> +	if (phy->isp->mmio_base[OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL]
-> +	    && on)
-> +		return csiphy_routing_cfg_3630(phy, iface, ccp2_strobe);
-> +	if (phy->isp->mmio_base[OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE])
-> +		return csiphy_routing_cfg_3430(phy, iface, on, ccp2_strobe);
-> +}
-> +
->  /*
->   * csiphy_lanes_config - Configuration of CSIPHY lanes.
->   *
-> diff --git a/drivers/media/platform/omap3isp/ispreg.h
-> b/drivers/media/platform/omap3isp/ispreg.h index e2c57f3..148108b 100644
-> --- a/drivers/media/platform/omap3isp/ispreg.h
-> +++ b/drivers/media/platform/omap3isp/ispreg.h
-> @@ -1583,4 +1583,26 @@
->  #define ISPCSIPHY_REG2_CCP2_SYNC_PATTERN_MASK		\
->  	(0x7fffff << ISPCSIPHY_REG2_CCP2_SYNC_PATTERN_SHIFT)
+> That said, your comment about renaming the property to avoid any kind of
+> conceptual conflict is still quite valid. This is bike-shedding, but
+> "pixel-clock" might be more in line with typical video mode terminology,
+> although there's certainly preference in DT for using the generic term
+> clock-frequency that you proposed. Either is fine by me.
 > 
-> +/*
-> ---------------------------------------------------------------------------
-> -- + * CONTROL registers for CSI-2 phy routing
-> + */
-> +
-> +/* OMAP343X_CONTROL_CSIRXFE */
-> +#define OMAP343X_CONTROL_CSIRXFE_CSIB_INV	(1 << 7)
-> +#define OMAP343X_CONTROL_CSIRXFE_RESENABLE	(1 << 8)
-> +#define OMAP343X_CONTROL_CSIRXFE_SELFORM	(1 << 10)
-> +#define OMAP343X_CONTROL_CSIRXFE_PWRDNZ		(1 << 12)
-> +#define OMAP343X_CONTROL_CSIRXFE_RESET		(1 << 13)
-> +
-> +/* OMAP3630_CONTROL_CAMERA_PHY_CTRL */
-> +#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT	2
-> +#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT	0
-> +#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY		0x0
-> +#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_STROBE 0x1
-> +#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_CLOCK 0x2
-> +#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_GPI		0x3
-> +#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_MASK		0x3
-> +/* CCP2B: set to receive data from PHY2 instead of PHY1 */
-> +#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2	(1 << 4)
-> +
+> >> +optional properties:
+> >> + - hsync-active-high (bool): Hsync pulse is active high
+> >> + - vsync-active-high (bool): Vsync pulse is active high
+> > 
+> > For the above two we also considered using bool properties but eventually 
+> > settled down with integer ones:
+> > 
+> > - hsync-active = <1>
+> > 
+> > for active-high and 0 for active low. This has the added advantage of 
+> > being able to omit this property in the .dts, which then doesn't mean, 
+> > that the polarity is active low, but rather, that the hsync line is not 
+> > used on this hardware. So, maybe it would be good to use the same binding 
+> > here too?
+> 
+> I agree. This also covers the case where analog display connectors often
+> use polarity to differentiate similar modes, yet digital connectors
+> often always use a fixed polarity since the receiving device can
+> "measure" the signal in more complete ways.
+> 
+> If the board HW inverts these lines, the same property names can exist
+> in the display controller itself, and the two values XORd together to
+> yield the final output polarity.
+> 
+> >> + - de-active-high (bool): Data-Enable pulse is active high
+> >> + - pixelclk-inverted (bool): pixelclock is inverted
+> > 
+> > We don't (yet) have a de-active property in V4L, don't know whether we'll 
+> > ever have to distingsuish between what some datasheets call "HREF" and 
+> > HSYNC in DT, but maybe similarly to the above an integer would be 
+> > preferred. As for pixclk, we call the property "pclk-sample" and it's also 
+> > an integer.
+> 
+> Thinking about this more: de-active-high is likely to be a
+> board-specific property and hence something in the display controller,
+> not in the mode definition?
+> 
+> >> + - interlaced (bool)
+> > 
+> > Is "interlaced" a property of the hardware, i.e. of the board? Can the 
+> > same display controller on one board require interlaced data and on 
+> > another board - progressive?
+> 
+> Interlace is a property of a display mode. It's quite possible for a
+> particular display controller to switch between interlace and
+> progressive output at run-time. For example, reconfiguring the output
+> between 480i, 720p, 1080i, 1080p modes. Admittedly, if you're talking to
+> a built-in LCD display, you're probably always going to be driving the
+> single mode required by the panel, and that mode will likely always be
+> progressive. However, since this binding attempts to describe any
+> display timing, I think we still need this property per mode.
 
-As the registers addresses are declared in a platform header, do you think it 
-would make sense to declare those there as well ? If not I'm fine with keeping 
-them here.
+But why do you need this in the DT then at all? If it's fixed, as required 
+per display controller, then its driver will know it. If it's runtime 
+configurable, then it's a purely software parameter and doesn't depend on 
+the board?
 
->  #endif	/* OMAP3_ISP_REG_H */
+> > BTW, I'm not very familiar with display 
+> > interfaces, but for interlaced you probably sometimes use a field signal, 
+> > whose polarity you also want to specify here? We use a "field-even-active" 
+> > integer property for it.
+> 
+> I think that's a property of the display controller itself, rather than
+> an individual mode, although I'm not 100% certain. My assertion is that
+> the physical interface that the display controller is driving will
+> determine whether embedded or separate sync is used, and in the separate
+> sync case, how the field signal is defined, and that all interlace modes
+> driven over that interface will use the same field signal definition.
 
--- 
-Regards,
+In general, I might be misunderstanding something, but don't we have to 
+distinguish between 2 types of information about display timings: (1) is 
+defined by the display controller requirements, is known to the display 
+driver and doesn't need to be present in timings DT. We did have some of 
+these parameters in board data previously, because we didn't have proper 
+display controller drivers... (2) is board specific configuration, and is 
+such it has to be present in DT.
 
-Laurent Pinchart
+In that way, doesn't "interlaced" belong to type (1) and thus doesn't need 
+to be present in DT?
 
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
