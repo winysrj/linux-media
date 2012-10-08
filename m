@@ -1,46 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:31803 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751557Ab2JKMKk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Oct 2012 08:10:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH] dma-buf: Use EXPORT_SYMBOL
-Date: Thu, 11 Oct 2012 14:10:13 +0200
-Cc: Rob Clark <rob@ti.com>, Robert Morell <rmorell@nvidia.com>,
-	linaro-mm-sig@lists.linaro.org,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com> <20121011123407.63b5ecbe@pyramind.ukuu.org.uk> <201210111336.45574.hverkuil@xs4all.nl>
-In-Reply-To: <201210111336.45574.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from casper.infradead.org ([85.118.1.10]:55092 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751092Ab2JHB5D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 21:57:03 -0400
+Date: Sun, 7 Oct 2012 22:56:39 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Joe Perches <joe@perches.com>
+Cc: Julia Lawall <julia.lawall@lip6.fr>, walter harms <wharms@bfs.de>,
+	Antti Palosaari <crope@iki.fi>,
+	kernel-janitors@vger.kernel.org, rmallon@gmail.com,
+	shubhrajyoti@ti.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for
+ i2c_msg initialization
+Message-ID: <20121007225639.364a41b4@infradead.org>
+In-Reply-To: <1349646718.15802.16.camel@joe-AO722>
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
+	<1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr>
+	<5071AEF3.6080108@bfs.de>
+	<alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6>
+	<5071B834.1010200@bfs.de>
+	<alpine.DEB.2.02.1210071917040.2745@localhost6.localdomain6>
+	<1349633780.15802.8.camel@joe-AO722>
+	<alpine.DEB.2.02.1210072053550.2745@localhost6.localdomain6>
+	<1349645970.15802.12.camel@joe-AO722>
+	<alpine.DEB.2.02.1210072342460.2745@localhost6.localdomain6>
+	<1349646718.15802.16.camel@joe-AO722>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201210111410.13144.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 11 October 2012 13:36:45 Hans Verkuil wrote:
-> On Thu 11 October 2012 13:34:07 Alan Cox wrote:
-> > > The whole purpose of this API is to let DRM and V4L drivers share buffers for
-> > > zero-copy pipelines. Unfortunately it is a fact that several popular DRM drivers
-> > > are closed source. So we have a choice between keeping the export symbols GPL
-> > > and forcing those closed-source drivers to make their own incompatible API,
-> > > thus defeating the whole point of DMABUF, or using EXPORT_SYMBOL and letting
-> > > the closed source vendors worry about the legality. They are already using such
-> > > functions (at least nvidia is), so they clearly accept that risk.
+Em Sun, 07 Oct 2012 14:51:58 -0700
+Joe Perches <joe@perches.com> escreveu:
+
+> On Sun, 2012-10-07 at 23:43 +0200, Julia Lawall wrote:
+> > On Sun, 7 Oct 2012, Joe Perches wrote:
+> > >> Are READ and WRITE the action names?  They are really the important
+> > >> information in this case.
+> > >
+> > > Yes, most (all?) uses of _READ and _WRITE macros actually
+> > > perform some I/O.
 > > 
-> > Then they can accept the risk of ignoring EXPORT_SYMBOL_GPL and
-> > calling into it anyway can't they. Your argument makes no rational sense
-> > of any kind.
+> > I2C_MSG_READ_DATA?
+> > I2C_MSG_READ_INFO?
+> > I2C_MSG_READ_INIT?
+> > I2C_MSG_PREPARE_READ?
 > 
-> Out of curiosity: why do we have both an EXPORT_SYMBOL and an EXPORT_SYMBOL_GPL
-> if there is no legal difference?
+> Dunno, naming is hard.  Maybe:
 > 
-> And if there is a difference between the two, then what is it?
+> I2C_INPUT_MSG
+> I2C_OUTPUT_MSG
+> I2C_OP_MSG
 
-Answering myself:
+READ/WRITE sounds better, IMHO, as it will generally match with the
+function names (they're generally named like foo_i2c_read or foo_reg_read).
+I think none of them uses input or output. Btw, with I2C buses, a
+register read is coded as a write ops, that sets the register's sub-address,
+followed by a read ops from that (and subsequent) registers.
 
-http://lwn.net/Articles/154602/
+I'm afraid that using INPUT/OUTPUT will sound confusing.
+
+So, IMHO, I2C_READ_MSG and I2C_WRITE_MSG sounds better.
+
+Btw, as the WRITE + READ operation is very common (I think it is
+much more common than a simple READ msg), it could make sense to have
+just one macro for it, like:
+
+INIT_I2C_READ_SUBADDR() that would take both write and read values.
+
+I also don't like the I2C_MSG_OP. The operations there are always
+read or write.
+
+So, IMHO, the better would be to code the read and write message init message 
+as something similar to:
+
+#define DECLARE_I2C_MSG_READ(_msg, _addr, _buf, _len, _flags)					\
+	struct i2c_msg _msg[1] = {								\
+		{.addr = _addr, .buf = _buf, .len = _len, .flags = (_flags) | I2C_M_RD }	\
+	}
+
+#define DECLARE_I2C_MSG_WRITE(_msg, _addr, _buf, _len, _flags)					\
+	struct i2c_msg _msg[1] = {								\
+		{.addr = _addr, .buf = _buf, .len = _len, .flags = (_flags) & ~I2C_M_RD }	\
+	}
+
+#define DECLARE_I2C_MSG_READ_SUBADDR(_msg, _addr, _subaddr, _sublen,_subflags, _buf,_len, _flags)	\
+	struct i2c_msg _msg[2] = {									\
+		{.addr = _addr, .buf = _subbuf, .len = _sublen, .flags = (_subflags) & ~I2C_M_RD }	\
+		{.addr = _addr, .buf = _buf, .len = _len, .flags = (_flags) | I2C_M_RD }		\
+	}
+
+
+Notes:
+
+1) in the case of DECLARE_I2C_MSG_READ_SUBADDR(), I'm almost sure that, in all cases, the
+first message will always have buffer size equal to 1. If so, you can simplify the number
+of arguments there.
+
+2) It could make sense to have, in fact, two versions for each, one with _FLAGS and another one
+without. On most cases, the one without flags are used.
+
+3) I bet that most of the cases where 2 messages are used, the first message has length equal
+to one, and it uses a fixed u8 constant with the I2C sub-address. So, maybe it would be nice
+to have a variant for this case.
+
+
+Cheers,
+Mauro
