@@ -1,170 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:54863 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750780Ab2JHJJZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 05:09:25 -0400
-Date: Mon, 8 Oct 2012 11:09:22 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Fabio Estevam <fabio.estevam@freescale.com>
-cc: kernel@pengutronix.de, mchehab@infradead.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	javier.martin@vista-silicon.com
-Subject: Re: [PATCH 2/2] [media]: mx2_camera: Fix regression caused by clock
- conversion
-In-Reply-To: <1349473981-15084-1-git-send-email-fabio.estevam@freescale.com>
-Message-ID: <Pine.LNX.4.64.1210081108130.12203@axis700.grange>
-References: <1349473981-15084-1-git-send-email-fabio.estevam@freescale.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:17815 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751208Ab2JHKld (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 06:41:33 -0400
+Received: from eusync2.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBK002GILPROC80@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 08 Oct 2012 11:41:51 +0100 (BST)
+Received: from [106.116.147.108] by eusync2.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MBK000CZLP6BW40@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 08 Oct 2012 11:41:31 +0100 (BST)
+Message-id: <5072ADD8.90709@samsung.com>
+Date: Mon, 08 Oct 2012 12:41:28 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
+	subashrp@gmail.com, mchehab@redhat.com, zhangfei.gao@gmail.com,
+	s.nawrocki@samsung.com, k.debski@samsung.com
+Subject: Re: [PATCHv9 18/25] v4l: add buffer exporting via dmabuf
+References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
+ <201210071617.03213.hverkuil@xs4all.nl> <50729F95.70003@samsung.com>
+ <201210081154.57646.hverkuil@xs4all.nl>
+In-reply-to: <201210081154.57646.hverkuil@xs4all.nl>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabio
+Hi Hans,
 
-On Fri, 5 Oct 2012, Fabio Estevam wrote:
-
-> Since mx27 transitioned to the commmon clock framework in 3.5, the correct way
-> to acquire the csi clock is to get csi_ahb and csi_per clocks separately.
+On 10/08/2012 11:54 AM, Hans Verkuil wrote:
+> On Mon October 8 2012 11:40:37 Tomasz Stanislawski wrote:
+>> Hi Hans,
+>>
+>> On 10/07/2012 04:17 PM, Hans Verkuil wrote:
+>>> On Sun October 7 2012 15:38:30 Laurent Pinchart wrote:
+>>>> Hi Hans,
+>>>>
+>>>> On Friday 05 October 2012 10:55:40 Hans Verkuil wrote:
+>>>>> On Tue October 2 2012 16:27:29 Tomasz Stanislawski wrote:
+>>>>>> This patch adds extension to V4L2 api. It allow to export a mmap buffer as
+>>>>>> file descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer
+>>>>>> offset used by mmap and return a file descriptor on success.
+>>>>>>
+>>>>>> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+>>>>>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+[snip]
+>>>>>> +struct v4l2_exportbuffer {
+>>>>>> +	__s32		fd;
+>>>>>> +	__u32		flags;
+>>>>>> +	__u32		type; /* enum v4l2_buf_type */
+>>>>>> +	__u32		index;
+>>>>>> +	__u32		plane;
+>>>>>
+>>>>> As suggested in my comments in the previous patch, I think it is a more
+>>>>> natural order to have the type/index/plane fields first in this struct.
+>>>>>
+>>>>> Actually, I think that flags should also come before fd:
+>>>>>
+>>>>> struct v4l2_exportbuffer {
+>>>>> 	__u32		type; /* enum v4l2_buf_type */
+>>>>> 	__u32		index;
+>>>>> 	__u32		plane;
+>>>>> 	__u32		flags;
+>>>>> 	__s32		fd;
+>>>>> 	__u32		reserved[11];
+>>>>> };
+>>>>
+>>>> It would indeed feel more natural, but putting them right before the reserved 
+>>>> fields allows creating an anonymous union around type, index and plane and 
+>>>> extending it with reserved fields if needed. That's (at least to my 
+>>>> understanding) the rationale behind the current structure layout.
+>>>
+>>> The anonymous union argument makes no sense to me, to be honest.
+>>
+>> I agree that the anonymous unions are not good solutions because they are not
+>> supported in many C dialects. However I have nothing against using named unions.
 > 
-> By not doing so the camera sensor does not probe correctly:
-> 
-> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
-> mx2-camera mx2-camera.0: Camera driver attached to camera 0
-> ov2640 0-0030: Product ID error fb:fb
-> mx2-camera mx2-camera.0: Camera driver detached from camera 0
-> mx2-camera mx2-camera.0: MX2 Camera (CSI) driver probed, clock frequency: 66500000
-> 
-> Adapt the mx2_camera driver to the new clock framework and make it functional
-> again.
-
-Do I understand it right, that since the driver is currently broken, it 
-doesn't matter any more in which order these two patches get applied, so, 
-we can push them via different trees - ARM and media?
-
-Thanks
-Guennadi
-
-> 
-> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-> ---
->  drivers/media/platform/soc_camera/mx2_camera.c |   42 ++++++++++++++++--------
->  1 file changed, 29 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-> index 0c0dd74..2c67969 100644
-> --- a/drivers/media/platform/soc_camera/mx2_camera.c
-> +++ b/drivers/media/platform/soc_camera/mx2_camera.c
-> @@ -272,8 +272,9 @@ struct mx2_camera_dev {
->  	struct device		*dev;
->  	struct soc_camera_host	soc_host;
->  	struct soc_camera_device *icd;
-> -	struct clk		*clk_csi, *clk_emma_ahb, *clk_emma_ipg;
-> -
-> +	struct clk		*clk_emma_ahb, *clk_emma_ipg;
-> +	struct clk		*clk_csi_ahb, *clk_csi_per;
-> +
->  	unsigned int		irq_csi, irq_emma;
->  	void __iomem		*base_csi, *base_emma;
->  	unsigned long		base_dma;
-> @@ -435,7 +436,8 @@ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
->  {
->  	unsigned long flags;
->  
-> -	clk_disable_unprepare(pcdev->clk_csi);
-> +	clk_disable_unprepare(pcdev->clk_csi_ahb);
-> +	clk_disable_unprepare(pcdev->clk_csi_per);
->  	writel(0, pcdev->base_csi + CSICR1);
->  	if (cpu_is_mx27()) {
->  		writel(0, pcdev->base_emma + PRP_CNTL);
-> @@ -463,7 +465,11 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
->  	if (pcdev->icd)
->  		return -EBUSY;
->  
-> -	ret = clk_prepare_enable(pcdev->clk_csi);
-> +	ret = clk_prepare_enable(pcdev->clk_csi_ahb);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = clk_prepare_enable(pcdev->clk_csi_per);
->  	if (ret < 0)
->  		return ret;
->  
-> @@ -1736,13 +1742,21 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
->  		goto exit;
->  	}
->  
-> -	pcdev->clk_csi = clk_get(&pdev->dev, "ahb");
-> -	if (IS_ERR(pcdev->clk_csi)) {
-> -		dev_err(&pdev->dev, "Could not get csi clock\n");
-> -		err = PTR_ERR(pcdev->clk_csi);
-> +	pcdev->clk_csi_ahb = clk_get(&pdev->dev, "ahb");
-> +	if (IS_ERR(pcdev->clk_csi_ahb)) {
-> +		dev_err(&pdev->dev, "Could not get csi ahb clock\n");
-> +		err = PTR_ERR(pcdev->clk_csi_ahb);
->  		goto exit_kfree;
->  	}
->  
-> +	pcdev->clk_csi_per = clk_get(&pdev->dev, "per");
-> +	if (IS_ERR(pcdev->clk_csi_per)) {
-> +		dev_err(&pdev->dev, "Could not get csi per clock\n");
-> +		err = PTR_ERR(pcdev->clk_csi_per);
-> +		goto exit_kfree;
-> +	}
-> +
-> +
->  	pcdev->res_csi = res_csi;
->  	pcdev->pdata = pdev->dev.platform_data;
->  	if (pcdev->pdata) {
-> @@ -1750,12 +1764,12 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
->  
->  		pcdev->platform_flags = pcdev->pdata->flags;
->  
-> -		rate = clk_round_rate(pcdev->clk_csi, pcdev->pdata->clk * 2);
-> +		rate = clk_round_rate(pcdev->clk_csi_per, pcdev->pdata->clk * 2);
->  		if (rate <= 0) {
->  			err = -ENODEV;
->  			goto exit_dma_free;
->  		}
-> -		err = clk_set_rate(pcdev->clk_csi, rate);
-> +		err = clk_set_rate(pcdev->clk_csi_per, rate);
->  		if (err < 0)
->  			goto exit_dma_free;
->  	}
-> @@ -1827,7 +1841,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
->  		goto exit_free_emma;
->  
->  	dev_info(&pdev->dev, "MX2 Camera (CSI) driver probed, clock frequency: %ld\n",
-> -			clk_get_rate(pcdev->clk_csi));
-> +			clk_get_rate(pcdev->clk_csi_per));
->  
->  	return 0;
->  
-> @@ -1851,7 +1865,8 @@ exit_iounmap:
->  exit_release:
->  	release_mem_region(res_csi->start, resource_size(res_csi));
->  exit_dma_free:
-> -	clk_put(pcdev->clk_csi);
-> +	clk_put(pcdev->clk_csi_per);
-> +	clk_put(pcdev->clk_csi_ahb);
->  exit_kfree:
->  	kfree(pcdev);
->  exit:
-> @@ -1865,7 +1880,8 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
->  			struct mx2_camera_dev, soc_host);
->  	struct resource *res;
->  
-> -	clk_put(pcdev->clk_csi);
-> +	clk_put(pcdev->clk_csi_per);
-> +	clk_put(pcdev->clk_csi_ahb);
->  	if (cpu_is_mx25())
->  		free_irq(pcdev->irq_csi, pcdev);
->  	if (cpu_is_mx27())
-> -- 
-> 1.7.9.5
-> 
+> Named or unnamed, I don't see how a union will help. What do you want to do
+> with a union?
 > 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Currently, there exist three sane layouts of the structure, that use
+only one reserved field:
+
+A)
+struct v4l2_exportbuffer {
+	__s32		fd;
+	__u32		flags;
+	__u32		type; /* enum v4l2_buf_type */
+	__u32		index;
+	__u32		plane;
+	__u32		reserved[11];
+}
+
+B)
+struct v4l2_exportbuffer {
+	__u32		type; /* enum v4l2_buf_type */
+	__u32		index;
+	__u32		plane;
+	__u32		flags;
+	__s32		fd;
+	__u32		reserved[11];
+}
+
+C)
+struct v4l2_exportbuffer {
+	__u32		type; /* enum v4l2_buf_type */
+	__u32		index;
+	__u32		plane;
+	__u32		reserved[11];
+	__u32		flags;
+	__s32		fd;
+}
+
+Only the layout B follows 'input/output/reserved' rule.
+
+The layouts A and C allows to extend (type/index/plane) tuple without mixing
+it with (flags,fd).
+
+For layouts A and C it is possible to use unions to provide new
+means of describing a buffer to be exported.
+
+struct v4l2_exportbuffer {
+	__s32		fd;
+	__u32		flags;
+	union {
+		struct by_tip { /* type, index, plane */
+			__u32		type; /* enum v4l2_buf_type */
+			__u32		index;
+			__u32		plane;
+		} by_tip;
+		struct by_userptr {
+			u64	userptr;
+			u64	length;
+		} by_userptr;
+		__u32	reserved[6];
+	} b;
+	__u32	union_type; /* BY_TIP or BY_USERPTR */
+	__u32	reserved[4];
+};
+
+No such an extension can be applied for layout B.
+
+The similar scheme can be used for layout C. Moreover it support
+extensions and variants for (flags/fd) tuple. It might be
+useful if one day we would like to export a buffer as something
+different from DMABUF file descriptors.
+
+Anyway, we have to choose between the elegance of the layout
+and the extensibility.
+
+I think that layout A is a good trade-off.
+We could swap fd and flags to get little closer to "the rule".
+
+>>
+>>> It's standard practice within V4L2 to have the IN fields first, then the OUT fields, followed
+>>> by reserved fields for future expansion.
+>>
+>> IMO, the "input/output/reserved rule" is only a recommendation.
+>> The are places in V4L2 where this rule is violated with structure
+>> v4l2_buffer being the most notable example.
+>>
+>> Notice that if at least one of the reserved fields becomes an input
+>> file then "the rule" will be violated anyway.
+> 
+> Sure, but there is no legacy yet, so why not keep to the recommendation?
+> 
+>>> Should we ever need a, say, sub-plane
+>>> index (whatever that might be), then we can use one of the reserved fields.
+>>
+>> Maybe not subplane :).
+>> But maybe some data_offset for exporting only a part of the buffer will
+>> be needed some day.
+>> Moreover, the integration of DMABUF with the DMA synchronization framework
+>> may involve passing additional parameters from the userspace.
+>>
+>> Notice that flags and fd fields are not logically connected with
+>> (type/index/plane) tuple.
+>> Therefore both field sets should be separated by some reserved fields to
+>> ensure that any of them can be extended if needed.
+>>
+>> This was the rationale for the structure layout in v9.
+> 
+> It's a bad idea to add multiple 'reserved' arrays, that makes userspace harder
+> since it has to zero all of them instead of just one. Actually, the same applies
+> to kernel space, which has to zero them as well.
+
+Userspace usually cleans the whole structure using memset call.
+Notice that memset is a build-in functions therefore fields
+are not zeroed if they are initialized just below memset.
+
+The number of reserved fields has no impact on initialization code.
+There has also negligible impact on performance (if any at all).
+
+Regards,
+Tomasz Stanislawski
+
+> 
+> I still don't know why you want to use a non-standard field order.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+
