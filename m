@@ -1,147 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13317 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754050Ab2JJO5g (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 10:57:36 -0400
-Date: Wed, 10 Oct 2012 11:57:03 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+Received: from moutng.kundenserver.de ([212.227.17.10]:49743 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751455Ab2JHMXe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 08:23:34 -0400
+Date: Mon, 8 Oct 2012 14:23:25 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
 	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
 	Mark Brown <broonie@opensource.wolfsonmicro.com>,
 	Stephen Warren <swarren@wwwdotorg.org>,
 	Arnd Bergmann <arnd@arndb.de>,
 	Grant Likely <grant.likely@secretlab.ca>
 Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
-Message-ID: <20121010115703.7a72fdd1@redhat.com>
-In-Reply-To: <1909082.6p5inUAuOH@avalon>
+In-Reply-To: <201210051323.45571.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1210081306240.12203@axis700.grange>
 References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
-	<1744244.z7BseID5vc@avalon>
-	<20121010104522.53dabe5e@redhat.com>
-	<1909082.6p5inUAuOH@avalon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+ <201210051241.52205.hverkuil@xs4all.nl> <Pine.LNX.4.64.1210051250210.13761@axis700.grange>
+ <201210051323.45571.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 10 Oct 2012 16:48 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Hi Hans
 
-> Hi Mauro,
+On Fri, 5 Oct 2012, Hans Verkuil wrote:
+
+[snip]
+
+> I think the soc_camera patches should be left out for now. I suspect that
+> by adding core support for async i2c handling first,
+
+Ok, let's think, what this meacs - async I2C in media / V4L2 core.
+
+The main reason for our probing order problem is the master clock, 
+typically supplied from the camera bridge to I2C subdevices, which we only 
+want to start when necessary, i.e. when accessing the subdevice. And the 
+subdevice driver needs that clock running during its .probe() to be able 
+to access and verify or configure the hardware. Our current solution is to 
+not register I2C subdevices from the platform data, as is usual for all 
+I2C devices, but from the bridge driver and only after it has switched on 
+the master clock. After the subdevice driver has completed its probing we 
+switch the clock back off until the subdevice has to be activated, e.g. 
+for video capture.
+
+Also important - when we want to unregister the bridge driver we just also 
+unregister the I2C device.
+
+Now, to reverse the whole thing and to allow I2C devices be registered as 
+usual - via platform data or OF, first of all we have to teach I2C 
+subdevice drivers to recognise the "too early" situation and request 
+deferred probing in such a case. Then it will be reprobed after each new 
+successful probe or unregister on the system. After the bridge driver has 
+successfully probed the subdevice driver will be re-probed and at that 
+time it should succeed. Now, there is a problem here too: who should 
+switch on and off the master clock?
+
+If we do it from the bridge driver, we could install an I2C bus-notifier, 
+_before_ the subdevice driver is probed, i.e. upon the 
+BUS_NOTIFY_BIND_DRIVER event we could turn on the clock. If subdevice 
+probing was successful, we can then wait for the BUS_NOTIFY_BOUND_DRIVER 
+event to switch the clock back off. BUT - if the subdevice fails probing? 
+How do we find out about that and turn the clock back off? There is no 
+notification event for that... Possible solutions:
+
+1. timer - ugly and unreliable.
+2. add a "probing failed" notifier event to the device core - would this 
+   be accepted?
+3. let the subdevice turn the master clock on and off for the duration of 
+   probing.
+
+My vote goes for (3). Ideally this should be done using the generic clock 
+framework. But can we really expect all drivers and platforms to switch to 
+it quickly enough? If not, we need a V4L2-specific callback from subdevice 
+drivers to bridge drivers to turn the clock on and off. That's what I've 
+done "temporarily" in this patch series for soc-camera.
+
+Suppose we decide to do the same for V4L2 centrally - add call-backs. Then 
+we can think what else we need to add to V4L2 to support asynchronous 
+subdevice driver probing.
+
+1. We'll have to create these V4L2 clock start and stop functions, that, 
+supplied (in case of I2C) with client address and adapter number will find 
+the correct v4l2_device instance and call its callbacks.
+
+2. The I2C notifier. I'm not sure, whether this one should be common. Of 
+common tasks we have to refcount the I2C adapter and register the 
+subdevice. Then we'd have to call the bridge driver's callback. Is it 
+worth it doing this centrally or rather allow individual drivers to do 
+that themselves?
+
+Also, ideally OF-compatible (I2C) drivers should run with no platform 
+data, but soc-camera is using I2C device platform data intensively. To 
+avoid modifying the soc-camera core and all drivers, I also trigger on the 
+BUS_NOTIFY_BIND_DRIVER event and assign a reference to the dynamically 
+created platform data to the I2C device. Would we also want to do this for 
+all V4L2 bridge drivers? We could call this a "prepare" callback or 
+something similar...
+
+3. Bridge driver unregistering. Here we have to put the subdevice driver 
+back into the deferred-probe state... Ugliness alert: I'm doing this by 
+unregistering and re-registering the I2C device... For that I also have to 
+create a copy of devices I2C board-info data. Lovely, ain't it? This I'd 
+be happy to move to the V4L2 core;-)
+
+Thanks
+Guennadi
+
+> the soc_camera patches
+> will become a lot easier to understand.
 > 
-> On Wednesday 10 October 2012 10:45:22 Mauro Carvalho Chehab wrote:
-> > Em Wed, 10 Oct 2012 14:54 +0200 Laurent Pinchart escreveu:
-> > > > Also, ideally OF-compatible (I2C) drivers should run with no platform
-> > > > data, but soc-camera is using I2C device platform data intensively. To
-> > > > avoid modifying the soc-camera core and all drivers, I also trigger on
-> > > > the
-> > > > BUS_NOTIFY_BIND_DRIVER event and assign a reference to the dynamically
-> > > > created platform data to the I2C device. Would we also want to do this
-> > > > for
-> > > > all V4L2 bridge drivers? We could call this a "prepare" callback or
-> > > > something similar...
-> > > 
-> > > If that's going to be an interim solution only I'm fine with keeping it in
-> > > soc-camera.
+> Regards,
+> 
+> 	Hans
+> 
 > > 
-> > I'm far from being an OF expert, but why do we need to export I2C devices to
-> > DT/OF? On my understanding, it is the bridge code that should be
-> > responsible for detecting, binding and initializing the proper I2C devices.
-> > On several cases, it is impossible or it would cause lots of ugly hacks if
-> > we ever try to move away from platform data stuff, as only the bridge
-> > driver knows what initialization is needed for an specific I2C driver.
-> 
-> In a nutshell, a DT-based platform doesn't have any board code (except in rare 
-> cases, but let's not get into that), and thus doesn't pass any platform data 
-> structure to drivers. However, drivers receive a DT node, which contains a 
-> hierarchical description of the hardware, and parse those to extract 
-> information necessary to configure the device.
-> 
-> One very important point to keep in mind here is that the DT is not Linux-
-> specific. DT bindings are designed to be portable, and thus must only contain 
-> hardware descriptions, without any OS-specific information or policy 
-> information. For instance information such as the maximum video buffers size 
-> is not allowed in the DT.
-> 
-> The DT is used both to provide platform data to drivers and to instantiate 
-> devices. I2C device DT nodes are stored as children of the I2C bus master DT 
-> node, and are automatically instantiated by the I2C bus master. This is a 
-> significant change compared to our current situation where the V4L2 bridge 
-> driver receives an array of I2C board information structures and instatiates 
-> the devices itself. Most of the DT support work will go in supporting that new 
-> instantiation mechanism. The bridge driver doesn't control instantiation of 
-> the I2C devices anymore, but need to bind with them at runtime.
-> 
-> > To make things more complex, it is expected that most I2C drivers to be arch
-> > independent, and they should be allowed to be used by a personal computer
-> > or by an embedded device.
-> 
-> Agreed. That's why platform data structures won't go away anytime soon, a PCI 
-> bridge driver for hardware that contain I2C devices will still instantiate the 
-> I2C devices itself. We don't plan to or even want to get rid of that 
-> mechanism, as there are perfectly valid use cases. However, for DT-based 
-> embedded platforms, we need to support a new instantiation mechanism.
-> 
-> > Let me give 2 such examples:
+> > Thanks
+> > Guennadi
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > > 
-> > 	- ir-i2c-kbd driver supports lots of IR devices. Platform_data is needed
-> > to specify what hardware will actually be used, and what should be the
-> > default Remote Controller keymap;
-> 
-> That driver isn't used on embedded platforms so it doesn't need to be changed 
-> now.
-> 
-> > 	- Sensor drivers like ov2940 is needed by soc_camera and by other
-> > webcam drivers like em28xx. The setup for em28xx should be completely
-> > different than the one for soc_camera: the initial registers init sequence
-> > is different for both. As several registers there aren't properly
-> > documented, there's no easy way to parametrize the configuration.
-> 
-> Such drivers will need to support both DT-based platform data and structure-
-> based platform data. They will likely parse the DT node and fill a platform 
-> data structure, to avoid duplicating initialization code.
-> 
-> Please note that the new subdevs instantiation mechanism needed for DT will 
-> need to handle any instantiation order, as we can't guarantee the I2C device 
-> and bridge device instantiation order with DT. It should thus then support the 
-> current instantiation order we use for PCI and USB platforms.
-> 
-> > So, for me, we should not expose the I2C devices directly on OF; it should,
-> > instead, see just the bridge, and let the bridge to map the needed I2C
-> > devices using the needed platform_data.
-> 
-> We can't do that, there will be no platform data anymore with DT-based 
-> platforms.
-> 
-> As a summary, platform data structures won't go away, I2C drivers that need to 
-> work both on DT-based and non-DT-based platforms will need to support both the 
-> DT and platform data structures to get platform data. PCI and USB bridges will 
-> still instantiate their I2C devices, and binding between the I2C devices and 
-> the bridge can either be handled with two different instantiation mechanisms 
-> (the new one for DT platforms, with runtime bindings, and the existing one for 
-> non-DT platforms, with binding at instantiation time) or move to a single 
-> runtime binding mechanism. It's too early to know which solution will be 
-> simpler.
 > 
 
-It seems that you're designing a Frankstein monster with DT/OF and I2C.
-
-Increasing each I2C driver code to support both platform_data and DT way
-of doing things seems a huge amount of code that will be added, and I really
-fail to understand why this is needed, in the first place.
-
-Ok, I understand that OF specs are OS-independent, but I suspect that
-they don't dictate how things should be wired internally at the OS.
-
-So, if DT/OF is so restrictive, and require its own way of doing things, 
-instead of changing everything with the risks of adding (more) regressions
-to platform drivers, why don't just create a shell driver that will
-encapsulate DT/OF specific stuff into the platform_data?
-
-Regards,
-Mauro
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
