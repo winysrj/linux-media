@@ -1,278 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45691 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755147Ab2JVPQU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Oct 2012 11:16:20 -0400
-Message-ID: <50856335.5050901@ti.com>
-Date: Mon, 22 Oct 2012 11:16:05 -0400
-From: Murali Karicheri <m-karicheri2@ti.com>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1463 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752538Ab2JHNDm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 09:03:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: Media_build broken by [PATCH RFC v3 5/5] m5mols: Implement .get_frame_desc subdev callback
+Date: Mon, 8 Oct 2012 15:03:36 +0200
+Cc: Michael West <michael@iposs.co.nz>,
+	Jan Hoogenraad <jan-conceptronic@hoogenraad.net>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"a.hajda@samsung.com" <a.hajda@samsung.com>,
+	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"sw0312.kim@samsung.com" <sw0312.kim@samsung.com>
+References: <1348674853-24596-1-git-send-email-s.nawrocki@samsung.com> <DCBB30B3D32C824F800041EE82CABAAE03203D63BB2A@duckworth.iposs.co.nz> <507163E0.7040602@gmail.com>
+In-Reply-To: <507163E0.7040602@gmail.com>
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.lad@ti.com>
-CC: <mchehab@infradead.org>, <laurent.pinchart@ideasonboard.com>,
-	<manjunath.hadli@ti.com>, <linux-media@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>,
-	<davinci-linux-open-source@linux-davincidsp.com>
-Subject: Re: [PATCH] media:davinci: clk - {prepare/unprepare} for common clk
- framework
-References: <1350670341-18982-1-git-send-email-m-karicheri2@ti.com> <5082473D.9080306@ti.com>
-In-Reply-To: <5082473D.9080306@ti.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201210081503.36502.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/20/2012 02:39 AM, Prabhakar Lad wrote:
-> Hi Murali,
->
-> On Friday 19 October 2012 11:42 PM, Murali Karicheri wrote:
->> As a first step towards migrating davinci platforms to use common clock
->> framework, replace all instances of clk_enable() with clk_prepare_enable()
->> and clk_disable() with clk_disable_unprepare().
->>
->> Also fixes some issues related to clk clean up in the driver
->>
->> Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
->> ---
->>   drivers/media/video/davinci/dm355_ccdc.c  |    8 ++++++--
->>   drivers/media/video/davinci/dm644x_ccdc.c |   16 ++++++++++------
->>   drivers/media/video/davinci/isif.c        |    5 ++++-
->>   drivers/media/video/davinci/vpbe.c        |   10 +++++++---
->>   drivers/media/video/davinci/vpif.c        |    8 ++++----
->>   5 files changed, 31 insertions(+), 16 deletions(-)
->>
-> Thanks for the patch. Can you rebase this patch on 3.7, Since
-> the folder structure for media drivers has been reorganised.
-> And for some reason this patch hasn't reached any mailing list.
->
-> Thanks And Regards,
-> --Prabhakar Lad
-Prabakhar,
+On Sun October 7 2012 13:13:36 Sylwester Nawrocki wrote:
+> On 10/07/2012 03:19 AM, Michael West wrote:
+> > This patch changes versions.txt and disables  VIDEO_M5MOLS which 
+> > fixed the build for my 3.2 kernel but looking at the logs it looks
+> > like this is not the way to fix it as it's not just a 3.6+ problem
+> > as it does not build on 3.6 as well...  So probably best to find 
+> > why it doesn't build on the current kernel first.
+> 
+> To fix the build on kernels 3.6+ <linux/sizes.h> just needs to be 
+> inclcuded in m5mols.h. This is what my patch from previous message 
+> in this thread does. But this will break again on kernel versions 
+> _3.5 and lower_ where <linux/sizes.h> doesn't exist. I thought
+> originally it could have been simply replaced there with <asm/sizes.h>, 
+> but not all architectures have it
+> 
+> $ git grep  "#define SZ_1M" v2.6.32
+> v2.6.32:arch/arm/include/asm/sizes.h:#define SZ_1M                           0x00100000
+> v2.6.32:arch/sh/include/asm/sizes.h:#define SZ_1M                           0x00100000
+> 
+> $ git grep  "#define SZ_1M" v3.6-rc5
+> v3.6-rc5:drivers/base/dma-contiguous.c:#define SZ_1M (1 << 20)
+> v3.6-rc5:include/linux/sizes.h:#define SZ_1M                            0x00100000
+> 
+> 
+> Let's just use the below patch to solve this build break, this way
+> there is no need to touch anything at media_build.
+> 
+> From 11adc6956f3fe87c897aa6add08f8437422969a8 Mon Sep 17 00:00:00 2001
+> From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+> Date: Sun, 7 Oct 2012 13:04:37 +0200
+> Subject: [PATCH] m5mols: Replace SZ_1M with explicit value
+> 
+> SZ_1M macro definition was introduced in commit ab7ef22419927
+> "[media] m5mols: Implement .get_frame_desc subdev callback"
+> but required <linux/sizes.h> header was not included. To prevent
+> build errors with older kernels where <linux/sizes.h> doesn't exist
+> use explicit value rather than SZ_1M.
+> 
+> Reported-by: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+> Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 
-I have re-sent the patches rebased to 3.7rc1. You are right, at times my 
-patches don't show up on the mailing list. I am not sure why. It is not 
-that none of them reaches the list, but some do make it. Do you have any 
-suggestion why this could be happening? I will check with our IT first 
-to see if emails are getting blocked at TI server for some reason. 
-Meanwhile, could you test these patches with video drivers and request a 
-merge to 3.7rcx? The patches are available at 
-https://gitorious.org/~m-karicheri/linux-davinci/linux-davinci-clk/commits/video-clk-patches-v3.7rc1
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-https://gitorious.org/~m-karicheri/linux-davinci/linux-davinci-clk/commit/539b2de5913000cbf6f594e63b680673368dd9a2
+Note: until this patch is merged I am disabling this driver in media_build
+since right now it doesn't compile at all. Please notify me when this is
+fixed in media_tree.git so that I can enable it again.
 
-Murali
+Regards,
 
->> diff --git a/drivers/media/video/davinci/dm355_ccdc.c b/drivers/media/video/davinci/dm355_ccdc.c
->> index 5b68847..af88cce 100644
->> --- a/drivers/media/video/davinci/dm355_ccdc.c
->> +++ b/drivers/media/video/davinci/dm355_ccdc.c
->> @@ -1003,7 +1003,7 @@ static int __init dm355_ccdc_probe(struct platform_device *pdev)
->>   		status = PTR_ERR(ccdc_cfg.mclk);
->>   		goto fail_nomap;
->>   	}
->> -	if (clk_enable(ccdc_cfg.mclk)) {
->> +	if (clk_prepare_enable(ccdc_cfg.mclk)) {
->>   		status = -ENODEV;
->>   		goto fail_mclk;
->>   	}
->> @@ -1014,7 +1014,7 @@ static int __init dm355_ccdc_probe(struct platform_device *pdev)
->>   		status = PTR_ERR(ccdc_cfg.sclk);
->>   		goto fail_mclk;
->>   	}
->> -	if (clk_enable(ccdc_cfg.sclk)) {
->> +	if (clk_prepare_enable(ccdc_cfg.sclk)) {
->>   		status = -ENODEV;
->>   		goto fail_sclk;
->>   	}
->> @@ -1034,8 +1034,10 @@ static int __init dm355_ccdc_probe(struct platform_device *pdev)
->>   	printk(KERN_NOTICE "%s is registered with vpfe.\n", ccdc_hw_dev.name);
->>   	return 0;
->>   fail_sclk:
->> +	clk_disable_unprepare(ccdc_cfg.sclk);
->>   	clk_put(ccdc_cfg.sclk);
->>   fail_mclk:
->> +	clk_disable_unprepare(ccdc_cfg.mclk);
->>   	clk_put(ccdc_cfg.mclk);
->>   fail_nomap:
->>   	iounmap(ccdc_cfg.base_addr);
->> @@ -1050,6 +1052,8 @@ static int dm355_ccdc_remove(struct platform_device *pdev)
->>   {
->>   	struct resource	*res;
->>   
->> +	clk_disable_unprepare(ccdc_cfg.sclk);
->> +	clk_disable_unprepare(ccdc_cfg.mclk);
->>   	clk_put(ccdc_cfg.mclk);
->>   	clk_put(ccdc_cfg.sclk);
->>   	iounmap(ccdc_cfg.base_addr);
->> diff --git a/drivers/media/video/davinci/dm644x_ccdc.c b/drivers/media/video/davinci/dm644x_ccdc.c
->> index 9303fe5..24388fa 100644
->> --- a/drivers/media/video/davinci/dm644x_ccdc.c
->> +++ b/drivers/media/video/davinci/dm644x_ccdc.c
->> @@ -994,7 +994,7 @@ static int __init dm644x_ccdc_probe(struct platform_device *pdev)
->>   		status = PTR_ERR(ccdc_cfg.mclk);
->>   		goto fail_nomap;
->>   	}
->> -	if (clk_enable(ccdc_cfg.mclk)) {
->> +	if (clk_prepare_enable(ccdc_cfg.mclk)) {
->>   		status = -ENODEV;
->>   		goto fail_mclk;
->>   	}
->> @@ -1005,7 +1005,7 @@ static int __init dm644x_ccdc_probe(struct platform_device *pdev)
->>   		status = PTR_ERR(ccdc_cfg.sclk);
->>   		goto fail_mclk;
->>   	}
->> -	if (clk_enable(ccdc_cfg.sclk)) {
->> +	if (clk_prepare_enable(ccdc_cfg.sclk)) {
->>   		status = -ENODEV;
->>   		goto fail_sclk;
->>   	}
->> @@ -1013,8 +1013,10 @@ static int __init dm644x_ccdc_probe(struct platform_device *pdev)
->>   	printk(KERN_NOTICE "%s is registered with vpfe.\n", ccdc_hw_dev.name);
->>   	return 0;
->>   fail_sclk:
->> +	clk_disable_unprepare(ccdc_cfg.sclk);
->>   	clk_put(ccdc_cfg.sclk);
->>   fail_mclk:
->> +	clk_disable_unprepare(ccdc_cfg.mclk);
->>   	clk_put(ccdc_cfg.mclk);
->>   fail_nomap:
->>   	iounmap(ccdc_cfg.base_addr);
->> @@ -1029,6 +1031,8 @@ static int dm644x_ccdc_remove(struct platform_device *pdev)
->>   {
->>   	struct resource	*res;
->>   
->> +	clk_disable_unprepare(ccdc_cfg.mclk);
->> +	clk_disable_unprepare(ccdc_cfg.sclk);
->>   	clk_put(ccdc_cfg.mclk);
->>   	clk_put(ccdc_cfg.sclk);
->>   	iounmap(ccdc_cfg.base_addr);
->> @@ -1046,8 +1050,8 @@ static int dm644x_ccdc_suspend(struct device *dev)
->>   	/* Disable CCDC */
->>   	ccdc_enable(0);
->>   	/* Disable both master and slave clock */
->> -	clk_disable(ccdc_cfg.mclk);
->> -	clk_disable(ccdc_cfg.sclk);
->> +	clk_disable_unprepare(ccdc_cfg.mclk);
->> +	clk_disable_unprepare(ccdc_cfg.sclk);
->>   
->>   	return 0;
->>   }
->> @@ -1055,8 +1059,8 @@ static int dm644x_ccdc_suspend(struct device *dev)
->>   static int dm644x_ccdc_resume(struct device *dev)
->>   {
->>   	/* Enable both master and slave clock */
->> -	clk_enable(ccdc_cfg.mclk);
->> -	clk_enable(ccdc_cfg.sclk);
->> +	clk_prepare_enable(ccdc_cfg.mclk);
->> +	clk_prepare_enable(ccdc_cfg.sclk);
->>   	/* Restore CCDC context */
->>   	ccdc_restore_context();
->>   
->> diff --git a/drivers/media/video/davinci/isif.c b/drivers/media/video/davinci/isif.c
->> index 5278fe7..d9c3116 100644
->> --- a/drivers/media/video/davinci/isif.c
->> +++ b/drivers/media/video/davinci/isif.c
->> @@ -1053,7 +1053,7 @@ static int __init isif_probe(struct platform_device *pdev)
->>   		status = PTR_ERR(isif_cfg.mclk);
->>   		goto fail_mclk;
->>   	}
->> -	if (clk_enable(isif_cfg.mclk)) {
->> +	if (clk_prepare_enable(isif_cfg.mclk)) {
->>   		status = -ENODEV;
->>   		goto fail_mclk;
->>   	}
->> @@ -1125,6 +1125,7 @@ fail_nobase_res:
->>   		i--;
->>   	}
->>   fail_mclk:
->> +	clk_disable_unprepare(isif_cfg.mclk);
->>   	clk_put(isif_cfg.mclk);
->>   	vpfe_unregister_ccdc_device(&isif_hw_dev);
->>   	return status;
->> @@ -1145,6 +1146,8 @@ static int isif_remove(struct platform_device *pdev)
->>   		i++;
->>   	}
->>   	vpfe_unregister_ccdc_device(&isif_hw_dev);
->> +	clk_disable_unprepare(isif_cfg.mclk);
->> +	clk_put(isif_cfg.mclk);
->>   	return 0;
->>   }
->>   
->> diff --git a/drivers/media/video/davinci/vpbe.c b/drivers/media/video/davinci/vpbe.c
->> index c4a82a1..7cfbc1e 100644
->> --- a/drivers/media/video/davinci/vpbe.c
->> +++ b/drivers/media/video/davinci/vpbe.c
->> @@ -628,7 +628,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
->>   			ret =  PTR_ERR(vpbe_dev->dac_clk);
->>   			goto vpbe_unlock;
->>   		}
->> -		if (clk_enable(vpbe_dev->dac_clk)) {
->> +		if (clk_prepare_enable(vpbe_dev->dac_clk)) {
->>   			ret =  -ENODEV;
->>   			goto vpbe_unlock;
->>   		}
->> @@ -777,8 +777,10 @@ vpbe_fail_sd_register:
->>   vpbe_fail_v4l2_device:
->>   	v4l2_device_unregister(&vpbe_dev->v4l2_dev);
->>   vpbe_fail_clock:
->> -	if (strcmp(vpbe_dev->cfg->module_name, "dm644x-vpbe-display") != 0)
->> +	if (strcmp(vpbe_dev->cfg->module_name, "dm644x-vpbe-display") != 0) {
->> +		clk_disable_unprepare(vpbe_dev->dac_clk);
->>   		clk_put(vpbe_dev->dac_clk);
->> +	}
->>   vpbe_unlock:
->>   	mutex_unlock(&vpbe_dev->lock);
->>   	return ret;
->> @@ -795,8 +797,10 @@ vpbe_unlock:
->>   static void vpbe_deinitialize(struct device *dev, struct vpbe_device *vpbe_dev)
->>   {
->>   	v4l2_device_unregister(&vpbe_dev->v4l2_dev);
->> -	if (strcmp(vpbe_dev->cfg->module_name, "dm644x-vpbe-display") != 0)
->> +	if (strcmp(vpbe_dev->cfg->module_name, "dm644x-vpbe-display") != 0) {
->> +		clk_disable_unprepare(vpbe_dev->dac_clk);
->>   		clk_put(vpbe_dev->dac_clk);
->> +	}
->>   
->>   	kfree(vpbe_dev->amp);
->>   	kfree(vpbe_dev->encoders);
->> diff --git a/drivers/media/video/davinci/vpif.c b/drivers/media/video/davinci/vpif.c
->> index b3637af..2857ced 100644
->> --- a/drivers/media/video/davinci/vpif.c
->> +++ b/drivers/media/video/davinci/vpif.c
->> @@ -442,7 +442,7 @@ static int __init vpif_probe(struct platform_device *pdev)
->>   		status = PTR_ERR(vpif_clk);
->>   		goto clk_fail;
->>   	}
->> -	clk_enable(vpif_clk);
->> +	clk_prepare_enable(vpif_clk);
->>   
->>   	spin_lock_init(&vpif_lock);
->>   	dev_info(&pdev->dev, "vpif probe success\n");
->> @@ -458,7 +458,7 @@ fail:
->>   static int __devexit vpif_remove(struct platform_device *pdev)
->>   {
->>   	if (vpif_clk) {
->> -		clk_disable(vpif_clk);
->> +		clk_disable_unprepare(vpif_clk);
->>   		clk_put(vpif_clk);
->>   	}
->>   
->> @@ -470,13 +470,13 @@ static int __devexit vpif_remove(struct platform_device *pdev)
->>   #ifdef CONFIG_PM
->>   static int vpif_suspend(struct device *dev)
->>   {
->> -	clk_disable(vpif_clk);
->> +	clk_disable_unprepare(vpif_clk);
->>   	return 0;
->>   }
->>   
->>   static int vpif_resume(struct device *dev)
->>   {
->> -	clk_enable(vpif_clk);
->> +	clk_prepare_enable(vpif_clk);
->>   	return 0;
->>   }
->>   
->>
->
+	Hans
 
+> ---
+>  drivers/media/i2c/m5mols/m5mols.h |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/m5mols/m5mols.h b/drivers/media/i2c/m5mols/m5mols.h
+> index 4ab8b37..30654f5 100644
+> --- a/drivers/media/i2c/m5mols/m5mols.h
+> +++ b/drivers/media/i2c/m5mols/m5mols.h
+> @@ -24,7 +24,7 @@
+>   * determined by CAPP_JPEG_SIZE_MAX register.
+>   */
+>  #define M5MOLS_JPEG_TAGS_SIZE		0x20000
+> -#define M5MOLS_MAIN_JPEG_SIZE_MAX	(5 * SZ_1M)
+> +#define M5MOLS_MAIN_JPEG_SIZE_MAX	(5 * 1024 * 1024)
+>  
+>  extern int m5mols_debug;
+>  
+> > ---
+> >   v4l/versions.txt |    2 ++
+> >   1 file changed, 2 insertions(+)
+> > 
+> > diff --git a/v4l/versions.txt b/v4l/versions.txt
+> > index 328651e..349695c 100644
+> > --- a/v4l/versions.txt
+> > +++ b/v4l/versions.txt
+> > @@ -4,6 +4,8 @@
+> >   [3.6.0]
+> >   # needs devm_clk_get, clk_enable, clk_disable
+> >   VIDEO_CODA
+> > +# broken add reason here
+> > +VIDEO_M5MOLS
+> 
+> This was supposed to be under [3.5.0].
+> 
+> > 
+> >   [3.4.0]
+> >   # needs devm_regulator_bulk_get
+> > -- 1.7.9.5
+> 
