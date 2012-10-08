@@ -1,56 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:65462 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756525Ab2JQKkD (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52311 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751108Ab2JHWWH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 06:40:03 -0400
-Received: by mail-oa0-f46.google.com with SMTP id h16so7239448oag.19
-        for <linux-media@vger.kernel.org>; Wed, 17 Oct 2012 03:40:03 -0700 (PDT)
+	Mon, 8 Oct 2012 18:22:07 -0400
+Date: Tue, 9 Oct 2012 01:22:02 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v3 1/3] omap3isp: Add CSI configuration registers from
+ control block to ISP resources
+Message-ID: <20121008222202.GH14107@valkosipuli.retiisi.org.uk>
+References: <20121007200730.GD14107@valkosipuli.retiisi.org.uk>
+ <1349640472-1425-1-git-send-email-sakari.ailus@iki.fi>
+ <20121008220645.GY13011@atomide.com>
 MIME-Version: 1.0
-In-Reply-To: <20121017113802.73a313d6@pyramind.ukuu.org.uk>
-References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
-	<20121010191702.404edace@pyramind.ukuu.org.uk>
-	<CAF6AEGvzfr2-QHpX4zwm2EPz-vxCDe9SaLUjo4_Fn7HhjWJFsg@mail.gmail.com>
-	<201210110857.15660.hverkuil@xs4all.nl>
-	<20121016212208.GB10462@morell.nvidia.com>
-	<20121017105321.062c898d@pyramind.ukuu.org.uk>
-	<CAPM=9txT+Wa_JXvsv7O3mqA6WK19z8chvSVxGQdf7R3Xo-mtQg@mail.gmail.com>
-	<20121017112504.47269452@pyramind.ukuu.org.uk>
-	<CAPM=9txQvNgVK824FrT6GD5eZeeaOEPkBzC9sdd9E4tu=ZdPNw@mail.gmail.com>
-	<20121017113802.73a313d6@pyramind.ukuu.org.uk>
-Date: Wed, 17 Oct 2012 20:40:01 +1000
-Message-ID: <CAPM=9tygKJJ0kPP+4vL_xN-2pphCe8-NXzFKc_kJhDPbteSdAQ@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: Use EXPORT_SYMBOL
-From: Dave Airlie <airlied@gmail.com>
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Robert Morell <rmorell@nvidia.com>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20121008220645.GY13011@atomide.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> From the fact this patch keeps getting resubmitted despite repeated
-> objection I deduce they are in fact of the view it does matter and that
-> therefore it is a licensing change and they are scared of the
-> consequences of ignoring it.
->
+Moikka,
 
-No I think they just want to have to write a pointless hack lie in
-their kernel module.
+On Mon, Oct 08, 2012 at 03:06:46PM -0700, Tony Lindgren wrote:
+> * Sakari Ailus <sakari.ailus@iki.fi> [121007 13:09]:
+> > Add the registers used to configure the CSI-2 receiver PHY on OMAP3430 and
+> > 3630 and map them in the ISP driver. The register is part of the control
+> > block but it only is needed by the ISP driver.
+> 
+> Just checking.. These do get reserved with request_mem_region()
+> in isp_map_mem_resource() before they get ioremapped, right?
 
-There is no nice way for nvidia developers to say our lawyers don't
-think this is a license issues without doing
+That's right. The code doing that can be found in
+drivers/media/platform/omap3isp/isp.c in a function called
+isp_map_mem_resource().
 
-MODULE_LICENSE("GPL\0 OH NOT WE DIDNT OUR LAWYESR ARE OKAY");
+> And camera is the only user for these registers and they are
+> not shared with anything else?
 
-I don't think I'd be going quite into how illegal it is.
+Correct. These registers only contain bits for configuring the CSI-2 PHY
+routing and CCP2 clock/strobe mode.
 
-The thing is I can't base a useful userspace interface on this, and
-since the nvidia driver exists everwhere despite what we'd wish, I'd
-rather let the users have some hope of a sane architecture, instead of
-nvidia having to replace even more userspace code and kernel code with
-their own insane shit.
+> If so, then this is OK to merge via the media patches:
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-Dave.
+Thanks! :-)
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
