@@ -1,163 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ia0-f174.google.com ([209.85.210.174]:59656 "EHLO
-	mail-ia0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933445Ab2JXA26 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 20:28:58 -0400
+Received: from [92.246.25.51] ([92.246.25.51]:60522 "EHLO mail.multitrading.dk"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1750956Ab2JHLMc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Oct 2012 07:12:32 -0400
+Date: Mon, 8 Oct 2012 13:12:29 +0200
+From: Jens Bauer <jens-lists@gpio.dk>
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+Cc: linux-media@vger.kernel.org
+Message-ID: <20121008131229269874.8db8d46c@gpio.dk>
+In-Reply-To: <5072A5BF.50101@schinagl.nl>
+References: <20121007175602425458.288c6720@gpio.dk>
+ <5072A5BF.50101@schinagl.nl>
+Subject: Re: Zolid USB DVB-T Tuner Pictures
 MIME-Version: 1.0
-In-Reply-To: <1351030129.2459.17.camel@palomino.walls.org>
-References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
-	<1351022246-8201-15-git-send-email-elezegarcia@gmail.com>
-	<1351030129.2459.17.camel@palomino.walls.org>
-Date: Tue, 23 Oct 2012 21:28:57 -0300
-Message-ID: <CALF0-+UOJDFXB+U=owDzvs+RsrXR2501O=McH4FnrzYGfNi6QQ@mail.gmail.com>
-Subject: Re: [PATCH 15/23] ivtv: Replace memcpy with struct assignment
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Andy,
+Hi Oliver.
 
-On Tue, Oct 23, 2012 at 7:08 PM, Andy Walls <awalls@md.metrocast.net> wrote:
-> On Tue, 2012-10-23 at 16:57 -0300, Ezequiel Garcia wrote:
->> This kind of memcpy() is error-prone. Its replacement with a struct
->> assignment is prefered because it's type-safe and much easier to read.
->
-> This one is a code maintenance win. :)
->
-> See my comments at the end for the difference in assembled code on an
-> AMD x86_64 CPU using
-> $ gcc --version
-> gcc (GCC) 4.6.3 20120306 (Red Hat 4.6.3-2)
->
->
->> Found by coccinelle. Hand patched and reviewed.
->> Tested by compilation only.
->>
->> A simplified version of the semantic match that finds this problem is as
->> follows: (http://coccinelle.lip6.fr/)
->>
->> // <smpl>
->> @@
->> identifier struct_name;
->> struct struct_name to;
->> struct struct_name from;
->> expression E;
->> @@
->> -memcpy(&(to), &(from), E);
->> +to = from;
->> // </smpl>
->>
->> Cc: Andy Walls <awalls@md.metrocast.net>
->
-> Signed-off-by: Andy Walls <awalls@md.metrocast.net>
->
->
->> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
->> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
->> ---
->>  drivers/media/pci/ivtv/ivtv-i2c.c |   12 ++++--------
->>  1 files changed, 4 insertions(+), 8 deletions(-)
->>
->> diff --git a/drivers/media/pci/ivtv/ivtv-i2c.c b/drivers/media/pci/ivtv/ivtv-i2c.c
->> index d47f41a..27a8466 100644
->> --- a/drivers/media/pci/ivtv/ivtv-i2c.c
->> +++ b/drivers/media/pci/ivtv/ivtv-i2c.c
->> @@ -719,13 +719,10 @@ int init_ivtv_i2c(struct ivtv *itv)
->>               return -ENODEV;
->>       }
->>       if (itv->options.newi2c > 0) {
->> -             memcpy(&itv->i2c_adap, &ivtv_i2c_adap_hw_template,
->> -                    sizeof(struct i2c_adapter));
->> +             itv->i2c_adap = ivtv_i2c_adap_hw_template;
->>       } else {
->> -             memcpy(&itv->i2c_adap, &ivtv_i2c_adap_template,
->> -                    sizeof(struct i2c_adapter));
->> -             memcpy(&itv->i2c_algo, &ivtv_i2c_algo_template,
->> -                    sizeof(struct i2c_algo_bit_data));
->> +             itv->i2c_adap = ivtv_i2c_adap_template;
->> +             itv->i2c_algo = ivtv_i2c_algo_template;
->>       }
->>       itv->i2c_algo.udelay = itv->options.i2c_clock_period / 2;
->>       itv->i2c_algo.data = itv;
->> @@ -735,8 +732,7 @@ int init_ivtv_i2c(struct ivtv *itv)
->>               itv->instance);
->>       i2c_set_adapdata(&itv->i2c_adap, &itv->v4l2_dev);
->>
->> -     memcpy(&itv->i2c_client, &ivtv_i2c_client_template,
->> -            sizeof(struct i2c_client));
->> +     itv->i2c_client = ivtv_i2c_client_template;
->>       itv->i2c_client.adapter = &itv->i2c_adap;
->>       itv->i2c_adap.dev.parent = &itv->pdev->dev;
->>
->
-> I looked at the generated assembly with only this last change
-> implemented:
->
-> $ objdump -h -r -d -l -s orig-ivtv-i2c.o.sav | less
-> [...]
->  07e0 00000000 69767476 20696e74 65726e61  ....ivtv interna
->  07f0 6c000000 00000000 00000000 00000000  l...............
->  0800 00000000 00000000 00000000 00000000  ................
->  0810 00000000 00000000 00000000 00000000  ................
->  0820 00000000 00000000 00000000 00000000  ................
->  0830 00000000 00000000 00000000 00000000  ................
-> [...]
-> init_ivtv_i2c():
-> /home/andy/cx18dev/git/media_tree/drivers/media/video/ivtv/ivtv-i2c.c:738
->     13bb:       48 c7 c6 00 00 00 00    mov    $0x0,%rsi
->                         13be: R_X86_64_32S      .rodata+0x7e0
->     13c2:       48 8d bb 30 04 01 00    lea    0x10430(%rbx),%rdi
->     13c9:       b9 5a 00 00 00          mov    $0x5a,%ecx
->     13ce:       f3 48 a5                rep movsq %ds:(%rsi),%es:(%rdi)
->
->
-> $ objdump -h -r -d -l -s orig-ivtv-i2c.o.sav | less
-> [...]
->  07e0 00000000 69767476 20696e74 65726e61  ....ivtv interna
->  07f0 6c000000 00000000 00000000 00000000  l...............
->  0800 00000000 00000000 00000000 00000000  ................
->  0810 00000000 00000000 00000000 00000000  ................
->  0820 00000000 00000000 00000000 00000000  ................
->  0830 00000000 00000000 00000000 00000000  ................
-> [...]
-> init_ivtv_i2c():
-> /home/andy/cx18dev/git/media_tree/drivers/media/video/ivtv/ivtv-i2c.c:738
->     13bb:       48 8d bb 30 04 01 00    lea    0x10430(%rbx),%rdi
->     13c2:       48 c7 c6 00 00 00 00    mov    $0x0,%rsi
->                         13c5: R_X86_64_32S      .rodata+0x7e0
->     13c9:       b9 5a 00 00 00          mov    $0x5a,%ecx
->     13ce:       f3 48 a5                rep movsq %ds:(%rsi),%es:(%rdi)
->
->
-> The generated code is reordered, but essentially identical.  So I guess
-> in this instance, the preprocessor defines resolved such that an x86-64
-> optimized memcpy() function was not used from the linux kernel source.
->
-> Since all of these memcpy()'s are only called once for each board at
-> board initialization, performance here really doesn't matter here
-> anyway.  (Unless one is insanely trying to shave microseconds off boot
-> time :P )
->
-> With other memcpy()/assignement_operator replacement patches, you may
-> wish to keep performance in mind, if you are patching a frequently
-> called function.
->
+Thank you for your reply. I do think I need a little more guidance, though. ;)
 
-Thanks for your thorough review on generated assembly.
-It's certainly very helpful.
+I've been trying to figure out how to make just a simple change to a dot for the last hour, but always end up on the page saying that I do not have permission to edit 'this template'...
+Do I need to be granted some editing rights to existing device entries ?
+(I must admit that I find it a bit confusing when 'Edit' does not do what I expect, but there's probably a reason for that).
 
-However, IMHO, this kind of memcpy/assignment can't generate
-any performance difference, and we shouldn't worry about this
-unless it's a very-very-very hot path.
+What I said below, about not having much knowledge of USB; it might have changed slightly. During the night, I've been making an application, which communicates with a USB-device I made (AVR), and it can turn on some LEDs and sometimes it can successfully receive a reply... But still, I am not an expert (not on Wiki either).
 
-On the other side, am I being too naive? I'd like to hear others opinion.
 
-Again: thanks!
+Love
+Jens
 
-    Ezequiel
+On Mon, 08 Oct 2012 12:06:55 +0200, Oliver Schinagl wrote:
+> On 07-10-12 17:56, Jens Bauer wrote:
+>> Hi...
+>> 
+>> I saw on this page...
+>> <http://linuxtv.org/wiki/index.php/DVB-T_USB_Devices>
+>> ...That I can contribute to the project by writing to this list.
+>> 
+>> Now, I don't have much knowledge about USB; I don't even have Linux 
+>> (but I probably will within a few months).
+>> I saw that some of the mentioned devices on the above page, are 
+>> missing a picture.
+>> So what I can do, is that I have a Zolid USB DVB-T Tuner "bought 
+>> from Aldi - like they all are".
+>> I've taken some pictures, cut them in Photoshop, scaled, saved as 
+>> png and finally optimized them using pngout.
+>> Sizes are: Approx. 2100x500 for the originals, 1024x500..600 for the 
+>> large ones, 512x190..300 for medium-size, 128x51..80 for the smaller 
+>> ones.
+>> (Whoa, 5 hours work for 5 pictures!)
+>> 
+>> Note: This is only one device, it seems a little difficult to figure 
+>> out which version it is, but as I have the original box and a 
+>> USB-Probe dump, it might be possible to identify it fully.
+>> 
+>> What I can say, is that it uses the IT9135 chip.
+>> VID/PID 0x048D/00x9135.
+>> Descriptor Version Number is 0x0200.
+>> Device MaxPacketSize is 64 (see below)
+>> Device Version Number is 0x0200
+>> It has two configurations, each configuration has 4 interfaces.
+>> The first configuration's interfaces have a max packet size of 512
+>> The second configuration's interfaces have a max packet size of 64.
+>> Apart from that, the configurations match eachother.
+>> 
+>> -So my guess is that this is a v2 device.
+>> 
+>> When looking at the above mentioned page, and I search the table for 
+>> 'Zolid', I find an entry saying "ITE Inc. Zolid Mini DVB-T Stick 
+>> Version 2".
+>> My box says "Mini USB DVB-T Tuner" and the markings on the device 
+>> just says "SMART GROUP" "Made in Taiwan", "www.unisupport.net", 
+>> "PS0712" and "05/2011".
+>> (In fact, I bought exactly this device, because I believe this is 
+>> the one that's listed here!)
+>> 
+>> ...Now...Who wants those pictures ? :)
+> I think you can quite safely upload those to the wiki. I'll admit, I 
+> didn't know how to upload an image, but I referenced the image from 
+> the document and thus getting a missing image link in the document. 
+> Clicking the link allowed me to upload said missing picture.
+> 
+> oliver
+>> 
+>> 
+>> Love
+>> Jens
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
