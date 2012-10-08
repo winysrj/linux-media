@@ -1,37 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37263 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752390Ab2JCIqv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 04:46:51 -0400
-Message-ID: <506BFB76.2050602@ti.com>
-Date: Wed, 3 Oct 2012 14:16:46 +0530
-From: Sekhar Nori <nsekhar@ti.com>
-MIME-Version: 1.0
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:42817 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751185Ab2JHRqU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 13:46:20 -0400
+Received: by mail-ee0-f46.google.com with SMTP id b15so2955429eek.19
+        for <linux-media@vger.kernel.org>; Mon, 08 Oct 2012 10:46:19 -0700 (PDT)
+From: Florian Fainelli <f.fainelli@gmail.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>
-Subject: Re: [RFCv2 PATCH 06/14] vpif_capture: move routing info from subdev
- to input.
-References: <15fd87671d173ae4b943df4114aafb55d7e958fa.1348142407.git.hans.verkuil@cisco.com> <dedef717b23ad46abe8b0446bc16d8031128a670.1348142407.git.hans.verkuil@cisco.com>
-In-Reply-To: <dedef717b23ad46abe8b0446bc16d8031128a670.1348142407.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Cc: linux-media <linux-media@vger.kernel.org>,
+	dri-devel@lists.freedesktop.org
+Subject: Re: Update on the CEC API
+Date: Mon, 08 Oct 2012 19:45:14 +0200
+Message-ID: <2023416.fd8kVxWoQJ@flexo>
+In-Reply-To: <201210081749.00190.hverkuil@xs4all.nl>
+References: <201209271633.30812.hverkuil@xs4all.nl> <2013064.dUp2SJ3pm9@flexo> <201210081749.00190.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 9/20/2012 5:36 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Monday 08 October 2012 17:49:00 Hans Verkuil wrote:
+> On Mon October 8 2012 17:06:20 Florian Fainelli wrote:
+> > Hi Hans,
+> > 
+> > On Thursday 27 September 2012 16:33:30 Hans Verkuil wrote:
+> > > Hi all,
+> > > 
+> > > During the Linux Plumbers Conference we (i.e. V4L2 and DRM developers) had a
+> > > discussion on how to handle the CEC protocol that's part of the HDMI 
+> > standard.
+> > > 
+> > > The decision was made to create a CEC bus with CEC clients, each represented
+> > > by a /dev/cecX device. So this is independent of the V4L or DRM APIs. 
+> > > 
+> > > In addition interested subsystems (alsa for the Audio Return Channel, and
+> > > possibly networking as well for ethernet over HDMI) can intercept/send CEC
+> > > messages as well if needed. Particularly for the CEC additions made in
+> > > HDMI 1.4a it is no longer possible to handle the CEC protocol completely in
+> > > userspace, but part of the intelligence has to be moved to kernelspace.
+> > 
+> > What kind of "intelligence" are you talking about? I see nothing in HDMI 1.4a 
+> > or earlier that requires doing stuff in kernelspace besides managing control to 
+> > the hardware, but I might be missing something.
 > 
-> Routing information is a property of the input, not of the subdev.
-> One subdev may provide multiple inputs, each with its own routing
-> information.
+> Most notably: handling the new hotplug message. That's something that kernel
+> drivers need to know. Some ARC messages might be relevant for ALSA drivers as
+> well, but I need to look into those more carefully.
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Also remote control messages might optionally be handled through an input driver.
 
-For the DaVinci platform change:
+Ok, then maybe just stick to the standard CEC_UI_* key codes, and let people
+having proprietary UI functions do the rest in user-space, or write their own
+input driver.
 
-Acked-by: Sekhar Nori <nsekhar@ti.com>
+> 
+> > In my opinion ARC is just a control mechanism, and can be dealt with in user-
+> > space, since you really want to just have hints about when ARC is 
+> > enabled/disabled to take appropriate actions on the audio outputs or your 
+> > system.
+> > 
+> > > 
+> > > I've started working on this API but I am still at the stage of playing
+> > > around with it and thinking about the best way this functionality should
+> > > be exposed. At least I managed to get the first CEC packets transferred
+> > > today :-)
+> > > 
+> > > It will probably be a few weeks before I post something, but in the meantime
+> > > if you want to use CEC and have certain requirements that need to be met,
+> > > please let me know. If only so that I can be certain I haven't forgotten
+> > > anything.
+> > 
+> > Here is my wish-list, if I may:
+> > - allow for a CEC adapter to be in "detached" / "attached" mode, particularly 
+> > useful if the hardware doing CEC can process a basic set of messages to act a 
+> > a global wake-up source for the system
+> 
+> I have hardware that can do that, so I want to look into supporting this.
+> 
+> > - allow for a CEC adapter to define several receive modes: unicast and 
+> > "promiscuous", which is useful for dumping the CEC bus messages
+> 
+> I don't think I have hardware for that, but it shouldn't be difficult to add.
 
-Thanks,
-Sekhar
+Definitively not, just let a driver writer specify a flag to advertise this
+capability and have a getter/setter to specify the receive mode.
+
+> 
+> > - make the CEC adapter API asynchronous for the data path, so it is easy for a 
+> > driver to report completion of a successfully transmitted/received CEC frame
+> 
+> Already done.
+
+Great, thanks!
+--
+Florian
