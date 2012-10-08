@@ -1,113 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:54886 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752003Ab2JGVwo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 17:52:44 -0400
-Message-ID: <5071F9A6.9090701@gmail.com>
-Date: Mon, 08 Oct 2012 08:52:38 +1100
-From: Ryan Mallon <rmallon@gmail.com>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:50147 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751185Ab2JHRg5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 13:36:57 -0400
+Received: by mail-ie0-f174.google.com with SMTP id k13so221609iea.19
+        for <linux-media@vger.kernel.org>; Mon, 08 Oct 2012 10:36:56 -0700 (PDT)
 MIME-Version: 1.0
-To: Julia Lawall <julia.lawall@lip6.fr>
-CC: walter harms <wharms@bfs.de>, Antti Palosaari <crope@iki.fi>,
-	kernel-janitors@vger.kernel.org, shubhrajyoti@ti.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for i2c_msg
- initialization
-References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr> <5071AEF3.6080108@bfs.de> <alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6>
-In-Reply-To: <alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6>
+In-Reply-To: <1349686172.28116.0.camel@avionic-0108.adnet.avionic-design.de>
+References: <1349359468-18965-1-git-send-email-julian@jusst.de>
+	<CALF0-+U7uPNb058y-FZGt_tvtgh8FMtqf7uRHA5p7h+BCDCXow@mail.gmail.com>
+	<1349686172.28116.0.camel@avionic-0108.adnet.avionic-design.de>
+Date: Mon, 8 Oct 2012 14:36:56 -0300
+Message-ID: <CALF0-+Wj+SoJxz7R5Eejo35-abrGrR855zxqYfA5XGMceou5Eg@mail.gmail.com>
+Subject: Re: [PATCH] tm6000: Add parameter to keep urb bufs allocated.
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Julian Scheel <julian@jusst.de>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/10/12 03:44, Julia Lawall wrote:
-> On Sun, 7 Oct 2012, walter harms wrote:
-> 
->>
->>
->> Am 07.10.2012 17:38, schrieb Julia Lawall:
->>> From: Julia Lawall <Julia.Lawall@lip6.fr>
->>>
->>> Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
->>>
->>> In the second i2c_msg structure, a length expressed as an explicit
->>> constant
->>> is also re-expressed as the size of the buffer, reg.
->>>
->>> A simplified version of the semantic patch that makes this change is as
->>> follows: (http://coccinelle.lip6.fr/)
->>>
->>> // <smpl>
->>> @@
->>> expression a,b,c;
->>> identifier x;
->>> @@
->>>
->>> struct i2c_msg x =
->>> - {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
->>> + I2C_MSG_READ(a,b,c)
->>>  ;
->>>
->>> @@
->>> expression a,b,c;
->>> identifier x;
->>> @@
->>>
->>> struct i2c_msg x =
->>> - {.addr = a, .buf = b, .len = c, .flags = 0}
->>> + I2C_MSG_WRITE(a,b,c)
->>>  ;
->>>
->>> @@
->>> expression a,b,c,d;
->>> identifier x;
->>> @@
->>>
->>> struct i2c_msg x =
->>> - {.addr = a, .buf = b, .len = c, .flags = d}
->>> + I2C_MSG_OP(a,b,c,d)
->>>  ;
->>> // </smpl>
->>>
->>> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
->>>
->>> ---
->>>  drivers/media/tuners/e4000.c |   20 +++-----------------
->>>  1 file changed, 3 insertions(+), 17 deletions(-)
->>>
->>> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
->>> index 1b33ed3..8f182fc 100644
->>> --- a/drivers/media/tuners/e4000.c
->>> +++ b/drivers/media/tuners/e4000.c
->>> @@ -26,12 +26,7 @@ static int e4000_wr_regs(struct e4000_priv *priv,
->>> u8 reg, u8 *val, int len)
->>>      int ret;
->>>      u8 buf[1 + len];
->>>      struct i2c_msg msg[1] = {
->>> -        {
->>> -            .addr = priv->cfg->i2c_addr,
->>> -            .flags = 0,
->>> -            .len = sizeof(buf),
->>> -            .buf = buf,
->>> -        }
->>> +        I2C_MSG_WRITE(priv->cfg->i2c_addr, buf, sizeof(buf))
->>>      };
->>>
->>
->> Any reason why struct i2c_msg is an array ?
-> 
-> I assumed that it looked more harmonious with the other uses of
-> i2c_transfer, which takes as arguments an array and the number of elements.
-> 
-> But there are some files that instead use i2c_transfer(priv->i2c, &msg, 1).
-> I can change them all to do that if that is preferred.  But maybe I will
-> wait a little bit to see if there are other issues to address at the
-> same time.
+On Mon, Oct 8, 2012 at 5:49 AM, Julian Scheel <julian@jusst.de> wrote:
+> Hi Ezequiel,
+>
+> Am Donnerstag, den 04.10.2012, 14:35 -0300 schrieb Ezequiel Garcia:
+>> Nice work! Just one pico-tiny nitpick:
+>
+> Should I update the patch to reflect this? Or is it ok if the maintainer
+> integrated your proposal when comitting it?
+>
 
-This is probably a good thing to do, but the initial patch series should
-just do the conversion to the macros. Too many additional changes runs
-the risk of introducing bugs and making bisection difficult.
+You can re-send a new patch with this subject:
 
-~Ryan
+[PATCH v2] tm6000: Add parameter to keep urb bufs allocated
 
+Like here:
+https://lkml.org/lkml/2012/9/23/128
+
+Notice you can place comments (like a patch changelog)
+after the:
+
+Signed-off
+---
+
+The maintainer will pick the latest version of each patch.
+
+Thanks!
+Ezequiel.
