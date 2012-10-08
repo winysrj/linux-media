@@ -1,85 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:64156 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753227Ab2JJGt4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 02:49:56 -0400
-Received: by mail-ie0-f174.google.com with SMTP id k13so300918iea.19
-        for <linux-media@vger.kernel.org>; Tue, 09 Oct 2012 23:49:55 -0700 (PDT)
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:41616 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750953Ab2JHNv0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 09:51:26 -0400
+Received: by mail-ee0-f46.google.com with SMTP id b15so2765774eek.19
+        for <linux-media@vger.kernel.org>; Mon, 08 Oct 2012 06:51:25 -0700 (PDT)
 MIME-Version: 1.0
-Reply-To: martin-eric.racine@iki.fi
-In-Reply-To: <20121010082308.4c802517@armhf>
-References: <20120711100436.2305b098@armhf>
-	<CAPZXPQdJC5yCYY6YRzuKj-ukFLzbY_yUzbogzbDx1S0bL1GrgQ@mail.gmail.com>
-	<20120711124441.346a86b3@armhf>
-	<CAPZXPQcvGqPjeyZh=vHtbSOoA91Htsg6DeyYyhYLeDgay8GSBg@mail.gmail.com>
-	<20120711132739.6b527a27@armhf>
-	<CAPZXPQeDKLAu13Qs-MhhxJEBrF-5620HNZDmPiH+4NRmkxx3Ag@mail.gmail.com>
-	<4FFD7F48.6060905@redhat.com>
-	<CAPZXPQfMrWySzx9=61WqoZ7zwzw19p69nN6_fuwAHjZVqGLDBw@mail.gmail.com>
-	<20120711191835.1be1c8ef@armhf>
-	<CAPZXPQeWC+pKJNLr12y_AybYCCKZr6ayBAa=EhaiyfN4iU8g5g@mail.gmail.com>
-	<20121009225446.GA7396@elie.Belkin>
-	<20121010082308.4c802517@armhf>
-Date: Wed, 10 Oct 2012 09:49:55 +0300
-Message-ID: <CAPZXPQdVs54w=a5sD+bJeyw0gPE3wXv3Qpx5DUk4MrTSgYf68g@mail.gmail.com>
-Subject: Re: video: USB webcam fails since kernel 3.2
-From: =?UTF-8?Q?Martin=2D=C3=89ric_Racine?= <martin-eric.racine@iki.fi>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Jonathan Nieder <jrnieder@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>, 677533@bugs.debian.org,
-	linux-media@vger.kernel.org, debian-kernel@lists.debian.org
+In-Reply-To: <50727208.8020902@googlemail.com>
+References: <1349635312-3045-1-git-send-email-raj.khem@gmail.com> <50727208.8020902@googlemail.com>
+From: Khem Raj <raj.khem@gmail.com>
+Date: Mon, 8 Oct 2012 06:50:53 -0700
+Message-ID: <CAMKF1sqANY8=Yf5y8qL_pDm+ENDrmtWd68U_uvhc6RuZLJ7NnA@mail.gmail.com>
+Subject: Re: [v4l-utils] Use RCC variable to call rcc compiler
+To: Gregor Jasny <gjasny@googlemail.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/10/10 Jean-Francois Moine <moinejf@free.fr>:
-> On Tue, 9 Oct 2012 15:54:46 -0700
-> Jonathan Nieder <jrnieder@gmail.com> wrote:
+On Sun, Oct 7, 2012 at 11:26 PM, Gregor Jasny <gjasny@googlemail.com> wrote:
+> Hello Khem,
 >
->> Hi,
->>
->> In June, Martin-Éric Racine wrote:
->>
->> > Since recent kernels, this ASUS W5F's built-in webcam fails to be
->> > detected. Gstreamer-based applications (Cheese,
->> > gstreamer-properties) immediately crash whenever trying to access
->> > the video device.
->> [...]
->> > video_source:sr[3246]: segfault at 0 ip   (null) sp ab36de1c error
->> > 14 in cheese[8048000+21000]
->>
->> In July, Martin-Éric Racine wrote:
->>
->> > As far as I can tell, yes, the modules in Jean-François' tarball work
->> > as-is to fix the problem.
->> [...]
->> > [   11.834852] gspca_main: v2.15.18 registered
->> > [   11.844262] gspca_main: vc032x-2.15.18 probing 0ac8:0321
->> > [   11.844682] gspca_vc032x: vc0321 check sensor header 2c
->> > [   11.850304] gspca_vc032x: Sensor ID 3130 (0)
->> > [   11.850309] gspca_vc032x: Find Sensor PO3130NC
->> > [   11.851809] gspca_main: video0 created
->> >
->> > Backport would be needed against 3.2.21 as this is what Debian will
->> > (probably) release with.
->>
->> Sorry to have lost track of this.  Do you know what patch fixed it?
->> Does 3.5.y from experimental work?
->>
->> Curious,
->> Jonathan
+> On 10/7/12 8:41 PM, Khem Raj wrote:
+>> In cross compile environment rcc native version
+>> may be staged in a different directory or even
+>> called rcc4 or somesuch. Lets provide a facility
+>> to specify it in environment
 >
-> Hi Jonathan,
+> I'll take care of this patch.
 >
-> I tried to prepare a patch set for the vc032x, but testing with
-> Martin-Éric stopped  mid-july, so I have nothing to propose yet. I'm
-> waiting for some other vc0321+po3130nc owner and continue the tests...
+>> diff --git a/utils/qv4l2/Makefile.am b/utils/qv4l2/Makefile.am
+>> index 02d0bcb..86d0285 100644
+>> --- a/utils/qv4l2/Makefile.am
+>> +++ b/utils/qv4l2/Makefile.am
+>> @@ -29,7 +29,7 @@ moc_capture-win.cpp: $(srcdir)/capture-win.h
+>>
+>>  # Call the Qt resource compiler
+>>  qrc_qv4l2.cpp: $(srcdir)/qv4l2.qrc
+>> -     rcc -name qv4l2 -o $@ $(srcdir)/qv4l2.qrc
+>> +     $(RCC) -name qv4l2 -o $@ $(srcdir)/qv4l2.qrc
+>>
+>>  install-data-local:
+>>       $(INSTALL_DATA) -D -p "$(srcdir)/qv4l2.desktop"   "$(DESTDIR)$(datadir)/applications/qv4l2.desktop"
+>>
+>
+> Where does RCC gets populated? The configure.ac parts seems to be missing.
+>
 
-We kept on going back and forth between two versions of the same file,
-none of which produced the result expected by Jean-Francois. I'd
-venture that the change that fixed it involves an entirely different
-file, but he seemed to expect otherwise.
+hmm ok. I have been using it in environment. but I will do a v2 with
+configure.in detecting it with pkgconfig
 
-Martin-Éric
+> Thanks,
+> Gregor
