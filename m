@@ -1,84 +1,237 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:60949 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933705Ab2JXAu1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 20:50:27 -0400
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39795 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754126Ab2JHUlS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 16:41:18 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, a.hajda@samsung.com,
+	sakari.ailus@iki.fi, hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	sw0312.kim@samsung.com
+Subject: Re: Media_build broken by [PATCH RFC v3 5/5] m5mols: Implement .get_frame_desc subdev callback
+Date: Mon, 08 Oct 2012 22:42 +0200
+Message-ID: <2290105.hTRlMPSUYP@avalon>
+In-Reply-To: <50704D26.9020201@hoogenraad.net>
+References: <1348674853-24596-1-git-send-email-s.nawrocki@samsung.com> <1348674853-24596-6-git-send-email-s.nawrocki@samsung.com> <50704D26.9020201@hoogenraad.net>
 MIME-Version: 1.0
-In-Reply-To: <1351022246-8201-4-git-send-email-elezegarcia@gmail.com>
-References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
-	<1351022246-8201-4-git-send-email-elezegarcia@gmail.com>
-Date: Tue, 23 Oct 2012 21:50:27 -0300
-Message-ID: <CALF0-+XQHAC=eGigmA6QOO27PPG39Q1yGFiebtJ5sJyqbF55vw@mail.gmail.com>
-Subject: Re: [PATCH 04/23] sn9c102: Replace memcpy with struct assignment
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	Andy Walls <awalls@md.metrocast.net>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 23, 2012 at 4:57 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> This kind of memcpy() is error-prone. Its replacement with a struct
-> assignment is prefered because it's type-safe and much easier to read.
->
-> Found by coccinelle. Hand patched and reviewed.
-> Tested by compilation only.
->
-> A simplified version of the semantic match that finds this problem is as
-> follows: (http://coccinelle.lip6.fr/)
->
-> // <smpl>
-> @@
-> identifier struct_name;
-> struct struct_name to;
-> struct struct_name from;
-> expression E;
-> @@
-> -memcpy(&(to), &(from), E);
-> +to = from;
-> // </smpl>
->
-> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+Hi,
+
+When did the {get,set}_frame_desc subdev operations reach mainline ? Last I 
+knew is that they were an RFC, and they're now suddenly in, without even one 
+ack from an embedded v4l developer :-S I'm not totally happy with that.
+
+On Saturday 06 October 2012 17:24:22 Jan Hoogenraad wrote:
+> On my ubuntu 10.4 system
+> 
+> Linux 2.6.32-43-generic-pae #97-Ubuntu SMP Wed Sep 5 16:59:17 UTC 2012
+> i686 GNU/Linux
+> 
+> this patch breaks compilation of media_build.
+> The constant SZ_1M is not defined in the includes on my system
+> 
+> Do you know what can be done about this ?
+> 
 > ---
->  drivers/media/usb/sn9c102/sn9c102_core.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/usb/sn9c102/sn9c102_core.c b/drivers/media/usb/sn9c102/sn9c102_core.c
-> index 5bfc8e2..4cae6f8 100644
-> --- a/drivers/media/usb/sn9c102/sn9c102_core.c
-> +++ b/drivers/media/usb/sn9c102/sn9c102_core.c
-> @@ -2824,7 +2824,7 @@ sn9c102_vidioc_querybuf(struct sn9c102_device* cam, void __user * arg)
->             b.index >= cam->nbuffers || cam->io != IO_MMAP)
->                 return -EINVAL;
->
-> -       memcpy(&b, &cam->frame[b.index].buf, sizeof(b));
-> +       b = cam->frame[b.index].buf;
->
->         if (cam->frame[b.index].vma_use_count)
->                 b.flags |= V4L2_BUF_FLAG_MAPPED;
-> @@ -2927,7 +2927,7 @@ sn9c102_vidioc_dqbuf(struct sn9c102_device* cam, struct file* filp,
->
->         f->state = F_UNUSED;
->
-> -       memcpy(&b, &f->buf, sizeof(b));
-> +       b = f->buf;
->         if (f->vma_use_count)
->                 b.flags |= V4L2_BUF_FLAG_MAPPED;
->
+> 
+> /home/jhh/dvb/media_build/v4l/m5mols_core.c: In function
+> 'm5mols_set_frame_desc':
+> /home/jhh/dvb/media_build/v4l/m5mols_core.c:636: error: 'SZ_1M'
+> undeclared (first use in this function)
+> /home/jhh/dvb/media_build/v4l/m5mols_core.c:636: error: (Each undeclared
+> identifier is reported only once
+> /home/jhh/dvb/media_build/v4l/m5mols_core.c:636: error: for each
+> function it appears in.)
+> 
+> Sylwester Nawrocki wrote:
+> > .get_frame_desc can be used by host interface driver to query
+> > properties of captured frames, e.g. required memory buffer size.
+> > 
+> > Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > ---
+> > 
+> >  drivers/media/i2c/m5mols/m5mols.h         |  9 ++++++
+> >  drivers/media/i2c/m5mols/m5mols_capture.c |  3 ++
+> >  drivers/media/i2c/m5mols/m5mols_core.c    | 47
+> >  +++++++++++++++++++++++++++++++ drivers/media/i2c/m5mols/m5mols_reg.h   
+> >   |  1 +
+> >  4 files changed, 60 insertions(+)
+> > 
+> > diff --git a/drivers/media/i2c/m5mols/m5mols.h
+> > b/drivers/media/i2c/m5mols/m5mols.h index 15d3a4f..de3b755 100644
+> > --- a/drivers/media/i2c/m5mols/m5mols.h
+> > +++ b/drivers/media/i2c/m5mols/m5mols.h
+> > @@ -19,6 +19,13 @@
+> > 
+> >  #include <media/v4l2-subdev.h>
+> >  #include "m5mols_reg.h"
+> > 
+> > +
+> > +/* An amount of data transmitted in addition to the value
+> > + * determined by CAPP_JPEG_SIZE_MAX register.
+> > + */
+> > +#define M5MOLS_JPEG_TAGS_SIZE		0x20000
+> > +#define M5MOLS_MAIN_JPEG_SIZE_MAX	(5 * SZ_1M)
+> > +
+> > 
+> >  extern int m5mols_debug;
+> >  
+> >  enum m5mols_restype {
+> > 
+> > @@ -67,12 +74,14 @@ struct m5mols_exif {
+> > 
+> >  /**
+> >  
+> >   * struct m5mols_capture - Structure for the capture capability
+> >   * @exif: EXIF information
+> > 
+> > + * @buf_size: internal JPEG frame buffer size, in bytes
+> > 
+> >   * @main: size in bytes of the main image
+> >   * @thumb: size in bytes of the thumb image, if it was accompanied
+> >   * @total: total size in bytes of the produced image
+> >   */
+> >  
+> >  struct m5mols_capture {
+> >  
+> >  	struct m5mols_exif exif;
+> > 
+> > +	unsigned int buf_size;
+> > 
+> >  	u32 main;
+> >  	u32 thumb;
+> >  	u32 total;
+> > 
+> > diff --git a/drivers/media/i2c/m5mols/m5mols_capture.c
+> > b/drivers/media/i2c/m5mols/m5mols_capture.c index cb243bd..ab34cce 100644
+> > --- a/drivers/media/i2c/m5mols/m5mols_capture.c
+> > +++ b/drivers/media/i2c/m5mols/m5mols_capture.c
+> > @@ -105,6 +105,7 @@ static int m5mols_capture_info(struct m5mols_info
+> > *info)> 
+> >  int m5mols_start_capture(struct m5mols_info *info)
+> >  {
+> > 
+> > +	unsigned int framesize = info->cap.buf_size - M5MOLS_JPEG_TAGS_SIZE;
+> > 
+> >  	struct v4l2_subdev *sd = &info->sd;
+> >  	int ret;
+> > 
+> > @@ -121,6 +122,8 @@ int m5mols_start_capture(struct m5mols_info *info)
+> > 
+> >  	if (!ret)
+> >  	
+> >  		ret = m5mols_write(sd, CAPP_MAIN_IMAGE_SIZE, info->resolution);
+> >  	
+> >  	if (!ret)
+> > 
+> > +		ret = m5mols_write(sd, CAPP_JPEG_SIZE_MAX, framesize);
+> > +	if (!ret)
+> > 
+> >  		ret = m5mols_set_mode(info, REG_CAPTURE);
+> >  	
+> >  	if (!ret)
+> >  	
+> >  		/* Wait until a frame is captured to ISP internal memory */
+> > 
+> > diff --git a/drivers/media/i2c/m5mols/m5mols_core.c
+> > b/drivers/media/i2c/m5mols/m5mols_core.c index 933014f..c780689 100644
+> > --- a/drivers/media/i2c/m5mols/m5mols_core.c
+> > +++ b/drivers/media/i2c/m5mols/m5mols_core.c
+> > @@ -599,6 +599,51 @@ static int m5mols_set_fmt(struct v4l2_subdev *sd,
+> > struct v4l2_subdev_fh *fh,> 
+> >  	return ret;
+> >  
+> >  }
+> > 
+> > +static int m5mols_get_frame_desc(struct v4l2_subdev *sd, unsigned int
+> > pad,
+> > +				 struct v4l2_mbus_frame_desc *fd)
+> > +{
+> > +	struct m5mols_info *info = to_m5mols(sd);
+> > +
+> > +	if (pad != 0 || fd == NULL)
+> > +		return -EINVAL;
+> > +
+> > +	mutex_lock(&info->lock);
+> > +	/*
+> > +	 * .get_frame_desc is only used for compressed formats,
+> > +	 * thus we always return the capture frame parameters here.
+> > +	 */
+> > +	fd->entry[0].length = info->cap.buf_size;
+> > +	fd->entry[0].pixelcode = info->ffmt[M5MOLS_RESTYPE_CAPTURE].code;
+> > +	mutex_unlock(&info->lock);
+> > +
+> > +	fd->entry[0].flags = V4L2_MBUS_FRAME_DESC_FL_LEN_MAX;
+> > +	fd->num_entries = 1;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int m5mols_set_frame_desc(struct v4l2_subdev *sd, unsigned int
+> > pad,
+> > +				 struct v4l2_mbus_frame_desc *fd)
+> > +{
+> > +	struct m5mols_info *info = to_m5mols(sd);
+> > +	struct v4l2_mbus_framefmt *mf = &info->ffmt[M5MOLS_RESTYPE_CAPTURE];
+> > +
+> > +	if (pad != 0 || fd == NULL)
+> > +		return -EINVAL;
+> > +
+> > +	fd->entry[0].flags = V4L2_MBUS_FRAME_DESC_FL_LEN_MAX;
+> > +	fd->num_entries = 1;
+> > +	fd->entry[0].length = clamp_t(u32, fd->entry[0].length,
+> > +				      mf->width * mf->height,
+> > +				      M5MOLS_MAIN_JPEG_SIZE_MAX);
+> > +	mutex_lock(&info->lock);
+> > +	info->cap.buf_size = fd->entry[0].length;
+> > +	mutex_unlock(&info->lock);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +
+> > 
+> >  static int m5mols_enum_mbus_code(struct v4l2_subdev *sd,
+> >  
+> >  				 struct v4l2_subdev_fh *fh,
+> >  				 struct v4l2_subdev_mbus_code_enum *code)
+> > 
+> > @@ -615,6 +660,8 @@ static struct v4l2_subdev_pad_ops m5mols_pad_ops = {
+> > 
+> >  	.enum_mbus_code	= m5mols_enum_mbus_code,
+> >  	.get_fmt	= m5mols_get_fmt,
+> >  	.set_fmt	= m5mols_set_fmt,
+> > 
+> > +	.get_frame_desc	= m5mols_get_frame_desc,
+> > +	.set_frame_desc	= m5mols_set_frame_desc,
+> > 
+> >  };
+> >  
+> >  /**
+> > 
+> > diff --git a/drivers/media/i2c/m5mols/m5mols_reg.h
+> > b/drivers/media/i2c/m5mols/m5mols_reg.h index 14d4be7..58d8027 100644
+> > --- a/drivers/media/i2c/m5mols/m5mols_reg.h
+> > +++ b/drivers/media/i2c/m5mols/m5mols_reg.h
+> > @@ -310,6 +310,7 @@
+> > 
+> >  #define REG_JPEG		0x10
+> >  
+> >  #define CAPP_MAIN_IMAGE_SIZE	I2C_REG(CAT_CAPT_PARM, 0x01, 1)
+> > 
+> > +#define CAPP_JPEG_SIZE_MAX	I2C_REG(CAT_CAPT_PARM, 0x0f, 4)
+> > 
+> >  #define CAPP_JPEG_RATIO		I2C_REG(CAT_CAPT_PARM, 0x17, 1)
+> >  
+> >  #define CAPP_MCC_MODE		I2C_REG(CAT_CAPT_PARM, 0x1d, 1)
+-- 
+Regards,
 
-Andy: you got me thinking on performance.
-Most patches are initialization or setup code.
+Laurent Pinchart
 
-Here we patch a xxx_vidioc_dqbuf() function.
-Is this a speed sensitive path?
-
-I still think this change can't hurt performance,
-but I may be wrong!
-
-
-    Ezequiel
