@@ -1,123 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:46618 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752208Ab2JWKrv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 06:47:51 -0400
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3317 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751072Ab2JHJFF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 05:05:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: manjunatha_halli@ti.com
+Subject: Re: [PATCH V7 0/5] [Media] Radio: Fixes and New features for FM
+Date: Mon, 8 Oct 2012 11:04:58 +0200
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Manjunatha Halli <x0130808@ti.com>
+References: <1337620326-18593-1-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1337620326-18593-1-git-send-email-manjunatha_halli@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <1907817.pMPUYlsyRc@avalon>
-References: <1350908271-11448-1-git-send-email-prabhakar.lad@ti.com> <1907817.pMPUYlsyRc@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 23 Oct 2012 16:17:30 +0530
-Message-ID: <CA+V-a8twTJggR9H5Ei4H16n9VOzgWnfBw4qhCnqdoc8cow1xuw@mail.gmail.com>
-Subject: Re: [PATCH RESEND] media: davinci: vpbe: fix build warning
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201210081104.58789.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Manjunatha,
 
-On Mon, Oct 22, 2012 at 5:53 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Prabhakar,
->
-> On Monday 22 October 2012 17:47:51 Prabhakar Lad wrote:
->> From: Lad, Prabhakar <prabhakar.lad@ti.com>
->>
->> Warnings were generated because of the following commit changed data type
->> for address pointer
->>
->> 195bbca ARM: 7500/1: io: avoid writeback addressing modes for __raw_
->> accessors add  __iomem annotation to fix following warnings
->>
->> drivers/media/platform/davinci/vpbe_osd.c: In function ‘osd_read’:
->> drivers/media/platform/davinci/vpbe_osd.c:49:2: warning: passing
->>  argument 1 of ‘__raw_readl’ makes pointer from integer without a cast
->> [enabled by default] arch/arm/include/asm/io.h:104:19: note: expected
->> ‘const volatile
->>  void *’ but argument is of type ‘long unsigned int’
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
->> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
->> ---
->>   Resending the patch since, it didn't reach the DLOS mailing list.
->>
->>  drivers/media/platform/davinci/vpbe_osd.c |   16 ++++++++--------
->>  1 files changed, 8 insertions(+), 8 deletions(-)
->>
->> diff --git a/drivers/media/platform/davinci/vpbe_osd.c
->> b/drivers/media/platform/davinci/vpbe_osd.c index bba299d..9ab9280 100644
->> --- a/drivers/media/platform/davinci/vpbe_osd.c
->> +++ b/drivers/media/platform/davinci/vpbe_osd.c
->> @@ -46,14 +46,14 @@ static inline u32 osd_read(struct osd_state *sd, u32
->> offset) {
->>       struct osd_state *osd = sd;
->>
->> -     return readl(osd->osd_base + offset);
->> +     return readl(IOMEM(osd->osd_base + offset));
->
-> A better fix, in my opinion, would be to change the osd->osd_base field to be
-> a void __iomem * instead of long unsigned int.
->
-Ok I'll make it as void * and post a v2.
+Can you make a v8? The tuner band issues have been settled and are now merged,
+so it would be good to finalize this.
 
-Regards,
---Prabhakar
-
->>  }
->>
->>  static inline u32 osd_write(struct osd_state *sd, u32 val, u32 offset)
->>  {
->>       struct osd_state *osd = sd;
->>
->> -     writel(val, osd->osd_base + offset);
->> +     writel(val, IOMEM(osd->osd_base + offset));
->>
->>       return val;
->>  }
->> @@ -63,9 +63,9 @@ static inline u32 osd_set(struct osd_state *sd, u32 mask,
->> u32 offset) struct osd_state *osd = sd;
->>
->>       u32 addr = osd->osd_base + offset;
->> -     u32 val = readl(addr) | mask;
->> +     u32 val = readl(IOMEM(addr)) | mask;
->>
->> -     writel(val, addr);
->> +     writel(val, IOMEM(addr));
->>
->>       return val;
->>  }
->> @@ -75,9 +75,9 @@ static inline u32 osd_clear(struct osd_state *sd, u32
->> mask, u32 offset) struct osd_state *osd = sd;
->>
->>       u32 addr = osd->osd_base + offset;
->> -     u32 val = readl(addr) & ~mask;
->> +     u32 val = readl(IOMEM(addr)) & ~mask;
->>
->> -     writel(val, addr);
->> +     writel(val, IOMEM(addr));
->>
->>       return val;
->>  }
->> @@ -88,9 +88,9 @@ static inline u32 osd_modify(struct osd_state *sd, u32
->> mask, u32 val, struct osd_state *osd = sd;
->>
->>       u32 addr = osd->osd_base + offset;
->> -     u32 new_val = (readl(addr) & ~mask) | (val & mask);
->> +     u32 new_val = (readl(IOMEM(addr)) & ~mask) | (val & mask);
->>
->> -     writel(new_val, addr);
->> +     writel(new_val, IOMEM(addr));
->>
->>       return new_val;
->>  }
-> --
-> Regards,
->
-> Laurent Pinchart
->
+On Mon May 21 2012 19:12:01 manjunatha_halli@ti.com wrote:
+> From: Manjunatha Halli <x0130808@ti.com>
+> 
+> Mauro and the list,
+> 
+> This version 7 of patchset resolves the comments received from
+> Han's on patchset v6. Also removed the frequency band handling
+> from this patch set.
+> 
+> This patchset creates new control class 'V4L2_CTRL_CLASS_FM_RX' for FM RX,
+> introduces 2 new CID's for FM RX and and 1 new CID for FM TX. Also adds 1
+> field in struct v4l2_hw_freq_seek.
+> 
+> This patch adds few new features to TI's FM driver features
+> are listed below,
+> 
+> 1) FM TX RDS Support (RT, PS, AF, PI, PTY)          
+> 2) FM RX Russian band support
+> 3) FM RX AF set/get
+> 4) FM RX De-emphasis mode set/get
+> 
+> Along with new features this patch also fixes few issues in the driver
+> like default rssi level for seek, unnecessory logs etc.
+> 
+> Manjunatha Halli (5):
+>   WL128x: Add support for FM TX RDS
+>   New control class and features for FM RX
+>   Add new CID for FM TX RDS Alternate Frequency
+>   Media: Update docs for V4L2 FM new features
+>   WL12xx: Add support for FM new features
+> 
+>  Documentation/DocBook/media/v4l/compat.xml         |    3 +
+>  Documentation/DocBook/media/v4l/controls.xml       |   77 ++++++++++++++++++++
+>  Documentation/DocBook/media/v4l/dev-rds.xml        |    5 +-
+>  .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 ++
+>  drivers/media/radio/wl128x/fmdrv.h                 |    2 +-
+>  drivers/media/radio/wl128x/fmdrv_common.c          |   30 +++++---
+>  drivers/media/radio/wl128x/fmdrv_common.h          |   25 +++++--
+>  drivers/media/radio/wl128x/fmdrv_rx.c              |   13 +++-
+>  drivers/media/radio/wl128x/fmdrv_tx.c              |   41 +++++------
+>  drivers/media/radio/wl128x/fmdrv_tx.h              |    3 +-
+>  drivers/media/radio/wl128x/fmdrv_v4l2.c            |   74 +++++++++++++++++++
+>  drivers/media/video/v4l2-ctrls.c                   |   18 ++++-
+>  include/linux/videodev2.h                          |   10 +++
+>  13 files changed, 255 insertions(+), 53 deletions(-)
+> 
+> 
