@@ -1,156 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:57147 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932512Ab2JURxi (ORCPT
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:45576 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753687Ab2JHHMn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Oct 2012 13:53:38 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so1632849wgb.1
-        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2012 10:53:37 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 13/23] em28xx: rename function em28xx_isoc_copy and extend for USB bulk transfers
-Date: Sun, 21 Oct 2012 19:52:19 +0300
-Message-Id: <1350838349-14763-15-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Mon, 8 Oct 2012 03:12:43 -0400
+Received: by mail-la0-f46.google.com with SMTP id h6so2025282lag.19
+        for <linux-media@vger.kernel.org>; Mon, 08 Oct 2012 00:12:41 -0700 (PDT)
+Message-ID: <1349680358.3227.27.camel@deskari>
+Subject: Re: [PATCH 1/2 v6] of: add helper to parse display timings
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Date: Mon, 08 Oct 2012 10:12:38 +0300
+In-Reply-To: <1349680065.3227.25.camel@deskari>
+References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
+	 <1349373560-11128-2-git-send-email-s.trumtrar@pengutronix.de>
+	 <1349680065.3227.25.camel@deskari>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-L32r8tTcWf9+Yupqd/gB"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The URB data processing for bulk transfers is very similar to what
-is done with isoc transfers, so create a common function that works
-with both transfer types based on the existing isoc function.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |   66 +++++++++++++++++++------------
- 1 Datei geändert, 41 Zeilen hinzugefügt(+), 25 Zeilen entfernt(-)
+--=-L32r8tTcWf9+Yupqd/gB
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 3518753..63b0cc3 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -6,6 +6,7 @@
- 		      Markus Rechberger <mrechberger@gmail.com>
- 		      Mauro Carvalho Chehab <mchehab@infradead.org>
- 		      Sascha Sommer <saschasommer@freenet.de>
-+   Copyright (C) 2012 Frank Schäfer <fschaefer.oss@googlemail.com>
- 
- 	Some parts based on SN9C10x PC Camera Controllers GPL driver made
- 		by Luca Risolia <luca.risolia@studio.unibo.it>
-@@ -412,16 +413,14 @@ static inline void vbi_get_next_buf(struct em28xx_dmaqueue *dma_q,
- 	return;
- }
- 
--/*
-- * Controls the isoc copy of each urb packet
-- */
--static inline int em28xx_isoc_copy(struct em28xx *dev, struct urb *urb)
-+/* Processes and copies the URB data content to a frame buffer queue */
-+static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
- {
- 	struct em28xx_buffer    *buf;
- 	struct em28xx_dmaqueue  *dma_q = &dev->vidq;
--	unsigned char *outp = NULL;
--	int i, len = 0, rc = 1;
--	unsigned char *p;
-+	int xfer_bulk, num_packets, i, rc = 1;
-+	unsigned int actual_length, len = 0;
-+	unsigned char *p, *outp = NULL;
- 
- 	if (!dev)
- 		return 0;
-@@ -432,33 +431,47 @@ static inline int em28xx_isoc_copy(struct em28xx *dev, struct urb *urb)
- 	if (urb->status < 0)
- 		print_err_status(dev, -1, urb->status);
- 
-+	xfer_bulk = usb_pipebulk(urb->pipe);
-+
- 	buf = dev->usb_ctl.vid_buf;
- 	if (buf != NULL)
- 		outp = videobuf_to_vmalloc(&buf->vb);
- 
--	for (i = 0; i < urb->number_of_packets; i++) {
--		int status = urb->iso_frame_desc[i].status;
-+	if (xfer_bulk) /* bulk */
-+		num_packets = 1;
-+	else /* isoc */
-+		num_packets = urb->number_of_packets;
-+
-+	for (i = 0; i < num_packets; i++) {
-+		if (xfer_bulk) { /* bulk */
-+			actual_length = urb->actual_length;
-+
-+			p = urb->transfer_buffer;
-+		} else { /* isoc */
-+			if (urb->iso_frame_desc[i].status < 0) {
-+				print_err_status(dev, i,
-+						 urb->iso_frame_desc[i].status);
-+				if (urb->iso_frame_desc[i].status != -EPROTO)
-+					continue;
-+			}
- 
--		if (status < 0) {
--			print_err_status(dev, i, status);
--			if (urb->iso_frame_desc[i].status != -EPROTO)
-+			actual_length = urb->iso_frame_desc[i].actual_length;
-+			if (actual_length > dev->max_pkt_size) {
-+				em28xx_isocdbg("packet bigger than "
-+					       "packet size");
- 				continue;
--		}
--
--		len = urb->iso_frame_desc[i].actual_length - 4;
-+			}
- 
--		if (urb->iso_frame_desc[i].actual_length <= 0) {
--			/* em28xx_isocdbg("packet %d is empty",i); - spammy */
--			continue;
-+			p = urb->transfer_buffer +
-+			    urb->iso_frame_desc[i].offset;
- 		}
--		if (urb->iso_frame_desc[i].actual_length >
--						dev->max_pkt_size) {
--			em28xx_isocdbg("packet bigger than packet size");
-+
-+		if (actual_length <= 0) {
-+			/* NOTE: happens very often with isoc transfers */
-+			/* em28xx_usbdbg("packet %d is empty",i); - spammy */
- 			continue;
- 		}
- 
--		p = urb->transfer_buffer + urb->iso_frame_desc[i].offset;
--
- 		/* FIXME: incomplete buffer checks where removed to make
- 		   logic simpler. Impacts of those changes should be evaluated
- 		 */
-@@ -492,9 +505,12 @@ static inline int em28xx_isoc_copy(struct em28xx *dev, struct urb *urb)
- 		}
- 		if (buf != NULL) {
- 			if (p[0] != 0x88 && p[0] != 0x22) {
-+				/* NOTE: no intermediate data packet header
-+				 * 88 88 88 88 when using bulk transfers */
- 				em28xx_isocdbg("frame is not complete\n");
--				len += 4;
-+				len = actual_length;
- 			} else {
-+				len = actual_length - 4;
- 				p += 4;
- 			}
- 			em28xx_copy_video(dev, dma_q, buf, p, outp, len);
-@@ -767,7 +783,7 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
- 						  EM28XX_NUM_BUFS,
- 						  dev->max_pkt_size,
- 						  EM28XX_NUM_ISOC_PACKETS,
--						  em28xx_isoc_copy);
-+						  em28xx_urb_data_copy);
- 		if (rc < 0)
- 			goto fail;
- 	}
--- 
-1.7.10.4
+On Mon, 2012-10-08 at 10:07 +0300, Tomi Valkeinen wrote:
+> Hi,
+
+> I don't see you setting disp->default_timing to OF_DEFAULT_TIMING in
+> case there's no default_timing found.
+>=20
+> Or, at least I presume OF_DEFAULT_TIMING is meant to mark non-existing
+> default timing. The name OF_DEFAULT_TIMING is not very descriptive to
+> me.
+
+Ah, I see now from the second patch how this is meant to be used. So if
+there's no default timing in DT data, disp->default_timing is 0, meaning
+the first entry. And the caller of of_get_videomode() will use
+OF_DEFAULT_TIMING as index to get the default mode.
+
+So I think it's ok.
+
+ Tomi
+
+
+--=-L32r8tTcWf9+Yupqd/gB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJQcnzmAAoJEPo9qoy8lh71oBUP/0bxc1V5TTiuSaszMTujbf00
+dpQd40W+w4TsDWWlHzHk9Qd7NNxZpF1Qs4Yh3xlLn++V3FpzlseyGyrelWFSosAl
+vkCQdqENYBZ+bqfeuEQpKtAlbFoX0L3Jgxiv+2dGPIZvbzjjg5+dWHbN7ZBfdXhx
+UdOlprPZ022HjK6Rt7Yk1QpL+rpqP96NObt7ALjrY3jQfMSXtkv9d+LJEFRkqA+5
+krmoiVy6B+1cMMP/b4BcGqkOHs2Ek3LxiM4aSDfjF4ZEvrw0CH+uLWqvtjfErAhv
+2CQkEQeWoSjqDiB0DKno+MS+Hb+UoZ8PcPU65jgd/dovQhVEk5HBQYWVoXgiSurI
+uyfZ9qsoPhzhDx8UIYf0uZ3yEb7eThDWj6imRNqUhDtRoLLg4/MwxgQaiVVKo4Hb
++UbsBvKuVbFTxeB7CwD2h3DT7i2nhhAKuXDTtKL+bPNA2Humw+bnwi2R0J3SjU0j
+gqqXz1+LbYT1yphW4eFTBC0r2NgKdfShB56ffuf0s3IunDX8OmoQIgsZ6niWZK6h
+Kv7yTP+cIc0T8nEzuVth4HKsXlAC0nhTRB/JCoZsEfgy4oKuFQO+5TC+S46NCOSG
+CeJyIstqxE91ILVqMz7l+W9T8il5oOiow+zC46kf7Cavvsx1yAqL2/cEBFdgdvJn
+90okBD/kA251OMuKr8we
+=LlnE
+-----END PGP SIGNATURE-----
+
+--=-L32r8tTcWf9+Yupqd/gB--
 
