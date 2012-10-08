@@ -1,86 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:62876 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755538Ab2JCNmp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 09:42:45 -0400
-From: Prabhakar <prabhakar.csengg@gmail.com>
-To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
-	VGER <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH] media: davinci: vpif: Add return code check at vb2_queue_init()
-Date: Wed,  3 Oct 2012 19:12:29 +0530
-Message-Id: <1349271749-24426-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mail4-relais-sop.national.inria.fr ([192.134.164.105]:6014 "EHLO
+	mail4-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752712Ab2JHIbg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Oct 2012 04:31:36 -0400
+Date: Mon, 8 Oct 2012 10:31:33 +0200 (CEST)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Ryan Mallon <rmallon@gmail.com>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Joe Perches <joe@perches.com>,
+	Julia Lawall <julia.lawall@lip6.fr>,
+	walter harms <wharms@bfs.de>, Antti Palosaari <crope@iki.fi>,
+	kernel-janitors@vger.kernel.org, shubhrajyoti@ti.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for
+ i2c_msg initialization
+In-Reply-To: <50723661.6040107@gmail.com>
+Message-ID: <alpine.DEB.2.02.1210081028340.1989@hadrien>
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr> <5071AEF3.6080108@bfs.de> <alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6> <5071B834.1010200@bfs.de>
+ <alpine.DEB.2.02.1210071917040.2745@localhost6.localdomain6> <1349633780.15802.8.camel@joe-AO722> <alpine.DEB.2.02.1210072053550.2745@localhost6.localdomain6> <1349645970.15802.12.camel@joe-AO722> <alpine.DEB.2.02.1210072342460.2745@localhost6.localdomain6>
+ <1349646718.15802.16.camel@joe-AO722> <20121007225639.364a41b4@infradead.org> <50723661.6040107@gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
+I found only 15 uses of I2C_MSG_OP, out of 653 uses of one of the three
+macros.  Since I2C_MSG_OP has the complete set of flags, I think it should
+be OK?
 
-from commit with id 896f38f582730a19eb49677105b4fe4c0270b82e
-it's mandatory to check the return code of vb2_queue_init().
+One of the uses, in drivers/media/i2c/adv7604.c, is as follows:
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/davinci/vpif_capture.c |    8 ++++++--
- drivers/media/platform/davinci/vpif_display.c |    8 ++++++--
- 2 files changed, 12 insertions(+), 4 deletions(-)
+       struct i2c_msg msg[2] = { { client->addr, 0, 1, msgbuf0 },
+                                 { client->addr, 0 | I2C_M_RD, len, msgbuf1 }
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 83b80ba..3521725 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -976,6 +976,7 @@ static int vpif_reqbufs(struct file *file, void *priv,
- 	struct common_obj *common;
- 	u8 index = 0;
- 	struct vb2_queue *q;
-+	int ret;
- 
- 	vpif_dbg(2, debug, "vpif_reqbufs\n");
- 
-@@ -1015,8 +1016,11 @@ static int vpif_reqbufs(struct file *file, void *priv,
- 	q->mem_ops = &vb2_dma_contig_memops;
- 	q->buf_struct_size = sizeof(struct vpif_cap_buffer);
- 
--	vb2_queue_init(q);
--
-+	ret = vb2_queue_init(q);
-+	if (ret) {
-+		vpif_err("vpif_capture: vb2_queue_init() failed\n");
-+		return ret;
-+	}
- 	/* Set io allowed member of file handle to TRUE */
- 	fh->io_allowed[index] = 1;
- 	/* Increment io usrs member of channel object to 1 */
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index ae8329d..84cee9d 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -936,6 +936,7 @@ static int vpif_reqbufs(struct file *file, void *priv,
- 	enum v4l2_field field;
- 	struct vb2_queue *q;
- 	u8 index = 0;
-+	int ret;
- 
- 	/* This file handle has not initialized the channel,
- 	   It is not allowed to do settings */
-@@ -981,8 +982,11 @@ static int vpif_reqbufs(struct file *file, void *priv,
- 	q->mem_ops = &vb2_dma_contig_memops;
- 	q->buf_struct_size = sizeof(struct vpif_disp_buffer);
- 
--	vb2_queue_init(q);
--
-+	ret = vb2_queue_init(q);
-+	if (ret) {
-+		vpif_err("vpif_display: vb2_queue_init() failed\n");
-+		return ret;
-+	}
- 	/* Set io allowed member of file handle to TRUE */
- 	fh->io_allowed[index] = 1;
- 	/* Increment io usrs member of channel object to 1 */
--- 
-1.7.4.1
+I'm not sure what was intended, but I guess the second structure is
+supposed to only do a read?
 
+julia
