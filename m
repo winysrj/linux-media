@@ -1,50 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:32023 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752962Ab2JPDgw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Oct 2012 23:36:52 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBY003W2VCZNEA0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 16 Oct 2012 12:36:51 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MBY00CDYVCWIJ00@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 16 Oct 2012 12:36:51 +0900 (KST)
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, shaik.samsung@gmail.com
-Subject: [PATCH] [media] s5p-fimc: fix variable type in fimc_device_run()
-Date: Tue, 16 Oct 2012 19:09:08 +0530
-Message-id: <1350394748-30064-1-git-send-email-shaik.ameer@samsung.com>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:54249 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751845Ab2JHMeJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 08:34:09 -0400
+Received: by mail-qc0-f174.google.com with SMTP id d3so2796440qch.19
+        for <linux-media@vger.kernel.org>; Mon, 08 Oct 2012 05:34:09 -0700 (PDT)
+MIME-Version: 1.0
+Date: Mon, 8 Oct 2012 20:34:09 +0800
+Message-ID: <CAPgLHd9N8YuzKY86UYmXJysv+B1E_ms4i=SAujXDZaiBHdZx=A@mail.gmail.com>
+Subject: [PATCH] [media] v4l2: use list_move_tail instead of list_del/list_add_tail
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: mchehab@infradead.org, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com
+Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In fimc_device_run(), variable "ret" is accepting signed integer
-values. But currently it is defined as u32. This patch will modify
-the type of "ret" variable to "int".
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+Using list_move_tail() instead of list_del() + list_add_tail().
+
+dpatch engine is used to auto generate this patch.
+(https://github.com/weiyj/dpatch)
+
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 ---
- drivers/media/platform/s5p-fimc/fimc-m2m.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/media/platform/fsl-viu.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-m2m.c b/drivers/media/platform/s5p-fimc/fimc-m2m.c
-index 4500e44..4c4e901 100644
---- a/drivers/media/platform/s5p-fimc/fimc-m2m.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-m2m.c
-@@ -105,7 +105,7 @@ static void fimc_device_run(void *priv)
- 	struct fimc_frame *sf, *df;
- 	struct fimc_dev *fimc;
- 	unsigned long flags;
--	u32 ret;
-+	int ret;
+diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
+index 897250b..c5091fe 100644
+--- a/drivers/media/platform/fsl-viu.c
++++ b/drivers/media/platform/fsl-viu.c
+@@ -352,8 +352,7 @@ static int restart_video_queue(struct viu_dmaqueue *vidq)
+ 			return 0;
+ 		buf = list_entry(vidq->queued.next, struct viu_buf, vb.queue);
+ 		if (prev == NULL) {
+-			list_del(&buf->vb.queue);
+-			list_add_tail(&buf->vb.queue, &vidq->active);
++			list_move_tail(&buf->vb.queue, &vidq->active);
  
- 	if (WARN(!ctx, "Null context\n"))
- 		return;
--- 
-1.7.0.4
+ 			dprintk(1, "Restarting video dma\n");
+ 			viu_stop_dma(vidq->dev);
+@@ -367,8 +366,7 @@ static int restart_video_queue(struct viu_dmaqueue *vidq)
+ 		} else if (prev->vb.width  == buf->vb.width  &&
+ 			   prev->vb.height == buf->vb.height &&
+ 			   prev->fmt       == buf->fmt) {
+-			list_del(&buf->vb.queue);
+-			list_add_tail(&buf->vb.queue, &vidq->active);
++			list_move_tail(&buf->vb.queue, &vidq->active);
+ 			buf->vb.state = VIDEOBUF_ACTIVE;
+ 			dprintk(2, "[%p/%d] restart_queue - move to active\n",
+ 				buf, buf->vb.i);
 
