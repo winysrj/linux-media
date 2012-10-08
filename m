@@ -1,62 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ye0-f174.google.com ([209.85.213.174]:40896 "EHLO
-	mail-ye0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933334Ab2JWT64 (ORCPT
+Received: from mail4-relais-sop.national.inria.fr ([192.134.164.105]:37305
+	"EHLO mail4-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750899Ab2JHFFo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 15:58:56 -0400
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-Cc: Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 09/23] zr36067: Replace memcpy with struct assignment
-Date: Tue, 23 Oct 2012 16:57:12 -0300
-Message-Id: <1351022246-8201-9-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
-References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+	Mon, 8 Oct 2012 01:05:44 -0400
+Date: Mon, 8 Oct 2012 07:05:27 +0200 (CEST)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Ryan Mallon <rmallon@gmail.com>
+cc: Julia Lawall <Julia.Lawall@lip6.fr>,
+	Antti Palosaari <crope@iki.fi>,
+	kernel-janitors@vger.kernel.org, shubhrajyoti@ti.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 3/13] drivers/media/tuners/qt1010.c: use macros for
+ i2c_msg initialization
+In-Reply-To: <5071FA5D.30003@gmail.com>
+Message-ID: <alpine.DEB.2.02.1210080704440.1972@localhost6.localdomain6>
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-5-git-send-email-Julia.Lawall@lip6.fr> <5071FA5D.30003@gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This kind of memcpy() is error-prone. Its replacement with a struct
-assignment is prefered because it's type-safe and much easier to read.
+On Mon, 8 Oct 2012, Ryan Mallon wrote:
 
-Found by coccinelle. Hand patched and reviewed.
-Tested by compilation only.
+> On 08/10/12 02:38, Julia Lawall wrote:
+>> From: Julia Lawall <Julia.Lawall@lip6.fr>
+>>
+>> Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
+>>
+>> A length expressed as an explicit constant is also re-expressed as the size
+>> of the buffer, when this is possible.
+>>
+>> A simplified version of the semantic patch that makes this change is as
+>> follows: (http://coccinelle.lip6.fr/)
+>>
+>> // <smpl>
+>> @@
+>> expression a,b,c;
+>> identifier x;
+>> @@
+>>
+>> struct i2c_msg x =
+>> - {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
+>> + I2C_MSG_READ(a,b,c)
+>>  ;
+>>
+>> @@
+>> expression a,b,c;
+>> identifier x;
+>> @@
+>>
+>> struct i2c_msg x =
+>> - {.addr = a, .buf = b, .len = c, .flags = 0}
+>> + I2C_MSG_WRITE(a,b,c)
+>>  ;
+>>
+>> @@
+>> expression a,b,c,d;
+>> identifier x;
+>> @@
+>>
+>> struct i2c_msg x =
+>> - {.addr = a, .buf = b, .len = c, .flags = d}
+>> + I2C_MSG_OP(a,b,c,d)
+>>  ;
+>> // </smpl>
+>>
+>> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+>>
+>> ---
+>>  drivers/media/tuners/qt1010.c |   10 ++++------
+>>  1 file changed, 4 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/media/tuners/qt1010.c b/drivers/media/tuners/qt1010.c
+>> index bc419f8..37ff254 100644
+>> --- a/drivers/media/tuners/qt1010.c
+>> +++ b/drivers/media/tuners/qt1010.c
+>> @@ -25,10 +25,8 @@
+>>  static int qt1010_readreg(struct qt1010_priv *priv, u8 reg, u8 *val)
+>>  {
+>>  	struct i2c_msg msg[2] = {
+>> -		{ .addr = priv->cfg->i2c_address,
+>> -		  .flags = 0, .buf = &reg, .len = 1 },
+>> -		{ .addr = priv->cfg->i2c_address,
+>> -		  .flags = I2C_M_RD, .buf = val, .len = 1 },
+>> +		I2C_MSG_WRITE(priv->cfg->i2c_address, &reg, sizeof(reg)),
+>> +		I2C_MSG_READ(priv->cfg->i2c_address, val, 1),
+>
+> This is a bit inconsistent. For single length values we should either
+> consistently use sizeof(val) or 1. This has both.
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
+val is a pointer.  It does not have size 1.
 
-// <smpl>
-@@
-identifier struct_name;
-struct struct_name to;
-struct struct_name from;
-expression E;
-@@
--memcpy(&(to), &(from), E);
-+to = from;
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/pci/zoran/zoran_card.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/pci/zoran/zoran_card.c b/drivers/media/pci/zoran/zoran_card.c
-index fffc54b..cea325d 100644
---- a/drivers/media/pci/zoran/zoran_card.c
-+++ b/drivers/media/pci/zoran/zoran_card.c
-@@ -708,8 +708,7 @@ static const struct i2c_algo_bit_data zoran_i2c_bit_data_template = {
- static int
- zoran_register_i2c (struct zoran *zr)
- {
--	memcpy(&zr->i2c_algo, &zoran_i2c_bit_data_template,
--	       sizeof(struct i2c_algo_bit_data));
-+	zr->i2c_algo = zoran_i2c_bit_data_template;
- 	zr->i2c_algo.data = zr;
- 	strlcpy(zr->i2c_adapter.name, ZR_DEVNAME(zr),
- 		sizeof(zr->i2c_adapter.name));
--- 
-1.7.4.4
-
+julia
