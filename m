@@ -1,114 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:48692 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752276Ab2JJOxC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 10:53:02 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBO00B8EMODK980@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:53:01 +0900 (KST)
-Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MBO002YDME0EC70@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:53:00 +0900 (KST)
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
-	k.debski@samsung.com
-Subject: [PATCHv10 09/26] v4l: vb2: add prepare/finish callbacks to allocators
-Date: Wed, 10 Oct 2012 16:46:28 +0200
-Message-id: <1349880405-26049-10-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
-References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:38959 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752846Ab2JHUMi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 16:12:38 -0400
+Message-ID: <507333B2.60109@wwwdotorg.org>
+Date: Mon, 08 Oct 2012 14:12:34 -0600
+From: Stephen Warren <swarren@wwwdotorg.org>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 04/14] media: add V4L2 DT binding documentation
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <1348754853-28619-5-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1348754853-28619-5-git-send-email-g.liakhovetski@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Marek Szyprowski <m.szyprowski@samsung.com>
+On 09/27/2012 08:07 AM, Guennadi Liakhovetski wrote:
+> This patch adds a document, describing common V4L2 device tree bindings.
+> 
+> Co-authored-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-This patch adds support for prepare/finish callbacks in VB2 allocators. These
-callback are used for buffer flushing.
-
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/videobuf2-core.c |   11 +++++++++++
- include/media/videobuf2-core.h           |    7 +++++++
- 2 files changed, 18 insertions(+)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index a51dad6..613dea1 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -844,6 +844,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
- 	unsigned long flags;
-+	unsigned int plane;
- 
- 	if (vb->state != VB2_BUF_STATE_ACTIVE)
- 		return;
-@@ -854,6 +855,10 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	dprintk(4, "Done processing on buffer %d, state: %d\n",
- 			vb->v4l2_buf.index, vb->state);
- 
-+	/* sync buffers */
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_memop(q, finish, vb->planes[plane].mem_priv);
-+
- 	/* Add the buffer to the done buffers list */
- 	spin_lock_irqsave(&q->done_lock, flags);
- 	vb->state = state;
-@@ -1136,9 +1141,15 @@ err:
- static void __enqueue_in_driver(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
-+	unsigned int plane;
- 
- 	vb->state = VB2_BUF_STATE_ACTIVE;
- 	atomic_inc(&q->queued_count);
-+
-+	/* sync buffers */
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_memop(q, prepare, vb->planes[plane].mem_priv);
-+
- 	q->ops->buf_queue(vb);
- }
- 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 689ae4a..24b9c90 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -56,6 +56,10 @@ struct vb2_fileio_data;
-  *		dmabuf
-  * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
-  *		  that this driver is done using the dmabuf for now
-+ * @prepare:	called every time the buffer is passed from userspace to the
-+ *		driver, useful for cache synchronisation, optional
-+ * @finish:	called every time the buffer is passed back from the driver
-+ *		to the userspace, also optional
-  * @vaddr:	return a kernel virtual address to a given memory buffer
-  *		associated with the passed private structure or NULL if no
-  *		such mapping exists
-@@ -82,6 +86,9 @@ struct vb2_mem_ops {
- 					unsigned long size, int write);
- 	void		(*put_userptr)(void *buf_priv);
- 
-+	void		(*prepare)(void *buf_priv);
-+	void		(*finish)(void *buf_priv);
-+
- 	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
- 				unsigned long size, int write);
- 	void		(*detach_dmabuf)(void *buf_priv);
--- 
-1.7.9.5
-
+I think this looks reasonable now, touch wood:-) I guess I won't ack the
+binding until the v4l2 -> something-generic rename happens, but I don't
+see anything stopping me from doing so once the rename happens.
