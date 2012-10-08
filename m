@@ -1,53 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog113.obsmtp.com ([207.126.144.135]:59477 "EHLO
-	eu1sys200aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754227Ab2JWIrn convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 04:47:43 -0400
-From: Nicolas THERY <nicolas.thery@st.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: "pawel@osciak.com" <Pawel Osciak@casper.infradead.org>,
-	"hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-	"s.hauer@pengutronix.de" <s.hauer@pengutronix.de>
-Date: Tue, 23 Oct 2012 10:47:19 +0200
-Subject: [PATCH TRIVIAL for 3.7] mem2mem: replace BUG_ON with WARN_ON
-Message-ID: <50865997.7050401@st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:64089 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750810Ab2JHMcs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 08:32:48 -0400
+Received: by mail-qc0-f174.google.com with SMTP id d3so2796008qch.19
+        for <linux-media@vger.kernel.org>; Mon, 08 Oct 2012 05:32:48 -0700 (PDT)
 MIME-Version: 1.0
+Date: Mon, 8 Oct 2012 20:32:48 +0800
+Message-ID: <CAPgLHd-0c4D0cSVQBZA=bbaDvcu4yHBj_2DPPGrQMKQZxxGqBg@mail.gmail.com>
+Subject: [PATCH] [media] s5p-tv: remove unused including <linux/version.h>
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: kyungmin.park@samsung.com, t.stanislaws@samsung.com,
+	mchehab@infradead.org
+Cc: yongjun_wei@trendmicro.com.cn,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-See following thread for rationale:
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-	http://www.spinics.net/lists/linux-media/msg52462.html
+Remove including <linux/version.h> that don't need it.
 
-Tested by compilation only.
+dpatch engine is used to auto generate this patch.
+(https://github.com/weiyj/dpatch)
 
-Signed-off-by: Nicolas Thery <nicolas.thery@st.com>
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 ---
- drivers/media/v4l2-core/v4l2-mem2mem.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/media/platform/s5p-tv/mixer_video.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 3ac8358..017fed8 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -510,12 +510,10 @@ struct v4l2_m2m_dev *v4l2_m2m_init(struct v4l2_m2m_ops *m2m_ops)
- {
- 	struct v4l2_m2m_dev *m2m_dev;
+diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+index 0c1cd89..9b52f3a 100644
+--- a/drivers/media/platform/s5p-tv/mixer_video.c
++++ b/drivers/media/platform/s5p-tv/mixer_video.c
+@@ -19,7 +19,6 @@
+ #include <linux/videodev2.h>
+ #include <linux/mm.h>
+ #include <linux/module.h>
+-#include <linux/version.h>
+ #include <linux/timer.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
 
--	if (!m2m_ops)
-+	if (!m2m_ops || WARN_ON(!m2m_ops->device_run) ||
-+			WARN_ON(!m2m_ops->job_abort))
- 		return ERR_PTR(-EINVAL);
-
--	BUG_ON(!m2m_ops->device_run);
--	BUG_ON(!m2m_ops->job_abort);
--
- 	m2m_dev = kzalloc(sizeof *m2m_dev, GFP_KERNEL);
- 	if (!m2m_dev)
- 		return ERR_PTR(-ENOMEM);
---
-1.7.11.3
