@@ -1,345 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60542 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753284Ab2JAQ3Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Oct 2012 12:29:16 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] MAINTAINERS: add modules I am responsible
-Date: Mon,  1 Oct 2012 19:28:46 +0300
-Message-Id: <1349108926-6425-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1349108926-6425-1-git-send-email-crope@iki.fi>
-References: <1349108926-6425-1-git-send-email-crope@iki.fi>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:65439 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751862Ab2JHCLv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 22:11:51 -0400
+Message-ID: <50723661.6040107@gmail.com>
+Date: Mon, 08 Oct 2012 13:11:45 +1100
+From: Ryan Mallon <rmallon@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Joe Perches <joe@perches.com>, Julia Lawall <julia.lawall@lip6.fr>,
+	walter harms <wharms@bfs.de>, Antti Palosaari <crope@iki.fi>,
+	kernel-janitors@vger.kernel.org, shubhrajyoti@ti.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for i2c_msg
+ initialization
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr> <5071AEF3.6080108@bfs.de> <alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6> <5071B834.1010200@bfs.de> <alpine.DEB.2.02.1210071917040.2745@localhost6.localdomain6> <1349633780.15802.8.camel@joe-AO722> <alpine.DEB.2.02.1210072053550.2745@localhost6.localdomain6> <1349645970.15802.12.camel@joe-AO722> <alpine.DEB.2.02.1210072342460.2745@localhost6.localdomain6> <1349646718.15802.16.camel@joe-AO722> <20121007225639.364a41b4@infradead.org>
+In-Reply-To: <20121007225639.364a41b4@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All those are media modules, mostly digital television drivers.
+On 08/10/12 12:56, Mauro Carvalho Chehab wrote:
+> Em Sun, 07 Oct 2012 14:51:58 -0700
+> Joe Perches <joe@perches.com> escreveu:
+> 
+>> On Sun, 2012-10-07 at 23:43 +0200, Julia Lawall wrote:
+>>> On Sun, 7 Oct 2012, Joe Perches wrote:
+>>>>> Are READ and WRITE the action names?  They are really the important
+>>>>> information in this case.
+>>>>
+>>>> Yes, most (all?) uses of _READ and _WRITE macros actually
+>>>> perform some I/O.
+>>>
+>>> I2C_MSG_READ_DATA?
+>>> I2C_MSG_READ_INFO?
+>>> I2C_MSG_READ_INIT?
+>>> I2C_MSG_PREPARE_READ?
+>>
+>> Dunno, naming is hard.  Maybe:
+>>
+>> I2C_INPUT_MSG
+>> I2C_OUTPUT_MSG
+>> I2C_OP_MSG
+> 
+> READ/WRITE sounds better, IMHO, as it will generally match with the
+> function names (they're generally named like foo_i2c_read or foo_reg_read).
+> I think none of them uses input or output. Btw, with I2C buses, a
+> register read is coded as a write ops, that sets the register's sub-address,
+> followed by a read ops from that (and subsequent) registers.
+> 
+> I'm afraid that using INPUT/OUTPUT will sound confusing.
+> 
+> So, IMHO, I2C_READ_MSG and I2C_WRITE_MSG sounds better.
+> 
+> Btw, as the WRITE + READ operation is very common (I think it is
+> much more common than a simple READ msg), it could make sense to have
+> just one macro for it, like:
+> 
+> INIT_I2C_READ_SUBADDR() that would take both write and read values.
+> 
+> I also don't like the I2C_MSG_OP. The operations there are always
+> read or write.
+> 
+> So, IMHO, the better would be to code the read and write message init message 
+> as something similar to:
+> 
+> #define DECLARE_I2C_MSG_READ(_msg, _addr, _buf, _len, _flags)					\
+> 	struct i2c_msg _msg[1] = {								\
+> 		{.addr = _addr, .buf = _buf, .len = _len, .flags = (_flags) | I2C_M_RD }	\
+> 	}
+> 
+> #define DECLARE_I2C_MSG_WRITE(_msg, _addr, _buf, _len, _flags)					\
+> 	struct i2c_msg _msg[1] = {								\
+> 		{.addr = _addr, .buf = _buf, .len = _len, .flags = (_flags) & ~I2C_M_RD }	\
+> 	}
+> 
+> #define DECLARE_I2C_MSG_READ_SUBADDR(_msg, _addr, _subaddr, _sublen,_subflags, _buf,_len, _flags)	\
+> 	struct i2c_msg _msg[2] = {									\
+> 		{.addr = _addr, .buf = _subbuf, .len = _sublen, .flags = (_subflags) & ~I2C_M_RD }	\
+> 		{.addr = _addr, .buf = _buf, .len = _len, .flags = (_flags) | I2C_M_RD }		\
+> 	}
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- MAINTAINERS | 231 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 231 insertions(+)
+I think this is probably more confusing, not less. The macro takes 8
+arguments, and in many cases will wrap onto two or more lines. The large
+number of arguments also makes it difficult for a casual reader to
+determine exactly what it does. In comparison:
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0750c24..8c8839d 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -184,6 +184,16 @@ S:	Maintained
- F:	Documentation/filesystems/9p.txt
- F:	fs/9p/
- 
-+A8293 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/dvb-frontends/a8293*
-+
- AACRAID SCSI RAID DRIVER
- M:	Adaptec OEM Raid Solutions <aacraid@adaptec.com>
- L:	linux-scsi@vger.kernel.org
-@@ -391,6 +401,26 @@ M:	Riccardo Facchetti <fizban@tin.it>
- S:	Maintained
- F:	sound/oss/aedsp16.c
- 
-+AF9013 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/dvb-frontends/af9013*
-+
-+AF9033 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/dvb-frontends/af9033*
-+
- AFFS FILE SYSTEM
- L:	linux-fsdevel@vger.kernel.org
- S:	Orphan
-@@ -2116,6 +2146,16 @@ S:	Maintained
- F:	Documentation/video4linux/cx18.txt
- F:	drivers/media/pci/cx18/
- 
-+CXD2820R MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/dvb-frontends/cxd2820r*
-+
- CXGB3 ETHERNET DRIVER (CXGB3)
- M:	Divy Le Ray <divy@chelsio.com>
- L:	netdev@vger.kernel.org
-@@ -2469,6 +2509,97 @@ L:	netdev@vger.kernel.org
- S:	Maintained
- F:	drivers/net/wan/dscc4.c
- 
-+DVB_USB_AF9015 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/usb/dvb-usb-v2/af9015*
-+
-+DVB_USB_AF9035 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/usb/dvb-usb-v2/af9035*
-+
-+DVB_USB_ANYSEE MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/usb/dvb-usb-v2/anysee*
-+
-+DVB_USB_AU6610 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/usb/dvb-usb-v2/au6610*
-+
-+DVB_USB_CE6230 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/usb/dvb-usb-v2/ce6230*
-+
-+DVB_USB_CYPRESS_FIRMWARE MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/usb/dvb-usb-v2/cypress_firmware*
-+
-+DVB_USB_EC168 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/usb/dvb-usb-v2/ec168*
-+
-+DVB_USB_RTL28XXU MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/usb/dvb-usb-v2/rtl28xxu*
-+
-+DVB_USB_V2 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/usb/dvb-usb-v2/dvb_usb*
-+F:	drivers/media/usb/dvb-usb-v2/usb_urb.c
-+
- DYNAMIC DEBUG
- M:	Jason Baron <jbaron@redhat.com>
- S:	Maintained
-@@ -2480,6 +2611,16 @@ M:	"Maciej W. Rozycki" <macro@linux-mips.org>
- S:	Maintained
- F:	drivers/tty/serial/dz.*
- 
-+E4000 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/tuners/e4000*
-+
- EATA-DMA SCSI DRIVER
- M:	Michael Neuffer <mike@i-Connect.Net>
- L:	linux-eata@i-connect.net
-@@ -2508,6 +2649,16 @@ S:	Maintained
- F:	include/linux/netfilter_bridge/ebt_*.h
- F:	net/bridge/netfilter/ebt*.c
- 
-+EC100 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/dvb-frontends/ec100*
-+
- ECRYPT FILE SYSTEM
- M:	Tyler Hicks <tyhicks@canonical.com>
- M:	Dustin Kirkland <dustin.kirkland@gazzang.com>
-@@ -2781,6 +2932,16 @@ S:	Maintained
- F:	drivers/media/tuners/fc0011.h
- F:	drivers/media/tuners/fc0011.c
- 
-+FC2580 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/tuners/fc2580*
-+
- FANOTIFY
- M:	Eric Paris <eparis@redhat.com>
- S:	Maintained
-@@ -3220,6 +3381,16 @@ L:	linux-parisc@vger.kernel.org
- S:	Maintained
- F:	sound/parisc/harmony.*
- 
-+HD29L2 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/dvb-frontends/hd29l2*
-+
- HEWLETT-PACKARD SMART2 RAID DRIVER
- M:	Chirag Kantharia <chirag.kantharia@hp.com>
- L:	iss_storagedev@hp.com
-@@ -5638,6 +5809,16 @@ F:	fs/qnx4/
- F:	include/linux/qnx4_fs.h
- F:	include/linux/qnxtypes.h
- 
-+QT1010 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/tuners/qt1010*
-+
- QUALCOMM HEXAGON ARCHITECTURE
- M:	Richard Kuo <rkuo@codeaurora.org>
- L:	linux-hexagon@vger.kernel.org
-@@ -5804,6 +5985,16 @@ F:	include/linux/rose.h
- F:	include/net/rose.h
- F:	net/rose/
- 
-+RTL2830 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/dvb-frontends/rtl2830*
-+
- RTL8180 WIRELESS DRIVER
- M:	"John W. Linville" <linville@tuxdriver.com>
- L:	linux-wireless@vger.kernel.org
-@@ -6769,6 +6960,36 @@ W:	http://tcp-lp-mod.sourceforge.net/
- S:	Maintained
- F:	net/ipv4/tcp_lp.c
- 
-+TDA10071 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/dvb-frontends/tda10071*
-+
-+TDA18212 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/tuners/tda18212*
-+
-+TDA18218 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/tuners/tda18218*
-+
- TEAM DRIVER
- M:	Jiri Pirko <jpirko@redhat.com>
- L:	netdev@vger.kernel.org
-@@ -6959,6 +7180,16 @@ F:	include/linux/serial_core.h
- F:	include/linux/serial.h
- F:	include/linux/tty.h
- 
-+TUA9001 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/tuners/tua9001*
-+
- TULIP NETWORK DRIVERS
- M:	Grant Grundler <grundler@parisc-linux.org>
- L:	netdev@vger.kernel.org
--- 
-1.7.11.4
+	I2C_MSG_WRITE(info->i2c_addr, &reg, 1);
+	I2C_MSG_READ(info->i2c_addr, buf, sizeof(buf));
+
+is fairly self-explanatory, especially for someone familiar with i2c,
+without having to look up the macro definitions.
+
+> Notes:
+> 
+> 1) in the case of DECLARE_I2C_MSG_READ_SUBADDR(), I'm almost sure that, in all cases, the
+> first message will always have buffer size equal to 1. If so, you can simplify the number
+> of arguments there.
+> 
+> 2) It could make sense to have, in fact, two versions for each, one with _FLAGS and another one
+> without. On most cases, the one without flags are used.
+> 
+> 3) I bet that most of the cases where 2 messages are used, the first message has length equal
+> to one, and it uses a fixed u8 constant with the I2C sub-address. So, maybe it would be nice
+> to have a variant for this case.
+
+That ends up with a whole bunch of variants of the macro for something
+which should be very simple. The proposal has three macros, and the
+I2C_MSG_OP macro is only required for a one or two corner cases where
+non-standard flags are used.
+
+~Ryan
+
+
+
 
