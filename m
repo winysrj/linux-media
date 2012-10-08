@@ -1,215 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:17815 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751208Ab2JHKld (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 06:41:33 -0400
-Received: from eusync2.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBK002GILPROC80@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 08 Oct 2012 11:41:51 +0100 (BST)
-Received: from [106.116.147.108] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MBK000CZLP6BW40@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 08 Oct 2012 11:41:31 +0100 (BST)
-Message-id: <5072ADD8.90709@samsung.com>
-Date: Mon, 08 Oct 2012 12:41:28 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
-	subashrp@gmail.com, mchehab@redhat.com, zhangfei.gao@gmail.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com
-Subject: Re: [PATCHv9 18/25] v4l: add buffer exporting via dmabuf
-References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
- <201210071617.03213.hverkuil@xs4all.nl> <50729F95.70003@samsung.com>
- <201210081154.57646.hverkuil@xs4all.nl>
-In-reply-to: <201210081154.57646.hverkuil@xs4all.nl>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:43687 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750923Ab2JHVaY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 17:30:24 -0400
+Date: Mon, 8 Oct 2012 14:30:17 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Ido Yariv <ido@wizery.com>, Russell King <linux@arm.linux.org.uk>,
+	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] [media] omap3isp: Fix compilation error in
+ ispreg.h
+Message-ID: <20121008213016.GO13011@atomide.com>
+References: <20120927195526.GP4840@atomide.com>
+ <1349131591-10804-1-git-send-email-ido@wizery.com>
+ <20121002163158.GR4840@atomide.com>
+ <20121007101718.073aed3b@infradead.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20121007101718.073aed3b@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On 10/08/2012 11:54 AM, Hans Verkuil wrote:
-> On Mon October 8 2012 11:40:37 Tomasz Stanislawski wrote:
->> Hi Hans,
->>
->> On 10/07/2012 04:17 PM, Hans Verkuil wrote:
->>> On Sun October 7 2012 15:38:30 Laurent Pinchart wrote:
->>>> Hi Hans,
->>>>
->>>> On Friday 05 October 2012 10:55:40 Hans Verkuil wrote:
->>>>> On Tue October 2 2012 16:27:29 Tomasz Stanislawski wrote:
->>>>>> This patch adds extension to V4L2 api. It allow to export a mmap buffer as
->>>>>> file descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer
->>>>>> offset used by mmap and return a file descriptor on success.
->>>>>>
->>>>>> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
->>>>>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-[snip]
->>>>>> +struct v4l2_exportbuffer {
->>>>>> +	__s32		fd;
->>>>>> +	__u32		flags;
->>>>>> +	__u32		type; /* enum v4l2_buf_type */
->>>>>> +	__u32		index;
->>>>>> +	__u32		plane;
->>>>>
->>>>> As suggested in my comments in the previous patch, I think it is a more
->>>>> natural order to have the type/index/plane fields first in this struct.
->>>>>
->>>>> Actually, I think that flags should also come before fd:
->>>>>
->>>>> struct v4l2_exportbuffer {
->>>>> 	__u32		type; /* enum v4l2_buf_type */
->>>>> 	__u32		index;
->>>>> 	__u32		plane;
->>>>> 	__u32		flags;
->>>>> 	__s32		fd;
->>>>> 	__u32		reserved[11];
->>>>> };
->>>>
->>>> It would indeed feel more natural, but putting them right before the reserved 
->>>> fields allows creating an anonymous union around type, index and plane and 
->>>> extending it with reserved fields if needed. That's (at least to my 
->>>> understanding) the rationale behind the current structure layout.
->>>
->>> The anonymous union argument makes no sense to me, to be honest.
->>
->> I agree that the anonymous unions are not good solutions because they are not
->> supported in many C dialects. However I have nothing against using named unions.
+* Mauro Carvalho Chehab <mchehab@infradead.org> [121007 06:18]:
+> Em Tue, 2 Oct 2012 09:31:58 -0700
+> Tony Lindgren <tony@atomide.com> escreveu:
 > 
-> Named or unnamed, I don't see how a union will help. What do you want to do
-> with a union?
+> > * Ido Yariv <ido@wizery.com> [121001 15:48]:
+> > > Commit c49f34bc ("ARM: OMAP2+ Move SoC specific headers to be local to
+> > > mach-omap2") moved omap34xx.h to mach-omap2. This broke omap3isp, as it
+> > > includes omap34xx.h.
+> > > 
+> > > Instead of moving omap34xx to platform_data, simply add the two
+> > > definitions the driver needs and remove the include altogether.
+> > > 
+> > > Signed-off-by: Ido Yariv <ido@wizery.com>
+> > 
+> > I'm assuming that Mauro picks this one up, sorry
+> > for breaking it.
 > 
-
-Currently, there exist three sane layouts of the structure, that use
-only one reserved field:
-
-A)
-struct v4l2_exportbuffer {
-	__s32		fd;
-	__u32		flags;
-	__u32		type; /* enum v4l2_buf_type */
-	__u32		index;
-	__u32		plane;
-	__u32		reserved[11];
-}
-
-B)
-struct v4l2_exportbuffer {
-	__u32		type; /* enum v4l2_buf_type */
-	__u32		index;
-	__u32		plane;
-	__u32		flags;
-	__s32		fd;
-	__u32		reserved[11];
-}
-
-C)
-struct v4l2_exportbuffer {
-	__u32		type; /* enum v4l2_buf_type */
-	__u32		index;
-	__u32		plane;
-	__u32		reserved[11];
-	__u32		flags;
-	__s32		fd;
-}
-
-Only the layout B follows 'input/output/reserved' rule.
-
-The layouts A and C allows to extend (type/index/plane) tuple without mixing
-it with (flags,fd).
-
-For layouts A and C it is possible to use unions to provide new
-means of describing a buffer to be exported.
-
-struct v4l2_exportbuffer {
-	__s32		fd;
-	__u32		flags;
-	union {
-		struct by_tip { /* type, index, plane */
-			__u32		type; /* enum v4l2_buf_type */
-			__u32		index;
-			__u32		plane;
-		} by_tip;
-		struct by_userptr {
-			u64	userptr;
-			u64	length;
-		} by_userptr;
-		__u32	reserved[6];
-	} b;
-	__u32	union_type; /* BY_TIP or BY_USERPTR */
-	__u32	reserved[4];
-};
-
-No such an extension can be applied for layout B.
-
-The similar scheme can be used for layout C. Moreover it support
-extensions and variants for (flags/fd) tuple. It might be
-useful if one day we would like to export a buffer as something
-different from DMABUF file descriptors.
-
-Anyway, we have to choose between the elegance of the layout
-and the extensibility.
-
-I think that layout A is a good trade-off.
-We could swap fd and flags to get little closer to "the rule".
-
->>
->>> It's standard practice within V4L2 to have the IN fields first, then the OUT fields, followed
->>> by reserved fields for future expansion.
->>
->> IMO, the "input/output/reserved rule" is only a recommendation.
->> The are places in V4L2 where this rule is violated with structure
->> v4l2_buffer being the most notable example.
->>
->> Notice that if at least one of the reserved fields becomes an input
->> file then "the rule" will be violated anyway.
+> Picked, thanks. 
 > 
-> Sure, but there is no legacy yet, so why not keep to the recommendation?
+> With regards to the other patches in this series, IMHO, it
+> makes more sense to go through arm omap tree, so, for the
+> patches on this series that touch at drivers/media/platform/*:
 > 
->>> Should we ever need a, say, sub-plane
->>> index (whatever that might be), then we can use one of the reserved fields.
->>
->> Maybe not subplane :).
->> But maybe some data_offset for exporting only a part of the buffer will
->> be needed some day.
->> Moreover, the integration of DMABUF with the DMA synchronization framework
->> may involve passing additional parameters from the userspace.
->>
->> Notice that flags and fd fields are not logically connected with
->> (type/index/plane) tuple.
->> Therefore both field sets should be separated by some reserved fields to
->> ensure that any of them can be extended if needed.
->>
->> This was the rationale for the structure layout in v9.
-> 
-> It's a bad idea to add multiple 'reserved' arrays, that makes userspace harder
-> since it has to zero all of them instead of just one. Actually, the same applies
-> to kernel space, which has to zero them as well.
+> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Userspace usually cleans the whole structure using memset call.
-Notice that memset is a build-in functions therefore fields
-are not zeroed if they are initialized just below memset.
-
-The number of reserved fields has no impact on initialization code.
-There has also negligible impact on performance (if any at all).
+Thanks yeah it's best that I pick up the rest. I can setup
+a minimal branch that can also be pulled into iommu branch
+after -rc1.
 
 Regards,
-Tomasz Stanislawski
 
-> 
-> I still don't know why you want to use a non-standard field order.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-
+Tony
