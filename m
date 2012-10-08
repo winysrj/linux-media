@@ -1,100 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3317 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754958Ab2JCGlE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 02:41:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Prabhakar <prabhakar.csengg@gmail.com>
-Subject: Re: [PATCH] media: davinci: vpbe: fix build warning
-Date: Wed, 3 Oct 2012 08:40:53 +0200
-Cc: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	VGER <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <1349245658-7125-1-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1349245658-7125-1-git-send-email-prabhakar.lad@ti.com>
+Received: from moutng.kundenserver.de ([212.227.126.186]:62673 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751172Ab2JHJky (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 05:40:54 -0400
+Date: Mon, 8 Oct 2012 11:40:41 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
+In-Reply-To: <506F2763.6050808@gmail.com>
+Message-ID: <Pine.LNX.4.64.1210081126140.12203@axis700.grange>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
+ <Pine.LNX.4.64.1210021142210.15778@axis700.grange> <506ABE40.9070504@samsung.com>
+ <201210051241.52205.hverkuil@xs4all.nl> <Pine.LNX.4.64.1210051250210.13761@axis700.grange>
+ <506F2763.6050808@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210030840.53813.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed October 3 2012 08:27:38 Prabhakar wrote:
-> From: Lad, Prabhakar <prabhakar.lad@ti.com>
-> 
-> recent patch with commit id 4f996594ceaf6c3f9bc42b40c40b0f7f87b79c86
-> which makes vidioc_s_crop const, was causing a following build warning,
-> 
-> vpbe_display.c: In function 'vpbe_display_s_crop':
-> vpbe_display.c:640: warning: initialization discards qualifiers from pointer target type
-> 
-> This patch fixes the above build warning.
+Hi Sylwester
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+On Fri, 5 Oct 2012, Sylwester Nawrocki wrote:
 
-Prabhaker, can you make a pull request for this patch, the "CUSTOM_TIMINGS"
-rename patch and the earlier "vpfe: fix build error" patch? These things
-should be fast-tracked.
-
-Regards,
-
-	Hans
-
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/platform/davinci/vpbe_display.c |   20 ++++++++++----------
->  1 files changed, 10 insertions(+), 10 deletions(-)
+> On 10/05/2012 12:58 PM, Guennadi Liakhovetski wrote:
+> >> One area that I do not yet completely understand is the i2c bus notifications
+> >> (or asynchronous loading of i2c modules).
+> >>
+> >> I would have expected that using OF the i2c devices are still initialized
+> >> before the host/bridge driver is initialized. But I gather that's not the
+> >> case?
+> > 
+> > No, it's not. I'm not sure, whether it depends on the order of devices in
+> > the .dts, but, I think, it's better to not have to mandate a certain order
+> > and I also seem to have seen devices being registered in different order
+> > with the same DT, but I'm not 100% sure about that.
 > 
-> diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-> index 1b238fe..161c776 100644
-> --- a/drivers/media/platform/davinci/vpbe_display.c
-> +++ b/drivers/media/platform/davinci/vpbe_display.c
-> @@ -637,7 +637,7 @@ static int vpbe_display_s_crop(struct file *file, void *priv,
->  	struct vpbe_device *vpbe_dev = disp_dev->vpbe_dev;
->  	struct osd_layer_config *cfg = &layer->layer_info.config;
->  	struct osd_state *osd_device = disp_dev->osd_device;
-> -	struct v4l2_rect *rect = &crop->c;
-> +	struct v4l2_rect rect = crop->c;
->  	int ret;
->  
->  	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-> @@ -648,21 +648,21 @@ static int vpbe_display_s_crop(struct file *file, void *priv,
->  		return -EINVAL;
->  	}
->  
-> -	if (rect->top < 0)
-> -		rect->top = 0;
-> -	if (rect->left < 0)
-> -		rect->left = 0;
-> +	if (rect.top < 0)
-> +		rect.top = 0;
-> +	if (rect.left < 0)
-> +		rect.left = 0;
->  
-> -	vpbe_disp_check_window_params(disp_dev, rect);
-> +	vpbe_disp_check_window_params(disp_dev, &rect);
->  
->  	osd_device->ops.get_layer_config(osd_device,
->  			layer->layer_info.id, cfg);
->  
->  	vpbe_disp_calculate_scale_factor(disp_dev, layer,
-> -					rect->width,
-> -					rect->height);
-> -	vpbe_disp_adj_position(disp_dev, layer, rect->top,
-> -					rect->left);
-> +					rect.width,
-> +					rect.height);
-> +	vpbe_disp_adj_position(disp_dev, layer, rect.top,
-> +					rect.left);
->  	ret = osd_device->ops.set_layer_config(osd_device,
->  				layer->layer_info.id, cfg);
->  	if (ret < 0) {
+> The device instantiation (and initialization) order is not something that
+> is supposed to be ensured by a specific device tree source layout, IIUC.
+> The initialization sequence is probably something that is specific to a
+> particular operating system. I checked the device tree compiler but couldn't
+> find if it is free to reorder anything when converting from the human 
+> readable device tree to its binary representation.
 > 
+> The deferred probing was introduced in Linux to resolve resource 
+> inter-dependencies in case of FDT based booting AFAIK.
+> 
+> >> If this deferred probing is a general problem, then I think we need a general
+> >> solution as well that's part of the v4l2 core.
+> > 
+> > That can be done, perhaps. But we can do it as a next step. As soon as
+> > we're happy with the OF implementation as such, we can commit that,
+> > possibly leaving soc-camera patches out for now, then we can think where
+> > to put async I2C handling.
+> 
+> I would really like to see more than one user until we add any core code.
+> No that it couldn't be changed afterwards, but it would be nice to ensure 
+> the concepts are right and proven in real life.
+
+Unfortunately I don't have any more systems on which I could easily enough 
+try this. I've got a beagleboard with a camera, but I don't think I'm a 
+particularly good candidate for implementing DT support for OMAP3 camera 
+drivers;-) Apart from that I've only got soc-camera based systems, of 
+which none are _really_ DT-ready... At best I could try an i.MX31 based 
+board, but that doesn't have a very well developed .dts and that would be 
+soc-camera too anyway.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
