@@ -1,61 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:45997 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934077Ab2JYTp3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Oct 2012 15:45:29 -0400
-Date: Thu, 25 Oct 2012 20:45:25 +0100
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
-Cc: hverkuil@xs4all.nl, mchehab@redhat.com, sameo@linux.intel.com,
-	perex@perex.cz, tiwai@suse.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 2/6] Add the main bulk of core driver for SI476x code
-Message-ID: <20121025194524.GV18814@opensource.wolfsonmicro.com>
-References: <1351017872-32488-1-git-send-email-andrey.smirnov@convergeddevices.net>
- <1351017872-32488-3-git-send-email-andrey.smirnov@convergeddevices.net>
+Received: from moutng.kundenserver.de ([212.227.126.186]:52675 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751185Ab2JHVOP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 17:14:15 -0400
+Date: Mon, 8 Oct 2012 23:14:01 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Stephen Warren <swarren@wwwdotorg.org>,
+	Rob Herring <robherring2@gmail.com>, linux-sh@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 04/14] media: add V4L2 DT binding documentation
+In-Reply-To: <4043536.qVaHVXMbPA@avalon>
+Message-ID: <Pine.LNX.4.64.1210082312570.14454@axis700.grange>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
+ <Pine.LNX.4.64.1210021626220.15778@axis700.grange> <507330E6.1010409@wwwdotorg.org>
+ <4043536.qVaHVXMbPA@avalon>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="buDNgeHiu+HCsDEc"
-Content-Disposition: inline
-In-Reply-To: <1351017872-32488-3-git-send-email-andrey.smirnov@convergeddevices.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, 8 Oct 2012, Laurent Pinchart wrote:
 
---buDNgeHiu+HCsDEc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> On Monday 08 October 2012 14:00:38 Stephen Warren wrote:
+> > On 10/02/2012 08:33 AM, Guennadi Liakhovetski wrote:
+> > > On Tue, 2 Oct 2012, Rob Herring wrote:
+> > >> On 09/27/2012 09:07 AM, Guennadi Liakhovetski wrote:
+> > >>> This patch adds a document, describing common V4L2 device tree bindings.
+> > >>> 
+> > >>> diff --git a/Documentation/devicetree/bindings/media/v4l2.txt
+> > >>> b/Documentation/devicetree/bindings/media/v4l2.txt>> 
+> > >> One other comment below:
+> > >>> +
+> > >>> +General concept
+> > >>> +---------------
+> > >>> +
+> > >>> +Video pipelines consist of external devices, e.g. camera sensors,
+> > >>> controlled +over an I2C, SPI or UART bus, and SoC internal IP blocks,
+> > >>> including video DMA +engines and video data processors.
+> > >>> +
+> > >>> +SoC internal blocks are described by DT nodes, placed similarly to
+> > >>> other SoC +blocks. External devices are represented as child nodes of
+> > >>> their respective bus +controller nodes, e.g. I2C.
+> > >>> +
+> > >>> +Data interfaces on all video devices are described by "port" child DT
+> > >>> nodes. +Configuration of a port depends on other devices participating
+> > >>> in the data +transfer and is described by "link" DT nodes, specified as
+> > >>> children of the +"port" nodes:
+> > >>> +
+> > >>> +/foo {
+> > >>> +	port@0 {
+> > >>> +		link@0 { ... };
+> > >>> +		link@1 { ... };
+> > >>> +	};
+> > >>> +	port@1 { ... };
+> > >>> +};
+> > >>> +
+> > >>> +If a port can be configured to work with more than one other device on
+> > >>> the same +bus, a "link" child DT node must be provided for each of
+> > >>> them. If more than one +port is present on a device or more than one
+> > >>> link is connected to a port, a +common scheme, using "#address-cells,"
+> > >>> "#size-cells" and "reg" properties is +used.
+> > >>> +
+> > >>> +Optional link properties:
+> > >>> +- remote: phandle to the other endpoint link DT node.
+> > >> 
+> > >> This name is a little vague. Perhaps "endpoint" would be better.
+> > > 
+> > > "endpoint" can also refer to something local like in USB case. Maybe
+> > > rather the description of the "remote" property should be improved?
+> > 
+> > The documentation doesn't show up in all the .dts files that use it; it
+> > might be useful to try and make the .dts file as obviously readable as
+> > possible.
+> > 
+> > Perhaps "remote-port" or "connected-port" would be sufficiently descriptive.
+> 
+> I like remote-port better than the already proposed remote-link.
 
-On Tue, Oct 23, 2012 at 11:44:28AM -0700, Andrey Smirnov wrote:
+Yes, remote-port sounds better, than remote-link, but might be more 
+difficult to correlate with the fact, that the phandle value of this 
+property points to a link DT node, and not to a port.
 
-> +	core->regmap = devm_regmap_init_si476x(core);
-> +	if (IS_ERR(core->regmap)) {
+Thanks
+Guennadi
 
-This really makes little sense to me, why are you doing this?  Does the
-device *really* layer a byte stream on top of I2C for sending messages
-that look like marshalled register reads and writes?
+> > (and yes, I know I'm probably bike-shedding now).
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
 
---buDNgeHiu+HCsDEc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQiZbLAAoJELSic+t+oim9LPsP/0Vm/MQazZiGXS+B/pNjIHFy
-iHEBnSuX5Kt8PHQzxd/OqgZ9olHw7QNYsbv7wItWJgJXxESFMZaQTPgsKB+8MXLy
-6xO/YmHDvPK0OACJWhFom78vYAYaNf8OcejXn6k8v6JyI5vJqJOlS207tqu/Ce+w
-yGokL33lHxvU+2C8DLMYmQOTEknDr1FwlhvteBFvLSaU0IDEq0hPWSoEVtqpaAy1
-4GkRNbdmM7DqrI69LQJACAD5Vrw5RcKv0skzBWtaxcANAVYOZkE/2PpxsxcacZPw
-jNsjhp0lN0KNWtNDwQ7HGkxD53UmS+mlZbnS+RP4ikfc2R8ME0s5xapXYQ3mlPId
-l8Qmo+TFUYALvFXOlzA4HKagPzHEKvSUqXxiPVGqgtvWt6r5cgddRJqvzZkeEQwk
-eIGMhaYJubqvAO8PNIYPA4cK5rh4YS7NwCLkBLd8XH2H0BSsAXXaT4PZGUb3FJEm
-s+o/x7F1+CFTyVl5rsJu+MTKubG7UxkdTgwMsYJfNusw8h65SKq1I/S9zsuWIt6X
-08/AnPnwF1cF1ZDzIURDV0PpqDc80nqPFFE7WICb/3+DesA3Fw5KaetOWA49LNUv
-6kS52H9YFVG9w0nbVSdgcHAp4UdEAwwjeM8Q461JfOKOUuRjo9zatIOOuuWchMQ4
-7lx/s2sV/qsIYOoCS7Ex
-=uXIx
------END PGP SIGNATURE-----
-
---buDNgeHiu+HCsDEc--
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
