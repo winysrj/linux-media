@@ -1,256 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.work.de ([212.12.40.178]:35195 "EHLO smtp.work.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754073Ab2JHIpc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Oct 2012 04:45:32 -0400
-Message-ID: <1349686172.28116.0.camel@avionic-0108.adnet.avionic-design.de>
-Subject: Re: [PATCH] tm6000: Add parameter to keep urb bufs allocated.
-From: Julian Scheel <julian@jusst.de>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: linux-media@vger.kernel.org
-Date: Mon, 08 Oct 2012 10:49:32 +0200
-In-Reply-To: <CALF0-+U7uPNb058y-FZGt_tvtgh8FMtqf7uRHA5p7h+BCDCXow@mail.gmail.com>
-References: <1349359468-18965-1-git-send-email-julian@jusst.de>
-	 <CALF0-+U7uPNb058y-FZGt_tvtgh8FMtqf7uRHA5p7h+BCDCXow@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from [92.246.25.51] ([92.246.25.51]:60570 "EHLO mail.multitrading.dk"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752213Ab2JHMiQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Oct 2012 08:38:16 -0400
+Date: Mon, 8 Oct 2012 14:38:14 +0200
+From: Jens Bauer <jens-lists@gpio.dk>
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+Cc: linux-media <linux-media@vger.kernel.org>
+Message-ID: <20121008143814339505.2299950d@gpio.dk>
+In-Reply-To: <5072C573.7000204@schinagl.nl>
+References: <20121007175602425458.288c6720@gpio.dk>
+ <5072A5BF.50101@schinagl.nl> <20121008131229269874.8db8d46c@gpio.dk>
+ <5072C07F.90100@schinagl.nl> <20121008141642637793.214fa4bf@gpio.dk>
+ <5072C573.7000204@schinagl.nl>
+Subject: Re: Zolid USB DVB-T Tuner Pictures
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ezequiel,
+Hi Oliver.
 
-Am Donnerstag, den 04.10.2012, 14:35 -0300 schrieb Ezequiel Garcia:
-> Nice work! Just one pico-tiny nitpick:
+On Mon, 08 Oct 2012 14:22:11 +0200, Oliver Schinagl wrote:
 
-Should I update the patch to reflect this? Or is it ok if the maintainer
-integrated your proposal when comitting it?
+> I have that too, if i'm not logged in :) if you are logged in, it 
+> should work (with an active account). Try 'private session' or 
+> whatever you have in your browser (ctrl-p top of my head in ff) and 
+> ensure you login. If it still does not work, something else may be 
+> broken.
 
-> On Thu, Oct 4, 2012 at 11:04 AM, Julian Scheel <julian@jusst.de> wrote:
-> > On systems where it cannot be assured that enough continous memory is available
-> > all the time it can be very useful to only allocate the memory once when it is
-> > needed the first time. Afterwards the initially allocated memory will be
-> > reused, so it is ensured that the memory will stay available until the driver
-> > is unloaded.
-> >
-> > Signed-off-by: Julian Scheel <julian@jusst.de>
-> > ---
-> >  drivers/media/video/tm6000/tm6000-video.c | 111 +++++++++++++++++++++++++-----
-> >  drivers/media/video/tm6000/tm6000.h       |   5 ++
-> >  2 files changed, 97 insertions(+), 19 deletions(-)
-> >
-> > diff --git a/drivers/media/video/tm6000/tm6000-video.c b/drivers/media/video/tm6000/tm6000-video.c
-> > index 03de3d8..1b8db35 100644
-> > --- a/drivers/media/video/tm6000/tm6000-video.c
-> > +++ b/drivers/media/video/tm6000/tm6000-video.c
-> > @@ -49,12 +49,15 @@
-> >  #define TM6000_MIN_BUF 4
-> >  #define TM6000_DEF_BUF 8
-> >
-> > +#define TM6000_NUM_URB_BUF 8
-> > +
-> >  #define TM6000_MAX_ISO_PACKETS 46      /* Max number of ISO packets */
-> >
-> >  /* Declare static vars that will be used as parameters */
-> >  static unsigned int vid_limit = 16;    /* Video memory limit, in Mb */
-> >  static int video_nr = -1;              /* /dev/videoN, -1 for autodetect */
-> >  static int radio_nr = -1;              /* /dev/radioN, -1 for autodetect */
-> > +static int keep_urb = 0;               /* keep urb buffers allocated */
-> >
-> 
-> There's no need to initialize this one to zero.
-> 
-> >  /* Debug level */
-> >  int tm6000_debug;
-> > @@ -570,6 +573,70 @@ static void tm6000_irq_callback(struct urb *urb)
-> >  }
-> >
-> >  /*
-> > + * Allocate URB buffers
-> > + */
-> > +static int tm6000_alloc_urb_buffers(struct tm6000_core *dev)
-> > +{
-> > +       int num_bufs = TM6000_NUM_URB_BUF;
-> > +       int i;
-> > +
-> > +       if (dev->urb_buffer != NULL)
-> > +               return 0;
-> > +
-> > +       dev->urb_buffer = kmalloc(sizeof(void *)*num_bufs, GFP_KERNEL);
-> > +       if (!dev->urb_buffer) {
-> > +               tm6000_err("cannot allocate memory for urb buffers\n");
-> > +               return -ENOMEM;
-> > +       }
-> > +
-> > +       dev->urb_dma = kmalloc(sizeof(dma_addr_t *)*num_bufs, GFP_KERNEL);
-> > +       if (!dev->urb_dma) {
-> > +               tm6000_err("cannot allocate memory for urb dma pointers\n");
-> > +               return -ENOMEM;
-> > +       }
-> > +
-> > +       for (i = 0; i < num_bufs; i++) {
-> > +               dev->urb_buffer[i] = usb_alloc_coherent(dev->udev, dev->urb_size,
-> > +                                       GFP_KERNEL, &dev->urb_dma[i]);
-> > +               if (!dev->urb_buffer[i]) {
-> > +                       tm6000_err("unable to allocate %i bytes for transfer"
-> > +                                       " buffer %i\n", dev->urb_size, i);
-> > +                       return -ENOMEM;
-> > +               }
-> > +               memset(dev->urb_buffer[i], 0, dev->urb_size);
-> > +       }
-> > +
-> > +       return 0;
-> > +}
-> > +
-> > +/*
-> > + * Free URB buffers
-> > + */
-> > +static int tm6000_free_urb_buffers(struct tm6000_core *dev)
-> > +{
-> > +       int i;
-> > +
-> > +       if (dev->urb_buffer == NULL)
-> > +               return 0;
-> > +
-> > +       for (i = 0; i < TM6000_NUM_URB_BUF; i++) {
-> > +               if (dev->urb_buffer[i]) {
-> > +                       usb_free_coherent(dev->udev,
-> > +                                       dev->urb_size,
-> > +                                       dev->urb_buffer[i],
-> > +                                       dev->urb_dma[i]);
-> > +                       dev->urb_buffer[i] = NULL;
-> > +               }
-> > +       }
-> > +       kfree (dev->urb_buffer);
-> > +       kfree (dev->urb_dma);
-> > +       dev->urb_buffer = NULL;
-> > +       dev->urb_dma = NULL;
-> > +
-> > +       return 0;
-> > +}
-> > +
-> > +/*
-> >   * Stop and Deallocate URBs
-> >   */
-> >  static void tm6000_uninit_isoc(struct tm6000_core *dev)
-> > @@ -585,18 +652,15 @@ static void tm6000_uninit_isoc(struct tm6000_core *dev)
-> >                 if (urb) {
-> >                         usb_kill_urb(urb);
-> >                         usb_unlink_urb(urb);
-> > -                       if (dev->isoc_ctl.transfer_buffer[i]) {
-> > -                               usb_free_coherent(dev->udev,
-> > -                                               urb->transfer_buffer_length,
-> > -                                               dev->isoc_ctl.transfer_buffer[i],
-> > -                                               urb->transfer_dma);
-> > -                       }
-> >                         usb_free_urb(urb);
-> >                         dev->isoc_ctl.urb[i] = NULL;
-> >                 }
-> >                 dev->isoc_ctl.transfer_buffer[i] = NULL;
-> >         }
-> >
-> > +       if (!keep_urb)
-> > +               tm6000_free_urb_buffers(dev);
-> > +
-> >         kfree(dev->isoc_ctl.urb);
-> >         kfree(dev->isoc_ctl.transfer_buffer);
-> >
-> > @@ -606,12 +670,12 @@ static void tm6000_uninit_isoc(struct tm6000_core *dev)
-> >  }
-> >
-> >  /*
-> > - * Allocate URBs and start IRQ
-> > + * Assign URBs and start IRQ
-> >   */
-> >  static int tm6000_prepare_isoc(struct tm6000_core *dev)
-> >  {
-> >         struct tm6000_dmaqueue *dma_q = &dev->vidq;
-> > -       int i, j, sb_size, pipe, size, max_packets, num_bufs = 8;
-> > +       int i, j, sb_size, pipe, size, max_packets, num_bufs = TM6000_NUM_URB_BUF;
-> >         struct urb *urb;
-> >
-> >         /* De-allocates all pending stuff */
-> > @@ -634,6 +698,7 @@ static int tm6000_prepare_isoc(struct tm6000_core *dev)
-> >
-> >         max_packets = TM6000_MAX_ISO_PACKETS;
-> >         sb_size = max_packets * size;
-> > +       dev->urb_size = sb_size;
-> >
-> >         dev->isoc_ctl.num_bufs = num_bufs;
-> >
-> > @@ -656,6 +721,17 @@ static int tm6000_prepare_isoc(struct tm6000_core *dev)
-> >                     max_packets, num_bufs, sb_size,
-> >                     dev->isoc_in.maxsize, size);
-> >
-> > +
-> > +       if (!dev->urb_buffer && tm6000_alloc_urb_buffers(dev) < 0) {
-> > +               tm6000_err("cannot allocate memory for urb buffers\n");
-> > +
-> > +               /* call free, as some buffers might have been allocated */
-> > +               tm6000_free_urb_buffers(dev);
-> > +               kfree(dev->isoc_ctl.urb);
-> > +               kfree(dev->isoc_ctl.transfer_buffer);
-> > +               return -ENOMEM;
-> > +       }
-> > +
-> >         /* allocate urbs and transfer buffers */
-> >         for (i = 0; i < dev->isoc_ctl.num_bufs; i++) {
-> >                 urb = usb_alloc_urb(max_packets, GFP_KERNEL);
-> > @@ -667,17 +743,8 @@ static int tm6000_prepare_isoc(struct tm6000_core *dev)
-> >                 }
-> >                 dev->isoc_ctl.urb[i] = urb;
-> >
-> > -               dev->isoc_ctl.transfer_buffer[i] = usb_alloc_coherent(dev->udev,
-> > -                       sb_size, GFP_KERNEL, &urb->transfer_dma);
-> > -               if (!dev->isoc_ctl.transfer_buffer[i]) {
-> > -                       tm6000_err("unable to allocate %i bytes for transfer"
-> > -                                       " buffer %i%s\n",
-> > -                                       sb_size, i,
-> > -                                       in_interrupt() ? " while in int" : "");
-> > -                       tm6000_uninit_isoc(dev);
-> > -                       return -ENOMEM;
-> > -               }
-> > -               memset(dev->isoc_ctl.transfer_buffer[i], 0, sb_size);
-> > +               urb->transfer_dma = dev->urb_dma[i];
-> > +               dev->isoc_ctl.transfer_buffer[i] = dev->urb_buffer[i];
-> >
-> >                 usb_fill_bulk_urb(urb, dev->udev, pipe,
-> >                                   dev->isoc_ctl.transfer_buffer[i], sb_size,
-> > @@ -1833,6 +1900,9 @@ int tm6000_v4l2_unregister(struct tm6000_core *dev)
-> >  {
-> >         video_unregister_device(dev->vfd);
-> >
-> > +       /* if URB buffers are still allocated free them now */
-> > +       tm6000_free_urb_buffers(dev);
-> > +
-> >         if (dev->radio_dev) {
-> >                 if (video_is_registered(dev->radio_dev))
-> >                         video_unregister_device(dev->radio_dev);
-> > @@ -1858,3 +1928,6 @@ MODULE_PARM_DESC(debug, "activates debug info");
-> >  module_param(vid_limit, int, 0644);
-> >  MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
-> >
-> > +module_param(keep_urb, bool, 0);
-> > +MODULE_PARM_DESC(keep_urb, "Keep urb buffers allocated even when the device "
-> > +                               "is closed by the user");
-> > diff --git a/drivers/media/video/tm6000/tm6000.h b/drivers/media/video/tm6000/tm6000.h
-> > index 6531d16..4bd3a0d 100644
-> > --- a/drivers/media/video/tm6000/tm6000.h
-> > +++ b/drivers/media/video/tm6000/tm6000.h
-> > @@ -267,6 +267,11 @@ struct tm6000_core {
-> >
-> >         spinlock_t                   slock;
-> >
-> > +       /* urb dma buffers */
-> > +       char                            **urb_buffer;
-> > +       dma_addr_t                      *urb_dma;
-> > +       unsigned int                    urb_size;
-> > +
-> >         unsigned long quirks;
-> >  };
-> >
-> > --
-> > 1.7.12.2
-> >
+I've tried private browsing+flushing my cache+removing all cookies+starting the browser 'clean'.
+I start by being 'not logged in'.
+I open the devices-page, log in, click the icon to the right of the device, but still see the same page, as when you are not logged in.
+
+> Is your account very new? You may not be authorised after all yet?
+
+I believe this is probably where the problem is.
+
+> I don't know the answer then.
+
+I think the answer will be for me to be a little more patient, and wait until I am fully authorized. ;)
+Thanks for your guidance. Now I know what to do, when I'm allowed to do it. =)
 
 
+Love
+Jens
