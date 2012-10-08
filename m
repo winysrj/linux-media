@@ -1,169 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43053 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935556Ab2JaN1T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Oct 2012 09:27:19 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Inki Dae <inki.dae@samsung.com>
-Cc: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	Archit Taneja <archit@ti.com>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [RFC 0/5] Generic panel framework
-Date: Wed, 31 Oct 2012 14:28:10 +0100
-Message-ID: <3240079.tWpJhOzYg0@avalon>
-In-Reply-To: <CAAQKjZOZ9+NSQbNkG3qyWh+oLAE1e44DQ_bQCEr4Wvg2WLiGtA@mail.gmail.com>
-References: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com> <CAAQKjZOZ9+NSQbNkG3qyWh+oLAE1e44DQ_bQCEr4Wvg2WLiGtA@mail.gmail.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1989 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750933Ab2JHO4p (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 10:56:45 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
+Date: Mon, 8 Oct 2012 16:53:55 +0200
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Grant Likely <grant.likely@secretlab.ca>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <201210081548.11207.hverkuil@xs4all.nl> <Pine.LNX.4.64.1210081619200.14454@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1210081619200.14454@axis700.grange>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201210081653.55984.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Inki,
-
-On Saturday 20 October 2012 22:10:17 Inki Dae wrote:
-> Hi Laurent. sorry for being late.
-
-No worries.
-
-> 2012/8/17 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> > Hi everybody,
-> > 
-> > While working on DT bindings for the Renesas Mobile SoC display controller
-> > (a.k.a. LCDC) I quickly realized that display panel implementation based
-> > on board code callbacks would need to be replaced by a driver-based panel
-> > framework.
-> > 
-> > Several driver-based panel support solution already exist in the kernel.
-> > 
-> > - The LCD device class is implemented in drivers/video/backlight/lcd.c and
-> >   exposes a kernel API in include/linux/lcd.h. That API is tied to the
-> >   FBDEV API for historical reason, uses board code callback for reset and
-> >   power management, and doesn't include support for standard features
-> >   available in today's "smart panels".
-> > 
-> > - OMAP2+ based systems use custom panel drivers available in
-> > 
-> >   drivers/video/omap2/displays. Those drivers are based on OMAP DSS
-> >   (display controller) specific APIs.
-> > 
-> > - Similarly, Exynos based systems use custom panel drivers available in
-> > 
-> >   drivers/video/exynos. Only a single driver (s6e8ax0) is currently
-> >   available. That driver is based on Exynos display controller specific
-> >   APIs and on the LCD device class API.
-> > 
-> > I've brought up the issue with Tomi Valkeinen (OMAP DSS maintainer) and
-> > Marcus Lorentzon (working on panel support for ST/Linaro), and we agreed
-> > that a generic panel framework for display devices is needed. These
-> > patches implement a first proof of concept.
-> > 
-> > One of the main reasons for creating a new panel framework instead of
-> > adding missing features to the LCD framework is to avoid being tied to
-> > the FBDEV framework. Panels will be used by DRM drivers as well, and
-> > their API should thus be subsystem-agnostic. Note that the panel
-> > framework used the fb_videomode structure in its API, this will be
-> > replaced by a common video mode structure shared across subsystems
-> > (there's only so many hours per day).
-> > 
-> > Panels, as used in these patches, are defined as physical devices
-> > combining a matrix of pixels and a controller capable of driving that
-> > matrix.
-> > 
-> > Panel physical devices are registered as children of the control bus the
-> > panel controller is connected to (depending on the panel type, we can
-> > find platform devices for dummy panels with no control bus, or I2C, SPI,
-> > DBI, DSI, ... devices). The generic panel framework matches registered
-> > panel devices with panel drivers and call the panel drivers probe method,
-> > as done by other device classes in the kernel. The driver probe() method
-> > is responsible for instantiating a struct panel instance and registering
-> > it with the generic panel framework.
-> > 
-> > Display drivers are panel consumers. They register a panel notifier with
-> > the framework, which then calls the notifier when a matching panel is
-> > registered. The reason for this asynchronous mode of operation, compared
-> > to how drivers acquire regulator or clock resources, is that the panel
-> > can use resources provided by the display driver. For instance a panel
-> > can be a child of the DBI or DSI bus controlled by the display device, or
-> > use a clock provided by that device. We can't defer the display device
-> > probe until the panel is registered and also defer the panel device probe
-> > until the display is registered. As most display drivers need to handle
-> > output devices hotplug (HDMI monitors for instance), handling panel
-> > through a notification system seemed to be the easiest solution.
-> > 
-> > Note that this brings a different issue after registration, as display and
-> > panel drivers would take a reference to each other. Those circular
-> > references would make driver unloading impossible. I haven't found a good
-> > solution for that problem yet (hence the RFC state of those patches), and
-> > I would appreciate your input here. This might also be a hint that the
-> > framework design is wrong to start with. I guess I can't get everything
-> > right on the first try ;-)
-> > 
-> > Getting hold of the panel is the most complex part. Once done, display
-> > drivers can call abstract operations provided by panel drivers to control
-> > the panel operation. These patches implement three of those operations
-> > (enable, start transfer and get modes). More operations will be needed,
-> > and those three operations will likely get modified during review. Most
-> > of the panels on devices I own are dumb panels with no control bus, and
-> > are thus not the best candidates to design a framework that needs to take
-> > complex panels' needs into account.
-> > 
-> > In addition to the generic panel core, I've implemented MIPI DBI (Display
-> > Bus Interface, a parallel bus for panels that supports read/write
-> > transfers of commands and data) bus support, as well as three panel
-> > drivers (dummy panels with no control bus, and Renesas R61505- and
-> > R61517-based panels, both using DBI as their control bus). Only the dummy
-> > panel driver has been tested as I lack hardware for the two other
-> > drivers.
-> > 
-> > I will appreciate all reviews, comments, criticisms, ideas, remarks, ...
-> > If you can find a clever way to solve the cyclic references issue
-> > described above I'll buy you a beer at the next conference we will both
-> > attend. If you think the proposed solution is too complex, or too simple,
-> > I'm all ears. I personally already feel that we might need something even
-> > more generic to support other kinds of external devices connected to
-> > display controllers, such as external DSI to HDMI converters for instance.
-> > Some kind of video entity exposing abstract operations like the panels do
-> > would make sense, in which case panels would "inherit" from that video
-> > entity.
-> > 
-> > Speaking of conferences, I will attend the KS/LPC in San Diego in a bit
-> > more than a week, and would be happy to discuss this topic face to face
-> > there.
-> >
-> > Laurent Pinchart (5):
-> >   video: Add generic display panel core
-> >   video: panel: Add dummy panel support
-> >   video: panel: Add MIPI DBI bus support
-> >   video: panel: Add R61505 panel support
-> >   video: panel: Add R61517 panel support
+On Mon October 8 2012 16:30:53 Guennadi Liakhovetski wrote:
+> On Mon, 8 Oct 2012, Hans Verkuil wrote:
 > 
-> how about using 'buses' directory instead of 'panel' and adding
-> 'panel' under that like below?
-> video/buess: display bus frameworks such as MIPI-DBI/DSI and eDP are placed.
-> video/buess/panel: panel drivers based on display bus-based drivers are
-> placed.
+> > On Mon October 8 2012 14:23:25 Guennadi Liakhovetski wrote:
+> > > Hi Hans
+> > > 
+> > > On Fri, 5 Oct 2012, Hans Verkuil wrote:
+> > > 
+> > > [snip]
+> > > 
+> > > > I think the soc_camera patches should be left out for now. I suspect that
+> > > > by adding core support for async i2c handling first,
+> > > 
+> > > Ok, let's think, what this meacs - async I2C in media / V4L2 core.
+> > > 
+> > > The main reason for our probing order problem is the master clock, 
+> > > typically supplied from the camera bridge to I2C subdevices, which we only 
+> > > want to start when necessary, i.e. when accessing the subdevice. And the 
+> > > subdevice driver needs that clock running during its .probe() to be able 
+> > > to access and verify or configure the hardware. Our current solution is to 
+> > > not register I2C subdevices from the platform data, as is usual for all 
+> > > I2C devices, but from the bridge driver and only after it has switched on 
+> > > the master clock. After the subdevice driver has completed its probing we 
+> > > switch the clock back off until the subdevice has to be activated, e.g. 
+> > > for video capture.
+> > > 
+> > > Also important - when we want to unregister the bridge driver we just also 
+> > > unregister the I2C device.
+> > > 
+> > > Now, to reverse the whole thing and to allow I2C devices be registered as 
+> > > usual - via platform data or OF, first of all we have to teach I2C 
+> > > subdevice drivers to recognise the "too early" situation and request 
+> > > deferred probing in such a case. Then it will be reprobed after each new 
+> > > successful probe or unregister on the system. After the bridge driver has 
+> > > successfully probed the subdevice driver will be re-probed and at that 
+> > > time it should succeed. Now, there is a problem here too: who should 
+> > > switch on and off the master clock?
+> > > 
+> > > If we do it from the bridge driver, we could install an I2C bus-notifier, 
+> > > _before_ the subdevice driver is probed, i.e. upon the 
+> > > BUS_NOTIFY_BIND_DRIVER event we could turn on the clock. If subdevice 
+> > > probing was successful, we can then wait for the BUS_NOTIFY_BOUND_DRIVER 
+> > > event to switch the clock back off. BUT - if the subdevice fails probing? 
+> > > How do we find out about that and turn the clock back off? There is no 
+> > > notification event for that... Possible solutions:
+> > > 
+> > > 1. timer - ugly and unreliable.
+> > > 2. add a "probing failed" notifier event to the device core - would this 
+> > >    be accepted?
+> > > 3. let the subdevice turn the master clock on and off for the duration of 
+> > >    probing.
+> > > 
+> > > My vote goes for (3). Ideally this should be done using the generic clock 
+> > > framework. But can we really expect all drivers and platforms to switch to 
+> > > it quickly enough? If not, we need a V4L2-specific callback from subdevice 
+> > > drivers to bridge drivers to turn the clock on and off. That's what I've 
+> > > done "temporarily" in this patch series for soc-camera.
+> > > 
+> > > Suppose we decide to do the same for V4L2 centrally - add call-backs. Then 
+> > > we can think what else we need to add to V4L2 to support asynchronous 
+> > > subdevice driver probing.
+> > 
+> > I wonder, don't we have the necessary code already? V4L2 subdev drivers can
+> > have internal_ops with register/unregister ops. These are called by
+> > v4l2_device_register_subdev. This happens during the bridge driver's probe.
+> > 
+> > Suppose the subdev's probe does not actually access the i2c device, but
+> > instead defers that to the register callback? The bridge driver will turn on
+> > the clock before calling v4l2_device_register_subdev to ensure that the
+> > register callback can access the i2c registers. The register callback will
+> > do any initialization and can return an error. In case of an error the i2c
+> > client is automatically unregistered as well.
 > 
-> I think MIPI-DBI(Display Bus Interface)/DSI(Display Serial Interface)
-> and eDP are the bus interfaces for display controllers such as
-> DISC(OMAP SoC) and FIMC(Exynos SoC).
+> Yes, if v4l2_i2c_new_subdev_board() is used. This has been discussed 
+> several times before and always what I didn't like in this is, that I2C 
+> device probe() in this case succeeds without even trying to access the 
+> hardware. And think about DT. In this case we don't instantiate the I2C 
+> device, OF code does it for us. What do you do then? If you let probe() 
+> succeed, then you will have to somehow remember the subdevice to later 
+> match it against bridges...
 
-After discussing the generic panel framework at Linaro Connect, we came to the 
-conclusion that "panel" is too limiting a name. I will send an RFC v2 titled 
-"common display framework", with a drivers/video/display/ directory. I'm 
-unsure whether panels should go to drivers/video/panels/ or 
-drivers/video/display/panels/.
+Yes, but you need that information anyway. The bridge still needs to call
+v4l2_device_register_subdev so it needs to know which subdevs are loaded.
+And can't it get that from DT as well?
 
--- 
+In my view you cannot do a proper initialization unless you have both the
+bridge driver and all subdev drivers loaded and instantiated. They need one
+another. So I am perfectly fine with letting the probe function do next to
+nothing and postponing that until register() is called. I2C and actual probing
+to check if it's the right device is a bad idea in general since you have no
+idea what a hardware access to an unknown i2c device will do. There are still
+some corner cases where that is needed, but I do not think that that is an
+issue here.
+
+It would simplify things a lot IMHO. Also note that the register() op will
+work with any device, not just i2c. That may be a useful property as well.
+
+> > In addition, during the register op the subdev driver can call into the
+> > bridge driver since it knows the v4l2_device struct.
+> > 
+> > This has also the advantage that subdev drivers can change to this model
+> > gradually. Only drivers that need master clocks, etc. need to move any probe
+> > code that actually accesses hardware to the register op. Others can remain
+> > as. Nor should this change behavior of existing drivers as this happens
+> > all in the V4L2 core.
+> > 
+> > The bridge driver may still have to wait until all i2c drivers are loaded,
+> > though. But that can definitely be handled centrally (i.e.: 'I need these
+> > drivers, wait until all are loaded').
+> > 
+> > > 1. We'll have to create these V4L2 clock start and stop functions, that, 
+> > > supplied (in case of I2C) with client address and adapter number will find 
+> > > the correct v4l2_device instance and call its callbacks.
+> > > 
+> > > 2. The I2C notifier. I'm not sure, whether this one should be common. Of 
+> > > common tasks we have to refcount the I2C adapter and register the 
+> > > subdevice. Then we'd have to call the bridge driver's callback. Is it 
+> > > worth it doing this centrally or rather allow individual drivers to do 
+> > > that themselves?
+> > > 
+> > > Also, ideally OF-compatible (I2C) drivers should run with no platform 
+> > > data, but soc-camera is using I2C device platform data intensively. To 
+> > > avoid modifying the soc-camera core and all drivers, I also trigger on the 
+> > > BUS_NOTIFY_BIND_DRIVER event and assign a reference to the dynamically 
+> > > created platform data to the I2C device. Would we also want to do this for 
+> > > all V4L2 bridge drivers? We could call this a "prepare" callback or 
+> > > something similar...
+> > 
+> > Well, subdev drivers should either parse the OF data, or use the platform_data.
+> > The way soc_camera uses platform_data is one reason why it is so hard to
+> > reuse subdevs for non-soc_camera drivers. All the callbacks in soc_camera_link
+> > should be replaced by calls to the v4l2_device notify() callback. After that we
+> > can see what is needed to drop struct soc_camera_link altogether as platform_data.
+> 
+> They don't have to be, they are not (or should not be) called by 
+> subdevices.
+
+Then why are those callbacks in a struct that subdevs can access? I always
+have a hard time with soc_camera figuring out who is using what when :-(
+
+> > > 3. Bridge driver unregistering. Here we have to put the subdevice driver 
+> > > back into the deferred-probe state... Ugliness alert: I'm doing this by 
+> > > unregistering and re-registering the I2C device... For that I also have to 
+> > > create a copy of devices I2C board-info data. Lovely, ain't it? This I'd 
+> > > be happy to move to the V4L2 core;-)
+> > 
+> > By just using the unregister ops this should be greatly simplified as well.
+> 
+> Sorry, which unregister ops do you mean? internal_ops->unregistered()? 
+
+Yes.
+
+> Yes, but only if we somehow go your way and use dummy probe() methods...
+
+Of course.
+
 Regards,
 
-Laurent Pinchart
-
+	Hans
