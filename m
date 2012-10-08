@@ -1,60 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:20933 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754050Ab2JJO4p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 10:56:45 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBO00LK9MUKOO30@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:56:44 +0900 (KST)
-Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MBO002YDME0EC70@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:56:44 +0900 (KST)
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
-	k.debski@samsung.com
-Subject: [PATCHv10 14/26] v4l: s5p-tv: mixer: support for dmabuf importing
-Date: Wed, 10 Oct 2012 16:46:33 +0200
-Message-id: <1349880405-26049-15-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
-References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:54249 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751845Ab2JHMda (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 08:33:30 -0400
+Received: by mail-qc0-f174.google.com with SMTP id d3so2796440qch.19
+        for <linux-media@vger.kernel.org>; Mon, 08 Oct 2012 05:33:30 -0700 (PDT)
+MIME-Version: 1.0
+Date: Mon, 8 Oct 2012 20:33:29 +0800
+Message-ID: <CAPgLHd8dnJHQ6Pbb_FJfpZDvrvzJB=2GXt6e5z1FZMAEEMe+Yg@mail.gmail.com>
+Subject: [PATCH] cx23885: use list_move_tail instead of list_del/list_add_tail
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: mchehab@infradead.org
+Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch enhances s5p-tv with support for DMABUF importing via
-V4L2_MEMORY_DMABUF memory type.
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Using list_move_tail() instead of list_del() + list_add_tail().
+
+dpatch engine is used to auto generate this patch.
+(https://github.com/weiyj/dpatch)
+
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 ---
- drivers/media/platform/s5p-tv/mixer_video.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/pci/cx23885/cx23885-core.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
-index 0c1cd89..2421e527 100644
---- a/drivers/media/platform/s5p-tv/mixer_video.c
-+++ b/drivers/media/platform/s5p-tv/mixer_video.c
-@@ -1093,7 +1093,7 @@ struct mxr_layer *mxr_base_layer_create(struct mxr_device *mdev,
- 
- 	layer->vb_queue = (struct vb2_queue) {
- 		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
--		.io_modes = VB2_MMAP | VB2_USERPTR,
-+		.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF,
- 		.drv_priv = layer,
- 		.buf_struct_size = sizeof(struct mxr_buffer),
- 		.ops = &mxr_video_qops,
--- 
-1.7.9.5
+diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
+index 697728f..4189d64 100644
+--- a/drivers/media/pci/cx23885/cx23885-core.c
++++ b/drivers/media/pci/cx23885/cx23885-core.c
+@@ -1516,8 +1516,7 @@ int cx23885_restart_queue(struct cx23885_tsport *port,
+ 			buf = list_entry(q->queued.next, struct cx23885_buffer,
+ 					 vb.queue);
+ 			if (NULL == prev) {
+-				list_del(&buf->vb.queue);
+-				list_add_tail(&buf->vb.queue, &q->active);
++				list_move_tail(&buf->vb.queue, &q->active);
+ 				cx23885_start_dma(port, q, buf);
+ 				buf->vb.state = VIDEOBUF_ACTIVE;
+ 				buf->count    = q->count++;
+@@ -1528,8 +1527,7 @@ int cx23885_restart_queue(struct cx23885_tsport *port,
+ 			} else if (prev->vb.width  == buf->vb.width  &&
+ 				   prev->vb.height == buf->vb.height &&
+ 				   prev->fmt       == buf->fmt) {
+-				list_del(&buf->vb.queue);
+-				list_add_tail(&buf->vb.queue, &q->active);
++				list_move_tail(&buf->vb.queue, &q->active);
+ 				buf->vb.state = VIDEOBUF_ACTIVE;
+ 				buf->count    = q->count++;
+ 				prev->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
 
