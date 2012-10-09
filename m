@@ -1,50 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:31961 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751094Ab2JPDgR (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52435 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754402Ab2JIJV7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Oct 2012 23:36:17 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBY003VRVCFNEA0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 16 Oct 2012 12:36:16 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MBY009V0VBXI640@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 16 Oct 2012 12:36:15 +0900 (KST)
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, shaik.samsung@gmail.com
-Subject: [PATCH] [media] exynos-gsc: fix variable type in gsc_m2m_device_run()
-Date: Tue, 16 Oct 2012 19:08:34 +0530
-Message-id: <1350394714-29826-1-git-send-email-shaik.ameer@samsung.com>
+	Tue, 9 Oct 2012 05:21:59 -0400
+Date: Tue, 9 Oct 2012 12:21:54 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: P Jackson <pej02@yahoo.co.uk>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>
+Subject: Re: omap3isp: no pixel rate control in subdev
+Message-ID: <20121009092154.GL14107@valkosipuli.retiisi.org.uk>
+References: <1349531264.14555.YahooMailNeo@web28905.mail.ir2.yahoo.com>
+ <20121008223311.GI14107@valkosipuli.retiisi.org.uk>
+ <1349769964.36347.YahooMailNeo@web28903.mail.ir2.yahoo.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1349769964.36347.YahooMailNeo@web28903.mail.ir2.yahoo.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In gsc_m2m_device_run(), variable "ret" is accepting signed integer
-values. But currently it is defined as u32. This patch will modify
-the type of "ret" variable to "int".
+Hi Pete,
 
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
----
- drivers/media/platform/exynos-gsc/gsc-m2m.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+On Tue, Oct 09, 2012 at 09:06:04AM +0100, P Jackson wrote:
+> On Sat, Oct 06, 2012 at 02:47:44PM +0100, P Jackson wrote:
+> > I'm trying to get an mt9t001 sensor board working on a Gumstix Overo board using the latest omap3isp-omap3isp-stable branch from the linuxtv.org/media.git repository.
+> > 
+> > When I 'modprobe omap3-isp' I see:
+> > 
+> > Linux media interface: v0.10
+> > Linux video capture interface: v2.00
+> > omap3isp omap3isp: Revision 15.0 found
+> > omap-iommu omap-iommu.0: isp: version 1.1
+> > mt9t001 3-005d: Probing MT9T001 at address 0x5d
+> > mt9t001 3-005d: MT9T001 detected at address 0x5d
+> > 
+> > I then do:
+> > 
+> > media-ctl -r
+> > media-ctl -l '"mt9t001 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+> > media-ctl -l '"OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+> > media-ctl -V '"mt9t001 3-005d":0 [SGRBG10 2048x1536]'
+> > media-ctl -V '"OMAP3 ISP CCDC":1 [SGRBG10 2048x1536]'
+> > 
+> > Followed by:
+> > 
+> > yavta -p -f SGRBG10 -s 2048x1536 -n 4 --capture=1 /dev/video2 file=m.bin
+> > 
+> > 
+> > For which I get:
+> > 
+> > Device /dev/video2 opened.
+> > Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
+> > Video format set: SGRBG10 (30314142) 2048x1536 (stride 4096) buffer size 6291456
+> > Video format: SGRBG10 (30314142) 2048x1536 (stride 4096) buffer size 6291456
+> > 4 buffers requested.
+> > length: 6291456 offset: 0
+> > Buffer 0 mapped at address 0x40272000.
+> > length: 6291456 offset: 6291456
+> > Buffer 1 mapped at address 0x4096b000.
+> > length: 6291456 offset: 12582912
+> > Buffer 2 mapped at address 0x4102f000.
+> > length: 6291456 offset: 18874368
+> > Buffer 3 mapped at address 0x416ac000.
+> > Press enter to start capture
+> > 
+> > After pressing enter I get:
+> > 
+> > omap3isp omap3isp: no pixel rate control in subdev mt9t001 3-005d
+> > Unable to start streaming: Invalid argument (22).
+> 
+> Really?
+> 
+> Could you check if you have this patch in your tree?
+> 
+> ---
+> commit 0bc77f3f06fcf2ca7b7fad782d70926cd4d235f1
+> Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Date:   Wed May 9 09:55:57 2012 -0300
+> 
+>     [media] mt9t001: Implement V4L2_CID_PIXEL_RATE control
+>     
+>     The pixel rate control is required by the OMAP3 ISP driver and should be
+>     implemented by all media controller-compatible sensor drivers.
+>     
+>     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>     Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+> 
+> I have checked my tree and cannot find that patch.
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-index 3c7f005..047f0f0 100644
---- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-@@ -122,7 +122,7 @@ static void gsc_m2m_device_run(void *priv)
- 	struct gsc_ctx *ctx = priv;
- 	struct gsc_dev *gsc;
- 	unsigned long flags;
--	u32 ret;
-+	int ret;
- 	bool is_set = false;
- 
- 	if (WARN(!ctx, "null hardware context\n"))
+Your tree might be more or less out of date. You can find the patch here:
+
+<URL:http://git.linuxtv.org/media_tree.git/commit/0bc77f3f06fcf2ca7b7fad782d70926cd4d235f1>
+
+Apply it and your problem should be resolved.
+
+Regards,
+
 -- 
-1.7.0.4
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
