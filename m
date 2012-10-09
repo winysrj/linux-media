@@ -1,46 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:39888 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751491Ab2JBRKk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 13:10:40 -0400
-Received: from eusync2.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MB9001U7ZQJIL40@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Oct 2012 18:11:07 +0100 (BST)
-Received: from [106.116.147.32] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MB900A8GZPPME00@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Oct 2012 18:10:37 +0100 (BST)
-Message-id: <506B200C.5090600@samsung.com>
-Date: Tue, 02 Oct 2012 19:10:36 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Kamil Debski <k.debski@samsung.com>
-Cc: 'Arun Kumar K' <arun.kk@samsung.com>, linux-media@vger.kernel.org,
-	jtp.park@samsung.com, janghyuck.kim@samsung.com,
-	jaeryul.oh@samsung.com, ch.naveen@samsung.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	hverkuil@xs4all.nl, kmpark@infradead.org, joshi@samsung.com
-Subject: Re: [PATCH v9 0/6] Update MFC v4l2 driver to support MFC6.x
-References: <1349189741-22259-1-git-send-email-arun.kk@samsung.com>
- <01b901cda08f$5e382e00$1aa88a00$%debski@samsung.com>
-In-reply-to: <01b901cda08f$5e382e00$1aa88a00$%debski@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:44508 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752858Ab2JIMMr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 08:12:47 -0400
+Received: by mail-oa0-f46.google.com with SMTP id h16so4929272oag.19
+        for <linux-media@vger.kernel.org>; Tue, 09 Oct 2012 05:12:46 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CACKLOr3stV-Pup_w+DwGO3z842hct4RV+_hCVpL7Pu3QRFwH0w@mail.gmail.com>
+References: <1349735823-30315-1-git-send-email-festevam@gmail.com>
+	<CACKLOr3stV-Pup_w+DwGO3z842hct4RV+_hCVpL7Pu3QRFwH0w@mail.gmail.com>
+Date: Tue, 9 Oct 2012 09:12:46 -0300
+Message-ID: <CAOMZO5CrhWGBW4z4eoeAviDeBF0bPLcp-7tXGUrdnFWfVGr+cw@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] [media]: mx2_camera: Fix regression caused by
+ clock conversion
+From: Fabio Estevam <festevam@gmail.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: g.liakhovetski@gmx.de, mchehab@infradead.org,
+	kernel@pengutronix.de, gcembed@gmail.com,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Javier,
 
-On 10/02/2012 01:16 PM, Kamil Debski wrote:
-> Hi Arun,
-> 
-> Thank you for your hard work with these patches.
-> I think that they are ready to be merged.
+On Tue, Oct 9, 2012 at 8:16 AM, javier Martin
+<javier.martin@vista-silicon.com> wrote:
 
-I've just picked up these patches and have sent the pull request.
+> This patch doesn't fix the BUG it claims to, since I have it working
+> properly in our Visstrim M10 platform without it. Look:
 
-Thanks,
-Sylwester
+Yes, it does fix a real bug. Without this patch the ov2640 cannot be
+probed, as it fails to read the product/vendor ID via I2C. I measure
+with the scope and do not get mclk at all without this patch.
 
+Again, camera probe does work fine on kernel 3.4.
+
+Does the mx27 feed the mclk to your camera?  Which frequency do you
+get if you measure it with a scope.
+
+>
+> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
+> mx2-camera mx2-camera.0: Camera driver attached to camera 0
+> ov7670 0-0021: chip found @ 0x42 (imx-i2c)
+> [..]
+> mx2-camera mx2-camera.0: Camera driver detached from camera 0
+> mx2-camera mx2-camera.0: MX2 Camera (CSI) driver probed, clock
+> frequency: 66500000
+
+This 66.5MHz is wrong.
+
+>
+> Furthermore, it's not correct, since there isn't such "per" clock for
+> the CSI in 3.5 [1], 3.6 [2], linux-next-20121008[3], or
+> next-20121009[4].
+
+Well, you are looking to all git trees after the conversion to the
+common clock framework.
+
+Please look at 3.4 kernel instead and you will see that per4 is indeed
+used for csi.
+"DEFINE_CLOCK1(csi_clk,     0, NULL,   0, parent, &csi_clk1, &per4_clk);"
+
+In fact, the mx27 reference manual is the correct source for such
+information. Please check "Table 39-9. CSI Control Register 1 Field
+Descriptions (continued)":
+
+"Sensor Master Clock (MCLK) Divider. This field contains the divisor MCLK.
+The MCLK is derived from the PERCLK4."
+
+Can you let me know if this patch breaks things for you? Or what
+exactly you think is wrong with it?
+
+It seems that you are camera works by pure luck without this patch.
+Maybe you are turning per4 in the bootloader or you get the clock to
+your camera from somewhere else.
+
+Regards,
+
+Fabio Estevam
