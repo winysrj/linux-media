@@ -1,51 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21723 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756379Ab2J0UmU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:42:20 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKgKg3020481
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:20 -0400
-Received: from pedra (vpn1-4-98.gru2.redhat.com [10.97.4.98])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id q9RKg4Jd017366
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:20 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 40/68] [media] dt3155v4l: vb2_queue_init() can now fail. Check is required
-Date: Sat, 27 Oct 2012 18:40:58 -0200
-Message-Id: <1351370486-29040-41-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:61610 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752363Ab2JIUuG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 16:50:06 -0400
+Received: by mail-pa0-f46.google.com with SMTP id hz1so5600996pad.19
+        for <linux-media@vger.kernel.org>; Tue, 09 Oct 2012 13:50:06 -0700 (PDT)
+From: Kevin Hilman <khilman@deeprootsystems.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: paul@pwsan.com, laurent.pinchart@ideasonboard.com,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH v2 1/2] omap3: Provide means for changing CSI2 PHY configuration
+References: <20120926215001.GA14107@valkosipuli.retiisi.org.uk>
+	<1348696236-3470-1-git-send-email-sakari.ailus@iki.fi>
+Date: Tue, 09 Oct 2012 13:50:04 -0700
+In-Reply-To: <1348696236-3470-1-git-send-email-sakari.ailus@iki.fi> (Sakari
+	Ailus's message of "Thu, 27 Sep 2012 00:50:35 +0300")
+Message-ID: <87zk3vz7yb.fsf@deeprootsystems.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/staging/media/dt3155v4l/dt3155v4l.c: In function 'dt3155_open':
-drivers/staging/media/dt3155v4l/dt3155v4l.c:399:17: warning: ignoring return value of 'vb2_queue_init', declared with attribute warn_unused_result [-Wunused-result]
+Hi Sakari,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/staging/media/dt3155v4l/dt3155v4l.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Sakari Ailus <sakari.ailus@iki.fi> writes:
 
-diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-index 2e7b711..54f1813 100644
---- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
-+++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-@@ -396,7 +396,9 @@ dt3155_open(struct file *filp)
- 		pd->q->drv_priv = pd;
- 		pd->curr_buf = NULL;
- 		pd->field_count = 0;
--		vb2_queue_init(pd->q); /* cannot fail */
-+		ret = vb2_queue_init(pd->q);
-+		if (ret < 0)
-+			return ret;
- 		INIT_LIST_HEAD(&pd->dmaq);
- 		spin_lock_init(&pd->lock);
- 		/* disable all irqs, clear all irq flags */
--- 
-1.7.11.7
+> The OMAP 3630 has configuration how the ISP CSI-2 PHY pins are connected to
+> the actual CSI-2 receivers outside the ISP itself. Allow changing this
+> configuration from the ISP driver.
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 
+These control module registers (CSIRXFE, CAMERA_PHY_CTRL) are in the
+CORE powerdomain, so they will be lost during off-mode transitions.  So,
+I suspect you'll also want to add them to the save/restore functions in
+control.c in order for this to work across off-mode transitions.
+
+Kevin
