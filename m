@@ -1,83 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [92.246.25.51] ([92.246.25.51]:60553 "EHLO mail.multitrading.dk"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1750876Ab2JHMQp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Oct 2012 08:16:45 -0400
-Date: Mon, 8 Oct 2012 14:16:42 +0200
-From: Jens Bauer <jens-lists@gpio.dk>
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-Cc: linux-media@vger.kernel.org
-Message-ID: <20121008141642637793.214fa4bf@gpio.dk>
-In-Reply-To: <5072C07F.90100@schinagl.nl>
-References: <20121007175602425458.288c6720@gpio.dk>
- <5072A5BF.50101@schinagl.nl> <20121008131229269874.8db8d46c@gpio.dk>
- <5072C07F.90100@schinagl.nl>
-Subject: Re: Zolid USB DVB-T Tuner Pictures
+Received: from mail-we0-f174.google.com ([74.125.82.174]:46726 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753986Ab2JIMwo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 08:52:44 -0400
+Received: by mail-we0-f174.google.com with SMTP id t9so3206319wey.19
+        for <linux-media@vger.kernel.org>; Tue, 09 Oct 2012 05:52:44 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <50741D08.1060706@gmail.com>
+References: <1349735823-30315-1-git-send-email-festevam@gmail.com>
+	<50741D08.1060706@gmail.com>
+Date: Tue, 9 Oct 2012 14:52:43 +0200
+Message-ID: <CACKLOr2rW2cceRzKt5HwxgoaVkxUoGh9T5ym4frx83AUOn8ZSw@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] [media]: mx2_camera: Fix regression caused by
+ clock conversion
+From: javier Martin <javier.martin@vista-silicon.com>
+To: =?ISO-8859-1?Q?Ga=EBtan_Carlier?= <gcembed@gmail.com>
+Cc: Fabio Estevam <festevam@gmail.com>, g.liakhovetski@gmx.de,
+	mchehab@infradead.org, kernel@pengutronix.de,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Oliver.
+On 9 October 2012 14:48, Gaëtan Carlier <gcembed@gmail.com> wrote:
+> Hi,
+>
+> On 10/09/2012 12:37 AM, Fabio Estevam wrote:
+>>
+>> From: Fabio Estevam <fabio.estevam@freescale.com>
+>>
+>> Since mx27 transitioned to the commmon clock framework in 3.5, the correct
+>> way
+>> to acquire the csi clock is to get csi_ahb and csi_per clocks separately.
+>>
+>> By not doing so the camera sensor does not probe correctly:
+>>
+>> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
+>> mx2-camera mx2-camera.0: Camera driver attached to camera 0
+>> ov2640 0-0030: Product ID error fb:fb
+>> mx2-camera mx2-camera.0: Camera driver detached from camera 0
+>> mx2-camera mx2-camera.0: MX2 Camera (CSI) driver probed, clock frequency:
+>> 66500000
+>>
+>> Adapt the mx2_camera driver to the new clock framework and make it
+>> functional
+>> again.
+>>
+>> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+>> ---
+>> Changes since v1:
+>> - Rebased against linux-next 20121008.
+>>
+>>   drivers/media/platform/soc_camera/mx2_camera.c |   47
+>> +++++++++++++++++-------
+>>   1 file changed, 34 insertions(+), 13 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/mx2_camera.c
+>> b/drivers/media/platform/soc_camera/mx2_camera.c
+>> index 403d7f1..9f8c5f0 100644
+>> --- a/drivers/media/platform/soc_camera/mx2_camera.c
+>> +++ b/drivers/media/platform/soc_camera/mx2_camera.c
+>> @@ -272,7 +272,8 @@ struct mx2_camera_dev {
+>>         struct device           *dev;
+>>         struct soc_camera_host  soc_host;
+>>         struct soc_camera_device *icd;
+>> -       struct clk              *clk_csi, *clk_emma_ahb, *clk_emma_ipg;
+>> +       struct clk              *clk_emma_ahb, *clk_emma_ipg;
+>> +       struct clk              *clk_csi_ahb, *clk_csi_per;
+>>
+>>         void __iomem            *base_csi, *base_emma;
+>>
+>> @@ -432,7 +433,8 @@ static void mx2_camera_deactivate(struct
+>> mx2_camera_dev *pcdev)
+>>   {
+>>         unsigned long flags;
+>>
+>> -       clk_disable_unprepare(pcdev->clk_csi);
+>> +       clk_disable_unprepare(pcdev->clk_csi_ahb);
+>> +       clk_disable_unprepare(pcdev->clk_csi_per);
+>>         writel(0, pcdev->base_csi + CSICR1);
+>>         if (cpu_is_mx27()) {
+>>                 writel(0, pcdev->base_emma + PRP_CNTL);
+>> @@ -460,7 +462,11 @@ static int mx2_camera_add_device(struct
+>> soc_camera_device *icd)
+>>         if (pcdev->icd)
+>>                 return -EBUSY;
+>>
+>> -       ret = clk_prepare_enable(pcdev->clk_csi);
+>> +       ret = clk_prepare_enable(pcdev->clk_csi_ahb);
+>> +       if (ret < 0)
+>> +               return ret;
+>> +
+>> +       ret = clk_prepare_enable(pcdev->clk_csi_per);
+>>         if (ret < 0)
+>>                 return ret;
+>>
+>> @@ -1725,11 +1731,18 @@ static int __devinit mx2_camera_probe(struct
+>> platform_device *pdev)
+>>                 goto exit;
+>>         }
+>>
+>> -       pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
+>> -       if (IS_ERR(pcdev->clk_csi)) {
+>> -               dev_err(&pdev->dev, "Could not get csi clock\n");
+>> -               err = PTR_ERR(pcdev->clk_csi);
+>> -               goto exit;
+>> +       pcdev->clk_csi_ahb = devm_clk_get(&pdev->dev, "ahb");
+>> +       if (IS_ERR(pcdev->clk_csi_ahb)) {
+>> +               dev_err(&pdev->dev, "Could not get csi ahb clock\n");
+>> +               err = PTR_ERR(pcdev->clk_csi_ahb);
+>> +               goto exit;
+>> +       }
+>> +
+>> +       pcdev->clk_csi_per = devm_clk_get(&pdev->dev, "per");
+>> +       if (IS_ERR(pcdev->clk_csi_per)) {
+>> +               dev_err(&pdev->dev, "Could not get csi per clock\n");
+>> +               err = PTR_ERR(pcdev->clk_csi_per);
+>> +               goto exit_csi_ahb;
+>>         }
+>>
+>>         pcdev->pdata = pdev->dev.platform_data;
+>> @@ -1738,14 +1751,15 @@ static int __devinit mx2_camera_probe(struct
+>> platform_device *pdev)
+>>
+>>                 pcdev->platform_flags = pcdev->pdata->flags;
+>>
+>> -               rate = clk_round_rate(pcdev->clk_csi, pcdev->pdata->clk *
+>> 2);
+>> +               rate = clk_round_rate(pcdev->clk_csi_per,
+>> +                                               pcdev->pdata->clk * 2);
+>>                 if (rate <= 0) {
+>>                         err = -ENODEV;
+>> -                       goto exit;
+>> +                       goto exit_csi_per;
+>>                 }
+>> -               err = clk_set_rate(pcdev->clk_csi, rate);
+>> +               err = clk_set_rate(pcdev->clk_csi_per, rate);
+>>                 if (err < 0)
+>> -                       goto exit;
+>> +                       goto exit_csi_per;
+>>         }
+>>
+>>         INIT_LIST_HEAD(&pcdev->capture);
+>> @@ -1801,7 +1815,7 @@ static int __devinit mx2_camera_probe(struct
+>> platform_device *pdev)
+>>                 goto exit_free_emma;
+>>
+>>         dev_info(&pdev->dev, "MX2 Camera (CSI) driver probed, clock
+>> frequency: %ld\n",
+>> -                       clk_get_rate(pcdev->clk_csi));
+>> +                       clk_get_rate(pcdev->clk_csi_per));
+>>
+>>         return 0;
+>>
+>> @@ -1812,6 +1826,10 @@ eallocctx:
+>>                 clk_disable_unprepare(pcdev->clk_emma_ipg);
+>>                 clk_disable_unprepare(pcdev->clk_emma_ahb);
+>>         }
+>> +exit_csi_per:
+>> +       clk_disable_unprepare(pcdev->clk_csi_per);
+>> +exit_csi_ahb:
+>> +       clk_disable_unprepare(pcdev->clk_csi_ahb);
+>>   exit:
+>>         return err;
+>>   }
+>> @@ -1831,6 +1849,9 @@ static int __devexit mx2_camera_remove(struct
+>> platform_device *pdev)
+>>                 clk_disable_unprepare(pcdev->clk_emma_ahb);
+>>         }
+>>
+>> +       clk_disable_unprepare(pcdev->clk_csi_per);
+>> +       clk_disable_unprepare(pcdev->clk_csi_ahb);
+>> +
+>>         dev_info(&pdev->dev, "MX2 Camera driver unloaded\n");
+>>
+>>         return 0;
+>>
+> I only test detection at kernel boot not streaming using Gstreamer due to
+> lack of time.
+>
+> On imx27_3ds board with ov2640 sensor:
+> ov2640 0-0030: ov2640 Product ID 26:42 Manufacturer ID 7f:a2
+> mx2-camera mx2-camera.0: MX2 Camera (CSI) driver probed, clock frequency:
+> 44333333
+>
+> On clone imx27_3ds board with mt9v111 sensor (draft driver):
+> mt9v111 0-0048: Detected a MT9V111 chip ID 823a
+> mx2-camera mx2-camera.0: MX2 Camera (CSI) driver probed, clock frequency:
+> 44333333
+>
+> Tested-by: Gaëtan Carlier <gcembed@gmail.com>
 
-On Mon, 08 Oct 2012 14:01:03 +0200, Oliver Schinagl wrote:
+Sorry I missed patch 1/2.  Both patches are correct:
 
->> (I must admit that I find it a bit confusing when 'Edit' does not do 
->> what I expect, but there's probably a reason for that).
-> I assume you have created an account and can edit various pages;
+Tested-by: Javier Martin <javier.martin@vista-silicon.com>
 
-Yep, so far, so good. :)
-
-> I opened the DVB-T Usb page and clicked on the 'edit' icon to the 
-> right of the Zolid mini dvb-t stick. I then jumped to the 
-> zolid-mini-dvb-t-stick-v1 section on the Template:USB_Device_Data 
-> page.
-
-I can do that too, no problem. I end up here:
-<http://linuxtv.org/wiki/index.php/Template:USB_Device_Data#zolid-mini-dvb-t-stick-v1>
-
-> There is a [edit] 'button' to the right of th title.
-> {snip}
-
-Not on my end. The page I have now says...
----8<-----8<-----8<-----
-"zolid-mini-dvb-t-stick-v1
-The data for the device zolid-mini-dvb-t-stick-v1 is right here. You just can't see it because it is meant to be used in a template 'transclusion'. If you are logged in you can click on the [edit] link to the right to change the data for this device. If you are not logged in, you can click on the view source tab at the top of this page to at least see how data is stored here.
-It's probably best if you open the edit link in a separate tab. That way you can use this tab to read the explanation of the syntax above or jump back to the place where you came from and see how your changes look there. (Don't forget that your browser cache or the wiki's rendering cache might need some time or persuasion to catch up with the new content.)"
------>8----->8----->8---
-...And there are no clickable links there.
-
-I have all ad-blockers turned off, and no custom/user CSS in my browser; also tried in Opera, no dice...
-
-If, on the other hand, I scroll to the top of this page, and click the "View Source" tab, I get the following in the top of the new page:
----8<-----8<-----8<-----
-  "You do not have permission to edit this page, for the following reasons: 
-  The action you have requested is limited to users in the group: Users.
-  You do not have permission to edit pages in the Template namespace.
-
-  You can view and copy the source of this page:"
------>8----->8----->8---
-
-
-
-> This opens the template 'table' for your dvice. Where it says 
-> 'pic=[[image:Mini.jpg|120px]] you can replace that with the filename 
-> of your image.
-
-I guess this is supposed to happen, but it does not happen for me. Perhaps I need some access granted from somewhere or someone ?
-
-> If you haven't uploaded it yet, going back to the regular DVB-T USB 
-> overview page should now show a missing picture. Clicking on that 
-> should allow you to upload your image :)
-> 
-> Furthermore, you can make a wikilink from the device field to link to 
-> a specific device page (or create one) to place more pictures. See 
-> for example the device=[[ASUS_My_Cinema ...|My Cinema U3100 ...]] bit 
-> for the Asus U3100 Mini.
-
-I'll remember this for when I get the first part to work. :)
-
-
-Love
-Jens
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
