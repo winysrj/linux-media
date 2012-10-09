@@ -1,50 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:40406 "EHLO
-	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750799Ab2JHFEY (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52388 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753173Ab2JIGIE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Oct 2012 01:04:24 -0400
-Date: Mon, 8 Oct 2012 07:04:21 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Joe Perches <joe@perches.com>
-cc: Julia Lawall <julia.lawall@lip6.fr>, walter harms <wharms@bfs.de>,
-	Antti Palosaari <crope@iki.fi>,
-	kernel-janitors@vger.kernel.org, rmallon@gmail.com,
-	shubhrajyoti@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for
- i2c_msg initialization
-In-Reply-To: <1349646718.15802.16.camel@joe-AO722>
-Message-ID: <alpine.DEB.2.02.1210080702450.1972@localhost6.localdomain6>
-References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>  <1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr>  <5071AEF3.6080108@bfs.de>  <alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6>  <5071B834.1010200@bfs.de>
- <alpine.DEB.2.02.1210071917040.2745@localhost6.localdomain6>  <1349633780.15802.8.camel@joe-AO722>  <alpine.DEB.2.02.1210072053550.2745@localhost6.localdomain6>  <1349645970.15802.12.camel@joe-AO722>  <alpine.DEB.2.02.1210072342460.2745@localhost6.localdomain6>
- <1349646718.15802.16.camel@joe-AO722>
+	Tue, 9 Oct 2012 02:08:04 -0400
+Date: Tue, 9 Oct 2012 09:08:00 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	tony@atomide.com
+Subject: Re: [PATCH v3 2/3] omap3isp: Add PHY routing configuration
+Message-ID: <20121009060800.GK14107@valkosipuli.retiisi.org.uk>
+References: <20121007200730.GD14107@valkosipuli.retiisi.org.uk>
+ <1349640472-1425-2-git-send-email-sakari.ailus@iki.fi>
+ <21772459.IFXEUjhVJS@avalon>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <21772459.IFXEUjhVJS@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 7 Oct 2012, Joe Perches wrote:
+Hi, Laurent!
 
-> On Sun, 2012-10-07 at 23:43 +0200, Julia Lawall wrote:
->> On Sun, 7 Oct 2012, Joe Perches wrote:
->>>> Are READ and WRITE the action names?  They are really the important
->>>> information in this case.
->>>
->>> Yes, most (all?) uses of _READ and _WRITE macros actually
->>> perform some I/O.
->>
->> I2C_MSG_READ_DATA?
->> I2C_MSG_READ_INFO?
->> I2C_MSG_READ_INIT?
->> I2C_MSG_PREPARE_READ?
->
-> Dunno, naming is hard.  Maybe:
->
-> I2C_INPUT_MSG
-> I2C_OUTPUT_MSG
-> I2C_OP_MSG
+Thanks for the comments!
 
-The current terminology, however, is READ, not INPUT (.flags = I2C_M_RD).
+On Tue, Oct 09, 2012 at 02:17:48AM +0200, Laurent Pinchart wrote:
+...
+> > @@ -32,6 +32,92 @@
+> >  #include "ispreg.h"
+> >  #include "ispcsiphy.h"
+> > 
+> > +static void csiphy_routing_cfg_3630(struct isp_csiphy *phy, u32 iface,
+> > +				    bool ccp2_strobe)
+> > +{
+> > +	u32 cam_phy_ctrl =
+> 
+> If you call the variable "value" or "ctrl" two statements below could fit on 
+> one line, but that's up to you :-)
 
-julia
+I'll call it "reg". :)
+
+
+> > +		isp_reg_readl(phy->isp,
+> > +			      OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL, 0);
+> > +	u32 shift, mode;
+> > +
+> > +	switch (iface) {
+> > +	case ISP_INTERFACE_CCP2B_PHY1:
+> > +		cam_phy_ctrl &=
+> > +			~OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
+> > +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
+> > +		break;
+> > +	case ISP_INTERFACE_CSI2C_PHY1:
+> > +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
+> > +		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
+> > +		break;
+> > +	case ISP_INTERFACE_CCP2B_PHY2:
+> > +		cam_phy_ctrl |=
+> > +			OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
+> > +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
+> > +		break;
+> > +	case ISP_INTERFACE_CSI2A_PHY2:
+> > +		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
+> > +		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
+> > +		break;
+> > +	default:
+> > +		pr_warn("bad iface %d\n", iface);
+> 
+> As you already know, dev_warn() is a better idea. Can this actually happen ?
+
+I don't think so; it's checked in isp.c in isp_register_entities().. I'll
+remove it.
+
+Cheers.
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
