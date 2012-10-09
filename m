@@ -1,270 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.mnsspb.ru ([84.204.75.2]:44310 "EHLO mail.mnsspb.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756979Ab2JWNe2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 09:34:28 -0400
-Date: Tue, 23 Oct 2012 17:35:21 +0400
-From: Kirill Smelkov <kirr@mns.spb.ru>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH v3] [media] vivi: Teach it to tune FPS
-Message-ID: <20121023133521.GA2965@tugrik.mns.mnsspb.ru>
-References: <1350914084-31618-1-git-send-email-kirr@mns.spb.ru>
- <201210221616.14299.hverkuil@xs4all.nl>
- <20121022170139.GA23735@tugrik.mns.mnsspb.ru>
- <201210230840.04382.hverkuil@xs4all.nl>
+Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:19774 "EHLO
+	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754570Ab2JIPnj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Oct 2012 11:43:39 -0400
+Date: Tue, 9 Oct 2012 17:43:36 +0200 (CEST)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Jean Delvare <khali@linux-fr.org>
+cc: Julia Lawall <Julia.Lawall@lip6.fr>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ben-linux@fluff.org, w.sang@pengutronix.de,
+	linux-i2c@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	rmallon@gmail.com, shubhrajyoti@ti.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 0/11] introduce macros for i2c_msg initialization
+In-Reply-To: <20121009173237.7c1a49e9@endymion.delvare>
+Message-ID: <alpine.DEB.2.02.1210091737450.1971@hadrien>
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <20121009173237.7c1a49e9@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201210230840.04382.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 23, 2012 at 08:40:04AM +0200, Hans Verkuil wrote:
-> On Mon October 22 2012 19:01:40 Kirill Smelkov wrote:
-> > On Mon, Oct 22, 2012 at 04:16:14PM +0200, Hans Verkuil wrote:
-> > > On Mon October 22 2012 15:54:44 Kirill Smelkov wrote:
-> > > > I was testing my video-over-ethernet subsystem today, and vivi seemed to
-> > > > be perfect video source for testing when one don't have lots of capture
-> > > > boards and cameras. Only its framerate was hardcoded to NTSC's 30fps,
-> > > > while in my country we usually use PAL (25 fps). That's why the patch.
-> > > > Thanks.
-> > > 
-> > > Rather than introducing a module option, it's much nicer if you can
-> > > implement enum_frameintervals and g/s_parm. This can be made quite flexible
-> > > allowing you to also support 50/59.94/60 fps.
-> > 
-> > Thanks for feedback. I've reworked the patch for FPS to be set via
-> > ->{g,s}_parm(), and yes now it is more flexble, because one can set
-> > different FPS on different vivi devices. Only I don't know V4L2 ioctls
-> > details well enough and various drivers do things differently. The patch
-> > is below. Is it ok?
-> 
-> Close, but it's not quite there.
-> 
-> You should run the v4l2-compliance tool from the v4l-utils.git repository
-> (take the master branch). That will report any errors in your implementation.
-> 
-> In this case g/s_parm doesn't set readbuffers (set it to 1) and if timeperframe
-> equals { 0, 0 }, then you should get a nominal framerate (let's stick to 29.97
-> for that). I would set the nominal framerate whenever the denominator == 0.
-> 
-> For vidioc_enum_frameintervals you need to check the IN fields and fill in the
-> stepwise struct.
+On Tue, 9 Oct 2012, Jean Delvare wrote:
 
-Thanks for pointers and info about v4l2-compliance handy-tool. I've
-tried to correct all the issues you mentioned above and here is the
-patch.
+> Hi Julia,
+>
+> On Sun,  7 Oct 2012 17:38:30 +0200, Julia Lawall wrote:
+> > This patch set introduces some macros for describing how an i2c_msg is
+> > being initialized.  There are three macros: I2C_MSG_READ, for a read
+> > message, I2C_MSG_WRITE, for a write message, and I2C_MSG_OP, for some other
+> > kind of message, which is expected to be very rarely used.
+>
+> "Some other kind of message" is actually messages which need extra
+> flags. They are still read or write messages.
 
-(Only requirement to set stepwise.step to 1.0 for
- V4L2_FRMIVAL_TYPE_CONTINUOUS seems a bit illogical to me, but anyway,
- that's what the V4L2 spec requires...)
+I agree.  We could also have a read with extra options macro and a write
+with extra options macro.  That would give four macros, which is not too
+much more than three.
 
-Thanks,
-Kirill
+> OK, I've read the whole series now and grepped the kernel tree so I
+> have a better overview. There are a lot more occurrences than what you
+> converted. I presume the conversions were just an example and you leave
+> the rest up to the relevant maintainers (e.g. me) if they are
+> interested?
 
----- 8< ----
-From: Kirill Smelkov <kirr@mns.spb.ru>
-Date: Tue, 23 Oct 2012 16:56:59 +0400
-Subject: [PATCH v3] [media] vivi: Teach it to tune FPS
+I would be happy to do the rest, or at least to do more.  I just didn't
+want to do 600+ cases before knowing how others felt about the various
+changes.  Actually, now that we seem to have decided to make fewer changes
+at once, I could probably work more quickly.  So far, I have been
+comparing the results after running cpp, as well as checking that the
+sizeof transformation is correct, which is a bit slow.
 
-I was testing my video-over-ethernet subsystem yesterday, and vivi
-seemed to be perfect video source for testing when one don't have lots
-of capture boards and cameras. Only its framerate was hardcoded to
-NTSC's 30fps, while in my country we usually use PAL (25 fps) and I
-needed that to precisely simulate bandwidth.
+> Given the huge number of affected drivers (a quick grep suggests 230
+> drivers and more than 300 occurrences), we'd better think twice before
+> going on as it will be intrusive and hard to change afterward.
+>
+> So my first question will be: what is your goal with this change? Are
+> you only trying to save a few lines of source code? Or do you expect to
+> actually fix/prevent bugs by introducing these macros? Or something
+> else?
 
-That's why here is this patch with ->enum_frameintervals() and
-->{g,s}_parm() implemented as suggested by Hans Verkuil which passes
-v4l2-compliance and manual testing through v4l2-ctl -P / -p <fps>.
+The main goal just seems to be to provide something that is more readable.
 
-Regarding newly introduced __get_format(u32 pixelformat) I decided not
-to convert original get_format() to operate on fourcc codes, since >= 3
-places in driver need to deal with v4l2_format and otherwise it won't be
-handy.
+> I admit I am not completely convinced by the benefit at the moment. A
+> number of these drivers should be using i2c_smbus_*() functions instead
+> of i2c_transfer() for improved compatibility, or i2c_master_send/recv()
+> for single message transfers (383 occurrences!), so making
+> i2c_transfer() easier to use isn't at the top of my priority list. And
+> I see the extra work for the pre-processor, so we need a good reason
+> for doing that.
 
-Thanks.
+OK, if it doesn't seem like a good idea, it is no problem to drop the idea
+completely.  It does seem a bit nicer to have writing indicated as WRITE
+rather than as 0, but that might not be a big enough benefit to justify
+making changes.
 
-Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
----
- drivers/media/platform/vivi.c | 84 ++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 75 insertions(+), 9 deletions(-)
-
-V3:
-    - corrected issues with V4L2 spec compliance as pointed by Hans
-      Verkuil.
-
-V2:
-
-    - reworked FPS setting from module param to via ->{g,s}_parm() as suggested
-      by Hans Verkuil.
-
-
-diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-index 3e6902a..3adea58 100644
---- a/drivers/media/platform/vivi.c
-+++ b/drivers/media/platform/vivi.c
-@@ -36,10 +36,6 @@
- 
- #define VIVI_MODULE_NAME "vivi"
- 
--/* Wake up at about 30 fps */
--#define WAKE_NUMERATOR 30
--#define WAKE_DENOMINATOR 1001
--
- #define MAX_WIDTH 1920
- #define MAX_HEIGHT 1200
- 
-@@ -69,6 +65,9 @@ MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
- /* Global font descriptor */
- static const u8 *font8x16;
- 
-+/* default to NTSC timeperframe */
-+static const struct v4l2_fract TPF_DEFAULT = {.numerator = 1001, .denominator = 30000};
-+
- #define dprintk(dev, level, fmt, arg...) \
- 	v4l2_dbg(level, debug, &dev->v4l2_dev, fmt, ## arg)
- 
-@@ -150,14 +149,14 @@ static struct vivi_fmt formats[] = {
- 	},
- };
- 
--static struct vivi_fmt *get_format(struct v4l2_format *f)
-+static struct vivi_fmt *__get_format(u32 pixelformat)
- {
- 	struct vivi_fmt *fmt;
- 	unsigned int k;
- 
- 	for (k = 0; k < ARRAY_SIZE(formats); k++) {
- 		fmt = &formats[k];
--		if (fmt->fourcc == f->fmt.pix.pixelformat)
-+		if (fmt->fourcc == pixelformat)
- 			break;
- 	}
- 
-@@ -167,6 +166,11 @@ static struct vivi_fmt *get_format(struct v4l2_format *f)
- 	return &formats[k];
- }
- 
-+static struct vivi_fmt *get_format(struct v4l2_format *f)
-+{
-+	return __get_format(f->fmt.pix.pixelformat);
-+}
-+
- /* buffer for one video frame */
- struct vivi_buffer {
- 	/* common v4l buffer stuff -- must be first */
-@@ -232,6 +236,7 @@ struct vivi_dev {
- 
- 	/* video capture */
- 	struct vivi_fmt            *fmt;
-+	struct v4l2_fract          timeperframe;
- 	unsigned int               width, height;
- 	struct vb2_queue	   vb_vidq;
- 	unsigned int		   field_count;
-@@ -660,8 +665,8 @@ static void vivi_thread_tick(struct vivi_dev *dev)
- 	dprintk(dev, 2, "[%p/%d] done\n", buf, buf->vb.v4l2_buf.index);
- }
- 
--#define frames_to_ms(frames)					\
--	((frames * WAKE_NUMERATOR * 1000) / WAKE_DENOMINATOR)
-+#define frames_to_ms(dev, frames)				\
-+	((frames * dev->timeperframe.numerator * 1000) / dev->timeperframe.denominator)
- 
- static void vivi_sleep(struct vivi_dev *dev)
- {
-@@ -677,7 +682,7 @@ static void vivi_sleep(struct vivi_dev *dev)
- 		goto stop_task;
- 
- 	/* Calculate time to wake up */
--	timeout = msecs_to_jiffies(frames_to_ms(1));
-+	timeout = msecs_to_jiffies(frames_to_ms(dev, 1));
- 
- 	vivi_thread_tick(dev);
- 
-@@ -1049,6 +1054,63 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
- 	return 0;
- }
- 
-+/* timeperframe is arbitrary and continous */
-+static int vidioc_enum_frameintervals(struct file *file, void *priv,
-+					     struct v4l2_frmivalenum *fival)
-+{
-+	struct vivi_fmt *fmt;
-+
-+	if (fival->index)
-+		return -EINVAL;
-+
-+	fmt = __get_format(fival->pixel_format);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	/* regarding width width & height - we support any */
-+
-+	fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
-+
-+	/* fill in stepwise as required by V4L2 spec, i.e.
-+	 *
-+	 * min <= (step = 1.0) <= max
-+	 */
-+	fival->stepwise.step = (struct v4l2_fract) {1, 1};
-+	fival->stepwise.min  = (struct v4l2_fract) {1, 1};
-+	fival->stepwise.max  = (struct v4l2_fract) {2, 1};
-+
-+	return 0;
-+}
-+
-+static int vidioc_g_parm(struct file *file, void *priv, struct v4l2_streamparm *parm)
-+{
-+	struct vivi_dev *dev = video_drvdata(file);
-+
-+	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	parm->parm.capture.capability   = V4L2_CAP_TIMEPERFRAME;
-+	parm->parm.capture.timeperframe = dev->timeperframe;
-+	parm->parm.capture.readbuffers  = 1;
-+	return 0;
-+}
-+
-+static int vidioc_s_parm(struct file *file, void *priv, struct v4l2_streamparm *parm)
-+{
-+	struct vivi_dev *dev = video_drvdata(file);
-+
-+	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	dev->timeperframe = parm->parm.capture.timeperframe.denominator ?
-+		parm->parm.capture.timeperframe :
-+		TPF_DEFAULT;	/* {*, 0} resets timing */
-+
-+	parm->parm.capture.timeperframe = dev->timeperframe;
-+	parm->parm.capture.readbuffers  = 1;
-+	return 0;
-+}
-+
- /* --- controls ---------------------------------------------- */
- 
- static int vivi_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
-@@ -1207,6 +1269,9 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
- 	.vidioc_enum_input    = vidioc_enum_input,
- 	.vidioc_g_input       = vidioc_g_input,
- 	.vidioc_s_input       = vidioc_s_input,
-+	.vidioc_enum_frameintervals = vidioc_enum_frameintervals,
-+	.vidioc_g_parm        = vidioc_g_parm,
-+	.vidioc_s_parm        = vidioc_s_parm,
- 	.vidioc_streamon      = vb2_ioctl_streamon,
- 	.vidioc_streamoff     = vb2_ioctl_streamoff,
- 	.vidioc_log_status    = v4l2_ctrl_log_status,
-@@ -1265,6 +1330,7 @@ static int __init vivi_create_instance(int inst)
- 		goto free_dev;
- 
- 	dev->fmt = &formats[0];
-+	dev->timeperframe = TPF_DEFAULT;
- 	dev->width = 640;
- 	dev->height = 480;
- 	dev->pixelsize = dev->fmt->depth / 8;
--- 
-1.8.0.rc3.331.g5b9a629
-
+julia
