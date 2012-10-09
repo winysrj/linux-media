@@ -1,43 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54177 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751056Ab2JMLOU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Oct 2012 07:14:20 -0400
-Date: Sat, 13 Oct 2012 14:14:15 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	tony@atomide.com, khilman@deeprootsystems.com
-Subject: Re: [PATCH v4 3/3] omap3isp: Configure CSI-2 phy based on platform
- data
-Message-ID: <20121013111415.GU14107@valkosipuli.retiisi.org.uk>
-References: <20121010200115.GO14107@valkosipuli.retiisi.org.uk>
- <1349899302-9041-3-git-send-email-sakari.ailus@iki.fi>
- <2856409.8kZuhLNs9q@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2856409.8kZuhLNs9q@avalon>
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:24610 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754423Ab2JIMas (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 08:30:48 -0400
+Date: Tue, 9 Oct 2012 14:30:35 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Michael Krufky <mkrufky@linuxtv.org>,
+	kernel-janitors@vger.kernel.org, rmallon@gmail.com,
+	shubhrajyoti@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/13] drivers/media/tuners/mxl5007t.c: use macros for
+ i2c_msg initialization
+Message-ID: <20121009143035.557951bb@endymion.delvare>
+In-Reply-To: <1349624323-15584-4-git-send-email-Julia.Lawall@lip6.fr>
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
+	<1349624323-15584-4-git-send-email-Julia.Lawall@lip6.fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 11, 2012 at 01:34:30AM +0200, Laurent Pinchart wrote:
-> On Wednesday 10 October 2012 23:01:42 Sakari Ailus wrote:
-> > Configure CSI-2 phy based on platform data in the ISP driver. For that, the
-> > new V4L2_CID_IMAGE_SOURCE_PIXEL_RATE control is used. Previously the same
-> > was configured from the board code.
-> > 
-> > This patch is dependent on "omap3: Provide means for changing CSI2 PHY
-> > configuration".
+Hi Julia,
+
+On Sun,  7 Oct 2012 17:38:33 +0200, Julia Lawall wrote:
+> From: Julia Lawall <Julia.Lawall@lip6.fr>
 > 
-> Is it still ?
+> Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
 
-Not anymore. It depends on the previous patch (used to be for linux-omap
-instead) so I'll remove that statement.
+Next time you send this patch set, please Cc me on every post so that I
+don't have to hunt for them on lkml.org.
 
-Regards,
+> In each case, a length expressed as an explicit constant is also
+> re-expressed as the size of the buffer, when this is possible.
 
+This is conceptually wrong, please don't do that. It is perfectly valid
+to use a buffer which is larger than the message being written or read.
+When exchanging multiple messages, it is actually quite common to
+declare only 2 buffers and reuse them:
+
+	char reg;
+	char val[2];
+
+	struct i2c_msg msg[2] = {
+		{ .addr = addr, .flags = 0, .buf = &reg, .len = 1 },
+		{ .addr = addr, .flags = I2C_M_RD, .buf = val, .len = 1 },
+	};
+
+	reg = 0x04;
+	i2c_transfer(i2c_adap, msg, 2);
+	/* Do stuff with val */
+
+	reg = 0x06;
+	msg[1].len = 2;
+	i2c_transfer(i2c_adap, msg, 2);
+	/* Do stuff with val */
+
+Your conversion would read 2 bytes from register 0x04 instead of 1 in
+the example above.
+
+I am not opposed to the idea of i2c_msg initialization helper macros,
+but please don't mix that with actual code changes which could have bad
+side effects.
+
+Thanks,
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Jean Delvare
