@@ -1,64 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ye0-f174.google.com ([209.85.213.174]:40896 "EHLO
-	mail-ye0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757479Ab2JWT6v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 15:58:51 -0400
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-Cc: Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Mike Isely <isely@pobox.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 07/23] hdpvr: Replace memcpy with struct assignment
-Date: Tue, 23 Oct 2012 16:57:10 -0300
-Message-Id: <1351022246-8201-7-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
-References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:16172 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752089Ab2JIPdH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 11:33:07 -0400
+Date: Tue, 9 Oct 2012 17:32:37 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>, ben-linux@fluff.org,
+	w.sang@pengutronix.de, linux-i2c@vger.kernel.org,
+	kernel-janitors@vger.kernel.org, rmallon@gmail.com,
+	shubhrajyoti@ti.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 0/11] introduce macros for i2c_msg initialization
+Message-ID: <20121009173237.7c1a49e9@endymion.delvare>
+In-Reply-To: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This kind of memcpy() is error-prone. Its replacement with a struct
-assignment is prefered because it's type-safe and much easier to read.
+Hi Julia,
 
-Found by coccinelle. Hand patched and reviewed.
-Tested by compilation only.
+On Sun,  7 Oct 2012 17:38:30 +0200, Julia Lawall wrote:
+> This patch set introduces some macros for describing how an i2c_msg is
+> being initialized.  There are three macros: I2C_MSG_READ, for a read
+> message, I2C_MSG_WRITE, for a write message, and I2C_MSG_OP, for some other
+> kind of message, which is expected to be very rarely used.
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
+"Some other kind of message" is actually messages which need extra
+flags. They are still read or write messages.
 
-// <smpl>
-@@
-identifier struct_name;
-struct struct_name to;
-struct struct_name from;
-expression E;
-@@
--memcpy(&(to), &(from), E);
-+to = from;
-// </smpl>
+OK, I've read the whole series now and grepped the kernel tree so I
+have a better overview. There are a lot more occurrences than what you
+converted. I presume the conversions were just an example and you leave
+the rest up to the relevant maintainers (e.g. me) if they are
+interested?
 
-Cc: Mike Isely <isely@pobox.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/usb/hdpvr/hdpvr-i2c.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+Given the huge number of affected drivers (a quick grep suggests 230
+drivers and more than 300 occurrences), we'd better think twice before
+going on as it will be intrusive and hard to change afterward.
 
-diff --git a/drivers/media/usb/hdpvr/hdpvr-i2c.c b/drivers/media/usb/hdpvr/hdpvr-i2c.c
-index 82e819f..2df60bf 100644
---- a/drivers/media/usb/hdpvr/hdpvr-i2c.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-i2c.c
-@@ -217,8 +217,7 @@ int hdpvr_register_i2c_adapter(struct hdpvr_device *dev)
- 
- 	hdpvr_activate_ir(dev);
- 
--	memcpy(&dev->i2c_adapter, &hdpvr_i2c_adapter_template,
--	       sizeof(struct i2c_adapter));
-+	dev->i2c_adapter = hdpvr_i2c_adapter_template;
- 	dev->i2c_adapter.dev.parent = &dev->udev->dev;
- 
- 	i2c_set_adapdata(&dev->i2c_adapter, dev);
+So my first question will be: what is your goal with this change? Are
+you only trying to save a few lines of source code? Or do you expect to
+actually fix/prevent bugs by introducing these macros? Or something
+else?
+
+I admit I am not completely convinced by the benefit at the moment. A
+number of these drivers should be using i2c_smbus_*() functions instead
+of i2c_transfer() for improved compatibility, or i2c_master_send/recv()
+for single message transfers (383 occurrences!), so making
+i2c_transfer() easier to use isn't at the top of my priority list. And
+I see the extra work for the pre-processor, so we need a good reason
+for doing that.
+
 -- 
-1.7.4.4
-
+Jean Delvare
