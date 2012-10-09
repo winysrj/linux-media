@@ -1,77 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:55346 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756651Ab2JTT7z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Oct 2012 15:59:55 -0400
-Date: Sat, 20 Oct 2012 21:59:51 +0200
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	Rob Herring <robherring2@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2 v6] of: add helper to parse display timings
-Message-ID: <20121020195950.GA13902@avionic-0098.mockup.avionic-design.de>
-References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
- <1349373560-11128-2-git-send-email-s.trumtrar@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9amGYk9869ThD9tj"
-Content-Disposition: inline
-In-Reply-To: <1349373560-11128-2-git-send-email-s.trumtrar@pengutronix.de>
+Received: from mx1.redhat.com ([209.132.183.28]:59438 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754356Ab2JIWZn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Oct 2012 18:25:43 -0400
+Date: Tue, 9 Oct 2012 19:25:40 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] [for 3.7] stk1160: Add support for S-Video input
+Message-ID: <20121009192540.61875a29@redhat.com>
+In-Reply-To: <1349820063-21955-1-git-send-email-elezegarcia@gmail.com>
+References: <1349820063-21955-1-git-send-email-elezegarcia@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Tue,  9 Oct 2012 19:01:03 -0300
+Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
 
---9amGYk9869ThD9tj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Oct 04, 2012 at 07:59:19PM +0200, Steffen Trumtrar wrote:
-[...]
-> diff --git a/include/linux/of_display_timings.h b/include/linux/of_display_timings.h
-[...]
-> +struct display_timings {
-> +	unsigned int num_timings;
-> +	unsigned int default_timing;
+> In order to fully replace easycap driver with stk1160,
+> it's also necessary to add S-Video support.
+> 
+> A similar patch backported for v3.2 kernel has been
+> tested by three different users.
+> 
+> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+> ---
+> Hi Mauro,
+> 
+> I'm sending this for inclusion in v3.7 second media pull request.
+> I realize it's very late, so I understand if you don't
+> want to pick it.
+> 
+>  drivers/media/usb/stk1160/stk1160-core.c |   15 +++++++++++----
+>  drivers/media/usb/stk1160/stk1160-v4l.c  |    7 ++++++-
+>  drivers/media/usb/stk1160/stk1160.h      |    3 ++-
+>  3 files changed, 19 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/usb/stk1160/stk1160-core.c
+> index b627408..34a26e0 100644
+> --- a/drivers/media/usb/stk1160/stk1160-core.c
+> +++ b/drivers/media/usb/stk1160/stk1160-core.c
+> @@ -100,12 +100,21 @@ int stk1160_write_reg(struct stk1160 *dev, u16 reg, u16 value)
+>  
+>  void stk1160_select_input(struct stk1160 *dev)
+>  {
+> +	int route;
+>  	static const u8 gctrl[] = {
+> -		0x98, 0x90, 0x88, 0x80
+> +		0x98, 0x90, 0x88, 0x80, 0x98
+>  	};
+>  
+> -	if (dev->ctl_input < ARRAY_SIZE(gctrl))
+> +	if (dev->ctl_input == STK1160_SVIDEO_INPUT)
+> +		route = SAA7115_SVIDEO3;
+> +	else
+> +		route = SAA7115_COMPOSITE0;
 > +
-> +	struct signal_timing **timings;
-> +};
+> +	if (dev->ctl_input < ARRAY_SIZE(gctrl)) {
+> +		v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
+> +				route, 0, 0);
+>  		stk1160_write_reg(dev, STK1160_GCTRL, gctrl[dev->ctl_input]);
+> +	}
+>  }
+>  
+>  /* TODO: We should break this into pieces */
+> @@ -351,8 +360,6 @@ static int stk1160_probe(struct usb_interface *interface,
+>  
+>  	/* i2c reset saa711x */
+>  	v4l2_device_call_all(&dev->v4l2_dev, 0, core, reset, 0);
+> -	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
+> -				0, 0, 0);
+>  	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_stream, 0);
+>  
+>  	/* reset stk1160 to default values */
+> diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
+> index fe6e857..6694f9e 100644
+> --- a/drivers/media/usb/stk1160/stk1160-v4l.c
+> +++ b/drivers/media/usb/stk1160/stk1160-v4l.c
+> @@ -419,7 +419,12 @@ static int vidioc_enum_input(struct file *file, void *priv,
+>  	if (i->index > STK1160_MAX_INPUT)
+>  		return -EINVAL;
+>  
+> -	sprintf(i->name, "Composite%d", i->index);
+> +	/* S-Video special handling */
+> +	if (i->index == STK1160_SVIDEO_INPUT)
+> +		sprintf(i->name, "S-Video");
+> +	else
+> +		sprintf(i->name, "Composite%d", i->index);
 > +
-> +struct timing_entry {
-> +	u32 min;
-> +	u32 typ;
-> +	u32 max;
-> +};
-> +
-> +struct signal_timing {
 
-I'm slightly confused by the naming here. signal_timing seems overly
-generic in this context. Is there any reason why this isn't called
-display_timing or even display_mode?
+Had you ever test this patch with the v4l2-compliance tool?
 
+It seems broken to me: this driver has just two inputs. So, it should return
+-EINVAL for all inputs after that, or otherwise userspace applications that
+query the inputs will loop forever!
 
---9amGYk9869ThD9tj
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQgwK2AAoJEN0jrNd/PrOh32YQAKjuEVeFaD/3jmolgP/AGhLt
-cK7cj0+eUX+fnExGUSQpGwkk+bzLVlAq84u+AeMzrEEIm5+2hsgZ344AWW0MAPDt
-WkyPdDXAvtHCmGen+65xYeez3edgSTGQ3nS3yajtDzGmfhyRqgqdWrqdqM68EcqM
-WO6ioWVcXpGoXd5Uju237Ngpjz6iMEHttgBgB6PJ07bt9IIDaWc/+Fbz6jeHurXV
-Te9aIZg9SuFAcxqqVzFlQJlfyE0rl7Ykk5bP1HogLv4mE5ktEYQOW2PIDZWXj5jM
-Q7hBuLkvhXsqhwZL5q8Ul7Rsn6gSqT9PSC5st6xVP/wxTQ5dQwyxyneZlQZrNFbs
-P5+w7nPU7/rLOnzfoniYj7H4dT9FPMPmjrKdPKFxjKRojZzXi55IhPI2APeOxMFG
-qAj0I7izoN+uk6H7c8oW1Oj3x4lqru1oUzScZEpjNbRHPearE8oao58//Y8ftJaK
-dTlQUtfame9oTxWlooGzxDAHs0XD0fXf6vgKV74TPlYLQtc2Xw5FjYDYigBcyd8F
-yDbjDNWrU3JV8quZLnk02SQCnScV1Izab4qmmBCQwVOmqVpvPlfW6HGb6ewEPvII
-g3XlFr0Ic5gQ+SuYetKlz2pg+Ed/09wvtVLNeqLhdVZe97T1jj8hzwXTcjTKKwW5
-eyP/5vVD4iucOvXEP7y9
-=hrqF
------END PGP SIGNATURE-----
-
---9amGYk9869ThD9tj--
+Regards,
+Mauro
