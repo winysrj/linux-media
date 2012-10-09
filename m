@@ -1,38 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50616 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:45283 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750753Ab2JEWoT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Oct 2012 18:44:19 -0400
-Message-ID: <506F62AB.1040108@iki.fi>
-Date: Sat, 06 Oct 2012 01:43:55 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Gianluca Gennari <gennarone@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: em28xx #0: submit of audio urb failed
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1754217Ab2JIWVX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 18:21:23 -0400
+Date: Tue, 9 Oct 2012 19:21:20 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PULL for 3.7-rc1] media updates - part 1
+Message-ID: <20121009192120.3d071497@redhat.com>
+In-Reply-To: <CALF0-+XQW1RrHQN4=5fzLLsdJESrLnhSwW3yD9rK+huP5dUOqQ@mail.gmail.com>
+References: <20121005104259.03c94150@redhat.com>
+	<CALF0-+XQW1RrHQN4=5fzLLsdJESrLnhSwW3yD9rK+huP5dUOqQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That one is the other bug what I see when I plug em28xx device with 
-analog support. After that error is seen it is not possible to unload 
-modules until device is removed physically. I am quite sure that error 
-hasn't been there very long.
+Em Tue, 9 Oct 2012 14:43:46 -0300
+Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
 
-Before that error happens there is other bug - it mutes whole computer 
-volume for a while. I asked that earlier too on IRC and it was said that 
-it is likely ALSA bug. So it could not be fixed. But how about adding 
-some option for dropping whole ALSA module as it is not even needed in 
-many cases?
+> On Fri, Oct 5, 2012 at 10:42 AM, Mauro Carvalho Chehab
+...
+> > Ezequiel García (13):
+> >       [media] em28xx: Remove useless runtime->private_data usage
+> >       [media] media: Add stk1160 new driver (easycap replacement)
+> >       [media] staging: media: Remove easycap driver
+> 
+> Hi Mauro,
+> 
+> We've replaced easycap staging driver with stk1160.
+> However, stk1160 still misses s-video input support, which I believe
+> easycap had.
+> 
+> This feature was missing because I couldn't get s-video devices to test with,
+> but now a couple users have provided the test and the patch is ready.
+> It's a tiny patch routing saa7115 properly.
 
-The continuous crashes, when plug / unplug, I reported earlier are now 
-gone. Those disappeared when DRX-K asynchronous firmware loading was 
-removed. I suspect it was a DRX-K bug.
+Ok. Let's add it them.
 
-regards
-Antti
+> I think we should include this feature in v3.7 to complete easycap ->
+> stk1160 replacement.
 
--- 
-http://palosaari.fi/
+Yes, that's make sense for me. As easycap is a new driver, there's no
+regression on adding a patch like that, even after the merge window,
+especially since input selection is typically a trivial change that
+won't cause bad effects.
+
+Please send the patch. I'll likely submit it upstream by next week,
+after giving some time for people to test it via the media tree.
+
+> Also, it seems to me there's no point in keeping the driver until v3.8,
+> since there aren't much users out there testing it.
+> 
+> On the other side, I don't want to mess with the flow, so it's
+> completely up to you.
+> If you think it's okey, then I can send the patch tonight and
+> hopefully you can pick
+> it for your second pull request.
+> 
+> Please let me know.
+> 
+>     Ezequiel
+
+Regards,
+Mauro
