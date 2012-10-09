@@ -1,86 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54622 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750754Ab2JJNZP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 09:25:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Thomas Abraham <thomas.abraham@linaro.org>,
-	Tomasz Figa <t.figa@samsung.com>
-Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
-Date: Wed, 10 Oct 2012 15:25:58 +0200
-Message-ID: <1398413.j3yGqyN4Du@avalon>
-In-Reply-To: <201210091300.24124.hverkuil@xs4all.nl>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <5073FDC8.8090909@samsung.com> <201210091300.24124.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:38399 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752303Ab2JIRKC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 13:10:02 -0400
+Received: from eusync4.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBM00461YDB6PC0@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 09 Oct 2012 18:10:23 +0100 (BST)
+Received: from [106.116.147.32] by eusync4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MBM001ZUYCN6E20@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 09 Oct 2012 18:10:00 +0100 (BST)
+Message-id: <50745A66.1050708@samsung.com>
+Date: Tue, 09 Oct 2012 19:09:58 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Vincent ABRIOU <vincent.abriou@st.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"a.hajda@samsung.com" <a.hajda@samsung.com>,
+	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"sw0312.kim@samsung.com" <sw0312.kim@samsung.com>,
+	Nicolas THERY <nicolas.thery@st.com>,
+	Jean-Marc VOLLE <jean-marc.volle@st.com>,
+	Pierre-yves TALOUD <pierre-yves.taloud@st.com>,
+	Willy POISSON <willy.poisson@st.com>
+Subject: Re: [PATCH RFC 1/5] V4L: Add V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8 media bus
+ format
+References: <1348498546-2652-1-git-send-email-s.nawrocki@samsung.com>
+ <1348498546-2652-2-git-send-email-s.nawrocki@samsung.com>
+ <2823843.qYtB3rcnKu@avalon> <5061C23E.903@samsung.com>
+ <9481210134BDC5419AC503D05B6CA44F34B780C91A@SAFEX1MAIL1.st.com>
+In-reply-to: <9481210134BDC5419AC503D05B6CA44F34B780C91A@SAFEX1MAIL1.st.com>
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Vincent,
 
-On Tuesday 09 October 2012 13:00:24 Hans Verkuil wrote:
-> On Tue 9 October 2012 12:34:48 Sylwester Nawrocki wrote:
-> > On 10/08/2012 11:40 AM, Guennadi Liakhovetski wrote:
-> > > On Fri, 5 Oct 2012, Sylwester Nawrocki wrote:
-> > >> I would really like to see more than one user until we add any core
-> > >> code. No that it couldn't be changed afterwards, but it would be nice
-> > >> to ensure the concepts are right and proven in real life.
-> > > 
-> > > Unfortunately I don't have any more systems on which I could easily
-> > > enough try this. I've got a beagleboard with a camera, but I don't think
-> > > I'm a particularly good candidate for implementing DT support for OMAP3
-> > > camera drivers;-) Apart from that I've only got soc-camera based
-> > > systems, of which none are _really_ DT-ready... At best I could try an
-> > > i.MX31 based board, but that doesn't have a very well developed .dts and
-> > > that would be soc-camera too anyway.
-> > 
-> > I certainly wouldn't expect you would do all the job. I mean it would be
-> > good to possibly have some other developers adding device tree support
-> > based on that new bindings and new infrastructure related to them.
+On 10/09/2012 03:36 PM, Vincent ABRIOU wrote:
+> Hi Sylwester,
+> 
+> I'm wondering why don't you simply define V4L2_MBUS_FMT_UYVY_JPEG_1X8
+> without any reference to your camera?
 
-As I mentioned in another e-mail, I plan to work on DT support for the OMAP3 
-ISP, but I first need generic clock framework support for OMAP3.
+Because it's not a plain UYVY/JPEG data. There is an additional meta-data
+that follows interleaved UYVY/JPEG. It's all on a single User Defined 
+MIPI CSI-2 DT. In addition to that there is some more meta data transmitted 
+on MIPI CSI-2 Embedded Data DT. If there was no meta-data present at the
+User Defined DT, then we could think about using generic 
+V4L2_MBUS_FMT_UYVY_JPEG_1X8 pixel code and handling the meta-data on 
+separate DT with the frame_desc calls.
 
-> > There have been recently some progress in device tree support for Exynos
-> > SoCs, including common clock framework support and we hope to add FDT
-> > support to the Samsung SoC camera devices during this kernel cycle, based
-> > on the newly designed media bindings. This is going to be a second
-> > attempt, after our initial RFC from May [1]. It would still be SoC
-> > specific implementation, but not soc-camera based.
-> > 
-> > I wasn't a big fan of this asynchronous sub-devices probing, but it now
-> > seems to be a most complete solution to me. I think it just need to be
-> > done right at the v4l2-core so individual drivers don't get complicated
-> > too much.
->
-> After investigating this some more I think I agree with that. There are some
-> things where we should probably ask for advice from the i2c subsystem devs,
-> I'm thinking of putting the driver back into the deferred-probe state in
-> particular.
+Anyway this S5C media bus format is an experimental thing and if there are
+cameras generating plain JPEG/YUV we need to search for better, more generic
+solution.
 
-We might actually not need that, it might be easier to handle the circular 
-dependency problem from the other end. We could add a way (ioctl, sysfs, ...) 
-to force a V4L2 bridge driver to release its subdevs. Once done, the subdev 
-driver could be unloaded and/or the subdev device unregistered, which would 
-release the resources used by the subdev, such as clocks. The bridge driver 
-could then be unregistered.
+> Indeed, many other cameras could support Jpeg interleaved with YUV and it will
+> avoid to define a new media bus type for every cameras integrated under V4L2
+> supporting JPEG/YUV interleaving feature.
 
-> Creating v4l2-core support for this is crucial as it is quite complex and
-> without core support this is going to be a nightmare for drivers.
+Yes, we also need some interface to configure both streams, e.g. image
+resolutions independently. Still having separate pixel codes for pairs of
+JPEG and something else seems not optimal. Nevertheless I can't think of
+any better solution right now, so applications are able to configure
+selected format at a camera subdev.
 
--- 
+I'm also wondering what are the interleaving methods in case of various
+cameras. Even though they interleave same 2 standard formats, the way how
+the interleaving happens could differ, couldn't it ? Such information
+probably cannot be easily contained in the meta-data, unless there is some
+standard (header) format for it. 
+
+> Thank you for your feedback.
+> 
+> Regards,
+> --
+> Vincent Abriou
+
+--
+
 Regards,
-
-Laurent Pinchart
-
+Sylwester
