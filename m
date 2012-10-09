@@ -1,125 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55653 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751743Ab2JEV7Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Oct 2012 17:59:25 -0400
-Message-ID: <506F4E1D.3060106@iki.fi>
-Date: Sat, 06 Oct 2012 00:16:13 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52744 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753386Ab2JIWdp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Oct 2012 18:33:45 -0400
+Date: Wed, 10 Oct 2012 01:33:40 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: paul@pwsan.com, laurent.pinchart@ideasonboard.com,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH v2 1/2] omap3: Provide means for changing CSI2 PHY
+ configuration
+Message-ID: <20121009223340.GM14107@valkosipuli.retiisi.org.uk>
+References: <20120926215001.GA14107@valkosipuli.retiisi.org.uk>
+ <1348696236-3470-1-git-send-email-sakari.ailus@iki.fi>
+ <87zk3vz7yb.fsf@deeprootsystems.com>
 MIME-Version: 1.0
-To: Michael Krufky <mkrufky@linuxtv.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] mxl111sf: revert patch: fix error on stream stop in mxl111sf_ep6_streaming_ctrl()
-References: <1349469857-21396-1-git-send-email-crope@iki.fi> <CAOcJUby_4x_bqOE_YGLPQR7FfDXGidt+r-QVqKe14eAypzcGuQ@mail.gmail.com> <506F4915.1090908@iki.fi> <CAOcJUbxK-JpUk2UNE39qGhaEG2xvDpRy=T5zp=cT=D71rZUHmQ@mail.gmail.com>
-In-Reply-To: <CAOcJUbxK-JpUk2UNE39qGhaEG2xvDpRy=T5zp=cT=D71rZUHmQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <87zk3vz7yb.fsf@deeprootsystems.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/05/2012 11:58 PM, Michael Krufky wrote:
-> On Fri, Oct 5, 2012 at 4:54 PM, Antti Palosaari <crope@iki.fi> wrote:
->> On 10/05/2012 11:49 PM, Michael Krufky wrote:
->>>
->>> On Fri, Oct 5, 2012 at 4:44 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>>
->>>> This reverts commits:
->>>> 3fd7e4341e04f80e2605f56bbd8cb1e8b027901a
->>>> [media] mxl111sf: remove an unused variable
->>>> 3be5bb71fbf18f83cb88b54a62a78e03e5a4f30a
->>>> [media] mxl111sf: fix error on stream stop in
->>>> mxl111sf_ep6_streaming_ctrl()
->>>>
->>>> ...as bug behind these is fixed by the DVB USB v2.
->>>>
->>>> Cc: Michael Krufky <mkrufky@linuxtv.org>
->>>> Signed-off-by: Antti Palosaari <crope@iki.fi>
->>>> ---
->>>>    drivers/media/usb/dvb-usb-v2/mxl111sf.c | 7 +++++--
->>>>    1 file changed, 5 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
->>>> b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
->>>> index efdcb15..fcfe124 100644
->>>> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
->>>> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
->>>> @@ -343,6 +343,7 @@ static int mxl111sf_ep6_streaming_ctrl(struct
->>>> dvb_frontend *fe, int onoff)
->>>>           struct mxl111sf_state *state = fe_to_priv(fe);
->>>>           struct mxl111sf_adap_state *adap_state =
->>>> &state->adap_state[fe->id];
->>>>           int ret = 0;
->>>> +       u8 tmp;
->>>>
->>>>           deb_info("%s(%d)\n", __func__, onoff);
->>>>
->>>> @@ -353,13 +354,15 @@ static int mxl111sf_ep6_streaming_ctrl(struct
->>>> dvb_frontend *fe, int onoff)
->>>>
->>>> adap_state->ep6_clockphase,
->>>>                                                 0, 0);
->>>>                   mxl_fail(ret);
->>>> -#if 0
->>>>           } else {
->>>>                   ret = mxl111sf_disable_656_port(state);
->>>>                   mxl_fail(ret);
->>>> -#endif
->>>>           }
->>>>
->>>> +       mxl111sf_read_reg(state, 0x12, &tmp);
->>>> +       tmp &= ~0x04;
->>>> +       mxl111sf_write_reg(state, 0x12, tmp);
->>>> +
->>>>           return ret;
->>>>    }
->>>>
->>>
->>>
->>> I disabled that code on purpose - its redundant.  please do not apply
->>> this patch.
->>
->>
->> According to comments you have added patch changelog you disabled it doe to
->> that bug:
->>
->>
->> [media] mxl111sf: fix error on stream stop in mxl111sf_ep6_streaming_ctrl()
->>
->> Remove unnecessary register access in mxl111sf_ep6_streaming_ctrl()
->>
->> This code breaks driver operation in kernel 3.3 and later, although
->> it works properly in 3.2  Disable register access to 0x12 for now.
->>
->>
->>
->> are you saying there is some other reason than mentioned here? I am quite
->> 100% sure I fixed that bug in dvb-usb.
->>
->> regards
->> Antti
->> --
->> http://palosaari.fi/
->
-> Yup... there is indeed another reason.  However, if you want to push a
-> new patch that just removes the #if 0's, that would be fine.  Please
-> test first, of course.
->
-> Just a warning, MH support is broken now and I haven't yet had a
-> chance to track that down yet...  Luckily, merge window rules dont
-> apply to regressions.  (it worked in 3.5 w/ dvb-usb before the forced
-> change to 'dvb-usb-v2')
->
-> I plan to (hopefully) do a full qual this weekend and hopefully push
-> patches as needed.
+Hi Kevin,
 
-I cannot test it properly with DVB-T as EP6 is not used for DVB-T. Only 
-some stupid "dry rans". Did you saw yourself "dvb-usb: error while 
-stopping stream." ? If yes, then you could likely test it. But in any 
-case, you know what that reg bit is and if it is necessary or not. 
-Likely not important.
+Thanks for the comments!
 
-regards
-Antti
+On Tue, Oct 09, 2012 at 01:50:04PM -0700, Kevin Hilman wrote:
+> Hi Sakari,
+> 
+> Sakari Ailus <sakari.ailus@iki.fi> writes:
+> 
+> > The OMAP 3630 has configuration how the ISP CSI-2 PHY pins are connected to
+> > the actual CSI-2 receivers outside the ISP itself. Allow changing this
+> > configuration from the ISP driver.
+> >
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> These control module registers (CSIRXFE, CAMERA_PHY_CTRL) are in the
+> CORE powerdomain, so they will be lost during off-mode transitions.  So,
+> I suspect you'll also want to add them to the save/restore functions in
+> control.c in order for this to work across off-mode transitions.
+
+I've got another patch that implements this in the ISP driver instead.
+
+<URL:http://www.spinics.net/lists/linux-media/msg54781.html>
+
+The ISP also can't wake up the MPU from the off mode, so I don't think
+losing the register contents is necessarily an issue. The registers will be
+written to a new value whenever streaming is started. Perhaps adding a note
+about that would be worthwhile.
+
+Regards,
 
 -- 
-http://palosaari.fi/
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
