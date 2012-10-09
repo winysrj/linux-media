@@ -1,123 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:51245 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753042Ab2JTMVP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Oct 2012 08:21:15 -0400
-Subject: Re: [Intel-gfx] GPU RC6 breaks PCIe to PCI bridge connected to CPU
- PCIe slot on SandyBridge systems
-From: Andy Walls <awalls@md.metrocast.net>
-To: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-Cc: intel-gfx@lists.freedesktop.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>, bhelgaas@google.com,
-	linux-pci@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@infradead.org
-Date: Sat, 20 Oct 2012 08:20:57 -0400
-In-Reply-To: <2244094.6Dmq15viKH@f17simon>
-References: <1704067.2NCOGYajHN@f17simon> <3896332.1fABn9rFR8@f17simon>
-	 <2233216.7bl6QCud67@f17simon> <2244094.6Dmq15viKH@f17simon>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1350735659.2491.21.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from mail-ia0-f174.google.com ([209.85.210.174]:60028 "EHLO
+	mail-ia0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751075Ab2JIXwH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 19:52:07 -0400
+Received: by mail-ia0-f174.google.com with SMTP id y32so1217189iag.19
+        for <linux-media@vger.kernel.org>; Tue, 09 Oct 2012 16:52:06 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20121009192540.61875a29@redhat.com>
+References: <1349820063-21955-1-git-send-email-elezegarcia@gmail.com>
+	<20121009192540.61875a29@redhat.com>
+Date: Tue, 9 Oct 2012 20:52:06 -0300
+Message-ID: <CALF0-+W-eGegmb2WPozG1qVhm7sa_E-vqZqt4x4veNCnY-BY1Q@mail.gmail.com>
+Subject: Re: [PATCH] [for 3.7] stk1160: Add support for S-Video input
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2012-10-19 at 18:06 +0100, Simon Farnsworth wrote:
-> On Friday 19 October 2012 17:10:17 Simon Farnsworth wrote:
-> > Mauro, Linux-Media
-> > 
-> > I have an issue where an SAA7134-based TV capture card connected via a PCIe to
-> > PCI bridge chip works when the GPU is kept out of RC6 state, but sometimes
-> > "skips" updating lines of the capture when the GPU is in RC6. We've confirmed
-> > that a CX23418 based chip doesn't have the problem, so the question is whether
-> > the SAA7134 and the saa7134 driver are at fault, or whether it's the PCIe bus.
+On Tue, Oct 9, 2012 at 7:25 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em Tue,  9 Oct 2012 19:01:03 -0300
+> Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
+>
+>> In order to fully replace easycap driver with stk1160,
+>> it's also necessary to add S-Video support.
+>>
+>> A similar patch backported for v3.2 kernel has been
+>> tested by three different users.
+>>
+>> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+>> ---
+>> Hi Mauro,
+>>
+>> I'm sending this for inclusion in v3.7 second media pull request.
+>> I realize it's very late, so I understand if you don't
+>> want to pick it.
+>>
+>>  drivers/media/usb/stk1160/stk1160-core.c |   15 +++++++++++----
+>>  drivers/media/usb/stk1160/stk1160-v4l.c  |    7 ++++++-
+>>  drivers/media/usb/stk1160/stk1160.h      |    3 ++-
+>>  3 files changed, 19 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/usb/stk1160/stk1160-core.c
+>> index b627408..34a26e0 100644
+>> --- a/drivers/media/usb/stk1160/stk1160-core.c
+>> +++ b/drivers/media/usb/stk1160/stk1160-core.c
+>> @@ -100,12 +100,21 @@ int stk1160_write_reg(struct stk1160 *dev, u16 reg, u16 value)
+>>
+>>  void stk1160_select_input(struct stk1160 *dev)
+>>  {
+>> +     int route;
+>>       static const u8 gctrl[] = {
+>> -             0x98, 0x90, 0x88, 0x80
+>> +             0x98, 0x90, 0x88, 0x80, 0x98
+>>       };
+>>
+>> -     if (dev->ctl_input < ARRAY_SIZE(gctrl))
+>> +     if (dev->ctl_input == STK1160_SVIDEO_INPUT)
+>> +             route = SAA7115_SVIDEO3;
+>> +     else
+>> +             route = SAA7115_COMPOSITE0;
+>> +
+>> +     if (dev->ctl_input < ARRAY_SIZE(gctrl)) {
+>> +             v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
+>> +                             route, 0, 0);
+>>               stk1160_write_reg(dev, STK1160_GCTRL, gctrl[dev->ctl_input]);
+>> +     }
+>>  }
+>>
+>>  /* TODO: We should break this into pieces */
+>> @@ -351,8 +360,6 @@ static int stk1160_probe(struct usb_interface *interface,
+>>
+>>       /* i2c reset saa711x */
+>>       v4l2_device_call_all(&dev->v4l2_dev, 0, core, reset, 0);
+>> -     v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
+>> -                             0, 0, 0);
+>>       v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_stream, 0);
+>>
+>>       /* reset stk1160 to default values */
+>> diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
+>> index fe6e857..6694f9e 100644
+>> --- a/drivers/media/usb/stk1160/stk1160-v4l.c
+>> +++ b/drivers/media/usb/stk1160/stk1160-v4l.c
+>> @@ -419,7 +419,12 @@ static int vidioc_enum_input(struct file *file, void *priv,
+>>       if (i->index > STK1160_MAX_INPUT)
+>>               return -EINVAL;
+>>
 
-My money's on the saa7134 driver's irq_handler or the driver's locking
-scheme to protect data accessed by both irq handler and userspace file
-operations (aka videobuf's locking) in the driver.
+Look here... I'm returning EINVAL after  STK1160_MAX_INPUT.
+(see below)
 
-It could also be a system level problem with another driver's irq
-handler being stupid.
+>> -     sprintf(i->name, "Composite%d", i->index);
+>> +     /* S-Video special handling */
+>> +     if (i->index == STK1160_SVIDEO_INPUT)
+>> +             sprintf(i->name, "S-Video");
+>> +     else
+>> +             sprintf(i->name, "Composite%d", i->index);
+>> +
+>
+> Had you ever test this patch with the v4l2-compliance tool?
+>
+> It seems broken to me: this driver has just two inputs. So, it should return
+> -EINVAL for all inputs after that, or otherwise userspace applications that
+> query the inputs will loop forever!
+>
 
-> > This manifests as a regression, as I had no problems with kernel 3.3 (which
-> > never enabled RC6 on the Intel GPU), but I do have problems with 3.5 and with
-> > current Linus git master. I'm happy to try anything, 
+Actually the driver has five inputs, since there are two kinds of devices:
+one with four composites, and another with one composite and one s-video.
+So, I simply support all of them, since there's no way to distinguish.
 
-Profile the saa7134 driver in operation:
+I just tested this patch with v4l2-compliance and with qv4l2 and there
+are no regressions.
 
-http://www.spinics.net/lists/linux-media/msg15762.html
+Unless I'm missing something, I think the patch is OK.
+Let me know if you want me to change something.
 
-That will give you and driver writers a clue as to where any big delays
-are hapeening in the saa7134 driver.
-
-Odds are the processor slowing down to a lower power/lower speed state
-is exposing inefficiencies in the irq handling of the saa7134 driver.
-
-
- 
-> > I've attached lspci -vvxxxxx output (suitable for feeding to lspci -F) for
-> > when the corruption is present (lspci.faulty) and when it's not
-> > (lspci.working). 
-
-Doing a diff between the two files and checking what devices have
-changed registers I noted that only 3 devices' PCI config space
-registers changed: 00:01.0 and 00:1c.1 (both PCIe ports/bridges) and
-00:1a.0. 
-
-$ lspci -F lspci.working -tv
--[0000:00]-+-00.0  Intel Corporation 2nd Generation Core Processor Family DRAM Controller
-           +-01.0-[01-02]----00.0-[02]----08.0  Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder
-           +-02.0  Intel Corporation 2nd Generation Core Processor Family Integrated Graphics Controller
-           +-16.0  Intel Corporation 6 Series/C200 Series Chipset Family MEI Controller #1
-           +-19.0  Intel Corporation 82579V Gigabit Network Connection
-           +-1a.0  Intel Corporation 6 Series/C200 Series Chipset Family USB Enhanced Host Controller #2
-           +-1b.0  Intel Corporation 6 Series/C200 Series Chipset Family High Definition Audio Controller
-           +-1c.0-[03]--
-           +-1c.1-[04]----00.0  NEC Corporation uPD720200 USB 3.0 Host Controller
-           +-1d.0  Intel Corporation 6 Series/C200 Series Chipset Family USB Enhanced Host Controller #1
-           +-1f.0  Intel Corporation H67 Express Chipset Family LPC Controller
-           +-1f.2  Intel Corporation 6 Series/C200 Series Chipset Family 6 port SATA AHCI Controller
-           \-1f.3  Intel Corporation 6 Series/C200 Series Chipset Family SMBus Controller
-
-Obviously the changes to the bridge at 00:01.0 might matter, but I would
-need to dig up the data sheet for the "00:01.0 PCI bridge [0604]: Intel
-Corporation Xeon E3-1200/2nd Generation Core Processor Family PCI
-Express Root Port [8086:0101] (rev 09) (prog-if 00 [Normal decode])" to
-see if it really mattered.
-
-
-> The speculation is that the SAA7134 is somehow more
-> > sensitive to the changes in timings that RC6 introduces than the CX23418, and
-> > that someone who understands the saa7134 driver might be able to make it less
-> > sensitive.
-
-I heavily optimized the cx18 driver for the high throughput use case
-(mutliple cards running multiple data streams), which meant squeezing
-every little bit of useless junk out of the irq handler and adding
-highly granular buffer queue locking between the irq handling and the
-userspace file operations calls.  Also the CX23418 firmware has a "best
-effort" buffer notification handshake and the cx18 driver does some
-extra recovery processing to handle when it is late on handling buffer
-notifications.  All that optimzation and robustness coding took me a few
-months to get right.
-
-I don't see that sort of optimization of the saa7134 driver coming
-anytime soon.
-
-Regards,
-Andy
-
-> And timings are definitely the problem; I have a userspace provided pm_qos
-> request asking for 0 exit latency, but I can see CPU cores entering C6. I'll
-> take this problem to an appropriate list.
-> 
-> There is still be a bug in the SAA7134 driver, as the card clearly wants a
-> pm_qos request when streaming to stop the DMA latency becoming too high; this
-> doesn't directly affect me, as my userspace always requests minimal DMA
-> latency anyway, so consider this message as just closing down the thread for
-> now, and as a marker for the future (if people see such corruption, the
-> saa7134 driver needs a pm_qos request when streaming that isn't currently
-> present).
-
-
+    Ezequiel.
