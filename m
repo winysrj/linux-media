@@ -1,120 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:37102 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933458Ab2JWUCK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 16:02:10 -0400
-Received: by mail-ea0-f174.google.com with SMTP id c13so1292526eaa.19
-        for <linux-media@vger.kernel.org>; Tue, 23 Oct 2012 13:02:08 -0700 (PDT)
-Message-ID: <5086E9C0.5060701@googlemail.com>
-Date: Tue, 23 Oct 2012 22:02:24 +0300
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: dheitmueller@kernellabs.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 00/23] em28xx: add support fur USB bulk transfers
-References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com> <CAGoCfiw-nL03s=JSc_MVzR0+hQEfHV5i+FMf41EbEME8jw3wQg@mail.gmail.com>
-In-Reply-To: <CAGoCfiw-nL03s=JSc_MVzR0+hQEfHV5i+FMf41EbEME8jw3wQg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:23055 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752367Ab2JIOzz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 10:55:55 -0400
+Received: from eusync4.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBM00B2SS5SU2A0@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 09 Oct 2012 15:56:16 +0100 (BST)
+Received: from [106.116.147.32] by eusync4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MBM00EEMS54UZB0@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 09 Oct 2012 15:55:53 +0100 (BST)
+Message-id: <50743AF7.40802@samsung.com>
+Date: Tue, 09 Oct 2012 16:55:51 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, a.hajda@samsung.com,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com
+Subject: Re: [PATCH RFC] V4L: Add get/set_frame_desc subdev callbacks
+References: <1348495217-32715-1-git-send-email-s.nawrocki@samsung.com>
+ <507341CF.5000800@iki.fi>
+In-reply-to: <507341CF.5000800@iki.fi>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sakari,
 
-Am 21.10.2012 21:13, schrieb Devin Heitmueller:
-> Hi Frank,
->
-> On Sun, Oct 21, 2012 at 12:52 PM, Frank Schäfer
-> <fschaefer.oss@googlemail.com> wrote:
->> This patch series adds support for USB bulk transfers to the em28xx driver.
-> This is a welcome change that some users have been asking about for a while.
+Thanks for the review.
 
-Yes, I know...
-
->
->> Patch 1 is a bugfix for the image data processing with non-interlaced devices (webcams)
->> that should be considered for stable (see commit message).
+On 10/08/2012 11:12 PM, Sakari Ailus wrote:
+> Hi Sylwester,
+> 
+> Thanks for the patch. I noticed this is already in Mauro's tree and is there
+> without my ack. I know it's partly my own fault since I haven't commented it
+> earlier.
+> 
+> Sylwester Nawrocki wrote:
+>> Add subdev callbacks for setting up and retrieving parameters of the frame
+>> on media bus that are not exposed to user space directly.
 >>
->> Patches 2-21 extend the driver to support USB bulk transfers.
->> USB endpoint mapping had to be extended and is a bit tricky.
->> It might still not be sufficient to handle ALL isoc/bulk endpoints of ALL existing devices,
->> but it should work with the devices we have seen so far and (most important !)
->> preserves backwards compatibility to the current driver behavior.
->> Isoc endpoints/transfers are preffered by default, patch 21 adds a module parameter to change this behavior.
+>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> ---
 >>
->> The last two patches are follow-up patches not really related to USB tranfers.
->> Patch 22 reduces the code size in em28xx-video by merging the two URB data processing functions
-> This is generally good stuff.  When I originally added the VBI
-> support, I kept the URB handlers separate initially to reduce the risk
-> of breaking existing devices, and always assumed that at some point
-> the two routines would be merged.  You did regression test without VBI
-> support enabled though, right?
+>> Hi All,
+>>
+>> This patch is intended as an initial, mostly a stub, implementation of the
+>> media bus frame format descriptors idea outlined in Sakari's RFC [1].
+>> I included in this patch only what is necessary for the s5p-fimc driver to
+>> capture JPEG and interleaved JPEG/YUV image data from M-5MOLS and S5C73M3
+>> cameras. The union containing per media bus type structures describing
+>> bus specific configuration is not included here, it likely needs much
+>> discussions and I would like to get this patch merged for v3.7 if possible.
+>>
+>> To follow is a patch adding users of these new subdev operations.
+>>
+>> Comments are welcome.
+>>
+>> Thanks,
+>> Sylwester
+>>
+>> [1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg43530.html
+>> ---
+>>   include/media/v4l2-subdev.h | 42 ++++++++++++++++++++++++++++++++++++++++++
+>>   1 file changed, 42 insertions(+)
+>>
+>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+>> index 28067ed..f5d8441 100644
+>> --- a/include/media/v4l2-subdev.h
+>> +++ b/include/media/v4l2-subdev.h
+>> @@ -21,6 +21,7 @@
+>>   #ifndef _V4L2_SUBDEV_H
+>>   #define _V4L2_SUBDEV_H
+>>
+>> +#include <linux/types.h>
+> 
+> What do you need types.h for?
 
-Yes, but when you take a look at the code, you will see that this patch
-nothing really changes for VBI devices.
-The problem / regression potential is the non-VBI-devices as they are
-now using the VBI-version, too, but they have been tested.
-Btw, why didn't you test this function with VBI disabled when you added
-it ? ;)
+I remember hitting a build error due to missing declarations 
+of u32 and u16. But not sure how it happened, since linux/types.h
+is included in linux/v4l2-subdev.h...
 
->
->> and patch 23 enables VBI-support for em2840-devices.
-> Patch 23 shouldn't be applied unless somebody has an em2840 device to
-> test with first.  Nobody has complained about this so far, and it's
-> better to not support VBI than to possibly break existing support.
+>>   #include <linux/v4l2-subdev.h>
+>>   #include <media/media-entity.h>
+>>   #include <media/v4l2-common.h>
+>> @@ -45,6 +46,7 @@ struct v4l2_fh;
+>>   struct v4l2_subdev;
+>>   struct v4l2_subdev_fh;
+>>   struct tuner_setup;
+>> +struct v4l2_mbus_frame_desc;
+>>
+>>   /* decode_vbi_line */
+>>   struct v4l2_decode_vbi_line {
+>> @@ -226,6 +228,36 @@ struct v4l2_subdev_audio_ops {
+>>       int (*s_stream)(struct v4l2_subdev *sd, int enable);
+>>   };
+>>
+>> +/* Indicates the @length field specifies maximum data length. */
+>> +#define V4L2_MBUS_FRAME_DESC_FL_LEN_MAX        (1U << 0)
+>> +/* Indicates user defined data format, i.e. non standard frame format. */
+>> +#define V4L2_MBUS_FRAME_DESC_FL_BLOB        (1U << 1)
+>> +
+>> +/**
+>> + * struct v4l2_mbus_frame_desc_entry - media bus frame description structure
+>> + * @flags: V4L2_MBUS_FRAME_DESC_FL_* flags
+>> + * @pixelcode: media bus pixel code, valid if FRAME_DESC_FL_BLOB is not set
+>> + * @length: number of octets per frame, valid for compressed or unspecified
+>> + *          formats
+>> + */
+>> +struct v4l2_mbus_frame_desc_entry {
+>> +    u16 flags;
+>> +    u32 pixelcode;
+>> +    u32 length;
+>> +};
+> 
+> Do you think that the flags, pixelcode and length defines (a part of) the frame
+> precisely enough? How about width and height; they are important for
+> uncompressed formats?
 
-Btw, what about em2874 / em2884 / em28174 ?
-We should really sort these kind of things out when adding new devices...
+Obviously not, nor it supposed to be precise enough yet and to make everyone 
+happy right away. You proposed an union for width and height [1], and I assume
+that could still be added. But there might be use cases where width, height
+and length would be needed at the same time.
 
->
->> Please note that I could test the changes with an analog non-interlaced non-VBI device only !
->> So further tests with DVB/interlaced/VBI devices are strongly recommended !
-> So here's the problem:  I don't have the cycles to test this, and all
-> the refactoring presents a very real risk that breakage of existing
-> support could occur.  You've basically got three options if you want
-> to see this merged upstream:
->
-> 1.  Wait for me to eventually do the testing.
-> 2.  Plead for users to do testing, in particular of the VBI support
-> for interlaced devices (which is 99% of devices out there)
-> 3.  See if Mauro has time to do the testing.
+> Also, as stated above, "lenght of octets for frame" is only meaningful for
+> compressed formats and for those with 8 bits per pixel. However, I think that
+> limiting the frame descriptors for compressed formats only is simply not
+> enough. The main use case I had in mind originally, and I still see it that
+> way, involves uncompressed formats, especially metadata.
 
-I would say 1 + 2 + 3 ;)
-And maybe it's a good chance for the people who were asking for this
-feature in the past.
+It's not only limited to compressed formats. I can't see how this is related
+to 8-bits per pixel, number of bits per pixel is variable for compressed
+streams.
 
-I know there are lots of other people on this list having such a device.
+> Currently I see that all this is serving is just one use case: providing the
+> maximum frame length in octets for compressed formats to the CSI-2 receiver.
+> There's nothing wrong in using frame descriptors for that --- I think it's
+> valid use for them, but we also need to consider other use cases.
 
-> 4.  Spend $30 and buy one of the dozens of em28xx based analog capture
-> devices out there and do the validation yourself (a huge percentage of
-> the "Video tape capture devices" are em28xx based.  For example, when
-> I did the original VBI work, I used the following:
->
-> KWorld DVD Maker USB 2.0 VS- USB2800 USB 2.0 Interface
-> http://www.newegg.com/Product/Product.aspx?Item=N82E16815100112
->
-> If you're in the United States, I can mail you a device for testing.
-> But given how dirt-cheap they are, buying one yourself might be easier
-> (and if the money is really the issue, send me your paypal details
-> offline and I'll give you the $30.00).
+Mostly yes, we're also using it for retrieving from the sensor subdev driver
+the information required for V4L2_PIX_FMT_S5C_UYVY_JPG format data capture,
+i.e. the second entry in the array describes meta-data.
 
-No, thank you. I already have too many devices which I actually don't need.
-I'm doing this as a hobby and at the moment, I'm focussed on getting the
-devices I already have working properly (which isn't a small task).
+>> +#define V4L2_FRAME_DESC_ENTRY_MAX    4
+>> +
+>> +/**
+>> + * struct v4l2_mbus_frame_desc - media bus data frame description
+>> + * @entry: frame descriptors array
+>> + * @num_entries: number of entries in @entry array
+>> + */
+>> +struct v4l2_mbus_frame_desc {
+>> +    struct v4l2_mbus_frame_desc_entry entry[V4L2_FRAME_DESC_ENTRY_MAX];
+>> +    unsigned short num_entries;
+>> +};
+>> +
+>>   /*
+>>      s_std_output: set v4l2_std_id for video OUTPUT devices. This is ignored by
+>>       video input devices.
+>> @@ -461,6 +493,12 @@ struct v4l2_subdev_ir_ops {
+>>                   struct v4l2_subdev_ir_parameters *params);
+>>   };
+>>
+>> +/**
+>> + * struct v4l2_subdev_pad_ops - v4l2-subdev pad level operations
+>> + * @get_frame_desc: get the current low level media bus frame parameters.
+>> + * @get_frame_desc: set the low level media bus frame parameters, @fd array
+>> + *                  may be adjusted by the subdev driver to device
+>> capabilities.
+>> + */
+>>   struct v4l2_subdev_pad_ops {
+>>       int (*enum_mbus_code)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+>>                     struct v4l2_subdev_mbus_code_enum *code);
+>> @@ -489,6 +527,10 @@ struct v4l2_subdev_pad_ops {
+>>                    struct v4l2_subdev_format *source_fmt,
+>>                    struct v4l2_subdev_format *sink_fmt);
+>>   #endif /* CONFIG_MEDIA_CONTROLLER */
+>> +    int (*get_frame_desc)(struct v4l2_subdev *sd, unsigned int pad,
+>> +                  struct v4l2_mbus_frame_desc *fd);
+>> +    int (*set_frame_desc)(struct v4l2_subdev *sd, unsigned int pad,
+>> +                  struct v4l2_mbus_frame_desc *fd);
+> 
+> Is there a meaningful use case for setting the frame descriptor? I would assume
+> that this is what the driver for the transmitting component (e.g. a sensor)
+> defines pretty much independently and that's mostly hardware dependent and not
+> freely changeable. At least I haven't seen such configurability, let alone to
+> the extent it would make sense to express it with such a relatively generic
+> interface.
 
-I personally don't need this feature uptsream at the moment.
-The device I used for testing supports ISOC as well and the em25xx
-webcam I'm currently working on will likely use gspca at the end.
+There might be parameters that one would want to modify, so it could be done
+with a get call, modifying required value(s) and a set call.
 
-> Thanks for you hard work on this, and it will be great to get this
-> stuff into the mainline.
+> Considering the above, I think this is going to mainline too early. At the very
+> least I suggest that any further use of frame descriptors only comes after more
+> people have had their say over the topic and a rough concensus is reached.
 
-I did what I could do. Now its up to others ;)
+Yes, that was entirely my intention as well. If there is someone needing more
+features further extensions could be made, after proper discussions and making 
+sure it satisfies everyone.
+
+--
 
 Regards,
-Frank
+Sylwester
 
-> Devin
->
-
+[1] http://www.spinics.net/lists/linux-media/msg44629.html
