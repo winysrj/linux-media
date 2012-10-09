@@ -1,96 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38202 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422652Ab2JXWel (ORCPT
+Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:16616 "EHLO
+	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752363Ab2JIMvf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Oct 2012 18:34:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: Re: [PATCH 01/23] uvc: Replace memcpy with struct assignment
-Date: Thu, 25 Oct 2012 00:35:30 +0200
-Message-ID: <2776796.95QghSKdPW@avalon>
-In-Reply-To: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
-References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+	Tue, 9 Oct 2012 08:51:35 -0400
+Date: Tue, 9 Oct 2012 14:51:33 +0200 (CEST)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Jean Delvare <khali@linux-fr.org>
+cc: Julia Lawall <julia.lawall@lip6.fr>,
+	Ryan Mallon <rmallon@gmail.com>,
+	Antti Palosaari <crope@iki.fi>,
+	kernel-janitors@vger.kernel.org, shubhrajyoti@ti.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 3/13] drivers/media/tuners/qt1010.c: use macros for
+ i2c_msg initialization
+In-Reply-To: <20121009141220.412c15c8@endymion.delvare>
+Message-ID: <alpine.DEB.2.02.1210091450270.1971@hadrien>
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-5-git-send-email-Julia.Lawall@lip6.fr> <5071FA5D.30003@gmail.com> <alpine.DEB.2.02.1210080704440.1972@localhost6.localdomain6> <50726110.5020901@gmail.com>
+ <alpine.DEB.2.02.1210080722470.1972@localhost6.localdomain6> <20121009141220.412c15c8@endymion.delvare>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ezequiel,
+On Tue, 9 Oct 2012, Jean Delvare wrote:
 
-Thanks for the patch.
+> Hi Julia,
+>
+> On Mon, 8 Oct 2012 07:24:11 +0200 (CEST), Julia Lawall wrote:
+> > > Sorry, I mean either:
+> > >
+> > > 	I2C_MSG_WRITE(priv->cfg->i2c_address, &reg, sizeof(reg)),
+> > > 	I2C_MSG_READ(priv->cfg->i2c_address, val, sizeof(*val)),
+> >
+> > Of course.  Sorry for not having seen that.  I can do that.
+>
+> Eek, no, you can't, not in the general case at least. sizeof(*val) will
+> return the size of the _first_ element of the destination buffer, which
+> has nothing to do with the length of that buffer (which in turn might
+> be rightfully longer than the read length for this specific message.)
 
-On Tuesday 23 October 2012 16:57:04 Ezequiel Garcia wrote:
-> This kind of memcpy() is error-prone. Its replacement with a struct
-> assignment is prefered because it's type-safe and much easier to read.
-> 
-> Found by coccinelle. Hand patched and reviewed.
-> Tested by compilation only.
+I was actually only going to do it when the size was 1 and the type was
+u8 *.  But your other email suggests that converting to sizeof is just not
+a good idea at all.  So I will drop that part of the rule.
 
-This looks good, but there's one more memcpy that can be replaced by a direct 
-structure assignment in uvc_ctrl_add_info() 
-(drivers/media/usb/uvc/uvc_ctrl.c). You might want to check why it hasn't been 
-caught by the semantic patch.
-
-> A simplified version of the semantic match that finds this problem is as
-> follows: (http://coccinelle.lip6.fr/)
-> 
-> // <smpl>
-> @@
-> identifier struct_name;
-> struct struct_name to;
-> struct struct_name from;
-> expression E;
-> @@
-> -memcpy(&(to), &(from), E);
-> +to = from;
-> // </smpl>
-> 
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
-> ---
->  drivers/media/usb/uvc/uvc_v4l2.c |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> b/drivers/media/usb/uvc/uvc_v4l2.c index f00db30..4fc8737 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -314,7 +314,7 @@ static int uvc_v4l2_set_format(struct uvc_streaming
-> *stream, goto done;
->  	}
-> 
-> -	memcpy(&stream->ctrl, &probe, sizeof probe);
-> +	stream->ctrl = probe;
->  	stream->cur_format = format;
->  	stream->cur_frame = frame;
-> 
-> @@ -386,7 +386,7 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming
-> *stream, return -EBUSY;
->  	}
-> 
-> -	memcpy(&probe, &stream->ctrl, sizeof probe);
-> +	probe = stream->ctrl;
->  	probe.dwFrameInterval =
->  		uvc_try_frame_interval(stream->cur_frame, interval);
-> 
-> @@ -397,7 +397,7 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming
-> *stream, return ret;
->  	}
-> 
-> -	memcpy(&stream->ctrl, &probe, sizeof probe);
-> +	stream->ctrl = probe;
->  	mutex_unlock(&stream->mutex);
-> 
->  	/* Return the actual frame period. */
-
--- 
-Regards,
-
-Laurent Pinchart
-
+julia
