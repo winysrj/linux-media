@@ -1,51 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:55459 "EHLO
-	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755454Ab2JDTM3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 15:12:29 -0400
-Date: Thu, 4 Oct 2012 20:17:04 +0100
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>,
-	Kay Sievers <kay@vrfy.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ming Lei <ming.lei@canonical.com>,
-	Lennart Poettering <lennart@poettering.net>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Kay Sievers <kay@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Ivan Kalvachev <ikalvachev@gmail.com>
-Subject: Re: udev breakages -
-Message-ID: <20121004201704.36d35755@pyramind.ukuu.org.uk>
-In-Reply-To: <20121004174254.GA14301@kroah.com>
-References: <506C562E.5090909@redhat.com>
-	<CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
-	<20121003170907.GA23473@ZenIV.linux.org.uk>
-	<CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
-	<20121003195059.GA13541@kroah.com>
-	<CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
-	<3560b86d-e2ad-484d-ab6e-2b9048894a12@email.android.com>
-	<CA+55aFwVFtUU4TCjz4EDgGDaeR_QwLjmBAJA0kijHkQQ+jxLCw@mail.gmail.com>
-	<CAPXgP1189dn=vHqWrp1JgHs7Yv=BP3dbLyT3zb31Sp8mcEhAvg@mail.gmail.com>
-	<87zk42tab4.fsf@xmission.com>
-	<20121004174254.GA14301@kroah.com>
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:45327 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752858Ab2JIMMg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 08:12:36 -0400
+Date: Tue, 9 Oct 2012 14:12:20 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Ryan Mallon <rmallon@gmail.com>, Antti Palosaari <crope@iki.fi>,
+	kernel-janitors@vger.kernel.org, shubhrajyoti@ti.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 3/13] drivers/media/tuners/qt1010.c: use macros for
+ i2c_msg initialization
+Message-ID: <20121009141220.412c15c8@endymion.delvare>
+In-Reply-To: <alpine.DEB.2.02.1210080722470.1972@localhost6.localdomain6>
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
+	<1349624323-15584-5-git-send-email-Julia.Lawall@lip6.fr>
+	<5071FA5D.30003@gmail.com>
+	<alpine.DEB.2.02.1210080704440.1972@localhost6.localdomain6>
+	<50726110.5020901@gmail.com>
+	<alpine.DEB.2.02.1210080722470.1972@localhost6.localdomain6>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I don't know how to handle the /dev/ptmx issue properly from within
-> devtmpfs, does anyone?  Proposals are always welcome, the last time this
-> came up a week or so ago, I don't recall seeing any proposals, just a
-> general complaint.
+Hi Julia,
 
-Is it really a problem - devtmpfs is optional. It's a problem for the
-userspace folks to handle and if they made it mandatory in their code
-diddums, someone better go fork working versions.
+On Mon, 8 Oct 2012 07:24:11 +0200 (CEST), Julia Lawall wrote:
+> > Sorry, I mean either:
+> >
+> > 	I2C_MSG_WRITE(priv->cfg->i2c_address, &reg, sizeof(reg)),
+> > 	I2C_MSG_READ(priv->cfg->i2c_address, val, sizeof(*val)),
+> 
+> Of course.  Sorry for not having seen that.  I can do that.
 
-Alan
+Eek, no, you can't, not in the general case at least. sizeof(*val) will
+return the size of the _first_ element of the destination buffer, which
+has nothing to do with the length of that buffer (which in turn might
+be rightfully longer than the read length for this specific message.)
+
+-- 
+Jean Delvare
