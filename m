@@ -1,69 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:36594 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754978Ab2JJKqY (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:20933 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754050Ab2JJO4p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 06:46:24 -0400
-Date: Wed, 10 Oct 2012 19:46:16 +0900
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 04/14] media: add V4L2 DT binding documentation
-Message-ID: <20121010104615.GK17288@opensource.wolfsonmicro.com>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
- <1348754853-28619-5-git-send-email-g.liakhovetski@gmx.de>
- <20121005151057.GA5125@pengutronix.de>
- <Pine.LNX.4.64.1210051735360.13761@axis700.grange>
- <20121005160242.GX1322@pengutronix.de>
- <Pine.LNX.4.64.1210080950350.11034@axis700.grange>
- <20121010084006.GQ27665@pengutronix.de>
- <20121010085124.GJ17288@opensource.wolfsonmicro.com>
- <20121010092115.GW27665@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20121010092115.GW27665@pengutronix.de>
+	Wed, 10 Oct 2012 10:56:45 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBO00LK9MUKOO30@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:56:44 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MBO002YDME0EC70@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:56:44 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: [PATCHv10 14/26] v4l: s5p-tv: mixer: support for dmabuf importing
+Date: Wed, 10 Oct 2012 16:46:33 +0200
+Message-id: <1349880405-26049-15-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
+References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 10, 2012 at 11:21:15AM +0200, Sascha Hauer wrote:
-> On Wed, Oct 10, 2012 at 05:51:27PM +0900, Mark Brown wrote:
+This patch enhances s5p-tv with support for DMABUF importing via
+V4L2_MEMORY_DMABUF memory type.
 
-> > Well, I'm unlikely to work on it as I don't have any systems which can
-> > boot with device tree.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/s5p-tv/mixer_video.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> If it's only that I'm sure we could spare a i.MX53 LOCO ;)
+diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+index 0c1cd89..2421e527 100644
+--- a/drivers/media/platform/s5p-tv/mixer_video.c
++++ b/drivers/media/platform/s5p-tv/mixer_video.c
+@@ -1093,7 +1093,7 @@ struct mxr_layer *mxr_base_layer_create(struct mxr_device *mdev,
+ 
+ 	layer->vb_queue = (struct vb2_queue) {
+ 		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+-		.io_modes = VB2_MMAP | VB2_USERPTR,
++		.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF,
+ 		.drv_priv = layer,
+ 		.buf_struct_size = sizeof(struct mxr_buffer),
+ 		.ops = &mxr_video_qops,
+-- 
+1.7.9.5
 
-Well, something with Wolfson hardware would be helpful.
-
-> > The big, big problem you've got doing this is lots of dynamic changes at 
-> > runtime and in general complicated systems.  It's trivial to describe
-> > the physical links but they don't provide anything like enough
-> > information to use things.  Quite frankly I'm not sure device tree is a
-> > useful investment of time for advanced audio systems anyway, it's really
-> > not solving any problems people actually have.
-
-> Right now the i.MX audmux binding is only enough to say which ports
-> should be connected, but not which format should be used. Just today
-
-Why should that be in DT?  For most things it's either fixed by the
-hardware or makes no odds.
-
-> we had the problem where a codec has two DAIs and wanted to add the
-> information on which port our SSI unit is connected to the devicetree.
-
-There's nothing stopping you doing that right now, the existing DT 
-
-> So I think it's worthwile to do, but that would be a big big task...
-
-For simple devices there's already stuff there and it's not hard to add
-new machine bindings, it's trying to cover the general case that's far
-too much effort.
