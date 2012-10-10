@@ -1,102 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:32980 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750850Ab2JKMhM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Oct 2012 08:37:12 -0400
-Date: Thu, 11 Oct 2012 09:37:03 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Oliver Endriss <o.endriss@gmx.de>
-Cc: David Howells <dhowells@redhat.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [GIT PULL] Disintegrate UAPI for media
-Message-ID: <20121011093703.24b60232@infradead.org>
-In-Reply-To: <201210111023.51311.o.endriss@gmx.de>
-References: <30699.1349789424@warthog.procyon.org.uk>
-	<20121009183908.1e402a43@infradead.org>
-	<201210111023.51311.o.endriss@gmx.de>
+Received: from mx1.redhat.com ([209.132.183.28]:48019 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752574Ab2JJANf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Oct 2012 20:13:35 -0400
+Date: Tue, 9 Oct 2012 21:13:32 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] [for 3.7] stk1160: Add support for S-Video input
+Message-ID: <20121009211332.49b2425d@redhat.com>
+In-Reply-To: <20121009211104.31893c80@redhat.com>
+References: <1349820063-21955-1-git-send-email-elezegarcia@gmail.com>
+	<20121009192540.61875a29@redhat.com>
+	<CALF0-+W-eGegmb2WPozG1qVhm7sa_E-vqZqt4x4veNCnY-BY1Q@mail.gmail.com>
+	<20121009210446.2abf0059@redhat.com>
+	<20121009211104.31893c80@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 11 Oct 2012 10:23:50 +0200
-Oliver Endriss <o.endriss@gmx.de> escreveu:
+Em Tue, 9 Oct 2012 21:11:04 -0300
+Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
 
-> Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-> > Em Tue, 09 Oct 2012 14:30:24 +0100
-> > David Howells <dhowells@redhat.com> escreveu:
-> > 
-> > > Can you merge the following branch into the media tree please.
-> > > 
-> > > This is to complete part of the Userspace API (UAPI) disintegration for which
-> > > the preparatory patches were pulled recently.  After these patches, userspace
-> > > headers will be segregated into:
-> > > 
-> > > 	include/uapi/linux/.../foo.h
-> > > 
-> > > for the userspace interface stuff, and:
-> > > 
-> > > 	include/linux/.../foo.h
-> > > 
-> > > for the strictly kernel internal stuff.
-> > > 
-> > > ---
-> > > The following changes since commit 9e2d8656f5e8aa214e66b462680cf86b210b74a8:
-> > > 
-> > >   Merge branch 'akpm' (Andrew's patch-bomb) (2012-10-09 16:23:15 +0900)
-> > > 
-> > > are available in the git repository at:
-> > > 
-> > > 
-> > >   git://git.infradead.org/users/dhowells/linux-headers.git tags/disintegrate-media-20121009
-> > > 
-> > > for you to fetch changes up to 1c436decd49665be131887b08d172a7989cdceee:
-> > > 
-> > >   UAPI: (Scripted) Disintegrate include/linux/dvb (2012-10-09 09:48:42 +0100)
-> > > 
-> > > ----------------------------------------------------------------
-> > > UAPI Disintegration 2012-10-09
-> > > 
-> > > ----------------------------------------------------------------
-> > > David Howells (1):
-> > >       UAPI: (Scripted) Disintegrate include/linux/dvb
-> > > 
-> > >  include/linux/dvb/Kbuild                |   8 -
-> > >  include/linux/dvb/dmx.h                 | 130 +--------------
-> > >  include/linux/dvb/video.h               | 249 +----------------------------
-> > >  include/uapi/linux/dvb/Kbuild           |   8 +
-> > >  include/{ => uapi}/linux/dvb/audio.h    |   0
-> > >  include/{ => uapi}/linux/dvb/ca.h       |   0
-> > >  include/uapi/linux/dvb/dmx.h            | 155 ++++++++++++++++++
-> > >  include/{ => uapi}/linux/dvb/frontend.h |   0
-> > >  include/{ => uapi}/linux/dvb/net.h      |   0
-> > >  include/{ => uapi}/linux/dvb/osd.h      |   0
-> > >  include/{ => uapi}/linux/dvb/version.h  |   0
-> > >  include/uapi/linux/dvb/video.h          | 274 ++++++++++++++++++++++++++++++++
-> > >  12 files changed, 439 insertions(+), 385 deletions(-)
-> > >  rename include/{ => uapi}/linux/dvb/audio.h (100%)
-> > >  rename include/{ => uapi}/linux/dvb/ca.h (100%)
-> > >  create mode 100644 include/uapi/linux/dvb/dmx.h
-> > >  rename include/{ => uapi}/linux/dvb/frontend.h (100%)
-> > >  rename include/{ => uapi}/linux/dvb/net.h (100%)
-> > >  rename include/{ => uapi}/linux/dvb/osd.h (100%)
-> > >  rename include/{ => uapi}/linux/dvb/version.h (100%)
-> > >  create mode 100644 include/uapi/linux/dvb/video.h
-> > 
-> > Hmm... last year, it was decided that we would be putting the DVB av7110-only
-> > API files on a separate place, as the API there conflicts with V4L/alsa APIs
+> Em Tue, 9 Oct 2012 21:04:46 -0300
+> Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
 > 
-> Wrong! Hans Verkuil and you tried to do it, without caring that it would
-> break userspace, and it was NAKed.
+> > Em Tue, 9 Oct 2012 20:52:06 -0300
+> > Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
+> > 
+> > > On Tue, Oct 9, 2012 at 7:25 PM, Mauro Carvalho Chehab
+> > > <mchehab@redhat.com> wrote:
+> > > > Em Tue,  9 Oct 2012 19:01:03 -0300
+> > > > Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
+> > > >
+> 
+> > > Let me know if you want me to change something.
+> 
+> Hmm... patchwork didn't get it. The MIME type for the attachment
+> is wrong... it is "text/plain". That may explain why patchwork
+> didn't get it. Could you please re-submit it with the patch
+> inlined, or if you really can't do it, using the proper MIME
+> types for patch?
 
-My understanding here is that, as the file location will change
-with this series, your original concern is now void, as userspace
-will require patches to use the new location. So, if we're willing
-to do it, let's put this one-driver-only obsolete API on a separate
-place.
+Nevermind. the patch looks correct. I'll double-check what's wrong
+at patchwork side.
+> 
+> Thanks!
+> Mauro
 
 
-Cheers,
+-- 
+Regards,
 Mauro
