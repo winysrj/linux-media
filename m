@@ -1,136 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:41583 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753412Ab2JBIC4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 04:02:56 -0400
-Received: by wibhr7 with SMTP id hr7so522691wib.1
-        for <linux-media@vger.kernel.org>; Tue, 02 Oct 2012 01:02:52 -0700 (PDT)
-Date: Tue, 2 Oct 2012 10:03:41 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Thomas Hellstrom <thellstrom@vmware.com>
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, sumit.semwal@linaro.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/5] dma-buf: remove fallback for
- !CONFIG_DMA_SHARED_BUFFER
-Message-ID: <20121002080341.GA5679@phenom.ffwll.local>
-References: <20120928124148.14366.21063.stgit@patser.local>
- <5065B0C9.7040209@canonical.com>
- <5065FDAA.5080103@vmware.com>
- <50696699.7020009@canonical.com>
- <506A8DC8.5020706@vmware.com>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:35448 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751329Ab2JJHQ4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 03:16:56 -0400
+Date: Wed, 10 Oct 2012 10:16:47 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: liplianin@me.by
+Cc: linux-media@vger.kernel.org
+Subject: re: V4L/DVB (13678): Add support for yet another DvbWorld, TeVii and
+ Prof USB devices
+Message-ID: <20121010071647.GA26117@elgon.mountain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <506A8DC8.5020706@vmware.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 02, 2012 at 08:46:32AM +0200, Thomas Hellstrom wrote:
-> On 10/01/2012 11:47 AM, Maarten Lankhorst wrote:
-> >I was doing a evil hack where I 'released' lru_lock to lockdep before doing the annotation
-> >for a blocking acquire, and left trylock annotations as they were. This made lockdep do the
-> >right thing.
-> I've never looked into how lockdep works. Is this something that can
-> be done permanently or just for testing
-> purposes? Although not related to this, is it possible to do
-> something similar to the trylock reversal in the
-> fault() code where mmap_sem() and reserve() change order using a
-> reserve trylock?
+Hello Igor M. Liplianin,
 
-lockdep just requires a bunch of annotations, is a compile-time configure
-option CONFIG_PROVE_LOCKING and if disabled, has zero overhead. And it's
-rather awesome in detected deadlocks and handling crazy locking schemes
-correctly:
-- correctly handles trylocks
-- correctly handles nested locking (i.e. grabbing a global lock, then
-  grabbing subordinate locks in an unordered sequence since the global
-  lock ensures that no deadlocks can happen).
-- any kinds of inversions with special contexts like hardirq, softirq
-- same for page-reclaim, i.e. it will yell if you could (potentially)
-  deadlock because your shrinker grabs a lock that you hold while calling
-  kmalloc.
-- there are special annotates for various subsystems, e.g. to check for
-  del_timer_sync vs. locks held by that timer. Or the console_lock
-  annotations I've just recently submitted.
-- all that with a really flexible set of annotation primitives that afaics
-  should work for almost any insane locking scheme. The fact that Maarten
-  could come up with proper reservation annotations without any changes to
-  lockdep testifies this (he only had to fix a tiny thing to make it a bit
-  more strict in a corner case).
+The patch 141cc35e2d29: "V4L/DVB (13678): Add support for yet another
+DvbWorld, TeVii and Prof USB devices" from Nov 27, 2009, leads to the
+following Sparse warning:
 
-In short I think it's made of awesome. The only downside is that it lacks
-documentation, you have to read the code to understand it :(
+	drivers/media/usb/dvb-usb/dw2102.c:288:36: error: bad constant
+	expression
 
-The reason I've suggested to Maarten to abolish the trylock_reservation
-within the lru_lock is that in that way lockdep only ever sees the
-trylock, and hence is less strict about complainig about deadlocks. But
-semantically it's an unconditional reserve. Maarten had some horrible
-hacks that leaked the lockdep annotations out of the new reservation code,
-which allowed ttm to be properly annotated.  But those also reduced the
-usefulness for any other users of the reservation code, and so Maarten
-looked into whether he could remove that trylock dance in ttm.
+  CHECK   drivers/media/usb/dvb-usb/dw2102.c
+drivers/media/usb/dvb-usb/dw2102.c:288:36: error: bad constant expression
+drivers/media/usb/dvb-usb/dw2102.c:305:44: error: bad constant expression
+drivers/media/usb/dvb-usb/dw2102.c:315:44: error: bad constant expression
+drivers/media/usb/dvb-usb/dw2102.c:381:53: error: bad constant expression
+drivers/media/usb/dvb-usb/dw2102.c:410:52: error: bad constant expression
+drivers/media/usb/dvb-usb/dw2102.c:443:36: error: bad constant expression
+drivers/media/usb/dvb-usb/dw2102.c:461:44: error: bad constant expression
+drivers/media/usb/dvb-usb/dw2102.c:543:47: error: bad constant expression
+drivers/media/usb/dvb-usb/dw2102.c:570:52: error: bad constant expression
+drivers/media/usb/dvb-usb/dw2102.c:582:52: error: bad constant expression
+  CC [M]  drivers/media/usb/dvb-usb/dw2102.o
 
-Imo having excellent lockdep support for cross-device reservations is a
-requirment, and ending up with less strict annotations for either ttm
-based drivers or other drivers is not good. And imo the ugly layering that
-Maarten had in his first proof-of-concept also indicates that something is
-amiss in the design.
 
-[I'll refrain from comment on ttm specifics to not make a fool of me ;-)]
+   284          switch (num) {
+   285          case 2: {
+   286                  /* read */
+   287                  /* first write first register number */
+   288                  u8 ibuf[msg[1].len + 2], obuf[3];
+                                ^^^^^^^^^^^^^^
+The kernel has an 8k stack so the worry is that len could larger than
+that.
 
-> >>And this is even before it starts to get interesting, like how you guarantee that when you release a buffer from
-> >>the delayed delete list, you're the only process having a reference?
-> >l thought list_kref made sure of that? Even if not the only one with a reference, the list_empty check would
-> >make sure it would only run once. I'l fix it up again so it doesn't become a WARN_ON_ONCE, I didn't know
-> >it could run multiple times at the time, so I'll change it back to unlikely.
-> Yes, you've probably right. A case we've seen earlier (before the
-> atomicity was introduced) was one or more threads
-> picked up a bo from the LRU list and prepared to reserve it, while
-> the delayed delete function removed them from the
-> ddestroy list. Then the first thread queued an accelerated eviction,
-> adding a new fence and the bo was left hanging.
-> I don't think that can happen with the reserve trylocks within the
-> lru spinlock, though.
-> 
-> >
-> >>Now, it's probably possible to achieve what you're trying to do, if we accept the lock reversal in
-> >>[1], but since I have newborn twins and I have about one hour of spare time a week with I now spent on this
-> >>review and I guess there are countless more hours before this can work. (These code paths were never tested, right?)
-> >>One of the biggest TTM reworks was to introduce the atomicity assumption and remove a lot of code that was
-> >>prone to deadlocks, races and buffer leaks. I'm not prepared to revert that work without an extremely
-> >>good reason, and "It can be done" is not such a reason.
-> >Deepest apologies, I only did a quick glance at the code part of this email, overlooked this part since
-> >I was swamped with other things and meant to do a full reply on monday. I didn't mean to make it sound
-> >like I only cared blindly about merging my code, just wanted to find a good solution.
-> >>We *need* to carefully weigh it against any benefits you have in your work, and you need to test these codepaths
-> >>in parallell cases subject to heavy aperture / vram thrashing and frequent signals causing interrupted waits.
-> >Agreed, is there already a tester for this or should I write my own?
-> Although I think it would be nice to have a highly parallel execbuf
-> implementation on an extremely simple software GPU,
-> what I typically do is to take an existing driver (none of them
-> implements parallel reserve yet, but vmware is about to soon)
-> 
-> a) Use an application that frequently recycles buffers, so that the
-> delayed-delete code gets busy (Perhaps google-earth, panning over a
-> landscape not too high above the earth)
-> b) Hack the drivers aperture / vram sizes to something small, so
-> that you can see that the eviction code gets hit.
-> c) Adjust the memory limits in TTM sysfs memory accounting (You can
-> write and change on the fly), so that you can see that the swapping
-> code gets hit.
-> d) Code a signal delivery so that every 20th time or so the eviction
-> code is about to wait, it receives an -ERESTARTSYS with a harmless
-> signal.
-> e) start another instance of google-earth.
+   289                  obuf[0] = msg[0].addr << 1;
+   290                  obuf[1] = msg[0].len;
+   291                  obuf[2] = msg[0].buf[0];
+   292                  dw210x_op_rw(d->udev, 0xc2, 0, 0,
+   293                                  obuf, msg[0].len + 2, DW210X_WRITE_MSG);
+   294                  /* second read registers */
+   295                  dw210x_op_rw(d->udev, 0xc3, 0xd1 , 0,
+   296                                  ibuf, msg[1].len + 2, DW210X_READ_MSG);
+   297                  memcpy(msg[1].buf, ibuf + 2, msg[1].len);
+   298  
+   299                  break;
+   300          }
 
-tbh, this should be a simple testsuite that you can just run. Like we're
-(slowly) building up for drm/i915 in intel-gpu-tools. At least that'll be
-one of the merge requirements for i915.ko.
+regards,
+dan carpenter
 
-Cheers, Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
