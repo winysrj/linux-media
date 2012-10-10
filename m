@@ -1,51 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:51895 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752882Ab2JMLXI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Oct 2012 07:23:08 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so3556620pad.19
-        for <linux-media@vger.kernel.org>; Sat, 13 Oct 2012 04:23:07 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
+Received: from smtp206.alice.it ([82.57.200.102]:53345 "EHLO smtp206.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756318Ab2JJNj3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 09:39:29 -0400
+From: Antonio Ospite <ospite@studenti.unina.it>
 To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, s.nawrocki@samsung.com,
-	sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 1/1] [media] s5p-mfc: Fix compilation warning
-Date: Sat, 13 Oct 2012 16:48:34 +0530
-Message-Id: <1350127114-5170-1-git-send-email-sachin.kamat@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: Aapo Tahkola <aet@rasterburn.org>,
+	Antonio Ospite <ospite@studenti.unina.it>,
+	CityK <cityk@rogers.com>
+Subject: [PATCH 3/5] m920x_parse.pl: use string comparison operators
+Date: Wed, 10 Oct 2012 15:39:20 +0200
+Message-Id: <1349876363-12098-4-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1349876363-12098-1-git-send-email-ospite@studenti.unina.it>
+References: <1349876363-12098-1-git-send-email-ospite@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Added missing const qualifier.
-Without this patch compiler gives the following warning:
-
-drivers/media/platform/s5p-mfc/s5p_mfc_enc.c:1576:2: warning:
-initialization from incompatible pointer type [enabled by default]
-drivers/media/platform/s5p-mfc/s5p_mfc_enc.c:1576:2: warning:
-(near initialization for ‘s5p_mfc_enc_ioctl_ops.vidioc_subscribe_event’)
-[enabled by default]
-
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ contrib/m920x/m920x_parse.pl |   30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 2af6d52..5c1d727 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -1542,7 +1542,7 @@ int vidioc_encoder_cmd(struct file *file, void *priv,
+diff --git a/contrib/m920x/m920x_parse.pl b/contrib/m920x/m920x_parse.pl
+index 135ed5a..9093e16 100755
+--- a/contrib/m920x/m920x_parse.pl
++++ b/contrib/m920x/m920x_parse.pl
+@@ -64,7 +64,7 @@ sub check {
+ 	@cmp = split(/ /, $cmd);
+ 	for ($i = 0; $i < scalar(@cmp); $i++) {
+ 		#print "check $bytes[$i] vs $cmp[$i]\n";
+-		if ($cmp[$i] == "-1") {
++		if ($cmp[$i] eq "-1") {
+ 			next;
+ 		}
+ 
+@@ -102,7 +102,7 @@ sub get_line {
+ 	}
+ 	@cmp = split(/ /, $cmd);
+ 	for ($i = 0; $i < scalar(@cmp); $i++) {
+-		if ($cmp[$i] == "-1") {
++		if ($cmp[$i] eq "-1") {
+ 			next;
+ 		}
+ 
+@@ -117,10 +117,10 @@ sub get_line {
+ 
+ sub us_get_write {
+ 	#print "<$line>\n";
+-	if($input == "us" && $line =~ m/>>>\s+([a-fA-F0-9 ]+)/) {
++	if($input eq "us" && $line =~ m/>>>\s+([a-fA-F0-9 ]+)/) {
+ 		return split(/ /, $1);
+ 	}
+-	if($input == "um") {
++	if($input eq "um") {
+ 		if($line =~ m/\S+ \S+ \S+ \S+ \S+ \S+ \S+ \S+ \S+ \S+ \S+ = ([a-fA-F0-9 ]+)/) {
+ 			#print "read match $line\n";
+ 			return expand_string_long(split(/ /, $1));
+@@ -130,10 +130,10 @@ sub us_get_write {
+ 
+ sub get_read {
+ 	#print "<$line>\n";
+-	if($input == "us" && $line =~ m/<<<  ([a-fA-F0-9 ]+)/) {
++	if($input eq "us" && $line =~ m/<<<  ([a-fA-F0-9 ]+)/) {
+ 		return split(/ /, $1);
+ 	}
+-	if($input == "um") {
++	if($input eq "um") {
+ 		while($line = <STDIN>) {
+ 			if($line =~ m/\S+ \S+ \S+ \S+ \S+ \S+ = ([a-fA-F0-9 ]+)/) {
+ 				return expand_string_long(split(/ /, $1));
+@@ -161,11 +161,11 @@ getopts("m:i:", \%opt ) or usage();
+ $mode = $opt{m};
+ $input = $opt{i};
+ 
+-if ($input != "um" && $input != "us" && $input != "sp") {
++if ($input ne "um" && $input ne "us" && $input ne "sp") {
+ 	usage();
  }
  
- static int vidioc_subscribe_event(struct v4l2_fh *fh,
--					struct v4l2_event_subscription *sub)
-+				  const struct v4l2_event_subscription *sub)
- {
- 	switch (sub->type) {
- 	case V4L2_EVENT_EOS:
+-if ($mode != "fw" && $mode != "i2c") {
++if ($mode ne "fw" && $mode ne "i2c") {
+ 	usage();
+ }
+ 
+@@ -207,9 +207,9 @@ while(@bytes = get_line("-1")) {
+ 
+ 	$master_line = $. - 1;
+ 
+-	if ($bytes[0] == "40" && $bytes[1] == "23") {
++	if ($bytes[0] eq "40" && $bytes[1] eq "23") {
+ 
+-		if ($bytes[4] == "80" || $bytes[4] == "00") {
++		if ($bytes[4] eq "80" || $bytes[4] eq "00") {
+ 			my $multibyte = 0;
+ 			my $addr;
+ 
+@@ -225,16 +225,16 @@ while(@bytes = get_line("-1")) {
+ 			@bytes = get_line("40 23");
+ 
+ 			$reg = $bytes[2];
+-			if ($bytes[4] == "80") {
++			if ($bytes[4] eq "80") {
+ 				$multibyte = 1;
+ 			} else {
+ 				@bytes = get_line("40 23");
+ 			}
+-			#if ($bytes[4] != "40") {
++			#if ($bytes[4] ne "40") {
+ 			#	print "(missing 40)";
+ 			#}
+ 
+-			if ($bytes[4] == "80") {
++			if ($bytes[4] eq "80") {
+ 				if ($multibyte == 0) {
+ 					$raddr = sprintf("%02x", hex($addr) | 0x1);
+ 
+@@ -245,7 +245,7 @@ while(@bytes = get_line("-1")) {
+ 				} else {
+ 					print "$reg = ";
+ 					@bytes = get_line("c0 23");
+-					while ($bytes[4] == "21") {
++					while ($bytes[4] eq "21") {
+ 						check("c0 23 00 00 21 00 -1 -1", @bytes);
+ 
+ 						@bytes = get_read();
+@@ -265,7 +265,7 @@ while(@bytes = get_line("-1")) {
+ 				check("40 23 -1 00 4|00 00 00 00", @bytes);
+ 				print "reg $reg = $bytes[2]";
+ 
+-				while ($bytes[4] != "40") {
++				while ($bytes[4] ne "40") {
+ 					@bytes = get_line("40 23");
+ 					check("40 23 -1 00 4|00 00 00 00", @bytes);
+ 					print " $bytes[2]";
 -- 
-1.7.4.1
+1.7.10.4
 
