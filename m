@@ -1,47 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:50584 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756216Ab2JZFvR (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:42153 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932335Ab2JJPWC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Oct 2012 01:51:17 -0400
-Received: by mail-ie0-f174.google.com with SMTP id k13so3306538iea.19
-        for <linux-media@vger.kernel.org>; Thu, 25 Oct 2012 22:51:17 -0700 (PDT)
+	Wed, 10 Oct 2012 11:22:02 -0400
+Received: by mail-bk0-f46.google.com with SMTP id jk13so393692bkc.19
+        for <linux-media@vger.kernel.org>; Wed, 10 Oct 2012 08:22:01 -0700 (PDT)
+Message-ID: <507592A9.4010400@googlemail.com>
+Date: Wed, 10 Oct 2012 17:22:17 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <20121025213935.GD11928@atomide.com>
-References: <20121025001913.2082.31062.stgit@muffinssi.local>
- <1466344.HbU9q5zM1q@avalon> <20121025165643.GP11928@atomide.com>
- <1351198976.2hJjhe5gKC@avalon> <20121025213935.GD11928@atomide.com>
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Date: Fri, 26 Oct 2012 07:50:56 +0200
-Message-ID: <CAK=WgbaCM+MWiHARvdfaGL6w0c7g4_keAm0ADw1vkSeiZ0CZPw@mail.gmail.com>
-Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to include/linux/omap-iommu.h
-To: Tony Lindgren <tony@atomide.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Joerg Roedel <joerg.roedel@amd.com>,
-	Omar Ramirez Luna <omar.luna@linaro.org>,
-	linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] qv4l2: avoid empty titles for the video control tabs
+References: <1349793964-22825-1-git-send-email-fschaefer.oss@googlemail.com> <201210091724.56456.hverkuil@xs4all.nl>
+In-Reply-To: <201210091724.56456.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 25, 2012 at 11:39 PM, Tony Lindgren <tony@atomide.com> wrote:
->> > Joerg and Ohad, do you have any opinions on this?
+Am 09.10.2012 17:24, schrieb Hans Verkuil:
+> On Tue October 9 2012 16:46:04 Frank Schäfer wrote:
+>> The video control class names are used as titles for the GUI-tabs.
+>> The current code relies on the driver enumerating the control classes
+>> properly when using V4L2_CTRL_FLAG_NEXT_CTRL.
+>> But the UVC-driver (and likely others, too) don't do that, so we can end
+>> up with an empty class name string.
+>>
+>> Make sure we always have a control class title:
+>> If the driver didn't enumrate a class along with the controls, call
+>> VIDIOC_QUERYCTRL for the class explicitly.
+>> If that fails, fall back to an internal string list.
+> NACK.
+>
+> qv4l2 is for testing drivers, so I *want* to see if a driver doesn't provide
+> the control class name. They really should provide it, and it is not something
+> that should be papered over.
 
-I agree that there's some merit in having a separate header file for
-IOVMM, since it's a different layer from the IOMMU API.
+Hehe, ok.
+Then you might want to remove all the "papering-over" code a few lines
+above, too ? ;)
 
-But in reality it's tightly coupled with OMAP's IOMMU, and ideally it
-really should go away and be replaced with the DMA API.
+Regards,
+Frank
 
-For this reason, and for the fact that anyway there's only a single
-user for it (omap3isp) and there will never be any more, maybe we
-shouldn't pollute include/linux anymore.
+> Regards,
+>
+> 	Hans
 
-Anyone volunteering to remove IOVMM and adapt omap3isp to the DMA API
-instead ? ;)
 
-Thanks,
-Ohad.
