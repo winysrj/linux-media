@@ -1,78 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:51447 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751588Ab2JaMuW (ORCPT
+Received: from smtp1-g21.free.fr ([212.27.42.1]:42142 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753449Ab2JJGWN convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Oct 2012 08:50:22 -0400
-Received: by mail-bk0-f46.google.com with SMTP id jk13so632784bkc.19
-        for <linux-media@vger.kernel.org>; Wed, 31 Oct 2012 05:50:21 -0700 (PDT)
-Message-ID: <50911079.7010404@googlemail.com>
-Date: Wed, 31 Oct 2012 13:50:17 +0200
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: benny+usenet@amorsen.dk
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 00/23] em28xx: add support fur USB bulk transfers
-References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com> <m3vcdr1ku9.fsf@ursa.amorsen.dk>
-In-Reply-To: <m3vcdr1ku9.fsf@ursa.amorsen.dk>
+	Wed, 10 Oct 2012 02:22:13 -0400
+Date: Wed, 10 Oct 2012 08:23:08 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Jonathan Nieder <jrnieder@gmail.com>
+Cc: =?UTF-8?B?TWFydGluLcOJcmlj?= Racine <martin-eric.racine@iki.fi>,
+	Hans de Goede <hdegoede@redhat.com>, 677533@bugs.debian.org,
+	linux-media@vger.kernel.org, debian-kernel@lists.debian.org
+Subject: Re: video: USB webcam fails since kernel 3.2
+Message-ID: <20121010082308.4c802517@armhf>
+In-Reply-To: <20121009225446.GA7396@elie.Belkin>
+References: <20120711100436.2305b098@armhf>
+	<CAPZXPQdJC5yCYY6YRzuKj-ukFLzbY_yUzbogzbDx1S0bL1GrgQ@mail.gmail.com>
+	<20120711124441.346a86b3@armhf>
+	<CAPZXPQcvGqPjeyZh=vHtbSOoA91Htsg6DeyYyhYLeDgay8GSBg@mail.gmail.com>
+	<20120711132739.6b527a27@armhf>
+	<CAPZXPQeDKLAu13Qs-MhhxJEBrF-5620HNZDmPiH+4NRmkxx3Ag@mail.gmail.com>
+	<4FFD7F48.6060905@redhat.com>
+	<CAPZXPQfMrWySzx9=61WqoZ7zwzw19p69nN6_fuwAHjZVqGLDBw@mail.gmail.com>
+	<20120711191835.1be1c8ef@armhf>
+	<CAPZXPQeWC+pKJNLr12y_AybYCCKZr6ayBAa=EhaiyfN4iU8g5g@mail.gmail.com>
+	<20121009225446.GA7396@elie.Belkin>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Benny,
+On Tue, 9 Oct 2012 15:54:46 -0700
+Jonathan Nieder <jrnieder@gmail.com> wrote:
 
-Am 31.10.2012 03:39, schrieb Benny Amorsen:
-> Frank Schäfer <fschaefer.oss@googlemail.com> writes:
->
->> This patch series adds support for USB bulk transfers to the em28xx driver.
-> I tried these patches on my Raspberry Pi, 3.6.1 kernel, Nanostick 290e
+> Hi,
+> 
+> In June, Martin-Éric Racine wrote:
+> 
+> > Since recent kernels, this ASUS W5F's built-in webcam fails to be
+> > detected. Gstreamer-based applications (Cheese,
+> > gstreamer-properties) immediately crash whenever trying to access
+> > the video device.
+> [...]
+> > video_source:sr[3246]: segfault at 0 ip   (null) sp ab36de1c error
+> > 14 in cheese[8048000+21000]
+> 
+> In July, Martin-Éric Racine wrote:
+> 
+> > As far as I can tell, yes, the modules in Jean-François' tarball work
+> > as-is to fix the problem.
+> [...]
+> > [   11.834852] gspca_main: v2.15.18 registered
+> > [   11.844262] gspca_main: vc032x-2.15.18 probing 0ac8:0321
+> > [   11.844682] gspca_vc032x: vc0321 check sensor header 2c
+> > [   11.850304] gspca_vc032x: Sensor ID 3130 (0)
+> > [   11.850309] gspca_vc032x: Find Sensor PO3130NC
+> > [   11.851809] gspca_main: video0 created
+> >
+> > Backport would be needed against 3.2.21 as this is what Debian will
+> > (probably) release with.
+> 
+> Sorry to have lost track of this.  Do you know what patch fixed it?
+> Does 3.5.y from experimental work?
+> 
+> Curious,
+> Jonathan
 
-Thank you for testing !
+Hi Jonathan,
 
-> options em28xx prefer_bulk=1 core_debug=1 usb_debug=1
-> options em28xx_dvb debug=1
->
-> [    5.469510] em28xx: New device PCTV Systems PCTV 290e @ 480 Mbps (2013:024f, interface 0, class 0)
-> [    5.890637] em28xx: DVB interface 0 found
-> [    6.025292] em28xx #0: chip ID is em28174
-> [    6.515383] em28xx #0: Identified as PCTV nanoStick T2 290e (card=78)
-> [    6.567066] em28xx #0: v4l2 driver version 0.1.3
-> [    6.614720] em28xx #0 em28xx_set_alternate :minimum isoc packet size: 2888 (alt=0)
-> [    6.663064] em28xx #0 em28xx_set_alternate :setting alternate 0 with wMaxPacketSize=0
-> [    6.715934] em28xx #0 em28xx_accumulator_set :em28xx Scale: (1,1)-(179,143)
-> [    6.765694] em28xx #0 em28xx_capture_area_set :em28xx Area Set: (180,144)
-> [    6.793060] em28xx #0: V4L2 video device registered as video0
-> [    6.808200] em28xx #0 em28xx_alloc_urbs :em28xx: called em28xx_alloc_isoc in mode 2
-> [    6.819456] em28xx #0: no endpoint for DVB mode and transfer type 1
-> [    6.829283] em28xx: Failed to pre-allocate USB transfer buffers for DVB.
-> [    6.839454] em28xx: probe of 1-1.3.1:1.0 failed with error -22
-> [    6.852511] usbcore: registered new interface driver em28xx
-> [    7.255738] em28xx #0 em28xx_accumulator_set :em28xx Scale: (1,1)-(179,143)
-> [    7.291575] em28xx #0 em28xx_capture_area_set :em28xx Area Set: (180,144)
-> [    7.326200] em28xx #0 em28xx_uninit_usb_xfer :em28xx: called em28xx_uninit_usb_xfer in mode 1
->
-> Is the Nanostick 290e just fundamentally incompatible with bulk
-> transfers, or is there hope yet?
+I tried to prepare a patch set for the vc032x, but testing with
+Martin-Éric stopped  mid-july, so I have nothing to propose yet. I'm
+waiting for some other vc0321+po3130nc owner and continue the tests...
 
-It seems like your device has no bulk endpoint for DVB.
-What does lsusb say ?
-
-The module parameter is called prefer_bulk, but what it actually does is
-"force bulk" (which doesn't make much sense when the device has no bulk
-endpoints).
-I will fix this in v2 of the patch series.
-
-> It works great with isochronous transfers on my PC and the Fedora
-> kernel, but the Raspberry USB host blows up when trying to do
-> isochronous mode.
-
-Is this a regression caused by patches or a general issue with the
-Raspberry board ?
-
-Regards,
-Frank
-
-> /Benny
-
-
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
