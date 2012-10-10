@@ -1,433 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp208.alice.it ([82.57.200.104]:42493 "EHLO smtp208.alice.it"
+Received: from mx1.redhat.com ([209.132.183.28]:13317 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756301Ab2JJNj3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 09:39:29 -0400
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Aapo Tahkola <aet@rasterburn.org>, CityK <cityk@rogers.com>
-Subject: [PATCH 1/5] contrib: add some scripts to extract m920x firmwares from USB dumps
-Date: Wed, 10 Oct 2012 15:39:18 +0200
-Message-Id: <1349876363-12098-2-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1349876363-12098-1-git-send-email-ospite@studenti.unina.it>
-References: <1349876363-12098-1-git-send-email-ospite@studenti.unina.it>
+	id S1754050Ab2JJO5g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 10:57:36 -0400
+Date: Wed, 10 Oct 2012 11:57:03 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
+Message-ID: <20121010115703.7a72fdd1@redhat.com>
+In-Reply-To: <1909082.6p5inUAuOH@avalon>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
+	<1744244.z7BseID5vc@avalon>
+	<20121010104522.53dabe5e@redhat.com>
+	<1909082.6p5inUAuOH@avalon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Aapo Tahkola <aet@rasterburn.org>
+Em Wed, 10 Oct 2012 16:48 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Signed-off-by: Aapo Tahkola <aet@rasterburn.org>
----
- contrib/m920x/m920x_parse.pl       |  277 ++++++++++++++++++++++++++++++++++++
- contrib/m920x/m920x_sp_firmware.pl |  115 +++++++++++++++
- 2 files changed, 392 insertions(+)
- create mode 100755 contrib/m920x/m920x_parse.pl
- create mode 100755 contrib/m920x/m920x_sp_firmware.pl
+> Hi Mauro,
+> 
+> On Wednesday 10 October 2012 10:45:22 Mauro Carvalho Chehab wrote:
+> > Em Wed, 10 Oct 2012 14:54 +0200 Laurent Pinchart escreveu:
+> > > > Also, ideally OF-compatible (I2C) drivers should run with no platform
+> > > > data, but soc-camera is using I2C device platform data intensively. To
+> > > > avoid modifying the soc-camera core and all drivers, I also trigger on
+> > > > the
+> > > > BUS_NOTIFY_BIND_DRIVER event and assign a reference to the dynamically
+> > > > created platform data to the I2C device. Would we also want to do this
+> > > > for
+> > > > all V4L2 bridge drivers? We could call this a "prepare" callback or
+> > > > something similar...
+> > > 
+> > > If that's going to be an interim solution only I'm fine with keeping it in
+> > > soc-camera.
+> > 
+> > I'm far from being an OF expert, but why do we need to export I2C devices to
+> > DT/OF? On my understanding, it is the bridge code that should be
+> > responsible for detecting, binding and initializing the proper I2C devices.
+> > On several cases, it is impossible or it would cause lots of ugly hacks if
+> > we ever try to move away from platform data stuff, as only the bridge
+> > driver knows what initialization is needed for an specific I2C driver.
+> 
+> In a nutshell, a DT-based platform doesn't have any board code (except in rare 
+> cases, but let's not get into that), and thus doesn't pass any platform data 
+> structure to drivers. However, drivers receive a DT node, which contains a 
+> hierarchical description of the hardware, and parse those to extract 
+> information necessary to configure the device.
+> 
+> One very important point to keep in mind here is that the DT is not Linux-
+> specific. DT bindings are designed to be portable, and thus must only contain 
+> hardware descriptions, without any OS-specific information or policy 
+> information. For instance information such as the maximum video buffers size 
+> is not allowed in the DT.
+> 
+> The DT is used both to provide platform data to drivers and to instantiate 
+> devices. I2C device DT nodes are stored as children of the I2C bus master DT 
+> node, and are automatically instantiated by the I2C bus master. This is a 
+> significant change compared to our current situation where the V4L2 bridge 
+> driver receives an array of I2C board information structures and instatiates 
+> the devices itself. Most of the DT support work will go in supporting that new 
+> instantiation mechanism. The bridge driver doesn't control instantiation of 
+> the I2C devices anymore, but need to bind with them at runtime.
+> 
+> > To make things more complex, it is expected that most I2C drivers to be arch
+> > independent, and they should be allowed to be used by a personal computer
+> > or by an embedded device.
+> 
+> Agreed. That's why platform data structures won't go away anytime soon, a PCI 
+> bridge driver for hardware that contain I2C devices will still instantiate the 
+> I2C devices itself. We don't plan to or even want to get rid of that 
+> mechanism, as there are perfectly valid use cases. However, for DT-based 
+> embedded platforms, we need to support a new instantiation mechanism.
+> 
+> > Let me give 2 such examples:
+> > 
+> > 	- ir-i2c-kbd driver supports lots of IR devices. Platform_data is needed
+> > to specify what hardware will actually be used, and what should be the
+> > default Remote Controller keymap;
+> 
+> That driver isn't used on embedded platforms so it doesn't need to be changed 
+> now.
+> 
+> > 	- Sensor drivers like ov2940 is needed by soc_camera and by other
+> > webcam drivers like em28xx. The setup for em28xx should be completely
+> > different than the one for soc_camera: the initial registers init sequence
+> > is different for both. As several registers there aren't properly
+> > documented, there's no easy way to parametrize the configuration.
+> 
+> Such drivers will need to support both DT-based platform data and structure-
+> based platform data. They will likely parse the DT node and fill a platform 
+> data structure, to avoid duplicating initialization code.
+> 
+> Please note that the new subdevs instantiation mechanism needed for DT will 
+> need to handle any instantiation order, as we can't guarantee the I2C device 
+> and bridge device instantiation order with DT. It should thus then support the 
+> current instantiation order we use for PCI and USB platforms.
+> 
+> > So, for me, we should not expose the I2C devices directly on OF; it should,
+> > instead, see just the bridge, and let the bridge to map the needed I2C
+> > devices using the needed platform_data.
+> 
+> We can't do that, there will be no platform data anymore with DT-based 
+> platforms.
+> 
+> As a summary, platform data structures won't go away, I2C drivers that need to 
+> work both on DT-based and non-DT-based platforms will need to support both the 
+> DT and platform data structures to get platform data. PCI and USB bridges will 
+> still instantiate their I2C devices, and binding between the I2C devices and 
+> the bridge can either be handled with two different instantiation mechanisms 
+> (the new one for DT platforms, with runtime bindings, and the existing one for 
+> non-DT platforms, with binding at instantiation time) or move to a single 
+> runtime binding mechanism. It's too early to know which solution will be 
+> simpler.
+> 
 
-diff --git a/contrib/m920x/m920x_parse.pl b/contrib/m920x/m920x_parse.pl
-new file mode 100755
-index 0000000..135ed5a
---- /dev/null
-+++ b/contrib/m920x/m920x_parse.pl
-@@ -0,0 +1,277 @@
-+#!/usr/bin/perl
-+#
-+# This ULi M920x specific script processes usbsnoop log files (as well as those which have been parsed by mrec's parser.pl utility).
-+# Taken from http://www.linuxtv.org/wiki/index.php/ULi_M920x_parse
-+
-+use Getopt::Std;
-+
-+sub expand_string {
-+	my @arr = ();
-+	my ($str) = @_;
-+
-+	if (length($str) == 8) {
-+		push(@arr, substr($str, 0, 2));
-+		push(@arr, substr($str, 2, 2));
-+		push(@arr, substr($str, 4, 2));
-+		push(@arr, substr($str, 6, 2));
-+	}elsif(length($str) == 4) {
-+		push(@arr, substr($str, 0, 2));
-+		push(@arr, substr($str, 2, 2));
-+	}elsif(length($str) == 2) {
-+		push(@arr, $str);
-+	}elsif(length($str) == 1) {
-+		return;
-+	}
-+	return @arr;
-+}
-+
-+sub expand_string_long {
-+	my @bytes = ();
-+	my (@str) = @_;
-+
-+	foreach(@str) {
-+		#@arr = expand_string($_);
-+		#foreach(@arr){
-+		#	push(@bytes, $_);
-+		#}
-+		@bytes = ( @bytes, expand_string($_) );
-+	}
-+
-+	return @bytes;
-+}
-+
-+sub print_array_bytes {
-+	my (@str) = @_;
-+
-+	foreach(expand_string_long(@str)){
-+		print "$_ ";
-+	}
-+}
-+
-+sub print_bytes {
-+	my ($str) = @_;
-+
-+	print_array_bytes(split(/ /, $str));
-+}
-+
-+sub check {
-+	my ($cmd, @bytes) = @_;
-+	my @cmp;
-+	my $i;
-+	#print "cmd <$cmd>\n";
-+	my $fail = 0;
-+
-+	@cmp = split(/ /, $cmd);
-+	for ($i = 0; $i < scalar(@cmp); $i++) {
-+		#print "check $bytes[$i] vs $cmp[$i]\n";
-+		if ($cmp[$i] == "-1") {
-+			next;
-+		}
-+
-+		if (not($bytes[$i] =~ m/$cmp[$i]/)) {
-+			$fail = 1;
-+			print "($bytes[$i]!=$cmp[$i], $i)";
-+		}
-+	}
-+	if ($fail) {
-+		print "\n";
-+		print_array_bytes(@bytes);
-+		print "\n$cmd\n";
-+	}
-+}
-+
-+sub get_line {
-+	my ($cmd) = @_; # xxx: could be more flexible
-+	my @ret;
-+	my @cmp;
-+	my $i;
-+
-+	again:
-+	while($line = <STDIN>) {
-+		#001295:  OUT: 000002 ms 135775 ms 40 23 c0 00 80 00 00 00 >>>
-+		if($input eq "us" && $line =~ m/\S+:  \S+: \S+ ms \S+ ms ([a-fA-F0-9 ]+)/) {
-+			@ret = split(/ /, $1); $foo = $1;
-+			@ret[2,3,4,5,6,7] = @ret[3,2,5,4,7,6];
-+			last;
-+		}
-+
-+		if($input eq "um" && $line =~ m/\S+ \S+ \S+ \S+ s ([a-fA-F0-9 ]+)/) {
-+			@ret = expand_string_long(split(/ /, $1)); $foo = $1;
-+			last;
-+		}
-+	}
-+	@cmp = split(/ /, $cmd);
-+	for ($i = 0; $i < scalar(@cmp); $i++) {
-+		if ($cmp[$i] == "-1") {
-+			next;
-+		}
-+
-+		if (not($cmp[$i] eq $ret[$i])) {
-+			#print "fail\n";
-+			goto again;
-+		}
-+	}
-+
-+	return @ret;
-+}
-+
-+sub us_get_write {
-+	#print "<$line>\n";
-+	if($input == "us" && $line =~ m/>>>\s+([a-fA-F0-9 ]+)/) {
-+		return split(/ /, $1);
-+	}
-+	if($input == "um") {
-+		if($line =~ m/\S+ \S+ \S+ \S+ \S+ \S+ \S+ \S+ \S+ \S+ \S+ = ([a-fA-F0-9 ]+)/) {
-+			#print "read match $line\n";
-+			return expand_string_long(split(/ /, $1));
-+		}
-+	}
-+}
-+
-+sub get_read {
-+	#print "<$line>\n";
-+	if($input == "us" && $line =~ m/<<<  ([a-fA-F0-9 ]+)/) {
-+		return split(/ /, $1);
-+	}
-+	if($input == "um") {
-+		while($line = <STDIN>) {
-+			if($line =~ m/\S+ \S+ \S+ \S+ \S+ \S+ = ([a-fA-F0-9 ]+)/) {
-+				return expand_string_long(split(/ /, $1));
-+			}
-+
-+		}
-+	}
-+}
-+
-+sub usage {
-+	print STDERR << "EOF";
-+
-+	-i	um (usbmon)
-+		us (usb snoop)
-+		sp (snoopy pro)
-+
-+	-m	fw (extract firmware)
-+		i2c (show i2c traffic)
-+EOF
-+exit;
-+}
-+
-+getopts("m:i:", \%opt ) or usage();
-+
-+$mode = $opt{m};
-+$input = $opt{i};
-+
-+if ($input != "um" && $input != "us" && $input != "sp") {
-+	usage();
-+}
-+
-+if ($mode != "fw" && $mode != "i2c") {
-+	usage();
-+}
-+
-+if ($mode eq "fw") {
-+	open(out, ">fw") || die "Can't open fw";
-+
-+	while(@bytes = get_line()) {
-+		if(scalar(@bytes) <= 1) {
-+			last;
-+		}
-+
-+		$len = hex($bytes[6] . $bytes[7]);
-+		if ($len < 32) {
-+			next;
-+		}
-+
-+		@fw_bytes = us_get_write();
-+		if ($len != scalar(@fw_bytes)) {
-+			#note: usbmon will not log bulk writes longer than 32 bytes by default
-+			print "bulk size doesn't match! Check usbmon.\n";
-+			print $len . " != " . scalar(@fw_bytes) . "\n";
-+			exit(0);
-+		}
-+		print out pack("v", hex($bytes[2] . $bytes[3]));
-+		print out pack("v", hex($bytes[4] . $bytes[5]));
-+		print out pack("v", scalar(@fw_bytes));
-+
-+		foreach(@fw_bytes) {
-+			print out pack("C", hex($_));
-+		}
-+	}
-+	exit(1);
-+}
-+
-+while(@bytes = get_line("-1")) {
-+	if(scalar(@bytes) <= 1) {
-+		last;
-+	}
-+
-+	$master_line = $. - 1;
-+
-+	if ($bytes[0] == "40" && $bytes[1] == "23") {
-+
-+		if ($bytes[4] == "80" || $bytes[4] == "00") {
-+			my $multibyte = 0;
-+			my $addr;
-+
-+			$addr = $bytes[2];
-+
-+			printf "%06d: ", $master_line;
-+			print "addr $addr ";
-+
-+			if (hex($addr) & 0x1) {
-+				print "Invalid address\n";
-+			}
-+
-+			@bytes = get_line("40 23");
-+
-+			$reg = $bytes[2];
-+			if ($bytes[4] == "80") {
-+				$multibyte = 1;
-+			} else {
-+				@bytes = get_line("40 23");
-+			}
-+			#if ($bytes[4] != "40") {
-+			#	print "(missing 40)";
-+			#}
-+
-+			if ($bytes[4] == "80") {
-+				if ($multibyte == 0) {
-+					$raddr = sprintf("%02x", hex($addr) | 0x1);
-+
-+					check("40 23 $raddr 00 80 00 00 00", @bytes);
-+
-+					@bytes = get_line("c0 23");
-+					print "reg $reg = ";
-+				} else {
-+					print "$reg = ";
-+					@bytes = get_line("c0 23");
-+					while ($bytes[4] == "21") {
-+						check("c0 23 00 00 21 00 -1 -1", @bytes);
-+
-+						@bytes = get_read();
-+						print_array_bytes(@bytes);
-+
-+						@bytes = get_line("c0 23");
-+					}
-+				}
-+
-+				check("c0 23 -1 00 60 00 -1 -1", @bytes);
-+
-+				@bytes = get_read();
-+				print_array_bytes(@bytes);
-+				print "read\n";
-+
-+			} else {
-+				check("40 23 -1 00 4|00 00 00 00", @bytes);
-+				print "reg $reg = $bytes[2]";
-+
-+				while ($bytes[4] != "40") {
-+					@bytes = get_line("40 23");
-+					check("40 23 -1 00 4|00 00 00 00", @bytes);
-+					print " $bytes[2]";
-+				}
-+				print "\n";
-+			}
-+		}
-+	}
-+}
-diff --git a/contrib/m920x/m920x_sp_firmware.pl b/contrib/m920x/m920x_sp_firmware.pl
-new file mode 100755
-index 0000000..3c1f0fd
---- /dev/null
-+++ b/contrib/m920x/m920x_sp_firmware.pl
-@@ -0,0 +1,115 @@
-+#!/usr/bin/perl
-+#
-+# This script converts the output from SnoopyPro's log window into a M920x driver compatible binary form.
-+# Taken from http://www.linuxtv.org/wiki/index.php/ULi_M920x_sp_firmware
-+
-+sub get_line {
-+
-+
-+	while($line = <STDIN>) {
-+		if($line =~ m/\S+ \S+ \S+ \S+ \S+ \S+ \S+ \S+ \S+ \S+ \S+/) {
-+			#print "returning line $line";
-+			return $line;
-+		}else{
-+			#print "not matched $line\n";
-+		}
-+	}
-+
-+	#exit;
-+}
-+
-+sub get_line_read {
-+
-+	while($line = <STDIN>) {
-+
-+		#d5748560 78669980 C Ci:004:00 0 1 = 50
-+		#d3ea8260 44357030 C Ci:004:00 0 1 = bc
-+		if($line =~ m/\S+ \S+ C \S+ \S+ (\S+) = (\S+)/) {
-+			return $2;
-+		}else{
-+			#print "not matched $line\n";
-+		}
-+	}
-+
-+}
-+
-+$linenum = 0;
-+sub get_tf_data {
-+	$full = "";
-+
-+	$line = <STDIN>; $linenum++;
-+	while($line =~ m/^\S\S\S\S: (.+)/) {
-+		$full .= $1;
-+		#print "$1";
-+		$line = <STDIN>; $linenum++;
-+	}
-+	return $full;
-+}
-+
-+open(out,">fw") || die "Can't open fw";
-+
-+sub write_bytes {
-+	my($str) = @_;
-+
-+	#print "ds $str sd\n";
-+
-+	@bytes = split(/ /, $str);
-+	foreach(@bytes){
-+		#print "$_\n";
-+		print out pack("C", hex($_));
-+	}
-+
-+	#exit(1);
-+}
-+
-+sub to_words {
-+	my($str) = @_;
-+
-+	print "ds $str sd\n";
-+
-+	@bytes = split(/\S+ \S+/, $str);
-+	foreach(@bytes){
-+		print "$_\n";
-+		print out pack("v", hex($_));
-+	}
-+
-+	exit(1);
-+}
-+
-+while($line = <STDIN>) { $linenum++;
-+
-+	if($line =~ m/SetupPacket:/) {
-+		$setup_linenum = $linenum;
-+		$setup = get_tf_data();
-+
-+		#to_words($setup);
-+
-+		#write_bytes($setup);
-+
-+		#print "$line\n";
-+
-+		while($line = <STDIN>) { $linenum++;
-+			if($line =~ m/TransferBuffer: 0x00000040/) {
-+				#print "$setup, $setup_linenum\n";
-+
-+				@bytes = split(/ /, $setup);
-+				print out pack("v", hex($bytes[3] . $bytes[2]));
-+				print out pack("v", hex($bytes[5] . $bytes[4]));
-+				print out pack("v", hex("0x40"));
-+
-+				$lid = get_tf_data();
-+				write_bytes($lid);
-+				#print $lid;
-+				#print "\n";
-+
-+				last;
-+			}elsif($line =~ m/No TransferBuffer/) {
-+				last;
-+			}elsif($line =~ m/TransferBuffer:/) {
-+				last;
-+			}
-+
-+		}
-+	}
-+
-+}
--- 
-1.7.10.4
+It seems that you're designing a Frankstein monster with DT/OF and I2C.
 
+Increasing each I2C driver code to support both platform_data and DT way
+of doing things seems a huge amount of code that will be added, and I really
+fail to understand why this is needed, in the first place.
+
+Ok, I understand that OF specs are OS-independent, but I suspect that
+they don't dictate how things should be wired internally at the OS.
+
+So, if DT/OF is so restrictive, and require its own way of doing things, 
+instead of changing everything with the risks of adding (more) regressions
+to platform drivers, why don't just create a shell driver that will
+encapsulate DT/OF specific stuff into the platform_data?
+
+Regards,
+Mauro
