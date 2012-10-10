@@ -1,177 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from db3ehsobe001.messaging.microsoft.com ([213.199.154.139]:28611
-	"EHLO db3outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752262Ab2JIODC convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Oct 2012 10:03:02 -0400
-From: Fabio Estevam <fabio.estevam@freescale.com>
-To: <g.liakhovetski@gmx.de>
-CC: <mchehab@infradead.org>, <kernel@pengutronix.de>,
-	<gcembed@gmail.com>, <javier.martin@vista-silicon.com>,
-	<linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linux@arm.linux.org.uk>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: =?UTF-8?q?=5BPATCH=20v3=202/2=5D=20=5Bmedia=5D=3A=20mx2=5Fcamera=3A=20Fix=20regression=20caused=20by=20clock=20conversion?=
-Date: Tue, 9 Oct 2012 11:02:32 -0300
-Message-ID: <1349791352-9829-1-git-send-email-fabio.estevam@freescale.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:9065 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932219Ab2JJRHb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 13:07:31 -0400
+Message-id: <5075AB4F.3030709@samsung.com>
+Date: Wed, 10 Oct 2012 19:07:27 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kernel-janitors@vger.kernel.org, Julia.Lawall@lip6.fr,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 4/14] drivers/media/v4l2-core/videobuf2-core.c: fix error
+ return code
+References: <1346945041-26676-10-git-send-email-peter.senna@gmail.com>
+ <20121006081742.48d5e5e8@infradead.org>
+ <CA+MoWDp6nMccVQxm93ht-4vxYN4HTACW+H-Xa9onaykwQFwyWw@mail.gmail.com>
+In-reply-to: <CA+MoWDp6nMccVQxm93ht-4vxYN4HTACW+H-Xa9onaykwQFwyWw@mail.gmail.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since mx27 transitioned to the commmon clock framework in 3.5, the correct way
-to acquire the csi clock is to get csi_ahb and csi_per clocks separately.
+Hi Peter,
 
-By not doing so the camera sensor does not probe correctly:
+On 10/10/2012 06:47 PM, Peter Senna Tschudin wrote:
+>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>>> index 4da3df6..f6bc240 100644
+>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>>> @@ -1876,8 +1876,10 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+>>>        */
+>>>       for (i = 0; i < q->num_buffers; i++) {
+>>>               fileio->bufs[i].vaddr = vb2_plane_vaddr(q->bufs[i], 0);
+>>> -             if (fileio->bufs[i].vaddr == NULL)
+>>> +             if (fileio->bufs[i].vaddr == NULL) {
+>>> +                     ret = -EFAULT;
+>>>                       goto err_reqbufs;
+>>> +             }
+>>
+>> Had you test this patch? I suspect it breaks the driver, as there are failures under
+>> streaming handling that are acceptable, as it may indicate that userspace was not
+>> able to handle all queued frames in time. On such cases, what the Kernel does is to
+>> just discard the frame. Userspace is able to detect it, by looking inside the timestamp
+>> added on each frame.
+> 
+> No, I have not tested it. This was the only place the function was
+> returning non negative value for error path, so looked as a bug to me.
+> May I add a comment about returning non-negative value is intended
+> there?
 
-soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
-mx2-camera mx2-camera.0: Camera driver attached to camera 0
-ov2640 0-0030: Product ID error fb:fb
-mx2-camera mx2-camera.0: Camera driver detached from camera 0
-mx2-camera mx2-camera.0: MX2 Camera (CSI) driver probed, clock frequency: 66500000
+There are several drivers depending on core modules like videobuf2. By making
+random changes for something that _looks like_ a bug to you and not verifying
+it by testing with at least one driver you are potentially causing trouble to
+developers that are already busy fixing real bugs or working on new features.
 
-Adapt the mx2_camera driver to the new clock framework and make it functional
-again.
+I appreciate your help but I also don't want to see _any_ untested, not trivial
+patches for core modules like videobuf2 being applied.
 
-Tested-by: Gaëtan Carlier <gcembed@gmail.com>
-Tested-by: Javier Martin <javier.martin@vista-silicon.com>
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
----
-Changes since v2:
-- Fix clock error handling code as pointed out by Russell King
-Changes since v1:
-- Rebased against linux-next 20121008.
- drivers/media/platform/soc_camera/mx2_camera.c |   50 ++++++++++++++++++------
- 1 file changed, 38 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-index 403d7f1..382b305 100644
---- a/drivers/media/platform/soc_camera/mx2_camera.c
-+++ b/drivers/media/platform/soc_camera/mx2_camera.c
-@@ -272,7 +272,8 @@ struct mx2_camera_dev {
- 	struct device		*dev;
- 	struct soc_camera_host	soc_host;
- 	struct soc_camera_device *icd;
--	struct clk		*clk_csi, *clk_emma_ahb, *clk_emma_ipg;
-+	struct clk		*clk_emma_ahb, *clk_emma_ipg;
-+	struct clk		*clk_csi_ahb, *clk_csi_per;
- 
- 	void __iomem		*base_csi, *base_emma;
- 
-@@ -432,7 +433,8 @@ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
- {
- 	unsigned long flags;
- 
--	clk_disable_unprepare(pcdev->clk_csi);
-+	clk_disable_unprepare(pcdev->clk_csi_ahb);
-+	clk_disable_unprepare(pcdev->clk_csi_per);
- 	writel(0, pcdev->base_csi + CSICR1);
- 	if (cpu_is_mx27()) {
- 		writel(0, pcdev->base_emma + PRP_CNTL);
-@@ -460,10 +462,14 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
- 	if (pcdev->icd)
- 		return -EBUSY;
- 
--	ret = clk_prepare_enable(pcdev->clk_csi);
-+	ret = clk_prepare_enable(pcdev->clk_csi_ahb);
- 	if (ret < 0)
- 		return ret;
- 
-+	ret = clk_prepare_enable(pcdev->clk_csi_per);
-+	if (ret < 0)
-+		goto exit_csi_ahb;
-+
- 	csicr1 = CSICR1_MCLKEN;
- 
- 	if (cpu_is_mx27())
-@@ -480,6 +486,11 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
- 		 icd->devnum);
- 
- 	return 0;
-+
-+exit_csi_ahb:
-+	clk_disable_unprepare(pcdev->clk_csi_ahb);
-+
-+	return ret;
- }
- 
- static void mx2_camera_remove_device(struct soc_camera_device *icd)
-@@ -1725,27 +1736,35 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 		goto exit;
- 	}
- 
--	pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
--	if (IS_ERR(pcdev->clk_csi)) {
--		dev_err(&pdev->dev, "Could not get csi clock\n");
--		err = PTR_ERR(pcdev->clk_csi);
-+	pcdev->clk_csi_ahb = devm_clk_get(&pdev->dev, "ahb");
-+	if (IS_ERR(pcdev->clk_csi_ahb)) {
-+		dev_err(&pdev->dev, "Could not get csi ahb clock\n");
-+		err = PTR_ERR(pcdev->clk_csi_ahb);
- 		goto exit;
- 	}
- 
-+	pcdev->clk_csi_per = devm_clk_get(&pdev->dev, "per");
-+	if (IS_ERR(pcdev->clk_csi_per)) {
-+		dev_err(&pdev->dev, "Could not get csi per clock\n");
-+		err = PTR_ERR(pcdev->clk_csi_per);
-+		goto exit_csi_ahb;
-+	}
-+
- 	pcdev->pdata = pdev->dev.platform_data;
- 	if (pcdev->pdata) {
- 		long rate;
- 
- 		pcdev->platform_flags = pcdev->pdata->flags;
- 
--		rate = clk_round_rate(pcdev->clk_csi, pcdev->pdata->clk * 2);
-+		rate = clk_round_rate(pcdev->clk_csi_per,
-+						pcdev->pdata->clk * 2);
- 		if (rate <= 0) {
- 			err = -ENODEV;
--			goto exit;
-+			goto exit_csi_per;
- 		}
--		err = clk_set_rate(pcdev->clk_csi, rate);
-+		err = clk_set_rate(pcdev->clk_csi_per, rate);
- 		if (err < 0)
--			goto exit;
-+			goto exit_csi_per;
- 	}
- 
- 	INIT_LIST_HEAD(&pcdev->capture);
-@@ -1801,7 +1820,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 		goto exit_free_emma;
- 
- 	dev_info(&pdev->dev, "MX2 Camera (CSI) driver probed, clock frequency: %ld\n",
--			clk_get_rate(pcdev->clk_csi));
-+			clk_get_rate(pcdev->clk_csi_per));
- 
- 	return 0;
- 
-@@ -1812,6 +1831,10 @@ eallocctx:
- 		clk_disable_unprepare(pcdev->clk_emma_ipg);
- 		clk_disable_unprepare(pcdev->clk_emma_ahb);
- 	}
-+exit_csi_per:
-+	clk_disable_unprepare(pcdev->clk_csi_per);
-+exit_csi_ahb:
-+	clk_disable_unprepare(pcdev->clk_csi_ahb);
- exit:
- 	return err;
- }
-@@ -1831,6 +1854,9 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
- 		clk_disable_unprepare(pcdev->clk_emma_ahb);
- 	}
- 
-+	clk_disable_unprepare(pcdev->clk_csi_per);
-+	clk_disable_unprepare(pcdev->clk_csi_ahb);
-+
- 	dev_info(&pdev->dev, "MX2 Camera driver unloaded\n");
- 
- 	return 0;
--- 
-1.7.9.5
-
+--
+Thanks,
+Sylwester
 
