@@ -1,50 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26009 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751052Ab2J0Ulw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:41:52 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKfqA9019752
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:41:52 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 11/68] [media] cx23885-alsa: fix a false gcc warning at dprintk()
-Date: Sat, 27 Oct 2012 18:40:29 -0200
-Message-Id: <1351370486-29040-12-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout3.samsung.com ([203.254.224.33]:44865 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755248Ab2JJOtw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 10:49:52 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBO0035YMIURZQ0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:49:51 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MBO002YDME0EC70@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:49:51 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: [PATCHv10 04/26] v4l: vb: remove warnings about MEMORY_DMABUF
+Date: Wed, 10 Oct 2012 16:46:23 +0200
+Message-id: <1349880405-26049-5-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
+References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change dprintk logic to avoid the following warning:
-drivers/media/pci/cx23885/cx23885-alsa.c: In function 'cx23885_audio_register':
-drivers/media/pci/cx23885/cx23885-alsa.c:515:2: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
+From: Sumit Semwal <sumit.semwal@ti.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Adding DMABUF memory type causes videobuf to complain about not using it
+in some switch cases. This patch removes these warnings.
+
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/cx23885/cx23885-alsa.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/videobuf-core.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/media/pci/cx23885/cx23885-alsa.c b/drivers/media/pci/cx23885/cx23885-alsa.c
-index 7951692..c6c9bd5 100644
---- a/drivers/media/pci/cx23885/cx23885-alsa.c
-+++ b/drivers/media/pci/cx23885/cx23885-alsa.c
-@@ -45,8 +45,10 @@
+diff --git a/drivers/media/v4l2-core/videobuf-core.c b/drivers/media/v4l2-core/videobuf-core.c
+index bf7a326..5449e8a 100644
+--- a/drivers/media/v4l2-core/videobuf-core.c
++++ b/drivers/media/v4l2-core/videobuf-core.c
+@@ -335,6 +335,9 @@ static void videobuf_status(struct videobuf_queue *q, struct v4l2_buffer *b,
+ 	case V4L2_MEMORY_OVERLAY:
+ 		b->m.offset  = vb->boff;
+ 		break;
++	case V4L2_MEMORY_DMABUF:
++		/* DMABUF is not handled in videobuf framework */
++		break;
+ 	}
  
- #define AUDIO_SRAM_CHANNEL	SRAM_CH07
- 
--#define dprintk(level, fmt, arg...)	if (audio_debug >= level) \
--	printk(KERN_INFO "%s: " fmt, chip->dev->name , ## arg)
-+#define dprintk(level, fmt, arg...) do {				\
-+	if (audio_debug + 1 > level)					\
-+		printk(KERN_INFO "%s: " fmt, chip->dev->name , ## arg);	\
-+} while(0)
- 
- #define dprintk_core(level, fmt, arg...)	if (audio_debug >= level) \
- 	printk(KERN_DEBUG "%s: " fmt, chip->dev->name , ## arg)
+ 	b->flags    = 0;
+@@ -405,6 +408,7 @@ int __videobuf_mmap_setup(struct videobuf_queue *q,
+ 			break;
+ 		case V4L2_MEMORY_USERPTR:
+ 		case V4L2_MEMORY_OVERLAY:
++		case V4L2_MEMORY_DMABUF:
+ 			/* nothing */
+ 			break;
+ 		}
 -- 
-1.7.11.7
+1.7.9.5
 
