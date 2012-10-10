@@ -1,53 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from drsnuggles.stderr.nl ([94.142.244.14]:59633 "EHLO
-	drsnuggles.stderr.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002Ab2JOQhF (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:9664 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751008Ab2JJJeM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Oct 2012 12:37:05 -0400
-Date: Mon, 15 Oct 2012 18:37:01 +0200
-From: Matthijs Kooijman <matthijs@stdin.nl>
-To: Luis Henriques <luis.henriques@canonical.com>
-Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Stephan Raue <stephan@openelec.tv>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: (still) NULL pointer crashes with nuvoton_cir driver
-Message-ID: <20121015163701.GG5873@login.drsnuggles.stderr.nl>
-References: <20120815165153.GJ21274@login.drsnuggles.stderr.nl> <20121015110111.GD17159@login.drsnuggles.stderr.nl> <20121015123232.GA25969@hercules> <20121015144411.GB5873@login.drsnuggles.stderr.nl>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vKFfOv5t3oGVpiF+"
-Content-Disposition: inline
-In-Reply-To: <20121015144411.GB5873@login.drsnuggles.stderr.nl>
+	Wed, 10 Oct 2012 05:34:12 -0400
+Received: from eusync3.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBO003587XR0D70@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Oct 2012 10:34:39 +0100 (BST)
+Received: from [106.116.147.32] by eusync3.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MBO007IE7WYW6A0@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Oct 2012 10:34:10 +0100 (BST)
+Message-id: <50754110.9030702@samsung.com>
+Date: Wed, 10 Oct 2012 11:34:08 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Michael West <michael@iposs.co.nz>,
+	Jan Hoogenraad <jan-conceptronic@hoogenraad.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"a.hajda@samsung.com" <a.hajda@samsung.com>,
+	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"sw0312.kim@samsung.com" <sw0312.kim@samsung.com>
+Subject: Re: Media_build broken by [PATCH RFC v3 5/5] m5mols: Implement
+ .get_frame_desc subdev callback
+References: <1348674853-24596-1-git-send-email-s.nawrocki@samsung.com>
+ <201210081503.36502.hverkuil@xs4all.nl> <20121009220530.2025b1af@redhat.com>
+ <201210100827.26254.hverkuil@xs4all.nl>
+In-reply-to: <201210100827.26254.hverkuil@xs4all.nl>
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 10/10/2012 08:27 AM, Hans Verkuil wrote:
+>>>> diff --git a/drivers/media/i2c/m5mols/m5mols.h b/drivers/media/i2c/m5mols/m5mols.h
+>>>> index 4ab8b37..30654f5 100644
+>>>> --- a/drivers/media/i2c/m5mols/m5mols.h
+>>>> +++ b/drivers/media/i2c/m5mols/m5mols.h
+>>>> @@ -24,7 +24,7 @@
+>>>>   * determined by CAPP_JPEG_SIZE_MAX register.
+>>>>   */
+>>>>  #define M5MOLS_JPEG_TAGS_SIZE		0x20000
+>>>> -#define M5MOLS_MAIN_JPEG_SIZE_MAX	(5 * SZ_1M)
+>>>> +#define M5MOLS_MAIN_JPEG_SIZE_MAX	(5 * 1024 * 1024)
+>>
+>> Nah! Please don't do that! we shouldn't be patching a driver upstream
+>> just because it broke media_build. Also, fixing it there is as simple as
+>> adding something similar to this at compat.h:
+>>
+>> #ifndef SZ_1M
+>> 	#define SZ_1m (1024 * 1024)
+>> #endif
+> 
+> Actually, I prefer 1024 * 1024 over SZ_1M. The alternative patch is this:
+> 
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg53424.html
+> 
+> Note that the arm architecture will pull in linux/sizes.h, but the x86 arch
+> doesn't, so this driver won't compile with x86. It's a real driver bug that
+> has nothing to do with media_build.
+> 
+> So you need to merge one of these two patches to fix this problem. I prefer
+> the first, but the second is fine too.
 
---vKFfOv5t3oGVpiF+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Yes, there is a bug in a driver now, even though the driver compiles on 
+ARM, where linux/sizes.h is included indirectly, it won't build on other
+architectures where it's not the case. I'm not sure which patch is better,
+but one of them needs to be applied. Otherwise we're going to see bug 
+reports from people building kernel 3.6+ with allyesconfig, etc..
 
-Hey Luis,
+--
 
-seems we're not the only ones working on this, there's a partially
-overlapping patch in v3.6.2 for the ite-cir driver only:
-
-http://git.kernel.org/?p=linux/kernel/git/stable/linux-stable.git;a=commit;h=434f4d3f1209d4e4c8b0d577d1c809f349c4f0da
-
-Gr.
-
-Matthijs
-
---vKFfOv5t3oGVpiF+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAlB8O60ACgkQz0nQ5oovr7x7UgCfQts6TlibJcQMVDZtcHlXmWdf
-pzQAoInH/QkELiokZlYIREJ02AlnDhuc
-=d+yU
------END PGP SIGNATURE-----
-
---vKFfOv5t3oGVpiF+--
+Regards,
+Sylwester
