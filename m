@@ -1,111 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36284 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752342Ab2JBMaZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Oct 2012 08:30:25 -0400
-Message-ID: <506ADE45.6000708@iki.fi>
-Date: Tue, 02 Oct 2012 15:29:57 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35693 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751198Ab2JJXE1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 19:04:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Thomas Abraham <thomas.abraham@linaro.org>,
+	Tomasz Figa <t.figa@samsung.com>
+Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
+Date: Thu, 11 Oct 2012 01:05:10 +0200
+Message-ID: <27000679.ByCzfmu97G@avalon>
+In-Reply-To: <Pine.LNX.4.64.1210102229200.31291@axis700.grange>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <5075D947.3080903@gmail.com> <Pine.LNX.4.64.1210102229200.31291@axis700.grange>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Michael Krufky <mkrufky@linuxtv.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH RFC] em28xx: PCTV 520e switch tda18271 to tda18271c2dd
-References: <1349139145-22113-1-git-send-email-crope@iki.fi> <CAGoCfiwfTkTs1DPa0cWHLOgGcgS0Df3h7zZ=4YW51dr_AS78nQ@mail.gmail.com> <CAOcJUbw+ToEAaqKPx1phWsKdWvPRXUOhtWwm7VaESwkW=fpqyg@mail.gmail.com> <506ABA2B.3070908@iki.fi> <20121002080503.76869be7@redhat.com>
-In-Reply-To: <20121002080503.76869be7@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/02/2012 02:05 PM, Mauro Carvalho Chehab wrote:
-> Em Tue, 02 Oct 2012 12:55:55 +0300
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> On 10/02/2012 06:17 AM, Michael Krufky wrote:
->>> On Mon, Oct 1, 2012 at 9:58 PM, Devin Heitmueller
->>> <dheitmueller@kernellabs.com> wrote:
->>>> On Mon, Oct 1, 2012 at 8:52 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>>> New drxk firmware download does not work with tda18271. Actual
->>>>> reason is more drxk driver than tda18271. Anyhow, tda18271c2dd
->>>>> will work as it does not do as much I/O during attach than tda18271.
->>>>>
->>>>> Root of cause is tuner I/O during drx-k asynchronous firmware
->>>>> download. request_firmware_nowait()... :-/
->>>>
->>>> This seems like it's just changing the timing of the initialization
->>>> process, which isn't really any better than the "msleep(2000)".  It's
->>>> just dumb luck that it happens to work on the developer's system.
->>>>
->>>> Don't get me wrong, I agree with Michael that this whole situation is
->>>> ridiculous, but I don't see why swapping out the entire driver is a
->>>> reasonable fix.
->>>
->>> I just send out a patch entitled, "tda18271: prevent register access
->>> during attach() if delay_cal is set"   Antti, could you set
->>> tda18271_config.delay_cal = 1 with this patch applied and see if it
->>> solves your problem?
->>>
->>> Again, although this may solve the problem for this particular device,
->>> the *real* problem is this asynchronous firmware download in the demod
->>> driver.
->>>
->>> Nonetheless, Antti has been asking for this feature, to not allow
->>> register access during attach, I was against it and I have my reasons,
->>> but I believe that this patch is a fair compromise.
->>>
->>> After somebody can test it, I think we should merge this -- any comments?
->>>
->>> http://patchwork.linuxtv.org/patch/14799/
->>
->> I tested. It does not help. I also looked it more and it really bails
->> out with error much earlier, in function where it reads chip ID. That
->> makes me look the tda18271c2dd driver.
->
-> I saw Antti's logs: basically, tda18271_get_id() reads all registers at the
-> chip during attach(), returning -EINVAL if tda18271_read_regs(fe) can't
-> read the value for R_ID register.
->
-> Btw, why do you need to read 16 registers at once, instead of just reading
-> the needed register? read_extended and write operations are even more evil:
-> they read/write the full set of 39 registers on each operation. That seems
-> to be overkill, especially on places like tda18271_get_id(), where
-> all the driver is doing is to check for the ID register.
->
-> Worse than that, tda18271_get_id() doesn't even check if the read()
-> operation failed: it assumes that it will always work, letting the
-> switch(regs[R_ID]) to print a wrong message (device unknown) when
-> what actually failed where the 16 registers dump.
->
->> I found that for some reason
->> these drivers uses different method for register read. tda18271 uses I2C
->> transaction with 2 messages, write and read with REPEATED START
->> condition. tda18271c2dd driver is just simple I2C read. So which one is
->> correct?
->
-> That's due to the I2C locking schema: if you do two separate I2C
-> transfers, the I2C core will allow an event to happen between the
-> two operations. That typically causes troubles on read operations.
-> So, it is recommended to use just one i2c_transfer() call for read
-> operations that are mapped via a write and a read.
+Hi Guennadi,
 
-I know rather well how I2C works. As many messages you put to single 
-transfer those are aimed to do with REPEATED START condition without a 
-STOP. And naturally, when you split to multiple transactions then there 
-is STOP. STOP is send after the last I2C message in one transaction.
+On Wednesday 10 October 2012 22:32:22 Guennadi Liakhovetski wrote:
+> On Wed, 10 Oct 2012, Sylwester Nawrocki wrote:
+> > On 10/10/2012 03:25 PM, Laurent Pinchart wrote:
+> > > On Tuesday 09 October 2012 13:00:24 Hans Verkuil wrote:
+> > >> On Tue 9 October 2012 12:34:48 Sylwester Nawrocki wrote:
+> > >>> On 10/08/2012 11:40 AM, Guennadi Liakhovetski wrote:
+> > >>>> On Fri, 5 Oct 2012, Sylwester Nawrocki wrote:
+> > >>>>> I would really like to see more than one user until we add any core
+> > >>>>> code. No that it couldn't be changed afterwards, but it would be
+> > >>>>> nice to ensure the concepts are right and proven in real life.
+> > >>>> 
+> > >>>> Unfortunately I don't have any more systems on which I could easily
+> > >>>> enough try this. I've got a beagleboard with a camera, but I don't
+> > >>>> think I'm a particularly good candidate for implementing DT support
+> > >>>> for OMAP3 camera drivers;-) Apart from that I've only got soc-camera
+> > >>>> based systems, of which none are _really_ DT-ready... At best I could
+> > >>>> try an i.MX31 based board, but that doesn't have a very well
+> > >>>> developed .dts and that would be soc-camera too anyway.
+> > >>> 
+> > >>> I certainly wouldn't expect you would do all the job. I mean it would
+> > >>> be good to possibly have some other developers adding device tree
+> > >>> support based on that new bindings and new infrastructure related to
+> > >>> them.
+> > > 
+> > > As I mentioned in another e-mail, I plan to work on DT support for the
+> > > OMAP3 ISP, but I first need generic clock framework support for OMAP3.
+> > 
+> > OK, let's hope it's available soon.
+> > 
+> > >>> There have been recently some progress in device tree support for
+> > >>> Exynos SoCs, including common clock framework support and we hope to
+> > >>> add FDT support to the Samsung SoC camera devices during this kernel
+> > >>> cycle, based on the newly designed media bindings. This is going to be
+> > >>> a second attempt, after our initial RFC from May [1]. It would still
+> > >>> be SoC specific implementation, but not soc-camera based.
+> > >>> 
+> > >>> I wasn't a big fan of this asynchronous sub-devices probing, but it
+> > >>> now seems to be a most complete solution to me. I think it just need
+> > >>> to be done right at the v4l2-core so individual drivers don't get
+> > >>> complicated too much.
+> > >> 
+> > >> After investigating this some more I think I agree with that. There are
+> > >> some things where we should probably ask for advice from the i2c
+> > >> subsystem devs, I'm thinking of putting the driver back into the
+> > >> deferred-probe state in particular.
+> > > 
+> > > We might actually not need that, it might be easier to handle the
+> > > circular dependency problem from the other end. We could add a way
+> > > (ioctl, sysfs, ...) to force a V4L2 bridge driver to release its
+> > > subdevs. Once done, the subdev driver could be unloaded and/or the
+> > > subdev device unregistered, which would release the resources used by
+> > > the subdev, such as clocks. The bridge driver could then be
+> > > unregistered.
+> > 
+> > That sounds like an option. Perhaps it could be done by v4l2-core, e.g. a
+> > sysfs entry could be registered for a media or video device if driver
+> > requests it. I'm not sure if we should allow subdevs in "released" state,
+> > perhaps it's better to just unregister subdevs entirely right away ?
+> 
+> What speaks against holding a clock reference only during streaming, or at
+> least between open and close? Wouldn't that solve the problem naturally?
+> Yes, after giving up your reference to a clock at close() and re-acquiring
+> it at open() you will have to make sure the frequency hasn't change, resp.
+> adjust it, but I don't see it as a huge problem, I don't think many users
+> on embedded systems will compete for your camera master clock. And if they
+> do, you have a different problem, IMHO;-)
 
-But what I tried to say there was a different communication schema used 
-between the drivers. Other must (quite likely) be wrong. There is no any 
-mention about hacks. I don't see how that I2C locking you mention is 
-related, as it is *one* I2C transfer in question for both cases.
+That's an option as well. I'm a bit worried that it would make subdev drivers 
+more complex, as they would need to acquire/release resources in a more fine-
+grained fashion at runtime, and handle failures dynamically there instead of 
+doing it all at probe time. It could work though, I think we need to 
+experiment the possible solutions to find out which one is the best.
 
-Here is difference what I mean:
-tda18271: START c0|Ack|00|Ack|START c1|data read|NAck|STOP
-tda18271cc: START c1|data read|NAck|STOP
+Regardless of how we solve the circular dependencies issue at unregistration 
+time we will need an easy way for bridge drivers to bind to subdevs. I believe 
+that's orthogonal to the unregistration problem, so we can start working on 
+registration before knowing exactly how unregistration will be handled.
 
-regards
-Antti
+> > >> Creating v4l2-core support for this is crucial as it is quite complex
+> > >> and without core support this is going to be a nightmare for drivers.
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
