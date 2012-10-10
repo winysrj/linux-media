@@ -1,55 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:34267 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750739Ab2JOLBt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Oct 2012 07:01:49 -0400
-Message-id: <507BED18.3040509@samsung.com>
-Date: Mon, 15 Oct 2012 13:01:44 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Ritesh Kumar Solanki <r.solanki@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, kyungmin.park@samsung.com
-Subject: Re: [PATCH] [media] s5p-csis: Added RAW data format as the supported
- format.
-References: <1350294483-7417-1-git-send-email-r.solanki@samsung.com>
-In-reply-to: <1350294483-7417-1-git-send-email-r.solanki@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:29699 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752713Ab2JJALH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Oct 2012 20:11:07 -0400
+Date: Tue, 9 Oct 2012 21:11:04 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] [for 3.7] stk1160: Add support for S-Video input
+Message-ID: <20121009211104.31893c80@redhat.com>
+In-Reply-To: <20121009210446.2abf0059@redhat.com>
+References: <1349820063-21955-1-git-send-email-elezegarcia@gmail.com>
+	<20121009192540.61875a29@redhat.com>
+	<CALF0-+W-eGegmb2WPozG1qVhm7sa_E-vqZqt4x4veNCnY-BY1Q@mail.gmail.com>
+	<20121009210446.2abf0059@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ritesh,
+Em Tue, 9 Oct 2012 21:04:46 -0300
+Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
 
-On 10/15/2012 11:48 AM, Ritesh Kumar Solanki wrote:
-> csis can support jpeg, yuv and raw data format.
+> Em Tue, 9 Oct 2012 20:52:06 -0300
+> Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
 > 
-> Signed-off-by: Ritesh Kumar Solanki <r.solanki@samsung.com>
+> > On Tue, Oct 9, 2012 at 7:25 PM, Mauro Carvalho Chehab
+> > <mchehab@redhat.com> wrote:
+> > > Em Tue,  9 Oct 2012 19:01:03 -0300
+> > > Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
+> > >
 
-Thanks for the patch. I already have a patch adding all three
-raw Bayer formats (SGRBG8/10/12) at the driver and I plan it
-for v3.8. So I'd like to use it instead of your patch.
-I'll post it as soon as I get my development branch cleaned up.
+> > Let me know if you want me to change something.
 
-Regards,
-Sylwester
+Hmm... patchwork didn't get it. The MIME type for the attachment
+is wrong... it is "text/plain". That may explain why patchwork
+didn't get it. Could you please re-submit it with the patch
+inlined, or if you really can't do it, using the proper MIME
+types for patch?
 
-> ---
->  drivers/media/platform/s5p-fimc/mipi-csis.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.c b/drivers/media/platform/s5p-fimc/mipi-csis.c
-> index 2f73d9e..0205ae4 100644
-> --- a/drivers/media/platform/s5p-fimc/mipi-csis.c
-> +++ b/drivers/media/platform/s5p-fimc/mipi-csis.c
-> @@ -145,6 +145,10 @@ static const struct csis_pix_format s5pcsis_formats[] = {
->  		.code = V4L2_MBUS_FMT_JPEG_1X8,
->  		.fmt_reg = S5PCSIS_CFG_FMT_USER(1),
->  		.data_alignment = 32,
-> +	}, {
-> +		.code = V4L2_MBUS_FMT_SGRBG10_1X10,
-> +		.fmt_reg = S5PCSIS_CFG_FMT_RAW10,
-> +		.data_alignment = 24,
->  	},
->  };
+Thanks!
+Mauro
