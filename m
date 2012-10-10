@@ -1,64 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59416 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751541Ab2J0UmA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:42:00 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKfxuO004746
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:41:59 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 04/68] [media] rtl2832: get rid of warning: no previous prototype
-Date: Sat, 27 Oct 2012 18:40:22 -0200
-Message-Id: <1351370486-29040-5-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:42014 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753014Ab2JJDdq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 23:33:46 -0400
+Received: by mail-gg0-f174.google.com with SMTP id k5so17093ggd.19
+        for <linux-media@vger.kernel.org>; Tue, 09 Oct 2012 20:33:45 -0700 (PDT)
+From: Fabio Estevam <festevam@gmail.com>
+To: mchehab@infradead.org
+Cc: javier.martin@vista-silicon.com, linux-media@vger.kernel.org,
+	tj@kernel.org, kernel@pengutronix.de,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: [PATCH] [media] coda: Do not use __cancel_delayed_work()
+Date: Wed, 10 Oct 2012 00:33:29 -0300
+Message-Id: <1349840009-14014-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/dvb-frontends/rtl2832.c:268:5: warning: no previous prototype for 'rtl2832_rd_demod_reg' [-Wmissing-prototypes]
-drivers/media/dvb-frontends/rtl2832.c:308:5: warning: no previous prototype for 'rtl2832_wr_demod_reg' [-Wmissing-prototypes]
-drivers/media/dvb-frontends/rtl2832.c:513:5: warning: no previous prototype for 'rtl2832_get_tune_settings' [-Wmissing-prototypes]
+From: Fabio Estevam <fabio.estevam@freescale.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+commit 136b5721d (workqueue: deprecate __cancel_delayed_work()) made 
+__cancel_delayed_work deprecated. Use cancel_delayed_work instead and get rid of
+the following warning: 
+
+drivers/media/platform/coda.c:1543: warning: '__cancel_delayed_work' is deprecated (declared at include/linux/workqueue.h:437)
+
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
 ---
- drivers/media/dvb-frontends/rtl2832.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/platform/coda.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index 80c8e5f..7388769 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -265,7 +265,7 @@ static int rtl2832_rd_reg(struct rtl2832_priv *priv, u8 reg, u8 page, u8 *val)
- 	return rtl2832_rd_regs(priv, reg, page, val, 1);
- }
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index cd04ae2..7640505 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -1540,7 +1540,7 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
+ 	u32 wr_ptr, start_ptr;
+ 	struct coda_ctx *ctx;
  
--int rtl2832_rd_demod_reg(struct rtl2832_priv *priv, int reg, u32 *val)
-+static int rtl2832_rd_demod_reg(struct rtl2832_priv *priv, int reg, u32 *val)
- {
- 	int ret;
+-	__cancel_delayed_work(&dev->timeout);
++	cancel_delayed_work(&dev->timeout);
  
-@@ -305,7 +305,7 @@ err:
- 
- }
- 
--int rtl2832_wr_demod_reg(struct rtl2832_priv *priv, int reg, u32 val)
-+static int rtl2832_wr_demod_reg(struct rtl2832_priv *priv, int reg, u32 val)
- {
- 	int ret, i;
- 	u8 len;
-@@ -510,7 +510,7 @@ static int rtl2832_sleep(struct dvb_frontend *fe)
- 	return 0;
- }
- 
--int rtl2832_get_tune_settings(struct dvb_frontend *fe,
-+static int rtl2832_get_tune_settings(struct dvb_frontend *fe,
- 	struct dvb_frontend_tune_settings *s)
- {
- 	struct rtl2832_priv *priv = fe->demodulator_priv;
+ 	/* read status register to attend the IRQ */
+ 	coda_read(dev, CODA_REG_BIT_INT_STATUS);
 -- 
-1.7.11.7
+1.7.9.5
 
