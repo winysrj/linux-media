@@ -1,80 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.mnsspb.ru ([84.204.75.2]:39124 "EHLO mail.mnsspb.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754286Ab2JVOF4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Oct 2012 10:05:56 -0400
-From: Kirill Smelkov <kirr@mns.spb.ru>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, Kirill Smelkov <kirr@mns.spb.ru>
-Subject: [PATCH 2/2] [media] vivi: Teach it to tune FPS
-Date: Mon, 22 Oct 2012 17:54:44 +0400
-Message-Id: <1350914084-31618-2-git-send-email-kirr@mns.spb.ru>
-In-Reply-To: <1350914084-31618-1-git-send-email-kirr@mns.spb.ru>
-References: <1350914084-31618-1-git-send-email-kirr@mns.spb.ru>
+Received: from mailout2.samsung.com ([203.254.224.25]:61038 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932264Ab2JJOuY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 10:50:24 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBO00GEZMJGP590@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:50:23 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MBO002YDME0EC70@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:50:23 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: [PATCHv10 05/26] v4l: vb2-dma-contig: shorten vb2_dma_contig prefix to
+ vb2_dc
+Date: Wed, 10 Oct 2012 16:46:24 +0200
+Message-id: <1349880405-26049-6-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
+References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I was testing my video-over-ethernet subsystem today, and vivi seemed to
-be perfect video source for testing when one don't have lots of capture
-boards and cameras. Only its framerate was hardcoded to NTSC's 30fps,
-while in my country we usually use PAL (25 fps). That's why the patch.
-Thanks.
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/vivi.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ drivers/media/v4l2-core/videobuf2-dma-contig.c |   36 ++++++++++++------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-index 3e6902a..48325f4 100644
---- a/drivers/media/platform/vivi.c
-+++ b/drivers/media/platform/vivi.c
-@@ -36,10 +36,6 @@
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 4b71326..a05784f 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -32,9 +32,9 @@ struct vb2_dc_buf {
+ 	struct vb2_vmarea_handler	handler;
+ };
  
- #define VIVI_MODULE_NAME "vivi"
+-static void vb2_dma_contig_put(void *buf_priv);
++static void vb2_dc_put(void *buf_priv);
  
--/* Wake up at about 30 fps */
--#define WAKE_NUMERATOR 30
--#define WAKE_DENOMINATOR 1001
--
- #define MAX_WIDTH 1920
- #define MAX_HEIGHT 1200
+-static void *vb2_dma_contig_alloc(void *alloc_ctx, unsigned long size)
++static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ {
+ 	struct vb2_dc_conf *conf = alloc_ctx;
+ 	struct vb2_dc_buf *buf;
+@@ -56,7 +56,7 @@ static void *vb2_dma_contig_alloc(void *alloc_ctx, unsigned long size)
+ 	buf->size = size;
  
-@@ -58,6 +54,11 @@ static unsigned n_devs = 1;
- module_param(n_devs, uint, 0644);
- MODULE_PARM_DESC(n_devs, "number of video devices to create");
+ 	buf->handler.refcount = &buf->refcount;
+-	buf->handler.put = vb2_dma_contig_put;
++	buf->handler.put = vb2_dc_put;
+ 	buf->handler.arg = buf;
  
-+static struct v4l2_fract fps = { 30000, 1001 }; /* ~ 30 fps by default */
-+static unsigned __fps[2], __nfps;
-+module_param_array_named(fps, __fps, uint, &__nfps, 0644);
-+MODULE_PARM_DESC(fps, "frames per second as ratio (e.g. 30000,1001 or 25,1)");
-+
- static unsigned debug;
- module_param(debug, uint, 0644);
- MODULE_PARM_DESC(debug, "activates debug info");
-@@ -661,7 +662,7 @@ static void vivi_thread_tick(struct vivi_dev *dev)
+ 	atomic_inc(&buf->refcount);
+@@ -64,7 +64,7 @@ static void *vb2_dma_contig_alloc(void *alloc_ctx, unsigned long size)
+ 	return buf;
  }
  
- #define frames_to_ms(frames)					\
--	((frames * WAKE_NUMERATOR * 1000) / WAKE_DENOMINATOR)
-+	((frames * fps.denominator * 1000) / fps.numerator)
- 
- static void vivi_sleep(struct vivi_dev *dev)
+-static void vb2_dma_contig_put(void *buf_priv)
++static void vb2_dc_put(void *buf_priv)
  {
-@@ -1376,6 +1377,13 @@ static int __init vivi_init(void)
- 	if (n_devs <= 0)
- 		n_devs = 1;
+ 	struct vb2_dc_buf *buf = buf_priv;
  
-+	if (__nfps > 0) {
-+		fps.numerator   = __fps[0];
-+		fps.denominator = (__nfps > 1) ? __fps[1] : 1;
-+	}
-+	if (fps.numerator <= 0)
-+		fps.numerator = 1;
-+
- 	for (i = 0; i < n_devs; i++) {
- 		ret = vivi_create_instance(i);
- 		if (ret) {
+@@ -75,14 +75,14 @@ static void vb2_dma_contig_put(void *buf_priv)
+ 	}
+ }
+ 
+-static void *vb2_dma_contig_cookie(void *buf_priv)
++static void *vb2_dc_cookie(void *buf_priv)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 
+ 	return &buf->dma_addr;
+ }
+ 
+-static void *vb2_dma_contig_vaddr(void *buf_priv)
++static void *vb2_dc_vaddr(void *buf_priv)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 	if (!buf)
+@@ -91,14 +91,14 @@ static void *vb2_dma_contig_vaddr(void *buf_priv)
+ 	return buf->vaddr;
+ }
+ 
+-static unsigned int vb2_dma_contig_num_users(void *buf_priv)
++static unsigned int vb2_dc_num_users(void *buf_priv)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 
+ 	return atomic_read(&buf->refcount);
+ }
+ 
+-static int vb2_dma_contig_mmap(void *buf_priv, struct vm_area_struct *vma)
++static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 
+@@ -111,7 +111,7 @@ static int vb2_dma_contig_mmap(void *buf_priv, struct vm_area_struct *vma)
+ 				  &vb2_common_vm_ops, &buf->handler);
+ }
+ 
+-static void *vb2_dma_contig_get_userptr(void *alloc_ctx, unsigned long vaddr,
++static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 					unsigned long size, int write)
+ {
+ 	struct vb2_dc_buf *buf;
+@@ -138,7 +138,7 @@ static void *vb2_dma_contig_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	return buf;
+ }
+ 
+-static void vb2_dma_contig_put_userptr(void *mem_priv)
++static void vb2_dc_put_userptr(void *mem_priv)
+ {
+ 	struct vb2_dc_buf *buf = mem_priv;
+ 
+@@ -150,14 +150,14 @@ static void vb2_dma_contig_put_userptr(void *mem_priv)
+ }
+ 
+ const struct vb2_mem_ops vb2_dma_contig_memops = {
+-	.alloc		= vb2_dma_contig_alloc,
+-	.put		= vb2_dma_contig_put,
+-	.cookie		= vb2_dma_contig_cookie,
+-	.vaddr		= vb2_dma_contig_vaddr,
+-	.mmap		= vb2_dma_contig_mmap,
+-	.get_userptr	= vb2_dma_contig_get_userptr,
+-	.put_userptr	= vb2_dma_contig_put_userptr,
+-	.num_users	= vb2_dma_contig_num_users,
++	.alloc		= vb2_dc_alloc,
++	.put		= vb2_dc_put,
++	.cookie		= vb2_dc_cookie,
++	.vaddr		= vb2_dc_vaddr,
++	.mmap		= vb2_dc_mmap,
++	.get_userptr	= vb2_dc_get_userptr,
++	.put_userptr	= vb2_dc_put_userptr,
++	.num_users	= vb2_dc_num_users,
+ };
+ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
+ 
 -- 
-1.8.0.rc3.331.g5b9a629
+1.7.9.5
 
