@@ -1,131 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:58791 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751346Ab2JBGzD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 02:55:03 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MB9001VZ76ZFGB0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Oct 2012 15:55:01 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MB900ABJ77K9K10@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Oct 2012 15:55:01 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com,
-	janghyuck.kim@samsung.com, jaeryul.oh@samsung.com,
-	ch.naveen@samsung.com, arun.kk@samsung.com,
-	m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, kmpark@infradead.org, joshi@samsung.com
-Subject: [PATCH v9 0/6] Update MFC v4l2 driver to support MFC6.x
-Date: Tue, 02 Oct 2012 20:25:35 +0530
-Message-id: <1349189741-22259-1-git-send-email-arun.kk@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:44735 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756674Ab2JJOXT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 10:23:19 -0400
+Message-ID: <507584BD.20908@iki.fi>
+Date: Wed, 10 Oct 2012 17:22:53 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Antonio Ospite <ospite@studenti.unina.it>
+CC: linux-media@vger.kernel.org, Aapo Tahkola <aet@rasterburn.org>,
+	CityK <cityk@rogers.com>
+Subject: Re: [PATCH 0/5] v4l-utils: add some scripts from the wiki.
+References: <1349876363-12098-1-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1349876363-12098-1-git-send-email-ospite@studenti.unina.it>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patchset adds support for MFCv6 firmware in s5p-mfc driver.
-The patches are rebased to the latest media-tree.
+On 10/10/2012 04:39 PM, Antonio Ospite wrote:
+> Hi,
+>
+> I recently used some scripts I found on the linuxtv.org wiki to extract
+> a firmware for a m920x device from USB dumps made with UsbSniff2.0 on
+> WIndows XP.
+>
+> I thought these scripts may be collected in v4l-utils where it is easier
+> to change them.
+>
+> The first two patches add the scripts as they are now on the wiki, I am
+> sending them on behalf of the original author even if I was not able to
+> contact him, I hope this is OK.
 
-Changelog v9
-- Addressed review comments by Hans Verkuil
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg53016.html
+I am almost 100% it is not OK to sign those to Kernel behalf of Aapo. 
+Maybe it is possible to keep Aapo as a author, but sign with yourself.
 
-Changelog v8
-- Addressed review comments by Sylwester Nawrocki
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg52942.html
 
-Changelog v7
-- Removed unused macros from register files
+>
+> The subsequent changes are little fixes to make m920x_parse.pl work for me.
+>
+> Regards,
+>     Antonio
+>
+>
+> Aapo Tahkola (2):
+>    contrib: add some scripts to extract m920x firmwares from USB dumps
+>    contrib: add a script to convert usbmon captures to usbsnoop
+>
+> Antonio Ospite (3):
+>    m920x_parse.pl: use string comparison operators
+>    m920x_parse.pl: fix strict and warnings checks
+>    m920x_parse.pl: add support for consuming the output of
+>      parse-sniffusb2.pl
+>
+>   contrib/m920x/m920x_parse.pl       |  295 ++++++++++++++++++++++++++++++++++++
+>   contrib/m920x/m920x_sp_firmware.pl |  115 ++++++++++++++
+>   contrib/usbmon2usbsnoop.pl         |   53 +++++++
+>   3 files changed, 463 insertions(+)
+>   create mode 100755 contrib/m920x/m920x_parse.pl
+>   create mode 100755 contrib/m920x/m920x_sp_firmware.pl
+>   create mode 100755 contrib/usbmon2usbsnoop.pl
+>
 
-Changelog v6
-- Use s5p_mfc_hw_call macro to call all HW related ops and cmds
-- Rebased onto latest media-tree
-- Resending patches adding required v4l controls
-- Addressed review comments of Patch v5
+regards
+Antti
 
-Changelog v5
-- Modified ops mechanism for macro based function call
-- Addressed all other review comments on Patch v4
-
-Changelog v4
-- Separate patch for callback based architecture.
-- Patches divided to enable incremental compilation.
-- Working MFCv6 encoder and decoder.
-- Addressed review comments given for v3 patchset.
-
-Changelog v3
-- Supports MFCv5 and v6 co-existence.
-- Tested for encoding & decoding in MFCv5.
-- Supports only decoding in MFCv6 now.
-- Can be compiled with kernel image and as module.
-- Config macros for MFC version selection removed.
-- All previous review comments addressed.
-
-Changelog v2
-- Addressed review comments received
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/45189
-
-Changelog v1
-- Fixed crash issue in Exynos4 SoCs running MFC 5.1
-- Encoder not tested
-
-Arun Kumar K (4):
-  [media] v4l: Add fourcc definitions for new formats
-  [media] v4l: Add control definitions for new H264 encoder features
-  [media] s5p-mfc: Update MFCv5 driver for callback based architecture
-  [media] s5p-mfc: Add MFC variant data to device context
-
-Jeongtae Park (2):
-  [media] s5p-mfc: MFCv6 register definitions
-  [media] s5p-mfc: Update MFC v4l2 driver to support MFC6.x
-
- Documentation/DocBook/media/v4l/controls.xml     |  268 +++-
- Documentation/DocBook/media/v4l/pixfmt-nv12m.xml |   17 +-
- Documentation/DocBook/media/v4l/pixfmt.xml       |   10 +
- drivers/media/platform/Kconfig                   |    4 +-
- drivers/media/platform/s5p-mfc/Makefile          |    7 +-
- drivers/media/platform/s5p-mfc/regs-mfc-v6.h     |  408 +++++
- drivers/media/platform/s5p-mfc/regs-mfc.h        |   41 +
- drivers/media/platform/s5p-mfc/s5p_mfc.c         |  296 +++--
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c     |  109 +--
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd.h     |   15 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c  |  166 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.h  |   20 +
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c  |  156 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.h  |   20 +
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h  |  191 ++-
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c    |  194 ++-
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h    |    1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c     |  258 ++-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.h     |    1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c     |  239 ++--
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.h     |    1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_intr.c    |   11 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.c     | 1386 +---------------
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.h     |  133 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c  | 1763 +++++++++++++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.h  |   85 +
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c  | 1956 ++++++++++++++++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h  |   50 +
- drivers/media/platform/s5p-mfc/s5p_mfc_pm.c      |    3 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_shm.c     |   47 -
- drivers/media/platform/s5p-mfc/s5p_mfc_shm.h     |   90 -
- drivers/media/v4l2-core/v4l2-ctrls.c             |   42 +
- include/linux/v4l2-controls.h                    |   41 +
- include/linux/videodev2.h                        |    4 +
- 34 files changed, 5940 insertions(+), 2093 deletions(-)
- create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v6.h
- create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
- create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.h
- create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
- create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.h
- create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
- create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.h
- create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
- create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
- delete mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_shm.c
- delete mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_shm.h
-
+-- 
+http://palosaari.fi/
