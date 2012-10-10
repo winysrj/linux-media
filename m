@@ -1,73 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:51927 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933044Ab2JDNjm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 09:39:42 -0400
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:44760 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753882Ab2JJAWx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 20:22:53 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr4so47986pbb.19
+        for <linux-media@vger.kernel.org>; Tue, 09 Oct 2012 17:22:52 -0700 (PDT)
+From: Kevin Hilman <khilman@deeprootsystems.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: paul@pwsan.com, laurent.pinchart@ideasonboard.com,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH v2 1/2] omap3: Provide means for changing CSI2 PHY configuration
+References: <20120926215001.GA14107@valkosipuli.retiisi.org.uk>
+	<1348696236-3470-1-git-send-email-sakari.ailus@iki.fi>
+	<87zk3vz7yb.fsf@deeprootsystems.com>
+	<20121009223340.GM14107@valkosipuli.retiisi.org.uk>
+Date: Tue, 09 Oct 2012 17:22:52 -0700
+In-Reply-To: <20121009223340.GM14107@valkosipuli.retiisi.org.uk> (Sakari
+	Ailus's message of "Wed, 10 Oct 2012 01:33:40 +0300")
+Message-ID: <87pq4ryy3n.fsf@deeprootsystems.com>
 MIME-Version: 1.0
-In-Reply-To: <CA+55aFwVFtUU4TCjz4EDgGDaeR_QwLjmBAJA0kijHkQQ+jxLCw@mail.gmail.com>
-References: <4FE9169D.5020300@redhat.com>
-	<20121002100319.59146693@redhat.com>
-	<CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
-	<20121002221239.GA30990@kroah.com>
-	<20121002222333.GA32207@kroah.com>
-	<CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
-	<506C562E.5090909@redhat.com>
-	<CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
-	<20121003170907.GA23473@ZenIV.linux.org.uk>
-	<CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
-	<20121003195059.GA13541@kroah.com>
-	<CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
-	<3560b86d-e2ad-484d-ab6e-2b9048894a12@email.android.com>
-	<CA+55aFwVFtUU4TCjz4EDgGDaeR_QwLjmBAJA0kijHkQQ+jxLCw@mail.gmail.com>
-Date: Thu, 4 Oct 2012 09:39:41 -0400
-Message-ID: <CA+5PVA5J0OhmSsy3zOi=z8Ck7QJHVXng=q7OZNOu4nzi6qNA-A@mail.gmail.com>
-Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
- callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
-From: Josh Boyer <jwboyer@gmail.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ming Lei <ming.lei@canonical.com>, Kay Sievers <kay@vrfy.org>,
-	Lennart Poettering <lennart@poettering.net>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Kay Sievers <kay@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Ivan Kalvachev <ikalvachev@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 3, 2012 at 6:58 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> On Wed, Oct 3, 2012 at 3:48 PM, Andy Walls <awalls@md.metrocast.net> wrote:
->>
->> I don't know if you can remove the /sys/.../firmware ABI altogether, because there is at least one, somewhat popular udev replacement that also uses it: mdev
->>
->> http://git.busybox.net/busybox/plain/docs/mdev.txt
+Sakari Ailus <sakari.ailus@iki.fi> writes:
+
+> Hi Kevin,
 >
-> Heh. That web doc documents /lib/firmware as being the place to be.
+> Thanks for the comments!
 >
-> That said, there's clearly enough variation here that I think that for
-> now I won't take the step to disable the udev part. I'll do the patch
-> to support "direct filesystem firmware loading" using the udev default
-> paths, and that hopefully fixes the particular case people see with
-> media modules.
+> On Tue, Oct 09, 2012 at 01:50:04PM -0700, Kevin Hilman wrote:
+>> Hi Sakari,
+>> 
+>> Sakari Ailus <sakari.ailus@iki.fi> writes:
+>> 
+>> > The OMAP 3630 has configuration how the ISP CSI-2 PHY pins are connected to
+>> > the actual CSI-2 receivers outside the ISP itself. Allow changing this
+>> > configuration from the ISP driver.
+>> >
+>> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>> 
+>> These control module registers (CSIRXFE, CAMERA_PHY_CTRL) are in the
+>> CORE powerdomain, so they will be lost during off-mode transitions.  So,
+>> I suspect you'll also want to add them to the save/restore functions in
+>> control.c in order for this to work across off-mode transitions.
+>
+> I've got another patch that implements this in the ISP driver instead.
+>
+> <URL:http://www.spinics.net/lists/linux-media/msg54781.html>
 
-As you probably noticed, we had a tester in the RH bug report success
-with the commit you included yesterday.
+Oops, sorry.  I should've looked at v3. 
 
-Do you think this is something worth including in the stable kernels
-after it gets some further testing during the merge window?  Perhaps
-not that specific commit as there seems to be some additional changes
-needed for configurable paths, etc, but a backport of the fleshed out
-changeset might be wanted.
+> The ISP also can't wake up the MPU from the off mode, so I don't think
+> losing the register contents is necessarily an issue. The registers will be
+> written to a new value whenever streaming is started. Perhaps adding a note
+> about that would be worthwhile.
 
-We have a new enough udev in Fedora 17 to hit this issue with 3.5 and
-3.6 when we rebase.  I'm sure other distributions will be in similar
-circumstances soon if they aren't already.  Udev isn't going to be
-fixed, so having something working in these cases would be great.
+Yes, I suggest mentioning that these register are not saved/restored and
+why would be helpful.
 
-josh
+Kevin
