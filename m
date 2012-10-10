@@ -1,57 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:43687 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750923Ab2JHVaY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 17:30:24 -0400
-Date: Mon, 8 Oct 2012 14:30:17 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Ido Yariv <ido@wizery.com>, Russell King <linux@arm.linux.org.uk>,
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] [media] omap3isp: Fix compilation error in
- ispreg.h
-Message-ID: <20121008213016.GO13011@atomide.com>
-References: <20120927195526.GP4840@atomide.com>
- <1349131591-10804-1-git-send-email-ido@wizery.com>
- <20121002163158.GR4840@atomide.com>
- <20121007101718.073aed3b@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20121007101718.073aed3b@infradead.org>
+Received: from mailout2.samsung.com ([203.254.224.25]:62111 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932229Ab2JJPET (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 11:04:19 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBO00GTGN76P590@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 11 Oct 2012 00:04:18 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MBO002YDME0EC70@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 11 Oct 2012 00:04:18 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: [PATCHv10 26/26] v4l: s5p-mfc: support for dmabuf exporting
+Date: Wed, 10 Oct 2012 16:46:45 +0200
+Message-id: <1349880405-26049-27-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
+References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Mauro Carvalho Chehab <mchehab@infradead.org> [121007 06:18]:
-> Em Tue, 2 Oct 2012 09:31:58 -0700
-> Tony Lindgren <tony@atomide.com> escreveu:
-> 
-> > * Ido Yariv <ido@wizery.com> [121001 15:48]:
-> > > Commit c49f34bc ("ARM: OMAP2+ Move SoC specific headers to be local to
-> > > mach-omap2") moved omap34xx.h to mach-omap2. This broke omap3isp, as it
-> > > includes omap34xx.h.
-> > > 
-> > > Instead of moving omap34xx to platform_data, simply add the two
-> > > definitions the driver needs and remove the include altogether.
-> > > 
-> > > Signed-off-by: Ido Yariv <ido@wizery.com>
-> > 
-> > I'm assuming that Mauro picks this one up, sorry
-> > for breaking it.
-> 
-> Picked, thanks. 
-> 
-> With regards to the other patches in this series, IMHO, it
-> makes more sense to go through arm omap tree, so, for the
-> patches on this series that touch at drivers/media/platform/*:
-> 
-> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+This patch enhances s5p-mfc with support for DMABUF exporting via
+VIDIOC_EXPBUF ioctl.
 
-Thanks yeah it's best that I pick up the rest. I can setup
-a minimal branch that can also be pulled into iommu branch
-after -rc1.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Kamil Debski <k.debski@samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |   14 ++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |   14 ++++++++++++++
+ 2 files changed, 28 insertions(+)
 
-Regards,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index eb6a70b..6dad9a7 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -636,6 +636,19 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+ 	return -EINVAL;
+ }
+ 
++/* Export DMA buffer */
++static int vidioc_expbuf(struct file *file, void *priv,
++	struct v4l2_exportbuffer *eb)
++{
++	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
++
++	if (eb->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		return vb2_expbuf(&ctx->vq_src, eb);
++	if (eb->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++		return vb2_expbuf(&ctx->vq_dst, eb);
++	return -EINVAL;
++}
++
+ /* Stream on */
+ static int vidioc_streamon(struct file *file, void *priv,
+ 			   enum v4l2_buf_type type)
+@@ -813,6 +826,7 @@ static const struct v4l2_ioctl_ops s5p_mfc_dec_ioctl_ops = {
+ 	.vidioc_querybuf = vidioc_querybuf,
+ 	.vidioc_qbuf = vidioc_qbuf,
+ 	.vidioc_dqbuf = vidioc_dqbuf,
++	.vidioc_expbuf = vidioc_expbuf,
+ 	.vidioc_streamon = vidioc_streamon,
+ 	.vidioc_streamoff = vidioc_streamoff,
+ 	.vidioc_g_crop = vidioc_g_crop,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 2af6d52..22bf684 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -1165,6 +1165,19 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+ 	return ret;
+ }
+ 
++/* Export DMA buffer */
++static int vidioc_expbuf(struct file *file, void *priv,
++	struct v4l2_exportbuffer *eb)
++{
++	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
++
++	if (eb->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		return vb2_expbuf(&ctx->vq_src, eb);
++	if (eb->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++		return vb2_expbuf(&ctx->vq_dst, eb);
++	return -EINVAL;
++}
++
+ /* Stream on */
+ static int vidioc_streamon(struct file *file, void *priv,
+ 			   enum v4l2_buf_type type)
+@@ -1568,6 +1581,7 @@ static const struct v4l2_ioctl_ops s5p_mfc_enc_ioctl_ops = {
+ 	.vidioc_querybuf = vidioc_querybuf,
+ 	.vidioc_qbuf = vidioc_qbuf,
+ 	.vidioc_dqbuf = vidioc_dqbuf,
++	.vidioc_expbuf = vidioc_expbuf,
+ 	.vidioc_streamon = vidioc_streamon,
+ 	.vidioc_streamoff = vidioc_streamoff,
+ 	.vidioc_s_parm = vidioc_s_parm,
+-- 
+1.7.9.5
 
-Tony
