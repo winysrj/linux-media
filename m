@@ -1,255 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:51970 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752909Ab2JBHdn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 03:33:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH RFC] dvb: LNA implementation changes
-Date: Tue, 2 Oct 2012 09:33:31 +0200
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <1349051751-11826-1-git-send-email-crope@iki.fi> <5068E7C1.4060602@iki.fi> <506A33DF.6080906@iki.fi>
-In-Reply-To: <506A33DF.6080906@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57332 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755832Ab2JJNR6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 09:17:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
+Date: Wed, 10 Oct 2012 15:18:41 +0200
+Message-ID: <2002286.8sbBLyKbDe@avalon>
+In-Reply-To: <Pine.LNX.4.64.1210081708240.14454@axis700.grange>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <201210081653.55984.hverkuil@xs4all.nl> <Pine.LNX.4.64.1210081708240.14454@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210020933.31524.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 2 October 2012 02:22:55 Antti Palosaari wrote:
-> Ping!
+Hi Guennadi,
+
+On Monday 08 October 2012 17:15:53 Guennadi Liakhovetski wrote:
+> On Mon, 8 Oct 2012, Hans Verkuil wrote:
+> > On Mon October 8 2012 16:30:53 Guennadi Liakhovetski wrote:
+> > > On Mon, 8 Oct 2012, Hans Verkuil wrote:
+> > > > On Mon October 8 2012 14:23:25 Guennadi Liakhovetski wrote:
+> > > > > On Fri, 5 Oct 2012, Hans Verkuil wrote:
+> > > > > 
+> > > > > [snip]
+> > > > > 
+> > > > > > I think the soc_camera patches should be left out for now. I
+> > > > > > suspect that by adding core support for async i2c handling first,
+> > > > > 
+> > > > > Ok, let's think, what this meacs - async I2C in media / V4L2 core.
+> > > > > 
+> > > > > The main reason for our probing order problem is the master clock,
+> > > > > typically supplied from the camera bridge to I2C subdevices, which
+> > > > > we only want to start when necessary, i.e. when accessing the
+> > > > > subdevice. And the subdevice driver needs that clock running during
+> > > > > its .probe() to be able to access and verify or configure the
+> > > > > hardware. Our current solution is to not register I2C subdevices
+> > > > > from the platform data, as is usual for all I2C devices, but from
+> > > > > the bridge driver and only after it has switched on the master
+> > > > > clock. After the subdevice driver has completed its probing we
+> > > > > switch the clock back off until the subdevice has to be activated,
+> > > > > e.g. for video capture.
+> > > > > 
+> > > > > Also important - when we want to unregister the bridge driver we
+> > > > > just also unregister the I2C device.
+> > > > > 
+> > > > > Now, to reverse the whole thing and to allow I2C devices be
+> > > > > registered as usual - via platform data or OF, first of all we have
+> > > > > to teach I2C subdevice drivers to recognise the "too early"
+> > > > > situation and request deferred probing in such a case. Then it will
+> > > > > be reprobed after each new successful probe or unregister on the
+> > > > > system. After the bridge driver has successfully probed the
+> > > > > subdevice driver will be re-probed and at that time it should
+> > > > > succeed. Now, there is a problem here too: who should switch on and
+> > > > > off the master clock?
+> > > > > 
+> > > > > If we do it from the bridge driver, we could install an I2C
+> > > > > bus-notifier, _before_ the subdevice driver is probed, i.e. upon the
+> > > > > BUS_NOTIFY_BIND_DRIVER event we could turn on the clock. If
+> > > > > subdevice probing was successful, we can then wait for the
+> > > > > BUS_NOTIFY_BOUND_DRIVER event to switch the clock back off. BUT - if
+> > > > > the subdevice fails probing?
+> > > > > How do we find out about that and turn the clock back off? There is
+> > > > > no notification event for that... Possible solutions:
+> > > > > 
+> > > > > 1. timer - ugly and unreliable.
+> > > > > 2. add a "probing failed" notifier event to the device core - would
+> > > > > this be accepted?
+> > > > > 3. let the subdevice turn the master clock on and off for the
+> > > > > duration of probing.
+> > > > > 
+> > > > > My vote goes for (3). Ideally this should be done using the generic
+> > > > > clock framework. But can we really expect all drivers and platforms
+> > > > > to switch to it quickly enough? If not, we need a V4L2-specific
+> > > > > callback from subdevice drivers to bridge drivers to turn the clock
+> > > > > on and off. That's what I've done "temporarily" in this patch series
+> > > > > for soc-camera.
+> > > > > 
+> > > > > Suppose we decide to do the same for V4L2 centrally - add
+> > > > > call-backs. Then we can think what else we need to add to V4L2 to
+> > > > > support asynchronous subdevice driver probing.
+> > > > 
+> > > > I wonder, don't we have the necessary code already? V4L2 subdev
+> > > > drivers can have internal_ops with register/unregister ops. These are
+> > > > called by v4l2_device_register_subdev. This happens during the bridge
+> > > > driver's probe.
+> > > > 
+> > > > Suppose the subdev's probe does not actually access the i2c device,
+> > > > but instead defers that to the register callback? The bridge driver
+> > > > will turn on the clock before calling v4l2_device_register_subdev to
+> > > > ensure that the register callback can access the i2c registers. The
+> > > > register callback will do any initialization and can return an error.
+> > > > In case of an error the i2c client is automatically unregistered as
+> > > > well.
+> > > 
+> > > Yes, if v4l2_i2c_new_subdev_board() is used. This has been discussed
+> > > several times before and always what I didn't like in this is, that I2C
+> > > device probe() in this case succeeds without even trying to access the
+> > > hardware. And think about DT. In this case we don't instantiate the I2C
+> > > device, OF code does it for us. What do you do then? If you let probe()
+> > > succeed, then you will have to somehow remember the subdevice to later
+> > > match it against bridges...
+> > 
+> > Yes, but you need that information anyway. The bridge still needs to call
+> > v4l2_device_register_subdev so it needs to know which subdevs are loaded.
 > 
-> u.data is defined __u32. Does it mean we could only use unsigned values 
-> when DVB API v5 ?
+> But how do you get the subdev pointer? With the notifier I get it from
+> i2c_get_clientdata(client) and what do you do without it? How do you get
+> to the client?
+> 
+> > And can't it get that from DT as well?
+> 
+> No, I don't think there is a way to get a device pointer from a DT node.
 
-Looking at the dtv_property I'd say it only supports unsigned.
+But we'll need a way. The bridge driver will get sensor DT nodes from the V4L2 
+DT bindings, and will need to get the corresponding subdev. This could be 
+limited to V4L2 though, we could keep a map of DT nodes to subdevs without 
+requiring a generic solution in the device base code (although I'm wondering 
+if there's a specific reason not to have a device pointer in the DT node 
+structure).
 
-So you need an enum like this:
+> > In my view you cannot do a proper initialization unless you have both the
+> > bridge driver and all subdev drivers loaded and instantiated. They need
+> > one another. So I am perfectly fine with letting the probe function do
+> > next to nothing and postponing that until register() is called. I2C and
+> > actualprobing to check if it's the right device is a bad idea in general
+> > since you have no idea what a hardware access to an unknown i2c device
+> > will do. There are still some corner cases where that is needed, but I do
+> > not think that that is an issue here.
+> > 
+> > It would simplify things a lot IMHO. Also note that the register() op will
+> > work with any device, not just i2c. That may be a useful property as well.
+> 
+> And what if the subdevice device is not yet instantiated by OF by the time
+> your bridge driver probes?
 
-enum fe_lna {
-        LNA_AUTO,
-	LNA_OFF,
-        LNA_ON,
-};
-
-But Mauro knows that better than I do.
-
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-> If yes, I will change LNA according to that and use 32bit maximum as 
-> LNA_AUTO.
-> 
-> struct dtv_property {
-> 	__u32 cmd;
-> 	__u32 reserved[3];
-> 	union {
-> 		__u32 data;
-> 		struct {
-> 			__u8 data[32];
-> 			__u32 len;
-> 			__u32 reserved1[3];
-> 			void *reserved2;
-> 		} buffer;
-> 	} u;
-> 	int result;
-> } __attribute__ ((packed));
-> 
-> 
-> On 10/01/2012 03:45 AM, Antti Palosaari wrote:
-> > I added few comments for things what I was a little but unsure. Please
-> > comment.
-> >
-> > On 10/01/2012 03:35 AM, Antti Palosaari wrote:
-> >> * use dvb property cache
-> >> * implement get
-> >> * LNA_AUTO value changed
-> >>
-> >> Hans and Mauro proposed    use of cache implementation of get as they
-> >> were planning to extend LNA usage for analog side too.
-> >>
-> >> LNA_AUTO value was changed from (~0U) to INT_MIN as (~0U) resulted
-> >> only -1 which is waste of numeric range if need to extend that in
-> >> the future.
-> >>
-> >> Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
-> >> Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> >> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> >> ---
-> >>   drivers/media/dvb-core/dvb_frontend.c | 18 ++++++++++++++----
-> >>   drivers/media/dvb-core/dvb_frontend.h |  4 +++-
-> >>   drivers/media/usb/em28xx/em28xx-dvb.c |  9 +++++----
-> >>   include/linux/dvb/frontend.h          |  2 +-
-> >>   4 files changed, 23 insertions(+), 10 deletions(-)
-> >>
-> >> diff --git a/drivers/media/dvb-core/dvb_frontend.c
-> >> b/drivers/media/dvb-core/dvb_frontend.c
-> >> index 8f58f24..246a3c5 100644
-> >> --- a/drivers/media/dvb-core/dvb_frontend.c
-> >> +++ b/drivers/media/dvb-core/dvb_frontend.c
-> >> @@ -966,6 +966,8 @@ static int dvb_frontend_clear_cache(struct
-> >> dvb_frontend *fe)
-> >>           break;
-> >>       }
-> >>
-> >> +    c->lna = LNA_AUTO;
-> >> +
-> >>       return 0;
-> >>   }
-> >>
-> >> @@ -1054,6 +1056,8 @@ static struct dtv_cmds_h
-> >> dtv_cmds[DTV_MAX_COMMAND + 1] = {
-> >>       _DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_B, 0, 0),
-> >>       _DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_C, 0, 0),
-> >>       _DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_D, 0, 0),
-> >> +
-> >> +    _DTV_CMD(DTV_LNA, 0, 0),
-> >>   };
-> >>
-> >>   static void dtv_property_dump(struct dvb_frontend *fe, struct
-> >> dtv_property *tvp)
-> >> @@ -1440,6 +1444,10 @@ static int dtv_property_process_get(struct
-> >> dvb_frontend *fe,
-> >>           tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_d;
-> >>           break;
-> >>
-> >> +    case DTV_LNA:
-> >> +        tvp->u.data = c->lna;
-> >> +        break;
-> >> +
-> >>       default:
-> >>           return -EINVAL;
-> >>       }
-> >> @@ -1731,10 +1739,6 @@ static int dtv_property_process_set(struct
-> >> dvb_frontend *fe,
-> >>       case DTV_INTERLEAVING:
-> >>           c->interleaving = tvp->u.data;
-> >>           break;
-> >> -    case DTV_LNA:
-> >> -        if (fe->ops.set_lna)
-> >> -            r = fe->ops.set_lna(fe, tvp->u.data);
-> >> -        break;
-> >>
-> >>       /* ISDB-T Support here */
-> >>       case DTV_ISDBT_PARTIAL_RECEPTION:
-> >> @@ -1806,6 +1810,12 @@ static int dtv_property_process_set(struct
-> >> dvb_frontend *fe,
-> >>           fe->dtv_property_cache.atscmh_rs_frame_ensemble = tvp->u.data;
-> >>           break;
-> >>
-> >> +    case DTV_LNA:
-> >> +        c->lna = tvp->u.data;
-> >> +        if (fe->ops.set_lna)
-> >> +            r = fe->ops.set_lna(fe);
-> >> +        break;
-> >> +
-> >>       default:
-> >>           return -EINVAL;
-> >>       }
-> >> diff --git a/drivers/media/dvb-core/dvb_frontend.h
-> >> b/drivers/media/dvb-core/dvb_frontend.h
-> >> index 44a445c..5d25953 100644
-> >> --- a/drivers/media/dvb-core/dvb_frontend.h
-> >> +++ b/drivers/media/dvb-core/dvb_frontend.h
-> >> @@ -303,7 +303,7 @@ struct dvb_frontend_ops {
-> >>       int (*dishnetwork_send_legacy_command)(struct dvb_frontend* fe,
-> >> unsigned long cmd);
-> >>       int (*i2c_gate_ctrl)(struct dvb_frontend* fe, int enable);
-> >>       int (*ts_bus_ctrl)(struct dvb_frontend* fe, int acquire);
-> >> -    int (*set_lna)(struct dvb_frontend *, int);
-> >> +    int (*set_lna)(struct dvb_frontend *);
-> >>
-> >>       /* These callbacks are for devices that implement their own
-> >>        * tuning algorithms, rather than a simple swzigzag
-> >> @@ -391,6 +391,8 @@ struct dtv_frontend_properties {
-> >>       u8            atscmh_sccc_code_mode_b;
-> >>       u8            atscmh_sccc_code_mode_c;
-> >>       u8            atscmh_sccc_code_mode_d;
-> >> +
-> >> +    int            lna;
-> >
-> > Is it reason or coincidence that all the other variables are unsigned here?
-> >
-> >>   };
-> >>
-> >>   struct dvb_frontend {
-> >> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c
-> >> b/drivers/media/usb/em28xx/em28xx-dvb.c
-> >> index 109474b..1166e8b 100644
-> >> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
-> >> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-> >> @@ -569,15 +569,16 @@ static void pctv_520e_init(struct em28xx *dev)
-> >>           i2c_master_send(&dev->i2c_client, regs[i].r, regs[i].len);
-> >>   };
-> >>
-> >> -static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe, int val)
-> >> +static int em28xx_pctv_290e_set_lna(struct dvb_frontend *fe)
-> >>   {
-> >> +    struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-> >>       struct em28xx *dev = fe->dvb->priv;
-> >>   #ifdef CONFIG_GPIOLIB
-> >>       struct em28xx_dvb *dvb = dev->dvb;
-> >>       int ret;
-> >>       unsigned long flags;
-> >>
-> >> -    if (val)
-> >> +    if (c->lna)
-> >>           flags = GPIOF_OUT_INIT_LOW;
-> >>       else
-> >>           flags = GPIOF_OUT_INIT_HIGH;
-> >> @@ -590,8 +591,8 @@ static int em28xx_pctv_290e_set_lna(struct
-> >> dvb_frontend *fe, int val)
-> >>
-> >>       return ret;
-> >>   #else
-> >> -    dev_warn(&dev->udev->dev, "%s: LNA control is disabled\n",
-> >> -            KBUILD_MODNAME);
-> >> +    dev_warn(&dev->udev->dev, "%s: LNA control is disabled (lna=%d)\n",
-> >> +            KBUILD_MODNAME, c->lna);
-> >>       return 0;
-> >>   #endif
-> >>   }
-> >> diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-> >> index c12d452..6c97457 100644
-> >> --- a/include/linux/dvb/frontend.h
-> >> +++ b/include/linux/dvb/frontend.h
-> >> @@ -439,7 +439,7 @@ enum atscmh_rs_code_mode {
-> >>   };
-> >>
-> >>   #define NO_STREAM_ID_FILTER    (~0U)
-> >> -#define LNA_AUTO                (~0U)
-> >> +#define LNA_AUTO                INT_MIN
-> >
-> > That's (INT_MIN) again here because I used int in struct
-> > dtv_frontend_properties.
-> >
-> > I would like to use signed value that this could be extended later like
-> > use of attenuation.
-> >
-> >
-> >>
-> >>   struct dtv_cmds_h {
-> >>       char    *name;        /* A display name for debugging purposes */
-> >>
-> >
-> > And one question still. If we use signed value for LNA then value 0
-> > could be used as a LNA_AUTO. Like:
-> > -1 = LNA disabled
-> > 0 = LNA AUTO
-> > 1 = LNA enabled
-> >
-> >
-> > It is easy to change it now as it is new feature for 3.7. After that
-> > everything goes harder, so I really would like to get comments before
-> > -rc1 :)
-> >
-> > regards
-> > Antti
-> >
-> 
-> 
-> 
