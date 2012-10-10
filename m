@@ -1,83 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:61542 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756781Ab2JWT7Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 15:59:16 -0400
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-Cc: Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 17/23] cx23885: Replace memcpy with struct assignment
-Date: Tue, 23 Oct 2012 16:57:20 -0300
-Message-Id: <1351022246-8201-17-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
-References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:41780 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750762Ab2JJAEt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Oct 2012 20:04:49 -0400
+Date: Tue, 9 Oct 2012 21:04:46 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] [for 3.7] stk1160: Add support for S-Video input
+Message-ID: <20121009210446.2abf0059@redhat.com>
+In-Reply-To: <CALF0-+W-eGegmb2WPozG1qVhm7sa_E-vqZqt4x4veNCnY-BY1Q@mail.gmail.com>
+References: <1349820063-21955-1-git-send-email-elezegarcia@gmail.com>
+	<20121009192540.61875a29@redhat.com>
+	<CALF0-+W-eGegmb2WPozG1qVhm7sa_E-vqZqt4x4veNCnY-BY1Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This kind of memcpy() is error-prone. Its replacement with a struct
-assignment is prefered because it's type-safe and much easier to read.
+Em Tue, 9 Oct 2012 20:52:06 -0300
+Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
 
-Found by coccinelle. Hand patched and reviewed.
-Tested by compilation only.
+> On Tue, Oct 9, 2012 at 7:25 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+> > Em Tue,  9 Oct 2012 19:01:03 -0300
+> > Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
+> >
+> >> In order to fully replace easycap driver with stk1160,
+> >> it's also necessary to add S-Video support.
+> >>
+> >> A similar patch backported for v3.2 kernel has been
+> >> tested by three different users.
+> >>
+> >> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+> >> ---
+> >> Hi Mauro,
+> >>
+> >> I'm sending this for inclusion in v3.7 second media pull request.
+> >> I realize it's very late, so I understand if you don't
+> >> want to pick it.
+> >>
+> >>  drivers/media/usb/stk1160/stk1160-core.c |   15 +++++++++++----
+> >>  drivers/media/usb/stk1160/stk1160-v4l.c  |    7 ++++++-
+> >>  drivers/media/usb/stk1160/stk1160.h      |    3 ++-
+> >>  3 files changed, 19 insertions(+), 6 deletions(-)
+> >>
+> >> diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/usb/stk1160/stk1160-core.c
+> >> index b627408..34a26e0 100644
+> >> --- a/drivers/media/usb/stk1160/stk1160-core.c
+> >> +++ b/drivers/media/usb/stk1160/stk1160-core.c
+> >> @@ -100,12 +100,21 @@ int stk1160_write_reg(struct stk1160 *dev, u16 reg, u16 value)
+> >>
+> >>  void stk1160_select_input(struct stk1160 *dev)
+> >>  {
+> >> +     int route;
+> >>       static const u8 gctrl[] = {
+> >> -             0x98, 0x90, 0x88, 0x80
+> >> +             0x98, 0x90, 0x88, 0x80, 0x98
+> >>       };
+> >>
+> >> -     if (dev->ctl_input < ARRAY_SIZE(gctrl))
+> >> +     if (dev->ctl_input == STK1160_SVIDEO_INPUT)
+> >> +             route = SAA7115_SVIDEO3;
+> >> +     else
+> >> +             route = SAA7115_COMPOSITE0;
+> >> +
+> >> +     if (dev->ctl_input < ARRAY_SIZE(gctrl)) {
+> >> +             v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
+> >> +                             route, 0, 0);
+> >>               stk1160_write_reg(dev, STK1160_GCTRL, gctrl[dev->ctl_input]);
+> >> +     }
+> >>  }
+> >>
+> >>  /* TODO: We should break this into pieces */
+> >> @@ -351,8 +360,6 @@ static int stk1160_probe(struct usb_interface *interface,
+> >>
+> >>       /* i2c reset saa711x */
+> >>       v4l2_device_call_all(&dev->v4l2_dev, 0, core, reset, 0);
+> >> -     v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
+> >> -                             0, 0, 0);
+> >>       v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_stream, 0);
+> >>
+> >>       /* reset stk1160 to default values */
+> >> diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
+> >> index fe6e857..6694f9e 100644
+> >> --- a/drivers/media/usb/stk1160/stk1160-v4l.c
+> >> +++ b/drivers/media/usb/stk1160/stk1160-v4l.c
+> >> @@ -419,7 +419,12 @@ static int vidioc_enum_input(struct file *file, void *priv,
+> >>       if (i->index > STK1160_MAX_INPUT)
+> >>               return -EINVAL;
+> >>
+> 
+> Look here... I'm returning EINVAL after  STK1160_MAX_INPUT.
+> (see below)
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
+Sorry, my bad. I was, in fact, tricked by the first hunk, where you was
+routing to either saa7115 video3 or composite0. Now, I noticed that this
+device has an extra video switch, controlled via STK1160_GCTRL register.
 
-// <smpl>
-@@
-identifier struct_name;
-struct struct_name to;
-struct struct_name from;
-expression E;
-@@
--memcpy(&(to), &(from), E);
-+to = from;
-// </smpl>
+Tricky.
 
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/pci/cx23885/cx23885-video.c |    3 +--
- drivers/media/pci/cx23885/cx23888-ir.c    |    6 ++----
- 2 files changed, 3 insertions(+), 6 deletions(-)
+> 
+> >> -     sprintf(i->name, "Composite%d", i->index);
+> >> +     /* S-Video special handling */
+> >> +     if (i->index == STK1160_SVIDEO_INPUT)
+> >> +             sprintf(i->name, "S-Video");
+> >> +     else
+> >> +             sprintf(i->name, "Composite%d", i->index);
+> >> +
+> >
+> > Had you ever test this patch with the v4l2-compliance tool?
+> >
+> > It seems broken to me: this driver has just two inputs. So, it should return
+> > -EINVAL for all inputs after that, or otherwise userspace applications that
+> > query the inputs will loop forever!
+> >
+> 
+> Actually the driver has five inputs, since there are two kinds of devices:
+> one with four composites, and another with one composite and one s-video.
+> So, I simply support all of them, since there's no way to distinguish.
 
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index 1a21926..62be144 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -1818,8 +1818,7 @@ int cx23885_video_register(struct cx23885_dev *dev)
- 	spin_lock_init(&dev->slock);
- 
- 	/* Initialize VBI template */
--	memcpy(&cx23885_vbi_template, &cx23885_video_template,
--		sizeof(cx23885_vbi_template));
-+	cx23885_vbi_template = cx23885_video_template;
- 	strcpy(cx23885_vbi_template.name, "cx23885-vbi");
- 
- 	dev->tvnorm = cx23885_video_template.current_norm;
-diff --git a/drivers/media/pci/cx23885/cx23888-ir.c b/drivers/media/pci/cx23885/cx23888-ir.c
-index c2bc39c..e448146 100644
---- a/drivers/media/pci/cx23885/cx23888-ir.c
-+++ b/drivers/media/pci/cx23885/cx23888-ir.c
-@@ -1236,13 +1236,11 @@ int cx23888_ir_probe(struct cx23885_dev *dev)
- 		cx23888_ir_write4(dev, CX23888_IR_IRQEN_REG, 0);
- 
- 		mutex_init(&state->rx_params_lock);
--		memcpy(&default_params, &default_rx_params,
--		       sizeof(struct v4l2_subdev_ir_parameters));
-+		default_params = default_rx_params;
- 		v4l2_subdev_call(sd, ir, rx_s_parameters, &default_params);
- 
- 		mutex_init(&state->tx_params_lock);
--		memcpy(&default_params, &default_tx_params,
--		       sizeof(struct v4l2_subdev_ir_parameters));
-+		default_params = default_tx_params;
- 		v4l2_subdev_call(sd, ir, tx_s_parameters, &default_params);
- 	} else {
- 		kfifo_free(&state->rx_kfifo);
+Ok then. 
+
+> 
+> I just tested this patch with v4l2-compliance and with qv4l2 and there
+> are no regressions.
+> 
+> Unless I'm missing something, I think the patch is OK.
+> Let me know if you want me to change something.
+
+With the light of your comments, the patch looks fine on my eyes.
+
+> 
+>     Ezequiel.
+
+
 -- 
-1.7.4.4
-
+Regards,
+Mauro
