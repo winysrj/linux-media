@@ -1,102 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:45529 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753737Ab2JUPWb (ORCPT
+Received: from eu1sys200aog108.obsmtp.com ([207.126.144.125]:43662 "EHLO
+	eu1sys200aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752637Ab2JJSez (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Oct 2012 11:22:31 -0400
-Message-ID: <5084132B.8080609@gmail.com>
-Date: Sun, 21 Oct 2012 17:22:19 +0200
-From: Daniel Mack <zonque@gmail.com>
-MIME-Version: 1.0
-To: "Artem S. Tashkinov" <t.artem@lycos.com>
-CC: bp@alien8.de, pavel@ucw.cz, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, security@kernel.org,
-	linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: Re: was: Re: A reliable kernel panic (3.6.2) and system crash when
- visiting a particular website
-References: <2104474742.26357.1350734815286.JavaMail.mail@webmail05> <20121020162759.GA12551@liondog.tnic> <966148591.30347.1350754909449.JavaMail.mail@webmail08> <20121020203227.GC555@elf.ucw.cz> <20121020225849.GA8976@liondog.tnic> <1781795634.31179.1350774917965.JavaMail.mail@webmail04> <20121021002424.GA16247@liondog.tnic> <1798605268.19162.1350784641831.JavaMail.mail@webmail17> <20121021110851.GA6504@liondog.tnic> <121566322.100103.1350820776893.JavaMail.mail@webmail20> <5083E4AA.3060807@gmail.com> <317435358.100327.1350822615555.JavaMail.mail@webmail20> <508404F5.2010502@gmail.com> <901486978.101922.1350831476734.JavaMail.mail@webmail20>
-In-Reply-To: <901486978.101922.1350831476734.JavaMail.mail@webmail20>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Wed, 10 Oct 2012 14:34:55 -0400
+From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
+To: mchehab@redhat.com
+Cc: srinivas.kandagatla@st.com, Scott.Jiang.Linux@gmail.com,
+	javier.martin@vista-silicon.com, linux-media@vger.kernel.org,
+	kernel@pengutronix.de, g.liakhovetski@gmx.de
+Subject: [PATCH 3.6.0- 1/5] media/bfin: use module_platform_driver macro
+Date: Wed, 10 Oct 2012 19:33:38 +0100
+Message-Id: <1349894018-8017-1-git-send-email-srinivas.kandagatla@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 21.10.2012 16:57, Artem S. Tashkinov wrote:
->> On Oct 21, 2012, Daniel Mack  wrote: 
->>
->> [Cc: alsa-devel]
->>
->> On 21.10.2012 14:30, Artem S. Tashkinov wrote:
->>> On Oct 21, 2012, Daniel Mack wrote: 
->>>
->>>> A hint at least. How did you enable the audio record exactly? Can you
->>>> reproduce this with arecord?
->>>>
->>>> What chipset are you on? Please provide both "lspci -v" and "lsusb -v"
->>>> dumps. As I said, I fail to reproduce that issue on any of my machines.
->>>
->>> All other applications can read from the USB audio without problems, it's
->>> just something in the way Adobe Flash polls my audio input which causes
->>> a crash.
->>>
->>> Just video capture (without audio) works just fine in Adobe Flash.
->>
->> Ok, so that pretty much rules out the host controller. I just wonder why
->> I still don't see it here, and I haven't heard of any such problem from
->> anyone else.
->>
->> Some more questions:
->>
->> - Which version of Flash are you running?
-> 
-> Google Chrome has its own version of Adobe Flash:
-> 
-> Name:	Shockwave Flash
-> Description:	Shockwave Flash 11.4 r31
-> Version:	11.4.31.110
+From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
 
-So that's the same that I'm using.
+This patch removes some code duplication by using
+module_platform_driver.
 
->> - Does this also happen with Firefox?
-> 
-> No, Adobe Flash in Firefox is an older version (Shockwave Flash 11.1 r102), it shows
-> just two input devices instead of three which the newer Flash players sees.
-> 
-> * HDA Intel PCH
-> * USB Device 0x46d:0x81d
+Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+---
+ drivers/media/platform/blackfin/bfin_capture.c |   14 +-------------
+ 1 files changed, 1 insertions(+), 13 deletions(-)
 
-And that works, I assume? Does the second choice in the newer Flash
-version work maybe?
-
->> - Does flash access the device directly or via PulseAudio?
-> 
-> PA is not installed on my computer, so Flash accesses it directly via ALSA calls.
-
-Ok, Same here.
-
->> - Could you please apply the attached patch and see what it spits out to
->> dmesg once Flash opens the device? It returns -EINVAL in the hw_params
->> callback to prevent the actual streaming. On my machine with Flash
->> 11.4.31.110, I get values of 2/44800/1/32768/2048/0, which seems sane.
->> Or does your machine still crash before anything is written to the logs?
-> 
-> I will try it a bit later.
-
-Yes, we need to trace the call chain and see at which point the trouble
-starts. What could help is tracing the google-chrome binary with strace
-maybe. At least we would see the ioctl command sequence, if the log file
-survives the crash.
-
-As the usb list is still in Cc: - Artem's lcpci dump shows that his
-machine features XHCI controllers. Can anyone think of a relation to
-this problem?
-
-And Artem, is there any way you boot your system on an older machine
-that only has EHCI ports? Thinking about it, I wonder whether the freeze
-in VBox and the crashes on native hardware have the same root cause. In
-that case, would it be possible to share that VBox image?
-
-
-Daniel
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index cb2eb26..ec476ef 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -1050,19 +1050,7 @@ static struct platform_driver bcap_driver = {
+ 	.probe = bcap_probe,
+ 	.remove = __devexit_p(bcap_remove),
+ };
+-
+-static __init int bcap_init(void)
+-{
+-	return platform_driver_register(&bcap_driver);
+-}
+-
+-static __exit void bcap_exit(void)
+-{
+-	platform_driver_unregister(&bcap_driver);
+-}
+-
+-module_init(bcap_init);
+-module_exit(bcap_exit);
++module_platform_driver(bcap_driver);
+ 
+ MODULE_DESCRIPTION("Analog Devices blackfin video capture driver");
+ MODULE_AUTHOR("Scott Jiang <Scott.Jiang.Linux@gmail.com>");
+-- 
+1.7.0.4
 
