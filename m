@@ -1,60 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:50653 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751073Ab2JEHQP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 03:16:15 -0400
-Date: Fri, 5 Oct 2012 09:15:59 +0200
-From: Robert Schwebel <r.schwebel@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	devicetree-discuss@lists.ozlabs.org,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:40449 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750740Ab2JJIvg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 04:51:36 -0400
+Date: Wed, 10 Oct 2012 17:51:27 +0900
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, TomiValkeinen@pengutronix.de
-Message-ID: <20121005071559.GH23204@pengutronix.de>
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 04/14] media: add V4L2 DT binding documentation
+Message-ID: <20121010085124.GJ17288@opensource.wolfsonmicro.com>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
+ <1348754853-28619-5-git-send-email-g.liakhovetski@gmx.de>
+ <20121005151057.GA5125@pengutronix.de>
+ <Pine.LNX.4.64.1210051735360.13761@axis700.grange>
+ <20121005160242.GX1322@pengutronix.de>
+ <Pine.LNX.4.64.1210080950350.11034@axis700.grange>
+ <20121010084006.GQ27665@pengutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20121010084006.GQ27665@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-<tomi.valkeinen@ti.com>, pza
-Bcc:
-Subject: Re: [PATCH 1/2 v6] of: add helper to parse display timings
-Reply-To:
-In-Reply-To: <Pine.LNX.4.64.1210042307300.3744@axis700.grange>
-X-Sent-From: Pengutronix Hildesheim
-X-URL: http://www.pengutronix.de/
-X-IRC: #ptxdist @freenode
-X-Accept-Language: de,en
-X-Accept-Content-Type: text/plain
-X-Uptime: 09:13:09 up 103 days, 22:24, 36 users,  load average: 0,57, 0,60,
- 0,61
+On Wed, Oct 10, 2012 at 10:40:06AM +0200, Sascha Hauer wrote:
 
-On Thu, Oct 04, 2012 at 11:35:35PM +0200, Guennadi Liakhovetski wrote:
-> > +optional properties:
-> > + - hsync-active-high (bool): Hsync pulse is active high
-> > + - vsync-active-high (bool): Vsync pulse is active high
->
-> For the above two we also considered using bool properties but eventually
-> settled down with integer ones:
->
-> - hsync-active = <1>
->
-> for active-high and 0 for active low. This has the added advantage of
-> being able to omit this property in the .dts, which then doesn't mean,
-> that the polarity is active low, but rather, that the hsync line is not
-> used on this hardware. So, maybe it would be good to use the same binding
-> here too?
+> Mark, when do we get the same for aSoC? ;)
 
-Philipp, this is the same argumentation as we discussed yesterday for
-the dual-link LVDS option, so that one could be modelled in a similar
-way.
+Well, I'm unlikely to work on it as I don't have any systems which can
+boot with device tree.
 
-rsc
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+The big, big problem you've got doing this is lots of dynamic changes at 
+runtime and in general complicated systems.  It's trivial to describe
+the physical links but they don't provide anything like enough
+information to use things.  Quite frankly I'm not sure device tree is a
+useful investment of time for advanced audio systems anyway, it's really
+not solving any problems people actually have.
