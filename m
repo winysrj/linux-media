@@ -1,109 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50548 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754936Ab2JKXKX (ORCPT
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:64156 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753227Ab2JJGt4 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Oct 2012 19:10:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Alain VOLMAT <alain.volmat@st.com>
-Cc: "Linux Media Mailing List (linux-media@vger.kernel.org)"
-	<linux-media@vger.kernel.org>
-Subject: Re: Proposal for the addition of a binary V4L2 control type
-Date: Fri, 12 Oct 2012 01:11:06 +0200
-Message-ID: <1443186.6Oez9BEXuQ@avalon>
-In-Reply-To: <E27519AE45311C49887BE8C438E68FAA01012C9116A3@SAFEX1MAIL1.st.com>
-References: <E27519AE45311C49887BE8C438E68FAA01012C91166A@SAFEX1MAIL1.st.com> <4301765.LiL07lAPUi@avalon> <E27519AE45311C49887BE8C438E68FAA01012C9116A3@SAFEX1MAIL1.st.com>
+	Wed, 10 Oct 2012 02:49:56 -0400
+Received: by mail-ie0-f174.google.com with SMTP id k13so300918iea.19
+        for <linux-media@vger.kernel.org>; Tue, 09 Oct 2012 23:49:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Reply-To: martin-eric.racine@iki.fi
+In-Reply-To: <20121010082308.4c802517@armhf>
+References: <20120711100436.2305b098@armhf>
+	<CAPZXPQdJC5yCYY6YRzuKj-ukFLzbY_yUzbogzbDx1S0bL1GrgQ@mail.gmail.com>
+	<20120711124441.346a86b3@armhf>
+	<CAPZXPQcvGqPjeyZh=vHtbSOoA91Htsg6DeyYyhYLeDgay8GSBg@mail.gmail.com>
+	<20120711132739.6b527a27@armhf>
+	<CAPZXPQeDKLAu13Qs-MhhxJEBrF-5620HNZDmPiH+4NRmkxx3Ag@mail.gmail.com>
+	<4FFD7F48.6060905@redhat.com>
+	<CAPZXPQfMrWySzx9=61WqoZ7zwzw19p69nN6_fuwAHjZVqGLDBw@mail.gmail.com>
+	<20120711191835.1be1c8ef@armhf>
+	<CAPZXPQeWC+pKJNLr12y_AybYCCKZr6ayBAa=EhaiyfN4iU8g5g@mail.gmail.com>
+	<20121009225446.GA7396@elie.Belkin>
+	<20121010082308.4c802517@armhf>
+Date: Wed, 10 Oct 2012 09:49:55 +0300
+Message-ID: <CAPZXPQdVs54w=a5sD+bJeyw0gPE3wXv3Qpx5DUk4MrTSgYf68g@mail.gmail.com>
+Subject: Re: video: USB webcam fails since kernel 3.2
+From: =?UTF-8?Q?Martin=2D=C3=89ric_Racine?= <martin-eric.racine@iki.fi>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: Jonathan Nieder <jrnieder@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>, 677533@bugs.debian.org,
+	linux-media@vger.kernel.org, debian-kernel@lists.debian.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alain,
+2012/10/10 Jean-Francois Moine <moinejf@free.fr>:
+> On Tue, 9 Oct 2012 15:54:46 -0700
+> Jonathan Nieder <jrnieder@gmail.com> wrote:
+>
+>> Hi,
+>>
+>> In June, Martin-Éric Racine wrote:
+>>
+>> > Since recent kernels, this ASUS W5F's built-in webcam fails to be
+>> > detected. Gstreamer-based applications (Cheese,
+>> > gstreamer-properties) immediately crash whenever trying to access
+>> > the video device.
+>> [...]
+>> > video_source:sr[3246]: segfault at 0 ip   (null) sp ab36de1c error
+>> > 14 in cheese[8048000+21000]
+>>
+>> In July, Martin-Éric Racine wrote:
+>>
+>> > As far as I can tell, yes, the modules in Jean-François' tarball work
+>> > as-is to fix the problem.
+>> [...]
+>> > [   11.834852] gspca_main: v2.15.18 registered
+>> > [   11.844262] gspca_main: vc032x-2.15.18 probing 0ac8:0321
+>> > [   11.844682] gspca_vc032x: vc0321 check sensor header 2c
+>> > [   11.850304] gspca_vc032x: Sensor ID 3130 (0)
+>> > [   11.850309] gspca_vc032x: Find Sensor PO3130NC
+>> > [   11.851809] gspca_main: video0 created
+>> >
+>> > Backport would be needed against 3.2.21 as this is what Debian will
+>> > (probably) release with.
+>>
+>> Sorry to have lost track of this.  Do you know what patch fixed it?
+>> Does 3.5.y from experimental work?
+>>
+>> Curious,
+>> Jonathan
+>
+> Hi Jonathan,
+>
+> I tried to prepare a patch set for the vc032x, but testing with
+> Martin-Éric stopped  mid-july, so I have nothing to propose yet. I'm
+> waiting for some other vc0321+po3130nc owner and continue the tests...
 
-On Friday 12 October 2012 00:41:37 Alain VOLMAT wrote:
-> On Vendredi 12 octobre 2012 00:22 Laurent Pinchart wrote: 
-> > On Thursday 11 October 2012 22:50:29 Alain VOLMAT wrote:
-> > > Hi guys,
-> > > 
-> > > In the context of supporting the control of our HDMI-TX via V4L2 in
-> > > our SetTopBox, we are facing interface issue with V4L2 when trying to
-> > > set some information from the application into the H/W.
-> > > 
-> > > As an example, in the HDCP context, an application controlling the
-> > > HDMI-TX have the possibility to inform the transmitter that it should
-> > > fail authentication to some identified HDMI-RX because for example
-> > > they might be known to be "bad" HDMI receiver that cannot be trusted.
-> > > This is basically done by setting the list of key (BKSV) into the
-> > > HDMI-TX H/W.
-> > > 
-> > > Currently, V4L2 ext control can be of the following type:
-> > > 
-> > > enum v4l2_ctrl_type {
-> > > 
-> > >         V4L2_CTRL_TYPE_INTEGER       = 1,
-> > >         V4L2_CTRL_TYPE_BOOLEAN       = 2,
-> > >         V4L2_CTRL_TYPE_MENU          = 3,
-> > >         V4L2_CTRL_TYPE_BUTTON        = 4,
-> > >         V4L2_CTRL_TYPE_INTEGER64     = 5,
-> > >         V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
-> > >         V4L2_CTRL_TYPE_STRING        = 7,
-> > >         V4L2_CTRL_TYPE_BITMASK       = 8,
-> > > 
-> > > }
-> > > 
-> > > There is nothing here than could efficiently be used to push this kind
-> > > of long (several bytes long .. not fitting into an int64) key
-> > > information.
-> > > STRING exists but actually since they are supposed to be strings, the
-> > > V4L2 core code (v4l2-ctrls.c) is using strlen to figure out the length
-> > > of data to be copied and it thus cannot be used to push this kind of
-> > > blob data.
-> > > 
-> > > Would you consider the addition of a new v4l2_ctrl_type, for example
-> > > called V4L2_CTRL_TYPE_BINARY or so, that basically would be pointer +
-> > > length. That would be helpful to pass this kind of control from the
-> > > application to the driver. (here I took the example of HDCP key blob
-> > > but that isn't of course the only example we can find of course).
-> > 
-> > If I remember correctly Hans Verkuil wasn't happy with the concept of
-> > binary controls. While I'm not totally against it, I agree with him that
-> > it could open the door to abuses. There are valid use cases though, both
-> > for binary "strings" (such as encryption keys) and binary arrays (such as
-> > gamma tables).
-> > Completely random binary blobs are not a good idea though.
-> > 
-> > So far we've worked around the absence of binary controls by using custom
-> > ioctls (or even standardizing new ioctls). It might or might not be a
-> > good solution for your problem, depending on your exact use cases.
-> 
-> Ok, at least for the HDCP keys table we could for an ioctl if that's already
-> the case in some other situations. I can however think about some cases
-> where passing such binary controls is better than ioctl in case of it is
-> necessary achieve several settings in an atomic way (which is I believe one
-> of the merit of ext_control). Still in the field of HDMI-TX I can at least
-> think about setting video post processing setting tables & mode change at
-> the same time for example. If one setting is already available via a
-> control and the other one has to be done via an ioctl, then it becomes hard
-> to ensure that this is done in an atomic way back at the driver level.
+We kept on going back and forth between two versions of the same file,
+none of which produced the result expected by Jean-Francois. I'd
+venture that the change that fixed it involves an entirely different
+file, but he seemed to expect otherwise.
 
-I agree with you, atomic setting of parameters will be a problem. That's a 
-problem I've already thought about in the past, and we've largely been able to 
-ignore it so far. It could even get worse: I don't know how long we will be 
-able to ignore that formats and selection rectangles will need to be set 
-atomically with controls.
-
-All this doesn't prevent me from sleeping though :-)
-
-> So, in short, for HDCP keys, there might not be a problem with ioctl but for
-> other HDMI-TX settings, I'm afraid we will face problems.
-> 
-> I am preparing some proposal for some new HDMI-TX controls (or ioctl ?) for
-> things like SPD, AVMUTE, CONTENT_TYPE etc, I guess we could discuss about
-> that problem again at that time.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Martin-Éric
