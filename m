@@ -1,51 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:40458 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751572Ab2JCOow (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 10:44:52 -0400
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:60408 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754971Ab2JJVNA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 17:13:00 -0400
+Message-ID: <5075E4D7.4010706@gmail.com>
+Date: Wed, 10 Oct 2012 23:12:55 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAPXgP11UQUHyCAo=GbAigQMqKWta12L19EsVaocU0ia6JKmd1Q@mail.gmail.com>
-References: <1340285798-8322-1-git-send-email-mchehab@redhat.com>
- <4FE37194.30407@redhat.com> <4FE8B8BC.3020702@iki.fi> <4FE8C4C4.1050901@redhat.com>
- <4FE8CED5.104@redhat.com> <20120625223306.GA2764@kroah.com>
- <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com>
- <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
- <20121002221239.GA30990@kroah.com> <CAPXgP11UQUHyCAo=GbAigQMqKWta12L19EsVaocU0ia6JKmd1Q@mail.gmail.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Wed, 3 Oct 2012 07:44:30 -0700
-Message-ID: <CA+55aFwDWE0RHuDVwUyCSf5aaEVuKzV1cSiSw-FAEapb59YCxA@mail.gmail.com>
-Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
- callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
-To: Kay Sievers <kay@vrfy.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Lennart Poettering <lennart@poettering.net>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Kay Sievers <kay@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Thomas Abraham <thomas.abraham@linaro.org>,
+	Tomasz Figa <t.figa@samsung.com>
+Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <5073FDC8.8090909@samsung.com> <201210091300.24124.hverkuil@xs4all.nl> <1398413.j3yGqyN4Du@avalon> <5075D947.3080903@gmail.com> <Pine.LNX.4.64.1210102229200.31291@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1210102229200.31291@axis700.grange>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 3, 2012 at 7:36 AM, Kay Sievers <kay@vrfy.org> wrote:
->
-> If that unfortunate module_init() lockup can't be solved properly in
-> the kernel
+On 10/10/2012 10:32 PM, Guennadi Liakhovetski wrote:
+>>> We might actually not need that, it might be easier to handle the circular
+>>> dependency problem from the other end. We could add a way (ioctl, sysfs, ...)
+>>> to force a V4L2 bridge driver to release its subdevs. Once done, the subdev
+>>> driver could be unloaded and/or the subdev device unregistered, which would
+>>> release the resources used by the subdev, such as clocks. The bridge driver
+>>> could then be unregistered.
+>>
+>> That sounds like an option. Perhaps it could be done by v4l2-core, e.g. a sysfs
+>> entry could be registered for a media or video device if driver requests it.
+>> I'm not sure if we should allow subdevs in "released" state, perhaps it's better
+>> to just unregister subdevs entirely right away ?
+> 
+> What speaks against holding a clock reference only during streaming, or at
+> least between open and close? Wouldn't that solve the problem naturally?
+> Yes, after giving up your reference to a clock at close() and re-acquiring
+> it at open() you will have to make sure the frequency hasn't change, resp.
+> adjust it, but I don't see it as a huge problem, I don't think many users
+> on embedded systems will compete for your camera master clock. And if they
+> do, you have a different problem, IMHO;-)
 
-Stop this idiocy.
+I agree, normally nobody should touch these clocks except the subdev (or as of 
+now the host) drivers. It depends on a sensor, video encoder, etc. how much it 
+tolerates switching the clock on/off. I suppose it's best to acquire/release it
+in .s_power callback, since only then the proper voltage supply, GPIO, clock 
+enable/disable sequences could be ensured. I know those things are currently 
+mostly ignored, but some sensors might be picky WRT their initialization/shutdown
+sequences and it would be good to ensure these sequences are fully controllable 
+by the sensor driver itsels, where the host's architecture allows that.
 
-The kernel doesn't have a lockup problem. udev does.
+To summarize, I can't see how holding a clock only when a device is active
+could cause any problems, in case of camera sensors. I'm not sure about other
+devices, like e.g. tuners.
 
-As even  you admit, it is *udev* that has the whole serialization
-issue, and does excessive (and incorrect) serialization between
-events. Resulting in the kernel timing out a udev event that takes too
-long.
+--
 
-The fact that you then continually try to make this a "kernel issue"
-is just disgusting. Talking about the kernel solving it "properly" is
-pretty dishonest, when the kernel wasn't the problem in the first
-place. The kernel not only does things right, but this all used to
-work fine.
-
-                   Linus
+Regards,
+Sylwester
