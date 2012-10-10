@@ -1,148 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52853 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750794Ab2JGNDG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Oct 2012 09:03:06 -0400
-Date: Sun, 7 Oct 2012 10:03:01 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Wolfgang Bail <wolfgang.bail@t-online.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH] rc-msi-digivox-ii: Add full scan keycodes - Was: Re: v4l
-Message-ID: <20121007100301.3870ef32@redhat.com>
-In-Reply-To: <201209300549.26996.wolfgang.bail@t-online.de>
-References: <201209300549.26996.wolfgang.bail@t-online.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:36594 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754978Ab2JJKqY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 06:46:24 -0400
+Date: Wed, 10 Oct 2012 19:46:16 +0900
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 04/14] media: add V4L2 DT binding documentation
+Message-ID: <20121010104615.GK17288@opensource.wolfsonmicro.com>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
+ <1348754853-28619-5-git-send-email-g.liakhovetski@gmx.de>
+ <20121005151057.GA5125@pengutronix.de>
+ <Pine.LNX.4.64.1210051735360.13761@axis700.grange>
+ <20121005160242.GX1322@pengutronix.de>
+ <Pine.LNX.4.64.1210080950350.11034@axis700.grange>
+ <20121010084006.GQ27665@pengutronix.de>
+ <20121010085124.GJ17288@opensource.wolfsonmicro.com>
+ <20121010092115.GW27665@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20121010092115.GW27665@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 30 Sep 2012 05:49:26 +0200
-Wolfgang Bail <wolfgang.bail@t-online.de> escreveu:
+On Wed, Oct 10, 2012 at 11:21:15AM +0200, Sascha Hauer wrote:
+> On Wed, Oct 10, 2012 at 05:51:27PM +0900, Mark Brown wrote:
 
-> Hello,
-> 
-> the ir-rc from my msi DigiVox mini II Version 3 (af9015) will not work since 
-> kernel 3.2.x (kubuntu 12.04), same with s2-liplianin or v4l.
-> 
-> sudo ir-keytable -t shows:
-> 
-> Testing events. Please, press CTRL-C to abort.
-> 1348890734.303273: event MSC: scancode = 317
-> 1348890734.303280: event key down: KEY_POWER (0x0074)
-> 1348890734.303282: event sync
-> 1348890734.553961: event key up: KEY_POWER (0x0074)
-> 1348890734.553963: event sync
-> 1348890741.303451: event MSC: scancode = 30d
-> 1348890741.303457: event key down: KEY_DOWN (0x006c)
-> 1348890741.303459: event sync
-> ^[[B1348890741.553956: event key up: KEY_DOWN (0x006c)
-> 
-> So I changed in rc-msi-digivox-ii.c { 0x0002, KEY_2 }, to { 0x0302, KEY_2 }, 
-> and so on. And now it works well.
-> 
-> I hope, my mini patch is standard, the first I made. 
+> > Well, I'm unlikely to work on it as I don't have any systems which can
+> > boot with device tree.
 
-Well, you should have using a subject like:
+> If it's only that I'm sure we could spare a i.MX53 LOCO ;)
 
-[PATCH] rc-msi-digivox-ii: Add full scan keycodes
+Well, something with Wolfson hardware would be helpful.
 
-And your signed-off-by. There are some pages at linuxtv.org wiki that points
-how to write a patch.
+> > The big, big problem you've got doing this is lots of dynamic changes at 
+> > runtime and in general complicated systems.  It's trivial to describe
+> > the physical links but they don't provide anything like enough
+> > information to use things.  Quite frankly I'm not sure device tree is a
+> > useful investment of time for advanced audio systems anyway, it's really
+> > not solving any problems people actually have.
 
-Yet, as this is a really trivial one, I'll accept it without your Signed-off-by.
+> Right now the i.MX audmux binding is only enough to say which ports
+> should be connected, but not which format should be used. Just today
 
-> I don't know, whether 
-> there are different variants of remote controls. But I don't believe it, 
-> because it was ok with kernel 2.6.x.
+Why should that be in DT?  For most things it's either fixed by the
+hardware or makes no odds.
 
-No, this seems just yet-another-regression caused by some patch that changed 
-the code that gets IR scancode to report the 16-bit keycode, instead of
-just the last 8 bits.
+> we had the problem where a codec has two DAIs and wanted to add the
+> information on which port our SSI unit is connected to the devicetree.
 
-Thanks for it.
+There's nothing stopping you doing that right now, the existing DT 
 
-> 
-> @Mauro, thank you for the reply.
-> 
+> So I think it's worthwile to do, but that would be a big big task...
 
-Regards,
-Mauro
-
--
-
-FYI, this is how I applied it.
-
-
-From: Wolfgang Bail <wolfgang.bail@t-online.de>
-Date: Sat, 29 Sep 2012 23:49:26 -0300
-Subject: [PATCH] [media] rc-msi-digivox-ii: Add full scan keycodes
-
-The ir-rc from my MSI DigiVox mini II Version 3 (af9015) will not work since
-kernel 3.2.x.
-
-sudo ir-keytable -t shows:
-
-	1348890734.303273: event MSC: scancode = 317
-	1348890734.303280: event key down: KEY_POWER (0x0074)
-	1348890734.303282: event sync
-	1348890734.553961: event key up: KEY_POWER (0x0074)
-	1348890734.553963: event sync
-	1348890741.303451: event MSC: scancode = 30d
-	1348890741.303457: event key down: KEY_DOWN (0x006c)
-	1348890741.303459: event sync
-	1348890741.553956: event key up: KEY_DOWN (0x006c)
-
-So I changed in rc-msi-digivox-ii.c { 0x0002, KEY_2 }, to { 0x0302, KEY_2 },
-and so on. And now it works well.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/rc/keymaps/rc-msi-digivox-ii.c b/drivers/media/rc/keymaps/rc-msi-digivox-ii.c
-index c64e9e3..2fa71d0 100644
---- a/drivers/media/rc/keymaps/rc-msi-digivox-ii.c
-+++ b/drivers/media/rc/keymaps/rc-msi-digivox-ii.c
-@@ -22,24 +22,24 @@
- #include <linux/module.h>
- 
- static struct rc_map_table msi_digivox_ii[] = {
--	{ 0x0002, KEY_2 },
--	{ 0x0003, KEY_UP },              /* up */
--	{ 0x0004, KEY_3 },
--	{ 0x0005, KEY_CHANNELDOWN },
--	{ 0x0008, KEY_5 },
--	{ 0x0009, KEY_0 },
--	{ 0x000b, KEY_8 },
--	{ 0x000d, KEY_DOWN },            /* down */
--	{ 0x0010, KEY_9 },
--	{ 0x0011, KEY_7 },
--	{ 0x0014, KEY_VOLUMEUP },
--	{ 0x0015, KEY_CHANNELUP },
--	{ 0x0016, KEY_OK },
--	{ 0x0017, KEY_POWER2 },
--	{ 0x001a, KEY_1 },
--	{ 0x001c, KEY_4 },
--	{ 0x001d, KEY_6 },
--	{ 0x001f, KEY_VOLUMEDOWN },
-+	{ 0x0302, KEY_2 },
-+	{ 0x0303, KEY_UP },              /* up */
-+	{ 0x0304, KEY_3 },
-+	{ 0x0305, KEY_CHANNELDOWN },
-+	{ 0x0308, KEY_5 },
-+	{ 0x0309, KEY_0 },
-+	{ 0x030b, KEY_8 },
-+	{ 0x030d, KEY_DOWN },            /* down */
-+	{ 0x0310, KEY_9 },
-+	{ 0x0311, KEY_7 },
-+	{ 0x0314, KEY_VOLUMEUP },
-+	{ 0x0315, KEY_CHANNELUP },
-+	{ 0x0316, KEY_OK },
-+	{ 0x0317, KEY_POWER2 },
-+	{ 0x031a, KEY_1 },
-+	{ 0x031c, KEY_4 },
-+	{ 0x031d, KEY_6 },
-+	{ 0x031f, KEY_VOLUMEDOWN },
- };
- 
- static struct rc_map_list msi_digivox_ii_map = {
-
+For simple devices there's already stuff there and it's not hard to add
+new machine bindings, it's trying to cover the general case that's far
+too much effort.
