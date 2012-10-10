@@ -1,180 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:64052 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932353Ab2JURxc (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:61580 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755248Ab2JJO6V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Oct 2012 13:53:32 -0400
-Received: by mail-wi0-f172.google.com with SMTP id hq12so1759055wib.1
-        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2012 10:53:32 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 10/23] em28xx: create a common function for isoc and bulk USB transfer initialization
-Date: Sun, 21 Oct 2012 19:52:15 +0300
-Message-Id: <1350838349-14763-11-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Wed, 10 Oct 2012 10:58:21 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBO00MDFMWUE160@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:58:20 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MBO002YDME0EC70@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:58:20 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: [PATCHv10 16/26] v4l: vb2-dma-contig: let mmap method to use
+ dma_mmap_coherent call
+Date: Wed, 10 Oct 2012 16:46:35 +0200
+Message-id: <1349880405-26049-17-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
+References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- rename em28xx_init_isoc to em28xx_init_usb_xfer
-- add parameter for isoc/bulk transfer selection which is passed to em28xx_alloc_urbs
-- rename local variable isoc_buf to usb_bufs
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Let mmap method to use dma_mmap_coherent call.  Moreover, this patch removes
+vb2_mmap_pfn_range from videobuf2 helpers as it was suggested by Laurent
+Pinchart.  The function is no longer used in vb2 code.
+
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/em28xx/em28xx-core.c  |   30 ++++++++++++++++--------------
- drivers/media/usb/em28xx/em28xx-dvb.c   |    9 +++++----
- drivers/media/usb/em28xx/em28xx-video.c |   20 ++++++++++----------
- drivers/media/usb/em28xx/em28xx.h       |    8 +++++---
- 4 Dateien geändert, 36 Zeilen hinzugefügt(+), 31 Zeilen entfernt(-)
+ drivers/media/v4l2-core/videobuf2-dma-contig.c |   28 +++++++++++++++--
+ drivers/media/v4l2-core/videobuf2-memops.c     |   40 ------------------------
+ include/media/videobuf2-memops.h               |    5 ---
+ 3 files changed, 26 insertions(+), 47 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 42388de..d8a8e8b 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -1141,33 +1141,35 @@ EXPORT_SYMBOL_GPL(em28xx_alloc_urbs);
- /*
-  * Allocate URBs and start IRQ
-  */
--int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
--		     int num_packets, int num_bufs, int max_pkt_size,
--		     int (*isoc_copy) (struct em28xx *dev, struct urb *urb))
-+int em28xx_init_usb_xfer(struct em28xx *dev, enum em28xx_mode mode,
-+		    int xfer_bulk, int num_bufs, int max_pkt_size,
-+		    int packet_multiplier,
-+		    int (*urb_data_copy) (struct em28xx *dev, struct urb *urb))
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index a5804cf..0e065ce 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -178,14 +178,38 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
  {
- 	struct em28xx_dmaqueue *dma_q = &dev->vidq;
- 	struct em28xx_dmaqueue *vbi_dma_q = &dev->vbiq;
--	struct em28xx_usb_bufs *isoc_bufs;
-+	struct em28xx_usb_bufs *usb_bufs;
- 	int i;
- 	int rc;
- 	int alloc;
+ 	struct vb2_dc_buf *buf = buf_priv;
++	int ret;
  
--	em28xx_isocdbg("em28xx: called em28xx_init_isoc in mode %d\n", mode);
-+	em28xx_isocdbg("em28xx: called em28xx_init_usb_xfer in mode %d\n",
-+		       mode);
- 
--	dev->usb_ctl.urb_data_copy = isoc_copy;
-+	dev->usb_ctl.urb_data_copy = urb_data_copy;
- 
- 	if (mode == EM28XX_DIGITAL_MODE) {
--		isoc_bufs = &dev->usb_ctl.digital_bufs;
--		/* no need to free/alloc isoc buffers in digital mode */
-+		usb_bufs = &dev->usb_ctl.digital_bufs;
-+		/* no need to free/alloc usb buffers in digital mode */
- 		alloc = 0;
- 	} else {
--		isoc_bufs = &dev->usb_ctl.analog_bufs;
-+		usb_bufs = &dev->usb_ctl.analog_bufs;
- 		alloc = 1;
+ 	if (!buf) {
+ 		printk(KERN_ERR "No buffer to map\n");
+ 		return -EINVAL;
  	}
  
- 	if (alloc) {
--		rc = em28xx_alloc_urbs(dev, mode, 0, num_bufs,
--				       max_pkt_size, num_packets);
-+		rc = em28xx_alloc_urbs(dev, mode, xfer_bulk, num_bufs,
-+				       max_pkt_size, packet_multiplier);
- 		if (rc)
- 			return rc;
- 	}
-@@ -1178,8 +1180,8 @@ int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 	em28xx_capture_start(dev, 1);
- 
- 	/* submit urbs and enables IRQ */
--	for (i = 0; i < isoc_bufs->num_bufs; i++) {
--		rc = usb_submit_urb(isoc_bufs->urb[i], GFP_ATOMIC);
-+	for (i = 0; i < usb_bufs->num_bufs; i++) {
-+		rc = usb_submit_urb(usb_bufs->urb[i], GFP_ATOMIC);
- 		if (rc) {
- 			em28xx_err("submit of urb %i failed (error=%i)\n", i,
- 				   rc);
-@@ -1190,7 +1192,7 @@ int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(em28xx_init_isoc);
-+EXPORT_SYMBOL_GPL(em28xx_init_usb_xfer);
- 
- /*
-  * em28xx_wake_i2c()
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index 0fe99ef..66535dc 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -176,10 +176,11 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
- 		EM28XX_DVB_NUM_ISOC_PACKETS,
- 		max_dvb_packet_size);
- 
--	return em28xx_init_isoc(dev, EM28XX_DIGITAL_MODE,
--				EM28XX_DVB_NUM_ISOC_PACKETS,
--				EM28XX_DVB_NUM_BUFS,
--				max_dvb_packet_size, em28xx_dvb_isoc_copy);
-+	return em28xx_init_usb_xfer(dev, EM28XX_DIGITAL_MODE, 0,
-+				    EM28XX_DVB_NUM_BUFS,
-+				    max_dvb_packet_size,
-+				    EM28XX_DVB_NUM_ISOC_PACKETS,
-+				    em28xx_dvb_isoc_copy);
+-	return vb2_mmap_pfn_range(vma, buf->dma_addr, buf->size,
+-				  &vb2_common_vm_ops, &buf->handler);
++	/*
++	 * dma_mmap_* uses vm_pgoff as in-buffer offset, but we want to
++	 * map whole buffer
++	 */
++	vma->vm_pgoff = 0;
++
++	ret = dma_mmap_coherent(buf->dev, vma, buf->vaddr,
++		buf->dma_addr, buf->size);
++
++	if (ret) {
++		pr_err("Remapping memory failed, error: %d\n", ret);
++		return ret;
++	}
++
++	vma->vm_flags		|= VM_DONTEXPAND | VM_RESERVED;
++	vma->vm_private_data	= &buf->handler;
++	vma->vm_ops		= &vb2_common_vm_ops;
++
++	vma->vm_ops->open(vma);
++
++	pr_debug("%s: mapped dma addr 0x%08lx at 0x%08lx, size %ld\n",
++		__func__, (unsigned long)buf->dma_addr, vma->vm_start,
++		buf->size);
++
++	return 0;
  }
  
- static int em28xx_stop_streaming(struct em28xx_dvb *dvb)
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 1207a73..4024dfc 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -763,17 +763,17 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
+ /*********************************************/
+diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
+index 504cd4c..81c1ad8 100644
+--- a/drivers/media/v4l2-core/videobuf2-memops.c
++++ b/drivers/media/v4l2-core/videobuf2-memops.c
+@@ -137,46 +137,6 @@ int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+ EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
  
- 	if (urb_init) {
- 		if (em28xx_vbi_supported(dev) == 1)
--			rc = em28xx_init_isoc(dev, EM28XX_ANALOG_MODE,
--					      EM28XX_NUM_ISOC_PACKETS,
--					      EM28XX_NUM_BUFS,
--					      dev->max_pkt_size,
--					      em28xx_isoc_copy_vbi);
-+			rc = em28xx_init_usb_xfer(dev, EM28XX_ANALOG_MODE, 0,
-+						  EM28XX_NUM_BUFS,
-+						  dev->max_pkt_size,
-+						  EM28XX_NUM_ISOC_PACKETS,
-+						  em28xx_isoc_copy_vbi);
- 		else
--			rc = em28xx_init_isoc(dev, EM28XX_ANALOG_MODE,
--					      EM28XX_NUM_ISOC_PACKETS,
--					      EM28XX_NUM_BUFS,
--					      dev->max_pkt_size,
--					      em28xx_isoc_copy);
-+			rc = em28xx_init_usb_xfer(dev, EM28XX_ANALOG_MODE, 0,
-+						  EM28XX_NUM_BUFS,
-+						  dev->max_pkt_size,
-+						  EM28XX_NUM_ISOC_PACKETS,
-+						  em28xx_isoc_copy);
- 		if (rc < 0)
- 			goto fail;
- 	}
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 9a1ffde..e311b09 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -663,9 +663,11 @@ int em28xx_resolution_set(struct em28xx *dev);
- int em28xx_set_alternate(struct em28xx *dev);
- int em28xx_alloc_urbs(struct em28xx *dev, enum em28xx_mode mode, int xfer_bulk,
- 		      int num_bufs, int max_pkt_size, int packet_multiplier);
--int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
--		     int num_packets, int num_bufs, int max_pkt_size,
--		     int (*isoc_copy) (struct em28xx *dev, struct urb *urb));
-+int em28xx_init_usb_xfer(struct em28xx *dev, enum em28xx_mode mode,
-+			 int xfer_bulk,
-+			 int num_bufs, int max_pkt_size, int packet_multiplier,
-+			 int (*urb_data_copy)
-+					(struct em28xx *dev, struct urb *urb));
- void em28xx_uninit_usb_xfer(struct em28xx *dev, enum em28xx_mode mode);
- void em28xx_stop_urbs(struct em28xx *dev);
- int em28xx_isoc_dvb_max_packetsize(struct em28xx *dev);
+ /**
+- * vb2_mmap_pfn_range() - map physical pages to userspace
+- * @vma:	virtual memory region for the mapping
+- * @paddr:	starting physical address of the memory to be mapped
+- * @size:	size of the memory to be mapped
+- * @vm_ops:	vm operations to be assigned to the created area
+- * @priv:	private data to be associated with the area
+- *
+- * Returns 0 on success.
+- */
+-int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
+-				unsigned long size,
+-				const struct vm_operations_struct *vm_ops,
+-				void *priv)
+-{
+-	int ret;
+-
+-	size = min_t(unsigned long, vma->vm_end - vma->vm_start, size);
+-
+-	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+-	ret = remap_pfn_range(vma, vma->vm_start, paddr >> PAGE_SHIFT,
+-				size, vma->vm_page_prot);
+-	if (ret) {
+-		printk(KERN_ERR "Remapping memory failed, error: %d\n", ret);
+-		return ret;
+-	}
+-
+-	vma->vm_flags		|= VM_DONTEXPAND | VM_RESERVED;
+-	vma->vm_private_data	= priv;
+-	vma->vm_ops		= vm_ops;
+-
+-	vma->vm_ops->open(vma);
+-
+-	pr_debug("%s: mapped paddr 0x%08lx at 0x%08lx, size %ld\n",
+-			__func__, paddr, vma->vm_start, size);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(vb2_mmap_pfn_range);
+-
+-/**
+  * vb2_common_vm_open() - increase refcount of the vma
+  * @vma:	virtual memory region for the mapping
+  *
+diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
+index 84e1f6c..f05444c 100644
+--- a/include/media/videobuf2-memops.h
++++ b/include/media/videobuf2-memops.h
+@@ -33,11 +33,6 @@ extern const struct vm_operations_struct vb2_common_vm_ops;
+ int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+ 			   struct vm_area_struct **res_vma, dma_addr_t *res_pa);
+ 
+-int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
+-				unsigned long size,
+-				const struct vm_operations_struct *vm_ops,
+-				void *priv);
+-
+ struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
+ void vb2_put_vma(struct vm_area_struct *vma);
+ 
 -- 
-1.7.10.4
+1.7.9.5
 
