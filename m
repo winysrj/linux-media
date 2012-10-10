@@ -1,37 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56659 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751003Ab2JTVe4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Oct 2012 17:34:56 -0400
-Date: Sun, 21 Oct 2012 00:34:51 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: Don't warn during link validation when
- encountering a V4L2 devnode
-Message-ID: <20121020213451.GQ21261@valkosipuli.retiisi.org.uk>
-References: <1350767073-9478-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1350767073-9478-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:40152 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753175Ab2JJQXX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 12:23:23 -0400
+Date: Wed, 10 Oct 2012 13:23:14 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Robert Morell <rmorell@nvidia.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>, <rob@ti.com>,
+	<linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	<linaro-mm-sig@lists.linaro.org>
+Subject: Re: [PATCH] dma-buf: Use EXPORT_SYMBOL
+Message-ID: <20121010132314.7c7ddaa5@redhat.com>
+In-Reply-To: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
+References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Oct 20, 2012 at 11:04:33PM +0200, Laurent Pinchart wrote:
-> v4l2_subdev_link_validate_get_format() retrieves the remote pad format
-> depending on the entity type and prints a warning if the entity type is
-> not supported. The type check doesn't take the subtype into account, and
-> thus always prints a warning for device node types, even when supported.
-> Fix it.
+Em Wed, 10 Oct 2012 08:56:32 -0700
+Robert Morell <rmorell@nvidia.com> escreveu:
+
+> EXPORT_SYMBOL_GPL is intended to be used for "an internal implementation
+> issue, and not really an interface".  The dma-buf infrastructure is
+> explicitly intended as an interface between modules/drivers, so it
+> should use EXPORT_SYMBOL instead.
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Robert Morell <rmorell@nvidia.com>
 
-Thanks!
+NAK, as already explained at:
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+http://lists.freedesktop.org/archives/dri-devel/2012-January/018281.html
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Regards,
+Mauro
