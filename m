@@ -1,293 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 173-160-178-141-Washington.hfc.comcastbusiness.net ([173.160.178.141]:46288
-	"EHLO relay" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932656Ab2JWSoa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 14:44:30 -0400
-From: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
-To: andrey.smirnov@convergeddevices.net
-Cc: hverkuil@xs4all.nl, mchehab@redhat.com, sameo@linux.intel.com,
-	broonie@opensource.wolfsonmicro.com, perex@perex.cz, tiwai@suse.de,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v3 4/6] Add chip properties handling code for SI476X MFD
-Date: Tue, 23 Oct 2012 11:44:30 -0700
-Message-Id: <1351017872-32488-5-git-send-email-andrey.smirnov@convergeddevices.net>
-In-Reply-To: <1351017872-32488-1-git-send-email-andrey.smirnov@convergeddevices.net>
-References: <1351017872-32488-1-git-send-email-andrey.smirnov@convergeddevices.net>
+Received: from mailout4.samsung.com ([203.254.224.34]:48692 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752276Ab2JJOxC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 10:53:02 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBO00B8EMODK980@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:53:01 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MBO002YDME0EC70@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:53:00 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: [PATCHv10 09/26] v4l: vb2: add prepare/finish callbacks to allocators
+Date: Wed, 10 Oct 2012 16:46:28 +0200
+Message-id: <1349880405-26049-10-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
+References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds code related to manipulation of the properties of
-SI476X chips.
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Signed-off-by: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
+This patch adds support for prepare/finish callbacks in VB2 allocators. These
+callback are used for buffer flushing.
+
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/mfd/si476x-prop.c |  257 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 257 insertions(+)
- create mode 100644 drivers/mfd/si476x-prop.c
+ drivers/media/v4l2-core/videobuf2-core.c |   11 +++++++++++
+ include/media/videobuf2-core.h           |    7 +++++++
+ 2 files changed, 18 insertions(+)
 
-diff --git a/drivers/mfd/si476x-prop.c b/drivers/mfd/si476x-prop.c
-new file mode 100644
-index 0000000..3811eec
---- /dev/null
-+++ b/drivers/mfd/si476x-prop.c
-@@ -0,0 +1,257 @@
-+/*
-+ * include/media/si476x-prop.c -- Subroutines to manipulate with
-+ * properties of si476x chips
-+ *
-+ * Copyright (C) 2012 Innovative Converged Devices(ICD)
-+ *
-+ * Author: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+#include <linux/module.h>
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index a51dad6..613dea1 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -844,6 +844,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+ 	unsigned long flags;
++	unsigned int plane;
+ 
+ 	if (vb->state != VB2_BUF_STATE_ACTIVE)
+ 		return;
+@@ -854,6 +855,10 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	dprintk(4, "Done processing on buffer %d, state: %d\n",
+ 			vb->v4l2_buf.index, vb->state);
+ 
++	/* sync buffers */
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		call_memop(q, finish, vb->planes[plane].mem_priv);
 +
-+#include <media/si476x.h>
-+#include <linux/mfd/si476x-core.h>
+ 	/* Add the buffer to the done buffers list */
+ 	spin_lock_irqsave(&q->done_lock, flags);
+ 	vb->state = state;
+@@ -1136,9 +1141,15 @@ err:
+ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
++	unsigned int plane;
+ 
+ 	vb->state = VB2_BUF_STATE_ACTIVE;
+ 	atomic_inc(&q->queued_count);
 +
-+struct si476x_property_range {
-+	u16 low, high;
-+};
++	/* sync buffers */
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		call_memop(q, prepare, vb->planes[plane].mem_priv);
 +
+ 	q->ops->buf_queue(vb);
+ }
+ 
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 689ae4a..24b9c90 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -56,6 +56,10 @@ struct vb2_fileio_data;
+  *		dmabuf
+  * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
+  *		  that this driver is done using the dmabuf for now
++ * @prepare:	called every time the buffer is passed from userspace to the
++ *		driver, useful for cache synchronisation, optional
++ * @finish:	called every time the buffer is passed back from the driver
++ *		to the userspace, also optional
+  * @vaddr:	return a kernel virtual address to a given memory buffer
+  *		associated with the passed private structure or NULL if no
+  *		such mapping exists
+@@ -82,6 +86,9 @@ struct vb2_mem_ops {
+ 					unsigned long size, int write);
+ 	void		(*put_userptr)(void *buf_priv);
+ 
++	void		(*prepare)(void *buf_priv);
++	void		(*finish)(void *buf_priv);
 +
-+
-+static bool si476x_core_element_is_in_array(u16 element, const u16 array[], size_t size)
-+{
-+	int i;
-+
-+	for (i = 0; i < size; i++)
-+		if (element == array[i])
-+			return true;
-+
-+	return false;
-+}
-+
-+static bool si476x_core_element_is_in_range(u16 element,
-+					    const struct si476x_property_range range[],
-+					    size_t size)
-+{
-+	int i;
-+
-+	for (i = 0; i < size; i++)
-+		if (element <= range[i].high && element >= range[i].low)
-+			return true;
-+
-+	return false;
-+}
-+
-+static bool si476x_core_is_valid_property_a10(struct si476x_core *core,
-+					      u16 property)
-+{
-+	static const u16 valid_properties[] = {
-+		0x0000,
-+		0x0500, 0x0501,
-+		0x0600,
-+		0x0709, 0x070C, 0x070D, 0x70E, 0x710,
-+		0x0718,
-+		0x1207, 0x1208,
-+		0x2007,
-+		0x2300,
-+	};
-+
-+	static const struct si476x_property_range valid_ranges[] = {
-+		{ 0x0200, 0x0203 },
-+		{ 0x0300, 0x0303 },
-+		{ 0x0400, 0x0404 },
-+		{ 0x0700, 0x0707 },
-+		{ 0x1100, 0x1102 },
-+		{ 0x1200, 0x1204 },
-+		{ 0x1300, 0x1306 },
-+		{ 0x2000, 0x2005 },
-+		{ 0x2100, 0x2104 },
-+		{ 0x2106, 0x2106 },
-+		{ 0x2200, 0x220E },
-+		{ 0x3100, 0x3104 },
-+		{ 0x3207, 0x320F },
-+		{ 0x3300, 0x3304 },
-+		{ 0x3500, 0x3517 },
-+		{ 0x3600, 0x3617 },
-+		{ 0x3700, 0x3717 },
-+		{ 0x4000, 0x4003 },
-+	};
-+
-+	return	si476x_core_element_is_in_range(property, valid_ranges,
-+						ARRAY_SIZE(valid_ranges)) ||
-+		si476x_core_element_is_in_array(property, valid_properties,
-+						ARRAY_SIZE(valid_properties));
-+}
-+
-+static bool si476x_core_is_valid_property_a20(struct si476x_core *core,
-+					      u16 property)
-+{
-+	static const u16 valid_properties[] = {
-+		0x071B,
-+		0x1006,
-+		0x2210,
-+		0x3401,
-+	};
-+
-+	static const struct si476x_property_range valid_ranges[] = {
-+		{ 0x2215, 0x2219 },
-+	};
-+
-+	return	si476x_core_is_valid_property_a10(core, property) ||
-+		si476x_core_element_is_in_range(property, valid_ranges,
-+						ARRAY_SIZE(valid_ranges))  ||
-+		si476x_core_element_is_in_array(property, valid_properties,
-+						ARRAY_SIZE(valid_properties));
-+}
-+
-+static bool si476x_core_is_valid_property_a30(struct si476x_core *core,
-+					      u16 property)
-+{
-+	static const u16 valid_properties[] = {
-+		0x071C, 0x071D,
-+		0x1007, 0x1008,
-+		0x220F, 0x2214,
-+		0x2301,
-+		0x3105, 0x3106,
-+		0x3402,
-+	};
-+
-+	static const struct si476x_property_range valid_ranges[] = {
-+		{ 0x0405, 0x0411 },
-+		{ 0x2008, 0x200B },
-+		{ 0x2220, 0x2223 },
-+		{ 0x3100, 0x3106 },
-+	};
-+
-+	return	si476x_core_is_valid_property_a20(core, property) ||
-+		si476x_core_element_is_in_range(property, valid_ranges,
-+						ARRAY_SIZE(valid_ranges)) ||
-+		si476x_core_element_is_in_array(property, valid_properties,
-+						ARRAY_SIZE(valid_properties));
-+}
-+
-+typedef bool (*valid_property_pred_t) (struct si476x_core *, u16);
-+
-+static bool si476x_core_is_valid_property(struct si476x_core *core, u16 property)
-+{
-+	static const valid_property_pred_t is_valid_property[] = {
-+		[SI476X_REVISION_A10] = si476x_core_is_valid_property_a10,
-+		[SI476X_REVISION_A20] = si476x_core_is_valid_property_a20,
-+		[SI476X_REVISION_A30] = si476x_core_is_valid_property_a30,
-+	};
-+
-+	BUG_ON(core->revision > SI476X_REVISION_A30 ||
-+	       core->revision == -1);
-+	return is_valid_property[core->revision](core, property);
-+}
-+
-+
-+static bool si476x_core_is_readonly_property(struct si476x_core *core, u16 property)
-+{
-+	BUG_ON(core->revision > SI476X_REVISION_A30 ||
-+	       core->revision == -1);
-+
-+	switch (core->revision) {
-+	case SI476X_REVISION_A10:
-+		return (property == 0x3200);
-+	case SI476X_REVISION_A20:
-+		return (property == 0x1006 ||
-+			property == 0x2210 ||
-+			property == 0x3200);
-+	case SI476X_REVISION_A30:
-+		return false;
-+	}
-+
-+	return false;
-+}
-+
-+static bool si476x_core_regmap_readable_register(struct device *dev, unsigned int reg)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct si476x_core *core = i2c_get_clientdata(client);
-+
-+	return si476x_core_is_valid_property(core, (u16) reg);
-+
-+}
-+
-+static bool si476x_core_regmap_writable_register(struct device *dev, unsigned int reg)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct si476x_core *core = i2c_get_clientdata(client);
-+
-+	return si476x_core_is_valid_property(core, (u16) reg) &&
-+		!si476x_core_is_readonly_property(core, (u16) reg);
-+}
-+
-+static const struct regmap_config si476x_regmap_config = {
-+	.reg_bits = 16,
-+	.val_bits = 16,
-+
-+	.max_register = 0x4003,
-+
-+	.writeable_reg = si476x_core_regmap_writable_register,
-+	.readable_reg = si476x_core_regmap_readable_register,
-+
-+	.cache_type = REGCACHE_RBTREE,
-+};
-+
-+static int si476x_core_regmap_write(void *context, const void *data, size_t count)
-+{
-+	struct si476x_core *core = context;
-+	u16 prop, val;
-+
-+	if (count != sizeof(prop) + sizeof(val))
-+		return -EINVAL;
-+
-+	prop = be16_to_cpup(data);
-+	val = be16_to_cpup(data + 2);
-+
-+	return si476x_core_cmd_set_property(core, prop, val);
-+}
-+
-+static int si476x_core_regmap_read(void *context,
-+				   const void *reg, size_t reg_size,
-+				   void *val, size_t val_size)
-+{
-+	struct si476x_core *core = context;
-+	u16 prop;
-+	int err;
-+
-+	if (reg_size != sizeof(u16) ||
-+	    val_size != sizeof(u16))
-+		return -EINVAL;
-+
-+	prop = be16_to_cpup(reg);
-+
-+	err = si476x_core_cmd_get_property(core, prop);
-+	if (err < 0) {
-+		if (prop == 0x4002)
-+			WARN(1, "{XXXX} Failed to read property: %x, %d",
-+			     prop, core->power_up_parameters.func);
-+		return err;
-+	}
-+
-+	*(u16 *)val = cpu_to_be16(0xFFFF & err);
-+
-+	return 0;
-+}
-+
-+static struct regmap_bus si476x_regmap_bus = {
-+	.write = si476x_core_regmap_write,
-+	.read  = si476x_core_regmap_read,
-+};
-+
-+struct regmap *devm_regmap_init_si476x(struct si476x_core *core)
-+{
-+	return devm_regmap_init(&core->client->dev, &si476x_regmap_bus,
-+				core, &si476x_regmap_config);
-+}
-+EXPORT_SYMBOL_GPL(devm_regmap_init_si476x);
+ 	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
+ 				unsigned long size, int write);
+ 	void		(*detach_dmabuf)(void *buf_priv);
 -- 
-1.7.10.4
+1.7.9.5
 
