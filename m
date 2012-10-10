@@ -1,312 +1,333 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37295 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751088Ab2JFL4f convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Oct 2012 07:56:35 -0400
-Date: Sat, 6 Oct 2012 08:56:24 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org, hdegoede@redhat.com,
-	mchehab@infradead.org
-Subject: Re: How to add support for the em2765 webcam Speedlink VAD Laplace
- to the kernel ?
-Message-ID: <20121006085624.128f7f2c@redhat.com>
-In-Reply-To: <505F16AD.8010909@googlemail.com>
-References: <5032225A.9080305@googlemail.com>
-	<50323559.7040107@redhat.com>
-	<50328E22.4090805@redhat.com>
-	<50337293.8050808@googlemail.com>
-	<50337FF4.2030200@redhat.com>
-	<5033B177.8060609@googlemail.com>
-	<5033C573.2000304@redhat.com>
-	<50349017.4020204@googlemail.com>
-	<503521B4.6050207@redhat.com>
-	<503A7097.4050709@googlemail.com>
-	<505F16AD.8010909@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout3.samsung.com ([203.254.224.33]:45001 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932253Ab2JJOwE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 10:52:04 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBO00MW4MMOXZ10@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:52:03 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MBO002YDME0EC70@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 10 Oct 2012 23:52:03 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: [PATCHv10 08/26] v4l: vb2-dma-contig: add support for scatterlist in
+ userptr mode
+Date: Wed, 10 Oct 2012 16:46:27 +0200
+Message-id: <1349880405-26049-9-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
+References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 23 Sep 2012 16:03:25 +0200
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+This patch introduces usage of dma_map_sg to map memory behind
+a userspace pointer to a device as dma-contiguous mapping.
 
-> Ping !
+This patch contains some of the code kindly provided by Marek Szyprowski
+<m.szyprowski@samsung.com> and Kamil Debski <k.debski@samsung.com> and Andrzej
+Pietrasiewicz <andrzej.p@samsung.com>. Kind thanks for bug reports from Laurent
+Pinchart <laurent.pinchart@ideasonboard.com> and Seung-Woo Kim
+<sw0312.kim@samsung.com>.
 
-Sorry, too busy those days.
-> 
-> Am 26.08.2012 20:53, schrieb Frank Schäfer:
-> > Sorry for the delayed reply, I got distracted by something with higher
-> > prority.
-> >
-> >
-> > Am 22.08.2012 20:15, schrieb Mauro Carvalho Chehab:
-> >> Em 22-08-2012 04:53, Frank Schäfer escreveu:
-> >>> Am 21.08.2012 19:29, schrieb Mauro Carvalho Chehab:
-> >>>> Hmm... before reading the rest of this email... I found some doc saying that
-> >>>> em2765 is UVC compliant. Doesn't the uvcdriver work with this device?
-> >>> Yeah, I stumbled over that, too. :D
-> >>> But this device is definitely not UVC compliant. Take a look at the
-> >>> lsusb output.
-> >>> Maybe they are using a different firmware or something like that, but I
-> >>> have no idea why the hell they should make a UVC compliant device
-> >>> non-UVC-compliant...
-> >>> Another notable difference to the devices we've seen so far is the
-> >>> em25xx-style EEPROM. Maybe there is a connection.
-> >>>
-> >>> Btw, do we know any em25xx devices ???
-> >> No, I never heard about em25xx. It seems that there are some new em275xx
-> >> chips, but I don't have any technical data.
-> > Maybe they changed the name and there was never a em2580/em2585.
-> > But I assume this is an older chip design.
-> 
-> In the mean time I was told that em2580/em2585 devices really exists.
-> They are used for example in intraoral cameras for dentists.
-> The em2765 seems to be a kind of relabled em25xx.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c |  226 ++++++++++++++++++++++--
+ 1 file changed, 210 insertions(+), 16 deletions(-)
 
-Ok.
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index daac2b2..8486e06 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -11,6 +11,8 @@
+  */
+ 
+ #include <linux/module.h>
++#include <linux/scatterlist.h>
++#include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/dma-mapping.h>
+ 
+@@ -27,6 +29,8 @@ struct vb2_dc_buf {
+ 	void				*vaddr;
+ 	unsigned long			size;
+ 	dma_addr_t			dma_addr;
++	enum dma_data_direction		dma_dir;
++	struct sg_table			*dma_sgt;
+ 
+ 	/* MMAP related */
+ 	struct vb2_vmarea_handler	handler;
+@@ -37,6 +41,44 @@ struct vb2_dc_buf {
+ };
+ 
+ /*********************************************/
++/*        scatterlist table functions        */
++/*********************************************/
++
++
++static void vb2_dc_sgt_foreach_page(struct sg_table *sgt,
++	void (*cb)(struct page *pg))
++{
++	struct scatterlist *s;
++	unsigned int i;
++
++	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
++		struct page *page = sg_page(s);
++		unsigned int n_pages = PAGE_ALIGN(s->offset + s->length)
++			>> PAGE_SHIFT;
++		unsigned int j;
++
++		for (j = 0; j < n_pages; ++j, ++page)
++			cb(page);
++	}
++}
++
++static unsigned long vb2_dc_get_contiguous_size(struct sg_table *sgt)
++{
++	struct scatterlist *s;
++	dma_addr_t expected = sg_dma_address(sgt->sgl);
++	unsigned int i;
++	unsigned long size = 0;
++
++	for_each_sg(sgt->sgl, s, sgt->nents, i) {
++		if (sg_dma_address(s) != expected)
++			break;
++		expected = sg_dma_address(s) + sg_dma_len(s);
++		size += sg_dma_len(s);
++	}
++	return size;
++}
++
++/*********************************************/
+ /*         callbacks for all buffers         */
+ /*********************************************/
+ 
+@@ -122,42 +164,194 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ /*       callbacks for USERPTR buffers       */
+ /*********************************************/
+ 
++static inline int vma_is_io(struct vm_area_struct *vma)
++{
++	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
++}
++
++static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
++	int n_pages, struct vm_area_struct *vma, int write)
++{
++	if (vma_is_io(vma)) {
++		unsigned int i;
++
++		for (i = 0; i < n_pages; ++i, start += PAGE_SIZE) {
++			unsigned long pfn;
++			int ret = follow_pfn(vma, start, &pfn);
++
++			if (ret) {
++				pr_err("no page for address %lu\n", start);
++				return ret;
++			}
++			pages[i] = pfn_to_page(pfn);
++		}
++	} else {
++		int n;
++
++		n = get_user_pages(current, current->mm, start & PAGE_MASK,
++			n_pages, write, 1, pages, NULL);
++		/* negative error means that no page was pinned */
++		n = max(n, 0);
++		if (n != n_pages) {
++			pr_err("got only %d of %d user pages\n", n, n_pages);
++			while (n)
++				put_page(pages[--n]);
++			return -EFAULT;
++		}
++	}
++
++	return 0;
++}
++
++static void vb2_dc_put_dirty_page(struct page *page)
++{
++	set_page_dirty_lock(page);
++	put_page(page);
++}
++
++static void vb2_dc_put_userptr(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	dma_unmap_sg(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
++	if (!vma_is_io(buf->vma))
++		vb2_dc_sgt_foreach_page(sgt, vb2_dc_put_dirty_page);
++
++	sg_free_table(sgt);
++	kfree(sgt);
++	vb2_put_vma(buf->vma);
++	kfree(buf);
++}
++
+ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+-					unsigned long size, int write)
++	unsigned long size, int write)
+ {
++	struct vb2_dc_conf *conf = alloc_ctx;
+ 	struct vb2_dc_buf *buf;
++	unsigned long start;
++	unsigned long end;
++	unsigned long offset;
++	struct page **pages;
++	int n_pages;
++	int ret = 0;
+ 	struct vm_area_struct *vma;
+-	dma_addr_t dma_addr = 0;
+-	int ret;
++	struct sg_table *sgt;
++	unsigned long contig_size;
+ 
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	ret = vb2_get_contig_userptr(vaddr, size, &vma, &dma_addr);
++	buf->dev = conf->dev;
++	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++
++	start = vaddr & PAGE_MASK;
++	offset = vaddr & ~PAGE_MASK;
++	end = PAGE_ALIGN(vaddr + size);
++	n_pages = (end - start) >> PAGE_SHIFT;
++
++	pages = kmalloc(n_pages * sizeof(pages[0]), GFP_KERNEL);
++	if (!pages) {
++		ret = -ENOMEM;
++		pr_err("failed to allocate pages table\n");
++		goto fail_buf;
++	}
++
++	/* current->mm->mmap_sem is taken by videobuf2 core */
++	vma = find_vma(current->mm, vaddr);
++	if (!vma) {
++		pr_err("no vma for address %lu\n", vaddr);
++		ret = -EFAULT;
++		goto fail_pages;
++	}
++
++	if (vma->vm_end < vaddr + size) {
++		pr_err("vma at %lu is too small for %lu bytes\n", vaddr, size);
++		ret = -EFAULT;
++		goto fail_pages;
++	}
++
++	buf->vma = vb2_get_vma(vma);
++	if (!buf->vma) {
++		pr_err("failed to copy vma\n");
++		ret = -ENOMEM;
++		goto fail_pages;
++	}
++
++	/* extract page list from userspace mapping */
++	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma, write);
+ 	if (ret) {
+-		printk(KERN_ERR "Failed acquiring VMA for vaddr 0x%08lx\n",
+-				vaddr);
+-		kfree(buf);
+-		return ERR_PTR(ret);
++		pr_err("failed to get user pages\n");
++		goto fail_vma;
++	}
++
++	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
++	if (!sgt) {
++		pr_err("failed to allocate sg table\n");
++		ret = -ENOMEM;
++		goto fail_get_user_pages;
++	}
++
++	ret = sg_alloc_table_from_pages(sgt, pages, n_pages,
++		offset, size, GFP_KERNEL);
++	if (ret) {
++		pr_err("failed to initialize sg table\n");
++		goto fail_sgt;
++	}
++
++	/* pages are no longer needed */
++	kfree(pages);
++	pages = NULL;
++
++	sgt->nents = dma_map_sg(buf->dev, sgt->sgl, sgt->orig_nents,
++		buf->dma_dir);
++	if (sgt->nents <= 0) {
++		pr_err("failed to map scatterlist\n");
++		ret = -EIO;
++		goto fail_sgt_init;
++	}
++
++	contig_size = vb2_dc_get_contiguous_size(sgt);
++	if (contig_size < size) {
++		pr_err("contiguous mapping is too small %lu/%lu\n",
++			contig_size, size);
++		ret = -EFAULT;
++		goto fail_map_sg;
+ 	}
+ 
++	buf->dma_addr = sg_dma_address(sgt->sgl);
+ 	buf->size = size;
+-	buf->dma_addr = dma_addr;
+-	buf->vma = vma;
++	buf->dma_sgt = sgt;
+ 
+ 	return buf;
+-}
+ 
+-static void vb2_dc_put_userptr(void *mem_priv)
+-{
+-	struct vb2_dc_buf *buf = mem_priv;
++fail_map_sg:
++	dma_unmap_sg(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
+ 
+-	if (!buf)
+-		return;
++fail_sgt_init:
++	if (!vma_is_io(buf->vma))
++		vb2_dc_sgt_foreach_page(sgt, put_page);
++	sg_free_table(sgt);
++
++fail_sgt:
++	kfree(sgt);
+ 
++fail_get_user_pages:
++	if (pages && !vma_is_io(buf->vma))
++		while (n_pages)
++			put_page(pages[--n_pages]);
++
++fail_vma:
+ 	vb2_put_vma(buf->vma);
++
++fail_pages:
++	kfree(pages); /* kfree is NULL-proof */
++
++fail_buf:
+ 	kfree(buf);
++
++	return ERR_PTR(ret);
+ }
+ 
+ /*********************************************/
+-- 
+1.7.9.5
 
-> Both chips have two i2c busses and work only with 16 bit address
-> eeproms, which have to be connected to bus A.
-> The sensor read/write procedure used for this webcam is very likely the
-> standard method for accessing i2c bus B of these chips.
-> It COULD also be vendor specific procedure, but I don't think 3 other
-> slave addresses would be probed in that case...
-
-AFAIKT, newer em28xx chips are using this concept. The em28xx-i2c code require
-changes to support two I2C buses, and to handle 16 bit eeproms. We never cared
-of doing that because we never needed, so far, to read anything from those
-devices' eeproms.
-
-
-> 
-> <snip>
-> >>>> You'll see several supported devices using the secondary bus for TV and
-> >>>> demod. As, currently, the TV eeprom is not read on those devices, nobody
-> >>>> cared enough to add a separate I2C bus code for it, as all access used
-> >>>> by the driver happen just on the second bus.
-> >>> Well, the same applies to this webcam. We do not really need to read the
-> >>> EEPROM at the moment.
-> >>>
-> >>>
-> >>>>>> A proper mapping for it to use ov2640 driver is to create two i2c
-> >>>>>> buses, one used by eeprom access, and another one for sensor.
-> >>>>> Sure.
-> >>>>>
-> >>>>>>> Interestingly, the standard I2C reads are used, too, for reading the
-> >>>>>>> EEPROM. So maybe there is a "physical" difference.
-> >>>>>>>
-> >>>>>>> "Proprietary" is probably not the best name, but I don't have e better
-> >>>>>>> one at the moment (suggestions ?).
-> >>>>>> It is just another bus: instead of using req 3/4 for read/write, it uses
-> >>>>>> req 6 for both reads/writes at the i2c-like sensor bus.
-> >>>>>>
-> >>>>>>>>>> - uses 16bit eeprom
-> >>>>>>>>>> - em25xx-eeprom with different layout
-> >>>>>>>> There are other supported chips with 16bit eeproms. Currently,
-> >>>>>>>> support for 16bit eeproms is disabled just because this weren't
-> >>>>>>>> needed so far, but I'm sure this is a need there.
-> >>>>>>> Yes, I've read the comment in em28xx_i2c_eeprom():
-> >>>>>>> "...there is the risk that we could corrupt the eeprom (since a 16-bit
-> >>>>>>> read call is interpreted as a write call by 8-bit eeproms)..."
-> >>>>>>> How can we know if a device uses an 8bit or 16bit EEPROM ? Can we derive
-> >>>>>>> that from the uses em27xx/28xx-chip ?
-> >>>>>> I don't know any other way to check it than to read the chip ID, at register
-> >>>>>> 0x0a. Those are the chip ID's that we currently know:
-> >>>>>>
-> >>>>>> enum em28xx_chip_id {
-> >>>>>> 	CHIP_ID_EM2800 = 7,
-> >>>>>> 	CHIP_ID_EM2710 = 17,
-> >>>>>> 	CHIP_ID_EM2820 = 18,	/* Also used by some em2710 */
-> >>>>>> 	CHIP_ID_EM2840 = 20,
-> >>>>>> 	CHIP_ID_EM2750 = 33,
-> >>>>>> 	CHIP_ID_EM2860 = 34,
-> >>>>>> 	CHIP_ID_EM2870 = 35,
-> >>>>>> 	CHIP_ID_EM2883 = 36,
-> >>>>>> 	CHIP_ID_EM2874 = 65,
-> >>>>>> 	CHIP_ID_EM2884 = 68,
-> >>>>>> 	CHIP_ID_EM28174 = 113,
-> >>>>>> };
-> >>>>>>
-> >>>>>> Even if we add it as a separate driver, it is likely wise to re-use the
-> >>>>>> registers description at drivers/media/usb/em28xx/em28xx-reg.h, moving it
-> >>>>>> to drivers/include/media, as em2765 likely uses the same registers. 
-> >>>>>> It also makes sense to add a chip detection at the existing driver, 
-> >>>>>> for it to bail out if it detects an em2765 (and the reverse on the new
-> >>>>>> driver).
-> >>>>> em2765 has chip-id 0x36 = 54.
-> >>>>> Do you want me to send a patch ?
-> >>>> Yes, please send it when you'll be ready for driver submission.
-> >>> Will do that.
-> >>>
-> >>>>> Do you really think the em28xx driver should always bail out when it
-> >>>>> detects the em2765 ?
-> >>>> Well, having 2 drivers for the same chipset is a very bad idea. Either
-> >>>> one should use it.
-> >>>>
-> >>>> Another option would be to have a generic em28xx dispatcher driver
-> >>>> that would handle all of them, probe the board, and then starting
-> >>>> either one, depending if the driver is webcam or not.
-> >>> Sounds good.
-> >>>
-> >>>> Btw, this is on my TODO list (with low priority), as there are several
-> >>>> devices that have only DVB. So, it makes sense to split the analog
-> >>>> TV driver, just like we did with the DVB and alsa drivers. This way,
-> >>>> an em28xx core driver will contain only the probe and the core functions
-> >>>> like i2c and the common helper functions, while all the rest would be
-> >>>> on separate drivers.
-> >>> Yeah, a compact bridge module providing chip info, bridge register r/w
-> >>> functions and access to the 2 + 1 i2c busses sounds good.
-> >>> If I understand you right, this module should also do the probing and
-> >>> then call the right driver for the device, e.g. gspca for webcams ?
-> >>> Sounds complicating, because the bridge module is still needed after the
-> >>> handover to the other driver, but I know nearly nothing about the
-> >>> modules interaction possibilites (except that one module can call
-> >>> another ;) ).
-> >> It is not complicated.
-> >>
-> >> At the main driver, take a look at request_module_async(), at em28xx-cards: 
-> >> it basically schedules a deferred work that will load the needed drivers,
-> >> after em28xx finishes probing.
-> >>
-> >> At the sub-drivers, they use em28xx_register_extension() on their init
-> >> code. This function uses a table with 4 parameters, like this one:
-> >>
-> >> static struct em28xx_ops audio_ops = {
-> >> 	.id   = EM28XX_AUDIO,
-> >> 	.name = "Em28xx Audio Extension",
-> >> 	.init = em28xx_audio_init,
-> >> 	.fini = em28xx_audio_fini,
-> >> };
-> >>
-> >> The .init() function will then do everything that it is needed for the
-> >> device to run. It is called when the main driver detects a new card,
-> >> and it is ready for that (the main driver has some code there to avoid
-> >> race conditions, serializing the extensions load).
-> >>
-> >> The .fini() is called when the device got removed, or when the driver
-> >> calls em28xx_unregister_extension().
-> >>
-> >> The struct em28xx *dev is passed as a parameter on both calls, to allow
-> >> the several drivers to share common data.
-> >>
-> >> This logic works pretty well, even on SMP environments with lots of CPU.
-> >> The only care needed there (with won't affect a webcam driver) is to
-> >> properly lock the driver to avoid two different sub-drivers to access the
-> >> same device resources at the same time (this is needed between DVB and video
-> >> parts of the driver).
-> >>
-> >> By moving the TV part to a separate driver, it makes sense to also create
-> >> an em28xx_video structure, moving there everything that it is not common,
-> >> but this is an optimization that could be done anytime.
-> >>
-> >> I suggest you to create an em28xx_webcam struct and put there data that it
-> >> is specifics to the webcam driver there, if any.
-> > Ok, thanks for your explanations.
-> > I will see what I can do.
-> >
-> >>>> IMO, doing that that could be better than coding em2765 as a
-> >>>> completely separate driver.
-> >>> Sounds like the best approach. But also lots of non-trivial work which
-> >>> someone has to do first. I'm afraid too much for a beginner like me...
-> >>> And we should keep in mind that this probably means that people will
-> >>> have to wait several further kernel releases before their device gets
-> >>> supported.
-> >> Well, it is not that hard. If I had any time, I would do it right now.
-> >> It probably won't take more than a few hours of work to split the video
-> >> part into a separate driver, as 99% of the work is to move a few functions
-> >> between the .c files, and move the init code from em28xx-cards.c to
-> >> em28xx-video.
-> >>
-> >> I can seek for doing that after the media workshop that will happen
-> >> next week.
-> > Ok.
-> > Trying to summarize the plan, I'm not sure that I understand the driver
-> > layout completely yet..
-> > We are going to
-> > - separate the video part of the em28xx driver and create a compact
-> > module providing just the core fucntions
-> > - let this module do the probing an then either call "the rest" of the
-> > em28xx driver for DVB-devices or a gspca module for all em27xx/em28xx
-> > based webcams
-
-Yes.
-
-> > - use sub-modules for the sensors and possibly other commonly used
-> > features (e.g. an eeprom module) in the webcam module
-
-I think that this should also be part of the em28xx core, as 2 I2C buses
-and 16-bit eeproms are also used on newer em28xx chips (em2874/em2875 for
-example). The way request_module_async works allow the main em28xx to load
-a gspca-based em25xx/em27xx module that, in turn, will use symbols defined
-on the main em28xx module.
-
-> >
-> > Ist that correct ?
-> 
-> Mauro, could you please elaborate your plan ?
-> What exactly do you want me to do to get this device supported by the
-> kernel ?
-
-Basically, the core em28xx module will have:
-	drivers/media/usb/em28xx/em28xx-cards.c
-	drivers/media/usb/em28xx/em28xx-i2c.c
-	drivers/media/usb/em28xx/em28xx-core.c
-
-Eventually, part of the functions under em28xx-core could be moved
-to em28xx-video, as they would be used just there. For the already
-supported em2710/em2750 webcams, we should need to change the logic
-there to use the new gspca-em2xxx module, but this change can be
-done later.
-
-The em28xx-alsa module already have:
-	drivers/media/usb/em28xx/em28xx-audio.c
-Nothing changes on it.
-
-The em28xx-dvb module already have:
-	drivers/media/usb/em28xx/em28xx-dvb.c
-Nothing changes on it.
-
-The new em28xx-v4l module will have:
-	drivers/media/usb/em28xx/em28xx-vbi.c
-	drivers/media/usb/em28xx/em28xx-video.c
-
-The em28xx-rc module already have:
-	drivers/media/usb/em28xx/em28xx-input.c
-It makes sense to split it into two separate files, one with just the
-remote control stuff, and the other one with the webcam snapshot buttons.
-
-The file with the webcam buttons support should be merged with the em28xx
-gspca module, together with the code you wrote.
-
-> In the mean time I have ported the gspca driver to the ic2 interface,
-> which was necessary to experiment with the ov2640 soc-camera driver,
-
-Good!
-
-> but also increased the code size enormously.
-
-Why?
-
-> Unfortunately, lots of changes to the ov2640 driver would be necessary
-> use it. It starts with the init sequence and continues with a long
-> sequence of sensor register writes at capturing start.
-> My hope was, that the differences can be neglected, but unfortunately
-> this is not the case.
-> Given the amount of work, the fact that most of these registers are
-> undocumented and the high risk to break things for other users of the
-> driver, I think we should stay with the "custom" code for this webcam at
-> least for the moment.
-
-Well, then do a new ov2640 i2c driver. We can later try to merge both, if
-we can get enough spec data.
-> 
-> Please also consider the time factor.
-> 
-> Regards,
-> Frank
-> 
-
-Regards,
-Mauro
