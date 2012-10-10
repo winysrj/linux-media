@@ -1,68 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:59547 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753010Ab2JJDTV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 23:19:21 -0400
-MIME-Version: 1.0
-In-Reply-To: <20121004201704.36d35755@pyramind.ukuu.org.uk>
-References: <506C562E.5090909@redhat.com>
-	<CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
-	<20121003170907.GA23473@ZenIV.linux.org.uk>
-	<CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
-	<20121003195059.GA13541@kroah.com>
-	<CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
-	<3560b86d-e2ad-484d-ab6e-2b9048894a12@email.android.com>
-	<CA+55aFwVFtUU4TCjz4EDgGDaeR_QwLjmBAJA0kijHkQQ+jxLCw@mail.gmail.com>
-	<CAPXgP1189dn=vHqWrp1JgHs7Yv=BP3dbLyT3zb31Sp8mcEhAvg@mail.gmail.com>
-	<87zk42tab4.fsf@xmission.com>
-	<20121004174254.GA14301@kroah.com>
-	<20121004201704.36d35755@pyramind.ukuu.org.uk>
-Date: Wed, 10 Oct 2012 05:19:19 +0200
-Message-ID: <CAMP44s0TL+d6dOdScmoBR=hE8Jf_KZ_A+KHOJfHQD=p+0k+ZbQ@mail.gmail.com>
-Subject: Re: udev breakages -
-From: Felipe Contreras <felipe.contreras@gmail.com>
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Greg KH <gregkh@linuxfoundation.org>,
-	"Eric W. Biederman" <ebiederm@xmission.com>,
-	Kay Sievers <kay@vrfy.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ming Lei <ming.lei@canonical.com>,
-	Lennart Poettering <lennart@poettering.net>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Kay Sievers <kay@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Ivan Kalvachev <ikalvachev@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout3.samsung.com ([203.254.224.33]:45637 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932229Ab2JJPCD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 11:02:03 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBO006NNN3EQC11@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 11 Oct 2012 00:02:02 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MBO002YDME0EC70@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 11 Oct 2012 00:02:02 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: [PATCHv10 22/26] v4l: vb2-dma-contig: fail if user ptr buffer is not
+ correctly aligned
+Date: Wed, 10 Oct 2012 16:46:41 +0200
+Message-id: <1349880405-26049-23-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
+References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 4, 2012 at 9:17 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
->> I don't know how to handle the /dev/ptmx issue properly from within
->> devtmpfs, does anyone?  Proposals are always welcome, the last time this
->> came up a week or so ago, I don't recall seeing any proposals, just a
->> general complaint.
->
-> Is it really a problem - devtmpfs is optional. It's a problem for the
-> userspace folks to handle and if they made it mandatory in their code
-> diddums, someone better go fork working versions.
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-If only there was a viable alternative to udev.
+The DMA transfer must be aligned to a specific value. If userptr is not aligned
+to DMA requirements then unexpected corruptions of the memory may occur before
+or after a buffer.  To prevent such situations, all unligned userptr buffers
+are rejected at VIDIOC_QBUF.
 
-Distributions are being pushed around by the udev+systemd project
-precisely because of this reason; udev maintainers have said that udev
-on non-systemd systems is a dead end, so everyone that uses udev
-(everyone) is being forced to switch to systemd if they want to
-receive proper support, and at some point there might not be even a
-choice.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-I for one would like an alternative to both systemd and udev on my
-Linux systems, and as of yet, I don't know of one.
-
-Cheers.
-
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 2d661fd..571a919 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -493,6 +493,18 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	struct vm_area_struct *vma;
+ 	struct sg_table *sgt;
+ 	unsigned long contig_size;
++	unsigned long dma_align = dma_get_cache_alignment();
++
++	/* Only cache aligned DMA transfers are reliable */
++	if (!IS_ALIGNED(vaddr | size, dma_align)) {
++		pr_debug("user data must be aligned to %lu bytes\n", dma_align);
++		return ERR_PTR(-EINVAL);
++	}
++
++	if (!size) {
++		pr_debug("size is zero\n");
++		return ERR_PTR(-EINVAL);
++	}
+ 
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
 -- 
-Felipe Contreras
+1.7.9.5
+
