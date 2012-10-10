@@ -1,192 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:42343 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756022Ab2JQLQl (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60316 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932264Ab2JJPPF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 07:16:41 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so6997024pad.19
-        for <linux-media@vger.kernel.org>; Wed, 17 Oct 2012 04:16:41 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org,
-	patches@linaro.org, Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 4/8] [media] s5p-tv: Use clk_prepare_enable and clk_disable_unprepare
-Date: Wed, 17 Oct 2012 16:41:47 +0530
-Message-Id: <1350472311-9748-4-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org>
-References: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org>
+	Wed, 10 Oct 2012 11:15:05 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
+Date: Wed, 10 Oct 2012 17:15:49 +0200
+Message-ID: <2383216.ATDgiWr0QW@avalon>
+In-Reply-To: <20121010115703.7a72fdd1@redhat.com>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <1909082.6p5inUAuOH@avalon> <20121010115703.7a72fdd1@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace clk_enable/clk_disable with clk_prepare_enable/clk_disable_unprepare
-as required by the common clock framework.
+Hi Mauro,
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
----
- drivers/media/platform/s5p-tv/hdmi_drv.c  |   20 ++++++++++----------
- drivers/media/platform/s5p-tv/mixer_drv.c |   12 ++++++------
- drivers/media/platform/s5p-tv/sdo_drv.c   |   12 ++++++------
- 3 files changed, 22 insertions(+), 22 deletions(-)
+On Wednesday 10 October 2012 11:57:03 Mauro Carvalho Chehab wrote:
+> Em Wed, 10 Oct 2012 16:48 +0200 Laurent Pinchart escreveu:
+> > On Wednesday 10 October 2012 10:45:22 Mauro Carvalho Chehab wrote:
+> > > Em Wed, 10 Oct 2012 14:54 +0200 Laurent Pinchart escreveu:
+> > > > > Also, ideally OF-compatible (I2C) drivers should run with no
+> > > > > platform data, but soc-camera is using I2C device platform data
+> > > > > intensively. To avoid modifying the soc-camera core and all drivers,
+> > > > > I also trigger on the BUS_NOTIFY_BIND_DRIVER event and assign a
+> > > > > reference to the dynamically created platform data to the I2C
+> > > > > device. Would we also want to do this for all V4L2 bridge drivers?
+> > > > > We could call this a "prepare" callback or something similar...
+> > > > 
+> > > > If that's going to be an interim solution only I'm fine with keeping
+> > > > it in soc-camera.
+> > > 
+> > > I'm far from being an OF expert, but why do we need to export I2C
+> > > devices to DT/OF? On my understanding, it is the bridge code that
+> > > should be responsible for detecting, binding and initializing the proper
+> > > I2C devices. On several cases, it is impossible or it would cause lots
+> > > of ugly hacks if we ever try to move away from platform data stuff, as
+> > > only the bridge driver knows what initialization is needed for an
+> > > specific I2C driver.
+> > 
+> > In a nutshell, a DT-based platform doesn't have any board code (except in
+> > rare cases, but let's not get into that), and thus doesn't pass any
+> > platform data structure to drivers. However, drivers receive a DT node,
+> > which contains a hierarchical description of the hardware, and parse
+> > those to extract information necessary to configure the device.
+> > 
+> > One very important point to keep in mind here is that the DT is not Linux-
+> > specific. DT bindings are designed to be portable, and thus must only
+> > contain hardware descriptions, without any OS-specific information or
+> > policy information. For instance information such as the maximum video
+> > buffers size is not allowed in the DT.
+> > 
+> > The DT is used both to provide platform data to drivers and to instantiate
+> > devices. I2C device DT nodes are stored as children of the I2C bus master
+> > DT node, and are automatically instantiated by the I2C bus master. This
+> > is a significant change compared to our current situation where the V4L2
+> > bridge driver receives an array of I2C board information structures and
+> > instatiates the devices itself. Most of the DT support work will go in
+> > supporting that new instantiation mechanism. The bridge driver doesn't
+> > control instantiation of the I2C devices anymore, but need to bind with
+> > them at runtime.
+> > 
+> > > To make things more complex, it is expected that most I2C drivers to be
+> > > arch independent, and they should be allowed to be used by a personal
+> > > computer or by an embedded device.
+> > 
+> > Agreed. That's why platform data structures won't go away anytime soon, a
+> > PCI bridge driver for hardware that contain I2C devices will still
+> > instantiate the I2C devices itself. We don't plan to or even want to get
+> > rid of that mechanism, as there are perfectly valid use cases. However,
+> > for DT-based embedded platforms, we need to support a new instantiation
+> > mechanism.
+> >
+> > > Let me give 2 such examples:
+> > > 	- ir-i2c-kbd driver supports lots of IR devices. Platform_data is
+> > > 	needed
+> > > 
+> > > to specify what hardware will actually be used, and what should be the
+> > > default Remote Controller keymap;
+> > 
+> > That driver isn't used on embedded platforms so it doesn't need to be
+> > changed now.
+> > 
+> > > 	- Sensor drivers like ov2940 is needed by soc_camera and by other
+> > > 
+> > > webcam drivers like em28xx. The setup for em28xx should be completely
+> > > different than the one for soc_camera: the initial registers init
+> > > sequence
+> > > is different for both. As several registers there aren't properly
+> > > documented, there's no easy way to parametrize the configuration.
+> > 
+> > Such drivers will need to support both DT-based platform data and
+> > structure- based platform data. They will likely parse the DT node and
+> > fill a platform data structure, to avoid duplicating initialization code.
+> > 
+> > Please note that the new subdevs instantiation mechanism needed for DT
+> > will need to handle any instantiation order, as we can't guarantee the I2C
+> > device and bridge device instantiation order with DT. It should thus then
+> > support the current instantiation order we use for PCI and USB platforms.
+> > 
+> > > So, for me, we should not expose the I2C devices directly on OF; it
+> > > should,
+> > > instead, see just the bridge, and let the bridge to map the needed I2C
+> > > devices using the needed platform_data.
+> > 
+> > We can't do that, there will be no platform data anymore with DT-based
+> > platforms.
+> > 
+> > As a summary, platform data structures won't go away, I2C drivers that
+> > need to work both on DT-based and non-DT-based platforms will need to
+> > support both the DT and platform data structures to get platform data.
+> > PCI and USB bridges will still instantiate their I2C devices, and binding
+> > between the I2C devices and the bridge can either be handled with two
+> > different instantiation mechanisms (the new one for DT platforms, with
+> > runtime bindings, and the existing one for non-DT platforms, with binding
+> > at instantiation time) or move to a single runtime binding mechanism.
+> > It's too early to know which solution will be simpler.
+> 
+> It seems that you're designing a Frankstein monster with DT/OF and I2C.
+> 
+> Increasing each I2C driver code to support both platform_data and DT way
+> of doing things seems a huge amount of code that will be added, and I really
+> fail to understand why this is needed, in the first place.
+> 
+> Ok, I understand that OF specs are OS-independent, but I suspect that
+> they don't dictate how things should be wired internally at the OS.
+> 
+> So, if DT/OF is so restrictive, and require its own way of doing things,
+> instead of changing everything with the risks of adding (more) regressions
+> to platform drivers, why don't just create a shell driver that will
+> encapsulate DT/OF specific stuff into the platform_data?
 
-diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
-index 8a9cf43..497e8ab 100644
---- a/drivers/media/platform/s5p-tv/hdmi_drv.c
-+++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
-@@ -542,9 +542,9 @@ static int hdmi_streamon(struct hdmi_device *hdev)
- 	}
- 
- 	/* hdmiphy clock is used for HDMI in streaming mode */
--	clk_disable(res->sclk_hdmi);
-+	clk_disable_unprepare(res->sclk_hdmi);
- 	clk_set_parent(res->sclk_hdmi, res->sclk_hdmiphy);
--	clk_enable(res->sclk_hdmi);
-+	clk_prepare_enable(res->sclk_hdmi);
- 
- 	/* enable HDMI and timing generator */
- 	hdmi_write_mask(hdev, HDMI_CON_0, ~0, HDMI_EN);
-@@ -564,9 +564,9 @@ static int hdmi_streamoff(struct hdmi_device *hdev)
- 	hdmi_write_mask(hdev, HDMI_TG_CMD, 0, HDMI_TG_EN);
- 
- 	/* pixel(vpll) clock is used for HDMI in config mode */
--	clk_disable(res->sclk_hdmi);
-+	clk_disable_unprepare(res->sclk_hdmi);
- 	clk_set_parent(res->sclk_hdmi, res->sclk_pixel);
--	clk_enable(res->sclk_hdmi);
-+	clk_prepare_enable(res->sclk_hdmi);
- 
- 	v4l2_subdev_call(hdev->mhl_sd, video, s_stream, 0);
- 	v4l2_subdev_call(hdev->phy_sd, video, s_stream, 0);
-@@ -591,19 +591,19 @@ static void hdmi_resource_poweron(struct hdmi_resources *res)
- 	/* turn HDMI power on */
- 	regulator_bulk_enable(res->regul_count, res->regul_bulk);
- 	/* power-on hdmi physical interface */
--	clk_enable(res->hdmiphy);
-+	clk_prepare_enable(res->hdmiphy);
- 	/* use VPP as parent clock; HDMIPHY is not working yet */
- 	clk_set_parent(res->sclk_hdmi, res->sclk_pixel);
- 	/* turn clocks on */
--	clk_enable(res->sclk_hdmi);
-+	clk_prepare_enable(res->sclk_hdmi);
- }
- 
- static void hdmi_resource_poweroff(struct hdmi_resources *res)
- {
- 	/* turn clocks off */
--	clk_disable(res->sclk_hdmi);
-+	clk_disable_unprepare(res->sclk_hdmi);
- 	/* power-off hdmiphy */
--	clk_disable(res->hdmiphy);
-+	clk_disable_unprepare(res->hdmiphy);
- 	/* turn HDMI power off */
- 	regulator_bulk_disable(res->regul_count, res->regul_bulk);
- }
-@@ -947,7 +947,7 @@ static int __devinit hdmi_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	clk_enable(hdmi_dev->res.hdmi);
-+	clk_prepare_enable(hdmi_dev->res.hdmi);
- 
- 	pm_runtime_enable(dev);
- 
-@@ -986,7 +986,7 @@ static int __devexit hdmi_remove(struct platform_device *pdev)
- 	struct hdmi_device *hdmi_dev = sd_to_hdmi_dev(sd);
- 
- 	pm_runtime_disable(dev);
--	clk_disable(hdmi_dev->res.hdmi);
-+	clk_disable_unprepare(hdmi_dev->res.hdmi);
- 	v4l2_device_unregister(&hdmi_dev->v4l2_dev);
- 	disable_irq(hdmi_dev->irq);
- 	hdmi_resources_cleanup(hdmi_dev);
-diff --git a/drivers/media/platform/s5p-tv/mixer_drv.c b/drivers/media/platform/s5p-tv/mixer_drv.c
-index ca0f297..dea0520 100644
---- a/drivers/media/platform/s5p-tv/mixer_drv.c
-+++ b/drivers/media/platform/s5p-tv/mixer_drv.c
-@@ -339,9 +339,9 @@ static int mxr_runtime_resume(struct device *dev)
- 	mxr_dbg(mdev, "resume - start\n");
- 	mutex_lock(&mdev->mutex);
- 	/* turn clocks on */
--	clk_enable(res->mixer);
--	clk_enable(res->vp);
--	clk_enable(res->sclk_mixer);
-+	clk_prepare_enable(res->mixer);
-+	clk_prepare_enable(res->vp);
-+	clk_prepare_enable(res->sclk_mixer);
- 	/* apply default configuration */
- 	mxr_reg_reset(mdev);
- 	mxr_dbg(mdev, "resume - finished\n");
-@@ -357,9 +357,9 @@ static int mxr_runtime_suspend(struct device *dev)
- 	mxr_dbg(mdev, "suspend - start\n");
- 	mutex_lock(&mdev->mutex);
- 	/* turn clocks off */
--	clk_disable(res->sclk_mixer);
--	clk_disable(res->vp);
--	clk_disable(res->mixer);
-+	clk_disable_unprepare(res->sclk_mixer);
-+	clk_disable_unprepare(res->vp);
-+	clk_disable_unprepare(res->mixer);
- 	mutex_unlock(&mdev->mutex);
- 	mxr_dbg(mdev, "suspend - finished\n");
- 	return 0;
-diff --git a/drivers/media/platform/s5p-tv/sdo_drv.c b/drivers/media/platform/s5p-tv/sdo_drv.c
-index ad68bbe..21d213a 100644
---- a/drivers/media/platform/s5p-tv/sdo_drv.c
-+++ b/drivers/media/platform/s5p-tv/sdo_drv.c
-@@ -199,7 +199,7 @@ static int sdo_streamon(struct sdo_device *sdev)
- 	clk_get_rate(sdev->fout_vpll));
- 	/* enable clock in SDO */
- 	sdo_write_mask(sdev, SDO_CLKCON, ~0, SDO_TVOUT_CLOCK_ON);
--	clk_enable(sdev->dacphy);
-+	clk_prepare_enable(sdev->dacphy);
- 	/* enable DAC */
- 	sdo_write_mask(sdev, SDO_DAC, ~0, SDO_POWER_ON_DAC);
- 	sdo_reg_debug(sdev);
-@@ -211,7 +211,7 @@ static int sdo_streamoff(struct sdo_device *sdev)
- 	int tries;
- 
- 	sdo_write_mask(sdev, SDO_DAC, 0, SDO_POWER_ON_DAC);
--	clk_disable(sdev->dacphy);
-+	clk_disable_unprepare(sdev->dacphy);
- 	sdo_write_mask(sdev, SDO_CLKCON, 0, SDO_TVOUT_CLOCK_ON);
- 	for (tries = 100; tries; --tries) {
- 		if (sdo_read(sdev, SDO_CLKCON) & SDO_TVOUT_CLOCK_READY)
-@@ -254,7 +254,7 @@ static int sdo_runtime_suspend(struct device *dev)
- 	dev_info(dev, "suspend\n");
- 	regulator_disable(sdev->vdet);
- 	regulator_disable(sdev->vdac);
--	clk_disable(sdev->sclk_dac);
-+	clk_disable_unprepare(sdev->sclk_dac);
- 	return 0;
- }
- 
-@@ -264,7 +264,7 @@ static int sdo_runtime_resume(struct device *dev)
- 	struct sdo_device *sdev = sd_to_sdev(sd);
- 
- 	dev_info(dev, "resume\n");
--	clk_enable(sdev->sclk_dac);
-+	clk_prepare_enable(sdev->sclk_dac);
- 	regulator_enable(sdev->vdac);
- 	regulator_enable(sdev->vdet);
- 
-@@ -386,7 +386,7 @@ static int __devinit sdo_probe(struct platform_device *pdev)
- 	}
- 
- 	/* enable gate for dac clock, because mixer uses it */
--	clk_enable(sdev->dac);
-+	clk_prepare_enable(sdev->dac);
- 
- 	/* configure power management */
- 	pm_runtime_enable(dev);
-@@ -425,7 +425,7 @@ static int __devexit sdo_remove(struct platform_device *pdev)
- 	struct sdo_device *sdev = sd_to_sdev(sd);
- 
- 	pm_runtime_disable(&pdev->dev);
--	clk_disable(sdev->dac);
-+	clk_disable_unprepare(sdev->dac);
- 	clk_put(sdev->fout_vpll);
- 	clk_put(sdev->dacphy);
- 	clk_put(sdev->dac);
+DT support requires two independent parts, DT-based probing and device 
+instantiation changes.
+
+To support DT probing existing I2C drivers (and only the drivers that need to 
+support DT-enabled platforms, we don't have to modify any I2C driver used on 
+non-DT platforms only) will need to add a function that parses a DT node to 
+fill a platform data structure, and a new OF match table pointer in their 
+struct device.
+
+For instance here's what the OMAP I2C bus master does in its probe function:
+
+        match = of_match_device(of_match_ptr(omap_i2c_of_match), &pdev->dev);
+        if (match) {
+                u32 freq = 100000; /* default to 100000 Hz */
+
+                pdata = match->data;
+                dev->dtrev = pdata->rev;
+                dev->flags = pdata->flags;
+
+                of_property_read_u32(node, "clock-frequency", &freq);
+                /* convert DT freq value in Hz into kHz for speed */
+                dev->speed = freq / 1000;
+        } else if (pdata != NULL) {
+                dev->speed = pdata->clkrate;
+                dev->flags = pdata->flags;
+                dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
+                dev->dtrev = pdata->rev;
+        }
+
+Before DT support only the second branch of the if was there. The above code 
+could be rewritten as
+
+	if (DT enabled)
+		fill_pdata_from_dt(pdata, DT node);
+
+	Rest of normal pdata-based initialization code here
+
+with the first branch of the if in the fill_pdata_from_dt() function.
+
+It's really not a big deal in my opinion, and creating a new wrapper for that 
+would just be overkill.
+
+The device instantiation issue, discusses in this mail thread, is a more 
+complex problem for which we need a solution, but isn't related to platform 
+data.
+
 -- 
-1.7.4.1
+Regards,
+
+Laurent Pinchart
 
