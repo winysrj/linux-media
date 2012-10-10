@@ -1,46 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4072 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752112Ab2JVIgH (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:49465 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932229Ab2JJPDz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Oct 2012 04:36:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: media-workshop@linuxtv.org
-Subject: Tentative Agenda for the November workshop
-Date: Mon, 22 Oct 2012 10:35:56 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210221035.56897.hverkuil@xs4all.nl>
+	Wed, 10 Oct 2012 11:03:55 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBO00BIRN6IK980@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 11 Oct 2012 00:03:54 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MBO002YDME0EC70@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 11 Oct 2012 00:03:54 +0900 (KST)
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: [PATCHv10 25/26] v4l: s5p-tv: mixer: support for dmabuf exporting
+Date: Wed, 10 Oct 2012 16:46:44 +0200
+Message-id: <1349880405-26049-26-git-send-email-t.stanislaws@samsung.com>
+In-reply-to: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
+References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+This patch enhances s5p-tv with support for DMABUF exporting via
+VIDIOC_EXPBUF ioctl.
 
-This is the tentative agenda for the media workshop on November 8, 2012.
-If you have additional things that you want to discuss, or something is wrong
-or incomplete in this list, please let me know so I can update the list.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/s5p-tv/mixer_video.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-- Explain current merging process (Mauro)
-- Open floor for discussions on how to improve it (Mauro)
-- Write down minimum requirements for new V4L2 (and DVB?) drivers, both for
-  staging and mainline acceptance: which frameworks to use, v4l2-compliance,
-  etc. (Hans Verkuil)
-- V4L2 ambiguities (Hans Verkuil)
-- TSMux device (a mux rather than a demux): Alain Volmat
-- dmabuf status, esp. with regards to being able to test (Mauro/Samsung)
-- Device tree support (Guennadi, not known yet whether this topic is needed)
-- Creating/selecting contexts for hardware that supports this (Samsung, only
-  if time is available)
+diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+index 2421e527..5e3cdb2 100644
+--- a/drivers/media/platform/s5p-tv/mixer_video.c
++++ b/drivers/media/platform/s5p-tv/mixer_video.c
+@@ -698,6 +698,15 @@ static int mxr_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+ 	return vb2_dqbuf(&layer->vb_queue, p, file->f_flags & O_NONBLOCK);
+ }
+ 
++static int mxr_expbuf(struct file *file, void *priv,
++	struct v4l2_exportbuffer *eb)
++{
++	struct mxr_layer *layer = video_drvdata(file);
++
++	mxr_dbg(layer->mdev, "%s:%d\n", __func__, __LINE__);
++	return vb2_expbuf(&layer->vb_queue, eb);
++}
++
+ static int mxr_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
+ {
+ 	struct mxr_layer *layer = video_drvdata(file);
+@@ -725,6 +734,7 @@ static const struct v4l2_ioctl_ops mxr_ioctl_ops = {
+ 	.vidioc_querybuf = mxr_querybuf,
+ 	.vidioc_qbuf = mxr_qbuf,
+ 	.vidioc_dqbuf = mxr_dqbuf,
++	.vidioc_expbuf = mxr_expbuf,
+ 	/* Streaming control */
+ 	.vidioc_streamon = mxr_streamon,
+ 	.vidioc_streamoff = mxr_streamoff,
+-- 
+1.7.9.5
 
-For those whose name is behind a topic: please prepare something before the
-meeting.
-
-We have currently 17 or 18 attendees of a maximum of 25, so there is room
-for a few more people.
-
-Regards,
-
-	Hans
