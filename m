@@ -1,85 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:46362 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753824Ab2JCSHb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 14:07:31 -0400
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:59486 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752303Ab2JJQI3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 12:08:29 -0400
 MIME-Version: 1.0
-In-Reply-To: <CAPXgP120SFAV4ZF_fYC3EdW0P6ZfaHFuLFFeNArgM5C9K7WXqA@mail.gmail.com>
-References: <4FE37194.30407@redhat.com> <4FE8B8BC.3020702@iki.fi>
- <4FE8C4C4.1050901@redhat.com> <4FE8CED5.104@redhat.com> <20120625223306.GA2764@kroah.com>
- <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com>
- <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
- <20121002221239.GA30990@kroah.com> <CAPXgP11UQUHyCAo=GbAigQMqKWta12L19EsVaocU0ia6JKmd1Q@mail.gmail.com>
- <20121003165726.GA24577@kroah.com> <CAPXgP120SFAV4ZF_fYC3EdW0P6ZfaHFuLFFeNArgM5C9K7WXqA@mail.gmail.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Wed, 3 Oct 2012 11:07:10 -0700
-Message-ID: <CA+55aFzAWDQwGNkNNyDWScREn+LU7CRPuh3KXk7gGEAwGnD+Uw@mail.gmail.com>
-Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
- callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
-To: Kay Sievers <kay@vrfy.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>,
+In-Reply-To: <CAMP44s0TL+d6dOdScmoBR=hE8Jf_KZ_A+KHOJfHQD=p+0k+ZbQ@mail.gmail.com>
+References: <506C562E.5090909@redhat.com>
+	<CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
+	<20121003170907.GA23473@ZenIV.linux.org.uk>
+	<CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
+	<20121003195059.GA13541@kroah.com>
+	<CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
+	<3560b86d-e2ad-484d-ab6e-2b9048894a12@email.android.com>
+	<CA+55aFwVFtUU4TCjz4EDgGDaeR_QwLjmBAJA0kijHkQQ+jxLCw@mail.gmail.com>
+	<CAPXgP1189dn=vHqWrp1JgHs7Yv=BP3dbLyT3zb31Sp8mcEhAvg@mail.gmail.com>
+	<87zk42tab4.fsf@xmission.com>
+	<20121004174254.GA14301@kroah.com>
+	<20121004201704.36d35755@pyramind.ukuu.org.uk>
+	<CAMP44s0TL+d6dOdScmoBR=hE8Jf_KZ_A+KHOJfHQD=p+0k+ZbQ@mail.gmail.com>
+Date: Wed, 10 Oct 2012 18:08:28 +0200
+Message-ID: <CAMuHMdUgppkHiNmNcDCaxOAL6+PmJCA_tbQkPG3gOZRs=jUt5Q@mail.gmail.com>
+Subject: Re: udev breakages -
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	"Eric W. Biederman" <ebiederm@xmission.com>,
+	Kay Sievers <kay@vrfy.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Al Viro <viro@zeniv.linux.org.uk>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Ming Lei <ming.lei@canonical.com>,
 	Lennart Poettering <lennart@poettering.net>,
 	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
 	Kay Sievers <kay@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Michael Krufky <mkrufky@linuxtv.org>,
-	Tom Gundersen <tomegun@archlinux.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Ivan Kalvachev <ikalvachev@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 3, 2012 at 10:24 AM, Kay Sievers <kay@vrfy.org> wrote:
+On Wed, Oct 10, 2012 at 5:19 AM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> On Thu, Oct 4, 2012 at 9:17 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
+>>> I don't know how to handle the /dev/ptmx issue properly from within
+>>> devtmpfs, does anyone?  Proposals are always welcome, the last time this
+>>> came up a week or so ago, I don't recall seeing any proposals, just a
+>>> general complaint.
+>>
+>> Is it really a problem - devtmpfs is optional. It's a problem for the
+>> userspace folks to handle and if they made it mandatory in their code
+>> diddums, someone better go fork working versions.
 >
-> Nothing really "breaks", It's "slow" and it will surely be fixed when
-> we know what's the right fix, which we haven't sorted out at this
-> moment.
+> If only there was a viable alternative to udev.
+>
+> Distributions are being pushed around by the udev+systemd project
+> precisely because of this reason; udev maintainers have said that udev
+> on non-systemd systems is a dead end, so everyone that uses udev
+> (everyone) is being forced to switch to systemd if they want to
+> receive proper support, and at some point there might not be even a
+> choice.
+>
+> I for one would like an alternative to both systemd and udev on my
+> Linux systems, and as of yet, I don't know of one.
 
-A thirty-second pause at bootup is easily long enough that some people
-might think the machine is hung.
+A few years ago, the OpenWRT people pointed me to hotplug2 when I mentioned
+udev made my poor m68k box with 12 MiB of RAM immediately go OOM.
+Don't know if it's suitable for "bigger" machines, though.
 
-I also call bullshit on your "it will surely be fixed when we know
-what's the right fix" excuses.
+Gr{oetje,eeting}s,
 
-The fact is, you've spent the last several months blaming everybody
-but yourself, and actively told people to stop blaming you:
+                        Geert
 
-    https://bugzilla.redhat.com/show_bug.cgi?id=827538#c12
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-and have ignored patches that were sent to you:
-
-    http://lists.freedesktop.org/archives/systemd-devel/2012-August/006357.html
-
-despite having clearly seen the patch (you *replied* to it, for
-chissake, and I even told you in that same thread why that reply was
-wrong at the time).
-
-> I also have no issues at all if the kernel does load the firmware from
-> the filesystem on its own; it sounds like the simplest and most robust
-> solution from a general look at the problem. It would also make the
-> difference between in-kernel firmware and out-of-kernel firmware less
-> visible, which sounds good.
-
-So now, after you've dismissed the patch that did the equivalent fix
-in udev (Ming Lei's patch basically disabled your idiotic and wrong
-sequence number test for firmware loading), you say it's ok to bypass
-udev entirely, because that is "more robust".
-
-Kay, you are so full of sh*t that it's not funny. You're refusing to
-acknowledge your bugs, you refuse to fix them even when a patch is
-sent to you, and then you make excuses for the fact that we have to
-work around *your* bugs, and say that we should have done so from the
-very beginning.
-
-Yes, doing it in the kernel is "more robust". But don't play games,
-and stop the lying. It's more robust because we have maintainers that
-care, and because we know that regressions are not something we can
-play fast and loose with. If something breaks, and we don't know what
-the right fix for that breakage is, we *revert* the thing that broke.
-
-So yes, we're clearly better off doing it in the kernel.
-
-Not because firmware loading cannot be done in user space. But simply
-because udev maintenance since Greg gave it up has gone downhill.
-
-                    Linus
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
