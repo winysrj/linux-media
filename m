@@ -1,59 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:43824 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965174Ab2JCRst (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 13:48:49 -0400
-Received: by wibhr7 with SMTP id hr7so2797393wib.1
-        for <linux-media@vger.kernel.org>; Wed, 03 Oct 2012 10:48:48 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: hdegoede@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH] libv4lconvert: clarify the behavior and resulting restrictions of v4lconvert_convert()
-Date: Wed,  3 Oct 2012 19:48:39 +0300
-Message-Id: <1349282919-15332-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:31803 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751557Ab2JKMKk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Oct 2012 08:10:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH] dma-buf: Use EXPORT_SYMBOL
+Date: Thu, 11 Oct 2012 14:10:13 +0200
+Cc: Rob Clark <rob@ti.com>, Robert Morell <rmorell@nvidia.com>,
+	linaro-mm-sig@lists.linaro.org,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com> <20121011123407.63b5ecbe@pyramind.ukuu.org.uk> <201210111336.45574.hverkuil@xs4all.nl>
+In-Reply-To: <201210111336.45574.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201210111410.13144.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- lib/include/libv4lconvert.h |   20 ++++++++++++++++++--
- 1 Datei geändert, 18 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
+On Thu 11 October 2012 13:36:45 Hans Verkuil wrote:
+> On Thu 11 October 2012 13:34:07 Alan Cox wrote:
+> > > The whole purpose of this API is to let DRM and V4L drivers share buffers for
+> > > zero-copy pipelines. Unfortunately it is a fact that several popular DRM drivers
+> > > are closed source. So we have a choice between keeping the export symbols GPL
+> > > and forcing those closed-source drivers to make their own incompatible API,
+> > > thus defeating the whole point of DMABUF, or using EXPORT_SYMBOL and letting
+> > > the closed source vendors worry about the legality. They are already using such
+> > > functions (at least nvidia is), so they clearly accept that risk.
+> > 
+> > Then they can accept the risk of ignoring EXPORT_SYMBOL_GPL and
+> > calling into it anyway can't they. Your argument makes no rational sense
+> > of any kind.
+> 
+> Out of curiosity: why do we have both an EXPORT_SYMBOL and an EXPORT_SYMBOL_GPL
+> if there is no legal difference?
+> 
+> And if there is a difference between the two, then what is it?
 
-diff --git a/lib/include/libv4lconvert.h b/lib/include/libv4lconvert.h
-index 167b57d..509655e 100644
---- a/lib/include/libv4lconvert.h
-+++ b/lib/include/libv4lconvert.h
-@@ -89,8 +89,24 @@ LIBV4L_PUBLIC int v4lconvert_needs_conversion(struct v4lconvert_data *data,
- 		const struct v4l2_format *src_fmt,   /* in */
- 		const struct v4l2_format *dest_fmt); /* in */
- 
--/* return value of -1 on error, otherwise the amount of bytes written to
--   dest */
-+/* This function does the following conversions:
-+    - format conversion
-+    - cropping
-+   if enabled:
-+    - processing (auto whitebalance, auto gain, gamma correction)
-+    - horizontal/vertical flipping
-+    - 90 degree (clockwise) rotation
-+   
-+   NOTE: the last 3 steps are enabled/disabled depending on
-+    - the internal device list
-+    - the state of the (software emulated) image controls 
-+  
-+   Therefore this function should
-+    - not be used when getting the frames from libv4l
-+    - be called only once per frame
-+   Otherwise this may result in unintended double conversions !
-+  
-+   Returns the amount of bytes written to dest an -1 on error */
- LIBV4L_PUBLIC int v4lconvert_convert(struct v4lconvert_data *data,
- 		const struct v4l2_format *src_fmt,  /* in */
- 		const struct v4l2_format *dest_fmt, /* in */
--- 
-1.7.10.4
+Answering myself:
 
+http://lwn.net/Articles/154602/
