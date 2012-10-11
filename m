@@ -1,30 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from node-sl2738.smtp.com ([173.192.74.70]:34678 "EHLO
-	node-sl2738.smtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756248Ab2JJTrz convert rfc822-to-8bit (ORCPT
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:35708 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758544Ab2JKL3Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 15:47:55 -0400
-Received: from pandasent.com (localhost [127.0.0.1])
-	by pandasent.com (Postfix) with ESMTP id A1BA1997
-	for <linux-media@vger.kernel.org>; Wed, 10 Oct 2012 19:28:19 +0000 (UTC)
-Message-Id: <RX13MFVH-SX1E-GXHA-NG6T-T6XUURV6IE4H@gmail.com>
+	Thu, 11 Oct 2012 07:29:16 -0400
+Date: Thu, 11 Oct 2012 12:34:07 +0100
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Rob Clark <rob@ti.com>, Robert Morell <rmorell@nvidia.com>,
+	linaro-mm-sig@lists.linaro.org,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] dma-buf: Use EXPORT_SYMBOL
+Message-ID: <20121011123407.63b5ecbe@pyramind.ukuu.org.uk>
+In-Reply-To: <201210110857.15660.hverkuil@xs4all.nl>
+References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
+	<20121010191702.404edace@pyramind.ukuu.org.uk>
+	<CAF6AEGvzfr2-QHpX4zwm2EPz-vxCDe9SaLUjo4_Fn7HhjWJFsg@mail.gmail.com>
+	<201210110857.15660.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-From: Hannah Edwards <hannahedwards888@gmail.com>
-To: "Administrator" <linux-media@vger.kernel.org>
-Subject: Broken Link on Your Site About Photo Album Programs - Follow-up
-Date: Wed, 10 Oct 2012 12:27:55 -0700
-Content-Type: text/plain; charset=US-ASCII;
-	format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Administrator,
+> The whole purpose of this API is to let DRM and V4L drivers share buffers for
+> zero-copy pipelines. Unfortunately it is a fact that several popular DRM drivers
+> are closed source. So we have a choice between keeping the export symbols GPL
+> and forcing those closed-source drivers to make their own incompatible API,
+> thus defeating the whole point of DMABUF, or using EXPORT_SYMBOL and letting
+> the closed source vendors worry about the legality. They are already using such
+> functions (at least nvidia is), so they clearly accept that risk.
 
-I wanted to follow up with you and make sure you had received my email I sent a little bit ago regarding the broken link on your site.
+Then they can accept the risk of ignoring EXPORT_SYMBOL_GPL and
+calling into it anyway can't they. Your argument makes no rational sense
+of any kind.
 
-If you are still updating your website, I have a similar resource that you can replace the broken link with if you are interested. Let me know!
-
-Best regards,
-Hannah Edwards
-
+Alan
