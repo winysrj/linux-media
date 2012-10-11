@@ -1,71 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:41074 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757185Ab2JEUtx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 16:49:53 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so1820000wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 05 Oct 2012 13:49:52 -0700 (PDT)
+Received: from avon.wwwdotorg.org ([70.85.31.133]:39339 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758542Ab2JKQPl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Oct 2012 12:15:41 -0400
+Message-ID: <5076F0A9.6020101@wwwdotorg.org>
+Date: Thu, 11 Oct 2012 10:15:37 -0600
+From: Stephen Warren <swarren@wwwdotorg.org>
 MIME-Version: 1.0
-In-Reply-To: <1349469857-21396-1-git-send-email-crope@iki.fi>
-References: <1349469857-21396-1-git-send-email-crope@iki.fi>
-Date: Fri, 5 Oct 2012 16:49:51 -0400
-Message-ID: <CAOcJUby_4x_bqOE_YGLPQR7FfDXGidt+r-QVqKe14eAypzcGuQ@mail.gmail.com>
-Subject: Re: [PATCH] mxl111sf: revert patch: fix error on stream stop in mxl111sf_ep6_streaming_ctrl()
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <2002286.8sbBLyKbDe@avalon> <5075A74C.80106@wwwdotorg.org> <2098605.jat554dMFe@avalon>
+In-Reply-To: <2098605.jat554dMFe@avalon>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 5, 2012 at 4:44 PM, Antti Palosaari <crope@iki.fi> wrote:
-> This reverts commits:
-> 3fd7e4341e04f80e2605f56bbd8cb1e8b027901a
-> [media] mxl111sf: remove an unused variable
-> 3be5bb71fbf18f83cb88b54a62a78e03e5a4f30a
-> [media] mxl111sf: fix error on stream stop in mxl111sf_ep6_streaming_ctrl()
->
-> ...as bug behind these is fixed by the DVB USB v2.
->
-> Cc: Michael Krufky <mkrufky@linuxtv.org>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/usb/dvb-usb-v2/mxl111sf.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-> index efdcb15..fcfe124 100644
-> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-> @@ -343,6 +343,7 @@ static int mxl111sf_ep6_streaming_ctrl(struct dvb_frontend *fe, int onoff)
->         struct mxl111sf_state *state = fe_to_priv(fe);
->         struct mxl111sf_adap_state *adap_state = &state->adap_state[fe->id];
->         int ret = 0;
-> +       u8 tmp;
->
->         deb_info("%s(%d)\n", __func__, onoff);
->
-> @@ -353,13 +354,15 @@ static int mxl111sf_ep6_streaming_ctrl(struct dvb_frontend *fe, int onoff)
->                                               adap_state->ep6_clockphase,
->                                               0, 0);
->                 mxl_fail(ret);
-> -#if 0
->         } else {
->                 ret = mxl111sf_disable_656_port(state);
->                 mxl_fail(ret);
-> -#endif
->         }
->
-> +       mxl111sf_read_reg(state, 0x12, &tmp);
-> +       tmp &= ~0x04;
-> +       mxl111sf_write_reg(state, 0x12, tmp);
-> +
->         return ret;
->  }
->
+On 10/10/2012 04:51 PM, Laurent Pinchart wrote:
+> On Wednesday 10 October 2012 10:50:20 Stephen Warren wrote:
+>> On 10/10/2012 07:18 AM, Laurent Pinchart wrote:
+>>> On Monday 08 October 2012 17:15:53 Guennadi Liakhovetski wrote:
+>> ...
+>>
+>>>> But how do you get the subdev pointer? With the notifier I get it from
+>>>> i2c_get_clientdata(client) and what do you do without it? How do you get
+>>>> to the client?
+>>>>
+>>>>> And can't it get that from DT as well?
+>>>>
+>>>> No, I don't think there is a way to get a device pointer from a DT node.
+>>
+>> I don't believe there's a generic API for this (although perhaps there
+>> could be), but it can be implemented quite easily.
+>>
+>> For example, on Tegra, the SMMU needs to flip a bit in the AHB register
+>> space in order to enable itself. The SMMU DT node contains a phandle
+>> that points at the AHB DT node. The SMMU driver parses the phandle and
+>> passes the DT node pointer to the AHB driver. The AHB driver looks up
+>> the struct device that was instantiated for that node. See
+>> drivers/amba/tegra-ahb.c:tegra_ahb_enable_smmu(). There are a few other
+>> cases of similar code in the kernel, although I can't remember the others!
+> 
+> That's a very naive approach, but what about storing the struct device in 
+> struct device_node when the device is instantiated ? It's so simple that 
+> there's probably a good reason why that hasn't been implemented though.
 
+It sounds like that would work.
 
-I disabled that code on purpose - its redundant.  please do not apply
-this patch.
+The advantage of calling a function in the driver for the node, rather
+than just grabbing something from the node directly in code unrelated to
+the driver for the node, is that it any knowledge of what kind of
+device/driver is handling that node is embedded into a function in the
+driver for the node, not the driver using the node, which makes
+everything a bit more type-safe.
 
--Mike
+Now, perhaps the implementation of that function could just pull a field
+out of struct of_node rather than calling driver_find_device(), but it'd
+then have to validate that the struct device that was found was truly
+managed by the expected driver, for safety. I assume that's pretty
+simple, but haven't checked.
