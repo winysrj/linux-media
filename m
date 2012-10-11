@@ -1,89 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:45543 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752825Ab2JCH5Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 03:57:24 -0400
-Message-ID: <506BEFE0.2060906@canonical.com>
-Date: Wed, 03 Oct 2012 09:57:20 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46822 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758892Ab2JKVaz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Oct 2012 17:30:55 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
+	zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: Re: [PATCHv10 23/26] v4l: vb2-dma-contig: align buffer size to PAGE_SIZE
+Date: Thu, 11 Oct 2012 23:31:39 +0200
+Message-ID: <11844448.MZrezqZD1L@avalon>
+In-Reply-To: <1349880405-26049-24-git-send-email-t.stanislaws@samsung.com>
+References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com> <1349880405-26049-24-git-send-email-t.stanislaws@samsung.com>
 MIME-Version: 1.0
-To: Thomas Hellstrom <thellstrom@vmware.com>
-CC: linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, sumit.semwal@linaro.org,
-	linux-media@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [PATCH 1/5] dma-buf: remove fallback for !CONFIG_DMA_SHARED_BUFFER
-References: <20120928124148.14366.21063.stgit@patser.local> <5065B0C9.7040209@canonical.com> <5065FDAA.5080103@vmware.com> <50696699.7020009@canonical.com> <506A8DC8.5020706@vmware.com> <20121002080341.GA5679@phenom.ffwll.local> <506BED25.2060804@vmware.com>
-In-Reply-To: <506BED25.2060804@vmware.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey,
+Hi Tomasz,
 
-Op 03-10-12 09:45, Thomas Hellstrom schreef:
-> On 10/02/2012 10:03 AM, Daniel Vetter wrote:
->> On Tue, Oct 02, 2012 at 08:46:32AM +0200, Thomas Hellstrom wrote:
->>> On 10/01/2012 11:47 AM, Maarten Lankhorst wrote:
->>>> I was doing a evil hack where I 'released' lru_lock to lockdep before doing the annotation
->>>> for a blocking acquire, and left trylock annotations as they were. This made lockdep do the
->>>> right thing.
->>> I've never looked into how lockdep works. Is this something that can
->>> be done permanently or just for testing
->>> purposes? Although not related to this, is it possible to do
->>> something similar to the trylock reversal in the
->>> fault() code where mmap_sem() and reserve() change order using a
->>> reserve trylock?
->> lockdep just requires a bunch of annotations, is a compile-time configure
->> option CONFIG_PROVE_LOCKING and if disabled, has zero overhead. And it's
->> rather awesome in detected deadlocks and handling crazy locking schemes
->> correctly:
->> - correctly handles trylocks
->> - correctly handles nested locking (i.e. grabbing a global lock, then
->>    grabbing subordinate locks in an unordered sequence since the global
->>    lock ensures that no deadlocks can happen).
->> - any kinds of inversions with special contexts like hardirq, softirq
->> - same for page-reclaim, i.e. it will yell if you could (potentially)
->>    deadlock because your shrinker grabs a lock that you hold while calling
->>    kmalloc.
->> - there are special annotates for various subsystems, e.g. to check for
->>    del_timer_sync vs. locks held by that timer. Or the console_lock
->>    annotations I've just recently submitted.
->> - all that with a really flexible set of annotation primitives that afaics
->>    should work for almost any insane locking scheme. The fact that Maarten
->>    could come up with proper reservation annotations without any changes to
->>    lockdep testifies this (he only had to fix a tiny thing to make it a bit
->>    more strict in a corner case).
->>
->> In short I think it's made of awesome. The only downside is that it lacks
->> documentation, you have to read the code to understand it :(
->>
->> The reason I've suggested to Maarten to abolish the trylock_reservation
->> within the lru_lock is that in that way lockdep only ever sees the
->> trylock, and hence is less strict about complainig about deadlocks. But
->> semantically it's an unconditional reserve. Maarten had some horrible
->> hacks that leaked the lockdep annotations out of the new reservation code,
->> which allowed ttm to be properly annotated.  But those also reduced the
->> usefulness for any other users of the reservation code, and so Maarten
->> looked into whether he could remove that trylock dance in ttm.
->>
->> Imo having excellent lockdep support for cross-device reservations is a
->> requirment, and ending up with less strict annotations for either ttm
->> based drivers or other drivers is not good. And imo the ugly layering that
->> Maarten had in his first proof-of-concept also indicates that something is
->> amiss in the design.
->>
->>
-> So if I understand you correctly, the reservation changes in TTM are motivated by the
-> fact that otherwise, in the generic reservation code, lockdep can only be
-> annotated for a trylock and not a waiting lock, when it *is* in fact a waiting lock.
->
-> I'm completely unfamiliar with setting up lockdep annotations, but the only place a
-> deadlock might occur is if the trylock fails and we do a wait_for_unreserve().
-> Isn't it possible to annotate the call to wait_for_unreserve() just like an interruptible waiting lock
-> (that is always interrupted, but at least any deadlock will be catched?).
-That would not find all bugs, lockdep is meant to find even theoretical bugs, so annotating it as a
-waiting lock makes more sense. Otherwise lockdep will only barf when the initial trylock fails.
+On Wednesday 10 October 2012 16:46:42 Tomasz Stanislawski wrote:
+> Most operations on DMA and DMABUF framework need page
+> aligned buffers.
 
-~Maarten
+The comment is a bit misleading, the buffer is already page-aligned (unless 
+I'm mistaken dma_alloc_coherent() returns a page-aligned buffer) but its size 
+isn't a multiple of the page size.
+
+Do we really need a page size multiple ? Isn't it enough to make the size a 
+multiple of the cache line size ?
+
+> This fix guarantees this requirement
+> for vb2-dma-contig buffers.
+> 
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c |    3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index 571a919..002ee50
+> 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -162,6 +162,9 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long
+> size) if (!buf)
+>  		return ERR_PTR(-ENOMEM);
+> 
+> +	/* align image size to PAGE_SIZE */
+> +	size = PAGE_ALIGN(size);
+> +
+>  	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, GFP_KERNEL);
+>  	if (!buf->vaddr) {
+>  		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
+-- 
+Regards,
+
+Laurent Pinchart
 
