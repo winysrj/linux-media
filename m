@@ -1,45 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56174 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933312Ab2J0Umn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:42:43 -0400
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKgh3E019888
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:43 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 41/68] [media] go7007-v4l2: warning fix: index is unsigned, so it will never be below 0
-Date: Sat, 27 Oct 2012 18:40:59 -0200
-Message-Id: <1351370486-29040-42-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from casper.infradead.org ([85.118.1.10]:32980 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750850Ab2JKMhM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Oct 2012 08:37:12 -0400
+Date: Thu, 11 Oct 2012 09:37:03 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Oliver Endriss <o.endriss@gmx.de>
+Cc: David Howells <dhowells@redhat.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [GIT PULL] Disintegrate UAPI for media
+Message-ID: <20121011093703.24b60232@infradead.org>
+In-Reply-To: <201210111023.51311.o.endriss@gmx.de>
+References: <30699.1349789424@warthog.procyon.org.uk>
+	<20121009183908.1e402a43@infradead.org>
+	<201210111023.51311.o.endriss@gmx.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/staging/media/go7007/go7007-v4l2.c: In function 'vidioc_qbuf':
-drivers/staging/media/go7007/go7007-v4l2.c:815:2: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
+Em Thu, 11 Oct 2012 10:23:50 +0200
+Oliver Endriss <o.endriss@gmx.de> escreveu:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/staging/media/go7007/go7007-v4l2.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+> > Em Tue, 09 Oct 2012 14:30:24 +0100
+> > David Howells <dhowells@redhat.com> escreveu:
+> > 
+> > > Can you merge the following branch into the media tree please.
+> > > 
+> > > This is to complete part of the Userspace API (UAPI) disintegration for which
+> > > the preparatory patches were pulled recently.  After these patches, userspace
+> > > headers will be segregated into:
+> > > 
+> > > 	include/uapi/linux/.../foo.h
+> > > 
+> > > for the userspace interface stuff, and:
+> > > 
+> > > 	include/linux/.../foo.h
+> > > 
+> > > for the strictly kernel internal stuff.
+> > > 
+> > > ---
+> > > The following changes since commit 9e2d8656f5e8aa214e66b462680cf86b210b74a8:
+> > > 
+> > >   Merge branch 'akpm' (Andrew's patch-bomb) (2012-10-09 16:23:15 +0900)
+> > > 
+> > > are available in the git repository at:
+> > > 
+> > > 
+> > >   git://git.infradead.org/users/dhowells/linux-headers.git tags/disintegrate-media-20121009
+> > > 
+> > > for you to fetch changes up to 1c436decd49665be131887b08d172a7989cdceee:
+> > > 
+> > >   UAPI: (Scripted) Disintegrate include/linux/dvb (2012-10-09 09:48:42 +0100)
+> > > 
+> > > ----------------------------------------------------------------
+> > > UAPI Disintegration 2012-10-09
+> > > 
+> > > ----------------------------------------------------------------
+> > > David Howells (1):
+> > >       UAPI: (Scripted) Disintegrate include/linux/dvb
+> > > 
+> > >  include/linux/dvb/Kbuild                |   8 -
+> > >  include/linux/dvb/dmx.h                 | 130 +--------------
+> > >  include/linux/dvb/video.h               | 249 +----------------------------
+> > >  include/uapi/linux/dvb/Kbuild           |   8 +
+> > >  include/{ => uapi}/linux/dvb/audio.h    |   0
+> > >  include/{ => uapi}/linux/dvb/ca.h       |   0
+> > >  include/uapi/linux/dvb/dmx.h            | 155 ++++++++++++++++++
+> > >  include/{ => uapi}/linux/dvb/frontend.h |   0
+> > >  include/{ => uapi}/linux/dvb/net.h      |   0
+> > >  include/{ => uapi}/linux/dvb/osd.h      |   0
+> > >  include/{ => uapi}/linux/dvb/version.h  |   0
+> > >  include/uapi/linux/dvb/video.h          | 274 ++++++++++++++++++++++++++++++++
+> > >  12 files changed, 439 insertions(+), 385 deletions(-)
+> > >  rename include/{ => uapi}/linux/dvb/audio.h (100%)
+> > >  rename include/{ => uapi}/linux/dvb/ca.h (100%)
+> > >  create mode 100644 include/uapi/linux/dvb/dmx.h
+> > >  rename include/{ => uapi}/linux/dvb/frontend.h (100%)
+> > >  rename include/{ => uapi}/linux/dvb/net.h (100%)
+> > >  rename include/{ => uapi}/linux/dvb/osd.h (100%)
+> > >  rename include/{ => uapi}/linux/dvb/version.h (100%)
+> > >  create mode 100644 include/uapi/linux/dvb/video.h
+> > 
+> > Hmm... last year, it was decided that we would be putting the DVB av7110-only
+> > API files on a separate place, as the API there conflicts with V4L/alsa APIs
+> 
+> Wrong! Hans Verkuil and you tried to do it, without caring that it would
+> break userspace, and it was NAKed.
 
-diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
-index 980371b..a78133b 100644
---- a/drivers/staging/media/go7007/go7007-v4l2.c
-+++ b/drivers/staging/media/go7007/go7007-v4l2.c
-@@ -812,7 +812,7 @@ static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
- 		return retval;
- 
- 	mutex_lock(&gofh->lock);
--	if (buf->index < 0 || buf->index >= gofh->buf_count)
-+	if (buf->index >= gofh->buf_count)
- 		goto unlock_and_return;
- 
- 	gobuf = &gofh->bufs[buf->index];
--- 
-1.7.11.7
+My understanding here is that, as the file location will change
+with this series, your original concern is now void, as userspace
+will require patches to use the new location. So, if we're willing
+to do it, let's put this one-driver-only obsolete API on a separate
+place.
 
+
+Cheers,
+Mauro
