@@ -1,64 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49357 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36216 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750754Ab2JHMDj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 08:03:39 -0400
+	with ESMTP id S1759382Ab2JKVf4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Oct 2012 17:35:56 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2 v6] of: add helper to parse display timings
-Date: Mon, 08 Oct 2012 14:04:19 +0200
-Message-ID: <1479122.2xVsV4MZ4o@avalon>
-In-Reply-To: <1349686878.3227.40.camel@deskari>
-References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de> <Pine.LNX.4.64.1210081000530.11034@axis700.grange> <1349686878.3227.40.camel@deskari>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
+	zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: Re: [PATCHv10 22/26] v4l: vb2-dma-contig: fail if user ptr buffer is not correctly aligned
+Date: Thu, 11 Oct 2012 23:36:41 +0200
+Message-ID: <2222801.pVl6O4rxaf@avalon>
+In-Reply-To: <1349880405-26049-23-git-send-email-t.stanislaws@samsung.com>
+References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com> <1349880405-26049-23-git-send-email-t.stanislaws@samsung.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomi,
+Hi Tomasz,
 
-On Monday 08 October 2012 12:01:18 Tomi Valkeinen wrote:
-> On Mon, 2012-10-08 at 10:25 +0200, Guennadi Liakhovetski wrote:
-> > In general, I might be misunderstanding something, but don't we have to
-> > distinguish between 2 types of information about display timings: (1) is
-> > defined by the display controller requirements, is known to the display
-> > driver and doesn't need to be present in timings DT. We did have some of
-> > these parameters in board data previously, because we didn't have proper
-> > display controller drivers... (2) is board specific configuration, and is
-> > such it has to be present in DT.
-> > 
-> > In that way, doesn't "interlaced" belong to type (1) and thus doesn't need
-> > to be present in DT?
+Thanks for the patch.
+
+On Wednesday 10 October 2012 16:46:41 Tomasz Stanislawski wrote:
+> From: Marek Szyprowski <m.szyprowski@samsung.com>
 > 
-> As I see it, this DT data is about the display (most commonly LCD
-> panel), i.e. what video mode(s) the panel supports. If things were done
-> my way, the panel's supported timings would be defined in the driver for
-> the panel, and DT would be left to describe board specific data, but
-> this approach has its benefits.
-
-What about dumb DPI panels ? They will all be supported by a single driver, 
-would you have the driver contain information about all known DPI panels ? DT 
-seems a good solution to me in this case.
-
-For complex panels where the driver will support a single (or very few) model 
-I agree that specifying the timings in DT isn't needed.
-
-> Thus, if you connect an interlaced panel to your board, you need to tell
-> the display controller that this panel requires interlace signal. Also,
-> pixel clock source doesn't make sense in this context, as this doesn't
-> describe the actual used configuration, but only what the panel
-> supports.
+> The DMA transfer must be aligned to a specific value. If userptr is not
+> aligned to DMA requirements then unexpected corruptions of the memory may
+> occur before or after a buffer.  To prevent such situations, all unligned
+> userptr buffers are rejected at VIDIOC_QBUF.
 > 
-> Of course, if this is about describing the hardware, the default-mode
-> property doesn't really fit in...
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c |   12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index 2d661fd..571a919
+> 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -493,6 +493,18 @@ static void *vb2_dc_get_userptr(void *alloc_ctx,
+> unsigned long vaddr, struct vm_area_struct *vma;
+>  	struct sg_table *sgt;
+>  	unsigned long contig_size;
+> +	unsigned long dma_align = dma_get_cache_alignment();
+> +
+> +	/* Only cache aligned DMA transfers are reliable */
+> +	if (!IS_ALIGNED(vaddr | size, dma_align)) {
+> +		pr_debug("user data must be aligned to %lu bytes\n", dma_align);
+> +		return ERR_PTR(-EINVAL);
+> +	}
 
-Maybe we should rename it to native-mode then ?
+Looks good to me.
+
+> +	if (!size) {
+> +		pr_debug("size is zero\n");
+> +		return ERR_PTR(-EINVAL);
+> +	}
+
+Can this happen ? The vb2 core already has
+
+                /* Check if the provided plane buffer is large enough */
+                if (planes[plane].length < q->plane_sizes[plane]) {
+                        ret = -EINVAL;
+                        goto err;
+                }
+
+Unless queue_setup sets plane_sizes to 0 we can't reach vb2_dc_get_userptr.
+
+>  	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+>  	if (!buf)
 
 -- 
 Regards,
