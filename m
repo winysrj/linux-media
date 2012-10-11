@@ -1,78 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1378 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755356Ab2JFMWk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Oct 2012 08:22:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCHv9 19/25] v4l: vb2: add buffer exporting via dmabuf
-Date: Sat, 6 Oct 2012 14:22:27 +0200
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
-	robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
-	subashrp@gmail.com, mchehab@redhat.com, zhangfei.gao@gmail.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com
-References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com> <1349188056-4886-20-git-send-email-t.stanislaws@samsung.com>
-In-Reply-To: <1349188056-4886-20-git-send-email-t.stanislaws@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Received: from mx1.redhat.com ([209.132.183.28]:33634 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756866Ab2JKLNq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Oct 2012 07:13:46 -0400
+Date: Thu, 11 Oct 2012 08:13:27 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Dave Airlie <airlied@gmail.com>,
+	Robert Morell <rmorell@nvidia.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linaro-mm-sig@lists.linaro.org, rob@ti.com,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] dma-buf: Use EXPORT_SYMBOL
+Message-ID: <20121011081327.46045e12@redhat.com>
+In-Reply-To: <201210110920.12560.hverkuil@xs4all.nl>
+References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
+	<CAPM=9tzQohMuC4SKTzVWoj2WdiZ8EVBpwgD38wNb3T1bNoZjbQ@mail.gmail.com>
+	<20121010221119.6a623417@redhat.com>
+	<201210110920.12560.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201210061422.27704.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue October 2 2012 16:27:30 Tomasz Stanislawski wrote:
-> This patch adds extension to videobuf2-core. It allow to export a mmap buffer
-> as a file descriptor.
+Em Thu, 11 Oct 2012 09:20:12 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+
+> > my understaning is
+> > that the drivers/media/ authors should also ack with this licensing
+> > (possible) change. I am one of the main contributors there. Alan also has 
+> > copyrights there, and at other parts of the Linux Kernel, including the driver's
+> > core, from where all Linux Kernel drivers are derivative work, including this one.
+> > 
+> > As Alan well said, many other core Linux Kernel authors very likely share 
+> > this point of view.
+> > 
+> > So, developers implicitly or explicitly copied in this thread that might be
+> > considering the usage of dmabuf on proprietary drivers should consider
+> > this email as a formal notification of my viewpoint: e. g. that I consider
+> > any attempt of using DMABUF or media core/drivers together with proprietary
+> > Kernelspace code as a possible GPL infringement.
 > 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/videobuf2-core.c |   82 ++++++++++++++++++++++++++++++++++
->  include/media/videobuf2-core.h       |    4 ++
->  2 files changed, 86 insertions(+)
-> 
-> diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-> index 05da3b4..a97815b 100644
-> --- a/drivers/media/video/videobuf2-core.c
-> +++ b/drivers/media/video/videobuf2-core.c
+> As long as dmabuf uses EXPORT_SYMBOL_GPL that is definitely correct. Does your
+> statement also hold if dmabuf would use EXPORT_SYMBOL? (Just asking)
 
-<snip>
+If you read the Kernel COPYING file, it is explicitly said there that the Kernel
+is licensing with GPLv2. The _ONLY_ exception there is the allowance to use
+the kernel via normal syscalls:
 
-> @@ -2455,6 +2528,15 @@ int vb2_ioctl_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
->  }
->  EXPORT_SYMBOL_GPL(vb2_ioctl_streamoff);
->  
-> +int vb2_ioctl_expbuf(struct file *file, void *priv, struct v4l2_exportbuffer *p)
-> +{
-> +	struct video_device *vdev = video_devdata(file);
-> +
-> +	/* No need to call vb2_queue_is_busy(), anyone can export buffers. */
+	   "NOTE! This copyright does *not* cover user programs that use kernel
+	 services by normal system calls - this is merely considered normal use
+	 of the kernel, and does *not* fall under the heading of "derived work".
+	 Also note that the GPL below is copyrighted by the Free Software
+	 Foundation, but the instance of code that it refers to (the Linux
+	 kernel) is copyrighted by me and others who actually wrote it."
 
-After thinking about this some more I'm not so sure we should allow this.
-Exporting a buffer also means that the memory can't be freed as long as the
-exported filehandle remains open.
+The usage of EXPORT_SYMBOL() is not covered there, so those symbols are also
+covered by GPLv2.
 
-That means that it is possible to make a malicious application that exports
-the buffers and never frees them, which can cause havoc. I think that only
-the filehandle that called REQBUFS/CREATE_BUFS should be allowed to export
-buffers.
+As the usage of a kernel symbol by a proprietary driver is not explicitly
+listed there as a GPLv2 exception, the only concrete results of this patch is
+to spread FUD, as EXPORT_SYMBOL might generate some doubts on people that
+don't read the Kernel's COPYING file. 
 
-What do you think?
+With or without this patch, anyone with intelectual rights in the Kernel may
+go to court to warrant their rights against the infringing closed source drivers.
+By not making it explicitly, you're only trying to fool people that using
+it might be allowed.
+
+> BTW, we should consider changing the control framework API to EXPORT_SYMBOL_GPL.
+
+Agreed.
+
+> The number of contributors to v4l2-ctrls.c is very limited, and I have no
+> problem moving that to GPL. For me dmabuf is the rare exception where I prefer
+> EXPORT_SYMBOL to prevent the worse evil of forcing vendors to create incompatible
+> APIs. It's a sad but true that many GPU drivers are still closed source,
+> particularly in the embedded world for which dmabuf was primarily designed.
+
+My understanding is that even the creation of incompatible Kernel API
+is a presumed GPL violation, as it is an attempt to circumvent the license.
+
+Basically, if vendors want to work with closed source, there are other options
+in the market. But if they want to work with Linux, they should be contributing
+upstream, instead of doing proprietary blobs.
 
 Regards,
-
-	Hans
-
-> +	return vb2_expbuf(vdev->queue, p);
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_ioctl_expbuf);
-> +
->  /* v4l2_file_operations helpers */
->  
->  int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma)
+Mauro
