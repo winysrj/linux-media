@@ -1,158 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:51030 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751169Ab2JAOFa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 10:05:30 -0400
-From: Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	VGER <linux-kernel@vger.kernel.org>,
-	LDOC <linux-doc@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Rob Landley <rob@landley.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RFC] media: v4l2-ctrl: Add digital gain controls
-Date: Mon,  1 Oct 2012 19:33:39 +0530
-Message-Id: <1349100219-7599-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:11379 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752114Ab2JKO4B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Oct 2012 10:56:01 -0400
+Date: Thu, 11 Oct 2012 11:55:42 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Rob Clark <robdclark@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Dave Airlie <airlied@gmail.com>,
+	Robert Morell <rmorell@nvidia.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linaro-mm-sig@lists.linaro.org,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] dma-buf: Use EXPORT_SYMBOL
+Message-ID: <20121011115542.177c4876@redhat.com>
+In-Reply-To: <CAF6AEGtgKkuVkKGQC2ZBBiz5dTPn+3Y5VdZo5JFR7WYSqS_EaQ@mail.gmail.com>
+References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
+	<CAPM=9tzQohMuC4SKTzVWoj2WdiZ8EVBpwgD38wNb3T1bNoZjbQ@mail.gmail.com>
+	<20121010221119.6a623417@redhat.com>
+	<201210110920.12560.hverkuil@xs4all.nl>
+	<20121011081327.46045e12@redhat.com>
+	<CAF6AEGtgKkuVkKGQC2ZBBiz5dTPn+3Y5VdZo5JFR7WYSqS_EaQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
+Em Thu, 11 Oct 2012 08:47:15 -0500
+Rob Clark <robdclark@gmail.com> escreveu:
 
-add support for per color component digital gain controls
-and also their corresponding offset.
+> On Thu, Oct 11, 2012 at 6:13 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+> > Em Thu, 11 Oct 2012 09:20:12 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >
+> >> > my understaning is
+> >> > that the drivers/media/ authors should also ack with this licensing
+> >> > (possible) change. I am one of the main contributors there. Alan also has
+> >> > copyrights there, and at other parts of the Linux Kernel, including the driver's
+> >> > core, from where all Linux Kernel drivers are derivative work, including this one.
+> >> >
+> >> > As Alan well said, many other core Linux Kernel authors very likely share
+> >> > this point of view.
+> >> >
+> >> > So, developers implicitly or explicitly copied in this thread that might be
+> >> > considering the usage of dmabuf on proprietary drivers should consider
+> >> > this email as a formal notification of my viewpoint: e. g. that I consider
+> >> > any attempt of using DMABUF or media core/drivers together with proprietary
+> >> > Kernelspace code as a possible GPL infringement.
+> >>
+> >> As long as dmabuf uses EXPORT_SYMBOL_GPL that is definitely correct. Does your
+> >> statement also hold if dmabuf would use EXPORT_SYMBOL? (Just asking)
+> >
+> > If you read the Kernel COPYING file, it is explicitly said there that the Kernel
+> > is licensing with GPLv2. The _ONLY_ exception there is the allowance to use
+> > the kernel via normal syscalls:
+> >
+> >            "NOTE! This copyright does *not* cover user programs that use kernel
+> >          services by normal system calls - this is merely considered normal use
+> >          of the kernel, and does *not* fall under the heading of "derived work".
+> >          Also note that the GPL below is copyrighted by the Free Software
+> >          Foundation, but the instance of code that it refers to (the Linux
+> >          kernel) is copyrighted by me and others who actually wrote it."
+> >
+> > The usage of EXPORT_SYMBOL() is not covered there, so those symbols are also
+> > covered by GPLv2.
+> >
+> > As the usage of a kernel symbol by a proprietary driver is not explicitly
+> > listed there as a GPLv2 exception, the only concrete results of this patch is
+> > to spread FUD, as EXPORT_SYMBOL might generate some doubts on people that
+> > don't read the Kernel's COPYING file.
+> >
+> > With or without this patch, anyone with intelectual rights in the Kernel may
+> > go to court to warrant their rights against the infringing closed source drivers.
+> > By not making it explicitly, you're only trying to fool people that using
+> > it might be allowed.
+> 
+> Maybe a dumb question (I'm a programmer, not a lawyer), but does it
+> change anything if we make the APIs related to *exporting* a dmabuf as
+> EXPORT_SYMBOL() and keep the APIs related to *importing* as
+> EXPORT_SYMBOL_GPL().  This at least avoids the non-GPL kernel module
+> from calling in to other driver code, while still allowing the non-GPL
+> driver to export a buffer that GPL drivers could use.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Hans de Goede hdegoede@redhat.com
-Cc: Chris MacGregor chris@cybermato.com
-Cc: Rob Landley <rob@landley.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
----
- Documentation/DocBook/media/v4l/controls.xml |   54 ++++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c         |   11 +++++
- include/linux/v4l2-controls.h                |   11 +++++
- 3 files changed, 76 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index a84a08c..9bf54f3 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4277,6 +4277,60 @@ interface and may change in the future.</para>
- 	    specific test patterns can be used to test if a device is working
- 	    properly.</entry>
- 	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_GAIN_RED</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN_RED</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN_BLUE</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_GAIN_BLUE</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr"> Some capture/sensor devices have
-+	    the capability to set per color component digital gain values.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_GAIN_OFFSET</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_BLUE_OFFSET</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RED_OFFSET</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_GREEN_OFFSET</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_GREEN_RED_OFFSET</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_GREEN_BLUE_OFFSET</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr"> Some capture/sensor devices have the
-+	    capability to set per color component digital gain offset values.
-+	    V4L2_CID_GAIN_OFFSET is the global gain offset and the rest are per
-+	    color component gain offsets.</entry>
-+	  </row>
- 	  <row><entry></entry></row>
- 	</tbody>
-       </tgroup>
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 93cd0a4..02cc1d2 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -750,6 +750,17 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
- 	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
- 	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
-+	case V4L2_CID_GAIN_RED:			return "Digital Gain Red";
-+	case V4L2_CID_GAIN_GREEN_RED:		return "Digital Gain Green Red";
-+	case V4L2_CID_GAIN_GREEN_BLUE:		return "Digital Gain Green Blue";
-+	case V4L2_CID_GAIN_BLUE:		return "Digital Gain Blue";
-+	case V4L2_CID_GAIN_GREEN:		return "Digital Gain Green";
-+	case V4L2_CID_GAIN_OFFSET:		return "Digital Gain Offset";
-+	case V4L2_CID_BLUE_OFFSET:		return "Digital Gain Blue Offset";
-+	case V4L2_CID_RED_OFFSET:		return "Digital Gain Red Offset";
-+	case V4L2_CID_GREEN_OFFSET:		return "Digital Gain Green Offset";
-+	case V4L2_CID_GREEN_RED_OFFSET:		return "Digital Gain Green Red Offset";
-+	case V4L2_CID_GREEN_BLUE_OFFSET:	return "Digital Gain Green Blue Offset";
- 
- 	/* DV controls */
- 	case V4L2_CID_DV_CLASS:			return "Digital Video Controls";
-diff --git a/include/linux/v4l2-controls.h b/include/linux/v4l2-controls.h
-index e1b3680..087596d 100644
---- a/include/linux/v4l2-controls.h
-+++ b/include/linux/v4l2-controls.h
-@@ -758,5 +758,16 @@ enum v4l2_jpeg_chroma_subsampling {
- #define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
- #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
- #define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
-+#define V4L2_CID_GAIN_RED			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
-+#define V4L2_CID_GAIN_GREEN_RED			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 5)
-+#define V4L2_CID_GAIN_GREEN_BLUE		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 6)
-+#define V4L2_CID_GAIN_BLUE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 7)
-+#define V4L2_CID_GAIN_GREEN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 8)
-+#define V4L2_CID_GAIN_OFFSET			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 9)
-+#define V4L2_CID_BLUE_OFFSET			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 10)
-+#define V4L2_CID_RED_OFFSET			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 11)
-+#define V4L2_CID_GREEN_OFFSET			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 12)
-+#define V4L2_CID_GREEN_RED_OFFSET		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 13)
-+#define V4L2_CID_GREEN_BLUE_OFFSET		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 14)
- 
- #endif
--- 
-1.7.4.1
+IANAL. My understanding is that nothing changes by using either programmer's
+dialect: it sounds doubtful that the court would actually take a look
+into the Kernel's source code: they're lawyers, not programmers, and
+both clauses are just Kernel's source code. Nothing more, nothing less:
 
+EXPORT_SYMBOL, is not EXPORT_SYMBOL_BSD (or similar): this syntax
+doesn't bring _any_kind_ of additional licensing rights. That means that
+the licensing terms that apply there are just the ones stated at COPYING
+file.
+
+So, in any case, the court will judge the allegations based at the Kernel
+licensing terms, and will seek if the terms of such licensing were
+violated. The court will also likely use formal notifications of
+potential infringements, like the ones in this thread, and other
+non-technical documents, like meeting reports, email threads, etc,
+in order to check who has intelectual rights on the Linux Kernel,
+and if the ones that violated the rights did it by purpose.
+
+Regards,
+Mauro
