@@ -1,49 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:40194 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965038Ab2JDOgh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Oct 2012 10:36:37 -0400
-Date: Thu, 4 Oct 2012 16:36:20 +0200 (CEST)
-From: Jiri Kosina <jkosina@suse.cz>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>, Kay Sievers <kay@vrfy.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Lennart Poettering <lennart@poettering.net>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Kay Sievers <kay@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
- callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use
- request_firmware_nowait()
-In-Reply-To: <CA+55aFwz_7sksJRnFHZQFHD001ihF7ejkk5+-6Punc2dFtoqVQ@mail.gmail.com>
-Message-ID: <alpine.LNX.2.00.1210041628400.9942@pobox.suse.cz>
-References: <1340285798-8322-1-git-send-email-mchehab@redhat.com> <4FE37194.30407@redhat.com> <4FE8B8BC.3020702@iki.fi> <4FE8C4C4.1050901@redhat.com> <4FE8CED5.104@redhat.com> <20120625223306.GA2764@kroah.com> <4FE9169D.5020300@redhat.com>
- <20121002100319.59146693@redhat.com> <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com> <20121002221239.GA30990@kroah.com> <20121002222333.GA32207@kroah.com> <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
- <alpine.LRH.2.00.1210030159440.31999@twin.jikos.cz> <CA+55aFwz_7sksJRnFHZQFHD001ihF7ejkk5+-6Punc2dFtoqVQ@mail.gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53740 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756793Ab2JKWc5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Oct 2012 18:32:57 -0400
+Date: Fri, 12 Oct 2012 01:32:52 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Multiple Rectangle cropping
+Message-ID: <20121011223252.GR14107@valkosipuli.retiisi.org.uk>
+References: <CAPybu_1z8kam1e6ArT9gyX+qybW+6s1K1VdJikuWoYPMjA3q2Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPybu_1z8kam1e6ArT9gyX+qybW+6s1K1VdJikuWoYPMjA3q2Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2 Oct 2012, Linus Torvalds wrote:
+Hi Ricardo,
 
-> Now, at the same time, I do agree that network devices should generally 
-> try to delay it until ifup time
+On Thu, Oct 11, 2012 at 12:40:03PM +0200, Ricardo Ribalda Delgado wrote:
+> I want to port an old driver for an fpga based camera to the new media
+> infrastructure.
+> 
+> By reading the doc. I think it has almost all the capabilities needed.
+> The only one I am missing is the habilty to select multiple rectangles
+> from the sensor. ie: I have a 100x50 sensor and I want a 100x20 image
+> with the pixels from 0,0->100,10 and then 0,40->100,50
+> 
+> Any suggestion about how to implement this with the media api?
 
-Slightly tangential to the ongoing discussion, but still ... I think that 
-even "all network drivers should delay firmware loading to ifup time" 
-might be too general.
+I suppose your FPGA does the cropping. You can use the V4L2 subdev selection
+interface and crop on the source pads. Each will then have a link to a
+capture video device.
 
-I would expect that there are network cards which require firmware to be 
-present for PHY to work, right? On such cards, if you want to have link 
-detection even on interfaces that are down (so that things like ifplugd 
-can detect the link presence and configure the interface), ifup is too 
-late.
+<URL:http://hverkuil.home.xs4all.nl/spec/media.html#subdev>
 
-I admit I haven't checked whether there actually are such cards out there, 
-but it doesn't seem to be completely unrealistic to me.
+Kind regards,
 
 -- 
-Jiri Kosina
-SUSE Labs
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
