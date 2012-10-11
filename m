@@ -1,138 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:57687 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.10]:55607 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755168Ab2JEJni (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 05:43:38 -0400
-Date: Fri, 5 Oct 2012 11:43:27 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Rob Herring <robherring2@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-sh@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	with ESMTP id S1759205Ab2JKTb1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Oct 2012 15:31:27 -0400
+Date: Thu, 11 Oct 2012 21:31:18 +0200
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
 	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	Philipp Zabel <pza@pengutronix.de>
-Subject: Re: [PATCH 04/14] media: add V4L2 DT binding documentation
-In-Reply-To: <506CA5F7.3060807@gmail.com>
-Message-ID: <Pine.LNX.4.64.1210051119420.13761@axis700.grange>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
- <1348754853-28619-5-git-send-email-g.liakhovetski@gmx.de> <506AF706.3090003@gmail.com>
- <Pine.LNX.4.64.1210021626220.15778@axis700.grange> <506CA5F7.3060807@gmail.com>
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2 v6] of: add helper to parse display timings
+Message-ID: <20121011193118.GA27599@avionic-0098.mockup.avionic-design.de>
+References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1349373560-11128-2-git-send-email-s.trumtrar@pengutronix.de>
+ <1349680065.3227.25.camel@deskari>
+ <20121008074921.GB20800@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6TrnltStXW4iwmi0"
+Content-Disposition: inline
+In-Reply-To: <20121008074921.GB20800@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 3 Oct 2012, Rob Herring wrote:
 
-> On 10/02/2012 09:33 AM, Guennadi Liakhovetski wrote:
-> > Hi Rob
-> > 
-> > On Tue, 2 Oct 2012, Rob Herring wrote:
-> > 
-> >> On 09/27/2012 09:07 AM, Guennadi Liakhovetski wrote:
-> >>> This patch adds a document, describing common V4L2 device tree bindings.
-> >>>
-> >>> Co-authored-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> >>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> >>> ---
-> >>>  Documentation/devicetree/bindings/media/v4l2.txt |  162 ++++++++++++++++++++++
-> >>>  1 files changed, 162 insertions(+), 0 deletions(-)
-> >>>  create mode 100644 Documentation/devicetree/bindings/media/v4l2.txt
-> >>>
-> >>> diff --git a/Documentation/devicetree/bindings/media/v4l2.txt b/Documentation/devicetree/bindings/media/v4l2.txt
-> >>> new file mode 100644
-> >>> index 0000000..b8b3f41
-> >>> --- /dev/null
-> >>> +++ b/Documentation/devicetree/bindings/media/v4l2.txt
-> >>> @@ -0,0 +1,162 @@
-> >>> +Video4Linux Version 2 (V4L2)
-> >>
-> >> DT describes the h/w, but V4L2 is Linux specific. I think the binding
-> >> looks pretty good in terms of it is describing the h/w and not V4L2
-> >> components or settings. So in this case it's really just the name of the
-> >> file and title I have issue with.
-> > 
-> > Hm, I see your point, then, I guess, you'd also like the file name 
-> > changed. What should we use then? Just "video?" But there's already a 
-> > whole directory Documentation/devicetree/bindings/video dedicated to 
-> > graphics output (drm, fbdev). "video-camera" or "video-capture?" But this 
-> > file shall also be describing video output. Use "video.txt" and describe 
-> > inside what exactly this file is for?
-> 
-> Video output will probably have a lot of overlap with the graphics side.
-> How about video-interfaces.txt?
+--6TrnltStXW4iwmi0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hm, that's a bit too vague for me. Somewhere on the outskirts of my mind 
-I'm still considering making just one standard for both V4L2 and fbdev / 
-DRM? Just yesterday we were discussing some common properties with what is 
-being proposed in
+On Mon, Oct 08, 2012 at 09:49:21AM +0200, Steffen Trumtrar wrote:
+> On Mon, Oct 08, 2012 at 10:07:45AM +0300, Tomi Valkeinen wrote:
+> > On Thu, 2012-10-04 at 19:59 +0200, Steffen Trumtrar wrote:
+[...]
+> > > +
+> > > +	disp->num_timings =3D 0;
+> > > +
+> > > +	for_each_child_of_node(timings_np, entry) {
+> > > +		disp->num_timings++;
+> > > +	}
+> >=20
+> > No need for { }
+> >=20
+>=20
+> Okay.
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/index.html#53322
+Or you could just use of_get_child_count().
 
-Still, I think, these two subsystems deserve two separate standards and 
-should just try to re-use properties wherever that makes sense. 
-video-stream seems a bit better, but this too is just a convention - 
-talking about video cameras and TV output as video streaming devices and 
-considering displays more static devices. In principle displays can be 
-considered taking streaming data just as well as TV encoders. What if we 
-just call this camera-tv.txt?
+Thierry
 
-> >> One other comment below:
-> >>
-> >>> +
-> >>> +General concept
-> >>> +---------------
-> >>> +
-> >>> +Video pipelines consist of external devices, e.g. camera sensors, controlled
-> >>> +over an I2C, SPI or UART bus, and SoC internal IP blocks, including video DMA
-> >>> +engines and video data processors.
-> >>> +
-> >>> +SoC internal blocks are described by DT nodes, placed similarly to other SoC
-> >>> +blocks. External devices are represented as child nodes of their respective bus
-> >>> +controller nodes, e.g. I2C.
-> >>> +
-> >>> +Data interfaces on all video devices are described by "port" child DT nodes.
-> >>> +Configuration of a port depends on other devices participating in the data
-> >>> +transfer and is described by "link" DT nodes, specified as children of the
-> >>> +"port" nodes:
-> >>> +
-> >>> +/foo {
-> >>> +	port@0 {
-> >>> +		link@0 { ... };
-> >>> +		link@1 { ... };
-> >>> +	};
-> >>> +	port@1 { ... };
-> >>> +};
-> >>> +
-> >>> +If a port can be configured to work with more than one other device on the same
-> >>> +bus, a "link" child DT node must be provided for each of them. If more than one
-> >>> +port is present on a device or more than one link is connected to a port, a
-> >>> +common scheme, using "#address-cells," "#size-cells" and "reg" properties is
-> >>> +used.
-> >>> +
-> >>> +Optional link properties:
-> >>> +- remote: phandle to the other endpoint link DT node.
-> >>
-> >> This name is a little vague. Perhaps "endpoint" would be better.
-> > 
-> > "endpoint" can also refer to something local like in USB case. Maybe 
-> > rather the description of the "remote" property should be improved?
-> 
-> remote-endpoint?
+--6TrnltStXW4iwmi0
+Content-Type: application/pgp-signature
 
-Sorry, I really don't want to pull in yet another term here. We've got 
-ports and links already, now you're proposing to also use "endpoind." 
-Until now everyone was happy with "remote," any more opinions on this?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+iQIcBAEBAgAGBQJQdx6GAAoJEN0jrNd/PrOhrvYP/0QzXJteJs+u3JzLMmCOLyW9
+cYuAOeDplrkE/87S7CUU7S0wxPiUAm48Mx7LjG9h2P0cHgFeDRgCFfkwQgSlDTqx
+2UiCCyVrfiZjCio63UmlVr0l7+1/sh4BR4mzbi1bRBNFujPLg+1Jq/gLX9yC1yA+
+g8qvC3ztLffObsCzDGZRIFffThMrsEQYNohUxcu+oOSI0Mmnc2s18eZFEDLQdvCE
+RCTTFv+EcBWgIJ7mPBesuPlT2pMdOiIMfwUOmFhowwQQcpZII+5OPgoe+Xnth3Re
+e5af9863zCuq4SceFCkth2MVey2uNLUusN13kxhdeyUKTAATs+7NiiP6qa3hgxuh
+Vpq3bxRINB/9ORIU64MOi4+tuRMLMKri2aXgZXePVA5+e5ebBp2Kh4Zr8rxZQbBf
+t+dZXMsGwsNHZO2A3T9UdrgzAvAqfdazLzsj6Qw6OSHlbYl0eCUbif+qhoxDf2rI
+rHfYaRGgb/2uGX76OzizCcQduFstqQv8ILvGTXCxIIT6Q54bAJ4gsOx4/jRSElg7
+9nrUJ08F/7tn0H+zxKRRhRiVT9rWF5EQysojkmtOl0p2Iw1DRpafzHVBTGuJa0Kd
+owTVjNyaEITJqlGwrqgHaJD+YETTqUB0GeCN9CY+3MriPcwOCX/jB3IlC8FJH7BY
+o4Zgh+VdzXtRq0BUqE2g
+=lkat
+-----END PGP SIGNATURE-----
+
+--6TrnltStXW4iwmi0--
