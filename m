@@ -1,65 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:34246 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755477Ab2JQP5h (ORCPT
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:54387 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758641Ab2JKNrQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 11:57:37 -0400
-Message-id: <507ED56E.1000406@samsung.com>
-Date: Wed, 17 Oct 2012 17:57:34 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, patches@linaro.org,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	"Turquette, Mike" <mturquette@ti.com>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	Tomasz Figa <t.figa@samsung.com>
-Subject: Re: [PATCH 1/8] [media] s5p-fimc: Use clk_prepare_enable and
- clk_disable_unprepare
-References: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org>
- <507EC1BF.6040107@samsung.com>
- <CAK9yfHymckQLOp=xavQ1sj5uJKRg7tFMXgvo68Dp8GL6N9g0JQ@mail.gmail.com>
-In-reply-to: <CAK9yfHymckQLOp=xavQ1sj5uJKRg7tFMXgvo68Dp8GL6N9g0JQ@mail.gmail.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Thu, 11 Oct 2012 09:47:16 -0400
+Received: by mail-vc0-f174.google.com with SMTP id fo13so2157515vcb.19
+        for <linux-media@vger.kernel.org>; Thu, 11 Oct 2012 06:47:15 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20121011081327.46045e12@redhat.com>
+References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
+	<CAPM=9tzQohMuC4SKTzVWoj2WdiZ8EVBpwgD38wNb3T1bNoZjbQ@mail.gmail.com>
+	<20121010221119.6a623417@redhat.com>
+	<201210110920.12560.hverkuil@xs4all.nl>
+	<20121011081327.46045e12@redhat.com>
+Date: Thu, 11 Oct 2012 08:47:15 -0500
+Message-ID: <CAF6AEGtgKkuVkKGQC2ZBBiz5dTPn+3Y5VdZo5JFR7WYSqS_EaQ@mail.gmail.com>
+Subject: Re: [PATCH] dma-buf: Use EXPORT_SYMBOL
+From: Rob Clark <robdclark@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Dave Airlie <airlied@gmail.com>,
+	Robert Morell <rmorell@nvidia.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linaro-mm-sig@lists.linaro.org,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/17/2012 05:35 PM, Sachin Kamat wrote:
->> Most of the s5p-* drivers have already added support for clk_(un)prepare.
->> Thus most of your changes in this patch are not needed. I seem to have only
->> missed fimc-mdevice.c, other modules are already reworked
-> 
-> I did not find these changes in your tree. Please let me know the
-> branch where these changes are available.
+On Thu, Oct 11, 2012 at 6:13 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em Thu, 11 Oct 2012 09:20:12 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>
+>> > my understaning is
+>> > that the drivers/media/ authors should also ack with this licensing
+>> > (possible) change. I am one of the main contributors there. Alan also has
+>> > copyrights there, and at other parts of the Linux Kernel, including the driver's
+>> > core, from where all Linux Kernel drivers are derivative work, including this one.
+>> >
+>> > As Alan well said, many other core Linux Kernel authors very likely share
+>> > this point of view.
+>> >
+>> > So, developers implicitly or explicitly copied in this thread that might be
+>> > considering the usage of dmabuf on proprietary drivers should consider
+>> > this email as a formal notification of my viewpoint: e. g. that I consider
+>> > any attempt of using DMABUF or media core/drivers together with proprietary
+>> > Kernelspace code as a possible GPL infringement.
+>>
+>> As long as dmabuf uses EXPORT_SYMBOL_GPL that is definitely correct. Does your
+>> statement also hold if dmabuf would use EXPORT_SYMBOL? (Just asking)
+>
+> If you read the Kernel COPYING file, it is explicitly said there that the Kernel
+> is licensing with GPLv2. The _ONLY_ exception there is the allowance to use
+> the kernel via normal syscalls:
+>
+>            "NOTE! This copyright does *not* cover user programs that use kernel
+>          services by normal system calls - this is merely considered normal use
+>          of the kernel, and does *not* fall under the heading of "derived work".
+>          Also note that the GPL below is copyrighted by the Free Software
+>          Foundation, but the instance of code that it refers to (the Linux
+>          kernel) is copyrighted by me and others who actually wrote it."
+>
+> The usage of EXPORT_SYMBOL() is not covered there, so those symbols are also
+> covered by GPLv2.
+>
+> As the usage of a kernel symbol by a proprietary driver is not explicitly
+> listed there as a GPLv2 exception, the only concrete results of this patch is
+> to spread FUD, as EXPORT_SYMBOL might generate some doubts on people that
+> don't read the Kernel's COPYING file.
+>
+> With or without this patch, anyone with intelectual rights in the Kernel may
+> go to court to warrant their rights against the infringing closed source drivers.
+> By not making it explicitly, you're only trying to fool people that using
+> it might be allowed.
 
-Are in Linus' tree, for quite long already, commits:
+Maybe a dumb question (I'm a programmer, not a lawyer), but does it
+change anything if we make the APIs related to *exporting* a dmabuf as
+EXPORT_SYMBOL() and keep the APIs related to *importing* as
+EXPORT_SYMBOL_GPL().  This at least avoids the non-GPL kernel module
+from calling in to other driver code, while still allowing the non-GPL
+driver to export a buffer that GPL drivers could use.
 
-11a37c709797cc56f48905e68a3099b79cf08850
-[media] s5p-g2d: Added support for clk_prepare
+BR,
+-R
 
-bd7d8888e99d67f778f4ee272346322c0b9cb378
-[media] s5p-fimc: convert to clk_prepare()/clk_unprepare()
-
-eb732518e0db585376f95256b18b2149240e3ad3
-[media] s5p-mfc: Added support for clk_prepare
-
-Please note there was the media drivers reorganization recently, e.g.
-drivers/media/video/s5p-* changed to drivers/media/platform/s5p-*.
-
->> $ git grep -5  clk_prepare  -- drivers/media/platform/s5p-fimc
->> drivers/media/platform/s5p-fimc/fimc-core.c-
->> drivers/media/platform/s5p-fimc/fimc-core.c-    for (i = 0; i < MAX_FIMC_CLOCKS; i++) {
->> drivers/media/platform/s5p-fimc/fimc-core.c-            fimc->clock[i] = clk_get(&fimc->pdev->dev, fimc_clocks[i]);
->> drivers/media/platform/s5p-fimc/fimc-core.c-            if (IS_ERR(fimc->clock[i]))
-> 
->>> I would prefer you have added the required changes at fimc_md_get_clocks()
->> and fimc_md_put_clocks() functions.
-> 
-> Ok. I will check this.
-
-Thanks.
-
---
-Regards,
-Sylwester
+>> BTW, we should consider changing the control framework API to EXPORT_SYMBOL_GPL.
+>
+> Agreed.
+>
+>> The number of contributors to v4l2-ctrls.c is very limited, and I have no
+>> problem moving that to GPL. For me dmabuf is the rare exception where I prefer
+>> EXPORT_SYMBOL to prevent the worse evil of forcing vendors to create incompatible
+>> APIs. It's a sad but true that many GPU drivers are still closed source,
+>> particularly in the embedded world for which dmabuf was primarily designed.
+>
+> My understanding is that even the creation of incompatible Kernel API
+> is a presumed GPL violation, as it is an attempt to circumvent the license.
+>
+> Basically, if vendors want to work with closed source, there are other options
+> in the market. But if they want to work with Linux, they should be contributing
+> upstream, instead of doing proprietary blobs.
+>
+> Regards,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
