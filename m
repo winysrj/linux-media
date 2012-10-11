@@ -1,59 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4396 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933482Ab2JYIxW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Oct 2012 04:53:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [media-workshop] Tentative Agenda for the November workshop
-Date: Thu, 25 Oct 2012 10:52:26 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	media-workshop@linuxtv.org,
-	"linux-media" <linux-media@vger.kernel.org>
-References: <201210221035.56897.hverkuil@xs4all.nl> <1372729.rmYJ0LutvU@avalon> <5088FBCF.5080507@samsung.com>
-In-Reply-To: <5088FBCF.5080507@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from mx1.redhat.com ([209.132.183.28]:49381 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932125Ab2JKBLh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Oct 2012 21:11:37 -0400
+Date: Wed, 10 Oct 2012 22:11:19 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Dave Airlie <airlied@gmail.com>, Robert Morell <rmorell@nvidia.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linaro-mm-sig@lists.linaro.org, rob@ti.com,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] dma-buf: Use EXPORT_SYMBOL
+Message-ID: <20121010221119.6a623417@redhat.com>
+In-Reply-To: <CAPM=9tzQohMuC4SKTzVWoj2WdiZ8EVBpwgD38wNb3T1bNoZjbQ@mail.gmail.com>
+References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
+	<20121010191702.404edace@pyramind.ukuu.org.uk>
+	<CAPM=9tzQohMuC4SKTzVWoj2WdiZ8EVBpwgD38wNb3T1bNoZjbQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201210251052.27009.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu October 25 2012 10:43:59 Sylwester Nawrocki wrote:
-> Hi Laurent,
-> 
-> On 10/25/2012 12:42 AM, Laurent Pinchart wrote:
-> >>>> Sylwester, would Samsung be able to prepare for a brainstorming session
-> >>>> on Monday or Tuesday? Both Laurent and myself have presentations on
-> >>>> Wednesday, so that's not the best day for such a session.
-> >>
-> >> Kamil has presentation on Tuesday so there would be only Monday left.
-> >>
-> >>>> Do you think we should do a half-day or a full day session on this?
-> >>>
-> >>> Half a day should be more than enough to start with. The topic is quite
-> >>> complex, and we'll need to sleep over it, several times. A full day would
-> >>> just result in brain overheat. I was thinking more in the line of
-> >>> starting our thought process, so maybe twice an hour or two hours would
-> >>> be good. That would allow us to attend the ELCE talks as well :-)
-> >>> (there's definitely a couple of them that I would like to listen to).
-> >>
-> >> I agree, I wouldn't like to loose whole day of the conference for that
-> >> as well. One, two hours for the starters could be sufficient. So we can
-> >> possibly agree on some initial idea and could get back to it later.
-> >> I don't think I have already material for a full day session.
-> > 
-> > One hour, possibly twice, would have my preference. That shouldn't be too 
-> > difficult to organize. When will you and Kamil arrive ?
-> 
-> Sounds good to me. We'll arrive on Sunday afternoon, and staying until
-> next Sunday.
+Em Thu, 11 Oct 2012 09:22:34 +1000
+Dave Airlie <airlied@gmail.com> escreveu:
 
-I've tried to get a small room for Monday, but they were all gone, so we will
-have to find some other place in the hotel.
+> On Thu, Oct 11, 2012 at 4:17 AM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
+> > On Wed, 10 Oct 2012 08:56:32 -0700
+> > Robert Morell <rmorell@nvidia.com> wrote:
+> >
+> >> EXPORT_SYMBOL_GPL is intended to be used for "an internal implementation
+> >> issue, and not really an interface".  The dma-buf infrastructure is
+> >> explicitly intended as an interface between modules/drivers, so it
+> >> should use EXPORT_SYMBOL instead.
+> >
+> > NAK. This needs at the very least the approval of all rights holders for
+> > the files concerned and all code exposed by this change.
+> 
+> I think he has that. Maybe he just needs to list them. 
+
+My understanding it that he doesn't, as the dmabuf interface exposes not only
+the code written by this driver's author, but other parts of the Kernel.
+
+Even if someone consider just the dmabuf driver, I participated and actively
+contributed, together with other open source developers, during the 3 days 
+discussions that happened at Linaro's forum where most of dmabuf design was
+decided, and participated, reviewed, gave suggestions approved the code, etc
+via email. So, even not writing the dmabuf stuff myself, I consider myself as 
+one of the intelectual authors of the solution.
+
+Also, as dmabuf will also expose media interfaces, my understaning is
+that the drivers/media/ authors should also ack with this licensing
+(possible) change. I am one of the main contributors there. Alan also has 
+copyrights there, and at other parts of the Linux Kernel, including the driver's
+core, from where all Linux Kernel drivers are derivative work, including this one.
+
+As Alan well said, many other core Linux Kernel authors very likely share 
+this point of view.
+
+So, developers implicitly or explicitly copied in this thread that might be
+considering the usage of dmabuf on proprietary drivers should consider
+this email as a formal notification of my viewpoint: e. g. that I consider
+any attempt of using DMABUF or media core/drivers together with proprietary
+Kernelspace code as a possible GPL infringement.
 
 Regards,
-
-	Hans
+Mauro
