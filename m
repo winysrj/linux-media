@@ -1,82 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39994 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752722Ab2JAOC6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Oct 2012 10:02:58 -0400
-Date: Mon, 1 Oct 2012 11:02:41 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Martin Burnicki <martin.burnicki@burnicki.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Current media_build doesn't succeed building on kernel 3.1.10
-Message-ID: <20121001110241.2f5ab052@redhat.com>
-In-Reply-To: <201209302052.42723.martin.burnicki@burnicki.net>
-References: <201209302052.42723.martin.burnicki@burnicki.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54543 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759950Ab2JLS0u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Oct 2012 14:26:50 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH 1/3] omap3isp: Remove unneeded module memory address definitions
+Date: Fri, 12 Oct 2012 20:27:28 +0200
+Message-Id: <1350066450-17370-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1350066450-17370-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1350066450-17370-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 30 Sep 2012 20:52:42 +0200
-Martin Burnicki <martin.burnicki@burnicki.net> escreveu:
+The OMAP3ISP_*_REG_OFFSET, OMAP3ISP_*_REG_BASE and OMAP3ISP_*_REG macros
+are not needed. Remove them.
 
-> Hi all,
-> 
-> is anybody out there who can help me with the media_build system? I'm trying 
-> to build the current modules on an openSUSE 12.1 system (kernel 3.1.10, 
-> x86_64), but I'm getting compilation errors because the s5k4ecgx driver uses 
-> function devm_regulator_bulk_get() which AFAICS has been introduced in kernel 
-> 3.4 only. When I run the ./build script compilation stops with these 
-> messages:
-> 
->  CC [M]  /root/projects/media_build/v4l/s5k4ecgx.o
-> media_build/v4l/s5k4ecgx.c: In function 's5k4ecgx_load_firmware':
-> media_build/v4l/s5k4ecgx.c:346:2: warning: format '%d' expects argument of \
->     type 'int', but argument 4 has type 'size_t' [-Wformat]
-> media_build/v4l/s5k4ecgx.c: In function 's5k4ecgx_probe':
-> media_build/v4l/s5k4ecgx.c:977:2: error: implicit declaration of \
->     function 'devm_regulator_bulk_get' [-Werror=implicit-function-declaration]
-> cc1: some warnings being treated as errors
+The only expection is the OMAP3ISP_HIST_REG_BASE address. Replace it
+with the memory address received through platform resources.
 
-Those are warnings. It wil compile if you disable -Werror=implicit-function-declaration.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/isphist.c |    5 ++-
+ drivers/media/platform/omap3isp/ispreg.h  |   77 -----------------------------
+ 2 files changed, 4 insertions(+), 78 deletions(-)
 
-> 
-> 
-> Probably I'll don't need module s5k4ecgx anyway, so any hint how to exclude 
-> this from build would be fine.
-> 
-> On this page 
-> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers#Retrieving_and_Building.2FCompiling_the_Latest_V4L-DVB_Source_Code
-> the section "More Manually Intensive Approach" mentions steps where I can 
-> run "make menuconfig" after unpacking the sources and before the build 
-> process is started, so I could deselect the module(s) I don't need and 
-> exclude them from build. However, I've no idea what I should use for "DIR=" 
-> in the command 
-> 
->   make tar DIR=<some dir with media -git tree>
-> 
-> mentioned on the web page.
-> 
-> According to theis link
-> https://patchwork.kernel.org/patch/1267511/
-> the s5k4ecgx module which does not build here has just been added at the 
-> beginning of August, so if I could specify a git version of the code which is 
-> slightly older this might also work.
-> 
-> BTW, if I understand the build environment correctly then there should be 
-> dayly test builds of the package for varions kernels. I'd expect those 
-> automated builds should also fail for kernels older than 3.4.
-> 
-> 
-> Regards,
-> 
-> Martin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+diff --git a/drivers/media/platform/omap3isp/isphist.c b/drivers/media/platform/omap3isp/isphist.c
+index d1a8dee..4627f54 100644
+--- a/drivers/media/platform/omap3isp/isphist.c
++++ b/drivers/media/platform/omap3isp/isphist.c
+@@ -72,11 +72,14 @@ static void hist_reset_mem(struct ispstat *hist)
+ 
+ static void hist_dma_config(struct ispstat *hist)
+ {
++	struct isp_device *isp = hist->isp;
++
+ 	hist->dma_config.data_type = OMAP_DMA_DATA_TYPE_S32;
+ 	hist->dma_config.sync_mode = OMAP_DMA_SYNC_ELEMENT;
+ 	hist->dma_config.frame_count = 1;
+ 	hist->dma_config.src_amode = OMAP_DMA_AMODE_CONSTANT;
+-	hist->dma_config.src_start = OMAP3ISP_HIST_REG_BASE + ISPHIST_DATA;
++	hist->dma_config.src_start = isp->mmio_base_phys[OMAP3_ISP_IOMEM_HIST]
++				   + ISPHIST_DATA;
+ 	hist->dma_config.dst_amode = OMAP_DMA_AMODE_POST_INC;
+ 	hist->dma_config.src_or_dst_synch = OMAP_DMA_SRC_SYNC;
+ }
+diff --git a/drivers/media/platform/omap3isp/ispreg.h b/drivers/media/platform/omap3isp/ispreg.h
+index e2c57f3..fd13d8b 100644
+--- a/drivers/media/platform/omap3isp/ispreg.h
++++ b/drivers/media/platform/omap3isp/ispreg.h
+@@ -29,83 +29,6 @@
+ 
+ #define CM_CAM_MCLK_HZ			172800000	/* Hz */
+ 
+-/* ISP Submodules offset */
+-
+-#define L4_34XX_BASE			0x48000000
+-#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
+-
+-#define OMAP3ISP_REG_BASE		OMAP3430_ISP_BASE
+-#define OMAP3ISP_REG(offset)		(OMAP3ISP_REG_BASE + (offset))
+-
+-#define OMAP3ISP_CCP2_REG_OFFSET	0x0400
+-#define OMAP3ISP_CCP2_REG_BASE		(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_CCP2_REG_OFFSET)
+-#define OMAP3ISP_CCP2_REG(offset)	(OMAP3ISP_CCP2_REG_BASE + (offset))
+-
+-#define OMAP3ISP_CCDC_REG_OFFSET	0x0600
+-#define OMAP3ISP_CCDC_REG_BASE		(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_CCDC_REG_OFFSET)
+-#define OMAP3ISP_CCDC_REG(offset)	(OMAP3ISP_CCDC_REG_BASE + (offset))
+-
+-#define OMAP3ISP_HIST_REG_OFFSET	0x0A00
+-#define OMAP3ISP_HIST_REG_BASE		(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_HIST_REG_OFFSET)
+-#define OMAP3ISP_HIST_REG(offset)	(OMAP3ISP_HIST_REG_BASE + (offset))
+-
+-#define OMAP3ISP_H3A_REG_OFFSET		0x0C00
+-#define OMAP3ISP_H3A_REG_BASE		(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_H3A_REG_OFFSET)
+-#define OMAP3ISP_H3A_REG(offset)	(OMAP3ISP_H3A_REG_BASE + (offset))
+-
+-#define OMAP3ISP_PREV_REG_OFFSET	0x0E00
+-#define OMAP3ISP_PREV_REG_BASE		(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_PREV_REG_OFFSET)
+-#define OMAP3ISP_PREV_REG(offset)	(OMAP3ISP_PREV_REG_BASE + (offset))
+-
+-#define OMAP3ISP_RESZ_REG_OFFSET	0x1000
+-#define OMAP3ISP_RESZ_REG_BASE		(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_RESZ_REG_OFFSET)
+-#define OMAP3ISP_RESZ_REG(offset)	(OMAP3ISP_RESZ_REG_BASE + (offset))
+-
+-#define OMAP3ISP_SBL_REG_OFFSET		0x1200
+-#define OMAP3ISP_SBL_REG_BASE		(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_SBL_REG_OFFSET)
+-#define OMAP3ISP_SBL_REG(offset)	(OMAP3ISP_SBL_REG_BASE + (offset))
+-
+-#define OMAP3ISP_CSI2A_REGS1_REG_OFFSET	0x1800
+-#define OMAP3ISP_CSI2A_REGS1_REG_BASE	(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_CSI2A_REGS1_REG_OFFSET)
+-#define OMAP3ISP_CSI2A_REGS1_REG(offset)				\
+-				(OMAP3ISP_CSI2A_REGS1_REG_BASE + (offset))
+-
+-#define OMAP3ISP_CSIPHY2_REG_OFFSET	0x1970
+-#define OMAP3ISP_CSIPHY2_REG_BASE	(OMAP3ISP_REG_BASE +	\
+-					 OMAP3ISP_CSIPHY2_REG_OFFSET)
+-#define OMAP3ISP_CSIPHY2_REG(offset)	(OMAP3ISP_CSIPHY2_REG_BASE + (offset))
+-
+-#define OMAP3ISP_CSI2A_REGS2_REG_OFFSET	0x19C0
+-#define OMAP3ISP_CSI2A_REGS2_REG_BASE	(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_CSI2A_REGS2_REG_OFFSET)
+-#define OMAP3ISP_CSI2A_REGS2_REG(offset)				\
+-				(OMAP3ISP_CSI2A_REGS2_REG_BASE + (offset))
+-
+-#define OMAP3ISP_CSI2C_REGS1_REG_OFFSET	0x1C00
+-#define OMAP3ISP_CSI2C_REGS1_REG_BASE	(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_CSI2C_REGS1_REG_OFFSET)
+-#define OMAP3ISP_CSI2C_REGS1_REG(offset)				\
+-				(OMAP3ISP_CSI2C_REGS1_REG_BASE + (offset))
+-
+-#define OMAP3ISP_CSIPHY1_REG_OFFSET	0x1D70
+-#define OMAP3ISP_CSIPHY1_REG_BASE	(OMAP3ISP_REG_BASE +	\
+-					 OMAP3ISP_CSIPHY1_REG_OFFSET)
+-#define OMAP3ISP_CSIPHY1_REG(offset)	(OMAP3ISP_CSIPHY1_REG_BASE + (offset))
+-
+-#define OMAP3ISP_CSI2C_REGS2_REG_OFFSET	0x1DC0
+-#define OMAP3ISP_CSI2C_REGS2_REG_BASE	(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_CSI2C_REGS2_REG_OFFSET)
+-#define OMAP3ISP_CSI2C_REGS2_REG(offset)				\
+-				(OMAP3ISP_CSI2C_REGS2_REG_BASE + (offset))
+-
+ /* ISP module register offset */
+ 
+ #define ISP_REVISION			(0x000)
 -- 
-Regards,
-Mauro
+1.7.8.6
+
