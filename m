@@ -1,69 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20198 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750794Ab2JGNDe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Oct 2012 09:03:34 -0400
-Message-ID: <50717DFF.8000004@redhat.com>
-Date: Sun, 07 Oct 2012 15:05:03 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53702 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756526Ab2JLJbT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Oct 2012 05:31:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
+	zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: Re: [PATCHv10 21/26] v4l: vb2-dma-contig: add reference counting for a device from allocator context
+Date: Fri, 12 Oct 2012 11:32:02 +0200
+Message-ID: <1950799.srnd2WXPED@avalon>
+In-Reply-To: <5077B887.4080702@samsung.com>
+References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com> <1557711.XL0Wq5VHNW@avalon> <5077B887.4080702@samsung.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] libv4lconvert: clarify the behavior and resulting restrictions
- of v4lconvert_convert()
-References: <1349282919-15332-1-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1349282919-15332-1-git-send-email-fschaefer.oss@googlemail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Frank,
+Hi Tomasz,
 
-Thanks for all your work on this. I'm afraid that atm I'm very busy
-with work, so I don't have time to review your patches. I hope to
-find some time for this next weekend...
+On Friday 12 October 2012 08:28:23 Tomasz Stanislawski wrote:
+> On 10/11/2012 11:49 PM, Laurent Pinchart wrote:
+> > On Wednesday 10 October 2012 16:46:40 Tomasz Stanislawski wrote:
+> >> This patch adds taking reference to the device for MMAP buffers.
+> >> 
+> >> Such buffers, may be exported using DMABUF mechanism. If the driver that
+> >> created a queue is unloaded then the queue is released, the device might
+> >> be
+> >> released too.  However, buffers cannot be released if they are referenced
+> >> by DMABUF descriptor(s). The device pointer kept in a buffer must be
+> >> valid for the whole buffer's lifetime. Therefore MMAP buffers should
+> >> take a reference to the device to avoid risk of dangling pointers.
+> >> 
+> >> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> >> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > But two small comments below.
+> > 
+> >> ---
+> >> 
+> >>  drivers/media/v4l2-core/videobuf2-dma-contig.c |    4 ++++
+> >>  1 file changed, 4 insertions(+)
+> >> 
+> >> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> >> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index b138b5c..2d661fd
+> >> 100644
+> >> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> >> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> >> @@ -148,6 +148,7 @@ static void vb2_dc_put(void *buf_priv)
+> >>  		kfree(buf->sgt_base);
+> >>  	}
+> >>  	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
+> >> +	put_device(buf->dev);
+> >>  	kfree(buf);
+> >>  }
+> >> 
+> >> @@ -168,6 +169,9 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned
+> >> long size)
+> >>  		return ERR_PTR(-ENOMEM);
+> >>  	}
+> >> 
+> >> +	/* prevent the device from release while the buffer is exported */
+> > 
+> > s/prevent/Prevent/ ?
+> 
+> s/release/being released/ ?
 
+Oops. Of course :-)
+
+> >> +	get_device(dev);
+> >> +
+> >>  	buf->dev = dev;
+> > 
+> > What about just
+> > 
+> > 	buf->dev = get_device(dev);
+> 
+> Right, sorry I missed that from your previous review :).
+
+-- 
 Regards,
 
-Hans
+Laurent Pinchart
 
-
-On 10/03/2012 06:48 PM, Frank Schäfer wrote:
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->   lib/include/libv4lconvert.h |   20 ++++++++++++++++++--
->   1 Datei geändert, 18 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
->
-> diff --git a/lib/include/libv4lconvert.h b/lib/include/libv4lconvert.h
-> index 167b57d..509655e 100644
-> --- a/lib/include/libv4lconvert.h
-> +++ b/lib/include/libv4lconvert.h
-> @@ -89,8 +89,24 @@ LIBV4L_PUBLIC int v4lconvert_needs_conversion(struct v4lconvert_data *data,
->   		const struct v4l2_format *src_fmt,   /* in */
->   		const struct v4l2_format *dest_fmt); /* in */
->
-> -/* return value of -1 on error, otherwise the amount of bytes written to
-> -   dest */
-> +/* This function does the following conversions:
-> +    - format conversion
-> +    - cropping
-> +   if enabled:
-> +    - processing (auto whitebalance, auto gain, gamma correction)
-> +    - horizontal/vertical flipping
-> +    - 90 degree (clockwise) rotation
-> +
-> +   NOTE: the last 3 steps are enabled/disabled depending on
-> +    - the internal device list
-> +    - the state of the (software emulated) image controls
-> +
-> +   Therefore this function should
-> +    - not be used when getting the frames from libv4l
-> +    - be called only once per frame
-> +   Otherwise this may result in unintended double conversions !
-> +
-> +   Returns the amount of bytes written to dest an -1 on error */
->   LIBV4L_PUBLIC int v4lconvert_convert(struct v4lconvert_data *data,
->   		const struct v4l2_format *src_fmt,  /* in */
->   		const struct v4l2_format *dest_fmt, /* in */
->
