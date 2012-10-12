@@ -1,119 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39303 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932293Ab2JaJ3T (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54548 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759820Ab2JLS0v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Oct 2012 05:29:19 -0400
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: [PATCH v7 8/8] drm_modes: add of_videomode helpers
-Date: Wed, 31 Oct 2012 10:28:08 +0100
-Message-Id: <1351675689-26814-9-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
+	Fri, 12 Oct 2012 14:26:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH 3/3] omap3isp: Fix warning caused by bad subdev events operations prototypes
+Date: Fri, 12 Oct 2012 20:27:30 +0200
+Message-Id: <1350066450-17370-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1350066450-17370-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1350066450-17370-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add helper to get drm_display_mode from devicetree.
+Remove the const keyword from the V4L2 subdev events operations to match
+the V4L2 API.
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/gpu/drm/drm_modes.c |   42 ++++++++++++++++++++++++++++++++++++++++++
- include/drm/drmP.h          |    5 +++++
- 2 files changed, 47 insertions(+)
+ drivers/media/platform/omap3isp/ispccdc.c |    4 ++--
+ drivers/media/platform/omap3isp/ispstat.c |    4 ++--
+ drivers/media/platform/omap3isp/ispstat.h |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
-index 049624d..d51afe6 100644
---- a/drivers/gpu/drm/drm_modes.c
-+++ b/drivers/gpu/drm/drm_modes.c
-@@ -35,6 +35,7 @@
- #include <linux/export.h>
- #include <drm/drmP.h>
- #include <drm/drm_crtc.h>
-+#include <linux/of.h>
- #include <linux/videomode.h>
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index 60181ab..aa9df9d 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -1706,7 +1706,7 @@ static long ccdc_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
+ }
  
- /**
-@@ -540,6 +541,47 @@ int videomode_to_display_mode(struct videomode *vm, struct drm_display_mode *dmo
- EXPORT_SYMBOL_GPL(videomode_to_display_mode);
- #endif
+ static int ccdc_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+-				const struct v4l2_event_subscription *sub)
++				struct v4l2_event_subscription *sub)
+ {
+ 	if (sub->type != V4L2_EVENT_FRAME_SYNC)
+ 		return -EINVAL;
+@@ -1719,7 +1719,7 @@ static int ccdc_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+ }
  
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+static void dump_drm_displaymode(struct drm_display_mode *m)
-+{
-+	pr_debug("drm_displaymode = %d %d %d %d %d %d %d %d %d\n",
-+		 m->hdisplay, m->hsync_start, m->hsync_end, m->htotal,
-+		 m->vdisplay, m->vsync_start, m->vsync_end, m->vtotal,
-+		 m->clock);
-+}
-+
-+/**
-+ * of_get_drm_display_mode - get a drm_display_mode from devicetree
-+ * @np: device_node with the timing specification
-+ * @dmode: will be set to the return value
-+ * @index: index into the list of display timings in devicetree
-+ * 
-+ * DESCRIPTION:
-+ * This function is expensive and should only be used, if only one mode is to be
-+ * read from DT. To get multiple modes start with of_get_display_timing_list ond
-+ * work with that instead.
-+ */
-+int of_get_drm_display_mode(struct device_node *np, struct drm_display_mode *dmode,
-+			int index)
-+{
-+	struct videomode vm;
-+	int ret;
-+
-+	ret = of_get_videomode(np, &vm, index);
-+	if (ret)
-+		return ret;
-+
-+	videomode_to_display_mode(&vm, dmode);
-+
-+	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
-+		vm.vactive, np->name);
-+	dump_drm_displaymode(dmode);
-+
-+	return 0;
-+
-+}
-+EXPORT_SYMBOL_GPL(of_get_drm_display_mode);
-+#endif
- /**
-  * drm_mode_set_name - set the name on a mode
-  * @mode: name will be set in this mode
-diff --git a/include/drm/drmP.h b/include/drm/drmP.h
-index e9fa1e3..4f9c44e 100644
---- a/include/drm/drmP.h
-+++ b/include/drm/drmP.h
-@@ -56,6 +56,7 @@
- #include <linux/cdev.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
-+#include <linux/of.h>
- #include <linux/videomode.h>
- #if defined(__alpha__) || defined(__powerpc__)
- #include <asm/pgtable.h>	/* For pte_wrprotect */
-@@ -1457,6 +1458,10 @@ drm_mode_create_from_cmdline_mode(struct drm_device *dev,
+ static int ccdc_unsubscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+-				  const struct v4l2_event_subscription *sub)
++				  struct v4l2_event_subscription *sub)
+ {
+ 	return v4l2_event_unsubscribe(fh, sub);
+ }
+diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
+index 600d610..6e24895 100644
+--- a/drivers/media/platform/omap3isp/ispstat.c
++++ b/drivers/media/platform/omap3isp/ispstat.c
+@@ -1026,7 +1026,7 @@ void omap3isp_stat_dma_isr(struct ispstat *stat)
  
- extern int videomode_to_display_mode(struct videomode *vm,
- 				     struct drm_display_mode *dmode);
-+extern int of_get_drm_display_mode(struct device_node *np,
-+				   struct drm_display_mode *dmode,
-+				   int index);
-+
- /* Modesetting support */
- extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
- extern void drm_vblank_post_modeset(struct drm_device *dev, int crtc);
+ int omap3isp_stat_subscribe_event(struct v4l2_subdev *subdev,
+ 				  struct v4l2_fh *fh,
+-				  const struct v4l2_event_subscription *sub)
++				  struct v4l2_event_subscription *sub)
+ {
+ 	struct ispstat *stat = v4l2_get_subdevdata(subdev);
+ 
+@@ -1038,7 +1038,7 @@ int omap3isp_stat_subscribe_event(struct v4l2_subdev *subdev,
+ 
+ int omap3isp_stat_unsubscribe_event(struct v4l2_subdev *subdev,
+ 				    struct v4l2_fh *fh,
+-				    const struct v4l2_event_subscription *sub)
++				    struct v4l2_event_subscription *sub)
+ {
+ 	return v4l2_event_unsubscribe(fh, sub);
+ }
+diff --git a/drivers/media/platform/omap3isp/ispstat.h b/drivers/media/platform/omap3isp/ispstat.h
+index 253e61e..8221d0c 100644
+--- a/drivers/media/platform/omap3isp/ispstat.h
++++ b/drivers/media/platform/omap3isp/ispstat.h
+@@ -147,10 +147,10 @@ int omap3isp_stat_init(struct ispstat *stat, const char *name,
+ void omap3isp_stat_cleanup(struct ispstat *stat);
+ int omap3isp_stat_subscribe_event(struct v4l2_subdev *subdev,
+ 				  struct v4l2_fh *fh,
+-				  const struct v4l2_event_subscription *sub);
++				  struct v4l2_event_subscription *sub);
+ int omap3isp_stat_unsubscribe_event(struct v4l2_subdev *subdev,
+ 				    struct v4l2_fh *fh,
+-				    const struct v4l2_event_subscription *sub);
++				    struct v4l2_event_subscription *sub);
+ int omap3isp_stat_s_stream(struct v4l2_subdev *subdev, int enable);
+ 
+ int omap3isp_stat_busy(struct ispstat *stat);
 -- 
-1.7.10.4
+1.7.8.6
 
