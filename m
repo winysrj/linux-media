@@ -1,65 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64719 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752477Ab2J0UmK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:42:10 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKg9x6006314
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:10 -0400
-Received: from pedra (vpn1-4-98.gru2.redhat.com [10.97.4.98])
-	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKg4xm014043
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:09 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 62/68] [media] bttv-driver: fix two warnings
-Date: Sat, 27 Oct 2012 18:41:20 -0200
-Message-Id: <1351370486-29040-63-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50647 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755963Ab2JLNKZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Oct 2012 09:10:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Christoph Fritz <chf.fritz@googlemail.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Chris MacGregor <chris@cybermato.com>,
+	linux-media@vger.kernel.org, Liu Ying <Ying.liu@freescale.com>,
+	"Hans J. Koch" <hjk@linutronix.de>, Daniel Mack <daniel@zonque.org>
+Subject: Re: hacking MT9P031 for i.mx
+Date: Fri, 12 Oct 2012 15:11:09 +0200
+Message-ID: <4808568.nuAMlGIafB@avalon>
+In-Reply-To: <1350043843.3730.32.camel@mars>
+References: <ade8080d-dbbf-4b60-804c-333d7340c01e@googlegroups.com> <4301383.IPfSC38GGz@avalon> <1350043843.3730.32.camel@mars>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/pci/bt8xx/bttv-driver.c:308:3: warning: initialized field overwritten [-Woverride-init]
-drivers/media/pci/bt8xx/bttv-driver.c:308:3: warning: (near initialization for 'bttv_tvnorms[0].cropcap.bounds.height') [-Woverride-init]
-drivers/media/pci/bt8xx/bttv-driver.c: In function 'bttv_remove':
-drivers/media/pci/bt8xx/bttv-driver.c:4467:29: warning: suggest braces around empty body in an 'if' statement [-Wempty-body]
+Hi Christoph,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/pci/bt8xx/bttv-driver.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+On Friday 12 October 2012 14:10:43 Christoph Fritz wrote:
+> On Mon, 2012-07-02 at 14:48 +0200, Laurent Pinchart wrote:
+> > On Thursday 28 June 2012 21:41:16 Chris MacGregor wrote:
+> > > > Where did you get the Aptina board code patch from ?
+> > >  
+> > >  From here: https://github.com/Aptina/BeagleBoard-xM
+> > 
+> > That's definitely outdated, the code is based on a very old OMAP3 ISP
+> > driver that was more or less broken by design. Nowadays anything other
+> > than the mainline version isn't supported by the community.
+> 
+> Is there a current (kernel ~3.6) git tree which shows how to add mt9p031
+> to platform code?
+> 
+> I'm also curious if it's possible to glue mt9p031 to a freescale i.mx35
+> platform. As far as I can see,
+> drivers/media/platform/soc_camera/mx3_camera.c would need v4l2_subdev
+> support?
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index 56c6c77..de6f41f 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -200,7 +200,7 @@ static void flush_request_modules(struct bttv *dev)
- }
- #else
- #define request_modules(dev)
--#define flush_request_modules(dev)
-+#define flush_request_modules(dev) do {} while(0)
- #endif /* CONFIG_MODULES */
- 
- 
-@@ -301,11 +301,10 @@ const struct bttv_tvnorm bttv_tvnorms[] = {
- 			/* totalwidth */ 1135,
- 			/* sqwidth */ 944,
- 			/* vdelay */ 0x20,
--			/* sheight */ 576,
--			/* videostart0 */ 23)
- 		/* bt878 (and bt848?) can capture another
- 		   line below active video. */
--		.cropcap.bounds.height = (576 + 2) + 0x20 - 2,
-+			/* sheight */ (576 + 2) + 0x20 - 2,
-+			/* videostart0 */ 23)
- 	},{
- 		.v4l2_id        = V4L2_STD_NTSC_M | V4L2_STD_NTSC_M_KR,
- 		.name           = "NTSC",
+soc-camera already uses v4l2_subdev, but requires soc-camera specific support 
+in the sensor drivers. I've started working on a fix for that some time ago, 
+some cleanup patches have reached mainline but I haven't been able to complete 
+the work yet due to lack of time.
+
 -- 
-1.7.11.7
+Regards,
+
+Laurent Pinchart
 
