@@ -1,65 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37379 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751165Ab2JZCFA (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:28705 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753024Ab2JLG21 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Oct 2012 22:05:00 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: Re: [PATCH 1/2] media: V4L2: add temporary clock helpers
-Date: Fri, 26 Oct 2012 04:05:50 +0200
-Message-ID: <4703902.UfQghhBIJp@avalon>
-In-Reply-To: <50844465.40007@gmail.com>
-References: <Pine.LNX.4.64.1210192358520.28993@axis700.grange> <Pine.LNX.4.64.1210200007310.28993@axis700.grange> <50844465.40007@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 12 Oct 2012 02:28:27 -0400
+Received: from eusync2.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MBR00J58ONXUE50@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 12 Oct 2012 07:28:45 +0100 (BST)
+Received: from [106.116.147.108] by eusync2.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MBR000PRONCVJ20@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 12 Oct 2012 07:28:25 +0100 (BST)
+Message-id: <5077B887.4080702@samsung.com>
+Date: Fri, 12 Oct 2012 08:28:23 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
+	zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
+	k.debski@samsung.com
+Subject: Re: [PATCHv10 21/26] v4l: vb2-dma-contig: add reference counting for a
+ device from allocator context
+References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
+ <1349880405-26049-22-git-send-email-t.stanislaws@samsung.com>
+ <1557711.XL0Wq5VHNW@avalon>
+In-reply-to: <1557711.XL0Wq5VHNW@avalon>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Laurent,
+Thank your your review.
 
-On Sunday 21 October 2012 20:52:21 Sylwester Nawrocki wrote:
-> On 10/20/2012 12:20 AM, Guennadi Liakhovetski wrote:
-> > Typical video devices like camera sensors require an external clock
-> > source. Many such devices cannot even access their hardware registers
-> > without a running clock. These clock sources should be controlled by their
-> > consumers. This should be performed, using the generic clock framework.
-> > Unfortunately so far only very few systems have been ported to that
-> > framework. This patch adds a set of temporary helpers, mimicking the
-> > generic clock API, to V4L2. Platforms, adopting the clock API, should
-> > switch to using it. Eventually this temporary API should be removed.
+On 10/11/2012 11:49 PM, Laurent Pinchart wrote:
+> Hi Tomasz,
 > 
-> So I gave this patch a try this weekend. I would have a few comments/
-> questions. Thank you for sharing this!
+> Thanks for the patch.
+> 
+> On Wednesday 10 October 2012 16:46:40 Tomasz Stanislawski wrote:
+>> This patch adds taking reference to the device for MMAP buffers.
+>>
+>> Such buffers, may be exported using DMABUF mechanism. If the driver that
+>> created a queue is unloaded then the queue is released, the device might be
+>> released too.  However, buffers cannot be released if they are referenced by
+>> DMABUF descriptor(s). The device pointer kept in a buffer must be valid for
+>> the whole buffer's lifetime. Therefore MMAP buffers should take a reference
+>> to the device to avoid risk of dangling pointers.
+>>
+>> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> But two small comments below.
+> 
+>> ---
+>>  drivers/media/v4l2-core/videobuf2-dma-contig.c |    4 ++++
+>>  1 file changed, 4 insertions(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index b138b5c..2d661fd
+>> 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> @@ -148,6 +148,7 @@ static void vb2_dc_put(void *buf_priv)
+>>  		kfree(buf->sgt_base);
+>>  	}
+>>  	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
+>> +	put_device(buf->dev);
+>>  	kfree(buf);
+>>  }
+>>
+>> @@ -168,6 +169,9 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long
+>> size) return ERR_PTR(-ENOMEM);
+>>  	}
+>>
+>> +	/* prevent the device from release while the buffer is exported */
+> 
+> s/prevent/Prevent/ ?
+> 
 
-I've finally found time to give it a try, and I can report successful results.
+s/release/being released/ ?
 
-My development target here is a Beagleboard-xM with an MT9P031 sensor. With 
-this patch and Sylwester's additional patches [1], I've been able to remove 
-the board code callback from the mt9p031 driver platform data, as well as the 
-last omap3-isp platform callback.
+>> +	get_device(dev);
+>> +
+>>  	buf->dev = dev;
+> 
+> What about just
+> 
+> 	buf->dev = get_device(dev);
+> 
 
-The result is available in the devel/v4l2-clock branch of 
-http://git.linuxtv.org/pinchartl/media.git. Sylwester, that branch includes a 
-minor fix titled "v4l2-clk: Fix clock id matching" for your "v4l2-clk: Rework 
-to accept more than one clock with null clock id" patch. Could you please have 
-a look at it ?
+Right, sorry I missed that from your previous review :).
 
-On the downside, there's now a circular dependency between the mt9p031 and 
-omap3-isp drivers, so neither of them can be removed. That will need to be 
-fixed.
-
-[1] http://git.linuxtv.org/snawrocki/media.git/shortlog/refs/heads/s3c-camif-
-devel
-
--- 
 Regards,
+Tomasz Stanislawski
 
-Laurent Pinchart
+>>  	buf->size = size;
 
