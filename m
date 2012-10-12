@@ -1,52 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [92.246.25.51] ([92.246.25.51]:60061 "EHLO mail.multitrading.dk"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1750845Ab2JGQCp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Oct 2012 12:02:45 -0400
-Date: Sun, 7 Oct 2012 17:56:02 +0200
-From: Jens Bauer <jens-lists@gpio.dk>
-To: linux-media@vger.kernel.org
-Message-ID: <20121007175602425458.288c6720@gpio.dk>
-Subject: Zolid USB DVB-T Tuner Pictures
+Received: from pequod.mess.org ([93.97.41.153]:33957 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757389Ab2JLJfS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Oct 2012 05:35:18 -0400
+Date: Fri, 12 Oct 2012 10:35:16 +0100
+From: Sean Young <sean@mess.org>
+To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] [media] winbond: remove space from driver name
+Message-ID: <20121012093516.GA14311@pequod.mess.org>
+References: <1348821873-32527-1-git-send-email-sean@mess.org>
+ <20121011231636.GA22453@hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20121011231636.GA22453@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi...
+On Fri, Oct 12, 2012 at 01:16:36AM +0200, David Härdeman wrote:
+> On Fri, Sep 28, 2012 at 09:44:33AM +0100, Sean Young wrote:
+> >[root@pequod ~]# udevadm test /sys/class/rc/rc0
+> >-snip-
+> >ACTION=add
+> >DEVPATH=/devices/pnp0/00:04/rc/rc0
+> >DRV_NAME=Winbond CIR
+> >NAME=rc-rc6-mce
+> >SUBSYSTEM=rc
+> >UDEV_LOG=6
+> >USEC_INITIALIZED=88135858
+> >run: '/usr/bin/ir-keytable -a /etc/rc_maps.cfg -s rc0'
+> >
+> >Having a space makes it impossible to match in /etc/rc_maps.cfg.
+> >
+> >Signed-off-by: Sean Young <sean@mess.org>
+> >---
+> > drivers/media/rc/winbond-cir.c | 2 +-
+> > 1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> >diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+> >index 30ae1f2..7c9b5f3 100644
+> >--- a/drivers/media/rc/winbond-cir.c
+> >+++ b/drivers/media/rc/winbond-cir.c
+> >@@ -184,7 +184,7 @@ enum wbcir_txstate {
+> > };
+> > 
+> > /* Misc */
+> >-#define WBCIR_NAME	"Winbond CIR"
+> >+#define WBCIR_NAME	"winbond-cir"
+> 
+> I'm not opposed to the change per se, but WBCIR_NAME is used for
+> input_name as well and a quick "lsinput" on my laptop shows that all
+> evdev devices (18 in total) have properly capitalized names.
 
-I saw on this page...
-<http://linuxtv.org/wiki/index.php/DVB-T_USB_Devices>
-...That I can contribute to the project by writing to this list.
-
-Now, I don't have much knowledge about USB; I don't even have Linux (but I probably will within a few months).
-I saw that some of the mentioned devices on the above page, are missing a picture.
-So what I can do, is that I have a Zolid USB DVB-T Tuner "bought from Aldi - like they all are".
-I've taken some pictures, cut them in Photoshop, scaled, saved as png and finally optimized them using pngout.
-Sizes are: Approx. 2100x500 for the originals, 1024x500..600 for the large ones, 512x190..300 for medium-size, 128x51..80 for the smaller ones.
-(Whoa, 5 hours work for 5 pictures!)
-
-Note: This is only one device, it seems a little difficult to figure out which version it is, but as I have the original box and a USB-Probe dump, it might be possible to identify it fully.
-
-What I can say, is that it uses the IT9135 chip.
-VID/PID 0x048D/00x9135.
-Descriptor Version Number is 0x0200.
-Device MaxPacketSize is 64 (see below)
-Device Version Number is 0x0200
-It has two configurations, each configuration has 4 interfaces.
-The first configuration's interfaces have a max packet size of 512
-The second configuration's interfaces have a max packet size of 64.
-Apart from that, the configurations match eachother.
-
--So my guess is that this is a v2 device.
-
-When looking at the above mentioned page, and I search the table for 'Zolid', I find an entry saying "ITE Inc. Zolid Mini DVB-T Stick Version 2".
-My box says "Mini USB DVB-T Tuner" and the markings on the device just says "SMART GROUP" "Made in Taiwan", "www.unisupport.net", "PS0712" and "05/2011".
-(In fact, I bought exactly this device, because I believe this is the one that's listed here!)
-
-...Now...Who wants those pictures ? :)
+You're right, I had missed that. I'll post a patch to correct it.
 
 
-Love
-Jens
+Sean
