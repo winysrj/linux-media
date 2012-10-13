@@ -1,60 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41134 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752653Ab2JVKib (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:51895 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752882Ab2JMLXI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Oct 2012 06:38:31 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: media-workshop@linuxtv.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [media-workshop] Tentative Agenda for the November workshop
-Date: Mon, 22 Oct 2012 12:39:22 +0200
-Message-ID: <10009130.xLxCsb7QR7@avalon>
-In-Reply-To: <201210221035.56897.hverkuil@xs4all.nl>
-References: <201210221035.56897.hverkuil@xs4all.nl>
+	Sat, 13 Oct 2012 07:23:08 -0400
+Received: by mail-pa0-f46.google.com with SMTP id hz1so3556620pad.19
+        for <linux-media@vger.kernel.org>; Sat, 13 Oct 2012 04:23:07 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, s.nawrocki@samsung.com,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 1/1] [media] s5p-mfc: Fix compilation warning
+Date: Sat, 13 Oct 2012 16:48:34 +0530
+Message-Id: <1350127114-5170-1-git-send-email-sachin.kamat@linaro.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Added missing const qualifier.
+Without this patch compiler gives the following warning:
 
-On Monday 22 October 2012 10:35:56 Hans Verkuil wrote:
-> Hi all,
-> 
-> This is the tentative agenda for the media workshop on November 8, 2012.
-> If you have additional things that you want to discuss, or something is
-> wrong or incomplete in this list, please let me know so I can update the
-> list.
+drivers/media/platform/s5p-mfc/s5p_mfc_enc.c:1576:2: warning:
+initialization from incompatible pointer type [enabled by default]
+drivers/media/platform/s5p-mfc/s5p_mfc_enc.c:1576:2: warning:
+(near initialization for ‘s5p_mfc_enc_ioctl_ops.vidioc_subscribe_event’)
+[enabled by default]
 
-Thank you Hans for taking care of the agenda.
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> - Explain current merging process (Mauro)
-> - Open floor for discussions on how to improve it (Mauro)
-> - Write down minimum requirements for new V4L2 (and DVB?) drivers, both for
->   staging and mainline acceptance: which frameworks to use, v4l2-compliance,
-> etc. (Hans Verkuil)
-> - V4L2 ambiguities (Hans Verkuil)
-> - TSMux device (a mux rather than a demux): Alain Volmat
-> - dmabuf status, esp. with regards to being able to test (Mauro/Samsung)
-> - Device tree support (Guennadi, not known yet whether this topic is needed)
-> - Creating/selecting contexts for hardware that supports this (Samsung,
-> only if time is available)
-
-This last topic will likely require lots of brainstorming, and thus time. If 
-the schedule permits, would anyone be interested in meeting earlier during the 
-week already ?
-
-> For those whose name is behind a topic: please prepare something before the
-> meeting.
-> 
-> We have currently 17 or 18 attendees of a maximum of 25, so there is room
-> for a few more people.
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 2af6d52..5c1d727 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -1542,7 +1542,7 @@ int vidioc_encoder_cmd(struct file *file, void *priv,
+ }
+ 
+ static int vidioc_subscribe_event(struct v4l2_fh *fh,
+-					struct v4l2_event_subscription *sub)
++				  const struct v4l2_event_subscription *sub)
+ {
+ 	switch (sub->type) {
+ 	case V4L2_EVENT_EOS:
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.4.1
 
