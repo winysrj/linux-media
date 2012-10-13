@@ -1,64 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxout-07.mxes.net ([216.86.168.182]:16662 "EHLO
-	mxout-07.mxes.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751880Ab2JOSyE (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:53925 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752962Ab2JMLpr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Oct 2012 14:54:04 -0400
-Message-ID: <507C5BC4.7060700@cybermato.com>
-Date: Mon, 15 Oct 2012 11:53:56 -0700
-From: Chris MacGregor <chris@cybermato.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-media@vger.kernel.org, hverkuil@xs4all.nl, remi@remlab.net,
-	daniel-gl@gmx.net, sylwester.nawrocki@gmail.com
-Subject: Re: [RFC] Timestamps and V4L2
-References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <20121015160549.GE21261@valkosipuli.retiisi.org.uk> <2316067.OFTCziv4Z5@avalon>
-In-Reply-To: <2316067.OFTCziv4Z5@avalon>
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sat, 13 Oct 2012 07:45:47 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr4so3654663pbb.19
+        for <linux-media@vger.kernel.org>; Sat, 13 Oct 2012 04:45:47 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 1/1] [media] s5p-fimc: Fix potential NULL pointer dereference
+Date: Sat, 13 Oct 2012 17:11:19 +0530
+Message-Id: <1350128479-9619-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, all.
+'fimc' was being dereferenced before the NULL check.
+Moved it to after the check.
 
-On 10/15/2012 11:45 AM, Laurent Pinchart wrote:
-> Hi Sakari,
->
-> On Monday 15 October 2012 19:05:49 Sakari Ailus wrote:
->> Hi all,
->>
->> As a summar from the discussion, I think we have reached the following
->> conclusion. Please say if you agree or disagree with what's below. :-)
->>
->> - The drivers will be moved to use monotonic timestamps for video buffers.
->> - The user space will learn about the type of the timestamp through buffer
->> flags.
->> - The timestamp source may be made selectable in the future, but buffer
->> flags won't be the means for this, primarily since they're not available on
->> subdevs. Possible way to do this include a new V4L2 control or a new IOCTL.
-> That's my understanding as well. For the concept,
->
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/s5p-fimc/fimc-mdevice.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-I wasn't able to participate in the discussion that led to this, but I'd 
-like to suggest and request now that an explicit requirement (of 
-whatever scheme is selected) be that a userspace app have a reasonable 
-and straightforward way to translate the timestamps to real wall-clock 
-time, ideally with enough precision to allow synchronization of cameras 
-across multiple computers.
+diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+index 80ada58..61fab00 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
++++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+@@ -343,7 +343,7 @@ static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
+ static int fimc_register_callback(struct device *dev, void *p)
+ {
+ 	struct fimc_dev *fimc = dev_get_drvdata(dev);
+-	struct v4l2_subdev *sd = &fimc->vid_cap.subdev;
++	struct v4l2_subdev *sd;
+ 	struct fimc_md *fmd = p;
+ 	int ret = 0;
+ 
+@@ -353,6 +353,7 @@ static int fimc_register_callback(struct device *dev, void *p)
+ 	if (fimc->pdev->id < 0 || fimc->pdev->id >= FIMC_MAX_DEVS)
+ 		return 0;
+ 
++	sd = &fimc->vid_cap.subdev;
+ 	fimc->pipeline_ops = &fimc_pipeline_ops;
+ 	fmd->fimc[fimc->pdev->id] = fimc;
+ 	sd->grp_id = FIMC_GROUP_ID;
+@@ -369,7 +370,7 @@ static int fimc_register_callback(struct device *dev, void *p)
+ static int fimc_lite_register_callback(struct device *dev, void *p)
+ {
+ 	struct fimc_lite *fimc = dev_get_drvdata(dev);
+-	struct v4l2_subdev *sd = &fimc->subdev;
++	struct v4l2_subdev *sd;
+ 	struct fimc_md *fmd = p;
+ 	int ret;
+ 
+@@ -379,6 +380,7 @@ static int fimc_lite_register_callback(struct device *dev, void *p)
+ 	if (fimc->index >= FIMC_LITE_MAX_DEVS)
+ 		return 0;
+ 
++	sd = &fimc->subdev;
+ 	fimc->pipeline_ops = &fimc_pipeline_ops;
+ 	fmd->fimc_lite[fimc->index] = fimc;
+ 	sd->grp_id = FLITE_GROUP_ID;
+-- 
+1.7.4.1
 
-In the systems I work on, for instance, we are recording real-world 
-biological processes, some of which vary based on the time of day, and 
-it is important to know when a given frame was captured so that 
-information can be stored with the raw frame and the data derived from 
-it. For many such purposes, an accuracy measured in multiple seconds (or 
-even minutes) is fine.
-
-However, when we are using multiple cameras on multiple computers (e.g., 
-two or more BeagleBoard xM's, each with a camera connected), we would 
-want to synchronize with an accuracy of less than 1 frame time - e.g. 10 
-ms or less.
-
-Thanks very much,
-Chris MacGregor
