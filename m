@@ -1,44 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:45779 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756539Ab2JQLQw (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:39445 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754011Ab2JMTSD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 07:16:52 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rr4so7059174pbb.19
-        for <linux-media@vger.kernel.org>; Wed, 17 Oct 2012 04:16:51 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 8/8] [media] s5p-fimc: Make 'fimc_pipeline_s_stream' function static
-Date: Wed, 17 Oct 2012 16:41:51 +0530
-Message-Id: <1350472311-9748-8-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org>
-References: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org>
+	Sat, 13 Oct 2012 15:18:03 -0400
+Received: by mail-we0-f174.google.com with SMTP id t9so2299554wey.19
+        for <linux-media@vger.kernel.org>; Sat, 13 Oct 2012 12:18:01 -0700 (PDT)
+Subject: Re: HD-PVR fails consistently on Linux, works on Windows
+Mime-Version: 1.0 (Apple Message framework v1283)
+Content-Type: text/plain; charset=us-ascii
+From: =?iso-8859-1?Q?David_R=F6thlisberger?= <david@rothlis.net>
+In-Reply-To: <20121013112800.2d7a1a42@earthlink.net>
+Date: Sat, 13 Oct 2012 20:17:59 +0100
+Cc: linux-media@vger.kernel.org, will@williammanley.net
+Content-Transfer-Encoding: 7bit
+Message-Id: <F8199D50-FE9B-4F1E-B04A-1B7E8D216A5D@rothlis.net>
+References: <5063BD18.4060309@austin.rr.com> <20121013112800.2d7a1a42@earthlink.net>
+To: Jonathan <jonathan.625266@earthlink.net>,
+	Keith Pyle <kpyle@austin.rr.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes the following sparse warning:
-drivers/media/platform/s5p-fimc/fimc-mdevice.c:216:5: warning:
-symbol 'fimc_pipeline_s_stream' was not declared. Should it be static?
+On Wed, 26 Sep 2012 21:42:32 -0500
+Keith Pyle <kpyle@austin.rr.com> wrote:
+> I recently purchased a Hauppauge HD-PVR (the 1212 version, label on 
+> bottom 49001LF, Rev F2).  I have consistent capture failures on Linux 
+> where data from the device simply stops, generally within a few minutes 
+> of starting a capture.
+> 
+> [...]
+> 
+> Sep 21 17:01:01 mythbe kernel: [535043.703947] hdpvr 9-1:1.0: firmware 
+> version 0x15 dated Jun 17 2010 09:26:53
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+When we contacted Hauppauge regarding the stability issue, they
+recommended upgrading to the latest firmware dated Mar 26 2012.
+We *think* this has improved stability, but it certainly hasn't
+fixed it completely.
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index e1f7cbe..0cd05b2 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -213,7 +213,7 @@ static int fimc_pipeline_close(struct fimc_pipeline *p)
-  * @pipeline: video pipeline structure
-  * @on: passed as the s_stream call argument
-  */
--int fimc_pipeline_s_stream(struct fimc_pipeline *p, bool on)
-+static int fimc_pipeline_s_stream(struct fimc_pipeline *p, bool on)
- {
- 	int i, ret;
- 
--- 
-1.7.4.1
+Upgrading the firmware requires a Windows PC -- see
+http://www.hauppauge.com/site/support/support_hdpvr.html
+
+
+On 13 Oct 2012, at 16:28, Jonathan wrote:
+
+> It may be a coincidence but I since I started using irqbalance (
+> https://code.google.com/p/irqbalance/ ) my HD-PVR has been completely
+> stable. Before that I was experiencing daily lockups.
+
+Interesting. You definitely didn't upgrade the firmware around the same
+time?
+
+We think the stability is worse when the Linux PC is heavily loaded: We
+do real-time image processing on the video stream from the HD PVR, so
+the CPUs are maxed out, and we get frequent lock-ups. We also think the
+lock-ups are more frequent when we have several HD PVRs connected to the
+same PC, all running at the same time. I'll have to try this irqbalance.
+
+--Dave.
 
