@@ -1,89 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from va3ehsobe004.messaging.microsoft.com ([216.32.180.14]:52322
-	"EHLO va3outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751219Ab2JYW0G (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:58402 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754057Ab2JMUId (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Oct 2012 18:26:06 -0400
-Message-ID: <5089BC7A.80103@convergeddevices.net>
-Date: Thu, 25 Oct 2012 15:26:02 -0700
-From: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
+	Sat, 13 Oct 2012 16:08:33 -0400
+Received: by mail-ee0-f46.google.com with SMTP id b15so2414842eek.19
+        for <linux-media@vger.kernel.org>; Sat, 13 Oct 2012 13:08:32 -0700 (PDT)
+Message-ID: <5079CA3D.2030906@gmail.com>
+Date: Sat, 13 Oct 2012 22:08:29 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-CC: <hverkuil@xs4all.nl>, <mchehab@redhat.com>,
-	<sameo@linux.intel.com>, <perex@perex.cz>, <tiwai@suse.de>,
-	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v3 2/6] Add the main bulk of core driver for SI476x code
-References: <1351017872-32488-1-git-send-email-andrey.smirnov@convergeddevices.net> <1351017872-32488-3-git-send-email-andrey.smirnov@convergeddevices.net> <20121025194524.GV18814@opensource.wolfsonmicro.com>
-In-Reply-To: <20121025194524.GV18814@opensource.wolfsonmicro.com>
-Content-Type: text/plain; charset="ISO-8859-1"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [RFC] Processing context in the V4L2 subdev and V4L2 controls
+ API ?
+References: <50588E0E.9000307@samsung.com> <201209211426.17235.hverkuil@xs4all.nl>
+In-Reply-To: <201209211426.17235.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/25/2012 12:45 PM, Mark Brown wrote:
-> On Tue, Oct 23, 2012 at 11:44:28AM -0700, Andrey Smirnov wrote:
->
->> +	core->regmap = devm_regmap_init_si476x(core);
->> +	if (IS_ERR(core->regmap)) {
-> This really makes little sense to me, why are you doing this?  Does the
-> device *really* layer a byte stream on top of I2C for sending messages
-> that look like marshalled register reads and writes?
-The SI476x chips has a concept of a "property". Each property having
-16-bit address and 16-bit value. At least a portion of a chip
-configuration is done by modifying those properties. In order to
-manipulate those properties user is expected to issue what is called a
-"command". For manipulating "properties" there are two "commands":
-- SET_PROPERTY which is I2C write of 6 bytes of the following layout:
-    | 0x13 | 0x00 | Address High Byte | Address Low Byte | Property Data
-High Byte | Property Data Low Byte |
-    After the command is finished being executed the 1 byte read would
-contain the status byte
+Hi Hans,
 
-    followed by 1 byte read which contain status byte
-- GET_PROPERTY which is I2C write of 4 bytes of the following layout:
-    | 0x13 | 0x00 | Address High Byte | Address Low Byte |
-    After the command is finished being executed the 4 byte read would
-have the following layout:
-    | Status Byte | Reserved Byte | Property Value High Byte | Property
-Value Low Byte |
+On 09/21/2012 02:26 PM, Hans Verkuil wrote:
+> On Tue September 18 2012 17:06:54 Sylwester Nawrocki wrote:
+>> Hi All,
+>>
+>> I'm trying to fulfil following requirements with V4L2 API that are specific
+>> to most of Samsung camera sensors with embedded SoC ISP and also for local
+>> SoC camera ISPs:
+>>
+>>   - separate pixel format and pixel resolution needs to be configured
+>>     in a device for camera preview and capture;
+>>
+>>   - there is a need to set capture or preview mode in a device explicitly
+>>     as it makes various adjustments (in firmware) in each operation mode
+>>     and controls external devices accordingly (e.g. camera Flash);
+>>
+>>   - some devices have more than two use case specific contexts that a user
+>>     needs to choose from, e.g. video preview, video capture, still preview,
+>>     still capture; for each of these modes there are separate settings,
+>>     especially pixel resolution and others corresponding to existing v4l2
+>>     controls;
+>>
+>>   - some devices can have two processing contexts enabled simultaneously,
+>>     e.g. a sensor emitting YUYV and JPEG streams simultaneously (please see
+>>     discussion [1]).
+>>
+>> This makes me considering making the v4l2 subdev (and maybe v4l2 controls)
+>> API processing (capture) context aware.
+>>
+>> If I remember correctly introducing processing context, as the per file
+>> handle device contexts in case of mem-to-mem devices was considered bad
+>> idea in past discussions.
+> 
+> I don't remember this. Controls can already be per-filehandle for m2m devices,
+> so for m2m devices I see no problem. For other devices it is a different matter,
+> though. The current V4L2 API does not allow per-filehandle contexts there.
 
-The chip does not operate continuously in the AM/FM frequency range,
-instead the user is expected to power-down/power-up the chip in a
-certain "mode" which in my case can be either AM or FM tuner. There are
-two ways of doing that one is to send a power down command to the
-device, the second one is to toggle reset line of the chip. Both methods
-will reset the values of the aforementioned "properties". Because V4L2
-user-space interface presents a tuner as the one continuously operating
-in the whole AM/FM range it is necessary for me to do those AM/FM
-switches transparently when handling tuning or seeking requests from the
-user. That means that I need to cache the values of the properties I
-care about in the driver and restore them when user switches to the
-mode(for example when AM->FM->AM transition happens)
+OK, if nothing else the per file handle contexts are painful in case of DMABUF
+sharing between multiple processes. I remember Laurent mentioning some
+inconveniences with omap3isp which uses per-file-handle contexts at the capture
+interface and a need to use VIDIOC_PREPARE_BUF/VIDIOC_CREATE_BUFS there instead.
 
-The other quirk of that chip is that some properties are only accessible
-in certain modes(for example it is impossible to configure RDS interrupt
-sources, which is FM specific, in AM mode), but some of the controls I
-expose to user-land change the values of the properties and since AM/FM
-switches happen transparently to the user in the situation when FM
-specific property is changed while tuner is in AM mode, the driver has
-to cache the value and write it when the switch to FM would take place.
+>> But this was more about v4ll2 video nodes.
+>>
+>> And I was considering adding context only to v4l2 subdev API, and possibly
+>> to the (extended) control API. The idea is to extend the subdev (and
+>> controls ?) ioctls so it is possible to preconfigure sets of parameters
+>> on subdevs, while V4L2 video node parameters would be switched "manually"
+>> by applications to match a selected subdevs contest. There would also be
+>> needed an API to select specific context (e.g. a control), or maybe
+>> multiple contexts like in case of a sensor from discussion [1].
+> 
+> We discussed the context idea before. The problem is how to implement it
+> in a way that still keeps things from becoming overly complex.
+> 
+> What I do not want to see is an API with large structs that contain the whole
+> context. That's a nightmare to maintain in the long run. So you want to be
+> able to use the existing API as much as possible and build up the context
+> bit by bit.
+> 
+> I don't think using a control to select contexts is a good idea. I think this
+> warrants one or more new ioctls.
 
-Also due to the way the driver uses the chip it is only powered up when
-the corresponding file in devfs(e.g. /dev/radio0) is opened at least by
-one user which means that unless there is a user who opened the file all
-the SET/GET_PROPERTY commands sent to it will be lost. The codec driver
-for that chip does not have any say in the power management policy(while
-all the audio configuration is done via "properties") if the chip is not
-powered up the driver has to cache the configuration values it has so
-that they can be applied later.
+OK, it probably needs to be looked at from a wider perspective.
 
-So, since I have to implement a caching functionality in the driver, in
-order to avoid reinventing the wheel I opted for using 'regmap' API for
-this.
-Of course, It is possible that I misunderstood the purpose and
-capabilities of the 'regmap' framework, which would make my code look
-very silly indeed. If that is the case I'll just re-implement it using
-some sort of ad-hoc version of caching.
+> What contexts would you need? What context operations do you need?
 
+In our case these are mainly multiple set of parameters configuring a camera 
+ISP. So basically all subdev ioctls are involved here - format, selection, 
+frame interval. In simplest form the context could contain only image format 
+and a specific name tag assigned to it. The problem is mainly an ISP which 
+involves capture "scenarios" coded in firmware. It might sound rather bad, 
+but it is similar to the integrated sensor and ISPs, where you can set e.g. 
+different resolution for camera preview and still capture and switch between 
+them through some register setting.
 
+So when there are multiple subdevs in the pipeline some of them could be just 
+reconfigured as usual, but the ISP subdev needs to have it's context configured 
+and switched explicitly. I can imagine one would want a context spanning among
+multiple subdevs.
 
+> I would probably define a default or baseline context that all drivers have,
+> then create a CLONE_CONTEXT ioctl (cloning an existing context into a new one)
+> and an EDIT_CONTEXT ioctl (to edit an existing context) and any subsequent
+> ioctls will apply to that context. After the FINISH_CONTEXT ioctl the context
+> is finalized and any subsequent ioctls will apply again to the baseline context.
+> With APPLY_CONTEXT you apply a context to the baseline context and activate it.
+> 
+> Whether this context information is stored in the file handle (making it fh
+> specific) or globally is an interesting question to which I don't have an
+> answer.
+> 
+> This is just a quick brainstorm, but I think something like this might be
+> feasible.
+
+It sounds like it _might_ work. I'm only concerned about using something
+like this with pipelines containing multiple subdevs. Let's say 4..5 subdevs
+where each one needs to have proper context activated in order for the whole
+pipeline to have consistent configuration. For /dev/video your approach makes 
+a lot of sense.
+
+I don't think storing the context in file handle would be sensible. These
+would be device contexts, would be cached in device's firmware or memory area
+shared between the device and a host CPU. So this isn't something that one
+can clone freely, for instance one context would have different set of (v4l2) 
+controls than the other. We would need to enumerate existing contexts and 
+be able to edit one when the other is e.g. in the streaming state.
+
+APPLY_CONTEXT would need to take a parameter saying which context is to be
+applied/selected. Similar with EDIT_CONTEXT. Or was your idea completely
+different ?
+
+>> I've seen various hacks in some v4l2 drivers trying to fulfil above
+>> requirements, e.g. abusing struct v4l2_mbus_framefmt::colorspace field
+>> to select between capture/preview in a device or using 32-bit integer
+>> control where upper 16-bits are used for pixel width and lower 16 for
+>> pixel height.
+> 
+> Where is that? And what do you mean with pixel width and height? It this
+> used to define a pixel aspect ratio? Is this really related to context?
+
+Sorry for my bad wording, I should have said "image width and image height
+in pixels". The above examples can be found in various drivers in Android
+kernels [1]. One example is function s5c73m3_s_fmt() at [2] (a copy of
+Samsung Galaxy S III GT-I9300 source code available at [3]).
+ 
+[1] https://android.googlesource.com/
+[2] https://github.com/snawrocki/linux_galaxy/blob/master/drivers/media/video/s5c73m3.c
+[3] http://opensource.samsung.com
+
+--
+
+Regards,
+Sylwester
