@@ -1,90 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog120.obsmtp.com ([207.126.144.149]:54352 "EHLO
-	eu1sys200aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751863Ab2JVK6K convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Oct 2012 06:58:10 -0400
-From: Alain VOLMAT <alain.volmat@st.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>
-Date: Mon, 22 Oct 2012 12:57:42 +0200
-Subject: RE: [media-workshop] Tentative Agenda for the November workshop
-Message-ID: <E27519AE45311C49887BE8C438E68FAA01012DA81D4A@SAFEX1MAIL1.st.com>
-References: <201210221035.56897.hverkuil@xs4all.nl>
-	<10009130.xLxCsb7QR7@avalon> <5085258E.6090803@samsung.com>
-In-Reply-To: <5085258E.6090803@samsung.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from cpsmtpb-ews01.kpnxchange.com ([213.75.39.4]:2324 "EHLO
+	cpsmtpb-ews01.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752412Ab2JNTzY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Oct 2012 15:55:24 -0400
+Message-ID: <1350244211.1516.20.camel@x61.thuisdomein>
+Subject: [PATCH] staging: lirc_serial: silence GCC warning
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Date: Sun, 14 Oct 2012 21:50:11 +0200
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Building lirc_serial.o triggers this GCC warning:
+    drivers/staging/media/lirc/lirc_serial.c: In function '__check_sense':
+    drivers/staging/media/lirc/lirc_serial.c:1301:1: warning: return from incompatible pointer type [enabled by default]
 
-Could someone summaries very rapidly what is this create/select context stuff ? For now I do not plan to be in Barcelona more than 1 day but at the same time don't want to miss something that might be useful for us.
+This can be trivially fixed by changing the 'sense' parameter from bool
+to int. But, to be safe, we also need to make sure 'sense' will only be
+-1, 0, or 1. There's no need to document the new values that are now
+allowed for the 'sense' parameter, since they're basically useless.
 
-Regards,
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+---
+0) This warning popped up when building v3.6.2 using Fedora 17's default
+config (in which, for some reason, the LIRC drivers were enabled going
+from v3.5.y to v3.6.y).
 
-Alain
+1) Compile tested only.
 
-> -----Original Message-----
-> From: media-workshop-bounces@linuxtv.org [mailto:media-workshop-
-> bounces@linuxtv.org] On Behalf Of Sylwester Nawrocki
-> Sent: Monday, October 22, 2012 12:53 PM
-> To: Laurent Pinchart
-> Cc: media-workshop@linuxtv.org; linux-media
-> Subject: Re: [media-workshop] Tentative Agenda for the November
-> workshop
-> 
-> Hi Laurent,
-> 
-> On 10/22/2012 12:39 PM, Laurent Pinchart wrote:
-> > Hello,
-> >
-> > On Monday 22 October 2012 10:35:56 Hans Verkuil wrote:
-> >> Hi all,
-> >>
-> >> This is the tentative agenda for the media workshop on November 8,
-> 2012.
-> >> If you have additional things that you want to discuss, or something
-> >> is wrong or incomplete in this list, please let me know so I can
-> >> update the list.
-> >
-> > Thank you Hans for taking care of the agenda.
-> >
-> >> - Explain current merging process (Mauro)
-> >> - Open floor for discussions on how to improve it (Mauro)
-> >> - Write down minimum requirements for new V4L2 (and DVB?) drivers,
-> both for
-> >>   staging and mainline acceptance: which frameworks to use,
-> >> v4l2-compliance, etc. (Hans Verkuil)
-> >> - V4L2 ambiguities (Hans Verkuil)
-> >> - TSMux device (a mux rather than a demux): Alain Volmat
-> >> - dmabuf status, esp. with regards to being able to test
-> >> (Mauro/Samsung)
-> >> - Device tree support (Guennadi, not known yet whether this topic is
-> >> needed)
-> >> - Creating/selecting contexts for hardware that supports this
-> >> (Samsung, only if time is available)
-> >
-> > This last topic will likely require lots of brainstorming, and thus
-> > time. If the schedule permits, would anyone be interested in meeting
-> > earlier during the week already ?
-> 
-> My intention was to also possibly discuss it with others before the actual
-> media workshop. Would be nice if we could have arranged such a meeting.
-> I'm not sure about the room conditions though. It's probably not a big issue,
-> unless there is really many people interested in that topic.
-> 
-> --
-> Regards,
-> Sylwester
-> 
-> 
-> _______________________________________________
-> media-workshop mailing list
-> media-workshop@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/media-workshop
+ drivers/staging/media/lirc/lirc_serial.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
+index 97ef670..08cfaf6 100644
+--- a/drivers/staging/media/lirc/lirc_serial.c
++++ b/drivers/staging/media/lirc/lirc_serial.c
+@@ -1239,6 +1239,10 @@ static int __init lirc_serial_init_module(void)
+ 		}
+ 	}
+ 
++	/* make sure sense is either -1, 0, or 1 */
++	if (sense != -1)
++		sense = !!sense;
++
+ 	result = lirc_serial_init();
+ 	if (result)
+ 		return result;
+@@ -1298,7 +1302,7 @@ MODULE_PARM_DESC(irq, "Interrupt (4 or 3)");
+ module_param(share_irq, bool, S_IRUGO);
+ MODULE_PARM_DESC(share_irq, "Share interrupts (0 = off, 1 = on)");
+ 
+-module_param(sense, bool, S_IRUGO);
++module_param(sense, int, S_IRUGO);
+ MODULE_PARM_DESC(sense, "Override autodetection of IR receiver circuit"
+ 		 " (0 = active high, 1 = active low )");
+ 
+-- 
+1.7.11.7
+
