@@ -1,185 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1836 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750849Ab2JOIUM (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54287 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752344Ab2JNKbx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Oct 2012 04:20:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [RFC] Processing context in the V4L2 subdev and V4L2 controls API ?
-Date: Mon, 15 Oct 2012 10:20:00 +0200
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans de Goede <hdegoede@redhat.com>,
-	"Seung-Woo Kim" <sw0312.kim@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-References: <50588E0E.9000307@samsung.com> <201209211426.17235.hverkuil@xs4all.nl> <5079CA3D.2030906@gmail.com>
-In-Reply-To: <5079CA3D.2030906@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210151020.00790.hverkuil@xs4all.nl>
+	Sun, 14 Oct 2012 06:31:53 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, tony@atomide.com,
+	khilman@deeprootsystems.com
+Subject: [PATCH v5 2/3] omap3isp: Add PHY routing configuration
+Date: Sun, 14 Oct 2012 13:31:49 +0300
+Message-Id: <1350210710-15122-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20121014103122.GA21261@valkosipuli.retiisi.org.uk>
+References: <20121014103122.GA21261@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat October 13 2012 22:08:29 Sylwester Nawrocki wrote:
-> Hi Hans,
-> 
-> On 09/21/2012 02:26 PM, Hans Verkuil wrote:
-> > On Tue September 18 2012 17:06:54 Sylwester Nawrocki wrote:
-> >> Hi All,
-> >>
-> >> I'm trying to fulfil following requirements with V4L2 API that are specific
-> >> to most of Samsung camera sensors with embedded SoC ISP and also for local
-> >> SoC camera ISPs:
-> >>
-> >>   - separate pixel format and pixel resolution needs to be configured
-> >>     in a device for camera preview and capture;
-> >>
-> >>   - there is a need to set capture or preview mode in a device explicitly
-> >>     as it makes various adjustments (in firmware) in each operation mode
-> >>     and controls external devices accordingly (e.g. camera Flash);
-> >>
-> >>   - some devices have more than two use case specific contexts that a user
-> >>     needs to choose from, e.g. video preview, video capture, still preview,
-> >>     still capture; for each of these modes there are separate settings,
-> >>     especially pixel resolution and others corresponding to existing v4l2
-> >>     controls;
-> >>
-> >>   - some devices can have two processing contexts enabled simultaneously,
-> >>     e.g. a sensor emitting YUYV and JPEG streams simultaneously (please see
-> >>     discussion [1]).
-> >>
-> >> This makes me considering making the v4l2 subdev (and maybe v4l2 controls)
-> >> API processing (capture) context aware.
-> >>
-> >> If I remember correctly introducing processing context, as the per file
-> >> handle device contexts in case of mem-to-mem devices was considered bad
-> >> idea in past discussions.
-> > 
-> > I don't remember this. Controls can already be per-filehandle for m2m devices,
-> > so for m2m devices I see no problem. For other devices it is a different matter,
-> > though. The current V4L2 API does not allow per-filehandle contexts there.
-> 
-> OK, if nothing else the per file handle contexts are painful in case of DMABUF
-> sharing between multiple processes. I remember Laurent mentioning some
-> inconveniences with omap3isp which uses per-file-handle contexts at the capture
-> interface and a need to use VIDIOC_PREPARE_BUF/VIDIOC_CREATE_BUFS there instead.
-> 
-> >> But this was more about v4ll2 video nodes.
-> >>
-> >> And I was considering adding context only to v4l2 subdev API, and possibly
-> >> to the (extended) control API. The idea is to extend the subdev (and
-> >> controls ?) ioctls so it is possible to preconfigure sets of parameters
-> >> on subdevs, while V4L2 video node parameters would be switched "manually"
-> >> by applications to match a selected subdevs contest. There would also be
-> >> needed an API to select specific context (e.g. a control), or maybe
-> >> multiple contexts like in case of a sensor from discussion [1].
-> > 
-> > We discussed the context idea before. The problem is how to implement it
-> > in a way that still keeps things from becoming overly complex.
-> > 
-> > What I do not want to see is an API with large structs that contain the whole
-> > context. That's a nightmare to maintain in the long run. So you want to be
-> > able to use the existing API as much as possible and build up the context
-> > bit by bit.
-> > 
-> > I don't think using a control to select contexts is a good idea. I think this
-> > warrants one or more new ioctls.
-> 
-> OK, it probably needs to be looked at from a wider perspective.
-> 
-> > What contexts would you need? What context operations do you need?
-> 
-> In our case these are mainly multiple set of parameters configuring a camera 
-> ISP. So basically all subdev ioctls are involved here - format, selection, 
-> frame interval. In simplest form the context could contain only image format 
-> and a specific name tag assigned to it. The problem is mainly an ISP which 
-> involves capture "scenarios" coded in firmware. It might sound rather bad, 
-> but it is similar to the integrated sensor and ISPs, where you can set e.g. 
-> different resolution for camera preview and still capture and switch between 
-> them through some register setting.
-> 
-> So when there are multiple subdevs in the pipeline some of them could be just 
-> reconfigured as usual, but the ISP subdev needs to have it's context configured 
-> and switched explicitly. I can imagine one would want a context spanning among
-> multiple subdevs.
+Add PHY routing configuration for both 3430 and 3630. Also add register bit
+definitions of CSIRXFE and CAMERA_PHY_CTRL registers on OMAP 3430 and 3630,
+respectively.
 
-Interesting question: should contexts reflect the hardware capabilities, or
-should we make this generic, e.g. they can also be used if the hardware doesn't
-support this by just setting all the parameters associated with a context manually
-when switching context?
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/platform/omap3isp/ispcsiphy.c |   89 +++++++++++++++++++++++++++
+ drivers/media/platform/omap3isp/ispreg.h    |   22 +++++++
+ 2 files changed, 111 insertions(+), 0 deletions(-)
 
-> > I would probably define a default or baseline context that all drivers have,
-> > then create a CLONE_CONTEXT ioctl (cloning an existing context into a new one)
-> > and an EDIT_CONTEXT ioctl (to edit an existing context) and any subsequent
-> > ioctls will apply to that context. After the FINISH_CONTEXT ioctl the context
-> > is finalized and any subsequent ioctls will apply again to the baseline context.
-> > With APPLY_CONTEXT you apply a context to the baseline context and activate it.
-> > 
-> > Whether this context information is stored in the file handle (making it fh
-> > specific) or globally is an interesting question to which I don't have an
-> > answer.
-> > 
-> > This is just a quick brainstorm, but I think something like this might be
-> > feasible.
-> 
-> It sounds like it _might_ work. I'm only concerned about using something
-> like this with pipelines containing multiple subdevs. Let's say 4..5 subdevs
-> where each one needs to have proper context activated in order for the whole
-> pipeline to have consistent configuration.
+diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
+index 348f67e..c808b6a 100644
+--- a/drivers/media/platform/omap3isp/ispcsiphy.c
++++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+@@ -32,6 +32,95 @@
+ #include "ispreg.h"
+ #include "ispcsiphy.h"
+ 
++static void csiphy_routing_cfg_3630(struct isp_csiphy *phy, u32 iface,
++				    bool ccp2_strobe)
++{
++	u32 reg = isp_reg_readl(
++		phy->isp, OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL, 0);
++	u32 shift, mode;
++
++	switch (iface) {
++	case ISP_INTERFACE_CCP2B_PHY1:
++		reg &= ~OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
++		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
++		break;
++	case ISP_INTERFACE_CSI2C_PHY1:
++		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
++		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
++		break;
++	case ISP_INTERFACE_CCP2B_PHY2:
++		reg |= OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
++		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
++		break;
++	case ISP_INTERFACE_CSI2A_PHY2:
++		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT;
++		mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY;
++		break;
++	}
++
++	/* Select data/clock or data/strobe mode for CCP2 */
++	switch (iface) {
++	case ISP_INTERFACE_CCP2B_PHY1:
++	case ISP_INTERFACE_CCP2B_PHY2:
++		if (ccp2_strobe)
++			mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_STROBE;
++		else
++			mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_CLOCK;
++	}
++
++	reg &= ~(OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_MASK << shift);
++	reg |= mode << shift;
++
++	isp_reg_writel(phy->isp, reg,
++		       OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL, 0);
++}
++
++static void csiphy_routing_cfg_3430(struct isp_csiphy *phy, u32 iface, bool on,
++				    bool ccp2_strobe)
++{
++	u32 csirxfe = OMAP343X_CONTROL_CSIRXFE_PWRDNZ
++		| OMAP343X_CONTROL_CSIRXFE_RESET;
++
++	/* Only the CCP2B on PHY1 is configurable. */
++	if (iface != ISP_INTERFACE_CCP2B_PHY1)
++		return;
++
++	if (!on) {
++		isp_reg_writel(phy->isp, 0,
++			       OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE, 0);
++		return;
++	}
++
++	if (ccp2_strobe)
++		csirxfe |= OMAP343X_CONTROL_CSIRXFE_SELFORM;
++
++	isp_reg_writel(phy->isp, csirxfe,
++		       OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE, 0);
++}
++
++/**
++ * Configure OMAP 3 CSI PHY routing.
++ *
++ * Note that the underlying routing configuration registers are part
++ * of the control (SCM) register space and part of the CORE power
++ * domain on both 3430 and 3630, so they will not hold their contents
++ * in off-mode.
++ *
++ * @phy: relevant phy device
++ * @iface: ISP_INTERFACE_*
++ * @on: power on or off
++ * @ccp2_strobe: false: data/clock, true: data/strobe
++ */
++static void csiphy_routing_cfg(struct isp_csiphy *phy, u32 iface, bool on,
++			       bool ccp2_strobe)
++{
++	if (phy->isp->mmio_base[OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL]
++	    && on)
++		return csiphy_routing_cfg_3630(phy, iface, ccp2_strobe);
++	if (phy->isp->mmio_base[OMAP3_ISP_IOMEM_343X_CONTROL_CSIRXFE])
++		return csiphy_routing_cfg_3430(phy, iface, on, ccp2_strobe);
++}
++
+ /*
+  * csiphy_lanes_config - Configuration of CSIPHY lanes.
+  *
+diff --git a/drivers/media/platform/omap3isp/ispreg.h b/drivers/media/platform/omap3isp/ispreg.h
+index e2c57f3..148108b 100644
+--- a/drivers/media/platform/omap3isp/ispreg.h
++++ b/drivers/media/platform/omap3isp/ispreg.h
+@@ -1583,4 +1583,26 @@
+ #define ISPCSIPHY_REG2_CCP2_SYNC_PATTERN_MASK		\
+ 	(0x7fffff << ISPCSIPHY_REG2_CCP2_SYNC_PATTERN_SHIFT)
+ 
++/* -----------------------------------------------------------------------------
++ * CONTROL registers for CSI-2 phy routing
++ */
++
++/* OMAP343X_CONTROL_CSIRXFE */
++#define OMAP343X_CONTROL_CSIRXFE_CSIB_INV	(1 << 7)
++#define OMAP343X_CONTROL_CSIRXFE_RESENABLE	(1 << 8)
++#define OMAP343X_CONTROL_CSIRXFE_SELFORM	(1 << 10)
++#define OMAP343X_CONTROL_CSIRXFE_PWRDNZ		(1 << 12)
++#define OMAP343X_CONTROL_CSIRXFE_RESET		(1 << 13)
++
++/* OMAP3630_CONTROL_CAMERA_PHY_CTRL */
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT	2
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY2_SHIFT	0
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_DPHY		0x0
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_STROBE 0x1
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_CLOCK 0x2
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_GPI		0x3
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_MASK		0x3
++/* CCP2B: set to receive data from PHY2 instead of PHY1 */
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2	(1 << 4)
++
+ #endif	/* OMAP3_ISP_REG_H */
+-- 
+1.7.2.5
 
-Wouldn't that knowledge be encoded in a libv4l2 plugin for that specific hardware?
-
-> For /dev/video your approach makes 
-> a lot of sense.
-> 
-> I don't think storing the context in file handle would be sensible. These
-> would be device contexts, would be cached in device's firmware or memory area
-> shared between the device and a host CPU. So this isn't something that one
-> can clone freely, for instance one context would have different set of (v4l2) 
-> controls than the other. We would need to enumerate existing contexts and 
-> be able to edit one when the other is e.g. in the streaming state.
-> 
-> APPLY_CONTEXT would need to take a parameter saying which context is to be
-> applied/selected. Similar with EDIT_CONTEXT. Or was your idea completely
-> different ?
-
-No, that was my idea.
-
-One problem will be how to tell the user what sort of data is stored in the
-context, and what remains global. For controls one could imagine a 'context'
-flag, which if set indicates that that control is specific to the current
-context. But I'm not sure what to do about ioctls, other than using one or
-more capability fields. Hmm, actually that might be sufficient. There are
-not all that many ioctls that are relevant for controls.
-
-> >> I've seen various hacks in some v4l2 drivers trying to fulfil above
-> >> requirements, e.g. abusing struct v4l2_mbus_framefmt::colorspace field
-> >> to select between capture/preview in a device or using 32-bit integer
-> >> control where upper 16-bits are used for pixel width and lower 16 for
-> >> pixel height.
-> > 
-> > Where is that? And what do you mean with pixel width and height? It this
-> > used to define a pixel aspect ratio? Is this really related to context?
-> 
-> Sorry for my bad wording, I should have said "image width and image height
-> in pixels". The above examples can be found in various drivers in Android
-> kernels [1]. One example is function s5c73m3_s_fmt() at [2] (a copy of
-> Samsung Galaxy S III GT-I9300 source code available at [3]).
->  
-> [1] https://android.googlesource.com/
-> [2] https://github.com/snawrocki/linux_galaxy/blob/master/drivers/media/video/s5c73m3.c
-> [3] http://opensource.samsung.com
-
-Ah, thanks. Now I understand.
-
-Regards,
-
-	Hans
