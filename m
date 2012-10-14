@@ -1,58 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:56738 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751998Ab2JDEh4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 00:37:56 -0400
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:52579 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750789Ab2JNKS5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Oct 2012 06:18:57 -0400
+Received: by mail-bk0-f46.google.com with SMTP id jk13so2060495bkc.19
+        for <linux-media@vger.kernel.org>; Sun, 14 Oct 2012 03:18:56 -0700 (PDT)
+Message-ID: <507A918D.8010307@googlemail.com>
+Date: Sun, 14 Oct 2012 12:18:53 +0200
+From: Gregor Jasny <gjasny@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <2224867.hMfXSgyTsI@avalon>
-References: <1349272385-24980-1-git-send-email-prabhakar.lad@ti.com> <2224867.hMfXSgyTsI@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 4 Oct 2012 10:07:35 +0530
-Message-ID: <CA+V-a8u_SeTmRLWhpGnbBowgU2SAKYtTuOo6-WjEVFgKogeDoQ@mail.gmail.com>
-Subject: Re: [PATCH v5] media: mt9p031/mt9t001/mt9v032: use
- V4L2_CID_TEST_PATTERN for test pattern control
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	LMML <linux-media@vger.kernel.org>,
-	VGER <linux-kernel@vger.kernel.org>,
-	Paul Gortmaker <paul.gortmaker@windriver.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Jean Delvare <khali@linux-fr.org>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Announcing v4l-utils-0.8.9
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi,
 
-On Wed, Oct 3, 2012 at 7:43 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Prabhakar,
->
-> On Wednesday 03 October 2012 19:23:05 Prabhakar wrote:
->> From: Lad, Prabhakar <prabhakar.lad@ti.com>
->>
->> V4L2_CID_TEST_PATTERN is now a standard control.
->> This patch replaces the user defined control for test
->> pattern to make use of standard control V4L2_CID_TEST_PATTERN.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
->> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
->> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Sakari Ailus <sakari.ailus@iki.fi>
->> Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
->> Cc: Jean Delvare <khali@linux-fr.org>
->
-> Should I push this patch through my tree ? If so I'll wait until the
-> V4L2_CID_TEST_PATTERN control patch hits Mauro's tree.
->
-I will issue a pull request for this patch plus
-V4L2_CID_TEST_PATTERN today thanks.
+I'm happy to announce the release of v4l-utils-0.8.9. It contains purely
+backports from the development branch. The most interesting additions
+are the improvements for the Pixart based webcams and the updated
+v4l2-compliance, v4l-ctl, and qv4l2 utilities.
 
-Regards,
---Prabhakar
+ChangeLog:
+* libv4l changes (0.9.x backports)
+  * libv4lconvert: Various Pixart JPEG fixes
+  * libv4lconvert: Add more notebooks to the upside down device table
+* Utils changes (0.9.x backports)
+  * keytable: Add support for Sanyo IR and RC-5-SZ protocol
+  * keytable: Add missing buttons in shipped keytables
+  * v4l2-compliance, v4l-ctl, qv4l2: Sync with development branch
 
-> --
-> Regards,
->
-> Laurent Pinchart
->
+Go get it here:
+http://linuxtv.org/downloads/v4l-utils/v4l-utils-0.8.9.tar.bz2
+
+You can always find the latest developments and the stable branch here:
+http://git.linuxtv.org/v4l-utils.git
+
+Thanks,
+Gregor
