@@ -1,112 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:45511 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753007Ab2JDHZH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 03:25:07 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBC00LFOXWSZVQ0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:50 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MBC006I9XWMLU10@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:50 +0900 (KST)
-From: Rahul Sharma <rahul.sharma@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Cc: t.stanislaws@samsung.com, inki.dae@samsung.com,
-	kyungmin.park@samsung.com, joshi@samsung.com
-Subject: [PATCH v1 09/14] drm: exynos: hdmi: add support for platform variants
- for mixer
-Date: Thu, 04 Oct 2012 21:12:47 +0530
-Message-id: <1349365372-21417-10-git-send-email-rahul.sharma@samsung.com>
-In-reply-to: <1349365372-21417-1-git-send-email-rahul.sharma@samsung.com>
-References: <1349365372-21417-1-git-send-email-rahul.sharma@samsung.com>
+Received: from moh2-ve1.go2.pl ([193.17.41.186]:38122 "EHLO moh2-ve1.go2.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752336Ab2JNTyl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Oct 2012 15:54:41 -0400
+Received: from moh2-ve1.go2.pl (unknown [10.0.0.186])
+	by moh2-ve1.go2.pl (Postfix) with ESMTP id 90BC644C4B7
+	for <linux-media@vger.kernel.org>; Sun, 14 Oct 2012 21:54:34 +0200 (CEST)
+Received: from unknown (unknown [10.0.0.42])
+	by moh2-ve1.go2.pl (Postfix) with SMTP
+	for <linux-media@vger.kernel.org>; Sun, 14 Oct 2012 21:54:34 +0200 (CEST)
+Message-ID: <507B1879.9020100@tlen.pl>
+Date: Sun, 14 Oct 2012 21:54:33 +0200
+From: Wojciech Myrda <vojcek@tlen.pl>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: [segfault] running ir-keytable with v4l-utils 0.8.9
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the support for multiple mixer versions avaialble in
-various platform variants. Version is passed as a driver data field
-instead of paltform data.
+On my system I have just installed using bumped Gentoo ebuilds v4l-utils
+package
 
-Signed-off-by: Rahul Sharma <rahul.sharma@samsung.com>
----
- drivers/gpu/drm/exynos/exynos_mixer.c |   28 ++++++++++++++++++++++++++++
- 1 files changed, 28 insertions(+), 0 deletions(-)
+[ebuild   R    ] media-libs/libv4l-0.8.9::bigvo  0 kB
+[ebuild   R    ] media-tv/v4l-utils-0.8.9::bigvo  USE="-qt4" 0 kB
 
-diff --git a/drivers/gpu/drm/exynos/exynos_mixer.c b/drivers/gpu/drm/exynos/exynos_mixer.c
-index 8a43ee1..e312fb1 100644
---- a/drivers/gpu/drm/exynos/exynos_mixer.c
-+++ b/drivers/gpu/drm/exynos/exynos_mixer.c
-@@ -73,6 +73,11 @@ struct mixer_resources {
- 	struct clk		*sclk_dac;
- };
- 
-+enum mixer_version_id {
-+	MXR_VER_0_0_0_16,
-+	MXR_VER_16_0_33_0,
-+};
-+
- struct mixer_context {
- 	struct device		*dev;
- 	int			pipe;
-@@ -83,6 +88,11 @@ struct mixer_context {
- 	struct mutex		mixer_mutex;
- 	struct mixer_resources	mixer_res;
- 	struct hdmi_win_data	win_data[MIXER_WIN_NR];
-+	enum mixer_version_id	mxr_ver;
-+};
-+
-+struct mixer_drv_data {
-+	enum mixer_version_id	version;
- };
- 
- static const u8 filter_y_horiz_tap8[] = {
-@@ -1023,11 +1033,25 @@ fail:
- 	return ret;
- }
- 
-+static struct mixer_drv_data exynos4_mxr_drv_data = {
-+	.version = MXR_VER_0_0_0_16,
-+};
-+
-+static struct platform_device_id mixer_driver_types[] = {
-+	{
-+		.name		= "s5p-mixer",
-+		.driver_data	= (unsigned long)&exynos4_mxr_drv_data,
-+	}, {
-+		/* end node */
-+	}
-+};
-+
- static int __devinit mixer_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
- 	struct exynos_drm_hdmi_context *drm_hdmi_ctx;
- 	struct mixer_context *ctx;
-+	struct mixer_drv_data *drv;
- 	int ret;
- 
- 	dev_info(dev, "probe start\n");
-@@ -1047,8 +1071,11 @@ static int __devinit mixer_probe(struct platform_device *pdev)
- 
- 	mutex_init(&ctx->mixer_mutex);
- 
-+	drv = (struct mixer_drv_data *)platform_get_device_id(
-+			pdev)->driver_data;
- 	ctx->dev = &pdev->dev;
- 	drm_hdmi_ctx->ctx = (void *)ctx;
-+	ctx->mxr_ver = drv->version;
- 
- 	platform_set_drvdata(pdev, drm_hdmi_ctx);
- 
-@@ -1101,4 +1128,5 @@ struct platform_driver mixer_driver = {
- 	},
- 	.probe = mixer_probe,
- 	.remove = __devexit_p(mixer_remove),
-+	.id_table	= mixer_driver_types,
- };
--- 
-1.7.0.4
+ebuilds used for bumbing to version 0.8.9:
+http://gentoo-portage.com/media-libs/libv4l/libv4l-0.8.8
+http://gentoo-portage.com/media-tv/v4l-utils/v4l-utils-0.8.8-r1
+
+However I experienced a segfault trying to run this command:
+ir-keytable --protocol=rc-6 --device
+/dev/input/by-id/usb-15c2_0038-event-if00
+
+Trace I got in gdb:
+
+gdb ir-keytable core
+GNU gdb (Gentoo 7.5 p1) 7.5
+Copyright (C) 2012 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later
+<http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-pc-linux-gnu".
+For bug reporting instructions, please see:
+<http://bugs.gentoo.org/>...
+Reading symbols from /usr/bin/ir-keytable...done.
+[New LWP 11090]
+
+warning: Could not load shared library symbols for linux-vdso.so.1.
+Do you need "set solib-search-path" or "set sysroot"?
+Core was generated by `ir-keytable --protocol=rc-6 --device
+/dev/input/by-id/usb-15c2_0038-event-if00'.
+Program terminated with signal 11, Segmentation fault.
+#0  0x00007fd1c6bdd410 in __strcpy_chk () from /lib64/libc.so.6
+(gdb) bt full
+#0  0x00007fd1c6bdd410 in __strcpy_chk () from /lib64/libc.so.6
+No symbol table info available.
+#1  0x00000000004037bc in strcpy (__src=<optimized out>,
+__dest=0x7fff0a823010 "")
+    at /usr/include/bits/string3.h:105
+No locals.
+#2  v1_set_hw_protocols (rc_dev=<optimized out>) at keytable.c:758
+        fp = <optimized out>
+        name = '\000' <repeats 1480 times>, "`\327\350\306\321\177",
+'\000' <repeats 75 times>,
+"p\031\000\000\000\000\000~m\031\000\000\000\000\000~m\031", '\000'
+<repeats 13 times>,
+"\005\000\000\000\000\000\000\000\000p9\000\000\000\000\000\000\320\071\000\000\000\000\000X\307\071\000\000\000\000\000`\f:\000\000\000\000\000\000p\031\000\000\000\000\000\003",
+'\000' <repeats 271 times>,
+"@F\n\307\321\177\000\000/\000\000\000\000\000\000\000\215\027\351\306\321\177\000\000\000\000\000\000\000\000\000\000\t\000\000\000\000\000\000\000\021\000\000\000\000\000\000\000\001",
+'\000' <repeats 23 times>,
+"p9\202\n\377\177\000\000\031\024\351\306\321\177\000\000\001\000\000\000\000\000\000\000XF\n\307\321\177\000\000p9\202\n\377\177\000\000\265\326\350\306\321\177",
+'\000' <repeats 26 times>...
+#3  0x00000000004019af in set_proto (rc_dev=0x7fff0a824030) at
+keytable.c:1153
+        rc = 0
+#4  main (argc=<optimized out>, argv=<optimized out>) at keytable.c:1531
+        dev_from_class = <optimized out>
+        write_cnt = 0
+        fd = 3
+        names = 0x0
+        rc_dev = {sysfs_name = 0x0, input_name = 0x7fd1c70a74e0
+"@t\n\307\321\177",
+          drv_name = 0x0,
+          keytable_name = 0x100000000 <Address 0x100000000 out of bounds>,
+          version = (unknown: 3339351856), type = (SOFTWARE_DECODER |
+unknown: 32720),
+          supported = 4196936, current = RC_6}
+
+------
+ir-keytable
+Found /sys/class/rc/rc0/ (/dev/input/event12) with:
+    Driver imon, table rc-imon-pad
+    Supported protocols: RC-6 other
+    Enabled protocols:
+    Repeat delay = 500 ms, repeat period = 125 ms
+------
+dmesg |grep imon
+[    4.783532] Registered IR keymap rc-imon-pad
+[    4.789794] imon 9-3:1.0: iMON device (15c2:0038, intf0) on usb<9:2>
+initialized
+[    4.789849] imon 9-3:1.1: iMON device (15c2:0038, intf1) on usb<9:2>
+initialized
+[    4.789885] usbcore: registered new interface driver imon
+
+
+Please take a look what might be wrong here
+
+Regards,
+Wojciech Myrda
+
+
+
 
