@@ -1,61 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41824 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757335Ab2JJWu2 (ORCPT
+Received: from 1010ds2-suoe.0.fullrate.dk ([90.184.90.115]:20679 "EHLO
+	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752930Ab2JOWw2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 18:50:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
-Date: Thu, 11 Oct 2012 00:51:09 +0200
-Message-ID: <2098605.jat554dMFe@avalon>
-In-Reply-To: <5075A74C.80106@wwwdotorg.org>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <2002286.8sbBLyKbDe@avalon> <5075A74C.80106@wwwdotorg.org>
+	Mon, 15 Oct 2012 18:52:28 -0400
+Date: Tue, 16 Oct 2012 00:52:26 +0200 (CEST)
+From: Jesper Juhl <jj@chaosbits.net>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] stk1160: Check return value of stk1160_read_reg()
+ in stk1160_i2c_read_reg()
+In-Reply-To: <alpine.LNX.2.00.1210152025300.1038@swampdragon.chaosbits.net>
+Message-ID: <alpine.LNX.2.00.1210160051100.1682@swampdragon.chaosbits.net>
+References: <alpine.LNX.2.00.0811091803320.23782@swampdragon.chaosbits.net> <CALF0-+Vtmwu9rCc9BYiDx2O2GQWezK40BYR2LP_ve2YjCt=Afg@mail.gmail.com> <alpine.LNX.2.00.1210152025300.1038@swampdragon.chaosbits.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 10 October 2012 10:50:20 Stephen Warren wrote:
-> On 10/10/2012 07:18 AM, Laurent Pinchart wrote:
-> > On Monday 08 October 2012 17:15:53 Guennadi Liakhovetski wrote:
-> ...
-> 
-> >> But how do you get the subdev pointer? With the notifier I get it from
-> >> i2c_get_clientdata(client) and what do you do without it? How do you get
-> >> to the client?
-> >> 
-> >>> And can't it get that from DT as well?
-> >> 
-> >> No, I don't think there is a way to get a device pointer from a DT node.
-> 
-> I don't believe there's a generic API for this (although perhaps there
-> could be), but it can be implemented quite easily.
->
-> For example, on Tegra, the SMMU needs to flip a bit in the AHB register
-> space in order to enable itself. The SMMU DT node contains a phandle
-> that points at the AHB DT node. The SMMU driver parses the phandle and
-> passes the DT node pointer to the AHB driver. The AHB driver looks up
-> the struct device that was instantiated for that node. See
-> drivers/amba/tegra-ahb.c:tegra_ahb_enable_smmu(). There are a few other
-> cases of similar code in the kernel, although I can't remember the others!
+On Mon, 15 Oct 2012, Jesper Juhl wrote:
 
-That's a very naive approach, but what about storing the struct device in 
-struct device_node when the device is instantiated ? It's so simple that 
-there's probably a good reason why that hasn't been implemented though.
+> On Sat, 13 Oct 2012, Ezequiel Garcia wrote:
+> 
+> > On Sun, Nov 9, 2008 at 2:04 PM, Jesper Juhl <jj@chaosbits.net> wrote:
+> > > There are two checks for 'rc' being less than zero with no change to
+> > > 'rc' between the two, so the second is just dead code - remove it.
+> > >
+> > > Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+> > > ---
+> > >  drivers/media/usb/stk1160/stk1160-i2c.c |    3 ---
+> > >  1 files changed, 0 insertions(+), 3 deletions(-)
+> > >
+> > > diff --git a/drivers/media/usb/stk1160/stk1160-i2c.c b/drivers/media/usb/stk1160/stk1160-i2c.c
+> > > index 176ac93..035cf8c 100644
+> > > --- a/drivers/media/usb/stk1160/stk1160-i2c.c
+> > > +++ b/drivers/media/usb/stk1160/stk1160-i2c.c
+> > > @@ -117,9 +117,6 @@ static int stk1160_i2c_read_reg(struct stk1160 *dev, u8 addr,
+> > >                 return rc;
+> > >
+> > >         stk1160_read_reg(dev, STK1160_SBUSR_RD, value);
+> > > -       if (rc < 0)
+> > > -               return rc;
+> > > -
+> > >         return 0;
+> > >  }
+> > >
+> > 
+> > Thanks for doing this. Wouldn't you like to save stk1160_read_reg
+> > return code to rc, instead of this?
+> > 
+> Ahh yes, I guess I was too quick to just assume it was dead code. 
+> Looking at it again; what you suggest must have been the original 
+> intention. I'll cook up a new patch.
+> 
+> Thanks.
+> 
+From: Jesper Juhl <jj@chaosbits.net>
+Date: Sat, 13 Oct 2012 00:16:37 +0200
+Subject: [PATCH] [media] stk1160: Check return value of stk1160_read_reg() in stk1160_i2c_read_reg()
+
+Currently there are two checks for 'rc' being less than zero with no
+change to 'rc' between the two, so the second is just dead code.
+The intention seems to have been to assign the return value of
+'stk1160_read_reg()' to 'rc' before the (currently dead) second check
+and then test /that/. This patch does that.
+
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+---
+ drivers/media/usb/stk1160/stk1160-i2c.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/usb/stk1160/stk1160-i2c.c b/drivers/media/usb/stk1160/stk1160-i2c.c
+index 176ac93..a2370e4 100644
+--- a/drivers/media/usb/stk1160/stk1160-i2c.c
++++ b/drivers/media/usb/stk1160/stk1160-i2c.c
+@@ -116,10 +116,9 @@ static int stk1160_i2c_read_reg(struct stk1160 *dev, u8 addr,
+ 	if (rc < 0)
+ 		return rc;
+ 
+-	stk1160_read_reg(dev, STK1160_SBUSR_RD, value);
++	rc = stk1160_read_reg(dev, STK1160_SBUSR_RD, value);
+ 	if (rc < 0)
+ 		return rc;
+-
+ 	return 0;
+ }
+ 
+-- 
+1.7.1
+
 
 -- 
-Regards,
-
-Laurent Pinchart
+Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
+Don't top-post http://www.catb.org/jargon/html/T/top-post.html
+Plain text mails only, please.
 
