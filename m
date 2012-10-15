@@ -1,93 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:3426 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751993Ab2JAO3z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 10:29:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: Re: [GIT PATCHES FOR v3.6] Samsung media driver fixes
-Date: Mon, 1 Oct 2012 16:28:36 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>
-References: <5034991F.5040403@samsung.com> <50699C23.5000203@redhat.com> <CALF0-+W=xRO0G9gz1oSGyDbL0JHTYmPUU11qCpaK7BXJwGFBYw@mail.gmail.com>
-In-Reply-To: <CALF0-+W=xRO0G9gz1oSGyDbL0JHTYmPUU11qCpaK7BXJwGFBYw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210011628.36850.hverkuil@xs4all.nl>
+Received: from 84-245-11-97.dsl.cambrium.nl ([84.245.11.97]:40503 "EHLO
+	grubby.stderr.nl" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752388Ab2JOL41 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Oct 2012 07:56:27 -0400
+From: Matthijs Kooijman <matthijs@stdin.nl>
+To: linux-media@vger.kernel.org
+Cc: Luis Henriques <luis.henriques@canonical.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	Stephan Raue <stephan@openelec.tv>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Matthijs Kooijman <matthijs@stdin.nl>
+Subject: [PATCH 1/4] [media] ene-ir: Fix cleanup on probe failure
+Date: Mon, 15 Oct 2012 13:13:44 +0200
+Message-Id: <1350299627-14339-1-git-send-email-matthijs@stdin.nl>
+In-Reply-To: <20121015110111.GD17159@login.drsnuggles.stderr.nl>
+References: <20121015110111.GD17159@login.drsnuggles.stderr.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon October 1 2012 16:05:15 Ezequiel Garcia wrote:
-> Mauro and folks,
-> 
-> On Mon, Oct 1, 2012 at 10:35 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
-> > Hi Anti/Sylwester,
-> >
-> > Em 01-10-2012 08:50, Antti Palosaari escreveu:
-> >> Hello
-> >> I have had similar problems too. We need badly find out better procedures for patch handling. Something like parches are updated about once per week to the master. I have found I lose quite much time rebasing and res-sending stuff all the time.
-> >>
-> >> What I propose:
-> >> 1) module maintainers sends all patches to the ML with some tag marking it will pull requested later. I used lately [PATCH RFC]
-> >> 2) module maintainer will pick up all the "random" patches and pull request those. There is no way to mark patch as handled in patchwork....
-> >> 3) PULL request are handled more often, like during one week or maximum two
-> >
-> > Yes, for sure we need to improve the workflow. After the return from KS,
-> > I found ~400 patches/pull requests on my queue. I'm working hard to get rid
-> > of that backlog, but still there are ~270 patches/pull requests on my
-> > queue today.
-> >
-> > The thing is that patches come on a high rate at the ML, and there's no
-> > obvious way to discover what patches are just the normal patch review
-> > discussions (e. g. RFC) and what are real patches.
-> >
-> > To make things worse, we have nowadays 494 drivers. A very few of those
-> > have an entry at MAINTAINERS, or a maintainer that care enough about
-> > his drivers to handle patches sent to the mailing list (even the trivial
-> > ones).
-> >
-> > Due to the missing MAINTAINERS entries, all patches go through the ML directly,
-> > instead of going through the driver maintainer.
-> >
-> > So, I need to manually review every single email that looks to have a patch
-> > inside, typically forwarding it to the driver maintainer, when it exists,
-> > handling them myself otherwise.
-> >
-> > I'm counting with our discussions at the Barcelona's mini-summit in order
-> > to be able to get fresh ideas and discuss some alternatives to improve
-> > the patch workflow, but there are several things that could be done already,
-> > like the ones you've proposed, and keeping the MAINTAINERS file updated.
-> >
-> 
-> Perhaps I'm missing something but I don't think there's an obvious
-> solution for this,
-> unless more maintainers are willing to start providing reviews / tests
-> / acks / etc.
-> for patches that arrive.
-> 
-> Seems to me media/ has become a truly large subsystem,
-> though I'm not sure how does it compare to others subsystems.
-> Has anyone thought about breaking media/ down into smaller sub-subsystems,
-> with respective sub-maintainer?
+This makes the cleanup on probe failure more consistent with other
+drivers. This is similar to what commit
+f27b853ea24a9b70585f9251384d97929e6551c3 ("[media] rc: Fix invalid
+free_region and/or free_irq on probe failure") did for some other
+drivers.
 
-Yes, and this will be discussed next month during the Media Summit.
+In addition to making the cleanup more consistent, this also fixes a
+case where (on a ene_hw_detect failure) free_region would be called on a
+region that was not requested yet.
 
-Regards,
+This last problem was probably introduced by the moving of code in
+commit b31b021988fed9e3741a46918f14ba9b063811db ("[media] ene_ir: Fix
+driver initialisation") and commit
+9ef449c6b31bb6a8e6dedc24de475a3b8c79be20 ("[media] rc: Postpone ISR
+registration").
 
-	Hans
+Signed-off-by: Matthijs Kooijman <matthijs@stdin.nl>
+---
+ drivers/media/rc/ene_ir.c |   29 +++++++++++++----------------
+ 1 file changed, 13 insertions(+), 16 deletions(-)
 
-> I'm not really sure if this should improve or worsen Mauro's rate.
-> 
-> Just my two cents,
-> Ezequiel.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
+index 647dd95..62f9076 100644
+--- a/drivers/media/rc/ene_ir.c
++++ b/drivers/media/rc/ene_ir.c
+@@ -1000,7 +1000,7 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+ 	dev = kzalloc(sizeof(struct ene_device), GFP_KERNEL);
+ 	rdev = rc_allocate_device();
+ 	if (!dev || !rdev)
+-		goto error1;
++		goto failure;
+ 
+ 	/* validate resources */
+ 	error = -ENODEV;
+@@ -1011,10 +1011,10 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+ 
+ 	if (!pnp_port_valid(pnp_dev, 0) ||
+ 	    pnp_port_len(pnp_dev, 0) < ENE_IO_SIZE)
+-		goto error;
++		goto failure;
+ 
+ 	if (!pnp_irq_valid(pnp_dev, 0))
+-		goto error;
++		goto failure;
+ 
+ 	spin_lock_init(&dev->hw_lock);
+ 
+@@ -1030,7 +1030,7 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+ 	/* detect hardware version and features */
+ 	error = ene_hw_detect(dev);
+ 	if (error)
+-		goto error;
++		goto failure;
+ 
+ 	if (!dev->hw_learning_and_tx_capable && txsim) {
+ 		dev->hw_learning_and_tx_capable = true;
+@@ -1075,30 +1075,27 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+ 	/* claim the resources */
+ 	error = -EBUSY;
+ 	if (!request_region(dev->hw_io, ENE_IO_SIZE, ENE_DRIVER_NAME)) {
+-		dev->hw_io = -1;
+-		dev->irq = -1;
+-		goto error;
++		goto failure;
+ 	}
+ 
+ 	dev->irq = pnp_irq(pnp_dev, 0);
+ 	if (request_irq(dev->irq, ene_isr,
+ 			IRQF_SHARED, ENE_DRIVER_NAME, (void *)dev)) {
+-		dev->irq = -1;
+-		goto error;
++		goto failure2;
+ 	}
+ 
+ 	error = rc_register_device(rdev);
+ 	if (error < 0)
+-		goto error;
++		goto failure3;
+ 
+ 	pr_notice("driver has been successfully loaded\n");
+ 	return 0;
+-error:
+-	if (dev && dev->irq >= 0)
+-		free_irq(dev->irq, dev);
+-	if (dev && dev->hw_io >= 0)
+-		release_region(dev->hw_io, ENE_IO_SIZE);
+-error1:
++
++failure3:
++	free_irq(dev->irq, dev);
++failure2:
++	release_region(dev->hw_io, ENE_IO_SIZE);
++failure:
+ 	rc_free_device(rdev);
+ 	kfree(dev);
+ 	return error;
+-- 
+1.7.10
+
