@@ -1,200 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:37452 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753224Ab2JAWqz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 18:46:55 -0400
-Received: by mail-qc0-f174.google.com with SMTP id d3so4134460qch.19
-        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2012 15:46:54 -0700 (PDT)
-From: Ido Yariv <ido@wizery.com>
-To: Tony Lindgren <tony@atomide.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: Ido Yariv <ido@wizery.com>
-Subject: [PATCH v2 4/5] arm: omap: Move iommu/iovmm headers to platform_data
-Date: Mon,  1 Oct 2012 18:46:30 -0400
-Message-Id: <1349131591-10804-4-git-send-email-ido@wizery.com>
-In-Reply-To: <1349131591-10804-1-git-send-email-ido@wizery.com>
-References: <20120927195526.GP4840@atomide.com>
- <1349131591-10804-1-git-send-email-ido@wizery.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54740 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754609Ab2JOT7L (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Oct 2012 15:59:11 -0400
+Date: Mon, 15 Oct 2012 22:59:06 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Chris MacGregor <chris@cybermato.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, hverkuil@xs4all.nl, remi@remlab.net,
+	daniel-gl@gmx.net, sylwester.nawrocki@gmail.com
+Subject: Re: [RFC] Timestamps and V4L2
+Message-ID: <20121015195906.GG21261@valkosipuli.retiisi.org.uk>
+References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk>
+ <20121015160549.GE21261@valkosipuli.retiisi.org.uk>
+ <2316067.OFTCziv4Z5@avalon>
+ <507C5BC4.7060700@cybermato.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <507C5BC4.7060700@cybermato.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move iommu/iovmm headers from plat/ to platform_data/ as part of the
-single zImage work.
+Hi Chris,
 
-Signed-off-by: Ido Yariv <ido@wizery.com>
----
- arch/arm/mach-omap2/devices.c                                       | 2 +-
- arch/arm/mach-omap2/iommu2.c                                        | 2 +-
- arch/arm/mach-omap2/omap-iommu.c                                    | 2 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c                          | 2 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c                          | 2 +-
- drivers/iommu/omap-iommu-debug.c                                    | 4 ++--
- drivers/iommu/omap-iommu.c                                          | 2 +-
- drivers/iommu/omap-iovmm.c                                          | 4 ++--
- drivers/media/platform/omap3isp/isp.h                               | 5 +++--
- drivers/media/platform/omap3isp/ispvideo.c                          | 6 ++++--
- .../plat/iommu.h => include/linux/platform_data/iommu-omap.h        | 0
- .../plat/iovmm.h => include/linux/platform_data/iovmm-omap.h        | 0
- 12 files changed, 17 insertions(+), 14 deletions(-)
- rename arch/arm/plat-omap/include/plat/iommu.h => include/linux/platform_data/iommu-omap.h (100%)
- rename arch/arm/plat-omap/include/plat/iovmm.h => include/linux/platform_data/iovmm-omap.h (100%)
+On Mon, Oct 15, 2012 at 11:53:56AM -0700, Chris MacGregor wrote:
+> On 10/15/2012 11:45 AM, Laurent Pinchart wrote:
+> >Hi Sakari,
+> >
+> >On Monday 15 October 2012 19:05:49 Sakari Ailus wrote:
+> >>Hi all,
+> >>
+> >>As a summar from the discussion, I think we have reached the following
+> >>conclusion. Please say if you agree or disagree with what's below. :-)
+> >>
+> >>- The drivers will be moved to use monotonic timestamps for video buffers.
+> >>- The user space will learn about the type of the timestamp through buffer
+> >>flags.
+> >>- The timestamp source may be made selectable in the future, but buffer
+> >>flags won't be the means for this, primarily since they're not available on
+> >>subdevs. Possible way to do this include a new V4L2 control or a new IOCTL.
+> >That's my understanding as well. For the concept,
+> >
+> >Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> I wasn't able to participate in the discussion that led to this, but
+> I'd like to suggest and request now that an explicit requirement (of
+> whatever scheme is selected) be that a userspace app have a
+> reasonable and straightforward way to translate the timestamps to
+> real wall-clock time, ideally with enough precision to allow
+> synchronization of cameras across multiple computers.
+> 
+> In the systems I work on, for instance, we are recording real-world
+> biological processes, some of which vary based on the time of day,
+> and it is important to know when a given frame was captured so that
+> information can be stored with the raw frame and the data derived
+> from it. For many such purposes, an accuracy measured in multiple
+> seconds (or even minutes) is fine.
+> 
+> However, when we are using multiple cameras on multiple computers
+> (e.g., two or more BeagleBoard xM's, each with a camera connected),
+> we would want to synchronize with an accuracy of less than 1 frame
+> time - e.g. 10 ms or less.
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index c8c2117..6cd0c2a 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -126,7 +126,7 @@ static struct platform_device omap2cam_device = {
- 
- #if defined(CONFIG_IOMMU_API)
- 
--#include <plat/iommu.h>
-+#include <linux/platform_data/iommu-omap.h>
- 
- static struct resource omap3isp_resources[] = {
- 	{
-diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
-index c986880..82f9174 100644
---- a/arch/arm/mach-omap2/iommu2.c
-+++ b/arch/arm/mach-omap2/iommu2.c
-@@ -18,7 +18,7 @@
- #include <linux/slab.h>
- #include <linux/stringify.h>
- 
--#include <plat/iommu.h>
-+#include <linux/platform_data/iommu-omap.h>
- 
- /*
-  * omap2 architecture specific register bit definitions
-diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
-index df298d4..a6a4ff8 100644
---- a/arch/arm/mach-omap2/omap-iommu.c
-+++ b/arch/arm/mach-omap2/omap-iommu.c
-@@ -13,7 +13,7 @@
- #include <linux/module.h>
- #include <linux/platform_device.h>
- 
--#include <plat/iommu.h>
-+#include <linux/platform_data/iommu-omap.h>
- 
- #include "soc.h"
- #include "common.h"
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 2857772..35ebf14 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -26,8 +26,8 @@
- #include <plat/mmc.h>
- #include <linux/platform_data/asoc-ti-mcbsp.h>
- #include <linux/platform_data/spi-omap2-mcspi.h>
-+#include <linux/platform_data/iommu-omap.h>
- #include <plat/dmtimer.h>
--#include <plat/iommu.h>
- 
- #include "am35xx.h"
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 652d028..5850b3e 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -27,10 +27,10 @@
- #include <plat/dma.h>
- #include <linux/platform_data/spi-omap2-mcspi.h>
- #include <linux/platform_data/asoc-ti-mcbsp.h>
-+#include <linux/platform_data/iommu-omap.h>
- #include <plat/mmc.h>
- #include <plat/dmtimer.h>
- #include <plat/common.h>
--#include <plat/iommu.h>
- 
- #include "omap_hwmod_common_data.h"
- #include "cm1_44xx.h"
-diff --git a/drivers/iommu/omap-iommu-debug.c b/drivers/iommu/omap-iommu-debug.c
-index a0b0309..8c1e30b 100644
---- a/drivers/iommu/omap-iommu-debug.c
-+++ b/drivers/iommu/omap-iommu-debug.c
-@@ -19,8 +19,8 @@
- #include <linux/platform_device.h>
- #include <linux/debugfs.h>
- 
--#include <plat/iommu.h>
--#include <plat/iovmm.h>
-+#include <linux/platform_data/iommu-omap.h>
-+#include <linux/platform_data/iovmm-omap.h>
- 
- #include <plat/iopgtable.h>
- 
-diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-index 80844b3..6100334 100644
---- a/drivers/iommu/omap-iommu.c
-+++ b/drivers/iommu/omap-iommu.c
-@@ -24,7 +24,7 @@
- 
- #include <asm/cacheflush.h>
- 
--#include <plat/iommu.h>
-+#include <linux/platform_data/iommu-omap.h>
- 
- #include <plat/iopgtable.h>
- 
-diff --git a/drivers/iommu/omap-iovmm.c b/drivers/iommu/omap-iovmm.c
-index b362fb5..b5ac2cd 100644
---- a/drivers/iommu/omap-iovmm.c
-+++ b/drivers/iommu/omap-iovmm.c
-@@ -21,8 +21,8 @@
- #include <asm/cacheflush.h>
- #include <asm/mach/map.h>
- 
--#include <plat/iommu.h>
--#include <plat/iovmm.h>
-+#include <linux/platform_data/iommu-omap.h>
-+#include <linux/platform_data/iovmm-omap.h>
- 
- #include <plat/iopgtable.h>
- 
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index 8be7487..62c76f9 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -34,8 +34,9 @@
- #include <linux/platform_device.h>
- #include <linux/wait.h>
- #include <linux/iommu.h>
--#include <plat/iommu.h>
--#include <plat/iovmm.h>
-+
-+#include <linux/platform_data/iommu-omap.h>
-+#include <linux/platform_data/iovmm-omap.h>
- 
- #include "ispstat.h"
- #include "ispccdc.h"
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 3a5085e..1093f07 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -34,8 +34,10 @@
- #include <linux/vmalloc.h>
- #include <media/v4l2-dev.h>
- #include <media/v4l2-ioctl.h>
--#include <plat/iommu.h>
--#include <plat/iovmm.h>
-+
-+#include <linux/platform_data/iommu-omap.h>
-+#include <linux/platform_data/iovmm-omap.h>
-+
- #include <plat/omap-pm.h>
- 
- #include "ispvideo.h"
-diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/include/linux/platform_data/iommu-omap.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/plat/iommu.h
-rename to include/linux/platform_data/iommu-omap.h
-diff --git a/arch/arm/plat-omap/include/plat/iovmm.h b/include/linux/platform_data/iovmm-omap.h
-similarity index 100%
-rename from arch/arm/plat-omap/include/plat/iovmm.h
-rename to include/linux/platform_data/iovmm-omap.h
+I think you have two use cases actually: knowing when an image has been
+taken, and synchronisation of images from multiple sources. The first one is
+easy: you just call clock_gettime() for the realtime clock. The precision
+will certainly be enough.
+
+For the latter the realtime clock fits poorly to begin with: it jumps around
+e.g. when the daylight saving time changes.
+
+I think what I'd do is this: figure out the difference between the monotonic
+clocks of your systems and use that as basis for synchronisation. I wonder
+if there are existing solutions for this based e.g. on the NTP.
+
+The pace of the monotonic clocks on different systems is the same as the
+real-time ones; the same NTP adjustments are done to the monotonic clock as
+well. As an added bonus you also won't be affected by daylight saving time
+or someone setting the clock manually.
+
+The conversion of the two clocks requires the knowledge of the values of
+kernel internal variables, so performing the conversion in user space later
+on is not an option.
+
+Alternatively you could just call clock_gettime() after every DQBUF call,
+but that's indeed less precise than if the driver would get the timestamp
+for you.
+
+How would this work for you?
+
+Best regards,
+
 -- 
-1.7.11.4
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
