@@ -1,40 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:56275 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751142Ab2JAOUc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 10:20:32 -0400
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH] MAINTAINERS: Add stk1160 driver
-Date: Mon,  1 Oct 2012 11:20:13 -0300
-Message-Id: <1349101213-21723-1-git-send-email-elezegarcia@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54649 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751302Ab2JOQFz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Oct 2012 12:05:55 -0400
+Date: Mon, 15 Oct 2012 19:05:49 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, remi@remlab.net, daniel-gl@gmx.net,
+	sylwester.nawrocki@gmail.com, laurent.pinchart@ideasonboard.com
+Subject: Re: [RFC] Timestamps and V4L2
+Message-ID: <20121015160549.GE21261@valkosipuli.retiisi.org.uk>
+References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120920202122.GA12025@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- MAINTAINERS |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+Hi all,
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0750c24..17f6fb0 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3168,6 +3168,13 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
- S:	Maintained
- F:	drivers/media/usb/gspca/
- 
-+STK1160 USB VIDEO CAPTURE DRIVER
-+M:	Ezequiel Garcia <elezegarcia@redhat.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
-+S:	Maintained
-+F:	drivers/media/usb/stk1160/
-+
- HARD DRIVE ACTIVE PROTECTION SYSTEM (HDAPS) DRIVER
- M:	Frank Seidel <frank@f-seidel.de>
- L:	platform-driver-x86@vger.kernel.org
+As a summar from the discussion, I think we have reached the following
+conclusion. Please say if you agree or disagree with what's below. :-)
+
+- The drivers will be moved to use monotonic timestamps for video buffers.
+- The user space will learn about the type of the timestamp through buffer
+flags.
+- The timestamp source may be made selectable in the future, but buffer
+flags won't be the means for this, primarily since they're not available on
+subdevs. Possible way to do this include a new V4L2 control or a new IOCTL.
+
+Kind regards,
+
 -- 
-1.7.4.4
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
