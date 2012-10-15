@@ -1,110 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:54387 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758641Ab2JKNrQ (ORCPT
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:59336 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751643Ab2JOKzt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Oct 2012 09:47:16 -0400
-Received: by mail-vc0-f174.google.com with SMTP id fo13so2157515vcb.19
-        for <linux-media@vger.kernel.org>; Thu, 11 Oct 2012 06:47:15 -0700 (PDT)
+	Mon, 15 Oct 2012 06:55:49 -0400
 MIME-Version: 1.0
-In-Reply-To: <20121011081327.46045e12@redhat.com>
-References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
-	<CAPM=9tzQohMuC4SKTzVWoj2WdiZ8EVBpwgD38wNb3T1bNoZjbQ@mail.gmail.com>
-	<20121010221119.6a623417@redhat.com>
-	<201210110920.12560.hverkuil@xs4all.nl>
-	<20121011081327.46045e12@redhat.com>
-Date: Thu, 11 Oct 2012 08:47:15 -0500
-Message-ID: <CAF6AEGtgKkuVkKGQC2ZBBiz5dTPn+3Y5VdZo5JFR7WYSqS_EaQ@mail.gmail.com>
-Subject: Re: [PATCH] dma-buf: Use EXPORT_SYMBOL
-From: Rob Clark <robdclark@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Dave Airlie <airlied@gmail.com>,
-	Robert Morell <rmorell@nvidia.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linaro-mm-sig@lists.linaro.org,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+In-Reply-To: <CALF0-+WP8_uLqFjSJ5YJ4_Hrpk2Y1+U_mx=baeGWSTpw+kTw2Q@mail.gmail.com>
+References: <CABjyUiLyfHFE6ew5JPaH4YSz5k1sm4HnZFm4e12v=_Pcp6jGNw@mail.gmail.com>
+	<CALF0-+WP8_uLqFjSJ5YJ4_Hrpk2Y1+U_mx=baeGWSTpw+kTw2Q@mail.gmail.com>
+Date: Mon, 15 Oct 2012 07:55:49 -0300
+Message-ID: <CALF0-+Xg2GMCK3c7qpgH5pZq=EdcGf=zHJdS5SGSqLpOSRhbQA@mail.gmail.com>
+Subject: PROBLEM: Ali m5602 won't compile (3.4.9-gentoo)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Yuriy Davygora <davygora@googlemail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 11, 2012 at 6:13 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em Thu, 11 Oct 2012 09:20:12 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Sun, Oct 14, 2012 at 11:39 AM, Yuriy Davygora
+<davygora@googlemail.com> wrote:
+>   Hello,
 >
->> > my understaning is
->> > that the drivers/media/ authors should also ack with this licensing
->> > (possible) change. I am one of the main contributors there. Alan also has
->> > copyrights there, and at other parts of the Linux Kernel, including the driver's
->> > core, from where all Linux Kernel drivers are derivative work, including this one.
->> >
->> > As Alan well said, many other core Linux Kernel authors very likely share
->> > this point of view.
->> >
->> > So, developers implicitly or explicitly copied in this thread that might be
->> > considering the usage of dmabuf on proprietary drivers should consider
->> > this email as a formal notification of my viewpoint: e. g. that I consider
->> > any attempt of using DMABUF or media core/drivers together with proprietary
->> > Kernelspace code as a possible GPL infringement.
->>
->> As long as dmabuf uses EXPORT_SYMBOL_GPL that is definitely correct. Does your
->> statement also hold if dmabuf would use EXPORT_SYMBOL? (Just asking)
+>   I have trouble compiling the 3.4.9 kernel with genkernel (gentoo)
+> having enabled the Ali Corp webcam (m5602) driver.
 >
-> If you read the Kernel COPYING file, it is explicitly said there that the Kernel
-> is licensing with GPLv2. The _ONLY_ exception there is the allowance to use
-> the kernel via normal syscalls:
+>   Here's the output of the ver_linux script:
 >
->            "NOTE! This copyright does *not* cover user programs that use kernel
->          services by normal system calls - this is merely considered normal use
->          of the kernel, and does *not* fall under the heading of "derived work".
->          Also note that the GPL below is copyrighted by the Free Software
->          Foundation, but the instance of code that it refers to (the Linux
->          kernel) is copyrighted by me and others who actually wrote it."
+> =================================
 >
-> The usage of EXPORT_SYMBOL() is not covered there, so those symbols are also
-> covered by GPLv2.
+> yuriy-newlaptop linux # sh scripts/ver_linux
+> If some fields are empty or look unusual you may have an old version.
+> Compare to the current minimal requirements in Documentation/Changes.
 >
-> As the usage of a kernel symbol by a proprietary driver is not explicitly
-> listed there as a GPLv2 exception, the only concrete results of this patch is
-> to spread FUD, as EXPORT_SYMBOL might generate some doubts on people that
-> don't read the Kernel's COPYING file.
+> Linux yuriy-newlaptop 3.4.9-gentoo #1 SMP Sat Oct 13 10:01:59 CEST
+> 2012 x86_64 Intel(R) Core(TM) i3 CPU M 380 @ 2.53GHz GenuineIntel
+> GNU/Linux
 >
-> With or without this patch, anyone with intelectual rights in the Kernel may
-> go to court to warrant their rights against the infringing closed source drivers.
-> By not making it explicitly, you're only trying to fool people that using
-> it might be allowed.
+> Gnu C                  4.5.4
+> Gnu make               3.82
+> binutils               2.22
+> util-linux             2.21.2
+> mount                  support
+> module-init-tools      3.16
+> e2fsprogs              1.42
+> Linux C Library        2.15
+> Dynamic linker (ldd)   2.15
+> Procps                 3.2.8
+> Net-tools              1.60_p20110409135728
+> Kbd                    1.15.3wip
+> Sh-utils               8.16
+> wireless-tools         29
+> Modules Loaded         ipv6 acpi_cpufreq i2c_i801 coretemp joydev
+> freq_table battery ac pcspkr microcode mperf processor thermal
+> sha256_generic libiscsi scsi_transport_iscsi tg3 libphy e1000 fuse nfs
+> lockd sunrpc jfs raid10 raid456 async_raid6_recov async_memcpy
+> async_pq async_xor xor async_tx raid6_pq raid1 raid0 dm_snapshot
+> dm_crypt dm_mirror dm_region_hash dm_log dm_mod scsi_wait_scan
+> hid_sunplus hid_sony hid_samsung hid_pl hid_petalynx hid_monterey
+> hid_microsoft hid_logitech hid_gyration hid_ezkey hid_cypress
+> hid_chicony hid_cherry hid_belkin hid_apple hid_a4tech sl811_hcd
+> usbhid ohci_hcd ssb uhci_hcd usb_storage ehci_hcd usbcore usb_common
+> aic94xx libsas qla2xxx megaraid_sas megaraid_mbox megaraid_mm megaraid
+> aacraid sx8 DAC960 cciss 3w_9xxx 3w_xxxx mptsas scsi_transport_sas
+> mptfc scsi_transport_fc scsi_tgt mptspi mptscsih mptbase atp870u
+> dc395x qla1280 imm parport dmx3191d sym53c8xx gdth advansys initio
+> BusLogic arcmsr aic7xxx aic79xx scsi_transport_spi sg pdc_adma
+> sata_inic162x sata_mv ata_piix ahci libahci sata_qstor sata_vsc
+> sata_uli sata_sis sata_sx4 sata_nv sata_via sata_svw sata_sil24
+> sata_sil sata_promise pata_sl82c105 pata_cs5530 pata_cs5520 pata_via
+> pata_jmicron pata_marvell pata_sis pata_netcell pata_sc1200
+> pata_pdc202xx_old pata_triflex pata_atiixp pata_opti pata_amd pata_ali
+> pata_it8213 pata_pcmcia pcmcia pcmcia_core pata_ns87415 pata_ns87410
+> pata_serverworks pata_artop pata_it821x pata_optidma pata_hpt3x2n
+> pata_hpt3x3 pata_hpt37x pata_hpt366 pata_cmd64x pata_efar pata_rz1000
+> pata_sil680 pata_radisys pata_pdc2027x pata_mpiix libata
+>
+> =================================
+>
+>   My current kernel configuration is attached to this mail. What I
+> tried to do, was to enable the Ali Corp webcam (m5602) driver using
+> menuconfig as follows:
+>
+>   Device Drivers --->
+>     <*> Multimedia Support --->
+>       <*> Video For Linux (NEW)
+>       [*] Video capture adapters (NEW) --->
+>         [*] V4L USB devices (NEW) --->
+>           <*> GSPCA based webcams (NEW) --->
+>             <*> Ali USB m5602 Camera Driver
+>
 
-Maybe a dumb question (I'm a programmer, not a lawyer), but does it
-change anything if we make the APIs related to *exporting* a dmabuf as
-EXPORT_SYMBOL() and keep the APIs related to *importing* as
-EXPORT_SYMBOL_GPL().  This at least avoids the non-GPL kernel module
-from calling in to other driver code, while still allowing the non-GPL
-driver to export a buffer that GPL drivers could use.
+I'm confused, your attached kernel config does not enable MEDIA_SUPPORT.
+You should attach the problematic config.
 
-BR,
--R
-
->> BTW, we should consider changing the control framework API to EXPORT_SYMBOL_GPL.
->
-> Agreed.
->
->> The number of contributors to v4l2-ctrls.c is very limited, and I have no
->> problem moving that to GPL. For me dmabuf is the rare exception where I prefer
->> EXPORT_SYMBOL to prevent the worse evil of forcing vendors to create incompatible
->> APIs. It's a sad but true that many GPU drivers are still closed source,
->> particularly in the embedded world for which dmabuf was primarily designed.
->
-> My understanding is that even the creation of incompatible Kernel API
-> is a presumed GPL violation, as it is an attempt to circumvent the license.
->
-> Basically, if vendors want to work with closed source, there are other options
-> in the market. But if they want to work with Linux, they should be contributing
-> upstream, instead of doing proprietary blobs.
->
-> Regards,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    Ezequiel
