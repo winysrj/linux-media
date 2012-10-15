@@ -1,24 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:35505 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753742Ab2J3O3M (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:53789 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752702Ab2JOLjv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Oct 2012 10:29:12 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so229509wgb.1
-        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 07:29:11 -0700 (PDT)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, fabio.estevam@freescale.com
-Subject: [PATCH v2 0/4] media: mx2_camera: Remove i.mx25 and clean up.
-Date: Tue, 30 Oct 2012 15:28:58 +0100
-Message-Id: <1351607342-18030-1-git-send-email-javier.martin@vista-silicon.com>
+	Mon, 15 Oct 2012 07:39:51 -0400
+Date: Mon, 15 Oct 2012 13:39:47 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: media-workshop@linuxtv.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [ANNOUNCE] media workshop in November
+In-Reply-To: <50597E1F.2010503@redhat.com>
+Message-ID: <Pine.LNX.4.64.1210151339120.19333@axis700.grange>
+References: <50597E1F.2010503@redhat.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changes since v1:
- - Remove i.MX25 support in the Kconfig file too in patch 1.
+Hi Mauro
 
-[PATCH v2 1/4] media: mx2_camera: Remove i.mx25 support.
-[PATCH v2 2/4] media: mx2_camera: Add image size HW limits.
-[PATCH v2 3/4] media: mx2_camera: Remove 'buf_cleanup' callback.
-[PATCH v2 4/4] media: mx2_camera: Remove buffer states.
+On Wed, 19 Sep 2012, Mauro Carvalho Chehab wrote:
+
+> Dear developers,
+> 
+> We're feeling the need for one more media workshop this year.
+> 
+> As there will be already several developers going to LinuxCon Europe and
+> Embedded Linux Conference Europe, we'll be co-locating the workshop together
+> with those two events.
+> 
+> As there will be several developers speaking about the media subsystem at
+> both LinuxCon and ELCE, we decided to take just one day (September, 8th)
+> for the media workshop (while we expect that we'll likely have some other
+> discussions during the week).
+> 
+> In order to finish the arrangements, I need to know who will be attending,
+> and also we need to receive the theme proposals. Please estimate how long
+> do you think that it would be needed for the proposed theme presentation
+> and discussions.
+> 
+> I have a theme proposal already:
+> 
+> 	How to improve the patch submission workflow for media patches - 2 hours.
+> 
+> So, please confirm your intention to be there and propose the themes of
+> your interests to media-workshop@linuxtv.org mailing list.
+
+Sorry for a late reply, I'll be attending too.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
