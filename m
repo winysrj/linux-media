@@ -1,53 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:35995 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934461Ab2JXHr2 (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:44576 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751002Ab2JOJtt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Oct 2012 03:47:28 -0400
-Received: by mail-we0-f174.google.com with SMTP id t9so105417wey.19
-        for <linux-media@vger.kernel.org>; Wed, 24 Oct 2012 00:47:27 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAOMZO5BpJAEdwKRVE47D+7wggLsvCXtPcv272UPYsZV6v3vKMg@mail.gmail.com>
-References: <1349791352-9829-1-git-send-email-fabio.estevam@freescale.com>
-	<Pine.LNX.4.64.1210222301100.32591@axis700.grange>
-	<CAOMZO5BpJAEdwKRVE47D+7wggLsvCXtPcv272UPYsZV6v3vKMg@mail.gmail.com>
-Date: Wed, 24 Oct 2012 09:47:27 +0200
-Message-ID: <CACKLOr355VFgxPGUXwkyFHxW95p7JaF=wdhF1FYsQdM-37d7ng@mail.gmail.com>
-Subject: Re: [PATCH v3 2/2] [media]: mx2_camera: Fix regression caused by
- clock conversion
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	mchehab@infradead.org, kernel@pengutronix.de, gcembed@gmail.com,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux@arm.linux.org.uk
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 15 Oct 2012 05:49:49 -0400
+From: Ritesh Kumar Solanki <r.solanki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Cc: mchehab@infradead.org, s.nawrocki@samsung.com,
+	kyungmin.park@samsung.com
+Subject: [PATCH] [media] s5p-csis: Added RAW data format as the supported
+ format.
+Date: Mon, 15 Oct 2012 15:18:03 +0530
+Message-id: <1350294483-7417-1-git-send-email-r.solanki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23 October 2012 00:17, Fabio Estevam <festevam@gmail.com> wrote:
-> Hi Guennadi
->
-> On Mon, Oct 22, 2012 at 7:07 PM, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
->> ? I don't find a clock named "per" and associated with "mx2-camera.0" in
->> arch/arm/mach-imx/clk-imx27.c. I only find it in clk-imx25.c. Does this
->> mean, that this your patch is for i.MX25? But you're saying it's for
->> i.MX27. Confused...
->
-> I provide this mx27 clock in the first patch of the series:
-> http://patchwork.linuxtv.org/patch/14915/
+csis can support jpeg, yuv and raw data format.
 
-Yes, I made the same mistake.
+Signed-off-by: Ritesh Kumar Solanki <r.solanki@samsung.com>
+---
+ drivers/media/platform/s5p-fimc/mipi-csis.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-
-
+diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.c b/drivers/media/platform/s5p-fimc/mipi-csis.c
+index 2f73d9e..0205ae4 100644
+--- a/drivers/media/platform/s5p-fimc/mipi-csis.c
++++ b/drivers/media/platform/s5p-fimc/mipi-csis.c
+@@ -145,6 +145,10 @@ static const struct csis_pix_format s5pcsis_formats[] = {
+ 		.code = V4L2_MBUS_FMT_JPEG_1X8,
+ 		.fmt_reg = S5PCSIS_CFG_FMT_USER(1),
+ 		.data_alignment = 32,
++	}, {
++		.code = V4L2_MBUS_FMT_SGRBG10_1X10,
++		.fmt_reg = S5PCSIS_CFG_FMT_RAW10,
++		.data_alignment = 24,
+ 	},
+ };
+ 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.2.3
+
