@@ -1,30 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:58429 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750996Ab2JTJ5Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Oct 2012 05:57:24 -0400
-Received: by mail-ea0-f174.google.com with SMTP id c13so361470eaa.19
-        for <linux-media@vger.kernel.org>; Sat, 20 Oct 2012 02:57:23 -0700 (PDT)
-Message-ID: <50827580.9020302@gmail.com>
-Date: Sat, 20 Oct 2012 11:57:20 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:40833 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752602Ab2JOHRl convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Oct 2012 03:17:41 -0400
+From: Albert Wang <twang13@marvell.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Jonathan Corbet <corbet@lwn.net>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Date: Mon, 15 Oct 2012 00:15:02 -0700
+Subject: RE: [PATCH 2/4] [media] marvell-ccic: core: add soc camera support
+ on marvell-ccic mcam-core
+Message-ID: <477F20668A386D41ADCC57781B1F7043083B80D9BC@SC-VEXCH1.marvell.com>
+References: <1348840040-21390-1-git-send-email-twang13@marvell.com>
+ <20120929134041.343c3d56@hpe.lwn.net>
+ <Pine.LNX.4.64.1209300128020.20390@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1209300128020.20390@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-CC: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	patches@linaro.org
-Subject: Re: [PATCH 8/8] [media] s5p-fimc: Make 'fimc_pipeline_s_stream' function
- static
-References: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org> <1350472311-9748-8-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1350472311-9748-8-git-send-email-sachin.kamat@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/17/2012 01:11 PM, Sachin Kamat wrote:
-> Fixes the following sparse warning:
-> drivers/media/platform/s5p-fimc/fimc-mdevice.c:216:5: warning:
-> symbol 'fimc_pipeline_s_stream' was not declared. Should it be static?
+Hi, Guennadi
 
-Thanks Sachin, I've add it to my tree.
+>-----Original Message-----
+>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+>Sent: Sunday, 30 September, 2012 07:31
+>To: Jonathan Corbet
+>Cc: Albert Wang; linux-media@vger.kernel.org; Libin Yang
+>Subject: Re: [PATCH 2/4] [media] marvell-ccic: core: add soc camera support on
+>marvell-ccic mcam-core
+>
+>On Sat, 29 Sep 2012, Jonathan Corbet wrote:
+>
+>> On Fri, 28 Sep 2012 21:47:20 +0800
+>> Albert Wang <twang13@marvell.com> wrote:
+>>
+>> > This patch adds the support of Soc Camera on marvell-ccic mcam-core.
+>> > The Soc Camera mode does not compatible with current mode.
+>> > Only one mode can be used at one time.
+>> >
+>> > To use Soc Camera, CONFIG_VIDEO_MMP_SOC_CAMERA should be defined.
+>> > What's more, the platform driver should support Soc camera at the same time.
+>> >
+>> > Also add MIPI interface and dual CCICs support in Soc Camera mode.
+>>
+>> I'm glad this work is being done, but I have some high-level grumbles
+>> to start with.
+>>
+>> This patch is too big, and does several things. I think there needs to
+>> be one to add SOC support (but see below), one to add planar formats,
+>> one to add MIPI, one for the second CCIC, etc. That will make them all
+>> easier to review.
+>>
+>> The SOC camera stuff could maybe use a little more thought. Why does
+>> this driver *need* to be a SOC camera driver?
+>
+>It probably doesn't, but if the author wishes to do so - we can try to do this cleanly.
+>
+>> If that is truly
+>> necessary (or sufficiently beneficial), can we get to the point where
+>> that's the only mode?  I really dislike the two modes; we're
+>> essentially perpetuating the two-drivers concept in a #ifdef'd form;
+>> it would be good not to do that.
+>>
+>> If there is truly some reason why both modes need to exist, can we
+>> arrange things so that the core doesn't know the difference?  I'd like
+>> to see no new ifdefs there if possible, it already has way too many.
+>
+>A strong +1. Ideally we should identify common code, add soc-camera mode as a
+>separate file and re-use the common stuff.
+>
+
+Now we are working on splitting the patches to smaller ones as you have suggested.
+
+But today when we git pull the tree to 3.7.rc1, we found that all soc_camera drivers
+(include soc_camera.c) had been moved into: soc_camera/
+
+So if that means our soc_camera support patches based on marvell-ccic are not reasonable?
+
+But if we used another separate file to support soc_camera for marvell-ccic in soc_camera directory,
+I think we also back to the status months ago when I submitted the mmp_camera patch.
+
+Like you have said, we can make patch to identify the common code of marvell-ccic firstly,
+then re-use the common stuff in the separate file in soc_camera directory.
+But we think maybe it looks a little weird and also tough.
+That means we must use some stuff in another parallel directory.
+
+So do you have any constructive suggestion for this knotty situation?
+
+Thank you very much!
+
+
+Thanks
+Albert Wang
+86-21-61092656
+
+>> That, I think, is how I'd like to go toward a cleaner, more
+>> reviewable, more maintainable solution.  Make sense?
+>
+>Definitely!
+>
+>Thanks
+>Guennadi
+>
+>> Thanks,
+>>
+>> jon
+>>
+>
+>---
+>Guennadi Liakhovetski, Ph.D.
+>Freelance Open-Source Software Developer http://www.open-technology.de/
