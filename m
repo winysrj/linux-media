@@ -1,192 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:56317 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935051Ab2JYJIV (ORCPT
+Received: from eos.fwall.u-szeged.hu ([160.114.120.248]:39384 "EHLO
+	eos.fwall.u-szeged.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932079Ab2JOWMP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Oct 2012 05:08:21 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MCF00I21YPMRNX0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 25 Oct 2012 18:08:19 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MCF00DIBYMOU750@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 25 Oct 2012 18:08:19 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	ch.naveen@samsung.com, arun.kk@samsung.com, joshi@samsung.com
-Subject: [PATCH] s5p-mfc: Add device tree support
-Date: Thu, 25 Oct 2012 14:54:14 +0530
-Message-id: <1351157054-19428-2-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1351157054-19428-1-git-send-email-arun.kk@samsung.com>
-References: <1351157054-19428-1-git-send-email-arun.kk@samsung.com>
+	Mon, 15 Oct 2012 18:12:15 -0400
+Received: from [192.168.105.4] (helo=esym.fwall.u-szeged.hu)
+	by eos.fwall.u-szeged.hu with esmtp (Exim 4.63)
+	(envelope-from <zarvai@inf.u-szeged.hu>)
+	id 1TNsV5-0006Km-Lz
+	for linux-media@vger.kernel.org; Mon, 15 Oct 2012 23:47:03 +0200
+Received: from mail.inf.u-szeged.hu ([160.114.37.227])
+	by eos.fwall.u-szeged.hu with esmtp (Exim 4.63)
+	(envelope-from <zarvai@inf.u-szeged.hu>)
+	id 1TNsV5-0006Kf-Gw
+	for linux-media@vger.kernel.org; Mon, 15 Oct 2012 23:47:03 +0200
+Received: from [10.20.0.225] (sedvpn.inf.u-szeged.hu [160.114.36.233])
+	by mail.inf.u-szeged.hu (Postfix) with ESMTP id 3CC1A16A0146
+	for <linux-media@vger.kernel.org>; Mon, 15 Oct 2012 23:47:03 +0200 (CEST)
+Message-ID: <507C844C.7090001@inf.u-szeged.hu>
+Date: Mon, 15 Oct 2012 23:46:52 +0200
+From: =?ISO-8859-2?Q?=C1rvai_Zolt=E1n?= <zarvai@inf.u-szeged.hu>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: media_build smiapp-core.c implicit-function-declaration
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch will add the device tree support for MFC driver.
+Hi all,
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c |  100 +++++++++++++++++++++++++-----
- 1 files changed, 84 insertions(+), 16 deletions(-)
+In the last few weeks I got errors when I tried to build media drivers 
+on the raspberry pi "raspbian wheezy".
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index d5182d6..4432a82 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -21,6 +21,7 @@
- #include <linux/videodev2.h>
- #include <media/v4l2-event.h>
- #include <linux/workqueue.h>
-+#include <linux/of.h>
- #include <media/videobuf2-core.h>
- #include "s5p_mfc_common.h"
- #include "s5p_mfc_ctrl.h"
-@@ -1028,6 +1029,8 @@ static int match_child(struct device *dev, void *data)
- 	return !strcmp(dev_name(dev), (char *)data);
- }
- 
-+static void *mfc_get_drv_data(struct platform_device *pdev);
-+
- /* MFC probe function */
- static int s5p_mfc_probe(struct platform_device *pdev)
- {
-@@ -1035,6 +1038,7 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 	struct video_device *vfd;
- 	struct resource *res;
- 	int ret;
-+	unsigned int mem_info[2];
- 
- 	pr_debug("%s++\n", __func__);
- 	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
-@@ -1051,8 +1055,7 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
--	dev->variant = (struct s5p_mfc_variant *)
--		platform_get_device_id(pdev)->driver_data;
-+	dev->variant = mfc_get_drv_data(pdev);
- 
- 	ret = s5p_mfc_init_pm(dev);
- 	if (ret < 0) {
-@@ -1082,20 +1085,55 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 		goto err_res;
- 	}
- 
--	dev->mem_dev_l = device_find_child(&dev->plat_dev->dev, "s5p-mfc-l",
--					   match_child);
--	if (!dev->mem_dev_l) {
--		mfc_err("Mem child (L) device get failed\n");
--		ret = -ENODEV;
--		goto err_res;
--	}
-+	if (pdev->dev.of_node) {
-+		dev->mem_dev_l = kzalloc(sizeof(struct device), GFP_KERNEL);
-+		if (!dev->mem_dev_l) {
-+			mfc_err("Not enough memory\n");
-+			ret = -ENOMEM;
-+			goto err_res;
-+		}
-+		of_property_read_u32_array(pdev->dev.of_node, "samsung,mfc-l",
-+				mem_info, 2);
-+		if (dma_declare_coherent_memory(dev->mem_dev_l, mem_info[0],
-+				mem_info[0], mem_info[1],
-+				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE) == 0) {
-+			mfc_err("Failed to declare coherent memory for\n"
-+					"MFC device\n");
-+			ret = -ENOMEM;
-+			goto err_res;
-+		}
- 
--	dev->mem_dev_r = device_find_child(&dev->plat_dev->dev, "s5p-mfc-r",
--					   match_child);
--	if (!dev->mem_dev_r) {
--		mfc_err("Mem child (R) device get failed\n");
--		ret = -ENODEV;
--		goto err_res;
-+		dev->mem_dev_r = kzalloc(sizeof(struct device), GFP_KERNEL);
-+		if (!dev->mem_dev_r) {
-+			mfc_err("Not enough memory\n");
-+			ret = -ENOMEM;
-+			goto err_res;
-+		}
-+		of_property_read_u32_array(pdev->dev.of_node, "samsung,mfc-r",
-+				mem_info, 2);
-+		if (dma_declare_coherent_memory(dev->mem_dev_r, mem_info[0],
-+				mem_info[0], mem_info[1],
-+				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE) == 0) {
-+			pr_err("Failed to declare coherent memory for\n"
-+					"MFC device\n");
-+			ret = -ENOMEM;
-+			goto err_res;
-+		}
-+	} else {
-+		dev->mem_dev_l = device_find_child(&dev->plat_dev->dev,
-+				"s5p-mfc-l", match_child);
-+		if (!dev->mem_dev_l) {
-+			mfc_err("Mem child (L) device get failed\n");
-+			ret = -ENODEV;
-+			goto err_res;
-+		}
-+		dev->mem_dev_r = device_find_child(&dev->plat_dev->dev,
-+				"s5p-mfc-r", match_child);
-+		if (!dev->mem_dev_r) {
-+			mfc_err("Mem child (R) device get failed\n");
-+			ret = -ENODEV;
-+			goto err_res;
-+		}
- 	}
- 
- 	dev->alloc_ctx[0] = vb2_dma_contig_init_ctx(dev->mem_dev_l);
-@@ -1374,6 +1412,35 @@ static struct platform_device_id mfc_driver_ids[] = {
- };
- MODULE_DEVICE_TABLE(platform, mfc_driver_ids);
- 
-+static const struct of_device_id exynos_mfc_match[] = {
-+	{
-+		.compatible = "samsung,mfc-v5",
-+		.data = &mfc_drvdata_v5,
-+	}, {
-+		.compatible = "samsung,mfc-v6",
-+		.data = &mfc_drvdata_v6,
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, exynos_mfc_match);
-+
-+static void *mfc_get_drv_data(struct platform_device *pdev)
-+{
-+	struct s5p_mfc_variant *driver_data = NULL;
-+
-+	if (pdev->dev.of_node) {
-+		const struct of_device_id *match;
-+		match = of_match_node(of_match_ptr(exynos_mfc_match),
-+				pdev->dev.of_node);
-+		if (match)
-+			driver_data = (struct s5p_mfc_variant *)match->data;
-+	} else {
-+		driver_data = (struct s5p_mfc_variant *)
-+			platform_get_device_id(pdev)->driver_data;
-+	}
-+	return driver_data;
-+}
-+
- static struct platform_driver s5p_mfc_driver = {
- 	.probe		= s5p_mfc_probe,
- 	.remove		= __devexit_p(s5p_mfc_remove),
-@@ -1381,7 +1448,8 @@ static struct platform_driver s5p_mfc_driver = {
- 	.driver	= {
- 		.name	= S5P_MFC_NAME,
- 		.owner	= THIS_MODULE,
--		.pm	= &s5p_mfc_pm_ops
-+		.pm	= &s5p_mfc_pm_ops,
-+		.of_match_table = exynos_mfc_match,
- 	},
- };
- 
--- 
-1.7.0.4
+git clone git://linuxtv.org/media_build.git
+cd media_build
+./build
 
+Error message:
+
+   CC [M] /home/pi/media_build/v4l/smiapp-core.o
+/home/pi/media_build/v4l/smiapp-core.c: In function 'smiapp_registered':
+/home/pi/media_build/v4l/smiapp-core.c:2377:2: error: implicit 
+declaration of function 'devm_regulator_get' 
+[-Werror=implicit-function-declaration]
+/home/pi/media_build/v4l/smiapp-core.c:2377:15: warning: assignment 
+makes pointer from integer without a cast [enabled by default]
+/home/pi/media_build/v4l/smiapp-core.c:2384:3: error: implicit 
+declaration of function 'devm_clk_get' 
+[-Werror=implicit-function-declaration]
+/home/pi/media_build/v4l/smiapp-core.c:2384:19: warning: assignment 
+makes pointer from integer without a cast [enabled by default]
+cc1: some warnings being treated as errors
+make[3]: *** [/home/pi/media_build/v4l/smiapp-core.o] Error 1
+make[2]: *** [_module_/home/pi/media_build/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-source-3.2.27+'
+
+Just a guess, after searching for similar error messages I found 
+something here:
+https://patchwork.kernel.org/patch/1337011/
+Maybe some backport patch is missing from the current media_build.
+
+Linux revision (3.2.27+):
+https://github.com/raspberrypi/linux/tree/807223a562933b1906c70f1c5249db7635dd4574
+
+Please, take a look at this issue.
+
+Regards,
+Zoltan Arvai
