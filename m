@@ -1,56 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:33835 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751075Ab2JIXue (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 19:50:34 -0400
-Date: Tue, 9 Oct 2012 20:50:27 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for
- i2c_msg initialization
-Message-ID: <20121009205027.32835fd1@infradead.org>
-In-Reply-To: <alpine.DEB.2.02.1210081028340.1989@hadrien>
-References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
-	<1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr>
-	<5071AEF3.6080108@bfs.de>
-	<alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6>
-	<5071B834.1010200@bfs.de>
-	<alpine.DEB.2.02.1210071917040.2745@localhost6.localdomain6>
-	<1349633780.15802.8.camel@joe-AO722>
-	<alpine.DEB.2.02.1210072053550.2745@localhost6.localdomain6>
-	<1349645970.15802.12.camel@joe-AO722>
-	<alpine.DEB.2.02.1210072342460.2745@localhost6.localdomain6>
-	<1349646718.15802.16.camel@joe-AO722>
-	<20121007225639.364a41b4@infradead.org>
-	<50723661.6040107@gmail.com>
-	<alpine.DEB.2.02.1210081028340.1989@hadrien>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mxout-07.mxes.net ([216.86.168.182]:16662 "EHLO
+	mxout-07.mxes.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751880Ab2JOSyE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Oct 2012 14:54:04 -0400
+Message-ID: <507C5BC4.7060700@cybermato.com>
+Date: Mon, 15 Oct 2012 11:53:56 -0700
+From: Chris MacGregor <chris@cybermato.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media@vger.kernel.org, hverkuil@xs4all.nl, remi@remlab.net,
+	daniel-gl@gmx.net, sylwester.nawrocki@gmail.com
+Subject: Re: [RFC] Timestamps and V4L2
+References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <20121015160549.GE21261@valkosipuli.retiisi.org.uk> <2316067.OFTCziv4Z5@avalon>
+In-Reply-To: <2316067.OFTCziv4Z5@avalon>
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Julia,
+Hi, all.
 
-Em Mon, 8 Oct 2012 10:31:33 +0200 (CEST)
-Julia Lawall <julia.lawall@lip6.fr> escreveu:
+On 10/15/2012 11:45 AM, Laurent Pinchart wrote:
+> Hi Sakari,
+>
+> On Monday 15 October 2012 19:05:49 Sakari Ailus wrote:
+>> Hi all,
+>>
+>> As a summar from the discussion, I think we have reached the following
+>> conclusion. Please say if you agree or disagree with what's below. :-)
+>>
+>> - The drivers will be moved to use monotonic timestamps for video buffers.
+>> - The user space will learn about the type of the timestamp through buffer
+>> flags.
+>> - The timestamp source may be made selectable in the future, but buffer
+>> flags won't be the means for this, primarily since they're not available on
+>> subdevs. Possible way to do this include a new V4L2 control or a new IOCTL.
+> That's my understanding as well. For the concept,
+>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> I found only 15 uses of I2C_MSG_OP, out of 653 uses of one of the three
-> macros.  Since I2C_MSG_OP has the complete set of flags, I think it should
-> be OK?
-> 
-> One of the uses, in drivers/media/i2c/adv7604.c, is as follows:
-> 
->        struct i2c_msg msg[2] = { { client->addr, 0, 1, msgbuf0 },
->                                  { client->addr, 0 | I2C_M_RD, len, msgbuf1 }
-> 
-> I'm not sure what was intended, but I guess the second structure is
-> supposed to only do a read?
+I wasn't able to participate in the discussion that led to this, but I'd 
+like to suggest and request now that an explicit requirement (of 
+whatever scheme is selected) be that a userspace app have a reasonable 
+and straightforward way to translate the timestamps to real wall-clock 
+time, ideally with enough precision to allow synchronization of cameras 
+across multiple computers.
 
-As we're discussing the macro names, etc, I'll just mark this patch series
-as RFC, at patchwork, removing it from my pending queue. Feel free to 
-re-submit it later, after some agreement got reached.
+In the systems I work on, for instance, we are recording real-world 
+biological processes, some of which vary based on the time of day, and 
+it is important to know when a given frame was captured so that 
+information can be stored with the raw frame and the data derived from 
+it. For many such purposes, an accuracy measured in multiple seconds (or 
+even minutes) is fine.
 
-Thanks,
-Mauro
+However, when we are using multiple cameras on multiple computers (e.g., 
+two or more BeagleBoard xM's, each with a camera connected), we would 
+want to synchronize with an accuracy of less than 1 frame time - e.g. 10 
+ms or less.
+
+Thanks very much,
+Chris MacGregor
