@@ -1,63 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:15092 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756271Ab2JRPvb (ORCPT
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:47511 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751327Ab2JOXOc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Oct 2012 11:51:31 -0400
-Message-id: <50802580.7090809@samsung.com>
-Date: Thu, 18 Oct 2012 17:51:28 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: Peter Senna Tschudin <peter.senna@gmail.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH V2] drivers/media/v4l2-core/videobuf2-core.c: fix error
- return code
-References: <5075AB4F.3030709@samsung.com>
- <1350571624-4666-1-git-send-email-peter.senna@gmail.com>
- <CALF0-+WPZ7b83Mg=b1KirHt39QE4fuO4MDGhNpQNxMY09O87HA@mail.gmail.com>
-In-reply-to: <CALF0-+WPZ7b83Mg=b1KirHt39QE4fuO4MDGhNpQNxMY09O87HA@mail.gmail.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Mon, 15 Oct 2012 19:14:32 -0400
+MIME-Version: 1.0
+In-Reply-To: <alpine.LNX.2.00.1210160051100.1682@swampdragon.chaosbits.net>
+References: <alpine.LNX.2.00.0811091803320.23782@swampdragon.chaosbits.net>
+	<CALF0-+Vtmwu9rCc9BYiDx2O2GQWezK40BYR2LP_ve2YjCt=Afg@mail.gmail.com>
+	<alpine.LNX.2.00.1210152025300.1038@swampdragon.chaosbits.net>
+	<alpine.LNX.2.00.1210160051100.1682@swampdragon.chaosbits.net>
+Date: Mon, 15 Oct 2012 20:14:30 -0300
+Message-ID: <CALF0-+UuB0y_8+SLE05Sn997HDcP5u=AJsoGvjmfSUBB__DkhQ@mail.gmail.com>
+Subject: Re: [PATCH] [media] stk1160: Check return value of stk1160_read_reg()
+ in stk1160_i2c_read_reg()
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Jesper Juhl <jj@chaosbits.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/18/2012 05:28 PM, Ezequiel Garcia wrote:
-> On Thu, Oct 18, 2012 at 11:47 AM, Peter Senna Tschudin
-> <peter.senna@gmail.com> wrote:
->> This patch fixes a NULL pointer dereference bug at __vb2_init_fileio().
->> The NULL pointer deference happens at videobuf2-core.c:
+On Mon, Oct 15, 2012 at 7:52 PM, Jesper Juhl <jj@chaosbits.net> wrote:
+> On Mon, 15 Oct 2012, Jesper Juhl wrote:
+>
+>> On Sat, 13 Oct 2012, Ezequiel Garcia wrote:
 >>
->> static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_t count,
->>                 loff_t *ppos, int nonblock, int read)
->> {
->> ...
->>         if (!q->fileio) {
->>                 ret = __vb2_init_fileio(q, read);
->>                 dprintk(3, "file io: vb2_init_fileio result: %d\n", ret);
->>                 if (ret)
->>                         return ret;
->>         }
->>         fileio = q->fileio; // NULL pointer deference here
->> ...
->> }
+>> > On Sun, Nov 9, 2008 at 2:04 PM, Jesper Juhl <jj@chaosbits.net> wrote:
+>> > > There are two checks for 'rc' being less than zero with no change to
+>> > > 'rc' between the two, so the second is just dead code - remove it.
+>> > >
+>> > > Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+>> > > ---
+>> > >  drivers/media/usb/stk1160/stk1160-i2c.c |    3 ---
+>> > >  1 files changed, 0 insertions(+), 3 deletions(-)
+>> > >
+>> > > diff --git a/drivers/media/usb/stk1160/stk1160-i2c.c b/drivers/media/usb/stk1160/stk1160-i2c.c
+>> > > index 176ac93..035cf8c 100644
+>> > > --- a/drivers/media/usb/stk1160/stk1160-i2c.c
+>> > > +++ b/drivers/media/usb/stk1160/stk1160-i2c.c
+>> > > @@ -117,9 +117,6 @@ static int stk1160_i2c_read_reg(struct stk1160 *dev, u8 addr,
+>> > >                 return rc;
+>> > >
+>> > >         stk1160_read_reg(dev, STK1160_SBUSR_RD, value);
+>> > > -       if (rc < 0)
+>> > > -               return rc;
+>> > > -
+>> > >         return 0;
+>> > >  }
+>> > >
+>> >
+>> > Thanks for doing this. Wouldn't you like to save stk1160_read_reg
+>> > return code to rc, instead of this?
+>> >
+>> Ahh yes, I guess I was too quick to just assume it was dead code.
+>> Looking at it again; what you suggest must have been the original
+>> intention. I'll cook up a new patch.
 >>
->> It was tested with vivi driver and qv4l2 for selecting read() as capture method.
->> The OOPS happened when I've artificially forced the error by commenting the line:
->>         if (fileio->bufs[i].vaddr == NULL)
+>> Thanks.
 >>
-> 
-> ... but if you manually changed the original source, how
-> can this be a real BUG?
-> 
-> Or am I missing something here ?
+> From: Jesper Juhl <jj@chaosbits.net>
+> Date: Sat, 13 Oct 2012 00:16:37 +0200
+> Subject: [PATCH] [media] stk1160: Check return value of stk1160_read_reg() in stk1160_i2c_read_reg()
+>
+> Currently there are two checks for 'rc' being less than zero with no
+> change to 'rc' between the two, so the second is just dead code.
+> The intention seems to have been to assign the return value of
+> 'stk1160_read_reg()' to 'rc' before the (currently dead) second check
+> and then test /that/. This patch does that.
+>
 
-He just commented out this line to trigger the bug, i.e. to simulate
-a situation where fileio->bufs[i].vaddr is NULL. Which is now not
-handled properly.
 
---
+This is an overly complicated explanation for such a small patch.
+Can you try to simplify it?
+
+
+> Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+> ---
+>  drivers/media/usb/stk1160/stk1160-i2c.c |    3 +--
+>  1 files changed, 1 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/usb/stk1160/stk1160-i2c.c b/drivers/media/usb/stk1160/stk1160-i2c.c
+> index 176ac93..a2370e4 100644
+> --- a/drivers/media/usb/stk1160/stk1160-i2c.c
+> +++ b/drivers/media/usb/stk1160/stk1160-i2c.c
+> @@ -116,10 +116,9 @@ static int stk1160_i2c_read_reg(struct stk1160 *dev, u8 addr,
+>         if (rc < 0)
+>                 return rc;
+>
+> -       stk1160_read_reg(dev, STK1160_SBUSR_RD, value);
+> +       rc = stk1160_read_reg(dev, STK1160_SBUSR_RD, value);
+>         if (rc < 0)
+>                 return rc;
+
+Why are you removing this line?
+
+
+> -
+>         return 0;
+>  }
+>
+
+
 Thanks,
-Sylwester
+
+    Ezequiel
