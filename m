@@ -1,179 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52607 "EHLO mx1.redhat.com"
+Received: from moh2-ve1.go2.pl ([193.17.41.186]:47396 "EHLO moh2-ve1.go2.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755963Ab2JQNHU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 09:07:20 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9HD7K8K027971
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 17 Oct 2012 09:07:20 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	David Howells <dhowells@redhat.com>
-Subject: [PATCH] DocBook/media/Makefile: Fix build due to uapi breakage
-Date: Wed, 17 Oct 2012 10:07:17 -0300
-Message-Id: <1350479237-30430-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	id S1752252Ab2JPJIz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Oct 2012 05:08:55 -0400
+Received: from moh2-ve1.go2.pl (unknown [10.0.0.186])
+	by moh2-ve1.go2.pl (Postfix) with ESMTP id EEC4B44C29F
+	for <linux-media@vger.kernel.org>; Tue, 16 Oct 2012 11:08:44 +0200 (CEST)
+Received: from unknown (unknown [10.0.0.142])
+	by moh2-ve1.go2.pl (Postfix) with SMTP
+	for <linux-media@vger.kernel.org>; Tue, 16 Oct 2012 11:08:44 +0200 (CEST)
+Message-ID: <507D241B.40101@tlen.pl>
+Date: Tue, 16 Oct 2012 11:08:43 +0200
+From: Wojciech Myrda <vojcek@tlen.pl>
+MIME-Version: 1.0
+To: Gregor Jasny <gjasny@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [segfault] running ir-keytable with v4l-utils 0.8.9
+References: <507B1879.9020100@tlen.pl> <507D0ACB.6090802@googlemail.com>
+In-Reply-To: <507D0ACB.6090802@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The uapi changeset forgot to fix the header locations, needed
-for the DocBook specs. Fix it.
+W dniu 16.10.2012 09:20, Gregor Jasny pisze:
+> Hello,
+>
+> On 10/14/12 9:54 PM, Wojciech Myrda wrote:
+>> On my system I have just installed using bumped Gentoo ebuilds v4l-utils
+>> package
+>>
+>> [ebuild   R    ] media-libs/libv4l-0.8.9::bigvo  0 kB
+>> [ebuild   R    ] media-tv/v4l-utils-0.8.9::bigvo  USE="-qt4" 0 kB
+>>
+>> ebuilds used for bumbing to version 0.8.9:
+>> http://gentoo-portage.com/media-libs/libv4l/libv4l-0.8.8
+>> http://gentoo-portage.com/media-tv/v4l-utils/v4l-utils-0.8.8-r1
+>>
+>> However I experienced a segfault trying to run this command:
+>> ir-keytable --protocol=rc-6 --device
+>> /dev/input/by-id/usb-15c2_0038-event-if00
+>
+> There seems to be some problems with options or file parsing. Valgrind
+> is complaining, too. I'll have a look later.
+>
+> Is this segfault a regression over an older v4l-utils version?
+>
+> Thanks,
+> Gregor
+>
 
-Cc: David Howells <dhowells@redhat.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- Documentation/DocBook/media/Makefile | 76 ++++++++++++++++++------------------
- 1 file changed, 38 insertions(+), 38 deletions(-)
+I just started using v4l-utils stuff so I wanted to use most recent
+version available, hence I didn't try 0.8.8 previously, but seems
+problem is there as well just with different lines of code appearing
 
-diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
-index 9b7e4c5..f9fd615 100644
---- a/Documentation/DocBook/media/Makefile
-+++ b/Documentation/DocBook/media/Makefile
-@@ -56,15 +56,15 @@ FUNCS = \
- 	write \
- 
- IOCTLS = \
--	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/videodev2.h) \
--	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/audio.h) \
--	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/ca.h) \
--	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/dmx.h) \
--	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/frontend.h) \
--	$(shell perl -ne 'print "$$1 " if /\#define\s+([A-Z][^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/net.h) \
--	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/dvb/video.h) \
--	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/media.h) \
--	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/linux/v4l2-subdev.h) \
-+	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/uapi/linux/videodev2.h) \
-+	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/uapi/linux/dvb/audio.h) \
-+	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/uapi/linux/dvb/ca.h) \
-+	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/uapi/linux/dvb/dmx.h) \
-+	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/uapi/linux/dvb/frontend.h) \
-+	$(shell perl -ne 'print "$$1 " if /\#define\s+([A-Z][^\s]+)\s+_IO/' $(srctree)/include/uapi/linux/dvb/net.h) \
-+	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/uapi/linux/dvb/video.h) \
-+	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/uapi/linux/media.h) \
-+	$(shell perl -ne 'print "$$1 " if /\#define\s+([^\s]+)\s+_IO/' $(srctree)/include/uapi/linux/v4l2-subdev.h) \
- 	VIDIOC_SUBDEV_G_FRAME_INTERVAL \
- 	VIDIOC_SUBDEV_S_FRAME_INTERVAL \
- 	VIDIOC_SUBDEV_ENUM_MBUS_CODE \
-@@ -74,32 +74,32 @@ IOCTLS = \
- 	VIDIOC_SUBDEV_S_SELECTION \
- 
- TYPES = \
--	$(shell perl -ne 'print "$$1 " if /^typedef\s+[^\s]+\s+([^\s]+)\;/' $(srctree)/include/linux/videodev2.h) \
--	$(shell perl -ne 'print "$$1 " if /^}\s+([a-z0-9_]+_t)/' $(srctree)/include/linux/dvb/frontend.h)
-+	$(shell perl -ne 'print "$$1 " if /^typedef\s+[^\s]+\s+([^\s]+)\;/' $(srctree)/include/uapi/linux/videodev2.h) \
-+	$(shell perl -ne 'print "$$1 " if /^}\s+([a-z0-9_]+_t)/' $(srctree)/include/uapi/linux/dvb/frontend.h)
- 
- ENUMS = \
--	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/videodev2.h) \
--	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/audio.h) \
--	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/ca.h) \
--	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/dmx.h) \
--	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/frontend.h) \
--	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/net.h) \
--	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/dvb/video.h) \
--	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/media.h) \
--	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/v4l2-mediabus.h) \
--	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/linux/v4l2-subdev.h)
-+	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/videodev2.h) \
-+	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/dvb/audio.h) \
-+	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/dvb/ca.h) \
-+	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/dvb/dmx.h) \
-+	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/dvb/frontend.h) \
-+	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/dvb/net.h) \
-+	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/dvb/video.h) \
-+	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/media.h) \
-+	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/v4l2-mediabus.h) \
-+	$(shell perl -ne 'print "$$1 " if /^enum\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/v4l2-subdev.h)
- 
- STRUCTS = \
--	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/linux/videodev2.h) \
--	$(shell perl -ne 'print "$$1 " if (/^struct\s+([^\s\{]+)\s*/)' $(srctree)/include/linux/dvb/audio.h) \
--	$(shell perl -ne 'print "$$1 " if (/^struct\s+([^\s]+)\s+/)' $(srctree)/include/linux/dvb/ca.h) \
--	$(shell perl -ne 'print "$$1 " if (/^struct\s+([^\s]+)\s+/)' $(srctree)/include/linux/dvb/dmx.h) \
--	$(shell perl -ne 'print "$$1 " if (!/dtv\_cmds\_h/ && /^struct\s+([^\s]+)\s+/)' $(srctree)/include/linux/dvb/frontend.h) \
--	$(shell perl -ne 'print "$$1 " if (/^struct\s+([A-Z][^\s]+)\s+/)' $(srctree)/include/linux/dvb/net.h) \
--	$(shell perl -ne 'print "$$1 " if (/^struct\s+([^\s]+)\s+/)' $(srctree)/include/linux/dvb/video.h) \
--	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/linux/media.h) \
--	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/linux/v4l2-subdev.h) \
--	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/linux/v4l2-mediabus.h)
-+	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/videodev2.h) \
-+	$(shell perl -ne 'print "$$1 " if (/^struct\s+([^\s\{]+)\s*/)' $(srctree)/include/uapi/linux/dvb/audio.h) \
-+	$(shell perl -ne 'print "$$1 " if (/^struct\s+([^\s]+)\s+/)' $(srctree)/include/uapi/linux/dvb/ca.h) \
-+	$(shell perl -ne 'print "$$1 " if (/^struct\s+([^\s]+)\s+/)' $(srctree)/include/uapi/linux/dvb/dmx.h) \
-+	$(shell perl -ne 'print "$$1 " if (!/dtv\_cmds\_h/ && /^struct\s+([^\s]+)\s+/)' $(srctree)/include/uapi/linux/dvb/frontend.h) \
-+	$(shell perl -ne 'print "$$1 " if (/^struct\s+([A-Z][^\s]+)\s+/)' $(srctree)/include/uapi/linux/dvb/net.h) \
-+	$(shell perl -ne 'print "$$1 " if (/^struct\s+([^\s]+)\s+/)' $(srctree)/include/uapi/linux/dvb/video.h) \
-+	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/media.h) \
-+	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/v4l2-subdev.h) \
-+	$(shell perl -ne 'print "$$1 " if /^struct\s+([^\s]+)\s+/' $(srctree)/include/uapi/linux/v4l2-mediabus.h)
- 
- ERRORS = \
- 	E2BIG \
-@@ -205,7 +205,7 @@ $(MEDIA_OBJ_DIR)/v4l2.xml: $(OBJIMGFILES)
- 	@(ln -sf $(MEDIA_SRC_DIR)/v4l/*xml $(MEDIA_OBJ_DIR)/)
- 	@(ln -sf $(MEDIA_SRC_DIR)/dvb/*xml $(MEDIA_OBJ_DIR)/)
- 
--$(MEDIA_OBJ_DIR)/videodev2.h.xml: $(srctree)/include/linux/videodev2.h $(MEDIA_OBJ_DIR)/v4l2.xml
-+$(MEDIA_OBJ_DIR)/videodev2.h.xml: $(srctree)/include/uapi/linux/videodev2.h $(MEDIA_OBJ_DIR)/v4l2.xml
- 	@$($(quiet)gen_xml)
- 	@(					\
- 	echo "<programlisting>") > $@
-@@ -216,7 +216,7 @@ $(MEDIA_OBJ_DIR)/videodev2.h.xml: $(srctree)/include/linux/videodev2.h $(MEDIA_O
- 	@(					\
- 	echo "</programlisting>") >> $@
- 
--$(MEDIA_OBJ_DIR)/audio.h.xml: $(srctree)/include/linux/dvb/audio.h $(MEDIA_OBJ_DIR)/v4l2.xml
-+$(MEDIA_OBJ_DIR)/audio.h.xml: $(srctree)/include/uapi/linux/dvb/audio.h $(MEDIA_OBJ_DIR)/v4l2.xml
- 	@$($(quiet)gen_xml)
- 	@(					\
- 	echo "<programlisting>") > $@
-@@ -227,7 +227,7 @@ $(MEDIA_OBJ_DIR)/audio.h.xml: $(srctree)/include/linux/dvb/audio.h $(MEDIA_OBJ_D
- 	@(					\
- 	echo "</programlisting>") >> $@
- 
--$(MEDIA_OBJ_DIR)/ca.h.xml: $(srctree)/include/linux/dvb/ca.h $(MEDIA_OBJ_DIR)/v4l2.xml
-+$(MEDIA_OBJ_DIR)/ca.h.xml: $(srctree)/include/uapi/linux/dvb/ca.h $(MEDIA_OBJ_DIR)/v4l2.xml
- 	@$($(quiet)gen_xml)
- 	@(					\
- 	echo "<programlisting>") > $@
-@@ -238,7 +238,7 @@ $(MEDIA_OBJ_DIR)/ca.h.xml: $(srctree)/include/linux/dvb/ca.h $(MEDIA_OBJ_DIR)/v4
- 	@(					\
- 	echo "</programlisting>") >> $@
- 
--$(MEDIA_OBJ_DIR)/dmx.h.xml: $(srctree)/include/linux/dvb/dmx.h $(MEDIA_OBJ_DIR)/v4l2.xml
-+$(MEDIA_OBJ_DIR)/dmx.h.xml: $(srctree)/include/uapi/linux/dvb/dmx.h $(MEDIA_OBJ_DIR)/v4l2.xml
- 	@$($(quiet)gen_xml)
- 	@(					\
- 	echo "<programlisting>") > $@
-@@ -249,7 +249,7 @@ $(MEDIA_OBJ_DIR)/dmx.h.xml: $(srctree)/include/linux/dvb/dmx.h $(MEDIA_OBJ_DIR)/
- 	@(					\
- 	echo "</programlisting>") >> $@
- 
--$(MEDIA_OBJ_DIR)/frontend.h.xml: $(srctree)/include/linux/dvb/frontend.h $(MEDIA_OBJ_DIR)/v4l2.xml
-+$(MEDIA_OBJ_DIR)/frontend.h.xml: $(srctree)/include/uapi/linux/dvb/frontend.h $(MEDIA_OBJ_DIR)/v4l2.xml
- 	@$($(quiet)gen_xml)
- 	@(					\
- 	echo "<programlisting>") > $@
-@@ -260,7 +260,7 @@ $(MEDIA_OBJ_DIR)/frontend.h.xml: $(srctree)/include/linux/dvb/frontend.h $(MEDIA
- 	@(					\
- 	echo "</programlisting>") >> $@
- 
--$(MEDIA_OBJ_DIR)/net.h.xml: $(srctree)/include/linux/dvb/net.h $(MEDIA_OBJ_DIR)/v4l2.xml
-+$(MEDIA_OBJ_DIR)/net.h.xml: $(srctree)/include/uapi/linux/dvb/net.h $(MEDIA_OBJ_DIR)/v4l2.xml
- 	@$($(quiet)gen_xml)
- 	@(					\
- 	echo "<programlisting>") > $@
-@@ -271,7 +271,7 @@ $(MEDIA_OBJ_DIR)/net.h.xml: $(srctree)/include/linux/dvb/net.h $(MEDIA_OBJ_DIR)/
- 	@(					\
- 	echo "</programlisting>") >> $@
- 
--$(MEDIA_OBJ_DIR)/video.h.xml: $(srctree)/include/linux/dvb/video.h $(MEDIA_OBJ_DIR)/v4l2.xml
-+$(MEDIA_OBJ_DIR)/video.h.xml: $(srctree)/include/uapi/linux/dvb/video.h $(MEDIA_OBJ_DIR)/v4l2.xml
- 	@$($(quiet)gen_xml)
- 	@(					\
- 	echo "<programlisting>") > $@
--- 
-1.7.11.7
+mediapc@mediapc ~ $ gdb ir-keytable core
+GNU gdb (Gentoo 7.5 p1) 7.5
+Copyright (C) 2012 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later
+<http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-pc-linux-gnu".
+For bug reporting instructions, please see:
+<http://bugs.gentoo.org/>...
+Reading symbols from /usr/bin/ir-keytable...done.
+[New LWP 1094]
 
+warning: Could not load shared library symbols for linux-vdso.so.1.
+Do you need "set solib-search-path" or "set sysroot"?
+Core was generated by `ir-keytable --protocol=rc-6 --device
+/dev/input/by-id/usb-15c2_0038-event-if00'.
+Program terminated with signal 11, Segmentation fault.
+#0  0x00007f95eaf04410 in __strcpy_chk () from /lib64/libc.so.6
+(gdb) bt full
+#0  0x00007f95eaf04410 in __strcpy_chk () from /lib64/libc.so.6
+No symbol table info available.
+#1  0x000000000040365c in strcpy (__src=<optimized out>,
+__dest=0x7fff36b958e0 "") at /usr/include/bits/string3.h:105
+No locals.
+#2  v1_set_hw_protocols (rc_dev=<optimized out>) at keytable.c:744
+        fp = <optimized out>
+        name = '\000' <repeats 1480 times>, "`G\033\353\225\177", '\000'
+<repeats 75 times>,
+"p\031\000\000\000\000\000~m\031\000\000\000\000\000~m\031", '\000'
+<repeats 13 times>,
+"\005\000\000\000\000\000\000\000\000p9\000\000\000\000\000\000\320\071\000\000\000\000\000X\307\071\000\000\000\000\000`\f:\000\000\000\000\000\000p\031\000\000\000\000\000\003",
+'\000' <repeats 271 times>,
+"@\266<\353\225\177\000\000/\000\000\000\000\000\000\000\215\207\033\353\225\177\000\000\000\000\000\000\000\000\000\000\t\000\000\000\000\000\000\000\021\000\000\000\000\000\000\000\001",
+'\000' <repeats 23 times>,
+"@b\271\066\377\177\000\000\031\204\033\353\225\177\000\000\001\000\000\000\000\000\000\000X\266<\353\225\177\000\000@b\271\066\377\177\000\000\265F\033\353\225\177",
+'\000' <repeats 26 times>...
+#3  0x00000000004019af in set_proto (rc_dev=0x7fff36b96900) at
+keytable.c:1119
+        rc = 0
+#4  main (argc=<optimized out>, argv=<optimized out>) at keytable.c:1497
+        dev_from_class = <optimized out>
+        write_cnt = 0
+        fd = 3
+        names = 0x0
+        rc_dev = {sysfs_name = 0x0, input_name = 0x7f95eb3ce4e0
+"@\344<\353\225\177", drv_name = 0x0, keytable_name = 0x100000000
+<Address 0x100000000 out of bounds>,
+          version = (unknown: 3946637104), type = (SOFTWARE_DECODER |
+unknown: 32660), supported = 4196936, current = RC_6}
+
+Regards,
+Wojciech
