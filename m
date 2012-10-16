@@ -1,147 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:53935 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751656Ab2JKIlf (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56522 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755056Ab2JPPg1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Oct 2012 04:41:35 -0400
-MIME-Version: 1.0
-In-Reply-To: <201210111023.51311.o.endriss@gmx.de>
-References: <30699.1349789424@warthog.procyon.org.uk>
-	<20121009183908.1e402a43@infradead.org>
-	<201210111023.51311.o.endriss@gmx.de>
-Date: Thu, 11 Oct 2012 14:11:34 +0530
-Message-ID: <CAHFNz9JbLwWPocr3b2F0Kz_5VEcYadQRHePsvBfXA5h1NUwGnA@mail.gmail.com>
-Subject: Re: Re: [GIT PULL] Disintegrate UAPI for media
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Oliver Endriss <o.endriss@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Howells <dhowells@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Tue, 16 Oct 2012 11:36:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
 	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: [PATCH v2] videobuf2-core: Verify planes lengths for output buffers
+Date: Tue, 16 Oct 2012 17:37:12 +0200
+Message-Id: <1350401832-22186-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 11, 2012 at 1:53 PM, Oliver Endriss <o.endriss@gmx.de> wrote:
-> Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
->> Em Tue, 09 Oct 2012 14:30:24 +0100
->> David Howells <dhowells@redhat.com> escreveu:
->>
->> > Can you merge the following branch into the media tree please.
->> >
->> > This is to complete part of the Userspace API (UAPI) disintegration for which
->> > the preparatory patches were pulled recently.  After these patches, userspace
->> > headers will be segregated into:
->> >
->> >     include/uapi/linux/.../foo.h
->> >
->> > for the userspace interface stuff, and:
->> >
->> >     include/linux/.../foo.h
->> >
->> > for the strictly kernel internal stuff.
->> >
->> > ---
->> > The following changes since commit 9e2d8656f5e8aa214e66b462680cf86b210b74a8:
->> >
->> >   Merge branch 'akpm' (Andrew's patch-bomb) (2012-10-09 16:23:15 +0900)
->> >
->> > are available in the git repository at:
->> >
->> >
->> >   git://git.infradead.org/users/dhowells/linux-headers.git tags/disintegrate-media-20121009
->> >
->> > for you to fetch changes up to 1c436decd49665be131887b08d172a7989cdceee:
->> >
->> >   UAPI: (Scripted) Disintegrate include/linux/dvb (2012-10-09 09:48:42 +0100)
->> >
->> > ----------------------------------------------------------------
->> > UAPI Disintegration 2012-10-09
->> >
->> > ----------------------------------------------------------------
->> > David Howells (1):
->> >       UAPI: (Scripted) Disintegrate include/linux/dvb
->> >
->> >  include/linux/dvb/Kbuild                |   8 -
->> >  include/linux/dvb/dmx.h                 | 130 +--------------
->> >  include/linux/dvb/video.h               | 249 +----------------------------
->> >  include/uapi/linux/dvb/Kbuild           |   8 +
->> >  include/{ => uapi}/linux/dvb/audio.h    |   0
->> >  include/{ => uapi}/linux/dvb/ca.h       |   0
->> >  include/uapi/linux/dvb/dmx.h            | 155 ++++++++++++++++++
->> >  include/{ => uapi}/linux/dvb/frontend.h |   0
->> >  include/{ => uapi}/linux/dvb/net.h      |   0
->> >  include/{ => uapi}/linux/dvb/osd.h      |   0
->> >  include/{ => uapi}/linux/dvb/version.h  |   0
->> >  include/uapi/linux/dvb/video.h          | 274 ++++++++++++++++++++++++++++++++
->> >  12 files changed, 439 insertions(+), 385 deletions(-)
->> >  rename include/{ => uapi}/linux/dvb/audio.h (100%)
->> >  rename include/{ => uapi}/linux/dvb/ca.h (100%)
->> >  create mode 100644 include/uapi/linux/dvb/dmx.h
->> >  rename include/{ => uapi}/linux/dvb/frontend.h (100%)
->> >  rename include/{ => uapi}/linux/dvb/net.h (100%)
->> >  rename include/{ => uapi}/linux/dvb/osd.h (100%)
->> >  rename include/{ => uapi}/linux/dvb/version.h (100%)
->> >  create mode 100644 include/uapi/linux/dvb/video.h
->>
->> Hmm... last year, it was decided that we would be putting the DVB av7110-only
->> API files on a separate place, as the API there conflicts with V4L/alsa APIs
->
-> Wrong! Hans Verkuil and you tried to do it, without caring that it would
-> break userspace, and it was NAKed.
->
-> Btw, if there is an API conflict, you guys created it.
->
-> Anyone, who is interested in the _true_ history, should have a look at
-> the GIT changelog:
-> - dvb/{video.h,audio.h,osd.h} was the original decoder API.
-> - Then Hans extended this API, still using the same files.
-> - Later the v4l guys decided to create a new API.
-> - Now they want to (re)move the old one, breaking userspace.
->
-> I explicitly NAK any attempt to break userspace applications and tools!
-> There is no reason to do it!
->
->> and are used only by one upstream driver (there were two drivers using them,
->> at that time). As you might notice, av7110 hardware is really old, not
->> manufactured anymore since maybe 10 years ago, and it is an unmaintained
->> driver.
->
-> The driver works fine, and it will continue to do so, unless someone
-> tampers with it. It does not require maintenance.
-> The hardware is old, but it is still in use, as it is easy to create a
-> pc-based settopbox with it.
+For output buffers application provide to the kernel the number of bytes
+they stored in each plane of the buffer. Verify that the value is
+smaller than or equal to the plane length.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c |   39 ++++++++++++++++++++++++++++++
+ 1 files changed, 39 insertions(+), 0 deletions(-)
 
-As of writing; the av7110 is the only driver in-kernel, but there is more to it:
-Such drivers are hard to bring up and takes an awful amount of time. There
-is already one driver which is nearing completion based on the same interface.
+Changes compared to v1:
 
+- Sanity check the data_offset value for each plane.
 
->
->> Some developers complained, arguing that moving it to a separate file would
->> be breaking the compilation on existing tools (they're basically concerned with
->> it due to out-of-tree drivers - mostly propietary ones, that use this API).
->
-> It you move the API somewhere else, you will break userspace applications
-> like VDR. This is not acceptable.
->
->> Now that we're moving everything, it does make sense to do that, moving
->> dvb/(audio|osd|video).h to someplace else (maybe linux/dvb/av7110.h or
->> linux/dvb/legacy/*.h).
->
-> As far as I understand the original patchset, it will not break
-> userspace, as it will simply move all files somewhere else, preserving
-> file names and the position of the files in the tree.
->
-> Mauro is trying to the move the old decoder API somewhere else, possibly
-> into a different file, which will definitely break userspace.
-> NAK for this!
-
-
-I completely agree with Oliver on this and NAK the suggestion put forward
-by Mauro (and Hans)
-
-
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 432df11..479337d 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -296,6 +296,41 @@ static int __verify_planes_array(struct vb2_buffer *vb, const struct v4l2_buffer
+ }
+ 
+ /**
++ * __verify_length() - Verify that the bytesused value for each plane fits in
++ * the plane length and that the data offset doesn't exceed the bytesused value.
++ */
++static int __verify_length(struct vb2_buffer *vb, const struct v4l2_buffer *b)
++{
++	unsigned int length;
++	unsigned int plane;
++
++	if (!V4L2_TYPE_IS_OUTPUT(b->type))
++		return 0;
++
++	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
++		for (plane = 0; plane < vb->num_planes; ++plane) {
++			length = (b->memory == V4L2_MEMORY_USERPTR)
++			       ? b->m.planes[plane].length
++			       : vb->v4l2_planes[plane].length;
++
++			if (b->m.planes[plane].bytesused > length)
++				return -EINVAL;
++			if (b->m.planes[plane].data_offset >=
++			    b->m.planes[plane].bytesused)
++				return -EINVAL;
++		}
++	} else {
++		length = (b->memory == V4L2_MEMORY_USERPTR)
++		       ? b->length : vb->v4l2_planes[0].length;
++
++		if (b->bytesused > length)
++			return -EINVAL;
++	}
++
++	return 0;
++}
++
++/**
+  * __buffer_in_use() - return true if the buffer is in use and
+  * the queue cannot be freed (by the means of REQBUFS(0)) call
+  */
+@@ -975,6 +1010,10 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	struct vb2_queue *q = vb->vb2_queue;
+ 	int ret;
+ 
++	ret = __verify_length(vb, b);
++	if (ret < 0)
++		return ret;
++
+ 	switch (q->memory) {
+ 	case V4L2_MEMORY_MMAP:
+ 		ret = __qbuf_mmap(vb, b);
+-- 
 Regards,
-Manu
+
+Laurent Pinchart
+
