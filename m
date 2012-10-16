@@ -1,48 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:16616 "EHLO
-	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752363Ab2JIMvf (ORCPT
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:51105 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750893Ab2JPCQy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Oct 2012 08:51:35 -0400
-Date: Tue, 9 Oct 2012 14:51:33 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Jean Delvare <khali@linux-fr.org>
-cc: Julia Lawall <julia.lawall@lip6.fr>,
-	Ryan Mallon <rmallon@gmail.com>,
-	Antti Palosaari <crope@iki.fi>,
-	kernel-janitors@vger.kernel.org, shubhrajyoti@ti.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 3/13] drivers/media/tuners/qt1010.c: use macros for
- i2c_msg initialization
-In-Reply-To: <20121009141220.412c15c8@endymion.delvare>
-Message-ID: <alpine.DEB.2.02.1210091450270.1971@hadrien>
-References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-5-git-send-email-Julia.Lawall@lip6.fr> <5071FA5D.30003@gmail.com> <alpine.DEB.2.02.1210080704440.1972@localhost6.localdomain6> <50726110.5020901@gmail.com>
- <alpine.DEB.2.02.1210080722470.1972@localhost6.localdomain6> <20121009141220.412c15c8@endymion.delvare>
+	Mon, 15 Oct 2012 22:16:54 -0400
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <alpine.LNX.2.00.1210160131240.1682@swampdragon.chaosbits.net>
+References: <alpine.LNX.2.00.0811091803320.23782@swampdragon.chaosbits.net>
+	<CALF0-+Vtmwu9rCc9BYiDx2O2GQWezK40BYR2LP_ve2YjCt=Afg@mail.gmail.com>
+	<alpine.LNX.2.00.1210152025300.1038@swampdragon.chaosbits.net>
+	<alpine.LNX.2.00.1210160051100.1682@swampdragon.chaosbits.net>
+	<CALF0-+UuB0y_8+SLE05Sn997HDcP5u=AJsoGvjmfSUBB__DkhQ@mail.gmail.com>
+	<alpine.LNX.2.00.1210160131240.1682@swampdragon.chaosbits.net>
+Date: Mon, 15 Oct 2012 23:16:54 -0300
+Message-ID: <CALF0-+UfoS1MBTeR6ZYNdPwACo+h2PR2E4WfC-aZca4g_Pmpjw@mail.gmail.com>
+Subject: Re: [PATCH] [media] stk1160: Check return value of stk1160_read_reg()
+ in stk1160_i2c_read_reg()
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Jesper Juhl <jj@chaosbits.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 9 Oct 2012, Jean Delvare wrote:
-
-> Hi Julia,
+On Mon, Oct 15, 2012 at 9:03 PM, Jesper Juhl <jj@chaosbits.net> wrote:
+> On Mon, 15 Oct 2012, Ezequiel Garcia wrote:
 >
-> On Mon, 8 Oct 2012 07:24:11 +0200 (CEST), Julia Lawall wrote:
-> > > Sorry, I mean either:
-> > >
-> > > 	I2C_MSG_WRITE(priv->cfg->i2c_address, &reg, sizeof(reg)),
-> > > 	I2C_MSG_READ(priv->cfg->i2c_address, val, sizeof(*val)),
-> >
-> > Of course.  Sorry for not having seen that.  I can do that.
+>> On Mon, Oct 15, 2012 at 7:52 PM, Jesper Juhl <jj@chaosbits.net> wrote:
+>> > On Mon, 15 Oct 2012, Jesper Juhl wrote:
+>> >
+>> >> On Sat, 13 Oct 2012, Ezequiel Garcia wrote:
+>> >>
+> [...]
+>> > Currently there are two checks for 'rc' being less than zero with no
+>> > change to 'rc' between the two, so the second is just dead code.
+>> > The intention seems to have been to assign the return value of
+>> > 'stk1160_read_reg()' to 'rc' before the (currently dead) second check
+>> > and then test /that/. This patch does that.
+>> >
+>>
+>> This is an overly complicated explanation for such a small patch.
+>> Can you try to simplify it?
+>>
+> How's this?
 >
-> Eek, no, you can't, not in the general case at least. sizeof(*val) will
-> return the size of the _first_ element of the destination buffer, which
-> has nothing to do with the length of that buffer (which in turn might
-> be rightfully longer than the read length for this specific message.)
+>
+> From: Jesper Juhl <jj@chaosbits.net>
+> Date: Sat, 13 Oct 2012 00:16:37 +0200
+> Subject: [PATCH] [media] stk1160: Check return value of stk1160_read_reg() in stk1160_i2c_read_reg()
+>
+> Remember to collect the exit status from 'stk1160_read_reg()' in 'rc'
+> before testing it for less than zero.
+>
+> Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+> ---
+>  drivers/media/usb/stk1160/stk1160-i2c.c |    3 +--
+>  1 files changed, 1 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/usb/stk1160/stk1160-i2c.c b/drivers/media/usb/stk1160/stk1160-i2c.c
+> index 176ac93..a2370e4 100644
+> --- a/drivers/media/usb/stk1160/stk1160-i2c.c
+> +++ b/drivers/media/usb/stk1160/stk1160-i2c.c
+> @@ -116,10 +116,9 @@ static int stk1160_i2c_read_reg(struct stk1160 *dev, u8 addr,
+>         if (rc < 0)
+>                 return rc;
+>
+> -       stk1160_read_reg(dev, STK1160_SBUSR_RD, value);
+> +       rc = stk1160_read_reg(dev, STK1160_SBUSR_RD, value);
+>         if (rc < 0)
+>                 return rc;
+> -
+^^^^^^^^^^^^^^^^^^^^^^^^
+Sorry for the nitpick, but I'd like you to *not* remove this line.
 
-I was actually only going to do it when the size was 1 and the type was
-u8 *.  But your other email suggests that converting to sizeof is just not
-a good idea at all.  So I will drop that part of the rule.
+Thanks
 
-julia
+    Ezequiel
