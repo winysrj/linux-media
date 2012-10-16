@@ -1,85 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:53418 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755972Ab2JVSBH (ORCPT
+Received: from mxout-07.mxes.net ([216.86.168.182]:17501 "EHLO
+	mxout-07.mxes.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755403Ab2JPBZj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Oct 2012 14:01:07 -0400
-Date: Mon, 22 Oct 2012 14:01:06 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: "Artem S. Tashkinov" <t.artem@lycos.com>
-cc: zonque@gmail.com, <bp@alien8.de>, <pavel@ucw.cz>,
-	<linux-kernel@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<security@kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <alsa-devel@alsa-project.org>
-Subject: Re: Re: A reliable kernel panic (3.6.2) and system crash when visiting
- a particular website
-In-Reply-To: <1985645001.39510.1350927037793.JavaMail.mail@webmail15>
-Message-ID: <Pine.LNX.4.44L0.1210221353440.1724-100000@iolanthe.rowland.org>
+	Mon, 15 Oct 2012 21:25:39 -0400
+Message-ID: <507CB78C.10902@cybermato.com>
+Date: Mon, 15 Oct 2012 18:25:32 -0700
+From: Chris MacGregor <chris@cybermato.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, hverkuil@xs4all.nl, remi@remlab.net,
+	daniel-gl@gmx.net, sylwester.nawrocki@gmail.com
+Subject: Re: [RFC] Timestamps and V4L2
+References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <20121015160549.GE21261@valkosipuli.retiisi.org.uk> <2316067.OFTCziv4Z5@avalon> <507C5BC4.7060700@cybermato.com> <20121015195906.GG21261@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20121015195906.GG21261@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 22 Oct 2012, Artem S. Tashkinov wrote:
+Hi, Sakari.
 
-> OK, here's what the kernel prints with your patch:
-> 
-> usb 6.1.4: ep 86 list del corruption prev: e5103b54 e5103a94 e51039d4
-> 
-> A small delay before I got thousands of list_del corruption messages would
-> have been nice, but I managed to catch the message anyway.
+On 10/15/2012 12:59 PM, Sakari Ailus wrote:
+> Hi Chris,
+>
+> On Mon, Oct 15, 2012 at 11:53:56AM -0700, Chris MacGregor wrote:
+>> On 10/15/2012 11:45 AM, Laurent Pinchart wrote:
+>>> Hi Sakari,
+>>>
+>>> On Monday 15 October 2012 19:05:49 Sakari Ailus wrote:
+>>>> Hi all,
+>>>>
+>>>> As a summar from the discussion, I think we have reached the following
+>>>> conclusion. Please say if you agree or disagree with what's below. :-)
+>>>>
+>>>> - The drivers will be moved to use monotonic timestamps for video buffers.
+>>>> - The user space will learn about the type of the timestamp through buffer
+>>>> flags.
+>>>> - The timestamp source may be made selectable in the future, but buffer
+>>>> flags won't be the means for this, primarily since they're not available on
+>>>> subdevs. Possible way to do this include a new V4L2 control or a new IOCTL.
+>>> That's my understanding as well. For the concept,
+>>>
+>>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> I wasn't able to participate in the discussion that led to this, but
+>> I'd like to suggest and request now that an explicit requirement (of
+>> whatever scheme is selected) be that a userspace app have a
+>> reasonable and straightforward way to translate the timestamps to
+>> real wall-clock time, ideally with enough precision to allow
+>> synchronization of cameras across multiple computers.
+>>
+>> In the systems I work on, for instance, we are recording real-world
+>> biological processes, some of which vary based on the time of day,
+>> and it is important to know when a given frame was captured so that
+>> information can be stored with the raw frame and the data derived
+>> from it. For many such purposes, an accuracy measured in multiple
+>> seconds (or even minutes) is fine.
+>>
+>> However, when we are using multiple cameras on multiple computers
+>> (e.g., two or more BeagleBoard xM's, each with a camera connected),
+>> we would want to synchronize with an accuracy of less than 1 frame
+>> time - e.g. 10 ms or less.
+> I think you have two use cases actually: knowing when an image has been
+> taken, and synchronisation of images from multiple sources. The first one is
+> easy: you just call clock_gettime() for the realtime clock. The precision
+> will certainly be enough.
 
-All right.  Here's a new patch, which will print more information and
-will provide a 10-second delay.
+I assume you mean that I would, for instance:
 
-For this to be useful, you should capture a usbmon trace at the same
-time.  The relevant entries will show up in the trace shortly before
-_and_ shortly after the error message appears.
+clock_gettime(CLOCK_REALTIME, &realtime);
+clock_gettime(CLOCK_MONOTONIC, &monotime);
+(compute realtime-monotime and save the result)
+...
+(later add that result to the timestamp on a frame to recover the 
+approximate real-world capture time)
 
-Alan Stern
+Agreed, for this purpose - getting a reasonable real-world timestamp on 
+the frame - the precision is fine...worst case, my process gets 
+rescheduled between the two clock_gettime() calls, but even that won't 
+matter for this purpose.
 
-P.S.: It will help if you unplug as many of the other USB devices as
-possible before running this test.
+> For the latter the realtime clock fits poorly to begin with: it jumps around
+> e.g. when the daylight saving time changes.
+>
+> I think what I'd do is this: figure out the difference between the monotonic
+> clocks of your systems and use that as basis for synchronisation. I wonder
+> if there are existing solutions for this based e.g. on the NTP.
+>
+> The pace of the monotonic clocks on different systems is the same as the
+> real-time ones; the same NTP adjustments are done to the monotonic clock as
+> well. As an added bonus you also won't be affected by daylight saving time
+> or someone setting the clock manually.
 
+Yes, I believe that this could work. My concern is that there is some 
+unpredictability in the timing of the two clock_gettime() calls, and 
+thus some inaccuracy in the conversion, and while I could likely get the 
+two systems sufficiently sync'd using NTP or the like at the real-world 
+level, the conversion from that (on each system) to the system's 
+monotonic time would contain an unpredictable (though bounded) 
+inaccuracy. I suppose that as long as I sync the cameras at the hardware 
+level (e.g. by tying the strobe line of one to the trigger lines of the 
+rest, or tying all the trigger lines to a GPIO), the inaccuracy would be 
+less than a frame time, and so I could know reliably enough which frames 
+go together.
 
+However, it seems much cleaner to have a more direct way to convert the 
+monotonic time to real-world time, or to get real-world time on the 
+frames in the first place (for applications that want that). I don't 
+know of a way to do the former.
 
-Index: usb-3.6/drivers/usb/core/hcd.c
-===================================================================
---- usb-3.6.orig/drivers/usb/core/hcd.c
-+++ usb-3.6/drivers/usb/core/hcd.c
-@@ -1083,6 +1083,8 @@ EXPORT_SYMBOL_GPL(usb_calc_bus_time);
- 
- /*-------------------------------------------------------------------------*/
- 
-+static bool list_error;
-+
- /**
-  * usb_hcd_link_urb_to_ep - add an URB to its endpoint queue
-  * @hcd: host controller to which @urb was submitted
-@@ -1193,6 +1195,25 @@ void usb_hcd_unlink_urb_from_ep(struct u
- {
- 	/* clear all state linking urb to this dev (and hcd) */
- 	spin_lock(&hcd_urb_list_lock);
-+	{
-+		struct list_head *cur = &urb->urb_list;
-+		struct list_head *prev = cur->prev;
-+		struct list_head *next = cur->next;
-+
-+		if (prev->next != cur && !list_error) {
-+			list_error = true;
-+			dev_err(&urb->dev->dev,
-+				"ep %x list del corruption prev: %p %p %p %p %p\n",
-+				urb->ep->desc.bEndpointAddress,
-+				cur, prev, prev->next, next, next->prev);
-+			dev_err(&urb->dev->dev,
-+				"head %p urb %p urbprev %p urbnext %p\n",
-+				&urb->ep->urb_list, urb,
-+				list_entry(prev, struct urb, urb_list),
-+				list_entry(next, struct urb, urb_list));
-+			mdelay(10000);
-+		}
-+	}
- 	list_del_init(&urb->urb_list);
- 	spin_unlock(&hcd_urb_list_lock);
- }
+> The conversion of the two clocks requires the knowledge of the values of
+> kernel internal variables, so performing the conversion in user space later
+> on is not an option.
 
+Sorry, you lost me on this one, unless you're talking about what I refer 
+to in my paragraph just above - converting the monotonic timestamp on 
+the frame to real-world time...?
+
+> Alternatively you could just call clock_gettime() after every DQBUF call,
+> but that's indeed less precise than if the driver would get the timestamp
+> for you.
+
+And also less efficient. The platforms I'm working on are already 
+hard-pressed to keep up with all the pixels I'm trying to capture and 
+process, so I don't really want to waste time trapping into kernel mode 
+again if I can avoid it.
+
+> How would this work for you?
+
+Better than nothing, and probably I could live with it. But I think 
+perhaps we can do better than that, and now seems like the right time to 
+figure it out.
+
+> Best regards,
+
+Cheers,
+Chris MacGregor (the Seattle one)
