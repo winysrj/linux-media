@@ -1,54 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:65321 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756443Ab2JRP2R (ORCPT
+Received: from zose-mta-15.w4a.fr ([176.31.217.10]:58362 "EHLO
+	zose-mta15.web4all.fr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752896Ab2JPVJj convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Oct 2012 11:28:17 -0400
+	Tue, 16 Oct 2012 17:09:39 -0400
+Date: Tue, 16 Oct 2012 23:04:36 +0200 (CEST)
+From: =?utf-8?Q?Beno=C3=AEt_Th=C3=A9baudeau?=
+	<benoit.thebaudeau@advansee.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Chris MacGregor <chris@cybermato.com>,
+	linux-media@vger.kernel.org, Liu Ying <Ying.liu@freescale.com>,
+	"Hans J. Koch" <hjk@linutronix.de>,
+	Daniel Mack <daniel@zonque.org>,
+	Christoph Fritz <chf.fritz@googlemail.com>
+Message-ID: <135335921.6991961.1350421476631.JavaMail.root@advansee.com>
+In-Reply-To: <2180583.3hl5tPmpSx@avalon>
+Subject: Re: hacking MT9P031 for i.mx
 MIME-Version: 1.0
-In-Reply-To: <1350571624-4666-1-git-send-email-peter.senna@gmail.com>
-References: <5075AB4F.3030709@samsung.com>
-	<1350571624-4666-1-git-send-email-peter.senna@gmail.com>
-Date: Thu, 18 Oct 2012 12:28:15 -0300
-Message-ID: <CALF0-+WPZ7b83Mg=b1KirHt39QE4fuO4MDGhNpQNxMY09O87HA@mail.gmail.com>
-Subject: Re: [PATCH V2] drivers/media/v4l2-core/videobuf2-core.c: fix error
- return code
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Peter Senna Tschudin <peter.senna@gmail.com>
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, mchehab@infradead.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 18, 2012 at 11:47 AM, Peter Senna Tschudin
-<peter.senna@gmail.com> wrote:
-> This patch fixes a NULL pointer dereference bug at __vb2_init_fileio().
-> The NULL pointer deference happens at videobuf2-core.c:
->
-> static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_t count,
->                 loff_t *ppos, int nonblock, int read)
-> {
-> ...
->         if (!q->fileio) {
->                 ret = __vb2_init_fileio(q, read);
->                 dprintk(3, "file io: vb2_init_fileio result: %d\n", ret);
->                 if (ret)
->                         return ret;
->         }
->         fileio = q->fileio; // NULL pointer deference here
-> ...
-> }
->
-> It was tested with vivi driver and qv4l2 for selecting read() as capture method.
-> The OOPS happened when I've artificially forced the error by commenting the line:
->         if (fileio->bufs[i].vaddr == NULL)
->
+Hi all,
 
-... but if you manually changed the original source, how
-can this be a real BUG?
+On Tuesday, October 16, 2012 10:04:57 PM, Laurent Pinchart wrote:
+> On Friday 12 October 2012 14:10:43 Christoph Fritz wrote:
+> > On Mon, 2012-07-02 at 14:48 +0200, Laurent Pinchart wrote:
+> > > On Thursday 28 June 2012 21:41:16 Chris MacGregor wrote:
+> > > > > Where did you get the Aptina board code patch from ?
+> > > >  
+> > > >  From here: https://github.com/Aptina/BeagleBoard-xM
+> > > 
+> > > That's definitely outdated, the code is based on a very old OMAP3
+> > > ISP
+> > > driver that was more or less broken by design. Nowadays anything
+> > > other
+> > > than the mainline version isn't supported by the community.
+> > 
+> > Is there a current (kernel ~3.6) git tree which shows how to add
+> > mt9p031
+> > to platform code?
+> 
+> Yes, at
+> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-
+> sensors-board
+> 
+> > I'm also curious if it's possible to glue mt9p031 to a freescale
+> > i.mx35
+> > platform. As far as I can see,
+> > drivers/media/platform/soc_camera/mx3_camera.c would need
+> > v4l2_subdev
+> > support?
 
-Or am I missing something here ?
+I have not followed this thread, so I don't know exactly your issue, but FYI I
+have an MT9M131 (of which the driver should hopefully be close to the MT9P031's)
+working on i.MX35 with Linux 3.4.
 
-    Ezequiel
+I have local changes for that adding support for all possible formats to
+mx3_camera and its IPU. I still have to upgrade to the latest Linux and to
+prepare patches before posting them. I won't be able to do that before a few
+weeks. However, if someone needs it, I can share my local changeset as a global
+patch.
+
+Best regards,
+Benoît
