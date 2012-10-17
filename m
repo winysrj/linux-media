@@ -1,43 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:52579 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750789Ab2JNKS5 (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3535 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756424Ab2JQJSk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Oct 2012 06:18:57 -0400
-Received: by mail-bk0-f46.google.com with SMTP id jk13so2060495bkc.19
-        for <linux-media@vger.kernel.org>; Sun, 14 Oct 2012 03:18:56 -0700 (PDT)
-Message-ID: <507A918D.8010307@googlemail.com>
-Date: Sun, 14 Oct 2012 12:18:53 +0200
-From: Gregor Jasny <gjasny@googlemail.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Announcing v4l-utils-0.8.9
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 17 Oct 2012 05:18:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mats Randgaard <mats.randgaard@cisco.com>
+Subject: [RFC PATCH for v3.7 0/4] adv7604: sync with the latest Cisco internal code
+Date: Wed, 17 Oct 2012 11:18:29 +0200
+Message-Id: <1350465513-7304-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This patch series syncs up the adv7604 driver in 3.7-rc1 with the latest
+version that's in the Cisco internal tree.
 
-I'm happy to announce the release of v4l-utils-0.8.9. It contains purely
-backports from the development branch. The most interesting additions
-are the improvements for the Pixart based webcams and the updated
-v4l2-compliance, v4l-ctl, and qv4l2 utilities.
+Nothing major, just a small cleanup and three bug fixes.
 
-ChangeLog:
-* libv4l changes (0.9.x backports)
-  * libv4lconvert: Various Pixart JPEG fixes
-  * libv4lconvert: Add more notebooks to the upside down device table
-* Utils changes (0.9.x backports)
-  * keytable: Add support for Sanyo IR and RC-5-SZ protocol
-  * keytable: Add missing buttons in shipped keytables
-  * v4l2-compliance, v4l-ctl, qv4l2: Sync with development branch
+There were no changes for the ad9389b that was also merged for 3.7-rc1.
 
-Go get it here:
-http://linuxtv.org/downloads/v4l-utils/v4l-utils-0.8.9.tar.bz2
+If there are no comments, then I'll make a pull request for this during the
+weekend.
 
-You can always find the latest developments and the stable branch here:
-http://git.linuxtv.org/v4l-utils.git
+Regards,
 
-Thanks,
-Gregor
+	Hans
+
