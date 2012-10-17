@@ -1,168 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:45589 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751956Ab2JaL5P convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Oct 2012 07:57:15 -0400
-Date: Wed, 31 Oct 2012 09:57:02 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Fabio Estevam <fabio.estevam@freescale.com>
-Cc: <g.liakhovetski@gmx.de>, <kernel@pengutronix.de>,
-	<gcembed@gmail.com>, <javier.martin@vista-silicon.com>,
-	<linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>
-Subject: Re: [PATCH v4 2/2] mx2_camera: Fix regression caused by clock
- conversion
-Message-ID: <20121031095702.41649bf9@infradead.org>
-In-Reply-To: <1351598606-8485-2-git-send-email-fabio.estevam@freescale.com>
-References: <1351598606-8485-1-git-send-email-fabio.estevam@freescale.com>
-	<1351598606-8485-2-git-send-email-fabio.estevam@freescale.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from 7of9.schinagl.nl ([88.159.158.68]:51519 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756022Ab2JQKWg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Oct 2012 06:22:36 -0400
+Message-ID: <507E83CA.7070308@schinagl.nl>
+Date: Wed, 17 Oct 2012 12:09:14 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: AF9035 firmware repository
+References: <507E7872.8030300@schinagl.nl> <507E8205.2050705@iki.fi>
+In-Reply-To: <507E8205.2050705@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 30 Oct 2012 10:03:26 -0200
-Fabio Estevam <fabio.estevam@freescale.com> escreveu:
+On 17-10-12 12:01, Antti Palosaari wrote:
+> Hello Oliver
+>
+> On 10/17/2012 12:20 PM, Oliver Schinagl wrote:
+>> Hey antti, list,
+>>
+>> whilst trying to help some Asus U3100+ users with the recent patches I
+>> ran into an issue. For some strange reason his chip_id was 0xff. I'd
+>> hope this is somehow supplied by the firmware. I think I had the exact
+>> same issue until I used Antti's latest firmware for the AF9035.
+>>
+>> Having said that, I know antti currently hosts the latest firmware for
+>> the af9035, but there seem to be several out in the wild and people
+>> googling for the firmware tend to find the really old one.
+>
+> Yes, it is the firmware. AF9035/AF9033 firmware is aware of used tuner 
+> and there is some logic inside firmware for each tuner, like 
+> calculating signal strength and handling of tuner I2C bus. Same 
+> applies for AF9015/AF9013 too where this has caused some notable 
+> problems - I have asked few times if someone could reverse and fix 
+> that fw to behave better.
+Ok, then I'll await said test results with latest firmware.
+>
+>> I'm pretty certain that Afa-tech, IT-tech etc won't allow the firmware
+>> to live in the kernel, or simply refuse to answer shuch a plead? They
+>> could be persuaded by the maintainer to at least have it live in
+>> http://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git or
+>> if that fails, have it pulled by Documentation/dvb/get_dvb_firmware?
+>> (Btw, why is it get_dvb_firmware? I didn't find a generic script or
+>> other devices that did the same).
+>
+> Feel free to try. I tried it ages back in 2009 but failed.
+i'll doubt anything has changed here :S
 
-> Since mx27 transitioned to the commmon clock framework in 3.5, the correct way
-> to acquire the csi clock is to get csi_ahb and csi_per clocks separately.
-> 
-> By not doing so the camera sensor does not probe correctly:
-> 
-> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
-> mx2-camera mx2-camera.0: Camera driver attached to camera 0
-> ov2640 0-0030: Product ID error fb:fb
-> mx2-camera mx2-camera.0: Camera driver detached from camera 0
-> mx2-camera mx2-camera.0: MX2 Camera (CSI) driver probed, clock frequency: 66500000
-> 
-> Adapt the mx2_camera driver to the new clock framework and make it functional
-> again.
-> 
-> Tested-by: Gaëtan Carlier <gcembed@gmail.com>
-> Tested-by: Javier Martin <javier.martin@vista-silicon.com>
-> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+>
+> Someone should make some study of these firmwares and list what are 
+> differences, supported tuners etc. That was discussed at the time 
+> af9035 was merged to the Kernel... As rule of thumb test first newest 
+> firmware.
+>
+> Currently there is no 100% automated script to dump those firmwares 
+> from the binary. AF9035 driver seems to contain multiple firmwares. 
+> Maybe making script that finds and dumps all firmwares found from 
+> binary could be handy.
+Maybe as an alternative, also have the firmwares linked/uploaded to 
+http://linuxtv.org/downloads/firmware/ ?
+>
+>> I'll update the af9035 wikipage to link to antti's firmware for now.
+>
+> Good!
+and done.
 
-As it seems that those patches depend on some patches at the arm tree,
-the better is to merge them via -arm tree.
+those older firmwares for the af9035 are only there for archive 
+purpouse? Or are their known cases where older firmware is needed? At 
+this moment, it seems that the oldest one (11.5.9) brakes things.
 
-So,
+oliver
+>
+> regards
+> Antti
+>
 
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-> ---
-> Changes since v3:
-> - Drop unneeded clk_unprepare calls as pointed out by Guennadi
-> Changes since v2:
-> - Fix clock error handling code as pointed out by Russell King
-> Changes since v1:
-> - Rebased against linux-next 20121008.
->  drivers/media/platform/soc_camera/mx2_camera.c |   39 ++++++++++++++++++------
->  1 file changed, 29 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-> index e575ae8..558f6a3 100644
-> --- a/drivers/media/platform/soc_camera/mx2_camera.c
-> +++ b/drivers/media/platform/soc_camera/mx2_camera.c
-> @@ -278,7 +278,8 @@ struct mx2_camera_dev {
->  	struct device		*dev;
->  	struct soc_camera_host	soc_host;
->  	struct soc_camera_device *icd;
-> -	struct clk		*clk_csi, *clk_emma_ahb, *clk_emma_ipg;
-> +	struct clk		*clk_emma_ahb, *clk_emma_ipg;
-> +	struct clk		*clk_csi_ahb, *clk_csi_per;
->  
->  	void __iomem		*base_csi, *base_emma;
->  
-> @@ -464,7 +465,8 @@ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
->  {
->  	unsigned long flags;
->  
-> -	clk_disable_unprepare(pcdev->clk_csi);
-> +	clk_disable_unprepare(pcdev->clk_csi_ahb);
-> +	clk_disable_unprepare(pcdev->clk_csi_per);
->  	writel(0, pcdev->base_csi + CSICR1);
->  	if (is_imx27_camera(pcdev)) {
->  		writel(0, pcdev->base_emma + PRP_CNTL);
-> @@ -492,10 +494,14 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
->  	if (pcdev->icd)
->  		return -EBUSY;
->  
-> -	ret = clk_prepare_enable(pcdev->clk_csi);
-> +	ret = clk_prepare_enable(pcdev->clk_csi_ahb);
->  	if (ret < 0)
->  		return ret;
->  
-> +	ret = clk_prepare_enable(pcdev->clk_csi_per);
-> +	if (ret < 0)
-> +		goto exit_csi_ahb;
-> +
->  	csicr1 = CSICR1_MCLKEN;
->  
->  	if (is_imx27_camera(pcdev))
-> @@ -512,6 +518,11 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
->  		 icd->devnum);
->  
->  	return 0;
-> +
-> +exit_csi_ahb:
-> +	clk_disable_unprepare(pcdev->clk_csi_ahb);
-> +
-> +	return ret;
->  }
->  
->  static void mx2_camera_remove_device(struct soc_camera_device *icd)
-> @@ -1772,10 +1783,17 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
->  		break;
->  	}
->  
-> -	pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
-> -	if (IS_ERR(pcdev->clk_csi)) {
-> -		dev_err(&pdev->dev, "Could not get csi clock\n");
-> -		err = PTR_ERR(pcdev->clk_csi);
-> +	pcdev->clk_csi_ahb = devm_clk_get(&pdev->dev, "ahb");
-> +	if (IS_ERR(pcdev->clk_csi_ahb)) {
-> +		dev_err(&pdev->dev, "Could not get csi ahb clock\n");
-> +		err = PTR_ERR(pcdev->clk_csi_ahb);
-> +		goto exit;
-> +	}
-> +
-> +	pcdev->clk_csi_per = devm_clk_get(&pdev->dev, "per");
-> +	if (IS_ERR(pcdev->clk_csi_per)) {
-> +		dev_err(&pdev->dev, "Could not get csi per clock\n");
-> +		err = PTR_ERR(pcdev->clk_csi_per);
->  		goto exit;
->  	}
->  
-> @@ -1785,12 +1803,13 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
->  
->  		pcdev->platform_flags = pcdev->pdata->flags;
->  
-> -		rate = clk_round_rate(pcdev->clk_csi, pcdev->pdata->clk * 2);
-> +		rate = clk_round_rate(pcdev->clk_csi_per,
-> +						pcdev->pdata->clk * 2);
->  		if (rate <= 0) {
->  			err = -ENODEV;
->  			goto exit;
->  		}
-> -		err = clk_set_rate(pcdev->clk_csi, rate);
-> +		err = clk_set_rate(pcdev->clk_csi_per, rate);
->  		if (err < 0)
->  			goto exit;
->  	}
-> @@ -1848,7 +1867,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
->  		goto exit_free_emma;
->  
->  	dev_info(&pdev->dev, "MX2 Camera (CSI) driver probed, clock frequency: %ld\n",
-> -			clk_get_rate(pcdev->clk_csi));
-> +			clk_get_rate(pcdev->clk_csi_per));
->  
->  	return 0;
->  
-
-
-
-
-Cheers,
-Mauro
