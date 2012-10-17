@@ -1,67 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ftp.poss.co.nz ([210.54.213.75]:1878 "EHLO riffraff.iposs.co.nz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751401Ab2JBKmQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 06:42:16 -0400
-From: Michael West <michael@iposs.co.nz>
-To: Michael West <michael@iposs.co.nz>,
-	Martin Burnicki <martin.burnicki@burnicki.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 2 Oct 2012 23:42:10 +1300
-Subject: RE: Current media_build doesn't succeed building on kernel 3.1.10
-Message-ID: <DCBB30B3D32C824F800041EE82CABAAE03203D63BAD7@duckworth.iposs.co.nz>
-References: <201209302052.42723.martin.burnicki@burnicki.net>
- <20121001110241.2f5ab052@redhat.com>
- <201210012131.13441.martin.burnicki@burnicki.net>
- <DCBB30B3D32C824F800041EE82CABAAE03203D63BAD2@duckworth.iposs.co.nz>
-In-Reply-To: <DCBB30B3D32C824F800041EE82CABAAE03203D63BAD2@duckworth.iposs.co.nz>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:50092 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756022Ab2JQKWF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Oct 2012 06:22:05 -0400
+Received: by mail-oa0-f46.google.com with SMTP id h16so7227645oag.19
+        for <linux-media@vger.kernel.org>; Wed, 17 Oct 2012 03:22:04 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <20121017112504.47269452@pyramind.ukuu.org.uk>
+References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
+	<20121010191702.404edace@pyramind.ukuu.org.uk>
+	<CAF6AEGvzfr2-QHpX4zwm2EPz-vxCDe9SaLUjo4_Fn7HhjWJFsg@mail.gmail.com>
+	<201210110857.15660.hverkuil@xs4all.nl>
+	<20121016212208.GB10462@morell.nvidia.com>
+	<20121017105321.062c898d@pyramind.ukuu.org.uk>
+	<CAPM=9txT+Wa_JXvsv7O3mqA6WK19z8chvSVxGQdf7R3Xo-mtQg@mail.gmail.com>
+	<20121017112504.47269452@pyramind.ukuu.org.uk>
+Date: Wed, 17 Oct 2012 20:22:04 +1000
+Message-ID: <CAPM=9txQvNgVK824FrT6GD5eZeeaOEPkBzC9sdd9E4tu=ZdPNw@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: Use EXPORT_SYMBOL
+From: Dave Airlie <airlied@gmail.com>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Robert Morell <rmorell@nvidia.com>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Was looking to make a better fix than trying to just remove that line while the Make was busy running so I made a quick simple backports patch.
-This patch can be applied to the media_build git and it will remove the devm_regulator_bulk_get function call that is not supported in pre 3.4 kernels from s5k4ecgx.c.  I'm sure there are better ways to fix this build problem but this seems to work for now anyway.
----
- backports/backports.txt       |    3 +++
- backports/v3.3_s5k4ecgx.patch |   12 ++++++++++++
- 2 files changed, 15 insertions(+)
- create mode 100644 backports/v3.3_s5k4ecgx.patch
+On Wed, Oct 17, 2012 at 8:25 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
+>> > Please go and discuss estoppel, wilful infringement and re-licensing with
+>> > your corporate attorneys. If you want to relicense components of the code
+>> > then please take the matter up with the corporate attorneys of the rights
+>> > holders concerned.
+>>
+>> Alan please stick with the facts. This isn't a relicense of anything.
+>
+> In your opinion. Are you a qualified IP attorney - NO. Are you my lawyer
+> - NO. Does my laywer disagree with you - YES.
 
-diff --git a/backports/backports.txt b/backports/backports.txt
-index 5554d9e..274945d 100644
---- a/backports/backports.txt
-+++ b/backports/backports.txt
-@@ -24,6 +24,9 @@
- add api_version.patch
- add pr_fmt.patch
- 
-+[3.3.255]
-+add v3.3_s5k4ecgx.patch
-+
- [3.1.255]
- add v3.1_no_export_h.patch
- add v3.1_no_pm_qos.patch
-diff --git a/backports/v3.3_s5k4ecgx.patch b/backports/v3.3_s5k4ecgx.patch
-new file mode 100644
-index 0000000..0e44163
---- /dev/null
-+++ b/backports/v3.3_s5k4ecgx.patch
-@@ -0,0 +1,12 @@
-+diff -r drivers/media/i2c/s5k4ecgx.c
-+--- a/drivers/media/i2c/s5k4ecgx.c	2012-10-02 15:32:07.309032679 +1300
-++++ b/drivers/media/i2c/s5k4ecgx.c	2012-10-02 15:31:22.052994719 +1300
-+@@ -974,8 +974,6 @@
-+ 	for (i = 0; i < S5K4ECGX_NUM_SUPPLIES; i++)
-+ 		priv->supplies[i].supply = s5k4ecgx_supply_names[i];
-+ 
-+-	ret = devm_regulator_bulk_get(&client->dev, S5K4ECGX_NUM_SUPPLIES,
-+-				 priv->supplies);
-+ 	if (ret) {
-+ 		dev_err(&client->dev, "Failed to get regulators\n");
-+ 		goto out_err2;
--- 
-1.7.9.5
+Okay then we should remove this code from the kernel forthwith, as I
+showed it was illegally relicensed previously in your lawyers opinion.
+
+Dave.
