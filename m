@@ -1,68 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:45447 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752593Ab2JDHYg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 03:24:36 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBC00LFOXWSZVQ0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:34 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MBC006I9XWMLU10@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:34 +0900 (KST)
-From: Rahul Sharma <rahul.sharma@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Cc: t.stanislaws@samsung.com, inki.dae@samsung.com,
-	kyungmin.park@samsung.com, joshi@samsung.com
-Subject: [PATCH v1 00/14] drm: exynos: hdmi: add dt based support for exynos5
- hdmi
-Date: Thu, 04 Oct 2012 21:12:38 +0530
-Message-id: <1349365372-21417-1-git-send-email-rahul.sharma@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39964 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755718Ab2JQAUd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Oct 2012 20:20:33 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Enric Balletbo Serra <eballetbo@gmail.com>
+Cc: John Weber <rjohnweber@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Using omap3-isp-live example application on beagleboard with DVI
+Date: Wed, 17 Oct 2012 02:21:20 +0200
+Message-ID: <4949132.OD6tNZX2Jk@avalon>
+In-Reply-To: <CAFqH_50FiyMiQHiTwhu82shJVb-boZ+KSu8sTwaFQxsPGA=sfA@mail.gmail.com>
+References: <090701cd8c4e$be38bea0$3aaa3be0$@gmail.com> <7805846.LU2Ezfa4XS@avalon> <CAFqH_50FiyMiQHiTwhu82shJVb-boZ+KSu8sTwaFQxsPGA=sfA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch set adds the DT based support for Samsung's Exynos5250 in DRM-HDMI.
-It includes disabling of hdmi internal interrupt, suppport for platform
-variants for hdmi and mixer, support to disable video processor based on
-platform type and removal of drm common platform data.
+Hi Enric,
 
-This patchset is based on branch exynos-drm-next at 
-git://git.infradead.org/users/kmpark/linux-samsung (linux v3.6-rc4)
+On Monday 15 October 2012 14:03:20 Enric Balletbo Serra wrote:
+> 2012/10/11 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> > On Thursday 11 October 2012 10:14:26 Enric Balletbò i Serra wrote:
+> >> 2012/10/10 Enric Balletbò i Serra <eballetbo@gmail.com>:
+> >> > 2012/9/6 John Weber <rjohnweber@gmail.com>:
+> >> >> Hello,
+> >> >> 
+> >> >> My goal is to better understand how to write an application that makes
+> >> >> use of the omap3isp and media controller frameworks and v4l2.  I'm
+> >> >> attempting to make use of Laurent's omap3-isp-live example application
+> >> >> as a starting point and play with the AEC/WB capability.
+> >> >> 
+> >> >> My problem is that when I start the live application, the display
+> >> >> turns blue (it seems when the chromakey fill is done), but no video
+> >> >> appears on the display.  I do think that I'm getting good (or at least
+> >> >> statistics) from the ISP because I can change the view in front of the
+> >> >> camera (by putting my hand in front of the lens) and the gain settings
+> >> >> change.
 
-v2:
-- removed MXR_VER_INVALID
-- moved layer update from vsync ISR to mixer_graph_buffer
-- stopped enabling vsync interrupt after poweron
+[snip]
 
-Rahul Sharma (9):
-  drm: exynos: remove drm hdmi platform data struct
-  drm: exynos: hdmi: add support for exynos5 ddc
-  drm: exynos: hdmi: add support for exynos5 hdmiphy
-  drm: exynos: hdmi: add support for platform variants for mixer
-  drm: exynos: hdmi: add support to disable video processor in mixer
-  drm: exynos: hdmi: add support for exynos5 mixer
-  drm: exynos: hdmi: replace is_v13 with version check in hdmi
-  drm: exynos: hdmi: add support for exynos5 hdmi
-  drm: exynos: hdmi: remove drm common hdmi platform data struct
+> >> > I've exactly the same problem. Before try to debug the problem I would
+> >> > like to know if you solved the problem. Did you solved ?
+> >> 
+> >> The first change I made and worked (just luck). I made the following
+> >> change:
+> >> 
+> >> -       vo_enable_colorkey(vo, 0x123456);
+> >> +       // vo_enable_colorkey(vo, 0x123456);
+> >> 
+> >> And now the live application works like a charm. Seems this function
+> >> enables a chromakey and the live application can't paint over the
+> >> chromakey. Laurent, just to understand what I did, can you explain
+> >> this ? Thanks.
+> > 
+> > My guess is that the live application fails to paint the frame buffer with
+> > the color key. If fb_init() failed the live application would stop, so
+> > the function succeeds. My guess is thus that the application either
+> > paints the wrong frame buffer (how many /dev/fb* devices do you have on
+> > your system ?),
+>
+> I checked again and no, it opens the correct framebuffer.
+> 
+> > or paints it with the wrong color. The code assumes that the frame buffer
+> > is configured in 32 bit, maybe that's not the case on your system ?
+> 
+> This was my problem, and I suspect it's the John problem. My system was
+> configured in 16 bit instead of 32 bit.
+> 
+> FYI, I made a patch that adds this check to the live application. I did not
+> know where send the patch so I attached to this email.
 
-Tomasz Stanislawski (5):
-  media: s5p-hdmi: add HPD GPIO to platform data
-  drm: exynos: hdmi: support for platform variants
-  drm: exynos: hdmi: fix interrupt handling
-  drm: exynos: hdmi: use s5p-hdmi platform data
-  drm: exynos: hdmi: turn off HPD interrupt in HDMI chip
+Thank you for the patch.
 
- drivers/gpu/drm/exynos/exynos_ddc.c      |   22 +++-
- drivers/gpu/drm/exynos/exynos_drm_hdmi.c |   51 ++++----
- drivers/gpu/drm/exynos/exynos_drm_hdmi.h |    2 +
- drivers/gpu/drm/exynos/exynos_hdmi.c     |  196 +++++++++++++++++++-------
- drivers/gpu/drm/exynos/exynos_hdmiphy.c  |   12 ++-
- drivers/gpu/drm/exynos/exynos_mixer.c    |  227 +++++++++++++++++++++++-------
- drivers/gpu/drm/exynos/regs-mixer.h      |    3 +
- include/drm/exynos_drm.h                 |   27 ----
- include/media/s5p_hdmi.h                 |    2 +
- 9 files changed, 378 insertions(+), 164 deletions(-)
+Instead of failing what would be more interesting would be to get the 
+application to work in 16bpp mode as well. For that you will need to paint the 
+frame buffer with a 16bpp color, and set the colorkey to the same value. Would 
+you be able to try that ?
+
+-- 
+Regards,
+
+Laurent Pinchart
 
