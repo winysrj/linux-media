@@ -1,87 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:56917 "EHLO 7of9.schinagl.nl"
+Received: from mx1.redhat.com ([209.132.183.28]:42542 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750924Ab2JHMWW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Oct 2012 08:22:22 -0400
-Message-ID: <5072C573.7000204@schinagl.nl>
-Date: Mon, 08 Oct 2012 14:22:11 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
-MIME-Version: 1.0
-To: Jens Bauer <jens-lists@gpio.dk>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: Zolid USB DVB-T Tuner Pictures
-References: <20121007175602425458.288c6720@gpio.dk> <5072A5BF.50101@schinagl.nl> <20121008131229269874.8db8d46c@gpio.dk> <5072C07F.90100@schinagl.nl> <20121008141642637793.214fa4bf@gpio.dk>
-In-Reply-To: <20121008141642637793.214fa4bf@gpio.dk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1752794Ab2JQUCH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Oct 2012 16:02:07 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9HK26hD032498
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 17 Oct 2012 16:02:07 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 2/3] [media] siano: allow compiling it without RC support
+Date: Wed, 17 Oct 2012 17:01:57 -0300
+Message-Id: <1350504118-8901-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1350504118-8901-1-git-send-email-mchehab@redhat.com>
+References: <1350503193-8412-1-git-send-email-mchehab@redhat.com>
+ <1350504118-8901-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08-10-12 14:16, Jens Bauer wrote:
-> Hi Oliver.
->
-> On Mon, 08 Oct 2012 14:01:03 +0200, Oliver Schinagl wrote:
->
->>> (I must admit that I find it a bit confusing when 'Edit' does not do
->>> what I expect, but there's probably a reason for that).
->> I assume you have created an account and can edit various pages;
-> Yep, so far, so good. :)
->
->> I opened the DVB-T Usb page and clicked on the 'edit' icon to the
->> right of the Zolid mini dvb-t stick. I then jumped to the
->> zolid-mini-dvb-t-stick-v1 section on the Template:USB_Device_Data
->> page.
-> I can do that too, no problem. I end up here:
-> <http://linuxtv.org/wiki/index.php/Template:USB_Device_Data#zolid-mini-dvb-t-stick-v1>
->
->> There is a [edit] 'button' to the right of th title.
->> {snip}
-> Not on my end. The page I have now says...
-> ---8<-----8<-----8<-----
-> "zolid-mini-dvb-t-stick-v1
-> The data for the device zolid-mini-dvb-t-stick-v1 is right here. You just can't see it because it is meant to be used in a template 'transclusion'. If you are logged in you can click on the [edit] link to the right to change the data for this device. If you are not logged in, you can click on the view source tab at the top of this page to at least see how data is stored here.
-> It's probably best if you open the edit link in a separate tab. That way you can use this tab to read the explanation of the syntax above or jump back to the place where you came from and see how your changes look there. (Don't forget that your browser cache or the wiki's rendering cache might need some time or persuasion to catch up with the new content.)"
-> ----->8----->8----->8---
-> ...And there are no clickable links there.
-I have that too, if i'm not logged in :) if you are logged in, it should 
-work (with an active account). Try 'private session' or whatever you 
-have in your browser (ctrl-p top of my head in ff) and ensure you login. 
-If it still does not work, something else may be broken.
->
-> I have all ad-blockers turned off, and no custom/user CSS in my browser; also tried in Opera, no dice...
->
-> If, on the other hand, I scroll to the top of this page, and click the "View Source" tab, I get the following in the top of the new page:
-> ---8<-----8<-----8<-----
->    "You do not have permission to edit this page, for the following reasons:
->    The action you have requested is limited to users in the group: Users.
->    You do not have permission to edit pages in the Template namespace.
->
->    You can view and copy the source of this page:"
-> ----->8----->8----->8---
-Is your account very new? You may not be authorised after all yet? I 
-don't know the answer then.
->
->
->> This opens the template 'table' for your dvice. Where it says
->> 'pic=[[image:Mini.jpg|120px]] you can replace that with the filename
->> of your image.
-> I guess this is supposed to happen, but it does not happen for me. Perhaps I need some access granted from somewhere or someone ?
->
->> If you haven't uploaded it yet, going back to the regular DVB-T USB
->> overview page should now show a missing picture. Clicking on that
->> should allow you to upload your image :)
->>
->> Furthermore, you can make a wikilink from the device field to link to
->> a specific device page (or create one) to place more pictures. See
->> for example the device=[[ASUS_My_Cinema ...|My Cinema U3100 ...]] bit
->> for the Asus U3100 Mini.
-> I'll remember this for when I get the first part to work. :)
->
->
-> Love
-> Jens
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Remote controller support should be optional on all drivers.
+
+Make it optional at Siano's driver.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/Kconfig        |  7 +++++++
+ drivers/media/common/siano/Kconfig  | 10 +++++++++-
+ drivers/media/common/siano/Makefile |  3 ++-
+ drivers/media/common/siano/smsir.h  |  9 +++++++++
+ drivers/media/mmc/siano/Kconfig     |  1 +
+ drivers/media/usb/siano/Kconfig     |  1 +
+ 6 files changed, 29 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/common/Kconfig b/drivers/media/common/Kconfig
+index 121b011..d2a436c 100644
+--- a/drivers/media/common/Kconfig
++++ b/drivers/media/common/Kconfig
+@@ -1,3 +1,10 @@
++# Used by common drivers, when they need to ask questions
++config MEDIA_COMMON_OPTIONS
++	bool
++
++comment "common driver options"
++	depends on MEDIA_COMMON_OPTIONS
++
+ source "drivers/media/common/b2c2/Kconfig"
+ source "drivers/media/common/saa7146/Kconfig"
+ source "drivers/media/common/siano/Kconfig"
+diff --git a/drivers/media/common/siano/Kconfig b/drivers/media/common/siano/Kconfig
+index 425aead..08d5b58 100644
+--- a/drivers/media/common/siano/Kconfig
++++ b/drivers/media/common/siano/Kconfig
+@@ -4,7 +4,7 @@
+ 
+ config SMS_SIANO_MDTV
+ 	tristate
+-	depends on DVB_CORE && RC_CORE && HAS_DMA
++	depends on DVB_CORE && HAS_DMA
+ 	depends on SMS_USB_DRV || SMS_SDIO_DRV
+ 	default y
+ 	---help---
+@@ -15,3 +15,11 @@ config SMS_SIANO_MDTV
+ 
+ 	  Further documentation on this driver can be found on the WWW
+ 	  at http://www.siano-ms.com/
++config SMS_SIANO_RC
++	bool "Enable Remote Controller support for Siano devices"
++	depends on SMS_SIANO_MDTV && RC_CORE
++	depends on SMS_USB_DRV || SMS_SDIO_DRV
++	depends on MEDIA_COMMON_OPTIONS
++	default y
++	---help---
++	  Choose Y to select Remote Controller support for Siano driver.
+diff --git a/drivers/media/common/siano/Makefile b/drivers/media/common/siano/Makefile
+index 2a09279..0e6f5e9 100644
+--- a/drivers/media/common/siano/Makefile
++++ b/drivers/media/common/siano/Makefile
+@@ -1,6 +1,7 @@
+-smsmdtv-objs := smscoreapi.o sms-cards.o smsendian.o smsir.o
++smsmdtv-objs := smscoreapi.o sms-cards.o smsendian.o
+ 
+ obj-$(CONFIG_SMS_SIANO_MDTV) += smsmdtv.o smsdvb.o
++obj-$(CONFIG_SMS_SIANO_RC) += smsir.o
+ 
+ ccflags-y += -Idrivers/media/dvb-core
+ ccflags-y += $(extra-cflags-y) $(extra-cflags-m)
+diff --git a/drivers/media/common/siano/smsir.h b/drivers/media/common/siano/smsir.h
+index ae92b3a..69b59b9 100644
+--- a/drivers/media/common/siano/smsir.h
++++ b/drivers/media/common/siano/smsir.h
+@@ -46,10 +46,19 @@ struct ir_t {
+ 	u32 controller;
+ };
+ 
++#ifdef CONFIG_SMS_SIANO_RC
+ int sms_ir_init(struct smscore_device_t *coredev);
+ void sms_ir_exit(struct smscore_device_t *coredev);
+ void sms_ir_event(struct smscore_device_t *coredev,
+ 			const char *buf, int len);
++#else
++inline static int sms_ir_init(struct smscore_device_t *coredev) {
++	return 0;
++}
++inline static void sms_ir_exit(struct smscore_device_t *coredev) {};
++inline static void sms_ir_event(struct smscore_device_t *coredev,
++			const char *buf, int len) {};
++#endif
+ 
+ #endif /* __SMS_IR_H__ */
+ 
+diff --git a/drivers/media/mmc/siano/Kconfig b/drivers/media/mmc/siano/Kconfig
+index fa62475..69f8061 100644
+--- a/drivers/media/mmc/siano/Kconfig
++++ b/drivers/media/mmc/siano/Kconfig
+@@ -6,5 +6,6 @@ config SMS_SDIO_DRV
+ 	tristate "Siano SMS1xxx based MDTV via SDIO interface"
+ 	depends on DVB_CORE && RC_CORE && HAS_DMA
+ 	depends on MMC
++	select MEDIA_COMMON_OPTIONS
+ 	---help---
+ 	  Choose if you would like to have Siano's support for SDIO interface
+diff --git a/drivers/media/usb/siano/Kconfig b/drivers/media/usb/siano/Kconfig
+index 3c76e62..b2c229e 100644
+--- a/drivers/media/usb/siano/Kconfig
++++ b/drivers/media/usb/siano/Kconfig
+@@ -5,6 +5,7 @@
+ config SMS_USB_DRV
+ 	tristate "Siano SMS1xxx based MDTV receiver"
+ 	depends on DVB_CORE && RC_CORE && HAS_DMA
++	select MEDIA_COMMON_OPTIONS
+ 	---help---
+ 	  Choose if you would like to have Siano's support for USB interface
+ 
+-- 
+1.7.11.7
 
