@@ -1,49 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:51145 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965071Ab2JCRBE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 13:01:04 -0400
-MIME-Version: 1.0
-In-Reply-To: <CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
-References: <1340285798-8322-1-git-send-email-mchehab@redhat.com>
- <4FE37194.30407@redhat.com> <4FE8B8BC.3020702@iki.fi> <4FE8C4C4.1050901@redhat.com>
- <4FE8CED5.104@redhat.com> <20120625223306.GA2764@kroah.com>
- <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com>
- <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
- <20121002221239.GA30990@kroah.com> <20121002222333.GA32207@kroah.com>
- <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
- <506C562E.5090909@redhat.com> <CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Wed, 3 Oct 2012 10:00:43 -0700
-Message-ID: <CA+55aFwpmUPF4MR+rVJ=MOYGseWGN9DvMTivbwxQ4gh_izrryg@mail.gmail.com>
-Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
- callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ming Lei <ming.lei@canonical.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, Kay Sievers <kay@vrfy.org>,
-	Lennart Poettering <lennart@poettering.net>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Kay Sievers <kay@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Ivan Kalvachev <ikalvachev@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:45779 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756539Ab2JQLQt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Oct 2012 07:16:49 -0400
+Received: by mail-pb0-f46.google.com with SMTP id rr4so7059174pbb.19
+        for <linux-media@vger.kernel.org>; Wed, 17 Oct 2012 04:16:49 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org,
+	patches@linaro.org, Kamil Debski <k.debski@samsung.com>
+Subject: [PATCH 7/8] [media] s5p-mfc: Make 'clk_ref' static in s5p_mfc_pm.c
+Date: Wed, 17 Oct 2012 16:41:50 +0530
+Message-Id: <1350472311-9748-7-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org>
+References: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 3, 2012 at 9:38 AM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
-> Anyway. Attached is a really stupid patch that tries to do the "direct
-> firmware load" as suggested by Ivan. It has not been tested very
-> extensively at all (but I did test that it loaded the brcmsmac
-> firmware images on my laptop so it has the *potential* to work).
+Fixes the following sparse warning:
+drivers/media/platform/s5p-mfc/s5p_mfc_pm.c:31:10: warning:
+symbol 'clk_ref' was not declared. Should it be static?
 
-Oh, and I stupidly put the new functions next to the builtin firmware
-loading function, which means that the patch only works if you have
-CONFIG_FW_LOADER enabled.
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Kamil Debski <k.debski@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_pm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-That's bogus, and the functions should be moved out of that #ifdef,
-but I don't think it should hurt testing.
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+index f7c5c5a..19c46fb 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+@@ -28,7 +28,7 @@ static struct s5p_mfc_pm *pm;
+ static struct s5p_mfc_dev *p_dev;
+ 
+ #ifdef CLK_DEBUG
+-atomic_t clk_ref;
++static atomic_t clk_ref;
+ #endif
+ 
+ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
+-- 
+1.7.4.1
 
-                    Linus
