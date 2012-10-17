@@ -1,108 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:48019 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753067Ab2JGMN4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 08:13:56 -0400
-Date: Sun, 7 Oct 2012 09:13:28 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Peter Senna Tschudin <peter.senna@gmail.com>
-Cc: trivial@vger.kernel.org, crope@iki.fi, gennarone@gmail.com,
-	dan.carpenter@oracle.com, hans.verkuil@cisco.com, thomas@m3y3r.de,
-	santoshprasadnayak@gmail.com, abraham.manu@gmail.com,
-	stoth@kernellabs.com, dheitmueller@kernellabs.com,
-	t.stanislaws@samsung.com, liplianin@netup.ru,
-	andriy.shevchenko@linux.intel.com, ptqa@netup.ru, David@Fries.net,
-	thunder.mmm@gmail.com, j@jannau.net, s.nawrocki@samsung.com,
-	sungchun.kang@samsung.com, khw0178.kim@samsung.com,
-	shaik.ameer@samsung.com, hdegoede@redhat.com,
-	tobias.lorenz@gmx.net, gregkh@suse.de,
-	paul.gortmaker@windriver.com, m@bues.ch, hfvogt@gmx.net,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH v2] drivers/media: Remove unnecessary semicolon
-Message-ID: <20121007091328.21c59e5f@infradead.org>
-In-Reply-To: <1348746906-26863-1-git-send-email-peter.senna@gmail.com>
-References: <1348746906-26863-1-git-send-email-peter.senna@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:42343 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755530Ab2JQLQi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Oct 2012 07:16:38 -0400
+Received: by mail-pa0-f46.google.com with SMTP id hz1so6997024pad.19
+        for <linux-media@vger.kernel.org>; Wed, 17 Oct 2012 04:16:37 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org,
+	patches@linaro.org, Kamil Debski <k.debski@samsung.com>
+Subject: [PATCH 3/8] [media] s5p-mfc: Use clk_prepare_enable and clk_disable_unprepare
+Date: Wed, 17 Oct 2012 16:41:46 +0530
+Message-Id: <1350472311-9748-3-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org>
+References: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Peter,
+Replace clk_enable/clk_disable with clk_prepare_enable/clk_disable_unprepare
+as required by the common clock framework.
 
-Em Thu, 27 Sep 2012 13:55:06 +0200
-Peter Senna Tschudin <peter.senna@gmail.com> escreveu:
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Kamil Debski <k.debski@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_pm.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-> Remove unnecessary semicolon
-> 
-> And:
-> drivers/media/dvb-frontends/stv0900_core.c: remove unnecessary whitespace before a
-> quoted newline
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+index 367db75..f7c5c5a 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+@@ -100,7 +100,7 @@ int s5p_mfc_clock_on(void)
+ 	atomic_inc(&clk_ref);
+ 	mfc_debug(3, "+ %d", atomic_read(&clk_ref));
+ #endif
+-	ret = clk_enable(pm->clock_gate);
++	ret = clk_prepare_enable(pm->clock_gate);
+ 	return ret;
+ }
+ 
+@@ -110,7 +110,7 @@ void s5p_mfc_clock_off(void)
+ 	atomic_dec(&clk_ref);
+ 	mfc_debug(3, "- %d", atomic_read(&clk_ref));
+ #endif
+-	clk_disable(pm->clock_gate);
++	clk_disable_unprepare(pm->clock_gate);
+ }
+ 
+ int s5p_mfc_power_on(void)
+-- 
+1.7.4.1
 
-(answering about your v3 here, instead of at your v3 email as it got
- lost - I had subscribed from vger - you likely sent the patch during
- that period of time - fortunately, patchwork got it)
-
-This patch doesn't apply as-is:
-
-Applying patch patches/lmml_14721_v3_drivers_media_remove_unnecessary_semicolon.patch
-patching file drivers/media/dvb-core/dvb_frontend.c
-Hunk #1 succeeded at 2309 (offset 21 lines).
-patching file drivers/media/dvb-frontends/a8293.c
-patching file drivers/media/dvb-frontends/af9013.c
-patching file drivers/media/dvb-frontends/bcm3510.c
-patching file drivers/media/dvb-frontends/cx24110.c
-patching file drivers/media/dvb-frontends/drxd_hard.c
-patching file drivers/media/dvb-frontends/isl6405.c
-patching file drivers/media/dvb-frontends/isl6421.c
-patching file drivers/media/dvb-frontends/itd1000.c
-Hunk #1 FAILED at 231.
-1 out of 1 hunk FAILED -- rejects in file drivers/media/dvb-frontends/itd1000.c
-patching file drivers/media/dvb-frontends/lnbp21.c
-patching file drivers/media/dvb-frontends/lnbp22.c
-patching file drivers/media/dvb-frontends/si21xx.c
-patching file drivers/media/dvb-frontends/sp8870.c
-Hunk #1 FAILED at 188.
-Hunk #2 FAILED at 207.
-Hunk #3 FAILED at 229.
-3 out of 3 hunks FAILED -- rejects in file drivers/media/dvb-frontends/sp8870.c
-patching file drivers/media/dvb-frontends/sp887x.c
-patching file drivers/media/dvb-frontends/stv0299.c
-patching file drivers/media/dvb-frontends/stv0900_core.c
-patching file drivers/media/dvb-frontends/tda8083.c
-patching file drivers/media/i2c/cx25840/cx25840-core.c
-patching file drivers/media/pci/bt8xx/dst_ca.c
-patching file drivers/media/pci/cx23885/altera-ci.c
-patching file drivers/media/pci/cx23885/cimax2.c
-patching file drivers/media/pci/cx88/cx88-blackbird.c
-Hunk #1 FAILED at 721.
-Hunk #2 FAILED at 739.
-Hunk #3 FAILED at 755.
-3 out of 3 hunks FAILED -- rejects in file drivers/media/pci/cx88/cx88-blackbird.c
-patching file drivers/media/pci/cx88/cx88-dvb.c
-patching file drivers/media/pci/cx88/cx88-mpeg.c
-patching file drivers/media/pci/cx88/cx88-tvaudio.c
-patching file drivers/media/pci/cx88/cx88-video.c
-patching file drivers/media/pci/saa7134/saa7134-video.c
-patching file drivers/media/platform/exynos-gsc/gsc-regs.c
-patching file drivers/media/radio/si470x/radio-si470x-i2c.c
-Hunk #1 succeeded at 308 (offset 11 lines).
-patching file drivers/media/radio/si470x/radio-si470x-usb.c
-patching file drivers/media/radio/si4713-i2c.c
-Hunk #1 FAILED at 1009.
-Hunk #2 FAILED at 1081.
-Hunk #3 FAILED at 1130.
-Hunk #4 FAILED at 1420.
-Hunk #5 FAILED at 1473.
-Hunk #6 FAILED at 1698.
-6 out of 6 hunks FAILED -- rejects in file drivers/media/radio/si4713-i2c.c
-patching file drivers/media/usb/dvb-usb-v2/af9015.c
-patching file drivers/media/usb/dvb-usb-v2/af9035.c
-Hunk #1 succeeded at 520 (offset 1 line).
-
-As this patch is trivial enough, I'll just discard the affected hunks
-with "quilt push -f", applying it partially.
-
-Cheers,
-Mauro
