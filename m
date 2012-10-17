@@ -1,51 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:39393 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754935Ab2JBI5g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 04:57:36 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Anatolij Gustschin <agust@denx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [RFC PATCH 3/3] fsl-viu: fix compiler warning.
-Date: Tue,  2 Oct 2012 10:57:20 +0200
-Message-Id: <72ee06310ede2a3f842528fc1ed0025ab15ff8a3.1349168132.git.hans.verkuil@cisco.com>
-In-Reply-To: <1349168240-29269-1-git-send-email-hans.verkuil@cisco.com>
-References: <1349168240-29269-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <760bdb23b40b9ce3a8044a3379510889db4bfcf7.1349168132.git.hans.verkuil@cisco.com>
-References: <760bdb23b40b9ce3a8044a3379510889db4bfcf7.1349168132.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:50716 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752794Ab2JQUCI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Oct 2012 16:02:08 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9HK26iJ025502
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 17 Oct 2012 16:02:08 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 1/3] [media] Kconfig: Fix dependencies for driver autoselect options
+Date: Wed, 17 Oct 2012 17:01:56 -0300
+Message-Id: <1350504118-8901-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1350503193-8412-1-git-send-email-mchehab@redhat.com>
+References: <1350503193-8412-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/platform/fsl-viu.c: In function 'vidioc_s_fbuf':
-drivers/media/platform/fsl-viu.c:867:32: warning: initialization discards 'const' qualifier from pointer target type [enabled by default]
+This option is a merge of both analog TV and DVB CUSTOMISE.
 
-This is fall-out from this commit:
+At the merge, the dependencies were not done right: the menu
+currently appears only for analog TV. It should also be opened
+for digital TV. As there are other I2C devices there (flash
+devices, etc) that aren't related to either one, it is better
+to make it generic enough to open for all media devices with
+video.
 
-commit e6eb28c2207b9397d0ab56e238865a4ee95b7ef9
-Author: Hans Verkuil <hans.verkuil@cisco.com>
-Date:   Tue Sep 4 10:26:45 2012 -0300
-
-    [media] v4l2: make vidioc_s_fbuf const
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/platform/fsl-viu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/Kconfig | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
-index 897250b..31ac4dc 100644
---- a/drivers/media/platform/fsl-viu.c
-+++ b/drivers/media/platform/fsl-viu.c
-@@ -864,7 +864,7 @@ int vidioc_s_fbuf(struct file *file, void *priv, const struct v4l2_framebuffer *
- {
- 	struct viu_fh  *fh = priv;
- 	struct viu_dev *dev = fh->dev;
--	struct v4l2_framebuffer *fb = arg;
-+	const struct v4l2_framebuffer *fb = arg;
- 	struct viu_fmt *fmt;
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index dd13e3a..4ef0d80 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -163,19 +163,21 @@ source "drivers/media/common/Kconfig"
+ #
  
- 	if (!capable(CAP_SYS_ADMIN) && !capable(CAP_SYS_RAWIO))
+ config MEDIA_SUBDRV_AUTOSELECT
+-	bool "Autoselect analog and hybrid tuner modules to build"
+-	depends on MEDIA_TUNER
++	bool "Autoselect tuners and i2c modules to build"
++	depends on MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT || MEDIA_CAMERA_SUPPORT
+ 	default y
+ 	help
+-	  By default, a TV driver auto-selects all possible tuners
+-	  thar could be used by the driver.
++	  By default, a media driver auto-selects all possible i2c
++	  devices that are used by any of the supported devices.
+ 
+ 	  This is generally the right thing to do, except when there
+-	  are strict constraints with regards to the kernel size.
++	  are strict constraints with regards to the kernel size,
++	  like on embedded systems.
+ 
+-	  Use this option with care, as deselecting tuner drivers which
+-	  are in fact necessary will result in TV devices which cannot
+-	  be tuned due to lack of the tuning driver.
++	  Use this option with care, as deselecting ancillary drivers which
++	  are, in fact, necessary will result in the lack of the needed
++	  functionality for your device (it may not tune or may not have
++	  the need demodulers).
+ 
+ 	  If unsure say Y.
+ 
 -- 
-1.7.10.4
+1.7.11.7
 
