@@ -1,44 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4071 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752312Ab2J0UmZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:42:25 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKgPtp019849
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:25 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 36/68] [media] dib9000: get rid of warning: no previous prototype
-Date: Sat, 27 Oct 2012 18:40:54 -0200
-Message-Id: <1351370486-29040-37-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:65462 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756525Ab2JQKkD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Oct 2012 06:40:03 -0400
+Received: by mail-oa0-f46.google.com with SMTP id h16so7239448oag.19
+        for <linux-media@vger.kernel.org>; Wed, 17 Oct 2012 03:40:03 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20121017113802.73a313d6@pyramind.ukuu.org.uk>
+References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
+	<20121010191702.404edace@pyramind.ukuu.org.uk>
+	<CAF6AEGvzfr2-QHpX4zwm2EPz-vxCDe9SaLUjo4_Fn7HhjWJFsg@mail.gmail.com>
+	<201210110857.15660.hverkuil@xs4all.nl>
+	<20121016212208.GB10462@morell.nvidia.com>
+	<20121017105321.062c898d@pyramind.ukuu.org.uk>
+	<CAPM=9txT+Wa_JXvsv7O3mqA6WK19z8chvSVxGQdf7R3Xo-mtQg@mail.gmail.com>
+	<20121017112504.47269452@pyramind.ukuu.org.uk>
+	<CAPM=9txQvNgVK824FrT6GD5eZeeaOEPkBzC9sdd9E4tu=ZdPNw@mail.gmail.com>
+	<20121017113802.73a313d6@pyramind.ukuu.org.uk>
+Date: Wed, 17 Oct 2012 20:40:01 +1000
+Message-ID: <CAPM=9tygKJJ0kPP+4vL_xN-2pphCe8-NXzFKc_kJhDPbteSdAQ@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: Use EXPORT_SYMBOL
+From: Dave Airlie <airlied@gmail.com>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Robert Morell <rmorell@nvidia.com>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/dvb-frontends/dib9000.h:100:5: warning: no previous prototype for 'dib9000_remove_slave_frontend' [-Wmissing-prototypes]
+> From the fact this patch keeps getting resubmitted despite repeated
+> objection I deduce they are in fact of the view it does matter and that
+> therefore it is a licensing change and they are scared of the
+> consequences of ignoring it.
+>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-frontends/dib9000.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+No I think they just want to have to write a pointless hack lie in
+their kernel module.
 
-diff --git a/drivers/media/dvb-frontends/dib9000.h b/drivers/media/dvb-frontends/dib9000.h
-index b5781a4..de1cc91 100644
---- a/drivers/media/dvb-frontends/dib9000.h
-+++ b/drivers/media/dvb-frontends/dib9000.h
-@@ -97,7 +97,7 @@ static inline int dib9000_set_slave_frontend(struct dvb_frontend *fe, struct dvb
- 	return -ENODEV;
- }
- 
--int dib9000_remove_slave_frontend(struct dvb_frontend *fe)
-+static inline int dib9000_remove_slave_frontend(struct dvb_frontend *fe)
- {
- 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
- 	return -ENODEV;
--- 
-1.7.11.7
+There is no nice way for nvidia developers to say our lawyers don't
+think this is a license issues without doing
 
+MODULE_LICENSE("GPL\0 OH NOT WE DIDNT OUR LAWYESR ARE OKAY");
+
+I don't think I'd be going quite into how illegal it is.
+
+The thing is I can't base a useful userspace interface on this, and
+since the nvidia driver exists everwhere despite what we'd wish, I'd
+rather let the users have some hope of a sane architecture, instead of
+nvidia having to replace even more userspace code and kernel code with
+their own insane shit.
+
+Dave.
