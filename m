@@ -1,78 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([93.97.41.153]:52238 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758746Ab2JXVWo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Oct 2012 17:22:44 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 1/3] [media] winbond-cir: fix idle mode
-Date: Wed, 24 Oct 2012 22:22:40 +0100
-Message-Id: <1351113762-5530-1-git-send-email-sean@mess.org>
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:42593 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756022Ab2JQKUE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Oct 2012 06:20:04 -0400
+Date: Wed, 17 Oct 2012 11:25:04 +0100
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Dave Airlie <airlied@gmail.com>
+Cc: Robert Morell <rmorell@nvidia.com>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: Use EXPORT_SYMBOL
+Message-ID: <20121017112504.47269452@pyramind.ukuu.org.uk>
+In-Reply-To: <CAPM=9txT+Wa_JXvsv7O3mqA6WK19z8chvSVxGQdf7R3Xo-mtQg@mail.gmail.com>
+References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
+	<20121010191702.404edace@pyramind.ukuu.org.uk>
+	<CAF6AEGvzfr2-QHpX4zwm2EPz-vxCDe9SaLUjo4_Fn7HhjWJFsg@mail.gmail.com>
+	<201210110857.15660.hverkuil@xs4all.nl>
+	<20121016212208.GB10462@morell.nvidia.com>
+	<20121017105321.062c898d@pyramind.ukuu.org.uk>
+	<CAPM=9txT+Wa_JXvsv7O3mqA6WK19z8chvSVxGQdf7R3Xo-mtQg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The receiver is never disabled by idle mode since rxstate never gets set
-to RXSTATE_ACTIVE, so we keep on getting interrupts after the first IR
-activity ends. Note that ir_raw_event_reset() already calls
-ir_raw_event_handle().
+> > Please go and discuss estoppel, wilful infringement and re-licensing with
+> > your corporate attorneys. If you want to relicense components of the code
+> > then please take the matter up with the corporate attorneys of the rights
+> > holders concerned.
+> 
+> Alan please stick with the facts. This isn't a relicense of anything.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/winbond-cir.c | 15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+In your opinion. Are you a qualified IP attorney - NO. Are you my lawyer
+- NO. Does my laywer disagree with you - YES.
 
-diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
-index 43b5403..6f0f5ef 100644
---- a/drivers/media/rc/winbond-cir.c
-+++ b/drivers/media/rc/winbond-cir.c
-@@ -207,7 +207,6 @@ struct wbcir_data {
- 	/* RX state */
- 	enum wbcir_rxstate rxstate;
- 	struct led_trigger *rxtrigger;
--	struct ir_raw_event rxev;
- 
- 	/* TX state */
- 	enum wbcir_txstate txstate;
-@@ -339,9 +338,12 @@ wbcir_idle_rx(struct rc_dev *dev, bool idle)
- 		led_trigger_event(data->rxtrigger, LED_FULL);
- 	}
- 
--	if (idle && data->rxstate != WBCIR_RXSTATE_INACTIVE)
-+	if (idle && data->rxstate != WBCIR_RXSTATE_INACTIVE) {
-+		data->rxstate = WBCIR_RXSTATE_INACTIVE;
-+		led_trigger_event(data->rxtrigger, LED_OFF);
- 		/* Tell hardware to go idle by setting RXINACTIVE */
- 		outb(WBCIR_RX_DISABLE, data->sbase + WBCIR_REG_SP3_ASCR);
-+	}
- }
- 
- static void
-@@ -360,12 +362,6 @@ wbcir_irq_rx(struct wbcir_data *data, struct pnp_dev *device)
- 		ir_raw_event_store_with_filter(data->dev, &rawir);
- 	}
- 
--	/* Check if we should go idle */
--	if (data->dev->idle) {
--		led_trigger_event(data->rxtrigger, LED_OFF);
--		data->rxstate = WBCIR_RXSTATE_INACTIVE;
--	}
--
- 	ir_raw_event_handle(data->dev);
- }
- 
-@@ -915,9 +911,8 @@ wbcir_init_hw(struct wbcir_data *data)
- 
- 	/* Clear RX state */
- 	data->rxstate = WBCIR_RXSTATE_INACTIVE;
--	data->rxev.duration = 0;
- 	ir_raw_event_reset(data->dev);
--	ir_raw_event_handle(data->dev);
-+	ir_raw_event_set_idle(data->dev, true);
- 
- 	/* Clear TX state */
- 	if (data->txstate == WBCIR_TXSTATE_ACTIVE) {
--- 
-1.7.11.7
+> EXPORT_SYMBOL_GPL isn't a license its nothing like a license. Its a
+> totally pointless thing,
 
+In your personal viewpoint. I disagree. I'm a rights holder too. 
+
+Several rights holders have made it clear the change is not wanted. It's
+over, done, buried. If you want it can go as far as Linus and then he can
+get a copy of all the discussion and say that same as he did in the
+classic video.
+
+Should I start submitting all the Intel non-free user space X drivers at
+this point as there seems to be a dramatic policy change going on here ?
+
+Alan
