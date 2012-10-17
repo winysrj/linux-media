@@ -1,80 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:51243 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751616Ab2JTKK1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Oct 2012 06:10:27 -0400
-Received: by mail-ee0-f46.google.com with SMTP id b15so451775eek.19
-        for <linux-media@vger.kernel.org>; Sat, 20 Oct 2012 03:10:26 -0700 (PDT)
-Message-ID: <50827890.9090201@gmail.com>
-Date: Sat, 20 Oct 2012 12:10:24 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:55257 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754562Ab2JQKCG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Oct 2012 06:02:06 -0400
+Message-ID: <507E8205.2050705@iki.fi>
+Date: Wed, 17 Oct 2012 13:01:41 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-CC: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	patches@linaro.org
-Subject: Re: [PATCH 1/1] [media] s5p-fimc: Fix potential NULL pointer dereference
-References: <1350128479-9619-1-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1350128479-9619-1-git-send-email-sachin.kamat@linaro.org>
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: AF9035 firmware repository
+References: <507E7872.8030300@schinagl.nl>
+In-Reply-To: <507E7872.8030300@schinagl.nl>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+Hello Oliver
 
-On 10/13/2012 01:41 PM, Sachin Kamat wrote:
-> 'fimc' was being dereferenced before the NULL check.
-> Moved it to after the check.
+On 10/17/2012 12:20 PM, Oliver Schinagl wrote:
+> Hey antti, list,
 >
-> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
-> ---
->   drivers/media/platform/s5p-fimc/fimc-mdevice.c |    6 ++++--
->   1 files changed, 4 insertions(+), 2 deletions(-)
+> whilst trying to help some Asus U3100+ users with the recent patches I
+> ran into an issue. For some strange reason his chip_id was 0xff. I'd
+> hope this is somehow supplied by the firmware. I think I had the exact
+> same issue until I used Antti's latest firmware for the AF9035.
 >
-> diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-> index 80ada58..61fab00 100644
-> --- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-> +++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-> @@ -343,7 +343,7 @@ static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
->   static int fimc_register_callback(struct device *dev, void *p)
->   {
->   	struct fimc_dev *fimc = dev_get_drvdata(dev);
-> -	struct v4l2_subdev *sd =&fimc->vid_cap.subdev;
-> +	struct v4l2_subdev *sd;
->   	struct fimc_md *fmd = p;
->   	int ret = 0;
->
-> @@ -353,6 +353,7 @@ static int fimc_register_callback(struct device *dev, void *p)
->   	if (fimc->pdev->id<  0 || fimc->pdev->id>= FIMC_MAX_DEVS)
->   		return 0;
->
-> +	sd =&fimc->vid_cap.subdev;
->   	fimc->pipeline_ops =&fimc_pipeline_ops;
->   	fmd->fimc[fimc->pdev->id] = fimc;
->   	sd->grp_id = FIMC_GROUP_ID;
-> @@ -369,7 +370,7 @@ static int fimc_register_callback(struct device *dev, void *p)
->   static int fimc_lite_register_callback(struct device *dev, void *p)
->   {
->   	struct fimc_lite *fimc = dev_get_drvdata(dev);
-> -	struct v4l2_subdev *sd =&fimc->subdev;
-> +	struct v4l2_subdev *sd;
+> Having said that, I know antti currently hosts the latest firmware for
+> the af9035, but there seem to be several out in the wild and people
+> googling for the firmware tend to find the really old one.
 
-Thank you for the patch. May I ask you to remove sd instead and to
-replace sd with fimc->subdev ? There are just two references of
-sd below.
+Yes, it is the firmware. AF9035/AF9033 firmware is aware of used tuner 
+and there is some logic inside firmware for each tuner, like calculating 
+signal strength and handling of tuner I2C bus. Same applies for 
+AF9015/AF9013 too where this has caused some notable problems - I have 
+asked few times if someone could reverse and fix that fw to behave better.
 
->   	struct fimc_md *fmd = p;
->   	int ret;
->
-> @@ -379,6 +380,7 @@ static int fimc_lite_register_callback(struct device *dev, void *p)
->   	if (fimc->index>= FIMC_LITE_MAX_DEVS)
->   		return 0;
->
-> +	sd =&fimc->subdev;
->   	fimc->pipeline_ops =&fimc_pipeline_ops;
->   	fmd->fimc_lite[fimc->index] = fimc;
->   	sd->grp_id = FLITE_GROUP_ID;
+> I'm pretty certain that Afa-tech, IT-tech etc won't allow the firmware
+> to live in the kernel, or simply refuse to answer shuch a plead? They
+> could be persuaded by the maintainer to at least have it live in
+> http://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git or
+> if that fails, have it pulled by Documentation/dvb/get_dvb_firmware?
+> (Btw, why is it get_dvb_firmware? I didn't find a generic script or
+> other devices that did the same).
 
-Thanks,
-Sylwester
+Feel free to try. I tried it ages back in 2009 but failed.
+
+Someone should make some study of these firmwares and list what are 
+differences, supported tuners etc. That was discussed at the time af9035 
+was merged to the Kernel... As rule of thumb test first newest firmware.
+
+Currently there is no 100% automated script to dump those firmwares from 
+the binary. AF9035 driver seems to contain multiple firmwares. Maybe 
+making script that finds and dumps all firmwares found from binary could 
+be handy.
+
+> I'll update the af9035 wikipage to link to antti's firmware for now.
+
+Good!
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
