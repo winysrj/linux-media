@@ -1,73 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:31965 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753659Ab2JBKNX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 06:13:23 -0400
-Message-id: <506ABE40.9070504@samsung.com>
-Date: Tue, 02 Oct 2012 12:13:20 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
- <1348754853-28619-6-git-send-email-g.liakhovetski@gmx.de>
- <506A0D28.10505@gmail.com> <Pine.LNX.4.64.1210021142210.15778@axis700.grange>
-In-reply-to: <Pine.LNX.4.64.1210021142210.15778@axis700.grange>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33799 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756012Ab2JRNa5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Oct 2012 09:30:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH] smiapp-pll: Add missing trailing newlines to warning messages
+Date: Thu, 18 Oct 2012 15:31:44 +0200
+Message-Id: <1350567104-6533-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Two warning messages are missing a trailing newline. Fix it.
 
-On 10/02/2012 11:49 AM, Guennadi Liakhovetski wrote:
->>> +	if (!of_property_read_u32_array(node, "data-lanes", data_lanes,
->>> +					ARRAY_SIZE(data_lanes))) {
->>> +		int i;
->>> +		for (i = 0; i<  ARRAY_SIZE(data_lanes); i++)
->>> +			link->mipi_csi_2.data_lanes[i] = data_lanes[i];
->>
->> It doesn't look like what we aimed for. The data-lanes array is supposed
->> to be of variable length, thus I don't think it can be parsed like that. 
->> Or am I missing something ? I think we need more something like below 
->> (based on of_property_read_u32_array(), not tested):
-> 
-> Ok, you're right, that my version only was suitable for fixed-size arrays, 
-> which wasn't our goal. But I don't think we should go down to manually 
-> parsing property data. How about (tested;-))
-> 
-> 	data = of_find_property(node, "data-lanes", NULL);
-> 	if (data) {
-> 		int i = 0;
-> 		const __be32 *lane = NULL;
-> 		do {
-> 			lane = of_prop_next_u32(data, lane, &data_lanes[i]);
-> 		} while (lane && i++ < ARRAY_SIZE(data_lanes));
-> 		link->mipi_csi_2.num_data_lanes = i;
-> 		while (i--)
-> 			link->mipi_csi_2.data_lanes[i] = data_lanes[i];
-> 	}
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/smiapp-pll.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Yes, that looks neat and does what it is supposed to do. :) Thanks!
-For now, I'll trust you it works ;)
+diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
+index a577614..169f305 100644
+--- a/drivers/media/i2c/smiapp-pll.c
++++ b/drivers/media/i2c/smiapp-pll.c
+@@ -194,7 +194,7 @@ int smiapp_pll_calculate(struct device *dev, struct smiapp_pll_limits *limits,
+ 
+ 	if (more_mul_min > more_mul_max) {
+ 		dev_warn(dev,
+-			 "unable to compute more_mul_min and more_mul_max");
++			 "unable to compute more_mul_min and more_mul_max\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -209,7 +209,7 @@ int smiapp_pll_calculate(struct device *dev, struct smiapp_pll_limits *limits,
+ 
+ 	dev_dbg(dev, "final more_mul: %d\n", i);
+ 	if (i > more_mul_max) {
+-		dev_warn(dev, "final more_mul is bad, max %d", more_mul_max);
++		dev_warn(dev, "final more_mul is bad, max %d\n", more_mul_max);
+ 		return -EINVAL;
+ 	}
+ 
+-- 
+1.7.8.6
 
-With regards to the remaining patches, it looks a bit scary to me how
-complicated it got, perhaps mostly because of requirement to reference
-host devices from subdevs. And it seems to rely on the existing SoC
-camera infrastructure, which might imply lot's of work need to be done
-for non soc-camera drivers. But I'm going to take a closer look and
-comment more on the details at the corresponding patches.
-
---
-
-Regards,
-Sylwester
