@@ -1,37 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:48041 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751795Ab2JTJj1 (ORCPT
+Received: from 1010ds2-suoe.0.fullrate.dk ([90.184.90.115]:18650 "EHLO
+	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751297Ab2JRT2Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Oct 2012 05:39:27 -0400
-Received: by mail-ea0-f174.google.com with SMTP id c13so358766eaa.19
-        for <linux-media@vger.kernel.org>; Sat, 20 Oct 2012 02:39:26 -0700 (PDT)
-Message-ID: <5082714B.3000702@gmail.com>
-Date: Sat, 20 Oct 2012 11:39:23 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Thu, 18 Oct 2012 15:28:16 -0400
+Date: Thu, 18 Oct 2012 21:28:10 +0200 (CEST)
+From: Jesper Juhl <jj@chaosbits.net>
+To: linux-kernel@vger.kernel.org
+cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH] [media] s5p-tv: don't include linux/version.h in
+ mixer_video.c
+Message-ID: <alpine.LNX.2.00.1210182125380.17217@swampdragon.chaosbits.net>
 MIME-Version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-CC: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	patches@linaro.org, Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 4/8] [media] s5p-tv: Use clk_prepare_enable and clk_disable_unprepare
-References: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org> <1350472311-9748-4-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1350472311-9748-4-git-send-email-sachin.kamat@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/17/2012 01:11 PM, Sachin Kamat wrote:
-> Replace clk_enable/clk_disable with clk_prepare_enable/clk_disable_unprepare
-> as required by the common clock framework.
-> 
-> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
-> Cc: Tomasz Stanislawski<t.stanislaws@samsung.com>
+The header is not needed, so remove it.
 
-Could you add clocks (un)prepare calls at the functions where the clocks
-are acquired/released instead ? I think it results in slightly less overhead
-this way.
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+---
+ drivers/media/platform/s5p-tv/mixer_video.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
---
-Thanks,
-Sylwester
+diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+index 0c1cd89..9b52f3a 100644
+--- a/drivers/media/platform/s5p-tv/mixer_video.c
++++ b/drivers/media/platform/s5p-tv/mixer_video.c
+@@ -19,7 +19,6 @@
+ #include <linux/videodev2.h>
+ #include <linux/mm.h>
+ #include <linux/module.h>
+-#include <linux/version.h>
+ #include <linux/timer.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
+-- 
+1.7.1
+
+
+-- 
+Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
+Don't top-post http://www.catb.org/jargon/html/T/top-post.html
+Plain text mails only, please.
+
