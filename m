@@ -1,87 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55032 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:14487 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751589Ab2JBT0c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Oct 2012 15:26:32 -0400
-Message-ID: <506B3FD3.1090006@iki.fi>
-Date: Tue, 02 Oct 2012 22:26:11 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 2/2] em28xx: regression fix: use DRX-K sync firmware requests
- on em28xx
-References: <1349204716-25971-1-git-send-email-mchehab@redhat.com> <1349204716-25971-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1349204716-25971-2-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	id S1754223Ab2JRWfI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Oct 2012 18:35:08 -0400
+Date: Thu, 18 Oct 2012 19:35:03 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	David Howells <dhowells@redhat.com>
+Subject: Fw: [GIT PULL for v3.7-rc1] media fixes
+Message-ID: <20121018193503.53565401@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/02/2012 10:05 PM, Mauro Carvalho Chehab wrote:
-> As em28xx-dvb will always be initialized asynchronously, there's
-> no need anymore for a separate thread to load the DRX-K firmware.
->
-> Fixes a known regression with kernel 3.6 with tda18271 driver
-> and asynchronous DRX-K firmware load.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Hi Linus,
 
-Tested-by: Antti Palosaari <crope@iki.fi>
+Please pull from:
+	git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
 
-Hauppauge WinTV HVR 930C
-MaxMedia UB425-TC
-PCTV QuatroStick nano (520e)
+For:
+	- one Kconfig fix patch;
+	- one patch fixing DocBook breakage due to the drivers/media UAPI changes;
+	- the remaining UAPI media changes (DVB API).
 
+I'm aware that is is a little late for the UAPI renames for the DVB API, but IMHO,
+it is better to merge it for 3.7, due to two reasons:
 
-> ---
->   drivers/media/usb/em28xx/em28xx-dvb.c | 5 +++++
->   1 file changed, 5 insertions(+)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-> index 1662b70..913e522 100644
-> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
-> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-> @@ -318,6 +318,7 @@ static struct drxk_config terratec_h5_drxk = {
->   	.no_i2c_bridge = 1,
->   	.microcode_name = "dvb-usb-terratec-h5-drxk.fw",
->   	.qam_demod_parameter_count = 2,
-> +	.load_firmware_sync = true,
->   };
->
->   static struct drxk_config hauppauge_930c_drxk = {
-> @@ -327,6 +328,7 @@ static struct drxk_config hauppauge_930c_drxk = {
->   	.microcode_name = "dvb-usb-hauppauge-hvr930c-drxk.fw",
->   	.chunk_size = 56,
->   	.qam_demod_parameter_count = 2,
-> +	.load_firmware_sync = true,
->   };
->
->   struct drxk_config terratec_htc_stick_drxk = {
-> @@ -340,12 +342,14 @@ struct drxk_config terratec_htc_stick_drxk = {
->   	.antenna_dvbt = true,
->   	/* The windows driver uses the same. This will disable LNA. */
->   	.antenna_gpio = 0x6,
-> +	.load_firmware_sync = true,
->   };
->
->   static struct drxk_config maxmedia_ub425_tc_drxk = {
->   	.adr = 0x29,
->   	.single_master = 1,
->   	.no_i2c_bridge = 1,
-> +	.load_firmware_sync = true,
->   };
->
->   static struct drxk_config pctv_520e_drxk = {
-> @@ -356,6 +360,7 @@ static struct drxk_config pctv_520e_drxk = {
->   	.chunk_size = 58,
->   	.antenna_dvbt = true, /* disable LNA */
->   	.antenna_gpio = (1 << 2), /* disable LNA */
-> +	.load_firmware_sync = true,
->   };
->
->   static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
->
+	1) There is a major rename at 3.7 (not only uapi changes, but also the
+	   entire media drivers were reorganized on 3.7, in order to simplify
+	   the Kconfig logic, and easy drivers selection, especially for hybrid
+	   devices). By confining all those renames there at 3.7 it will cause
+	   all the harm at for media developers on just one shot. Stable backports
+	   upstream and at distros will likely welcome it as well, as they
+	   won't need to check what changed on 3.7 and what was postponed for on 3.8.
 
+	2) The V4L2 DocBook Makefile creates a cross-reference between the media
+	   API headers and the specs. This helps us _a_lot_ to be sure that all
+	   API improvements are properly documented. Every time a header changes from
+	   one place to another, DocBook/media/Makefile needs to be patched.
+	   Currently, the DocBook breakage patch depends on the DVB UAPI.
 
--- 
-http://palosaari.fi/
+Of course, if you prefer to not merge this as-is, it is not a big deal to break the
+DocBook fixup into two parts, one for 3.7 and another one for 3.8. Just let me know
+and I'll revert those two patches and make another pull request one without the DVB
+UAPI patch.
+
+Thank you!
+Mauro
+
+-
+
+Latest commit at the branch: 
+2c76a12ae9f5e6e2afc400bfbdd8b326e7d36b2a [media] Kconfig: Fix dependencies for driver autoselect options
+The following changes since commit ddffeb8c4d0331609ef2581d84de4d763607bd37:
+
+  Linux 3.7-rc1 (2012-10-14 14:41:04 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+
+for you to fetch changes up to 2c76a12ae9f5e6e2afc400bfbdd8b326e7d36b2a:
+
+  [media] Kconfig: Fix dependencies for driver autoselect options (2012-10-17 16:45:56 -0300)
+
+----------------------------------------------------------------
+David Howells (1):
+      UAPI: (Scripted) Disintegrate include/linux/dvb
+
+Mauro Carvalho Chehab (3):
+      Merge tag 'v3.7-rc1' into staging/for_v3.8
+      DocBook/media/Makefile: Fix build due to uapi breakage
+      [media] Kconfig: Fix dependencies for driver autoselect options
+
+ Documentation/DocBook/media/Makefile    |  76 ++++-----
+ drivers/media/Kconfig                   |  18 ++-
+ include/linux/dvb/Kbuild                |   8 -
+ include/linux/dvb/dmx.h                 | 130 +--------------
+ include/linux/dvb/video.h               | 249 +----------------------------
+ include/uapi/linux/dvb/Kbuild           |   8 +
+ include/{ => uapi}/linux/dvb/audio.h    |   0
+ include/{ => uapi}/linux/dvb/ca.h       |   0
+ include/uapi/linux/dvb/dmx.h            | 155 ++++++++++++++++++
+ include/{ => uapi}/linux/dvb/frontend.h |   0
+ include/{ => uapi}/linux/dvb/net.h      |   0
+ include/{ => uapi}/linux/dvb/osd.h      |   0
+ include/{ => uapi}/linux/dvb/version.h  |   0
+ include/uapi/linux/dvb/video.h          | 274 ++++++++++++++++++++++++++++++++
+ 14 files changed, 487 insertions(+), 431 deletions(-)
+ rename include/{ => uapi}/linux/dvb/audio.h (100%)
+ rename include/{ => uapi}/linux/dvb/ca.h (100%)
+ create mode 100644 include/uapi/linux/dvb/dmx.h
+ rename include/{ => uapi}/linux/dvb/frontend.h (100%)
+ rename include/{ => uapi}/linux/dvb/net.h (100%)
+ rename include/{ => uapi}/linux/dvb/osd.h (100%)
+ rename include/{ => uapi}/linux/dvb/version.h (100%)
+ create mode 100644 include/uapi/linux/dvb/video.h
+
