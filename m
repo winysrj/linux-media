@@ -1,47 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45326 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754201Ab2JSOAM (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:38308 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753163Ab2JRPjl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Oct 2012 10:00:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Enric Balletbo Serra <eballetbo@gmail.com>
-Cc: John Weber <rjohnweber@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: Using omap3-isp-live example application on beagleboard with DVI
-Date: Fri, 19 Oct 2012 16:01 +0200
-Message-ID: <1584362.BsWDphDTBL@avalon>
-In-Reply-To: <CAFqH_53G_jt1LdTiHtqnGKkqK8mmCOgt-ypQzpzjwpdytpsgzQ@mail.gmail.com>
-References: <090701cd8c4e$be38bea0$3aaa3be0$@gmail.com> <4949132.OD6tNZX2Jk@avalon> <CAFqH_53G_jt1LdTiHtqnGKkqK8mmCOgt-ypQzpzjwpdytpsgzQ@mail.gmail.com>
+	Thu, 18 Oct 2012 11:39:41 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CALF0-+WPZ7b83Mg=b1KirHt39QE4fuO4MDGhNpQNxMY09O87HA@mail.gmail.com>
+References: <5075AB4F.3030709@samsung.com>
+	<1350571624-4666-1-git-send-email-peter.senna@gmail.com>
+	<CALF0-+WPZ7b83Mg=b1KirHt39QE4fuO4MDGhNpQNxMY09O87HA@mail.gmail.com>
+Date: Thu, 18 Oct 2012 17:39:39 +0200
+Message-ID: <CA+MoWDr3+T_xHjfBAo3SJKE=ZHGr8GArG3xbJE+mULDjmD2hcQ@mail.gmail.com>
+Subject: Re: [PATCH V2] drivers/media/v4l2-core/videobuf2-core.c: fix error
+ return code
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, mchehab@infradead.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enric,
+On Thu, Oct 18, 2012 at 5:28 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> On Thu, Oct 18, 2012 at 11:47 AM, Peter Senna Tschudin
+> <peter.senna@gmail.com> wrote:
+>> This patch fixes a NULL pointer dereference bug at __vb2_init_fileio().
+>> The NULL pointer deference happens at videobuf2-core.c:
+>>
+>> static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_t count,
+>>                 loff_t *ppos, int nonblock, int read)
+>> {
+>> ...
+>>         if (!q->fileio) {
+>>                 ret = __vb2_init_fileio(q, read);
+>>                 dprintk(3, "file io: vb2_init_fileio result: %d\n", ret);
+>>                 if (ret)
+>>                         return ret;
+>>         }
+>>         fileio = q->fileio; // NULL pointer deference here
+>> ...
+>> }
+>>
+>> It was tested with vivi driver and qv4l2 for selecting read() as capture method.
+>> The OOPS happened when I've artificially forced the error by commenting the line:
+>>         if (fileio->bufs[i].vaddr == NULL)
+>>
+>
+> ... but if you manually changed the original source, how
+> can this be a real BUG?
 
-On Wednesday 17 October 2012 11:35:37 Enric Balletbo Serra wrote:
-> 2012/10/17 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+It is supposed that under some circumstances, (fileio->bufs[i].vaddr
+== NULL) can be true. 'While testing', my change forced the scenario
+in which (fileio->bufs[i].vaddr == NULL) is true...
 
-[snip]
+>
+> Or am I missing something here ?
+>
+>     Ezequiel
 
-> > Instead of failing what would be more interesting would be to get the
-> > application to work in 16bpp mode as well. For that you will need to paint
-> > the frame buffer with a 16bpp color, and set the colorkey to the same
-> > value. Would you be able to try that ?
-> 
-> New patch attached, comments are welcome as I'm newbie with video devices.
 
-Thank you for the patch. In the future could you please send patches inline 
-instead of attached (git send-email is a very useful tool for that) ? It would 
-make review easier.
-
-You can get the bpp value directly from the frame buffer API without going 
-through sysfs. I've modified your patch accordingly, have added support for 
-24bpp as well and pushed the result to the repository.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Peter
