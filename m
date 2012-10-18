@@ -1,83 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60622 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750894Ab2JXXcN convert rfc822-to-8bit (ORCPT
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:49257 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755780Ab2JRQkm convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Oct 2012 19:32:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Prashanth Subramanya <sprashanth@aptina.com>,
-	linux-media@vger.kernel.org, mchehab@infradead.org,
-	g.liakhovetski@gmx.de, s.nawrocki@samsung.com,
-	kyungmin.park@samsung.com, sakari.ailus@maxwell.research.nokia.com,
-	scott.jiang.linux@gmail.com, DRittersdorf@xrite.com
-Subject: Re: [PATCH 2/2] drivers: media: video: Add support for Aptina ar0130 sensor
-Date: Thu, 25 Oct 2012 01:33:02 +0200
-Message-ID: <4198456.Ul2KJFuirD@avalon>
-In-Reply-To: <20121024214818.GE23933@valkosipuli.retiisi.org.uk>
-References: <1348842049-32195-1-git-send-email-sprashanth@aptina.com> <20121024214818.GE23933@valkosipuli.retiisi.org.uk>
+	Thu, 18 Oct 2012 12:40:42 -0400
+Received: by mail-gh0-f174.google.com with SMTP id g15so2455325ghb.19
+        for <linux-media@vger.kernel.org>; Thu, 18 Oct 2012 09:40:41 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <507FE801.7040102@googlemail.com>
+References: <507FE801.7040102@googlemail.com>
+Date: Thu, 18 Oct 2012 18:40:41 +0200
+Message-ID: <CAMyVd1oiDbfA6yGL-1ogHN1sEc11-=Vybr41TxMEF3OjRVHW_A@mail.gmail.com>
+Subject: Re: [PATCH] Add Fujitsu Siemens Amilo Pi 2530 to gspca upside down table
+From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+To: Gregor Jasny <gjasny@googlemail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+2012/10/18 Gregor Jasny <gjasny@googlemail.com>:
+> Hello,
+>
+> I've got an webcam upside down report for the following system:
+>
+>     System Information
+>             Manufacturer: FUJITSU SIEMENS
+>             Product Name: AMILO Pi 2530
+>             Version:
+>             Serial Number:
+>             UUID: <removed>
+>             Wake-up Type: Power Switch
+>             SKU Number: Not Specified
+>             Family: Not Specified
+>
+>     Base Board Information
+>             Manufacturer: FUJITSU SIEMENS
+>             Product Name: F42
+>             Version: 00030D0000000001
+>             Serial Number: <removed>
+>
+> Currently an entry in the gspca/m5602 quirk table is missing. Please add the
+> attached patch to the DVB kernel tree.
+>
+> Thanks,
+> Gregor
 
-On Thursday 25 October 2012 00:48:18 Sakari Ailus wrote:
-> On Fri, Sep 28, 2012 at 07:50:49PM +0530, Prashanth Subramanya wrote:
-> > This driver adds basic support for Aptina ar0130 1.2M sensor.
-> > 
-> > Changes for v2:
-> > 1: Include new test pattern control as pointed by Hans and Lad.
-> > 2: Remove soc_camera.h as suggested by Guennadi.
-> > 3: Change auto exposure control as pointed by Dan Rittersdorf.
-> > 4: Change incorrect return value as pointed by Nicolas.
-> > 5: Change crop and binning settings.
-> > 
-> > Signed-off-by: Prashanth Subramanya <sprashanth@aptina.com>
-> > ---
-
-[snip]
-
-> > +/**
-> > + * PLL Dividers
-> > + *
-> > + * Calculated according to the following formula:
-> > + *
-> > + *    target_freq = (ext_freq x M) / (N x P1 x P2)
-> > + *    VCO_freq    = (ext_freq x M) / N
-> > + *
-> > + * And subject to the following limitations:
-> > + *
-> > + *    Limitations of PLL parameters
-> > + *    -----------------------------
-> > + *    32     ≤ M        ≤ 384
-> > + *    1      ≤ N        ≤ 64
-> > + *    1      ≤ P1       ≤ 16
-> > + *    4      ≤ P2       ≤ 16
-> > + *    384MHz ≤ VCO_freq ≤ 768MHz
-> > + *
-> > + * TODO: Use Aptina PLL Helper module to calculate dividers
-> > + */
-> > +
-> > +static const struct ar0130_pll_divs ar0130_divs[] = {
-> > +	/* ext_freq	target_freq	M	N	p1	p2 */
-> > +	{24000000,	48000000,	32,	2,	2,	4},
-> > +	{24000000,	66000000,	44,	2,	2,	4},
-> > +	{48000000,	48000000,	40,	5,	2,	4}
-> > +};
-> 
-> Do you think you could use the smiapp-pll PLL calculator, as your pll looks
-> similar to that? Here you're making a lot of assumptions you wouldn't have
-> to make.
-
-The patches that we have worked on together in the past few days are for this 
-driver. So, yes, it should use smiapp-pll :-) I've sent the smiapp-pll patches 
-to Prashanth already.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Acked-by: Erik Andr�n <erik.andren@gmail.com>
