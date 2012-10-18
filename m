@@ -1,46 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:37840 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753267Ab2JQQC1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 12:02:27 -0400
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1210171039410.7402@axis700.grange>
-References: <Pine.LNX.4.64.1210171021060.7402@axis700.grange>
-	<Pine.LNX.4.64.1210171039410.7402@axis700.grange>
-Date: Thu, 18 Oct 2012 00:02:24 +0800
-Message-ID: <CACVXFVO-h15jrcGbHe6v=wgTr3X3gQnB1Am4x376Mac=vEj3_w@mail.gmail.com>
-Subject: Re: [Q] reprobe deferred-probing drivers
-From: Ming Lei <tom.leiming@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-kernel@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:33880 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932110Ab2JRU5a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Oct 2012 16:57:30 -0400
+Date: Thu, 18 Oct 2012 17:56:59 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org,
+	Ohad Ben-Cohen <ohad@wizery.com>,
+	Joerg Roedel <joerg.roedel@amd.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Omar Ramirez Luna <omar.luna@linaro.org>,
+	linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>,
+	linux-media@vger.kernel.org, mchehab@infradead.org
+Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to
+ include/linux/omap-iommu.h
+Message-ID: <20121018175659.431fe0b1@redhat.com>
+In-Reply-To: <20121018202842.11834.14375.stgit@muffinssi.local>
+References: <20121018202707.11834.1438.stgit@muffinssi.local>
+	<20121018202842.11834.14375.stgit@muffinssi.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 17, 2012 at 4:43 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> On Wed, 17 Oct 2012, Guennadi Liakhovetski wrote:
->
->> Hi
->>
->> I've got a situation, for which I currently don't have a (good) solution.
->
-> Ok, right, would it be acceptable to just do something like
->
->                 if (dev->parent)
->                         device_lock(dev->parent);
->                 device_release_driver(dev);
->                 device_attach(dev);
+Tony,
 
-The above should be OK for your purpose, and looks some other
-deferred-probe devices may need this handling too.
+Em Thu, 18 Oct 2012 13:28:42 -0700
+Tony Lindgren <tony@atomide.com> escreveu:
 
-But I am wondering how you could get the pointer of device A for
-releasing driver in device B's remove()?
+> Looks like the iommu framework does not have generic functions
+> exported for all the needs yet. The hardware specific functions
+> are defined in files like intel-iommu.h and amd-iommu.h. Follow
+> the same standard for omap-iommu.h.
+> 
+> This is needed because we are removing plat and mach includes
+> for ARM common zImage support. Further work should continue
+> in the iommu framework context as only pure platform data will
+> be communicated from arch/arm/*omap*/* code to the iommu
+> framework.
+> 
+> Cc: Joerg Roedel <joerg.roedel@amd.com>
+> Cc: Ohad Ben-Cohen <ohad@wizery.com>
+> Cc: Ido Yariv <ido@wizery.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Omar Ramirez Luna <omar.luna@linaro.org>
+> Cc: linux-media@vger.kernel.org
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/iommu2.c               |    1 
+>  arch/arm/plat-omap/include/plat/iommu.h    |   10 +--
+>  arch/arm/plat-omap/include/plat/iovmm.h    |   89 ----------------------------
+>  drivers/iommu/omap-iommu-debug.c           |    2 -
+>  drivers/iommu/omap-iommu.c                 |    1 
+>  drivers/iommu/omap-iovmm.c                 |   46 ++++++++++++++
+>  drivers/media/platform/omap3isp/isp.c      |    1 
+>  drivers/media/platform/omap3isp/isp.h      |    2 -
+>  drivers/media/platform/omap3isp/ispccdc.c  |    1 
+>  drivers/media/platform/omap3isp/ispstat.c  |    1 
+>  drivers/media/platform/omap3isp/ispvideo.c |    2 -
 
-Thanks,
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+It is better if you send this entire series through the ARM tree, keeping
+this hole series altogether (and avoiding the risk of breaking bisectability
+if it goes through separate trees). So, you can add my ack for those header
+moves for drivers/media/platform/*.
+
+Regards,
+Mauro
+
 -- 
-Ming Lei
+
+Cheers,
+Mauro
