@@ -1,117 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:40833 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752602Ab2JOHRl convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Oct 2012 03:17:41 -0400
-From: Albert Wang <twang13@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jonathan Corbet <corbet@lwn.net>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Libin Yang <lbyang@marvell.com>
-Date: Mon, 15 Oct 2012 00:15:02 -0700
-Subject: RE: [PATCH 2/4] [media] marvell-ccic: core: add soc camera support
- on marvell-ccic mcam-core
-Message-ID: <477F20668A386D41ADCC57781B1F7043083B80D9BC@SC-VEXCH1.marvell.com>
-References: <1348840040-21390-1-git-send-email-twang13@marvell.com>
- <20120929134041.343c3d56@hpe.lwn.net>
- <Pine.LNX.4.64.1209300128020.20390@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1209300128020.20390@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55735 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755894Ab2JRNpK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Oct 2012 09:45:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: tony@atomide.com
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org, khilman@deeprootsystems.com
+Subject: Re: [PATCH v5 0/3] OMAP 3 CSI-2 configuration
+Date: Thu, 18 Oct 2012 15:45:59 +0200
+Message-ID: <8138988.XlrgGsn68R@avalon>
+In-Reply-To: <1651288.n5DBzW1A1K@avalon>
+References: <20121014103122.GA21261@valkosipuli.retiisi.org.uk> <1651288.n5DBzW1A1K@avalon>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Guennadi
+Hi Tony,
 
->-----Original Message-----
->From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
->Sent: Sunday, 30 September, 2012 07:31
->To: Jonathan Corbet
->Cc: Albert Wang; linux-media@vger.kernel.org; Libin Yang
->Subject: Re: [PATCH 2/4] [media] marvell-ccic: core: add soc camera support on
->marvell-ccic mcam-core
->
->On Sat, 29 Sep 2012, Jonathan Corbet wrote:
->
->> On Fri, 28 Sep 2012 21:47:20 +0800
->> Albert Wang <twang13@marvell.com> wrote:
->>
->> > This patch adds the support of Soc Camera on marvell-ccic mcam-core.
->> > The Soc Camera mode does not compatible with current mode.
->> > Only one mode can be used at one time.
->> >
->> > To use Soc Camera, CONFIG_VIDEO_MMP_SOC_CAMERA should be defined.
->> > What's more, the platform driver should support Soc camera at the same time.
->> >
->> > Also add MIPI interface and dual CCICs support in Soc Camera mode.
->>
->> I'm glad this work is being done, but I have some high-level grumbles
->> to start with.
->>
->> This patch is too big, and does several things. I think there needs to
->> be one to add SOC support (but see below), one to add planar formats,
->> one to add MIPI, one for the second CCIC, etc. That will make them all
->> easier to review.
->>
->> The SOC camera stuff could maybe use a little more thought. Why does
->> this driver *need* to be a SOC camera driver?
->
->It probably doesn't, but if the author wishes to do so - we can try to do this cleanly.
->
->> If that is truly
->> necessary (or sufficiently beneficial), can we get to the point where
->> that's the only mode?  I really dislike the two modes; we're
->> essentially perpetuating the two-drivers concept in a #ifdef'd form;
->> it would be good not to do that.
->>
->> If there is truly some reason why both modes need to exist, can we
->> arrange things so that the core doesn't know the difference?  I'd like
->> to see no new ifdefs there if possible, it already has way too many.
->
->A strong +1. Ideally we should identify common code, add soc-camera mode as a
->separate file and re-use the common stuff.
->
+On Tuesday 16 October 2012 16:51:40 Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thanks for the patches.
+> 
+> For the whole series,
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> Tony, do you want to take patch 1/3 in your tree, or can I push the whole
+> series through mine ?
 
-Now we are working on splitting the patches to smaller ones as you have suggested.
+Ping ?
 
-But today when we git pull the tree to 3.7.rc1, we found that all soc_camera drivers
-(include soc_camera.c) had been moved into: soc_camera/
+> On Sunday 14 October 2012 13:31:22 Sakari Ailus wrote:
+> > Hi all,
+> > 
+> > This is an update to an old patchset for CSI-2 configuration for OMAP 3430
+> > and 3630. The patches have been tested on the 3630 only so far, and I
+> > don't
+> > plan to test them on 3430 in the near future.
+> > 
+> > I've made changes according to Laurent's suggestions to the patches, with
+> > the exception of alignment of a certain line. I think it's exactly as it
+> > should be. :-)
+> > 
+> > I'm not quite certain about the comment regarding the control register
+> > state dependency to the CORE power domain, and why exactly this isn't an
+> > issue. We know the MPU must stay powered since the ISP can't wake up MPU,
+> > but how is this related to CORE? In the end it seems to work.
+> > 
+> > If you think this should be changed and you also know how, please provide
+> > me the text. :-)
+> > 
+> > 	/*
+> > 	
+> > 	 * The PHY configuration is lost in off mode, that's not an
+> > 	 * issue since the MPU power domain is forced on whilst the
+> > 	 * ISP is in use.
+> > 	 */
+> > 
+> > Comments, questions and other kind of feedback is very welcome.
+> > 
+> > Kind regards,
 
-So if that means our soc_camera support patches based on marvell-ccic are not reasonable?
+-- 
+Regards,
 
-But if we used another separate file to support soc_camera for marvell-ccic in soc_camera directory,
-I think we also back to the status months ago when I submitted the mmp_camera patch.
+Laurent Pinchart
 
-Like you have said, we can make patch to identify the common code of marvell-ccic firstly,
-then re-use the common stuff in the separate file in soc_camera directory.
-But we think maybe it looks a little weird and also tough.
-That means we must use some stuff in another parallel directory.
-
-So do you have any constructive suggestion for this knotty situation?
-
-Thank you very much!
-
-
-Thanks
-Albert Wang
-86-21-61092656
-
->> That, I think, is how I'd like to go toward a cleaner, more
->> reviewable, more maintainable solution.  Make sense?
->
->Definitely!
->
->Thanks
->Guennadi
->
->> Thanks,
->>
->> jon
->>
->
->---
->Guennadi Liakhovetski, Ph.D.
->Freelance Open-Source Software Developer http://www.open-technology.de/
