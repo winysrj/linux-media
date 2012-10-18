@@ -1,73 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54584 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754294Ab2JSKnR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Oct 2012 06:43:17 -0400
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9JAhHIU021806
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 19 Oct 2012 06:43:17 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] [media] Remove include/linux/dvb/ stuff
-Date: Fri, 19 Oct 2012 07:43:12 -0300
-Message-Id: <1350643392-2193-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1350643392-2193-1-git-send-email-mchehab@redhat.com>
-References: <1350643392-2193-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:59647 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752267Ab2JRV7o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Oct 2012 17:59:44 -0400
+Date: Thu, 18 Oct 2012 23:59:21 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com
+Subject: Re: [PATCH] rc-core: add separate defines for protocol bitmaps and
+ numbers
+Message-ID: <20121018215921.GA18904@hardeman.nu>
+References: <20121011231154.22683.2502.stgit@zeus.hardeman.nu>
+ <20121017161856.GA10964@pequod.mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20121017161856.GA10964@pequod.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The only file left there is include/linux/dvb/video.h. The
-only function for it is to include linux/compiler.h, but this
-is already indirectly included. So, get rid of it.
+On Wed, Oct 17, 2012 at 05:18:56PM +0100, Sean Young wrote:
+>On Fri, Oct 12, 2012 at 01:11:54AM +0200, David Härdeman wrote:
+>> The RC_TYPE_* defines are currently used both where a single protocol is
+>> expected and where a bitmap of protocols is expected. This patch tries
+>> to separate the two in preparation for the following patches.
+>
+>I'm not sure why this is needed.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- include/linux/dvb/video.h | 29 -----------------------------
- 1 file changed, 29 deletions(-)
- delete mode 100644 include/linux/dvb/Kbuild
- delete mode 100644 include/linux/dvb/video.h
+I'm not sure I can explain it much better.
 
-diff --git a/include/linux/dvb/Kbuild b/include/linux/dvb/Kbuild
-deleted file mode 100644
-index e69de29..0000000
-diff --git a/include/linux/dvb/video.h b/include/linux/dvb/video.h
-deleted file mode 100644
-index 85c20d9..0000000
---- a/include/linux/dvb/video.h
-+++ /dev/null
-@@ -1,29 +0,0 @@
--/*
-- * video.h
-- *
-- * Copyright (C) 2000 Marcus Metzler <marcus@convergence.de>
-- *                  & Ralph  Metzler <ralph@convergence.de>
-- *                    for convergence integrated media GmbH
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU Lesser General Public License
-- * as published by the Free Software Foundation; either version 2.1
-- * of the License, or (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU Lesser General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-- *
-- */
--#ifndef _DVBVIDEO_H_
--#define _DVBVIDEO_H_
--
--#include <linux/compiler.h>
--#include <uapi/linux/dvb/video.h>
--
--#endif /*_DVBVIDEO_H_*/
--- 
-1.7.11.7
+Something like rc_keydown() or functions which add/remove entries to the
+keytable want a single protocol. Future userspace APIs would also
+benefit from numeric protocols (rather than bitmap ones). Keytables are
+smaller if they can use a small(ish) integer rather than a bitmap.
 
+Other functions or struct members (e.g. allowed_protos,
+enabled_protocols, etc) accept multiple protocols and need a bitmap.
+
+Using different types reduces the risk of programmer error. Using a
+protocol enum whereever possible also makes for a more future-proof
+user-space API as we don't need to worry about a sufficient number of
+bits being available (e.g. in structs used for ioctl() calls).
+
+The use of both a number and a corresponding bit is dalso one in e.g.
+the input subsystem as well (see all the references to set/clear bit when
+changing keytables for example).
+
+>
+>> The intended use is also clearer to anyone reading the code. Where a
+>> single protocol is expected, enum rc_type is used, where one or more
+>> protocol(s) are expected, something like u64 is used.
+>
+>Having two sets of #define and enums for the same information is not
+>necessarily clearer.
+
+Not only two set of define and enum, two different data types. To me it
+helps a lot to be able to tell from a function declaration whether it
+expects *a* protocol or protocols.
+
+>I don't like the name RC_BIT_* either; how about
+>RC_PROTO_*?
+
+I have no strong opinions here
+
+>
+>Sean
+>
+>> The patch has been rewritten so that the format of the sysfs "protocols"
+>> file is no longer altered (at the loss of some detail). The file itself
+>> should probably be deprecated in the future though.
+>> 
+>> I missed some drivers when creating the last version of the patch because
+>> some weren't enabled in my .config. This patch passes an allmodyes build.
+>> 
+>> Signed-off-by: David Härdeman <david@hardeman.nu>
