@@ -1,150 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2037 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753024Ab2JELdk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 07:33:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 04/14] media: add V4L2 DT binding documentation
-Date: Fri, 5 Oct 2012 13:31:18 +0200
-Cc: Rob Herring <robherring2@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-sh@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	Philipp Zabel <pza@pengutronix.de>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <506CA5F7.3060807@gmail.com> <Pine.LNX.4.64.1210051119420.13761@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1210051119420.13761@axis700.grange>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37797 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754155Ab2JSMTh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Oct 2012 08:19:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-kernel@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [RFC] linux/time.h vs. sys/time.h mess (was [PATCH 1/2] [media] remove include/linux/dvb/dmx.h)
+Date: Fri, 19 Oct 2012 14:20:25 +0200
+Message-ID: <1866001.vORa2QqSgB@avalon>
+In-Reply-To: <20121019082116.145ebe92@redhat.com>
+References: <1350643392-2193-1-git-send-email-mchehab@redhat.com> <20121019082116.145ebe92@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210051331.18586.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri October 5 2012 11:43:27 Guennadi Liakhovetski wrote:
-> On Wed, 3 Oct 2012, Rob Herring wrote:
+Hi Mauro,
+
+(CC'ing LKML)
+
+On Friday 19 October 2012 08:21:16 Mauro Carvalho Chehab wrote:
+> Em Fri, 19 Oct 2012 07:43:11 -0300
 > 
-> > On 10/02/2012 09:33 AM, Guennadi Liakhovetski wrote:
-> > > Hi Rob
-> > > 
-> > > On Tue, 2 Oct 2012, Rob Herring wrote:
-> > > 
-> > >> On 09/27/2012 09:07 AM, Guennadi Liakhovetski wrote:
-> > >>> This patch adds a document, describing common V4L2 device tree bindings.
-> > >>>
-> > >>> Co-authored-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> > >>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > >>> ---
-> > >>>  Documentation/devicetree/bindings/media/v4l2.txt |  162 ++++++++++++++++++++++
-> > >>>  1 files changed, 162 insertions(+), 0 deletions(-)
-> > >>>  create mode 100644 Documentation/devicetree/bindings/media/v4l2.txt
-> > >>>
-> > >>> diff --git a/Documentation/devicetree/bindings/media/v4l2.txt b/Documentation/devicetree/bindings/media/v4l2.txt
-> > >>> new file mode 100644
-> > >>> index 0000000..b8b3f41
-> > >>> --- /dev/null
-> > >>> +++ b/Documentation/devicetree/bindings/media/v4l2.txt
-> > >>> @@ -0,0 +1,162 @@
-> > >>> +Video4Linux Version 2 (V4L2)
-> > >>
-> > >> DT describes the h/w, but V4L2 is Linux specific. I think the binding
-> > >> looks pretty good in terms of it is describing the h/w and not V4L2
-> > >> components or settings. So in this case it's really just the name of the
-> > >> file and title I have issue with.
-> > > 
-> > > Hm, I see your point, then, I guess, you'd also like the file name 
-> > > changed. What should we use then? Just "video?" But there's already a 
-> > > whole directory Documentation/devicetree/bindings/video dedicated to 
-> > > graphics output (drm, fbdev). "video-camera" or "video-capture?" But this 
-> > > file shall also be describing video output. Use "video.txt" and describe 
-> > > inside what exactly this file is for?
-> > 
-> > Video output will probably have a lot of overlap with the graphics side.
-> > How about video-interfaces.txt?
+> Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+> > -#include <linux/time.h>
+> > -#include <uapi/linux/dvb/dmx.h>
+> > -
+> > -#endif /*_DVBDMX_H_*/
 > 
-> Hm, that's a bit too vague for me. Somewhere on the outskirts of my mind 
-> I'm still considering making just one standard for both V4L2 and fbdev / 
-> DRM? Just yesterday we were discussing some common properties with what is 
-> being proposed in
+> Just to not discard a valid comment on IRC, Laurent proposed that we
+> should investigate if we can, instead, move:
 > 
-> http://www.mail-archive.com/linux-media@vger.kernel.org/index.html#53322
+> 	#include <linux/time.h>
 > 
-> Still, I think, these two subsystems deserve two separate standards and 
-> should just try to re-use properties wherever that makes sense. 
-> video-stream seems a bit better, but this too is just a convention - 
-> talking about video cameras and TV output as video streaming devices and 
-> considering displays more static devices. In principle displays can be 
-> considered taking streaming data just as well as TV encoders. What if we 
-> just call this camera-tv.txt?
+> to both dmx.h and videodev2.h, letting it to be included by both userspace
+> and Kernelspace.
 > 
-> > >> One other comment below:
-> > >>
-> > >>> +
-> > >>> +General concept
-> > >>> +---------------
-> > >>> +
-> > >>> +Video pipelines consist of external devices, e.g. camera sensors, controlled
-> > >>> +over an I2C, SPI or UART bus, and SoC internal IP blocks, including video DMA
-> > >>> +engines and video data processors.
-> > >>> +
-> > >>> +SoC internal blocks are described by DT nodes, placed similarly to other SoC
-> > >>> +blocks. External devices are represented as child nodes of their respective bus
-> > >>> +controller nodes, e.g. I2C.
-> > >>> +
-> > >>> +Data interfaces on all video devices are described by "port" child DT nodes.
-> > >>> +Configuration of a port depends on other devices participating in the data
-> > >>> +transfer and is described by "link" DT nodes, specified as children of the
-> > >>> +"port" nodes:
-> > >>> +
-> > >>> +/foo {
-> > >>> +	port@0 {
-> > >>> +		link@0 { ... };
-> > >>> +		link@1 { ... };
-> > >>> +	};
-> > >>> +	port@1 { ... };
-> > >>> +};
-> > >>> +
-> > >>> +If a port can be configured to work with more than one other device on the same
-> > >>> +bus, a "link" child DT node must be provided for each of them. If more than one
-> > >>> +port is present on a device or more than one link is connected to a port, a
-> > >>> +common scheme, using "#address-cells," "#size-cells" and "reg" properties is
-> > >>> +used.
-> > >>> +
-> > >>> +Optional link properties:
-> > >>> +- remote: phandle to the other endpoint link DT node.
-> > >>
-> > >> This name is a little vague. Perhaps "endpoint" would be better.
-> > > 
-> > > "endpoint" can also refer to something local like in USB case. Maybe 
-> > > rather the description of the "remote" property should be improved?
-> > 
-> > remote-endpoint?
+> I remember this used to cause compilation breakage in the past, as some
+> userspace programs need to include <sys/time.h> and this used to conflict
+> with <linux/time.h>.
 > 
-> Sorry, I really don't want to pull in yet another term here. We've got 
-> ports and links already, now you're proposing to also use "endpoind." 
-> Until now everyone was happy with "remote," any more opinions on this?
+> I'm not sure if this got fixed there. if so, Laurent has a point.
 
-Actually, when I was reviewing the patch series today I got confused as
-well by 'remote'. What about 'remote-link'?
+It's still not solved, but that's what the proper fix should be.
 
-And v4l2_of_get_remote() can be renamed to v4l2_of_get_remote_link() which
-I think is a lot clearer.
+Several UAPI headers use struct timeval or struct timespec. Kernel code and 
+user space code thus need to include the header(s) that define those 
+structures, either directly or indirectly.
 
-The text can be improved as well since this:
+In kernel space struct timeval and struct timespec are defined in 
+include/uapi/linux/time.h. In user space they're defined in <sys/time.h>. No 
+proper conditional compilation exists in those headers to guard against 
+multiple definitions, so they can't be included together.
 
-- remote: phandle to the other endpoint link DT node.
+On the kernel side <sys/time.h> isn't available, so we can include 
+<linux/time.h> in the headers that use the timeval and timespec structures. 
+This "self-contained" headers mechanism avoids forcing all users of those 
+headers to explicitly include <linux/time.h>.
 
-is a bit vague. How about:
+However, this then breaks user space applications that include both 
+<sys/time.h> and a kernel header that includes <linux/time.h>. The way we've 
+dealt with that until now is by including either <linux/time.h> or 
+<sys/time.h> depending on __KERNEL__
 
-- remote-link: phandle to the remote end of this link.
+#ifdef __KERNEL__
+#include <linux/time.h>
+#else
+#include <sys/kernel.h>
+#endif
 
+in our user-facing headers. The recent UAPI disintegration patches resulted in 
+nearly empty headers in include/linux/ that just #include both <linux/time.h> 
+and the corresponding UAPI header. For instance include/linux/videodev2.h is 
+now just
+
+#ifndef __LINUX_VIDEODEV2_H
+#define __LINUX_VIDEODEV2_H
+
+#include <linux/time.h>     /* need struct timeval */
+#include <uapi/linux/videodev2.h>
+
+#endif /* __LINUX_VIDEODEV2_H */
+
+Patches have been posted to remove those headers and push the #include 
+<linux/time.h> one level up, which breaks the "self-contained" headers 
+concept.
+
+How could we fix this ? Are there legitimate users of <linux/time.h> in user 
+space ? A quick grep in glibc doesn't reveal anything.
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
+
