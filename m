@@ -1,120 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:54234 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753799Ab2JUOVt (ORCPT
+Received: from oproxy7-pub.bluehost.com ([67.222.55.9]:41825 "HELO
+	oproxy7-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751445Ab2JSRRe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Oct 2012 10:21:49 -0400
-Message-ID: <508404F5.2010502@gmail.com>
-Date: Sun, 21 Oct 2012 16:21:41 +0200
-From: Daniel Mack <zonque@gmail.com>
-MIME-Version: 1.0
-To: "Artem S. Tashkinov" <t.artem@lycos.com>
-CC: bp@alien8.de, pavel@ucw.cz, linux-kernel@vger.kernel.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	security@kernel.org, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org, alsa-devel <alsa-devel@alsa-project.org>
-Subject: Re: was: Re: A reliable kernel panic (3.6.2) and system crash when
- visiting a particular website
-References: <2104474742.26357.1350734815286.JavaMail.mail@webmail05> <20121020162759.GA12551@liondog.tnic> <966148591.30347.1350754909449.JavaMail.mail@webmail08> <20121020203227.GC555@elf.ucw.cz> <20121020225849.GA8976@liondog.tnic> <1781795634.31179.1350774917965.JavaMail.mail@webmail04> <20121021002424.GA16247@liondog.tnic> <1798605268.19162.1350784641831.JavaMail.mail@webmail17> <20121021110851.GA6504@liondog.tnic> <121566322.100103.1350820776893.JavaMail.mail@webmail20> <5083E4AA.3060807@gmail.com> <317435358.100327.1350822615555.JavaMail.mail@webmail20>
-In-Reply-To: <317435358.100327.1350822615555.JavaMail.mail@webmail20>
-Content-Type: multipart/mixed;
- boundary="------------010407020805040801070700"
+	Fri, 19 Oct 2012 13:17:34 -0400
+Date: Fri, 19 Oct 2012 10:18:27 -0700
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+To: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+Cc: intel-gfx@lists.freedesktop.org, bhelgaas@google.com,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	linux-media@vger.kernel.org, mchehab@infradead.org,
+	linux-pci@vger.kernel.org
+Subject: Re: [Intel-gfx] GPU RC6 breaks PCIe to PCI bridge connected to CPU
+ PCIe slot on SandyBridge systems
+Message-ID: <20121019101827.2362eaf1@jbarnes-desktop>
+In-Reply-To: <2233216.7bl6QCud67@f17simon>
+References: <1704067.2NCOGYajHN@f17simon>
+	<CAKMK7uHHn0H1usv=7Msdvg6vW4PDRaFvtRG7m=c9ENw+c_PE4g@mail.gmail.com>
+	<3896332.1fABn9rFR8@f17simon>
+	<2233216.7bl6QCud67@f17simon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------010407020805040801070700
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+RC6 plus CPU C6 would also put the whole package into a low power
+state.  It's possible we're missing some initialization to keep things
+up for other system activity like bus mastering on PCIe?
 
-[Cc: alsa-devel]
+Just thinking out loud here, unfortunately I don't know of any settings
+that might control this.  But package level changes are one other
+thing that would be affected by RC6 enabling.
 
-On 21.10.2012 14:30, Artem S. Tashkinov wrote:
-> On Oct 21, 2012, Daniel Mack wrote: 
+Jesse
+
+On Fri, 19 Oct 2012 17:10:17 +0100
+Simon Farnsworth <simon.farnsworth@onelan.co.uk> wrote:
+
+> Mauro, Linux-Media
 > 
->> A hint at least. How did you enable the audio record exactly? Can you
->> reproduce this with arecord?
->>
->> What chipset are you on? Please provide both "lspci -v" and "lsusb -v"
->> dumps. As I said, I fail to reproduce that issue on any of my machines.
+> I have an issue where an SAA7134-based TV capture card connected via a PCIe to
+> PCI bridge chip works when the GPU is kept out of RC6 state, but sometimes
+> "skips" updating lines of the capture when the GPU is in RC6. We've confirmed
+> that a CX23418 based chip doesn't have the problem, so the question is whether
+> the SAA7134 and the saa7134 driver are at fault, or whether it's the PCIe bus.
 > 
-> All other applications can read from the USB audio without problems, it's
-> just something in the way Adobe Flash polls my audio input which causes
-> a crash.
+> This manifests as a regression, as I had no problems with kernel 3.3 (which
+> never enabled RC6 on the Intel GPU), but I do have problems with 3.5 and with
+> current Linus git master. I'm happy to try anything, 
 > 
-> Just video capture (without audio) works just fine in Adobe Flash.
-
-Ok, so that pretty much rules out the host controller. I just wonder why
-I still don't see it here, and I haven't heard of any such problem from
-anyone else.
-
-Some more questions:
-
-- Which version of Flash are you running?
-- Does this also happen with Firefox?
-- Does flash access the device directly or via PulseAudio?
-- Could you please apply the attached patch and see what it spits out to
-dmesg once Flash opens the device? It returns -EINVAL in the hw_params
-callback to prevent the actual streaming. On my machine with Flash
-11.4.31.110, I get values of 2/44800/1/32768/2048/0, which seems sane.
-Or does your machine still crash before anything is written to the logs?
-
-> Only and only when I choose to use 
+> I've attached lspci -vvxxxxx output (suitable for feeding to lspci -F) for
+> when the corruption is present (lspci.faulty) and when it's not
+> (lspci.working). The speculation is that the SAA7134 is somehow more
+> sensitive to the changes in timings that RC6 introduces than the CX23418, and
+> that someone who understands the saa7134 driver might be able to make it less
+> sensitive.
 > 
-> USB Device 0x46d:0x81d my system crashes in Adobe Flash.
->
-> See the screenshot:
+> Details of the most recent tests follow:
 > 
-> https://bugzilla.kernel.org/attachment.cgi?id=84151
-
-When exactly does the crash happen? Right after you selected that entry
-from the list? There's a little recording level meter in that dialog.
-Does that show any input from the microphone?
-
-> My hardware information can be fetched from here:
+> On Friday 19 October 2012 15:52:32 Simon Farnsworth wrote:
+> > On Friday 19 October 2012 16:26:08 Daniel Vetter wrote:
+> > > Ok, this is really freaky stuff. One thing to triage: Is it just
+> > > sufficient to put the gpu into rc6 to corrupt the dma transfers, or is
+> > > some light X/gpu load required? In either case, rc6 being able to
+> > > corrupt random dma transfers (or at least prevent them from reaching
+> > > their destination) would be a fitting explanation for the leftover rc6
+> > > issues on snb ...
+> > > 
+> > In an attempt to have this happen with the GPU as idle as possible, I did the
+> > following (note that I'm on a gigabit Ethernet segment, so I can burn network
+> > bandwidth while testing):
+> > 
+> > 1. Start X.org with -noreset, and don't start any X clients.
+> > 2. Run "xset dpms force off ; xrandr --output DP2 --off" (DP2 is the connected output).
+> > 3. On the affected machine, run "gst-launch v4l2src ! gdppay ! tcpclientsink host=f17simon port=65512"
+> > 4. On my desktop, run "gst-launch tcpserversrc host=0.0.0.0 port=65512 ! gdpdepay ! xvimagesink"
+> > 
+> > I see the corruption continue to happen, even though the GPU should be idle
+> > and in RC6 state most of the time (confirmed by reading
+> > /sys/class/drm/card0/power/rc6_residency_ms and seeing it increase between
+> > reads). When I run intel_forcewaked from intel_gpu_tools, the corruption goes
+> > away, and I can confirm by reading /sys/class/drm/card0/power/rc6_residency_ms
+> > that the GPU does not enter RC6. Killing intel_forcewaked makes the corruption
+> > reappear while streaming over the network (X11 idle).
+> > 
+> As a follow up - Daniel requested via IRC that I try with a different capture
+> card; I've switched to a HVR-1600 (cx18 driver instead of saa7134), and I've
+> also tried with the X server forcibly quiesced via kill -STOP.
 > 
-> https://bugzilla.kernel.org/show_bug.cgi?id=49181
-> 
-> On a second thought that can be even an ALSA crash or pretty much
-> anything else.
-
-We'll see. Thanks for your help to sort this out!
+> Quiescing the X server doesn't help; however, the HVR-1600 does not show the
+> problem. This suggests that it's an interaction between the SAA7134 based TV
+> card, the bridge chip, and the different PCIe timings when the GPU is in RC6.
 
 
-Daniel
-
-
-
-
---------------010407020805040801070700
-Content-Type: text/x-patch;
- name="snd-usb-hwparams.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="snd-usb-hwparams.diff"
-
-diff --git a/sound/usb/pcm.c b/sound/usb/pcm.c
-index f782ce1..5664b45 100644
---- a/sound/usb/pcm.c
-+++ b/sound/usb/pcm.c
-@@ -453,6 +453,18 @@ static int snd_usb_hw_params(struct snd_pcm_substream *substream,
- 	unsigned int channels, rate, format;
- 	int ret, changed;
- 
-+
-+	printk(">>> %s()\n", __func__);
-+
-+	printk("format: %d\n", params_format(hw_params));
-+	printk("rate: %d\n", params_rate(hw_params));
-+	printk("channels: %d\n", params_channels(hw_params));
-+	printk("buffer bytes: %d\n", params_buffer_bytes(hw_params));
-+	printk("period bytes: %d\n", params_period_bytes(hw_params));
-+	printk("access: %d\n", params_access(hw_params));
-+
-+	return -EINVAL;
-+
- 	ret = snd_pcm_lib_alloc_vmalloc_buffer(substream,
- 					       params_buffer_bytes(hw_params));
- 	if (ret < 0)
-
---------------010407020805040801070700--
+-- 
+Jesse Barnes, Intel Open Source Technology Center
