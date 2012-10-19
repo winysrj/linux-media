@@ -1,43 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8289 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752323Ab2JJL0e (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 07:26:34 -0400
-From: David Howells <dhowells@redhat.com>
-In-Reply-To: <20121009183908.1e402a43@infradead.org>
-References: <20121009183908.1e402a43@infradead.org> <30699.1349789424@warthog.procyon.org.uk>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: dhowells@redhat.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [GIT PULL] Disintegrate UAPI for media
-Date: Wed, 10 Oct 2012 12:26:27 +0100
-Message-ID: <5255.1349868387@warthog.procyon.org.uk>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45340 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752962Ab2JSOBU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Oct 2012 10:01:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Christoph Fritz <chf.fritz@googlemail.com>
+Cc: =?ISO-8859-1?Q?Beno=EEt_Th=E9baudeau?=
+	<benoit.thebaudeau@advansee.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Chris MacGregor <chris@cybermato.com>,
+	linux-media@vger.kernel.org, Liu Ying <Ying.liu@freescale.com>,
+	"Hans J. Koch" <hjk@hansjkoch.de>, Daniel Mack <daniel@zonque.org>
+Subject: Re: hacking MT9P031 for i.mx
+Date: Fri, 19 Oct 2012 16:02:05 +0200
+Message-ID: <2206709.TsVZJRIWlG@avalon>
+In-Reply-To: <20121017091406.GA5064@mars>
+References: <2180583.3hl5tPmpSx@avalon> <135335921.6991961.1350421476631.JavaMail.root@advansee.com> <20121017091406.GA5064@mars>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+Hi Christoph,
 
-> Hmm... last year, it was decided that we would be putting the DVB av7110-only
-> API files on a separate place, as the API there conflicts with V4L/alsa APIs
-> and are used only by one upstream driver (there were two drivers using them,
-> at that time). As you might notice, av7110 hardware is really old, not 
-> manufactured anymore since maybe 10 years ago, and it is an unmaintained
-> driver.
+On Wednesday 17 October 2012 11:14:06 Christoph Fritz wrote:
+> On Tue, Oct 16, 2012 at 11:04:36PM +0200, Benoît Thébaudeau wrote:
+> > On Tuesday, October 16, 2012 10:04:57 PM, Laurent Pinchart wrote:
+> > > > Is there a current (kernel ~3.6) git tree which shows how to add
+> > > > mt9p031 to platform code?
+> > > 
+> > > Yes, at
+> > > http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-
+> > > sensors-board
 > 
-> Some developers complained, arguing that moving it to a separate file would
-> be breaking the compilation on existing tools (they're basically concerned
-> with it due to out-of-tree drivers - mostly propietary ones, that use this
-> API).
+> Thanks!
+> 
+> > > > I'm also curious if it's possible to glue mt9p031 to a freescale
+> > > > i.mx35 platform. As far as I can see,
+> > > > drivers/media/platform/soc_camera/mx3_camera.c would need
+> > > > v4l2_subdev support?
+> > 
+> > I have not followed this thread, so I don't know exactly your
+> > issue, but FYI I have an MT9M131 (of which the driver should
+> > hopefully be close to the MT9P031's) working on i.MX35 with Linux
+> > 3.4.
+> 
+> I have here a mt9p031-testing-board with an i.MX35 interface. So I'm
+> pretty interested in soc_camera support for mt9p031.
+> 
+> Laurent is already fixing this but haven't finished due to lack
+> of time. When there is anything to test, I would be glad to do so.
 
-As long as they're relying on the -I flags provided by the build tree, that
-oughtn't to be a problem.  If they're doing their own -I flags, they'll need
-to add -I include/uapi too (_after_ -I include).
+Just to clarify the situation, I don't know when I'll have time to finish the 
+patches, so if someone wants to take over please do (and CC me for review).
 
-> Now that we're moving everything, it does make sense to do that, moving 
-> dvb/(audio|osd|video).h to someplace else (maybe linux/dvb/av7110.h or
-> linux/dvb/legacy/*.h).
+-- 
+Regards,
 
-Do you want me to do anything?  I should be able to incorporate a patch prior
-to the disintegration of linux/dvb/ if you have one.
+Laurent Pinchart
 
-David
