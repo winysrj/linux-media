@@ -1,94 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52560 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753055Ab2JCAhs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Oct 2012 20:37:48 -0400
-Message-ID: <506B88C7.4030305@iki.fi>
-Date: Wed, 03 Oct 2012 03:37:27 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.17.9]:56852 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754540Ab2JTLEX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Oct 2012 07:04:23 -0400
+Date: Sat, 20 Oct 2012 13:04:12 +0200
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	Rob Herring <robherring2@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2 v6] of: add generic videomode description
+Message-ID: <20121020110412.GD12545@avionic-0098.mockup.avionic-design.de>
+References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1349373560-11128-3-git-send-email-s.trumtrar@pengutronix.de>
 MIME-Version: 1.0
-To: =?UTF-8?B?UsOpbWkgQ2FyZG9uYQ==?= <remi.cardona@smartjog.com>
-CC: linux-media@vger.kernel.org, liplianin@me.by
-Subject: Re: [PATCH 4/7] [media] ds3000: bail out early on i2c failures during
- firmware load
-References: <1348837172-11784-1-git-send-email-remi.cardona@smartjog.com> <1348837172-11784-5-git-send-email-remi.cardona@smartjog.com>
-In-Reply-To: <1348837172-11784-5-git-send-email-remi.cardona@smartjog.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="eqp4TxRxnD4KrmFZ"
+Content-Disposition: inline
+In-Reply-To: <1349373560-11128-3-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/28/2012 03:59 PM, Rémi Cardona wrote:
->   - if kmalloc() returns NULL, we can return immediately without trying
->     to kfree() a NULL pointer.
->   - if i2c_transfer() fails, error out immediately instead of trying to
->     upload the remaining bytes of the firmware.
->   - the error code is then properly propagated down to ds3000_initfe().
->
-> Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+--eqp4TxRxnD4KrmFZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> ---
->   drivers/media/dvb-frontends/ds3000.c |   12 +++++++-----
->   1 file changed, 7 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/ds3000.c b/drivers/media/dvb-frontends/ds3000.c
-> index 6752222..162faaf 100644
-> --- a/drivers/media/dvb-frontends/ds3000.c
-> +++ b/drivers/media/dvb-frontends/ds3000.c
-> @@ -280,15 +280,14 @@ static int ds3000_tuner_writereg(struct ds3000_state *state, int reg, int data)
->   static int ds3000_writeFW(struct ds3000_state *state, int reg,
->   				const u8 *data, u16 len)
->   {
-> -	int i, ret = -EREMOTEIO;
-> +	int i, ret = 0;
->   	struct i2c_msg msg;
->   	u8 *buf;
->
->   	buf = kmalloc(33, GFP_KERNEL);
->   	if (buf == NULL) {
->   		printk(KERN_ERR "Unable to kmalloc\n");
-> -		ret = -ENOMEM;
-> -		goto error;
-> +		return -ENOMEM;
->   	}
->
->   	*(buf) = reg;
-> @@ -308,8 +307,10 @@ static int ds3000_writeFW(struct ds3000_state *state, int reg,
->   			printk(KERN_ERR "%s: write error(err == %i, "
->   				"reg == 0x%02x\n", __func__, ret, reg);
->   			ret = -EREMOTEIO;
-> +			goto error;
->   		}
->   	}
-> +	ret = 0;
->
->   error:
->   	kfree(buf);
-> @@ -426,6 +427,7 @@ static int ds3000_load_firmware(struct dvb_frontend *fe,
->   					const struct firmware *fw)
->   {
->   	struct ds3000_state *state = fe->demodulator_priv;
-> +	int ret = 0;
->
->   	dprintk("%s\n", __func__);
->   	dprintk("Firmware is %zu bytes (%02x %02x .. %02x %02x)\n",
-> @@ -438,10 +440,10 @@ static int ds3000_load_firmware(struct dvb_frontend *fe,
->   	/* Begin the firmware load process */
->   	ds3000_writereg(state, 0xb2, 0x01);
->   	/* write the entire firmware */
-> -	ds3000_writeFW(state, 0xb0, fw->data, fw->size);
-> +	ret = ds3000_writeFW(state, 0xb0, fw->data, fw->size);
->   	ds3000_writereg(state, 0xb2, 0x00);
->
-> -	return 0;
-> +	return ret;
->   }
->
->   static int ds3000_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
->
+On Thu, Oct 04, 2012 at 07:59:20PM +0200, Steffen Trumtrar wrote:
+[...]
+> diff --git a/drivers/of/of_videomode.c b/drivers/of/of_videomode.c
+[...]
+> +#if defined(CONFIG_DRM)
 
+This should be:
 
--- 
-http://palosaari.fi/
+	#if IS_ENABLED(CONFIG_DRM)
+
+or the code below won't be included if DRM is built as a module. But see
+my other replies as to how we can probably handle this better by moving
+this into the DRM subsystem.
+
+> +int videomode_to_display_mode(struct videomode *vm, struct drm_display_mode *dmode)
+> +{
+> +	memset(dmode, 0, sizeof(*dmode));
+
+It appears the usual method to obtain a drm_display_mode to allocate it
+using drm_mode_create(), which will allocate it and associate it with
+the struct drm_device.
+
+Now, if you do a memset() on the structure you'll overwrite a number of
+fields that have previously been initialized and are actually required
+to get everything cleaned up properly later on.
+
+So I think we should remove the call to memset().
+
+> +int of_get_fb_videomode(struct device_node *np, struct fb_videomode *fb,
+> +			int index)
+> +{
+[...]
+> +}
+> +EXPORT_SYMBOL_GPL(of_get_drm_display_mode);
+
+This should be:
+
+	EXPORT_SYMBOL_GPL(of_get_fb_videomode);
+
+Thierry
+
+--eqp4TxRxnD4KrmFZ
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQgoUsAAoJEN0jrNd/PrOhSFMP/jzAZPZ2siklUDSk+eZWzZ4L
+XKOeI/Kc6B2Z7I1gnVCytWObdm94G7gh0dlolvc4SI14ROsgtjfxUBDMRzMYgCuY
+l6sO7GQbZcYOGpU/ePO74quZq4IwRaso3/s8kBLlqvIaQEmxWQUnFRQhx8+gPtSJ
+YKDXVVkm+PfoFl+Ahefc+94FGuUCvgnqeJ5MYMR+9vUj/HnvKKS16QJGOwkqanI8
+n9fhYyGJQd7FBJxlC/5JgC5qEWfhLZZYPzbZblpcVVA8Nkz+quwTgaZ2Vvt+BvNv
+PSS3jfJoWI5U6JFf/Q5kuvmL57DAnM9YRcbi3zEJA0UUyx3iSm/WTLDfElbJP5uw
+27G8h6mxRFyh+zMLqSF80PKXyYh3HEdm+GYOmjuzIHcTvl5MJqSdIcr7rEhdbq53
+GgPo2l6A0vYLRRvP159JvxJN9UpzDDJ1Pe/GaLwVMtIl+hMK60sXgX5peB+pIn9U
+tYtMkY7FjMRA6oiI358DQSF+zX0XD0gVhx2rQmm1Cdh+F0pwspxMtlKqWkA/kJg3
+GggPzeJmYfjhW1FJj/76QL4GRF6kfhUJgvvRxd+We33voYFQc3ZJ+ulUAoUedA7L
+KQovyYJ6oVxy0bQMgnsIzlUSizNlD1DQ7P6hyqEIppCghX21Cf2krMOeB9XXNnqN
+4KiUmxvamwX56h+wwRAj
+=A2e0
+-----END PGP SIGNATURE-----
+
+--eqp4TxRxnD4KrmFZ--
