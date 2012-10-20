@@ -1,75 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:26734 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751479Ab2JYVjo (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:58442 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755191Ab2JTLfF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Oct 2012 17:39:44 -0400
-Date: Thu, 25 Oct 2012 14:39:35 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Ohad Ben-Cohen <ohad@wizery.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Joerg Roedel <joerg.roedel@amd.com>,
-	Omar Ramirez Luna <omar.luna@linaro.org>,
-	linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>,
+	Sat, 20 Oct 2012 07:35:05 -0400
+Date: Sat, 20 Oct 2012 13:35:00 +0200
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Leela Krishna Amudala <l.krishna@samsung.com>,
+	linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	dri-devel@lists.freedesktop.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to
- include/linux/omap-iommu.h
-Message-ID: <20121025213935.GD11928@atomide.com>
-References: <20121025001913.2082.31062.stgit@muffinssi.local>
- <1466344.HbU9q5zM1q@avalon>
- <20121025165643.GP11928@atomide.com>
- <1351198976.2hJjhe5gKC@avalon>
+Subject: Re: [PATCH 0/2 v6] of: add display helper
+Message-ID: <20121020113500.GA12978@avionic-0098.mockup.avionic-design.de>
+References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
+ <CAL1wa8fP8LBCUBVJS1=dy3cyFe+bY-Gu2+wtJyuCrgbP93m3Wg@mail.gmail.com>
+ <20121015141751.GA11396@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="a8Wt8u1KmwUX3Y2C"
 Content-Disposition: inline
-In-Reply-To: <1351198976.2hJjhe5gKC@avalon>
+In-Reply-To: <20121015141751.GA11396@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [121025 13:23]:
-> Hi Tony,
-> 
-> On Thursday 25 October 2012 09:56:44 Tony Lindgren wrote:
-> > * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [121025 01:39]:
-> > > I still think you should split this in two files, omap-iommu.h and omap-
-> > > iovmm.h. The later would just be arch/arm/plat-omap/include/plat/iovmm.h
-> > > moved to include/linux.h.
-> > 
-> > Can you please explain a bit more why you're thinking a separate
-> > omap-iovmm.h is needed in addtion to omap-iommu.h?
-> 
-> The IOVMM API is layered top of the IOMMU API. It's really a separate API, so 
-> two header files make sense. This patch creates a hybrid omap-iommu.h header 
-> with mixed definitions, it just doesn't feel right :-) I won't insist for a 
-> split though, if you think it's better to have a single header we can keep it 
-> that way.
 
-Yes it's true it's a separate layer. But it's still iommu
-specific. The functions exported by omap-iovmm.c have iommu_
-prefix in the name except for one:
+--a8Wt8u1KmwUX3Y2C
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_find_iovm_area);
-drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_da_to_va);
-drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_iommu_vmap);
-drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_iommu_vunmap);
-drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_iommu_vmalloc);
-drivers/iommu/omap-iovmm.c:EXPORT_SYMBOL_GPL(omap_iommu_vfree);
+On Mon, Oct 15, 2012 at 04:17:51PM +0200, Steffen Trumtrar wrote:
+> Hi Leela,
+>=20
+> On Mon, Oct 15, 2012 at 04:24:43PM +0530, Leela Krishna Amudala wrote:
+> > Hello Steffen,
+> >=20
+> > To which version of the kernel we can expect this patch set to be merge=
+d into?
+> > Because I'm waiting for this from long time to add DT support for my
+> > display controller :)
+> >=20
+>=20
+> I have no idea, sorry. It seems like we have almost settled with the bind=
+ing
+> (clock-name needs to be changed), but I'm not responsible for any merging=
+/inclusions
+> in the kernel.
 
-So it should be OK to keep it all in omap-iommu.h file. Let's 
-see hear what..
+I want to use this in the Tegra DRM driver which I hope to get into 3.8.
+If you need any help with this, please let me know.
 
-> > My reasoning for not adding it is that neither intel nor amd needs
-> > more than intel-iommu.h and amd-iommu.h. And hopefully the iommu
-> > framework will eventually provide the API needed. And I'd rather
-> > not be the person introducing this second new file into
-> > include/linux :)
-> > 
-> > Joerg and Ohad, do you have any opinions on this?
+Thierry
 
-..Joerg and Ohad say.
+--a8Wt8u1KmwUX3Y2C
+Content-Type: application/pgp-signature
 
-Regards,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
 
-Tony
+iQIcBAEBAgAGBQJQgoxkAAoJEN0jrNd/PrOhgOMQAJW6PHzJr2s96wUKJnSpPErY
+Ydw2VxX2ouNc7BIwLYibMzwzCDy6CWQCITWHWx6KIIg4Vi4gg5J65fuS9a/lQlMK
+7Iuo7T3j0EYUiOw44omjmJbPm2o1iUEvx3B0GJvV2Udkvo3O8DcDpVZ/f/KH4+JF
+GBwjOZFQIttTHdTOwmAKrUolVk9Iqax1ILUqmG6SBs8cfe2p5qR8nYEQSFcZmuGQ
+6JBix2QHifR9ke/c9xhu9kKODjcRXd7MxqK8bILB7eqYppnXrdjktarwLBUduYEk
+DN8ozclyolwY7q1VtcUHS5hNF2QoEzyuA1cE3Ofkd+Gu6PuCQBFXLqHGOHQPq1lx
+TGoU+yLHU0MeUjt/iRVoII468z1J66lCPbECaKBCSvP0CJcVEDSNSERkIsS+KCpG
+W4W2eqh/BASWR6Bfnto0NSUSlXLB/5+OhEfCto4mTLyfkM2dG6Jr0lbqiuhHhN3E
+ZUNHicAnZKJLAUaQm/Ac+QH437b604I/LHEJzn4t5MBIEFCgnZhdihGAk4Nj6zao
+Me1HLN1UK2Hr9KrEB/gFATvYS6maiTHeNy/xSp9cN+sz5sdS2HhRIKze1cn3m76r
+sDRUf/5u1UV4kcOy/KFuYxnxxyc9Bykl2cSF0zsGxV98KkZx26rUJNEfnFKlnWkt
+WpzhT8aTF9kittx0VjyV
+=wh+K
+-----END PGP SIGNATURE-----
+
+--a8Wt8u1KmwUX3Y2C--
