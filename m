@@ -1,63 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47813 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753397Ab2JHOuo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 10:50:44 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Andrei Mandychev <andreymandychev@gmail.com>
-CC: "Taneja, Archit" <archit@ti.com>,
-	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	"Semwal, Sumit" <sumit.semwal@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Andrei Mandychev <andrei.mandychev@parrot.com>
-Subject: RE: [PATCH] Fixed list_del corruption in videobuf-core.c :
- videobuf_queue_cancel()
-Date: Mon, 8 Oct 2012 14:50:37 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EB38F54@DBDE01.ent.ti.com>
-References: <1349451865-26678-1-git-send-email-andrei.mandychev@parrot.com>
-In-Reply-To: <1349451865-26678-1-git-send-email-andrei.mandychev@parrot.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:51243 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751616Ab2JTKK1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Oct 2012 06:10:27 -0400
+Received: by mail-ee0-f46.google.com with SMTP id b15so451775eek.19
+        for <linux-media@vger.kernel.org>; Sat, 20 Oct 2012 03:10:26 -0700 (PDT)
+Message-ID: <50827890.9090201@gmail.com>
+Date: Sat, 20 Oct 2012 12:10:24 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+CC: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	patches@linaro.org
+Subject: Re: [PATCH 1/1] [media] s5p-fimc: Fix potential NULL pointer dereference
+References: <1350128479-9619-1-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1350128479-9619-1-git-send-email-sachin.kamat@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 05, 2012 at 21:14:25, Andrei Mandychev wrote:
-> If there is a buffer with VIDEOBUF_QUEUED state it won't be deleted properly
-> because the head of queue loses its elements by calling INIT_LIST_HEAD()
-> before videobuf_streamoff().
+Hi Sachin,
 
-"dma_queue" is driver internal queue and videobuf_streamoff() function 
-will end up into buf_release() callback, which in our case doesn't do 
-anything with dmaqueue. 
+On 10/13/2012 01:41 PM, Sachin Kamat wrote:
+> 'fimc' was being dereferenced before the NULL check.
+> Moved it to after the check.
+>
+> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
+> ---
+>   drivers/media/platform/s5p-fimc/fimc-mdevice.c |    6 ++++--
+>   1 files changed, 4 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+> index 80ada58..61fab00 100644
+> --- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+> +++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+> @@ -343,7 +343,7 @@ static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
+>   static int fimc_register_callback(struct device *dev, void *p)
+>   {
+>   	struct fimc_dev *fimc = dev_get_drvdata(dev);
+> -	struct v4l2_subdev *sd =&fimc->vid_cap.subdev;
+> +	struct v4l2_subdev *sd;
+>   	struct fimc_md *fmd = p;
+>   	int ret = 0;
+>
+> @@ -353,6 +353,7 @@ static int fimc_register_callback(struct device *dev, void *p)
+>   	if (fimc->pdev->id<  0 || fimc->pdev->id>= FIMC_MAX_DEVS)
+>   		return 0;
+>
+> +	sd =&fimc->vid_cap.subdev;
+>   	fimc->pipeline_ops =&fimc_pipeline_ops;
+>   	fmd->fimc[fimc->pdev->id] = fimc;
+>   	sd->grp_id = FIMC_GROUP_ID;
+> @@ -369,7 +370,7 @@ static int fimc_register_callback(struct device *dev, void *p)
+>   static int fimc_lite_register_callback(struct device *dev, void *p)
+>   {
+>   	struct fimc_lite *fimc = dev_get_drvdata(dev);
+> -	struct v4l2_subdev *sd =&fimc->subdev;
+> +	struct v4l2_subdev *sd;
 
+Thank you for the patch. May I ask you to remove sd instead and to
+replace sd with fimc->subdev ? There are just two references of
+sd below.
 
-Did you face any runtime issues with this? I still did not understand 
-about this corruption thing.
+>   	struct fimc_md *fmd = p;
+>   	int ret;
+>
+> @@ -379,6 +380,7 @@ static int fimc_lite_register_callback(struct device *dev, void *p)
+>   	if (fimc->index>= FIMC_LITE_MAX_DEVS)
+>   		return 0;
+>
+> +	sd =&fimc->subdev;
+>   	fimc->pipeline_ops =&fimc_pipeline_ops;
+>   	fmd->fimc_lite[fimc->index] = fimc;
+>   	sd->grp_id = FLITE_GROUP_ID;
 
 Thanks,
-Vaibhav
-> ---
->  drivers/media/video/omap/omap_vout.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-> index 409da0f..f02eb8e 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -1738,8 +1738,8 @@ static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
->  		v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode in"
->  				" streamoff\n");
->  
-> -	INIT_LIST_HEAD(&vout->dma_queue);
->  	ret = videobuf_streamoff(&vout->vbq);
-> +	INIT_LIST_HEAD(&vout->dma_queue);
->  
->  	return ret;
->  }
-> -- 
-> 1.7.9.5
-> 
-> 
-
+Sylwester
