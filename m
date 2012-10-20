@@ -1,70 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from elasmtp-curtail.atl.sa.earthlink.net ([209.86.89.64]:60489 "EHLO
-	elasmtp-curtail.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753067Ab2JNMh4 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Oct 2012 08:37:56 -0400
-Received: from [69.22.83.79] (helo=localhost.localdomain)
-	by elasmtp-curtail.atl.sa.earthlink.net with esmtpa (Exim 4.67)
-	(envelope-from <jonathan.625266@earthlink.net>)
-	id 1TNNHm-000691-3T
-	for linux-media@vger.kernel.org; Sun, 14 Oct 2012 08:27:14 -0400
-Date: Sun, 14 Oct 2012 08:27:13 -0400
-From: Jonathan <jonathan.625266@earthlink.net>
-To: linux-media@vger.kernel.org
-Subject: Re: HD-PVR fails consistently on Linux, works on Windows
-Message-ID: <20121014082713.5f4f4dde@earthlink.net>
-In-Reply-To: <F8199D50-FE9B-4F1E-B04A-1B7E8D216A5D@rothlis.net>
-References: <5063BD18.4060309@austin.rr.com>
-	<20121013112800.2d7a1a42@earthlink.net>
-	<F8199D50-FE9B-4F1E-B04A-1B7E8D216A5D@rothlis.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from moutng.kundenserver.de ([212.227.126.171]:55346 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756651Ab2JTT7z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Oct 2012 15:59:55 -0400
+Date: Sat, 20 Oct 2012 21:59:51 +0200
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	Rob Herring <robherring2@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2 v6] of: add helper to parse display timings
+Message-ID: <20121020195950.GA13902@avionic-0098.mockup.avionic-design.de>
+References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1349373560-11128-2-git-send-email-s.trumtrar@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="9amGYk9869ThD9tj"
+Content-Disposition: inline
+In-Reply-To: <1349373560-11128-2-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 13 Oct 2012 20:17:59 +0100
-David Röthlisberger <david@rothlis.net> wrote:
 
-> On Wed, 26 Sep 2012 21:42:32 -0500
-> Keith Pyle <kpyle@austin.rr.com> wrote:
-> > I recently purchased a Hauppauge HD-PVR (the 1212 version, label on 
-> > bottom 49001LF, Rev F2).  I have consistent capture failures on Linux 
-> > where data from the device simply stops, generally within a few minutes 
-> > of starting a capture.
-> > 
-> > [...]
-> > 
-> > Sep 21 17:01:01 mythbe kernel: [535043.703947] hdpvr 9-1:1.0: firmware 
-> > version 0x15 dated Jun 17 2010 09:26:53
-> 
-> When we contacted Hauppauge regarding the stability issue, they
-> recommended upgrading to the latest firmware dated Mar 26 2012.
-> We *think* this has improved stability, but it certainly hasn't
-> fixed it completely.
-> 
-> Upgrading the firmware requires a Windows PC -- see
-> http://www.hauppauge.com/site/support/support_hdpvr.html
-> 
-> 
-> On 13 Oct 2012, at 16:28, Jonathan wrote:
-> 
-> > It may be a coincidence but I since I started using irqbalance (
-> > https://code.google.com/p/irqbalance/ ) my HD-PVR has been completely
-> > stable. Before that I was experiencing daily lockups.
-> 
-> Interesting. You definitely didn't upgrade the firmware around the same
-> time?
-> 
-> We think the stability is worse when the Linux PC is heavily loaded: We
-> do real-time image processing on the video stream from the HD PVR, so
-> the CPUs are maxed out, and we get frequent lock-ups. We also think the
-> lock-ups are more frequent when we have several HD PVRs connected to the
-> same PC, all running at the same time. I'll have to try this irqbalance.
-> 
-> --Dave.
+--9amGYk9869ThD9tj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-No change in my firmware; still on version 0x15. FWIW, after using irqblance for about 10 days, cat /proc/interrupts shows the interrupt for xhci_hcd (the USB3 bus my HD-PVR is attached to) is now spread across all 4 cores whereas before it was loaded up on CPU0.  Same thing was shown for  ahci,  and a lot of data is being written to disk when the HD-PVR is working so I guess that could be a factor as well.
+On Thu, Oct 04, 2012 at 07:59:19PM +0200, Steffen Trumtrar wrote:
+[...]
+> diff --git a/include/linux/of_display_timings.h b/include/linux/of_display_timings.h
+[...]
+> +struct display_timings {
+> +	unsigned int num_timings;
+> +	unsigned int default_timing;
+> +
+> +	struct signal_timing **timings;
+> +};
+> +
+> +struct timing_entry {
+> +	u32 min;
+> +	u32 typ;
+> +	u32 max;
+> +};
+> +
+> +struct signal_timing {
 
-Jonathan
+I'm slightly confused by the naming here. signal_timing seems overly
+generic in this context. Is there any reason why this isn't called
+display_timing or even display_mode?
+
+
+--9amGYk9869ThD9tj
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQgwK2AAoJEN0jrNd/PrOh32YQAKjuEVeFaD/3jmolgP/AGhLt
+cK7cj0+eUX+fnExGUSQpGwkk+bzLVlAq84u+AeMzrEEIm5+2hsgZ344AWW0MAPDt
+WkyPdDXAvtHCmGen+65xYeez3edgSTGQ3nS3yajtDzGmfhyRqgqdWrqdqM68EcqM
+WO6ioWVcXpGoXd5Uju237Ngpjz6iMEHttgBgB6PJ07bt9IIDaWc/+Fbz6jeHurXV
+Te9aIZg9SuFAcxqqVzFlQJlfyE0rl7Ykk5bP1HogLv4mE5ktEYQOW2PIDZWXj5jM
+Q7hBuLkvhXsqhwZL5q8Ul7Rsn6gSqT9PSC5st6xVP/wxTQ5dQwyxyneZlQZrNFbs
+P5+w7nPU7/rLOnzfoniYj7H4dT9FPMPmjrKdPKFxjKRojZzXi55IhPI2APeOxMFG
+qAj0I7izoN+uk6H7c8oW1Oj3x4lqru1oUzScZEpjNbRHPearE8oao58//Y8ftJaK
+dTlQUtfame9oTxWlooGzxDAHs0XD0fXf6vgKV74TPlYLQtc2Xw5FjYDYigBcyd8F
+yDbjDNWrU3JV8quZLnk02SQCnScV1Izab4qmmBCQwVOmqVpvPlfW6HGb6ewEPvII
+g3XlFr0Ic5gQ+SuYetKlz2pg+Ed/09wvtVLNeqLhdVZe97T1jj8hzwXTcjTKKwW5
+eyP/5vVD4iucOvXEP7y9
+=hrqF
+-----END PGP SIGNATURE-----
+
+--9amGYk9869ThD9tj--
