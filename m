@@ -1,62 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31752 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753386Ab2JIWfB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 18:35:01 -0400
-Date: Tue, 9 Oct 2012 19:34:45 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: =?UTF-8?B?UsOpbWk=?= Cardona <remi@gentoo.org>
-Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
-	Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-Subject: Re: [git:v4l-dvb/for_v3.7] [media] ds3000: add module parameter to
- force firmware upload
-Message-ID: <20121009193445.351aecff@redhat.com>
-In-Reply-To: <1349724224.2142.11.camel@exos>
-References: <1349724224.2142.11.camel@exos>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56667 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751577Ab2JTVsV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Oct 2012 17:48:21 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH 1/2] omap3isp: Add resizer data rate configuration to resizer_link_validate
+Date: Sun, 21 Oct 2012 00:48:17 +0300
+Message-Id: <1350769698-24752-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20121020214803.GR21261@valkosipuli.retiisi.org.uk>
+References: <20121020214803.GR21261@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 08 Oct 2012 21:23:44 +0200
-Rémi Cardona <remi@gentoo.org> escreveu:
+The configuration of many other blocks depend on resizer maximum data rate.
+Get the value from resizer at link validation time.
 
-> Hi Mauro,
-> 
-> There's indeed a conflict since (as far as I can tell) only patch #6 of
-> a 7 patch series was applied.
-> 
-> The entire patch series is:
->  - http://patchwork.linuxtv.org/patch/14752/
->  - http://patchwork.linuxtv.org/patch/14749/
->  - http://patchwork.linuxtv.org/patch/14753/
->  - http://patchwork.linuxtv.org/patch/14750/
->  - http://patchwork.linuxtv.org/patch/14751/
->  - http://patchwork.linuxtv.org/patch/14747/ (which is somewhat applied)
->  - http://patchwork.linuxtv.org/patch/14748/
-> 
-> Maybe it would be safer to revert patch #6 to cleanly reapply the entire
-> series?
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/ispresizer.c |   15 +++++++
+ drivers/media/platform/omap3isp/ispvideo.c   |   54 --------------------------
+ 2 files changed, 15 insertions(+), 54 deletions(-)
 
-This patch is independent of the other stuff. I don't see a good reason
-to revert it.
+diff --git a/drivers/media/platform/omap3isp/ispresizer.c b/drivers/media/platform/omap3isp/ispresizer.c
+index d11fb26..bb5fb4a 100644
+--- a/drivers/media/platform/omap3isp/ispresizer.c
++++ b/drivers/media/platform/omap3isp/ispresizer.c
+@@ -1532,6 +1532,20 @@ static int resizer_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	return 0;
+ }
+ 
++static int resizer_link_validate(struct v4l2_subdev *sd,
++				 struct media_link *link,
++				 struct v4l2_subdev_format *source_fmt,
++				 struct v4l2_subdev_format *sink_fmt)
++{
++	struct isp_res_device *res = v4l2_get_subdevdata(sd);
++	struct isp_pipeline *pipe = to_isp_pipeline(&sd->entity);
++
++	omap3isp_resizer_max_rate(res, &pipe->max_rate);
++
++	return v4l2_subdev_link_validate_default(sd, link,
++						 source_fmt, sink_fmt);
++}
++
+ /*
+  * resizer_init_formats - Initialize formats on all pads
+  * @sd: ISP resizer V4L2 subdevice
+@@ -1570,6 +1584,7 @@ static const struct v4l2_subdev_pad_ops resizer_v4l2_pad_ops = {
+ 	.set_fmt = resizer_set_format,
+ 	.get_selection = resizer_get_selection,
+ 	.set_selection = resizer_set_selection,
++	.link_validate = resizer_link_validate,
+ };
+ 
+ /* subdev operations */
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index a0b737fe..aae70f7 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -280,55 +280,6 @@ static int isp_video_get_graph_data(struct isp_video *video,
+ 	return 0;
+ }
+ 
+-/*
+- * Validate a pipeline by checking both ends of all links for format
+- * discrepancies.
+- *
+- * Compute the minimum time per frame value as the maximum of time per frame
+- * limits reported by every block in the pipeline.
+- *
+- * Return 0 if all formats match, or -EPIPE if at least one link is found with
+- * different formats on its two ends or if the pipeline doesn't start with a
+- * video source (either a subdev with no input pad, or a non-subdev entity).
+- */
+-static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+-{
+-	struct isp_device *isp = pipe->output->isp;
+-	struct media_pad *pad;
+-	struct v4l2_subdev *subdev;
+-
+-	subdev = isp_video_remote_subdev(pipe->output, NULL);
+-	if (subdev == NULL)
+-		return -EPIPE;
+-
+-	while (1) {
+-		/* Retrieve the sink format */
+-		pad = &subdev->entity.pads[0];
+-		if (!(pad->flags & MEDIA_PAD_FL_SINK))
+-			break;
+-
+-		/* Update the maximum frame rate */
+-		if (subdev == &isp->isp_res.subdev)
+-			omap3isp_resizer_max_rate(&isp->isp_res,
+-						  &pipe->max_rate);
+-
+-		/* Retrieve the source format. Return an error if no source
+-		 * entity can be found, and stop checking the pipeline if the
+-		 * source entity isn't a subdev.
+-		 */
+-		pad = media_entity_remote_source(pad);
+-		if (pad == NULL)
+-			return -EPIPE;
+-
+-		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+-			break;
+-
+-		subdev = media_entity_to_v4l2_subdev(pad->entity);
+-	}
+-
+-	return 0;
+-}
+-
+ static int
+ __isp_video_get_format(struct isp_video *video, struct v4l2_format *format)
+ {
+@@ -1056,11 +1007,6 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	if (ret < 0)
+ 		goto err_check_format;
+ 
+-	/* Validate the pipeline and update its state. */
+-	ret = isp_video_validate_pipeline(pipe);
+-	if (ret < 0)
+-		goto err_check_format;
+-
+ 	pipe->error = false;
+ 
+ 	spin_lock_irqsave(&pipe->lock, flags);
+-- 
+1.7.2.5
 
-I'm keeping most of the patches for ds3000 in hold, as this driver should
-be broken into two separate drivers. I provided already a feedback on
-the patch series that splits this driver. So, I'm waiting for his new
-patchset. Only after that change, I'll be handling other patches for ds3000,
-as it will make easier to review and understand this driver.
-
-> As for the "force firmware load" patch, the reason for that patch was
-> that some cards report already having a firmware (despite having been
-> powered off for a while) when in fact they don't. Reloading the ds3000
-> module with this new option allows those cards to work properly. Out of
-> the thousand S470/471 cards we have in production, only a tiny fraction
-> require this option. That's why I didn't change the default behavior.
-
-Wouldn't be better then to add it at the boards configuration, instead of
-using a modprobe parameter?
-
-Regards,
-Mauro
