@@ -1,100 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56687 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755580Ab2JQKgG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 06:36:06 -0400
-Message-ID: <507E89FD.4070402@iki.fi>
-Date: Wed, 17 Oct 2012 13:35:41 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:38409 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750708Ab2JTHCj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Oct 2012 03:02:39 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux-davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Subject: [PATCH] media: davinci: vpbe: fix build warning
+Date: Sat, 20 Oct 2012 12:32:20 +0530
+Message-Id: <1350716540-10638-1-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: AF9035 firmware repository
-References: <507E7872.8030300@schinagl.nl> <507E8205.2050705@iki.fi> <507E83CA.7070308@schinagl.nl>
-In-Reply-To: <507E83CA.7070308@schinagl.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/17/2012 01:09 PM, Oliver Schinagl wrote:
-> On 17-10-12 12:01, Antti Palosaari wrote:
->> Hello Oliver
->>
->> On 10/17/2012 12:20 PM, Oliver Schinagl wrote:
->>> Hey antti, list,
->>>
->>> whilst trying to help some Asus U3100+ users with the recent patches I
->>> ran into an issue. For some strange reason his chip_id was 0xff. I'd
->>> hope this is somehow supplied by the firmware. I think I had the exact
->>> same issue until I used Antti's latest firmware for the AF9035.
->>>
->>> Having said that, I know antti currently hosts the latest firmware for
->>> the af9035, but there seem to be several out in the wild and people
->>> googling for the firmware tend to find the really old one.
->>
->> Yes, it is the firmware. AF9035/AF9033 firmware is aware of used tuner
->> and there is some logic inside firmware for each tuner, like
->> calculating signal strength and handling of tuner I2C bus. Same
->> applies for AF9015/AF9013 too where this has caused some notable
->> problems - I have asked few times if someone could reverse and fix
->> that fw to behave better.
-> Ok, then I'll await said test results with latest firmware.
->>
->>> I'm pretty certain that Afa-tech, IT-tech etc won't allow the firmware
->>> to live in the kernel, or simply refuse to answer shuch a plead? They
->>> could be persuaded by the maintainer to at least have it live in
->>> http://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git or
->>> if that fails, have it pulled by Documentation/dvb/get_dvb_firmware?
->>> (Btw, why is it get_dvb_firmware? I didn't find a generic script or
->>> other devices that did the same).
->>
->> Feel free to try. I tried it ages back in 2009 but failed.
-> i'll doubt anything has changed here :S
->
->>
->> Someone should make some study of these firmwares and list what are
->> differences, supported tuners etc. That was discussed at the time
->> af9035 was merged to the Kernel... As rule of thumb test first newest
->> firmware.
->>
->> Currently there is no 100% automated script to dump those firmwares
->> from the binary. AF9035 driver seems to contain multiple firmwares.
->> Maybe making script that finds and dumps all firmwares found from
->> binary could be handy.
-> Maybe as an alternative, also have the firmwares linked/uploaded to
-> http://linuxtv.org/downloads/firmware/ ?
->>
->>> I'll update the af9035 wikipage to link to antti's firmware for now.
->>
->> Good!
-> and done.
->
-> those older firmwares for the af9035 are only there for archive
-> purpouse? Or are their known cases where older firmware is needed? At
-> this moment, it seems that the oldest one (11.5.9) brakes things.
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-Mainly for archive. But there could be cases, like some annoying 
-behavior, people are willing to test other versions too. That happens 
-for example af9015 firmware where the oldest one didn't support firmware 
-based remote at all.
+Warnings were generated because of the following commit changed data type for
+address pointer
 
-When I lastly dumped out few firmwares I found out there was actually 2
-firmwares that reports same versions, but are still different:
+195bbca ARM: 7500/1: io: avoid writeback addressing modes for __raw_ accessors
+add  __iomem annotation to fix following warnings
 
-md5sum dvb-usb-af9035-02.fw_12.5.13.0_6.8.13.0*
-817887199bc15dc820b808317d06a2bd  dvb-usb-af9035-02.fw_12.5.13.0_6.8.13.0
-f357c0534aba8ced25a5b1a37e19a287 
-dvb-usb-af9035-02.fw_12.5.13.0_6.8.13.0_2nd
+drivers/media/platform/davinci/vpbe_osd.c: In function ‘osd_read’:
+drivers/media/platform/davinci/vpbe_osd.c:49:2: warning: passing
+ argument 1 of ‘__raw_readl’ makes pointer from integer without a cast [enabled by default]
+arch/arm/include/asm/io.h:104:19: note: expected ‘const volatile
+ void *’ but argument is of type ‘long unsigned int’
 
-I didn't looked reason more carefully, but I expect there is some chunk 
-which contains different register initialization stuff. Maybe different 
-hw layout or diversity or like that.
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+---
+ drivers/media/platform/davinci/vpbe_osd.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-So there is room for research, but not person to do that heh.
-
-regards
-Antti
-
+diff --git a/drivers/media/platform/davinci/vpbe_osd.c b/drivers/media/platform/davinci/vpbe_osd.c
+index bba299d..9ab9280 100644
+--- a/drivers/media/platform/davinci/vpbe_osd.c
++++ b/drivers/media/platform/davinci/vpbe_osd.c
+@@ -46,14 +46,14 @@ static inline u32 osd_read(struct osd_state *sd, u32 offset)
+ {
+ 	struct osd_state *osd = sd;
+ 
+-	return readl(osd->osd_base + offset);
++	return readl(IOMEM(osd->osd_base + offset));
+ }
+ 
+ static inline u32 osd_write(struct osd_state *sd, u32 val, u32 offset)
+ {
+ 	struct osd_state *osd = sd;
+ 
+-	writel(val, osd->osd_base + offset);
++	writel(val, IOMEM(osd->osd_base + offset));
+ 
+ 	return val;
+ }
+@@ -63,9 +63,9 @@ static inline u32 osd_set(struct osd_state *sd, u32 mask, u32 offset)
+ 	struct osd_state *osd = sd;
+ 
+ 	u32 addr = osd->osd_base + offset;
+-	u32 val = readl(addr) | mask;
++	u32 val = readl(IOMEM(addr)) | mask;
+ 
+-	writel(val, addr);
++	writel(val, IOMEM(addr));
+ 
+ 	return val;
+ }
+@@ -75,9 +75,9 @@ static inline u32 osd_clear(struct osd_state *sd, u32 mask, u32 offset)
+ 	struct osd_state *osd = sd;
+ 
+ 	u32 addr = osd->osd_base + offset;
+-	u32 val = readl(addr) & ~mask;
++	u32 val = readl(IOMEM(addr)) & ~mask;
+ 
+-	writel(val, addr);
++	writel(val, IOMEM(addr));
+ 
+ 	return val;
+ }
+@@ -88,9 +88,9 @@ static inline u32 osd_modify(struct osd_state *sd, u32 mask, u32 val,
+ 	struct osd_state *osd = sd;
+ 
+ 	u32 addr = osd->osd_base + offset;
+-	u32 new_val = (readl(addr) & ~mask) | (val & mask);
++	u32 new_val = (readl(IOMEM(addr)) & ~mask) | (val & mask);
+ 
+-	writel(new_val, addr);
++	writel(new_val, IOMEM(addr));
+ 
+ 	return new_val;
+ }
 -- 
-http://palosaari.fi/
+1.7.4.1
+
