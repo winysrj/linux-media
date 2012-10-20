@@ -1,64 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4877 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753079Ab2JKG6G (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:53737 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755537Ab2JTNcA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Oct 2012 02:58:06 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Rob Clark <rob@ti.com>
-Subject: Re: [PATCH] dma-buf: Use EXPORT_SYMBOL
-Date: Thu, 11 Oct 2012 08:57:15 +0200
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Robert Morell <rmorell@nvidia.com>,
-	linaro-mm-sig@lists.linaro.org,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com> <20121010191702.404edace@pyramind.ukuu.org.uk> <CAF6AEGvzfr2-QHpX4zwm2EPz-vxCDe9SaLUjo4_Fn7HhjWJFsg@mail.gmail.com>
-In-Reply-To: <CAF6AEGvzfr2-QHpX4zwm2EPz-vxCDe9SaLUjo4_Fn7HhjWJFsg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210110857.15660.hverkuil@xs4all.nl>
+	Sat, 20 Oct 2012 09:32:00 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LAK <linux-arm-kernel@lists.infradead.org>
+Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux-davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Sekhar Nori <nsekhar@ti.com>
+Subject: [PATCH] ARM: dm365: replace V4L2_OUT_CAP_CUSTOM_TIMINGS with V4L2_OUT_CAP_DV_TIMINGS
+Date: Sat, 20 Oct 2012 19:01:40 +0530
+Message-Id: <1350739900-25065-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed October 10 2012 23:02:06 Rob Clark wrote:
-> On Wed, Oct 10, 2012 at 1:17 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
-> > On Wed, 10 Oct 2012 08:56:32 -0700
-> > Robert Morell <rmorell@nvidia.com> wrote:
-> >
-> >> EXPORT_SYMBOL_GPL is intended to be used for "an internal implementation
-> >> issue, and not really an interface".  The dma-buf infrastructure is
-> >> explicitly intended as an interface between modules/drivers, so it
-> >> should use EXPORT_SYMBOL instead.
-> >
-> > NAK. This needs at the very least the approval of all rights holders for
-> > the files concerned and all code exposed by this change.
-> 
-> Well, for my contributions to dmabuf, I don't object.. and I think
-> because we are planning to use dma-buf in userspace for dri3 /
-> dri-next, I think that basically makes it a userspace facing kernel
-> infrastructure which would be required for open and proprietary
-> drivers alike.  So I don't see much alternative to making this
-> EXPORT_SYMBOL().  Of course, IANAL.
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-The whole purpose of this API is to let DRM and V4L drivers share buffers for
-zero-copy pipelines. Unfortunately it is a fact that several popular DRM drivers
-are closed source. So we have a choice between keeping the export symbols GPL
-and forcing those closed-source drivers to make their own incompatible API,
-thus defeating the whole point of DMABUF, or using EXPORT_SYMBOL and letting
-the closed source vendors worry about the legality. They are already using such
-functions (at least nvidia is), so they clearly accept that risk.
+This patch replaces V4L2_OUT_CAP_CUSTOM_TIMINGS macro with
+V4L2_OUT_CAP_DV_TIMINGS. As V4L2_OUT_CAP_CUSTOM_TIMINGS is being phased
+out.
 
-I prefer the evil where the DMABUF API uses EXPORT_SYMBOL to prevent the worse
-evil where an incompatible API is created to work around the EXPORT_SYMBOL_GPL
-limitation. Neither situation is paradise, but at least one is a slightly less
-depressing world than the other :-)
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: Sekhar Nori <nsekhar@ti.com>
+---
+ This patch is based on the following patch series,
+ ARM: davinci: dm365 EVM: add support for VPBE display
+ (https://patchwork.kernel.org/patch/1295071/)
 
-In other words, I'm OK with EXPORT_SYMBOL for whatever it is worth as I did not
-do any coding but only some initial design help and reviewing.
+ arch/arm/mach-davinci/board-dm365-evm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Regards,
+diff --git a/arch/arm/mach-davinci/board-dm365-evm.c b/arch/arm/mach-davinci/board-dm365-evm.c
+index 2924d61..771abb5 100644
+--- a/arch/arm/mach-davinci/board-dm365-evm.c
++++ b/arch/arm/mach-davinci/board-dm365-evm.c
+@@ -514,7 +514,7 @@ static struct vpbe_output dm365evm_vpbe_outputs[] = {
+ 			.index		= 1,
+ 			.name		= "Component",
+ 			.type		= V4L2_OUTPUT_TYPE_ANALOG,
+-			.capabilities	= V4L2_OUT_CAP_CUSTOM_TIMINGS,
++			.capabilities	=  V4L2_OUT_CAP_DV_TIMINGS,
+ 		},
+ 		.subdev_name	= VPBE_VENC_SUBDEV_NAME,
+ 		.default_mode	= "480p59_94",
+-- 
+1.7.4.1
 
-	Hans
