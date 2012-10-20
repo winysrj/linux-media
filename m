@@ -1,69 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33356 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752098Ab2JVLR4 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56659 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751003Ab2JTVe4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Oct 2012 07:17:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: media-workshop@linuxtv.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [media-workshop] Tentative Agenda for the November workshop
-Date: Mon, 22 Oct 2012 13:18:46 +0200
-Message-ID: <58737434.GCQXfamyaa@avalon>
-In-Reply-To: <5085258E.6090803@samsung.com>
-References: <201210221035.56897.hverkuil@xs4all.nl> <10009130.xLxCsb7QR7@avalon> <5085258E.6090803@samsung.com>
+	Sat, 20 Oct 2012 17:34:56 -0400
+Date: Sun, 21 Oct 2012 00:34:51 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l: Don't warn during link validation when
+ encountering a V4L2 devnode
+Message-ID: <20121020213451.GQ21261@valkosipuli.retiisi.org.uk>
+References: <1350767073-9478-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1350767073-9478-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
-
-On Monday 22 October 2012 12:53:02 Sylwester Nawrocki wrote:
-> On 10/22/2012 12:39 PM, Laurent Pinchart wrote:
-> > On Monday 22 October 2012 10:35:56 Hans Verkuil wrote:
-> >> Hi all,
-> >> 
-> >> This is the tentative agenda for the media workshop on November 8, 2012.
-> >> If you have additional things that you want to discuss, or something is
-> >> wrong or incomplete in this list, please let me know so I can update the
-> >> list.
-> > 
-> > Thank you Hans for taking care of the agenda.
-> > 
-> >> - Explain current merging process (Mauro)
-> >> - Open floor for discussions on how to improve it (Mauro)
-> >> - Write down minimum requirements for new V4L2 (and DVB?) drivers, both
-> >> for
-> >> 
-> >>   staging and mainline acceptance: which frameworks to use,
-> >>   v4l2-compliance,
-> >> 
-> >> etc. (Hans Verkuil)
-> >> - V4L2 ambiguities (Hans Verkuil)
-> >> - TSMux device (a mux rather than a demux): Alain Volmat
-> >> - dmabuf status, esp. with regards to being able to test (Mauro/Samsung)
-> >> - Device tree support (Guennadi, not known yet whether this topic is
-> >> needed) - Creating/selecting contexts for hardware that supports this
-> >> (Samsung, only if time is available)
-> > 
-> > This last topic will likely require lots of brainstorming, and thus time.
-> > If the schedule permits, would anyone be interested in meeting earlier
-> > during the week already ?
+On Sat, Oct 20, 2012 at 11:04:33PM +0200, Laurent Pinchart wrote:
+> v4l2_subdev_link_validate_get_format() retrieves the remote pad format
+> depending on the entity type and prints a warning if the entity type is
+> not supported. The type check doesn't take the subtype into account, and
+> thus always prints a warning for device node types, even when supported.
+> Fix it.
 > 
-> My intention was to also possibly discuss it with others before the actual
-> media workshop. Would be nice if we could have arranged such a meeting.
-> I'm not sure about the room conditions though. It's probably not a big
-> issue, unless there is really many people interested in that topic.
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-A small room with a projector would be nice if possible, although not 
-required. Who would be interested in attending a brainstorming session on 
-contexts ?
+Thanks!
+
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
