@@ -1,66 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:45511 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753158Ab2JDHZG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 03:25:06 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBC00LFOXWSZVQ0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:48 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MBC006I9XWMLU10@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:48 +0900 (KST)
-From: Rahul Sharma <rahul.sharma@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Cc: t.stanislaws@samsung.com, inki.dae@samsung.com,
-	kyungmin.park@samsung.com, joshi@samsung.com
-Subject: [PATCH v1 08/14] drm: exynos: hdmi: add support for exynos5 hdmiphy
-Date: Thu, 04 Oct 2012 21:12:46 +0530
-Message-id: <1349365372-21417-9-git-send-email-rahul.sharma@samsung.com>
-In-reply-to: <1349365372-21417-1-git-send-email-rahul.sharma@samsung.com>
-References: <1349365372-21417-1-git-send-email-rahul.sharma@samsung.com>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:46941 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932278Ab2JTNTC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Oct 2012 09:19:02 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux-davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Subject: [PATCH 2/2] media: davinci: vpbe: set device capabilities
+Date: Sat, 20 Oct 2012 18:48:44 +0530
+Message-Id: <1350739124-22590-2-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1350739124-22590-1-git-send-email-prabhakar.lad@ti.com>
+References: <1350739124-22590-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for exynos5 hdmi phy with device tree enabled.
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-Signed-off-by: Rahul Sharma <rahul.sharma@samsung.com>
+set device_caps and also change the driver and
+bus_info to proper values as per standard.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
 ---
- drivers/gpu/drm/exynos/exynos_hdmiphy.c |   12 +++++++++++-
- 1 files changed, 11 insertions(+), 1 deletions(-)
+ drivers/media/platform/davinci/vpbe_display.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/gpu/drm/exynos/exynos_hdmiphy.c b/drivers/gpu/drm/exynos/exynos_hdmiphy.c
-index 9fe2995..a33073b 100644
---- a/drivers/gpu/drm/exynos/exynos_hdmiphy.c
-+++ b/drivers/gpu/drm/exynos/exynos_hdmiphy.c
-@@ -42,13 +42,23 @@ static int hdmiphy_remove(struct i2c_client *client)
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 974957f..2bfde79 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -702,9 +702,12 @@ static int vpbe_display_querycap(struct file *file, void  *priv,
+ 	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
  
- static const struct i2c_device_id hdmiphy_id[] = {
- 	{ "s5p_hdmiphy", 0 },
-+	{ "exynos5-hdmiphy", 0 },
- 	{ },
- };
+ 	cap->version = VPBE_DISPLAY_VERSION_CODE;
+-	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+-	strlcpy(cap->driver, VPBE_DISPLAY_DRIVER, sizeof(cap->driver));
+-	strlcpy(cap->bus_info, "platform", sizeof(cap->bus_info));
++	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
++	snprintf(cap->driver, sizeof(cap->driver), "%s",
++		dev_name(vpbe_dev->pdev));
++	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
++		 dev_name(vpbe_dev->pdev));
+ 	strlcpy(cap->card, vpbe_dev->cfg->module_name, sizeof(cap->card));
  
-+static struct of_device_id hdmiphy_match_types[] = {
-+	{
-+		.compatible = "samsung,exynos5-hdmiphy",
-+	}, {
-+		/* end node */
-+	}
-+};
-+
- struct i2c_driver hdmiphy_driver = {
- 	.driver = {
--		.name	= "s5p-hdmiphy",
-+		.name	= "exynos-hdmiphy",
- 		.owner	= THIS_MODULE,
-+		.of_match_table = hdmiphy_match_types,
- 	},
- 	.id_table = hdmiphy_id,
- 	.probe		= hdmiphy_probe,
+ 	return 0;
 -- 
-1.7.0.4
+1.7.4.1
 
