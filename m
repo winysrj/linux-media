@@ -1,44 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:51649 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S933579Ab2JWX6T (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 19:58:19 -0400
-Message-ID: <1351033019.7502.66.camel@joe-AO722>
-Subject: Re: [PATCH v3 1/6] Add header files and Kbuild plumbing for SI476x
- MFD core
-From: Joe Perches <joe@perches.com>
-To: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
-Cc: hverkuil@xs4all.nl, mchehab@redhat.com, sameo@linux.intel.com,
-	broonie@opensource.wolfsonmicro.com, perex@perex.cz, tiwai@suse.de,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <1351017872-32488-2-git-send-email-andrey.smirnov@convergeddevices.net>
-References: <1351017872-32488-1-git-send-email-andrey.smirnov@convergeddevices.net>
-	 <1351017872-32488-2-git-send-email-andrey.smirnov@convergeddevices.net>
-Content-Type: text/plain; charset="ISO-8859-1"
-Date: Tue, 23 Oct 2012 15:56:59 -0700
-Mime-Version: 1.0
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:65437 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750945Ab2JTJ4F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Oct 2012 05:56:05 -0400
+Received: by mail-ea0-f174.google.com with SMTP id c13so361265eaa.19
+        for <linux-media@vger.kernel.org>; Sat, 20 Oct 2012 02:56:03 -0700 (PDT)
+Message-ID: <50827530.3030603@gmail.com>
+Date: Sat, 20 Oct 2012 11:56:00 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+CC: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	patches@linaro.org, Kamil Debski <k.debski@samsung.com>
+Subject: Re: [PATCH 7/8] [media] s5p-mfc: Make 'clk_ref' static in s5p_mfc_pm.c
+References: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org> <1350472311-9748-7-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1350472311-9748-7-git-send-email-sachin.kamat@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2012-10-23 at 11:44 -0700, Andrey Smirnov wrote:
-> This patch adds all necessary header files and Kbuild plumbing for the
-> core driver for Silicon Laboratories Si476x series of AM/FM tuner
-> chips.
+On 10/17/2012 01:11 PM, Sachin Kamat wrote:
+> Fixes the following sparse warning:
+> drivers/media/platform/s5p-mfc/s5p_mfc_pm.c:31:10: warning:
+> symbol 'clk_ref' was not declared. Should it be static?
 
-[]
-
-> +#ifdef DEBUG
-> +#define DBG_BUFFER(device, header, buffer, bcount)			\
-> +	do {								\
-> +		dev_info((device), header);				\
-> +		print_hex_dump_bytes("",				\
-> +				     DUMP_PREFIX_OFFSET,		\
-> +				     buffer, bcount);			\
-> +	} while (0)
-
-maybe just:
-	dev_dbg(device, whatever_fmt ": %*ph\n", bcount, buffer);
-at each call site
-
-
+Applied, thanks.
