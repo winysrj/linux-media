@@ -1,53 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:42593 "EHLO
-	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756022Ab2JQKUE (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:62904 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754617Ab2JTKFR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 06:20:04 -0400
-Date: Wed, 17 Oct 2012 11:25:04 +0100
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-To: Dave Airlie <airlied@gmail.com>
-Cc: Robert Morell <rmorell@nvidia.com>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: Use EXPORT_SYMBOL
-Message-ID: <20121017112504.47269452@pyramind.ukuu.org.uk>
-In-Reply-To: <CAPM=9txT+Wa_JXvsv7O3mqA6WK19z8chvSVxGQdf7R3Xo-mtQg@mail.gmail.com>
-References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
-	<20121010191702.404edace@pyramind.ukuu.org.uk>
-	<CAF6AEGvzfr2-QHpX4zwm2EPz-vxCDe9SaLUjo4_Fn7HhjWJFsg@mail.gmail.com>
-	<201210110857.15660.hverkuil@xs4all.nl>
-	<20121016212208.GB10462@morell.nvidia.com>
-	<20121017105321.062c898d@pyramind.ukuu.org.uk>
-	<CAPM=9txT+Wa_JXvsv7O3mqA6WK19z8chvSVxGQdf7R3Xo-mtQg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Sat, 20 Oct 2012 06:05:17 -0400
+Received: by mail-ee0-f46.google.com with SMTP id b15so450867eek.19
+        for <linux-media@vger.kernel.org>; Sat, 20 Oct 2012 03:05:16 -0700 (PDT)
+Message-ID: <50827759.3080302@gmail.com>
+Date: Sat, 20 Oct 2012 12:05:13 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+CC: linux-media@vger.kernel.org, k.debski@samsung.com,
+	s.nawrocki@samsung.com, patches@linaro.org
+Subject: Re: [PATCH 1/1] [media] s5p-mfc: Fix compilation warning
+References: <1350127114-5170-1-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1350127114-5170-1-git-send-email-sachin.kamat@linaro.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> > Please go and discuss estoppel, wilful infringement and re-licensing with
-> > your corporate attorneys. If you want to relicense components of the code
-> > then please take the matter up with the corporate attorneys of the rights
-> > holders concerned.
-> 
-> Alan please stick with the facts. This isn't a relicense of anything.
+On 10/13/2012 01:18 PM, Sachin Kamat wrote:
+> Added missing const qualifier.
+> Without this patch compiler gives the following warning:
+>
+> drivers/media/platform/s5p-mfc/s5p_mfc_enc.c:1576:2: warning:
+> initialization from incompatible pointer type [enabled by default]
+> drivers/media/platform/s5p-mfc/s5p_mfc_enc.c:1576:2: warning:
+> (near initialization for ‘s5p_mfc_enc_ioctl_ops.vidioc_subscribe_event’)
+> [enabled by default]
 
-In your opinion. Are you a qualified IP attorney - NO. Are you my lawyer
-- NO. Does my laywer disagree with you - YES.
-
-> EXPORT_SYMBOL_GPL isn't a license its nothing like a license. Its a
-> totally pointless thing,
-
-In your personal viewpoint. I disagree. I'm a rights holder too. 
-
-Several rights holders have made it clear the change is not wanted. It's
-over, done, buried. If you want it can go as far as Linus and then he can
-get a copy of all the discussion and say that same as he did in the
-classic video.
-
-Should I start submitting all the Intel non-free user space X drivers at
-this point as there seems to be a dramatic policy change going on here ?
-
-Alan
+Applied to my tree. Thank you.
