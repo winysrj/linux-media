@@ -1,79 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:39610 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932678Ab2JYQBU (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:38396 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932374Ab2JUR6h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Oct 2012 12:01:20 -0400
-Received: from eusync4.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MCG003GWHUODN10@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 25 Oct 2012 17:01:36 +0100 (BST)
-Received: from [106.116.147.32] by eusync4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTPA id <0MCG0081OHU6FW70@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 25 Oct 2012 17:01:18 +0100 (BST)
-Message-id: <5089624D.2000903@samsung.com>
-Date: Thu, 25 Oct 2012 18:01:17 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR 3.7] Samsung media drivers fixes
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Sun, 21 Oct 2012 13:58:37 -0400
+Received: by mail-we0-f174.google.com with SMTP id t9so1068352wey.19
+        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2012 10:58:36 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: hdegoede@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2, RESEND] libv4lconvert: clarify the behavior and resulting restrictions of v4lconvert_convert()
+Date: Sun, 21 Oct 2012 19:58:42 +0300
+Message-Id: <1350838722-15074-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ lib/include/libv4lconvert.h |   20 ++++++++++++++++++--
+ 1 Datei geändert, 18 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
 
-please pull following fixes for v3.7-rc.
+diff --git a/lib/include/libv4lconvert.h b/lib/include/libv4lconvert.h
+index 167b57d..509655e 100644
+--- a/lib/include/libv4lconvert.h
++++ b/lib/include/libv4lconvert.h
+@@ -89,8 +89,24 @@ LIBV4L_PUBLIC int v4lconvert_needs_conversion(struct v4lconvert_data *data,
+ 		const struct v4l2_format *src_fmt,   /* in */
+ 		const struct v4l2_format *dest_fmt); /* in */
+ 
+-/* return value of -1 on error, otherwise the amount of bytes written to
+-   dest */
++/* This function does the following conversions:
++    - format conversion
++    - cropping
++   if enabled:
++    - processing (auto whitebalance, auto gain, gamma correction)
++    - horizontal/vertical flipping
++    - 90 degree (clockwise) rotation
++   
++   NOTE: the last 3 steps are enabled/disabled depending on
++    - the internal device list
++    - the state of the (software emulated) image controls 
++  
++   Therefore this function should
++    - not be used when getting the frames from libv4l
++    - be called only once per frame
++   Otherwise this may result in unintended double conversions !
++  
++   Returns the amount of bytes written to dest and -1 on error */
+ LIBV4L_PUBLIC int v4lconvert_convert(struct v4lconvert_data *data,
+ 		const struct v4l2_format *src_fmt,  /* in */
+ 		const struct v4l2_format *dest_fmt, /* in */
+-- 
+1.7.10.4
 
-The following changes since commit 1fdead8ad31d3aa833bc37739273fcde89ace93c:
-
-  [media] m5mols: Add missing #include <linux/sizes.h> (2012-10-10 08:17:16 -0300)
-
-are available in the git repository at:
-
-  git://git.infradead.org/users/kmpark/linux-samsung v4l_fixes_for_v3.7
-
-for you to fetch changes up to df79eb9e19331685e509d62112972b3c35569f0b:
-
-  s5p-fimc: Fix potential NULL pointer dereference (2012-10-25 16:08:12 +0200)
-
-----------------------------------------------------------------
-Jesper Juhl (1):
-      s5p-tv: don't include linux/version.h in mixer_video.c
-
-Sachin Kamat (5):
-      s5p-mfc: Fix compilation warning
-      exynos-gsc: Fix compilation warning
-      s5p-mfc: Make 'clk_ref' static in s5p_mfc_pm.c
-      s5p-fimc: Make 'fimc_pipeline_s_stream' function static
-      s5p-fimc: Fix potential NULL pointer dereference
-
-Shaik Ameer Basha (3):
-      exynos-gsc: change driver compatible string
-      exynos-gsc: fix variable type in gsc_m2m_device_run()
-      s5p-fimc: fix variable type in fimc_device_run()
-
-Sylwester Nawrocki (4):
-      s5p-fimc: Don't ignore return value of vb2_queue_init()
-      s5p-csis: Select S5P_SETUP_MIPIPHY
-      s5p-fimc: Add missing new line character
-      s5p-fimc: Fix platform entities registration
-
- drivers/media/platform/exynos-gsc/gsc-core.c   |    8 +++--
- drivers/media/platform/exynos-gsc/gsc-m2m.c    |    2 +-
- drivers/media/platform/s5p-fimc/Kconfig        |    1 +
- drivers/media/platform/s5p-fimc/fimc-capture.c |    4 ++-
- drivers/media/platform/s5p-fimc/fimc-lite.c    |    4 ++-
- drivers/media/platform/s5p-fimc/fimc-m2m.c     |    2 +-
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |   45 ++++++++++++------------
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c   |    2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_pm.c    |    2 +-
- drivers/media/platform/s5p-tv/mixer_video.c    |    1 -
- 10 files changed, 38 insertions(+), 33 deletions(-)
-
-
-Thanks,
-Sylwester
