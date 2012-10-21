@@ -1,118 +1,276 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:56581 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751172Ab2JHJzJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 05:55:09 -0400
-Date: Mon, 8 Oct 2012 11:55:04 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Anatolij Gustschin <agust@denx.de>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Detlev Zundel <dzu@denx.de>
-Subject: Re: [PATCH] mt9v022: support required register settings in snapshot
- mode
-In-Reply-To: <20121008114700.5739c772@wker>
-Message-ID: <Pine.LNX.4.64.1210081153010.12203@axis700.grange>
-References: <1348786362-28586-1-git-send-email-agust@denx.de>
- <Pine.LNX.4.64.1209281428490.5428@axis700.grange> <20120928151004.7741efce@wker>
- <Pine.LNX.4.64.1209281515480.5428@axis700.grange> <20121006125716.67b1b004@wker>
- <Pine.LNX.4.64.1210081121060.12203@axis700.grange> <20121008114700.5739c772@wker>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:57147 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932454Ab2JURxY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Oct 2012 13:53:24 -0400
+Received: by mail-wg0-f44.google.com with SMTP id dr13so1632849wgb.1
+        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2012 10:53:23 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 05/23] em28xx: rename struct em28xx_usb_isoc_ctl to em28xx_usb_ctl
+Date: Sun, 21 Oct 2012 19:52:10 +0300
+Message-Id: <1350838349-14763-6-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 8 Oct 2012, Anatolij Gustschin wrote:
+Also rename the corresponding field isoc_ctl in struct em28xx
+to usb_ctl.
+We will use this struct for USB bulk transfers, too.
 
-> On Mon, 8 Oct 2012 11:22:05 +0200 (CEST)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> 
-> > On Sat, 6 Oct 2012, Anatolij Gustschin wrote:
-> > 
-> > > Hi Guennadi,
-> > > 
-> > > On Fri, 28 Sep 2012 15:30:33 +0200 (CEST)
-> > > Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> > > 
-> > > > On Fri, 28 Sep 2012, Anatolij Gustschin wrote:
-> > > > 
-> > > > > Hi Guennadi,
-> > > > > 
-> > > > > On Fri, 28 Sep 2012 14:33:34 +0200 (CEST)
-> > > > > Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> > > > > ...
-> > > > > > > @@ -235,12 +238,32 @@ static int mt9v022_s_stream(struct v4l2_subdev *sd, int enable)
-> > > > > > >  	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > > > > > >  	struct mt9v022 *mt9v022 = to_mt9v022(client);
-> > > > > > >  
-> > > > > > > -	if (enable)
-> > > > > > > +	if (enable) {
-> > > > > > >  		/* Switch to master "normal" mode */
-> > > > > > >  		mt9v022->chip_control &= ~0x10;
-> > > > > > > -	else
-> > > > > > > +		if (is_mt9v022_rev3(mt9v022->chip_version) ||
-> > > > > > > +		    is_mt9v024(mt9v022->chip_version)) {
-> > > > > > > +			/*
-> > > > > > > +			 * Unset snapshot mode specific settings: clear bit 9
-> > > > > > > +			 * and bit 2 in reg. 0x20 when in normal mode.
-> > > > > > > +			 */
-> > > > > > > +			if (reg_clear(client, MT9V022_REG32, 0x204))
-> > > > > > > +				return -EIO;
-> > > > > > > +		}
-> > > > > > > +	} else {
-> > > > > > >  		/* Switch to snapshot mode */
-> > > > > > >  		mt9v022->chip_control |= 0x10;
-> > > > > > > +		if (is_mt9v022_rev3(mt9v022->chip_version) ||
-> > > > > > > +		    is_mt9v024(mt9v022->chip_version)) {
-> > > > > > > +			/*
-> > > > > > > +			 * Required settings for snapshot mode: set bit 9
-> > > > > > > +			 * (RST enable) and bit 2 (CR enable) in reg. 0x20
-> > > > > > > +			 * See TechNote TN0960 or TN-09-225.
-> > > > > > > +			 */
-> > > > > > > +			if (reg_set(client, MT9V022_REG32, 0x204))
-> > > > > > > +				return -EIO;
-> > > > > > > +		}
-> > > > > > > +	}
-> > > > > > 
-> > > > > > Do I understand it right, that now on mt9v022 rev.3 and mt9v024 you 
-> > > > > > unconditionally added using REG32 for leaving the snapshot mode on 
-> > > > > > streamon and entering it on streamoff. This should be ok in principle, 
-> > > > > > since that's also what we're trying to do, using the CHIP_CONTROL 
-> > > > > > register. But in your comment you say, that on some _systems_ you can only 
-> > > > > > _operate_ in snapshot mode. I.e. the snapshot mode enabled during running 
-> > > > > > streaming, right? Then how does this patch help you with that?
-> > > > > 
-> > > > > Yes. But i.e. the driver calling the sub-device stream control function
-> > > > > on streamon knows that the normal mode is not supported and therefore it
-> > > > > calls this function with argument enable == 0, effectively setting the
-> > > > > snapshot mode.
-> > > > 
-> > > > Right, I thought you could be doing that... Well, on the one hand I should 
-> > > > be happy, that the problem is solved without driver modifications, OTOH 
-> > > > this isn't pretty... In fact this shouldn't work at all. After a 
-> > > > stream-off the buffer queue should be stopped too.
-> > > 
-> > > Why shouldn't it work? The buffer queue is handled by the host driver,
-> > > not by the sensor driver. And in my case the host driver stops the buffer
-> > > queue in its streamoff, as it should. It works without issues and doesn't
-> > > cause any problems for other mt9v022 users.
-> > 
-> > Because one shouldn't abuse the API by activating streaming on the bridge 
-> > driver and deactivating it on the sensor.
-> 
-> I don't see how is it an abuse of the API at all. The sensor is just
-> configured to snapshot mode but is still able to stream if it is
-> triggered continuously by external events. It is actually a streaming
-> case.
-
-The STREAMOFF API is supposed to stop streaming completely. It is just on 
-mt9v022 driver, that it happens, that no other way has been found to stop 
-video operation but to switch to the snapshot mode. But the API itself 
-prohibits any streaming in this mode. So, any other use of it is an abuse.
-
-Thanks
-Guennadi
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/usb/em28xx/em28xx-core.c  |   24 ++++++++++++------------
+ drivers/media/usb/em28xx/em28xx-vbi.c   |    4 ++--
+ drivers/media/usb/em28xx/em28xx-video.c |   24 ++++++++++++------------
+ drivers/media/usb/em28xx/em28xx.h       |   12 ++++++------
+ 4 Dateien geändert, 32 Zeilen hinzugefügt(+), 32 Zeilen entfernt(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index b250a63..0892d92 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -941,7 +941,7 @@ static void em28xx_irq_callback(struct urb *urb)
+ 
+ 	/* Copy data from URB */
+ 	spin_lock(&dev->slock);
+-	dev->isoc_ctl.isoc_copy(dev, urb);
++	dev->usb_ctl.urb_data_copy(dev, urb);
+ 	spin_unlock(&dev->slock);
+ 
+ 	/* Reset urb buffers */
+@@ -970,9 +970,9 @@ void em28xx_uninit_isoc(struct em28xx *dev, enum em28xx_mode mode)
+ 	em28xx_isocdbg("em28xx: called em28xx_uninit_isoc in mode %d\n", mode);
+ 
+ 	if (mode == EM28XX_DIGITAL_MODE)
+-		isoc_bufs = &dev->isoc_ctl.digital_bufs;
++		isoc_bufs = &dev->usb_ctl.digital_bufs;
+ 	else
+-		isoc_bufs = &dev->isoc_ctl.analog_bufs;
++		isoc_bufs = &dev->usb_ctl.analog_bufs;
+ 
+ 	for (i = 0; i < isoc_bufs->num_bufs; i++) {
+ 		urb = isoc_bufs->urb[i];
+@@ -1012,7 +1012,7 @@ void em28xx_stop_urbs(struct em28xx *dev)
+ {
+ 	int i;
+ 	struct urb *urb;
+-	struct em28xx_usb_bufs *isoc_bufs = &dev->isoc_ctl.digital_bufs;
++	struct em28xx_usb_bufs *isoc_bufs = &dev->usb_ctl.digital_bufs;
+ 
+ 	em28xx_isocdbg("em28xx: called em28xx_stop_urbs\n");
+ 
+@@ -1045,9 +1045,9 @@ int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
+ 	em28xx_isocdbg("em28xx: called em28xx_alloc_isoc in mode %d\n", mode);
+ 
+ 	if (mode == EM28XX_DIGITAL_MODE)
+-		isoc_bufs = &dev->isoc_ctl.digital_bufs;
++		isoc_bufs = &dev->usb_ctl.digital_bufs;
+ 	else
+-		isoc_bufs = &dev->isoc_ctl.analog_bufs;
++		isoc_bufs = &dev->usb_ctl.analog_bufs;
+ 
+ 	/* De-allocates all pending stuff */
+ 	em28xx_uninit_isoc(dev, mode);
+@@ -1070,8 +1070,8 @@ int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
+ 
+ 	isoc_bufs->max_pkt_size = max_pkt_size;
+ 	isoc_bufs->num_packets = num_packets;
+-	dev->isoc_ctl.vid_buf = NULL;
+-	dev->isoc_ctl.vbi_buf = NULL;
++	dev->usb_ctl.vid_buf = NULL;
++	dev->usb_ctl.vbi_buf = NULL;
+ 
+ 	sb_size = isoc_bufs->num_packets * isoc_bufs->max_pkt_size;
+ 
+@@ -1079,7 +1079,7 @@ int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
+ 	for (i = 0; i < isoc_bufs->num_bufs; i++) {
+ 		urb = usb_alloc_urb(isoc_bufs->num_packets, GFP_KERNEL);
+ 		if (!urb) {
+-			em28xx_err("cannot alloc isoc_ctl.urb %i\n", i);
++			em28xx_err("cannot alloc usb_ctl.urb %i\n", i);
+ 			em28xx_uninit_isoc(dev, mode);
+ 			return -ENOMEM;
+ 		}
+@@ -1141,14 +1141,14 @@ int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
+ 
+ 	em28xx_isocdbg("em28xx: called em28xx_init_isoc in mode %d\n", mode);
+ 
+-	dev->isoc_ctl.isoc_copy = isoc_copy;
++	dev->usb_ctl.urb_data_copy = isoc_copy;
+ 
+ 	if (mode == EM28XX_DIGITAL_MODE) {
+-		isoc_bufs = &dev->isoc_ctl.digital_bufs;
++		isoc_bufs = &dev->usb_ctl.digital_bufs;
+ 		/* no need to free/alloc isoc buffers in digital mode */
+ 		alloc = 0;
+ 	} else {
+-		isoc_bufs = &dev->isoc_ctl.analog_bufs;
++		isoc_bufs = &dev->usb_ctl.analog_bufs;
+ 		alloc = 1;
+ 	}
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-vbi.c b/drivers/media/usb/em28xx/em28xx-vbi.c
+index 2b4c9cb..d74713b 100644
+--- a/drivers/media/usb/em28xx/em28xx-vbi.c
++++ b/drivers/media/usb/em28xx/em28xx-vbi.c
+@@ -60,8 +60,8 @@ free_buffer(struct videobuf_queue *vq, struct em28xx_buffer *buf)
+ 	   VIDEOBUF_ACTIVE, it won't be, though.
+ 	*/
+ 	spin_lock_irqsave(&dev->slock, flags);
+-	if (dev->isoc_ctl.vbi_buf == buf)
+-		dev->isoc_ctl.vbi_buf = NULL;
++	if (dev->usb_ctl.vbi_buf == buf)
++		dev->usb_ctl.vbi_buf = NULL;
+ 	spin_unlock_irqrestore(&dev->slock, flags);
+ 
+ 	videobuf_vmalloc_free(&buf->vb);
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index e51284c..b334885 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -165,7 +165,7 @@ static inline void buffer_filled(struct em28xx *dev,
+ 	buf->vb.field_count++;
+ 	do_gettimeofday(&buf->vb.ts);
+ 
+-	dev->isoc_ctl.vid_buf = NULL;
++	dev->usb_ctl.vid_buf = NULL;
+ 
+ 	list_del(&buf->vb.queue);
+ 	wake_up(&buf->vb.done);
+@@ -182,7 +182,7 @@ static inline void vbi_buffer_filled(struct em28xx *dev,
+ 	buf->vb.field_count++;
+ 	do_gettimeofday(&buf->vb.ts);
+ 
+-	dev->isoc_ctl.vbi_buf = NULL;
++	dev->usb_ctl.vbi_buf = NULL;
+ 
+ 	list_del(&buf->vb.queue);
+ 	wake_up(&buf->vb.done);
+@@ -368,7 +368,7 @@ static inline void get_next_buf(struct em28xx_dmaqueue *dma_q,
+ 
+ 	if (list_empty(&dma_q->active)) {
+ 		em28xx_isocdbg("No active queue to serve\n");
+-		dev->isoc_ctl.vid_buf = NULL;
++		dev->usb_ctl.vid_buf = NULL;
+ 		*buf = NULL;
+ 		return;
+ 	}
+@@ -380,7 +380,7 @@ static inline void get_next_buf(struct em28xx_dmaqueue *dma_q,
+ 	outp = videobuf_to_vmalloc(&(*buf)->vb);
+ 	memset(outp, 0, (*buf)->vb.size);
+ 
+-	dev->isoc_ctl.vid_buf = *buf;
++	dev->usb_ctl.vid_buf = *buf;
+ 
+ 	return;
+ }
+@@ -396,7 +396,7 @@ static inline void vbi_get_next_buf(struct em28xx_dmaqueue *dma_q,
+ 
+ 	if (list_empty(&dma_q->active)) {
+ 		em28xx_isocdbg("No active queue to serve\n");
+-		dev->isoc_ctl.vbi_buf = NULL;
++		dev->usb_ctl.vbi_buf = NULL;
+ 		*buf = NULL;
+ 		return;
+ 	}
+@@ -407,7 +407,7 @@ static inline void vbi_get_next_buf(struct em28xx_dmaqueue *dma_q,
+ 	outp = videobuf_to_vmalloc(&(*buf)->vb);
+ 	memset(outp, 0x00, (*buf)->vb.size);
+ 
+-	dev->isoc_ctl.vbi_buf = *buf;
++	dev->usb_ctl.vbi_buf = *buf;
+ 
+ 	return;
+ }
+@@ -435,7 +435,7 @@ static inline int em28xx_isoc_copy(struct em28xx *dev, struct urb *urb)
+ 			return 0;
+ 	}
+ 
+-	buf = dev->isoc_ctl.vid_buf;
++	buf = dev->usb_ctl.vid_buf;
+ 	if (buf != NULL)
+ 		outp = videobuf_to_vmalloc(&buf->vb);
+ 
+@@ -531,11 +531,11 @@ static inline int em28xx_isoc_copy_vbi(struct em28xx *dev, struct urb *urb)
+ 			return 0;
+ 	}
+ 
+-	buf = dev->isoc_ctl.vid_buf;
++	buf = dev->usb_ctl.vid_buf;
+ 	if (buf != NULL)
+ 		outp = videobuf_to_vmalloc(&buf->vb);
+ 
+-	vbi_buf = dev->isoc_ctl.vbi_buf;
++	vbi_buf = dev->usb_ctl.vbi_buf;
+ 	if (vbi_buf != NULL)
+ 		vbioutp = videobuf_to_vmalloc(&vbi_buf->vb);
+ 
+@@ -725,8 +725,8 @@ static void free_buffer(struct videobuf_queue *vq, struct em28xx_buffer *buf)
+ 	   VIDEOBUF_ACTIVE, it won't be, though.
+ 	*/
+ 	spin_lock_irqsave(&dev->slock, flags);
+-	if (dev->isoc_ctl.vid_buf == buf)
+-		dev->isoc_ctl.vid_buf = NULL;
++	if (dev->usb_ctl.vid_buf == buf)
++		dev->usb_ctl.vid_buf = NULL;
+ 	spin_unlock_irqrestore(&dev->slock, flags);
+ 
+ 	videobuf_vmalloc_free(&buf->vb);
+@@ -758,7 +758,7 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
+ 			goto fail;
+ 	}
+ 
+-	if (!dev->isoc_ctl.analog_bufs.num_bufs)
++	if (!dev->usb_ctl.analog_bufs.num_bufs)
+ 		urb_init = 1;
+ 
+ 	if (urb_init) {
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index a4a79bd..5ef0a7a 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -219,19 +219,19 @@ struct em28xx_usb_bufs {
+ 	char				**transfer_buffer;
+ };
+ 
+-struct em28xx_usb_isoc_ctl {
+-		/* isoc transfer buffers for analog mode */
++struct em28xx_usb_ctl {
++		/* isoc/bulk transfer buffers for analog mode */
+ 	struct em28xx_usb_bufs		analog_bufs;
+ 
+-		/* isoc transfer buffers for digital mode */
++		/* isoc/bulk transfer buffers for digital mode */
+ 	struct em28xx_usb_bufs		digital_bufs;
+ 
+ 		/* Stores already requested buffers */
+ 	struct em28xx_buffer    	*vid_buf;
+ 	struct em28xx_buffer    	*vbi_buf;
+ 
+-		/* isoc urb callback */
+-	int (*isoc_copy) (struct em28xx *dev, struct urb *urb);
++		/* copy data from URB */
++	int (*urb_data_copy) (struct em28xx *dev, struct urb *urb);
+ 
+ };
+ 
+@@ -581,7 +581,7 @@ struct em28xx {
+ 	/* Isoc control struct */
+ 	struct em28xx_dmaqueue vidq;
+ 	struct em28xx_dmaqueue vbiq;
+-	struct em28xx_usb_isoc_ctl isoc_ctl;
++	struct em28xx_usb_ctl usb_ctl;
+ 	spinlock_t slock;
+ 
+ 	/* usb transfer */
+-- 
+1.7.10.4
+
