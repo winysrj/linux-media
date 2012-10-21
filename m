@@ -1,124 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:49161 "EHLO
-	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751558Ab2JHMUf (ORCPT
+Received: from smtprelay0080.b.hostedemail.com ([64.98.42.80]:45995 "EHLO
+	smtprelay.b.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754288Ab2JUTtE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Oct 2012 08:20:35 -0400
-Received: by mail-la0-f46.google.com with SMTP id h6so2204196lag.19
-        for <linux-media@vger.kernel.org>; Mon, 08 Oct 2012 05:20:32 -0700 (PDT)
-Message-ID: <1349698816.9437.5.camel@deskari>
-Subject: Re: [PATCH 1/2 v6] of: add helper to parse display timings
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Date: Mon, 08 Oct 2012 15:20:16 +0300
-In-Reply-To: <1479122.2xVsV4MZ4o@avalon>
-References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
-	 <Pine.LNX.4.64.1210081000530.11034@axis700.grange>
-	 <1349686878.3227.40.camel@deskari> <1479122.2xVsV4MZ4o@avalon>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-VexL9VcUIvb49Fq4XdT3"
-Mime-Version: 1.0
+	Sun, 21 Oct 2012 15:49:04 -0400
+Date: Sun, 21 Oct 2012 19:49:01 +0000 (GMT)
+From: "Artem S. Tashkinov" <t.artem@lycos.com>
+To: bp@alien8.de
+Cc: pavel@ucw.cz, linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	security@kernel.org, linux-media@vger.kernel.org,
+	linux-usb@vger.kernel.org, zonque@gmail.com,
+	alsa-devel@alsa-project.org, stern@rowland.harvard.edu
+Message-ID: <1906833625.122006.1350848941352.JavaMail.mail@webmail16>
+References: <2104474742.26357.1350734815286.JavaMail.mail@webmail05>
+ <20121020162759.GA12551@liondog.tnic>
+ <966148591.30347.1350754909449.JavaMail.mail@webmail08>
+ <20121020203227.GC555@elf.ucw.cz> <20121020225849.GA8976@liondog.tnic>
+ <1781795634.31179.1350774917965.JavaMail.mail@webmail04>
+ <20121021002424.GA16247@liondog.tnic>
+ <1798605268.19162.1350784641831.JavaMail.mail@webmail17>
+ <20121021110851.GA6504@liondog.tnic>
+ <121566322.100103.1350820776893.JavaMail.mail@webmail20>
+ <20121021170315.GB20642@liondog.tnic>
+Subject: Re: Re: Re: Re: Re: Re: A reliable kernel panic (3.6.2) and system
+ crash when visiting a particular website
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+> 
+> On Oct 21, 2012, Borislav Petkov <bp@alien8.de> wrote: 
+> 
+> On Sun, Oct 21, 2012 at 11:59:36AM +0000, Artem S. Tashkinov wrote:
+> > http://imageshack.us/a/img685/9452/panicz.jpg
+> > 
+> > list_del corruption. prev->next should be ... but was ...
+> 
+> Btw, this is one of the debug options I told you to enable.
+> 
+> > I cannot show you more as I have no serial console to use :( and the kernel
+> > doesn't have enough time to push error messages to rsyslog and fsync
+> > /var/log/messages
+> 
+> I already told you how to catch that oops: boot with "pause_on_oops=600"
+> on the kernel command line and photograph the screen when the first oops
+> happens. This'll show us where the problem begins.
 
---=-VexL9VcUIvb49Fq4XdT3
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+This option didn't have any effect, or maybe it's because it's such a serious crash
+the kernel has no time to actually print an ooops/panic message.
 
-On Mon, 2012-10-08 at 14:04 +0200, Laurent Pinchart wrote:
-> Hi Tomi,
->=20
-> On Monday 08 October 2012 12:01:18 Tomi Valkeinen wrote:
-> > On Mon, 2012-10-08 at 10:25 +0200, Guennadi Liakhovetski wrote:
-> > > In general, I might be misunderstanding something, but don't we have =
-to
-> > > distinguish between 2 types of information about display timings: (1)=
- is
-> > > defined by the display controller requirements, is known to the displ=
-ay
-> > > driver and doesn't need to be present in timings DT. We did have some=
- of
-> > > these parameters in board data previously, because we didn't have pro=
-per
-> > > display controller drivers... (2) is board specific configuration, an=
-d is
-> > > such it has to be present in DT.
-> > >=20
-> > > In that way, doesn't "interlaced" belong to type (1) and thus doesn't=
- need
-> > > to be present in DT?
-> >=20
-> > As I see it, this DT data is about the display (most commonly LCD
-> > panel), i.e. what video mode(s) the panel supports. If things were done
-> > my way, the panel's supported timings would be defined in the driver fo=
-r
-> > the panel, and DT would be left to describe board specific data, but
-> > this approach has its benefits.
->=20
-> What about dumb DPI panels ? They will all be supported by a single drive=
-r,=20
-> would you have the driver contain information about all known DPI panels =
-? DT=20
-> seems a good solution to me in this case.
+dmesg messages up to a crash can be seen here: https://bugzilla.kernel.org/attachment.cgi?id=84221
 
-Yes, I would have a table in the driver for all the devices it supports,
-which would describe the device specific parameters.
+I dumped them using this application:
 
-But I don't have a problem with DT solution. Both methods have their
-pros and cons, and perhaps DT based solution is more practical.
+$ cat scat.c
 
-> For complex panels where the driver will support a single (or very few) m=
-odel=20
-> I agree that specifying the timings in DT isn't needed.
->=20
-> > Thus, if you connect an interlaced panel to your board, you need to tel=
-l
-> > the display controller that this panel requires interlace signal. Also,
-> > pixel clock source doesn't make sense in this context, as this doesn't
-> > describe the actual used configuration, but only what the panel
-> > supports.
-> >=20
-> > Of course, if this is about describing the hardware, the default-mode
-> > property doesn't really fit in...
->=20
-> Maybe we should rename it to native-mode then ?
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
-Hmm, right, if it means native mode, then it is describing the hardware.
-But would it make sense to require that the native mode is the first
-mode in the list, then? This would make the separate
-default-mode/native-mode property not needed.
+#define O_LARGEFILE 0100000
+#define BUFFER 4096
+#define __USE_FILE_OFFSET64 1
+#define __USE_LARGEFILE64 1
 
- Tomi
+int main(int argc, char *argv[])
+{
+	int fd_out;
+	int64_t bytes_read;
+	void *buffer;
+
+	if (argc!=2) {
+		printf("Usage is: scat destination\n");
+		return 1;
+	}
+
+	buffer = malloc(BUFFER * sizeof(char));
+	if (buffer == NULL) {
+		printf("Error: can't allocate buffers\n");
+		return 2;		
+	}
+	memset(buffer, 0, BUFFER);
+
+	printf("Dumping to \"%s\" ... ", argv[1]);
+	fflush(NULL);
+
+	if ((fd_out = open64(argv[1], O_WRONLY | O_LARGEFILE | O_SYNC | O_NOFOLLOW, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1) {
+		printf("Error: destination file can't be created\n");
+		perror("open() ");
+		return 2;
+	}
+
+	bytes_read = 1;
+
+	while (bytes_read) {
+		bytes_read = fread(buffer, sizeof(char), BUFFER, stdin);
+
+		if (write(fd_out, (void *) buffer, bytes_read) != bytes_read)
+		{
+			printf("Error: can't write data to the destination file! Possibly a target disk is full\n");
+			return 3;
+		}
+
+	}
+
+	close(fd_out);
+
+	printf(" OK\n");
+	return 0;
+}
 
 
---=-VexL9VcUIvb49Fq4XdT3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+I ran it this way: while :; do dmesg -c; done | scat /dev/sda11 (yes, straight to a hdd partition to eliminate a FS cache)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJQcsUAAAoJEPo9qoy8lh71k3oP/jJlOuMLK8YA71KFe0uEmA95
-5vb3nyR32KJj1FLQFoBA/sSS/pnOE6DRK10dyEVmXAzL8pK86MxYzJ3hbHhJDpWx
-qHYb3ptAnHIwqLBbHu4XDl8HGRBlhqLv97UGfctY6CuqKY9nEUeW/CVUUKaxdWVQ
-F5TczV3I3V9LdU1Ugq5NmXCBrgZA5wp/D2+xE5y4R31338RzFk7aZQiZme3AHiXn
-h4HjlkPnvfozzIyZnxYczgpLsUZFBkYQ56vK7IxPiAQtT8xFaz/OXiMI8hCzf2rT
-YghONehW+IGSuy4iJRP5L7sg0d0RtgDFDEg4PhGztNat+4gjRNu7lV8/AFbigZQe
-QMhK34mZ2mUnR9CLlvgWLd1otsak4HDd4tG9cRMOQU9v1iyhzal5WpENzmI5vARo
-9mi4jW/4Tt6qDVEBSr/Criw/aKu8Ci3KBfc5nKNfAsdQh63ZwGKpLCN2y9EgM/oh
-3SoTPwR6OQczFBwbtlLjjB4lo7LgERpC+101joAIDEu4EWgT6iSQR+ZfbAYSCCIM
-yYLk50O73RfXkqBKFhFf4YGV91SNxh5jhsata/u3yxlnSOj+Wh3Olr/yTQAEB33r
-k3vI8DgwPt0WyoxA/ZK2Zo5U5RWGYFpQdb9wfy8UZ51jtBTsZAERLne2p9uvu8UJ
-mAd/QC8xPlv0SihkbHl1
-=Z4g+
------END PGP SIGNATURE-----
-
---=-VexL9VcUIvb49Fq4XdT3--
+Don't judge me harshly - I'm not a programmer.
 
