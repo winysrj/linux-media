@@ -1,57 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:46122 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754478Ab2JPEk5 (ORCPT
+Received: from netrider.rowland.org ([192.131.102.5]:39065 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932133Ab2JUPXb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Oct 2012 00:40:57 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBY000A6YB5UTE0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 16 Oct 2012 13:40:55 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MBY00EGRYBWQP90@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 16 Oct 2012 13:40:55 +0900 (KST)
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, shaik.samsung@gmail.com
-Subject: [PATCH] [media] exynos-gsc: change driver compatible string
-Date: Tue, 16 Oct 2012 20:13:44 +0530
-Message-id: <1350398624-20751-1-git-send-email-shaik.ameer@samsung.com>
+	Sun, 21 Oct 2012 11:23:31 -0400
+Date: Sun, 21 Oct 2012 11:23:30 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: "Artem S. Tashkinov" <t.artem@lycos.com>
+cc: bp@alien8.de, <pavel@ucw.cz>, <linux-kernel@vger.kernel.org>,
+	<netdev@vger.kernel.org>, <security@kernel.org>,
+	<linux-media@vger.kernel.org>, <linux-usb@vger.kernel.org>
+Subject: Re: Re: Re: Re: Re: A reliable kernel panic (3.6.2) and system crash
+ when visiting a particular website
+In-Reply-To: <121566322.100103.1350820776893.JavaMail.mail@webmail20>
+Message-ID: <Pine.LNX.4.44L0.1210211121370.14867-100000@netrider.rowland.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As G-Scaler is going to stay unchanged across all exynos5 series
-SoCs, changing the driver compatible string name to
-"samsung,exynos5-gsc" from "samsung,exynos5250-gsc".
+On Sun, 21 Oct 2012, Artem S. Tashkinov wrote:
 
-This change is as per the discussion in the devicetree forum.
-http://www.mail-archive.com/devicetree-discuss@lists.ozlabs.org/msg16448.html
+> What I've found out is that my system crashes *only* when I try to enable
+> usb-audio (from the same webcam) - I still have no idea how to capture a
+> panic message, but I ran
+> 
+> "while :; do dmesg -c; done" in xterm, then I got like thousands of messages
+> and I photographed my monitor:
+> 
+> http://imageshack.us/a/img685/9452/panicz.jpg
+> 
+> list_del corruption. prev->next should be ... but was ...
+> 
+> I cannot show you more as I have no serial console to use :( and the kernel
+> doesn't have enough time to push error messages to rsyslog and fsync
+> /var/log/messages
 
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
----
- drivers/media/platform/exynos-gsc/gsc-core.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+Is it possible to use netconsole?  The screenshot above appears to be 
+the end of a long series of error messages, which isn't too useful.  
+The most important information is in the first error.
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index bfec9e6..19cbb12 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -965,8 +965,10 @@ static struct platform_device_id gsc_driver_ids[] = {
- MODULE_DEVICE_TABLE(platform, gsc_driver_ids);
- 
- static const struct of_device_id exynos_gsc_match[] = {
--	{ .compatible = "samsung,exynos5250-gsc",
--	.data = &gsc_v_100_drvdata, },
-+	{
-+		.compatible = "samsung,exynos5-gsc",
-+		.data = &gsc_v_100_drvdata,
-+	},
- 	{},
- };
- MODULE_DEVICE_TABLE(of, exynos_gsc_match);
--- 
-1.7.0.4
+Alan Stern
 
