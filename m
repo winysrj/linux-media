@@ -1,134 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44383 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752774Ab2JBNSB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Oct 2012 09:18:01 -0400
-Date: Tue, 2 Oct 2012 10:17:46 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH RFC] em28xx: PCTV 520e switch tda18271 to tda18271c2dd
-Message-ID: <20121002101746.3dc259d0@redhat.com>
-In-Reply-To: <CAOcJUbzpf=ZsUYxYJ+MHNtC-YaAGfE1Hegk12Vqk+mSYuQ8Qyw@mail.gmail.com>
-References: <1349139145-22113-1-git-send-email-crope@iki.fi>
-	<CAGoCfiwfTkTs1DPa0cWHLOgGcgS0Df3h7zZ=4YW51dr_AS78nQ@mail.gmail.com>
-	<CAOcJUbw+ToEAaqKPx1phWsKdWvPRXUOhtWwm7VaESwkW=fpqyg@mail.gmail.com>
-	<506ABA2B.3070908@iki.fi>
-	<20121002080503.76869be7@redhat.com>
-	<CAOcJUbzpf=ZsUYxYJ+MHNtC-YaAGfE1Hegk12Vqk+mSYuQ8Qyw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:58940 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752922Ab2JUL7Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Oct 2012 07:59:24 -0400
+Message-ID: <5083E392.2030609@gmail.com>
+Date: Sun, 21 Oct 2012 13:59:14 +0200
+From: Daniel Mack <zonque@gmail.com>
+MIME-Version: 1.0
+To: "Artem S. Tashkinov" <t.artem@lycos.com>
+CC: bp@alien8.de, pavel@ucw.cz, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, security@kernel.org,
+	linux-media@vger.kernel.org, linux-usb@vger.kernel.org
+Subject: Re: A reliable kernel panic (3.6.2) and system crash when visiting
+ a particular website
+References: <2104474742.26357.1350734815286.JavaMail.mail@webmail05> <20121020162759.GA12551@liondog.tnic> <966148591.30347.1350754909449.JavaMail.mail@webmail08> <20121020203227.GC555@elf.ucw.cz> <20121020225849.GA8976@liondog.tnic> <1781795634.31179.1350774917965.JavaMail.mail@webmail04> <5083CFCD.60303@gmail.com>
+In-Reply-To: <5083CFCD.60303@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 2 Oct 2012 08:22:28 -0400
-Michael Krufky <mkrufky@linuxtv.org> escreveu:
-
-> On Tue, Oct 2, 2012 at 7:05 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
-> > Btw, why do you need to read 16 registers at once, instead of just reading
-> > the needed register? read_extended and write operations are even more evil:
-> > they read/write the full set of 39 registers on each operation. That seems
-> > to be overkill, especially on places like tda18271_get_id(), where
-> > all the driver is doing is to check for the ID register.
+On 21.10.2012 12:34, Daniel Mack wrote:
+> On 21.10.2012 01:15, Artem S. Tashkinov wrote:
+>> You don't get me - I have *no* VirtualBox (or any proprietary) modules running
+>> - but I can reproduce this problem using *the same system running under* VirtualBox
+>> in Windows 7 64.
+>>
+>> It's almost definitely either a USB driver bug or video4linux driver bug:
+>>
+>> I'm CC'ing linux-media and linux-usb mailing lists, the problem is described here:
+>> https://lkml.org/lkml/2012/10/20/35
+>> https://lkml.org/lkml/2012/10/20/148
+>>
+>> Here are  the last lines from my dmesg (with usbmon loaded):
+>>
+>> [  292.164833] hub 1-0:1.0: state 7 ports 8 chg 0000 evt 0002
+>> [  292.168091] ehci_hcd 0000:00:1f.5: GetStatus port:1 status 00100a 0  ACK POWER sig=se0 PEC CSC
+>> [  292.172063] hub 1-0:1.0: port 1, status 0100, change 0003, 12 Mb/s
+>> [  292.174883] usb 1-1: USB disconnect, device number 2
+>> [  292.178045] usb 1-1: unregistering device
+>> [  292.183539] usb 1-1: unregistering interface 1-1:1.0
+>> [  292.197034] usb 1-1: unregistering interface 1-1:1.1
+>> [  292.204317] usb 1-1: unregistering interface 1-1:1.2
+>> [  292.234519] usb 1-1: unregistering interface 1-1:1.3
+>> [  292.236175] usb 1-1: usb_disable_device nuking all URBs
+>> [  292.364429] hub 1-0:1.0: debounce: port 1: total 100ms stable 100ms status 0x100
+>> [  294.364279] hub 1-0:1.0: hub_suspend
+>> [  294.366045] usb usb1: bus auto-suspend, wakeup 1
+>> [  294.367375] ehci_hcd 0000:00:1f.5: suspend root hub
+>> [  296.501084] usb usb1: usb wakeup-resume
+>> [  296.508311] usb usb1: usb auto-resume
+>> [  296.509833] ehci_hcd 0000:00:1f.5: resume root hub
+>> [  296.560149] hub 1-0:1.0: hub_resume
+>> [  296.562240] ehci_hcd 0000:00:1f.5: GetStatus port:1 status 001003 0  ACK POWER sig=se0 CSC CONNECT
+>> [  296.566141] hub 1-0:1.0: port 1: status 0501 change 0001
+>> [  296.670413] hub 1-0:1.0: state 7 ports 8 chg 0002 evt 0000
+>> [  296.673222] hub 1-0:1.0: port 1, status 0501, change 0000, 480 Mb/s
+>> [  297.311720] usb 1-1: new high-speed USB device number 3 using ehci_hcd
+>> [  300.547237] usb 1-1: skipped 1 descriptor after configuration
+>> [  300.549443] usb 1-1: skipped 4 descriptors after interface
+>> [  300.552273] usb 1-1: skipped 2 descriptors after interface
+>> [  300.556499] usb 1-1: skipped 1 descriptor after endpoint
+>> [  300.559392] usb 1-1: skipped 2 descriptors after interface
+>> [  300.560960] usb 1-1: skipped 1 descriptor after endpoint
+>> [  300.562169] usb 1-1: skipped 2 descriptors after interface
+>> [  300.563440] usb 1-1: skipped 1 descriptor after endpoint
+>> [  300.564639] usb 1-1: skipped 2 descriptors after interface
+>> [  300.565828] usb 1-1: skipped 2 descriptors after endpoint
+>> [  300.567084] usb 1-1: skipped 9 descriptors after interface
+>> [  300.569205] usb 1-1: skipped 1 descriptor after endpoint
+>> [  300.570484] usb 1-1: skipped 53 descriptors after interface
+>> [  300.595843] usb 1-1: default language 0x0409
+>> [  300.602503] usb 1-1: USB interface quirks for this device: 2
+>> [  300.605700] usb 1-1: udev 3, busnum 1, minor = 2
+>> [  300.606959] usb 1-1: New USB device found, idVendor=046d, idProduct=081d
+>> [  300.610298] usb 1-1: New USB device strings: Mfr=0, Product=0, SerialNumber=1
+>> [  300.613742] usb 1-1: SerialNumber: 48C5D2B0
+>> [  300.617703] usb 1-1: usb_probe_device
+>> [  300.620594] usb 1-1: configuration #1 chosen from 1 choice
+>> [  300.639218] usb 1-1: adding 1-1:1.0 (config #1, interface 0)
+>> [  300.640736] snd-usb-audio 1-1:1.0: usb_probe_interface
+>> [  300.642307] snd-usb-audio 1-1:1.0: usb_probe_interface - got id
+>> [  301.050296] usb 1-1: adding 1-1:1.1 (config #1, interface 1)
+>> [  301.054897] usb 1-1: adding 1-1:1.2 (config #1, interface 2)
+>> [  301.056934] uvcvideo 1-1:1.2: usb_probe_interface
+>> [  301.058072] uvcvideo 1-1:1.2: usb_probe_interface - got id
+>> [  301.059395] uvcvideo: Found UVC 1.00 device <unnamed> (046d:081d)
+>> [  301.090173] input: UVC Camera (046d:081d) as /devices/pci0000:00/0000:00:1f.5/usb1/1-1/1-1:1.2/input/input7
 > 
-> TDA18271 does not support subaddressing for read operations.  The only
-> way to read a register is by dumping full register contents.  16
-> registers in simple mode, 39 registers in extended mode.
-
-Well, at least at get_id() I think you should just read the ID register
-and not the full set.
-
-> > Worse than that, tda18271_get_id() doesn't even check if the read()
-> > operation failed: it assumes that it will always work, letting the
-> > switch(regs[R_ID]) to print a wrong message (device unknown) when
-> > what actually failed where the 16 registers dump.
+> That seems to be a Logitech model.
 > 
-> That's a pretty standard operation to be able to read a chip's ID in
-> its driver attach function.  You even have some drivers that continue
-> trying to attach frontends and tuners as long as they continue to get
-> an error in the attach() function.  If we dont read the chip's ID
-> during attach() then how do we know we're attaching to the correct
-> chip?
+>> [  301.111289] usb 1-1: adding 1-1:1.3 (config #1, interface 3)
+>> [  301.131207] usb 1-1: link qh16-0001/f48d64c0 start 2 [1/0 us]
+>> [  301.137066] usb 1-1: unlink qh16-0001/f48d64c0 start 2 [1/0 us]
+>> [  301.156451] ehci_hcd 0000:00:1f.5: reused qh f48d64c0 schedule
+>> [  301.158310] usb 1-1: link qh16-0001/f48d64c0 start 2 [1/0 us]
+>> [  301.160238] usb 1-1: unlink qh16-0001/f48d64c0 start 2 [1/0 us]
+>> [  301.196606] set resolution quirk: cval->res = 384
+>> [  371.309569] e1000: eth1 NIC Link is Up 1000 Mbps Full Duplex, Flow Control: RX
+>> [  390.729568] ehci_hcd 0000:00:1f.5: reused qh f48d64c0 schedule
+>> f5ade900 2296555[  390.730023] usb 1-1: link qh16-0001/f48d64c0 start 2 [1/0 us]
+>> 437 S Ii:1:003:7[  390.736394] usb 1-1: unlink qh16-0001/f48d64c0 start 2 [1/0 us]
+>>  -115:128 16 <
+>> f5ade900 2296566256 C Ii:1:003:7 -2:128 0
+>> [  391.100896] ehci_hcd 0000:00:1f.5: reused qh f48d64c0 schedule
+>> [  391.103188] usb 1-1: link qh16-0001/f48d64c0 start 2 [1/0 us]
+>> f5ade900 2296926929 S Ii:1:003:7[  391.104889] usb 1-1: unlink qh16-0001/f48d64c0 start 2 [1/0 us]
+>>  -115:128 16 <
+>> f5ade900 2296937889 C Ii:1:003:7 -2:128 0
+>> f5272300 2310382508 S Co:1:003:0 s 01 0b 0004 0001 0000 0
+>> f5272300 2310407888 C Co:1:003:0 0 0
+>> f5272300 2310408051 S Co:1:003:0 s 22 01 0100 0086 0003 3 = 80bb00
+>> f5272300 2310412456 C Co:1:003:0 0 3 >
+>> f5272300 2310412521 S Ci:1:003:0 s a2 81 0100 0086 0003 3 <
+>> f5272300 2310415909 C Ci:1:003:0 0 0
+>> f5272300 2310418133 S Zi:1:003:6 -115:8:0 1 -18:0:100 100 <
+>> f5272600 2310418219 S Zi:1:003:6 -115:8:0 1 -18:0:100 100 <
+>> f52720c0 2310418239 S Zi:1:003:6 -115:8:0 1 -18:0:100 100 <
+>> f5272a80 2310418247 S Zi:1:003:6 -115:8:0 1 -18:0:100 100 <
+>> f5272480 2310418256 S Zi:1:003:6 -115:8:0 1 -18:0:100 100 <
+>> f52723c0 2310418264 S Zi:1:003:6 -115:8:0 1 -18:0:100 100 <
+>> f5272d80 2310418272 S Zi:1:003:6 -115:8:0 1 -18:0:100 100 <
+>> f5272b40 2310418280 S Zi:1:003:6 -115:8:0 1 -18:0:100 100 <
 
-Yes, reading the chip ID there seems ok.
+[...]
 
-Btw, I think we should re-visit the I2C gate control logic where implemented.
+> I tried Chrome 22 on Ubuntu with a cheap Logitech USB webcam (different
+> product ID than yours, though) under 3.6.0 and 3.6.2, and I can't
+> reproduce the issue.
 
-Antti pasted me yesterday the logs from the driver:
+FWIW, I also tried Chrome 22 and Firefox 16 with kernel version 3.5.4
+and 3.6.2 on Fedora 17 and everything worked as expected (with both an
+external and the built-in webcam of a T420). Cheese and arecord also
+work on all kernel versions and distributions I have tested so far.
 
-By looking on those messages:
+So whatever causes your trouble, I assume it's rather specific to your
+machine configuration and setup. More information is needed here.
 
-Sep 28 01:35:57 localhost kernel: [44798.782787] drxk: i2c_read: read from 63 42 c0 00, value =  00 00
-Sep 28 01:35:57 localhost kernel: [44798.782804] tda18271_read_regs: [5-0060|M] ERROR: i2c_transfer returned: -19
-...
-Sep 28 01:35:57 localhost kernel: [44798.782980] Unknown device (16) detected @ 5-0060, device not supported.
-Sep 28 01:35:57 localhost kernel: [44798.782985] tda18271_attach: [5-0060|M] error -22 on line 1274
-Sep 28 01:35:57 localhost kernel: [44798.782989] tda18271 5-0060: destroying instance
-Sep 28 01:35:57 localhost kernel: [44798.783003] drxk: drxk_release
 
-I'm almost sure that the I2C gate control is at the wrong state there.
+Daniel
 
-Very likely, the tda code is trying to access the I2C bus before DRX-K to
-restore the I2C switch back to its original way.
-
-In other words, I think that drivers with an I2C switch should be doing:
-	- take I2C lock;
-	- switch I2C gate;
-	- do writes and/or read ops;
-	- switch I2C gate back;
-	- release I2C lock.
-
-What's implemented, however, is:
-
-	- switch I2C gate;
-	- take I2C lock;
-	- do writes and/or read ops;
-	- release I2C lock.
-	- switch I2C gate back;
-
-So, there is a chance of a race condition where a pending I2C
-operation will be handled with the I2C gate switch at the wrong
-state.
-
-Such change is not trivial, as it requires reviewing all drivers. Also,
-the I2C switching may also require access to the I2C bus, making it
-harder to do.
-
-I know khali coded something for I2C switch at I2C core. We should likely
-visit it and see if it could improve things there.
-
-> I'll look at the fact that it doesn't check for a read error -- that
-> can be easily fixed.
-
-Please do so.
-
-> > Whenever it should be at attach() or later is a good point for discussions.
-> 
-> The tda18271 driver supports running multiple tda18271 devices in
-> tandem with one another, including the ability to share xtal input and
-> rf loop thru.  In some cases, the order in which we initialize the
-> different tda18271's (when there are multiples) must be carefully
-> controlled, and we do this by attaching them to the bridge driver in
-> the order needed, such as in the saa7164 driver -- we need to be ABLE
-> to initialize the tuner during the attach, but being able to defer it
-> *as an option* is OK with me.
-
-Just wrote an email to Greg, c/c the involved parts, with regards to it.
-
-I think the better, in the short term, is to apply the change for tda18271dd.
-
-For the long term, to revert the drx-k asynchronous load, as I suspect
-that, while delaying tda18271 init would fix for this device, we'll end
-by getting problems on other parts.
-
-That OOPS pointed by Antti shows that, by using an async load there, we'll
-need to add some task to kill the deferred firmware loads if the I2C
-bus got removed. I'm sure we'll also find other regressions by deferring
-initialization task.
-
-Regards,
-Mauro
