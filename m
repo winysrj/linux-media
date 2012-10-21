@@ -1,144 +1,244 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3523 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751172Ab2JHJzQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 05:55:16 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCHv9 18/25] v4l: add buffer exporting via dmabuf
-Date: Mon, 8 Oct 2012 11:54:57 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
-	subashrp@gmail.com, mchehab@redhat.com, zhangfei.gao@gmail.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com
-References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com> <201210071617.03213.hverkuil@xs4all.nl> <50729F95.70003@samsung.com>
-In-Reply-To: <50729F95.70003@samsung.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:64052 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932491Ab2JURxb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Oct 2012 13:53:31 -0400
+Received: by mail-wi0-f172.google.com with SMTP id hq12so1759055wib.1
+        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2012 10:53:30 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 09/23] em28xx: create a common function for isoc and bulk URB allocation and setup
+Date: Sun, 21 Oct 2012 19:52:14 +0300
+Message-Id: <1350838349-14763-10-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210081154.57646.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon October 8 2012 11:40:37 Tomasz Stanislawski wrote:
-> Hi Hans,
-> 
-> On 10/07/2012 04:17 PM, Hans Verkuil wrote:
-> > On Sun October 7 2012 15:38:30 Laurent Pinchart wrote:
-> >> Hi Hans,
-> >>
-> >> On Friday 05 October 2012 10:55:40 Hans Verkuil wrote:
-> >>> On Tue October 2 2012 16:27:29 Tomasz Stanislawski wrote:
-> >>>> This patch adds extension to V4L2 api. It allow to export a mmap buffer as
-> >>>> file descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer
-> >>>> offset used by mmap and return a file descriptor on success.
-> >>>>
-> >>>> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> >>>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >>
-> >> [snip]
-> >>
-> >>>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> >>>> index e04a73e..f429b6a 100644
-> >>>> --- a/include/linux/videodev2.h
-> >>>> +++ b/include/linux/videodev2.h
-> >>>> @@ -688,6 +688,33 @@ struct v4l2_buffer {
-> >>>>
-> >>>>  #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
-> >>>>  #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
-> >>>>
-> >>>> +/**
-> >>>> + * struct v4l2_exportbuffer - export of video buffer as DMABUF file
-> >>>> descriptor + *
-> >>>> + * @fd:		file descriptor associated with DMABUF (set by driver)
-> >>>> + * @flags:	flags for newly created file, currently only O_CLOEXEC is
-> >>>> + *		supported, refer to manual of open syscall for more details
-> >>>> + * @index:	id number of the buffer
-> >>>> + * @type:	enum v4l2_buf_type; buffer type (type == *_MPLANE for
-> >>>> + *		multiplanar buffers);
-> >>>> + * @plane:	index of the plane to be exported, 0 for single plane queues
-> >>>> + *
-> >>>> + * Contains data used for exporting a video buffer as DMABUF file
-> >>>> descriptor. + * The buffer is identified by a 'cookie' returned by
-> >>>> VIDIOC_QUERYBUF + * (identical to the cookie used to mmap() the buffer to
-> >>>> userspace). All + * reserved fields must be set to zero. The field
-> >>>> reserved0 is expected to + * become a structure 'type' allowing an
-> >>>> alternative layout of the structure + * content. Therefore this field
-> >>>> should not be used for any other extensions. + */
-> >>>> +struct v4l2_exportbuffer {
-> >>>> +	__s32		fd;
-> >>>> +	__u32		flags;
-> >>>> +	__u32		type; /* enum v4l2_buf_type */
-> >>>> +	__u32		index;
-> >>>> +	__u32		plane;
-> >>>
-> >>> As suggested in my comments in the previous patch, I think it is a more
-> >>> natural order to have the type/index/plane fields first in this struct.
-> >>>
-> >>> Actually, I think that flags should also come before fd:
-> >>>
-> >>> struct v4l2_exportbuffer {
-> >>> 	__u32		type; /* enum v4l2_buf_type */
-> >>> 	__u32		index;
-> >>> 	__u32		plane;
-> >>> 	__u32		flags;
-> >>> 	__s32		fd;
-> >>> 	__u32		reserved[11];
-> >>> };
-> >>
-> >> It would indeed feel more natural, but putting them right before the reserved 
-> >> fields allows creating an anonymous union around type, index and plane and 
-> >> extending it with reserved fields if needed. That's (at least to my 
-> >> understanding) the rationale behind the current structure layout.
-> > 
-> > The anonymous union argument makes no sense to me, to be honest.
-> 
-> I agree that the anonymous unions are not good solutions because they are not
-> supported in many C dialects. However I have nothing against using named unions.
+Rename the existing function for isoc transfers em28xx_init_isoc
+to em28xx_init_usb_xfer and extend it.
+URB allocation and setup is now done depending on the USB
+transfer type, which is selected with a new function parameter.
 
-Named or unnamed, I don't see how a union will help. What do you want to do
-with a union?
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c |    6 +-
+ drivers/media/usb/em28xx/em28xx-core.c  |  101 +++++++++++++++++--------------
+ drivers/media/usb/em28xx/em28xx.h       |    4 +-
+ 3 Dateien geändert, 61 Zeilen hinzugefügt(+), 50 Zeilen entfernt(-)
 
-> 
-> > It's standard practice within V4L2 to have the IN fields first, then the OUT fields, followed
-> > by reserved fields for future expansion.
-> 
-> IMO, the "input/output/reserved rule" is only a recommendation.
-> The are places in V4L2 where this rule is violated with structure
-> v4l2_buffer being the most notable example.
-> 
-> Notice that if at least one of the reserved fields becomes an input
-> file then "the rule" will be violated anyway.
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index fee68d8..e0d03a1 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3313,10 +3313,10 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 
+ 	if (has_dvb) {
+ 		/* pre-allocate DVB isoc transfer buffers */
+-		retval = em28xx_alloc_isoc(dev, EM28XX_DIGITAL_MODE,
+-					   EM28XX_DVB_NUM_ISOC_PACKETS,
++		retval = em28xx_alloc_urbs(dev, EM28XX_DIGITAL_MODE, 0,
+ 					   EM28XX_DVB_NUM_BUFS,
+-					   dev->dvb_max_pkt_size);
++					   dev->dvb_max_pkt_size,
++					   EM28XX_DVB_NUM_ISOC_PACKETS);
+ 		if (retval) {
+ 			goto unlock_and_free;
+ 		}
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index a1ebd08..42388de 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -5,6 +5,7 @@
+ 		      Markus Rechberger <mrechberger@gmail.com>
+ 		      Mauro Carvalho Chehab <mchehab@infradead.org>
+ 		      Sascha Sommer <saschasommer@freenet.de>
++   Copyright (C) 2012 Frank Schäfer <fschaefer.oss@googlemail.com>
+ 
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+@@ -1035,10 +1036,10 @@ EXPORT_SYMBOL_GPL(em28xx_stop_urbs);
+ /*
+  * Allocate URBs
+  */
+-int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
+-		      int num_packets, int num_bufs, int max_pkt_size)
++int em28xx_alloc_urbs(struct em28xx *dev, enum em28xx_mode mode, int xfer_bulk,
++		      int num_bufs, int max_pkt_size, int packet_multiplier)
+ {
+-	struct em28xx_usb_bufs *isoc_bufs;
++	struct em28xx_usb_bufs *usb_bufs;
+ 	int i;
+ 	int sb_size, pipe;
+ 	struct urb *urb;
+@@ -1047,49 +1048,52 @@ int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
+ 	em28xx_isocdbg("em28xx: called em28xx_alloc_isoc in mode %d\n", mode);
+ 
+ 	if (mode == EM28XX_DIGITAL_MODE)
+-		isoc_bufs = &dev->usb_ctl.digital_bufs;
++		usb_bufs = &dev->usb_ctl.digital_bufs;
+ 	else
+-		isoc_bufs = &dev->usb_ctl.analog_bufs;
++		usb_bufs = &dev->usb_ctl.analog_bufs;
+ 
+ 	/* De-allocates all pending stuff */
+ 	em28xx_uninit_usb_xfer(dev, mode);
+ 
+-	isoc_bufs->num_bufs = num_bufs;
++	usb_bufs->num_bufs = num_bufs;
+ 
+-	isoc_bufs->urb = kzalloc(sizeof(void *)*num_bufs,  GFP_KERNEL);
+-	if (!isoc_bufs->urb) {
++	usb_bufs->urb = kzalloc(sizeof(void *)*num_bufs,  GFP_KERNEL);
++	if (!usb_bufs->urb) {
+ 		em28xx_errdev("cannot alloc memory for usb buffers\n");
+ 		return -ENOMEM;
+ 	}
+ 
+-	isoc_bufs->transfer_buffer = kzalloc(sizeof(void *)*num_bufs,
++	usb_bufs->transfer_buffer = kzalloc(sizeof(void *)*num_bufs,
+ 					     GFP_KERNEL);
+-	if (!isoc_bufs->transfer_buffer) {
++	if (!usb_bufs->transfer_buffer) {
+ 		em28xx_errdev("cannot allocate memory for usb transfer\n");
+-		kfree(isoc_bufs->urb);
++		kfree(usb_bufs->urb);
+ 		return -ENOMEM;
+ 	}
+ 
+-	isoc_bufs->max_pkt_size = max_pkt_size;
+-	isoc_bufs->num_packets = num_packets;
++	usb_bufs->max_pkt_size = max_pkt_size;
++	if (xfer_bulk)
++		usb_bufs->num_packets = 0;
++	else
++		usb_bufs->num_packets = packet_multiplier;
+ 	dev->usb_ctl.vid_buf = NULL;
+ 	dev->usb_ctl.vbi_buf = NULL;
+ 
+-	sb_size = isoc_bufs->num_packets * isoc_bufs->max_pkt_size;
++	sb_size = packet_multiplier * usb_bufs->max_pkt_size;
+ 
+ 	/* allocate urbs and transfer buffers */
+-	for (i = 0; i < isoc_bufs->num_bufs; i++) {
+-		urb = usb_alloc_urb(isoc_bufs->num_packets, GFP_KERNEL);
++	for (i = 0; i < usb_bufs->num_bufs; i++) {
++		urb = usb_alloc_urb(usb_bufs->num_packets, GFP_KERNEL);
+ 		if (!urb) {
+ 			em28xx_err("cannot alloc usb_ctl.urb %i\n", i);
+ 			em28xx_uninit_usb_xfer(dev, mode);
+ 			return -ENOMEM;
+ 		}
+-		isoc_bufs->urb[i] = urb;
++		usb_bufs->urb[i] = urb;
+ 
+-		isoc_bufs->transfer_buffer[i] = usb_alloc_coherent(dev->udev,
++		usb_bufs->transfer_buffer[i] = usb_alloc_coherent(dev->udev,
+ 			sb_size, GFP_KERNEL, &urb->transfer_dma);
+-		if (!isoc_bufs->transfer_buffer[i]) {
++		if (!usb_bufs->transfer_buffer[i]) {
+ 			em28xx_err("unable to allocate %i bytes for transfer"
+ 					" buffer %i%s\n",
+ 					sb_size, i,
+@@ -1097,35 +1101,42 @@ int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
+ 			em28xx_uninit_usb_xfer(dev, mode);
+ 			return -ENOMEM;
+ 		}
+-		memset(isoc_bufs->transfer_buffer[i], 0, sb_size);
+-
+-		/* FIXME: this is a hack - should be
+-			'desc.bEndpointAddress & USB_ENDPOINT_NUMBER_MASK'
+-			should also be using 'desc.bInterval'
+-		 */
+-		pipe = usb_rcvisocpipe(dev->udev,
+-				       mode == EM28XX_ANALOG_MODE ?
+-				       EM28XX_EP_ANALOG : EM28XX_EP_DIGITAL);
+-
+-		usb_fill_int_urb(urb, dev->udev, pipe,
+-				 isoc_bufs->transfer_buffer[i], sb_size,
+-				 em28xx_irq_callback, dev, 1);
+-
+-		urb->number_of_packets = isoc_bufs->num_packets;
+-		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+-
+-		k = 0;
+-		for (j = 0; j < isoc_bufs->num_packets; j++) {
+-			urb->iso_frame_desc[j].offset = k;
+-			urb->iso_frame_desc[j].length =
+-						isoc_bufs->max_pkt_size;
+-			k += isoc_bufs->max_pkt_size;
++		memset(usb_bufs->transfer_buffer[i], 0, sb_size);
++
++		if (xfer_bulk) { /* bulk */
++			pipe = usb_rcvbulkpipe(dev->udev,
++					       mode == EM28XX_ANALOG_MODE ?
++					       EM28XX_EP_ANALOG :
++					       EM28XX_EP_DIGITAL);
++			usb_fill_bulk_urb(urb, dev->udev, pipe,
++					  usb_bufs->transfer_buffer[i], sb_size,
++					  em28xx_irq_callback, dev);
++			urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
++		} else { /* isoc */
++			pipe = usb_rcvisocpipe(dev->udev,
++					       mode == EM28XX_ANALOG_MODE ?
++					       EM28XX_EP_ANALOG :
++					       EM28XX_EP_DIGITAL);
++			usb_fill_int_urb(urb, dev->udev, pipe,
++					 usb_bufs->transfer_buffer[i], sb_size,
++					 em28xx_irq_callback, dev, 1);
++			urb->transfer_flags = URB_ISO_ASAP |
++					      URB_NO_TRANSFER_DMA_MAP;
++			k = 0;
++			for (j = 0; j < usb_bufs->num_packets; j++) {
++				urb->iso_frame_desc[j].offset = k;
++				urb->iso_frame_desc[j].length =
++							usb_bufs->max_pkt_size;
++				k += usb_bufs->max_pkt_size;
++			}
+ 		}
++
++		urb->number_of_packets = usb_bufs->num_packets;
+ 	}
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(em28xx_alloc_isoc);
++EXPORT_SYMBOL_GPL(em28xx_alloc_urbs);
+ 
+ /*
+  * Allocate URBs and start IRQ
+@@ -1155,8 +1166,8 @@ int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
+ 	}
+ 
+ 	if (alloc) {
+-		rc = em28xx_alloc_isoc(dev, mode, num_packets,
+-				       num_bufs, max_pkt_size);
++		rc = em28xx_alloc_urbs(dev, mode, 0, num_bufs,
++				       max_pkt_size, num_packets);
+ 		if (rc)
+ 			return rc;
+ 	}
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 3ffadf9..9a1ffde 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -661,8 +661,8 @@ int em28xx_vbi_supported(struct em28xx *dev);
+ int em28xx_set_outfmt(struct em28xx *dev);
+ int em28xx_resolution_set(struct em28xx *dev);
+ int em28xx_set_alternate(struct em28xx *dev);
+-int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
+-		      int num_packets, int num_bufs, int max_pkt_size);
++int em28xx_alloc_urbs(struct em28xx *dev, enum em28xx_mode mode, int xfer_bulk,
++		      int num_bufs, int max_pkt_size, int packet_multiplier);
+ int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
+ 		     int num_packets, int num_bufs, int max_pkt_size,
+ 		     int (*isoc_copy) (struct em28xx *dev, struct urb *urb));
+-- 
+1.7.10.4
 
-Sure, but there is no legacy yet, so why not keep to the recommendation?
-
-> > Should we ever need a, say, sub-plane
-> > index (whatever that might be), then we can use one of the reserved fields.
-> 
-> Maybe not subplane :).
-> But maybe some data_offset for exporting only a part of the buffer will
-> be needed some day.
-> Moreover, the integration of DMABUF with the DMA synchronization framework
-> may involve passing additional parameters from the userspace.
-> 
-> Notice that flags and fd fields are not logically connected with
-> (type/index/plane) tuple.
-> Therefore both field sets should be separated by some reserved fields to
-> ensure that any of them can be extended if needed.
-> 
-> This was the rationale for the structure layout in v9.
-
-It's a bad idea to add multiple 'reserved' arrays, that makes userspace harder
-since it has to zero all of them instead of just one. Actually, the same applies
-to kernel space, which has to zero them as well.
-
-I still don't know why you want to use a non-standard field order.
-
-Regards,
-
-	Hans
