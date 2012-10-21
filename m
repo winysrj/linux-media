@@ -1,65 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zeniv.linux.org.uk ([195.92.253.2]:56893 "EHLO
-	ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752109Ab2JCT0m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 15:26:42 -0400
-Date: Wed, 3 Oct 2012 20:26:36 +0100
-From: Al Viro <viro@ZenIV.linux.org.uk>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ming Lei <ming.lei@canonical.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Kay Sievers <kay@vrfy.org>,
-	Lennart Poettering <lennart@poettering.net>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Kay Sievers <kay@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Ivan Kalvachev <ikalvachev@gmail.com>
-Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
- callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use
- request_firmware_nowait()
-Message-ID: <20121003192636.GC23473@ZenIV.linux.org.uk>
-References: <4FE9169D.5020300@redhat.com>
- <20121002100319.59146693@redhat.com>
- <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
- <20121002221239.GA30990@kroah.com>
- <20121002222333.GA32207@kroah.com>
- <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
- <506C562E.5090909@redhat.com>
- <CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
- <20121003170907.GA23473@ZenIV.linux.org.uk>
- <CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:50454 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932529Ab2JURxu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Oct 2012 13:53:50 -0400
+Received: by mail-wg0-f44.google.com with SMTP id dr13so1633030wgb.1
+        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2012 10:53:48 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 21/23] em28xx: add module parameter for selection of the preferred USB transfer type
+Date: Sun, 21 Oct 2012 19:52:27 +0300
+Message-Id: <1350838349-14763-23-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 03, 2012 at 10:32:08AM -0700, Linus Torvalds wrote:
-> On Wed, Oct 3, 2012 at 10:09 AM, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> >
-> > +       if (!S_ISREG(inode->i_mode))
-> > +               return false;
-> > +       size = i_size_read(inode);
-> >
-> > Probably better to do vfs_getattr() and check mode and size in kstat; if
-> > it's sufficiently hot for that to hurt, we are fucked anyway.
-> >
-> > +               file = filp_open(path, O_RDONLY, 0);
-> > +               if (IS_ERR(file))
-> > +                       continue;
-> > +printk("from file '%s' ", path);
-> > +               success = fw_read_file_contents(file, fw);
-> > +               filp_close(file, NULL);
-> >
-> > fput(file), please.  We have enough misuses of filp_close() as it is...
-> 
-> Ok, like this?
+By default, isoc transfers are used if possible.
+With the new module parameter, bulk can be selected as the
+preferred USB transfer type.
 
-Looks sane.  TBH, I'd still prefer to see udev forcibly taken over and put into
-usr/udev in kernel tree - I don't trust that crowd at all and the fewer
-critical userland bits they can play leverage games with, the safer we are.  
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c |    9 +++++++--
+ 1 Datei geändert, 7 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
 
-Al, that -><- close to volunteering for maintaining that FPOS kernel-side...
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 751e408..410ed8d 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -61,6 +61,11 @@ static unsigned int card[]     = {[0 ... (EM28XX_MAXBOARDS - 1)] = UNSET };
+ module_param_array(card,  int, NULL, 0444);
+ MODULE_PARM_DESC(card,     "card type");
+ 
++static unsigned int prefer_bulk;
++module_param(prefer_bulk, int, 0644);
++MODULE_PARM_DESC(prefer_bulk, "prefer USB bulk transfers");
++
++
+ /* Bitmask marking allocated devices from 0 to EM28XX_MAXBOARDS - 1 */
+ static unsigned long em28xx_devused;
+ 
+@@ -3325,9 +3330,9 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 	}
+ 
+ 	/* Select USB transfer types to use */
+-	if (has_video && !dev->analog_ep_isoc)
++	if (has_video && (!dev->analog_ep_isoc || prefer_bulk))
+ 		dev->analog_xfer_bulk = 1;
+-	if (has_dvb && !dev->dvb_ep_isoc)
++	if (has_dvb && (!dev->dvb_ep_isoc || prefer_bulk))
+ 		dev->dvb_xfer_bulk = 1;
+ 
+ 	snprintf(dev->name, sizeof(dev->name), "em28xx #%d", nr);
+-- 
+1.7.10.4
+
