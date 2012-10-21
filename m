@@ -1,160 +1,300 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39259 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932866Ab2JaJ3L (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:63750 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932461Ab2JUSwZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Oct 2012 05:29:11 -0400
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: [PATCH v7 4/8] video: add videomode helpers
-Date: Wed, 31 Oct 2012 10:28:04 +0100
-Message-Id: <1351675689-26814-5-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
+	Sun, 21 Oct 2012 14:52:25 -0400
+Message-ID: <50844465.40007@gmail.com>
+Date: Sun, 21 Oct 2012 20:52:21 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH 1/2] media: V4L2: add temporary clock helpers
+References: <Pine.LNX.4.64.1210192358520.28993@axis700.grange> <Pine.LNX.4.64.1210200007310.28993@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1210200007310.28993@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add helper functions to convert from display timings to a generic videomode
-structure. This videomode can then be converted to the corresponding subsystem
-mode representation (e.g. fb_videomode).
+Hi Guennadi,
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
----
- drivers/video/Kconfig     |    6 ++++++
- drivers/video/Makefile    |    1 +
- drivers/video/videomode.c |   44 ++++++++++++++++++++++++++++++++++++++++++++
- include/linux/videomode.h |   36 ++++++++++++++++++++++++++++++++++++
- 4 files changed, 87 insertions(+)
- create mode 100644 drivers/video/videomode.c
- create mode 100644 include/linux/videomode.h
+On 10/20/2012 12:20 AM, Guennadi Liakhovetski wrote:
+> Typical video devices like camera sensors require an external clock source.
+> Many such devices cannot even access their hardware registers without a
+> running clock. These clock sources should be controlled by their consumers.
+> This should be performed, using the generic clock framework. Unfortunately
+> so far only very few systems have been ported to that framework. This patch
+> adds a set of temporary helpers, mimicking the generic clock API, to V4L2.
+> Platforms, adopting the clock API, should switch to using it. Eventually
+> this temporary API should be removed.
 
-diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index 1421fc8..45dd393 100644
---- a/drivers/video/Kconfig
-+++ b/drivers/video/Kconfig
-@@ -38,6 +38,12 @@ config DISPLAY_TIMING
-        help
-          Say Y here, to use the display timing helpers.
- 
-+config VIDEOMODE
-+       bool "Enable videomode helpers"
-+       help
-+         Say Y here, to use the generic videomode helpers. This allows
-+	 converting from display timings to fb_videomode and drm_display_mode
-+
- menuconfig FB
- 	tristate "Support for frame buffer devices"
- 	---help---
-diff --git a/drivers/video/Makefile b/drivers/video/Makefile
-index 552c045..fc30439 100644
---- a/drivers/video/Makefile
-+++ b/drivers/video/Makefile
-@@ -168,3 +168,4 @@ obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
- #video output switch sysfs driver
- obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
- obj-$(CONFIG_DISPLAY_TIMING) += display_timing.o
-+obj-$(CONFIG_VIDEOMODE) += videomode.o
-diff --git a/drivers/video/videomode.c b/drivers/video/videomode.c
-new file mode 100644
-index 0000000..a9fe010
---- /dev/null
-+++ b/drivers/video/videomode.c
-@@ -0,0 +1,44 @@
-+/*
-+ * generic display timing functions
-+ *
-+ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
-+ *
-+ * This file is released under the GPLv2
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/export.h>
-+#include <linux/errno.h>
-+#include <linux/display_timing.h>
-+#include <linux/videomode.h>
-+
-+int videomode_from_timing(struct display_timings *disp, struct videomode *vm,
-+			  int index)
-+{
-+	struct display_timing *dt = NULL;
-+
-+	dt = display_timings_get(disp, index);
-+	if (!dt) {
-+		pr_err("%s: no signal timings found\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	vm->pixelclock = display_timing_get_value(&dt->pixelclock, 0);
-+	vm->hactive = display_timing_get_value(&dt->hactive, 0);
-+	vm->hfront_porch = display_timing_get_value(&dt->hfront_porch, 0);
-+	vm->hback_porch = display_timing_get_value(&dt->hback_porch, 0);
-+	vm->hsync_len = display_timing_get_value(&dt->hsync_len, 0);
-+
-+	vm->vactive = display_timing_get_value(&dt->vactive, 0);
-+	vm->vfront_porch = display_timing_get_value(&dt->vfront_porch, 0);
-+	vm->vback_porch = display_timing_get_value(&dt->vback_porch, 0);
-+	vm->vsync_len = display_timing_get_value(&dt->vsync_len, 0);
-+
-+	vm->vah = dt->vsync_pol_active;
-+	vm->hah = dt->hsync_pol_active;
-+	vm->interlaced = dt->interlaced;
-+	vm->doublescan = dt->doublescan;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(videomode_from_timing);
-diff --git a/include/linux/videomode.h b/include/linux/videomode.h
-new file mode 100644
-index 0000000..f932147
---- /dev/null
-+++ b/include/linux/videomode.h
-@@ -0,0 +1,36 @@
-+/*
-+ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
-+ *
-+ * generic videomode description
-+ *
-+ * This file is released under the GPLv2
-+ */
-+
-+#ifndef __LINUX_VIDEOMODE_H
-+#define __LINUX_VIDEOMODE_H
-+
-+#include <linux/display_timing.h>
-+
-+struct videomode {
-+	u32 pixelclock;
-+	u32 refreshrate;
-+
-+	u32 hactive;
-+	u32 hfront_porch;
-+	u32 hback_porch;
-+	u32 hsync_len;
-+
-+	u32 vactive;
-+	u32 vfront_porch;
-+	u32 vback_porch;
-+	u32 vsync_len;
-+
-+	u32 hah;
-+	u32 vah;
-+	bool interlaced;
-+	bool doublescan;
-+};
-+
-+int videomode_from_timing(struct display_timings *disp, struct videomode *vm,
-+			  int index);
-+#endif
--- 
-1.7.10.4
+So I gave this patch a try this weekend. I would have a few comments/
+questions. Thank you for sharing this!
 
+> Signed-off-by: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
+> ---
+>   drivers/media/v4l2-core/Makefile   |    2 +-
+>   drivers/media/v4l2-core/v4l2-clk.c |  126 ++++++++++++++++++++++++++++++++++++
+>   include/media/v4l2-clk.h           |   48 ++++++++++++++
+>   3 files changed, 175 insertions(+), 1 deletions(-)
+>   create mode 100644 drivers/media/v4l2-core/v4l2-clk.c
+>   create mode 100644 include/media/v4l2-clk.h
+> 
+> diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+> index 00f64d6..cb5fede 100644
+> --- a/drivers/media/v4l2-core/Makefile
+> +++ b/drivers/media/v4l2-core/Makefile
+> @@ -5,7 +5,7 @@
+>   tuner-objs	:=	tuner-core.o
+> 
+>   videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+> -			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o
+> +			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o
+>   ifeq ($(CONFIG_COMPAT),y)
+>     videodev-objs += v4l2-compat-ioctl32.o
+>   endif
+> diff --git a/drivers/media/v4l2-core/v4l2-clk.c b/drivers/media/v4l2-core/v4l2-clk.c
+> new file mode 100644
+> index 0000000..7d457e4
+> --- /dev/null
+> +++ b/drivers/media/v4l2-core/v4l2-clk.c
+> @@ -0,0 +1,126 @@
+> +/*
+> + * V4L2 clock service
+
+A like the name :-D
+
+> + *
+> + * Copyright (C) 2012, Guennadi Liakhovetski<g.liakhovetski@gmx.de>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include<linux/errno.h>
+> +#include<linux/list.h>
+> +#include<linux/module.h>
+> +#include<linux/mutex.h>
+> +#include<linux/string.h>
+> +
+> +#include<media/v4l2-clk.h>
+> +#include<media/v4l2-subdev.h>
+> +
+> +static DEFINE_MUTEX(clk_lock);
+> +static LIST_HEAD(v4l2_clk);
+
+nit: how about naming this lists v4l2_clks ?
+
+> +
+> +struct v4l2_clk *v4l2_clk_get(struct v4l2_subdev *sd, const char *id)
+> +{
+> +	struct v4l2_clk *clk = NULL;
+> +
+> +	mutex_lock(&clk_lock);
+> +	if (!id) {
+> +		if (list_is_singular(&v4l2_clk)) {
+
+Hmm, the clock list is global, why should we assume there will be only one
+entry with NULL v4l2_clk::id ? It would be useful to not provide the per 
+subdev clock id when there is only one clock used per a sub-device, which 
+is a majority of cases AFAICT.
+
+
+> +			clk = list_entry(&v4l2_clk, struct v4l2_clk, list);
+> +			if (!strstr(sd->name, clk->dev_id))
+
+Ok, then clk->dev_id is supposed to be a sub-string of sd->name,
+looks good...
+
+> +				clk = ERR_PTR(-ENODEV);
+> +		} else {
+> +			clk = ERR_PTR(-EINVAL);
+> +		}
+> +	} else {
+> +		list_for_each_entry(clk,&v4l2_clk, list) {
+> +			if (!strcmp(id, clk->id)&&
+> +			    !strcmp(sd->name, clk->dev_id))
+
+but why we are doing a "strong" check here ? Couldn't the second strcmp() 
+be just strstr() ?
+
+> +				break;
+> +		}
+> +		if (&clk->list ==&v4l2_clk)
+> +			clk = ERR_PTR(-ENODEV);
+> +	}
+> +	mutex_unlock(&clk_lock);
+> +
+> +	if (!IS_ERR(clk)&&
+> +	    !try_module_get(clk->ops->owner))
+> +		clk = ERR_PTR(-ENODEV);
+> +
+> +	return clk;
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_get);
+>
+> +void v4l2_clk_put(struct v4l2_clk *clk)
+> +{
+> +	if (!IS_ERR(clk))
+> +		module_put(clk->ops->owner);
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_put);
+> +
+> +int v4l2_clk_enable(struct v4l2_clk *clk)
+> +{
+> +	if (!clk->ops->enable)
+> +		return -ENOSYS;
+> +	return clk->ops->enable(clk);
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_enable);
+> +
+> +void v4l2_clk_disable(struct v4l2_clk *clk)
+> +{
+> +	if (clk->ops->disable)
+> +		clk->ops->disable(clk);
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_disable);
+> +
+> +unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk)
+> +{
+> +	if (!clk->ops->get_rate)
+> +		return -ENOSYS;
+> +	return clk->ops->get_rate(clk);
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_get_rate);
+> +
+> +int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate)
+> +{
+> +	if (!clk->ops->set_rate)
+> +		return -ENOSYS;
+> +	return clk->ops->set_rate(clk, rate);
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_set_rate);
+> +
+> +struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
+> +				   const char *dev_name,
+> +				   const char *name)
+> +{
+> +	struct v4l2_clk *clk;
+> +
+> +	if (!ops || !ops->owner || (!list_empty(&v4l2_clk)&&  !name))
+
+ops->owner can be null when the clock provider module is built-in, not 
+a loadable module. I actually hit this problem. ops->owner needs to be 
+removed and I think the clocks list check could be removed as well,
+please see my comment above.
+
+Also it might be useful to check if a particular clocks is already
+registered, to make this more foolproof and easier to debug.
+
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	clk = kzalloc(sizeof(struct v4l2_clk), GFP_KERNEL);
+> +	if (!clk)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	clk->ops = ops;
+> +	clk->id = name;
+> +	clk->dev_id = dev_name;
+> +
+> +	mutex_lock(&clk_lock);
+> +	list_add_tail(&clk->list,&v4l2_clk);
+> +	mutex_unlock(&clk_lock);
+> +
+> +	return clk;
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_register);
+> +
+> +void v4l2_clk_unregister(struct v4l2_clk *clk)
+> +{
+> +	mutex_lock(&clk_lock);
+> +	list_del(&clk->list);
+> +	mutex_unlock(&clk_lock);
+> +
+> +	kfree(clk);
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_unregister);
+
+I have reworked some of the functions found here while trying to use your 
+work with s3c-camif and ov9650 sensor drivers [1]. Please feel free to 
+take (part of) these changes, if there are any you agree with.
+
+I planned to also rework s3c-camif and add asynchronous subdev registration 
+to it, but didn't quite managed to do it yet, it's going to be next step.
+
+> diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
+> new file mode 100644
+> index 0000000..0c05ab3
+> --- /dev/null
+> +++ b/include/media/v4l2-clk.h
+> @@ -0,0 +1,48 @@
+> +/*
+> + * V4L2 clock service
+> + *
+> + * Copyright (C) 2012, Guennadi Liakhovetski<g.liakhovetski@gmx.de>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * ATTENTION: This is a temporary API and it shall be replaced by the generic
+> + * clock API, when the latter becomes widely available.
+> + */
+> +
+> +#ifndef MEDIA_V4L2_CLK_H
+> +#define MEDIA_V4L2_CLK_H
+> +
+> +#include<linux/list.h>
+> +
+> +struct module;
+> +struct v4l2_subdev;
+> +
+> +struct v4l2_clk {
+> +	struct list_head list;
+> +	const struct v4l2_clk_ops *ops;
+> +	const char *dev_id;
+> +	const char *id;
+
+I've found it helpful to add a
+
+	void *priv;
+
+field here, so the clock provider module can use it as a cookie, 
+which can be passed in a call to v4l2_clk_register() and then 
+retrieved in the clock ops. I'm not sure if this could be replaced 
+with some container_of() magic.
+
+> +};
+> +
+> +struct v4l2_clk_ops {
+> +	struct module	*owner;
+> +	int		(*enable)(struct v4l2_clk *clk);
+> +	void		(*disable)(struct v4l2_clk *clk);
+> +	unsigned long	(*get_rate)(struct v4l2_clk *clk);
+> +	int		(*set_rate)(struct v4l2_clk *clk, unsigned long);
+> +};
+> +
+> +struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
+> +				   const char *dev_name,
+> +				   const char *name);
+> +void v4l2_clk_unregister(struct v4l2_clk *clk);
+> +struct v4l2_clk *v4l2_clk_get(struct v4l2_subdev *sd, const char *id);
+> +void v4l2_clk_put(struct v4l2_clk *clk);
+> +int v4l2_clk_enable(struct v4l2_clk *clk);
+> +void v4l2_clk_disable(struct v4l2_clk *clk);
+> +unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk);
+> +int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate);
+> +
+> +#endif
+
+[1] http://git.linuxtv.org/snawrocki/media.git/shortlog/refs/heads/s3c-camif-devel
+
+Regards,
+Sylwester
