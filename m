@@ -1,81 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53809 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758747Ab2J2LdJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Oct 2012 07:33:09 -0400
-Date: Mon, 29 Oct 2012 09:32:51 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 0/2] Fix a few more warnings
-Message-ID: <20121029093251.1bb2acfa@redhat.com>
-In-Reply-To: <508E6644.4040104@samsung.com>
-References: <1351506118-2385-1-git-send-email-mchehab@redhat.com>
-	<508E6644.4040104@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:60732 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753040Ab2JUMM2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Oct 2012 08:12:28 -0400
+Message-ID: <5083E6A8.3050003@gmail.com>
+Date: Sun, 21 Oct 2012 14:12:24 +0200
+From: Daniel Mack <zonque@gmail.com>
+MIME-Version: 1.0
+To: "Artem S. Tashkinov" <t.artem@lycos.com>
+CC: bp@alien8.de, pavel@ucw.cz, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, security@kernel.org,
+	linux-media@vger.kernel.org, linux-usb@vger.kernel.org
+Subject: Re: A reliable kernel panic (3.6.2) and system crash when visiting
+ a particular website
+References: <2104474742.26357.1350734815286.JavaMail.mail@webmail05> <20121020162759.GA12551@liondog.tnic> <966148591.30347.1350754909449.JavaMail.mail@webmail08> <20121020203227.GC555@elf.ucw.cz> <20121020225849.GA8976@liondog.tnic> <1781795634.31179.1350774917965.JavaMail.mail@webmail04> <20121021002424.GA16247@liondog.tnic> <1798605268.19162.1350784641831.JavaMail.mail@webmail17> <20121021110851.GA6504@liondog.tnic> <121566322.100103.1350820776893.JavaMail.mail@webmail20>
+In-Reply-To: <121566322.100103.1350820776893.JavaMail.mail@webmail20>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 29 Oct 2012 12:19:32 +0100
-Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
-
-> On 10/29/2012 11:21 AM, Mauro Carvalho Chehab wrote:
-> > Hans Verkuil yesterday's build still got two warnings at the
-> > generic drivers:
-> >         http://hverkuil.home.xs4all.nl/logs/Sunday.log
-> > 
-> > They didn't appear at i386 build probably because of some
-> > optimization done there.
-> > 
-> > Anyway, fixing them are trivial, so let's do it.
-> > 
-> > After applying those patches, the only drivers left producing
-> > warnings are the following platform drivers:
-> > 
-> > drivers/media/platform/davinci/dm355_ccdc.c
-> > drivers/media/platform/davinci/dm644x_ccdc.c
-> > drivers/media/platform/davinci/vpbe_osd.c
-> > drivers/media/platform/omap3isp/ispccdc.c
-> > drivers/media/platform/omap3isp/isph3a_aewb.c
-> > drivers/media/platform/omap3isp/isph3a_af.c
-> > drivers/media/platform/omap3isp/isphist.c
-> > drivers/media/platform/omap3isp/ispqueue.c
-> > drivers/media/platform/omap3isp/ispvideo.c
-> > drivers/media/platform/omap/omap_vout.c
-> > drivers/media/platform/s5p-fimc/fimc-capture.c
-> > drivers/media/platform/s5p-fimc/fimc-lite.c
+On 21.10.2012 13:59, Artem S. Tashkinov wrote:
+> On Oct 21, 2012, Borislav Petkov wrote:
+>>
+>> On Sun, Oct 21, 2012 at 01:57:21AM +0000, Artem S. Tashkinov wrote:
+>>> The freeze happens on my *host* Linux PC. For an experiment I decided
+>>> to check if I could reproduce the freeze under a virtual machine - it
+>>> turns out the Linux kernel running under it also freezes.
+>>
+>> I know that - but a freeze != oops - at least not necessarily. Which
+>> means it could very well be a different issue now that vbox is gone.
+>>
+>> Or, it could be the same issue with different incarnations: with vbox
+>> you get the corruptions and without it, you get the freezes. I'm
+>> assuming you do the same flash player thing in both cases?
+>>
+>> Here's a crazy idea: can you try to reproduce it in KVM?
 > 
-> For these two files I've sent already a pull request [1], which
-> includes a fixup patch
-> s5p-fimc: Don't ignore return value of vb2_queue_init()
+> OK, dismiss VBox altogether - it has a very buggy USB implementation, thus
+> it just hangs when trying to access my webcam.
 > 
-> BTW, shouldn't things like these be taken care when someone does
-> a change at the core code ? 
+> What I've found out is that my system crashes *only* when I try to enable
+> usb-audio (from the same webcam)
 
-Sure. I remember I saw one patch with s5p on that series[1].
-Can't remember anymore if it were acked and merged directly, if
-it was opted to send it via your tree (or maybe that patch was just
-incomplete, and got unnoticed on that time).
+It would also be interesting to know whether you have problems with
+*only* the video capture, with some tool like "cheese". It might be
+you're hitting a host controller issue here, and then isochronous input
+packets on the video interface would most likely also trigger such am
+effect. Actually, knowing whether that's the case would be crucial for
+further debugging.
 
-[1] https://patchwork.kernel.org/patch/1372871/
 
-It is not easy to enforce those kind of things for platform drivers,
-as there's not yet a single .config file that could be used to test
-all arm drivers. Hans automatic builds might be useful, if there weren't
-any warns at the -git tree build at the tested archs, but there are
-so many warnings that I think I never saw any such report saying that
-there's no warning.
+Daniel
 
-Btw, are there anyone really consistently using his reports to fix things?
-
-> I'm not having issues in this case at all,
-> but if there is many people doing constantly changes at the core it
-> might imply for driver authors/maintainers wasting much of their time
-> for fixing issues resulting from constant changes at the base code.
-
-Regards,
-Mauro
