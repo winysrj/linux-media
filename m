@@ -1,91 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54548 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759820Ab2JLS0v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Oct 2012 14:26:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH 3/3] omap3isp: Fix warning caused by bad subdev events operations prototypes
-Date: Fri, 12 Oct 2012 20:27:30 +0200
-Message-Id: <1350066450-17370-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1350066450-17370-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1350066450-17370-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail.skyhub.de ([78.46.96.112]:60769 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752397Ab2JURDR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Oct 2012 13:03:17 -0400
+Date: Sun, 21 Oct 2012 19:03:15 +0200
+From: Borislav Petkov <bp@alien8.de>
+To: "Artem S. Tashkinov" <t.artem@lycos.com>
+Cc: pavel@ucw.cz, linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	security@kernel.org, linux-media@vger.kernel.org,
+	linux-usb@vger.kernel.org
+Subject: Re: Re: Re: Re: Re: A reliable kernel panic (3.6.2) and system crash
+ when visiting a particular website
+Message-ID: <20121021170315.GB20642@liondog.tnic>
+References: <2104474742.26357.1350734815286.JavaMail.mail@webmail05>
+ <20121020162759.GA12551@liondog.tnic>
+ <966148591.30347.1350754909449.JavaMail.mail@webmail08>
+ <20121020203227.GC555@elf.ucw.cz>
+ <20121020225849.GA8976@liondog.tnic>
+ <1781795634.31179.1350774917965.JavaMail.mail@webmail04>
+ <20121021002424.GA16247@liondog.tnic>
+ <1798605268.19162.1350784641831.JavaMail.mail@webmail17>
+ <20121021110851.GA6504@liondog.tnic>
+ <121566322.100103.1350820776893.JavaMail.mail@webmail20>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <121566322.100103.1350820776893.JavaMail.mail@webmail20>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove the const keyword from the V4L2 subdev events operations to match
-the V4L2 API.
+On Sun, Oct 21, 2012 at 11:59:36AM +0000, Artem S. Tashkinov wrote:
+> http://imageshack.us/a/img685/9452/panicz.jpg
+> 
+> list_del corruption. prev->next should be ... but was ...
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/ispccdc.c |    4 ++--
- drivers/media/platform/omap3isp/ispstat.c |    4 ++--
- drivers/media/platform/omap3isp/ispstat.h |    4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
+Btw, this is one of the debug options I told you to enable.
 
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index 60181ab..aa9df9d 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -1706,7 +1706,7 @@ static long ccdc_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
- }
- 
- static int ccdc_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
--				const struct v4l2_event_subscription *sub)
-+				struct v4l2_event_subscription *sub)
- {
- 	if (sub->type != V4L2_EVENT_FRAME_SYNC)
- 		return -EINVAL;
-@@ -1719,7 +1719,7 @@ static int ccdc_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
- }
- 
- static int ccdc_unsubscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
--				  const struct v4l2_event_subscription *sub)
-+				  struct v4l2_event_subscription *sub)
- {
- 	return v4l2_event_unsubscribe(fh, sub);
- }
-diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
-index 600d610..6e24895 100644
---- a/drivers/media/platform/omap3isp/ispstat.c
-+++ b/drivers/media/platform/omap3isp/ispstat.c
-@@ -1026,7 +1026,7 @@ void omap3isp_stat_dma_isr(struct ispstat *stat)
- 
- int omap3isp_stat_subscribe_event(struct v4l2_subdev *subdev,
- 				  struct v4l2_fh *fh,
--				  const struct v4l2_event_subscription *sub)
-+				  struct v4l2_event_subscription *sub)
- {
- 	struct ispstat *stat = v4l2_get_subdevdata(subdev);
- 
-@@ -1038,7 +1038,7 @@ int omap3isp_stat_subscribe_event(struct v4l2_subdev *subdev,
- 
- int omap3isp_stat_unsubscribe_event(struct v4l2_subdev *subdev,
- 				    struct v4l2_fh *fh,
--				    const struct v4l2_event_subscription *sub)
-+				    struct v4l2_event_subscription *sub)
- {
- 	return v4l2_event_unsubscribe(fh, sub);
- }
-diff --git a/drivers/media/platform/omap3isp/ispstat.h b/drivers/media/platform/omap3isp/ispstat.h
-index 253e61e..8221d0c 100644
---- a/drivers/media/platform/omap3isp/ispstat.h
-+++ b/drivers/media/platform/omap3isp/ispstat.h
-@@ -147,10 +147,10 @@ int omap3isp_stat_init(struct ispstat *stat, const char *name,
- void omap3isp_stat_cleanup(struct ispstat *stat);
- int omap3isp_stat_subscribe_event(struct v4l2_subdev *subdev,
- 				  struct v4l2_fh *fh,
--				  const struct v4l2_event_subscription *sub);
-+				  struct v4l2_event_subscription *sub);
- int omap3isp_stat_unsubscribe_event(struct v4l2_subdev *subdev,
- 				    struct v4l2_fh *fh,
--				    const struct v4l2_event_subscription *sub);
-+				    struct v4l2_event_subscription *sub);
- int omap3isp_stat_s_stream(struct v4l2_subdev *subdev, int enable);
- 
- int omap3isp_stat_busy(struct ispstat *stat);
+> I cannot show you more as I have no serial console to use :( and the kernel
+> doesn't have enough time to push error messages to rsyslog and fsync
+> /var/log/messages
+
+I already told you how to catch that oops: boot with "pause_on_oops=600"
+on the kernel command line and photograph the screen when the first oops
+happens. This'll show us where the problem begins.
+
 -- 
-1.7.8.6
-
+Regards/Gruss,
+    Boris.
