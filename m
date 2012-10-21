@@ -1,51 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25446 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752552Ab2J0UmK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:42:10 -0400
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKgAa7019810
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:10 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 13/68] [media] dm1105: get rid of warning: no previous prototype
-Date: Sat, 27 Oct 2012 18:40:31 -0200
-Message-Id: <1351370486-29040-14-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56803 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754228Ab2JUTaG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Oct 2012 15:30:06 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, hverkuil@xs4all.nl
+Subject: [PATCH 1/1] v4l: Correct definition of v4l2_buffer.flags related to cache management
+Date: Sun, 21 Oct 2012 22:30:02 +0300
+Message-Id: <1350847802-26723-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/pci/dm1105/dm1105.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+V4L2_BUF_FLAG_NO_CACHE_INVALIDATE and V4L2_BUF_FLAG_NO_CACHE_CLEAN were
+define incorrectly in the documentation. Fix this by changing the
+documentation to match reality.
 
-diff --git a/drivers/media/pci/dm1105/dm1105.c b/drivers/media/pci/dm1105/dm1105.c
-index a609b3a..d0dfa5d 100644
---- a/drivers/media/pci/dm1105/dm1105.c
-+++ b/drivers/media/pci/dm1105/dm1105.c
-@@ -736,7 +736,7 @@ static irqreturn_t dm1105_irq(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
--int __devinit dm1105_ir_init(struct dm1105_dev *dm1105)
-+static int __devinit dm1105_ir_init(struct dm1105_dev *dm1105)
- {
- 	struct rc_dev *dev;
- 	int err = -ENOMEM;
-@@ -776,7 +776,7 @@ int __devinit dm1105_ir_init(struct dm1105_dev *dm1105)
- 	return 0;
- }
- 
--void __devexit dm1105_ir_exit(struct dm1105_dev *dm1105)
-+static void __devexit dm1105_ir_exit(struct dm1105_dev *dm1105)
- {
- 	rc_unregister_device(dm1105->ir.dev);
- }
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/DocBook/media/v4l/io.xml |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index b5d1cbd..7e2f3d7 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -923,7 +923,7 @@ application. Drivers set or clear this flag when the
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant></entry>
+-	    <entry>0x0400</entry>
++	    <entry>0x0800</entry>
+ 	    <entry>Caches do not have to be invalidated for this buffer.
+ Typically applications shall use this flag if the data captured in the buffer
+ is not going to be touched by the CPU, instead the buffer will, probably, be
+@@ -932,7 +932,7 @@ passed on to a DMA-capable hardware unit for further processing or output.
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant></entry>
+-	    <entry>0x0800</entry>
++	    <entry>0x1000</entry>
+ 	    <entry>Caches do not have to be cleaned for this buffer.
+ Typically applications shall use this flag for output buffers if the data
+ in this buffer has not been created by the CPU but by some DMA-capable unit,
 -- 
-1.7.11.7
+1.7.2.5
 
