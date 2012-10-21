@@ -1,53 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog116.obsmtp.com ([207.126.144.141]:51920 "EHLO
-	eu1sys200aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030246Ab2JKUue convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Oct 2012 16:50:34 -0400
-Received: from zeta.dmz-eu.st.com (zeta.dmz-eu.st.com [164.129.230.9])
-	by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 276218C
-	for <linux-media@vger.kernel.org>; Thu, 11 Oct 2012 20:50:31 +0000 (GMT)
-Received: from Webmail-eu.st.com (safex1hubcas2.st.com [10.75.90.16])
-	by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id C4AE94F93
-	for <linux-media@vger.kernel.org>; Thu, 11 Oct 2012 20:50:31 +0000 (GMT)
-From: Alain VOLMAT <alain.volmat@st.com>
-To: "Linux Media Mailing List (linux-media@vger.kernel.org)"
-	<linux-media@vger.kernel.org>
-Date: Thu, 11 Oct 2012 22:50:29 +0200
-Subject: Proposal for the addition of a binary V4L2 control type
-Message-ID: <E27519AE45311C49887BE8C438E68FAA01012C91166A@SAFEX1MAIL1.st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:34268 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932491Ab2JURx1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Oct 2012 13:53:27 -0400
+Received: by mail-wi0-f178.google.com with SMTP id hr7so1752706wib.1
+        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2012 10:53:27 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 07/23] em28xx: update description of em28xx_irq_callback
+Date: Sun, 21 Oct 2012 19:52:12 +0300
+Message-Id: <1350838349-14763-8-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi guys,
+em28xx_irq_callback can be used for isoc and bulk transfers.
 
-In the context of supporting the control of our HDMI-TX via V4L2 in our SetTopBox, we are facing interface issue with V4L2 when trying to set some information from the application into the H/W.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-core.c |    3 ++-
+ 1 Datei geändert, 2 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
 
-As an example, in the HDCP context, an application controlling the HDMI-TX have the possibility to inform the transmitter that it should fail authentication to some identified HDMI-RX because for example they might be known to be "bad" HDMI receiver that cannot be trusted. This is basically done by setting the list of key (BKSV) into the HDMI-TX H/W.
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index 0892d92..8f50f5c 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -919,7 +919,7 @@ EXPORT_SYMBOL_GPL(em28xx_set_mode);
+    ------------------------------------------------------------------*/
+ 
+ /*
+- * IRQ callback, called by URB callback
++ * URB completion handler for isoc/bulk transfers
+  */
+ static void em28xx_irq_callback(struct urb *urb)
+ {
+@@ -946,6 +946,7 @@ static void em28xx_irq_callback(struct urb *urb)
+ 
+ 	/* Reset urb buffers */
+ 	for (i = 0; i < urb->number_of_packets; i++) {
++		/* isoc only (bulk: number_of_packets = 0) */
+ 		urb->iso_frame_desc[i].status = 0;
+ 		urb->iso_frame_desc[i].actual_length = 0;
+ 	}
+-- 
+1.7.10.4
 
-Currently, V4L2 ext control can be of the following type:
-
-enum v4l2_ctrl_type {
-        V4L2_CTRL_TYPE_INTEGER       = 1,
-        V4L2_CTRL_TYPE_BOOLEAN       = 2,
-        V4L2_CTRL_TYPE_MENU          = 3,
-        V4L2_CTRL_TYPE_BUTTON        = 4,
-        V4L2_CTRL_TYPE_INTEGER64     = 5,
-        V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
-        V4L2_CTRL_TYPE_STRING        = 7,
-        V4L2_CTRL_TYPE_BITMASK       = 8,
-}
-
-There is nothing here than could efficiently be used to push this kind of long (several bytes long .. not fitting into an int64) key information.
-STRING exists but actually since they are supposed to be strings, the V4L2 core code (v4l2-ctrls.c) is using strlen to figure out the length of data to be copied and it thus cannot be used to push this kind of blob data.
-
-Would you consider the addition of a new v4l2_ctrl_type, for example called V4L2_CTRL_TYPE_BINARY or so, that basically would be pointer + length. That would be helpful to pass this kind of control from the application to the driver.
-(here I took the example of HDCP key blob but that isn't of course the only example we can find of course).
-
-Regards,
-
-Alain
