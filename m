@@ -1,107 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:2474 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752068Ab2JGNbn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Oct 2012 09:31:43 -0400
-Date: Sun, 7 Oct 2012 10:31:33 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH RFC v3] dvb: LNA implementation changes
-Message-ID: <20121007103133.5bbe9170@redhat.com>
-In-Reply-To: <1349252936-2728-1-git-send-email-crope@iki.fi>
-References: <1349252936-2728-1-git-send-email-crope@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-we0-f174.google.com ([74.125.82.174]:52190 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932491Ab2JURxg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Oct 2012 13:53:36 -0400
+Received: by mail-we0-f174.google.com with SMTP id t9so1066948wey.19
+        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2012 10:53:35 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 11/23] em28xx: clear USB halt/stall condition in em28xx_init_usb_xfer when using bulk transfers
+Date: Sun, 21 Oct 2012 19:52:17 +0300
+Message-Id: <1350838349-14763-13-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  3 Oct 2012 11:28:56 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-core.c |   11 +++++++++++
+ 1 Datei geändert, 11 Zeilen hinzugefügt(+)
 
-> * use dvb property cache
-> * implement get (thus API minor++)
-> * PCTV 290e: 1=LNA ON, all the other values LNA OFF
->   Also fix PCTV 290e LNA comment, it is disabled by default
-> 
-> Hans and Mauro proposed use of cache implementation of get as they
-> were planning to extend LNA usage for analog side too.
-> 
-> Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
-> Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/dvb-core/dvb_frontend.c | 18 ++++++++++++++----
->  drivers/media/dvb-core/dvb_frontend.h |  4 +++-
->  drivers/media/usb/em28xx/em28xx-dvb.c | 13 +++++++------
->  include/linux/dvb/version.h           |  2 +-
->  4 files changed, 25 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-> index 8f58f24..246a3c5 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb-core/dvb_frontend.c
-> @@ -966,6 +966,8 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
->  		break;
->  	}
->  
-> +	c->lna = LNA_AUTO;
-> +
->  	return 0;
->  }
->  
-> @@ -1054,6 +1056,8 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
->  	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_B, 0, 0),
->  	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_C, 0, 0),
->  	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_D, 0, 0),
-> +
-> +	_DTV_CMD(DTV_LNA, 0, 0),
->  };
->  
->  static void dtv_property_dump(struct dvb_frontend *fe, struct dtv_property *tvp)
-> @@ -1440,6 +1444,10 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
->  		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_d;
->  		break;
->  
-> +	case DTV_LNA:
-> +		tvp->u.data = c->lna;
-> +		break;
-> +
->  	default:
->  		return -EINVAL;
->  	}
-> @@ -1731,10 +1739,6 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
->  	case DTV_INTERLEAVING:
->  		c->interleaving = tvp->u.data;
->  		break;
-> -	case DTV_LNA:
-> -		if (fe->ops.set_lna)
-> -			r = fe->ops.set_lna(fe, tvp->u.data);
-> -		break;
->  
->  	/* ISDB-T Support here */
->  	case DTV_ISDBT_PARTIAL_RECEPTION:
-> @@ -1806,6 +1810,12 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
->  		fe->dtv_property_cache.atscmh_rs_frame_ensemble = tvp->u.data;
->  		break;
->  
-> +	case DTV_LNA:
-> +		c->lna = tvp->u.data;
-> +		if (fe->ops.set_lna)
-> +			r = fe->ops.set_lna(fe);
-> +		break;
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index d8a8e8b..8b8f783 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -1174,6 +1174,17 @@ int em28xx_init_usb_xfer(struct em28xx *dev, enum em28xx_mode mode,
+ 			return rc;
+ 	}
+ 
++	if (xfer_bulk) {
++		rc = usb_clear_halt(dev->udev, usb_bufs->urb[0]->pipe);
++		if (rc < 0) {
++			em28xx_err("failed to clear USB bulk endpoint "
++				   "stall/halt condition (error=%i)\n",
++				   rc);
++			em28xx_uninit_usb_xfer(dev, mode);
++			return rc;
++		}
++	}
++
+ 	init_waitqueue_head(&dma_q->wq);
+ 	init_waitqueue_head(&vbi_dma_q->wq);
+ 
+-- 
+1.7.10.4
 
-Hmm... on a second thought, I think that the implementation there should not me that
-simple: during tuner sleep, and suspend/resume, you may need to force LNA to off, in
-order to save power and prevent device overheat.
-
-Still, as the previous code weren't doing it, I'm still applying it, but I think we
-need to properly handle such cases.
-
-Regards,
-Mauro
-
-Regards,
-Mauro
