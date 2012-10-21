@@ -1,94 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:56852 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754540Ab2JTLEX (ORCPT
+Received: from smtprelay0003.b.hostedemail.com ([64.98.42.3]:47860 "EHLO
+	smtprelay.b.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752242Ab2JUB5X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Oct 2012 07:04:23 -0400
-Date: Sat, 20 Oct 2012 13:04:12 +0200
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	Rob Herring <robherring2@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2 v6] of: add generic videomode description
-Message-ID: <20121020110412.GD12545@avionic-0098.mockup.avionic-design.de>
-References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
- <1349373560-11128-3-git-send-email-s.trumtrar@pengutronix.de>
+	Sat, 20 Oct 2012 21:57:23 -0400
+Date: Sun, 21 Oct 2012 01:57:21 +0000 (GMT)
+From: "Artem S. Tashkinov" <t.artem@lycos.com>
+To: bp@alien8.de
+Cc: pavel@ucw.cz, linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	security@kernel.org, linux-media@vger.kernel.org,
+	linux-usb@vger.kernel.org
+Message-ID: <1798605268.19162.1350784641831.JavaMail.mail@webmail17>
+References: <2104474742.26357.1350734815286.JavaMail.mail@webmail05>
+ <20121020162759.GA12551@liondog.tnic>
+ <966148591.30347.1350754909449.JavaMail.mail@webmail08>
+ <20121020203227.GC555@elf.ucw.cz> <20121020225849.GA8976@liondog.tnic>
+ <1781795634.31179.1350774917965.JavaMail.mail@webmail04>
+ <20121021002424.GA16247@liondog.tnic>
+Subject: Re: Re: Re: Re: A reliable kernel panic (3.6.2) and system crash
+ when visiting a particular website
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="eqp4TxRxnD4KrmFZ"
-Content-Disposition: inline
-In-Reply-To: <1349373560-11128-3-git-send-email-s.trumtrar@pengutronix.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+> On Oct 21, 2012, Borislav Petkov wrote: 
+> 
+> On Sat, Oct 20, 2012 at 11:15:17PM +0000, Artem S. Tashkinov wrote:
+> > You don't get me - I have *no* VirtualBox (or any proprietary) modules
+> > running
+> 
+> Ok, good. We got that out of the way - I wanted to make sure after you
+> replied with two other possibilities of the system freezing.
+> 
+> > - but I can reproduce this problem using *the same system running
+> > under* VirtualBox in Windows 7 64.
+> 
+> That's windoze as host and linux as a guest, correct?
 
---eqp4TxRxnD4KrmFZ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Exactly.
 
-On Thu, Oct 04, 2012 at 07:59:20PM +0200, Steffen Trumtrar wrote:
-[...]
-> diff --git a/drivers/of/of_videomode.c b/drivers/of/of_videomode.c
-[...]
-> +#if defined(CONFIG_DRM)
+> If so, that's virtualbox's problem, I'd say.
 
-This should be:
+I can reproduce it on my host *alone* as I said in the very first message - never
+before I tried to run my Linux in a virtual machine. Please, just forget about
+VirtualBox - it has nothing to do with this problem.
 
-	#if IS_ENABLED(CONFIG_DRM)
+> > It's almost definitely either a USB driver bug or video4linux driver
+> > bug:
+> 
+> And you're assuming that because the freeze happens when using your usb
+> webcam, correct? And not otherwise?
 
-or the code below won't be included if DRM is built as a module. But see
-my other replies as to how we can probably handle this better by moving
-this into the DRM subsystem.
+Yes, like I said earlier - only when I try to access its settings using Adobe Flash the
+system crashes/freezes.
 
-> +int videomode_to_display_mode(struct videomode *vm, struct drm_display_mode *dmode)
-> +{
-> +	memset(dmode, 0, sizeof(*dmode));
+> Maybe you can describe in more detail what exactly you're doing so that
+> people could try to reproduce your issue.
 
-It appears the usual method to obtain a drm_display_mode to allocate it
-using drm_mode_create(), which will allocate it and associate it with
-the struct drm_device.
+I don't think many people have the same webcam so it's going to be a problem. It
+can be reproduced easily - just open Flash "Settings" in Google Chrome 22. The
+crash will occur immediately.
 
-Now, if you do a memset() on the structure you'll overwrite a number of
-fields that have previously been initialized and are actually required
-to get everything cleaned up properly later on.
+> > I'm CC'ing linux-media and linux-usb mailing lists, the problem is described here:
+> > https://lkml.org/lkml/2012/10/20/35
+> > https://lkml.org/lkml/2012/10/20/148
+> 
+> Yes, good idea. Maybe the folks there have some more ideas how to debug
+> this.
+> 
+> I'm leaving in the rest for reference.
+> 
+> What should be pointed out, though, is that you don't have any more
+> random corruptions causing oopses now that virtualbox is gone. The
+> freeze below is a whole another issue.
 
-So I think we should remove the call to memset().
+The freeze happens on my *host* Linux PC. For an experiment I decided to
+check if I could reproduce the freeze under a virtual machine - it turns out the
+Linux kernel running under it also freezes.
 
-> +int of_get_fb_videomode(struct device_node *np, struct fb_videomode *fb,
-> +			int index)
-> +{
-[...]
-> +}
-> +EXPORT_SYMBOL_GPL(of_get_drm_display_mode);
-
-This should be:
-
-	EXPORT_SYMBOL_GPL(of_get_fb_videomode);
-
-Thierry
-
---eqp4TxRxnD4KrmFZ
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQgoUsAAoJEN0jrNd/PrOhSFMP/jzAZPZ2siklUDSk+eZWzZ4L
-XKOeI/Kc6B2Z7I1gnVCytWObdm94G7gh0dlolvc4SI14ROsgtjfxUBDMRzMYgCuY
-l6sO7GQbZcYOGpU/ePO74quZq4IwRaso3/s8kBLlqvIaQEmxWQUnFRQhx8+gPtSJ
-YKDXVVkm+PfoFl+Ahefc+94FGuUCvgnqeJ5MYMR+9vUj/HnvKKS16QJGOwkqanI8
-n9fhYyGJQd7FBJxlC/5JgC5qEWfhLZZYPzbZblpcVVA8Nkz+quwTgaZ2Vvt+BvNv
-PSS3jfJoWI5U6JFf/Q5kuvmL57DAnM9YRcbi3zEJA0UUyx3iSm/WTLDfElbJP5uw
-27G8h6mxRFyh+zMLqSF80PKXyYh3HEdm+GYOmjuzIHcTvl5MJqSdIcr7rEhdbq53
-GgPo2l6A0vYLRRvP159JvxJN9UpzDDJ1Pe/GaLwVMtIl+hMK60sXgX5peB+pIn9U
-tYtMkY7FjMRA6oiI358DQSF+zX0XD0gVhx2rQmm1Cdh+F0pwspxMtlKqWkA/kJg3
-GggPzeJmYfjhW1FJj/76QL4GRF6kfhUJgvvRxd+We33voYFQc3ZJ+ulUAoUedA7L
-KQovyYJ6oVxy0bQMgnsIzlUSizNlD1DQ7P6hyqEIppCghX21Cf2krMOeB9XXNnqN
-4KiUmxvamwX56h+wwRAj
-=A2e0
------END PGP SIGNATURE-----
-
---eqp4TxRxnD4KrmFZ--
+Artem
