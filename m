@@ -1,42 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:40447 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750822Ab2JAHeH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 03:34:07 -0400
-Received: by mail-wi0-f170.google.com with SMTP id hm2so2898293wib.1
-        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2012 00:34:06 -0700 (PDT)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Patrick Boettcher <pboettcher@kernellabs.com>
-Subject: [PATCH] [media]: add MODULE_DEVICE_TABLE to technisat-usb2
-Date: Mon,  1 Oct 2012 09:33:53 +0200
-Message-Id: <1349076833-1864-2-git-send-email-pboettcher@kernellabs.com>
-In-Reply-To: <1349076833-1864-1-git-send-email-pboettcher@kernellabs.com>
-References: <1349076833-1864-1-git-send-email-pboettcher@kernellabs.com>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:57147 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932461Ab2JURxl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Oct 2012 13:53:41 -0400
+Received: by mail-wg0-f44.google.com with SMTP id dr13so1632849wgb.1
+        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2012 10:53:41 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 15/23] em28xx: rename function em28xx_dvb_isoc_copy and extend for USB bulk transfers
+Date: Sun, 21 Oct 2012 19:52:21 +0300
+Message-Id: <1350838349-14763-17-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a module-device-table-entry to the
-technisat-usb2-driver which will help udev to on-demand load the
-driver. This was obviously forgotten during initial commit.
+The URB data processing for DVB bulk transfers is very similar to
+what is done with isoc transfers, so create a common function that
+works with both transfer types based on the existing isoc function.
 
-Signed-off-by: Patrick Boettcher <pboettcher@kernellabs.com>
+This patch has been compilation tested only, because I don't have
+a DVB device !
+
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/usb/dvb-usb/technisat-usb2.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/usb/em28xx/em28xx-dvb.c |   44 +++++++++++++++++++++++----------
+ 1 Datei geändert, 31 Zeilen hinzugefügt(+), 13 Zeilen entfernt(-)
 
-diff --git a/drivers/media/usb/dvb-usb/technisat-usb2.c b/drivers/media/usb/dvb-usb/technisat-usb2.c
-index acefaa8..7a8c8c1 100644
---- a/drivers/media/usb/dvb-usb/technisat-usb2.c
-+++ b/drivers/media/usb/dvb-usb/technisat-usb2.c
-@@ -677,6 +677,7 @@ static struct usb_device_id technisat_usb2_id_table[] = {
- 	{ USB_DEVICE(USB_VID_TECHNISAT, USB_PID_TECHNISAT_USB2_DVB_S2) },
- 	{ 0 }		/* Terminating entry */
- };
-+MODULE_DEVICE_TABLE(usb, technisat_usb2_id_table);
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index b47e164..cd36a67 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -10,6 +10,8 @@
  
- /* device description */
- static struct dvb_usb_device_properties technisat_usb2_devices = {
+  (c) 2008 Aidan Thornton <makosoft@googlemail.com>
+ 
++ (c) 2012 Frank Schäfer <fschaefer.oss@googlemail.com>
++
+  Based on cx88-dvb, saa7134-dvb and videobuf-dvb originally written by:
+ 	(c) 2004, 2005 Chris Pascoe <c.pascoe@itee.uq.edu.au>
+ 	(c) 2004 Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
+@@ -124,9 +126,9 @@ static inline void print_err_status(struct em28xx *dev,
+ 	}
+ }
+ 
+-static inline int em28xx_dvb_isoc_copy(struct em28xx *dev, struct urb *urb)
++static inline int em28xx_dvb_urb_data_copy(struct em28xx *dev, struct urb *urb)
+ {
+-	int i;
++	int xfer_bulk, num_packets, i;
+ 
+ 	if (!dev)
+ 		return 0;
+@@ -137,18 +139,34 @@ static inline int em28xx_dvb_isoc_copy(struct em28xx *dev, struct urb *urb)
+ 	if (urb->status < 0)
+ 		print_err_status(dev, -1, urb->status);
+ 
+-	for (i = 0; i < urb->number_of_packets; i++) {
+-		int status = urb->iso_frame_desc[i].status;
++	xfer_bulk = usb_pipebulk(urb->pipe);
+ 
+-		if (status < 0) {
+-			print_err_status(dev, i, status);
+-			if (urb->iso_frame_desc[i].status != -EPROTO)
+-				continue;
+-		}
++	if (xfer_bulk) /* bulk */
++		num_packets = 1;
++	else /* isoc */
++		num_packets = urb->number_of_packets;
+ 
+-		dvb_dmx_swfilter(&dev->dvb->demux, urb->transfer_buffer +
+-				 urb->iso_frame_desc[i].offset,
+-				 urb->iso_frame_desc[i].actual_length);
++	for (i = 0; i < num_packets; i++) {
++		if (xfer_bulk) {
++			if (urb->status < 0) {
++				print_err_status(dev, i, urb->status);
++				if (urb->status != -EPROTO)
++					continue;
++			}
++			dvb_dmx_swfilter(&dev->dvb->demux, urb->transfer_buffer,
++					urb->actual_length);
++		} else {
++			if (urb->iso_frame_desc[i].status < 0) {
++				print_err_status(dev, i,
++						 urb->iso_frame_desc[i].status);
++				if (urb->iso_frame_desc[i].status != -EPROTO)
++					continue;
++			}
++			dvb_dmx_swfilter(&dev->dvb->demux,
++					 urb->transfer_buffer +
++					 urb->iso_frame_desc[i].offset,
++					 urb->iso_frame_desc[i].actual_length);
++		}
+ 	}
+ 
+ 	return 0;
+@@ -177,7 +195,7 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
+ 				    EM28XX_DVB_NUM_BUFS,
+ 				    max_dvb_packet_size,
+ 				    EM28XX_DVB_NUM_ISOC_PACKETS,
+-				    em28xx_dvb_isoc_copy);
++				    em28xx_dvb_urb_data_copy);
+ }
+ 
+ static int em28xx_stop_streaming(struct em28xx_dvb *dvb)
 -- 
-1.7.9.5
+1.7.10.4
 
