@@ -1,45 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42451 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754461Ab2JOSpA (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:35548 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751952Ab2JVMSJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Oct 2012 14:45:00 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl, remi@remlab.net,
-	daniel-gl@gmx.net, sylwester.nawrocki@gmail.com
-Subject: Re: [RFC] Timestamps and V4L2
-Date: Mon, 15 Oct 2012 20:45:45 +0200
-Message-ID: <2316067.OFTCziv4Z5@avalon>
-In-Reply-To: <20121015160549.GE21261@valkosipuli.retiisi.org.uk>
-References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <20121015160549.GE21261@valkosipuli.retiisi.org.uk>
+	Mon, 22 Oct 2012 08:18:09 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Subject: [PATCH RESEND] media: davinci: vpbe: fix build warning
+Date: Mon, 22 Oct 2012 17:47:51 +0530
+Message-Id: <1350908271-11448-1-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-On Monday 15 October 2012 19:05:49 Sakari Ailus wrote:
-> Hi all,
-> 
-> As a summar from the discussion, I think we have reached the following
-> conclusion. Please say if you agree or disagree with what's below. :-)
-> 
-> - The drivers will be moved to use monotonic timestamps for video buffers.
-> - The user space will learn about the type of the timestamp through buffer
-> flags.
-> - The timestamp source may be made selectable in the future, but buffer
-> flags won't be the means for this, primarily since they're not available on
-> subdevs. Possible way to do this include a new V4L2 control or a new IOCTL.
+Warnings were generated because of the following commit changed data type for
+address pointer
 
-That's my understanding as well. For the concept,
+195bbca ARM: 7500/1: io: avoid writeback addressing modes for __raw_ accessors
+add  __iomem annotation to fix following warnings
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+drivers/media/platform/davinci/vpbe_osd.c: In function ‘osd_read’:
+drivers/media/platform/davinci/vpbe_osd.c:49:2: warning: passing
+ argument 1 of ‘__raw_readl’ makes pointer from integer without a cast [enabled by default]
+arch/arm/include/asm/io.h:104:19: note: expected ‘const volatile
+ void *’ but argument is of type ‘long unsigned int’
 
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+---
+  Resending the patch since, it didn't reach the DLOS mailing list.
+
+ drivers/media/platform/davinci/vpbe_osd.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpbe_osd.c b/drivers/media/platform/davinci/vpbe_osd.c
+index bba299d..9ab9280 100644
+--- a/drivers/media/platform/davinci/vpbe_osd.c
++++ b/drivers/media/platform/davinci/vpbe_osd.c
+@@ -46,14 +46,14 @@ static inline u32 osd_read(struct osd_state *sd, u32 offset)
+ {
+ 	struct osd_state *osd = sd;
+ 
+-	return readl(osd->osd_base + offset);
++	return readl(IOMEM(osd->osd_base + offset));
+ }
+ 
+ static inline u32 osd_write(struct osd_state *sd, u32 val, u32 offset)
+ {
+ 	struct osd_state *osd = sd;
+ 
+-	writel(val, osd->osd_base + offset);
++	writel(val, IOMEM(osd->osd_base + offset));
+ 
+ 	return val;
+ }
+@@ -63,9 +63,9 @@ static inline u32 osd_set(struct osd_state *sd, u32 mask, u32 offset)
+ 	struct osd_state *osd = sd;
+ 
+ 	u32 addr = osd->osd_base + offset;
+-	u32 val = readl(addr) | mask;
++	u32 val = readl(IOMEM(addr)) | mask;
+ 
+-	writel(val, addr);
++	writel(val, IOMEM(addr));
+ 
+ 	return val;
+ }
+@@ -75,9 +75,9 @@ static inline u32 osd_clear(struct osd_state *sd, u32 mask, u32 offset)
+ 	struct osd_state *osd = sd;
+ 
+ 	u32 addr = osd->osd_base + offset;
+-	u32 val = readl(addr) & ~mask;
++	u32 val = readl(IOMEM(addr)) & ~mask;
+ 
+-	writel(val, addr);
++	writel(val, IOMEM(addr));
+ 
+ 	return val;
+ }
+@@ -88,9 +88,9 @@ static inline u32 osd_modify(struct osd_state *sd, u32 mask, u32 val,
+ 	struct osd_state *osd = sd;
+ 
+ 	u32 addr = osd->osd_base + offset;
+-	u32 new_val = (readl(addr) & ~mask) | (val & mask);
++	u32 new_val = (readl(IOMEM(addr)) & ~mask) | (val & mask);
+ 
+-	writel(new_val, addr);
++	writel(new_val, IOMEM(addr));
+ 
+ 	return new_val;
+ }
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.4.1
 
