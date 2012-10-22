@@ -1,192 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate04.nvidia.com ([216.228.121.35]:12084 "EHLO
-	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752426Ab2JJP5I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 11:57:08 -0400
-From: Robert Morell <rmorell@nvidia.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>
-CC: <rob@ti.com>, <linux-media@vger.kernel.org>,
-	<dri-devel@lists.freedesktop.org>,
-	<linaro-mm-sig@lists.linaro.org>,
-	Robert Morell <rmorell@nvidia.com>
-Subject: [PATCH] dma-buf: Use EXPORT_SYMBOL
-Date: Wed, 10 Oct 2012 08:56:32 -0700
-Message-ID: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
+Received: from mail.mnsspb.ru ([84.204.75.2]:47900 "EHLO mail.mnsspb.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755419Ab2JVRAn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Oct 2012 13:00:43 -0400
+Date: Mon, 22 Oct 2012 21:01:40 +0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] [media] vivi: Teach it to tune FPS
+Message-ID: <20121022170139.GA23735@tugrik.mns.mnsspb.ru>
+References: <1350914084-31618-1-git-send-email-kirr@mns.spb.ru>
+ <1350914084-31618-2-git-send-email-kirr@mns.spb.ru>
+ <201210221616.14299.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201210221616.14299.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-EXPORT_SYMBOL_GPL is intended to be used for "an internal implementation
-issue, and not really an interface".  The dma-buf infrastructure is
-explicitly intended as an interface between modules/drivers, so it
-should use EXPORT_SYMBOL instead.
+On Mon, Oct 22, 2012 at 04:16:14PM +0200, Hans Verkuil wrote:
+> On Mon October 22 2012 15:54:44 Kirill Smelkov wrote:
+> > I was testing my video-over-ethernet subsystem today, and vivi seemed to
+> > be perfect video source for testing when one don't have lots of capture
+> > boards and cameras. Only its framerate was hardcoded to NTSC's 30fps,
+> > while in my country we usually use PAL (25 fps). That's why the patch.
+> > Thanks.
+> 
+> Rather than introducing a module option, it's much nicer if you can
+> implement enum_frameintervals and g/s_parm. This can be made quite flexible
+> allowing you to also support 50/59.94/60 fps.
 
-Signed-off-by: Robert Morell <rmorell@nvidia.com>
+Thanks for feedback. I've reworked the patch for FPS to be set via
+->{g,s}_parm(), and yes now it is more flexble, because one can set
+different FPS on different vivi devices. Only I don't know V4L2 ioctls
+details well enough and various drivers do things differently. The patch
+is below. Is it ok?
+
+Thanks,
+Kirill
+
+
+---- 8< ----
+From: Kirill Smelkov <kirr@mns.spb.ru>
+Date: Mon, 22 Oct 2012 17:25:24 +0400
+Subject: [PATCH v2] [media] vivi: Teach it to tune FPS
+
+I was testing my video-over-ethernet subsystem today, and vivi seemed to
+be perfect video source for testing when one don't have lots of capture
+boards and cameras. Only its framerate was hardcoded to NTSC's 30fps,
+while in my country we usually use PAL (25 fps).
+
+That's why here is this patch with ->enum_frameintervals and
+->{g,s}_parm implemented as suggested by Hans Verkuil. Not sure I've
+done ->g_parm right -- some drivers clear parm memory before setting
+fields, some don't. As at is at least it works for me (tested via
+v4l2-ctl -P / -p <fps>).
+
+Thanks.
+
+Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
 ---
-This patch is based on Linus's master branch.
+ drivers/media/platform/vivi.c | 50 +++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 43 insertions(+), 7 deletions(-)
 
-We held a discussion at ELC, and agreed that EXPORT_SYMBOL is more appropriate
-for this interface than EXPORT_SYMBOL_GPL.
+V2:
 
- drivers/base/dma-buf.c |   34 +++++++++++++++++-----------------
- 1 files changed, 17 insertions(+), 17 deletions(-)
+    - reworked FPS setting from module param to via ->{g,s}_parm() as suggested
+      by Hans Verkuil.
 
-diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-index 460e22d..24c28be 100644
---- a/drivers/base/dma-buf.c
-+++ b/drivers/base/dma-buf.c
-@@ -122,7 +122,7 @@ struct dma_buf *dma_buf_export(void *priv, const struct dma_buf_ops *ops,
+diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+index 3e6902a..c0855a5 100644
+--- a/drivers/media/platform/vivi.c
++++ b/drivers/media/platform/vivi.c
+@@ -36,10 +36,6 @@
  
- 	return dmabuf;
+ #define VIVI_MODULE_NAME "vivi"
+ 
+-/* Wake up at about 30 fps */
+-#define WAKE_NUMERATOR 30
+-#define WAKE_DENOMINATOR 1001
+-
+ #define MAX_WIDTH 1920
+ #define MAX_HEIGHT 1200
+ 
+@@ -232,6 +228,7 @@ struct vivi_dev {
+ 
+ 	/* video capture */
+ 	struct vivi_fmt            *fmt;
++	struct v4l2_fract          timeperframe;
+ 	unsigned int               width, height;
+ 	struct vb2_queue	   vb_vidq;
+ 	unsigned int		   field_count;
+@@ -660,8 +657,8 @@ static void vivi_thread_tick(struct vivi_dev *dev)
+ 	dprintk(dev, 2, "[%p/%d] done\n", buf, buf->vb.v4l2_buf.index);
  }
--EXPORT_SYMBOL_GPL(dma_buf_export);
-+EXPORT_SYMBOL(dma_buf_export);
  
+-#define frames_to_ms(frames)					\
+-	((frames * WAKE_NUMERATOR * 1000) / WAKE_DENOMINATOR)
++#define frames_to_ms(dev, frames)				\
++	((frames * dev->timeperframe.numerator * 1000) / dev->timeperframe.denominator)
  
- /**
-@@ -148,7 +148,7 @@ int dma_buf_fd(struct dma_buf *dmabuf, int flags)
+ static void vivi_sleep(struct vivi_dev *dev)
+ {
+@@ -677,7 +674,8 @@ static void vivi_sleep(struct vivi_dev *dev)
+ 		goto stop_task;
  
- 	return fd;
+ 	/* Calculate time to wake up */
+-	timeout = msecs_to_jiffies(frames_to_ms(1));
++	timeout = msecs_to_jiffies(frames_to_ms(dev, 1));
++
+ 
+ 	vivi_thread_tick(dev);
+ 
+@@ -1049,6 +1047,39 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
+ 	return 0;
  }
--EXPORT_SYMBOL_GPL(dma_buf_fd);
-+EXPORT_SYMBOL(dma_buf_fd);
  
- /**
-  * dma_buf_get - returns the dma_buf structure related to an fd
-@@ -174,7 +174,7 @@ struct dma_buf *dma_buf_get(int fd)
++/* timeperframe is arbitrary and continous */
++static int vidioc_enum_frameintervals(struct file *file, void *priv,
++					     struct v4l2_frmivalenum *fival)
++{
++	fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
++	return 0;
++}
++
++static int vidioc_g_parm(struct file *file, void *priv, struct v4l2_streamparm *parm)
++{
++	struct vivi_dev *dev = video_drvdata(file);
++
++	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	parm->parm.capture.capability   = V4L2_CAP_TIMEPERFRAME;
++	parm->parm.capture.timeperframe = dev->timeperframe;
++	return 0;
++}
++
++static int vidioc_s_parm(struct file *file, void *priv, struct v4l2_streamparm *parm)
++{
++	struct vivi_dev *dev = video_drvdata(file);
++
++	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	dev->timeperframe.numerator	= parm->parm.capture.timeperframe.numerator;
++	dev->timeperframe.denominator	= parm->parm.capture.timeperframe.denominator ?: 1;
++
++	return 0;
++}
++
+ /* --- controls ---------------------------------------------- */
  
- 	return file->private_data;
- }
--EXPORT_SYMBOL_GPL(dma_buf_get);
-+EXPORT_SYMBOL(dma_buf_get);
+ static int vivi_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+@@ -1207,6 +1238,9 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
+ 	.vidioc_enum_input    = vidioc_enum_input,
+ 	.vidioc_g_input       = vidioc_g_input,
+ 	.vidioc_s_input       = vidioc_s_input,
++	.vidioc_enum_frameintervals = vidioc_enum_frameintervals,
++	.vidioc_g_parm        = vidioc_g_parm,
++	.vidioc_s_parm        = vidioc_s_parm,
+ 	.vidioc_streamon      = vb2_ioctl_streamon,
+ 	.vidioc_streamoff     = vb2_ioctl_streamoff,
+ 	.vidioc_log_status    = v4l2_ctrl_log_status,
+@@ -1265,6 +1299,8 @@ static int __init vivi_create_instance(int inst)
+ 		goto free_dev;
  
- /**
-  * dma_buf_put - decreases refcount of the buffer
-@@ -189,7 +189,7 @@ void dma_buf_put(struct dma_buf *dmabuf)
- 
- 	fput(dmabuf->file);
- }
--EXPORT_SYMBOL_GPL(dma_buf_put);
-+EXPORT_SYMBOL(dma_buf_put);
- 
- /**
-  * dma_buf_attach - Add the device to dma_buf's attachments list; optionally,
-@@ -234,7 +234,7 @@ err_attach:
- 	mutex_unlock(&dmabuf->lock);
- 	return ERR_PTR(ret);
- }
--EXPORT_SYMBOL_GPL(dma_buf_attach);
-+EXPORT_SYMBOL(dma_buf_attach);
- 
- /**
-  * dma_buf_detach - Remove the given attachment from dmabuf's attachments list;
-@@ -256,7 +256,7 @@ void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
- 	mutex_unlock(&dmabuf->lock);
- 	kfree(attach);
- }
--EXPORT_SYMBOL_GPL(dma_buf_detach);
-+EXPORT_SYMBOL(dma_buf_detach);
- 
- /**
-  * dma_buf_map_attachment - Returns the scatterlist table of the attachment;
-@@ -283,7 +283,7 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
- 
- 	return sg_table;
- }
--EXPORT_SYMBOL_GPL(dma_buf_map_attachment);
-+EXPORT_SYMBOL(dma_buf_map_attachment);
- 
- /**
-  * dma_buf_unmap_attachment - unmaps and decreases usecount of the buffer;might
-@@ -304,7 +304,7 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
- 	attach->dmabuf->ops->unmap_dma_buf(attach, sg_table,
- 						direction);
- }
--EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
-+EXPORT_SYMBOL(dma_buf_unmap_attachment);
- 
- 
- /**
-@@ -332,7 +332,7 @@ int dma_buf_begin_cpu_access(struct dma_buf *dmabuf, size_t start, size_t len,
- 
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(dma_buf_begin_cpu_access);
-+EXPORT_SYMBOL(dma_buf_begin_cpu_access);
- 
- /**
-  * dma_buf_end_cpu_access - Must be called after accessing a dma_buf from the
-@@ -354,7 +354,7 @@ void dma_buf_end_cpu_access(struct dma_buf *dmabuf, size_t start, size_t len,
- 	if (dmabuf->ops->end_cpu_access)
- 		dmabuf->ops->end_cpu_access(dmabuf, start, len, direction);
- }
--EXPORT_SYMBOL_GPL(dma_buf_end_cpu_access);
-+EXPORT_SYMBOL(dma_buf_end_cpu_access);
- 
- /**
-  * dma_buf_kmap_atomic - Map a page of the buffer object into kernel address
-@@ -371,7 +371,7 @@ void *dma_buf_kmap_atomic(struct dma_buf *dmabuf, unsigned long page_num)
- 
- 	return dmabuf->ops->kmap_atomic(dmabuf, page_num);
- }
--EXPORT_SYMBOL_GPL(dma_buf_kmap_atomic);
-+EXPORT_SYMBOL(dma_buf_kmap_atomic);
- 
- /**
-  * dma_buf_kunmap_atomic - Unmap a page obtained by dma_buf_kmap_atomic.
-@@ -389,7 +389,7 @@ void dma_buf_kunmap_atomic(struct dma_buf *dmabuf, unsigned long page_num,
- 	if (dmabuf->ops->kunmap_atomic)
- 		dmabuf->ops->kunmap_atomic(dmabuf, page_num, vaddr);
- }
--EXPORT_SYMBOL_GPL(dma_buf_kunmap_atomic);
-+EXPORT_SYMBOL(dma_buf_kunmap_atomic);
- 
- /**
-  * dma_buf_kmap - Map a page of the buffer object into kernel address space. The
-@@ -406,7 +406,7 @@ void *dma_buf_kmap(struct dma_buf *dmabuf, unsigned long page_num)
- 
- 	return dmabuf->ops->kmap(dmabuf, page_num);
- }
--EXPORT_SYMBOL_GPL(dma_buf_kmap);
-+EXPORT_SYMBOL(dma_buf_kmap);
- 
- /**
-  * dma_buf_kunmap - Unmap a page obtained by dma_buf_kmap.
-@@ -424,7 +424,7 @@ void dma_buf_kunmap(struct dma_buf *dmabuf, unsigned long page_num,
- 	if (dmabuf->ops->kunmap)
- 		dmabuf->ops->kunmap(dmabuf, page_num, vaddr);
- }
--EXPORT_SYMBOL_GPL(dma_buf_kunmap);
-+EXPORT_SYMBOL(dma_buf_kunmap);
- 
- 
- /**
-@@ -466,7 +466,7 @@ int dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma,
- 
- 	return dmabuf->ops->mmap(dmabuf, vma);
- }
--EXPORT_SYMBOL_GPL(dma_buf_mmap);
-+EXPORT_SYMBOL(dma_buf_mmap);
- 
- /**
-  * dma_buf_vmap - Create virtual mapping for the buffer object into kernel
-@@ -487,7 +487,7 @@ void *dma_buf_vmap(struct dma_buf *dmabuf)
- 		return dmabuf->ops->vmap(dmabuf);
- 	return NULL;
- }
--EXPORT_SYMBOL_GPL(dma_buf_vmap);
-+EXPORT_SYMBOL(dma_buf_vmap);
- 
- /**
-  * dma_buf_vunmap - Unmap a vmap obtained by dma_buf_vmap.
-@@ -502,4 +502,4 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
- 	if (dmabuf->ops->vunmap)
- 		dmabuf->ops->vunmap(dmabuf, vaddr);
- }
--EXPORT_SYMBOL_GPL(dma_buf_vunmap);
-+EXPORT_SYMBOL(dma_buf_vunmap);
+ 	dev->fmt = &formats[0];
++	dev->timeperframe.numerator = 1001;
++	dev->timeperframe.denominator = 30000;
+ 	dev->width = 640;
+ 	dev->height = 480;
+ 	dev->pixelsize = dev->fmt->depth / 8;
 -- 
-1.7.8.6
+1.8.0.rc3.331.g5b9a629
 
