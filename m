@@ -1,236 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.work.de ([212.12.40.178]:48977 "EHLO smtp.work.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965008Ab2JDOqo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Oct 2012 10:46:44 -0400
-From: Julian Scheel <julian@jusst.de>
-To: linux-media@vger.kernel.org
-Cc: Julian Scheel <julian@jusst.de>
-Subject: [PATCH] tm6000: Add parameter to keep urb bufs allocated.
-Date: Thu,  4 Oct 2012 16:04:28 +0200
-Message-Id: <1349359468-18965-1-git-send-email-julian@jusst.de>
+Received: from moutng.kundenserver.de ([212.227.17.10]:49999 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751211Ab2JVQBj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Oct 2012 12:01:39 -0400
+Date: Mon, 22 Oct 2012 18:01:29 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
+cc: mchehab@redhat.com, Scott.Jiang.Linux@gmail.com,
+	javier.martin@vista-silicon.com, linux-media@vger.kernel.org,
+	kernel@pengutronix.de
+Subject: Re: [PATCH 3.6.0- 4/5] media/soc_camera: use module_platform_driver
+ macro
+In-Reply-To: <1349894040-8127-1-git-send-email-srinivas.kandagatla@st.com>
+Message-ID: <Pine.LNX.4.64.1210221757240.26216@axis700.grange>
+References: <1349894040-8127-1-git-send-email-srinivas.kandagatla@st.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On systems where it cannot be assured that enough continous memory is available
-all the time it can be very useful to only allocate the memory once when it is
-needed the first time. Afterwards the initially allocated memory will be
-reused, so it is ensured that the memory will stay available until the driver
-is unloaded.
+Hi Srinivas
 
-Signed-off-by: Julian Scheel <julian@jusst.de>
+On Wed, 10 Oct 2012, Srinivas KANDAGATLA wrote:
+
+> From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+> 
+> This patch removes some code duplication by using
+> module_platform_driver.
+> 
+> Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+
+Thanks for the patch. It is indeed correct, but an identical patch is 
+already upstream: 
+http://git.linuxtv.org/media_tree.git/commit/ec0341b3b7817a5e8ebcf26091dde28dce2d7821
+
+Thanks
+Guennadi
+
+> ---
+>  drivers/media/platform/soc_camera/soc_camera.c |   14 +-------------
+>  1 files changed, 1 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> index 3be9294..d4bfe29 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -1585,19 +1585,7 @@ static struct platform_driver __refdata soc_camera_pdrv = {
+>  		.owner	= THIS_MODULE,
+>  	},
+>  };
+> -
+> -static int __init soc_camera_init(void)
+> -{
+> -	return platform_driver_register(&soc_camera_pdrv);
+> -}
+> -
+> -static void __exit soc_camera_exit(void)
+> -{
+> -	platform_driver_unregister(&soc_camera_pdrv);
+> -}
+> -
+> -module_init(soc_camera_init);
+> -module_exit(soc_camera_exit);
+> +module_platform_driver(soc_camera_pdrv);
+>  
+>  MODULE_DESCRIPTION("Image capture bus driver");
+>  MODULE_AUTHOR("Guennadi Liakhovetski <kernel@pengutronix.de>");
+> -- 
+> 1.7.0.4
+> 
+
 ---
- drivers/media/video/tm6000/tm6000-video.c | 111 +++++++++++++++++++++++++-----
- drivers/media/video/tm6000/tm6000.h       |   5 ++
- 2 files changed, 97 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/media/video/tm6000/tm6000-video.c b/drivers/media/video/tm6000/tm6000-video.c
-index 03de3d8..1b8db35 100644
---- a/drivers/media/video/tm6000/tm6000-video.c
-+++ b/drivers/media/video/tm6000/tm6000-video.c
-@@ -49,12 +49,15 @@
- #define TM6000_MIN_BUF 4
- #define TM6000_DEF_BUF 8
- 
-+#define TM6000_NUM_URB_BUF 8
-+
- #define TM6000_MAX_ISO_PACKETS	46	/* Max number of ISO packets */
- 
- /* Declare static vars that will be used as parameters */
- static unsigned int vid_limit = 16;	/* Video memory limit, in Mb */
- static int video_nr = -1;		/* /dev/videoN, -1 for autodetect */
- static int radio_nr = -1;		/* /dev/radioN, -1 for autodetect */
-+static int keep_urb = 0;		/* keep urb buffers allocated */
- 
- /* Debug level */
- int tm6000_debug;
-@@ -570,6 +573,70 @@ static void tm6000_irq_callback(struct urb *urb)
- }
- 
- /*
-+ * Allocate URB buffers
-+ */
-+static int tm6000_alloc_urb_buffers(struct tm6000_core *dev)
-+{
-+	int num_bufs = TM6000_NUM_URB_BUF;
-+	int i;
-+
-+	if (dev->urb_buffer != NULL)
-+		return 0;
-+
-+	dev->urb_buffer = kmalloc(sizeof(void *)*num_bufs, GFP_KERNEL);
-+	if (!dev->urb_buffer) {
-+		tm6000_err("cannot allocate memory for urb buffers\n");
-+		return -ENOMEM;
-+	}
-+
-+	dev->urb_dma = kmalloc(sizeof(dma_addr_t *)*num_bufs, GFP_KERNEL);
-+	if (!dev->urb_dma) {
-+		tm6000_err("cannot allocate memory for urb dma pointers\n");
-+		return -ENOMEM;
-+	}
-+
-+	for (i = 0; i < num_bufs; i++) {
-+		dev->urb_buffer[i] = usb_alloc_coherent(dev->udev, dev->urb_size,
-+					GFP_KERNEL, &dev->urb_dma[i]);
-+		if (!dev->urb_buffer[i]) {
-+			tm6000_err("unable to allocate %i bytes for transfer"
-+					" buffer %i\n", dev->urb_size, i);
-+			return -ENOMEM;
-+		}
-+		memset(dev->urb_buffer[i], 0, dev->urb_size);
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * Free URB buffers
-+ */
-+static int tm6000_free_urb_buffers(struct tm6000_core *dev)
-+{
-+	int i;
-+
-+	if (dev->urb_buffer == NULL)
-+		return 0;
-+
-+	for (i = 0; i < TM6000_NUM_URB_BUF; i++) {
-+		if (dev->urb_buffer[i]) {
-+			usb_free_coherent(dev->udev,
-+					dev->urb_size,
-+					dev->urb_buffer[i],
-+					dev->urb_dma[i]);
-+			dev->urb_buffer[i] = NULL;
-+		}
-+	}
-+	kfree (dev->urb_buffer);
-+	kfree (dev->urb_dma);
-+	dev->urb_buffer = NULL;
-+	dev->urb_dma = NULL;
-+
-+	return 0;
-+}
-+
-+/*
-  * Stop and Deallocate URBs
-  */
- static void tm6000_uninit_isoc(struct tm6000_core *dev)
-@@ -585,18 +652,15 @@ static void tm6000_uninit_isoc(struct tm6000_core *dev)
- 		if (urb) {
- 			usb_kill_urb(urb);
- 			usb_unlink_urb(urb);
--			if (dev->isoc_ctl.transfer_buffer[i]) {
--				usb_free_coherent(dev->udev,
--						urb->transfer_buffer_length,
--						dev->isoc_ctl.transfer_buffer[i],
--						urb->transfer_dma);
--			}
- 			usb_free_urb(urb);
- 			dev->isoc_ctl.urb[i] = NULL;
- 		}
- 		dev->isoc_ctl.transfer_buffer[i] = NULL;
- 	}
- 
-+	if (!keep_urb)
-+		tm6000_free_urb_buffers(dev);
-+
- 	kfree(dev->isoc_ctl.urb);
- 	kfree(dev->isoc_ctl.transfer_buffer);
- 
-@@ -606,12 +670,12 @@ static void tm6000_uninit_isoc(struct tm6000_core *dev)
- }
- 
- /*
-- * Allocate URBs and start IRQ
-+ * Assign URBs and start IRQ
-  */
- static int tm6000_prepare_isoc(struct tm6000_core *dev)
- {
- 	struct tm6000_dmaqueue *dma_q = &dev->vidq;
--	int i, j, sb_size, pipe, size, max_packets, num_bufs = 8;
-+	int i, j, sb_size, pipe, size, max_packets, num_bufs = TM6000_NUM_URB_BUF;
- 	struct urb *urb;
- 
- 	/* De-allocates all pending stuff */
-@@ -634,6 +698,7 @@ static int tm6000_prepare_isoc(struct tm6000_core *dev)
- 
- 	max_packets = TM6000_MAX_ISO_PACKETS;
- 	sb_size = max_packets * size;
-+	dev->urb_size = sb_size;
- 
- 	dev->isoc_ctl.num_bufs = num_bufs;
- 
-@@ -656,6 +721,17 @@ static int tm6000_prepare_isoc(struct tm6000_core *dev)
- 		    max_packets, num_bufs, sb_size,
- 		    dev->isoc_in.maxsize, size);
- 
-+
-+	if (!dev->urb_buffer && tm6000_alloc_urb_buffers(dev) < 0) {
-+		tm6000_err("cannot allocate memory for urb buffers\n");
-+
-+		/* call free, as some buffers might have been allocated */
-+		tm6000_free_urb_buffers(dev);
-+		kfree(dev->isoc_ctl.urb);
-+		kfree(dev->isoc_ctl.transfer_buffer);
-+		return -ENOMEM;
-+	}
-+
- 	/* allocate urbs and transfer buffers */
- 	for (i = 0; i < dev->isoc_ctl.num_bufs; i++) {
- 		urb = usb_alloc_urb(max_packets, GFP_KERNEL);
-@@ -667,17 +743,8 @@ static int tm6000_prepare_isoc(struct tm6000_core *dev)
- 		}
- 		dev->isoc_ctl.urb[i] = urb;
- 
--		dev->isoc_ctl.transfer_buffer[i] = usb_alloc_coherent(dev->udev,
--			sb_size, GFP_KERNEL, &urb->transfer_dma);
--		if (!dev->isoc_ctl.transfer_buffer[i]) {
--			tm6000_err("unable to allocate %i bytes for transfer"
--					" buffer %i%s\n",
--					sb_size, i,
--					in_interrupt() ? " while in int" : "");
--			tm6000_uninit_isoc(dev);
--			return -ENOMEM;
--		}
--		memset(dev->isoc_ctl.transfer_buffer[i], 0, sb_size);
-+		urb->transfer_dma = dev->urb_dma[i];
-+		dev->isoc_ctl.transfer_buffer[i] = dev->urb_buffer[i];
- 
- 		usb_fill_bulk_urb(urb, dev->udev, pipe,
- 				  dev->isoc_ctl.transfer_buffer[i], sb_size,
-@@ -1833,6 +1900,9 @@ int tm6000_v4l2_unregister(struct tm6000_core *dev)
- {
- 	video_unregister_device(dev->vfd);
- 
-+	/* if URB buffers are still allocated free them now */
-+	tm6000_free_urb_buffers(dev);
-+
- 	if (dev->radio_dev) {
- 		if (video_is_registered(dev->radio_dev))
- 			video_unregister_device(dev->radio_dev);
-@@ -1858,3 +1928,6 @@ MODULE_PARM_DESC(debug, "activates debug info");
- module_param(vid_limit, int, 0644);
- MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
- 
-+module_param(keep_urb, bool, 0);
-+MODULE_PARM_DESC(keep_urb, "Keep urb buffers allocated even when the device "
-+				"is closed by the user");
-diff --git a/drivers/media/video/tm6000/tm6000.h b/drivers/media/video/tm6000/tm6000.h
-index 6531d16..4bd3a0d 100644
---- a/drivers/media/video/tm6000/tm6000.h
-+++ b/drivers/media/video/tm6000/tm6000.h
-@@ -267,6 +267,11 @@ struct tm6000_core {
- 
- 	spinlock_t                   slock;
- 
-+	/* urb dma buffers */
-+	char				**urb_buffer;
-+	dma_addr_t			*urb_dma;
-+	unsigned int			urb_size;
-+
- 	unsigned long quirks;
- };
- 
--- 
-1.7.12.2
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
