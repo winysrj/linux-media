@@ -1,174 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:48749 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756354Ab2JQJfh (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3882 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751079Ab2JVPWz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 05:35:37 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so6909279pad.19
-        for <linux-media@vger.kernel.org>; Wed, 17 Oct 2012 02:35:37 -0700 (PDT)
+	Mon, 22 Oct 2012 11:22:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 2/2] media: V4L2: support asynchronous subdevice registration
+Date: Mon, 22 Oct 2012 17:22:16 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+References: <Pine.LNX.4.64.1210192358520.28993@axis700.grange> <201210221536.03112.hverkuil@xs4all.nl> <Pine.LNX.4.64.1210221553390.26216@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1210221553390.26216@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <4949132.OD6tNZX2Jk@avalon>
-References: <090701cd8c4e$be38bea0$3aaa3be0$@gmail.com>
-	<7805846.LU2Ezfa4XS@avalon>
-	<CAFqH_50FiyMiQHiTwhu82shJVb-boZ+KSu8sTwaFQxsPGA=sfA@mail.gmail.com>
-	<4949132.OD6tNZX2Jk@avalon>
-Date: Wed, 17 Oct 2012 11:35:37 +0200
-Message-ID: <CAFqH_53G_jt1LdTiHtqnGKkqK8mmCOgt-ypQzpzjwpdytpsgzQ@mail.gmail.com>
-Subject: Re: Using omap3-isp-live example application on beagleboard with DVI
-From: Enric Balletbo Serra <eballetbo@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: John Weber <rjohnweber@gmail.com>, linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=f46d042e00d13f285b04cc3dfe84
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201210221722.16382.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---f46d042e00d13f285b04cc3dfe84
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On Mon October 22 2012 16:48:05 Guennadi Liakhovetski wrote:
+> On Mon, 22 Oct 2012, Hans Verkuil wrote:
+> 
+> > On Mon October 22 2012 14:50:14 Guennadi Liakhovetski wrote:
+> > > On Mon, 22 Oct 2012, Hans Verkuil wrote:
+> > > 
+> > > > On Mon October 22 2012 13:08:12 Guennadi Liakhovetski wrote:
+> > > > > Hi Hans
+> > > > > 
+> > > > > Thanks for reviewing the patch.
+> > > > > 
+> > > > > On Mon, 22 Oct 2012, Hans Verkuil wrote:
+> > > > > 
+> > > > > > Hi Guennadi,
+> > > > > > 
+> > > > > > I've reviewed this patch and I have a few questions:
+> > > > > > 
+> > > > > > On Sat October 20 2012 00:20:24 Guennadi Liakhovetski wrote:
+> > > > > > > Currently bridge device drivers register devices for all subdevices
+> > > > > > > synchronously, tupically, during their probing. E.g. if an I2C CMOS sensor
+> > > > > > > is attached to a video bridge device, the bridge driver will create an I2C
+> > > > > > > device and wait for the respective I2C driver to probe. This makes linking
+> > > > > > > of devices straight forward, but this approach cannot be used with
+> > > > > > > intrinsically asynchronous and unordered device registration systems like
+> > > > > > > the Flattened Device Tree. To support such systems this patch adds an
+> > > > > > > asynchronous subdevice registration framework to V4L2. To use it respective
+> > > > > > > (e.g. I2C) subdevice drivers must request deferred probing as long as their
+> > > > > > > bridge driver hasn't probed. The bridge driver during its probing submits a
+> > > > > > > an arbitrary number of subdevice descriptor groups to the framework to
+> > > > > > > manage. After that it can add callbacks to each of those groups to be
+> > > > > > > called at various stages during subdevice probing, e.g. after completion.
+> > > > > > > Then the bridge driver can request single groups to be probed, finish its
+> > > > > > > own probing and continue its video subsystem configuration from its
+> > > > > > > callbacks.
+> > > > > > 
+> > > > > > What is the purpose of allowing multiple groups?
+> > > > > 
+> > > > > To support, e.g. multiple sensors connected to a single bridge.
+> > > > 
+> > > > So, isn't that one group with two sensor subdevs?
+> > > 
+> > > No, one group consists of all subdevices, necessary to operate a single 
+> > > video pipeline. A simple group only contains a sensor. More complex groups 
+> > > can contain a CSI-2 interface, a line shifter, or anything else.
+> > 
+> > Why? Why would you want to wait for completion of multiple groups? You need all
+> > subdevs to be registered. If you split them up in multiple groups, then you
+> > have to wait until all those groups have completed, which only makes the bridge
+> > driver more complex. It adds nothing to the problem that we're trying to solve.
+> 
+> I see it differently. Firstly, there's no waiting.
 
-Hi Laurent,
+If they are independent, then that's true. But in almost all cases you need them
+all. Even in cases where theoretically you can 'activate' groups independently,
+it doesn't add anything. It's overengineering, trying to solve a problem that
+doesn't exist.
 
-2012/10/17 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Enric,
->
-> On Monday 15 October 2012 14:03:20 Enric Balletbo Serra wrote:
->> 2012/10/11 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> > On Thursday 11 October 2012 10:14:26 Enric Balletb=C3=B2 i Serra wrote=
-:
->> >> 2012/10/10 Enric Balletb=C3=B2 i Serra <eballetbo@gmail.com>:
->> >> > 2012/9/6 John Weber <rjohnweber@gmail.com>:
->> >> >> Hello,
->> >> >>
->> >> >> My goal is to better understand how to write an application that m=
-akes
->> >> >> use of the omap3isp and media controller frameworks and v4l2.  I'm
->> >> >> attempting to make use of Laurent's omap3-isp-live example applica=
-tion
->> >> >> as a starting point and play with the AEC/WB capability.
->> >> >>
->> >> >> My problem is that when I start the live application, the display
->> >> >> turns blue (it seems when the chromakey fill is done), but no vide=
-o
->> >> >> appears on the display.  I do think that I'm getting good (or at l=
-east
->> >> >> statistics) from the ISP because I can change the view in front of=
- the
->> >> >> camera (by putting my hand in front of the lens) and the gain sett=
-ings
->> >> >> change.
->
-> [snip]
->
->> >> > I've exactly the same problem. Before try to debug the problem I wo=
-uld
->> >> > like to know if you solved the problem. Did you solved ?
->> >>
->> >> The first change I made and worked (just luck). I made the following
->> >> change:
->> >>
->> >> -       vo_enable_colorkey(vo, 0x123456);
->> >> +       // vo_enable_colorkey(vo, 0x123456);
->> >>
->> >> And now the live application works like a charm. Seems this function
->> >> enables a chromakey and the live application can't paint over the
->> >> chromakey. Laurent, just to understand what I did, can you explain
->> >> this ? Thanks.
->> >
->> > My guess is that the live application fails to paint the frame buffer =
-with
->> > the color key. If fb_init() failed the live application would stop, so
->> > the function succeeds. My guess is thus that the application either
->> > paints the wrong frame buffer (how many /dev/fb* devices do you have o=
-n
->> > your system ?),
->>
->> I checked again and no, it opens the correct framebuffer.
->>
->> > or paints it with the wrong color. The code assumes that the frame buf=
-fer
->> > is configured in 32 bit, maybe that's not the case on your system ?
->>
->> This was my problem, and I suspect it's the John problem. My system was
->> configured in 16 bit instead of 32 bit.
->>
->> FYI, I made a patch that adds this check to the live application. I did =
-not
->> know where send the patch so I attached to this email.
->
-> Thank you for the patch.
->
-> Instead of failing what would be more interesting would be to get the
-> application to work in 16bpp mode as well. For that you will need to pain=
-t the
-> frame buffer with a 16bpp color, and set the colorkey to the same value. =
-Would
-> you be able to try that ?
->
+Just keep it simple, that's hard enough.
 
-New patch attached, comments are welcome as I'm newbie with video devices.
+> Secondly, you don't 
+> need all of them. With groups as soon as one group is complete you can 
+> start using it. If you require all your subdevices to complete their 
+> probing before you can use anything. In fact, some subdevices might never 
+> probe, but groups, that don't need them can be used regardless.
+> 
+> > > > A bridge driver has a list of subdevs. There is no concept of 'groups'. Perhaps
+> > > > I misunderstand?
+> > > 
+> > > Well, we have a group ID, which can be used for what I'm proposing groups 
+> > > for. At least on soc-camera we use the group ID exactly for this purpose. 
+> > > We attach all subdevices to a V4L2 device, but assign group IDs according 
+> > > to pipelines. Then subdevice operations only act on members of one 
+> > > pipeline. I know that we currently don't specify precisely what that group 
+> > > ID should be used for in general. So, this my group concept is an 
+> > > extension of what we currently have in V4L2.
+> > 
+> > How the grp_id field is used is entirely up to the bridge driver. It may not
+> > be used at all, it may uniquely identify each subdev, it may put each subdev
+> > in a particular group and perhaps a single subdev might belong to multiple
+> > groups. There is no standard concept of a group. It's just a simple method
+> > (actually, more of a hack) of allowing bridge drivers to call ops for some
+> > subset of the sub-devices.
+> 
+> Yes, I know, at least it's something that loosely indicates a group 
+> concept in the current code:-)
+> 
+> > Frankly, I wonder if most of the drivers that use grp_id actually need it at
+> > all.
+> > 
+> > Just drop the group concept, things can be simplified quite a bit without it.
+> 
+> So far I think we should keep it. Also think about our DT layout. A bridge 
+> can have several ports each with multiple links (maybe it has already been 
+> decided to change names, don't remember by heart, sorry). Each of them 
+> would then start a group.
+
+So? What does that gain you?
+
+I don't have time today to go over the remainder of your reply, I'll try to
+answer that later in the week.
 
 Regards,
-    Enric
 
---f46d042e00d13f285b04cc3dfe84
-Content-Type: application/octet-stream;
-	name="0001-live-Get-the-application-to-work-in-16bpp-mode.patch"
-Content-Disposition: attachment;
-	filename="0001-live-Get-the-application-to-work-in-16bpp-mode.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h8e8w2r40
-
-RnJvbSA2ZTIyNzRiOTRjZWM5YzFkMDNmNTgyMTQ4MzkyMGRlNjllNWFiYThlIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBFbnJpYyBCYWxsZXRibyBpIFNlcnJhIDxlYmFsbGV0Ym9AaXNl
-ZWJjbi5jb20+CkRhdGU6IFdlZCwgMTcgT2N0IDIwMTIgMTE6MjI6NTkgKzAyMDAKU3ViamVjdDog
-W1BBVENIXSBsaXZlOiBHZXQgdGhlIGFwcGxpY2F0aW9uIHRvIHdvcmsgaW4gMTZicHAgbW9kZS4K
-ClNldCB0aGUgZnJhbWVidWZmZXIgd2l0aCBhIDE2YnBwIGNvbG9yIGFuZCBzZXQgdGhlIGNvbG9y
-a2V5IHRvIHRoZSBzYW1lCnZhbHVlIHdoZW4gZnJhbWUgYnVmZmVyIGlzIGNvbmZpZ3VyZWQgaW4g
-MTYgYml0LiBXaXRoIHRoaXMgcGF0Y2ggd2UKc3VwcG9ydCAxNiBhbmQgMzIgYml0LCBpZiB0aGlz
-IGlzIG5vdCB0aGUgY2FzZSB0aGUgYXBwbGljYXRpb24gZmFpbHMuCgpTaWduZWQtb2ZmLWJ5OiBF
-bnJpYyBCYWxsZXRibyBpIFNlcnJhIDxlYmFsbGV0Ym9AaXNlZWJjbi5jb20+Ci0tLQogbGl2ZS5j
-IHwgICA1NCArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-LS0tLS0KIDEgZmlsZXMgY2hhbmdlZCwgNDkgaW5zZXJ0aW9ucygrKSwgNSBkZWxldGlvbnMoLSkK
-CmRpZmYgLS1naXQgYS9saXZlLmMgYi9saXZlLmMKaW5kZXggNTEyYzUyOS4uNzYyYzlmMyAxMDA2
-NDQKLS0tIGEvbGl2ZS5jCisrKyBiL2xpdmUuYwpAQCAtMjU5LDcgKzI1OSwzMiBAQCBzdGF0aWMg
-Y29uc3QgY2hhciAqdmlkZW9fb3V0X2ZpbmQodm9pZCkKICAqIEZyYW1lIGJ1ZmZlcgogICovCiAK
-LXN0YXRpYyBpbnQgZmJfaW5pdChzdHJ1Y3QgdjRsMl9yZWN0ICpyZWN0KQorc3RhdGljIGludCBm
-Yl9nZXRfY29sb3JfZGVwdGgodm9pZCkKK3sKKwlpbnQgcmV0LCBicHA7CisJRklMRSAqZmlsZTsK
-KworCS8qIFJlYWQgdGhlIGZyYW1lYnVmZmVyIGJpdC1wZXItcGl4ZWwgZnJvbSBzeXNmcy4gKi8K
-KwlmaWxlID0gZm9wZW4oIi9zeXMvY2xhc3MvZ3JhcGhpY3MvZmIwL2JpdHNfcGVyX3BpeGVsIiwg
-InIiKTsKKwlpZiAoZmlsZSA9PSBOVUxMKSB7CisJCXBlcnJvcigiRmFpbGVkIHRvIG9wZW4gYml0
-c19wZXJfcGl4ZWwgZm9yIGZiMFxuIik7CisJCXJldHVybiAtMTsKKwl9CisKKwlyZXQgPSBmc2Nh
-bmYoZmlsZSwgIiVkIiwgJmJwcCk7CisJaWYgKHJldCA9PSBFT0YpIHsKKwkJaWYgKGZlcnJvcihm
-aWxlKSkKKwkJCXBlcnJvcigiZnNjYW5mIik7CisJCWVsc2UKKwkJCXByaW50ZigiZXJyb3I6IGZz
-Y2FuZiBtYXRjaGluZyBmYWlsdXJlXG4iKTsKKwkJcmV0dXJuIC0xOworCX0KKwlmY2xvc2UoZmls
-ZSk7CisKKwlyZXR1cm4gYnBwOworfQorCitzdGF0aWMgaW50IGZiX2luaXQoc3RydWN0IHY0bDJf
-cmVjdCAqcmVjdCwgaW50IGJwcCkKIHsKIAlzdHJ1Y3QgZmJfZml4X3NjcmVlbmluZm8gZml4Owog
-CXN0cnVjdCBmYl92YXJfc2NyZWVuaW5mbyB2YXI7CkBAIC0yOTMsOCArMzE4LDE3IEBAIHN0YXRp
-YyBpbnQgZmJfaW5pdChzdHJ1Y3QgdjRsMl9yZWN0ICpyZWN0KQogCX0KIAogCS8qIEZpbGwgdGhl
-IGZyYW1lIGJ1ZmZlciB3aXRoIHRoZSBiYWNrZ3JvdW5kIGNvbG9yLiAqLwotCWZvciAoaSA9IDA7
-IGkgPCBmaXguc21lbV9sZW47IGkgKz0gNCkKLQkJKih1aW50MzJfdCAqKShtZW0gKyBpKSA9IDB4
-MDAxMjM0NTY7CisJaWYgKGJwcCA9PSAxNikKKwkJZm9yIChpID0gMDsgaSA8IGZpeC5zbWVtX2xl
-bjsgaSArPSAyKQorCQkJKih1aW50MTZfdCAqKShtZW0gKyBpKSA9IDB4MTIzNDsKKwllbHNlIGlm
-IChicHAgPT0gMzIpCisJCWZvciAoaSA9IDA7IGkgPCBmaXguc21lbV9sZW47IGkgKz0gNCkKKwkJ
-CSoodWludDMyX3QgKikobWVtICsgaSkgPSAweDAwMTIzNDU2OworCWVsc2UgeworCQlwcmludGYo
-ImVycm9yOiBkb2Vzbid0IHdvcmsgaW4gJWRiaXQgY29sb3VyIGRlcHRoXG4iLCBicHApOworCQly
-ZXQgPSAtMTsKKwkJZ290byBkb25lOworCX0KIAogCS8qIFJldHVybiB0aGUgZnJhbWUgYnVmZmVy
-IHNpemUuICovCiAJcmVjdC0+bGVmdCA9IHZhci54b2Zmc2V0OwpAQCAtMzY4LDYgKzQwMiw3IEBA
-IGludCBtYWluKGludCBhcmdjIF9fYXR0cmlidXRlX18oKF9fdW51c2VkX18pKSwgY2hhciAqYXJn
-dltdIF9fYXR0cmlidXRlX18oKF9fdW51CiAJZmxvYXQgZnBzOwogCWludCByZXQ7CiAJaW50IGM7
-CisJaW50IGJwcDsKIAogCWlxX3BhcmFtc19pbml0KCZpcV9wYXJhbXMpOwogCkBAIC00MDMsOCAr
-NDM4LDE0IEBAIGludCBtYWluKGludCBhcmdjIF9fYXR0cmlidXRlX18oKF9fdW51c2VkX18pKSwg
-Y2hhciAqYXJndltdIF9fYXR0cmlidXRlX18oKF9fdW51CiAKIAlldmVudHNfaW5pdCgmZXZlbnRz
-KTsKIAorCWJwcCA9IGZiX2dldF9jb2xvcl9kZXB0aCgpOworCWlmIChicHAgPCAwKSB7CisJCXBy
-aW50ZigiZXJyb3I6IGRvZXNuJ3Qgd29yayBpbiAlZGJpdCBjb2xvdXIgZGVwdGhcbiIsIGJwcCk7
-CisJCWdvdG8gY2xlYW51cDsKKwl9CisKIAltZW1zZXQoJnJlY3QsIDAsIHNpemVvZiByZWN0KTsK
-LQlyZXQgPSBmYl9pbml0KCZyZWN0KTsKKwlyZXQgPSBmYl9pbml0KCZyZWN0LCBicHApOwogCWlm
-IChyZXQgPCAwKSB7CiAJCXByaW50ZigiZXJyb3I6IHVuYWJsZSB0byBpbml0aWFsaXplIGZyYW1l
-IGJ1ZmZlclxuIik7CiAJCWdvdG8gY2xlYW51cDsKQEAgLTQ2MCw3ICs1MDEsMTAgQEAgaW50IG1h
-aW4oaW50IGFyZ2MgX19hdHRyaWJ1dGVfXygoX191bnVzZWRfXykpLCBjaGFyICphcmd2W10gX19h
-dHRyaWJ1dGVfXygoX191bnUKIAkJZ290byBjbGVhbnVwOwogCX0KIAotCXZvX2VuYWJsZV9jb2xv
-cmtleSh2bywgMHgxMjM0NTYpOworCWlmIChicHAgPT0gMzIpCisJCXZvX2VuYWJsZV9jb2xvcmtl
-eSh2bywgMHgxMjM0NTYpOworCWVsc2UKKwkJdm9fZW5hYmxlX2NvbG9ya2V5KHZvLCAweDEyMzQp
-OwogCiAJLyogQWxsb2NhdGUgYSBidWZmZXJzIHBvb2wgYW5kIHVzZSBpdCBmb3IgdGhlIHZpZXdm
-aW5kZXIuICovCiAJcG9vbCA9IHZvX2dldF9wb29sKHZvKTsKLS0gCjEuNy41LjQKCg==
---f46d042e00d13f285b04cc3dfe84--
+	Hans
