@@ -1,157 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f46.google.com ([209.85.213.46]:33939 "EHLO
-	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755218Ab2JHWhM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 18:37:12 -0400
-Received: by mail-yh0-f46.google.com with SMTP id m54so1082457yhm.19
-        for <linux-media@vger.kernel.org>; Mon, 08 Oct 2012 15:37:12 -0700 (PDT)
-From: Fabio Estevam <festevam@gmail.com>
-To: g.liakhovetski@gmx.de
-Cc: mchehab@infradead.org, javier.martin@vista-silicon.com,
-	kernel@pengutronix.de, gcembed@gmail.com,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH v2 2/2] [media]: mx2_camera: Fix regression caused by clock conversion
-Date: Mon,  8 Oct 2012 19:37:03 -0300
-Message-Id: <1349735823-30315-1-git-send-email-festevam@gmail.com>
+Received: from eu1sys200aog120.obsmtp.com ([207.126.144.149]:54352 "EHLO
+	eu1sys200aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751863Ab2JVK6K convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Oct 2012 06:58:10 -0400
+From: Alain VOLMAT <alain.volmat@st.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>
+Date: Mon, 22 Oct 2012 12:57:42 +0200
+Subject: RE: [media-workshop] Tentative Agenda for the November workshop
+Message-ID: <E27519AE45311C49887BE8C438E68FAA01012DA81D4A@SAFEX1MAIL1.st.com>
+References: <201210221035.56897.hverkuil@xs4all.nl>
+	<10009130.xLxCsb7QR7@avalon> <5085258E.6090803@samsung.com>
+In-Reply-To: <5085258E.6090803@samsung.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@freescale.com>
+Hi all,
 
-Since mx27 transitioned to the commmon clock framework in 3.5, the correct way
-to acquire the csi clock is to get csi_ahb and csi_per clocks separately.
+Could someone summaries very rapidly what is this create/select context stuff ? For now I do not plan to be in Barcelona more than 1 day but at the same time don't want to miss something that might be useful for us.
 
-By not doing so the camera sensor does not probe correctly:
+Regards,
 
-soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
-mx2-camera mx2-camera.0: Camera driver attached to camera 0
-ov2640 0-0030: Product ID error fb:fb
-mx2-camera mx2-camera.0: Camera driver detached from camera 0
-mx2-camera mx2-camera.0: MX2 Camera (CSI) driver probed, clock frequency: 66500000
+Alain
 
-Adapt the mx2_camera driver to the new clock framework and make it functional
-again.
-
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
----
-Changes since v1:
-- Rebased against linux-next 20121008.
-
- drivers/media/platform/soc_camera/mx2_camera.c |   47 +++++++++++++++++-------
- 1 file changed, 34 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-index 403d7f1..9f8c5f0 100644
---- a/drivers/media/platform/soc_camera/mx2_camera.c
-+++ b/drivers/media/platform/soc_camera/mx2_camera.c
-@@ -272,7 +272,8 @@ struct mx2_camera_dev {
- 	struct device		*dev;
- 	struct soc_camera_host	soc_host;
- 	struct soc_camera_device *icd;
--	struct clk		*clk_csi, *clk_emma_ahb, *clk_emma_ipg;
-+	struct clk		*clk_emma_ahb, *clk_emma_ipg;
-+	struct clk		*clk_csi_ahb, *clk_csi_per;
- 
- 	void __iomem		*base_csi, *base_emma;
- 
-@@ -432,7 +433,8 @@ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
- {
- 	unsigned long flags;
- 
--	clk_disable_unprepare(pcdev->clk_csi);
-+	clk_disable_unprepare(pcdev->clk_csi_ahb);
-+	clk_disable_unprepare(pcdev->clk_csi_per);
- 	writel(0, pcdev->base_csi + CSICR1);
- 	if (cpu_is_mx27()) {
- 		writel(0, pcdev->base_emma + PRP_CNTL);
-@@ -460,7 +462,11 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
- 	if (pcdev->icd)
- 		return -EBUSY;
- 
--	ret = clk_prepare_enable(pcdev->clk_csi);
-+	ret = clk_prepare_enable(pcdev->clk_csi_ahb);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = clk_prepare_enable(pcdev->clk_csi_per);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -1725,11 +1731,18 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 		goto exit;
- 	}
- 
--	pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
--	if (IS_ERR(pcdev->clk_csi)) {
--		dev_err(&pdev->dev, "Could not get csi clock\n");
--		err = PTR_ERR(pcdev->clk_csi);
--		goto exit;
-+	pcdev->clk_csi_ahb = devm_clk_get(&pdev->dev, "ahb");
-+	if (IS_ERR(pcdev->clk_csi_ahb)) {
-+		dev_err(&pdev->dev, "Could not get csi ahb clock\n");
-+		err = PTR_ERR(pcdev->clk_csi_ahb);
-+		goto exit;
-+	}
-+
-+	pcdev->clk_csi_per = devm_clk_get(&pdev->dev, "per");
-+	if (IS_ERR(pcdev->clk_csi_per)) {
-+		dev_err(&pdev->dev, "Could not get csi per clock\n");
-+		err = PTR_ERR(pcdev->clk_csi_per);
-+		goto exit_csi_ahb;
- 	}
- 
- 	pcdev->pdata = pdev->dev.platform_data;
-@@ -1738,14 +1751,15 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 
- 		pcdev->platform_flags = pcdev->pdata->flags;
- 
--		rate = clk_round_rate(pcdev->clk_csi, pcdev->pdata->clk * 2);
-+		rate = clk_round_rate(pcdev->clk_csi_per,
-+						pcdev->pdata->clk * 2);
- 		if (rate <= 0) {
- 			err = -ENODEV;
--			goto exit;
-+			goto exit_csi_per;
- 		}
--		err = clk_set_rate(pcdev->clk_csi, rate);
-+		err = clk_set_rate(pcdev->clk_csi_per, rate);
- 		if (err < 0)
--			goto exit;
-+			goto exit_csi_per;
- 	}
- 
- 	INIT_LIST_HEAD(&pcdev->capture);
-@@ -1801,7 +1815,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 		goto exit_free_emma;
- 
- 	dev_info(&pdev->dev, "MX2 Camera (CSI) driver probed, clock frequency: %ld\n",
--			clk_get_rate(pcdev->clk_csi));
-+			clk_get_rate(pcdev->clk_csi_per));
- 
- 	return 0;
- 
-@@ -1812,6 +1826,10 @@ eallocctx:
- 		clk_disable_unprepare(pcdev->clk_emma_ipg);
- 		clk_disable_unprepare(pcdev->clk_emma_ahb);
- 	}
-+exit_csi_per:
-+	clk_disable_unprepare(pcdev->clk_csi_per);
-+exit_csi_ahb:
-+	clk_disable_unprepare(pcdev->clk_csi_ahb);
- exit:
- 	return err;
- }
-@@ -1831,6 +1849,9 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
- 		clk_disable_unprepare(pcdev->clk_emma_ahb);
- 	}
- 
-+	clk_disable_unprepare(pcdev->clk_csi_per);
-+	clk_disable_unprepare(pcdev->clk_csi_ahb);
-+
- 	dev_info(&pdev->dev, "MX2 Camera driver unloaded\n");
- 
- 	return 0;
--- 
-1.7.9.5
-
+> -----Original Message-----
+> From: media-workshop-bounces@linuxtv.org [mailto:media-workshop-
+> bounces@linuxtv.org] On Behalf Of Sylwester Nawrocki
+> Sent: Monday, October 22, 2012 12:53 PM
+> To: Laurent Pinchart
+> Cc: media-workshop@linuxtv.org; linux-media
+> Subject: Re: [media-workshop] Tentative Agenda for the November
+> workshop
+> 
+> Hi Laurent,
+> 
+> On 10/22/2012 12:39 PM, Laurent Pinchart wrote:
+> > Hello,
+> >
+> > On Monday 22 October 2012 10:35:56 Hans Verkuil wrote:
+> >> Hi all,
+> >>
+> >> This is the tentative agenda for the media workshop on November 8,
+> 2012.
+> >> If you have additional things that you want to discuss, or something
+> >> is wrong or incomplete in this list, please let me know so I can
+> >> update the list.
+> >
+> > Thank you Hans for taking care of the agenda.
+> >
+> >> - Explain current merging process (Mauro)
+> >> - Open floor for discussions on how to improve it (Mauro)
+> >> - Write down minimum requirements for new V4L2 (and DVB?) drivers,
+> both for
+> >>   staging and mainline acceptance: which frameworks to use,
+> >> v4l2-compliance, etc. (Hans Verkuil)
+> >> - V4L2 ambiguities (Hans Verkuil)
+> >> - TSMux device (a mux rather than a demux): Alain Volmat
+> >> - dmabuf status, esp. with regards to being able to test
+> >> (Mauro/Samsung)
+> >> - Device tree support (Guennadi, not known yet whether this topic is
+> >> needed)
+> >> - Creating/selecting contexts for hardware that supports this
+> >> (Samsung, only if time is available)
+> >
+> > This last topic will likely require lots of brainstorming, and thus
+> > time. If the schedule permits, would anyone be interested in meeting
+> > earlier during the week already ?
+> 
+> My intention was to also possibly discuss it with others before the actual
+> media workshop. Would be nice if we could have arranged such a meeting.
+> I'm not sure about the room conditions though. It's probably not a big issue,
+> unless there is really many people interested in that topic.
+> 
+> --
+> Regards,
+> Sylwester
+> 
+> 
+> _______________________________________________
+> media-workshop mailing list
+> media-workshop@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/media-workshop
