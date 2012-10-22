@@ -1,44 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog103.obsmtp.com ([207.126.144.115]:45776 "EHLO
-	eu1sys200aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752069Ab2JZNCH convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Oct 2012 09:02:07 -0400
-From: Nicolas THERY <nicolas.thery@st.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Rob Landley <rob@landley.net>
-Date: Fri, 26 Oct 2012 15:01:55 +0200
-Subject: [PATCH TRIVIAL for 3.7] Documentation: fix outdated statement re.
- v4l2
-Message-ID: <508A89C3.7010200@st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33356 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752098Ab2JVLR4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Oct 2012 07:17:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: media-workshop@linuxtv.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [media-workshop] Tentative Agenda for the November workshop
+Date: Mon, 22 Oct 2012 13:18:46 +0200
+Message-ID: <58737434.GCQXfamyaa@avalon>
+In-Reply-To: <5085258E.6090803@samsung.com>
+References: <201210221035.56897.hverkuil@xs4all.nl> <10009130.xLxCsb7QR7@avalon> <5085258E.6090803@samsung.com>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix tense used for describing struct v4l2_fh as it has been added a
-while ago.
+Hi Sylwester,
 
-Signed-off-by: Nicolas Thery <nicolas.thery@st.com>
----
- Documentation/video4linux/v4l2-framework.txt | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+On Monday 22 October 2012 12:53:02 Sylwester Nawrocki wrote:
+> On 10/22/2012 12:39 PM, Laurent Pinchart wrote:
+> > On Monday 22 October 2012 10:35:56 Hans Verkuil wrote:
+> >> Hi all,
+> >> 
+> >> This is the tentative agenda for the media workshop on November 8, 2012.
+> >> If you have additional things that you want to discuss, or something is
+> >> wrong or incomplete in this list, please let me know so I can update the
+> >> list.
+> > 
+> > Thank you Hans for taking care of the agenda.
+> > 
+> >> - Explain current merging process (Mauro)
+> >> - Open floor for discussions on how to improve it (Mauro)
+> >> - Write down minimum requirements for new V4L2 (and DVB?) drivers, both
+> >> for
+> >> 
+> >>   staging and mainline acceptance: which frameworks to use,
+> >>   v4l2-compliance,
+> >> 
+> >> etc. (Hans Verkuil)
+> >> - V4L2 ambiguities (Hans Verkuil)
+> >> - TSMux device (a mux rather than a demux): Alain Volmat
+> >> - dmabuf status, esp. with regards to being able to test (Mauro/Samsung)
+> >> - Device tree support (Guennadi, not known yet whether this topic is
+> >> needed) - Creating/selecting contexts for hardware that supports this
+> >> (Samsung, only if time is available)
+> > 
+> > This last topic will likely require lots of brainstorming, and thus time.
+> > If the schedule permits, would anyone be interested in meeting earlier
+> > during the week already ?
+> 
+> My intention was to also possibly discuss it with others before the actual
+> media workshop. Would be nice if we could have arranged such a meeting.
+> I'm not sure about the room conditions though. It's probably not a big
+> issue, unless there is really many people interested in that topic.
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 32bfe92..0a1ef67 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -68,8 +68,7 @@ Structure of the framework
- The framework closely resembles the driver structure: it has a v4l2_device
- struct for the device instance data, a v4l2_subdev struct to refer to
- sub-device instances, the video_device struct stores V4L2 device node data
--and in the future a v4l2_fh struct will keep track of filehandle instances
--(this is not yet implemented).
-+and the v4l2_fh struct keeps track of filehandle instances.
- 
- The V4L2 framework also optionally integrates with the media framework. If a
- driver sets the struct v4l2_device mdev field, sub-devices and video nodes
+A small room with a projector would be nice if possible, although not 
+required. Who would be interested in attending a brainstorming session on 
+contexts ?
+
 -- 
-1.7.11.3
+Regards,
+
+Laurent Pinchart
+
