@@ -1,276 +1,262 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:57147 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932454Ab2JURxY (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54342 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753057Ab2JVMyn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Oct 2012 13:53:24 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so1632849wgb.1
-        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2012 10:53:23 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 05/23] em28xx: rename struct em28xx_usb_isoc_ctl to em28xx_usb_ctl
-Date: Sun, 21 Oct 2012 19:52:10 +0300
-Message-Id: <1350838349-14763-6-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
+	Mon, 22 Oct 2012 08:54:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH 1/2] media: V4L2: add temporary clock helpers
+Date: Mon, 22 Oct 2012 14:55:33 +0200
+Message-ID: <10639536.MyZHsyuauD@avalon>
+In-Reply-To: <Pine.LNX.4.64.1210200007310.28993@axis700.grange>
+References: <Pine.LNX.4.64.1210192358520.28993@axis700.grange> <Pine.LNX.4.64.1210200007310.28993@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Also rename the corresponding field isoc_ctl in struct em28xx
-to usb_ctl.
-We will use this struct for USB bulk transfers, too.
+Hi Guennadi,
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-core.c  |   24 ++++++++++++------------
- drivers/media/usb/em28xx/em28xx-vbi.c   |    4 ++--
- drivers/media/usb/em28xx/em28xx-video.c |   24 ++++++++++++------------
- drivers/media/usb/em28xx/em28xx.h       |   12 ++++++------
- 4 Dateien geändert, 32 Zeilen hinzugefügt(+), 32 Zeilen entfernt(-)
+Thanks for the patch. Here are a few comments in addition to what Sylwester 
+already mentioned.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index b250a63..0892d92 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -941,7 +941,7 @@ static void em28xx_irq_callback(struct urb *urb)
- 
- 	/* Copy data from URB */
- 	spin_lock(&dev->slock);
--	dev->isoc_ctl.isoc_copy(dev, urb);
-+	dev->usb_ctl.urb_data_copy(dev, urb);
- 	spin_unlock(&dev->slock);
- 
- 	/* Reset urb buffers */
-@@ -970,9 +970,9 @@ void em28xx_uninit_isoc(struct em28xx *dev, enum em28xx_mode mode)
- 	em28xx_isocdbg("em28xx: called em28xx_uninit_isoc in mode %d\n", mode);
- 
- 	if (mode == EM28XX_DIGITAL_MODE)
--		isoc_bufs = &dev->isoc_ctl.digital_bufs;
-+		isoc_bufs = &dev->usb_ctl.digital_bufs;
- 	else
--		isoc_bufs = &dev->isoc_ctl.analog_bufs;
-+		isoc_bufs = &dev->usb_ctl.analog_bufs;
- 
- 	for (i = 0; i < isoc_bufs->num_bufs; i++) {
- 		urb = isoc_bufs->urb[i];
-@@ -1012,7 +1012,7 @@ void em28xx_stop_urbs(struct em28xx *dev)
- {
- 	int i;
- 	struct urb *urb;
--	struct em28xx_usb_bufs *isoc_bufs = &dev->isoc_ctl.digital_bufs;
-+	struct em28xx_usb_bufs *isoc_bufs = &dev->usb_ctl.digital_bufs;
- 
- 	em28xx_isocdbg("em28xx: called em28xx_stop_urbs\n");
- 
-@@ -1045,9 +1045,9 @@ int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 	em28xx_isocdbg("em28xx: called em28xx_alloc_isoc in mode %d\n", mode);
- 
- 	if (mode == EM28XX_DIGITAL_MODE)
--		isoc_bufs = &dev->isoc_ctl.digital_bufs;
-+		isoc_bufs = &dev->usb_ctl.digital_bufs;
- 	else
--		isoc_bufs = &dev->isoc_ctl.analog_bufs;
-+		isoc_bufs = &dev->usb_ctl.analog_bufs;
- 
- 	/* De-allocates all pending stuff */
- 	em28xx_uninit_isoc(dev, mode);
-@@ -1070,8 +1070,8 @@ int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 
- 	isoc_bufs->max_pkt_size = max_pkt_size;
- 	isoc_bufs->num_packets = num_packets;
--	dev->isoc_ctl.vid_buf = NULL;
--	dev->isoc_ctl.vbi_buf = NULL;
-+	dev->usb_ctl.vid_buf = NULL;
-+	dev->usb_ctl.vbi_buf = NULL;
- 
- 	sb_size = isoc_bufs->num_packets * isoc_bufs->max_pkt_size;
- 
-@@ -1079,7 +1079,7 @@ int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 	for (i = 0; i < isoc_bufs->num_bufs; i++) {
- 		urb = usb_alloc_urb(isoc_bufs->num_packets, GFP_KERNEL);
- 		if (!urb) {
--			em28xx_err("cannot alloc isoc_ctl.urb %i\n", i);
-+			em28xx_err("cannot alloc usb_ctl.urb %i\n", i);
- 			em28xx_uninit_isoc(dev, mode);
- 			return -ENOMEM;
- 		}
-@@ -1141,14 +1141,14 @@ int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 
- 	em28xx_isocdbg("em28xx: called em28xx_init_isoc in mode %d\n", mode);
- 
--	dev->isoc_ctl.isoc_copy = isoc_copy;
-+	dev->usb_ctl.urb_data_copy = isoc_copy;
- 
- 	if (mode == EM28XX_DIGITAL_MODE) {
--		isoc_bufs = &dev->isoc_ctl.digital_bufs;
-+		isoc_bufs = &dev->usb_ctl.digital_bufs;
- 		/* no need to free/alloc isoc buffers in digital mode */
- 		alloc = 0;
- 	} else {
--		isoc_bufs = &dev->isoc_ctl.analog_bufs;
-+		isoc_bufs = &dev->usb_ctl.analog_bufs;
- 		alloc = 1;
- 	}
- 
-diff --git a/drivers/media/usb/em28xx/em28xx-vbi.c b/drivers/media/usb/em28xx/em28xx-vbi.c
-index 2b4c9cb..d74713b 100644
---- a/drivers/media/usb/em28xx/em28xx-vbi.c
-+++ b/drivers/media/usb/em28xx/em28xx-vbi.c
-@@ -60,8 +60,8 @@ free_buffer(struct videobuf_queue *vq, struct em28xx_buffer *buf)
- 	   VIDEOBUF_ACTIVE, it won't be, though.
- 	*/
- 	spin_lock_irqsave(&dev->slock, flags);
--	if (dev->isoc_ctl.vbi_buf == buf)
--		dev->isoc_ctl.vbi_buf = NULL;
-+	if (dev->usb_ctl.vbi_buf == buf)
-+		dev->usb_ctl.vbi_buf = NULL;
- 	spin_unlock_irqrestore(&dev->slock, flags);
- 
- 	videobuf_vmalloc_free(&buf->vb);
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index e51284c..b334885 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -165,7 +165,7 @@ static inline void buffer_filled(struct em28xx *dev,
- 	buf->vb.field_count++;
- 	do_gettimeofday(&buf->vb.ts);
- 
--	dev->isoc_ctl.vid_buf = NULL;
-+	dev->usb_ctl.vid_buf = NULL;
- 
- 	list_del(&buf->vb.queue);
- 	wake_up(&buf->vb.done);
-@@ -182,7 +182,7 @@ static inline void vbi_buffer_filled(struct em28xx *dev,
- 	buf->vb.field_count++;
- 	do_gettimeofday(&buf->vb.ts);
- 
--	dev->isoc_ctl.vbi_buf = NULL;
-+	dev->usb_ctl.vbi_buf = NULL;
- 
- 	list_del(&buf->vb.queue);
- 	wake_up(&buf->vb.done);
-@@ -368,7 +368,7 @@ static inline void get_next_buf(struct em28xx_dmaqueue *dma_q,
- 
- 	if (list_empty(&dma_q->active)) {
- 		em28xx_isocdbg("No active queue to serve\n");
--		dev->isoc_ctl.vid_buf = NULL;
-+		dev->usb_ctl.vid_buf = NULL;
- 		*buf = NULL;
- 		return;
- 	}
-@@ -380,7 +380,7 @@ static inline void get_next_buf(struct em28xx_dmaqueue *dma_q,
- 	outp = videobuf_to_vmalloc(&(*buf)->vb);
- 	memset(outp, 0, (*buf)->vb.size);
- 
--	dev->isoc_ctl.vid_buf = *buf;
-+	dev->usb_ctl.vid_buf = *buf;
- 
- 	return;
- }
-@@ -396,7 +396,7 @@ static inline void vbi_get_next_buf(struct em28xx_dmaqueue *dma_q,
- 
- 	if (list_empty(&dma_q->active)) {
- 		em28xx_isocdbg("No active queue to serve\n");
--		dev->isoc_ctl.vbi_buf = NULL;
-+		dev->usb_ctl.vbi_buf = NULL;
- 		*buf = NULL;
- 		return;
- 	}
-@@ -407,7 +407,7 @@ static inline void vbi_get_next_buf(struct em28xx_dmaqueue *dma_q,
- 	outp = videobuf_to_vmalloc(&(*buf)->vb);
- 	memset(outp, 0x00, (*buf)->vb.size);
- 
--	dev->isoc_ctl.vbi_buf = *buf;
-+	dev->usb_ctl.vbi_buf = *buf;
- 
- 	return;
- }
-@@ -435,7 +435,7 @@ static inline int em28xx_isoc_copy(struct em28xx *dev, struct urb *urb)
- 			return 0;
- 	}
- 
--	buf = dev->isoc_ctl.vid_buf;
-+	buf = dev->usb_ctl.vid_buf;
- 	if (buf != NULL)
- 		outp = videobuf_to_vmalloc(&buf->vb);
- 
-@@ -531,11 +531,11 @@ static inline int em28xx_isoc_copy_vbi(struct em28xx *dev, struct urb *urb)
- 			return 0;
- 	}
- 
--	buf = dev->isoc_ctl.vid_buf;
-+	buf = dev->usb_ctl.vid_buf;
- 	if (buf != NULL)
- 		outp = videobuf_to_vmalloc(&buf->vb);
- 
--	vbi_buf = dev->isoc_ctl.vbi_buf;
-+	vbi_buf = dev->usb_ctl.vbi_buf;
- 	if (vbi_buf != NULL)
- 		vbioutp = videobuf_to_vmalloc(&vbi_buf->vb);
- 
-@@ -725,8 +725,8 @@ static void free_buffer(struct videobuf_queue *vq, struct em28xx_buffer *buf)
- 	   VIDEOBUF_ACTIVE, it won't be, though.
- 	*/
- 	spin_lock_irqsave(&dev->slock, flags);
--	if (dev->isoc_ctl.vid_buf == buf)
--		dev->isoc_ctl.vid_buf = NULL;
-+	if (dev->usb_ctl.vid_buf == buf)
-+		dev->usb_ctl.vid_buf = NULL;
- 	spin_unlock_irqrestore(&dev->slock, flags);
- 
- 	videobuf_vmalloc_free(&buf->vb);
-@@ -758,7 +758,7 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
- 			goto fail;
- 	}
- 
--	if (!dev->isoc_ctl.analog_bufs.num_bufs)
-+	if (!dev->usb_ctl.analog_bufs.num_bufs)
- 		urb_init = 1;
- 
- 	if (urb_init) {
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index a4a79bd..5ef0a7a 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -219,19 +219,19 @@ struct em28xx_usb_bufs {
- 	char				**transfer_buffer;
- };
- 
--struct em28xx_usb_isoc_ctl {
--		/* isoc transfer buffers for analog mode */
-+struct em28xx_usb_ctl {
-+		/* isoc/bulk transfer buffers for analog mode */
- 	struct em28xx_usb_bufs		analog_bufs;
- 
--		/* isoc transfer buffers for digital mode */
-+		/* isoc/bulk transfer buffers for digital mode */
- 	struct em28xx_usb_bufs		digital_bufs;
- 
- 		/* Stores already requested buffers */
- 	struct em28xx_buffer    	*vid_buf;
- 	struct em28xx_buffer    	*vbi_buf;
- 
--		/* isoc urb callback */
--	int (*isoc_copy) (struct em28xx *dev, struct urb *urb);
-+		/* copy data from URB */
-+	int (*urb_data_copy) (struct em28xx *dev, struct urb *urb);
- 
- };
- 
-@@ -581,7 +581,7 @@ struct em28xx {
- 	/* Isoc control struct */
- 	struct em28xx_dmaqueue vidq;
- 	struct em28xx_dmaqueue vbiq;
--	struct em28xx_usb_isoc_ctl isoc_ctl;
-+	struct em28xx_usb_ctl usb_ctl;
- 	spinlock_t slock;
- 
- 	/* usb transfer */
+On Saturday 20 October 2012 00:20:20 Guennadi Liakhovetski wrote:
+> Typical video devices like camera sensors require an external clock source.
+> Many such devices cannot even access their hardware registers without a
+> running clock. These clock sources should be controlled by their consumers.
+> This should be performed, using the generic clock framework. Unfortunately
+> so far only very few systems have been ported to that framework. This patch
+> adds a set of temporary helpers, mimicking the generic clock API, to V4L2.
+> Platforms, adopting the clock API, should switch to using it. Eventually
+> this temporary API should be removed.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>  drivers/media/v4l2-core/Makefile   |    2 +-
+>  drivers/media/v4l2-core/v4l2-clk.c |  126 +++++++++++++++++++++++++++++++++
+>  include/media/v4l2-clk.h           |   48 ++++++++++++++
+>  3 files changed, 175 insertions(+), 1 deletions(-)
+>  create mode 100644 drivers/media/v4l2-core/v4l2-clk.c
+>  create mode 100644 include/media/v4l2-clk.h
+> 
+> diff --git a/drivers/media/v4l2-core/Makefile
+> b/drivers/media/v4l2-core/Makefile index 00f64d6..cb5fede 100644
+> --- a/drivers/media/v4l2-core/Makefile
+> +++ b/drivers/media/v4l2-core/Makefile
+> @@ -5,7 +5,7 @@
+>  tuner-objs	:=	tuner-core.o
+> 
+>  videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+> -			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o
+> +			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o
+>  ifeq ($(CONFIG_COMPAT),y)
+>    videodev-objs += v4l2-compat-ioctl32.o
+>  endif
+> diff --git a/drivers/media/v4l2-core/v4l2-clk.c
+> b/drivers/media/v4l2-core/v4l2-clk.c new file mode 100644
+> index 0000000..7d457e4
+> --- /dev/null
+> +++ b/drivers/media/v4l2-core/v4l2-clk.c
+> @@ -0,0 +1,126 @@
+> +/*
+> + * V4L2 clock service
+> + *
+> + * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/errno.h>
+> +#include <linux/list.h>
+> +#include <linux/module.h>
+> +#include <linux/mutex.h>
+> +#include <linux/string.h>
+> +
+> +#include <media/v4l2-clk.h>
+> +#include <media/v4l2-subdev.h>
+> +
+> +static DEFINE_MUTEX(clk_lock);
+> +static LIST_HEAD(v4l2_clk);
+> +
+> +struct v4l2_clk *v4l2_clk_get(struct v4l2_subdev *sd, const char *id)
+> +{
+> +	struct v4l2_clk *clk = NULL;
+> +
+> +	mutex_lock(&clk_lock);
+> +	if (!id) {
+> +		if (list_is_singular(&v4l2_clk)) {
+> +			clk = list_entry(&v4l2_clk, struct v4l2_clk, list);
+> +			if (!strstr(sd->name, clk->dev_id))
+> +				clk = ERR_PTR(-ENODEV);
+> +		} else {
+> +			clk = ERR_PTR(-EINVAL);
+> +		}
+> +	} else {
+> +		list_for_each_entry(clk, &v4l2_clk, list) {
+> +			if (!strcmp(id, clk->id) &&
+> +			    !strcmp(sd->name, clk->dev_id))
+> +				break;
+> +		}
+> +		if (&clk->list == &v4l2_clk)
+> +			clk = ERR_PTR(-ENODEV);
+> +	}
+> +	mutex_unlock(&clk_lock);
+> +
+> +	if (!IS_ERR(clk) &&
+> +	    !try_module_get(clk->ops->owner))
+> +		clk = ERR_PTR(-ENODEV);
+> +
+> +	return clk;
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_get);
+> +
+> +void v4l2_clk_put(struct v4l2_clk *clk)
+> +{
+> +	if (!IS_ERR(clk))
+> +		module_put(clk->ops->owner);
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_put);
+> +
+> +int v4l2_clk_enable(struct v4l2_clk *clk)
+> +{
+> +	if (!clk->ops->enable)
+> +		return -ENOSYS;
+> +	return clk->ops->enable(clk);
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_enable);
+> +
+> +void v4l2_clk_disable(struct v4l2_clk *clk)
+> +{
+> +	if (clk->ops->disable)
+> +		clk->ops->disable(clk);
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_disable);
+> +
+> +unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk)
+> +{
+> +	if (!clk->ops->get_rate)
+> +		return -ENOSYS;
+> +	return clk->ops->get_rate(clk);
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_get_rate);
+> +
+> +int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate)
+> +{
+> +	if (!clk->ops->set_rate)
+> +		return -ENOSYS;
+> +	return clk->ops->set_rate(clk, rate);
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_set_rate);
+> +
+> +struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
+> +				   const char *dev_name,
+> +				   const char *name)
+> +{
+> +	struct v4l2_clk *clk;
+> +
+> +	if (!ops || !ops->owner || (!list_empty(&v4l2_clk) && !name))
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	clk = kzalloc(sizeof(struct v4l2_clk), GFP_KERNEL);
+> +	if (!clk)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	clk->ops = ops;
+> +	clk->id = name;
+> +	clk->dev_id = dev_name;
+
+What about kstrdup() ing name and dev_name here ? Otherwise callers would need 
+to make sure that names are not stored in temporary locations (on the stack 
+for instance), leading to possibly difficult to debug crashes.
+
+We would then need a priv field in struct v4l2_clk/
+
+> +
+> +	mutex_lock(&clk_lock);
+> +	list_add_tail(&clk->list, &v4l2_clk);
+> +	mutex_unlock(&clk_lock);
+> +
+> +	return clk;
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_register);
+> +
+> +void v4l2_clk_unregister(struct v4l2_clk *clk)
+> +{
+> +	mutex_lock(&clk_lock);
+> +	list_del(&clk->list);
+> +	mutex_unlock(&clk_lock);
+> +
+> +	kfree(clk);
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_unregister);
+> diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
+> new file mode 100644
+> index 0000000..0c05ab3
+> --- /dev/null
+> +++ b/include/media/v4l2-clk.h
+> @@ -0,0 +1,48 @@
+> +/*
+> + * V4L2 clock service
+> + *
+> + * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * ATTENTION: This is a temporary API and it shall be replaced by the
+> generic + * clock API, when the latter becomes widely available.
+> + */
+> +
+> +#ifndef MEDIA_V4L2_CLK_H
+> +#define MEDIA_V4L2_CLK_H
+> +
+> +#include <linux/list.h>
+> +
+> +struct module;
+> +struct v4l2_subdev;
+> +
+> +struct v4l2_clk {
+> +	struct list_head list;
+> +	const struct v4l2_clk_ops *ops;
+
+You should forward-declare struct v4l2_clk_ops.
+
+> +	const char *dev_id;
+> +	const char *id;
+> +};
+> +
+> +struct v4l2_clk_ops {
+> +	struct module	*owner;
+> +	int		(*enable)(struct v4l2_clk *clk);
+> +	void		(*disable)(struct v4l2_clk *clk);
+> +	unsigned long	(*get_rate)(struct v4l2_clk *clk);
+> +	int		(*set_rate)(struct v4l2_clk *clk, unsigned long);
+> +};
+> +
+> +struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
+> +				   const char *dev_name,
+> +				   const char *name);
+> +void v4l2_clk_unregister(struct v4l2_clk *clk);
+> +struct v4l2_clk *v4l2_clk_get(struct v4l2_subdev *sd, const char *id);
+> +void v4l2_clk_put(struct v4l2_clk *clk);
+> +int v4l2_clk_enable(struct v4l2_clk *clk);
+> +void v4l2_clk_disable(struct v4l2_clk *clk);
+> +unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk);
+> +int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate);
+> +
+> +#endif
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
