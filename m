@@ -1,78 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:45576 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753687Ab2JHHMn (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:50627 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751095Ab2JVPaS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Oct 2012 03:12:43 -0400
-Received: by mail-la0-f46.google.com with SMTP id h6so2025282lag.19
-        for <linux-media@vger.kernel.org>; Mon, 08 Oct 2012 00:12:41 -0700 (PDT)
-Message-ID: <1349680358.3227.27.camel@deskari>
-Subject: Re: [PATCH 1/2 v6] of: add helper to parse display timings
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Cc: devicetree-discuss@lists.ozlabs.org,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Date: Mon, 08 Oct 2012 10:12:38 +0300
-In-Reply-To: <1349680065.3227.25.camel@deskari>
-References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de>
-	 <1349373560-11128-2-git-send-email-s.trumtrar@pengutronix.de>
-	 <1349680065.3227.25.camel@deskari>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-L32r8tTcWf9+Yupqd/gB"
-Mime-Version: 1.0
+	Mon, 22 Oct 2012 11:30:18 -0400
+Message-ID: <5085667A.70408@gmail.com>
+Date: Mon, 22 Oct 2012 17:30:02 +0200
+From: Daniel Mack <zonque@gmail.com>
+MIME-Version: 1.0
+To: Alan Stern <stern@rowland.harvard.edu>
+CC: "Artem S. Tashkinov" <t.artem@lycos.com>, bp@alien8.de,
+	pavel@ucw.cz, linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	security@kernel.org, linux-media@vger.kernel.org,
+	linux-usb@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Re: A reliable kernel panic (3.6.2) and system crash when visiting
+ a particular website
+References: <Pine.LNX.4.44L0.1210221116040.1724-100000@iolanthe.rowland.org>
+In-Reply-To: <Pine.LNX.4.44L0.1210221116040.1724-100000@iolanthe.rowland.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 22.10.2012 17:17, Alan Stern wrote:
+> On Sun, 21 Oct 2012, Artem S. Tashkinov wrote:
+> 
+>> dmesg messages up to a crash can be seen here: https://bugzilla.kernel.org/attachment.cgi?id=84221
+> 
+> The first problem in the log is endpoint list corruption.  Here's a 
+> debugging patch which should provide a little more information.
 
---=-L32r8tTcWf9+Yupqd/gB
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, 2012-10-08 at 10:07 +0300, Tomi Valkeinen wrote:
-> Hi,
-
-> I don't see you setting disp->default_timing to OF_DEFAULT_TIMING in
-> case there's no default_timing found.
->=20
-> Or, at least I presume OF_DEFAULT_TIMING is meant to mark non-existing
-> default timing. The name OF_DEFAULT_TIMING is not very descriptive to
-> me.
-
-Ah, I see now from the second patch how this is meant to be used. So if
-there's no default timing in DT data, disp->default_timing is 0, meaning
-the first entry. And the caller of of_get_videomode() will use
-OF_DEFAULT_TIMING as index to get the default mode.
-
-So I think it's ok.
-
- Tomi
+Maybe add a BUG() after each of these dev_err() so we stop at the first
+occurance and also see where we're coming from?
 
 
---=-L32r8tTcWf9+Yupqd/gB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJQcnzmAAoJEPo9qoy8lh71oBUP/0bxc1V5TTiuSaszMTujbf00
-dpQd40W+w4TsDWWlHzHk9Qd7NNxZpF1Qs4Yh3xlLn++V3FpzlseyGyrelWFSosAl
-vkCQdqENYBZ+bqfeuEQpKtAlbFoX0L3Jgxiv+2dGPIZvbzjjg5+dWHbN7ZBfdXhx
-UdOlprPZ022HjK6Rt7Yk1QpL+rpqP96NObt7ALjrY3jQfMSXtkv9d+LJEFRkqA+5
-krmoiVy6B+1cMMP/b4BcGqkOHs2Ek3LxiM4aSDfjF4ZEvrw0CH+uLWqvtjfErAhv
-2CQkEQeWoSjqDiB0DKno+MS+Hb+UoZ8PcPU65jgd/dovQhVEk5HBQYWVoXgiSurI
-uyfZ9qsoPhzhDx8UIYf0uZ3yEb7eThDWj6imRNqUhDtRoLLg4/MwxgQaiVVKo4Hb
-+UbsBvKuVbFTxeB7CwD2h3DT7i2nhhAKuXDTtKL+bPNA2Humw+bnwi2R0J3SjU0j
-gqqXz1+LbYT1yphW4eFTBC0r2NgKdfShB56ffuf0s3IunDX8OmoQIgsZ6niWZK6h
-Kv7yTP+cIc0T8nEzuVth4HKsXlAC0nhTRB/JCoZsEfgy4oKuFQO+5TC+S46NCOSG
-CeJyIstqxE91ILVqMz7l+W9T8il5oOiow+zC46kf7Cavvsx1yAqL2/cEBFdgdvJn
-90okBD/kA251OMuKr8we
-=LlnE
------END PGP SIGNATURE-----
-
---=-L32r8tTcWf9+Yupqd/gB--
+>  drivers/usb/core/hcd.c |   36 ++++++++++++++++++++++++++++++++++++
+>  1 file changed, 36 insertions(+)
+> 
+> Index: usb-3.6/drivers/usb/core/hcd.c
+> ===================================================================
+> --- usb-3.6.orig/drivers/usb/core/hcd.c
+> +++ usb-3.6/drivers/usb/core/hcd.c
+> @@ -1083,6 +1083,8 @@ EXPORT_SYMBOL_GPL(usb_calc_bus_time);
+>  
+>  /*-------------------------------------------------------------------------*/
+>  
+> +static bool list_error;
+> +
+>  /**
+>   * usb_hcd_link_urb_to_ep - add an URB to its endpoint queue
+>   * @hcd: host controller to which @urb was submitted
+> @@ -1126,6 +1128,20 @@ int usb_hcd_link_urb_to_ep(struct usb_hc
+>  	 */
+>  	if (HCD_RH_RUNNING(hcd)) {
+>  		urb->unlinked = 0;
+> +
+> +		{
+> +			struct list_head *cur = &urb->ep->urb_list;
+> +			struct list_head *prev = cur->prev;
+> +
+> +			if (prev->next != cur && !list_error) {
+> +				list_error = true;
+> +				dev_err(&urb->dev->dev,
+> +					"ep %x list add corruption: %p %p %p\n",
+> +					urb->ep->desc.bEndpointAddress,
+> +					cur, prev, prev->next);
+> +			}
+> +		}
+> +
+>  		list_add_tail(&urb->urb_list, &urb->ep->urb_list);
+>  	} else {
+>  		rc = -ESHUTDOWN;
+> @@ -1193,6 +1209,26 @@ void usb_hcd_unlink_urb_from_ep(struct u
+>  {
+>  	/* clear all state linking urb to this dev (and hcd) */
+>  	spin_lock(&hcd_urb_list_lock);
+> +	{
+> +		struct list_head *cur = &urb->urb_list;
+> +		struct list_head *prev = cur->prev;
+> +		struct list_head *next = cur->next;
+> +
+> +		if (prev->next != cur && !list_error) {
+> +			list_error = true;
+> +			dev_err(&urb->dev->dev,
+> +				"ep %x list del corruption prev: %p %p %p\n",
+> +				urb->ep->desc.bEndpointAddress,
+> +				cur, prev, prev->next);
+> +		}
+> +		if (next->prev != cur && !list_error) {
+> +			list_error = true;
+> +			dev_err(&urb->dev->dev,
+> +				"ep %x list del corruption next: %p %p %p\n",
+> +				urb->ep->desc.bEndpointAddress,
+> +				cur, next, next->prev);
+> +		}
+> +	}
+>  	list_del_init(&urb->urb_list);
+>  	spin_unlock(&hcd_urb_list_lock);
+>  }
+> 
 
