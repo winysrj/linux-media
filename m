@@ -1,133 +1,250 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33646 "EHLO mx1.redhat.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:45399 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753466Ab2J2Oxg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Oct 2012 10:53:36 -0400
-Date: Mon, 29 Oct 2012 12:53:20 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 0/2] Fix a few more warnings
-Message-ID: <20121029125320.04b403dc@redhat.com>
-In-Reply-To: <508E8EB3.9050808@samsung.com>
-References: <1351506118-2385-1-git-send-email-mchehab@redhat.com>
-	<508E6644.4040104@samsung.com>
-	<20121029093251.1bb2acfa@redhat.com>
-	<508E8EB3.9050808@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1750950Ab2JVPuU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Oct 2012 11:50:20 -0400
+From: Murali Karicheri <m-karicheri2@ti.com>
+To: <mchehab@infradead.org>, <laurent.pinchart@ideasonboard.com>,
+	<manjunath.hadli@ti.com>, <prabhakar.lad@ti.com>,
+	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<davinci-linux-open-source@linux.davincidsp.com>
+CC: Murali Karicheri <m-karicheri2@ti.com>
+Subject: [RESEND-PATCH] media:davinci: clk - {prepare/unprepare} for common clk
+Date: Mon, 22 Oct 2012 11:50:07 -0400
+Message-ID: <1350921007-22419-1-git-send-email-m-karicheri2@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 29 Oct 2012 15:12:03 +0100
-Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
+As a first step towards migrating davinci platforms to use common clock
+framework, replace all instances of clk_enable() with clk_prepare_enable()
+and clk_disable() with clk_disable_unprepare().
 
-> On 10/29/2012 12:32 PM, Mauro Carvalho Chehab wrote:
-> > Em Mon, 29 Oct 2012 12:19:32 +0100
-> > Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
-> > 
-> >> On 10/29/2012 11:21 AM, Mauro Carvalho Chehab wrote:
-> >>> Hans Verkuil yesterday's build still got two warnings at the
-> >>> generic drivers:
-> >>>         http://hverkuil.home.xs4all.nl/logs/Sunday.log
-> >>>
-> >>> They didn't appear at i386 build probably because of some
-> >>> optimization done there.
-> >>>
-> >>> Anyway, fixing them are trivial, so let's do it.
-> >>>
-> >>> After applying those patches, the only drivers left producing
-> >>> warnings are the following platform drivers:
-> >>>
-> >>> drivers/media/platform/davinci/dm355_ccdc.c
-> >>> drivers/media/platform/davinci/dm644x_ccdc.c
-> >>> drivers/media/platform/davinci/vpbe_osd.c
-> >>> drivers/media/platform/omap3isp/ispccdc.c
-> >>> drivers/media/platform/omap3isp/isph3a_aewb.c
-> >>> drivers/media/platform/omap3isp/isph3a_af.c
-> >>> drivers/media/platform/omap3isp/isphist.c
-> >>> drivers/media/platform/omap3isp/ispqueue.c
-> >>> drivers/media/platform/omap3isp/ispvideo.c
-> >>> drivers/media/platform/omap/omap_vout.c
-> >>> drivers/media/platform/s5p-fimc/fimc-capture.c
-> >>> drivers/media/platform/s5p-fimc/fimc-lite.c
-> >>
-> >> For these two files I've sent already a pull request [1], which
-> >> includes a fixup patch
-> >> s5p-fimc: Don't ignore return value of vb2_queue_init()
-> >>
-> >> BTW, shouldn't things like these be taken care when someone does
-> >> a change at the core code ? 
-> > 
-> > Sure. I remember I saw one patch with s5p on that series[1].
-> > Can't remember anymore if it were acked and merged directly, if
-> > it was opted to send it via your tree (or maybe that patch was just
-> > incomplete, and got unnoticed on that time).
-> 
-> I think this was one of the first patches from Ezequiel, when he wanted
-> to change the vb2_queue_init() function signature so it returns void (as
-> there were only BUG_ON()s used inside it). But what we need now at drivers
-> is the opposite, i.e. to keep checking the return value and to add where
-> such checks are missing. Thus patch [1] is not applicable, since BUG_ONs
-> were replaced with WARN_ON and __must_check annotation was added to the
-> vb2_queue_init() function declaration.
+Also fixes some issues related to clk clean up in the driver
 
-Ah, ok.
+Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
+---
+rebased to v3.7-rc1
 
-> > [1] https://patchwork.kernel.org/patch/1372871/
-> > 
-> > It is not easy to enforce those kind of things for platform drivers,
-> > as there's not yet a single .config file that could be used to test
-> > all arm drivers. Hans automatic builds might be useful, if there weren't
-> 
-> The ARM arch consolidation efforts are ongoing, for 1.5 year now IIRC
-> and there are good results. Still it looks like there is one year or so 
-> needed to be able to build one single image usable on all ARM sub-archs.
-> I think the progress is good and it all looks very promising, perhaps 
-> mostly thanks to the Linaro initiative.
+ drivers/media/platform/davinci/dm355_ccdc.c  |    8 ++++++--
+ drivers/media/platform/davinci/dm644x_ccdc.c |   16 ++++++++++------
+ drivers/media/platform/davinci/isif.c        |    5 ++++-
+ drivers/media/platform/davinci/vpbe.c        |   10 +++++++---
+ drivers/media/platform/davinci/vpif.c        |    8 ++++----
+ 5 files changed, 31 insertions(+), 16 deletions(-)
 
-Yeah, when all platform drivers we have can be compiled here, I'll eventually
-add it on my test logic. The thing is that changing from one arch to the other
-will require doing a make clean, with can be a little painful.
-> 
-> > any warns at the -git tree build at the tested archs, but there are
-> > so many warnings that I think I never saw any such report saying that
-> > there's no warning.
-> > 
-> > Btw, are there anyone really consistently using his reports to fix things?
-> 
-> Yes, I'm often looking at those logs. I find them useful, especially that 
-> it nearly doesn't happen I build some drivers on architectures other than 
-> ARM. So it's good to have those build logs.
-> 
-> Some projects, e.g. [2], use build/test systems that allow to track status
-> after each commit. Not sure if something like this is feasible for whole
-> media subsystem.
-> 
-> [2] https://chromium-build.appspot.com/p/chromium/console
+diff --git a/drivers/media/platform/davinci/dm355_ccdc.c b/drivers/media/platform/davinci/dm355_ccdc.c
+index ce0e413..030950d 100644
+--- a/drivers/media/platform/davinci/dm355_ccdc.c
++++ b/drivers/media/platform/davinci/dm355_ccdc.c
+@@ -1003,7 +1003,7 @@ static int __devinit dm355_ccdc_probe(struct platform_device *pdev)
+ 		status = PTR_ERR(ccdc_cfg.mclk);
+ 		goto fail_nomap;
+ 	}
+-	if (clk_enable(ccdc_cfg.mclk)) {
++	if (clk_prepare_enable(ccdc_cfg.mclk)) {
+ 		status = -ENODEV;
+ 		goto fail_mclk;
+ 	}
+@@ -1014,7 +1014,7 @@ static int __devinit dm355_ccdc_probe(struct platform_device *pdev)
+ 		status = PTR_ERR(ccdc_cfg.sclk);
+ 		goto fail_mclk;
+ 	}
+-	if (clk_enable(ccdc_cfg.sclk)) {
++	if (clk_prepare_enable(ccdc_cfg.sclk)) {
+ 		status = -ENODEV;
+ 		goto fail_sclk;
+ 	}
+@@ -1034,8 +1034,10 @@ static int __devinit dm355_ccdc_probe(struct platform_device *pdev)
+ 	printk(KERN_NOTICE "%s is registered with vpfe.\n", ccdc_hw_dev.name);
+ 	return 0;
+ fail_sclk:
++	clk_disable_unprepare(ccdc_cfg.sclk);
+ 	clk_put(ccdc_cfg.sclk);
+ fail_mclk:
++	clk_disable_unprepare(ccdc_cfg.mclk);
+ 	clk_put(ccdc_cfg.mclk);
+ fail_nomap:
+ 	iounmap(ccdc_cfg.base_addr);
+@@ -1050,6 +1052,8 @@ static int dm355_ccdc_remove(struct platform_device *pdev)
+ {
+ 	struct resource	*res;
+ 
++	clk_disable_unprepare(ccdc_cfg.sclk);
++	clk_disable_unprepare(ccdc_cfg.mclk);
+ 	clk_put(ccdc_cfg.mclk);
+ 	clk_put(ccdc_cfg.sclk);
+ 	iounmap(ccdc_cfg.base_addr);
+diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
+index ee7942b..0215ab6 100644
+--- a/drivers/media/platform/davinci/dm644x_ccdc.c
++++ b/drivers/media/platform/davinci/dm644x_ccdc.c
+@@ -994,7 +994,7 @@ static int __devinit dm644x_ccdc_probe(struct platform_device *pdev)
+ 		status = PTR_ERR(ccdc_cfg.mclk);
+ 		goto fail_nomap;
+ 	}
+-	if (clk_enable(ccdc_cfg.mclk)) {
++	if (clk_prepare_enable(ccdc_cfg.mclk)) {
+ 		status = -ENODEV;
+ 		goto fail_mclk;
+ 	}
+@@ -1005,7 +1005,7 @@ static int __devinit dm644x_ccdc_probe(struct platform_device *pdev)
+ 		status = PTR_ERR(ccdc_cfg.sclk);
+ 		goto fail_mclk;
+ 	}
+-	if (clk_enable(ccdc_cfg.sclk)) {
++	if (clk_prepare_enable(ccdc_cfg.sclk)) {
+ 		status = -ENODEV;
+ 		goto fail_sclk;
+ 	}
+@@ -1013,8 +1013,10 @@ static int __devinit dm644x_ccdc_probe(struct platform_device *pdev)
+ 	printk(KERN_NOTICE "%s is registered with vpfe.\n", ccdc_hw_dev.name);
+ 	return 0;
+ fail_sclk:
++	clk_disable_unprepare(ccdc_cfg.sclk);
+ 	clk_put(ccdc_cfg.sclk);
+ fail_mclk:
++	clk_disable_unprepare(ccdc_cfg.mclk);
+ 	clk_put(ccdc_cfg.mclk);
+ fail_nomap:
+ 	iounmap(ccdc_cfg.base_addr);
+@@ -1029,6 +1031,8 @@ static int dm644x_ccdc_remove(struct platform_device *pdev)
+ {
+ 	struct resource	*res;
+ 
++	clk_disable_unprepare(ccdc_cfg.mclk);
++	clk_disable_unprepare(ccdc_cfg.sclk);
+ 	clk_put(ccdc_cfg.mclk);
+ 	clk_put(ccdc_cfg.sclk);
+ 	iounmap(ccdc_cfg.base_addr);
+@@ -1046,8 +1050,8 @@ static int dm644x_ccdc_suspend(struct device *dev)
+ 	/* Disable CCDC */
+ 	ccdc_enable(0);
+ 	/* Disable both master and slave clock */
+-	clk_disable(ccdc_cfg.mclk);
+-	clk_disable(ccdc_cfg.sclk);
++	clk_disable_unprepare(ccdc_cfg.mclk);
++	clk_disable_unprepare(ccdc_cfg.sclk);
+ 
+ 	return 0;
+ }
+@@ -1055,8 +1059,8 @@ static int dm644x_ccdc_suspend(struct device *dev)
+ static int dm644x_ccdc_resume(struct device *dev)
+ {
+ 	/* Enable both master and slave clock */
+-	clk_enable(ccdc_cfg.mclk);
+-	clk_enable(ccdc_cfg.sclk);
++	clk_prepare_enable(ccdc_cfg.mclk);
++	clk_prepare_enable(ccdc_cfg.sclk);
+ 	/* Restore CCDC context */
+ 	ccdc_restore_context();
+ 
+diff --git a/drivers/media/platform/davinci/isif.c b/drivers/media/platform/davinci/isif.c
+index b99d542..2c26c3e 100644
+--- a/drivers/media/platform/davinci/isif.c
++++ b/drivers/media/platform/davinci/isif.c
+@@ -1053,7 +1053,7 @@ static int __devinit isif_probe(struct platform_device *pdev)
+ 		status = PTR_ERR(isif_cfg.mclk);
+ 		goto fail_mclk;
+ 	}
+-	if (clk_enable(isif_cfg.mclk)) {
++	if (clk_prepare_enable(isif_cfg.mclk)) {
+ 		status = -ENODEV;
+ 		goto fail_mclk;
+ 	}
+@@ -1125,6 +1125,7 @@ fail_nobase_res:
+ 		i--;
+ 	}
+ fail_mclk:
++	clk_disable_unprepare(isif_cfg.mclk);
+ 	clk_put(isif_cfg.mclk);
+ 	vpfe_unregister_ccdc_device(&isif_hw_dev);
+ 	return status;
+@@ -1145,6 +1146,8 @@ static int isif_remove(struct platform_device *pdev)
+ 		i++;
+ 	}
+ 	vpfe_unregister_ccdc_device(&isif_hw_dev);
++	clk_disable_unprepare(isif_cfg.mclk);
++	clk_put(isif_cfg.mclk);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+index 69d7a58..7f5cf9b 100644
+--- a/drivers/media/platform/davinci/vpbe.c
++++ b/drivers/media/platform/davinci/vpbe.c
+@@ -612,7 +612,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 			ret =  PTR_ERR(vpbe_dev->dac_clk);
+ 			goto fail_mutex_unlock;
+ 		}
+-		if (clk_enable(vpbe_dev->dac_clk)) {
++		if (clk_prepare_enable(vpbe_dev->dac_clk)) {
+ 			ret =  -ENODEV;
+ 			goto fail_mutex_unlock;
+ 		}
+@@ -759,8 +759,10 @@ fail_kfree_encoders:
+ fail_dev_unregister:
+ 	v4l2_device_unregister(&vpbe_dev->v4l2_dev);
+ fail_clk_put:
+-	if (strcmp(vpbe_dev->cfg->module_name, "dm644x-vpbe-display") != 0)
++	if (strcmp(vpbe_dev->cfg->module_name, "dm644x-vpbe-display") != 0) {
++		clk_disable_unprepare(vpbe_dev->dac_clk);
+ 		clk_put(vpbe_dev->dac_clk);
++	}
+ fail_mutex_unlock:
+ 	mutex_unlock(&vpbe_dev->lock);
+ 	return ret;
+@@ -777,8 +779,10 @@ fail_mutex_unlock:
+ static void vpbe_deinitialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ {
+ 	v4l2_device_unregister(&vpbe_dev->v4l2_dev);
+-	if (strcmp(vpbe_dev->cfg->module_name, "dm644x-vpbe-display") != 0)
++	if (strcmp(vpbe_dev->cfg->module_name, "dm644x-vpbe-display") != 0) {
++		clk_disable_unprepare(vpbe_dev->dac_clk);
+ 		clk_put(vpbe_dev->dac_clk);
++	}
+ 
+ 	kfree(vpbe_dev->amp);
+ 	kfree(vpbe_dev->encoders);
+diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
+index cff3c0a..0d6cc8e 100644
+--- a/drivers/media/platform/davinci/vpif.c
++++ b/drivers/media/platform/davinci/vpif.c
+@@ -444,7 +444,7 @@ static int __devinit vpif_probe(struct platform_device *pdev)
+ 		status = PTR_ERR(vpif_clk);
+ 		goto clk_fail;
+ 	}
+-	clk_enable(vpif_clk);
++	clk_prepare_enable(vpif_clk);
+ 
+ 	spin_lock_init(&vpif_lock);
+ 	dev_info(&pdev->dev, "vpif probe success\n");
+@@ -460,7 +460,7 @@ fail:
+ static int __devexit vpif_remove(struct platform_device *pdev)
+ {
+ 	if (vpif_clk) {
+-		clk_disable(vpif_clk);
++		clk_disable_unprepare(vpif_clk);
+ 		clk_put(vpif_clk);
+ 	}
+ 
+@@ -472,13 +472,13 @@ static int __devexit vpif_remove(struct platform_device *pdev)
+ #ifdef CONFIG_PM
+ static int vpif_suspend(struct device *dev)
+ {
+-	clk_disable(vpif_clk);
++	clk_disable_unprepare(vpif_clk);
+ 	return 0;
+ }
+ 
+ static int vpif_resume(struct device *dev)
+ {
+-	clk_enable(vpif_clk);
++	clk_prepare_enable(vpif_clk);
+ 	return 0;
+ }
+ 
+-- 
+1.7.9.5
 
-The idea is good. The evil is on details. For example, I prefer to not mix
-any build setup like that with the main linuxtv site, due to machine's
-reliability.
-
-Even running it locally would also likely require two machines, as the multi-arch
-compilation will take some time, and several GB of diskspace, as each arch will
-need a local working copy of the git tree.
-
-Asynchronous compilation of the kernel, while patches are being added has
-some issues: if the build fails, patches need to be reverted, as we don't
-want to break git bisect. That would mean that we would need a temporary
-"untested" tree, and some logic there that will cherry-pick patches to the
-"tested" one when compilation succeeds, or stop and warn maintainer if a
-patch breaks. The maintainer will then need to rebase the "untested" tree
-which can, in tune, cause troubles at the testing daemon.
-
-Anyway, implementing it would require some time and resources 
-that I don't currently have. If anyone could do it, that could be
-a nice project.
-
-Regards,
-Mauro
