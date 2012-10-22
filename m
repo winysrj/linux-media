@@ -1,116 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:29067 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756154Ab2JLHoJ (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:55602 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755157Ab2JVVHs convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Oct 2012 03:44:09 -0400
-Received: from eusync2.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBR00A7YS6HWK60@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 12 Oct 2012 08:44:41 +0100 (BST)
-Received: from [106.116.147.108] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MBR002LCS5IUE10@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 12 Oct 2012 08:44:07 +0100 (BST)
-Message-id: <5077CA45.2040908@samsung.com>
-Date: Fri, 12 Oct 2012 09:44:05 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
-	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
-	zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
-	k.debski@samsung.com
-Subject: Re: [PATCHv10 22/26] v4l: vb2-dma-contig: fail if user ptr buffer is
- not correctly aligned
-References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
- <1349880405-26049-23-git-send-email-t.stanislaws@samsung.com>
- <2222801.pVl6O4rxaf@avalon>
-In-reply-to: <2222801.pVl6O4rxaf@avalon>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Mon, 22 Oct 2012 17:07:48 -0400
+Date: Mon, 22 Oct 2012 23:07:29 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Fabio Estevam <fabio.estevam@freescale.com>
+cc: mchehab@infradead.org, kernel@pengutronix.de, gcembed@gmail.com,
+	javier.martin@vista-silicon.com, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk
+Subject: Re: =?UTF-8?q?=5BPATCH=20v3=202/2=5D=20=5Bmedia=5D=3A=20mx2=5Fcamera=3A=20Fix=20regression=20caused=20by=20clock=20conversion?=
+In-Reply-To: <1349791352-9829-1-git-send-email-fabio.estevam@freescale.com>
+Message-ID: <Pine.LNX.4.64.1210222301100.32591@axis700.grange>
+References: <1349791352-9829-1-git-send-email-fabio.estevam@freescale.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-Thank you for the review.
-Please refer to the comments below.
+Hi Fabio
 
-On 10/11/2012 11:36 PM, Laurent Pinchart wrote:
-> Hi Tomasz,
+On Tue, 9 Oct 2012, Fabio Estevam wrote:
+
+> Since mx27 transitioned to the commmon clock framework in 3.5, the correct way
+> to acquire the csi clock is to get csi_ahb and csi_per clocks separately.
 > 
-> Thanks for the patch.
+> By not doing so the camera sensor does not probe correctly:
 > 
-> On Wednesday 10 October 2012 16:46:41 Tomasz Stanislawski wrote:
->> From: Marek Szyprowski <m.szyprowski@samsung.com>
->>
->> The DMA transfer must be aligned to a specific value. If userptr is not
->> aligned to DMA requirements then unexpected corruptions of the memory may
->> occur before or after a buffer.  To prevent such situations, all unligned
->> userptr buffers are rejected at VIDIOC_QBUF.
->>
->> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/v4l2-core/videobuf2-dma-contig.c |   12 ++++++++++++
->>  1 file changed, 12 insertions(+)
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index 2d661fd..571a919
->> 100644
->> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> @@ -493,6 +493,18 @@ static void *vb2_dc_get_userptr(void *alloc_ctx,
->> unsigned long vaddr, struct vm_area_struct *vma;
->>  	struct sg_table *sgt;
->>  	unsigned long contig_size;
->> +	unsigned long dma_align = dma_get_cache_alignment();
->> +
->> +	/* Only cache aligned DMA transfers are reliable */
->> +	if (!IS_ALIGNED(vaddr | size, dma_align)) {
->> +		pr_debug("user data must be aligned to %lu bytes\n", dma_align);
->> +		return ERR_PTR(-EINVAL);
->> +	}
+> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
+> mx2-camera mx2-camera.0: Camera driver attached to camera 0
+> ov2640 0-0030: Product ID error fb:fb
+> mx2-camera mx2-camera.0: Camera driver detached from camera 0
+> mx2-camera mx2-camera.0: MX2 Camera (CSI) driver probed, clock frequency: 66500000
 > 
-> Looks good to me.
+> Adapt the mx2_camera driver to the new clock framework and make it functional
+> again.
 > 
->> +	if (!size) {
->> +		pr_debug("size is zero\n");
->> +		return ERR_PTR(-EINVAL);
->> +	}
+> Tested-by: Gaëtan Carlier <gcembed@gmail.com>
+> Tested-by: Javier Martin <javier.martin@vista-silicon.com>
+> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+
+I've got a question to this your patch: could you explain to me, which 
+clock is obtained by
+
+> +	pcdev->clk_csi_per = devm_clk_get(&pdev->dev, "per");
+
+? I don't find a clock named "per" and associated with "mx2-camera.0" in 
+arch/arm/mach-imx/clk-imx27.c. I only find it in clk-imx25.c. Does this 
+mean, that this your patch is for i.MX25? But you're saying it's for 
+i.MX27. Confused...
+
+Thanks
+Guennadi
+
+
+> ---
+> Changes since v2:
+> - Fix clock error handling code as pointed out by Russell King
+> Changes since v1:
+> - Rebased against linux-next 20121008.
+>  drivers/media/platform/soc_camera/mx2_camera.c |   50 ++++++++++++++++++------
+>  1 file changed, 38 insertions(+), 12 deletions(-)
 > 
-> Can this happen ? The vb2 core already has
+> diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+> index 403d7f1..382b305 100644
+> --- a/drivers/media/platform/soc_camera/mx2_camera.c
+> +++ b/drivers/media/platform/soc_camera/mx2_camera.c
+> @@ -272,7 +272,8 @@ struct mx2_camera_dev {
+>  	struct device		*dev;
+>  	struct soc_camera_host	soc_host;
+>  	struct soc_camera_device *icd;
+> -	struct clk		*clk_csi, *clk_emma_ahb, *clk_emma_ipg;
+> +	struct clk		*clk_emma_ahb, *clk_emma_ipg;
+> +	struct clk		*clk_csi_ahb, *clk_csi_per;
+>  
+>  	void __iomem		*base_csi, *base_emma;
+>  
+> @@ -432,7 +433,8 @@ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
+>  {
+>  	unsigned long flags;
+>  
+> -	clk_disable_unprepare(pcdev->clk_csi);
+> +	clk_disable_unprepare(pcdev->clk_csi_ahb);
+> +	clk_disable_unprepare(pcdev->clk_csi_per);
+>  	writel(0, pcdev->base_csi + CSICR1);
+>  	if (cpu_is_mx27()) {
+>  		writel(0, pcdev->base_emma + PRP_CNTL);
+> @@ -460,10 +462,14 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
+>  	if (pcdev->icd)
+>  		return -EBUSY;
+>  
+> -	ret = clk_prepare_enable(pcdev->clk_csi);
+> +	ret = clk_prepare_enable(pcdev->clk_csi_ahb);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> +	ret = clk_prepare_enable(pcdev->clk_csi_per);
+> +	if (ret < 0)
+> +		goto exit_csi_ahb;
+> +
+>  	csicr1 = CSICR1_MCLKEN;
+>  
+>  	if (cpu_is_mx27())
+> @@ -480,6 +486,11 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
+>  		 icd->devnum);
+>  
+>  	return 0;
+> +
+> +exit_csi_ahb:
+> +	clk_disable_unprepare(pcdev->clk_csi_ahb);
+> +
+> +	return ret;
+>  }
+>  
+>  static void mx2_camera_remove_device(struct soc_camera_device *icd)
+> @@ -1725,27 +1736,35 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+>  		goto exit;
+>  	}
+>  
+> -	pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
+> -	if (IS_ERR(pcdev->clk_csi)) {
+> -		dev_err(&pdev->dev, "Could not get csi clock\n");
+> -		err = PTR_ERR(pcdev->clk_csi);
+> +	pcdev->clk_csi_ahb = devm_clk_get(&pdev->dev, "ahb");
+> +	if (IS_ERR(pcdev->clk_csi_ahb)) {
+> +		dev_err(&pdev->dev, "Could not get csi ahb clock\n");
+> +		err = PTR_ERR(pcdev->clk_csi_ahb);
+>  		goto exit;
+>  	}
+>  
+> +	pcdev->clk_csi_per = devm_clk_get(&pdev->dev, "per");
+> +	if (IS_ERR(pcdev->clk_csi_per)) {
+> +		dev_err(&pdev->dev, "Could not get csi per clock\n");
+> +		err = PTR_ERR(pcdev->clk_csi_per);
+> +		goto exit_csi_ahb;
+> +	}
+> +
+>  	pcdev->pdata = pdev->dev.platform_data;
+>  	if (pcdev->pdata) {
+>  		long rate;
+>  
+>  		pcdev->platform_flags = pcdev->pdata->flags;
+>  
+> -		rate = clk_round_rate(pcdev->clk_csi, pcdev->pdata->clk * 2);
+> +		rate = clk_round_rate(pcdev->clk_csi_per,
+> +						pcdev->pdata->clk * 2);
+>  		if (rate <= 0) {
+>  			err = -ENODEV;
+> -			goto exit;
+> +			goto exit_csi_per;
+>  		}
+> -		err = clk_set_rate(pcdev->clk_csi, rate);
+> +		err = clk_set_rate(pcdev->clk_csi_per, rate);
+>  		if (err < 0)
+> -			goto exit;
+> +			goto exit_csi_per;
+>  	}
+>  
+>  	INIT_LIST_HEAD(&pcdev->capture);
+> @@ -1801,7 +1820,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+>  		goto exit_free_emma;
+>  
+>  	dev_info(&pdev->dev, "MX2 Camera (CSI) driver probed, clock frequency: %ld\n",
+> -			clk_get_rate(pcdev->clk_csi));
+> +			clk_get_rate(pcdev->clk_csi_per));
+>  
+>  	return 0;
+>  
+> @@ -1812,6 +1831,10 @@ eallocctx:
+>  		clk_disable_unprepare(pcdev->clk_emma_ipg);
+>  		clk_disable_unprepare(pcdev->clk_emma_ahb);
+>  	}
+> +exit_csi_per:
+> +	clk_disable_unprepare(pcdev->clk_csi_per);
+> +exit_csi_ahb:
+> +	clk_disable_unprepare(pcdev->clk_csi_ahb);
+>  exit:
+>  	return err;
+>  }
+> @@ -1831,6 +1854,9 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
+>  		clk_disable_unprepare(pcdev->clk_emma_ahb);
+>  	}
+>  
+> +	clk_disable_unprepare(pcdev->clk_csi_per);
+> +	clk_disable_unprepare(pcdev->clk_csi_ahb);
+> +
+>  	dev_info(&pdev->dev, "MX2 Camera driver unloaded\n");
+>  
+>  	return 0;
+> -- 
+> 1.7.9.5
 > 
->                 /* Check if the provided plane buffer is large enough */
->                 if (planes[plane].length < q->plane_sizes[plane]) {
->                         ret = -EINVAL;
->                         goto err;
->                 }
-> 
-> Unless queue_setup sets plane_sizes to 0 we can't reach vb2_dc_get_userptr.
 > 
 
-Yes.. unfortunately, some drivers set plane_size to 0 at queue_setup.
-Especially, if REQBUFS is called before any S_FMT.
-Maybe it is just a driver bug.
-
-However, VB2 makes no sanity check if plane_sizes[] is zero.
-I was not able to find in Documentation nor code comments
-any explicit statement that plane_size cannot be zero.
-
-Therefore I have to reject reject a 0-bytes-long user pointer
-at vb2_dc_get_userptr before creating an empty scatterlist
-and passing it to the DMA layer.
-
-Regards,
-Tomasz Stanislawski
-
->>  	buf = kzalloc(sizeof *buf, GFP_KERNEL);
->>  	if (!buf)
-> 
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
