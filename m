@@ -1,169 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx01.sz.bfs.de ([194.94.69.103]:44472 "EHLO mx01.sz.bfs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751342Ab2JGRN1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Oct 2012 13:13:27 -0400
-Message-ID: <5071B834.1010200@bfs.de>
-Date: Sun, 07 Oct 2012 19:13:24 +0200
-From: walter harms <wharms@bfs.de>
-Reply-To: wharms@bfs.de
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60469 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751863Ab2JVKxR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Oct 2012 06:53:17 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] omap3isp: Add resizer data rate configuration to resizer_link_validate
+Date: Mon, 22 Oct 2012 12:54:08 +0200
+Message-ID: <3713718.IZ8Wg0AVAT@avalon>
+In-Reply-To: <1350769698-24752-1-git-send-email-sakari.ailus@iki.fi>
+References: <20121020214803.GR21261@valkosipuli.retiisi.org.uk> <1350769698-24752-1-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Julia Lawall <julia.lawall@lip6.fr>
-CC: Antti Palosaari <crope@iki.fi>, kernel-janitors@vger.kernel.org,
-	rmallon@gmail.com, shubhrajyoti@ti.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for i2c_msg
- initialization
-References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr> <5071AEF3.6080108@bfs.de> <alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6>
-In-Reply-To: <alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sakari,
 
+Thanks for the patch.
 
-Am 07.10.2012 18:44, schrieb Julia Lawall:
-> On Sun, 7 Oct 2012, walter harms wrote:
+On Sunday 21 October 2012 00:48:17 Sakari Ailus wrote:
+> The configuration of many other blocks depend on resizer maximum data rate.
+> Get the value from resizer at link validation time.
 > 
->>
->>
->> Am 07.10.2012 17:38, schrieb Julia Lawall:
->>> From: Julia Lawall <Julia.Lawall@lip6.fr>
->>>
->>> Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
->>>
->>> In the second i2c_msg structure, a length expressed as an explicit
->>> constant
->>> is also re-expressed as the size of the buffer, reg.
->>>
->>> A simplified version of the semantic patch that makes this change is as
->>> follows: (http://coccinelle.lip6.fr/)
->>>
->>> // <smpl>
->>> @@
->>> expression a,b,c;
->>> identifier x;
->>> @@
->>>
->>> struct i2c_msg x =
->>> - {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
->>> + I2C_MSG_READ(a,b,c)
->>>  ;
->>>
->>> @@
->>> expression a,b,c;
->>> identifier x;
->>> @@
->>>
->>> struct i2c_msg x =
->>> - {.addr = a, .buf = b, .len = c, .flags = 0}
->>> + I2C_MSG_WRITE(a,b,c)
->>>  ;
->>>
->>> @@
->>> expression a,b,c,d;
->>> identifier x;
->>> @@
->>>
->>> struct i2c_msg x =
->>> - {.addr = a, .buf = b, .len = c, .flags = d}
->>> + I2C_MSG_OP(a,b,c,d)
->>>  ;
->>> // </smpl>
->>>
->>> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
->>>
->>> ---
->>>  drivers/media/tuners/e4000.c |   20 +++-----------------
->>>  1 file changed, 3 insertions(+), 17 deletions(-)
->>>
->>> diff --git a/drivers/media/tuners/e4000.c b/drivers/media/tuners/e4000.c
->>> index 1b33ed3..8f182fc 100644
->>> --- a/drivers/media/tuners/e4000.c
->>> +++ b/drivers/media/tuners/e4000.c
->>> @@ -26,12 +26,7 @@ static int e4000_wr_regs(struct e4000_priv *priv,
->>> u8 reg, u8 *val, int len)
->>>      int ret;
->>>      u8 buf[1 + len];
->>>      struct i2c_msg msg[1] = {
->>> -        {
->>> -            .addr = priv->cfg->i2c_addr,
->>> -            .flags = 0,
->>> -            .len = sizeof(buf),
->>> -            .buf = buf,
->>> -        }
->>> +        I2C_MSG_WRITE(priv->cfg->i2c_addr, buf, sizeof(buf))
->>>      };
->>>
->>
->> Any reason why struct i2c_msg is an array ?
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/platform/omap3isp/ispresizer.c |   15 +++++++
+>  drivers/media/platform/omap3isp/ispvideo.c   |   54 -----------------------
+>  2 files changed, 15 insertions(+), 54 deletions(-)
 > 
-> I assumed that it looked more harmonious with the other uses of
-> i2c_transfer, which takes as arguments an array and the number of elements.
+> diff --git a/drivers/media/platform/omap3isp/ispresizer.c
+> b/drivers/media/platform/omap3isp/ispresizer.c index d11fb26..bb5fb4a
+> 100644
+> --- a/drivers/media/platform/omap3isp/ispresizer.c
+> +++ b/drivers/media/platform/omap3isp/ispresizer.c
+> @@ -1532,6 +1532,20 @@ static int resizer_set_format(struct v4l2_subdev *sd,
+> struct v4l2_subdev_fh *fh, return 0;
+>  }
 > 
-> But there are some files that instead use i2c_transfer(priv->i2c, &msg, 1).
-> I can change them all to do that if that is preferred.  But maybe I will
-> wait a little bit to see if there are other issues to address at the
-> same time.
+> +static int resizer_link_validate(struct v4l2_subdev *sd,
+> +				 struct media_link *link,
+> +				 struct v4l2_subdev_format *source_fmt,
+> +				 struct v4l2_subdev_format *sink_fmt)
+> +{
+> +	struct isp_res_device *res = v4l2_get_subdevdata(sd);
+> +	struct isp_pipeline *pipe = to_isp_pipeline(&sd->entity);
+> +
+> +	omap3isp_resizer_max_rate(res, &pipe->max_rate);
+> +
+> +	return v4l2_subdev_link_validate_default(sd, link,
+> +						 source_fmt, sink_fmt);
+> +}
+> +
+>  /*
+>   * resizer_init_formats - Initialize formats on all pads
+>   * @sd: ISP resizer V4L2 subdevice
+> @@ -1570,6 +1584,7 @@ static const struct v4l2_subdev_pad_ops
+> resizer_v4l2_pad_ops = { .set_fmt = resizer_set_format,
+>  	.get_selection = resizer_get_selection,
+>  	.set_selection = resizer_set_selection,
+> +	.link_validate = resizer_link_validate,
+>  };
 > 
-> thanks,
-> julia
+>  /* subdev operations */
+> diff --git a/drivers/media/platform/omap3isp/ispvideo.c
+> b/drivers/media/platform/omap3isp/ispvideo.c index a0b737fe..aae70f7 100644
+> --- a/drivers/media/platform/omap3isp/ispvideo.c
+> +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> @@ -280,55 +280,6 @@ static int isp_video_get_graph_data(struct isp_video
+> *video, return 0;
+>  }
 > 
+> -/*
+> - * Validate a pipeline by checking both ends of all links for format
+> - * discrepancies.
+> - *
+> - * Compute the minimum time per frame value as the maximum of time per
+> frame - * limits reported by every block in the pipeline.
+> - *
+> - * Return 0 if all formats match, or -EPIPE if at least one link is found
+> with - * different formats on its two ends or if the pipeline doesn't start
+> with a - * video source (either a subdev with no input pad, or a non-subdev
+> entity). - */
+> -static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+> -{
+> -	struct isp_device *isp = pipe->output->isp;
+> -	struct media_pad *pad;
+> -	struct v4l2_subdev *subdev;
+> -
+> -	subdev = isp_video_remote_subdev(pipe->output, NULL);
+> -	if (subdev == NULL)
+> -		return -EPIPE;
+> -
+> -	while (1) {
+> -		/* Retrieve the sink format */
+> -		pad = &subdev->entity.pads[0];
+> -		if (!(pad->flags & MEDIA_PAD_FL_SINK))
+> -			break;
+> -
+> -		/* Update the maximum frame rate */
+> -		if (subdev == &isp->isp_res.subdev)
+> -			omap3isp_resizer_max_rate(&isp->isp_res,
+> -						  &pipe->max_rate);
+> -
+> -		/* Retrieve the source format. Return an error if no source
+> -		 * entity can be found, and stop checking the pipeline if the
+> -		 * source entity isn't a subdev.
+> -		 */
+> -		pad = media_entity_remote_source(pad);
+> -		if (pad == NULL)
+> -			return -EPIPE;
 
-Hi Julia,
-please be aware i am not the maintainer only a distant watcher :)
+I think we're loosing this check if you remove this function. A pipeline with 
+no source will not be flagged as invalid. Maybe it would be possible to move 
+this check to the media core.
 
-do you really thing that a macro is appropriate here ? I feel uneasy about it
-but i can not offer an other solution.
-
-nothing to worry about,
-just my 2 cents.
-
-re,
- wh
-
-
->>
->> re,
->> wh
->>
->>>      buf[0] = reg;
->>> @@ -54,17 +49,8 @@ static int e4000_rd_regs(struct e4000_priv *priv,
->>> u8 reg, u8 *val, int len)
->>>      int ret;
->>>      u8 buf[len];
->>>      struct i2c_msg msg[2] = {
->>> -        {
->>> -            .addr = priv->cfg->i2c_addr,
->>> -            .flags = 0,
->>> -            .len = 1,
->>> -            .buf = &reg,
->>> -        }, {
->>> -            .addr = priv->cfg->i2c_addr,
->>> -            .flags = I2C_M_RD,
->>> -            .len = sizeof(buf),
->>> -            .buf = buf,
->>> -        }
->>> +        I2C_MSG_WRITE(priv->cfg->i2c_addr, &reg, sizeof(reg)),
->>> +        I2C_MSG_READ(priv->cfg->i2c_addr, buf, sizeof(buf))
->>>      };
->>>
->>>      ret = i2c_transfer(priv->i2c, msg, 2);
->>>
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe
->>> kernel-janitors" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe
->> kernel-janitors" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+> -
+> -		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> -			break;
+> -
+> -		subdev = media_entity_to_v4l2_subdev(pad->entity);
+> -	}
+> -
+> -	return 0;
+> -}
+> -
+>  static int
+>  __isp_video_get_format(struct isp_video *video, struct v4l2_format *format)
+> {
+> @@ -1056,11 +1007,6 @@ isp_video_streamon(struct file *file, void *fh, enum
+> v4l2_buf_type type) if (ret < 0)
+>  		goto err_check_format;
 > 
+> -	/* Validate the pipeline and update its state. */
+> -	ret = isp_video_validate_pipeline(pipe);
+> -	if (ret < 0)
+> -		goto err_check_format;
+> -
+>  	pipe->error = false;
 > 
+>  	spin_lock_irqsave(&pipe->lock, flags);
+
+-- 
+Regards,
+
+Laurent Pinchart
+
