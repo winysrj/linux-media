@@ -1,51 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1010ds2-suoe.0.fullrate.dk ([90.184.90.115]:27861 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751159Ab2JLWY5 (ORCPT
+Received: from mail-da0-f46.google.com ([209.85.210.46]:40767 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753443Ab2JVM2I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Oct 2012 18:24:57 -0400
-Date: Sun, 9 Nov 2008 18:04:42 +0100 (CET)
-From: Jesper Juhl <jj@chaosbits.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: linux-media@vger.kernel.org,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] stk1160: Remove dead code from
- stk1160_i2c_read_reg()
-Message-ID: <alpine.LNX.2.00.0811091803320.23782@swampdragon.chaosbits.net>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Mon, 22 Oct 2012 08:28:08 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Subject: [PATCH RESEND 2/2] media: davinci: vpbe: set device capabilities
+Date: Mon, 22 Oct 2012 17:57:14 +0530
+Message-Id: <1350908834-11619-3-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1350908834-11619-1-git-send-email-prabhakar.lad@ti.com>
+References: <1350908834-11619-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are two checks for 'rc' being less than zero with no change to
-'rc' between the two, so the second is just dead code - remove it.
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+set device_caps and also change the driver and
+bus_info to proper values as per standard.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
 ---
- drivers/media/usb/stk1160/stk1160-i2c.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ drivers/media/platform/davinci/vpbe_display.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/usb/stk1160/stk1160-i2c.c b/drivers/media/usb/stk1160/stk1160-i2c.c
-index 176ac93..035cf8c 100644
---- a/drivers/media/usb/stk1160/stk1160-i2c.c
-+++ b/drivers/media/usb/stk1160/stk1160-i2c.c
-@@ -117,9 +117,6 @@ static int stk1160_i2c_read_reg(struct stk1160 *dev, u8 addr,
- 		return rc;
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 974957f..2bfde79 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -702,9 +702,12 @@ static int vpbe_display_querycap(struct file *file, void  *priv,
+ 	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
  
- 	stk1160_read_reg(dev, STK1160_SBUSR_RD, value);
--	if (rc < 0)
--		return rc;
--
+ 	cap->version = VPBE_DISPLAY_VERSION_CODE;
+-	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+-	strlcpy(cap->driver, VPBE_DISPLAY_DRIVER, sizeof(cap->driver));
+-	strlcpy(cap->bus_info, "platform", sizeof(cap->bus_info));
++	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
++	snprintf(cap->driver, sizeof(cap->driver), "%s",
++		dev_name(vpbe_dev->pdev));
++	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
++		 dev_name(vpbe_dev->pdev));
+ 	strlcpy(cap->card, vpbe_dev->cfg->module_name, sizeof(cap->card));
+ 
  	return 0;
- }
- 
 -- 
-1.7.1
-
-
--- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
+1.7.4.1
 
