@@ -1,114 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47070 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751990Ab2JVMWS convert rfc822-to-8bit (ORCPT
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:62157 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933380Ab2JWT67 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Oct 2012 08:22:18 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH RESEND] media: davinci: vpbe: fix build warning
-Date: Mon, 22 Oct 2012 14:23:08 +0200
-Message-ID: <1907817.pMPUYlsyRc@avalon>
-In-Reply-To: <1350908271-11448-1-git-send-email-prabhakar.lad@ti.com>
-References: <1350908271-11448-1-git-send-email-prabhakar.lad@ti.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
+	Tue, 23 Oct 2012 15:58:59 -0400
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
+Cc: Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
+	Ezequiel Garcia <elezegarcia@gmail.com>,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH 10/23] dvb-usb/friio-fe: Replace memcpy with struct assignment
+Date: Tue, 23 Oct 2012 16:57:13 -0300
+Message-Id: <1351022246-8201-10-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+This kind of memcpy() is error-prone. Its replacement with a struct
+assignment is prefered because it's type-safe and much easier to read.
 
-On Monday 22 October 2012 17:47:51 Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.lad@ti.com>
-> 
-> Warnings were generated because of the following commit changed data type
-> for address pointer
-> 
-> 195bbca ARM: 7500/1: io: avoid writeback addressing modes for __raw_
-> accessors add  __iomem annotation to fix following warnings
-> 
-> drivers/media/platform/davinci/vpbe_osd.c: In function ‘osd_read’:
-> drivers/media/platform/davinci/vpbe_osd.c:49:2: warning: passing
->  argument 1 of ‘__raw_readl’ makes pointer from integer without a cast
-> [enabled by default] arch/arm/include/asm/io.h:104:19: note: expected
-> ‘const volatile
->  void *’ but argument is of type ‘long unsigned int’
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> ---
->   Resending the patch since, it didn't reach the DLOS mailing list.
-> 
->  drivers/media/platform/davinci/vpbe_osd.c |   16 ++++++++--------
->  1 files changed, 8 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/platform/davinci/vpbe_osd.c
-> b/drivers/media/platform/davinci/vpbe_osd.c index bba299d..9ab9280 100644
-> --- a/drivers/media/platform/davinci/vpbe_osd.c
-> +++ b/drivers/media/platform/davinci/vpbe_osd.c
-> @@ -46,14 +46,14 @@ static inline u32 osd_read(struct osd_state *sd, u32
-> offset) {
->  	struct osd_state *osd = sd;
-> 
-> -	return readl(osd->osd_base + offset);
-> +	return readl(IOMEM(osd->osd_base + offset));
+Found by coccinelle. Hand patched and reviewed.
+Tested by compilation only.
 
-A better fix, in my opinion, would be to change the osd->osd_base field to be 
-a void __iomem * instead of long unsigned int.
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
->  }
-> 
->  static inline u32 osd_write(struct osd_state *sd, u32 val, u32 offset)
->  {
->  	struct osd_state *osd = sd;
-> 
-> -	writel(val, osd->osd_base + offset);
-> +	writel(val, IOMEM(osd->osd_base + offset));
-> 
->  	return val;
->  }
-> @@ -63,9 +63,9 @@ static inline u32 osd_set(struct osd_state *sd, u32 mask,
-> u32 offset) struct osd_state *osd = sd;
-> 
->  	u32 addr = osd->osd_base + offset;
-> -	u32 val = readl(addr) | mask;
-> +	u32 val = readl(IOMEM(addr)) | mask;
-> 
-> -	writel(val, addr);
-> +	writel(val, IOMEM(addr));
-> 
->  	return val;
->  }
-> @@ -75,9 +75,9 @@ static inline u32 osd_clear(struct osd_state *sd, u32
-> mask, u32 offset) struct osd_state *osd = sd;
-> 
->  	u32 addr = osd->osd_base + offset;
-> -	u32 val = readl(addr) & ~mask;
-> +	u32 val = readl(IOMEM(addr)) & ~mask;
-> 
-> -	writel(val, addr);
-> +	writel(val, IOMEM(addr));
-> 
->  	return val;
->  }
-> @@ -88,9 +88,9 @@ static inline u32 osd_modify(struct osd_state *sd, u32
-> mask, u32 val, struct osd_state *osd = sd;
-> 
->  	u32 addr = osd->osd_base + offset;
-> -	u32 new_val = (readl(addr) & ~mask) | (val & mask);
-> +	u32 new_val = (readl(IOMEM(addr)) & ~mask) | (val & mask);
-> 
-> -	writel(new_val, addr);
-> +	writel(new_val, IOMEM(addr));
-> 
->  	return new_val;
->  }
+// <smpl>
+@@
+identifier struct_name;
+struct struct_name to;
+struct struct_name from;
+expression E;
+@@
+-memcpy(&(to), &(from), E);
++to = from;
+// </smpl>
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/usb/dvb-usb/friio-fe.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb/friio-fe.c b/drivers/media/usb/dvb-usb/friio-fe.c
+index 90a70c6..d56f927 100644
+--- a/drivers/media/usb/dvb-usb/friio-fe.c
++++ b/drivers/media/usb/dvb-usb/friio-fe.c
+@@ -421,11 +421,10 @@ struct dvb_frontend *jdvbt90502_attach(struct dvb_usb_device *d)
+ 
+ 	/* setup the state */
+ 	state->i2c = &d->i2c_adap;
+-	memcpy(&state->config, &friio_fe_config, sizeof(friio_fe_config));
++	state->config = friio_fe_config;
+ 
+ 	/* create dvb_frontend */
+-	memcpy(&state->frontend.ops, &jdvbt90502_ops,
+-	       sizeof(jdvbt90502_ops));
++	state->frontend.ops = jdvbt90502_ops;
+ 	state->frontend.demodulator_priv = state;
+ 
+ 	if (jdvbt90502_init(&state->frontend) < 0)
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.4.4
 
