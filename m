@@ -1,88 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:59223 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755284Ab2J2WnL (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:46618 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752208Ab2JWKrv convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Oct 2012 18:43:11 -0400
-Received: by mail-ee0-f46.google.com with SMTP id b15so2363620eek.19
-        for <linux-media@vger.kernel.org>; Mon, 29 Oct 2012 15:43:10 -0700 (PDT)
-Message-ID: <508F067B.7030301@gmail.com>
-Date: Mon, 29 Oct 2012 23:43:07 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Tue, 23 Oct 2012 06:47:51 -0400
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH 10/23] V4L: Add auto focus targets to the selections API
-References: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com> <1336645858-30366-11-git-send-email-s.nawrocki@samsung.com> <20121029200036.GA25623@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20121029200036.GA25623@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1907817.pMPUYlsyRc@avalon>
+References: <1350908271-11448-1-git-send-email-prabhakar.lad@ti.com> <1907817.pMPUYlsyRc@avalon>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 23 Oct 2012 16:17:30 +0530
+Message-ID: <CA+V-a8twTJggR9H5Ei4H16n9VOzgWnfBw4qhCnqdoc8cow1xuw@mail.gmail.com>
+Subject: Re: [PATCH RESEND] media: davinci: vpbe: fix build warning
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Laurent,
 
-On 10/29/2012 09:00 PM, Sakari Ailus wrote:
-> On Thu, May 10, 2012 at 12:30:45PM +0200, Sylwester Nawrocki wrote:
->> The camera automatic focus algorithms may require setting up
->> a spot or rectangle coordinates or multiple such parameters.
+On Mon, Oct 22, 2012 at 5:53 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Prabhakar,
+>
+> On Monday 22 October 2012 17:47:51 Prabhakar Lad wrote:
+>> From: Lad, Prabhakar <prabhakar.lad@ti.com>
 >>
->> The automatic focus selection targets are introduced in order
->> to allow applications to query and set such coordinates. Those
->> selections are intended to be used together with the automatic
->> focus controls available in the camera control class.
+>> Warnings were generated because of the following commit changed data type
+>> for address pointer
 >>
->> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
->> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+>> 195bbca ARM: 7500/1: io: avoid writeback addressing modes for __raw_
+>> accessors add  __iomem annotation to fix following warnings
+>>
+>> drivers/media/platform/davinci/vpbe_osd.c: In function ‘osd_read’:
+>> drivers/media/platform/davinci/vpbe_osd.c:49:2: warning: passing
+>>  argument 1 of ‘__raw_readl’ makes pointer from integer without a cast
+>> [enabled by default] arch/arm/include/asm/io.h:104:19: note: expected
+>> ‘const volatile
+>>  void *’ but argument is of type ‘long unsigned int’
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
 >> ---
->>   Documentation/DocBook/media/v4l/selection-api.xml  |   33 +++++++++++++++++++-
->>   .../DocBook/media/v4l/vidioc-g-selection.xml       |   11 +++++++
->>   include/linux/videodev2.h                          |    5 +++
->>   3 files changed, 48 insertions(+), 1 deletion(-)
-> 
-> What's the status of this patch? May I ask if you have plans to continue
-> with it?
+>>   Resending the patch since, it didn't reach the DLOS mailing list.
+>>
+>>  drivers/media/platform/davinci/vpbe_osd.c |   16 ++++++++--------
+>>  1 files changed, 8 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/davinci/vpbe_osd.c
+>> b/drivers/media/platform/davinci/vpbe_osd.c index bba299d..9ab9280 100644
+>> --- a/drivers/media/platform/davinci/vpbe_osd.c
+>> +++ b/drivers/media/platform/davinci/vpbe_osd.c
+>> @@ -46,14 +46,14 @@ static inline u32 osd_read(struct osd_state *sd, u32
+>> offset) {
+>>       struct osd_state *osd = sd;
+>>
+>> -     return readl(osd->osd_base + offset);
+>> +     return readl(IOMEM(osd->osd_base + offset));
+>
+> A better fix, in my opinion, would be to change the osd->osd_base field to be
+> a void __iomem * instead of long unsigned int.
+>
+Ok I'll make it as void * and post a v2.
 
-Thanks for reminding about it. I'd like to make this ready for v3.8, if 
-possible. I've done some minor improvements of the related 
-V4L2_CID_AUTO_FOCUS_AREA control and we use this patch internally. We would 
-like to see how all this can be used for auto focus feature of the s5c73m3 
-camera. I hope to have these patches posted next week.
- 
-> Speaking of multiple AF windows --- I originally thought we could just have
-> multiple selection targets for them. I'm not sure which one would be better;
-> multiple selection targets or another field telling the window ID. In case
-> of the former we'd leave a largish gap for additional window IDs.
-> 
-> I think I'm leaning towards using one reserved field for the purpose.
-
-That also as my preference. I imagine the ID field could be reused for
-other future or existing selection targets anyway. I recall someone already
-asked about multiple ROI support for image cropping [1], perhaps the ID 
-field could be used also for that.
- 
-> Another question I had was that which of the selection rectangles would the
-> AF rectangle be related to? Is it the compose bounds rectangle, or the crop
-> bounds rectangle, for example? I thought it might make sense to use another
-> field to tell that, since I think which one this really is related to is
-> purely hardware specific.
-
-It's indeed very hardware specific. I've seen sensors that allow to define
-bounds for the auto focus rectangle entirely independent from the output 
-format, crop or compose rectangle. It may look strange, but some sensor 
-firmwares just accept rectangle/point coordinates with bounds rectangle 
-corresponding to video display area (so it is easy, e.g. to use coordinates 
-coming directly from a touchscreen) and then perform required calculations 
-to map/scale it onto e.g. sensor crop or output rectangle.
-
-I guess your question is related to how to determine in what stage of 
-video pipeline the AF selections would be and what the configuration 
-order should be from the user space side ?
- 
---
 Regards,
-Sylwester
+--Prabhakar
 
-[1] http://www.spinics.net/lists/linux-media/msg55091.html
+>>  }
+>>
+>>  static inline u32 osd_write(struct osd_state *sd, u32 val, u32 offset)
+>>  {
+>>       struct osd_state *osd = sd;
+>>
+>> -     writel(val, osd->osd_base + offset);
+>> +     writel(val, IOMEM(osd->osd_base + offset));
+>>
+>>       return val;
+>>  }
+>> @@ -63,9 +63,9 @@ static inline u32 osd_set(struct osd_state *sd, u32 mask,
+>> u32 offset) struct osd_state *osd = sd;
+>>
+>>       u32 addr = osd->osd_base + offset;
+>> -     u32 val = readl(addr) | mask;
+>> +     u32 val = readl(IOMEM(addr)) | mask;
+>>
+>> -     writel(val, addr);
+>> +     writel(val, IOMEM(addr));
+>>
+>>       return val;
+>>  }
+>> @@ -75,9 +75,9 @@ static inline u32 osd_clear(struct osd_state *sd, u32
+>> mask, u32 offset) struct osd_state *osd = sd;
+>>
+>>       u32 addr = osd->osd_base + offset;
+>> -     u32 val = readl(addr) & ~mask;
+>> +     u32 val = readl(IOMEM(addr)) & ~mask;
+>>
+>> -     writel(val, addr);
+>> +     writel(val, IOMEM(addr));
+>>
+>>       return val;
+>>  }
+>> @@ -88,9 +88,9 @@ static inline u32 osd_modify(struct osd_state *sd, u32
+>> mask, u32 val, struct osd_state *osd = sd;
+>>
+>>       u32 addr = osd->osd_base + offset;
+>> -     u32 new_val = (readl(addr) & ~mask) | (val & mask);
+>> +     u32 new_val = (readl(IOMEM(addr)) & ~mask) | (val & mask);
+>>
+>> -     writel(new_val, addr);
+>> +     writel(new_val, IOMEM(addr));
+>>
+>>       return new_val;
+>>  }
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
