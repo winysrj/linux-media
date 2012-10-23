@@ -1,78 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:59647 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752267Ab2JRV7o (ORCPT
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:62157 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757452Ab2JWT63 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Oct 2012 17:59:44 -0400
-Date: Thu, 18 Oct 2012 23:59:21 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com
-Subject: Re: [PATCH] rc-core: add separate defines for protocol bitmaps and
- numbers
-Message-ID: <20121018215921.GA18904@hardeman.nu>
-References: <20121011231154.22683.2502.stgit@zeus.hardeman.nu>
- <20121017161856.GA10964@pequod.mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20121017161856.GA10964@pequod.mess.org>
+	Tue, 23 Oct 2012 15:58:29 -0400
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
+Cc: Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
+	Ezequiel Garcia <elezegarcia@gmail.com>,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH 02/23] cx231xx: Replace memcpy with struct assignment
+Date: Tue, 23 Oct 2012 16:57:05 -0300
+Message-Id: <1351022246-8201-2-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 17, 2012 at 05:18:56PM +0100, Sean Young wrote:
->On Fri, Oct 12, 2012 at 01:11:54AM +0200, David Härdeman wrote:
->> The RC_TYPE_* defines are currently used both where a single protocol is
->> expected and where a bitmap of protocols is expected. This patch tries
->> to separate the two in preparation for the following patches.
->
->I'm not sure why this is needed.
+This kind of memcpy() is error-prone. Its replacement with a struct
+assignment is prefered because it's type-safe and much easier to read.
 
-I'm not sure I can explain it much better.
+Found by coccinelle. Hand patched and reviewed.
+Tested by compilation only.
 
-Something like rc_keydown() or functions which add/remove entries to the
-keytable want a single protocol. Future userspace APIs would also
-benefit from numeric protocols (rather than bitmap ones). Keytables are
-smaller if they can use a small(ish) integer rather than a bitmap.
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-Other functions or struct members (e.g. allowed_protos,
-enabled_protocols, etc) accept multiple protocols and need a bitmap.
+// <smpl>
+@@
+identifier struct_name;
+struct struct_name to;
+struct struct_name from;
+expression E;
+@@
+-memcpy(&(to), &(from), E);
++to = from;
+// </smpl>
 
-Using different types reduces the risk of programmer error. Using a
-protocol enum whereever possible also makes for a more future-proof
-user-space API as we don't need to worry about a sufficient number of
-bits being available (e.g. in structs used for ioctl() calls).
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-cards.c |    2 +-
+ drivers/media/usb/cx231xx/cx231xx-video.c |    3 +--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-The use of both a number and a corresponding bit is dalso one in e.g.
-the input subsystem as well (see all the references to set/clear bit when
-changing keytables for example).
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index b84ebc5..352d676 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -705,7 +705,7 @@ void cx231xx_sleep_s5h1432(struct cx231xx *dev)
+ 
+ static inline void cx231xx_set_model(struct cx231xx *dev)
+ {
+-	memcpy(&dev->board, &cx231xx_boards[dev->model], sizeof(dev->board));
++	dev->board = cx231xx_boards[dev->model];
+ }
+ 
+ /* Since cx231xx_pre_card_setup() requires a proper dev->model,
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index fedf785..c5109ba 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -2627,8 +2627,7 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
+ 		     dev->name, video_device_node_name(dev->vdev));
+ 
+ 	/* Initialize VBI template */
+-	memcpy(&cx231xx_vbi_template, &cx231xx_video_template,
+-	       sizeof(cx231xx_vbi_template));
++	cx231xx_vbi_template = cx231xx_video_template;
+ 	strcpy(cx231xx_vbi_template.name, "cx231xx-vbi");
+ 
+ 	/* Allocate and fill vbi video_device struct */
+-- 
+1.7.4.4
 
->
->> The intended use is also clearer to anyone reading the code. Where a
->> single protocol is expected, enum rc_type is used, where one or more
->> protocol(s) are expected, something like u64 is used.
->
->Having two sets of #define and enums for the same information is not
->necessarily clearer.
-
-Not only two set of define and enum, two different data types. To me it
-helps a lot to be able to tell from a function declaration whether it
-expects *a* protocol or protocols.
-
->I don't like the name RC_BIT_* either; how about
->RC_PROTO_*?
-
-I have no strong opinions here
-
->
->Sean
->
->> The patch has been rewritten so that the format of the sysfs "protocols"
->> file is no longer altered (at the loss of some detail). The file itself
->> should probably be deprecated in the future though.
->> 
->> I missed some drivers when creating the last version of the patch because
->> some weren't enabled in my .config. This patch passes an allmodyes build.
->> 
->> Signed-off-by: David Härdeman <david@hardeman.nu>
