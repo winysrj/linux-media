@@ -1,49 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:60769 "EHLO mail.skyhub.de"
+Received: from mail.mnsspb.ru ([84.204.75.2]:50283 "EHLO mail.mnsspb.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752397Ab2JURDR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Oct 2012 13:03:17 -0400
-Date: Sun, 21 Oct 2012 19:03:15 +0200
-From: Borislav Petkov <bp@alien8.de>
-To: "Artem S. Tashkinov" <t.artem@lycos.com>
-Cc: pavel@ucw.cz, linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	security@kernel.org, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org
-Subject: Re: Re: Re: Re: Re: A reliable kernel panic (3.6.2) and system crash
- when visiting a particular website
-Message-ID: <20121021170315.GB20642@liondog.tnic>
-References: <2104474742.26357.1350734815286.JavaMail.mail@webmail05>
- <20121020162759.GA12551@liondog.tnic>
- <966148591.30347.1350754909449.JavaMail.mail@webmail08>
- <20121020203227.GC555@elf.ucw.cz>
- <20121020225849.GA8976@liondog.tnic>
- <1781795634.31179.1350774917965.JavaMail.mail@webmail04>
- <20121021002424.GA16247@liondog.tnic>
- <1798605268.19162.1350784641831.JavaMail.mail@webmail17>
- <20121021110851.GA6504@liondog.tnic>
- <121566322.100103.1350820776893.JavaMail.mail@webmail20>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <121566322.100103.1350820776893.JavaMail.mail@webmail20>
+	id S1754531Ab2JWRHG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Oct 2012 13:07:06 -0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, Kirill Smelkov <kirr@mns.spb.ru>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] [media] vivi: Kill TSTAMP_* macros
+Date: Tue, 23 Oct 2012 21:07:55 +0400
+Message-Id: <1351012075-4845-1-git-send-email-kirr@mns.spb.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Oct 21, 2012 at 11:59:36AM +0000, Artem S. Tashkinov wrote:
-> http://imageshack.us/a/img685/9452/panicz.jpg
-> 
-> list_del corruption. prev->next should be ... but was ...
+Usage of TSTAMP_* macros has gone in 2010 in 730947bc (V4L/DVB: vivi:
+clean up and a major overhaul) but the macros remain. Say goodbye to
+them.
 
-Btw, this is one of the debug options I told you to enable.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
+---
+ drivers/media/platform/vivi.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
-> I cannot show you more as I have no serial console to use :( and the kernel
-> doesn't have enough time to push error messages to rsyslog and fsync
-> /var/log/messages
-
-I already told you how to catch that oops: boot with "pause_on_oops=600"
-on the kernel command line and photograph the screen when the first oops
-happens. This'll show us where the problem begins.
-
+diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+index 3adea58..bfac13d 100644
+--- a/drivers/media/platform/vivi.c
++++ b/drivers/media/platform/vivi.c
+@@ -356,11 +356,6 @@ static void precalculate_bars(struct vivi_dev *dev)
+ 	}
+ }
+ 
+-#define TSTAMP_MIN_Y	24
+-#define TSTAMP_MAX_Y	(TSTAMP_MIN_Y + 15)
+-#define TSTAMP_INPUT_X	10
+-#define TSTAMP_MIN_X	(54 + TSTAMP_INPUT_X)
+-
+ /* 'odd' is true for pixels 1, 3, 5, etc. and false for pixels 0, 2, 4, etc. */
+ static void gen_twopix(struct vivi_dev *dev, u8 *buf, int colorpos, bool odd)
+ {
 -- 
-Regards/Gruss,
-    Boris.
+1.8.0.rc3.331.g5b9a629
+
