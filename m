@@ -1,78 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:58697 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933457Ab2J0UoY (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57621 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S933068Ab2JWPmy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:44:24 -0400
-Received: by mail-ea0-f174.google.com with SMTP id c13so1244051eaa.19
-        for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 13:44:22 -0700 (PDT)
-Message-ID: <508C47A4.1090607@gmail.com>
-Date: Sat, 27 Oct 2012 22:44:20 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
+	Tue, 23 Oct 2012 11:42:54 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] s5p-fimc: Fix platform entities registration
-References: <1351156016-10970-1-git-send-email-s.nawrocki@samsung.com> <6007649.66KylGAjOu@avalon> <508933D1.80308@samsung.com>
-In-Reply-To: <508933D1.80308@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: timo.ahonen@nokia.com, laurent.pinchart@ideasonboard.com
+Subject: [PATCH 3/6] smiapp: Input for PLL configuration is mostly static
+Date: Tue, 23 Oct 2012 18:42:47 +0300
+Message-Id: <1351006971-32308-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20121023154231.GB23685@valkosipuli.retiisi.org.uk>
+References: <20121023154231.GB23685@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/25/2012 02:42 PM, Sylwester Nawrocki wrote:
-> Hi Laurent,
-> 
-> On 10/25/2012 01:35 PM, Laurent Pinchart wrote:
->> On Thursday 25 October 2012 11:06:56 Sylwester Nawrocki wrote:
->>> Make sure there is no v4l2_device_unregister_subdev() call
->>> on a subdev which wasn't registered.
->>
->> I'm not implying that this fix is bad, but doesn't the V4L2 core already
->> handle this ? v4l2_device_unregister_subdev() returns immediately without
->> doing anything if the subdev hasn't been registered.
-> 
-> Indeed, the patch summary might be a bit misleading and incomplete.
-> I of course wanted to make sure the platform subdevs are not treated
-> as registered when any part of v4l2_device_register_subdev() fails.
-> 
-> 
-> Looking at function v4l2_device_register_subdev(), I'm wondering whether
-> line
->   159         sd->v4l2_dev = v4l2_dev;
-> 
-> shouldn't be moved right before
-> 
->   190         spin_lock(&v4l2_dev->lock);
-> 
-> so sd->v4l2_dev is set only if we return 0 in this function ?
+The input values for PLL configuration are mostly static. So set them when
+the sensor is registered.
 
-Hmm, no, that would be wrong. Since sd->v4l2_dev needs to be initialized
-for sd->internal_ops->registered() and sd->internal_ops->registered() ops.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c |   24 ++++++++++++------------
+ 1 files changed, 12 insertions(+), 12 deletions(-)
 
-Still, it is possible that a subdev has the v4l2_dev field initialized and 
-is not added to the v4l2_device list of subdevs (v4l2_dev->subdevs). Then 
-function v4l2_device_unregister_subdev() checks for valid sd->v4l2_dev and
-attempts to remove (not yet added) subdev from v4l2_dev->subdevs.
-
-This subdev (un)registration code seems buggy, unless I'm missing something...
-
-> Since in function v4l2_device_unregister_subdev() there is a check like
-> 
->   259         /* return if it isn't registered */
->   260         if (sd == NULL || sd->v4l2_dev == NULL)
->   261                 return;
-> 
-> i.e. if subdev is not really registered, e.g. internal .registered
-> op fails, it should be NULL.
-> 
-> In my case sd wasn't null since this structure was embedded in
-> other one.
-
---
-Regards,
-Sylwester
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index e08e588..868ad0b 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -276,11 +276,6 @@ static int smiapp_pll_update(struct smiapp_sensor *sensor)
+ 	struct smiapp_pll *pll = &sensor->pll;
+ 	int rval;
+ 
+-	memset(&sensor->pll, 0, sizeof(sensor->pll));
+-
+-	pll->lanes = sensor->platform_data->lanes;
+-	pll->ext_clk_freq_hz = sensor->platform_data->ext_clk;
+-
+ 	if (sensor->minfo.smiapp_profile == SMIAPP_PROFILE_0) {
+ 		/*
+ 		 * Fill in operational clock divisors limits from the
+@@ -296,20 +291,13 @@ static int smiapp_pll_update(struct smiapp_sensor *sensor)
+ 		lim.max_op_sys_clk_freq_hz = lim.max_vt_sys_clk_freq_hz;
+ 		lim.min_op_pix_clk_freq_hz = lim.min_vt_pix_clk_freq_hz;
+ 		lim.max_op_pix_clk_freq_hz = lim.max_vt_pix_clk_freq_hz;
+-		/* Profile 0 sensors have no separate OP clock branch. */
+-		pll->flags |= SMIAPP_PLL_FLAG_NO_OP_CLOCKS;
+ 	}
+ 
+-	if (smiapp_needs_quirk(sensor,
+-			       SMIAPP_QUIRK_FLAG_OP_PIX_CLOCK_PER_LANE))
+-		pll->flags |= SMIAPP_PLL_FLAG_OP_PIX_CLOCK_PER_LANE;
+-
+ 	pll->binning_horizontal = sensor->binning_horizontal;
+ 	pll->binning_vertical = sensor->binning_vertical;
+ 	pll->link_freq =
+ 		sensor->link_freq->qmenu_int[sensor->link_freq->val];
+ 	pll->scale_m = sensor->scale_m;
+-	pll->scale_n = sensor->limits[SMIAPP_LIMIT_SCALER_N_MIN];
+ 	pll->bits_per_pixel = sensor->csi_format->compressed;
+ 
+ 	rval = smiapp_pll_calculate(&client->dev, &lim, pll);
+@@ -2369,6 +2357,7 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
+ {
+ 	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
+ 	struct i2c_client *client = v4l2_get_subdevdata(subdev);
++	struct smiapp_pll *pll = &sensor->pll;
+ 	struct smiapp_subdev *last = NULL;
+ 	u32 tmp;
+ 	unsigned int i;
+@@ -2635,6 +2624,17 @@ static int smiapp_registered(struct v4l2_subdev *subdev)
+ 	if (rval < 0)
+ 		goto out_nvm_release;
+ 
++	/* prepare PLL configuration input values */
++	pll->lanes = sensor->platform_data->lanes;
++	pll->ext_clk_freq_hz = sensor->platform_data->ext_clk;
++	/* Profile 0 sensors have no separate OP clock branch. */
++	if (sensor->minfo.smiapp_profile == SMIAPP_PROFILE_0)
++		pll->flags |= SMIAPP_PLL_FLAG_NO_OP_CLOCKS;
++	if (smiapp_needs_quirk(sensor,
++			       SMIAPP_QUIRK_FLAG_OP_PIX_CLOCK_PER_LANE))
++		pll->flags |= SMIAPP_PLL_FLAG_OP_PIX_CLOCK_PER_LANE;
++	pll->scale_n = sensor->limits[SMIAPP_LIMIT_SCALER_N_MIN];
++
+ 	rval = smiapp_update_mode(sensor);
+ 	if (rval) {
+ 		dev_err(&client->dev, "update mode failed\n");
+-- 
+1.7.2.5
 
