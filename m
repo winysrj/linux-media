@@ -1,67 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56499 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751003Ab2JTVDp (ORCPT
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:61542 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757488Ab2JWT6t (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Oct 2012 17:03:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH] v4l: Don't warn during link validation when encountering a V4L2 devnode
-Date: Sat, 20 Oct 2012 23:04:33 +0200
-Message-Id: <1350767073-9478-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 23 Oct 2012 15:58:49 -0400
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
+Cc: Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
+	Ezequiel Garcia <elezegarcia@gmail.com>,
+	Mike Isely <isely@pobox.com>,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH 06/23] pvrusb2: Replace memcpy with struct assignment
+Date: Tue, 23 Oct 2012 16:57:09 -0300
+Message-Id: <1351022246-8201-6-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_subdev_link_validate_get_format() retrieves the remote pad format
-depending on the entity type and prints a warning if the entity type is
-not supported. The type check doesn't take the subtype into account, and
-thus always prints a warning for device node types, even when supported.
-Fix it.
+This kind of memcpy() is error-prone. Its replacement with a struct
+assignment is prefered because it's type-safe and much easier to read.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Found by coccinelle. Hand patched and reviewed.
+Tested by compilation only.
+
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+identifier struct_name;
+struct struct_name to;
+struct struct_name from;
+expression E;
+@@
+-memcpy(&(to), &(from), E);
++to = from;
+// </smpl>
+
+Cc: Mike Isely <isely@pobox.com>
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
 ---
- drivers/media/video/v4l2-subdev.c |   22 +++++++++++-----------
- 1 files changed, 11 insertions(+), 11 deletions(-)
+ drivers/media/usb/pvrusb2/pvrusb2-encoder.c  |    3 +--
+ drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c |    4 ++--
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c     |    2 +-
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 9182f81..5f74d96 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -406,20 +406,20 @@ static int
- v4l2_subdev_link_validate_get_format(struct media_pad *pad,
- 				     struct v4l2_subdev_format *fmt)
- {
--	switch (media_entity_type(pad->entity)) {
--	case MEDIA_ENT_T_V4L2_SUBDEV:
-+	if (media_entity_type(pad->entity) == MEDIA_ENT_T_V4L2_SUBDEV) {
-+		struct v4l2_subdev *sd =
-+			media_entity_to_v4l2_subdev(pad->entity);
-+
- 		fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
- 		fmt->pad = pad->index;
--		return v4l2_subdev_call(media_entity_to_v4l2_subdev(
--						pad->entity),
--					pad, get_fmt, NULL, fmt);
--	default:
--		WARN(1, "Driver bug! Wrong media entity type %d, entity %s\n",
--		     media_entity_type(pad->entity), pad->entity->name);
--		/* Fall through */
--	case MEDIA_ENT_T_DEVNODE_V4L:
--		return -EINVAL;
-+		return v4l2_subdev_call(sd, pad, get_fmt, NULL, fmt);
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-encoder.c b/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
+index e046fda..f7702ae 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-encoder.c
+@@ -422,8 +422,7 @@ int pvr2_encoder_adjust(struct pvr2_hdw *hdw)
+ 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
+ 			   "Error from cx2341x module code=%d",ret);
+ 	} else {
+-		memcpy(&hdw->enc_cur_state,&hdw->enc_ctl_state,
+-		       sizeof(struct cx2341x_mpeg_params));
++		hdw->enc_cur_state = hdw->enc_ctl_state;
+ 		hdw->enc_cur_valid = !0;
  	}
-+
-+	WARN(pad->entity->type != MEDIA_ENT_T_DEVNODE_V4L,
-+	     "Driver bug! Wrong media entity type 0x%08x, entity %s\n",
-+	     pad->entity->type, pad->entity->name);
-+
-+	return -EINVAL;
- }
+ 	return ret;
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c b/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
+index 885ce11..9691156 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
+@@ -649,8 +649,8 @@ void pvr2_i2c_core_init(struct pvr2_hdw *hdw)
+ 	}
  
- int v4l2_subdev_link_validate(struct media_link *link)
+ 	// Configure the adapter and set up everything else related to it.
+-	memcpy(&hdw->i2c_adap,&pvr2_i2c_adap_template,sizeof(hdw->i2c_adap));
+-	memcpy(&hdw->i2c_algo,&pvr2_i2c_algo_template,sizeof(hdw->i2c_algo));
++	hdw->i2c_adap = pvr2_i2c_adap_template;
++	hdw->i2c_algo = pvr2_i2c_algo_template;
+ 	strlcpy(hdw->i2c_adap.name,hdw->name,sizeof(hdw->i2c_adap.name));
+ 	hdw->i2c_adap.dev.parent = &hdw->usb_dev->dev;
+ 	hdw->i2c_adap.algo = &hdw->i2c_algo;
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+index db249ca..5b622ec 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+@@ -1339,7 +1339,7 @@ static void pvr2_v4l2_dev_init(struct pvr2_v4l2_dev *dip,
+ 		return;
+ 	}
+ 
+-	memcpy(&dip->devbase,&vdev_template,sizeof(vdev_template));
++	dip->devbase = vdev_template;
+ 	dip->devbase.release = pvr2_video_device_release;
+ 	dip->devbase.ioctl_ops = &pvr2_ioctl_ops;
+ 	{
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.4.4
 
