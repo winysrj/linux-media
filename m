@@ -1,73 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:24741 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759931Ab2JYQqW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Oct 2012 12:46:22 -0400
-Date: Thu, 25 Oct 2012 14:46:16 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR 3.7] Samsung media drivers fixes
-Message-ID: <20121025144616.7e7863f4@redhat.com>
-In-Reply-To: <5089624D.2000903@samsung.com>
-References: <5089624D.2000903@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-yh0-f46.google.com ([209.85.213.46]:49915 "EHLO
+	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757516Ab2JWT7T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Oct 2012 15:59:19 -0400
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
+Cc: Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
+	Ezequiel Garcia <elezegarcia@gmail.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH 18/23] cx18: Replace memcpy with struct assignment
+Date: Tue, 23 Oct 2012 16:57:21 -0300
+Message-Id: <1351022246-8201-18-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 25 Oct 2012 18:01:17 +0200
-Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
+This kind of memcpy() is error-prone. Its replacement with a struct
+assignment is prefered because it's type-safe and much easier to read.
 
-> Hi Mauro,
-> 
-> please pull following fixes for v3.7-rc.
-> 
-> The following changes since commit 1fdead8ad31d3aa833bc37739273fcde89ace93c:
-> 
->   [media] m5mols: Add missing #include <linux/sizes.h> (2012-10-10 08:17:16 -0300)
-> 
-> are available in the git repository at:
-> 
->   git://git.infradead.org/users/kmpark/linux-samsung v4l_fixes_for_v3.7
-> 
-> for you to fetch changes up to df79eb9e19331685e509d62112972b3c35569f0b:
-> 
->   s5p-fimc: Fix potential NULL pointer dereference (2012-10-25 16:08:12 +0200)
-> 
-> ----------------------------------------------------------------
-> Jesper Juhl (1):
->       s5p-tv: don't include linux/version.h in mixer_video.c
-> 
-> Sachin Kamat (5):
->       s5p-mfc: Fix compilation warning
->       exynos-gsc: Fix compilation warning
->       s5p-mfc: Make 'clk_ref' static in s5p_mfc_pm.c
->       s5p-fimc: Make 'fimc_pipeline_s_stream' function static
->       s5p-fimc: Fix potential NULL pointer dereference
-> 
-> Shaik Ameer Basha (3):
->       exynos-gsc: change driver compatible string
->       exynos-gsc: fix variable type in gsc_m2m_device_run()
->       s5p-fimc: fix variable type in fimc_device_run()
-> 
-> Sylwester Nawrocki (4):
->       s5p-fimc: Don't ignore return value of vb2_queue_init()
->       s5p-csis: Select S5P_SETUP_MIPIPHY
->       s5p-fimc: Add missing new line character
->       s5p-fimc: Fix platform entities registration
+Found by coccinelle. Hand patched and reviewed.
+Tested by compilation only.
 
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-Only a few of the above seems to be material for -rc:
-	s5p-fimc: Fix potential NULL pointer dereference (59 seconds ago)
-	s5p-fimc: Fix platform entities registration (60 seconds ago)
-	s5p-csis: Select S5P_SETUP_MIPIPHY (60 seconds ago)
-	s5p-fimc: Don't ignore return value of vb2_queue_init() (61 seconds ago)
+// <smpl>
+@@
+identifier struct_name;
+struct struct_name to;
+struct struct_name from;
+expression E;
+@@
+-memcpy(&(to), &(from), E);
++to = from;
+// </smpl>
 
-The other ones are warnings/sparse warnings and cleanups. I'll
-be applying only the 4 above patches for 3.7, adding the other
-ones for 3.8.
+Cc: Andy Walls <awalls@md.metrocast.net>
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/pci/cx18/cx18-i2c.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-Regards,
-Mauro
+diff --git a/drivers/media/pci/cx18/cx18-i2c.c b/drivers/media/pci/cx18/cx18-i2c.c
+index 51609d5..930d40f 100644
+--- a/drivers/media/pci/cx18/cx18-i2c.c
++++ b/drivers/media/pci/cx18/cx18-i2c.c
+@@ -240,15 +240,13 @@ int init_cx18_i2c(struct cx18 *cx)
+ 
+ 	for (i = 0; i < 2; i++) {
+ 		/* Setup algorithm for adapter */
+-		memcpy(&cx->i2c_algo[i], &cx18_i2c_algo_template,
+-			sizeof(struct i2c_algo_bit_data));
++		cx->i2c_algo[i] = cx18_i2c_algo_template;
+ 		cx->i2c_algo_cb_data[i].cx = cx;
+ 		cx->i2c_algo_cb_data[i].bus_index = i;
+ 		cx->i2c_algo[i].data = &cx->i2c_algo_cb_data[i];
+ 
+ 		/* Setup adapter */
+-		memcpy(&cx->i2c_adap[i], &cx18_i2c_adap_template,
+-			sizeof(struct i2c_adapter));
++		cx->i2c_adap[i] = cx18_i2c_adap_template;
+ 		cx->i2c_adap[i].algo_data = &cx->i2c_algo[i];
+ 		sprintf(cx->i2c_adap[i].name + strlen(cx->i2c_adap[i].name),
+ 				" #%d-%d", cx->instance, i);
+-- 
+1.7.4.4
+
