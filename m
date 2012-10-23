@@ -1,72 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:50431 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755680Ab2JEOlZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Oct 2012 10:41:25 -0400
-Date: Fri, 5 Oct 2012 16:41:14 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-cc: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 00/14] V4L2 DT support
-In-Reply-To: <506ED344.2020407@gmail.com>
-Message-ID: <Pine.LNX.4.64.1210051639160.13761@axis700.grange>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
- <506ED344.2020407@gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-yh0-f46.google.com ([209.85.213.46]:49915 "EHLO
+	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933380Ab2JWT6y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Oct 2012 15:58:54 -0400
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
+Cc: Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
+	Ezequiel Garcia <elezegarcia@gmail.com>,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH 08/23] cx25840: Replace memcpy with struct assignment
+Date: Tue, 23 Oct 2012 16:57:11 -0300
+Message-Id: <1351022246-8201-8-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester
+This kind of memcpy() is error-prone. Its replacement with a struct
+assignment is prefered because it's type-safe and much easier to read.
 
-On Fri, 5 Oct 2012, Sylwester Nawrocki wrote:
+Found by coccinelle. Hand patched and reviewed.
+Tested by compilation only.
 
-> Hi Guennadi,
-> 
-> Any chance for a GIT tree including this patch series ? I'd like
-> to see all these pieces put together and I don't seem to find any
-> base tree that this series would have applied cleanly to.
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-Ok, I pushed the patches to
+// <smpl>
+@@
+identifier struct_name;
+struct struct_name to;
+struct struct_name from;
+expression E;
+@@
+-memcpy(&(to), &(from), E);
++to = from;
+// </smpl>
 
-git://linuxtv.org/gliakhovetski/v4l-dvb.git dt-soc_camera
-
-Please, give it a go.
-
-Thanks
-Guennadi
-
-> 
-> ...(20121005_media_for_v3.7-dt)$ git am -3 \[PATCH\ *
-> Applying: i2c: add dummy inline functions for when CONFIG_OF_I2C(_MODULE) isn't defined
-> Applying: of: add a dummy inline function for when CONFIG_OF is not defined
-> Applying: OF: make a function pointer argument const
-> Applying: media: add V4L2 DT binding documentation
-> Applying: media: add a V4L2 OF parser
-> Applying: media: soc-camera: prepare for asynchronous client probing
-> Applying: media: soc-camera: support deferred probing of clients
-> fatal: sha1 information is lacking or useless (drivers/media/platform/soc_camera/soc_camera.c).
-> Repository lacks necessary blobs to fall back on 3-way merge.
-> Cannot fall back to three-way merge.
-> Patch failed at 0007 media: soc-camera: support deferred probing of clients
-> When you have resolved this problem run "git am --resolved".
-> If you would prefer to skip this patch, instead run "git am --skip".
-> To restore the original branch and stop patching run "git am --abort".
-> 
-> --
-> 
-> Thanks,
-> Sylwester
-> 
-
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/i2c/cx25840/cx25840-ir.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/i2c/cx25840/cx25840-ir.c b/drivers/media/i2c/cx25840/cx25840-ir.c
+index 38ce76e..9ae977b 100644
+--- a/drivers/media/i2c/cx25840/cx25840-ir.c
++++ b/drivers/media/i2c/cx25840/cx25840-ir.c
+@@ -1251,13 +1251,11 @@ int cx25840_ir_probe(struct v4l2_subdev *sd)
+ 		cx25840_write4(ir_state->c, CX25840_IR_IRQEN_REG, 0);
+ 
+ 	mutex_init(&ir_state->rx_params_lock);
+-	memcpy(&default_params, &default_rx_params,
+-		       sizeof(struct v4l2_subdev_ir_parameters));
++	default_params = default_rx_params;
+ 	v4l2_subdev_call(sd, ir, rx_s_parameters, &default_params);
+ 
+ 	mutex_init(&ir_state->tx_params_lock);
+-	memcpy(&default_params, &default_tx_params,
+-		       sizeof(struct v4l2_subdev_ir_parameters));
++	default_params = default_tx_params;
+ 	v4l2_subdev_call(sd, ir, tx_s_parameters, &default_params);
+ 
+ 	return 0;
+-- 
+1.7.4.4
+
