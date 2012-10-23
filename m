@@ -1,154 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:45706 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751188Ab2JBLQa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 07:16:30 -0400
-Received: from eusync4.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MB9009P6JCAIY90@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Oct 2012 12:16:58 +0100 (BST)
-Received: from AMDN157 ([106.116.147.102])
- by eusync4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MB900G2PJBFPV20@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Oct 2012 12:16:28 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Arun Kumar K' <arun.kk@samsung.com>, linux-media@vger.kernel.org
-Cc: jtp.park@samsung.com, janghyuck.kim@samsung.com,
-	jaeryul.oh@samsung.com, ch.naveen@samsung.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	hverkuil@xs4all.nl, kmpark@infradead.org, joshi@samsung.com
-References: <1349189741-22259-1-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1349189741-22259-1-git-send-email-arun.kk@samsung.com>
-Subject: RE: [PATCH v9 0/6] Update MFC v4l2 driver to support MFC6.x
-Date: Tue, 02 Oct 2012 13:16:27 +0200
-Message-id: <01b901cda08f$5e382e00$1aa88a00$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: en-gb
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:62157 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933486Ab2JWT7d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Oct 2012 15:59:33 -0400
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
+Cc: Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
+	Ezequiel Garcia <elezegarcia@gmail.com>,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH 23/23] wl128x: Replace memcpy with struct assignment
+Date: Tue, 23 Oct 2012 16:57:26 -0300
+Message-Id: <1351022246-8201-23-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
+This kind of memcpy() is error-prone. Its replacement with a struct
+assignment is prefered because it's type-safe and much easier to read.
 
-Thank you for your hard work with these patches.
-I think that they are ready to be merged.
+Found by coccinelle. Hand patched and reviewed.
+Tested by compilation only.
 
-Best wishes,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
+// <smpl>
+@@
+identifier struct_name;
+struct struct_name to;
+struct struct_name from;
+expression E;
+@@
+-memcpy(&(to), &(from), E);
++to = from;
+// </smpl>
 
-> From: Arun Kumar K [mailto:arun.kk@samsung.com]
-> Sent: 02 October 2012 16:56
-> 
-> The patchset adds support for MFCv6 firmware in s5p-mfc driver.
-> The patches are rebased to the latest media-tree.
-> 
-> Changelog v9
-> - Addressed review comments by Hans Verkuil
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg53016.html
-> 
-> Changelog v8
-> - Addressed review comments by Sylwester Nawrocki
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg52942.html
-> 
-> Changelog v7
-> - Removed unused macros from register files
-> 
-> Changelog v6
-> - Use s5p_mfc_hw_call macro to call all HW related ops and cmds
-> - Rebased onto latest media-tree
-> - Resending patches adding required v4l controls
-> - Addressed review comments of Patch v5
-> 
-> Changelog v5
-> - Modified ops mechanism for macro based function call
-> - Addressed all other review comments on Patch v4
-> 
-> Changelog v4
-> - Separate patch for callback based architecture.
-> - Patches divided to enable incremental compilation.
-> - Working MFCv6 encoder and decoder.
-> - Addressed review comments given for v3 patchset.
-> 
-> Changelog v3
-> - Supports MFCv5 and v6 co-existence.
-> - Tested for encoding & decoding in MFCv5.
-> - Supports only decoding in MFCv6 now.
-> - Can be compiled with kernel image and as module.
-> - Config macros for MFC version selection removed.
-> - All previous review comments addressed.
-> 
-> Changelog v2
-> - Addressed review comments received
->
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/45189
-> 
-> Changelog v1
-> - Fixed crash issue in Exynos4 SoCs running MFC 5.1
-> - Encoder not tested
-> 
-> Arun Kumar K (4):
->   [media] v4l: Add fourcc definitions for new formats
->   [media] v4l: Add control definitions for new H264 encoder features
->   [media] s5p-mfc: Update MFCv5 driver for callback based architecture
->   [media] s5p-mfc: Add MFC variant data to device context
-> 
-> Jeongtae Park (2):
->   [media] s5p-mfc: MFCv6 register definitions
->   [media] s5p-mfc: Update MFC v4l2 driver to support MFC6.x
-> 
->  Documentation/DocBook/media/v4l/controls.xml     |  268 +++-
->  Documentation/DocBook/media/v4l/pixfmt-nv12m.xml |   17 +-
->  Documentation/DocBook/media/v4l/pixfmt.xml       |   10 +
->  drivers/media/platform/Kconfig                   |    4 +-
->  drivers/media/platform/s5p-mfc/Makefile          |    7 +-
->  drivers/media/platform/s5p-mfc/regs-mfc-v6.h     |  408 +++++
->  drivers/media/platform/s5p-mfc/regs-mfc.h        |   41 +
->  drivers/media/platform/s5p-mfc/s5p_mfc.c         |  296 +++--
->  drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c     |  109 +--
->  drivers/media/platform/s5p-mfc/s5p_mfc_cmd.h     |   15 +-
->  drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c  |  166 ++
->  drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.h  |   20 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c  |  156 ++
->  drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.h  |   20 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_common.h  |  191 ++-
->  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c    |  194 ++-
->  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.h    |    1 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c     |  258 ++-
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.h     |    1 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c     |  239 ++--
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.h     |    1 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_intr.c    |   11 +-
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr.c     | 1386 +---------------
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr.h     |  133 +-
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c  | 1763 +++++++++++++++++++
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.h  |   85 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c  | 1956
-++++++++++++++++++++++
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h  |   50 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_pm.c      |    3 +-
->  drivers/media/platform/s5p-mfc/s5p_mfc_shm.c     |   47 -
->  drivers/media/platform/s5p-mfc/s5p_mfc_shm.h     |   90 -
->  drivers/media/v4l2-core/v4l2-ctrls.c             |   42 +
->  include/linux/v4l2-controls.h                    |   41 +
->  include/linux/videodev2.h                        |    4 +
->  34 files changed, 5940 insertions(+), 2093 deletions(-)
->  create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v6.h
->  create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.c
->  create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v5.h
->  create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
->  create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.h
->  create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
->  create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.h
->  create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
->  create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
->  delete mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_shm.c
->  delete mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_shm.h
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/radio/wl128x/fmdrv_common.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
+index bf867a6..902f19d 100644
+--- a/drivers/media/radio/wl128x/fmdrv_common.c
++++ b/drivers/media/radio/wl128x/fmdrv_common.c
+@@ -1563,8 +1563,7 @@ int fmc_prepare(struct fmdev *fmdev)
+ 	fmdev->irq_info.mask = FM_MAL_EVENT;
+ 
+ 	/* Region info */
+-	memcpy(&fmdev->rx.region, &region_configs[default_radio_region],
+-			sizeof(struct region_info));
++	fmdev->rx.region = region_configs[default_radio_region];
+ 
+ 	fmdev->rx.mute_mode = FM_MUTE_OFF;
+ 	fmdev->rx.rf_depend_mute = FM_RX_RF_DEPENDENT_MUTE_OFF;
+-- 
+1.7.4.4
 
