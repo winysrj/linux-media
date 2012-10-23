@@ -1,169 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50446 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754753Ab2JHUvX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 16:51:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Cc: devicetree-discuss@lists.ozlabs.org,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 2/2 v6] of: add generic videomode description
-Date: Mon, 08 Oct 2012 22:52:04 +0200
-Message-ID: <1737299.6PuzOm7XuT@avalon>
-In-Reply-To: <20121008124801.GD20800@pengutronix.de>
-References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de> <12272414.930KpWciBg@avalon> <20121008124801.GD20800@pengutronix.de>
+Received: from mail-ia0-f174.google.com ([209.85.210.174]:55345 "EHLO
+	mail-ia0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756875Ab2JWT5U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Oct 2012 15:57:20 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Date: Tue, 23 Oct 2012 16:57:20 -0300
+Message-ID: <CALF0-+XH4AfJUcNHXdMTwXf-=f24Zpe3VOw_1eQ9WBV1-6ZVjQ@mail.gmail.com>
+Subject: [PATCH 0/23] media: Replace memcpy with struct assignment
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	Julia Lawall <Julia.Lawall@lip6.fr>,
+	Dan Carpenter <dan.carpenter@oracle.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steffen,
+Hello everyone,
 
-On Monday 08 October 2012 14:48:01 Steffen Trumtrar wrote:
-> On Mon, Oct 08, 2012 at 02:13:50PM +0200, Laurent Pinchart wrote:
-> > On Thursday 04 October 2012 19:59:20 Steffen Trumtrar wrote:
-> > > Get videomode from devicetree in a format appropriate for the
-> > > backend. drm_display_mode and fb_videomode are supported atm.
-> > > Uses the display signal timings from of_display_timings
-> > > 
-> > > Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-> > > ---
-> > > 
-> > >  drivers/of/Kconfig           |    5 +
-> > >  drivers/of/Makefile          |    1 +
-> > >  drivers/of/of_videomode.c    |  212 +++++++++++++++++++++++++++++++++++
-> > >  include/linux/of_videomode.h |   41 ++++++++
-> > >  4 files changed, 259 insertions(+)
-> > >  create mode 100644 drivers/of/of_videomode.c
-> > >  create mode 100644 include/linux/of_videomode.h
+This is a large patchset that replaces struct memcpy with struct assignment,
+whenever possible at drivers/media.
 
-[snip]
+The patches are hand applied and every change has been thoroughly reviewed.
+However, to avoid regressions and angry users we'd like to have Acks
+from maintainers.
 
-> > > diff --git a/drivers/of/of_videomode.c b/drivers/of/of_videomode.c
-> > > new file mode 100644
-> > > index 0000000..76ac16e
-> > > --- /dev/null
-> > > +++ b/drivers/of/of_videomode.c
+A simplified version of the semantic match that finds
+this problem is as follows: (http://coccinelle.lip6.fr/)
 
-[snip]
+// <smpl>
+@@
+identifier struct_name;
+struct struct_name to;
+struct struct_name from;
+expression E;
+@@
+-memcpy(&(to), &(from), E);
++to = from;
+// </smpl>
 
-> > > +int videomode_from_timing(struct display_timings *disp, struct
-> > > videomode *vm,
-> > > +			int index)
-> > > +{
-> > > +	struct signal_timing *st = NULL;
-> > > +
-> > > +	if (!vm)
-> > > +		return -EINVAL;
-> > > +
-> > 
-> > What about making vm a mandatory argument ? It looks to me like a caller
-> > bug if vm is NULL.
-> 
-> The caller must provide the struct videomode, yes. Wouldn't the kernel hang
-> itself with a NULL pointer exception, if I just work with it ?
+If you're thinking this change is very minor and doesn't worh the pain,
+you might change your opinion reading this report from Dan Carpenter:
 
-The kernel would oops, clearly showing the caller that a non-null vm is needed 
-:-)
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/49553
 
-> > > +	st = display_timings_get(disp, index);
-> > > +
-> > 
-> > You can remove the blank line.
-> > 
-> > > +	if (!st) {
-> > > +		pr_err("%s: no signal timings found\n", __func__);
-> > > +		return -EINVAL;
-> > > +	}
-> > > +
-> > > +	vm->pixelclock = signal_timing_get_value(&st->pixelclock, 0);
-> > > +	vm->hactive = signal_timing_get_value(&st->hactive, 0);
-> > > +	vm->hfront_porch = signal_timing_get_value(&st->hfront_porch, 0);
-> > > +	vm->hback_porch = signal_timing_get_value(&st->hback_porch, 0);
-> > > +	vm->hsync_len = signal_timing_get_value(&st->hsync_len, 0);
-> > > +
-> > > +	vm->vactive = signal_timing_get_value(&st->vactive, 0);
-> > > +	vm->vfront_porch = signal_timing_get_value(&st->vfront_porch, 0);
-> > > +	vm->vback_porch = signal_timing_get_value(&st->vback_porch, 0);
-> > > +	vm->vsync_len = signal_timing_get_value(&st->vsync_len, 0);
-> > > +
-> > > +	vm->vah = st->vsync_pol_active_high;
-> > > +	vm->hah = st->hsync_pol_active_high;
-> > > +	vm->interlaced = st->interlaced;
-> > > +	vm->doublescan = st->doublescan;
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +int of_get_videomode(struct device_node *np, struct videomode *vm, int
-> > > index)
-> > 
-> > I wonder how to avoid abuse of this functions. It's a useful helper for
-> > drivers that need to get a video mode once only, but would result in lower
-> > performances if a driver calls it for every mode. Drivers must call
-> > of_get_display_timing_list instead in that case and case the display
-> > timings. I'm wondering whether we should really expose of_get_videomode.
-> 
-> The intent was to let the driver decide. That way all the other overhead may
-> be skipped.
+The report clearly shows how copy-paste programming paradigm, combined with
+lack of memcpy type-safety can lead to very strange code.
 
-My point is that driver writers might just call of_get_videomode() in a loop, 
-not knowing that it's expensive. I want to avoid that. We need to at least add 
-kerneldoc to the function stating that this shouldn't be done.
+Not to mention, using struct assignment instead of memcpy
+is by far more readable.
 
-> > > +{
-> > > +	struct display_timings *disp;
-> > > +	int ret = 0;
-> > 
-> > No need to assign ret to 0 here.
-> 
-> Ah, yes. Unneeded in this case.
-> 
-> > > +
-> > > +	disp = of_get_display_timing_list(np);
-> > > +
-> > 
-> > You can remove the blank line.
-> > 
-> > > +	if (!disp) {
-> > > +		pr_err("%s: no timings specified\n", __func__);
-> > > +		return -EINVAL;
-> > > +	}
-> > > +
-> > > +	if (index == OF_DEFAULT_TIMING)
-> > > +		index = disp->default_timing;
-> > > +
-> > > +	ret = videomode_from_timing(disp, vm, index);
-> > > +
-> > 
-> > No need for a blank line.
-> > 
-> > > +	if (ret)
-> > > +		return ret;
-> > > +
-> > > +	display_timings_release(disp);
-> > > +
-> > > +	if (!vm) {
-> > > +		pr_err("%s: could not get videomode %d\n", __func__, index);
-> > > +		return -EINVAL;
-> > > +	}
-> > 
-> > This can't happen. If vm is NULL the videomode_from_timing call above will
-> > return -EINVAL, and this function will then return immediately without
-> > reaching this code block.
-> 
-> Okay.
-> 
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +EXPORT_SYMBOL_GPL(of_get_videomode);
+Comments, feedback and flames are welcome. Thanks!
 
--- 
-Regards,
+Peter Senna Tschudin, Ezequiel Garcia (23):
+ wl128x: Replace memcpy with struct assignment
+ radio-wl1273: Replace memcpy with struct assignment
+ dvb-frontends: Replace memcpy with struct assignment
+ dvb-core: Replace memcpy with struct assignment
+ bttv: Replace memcpy with struct assignment
+ cx18: Replace memcpy with struct assignment
+ cx23885: Replace memcpy with struct assignment
+ cx88: Replace memcpy with struct assignment
+ ivtv: Replace memcpy with struct assignment
+ tuners/tda18271: Replace memcpy with struct assignment
+ tuners/xc2028: Replace memcpy with struct assignment
+ tuners/xc4000: Replace memcpy with struct assignment
+ au0828: Replace memcpy with struct assignment
+ dvb-usb/friio-fe: Replace memcpy with struct assignment
+ zr36067: Replace memcpy with struct assignment
+ cx25840: Replace memcpy with struct assignment
+ hdpvr: Replace memcpy with struct assignment
+ pvrusb2: Replace memcpy with struct assignment
+ pwc: Replace memcpy with struct assignment
+ sn9c102: Replace memcpy with struct assignment
+ usbvision: Replace memcpy with struct assignment
+ cx231xx: Replace memcpy with struct assignment
+ uvc: Replace memcpy with struct assignment
 
-Laurent Pinchart
+ drivers/media/dvb-core/dvb_frontend.c        |    2 +-
+ drivers/media/dvb-frontends/cx24116.c        |    2 +-
+ drivers/media/dvb-frontends/drxd_hard.c      |    5 ++---
+ drivers/media/dvb-frontends/stv0299.c        |    2 +-
+ drivers/media/i2c/cx25840/cx25840-ir.c       |    6 ++----
+ drivers/media/pci/bt8xx/bttv-i2c.c           |    3 +--
+ drivers/media/pci/cx18/cx18-i2c.c            |    6 ++----
+ drivers/media/pci/cx23885/cx23885-video.c    |    3 +--
+ drivers/media/pci/cx23885/cx23888-ir.c       |    6 ++----
+ drivers/media/pci/cx88/cx88-cards.c          |    2 +-
+ drivers/media/pci/cx88/cx88-i2c.c            |    3 +--
+ drivers/media/pci/cx88/cx88-vp3054-i2c.c     |    3 +--
+ drivers/media/pci/ivtv/ivtv-i2c.c            |   12 ++++--------
+ drivers/media/pci/zoran/zoran_card.c         |    3 +--
+ drivers/media/radio/radio-wl1273.c           |    3 +--
+ drivers/media/radio/wl128x/fmdrv_common.c    |    3 +--
+ drivers/media/tuners/tda18271-maps.c         |    6 ++----
+ drivers/media/tuners/tuner-xc2028.c          |    2 +-
+ drivers/media/tuners/xc4000.c                |    2 +-
+ drivers/media/usb/au0828/au0828-cards.c      |    2 +-
+ drivers/media/usb/au0828/au0828-i2c.c        |    9 +++------
+ drivers/media/usb/cx231xx/cx231xx-cards.c    |    2 +-
+ drivers/media/usb/cx231xx/cx231xx-video.c    |    3 +--
+ drivers/media/usb/dvb-usb/friio-fe.c         |    5 ++---
+ drivers/media/usb/hdpvr/hdpvr-i2c.c          |    3 +--
+ drivers/media/usb/pvrusb2/pvrusb2-encoder.c  |    3 +--
+ drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c |    4 ++--
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c     |    2 +-
+ drivers/media/usb/pwc/pwc-if.c               |    2 +-
+ drivers/media/usb/sn9c102/sn9c102_core.c     |    4 ++--
+ drivers/media/usb/usbvision/usbvision-i2c.c  |    3 +--
+ drivers/media/usb/uvc/uvc_v4l2.c             |    6 +++---
+ 32 files changed, 47 insertions(+), 75 deletions(-)
 
+
+    Ezequiel
