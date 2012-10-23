@@ -1,96 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:55314 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755741Ab2JCH54 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 03:57:56 -0400
-Date: Wed, 3 Oct 2012 09:57:54 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Alex Pollard <apollard@eos-aus.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: RE: Previewing PAL fields on framebuffer
-In-Reply-To: <5F8EBA134B205E4088143663B38B1DC910D5DA74@EOSMX01.EOSAUS.LOCAL>
-Message-ID: <Pine.LNX.4.64.1210030939080.26201@axis700.grange>
-References: <5F8EBA134B205E4088143663B38B1DC910D5DA0F@EOSMX01.EOSAUS.LOCAL>
- <Pine.LNX.4.64.1210030844220.26201@axis700.grange>
- <5F8EBA134B205E4088143663B38B1DC910D5DA74@EOSMX01.EOSAUS.LOCAL>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:56793 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933154Ab2JWWQZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Oct 2012 18:16:25 -0400
+Subject: Re: [PATCH 17/23] cx23885: Replace memcpy with struct assignment
+From: Andy Walls <awalls@md.metrocast.net>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Date: Tue, 23 Oct 2012 18:16:13 -0400
+In-Reply-To: <1351022246-8201-17-git-send-email-elezegarcia@gmail.com>
+References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+	 <1351022246-8201-17-git-send-email-elezegarcia@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1351030575.2459.21.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please, don't drop the mailing list from the CC list.
+On Tue, 2012-10-23 at 16:57 -0300, Ezequiel Garcia wrote:
+> This kind of memcpy() is error-prone. Its replacement with a struct
+> assignment is prefered because it's type-safe and much easier to read.
+> 
+> Found by coccinelle. Hand patched and reviewed.
+> Tested by compilation only.
+> 
+> A simplified version of the semantic match that finds this problem is as
+> follows: (http://coccinelle.lip6.fr/)
+> 
+> // <smpl>
+> @@
+> identifier struct_name;
+> struct struct_name to;
+> struct struct_name from;
+> expression E;
+> @@
+> -memcpy(&(to), &(from), E);
+> +to = from;
+> // </smpl>
+> 
+> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
 
-On Wed, 3 Oct 2012, Alex Pollard wrote:
+This patch looks OK to me.  You forgot to CC: Steven Toth and/or Devin
+Heitmueller (I can't remember who did the VBI work.)
 
-> Thanks!
-> 
-> I have found that in their demo application the capture board developer 
-> (e-consystems) supports various interlacing options thru ioctl calls. So 
-> I think I will find a solution.
+For cx23885-video.c:
+Reviewed-by: Andy Walls <awalls@md.metrocast.net>
 
-Isn't specifying one of V4L2_FIELD_INTERLACED* values in standard V4L2 
-ioctl()s enough? Or is this what you mean?
+For cx23885-ir.c:
+Signed-off-by: Andy Walls <awalls@md.metrocast.net>
 
-> The main issue now is the ability to do 
-> overlays on the low-latency framebuffer preview, I am guessing 
-> ipu_prp_vf_sdc_bg.c provides a way to accomplish this.
 
-Sorry, I don't know what file you mean. In any case you'd have to 
-implement overlay support in the mx3fb.c framebuffer driver.
-
-Thanks
-Guennadi
-
-> Cheers,
-> Alex
-> 
-> -----Original Message-----
-> From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de] 
-> Sent: Wednesday, 3 October 2012 5:06 PM
-> To: Alex Pollard
-> Cc: Linux Media Mailing List
-> Subject: Re: Previewing PAL fields on framebuffer
-> 
-> Hi Alex
-> 
-> (added linux-media to CC on your request)
-> 
-> On Wed, 3 Oct 2012, Alex Pollard wrote:
-> 
-> > Hi,
-> > 
-> > I am wondering if it is possible to use the DMA features in 
-> > drivers/dma/ipu/ipu_idmac.c to write the top field of a PAL frame into a 
-> > framebuffer on alternating lines, and write the bottom field of the PAL 
-> > frame to the other lines ie deinterlace.
-> 
-> Looking at the i.MX31 CSI documentation it seems it could be possible to 
-> use CSI_SENS_FRM_SIZE and CSI_ACT_FRM_SIZE to specify stride != width to 
-> basically do stride = 2 * width and then do 2 transfers per frame - one 
-> beginning with line 0 and one beginning with line 1? But that's just an 
-> idea, the description of those registers is vague and I'm also not sure 
-> how to implement that.
-> 
-> Good luck
-> Guennadi
-> 
-> > Do you know a good discussion 
-> > list where I could post the question? I am using an i.MX53 but the 
-> > support "community" is a bit quiet.
-> > 
-> > Thanks
-> > 
-> > Alex Pollard
-> > Software Engineer
-> > 
-> 
 > ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+>  drivers/media/pci/cx23885/cx23885-video.c |    3 +--
+>  drivers/media/pci/cx23885/cx23888-ir.c    |    6 ++----
+>  2 files changed, 3 insertions(+), 6 deletions(-)
 > 
+> diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+> index 1a21926..62be144 100644
+> --- a/drivers/media/pci/cx23885/cx23885-video.c
+> +++ b/drivers/media/pci/cx23885/cx23885-video.c
+> @@ -1818,8 +1818,7 @@ int cx23885_video_register(struct cx23885_dev *dev)
+>  	spin_lock_init(&dev->slock);
+>  
+>  	/* Initialize VBI template */
+> -	memcpy(&cx23885_vbi_template, &cx23885_video_template,
+> -		sizeof(cx23885_vbi_template));
+> +	cx23885_vbi_template = cx23885_video_template;
+>  	strcpy(cx23885_vbi_template.name, "cx23885-vbi");
+>  
+>  	dev->tvnorm = cx23885_video_template.current_norm;
+> diff --git a/drivers/media/pci/cx23885/cx23888-ir.c b/drivers/media/pci/cx23885/cx23888-ir.c
+> index c2bc39c..e448146 100644
+> --- a/drivers/media/pci/cx23885/cx23888-ir.c
+> +++ b/drivers/media/pci/cx23885/cx23888-ir.c
+> @@ -1236,13 +1236,11 @@ int cx23888_ir_probe(struct cx23885_dev *dev)
+>  		cx23888_ir_write4(dev, CX23888_IR_IRQEN_REG, 0);
+>  
+>  		mutex_init(&state->rx_params_lock);
+> -		memcpy(&default_params, &default_rx_params,
+> -		       sizeof(struct v4l2_subdev_ir_parameters));
+> +		default_params = default_rx_params;
+>  		v4l2_subdev_call(sd, ir, rx_s_parameters, &default_params);
+>  
+>  		mutex_init(&state->tx_params_lock);
+> -		memcpy(&default_params, &default_tx_params,
+> -		       sizeof(struct v4l2_subdev_ir_parameters));
+> +		default_params = default_tx_params;
+>  		v4l2_subdev_call(sd, ir, tx_s_parameters, &default_params);
+>  	} else {
+>  		kfifo_free(&state->rx_kfifo);
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
