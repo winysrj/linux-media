@@ -1,44 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 18.mo3.mail-out.ovh.net ([87.98.172.162]:53091 "EHLO
-	mo3.mail-out.ovh.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S933291Ab2JaSIj (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:50705 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932223Ab2JWTYv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Oct 2012 14:08:39 -0400
-Received: from mail642.ha.ovh.net (b6.ovh.net [213.186.33.56])
-	by mo3.mail-out.ovh.net (Postfix) with SMTP id AE8CAFF96D2
-	for <linux-media@vger.kernel.org>; Wed, 31 Oct 2012 19:18:41 +0100 (CET)
-Received: from localhost.localdomain (unknown [192.168.10.25])
-	by ventoso.org (Postfix) with ESMTP id A9DEFC26C62
-	for <linux-media@vger.kernel.org>; Wed, 31 Oct 2012 19:08:01 +0100 (CET)
-Message-ID: <5091691A.4070903@ventoso.org>
-Date: Wed, 31 Oct 2012 19:08:26 +0100
-From: Luca Olivetti <luca@ventoso.org>
+	Tue, 23 Oct 2012 15:24:51 -0400
+Date: Tue, 23 Oct 2012 20:24:48 +0100
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
+Cc: hverkuil@xs4all.nl, mchehab@redhat.com, sameo@linux.intel.com,
+	perex@perex.cz, tiwai@suse.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 6/6] Add a codec driver for SI476X MFD
+Message-ID: <20121023192448.GB18814@opensource.wolfsonmicro.com>
+References: <1351017872-32488-1-git-send-email-andrey.smirnov@convergeddevices.net>
+ <1351017872-32488-7-git-send-email-andrey.smirnov@convergeddevices.net>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Diversity support?
-References: <507EE702.2010103@ventoso.org>
-In-Reply-To: <507EE702.2010103@ventoso.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="LyciRD1jyfeSSjG0"
+Content-Disposition: inline
+In-Reply-To: <1351017872-32488-7-git-send-email-andrey.smirnov@convergeddevices.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Al 17/10/12 19:12, En/na Luca Olivetti ha escrit:
-> Hello,
-> 
-> if I look at the vl4-dvb wiki, it says that diversity isn't currently supported
-> 
-> http://www.linuxtv.org/wiki/index.php?title=Special%3ASearch&search=diversity&go=Go
-> 
-> however grepping the git tree there are various mentions of diversity at least for some dibcom based devices:
-> 
-> http://git.linuxtv.org/linux-2.6.git?a=search&h=HEAD&st=grep&s=diversity
-> 
-> So, what's the real status of diversity support?
 
-Nobody knows?
+--LyciRD1jyfeSSjG0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Bye
--- 
-Luca
+On Tue, Oct 23, 2012 at 11:44:32AM -0700, Andrey Smirnov wrote:
+> This commit add a sound codec driver for Silicon Laboratories 476x
+> series of AM/FM radio chips.
 
+I already merged a driver for this.  If there are any changes you should
+send incremental updates rather than a full new driver.
+
+--LyciRD1jyfeSSjG0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQhu74AAoJELSic+t+oim9ZhIP/1PnsA60QsrOkXOK0fl3hyJQ
+8H3IDs+hKaCKPq9boNH5NWzmRt3cC2d85zHbHhTpdrYlUgeVwqLH53efBDLsvHUY
+7PmroDehG9eQXMS37fqg03gcEDPtn1hwMQpusCb5iasNMVDyJPoW2kANdFaCY5tZ
+fFgqqchoqtKYkG7S8cMUlj//pGoXMtSlHJJmkIjalkG0DD0LbHsUY/9SWExpxaEs
+KC94HRd6J/xKZ4rDSneA7cw7AqgaYD41jcYtAcZaz9tyu37x0tL2ifogGPsEUH8p
+dJMORptLciaX1OEUBHymEeANn2V/UM/kzHg2HgDDrJgT10A8oMRz7gIdx58V5Zik
+aj/7FPwruK1NdmcazlZUa49p8GMNFxapHQIzLsLP+jEDAhjZrZNAZw/ZbdmvHB6d
+CzqnF4Mi7fm31gNlizgirijJ/g+5XjSVS21jgsV4sOV3WJziPVJQx5X/XT/oetKt
+1O8vS3oFOTCbSvQV7ETo4Lj9RJ7EFcs1ep7b9kO1U9CgbdHiN9rosdOU8oYLvH7C
+N/LqdJCZy96yTBj5nYeDXF811lonnZNHD13hnBpE7nIyo3ZfzremTfXZ2VPmNapC
+1TSGmFCbPgcEw21mF/OlDQe4IMn61TJoq+9LiiOkUEUYfa/KhNF5UQ42TlH5fox9
+pZIEz9MxkbBjlYnBIMEC
+=0V4D
+-----END PGP SIGNATURE-----
+
+--LyciRD1jyfeSSjG0--
