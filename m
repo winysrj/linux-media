@@ -1,70 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:34746 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755391Ab2JCVEV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 17:04:21 -0400
-Received: by oagh16 with SMTP id h16so7931662oag.19
-        for <linux-media@vger.kernel.org>; Wed, 03 Oct 2012 14:04:21 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
-References: <4FE9169D.5020300@redhat.com> <20121002100319.59146693@redhat.com>
- <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
- <20121002221239.GA30990@kroah.com> <20121002222333.GA32207@kroah.com>
- <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
- <506C562E.5090909@redhat.com> <CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
- <20121003170907.GA23473@ZenIV.linux.org.uk> <CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
- <20121003195059.GA13541@kroah.com> <CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
-From: Kay Sievers <kay@vrfy.org>
-Date: Wed, 3 Oct 2012 23:04:00 +0200
-Message-ID: <CAPXgP13DaCK7LxfSxhB-TTe6=fkN4UjQC=Zynm30gqycJOyMpg@mail.gmail.com>
-Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
- callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ming Lei <ming.lei@canonical.com>,
-	Lennart Poettering <lennart@poettering.net>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Ivan Kalvachev <ikalvachev@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38415 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932337Ab2JWNKN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Oct 2012 09:10:13 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH v2] omap3isp: preview: Add support for 8-bit formats at the sink pad
+Date: Tue, 23 Oct 2012 15:11:02 +0200
+Message-Id: <1350997862-18880-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1350991419-23028-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1350991419-23028-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 3, 2012 at 10:39 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> On Wed, Oct 3, 2012 at 12:50 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
->>>
->>> Ok, like this?
->>
->> This looks good to me.  Having udev do firmware loading and tieing it to
->> the driver model may have not been such a good idea so many years ago.
->> Doing it this way makes more sense.
->
-> Ok, I wish this had been getting more testing in Linux-next or
-> something, but I suspect that what I'll do is to commit this patch
-> asap, and then commit another patch that turns off udev firmware
-> loading entirely for the synchronous firmware loading case.
->
-> Why? Just to get more testing, and seeing if there are reports of
-> breakage. Maybe some udev out there has a different search path (or
-> because udev runs in a different filesystem namespace or whatever), in
-> which case running udev as a fallback would otherwise hide the fact
-> that he direct kernel firmware loading isn't working.
+Support both grayscale (Y8) and Bayer (SBGGR8, SGBRG8, SGRBG8 and
+SRGGB8) formats.
 
-> Ok? Comments?
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/isppreview.c |   40 ++++++++++++++++++--------
+ 1 files changed, 28 insertions(+), 12 deletions(-)
 
-The current udev directory search order is:
-  /lib/firmware/updates/$(uname -r)/
-  /lib/firmware/updates/
-  /lib/firmware/$(uname -r)/
-  /lib/firmware/
+Changes since v1:
 
-There is no commonly known /firmware directory.
+- Handle V4L2_MBUS_FMT_Y8_1X8 in preview_config_input_size()
 
-http://cgit.freedesktop.org/systemd/systemd/tree/src/udev/udev-builtin-firmware.c#n100
-http://cgit.freedesktop.org/systemd/systemd/tree/configure.ac#n548
+diff --git a/drivers/media/platform/omap3isp/isppreview.c b/drivers/media/platform/omap3isp/isppreview.c
+index 1ae1c09..e3d192c 100644
+--- a/drivers/media/platform/omap3isp/isppreview.c
++++ b/drivers/media/platform/omap3isp/isppreview.c
+@@ -200,10 +200,10 @@ static void preview_enable_invalaw(struct isp_prev_device *prev, bool enable)
+ 
+ 	if (enable)
+ 		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_WIDTH | ISPPRV_PCR_INVALAW);
++			    ISPPRV_PCR_INVALAW);
+ 	else
+ 		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+-			    ISPPRV_PCR_WIDTH | ISPPRV_PCR_INVALAW);
++			    ISPPRV_PCR_INVALAW);
+ }
+ 
+ /*
+@@ -1014,7 +1014,7 @@ static void preview_config_averager(struct isp_prev_device *prev, u8 average)
+ /*
+  * preview_config_input_format - Configure the input format
+  * @prev: The preview engine
+- * @format: Format on the preview engine sink pad
++ * @info: Sink pad format information
+  *
+  * Enable and configure CFA interpolation for Bayer formats and disable it for
+  * greyscale formats.
+@@ -1025,22 +1025,29 @@ static void preview_config_averager(struct isp_prev_device *prev, u8 average)
+  * reordered to support non-GRBG Bayer patterns.
+  */
+ static void preview_config_input_format(struct isp_prev_device *prev,
+-					const struct v4l2_mbus_framefmt *format)
++					const struct isp_format_info *info)
+ {
+ 	struct isp_device *isp = to_isp_device(prev);
+ 	struct prev_params *params;
+ 
+-	switch (format->code) {
+-	case V4L2_MBUS_FMT_SGRBG10_1X10:
++	if (info->bpp == 8)
++		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++			    ISPPRV_PCR_WIDTH);
++	else
++		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++			    ISPPRV_PCR_WIDTH);
++
++	switch (info->flavor) {
++	case V4L2_MBUS_FMT_SGRBG8_1X8:
+ 		prev->params.cfa_order = 0;
+ 		break;
+-	case V4L2_MBUS_FMT_SRGGB10_1X10:
++	case V4L2_MBUS_FMT_SRGGB8_1X8:
+ 		prev->params.cfa_order = 1;
+ 		break;
+-	case V4L2_MBUS_FMT_SBGGR10_1X10:
++	case V4L2_MBUS_FMT_SBGGR8_1X8:
+ 		prev->params.cfa_order = 2;
+ 		break;
+-	case V4L2_MBUS_FMT_SGBRG10_1X10:
++	case V4L2_MBUS_FMT_SGBRG8_1X8:
+ 		prev->params.cfa_order = 3;
+ 		break;
+ 	default:
+@@ -1081,7 +1088,8 @@ static void preview_config_input_size(struct isp_prev_device *prev, u32 active)
+ 	unsigned int elv = prev->crop.top + prev->crop.height - 1;
+ 	u32 features;
+ 
+-	if (format->code != V4L2_MBUS_FMT_Y10_1X10) {
++	if (format->code != V4L2_MBUS_FMT_Y8_1X8 &&
++	    format->code != V4L2_MBUS_FMT_Y10_1X10) {
+ 		sph -= 2;
+ 		eph += 2;
+ 		slv -= 2;
+@@ -1389,6 +1397,7 @@ static unsigned int preview_max_out_width(struct isp_prev_device *prev)
+ static void preview_configure(struct isp_prev_device *prev)
+ {
+ 	struct isp_device *isp = to_isp_device(prev);
++	const struct isp_format_info *info;
+ 	struct v4l2_mbus_framefmt *format;
+ 	unsigned long flags;
+ 	u32 update;
+@@ -1402,17 +1411,19 @@ static void preview_configure(struct isp_prev_device *prev)
+ 
+ 	/* PREV_PAD_SINK */
+ 	format = &prev->formats[PREV_PAD_SINK];
++	info = omap3isp_video_format_info(format->code);
+ 
+ 	preview_adjust_bandwidth(prev);
+ 
+-	preview_config_input_format(prev, format);
++	preview_config_input_format(prev, info);
+ 	preview_config_input_size(prev, active);
+ 
+ 	if (prev->input == PREVIEW_INPUT_CCDC)
+ 		preview_config_inlineoffset(prev, 0);
+ 	else
+ 		preview_config_inlineoffset(prev,
+-				ALIGN(format->width, 0x20) * 2);
++				ALIGN(format->width, 0x20) *
++				DIV_ROUND_UP(info->bpp, 8));
+ 
+ 	preview_setup_hw(prev, update, active);
+ 
+@@ -1709,6 +1720,11 @@ __preview_get_crop(struct isp_prev_device *prev, struct v4l2_subdev_fh *fh,
+ 
+ /* previewer format descriptions */
+ static const unsigned int preview_input_fmts[] = {
++	V4L2_MBUS_FMT_Y8_1X8,
++	V4L2_MBUS_FMT_SGRBG8_1X8,
++	V4L2_MBUS_FMT_SRGGB8_1X8,
++	V4L2_MBUS_FMT_SBGGR8_1X8,
++	V4L2_MBUS_FMT_SGBRG8_1X8,
+ 	V4L2_MBUS_FMT_Y10_1X10,
+ 	V4L2_MBUS_FMT_SGRBG10_1X10,
+ 	V4L2_MBUS_FMT_SRGGB10_1X10,
+-- 
+Regards,
 
-Kay
+Laurent Pinchart
+
