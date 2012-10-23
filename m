@@ -1,53 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:61597 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754075Ab2JIVdX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 17:33:23 -0400
-Received: by mail-wi0-f172.google.com with SMTP id hq12so6154359wib.1
-        for <linux-media@vger.kernel.org>; Tue, 09 Oct 2012 14:33:22 -0700 (PDT)
-Message-ID: <50749814.2000204@uni-bielefeld.de>
-Date: Tue, 09 Oct 2012 23:33:08 +0200
-From: Robert Abel <abel@uni-bielefeld.de>
-Reply-To: abel@uni-bielefeld.de
+Received: from mail-la0-f46.google.com ([209.85.215.46]:62989 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756958Ab2JWJtb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Oct 2012 05:49:31 -0400
+Received: by mail-la0-f46.google.com with SMTP id h6so2201308lag.19
+        for <linux-media@vger.kernel.org>; Tue, 23 Oct 2012 02:49:30 -0700 (PDT)
+Message-ID: <508667E3.4000509@mvista.com>
+Date: Tue, 23 Oct 2012 13:48:19 +0400
+From: Sergei Shtylyov <sshtylyov@mvista.com>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] libv4lconvert: update the list of pac7302 webcams
-References: <1347215768-9843-1-git-send-email-fschaefer.oss@googlemail.com> <1347215768-9843-3-git-send-email-fschaefer.oss@googlemail.com> <504D0996.6010405@redhat.com>
-In-Reply-To: <504D0996.6010405@redhat.com>
-Content-Type: text/plain; charset=UTF-8
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: LAK <linux-arm-kernel@lists.infradead.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RESEND] ARM: dm365: replace V4L2_OUT_CAP_CUSTOM_TIMINGS
+ with V4L2_OUT_CAP_DV_TIMINGS
+References: <1350907972-11256-1-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1350907972-11256-1-git-send-email-prabhakar.lad@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello.
 
-sorry for digging this up.
+On 22-10-2012 16:12, Prabhakar Lad wrote:
 
-On 09.09.2012 23:26, Hans de Goede wrote:
-> The 0x0f here is a mask, so this one entry covers all device ids from
-> 0x2620 - 0x262f, so...
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+
+> This patch replaces V4L2_OUT_CAP_CUSTOM_TIMINGS macro with
+> V4L2_OUT_CAP_DV_TIMINGS. As V4L2_OUT_CAP_CUSTOM_TIMINGS is being phased
+> out.
+
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Cc: Sekhar Nori <nsekhar@ti.com>
+> ---
+>   Resending the patch since, it didn't reach the DLOS mailing list.
+
+>   This patch is based on the following patch series,
+>   ARM: davinci: dm365 EVM: add support for VPBE display
+>   (https://patchwork.kernel.org/patch/1295071/)
+
+>   arch/arm/mach-davinci/board-dm365-evm.c |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
 >
->>       { 0x06f8, 0x3009, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->>       { 0x06f8, 0x301b, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->> +    { 0x093a, 0x2620, 0x0f, NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->> +    { 0x093a, 0x2611, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->> +    { 0x093a, 0x2622, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->> +    { 0x093a, 0x2624, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->> +    { 0x093a, 0x2625, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->> +    { 0x093a, 0x2626, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->> +    { 0x093a, 0x2627, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->> +    { 0x093a, 0x2628, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->> +    { 0x093a, 0x2629, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->> +    { 0x093a, 0x262a, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->> +    { 0x093a, 0x262c, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG },
->
-> The addition of all these is not necessary.
-Actually
-> { 0x093a, 0x2611, 0,    NULL, NULL, V4LCONTROL_ROTATED_90_JPEG }, 
-is not covered by the bitmask and it's not in the current HEAD tree, either.
+> diff --git a/arch/arm/mach-davinci/board-dm365-evm.c b/arch/arm/mach-davinci/board-dm365-evm.c
+> index 2924d61..771abb5 100644
+> --- a/arch/arm/mach-davinci/board-dm365-evm.c
+> +++ b/arch/arm/mach-davinci/board-dm365-evm.c
+> @@ -514,7 +514,7 @@ static struct vpbe_output dm365evm_vpbe_outputs[] = {
+>   			.index		= 1,
+>   			.name		= "Component",
+>   			.type		= V4L2_OUTPUT_TYPE_ANALOG,
+> -			.capabilities	= V4L2_OUT_CAP_CUSTOM_TIMINGS,
+> +			.capabilities	=  V4L2_OUT_CAP_DV_TIMINGS,
 
-Regards,
+    Why this extra space after '='?
 
-Robert
+WBR, Sergei
 
