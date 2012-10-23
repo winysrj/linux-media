@@ -1,50 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:40488 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754903Ab2JQKID (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4682 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754260Ab2JWG2q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 06:08:03 -0400
-Received: by mail-ob0-f174.google.com with SMTP id uo13so7169201obb.19
-        for <linux-media@vger.kernel.org>; Wed, 17 Oct 2012 03:08:01 -0700 (PDT)
+	Tue, 23 Oct 2012 02:28:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Kirill Smelkov <kirr@mns.spb.ru>
+Subject: Re: [PATCH 2/2] [media] vivi: Teach it to tune FPS
+Date: Tue, 23 Oct 2012 08:27:44 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+References: <1350914084-31618-1-git-send-email-kirr@mns.spb.ru> <20121022170139.GA23735@tugrik.mns.mnsspb.ru> <20121022172901.GA24720@tugrik.mns.mnsspb.ru>
+In-Reply-To: <20121022172901.GA24720@tugrik.mns.mnsspb.ru>
 MIME-Version: 1.0
-In-Reply-To: <CAPM=9txT+Wa_JXvsv7O3mqA6WK19z8chvSVxGQdf7R3Xo-mtQg@mail.gmail.com>
-References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
-	<20121010191702.404edace@pyramind.ukuu.org.uk>
-	<CAF6AEGvzfr2-QHpX4zwm2EPz-vxCDe9SaLUjo4_Fn7HhjWJFsg@mail.gmail.com>
-	<201210110857.15660.hverkuil@xs4all.nl>
-	<20121016212208.GB10462@morell.nvidia.com>
-	<20121017105321.062c898d@pyramind.ukuu.org.uk>
-	<CAPM=9txT+Wa_JXvsv7O3mqA6WK19z8chvSVxGQdf7R3Xo-mtQg@mail.gmail.com>
-Date: Wed, 17 Oct 2012 20:08:01 +1000
-Message-ID: <CAPM=9twQnqzPAH2HF_joXHWY77saQ7eUZanae4GtaeG+8GTP9g@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: Use EXPORT_SYMBOL
-From: Dave Airlie <airlied@gmail.com>
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Robert Morell <rmorell@nvidia.com>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201210230827.44179.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> Please go and discuss estoppel, wilful infringement and re-licensing with
->> your corporate attorneys. If you want to relicense components of the code
->> then please take the matter up with the corporate attorneys of the rights
->> holders concerned.
->
-> Alan please stick with the facts. This isn't a relicense of anything.
-> EXPORT_SYMBOL_GPL isn't a license its nothing like a license. Its a
-> totally pointless thing, it should be
-> EXPORT_SYMBOL_USERS_MIGHT_BE_DERIVED_CONSULT_YOUR_LAWYER, but it
-> really should be EXPORT_SYMBOL, and really consult your lawyers
-> anyways.
->
+On Mon October 22 2012 19:29:01 Kirill Smelkov wrote:
+> On Mon, Oct 22, 2012 at 09:01:39PM +0400, Kirill Smelkov wrote:
+> > On Mon, Oct 22, 2012 at 04:16:14PM +0200, Hans Verkuil wrote:
+> > > On Mon October 22 2012 15:54:44 Kirill Smelkov wrote:
+> > > > I was testing my video-over-ethernet subsystem today, and vivi seemed to
+> > > > be perfect video source for testing when one don't have lots of capture
+> > > > boards and cameras. Only its framerate was hardcoded to NTSC's 30fps,
+> > > > while in my country we usually use PAL (25 fps). That's why the patch.
+> > > > Thanks.
+> > > 
+> > > Rather than introducing a module option, it's much nicer if you can
+> > > implement enum_frameintervals and g/s_parm. This can be made quite flexible
+> > > allowing you to also support 50/59.94/60 fps.
+> > 
+> > Thanks for feedback. I've reworked the patch for FPS to be set via
+> > ->{g,s}_parm(), and yes now it is more flexble, because one can set
+> 
+> By the way, here is what I've found while working on the abovementioned
+> patch:
+> 
+> ---- 8< ----
+> From: Kirill Smelkov <kirr@mns.spb.ru>
+> Date: Mon, 22 Oct 2012 21:14:01 +0400
+> Subject: [PATCH] v4l2: Fix typo in struct v4l2_captureparm description
+> 
+> Judging from what drivers do and from my experience temeperframe
+> fraction is set in seconds - look e.g. here
+> 
+>     static int bttv_g_parm(struct file *file, void *f,
+>                                     struct v4l2_streamparm *parm)
+>     {
+>             struct bttv_fh *fh = f;
+>             struct bttv *btv = fh->btv;
+> 
+>             v4l2_video_std_frame_period(bttv_tvnorms[btv->tvnorm].v4l2_id,
+>                                         &parm->parm.capture.timeperframe);
+> 
+>     ...
+> 
+>     void v4l2_video_std_frame_period(int id, struct v4l2_fract *frameperiod)
+>     {
+>             if (id & V4L2_STD_525_60) {
+>                     frameperiod->numerator = 1001;
+>                     frameperiod->denominator = 30000;
+>             } else {
+>                     frameperiod->numerator = 1;
+>                     frameperiod->denominator = 25;
+>             }
+> 
+> and also v4l2-ctl in userspace decodes this as seconds:
+> 
+>     if (doioctl(fd, VIDIOC_G_PARM, &parm, "VIDIOC_G_PARM") == 0) {
+>             const struct v4l2_fract &tf = parm.parm.capture.timeperframe;
+> 
+>             ...
+> 
+>             printf("\tFrames per second: %.3f (%d/%d)\n",
+>                             (1.0 * tf.denominator) / tf.numerator,
+>                             tf.denominator, tf.numerator);
+> 
+> The typo was there from day 1 - added in 2002 in e028b61b ([PATCH]
+> add v4l2 api)(*)
+> 
+> (*) found in history tree
+>     git://git.kernel.org/pub/scm/linux/kernel/git/tglx/history.git
+> 
+> Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
 
-Also we should look at this
-http://lists.linaro.org/pipermail/linaro-mm-sig/2011-September/000616.html
+Good catch. Luckily the V4L2 spec is correct, it is just that single comment
+that's wrong.
 
-original code posting had no EXPORT_SYMBOL, so the original author's
-intents were quite clear.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Dave.
+Thanks!
+
+	Hans
+
+> ---
+>  include/uapi/linux/videodev2.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 57bfa59..2fff7ff 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -726,29 +726,29 @@ struct v4l2_window {
+>  	__u32			field;	 /* enum v4l2_field */
+>  	__u32			chromakey;
+>  	struct v4l2_clip	__user *clips;
+>  	__u32			clipcount;
+>  	void			__user *bitmap;
+>  	__u8                    global_alpha;
+>  };
+>  
+>  /*
+>   *	C A P T U R E   P A R A M E T E R S
+>   */
+>  struct v4l2_captureparm {
+>  	__u32		   capability;	  /*  Supported modes */
+>  	__u32		   capturemode;	  /*  Current mode */
+> -	struct v4l2_fract  timeperframe;  /*  Time per frame in .1us units */
+> +	struct v4l2_fract  timeperframe;  /*  Time per frame in seconds */
+>  	__u32		   extendedmode;  /*  Driver-specific extensions */
+>  	__u32              readbuffers;   /*  # of buffers for read */
+>  	__u32		   reserved[4];
+>  };
+>  
+>  /*  Flags for 'capability' and 'capturemode' fields */
+>  #define V4L2_MODE_HIGHQUALITY	0x0001	/*  High quality imaging mode */
+>  #define V4L2_CAP_TIMEPERFRAME	0x1000	/*  timeperframe field is supported */
+>  
+>  struct v4l2_outputparm {
+>  	__u32		   capability;	 /*  Supported modes */
+>  	__u32		   outputmode;	 /*  Current mode */
+>  	struct v4l2_fract  timeperframe; /*  Time per frame in seconds */
+>  	__u32		   extendedmode; /*  Driver-specific extensions */
+> 
