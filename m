@@ -1,29 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:65437 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750945Ab2JTJ4F (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58011 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933615Ab2JWXBh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Oct 2012 05:56:05 -0400
-Received: by mail-ea0-f174.google.com with SMTP id c13so361265eaa.19
-        for <linux-media@vger.kernel.org>; Sat, 20 Oct 2012 02:56:03 -0700 (PDT)
-Message-ID: <50827530.3030603@gmail.com>
-Date: Sat, 20 Oct 2012 11:56:00 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Tue, 23 Oct 2012 19:01:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, timo.ahonen@nokia.com
+Subject: Re: [PATCH 0/6] SMIA++ PLL and driver improvements
+Date: Wed, 24 Oct 2012 01:02:26 +0200
+Message-ID: <3533424.HJITSzelJ3@avalon>
+In-Reply-To: <20121023154231.GB23685@valkosipuli.retiisi.org.uk>
+References: <20121023154231.GB23685@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-CC: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	patches@linaro.org, Kamil Debski <k.debski@samsung.com>
-Subject: Re: [PATCH 7/8] [media] s5p-mfc: Make 'clk_ref' static in s5p_mfc_pm.c
-References: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org> <1350472311-9748-7-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1350472311-9748-7-git-send-email-sachin.kamat@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/17/2012 01:11 PM, Sachin Kamat wrote:
-> Fixes the following sparse warning:
-> drivers/media/platform/s5p-mfc/s5p_mfc_pm.c:31:10: warning:
-> symbol 'clk_ref' was not declared. Should it be static?
+Hi Sakari,
 
-Applied, thanks.
+Thanks for the patches.
+
+On Tuesday 23 October 2012 18:42:32 Sakari Ailus wrote:
+> Hi,
+> 
+> Here's a few SMIA++ patches from me and Laurent.
+> 
+> The set consists of cleanups, PLL calculator improvements and parallel bus
+> support for the PLL calculator.
+
+For the whole series,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+-- 
+Regards,
+
+Laurent Pinchart
+
