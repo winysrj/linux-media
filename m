@@ -1,98 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:55904 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751843Ab2JAOpD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 10:45:03 -0400
-Received: from eusync2.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MB700G6UYBT6V90@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 01 Oct 2012 15:45:30 +0100 (BST)
-Received: from [106.116.147.32] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MB700JW9YAZAR30@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 01 Oct 2012 15:45:00 +0100 (BST)
-Message-id: <5069AC6B.80902@samsung.com>
-Date: Mon, 01 Oct 2012 16:44:59 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Antti Palosaari <crope@iki.fi>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>
-Subject: Re: [GIT PATCHES FOR v3.6] Samsung media driver fixes
-References: <5034991F.5040403@samsung.com> <50699C23.5000203@redhat.com>
- <CALF0-+W=xRO0G9gz1oSGyDbL0JHTYmPUU11qCpaK7BXJwGFBYw@mail.gmail.com>
- <201210011628.36850.hverkuil@xs4all.nl>
-In-reply-to: <201210011628.36850.hverkuil@xs4all.nl>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from pequod.mess.org ([93.97.41.153]:52238 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758746Ab2JXVWo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Oct 2012 17:22:44 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 1/3] [media] winbond-cir: fix idle mode
+Date: Wed, 24 Oct 2012 22:22:40 +0100
+Message-Id: <1351113762-5530-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/01/2012 04:28 PM, Hans Verkuil wrote:
-> On Mon October 1 2012 16:05:15 Ezequiel Garcia wrote:
->> Mauro and folks,
->>
->> On Mon, Oct 1, 2012 at 10:35 AM, Mauro Carvalho Chehab
->> <mchehab@redhat.com> wrote:
->>> Hi Anti/Sylwester,
->>>
->>> Em 01-10-2012 08:50, Antti Palosaari escreveu:
->>>> Hello
->>>> I have had similar problems too. We need badly find out better procedures for patch handling. Something like parches are updated about once per week to the master. I have found I lose quite much time rebasing and res-sending stuff all the time.
->>>>
->>>> What I propose:
->>>> 1) module maintainers sends all patches to the ML with some tag marking it will pull requested later. I used lately [PATCH RFC]
->>>> 2) module maintainer will pick up all the "random" patches and pull request those. There is no way to mark patch as handled in patchwork....
->>>> 3) PULL request are handled more often, like during one week or maximum two
->>>
->>> Yes, for sure we need to improve the workflow. After the return from KS,
->>> I found ~400 patches/pull requests on my queue. I'm working hard to get rid
->>> of that backlog, but still there are ~270 patches/pull requests on my
->>> queue today.
->>>
->>> The thing is that patches come on a high rate at the ML, and there's no
->>> obvious way to discover what patches are just the normal patch review
->>> discussions (e. g. RFC) and what are real patches.
->>>
->>> To make things worse, we have nowadays 494 drivers. A very few of those
->>> have an entry at MAINTAINERS, or a maintainer that care enough about
->>> his drivers to handle patches sent to the mailing list (even the trivial
->>> ones).
->>>
->>> Due to the missing MAINTAINERS entries, all patches go through the ML directly,
->>> instead of going through the driver maintainer.
->>>
->>> So, I need to manually review every single email that looks to have a patch
->>> inside, typically forwarding it to the driver maintainer, when it exists,
->>> handling them myself otherwise.
->>>
->>> I'm counting with our discussions at the Barcelona's mini-summit in order
->>> to be able to get fresh ideas and discuss some alternatives to improve
->>> the patch workflow, but there are several things that could be done already,
->>> like the ones you've proposed, and keeping the MAINTAINERS file updated.
->>>
->>
->> Perhaps I'm missing something but I don't think there's an obvious
->> solution for this,
->> unless more maintainers are willing to start providing reviews / tests
->> / acks / etc.
->> for patches that arrive.
->>
->> Seems to me media/ has become a truly large subsystem,
->> though I'm not sure how does it compare to others subsystems.
->> Has anyone thought about breaking media/ down into smaller sub-subsystems,
->> with respective sub-maintainer?
-> 
-> Yes, and this will be discussed next month during the Media Summit.
+The receiver is never disabled by idle mode since rxstate never gets set
+to RXSTATE_ACTIVE, so we keep on getting interrupts after the first IR
+activity ends. Note that ir_raw_event_reset() already calls
+ir_raw_event_handle().
 
-Something like this came through my mind as well. It seems handling all
-the drivers/media stuff is becoming simply too much to tackle by one person
-in quality and timely manner.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/winbond-cir.c | 15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
---
-Regards,
-Sylwester
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index 43b5403..6f0f5ef 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -207,7 +207,6 @@ struct wbcir_data {
+ 	/* RX state */
+ 	enum wbcir_rxstate rxstate;
+ 	struct led_trigger *rxtrigger;
+-	struct ir_raw_event rxev;
+ 
+ 	/* TX state */
+ 	enum wbcir_txstate txstate;
+@@ -339,9 +338,12 @@ wbcir_idle_rx(struct rc_dev *dev, bool idle)
+ 		led_trigger_event(data->rxtrigger, LED_FULL);
+ 	}
+ 
+-	if (idle && data->rxstate != WBCIR_RXSTATE_INACTIVE)
++	if (idle && data->rxstate != WBCIR_RXSTATE_INACTIVE) {
++		data->rxstate = WBCIR_RXSTATE_INACTIVE;
++		led_trigger_event(data->rxtrigger, LED_OFF);
+ 		/* Tell hardware to go idle by setting RXINACTIVE */
+ 		outb(WBCIR_RX_DISABLE, data->sbase + WBCIR_REG_SP3_ASCR);
++	}
+ }
+ 
+ static void
+@@ -360,12 +362,6 @@ wbcir_irq_rx(struct wbcir_data *data, struct pnp_dev *device)
+ 		ir_raw_event_store_with_filter(data->dev, &rawir);
+ 	}
+ 
+-	/* Check if we should go idle */
+-	if (data->dev->idle) {
+-		led_trigger_event(data->rxtrigger, LED_OFF);
+-		data->rxstate = WBCIR_RXSTATE_INACTIVE;
+-	}
+-
+ 	ir_raw_event_handle(data->dev);
+ }
+ 
+@@ -915,9 +911,8 @@ wbcir_init_hw(struct wbcir_data *data)
+ 
+ 	/* Clear RX state */
+ 	data->rxstate = WBCIR_RXSTATE_INACTIVE;
+-	data->rxev.duration = 0;
+ 	ir_raw_event_reset(data->dev);
+-	ir_raw_event_handle(data->dev);
++	ir_raw_event_set_idle(data->dev, true);
+ 
+ 	/* Clear TX state */
+ 	if (data->txstate == WBCIR_TXSTATE_ACTIVE) {
+-- 
+1.7.11.7
+
