@@ -1,54 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:51246 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810Ab2JHMf5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 08:35:57 -0400
-Received: by mail-qa0-f46.google.com with SMTP id c26so2027391qad.19
-        for <linux-media@vger.kernel.org>; Mon, 08 Oct 2012 05:35:56 -0700 (PDT)
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:60949 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933705Ab2JXAu1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Oct 2012 20:50:27 -0400
 MIME-Version: 1.0
-Date: Mon, 8 Oct 2012 20:35:56 +0800
-Message-ID: <CAPgLHd-CygOpRcPTy65dn66HCNjsHi+Sf1v1aC2Azcqd0e3Wxw@mail.gmail.com>
-Subject: [PATCH] dvb-frontends: fix potential NULL pointer dereference in stv0900_set_mclk()
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: mchehab@infradead.org
-Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
+In-Reply-To: <1351022246-8201-4-git-send-email-elezegarcia@gmail.com>
+References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+	<1351022246-8201-4-git-send-email-elezegarcia@gmail.com>
+Date: Tue, 23 Oct 2012 21:50:27 -0300
+Message-ID: <CALF0-+XQHAC=eGigmA6QOO27PPG39Q1yGFiebtJ5sJyqbF55vw@mail.gmail.com>
+Subject: Re: [PATCH 04/23] sn9c102: Replace memcpy with struct assignment
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
+	Ezequiel Garcia <elezegarcia@gmail.com>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	Andy Walls <awalls@md.metrocast.net>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+On Tue, Oct 23, 2012 at 4:57 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> This kind of memcpy() is error-prone. Its replacement with a struct
+> assignment is prefered because it's type-safe and much easier to read.
+>
+> Found by coccinelle. Hand patched and reviewed.
+> Tested by compilation only.
+>
+> A simplified version of the semantic match that finds this problem is as
+> follows: (http://coccinelle.lip6.fr/)
+>
+> // <smpl>
+> @@
+> identifier struct_name;
+> struct struct_name to;
+> struct struct_name from;
+> expression E;
+> @@
+> -memcpy(&(to), &(from), E);
+> +to = from;
+> // </smpl>
+>
+> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+> ---
+>  drivers/media/usb/sn9c102/sn9c102_core.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/usb/sn9c102/sn9c102_core.c b/drivers/media/usb/sn9c102/sn9c102_core.c
+> index 5bfc8e2..4cae6f8 100644
+> --- a/drivers/media/usb/sn9c102/sn9c102_core.c
+> +++ b/drivers/media/usb/sn9c102/sn9c102_core.c
+> @@ -2824,7 +2824,7 @@ sn9c102_vidioc_querybuf(struct sn9c102_device* cam, void __user * arg)
+>             b.index >= cam->nbuffers || cam->io != IO_MMAP)
+>                 return -EINVAL;
+>
+> -       memcpy(&b, &cam->frame[b.index].buf, sizeof(b));
+> +       b = cam->frame[b.index].buf;
+>
+>         if (cam->frame[b.index].vma_use_count)
+>                 b.flags |= V4L2_BUF_FLAG_MAPPED;
+> @@ -2927,7 +2927,7 @@ sn9c102_vidioc_dqbuf(struct sn9c102_device* cam, struct file* filp,
+>
+>         f->state = F_UNUSED;
+>
+> -       memcpy(&b, &f->buf, sizeof(b));
+> +       b = f->buf;
+>         if (f->vma_use_count)
+>                 b.flags |= V4L2_BUF_FLAG_MAPPED;
+>
 
-The dereference should be moved below the NULL test.
+Andy: you got me thinking on performance.
+Most patches are initialization or setup code.
 
-dpatch engine is used to auto generate this patch.
-(https://github.com/weiyj/dpatch)
+Here we patch a xxx_vidioc_dqbuf() function.
+Is this a speed sensitive path?
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/media/dvb-frontends/stv0900_core.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+I still think this change can't hurt performance,
+but I may be wrong!
 
-diff --git a/drivers/media/dvb-frontends/stv0900_core.c b/drivers/media/dvb-frontends/stv0900_core.c
-index 7f1bada..274a71c 100644
---- a/drivers/media/dvb-frontends/stv0900_core.c
-+++ b/drivers/media/dvb-frontends/stv0900_core.c
-@@ -300,15 +300,15 @@ static enum fe_stv0900_error stv0900_set_mclk(struct stv0900_internal *intp, u32
- {
- 	u32 m_div, clk_sel;
- 
--	dprintk("%s: Mclk set to %d, Quartz = %d\n", __func__, mclk,
--			intp->quartz);
--
- 	if (intp == NULL)
- 		return STV0900_INVALID_HANDLE;
- 
- 	if (intp->errs)
- 		return STV0900_I2C_ERROR;
- 
-+	dprintk("%s: Mclk set to %d, Quartz = %d\n", __func__, mclk,
-+			intp->quartz);
-+
- 	clk_sel = ((stv0900_get_bits(intp, F0900_SELX1RATIO) == 1) ? 4 : 6);
- 	m_div = ((clk_sel * mclk) / intp->quartz) - 1;
- 	stv0900_write_bits(intp, F0900_M_DIV, m_div);
 
+    Ezequiel
