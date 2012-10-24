@@ -1,44 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:33835 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753012Ab2JCMSu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 08:18:50 -0400
-Received: by wgbdr13 with SMTP id dr13so6076907wgb.1
-        for <linux-media@vger.kernel.org>; Wed, 03 Oct 2012 05:18:49 -0700 (PDT)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: [GIT PULL] for 3.7 (technisat-usb2)
-Date: Wed, 03 Oct 2012 14:18:45 +0200
-Message-ID: <1889603.SWYgrEojeU@dibcom294>
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:54847 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754073Ab2JXL32 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Oct 2012 07:29:28 -0400
+Received: by mail-qa0-f46.google.com with SMTP id c26so2465388qad.19
+        for <linux-media@vger.kernel.org>; Wed, 24 Oct 2012 04:29:27 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Date: Wed, 24 Oct 2012 19:29:27 +0800
+Message-ID: <CAPgLHd-ivjzSDre+DMVK+mHNpNynoLWJXK36zGW5GRnU0Z4d3g@mail.gmail.com>
+Subject: [PATCH] [media] vpif_display: fix return value check in vpif_reqbufs()
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: mchehab@infradead.org
+Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-The following changes since commit 2425bb3d4016ed95ce83a90b53bd92c7f31091e4:
+In case of error, the function vb2_dma_contig_init_ctx() returns
+ERR_PTR() and never returns NULL. The NULL test in the return value
+check should be replaced with IS_ERR().
 
-  em28xx: regression fix: use DRX-K sync firmware requests on em28xx 
+dpatch engine is used to auto generate this patch.
+(https://github.com/weiyj/dpatch)
 
-are available in the git repository at:
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ drivers/media/platform/davinci/vpif_display.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-  http://linuxtv.org/git/pb/media_tree.git staging/for_v3.7
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index b716fbd..5453bbb 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -972,9 +972,9 @@ static int vpif_reqbufs(struct file *file, void *priv,
+ 	}
+ 	/* Initialize videobuf2 queue as per the buffer type */
+ 	common->alloc_ctx = vb2_dma_contig_init_ctx(vpif_dev);
+-	if (!common->alloc_ctx) {
++	if (IS_ERR(common->alloc_ctx)) {
+ 		vpif_err("Failed to get the context\n");
+-		return -EINVAL;
++		return PTR_ERR(common->alloc_ctx);
+ 	}
+ 	q = &common->buffer_queue;
+ 	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 
-for you to fetch changes up to e196a346d5d2e4695a587ca2f99da5e5491d4e95:
-
-  [media]: add MODULE_DEVICE_TABLE to technisat-usb2 
-
-----------------------------------------------------------------
-Patrick Boettcher (1):
-      [media]: add MODULE_DEVICE_TABLE to technisat-usb2
-
- drivers/media/usb/dvb-usb/technisat-usb2.c |    1 +
- 1 file changed, 1 insertion(+)
-
-regards,
-
---
-Patrick.
