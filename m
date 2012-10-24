@@ -1,64 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:56084 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751278Ab2JGVje (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Oct 2012 17:39:34 -0400
-Message-ID: <1349645970.15802.12.camel@joe-AO722>
-Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for
- i2c_msg initialization
-From: Joe Perches <joe@perches.com>
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: walter harms <wharms@bfs.de>, Antti Palosaari <crope@iki.fi>,
-	kernel-janitors@vger.kernel.org, rmallon@gmail.com,
-	shubhrajyoti@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Sun, 07 Oct 2012 14:39:30 -0700
-In-Reply-To: <alpine.DEB.2.02.1210072053550.2745@localhost6.localdomain6>
-References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
-	 <1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr>
-	 <5071AEF3.6080108@bfs.de>
-	 <alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6>
-	 <5071B834.1010200@bfs.de>
-	 <alpine.DEB.2.02.1210071917040.2745@localhost6.localdomain6>
-	 <1349633780.15802.8.camel@joe-AO722>
-	 <alpine.DEB.2.02.1210072053550.2745@localhost6.localdomain6>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-yh0-f46.google.com ([209.85.213.46]:53175 "EHLO
+	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933768Ab2JXBUk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Oct 2012 21:20:40 -0400
+Received: by mail-yh0-f46.google.com with SMTP id m54so875182yhm.19
+        for <linux-media@vger.kernel.org>; Tue, 23 Oct 2012 18:20:39 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: <linux-media@vger.kernel.org>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH] stk1160: Try to continue with fewer transfer buffers
+Date: Tue, 23 Oct 2012 22:20:30 -0300
+Message-Id: <1351041630-5075-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2012-10-07 at 20:56 +0200, Julia Lawall wrote:
-> >> Some people thought that it would be nice to have the macros rather than
-> >> the inlined field initializations, especially since there is no flag for
-> >> write.  A separate question is whether an array of one element is useful,
-> >> or whether one should systematically use & on a simple variable of the
-> >> structure type.  I'm open to suggestions about either point.
-> >
-> > I think the macro naming is not great.
-> >
-> > Maybe add DEFINE_/DECLARE_/_INIT or something other than an action
-> > name type to the macro names.
-> 
-> DEFINE and DECLARE usually have a declared variable as an argument, which 
-> is not the case here.
-> 
-> These macros are like the macros PCI_DEVICE and PCI_DEVICE_CLASS.
+Many people are trying to use stk1160 on low memory devices.
+Instead of failing if one allocation fails, we allow the driver
+to continue working if fewer transfer buffers are available.
 
-I understand that.
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/usb/stk1160/stk1160-video.c |   23 +++++++++++++++++++++--
+ drivers/media/usb/stk1160/stk1160.h       |    5 +++--
+ 2 files changed, 24 insertions(+), 4 deletions(-)
 
-> Are READ and WRITE the action names?  They are really the important 
-> information in this case.
-
-Yes, most (all?) uses of _READ and _WRITE macros actually
-perform some I/O.
-
-> > I think the consistency is better if all the references are done
-> > as arrays, even for single entry arrays.
-> 
-> Is it worth creating arrays where &msg is used?  Or would it be better to 
-> leave that aspect as it is?
-
-Reasonable arguments can be made either way.
-
+diff --git a/drivers/media/usb/stk1160/stk1160-video.c b/drivers/media/usb/stk1160/stk1160-video.c
+index 8bdfb02..e620be0 100644
+--- a/drivers/media/usb/stk1160/stk1160-video.c
++++ b/drivers/media/usb/stk1160/stk1160-video.c
+@@ -475,7 +475,11 @@ int stk1160_alloc_isoc(struct stk1160 *dev)
+ 		if (!dev->isoc_ctl.transfer_buffer[i]) {
+ 			stk1160_err("cannot alloc %d bytes for tx[%d] buffer\n",
+ 				sb_size, i);
+-			goto free_i_bufs;
++
++			/* Not enough transfer buffers, so just give up */
++			if (i < STK1160_MIN_BUFS)
++				goto free_i_bufs;
++			goto nomore_tx_bufs;
+ 		}
+ 		memset(dev->isoc_ctl.transfer_buffer[i], 0, sb_size);
+ 
+@@ -506,13 +510,28 @@ int stk1160_alloc_isoc(struct stk1160 *dev)
+ 		}
+ 	}
+ 
+-	stk1160_dbg("urbs allocated\n");
++	stk1160_dbg("%d urbs allocated\n", num_bufs);
+ 
+ 	/* At last we can say we have some buffers */
+ 	dev->isoc_ctl.num_bufs = num_bufs;
+ 
+ 	return 0;
+ 
++nomore_tx_bufs:
++	/*
++	 * Failed to allocate desired buffer count. However, we may have
++	 * enough to work fine, so we just free the extra urb,
++	 * store the allocated count and keep going, fingers crossed!
++	 */
++	usb_free_urb(dev->isoc_ctl.urb[i]);
++	dev->isoc_ctl.urb[i] = NULL;
++
++	stk1160_warn("%d urbs allocated. Trying to continue...\n", i-1);
++
++	dev->isoc_ctl.num_bufs = i-1;
++
++	return 0;
++
+ free_i_bufs:
+ 	/* Save the allocated buffers so far, so we can properly free them */
+ 	dev->isoc_ctl.num_bufs = i+1;
+diff --git a/drivers/media/usb/stk1160/stk1160.h b/drivers/media/usb/stk1160/stk1160.h
+index 68c8707..05b05b1 100644
+--- a/drivers/media/usb/stk1160/stk1160.h
++++ b/drivers/media/usb/stk1160/stk1160.h
+@@ -30,11 +30,12 @@
+ #define STK1160_VERSION		"0.9.5"
+ #define STK1160_VERSION_NUM	0x000905
+ 
+-/* TODO: Decide on number of packets for each buffer */
++/* Decide on number of packets for each buffer */
+ #define STK1160_NUM_PACKETS 64
+ 
+ /* Number of buffers for isoc transfers */
+-#define STK1160_NUM_BUFS 16 /* TODO */
++#define STK1160_NUM_BUFS 16
++#define STK1160_MIN_BUFS 1
+ 
+ /* TODO: This endpoint address should be retrieved */
+ #define STK1160_EP_VIDEO 0x82
+-- 
+1.7.8.6
 
