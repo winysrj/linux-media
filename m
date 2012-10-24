@@ -1,65 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55660 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933157Ab2JYNjI convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40087 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161330Ab2JXWlY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Oct 2012 09:39:08 -0400
-Date: Thu, 25 Oct 2012 11:38:41 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Fabio Estevam <fabio.estevam@freescale.com>
-Cc: <kernel@pengutronix.de>, <g.liakhovetski@gmx.de>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>, <javier.martin@vista-silicon.com>
-Subject: Re: [PATCH 1/2] ARM: clk-imx27: Add missing clock for mx2-camera
-Message-ID: <20121025113841.4e06cc3b@redhat.com>
-In-Reply-To: <1349473981-15084-2-git-send-email-fabio.estevam@freescale.com>
-References: <1349473981-15084-1-git-send-email-fabio.estevam@freescale.com>
-	<1349473981-15084-2-git-send-email-fabio.estevam@freescale.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 24 Oct 2012 18:41:24 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, media-workshop@linuxtv.org,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [media-workshop] Tentative Agenda for the November workshop
+Date: Thu, 25 Oct 2012 00:42:14 +0200
+Message-ID: <1372729.rmYJ0LutvU@avalon>
+In-Reply-To: <50868685.5040701@samsung.com>
+References: <201210221035.56897.hverkuil@xs4all.nl> <32168825.Mb9aigaepW@avalon> <50868685.5040701@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fábio,
+Hi Sylwester,
 
-Em Fri, 5 Oct 2012 18:53:01 -0300
-Fabio Estevam <fabio.estevam@freescale.com> escreveu:
-
-> During the clock conversion for mx27 the "per4_gate" clock was missed to get
-> registered as a dependency of mx2-camera driver.
+On Tuesday 23 October 2012 13:59:01 Sylwester Nawrocki wrote:
+> On 10/23/2012 12:22 PM, Laurent Pinchart wrote:
+> > On Tuesday 23 October 2012 08:46:21 Hans Verkuil wrote:
+> >> On Tue October 23 2012 03:03:35 Laurent Pinchart wrote:
+> >>> On Monday 22 October 2012 14:06:06 Hans Verkuil wrote:
+> >>>> On Mon October 22 2012 13:18:46 Laurent Pinchart wrote:
+> >>>>> On Monday 22 October 2012 12:53:02 Sylwester Nawrocki wrote:
+> >>>>>> On 10/22/2012 12:39 PM, Laurent Pinchart wrote:
+> >>>>>>> On Monday 22 October 2012 10:35:56 Hans Verkuil wrote:
+> >>>>>>>> Hi all,
+> >>>>>>>> 
+> >>>>>>>> This is the tentative agenda for the media workshop on November
+> >>>>>>>> 8, 2012. If you have additional things that you want to discuss,
+> >>>>>>>> or something is wrong or incomplete in this list, please let me
+> >>>>>>>> know so I can update the list.
+> >>>>>>> 
+> >>>>>>> Thank you Hans for taking care of the agenda.
+> >>>>>>> 
+> >>>>>>>> - Explain current merging process (Mauro)
+> >>>>>>>> - Open floor for discussions on how to improve it (Mauro)
+> >>>>>>>> - Write down minimum requirements for new V4L2 (and DVB?)
+> >>>>>>>> 
+> >>>>>>>>   drivers, both for staging and mainline acceptance: which
+> >>>>>>>>   frameworks to use, v4l2-compliance, etc. (Hans Verkuil)
+> >>>>>>>> 
+> >>>>>>>> - V4L2 ambiguities (Hans Verkuil)
+> >>>>>>>> - TSMux device (a mux rather than a demux): Alain Volmat
+> >>>>>>>> - dmabuf status, esp. with regards to being able to test
+> >>>>>>>> 
+> >>>>>>>>   (Mauro/Samsung)
+> >>>>>>>> 
+> >>>>>>>> - Device tree support (Guennadi, not known yet whether this topic
+> >>>>>>>> 
+> >>>>>>>>   is needed) - Creating/selecting contexts for hardware that
+> >>>>>>>>   supports this (Samsung, only if time is available)
+> >>>>>>> 
+> >>>>>>> This last topic will likely require lots of brainstorming, and
+> >>>>>>> thus time. If the schedule permits, would anyone be interested in
+> >>>>>>> meeting earlier during the week already ?
+> >>>>>> 
+> >>>>>> My intention was to also possibly discuss it with others before the
+> >>>>>> actual media workshop. Would be nice if we could have arranged such
+> >>>>>> a meeting. I'm not sure about the room conditions though. It's
+> >>>>>> probably not a big issue, unless there is really many people
+> >>>>>> interested in that topic.
+> >>>>> 
+> >>>>> A small room with a projector would be nice if possible, although not
+> >>>>> required. Who would be interested in attending a brainstorming session
+> >>>>> on contexts ?
+> >>>> 
+> >>>> I would be, but the problem is that the conference is also interesting.
+> >>> 
+> >>> More interesting than a brainstorming session about hardware contexts ?
+> >>> ;-) There's of course talks I want to attend, but I can probably skip
+> >>> some of them.
+> >>> 
+> >>>> The only day I have really available is the Friday *after* the summit.
+> >>> 
+> >>> We'll probably need several brainstorming sessions anyway. I'd like to
+> >>> organize one before the media summit though, as we'll have limited time
+> >>> to discuss the topic during the summit, which doesn't suit brainstorming
+> >>> sessions very well.
+> >> 
+> >> Sylwester, would Samsung be able to prepare for a brainstorming session
+> >> on Monday or Tuesday? Both Laurent and myself have presentations on
+> >> Wednesday, so that's not the best day for such a session.
 > 
-> In the old mx27 clock driver we used to have:
+> Kamil has presentation on Tuesday so there would be only Monday left.
 > 
-> DEFINE_CLOCK1(csi_clk, 0, NULL, 0, parent, &csi_clk1, &per4_clk);
+> >> Do you think we should do a half-day or a full day session on this?
+> > 
+> > Half a day should be more than enough to start with. The topic is quite
+> > complex, and we'll need to sleep over it, several times. A full day would
+> > just result in brain overheat. I was thinking more in the line of
+> > starting our thought process, so maybe twice an hour or two hours would
+> > be good. That would allow us to attend the ELCE talks as well :-)
+> > (there's definitely a couple of them that I would like to listen to).
 > 
-> ,so does the same in the new clock driver.
-> 
-> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-> ---
->  arch/arm/mach-imx/clk-imx27.c |    1 +
+> I agree, I wouldn't like to loose whole day of the conference for that
+> as well. One, two hours for the starters could be sufficient. So we can
+> possibly agree on some initial idea and could get back to it later.
+> I don't think I have already material for a full day session.
 
-As this patch is for arch/arm, I'm understanding that it will be merged
-via arm tree. So,
-
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm/mach-imx/clk-imx27.c b/arch/arm/mach-imx/clk-imx27.c
-> index 3b6b640..5ef0f08 100644
-> --- a/arch/arm/mach-imx/clk-imx27.c
-> +++ b/arch/arm/mach-imx/clk-imx27.c
-> @@ -224,6 +224,7 @@ int __init mx27_clocks_init(unsigned long fref)
->  	clk_register_clkdev(clk[lcdc_ipg_gate], "ipg", "imx-fb.0");
->  	clk_register_clkdev(clk[lcdc_ahb_gate], "ahb", "imx-fb.0");
->  	clk_register_clkdev(clk[csi_ahb_gate], "ahb", "mx2-camera.0");
-> +	clk_register_clkdev(clk[per4_gate], "per", "mx2-camera.0");
->  	clk_register_clkdev(clk[usb_div], "per", "fsl-usb2-udc");
->  	clk_register_clkdev(clk[usb_ipg_gate], "ipg", "fsl-usb2-udc");
->  	clk_register_clkdev(clk[usb_ahb_gate], "ahb", "fsl-usb2-udc");
-
+One hour, possibly twice, would have my preference. That shouldn't be too 
+difficult to organize. When will you and Kamil arrive ?
 
 -- 
 Regards,
-Mauro
+
+Laurent Pinchart
+
