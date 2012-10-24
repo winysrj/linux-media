@@ -1,117 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59427 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750710Ab2JXXKv (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:35995 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934461Ab2JXHr2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Oct 2012 19:10:51 -0400
-References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com> <2776796.95QghSKdPW@avalon>
-In-Reply-To: <2776796.95QghSKdPW@avalon>
+	Wed, 24 Oct 2012 03:47:28 -0400
+Received: by mail-we0-f174.google.com with SMTP id t9so105417wey.19
+        for <linux-media@vger.kernel.org>; Wed, 24 Oct 2012 00:47:27 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH 01/23] uvc: Replace memcpy with struct assignment
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Wed, 24 Oct 2012 19:10:45 -0400
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Ezequiel Garcia <elezegarcia@gmail.com>
-CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Message-ID: <e8dd9233-589d-4e57-8a58-593789c8eae1@email.android.com>
+In-Reply-To: <CAOMZO5BpJAEdwKRVE47D+7wggLsvCXtPcv272UPYsZV6v3vKMg@mail.gmail.com>
+References: <1349791352-9829-1-git-send-email-fabio.estevam@freescale.com>
+	<Pine.LNX.4.64.1210222301100.32591@axis700.grange>
+	<CAOMZO5BpJAEdwKRVE47D+7wggLsvCXtPcv272UPYsZV6v3vKMg@mail.gmail.com>
+Date: Wed, 24 Oct 2012 09:47:27 +0200
+Message-ID: <CACKLOr355VFgxPGUXwkyFHxW95p7JaF=wdhF1FYsQdM-37d7ng@mail.gmail.com>
+Subject: Re: [PATCH v3 2/2] [media]: mx2_camera: Fix regression caused by
+ clock conversion
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	mchehab@infradead.org, kernel@pengutronix.de, gcembed@gmail.com,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux@arm.linux.org.uk
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+On 23 October 2012 00:17, Fabio Estevam <festevam@gmail.com> wrote:
+> Hi Guennadi
+>
+> On Mon, Oct 22, 2012 at 7:07 PM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+>> ? I don't find a clock named "per" and associated with "mx2-camera.0" in
+>> arch/arm/mach-imx/clk-imx27.c. I only find it in clk-imx25.c. Does this
+>> mean, that this your patch is for i.MX25? But you're saying it's for
+>> i.MX27. Confused...
+>
+> I provide this mx27 clock in the first patch of the series:
+> http://patchwork.linuxtv.org/patch/14915/
 
->Hi Ezequiel,
->
->Thanks for the patch.
->
->On Tuesday 23 October 2012 16:57:04 Ezequiel Garcia wrote:
->> This kind of memcpy() is error-prone. Its replacement with a struct
->> assignment is prefered because it's type-safe and much easier to
->read.
->> 
->> Found by coccinelle. Hand patched and reviewed.
->> Tested by compilation only.
->
->This looks good, but there's one more memcpy that can be replaced by a
->direct 
->structure assignment in uvc_ctrl_add_info() 
->(drivers/media/usb/uvc/uvc_ctrl.c). You might want to check why it
->hasn't been 
->caught by the semantic patch.
->
->> A simplified version of the semantic match that finds this problem is
->as
->> follows: (http://coccinelle.lip6.fr/)
->> 
->> // <smpl>
->> @@
->> identifier struct_name;
->> struct struct_name to;
->> struct struct_name from;
->> expression E;
->> @@
->> -memcpy(&(to), &(from), E);
->> +to = from;
->> // </smpl>
->> 
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
->> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
->> ---
->>  drivers/media/usb/uvc/uvc_v4l2.c |    6 +++---
->>  1 files changed, 3 insertions(+), 3 deletions(-)
->> 
->> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
->> b/drivers/media/usb/uvc/uvc_v4l2.c index f00db30..4fc8737 100644
->> --- a/drivers/media/usb/uvc/uvc_v4l2.c
->> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
->> @@ -314,7 +314,7 @@ static int uvc_v4l2_set_format(struct
->uvc_streaming
->> *stream, goto done;
->>  	}
->> 
->> -	memcpy(&stream->ctrl, &probe, sizeof probe);
->> +	stream->ctrl = probe;
->>  	stream->cur_format = format;
->>  	stream->cur_frame = frame;
->> 
->> @@ -386,7 +386,7 @@ static int uvc_v4l2_set_streamparm(struct
->uvc_streaming
->> *stream, return -EBUSY;
->>  	}
->> 
->> -	memcpy(&probe, &stream->ctrl, sizeof probe);
->> +	probe = stream->ctrl;
->>  	probe.dwFrameInterval =
->>  		uvc_try_frame_interval(stream->cur_frame, interval);
->> 
->> @@ -397,7 +397,7 @@ static int uvc_v4l2_set_streamparm(struct
->uvc_streaming
->> *stream, return ret;
->>  	}
->> 
->> -	memcpy(&stream->ctrl, &probe, sizeof probe);
->> +	stream->ctrl = probe;
->>  	mutex_unlock(&stream->mutex);
->> 
->>  	/* Return the actual frame period. */
->
->-- 
->Regards,
->
->Laurent Pinchart
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes, I made the same mistake.
 
-Maybe because there is no '&' operator on the second argument. 
 
-Regards,
-Andy
+
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
