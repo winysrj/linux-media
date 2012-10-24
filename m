@@ -1,29 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41187 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753284Ab2JAQ3P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Oct 2012 12:29:15 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] MAINTAINERS: should we arrange modules better
-Date: Mon,  1 Oct 2012 19:28:45 +0300
-Message-Id: <1349108926-6425-1-git-send-email-crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58231 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756417Ab2JXRMN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Oct 2012 13:12:13 -0400
+Date: Wed, 24 Oct 2012 20:12:09 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] omap3isp: preview: Add support for 8-bit formats at
+ the sink pad
+Message-ID: <20121024171208.GB23933@valkosipuli.retiisi.org.uk>
+References: <1350991419-23028-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1350997862-18880-1-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1350997862-18880-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Like order...
-MEDIA FOO
-MEDIA BAR
-MEDIA BAZ
-?
+On Tue, Oct 23, 2012 at 03:11:02PM +0200, Laurent Pinchart wrote:
+> Support both grayscale (Y8) and Bayer (SBGGR8, SGBRG8, SGRBG8 and
+> SRGGB8) formats.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Antti Palosaari (1):
-  MAINTAINERS: add modules I am responsible
+Thanks!!
 
- MAINTAINERS | 231 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 231 insertions(+)
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
 -- 
-1.7.11.4
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
