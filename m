@@ -1,63 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4911 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757268Ab2JZIzT (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58283 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756417Ab2JXSQ0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Oct 2012 04:55:19 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id q9Q8tGnn084952
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 26 Oct 2012 10:55:18 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from durdane.localnet (64-103-25-233.cisco.com [64.103.25.233])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id C2C8C5CE000B
-	for <linux-media@vger.kernel.org>; Fri, 26 Oct 2012 10:55:15 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 24 Oct 2012 14:16:26 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.7] adv7604: sync with the latest Cisco internal code
-Date: Fri, 26 Oct 2012 10:55:14 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210261055.14654.hverkuil@xs4all.nl>
+Cc: hverkuil@xs4all.nl
+Subject: [RFC 2/4] v4l: Helper function for obtaining timestamps
+Date: Wed, 24 Oct 2012 21:16:21 +0300
+Message-Id: <1351102583-682-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20121024181602.GD23933@valkosipuli.retiisi.org.uk>
+References: <20121024181602.GD23933@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+v4l2_get_timestamp() produces a monotonic timestamp but unlike
+ktime_get_ts(), it uses struct timeval instead of struct timespec, saving
+the drivers the conversion job when getting timestamps for v4l2_buffer's
+timestamp field.
 
-These patches are for 3.7: they fix a number of bugs that were fixed in the
-internal Cisco tree since I posted the initial adv7604 driver.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/v4l2-core/v4l2-common.c |   10 ++++++++++
+ include/media/v4l2-common.h           |    2 ++
+ 2 files changed, 12 insertions(+), 0 deletions(-)
 
-This pull request contains the same code as the RFC patches:
+diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+index f995dd3..cbace52 100644
+--- a/drivers/media/v4l2-core/v4l2-common.c
++++ b/drivers/media/v4l2-core/v4l2-common.c
+@@ -979,3 +979,13 @@ const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
+ 	return best;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_find_nearest_format);
++
++void v4l2_get_timestamp(struct timeval *tv)
++{
++	struct timespec ts;
++
++	ktime_get_ts(&ts);
++	tv->tv_sec = ts.tv_sec;
++	tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
++}
++EXPORT_SYMBOL_GPL(v4l2_get_timestamp);
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index 1a0b2db..ec7c9c0 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -225,4 +225,6 @@ bool v4l2_detect_gtf(unsigned frame_height, unsigned hfreq, unsigned vsync,
+ 
+ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait);
+ 
++void v4l2_get_timestamp(struct timeval *tv);
++
+ #endif /* V4L2_COMMON_H_ */
+-- 
+1.7.2.5
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg53949.html
-
-Regards,
-
-	Hans
-
-The following changes since commit d92462401dde1effa04a51d0a15000e6246d2a43:
-
-  [media] v4l2-ioctl: fix W=1 warnings (2012-10-07 10:19:50 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git adv
-
-for you to fetch changes up to 59d24d5e73d30301c6f978b7f5608c8beb12ca8c:
-
-  adv7604: restart STDI once if format is not found (2012-10-16 15:14:27 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (4):
-      adv7604: cleanup references
-      adv7604: Replace prim_mode by mode
-      adv7604: use presets where possible.
-      adv7604: restart STDI once if format is not found
-
- drivers/media/i2c/adv7604.c |  377 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------------------------
- include/media/adv7604.h     |   21 ++++---
- 2 files changed, 282 insertions(+), 116 deletions(-)
