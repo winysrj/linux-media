@@ -1,43 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:55137 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752089Ab2JFIQi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Oct 2012 04:16:38 -0400
-Received: by mail-pa0-f46.google.com with SMTP id hz1so2574392pad.19
-        for <linux-media@vger.kernel.org>; Sat, 06 Oct 2012 01:16:38 -0700 (PDT)
-Date: Sat, 6 Oct 2012 16:16:30 +0800
-From: Shawn Guo <shawn.guo@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: javier Martin <javier.martin@vista-silicon.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 28/34] media: mx2_camera: remove mach/hardware.h inclusion
-Message-ID: <20121006081626.GA20231@S2101-09.ap.freescale.net>
-References: <1347860103-4141-1-git-send-email-shawn.guo@linaro.org>
- <1347860103-4141-29-git-send-email-shawn.guo@linaro.org>
- <Pine.LNX.4.64.1209171120550.1689@axis700.grange>
- <CACKLOr10vWKUzZxjKQ=HWcpKP-9cDfhhfJtuyW39UJsyPpcs_w@mail.gmail.com>
- <Pine.LNX.4.64.1209171559100.1689@axis700.grange>
- <CACKLOr2f_iVAjxGN4DM5pUY7LC_hsuT4hZNUDnAPdB+ySxM2uw@mail.gmail.com>
- <50640218.1060008@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <50640218.1060008@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:58268 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756082Ab2JXN3G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Oct 2012 09:29:06 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: stable@kernel.org
+Cc: linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH] [media] au0828: fix case where STREAMOFF being called on stopped stream causes BUG()
+Date: Wed, 24 Oct 2012 11:28:59 -0200
+Message-Id: <1351085339-826-1-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 27, 2012 at 04:36:56AM -0300, Mauro Carvalho Chehab wrote:
-> I'm understanding that this patch will flow through arm tree[1]. So:
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
 
-Yes, it will go through arm-soc tree for 3.8.
+We weren't checking whether the resource was in use before calling
+res_free(), so applications which called STREAMOFF on a v4l2 device that
+wasn't already streaming would cause a BUG() to be hit (MythTV).
 
-> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-Thanks, Mauro.
+Reported-by: Larry Finger <larry.finger@lwfinger.net>
+Reported-by: Jay Harbeston <jharbestonus@gmail.com>
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
 
-Shawn
+Upstream commit: a595c1ce4c9d572cf53513570b9f1a263d7867f2
+Fixes Fedora BZ: https://bugzilla.redhat.com/show_bug.cgi?id=819321
+
+ drivers/media/video/au0828/au0828-video.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/video/au0828/au0828-video.c b/drivers/media/video/au0828/au0828-video.c
+index df92322..4d5b670 100644
+--- a/drivers/media/video/au0828/au0828-video.c
++++ b/drivers/media/video/au0828/au0828-video.c
+@@ -1702,14 +1702,18 @@ static int vidioc_streamoff(struct file *file, void *priv,
+ 			(AUVI_INPUT(i).audio_setup)(dev, 0);
+ 		}
+ 
+-		videobuf_streamoff(&fh->vb_vidq);
+-		res_free(fh, AU0828_RESOURCE_VIDEO);
++		if (res_check(fh, AU0828_RESOURCE_VIDEO)) {
++			videobuf_streamoff(&fh->vb_vidq);
++			res_free(fh, AU0828_RESOURCE_VIDEO);
++		}
+ 	} else if (fh->type == V4L2_BUF_TYPE_VBI_CAPTURE) {
+ 		dev->vbi_timeout_running = 0;
+ 		del_timer_sync(&dev->vbi_timeout);
+ 
+-		videobuf_streamoff(&fh->vb_vbiq);
+-		res_free(fh, AU0828_RESOURCE_VBI);
++		if (res_check(fh, AU0828_RESOURCE_VBI)) {
++			videobuf_streamoff(&fh->vb_vbiq);
++			res_free(fh, AU0828_RESOURCE_VBI);
++		}
+ 	}
+ 
+ 	return 0;
+-- 
+1.7.11.7
+
