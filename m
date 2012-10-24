@@ -1,83 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23565 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757668Ab2J0Umb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:42:31 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKgV39020502
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:31 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 46/68] [media] drxk: get rid of some unused vars
-Date: Sat, 27 Oct 2012 18:41:04 -0200
-Message-Id: <1351370486-29040-47-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout3.samsung.com ([203.254.224.33]:32659 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934754Ab2JXOQJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Oct 2012 10:16:09 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MCE00MS2IAL7LA0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 24 Oct 2012 23:16:08 +0900 (KST)
+Received: from amdc1342.digital.local ([106.116.147.39])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MCE00657IAB3MA0@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 24 Oct 2012 23:16:08 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: jtp.park@samsung.com, arun.kk@samsung.com, s.nawrocki@samsung.com,
+	Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 3/4] s5p-mfc: Fix vidioc_subscribe_event declaration
+Date: Wed, 24 Oct 2012 16:15:36 +0200
+Message-id: <1351088137-11472-3-git-send-email-k.debski@samsung.com>
+In-reply-to: <1351088137-11472-1-git-send-email-k.debski@samsung.com>
+References: <1351088137-11472-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/dvb-frontends/drxk_hard.c:68:13: warning: 'IsA1WithPatchCode' defined but not used [-Wunused-function]
-drivers/media/dvb-frontends/drxk_hard.c:73:13: warning: 'IsA1WithRomCode' defined but not used [-Wunused-function]
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/dvb-frontends/drxk_hard.c | 15 ---------------
- drivers/media/dvb-frontends/drxk_hard.h |  6 +-----
- 2 files changed, 1 insertion(+), 20 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
-index fb23496..59382fb 100644
---- a/drivers/media/dvb-frontends/drxk_hard.c
-+++ b/drivers/media/dvb-frontends/drxk_hard.c
-@@ -65,16 +65,6 @@ static bool IsQAM(struct drxk_state *state)
- 	    state->m_OperationMode == OM_QAM_ITU_C;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 2af6d52..4b01b02 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -1542,7 +1542,7 @@ int vidioc_encoder_cmd(struct file *file, void *priv,
  }
  
--static bool IsA1WithPatchCode(struct drxk_state *state)
--{
--	return state->m_DRXK_A1_PATCH_CODE;
--}
--
--static bool IsA1WithRomCode(struct drxk_state *state)
--{
--	return state->m_DRXK_A1_ROM_CODE;
--}
--
- #define NOA1ROM 0
- 
- #define DRXDAP_FASI_SHORT_FORMAT(addr) (((addr) & 0xFC30FF80) == 0)
-@@ -720,11 +710,6 @@ static int init_state(struct drxk_state *state)
- 
- 	state->m_bPowerDown = (ulPowerDown != 0);
- 
--	state->m_DRXK_A1_PATCH_CODE = false;
--	state->m_DRXK_A1_ROM_CODE = false;
--	state->m_DRXK_A2_ROM_CODE = false;
--	state->m_DRXK_A3_ROM_CODE = false;
--	state->m_DRXK_A2_PATCH_CODE = false;
- 	state->m_DRXK_A3_PATCH_CODE = false;
- 
- 	/* Init AGC and PGA parameters */
-diff --git a/drivers/media/dvb-frontends/drxk_hard.h b/drivers/media/dvb-frontends/drxk_hard.h
-index 6bb9fc4..d18a896 100644
---- a/drivers/media/dvb-frontends/drxk_hard.h
-+++ b/drivers/media/dvb-frontends/drxk_hard.h
-@@ -320,11 +320,7 @@ struct drxk_state {
- 
- 	u8               *m_microcode;
- 	int               m_microcode_length;
--	bool              m_DRXK_A1_PATCH_CODE;
--	bool              m_DRXK_A1_ROM_CODE;
--	bool              m_DRXK_A2_ROM_CODE;
--	bool              m_DRXK_A3_ROM_CODE;
--	bool              m_DRXK_A2_PATCH_CODE;
-+	bool		  m_DRXK_A3_ROM_CODE;
- 	bool              m_DRXK_A3_PATCH_CODE;
- 
- 	bool              m_rfmirror;
+ static int vidioc_subscribe_event(struct v4l2_fh *fh,
+-					struct v4l2_event_subscription *sub)
++				const struct  v4l2_event_subscription *sub)
+ {
+ 	switch (sub->type) {
+ 	case V4L2_EVENT_EOS:
 -- 
-1.7.11.7
+1.7.9.5
 
