@@ -1,64 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:53460 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760341Ab2JaTue (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38202 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422652Ab2JXWel (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Oct 2012 15:50:34 -0400
-Date: Wed, 31 Oct 2012 17:50:17 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Fabio Estevam <festevam@gmail.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	kernel@pengutronix.de, gcembed@gmail.com,
-	javier Martin <javier.martin@vista-silicon.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Shawn Guo <shawn.guo@linaro.org>
-Subject: Re: [PATCH v4 1/2] ARM: clk-imx27: Add missing clock for mx2-camera
-Message-ID: <20121031175017.75640dc1@infradead.org>
-In-Reply-To: <20121031190249.GO1641@pengutronix.de>
-References: <1351598606-8485-1-git-send-email-fabio.estevam@freescale.com>
-	<20121031095632.536d9362@infradead.org>
-	<20121031131652.GM1641@pengutronix.de>
-	<CAOMZO5CLxM41LYoLmPbfzSTF85Zk4B5SqHeVbGU4WjEOXw0eyg@mail.gmail.com>
-	<Pine.LNX.4.64.1210311442310.12173@axis700.grange>
-	<20121031165303.32921a5c@infradead.org>
-	<20121031190249.GO1641@pengutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Wed, 24 Oct 2012 18:34:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: Re: [PATCH 01/23] uvc: Replace memcpy with struct assignment
+Date: Thu, 25 Oct 2012 00:35:30 +0200
+Message-ID: <2776796.95QghSKdPW@avalon>
+In-Reply-To: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 31 Oct 2012 20:02:49 +0100
-Sascha Hauer <s.hauer@pengutronix.de> escreveu:
+Hi Ezequiel,
 
-> On Wed, Oct 31, 2012 at 04:53:03PM -0200, Mauro Carvalho Chehab wrote:
-> > Em Wed, 31 Oct 2012 14:53:47 +0100 (CET)
-> > Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
-> > 
-> > > On Wed, 31 Oct 2012, Fabio Estevam wrote:
+Thanks for the patch.
 
-> > I agree with Fabio and Guennadi. There are so many changes happening at arm
-> > that merging those two patches there will likely be easier for everybody.
+On Tuesday 23 October 2012 16:57:04 Ezequiel Garcia wrote:
+> This kind of memcpy() is error-prone. Its replacement with a struct
+> assignment is prefered because it's type-safe and much easier to read.
 > 
-> Ok, then I'll take them. I wasn't aware in arm-soc are sitting patches
-> for this driver already.
+> Found by coccinelle. Hand patched and reviewed.
+> Tested by compilation only.
 
-Thank you!
+This looks good, but there's one more memcpy that can be replaced by a direct 
+structure assignment in uvc_ctrl_add_info() 
+(drivers/media/usb/uvc/uvc_ctrl.c). You might want to check why it hasn't been 
+caught by the semantic patch.
 
-> > 
-> > Otherwise, I'll need to pull from some arm tree that never rebase, with
-> > the needed patches, and coordinate with you during the merge window,
-> > to be sure that patches will arrive there at the right order, from the
-> > right tree.
+> A simplified version of the semantic match that finds this problem is as
+> follows: (http://coccinelle.lip6.fr/)
 > 
-> Hopefully these kind of cross dependencies become fewer over time. SoC
-> code is getting smaller and gets better abstracted from the drivers, so
-> chances are good.
+> // <smpl>
+> @@
+> identifier struct_name;
+> struct struct_name to;
+> struct struct_name from;
+> expression E;
+> @@
+> -memcpy(&(to), &(from), E);
+> +to = from;
+> // </smpl>
+> 
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+> ---
+>  drivers/media/usb/uvc/uvc_v4l2.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> b/drivers/media/usb/uvc/uvc_v4l2.c index f00db30..4fc8737 100644
+> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> @@ -314,7 +314,7 @@ static int uvc_v4l2_set_format(struct uvc_streaming
+> *stream, goto done;
+>  	}
+> 
+> -	memcpy(&stream->ctrl, &probe, sizeof probe);
+> +	stream->ctrl = probe;
+>  	stream->cur_format = format;
+>  	stream->cur_frame = frame;
+> 
+> @@ -386,7 +386,7 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming
+> *stream, return -EBUSY;
+>  	}
+> 
+> -	memcpy(&probe, &stream->ctrl, sizeof probe);
+> +	probe = stream->ctrl;
+>  	probe.dwFrameInterval =
+>  		uvc_try_frame_interval(stream->cur_frame, interval);
+> 
+> @@ -397,7 +397,7 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming
+> *stream, return ret;
+>  	}
+> 
+> -	memcpy(&stream->ctrl, &probe, sizeof probe);
+> +	stream->ctrl = probe;
+>  	mutex_unlock(&stream->mutex);
+> 
+>  	/* Return the actual frame period. */
 
-Yes, I'm expecting so.
-
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
+
