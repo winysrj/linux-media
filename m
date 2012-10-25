@@ -1,57 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:54249 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751845Ab2JHMeJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Oct 2012 08:34:09 -0400
-Received: by mail-qc0-f174.google.com with SMTP id d3so2796440qch.19
-        for <linux-media@vger.kernel.org>; Mon, 08 Oct 2012 05:34:09 -0700 (PDT)
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4396 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933482Ab2JYIxW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Oct 2012 04:53:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [media-workshop] Tentative Agenda for the November workshop
+Date: Thu, 25 Oct 2012 10:52:26 +0200
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	media-workshop@linuxtv.org,
+	"linux-media" <linux-media@vger.kernel.org>
+References: <201210221035.56897.hverkuil@xs4all.nl> <1372729.rmYJ0LutvU@avalon> <5088FBCF.5080507@samsung.com>
+In-Reply-To: <5088FBCF.5080507@samsung.com>
 MIME-Version: 1.0
-Date: Mon, 8 Oct 2012 20:34:09 +0800
-Message-ID: <CAPgLHd9N8YuzKY86UYmXJysv+B1E_ms4i=SAujXDZaiBHdZx=A@mail.gmail.com>
-Subject: [PATCH] [media] v4l2: use list_move_tail instead of list_del/list_add_tail
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: mchehab@infradead.org, grant.likely@secretlab.ca,
-	rob.herring@calxeda.com
-Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201210251052.27009.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+On Thu October 25 2012 10:43:59 Sylwester Nawrocki wrote:
+> Hi Laurent,
+> 
+> On 10/25/2012 12:42 AM, Laurent Pinchart wrote:
+> >>>> Sylwester, would Samsung be able to prepare for a brainstorming session
+> >>>> on Monday or Tuesday? Both Laurent and myself have presentations on
+> >>>> Wednesday, so that's not the best day for such a session.
+> >>
+> >> Kamil has presentation on Tuesday so there would be only Monday left.
+> >>
+> >>>> Do you think we should do a half-day or a full day session on this?
+> >>>
+> >>> Half a day should be more than enough to start with. The topic is quite
+> >>> complex, and we'll need to sleep over it, several times. A full day would
+> >>> just result in brain overheat. I was thinking more in the line of
+> >>> starting our thought process, so maybe twice an hour or two hours would
+> >>> be good. That would allow us to attend the ELCE talks as well :-)
+> >>> (there's definitely a couple of them that I would like to listen to).
+> >>
+> >> I agree, I wouldn't like to loose whole day of the conference for that
+> >> as well. One, two hours for the starters could be sufficient. So we can
+> >> possibly agree on some initial idea and could get back to it later.
+> >> I don't think I have already material for a full day session.
+> > 
+> > One hour, possibly twice, would have my preference. That shouldn't be too 
+> > difficult to organize. When will you and Kamil arrive ?
+> 
+> Sounds good to me. We'll arrive on Sunday afternoon, and staying until
+> next Sunday.
 
-Using list_move_tail() instead of list_del() + list_add_tail().
+I've tried to get a small room for Monday, but they were all gone, so we will
+have to find some other place in the hotel.
 
-dpatch engine is used to auto generate this patch.
-(https://github.com/weiyj/dpatch)
+Regards,
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/media/platform/fsl-viu.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
-index 897250b..c5091fe 100644
---- a/drivers/media/platform/fsl-viu.c
-+++ b/drivers/media/platform/fsl-viu.c
-@@ -352,8 +352,7 @@ static int restart_video_queue(struct viu_dmaqueue *vidq)
- 			return 0;
- 		buf = list_entry(vidq->queued.next, struct viu_buf, vb.queue);
- 		if (prev == NULL) {
--			list_del(&buf->vb.queue);
--			list_add_tail(&buf->vb.queue, &vidq->active);
-+			list_move_tail(&buf->vb.queue, &vidq->active);
- 
- 			dprintk(1, "Restarting video dma\n");
- 			viu_stop_dma(vidq->dev);
-@@ -367,8 +366,7 @@ static int restart_video_queue(struct viu_dmaqueue *vidq)
- 		} else if (prev->vb.width  == buf->vb.width  &&
- 			   prev->vb.height == buf->vb.height &&
- 			   prev->fmt       == buf->fmt) {
--			list_del(&buf->vb.queue);
--			list_add_tail(&buf->vb.queue, &vidq->active);
-+			list_move_tail(&buf->vb.queue, &vidq->active);
- 			buf->vb.state = VIDEOBUF_ACTIVE;
- 			dprintk(2, "[%p/%d] restart_queue - move to active\n",
- 				buf, buf->vb.i);
-
+	Hans
