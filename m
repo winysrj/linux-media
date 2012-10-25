@@ -1,127 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:62237 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752228Ab2JBT5n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 15:57:43 -0400
-Received: by eekb15 with SMTP id b15so3428827eek.19
-        for <linux-media@vger.kernel.org>; Tue, 02 Oct 2012 12:57:41 -0700 (PDT)
-Message-ID: <506B4733.3070505@gmail.com>
-Date: Tue, 02 Oct 2012 21:57:39 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:32926 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751243Ab2JYAqt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Oct 2012 20:46:49 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Chris MacGregor <chris@cybermato.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	hverkuil@xs4all.nl, remi@remlab.net, daniel-gl@gmx.net,
+	sylwester.nawrocki@gmail.com
+Subject: Re: [RFC] Timestamps and V4L2
+Date: Thu, 25 Oct 2012 02:47:38 +0200
+Message-ID: <2340015.zoFouKuQXy@avalon>
+In-Reply-To: <507CB78C.10902@cybermato.com>
+References: <20120920202122.GA12025@valkosipuli.retiisi.org.uk> <20121015195906.GG21261@valkosipuli.retiisi.org.uk> <507CB78C.10902@cybermato.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Arun Kumar K <arun.kk@samsung.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>
-Subject: Re: [GIT PULL FOR 3.7] Samsung Exynos MFC driver update
-References: <506B1D47.8040602@samsung.com> <20121002150603.31b6b72d@redhat.com>
-In-Reply-To: <20121002150603.31b6b72d@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/02/2012 08:06 PM, Mauro Carvalho Chehab wrote:
-> Em Tue, 02 Oct 2012 18:58:47 +0200
-> Sylwester Nawrocki<s.nawrocki@samsung.com>  escreveu:
+Hi Chris,
+
+On Monday 15 October 2012 18:25:32 Chris MacGregor wrote:
+> On 10/15/2012 12:59 PM, Sakari Ailus wrote:
+> > On Mon, Oct 15, 2012 at 11:53:56AM -0700, Chris MacGregor wrote:
+> >> On 10/15/2012 11:45 AM, Laurent Pinchart wrote:
+> >>> On Monday 15 October 2012 19:05:49 Sakari Ailus wrote:
+> >>>> Hi all,
+> >>>> 
+> >>>> As a summar from the discussion, I think we have reached the following
+> >>>> conclusion. Please say if you agree or disagree with what's below. :-)
+> >>>> 
+> >>>> - The drivers will be moved to use monotonic timestamps for video
+> >>>> buffers.
+> >>>> - The user space will learn about the type of the timestamp through
+> >>>> buffer flags.
+> >>>> - The timestamp source may be made selectable in the future, but buffer
+> >>>> flags won't be the means for this, primarily since they're not
+> >>>> available on subdevs. Possible way to do this include a new V4L2
+> >>>> control or a new IOCTL.
+> >>> 
+> >>> That's my understanding as well. For the concept,
+> >>> 
+> >>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >> 
+> >> I wasn't able to participate in the discussion that led to this, but
+> >> I'd like to suggest and request now that an explicit requirement (of
+> >> whatever scheme is selected) be that a userspace app have a
+> >> reasonable and straightforward way to translate the timestamps to
+> >> real wall-clock time, ideally with enough precision to allow
+> >> synchronization of cameras across multiple computers.
+> >> 
+> >> In the systems I work on, for instance, we are recording real-world
+> >> biological processes, some of which vary based on the time of day,
+> >> and it is important to know when a given frame was captured so that
+> >> information can be stored with the raw frame and the data derived
+> >> from it. For many such purposes, an accuracy measured in multiple
+> >> seconds (or even minutes) is fine.
+> >> 
+> >> However, when we are using multiple cameras on multiple computers
+> >> (e.g., two or more BeagleBoard xM's, each with a camera connected),
+> >> we would want to synchronize with an accuracy of less than 1 frame
+> >> time - e.g. 10 ms or less.
+> > 
+> > I think you have two use cases actually: knowing when an image has been
+> > taken, and synchronisation of images from multiple sources. The first one
+> > is easy: you just call clock_gettime() for the realtime clock. The
+> > precision will certainly be enough.
 > 
->> Hi Mauro,
->>
->> The following changes since commit 34a6b7d093d8fe738ada191b36648d00bc18b7eb:
->>
->>    [media] v4l2-ctrls: add a filter function to v4l2_ctrl_add_handler
->> (2012-10-01 17:07:07 -0300)
->>
->> are available in the git repository at:
->>
->>    git://git.infradead.org/users/kmpark/linux-2.6-samsung v4l_mfc_for_mauro
->>
->> for you to fetch changes up to 8312d9d2d254ab289a322fcfdba1d1ecf5e36256:
->>
->>    s5p-mfc: Update MFC v4l2 driver to support MFC6.x (2012-10-02 15:28:42 +0200)
->>
->> This is an update of the s5p-mfc driver and related V4L2 API additions
->> to support the Multi Format Codec device on the Exynos5 SoC series.
->>
->> ----------------------------------------------------------------
->> Arun Kumar K (4):
->>        v4l: Add fourcc definitions for new formats
->>        v4l: Add control definitions for new H264 encoder features
+> I assume you mean that I would, for instance:
 > 
-> OK.
-> 
->>        s5p-mfc: Update MFCv5 driver for callback based architecture
-> 
-> This one doesn't apply:
-> 
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> @@@ -496,11 -499,14 +498,20 @@@ static int vidioc_reqbufs(struct file *
->                          s5p_mfc_clock_off();
->                          return -ENOMEM;
->                  }
-> ++<<<<<<<  HEAD
->   +          if (s5p_mfc_ctx_ready(ctx))
->   +                  set_work_bit_irqsave(ctx);
->   +          s5p_mfc_try_run(dev);
-> ++=======
-> +           if (s5p_mfc_ctx_ready(ctx)) {
-> +                   spin_lock_irqsave(&dev->condlock, flags);
-> +                   set_bit(ctx->num,&dev->ctx_work_bits);
-> +                   spin_unlock_irqrestore(&dev->condlock, flags);
-> +           }
-> +           s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
-> ++>>>>>>>  e67ff71... s5p-mfc: Update MFCv5 driver for callback based architecture
+> clock_gettime(CLOCK_REALTIME, &realtime);
+> clock_gettime(CLOCK_MONOTONIC, &monotime);
+> (compute realtime-monotime and save the result)
 > ...
+> (later add that result to the timestamp on a frame to recover the
+> approximate real-world capture time)
+
+That would be a very simple way to do it. You might or might not need 
+something more complex in practice, depending on your use cases. The point is 
+that you need to synchronize images on multiple machines, so you need a common 
+clock between those machines. Whether you use wall clock time, possibly 
+synchronized through NTP, or another clock source is irrelevant here. The 
+kernel driver has no access to the cross-machines clock, so you will need to 
+convert the timestamp provided by the kernel to a timestamp relative to your 
+clock.
+
+> Agreed, for this purpose - getting a reasonable real-world timestamp on
+> the frame - the precision is fine...worst case, my process gets
+> rescheduled between the two clock_gettime() calls, but even that won't
+> matter for this purpose.
 > 
-> @@@ -582,18 -589,24 +593,30 @@@ static int vidioc_streamon(struct file
->                          ctx->src_bufs_cnt = 0;
->                          ctx->capture_state = QUEUE_FREE;
->                          ctx->output_state = QUEUE_FREE;
-> ++<<<<<<<  HEAD
->   +                  s5p_mfc_alloc_instance_buffer(ctx);
->   +                  s5p_mfc_alloc_dec_temp_buffers(ctx);
->   +                  set_work_bit_irqsave(ctx);
-> ++=======
-> +                   s5p_mfc_hw_call(dev->mfc_ops, alloc_instance_buffer,
-> +                                   ctx);
-> +                   s5p_mfc_hw_call(dev->mfc_ops, alloc_dec_temp_buffers,
-> +                                   ctx);
-> +                   spin_lock_irqsave(&dev->condlock, flags);
-> +                   set_bit(ctx->num,&dev->ctx_work_bits);
-> +                   spin_unlock_irqrestore(&dev->condlock, flags);
-> ++>>>>>>>  e67ff71... s5p-mfc: Update MFCv5 driver for callback based architecture
+> > For the latter the realtime clock fits poorly to begin with: it jumps
+> > around e.g. when the daylight saving time changes.
+> > 
+> > I think what I'd do is this: figure out the difference between the
+> > monotonic clocks of your systems and use that as basis for
+> > synchronisation. I wonder if there are existing solutions for this based
+> > e.g. on the NTP.
+> > 
+> > The pace of the monotonic clocks on different systems is the same as the
+> > real-time ones; the same NTP adjustments are done to the monotonic clock
+> > as
+> > well. As an added bonus you also won't be affected by daylight saving time
+> > or someone setting the clock manually.
 > 
-> and more...
+> Yes, I believe that this could work. My concern is that there is some
+> unpredictability in the timing of the two clock_gettime() calls, and
+> thus some inaccuracy in the conversion, and while I could likely get the
+> two systems sufficiently sync'd using NTP or the like at the real-world
+> level, the conversion from that (on each system) to the system's
+> monotonic time would contain an unpredictable (though bounded)
+> inaccuracy. I suppose that as long as I sync the cameras at the hardware
+> level (e.g. by tying the strobe line of one to the trigger lines of the
+> rest, or tying all the trigger lines to a GPIO), the inaccuracy would be
+> less than a frame time, and so I could know reliably enough which frames
+> go together.
 
-Sorry, my bad :/ Should have better coordinated those patches from multiple
-developers.
+I'm pretty sure there's lots of literature on clock synchronization algorithms 
+:-) The topic can quickly become pretty complex, and I'm not expert there. I 
+don't expect too much problems to reach the require precision if you 
+synchronize your cameras.
 
-> Also, there are too many changes on this patch, making it harder for
-> review, especially since there are also some code renames and function
-> rearrangements.
+> However, it seems much cleaner to have a more direct way to convert the
+> monotonic time to real-world time, or to get real-world time on the
+> frames in the first place (for applications that want that). I don't
+> know of a way to do the former.
 > 
-> The better is to split it into smaller and more logical changes, instead
-> of what it sounds like a driver replacement.
+> > The conversion of the two clocks requires the knowledge of the values of
+> > kernel internal variables, so performing the conversion in user space
+> > later on is not an option.
 
-Indeed it looks like big blob patch. I think this reflects how these patches 
-were created, were one person creates practically new driver for new device 
-revision, with not much care about the old one, and then somebody else is 
-trying to make it a step by step process and ensuring support for all H/W
-revisions is properly maintained.
+We might be missing a kernel API here then.
 
-Anyway, Arun, can you please rebase your patch series onto latest linuxtv 
-for_v3.7 branch and try to split this above patch. AFAICS there are following
-things done there that could be separated:
+> Sorry, you lost me on this one, unless you're talking about what I refer
+> to in my paragraph just above - converting the monotonic timestamp on
+> the frame to real-world time...?
+> 
+> > Alternatively you could just call clock_gettime() after every DQBUF call,
+> > but that's indeed less precise than if the driver would get the timestamp
+> > for you.
+> 
+> And also less efficient. The platforms I'm working on are already
+> hard-pressed to keep up with all the pixels I'm trying to capture and
+> process, so I don't really want to waste time trapping into kernel mode
+> again if I can avoid it.
+> 
+> > How would this work for you?
+> 
+> Better than nothing, and probably I could live with it. But I think
+> perhaps we can do better than that, and now seems like the right time to
+> figure it out.
 
-1. Move contents of file s5p_mfc_opr.c to new file s5p_mfc_opr_v5.c
-2. Rename functions in s5p_mfc_opr_v5.c
-3. Use s5p_mfc_hw_call for H/W specific function calls
-4. Do S5P_FIMV/S5P_MFC whatever magic.
+-- 
+Regards,
 
-Also I've noticed some patches do break compilation. There are some definitions 
-used there which are added only in subsequent patches. Arun, can you please make 
-sure there is no build break after each single patch is applied ?
+Laurent Pinchart
 
-Thanks,
-Sylwester
