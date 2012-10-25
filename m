@@ -1,438 +1,270 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36120 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964801Ab2JYIiM (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:39537 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934023Ab2JYNNO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Oct 2012 04:38:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Ohad Ben-Cohen <ohad@wizery.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Joerg Roedel <joerg.roedel@amd.com>,
-	Omar Ramirez Luna <omar.luna@linaro.org>,
-	linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to include/linux/omap-iommu.h
-Date: Thu, 25 Oct 2012 10:39:01 +0200
-Message-ID: <1466344.HbU9q5zM1q@avalon>
-In-Reply-To: <20121025002056.2082.45221.stgit@muffinssi.local>
-References: <20121025001913.2082.31062.stgit@muffinssi.local> <20121025002056.2082.45221.stgit@muffinssi.local>
+	Thu, 25 Oct 2012 09:13:14 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1350920203-21978-1-git-send-email-m-karicheri2@ti.com>
+References: <1350920203-21978-1-git-send-email-m-karicheri2@ti.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 25 Oct 2012 18:42:52 +0530
+Message-ID: <CA+V-a8sbCyTTAm-x2Jr2_XxccRo0kjhVAYaVAibXHCqjZL7-nA@mail.gmail.com>
+Subject: Re: [RESEND-PATCH] media:davinci: clk - {prepare/unprepare} for
+ common clk
+To: Murali Karicheri <m-karicheri2@ti.com>
+Cc: mchehab@infradead.org, laurent.pinchart@ideasonboard.com,
+	manjunath.hadli@ti.com, prabhakar.lad@ti.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	davinci-linux-open-source@linux-davincidsp.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tony,
+Hi Murali,
 
-Thanks for the patch.
+Thanks for the patch.  I'll  queue this patch for 3.8.
 
-On Wednesday 24 October 2012 17:20:56 Tony Lindgren wrote:
-> Looks like the iommu framework does not have generic functions
-> exported for all the needs yet. The hardware specific functions
-> are defined in files like intel-iommu.h and amd-iommu.h. Follow
-> the same standard for omap-iommu.h.
-> 
-> This is needed because we are removing plat and mach includes
-> for ARM common zImage support. Further work should continue
-> in the iommu framework context as only pure platform data will
-> be communicated from arch/arm/*omap*/* code to the iommu
-> framework.
-> 
-> Cc: Joerg Roedel <joerg.roedel@amd.com>
-> Cc: Ohad Ben-Cohen <ohad@wizery.com>
-> Cc: Ido Yariv <ido@wizery.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Omar Ramirez Luna <omar.luna@linaro.org>
-> Cc: linux-media@vger.kernel.org
-> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap2/iommu2.c               |    1
->  arch/arm/plat-omap/include/plat/iommu.h    |   10 +--
->  arch/arm/plat-omap/include/plat/iovmm.h    |   89
-> ---------------------------- drivers/iommu/omap-iommu-debug.c           |  
->  2 -
->  drivers/iommu/omap-iommu.c                 |    1
->  drivers/iommu/omap-iovmm.c                 |   46 ++++++++++++++
->  drivers/media/platform/omap3isp/isp.c      |    1
->  drivers/media/platform/omap3isp/isp.h      |    4 -
->  drivers/media/platform/omap3isp/ispccdc.c  |    1
->  drivers/media/platform/omap3isp/ispstat.c  |    1
->  drivers/media/platform/omap3isp/ispvideo.c |    2 -
->  include/linux/omap-iommu.h                 |   52 ++++++++++++++++
->  12 files changed, 107 insertions(+), 103 deletions(-)
->  delete mode 100644 arch/arm/plat-omap/include/plat/iovmm.h
->  create mode 100644 include/linux/omap-iommu.h
-> 
-> diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
-> index eefc379..e8116cf 100644
-> --- a/arch/arm/mach-omap2/iommu2.c
-> +++ b/arch/arm/mach-omap2/iommu2.c
-> @@ -15,6 +15,7 @@
->  #include <linux/device.h>
->  #include <linux/jiffies.h>
->  #include <linux/module.h>
-> +#include <linux/omap-iommu.h>
->  #include <linux/slab.h>
->  #include <linux/stringify.h>
-> 
-> diff --git a/arch/arm/plat-omap/include/plat/iommu.h
-> b/arch/arm/plat-omap/include/plat/iommu.h index 7e8c7b6..a4b71b1 100644
-> --- a/arch/arm/plat-omap/include/plat/iommu.h
-> +++ b/arch/arm/plat-omap/include/plat/iommu.h
-> @@ -216,13 +216,10 @@ static inline struct omap_iommu
-> *dev_to_omap_iommu(struct device *dev) #define MMU_RAM_PADDR_SHIFT	12
->  #define MMU_RAM_PADDR_MASK \
->  	((~0UL >> MMU_RAM_PADDR_SHIFT) << MMU_RAM_PADDR_SHIFT)
-> -#define MMU_RAM_ENDIAN_SHIFT	9
-> +
->  #define MMU_RAM_ENDIAN_MASK	(1 << MMU_RAM_ENDIAN_SHIFT)
-> -#define MMU_RAM_ENDIAN_BIG	(1 << MMU_RAM_ENDIAN_SHIFT)
-> -#define MMU_RAM_ENDIAN_LITTLE	(0 << MMU_RAM_ENDIAN_SHIFT)
-> -#define MMU_RAM_ELSZ_SHIFT	7
->  #define MMU_RAM_ELSZ_MASK	(3 << MMU_RAM_ELSZ_SHIFT)
-> -#define MMU_RAM_ELSZ_8		(0 << MMU_RAM_ELSZ_SHIFT)
-> +
->  #define MMU_RAM_ELSZ_16		(1 << MMU_RAM_ELSZ_SHIFT)
->  #define MMU_RAM_ELSZ_32		(2 << MMU_RAM_ELSZ_SHIFT)
->  #define MMU_RAM_ELSZ_NONE	(3 << MMU_RAM_ELSZ_SHIFT)
-> @@ -269,9 +266,6 @@ extern int omap_iommu_set_isr(const char *name,
->  				    void *priv),
->  			 void *isr_priv);
-> 
-> -extern void omap_iommu_save_ctx(struct device *dev);
-> -extern void omap_iommu_restore_ctx(struct device *dev);
-> -
->  extern int omap_install_iommu_arch(const struct iommu_functions *ops);
->  extern void omap_uninstall_iommu_arch(const struct iommu_functions *ops);
-> 
-> diff --git a/arch/arm/plat-omap/include/plat/iovmm.h
-> b/arch/arm/plat-omap/include/plat/iovmm.h deleted file mode 100644
-> index 498e57c..0000000
-> --- a/arch/arm/plat-omap/include/plat/iovmm.h
-> +++ /dev/null
-> @@ -1,89 +0,0 @@
-> -/*
-> - * omap iommu: simple virtual address space management
-> - *
-> - * Copyright (C) 2008-2009 Nokia Corporation
-> - *
-> - * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> - *
-> - * This program is free software; you can redistribute it and/or modify
-> - * it under the terms of the GNU General Public License version 2 as
-> - * published by the Free Software Foundation.
-> - */
-> -
-> -#ifndef __IOMMU_MMAP_H
-> -#define __IOMMU_MMAP_H
-> -
-> -#include <linux/iommu.h>
-> -
-> -struct iovm_struct {
-> -	struct omap_iommu	*iommu;	/* iommu object which this belongs to */
-> -	u32			da_start; /* area definition */
-> -	u32			da_end;
-> -	u32			flags; /* IOVMF_: see below */
-> -	struct list_head	list; /* linked in ascending order */
-> -	const struct sg_table	*sgt; /* keep 'page' <-> 'da' mapping */
-> -	void			*va; /* mpu side mapped address */
-> -};
-> -
-> -/*
-> - * IOVMF_FLAGS: attribute for iommu virtual memory area(iovma)
-> - *
-> - * lower 16 bit is used for h/w and upper 16 bit is for s/w.
-> - */
-> -#define IOVMF_SW_SHIFT		16
-> -
-> -/*
-> - * iovma: h/w flags derived from cam and ram attribute
-> - */
-> -#define IOVMF_CAM_MASK		(~((1 << 10) - 1))
-> -#define IOVMF_RAM_MASK		(~IOVMF_CAM_MASK)
-> -
-> -#define IOVMF_PGSZ_MASK		(3 << 0)
-> -#define IOVMF_PGSZ_1M		MMU_CAM_PGSZ_1M
-> -#define IOVMF_PGSZ_64K		MMU_CAM_PGSZ_64K
-> -#define IOVMF_PGSZ_4K		MMU_CAM_PGSZ_4K
-> -#define IOVMF_PGSZ_16M		MMU_CAM_PGSZ_16M
-> -
-> -#define IOVMF_ENDIAN_MASK	(1 << 9)
-> -#define IOVMF_ENDIAN_BIG	MMU_RAM_ENDIAN_BIG
-> -#define IOVMF_ENDIAN_LITTLE	MMU_RAM_ENDIAN_LITTLE
-> -
-> -#define IOVMF_ELSZ_MASK		(3 << 7)
-> -#define IOVMF_ELSZ_8		MMU_RAM_ELSZ_8
-> -#define IOVMF_ELSZ_16		MMU_RAM_ELSZ_16
-> -#define IOVMF_ELSZ_32		MMU_RAM_ELSZ_32
-> -#define IOVMF_ELSZ_NONE		MMU_RAM_ELSZ_NONE
-> -
-> -#define IOVMF_MIXED_MASK	(1 << 6)
-> -#define IOVMF_MIXED		MMU_RAM_MIXED
-> -
-> -/*
-> - * iovma: s/w flags, used for mapping and umapping internally.
-> - */
-> -#define IOVMF_MMIO		(1 << IOVMF_SW_SHIFT)
-> -#define IOVMF_ALLOC		(2 << IOVMF_SW_SHIFT)
-> -#define IOVMF_ALLOC_MASK	(3 << IOVMF_SW_SHIFT)
-> -
-> -/* "superpages" is supported just with physically linear pages */
-> -#define IOVMF_DISCONT		(1 << (2 + IOVMF_SW_SHIFT))
-> -#define IOVMF_LINEAR		(2 << (2 + IOVMF_SW_SHIFT))
-> -#define IOVMF_LINEAR_MASK	(3 << (2 + IOVMF_SW_SHIFT))
-> -
-> -#define IOVMF_DA_FIXED		(1 << (4 + IOVMF_SW_SHIFT))
-> -
-> -
-> -extern struct iovm_struct *omap_find_iovm_area(struct device *dev, u32 da);
-> -extern u32
-> -omap_iommu_vmap(struct iommu_domain *domain, struct device *dev, u32 da,
-> -			const struct sg_table *sgt, u32 flags);
-> -extern struct sg_table *omap_iommu_vunmap(struct iommu_domain *domain,
-> -				struct device *dev, u32 da);
-> -extern u32
-> -omap_iommu_vmalloc(struct iommu_domain *domain, struct device *dev,
-> -				u32 da, size_t bytes, u32 flags);
-> -extern void
-> -omap_iommu_vfree(struct iommu_domain *domain, struct device *dev,
-> -				const u32 da);
-> -extern void *omap_da_to_va(struct device *dev, u32 da);
-> -
-> -#endif /* __IOMMU_MMAP_H */
-> diff --git a/drivers/iommu/omap-iommu-debug.c
-> b/drivers/iommu/omap-iommu-debug.c index 0cac372..cf4a0b5 100644
-> --- a/drivers/iommu/omap-iommu-debug.c
-> +++ b/drivers/iommu/omap-iommu-debug.c
-> @@ -18,9 +18,9 @@
->  #include <linux/uaccess.h>
->  #include <linux/platform_device.h>
->  #include <linux/debugfs.h>
-> +#include <linux/omap-iommu.h>
-> 
->  #include <plat/iommu.h>
-> -#include <plat/iovmm.h>
-> 
->  #include "omap-iopgtable.h"
-> 
-> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-> index f2bbfb0..eadcfde 100644
-> --- a/drivers/iommu/omap-iommu.c
-> +++ b/drivers/iommu/omap-iommu.c
-> @@ -19,6 +19,7 @@
->  #include <linux/clk.h>
->  #include <linux/platform_device.h>
->  #include <linux/iommu.h>
-> +#include <linux/omap-iommu.h>
->  #include <linux/mutex.h>
->  #include <linux/spinlock.h>
-> 
-> diff --git a/drivers/iommu/omap-iovmm.c b/drivers/iommu/omap-iovmm.c
-> index b332392..9852101 100644
-> --- a/drivers/iommu/omap-iovmm.c
-> +++ b/drivers/iommu/omap-iovmm.c
-> @@ -17,15 +17,59 @@
->  #include <linux/device.h>
->  #include <linux/scatterlist.h>
->  #include <linux/iommu.h>
-> +#include <linux/omap-iommu.h>
-> 
->  #include <asm/cacheflush.h>
->  #include <asm/mach/map.h>
-> 
->  #include <plat/iommu.h>
-> -#include <plat/iovmm.h>
-> 
->  #include "omap-iopgtable.h"
-> 
-> +/*
-> + * IOVMF_FLAGS: attribute for iommu virtual memory area(iovma)
-> + *
-> + * lower 16 bit is used for h/w and upper 16 bit is for s/w.
-> + */
-> +#define IOVMF_SW_SHIFT		16
-> +
-> +/*
-> + * iovma: h/w flags derived from cam and ram attribute
-> + */
-> +#define IOVMF_CAM_MASK		(~((1 << 10) - 1))
-> +#define IOVMF_RAM_MASK		(~IOVMF_CAM_MASK)
-> +
-> +#define IOVMF_PGSZ_MASK		(3 << 0)
-> +#define IOVMF_PGSZ_1M		MMU_CAM_PGSZ_1M
-> +#define IOVMF_PGSZ_64K		MMU_CAM_PGSZ_64K
-> +#define IOVMF_PGSZ_4K		MMU_CAM_PGSZ_4K
-> +#define IOVMF_PGSZ_16M		MMU_CAM_PGSZ_16M
-> +
-> +#define IOVMF_ENDIAN_MASK	(1 << 9)
-> +#define IOVMF_ENDIAN_BIG	MMU_RAM_ENDIAN_BIG
-> +
-> +#define IOVMF_ELSZ_MASK		(3 << 7)
-> +#define IOVMF_ELSZ_16		MMU_RAM_ELSZ_16
-> +#define IOVMF_ELSZ_32		MMU_RAM_ELSZ_32
-> +#define IOVMF_ELSZ_NONE		MMU_RAM_ELSZ_NONE
-> +
-> +#define IOVMF_MIXED_MASK	(1 << 6)
-> +#define IOVMF_MIXED		MMU_RAM_MIXED
-> +
-> +/*
-> + * iovma: s/w flags, used for mapping and umapping internally.
-> + */
-> +#define IOVMF_MMIO		(1 << IOVMF_SW_SHIFT)
-> +#define IOVMF_ALLOC		(2 << IOVMF_SW_SHIFT)
-> +#define IOVMF_ALLOC_MASK	(3 << IOVMF_SW_SHIFT)
-> +
-> +/* "superpages" is supported just with physically linear pages */
-> +#define IOVMF_DISCONT		(1 << (2 + IOVMF_SW_SHIFT))
-> +#define IOVMF_LINEAR		(2 << (2 + IOVMF_SW_SHIFT))
-> +#define IOVMF_LINEAR_MASK	(3 << (2 + IOVMF_SW_SHIFT))
-> +
-> +#define IOVMF_DA_FIXED		(1 << (4 + IOVMF_SW_SHIFT))
-> +
->  static struct kmem_cache *iovm_area_cachep;
-> 
->  /* return the offset of the first scatterlist entry in a sg table */
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index 99640d8..7f182f0 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -61,6 +61,7 @@
->  #include <linux/i2c.h>
->  #include <linux/interrupt.h>
->  #include <linux/module.h>
-> +#include <linux/omap-iommu.h>
->  #include <linux/platform_device.h>
->  #include <linux/regulator/consumer.h>
->  #include <linux/slab.h>
-> diff --git a/drivers/media/platform/omap3isp/isp.h
-> b/drivers/media/platform/omap3isp/isp.h index 8be7487..8d68669 100644
-> --- a/drivers/media/platform/omap3isp/isp.h
-> +++ b/drivers/media/platform/omap3isp/isp.h
-> @@ -31,11 +31,9 @@
->  #include <media/v4l2-device.h>
->  #include <linux/device.h>
->  #include <linux/io.h>
-> +#include <linux/iommu.h>
->  #include <linux/platform_device.h>
->  #include <linux/wait.h>
-> -#include <linux/iommu.h>
-> -#include <plat/iommu.h>
-> -#include <plat/iovmm.h>
-> 
->  #include "ispstat.h"
->  #include "ispccdc.h"
-> diff --git a/drivers/media/platform/omap3isp/ispccdc.c
-> b/drivers/media/platform/omap3isp/ispccdc.c index 60181ab..6ae1ffb2 100644
-> --- a/drivers/media/platform/omap3isp/ispccdc.c
-> +++ b/drivers/media/platform/omap3isp/ispccdc.c
-> @@ -30,6 +30,7 @@
->  #include <linux/device.h>
->  #include <linux/dma-mapping.h>
->  #include <linux/mm.h>
-> +#include <linux/omap-iommu.h>
->  #include <linux/sched.h>
->  #include <linux/slab.h>
->  #include <media/v4l2-event.h>
-> diff --git a/drivers/media/platform/omap3isp/ispstat.c
-> b/drivers/media/platform/omap3isp/ispstat.c index d7ac76b..35c3823 100644
-> --- a/drivers/media/platform/omap3isp/ispstat.c
-> +++ b/drivers/media/platform/omap3isp/ispstat.c
-> @@ -26,6 +26,7 @@
->   */
-> 
->  #include <linux/dma-mapping.h>
-> +#include <linux/omap-iommu.h>
->  #include <linux/slab.h>
->  #include <linux/uaccess.h>
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispvideo.c
-> b/drivers/media/platform/omap3isp/ispvideo.c index a0b737fe..a4b8290 100644
-> --- a/drivers/media/platform/omap3isp/ispvideo.c
-> +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> @@ -27,6 +27,7 @@
->  #include <linux/clk.h>
->  #include <linux/mm.h>
->  #include <linux/module.h>
-> +#include <linux/omap-iommu.h>
->  #include <linux/pagemap.h>
->  #include <linux/scatterlist.h>
->  #include <linux/sched.h>
-> @@ -35,7 +36,6 @@
->  #include <media/v4l2-dev.h>
->  #include <media/v4l2-ioctl.h>
->  #include <plat/iommu.h>
-> -#include <plat/iovmm.h>
->  #include <plat/omap-pm.h>
-> 
->  #include "ispvideo.h"
-> diff --git a/include/linux/omap-iommu.h b/include/linux/omap-iommu.h
-> new file mode 100644
-> index 0000000..cac78de
-> --- /dev/null
-> +++ b/include/linux/omap-iommu.h
-> @@ -0,0 +1,52 @@
-> +/*
-> + * omap iommu: simple virtual address space management
-> + *
-> + * Copyright (C) 2008-2009 Nokia Corporation
-> + *
-> + * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#ifndef _INTEL_IOMMU_H_
-> +#define _INTEL_IOMMU_H_
-> +
-> +struct iovm_struct {
-> +	struct omap_iommu	*iommu;	/* iommu object which this belongs to */
-> +	u32			da_start; /* area definition */
-> +	u32			da_end;
-> +	u32			flags; /* IOVMF_: see below */
-> +	struct list_head	list; /* linked in ascending order */
-> +	const struct sg_table	*sgt; /* keep 'page' <-> 'da' mapping */
-> +	void			*va; /* mpu side mapped address */
-> +};
-> +
-> +#define MMU_RAM_ENDIAN_SHIFT	9
-> +#define MMU_RAM_ENDIAN_LITTLE	(0 << MMU_RAM_ENDIAN_SHIFT)
-> +#define MMU_RAM_ELSZ_8		(0 << MMU_RAM_ELSZ_SHIFT)
-> +#define IOVMF_ENDIAN_LITTLE	MMU_RAM_ENDIAN_LITTLE
-> +#define MMU_RAM_ELSZ_SHIFT	7
-> +#define IOVMF_ELSZ_8		MMU_RAM_ELSZ_8
-> +
-> +struct iommu_domain;
-> +
-> +extern struct iovm_struct *omap_find_iovm_area(struct device *dev, u32 da);
-> +extern u32
-> +omap_iommu_vmap(struct iommu_domain *domain, struct device *dev, u32 da,
-> +			const struct sg_table *sgt, u32 flags);
-> +extern struct sg_table *omap_iommu_vunmap(struct iommu_domain *domain,
-> +				struct device *dev, u32 da);
-> +extern u32
-> +omap_iommu_vmalloc(struct iommu_domain *domain, struct device *dev,
-> +				u32 da, size_t bytes, u32 flags);
-> +extern void
-> +omap_iommu_vfree(struct iommu_domain *domain, struct device *dev,
-> +				const u32 da);
-> +extern void *omap_da_to_va(struct device *dev, u32 da);
-> +
-> +extern void omap_iommu_save_ctx(struct device *dev);
-> +extern void omap_iommu_restore_ctx(struct device *dev);
-> +
-> +#endif
+On Mon, Oct 22, 2012 at 9:06 PM, Murali Karicheri <m-karicheri2@ti.com> wrote:
+> As a first step towards migrating davinci platforms to use common clock
+> framework, replace all instances of clk_enable() with clk_prepare_enable()
+> and clk_disable() with clk_disable_unprepare().
+>
+> Also fixes some issues related to clk clean up in the driver
+>
+> Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
 
-I still think you should split this in two files, omap-iommu.h and omap-
-iovmm.h. The later would just be arch/arm/plat-omap/include/plat/iovmm.h moved 
-to include/linux.h.
+Acked-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Tested-by: Lad, Prabhakar <prabhakar.lad@ti.com>
 
--- 
 Regards,
+--Prabhakar
 
-Laurent Pinchart
-
+> ---
+> rebased to v3.7-rc1
+>
+>  drivers/media/platform/davinci/dm355_ccdc.c  |    8 ++++++--
+>  drivers/media/platform/davinci/dm644x_ccdc.c |   16 ++++++++++------
+>  drivers/media/platform/davinci/isif.c        |    5 ++++-
+>  drivers/media/platform/davinci/vpbe.c        |   10 +++++++---
+>  drivers/media/platform/davinci/vpif.c        |    8 ++++----
+>  5 files changed, 31 insertions(+), 16 deletions(-)
+>
+> diff --git a/drivers/media/platform/davinci/dm355_ccdc.c b/drivers/media/platform/davinci/dm355_ccdc.c
+> index ce0e413..030950d 100644
+> --- a/drivers/media/platform/davinci/dm355_ccdc.c
+> +++ b/drivers/media/platform/davinci/dm355_ccdc.c
+> @@ -1003,7 +1003,7 @@ static int __devinit dm355_ccdc_probe(struct platform_device *pdev)
+>                 status = PTR_ERR(ccdc_cfg.mclk);
+>                 goto fail_nomap;
+>         }
+> -       if (clk_enable(ccdc_cfg.mclk)) {
+> +       if (clk_prepare_enable(ccdc_cfg.mclk)) {
+>                 status = -ENODEV;
+>                 goto fail_mclk;
+>         }
+> @@ -1014,7 +1014,7 @@ static int __devinit dm355_ccdc_probe(struct platform_device *pdev)
+>                 status = PTR_ERR(ccdc_cfg.sclk);
+>                 goto fail_mclk;
+>         }
+> -       if (clk_enable(ccdc_cfg.sclk)) {
+> +       if (clk_prepare_enable(ccdc_cfg.sclk)) {
+>                 status = -ENODEV;
+>                 goto fail_sclk;
+>         }
+> @@ -1034,8 +1034,10 @@ static int __devinit dm355_ccdc_probe(struct platform_device *pdev)
+>         printk(KERN_NOTICE "%s is registered with vpfe.\n", ccdc_hw_dev.name);
+>         return 0;
+>  fail_sclk:
+> +       clk_disable_unprepare(ccdc_cfg.sclk);
+>         clk_put(ccdc_cfg.sclk);
+>  fail_mclk:
+> +       clk_disable_unprepare(ccdc_cfg.mclk);
+>         clk_put(ccdc_cfg.mclk);
+>  fail_nomap:
+>         iounmap(ccdc_cfg.base_addr);
+> @@ -1050,6 +1052,8 @@ static int dm355_ccdc_remove(struct platform_device *pdev)
+>  {
+>         struct resource *res;
+>
+> +       clk_disable_unprepare(ccdc_cfg.sclk);
+> +       clk_disable_unprepare(ccdc_cfg.mclk);
+>         clk_put(ccdc_cfg.mclk);
+>         clk_put(ccdc_cfg.sclk);
+>         iounmap(ccdc_cfg.base_addr);
+> diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
+> index ee7942b..0215ab6 100644
+> --- a/drivers/media/platform/davinci/dm644x_ccdc.c
+> +++ b/drivers/media/platform/davinci/dm644x_ccdc.c
+> @@ -994,7 +994,7 @@ static int __devinit dm644x_ccdc_probe(struct platform_device *pdev)
+>                 status = PTR_ERR(ccdc_cfg.mclk);
+>                 goto fail_nomap;
+>         }
+> -       if (clk_enable(ccdc_cfg.mclk)) {
+> +       if (clk_prepare_enable(ccdc_cfg.mclk)) {
+>                 status = -ENODEV;
+>                 goto fail_mclk;
+>         }
+> @@ -1005,7 +1005,7 @@ static int __devinit dm644x_ccdc_probe(struct platform_device *pdev)
+>                 status = PTR_ERR(ccdc_cfg.sclk);
+>                 goto fail_mclk;
+>         }
+> -       if (clk_enable(ccdc_cfg.sclk)) {
+> +       if (clk_prepare_enable(ccdc_cfg.sclk)) {
+>                 status = -ENODEV;
+>                 goto fail_sclk;
+>         }
+> @@ -1013,8 +1013,10 @@ static int __devinit dm644x_ccdc_probe(struct platform_device *pdev)
+>         printk(KERN_NOTICE "%s is registered with vpfe.\n", ccdc_hw_dev.name);
+>         return 0;
+>  fail_sclk:
+> +       clk_disable_unprepare(ccdc_cfg.sclk);
+>         clk_put(ccdc_cfg.sclk);
+>  fail_mclk:
+> +       clk_disable_unprepare(ccdc_cfg.mclk);
+>         clk_put(ccdc_cfg.mclk);
+>  fail_nomap:
+>         iounmap(ccdc_cfg.base_addr);
+> @@ -1029,6 +1031,8 @@ static int dm644x_ccdc_remove(struct platform_device *pdev)
+>  {
+>         struct resource *res;
+>
+> +       clk_disable_unprepare(ccdc_cfg.mclk);
+> +       clk_disable_unprepare(ccdc_cfg.sclk);
+>         clk_put(ccdc_cfg.mclk);
+>         clk_put(ccdc_cfg.sclk);
+>         iounmap(ccdc_cfg.base_addr);
+> @@ -1046,8 +1050,8 @@ static int dm644x_ccdc_suspend(struct device *dev)
+>         /* Disable CCDC */
+>         ccdc_enable(0);
+>         /* Disable both master and slave clock */
+> -       clk_disable(ccdc_cfg.mclk);
+> -       clk_disable(ccdc_cfg.sclk);
+> +       clk_disable_unprepare(ccdc_cfg.mclk);
+> +       clk_disable_unprepare(ccdc_cfg.sclk);
+>
+>         return 0;
+>  }
+> @@ -1055,8 +1059,8 @@ static int dm644x_ccdc_suspend(struct device *dev)
+>  static int dm644x_ccdc_resume(struct device *dev)
+>  {
+>         /* Enable both master and slave clock */
+> -       clk_enable(ccdc_cfg.mclk);
+> -       clk_enable(ccdc_cfg.sclk);
+> +       clk_prepare_enable(ccdc_cfg.mclk);
+> +       clk_prepare_enable(ccdc_cfg.sclk);
+>         /* Restore CCDC context */
+>         ccdc_restore_context();
+>
+> diff --git a/drivers/media/platform/davinci/isif.c b/drivers/media/platform/davinci/isif.c
+> index b99d542..2c26c3e 100644
+> --- a/drivers/media/platform/davinci/isif.c
+> +++ b/drivers/media/platform/davinci/isif.c
+> @@ -1053,7 +1053,7 @@ static int __devinit isif_probe(struct platform_device *pdev)
+>                 status = PTR_ERR(isif_cfg.mclk);
+>                 goto fail_mclk;
+>         }
+> -       if (clk_enable(isif_cfg.mclk)) {
+> +       if (clk_prepare_enable(isif_cfg.mclk)) {
+>                 status = -ENODEV;
+>                 goto fail_mclk;
+>         }
+> @@ -1125,6 +1125,7 @@ fail_nobase_res:
+>                 i--;
+>         }
+>  fail_mclk:
+> +       clk_disable_unprepare(isif_cfg.mclk);
+>         clk_put(isif_cfg.mclk);
+>         vpfe_unregister_ccdc_device(&isif_hw_dev);
+>         return status;
+> @@ -1145,6 +1146,8 @@ static int isif_remove(struct platform_device *pdev)
+>                 i++;
+>         }
+>         vpfe_unregister_ccdc_device(&isif_hw_dev);
+> +       clk_disable_unprepare(isif_cfg.mclk);
+> +       clk_put(isif_cfg.mclk);
+>         return 0;
+>  }
+>
+> diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+> index 69d7a58..7f5cf9b 100644
+> --- a/drivers/media/platform/davinci/vpbe.c
+> +++ b/drivers/media/platform/davinci/vpbe.c
+> @@ -612,7 +612,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+>                         ret =  PTR_ERR(vpbe_dev->dac_clk);
+>                         goto fail_mutex_unlock;
+>                 }
+> -               if (clk_enable(vpbe_dev->dac_clk)) {
+> +               if (clk_prepare_enable(vpbe_dev->dac_clk)) {
+>                         ret =  -ENODEV;
+>                         goto fail_mutex_unlock;
+>                 }
+> @@ -759,8 +759,10 @@ fail_kfree_encoders:
+>  fail_dev_unregister:
+>         v4l2_device_unregister(&vpbe_dev->v4l2_dev);
+>  fail_clk_put:
+> -       if (strcmp(vpbe_dev->cfg->module_name, "dm644x-vpbe-display") != 0)
+> +       if (strcmp(vpbe_dev->cfg->module_name, "dm644x-vpbe-display") != 0) {
+> +               clk_disable_unprepare(vpbe_dev->dac_clk);
+>                 clk_put(vpbe_dev->dac_clk);
+> +       }
+>  fail_mutex_unlock:
+>         mutex_unlock(&vpbe_dev->lock);
+>         return ret;
+> @@ -777,8 +779,10 @@ fail_mutex_unlock:
+>  static void vpbe_deinitialize(struct device *dev, struct vpbe_device *vpbe_dev)
+>  {
+>         v4l2_device_unregister(&vpbe_dev->v4l2_dev);
+> -       if (strcmp(vpbe_dev->cfg->module_name, "dm644x-vpbe-display") != 0)
+> +       if (strcmp(vpbe_dev->cfg->module_name, "dm644x-vpbe-display") != 0) {
+> +               clk_disable_unprepare(vpbe_dev->dac_clk);
+>                 clk_put(vpbe_dev->dac_clk);
+> +       }
+>
+>         kfree(vpbe_dev->amp);
+>         kfree(vpbe_dev->encoders);
+> diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
+> index cff3c0a..0d6cc8e 100644
+> --- a/drivers/media/platform/davinci/vpif.c
+> +++ b/drivers/media/platform/davinci/vpif.c
+> @@ -444,7 +444,7 @@ static int __devinit vpif_probe(struct platform_device *pdev)
+>                 status = PTR_ERR(vpif_clk);
+>                 goto clk_fail;
+>         }
+> -       clk_enable(vpif_clk);
+> +       clk_prepare_enable(vpif_clk);
+>
+>         spin_lock_init(&vpif_lock);
+>         dev_info(&pdev->dev, "vpif probe success\n");
+> @@ -460,7 +460,7 @@ fail:
+>  static int __devexit vpif_remove(struct platform_device *pdev)
+>  {
+>         if (vpif_clk) {
+> -               clk_disable(vpif_clk);
+> +               clk_disable_unprepare(vpif_clk);
+>                 clk_put(vpif_clk);
+>         }
+>
+> @@ -472,13 +472,13 @@ static int __devexit vpif_remove(struct platform_device *pdev)
+>  #ifdef CONFIG_PM
+>  static int vpif_suspend(struct device *dev)
+>  {
+> -       clk_disable(vpif_clk);
+> +       clk_disable_unprepare(vpif_clk);
+>         return 0;
+>  }
+>
+>  static int vpif_resume(struct device *dev)
+>  {
+> -       clk_enable(vpif_clk);
+> +       clk_prepare_enable(vpif_clk);
+>         return 0;
+>  }
+>
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
