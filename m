@@ -1,107 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1140 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752401Ab2JLGVF (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57934 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935274Ab2JYU0C (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Oct 2012 02:21:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Alain VOLMAT <alain.volmat@st.com>
-Subject: Re: Proposal for the addition of a binary V4L2 control type
-Date: Fri, 12 Oct 2012 08:20:59 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Linux Media Mailing List (linux-media@vger.kernel.org)"
-	<linux-media@vger.kernel.org>
-References: <E27519AE45311C49887BE8C438E68FAA01012C91166A@SAFEX1MAIL1.st.com> <4301765.LiL07lAPUi@avalon> <E27519AE45311C49887BE8C438E68FAA01012C9116A3@SAFEX1MAIL1.st.com>
-In-Reply-To: <E27519AE45311C49887BE8C438E68FAA01012C9116A3@SAFEX1MAIL1.st.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210120820.59902.hverkuil@xs4all.nl>
+	Thu, 25 Oct 2012 16:26:02 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH v2] omap3isp: Remove unneeded module memory address definitions
+Date: Thu, 25 Oct 2012 22:26:50 +0200
+Message-Id: <1351196810-27560-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri October 12 2012 00:41:37 Alain VOLMAT wrote:
-> Hi Laurent,
-> 
-> > -----Original Message-----
-> > From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> > Sent: vendredi 12 octobre 2012 00:22
-> > To: Alain VOLMAT
-> > Cc: Linux Media Mailing List (linux-media@vger.kernel.org)
-> > Subject: Re: Proposal for the addition of a binary V4L2 control type
-> > 
-> > Hi Alain,
-> > 
-> > On Thursday 11 October 2012 22:50:29 Alain VOLMAT wrote:
-> > > Hi guys,
-> > >
-> > > In the context of supporting the control of our HDMI-TX via V4L2 in
-> > > our SetTopBox, we are facing interface issue with V4L2 when trying to
-> > > set some information from the application into the H/W.
-> > >
-> > > As an example, in the HDCP context, an application controlling the
-> > > HDMI-TX have the possibility to inform the transmitter that it should
-> > > fail authentication to some identified HDMI-RX because for example
-> > > they might be known to be "bad" HDMI receiver that cannot be trusted.
-> > > This is basically done by setting the list of key (BKSV) into the HDMI-TX H/W.
-> > >
-> > > Currently, V4L2 ext control can be of the following type:
-> > >
-> > > enum v4l2_ctrl_type {
-> > >         V4L2_CTRL_TYPE_INTEGER       = 1,
-> > >         V4L2_CTRL_TYPE_BOOLEAN       = 2,
-> > >         V4L2_CTRL_TYPE_MENU          = 3,
-> > >         V4L2_CTRL_TYPE_BUTTON        = 4,
-> > >         V4L2_CTRL_TYPE_INTEGER64     = 5,
-> > >         V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
-> > >         V4L2_CTRL_TYPE_STRING        = 7,
-> > >         V4L2_CTRL_TYPE_BITMASK       = 8,
-> > > }
-> > >
-> > > There is nothing here than could efficiently be used to push this kind
-> > > of long (several bytes long .. not fitting into an int64) key information.
-> > > STRING exists but actually since they are supposed to be strings, the
-> > > V4L2 core code (v4l2-ctrls.c) is using strlen to figure out the length
-> > > of data to be copied and it thus cannot be used to push this kind of blob data.
-> > >
-> > > Would you consider the addition of a new v4l2_ctrl_type, for example
-> > > called V4L2_CTRL_TYPE_BINARY or so, that basically would be pointer +
-> > > length. That would be helpful to pass this kind of control from the
-> > > application to the driver. (here I took the example of HDCP key blob
-> > > but that isn't of course the only example we can find of course).
-> > 
-> > If I remember correctly Hans Verkuil wasn't happy with the concept of binary controls.
+The OMAP3ISP_*_REG_OFFSET, OMAP3ISP_*_REG_BASE and OMAP3ISP_*_REG macros
+are not needed. Remove them.
 
-That's correct. Controls should be 1) fairly elementary types and 2) have clear
-semantics. Binary blobs are neither.
+The only expection is the OMAP3ISP_HIST_REG_BASE address. Replace it
+with the memory address received through platform resources.
 
-> > While I'm
-> > not totally against it, I agree with him that it could open the door to abuses. There are valid use
-> > cases though, both for binary "strings" (such as encryption keys) and binary arrays (such as
-> > gamma tables).
-> > Completely random binary blobs are not a good idea though.
-> > 
-> > So far we've worked around the absence of binary controls by using custom ioctls (or even
-> > standardizing new ioctls). It might or might not be a good solution for your problem, depending
-> > on your exact use cases.
-> 
-> Ok, at least for the HDCP keys table we could for an ioctl if that's already the case in some other situations.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/platform/omap3isp/isphist.c |    8 ++-
+ drivers/media/platform/omap3isp/ispreg.h  |   77 -----------------------------
+ 2 files changed, 6 insertions(+), 79 deletions(-)
 
-Look at the EDID ioctls in v4l2-subdev.h. The HDCP ioctls should be next to them.
-If I remember correctly you need a get ioctl to obtains the keys from a receiver
-and a set ioctl to set the keys for a transmitter.
+Changes since v1:
 
-> I can however think about some cases where passing such binary controls is better than ioctl in case of it is necessary achieve several settings in an atomic way (which is I believe one of the merit of ext_control). Still in the field of HDMI-TX I can at least think about setting video post processing setting tables & mode change at the same time for example.
-> If one setting is already available via a control and the other one has to be done via an ioctl, then it becomes hard to ensure that this is done in an atomic way back at the driver level.
-> 
-> So, in short, for HDCP keys, there might not be a problem with ioctl but for other HDMI-TX settings, I'm afraid we will face problems.
-> 
-> I am preparing some proposal for some new HDMI-TX controls (or ioctl ?) for things like SPD, AVMUTE, CONTENT_TYPE etc, I guess we could discuss about that problem again at that time.
+- Fix a crash in hist_dma_config() caused by the unset hist->isp field.
 
-A lot of the stuff that's in InfoFrames lends itself perfectly to controls.
-They are both simple types and have clear semantics.
-
+diff --git a/drivers/media/platform/omap3isp/isphist.c b/drivers/media/platform/omap3isp/isphist.c
+index d1a8dee..74326ff 100644
+--- a/drivers/media/platform/omap3isp/isphist.c
++++ b/drivers/media/platform/omap3isp/isphist.c
+@@ -72,11 +72,14 @@ static void hist_reset_mem(struct ispstat *hist)
+ 
+ static void hist_dma_config(struct ispstat *hist)
+ {
++	struct isp_device *isp = hist->isp;
++
+ 	hist->dma_config.data_type = OMAP_DMA_DATA_TYPE_S32;
+ 	hist->dma_config.sync_mode = OMAP_DMA_SYNC_ELEMENT;
+ 	hist->dma_config.frame_count = 1;
+ 	hist->dma_config.src_amode = OMAP_DMA_AMODE_CONSTANT;
+-	hist->dma_config.src_start = OMAP3ISP_HIST_REG_BASE + ISPHIST_DATA;
++	hist->dma_config.src_start = isp->mmio_base_phys[OMAP3_ISP_IOMEM_HIST]
++				   + ISPHIST_DATA;
+ 	hist->dma_config.dst_amode = OMAP_DMA_AMODE_POST_INC;
+ 	hist->dma_config.src_or_dst_synch = OMAP_DMA_SRC_SYNC;
+ }
+@@ -477,6 +480,8 @@ int omap3isp_hist_init(struct isp_device *isp)
+ 		return -ENOMEM;
+ 
+ 	memset(hist, 0, sizeof(*hist));
++	hist->isp = isp;
++
+ 	if (HIST_CONFIG_DMA)
+ 		ret = omap_request_dma(OMAP24XX_DMA_NO_DEVICE, "DMA_ISP_HIST",
+ 				       hist_dma_cb, hist, &hist->dma_ch);
+@@ -494,7 +499,6 @@ int omap3isp_hist_init(struct isp_device *isp)
+ 	hist->ops = &hist_ops;
+ 	hist->priv = hist_cfg;
+ 	hist->event_type = V4L2_EVENT_OMAP3ISP_HIST;
+-	hist->isp = isp;
+ 
+ 	ret = omap3isp_stat_init(hist, "histogram", &hist_subdev_ops);
+ 	if (ret) {
+diff --git a/drivers/media/platform/omap3isp/ispreg.h b/drivers/media/platform/omap3isp/ispreg.h
+index e2c57f3..fd13d8b 100644
+--- a/drivers/media/platform/omap3isp/ispreg.h
++++ b/drivers/media/platform/omap3isp/ispreg.h
+@@ -29,83 +29,6 @@
+ 
+ #define CM_CAM_MCLK_HZ			172800000	/* Hz */
+ 
+-/* ISP Submodules offset */
+-
+-#define L4_34XX_BASE			0x48000000
+-#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
+-
+-#define OMAP3ISP_REG_BASE		OMAP3430_ISP_BASE
+-#define OMAP3ISP_REG(offset)		(OMAP3ISP_REG_BASE + (offset))
+-
+-#define OMAP3ISP_CCP2_REG_OFFSET	0x0400
+-#define OMAP3ISP_CCP2_REG_BASE		(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_CCP2_REG_OFFSET)
+-#define OMAP3ISP_CCP2_REG(offset)	(OMAP3ISP_CCP2_REG_BASE + (offset))
+-
+-#define OMAP3ISP_CCDC_REG_OFFSET	0x0600
+-#define OMAP3ISP_CCDC_REG_BASE		(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_CCDC_REG_OFFSET)
+-#define OMAP3ISP_CCDC_REG(offset)	(OMAP3ISP_CCDC_REG_BASE + (offset))
+-
+-#define OMAP3ISP_HIST_REG_OFFSET	0x0A00
+-#define OMAP3ISP_HIST_REG_BASE		(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_HIST_REG_OFFSET)
+-#define OMAP3ISP_HIST_REG(offset)	(OMAP3ISP_HIST_REG_BASE + (offset))
+-
+-#define OMAP3ISP_H3A_REG_OFFSET		0x0C00
+-#define OMAP3ISP_H3A_REG_BASE		(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_H3A_REG_OFFSET)
+-#define OMAP3ISP_H3A_REG(offset)	(OMAP3ISP_H3A_REG_BASE + (offset))
+-
+-#define OMAP3ISP_PREV_REG_OFFSET	0x0E00
+-#define OMAP3ISP_PREV_REG_BASE		(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_PREV_REG_OFFSET)
+-#define OMAP3ISP_PREV_REG(offset)	(OMAP3ISP_PREV_REG_BASE + (offset))
+-
+-#define OMAP3ISP_RESZ_REG_OFFSET	0x1000
+-#define OMAP3ISP_RESZ_REG_BASE		(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_RESZ_REG_OFFSET)
+-#define OMAP3ISP_RESZ_REG(offset)	(OMAP3ISP_RESZ_REG_BASE + (offset))
+-
+-#define OMAP3ISP_SBL_REG_OFFSET		0x1200
+-#define OMAP3ISP_SBL_REG_BASE		(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_SBL_REG_OFFSET)
+-#define OMAP3ISP_SBL_REG(offset)	(OMAP3ISP_SBL_REG_BASE + (offset))
+-
+-#define OMAP3ISP_CSI2A_REGS1_REG_OFFSET	0x1800
+-#define OMAP3ISP_CSI2A_REGS1_REG_BASE	(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_CSI2A_REGS1_REG_OFFSET)
+-#define OMAP3ISP_CSI2A_REGS1_REG(offset)				\
+-				(OMAP3ISP_CSI2A_REGS1_REG_BASE + (offset))
+-
+-#define OMAP3ISP_CSIPHY2_REG_OFFSET	0x1970
+-#define OMAP3ISP_CSIPHY2_REG_BASE	(OMAP3ISP_REG_BASE +	\
+-					 OMAP3ISP_CSIPHY2_REG_OFFSET)
+-#define OMAP3ISP_CSIPHY2_REG(offset)	(OMAP3ISP_CSIPHY2_REG_BASE + (offset))
+-
+-#define OMAP3ISP_CSI2A_REGS2_REG_OFFSET	0x19C0
+-#define OMAP3ISP_CSI2A_REGS2_REG_BASE	(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_CSI2A_REGS2_REG_OFFSET)
+-#define OMAP3ISP_CSI2A_REGS2_REG(offset)				\
+-				(OMAP3ISP_CSI2A_REGS2_REG_BASE + (offset))
+-
+-#define OMAP3ISP_CSI2C_REGS1_REG_OFFSET	0x1C00
+-#define OMAP3ISP_CSI2C_REGS1_REG_BASE	(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_CSI2C_REGS1_REG_OFFSET)
+-#define OMAP3ISP_CSI2C_REGS1_REG(offset)				\
+-				(OMAP3ISP_CSI2C_REGS1_REG_BASE + (offset))
+-
+-#define OMAP3ISP_CSIPHY1_REG_OFFSET	0x1D70
+-#define OMAP3ISP_CSIPHY1_REG_BASE	(OMAP3ISP_REG_BASE +	\
+-					 OMAP3ISP_CSIPHY1_REG_OFFSET)
+-#define OMAP3ISP_CSIPHY1_REG(offset)	(OMAP3ISP_CSIPHY1_REG_BASE + (offset))
+-
+-#define OMAP3ISP_CSI2C_REGS2_REG_OFFSET	0x1DC0
+-#define OMAP3ISP_CSI2C_REGS2_REG_BASE	(OMAP3ISP_REG_BASE +		\
+-					 OMAP3ISP_CSI2C_REGS2_REG_OFFSET)
+-#define OMAP3ISP_CSI2C_REGS2_REG(offset)				\
+-				(OMAP3ISP_CSI2C_REGS2_REG_BASE + (offset))
+-
+ /* ISP module register offset */
+ 
+ #define ISP_REVISION			(0x000)
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
+
