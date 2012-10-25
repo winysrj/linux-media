@@ -1,83 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:49563 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753388Ab2JCJfI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 05:35:08 -0400
-Received: from eusync4.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBB005DT9B3QB20@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 03 Oct 2012 10:35:27 +0100 (BST)
-Received: from [106.116.147.32] by eusync4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTPA id <0MBB004T09AHM980@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 03 Oct 2012 10:35:06 +0100 (BST)
-Message-id: <506C06C8.7060703@samsung.com>
-Date: Wed, 03 Oct 2012 11:35:04 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Arun Kumar K <arunkk.samsung@gmail.com>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Arun Kumar K <arun.kk@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>,
-	Sunil Joshi <joshi@samsung.com>
-Subject: Re: [GIT PULL FOR 3.7] Samsung Exynos MFC driver update
-References: <506B1D47.8040602@samsung.com> <20121002150603.31b6b72d@redhat.com>
- <506B4733.3070505@gmail.com>
- <CALt3h7-YQ6PAv+5Yy+x-9jFpKf0XEA6GY_U9v59PiC5FkcdC1w@mail.gmail.com>
-In-reply-to: <CALt3h7-YQ6PAv+5Yy+x-9jFpKf0XEA6GY_U9v59PiC5FkcdC1w@mail.gmail.com>
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:39016 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422636Ab2JYNYt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Oct 2012 09:24:49 -0400
+Received: by mail-oa0-f46.google.com with SMTP id h16so1553882oag.19
+        for <linux-media@vger.kernel.org>; Thu, 25 Oct 2012 06:24:49 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20120929132032.7ce66793@hpe.lwn.net>
+References: <1348760305-7481-1-git-send-email-javier.martin@vista-silicon.com>
+	<20120929132032.7ce66793@hpe.lwn.net>
+Date: Thu, 25 Oct 2012 15:24:49 +0200
+Message-ID: <CACKLOr39FO2rsZxT==aaXEiSJ=dq6MQWMyVb7HSvK=EXqejP=A@mail.gmail.com>
+Subject: Re: [PATCH v2 0/5] media: ov7670: driver cleanup and support for ov7674.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl, rusty@rustcorp.com.au, dsd@laptop.org,
+	mchehab@infradead.org, hdegoede@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
+Hi Mauro,
+do you have any problems with this series?
 
-On 10/03/2012 07:38 AM, Arun Kumar K wrote:
->> Indeed it looks like big blob patch. I think this reflects how these patches
->> were created, were one person creates practically new driver for new device
->> revision, with not much care about the old one, and then somebody else is
->> trying to make it a step by step process and ensuring support for all H/W
->> revisions is properly maintained.
->>
->> Anyway, Arun, can you please rebase your patch series onto latest linuxtv
->> for_v3.7 branch and try to split this above patch. AFAICS there are following
->> things done there that could be separated:
->>
->> 1. Move contents of file s5p_mfc_opr.c to new file s5p_mfc_opr_v5.c
->> 2. Rename functions in s5p_mfc_opr_v5.c
->> 3. Use s5p_mfc_hw_call for H/W specific function calls
->> 4. Do S5P_FIMV/S5P_MFC whatever magic.
-> 
-> I couldnt go with more finer splits, as I wanted to keep a working driver
-> between all successive patches. Now I will try to make the splits as
-> suggested and see if it can still be done.
-> 
->> Also I've noticed some patches do break compilation. There are some definitions
->> used there which are added only in subsequent patches. Arun, can you please make
->> sure there is no build break after each single patch is applied ?
-> 
-> I have checked this while applying and I didnt see any break in
-> compilation after each patch is applied. I ensured not only compilation
-> but also a working driver after applying each patch. I will ensure
-> this again on the next rebase.
+Regards.
 
-Sorry, I wrongly concluded from looking at the diffs only. Preserving
-working driver is a good thing, but it is not really required AFAICT. Still 
-it would be nice split the patch as above keeping the v5 driver working.
-Probably splitting it in 3 is enough. It is worthwhile as long as it makes 
-the total diffs smaller (e.g. file renames don't need to be a huge diff with 
-git rename detection enabled). I understand you've got now an additional
-work due to conflict with Andrzej's patches. All pending s5p-mfc patches 
-seems to be in Mauro's tree for_v3.7 and nothing should get in before your 
-patches now.
+On 29 September 2012 21:20, Jonathan Corbet <corbet@lwn.net> wrote:
+> On Thu, 27 Sep 2012 17:38:20 +0200
+> Javier Martin <javier.martin@vista-silicon.com> wrote:
+>
+>> The following series includes all the changes discussed in [1] that
+>> don't affect either bridge drivers that use ov7670 or soc-camera framework
+>> For this reason they are considered non controversial and sent separately.
+>> At least 1 more series will follow in order to implement all features
+>> described in [1].
+>
+> I'd have preferred to avoid the unrelated white space changes in #1,
+> but so be it; you can put my Acked-by on the whole set.
+>
+> Thanks,
+>
+> jon
 
-> I will make these suggested changes and post an updated patchset today.
 
-Thanks.
 
---
-Regards,
-Sylwester
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
