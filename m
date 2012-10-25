@@ -1,162 +1,424 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:49144 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932259Ab2JJPAD (ORCPT
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:59673 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758931Ab2JYAVB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 11:00:03 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBO00BDPN02K980@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 11 Oct 2012 00:00:02 +0900 (KST)
-Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MBO002YDME0EC70@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 11 Oct 2012 00:00:02 +0900 (KST)
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
-	k.debski@samsung.com
-Subject: [PATCHv10 18/26] v4l: add buffer exporting via dmabuf
-Date: Wed, 10 Oct 2012 16:46:37 +0200
-Message-id: <1349880405-26049-19-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
-References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
+	Wed, 24 Oct 2012 20:21:01 -0400
+Subject: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to
+ include/linux/omap-iommu.h
+To: linux-arm-kernel@lists.infradead.org
+From: Tony Lindgren <tony@atomide.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Joerg Roedel <joerg.roedel@amd.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Omar Ramirez Luna <omar.luna@linaro.org>,
+	linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>,
+	linux-media@vger.kernel.org
+Date: Wed, 24 Oct 2012 17:20:56 -0700
+Message-ID: <20121025002056.2082.45221.stgit@muffinssi.local>
+In-Reply-To: <20121025001913.2082.31062.stgit@muffinssi.local>
+References: <20121025001913.2082.31062.stgit@muffinssi.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds extension to V4L2 api. It allow to export a mmap buffer as file
-descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer offset used by
-mmap and return a file descriptor on success.
+Looks like the iommu framework does not have generic functions
+exported for all the needs yet. The hardware specific functions
+are defined in files like intel-iommu.h and amd-iommu.h. Follow
+the same standard for omap-iommu.h.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+This is needed because we are removing plat and mach includes
+for ARM common zImage support. Further work should continue
+in the iommu framework context as only pure platform data will
+be communicated from arch/arm/*omap*/* code to the iommu
+framework.
+
+Cc: Joerg Roedel <joerg.roedel@amd.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Ido Yariv <ido@wizery.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Omar Ramirez Luna <omar.luna@linaro.org>
+Cc: linux-media@vger.kernel.org
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c |    1 +
- drivers/media/v4l2-core/v4l2-dev.c            |    1 +
- drivers/media/v4l2-core/v4l2-ioctl.c          |   10 +++++++++
- include/linux/videodev2.h                     |   28 +++++++++++++++++++++++++
- include/media/v4l2-ioctl.h                    |    2 ++
- 5 files changed, 42 insertions(+)
+ arch/arm/mach-omap2/iommu2.c               |    1 
+ arch/arm/plat-omap/include/plat/iommu.h    |   10 +--
+ arch/arm/plat-omap/include/plat/iovmm.h    |   89 ----------------------------
+ drivers/iommu/omap-iommu-debug.c           |    2 -
+ drivers/iommu/omap-iommu.c                 |    1 
+ drivers/iommu/omap-iovmm.c                 |   46 ++++++++++++++
+ drivers/media/platform/omap3isp/isp.c      |    1 
+ drivers/media/platform/omap3isp/isp.h      |    4 -
+ drivers/media/platform/omap3isp/ispccdc.c  |    1 
+ drivers/media/platform/omap3isp/ispstat.c  |    1 
+ drivers/media/platform/omap3isp/ispvideo.c |    2 -
+ include/linux/omap-iommu.h                 |   52 ++++++++++++++++
+ 12 files changed, 107 insertions(+), 103 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/plat/iovmm.h
+ create mode 100644 include/linux/omap-iommu.h
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index cc5998b..7157af3 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -1018,6 +1018,7 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 	case VIDIOC_S_FBUF32:
- 	case VIDIOC_OVERLAY32:
- 	case VIDIOC_QBUF32:
-+	case VIDIOC_EXPBUF:
- 	case VIDIOC_DQBUF32:
- 	case VIDIOC_STREAMON32:
- 	case VIDIOC_STREAMOFF32:
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index a2df842..98dcad9 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -571,6 +571,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 	SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
- 	SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
- 	SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
-+	SET_VALID_IOCTL(ops, VIDIOC_EXPBUF, vidioc_expbuf);
- 	SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
- 	SET_VALID_IOCTL(ops, VIDIOC_STREAMON, vidioc_streamon);
- 	SET_VALID_IOCTL(ops, VIDIOC_STREAMOFF, vidioc_streamoff);
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 530a67e..aa6e7c7 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -454,6 +454,15 @@ static void v4l_print_buffer(const void *arg, bool write_only)
- 			tc->type, tc->flags, tc->frames, *(__u32 *)tc->userbits);
- }
+diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
+index eefc379..e8116cf 100644
+--- a/arch/arm/mach-omap2/iommu2.c
++++ b/arch/arm/mach-omap2/iommu2.c
+@@ -15,6 +15,7 @@
+ #include <linux/device.h>
+ #include <linux/jiffies.h>
+ #include <linux/module.h>
++#include <linux/omap-iommu.h>
+ #include <linux/slab.h>
+ #include <linux/stringify.h>
  
-+static void v4l_print_exportbuffer(const void *arg, bool write_only)
-+{
-+	const struct v4l2_exportbuffer *p = arg;
+diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
+index 7e8c7b6..a4b71b1 100644
+--- a/arch/arm/plat-omap/include/plat/iommu.h
++++ b/arch/arm/plat-omap/include/plat/iommu.h
+@@ -216,13 +216,10 @@ static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
+ #define MMU_RAM_PADDR_SHIFT	12
+ #define MMU_RAM_PADDR_MASK \
+ 	((~0UL >> MMU_RAM_PADDR_SHIFT) << MMU_RAM_PADDR_SHIFT)
+-#define MMU_RAM_ENDIAN_SHIFT	9
 +
-+	pr_cont("fd=%d, type=%s, index=%u, plane=%u, flags=0x%08x\n",
-+		p->fd, prt_names(p->type, v4l2_type_names),
-+		p->index, p->plane, p->flags);
-+}
+ #define MMU_RAM_ENDIAN_MASK	(1 << MMU_RAM_ENDIAN_SHIFT)
+-#define MMU_RAM_ENDIAN_BIG	(1 << MMU_RAM_ENDIAN_SHIFT)
+-#define MMU_RAM_ENDIAN_LITTLE	(0 << MMU_RAM_ENDIAN_SHIFT)
+-#define MMU_RAM_ELSZ_SHIFT	7
+ #define MMU_RAM_ELSZ_MASK	(3 << MMU_RAM_ELSZ_SHIFT)
+-#define MMU_RAM_ELSZ_8		(0 << MMU_RAM_ELSZ_SHIFT)
 +
- static void v4l_print_create_buffers(const void *arg, bool write_only)
- {
- 	const struct v4l2_create_buffers *p = arg;
-@@ -1961,6 +1970,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_STD(VIDIOC_S_FBUF, vidioc_s_fbuf, v4l_print_framebuffer, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_OVERLAY, v4l_overlay, v4l_print_u32, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_QBUF, v4l_qbuf, v4l_print_buffer, INFO_FL_QUEUE),
-+	IOCTL_INFO_STD(VIDIOC_EXPBUF, vidioc_expbuf, v4l_print_exportbuffer, INFO_FL_QUEUE | INFO_FL_CLEAR(v4l2_exportbuffer, flags)),
- 	IOCTL_INFO_FNC(VIDIOC_DQBUF, v4l_dqbuf, v4l_print_buffer, INFO_FL_QUEUE),
- 	IOCTL_INFO_FNC(VIDIOC_STREAMON, v4l_streamon, v4l_print_buftype, INFO_FL_PRIO | INFO_FL_QUEUE),
- 	IOCTL_INFO_FNC(VIDIOC_STREAMOFF, v4l_streamoff, v4l_print_buftype, INFO_FL_PRIO | INFO_FL_QUEUE),
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 07bc5d6..19765df 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -696,6 +696,33 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
- #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
+ #define MMU_RAM_ELSZ_16		(1 << MMU_RAM_ELSZ_SHIFT)
+ #define MMU_RAM_ELSZ_32		(2 << MMU_RAM_ELSZ_SHIFT)
+ #define MMU_RAM_ELSZ_NONE	(3 << MMU_RAM_ELSZ_SHIFT)
+@@ -269,9 +266,6 @@ extern int omap_iommu_set_isr(const char *name,
+ 				    void *priv),
+ 			 void *isr_priv);
  
-+/**
-+ * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+-extern void omap_iommu_save_ctx(struct device *dev);
+-extern void omap_iommu_restore_ctx(struct device *dev);
+-
+ extern int omap_install_iommu_arch(const struct iommu_functions *ops);
+ extern void omap_uninstall_iommu_arch(const struct iommu_functions *ops);
+ 
+diff --git a/arch/arm/plat-omap/include/plat/iovmm.h b/arch/arm/plat-omap/include/plat/iovmm.h
+deleted file mode 100644
+index 498e57c..0000000
+--- a/arch/arm/plat-omap/include/plat/iovmm.h
++++ /dev/null
+@@ -1,89 +0,0 @@
+-/*
+- * omap iommu: simple virtual address space management
+- *
+- * Copyright (C) 2008-2009 Nokia Corporation
+- *
+- * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef __IOMMU_MMAP_H
+-#define __IOMMU_MMAP_H
+-
+-#include <linux/iommu.h>
+-
+-struct iovm_struct {
+-	struct omap_iommu	*iommu;	/* iommu object which this belongs to */
+-	u32			da_start; /* area definition */
+-	u32			da_end;
+-	u32			flags; /* IOVMF_: see below */
+-	struct list_head	list; /* linked in ascending order */
+-	const struct sg_table	*sgt; /* keep 'page' <-> 'da' mapping */
+-	void			*va; /* mpu side mapped address */
+-};
+-
+-/*
+- * IOVMF_FLAGS: attribute for iommu virtual memory area(iovma)
+- *
+- * lower 16 bit is used for h/w and upper 16 bit is for s/w.
+- */
+-#define IOVMF_SW_SHIFT		16
+-
+-/*
+- * iovma: h/w flags derived from cam and ram attribute
+- */
+-#define IOVMF_CAM_MASK		(~((1 << 10) - 1))
+-#define IOVMF_RAM_MASK		(~IOVMF_CAM_MASK)
+-
+-#define IOVMF_PGSZ_MASK		(3 << 0)
+-#define IOVMF_PGSZ_1M		MMU_CAM_PGSZ_1M
+-#define IOVMF_PGSZ_64K		MMU_CAM_PGSZ_64K
+-#define IOVMF_PGSZ_4K		MMU_CAM_PGSZ_4K
+-#define IOVMF_PGSZ_16M		MMU_CAM_PGSZ_16M
+-
+-#define IOVMF_ENDIAN_MASK	(1 << 9)
+-#define IOVMF_ENDIAN_BIG	MMU_RAM_ENDIAN_BIG
+-#define IOVMF_ENDIAN_LITTLE	MMU_RAM_ENDIAN_LITTLE
+-
+-#define IOVMF_ELSZ_MASK		(3 << 7)
+-#define IOVMF_ELSZ_8		MMU_RAM_ELSZ_8
+-#define IOVMF_ELSZ_16		MMU_RAM_ELSZ_16
+-#define IOVMF_ELSZ_32		MMU_RAM_ELSZ_32
+-#define IOVMF_ELSZ_NONE		MMU_RAM_ELSZ_NONE
+-
+-#define IOVMF_MIXED_MASK	(1 << 6)
+-#define IOVMF_MIXED		MMU_RAM_MIXED
+-
+-/*
+- * iovma: s/w flags, used for mapping and umapping internally.
+- */
+-#define IOVMF_MMIO		(1 << IOVMF_SW_SHIFT)
+-#define IOVMF_ALLOC		(2 << IOVMF_SW_SHIFT)
+-#define IOVMF_ALLOC_MASK	(3 << IOVMF_SW_SHIFT)
+-
+-/* "superpages" is supported just with physically linear pages */
+-#define IOVMF_DISCONT		(1 << (2 + IOVMF_SW_SHIFT))
+-#define IOVMF_LINEAR		(2 << (2 + IOVMF_SW_SHIFT))
+-#define IOVMF_LINEAR_MASK	(3 << (2 + IOVMF_SW_SHIFT))
+-
+-#define IOVMF_DA_FIXED		(1 << (4 + IOVMF_SW_SHIFT))
+-
+-
+-extern struct iovm_struct *omap_find_iovm_area(struct device *dev, u32 da);
+-extern u32
+-omap_iommu_vmap(struct iommu_domain *domain, struct device *dev, u32 da,
+-			const struct sg_table *sgt, u32 flags);
+-extern struct sg_table *omap_iommu_vunmap(struct iommu_domain *domain,
+-				struct device *dev, u32 da);
+-extern u32
+-omap_iommu_vmalloc(struct iommu_domain *domain, struct device *dev,
+-				u32 da, size_t bytes, u32 flags);
+-extern void
+-omap_iommu_vfree(struct iommu_domain *domain, struct device *dev,
+-				const u32 da);
+-extern void *omap_da_to_va(struct device *dev, u32 da);
+-
+-#endif /* __IOMMU_MMAP_H */
+diff --git a/drivers/iommu/omap-iommu-debug.c b/drivers/iommu/omap-iommu-debug.c
+index 0cac372..cf4a0b5 100644
+--- a/drivers/iommu/omap-iommu-debug.c
++++ b/drivers/iommu/omap-iommu-debug.c
+@@ -18,9 +18,9 @@
+ #include <linux/uaccess.h>
+ #include <linux/platform_device.h>
+ #include <linux/debugfs.h>
++#include <linux/omap-iommu.h>
+ 
+ #include <plat/iommu.h>
+-#include <plat/iovmm.h>
+ 
+ #include "omap-iopgtable.h"
+ 
+diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+index f2bbfb0..eadcfde 100644
+--- a/drivers/iommu/omap-iommu.c
++++ b/drivers/iommu/omap-iommu.c
+@@ -19,6 +19,7 @@
+ #include <linux/clk.h>
+ #include <linux/platform_device.h>
+ #include <linux/iommu.h>
++#include <linux/omap-iommu.h>
+ #include <linux/mutex.h>
+ #include <linux/spinlock.h>
+ 
+diff --git a/drivers/iommu/omap-iovmm.c b/drivers/iommu/omap-iovmm.c
+index b332392..9852101 100644
+--- a/drivers/iommu/omap-iovmm.c
++++ b/drivers/iommu/omap-iovmm.c
+@@ -17,15 +17,59 @@
+ #include <linux/device.h>
+ #include <linux/scatterlist.h>
+ #include <linux/iommu.h>
++#include <linux/omap-iommu.h>
+ 
+ #include <asm/cacheflush.h>
+ #include <asm/mach/map.h>
+ 
+ #include <plat/iommu.h>
+-#include <plat/iovmm.h>
+ 
+ #include "omap-iopgtable.h"
+ 
++/*
++ * IOVMF_FLAGS: attribute for iommu virtual memory area(iovma)
 + *
-+ * @index:	id number of the buffer
-+ * @type:	enum v4l2_buf_type; buffer type (type == *_MPLANE for
-+ *		multiplanar buffers);
-+ * @plane:	index of the plane to be exported, 0 for single plane queues
-+ * @flags:	flags for newly created file, currently only O_CLOEXEC is
-+ *		supported, refer to manual of open syscall for more details
-+ * @fd:		file descriptor associated with DMABUF (set by driver)
-+ *
-+ * Contains data used for exporting a video buffer as DMABUF file descriptor.
-+ * The buffer is identified by a 'cookie' returned by VIDIOC_QUERYBUF
-+ * (identical to the cookie used to mmap() the buffer to userspace). All
-+ * reserved fields must be set to zero. The field reserved0 is expected to
-+ * become a structure 'type' allowing an alternative layout of the structure
-+ * content. Therefore this field should not be used for any other extensions.
++ * lower 16 bit is used for h/w and upper 16 bit is for s/w.
 + */
-+struct v4l2_exportbuffer {
-+	__u32		type; /* enum v4l2_buf_type */
-+	__u32		index;
-+	__u32		plane;
-+	__u32		flags;
-+	__s32		fd;
-+	__u32		reserved[11];
++#define IOVMF_SW_SHIFT		16
++
++/*
++ * iovma: h/w flags derived from cam and ram attribute
++ */
++#define IOVMF_CAM_MASK		(~((1 << 10) - 1))
++#define IOVMF_RAM_MASK		(~IOVMF_CAM_MASK)
++
++#define IOVMF_PGSZ_MASK		(3 << 0)
++#define IOVMF_PGSZ_1M		MMU_CAM_PGSZ_1M
++#define IOVMF_PGSZ_64K		MMU_CAM_PGSZ_64K
++#define IOVMF_PGSZ_4K		MMU_CAM_PGSZ_4K
++#define IOVMF_PGSZ_16M		MMU_CAM_PGSZ_16M
++
++#define IOVMF_ENDIAN_MASK	(1 << 9)
++#define IOVMF_ENDIAN_BIG	MMU_RAM_ENDIAN_BIG
++
++#define IOVMF_ELSZ_MASK		(3 << 7)
++#define IOVMF_ELSZ_16		MMU_RAM_ELSZ_16
++#define IOVMF_ELSZ_32		MMU_RAM_ELSZ_32
++#define IOVMF_ELSZ_NONE		MMU_RAM_ELSZ_NONE
++
++#define IOVMF_MIXED_MASK	(1 << 6)
++#define IOVMF_MIXED		MMU_RAM_MIXED
++
++/*
++ * iovma: s/w flags, used for mapping and umapping internally.
++ */
++#define IOVMF_MMIO		(1 << IOVMF_SW_SHIFT)
++#define IOVMF_ALLOC		(2 << IOVMF_SW_SHIFT)
++#define IOVMF_ALLOC_MASK	(3 << IOVMF_SW_SHIFT)
++
++/* "superpages" is supported just with physically linear pages */
++#define IOVMF_DISCONT		(1 << (2 + IOVMF_SW_SHIFT))
++#define IOVMF_LINEAR		(2 << (2 + IOVMF_SW_SHIFT))
++#define IOVMF_LINEAR_MASK	(3 << (2 + IOVMF_SW_SHIFT))
++
++#define IOVMF_DA_FIXED		(1 << (4 + IOVMF_SW_SHIFT))
++
+ static struct kmem_cache *iovm_area_cachep;
+ 
+ /* return the offset of the first scatterlist entry in a sg table */
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 99640d8..7f182f0 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -61,6 +61,7 @@
+ #include <linux/i2c.h>
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
++#include <linux/omap-iommu.h>
+ #include <linux/platform_device.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index 8be7487..8d68669 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -31,11 +31,9 @@
+ #include <media/v4l2-device.h>
+ #include <linux/device.h>
+ #include <linux/io.h>
++#include <linux/iommu.h>
+ #include <linux/platform_device.h>
+ #include <linux/wait.h>
+-#include <linux/iommu.h>
+-#include <plat/iommu.h>
+-#include <plat/iovmm.h>
+ 
+ #include "ispstat.h"
+ #include "ispccdc.h"
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index 60181ab..6ae1ffb2 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -30,6 +30,7 @@
+ #include <linux/device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/mm.h>
++#include <linux/omap-iommu.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <media/v4l2-event.h>
+diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
+index d7ac76b..35c3823 100644
+--- a/drivers/media/platform/omap3isp/ispstat.c
++++ b/drivers/media/platform/omap3isp/ispstat.c
+@@ -26,6 +26,7 @@
+  */
+ 
+ #include <linux/dma-mapping.h>
++#include <linux/omap-iommu.h>
+ #include <linux/slab.h>
+ #include <linux/uaccess.h>
+ 
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index a0b737fe..a4b8290 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -27,6 +27,7 @@
+ #include <linux/clk.h>
+ #include <linux/mm.h>
+ #include <linux/module.h>
++#include <linux/omap-iommu.h>
+ #include <linux/pagemap.h>
+ #include <linux/scatterlist.h>
+ #include <linux/sched.h>
+@@ -35,7 +36,6 @@
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-ioctl.h>
+ #include <plat/iommu.h>
+-#include <plat/iovmm.h>
+ #include <plat/omap-pm.h>
+ 
+ #include "ispvideo.h"
+diff --git a/include/linux/omap-iommu.h b/include/linux/omap-iommu.h
+new file mode 100644
+index 0000000..cac78de
+--- /dev/null
++++ b/include/linux/omap-iommu.h
+@@ -0,0 +1,52 @@
++/*
++ * omap iommu: simple virtual address space management
++ *
++ * Copyright (C) 2008-2009 Nokia Corporation
++ *
++ * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef _INTEL_IOMMU_H_
++#define _INTEL_IOMMU_H_
++
++struct iovm_struct {
++	struct omap_iommu	*iommu;	/* iommu object which this belongs to */
++	u32			da_start; /* area definition */
++	u32			da_end;
++	u32			flags; /* IOVMF_: see below */
++	struct list_head	list; /* linked in ascending order */
++	const struct sg_table	*sgt; /* keep 'page' <-> 'da' mapping */
++	void			*va; /* mpu side mapped address */
 +};
 +
- /*
-  *	O V E R L A Y   P R E V I E W
-  */
-@@ -1897,6 +1924,7 @@ struct v4l2_create_buffers {
- #define VIDIOC_S_FBUF		 _IOW('V', 11, struct v4l2_framebuffer)
- #define VIDIOC_OVERLAY		 _IOW('V', 14, int)
- #define VIDIOC_QBUF		_IOWR('V', 15, struct v4l2_buffer)
-+#define VIDIOC_EXPBUF		_IOWR('V', 16, struct v4l2_exportbuffer)
- #define VIDIOC_DQBUF		_IOWR('V', 17, struct v4l2_buffer)
- #define VIDIOC_STREAMON		 _IOW('V', 18, int)
- #define VIDIOC_STREAMOFF	 _IOW('V', 19, int)
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index e48b571..4118ad1 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -111,6 +111,8 @@ struct v4l2_ioctl_ops {
- 	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
- 	int (*vidioc_querybuf)(struct file *file, void *fh, struct v4l2_buffer *b);
- 	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
-+	int (*vidioc_expbuf)  (struct file *file, void *fh,
-+				struct v4l2_exportbuffer *e);
- 	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
- 
- 	int (*vidioc_create_bufs)(struct file *file, void *fh, struct v4l2_create_buffers *b);
--- 
-1.7.9.5
++#define MMU_RAM_ENDIAN_SHIFT	9
++#define MMU_RAM_ENDIAN_LITTLE	(0 << MMU_RAM_ENDIAN_SHIFT)
++#define MMU_RAM_ELSZ_8		(0 << MMU_RAM_ELSZ_SHIFT)
++#define IOVMF_ENDIAN_LITTLE	MMU_RAM_ENDIAN_LITTLE
++#define MMU_RAM_ELSZ_SHIFT	7
++#define IOVMF_ELSZ_8		MMU_RAM_ELSZ_8
++
++struct iommu_domain;
++
++extern struct iovm_struct *omap_find_iovm_area(struct device *dev, u32 da);
++extern u32
++omap_iommu_vmap(struct iommu_domain *domain, struct device *dev, u32 da,
++			const struct sg_table *sgt, u32 flags);
++extern struct sg_table *omap_iommu_vunmap(struct iommu_domain *domain,
++				struct device *dev, u32 da);
++extern u32
++omap_iommu_vmalloc(struct iommu_domain *domain, struct device *dev,
++				u32 da, size_t bytes, u32 flags);
++extern void
++omap_iommu_vfree(struct iommu_domain *domain, struct device *dev,
++				const u32 da);
++extern void *omap_da_to_va(struct device *dev, u32 da);
++
++extern void omap_iommu_save_ctx(struct device *dev);
++extern void omap_iommu_restore_ctx(struct device *dev);
++
++#endif
 
