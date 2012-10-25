@@ -1,68 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:63234 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751239Ab2JBBnx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 21:43:53 -0400
-Received: by lbon3 with SMTP id n3so4680746lbo.19
-        for <linux-media@vger.kernel.org>; Mon, 01 Oct 2012 18:43:52 -0700 (PDT)
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:56317 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759862Ab2JYOTr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Oct 2012 10:19:47 -0400
+Received: by mail-wi0-f172.google.com with SMTP id hq12so6037468wib.1
+        for <linux-media@vger.kernel.org>; Thu, 25 Oct 2012 07:19:46 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1349139145-22113-1-git-send-email-crope@iki.fi>
-References: <1349139145-22113-1-git-send-email-crope@iki.fi>
-Date: Mon, 1 Oct 2012 21:43:51 -0400
-Message-ID: <CAOcJUbwGnm=jDkvqcJeQWr4ShraGbSNO9fGgkRgwr+18=h6H8g@mail.gmail.com>
-Subject: Re: [PATCH RFC] em28xx: PCTV 520e switch tda18271 to tda18271c2dd
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <20121025114624.7896b5d9@redhat.com>
+References: <1349473981-15084-1-git-send-email-fabio.estevam@freescale.com>
+	<1349473981-15084-2-git-send-email-fabio.estevam@freescale.com>
+	<20121025113841.4e06cc3b@redhat.com>
+	<20121025114624.7896b5d9@redhat.com>
+Date: Thu, 25 Oct 2012 12:19:45 -0200
+Message-ID: <CAOMZO5APJsvV7yXsLYKMPOKHMJzDqE_89KTuS6sWzvHGMnaXfQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] ARM: clk-imx27: Add missing clock for mx2-camera
+From: Fabio Estevam <festevam@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Fabio Estevam <fabio.estevam@freescale.com>, kernel@pengutronix.de,
+	g.liakhovetski@gmx.de, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, javier.martin@vista-silicon.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 1, 2012 at 8:52 PM, Antti Palosaari <crope@iki.fi> wrote:
-> New drxk firmware download does not work with tda18271. Actual
-> reason is more drxk driver than tda18271. Anyhow, tda18271c2dd
-> will work as it does not do as much I/O during attach than tda18271.
->
-> Root of cause is tuner I/O during drx-k asynchronous firmware
-> download. request_firmware_nowait()... :-/
->
-> Cc: Michael Krufky <mkrufky@linuxtv.org>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/usb/em28xx/em28xx-dvb.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-> index 770a5af..fd750d4 100644
-> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
-> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-> @@ -1122,9 +1122,8 @@ static int em28xx_dvb_init(struct em28xx *dev)
->
->                 if (dvb->fe[0]) {
->                         /* attach tuner */
-> -                       if (!dvb_attach(tda18271_attach, dvb->fe[0], 0x60,
-> -                                       &dev->i2c_adap,
-> -                                       &em28xx_cxd2820r_tda18271_config)) {
-> +                       if (!dvb_attach(tda18271c2dd_attach, dvb->fe[0],
-> +                                       &dev->i2c_adap, 0x60)) {
->                                 dvb_frontend_detach(dvb->fe[0]);
->                                 result = -EINVAL;
->                                 goto out_free;
-> --
-> 1.7.11.4
->
+Hi Sascha,
 
+On Thu, Oct 25, 2012 at 11:46 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
 
-utterly ridiculous.  I understand why Antti is making this patch, so I
-cannot blame him for it, but this whole idea of asynchronous firmware
-load instead of allowing the bridge driver to orchestrate things is a
-major problem -- THAT is what needs fixing.  let's fix the ACTUAL
-problem.
+>> As this patch is for arch/arm, I'm understanding that it will be merged
+>> via arm tree. So,
+>>
+>> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+> Forgot to comment: as patch 2 relies on this change, the better, IMHO, is
+> to send both via the same tree. If you decide to do so, please get arm
+> maintainer's ack, instead, and we can merge both via my tree.
 
-(if we have to merge this for the short-term, i understand... i just
-reiterate - we set a horrible president by merging a second tda18271
-driver)
+Can you please send your Ack to this series so that Mauro can merge it
+via his tree?
 
--Mike
+Thanks,
+
+Fabio Estevam
