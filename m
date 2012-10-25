@@ -1,88 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bues.ch ([80.190.117.144]:41164 "EHLO bues.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753921Ab2JGS1L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Oct 2012 14:27:11 -0400
-Date: Sun, 7 Oct 2012 20:05:01 +0200
-From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: walter harms <wharms@bfs.de>, kernel-janitors@vger.kernel.org,
-	rmallon@gmail.com, shubhrajyoti@ti.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 9/13] drivers/media/tuners/fc0011.c: use macros for
- i2c_msg initialization
-Message-ID: <20121007200501.757a1ce6@milhouse>
-In-Reply-To: <alpine.DEB.2.02.1210071845030.2745@localhost6.localdomain6>
-References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
-	<1349624323-15584-11-git-send-email-Julia.Lawall@lip6.fr>
-	<5071B147.3010708@bfs.de>
-	<alpine.DEB.2.02.1210071845030.2745@localhost6.localdomain6>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/.xXbt9B3o._hAnK.C27euRq"; protocol="application/pgp-signature"
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:57094 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758926Ab2JYMnA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Oct 2012 08:43:00 -0400
+Received: from eusync4.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MCG0024E8OJOKA0@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 25 Oct 2012 13:43:31 +0100 (BST)
+Received: from [106.116.147.32] by eusync4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MCG0024S8NMR710@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 25 Oct 2012 13:42:58 +0100 (BST)
+Message-id: <508933D1.80308@samsung.com>
+Date: Thu, 25 Oct 2012 14:42:57 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] s5p-fimc: Fix platform entities registration
+References: <1351156016-10970-1-git-send-email-s.nawrocki@samsung.com>
+ <6007649.66KylGAjOu@avalon>
+In-reply-to: <6007649.66KylGAjOu@avalon>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/.xXbt9B3o._hAnK.C27euRq
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi Laurent,
 
-On Sun, 7 Oct 2012 18:50:31 +0200 (CEST)
-Julia Lawall <julia.lawall@lip6.fr> wrote:
+On 10/25/2012 01:35 PM, Laurent Pinchart wrote:
+> On Thursday 25 October 2012 11:06:56 Sylwester Nawrocki wrote:
+>> Make sure there is no v4l2_device_unregister_subdev() call
+>> on a subdev which wasn't registered.
+> 
+> I'm not implying that this fix is bad, but doesn't the V4L2 core already 
+> handle this ? v4l2_device_unregister_subdev() returns immediately without 
+> doing anything if the subdev hasn't been registered.
 
-> >> @@ -97,10 +96,8 @@ static int fc0011_readreg(struct fc0011_priv *priv,=
- u8 reg, u8 *val)
-> >>  {
-> >>  	u8 dummy;
-> >>  	struct i2c_msg msg[2] =3D {
-> >> -		{ .addr =3D priv->addr,
-> >> -		  .flags =3D 0, .buf =3D &reg, .len =3D 1 },
-> >> -		{ .addr =3D priv->addr,
-> >> -		  .flags =3D I2C_M_RD, .buf =3D val ? : &dummy, .len =3D 1 },
-> >> +		I2C_MSG_WRITE(priv->addr, &reg, sizeof(reg)),
-> >> +		I2C_MSG_READ(priv->addr, val ? : &dummy, sizeof(dummy)),
-> >>  	};
-> >>
-> >
-> > This dummy looks strange, can it be that this is used uninitialised ?
->=20
-> I'm not sure to understand the question.  The read, when it happens in=20
-> i2c_transfer will initialize dummy.  On the other hand, I don't know what=
-=20
-> i2c_transfer does when the buffer is NULL and the size is 1.  It does not=
-=20
-> look very elegant at least.
+Indeed, the patch summary might be a bit misleading and incomplete.
+I of course wanted to make sure the platform subdevs are not treated
+as registered when any part of v4l2_device_register_subdev() fails.
 
-Well its use case is if you only care about the side effects and not the ac=
-tual data
-returned by the read operation.
 
---=20
-Greetings, Michael.
+Looking at function v4l2_device_register_subdev(), I'm wondering whether
+line
+ 159         sd->v4l2_dev = v4l2_dev;
 
-PGP encryption is encouraged / 908D8B0E
+shouldn't be moved right before
 
---Sig_/.xXbt9B3o._hAnK.C27euRq
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+ 190         spin_lock(&v4l2_dev->lock);
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+so sd->v4l2_dev is set only if we return 0 in this function ?
 
-iQIcBAEBAgAGBQJQccRNAAoJEPUyvh2QjYsOe2IQAK6EJr6davwpTYnkRZxsZqDz
-Wx2YUMI3aCWcrq0AL1bOD22gdM3+lrTXJ/q+XxaxqGaqES9OV8iZpmiWBGRWlQgi
-mARnJ8KwG19yHFHKyw4cz64tP0PF4PhfdpdC8SL+fWwrFqlaI23XirLKg/gML3Iw
-ptdsTobacaNsaHm8GM4yq6EZRQIOhiHgalhIx7okhkcauvSNKKRBSVDBkU7/99u3
-ykEZb6GbHW0T7gkXd9cU969D/O5zeLMDu/G33TmXP7PASnwlfbQcSWa6vdSvMfsi
-YrCUuxBlH3XrqdzrECOQX25zGCDYRkTtyBylcwGR+QHkLXX+iD31Q6XmwnzgWwI5
-ONosmnpVA/qCGOuUhEej/dIyZXVvLpMhaj4KaZ0OGAR3dQWuoVfD4CzDZkHlFFHj
-DgNTroLOSwTGIg/XJkMSgwL/ZxRX7+2WFugrpKPC+DjZGD0a+xS0ShIUYZlsw/fN
-rLMy84cSEdrurcCELVp7oR5F2sCWqo5nTyPkwjA6ENLCwtT9xB7LMPrHJgQHqrpp
-Hz97qiz5Vw3P7Xta6u/OZtjS3dCSbWjeAvm/3GE/Vt+tL0nH8wJpk/nksi2cgkJX
-EI+cOkMvU4P+pIalk6kixI1wsj1zKcLniBY/w1x57B4E9eXAAgFykLgNwaoAyNAE
-rDywYLI/SJ2ejPJnSZmk
-=j5OD
------END PGP SIGNATURE-----
+Since in function v4l2_device_unregister_subdev() there is a check like
 
---Sig_/.xXbt9B3o._hAnK.C27euRq--
+ 259         /* return if it isn't registered */
+ 260         if (sd == NULL || sd->v4l2_dev == NULL)
+ 261                 return;
+
+i.e. if subdev is not really registered, e.g. internal .registered
+op fails, it should be NULL.
+
+In my case sd wasn't null since this structure was embedded in
+other one.
+
+--
+
+Thanks,
+Sylwester
+
