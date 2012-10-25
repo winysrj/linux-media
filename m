@@ -1,94 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33734 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750853Ab2JZJN0 convert rfc822-to-8bit (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:45555 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934978Ab2JYJqu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Oct 2012 05:13:26 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Taneja, Archit" <archit@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non
- zero
-Date: Fri, 26 Oct 2012 09:13:20 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83EB4B619@DBDE01.ent.ti.com>
-References: <1331110876-11895-1-git-send-email-archit@ti.com>
-  <1729342.AddG4HPA3i@avalon>
- <79CD15C6BA57404B839C016229A409A83180E941@DBDE01.ent.ti.com>
- <5089461A.9050307@ti.com>
-In-Reply-To: <5089461A.9050307@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Thu, 25 Oct 2012 05:46:50 -0400
+Received: by mail-la0-f46.google.com with SMTP id h6so1204529lag.19
+        for <linux-media@vger.kernel.org>; Thu, 25 Oct 2012 02:46:49 -0700 (PDT)
 MIME-Version: 1.0
+Date: Thu, 25 Oct 2012 10:46:49 +0100
+Message-ID: <CAOQWjw3ONK7FmQ+vMnWeMRpN-ED3jyMTUd++Enk+25Z2e2QL2A@mail.gmail.com>
+Subject: Problems with checksum files for driver tarballs
+From: Nick Morrott <knowledgejunkie@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 25, 2012 at 19:30:58, Valkeinen, Tomi wrote:
-> On 2012-03-09 10:03, Hiremath, Vaibhav wrote:
-> > On Fri, Mar 09, 2012 at 05:17:41, Laurent Pinchart wrote:
-> >> Hi Archit,
-> >>
-> >> On Wednesday 07 March 2012 14:31:16 Archit Taneja wrote:
-> >>> The omap_vout driver tries to set the DSS overlay_info using
-> >>> set_overlay_info() when the physical address for the overlay is still not
-> >>> configured. This happens in omap_vout_probe() and vidioc_s_fmt_vid_out().
-> >>>
-> >>> The calls to omapvid_init(which internally calls set_overlay_info()) are
-> >>> removed from these functions. They don't need to be called as the
-> >>> omap_vout_device struct anyway maintains the overlay related changes made.
-> >>> Also, remove the explicit call to set_overlay_info() in vidioc_streamon(),
-> >>> this was used to set the paddr, this isn't needed as omapvid_init() does
-> >>> the same thing later.
-> >>>
-> >>> These changes are required as the DSS2 driver since 3.3 kernel doesn't let
-> >>> you set the overlay info with paddr as 0.
-> >>>
-> >>> Signed-off-by: Archit Taneja <archit@ti.com>
-> >>
-> >> Thanks for the patch. This seems to fix memory corruption that would result
-> >> in sysfs-related crashes such as
-> >>
-> >> [   31.279541] ------------[ cut here ]------------
-> >> [   31.284423] WARNING: at fs/sysfs/file.c:343 sysfs_open_file+0x70/0x1f8()
-> >> [   31.291503] missing sysfs attribute operations for kobject: (null)
-> >> [   31.298004] Modules linked in: mt9p031 aptina_pll omap3_isp
-> >> [   31.303924] [<c0018260>] (unwind_backtrace+0x0/0xec) from [<c0034488>] (warn_slowpath_common+0x4c/0x64)
-> >> [   31.313812] [<c0034488>] (warn_slowpath_common+0x4c/0x64) from [<c0034520>] (warn_slowpath_fmt+0x2c/0x3c)
-> >> [   31.323913] [<c0034520>] (warn_slowpath_fmt+0x2c/0x3c) from [<c01219bc>] (sysfs_open_file+0x70/0x1f8)
-> >> [   31.333618] [<c01219bc>] (sysfs_open_file+0x70/0x1f8) from [<c00ccc94>] (__dentry_open+0x1f8/0x30c)
-> >> [   31.343139] [<c00ccc94>] (__dentry_open+0x1f8/0x30c) from [<c00cce58>] (nameidata_to_filp+0x50/0x5c)
-> >> [   31.352752] [<c00cce58>] (nameidata_to_filp+0x50/0x5c) from [<c00db4c0>] (do_last+0x55c/0x6a0)
-> >> [   31.361999] [<c00db4c0>] (do_last+0x55c/0x6a0) from [<c00db6bc>] (path_openat+0xb8/0x37c)
-> >> [   31.370605] [<c00db6bc>] (path_openat+0xb8/0x37c) from [<c00dba60>] (do_filp_open+0x30/0x7c)
-> >> [   31.379486] [<c00dba60>] (do_filp_open+0x30/0x7c) from [<c00cc904>] (do_sys_open+0xd8/0x170)
-> >> [   31.388366] [<c00cc904>] (do_sys_open+0xd8/0x170) from [<c0012760>] (ret_fast_syscall+0x0/0x3c)
-> >> [   31.397552] ---[ end trace 13639ab74f345d7e ]---
-> >>
-> >> Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>
-> > 
-> > Thanks Laurent for testing this patch.
-> > 
-> > 
-> >> Please push it to v3.3 :-)
-> >>
-> > 
-> > Will send a pull request today itself.
-> 
-> Vaibhav, I don't see this crash fix in 3.3, 3.4, 3.5, 3.6 nor in 3.7-rc.
-> Are you still maintaining the omap v4l2 driver? Can you finally push
-> this fix?
-> 
+I've recently had cause to download recent driver tarballs from:
 
-Tomi, Sorry for delayed response.
+http://www.linuxtv.org/downloads/drivers/
 
-Laurent,
-Can you pull up this patch into your next pull request?
+A tarball and MD5 checksum is provided for each driver release. I've
+noticed the following issues when using the checksum files to validate
+a downloaded file:
+
+
+1. Use of absolute paths in checksum file
+
+Each entry in a checksum file includes an absolute path to the
+tarball. E.g. http://www.linuxtv.org/downloads/drivers/linux-media-2012-10-19.tar.bz2.md5
+includes:
+
+  $ cat linux-media-2012-10-19.tar.bz2.md5
+  a1754d21e4bf943460a3ca75334a1c63
+/home/mchehab/tmp/new_build/linux-media-2012-10-19.tar.bz2
+
+Running `md5sum --check` with a checksum file will therefore fail as
+the tarball will not be found (unless you happen to be Mauro).
+
+Removing any path information that a user is unlikely to have on their
+system will allow md5sum to work if the tarball and checksum are
+located in any common directory.
+
+
+2. Validating the 'LATEST' driver tarball
+
+The latest driver tarball is made available at the above address with filename:
+
+  http://www.linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2
+
+A checksum for this file is also made available
+
+  http://www.linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2.md5
+
+However, the contents of the checksum file reference an 'actual'
+tarball release, and not this 'symlinked' LATEST filename:
+
+  $ cat linux-media-LATEST.tar.bz2.md5
+  a1754d21e4bf943460a3ca75334a1c63
+/home/mchehab/tmp/new_build/linux-media-2012-10-19.tar.bz2
+
+Separate to the path problem discussed above, the filename the
+checksum references will not exist if a user downloads the
+linux-media-LATEST.tar.bz2 file. This will stop md5sum in its tracks
+from validating the download.
+
+In this case, the LATEST checksum needs to reference the LATEST
+tarball in order for md5sum to be able to make use of it.
+
 
 Thanks,
-Vaibhav
-
-
+Nick
