@@ -1,44 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28212 "EHLO mx1.redhat.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56533 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751778Ab2J0UmE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:42:04 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKg3Ww019789
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:04 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 60/68] [media] usbvision-core: fix a warning
-Date: Sat, 27 Oct 2012 18:41:18 -0200
-Message-Id: <1351370486-29040-61-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	id S1751349Ab2JYFCo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Oct 2012 01:02:44 -0400
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <hans.verkuil@cisco.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCH] adv7604: convert struct i2c_msg initialization to C99 format
+Date: Thu, 25 Oct 2012 10:32:36 +0530
+Message-ID: <1351141356-3093-1-git-send-email-shubhrajyoti@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/usb/usbvision/usbvision-core.c:1749:2: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
+Convert the struct i2c_msg initialization to C99 format. This makes
+maintaining and editing the code simpler. Also helps once other fields
+like transferred are added in future.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- drivers/media/usb/usbvision/usbvision.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/i2c/adv7604.c |   16 +++++++++++++---
+ 1 files changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/usb/usbvision/usbvision.h b/drivers/media/usb/usbvision/usbvision.h
-index 43cf61f..8a25876 100644
---- a/drivers/media/usb/usbvision/usbvision.h
-+++ b/drivers/media/usb/usbvision/usbvision.h
-@@ -167,7 +167,7 @@ enum {
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 109bc9b..89fc854 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -403,9 +403,19 @@ static inline int edid_read_block(struct v4l2_subdev *sd, unsigned len, u8 *val)
+ 	struct i2c_client *client = state->i2c_edid;
+ 	u8 msgbuf0[1] = { 0 };
+ 	u8 msgbuf1[256];
+-	struct i2c_msg msg[2] = { { client->addr, 0, 1, msgbuf0 },
+-				  { client->addr, 0 | I2C_M_RD, len, msgbuf1 }
+-				};
++	struct i2c_msg msg[2] = {
++		{
++			.addr = client->addr,
++			.len = 1,
++			.buf = msgbuf0
++		},
++		{
++			.addr = client->addr,
++			.flags = I2C_M_RD,
++			.len = len,
++			.buf = msgbuf1
++		},
++	};
  
- /* This macro restricts an int variable to an inclusive range */
- #define RESTRICT_TO_RANGE(v, mi, ma) \
--	{ if ((v) < (mi)) (v) = (mi); else if ((v) > (ma)) (v) = (ma); }
-+	{ if (((int)v) < (mi)) (v) = (mi); else if ((v) > (ma)) (v) = (ma); }
- 
- /*
-  * We use macros to do YUV -> RGB conversion because this is
+ 	if (i2c_transfer(client->adapter, msg, 2) < 0)
+ 		return -EIO;
 -- 
-1.7.11.7
+1.7.5.4
 
