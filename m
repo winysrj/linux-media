@@ -1,37 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40152 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:28646 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753175Ab2JJQXX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 12:23:23 -0400
-Date: Wed, 10 Oct 2012 13:23:14 -0300
+	id S1753060Ab2JYQTG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Oct 2012 12:19:06 -0400
+Date: Thu, 25 Oct 2012 14:18:57 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Robert Morell <rmorell@nvidia.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>, <rob@ti.com>,
-	<linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
-	<linaro-mm-sig@lists.linaro.org>
-Subject: Re: [PATCH] dma-buf: Use EXPORT_SYMBOL
-Message-ID: <20121010132314.7c7ddaa5@redhat.com>
-In-Reply-To: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
-References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	rusty@rustcorp.com.au, dsd@laptop.org, hdegoede@redhat.com
+Subject: Re: [PATCH v2 0/5] media: ov7670: driver cleanup and support for
+ ov7674.
+Message-ID: <20121025141857.79ff59ac@redhat.com>
+In-Reply-To: <CACKLOr39FO2rsZxT==aaXEiSJ=dq6MQWMyVb7HSvK=EXqejP=A@mail.gmail.com>
+References: <1348760305-7481-1-git-send-email-javier.martin@vista-silicon.com>
+	<20120929132032.7ce66793@hpe.lwn.net>
+	<CACKLOr39FO2rsZxT==aaXEiSJ=dq6MQWMyVb7HSvK=EXqejP=A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 10 Oct 2012 08:56:32 -0700
-Robert Morell <rmorell@nvidia.com> escreveu:
+Em Thu, 25 Oct 2012 15:24:49 +0200
+javier Martin <javier.martin@vista-silicon.com> escreveu:
 
-> EXPORT_SYMBOL_GPL is intended to be used for "an internal implementation
-> issue, and not really an interface".  The dma-buf infrastructure is
-> explicitly intended as an interface between modules/drivers, so it
-> should use EXPORT_SYMBOL instead.
-> 
-> Signed-off-by: Robert Morell <rmorell@nvidia.com>
+> Hi Mauro,
+> do you have any problems with this series?
 
-NAK, as already explained at:
+It didn't apply here, maybe due to its dependency from your
+previous ov7670 (v3) series.
 
-http://lists.freedesktop.org/archives/dri-devel/2012-January/018281.html
+>From my side, feel free to rebase them and re-submit.
 
+Regards,
+Mauro
+-- 
 Regards,
 Mauro
