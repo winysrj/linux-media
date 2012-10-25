@@ -1,70 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:49801 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933158Ab2JDN6g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 09:58:36 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rr4so621433pbb.19
-        for <linux-media@vger.kernel.org>; Thu, 04 Oct 2012 06:58:36 -0700 (PDT)
-Date: Thu, 4 Oct 2012 06:58:32 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Josh Boyer <jwboyer@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ming Lei <ming.lei@canonical.com>, Kay Sievers <kay@vrfy.org>,
-	Lennart Poettering <lennart@poettering.net>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Kay Sievers <kay@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Ivan Kalvachev <ikalvachev@gmail.com>
-Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
- callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use
- request_firmware_nowait()
-Message-ID: <20121004135832.GB15525@kroah.com>
-References: <CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
- <506C562E.5090909@redhat.com>
- <CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
- <20121003170907.GA23473@ZenIV.linux.org.uk>
- <CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
- <20121003195059.GA13541@kroah.com>
- <CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
- <3560b86d-e2ad-484d-ab6e-2b9048894a12@email.android.com>
- <CA+55aFwVFtUU4TCjz4EDgGDaeR_QwLjmBAJA0kijHkQQ+jxLCw@mail.gmail.com>
- <CA+5PVA5J0OhmSsy3zOi=z8Ck7QJHVXng=q7OZNOu4nzi6qNA-A@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+5PVA5J0OhmSsy3zOi=z8Ck7QJHVXng=q7OZNOu4nzi6qNA-A@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:55660 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933157Ab2JYNjI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Oct 2012 09:39:08 -0400
+Date: Thu, 25 Oct 2012 11:38:41 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Fabio Estevam <fabio.estevam@freescale.com>
+Cc: <kernel@pengutronix.de>, <g.liakhovetski@gmx.de>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>, <javier.martin@vista-silicon.com>
+Subject: Re: [PATCH 1/2] ARM: clk-imx27: Add missing clock for mx2-camera
+Message-ID: <20121025113841.4e06cc3b@redhat.com>
+In-Reply-To: <1349473981-15084-2-git-send-email-fabio.estevam@freescale.com>
+References: <1349473981-15084-1-git-send-email-fabio.estevam@freescale.com>
+	<1349473981-15084-2-git-send-email-fabio.estevam@freescale.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 04, 2012 at 09:39:41AM -0400, Josh Boyer wrote:
-> > That said, there's clearly enough variation here that I think that for
-> > now I won't take the step to disable the udev part. I'll do the patch
-> > to support "direct filesystem firmware loading" using the udev default
-> > paths, and that hopefully fixes the particular case people see with
-> > media modules.
-> 
-> As you probably noticed, we had a tester in the RH bug report success
-> with the commit you included yesterday.
-> 
-> Do you think this is something worth including in the stable kernels
-> after it gets some further testing during the merge window?  Perhaps
-> not that specific commit as there seems to be some additional changes
-> needed for configurable paths, etc, but a backport of the fleshed out
-> changeset might be wanted.
-> 
-> We have a new enough udev in Fedora 17 to hit this issue with 3.5 and
-> 3.6 when we rebase.  I'm sure other distributions will be in similar
-> circumstances soon if they aren't already.  Udev isn't going to be
-> fixed, so having something working in these cases would be great.
+Hi Fábio,
 
-Yes, I don't have a problem taking this into the stable kernel releases
-once it gets some testing and fleshed out.  I'll be watching it to see
-how it goes.
+Em Fri, 5 Oct 2012 18:53:01 -0300
+Fabio Estevam <fabio.estevam@freescale.com> escreveu:
 
-thanks,
+> During the clock conversion for mx27 the "per4_gate" clock was missed to get
+> registered as a dependency of mx2-camera driver.
+> 
+> In the old mx27 clock driver we used to have:
+> 
+> DEFINE_CLOCK1(csi_clk, 0, NULL, 0, parent, &csi_clk1, &per4_clk);
+> 
+> ,so does the same in the new clock driver.
+> 
+> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+> ---
+>  arch/arm/mach-imx/clk-imx27.c |    1 +
 
-greg k-h
+As this patch is for arch/arm, I'm understanding that it will be merged
+via arm tree. So,
+
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/arm/mach-imx/clk-imx27.c b/arch/arm/mach-imx/clk-imx27.c
+> index 3b6b640..5ef0f08 100644
+> --- a/arch/arm/mach-imx/clk-imx27.c
+> +++ b/arch/arm/mach-imx/clk-imx27.c
+> @@ -224,6 +224,7 @@ int __init mx27_clocks_init(unsigned long fref)
+>  	clk_register_clkdev(clk[lcdc_ipg_gate], "ipg", "imx-fb.0");
+>  	clk_register_clkdev(clk[lcdc_ahb_gate], "ahb", "imx-fb.0");
+>  	clk_register_clkdev(clk[csi_ahb_gate], "ahb", "mx2-camera.0");
+> +	clk_register_clkdev(clk[per4_gate], "per", "mx2-camera.0");
+>  	clk_register_clkdev(clk[usb_div], "per", "fsl-usb2-udc");
+>  	clk_register_clkdev(clk[usb_ipg_gate], "ipg", "fsl-usb2-udc");
+>  	clk_register_clkdev(clk[usb_ahb_gate], "ahb", "fsl-usb2-udc");
+
+
+-- 
+Regards,
+Mauro
