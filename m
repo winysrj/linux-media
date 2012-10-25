@@ -1,43 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3769 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755016Ab2JDGpj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 02:45:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [RFC PATCH 1/3] s5p-g2d: fix compiler warning
-Date: Thu, 4 Oct 2012 08:43:55 +0200
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
-	Anatolij Gustschin <agust@denx.de>
-References: <1349168240-29269-1-git-send-email-hans.verkuil@cisco.com> <760bdb23b40b9ce3a8044a3379510889db4bfcf7.1349168132.git.hans.verkuil@cisco.com> <506C1090.9040008@samsung.com>
-In-Reply-To: <506C1090.9040008@samsung.com>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:55914 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750942Ab2JYVam (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Oct 2012 17:30:42 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210040843.55489.hverkuil@xs4all.nl>
+In-Reply-To: <20121012173205.49844867@pyramind.ukuu.org.uk>
+References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
+	<20121010191702.404edace@pyramind.ukuu.org.uk>
+	<CAF6AEGvzfr2-QHpX4zwm2EPz-vxCDe9SaLUjo4_Fn7HhjWJFsg@mail.gmail.com>
+	<201210110857.15660.hverkuil@xs4all.nl>
+	<20121011123407.63b5ecbe@pyramind.ukuu.org.uk>
+	<CAPM=9txkSXAOu5Q_H3LWuMrJ+Q_paLPrORtRuHNg6qvsukNdyw@mail.gmail.com>
+	<20121012173205.49844867@pyramind.ukuu.org.uk>
+Date: Fri, 26 Oct 2012 07:30:40 +1000
+Message-ID: <CAPM=9twFedvRKHZjy=2wO1X0s_8DDetOk3Zb7Jb5e-vztP1yyw@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: Use EXPORT_SYMBOL
+From: Dave Airlie <airlied@gmail.com>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed October 3 2012 12:16:48 Sylwester Nawrocki wrote:
-> On 10/02/2012 10:57 AM, Hans Verkuil wrote:
-> > drivers/media/platform/s5p-g2d/g2d.c:535:2: warning: passing argument 3 of 'vidioc_try_crop' discards 'const' qualifier from pointer target type [enabled by default]
-> > drivers/media/platform/s5p-g2d/g2d.c:510:12: note: expected 'struct v4l2_crop *' but argument is of type 'const struct v4l2_crop *'
-> > 
-> > This is fall-out from this commit:
-> > 
-> > commit 4f996594ceaf6c3f9bc42b40c40b0f7f87b79c86
-> > Author: Hans Verkuil <hans.verkuil@cisco.com>
-> > Date:   Wed Sep 5 05:10:48 2012 -0300
-> > 
-> >     [media] v4l2: make vidioc_s_crop const
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Aplied, thanks.
+> Unlikely as most of the code I've written belongs to Intel or Red Hat. I
+> also have better things to do with life than sue Nvidia and start an all
+> out copyright and patent war in Linuxspace.
 
-Just to be clear, you're taking care of these s5p patches through your tree, right?
+I forgot to ask, but after your petty G+ trolling, if most of the code
+belings to Intel or Red Hat, why do we need to listen to *your*
+lawyers advice? It seems like you aren't a major rights holder but a
+troll.
 
-Regards,
-
-	Hans
+Dave.
