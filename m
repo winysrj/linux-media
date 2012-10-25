@@ -1,91 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:33622 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750760Ab2JIXdA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 19:33:00 -0400
-Date: Tue, 9 Oct 2012 20:32:38 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: Ryan Mallon <rmallon@gmail.com>, Joe Perches <joe@perches.com>,
-	walter harms <wharms@bfs.de>, Antti Palosaari <crope@iki.fi>,
-	kernel-janitors@vger.kernel.org, shubhrajyoti@ti.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for
- i2c_msg initialization
-Message-ID: <20121009203238.63d2275f@infradead.org>
-In-Reply-To: <alpine.DEB.2.02.1210081028340.1989@hadrien>
-References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
-	<1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr>
-	<5071AEF3.6080108@bfs.de>
-	<alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6>
-	<5071B834.1010200@bfs.de>
-	<alpine.DEB.2.02.1210071917040.2745@localhost6.localdomain6>
-	<1349633780.15802.8.camel@joe-AO722>
-	<alpine.DEB.2.02.1210072053550.2745@localhost6.localdomain6>
-	<1349645970.15802.12.camel@joe-AO722>
-	<alpine.DEB.2.02.1210072342460.2745@localhost6.localdomain6>
-	<1349646718.15802.16.camel@joe-AO722>
-	<20121007225639.364a41b4@infradead.org>
-	<50723661.6040107@gmail.com>
-	<alpine.DEB.2.02.1210081028340.1989@hadrien>
+Received: from mx1.redhat.com ([209.132.183.28]:30737 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932770Ab2JYNqo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Oct 2012 09:46:44 -0400
+Date: Thu, 25 Oct 2012 11:46:24 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Fabio Estevam <fabio.estevam@freescale.com>,
+	<kernel@pengutronix.de>, <g.liakhovetski@gmx.de>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>, <javier.martin@vista-silicon.com>
+Subject: Re: [PATCH 1/2] ARM: clk-imx27: Add missing clock for mx2-camera
+Message-ID: <20121025114624.7896b5d9@redhat.com>
+In-Reply-To: <20121025113841.4e06cc3b@redhat.com>
+References: <1349473981-15084-1-git-send-email-fabio.estevam@freescale.com>
+	<1349473981-15084-2-git-send-email-fabio.estevam@freescale.com>
+	<20121025113841.4e06cc3b@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 8 Oct 2012 10:31:33 +0200 (CEST)
-Julia Lawall <julia.lawall@lip6.fr> escreveu:
+Em Thu, 25 Oct 2012 11:38:41 -0200
+Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
 
-> I found only 15 uses of I2C_MSG_OP, out of 653 uses of one of the three
-> macros.  Since I2C_MSG_OP has the complete set of flags, I think it should
-> be OK?
+> Hi Fábio,
 > 
-> One of the uses, in drivers/media/i2c/adv7604.c, is as follows:
+> Em Fri, 5 Oct 2012 18:53:01 -0300
+> Fabio Estevam <fabio.estevam@freescale.com> escreveu:
 > 
->        struct i2c_msg msg[2] = { { client->addr, 0, 1, msgbuf0 },
->                                  { client->addr, 0 | I2C_M_RD, len, msgbuf1 }
+> > During the clock conversion for mx27 the "per4_gate" clock was missed to get
+> > registered as a dependency of mx2-camera driver.
+> > 
+> > In the old mx27 clock driver we used to have:
+> > 
+> > DEFINE_CLOCK1(csi_clk, 0, NULL, 0, parent, &csi_clk1, &per4_clk);
+> > 
+> > ,so does the same in the new clock driver.
+> > 
+> > Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+> > ---
+> >  arch/arm/mach-imx/clk-imx27.c |    1 +
 > 
-> I'm not sure what was intended, but I guess the second structure is
-> supposed to only do a read?
+> As this patch is for arch/arm, I'm understanding that it will be merged
+> via arm tree. So,
+> 
+> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Yes, this is just typical I2C register read I2C messsage. The first line
-specifies what register should be read (the content of msgbuf0), with is
-a one char value, and the second line stores the registers contents at
-msgbuf1.
-
-This is exactly what I said before: this is a typical situation:
-
-Just one macro could be used for that, with 4 parameters:
-
-	I2C_MSG_READ_SUBADDR(addr, sub_addr, len, buf);
-
-Almost all of those I2C messages will fall on 3 cases only:
-	- a read msg (3 parameters, 1 msg);
-	- a write message (3 parameters, 1 msg);
-	- a write subaddr followed by a read (4 parameters, 2 msgs).
-
-You'll find very few exceptions to it, where additional I2C flags are
-needed, or several different transactions were grouped together, due
-to the I2C locking or in order to use I2C repeat-start mode[1].
-
-In a matter of fact, as the maintainer, I prefer to fully see the entire
-I2C message for those exceptions, as those other usages require more care
-while reviewing/merging.
-
-
-[1] very, very few media i2c bus drivers implement any other flags except
-for I2C_M_RD. That's why it is so rare to see them there.
+Forgot to comment: as patch 2 relies on this change, the better, IMHO, is
+to send both via the same tree. If you decide to do so, please get arm
+maintainer's ack, instead, and we can merge both via my tree.
 
 > 
-> julia
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >  1 file changed, 1 insertion(+)
+> > 
+> > diff --git a/arch/arm/mach-imx/clk-imx27.c b/arch/arm/mach-imx/clk-imx27.c
+> > index 3b6b640..5ef0f08 100644
+> > --- a/arch/arm/mach-imx/clk-imx27.c
+> > +++ b/arch/arm/mach-imx/clk-imx27.c
+> > @@ -224,6 +224,7 @@ int __init mx27_clocks_init(unsigned long fref)
+> >  	clk_register_clkdev(clk[lcdc_ipg_gate], "ipg", "imx-fb.0");
+> >  	clk_register_clkdev(clk[lcdc_ahb_gate], "ahb", "imx-fb.0");
+> >  	clk_register_clkdev(clk[csi_ahb_gate], "ahb", "mx2-camera.0");
+> > +	clk_register_clkdev(clk[per4_gate], "per", "mx2-camera.0");
+> >  	clk_register_clkdev(clk[usb_div], "per", "fsl-usb2-udc");
+> >  	clk_register_clkdev(clk[usb_ipg_gate], "ipg", "fsl-usb2-udc");
+> >  	clk_register_clkdev(clk[usb_ahb_gate], "ahb", "fsl-usb2-udc");
+> 
+> 
 
 
-
-
-Cheers,
+-- 
+Regards,
 Mauro
