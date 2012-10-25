@@ -1,125 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:37318 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754053Ab2JBO3U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 10:29:20 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MB9009UJS8V3500@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:29:19 +0900 (KST)
-Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MB9005A7S65K790@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:29:19 +0900 (KST)
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
-	k.debski@samsung.com
-Subject: [PATCHv9 12/25] v4l: vb2-vmalloc: add support for dmabuf importing
-Date: Tue, 02 Oct 2012 16:27:23 +0200
-Message-id: <1349188056-4886-13-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
-References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33322 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751575Ab2JYVi4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Oct 2012 17:38:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH 2/2] omap3isp: video: Merge two pipeline search operations at streamon time
+Date: Thu, 25 Oct 2012 23:39:43 +0200
+Message-Id: <1351201183-21036-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1351201183-21036-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1351201183-21036-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for importing DMABUF files for
-vmalloc allocator in Videobuf2.
+The current code first iterates over entities with external connectivity
+to locate the external source, and then walks the pipeline to verify its
+connectivity. Merge both search operations.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+This has the side effect of removing the bogus "can't find source,
+failing now" warning message printed when using memory-to-memory
+pipelines that include the preview engine and/or resizer only.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/videobuf2-vmalloc.c |   56 +++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
+ drivers/media/platform/omap3isp/ispvideo.c |  179 ++++++++++++---------------
+ 1 files changed, 80 insertions(+), 99 deletions(-)
 
-diff --git a/drivers/media/video/videobuf2-vmalloc.c b/drivers/media/video/videobuf2-vmalloc.c
-index 6b5ca6c..e91449c 100644
---- a/drivers/media/video/videobuf2-vmalloc.c
-+++ b/drivers/media/video/videobuf2-vmalloc.c
-@@ -29,6 +29,7 @@ struct vb2_vmalloc_buf {
- 	unsigned int			n_pages;
- 	atomic_t			refcount;
- 	struct vb2_vmarea_handler	handler;
-+	struct dma_buf			*dbuf;
- };
- 
- static void vb2_vmalloc_put(void *buf_priv);
-@@ -206,11 +207,66 @@ static int vb2_vmalloc_mmap(void *buf_priv, struct vm_area_struct *vma)
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 249ef71..81c0832 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -280,39 +280,90 @@ static int isp_video_get_graph_data(struct isp_video *video,
  	return 0;
  }
  
-+/*********************************************/
-+/*       callbacks for DMABUF buffers        */
-+/*********************************************/
-+
-+static int vb2_vmalloc_map_dmabuf(void *mem_priv)
++static int isp_video_check_external_subdevs(struct isp_pipeline *pipe,
++					    struct media_pad *external)
 +{
-+	struct vb2_vmalloc_buf *buf = mem_priv;
++	struct isp_device *isp = pipe->output->isp;
++	struct v4l2_subdev_format fmt;
++	struct v4l2_ext_controls ctrls;
++	struct v4l2_ext_control ctrl;
++	int ret;
 +
-+	buf->vaddr = dma_buf_vmap(buf->dbuf);
++	pipe->external = media_entity_to_v4l2_subdev(external->entity);
 +
-+	return buf->vaddr ? 0 : -EFAULT;
++	fmt.pad = external->index;
++	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++	ret = v4l2_subdev_call(media_entity_to_v4l2_subdev(external->entity),
++			       pad, get_fmt, NULL, &fmt);
++	if (unlikely(ret < 0)) {
++		dev_warn(isp->dev, "get_fmt returned null!\n");
++		return ret;
++	}
++
++	pipe->external_width =
++		omap3isp_video_format_info(fmt.format.code)->width;
++
++	memset(&ctrls, 0, sizeof(ctrls));
++	memset(&ctrl, 0, sizeof(ctrl));
++
++	ctrl.id = V4L2_CID_PIXEL_RATE;
++
++	ctrls.count = 1;
++	ctrls.controls = &ctrl;
++
++	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
++	if (ret < 0) {
++		dev_warn(isp->dev, "no pixel rate control in subdev %s\n",
++			 pipe->external->name);
++		return ret;
++	}
++
++	pipe->external_rate = ctrl.value64;
++
++	return 0;
 +}
 +
-+static void vb2_vmalloc_unmap_dmabuf(void *mem_priv)
-+{
-+	struct vb2_vmalloc_buf *buf = mem_priv;
+ /*
+- * Validate a pipeline by checking both ends of all links for format
+- * discrepancies.
++ * Validate the pipeline connectivity and retrieve external subdev information.
+  *
+  * Compute the minimum time per frame value as the maximum of time per frame
+  * limits reported by every block in the pipeline.
+  *
+- * Return 0 if all formats match, or -EPIPE if at least one link is found with
+- * different formats on its two ends or if the pipeline doesn't start with a
+- * video source (either a subdev with no input pad, or a non-subdev entity).
++ * Return 0 if the pipeline is valid, or one of the following error codes
++ * otherwise:
++ *
++ * -EPIPE if the pipeline doesn't start with a video source (either a subdev
++ *  with no input pad, or a non-subdev entity)
++ *
++ * -ENOSPC if the external pixel rate exceeds the pipeline pixel rate limit
++ *
++ * Other error codes can be returned if the external subdev fails to return its
++ * output format or pixel rate.
+  */
+ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+ {
+ 	struct isp_device *isp = pipe->output->isp;
++	struct media_pad *external = NULL;
+ 	struct media_pad *pad;
+ 	struct v4l2_subdev *subdev;
++	int ret;
+ 
+ 	subdev = isp_video_remote_subdev(pipe->output, NULL);
+ 	if (subdev == NULL)
+ 		return -EPIPE;
+ 
+ 	while (1) {
+-		/* Retrieve the sink format */
++		/* All ISP entities have their sink pad numbered 0. */
+ 		pad = &subdev->entity.pads[0];
+ 		if (!(pad->flags & MEDIA_PAD_FL_SINK))
+ 			break;
+ 
+-		/* Update the maximum frame rate */
++		/* Update the maximum frame rate. */
+ 		if (subdev == &isp->isp_res.subdev)
+ 			omap3isp_resizer_max_rate(&isp->isp_res,
+ 						  &pipe->max_rate);
+ 
+-		/* Retrieve the source format. Return an error if no source
++		/* Find the connected source. Return an error if no source
+ 		 * entity can be found, and stop checking the pipeline if the
+ 		 * source entity isn't a subdev.
+ 		 */
+@@ -324,6 +375,27 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+ 			break;
+ 
+ 		subdev = media_entity_to_v4l2_subdev(pad->entity);
 +
-+	dma_buf_vunmap(buf->dbuf, buf->vaddr);
-+	buf->vaddr = NULL;
-+}
++		/* Store the first external pad. */
++		if (external == NULL && subdev->grp_id != (1 << 16))
++			external = pad;
++	}
 +
-+static void vb2_vmalloc_detach_dmabuf(void *mem_priv)
-+{
-+	struct vb2_vmalloc_buf *buf = mem_priv;
++	if (external == NULL)
++		return 0;
 +
-+	if (buf->vaddr)
-+		dma_buf_vunmap(buf->dbuf, buf->vaddr);
++	ret = isp_video_check_external_subdevs(pipe, external);
++	if (ret < 0)
++		return ret;
 +
-+	kfree(buf);
-+}
-+
-+static void *vb2_vmalloc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
-+	unsigned long size, int write)
-+{
-+	struct vb2_vmalloc_buf *buf;
-+
-+	if (dbuf->size < size)
-+		return ERR_PTR(-EFAULT);
-+
-+	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
-+	if (!buf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	buf->dbuf = dbuf;
-+	buf->write = write;
-+	buf->size = size;
-+
-+	return buf;
-+}
-+
-+
- const struct vb2_mem_ops vb2_vmalloc_memops = {
- 	.alloc		= vb2_vmalloc_alloc,
- 	.put		= vb2_vmalloc_put,
- 	.get_userptr	= vb2_vmalloc_get_userptr,
- 	.put_userptr	= vb2_vmalloc_put_userptr,
-+	.map_dmabuf	= vb2_vmalloc_map_dmabuf,
-+	.unmap_dmabuf	= vb2_vmalloc_unmap_dmabuf,
-+	.attach_dmabuf	= vb2_vmalloc_attach_dmabuf,
-+	.detach_dmabuf	= vb2_vmalloc_detach_dmabuf,
- 	.vaddr		= vb2_vmalloc_vaddr,
- 	.mmap		= vb2_vmalloc_mmap,
- 	.num_users	= vb2_vmalloc_num_users,
++	if (pipe->entities & (1 << isp->isp_ccdc.subdev.entity.id)) {
++		unsigned int rate = UINT_MAX;
++		/* Check that maximum allowed CCDC pixel rate isn't exceeded by
++		 * the pixel rate.
++		 */
++		omap3isp_ccdc_max_rate(&isp->isp_ccdc, &rate);
++		if (pipe->external_rate > rate)
++			return -ENOSPC;
+ 	}
+ 
+ 	return 0;
+@@ -878,93 +950,6 @@ isp_video_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
+ 					  file->f_flags & O_NONBLOCK);
+ }
+ 
+-static int isp_video_check_external_subdevs(struct isp_video *video,
+-					    struct isp_pipeline *pipe)
+-{
+-	struct isp_device *isp = video->isp;
+-	struct media_entity *ents[] = {
+-		&isp->isp_csi2a.subdev.entity,
+-		&isp->isp_csi2c.subdev.entity,
+-		&isp->isp_ccp2.subdev.entity,
+-		&isp->isp_ccdc.subdev.entity
+-	};
+-	struct media_pad *source_pad;
+-	struct media_entity *source = NULL;
+-	struct media_entity *sink;
+-	struct v4l2_subdev_format fmt;
+-	struct v4l2_ext_controls ctrls;
+-	struct v4l2_ext_control ctrl;
+-	unsigned int i;
+-	int ret = 0;
+-
+-	for (i = 0; i < ARRAY_SIZE(ents); i++) {
+-		/* Is the entity part of the pipeline? */
+-		if (!(pipe->entities & (1 << ents[i]->id)))
+-			continue;
+-
+-		/* ISP entities have always sink pad == 0. Find source. */
+-		source_pad = media_entity_remote_source(&ents[i]->pads[0]);
+-		if (source_pad == NULL)
+-			continue;
+-
+-		source = source_pad->entity;
+-		sink = ents[i];
+-		break;
+-	}
+-
+-	if (!source) {
+-		dev_warn(isp->dev, "can't find source, failing now\n");
+-		return ret;
+-	}
+-
+-	if (media_entity_type(source) != MEDIA_ENT_T_V4L2_SUBDEV)
+-		return 0;
+-
+-	pipe->external = media_entity_to_v4l2_subdev(source);
+-
+-	fmt.pad = source_pad->index;
+-	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+-	ret = v4l2_subdev_call(media_entity_to_v4l2_subdev(sink),
+-			       pad, get_fmt, NULL, &fmt);
+-	if (unlikely(ret < 0)) {
+-		dev_warn(isp->dev, "get_fmt returned null!\n");
+-		return ret;
+-	}
+-
+-	pipe->external_width =
+-		omap3isp_video_format_info(fmt.format.code)->width;
+-
+-	memset(&ctrls, 0, sizeof(ctrls));
+-	memset(&ctrl, 0, sizeof(ctrl));
+-
+-	ctrl.id = V4L2_CID_PIXEL_RATE;
+-
+-	ctrls.count = 1;
+-	ctrls.controls = &ctrl;
+-
+-	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
+-	if (ret < 0) {
+-		dev_warn(isp->dev, "no pixel rate control in subdev %s\n",
+-			 pipe->external->name);
+-		return ret;
+-	}
+-
+-	pipe->external_rate = ctrl.value64;
+-
+-	if (pipe->entities & (1 << isp->isp_ccdc.subdev.entity.id)) {
+-		unsigned int rate = UINT_MAX;
+-		/*
+-		 * Check that maximum allowed CCDC pixel rate isn't
+-		 * exceeded by the pixel rate.
+-		 */
+-		omap3isp_ccdc_max_rate(&isp->isp_ccdc, &rate);
+-		if (pipe->external_rate > rate)
+-			return -ENOSPC;
+-	}
+-
+-	return 0;
+-}
+-
+ /*
+  * Stream management
+  *
+@@ -1052,10 +1037,6 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	else
+ 		state = ISP_PIPELINE_STREAM_INPUT | ISP_PIPELINE_IDLE_INPUT;
+ 
+-	ret = isp_video_check_external_subdevs(video, pipe);
+-	if (ret < 0)
+-		goto err_check_format;
+-
+ 	/* Validate the pipeline and update its state. */
+ 	ret = isp_video_validate_pipeline(pipe);
+ 	if (ret < 0)
 -- 
-1.7.9.5
+1.7.8.6
 
