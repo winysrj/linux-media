@@ -1,120 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39510 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757596Ab2JaPaa convert rfc822-to-8bit (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:64599 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760004Ab2JYS7N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Oct 2012 11:30:30 -0400
-From: "Manjunathappa, Prakash" <prakash.pm@ti.com>
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"devicetree-discuss@lists.ozlabs.org"
-	<devicetree-discuss@lists.ozlabs.org>
-CC: Rob Herring <robherring2@gmail.com>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	"kernel@pengutronix.de" <kernel@pengutronix.de>
-Subject: RE: [PATCH v7 5/8] fbmon: add videomode helpers
-Date: Wed, 31 Oct 2012 15:30:03 +0000
-Message-ID: <A73F36158E33644199EB82C5EC81C7BC3E9E1B39@DBDE01.ent.ti.com>
-References: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
- <1351675689-26814-6-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1351675689-26814-6-git-send-email-s.trumtrar@pengutronix.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Thu, 25 Oct 2012 14:59:13 -0400
+Received: by mail-ee0-f46.google.com with SMTP id b15so754805eek.19
+        for <linux-media@vger.kernel.org>; Thu, 25 Oct 2012 11:59:11 -0700 (PDT)
+Message-ID: <50898BFD.7040104@gmail.com>
+Date: Thu, 25 Oct 2012 20:59:09 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR 3.7] Samsung media drivers fixes
+References: <5089624D.2000903@samsung.com> <20121025144616.7e7863f4@redhat.com>
+In-Reply-To: <20121025144616.7e7863f4@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steffen,
-
-On Wed, Oct 31, 2012 at 14:58:05, Steffen Trumtrar wrote:
-> Add a function to convert from the generic videomode to a fb_videomode.
+On 10/25/2012 06:46 PM, Mauro Carvalho Chehab wrote:
+> Em Thu, 25 Oct 2012 18:01:17 +0200
+> Sylwester Nawrocki<s.nawrocki@samsung.com>  escreveu:
 > 
-> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-> ---
->  drivers/video/fbmon.c |   36 ++++++++++++++++++++++++++++++++++++
->  include/linux/fb.h    |    2 ++
->  2 files changed, 38 insertions(+)
+>> Hi Mauro,
+>>
+>> please pull following fixes for v3.7-rc.
+>>
+>> The following changes since commit 1fdead8ad31d3aa833bc37739273fcde89ace93c:
+>>
+>>    [media] m5mols: Add missing #include<linux/sizes.h>  (2012-10-10 08:17:16 -0300)
+>>
+>> are available in the git repository at:
+>>
+>>    git://git.infradead.org/users/kmpark/linux-samsung v4l_fixes_for_v3.7
+>>
+>> for you to fetch changes up to df79eb9e19331685e509d62112972b3c35569f0b:
+>>
+>>    s5p-fimc: Fix potential NULL pointer dereference (2012-10-25 16:08:12 +0200)
+>>
+>> ----------------------------------------------------------------
+>> Jesper Juhl (1):
+>>        s5p-tv: don't include linux/version.h in mixer_video.c
+>>
+>> Sachin Kamat (5):
+>>        s5p-mfc: Fix compilation warning
+>>        exynos-gsc: Fix compilation warning
+>>        s5p-mfc: Make 'clk_ref' static in s5p_mfc_pm.c
+>>        s5p-fimc: Make 'fimc_pipeline_s_stream' function static
+>>        s5p-fimc: Fix potential NULL pointer dereference
+>>
+>> Shaik Ameer Basha (3):
+>>        exynos-gsc: change driver compatible string
+>>        exynos-gsc: fix variable type in gsc_m2m_device_run()
+>>        s5p-fimc: fix variable type in fimc_device_run()
+>>
+>> Sylwester Nawrocki (4):
+>>        s5p-fimc: Don't ignore return value of vb2_queue_init()
+>>        s5p-csis: Select S5P_SETUP_MIPIPHY
+>>        s5p-fimc: Add missing new line character
+>>        s5p-fimc: Fix platform entities registration
 > 
-> diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
-> index cef6557..b9e6ab3 100644
-> --- a/drivers/video/fbmon.c
-> +++ b/drivers/video/fbmon.c
-> @@ -1373,6 +1373,42 @@ int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_inf
->  	kfree(timings);
->  	return err;
->  }
-> +
-> +#if IS_ENABLED(CONFIG_VIDEOMODE)
-> +int videomode_to_fb_videomode(struct videomode *vm, struct fb_videomode *fbmode)
-> +{
-> +	fbmode->xres = vm->hactive;
-> +	fbmode->left_margin = vm->hback_porch;
-> +	fbmode->right_margin = vm->hfront_porch;
-> +	fbmode->hsync_len = vm->hsync_len;
-> +
-> +	fbmode->yres = vm->vactive;
-> +	fbmode->upper_margin = vm->vback_porch;
-> +	fbmode->lower_margin = vm->vfront_porch;
-> +	fbmode->vsync_len = vm->vsync_len;
-> +
-> +	fbmode->pixclock = KHZ2PICOS(vm->pixelclock / 1000);
-> +
-> +	fbmode->sync = 0;
-> +	fbmode->vmode = 0;
-> +	if (vm->hah)
-> +		fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
-> +	if (vm->vah)
-> +		fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
-> +	if (vm->interlaced)
-> +		fbmode->vmode |= FB_VMODE_INTERLACED;
-> +	if (vm->doublescan)
-> +		fbmode->vmode |= FB_VMODE_DOUBLE;
-> +
+> 
+> Only a few of the above seems to be material for -rc:
+> 	s5p-fimc: Fix potential NULL pointer dereference (59 seconds ago)
+> 	s5p-fimc: Fix platform entities registration (60 seconds ago)
+> 	s5p-csis: Select S5P_SETUP_MIPIPHY (60 seconds ago)
+> 	s5p-fimc: Don't ignore return value of vb2_queue_init() (61 seconds ago)
+> 
+> The other ones are warnings/sparse warnings and cleanups. I'll
+> be applying only the 4 above patches for 3.7, adding the other
+> ones for 3.8.
 
-"pixelclk-inverted" property of the panel is not percolated fb_videomode.
-Please let me know if I am missing something.
+Sorry for mixing them up. Except those 4, "exynos-gsc: change driver 
+compatible string" really needs to go in 3.7. Bootloaders will be
+supplying an FDT node for this device with compatible string
+"samsung,exynos5-gsc", not "samsung,exynos5250-gsc". In case this patch 
+is applied only starting from 3.8, kernels 3.7, where the GScaler driver 
+was first added, will have broken support for this device. Hence this 
+patch should be considered as a real bug fix.
+
+For those embedded systems it might not be a big deal, since it rarely
+happens pure mainline kernel is used for production. But in principle
+it's better to apply that patch, to avoid mess where different kernels
+require different compatible string. This would mean an ABI breakage.
+
+--
 
 Thanks,
-Prakash
-
-> +	fbmode->refresh = 60;
-> +	fbmode->flag = 0;
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(videomode_to_fb_videomode);
-> +#endif
-> +
-> +
->  #else
->  int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
->  {
-> diff --git a/include/linux/fb.h b/include/linux/fb.h
-> index c7a9571..46c665b 100644
-> --- a/include/linux/fb.h
-> +++ b/include/linux/fb.h
-> @@ -714,6 +714,8 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
->  extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
->  extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
->  
-> +extern int videomode_to_fb_videomode(struct videomode *vm, struct fb_videomode *fbmode);
-> +
->  /* drivers/video/modedb.c */
->  #define VESA_MODEDB_SIZE 34
->  extern void fb_var_to_videomode(struct fb_videomode *mode,
-> -- 
-> 1.7.10.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Sylwester
