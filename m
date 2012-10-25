@@ -1,41 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58011 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933615Ab2JWXBh (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59042 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751581Ab2JYVpe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 19:01:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, timo.ahonen@nokia.com
-Subject: Re: [PATCH 0/6] SMIA++ PLL and driver improvements
-Date: Wed, 24 Oct 2012 01:02:26 +0200
-Message-ID: <3533424.HJITSzelJ3@avalon>
-In-Reply-To: <20121023154231.GB23685@valkosipuli.retiisi.org.uk>
-References: <20121023154231.GB23685@valkosipuli.retiisi.org.uk>
+	Thu, 25 Oct 2012 17:45:34 -0400
+Date: Fri, 26 Oct 2012 00:45:29 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] omap3isp: Prepare/unprepare clocks before/after
+ enable/disable
+Message-ID: <20121025214529.GD24073@valkosipuli.retiisi.org.uk>
+References: <1351201183-21036-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1351201183-21036-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Laurent,
 
-Thanks for the patches.
-
-On Tuesday 23 October 2012 18:42:32 Sakari Ailus wrote:
-> Hi,
+On Thu, Oct 25, 2012 at 11:39:42PM +0200, Laurent Pinchart wrote:
+> Clock enable (disable) is split in two operations, prepare and enable
+> (disable and unprepare). Perform both when enabling/disabling the ISP
+> clocks.
 > 
-> Here's a few SMIA++ patches from me and Laurent.
-> 
-> The set consists of cleanups, PLL calculator improvements and parallel bus
-> support for the PLL calculator.
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/platform/omap3isp/isp.c |   25 +++++++++++++------------
+>  1 files changed, 13 insertions(+), 12 deletions(-)
 
-For the whole series,
+Thanks for the patch!
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
