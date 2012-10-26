@@ -1,64 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33407 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753960Ab2JCKDs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Oct 2012 06:03:48 -0400
-Message-ID: <506C0D6F.1070700@ti.com>
-Date: Wed, 3 Oct 2012 15:33:27 +0530
-From: Prabhakar Lad <prabhakar.lad@ti.com>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4911 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757268Ab2JZIzT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Oct 2012 04:55:19 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id q9Q8tGnn084952
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Fri, 26 Oct 2012 10:55:18 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from durdane.localnet (64-103-25-233.cisco.com [64.103.25.233])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id C2C8C5CE000B
+	for <linux-media@vger.kernel.org>; Fri, 26 Oct 2012 10:55:15 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.7] adv7604: sync with the latest Cisco internal code
+Date: Fri, 26 Oct 2012 10:55:14 +0200
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: LMML <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sekhar Nori <nsekhar@ti.com>
-Subject: [GIT PULL FOR v3.7] Davinci VPBE feature enhancement and fixes
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201210261055.14654.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Mauro,
 
-Can you please pull the following patches for davinci VPBE driver.
-Some of the patches include platform changes for which Sekhar has Acked it.
+These patches are for 3.7: they fix a number of bugs that were fixed in the
+internal Cisco tree since I posted the initial adv7604 driver.
 
-Thanks and Regards,
---Prabhakar Lad
+This pull request contains the same code as the RFC patches:
 
-The following changes since commit 2425bb3d4016ed95ce83a90b53bd92c7f31091e4:
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg53949.html
 
-  em28xx: regression fix: use DRX-K sync firmware requests on em28xx
-(2012-10-02 17:15:22 -0300)
+Regards,
+
+	Hans
+
+The following changes since commit d92462401dde1effa04a51d0a15000e6246d2a43:
+
+  [media] v4l2-ioctl: fix W=1 warnings (2012-10-07 10:19:50 -0300)
 
 are available in the git repository at:
-  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git vpbe_3.7_pull
 
-Hans Verkuil (1):
-      dm644x: replace the obsolete preset API by the timings API.
+  git://linuxtv.org/hverkuil/media_tree.git adv
 
-Lad, Prabhakar (2):
-      media: davinci: vpbe: fix build warning
-      davinci: vpbe: replace V4L2_OUT_CAP_CUSTOM_TIMINGS with
-V4L2_OUT_CAP_DV_TIMINGS
+for you to fetch changes up to 59d24d5e73d30301c6f978b7f5608c8beb12ca8c:
 
-Manjunath Hadli (1):
-      ths7303: enable THS7303 for HD modes
+  adv7604: restart STDI once if format is not found (2012-10-16 15:14:27 +0200)
 
- arch/arm/mach-davinci/board-dm644x-evm.c      |   15 ++--
- arch/arm/mach-davinci/dm644x.c                |   17 +---
- drivers/media/i2c/ths7303.c                   |  106
-++++++++++++++++++++----
- drivers/media/platform/davinci/vpbe.c         |  110
-+++++++++++--------------
- drivers/media/platform/davinci/vpbe_display.c |   80 +++++++++---------
- drivers/media/platform/davinci/vpbe_venc.c    |   25 +++---
- include/media/davinci/vpbe.h                  |   14 ++--
- include/media/davinci/vpbe_types.h            |    8 +--
- include/media/davinci/vpbe_venc.h             |    2 +-
- 9 files changed, 211 insertions(+), 166 deletions(-)
+----------------------------------------------------------------
+Hans Verkuil (4):
+      adv7604: cleanup references
+      adv7604: Replace prim_mode by mode
+      adv7604: use presets where possible.
+      adv7604: restart STDI once if format is not found
+
+ drivers/media/i2c/adv7604.c |  377 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------------------------
+ include/media/adv7604.h     |   21 ++++---
+ 2 files changed, 282 insertions(+), 116 deletions(-)
