@@ -1,180 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:57132 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932353Ab2JURxe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Oct 2012 13:53:34 -0400
-Received: by mail-we0-f174.google.com with SMTP id t9so1066940wey.19
-        for <linux-media@vger.kernel.org>; Sun, 21 Oct 2012 10:53:33 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 10/23] em28xx: create a common function for isoc and bulk USB transfer initialization
-Date: Sun, 21 Oct 2012 19:52:16 +0300
-Message-Id: <1350838349-14763-12-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from cnc.isely.net ([75.149.91.89]:57409 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750994Ab2JZESS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Oct 2012 00:18:18 -0400
+Date: Thu, 25 Oct 2012 23:13:09 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] pvr2: fix minor storage
+In-Reply-To: <20121025143816.17307.17929.stgit@localhost.localdomain>
+Message-ID: <alpine.DEB.2.00.1210252307550.14936@ivanova.isely.net>
+References: <20121025143816.17307.17929.stgit@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- rename em28xx_init_isoc to em28xx_init_usb_xfer
-- add parameter for isoc/bulk transfer selection which is passed to em28xx_alloc_urbs
-- rename local variable isoc_buf to usb_bufs
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-core.c  |   30 ++++++++++++++++--------------
- drivers/media/usb/em28xx/em28xx-dvb.c   |    9 +++++----
- drivers/media/usb/em28xx/em28xx-video.c |   20 ++++++++++----------
- drivers/media/usb/em28xx/em28xx.h       |    8 +++++---
- 4 Dateien geändert, 36 Zeilen hinzugefügt(+), 31 Zeilen entfernt(-)
+Completely agree!  Thanks for spotting that one.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 42388de..d8a8e8b 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -1141,33 +1141,35 @@ EXPORT_SYMBOL_GPL(em28xx_alloc_urbs);
- /*
-  * Allocate URBs and start IRQ
-  */
--int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
--		     int num_packets, int num_bufs, int max_pkt_size,
--		     int (*isoc_copy) (struct em28xx *dev, struct urb *urb))
-+int em28xx_init_usb_xfer(struct em28xx *dev, enum em28xx_mode mode,
-+		    int xfer_bulk, int num_bufs, int max_pkt_size,
-+		    int packet_multiplier,
-+		    int (*urb_data_copy) (struct em28xx *dev, struct urb *urb))
- {
- 	struct em28xx_dmaqueue *dma_q = &dev->vidq;
- 	struct em28xx_dmaqueue *vbi_dma_q = &dev->vbiq;
--	struct em28xx_usb_bufs *isoc_bufs;
-+	struct em28xx_usb_bufs *usb_bufs;
- 	int i;
- 	int rc;
- 	int alloc;
- 
--	em28xx_isocdbg("em28xx: called em28xx_init_isoc in mode %d\n", mode);
-+	em28xx_isocdbg("em28xx: called em28xx_init_usb_xfer in mode %d\n",
-+		       mode);
- 
--	dev->usb_ctl.urb_data_copy = isoc_copy;
-+	dev->usb_ctl.urb_data_copy = urb_data_copy;
- 
- 	if (mode == EM28XX_DIGITAL_MODE) {
--		isoc_bufs = &dev->usb_ctl.digital_bufs;
--		/* no need to free/alloc isoc buffers in digital mode */
-+		usb_bufs = &dev->usb_ctl.digital_bufs;
-+		/* no need to free/alloc usb buffers in digital mode */
- 		alloc = 0;
- 	} else {
--		isoc_bufs = &dev->usb_ctl.analog_bufs;
-+		usb_bufs = &dev->usb_ctl.analog_bufs;
- 		alloc = 1;
- 	}
- 
- 	if (alloc) {
--		rc = em28xx_alloc_urbs(dev, mode, 0, num_bufs,
--				       max_pkt_size, num_packets);
-+		rc = em28xx_alloc_urbs(dev, mode, xfer_bulk, num_bufs,
-+				       max_pkt_size, packet_multiplier);
- 		if (rc)
- 			return rc;
- 	}
-@@ -1178,8 +1180,8 @@ int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 	em28xx_capture_start(dev, 1);
- 
- 	/* submit urbs and enables IRQ */
--	for (i = 0; i < isoc_bufs->num_bufs; i++) {
--		rc = usb_submit_urb(isoc_bufs->urb[i], GFP_ATOMIC);
-+	for (i = 0; i < usb_bufs->num_bufs; i++) {
-+		rc = usb_submit_urb(usb_bufs->urb[i], GFP_ATOMIC);
- 		if (rc) {
- 			em28xx_err("submit of urb %i failed (error=%i)\n", i,
- 				   rc);
-@@ -1190,7 +1192,7 @@ int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(em28xx_init_isoc);
-+EXPORT_SYMBOL_GPL(em28xx_init_usb_xfer);
- 
- /*
-  * em28xx_wake_i2c()
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index 0fe99ef..66535dc 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -176,10 +176,11 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
- 		EM28XX_DVB_NUM_ISOC_PACKETS,
- 		max_dvb_packet_size);
- 
--	return em28xx_init_isoc(dev, EM28XX_DIGITAL_MODE,
--				EM28XX_DVB_NUM_ISOC_PACKETS,
--				EM28XX_DVB_NUM_BUFS,
--				max_dvb_packet_size, em28xx_dvb_isoc_copy);
-+	return em28xx_init_usb_xfer(dev, EM28XX_DIGITAL_MODE, 0,
-+				    EM28XX_DVB_NUM_BUFS,
-+				    max_dvb_packet_size,
-+				    EM28XX_DVB_NUM_ISOC_PACKETS,
-+				    em28xx_dvb_isoc_copy);
- }
- 
- static int em28xx_stop_streaming(struct em28xx_dvb *dvb)
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 1207a73..4024dfc 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -763,17 +763,17 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
- 
- 	if (urb_init) {
- 		if (em28xx_vbi_supported(dev) == 1)
--			rc = em28xx_init_isoc(dev, EM28XX_ANALOG_MODE,
--					      EM28XX_NUM_ISOC_PACKETS,
--					      EM28XX_NUM_BUFS,
--					      dev->max_pkt_size,
--					      em28xx_isoc_copy_vbi);
-+			rc = em28xx_init_usb_xfer(dev, EM28XX_ANALOG_MODE, 0,
-+						  EM28XX_NUM_BUFS,
-+						  dev->max_pkt_size,
-+						  EM28XX_NUM_ISOC_PACKETS,
-+						  em28xx_isoc_copy_vbi);
- 		else
--			rc = em28xx_init_isoc(dev, EM28XX_ANALOG_MODE,
--					      EM28XX_NUM_ISOC_PACKETS,
--					      EM28XX_NUM_BUFS,
--					      dev->max_pkt_size,
--					      em28xx_isoc_copy);
-+			rc = em28xx_init_usb_xfer(dev, EM28XX_ANALOG_MODE, 0,
-+						  EM28XX_NUM_BUFS,
-+						  dev->max_pkt_size,
-+						  EM28XX_NUM_ISOC_PACKETS,
-+						  em28xx_isoc_copy);
- 		if (rc < 0)
- 			goto fail;
- 	}
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 9a1ffde..e311b09 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -663,9 +663,11 @@ int em28xx_resolution_set(struct em28xx *dev);
- int em28xx_set_alternate(struct em28xx *dev);
- int em28xx_alloc_urbs(struct em28xx *dev, enum em28xx_mode mode, int xfer_bulk,
- 		      int num_bufs, int max_pkt_size, int packet_multiplier);
--int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
--		     int num_packets, int num_bufs, int max_pkt_size,
--		     int (*isoc_copy) (struct em28xx *dev, struct urb *urb));
-+int em28xx_init_usb_xfer(struct em28xx *dev, enum em28xx_mode mode,
-+			 int xfer_bulk,
-+			 int num_bufs, int max_pkt_size, int packet_multiplier,
-+			 int (*urb_data_copy)
-+					(struct em28xx *dev, struct urb *urb));
- void em28xx_uninit_usb_xfer(struct em28xx *dev, enum em28xx_mode mode);
- void em28xx_stop_urbs(struct em28xx *dev);
- int em28xx_isoc_dvb_max_packetsize(struct em28xx *dev);
+Signed-off-by: Mike Isely <isely@pobox.com>
+
+  -Mike
+
+
+On Thu, 25 Oct 2012, Alan Cox wrote:
+
+> From: Alan Cox <alan@linux.intel.com>
+> 
+> This should have break statements in it.
+> 
+> Signed-off-by: Alan Cox <alan@linux.intel.com>
+> ---
+> 
+>  drivers/media/usb/pvrusb2/pvrusb2-hdw.c |    6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> index fb828ba..299751a 100644
+> --- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> +++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+> @@ -3563,9 +3563,9 @@ void pvr2_hdw_v4l_store_minor_number(struct pvr2_hdw *hdw,
+>  				     enum pvr2_v4l_type index,int v)
+>  {
+>  	switch (index) {
+> -	case pvr2_v4l_type_video: hdw->v4l_minor_number_video = v;
+> -	case pvr2_v4l_type_vbi: hdw->v4l_minor_number_vbi = v;
+> -	case pvr2_v4l_type_radio: hdw->v4l_minor_number_radio = v;
+> +	case pvr2_v4l_type_video: hdw->v4l_minor_number_video = v;break;
+> +	case pvr2_v4l_type_vbi: hdw->v4l_minor_number_vbi = v;break;
+> +	case pvr2_v4l_type_radio: hdw->v4l_minor_number_radio = v;break;
+>  	default: break;
+>  	}
+>  }
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 -- 
-1.7.10.4
 
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
