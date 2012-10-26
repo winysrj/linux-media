@@ -1,44 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:39291 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754225Ab2JBIbB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 04:31:01 -0400
-Date: Tue, 2 Oct 2012 11:30:50 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: hfvogt@gmx.net
-Cc: linux-media@vger.kernel.org
-Subject: re: [media] af9035: add Avermedia Volar HD (A867R) support
-Message-ID: <20121002083049.GK12398@elgon.mountain>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:50584 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756216Ab2JZFvR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Oct 2012 01:51:17 -0400
+Received: by mail-ie0-f174.google.com with SMTP id k13so3306538iea.19
+        for <linux-media@vger.kernel.org>; Thu, 25 Oct 2012 22:51:17 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <20121025213935.GD11928@atomide.com>
+References: <20121025001913.2082.31062.stgit@muffinssi.local>
+ <1466344.HbU9q5zM1q@avalon> <20121025165643.GP11928@atomide.com>
+ <1351198976.2hJjhe5gKC@avalon> <20121025213935.GD11928@atomide.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Date: Fri, 26 Oct 2012 07:50:56 +0200
+Message-ID: <CAK=WgbaCM+MWiHARvdfaGL6w0c7g4_keAm0ADw1vkSeiZ0CZPw@mail.gmail.com>
+Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to include/linux/omap-iommu.h
+To: Tony Lindgren <tony@atomide.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Joerg Roedel <joerg.roedel@amd.com>,
+	Omar Ramirez Luna <omar.luna@linaro.org>,
+	linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans-Frieder Vogt,
+On Thu, Oct 25, 2012 at 11:39 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> > Joerg and Ohad, do you have any opinions on this?
 
-The patch 540fd4ba0533: "[media] af9035: add Avermedia Volar HD
-(A867R) support" from Apr 2, 2012, leads to the following Clang warning:
-	drivers/media/dvb-frontends/af9033.c:467:20: warning: comparison
-	of unsigned expression >= 0 is always true
-	[-Wtautological-compare]
+I agree that there's some merit in having a separate header file for
+IOVMM, since it's a different layer from the IOMMU API.
 
-drivers/media/dvb-frontends/af9033.c
-   464                  while (if_frequency > (adc_freq / 2))
-                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-if_frequency is unsigned.  I worry that this loop doesn't handle integer
-underflow properly.
+But in reality it's tightly coupled with OMAP's IOMMU, and ideally it
+really should go away and be replaced with the DMA API.
 
-   465                          if_frequency -= adc_freq;
-   466  
-   467                  if (if_frequency >= 0)
-                            ^^^^^^^^^^^^^^^^^
-This is always true.
+For this reason, and for the fact that anyway there's only a single
+user for it (omap3isp) and there will never be any more, maybe we
+shouldn't pollute include/linux anymore.
 
-   468                          spec_inv *= -1;
-   469                  else
-   470                          if_frequency *= -1;
+Anyone volunteering to remove IOVMM and adapt omap3isp to the DMA API
+instead ? ;)
 
-regards,
-dan carpenter
-
+Thanks,
+Ohad.
