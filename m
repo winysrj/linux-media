@@ -1,44 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:10936 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751052Ab2J0Ulz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:41:55 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKftwV006268
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:41:55 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 31/68] [media] lmedm04: get rid of warning: no previous prototype
-Date: Sat, 27 Oct 2012 18:40:49 -0200
-Message-Id: <1351370486-29040-32-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37379 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751165Ab2JZCFA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Oct 2012 22:05:00 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH 1/2] media: V4L2: add temporary clock helpers
+Date: Fri, 26 Oct 2012 04:05:50 +0200
+Message-ID: <4703902.UfQghhBIJp@avalon>
+In-Reply-To: <50844465.40007@gmail.com>
+References: <Pine.LNX.4.64.1210192358520.28993@axis700.grange> <Pine.LNX.4.64.1210200007310.28993@axis700.grange> <50844465.40007@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/usb/dvb-usb-v2/lmedm04.c:802:13: warning: no previous prototype for 'lme_firmware_switch' [-Wmissing-prototypes]
+Hello,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/usb/dvb-usb-v2/lmedm04.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Sunday 21 October 2012 20:52:21 Sylwester Nawrocki wrote:
+> On 10/20/2012 12:20 AM, Guennadi Liakhovetski wrote:
+> > Typical video devices like camera sensors require an external clock
+> > source. Many such devices cannot even access their hardware registers
+> > without a running clock. These clock sources should be controlled by their
+> > consumers. This should be performed, using the generic clock framework.
+> > Unfortunately so far only very few systems have been ported to that
+> > framework. This patch adds a set of temporary helpers, mimicking the
+> > generic clock API, to V4L2. Platforms, adopting the clock API, should
+> > switch to using it. Eventually this temporary API should be removed.
+> 
+> So I gave this patch a try this weekend. I would have a few comments/
+> questions. Thank you for sharing this!
 
-diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-index 6a2445b..6427ac3 100644
---- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
-+++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-@@ -799,7 +799,7 @@ static const char fw_c_rs2000[] = LME2510_C_RS2000;
- static const char fw_lg[] = LME2510_LG;
- static const char fw_s0194[] = LME2510_S0194;
- 
--const char *lme_firmware_switch(struct dvb_usb_device *d, int cold)
-+static const char *lme_firmware_switch(struct dvb_usb_device *d, int cold)
- {
- 	struct lme2510_state *st = d->priv;
- 	struct usb_device *udev = d->udev;
+I've finally found time to give it a try, and I can report successful results.
+
+My development target here is a Beagleboard-xM with an MT9P031 sensor. With 
+this patch and Sylwester's additional patches [1], I've been able to remove 
+the board code callback from the mt9p031 driver platform data, as well as the 
+last omap3-isp platform callback.
+
+The result is available in the devel/v4l2-clock branch of 
+http://git.linuxtv.org/pinchartl/media.git. Sylwester, that branch includes a 
+minor fix titled "v4l2-clk: Fix clock id matching" for your "v4l2-clk: Rework 
+to accept more than one clock with null clock id" patch. Could you please have 
+a look at it ?
+
+On the downside, there's now a circular dependency between the mt9p031 and 
+omap3-isp drivers, so neither of them can be removed. That will need to be 
+fixed.
+
+[1] http://git.linuxtv.org/snawrocki/media.git/shortlog/refs/heads/s3c-camif-
+devel
+
 -- 
-1.7.11.7
+Regards,
+
+Laurent Pinchart
 
