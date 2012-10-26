@@ -1,50 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54280 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752181Ab2JNKb1 (ORCPT
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:54703 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752665Ab2JZJVc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Oct 2012 06:31:27 -0400
-Date: Sun, 14 Oct 2012 13:31:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, tony@atomide.com,
-	khilman@deeprootsystems.com
-Subject: [PATCH v5 0/3] OMAP 3 CSI-2 configuration
-Message-ID: <20121014103122.GA21261@valkosipuli.retiisi.org.uk>
+	Fri, 26 Oct 2012 05:21:32 -0400
+Received: by mail-wi0-f170.google.com with SMTP id hm2so239359wib.1
+        for <linux-media@vger.kernel.org>; Fri, 26 Oct 2012 02:21:31 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <20121025135047.30674062@redhat.com>
+References: <1348831603-18007-1-git-send-email-javier.martin@vista-silicon.com>
+	<20120929132556.22c48312@hpe.lwn.net>
+	<CACKLOr0DQZ9q0yN7NEShAtEMaXf50HgWwaq2s1c84yAj7HShSw@mail.gmail.com>
+	<20121025135047.30674062@redhat.com>
+Date: Fri, 26 Oct 2012 11:21:31 +0200
+Message-ID: <CACKLOr0dvarRhemat3a9JRuJ-132bg2+4-j9Bbat7_6EQMMFvA@mail.gmail.com>
+Subject: Re: [PATCH v3 0/4] ov7670: migrate this sensor and its users to ctrl framework.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	rusty@rustcorp.com.au, dsd@laptop.org, hdegoede@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Mauro,
 
-This is an update to an old patchset for CSI-2 configuration for OMAP 3430
-and 3630. The patches have been tested on the 3630 only so far, and I don't
-plan to test them on 3430 in the near future.
 
-I've made changes according to Laurent's suggestions to the patches, with
-the exception of alignment of a certain line. I think it's exactly as it
-should be. :-)
+On 25 October 2012 17:50, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> Hi Javier,
+>
+> Em Thu, 25 Oct 2012 15:27:08 +0200
+> javier Martin <javier.martin@vista-silicon.com> escreveu:
+>
+>> Hi Mauro, Jon,
+>> any more issues related with this series?
+>
+> Patch doesn't apply anymore:
+>
+> patching file drivers/media/i2c/ov7670.c
+> Hunk #2 succeeded at 191 (offset -32 lines).
+> Hunk #3 succeeded at 220 (offset -35 lines).
+> Hunk #4 succeeded at 1062 (offset -153 lines).
+> Hunk #5 succeeded at 1091 (offset -153 lines).
+> Hunk #6 succeeded at 1127 (offset -153 lines).
+> Hunk #7 succeeded at 1147 (offset -153 lines).
+> Hunk #8 succeeded at 1195 (offset -153 lines).
+> Hunk #9 succeeded at 1211 (offset -153 lines).
+> Hunk #10 succeeded at 1237 (offset -153 lines).
+> Hunk #11 succeeded at 1255 (offset -153 lines).
+> Hunk #12 succeeded at 1351 (offset -153 lines).
+> Hunk #13 FAILED at 1605.
+> Hunk #14 FAILED at 1616.
+> Hunk #15 succeeded at 1434 (offset -189 lines).
+> 2 out of 15 hunks FAILED -- rejects in file drivers/media/i2c/ov7670.c
+>
+> Could you please rebase it? I tried to force its merge, but
+> it seemed that the conflicts are not that trivial, so I prefer
+> if you could do it and test if everything still applies.
 
-I'm not quite certain about the comment regarding the control register state
-dependency to the CORE power domain, and why exactly this isn't an issue. We
-know the MPU must stay powered since the ISP can't wake up MPU, but how is
-this related to CORE? In the end it seems to work.
+You need to apply the series in the following order:
 
-If you think this should be changed and you also know how, please provide me
-the text. :-)
+Firstly: [PATCH v2 0/5] media: ov7670: driver cleanup and support for ov7674.
+Secondly: [PATCH v3 0/4] ov7670: migrate this sensor and its users to
+ctrl framework.
 
-	/*
-	 * The PHY configuration is lost in off mode, that's not an
-	 * issue since the MPU power domain is forced on whilst the
-	 * ISP is in use.
-	 */
+This shouldn't cause any troubles. Otherwise, please let me know.
 
-Comments, questions and other kind of feedback is very welcome.
-
-Kind regards,
+Regards.
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
