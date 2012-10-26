@@ -1,107 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52435 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754402Ab2JIJV7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Oct 2012 05:21:59 -0400
-Date: Tue, 9 Oct 2012 12:21:54 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: P Jackson <pej02@yahoo.co.uk>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>
-Subject: Re: omap3isp: no pixel rate control in subdev
-Message-ID: <20121009092154.GL14107@valkosipuli.retiisi.org.uk>
-References: <1349531264.14555.YahooMailNeo@web28905.mail.ir2.yahoo.com>
- <20121008223311.GI14107@valkosipuli.retiisi.org.uk>
- <1349769964.36347.YahooMailNeo@web28903.mail.ir2.yahoo.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1349769964.36347.YahooMailNeo@web28903.mail.ir2.yahoo.com>
+Received: from mga02.intel.com ([134.134.136.20]:46768 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756337Ab2JZNkz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Oct 2012 09:40:55 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH 1/2] dvb-frontends: use %*ph[N] to dump small buffers
+Date: Fri, 26 Oct 2012 16:40:45 +0300
+Message-Id: <1351258846-17829-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pete,
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/media/dvb-frontends/ix2505v.c |    2 +-
+ drivers/media/dvb-frontends/or51211.c |    5 +----
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
-On Tue, Oct 09, 2012 at 09:06:04AM +0100, P Jackson wrote:
-> On Sat, Oct 06, 2012 at 02:47:44PM +0100, P Jackson wrote:
-> > I'm trying to get an mt9t001 sensor board working on a Gumstix Overo board using the latest omap3isp-omap3isp-stable branch from the linuxtv.org/media.git repository.
-> > 
-> > When I 'modprobe omap3-isp' I see:
-> > 
-> > Linux media interface: v0.10
-> > Linux video capture interface: v2.00
-> > omap3isp omap3isp: Revision 15.0 found
-> > omap-iommu omap-iommu.0: isp: version 1.1
-> > mt9t001 3-005d: Probing MT9T001 at address 0x5d
-> > mt9t001 3-005d: MT9T001 detected at address 0x5d
-> > 
-> > I then do:
-> > 
-> > media-ctl -r
-> > media-ctl -l '"mt9t001 3-005d":0->"OMAP3 ISP CCDC":0[1]'
-> > media-ctl -l '"OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> > media-ctl -V '"mt9t001 3-005d":0 [SGRBG10 2048x1536]'
-> > media-ctl -V '"OMAP3 ISP CCDC":1 [SGRBG10 2048x1536]'
-> > 
-> > Followed by:
-> > 
-> > yavta -p -f SGRBG10 -s 2048x1536 -n 4 --capture=1 /dev/video2 file=m.bin
-> > 
-> > 
-> > For which I get:
-> > 
-> > Device /dev/video2 opened.
-> > Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
-> > Video format set: SGRBG10 (30314142) 2048x1536 (stride 4096) buffer size 6291456
-> > Video format: SGRBG10 (30314142) 2048x1536 (stride 4096) buffer size 6291456
-> > 4 buffers requested.
-> > length: 6291456 offset: 0
-> > Buffer 0 mapped at address 0x40272000.
-> > length: 6291456 offset: 6291456
-> > Buffer 1 mapped at address 0x4096b000.
-> > length: 6291456 offset: 12582912
-> > Buffer 2 mapped at address 0x4102f000.
-> > length: 6291456 offset: 18874368
-> > Buffer 3 mapped at address 0x416ac000.
-> > Press enter to start capture
-> > 
-> > After pressing enter I get:
-> > 
-> > omap3isp omap3isp: no pixel rate control in subdev mt9t001 3-005d
-> > Unable to start streaming: Invalid argument (22).
-> 
-> Really?
-> 
-> Could you check if you have this patch in your tree?
-> 
-> ---
-> commit 0bc77f3f06fcf2ca7b7fad782d70926cd4d235f1
-> Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Date:   Wed May 9 09:55:57 2012 -0300
-> 
->     [media] mt9t001: Implement V4L2_CID_PIXEL_RATE control
->     
->     The pixel rate control is required by the OMAP3 ISP driver and should be
->     implemented by all media controller-compatible sensor drivers.
->     
->     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->     Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
-> 
-> I have checked my tree and cannot find that patch.
-
-Your tree might be more or less out of date. You can find the patch here:
-
-<URL:http://git.linuxtv.org/media_tree.git/commit/0bc77f3f06fcf2ca7b7fad782d70926cd4d235f1>
-
-Apply it and your problem should be resolved.
-
-Regards,
-
+diff --git a/drivers/media/dvb-frontends/ix2505v.c b/drivers/media/dvb-frontends/ix2505v.c
+index bc5a820..0e3387e 100644
+--- a/drivers/media/dvb-frontends/ix2505v.c
++++ b/drivers/media/dvb-frontends/ix2505v.c
+@@ -212,7 +212,7 @@ static int ix2505v_set_params(struct dvb_frontend *fe)
+ 		lpf = 0xb;
+ 
+ 	deb_info("Osc=%x b_w=%x lpf=%x\n", local_osc, b_w, lpf);
+-	deb_info("Data 0=[%x%x%x%x]\n", data[0], data[1], data[2], data[3]);
++	deb_info("Data 0=[%4phN]\n", data);
+ 
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+diff --git a/drivers/media/dvb-frontends/or51211.c b/drivers/media/dvb-frontends/or51211.c
+index c625b57..1af997e 100644
+--- a/drivers/media/dvb-frontends/or51211.c
++++ b/drivers/media/dvb-frontends/or51211.c
+@@ -471,10 +471,7 @@ static int or51211_init(struct dvb_frontend* fe)
+ 			  i--;
+ 			}
+ 		}
+-		dprintk("read_fwbits %x %x %x %x %x %x %x %x %x %x\n",
+-			rec_buf[0], rec_buf[1], rec_buf[2], rec_buf[3],
+-			rec_buf[4], rec_buf[5], rec_buf[6], rec_buf[7],
+-			rec_buf[8], rec_buf[9]);
++		dprintk("read_fwbits %10ph\n", rec_buf);
+ 
+ 		printk(KERN_INFO "or51211: ver TU%02x%02x%02x VSB mode %02x"
+ 		       " Status %02x\n",
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.7.10.4
+
