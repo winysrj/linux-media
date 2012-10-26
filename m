@@ -1,77 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:49999 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751211Ab2JVQBj (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55457 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752149Ab2JZJek (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Oct 2012 12:01:39 -0400
-Date: Mon, 22 Oct 2012 18:01:29 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-cc: mchehab@redhat.com, Scott.Jiang.Linux@gmail.com,
-	javier.martin@vista-silicon.com, linux-media@vger.kernel.org,
-	kernel@pengutronix.de
-Subject: Re: [PATCH 3.6.0- 4/5] media/soc_camera: use module_platform_driver
- macro
-In-Reply-To: <1349894040-8127-1-git-send-email-srinivas.kandagatla@st.com>
-Message-ID: <Pine.LNX.4.64.1210221757240.26216@axis700.grange>
-References: <1349894040-8127-1-git-send-email-srinivas.kandagatla@st.com>
+	Fri, 26 Oct 2012 05:34:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Tony Lindgren <tony@atomide.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Joerg Roedel <joerg.roedel@amd.com>,
+	Omar Ramirez Luna <omar.luna@linaro.org>,
+	linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to include/linux/omap-iommu.h
+Date: Fri, 26 Oct 2012 11:35:22 +0200
+Message-ID: <6561916.t72K1L6jg4@avalon>
+In-Reply-To: <CAK=WgbaCM+MWiHARvdfaGL6w0c7g4_keAm0ADw1vkSeiZ0CZPw@mail.gmail.com>
+References: <20121025001913.2082.31062.stgit@muffinssi.local> <20121025213935.GD11928@atomide.com> <CAK=WgbaCM+MWiHARvdfaGL6w0c7g4_keAm0ADw1vkSeiZ0CZPw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Srinivas
+Hi Ohad,
 
-On Wed, 10 Oct 2012, Srinivas KANDAGATLA wrote:
-
-> From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+On Friday 26 October 2012 07:50:56 Ohad Ben-Cohen wrote:
+> On Thu, Oct 25, 2012 at 11:39 PM, Tony Lindgren <tony@atomide.com> wrote:
+> >> > Joerg and Ohad, do you have any opinions on this?
 > 
-> This patch removes some code duplication by using
-> module_platform_driver.
+> I agree that there's some merit in having a separate header file for
+> IOVMM, since it's a different layer from the IOMMU API.
 > 
-> Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
-
-Thanks for the patch. It is indeed correct, but an identical patch is 
-already upstream: 
-http://git.linuxtv.org/media_tree.git/commit/ec0341b3b7817a5e8ebcf26091dde28dce2d7821
-
-Thanks
-Guennadi
-
-> ---
->  drivers/media/platform/soc_camera/soc_camera.c |   14 +-------------
->  1 files changed, 1 insertions(+), 13 deletions(-)
+> But in reality it's tightly coupled with OMAP's IOMMU, and ideally it
+> really should go away and be replaced with the DMA API.
 > 
-> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-> index 3be9294..d4bfe29 100644
-> --- a/drivers/media/platform/soc_camera/soc_camera.c
-> +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> @@ -1585,19 +1585,7 @@ static struct platform_driver __refdata soc_camera_pdrv = {
->  		.owner	= THIS_MODULE,
->  	},
->  };
-> -
-> -static int __init soc_camera_init(void)
-> -{
-> -	return platform_driver_register(&soc_camera_pdrv);
-> -}
-> -
-> -static void __exit soc_camera_exit(void)
-> -{
-> -	platform_driver_unregister(&soc_camera_pdrv);
-> -}
-> -
-> -module_init(soc_camera_init);
-> -module_exit(soc_camera_exit);
-> +module_platform_driver(soc_camera_pdrv);
->  
->  MODULE_DESCRIPTION("Image capture bus driver");
->  MODULE_AUTHOR("Guennadi Liakhovetski <kernel@pengutronix.de>");
-> -- 
-> 1.7.0.4
+> For this reason, and for the fact that anyway there's only a single
+> user for it (omap3isp) and there will never be any more, maybe we
+> shouldn't pollute include/linux anymore.
 > 
+> Anyone volunteering to remove IOVMM and adapt omap3isp to the DMA API
+> instead ? ;)
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+That's on my to-do list, as well as porting the OMAP3 ISP driver to videobuf2, 
+adding DT support, moving to the common clock framework (when that will be 
+available for the OMAP3), supporting missing V4L2 features, ... All this in my 
+spare time of course, otherwise it wouldn't be fun, would it ? ;-)
+
+I would also like to move the tidspbridge to the DMA API, but I think we'll 
+need to move step by step there, and using the OMAP IOMMU and IOVMM APIs as an 
+intermediate step would allow splitting patches in reviewable chunks. I know 
+it's a step backwards in term of OMAP IOMMU usage, but that's in my opinion a 
+temporary nuisance to make the leap easier.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
