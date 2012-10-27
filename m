@@ -1,45 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.hauppauge.com ([167.206.143.4]:3974 "EHLO
-	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750859Ab2JBEE6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 00:04:58 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, Michael Krufky <mkrufky@linuxtv.org>
-Subject: [PATCH 8/8] MAINTAINERS: add Michael Krufky as tda827x maintainer
-Date: Tue,  2 Oct 2012 00:04:12 -0400
-Message-Id: <1349150652-12171-8-git-send-email-mkrufky@linuxtv.org>
-In-Reply-To: <1349150652-12171-1-git-send-email-mkrufky@linuxtv.org>
-References: <1349150652-12171-1-git-send-email-mkrufky@linuxtv.org>
+Received: from mx1.redhat.com ([209.132.183.28]:34907 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756362Ab2J0UmU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:42:20 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKgKgI006347
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:20 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 59/68] [media] s2255drv: index is always positive
+Date: Sat, 27 Oct 2012 18:41:17 -0200
+Message-Id: <1351370486-29040-60-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
----
- MAINTAINERS |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+drivers/media/usb/s2255/s2255drv.c:1654:2: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 3d43576..a21df13 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -7061,6 +7061,16 @@ T:	git git://linuxtv.org/mkrufky/tuners.git
- S:	Maintained
- F:	drivers/media/tuners/tda18271*
- 
-+TDA827x MEDIA DRIVER
-+M:	Michael Krufky <mkrufky@linuxtv.org>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://github.com/mkrufky
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/mkrufky/tuners.git
-+S:	Maintained
-+F:	drivers/media/tuners/tda8290.*
-+
- TDA8290 MEDIA DRIVER
- M:	Michael Krufky <mkrufky@linuxtv.org>
- L:	linux-media@vger.kernel.org
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/usb/s2255/s2255drv.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index 2191f6d..8ebec0d 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -1651,7 +1651,7 @@ static int vidioc_enum_frameintervals(struct file *file, void *priv,
+ 	int is_ntsc = 0;
+ #define NUM_FRAME_ENUMS 4
+ 	int frm_dec[NUM_FRAME_ENUMS] = {1, 2, 3, 5};
+-	if (fe->index < 0 || fe->index >= NUM_FRAME_ENUMS)
++	if (fe->index >= NUM_FRAME_ENUMS)
+ 		return -EINVAL;
+ 	switch (fe->width) {
+ 	case 640:
 -- 
-1.7.9.5
+1.7.11.7
 
