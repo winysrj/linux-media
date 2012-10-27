@@ -1,94 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1270 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754639Ab2JVORJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Oct 2012 10:17:09 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Kirill Smelkov <kirr@mns.spb.ru>
-Subject: Re: [PATCH 2/2] [media] vivi: Teach it to tune FPS
-Date: Mon, 22 Oct 2012 16:16:14 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-References: <1350914084-31618-1-git-send-email-kirr@mns.spb.ru> <1350914084-31618-2-git-send-email-kirr@mns.spb.ru>
-In-Reply-To: <1350914084-31618-2-git-send-email-kirr@mns.spb.ru>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210221616.14299.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:42348 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758471Ab2J0UoO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:44:14 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKiDmH006597
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:44:13 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 37/68] [media] gscpa: get rid of warning: suggest braces around empty body
+Date: Sat, 27 Oct 2012 18:40:55 -0200
+Message-Id: <1351370486-29040-38-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon October 22 2012 15:54:44 Kirill Smelkov wrote:
-> I was testing my video-over-ethernet subsystem today, and vivi seemed to
-> be perfect video source for testing when one don't have lots of capture
-> boards and cameras. Only its framerate was hardcoded to NTSC's 30fps,
-> while in my country we usually use PAL (25 fps). That's why the patch.
-> Thanks.
+There are hundreds of messages like this one, when GSPCA debug is
+disabled, when compiled with W=1:
+drivers/media/usb/gspca/spca500.c:725:46: warning: suggest braces around empty body in an 'if' statement [-Wempty-body]
+Get rid of it, especially as it might actually cause troubles on
+some places.
 
-Rather than introducing a module option, it's much nicer if you can
-implement enum_frameintervals and g/s_parm. This can be made quite flexible
-allowing you to also support 50/59.94/60 fps.
+Cc: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/usb/gspca/gspca.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Regards,
+diff --git a/drivers/media/usb/gspca/gspca.h b/drivers/media/usb/gspca/gspca.h
+index e3eab82..352317d 100644
+--- a/drivers/media/usb/gspca/gspca.h
++++ b/drivers/media/usb/gspca/gspca.h
+@@ -32,7 +32,7 @@ do {								\
+ #define D_USBO 0x00
+ #define D_V4L2 0x0100
+ #else
+-#define PDEBUG(level, fmt, ...)
++#define PDEBUG(level, fmt, ...) do {} while(0)
+ #endif
+ 
+ #define GSPCA_MAX_FRAMES 16	/* maximum number of video frame buffers */
+-- 
+1.7.11.7
 
-	Hans
-
-> 
-> Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
-> ---
->  drivers/media/platform/vivi.c | 18 +++++++++++++-----
->  1 file changed, 13 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-> index 3e6902a..48325f4 100644
-> --- a/drivers/media/platform/vivi.c
-> +++ b/drivers/media/platform/vivi.c
-> @@ -36,10 +36,6 @@
->  
->  #define VIVI_MODULE_NAME "vivi"
->  
-> -/* Wake up at about 30 fps */
-> -#define WAKE_NUMERATOR 30
-> -#define WAKE_DENOMINATOR 1001
-> -
->  #define MAX_WIDTH 1920
->  #define MAX_HEIGHT 1200
->  
-> @@ -58,6 +54,11 @@ static unsigned n_devs = 1;
->  module_param(n_devs, uint, 0644);
->  MODULE_PARM_DESC(n_devs, "number of video devices to create");
->  
-> +static struct v4l2_fract fps = { 30000, 1001 }; /* ~ 30 fps by default */
-> +static unsigned __fps[2], __nfps;
-> +module_param_array_named(fps, __fps, uint, &__nfps, 0644);
-> +MODULE_PARM_DESC(fps, "frames per second as ratio (e.g. 30000,1001 or 25,1)");
-> +
->  static unsigned debug;
->  module_param(debug, uint, 0644);
->  MODULE_PARM_DESC(debug, "activates debug info");
-> @@ -661,7 +662,7 @@ static void vivi_thread_tick(struct vivi_dev *dev)
->  }
->  
->  #define frames_to_ms(frames)					\
-> -	((frames * WAKE_NUMERATOR * 1000) / WAKE_DENOMINATOR)
-> +	((frames * fps.denominator * 1000) / fps.numerator)
->  
->  static void vivi_sleep(struct vivi_dev *dev)
->  {
-> @@ -1376,6 +1377,13 @@ static int __init vivi_init(void)
->  	if (n_devs <= 0)
->  		n_devs = 1;
->  
-> +	if (__nfps > 0) {
-> +		fps.numerator   = __fps[0];
-> +		fps.denominator = (__nfps > 1) ? __fps[1] : 1;
-> +	}
-> +	if (fps.numerator <= 0)
-> +		fps.numerator = 1;
-> +
->  	for (i = 0; i < n_devs; i++) {
->  		ret = vivi_create_instance(i);
->  		if (ret) {
-> 
