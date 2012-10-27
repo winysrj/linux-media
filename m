@@ -1,46 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:50092 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756022Ab2JQKWF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 06:22:05 -0400
-Received: by mail-oa0-f46.google.com with SMTP id h16so7227645oag.19
-        for <linux-media@vger.kernel.org>; Wed, 17 Oct 2012 03:22:04 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20121017112504.47269452@pyramind.ukuu.org.uk>
-References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
-	<20121010191702.404edace@pyramind.ukuu.org.uk>
-	<CAF6AEGvzfr2-QHpX4zwm2EPz-vxCDe9SaLUjo4_Fn7HhjWJFsg@mail.gmail.com>
-	<201210110857.15660.hverkuil@xs4all.nl>
-	<20121016212208.GB10462@morell.nvidia.com>
-	<20121017105321.062c898d@pyramind.ukuu.org.uk>
-	<CAPM=9txT+Wa_JXvsv7O3mqA6WK19z8chvSVxGQdf7R3Xo-mtQg@mail.gmail.com>
-	<20121017112504.47269452@pyramind.ukuu.org.uk>
-Date: Wed, 17 Oct 2012 20:22:04 +1000
-Message-ID: <CAPM=9txQvNgVK824FrT6GD5eZeeaOEPkBzC9sdd9E4tu=ZdPNw@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: Use EXPORT_SYMBOL
-From: Dave Airlie <airlied@gmail.com>
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Robert Morell <rmorell@nvidia.com>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:9635 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933334Ab2J0Umq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:42:46 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKgjtE006407
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:45 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 43/68] [media] cx88: reorder inline to prevent a gcc warning
+Date: Sat, 27 Oct 2012 18:41:01 -0200
+Message-Id: <1351370486-29040-44-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 17, 2012 at 8:25 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
->> > Please go and discuss estoppel, wilful infringement and re-licensing with
->> > your corporate attorneys. If you want to relicense components of the code
->> > then please take the matter up with the corporate attorneys of the rights
->> > holders concerned.
->>
->> Alan please stick with the facts. This isn't a relicense of anything.
->
-> In your opinion. Are you a qualified IP attorney - NO. Are you my lawyer
-> - NO. Does my laywer disagree with you - YES.
+drivers/media/pci/cx88/cx88.h:97:1: warning: 'inline' is not at beginning of declaration [-Wold-style-declaration]
+drivers/media/pci/cx88/cx88.h:103:1: warning: 'inline' is not at beginning of declaration [-Wold-style-declaration]
+drivers/media/pci/cx88/cx88-core.c:649:1: warning: 'inline' is not at beginning of declaration [-Wold-style-declaration]
+drivers/media/pci/cx88/cx88-core.c:654:1: warning: 'inline' is not at beginning of declaration [-Wold-style-declaration]
+drivers/media/pci/cx88/cx88-core.c:659:1: warning: 'inline' is not at beginning of declaration [-Wold-style-declaration]
+drivers/media/pci/cx88/cx88-core.c:664:1: warning: 'inline' is not at beginning of declaration [-Wold-style-declaration]
+drivers/media/pci/cx88/cx88-core.c:684:1: warning: 'inline' is not at beginning of declaration [-Wold-style-declaration]
+drivers/media/pci/cx88/cx88-core.c:695:1: warning: 'inline' is not at beginning of declaration [-Wold-style-declaration]
 
-Okay then we should remove this code from the kernel forthwith, as I
-showed it was illegally relicensed previously in your lawyers opinion.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/pci/cx88/cx88-core.c | 12 ++++++------
+ drivers/media/pci/cx88/cx88.h      |  4 ++--
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-Dave.
+diff --git a/drivers/media/pci/cx88/cx88-core.c b/drivers/media/pci/cx88/cx88-core.c
+index c97b174..19a5875 100644
+--- a/drivers/media/pci/cx88/cx88-core.c
++++ b/drivers/media/pci/cx88/cx88-core.c
+@@ -646,22 +646,22 @@ int cx88_reset(struct cx88_core *core)
+ 
+ /* ------------------------------------------------------------------ */
+ 
+-static unsigned int inline norm_swidth(v4l2_std_id norm)
++static inline unsigned int norm_swidth(v4l2_std_id norm)
+ {
+ 	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 754 : 922;
+ }
+ 
+-static unsigned int inline norm_hdelay(v4l2_std_id norm)
++static inline unsigned int norm_hdelay(v4l2_std_id norm)
+ {
+ 	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 135 : 186;
+ }
+ 
+-static unsigned int inline norm_vdelay(v4l2_std_id norm)
++static inline unsigned int norm_vdelay(v4l2_std_id norm)
+ {
+ 	return (norm & V4L2_STD_625_50) ? 0x24 : 0x18;
+ }
+ 
+-static unsigned int inline norm_fsc8(v4l2_std_id norm)
++static inline unsigned int norm_fsc8(v4l2_std_id norm)
+ {
+ 	if (norm & V4L2_STD_PAL_M)
+ 		return 28604892;      // 3.575611 MHz
+@@ -681,7 +681,7 @@ static unsigned int inline norm_fsc8(v4l2_std_id norm)
+ 	return 35468950;      // 4.43361875 MHz +/- 5 Hz
+ }
+ 
+-static unsigned int inline norm_htotal(v4l2_std_id norm)
++static inline unsigned int norm_htotal(v4l2_std_id norm)
+ {
+ 
+ 	unsigned int fsc4=norm_fsc8(norm)/2;
+@@ -692,7 +692,7 @@ static unsigned int inline norm_htotal(v4l2_std_id norm)
+ 				((fsc4+262)/525*1001+15000)/30000;
+ }
+ 
+-static unsigned int inline norm_vbipack(v4l2_std_id norm)
++static inline unsigned int norm_vbipack(v4l2_std_id norm)
+ {
+ 	return (norm & V4L2_STD_625_50) ? 511 : 400;
+ }
+diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
+index 44ffc8b..ba0dba4 100644
+--- a/drivers/media/pci/cx88/cx88.h
++++ b/drivers/media/pci/cx88/cx88.h
+@@ -94,13 +94,13 @@ enum cx8802_board_access {
+ /* ----------------------------------------------------------- */
+ /* tv norms                                                    */
+ 
+-static unsigned int inline norm_maxw(v4l2_std_id norm)
++static inline unsigned int norm_maxw(v4l2_std_id norm)
+ {
+ 	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 720 : 768;
+ }
+ 
+ 
+-static unsigned int inline norm_maxh(v4l2_std_id norm)
++static inline unsigned int norm_maxh(v4l2_std_id norm)
+ {
+ 	return (norm & V4L2_STD_625_50) ? 576 : 480;
+ }
+-- 
+1.7.11.7
+
