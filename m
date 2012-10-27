@@ -1,72 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f46.google.com ([209.85.213.46]:49915 "EHLO
-	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757516Ab2JWT7T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 15:59:19 -0400
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-Cc: Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 18/23] cx18: Replace memcpy with struct assignment
-Date: Tue, 23 Oct 2012 16:57:21 -0300
-Message-Id: <1351022246-8201-18-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
-References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:49335 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751515Ab2J0UmC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:42:02 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKg2kl006285
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:02 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 35/68] [media] pwc-if: must check vb2_queue_init() success
+Date: Sat, 27 Oct 2012 18:40:53 -0200
+Message-Id: <1351370486-29040-36-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This kind of memcpy() is error-prone. Its replacement with a struct
-assignment is prefered because it's type-safe and much easier to read.
+drivers/media/usb/pwc/pwc-if.c: In function 'usb_pwc_probe':
+drivers/media/usb/pwc/pwc-if.c:1003:16: warning: ignoring return value of 'vb2_queue_init', declared with attribute warn_unused_result [-Wunused-result]
+In the past, it used to have a logic there at queue init that would
+BUG() on errors. This logic got removed. Drivers are now required
+to explicitly handle the queue initialization errors, or very bad
+things may happen.
 
-Found by coccinelle. Hand patched and reviewed.
-Tested by compilation only.
-
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-@@
-identifier struct_name;
-struct struct_name to;
-struct struct_name from;
-expression E;
-@@
--memcpy(&(to), &(from), E);
-+to = from;
-// </smpl>
-
-Cc: Andy Walls <awalls@md.metrocast.net>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/pci/cx18/cx18-i2c.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/media/usb/pwc/pwc-if.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/pci/cx18/cx18-i2c.c b/drivers/media/pci/cx18/cx18-i2c.c
-index 51609d5..930d40f 100644
---- a/drivers/media/pci/cx18/cx18-i2c.c
-+++ b/drivers/media/pci/cx18/cx18-i2c.c
-@@ -240,15 +240,13 @@ int init_cx18_i2c(struct cx18 *cx)
+diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+index e191572..5210239 100644
+--- a/drivers/media/usb/pwc/pwc-if.c
++++ b/drivers/media/usb/pwc/pwc-if.c
+@@ -1000,7 +1000,11 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ 	pdev->vb_queue.buf_struct_size = sizeof(struct pwc_frame_buf);
+ 	pdev->vb_queue.ops = &pwc_vb_queue_ops;
+ 	pdev->vb_queue.mem_ops = &vb2_vmalloc_memops;
+-	vb2_queue_init(&pdev->vb_queue);
++	rc = vb2_queue_init(&pdev->vb_queue);
++	if (rc < 0) {
++		PWC_ERROR("Oops, could not initialize vb2 queue.\n");
++		goto err_free_mem;
++	}
  
- 	for (i = 0; i < 2; i++) {
- 		/* Setup algorithm for adapter */
--		memcpy(&cx->i2c_algo[i], &cx18_i2c_algo_template,
--			sizeof(struct i2c_algo_bit_data));
-+		cx->i2c_algo[i] = cx18_i2c_algo_template;
- 		cx->i2c_algo_cb_data[i].cx = cx;
- 		cx->i2c_algo_cb_data[i].bus_index = i;
- 		cx->i2c_algo[i].data = &cx->i2c_algo_cb_data[i];
- 
- 		/* Setup adapter */
--		memcpy(&cx->i2c_adap[i], &cx18_i2c_adap_template,
--			sizeof(struct i2c_adapter));
-+		cx->i2c_adap[i] = cx18_i2c_adap_template;
- 		cx->i2c_adap[i].algo_data = &cx->i2c_algo[i];
- 		sprintf(cx->i2c_adap[i].name + strlen(cx->i2c_adap[i].name),
- 				" #%d-%d", cx->instance, i);
+ 	/* Init video_device structure */
+ 	memcpy(&pdev->vdev, &pwc_template, sizeof(pwc_template));
 -- 
-1.7.4.4
+1.7.11.7
 
