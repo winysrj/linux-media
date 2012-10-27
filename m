@@ -1,174 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39209 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756006Ab2JaJ3C (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59697 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1759324Ab2J0Rh4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Oct 2012 05:29:02 -0400
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: [PATCH v7 1/8] video: add display_timing struct and helpers
-Date: Wed, 31 Oct 2012 10:28:01 +0100
-Message-Id: <1351675689-26814-2-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
+	Sat, 27 Oct 2012 13:37:56 -0400
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:102:6d9a::80:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 3C8E860099
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 20:37:54 +0300 (EEST)
+Date: Sat, 27 Oct 2012 20:37:52 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.8] SMIA++ PLL and driver fixes and improvements
+Message-ID: <20121027173751.GE24073@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add display_timing structure and the according helper functions. This allows
-the description of a display via its supported timing parameters.
+Hi Mauro,
 
-Every timing parameter can be specified as a single value or a range
-<min typ max>.
+This patchset contains SMIA++ PLL support for parallel bus, more robust PLL
+calculation and SMIA++ driver fixes and cleanups.
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
----
- drivers/video/Kconfig          |    5 +++
- drivers/video/Makefile         |    1 +
- drivers/video/display_timing.c |   24 ++++++++++++++
- include/linux/display_timing.h |   69 ++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 99 insertions(+)
- create mode 100644 drivers/video/display_timing.c
- create mode 100644 include/linux/display_timing.h
+Please pull:
 
-diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index d08d799..1421fc8 100644
---- a/drivers/video/Kconfig
-+++ b/drivers/video/Kconfig
-@@ -33,6 +33,11 @@ config VIDEO_OUTPUT_CONTROL
- 	  This framework adds support for low-level control of the video 
- 	  output switch.
- 
-+config DISPLAY_TIMING
-+       bool "Enable display timings helpers"
-+       help
-+         Say Y here, to use the display timing helpers.
-+
- menuconfig FB
- 	tristate "Support for frame buffer devices"
- 	---help---
-diff --git a/drivers/video/Makefile b/drivers/video/Makefile
-index 23e948e..552c045 100644
---- a/drivers/video/Makefile
-+++ b/drivers/video/Makefile
-@@ -167,3 +167,4 @@ obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
- 
- #video output switch sysfs driver
- obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
-+obj-$(CONFIG_DISPLAY_TIMING) += display_timing.o
-diff --git a/drivers/video/display_timing.c b/drivers/video/display_timing.c
-new file mode 100644
-index 0000000..9ccfdb3
---- /dev/null
-+++ b/drivers/video/display_timing.c
-@@ -0,0 +1,24 @@
-+/*
-+ * generic display timing functions
-+ *
-+ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
-+ *
-+ * This file is released under the GPLv2
-+ */
-+
-+#include <linux/slab.h>
-+#include <linux/display_timing.h>
-+
-+void timings_release(struct display_timings *disp)
-+{
-+	int i;
-+
-+	for (i = 0; i < disp->num_timings; i++)
-+		kfree(disp->timings[i]);
-+}
-+
-+void display_timings_release(struct display_timings *disp)
-+{
-+	timings_release(disp);
-+	kfree(disp->timings);
-+}
-diff --git a/include/linux/display_timing.h b/include/linux/display_timing.h
-new file mode 100644
-index 0000000..aa02a12
---- /dev/null
-+++ b/include/linux/display_timing.h
-@@ -0,0 +1,69 @@
-+/*
-+ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
-+ *
-+ * description of display timings
-+ *
-+ * This file is released under the GPLv2
-+ */
-+
-+#ifndef __LINUX_DISPLAY_TIMINGS_H
-+#define __LINUX_DISPLAY_TIMINGS_H
-+
-+#include <linux/types.h>
-+
-+struct timing_entry {
-+	u32 min;
-+	u32 typ;
-+	u32 max;
-+};
-+
-+struct display_timing {
-+	struct timing_entry pixelclock;
-+
-+	struct timing_entry hactive;
-+	struct timing_entry hfront_porch;
-+	struct timing_entry hback_porch;
-+	struct timing_entry hsync_len;
-+
-+	struct timing_entry vactive;
-+	struct timing_entry vfront_porch;
-+	struct timing_entry vback_porch;
-+	struct timing_entry vsync_len;
-+
-+	unsigned int vsync_pol_active;
-+	unsigned int hsync_pol_active;
-+	unsigned int de_pol_active;
-+	unsigned int pixelclk_pol;
-+	bool interlaced;
-+	bool doublescan;
-+};
-+
-+struct display_timings {
-+	unsigned int num_timings;
-+	unsigned int native_mode;
-+
-+	struct display_timing **timings;
-+};
-+
-+/* placeholder function until ranges are really needed */
-+static inline u32 display_timing_get_value(struct timing_entry *te, int index)
-+{
-+	return te->typ;
-+}
-+
-+static inline struct display_timing *display_timings_get(struct display_timings *disp,
-+							 int index)
-+{
-+	struct display_timing *dt;
-+
-+	if (disp->num_timings > index) {
-+		dt = disp->timings[index];
-+		return dt;
-+	} else
-+		return NULL;
-+}
-+
-+void timings_release(struct display_timings *disp);
-+void display_timings_release(struct display_timings *disp);
-+
-+#endif
+The following changes since commit 01aea0bfd8dfa8bc868df33904461984bb10a87a:
+
+  [media] i2c: adv7183: use module_i2c_driver to simplify the code (2012-10-25 17:08:46 -0200)
+
+are available in the git repository at:
+  ssh://linuxtv.org/git/sailus/media_tree.git smiapp-for-3.8
+
+Laurent Pinchart (3):
+      smiapp-pll: Add missing trailing newlines to warning messages
+      smiapp-pll: Create a structure for OP and VT limits
+      smiapp-pll: Constify limits argument to smiapp_pll_calculate()
+
+Sakari Ailus (4):
+      smiapp-pll: Correct type for min_t()
+      smiapp-pll: Try other pre-pll divisors
+      smiapp: Input for PLL configuration is mostly static
+      smiapp-pll: Parallel bus support
+
+ drivers/media/i2c/smiapp-pll.c         |  215 ++++++++++++++++++--------------
+ drivers/media/i2c/smiapp-pll.h         |   59 +++++----
+ drivers/media/i2c/smiapp/smiapp-core.c |   68 +++++------
+ 3 files changed, 186 insertions(+), 156 deletions(-)
+
+Kind regards,
+
 -- 
-1.7.10.4
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
