@@ -1,84 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48796 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753044Ab2JCAhX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Oct 2012 20:37:23 -0400
-Message-ID: <506B88AE.7050806@iki.fi>
-Date: Wed, 03 Oct 2012 03:37:02 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:54531 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751032Ab2J0VbR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 17:31:17 -0400
+Date: Sat, 27 Oct 2012 22:31:12 +0100
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
+Cc: hverkuil@xs4all.nl, mchehab@redhat.com, sameo@linux.intel.com,
+	perex@perex.cz, tiwai@suse.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 2/6] Add the main bulk of core driver for SI476x code
+Message-ID: <20121027213108.GD4564@opensource.wolfsonmicro.com>
+References: <1351017872-32488-1-git-send-email-andrey.smirnov@convergeddevices.net>
+ <1351017872-32488-3-git-send-email-andrey.smirnov@convergeddevices.net>
+ <20121025194524.GV18814@opensource.wolfsonmicro.com>
+ <5089BC7A.80103@convergeddevices.net>
 MIME-Version: 1.0
-To: =?UTF-8?B?UsOpbWkgQ2FyZG9uYQ==?= <remi.cardona@smartjog.com>
-CC: linux-media@vger.kernel.org, liplianin@me.by
-Subject: Re: [PATCH 2/7] [media] ds3000: remove useless 'locking'
-References: <1348837172-11784-1-git-send-email-remi.cardona@smartjog.com> <1348837172-11784-3-git-send-email-remi.cardona@smartjog.com>
-In-Reply-To: <1348837172-11784-3-git-send-email-remi.cardona@smartjog.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="TybLhxa8M7aNoW+V"
+Content-Disposition: inline
+In-Reply-To: <5089BC7A.80103@convergeddevices.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/28/2012 03:59 PM, Rémi Cardona wrote:
-> Since b9bf2eafaad9c1ef02fb3db38c74568be601a43a, the function
-> ds3000_firmware_ondemand() is called only once during init. This
-> locking scheme may have been useful when the firmware was loaded at
-> each tune.
->
-> Furthermore, it looks like this 'lock' was put in to prevent concurrent
-> access (and not recursion as the comments suggest). However, this open-
-> coded mechanism is anything but race-free and should have used a proper
-> mutex.
->
-> Signed-off-by: Rémi Cardona <remi.cardona@smartjog.com>
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+--TybLhxa8M7aNoW+V
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> ---
->   drivers/media/dvb-frontends/ds3000.c |    9 ---------
->   1 file changed, 9 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/ds3000.c b/drivers/media/dvb-frontends/ds3000.c
-> index 46874c7..474f26e 100644
-> --- a/drivers/media/dvb-frontends/ds3000.c
-> +++ b/drivers/media/dvb-frontends/ds3000.c
-> @@ -233,7 +233,6 @@ struct ds3000_state {
->   	struct i2c_adapter *i2c;
->   	const struct ds3000_config *config;
->   	struct dvb_frontend frontend;
-> -	u8 skip_fw_load;
->   	/* previous uncorrected block counter for DVB-S2 */
->   	u16 prevUCBS2;
->   };
-> @@ -395,8 +394,6 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
->   	if (ds3000_readreg(state, 0xb2) <= 0)
->   		return ret;
->
-> -	if (state->skip_fw_load)
-> -		return 0;
->   	/* Load firmware */
->   	/* request the firmware, this will block until someone uploads it */
->   	printk(KERN_INFO "%s: Waiting for firmware upload (%s)...\n", __func__,
-> @@ -410,9 +407,6 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
->   		return ret;
->   	}
->
-> -	/* Make sure we don't recurse back through here during loading */
-> -	state->skip_fw_load = 1;
-> -
->   	ret = ds3000_load_firmware(fe, fw);
->   	if (ret)
->   		printk("%s: Writing firmware to device failed\n", __func__);
-> @@ -422,9 +416,6 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
->   	dprintk("%s: Firmware upload %s\n", __func__,
->   			ret == 0 ? "complete" : "failed");
->
-> -	/* Ensure firmware is always loaded if required */
-> -	state->skip_fw_load = 0;
-> -
->   	return ret;
->   }
->
->
+On Thu, Oct 25, 2012 at 03:26:02PM -0700, Andrey Smirnov wrote:
+> On 10/25/2012 12:45 PM, Mark Brown wrote:
 
+> > This really makes little sense to me, why are you doing this?  Does the
+> > device *really* layer a byte stream on top of I2C for sending messages
+> > that look like marshalled register reads and writes?
 
--- 
-http://palosaari.fi/
+> The SI476x chips has a concept of a "property". Each property having
+> 16-bit address and 16-bit value. At least a portion of a chip
+> configuration is done by modifying those properties. In order to
+
+Right, that's what I remembered from previous code.  There's no way this
+should be a regmap bus - a bus is something that gets data serialised by
+the core into a byte stream, having the data rendered down into a byte
+stream and then reparsing it is a bit silly.  The device should be
+hooking in before the data gets marshalled which we can't currently do
+but it shouldn't be too hard to make it so that we can have register
+read and write functions supplied in the regmap config.
+
+> Also due to the way the driver uses the chip it is only powered up when
+> the corresponding file in devfs(e.g. /dev/radio0) is opened at least by
+> one user which means that unless there is a user who opened the file all
+> the SET/GET_PROPERTY commands sent to it will be lost. The codec driver
+> for that chip does not have any say in the power management policy(while
+> all the audio configuration is done via "properties") if the chip is not
+> powered up the driver has to cache the configuration values it has so
+> that they can be applied later.
+
+This is very normal, indeed modern CODEC drivers can leave the chip
+powered down whenever it's not performing some function.
+
+> So, since I have to implement a caching functionality in the driver, in
+> order to avoid reinventing the wheel I opted for using 'regmap' API for
+> this.
+
+> Of course, It is possible that I misunderstood the purpose and
+> capabilities of the 'regmap' framework, which would make my code look
+> very silly indeed. If that is the case I'll just re-implement it using
+> some sort of ad-hoc version of caching.
+
+No, what you're doing is totally sensible.  It needs a bit of extension
+to the framework before you can do it though.
+
+--TybLhxa8M7aNoW+V
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQjFKWAAoJELSic+t+oim9t+AP/0J9AouFBxNJbaimfuVuvWh0
+VFogUR1c8Mj41jo6Od1mUrX+U9GJrwuI2LVH3L7tpAyyxr/FLjliOYGF0JSK8Hwf
+ZnS8jr1B2VtleLbmwssy7i7U8E2np7K4HkvYTlMLdI0tt/CPZbkZWxERnUunYdai
+YRieYxNgCVamAsAN2s0f/Dds+IK8SvAMwkF3Xay+mmboSg+TqTedTwXdPcksCkzu
+3DD1r6t65zeK/5sKE6wcWyshd6nlZz9Xn4bMg3r93J5vXrqJkKTSxSMGNhy8knZb
+MncVWLHZZWk+y2SN5DiTBn5F/piAldMTWh1Mwz8Ln6h7L95r8MeCBW5f/imtW8CK
+TxRgkLaiPz5uZTqO3k9K6JMCOBpoGxlAMeiJ+Zmm5CvaQn3OlVRIM57IQZsEk1bM
+Wx091a2Tvy5BhUese9FCwwKiUI8qFFygGi7qxlFXAaQGXtR0q2/TYeaHWioU3bBw
+Mmkul0pa980inCWARYy0zknOFu/IAiB9znwGAtDwQR9xCxFQr4cWHdbQNSii3Ijs
+mPzwDHWBjJ5sOOIXA1KVRtlc2YcYVm+lvUDFNA9egb5BIyDp6ukwZcrXQrMFpBgH
+dy2ix8FffHhCEi2cd/3I3sBvDoIQvnGURqobodazMQNxgNizun7BqL2mYdR7csq7
+kDzzhJXwOu98G7p+wRZV
+=N9xd
+-----END PGP SIGNATURE-----
+
+--TybLhxa8M7aNoW+V--
