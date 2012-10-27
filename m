@@ -1,97 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60092 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751228Ab2JJNeH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 09:34:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
-	remi@remlab.net, subashrp@gmail.com, zhangfei.gao@gmail.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com,
-	Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCHv9 00/25] Integration of videobuf2 with DMABUF
-Date: Wed, 10 Oct 2012 15:34:50 +0200
-Message-ID: <3949478.Zn3eOk6i7V@avalon>
-In-Reply-To: <20121010075418.6a18a867@redhat.com>
-References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com> <20121010075418.6a18a867@redhat.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx1.redhat.com ([209.132.183.28]:23565 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757668Ab2J0Umb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:42:31 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKgV39020502
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:31 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 46/68] [media] drxk: get rid of some unused vars
+Date: Sat, 27 Oct 2012 18:41:04 -0200
+Message-Id: <1351370486-29040-47-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+drivers/media/dvb-frontends/drxk_hard.c:68:13: warning: 'IsA1WithPatchCode' defined but not used [-Wunused-function]
+drivers/media/dvb-frontends/drxk_hard.c:73:13: warning: 'IsA1WithRomCode' defined but not used [-Wunused-function]
 
-On Wednesday 10 October 2012 07:54:18 Mauro Carvalho Chehab wrote:
-> Em Tue, 02 Oct 2012 16:27:11 +0200 Tomasz Stanislawski escreveu:
-> > Hello everyone,
-> > This patchset adds support for DMABUF [2] importing and exporting to V4L2
-> > stack.
-> > 
-> > v9:
-> > - rebase on 3.6
-> > - change type for fs to __s32
-> > - add support for vb2_ioctl_expbuf
-> > - remove patch 'v4l: vb2: add support for DMA_ATTR_NO_KERNEL_MAPPING',
-> >   it will be posted as a separate patch
-> > - fix typos and style in Documentation (from Hans Verkuil)
-> > - only vb2-core and vb2-dma-contig selects DMA_SHARED_BUFFER in Kconfig
-> > - use data_offset and length while queueing DMABUF
-> > - return the most recently used fd at VIDIOC_DQBUF
-> > - use (buffer-type, index, plane) tuple instead of mem_offset
-> >   to identify a for exporting (from Hans Verkuil)
-> > - support for DMABUF mmap in vb2-dma-contig (from Laurent Pinchart)
-> > - add testing alignment of vaddr and size while verifying userptr
-> >   against DMA capabilities (from Laurent Pinchart)
-> > - substitute VM_DONTDUMP with VM_RESERVED
-> > - simplify error handling in vb2_dc_get_dmabuf (from Laurent Pinchart)
-> 
-> For now, NACK. See below.
-> 
-> I spent 4 days trying to setup an environment that would allow testing
-> DMABUF with video4linux without success (long story, see below). Also,
-> Laurent tried the same without any luck, and it seems that it even
-> corrupted his test machine.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb-frontends/drxk_hard.c | 15 ---------------
+ drivers/media/dvb-frontends/drxk_hard.h |  6 +-----
+ 2 files changed, 1 insertion(+), 20 deletions(-)
 
-To be exact, the i915 driver crashed, not due to DMABUF but because it lacks 
-support for YUV frame buffer on the CRTC (YUV is only supported in extra 
-planes) and failed to properly reject the set mode ioctl.
-
-My test machine is doing fine :-)
-
-I'll modify the test application to create a YUV plane and will let you know 
-about the result.
-
-> Basically Samsung generously donated me two boards that it could be
-> used on this test (Origen and SMDK310). None of them actually worked
-> with the upstream kernel: patches are needed to avoid OOPSes on
-> Origen; both Origen/SMDK310 defconfigs are completely broken, and drivers
-> don't even boot if someone tries to use the Kernel's defconfigs.
-> 
-> Even after spending _days_ trying to figure out the needed .config options
-> (as the config files are not easily available), both boards have... issues:
-> 
-> 	- lack of any display output driver at SMDK310;
-> 
-> 	- lack of any network driver at Origen: it seems that none of
-> the available network options on Origen was upstreamed: no Bluetooth, no
-> OTG, no Wifi.
-> 
-> The only test I was able to do (yesterday, late night), the DMABUF caused
-> an OOPS at the Origen board. So, for sure it is not ready for upstream.
-> 
-> It is now, too late for 3.7. I might consider it to 3.8, if something
-> can be done to fix the existing issues, and setup a proper setup, using
-> the upstream Kernel.
-
+diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
+index fb23496..59382fb 100644
+--- a/drivers/media/dvb-frontends/drxk_hard.c
++++ b/drivers/media/dvb-frontends/drxk_hard.c
+@@ -65,16 +65,6 @@ static bool IsQAM(struct drxk_state *state)
+ 	    state->m_OperationMode == OM_QAM_ITU_C;
+ }
+ 
+-static bool IsA1WithPatchCode(struct drxk_state *state)
+-{
+-	return state->m_DRXK_A1_PATCH_CODE;
+-}
+-
+-static bool IsA1WithRomCode(struct drxk_state *state)
+-{
+-	return state->m_DRXK_A1_ROM_CODE;
+-}
+-
+ #define NOA1ROM 0
+ 
+ #define DRXDAP_FASI_SHORT_FORMAT(addr) (((addr) & 0xFC30FF80) == 0)
+@@ -720,11 +710,6 @@ static int init_state(struct drxk_state *state)
+ 
+ 	state->m_bPowerDown = (ulPowerDown != 0);
+ 
+-	state->m_DRXK_A1_PATCH_CODE = false;
+-	state->m_DRXK_A1_ROM_CODE = false;
+-	state->m_DRXK_A2_ROM_CODE = false;
+-	state->m_DRXK_A3_ROM_CODE = false;
+-	state->m_DRXK_A2_PATCH_CODE = false;
+ 	state->m_DRXK_A3_PATCH_CODE = false;
+ 
+ 	/* Init AGC and PGA parameters */
+diff --git a/drivers/media/dvb-frontends/drxk_hard.h b/drivers/media/dvb-frontends/drxk_hard.h
+index 6bb9fc4..d18a896 100644
+--- a/drivers/media/dvb-frontends/drxk_hard.h
++++ b/drivers/media/dvb-frontends/drxk_hard.h
+@@ -320,11 +320,7 @@ struct drxk_state {
+ 
+ 	u8               *m_microcode;
+ 	int               m_microcode_length;
+-	bool              m_DRXK_A1_PATCH_CODE;
+-	bool              m_DRXK_A1_ROM_CODE;
+-	bool              m_DRXK_A2_ROM_CODE;
+-	bool              m_DRXK_A3_ROM_CODE;
+-	bool              m_DRXK_A2_PATCH_CODE;
++	bool		  m_DRXK_A3_ROM_CODE;
+ 	bool              m_DRXK_A3_PATCH_CODE;
+ 
+ 	bool              m_rfmirror;
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.11.7
 
