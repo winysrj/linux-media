@@ -1,85 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:38804 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755914Ab2J3OQQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Oct 2012 10:16:16 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so220801wgb.1
-        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 07:16:14 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1210301327090.29432@axis700.grange>
-References: <1351599395-16833-1-git-send-email-javier.martin@vista-silicon.com>
-	<1351599395-16833-2-git-send-email-javier.martin@vista-silicon.com>
-	<CAOMZO5C0yvvXs38B4zt46zsjphif-tg=FoEjBeoLx7iQUut62Q@mail.gmail.com>
-	<Pine.LNX.4.64.1210301327090.29432@axis700.grange>
-Date: Tue, 30 Oct 2012 15:16:14 +0100
-Message-ID: <CACKLOr0r2w-=f=PUU-s7x302Jvp3urBZcRQa3pjArZYx0BSjtg@mail.gmail.com>
-Subject: Re: [PATCH 1/4] media: mx2_camera: Remove i.mx25 support.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Fabio Estevam <festevam@gmail.com>, linux-media@vger.kernel.org,
-	fabio.estevam@freescale.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:30135 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752414Ab2J0Um2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:42:28 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKgS0d004829
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:28 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 58/68] [media] em28xx-cards: fix a warning
+Date: Sat, 27 Oct 2012 18:41:16 -0200
+Message-Id: <1351370486-29040-59-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi, Fabio,
+drivers/media/usb/em28xx/em28xx-cards.c:3309:2: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
 
-On 30 October 2012 13:29, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> On Tue, 30 Oct 2012, Fabio Estevam wrote:
->
->> Javier,
->>
->> On Tue, Oct 30, 2012 at 10:16 AM, Javier Martin
->> <javier.martin@vista-silicon.com> wrote:
->> > i.MX25 support has been broken for several releases
->> > now and nobody seems to care about it.
->>
->> I will work on fixing camera support for mx25. Please do not remove its support.
->
-> This is good to hear, thanks for doing this! But we also don't want to
-> slow down Javier's work, if he works on features, only available on i.MX27
-> or that he can only test there. How about separating parts of code,
-> specific to each platform more cleanly? Maybe add an mx27_camera.c file to
-> build the final driver from both files and mx27 and only from one on mx25?
-> Or something similar? Would this be difficult or make sense at all?
->
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-It's pretty good that you want to provide proper support for video
-capture on mx25 but I am still in favour of applying this patch for
-several reasons:
-
-1. i.mx25 "support" is so broken now that it would be better to start
-from scratch IMHO.
-2. AFAIK mx25 is not provided with an eMMa-PrP module. The current
-mx2_camera driver relies on this module to perform DMA transfers. If
-we added support for i.MX25 in this file, we'd have to use generic
-DMAs again, which is something we already removed in the past.
-3. CSI provided in i.mx25 has more features than the one in the
-i.MX27, so the code they possibly share is even more reduced.
-
-By the way, removal of all i.mx25 traces in this file was  announced
-several times in the past:
-
-9 Jul 2012
-[PATCH] [v3] i.MX27: Fix emma-prp clocks in mx2_camera.c
-26 Jul 2012
-[PATCH 2/4] media: mx2_camera: Mark i.MX25 support as BROKEN.
-[PATCH 3/4] Schedule removal of i.MX25 support in mx2_camera.c
-
-In my opinion. i.mx25 video capture support should be added in a
-separate file later. Though some CSI features are common, the lack of
-eMMa-PrP in i.mx25 will make the driver be very different.
-
-Please, expect a v2 of this patch soon. I've just remembered that I
-missed removing i.MX25 traces from the Kconfig file too.
-
-Regards.
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index bcd06e5..619bffb 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3306,7 +3306,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 
+ 	dev->num_alt = interface->num_altsetting;
+ 
+-	if ((card[nr] >= 0) && (card[nr] < em28xx_bcount))
++	if ((unsigned)card[nr] < em28xx_bcount)
+ 		dev->model = card[nr];
+ 
+ 	/* save our data pointer in this interface device */
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.11.7
+
