@@ -1,78 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:37247 "EHLO
-	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755465Ab2JLQ1I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Oct 2012 12:27:08 -0400
-Date: Fri, 12 Oct 2012 17:32:05 +0100
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-To: Dave Airlie <airlied@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: Use EXPORT_SYMBOL
-Message-ID: <20121012173205.49844867@pyramind.ukuu.org.uk>
-In-Reply-To: <CAPM=9txkSXAOu5Q_H3LWuMrJ+Q_paLPrORtRuHNg6qvsukNdyw@mail.gmail.com>
-References: <1349884592-32485-1-git-send-email-rmorell@nvidia.com>
-	<20121010191702.404edace@pyramind.ukuu.org.uk>
-	<CAF6AEGvzfr2-QHpX4zwm2EPz-vxCDe9SaLUjo4_Fn7HhjWJFsg@mail.gmail.com>
-	<201210110857.15660.hverkuil@xs4all.nl>
-	<20121011123407.63b5ecbe@pyramind.ukuu.org.uk>
-	<CAPM=9txkSXAOu5Q_H3LWuMrJ+Q_paLPrORtRuHNg6qvsukNdyw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:26104 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750746Ab2J0Uls (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:41:48 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKfmqb019737
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:41:48 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 25/68] [media] max2165: get rid of warning: no previous prototype
+Date: Sat, 27 Oct 2012 18:40:43 -0200
+Message-Id: <1351370486-29040-26-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> > Then they can accept the risk of ignoring EXPORT_SYMBOL_GPL and
-> > calling into it anyway can't they. Your argument makes no rational sense
-> > of any kind.
-> 
-> But then why object to the change, your objection makes sense, naking
-> the patch makes none, if you believe in your objection.
+drivers/media/tuners/max2165.c:164:5: warning: no previous prototype for 'fixpt_div32' [-Wmissing-prototypes]
 
-[l/k added as I imagine a few other peopel will want to see this who
- don't read driver specific lists, Greg especially I guess]
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/tuners/max2165.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-'estoppel' and because my legal advice is specifically to do so. If you
-don't understand why it matters then please get qualified legal advice.
+diff --git a/drivers/media/tuners/max2165.c b/drivers/media/tuners/max2165.c
+index ba84936..95ed46f 100644
+--- a/drivers/media/tuners/max2165.c
++++ b/drivers/media/tuners/max2165.c
+@@ -161,7 +161,7 @@ static int max2165_set_bandwidth(struct max2165_priv *priv, u32 bw)
+ 	return 0;
+ }
+ 
+-int fixpt_div32(u32 dividend, u32 divisor, u32 *quotient, u32 *fraction)
++static int fixpt_div32(u32 dividend, u32 divisor, u32 *quotient, u32 *fraction)
+ {
+ 	u32 remainder;
+ 	u32 q, f = 0;
+-- 
+1.7.11.7
 
-I'm also objecting to the failure to follow proper process. If this does
-make a difference as Nvidia seem to think then it is a clear requirement
-that you gain permission from every rightsholder affected, as with any
-other licensing change.
-
-So I would suggest Nvidia start by going through the call tree and all
-potential rightsholders and negotiating with all their corporate
-attorneys to get each of them to provide a Signed-off-by: line for that
-change and perhaps charge them for a license in the process.
-
-Now as it happens lots of other people have objected to this last time it
-was posted, and this time, so maybe they should just recognize the clear
-will of the rightsholders concerned and give up on it.
-
-It's very clear how most rights holders involved see the Nvidia
-situation. What was it Linus said..
-
-http://www.youtube.com/watch?v=IVpOyKCNZYw
-
-so right from the top the opinion seems to be fairly clear.
-
-> Also really its just bullshit handwaving all of it, your objection,
-> _GPL etc. until someone grows a pair and sues someone, instead of
-> hiding behind their employment status. If you really believed you were
-> right, you could retire on the settlement payout.
-
-Unlikely as most of the code I've written belongs to Intel or Red Hat. I
-also have better things to do with life than sue Nvidia and start an all
-out copyright and patent war in Linuxspace.
-
-It's simple enough
-
-If Nvidia think their code is not derivative then why do they care about
-the _GPL being significant ?
-
-Nouveau can call the DMA buf methods.
-
-Alan
