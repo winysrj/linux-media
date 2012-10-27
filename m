@@ -1,96 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail4-relais-sop.national.inria.fr ([192.134.164.105]:37305
-	"EHLO mail4-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750899Ab2JHFFo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Oct 2012 01:05:44 -0400
-Date: Mon, 8 Oct 2012 07:05:27 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Ryan Mallon <rmallon@gmail.com>
-cc: Julia Lawall <Julia.Lawall@lip6.fr>,
-	Antti Palosaari <crope@iki.fi>,
-	kernel-janitors@vger.kernel.org, shubhrajyoti@ti.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 3/13] drivers/media/tuners/qt1010.c: use macros for
- i2c_msg initialization
-In-Reply-To: <5071FA5D.30003@gmail.com>
-Message-ID: <alpine.DEB.2.02.1210080704440.1972@localhost6.localdomain6>
-References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-5-git-send-email-Julia.Lawall@lip6.fr> <5071FA5D.30003@gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Received: from mx1.redhat.com ([209.132.183.28]:22423 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752125Ab2J0UmI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:42:08 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKg818006308
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:08 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 29/68] [media] az6027: get rid of warning: no previous prototype
+Date: Sat, 27 Oct 2012 18:40:47 -0200
+Message-Id: <1351370486-29040-30-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 8 Oct 2012, Ryan Mallon wrote:
+drivers/media/usb/dvb-usb/az6027.c:1054:5: warning: no previous prototype for 'az6027_identify_state' [-Wmissing-prototypes]
+drivers/media/usb/dvb-usb/az6027.c:301:5: warning: no previous prototype for 'az6027_usb_in_op' [-Wmissing-prototypes]
 
-> On 08/10/12 02:38, Julia Lawall wrote:
->> From: Julia Lawall <Julia.Lawall@lip6.fr>
->>
->> Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
->>
->> A length expressed as an explicit constant is also re-expressed as the size
->> of the buffer, when this is possible.
->>
->> A simplified version of the semantic patch that makes this change is as
->> follows: (http://coccinelle.lip6.fr/)
->>
->> // <smpl>
->> @@
->> expression a,b,c;
->> identifier x;
->> @@
->>
->> struct i2c_msg x =
->> - {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
->> + I2C_MSG_READ(a,b,c)
->>  ;
->>
->> @@
->> expression a,b,c;
->> identifier x;
->> @@
->>
->> struct i2c_msg x =
->> - {.addr = a, .buf = b, .len = c, .flags = 0}
->> + I2C_MSG_WRITE(a,b,c)
->>  ;
->>
->> @@
->> expression a,b,c,d;
->> identifier x;
->> @@
->>
->> struct i2c_msg x =
->> - {.addr = a, .buf = b, .len = c, .flags = d}
->> + I2C_MSG_OP(a,b,c,d)
->>  ;
->> // </smpl>
->>
->> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
->>
->> ---
->>  drivers/media/tuners/qt1010.c |   10 ++++------
->>  1 file changed, 4 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/media/tuners/qt1010.c b/drivers/media/tuners/qt1010.c
->> index bc419f8..37ff254 100644
->> --- a/drivers/media/tuners/qt1010.c
->> +++ b/drivers/media/tuners/qt1010.c
->> @@ -25,10 +25,8 @@
->>  static int qt1010_readreg(struct qt1010_priv *priv, u8 reg, u8 *val)
->>  {
->>  	struct i2c_msg msg[2] = {
->> -		{ .addr = priv->cfg->i2c_address,
->> -		  .flags = 0, .buf = &reg, .len = 1 },
->> -		{ .addr = priv->cfg->i2c_address,
->> -		  .flags = I2C_M_RD, .buf = val, .len = 1 },
->> +		I2C_MSG_WRITE(priv->cfg->i2c_address, &reg, sizeof(reg)),
->> +		I2C_MSG_READ(priv->cfg->i2c_address, val, 1),
->
-> This is a bit inconsistent. For single length values we should either
-> consistently use sizeof(val) or 1. This has both.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/usb/dvb-usb/az6027.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-val is a pointer.  It does not have size 1.
+diff --git a/drivers/media/usb/dvb-usb/az6027.c b/drivers/media/usb/dvb-usb/az6027.c
+index 5e45ae6..91e0119 100644
+--- a/drivers/media/usb/dvb-usb/az6027.c
++++ b/drivers/media/usb/dvb-usb/az6027.c
+@@ -298,7 +298,8 @@ struct stb6100_config az6027_stb6100_config = {
+ 
+ 
+ /* check for mutex FIXME */
+-int az6027_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen)
++static int az6027_usb_in_op(struct dvb_usb_device *d, u8 req,
++			    u16 value, u16 index, u8 *b, int blen)
+ {
+ 	int ret = -1;
+ 	if (mutex_lock_interruptible(&d->usb_mutex))
+@@ -1051,10 +1052,10 @@ static struct i2c_algorithm az6027_i2c_algo = {
+ 	.functionality = az6027_i2c_func,
+ };
+ 
+-int az6027_identify_state(struct usb_device *udev,
+-			  struct dvb_usb_device_properties *props,
+-			  struct dvb_usb_device_description **desc,
+-			  int *cold)
++static int az6027_identify_state(struct usb_device *udev,
++				 struct dvb_usb_device_properties *props,
++				 struct dvb_usb_device_description **desc,
++				 int *cold)
+ {
+ 	u8 *b;
+ 	s16 ret;
+-- 
+1.7.11.7
 
-julia
