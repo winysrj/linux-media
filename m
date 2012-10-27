@@ -1,269 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33322 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751575Ab2JYVi4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Oct 2012 17:38:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH 2/2] omap3isp: video: Merge two pipeline search operations at streamon time
-Date: Thu, 25 Oct 2012 23:39:43 +0200
-Message-Id: <1351201183-21036-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1351201183-21036-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1351201183-21036-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:34600 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933393Ab2J0UnF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:43:05 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Andy Walls <awalls@md.metrocast.net>
+Subject: [PATCH 14/68] [media] ivtv: get rid of warning: no previous prototype
+Date: Sat, 27 Oct 2012 18:40:32 -0200
+Message-Id: <1351370486-29040-15-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current code first iterates over entities with external connectivity
-to locate the external source, and then walks the pipeline to verify its
-connectivity. Merge both search operations.
+drivers/media/pci/ivtv/ivtv-alsa-main.c:208:5: warning: no previous prototype for 'ivtv_alsa_load' [-Wmissing-prototypes]
+drivers/media/pci/ivtv/ivtv-alsa-pcm.c:325:5: warning: no previous prototype for 'snd_ivtv_pcm_create' [-Wmissing-prototypes]
+drivers/media/pci/ivtv/ivtv-alsa-pcm.c:72:6: warning: no previous prototype for 'ivtv_alsa_announce_pcm_data' [-Wmissing-prototypes]
+drivers/media/pci/ivtv/ivtv-firmware.c:279:5: warning: no previous prototype for 'ivtv_firmware_restart' [-Wmissing-prototypes]
+drivers/media/pci/ivtv/ivtv-ioctl.c:1171:5: warning: no previous prototype for 'ivtv_s_std' [-Wmissing-prototypes]
 
-This has the side effect of removing the bogus "can't find source,
-failing now" warning message printed when using memory-to-memory
-pipelines that include the preview engine and/or resizer only.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Andy Walls <awalls@md.metrocast.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/platform/omap3isp/ispvideo.c |  179 ++++++++++++---------------
- 1 files changed, 80 insertions(+), 99 deletions(-)
+ drivers/media/pci/ivtv/ivtv-alsa-main.c | 2 +-
+ drivers/media/pci/ivtv/ivtv-alsa-pcm.c  | 6 ++++--
+ drivers/media/pci/ivtv/ivtv-alsa-pcm.h  | 4 ----
+ drivers/media/pci/ivtv/ivtv-firmware.c  | 2 +-
+ drivers/media/pci/ivtv/ivtv-ioctl.c     | 2 +-
+ 5 files changed, 7 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 249ef71..81c0832 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -280,39 +280,90 @@ static int isp_video_get_graph_data(struct isp_video *video,
- 	return 0;
+diff --git a/drivers/media/pci/ivtv/ivtv-alsa-main.c b/drivers/media/pci/ivtv/ivtv-alsa-main.c
+index 8deab16..4a221c6 100644
+--- a/drivers/media/pci/ivtv/ivtv-alsa-main.c
++++ b/drivers/media/pci/ivtv/ivtv-alsa-main.c
+@@ -205,7 +205,7 @@ err_exit:
+ 	return ret;
  }
  
-+static int isp_video_check_external_subdevs(struct isp_pipeline *pipe,
-+					    struct media_pad *external)
-+{
-+	struct isp_device *isp = pipe->output->isp;
-+	struct v4l2_subdev_format fmt;
-+	struct v4l2_ext_controls ctrls;
-+	struct v4l2_ext_control ctrl;
-+	int ret;
-+
-+	pipe->external = media_entity_to_v4l2_subdev(external->entity);
-+
-+	fmt.pad = external->index;
-+	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+	ret = v4l2_subdev_call(media_entity_to_v4l2_subdev(external->entity),
-+			       pad, get_fmt, NULL, &fmt);
-+	if (unlikely(ret < 0)) {
-+		dev_warn(isp->dev, "get_fmt returned null!\n");
-+		return ret;
-+	}
-+
-+	pipe->external_width =
-+		omap3isp_video_format_info(fmt.format.code)->width;
-+
-+	memset(&ctrls, 0, sizeof(ctrls));
-+	memset(&ctrl, 0, sizeof(ctrl));
-+
-+	ctrl.id = V4L2_CID_PIXEL_RATE;
-+
-+	ctrls.count = 1;
-+	ctrls.controls = &ctrl;
-+
-+	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
-+	if (ret < 0) {
-+		dev_warn(isp->dev, "no pixel rate control in subdev %s\n",
-+			 pipe->external->name);
-+		return ret;
-+	}
-+
-+	pipe->external_rate = ctrl.value64;
-+
-+	return 0;
-+}
-+
- /*
-- * Validate a pipeline by checking both ends of all links for format
-- * discrepancies.
-+ * Validate the pipeline connectivity and retrieve external subdev information.
-  *
-  * Compute the minimum time per frame value as the maximum of time per frame
-  * limits reported by every block in the pipeline.
-  *
-- * Return 0 if all formats match, or -EPIPE if at least one link is found with
-- * different formats on its two ends or if the pipeline doesn't start with a
-- * video source (either a subdev with no input pad, or a non-subdev entity).
-+ * Return 0 if the pipeline is valid, or one of the following error codes
-+ * otherwise:
-+ *
-+ * -EPIPE if the pipeline doesn't start with a video source (either a subdev
-+ *  with no input pad, or a non-subdev entity)
-+ *
-+ * -ENOSPC if the external pixel rate exceeds the pipeline pixel rate limit
-+ *
-+ * Other error codes can be returned if the external subdev fails to return its
-+ * output format or pixel rate.
-  */
- static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+-int ivtv_alsa_load(struct ivtv *itv)
++static int __init ivtv_alsa_load(struct ivtv *itv)
  {
- 	struct isp_device *isp = pipe->output->isp;
-+	struct media_pad *external = NULL;
- 	struct media_pad *pad;
- 	struct v4l2_subdev *subdev;
-+	int ret;
+ 	struct v4l2_device *v4l2_dev = &itv->v4l2_dev;
+ 	struct ivtv_stream *s;
+diff --git a/drivers/media/pci/ivtv/ivtv-alsa-pcm.c b/drivers/media/pci/ivtv/ivtv-alsa-pcm.c
+index f7022bd..e1863db 100644
+--- a/drivers/media/pci/ivtv/ivtv-alsa-pcm.c
++++ b/drivers/media/pci/ivtv/ivtv-alsa-pcm.c
+@@ -37,6 +37,7 @@
+ #include "ivtv-streams.h"
+ #include "ivtv-fileops.h"
+ #include "ivtv-alsa.h"
++#include "ivtv-alsa-pcm.h"
  
- 	subdev = isp_video_remote_subdev(pipe->output, NULL);
- 	if (subdev == NULL)
- 		return -EPIPE;
+ static unsigned int pcm_debug;
+ module_param(pcm_debug, int, 0644);
+@@ -69,8 +70,9 @@ static struct snd_pcm_hardware snd_ivtv_hw_capture = {
+ 	.periods_max = 98,		/* 12544, */
+ };
  
- 	while (1) {
--		/* Retrieve the sink format */
-+		/* All ISP entities have their sink pad numbered 0. */
- 		pad = &subdev->entity.pads[0];
- 		if (!(pad->flags & MEDIA_PAD_FL_SINK))
- 			break;
+-void ivtv_alsa_announce_pcm_data(struct snd_ivtv_card *itvsc, u8 *pcm_data,
+-				 size_t num_bytes)
++static void ivtv_alsa_announce_pcm_data(struct snd_ivtv_card *itvsc,
++					u8 *pcm_data,
++					size_t num_bytes)
+ {
+ 	struct snd_pcm_substream *substream;
+ 	struct snd_pcm_runtime *runtime;
+diff --git a/drivers/media/pci/ivtv/ivtv-alsa-pcm.h b/drivers/media/pci/ivtv/ivtv-alsa-pcm.h
+index 5ab1831..23dfe0d 100644
+--- a/drivers/media/pci/ivtv/ivtv-alsa-pcm.h
++++ b/drivers/media/pci/ivtv/ivtv-alsa-pcm.h
+@@ -21,7 +21,3 @@
+  */
  
--		/* Update the maximum frame rate */
-+		/* Update the maximum frame rate. */
- 		if (subdev == &isp->isp_res.subdev)
- 			omap3isp_resizer_max_rate(&isp->isp_res,
- 						  &pipe->max_rate);
- 
--		/* Retrieve the source format. Return an error if no source
-+		/* Find the connected source. Return an error if no source
- 		 * entity can be found, and stop checking the pipeline if the
- 		 * source entity isn't a subdev.
- 		 */
-@@ -324,6 +375,27 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
- 			break;
- 
- 		subdev = media_entity_to_v4l2_subdev(pad->entity);
-+
-+		/* Store the first external pad. */
-+		if (external == NULL && subdev->grp_id != (1 << 16))
-+			external = pad;
-+	}
-+
-+	if (external == NULL)
-+		return 0;
-+
-+	ret = isp_video_check_external_subdevs(pipe, external);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (pipe->entities & (1 << isp->isp_ccdc.subdev.entity.id)) {
-+		unsigned int rate = UINT_MAX;
-+		/* Check that maximum allowed CCDC pixel rate isn't exceeded by
-+		 * the pixel rate.
-+		 */
-+		omap3isp_ccdc_max_rate(&isp->isp_ccdc, &rate);
-+		if (pipe->external_rate > rate)
-+			return -ENOSPC;
- 	}
- 
- 	return 0;
-@@ -878,93 +950,6 @@ isp_video_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
- 					  file->f_flags & O_NONBLOCK);
+ int __init snd_ivtv_pcm_create(struct snd_ivtv_card *itvsc);
+-
+-/* Used by ivtv driver to announce the PCM data to the module */
+-void ivtv_alsa_announce_pcm_data(struct snd_ivtv_card *card, u8 *pcm_data,
+-				 size_t num_bytes);
+diff --git a/drivers/media/pci/ivtv/ivtv-firmware.c b/drivers/media/pci/ivtv/ivtv-firmware.c
+index 6ec7705..68387d4 100644
+--- a/drivers/media/pci/ivtv/ivtv-firmware.c
++++ b/drivers/media/pci/ivtv/ivtv-firmware.c
+@@ -276,7 +276,7 @@ void ivtv_init_mpeg_decoder(struct ivtv *itv)
  }
  
--static int isp_video_check_external_subdevs(struct isp_video *video,
--					    struct isp_pipeline *pipe)
--{
--	struct isp_device *isp = video->isp;
--	struct media_entity *ents[] = {
--		&isp->isp_csi2a.subdev.entity,
--		&isp->isp_csi2c.subdev.entity,
--		&isp->isp_ccp2.subdev.entity,
--		&isp->isp_ccdc.subdev.entity
--	};
--	struct media_pad *source_pad;
--	struct media_entity *source = NULL;
--	struct media_entity *sink;
--	struct v4l2_subdev_format fmt;
--	struct v4l2_ext_controls ctrls;
--	struct v4l2_ext_control ctrl;
--	unsigned int i;
--	int ret = 0;
--
--	for (i = 0; i < ARRAY_SIZE(ents); i++) {
--		/* Is the entity part of the pipeline? */
--		if (!(pipe->entities & (1 << ents[i]->id)))
--			continue;
--
--		/* ISP entities have always sink pad == 0. Find source. */
--		source_pad = media_entity_remote_source(&ents[i]->pads[0]);
--		if (source_pad == NULL)
--			continue;
--
--		source = source_pad->entity;
--		sink = ents[i];
--		break;
--	}
--
--	if (!source) {
--		dev_warn(isp->dev, "can't find source, failing now\n");
--		return ret;
--	}
--
--	if (media_entity_type(source) != MEDIA_ENT_T_V4L2_SUBDEV)
--		return 0;
--
--	pipe->external = media_entity_to_v4l2_subdev(source);
--
--	fmt.pad = source_pad->index;
--	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
--	ret = v4l2_subdev_call(media_entity_to_v4l2_subdev(sink),
--			       pad, get_fmt, NULL, &fmt);
--	if (unlikely(ret < 0)) {
--		dev_warn(isp->dev, "get_fmt returned null!\n");
--		return ret;
--	}
--
--	pipe->external_width =
--		omap3isp_video_format_info(fmt.format.code)->width;
--
--	memset(&ctrls, 0, sizeof(ctrls));
--	memset(&ctrl, 0, sizeof(ctrl));
--
--	ctrl.id = V4L2_CID_PIXEL_RATE;
--
--	ctrls.count = 1;
--	ctrls.controls = &ctrl;
--
--	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
--	if (ret < 0) {
--		dev_warn(isp->dev, "no pixel rate control in subdev %s\n",
--			 pipe->external->name);
--		return ret;
--	}
--
--	pipe->external_rate = ctrl.value64;
--
--	if (pipe->entities & (1 << isp->isp_ccdc.subdev.entity.id)) {
--		unsigned int rate = UINT_MAX;
--		/*
--		 * Check that maximum allowed CCDC pixel rate isn't
--		 * exceeded by the pixel rate.
--		 */
--		omap3isp_ccdc_max_rate(&isp->isp_ccdc, &rate);
--		if (pipe->external_rate > rate)
--			return -ENOSPC;
--	}
--
--	return 0;
--}
--
- /*
-  * Stream management
-  *
-@@ -1052,10 +1037,6 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	else
- 		state = ISP_PIPELINE_STREAM_INPUT | ISP_PIPELINE_IDLE_INPUT;
+ /* Try to restart the card & restore previous settings */
+-int ivtv_firmware_restart(struct ivtv *itv)
++static int ivtv_firmware_restart(struct ivtv *itv)
+ {
+ 	int rc = 0;
+ 	v4l2_std_id std;
+diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
+index 949ae23..31a69eb 100644
+--- a/drivers/media/pci/ivtv/ivtv-ioctl.c
++++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
+@@ -1168,7 +1168,7 @@ void ivtv_s_std_dec(struct ivtv *itv, v4l2_std_id *std)
+ 	}
+ }
  
--	ret = isp_video_check_external_subdevs(video, pipe);
--	if (ret < 0)
--		goto err_check_format;
--
- 	/* Validate the pipeline and update its state. */
- 	ret = isp_video_validate_pipeline(pipe);
- 	if (ret < 0)
+-int ivtv_s_std(struct file *file, void *fh, v4l2_std_id *std)
++static int ivtv_s_std(struct file *file, void *fh, v4l2_std_id *std)
+ {
+ 	struct ivtv *itv = fh2id(fh)->itv;
+ 
 -- 
-1.7.8.6
+1.7.11.7
 
