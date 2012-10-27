@@ -1,61 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:54142 "EHLO
-	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756434Ab2JCVlS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 17:41:18 -0400
-Date: Wed, 3 Oct 2012 22:45:54 +0100
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-To: Kay Sievers <kay@vrfy.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ming Lei <ming.lei@canonical.com>,
-	Lennart Poettering <lennart@poettering.net>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Kay Sievers <kay@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Ivan Kalvachev <ikalvachev@gmail.com>
-Subject: Re: udev breakages - was: Re: Need of an ".async_probe()" type of
- callback at driver's core - Was: Re: [PATCH] [media] drxk: change it to use
- request_firmware_nowait()
-Message-ID: <20121003224554.23fca4af@pyramind.ukuu.org.uk>
-In-Reply-To: <CAPXgP13h+7+WoZ2jVjroLWU495wDPwzbhefX8ziuQMznKBWyLQ@mail.gmail.com>
-References: <CA+55aFyzXFNq7O+M9EmiRLJ=cDJziipf=BLM8GGAG70j_QTciQ@mail.gmail.com>
-	<20121002221239.GA30990@kroah.com>
-	<20121002222333.GA32207@kroah.com>
-	<CA+55aFwNEm9fCE+U_c7XWT33gP8rxothHBkSsnDbBm8aXoB+nA@mail.gmail.com>
-	<506C562E.5090909@redhat.com>
-	<CA+55aFweE2BgGjGkxLPkmHeV=Omc4RsuU6Kc6SLZHgJPsqDpeA@mail.gmail.com>
-	<20121003170907.GA23473@ZenIV.linux.org.uk>
-	<CA+55aFw0pB99ztq5YUS56db-ijdxzevA=mvY3ce5O_yujVFOcA@mail.gmail.com>
-	<20121003195059.GA13541@kroah.com>
-	<CA+55aFwjyABgr-nmsDb-184nQF7KfA8+5kbuBNwyQBHs671qQg@mail.gmail.com>
-	<20121003210532.GA10941@kroah.com>
-	<CAPXgP13h+7+WoZ2jVjroLWU495wDPwzbhefX8ziuQMznKBWyLQ@mail.gmail.com>
+Received: from plane.gmane.org ([80.91.229.3]:50866 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751533Ab2J0Vee (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 17:34:34 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1TSE1f-0003ki-MX
+	for linux-media@vger.kernel.org; Sat, 27 Oct 2012 23:34:39 +0200
+Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 23:34:39 +0200
+Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 23:34:39 +0200
+To: linux-media@vger.kernel.org
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: hvr-1600 records one, fails recording the other on an mplex
+Date: Sat, 27 Oct 2012 17:34:10 -0400
+Message-ID: <k6hk0s$63g$1@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig460C66AC942F1FA6AB5F1347"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 3 Oct 2012 23:18:06 +0200
-Kay Sievers <kay@vrfy.org> wrote:
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig460C66AC942F1FA6AB5F1347
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> On Wed, Oct 3, 2012 at 11:05 PM, Greg KH <gregkh@linuxfoundation.org> wrote:
-> 
-> > As for the firmware path, maybe we should
-> > change that to be modified by userspace (much like /sbin/hotplug was) in
-> > a proc file so that distros can override the location if they need to.
-> 
-> If that's needed, a CONFIG_FIRMWARE_PATH= with the array of locations
-> would probably be sufficient.
+Hi,
 
-The current system permits firmware to be served by a daemon, or even
-assembled on the fly from parts. You break that for one.
+As I wrote about a number (3-4) of weeks ago, I am still having a
+problem with my HVR-1600 failing on multiple digital recordings.  At the
+time I reported this previously, there was a question of whether my
+current version of MythTV was to blame.
 
-Just fix udev, and if you can't fix it someone please just fork the last
-working one.
+To that end, I updated my MythTV to the latest (at the time) on the
+0.25-fixes branch.  I also, at the same time, switched my primary
+digital tuner to my HVR-950Q.  I ran in that configuration for a couple
+of weeks without a single failed recording.
 
-Alan
+A week ago, I switched back to having my HVR-1600 as the primary device
+to determine if it was the HVR-950Q switch or the MythTV update that
+gave me such success and sure enough, on a particularly busy evening of
+recording (but no busier than the same evening the prior two weeks where
+the HVR-950Q worked flawlessly) one recording on a given multiplex
+failed while another on the same multiplex, at the same time, was
+successful.
+
+Unsurprisingly "femon" reported "FE_HAS_LOCK" for the entire time period
+of the failed recording.  I say unsurprisingly because as I mentioned
+prior, another recording on the HVR-1600 at the same time was successful.=
+
+
+Additionally, many, many times during the last week more than one
+recording on a given multiplex on this HVR-1600 worked so this problem
+is most definitely intermittent, but my experience for the last 3-4
+weeks I think proves that it's a problem with the HVR-1600 and not
+MythTV given that it's something that happens only with the HVR-1600 and
+not with the HVR-950Q.
+
+Unfortunately, there was nothing on the kernel log at the time of the
+failed recording.
+
+How can I gather further information on what might be going on which is
+causing this failure?
+
+b.
+
+
+--------------enig460C66AC942F1FA6AB5F1347
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+
+iEYEARECAAYFAlCMU10ACgkQl3EQlGLyuXBkrgCeP6f5Wr9P/HQn/smq4C35+HI4
+Ad8AoMelejXBnfT5haenQfzrFraCVlUe
+=5p21
+-----END PGP SIGNATURE-----
+
+--------------enig460C66AC942F1FA6AB5F1347--
+
