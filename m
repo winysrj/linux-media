@@ -1,44 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:28067 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755293Ab2JDJgR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 05:36:17 -0400
-From: Hans Verkuil <hansverk@cisco.com>
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.7] Fix fsl-viu compiler warning
-Date: Thu, 4 Oct 2012 11:36:02 +0200
-Cc: Anatolij Gustschin <agust@denx.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210041136.02959.hansverk@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:34139 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751444Ab2J0UmB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:42:01 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKg0sr004754
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:01 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 23/68] [media] nuvoton-cir: get rid of warning: no previous prototype
+Date: Sat, 27 Oct 2012 18:40:41 -0200
+Message-Id: <1351370486-29040-24-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+drivers/media/rc/nuvoton-cir.c:1223:5: warning: no previous prototype for 'nvt_init' [-Wmissing-prototypes]
+drivers/media/rc/nuvoton-cir.c:1228:6: warning: no previous prototype for 'nvt_exit' [-Wmissing-prototypes]
 
-Here is a quick fix for a compiler warning due to the constifying of vidioc_s_fbuf.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/rc/nuvoton-cir.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Regards,
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index 0190dfc..44ba834 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -1220,12 +1220,12 @@ static struct pnp_driver nvt_driver = {
+ 	.shutdown	= nvt_shutdown,
+ };
+ 
+-int nvt_init(void)
++static int nvt_init(void)
+ {
+ 	return pnp_register_driver(&nvt_driver);
+ }
+ 
+-void nvt_exit(void)
++static void nvt_exit(void)
+ {
+ 	pnp_unregister_driver(&nvt_driver);
+ }
+-- 
+1.7.11.7
 
-	Hans
-
-The following changes since commit 2425bb3d4016ed95ce83a90b53bd92c7f31091e4:
-
-  em28xx: regression fix: use DRX-K sync firmware requests on em28xx (2012-10-02 17:15:22 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git const2
-
-for you to fetch changes up to c6419c4e74aa986d234f2ce8e13ea3c9d53f1015:
-
-  fsl-viu: fix compiler warning. (2012-10-04 08:46:00 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (1):
-      fsl-viu: fix compiler warning.
-
- drivers/media/platform/fsl-viu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
