@@ -1,164 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:36591 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754080Ab2JBO3s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Oct 2012 10:29:48 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MB9000XXS9MFW50@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:29:47 +0900 (KST)
-Received: from mcdsrvbld02.digital.local ([106.116.37.23])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MB9005A7S65K790@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Oct 2012 23:29:46 +0900 (KST)
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, zhangfei.gao@gmail.com, s.nawrocki@samsung.com,
-	k.debski@samsung.com
-Subject: [PATCHv9 16/25] v4l: vb2-dma-contig: let mmap method to use
- dma_mmap_coherent call
-Date: Tue, 02 Oct 2012 16:27:27 +0200
-Message-id: <1349188056-4886-17-git-send-email-t.stanislaws@samsung.com>
-In-reply-to: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
-References: <1349188056-4886-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:17338 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751515Ab2J0Ul7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:41:59 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKfw0x019771
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:41:59 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 16/68] [media] mantis: get rid of warning: no previous prototype
+Date: Sat, 27 Oct 2012 18:40:34 -0200
+Message-Id: <1351370486-29040-17-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Marek Szyprowski <m.szyprowski@samsung.com>
+drivers/media/pci/mantis/mantis_input.c:107:5: warning: no previous prototype for 'mantis_input_init' [-Wmissing-prototypes]
+drivers/media/pci/mantis/mantis_input.c:153:5: warning: no previous prototype for 'mantis_exit' [-Wmissing-prototypes]
+drivers/media/pci/mantis/mantis_uart.c:64:5: warning: no previous prototype for 'mantis_uart_read' [-Wmissing-prototypes]
+drivers/media/pci/mantis/mantis_vp1033.c:118:5: warning: no previous prototype for 'lgtdqcs001f_set_symbol_rate' [-Wmissing-prototypes]
+drivers/media/pci/mantis/mantis_vp1033.c:86:5: warning: no previous prototype for 'lgtdqcs001f_tuner_set' [-Wmissing-prototypes]
 
-Let mmap method to use dma_mmap_coherent call.  Moreover, this patch removes
-vb2_mmap_pfn_range from videobuf2 helpers as it was suggested by Laurent
-Pinchart.  The function is no longer used in vb2 code.
+Note: there is already a mantis_exit at the mantis driver. So,
+this should be renamed to mantis_input_exit.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+The mantis_input code is currently unused, as it doesn't implement the RC API
+right.
+
+Patches for it are sent for discussions, but were never
+accepted. So, while this is not fixed, the entire code inside
+mantis_input can simply be commented.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/video/videobuf2-dma-contig.c |   28 +++++++++++++++++--
- drivers/media/video/videobuf2-memops.c     |   40 ----------------------------
- include/media/videobuf2-memops.h           |    5 ----
- 3 files changed, 26 insertions(+), 47 deletions(-)
+ drivers/media/pci/mantis/mantis_input.c  | 5 ++++-
+ drivers/media/pci/mantis/mantis_uart.c   | 2 +-
+ drivers/media/pci/mantis/mantis_vp1033.c | 6 +++---
+ 3 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-index a5804cf..0e065ce 100644
---- a/drivers/media/video/videobuf2-dma-contig.c
-+++ b/drivers/media/video/videobuf2-dma-contig.c
-@@ -178,14 +178,38 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
- static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
-+	int ret;
+diff --git a/drivers/media/pci/mantis/mantis_input.c b/drivers/media/pci/mantis/mantis_input.c
+index db6d54d..0e5252e 100644
+--- a/drivers/media/pci/mantis/mantis_input.c
++++ b/drivers/media/pci/mantis/mantis_input.c
+@@ -18,6 +18,8 @@
+ 	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
  
- 	if (!buf) {
- 		printk(KERN_ERR "No buffer to map\n");
- 		return -EINVAL;
- 	}
++#if 0 /* Currently unused */
++
+ #include <media/rc-core.h>
+ #include <linux/pci.h>
  
--	return vb2_mmap_pfn_range(vma, buf->dma_addr, buf->size,
--				  &vb2_common_vm_ops, &buf->handler);
-+	/*
-+	 * dma_mmap_* uses vm_pgoff as in-buffer offset, but we want to
-+	 * map whole buffer
-+	 */
-+	vma->vm_pgoff = 0;
-+
-+	ret = dma_mmap_coherent(buf->dev, vma, buf->vaddr,
-+		buf->dma_addr, buf->size);
-+
-+	if (ret) {
-+		pr_err("Remapping memory failed, error: %d\n", ret);
-+		return ret;
-+	}
-+
-+	vma->vm_flags		|= VM_DONTEXPAND | VM_RESERVED;
-+	vma->vm_private_data	= &buf->handler;
-+	vma->vm_ops		= &vb2_common_vm_ops;
-+
-+	vma->vm_ops->open(vma);
-+
-+	pr_debug("%s: mapped dma addr 0x%08lx at 0x%08lx, size %ld\n",
-+		__func__, (unsigned long)buf->dma_addr, vma->vm_start,
-+		buf->size);
-+
-+	return 0;
+@@ -150,10 +152,11 @@ out:
+ 	return err;
  }
  
- /*********************************************/
-diff --git a/drivers/media/video/videobuf2-memops.c b/drivers/media/video/videobuf2-memops.c
-index 504cd4c..81c1ad8 100644
---- a/drivers/media/video/videobuf2-memops.c
-+++ b/drivers/media/video/videobuf2-memops.c
-@@ -137,46 +137,6 @@ int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
- EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
+-int mantis_exit(struct mantis_pci *mantis)
++int mantis_init_exit(struct mantis_pci *mantis)
+ {
+ 	rc_unregister_device(mantis->rc);
+ 	rc_map_unregister(&ir_mantis_map);
+ 	return 0;
+ }
  
- /**
-- * vb2_mmap_pfn_range() - map physical pages to userspace
-- * @vma:	virtual memory region for the mapping
-- * @paddr:	starting physical address of the memory to be mapped
-- * @size:	size of the memory to be mapped
-- * @vm_ops:	vm operations to be assigned to the created area
-- * @priv:	private data to be associated with the area
-- *
-- * Returns 0 on success.
-- */
--int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
--				unsigned long size,
--				const struct vm_operations_struct *vm_ops,
--				void *priv)
--{
--	int ret;
--
--	size = min_t(unsigned long, vma->vm_end - vma->vm_start, size);
--
--	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
--	ret = remap_pfn_range(vma, vma->vm_start, paddr >> PAGE_SHIFT,
--				size, vma->vm_page_prot);
--	if (ret) {
--		printk(KERN_ERR "Remapping memory failed, error: %d\n", ret);
--		return ret;
--	}
--
--	vma->vm_flags		|= VM_DONTEXPAND | VM_RESERVED;
--	vma->vm_private_data	= priv;
--	vma->vm_ops		= vm_ops;
--
--	vma->vm_ops->open(vma);
--
--	pr_debug("%s: mapped paddr 0x%08lx at 0x%08lx, size %ld\n",
--			__func__, paddr, vma->vm_start, size);
--
--	return 0;
--}
--EXPORT_SYMBOL_GPL(vb2_mmap_pfn_range);
--
--/**
-  * vb2_common_vm_open() - increase refcount of the vma
-  * @vma:	virtual memory region for the mapping
-  *
-diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
-index 84e1f6c..f05444c 100644
---- a/include/media/videobuf2-memops.h
-+++ b/include/media/videobuf2-memops.h
-@@ -33,11 +33,6 @@ extern const struct vm_operations_struct vb2_common_vm_ops;
- int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
- 			   struct vm_area_struct **res_vma, dma_addr_t *res_pa);
++#endif
+diff --git a/drivers/media/pci/mantis/mantis_uart.c b/drivers/media/pci/mantis/mantis_uart.c
+index 85e9778..a707192 100644
+--- a/drivers/media/pci/mantis/mantis_uart.c
++++ b/drivers/media/pci/mantis/mantis_uart.c
+@@ -61,7 +61,7 @@ static struct {
  
--int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
--				unsigned long size,
--				const struct vm_operations_struct *vm_ops,
--				void *priv);
--
- struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
- void vb2_put_vma(struct vm_area_struct *vma);
+ #define UART_MAX_BUF			16
  
+-int mantis_uart_read(struct mantis_pci *mantis, u8 *data)
++static int mantis_uart_read(struct mantis_pci *mantis, u8 *data)
+ {
+ 	struct mantis_hwconfig *config = mantis->hwconfig;
+ 	u32 stat = 0, i;
+diff --git a/drivers/media/pci/mantis/mantis_vp1033.c b/drivers/media/pci/mantis/mantis_vp1033.c
+index ad013e9..115003e 100644
+--- a/drivers/media/pci/mantis/mantis_vp1033.c
++++ b/drivers/media/pci/mantis/mantis_vp1033.c
+@@ -83,7 +83,7 @@ u8 lgtdqcs001f_inittab[] = {
+ #define MANTIS_MODEL_NAME	"VP-1033"
+ #define MANTIS_DEV_TYPE		"DVB-S/DSS"
+ 
+-int lgtdqcs001f_tuner_set(struct dvb_frontend *fe)
++static int lgtdqcs001f_tuner_set(struct dvb_frontend *fe)
+ {
+ 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct mantis_pci *mantis	= fe->dvb->priv;
+@@ -115,8 +115,8 @@ int lgtdqcs001f_tuner_set(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-int lgtdqcs001f_set_symbol_rate(struct dvb_frontend *fe,
+-				u32 srate, u32 ratio)
++static int lgtdqcs001f_set_symbol_rate(struct dvb_frontend *fe,
++				       u32 srate, u32 ratio)
+ {
+ 	u8 aclk = 0;
+ 	u8 bclk = 0;
 -- 
-1.7.9.5
+1.7.11.7
 
