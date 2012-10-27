@@ -1,71 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44501 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758407Ab2JKK2V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Oct 2012 06:28:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: Imre Deak <imre.deak@intel.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Chris Wilson <chris@chris-wilson.co.uk>,
-	Kristian =?ISO-8859-1?Q?H=F8gsberg?= <krh@bitplanet.net>,
-	intel-gfx@lists.freedesktop.org, linux-media@vger.kernel.org,
-	Mario Kleiner <mario.kleiner@tuebingen.mpg.de>
-Subject: Re: [RFC 0/4] drm: add raw monotonic timestamp support
-Date: Thu, 11 Oct 2012 12:29:03 +0200
-Message-ID: <2461348.VAb9R0RWhW@avalon>
-In-Reply-To: <1349444222-22274-1-git-send-email-imre.deak@intel.com>
-References: <1349444222-22274-1-git-send-email-imre.deak@intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx1.redhat.com ([209.132.183.28]:28212 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751778Ab2J0UmE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:42:04 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKg3Ww019789
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:04 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 60/68] [media] usbvision-core: fix a warning
+Date: Sat, 27 Oct 2012 18:41:18 -0200
+Message-Id: <1351370486-29040-61-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(CC'ing linux-media)
+drivers/media/usb/usbvision/usbvision-core.c:1749:2: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
 
-On Friday 05 October 2012 16:36:58 Imre Deak wrote:
-> This is needed to make applications depending on vblank/page flip
-> timestamps independent of time ajdustments.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/usb/usbvision/usbvision.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-We're in the process to switching to CLOCK_MONOTONIC timestamps in V4L2. The 
-reason why we're using CLOCK_MONOTONIC and not CLOCK_MONOTONIC_RAW is that 
-ALSA uses the former. It would make sense in my opinion to unify timestamps 
-across our media APIs.
-
-> I've tested these with an updated intel-gpu-test/flip_test and will send
-> the update for that once there's no objection about this patchset.
-> 
-> The patchset is based on danvet's dinq branch with the following
-> additional patches from the intel-gfx ML applied:
->     drm/i915: paper over a pipe-enable vs pageflip race
->     drm/i915: don't frob the vblank ts in finish_page_flip
->     drm/i915: call drm_handle_vblank before finish_page_flip
-> 
-> Imre Deak (4):
->   time: export getnstime_raw_and_real for DRM
->   drm: make memset/calloc for _vblank_time more robust
->   drm: use raw time in drm_calc_vbltimestamp_from_scanoutpos
->   drm: add support for raw monotonic vblank timestamps
-> 
->  drivers/gpu/drm/drm_crtc.c                |    2 +
->  drivers/gpu/drm/drm_ioctl.c               |    3 ++
->  drivers/gpu/drm/drm_irq.c                 |   83 ++++++++++++++------------
->  drivers/gpu/drm/i915/i915_irq.c           |    2 +-
->  drivers/gpu/drm/i915/intel_display.c      |   12 ++---
->  drivers/gpu/drm/radeon/radeon_display.c   |   10 ++--
->  drivers/gpu/drm/radeon/radeon_drv.c       |    2 +-
->  drivers/gpu/drm/radeon/radeon_kms.c       |    2 +-
->  drivers/gpu/drm/shmobile/shmob_drm_crtc.c |    9 ++--
->  include/drm/drm.h                         |    5 +-
->  include/drm/drmP.h                        |   38 +++++++++++--
->  include/drm/drm_mode.h                    |    4 +-
->  kernel/time/timekeeping.c                 |    2 +-
->  13 files changed, 113 insertions(+), 61 deletions(-)
-
+diff --git a/drivers/media/usb/usbvision/usbvision.h b/drivers/media/usb/usbvision/usbvision.h
+index 43cf61f..8a25876 100644
+--- a/drivers/media/usb/usbvision/usbvision.h
++++ b/drivers/media/usb/usbvision/usbvision.h
+@@ -167,7 +167,7 @@ enum {
+ 
+ /* This macro restricts an int variable to an inclusive range */
+ #define RESTRICT_TO_RANGE(v, mi, ma) \
+-	{ if ((v) < (mi)) (v) = (mi); else if ((v) > (ma)) (v) = (ma); }
++	{ if (((int)v) < (mi)) (v) = (mi); else if ((v) > (ma)) (v) = (ma); }
+ 
+ /*
+  * We use macros to do YUV -> RGB conversion because this is
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.11.7
 
