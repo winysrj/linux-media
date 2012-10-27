@@ -1,80 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:48428 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750933Ab2JGMtr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Oct 2012 08:49:47 -0400
-Date: Sun, 7 Oct 2012 09:49:35 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Palash Bandyopadhyay <Palash.Bandyopadhyay@conexant.com>,
-	Sri Deevi <Srinivasa.Deevi@conexant.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	"Leonid V. Fedorenchik" <leonidsbox@gmail.com>,
-	Thomas Meyer <thomas@m3y3r.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] cx25821: testing the wrong variable
-Message-ID: <20121007094935.61084364@infradead.org>
-In-Reply-To: <20120929071253.GD10993@elgon.mountain>
-References: <20120929071253.GD10993@elgon.mountain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from comal.ext.ti.com ([198.47.26.152]:44750 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755941Ab2J0Iov (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 04:44:51 -0400
+Message-ID: <508B9EEB.2070806@ti.com>
+Date: Sat, 27 Oct 2012 14:14:27 +0530
+From: Sekhar Nori <nsekhar@ti.com>
+MIME-Version: 1.0
+To: Murali Karicheri <m-karicheri2@ti.com>
+CC: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	<linux-kernel@vger.kernel.org>, <mchehab@infradead.org>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [RESEND-PATCH] media:davinci: clk - {prepare/unprepare} for common
+ clk
+References: <1350920203-21978-1-git-send-email-m-karicheri2@ti.com> <CA+V-a8sbCyTTAm-x2Jr2_XxccRo0kjhVAYaVAibXHCqjZL7-nA@mail.gmail.com> <508AB1D2.40908@ti.com>
+In-Reply-To: <508AB1D2.40908@ti.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 29 Sep 2012 10:12:53 +0300
-Dan Carpenter <dan.carpenter@oracle.com> escreveu:
+Hi Murali,
 
-> ->input_filename could be NULL here.  The intent was to test
-> ->_filename.
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
-> I'm not totally convinced that using /root/vid411.yuv is the right idea.
+On 10/26/2012 9:22 PM, Murali Karicheri wrote:
+> On 10/25/2012 09:12 AM, Prabhakar Lad wrote:
+>> Hi Murali,
+>>
+>> Thanks for the patch.  I'll  queue this patch for 3.8.
+> Please check with Sekhar as well. This is a preparation patch for common
+> clk framework support. ALso fixes some bugs on the existing code. As the
+> clk
+> patches are dependent on these patches, I would suggest you queue this
+> against 3.7 rcx.
 
-Agreed.
+The -rc cycle is for fixes only so this cannot get merged into v3.7
+as-is. If the patch has some fixes embedded, its a good idea to separate
+them out (and have the feature parts come after the fixes in the patch
+series) so they can be considered for -rc cycle. The current description
+does not detail what the issue is and what its impact is so when you do
+separate it out, please mention those as well. It will help determine
+the severity of the issue and convince maintainers to include it in v3.7.
 
-Palash, Sri,
-
-Why do we need those files?
-
-Regards,
-Mauro
-
-> 
-> diff --git a/drivers/media/pci/cx25821/cx25821-video-upstream.c b/drivers/media/pci/cx25821/cx25821-video-upstream.c
-> index 52c13e0..6759fff 100644
-> --- a/drivers/media/pci/cx25821/cx25821-video-upstream.c
-> +++ b/drivers/media/pci/cx25821/cx25821-video-upstream.c
-> @@ -808,7 +808,7 @@ int cx25821_vidupstream_init_ch1(struct cx25821_dev *dev, int channel_select,
->  	}
->  
->  	/* Default if filename is empty string */
-> -	if (strcmp(dev->input_filename, "") == 0) {
-> +	if (strcmp(dev->_filename, "") == 0) {
->  		if (dev->_isNTSC) {
->  			dev->_filename =
->  				(dev->_pixel_format == PIXEL_FRMT_411) ?
-> diff --git a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-> index c8c94fb..d33fc1a 100644
-> --- a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-> +++ b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
-> @@ -761,7 +761,7 @@ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
->  	}
->  
->  	/* Default if filename is empty string */
-> -	if (strcmp(dev->input_filename_ch2, "") == 0) {
-> +	if (strcmp(dev->_filename_ch2, "") == 0) {
->  		if (dev->_isNTSC_ch2) {
->  			dev->_filename_ch2 = (dev->_pixel_format_ch2 ==
->  				PIXEL_FRMT_411) ? "/root/vid411.yuv" :
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
-
-Cheers,
-Mauro
+Thanks,
+Sekhar
