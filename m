@@ -1,102 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail4-relais-sop.national.inria.fr ([192.134.164.105]:42652
-	"EHLO mail4-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753428Ab2JGPj0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Oct 2012 11:39:26 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Antti Palosaari <crope@iki.fi>
-Cc: kernel-janitors@vger.kernel.org, rmallon@gmail.com,
-	shubhrajyoti@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 11/13] drivers/media/tuners/tda18218.c: use macros for i2c_msg initialization
-Date: Sun,  7 Oct 2012 17:38:42 +0200
-Message-Id: <1349624323-15584-13-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr>
+Received: from mx1.redhat.com ([209.132.183.28]:32272 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752108Ab2J0UmH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:42:07 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 56/68] [media] tua9001: fix a warning
+Date: Sat, 27 Oct 2012 18:41:14 -0200
+Message-Id: <1351370486-29040-57-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+drivers/media/tuners/tua9001.c:211:5: warning: 'ret' may be used uninitialized in this function [-Wmaybe-uninitialized]
 
-Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
-
-A simplified version of the semantic patch that makes this change is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-@@
-expression a,b,c;
-identifier x;
-@@
-
-struct i2c_msg x =
-- {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
-+ I2C_MSG_READ(a,b,c)
- ;
-
-@@
-expression a,b,c;
-identifier x;
-@@
-
-struct i2c_msg x =
-- {.addr = a, .buf = b, .len = c, .flags = 0}
-+ I2C_MSG_WRITE(a,b,c)
- ;
-
-@@
-expression a,b,c,d;
-identifier x;
-@@
-
-struct i2c_msg x = 
-- {.addr = a, .buf = b, .len = c, .flags = d}
-+ I2C_MSG_OP(a,b,c,d)
- ;
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
+Cc: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/tuners/tda18218.c |   19 +++----------------
- 1 file changed, 3 insertions(+), 16 deletions(-)
+ drivers/media/tuners/tua9001.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/tuners/tda18218.c b/drivers/media/tuners/tda18218.c
-index 1819853..c0c2fef 100644
---- a/drivers/media/tuners/tda18218.c
-+++ b/drivers/media/tuners/tda18218.c
-@@ -26,11 +26,7 @@ static int tda18218_wr_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
- 	int ret = 0, len2, remaining;
- 	u8 buf[1 + len];
- 	struct i2c_msg msg[1] = {
--		{
--			.addr = priv->cfg->i2c_address,
--			.flags = 0,
--			.buf = buf,
--		}
-+		I2C_MSG_WRITE(priv->cfg->i2c_address, buf, 0)
- 	};
- 
- 	for (remaining = len; remaining > 0;
-@@ -65,17 +61,8 @@ static int tda18218_rd_regs(struct tda18218_priv *priv, u8 reg, u8 *val, u8 len)
- 	int ret;
- 	u8 buf[reg+len]; /* we must start read always from reg 0x00 */
- 	struct i2c_msg msg[2] = {
--		{
--			.addr = priv->cfg->i2c_address,
--			.flags = 0,
--			.len = 1,
--			.buf = "\x00",
--		}, {
--			.addr = priv->cfg->i2c_address,
--			.flags = I2C_M_RD,
--			.len = sizeof(buf),
--			.buf = buf,
--		}
-+		I2C_MSG_WRITE(priv->cfg->i2c_address, "\x00", 1),
-+		I2C_MSG_READ(priv->cfg->i2c_address, buf, sizeof(buf))
- 	};
- 
- 	ret = i2c_transfer(priv->i2c, msg, 2);
+diff --git a/drivers/media/tuners/tua9001.c b/drivers/media/tuners/tua9001.c
+index 3896684..83a6240 100644
+--- a/drivers/media/tuners/tua9001.c
++++ b/drivers/media/tuners/tua9001.c
+@@ -136,7 +136,7 @@ static int tua9001_set_params(struct dvb_frontend *fe)
+ {
+ 	struct tua9001_priv *priv = fe->tuner_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-	int ret, i;
++	int ret = 0, i;
+ 	u16 val;
+ 	u32 frequency;
+ 	struct reg_val data[2];
+-- 
+1.7.11.7
 
