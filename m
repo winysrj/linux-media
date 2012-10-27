@@ -1,90 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54688 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754092Ab2JOSfu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Oct 2012 14:35:50 -0400
-Date: Mon, 15 Oct 2012 21:35:44 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Vincent ABRIOU <vincent.abriou@st.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"a.hajda@samsung.com" <a.hajda@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"sw0312.kim@samsung.com" <sw0312.kim@samsung.com>,
-	Nicolas THERY <nicolas.thery@st.com>,
-	Jean-Marc VOLLE <jean-marc.volle@st.com>,
-	Pierre-yves TALOUD <pierre-yves.taloud@st.com>,
-	Willy POISSON <willy.poisson@st.com>
-Subject: Re: [PATCH RFC 1/5] V4L: Add V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8 media
- bus format
-Message-ID: <20121015183517.GF21261@valkosipuli.retiisi.org.uk>
-References: <1348498546-2652-1-git-send-email-s.nawrocki@samsung.com>
- <1348498546-2652-2-git-send-email-s.nawrocki@samsung.com>
- <2823843.qYtB3rcnKu@avalon>
- <5061C23E.903@samsung.com>
- <9481210134BDC5419AC503D05B6CA44F34B780C91A@SAFEX1MAIL1.st.com>
- <50745A66.1050708@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <50745A66.1050708@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:18586 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752280Ab2J0UmN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:42:13 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKgDuo006322
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:13 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 08/68] [media] tda18271c2dd.c: get rid of warning: no previous prototype
+Date: Sat, 27 Oct 2012 18:40:26 -0200
+Message-Id: <1351370486-29040-9-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester and Vincent,
+drivers/media/dvb-frontends/tda18271c2dd.c:1224:22: warning: no previous prototype for 'tda18271c2dd_attach' [-Wmissing-prototypes]
 
-My apologies for the late reply on this topic. I've been quite busy lately.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb-frontends/tda18271c2dd.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Sylwester Nawrocki wrote:
-> On 10/09/2012 03:36 PM, Vincent ABRIOU wrote:
->> Hi Sylwester,
->>
->> I'm wondering why don't you simply define V4L2_MBUS_FMT_UYVY_JPEG_1X8
->> without any reference to your camera?
->
-> Because it's not a plain UYVY/JPEG data. There is an additional meta-data
-> that follows interleaved UYVY/JPEG. It's all on a single User Defined
-> MIPI CSI-2 DT. In addition to that there is some more meta data transmitted
-> on MIPI CSI-2 Embedded Data DT. If there was no meta-data present at the
-> User Defined DT, then we could think about using generic
-> V4L2_MBUS_FMT_UYVY_JPEG_1X8 pixel code and handling the meta-data on
-> separate DT with the frame_desc calls.
->
-> Anyway this S5C media bus format is an experimental thing and if there are
-> cameras generating plain JPEG/YUV we need to search for better, more generic
-> solution.
-
-Vincent: what's the frame layout that your sensor produces? There are two
-cases that could be easy (sort of, everything's relative) that I can see for
-the standard interfaces.
-
-1. Different parts of the image are transmitted over different CSI-2
-contexts. This way the receiver may separate them to separate memory
-regions, and the end result is a single multi-plane buffer.
-
-2. If the distance in octets of the intermittent image strides is constant,
-then we could do some tricks with multi-plane buffers. The two planes of the
-buffer could be interleaved, with correct base addresses.
-
-I think Sylwester's case fits into neither of the above. A device-specific
-format does not resolve configuring the two formats.
-
-Both require adding plane-specific pixel codes, agreement over how frame
-descriptors are used for describing frames of multiple independent content
-planes, and how the multiple formats are configured on the sensor. Use of
-sub-subdevs come to mind for the last one as an alternative --- this issue
-stems from the fact we're using the same interface to model the bus and the
-image format on that bus. It no longer works out the way it used to when
-there are two formats on the same bus.
-
-Each of these probably require a separate RFC and someone to implement the
-changes.
-
-Kind regards,
-
+diff --git a/drivers/media/dvb-frontends/tda18271c2dd.c b/drivers/media/dvb-frontends/tda18271c2dd.c
+index ad7c72e..d281f77 100644
+--- a/drivers/media/dvb-frontends/tda18271c2dd.c
++++ b/drivers/media/dvb-frontends/tda18271c2dd.c
+@@ -32,6 +32,7 @@
+ #include <asm/div64.h>
+ 
+ #include "dvb_frontend.h"
++#include "tda18271c2dd.h"
+ 
+ struct SStandardParam {
+ 	s32   m_IFFrequency;
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.11.7
+
