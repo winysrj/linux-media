@@ -1,60 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50794 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751410Ab2J3Qec (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Oct 2012 12:34:32 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Zhou Zhu <zzhu84@gmail.com>
-Cc: Jun Nie <niej0001@gmail.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	Archit Taneja <archit@ti.com>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [RFC 0/5] Generic panel framework
-Date: Tue, 30 Oct 2012 17:35:23 +0100
-Message-ID: <3539590.nD15u1ceQC@avalon>
-In-Reply-To: <CAJATT-5=kQzUaubL--oRJdm6u8Z10Hus+SMLt3zG1ZSi4QUVWw@mail.gmail.com>
-References: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com> <CAGA24MLnW-i0koFuAsnFQ2mNnrLupkmbxW5T8WYiV3QuoA2vig@mail.gmail.com> <CAJATT-5=kQzUaubL--oRJdm6u8Z10Hus+SMLt3zG1ZSi4QUVWw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx1.redhat.com ([209.132.183.28]:64719 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752477Ab2J0UmK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:42:10 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKg9x6006314
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:10 -0400
+Received: from pedra (vpn1-4-98.gru2.redhat.com [10.97.4.98])
+	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKg4xm014043
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:09 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 62/68] [media] bttv-driver: fix two warnings
+Date: Sat, 27 Oct 2012 18:41:20 -0200
+Message-Id: <1351370486-29040-63-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Zhou,
+drivers/media/pci/bt8xx/bttv-driver.c:308:3: warning: initialized field overwritten [-Woverride-init]
+drivers/media/pci/bt8xx/bttv-driver.c:308:3: warning: (near initialization for 'bttv_tvnorms[0].cropcap.bounds.height') [-Woverride-init]
+drivers/media/pci/bt8xx/bttv-driver.c: In function 'bttv_remove':
+drivers/media/pci/bt8xx/bttv-driver.c:4467:29: warning: suggest braces around empty body in an 'if' statement [-Wempty-body]
 
-On Tuesday 04 September 2012 16:20:38 Zhou Zhu wrote:
-> Hi Laurent,
-> 
-> Basically I agree that we need a common panel framework. I just have
-> some questions:
-> 1.  I think we should add color format in videomode - if we use such
-> common video mode structure shared across subsystems.
-> In HDMI, colors are bind with timings tightly. We need a combined
-> videomode with timing and color format together.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/pci/bt8xx/bttv-driver.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-What kind of color formats do you have in mind ?
-
-> 2. I think we should add "set_videomode" interface. It helps HDMI
-> monitors to set EDIDs.
-
-For panels that support several video modes, sure, we need a way to set the 
-video mode. I don't have access to any such panel though, that's why the 
-operation has been left out. It wouldn't be difficult to add it when a real 
-use case will come up.
-
-What do you mean exactly about HDMI monitors setting EDID ?
-
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index 56c6c77..de6f41f 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -200,7 +200,7 @@ static void flush_request_modules(struct bttv *dev)
+ }
+ #else
+ #define request_modules(dev)
+-#define flush_request_modules(dev)
++#define flush_request_modules(dev) do {} while(0)
+ #endif /* CONFIG_MODULES */
+ 
+ 
+@@ -301,11 +301,10 @@ const struct bttv_tvnorm bttv_tvnorms[] = {
+ 			/* totalwidth */ 1135,
+ 			/* sqwidth */ 944,
+ 			/* vdelay */ 0x20,
+-			/* sheight */ 576,
+-			/* videostart0 */ 23)
+ 		/* bt878 (and bt848?) can capture another
+ 		   line below active video. */
+-		.cropcap.bounds.height = (576 + 2) + 0x20 - 2,
++			/* sheight */ (576 + 2) + 0x20 - 2,
++			/* videostart0 */ 23)
+ 	},{
+ 		.v4l2_id        = V4L2_STD_NTSC_M | V4L2_STD_NTSC_M_KR,
+ 		.name           = "NTSC",
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.11.7
 
