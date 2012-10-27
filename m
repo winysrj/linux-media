@@ -1,37 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0195.b.hostedemail.com ([64.98.42.195]:59754 "EHLO
-	smtprelay.b.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755015Ab2JVRaj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Oct 2012 13:30:39 -0400
-Date: Mon, 22 Oct 2012 17:30:37 +0000 (GMT)
-From: "Artem S. Tashkinov" <t.artem@lycos.com>
-To: stern@rowland.harvard.edu
-Cc: zonque@gmail.com, bp@alien8.de, pavel@ucw.cz,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	security@kernel.org, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org, alsa-devel@alsa-project.org
-Message-ID: <1985645001.39510.1350927037793.JavaMail.mail@webmail15>
-References: <Pine.LNX.4.44L0.1210221153140.1724-100000@iolanthe.rowland.org>
-Subject: Re: Re: A reliable kernel panic (3.6.2) and system crash when
- visiting a particular website
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:23190 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757051Ab2J0UmX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:42:23 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKgM1c004813
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:22 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 51/68] [media] meye: fix a warning
+Date: Sat, 27 Oct 2012 18:41:09 -0200
+Message-Id: <1351370486-29040-52-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Oct 22, 2012, Alan Stern <stern@rowland.harvard.edu> wrote: 
+drivers/media/pci/meye/meye.c:1948:2: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
 
-> A BUG() at these points would crash the machine hard.  And where we
-> came from doesn't matter; what matters is the values in the pointers.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/pci/meye/meye.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-OK, here's what the kernel prints with your patch:
-
-usb 6.1.4: ep 86 list del corruption prev: e5103b54 e5103a94 e51039d4
-
-A small delay before I got thousands of list_del corruption messages would
-have been nice, but I managed to catch the message anyway.
-
-Artem
+diff --git a/drivers/media/pci/meye/meye.c b/drivers/media/pci/meye/meye.c
+index e5a76da..ae7d320 100644
+--- a/drivers/media/pci/meye/meye.c
++++ b/drivers/media/pci/meye/meye.c
+@@ -1945,7 +1945,7 @@ static struct pci_driver meye_driver = {
+ static int __init meye_init(void)
+ {
+ 	gbuffers = max(2, min((int)gbuffers, MEYE_MAX_BUFNBRS));
+-	if (gbufsize < 0 || gbufsize > MEYE_MAX_BUFSIZE)
++	if (gbufsize > MEYE_MAX_BUFSIZE)
+ 		gbufsize = MEYE_MAX_BUFSIZE;
+ 	gbufsize = PAGE_ALIGN(gbufsize);
+ 	printk(KERN_INFO "meye: using %d buffers with %dk (%dk total) "
+-- 
+1.7.11.7
 
