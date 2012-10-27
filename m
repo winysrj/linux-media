@@ -1,139 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42542 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:7212 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752794Ab2JQUCH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 16:02:07 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9HK26hD032498
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 17 Oct 2012 16:02:07 -0400
+	id S1750729Ab2J0Ulr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:41:47 -0400
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 2/3] [media] siano: allow compiling it without RC support
-Date: Wed, 17 Oct 2012 17:01:57 -0300
-Message-Id: <1350504118-8901-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1350504118-8901-1-git-send-email-mchehab@redhat.com>
-References: <1350503193-8412-1-git-send-email-mchehab@redhat.com>
- <1350504118-8901-1-git-send-email-mchehab@redhat.com>
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Andy Walls <awalls@md.metrocast.net>
+Subject: [PATCH 09/68] [media] cx18: get rid of warning: no previous prototype
+Date: Sat, 27 Oct 2012 18:40:27 -0200
+Message-Id: <1351370486-29040-10-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remote controller support should be optional on all drivers.
+drivers/media/pci/cx18/cx18-alsa-main.c:200:5: warning: no previous prototype for 'cx18_alsa_load' [-Wmissing-prototypes]
+drivers/media/pci/cx18/cx18-alsa-pcm.c:325:5: warning: no previous prototype for 'snd_cx18_pcm_create' [-Wmissing-prototypes]
+drivers/media/pci/cx18/cx18-alsa-pcm.c:72:6: warning: no previous prototype for 'cx18_alsa_announce_pcm_data' [-Wmissing-prototypes]
+drivers/media/pci/cx18/cx18-streams.c:100:6: warning: no previous prototype for 'cx18_dma_free' [-Wmissing-prototypes]
 
-Make it optional at Siano's driver.
-
+Cc: Andy Walls <awalls@md.metrocast.net>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/common/Kconfig        |  7 +++++++
- drivers/media/common/siano/Kconfig  | 10 +++++++++-
- drivers/media/common/siano/Makefile |  3 ++-
- drivers/media/common/siano/smsir.h  |  9 +++++++++
- drivers/media/mmc/siano/Kconfig     |  1 +
- drivers/media/usb/siano/Kconfig     |  1 +
- 6 files changed, 29 insertions(+), 2 deletions(-)
+ drivers/media/pci/cx18/cx18-alsa-main.c | 2 +-
+ drivers/media/pci/cx18/cx18-alsa-pcm.c  | 1 +
+ drivers/media/pci/cx18/cx18-streams.c   | 2 +-
+ 3 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/common/Kconfig b/drivers/media/common/Kconfig
-index 121b011..d2a436c 100644
---- a/drivers/media/common/Kconfig
-+++ b/drivers/media/common/Kconfig
-@@ -1,3 +1,10 @@
-+# Used by common drivers, when they need to ask questions
-+config MEDIA_COMMON_OPTIONS
-+	bool
-+
-+comment "common driver options"
-+	depends on MEDIA_COMMON_OPTIONS
-+
- source "drivers/media/common/b2c2/Kconfig"
- source "drivers/media/common/saa7146/Kconfig"
- source "drivers/media/common/siano/Kconfig"
-diff --git a/drivers/media/common/siano/Kconfig b/drivers/media/common/siano/Kconfig
-index 425aead..08d5b58 100644
---- a/drivers/media/common/siano/Kconfig
-+++ b/drivers/media/common/siano/Kconfig
-@@ -4,7 +4,7 @@
+diff --git a/drivers/media/pci/cx18/cx18-alsa-main.c b/drivers/media/pci/cx18/cx18-alsa-main.c
+index 6d2a982..8e971ff 100644
+--- a/drivers/media/pci/cx18/cx18-alsa-main.c
++++ b/drivers/media/pci/cx18/cx18-alsa-main.c
+@@ -197,7 +197,7 @@ err_exit:
+ 	return ret;
+ }
  
- config SMS_SIANO_MDTV
- 	tristate
--	depends on DVB_CORE && RC_CORE && HAS_DMA
-+	depends on DVB_CORE && HAS_DMA
- 	depends on SMS_USB_DRV || SMS_SDIO_DRV
- 	default y
- 	---help---
-@@ -15,3 +15,11 @@ config SMS_SIANO_MDTV
+-int cx18_alsa_load(struct cx18 *cx)
++static int __init cx18_alsa_load(struct cx18 *cx)
+ {
+ 	struct v4l2_device *v4l2_dev = &cx->v4l2_dev;
+ 	struct cx18_stream *s;
+diff --git a/drivers/media/pci/cx18/cx18-alsa-pcm.c b/drivers/media/pci/cx18/cx18-alsa-pcm.c
+index 7a5b84a..180077c 100644
+--- a/drivers/media/pci/cx18/cx18-alsa-pcm.c
++++ b/drivers/media/pci/cx18/cx18-alsa-pcm.c
+@@ -37,6 +37,7 @@
+ #include "cx18-streams.h"
+ #include "cx18-fileops.h"
+ #include "cx18-alsa.h"
++#include "cx18-alsa-pcm.h"
  
- 	  Further documentation on this driver can be found on the WWW
- 	  at http://www.siano-ms.com/
-+config SMS_SIANO_RC
-+	bool "Enable Remote Controller support for Siano devices"
-+	depends on SMS_SIANO_MDTV && RC_CORE
-+	depends on SMS_USB_DRV || SMS_SDIO_DRV
-+	depends on MEDIA_COMMON_OPTIONS
-+	default y
-+	---help---
-+	  Choose Y to select Remote Controller support for Siano driver.
-diff --git a/drivers/media/common/siano/Makefile b/drivers/media/common/siano/Makefile
-index 2a09279..0e6f5e9 100644
---- a/drivers/media/common/siano/Makefile
-+++ b/drivers/media/common/siano/Makefile
-@@ -1,6 +1,7 @@
--smsmdtv-objs := smscoreapi.o sms-cards.o smsendian.o smsir.o
-+smsmdtv-objs := smscoreapi.o sms-cards.o smsendian.o
- 
- obj-$(CONFIG_SMS_SIANO_MDTV) += smsmdtv.o smsdvb.o
-+obj-$(CONFIG_SMS_SIANO_RC) += smsir.o
- 
- ccflags-y += -Idrivers/media/dvb-core
- ccflags-y += $(extra-cflags-y) $(extra-cflags-m)
-diff --git a/drivers/media/common/siano/smsir.h b/drivers/media/common/siano/smsir.h
-index ae92b3a..69b59b9 100644
---- a/drivers/media/common/siano/smsir.h
-+++ b/drivers/media/common/siano/smsir.h
-@@ -46,10 +46,19 @@ struct ir_t {
- 	u32 controller;
+ static unsigned int pcm_debug;
+ module_param(pcm_debug, int, 0644);
+diff --git a/drivers/media/pci/cx18/cx18-streams.c b/drivers/media/pci/cx18/cx18-streams.c
+index 72af9b5..843c62b 100644
+--- a/drivers/media/pci/cx18/cx18-streams.c
++++ b/drivers/media/pci/cx18/cx18-streams.c
+@@ -97,7 +97,7 @@ static struct {
  };
  
-+#ifdef CONFIG_SMS_SIANO_RC
- int sms_ir_init(struct smscore_device_t *coredev);
- void sms_ir_exit(struct smscore_device_t *coredev);
- void sms_ir_event(struct smscore_device_t *coredev,
- 			const char *buf, int len);
-+#else
-+inline static int sms_ir_init(struct smscore_device_t *coredev) {
-+	return 0;
-+}
-+inline static void sms_ir_exit(struct smscore_device_t *coredev) {};
-+inline static void sms_ir_event(struct smscore_device_t *coredev,
-+			const char *buf, int len) {};
-+#endif
  
- #endif /* __SMS_IR_H__ */
- 
-diff --git a/drivers/media/mmc/siano/Kconfig b/drivers/media/mmc/siano/Kconfig
-index fa62475..69f8061 100644
---- a/drivers/media/mmc/siano/Kconfig
-+++ b/drivers/media/mmc/siano/Kconfig
-@@ -6,5 +6,6 @@ config SMS_SDIO_DRV
- 	tristate "Siano SMS1xxx based MDTV via SDIO interface"
- 	depends on DVB_CORE && RC_CORE && HAS_DMA
- 	depends on MMC
-+	select MEDIA_COMMON_OPTIONS
- 	---help---
- 	  Choose if you would like to have Siano's support for SDIO interface
-diff --git a/drivers/media/usb/siano/Kconfig b/drivers/media/usb/siano/Kconfig
-index 3c76e62..b2c229e 100644
---- a/drivers/media/usb/siano/Kconfig
-+++ b/drivers/media/usb/siano/Kconfig
-@@ -5,6 +5,7 @@
- config SMS_USB_DRV
- 	tristate "Siano SMS1xxx based MDTV receiver"
- 	depends on DVB_CORE && RC_CORE && HAS_DMA
-+	select MEDIA_COMMON_OPTIONS
- 	---help---
- 	  Choose if you would like to have Siano's support for USB interface
- 
+-void cx18_dma_free(struct videobuf_queue *q,
++static void cx18_dma_free(struct videobuf_queue *q,
+ 	struct cx18_stream *s, struct cx18_videobuf_buffer *buf)
+ {
+ 	videobuf_waiton(q, &buf->vb, 0, 0);
 -- 
 1.7.11.7
 
