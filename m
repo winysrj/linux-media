@@ -1,46 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:63727 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754244Ab2JPHUr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Oct 2012 03:20:47 -0400
-Received: by mail-bk0-f46.google.com with SMTP id jk13so2792192bkc.19
-        for <linux-media@vger.kernel.org>; Tue, 16 Oct 2012 00:20:45 -0700 (PDT)
-Message-ID: <507D0ACB.6090802@googlemail.com>
-Date: Tue, 16 Oct 2012 09:20:43 +0200
-From: Gregor Jasny <gjasny@googlemail.com>
-MIME-Version: 1.0
-To: Wojciech Myrda <vojcek@tlen.pl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [segfault] running ir-keytable with v4l-utils 0.8.9
-References: <507B1879.9020100@tlen.pl>
-In-Reply-To: <507B1879.9020100@tlen.pl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:4071 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752312Ab2J0UmZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:42:25 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKgPtp019849
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:25 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 36/68] [media] dib9000: get rid of warning: no previous prototype
+Date: Sat, 27 Oct 2012 18:40:54 -0200
+Message-Id: <1351370486-29040-37-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+drivers/media/dvb-frontends/dib9000.h:100:5: warning: no previous prototype for 'dib9000_remove_slave_frontend' [-Wmissing-prototypes]
 
-On 10/14/12 9:54 PM, Wojciech Myrda wrote:
-> On my system I have just installed using bumped Gentoo ebuilds v4l-utils
-> package
->
-> [ebuild   R    ] media-libs/libv4l-0.8.9::bigvo  0 kB
-> [ebuild   R    ] media-tv/v4l-utils-0.8.9::bigvo  USE="-qt4" 0 kB
->
-> ebuilds used for bumbing to version 0.8.9:
-> http://gentoo-portage.com/media-libs/libv4l/libv4l-0.8.8
-> http://gentoo-portage.com/media-tv/v4l-utils/v4l-utils-0.8.8-r1
->
-> However I experienced a segfault trying to run this command:
-> ir-keytable --protocol=rc-6 --device
-> /dev/input/by-id/usb-15c2_0038-event-if00
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb-frontends/dib9000.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-There seems to be some problems with options or file parsing. Valgrind 
-is complaining, too. I'll have a look later.
+diff --git a/drivers/media/dvb-frontends/dib9000.h b/drivers/media/dvb-frontends/dib9000.h
+index b5781a4..de1cc91 100644
+--- a/drivers/media/dvb-frontends/dib9000.h
++++ b/drivers/media/dvb-frontends/dib9000.h
+@@ -97,7 +97,7 @@ static inline int dib9000_set_slave_frontend(struct dvb_frontend *fe, struct dvb
+ 	return -ENODEV;
+ }
+ 
+-int dib9000_remove_slave_frontend(struct dvb_frontend *fe)
++static inline int dib9000_remove_slave_frontend(struct dvb_frontend *fe)
+ {
+ 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+ 	return -ENODEV;
+-- 
+1.7.11.7
 
-Is this segfault a regression over an older v4l-utils version?
-
-Thanks,
-Gregor
