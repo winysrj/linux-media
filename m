@@ -1,61 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:39445 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754011Ab2JMTSD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Oct 2012 15:18:03 -0400
-Received: by mail-we0-f174.google.com with SMTP id t9so2299554wey.19
-        for <linux-media@vger.kernel.org>; Sat, 13 Oct 2012 12:18:01 -0700 (PDT)
-Subject: Re: HD-PVR fails consistently on Linux, works on Windows
-Mime-Version: 1.0 (Apple Message framework v1283)
-Content-Type: text/plain; charset=us-ascii
-From: =?iso-8859-1?Q?David_R=F6thlisberger?= <david@rothlis.net>
-In-Reply-To: <20121013112800.2d7a1a42@earthlink.net>
-Date: Sat, 13 Oct 2012 20:17:59 +0100
-Cc: linux-media@vger.kernel.org, will@williammanley.net
-Content-Transfer-Encoding: 7bit
-Message-Id: <F8199D50-FE9B-4F1E-B04A-1B7E8D216A5D@rothlis.net>
-References: <5063BD18.4060309@austin.rr.com> <20121013112800.2d7a1a42@earthlink.net>
-To: Jonathan <jonathan.625266@earthlink.net>,
-	Keith Pyle <kpyle@austin.rr.com>
+Received: from mx1.redhat.com ([209.132.183.28]:64347 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752280Ab2J0UmK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:42:10 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKg9qB004779
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:10 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 28/68] [media] cx231xx-avcore: get rid of a sophisticated do-nothing code
+Date: Sat, 27 Oct 2012 18:40:46 -0200
+Message-Id: <1351370486-29040-29-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 26 Sep 2012 21:42:32 -0500
-Keith Pyle <kpyle@austin.rr.com> wrote:
-> I recently purchased a Hauppauge HD-PVR (the 1212 version, label on 
-> bottom 49001LF, Rev F2).  I have consistent capture failures on Linux 
-> where data from the device simply stops, generally within a few minutes 
-> of starting a capture.
-> 
-> [...]
-> 
-> Sep 21 17:01:01 mythbe kernel: [535043.703947] hdpvr 9-1:1.0: firmware 
-> version 0x15 dated Jun 17 2010 09:26:53
+drivers/media/usb/cx231xx/cx231xx-avcore.c: In function 'cx231xx_capture_start':
+drivers/media/usb/cx231xx/cx231xx-avcore.c:2637:3: warning: suggest braces around empty body in an 'else' statement [-Wempty-body]
 
-When we contacted Hauppauge regarding the stability issue, they
-recommended upgrading to the latest firmware dated Mar 26 2012.
-We *think* this has improved stability, but it certainly hasn't
-fixed it completely.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-avcore.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
-Upgrading the firmware requires a Windows PC -- see
-http://www.hauppauge.com/site/support/support_hdpvr.html
-
-
-On 13 Oct 2012, at 16:28, Jonathan wrote:
-
-> It may be a coincidence but I since I started using irqbalance (
-> https://code.google.com/p/irqbalance/ ) my HD-PVR has been completely
-> stable. Before that I was experiencing daily lockups.
-
-Interesting. You definitely didn't upgrade the firmware around the same
-time?
-
-We think the stability is worse when the Linux PC is heavily loaded: We
-do real-time image processing on the video stream from the HD PVR, so
-the CPUs are maxed out, and we get frequent lock-ups. We also think the
-lock-ups are more frequent when we have several HD PVRs connected to the
-same PC, all running at the same time. I'll have to try this irqbalance.
-
---Dave.
+diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+index d34dbcf..7222079 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+@@ -2631,11 +2631,6 @@ int cx231xx_capture_start(struct cx231xx *dev, int start, u8 media_type)
+ 			rc = cx231xx_stop_stream(dev, ep_mask);
+ 	}
+ 
+-	if (dev->mode == CX231XX_ANALOG_MODE)
+-		;/* do any in Analog mode */
+-	else
+-		;/* do any in digital mode */
+-
+ 	return rc;
+ }
+ EXPORT_SYMBOL_GPL(cx231xx_capture_start);
+-- 
+1.7.11.7
 
