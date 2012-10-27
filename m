@@ -1,68 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:62157 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756781Ab2JWT7J (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 15:59:09 -0400
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-Cc: Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 14/23] tuners/tda18271: Replace memcpy with struct assignment
-Date: Tue, 23 Oct 2012 16:57:17 -0300
-Message-Id: <1351022246-8201-14-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
-References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:63489 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752419Ab2J0Umc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:42:32 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKgWMI020506
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:32 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 39/68] [media] gspca: warning fix: index is unsigned, so it will never be below 0
+Date: Sat, 27 Oct 2012 18:40:57 -0200
+Message-Id: <1351370486-29040-40-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This kind of memcpy() is error-prone. Its replacement with a struct
-assignment is prefered because it's type-safe and much easier to read.
+drivers/media/usb/gspca/gspca.c: In function 'vidioc_querybuf':
+drivers/media/usb/gspca/gspca.c:1590:6: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
 
-Found by coccinelle. Hand patched and reviewed.
-Tested by compilation only.
-
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-@@
-identifier struct_name;
-struct struct_name to;
-struct struct_name from;
-expression E;
-@@
--memcpy(&(to), &(from), E);
-+to = from;
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/tuners/tda18271-maps.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/media/usb/gspca/gspca.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/media/tuners/tda18271-maps.c b/drivers/media/tuners/tda18271-maps.c
-index fb881c6..b62e925 100644
---- a/drivers/media/tuners/tda18271-maps.c
-+++ b/drivers/media/tuners/tda18271-maps.c
-@@ -1290,13 +1290,11 @@ int tda18271_assign_map_layout(struct dvb_frontend *fe)
- 	switch (priv->id) {
- 	case TDA18271HDC1:
- 		priv->maps = &tda18271c1_map_layout;
--		memcpy(&priv->std, &tda18271c1_std_map,
--		       sizeof(struct tda18271_std_map));
-+		priv->std = tda18271c1_std_map;
- 		break;
- 	case TDA18271HDC2:
- 		priv->maps = &tda18271c2_map_layout;
--		memcpy(&priv->std, &tda18271c2_std_map,
--		       sizeof(struct tda18271_std_map));
-+		priv->std = tda18271c2_std_map;
- 		break;
- 	default:
- 		ret = -EINVAL;
+diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+index a2b9341..e0a431b 100644
+--- a/drivers/media/usb/gspca/gspca.c
++++ b/drivers/media/usb/gspca/gspca.c
+@@ -1586,8 +1586,7 @@ static int vidioc_querybuf(struct file *file, void *priv,
+ 	struct gspca_dev *gspca_dev = video_drvdata(file);
+ 	struct gspca_frame *frame;
+ 
+-	if (v4l2_buf->index < 0
+-	    || v4l2_buf->index >= gspca_dev->nframes)
++	if (v4l2_buf->index >= gspca_dev->nframes)
+ 		return -EINVAL;
+ 
+ 	frame = &gspca_dev->frame[v4l2_buf->index];
 -- 
-1.7.4.4
+1.7.11.7
 
