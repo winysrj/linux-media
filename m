@@ -1,68 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:60408 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754971Ab2JJVNA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 17:13:00 -0400
-Message-ID: <5075E4D7.4010706@gmail.com>
-Date: Wed, 10 Oct 2012 23:12:55 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Thomas Abraham <thomas.abraham@linaro.org>,
-	Tomasz Figa <t.figa@samsung.com>
-Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <5073FDC8.8090909@samsung.com> <201210091300.24124.hverkuil@xs4all.nl> <1398413.j3yGqyN4Du@avalon> <5075D947.3080903@gmail.com> <Pine.LNX.4.64.1210102229200.31291@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1210102229200.31291@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:6776 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752326Ab2J0UmR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Oct 2012 16:42:17 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKgHQa019829
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:17 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 38/68] [media] jeilinj: fix return of the response code
+Date: Sat, 27 Oct 2012 18:40:56 -0200
+Message-Id: <1351370486-29040-39-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/10/2012 10:32 PM, Guennadi Liakhovetski wrote:
->>> We might actually not need that, it might be easier to handle the circular
->>> dependency problem from the other end. We could add a way (ioctl, sysfs, ...)
->>> to force a V4L2 bridge driver to release its subdevs. Once done, the subdev
->>> driver could be unloaded and/or the subdev device unregistered, which would
->>> release the resources used by the subdev, such as clocks. The bridge driver
->>> could then be unregistered.
->>
->> That sounds like an option. Perhaps it could be done by v4l2-core, e.g. a sysfs
->> entry could be registered for a media or video device if driver requests it.
->> I'm not sure if we should allow subdevs in "released" state, perhaps it's better
->> to just unregister subdevs entirely right away ?
-> 
-> What speaks against holding a clock reference only during streaming, or at
-> least between open and close? Wouldn't that solve the problem naturally?
-> Yes, after giving up your reference to a clock at close() and re-acquiring
-> it at open() you will have to make sure the frequency hasn't change, resp.
-> adjust it, but I don't see it as a huge problem, I don't think many users
-> on embedded systems will compete for your camera master clock. And if they
-> do, you have a different problem, IMHO;-)
+drivers/media/usb/gspca/jeilinj.c: In function 'jlj_read1':
+drivers/media/usb/gspca/jeilinj.c:117:66: warning: parameter 'response' set but not used [-Wunused-but-set-parameter]
+The code still doesn't make much sense, as response is never tested
+there.
 
-I agree, normally nobody should touch these clocks except the subdev (or as of 
-now the host) drivers. It depends on a sensor, video encoder, etc. how much it 
-tolerates switching the clock on/off. I suppose it's best to acquire/release it
-in .s_power callback, since only then the proper voltage supply, GPIO, clock 
-enable/disable sequences could be ensured. I know those things are currently 
-mostly ignored, but some sensors might be picky WRT their initialization/shutdown
-sequences and it would be good to ensure these sequences are fully controllable 
-by the sensor driver itsels, where the host's architecture allows that.
+Cc: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/usb/gspca/jeilinj.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-To summarize, I can't see how holding a clock only when a device is active
-could cause any problems, in case of camera sensors. I'm not sure about other
-devices, like e.g. tuners.
+diff --git a/drivers/media/usb/gspca/jeilinj.c b/drivers/media/usb/gspca/jeilinj.c
+index b897aa8..1ba29fe 100644
+--- a/drivers/media/usb/gspca/jeilinj.c
++++ b/drivers/media/usb/gspca/jeilinj.c
+@@ -114,7 +114,7 @@ static void jlj_write2(struct gspca_dev *gspca_dev, unsigned char *command)
+ }
+ 
+ /* Responses are one byte only */
+-static void jlj_read1(struct gspca_dev *gspca_dev, unsigned char response)
++static void jlj_read1(struct gspca_dev *gspca_dev, unsigned char *response)
+ {
+ 	int retval;
+ 
+@@ -123,7 +123,7 @@ static void jlj_read1(struct gspca_dev *gspca_dev, unsigned char response)
+ 	retval = usb_bulk_msg(gspca_dev->dev,
+ 	usb_rcvbulkpipe(gspca_dev->dev, 0x84),
+ 				gspca_dev->usb_buf, 1, NULL, 500);
+-	response = gspca_dev->usb_buf[0];
++	*response = gspca_dev->usb_buf[0];
+ 	if (retval < 0) {
+ 		pr_err("read command [%02x] error %d\n",
+ 		       gspca_dev->usb_buf[0], retval);
+@@ -260,7 +260,7 @@ static int jlj_start(struct gspca_dev *gspca_dev)
+ 		if (start_commands[i].delay)
+ 			msleep(start_commands[i].delay);
+ 		if (start_commands[i].ack_wanted)
+-			jlj_read1(gspca_dev, response);
++			jlj_read1(gspca_dev, &response);
+ 	}
+ 	setcamquality(gspca_dev, v4l2_ctrl_g_ctrl(sd->jpegqual));
+ 	msleep(2);
+-- 
+1.7.11.7
 
---
-
-Regards,
-Sylwester
