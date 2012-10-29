@@ -1,130 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36393 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751328Ab2JJOrR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 10:47:17 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
-Date: Wed, 10 Oct 2012 16:48 +0200
-Message-ID: <1909082.6p5inUAuOH@avalon>
-In-Reply-To: <20121010104522.53dabe5e@redhat.com>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <1744244.z7BseID5vc@avalon> <20121010104522.53dabe5e@redhat.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx1.redhat.com ([209.132.183.28]:30441 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758783Ab2J2Lo2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Oct 2012 07:44:28 -0400
+Date: Mon, 29 Oct 2012 09:44:19 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 35/68] [media] pwc-if: must check vb2_queue_init()
+ success
+Message-ID: <20121029094419.020a390b@redhat.com>
+In-Reply-To: <CALF0-+VAVX=b9iEvQS88x5Ndr=7GGBuyi4k=18-2uJjwFL95HA@mail.gmail.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+	<1351370486-29040-36-git-send-email-mchehab@redhat.com>
+	<CALF0-+VAVX=b9iEvQS88x5Ndr=7GGBuyi4k=18-2uJjwFL95HA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Em Mon, 29 Oct 2012 08:37:31 -0300
+Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
 
-On Wednesday 10 October 2012 10:45:22 Mauro Carvalho Chehab wrote:
-> Em Wed, 10 Oct 2012 14:54 +0200 Laurent Pinchart escreveu:
-> > > Also, ideally OF-compatible (I2C) drivers should run with no platform
-> > > data, but soc-camera is using I2C device platform data intensively. To
-> > > avoid modifying the soc-camera core and all drivers, I also trigger on
-> > > the
-> > > BUS_NOTIFY_BIND_DRIVER event and assign a reference to the dynamically
-> > > created platform data to the I2C device. Would we also want to do this
-> > > for
-> > > all V4L2 bridge drivers? We could call this a "prepare" callback or
-> > > something similar...
-> > 
-> > If that's going to be an interim solution only I'm fine with keeping it in
-> > soc-camera.
+> On Sat, Oct 27, 2012 at 5:40 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+> > drivers/media/usb/pwc/pwc-if.c: In function 'usb_pwc_probe':
+> > drivers/media/usb/pwc/pwc-if.c:1003:16: warning: ignoring return value of 'vb2_queue_init', declared with attribute warn_unused_result [-Wunused-result]
+> > In the past, it used to have a logic there at queue init that would
+> > BUG() on errors. This logic got removed. Drivers are now required
+> > to explicitly handle the queue initialization errors, or very bad
+> > things may happen.
+> >
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > ---
+> >  drivers/media/usb/pwc/pwc-if.c | 6 +++++-
+> >  1 file changed, 5 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+> > index e191572..5210239 100644
+> > --- a/drivers/media/usb/pwc/pwc-if.c
+> > +++ b/drivers/media/usb/pwc/pwc-if.c
+> > @@ -1000,7 +1000,11 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+> >         pdev->vb_queue.buf_struct_size = sizeof(struct pwc_frame_buf);
+> >         pdev->vb_queue.ops = &pwc_vb_queue_ops;
+> >         pdev->vb_queue.mem_ops = &vb2_vmalloc_memops;
+> > -       vb2_queue_init(&pdev->vb_queue);
+> > +       rc = vb2_queue_init(&pdev->vb_queue);
+> > +       if (rc < 0) {
+> > +               PWC_ERROR("Oops, could not initialize vb2 queue.\n");
+> > +               goto err_free_mem;
+> > +       }
+> >
+> >         /* Init video_device structure */
+> >         memcpy(&pdev->vdev, &pwc_template, sizeof(pwc_template));
+> > --
+> > 1.7.11.7
+> >
 > 
-> I'm far from being an OF expert, but why do we need to export I2C devices to
-> DT/OF? On my understanding, it is the bridge code that should be
-> responsible for detecting, binding and initializing the proper I2C devices.
-> On several cases, it is impossible or it would cause lots of ugly hacks if
-> we ever try to move away from platform data stuff, as only the bridge
-> driver knows what initialization is needed for an specific I2C driver.
-
-In a nutshell, a DT-based platform doesn't have any board code (except in rare 
-cases, but let's not get into that), and thus doesn't pass any platform data 
-structure to drivers. However, drivers receive a DT node, which contains a 
-hierarchical description of the hardware, and parse those to extract 
-information necessary to configure the device.
-
-One very important point to keep in mind here is that the DT is not Linux-
-specific. DT bindings are designed to be portable, and thus must only contain 
-hardware descriptions, without any OS-specific information or policy 
-information. For instance information such as the maximum video buffers size 
-is not allowed in the DT.
-
-The DT is used both to provide platform data to drivers and to instantiate 
-devices. I2C device DT nodes are stored as children of the I2C bus master DT 
-node, and are automatically instantiated by the I2C bus master. This is a 
-significant change compared to our current situation where the V4L2 bridge 
-driver receives an array of I2C board information structures and instatiates 
-the devices itself. Most of the DT support work will go in supporting that new 
-instantiation mechanism. The bridge driver doesn't control instantiation of 
-the I2C devices anymore, but need to bind with them at runtime.
-
-> To make things more complex, it is expected that most I2C drivers to be arch
-> independent, and they should be allowed to be used by a personal computer
-> or by an embedded device.
-
-Agreed. That's why platform data structures won't go away anytime soon, a PCI 
-bridge driver for hardware that contain I2C devices will still instantiate the 
-I2C devices itself. We don't plan to or even want to get rid of that 
-mechanism, as there are perfectly valid use cases. However, for DT-based 
-embedded platforms, we need to support a new instantiation mechanism.
-
-> Let me give 2 such examples:
+> Weird, I thought this was already fixed...
 > 
-> 	- ir-i2c-kbd driver supports lots of IR devices. Platform_data is needed
-> to specify what hardware will actually be used, and what should be the
-> default Remote Controller keymap;
+> https://patchwork.kernel.org/patch/1467211/
+> 
+> And even weirder...
+> now all my patches are marked as 'New' by patchwork...
+> 
+> https://patchwork.kernel.org/project/linux-media/list/?submitter=37031&state=*
+> 
+> (this must be the last name mess I did...)
 
-That driver isn't used on embedded platforms so it doesn't need to be changed 
-now.
+Nah, you're looking at the wrong place. you should be looking at patchwork.linuxtv.org.
 
-> 	- Sensor drivers like ov2940 is needed by soc_camera and by other
-> webcam drivers like em28xx. The setup for em28xx should be completely
-> different than the one for soc_camera: the initial registers init sequence
-> is different for both. As several registers there aren't properly
-> documented, there's no easy way to parametrize the configuration.
+The ones I have with your name on it are those:
 
-Such drivers will need to support both DT-based platform data and structure-
-based platform data. They will likely parse the DT node and fill a platform 
-data structure, to avoid duplicating initialization code.
+patches/lmml_15142_01_23_uvc_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15143_22_23_radio_wl1273_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15144_23_23_wl128x_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15145_21_23_dvb_frontends_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15146_20_23_dvb_core_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15147_18_23_cx18_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15148_19_23_bttv_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15149_17_23_cx23885_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15150_16_23_cx88_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15151_14_23_tuners_tda18271_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15152_15_23_ivtv_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15153_12_23_tuners_xc4000_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15154_13_23_tuners_xc2028_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15155_11_23_au0828_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15156_10_23_dvb_usb_friio_fe_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15157_08_23_cx25840_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15158_09_23_zr36067_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15159_06_23_pvrusb2_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15160_07_23_hdpvr_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15161_05_23_pwc_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15162_04_23_sn9c102_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15163_03_23_usbvision_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15164_02_23_cx231xx_replace_memcpy_with_struct_assignment.patch
+patches/lmml_15165_stk1160_try_to_continue_with_fewer_transfer_buffers.patch
+patches/lmml_14192_11_14_drivers_media_usb_stk1160_stk1160_i2c_c_fix_error_return_code.patch
+patches/lmml_15197_maintainers_update_email_and_git_tree.patch
 
-Please note that the new subdevs instantiation mechanism needed for DT will 
-need to handle any instantiation order, as we can't guarantee the I2C device 
-and bridge device instantiation order with DT. It should thus then support the 
-current instantiation order we use for PCI and USB platforms.
 
-> So, for me, we should not expose the I2C devices directly on OF; it should,
-> instead, see just the bridge, and let the bridge to map the needed I2C
-> devices using the needed platform_data.
+> 
+>     Ezequiel
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-We can't do that, there will be no platform data anymore with DT-based 
-platforms.
-
-As a summary, platform data structures won't go away, I2C drivers that need to 
-work both on DT-based and non-DT-based platforms will need to support both the 
-DT and platform data structures to get platform data. PCI and USB bridges will 
-still instantiate their I2C devices, and binding between the I2C devices and 
-the bridge can either be handled with two different instantiation mechanisms 
-(the new one for DT platforms, with runtime bindings, and the existing one for 
-non-DT platforms, with binding at instantiation time) or move to a single 
-runtime binding mechanism. It's too early to know which solution will be 
-simpler.
 
 -- 
 Regards,
-
-Laurent Pinchart
-
+Mauro
