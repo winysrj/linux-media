@@ -1,154 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57332 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755832Ab2JJNR6 (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:55424 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757136Ab2J2Nfn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Oct 2012 09:17:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 05/14] media: add a V4L2 OF parser
-Date: Wed, 10 Oct 2012 15:18:41 +0200
-Message-ID: <2002286.8sbBLyKbDe@avalon>
-In-Reply-To: <Pine.LNX.4.64.1210081708240.14454@axis700.grange>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <201210081653.55984.hverkuil@xs4all.nl> <Pine.LNX.4.64.1210081708240.14454@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 29 Oct 2012 09:35:43 -0400
+Subject: Re: [PATCH] saa7134: Add pm_qos_request to fix video corruption
+From: Andy Walls <awalls@md.metrocast.net>
+To: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Date: Mon, 29 Oct 2012 09:32:27 -0400
+In-Reply-To: <2183412.VijGEEfCXd@f17simon>
+References: <1350906611-17498-1-git-send-email-simon.farnsworth@onelan.co.uk>
+	 <3124636.sEoNQbeq5Q@f17simon> <20121029095817.0bad37b3@infradead.org>
+	 <2183412.VijGEEfCXd@f17simon>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1351517548.2503.18.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
-
-On Monday 08 October 2012 17:15:53 Guennadi Liakhovetski wrote:
-> On Mon, 8 Oct 2012, Hans Verkuil wrote:
-> > On Mon October 8 2012 16:30:53 Guennadi Liakhovetski wrote:
-> > > On Mon, 8 Oct 2012, Hans Verkuil wrote:
-> > > > On Mon October 8 2012 14:23:25 Guennadi Liakhovetski wrote:
-> > > > > On Fri, 5 Oct 2012, Hans Verkuil wrote:
-> > > > > 
-> > > > > [snip]
-> > > > > 
-> > > > > > I think the soc_camera patches should be left out for now. I
-> > > > > > suspect that by adding core support for async i2c handling first,
-> > > > > 
-> > > > > Ok, let's think, what this meacs - async I2C in media / V4L2 core.
-> > > > > 
-> > > > > The main reason for our probing order problem is the master clock,
-> > > > > typically supplied from the camera bridge to I2C subdevices, which
-> > > > > we only want to start when necessary, i.e. when accessing the
-> > > > > subdevice. And the subdevice driver needs that clock running during
-> > > > > its .probe() to be able to access and verify or configure the
-> > > > > hardware. Our current solution is to not register I2C subdevices
-> > > > > from the platform data, as is usual for all I2C devices, but from
-> > > > > the bridge driver and only after it has switched on the master
-> > > > > clock. After the subdevice driver has completed its probing we
-> > > > > switch the clock back off until the subdevice has to be activated,
-> > > > > e.g. for video capture.
-> > > > > 
-> > > > > Also important - when we want to unregister the bridge driver we
-> > > > > just also unregister the I2C device.
-> > > > > 
-> > > > > Now, to reverse the whole thing and to allow I2C devices be
-> > > > > registered as usual - via platform data or OF, first of all we have
-> > > > > to teach I2C subdevice drivers to recognise the "too early"
-> > > > > situation and request deferred probing in such a case. Then it will
-> > > > > be reprobed after each new successful probe or unregister on the
-> > > > > system. After the bridge driver has successfully probed the
-> > > > > subdevice driver will be re-probed and at that time it should
-> > > > > succeed. Now, there is a problem here too: who should switch on and
-> > > > > off the master clock?
-> > > > > 
-> > > > > If we do it from the bridge driver, we could install an I2C
-> > > > > bus-notifier, _before_ the subdevice driver is probed, i.e. upon the
-> > > > > BUS_NOTIFY_BIND_DRIVER event we could turn on the clock. If
-> > > > > subdevice probing was successful, we can then wait for the
-> > > > > BUS_NOTIFY_BOUND_DRIVER event to switch the clock back off. BUT - if
-> > > > > the subdevice fails probing?
-> > > > > How do we find out about that and turn the clock back off? There is
-> > > > > no notification event for that... Possible solutions:
-> > > > > 
-> > > > > 1. timer - ugly and unreliable.
-> > > > > 2. add a "probing failed" notifier event to the device core - would
-> > > > > this be accepted?
-> > > > > 3. let the subdevice turn the master clock on and off for the
-> > > > > duration of probing.
-> > > > > 
-> > > > > My vote goes for (3). Ideally this should be done using the generic
-> > > > > clock framework. But can we really expect all drivers and platforms
-> > > > > to switch to it quickly enough? If not, we need a V4L2-specific
-> > > > > callback from subdevice drivers to bridge drivers to turn the clock
-> > > > > on and off. That's what I've done "temporarily" in this patch series
-> > > > > for soc-camera.
-> > > > > 
-> > > > > Suppose we decide to do the same for V4L2 centrally - add
-> > > > > call-backs. Then we can think what else we need to add to V4L2 to
-> > > > > support asynchronous subdevice driver probing.
-> > > > 
-> > > > I wonder, don't we have the necessary code already? V4L2 subdev
-> > > > drivers can have internal_ops with register/unregister ops. These are
-> > > > called by v4l2_device_register_subdev. This happens during the bridge
-> > > > driver's probe.
-> > > > 
-> > > > Suppose the subdev's probe does not actually access the i2c device,
-> > > > but instead defers that to the register callback? The bridge driver
-> > > > will turn on the clock before calling v4l2_device_register_subdev to
-> > > > ensure that the register callback can access the i2c registers. The
-> > > > register callback will do any initialization and can return an error.
-> > > > In case of an error the i2c client is automatically unregistered as
-> > > > well.
-> > > 
-> > > Yes, if v4l2_i2c_new_subdev_board() is used. This has been discussed
-> > > several times before and always what I didn't like in this is, that I2C
-> > > device probe() in this case succeeds without even trying to access the
-> > > hardware. And think about DT. In this case we don't instantiate the I2C
-> > > device, OF code does it for us. What do you do then? If you let probe()
-> > > succeed, then you will have to somehow remember the subdevice to later
-> > > match it against bridges...
+On Mon, 2012-10-29 at 13:02 +0000, Simon Farnsworth wrote:
+> On Monday 29 October 2012 09:58:17 Mauro Carvalho Chehab wrote:
+> > I prefer if you don't c/c me on that ;) Patchwork is the main source that I use
+> > on my patch reviews.
 > > 
-> > Yes, but you need that information anyway. The bridge still needs to call
-> > v4l2_device_register_subdev so it needs to know which subdevs are loaded.
+> Noted.
 > 
-> But how do you get the subdev pointer? With the notifier I get it from
-> i2c_get_clientdata(client) and what do you do without it? How do you get
-> to the client?
-> 
-> > And can't it get that from DT as well?
-> 
-> No, I don't think there is a way to get a device pointer from a DT node.
-
-But we'll need a way. The bridge driver will get sensor DT nodes from the V4L2 
-DT bindings, and will need to get the corresponding subdev. This could be 
-limited to V4L2 though, we could keep a map of DT nodes to subdevs without 
-requiring a generic solution in the device base code (although I'm wondering 
-if there's a specific reason not to have a device pointer in the DT node 
-structure).
-
-> > In my view you cannot do a proper initialization unless you have both the
-> > bridge driver and all subdev drivers loaded and instantiated. They need
-> > one another. So I am perfectly fine with letting the probe function do
-> > next to nothing and postponing that until register() is called. I2C and
-> > actualprobing to check if it's the right device is a bad idea in general
-> > since you have no idea what a hardware access to an unknown i2c device
-> > will do. There are still some corner cases where that is needed, but I do
-> > not think that that is an issue here.
+> > Btw, I saw your patch yesterday (and skipped it, for now), as I never played
+> > with those pm QoS stuff before, nor I ever noticed anything like what you
+> > reported on saa7134 (but I can't even remember the last time I tested something
+> > on a saa7134 board ;) - so, it can be some new bug).
 > > 
-> > It would simplify things a lot IMHO. Also note that the register() op will
-> > work with any device, not just i2c. That may be a useful property as well.
+> > So, I'll postpone its review to when I have some time to actually test it
+> > especially as the same issue might also be happening on other drivers.
+> > 
+> It will affect other drivers as well; the basic cause is that modern chips
+> can enter a package deep sleep state that affects both CPU speed and latency
+> to start of DMA. On older systems, this couldn't happen - the Northbridge
+> kept running at all times, and DMA latencies were low.
 > 
-> And what if the subdevice device is not yet instantiated by OF by the time
-> your bridge driver probes?
+> However, on the Intel Sandybridge system I'm testing with, the maximum wake
+> latency from deep sleep is 109 microseconds; the SAA7134's internal FIFO can't
+> hold onto data for that long, and overflows, resulting in the corruption I'm
+> seeing. The pm QoS request fixes this for me, by telling the PM subsystem
+> that the SAA7134 cannot cope with a long latency on the first write of a DMA
+> transfer.
+> 
+> Now, some media bridges (like the ones driven by the cx18 driver) can cope
+> with very high latency before the beginning of a DMA burst. Andy Walls has
+> worked on the cx18 driver to cope in this situation, so it doesn't fail even
+> with the 109 microsecond DMA latency we have on Sandybridge.
 
--- 
-Regards,
+Well if brdige wake-up DMA latency is the problem, it is alos the case
+that the CX23418 has a *lot* of on board memory with which to collect
+video and compress it.  (And lets face it, the CX23418 is an SoC with
+two ARM cores and a lot of dedicated external memory, as opposed to the
+SAA7134 with 1 kB of FIFO.)   That hardware helps quite a bit, if the
+PCI bus is slow to wake up.
 
-Laurent Pinchart
+I found a SAA7134 sheet for you:
+
+http://www.nxp.com/documents/data_sheet/SAA7134HL.pdf
+
+Section 6.4.3 has a short description of the behaviour when the FIFO
+overflows.
+
+But this sheet (close enough):
+
+http://www.nxp.com/documents/data_sheet/SAA7133HL.pdf
+
+Has much nicer examples of the programmed levels of the FIFO in section
+6.4.3.  That 1 kB is for everything: raw VBI, Y, U, V, MPEG, and Audio.
+So you're lucky if one full line of video fits in the FIFO.
+
+> Others, like the SAA7134, just don't have that much buffering, and we need
+> to ask the pm core to cope with it. I suspect that most old drivers will need
+> updating if anyone wants to use them with modern systems; either they'll have
+> an architecture like the cx18 series, and the type of work Andy has done will
+> fix the problem, or they'll behave like the saa7134, and need a pm_qos request
+> to ensure that the CPU package (and thus memory controller) stay awake.
+
+Unless the chip has a lot of internal memory and processing resources, I
+suspect a pm_qos solution is needed to ensure the PCI bus responds in
+time.
+
+This is a system level issue though.  Having the drivers decide what QoS
+they need in the absences of total system requirements, is the right
+thing for the home user.  It might not be very friendly for a
+professional solution where someone is trying to tune the use of the
+system IO bandwidth and CPU resources.
+
+The ivtv driver and cx18 driver unconditionally bumping up their PCI
+latency timer to 64 cycles minimum always bugged me: drivers shouldn't
+be deciding QoS in a vaccuum.  But, then again, user complaints went
+away and the 64 PCI cycles seemed to be a minimum QoS that everyone
+needed.  Also both drivers have a ivtv/cx18_pci_latency module option to
+override the behaviour anyway.
+
+
+-Andy
 
