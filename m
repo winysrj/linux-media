@@ -1,44 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39877 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751645Ab2J0UmA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:42:00 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q9RKg0lY019777
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 27 Oct 2012 16:42:00 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 18/68] [media] radio-aimslab.c: get rid of warning: no previous prototype
-Date: Sat, 27 Oct 2012 18:40:36 -0200
-Message-Id: <1351370486-29040-19-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:39299 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761028Ab2J2WPA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Oct 2012 18:15:00 -0400
+Received: by mail-ee0-f46.google.com with SMTP id b15so2354326eek.19
+        for <linux-media@vger.kernel.org>; Mon, 29 Oct 2012 15:14:58 -0700 (PDT)
+Message-ID: <508EF1CF.8090602@googlemail.com>
+Date: Mon, 29 Oct 2012 23:14:55 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 00/23] em28xx: add support fur USB bulk transfers
+References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com> <20121028175752.447c39d5@redhat.com> <508EA1B8.3070304@googlemail.com> <20121029180348.7e7967aa@redhat.com>
+In-Reply-To: <20121029180348.7e7967aa@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/radio/radio-aimslab.c:85:6: warning: no previous prototype for 'rtrack_set_pins' [-Wmissing-prototypes]
+Am 29.10.2012 22:03, schrieb Mauro Carvalho Chehab:
+> Em Mon, 29 Oct 2012 17:33:12 +0200
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>
+>> Am 28.10.2012 21:57, schrieb Mauro Carvalho Chehab:
+>>> Em Sun, 21 Oct 2012 19:52:05 +0300
+>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>>>
+>>>> This patch series adds support for USB bulk transfers to the em28xx driver.
+>>>>
+>>>> Patch 1 is a bugfix for the image data processing with non-interlaced devices (webcams)
+>>>> that should be considered for stable (see commit message).
+>>>>
+>>>> Patches 2-21 extend the driver to support USB bulk transfers.
+>>>> USB endpoint mapping had to be extended and is a bit tricky.
+>>>> It might still not be sufficient to handle ALL isoc/bulk endpoints of ALL existing devices,
+>>>> but it should work with the devices we have seen so far and (most important !) 
+>>>> preserves backwards compatibility to the current driver behavior.
+>>>> Isoc endpoints/transfers are preffered by default, patch 21 adds a module parameter to change this behavior.
+>>>>
+>>>> The last two patches are follow-up patches not really related to USB tranfers.
+>>>> Patch 22 reduces the code size in em28xx-video by merging the two URB data processing functions 
+>>>> and patch 23 enables VBI-support for em2840-devices.
+>>>>
+>>>> Please note that I could test the changes with an analog non-interlaced non-VBI device only !
+>>>> So further tests with DVB/interlaced/VBI devices are strongly recommended !
+>>> Did a quick test here with all applied, with analog TV with xawtv and tvtime. 
+>>> Didn't work.
+>> Ok, thanks for testing.
+>>
+>>> I'll need to postpone it, until I have more time to double check it and bisect.
+>> I would also need further informations about the test you've made (did
+>> you enable bulk ?) and the device you used (supports VBI ?).
+> I used a WinTV HVR-950/980. Logs enclosed.
+>
+> Regards,
+> Mauro
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/radio/radio-aimslab.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks.
+Did you load the module with prefer_bulk=1 ?
+You just started xawtv/tvtime but got no picture, right ?
 
-diff --git a/drivers/media/radio/radio-aimslab.c b/drivers/media/radio/radio-aimslab.c
-index 12c70e8..a739ad4 100644
---- a/drivers/media/radio/radio-aimslab.c
-+++ b/drivers/media/radio/radio-aimslab.c
-@@ -82,7 +82,7 @@ static struct radio_isa_card *rtrack_alloc(void)
- #define AIMS_BIT_VOL_UP		(1 << 6)	/* active low */
- #define AIMS_BIT_VOL_DN		(1 << 7)	/* active low */
- 
--void rtrack_set_pins(void *handle, u8 pins)
-+static void rtrack_set_pins(void *handle, u8 pins)
- {
- 	struct radio_isa_card *isa = handle;
- 	struct rtrack *rt = container_of(isa, struct rtrack, isa);
--- 
-1.7.11.7
+There is nothing unusual in the log, except...
+
+...
+> [ 8412.464698] xc2028 3-0061: Can't find firmware for type=BASE INIT1 F8MHZ MTS (4007), id 0000000000000000.
+...
+> [ 8412.464709] xc2028 3-0061: Can't find firmware for type=BASE INIT1 MTS (4005), id 0000000000000000.
+...
+> [ 8412.490804] xc2028 3-0061: Can't find firmware for type=MTS SCODE (20000004), id 0000000100000007.
+
+and
+
+...
+> [ 8454.966006] xc2028 3-0061: xc2028_get_reg 0002 called
+> [ 8454.990113] xc2028 3-0061: i2c input error: rc = -19 (should be 2)
+> [ 8454.996282] xc2028 3-0061: xc2028_signal called
+> [ 8454.997656] xc2028 3-0061: xc2028_get_reg 0002 called
+> [ 8455.021846] xc2028 3-0061: i2c input error: rc = -19 (should be 2)
+
+Are these errors normal ?
+Are you sure the device is working properly without my patches ?
+
+You could try to load the em28xx module with usb_debug=1.
+
+Regards,
+Frank
+
 
