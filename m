@@ -1,155 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rs130.luxsci.com ([72.32.115.17]:44709 "EHLO rs130.luxsci.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751431Ab2JAVI6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Oct 2012 17:08:58 -0400
-Message-ID: <506A0640.50105@firmworks.com>
-Date: Mon, 01 Oct 2012 11:08:16 -1000
-From: Mitch Bradley <wmb@firmworks.com>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:50353 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756724Ab2J2NHr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Oct 2012 09:07:47 -0400
+Received: by mail-ie0-f174.google.com with SMTP id k13so6464945iea.19
+        for <linux-media@vger.kernel.org>; Mon, 29 Oct 2012 06:07:46 -0700 (PDT)
 MIME-Version: 1.0
-To: Stephen Warren <swarren@wwwdotorg.org>
-CC: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	dri-devel@lists.freedesktop.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	kernel@pengutronix.de, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] of: add helper to parse display specs
-References: <1348500924-8551-1-git-send-email-s.trumtrar@pengutronix.de> <1348500924-8551-2-git-send-email-s.trumtrar@pengutronix.de> <5069CA74.7040409@wwwdotorg.org> <5069EC1C.2050506@firmworks.com> <5069FC20.8060708@wwwdotorg.org>
-In-Reply-To: <5069FC20.8060708@wwwdotorg.org>
+In-Reply-To: <20121029094419.020a390b@redhat.com>
+References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
+	<1351370486-29040-36-git-send-email-mchehab@redhat.com>
+	<CALF0-+VAVX=b9iEvQS88x5Ndr=7GGBuyi4k=18-2uJjwFL95HA@mail.gmail.com>
+	<20121029094419.020a390b@redhat.com>
+Date: Mon, 29 Oct 2012 10:07:46 -0300
+Message-ID: <CALF0-+VVv7aAwe6R3in6RHEhBV62yXRA9gyqKumk4zR0kffhFA@mail.gmail.com>
+Subject: Re: [PATCH 35/68] [media] pwc-if: must check vb2_queue_init() success
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/1/2012 10:25 AM, Stephen Warren wrote:
-> On 10/01/2012 01:16 PM, Mitch Bradley wrote:
->> On 10/1/2012 6:53 AM, Stephen Warren wrote:
->>> On 09/24/2012 09:35 AM, Steffen Trumtrar wrote:
->>>> Parse a display-node with timings and hardware-specs from devictree.
->>>
->>>> diff --git a/Documentation/devicetree/bindings/video/display b/Documentation/devicetree/bindings/video/display
->>>> new file mode 100644
->>>> index 0000000..722766a
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/bindings/video/display
->>>
->>> This should be display.txt.
->>>
->>>> @@ -0,0 +1,208 @@
->>>> +display bindings
->>>> +==================
->>>> +
->>>> +display-node
->>>> +------------
->>>
->>> I'm not personally convinced about the direction this is going. While I
->>> think it's reasonable to define DT bindings for displays, and DT
->>> bindings for display modes, I'm not sure that it's reasonable to couple
->>> them together into a single binding.
->>>
->>> I think creating a well-defined timing binding first will be much
->>> simpler than doing so within the context of a display binding; the
->>> scope/content of a general display binding seems much less well-defined
->>> to me at least, for reasons I mentioned before.
->>>
->>>> +required properties:
->>>> + - none
->>>> +
->>>> +optional properties:
->>>> + - default-timing: the default timing value
->>>> + - width-mm, height-mm: Display dimensions in mm
->>>
->>>> + - hsync-active-high (bool): Hsync pulse is active high
->>>> + - vsync-active-high (bool): Vsync pulse is active high
->>>
->>> At least those two properties should exist in the display timing instead
->>> (or perhaps as well). There are certainly cases where different similar
->>> display modes are differentiated by hsync/vsync polarity more than
->>> anything else. This is probably more likely with analog display
->>> connectors than digital, but I see no reason why a DT binding for
->>> display timing shouldn't cover both.
->>>
->>>> + - de-active-high (bool): Data-Enable pulse is active high
->>>> + - pixelclk-inverted (bool): pixelclock is inverted
->>>
->>>> + - pixel-per-clk
->>>
->>> pixel-per-clk is probably something that should either be part of the
->>> timing definition, or something computed internally to the display
->>> driver based on rules for the signal type, rather than something
->>> represented in DT.
->>>
->>> The above comment assumes this property is intended to represent DVI's
->>> requirement for pixel clock doubling for low-pixel-clock-rate modes. If
->>> it's something to do with e.g. a single-data-rate vs. double-data-rate
->>> property of the underlying physical connection, that's most likely
->>> something that should be defined in a binding specific to e.g. LVDS,
->>> rather than something generic.
->>>
->>>> + - link-width: number of channels (e.g. LVDS)
->>>> + - bpp: bits-per-pixel
->>>> +
->>>> +timings-subnode
->>>> +---------------
->>>> +
->>>> +required properties:
->>>> +subnodes that specify
->>>> + - hactive, vactive: Display resolution
->>>> + - hfront-porch, hback-porch, hsync-len: Horizontal Display timing parameters
->>>> +   in pixels
->>>> +   vfront-porch, vback-porch, vsync-len: Vertical display timing parameters in
->>>> +   lines
->>>> + - clock: displayclock in Hz
->>>> +
->>>> +There are different ways of describing a display and its capabilities. The devicetree
->>>> +representation corresponds to the one commonly found in datasheets for displays.
->>>> +The description of the display and its timing is split in two parts: first the display
->>>> +properties like size in mm and (optionally) multiple subnodes with the supported timings.
->>>> +If a display supports multiple signal timings, the default-timing can be specified.
->>>> +
->>>> +Example:
->>>> +
->>>> +	display@0 {
->>>> +		width-mm = <800>;
->>>> +		height-mm = <480>;
->>>> +		default-timing = <&timing0>;
->>>> +		timings {
->>>> +			timing0: timing@0 {
->>>
->>> If you're going to use a unit address ("@0") to ensure that node names
->>> are unique (which is not mandatory), then each node also needs a reg
->>> property with matching value, and #address-cells/#size-cells in the
->>> parent. Instead, you could name the nodes something unique based on the
->>> mode name to avoid this, e.g. 1080p24 { ... }.
+On Mon, Oct 29, 2012 at 8:44 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em Mon, 29 Oct 2012 08:37:31 -0300
+> Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
+>
+>> On Sat, Oct 27, 2012 at 5:40 PM, Mauro Carvalho Chehab
+>> <mchehab@redhat.com> wrote:
+>> > drivers/media/usb/pwc/pwc-if.c: In function 'usb_pwc_probe':
+>> > drivers/media/usb/pwc/pwc-if.c:1003:16: warning: ignoring return value of 'vb2_queue_init', declared with attribute warn_unused_result [-Wunused-result]
+>> > In the past, it used to have a logic there at queue init that would
+>> > BUG() on errors. This logic got removed. Drivers are now required
+>> > to explicitly handle the queue initialization errors, or very bad
+>> > things may happen.
+>> >
+>> > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> > ---
+>> >  drivers/media/usb/pwc/pwc-if.c | 6 +++++-
+>> >  1 file changed, 5 insertions(+), 1 deletion(-)
+>> >
+>> > diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
+>> > index e191572..5210239 100644
+>> > --- a/drivers/media/usb/pwc/pwc-if.c
+>> > +++ b/drivers/media/usb/pwc/pwc-if.c
+>> > @@ -1000,7 +1000,11 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+>> >         pdev->vb_queue.buf_struct_size = sizeof(struct pwc_frame_buf);
+>> >         pdev->vb_queue.ops = &pwc_vb_queue_ops;
+>> >         pdev->vb_queue.mem_ops = &vb2_vmalloc_memops;
+>> > -       vb2_queue_init(&pdev->vb_queue);
+>> > +       rc = vb2_queue_init(&pdev->vb_queue);
+>> > +       if (rc < 0) {
+>> > +               PWC_ERROR("Oops, could not initialize vb2 queue.\n");
+>> > +               goto err_free_mem;
+>> > +       }
+>> >
+>> >         /* Init video_device structure */
+>> >         memcpy(&pdev->vdev, &pwc_template, sizeof(pwc_template));
+>> > --
+>> > 1.7.11.7
+>> >
 >>
+>> Weird, I thought this was already fixed...
 >>
->> I'm concerned that numbered nodes are being misused as arrays.
+>> https://patchwork.kernel.org/patch/1467211/
 >>
->> It's easy to make real arrays by including multiple cells in the value
->> of each timing parameter, and easy to choose a cell by saying the array
->> index instead of using the phandle.
-> 
-> In this case though, arrays don't work out so well in my opinion:
-> 
-> We want to describe a set of unrelated display modes that the display
-> can handle. These are logically separate entities. I don't think
-> combining the values that represent say 5 different modes into a single
-> set of properties really makes sense here; a separate node or property
-> per display mode really does make sense because they're separate objects.
+>> And even weirder...
+>> now all my patches are marked as 'New' by patchwork...
+>>
+>> https://patchwork.kernel.org/project/linux-media/list/?submitter=37031&state=*
+>>
+>> (this must be the last name mess I did...)
+>
+> Nah, you're looking at the wrong place. you should be looking at patchwork.linuxtv.org.
 
-That argument seems pretty dependent on how you choose to look at things.
+Yeah... I don't know why da heck I was looking there!
 
+Sorry for the noise ;-)
 
-> 
-> Related, each display timing parameter (e.g. hsync length, position,
-> ...) has a range, so min/typical/max values. These are already
-> represented as a 3-cell property as I believe you're proposing.
-> Combining that with a cell that represents n different modes in a single
-> array seems like it'd end up with something rather hard to read, at
-> least for humans even if it would be admittedly trivial for a CPU.
-
-
-That argument is better.
-
-> 
+    Ezequiel
