@@ -1,38 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailfe03.c2i.net ([212.247.154.66]:36225 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751756Ab2JBTup (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Oct 2012 15:50:45 -0400
-From: Hans Petter Selasky <hselasky@c2i.net>
-To: Jose Alberto Reguero <jareguero@telefonica.net>
-Subject: Re: [PATCH] Add toggle to the tt3650_rc_query function  of the ttusb2 driver
-Date: Tue, 2 Oct 2012 21:52:11 +0200
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:60218 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754896Ab2J2QPL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Oct 2012 12:15:11 -0400
+Received: by mail-wg0-f44.google.com with SMTP id dr13so3781717wgb.1
+        for <linux-media@vger.kernel.org>; Mon, 29 Oct 2012 09:15:09 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: mchehab@redhat.com
 Cc: linux-media@vger.kernel.org
-References: <2504977.yNAtCnX8Pk@jar7.dominio>
-In-Reply-To: <2504977.yNAtCnX8Pk@jar7.dominio>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210022152.11115.hselasky@c2i.net>
+Subject: [PULL] video_visstrim staging/ov7670_for_v3.7
+Date: Mon, 29 Oct 2012 17:15:01 +0100
+Message-Id: <1351527301-17855-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 08 September 2012 19:08:22 Jose Alberto Reguero wrote:
-> This patch add the toggle bit to the tt3650_rc_query function of the ttusb2
-> driver.
-> 
-> Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
-> 
-> Jose Alberto
+Hi Mauro,
+since there was some confusion regarding my two last series
+for the ov7670 I've decided to send this pull request to 
+make things more clear and avoid merging order issues.
 
-Hi,
+It should apply properly in your current tree.
 
-This patch looks OK.
+The following changes since commit 1534e55974c7e2f57623457c0f6b4108c6ef4776:
 
-Regarding the TTUSB2 support, I see an issue where the IR polling interference 
-with the CAM access. If a IR poll request happens exactly between a write/read 
-CAM request, then that CAM request will fail. How can this issue be solved 
-without disabling the IR support entirely?
+  media: coda: Add Philipp's patches. (2012-09-24 17:30:53 +0200)
 
---HPS
+are available in the git repository at:
+
+  https://github.com/jmartinc/video_visstrim.git staging/ov7670_for_v3.7 
+
+for you to fetch changes up to 5a594e1b96d3363aedf74d9bd37a2d669beab0bc:
+
+  ov7670: remove legacy ctrl callbacks. (2012-09-28 13:18:23 +0200)
+
+----------------------------------------------------------------
+Javier Martin (9):
+      media: ov7670: add support for ov7675.
+      media: ov7670: make try_fmt() consistent with 'min_height' and 'min_width'.
+      media: ov7670: calculate framerate properly for ov7675.
+      media: ov7670: add possibility to bypass pll for ov7675.
+      media: ov7670: Add possibility to disable pixclk during hblank.
+      ov7670: use the control framework
+      mcam-core: implement the control framework.
+      via-camera: implement the control framework.
+      ov7670: remove legacy ctrl callbacks.
+
+ drivers/media/i2c/ov7670.c                      |  587 +++++++++++++----------
+ drivers/media/platform/marvell-ccic/mcam-core.c |   54 +--
+ drivers/media/platform/marvell-ccic/mcam-core.h |    2 +
+ drivers/media/platform/via-camera.c             |   60 +--
+ include/media/ov7670.h                          |    2 +
+ 5 files changed, 369 insertions(+), 336 deletions(-)
