@@ -1,63 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:50539 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756191Ab2JLHTX (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60349 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1758465Ab2J2UAm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Oct 2012 03:19:23 -0400
-Received: by mail-wi0-f178.google.com with SMTP id hr7so411731wib.1
-        for <linux-media@vger.kernel.org>; Fri, 12 Oct 2012 00:19:22 -0700 (PDT)
+	Mon, 29 Oct 2012 16:00:42 -0400
+Date: Mon, 29 Oct 2012 22:00:36 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH 10/23] V4L: Add auto focus targets to the selections API
+Message-ID: <20121029200036.GA25623@valkosipuli.retiisi.org.uk>
+References: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
+ <1336645858-30366-11-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <20121011223252.GR14107@valkosipuli.retiisi.org.uk>
-References: <CAPybu_1z8kam1e6ArT9gyX+qybW+6s1K1VdJikuWoYPMjA3q2Q@mail.gmail.com>
- <20121011223252.GR14107@valkosipuli.retiisi.org.uk>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Fri, 12 Oct 2012 09:18:42 +0200
-Message-ID: <CAPybu_1HiH69Cf1ORDaEHWWaeTFUMvntLGqa__JS4fE4=B67NQ@mail.gmail.com>
-Subject: Re: Multiple Rectangle cropping
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1336645858-30366-11-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+Hi Sylwester,
 
-In fact, is the sensor, the one that supports multiple Areas of
-Interest. Unfortunatelly the userland v4l2 api only supports one area
-of interest for doing croping (or that is what I believe).
+On Thu, May 10, 2012 at 12:30:45PM +0200, Sylwester Nawrocki wrote:
+> The camera automatic focus algorithms may require setting up
+> a spot or rectangle coordinates or multiple such parameters.
+> 
+> The automatic focus selection targets are introduced in order
+> to allow applications to query and set such coordinates. Those
+> selections are intended to be used together with the automatic
+> focus controls available in the camera control class.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  Documentation/DocBook/media/v4l/selection-api.xml  |   33 +++++++++++++++++++-
+>  .../DocBook/media/v4l/vidioc-g-selection.xml       |   11 +++++++
+>  include/linux/videodev2.h                          |    5 +++
+>  3 files changed, 48 insertions(+), 1 deletion(-)
 
-Is there any plan to support multiple AOI? or I have to make my own ioctl?
+What's the status of this patch? May I ask if you have plans to continue
+with it?
 
+Speaking of multiple AF windows --- I originally thought we could just have
+multiple selection targets for them. I'm not sure which one would be better;
+multiple selection targets or another field telling the window ID. In case
+of the former we'd leave a largish gap for additional window IDs.
 
-Regards
+I think I'm leaning towards using one reserved field for the purpose.
 
-On Fri, Oct 12, 2012 at 12:32 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Ricardo,
->
-> On Thu, Oct 11, 2012 at 12:40:03PM +0200, Ricardo Ribalda Delgado wrote:
->> I want to port an old driver for an fpga based camera to the new media
->> infrastructure.
->>
->> By reading the doc. I think it has almost all the capabilities needed.
->> The only one I am missing is the habilty to select multiple rectangles
->> from the sensor. ie: I have a 100x50 sensor and I want a 100x20 image
->> with the pixels from 0,0->100,10 and then 0,40->100,50
->>
->> Any suggestion about how to implement this with the media api?
->
-> I suppose your FPGA does the cropping. You can use the V4L2 subdev selection
-> interface and crop on the source pads. Each will then have a link to a
-> capture video device.
->
-> <URL:http://hverkuil.home.xs4all.nl/spec/media.html#subdev>
->
-> Kind regards,
->
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+Another question I had was that which of the selection rectangles would the
+AF rectangle be related to? Is it the compose bounds rectangle, or the crop
+bounds rectangle, for example? I thought it might make sense to use another
+field to tell that, since I think which one this really is related to is
+purely hardware specific.
 
+What do you think?
 
+Kind regards,
 
 -- 
-Ricardo Ribalda
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
