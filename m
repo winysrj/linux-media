@@ -1,149 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56446 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753686Ab2JBOYT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Oct 2012 10:24:19 -0400
-Message-ID: <506AF8F9.1090600@iki.fi>
-Date: Tue, 02 Oct 2012 17:23:53 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from claranet-outbound-smtp03.uk.clara.net ([195.8.89.36]:36907 "EHLO
+	claranet-outbound-smtp03.uk.clara.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758683Ab2J2L0E (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Oct 2012 07:26:04 -0400
+From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] saa7134: Add pm_qos_request to fix video corruption
+Date: Mon, 29 Oct 2012 11:25:38 +0000
+Message-ID: <3124636.sEoNQbeq5Q@f17simon>
+In-Reply-To: <1350906611-17498-1-git-send-email-simon.farnsworth@onelan.co.uk>
+References: <1350906611-17498-1-git-send-email-simon.farnsworth@onelan.co.uk>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Michael Krufky <mkrufky@linuxtv.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH RFC] em28xx: PCTV 520e switch tda18271 to tda18271c2dd
-References: <1349139145-22113-1-git-send-email-crope@iki.fi> <CAGoCfiwfTkTs1DPa0cWHLOgGcgS0Df3h7zZ=4YW51dr_AS78nQ@mail.gmail.com> <CAOcJUbw+ToEAaqKPx1phWsKdWvPRXUOhtWwm7VaESwkW=fpqyg@mail.gmail.com> <506ABA2B.3070908@iki.fi> <20121002080503.76869be7@redhat.com> <CAOcJUbzpf=ZsUYxYJ+MHNtC-YaAGfE1Hegk12Vqk+mSYuQ8Qyw@mail.gmail.com> <20121002101746.3dc259d0@redhat.com>
-In-Reply-To: <20121002101746.3dc259d0@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; boundary="nextPart2763124.klLcYckpKo"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7Bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/02/2012 04:17 PM, Mauro Carvalho Chehab wrote:
-> Em Tue, 2 Oct 2012 08:22:28 -0400
-> Michael Krufky <mkrufky@linuxtv.org> escreveu:
->
->> On Tue, Oct 2, 2012 at 7:05 AM, Mauro Carvalho Chehab
->> <mchehab@redhat.com> wrote:
->>> Btw, why do you need to read 16 registers at once, instead of just reading
->>> the needed register? read_extended and write operations are even more evil:
->>> they read/write the full set of 39 registers on each operation. That seems
->>> to be overkill, especially on places like tda18271_get_id(), where
->>> all the driver is doing is to check for the ID register.
->>
->> TDA18271 does not support subaddressing for read operations.  The only
->> way to read a register is by dumping full register contents.  16
->> registers in simple mode, 39 registers in extended mode.
->
-> Well, at least at get_id() I think you should just read the ID register
-> and not the full set.
->
->>> Worse than that, tda18271_get_id() doesn't even check if the read()
->>> operation failed: it assumes that it will always work, letting the
->>> switch(regs[R_ID]) to print a wrong message (device unknown) when
->>> what actually failed where the 16 registers dump.
->>
->> That's a pretty standard operation to be able to read a chip's ID in
->> its driver attach function.  You even have some drivers that continue
->> trying to attach frontends and tuners as long as they continue to get
->> an error in the attach() function.  If we dont read the chip's ID
->> during attach() then how do we know we're attaching to the correct
->> chip?
->
-> Yes, reading the chip ID there seems ok.
->
-> Btw, I think we should re-visit the I2C gate control logic where implemented.
->
-> Antti pasted me yesterday the logs from the driver:
->
-> By looking on those messages:
->
-> Sep 28 01:35:57 localhost kernel: [44798.782787] drxk: i2c_read: read from 63 42 c0 00, value =  00 00
-> Sep 28 01:35:57 localhost kernel: [44798.782804] tda18271_read_regs: [5-0060|M] ERROR: i2c_transfer returned: -19
-> ...
-> Sep 28 01:35:57 localhost kernel: [44798.782980] Unknown device (16) detected @ 5-0060, device not supported.
-> Sep 28 01:35:57 localhost kernel: [44798.782985] tda18271_attach: [5-0060|M] error -22 on line 1274
-> Sep 28 01:35:57 localhost kernel: [44798.782989] tda18271 5-0060: destroying instance
-> Sep 28 01:35:57 localhost kernel: [44798.783003] drxk: drxk_release
->
-> I'm almost sure that the I2C gate control is at the wrong state there.
->
-> Very likely, the tda code is trying to access the I2C bus before DRX-K to
-> restore the I2C switch back to its original way.
->
-> In other words, I think that drivers with an I2C switch should be doing:
-> 	- take I2C lock;
-> 	- switch I2C gate;
-> 	- do writes and/or read ops;
-> 	- switch I2C gate back;
-> 	- release I2C lock.
->
-> What's implemented, however, is:
->
-> 	- switch I2C gate;
-> 	- take I2C lock;
-> 	- do writes and/or read ops;
-> 	- release I2C lock.
-> 	- switch I2C gate back;
 
-I am not sure at all about that I2C-gate. tda18271cc does not implement 
-gate control and it is working. If I disable DRX-K gate control (by 
-setting callback to NULL) tda18271 still fails similarly. No matter if 
-gate control is used or not. So it is not behind gate or drx-k is broken 
-driver is broken what goes to gate control.
+--nextPart2763124.klLcYckpKo
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 
-I took two new logs with em28xx I2C debugs enabled.
-http://palosaari.fi/linux/v4l-dvb/em28xx_drxk_tda18271_gate_disabled.txt
-http://palosaari.fi/linux/v4l-dvb/em28xx_drxk_tda18271_gate_enabled.txt
+On Monday 22 October 2012 12:50:11 Simon Farnsworth wrote:
+> The SAA7134 appears to have trouble buffering more than one line of video
+> when doing DMA. Rather than try to fix the driver to cope (as has been done
+> by Andy Walls for the cx18 driver), put in a pm_qos_request to limit deep
+> sleep exit latencies.
+> 
+> The visible effect of not having this is that seemingly random lines are
+> only partly transferred - if you feed in a static image, you see a portion
+> of the image "flicker" into place.
+> 
+> Signed-off-by: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
 
-Do you see reason here?
+Hello Mauro,
 
-> So, there is a chance of a race condition where a pending I2C
-> operation will be handled with the I2C gate switch at the wrong
-> state.
->
-> Such change is not trivial, as it requires reviewing all drivers. Also,
-> the I2C switching may also require access to the I2C bus, making it
-> harder to do.
->
-> I know khali coded something for I2C switch at I2C core. We should likely
-> visit it and see if it could improve things there.
->
->> I'll look at the fact that it doesn't check for a read error -- that
->> can be easily fixed.
->
-> Please do so.
->
->>> Whenever it should be at attach() or later is a good point for discussions.
->>
->> The tda18271 driver supports running multiple tda18271 devices in
->> tandem with one another, including the ability to share xtal input and
->> rf loop thru.  In some cases, the order in which we initialize the
->> different tda18271's (when there are multiples) must be carefully
->> controlled, and we do this by attaching them to the bridge driver in
->> the order needed, such as in the saa7164 driver -- we need to be ABLE
->> to initialize the tuner during the attach, but being able to defer it
->> *as an option* is OK with me.
->
-> Just wrote an email to Greg, c/c the involved parts, with regards to it.
->
-> I think the better, in the short term, is to apply the change for tda18271dd.
->
-> For the long term, to revert the drx-k asynchronous load, as I suspect
-> that, while delaying tda18271 init would fix for this device, we'll end
-> by getting problems on other parts.
->
-> That OOPS pointed by Antti shows that, by using an async load there, we'll
-> need to add some task to kill the deferred firmware loads if the I2C
-> bus got removed. I'm sure we'll also find other regressions by deferring
-> initialization task.
->
-> Regards,
-> Mauro
->
-
-
-Antti
-
+I've just noticed that I forgot to CC you in on this patch I sent last week - 
+Patchwork grabbed it at https://patchwork.kernel.org/patch/1625311/ but if you 
+want me to resend it so that you've got it in a mailbox for consideration, 
+just let me know.
 -- 
-http://palosaari.fi/
+Simon Farnsworth
+Software Engineer
+ONELAN Ltd
+http://www.onelan.com
+
+--nextPart2763124.klLcYckpKo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQEcBAABAgAGBQJQjme2AAoJEIKsye9/dtRWksUH/13R/JVFeSmIK/QtHKijLY3d
+NC84UHS24AD6r4y+EEmrs9+levCyJ7xiwHKsgIA9sdrbte8jHv4FqGJZRPn1mwtQ
+GQLvSmV6Z4bFobqrhXdmpewYz5rNsVla3RFAX06gcEcjBKZHAa/1EvDj8RVAeyyC
+48bV3I17oNIsGnGBQ1Mqol3SEJgLwzB/64h4IrpcTYVH986ACPgriKKPAdwIqA6d
+np1+S6U9WbDn9pbjp+SACcmx0l72xpLO30jwSQRPUmdvXsm5nQKYv5aNNjilTjfT
+D7vEN22kpzPBNig+osPx/gUs/Lz0tNaWk9TPSBT8Nfkh74KNzZF5SxC/kOXQpAM=
+=lJx7
+-----END PGP SIGNATURE-----
+
+--nextPart2763124.klLcYckpKo--
+
