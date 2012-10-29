@@ -1,54 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:36136 "EHLO plane.gmane.org"
+Received: from mx1.redhat.com ([209.132.183.28]:53809 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754776Ab2JENWg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Oct 2012 09:22:36 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1TK7rS-0007BY-Rr
-	for linux-media@vger.kernel.org; Fri, 05 Oct 2012 15:22:38 +0200
-Received: from 217-67-201-162.itsa.net.pl ([217.67.201.162])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 05 Oct 2012 15:22:38 +0200
-Received: from t.stanislaws by 217-67-201-162.itsa.net.pl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 05 Oct 2012 15:22:38 +0200
-To: linux-media@vger.kernel.org
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [GIT PULL FOR v3.7] media: s5p-hdmi: add HPD GPIO to platform data
-Date: Fri, 05 Oct 2012 15:22:19 +0200
-Message-ID: <506EDF0B.4010401@samsung.com>
+	id S1758747Ab2J2LdJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Oct 2012 07:33:09 -0400
+Date: Mon, 29 Oct 2012 09:32:51 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 0/2] Fix a few more warnings
+Message-ID: <20121029093251.1bb2acfa@redhat.com>
+In-Reply-To: <508E6644.4040104@samsung.com>
+References: <1351506118-2385-1-git-send-email-mchehab@redhat.com>
+	<508E6644.4040104@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-This patch is a part of "[PATCH v1 00/14] drm: exynos: hdmi: add dt based support for exynos5 hdmi"
-patchset. The patchset refers to DRM tree (exynos-drm-next to be more exact).
-However the patch 'media: s5p-hdmi: add HPD GPIO to platform data' belong to the media tree.
+Em Mon, 29 Oct 2012 12:19:32 +0100
+Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
+
+> On 10/29/2012 11:21 AM, Mauro Carvalho Chehab wrote:
+> > Hans Verkuil yesterday's build still got two warnings at the
+> > generic drivers:
+> >         http://hverkuil.home.xs4all.nl/logs/Sunday.log
+> > 
+> > They didn't appear at i386 build probably because of some
+> > optimization done there.
+> > 
+> > Anyway, fixing them are trivial, so let's do it.
+> > 
+> > After applying those patches, the only drivers left producing
+> > warnings are the following platform drivers:
+> > 
+> > drivers/media/platform/davinci/dm355_ccdc.c
+> > drivers/media/platform/davinci/dm644x_ccdc.c
+> > drivers/media/platform/davinci/vpbe_osd.c
+> > drivers/media/platform/omap3isp/ispccdc.c
+> > drivers/media/platform/omap3isp/isph3a_aewb.c
+> > drivers/media/platform/omap3isp/isph3a_af.c
+> > drivers/media/platform/omap3isp/isphist.c
+> > drivers/media/platform/omap3isp/ispqueue.c
+> > drivers/media/platform/omap3isp/ispvideo.c
+> > drivers/media/platform/omap/omap_vout.c
+> > drivers/media/platform/s5p-fimc/fimc-capture.c
+> > drivers/media/platform/s5p-fimc/fimc-lite.c
+> 
+> For these two files I've sent already a pull request [1], which
+> includes a fixup patch
+> s5p-fimc: Don't ignore return value of vb2_queue_init()
+> 
+> BTW, shouldn't things like these be taken care when someone does
+> a change at the core code ? 
+
+Sure. I remember I saw one patch with s5p on that series[1].
+Can't remember anymore if it were acked and merged directly, if
+it was opted to send it via your tree (or maybe that patch was just
+incomplete, and got unnoticed on that time).
+
+[1] https://patchwork.kernel.org/patch/1372871/
+
+It is not easy to enforce those kind of things for platform drivers,
+as there's not yet a single .config file that could be used to test
+all arm drivers. Hans automatic builds might be useful, if there weren't
+any warns at the -git tree build at the tested archs, but there are
+so many warnings that I think I never saw any such report saying that
+there's no warning.
+
+Btw, are there anyone really consistently using his reports to fix things?
+
+> I'm not having issues in this case at all,
+> but if there is many people doing constantly changes at the core it
+> might imply for driver authors/maintainers wasting much of their time
+> for fixing issues resulting from constant changes at the base code.
 
 Regards,
-Tomasz Stanislawski
-
-The following changes since commit 2425bb3d4016ed95ce83a90b53bd92c7f31091e4:
-
-  em28xx: regression fix: use DRX-K sync firmware requests on em28xx (2012-10-02 17:15:22 -0300)
-
-are available in the git repository at:
-
-  git://git.infradead.org/users/kmpark/linux-samsung v4l-s5p-tv-for3.7
-
-for you to fetch changes up to b26bab928dd6f6e1d5613b68fa6fea1d29c9005e:
-
-  media: s5p-hdmi: add HPD GPIO to platform data (2012-10-05 14:53:05 +0200)
-
-----------------------------------------------------------------
-Tomasz Stanislawski (1):
-      media: s5p-hdmi: add HPD GPIO to platform data
-
- include/media/s5p_hdmi.h |    2 ++
- 1 file changed, 2 insertions(+)
-
+Mauro
