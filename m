@@ -1,104 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1754 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752579Ab2JCGh4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 02:37:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Prabhakar <prabhakar.csengg@gmail.com>
-Subject: Re: [PATCH] media: davinci: vpfe: fix build error
-Date: Wed, 3 Oct 2012 08:37:14 +0200
-Cc: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	VGER <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1349095968-14257-1-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1349095968-14257-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:59223 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755284Ab2J2WnL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Oct 2012 18:43:11 -0400
+Received: by mail-ee0-f46.google.com with SMTP id b15so2363620eek.19
+        for <linux-media@vger.kernel.org>; Mon, 29 Oct 2012 15:43:10 -0700 (PDT)
+Message-ID: <508F067B.7030301@gmail.com>
+Date: Mon, 29 Oct 2012 23:43:07 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH 10/23] V4L: Add auto focus targets to the selections API
+References: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com> <1336645858-30366-11-git-send-email-s.nawrocki@samsung.com> <20121029200036.GA25623@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20121029200036.GA25623@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201210030837.14378.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon October 1 2012 14:52:48 Prabhakar wrote:
-> From: Lad, Prabhakar <prabhakar.lad@ti.com>
-> 
-> recent patch with commit id 4f996594ceaf6c3f9bc42b40c40b0f7f87b79c86
-> which makes vidioc_s_crop const, was causing a following build error.
-> 
-> vpfe_capture.c: In function 'vpfe_s_crop':
-> vpfe_capture.c:1695: error: assignment of read-only location '*crop'
-> vpfe_capture.c:1706: warning: passing argument 1 of
-> 'ccdc_dev->hw_ops.set_image_window' discards qualifiers from pointer target type
-> vpfe_capture.c:1706: note: expected 'struct v4l2_rect *' but argument is of
-> type 'const struct v4l2_rect *'
-> make[4]: *** [drivers/media/platform/davinci/vpfe_capture.o] Error 1
+Hi Sakari,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+On 10/29/2012 09:00 PM, Sakari Ailus wrote:
+> On Thu, May 10, 2012 at 12:30:45PM +0200, Sylwester Nawrocki wrote:
+>> The camera automatic focus algorithms may require setting up
+>> a spot or rectangle coordinates or multiple such parameters.
+>>
+>> The automatic focus selection targets are introduced in order
+>> to allow applications to query and set such coordinates. Those
+>> selections are intended to be used together with the automatic
+>> focus controls available in the camera control class.
+>>
+>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+>> ---
+>>   Documentation/DocBook/media/v4l/selection-api.xml  |   33 +++++++++++++++++++-
+>>   .../DocBook/media/v4l/vidioc-g-selection.xml       |   11 +++++++
+>>   include/linux/videodev2.h                          |    5 +++
+>>   3 files changed, 48 insertions(+), 1 deletion(-)
+> 
+> What's the status of this patch? May I ask if you have plans to continue
+> with it?
 
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/platform/davinci/vpfe_capture.c |   17 +++++++++--------
->  1 files changed, 9 insertions(+), 8 deletions(-)
+Thanks for reminding about it. I'd like to make this ready for v3.8, if 
+possible. I've done some minor improvements of the related 
+V4L2_CID_AUTO_FOCUS_AREA control and we use this patch internally. We would 
+like to see how all this can be used for auto focus feature of the s5c73m3 
+camera. I hope to have these patches posted next week.
+ 
+> Speaking of multiple AF windows --- I originally thought we could just have
+> multiple selection targets for them. I'm not sure which one would be better;
+> multiple selection targets or another field telling the window ID. In case
+> of the former we'd leave a largish gap for additional window IDs.
 > 
-> diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
-> index 48052cb..8be492c 100644
-> --- a/drivers/media/platform/davinci/vpfe_capture.c
-> +++ b/drivers/media/platform/davinci/vpfe_capture.c
-> @@ -1669,6 +1669,7 @@ static int vpfe_s_crop(struct file *file, void *priv,
->  			     const struct v4l2_crop *crop)
->  {
->  	struct vpfe_device *vpfe_dev = video_drvdata(file);
-> +	struct v4l2_rect rect = crop->c;
->  	int ret = 0;
->  
->  	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_crop\n");
-> @@ -1684,7 +1685,7 @@ static int vpfe_s_crop(struct file *file, void *priv,
->  	if (ret)
->  		return ret;
->  
-> -	if (crop->c.top < 0 || crop->c.left < 0) {
-> +	if (rect.top < 0 || rect.left < 0) {
->  		v4l2_err(&vpfe_dev->v4l2_dev,
->  			"doesn't support negative values for top & left\n");
->  		ret = -EINVAL;
-> @@ -1692,26 +1693,26 @@ static int vpfe_s_crop(struct file *file, void *priv,
->  	}
->  
->  	/* adjust the width to 16 pixel boundary */
-> -	crop->c.width = ((crop->c.width + 15) & ~0xf);
-> +	rect.width = ((rect.width + 15) & ~0xf);
->  
->  	/* make sure parameters are valid */
-> -	if ((crop->c.left + crop->c.width >
-> +	if ((rect.left + rect.width >
->  		vpfe_dev->std_info.active_pixels) ||
-> -	    (crop->c.top + crop->c.height >
-> +	    (rect.top + rect.height >
->  		vpfe_dev->std_info.active_lines)) {
->  		v4l2_err(&vpfe_dev->v4l2_dev, "Error in S_CROP params\n");
->  		ret = -EINVAL;
->  		goto unlock_out;
->  	}
-> -	ccdc_dev->hw_ops.set_image_window(&crop->c);
-> -	vpfe_dev->fmt.fmt.pix.width = crop->c.width;
-> -	vpfe_dev->fmt.fmt.pix.height = crop->c.height;
-> +	ccdc_dev->hw_ops.set_image_window(&rect);
-> +	vpfe_dev->fmt.fmt.pix.width = rect.width;
-> +	vpfe_dev->fmt.fmt.pix.height = rect.height;
->  	vpfe_dev->fmt.fmt.pix.bytesperline =
->  		ccdc_dev->hw_ops.get_line_length();
->  	vpfe_dev->fmt.fmt.pix.sizeimage =
->  		vpfe_dev->fmt.fmt.pix.bytesperline *
->  		vpfe_dev->fmt.fmt.pix.height;
-> -	vpfe_dev->crop = crop->c;
-> +	vpfe_dev->crop = rect;
->  unlock_out:
->  	mutex_unlock(&vpfe_dev->lock);
->  	return ret;
-> 
+> I think I'm leaning towards using one reserved field for the purpose.
+
+That also as my preference. I imagine the ID field could be reused for
+other future or existing selection targets anyway. I recall someone already
+asked about multiple ROI support for image cropping [1], perhaps the ID 
+field could be used also for that.
+ 
+> Another question I had was that which of the selection rectangles would the
+> AF rectangle be related to? Is it the compose bounds rectangle, or the crop
+> bounds rectangle, for example? I thought it might make sense to use another
+> field to tell that, since I think which one this really is related to is
+> purely hardware specific.
+
+It's indeed very hardware specific. I've seen sensors that allow to define
+bounds for the auto focus rectangle entirely independent from the output 
+format, crop or compose rectangle. It may look strange, but some sensor 
+firmwares just accept rectangle/point coordinates with bounds rectangle 
+corresponding to video display area (so it is easy, e.g. to use coordinates 
+coming directly from a touchscreen) and then perform required calculations 
+to map/scale it onto e.g. sensor crop or output rectangle.
+
+I guess your question is related to how to determine in what stage of 
+video pipeline the AF selections would be and what the configuration 
+order should be from the user space side ?
+ 
+--
+Regards,
+Sylwester
+
+[1] http://www.spinics.net/lists/linux-media/msg55091.html
