@@ -1,87 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from drsnuggles.stderr.nl ([94.142.244.14]:60732 "EHLO
-	drsnuggles.stderr.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751033Ab2JOOoR (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49630 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757738Ab2J3QWS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Oct 2012 10:44:17 -0400
-Date: Mon, 15 Oct 2012 16:44:11 +0200
-From: Matthijs Kooijman <matthijs@stdin.nl>
-To: Luis Henriques <luis.henriques@canonical.com>
-Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Stephan Raue <stephan@openelec.tv>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: (still) NULL pointer crashes with nuvoton_cir driver
-Message-ID: <20121015144411.GB5873@login.drsnuggles.stderr.nl>
-References: <20120815165153.GJ21274@login.drsnuggles.stderr.nl> <20121015110111.GD17159@login.drsnuggles.stderr.nl> <20121015123232.GA25969@hercules>
+	Tue, 30 Oct 2012 12:22:18 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jun Nie <niej0001@gmail.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+	Bryan Wu <bryan.wu@canonical.com>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	Archit Taneja <archit@ti.com>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	Inki Dae <inki.dae@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [RFC 0/5] Generic panel framework
+Date: Tue, 30 Oct 2012 17:23:09 +0100
+Message-ID: <1593234.uFiMq7ARmu@avalon>
+In-Reply-To: <CAGA24MLnW-i0koFuAsnFQ2mNnrLupkmbxW5T8WYiV3QuoA2vig@mail.gmail.com>
+References: <1345164583-18924-1-git-send-email-laurent.pinchart@ideasonboard.com> <3648908.jA5PYymWxV@avalon> <CAGA24MLnW-i0koFuAsnFQ2mNnrLupkmbxW5T8WYiV3QuoA2vig@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lEGEL1/lMxI0MVQ2"
-Content-Disposition: inline
-In-Reply-To: <20121015123232.GA25969@hercules>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Jun,
 
---lEGEL1/lMxI0MVQ2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I've finally been able to resume my work on the panel framework (I hope to 
+post a v2 at the end of the week).
 
-Hey Luis,
+On Thursday 23 August 2012 14:23:01 Jun Nie wrote:
+> Hi Laurent,
+>     Do you plan to add an API to get and parse EDID to mode list?
 
-> Your diagnosis seem to be correct and I have already tried to address
-> this:
->=20
-> https://lkml.org/lkml/2012/8/25/84
-Oh, w00ps, seems I missed that patch, stupid of me...
+An API to get the raw EDID data is likely needed. Parsing EDID data in the 
+panel driver and providing the modes to the caller isn't enough, as EDID 
+contains more than just video modes. I'm not sure whether a driver for an 
+EDID-aware panel should parse the EDID data internally and provide both modes 
+and raw EDID data, or only raw EDID data.
 
-> I've submitted a patch to try to fix it but got no comments yet.  My
-> patch moves the request_irq() invocation further down the
-> initialisation code, after the rc_register_device() (which I believe
-> is the correct thing to do).
+> video mode is tightly coupled with panel that is capable of hot-plug.
+> Or you are busy on modifying EDID parsing code for sharing it amoung
+> DRM/FB/etc? I see you mentioned this in Mar.
 
-I applied your patch and ran a diff against my four patches. If I disregard
-the label changes, there's still three changes between our patches I can
-see:
- - You move the rc_register_device calls only above the request_irq
-   call, while I also included the request_region call. I don't think
-   this should cause any realy difference.
- - You didn't remove the "dev->hw_io =3D -1" and "dev->irq =3D -1" lines in
-   ene_ir.c, which I think are no longer needed now there are different
-   multiple cleanup labels.
- - You did not move up the "...->rdev =3D rdev" line in fintek-cir.c,
-   nuvoton-cir.c and ite-cir.c, which I think means the bug is not
-   completely solved for these drivers with your patch.
+That's needed as well, but -ENOTIME :-S
 
+> It is great if you are considering add more info into video mode, such as
+> pixel repeating, 3D timing related parameter.
 
-As for the last point, I did a test run with your patch and could no
-longer reproduce the issue (though I'm pretty confident the original
-really was nvt->rdev being NULL). I suspect this means that moving the
-rc_register_device() up to before the request_irq, prevents the bug from
-triggering because either rc_register_device() did something to trigger
-a (pending) interrupt, or it just took long enough for an interrupt to
-occur.
+Please have a look at "[PATCH 2/2 v6] of: add generic videomode description" 
+on dri-devel. There's a proposal for a common video mode structure.
 
-In either case, I believe there is still a race condition between the
-first interrupt and the initialization of of nvt->rdev, which could be
-fixed by also moving the rdev initialization a bit further up. Or am I
-missing some point here?
+> I have some code for CEA modes filtering and 3D parsing, but still tight
+> coupled with FB and with a little hack style.
+> 
+>     My HDMI driver is implemented as lcd device as you mentioned here.
+> But more complex than other lcd devices for a kthread is handling
+> hot-plug/EDID/HDCP/ASoC etc.
+> 
+>     I also feel a little weird to add code parsing HDMI audio related
+> info in fbmod.c in my current implementation, thought it is the only
+> place to handle EDID in kernel. Your panel framework provide a better
+> place to add panel related audio/HDCP code. panel notifier can also
+> trigger hot-plug related feature, such as HDCP start.
 
-Gr.
+That's a good idea. I was wondering whether to put the common EDID parser in 
+drivers/gpu/drm, drivers/video or drivers/media. Putting it wherever the panel 
+framework will be might be a good option as well.
 
-Matthijs
+>     Looking forward to your hot-plug panel patch. Or I can help add it
+> if you would like me to.
 
---lEGEL1/lMxI0MVQ2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+I'll try to post a v2 at the end of the week, but likely without much hot-plug 
+support. Patches and enhancement proposals will be welcome.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+-- 
+Regards,
 
-iEYEARECAAYFAlB8ITsACgkQz0nQ5oovr7w6yQCgn4oQ/bOAe14DCO2+Wb70sW0B
-q5kAoLhaGiyrgXK7aqSjwrN8ed6ms0v+
-=2I4s
------END PGP SIGNATURE-----
+Laurent Pinchart
 
---lEGEL1/lMxI0MVQ2--
