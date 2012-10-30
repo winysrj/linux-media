@@ -1,62 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:45102 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934915Ab2JXPCo (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:48855 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751149Ab2J3PX4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Oct 2012 11:02:44 -0400
-Received: by mail-vc0-f174.google.com with SMTP id fk26so639399vcb.19
-        for <linux-media@vger.kernel.org>; Wed, 24 Oct 2012 08:02:41 -0700 (PDT)
+	Tue, 30 Oct 2012 11:23:56 -0400
+Received: by mail-we0-f174.google.com with SMTP id t9so178912wey.19
+        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 08:23:54 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1351088137-11472-3-git-send-email-k.debski@samsung.com>
-References: <1351088137-11472-1-git-send-email-k.debski@samsung.com>
-	<1351088137-11472-3-git-send-email-k.debski@samsung.com>
-Date: Wed, 24 Oct 2012 20:32:40 +0530
-Message-ID: <CAK9yfHxccJgf9jxP-zGOvroTiDs=jKOjUkNQdoijCNeTL9VACw@mail.gmail.com>
-Subject: Re: [PATCH 3/4] s5p-mfc: Fix vidioc_subscribe_event declaration
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org, jtp.park@samsung.com,
-	arun.kk@samsung.com, s.nawrocki@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
+In-Reply-To: <Pine.LNX.4.64.1210301547300.29432@axis700.grange>
+References: <1351599395-16833-1-git-send-email-javier.martin@vista-silicon.com>
+	<1351599395-16833-2-git-send-email-javier.martin@vista-silicon.com>
+	<CAOMZO5C0yvvXs38B4zt46zsjphif-tg=FoEjBeoLx7iQUut62Q@mail.gmail.com>
+	<Pine.LNX.4.64.1210301327090.29432@axis700.grange>
+	<CACKLOr0r2w-=f=PUU-s7x302Jvp3urBZcRQa3pjArZYx0BSjtg@mail.gmail.com>
+	<Pine.LNX.4.64.1210301547300.29432@axis700.grange>
+Date: Tue, 30 Oct 2012 16:23:54 +0100
+Message-ID: <CACKLOr1QogF3K7o_ZhPYJZG8VYAUgQgQsVXt4VTM=8ZrdwF_dA@mail.gmail.com>
+Subject: Re: [PATCH 1/4] media: mx2_camera: Remove i.mx25 support.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Fabio Estevam <festevam@gmail.com>, linux-media@vger.kernel.org,
+	fabio.estevam@freescale.com
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+On 30 October 2012 15:57, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> On Tue, 30 Oct 2012, javier Martin wrote:
+>
+>> Hi Guennadi, Fabio,
+>>
+>> On 30 October 2012 13:29, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+>> > On Tue, 30 Oct 2012, Fabio Estevam wrote:
+>> >
+>> >> Javier,
+>> >>
+>> >> On Tue, Oct 30, 2012 at 10:16 AM, Javier Martin
+>> >> <javier.martin@vista-silicon.com> wrote:
+>> >> > i.MX25 support has been broken for several releases
+>> >> > now and nobody seems to care about it.
+>> >>
+>> >> I will work on fixing camera support for mx25. Please do not remove its support.
+>> >
+>> > This is good to hear, thanks for doing this! But we also don't want to
+>> > slow down Javier's work, if he works on features, only available on i.MX27
+>> > or that he can only test there. How about separating parts of code,
+>> > specific to each platform more cleanly? Maybe add an mx27_camera.c file to
+>> > build the final driver from both files and mx27 and only from one on mx25?
+>> > Or something similar? Would this be difficult or make sense at all?
+>> >
+>>
+>> It's pretty good that you want to provide proper support for video
+>> capture on mx25 but I am still in favour of applying this patch for
+>> several reasons:
+>
+> Fabio, I wasn't in favour of removing mx25 support initially and I still
+> don't quite fancy it, but the delta is getting too large. If we remove it
+> now you still have the git history, so, you'll be able to restore the
+> latest state before removal. OTOH, it would be easier for me to review a
+> 50-line fix patch, than a 400-line revert-and-fix patch, so, this has an
+> adbantage too.
+>
+> Let's try the following: I'm away the whole next week, so, I'll wait for
+> your patches for almost 2 weeks until around 10.11. If you don't manage to
+> fix the driver until then, we remove mx25 support to have it re-added
+> later. What do you think?
 
-I have already submitted a similar patch [1] which Sylwester has
-applied to his tree.
+Please, consider adding support for i.MX25 in a separate file.  Just
+take a look at the mess we had in 3.1:
 
-[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg53857.html
+http://lxr.linux.no/#linux+v3.1/drivers/media/video/mx2_camera.c
+
+Regards.
+
+> Thanks
+> Guennadi
+>
+>> 1. i.mx25 "support" is so broken now that it would be better to start
+>> from scratch IMHO.
+>> 2. AFAIK mx25 is not provided with an eMMa-PrP module. The current
+>> mx2_camera driver relies on this module to perform DMA transfers. If
+>> we added support for i.MX25 in this file, we'd have to use generic
+>> DMAs again, which is something we already removed in the past.
+>> 3. CSI provided in i.mx25 has more features than the one in the
+>> i.MX27, so the code they possibly share is even more reduced.
+>>
+>> By the way, removal of all i.mx25 traces in this file was  announced
+>> several times in the past:
+>>
+>> 9 Jul 2012
+>> [PATCH] [v3] i.MX27: Fix emma-prp clocks in mx2_camera.c
+>> 26 Jul 2012
+>> [PATCH 2/4] media: mx2_camera: Mark i.MX25 support as BROKEN.
+>> [PATCH 3/4] Schedule removal of i.MX25 support in mx2_camera.c
+>>
+>> In my opinion. i.mx25 video capture support should be added in a
+>> separate file later. Though some CSI features are common, the lack of
+>> eMMa-PrP in i.mx25 will make the driver be very different.
+>>
+>> Please, expect a v2 of this patch soon. I've just remembered that I
+>> missed removing i.MX25 traces from the Kconfig file too.
+>>
+>> Regards.
+>> --
+>> Javier Martin
+>> Vista Silicon S.L.
+>> CDTUC - FASE C - Oficina S-345
+>> Avda de los Castros s/n
+>> 39005- Santander. Cantabria. Spain
+>> +34 942 25 32 60
+>> www.vista-silicon.com
+>>
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+
+
 
 -- 
-With warm regards,
-Sachin
-
-On 24 October 2012 19:45, Kamil Debski <k.debski@samsung.com> wrote:
-> Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> index 2af6d52..4b01b02 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> @@ -1542,7 +1542,7 @@ int vidioc_encoder_cmd(struct file *file, void *priv,
->  }
->
->  static int vidioc_subscribe_event(struct v4l2_fh *fh,
-> -                                       struct v4l2_event_subscription *sub)
-> +                               const struct  v4l2_event_subscription *sub)
->  {
->         switch (sub->type) {
->         case V4L2_EVENT_EOS:
-> --
-> 1.7.9.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
