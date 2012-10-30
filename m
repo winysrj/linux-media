@@ -1,68 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f46.google.com ([209.85.213.46]:49915 "EHLO
-	mail-yh0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933380Ab2JWT6y (ORCPT
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:50646 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933367Ab2J3MQv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 15:58:54 -0400
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-Cc: Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 08/23] cx25840: Replace memcpy with struct assignment
-Date: Tue, 23 Oct 2012 16:57:11 -0300
-Message-Id: <1351022246-8201-8-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
-References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+	Tue, 30 Oct 2012 08:16:51 -0400
+Received: by mail-ea0-f174.google.com with SMTP id c13so82711eaa.19
+        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 05:16:49 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, fabio.estevam@freescale.com,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH 2/4] media: mx2_camera: Add image size HW limits.
+Date: Tue, 30 Oct 2012 13:16:33 +0100
+Message-Id: <1351599395-16833-3-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1351599395-16833-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1351599395-16833-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This kind of memcpy() is error-prone. Its replacement with a struct
-assignment is prefered because it's type-safe and much easier to read.
+The CSI has some constraints regarding image with.
+This patch makes sure those requirements are met
+in try_fmt().
 
-Found by coccinelle. Hand patched and reviewed.
-Tested by compilation only.
-
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-@@
-identifier struct_name;
-struct struct_name to;
-struct struct_name from;
-expression E;
-@@
--memcpy(&(to), &(from), E);
-+to = from;
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
 ---
- drivers/media/i2c/cx25840/cx25840-ir.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/media/platform/soc_camera/mx2_camera.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/cx25840/cx25840-ir.c b/drivers/media/i2c/cx25840/cx25840-ir.c
-index 38ce76e..9ae977b 100644
---- a/drivers/media/i2c/cx25840/cx25840-ir.c
-+++ b/drivers/media/i2c/cx25840/cx25840-ir.c
-@@ -1251,13 +1251,11 @@ int cx25840_ir_probe(struct v4l2_subdev *sd)
- 		cx25840_write4(ir_state->c, CX25840_IR_IRQEN_REG, 0);
+diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+index e1b44b1..bf1178c 100644
+--- a/drivers/media/platform/soc_camera/mx2_camera.c
++++ b/drivers/media/platform/soc_camera/mx2_camera.c
+@@ -1234,7 +1234,11 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+ 		return -EINVAL;
+ 	}
  
- 	mutex_init(&ir_state->rx_params_lock);
--	memcpy(&default_params, &default_rx_params,
--		       sizeof(struct v4l2_subdev_ir_parameters));
-+	default_params = default_rx_params;
- 	v4l2_subdev_call(sd, ir, rx_s_parameters, &default_params);
+-	/* FIXME: implement MX27 limits */
++	/*
++	 * With must be multiple of 8 as requested by the CSI.
++	 * (Table 39-2 in the i.MX27 Reference Manual).
++	 */
++	pix->width &= ~0x7;
  
- 	mutex_init(&ir_state->tx_params_lock);
--	memcpy(&default_params, &default_tx_params,
--		       sizeof(struct v4l2_subdev_ir_parameters));
-+	default_params = default_tx_params;
- 	v4l2_subdev_call(sd, ir, tx_s_parameters, &default_params);
- 
- 	return 0;
+ 	/* limit to sensor capabilities */
+ 	mf.width	= pix->width;
 -- 
-1.7.4.4
+1.7.9.5
 
