@@ -1,201 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:55602 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755157Ab2JVVHs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Oct 2012 17:07:48 -0400
-Date: Mon, 22 Oct 2012 23:07:29 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Fabio Estevam <fabio.estevam@freescale.com>
-cc: mchehab@infradead.org, kernel@pengutronix.de, gcembed@gmail.com,
-	javier.martin@vista-silicon.com, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk
-Subject: Re: =?UTF-8?q?=5BPATCH=20v3=202/2=5D=20=5Bmedia=5D=3A=20mx2=5Fcamera=3A=20Fix=20regression=20caused=20by=20clock=20conversion?=
-In-Reply-To: <1349791352-9829-1-git-send-email-fabio.estevam@freescale.com>
-Message-ID: <Pine.LNX.4.64.1210222301100.32591@axis700.grange>
-References: <1349791352-9829-1-git-send-email-fabio.estevam@freescale.com>
+Received: from redaccionline.com ([207.218.180.67]:60648 "EHLO
+	correo.fcctpdom.usmp.edu.pe" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S965393Ab2J3TFQ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Oct 2012 15:05:16 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by correo.fcctpdom.usmp.edu.pe (Postfix) with ESMTP id 417E71F02AF
+	for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 13:37:51 -0500 (PET)
+Received: from correo.fcctpdom.usmp.edu.pe ([127.0.0.1])
+	by localhost (correo.fcctpdom.usmp.edu.pe [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 72Elh56aP69S for <linux-media@vger.kernel.org>;
+	Tue, 30 Oct 2012 13:37:51 -0500 (PET)
+Received: from [10.1.1.1] (unknown [120.139.104.255])
+	by correo.fcctpdom.usmp.edu.pe (Postfix) with ESMTPSA id 0900F1F02A9
+	for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 13:37:49 -0500 (PET)
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: Payment Sent!!
+To: linux-media@vger.kernel.org
+From: "Western Union Transfer" <info@westernunion.com>
+Date: Wed, 31 Oct 2012 02:58:10 +0800
+Reply-To: westernuniont12@yahoo.cn
+Message-Id: <20121030183750.0900F1F02A9@correo.fcctpdom.usmp.edu.pe>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabio
-
-On Tue, 9 Oct 2012, Fabio Estevam wrote:
-
-> Since mx27 transitioned to the commmon clock framework in 3.5, the correct way
-> to acquire the csi clock is to get csi_ahb and csi_per clocks separately.
-> 
-> By not doing so the camera sensor does not probe correctly:
-> 
-> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
-> mx2-camera mx2-camera.0: Camera driver attached to camera 0
-> ov2640 0-0030: Product ID error fb:fb
-> mx2-camera mx2-camera.0: Camera driver detached from camera 0
-> mx2-camera mx2-camera.0: MX2 Camera (CSI) driver probed, clock frequency: 66500000
-> 
-> Adapt the mx2_camera driver to the new clock framework and make it functional
-> again.
-> 
-> Tested-by: GaÃ«tan Carlier <gcembed@gmail.com>
-> Tested-by: Javier Martin <javier.martin@vista-silicon.com>
-> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-
-I've got a question to this your patch: could you explain to me, which 
-clock is obtained by
-
-> +	pcdev->clk_csi_per = devm_clk_get(&pdev->dev, "per");
-
-? I don't find a clock named "per" and associated with "mx2-camera.0" in 
-arch/arm/mach-imx/clk-imx27.c. I only find it in clk-imx25.c. Does this 
-mean, that this your patch is for i.MX25? But you're saying it's for 
-i.MX27. Confused...
-
-Thanks
-Guennadi
-
-
-> ---
-> Changes since v2:
-> - Fix clock error handling code as pointed out by Russell King
-> Changes since v1:
-> - Rebased against linux-next 20121008.
->  drivers/media/platform/soc_camera/mx2_camera.c |   50 ++++++++++++++++++------
->  1 file changed, 38 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-> index 403d7f1..382b305 100644
-> --- a/drivers/media/platform/soc_camera/mx2_camera.c
-> +++ b/drivers/media/platform/soc_camera/mx2_camera.c
-> @@ -272,7 +272,8 @@ struct mx2_camera_dev {
->  	struct device		*dev;
->  	struct soc_camera_host	soc_host;
->  	struct soc_camera_device *icd;
-> -	struct clk		*clk_csi, *clk_emma_ahb, *clk_emma_ipg;
-> +	struct clk		*clk_emma_ahb, *clk_emma_ipg;
-> +	struct clk		*clk_csi_ahb, *clk_csi_per;
->  
->  	void __iomem		*base_csi, *base_emma;
->  
-> @@ -432,7 +433,8 @@ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
->  {
->  	unsigned long flags;
->  
-> -	clk_disable_unprepare(pcdev->clk_csi);
-> +	clk_disable_unprepare(pcdev->clk_csi_ahb);
-> +	clk_disable_unprepare(pcdev->clk_csi_per);
->  	writel(0, pcdev->base_csi + CSICR1);
->  	if (cpu_is_mx27()) {
->  		writel(0, pcdev->base_emma + PRP_CNTL);
-> @@ -460,10 +462,14 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
->  	if (pcdev->icd)
->  		return -EBUSY;
->  
-> -	ret = clk_prepare_enable(pcdev->clk_csi);
-> +	ret = clk_prepare_enable(pcdev->clk_csi_ahb);
->  	if (ret < 0)
->  		return ret;
->  
-> +	ret = clk_prepare_enable(pcdev->clk_csi_per);
-> +	if (ret < 0)
-> +		goto exit_csi_ahb;
-> +
->  	csicr1 = CSICR1_MCLKEN;
->  
->  	if (cpu_is_mx27())
-> @@ -480,6 +486,11 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
->  		 icd->devnum);
->  
->  	return 0;
-> +
-> +exit_csi_ahb:
-> +	clk_disable_unprepare(pcdev->clk_csi_ahb);
-> +
-> +	return ret;
->  }
->  
->  static void mx2_camera_remove_device(struct soc_camera_device *icd)
-> @@ -1725,27 +1736,35 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
->  		goto exit;
->  	}
->  
-> -	pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
-> -	if (IS_ERR(pcdev->clk_csi)) {
-> -		dev_err(&pdev->dev, "Could not get csi clock\n");
-> -		err = PTR_ERR(pcdev->clk_csi);
-> +	pcdev->clk_csi_ahb = devm_clk_get(&pdev->dev, "ahb");
-> +	if (IS_ERR(pcdev->clk_csi_ahb)) {
-> +		dev_err(&pdev->dev, "Could not get csi ahb clock\n");
-> +		err = PTR_ERR(pcdev->clk_csi_ahb);
->  		goto exit;
->  	}
->  
-> +	pcdev->clk_csi_per = devm_clk_get(&pdev->dev, "per");
-> +	if (IS_ERR(pcdev->clk_csi_per)) {
-> +		dev_err(&pdev->dev, "Could not get csi per clock\n");
-> +		err = PTR_ERR(pcdev->clk_csi_per);
-> +		goto exit_csi_ahb;
-> +	}
-> +
->  	pcdev->pdata = pdev->dev.platform_data;
->  	if (pcdev->pdata) {
->  		long rate;
->  
->  		pcdev->platform_flags = pcdev->pdata->flags;
->  
-> -		rate = clk_round_rate(pcdev->clk_csi, pcdev->pdata->clk * 2);
-> +		rate = clk_round_rate(pcdev->clk_csi_per,
-> +						pcdev->pdata->clk * 2);
->  		if (rate <= 0) {
->  			err = -ENODEV;
-> -			goto exit;
-> +			goto exit_csi_per;
->  		}
-> -		err = clk_set_rate(pcdev->clk_csi, rate);
-> +		err = clk_set_rate(pcdev->clk_csi_per, rate);
->  		if (err < 0)
-> -			goto exit;
-> +			goto exit_csi_per;
->  	}
->  
->  	INIT_LIST_HEAD(&pcdev->capture);
-> @@ -1801,7 +1820,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
->  		goto exit_free_emma;
->  
->  	dev_info(&pdev->dev, "MX2 Camera (CSI) driver probed, clock frequency: %ld\n",
-> -			clk_get_rate(pcdev->clk_csi));
-> +			clk_get_rate(pcdev->clk_csi_per));
->  
->  	return 0;
->  
-> @@ -1812,6 +1831,10 @@ eallocctx:
->  		clk_disable_unprepare(pcdev->clk_emma_ipg);
->  		clk_disable_unprepare(pcdev->clk_emma_ahb);
->  	}
-> +exit_csi_per:
-> +	clk_disable_unprepare(pcdev->clk_csi_per);
-> +exit_csi_ahb:
-> +	clk_disable_unprepare(pcdev->clk_csi_ahb);
->  exit:
->  	return err;
->  }
-> @@ -1831,6 +1854,9 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
->  		clk_disable_unprepare(pcdev->clk_emma_ahb);
->  	}
->  
-> +	clk_disable_unprepare(pcdev->clk_csi_per);
-> +	clk_disable_unprepare(pcdev->clk_csi_ahb);
-> +
->  	dev_info(&pdev->dev, "MX2 Camera driver unloaded\n");
->  
->  	return 0;
-> -- 
-> 1.7.9.5
-> 
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+We write to inform you that we have transferred $400,000 dollars.  deposited for transfer to you by one MR Bernard Harry from BLACKBERRY MOBILE COMPANY for transfer as a winning prize from the promotion lottery held by the communication company to encourage usage and appreciate already users of their product.
+ 
+ The money is available for pick up by receiver(you) to be cashed on daily installment of $10,000 for 40days. We tried calling to give you the information over the phone but we could not reach you so we decided to email you the information to pick up the first $10,000  already transferred to you. for you to be able to pick the first payment,
+You will have to pay $250 to get it re-activated in your name for you to start picking up your money because we de-activate the transaction for security reason, by making the status to display pick up.
+ 
+ 
+Use this link to track the below information 
+https://wumt.westernunion.com/asp/orderStatus.asp?country=global
+ 
+ Sender's Fist name: Ronald
+ Sender's Last Name: Mundy
+ MTCN: 6605740058
+ Question: Who Is Great
+ Answer: God
+ Amount: $10,000.00USD
+ 
+ Thanks
+ Best Regards
+ Mr.Mcferrin Phoenix .
+ +60169162934
+ western union Office,
+ MALAYSIA OFFICE.
+ Western Union® Money Transfer
