@@ -1,43 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:47475 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754971Ab2JDSvD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 14:51:03 -0400
-Message-ID: <506DDA94.1090702@wwwdotorg.org>
-Date: Thu, 04 Oct 2012 12:51:00 -0600
-From: Stephen Warren <swarren@wwwdotorg.org>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:55759 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753004Ab2J3Ntj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Oct 2012 09:49:39 -0400
+Received: by mail-qc0-f174.google.com with SMTP id o22so159658qcr.19
+        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 06:49:38 -0700 (PDT)
 MIME-Version: 1.0
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-CC: devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2 v6] of: add generic videomode description
-References: <1349373560-11128-1-git-send-email-s.trumtrar@pengutronix.de> <1349373560-11128-3-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1349373560-11128-3-git-send-email-s.trumtrar@pengutronix.de>
+Date: Tue, 30 Oct 2012 21:49:38 +0800
+Message-ID: <CAPgLHd-p6=0ay8ZKJ=sNzyS5C6x0dJTH=EO1SqwiYciO2gTUJg@mail.gmail.com>
+Subject: [PATCH] [media] vpif_display: fix condition logic in vpif_enum_dv_timings()
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: mchehab@infradead.org, prabhakar.lad@ti.com
+Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/04/2012 11:59 AM, Steffen Trumtrar wrote:
-> Get videomode from devicetree in a format appropriate for the
-> backend. drm_display_mode and fb_videomode are supported atm.
-> Uses the display signal timings from of_display_timings
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-> +++ b/drivers/of/of_videomode.c
+The pattern E == C1 && E == C2 is always false. This patch
+fix this according to the assumption that && should be ||.
 
-> +int videomode_from_timing(struct display_timings *disp, struct videomode *vm,
+dpatch engine is used to auto generate this patch.
+(https://github.com/weiyj/dpatch)
 
-> +	st = display_timings_get(disp, index);
-> +
-> +	if (!st) {
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ drivers/media/platform/davinci/vpif_display.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-It's a little odd to leave a blank line between those two lines.
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index b716fbd..977ee43 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -1380,7 +1380,7 @@ vpif_enum_dv_timings(struct file *file, void *priv,
+ 	int ret;
+ 
+ 	ret = v4l2_subdev_call(ch->sd, video, enum_dv_timings, timings);
+-	if (ret == -ENOIOCTLCMD && ret == -ENODEV)
++	if (ret == -ENOIOCTLCMD || ret == -ENODEV)
+ 		return -EINVAL;
+ 	return ret;
+ }
 
-Only half of the code in this file seems OF-related; the routines to
-convert a timing to a videomode or drm display mode seem like they'd be
-useful outside device tree, so I wonder if putting them into
-of_videomode.c is the correct thing to do. Still, it's probably not a
-big deal.
+
