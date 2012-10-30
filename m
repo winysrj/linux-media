@@ -1,154 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ch1ehsobe005.messaging.microsoft.com ([216.32.181.185]:21660
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750746Ab2J3MDt convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Oct 2012 08:03:49 -0400
-From: Fabio Estevam <fabio.estevam@freescale.com>
-To: <g.liakhovetski@gmx.de>
-CC: <kernel@pengutronix.de>, <mchehab@infradead.org>,
-	<gcembed@gmail.com>, <javier.martin@vista-silicon.com>,
-	<linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: =?UTF-8?q?=5BPATCH=20v4=202/2=5D=20mx2=5Fcamera=3A=20Fix=20regression=20caused=20by=20clock=20conversion?=
-Date: Tue, 30 Oct 2012 10:03:26 -0200
-Message-ID: <1351598606-8485-2-git-send-email-fabio.estevam@freescale.com>
-In-Reply-To: <1351598606-8485-1-git-send-email-fabio.estevam@freescale.com>
-References: <1351598606-8485-1-git-send-email-fabio.estevam@freescale.com>
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:61018 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753395Ab2J3NpB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Oct 2012 09:45:01 -0400
+Received: by mail-qa0-f46.google.com with SMTP id c26so2159143qad.19
+        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 06:45:00 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Date: Tue, 30 Oct 2012 21:45:00 +0800
+Message-ID: <CAPgLHd-QVvRuOFHz0nLKgShmJ383sNs4HD6vxMi4ym75c-q-Zg@mail.gmail.com>
+Subject: [PATCH] [media] vpif_capture: fix condition logic in vpif_capture.c
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: mchehab@infradead.org, prabhakar.lad@ti.com
+Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since mx27 transitioned to the commmon clock framework in 3.5, the correct way
-to acquire the csi clock is to get csi_ahb and csi_per clocks separately.
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-By not doing so the camera sensor does not probe correctly:
+The pattern E == C1 && E == C2 is always false. This patch
+fix this according to the assumption that && should be ||.
 
-soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
-mx2-camera mx2-camera.0: Camera driver attached to camera 0
-ov2640 0-0030: Product ID error fb:fb
-mx2-camera mx2-camera.0: Camera driver detached from camera 0
-mx2-camera mx2-camera.0: MX2 Camera (CSI) driver probed, clock frequency: 66500000
+dpatch engine is used to auto generate this patch.
+(https://github.com/weiyj/dpatch)
 
-Adapt the mx2_camera driver to the new clock framework and make it functional
-again.
-
-Tested-by: Gaëtan Carlier <gcembed@gmail.com>
-Tested-by: Javier Martin <javier.martin@vista-silicon.com>
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 ---
-Changes since v3:
-- Drop unneeded clk_unprepare calls as pointed out by Guennadi
-Changes since v2:
-- Fix clock error handling code as pointed out by Russell King
-Changes since v1:
-- Rebased against linux-next 20121008.
- drivers/media/platform/soc_camera/mx2_camera.c |   39 ++++++++++++++++++------
- 1 file changed, 29 insertions(+), 10 deletions(-)
+ drivers/media/platform/davinci/vpif_capture.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-index e575ae8..558f6a3 100644
---- a/drivers/media/platform/soc_camera/mx2_camera.c
-+++ b/drivers/media/platform/soc_camera/mx2_camera.c
-@@ -278,7 +278,8 @@ struct mx2_camera_dev {
- 	struct device		*dev;
- 	struct soc_camera_host	soc_host;
- 	struct soc_camera_device *icd;
--	struct clk		*clk_csi, *clk_emma_ahb, *clk_emma_ipg;
-+	struct clk		*clk_emma_ahb, *clk_emma_ipg;
-+	struct clk		*clk_csi_ahb, *clk_csi_per;
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index fcabc02..2d28a96 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -1715,7 +1715,7 @@ vpif_enum_dv_timings(struct file *file, void *priv,
+ 	int ret;
  
- 	void __iomem		*base_csi, *base_emma;
- 
-@@ -464,7 +465,8 @@ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
- {
- 	unsigned long flags;
- 
--	clk_disable_unprepare(pcdev->clk_csi);
-+	clk_disable_unprepare(pcdev->clk_csi_ahb);
-+	clk_disable_unprepare(pcdev->clk_csi_per);
- 	writel(0, pcdev->base_csi + CSICR1);
- 	if (is_imx27_camera(pcdev)) {
- 		writel(0, pcdev->base_emma + PRP_CNTL);
-@@ -492,10 +494,14 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
- 	if (pcdev->icd)
- 		return -EBUSY;
- 
--	ret = clk_prepare_enable(pcdev->clk_csi);
-+	ret = clk_prepare_enable(pcdev->clk_csi_ahb);
- 	if (ret < 0)
- 		return ret;
- 
-+	ret = clk_prepare_enable(pcdev->clk_csi_per);
-+	if (ret < 0)
-+		goto exit_csi_ahb;
-+
- 	csicr1 = CSICR1_MCLKEN;
- 
- 	if (is_imx27_camera(pcdev))
-@@ -512,6 +518,11 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
- 		 icd->devnum);
- 
- 	return 0;
-+
-+exit_csi_ahb:
-+	clk_disable_unprepare(pcdev->clk_csi_ahb);
-+
-+	return ret;
+ 	ret = v4l2_subdev_call(ch->sd, video, enum_dv_timings, timings);
+-	if (ret == -ENOIOCTLCMD && ret == -ENODEV)
++	if (ret == -ENOIOCTLCMD || ret == -ENODEV)
+ 		return -EINVAL;
+ 	return ret;
  }
+@@ -1735,7 +1735,7 @@ vpif_query_dv_timings(struct file *file, void *priv,
+ 	int ret;
  
- static void mx2_camera_remove_device(struct soc_camera_device *icd)
-@@ -1772,10 +1783,17 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 		break;
- 	}
- 
--	pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
--	if (IS_ERR(pcdev->clk_csi)) {
--		dev_err(&pdev->dev, "Could not get csi clock\n");
--		err = PTR_ERR(pcdev->clk_csi);
-+	pcdev->clk_csi_ahb = devm_clk_get(&pdev->dev, "ahb");
-+	if (IS_ERR(pcdev->clk_csi_ahb)) {
-+		dev_err(&pdev->dev, "Could not get csi ahb clock\n");
-+		err = PTR_ERR(pcdev->clk_csi_ahb);
-+		goto exit;
-+	}
-+
-+	pcdev->clk_csi_per = devm_clk_get(&pdev->dev, "per");
-+	if (IS_ERR(pcdev->clk_csi_per)) {
-+		dev_err(&pdev->dev, "Could not get csi per clock\n");
-+		err = PTR_ERR(pcdev->clk_csi_per);
- 		goto exit;
- 	}
- 
-@@ -1785,12 +1803,13 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 
- 		pcdev->platform_flags = pcdev->pdata->flags;
- 
--		rate = clk_round_rate(pcdev->clk_csi, pcdev->pdata->clk * 2);
-+		rate = clk_round_rate(pcdev->clk_csi_per,
-+						pcdev->pdata->clk * 2);
- 		if (rate <= 0) {
- 			err = -ENODEV;
- 			goto exit;
- 		}
--		err = clk_set_rate(pcdev->clk_csi, rate);
-+		err = clk_set_rate(pcdev->clk_csi_per, rate);
- 		if (err < 0)
- 			goto exit;
- 	}
-@@ -1848,7 +1867,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 		goto exit_free_emma;
- 
- 	dev_info(&pdev->dev, "MX2 Camera (CSI) driver probed, clock frequency: %ld\n",
--			clk_get_rate(pcdev->clk_csi));
-+			clk_get_rate(pcdev->clk_csi_per));
- 
- 	return 0;
- 
--- 
-1.7.9.5
+ 	ret = v4l2_subdev_call(ch->sd, video, query_dv_timings, timings);
+-	if (ret == -ENOIOCTLCMD && ret == -ENODEV)
++	if (ret == -ENOIOCTLCMD || ret == -ENODEV)
+ 		return -ENODATA;
+ 	return ret;
+ }
 
 
