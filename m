@@ -1,51 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:51624 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756709Ab2JaUZN (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:48714 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933825Ab2J3QEd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Oct 2012 16:25:13 -0400
-Received: by mail-ie0-f174.google.com with SMTP id k13so2694614iea.19
-        for <linux-media@vger.kernel.org>; Wed, 31 Oct 2012 13:25:12 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <m3pq3ywh0w.fsf@ursa.amorsen.dk>
-References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-	<m3vcdr1ku9.fsf@ursa.amorsen.dk>
-	<50911079.7010404@googlemail.com>
-	<m3pq3ywh0w.fsf@ursa.amorsen.dk>
-Date: Wed, 31 Oct 2012 17:25:12 -0300
-Message-ID: <CALF0-+Xzb_HULqQLkG3OZaG-9bfe7vaLX5nRdgBSehkbyvRqLA@mail.gmail.com>
-Subject: Re: [PATCH 00/23] em28xx: add support fur USB bulk transfers
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Benny Amorsen <benny+usenet@amorsen.dk>
-Cc: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 30 Oct 2012 12:04:33 -0400
+Received: by mail-wg0-f44.google.com with SMTP id dr13so292654wgb.1
+        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 09:04:31 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	mchehab@redhat.com, corbet@lwn.net,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH] media: ov7670: Allow 32x maximum gain for yuv422.
+Date: Tue, 30 Oct 2012 17:04:23 +0100
+Message-Id: <1351613063-19076-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Benny,
+4x gain ceiling is not enough to capture a decent image in conditions
+of total darkness and only a LED light source. Allow a maximum gain
+of 32x instead.
 
-On Wed, Oct 31, 2012 at 4:58 PM, Benny Amorsen <benny+usenet@amorsen.dk> wrote:
->>
->> Is this a regression caused by patches or a general issue with the
->> Raspberry board ?
->
-> It is a general issue with the Raspberry USB host controller or driver.
-> Bulk transfers work, isochronous transfers have problems. I was hoping I
-> could somehow convince the Nanostick to use bulk transfers instead of
-> isochronous transfers. Since that seems to require a firmware change, I
-> will have to give up on it.
->
->
+This doesn't have any drawback since the image quality in 'normal'
+light conditions is the same.
 
-Very interesting. Let me see if I understand this: you say it's not a
-problem with USB bandwidth,
-but with isochronous transfers, in the sense it could achieve enough
-speed for streaming
-if bulk transfers were used?
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ drivers/media/video/ov7670.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Do you have any links supporting this?
+diff --git a/drivers/media/video/ov7670.c b/drivers/media/video/ov7670.c
+index 5faa3d8..2ea9c51 100644
+--- a/drivers/media/video/ov7670.c
++++ b/drivers/media/video/ov7670.c
+@@ -366,7 +366,7 @@ static struct regval_list ov7670_fmt_yuv422[] = {
+ 	{ REG_RGB444, 0 },	/* No RGB444 please */
+ 	{ REG_COM1, 0 },	/* CCIR601 */
+ 	{ REG_COM15, COM15_R00FF },
+-	{ REG_COM9, 0x18 }, /* 4x gain ceiling; 0x8 is reserved bit */
++	{ REG_COM9, 0x48 }, /* 32x gain ceiling; 0x8 is reserved bit */
+ 	{ 0x4f, 0x80 }, 	/* "matrix coefficient 1" */
+ 	{ 0x50, 0x80 }, 	/* "matrix coefficient 2" */
+ 	{ 0x51, 0    },		/* vb */
+-- 
+1.7.9.5
 
-Thanks,
-
-    Ezequiel
