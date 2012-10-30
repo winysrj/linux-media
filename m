@@ -1,141 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41780 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750762Ab2JJAEt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Oct 2012 20:04:49 -0400
-Date: Tue, 9 Oct 2012 21:04:46 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] [for 3.7] stk1160: Add support for S-Video input
-Message-ID: <20121009210446.2abf0059@redhat.com>
-In-Reply-To: <CALF0-+W-eGegmb2WPozG1qVhm7sa_E-vqZqt4x4veNCnY-BY1Q@mail.gmail.com>
-References: <1349820063-21955-1-git-send-email-elezegarcia@gmail.com>
-	<20121009192540.61875a29@redhat.com>
-	<CALF0-+W-eGegmb2WPozG1qVhm7sa_E-vqZqt4x4veNCnY-BY1Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:20856 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754637Ab2J3Q3p (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Oct 2012 12:29:45 -0400
+Date: Tue, 30 Oct 2012 09:29:38 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Joerg Roedel <joerg.roedel@amd.com>,
+	Omar Ramirez Luna <omar.luna@linaro.org>,
+	linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to
+ include/linux/omap-iommu.h
+Message-ID: <20121030162938.GH11908@atomide.com>
+References: <20121025001913.2082.31062.stgit@muffinssi.local>
+ <20121025213935.GD11928@atomide.com>
+ <CAK=WgbaCM+MWiHARvdfaGL6w0c7g4_keAm0ADw1vkSeiZ0CZPw@mail.gmail.com>
+ <6561916.t72K1L6jg4@avalon>
+ <CAK=WgbY2-Ajm-2OSheOgLCd4589WKDSqqKjzHkE5Ogyp4puJ3g@mail.gmail.com>
+ <20121026180039.GM11908@atomide.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20121026180039.GM11908@atomide.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 9 Oct 2012 20:52:06 -0300
-Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
-
-> On Tue, Oct 9, 2012 at 7:25 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
-> > Em Tue,  9 Oct 2012 19:01:03 -0300
-> > Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
-> >
-> >> In order to fully replace easycap driver with stk1160,
-> >> it's also necessary to add S-Video support.
-> >>
-> >> A similar patch backported for v3.2 kernel has been
-> >> tested by three different users.
-> >>
-> >> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
-> >> ---
-> >> Hi Mauro,
-> >>
-> >> I'm sending this for inclusion in v3.7 second media pull request.
-> >> I realize it's very late, so I understand if you don't
-> >> want to pick it.
-> >>
-> >>  drivers/media/usb/stk1160/stk1160-core.c |   15 +++++++++++----
-> >>  drivers/media/usb/stk1160/stk1160-v4l.c  |    7 ++++++-
-> >>  drivers/media/usb/stk1160/stk1160.h      |    3 ++-
-> >>  3 files changed, 19 insertions(+), 6 deletions(-)
-> >>
-> >> diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/usb/stk1160/stk1160-core.c
-> >> index b627408..34a26e0 100644
-> >> --- a/drivers/media/usb/stk1160/stk1160-core.c
-> >> +++ b/drivers/media/usb/stk1160/stk1160-core.c
-> >> @@ -100,12 +100,21 @@ int stk1160_write_reg(struct stk1160 *dev, u16 reg, u16 value)
-> >>
-> >>  void stk1160_select_input(struct stk1160 *dev)
-> >>  {
-> >> +     int route;
-> >>       static const u8 gctrl[] = {
-> >> -             0x98, 0x90, 0x88, 0x80
-> >> +             0x98, 0x90, 0x88, 0x80, 0x98
-> >>       };
-> >>
-> >> -     if (dev->ctl_input < ARRAY_SIZE(gctrl))
-> >> +     if (dev->ctl_input == STK1160_SVIDEO_INPUT)
-> >> +             route = SAA7115_SVIDEO3;
-> >> +     else
-> >> +             route = SAA7115_COMPOSITE0;
-> >> +
-> >> +     if (dev->ctl_input < ARRAY_SIZE(gctrl)) {
-> >> +             v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
-> >> +                             route, 0, 0);
-> >>               stk1160_write_reg(dev, STK1160_GCTRL, gctrl[dev->ctl_input]);
-> >> +     }
-> >>  }
-> >>
-> >>  /* TODO: We should break this into pieces */
-> >> @@ -351,8 +360,6 @@ static int stk1160_probe(struct usb_interface *interface,
-> >>
-> >>       /* i2c reset saa711x */
-> >>       v4l2_device_call_all(&dev->v4l2_dev, 0, core, reset, 0);
-> >> -     v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
-> >> -                             0, 0, 0);
-> >>       v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_stream, 0);
-> >>
-> >>       /* reset stk1160 to default values */
-> >> diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
-> >> index fe6e857..6694f9e 100644
-> >> --- a/drivers/media/usb/stk1160/stk1160-v4l.c
-> >> +++ b/drivers/media/usb/stk1160/stk1160-v4l.c
-> >> @@ -419,7 +419,12 @@ static int vidioc_enum_input(struct file *file, void *priv,
-> >>       if (i->index > STK1160_MAX_INPUT)
-> >>               return -EINVAL;
-> >>
+* Tony Lindgren <tony@atomide.com> [121026 11:02]:
+> * Ohad Ben-Cohen <ohad@wizery.com> [121026 02:56]:
+> > Hi Laurent,
+> > 
+> > On Fri, Oct 26, 2012 at 11:35 AM, Laurent Pinchart
+> > <laurent.pinchart@ideasonboard.com> wrote:
+> > > That's on my to-do list, as well as porting the OMAP3 ISP driver to videobuf2,
+> > > adding DT support, moving to the common clock framework (when that will be
+> > > available for the OMAP3), supporting missing V4L2 features, ... All this in my
+> > > spare time of course, otherwise it wouldn't be fun, would it ? ;-)
+> > 
+> > Hmm, seems like a short to-do list ;)
 > 
-> Look here... I'm returning EINVAL after  STK1160_MAX_INPUT.
-> (see below)
-
-Sorry, my bad. I was, in fact, tricked by the first hunk, where you was
-routing to either saa7115 video3 or composite0. Now, I noticed that this
-device has an extra video switch, controlled via STK1160_GCTRL register.
-
-Tricky.
-
+> Sounds Laurent will take care of it :)
 > 
-> >> -     sprintf(i->name, "Composite%d", i->index);
-> >> +     /* S-Video special handling */
-> >> +     if (i->index == STK1160_SVIDEO_INPUT)
-> >> +             sprintf(i->name, "S-Video");
-> >> +     else
-> >> +             sprintf(i->name, "Composite%d", i->index);
-> >> +
-> >
-> > Had you ever test this patch with the v4l2-compliance tool?
-> >
-> > It seems broken to me: this driver has just two inputs. So, it should return
-> > -EINVAL for all inputs after that, or otherwise userspace applications that
-> > query the inputs will loop forever!
-> >
+> > > I would also like to move the tidspbridge to the DMA API, but I think we'll
+> > > need to move step by step there, and using the OMAP IOMMU and IOVMM APIs as an
+> > > intermediate step would allow splitting patches in reviewable chunks. I know
+> > > it's a step backwards in term of OMAP IOMMU usage, but that's in my opinion a
+> > > temporary nuisance to make the leap easier.
+> > 
+> > Since tidspbridge is in staging I guess it's not a problem, though it
+> > sounds to me like using the correct API in the first place is going to
+> > make less churn.
 > 
-> Actually the driver has five inputs, since there are two kinds of devices:
-> one with four composites, and another with one composite and one s-video.
-> So, I simply support all of them, since there's no way to distinguish.
+> Not related to these patches, but also sounds like we may need to drop
+> some staging/tidspbridge code to be able to move forward with the
+> ARM common zImage plans. See the "[GIT PULL] omap plat header removal
+> for v3.8 merge window, part1" thread for more info.
 
-Ok then. 
+OK so are people happy with the patches in this series?
 
-> 
-> I just tested this patch with v4l2-compliance and with qv4l2 and there
-> are no regressions.
-> 
-> Unless I'm missing something, I think the patch is OK.
-> Let me know if you want me to change something.
+Please everybody ack if no more comments so we can move on
+towards getting CONFIG_MULTIPLATFORM to work for omaps.
 
-With the light of your comments, the patch looks fine on my eyes.
-
-> 
->     Ezequiel.
-
-
--- 
 Regards,
-Mauro
+
+Tony
