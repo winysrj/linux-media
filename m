@@ -1,42 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56619 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755982Ab2JCIcF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Oct 2012 04:32:05 -0400
-Message-ID: <506BF7F5.7080605@ti.com>
-Date: Wed, 3 Oct 2012 14:01:49 +0530
-From: Prabhakar Lad <prabhakar.lad@ti.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [GIT PULL FOR v3.7] Davinci VPFE bug fix
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Received: from mail-we0-f174.google.com ([74.125.82.174]:62148 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753742Ab2J3O3Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Oct 2012 10:29:16 -0400
+Received: by mail-we0-f174.google.com with SMTP id t9so153339wey.19
+        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 07:29:15 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, fabio.estevam@freescale.com,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH v2 3/4] media: mx2_camera: Remove 'buf_cleanup' callback.
+Date: Tue, 30 Oct 2012 15:29:01 +0100
+Message-Id: <1351607342-18030-4-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1351607342-18030-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1351607342-18030-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+All necessary tasks to end the streaming properly are
+already implemented in mx2_stop_streaming() and nothing
+remains to be done in this callback.
 
-Can you please pull the following patch for VPFE, Which
-fixes build error for VPFE driver.
+Furthermore, it only included debug messages so it can
+be removed.
 
-Thanks and Regards,
---Prabhakar Lad
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ drivers/media/platform/soc_camera/mx2_camera.c |   34 ------------------------
+ 1 file changed, 34 deletions(-)
 
-The following changes since commit 2425bb3d4016ed95ce83a90b53bd92c7f31091e4:
+diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+index bf1178c..8202cb9 100644
+--- a/drivers/media/platform/soc_camera/mx2_camera.c
++++ b/drivers/media/platform/soc_camera/mx2_camera.c
+@@ -551,39 +551,6 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&pcdev->lock, flags);
+ }
+ 
+-static void mx2_videobuf_release(struct vb2_buffer *vb)
+-{
+-#ifdef DEBUG
+-	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+-	struct mx2_camera_dev *pcdev = ici->priv;
+-	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
+-
+-	dev_dbg(icd->parent, "%s (vb=0x%p) 0x%p %lu\n", __func__,
+-		vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
+-
+-	switch (buf->state) {
+-	case MX2_STATE_ACTIVE:
+-		dev_info(icd->parent, "%s (active)\n", __func__);
+-		break;
+-	case MX2_STATE_QUEUED:
+-		dev_info(icd->parent, "%s (queued)\n", __func__);
+-		break;
+-	default:
+-		dev_info(icd->parent, "%s (unknown) %d\n", __func__,
+-				buf->state);
+-		break;
+-	}
+-#endif
+-
+-	/*
+-	 * FIXME: implement forced termination of active buffers for mx27 and
+-	 * mx27 eMMA, so that the user won't get stuck in an uninterruptible
+-	 * state. This requires a specific handling for each of the these DMA
+-	 * types.
+-	 */
+-}
+-
+ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+ 		int bytesperline)
+ {
+@@ -814,7 +781,6 @@ static struct vb2_ops mx2_videobuf_ops = {
+ 	.queue_setup	 = mx2_videobuf_setup,
+ 	.buf_prepare	 = mx2_videobuf_prepare,
+ 	.buf_queue	 = mx2_videobuf_queue,
+-	.buf_cleanup	 = mx2_videobuf_release,
+ 	.start_streaming = mx2_start_streaming,
+ 	.stop_streaming	 = mx2_stop_streaming,
+ };
+-- 
+1.7.9.5
 
-  em28xx: regression fix: use DRX-K sync firmware requests on em28xx
-(2012-10-02 17:15:22 -0300)
-
-are available in the git repository at:
-  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git vpfe_3.7_pull
-
-Lad, Prabhakar (1):
-      media: davinci: vpfe: fix build error
-
- drivers/media/platform/davinci/vpfe_capture.c |   17 +++++++++--------
- 1 files changed, 9 insertions(+), 8 deletions(-)
