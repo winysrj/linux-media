@@ -1,84 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:59442 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752678Ab2JCG15 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 02:27:57 -0400
-From: Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	VGER <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH] media: davinci: vpbe: fix build warning
-Date: Wed,  3 Oct 2012 11:57:38 +0530
-Message-Id: <1349245658-7125-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:44791 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933419Ab2J3MQv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Oct 2012 08:16:51 -0400
+Received: by mail-ee0-f46.google.com with SMTP id b15so112185eek.19
+        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 05:16:51 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, fabio.estevam@freescale.com,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH 3/4] media: mx2_camera: Remove 'buf_cleanup' callback.
+Date: Tue, 30 Oct 2012 13:16:34 +0100
+Message-Id: <1351599395-16833-4-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1351599395-16833-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1351599395-16833-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
+All necessary tasks to end the streaming properly are
+already implemented in mx2_stop_streaming() and nothing
+remains to be done in this callback.
 
-recent patch with commit id 4f996594ceaf6c3f9bc42b40c40b0f7f87b79c86
-which makes vidioc_s_crop const, was causing a following build warning,
+Furthermore, it only included debug messages so it can
+be removed.
 
-vpbe_display.c: In function 'vpbe_display_s_crop':
-vpbe_display.c:640: warning: initialization discards qualifiers from pointer target type
-
-This patch fixes the above build warning.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
 ---
- drivers/media/platform/davinci/vpbe_display.c |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/media/platform/soc_camera/mx2_camera.c |   34 ------------------------
+ 1 file changed, 34 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 1b238fe..161c776 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -637,7 +637,7 @@ static int vpbe_display_s_crop(struct file *file, void *priv,
- 	struct vpbe_device *vpbe_dev = disp_dev->vpbe_dev;
- 	struct osd_layer_config *cfg = &layer->layer_info.config;
- 	struct osd_state *osd_device = disp_dev->osd_device;
--	struct v4l2_rect *rect = &crop->c;
-+	struct v4l2_rect rect = crop->c;
- 	int ret;
+diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+index bf1178c..8202cb9 100644
+--- a/drivers/media/platform/soc_camera/mx2_camera.c
++++ b/drivers/media/platform/soc_camera/mx2_camera.c
+@@ -551,39 +551,6 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&pcdev->lock, flags);
+ }
  
- 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
-@@ -648,21 +648,21 @@ static int vpbe_display_s_crop(struct file *file, void *priv,
- 		return -EINVAL;
- 	}
- 
--	if (rect->top < 0)
--		rect->top = 0;
--	if (rect->left < 0)
--		rect->left = 0;
-+	if (rect.top < 0)
-+		rect.top = 0;
-+	if (rect.left < 0)
-+		rect.left = 0;
- 
--	vpbe_disp_check_window_params(disp_dev, rect);
-+	vpbe_disp_check_window_params(disp_dev, &rect);
- 
- 	osd_device->ops.get_layer_config(osd_device,
- 			layer->layer_info.id, cfg);
- 
- 	vpbe_disp_calculate_scale_factor(disp_dev, layer,
--					rect->width,
--					rect->height);
--	vpbe_disp_adj_position(disp_dev, layer, rect->top,
--					rect->left);
-+					rect.width,
-+					rect.height);
-+	vpbe_disp_adj_position(disp_dev, layer, rect.top,
-+					rect.left);
- 	ret = osd_device->ops.set_layer_config(osd_device,
- 				layer->layer_info.id, cfg);
- 	if (ret < 0) {
+-static void mx2_videobuf_release(struct vb2_buffer *vb)
+-{
+-#ifdef DEBUG
+-	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+-	struct mx2_camera_dev *pcdev = ici->priv;
+-	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
+-
+-	dev_dbg(icd->parent, "%s (vb=0x%p) 0x%p %lu\n", __func__,
+-		vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
+-
+-	switch (buf->state) {
+-	case MX2_STATE_ACTIVE:
+-		dev_info(icd->parent, "%s (active)\n", __func__);
+-		break;
+-	case MX2_STATE_QUEUED:
+-		dev_info(icd->parent, "%s (queued)\n", __func__);
+-		break;
+-	default:
+-		dev_info(icd->parent, "%s (unknown) %d\n", __func__,
+-				buf->state);
+-		break;
+-	}
+-#endif
+-
+-	/*
+-	 * FIXME: implement forced termination of active buffers for mx27 and
+-	 * mx27 eMMA, so that the user won't get stuck in an uninterruptible
+-	 * state. This requires a specific handling for each of the these DMA
+-	 * types.
+-	 */
+-}
+-
+ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+ 		int bytesperline)
+ {
+@@ -814,7 +781,6 @@ static struct vb2_ops mx2_videobuf_ops = {
+ 	.queue_setup	 = mx2_videobuf_setup,
+ 	.buf_prepare	 = mx2_videobuf_prepare,
+ 	.buf_queue	 = mx2_videobuf_queue,
+-	.buf_cleanup	 = mx2_videobuf_release,
+ 	.start_streaming = mx2_start_streaming,
+ 	.stop_streaming	 = mx2_stop_streaming,
+ };
 -- 
-1.7.4.1
+1.7.9.5
 
