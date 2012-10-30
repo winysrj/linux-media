@@ -1,116 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx01.sz.bfs.de ([194.94.69.103]:5586 "EHLO mx01.sz.bfs.de"
+Received: from 7of9.schinagl.nl ([88.159.158.68]:34597 "EHLO 7of9.schinagl.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750761Ab2JGQny (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Oct 2012 12:43:54 -0400
-Message-ID: <5071B147.3010708@bfs.de>
-Date: Sun, 07 Oct 2012 18:43:51 +0200
-From: walter harms <wharms@bfs.de>
-Reply-To: wharms@bfs.de
+	id S1756537Ab2J3J0r (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Oct 2012 05:26:47 -0400
+Message-ID: <508F9CC2.5070301@schinagl.nl>
+Date: Tue, 30 Oct 2012 10:24:18 +0100
+From: Oliver Schinagl <oliver+list@schinagl.nl>
 MIME-Version: 1.0
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-CC: Michael Buesch <m@bues.ch>, kernel-janitors@vger.kernel.org,
-	rmallon@gmail.com, shubhrajyoti@ti.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 9/13] drivers/media/tuners/fc0011.c: use macros for i2c_msg
- initialization
-References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-11-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1349624323-15584-11-git-send-email-Julia.Lawall@lip6.fr>
-Content-Type: text/plain; charset=UTF-8
+To: Antti Palosaari <crope@iki.fi>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Add chipid to fc2580.c
+References: <50850116.9060806@schinagl.nl>    <20121028180713.7d852443@redhat.com> <6698470182ac3a8581c577d93cb49f8d.squirrel@webmail.kapsi.fi>
+In-Reply-To: <6698470182ac3a8581c577d93cb49f8d.squirrel@webmail.kapsi.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 29-10-12 02:09, Antti Palosaari wrote:
+> su 28.10.2012 22:07 Mauro Carvalho Chehab kirjoitti:
+>> Em Mon, 22 Oct 2012 10:17:26 +0200
+>> Oliver Schinagl <oliver+list@schinagl.nl> escreveu:
+>>
+>>> diff --git a/drivers/media/tuners/fc2580.c
+>>> b/drivers/media/tuners/fc2580.c
+>>> index aff39ae..102d942 100644
+>>> I found a fellow Asus U3100+ user (mentioned him before with the
+>>> firmware issue) that even when using the latest firmware, still see's
+>>> 0xff as the chipID.
+>> You missed to add a signed-off-by on your patch.
+>>
+>> Maybe it would make sense, in this case, to print some warning message,
+>> as this could be due to a bug either at the hardware or at some place
+>> at the driver, like the gpio config settings for this device.
+>>
+>> Anyway, Antti, your call.
+> I am on holiday now and dont want to look much these things at the moment.
+>
+> Having 0x00 or 0xff as chip id is something very very stupid and not exits
+> in real world. It is good indicator I2C operation was failing. Check
+> GPIOs, see windows sniffs, add sleep, test if other I2C reads are working
+> later, etc. to find out more info and fix it properly. In worst case it is
+> possible that I2C reads are not working at all...
+This was a random report for someone who I assisted via e-mail to get 
+the latest git clone from antti's tree. Building, enabling debugging and 
+getting this information alone took a week. I don't think we have the 
+possibility to get a dump from anything. The stick has been working fine 
+from my understanding using the 0xff tunerID. How to handle support for 
+these 'bugged' tuners, I leave that up to you :)
 
+AFTER your well deserved holiday. Enjoy and have a great time!
 
-Am 07.10.2012 17:38, schrieb Julia Lawall:
-> From: Julia Lawall <Julia.Lawall@lip6.fr>
-> 
-> Introduce use of I2c_MSG_READ/WRITE/OP, for readability.
-> 
-> A length expressed as an explicit constant is also re-expressed as the size
-> of the buffer in each case.
-> 
-> A simplified version of the semantic patch that makes this change is as
-> follows: (http://coccinelle.lip6.fr/)
-> 
-> // <smpl>
-> @@
-> expression a,b,c;
-> identifier x;
-> @@
-> 
-> struct i2c_msg x =
-> - {.addr = a, .buf = b, .len = c, .flags = I2C_M_RD}
-> + I2C_MSG_READ(a,b,c)
->  ;
-> 
-> @@
-> expression a,b,c;
-> identifier x;
-> @@
-> 
-> struct i2c_msg x =
-> - {.addr = a, .buf = b, .len = c, .flags = 0}
-> + I2C_MSG_WRITE(a,b,c)
->  ;
-> 
-> @@
-> expression a,b,c,d;
-> identifier x;
-> @@
-> 
-> struct i2c_msg x = 
-> - {.addr = a, .buf = b, .len = c, .flags = d}
-> + I2C_MSG_OP(a,b,c,d)
->  ;
-> // </smpl>
-> 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-> 
-> ---
->  drivers/media/tuners/fc0011.c |    9 +++------
->  1 file changed, 3 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/tuners/fc0011.c b/drivers/media/tuners/fc0011.c
-> index e488254..5dbba98 100644
-> --- a/drivers/media/tuners/fc0011.c
-> +++ b/drivers/media/tuners/fc0011.c
-> @@ -80,8 +80,7 @@ struct fc0011_priv {
->  static int fc0011_writereg(struct fc0011_priv *priv, u8 reg, u8 val)
->  {
->  	u8 buf[2] = { reg, val };
-> -	struct i2c_msg msg = { .addr = priv->addr,
-> -		.flags = 0, .buf = buf, .len = 2 };
-> +	struct i2c_msg msg = I2C_MSG_WRITE(priv->addr, buf, sizeof(buf));
->  
->  	if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
->  		dev_err(&priv->i2c->dev,
-> @@ -97,10 +96,8 @@ static int fc0011_readreg(struct fc0011_priv *priv, u8 reg, u8 *val)
->  {
->  	u8 dummy;
->  	struct i2c_msg msg[2] = {
-> -		{ .addr = priv->addr,
-> -		  .flags = 0, .buf = &reg, .len = 1 },
-> -		{ .addr = priv->addr,
-> -		  .flags = I2C_M_RD, .buf = val ? : &dummy, .len = 1 },
-> +		I2C_MSG_WRITE(priv->addr, &reg, sizeof(reg)),
-> +		I2C_MSG_READ(priv->addr, val ? : &dummy, sizeof(dummy)),
->  	};
->  
-
-This dummy looks strange, can it be that this is used uninitialised ?
-
-re,
- wh
-
-
->  	if (i2c_transfer(priv->i2c, msg, 2) != 2) {
-> 
+>
+>
+>>>
+>>> --- a/drivers/media/tuners/fc2580.c
+>>> +++ b/drivers/media/tuners/fc2580.c
+>>> @@ -497,6 +497,7 @@ struct dvb_frontend *fc2580_attach(struct
+>>> dvb_frontend *fe,
+>>>           switch (chip_id) {
+>>>           case 0x56:
+>>>           case 0x5a:
+>>> +       case 0xff:
+>>>                   break;
+>>>           default:
+>>>                   goto err;
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>>> in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>> --
+>> Regards,
+>> Mauro
+>>
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+
