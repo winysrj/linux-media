@@ -1,85 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:46891 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752102Ab2JCMq7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 08:46:59 -0400
-Message-ID: <506C33C0.5000501@canonical.com>
-Date: Wed, 03 Oct 2012 14:46:56 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:50005 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754866Ab2J3HpO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Oct 2012 03:45:14 -0400
+Date: Tue, 30 Oct 2012 08:44:59 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Fabio Estevam <fabio.estevam@freescale.com>
+cc: mchehab@infradead.org, kernel@pengutronix.de, gcembed@gmail.com,
+	javier.martin@vista-silicon.com, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk
+Subject: Re: =?UTF-8?q?=5BPATCH=20v3=202/2=5D=20=5Bmedia=5D=3A=20mx2=5Fcamera=3A=20Fix=20regression=20caused=20by=20clock=20conversion?=
+In-Reply-To: <1349791352-9829-1-git-send-email-fabio.estevam@freescale.com>
+Message-ID: <Pine.LNX.4.64.1210300839500.29432@axis700.grange>
+References: <1349791352-9829-1-git-send-email-fabio.estevam@freescale.com>
 MIME-Version: 1.0
-To: Thomas Hellstrom <thellstrom@vmware.com>
-CC: Daniel Vetter <daniel@ffwll.ch>, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	sumit.semwal@linaro.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/5] dma-buf: remove fallback for !CONFIG_DMA_SHARED_BUFFER
-References: <20120928124148.14366.21063.stgit@patser.local> <5065B0C9.7040209@canonical.com> <5065FDAA.5080103@vmware.com> <50696699.7020009@canonical.com> <506A8DC8.5020706@vmware.com> <20121002080341.GA5679@phenom.ffwll.local> <506BED25.2060804@vmware.com> <CAKMK7uGDaCCL-UT7JaArd3qrnMSc74r32fQ2dnouO3csRGvakg@mail.gmail.com> <506BF93B.5010805@vmware.com> <CAKMK7uGg5pbReAUA+cKWk-jyS3YwkUaZXE7MTcv9w7sk-4a10A@mail.gmail.com> <506C190E.5050803@vmware.com>
-In-Reply-To: <506C190E.5050803@vmware.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op 03-10-12 12:53, Thomas Hellstrom schreef:
-> On 10/03/2012 10:53 AM, Daniel Vetter wrote:
->> On Wed, Oct 3, 2012 at 10:37 AM, Thomas Hellstrom <thellstrom@vmware.com> wrote:
->>>>> So if I understand you correctly, the reservation changes in TTM are
->>>>> motivated by the
->>>>> fact that otherwise, in the generic reservation code, lockdep can only be
->>>>> annotated for a trylock and not a waiting lock, when it *is* in fact a
->>>>> waiting lock.
->>>>>
->>>>> I'm completely unfamiliar with setting up lockdep annotations, but the
->>>>> only
->>>>> place a
->>>>> deadlock might occur is if the trylock fails and we do a
->>>>> wait_for_unreserve().
->>>>> Isn't it possible to annotate the call to wait_for_unreserve() just like
->>>>> an
->>>>> interruptible waiting lock
->>>>> (that is always interrupted, but at least any deadlock will be catched?).
->>>> Hm, I have to admit that idea hasn't crossed my mind, but it's indeed
->>>> a hole in our current reservation lockdep annotations - since we're
->>>> blocking for the unreserve, other threads could potential block
->>>> waiting on us to release a lock we're holding already, resulting in a
->>>> deadlock.
->>>>
->>>> Since no other locking primitive that I know of has this
->>>> wait_for_unlocked interface, I don't know how we could map this in
->>>> lockdep. One idea is to grab the lock and release it again immediately
->>>> (only in the annotations, not the real lock ofc). But I need to check
->>>> the lockdep code to see whether that doesn't trip it up.
->>>
->>> I imagine doing the same as mutex_lock_interruptible() does in the
->>> interrupted path should work...
->> It simply calls the unlock lockdep annotation function if it breaks
->> out. So doing a lock/unlock cycle in wait_unreserve should do what we
->> want.
->>
->> And to properly annotate the ttm reserve paths we could just add an
->> unconditional wait_unreserve call at the beginning like you suggested
->> (maybe with #ifdef CONFIG_PROVE_LOCKING in case ppl freak out about
->> the added atomic read in the uncontended case).
->> -Daniel
->
-> I think atomic_read()s are cheap, at least on intel as IIRC they don't require bus locking,
-> still I think we should keep it within CONFIG_PROVE_LOCKING
->
-> which btw reminds me there's an optimization that can be done in that one should really only
-> call atomic_cmpxchg() if a preceding atomic_read() hints that it will succeed.
->
-> Now, does this mean TTM can keep the atomic reserve <-> lru list removal?
-I don't think it would be a good idea to keep this across devices, there's currently no
-callback to remove buffers off the lru list.
+Hi Fabio
 
-However I am convinced that the current behavior where swapout and
-eviction/destruction never ever do a blocking reserve should be preserved. I looked
-more into it and it seems to allow to recursely quite a few times between all the
-related commands, and it wouldn't surprise me if that turned out to be cause of the
-lockups before moving to the current code.
-no_wait_reserve in those functions should be removed and always treated as true.
+Sorry for a late review, but
 
-Atomic lru_lock + reserve can still be done in the places where it matters though,
-but it might have to try the list for multiple bo's before it succeeds. As long as no
-blocking is done the effective behavior would stay the same.
+On Tue, 9 Oct 2012, Fabio Estevam wrote:
 
-~Maarten
+> Since mx27 transitioned to the commmon clock framework in 3.5, the correct way
+> to acquire the csi clock is to get csi_ahb and csi_per clocks separately.
+> 
+> By not doing so the camera sensor does not probe correctly:
+> 
+> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
+> mx2-camera mx2-camera.0: Camera driver attached to camera 0
+> ov2640 0-0030: Product ID error fb:fb
+> mx2-camera mx2-camera.0: Camera driver detached from camera 0
+> mx2-camera mx2-camera.0: MX2 Camera (CSI) driver probed, clock frequency: 66500000
+> 
+> Adapt the mx2_camera driver to the new clock framework and make it functional
+> again.
+> 
+> Tested-by: Gaëtan Carlier <gcembed@gmail.com>
+> Tested-by: Javier Martin <javier.martin@vista-silicon.com>
+> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+> ---
+> Changes since v2:
+> - Fix clock error handling code as pointed out by Russell King
+> Changes since v1:
+> - Rebased against linux-next 20121008.
+>  drivers/media/platform/soc_camera/mx2_camera.c |   50 ++++++++++++++++++------
+>  1 file changed, 38 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+> index 403d7f1..382b305 100644
+> --- a/drivers/media/platform/soc_camera/mx2_camera.c
+> +++ b/drivers/media/platform/soc_camera/mx2_camera.c
+> @@ -272,7 +272,8 @@ struct mx2_camera_dev {
+>  	struct device		*dev;
+>  	struct soc_camera_host	soc_host;
+>  	struct soc_camera_device *icd;
+> -	struct clk		*clk_csi, *clk_emma_ahb, *clk_emma_ipg;
+> +	struct clk		*clk_emma_ahb, *clk_emma_ipg;
+> +	struct clk		*clk_csi_ahb, *clk_csi_per;
+>  
+>  	void __iomem		*base_csi, *base_emma;
+>  
+> @@ -432,7 +433,8 @@ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
+>  {
+>  	unsigned long flags;
+>  
+> -	clk_disable_unprepare(pcdev->clk_csi);
+> +	clk_disable_unprepare(pcdev->clk_csi_ahb);
+> +	clk_disable_unprepare(pcdev->clk_csi_per);
+>  	writel(0, pcdev->base_csi + CSICR1);
+>  	if (cpu_is_mx27()) {
+>  		writel(0, pcdev->base_emma + PRP_CNTL);
+> @@ -460,10 +462,14 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
+>  	if (pcdev->icd)
+>  		return -EBUSY;
+>  
+> -	ret = clk_prepare_enable(pcdev->clk_csi);
+> +	ret = clk_prepare_enable(pcdev->clk_csi_ahb);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> +	ret = clk_prepare_enable(pcdev->clk_csi_per);
+> +	if (ret < 0)
+> +		goto exit_csi_ahb;
+> +
+>  	csicr1 = CSICR1_MCLKEN;
+>  
+>  	if (cpu_is_mx27())
+> @@ -480,6 +486,11 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
+>  		 icd->devnum);
+>  
+>  	return 0;
+> +
+> +exit_csi_ahb:
+> +	clk_disable_unprepare(pcdev->clk_csi_ahb);
+> +
+> +	return ret;
+>  }
+>  
+>  static void mx2_camera_remove_device(struct soc_camera_device *icd)
+> @@ -1725,27 +1736,35 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+>  		goto exit;
+>  	}
+>  
+> -	pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
+> -	if (IS_ERR(pcdev->clk_csi)) {
+> -		dev_err(&pdev->dev, "Could not get csi clock\n");
+> -		err = PTR_ERR(pcdev->clk_csi);
+> +	pcdev->clk_csi_ahb = devm_clk_get(&pdev->dev, "ahb");
+> +	if (IS_ERR(pcdev->clk_csi_ahb)) {
+> +		dev_err(&pdev->dev, "Could not get csi ahb clock\n");
+> +		err = PTR_ERR(pcdev->clk_csi_ahb);
+>  		goto exit;
+>  	}
+>  
+> +	pcdev->clk_csi_per = devm_clk_get(&pdev->dev, "per");
+> +	if (IS_ERR(pcdev->clk_csi_per)) {
+> +		dev_err(&pdev->dev, "Could not get csi per clock\n");
+> +		err = PTR_ERR(pcdev->clk_csi_per);
+> +		goto exit_csi_ahb;
+> +	}
+> +
+>  	pcdev->pdata = pdev->dev.platform_data;
+>  	if (pcdev->pdata) {
+>  		long rate;
+>  
+>  		pcdev->platform_flags = pcdev->pdata->flags;
+>  
+> -		rate = clk_round_rate(pcdev->clk_csi, pcdev->pdata->clk * 2);
+> +		rate = clk_round_rate(pcdev->clk_csi_per,
+> +						pcdev->pdata->clk * 2);
+>  		if (rate <= 0) {
+>  			err = -ENODEV;
+> -			goto exit;
+> +			goto exit_csi_per;
+>  		}
+> -		err = clk_set_rate(pcdev->clk_csi, rate);
+> +		err = clk_set_rate(pcdev->clk_csi_per, rate);
+>  		if (err < 0)
+> -			goto exit;
+> +			goto exit_csi_per;
+>  	}
+>  
+>  	INIT_LIST_HEAD(&pcdev->capture);
+> @@ -1801,7 +1820,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+>  		goto exit_free_emma;
+>  
+>  	dev_info(&pdev->dev, "MX2 Camera (CSI) driver probed, clock frequency: %ld\n",
+> -			clk_get_rate(pcdev->clk_csi));
+> +			clk_get_rate(pcdev->clk_csi_per));
+>  
+>  	return 0;
+>  
+> @@ -1812,6 +1831,10 @@ eallocctx:
+>  		clk_disable_unprepare(pcdev->clk_emma_ipg);
+>  		clk_disable_unprepare(pcdev->clk_emma_ahb);
+>  	}
+> +exit_csi_per:
+> +	clk_disable_unprepare(pcdev->clk_csi_per);
+> +exit_csi_ahb:
+> +	clk_disable_unprepare(pcdev->clk_csi_ahb);
+
+I don't understand why you need the above two clk_disable_unprepare() - 
+you don't seem to clk_enable_prepare() your csi clocks here. Similarly
+
+>  exit:
+>  	return err;
+>  }
+> @@ -1831,6 +1854,9 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
+>  		clk_disable_unprepare(pcdev->clk_emma_ahb);
+>  	}
+>  
+> +	clk_disable_unprepare(pcdev->clk_csi_per);
+> +	clk_disable_unprepare(pcdev->clk_csi_ahb);
+> +
+
+I don't think the above two are needed
+
+>  	dev_info(&pdev->dev, "MX2 Camera driver unloaded\n");
+>  
+>  	return 0;
+> -- 
+> 1.7.9.5
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
