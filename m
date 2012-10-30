@@ -1,47 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:38092 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751440Ab2JIGeL (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:33841 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932497Ab2J3NIR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Oct 2012 02:34:11 -0400
-Date: Tue, 9 Oct 2012 15:33:53 +0900
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Andrey Smirnov <andrey.smirnov@convergeddevices.net>
-Cc: andrey.smrinov@convergeddevices.net, hverkuil@xs4all.nl,
-	mchehab@redhat.com, sameo@linux.intel.com, perex@perex.cz,
-	tiwai@suse.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 2/6] Add the main bulk of core driver for SI476x code
-Message-ID: <20121009063349.GN8237@opensource.wolfsonmicro.com>
-References: <1349488502-11293-1-git-send-email-andrey.smirnov@convergeddevices.net>
- <1349488502-11293-3-git-send-email-andrey.smirnov@convergeddevices.net>
+	Tue, 30 Oct 2012 09:08:17 -0400
+Received: by mail-la0-f46.google.com with SMTP id h6so183155lag.19
+        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 06:08:15 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1349488502-11293-3-git-send-email-andrey.smirnov@convergeddevices.net>
+In-Reply-To: <20121030020619.6e854f70@redhat.com>
+References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
+	<20121028175752.447c39d5@redhat.com>
+	<508EA1B8.3070304@googlemail.com>
+	<20121029180348.7e7967aa@redhat.com>
+	<508EF1CF.8090602@googlemail.com>
+	<20121030010012.30e1d2de@redhat.com>
+	<20121030020619.6e854f70@redhat.com>
+Date: Tue, 30 Oct 2012 09:08:15 -0400
+Message-ID: <CAGoCfiw+G2CnGJSum2k9M80XizKSTfw34gXZOkOZBp_OvSTtjQ@mail.gmail.com>
+Subject: Re: [PATCH 00/23] em28xx: add support fur USB bulk transfers
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Oct 05, 2012 at 06:54:58PM -0700, Andrey Smirnov wrote:
+On Tue, Oct 30, 2012 at 12:06 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Did a git bisect. The last patch where the bug doesn't occur is this
+> changeset:
+>         em28xx: add module parameter for selection of the preferred USB transfer type
+>
+> That means that this changeset broke it:
+>
+>         em28xx: use common urb data copying function for vbi and non-vbi devices
 
-> +			err = regulator_enable(core->supplies.va);
-> +			if (err < 0)
-> +				break;
-> +			
-> +			err = regulator_enable(core->supplies.vio2);
-> +			if (err < 0)
-> +				goto disable_va;
-> +
-> +			err = regulator_enable(core->supplies.vd);
-> +			if (err < 0)
-> +				goto disable_vio2;
-> +			
-> +			err = regulator_enable(core->supplies.vio1);
-> +			if (err < 0)
-> +				goto disable_vd;
+Oh good, when I saw the subject line for that patch, I got worried.
+Looking at the patch, it seems like he just calls the VBI version for
+both cases assuming the VBI version is a complete superset of the
+non-VBI version, which it is clearly not.
 
-If the sequencing is critical here you should have comments explaining
-what the requirement is, otherwise this looks like a prime candidate
-for conversion to regulator_bulk_enable() (and similarly for all the
-other regulator usage, it appears that all the regulators are worked
-with in a bulk fashion).
+That whole patch should just be reverted.  If he's going to spend the
+time to refactor the code to allow the VBI version to be used for both
+then fine, but blindly calling the VBI version without making real
+code changes is *NOT* going to work.
+
+Frank, good job in naming your patch - it made me scream "WAIT!" when
+I saw it.  Bad job for blindly submitting a code change without any
+idea whether it actually worked.  ;-)
+
+I know developers have the tendency to look at code and say "oh,
+that's ugly, I should change that."  However it's more important that
+it actually work than it be pretty.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
