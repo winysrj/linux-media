@@ -1,48 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:53802 "EHLO
-	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759901Ab2JYOgo (ORCPT
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:61138 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932126Ab2J3MUQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Oct 2012 10:36:44 -0400
-Received: from localhost.localdomain (earthlight.etchedpixels.co.uk [81.2.110.250])
-	by lxorguk.ukuu.org.uk (8.14.5/8.14.1) with ESMTP id q9PF8hDH006894
-	for <linux-media@vger.kernel.org>; Thu, 25 Oct 2012 16:08:48 +0100
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: [PATCH] pvr2: fix minor storage
-To: linux-media@vger.kernel.org
-Date: Thu, 25 Oct 2012 15:38:21 +0100
-Message-ID: <20121025143816.17307.17929.stgit@localhost.localdomain>
+	Tue, 30 Oct 2012 08:20:16 -0400
+Received: by mail-oa0-f46.google.com with SMTP id h16so162285oag.19
+        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 05:20:15 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1351599395-16833-2-git-send-email-javier.martin@vista-silicon.com>
+References: <1351599395-16833-1-git-send-email-javier.martin@vista-silicon.com>
+	<1351599395-16833-2-git-send-email-javier.martin@vista-silicon.com>
+Date: Tue, 30 Oct 2012 10:20:15 -0200
+Message-ID: <CAOMZO5C0yvvXs38B4zt46zsjphif-tg=FoEjBeoLx7iQUut62Q@mail.gmail.com>
+Subject: Re: [PATCH 1/4] media: mx2_camera: Remove i.mx25 support.
+From: Fabio Estevam <festevam@gmail.com>
+To: Javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	fabio.estevam@freescale.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alan Cox <alan@linux.intel.com>
+Javier,
 
-This should have break statements in it.
+On Tue, Oct 30, 2012 at 10:16 AM, Javier Martin
+<javier.martin@vista-silicon.com> wrote:
+> i.MX25 support has been broken for several releases
+> now and nobody seems to care about it.
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
+I will work on fixing camera support for mx25. Please do not remove its support.
 
- drivers/media/usb/pvrusb2/pvrusb2-hdw.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Thanks,
 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-index fb828ba..299751a 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-@@ -3563,9 +3563,9 @@ void pvr2_hdw_v4l_store_minor_number(struct pvr2_hdw *hdw,
- 				     enum pvr2_v4l_type index,int v)
- {
- 	switch (index) {
--	case pvr2_v4l_type_video: hdw->v4l_minor_number_video = v;
--	case pvr2_v4l_type_vbi: hdw->v4l_minor_number_vbi = v;
--	case pvr2_v4l_type_radio: hdw->v4l_minor_number_radio = v;
-+	case pvr2_v4l_type_video: hdw->v4l_minor_number_video = v;break;
-+	case pvr2_v4l_type_vbi: hdw->v4l_minor_number_vbi = v;break;
-+	case pvr2_v4l_type_radio: hdw->v4l_minor_number_radio = v;break;
- 	default: break;
- 	}
- }
-
+Fabio Estevam
