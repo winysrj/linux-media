@@ -1,55 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:55022 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755406Ab2JCHGL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Oct 2012 03:06:11 -0400
-Date: Wed, 3 Oct 2012 09:06:09 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Alex Pollard <apollard@eos-aus.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Previewing PAL fields on framebuffer
-In-Reply-To: <5F8EBA134B205E4088143663B38B1DC910D5DA0F@EOSMX01.EOSAUS.LOCAL>
-Message-ID: <Pine.LNX.4.64.1210030844220.26201@axis700.grange>
-References: <5F8EBA134B205E4088143663B38B1DC910D5DA0F@EOSMX01.EOSAUS.LOCAL>
+Received: from redaccionline.com ([207.218.180.67]:54559 "EHLO
+	correo.fcctpdom.usmp.edu.pe" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1758338Ab2J3WFg convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Oct 2012 18:05:36 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by correo.fcctpdom.usmp.edu.pe (Postfix) with ESMTP id A63EF1F0078
+	for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 16:45:04 -0500 (PET)
+Received: from correo.fcctpdom.usmp.edu.pe ([127.0.0.1])
+	by localhost (correo.fcctpdom.usmp.edu.pe [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id JLSq5nKHJsmG for <linux-media@vger.kernel.org>;
+	Tue, 30 Oct 2012 16:45:04 -0500 (PET)
+Received: from [10.1.1.1] (unknown [120.139.104.255])
+	by correo.fcctpdom.usmp.edu.pe (Postfix) with ESMTPSA id BA3751F0125
+	for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 16:45:03 -0500 (PET)
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: Payment Sent!!
+To: linux-media@vger.kernel.org
+From: "Western Union Transfer" <info@westernunion.com>
+Date: Wed, 31 Oct 2012 06:05:23 +0800
+Reply-To: westernuniont12@yahoo.cn
+Message-Id: <20121030214503.BA3751F0125@correo.fcctpdom.usmp.edu.pe>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alex
-
-(added linux-media to CC on your request)
-
-On Wed, 3 Oct 2012, Alex Pollard wrote:
-
-> Hi,
-> 
-> I am wondering if it is possible to use the DMA features in 
-> drivers/dma/ipu/ipu_idmac.c to write the top field of a PAL frame into a 
-> framebuffer on alternating lines, and write the bottom field of the PAL 
-> frame to the other lines ie deinterlace.
-
-Looking at the i.MX31 CSI documentation it seems it could be possible to 
-use CSI_SENS_FRM_SIZE and CSI_ACT_FRM_SIZE to specify stride != width to 
-basically do stride = 2 * width and then do 2 transfers per frame - one 
-beginning with line 0 and one beginning with line 1? But that's just an 
-idea, the description of those registers is vague and I'm also not sure 
-how to implement that.
-
-Good luck
-Guennadi
-
-> Do you know a good discussion 
-> list where I could post the question? I am using an i.MX53 but the 
-> support "community" is a bit quiet.
-> 
-> Thanks
-> 
-> Alex Pollard
-> Software Engineer
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+We write to inform you that we have transferred $400,000 dollars.  deposited for transfer to you by one MR Bernard Harry from BLACKBERRY MOBILE COMPANY for transfer as a winning prize from the promotion lottery held by the communication company to encourage usage and appreciate already users of their product.
+ 
+ The money is available for pick up by receiver(you) to be cashed on daily installment of $10,000 for 40days. We tried calling to give you the information over the phone but we could not reach you so we decided to email you the information to pick up the first $10,000  already transferred to you. for you to be able to pick the first payment,
+You will have to pay $250 to get it re-activated in your name for you to start picking up your money because we de-activate the transaction for security reason, by making the status to display pick up.
+ 
+ 
+Use this link to track the below information 
+https://wumt.westernunion.com/asp/orderStatus.asp?country=global
+ 
+ Sender's Fist name: Ronald
+ Sender's Last Name: Mundy
+ MTCN: 6605740058
+ Question: Who Is Great
+ Answer: God
+ Amount: $10,000.00USD
+ 
+ Thanks
+ Best Regards
+ Mr.Mcferrin Phoenix .
+ +60169162934
+ western union Office,
+ MALAYSIA OFFICE.
+ Western Union® Money Transfer
