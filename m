@@ -1,263 +1,637 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:35303 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756179Ab2JQOdi (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:35505 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753742Ab2J3O3N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Oct 2012 10:33:38 -0400
-Message-id: <507EC1BF.6040107@samsung.com>
-Date: Wed, 17 Oct 2012 16:33:35 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, patches@linaro.org,
-	'linux-arm-kernel' <linux-arm-kernel@lists.infradead.org>,
-	"Turquette, Mike" <mturquette@ti.com>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	Tomasz Figa <t.figa@samsung.com>
-Subject: Re: [PATCH 1/8] [media] s5p-fimc: Use clk_prepare_enable and
- clk_disable_unprepare
-References: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org>
-In-reply-to: <1350472311-9748-1-git-send-email-sachin.kamat@linaro.org>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Tue, 30 Oct 2012 10:29:13 -0400
+Received: by mail-wg0-f44.google.com with SMTP id dr13so229509wgb.1
+        for <linux-media@vger.kernel.org>; Tue, 30 Oct 2012 07:29:13 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, fabio.estevam@freescale.com,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH v2 1/4] media: mx2_camera: Remove i.mx25 support.
+Date: Tue, 30 Oct 2012 15:28:59 +0100
+Message-Id: <1351607342-18030-2-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1351607342-18030-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1351607342-18030-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+i.MX25 support has been broken for several releases
+now and nobody seems to care about it.
 
-On 10/17/2012 01:11 PM, Sachin Kamat wrote:
-> Replace clk_enable/clk_disable with clk_prepare_enable/clk_disable_unprepare
-> as required by the common clock framework.
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ drivers/media/platform/soc_camera/Kconfig      |    7 +-
+ drivers/media/platform/soc_camera/mx2_camera.c |  405 ++++++------------------
+ 2 files changed, 103 insertions(+), 309 deletions(-)
 
-I think this statement is misleading. In my understanding it is not the 
-common clock framework requirement to use clk_{enable/disable}_prepare 
-in place of clk_enable/disable. The requirement is to call clk_prepare 
-before first clk_enable call and to call clk_unprepare after clk_disable
-and before clk_put. 
+diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+index 9afe1e7..9e006e0 100644
+--- a/drivers/media/platform/soc_camera/Kconfig
++++ b/drivers/media/platform/soc_camera/Kconfig
+@@ -69,13 +69,12 @@ config VIDEO_MX2_HOSTSUPPORT
+ 	bool
+ 
+ config VIDEO_MX2
+-	tristate "i.MX27/i.MX25 Camera Sensor Interface driver"
+-	depends on VIDEO_DEV && SOC_CAMERA && (MACH_MX27 || (ARCH_MX25 && BROKEN))
++	tristate "i.MX27 Camera Sensor Interface driver"
++	depends on VIDEO_DEV && SOC_CAMERA && MACH_MX27
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select VIDEO_MX2_HOSTSUPPORT
+ 	---help---
+-	  This is a v4l2 driver for the i.MX27 and the i.MX25 Camera Sensor
+-	  Interface
++	  This is a v4l2 driver for the i.MX27 Camera Sensor Interface
+ 
+ config VIDEO_ATMEL_ISI
+ 	tristate "ATMEL Image Sensor Interface (ISI) support"
+diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+index 9fd9d1c..e1b44b1 100644
+--- a/drivers/media/platform/soc_camera/mx2_camera.c
++++ b/drivers/media/platform/soc_camera/mx2_camera.c
+@@ -1,5 +1,5 @@
+ /*
+- * V4L2 Driver for i.MX27/i.MX25 camera host
++ * V4L2 Driver for i.MX27 camera host
+  *
+  * Copyright (C) 2008, Sascha Hauer, Pengutronix
+  * Copyright (C) 2010, Baruch Siach, Orex Computed Radiography
+@@ -65,9 +65,7 @@
+ #define CSICR1_RF_OR_INTEN	(1 << 24)
+ #define CSICR1_STATFF_LEVEL	(3 << 22)
+ #define CSICR1_STATFF_INTEN	(1 << 21)
+-#define CSICR1_RXFF_LEVEL(l)	(((l) & 3) << 19)	/* MX27 */
+-#define CSICR1_FB2_DMA_INTEN	(1 << 20)		/* MX25 */
+-#define CSICR1_FB1_DMA_INTEN	(1 << 19)		/* MX25 */
++#define CSICR1_RXFF_LEVEL(l)	(((l) & 3) << 19)
+ #define CSICR1_RXFF_INTEN	(1 << 18)
+ #define CSICR1_SOF_POL		(1 << 17)
+ #define CSICR1_SOF_INTEN	(1 << 16)
+@@ -92,11 +90,6 @@
+ /* control reg 3 */
+ #define CSICR3_FRMCNT		(0xFFFF << 16)
+ #define CSICR3_FRMCNT_RST	(1 << 15)
+-#define CSICR3_DMA_REFLASH_RFF	(1 << 14)
+-#define CSICR3_DMA_REFLASH_SFF	(1 << 13)
+-#define CSICR3_DMA_REQ_EN_RFF	(1 << 12)
+-#define CSICR3_DMA_REQ_EN_SFF	(1 << 11)
+-#define CSICR3_RXFF_LEVEL(l)	(((l) & 7) << 4)	/* MX25 */
+ #define CSICR3_CSI_SUP		(1 << 3)
+ #define CSICR3_ZERO_PACK_EN	(1 << 2)
+ #define CSICR3_ECC_INT_EN	(1 << 1)
+@@ -108,8 +101,6 @@
+ #define CSISR_SFF_OR_INT	(1 << 25)
+ #define CSISR_RFF_OR_INT	(1 << 24)
+ #define CSISR_STATFF_INT	(1 << 21)
+-#define CSISR_DMA_TSF_FB2_INT	(1 << 20)	/* MX25 */
+-#define CSISR_DMA_TSF_FB1_INT	(1 << 19)	/* MX25 */
+ #define CSISR_RXFF_INT		(1 << 18)
+ #define CSISR_EOF_INT		(1 << 17)
+ #define CSISR_SOF_INT		(1 << 16)
+@@ -121,17 +112,11 @@
+ 
+ #define CSICR1			0x00
+ #define CSICR2			0x04
+-#define CSISR			(cpu_is_mx27() ? 0x08 : 0x18)
++#define CSISR			0x08
+ #define CSISTATFIFO		0x0c
+ #define CSIRFIFO		0x10
+ #define CSIRXCNT		0x14
+-#define CSICR3			(cpu_is_mx27() ? 0x1C : 0x08)
+-#define CSIDMASA_STATFIFO	0x20
+-#define CSIDMATA_STATFIFO	0x24
+-#define CSIDMASA_FB1		0x28
+-#define CSIDMASA_FB2		0x2c
+-#define CSIFBUF_PARA		0x30
+-#define CSIIMAG_PARA		0x34
++#define CSICR3			0x1C
+ 
+ /* EMMA PrP */
+ #define PRP_CNTL			0x00
+@@ -430,20 +415,9 @@ static void mx27_update_emma_buf(struct mx2_camera_dev *pcdev,
+ 
+ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
+ {
+-	unsigned long flags;
+-
+ 	clk_disable_unprepare(pcdev->clk_csi);
+ 	writel(0, pcdev->base_csi + CSICR1);
+-	if (cpu_is_mx27()) {
+-		writel(0, pcdev->base_emma + PRP_CNTL);
+-	} else if (cpu_is_mx25()) {
+-		spin_lock_irqsave(&pcdev->lock, flags);
+-		pcdev->fb1_active = NULL;
+-		pcdev->fb2_active = NULL;
+-		writel(0, pcdev->base_csi + CSIDMASA_FB1);
+-		writel(0, pcdev->base_csi + CSIDMASA_FB2);
+-		spin_unlock_irqrestore(&pcdev->lock, flags);
+-	}
++	writel(0, pcdev->base_emma + PRP_CNTL);
+ }
+ 
+ /*
+@@ -464,10 +438,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	csicr1 = CSICR1_MCLKEN;
+-
+-	if (cpu_is_mx27())
+-		csicr1 |= CSICR1_PRP_IF_EN | CSICR1_FCC |
++	csicr1 = CSICR1_MCLKEN | CSICR1_PRP_IF_EN | CSICR1_FCC |
+ 			CSICR1_RXFF_LEVEL(0);
+ 
+ 	pcdev->csicr1 = csicr1;
+@@ -497,65 +468,6 @@ static void mx2_camera_remove_device(struct soc_camera_device *icd)
+ 	pcdev->icd = NULL;
+ }
+ 
+-static void mx25_camera_frame_done(struct mx2_camera_dev *pcdev, int fb,
+-		int state)
+-{
+-	struct vb2_buffer *vb;
+-	struct mx2_buffer *buf;
+-	struct mx2_buffer **fb_active = fb == 1 ? &pcdev->fb1_active :
+-		&pcdev->fb2_active;
+-	u32 fb_reg = fb == 1 ? CSIDMASA_FB1 : CSIDMASA_FB2;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&pcdev->lock, flags);
+-
+-	if (*fb_active == NULL)
+-		goto out;
+-
+-	vb = &(*fb_active)->vb;
+-	dev_dbg(pcdev->dev, "%s (vb=0x%p) 0x%p %lu\n", __func__,
+-		vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
+-
+-	do_gettimeofday(&vb->v4l2_buf.timestamp);
+-	vb->v4l2_buf.sequence++;
+-	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
+-
+-	if (list_empty(&pcdev->capture)) {
+-		buf = NULL;
+-		writel(0, pcdev->base_csi + fb_reg);
+-	} else {
+-		buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
+-				internal.queue);
+-		vb = &buf->vb;
+-		list_del(&buf->internal.queue);
+-		buf->state = MX2_STATE_ACTIVE;
+-		writel(vb2_dma_contig_plane_dma_addr(vb, 0),
+-		       pcdev->base_csi + fb_reg);
+-	}
+-
+-	*fb_active = buf;
+-
+-out:
+-	spin_unlock_irqrestore(&pcdev->lock, flags);
+-}
+-
+-static irqreturn_t mx25_camera_irq(int irq_csi, void *data)
+-{
+-	struct mx2_camera_dev *pcdev = data;
+-	u32 status = readl(pcdev->base_csi + CSISR);
+-
+-	if (status & CSISR_DMA_TSF_FB1_INT)
+-		mx25_camera_frame_done(pcdev, 1, MX2_STATE_DONE);
+-	else if (status & CSISR_DMA_TSF_FB2_INT)
+-		mx25_camera_frame_done(pcdev, 2, MX2_STATE_DONE);
+-
+-	/* FIXME: handle CSISR_RFF_OR_INT */
+-
+-	writel(status, pcdev->base_csi + CSISR);
+-
+-	return IRQ_HANDLED;
+-}
+-
+ /*
+  *  Videobuf operations
+  */
+@@ -636,54 +548,17 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
+ 	buf->state = MX2_STATE_QUEUED;
+ 	list_add_tail(&buf->internal.queue, &pcdev->capture);
+ 
+-	if (cpu_is_mx25()) {
+-		u32 csicr3, dma_inten = 0;
+-
+-		if (pcdev->fb1_active == NULL) {
+-			writel(vb2_dma_contig_plane_dma_addr(vb, 0),
+-					pcdev->base_csi + CSIDMASA_FB1);
+-			pcdev->fb1_active = buf;
+-			dma_inten = CSICR1_FB1_DMA_INTEN;
+-		} else if (pcdev->fb2_active == NULL) {
+-			writel(vb2_dma_contig_plane_dma_addr(vb, 0),
+-					pcdev->base_csi + CSIDMASA_FB2);
+-			pcdev->fb2_active = buf;
+-			dma_inten = CSICR1_FB2_DMA_INTEN;
+-		}
+-
+-		if (dma_inten) {
+-			list_del(&buf->internal.queue);
+-			buf->state = MX2_STATE_ACTIVE;
+-
+-			csicr3 = readl(pcdev->base_csi + CSICR3);
+-
+-			/* Reflash DMA */
+-			writel(csicr3 | CSICR3_DMA_REFLASH_RFF,
+-					pcdev->base_csi + CSICR3);
+-
+-			/* clear & enable interrupts */
+-			writel(dma_inten, pcdev->base_csi + CSISR);
+-			pcdev->csicr1 |= dma_inten;
+-			writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
+-
+-			/* enable DMA */
+-			csicr3 |= CSICR3_DMA_REQ_EN_RFF | CSICR3_RXFF_LEVEL(1);
+-			writel(csicr3, pcdev->base_csi + CSICR3);
+-		}
+-	}
+-
+ 	spin_unlock_irqrestore(&pcdev->lock, flags);
+ }
+ 
+ static void mx2_videobuf_release(struct vb2_buffer *vb)
+ {
++#ifdef DEBUG
+ 	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct mx2_camera_dev *pcdev = ici->priv;
+ 	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
+-	unsigned long flags;
+ 
+-#ifdef DEBUG
+ 	dev_dbg(icd->parent, "%s (vb=0x%p) 0x%p %lu\n", __func__,
+ 		vb, vb2_plane_vaddr(vb, 0), vb2_get_plane_payload(vb, 0));
+ 
+@@ -702,29 +577,11 @@ static void mx2_videobuf_release(struct vb2_buffer *vb)
+ #endif
+ 
+ 	/*
+-	 * Terminate only queued but inactive buffers. Active buffers are
+-	 * released when they become inactive after videobuf_waiton().
+-	 *
+ 	 * FIXME: implement forced termination of active buffers for mx27 and
+ 	 * mx27 eMMA, so that the user won't get stuck in an uninterruptible
+ 	 * state. This requires a specific handling for each of the these DMA
+ 	 * types.
+ 	 */
+-
+-	spin_lock_irqsave(&pcdev->lock, flags);
+-	if (cpu_is_mx25() && buf->state == MX2_STATE_ACTIVE) {
+-		if (pcdev->fb1_active == buf) {
+-			pcdev->csicr1 &= ~CSICR1_FB1_DMA_INTEN;
+-			writel(0, pcdev->base_csi + CSIDMASA_FB1);
+-			pcdev->fb1_active = NULL;
+-		} else if (pcdev->fb2_active == buf) {
+-			pcdev->csicr1 &= ~CSICR1_FB2_DMA_INTEN;
+-			writel(0, pcdev->base_csi + CSIDMASA_FB2);
+-			pcdev->fb2_active = NULL;
+-		}
+-		writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
+-	}
+-	spin_unlock_irqrestore(&pcdev->lock, flags);
+ }
+ 
+ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+@@ -835,86 +692,84 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	unsigned long phys;
+ 	int bytesperline;
+ 
+-	if (cpu_is_mx27()) {
+-		unsigned long flags;
+-		if (count < 2)
+-			return -EINVAL;
++	unsigned long flags;
++	if (count < 2)
++		return -EINVAL;
+ 
+-		spin_lock_irqsave(&pcdev->lock, flags);
++	spin_lock_irqsave(&pcdev->lock, flags);
+ 
+-		buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
+-				       internal.queue);
+-		buf->internal.bufnum = 0;
+-		vb = &buf->vb;
+-		buf->state = MX2_STATE_ACTIVE;
++	buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
++			       internal.queue);
++	buf->internal.bufnum = 0;
++	vb = &buf->vb;
++	buf->state = MX2_STATE_ACTIVE;
+ 
+-		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
+-		mx27_update_emma_buf(pcdev, phys, buf->internal.bufnum);
+-		list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
++	phys = vb2_dma_contig_plane_dma_addr(vb, 0);
++	mx27_update_emma_buf(pcdev, phys, buf->internal.bufnum);
++	list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
+ 
+-		buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
+-				       internal.queue);
+-		buf->internal.bufnum = 1;
+-		vb = &buf->vb;
+-		buf->state = MX2_STATE_ACTIVE;
++	buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
++			       internal.queue);
++	buf->internal.bufnum = 1;
++	vb = &buf->vb;
++	buf->state = MX2_STATE_ACTIVE;
+ 
+-		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
+-		mx27_update_emma_buf(pcdev, phys, buf->internal.bufnum);
+-		list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
++	phys = vb2_dma_contig_plane_dma_addr(vb, 0);
++	mx27_update_emma_buf(pcdev, phys, buf->internal.bufnum);
++	list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
+ 
+-		bytesperline = soc_mbus_bytes_per_line(icd->user_width,
+-				icd->current_fmt->host_fmt);
+-		if (bytesperline < 0)
+-			return bytesperline;
++	bytesperline = soc_mbus_bytes_per_line(icd->user_width,
++			icd->current_fmt->host_fmt);
++	if (bytesperline < 0)
++		return bytesperline;
+ 
+-		/*
+-		 * I didn't manage to properly enable/disable the prp
+-		 * on a per frame basis during running transfers,
+-		 * thus we allocate a buffer here and use it to
+-		 * discard frames when no buffer is available.
+-		 * Feel free to work on this ;)
+-		 */
+-		pcdev->discard_size = icd->user_height * bytesperline;
+-		pcdev->discard_buffer = dma_alloc_coherent(ici->v4l2_dev.dev,
+-				pcdev->discard_size, &pcdev->discard_buffer_dma,
+-				GFP_KERNEL);
+-		if (!pcdev->discard_buffer)
+-			return -ENOMEM;
++	/*
++	 * I didn't manage to properly enable/disable the prp
++	 * on a per frame basis during running transfers,
++	 * thus we allocate a buffer here and use it to
++	 * discard frames when no buffer is available.
++	 * Feel free to work on this ;)
++	 */
++	pcdev->discard_size = icd->user_height * bytesperline;
++	pcdev->discard_buffer = dma_alloc_coherent(ici->v4l2_dev.dev,
++			pcdev->discard_size, &pcdev->discard_buffer_dma,
++			GFP_KERNEL);
++	if (!pcdev->discard_buffer)
++		return -ENOMEM;
+ 
+-		pcdev->buf_discard[0].discard = true;
+-		list_add_tail(&pcdev->buf_discard[0].queue,
+-				      &pcdev->discard);
++	pcdev->buf_discard[0].discard = true;
++	list_add_tail(&pcdev->buf_discard[0].queue,
++			      &pcdev->discard);
+ 
+-		pcdev->buf_discard[1].discard = true;
+-		list_add_tail(&pcdev->buf_discard[1].queue,
+-				      &pcdev->discard);
++	pcdev->buf_discard[1].discard = true;
++	list_add_tail(&pcdev->buf_discard[1].queue,
++			      &pcdev->discard);
+ 
+-		mx2_prp_resize_commit(pcdev);
++	mx2_prp_resize_commit(pcdev);
+ 
+-		mx27_camera_emma_buf_init(icd, bytesperline);
++	mx27_camera_emma_buf_init(icd, bytesperline);
+ 
+-		if (prp->cfg.channel == 1) {
+-			writel(PRP_CNTL_CH1EN |
+-				PRP_CNTL_CSIEN |
+-				prp->cfg.in_fmt |
+-				prp->cfg.out_fmt |
+-				PRP_CNTL_CH1_LEN |
+-				PRP_CNTL_CH1BYP |
+-				PRP_CNTL_CH1_TSKIP(0) |
+-				PRP_CNTL_IN_TSKIP(0),
+-				pcdev->base_emma + PRP_CNTL);
+-		} else {
+-			writel(PRP_CNTL_CH2EN |
+-				PRP_CNTL_CSIEN |
+-				prp->cfg.in_fmt |
+-				prp->cfg.out_fmt |
+-				PRP_CNTL_CH2_LEN |
+-				PRP_CNTL_CH2_TSKIP(0) |
+-				PRP_CNTL_IN_TSKIP(0),
+-				pcdev->base_emma + PRP_CNTL);
+-		}
+-		spin_unlock_irqrestore(&pcdev->lock, flags);
++	if (prp->cfg.channel == 1) {
++		writel(PRP_CNTL_CH1EN |
++			PRP_CNTL_CSIEN |
++			prp->cfg.in_fmt |
++			prp->cfg.out_fmt |
++			PRP_CNTL_CH1_LEN |
++			PRP_CNTL_CH1BYP |
++			PRP_CNTL_CH1_TSKIP(0) |
++			PRP_CNTL_IN_TSKIP(0),
++			pcdev->base_emma + PRP_CNTL);
++	} else {
++		writel(PRP_CNTL_CH2EN |
++			PRP_CNTL_CSIEN |
++			prp->cfg.in_fmt |
++			prp->cfg.out_fmt |
++			PRP_CNTL_CH2_LEN |
++			PRP_CNTL_CH2_TSKIP(0) |
++			PRP_CNTL_IN_TSKIP(0),
++			pcdev->base_emma + PRP_CNTL);
+ 	}
++	spin_unlock_irqrestore(&pcdev->lock, flags);
+ 
+ 	return 0;
+ }
+@@ -930,29 +785,27 @@ static int mx2_stop_streaming(struct vb2_queue *q)
+ 	void *b;
+ 	u32 cntl;
+ 
+-	if (cpu_is_mx27()) {
+-		spin_lock_irqsave(&pcdev->lock, flags);
++	spin_lock_irqsave(&pcdev->lock, flags);
+ 
+-		cntl = readl(pcdev->base_emma + PRP_CNTL);
+-		if (prp->cfg.channel == 1) {
+-			writel(cntl & ~PRP_CNTL_CH1EN,
+-			       pcdev->base_emma + PRP_CNTL);
+-		} else {
+-			writel(cntl & ~PRP_CNTL_CH2EN,
+-			       pcdev->base_emma + PRP_CNTL);
+-		}
+-		INIT_LIST_HEAD(&pcdev->capture);
+-		INIT_LIST_HEAD(&pcdev->active_bufs);
+-		INIT_LIST_HEAD(&pcdev->discard);
++	cntl = readl(pcdev->base_emma + PRP_CNTL);
++	if (prp->cfg.channel == 1) {
++		writel(cntl & ~PRP_CNTL_CH1EN,
++		       pcdev->base_emma + PRP_CNTL);
++	} else {
++		writel(cntl & ~PRP_CNTL_CH2EN,
++		       pcdev->base_emma + PRP_CNTL);
++	}
++	INIT_LIST_HEAD(&pcdev->capture);
++	INIT_LIST_HEAD(&pcdev->active_bufs);
++	INIT_LIST_HEAD(&pcdev->discard);
+ 
+-		b = pcdev->discard_buffer;
+-		pcdev->discard_buffer = NULL;
++	b = pcdev->discard_buffer;
++	pcdev->discard_buffer = NULL;
+ 
+-		spin_unlock_irqrestore(&pcdev->lock, flags);
++	spin_unlock_irqrestore(&pcdev->lock, flags);
+ 
+-		dma_free_coherent(ici->v4l2_dev.dev,
+-			pcdev->discard_size, b, pcdev->discard_buffer_dma);
+-	}
++	dma_free_coherent(ici->v4l2_dev.dev,
++		pcdev->discard_size, b, pcdev->discard_buffer_dma);
+ 
+ 	return 0;
+ }
+@@ -1082,16 +935,9 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
+ 	if (bytesperline < 0)
+ 		return bytesperline;
+ 
+-	if (cpu_is_mx27()) {
+-		ret = mx27_camera_emma_prp_reset(pcdev);
+-		if (ret)
+-			return ret;
+-	} else if (cpu_is_mx25()) {
+-		writel((bytesperline * icd->user_height) >> 2,
+-				pcdev->base_csi + CSIRXCNT);
+-		writel((bytesperline << 16) | icd->user_height,
+-				pcdev->base_csi + CSIIMAG_PARA);
+-	}
++	ret = mx27_camera_emma_prp_reset(pcdev);
++	if (ret)
++		return ret;
+ 
+ 	writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
+ 
+@@ -1377,7 +1223,6 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct mx2_camera_dev *pcdev = ici->priv;
+ 	struct mx2_fmt_cfg *emma_prp;
+-	unsigned int width_limit;
+ 	int ret;
+ 
+ 	dev_dbg(icd->parent, "%s: requested params: width = %d, height = %d\n",
+@@ -1391,39 +1236,6 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+ 
+ 	/* FIXME: implement MX27 limits */
+ 
+-	/* limit to MX25 hardware capabilities */
+-	if (cpu_is_mx25()) {
+-		if (xlate->host_fmt->bits_per_sample <= 8)
+-			width_limit = 0xffff * 4;
+-		else
+-			width_limit = 0xffff * 2;
+-		/* CSIIMAG_PARA limit */
+-		if (pix->width > width_limit)
+-			pix->width = width_limit;
+-		if (pix->height > 0xffff)
+-			pix->height = 0xffff;
+-
+-		pix->bytesperline = soc_mbus_bytes_per_line(pix->width,
+-				xlate->host_fmt);
+-		if (pix->bytesperline < 0)
+-			return pix->bytesperline;
+-		pix->sizeimage = soc_mbus_image_size(xlate->host_fmt,
+-						pix->bytesperline, pix->height);
+-		/* Check against the CSIRXCNT limit */
+-		if (pix->sizeimage > 4 * 0x3ffff) {
+-			/* Adjust geometry, preserve aspect ratio */
+-			unsigned int new_height = int_sqrt(div_u64(0x3ffffULL *
+-					4 * pix->height, pix->bytesperline));
+-			pix->width = new_height * pix->width / pix->height;
+-			pix->height = new_height;
+-			pix->bytesperline = soc_mbus_bytes_per_line(pix->width,
+-							xlate->host_fmt);
+-			BUG_ON(pix->bytesperline < 0);
+-			pix->sizeimage = soc_mbus_image_size(xlate->host_fmt,
+-						pix->bytesperline, pix->height);
+-		}
+-	}
+-
+ 	/* limit to sensor capabilities */
+ 	mf.width	= pix->width;
+ 	mf.height	= pix->height;
+@@ -1763,20 +1575,9 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+ 	pcdev->dev = &pdev->dev;
+ 	platform_set_drvdata(pdev, pcdev);
+ 
+-	if (cpu_is_mx25()) {
+-		err = devm_request_irq(&pdev->dev, irq_csi, mx25_camera_irq, 0,
+-				       MX2_CAM_DRV_NAME, pcdev);
+-		if (err) {
+-			dev_err(pcdev->dev, "Camera interrupt register failed \n");
+-			goto exit;
+-		}
+-	}
+-
+-	if (cpu_is_mx27()) {
+-		err = mx27_camera_emma_init(pdev);
+-		if (err)
+-			goto exit;
+-	}
++	err = mx27_camera_emma_init(pdev);
++	if (err)
++		goto exit;
+ 
+ 	/*
+ 	 * We're done with drvdata here.  Clear the pointer so that
+@@ -1789,8 +1590,6 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+ 	pcdev->soc_host.priv		= pcdev;
+ 	pcdev->soc_host.v4l2_dev.dev	= &pdev->dev;
+ 	pcdev->soc_host.nr		= pdev->id;
+-	if (cpu_is_mx25())
+-		pcdev->soc_host.capabilities = SOCAM_HOST_CAP_STRIDE;
+ 
+ 	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+ 	if (IS_ERR(pcdev->alloc_ctx)) {
+@@ -1809,10 +1608,8 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+ exit_free_emma:
+ 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+ eallocctx:
+-	if (cpu_is_mx27()) {
+-		clk_disable_unprepare(pcdev->clk_emma_ipg);
+-		clk_disable_unprepare(pcdev->clk_emma_ahb);
+-	}
++	clk_disable_unprepare(pcdev->clk_emma_ipg);
++	clk_disable_unprepare(pcdev->clk_emma_ahb);
+ exit:
+ 	return err;
+ }
+@@ -1827,10 +1624,8 @@ static int __devexit mx2_camera_remove(struct platform_device *pdev)
+ 
+ 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+ 
+-	if (cpu_is_mx27()) {
+-		clk_disable_unprepare(pcdev->clk_emma_ipg);
+-		clk_disable_unprepare(pcdev->clk_emma_ahb);
+-	}
++	clk_disable_unprepare(pcdev->clk_emma_ipg);
++	clk_disable_unprepare(pcdev->clk_emma_ahb);
+ 
+ 	dev_info(&pdev->dev, "MX2 Camera driver unloaded\n");
+ 
+@@ -1858,7 +1653,7 @@ static void __exit mx2_camera_exit(void)
+ module_init(mx2_camera_init);
+ module_exit(mx2_camera_exit);
+ 
+-MODULE_DESCRIPTION("i.MX27/i.MX25 SoC Camera Host driver");
++MODULE_DESCRIPTION("i.MX27 SoC Camera Host driver");
+ MODULE_AUTHOR("Sascha Hauer <sha@pengutronix.de>");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION(MX2_CAM_VERSION);
+-- 
+1.7.9.5
 
-You need to be careful with those replacements, since the clk *_(un)prepare
-functions may sleep, i.e. they must not be called from atomic context.
-
-Most of the s5p-* drivers have already added support for clk_(un)prepare.
-Thus most of your changes in this patch are not needed. I seem to have only 
-missed fimc-mdevice.c, other modules are already reworked
-
-$ git grep -5  clk_prepare  -- drivers/media/platform/s5p-fimc
-drivers/media/platform/s5p-fimc/fimc-core.c-
-drivers/media/platform/s5p-fimc/fimc-core.c-    for (i = 0; i < MAX_FIMC_CLOCKS; i++) {
-drivers/media/platform/s5p-fimc/fimc-core.c-            fimc->clock[i] = clk_get(&fimc->pdev->dev, fimc_clocks[i]);
-drivers/media/platform/s5p-fimc/fimc-core.c-            if (IS_ERR(fimc->clock[i]))
-drivers/media/platform/s5p-fimc/fimc-core.c-                    goto err;
-drivers/media/platform/s5p-fimc/fimc-core.c:            ret = clk_prepare(fimc->clock[i]);
-drivers/media/platform/s5p-fimc/fimc-core.c-            if (ret < 0) {
-drivers/media/platform/s5p-fimc/fimc-core.c-                    clk_put(fimc->clock[i]);
-drivers/media/platform/s5p-fimc/fimc-core.c-                    fimc->clock[i] = NULL;
-drivers/media/platform/s5p-fimc/fimc-core.c-                    goto err;
-drivers/media/platform/s5p-fimc/fimc-core.c-            }
---
-drivers/media/platform/s5p-fimc/fimc-lite.c-
-drivers/media/platform/s5p-fimc/fimc-lite.c-    fimc->clock = clk_get(&fimc->pdev->dev, FLITE_CLK_NAME);
-drivers/media/platform/s5p-fimc/fimc-lite.c-    if (IS_ERR(fimc->clock))
-drivers/media/platform/s5p-fimc/fimc-lite.c-            return PTR_ERR(fimc->clock);
-drivers/media/platform/s5p-fimc/fimc-lite.c-
-drivers/media/platform/s5p-fimc/fimc-lite.c:    ret = clk_prepare(fimc->clock);
-drivers/media/platform/s5p-fimc/fimc-lite.c-    if (ret < 0) {
-drivers/media/platform/s5p-fimc/fimc-lite.c-            clk_put(fimc->clock);
-drivers/media/platform/s5p-fimc/fimc-lite.c-            fimc->clock = NULL;
-drivers/media/platform/s5p-fimc/fimc-lite.c-    }
-drivers/media/platform/s5p-fimc/fimc-lite.c-    return ret;
---
-drivers/media/platform/s5p-fimc/mipi-csis.c-
-drivers/media/platform/s5p-fimc/mipi-csis.c-    for (i = 0; i < NUM_CSIS_CLOCKS; i++) {
-drivers/media/platform/s5p-fimc/mipi-csis.c-            state->clock[i] = clk_get(dev, csi_clock_name[i]);
-drivers/media/platform/s5p-fimc/mipi-csis.c-            if (IS_ERR(state->clock[i]))
-drivers/media/platform/s5p-fimc/mipi-csis.c-                    goto err;
-drivers/media/platform/s5p-fimc/mipi-csis.c:            ret = clk_prepare(state->clock[i]);
-drivers/media/platform/s5p-fimc/mipi-csis.c-            if (ret < 0) {
-drivers/media/platform/s5p-fimc/mipi-csis.c-                    clk_put(state->clock[i]);
-drivers/media/platform/s5p-fimc/mipi-csis.c-                    state->clock[i] = NULL;
-drivers/media/platform/s5p-fimc/mipi-csis.c-                    goto err;
-drivers/media/platform/s5p-fimc/mipi-csis.c-            }
-
-I would prefer you have added the required changes at fimc_md_get_clocks() 
-and fimc_md_put_clocks() functions.
-
-Please make sure you don't add those clk_(un)prepare calls where it is
-net needed.
-
-$ git grep "clk_prepare\|clk_unprepare"  -- drivers/media/platform/s5p-*
-drivers/media/platform/s5p-fimc/fimc-core.c:            clk_unprepare(fimc->clock[i]);
-drivers/media/platform/s5p-fimc/fimc-core.c:            ret = clk_prepare(fimc->clock[i]);
-drivers/media/platform/s5p-fimc/fimc-lite.c:    clk_unprepare(fimc->clock);
-drivers/media/platform/s5p-fimc/fimc-lite.c:    ret = clk_prepare(fimc->clock);
-drivers/media/platform/s5p-fimc/mipi-csis.c:            clk_unprepare(state->clock[i]);
-drivers/media/platform/s5p-fimc/mipi-csis.c:            ret = clk_prepare(state->clock[i]);
-drivers/media/platform/s5p-g2d/g2d.c:   ret = clk_prepare(dev->clk);
-drivers/media/platform/s5p-g2d/g2d.c:   ret = clk_prepare(dev->gate);
-drivers/media/platform/s5p-g2d/g2d.c:   clk_unprepare(dev->gate);
-drivers/media/platform/s5p-g2d/g2d.c:   clk_unprepare(dev->clk);
-drivers/media/platform/s5p-g2d/g2d.c:   clk_unprepare(dev->gate);
-drivers/media/platform/s5p-g2d/g2d.c:   clk_unprepare(dev->clk);
-drivers/media/platform/s5p-jpeg/jpeg-core.c:    clk_prepare_enable(jpeg->clk);
-drivers/media/platform/s5p-mfc/s5p_mfc_pm.c:    ret = clk_prepare(pm->clock_gate);
-drivers/media/platform/s5p-mfc/s5p_mfc_pm.c:    ret = clk_prepare(pm->clock);
-drivers/media/platform/s5p-mfc/s5p_mfc_pm.c:    clk_unprepare(pm->clock_gate);
-drivers/media/platform/s5p-mfc/s5p_mfc_pm.c:    clk_unprepare(pm->clock_gate);
-drivers/media/platform/s5p-mfc/s5p_mfc_pm.c:    clk_unprepare(pm->clock);
-
-
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-> ---
->  drivers/media/platform/s5p-fimc/fimc-core.c    |   10 +++++-----
->  drivers/media/platform/s5p-fimc/fimc-lite.c    |    4 ++--
->  drivers/media/platform/s5p-fimc/fimc-mdevice.c |    4 ++--
->  drivers/media/platform/s5p-fimc/mipi-csis.c    |   10 +++++-----
->  4 files changed, 14 insertions(+), 14 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/s5p-fimc/fimc-core.c
-> index 8d0d2b9..92308ba 100644
-> --- a/drivers/media/platform/s5p-fimc/fimc-core.c
-> +++ b/drivers/media/platform/s5p-fimc/fimc-core.c
-> @@ -827,7 +827,7 @@ static int fimc_clk_get(struct fimc_dev *fimc)
->  		fimc->clock[i] = clk_get(&fimc->pdev->dev, fimc_clocks[i]);
->  		if (IS_ERR(fimc->clock[i]))
->  			goto err;
-> -		ret = clk_prepare(fimc->clock[i]);
-> +		ret = clk_prepare_enable(fimc->clock[i]);
->  		if (ret < 0) {
->  			clk_put(fimc->clock[i]);
->  			fimc->clock[i] = NULL;
-> @@ -925,7 +925,7 @@ static int fimc_probe(struct platform_device *pdev)
->  	if (ret)
->  		return ret;
->  	clk_set_rate(fimc->clock[CLK_BUS], drv_data->lclk_frequency);
-> -	clk_enable(fimc->clock[CLK_BUS]);
-> +	clk_prepare_enable(fimc->clock[CLK_BUS]);
->  
->  	ret = devm_request_irq(&pdev->dev, res->start, fimc_irq_handler,
->  			       0, dev_name(&pdev->dev), fimc);
-> @@ -970,7 +970,7 @@ static int fimc_runtime_resume(struct device *dev)
->  	dbg("fimc%d: state: 0x%lx", fimc->id, fimc->state);
->  
->  	/* Enable clocks and perform basic initalization */
-> -	clk_enable(fimc->clock[CLK_GATE]);
-> +	clk_prepare_enable(fimc->clock[CLK_GATE]);
->  	fimc_hw_reset(fimc);
->  
->  	/* Resume the capture or mem-to-mem device */
-> @@ -990,7 +990,7 @@ static int fimc_runtime_suspend(struct device *dev)
->  	else
->  		ret = fimc_m2m_suspend(fimc);
->  	if (!ret)
-> -		clk_disable(fimc->clock[CLK_GATE]);
-> +		clk_disable_unprepare(fimc->clock[CLK_GATE]);
->  
->  	dbg("fimc%d: state: 0x%lx", fimc->id, fimc->state);
->  	return ret;
-> @@ -1045,7 +1045,7 @@ static int __devexit fimc_remove(struct platform_device *pdev)
->  	fimc_unregister_capture_subdev(fimc);
->  	vb2_dma_contig_cleanup_ctx(fimc->alloc_ctx);
->  
-> -	clk_disable(fimc->clock[CLK_BUS]);
-> +	clk_disable_unprepare(fimc->clock[CLK_BUS]);
->  	fimc_clk_put(fimc);
->  
->  	dev_info(&pdev->dev, "driver unloaded\n");
-> diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
-> index 70bcf39..4a12847 100644
-> --- a/drivers/media/platform/s5p-fimc/fimc-lite.c
-> +++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
-> @@ -1479,7 +1479,7 @@ static int fimc_lite_runtime_resume(struct device *dev)
->  {
->  	struct fimc_lite *fimc = dev_get_drvdata(dev);
->  
-> -	clk_enable(fimc->clock);
-> +	clk_prepare_enable(fimc->clock);
->  	return 0;
->  }
->  
-> @@ -1487,7 +1487,7 @@ static int fimc_lite_runtime_suspend(struct device *dev)
->  {
->  	struct fimc_lite *fimc = dev_get_drvdata(dev);
->  
-> -	clk_disable(fimc->clock);
-> +	clk_disable_unprepare(fimc->clock);
->  	return 0;
->  }
->  
-> diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-> index 61fab00..e1f7cbe 100644
-> --- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-> +++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-> @@ -779,7 +779,7 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
->  		if (camclk->use_count++ == 0) {
->  			clk_set_rate(camclk->clock, pdata->clk_frequency);
->  			camclk->frequency = pdata->clk_frequency;
-> -			ret = clk_enable(camclk->clock);
-> +			ret = clk_prepare_enable(camclk->clock);
->  			dbg("Enabled camclk %d: f: %lu", pdata->clk_id,
->  			    clk_get_rate(camclk->clock));
->  		}
-> @@ -790,7 +790,7 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
->  		return 0;
->  
->  	if (--camclk->use_count == 0) {
-> -		clk_disable(camclk->clock);
-> +		clk_disable_unprepare(camclk->clock);
->  		dbg("Disabled camclk %d", pdata->clk_id);
->  	}
->  	return ret;
-> diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.c b/drivers/media/platform/s5p-fimc/mipi-csis.c
-> index 4c961b1..f02c95b 100644
-> --- a/drivers/media/platform/s5p-fimc/mipi-csis.c
-> +++ b/drivers/media/platform/s5p-fimc/mipi-csis.c
-> @@ -710,7 +710,7 @@ static int __devinit s5pcsis_probe(struct platform_device *pdev)
->  	if (ret)
->  		goto e_clkput;
->  
-> -	clk_enable(state->clock[CSIS_CLK_MUX]);
-> +	clk_prepare_enable(state->clock[CSIS_CLK_MUX]);
->  	if (pdata->clk_rate)
->  		clk_set_rate(state->clock[CSIS_CLK_MUX], pdata->clk_rate);
->  	else
-> @@ -754,7 +754,7 @@ static int __devinit s5pcsis_probe(struct platform_device *pdev)
->  e_regput:
->  	regulator_bulk_free(CSIS_NUM_SUPPLIES, state->supplies);
->  e_clkput:
-> -	clk_disable(state->clock[CSIS_CLK_MUX]);
-> +	clk_disable_unprepare(state->clock[CSIS_CLK_MUX]);
->  	s5pcsis_clk_put(state);
->  	return ret;
->  }
-> @@ -779,7 +779,7 @@ static int s5pcsis_pm_suspend(struct device *dev, bool runtime)
->  					     state->supplies);
->  		if (ret)
->  			goto unlock;
-> -		clk_disable(state->clock[CSIS_CLK_GATE]);
-> +		clk_disable_unprepare(state->clock[CSIS_CLK_GATE]);
->  		state->flags &= ~ST_POWERED;
->  		if (!runtime)
->  			state->flags |= ST_SUSPENDED;
-> @@ -816,7 +816,7 @@ static int s5pcsis_pm_resume(struct device *dev, bool runtime)
->  					       state->supplies);
->  			goto unlock;
->  		}
-> -		clk_enable(state->clock[CSIS_CLK_GATE]);
-> +		clk_prepare_enable(state->clock[CSIS_CLK_GATE]);
->  	}
->  	if (state->flags & ST_STREAMING)
->  		s5pcsis_start_stream(state);
-> @@ -858,7 +858,7 @@ static int __devexit s5pcsis_remove(struct platform_device *pdev)
->  
->  	pm_runtime_disable(&pdev->dev);
->  	s5pcsis_pm_suspend(&pdev->dev, false);
-> -	clk_disable(state->clock[CSIS_CLK_MUX]);
-> +	clk_disable_unprepare(state->clock[CSIS_CLK_MUX]);
->  	pm_runtime_set_suspended(&pdev->dev);
->  	s5pcsis_clk_put(state);
->  	regulator_bulk_free(CSIS_NUM_SUPPLIES, state->supplies);
-> 
-
---
-Thanks,
-Sylwester
