@@ -1,145 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:50584 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752294Ab2JAUZJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 16:25:09 -0400
-Message-ID: <5069FC20.8060708@wwwdotorg.org>
-Date: Mon, 01 Oct 2012 14:25:04 -0600
-From: Stephen Warren <swarren@wwwdotorg.org>
-MIME-Version: 1.0
-To: Mitch Bradley <wmb@firmworks.com>
-CC: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	dri-devel@lists.freedesktop.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	kernel@pengutronix.de, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] of: add helper to parse display specs
-References: <1348500924-8551-1-git-send-email-s.trumtrar@pengutronix.de> <1348500924-8551-2-git-send-email-s.trumtrar@pengutronix.de> <5069CA74.7040409@wwwdotorg.org> <5069EC1C.2050506@firmworks.com>
-In-Reply-To: <5069EC1C.2050506@firmworks.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39285 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932755Ab2JaJ3O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Oct 2012 05:29:14 -0400
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: [PATCH v7 6/8] fbmon: add of_videomode helpers
+Date: Wed, 31 Oct 2012 10:28:06 +0100
+Message-Id: <1351675689-26814-7-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/01/2012 01:16 PM, Mitch Bradley wrote:
-> On 10/1/2012 6:53 AM, Stephen Warren wrote:
->> On 09/24/2012 09:35 AM, Steffen Trumtrar wrote:
->>> Parse a display-node with timings and hardware-specs from devictree.
->>
->>> diff --git a/Documentation/devicetree/bindings/video/display b/Documentation/devicetree/bindings/video/display
->>> new file mode 100644
->>> index 0000000..722766a
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/video/display
->>
->> This should be display.txt.
->>
->>> @@ -0,0 +1,208 @@
->>> +display bindings
->>> +==================
->>> +
->>> +display-node
->>> +------------
->>
->> I'm not personally convinced about the direction this is going. While I
->> think it's reasonable to define DT bindings for displays, and DT
->> bindings for display modes, I'm not sure that it's reasonable to couple
->> them together into a single binding.
->>
->> I think creating a well-defined timing binding first will be much
->> simpler than doing so within the context of a display binding; the
->> scope/content of a general display binding seems much less well-defined
->> to me at least, for reasons I mentioned before.
->>
->>> +required properties:
->>> + - none
->>> +
->>> +optional properties:
->>> + - default-timing: the default timing value
->>> + - width-mm, height-mm: Display dimensions in mm
->>
->>> + - hsync-active-high (bool): Hsync pulse is active high
->>> + - vsync-active-high (bool): Vsync pulse is active high
->>
->> At least those two properties should exist in the display timing instead
->> (or perhaps as well). There are certainly cases where different similar
->> display modes are differentiated by hsync/vsync polarity more than
->> anything else. This is probably more likely with analog display
->> connectors than digital, but I see no reason why a DT binding for
->> display timing shouldn't cover both.
->>
->>> + - de-active-high (bool): Data-Enable pulse is active high
->>> + - pixelclk-inverted (bool): pixelclock is inverted
->>
->>> + - pixel-per-clk
->>
->> pixel-per-clk is probably something that should either be part of the
->> timing definition, or something computed internally to the display
->> driver based on rules for the signal type, rather than something
->> represented in DT.
->>
->> The above comment assumes this property is intended to represent DVI's
->> requirement for pixel clock doubling for low-pixel-clock-rate modes. If
->> it's something to do with e.g. a single-data-rate vs. double-data-rate
->> property of the underlying physical connection, that's most likely
->> something that should be defined in a binding specific to e.g. LVDS,
->> rather than something generic.
->>
->>> + - link-width: number of channels (e.g. LVDS)
->>> + - bpp: bits-per-pixel
->>> +
->>> +timings-subnode
->>> +---------------
->>> +
->>> +required properties:
->>> +subnodes that specify
->>> + - hactive, vactive: Display resolution
->>> + - hfront-porch, hback-porch, hsync-len: Horizontal Display timing parameters
->>> +   in pixels
->>> +   vfront-porch, vback-porch, vsync-len: Vertical display timing parameters in
->>> +   lines
->>> + - clock: displayclock in Hz
->>> +
->>> +There are different ways of describing a display and its capabilities. The devicetree
->>> +representation corresponds to the one commonly found in datasheets for displays.
->>> +The description of the display and its timing is split in two parts: first the display
->>> +properties like size in mm and (optionally) multiple subnodes with the supported timings.
->>> +If a display supports multiple signal timings, the default-timing can be specified.
->>> +
->>> +Example:
->>> +
->>> +	display@0 {
->>> +		width-mm = <800>;
->>> +		height-mm = <480>;
->>> +		default-timing = <&timing0>;
->>> +		timings {
->>> +			timing0: timing@0 {
->>
->> If you're going to use a unit address ("@0") to ensure that node names
->> are unique (which is not mandatory), then each node also needs a reg
->> property with matching value, and #address-cells/#size-cells in the
->> parent. Instead, you could name the nodes something unique based on the
->> mode name to avoid this, e.g. 1080p24 { ... }.
-> 
-> 
-> I'm concerned that numbered nodes are being misused as arrays.
-> 
-> It's easy to make real arrays by including multiple cells in the value
-> of each timing parameter, and easy to choose a cell by saying the array
-> index instead of using the phandle.
+Add helper to get fb_videomode from devicetree.
 
-In this case though, arrays don't work out so well in my opinion:
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+---
+ drivers/video/fbmon.c |   40 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/fb.h    |    3 +++
+ 2 files changed, 43 insertions(+)
 
-We want to describe a set of unrelated display modes that the display
-can handle. These are logically separate entities. I don't think
-combining the values that represent say 5 different modes into a single
-set of properties really makes sense here; a separate node or property
-per display mode really does make sense because they're separate objects.
+diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
+index b9e6ab3..871aa76 100644
+--- a/drivers/video/fbmon.c
++++ b/drivers/video/fbmon.c
+@@ -1408,6 +1408,46 @@ int videomode_to_fb_videomode(struct videomode *vm, struct fb_videomode *fbmode)
+ EXPORT_SYMBOL_GPL(videomode_to_fb_videomode);
+ #endif
+ 
++#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
++static void dump_fb_videomode(struct fb_videomode *m)
++{
++	pr_debug("fb_videomode = %ux%u@%uHz (%ukHz) %u %u %u %u %u %u %u %u %u\n",
++		 m->xres, m->yres, m->refresh, m->pixclock, m->left_margin,
++		 m->right_margin, m->upper_margin, m->lower_margin,
++		 m->hsync_len, m->vsync_len, m->sync, m->vmode, m->flag);
++}
++
++/**
++ * of_get_fb_videomode - get a fb_videomode from devicetree
++ * @np: device_node with the timing specification
++ * @fb: will be set to the return value
++ * @index: index into the list of display timings in devicetree
++ *
++ * DESCRIPTION:
++ * This function is expensive and should only be used, if only one mode is to be
++ * read from DT. To get multiple modes start with of_get_display_timing_list ond
++ * work with that instead.
++ */
++int of_get_fb_videomode(struct device_node *np, struct fb_videomode *fb,
++			int index)
++{
++	struct videomode vm;
++	int ret;
++
++	ret = of_get_videomode(np, &vm, index);
++	if (ret)
++		return ret;
++
++	videomode_to_fb_videomode(&vm, fb);
++
++	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
++		vm.vactive, np->name);
++	dump_fb_videomode(fb);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(of_get_fb_videomode);
++#endif
+ 
+ #else
+ int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
+diff --git a/include/linux/fb.h b/include/linux/fb.h
+index 46c665b..9892fd6 100644
+--- a/include/linux/fb.h
++++ b/include/linux/fb.h
+@@ -14,6 +14,8 @@
+ #include <linux/backlight.h>
+ #include <linux/slab.h>
+ #include <asm/io.h>
++#include <linux/of.h>
++#include <linux/of_videomode.h>
+ 
+ struct vm_area_struct;
+ struct fb_info;
+@@ -714,6 +716,7 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
+ extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
+ extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+ 
++extern int of_get_fb_videomode(struct device_node *np, struct fb_videomode *fb, int index);
+ extern int videomode_to_fb_videomode(struct videomode *vm, struct fb_videomode *fbmode);
+ 
+ /* drivers/video/modedb.c */
+-- 
+1.7.10.4
 
-Related, each display timing parameter (e.g. hsync length, position,
-...) has a range, so min/typical/max values. These are already
-represented as a 3-cell property as I believe you're proposing.
-Combining that with a cell that represents n different modes in a single
-array seems like it'd end up with something rather hard to read, at
-least for humans even if it would be admittedly trivial for a CPU.
