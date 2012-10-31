@@ -1,37 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:45383 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752875Ab2JXQst (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39303 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932293Ab2JaJ3T (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Oct 2012 12:48:49 -0400
-Received: by mail-la0-f46.google.com with SMTP id h6so444359lag.19
-        for <linux-media@vger.kernel.org>; Wed, 24 Oct 2012 09:48:48 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1351080856-20469-1-git-send-email-festevam@gmail.com>
-References: <1351080856-20469-1-git-send-email-festevam@gmail.com>
-Date: Wed, 24 Oct 2012 12:48:48 -0400
-Message-ID: <CAOS58YO+4VtHyB9rgPcZ52-ka3usoVDM7OM-+hrcj=89WQoj-w@mail.gmail.com>
-Subject: Re: [PATCH] [media] ivtv: ivtv-driver: Replace 'flush_work_sync()'
-From: Tejun Heo <tj@kernel.org>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: awalls@md.metrocast.net, mchehab@infradead.org,
+	Wed, 31 Oct 2012 05:29:19 -0400
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
 	linux-media@vger.kernel.org,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: [PATCH v7 8/8] drm_modes: add of_videomode helpers
+Date: Wed, 31 Oct 2012 10:28:08 +0100
+Message-Id: <1351675689-26814-9-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 24, 2012 at 8:14 AM, Fabio Estevam <festevam@gmail.com> wrote:
-> From: Fabio Estevam <fabio.estevam@freescale.com>
->
-> Since commit 43829731d (workqueue: deprecate flush[_delayed]_work_sync()),
-> flush_work() should be used instead of flush_work_sync().
->
-> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+Add helper to get drm_display_mode from devicetree.
 
-Acked-by: Tejun Heo <tj@kernel.org>
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+---
+ drivers/gpu/drm/drm_modes.c |   42 ++++++++++++++++++++++++++++++++++++++++++
+ include/drm/drmP.h          |    5 +++++
+ 2 files changed, 47 insertions(+)
 
-Thanks!
-
+diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
+index 049624d..d51afe6 100644
+--- a/drivers/gpu/drm/drm_modes.c
++++ b/drivers/gpu/drm/drm_modes.c
+@@ -35,6 +35,7 @@
+ #include <linux/export.h>
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc.h>
++#include <linux/of.h>
+ #include <linux/videomode.h>
+ 
+ /**
+@@ -540,6 +541,47 @@ int videomode_to_display_mode(struct videomode *vm, struct drm_display_mode *dmo
+ EXPORT_SYMBOL_GPL(videomode_to_display_mode);
+ #endif
+ 
++#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
++static void dump_drm_displaymode(struct drm_display_mode *m)
++{
++	pr_debug("drm_displaymode = %d %d %d %d %d %d %d %d %d\n",
++		 m->hdisplay, m->hsync_start, m->hsync_end, m->htotal,
++		 m->vdisplay, m->vsync_start, m->vsync_end, m->vtotal,
++		 m->clock);
++}
++
++/**
++ * of_get_drm_display_mode - get a drm_display_mode from devicetree
++ * @np: device_node with the timing specification
++ * @dmode: will be set to the return value
++ * @index: index into the list of display timings in devicetree
++ * 
++ * DESCRIPTION:
++ * This function is expensive and should only be used, if only one mode is to be
++ * read from DT. To get multiple modes start with of_get_display_timing_list ond
++ * work with that instead.
++ */
++int of_get_drm_display_mode(struct device_node *np, struct drm_display_mode *dmode,
++			int index)
++{
++	struct videomode vm;
++	int ret;
++
++	ret = of_get_videomode(np, &vm, index);
++	if (ret)
++		return ret;
++
++	videomode_to_display_mode(&vm, dmode);
++
++	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
++		vm.vactive, np->name);
++	dump_drm_displaymode(dmode);
++
++	return 0;
++
++}
++EXPORT_SYMBOL_GPL(of_get_drm_display_mode);
++#endif
+ /**
+  * drm_mode_set_name - set the name on a mode
+  * @mode: name will be set in this mode
+diff --git a/include/drm/drmP.h b/include/drm/drmP.h
+index e9fa1e3..4f9c44e 100644
+--- a/include/drm/drmP.h
++++ b/include/drm/drmP.h
+@@ -56,6 +56,7 @@
+ #include <linux/cdev.h>
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
++#include <linux/of.h>
+ #include <linux/videomode.h>
+ #if defined(__alpha__) || defined(__powerpc__)
+ #include <asm/pgtable.h>	/* For pte_wrprotect */
+@@ -1457,6 +1458,10 @@ drm_mode_create_from_cmdline_mode(struct drm_device *dev,
+ 
+ extern int videomode_to_display_mode(struct videomode *vm,
+ 				     struct drm_display_mode *dmode);
++extern int of_get_drm_display_mode(struct device_node *np,
++				   struct drm_display_mode *dmode,
++				   int index);
++
+ /* Modesetting support */
+ extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
+ extern void drm_vblank_post_modeset(struct drm_device *dev, int crtc);
 -- 
-tejun
+1.7.10.4
+
