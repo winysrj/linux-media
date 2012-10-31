@@ -1,106 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52115 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752093Ab2JBTZM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Oct 2012 15:25:12 -0400
-Message-ID: <506B3F81.3040404@iki.fi>
-Date: Tue, 02 Oct 2012 22:24:49 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56908 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755153Ab2JaRIj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Oct 2012 13:08:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: Re: [PATCH v7 1/8] video: add display_timing struct and helpers
+Date: Wed, 31 Oct 2012 18:09:30 +0100
+Message-ID: <1783334.5mdSA56Pjh@avalon>
+In-Reply-To: <1351675689-26814-2-git-send-email-s.trumtrar@pengutronix.de>
+References: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de> <1351675689-26814-2-git-send-email-s.trumtrar@pengutronix.de>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] em28xx: Make all em28xx extensions to be initialized
- asynchronously
-References: <1349203178-7782-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1349203178-7782-1-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/02/2012 09:39 PM, Mauro Carvalho Chehab wrote:
-> em28xx-dvb, em28xx-alsa and em28xx-ir are typically initialized
-> asyncrhronously. The exception for it is when those modules
-> are loaded before em28xx (or before an em28xx card insertion) or
-> when they're built in.
->
-> Make the extentions to always load asynchronously. That allows
-> having all DVB firmwares loaded synchronously with udev-182.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Hi Steffen,
 
-Tested-by: Antti Palosaari <crope@iki.fi>
+One more comment.
 
-Hauppauge WinTV HVR 930C
-MaxMedia UB425-TC
-PCTV QuatroStick nano (520e)
-
-
+On Wednesday 31 October 2012 10:28:01 Steffen Trumtrar wrote:
+> Add display_timing structure and the according helper functions. This allows
+> the description of a display via its supported timing parameters.
+> 
+> Every timing parameter can be specified as a single value or a range
+> <min typ max>.
+> 
+> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
 > ---
->   drivers/media/usb/em28xx/em28xx-cards.c | 22 ++++++++++------------
->   1 file changed, 10 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-> index ca62b99..ab98d08 100644
-> --- a/drivers/media/usb/em28xx/em28xx-cards.c
-> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
-> @@ -2875,12 +2875,20 @@ static void em28xx_card_setup(struct em28xx *dev)
->   }
->
->
-> -#if defined(CONFIG_MODULES) && defined(MODULE)
->   static void request_module_async(struct work_struct *work)
->   {
->   	struct em28xx *dev = container_of(work,
->   			     struct em28xx, request_module_wk);
->
-> +	/*
-> +	 * The em28xx extensions can be modules or builtin. If the
-> +	 * modules are already loaded or are built in, those extensions
-> +	 * can be initialised right now. Otherwise, the module init
-> +	 * code will do it.
-> +	 */
-> +	em28xx_init_extension(dev);
+>  drivers/video/Kconfig          |    5 +++
+>  drivers/video/Makefile         |    1 +
+>  drivers/video/display_timing.c |   24 ++++++++++++++
+>  include/linux/display_timing.h |   69 +++++++++++++++++++++++++++++++++++++
+>  4 files changed, 99 insertions(+)
+>  create mode 100644 drivers/video/display_timing.c
+>  create mode 100644 include/linux/display_timing.h
+> 
+> diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+> index d08d799..1421fc8 100644
+> --- a/drivers/video/Kconfig
+> +++ b/drivers/video/Kconfig
+> @@ -33,6 +33,11 @@ config VIDEO_OUTPUT_CONTROL
+>  	  This framework adds support for low-level control of the video
+>  	  output switch.
+> 
+> +config DISPLAY_TIMING
+> +       bool "Enable display timings helpers"
+> +       help
+> +         Say Y here, to use the display timing helpers.
 > +
-> +#if defined(CONFIG_MODULES) && defined(MODULE)
->   	if (dev->has_audio_class)
->   		request_module("snd-usb-audio");
->   	else if (dev->has_alsa_audio)
-> @@ -2890,6 +2898,7 @@ static void request_module_async(struct work_struct *work)
->   		request_module("em28xx-dvb");
->   	if (dev->board.ir_codes && !disable_ir)
->   		request_module("em28xx-rc");
-> +#endif /* CONFIG_MODULES */
->   }
->
->   static void request_modules(struct em28xx *dev)
-> @@ -2902,10 +2911,6 @@ static void flush_request_modules(struct em28xx *dev)
->   {
->   	flush_work_sync(&dev->request_module_wk);
->   }
-> -#else
-> -#define request_modules(dev)
-> -#define flush_request_modules(dev)
-> -#endif /* CONFIG_MODULES */
->
->   /*
->    * em28xx_release_resources()
-> @@ -3324,13 +3329,6 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->   	 */
->   	mutex_unlock(&dev->lock);
->
-> -	/*
-> -	 * These extensions can be modules. If the modules are already
-> -	 * loaded then we can initialise the device now, otherwise we
-> -	 * will initialise it when the modules load instead.
-> -	 */
-> -	em28xx_init_extension(dev);
-> -
->   	return 0;
->
->   unlock_and_free:
->
+>  menuconfig FB
+>  	tristate "Support for frame buffer devices"
+>  	---help---
+> diff --git a/drivers/video/Makefile b/drivers/video/Makefile
+> index 23e948e..552c045 100644
+> --- a/drivers/video/Makefile
+> +++ b/drivers/video/Makefile
+> @@ -167,3 +167,4 @@ obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
+> 
+>  #video output switch sysfs driver
+>  obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
+> +obj-$(CONFIG_DISPLAY_TIMING) += display_timing.o
+> diff --git a/drivers/video/display_timing.c b/drivers/video/display_timing.c
+> new file mode 100644
+> index 0000000..9ccfdb3
+> --- /dev/null
+> +++ b/drivers/video/display_timing.c
+> @@ -0,0 +1,24 @@
+> +/*
+> + * generic display timing functions
+> + *
+> + * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+> Pengutronix + *
+> + * This file is released under the GPLv2
+> + */
+> +
+> +#include <linux/slab.h>
+> +#include <linux/display_timing.h>
+> +
+> +void timings_release(struct display_timings *disp)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < disp->num_timings; i++)
+> +		kfree(disp->timings[i]);
+> +}
 
+This function doesn't seem to be called externally, you can make it static.
+
+> +void display_timings_release(struct display_timings *disp)
+> +{
+> +	timings_release(disp);
+> +	kfree(disp->timings);
+> +}
+> diff --git a/include/linux/display_timing.h b/include/linux/display_timing.h
+> new file mode 100644
+> index 0000000..aa02a12
+> --- /dev/null
+> +++ b/include/linux/display_timing.h
+> @@ -0,0 +1,69 @@
+> +/*
+> + * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> + *
+> + * description of display timings
+> + *
+> + * This file is released under the GPLv2
+> + */
+> +
+> +#ifndef __LINUX_DISPLAY_TIMINGS_H
+> +#define __LINUX_DISPLAY_TIMINGS_H
+> +
+> +#include <linux/types.h>
+> +
+> +struct timing_entry {
+> +	u32 min;
+> +	u32 typ;
+> +	u32 max;
+> +};
+> +
+> +struct display_timing {
+> +	struct timing_entry pixelclock;
+> +
+> +	struct timing_entry hactive;
+> +	struct timing_entry hfront_porch;
+> +	struct timing_entry hback_porch;
+> +	struct timing_entry hsync_len;
+> +
+> +	struct timing_entry vactive;
+> +	struct timing_entry vfront_porch;
+> +	struct timing_entry vback_porch;
+> +	struct timing_entry vsync_len;
+> +
+> +	unsigned int vsync_pol_active;
+> +	unsigned int hsync_pol_active;
+> +	unsigned int de_pol_active;
+> +	unsigned int pixelclk_pol;
+> +	bool interlaced;
+> +	bool doublescan;
+> +};
+> +
+> +struct display_timings {
+> +	unsigned int num_timings;
+> +	unsigned int native_mode;
+> +
+> +	struct display_timing **timings;
+> +};
+> +
+> +/* placeholder function until ranges are really needed */
+> +static inline u32 display_timing_get_value(struct timing_entry *te, int
+> index) +{
+> +	return te->typ;
+> +}
+> +
+> +static inline struct display_timing *display_timings_get(struct
+> display_timings *disp, +							 int index)
+> +{
+> +	struct display_timing *dt;
+> +
+> +	if (disp->num_timings > index) {
+> +		dt = disp->timings[index];
+> +		return dt;
+> +	} else
+> +		return NULL;
+> +}
+> +void timings_release(struct display_timings *disp);
+> +void display_timings_release(struct display_timings *disp);
+> +
+> +#endif
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
