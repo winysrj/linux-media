@@ -1,148 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38415 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932337Ab2JWNKN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 09:10:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH v2] omap3isp: preview: Add support for 8-bit formats at the sink pad
-Date: Tue, 23 Oct 2012 15:11:02 +0200
-Message-Id: <1350997862-18880-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1350991419-23028-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1350991419-23028-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from eu1sys200aog110.obsmtp.com ([207.126.144.129]:49692 "EHLO
+	eu1sys200aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1422816Ab2JaNVf convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Oct 2012 09:21:35 -0400
+Received: from zeta.dmz-eu.st.com (zeta.dmz-eu.st.com [164.129.230.9])
+	by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 2A659307
+	for <linux-media@vger.kernel.org>; Wed, 31 Oct 2012 13:21:31 +0000 (GMT)
+Received: from Webmail-eu.st.com (safex1hubcas6.st.com [10.75.90.73])
+	by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id B8FE64464
+	for <linux-media@vger.kernel.org>; Wed, 31 Oct 2012 13:21:31 +0000 (GMT)
+From: Alain VOLMAT <alain.volmat@st.com>
+To: linux-media <linux-media@vger.kernel.org>
+Date: Wed, 31 Oct 2012 14:21:30 +0100
+Subject: Way to request a time discontinuity in a V4L2 encoder device
+Message-ID: <E27519AE45311C49887BE8C438E68FAA01012DC87FE3@SAFEX1MAIL1.st.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Support both grayscale (Y8) and Bayer (SBGGR8, SGBRG8, SGRBG8 and
-SRGGB8) formats.
+Hi all,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/isppreview.c |   40 ++++++++++++++++++--------
- 1 files changed, 28 insertions(+), 12 deletions(-)
+We have developed a V4L2 mem2mem driver for an H264 encoder running on an IP of one of our SoC and would like to have one more v4l2_buffer flag value for that.
 
-Changes since v1:
+In the context of this driver, we discovered that the current V4L2 encode API is missing the feature to mention to the IP that a time discontinuity has to be created.
+Time discontinuity must be triggered when there is a discontinuity in the stream to be encoded, which would for example happen when there is a seek in the data to be encoded. In such case, it means that the IP should reset its bitrate allocation algorithm.
 
-- Handle V4L2_MBUS_FMT_Y8_1X8 in preview_config_input_size()
+Considering that this information should be triggered on a frame basis, the idea is to have it passed via the flags member of v4l2_buffer, with a new flag V4L2_BUF_FLAG_ENCODE_TIME_DISCONTINUITY.
 
-diff --git a/drivers/media/platform/omap3isp/isppreview.c b/drivers/media/platform/omap3isp/isppreview.c
-index 1ae1c09..e3d192c 100644
---- a/drivers/media/platform/omap3isp/isppreview.c
-+++ b/drivers/media/platform/omap3isp/isppreview.c
-@@ -200,10 +200,10 @@ static void preview_enable_invalaw(struct isp_prev_device *prev, bool enable)
- 
- 	if (enable)
- 		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
--			    ISPPRV_PCR_WIDTH | ISPPRV_PCR_INVALAW);
-+			    ISPPRV_PCR_INVALAW);
- 	else
- 		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
--			    ISPPRV_PCR_WIDTH | ISPPRV_PCR_INVALAW);
-+			    ISPPRV_PCR_INVALAW);
- }
- 
- /*
-@@ -1014,7 +1014,7 @@ static void preview_config_averager(struct isp_prev_device *prev, u8 average)
- /*
-  * preview_config_input_format - Configure the input format
-  * @prev: The preview engine
-- * @format: Format on the preview engine sink pad
-+ * @info: Sink pad format information
-  *
-  * Enable and configure CFA interpolation for Bayer formats and disable it for
-  * greyscale formats.
-@@ -1025,22 +1025,29 @@ static void preview_config_averager(struct isp_prev_device *prev, u8 average)
-  * reordered to support non-GRBG Bayer patterns.
-  */
- static void preview_config_input_format(struct isp_prev_device *prev,
--					const struct v4l2_mbus_framefmt *format)
-+					const struct isp_format_info *info)
- {
- 	struct isp_device *isp = to_isp_device(prev);
- 	struct prev_params *params;
- 
--	switch (format->code) {
--	case V4L2_MBUS_FMT_SGRBG10_1X10:
-+	if (info->bpp == 8)
-+		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
-+			    ISPPRV_PCR_WIDTH);
-+	else
-+		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
-+			    ISPPRV_PCR_WIDTH);
-+
-+	switch (info->flavor) {
-+	case V4L2_MBUS_FMT_SGRBG8_1X8:
- 		prev->params.cfa_order = 0;
- 		break;
--	case V4L2_MBUS_FMT_SRGGB10_1X10:
-+	case V4L2_MBUS_FMT_SRGGB8_1X8:
- 		prev->params.cfa_order = 1;
- 		break;
--	case V4L2_MBUS_FMT_SBGGR10_1X10:
-+	case V4L2_MBUS_FMT_SBGGR8_1X8:
- 		prev->params.cfa_order = 2;
- 		break;
--	case V4L2_MBUS_FMT_SGBRG10_1X10:
-+	case V4L2_MBUS_FMT_SGBRG8_1X8:
- 		prev->params.cfa_order = 3;
- 		break;
- 	default:
-@@ -1081,7 +1088,8 @@ static void preview_config_input_size(struct isp_prev_device *prev, u32 active)
- 	unsigned int elv = prev->crop.top + prev->crop.height - 1;
- 	u32 features;
- 
--	if (format->code != V4L2_MBUS_FMT_Y10_1X10) {
-+	if (format->code != V4L2_MBUS_FMT_Y8_1X8 &&
-+	    format->code != V4L2_MBUS_FMT_Y10_1X10) {
- 		sph -= 2;
- 		eph += 2;
- 		slv -= 2;
-@@ -1389,6 +1397,7 @@ static unsigned int preview_max_out_width(struct isp_prev_device *prev)
- static void preview_configure(struct isp_prev_device *prev)
- {
- 	struct isp_device *isp = to_isp_device(prev);
-+	const struct isp_format_info *info;
- 	struct v4l2_mbus_framefmt *format;
- 	unsigned long flags;
- 	u32 update;
-@@ -1402,17 +1411,19 @@ static void preview_configure(struct isp_prev_device *prev)
- 
- 	/* PREV_PAD_SINK */
- 	format = &prev->formats[PREV_PAD_SINK];
-+	info = omap3isp_video_format_info(format->code);
- 
- 	preview_adjust_bandwidth(prev);
- 
--	preview_config_input_format(prev, format);
-+	preview_config_input_format(prev, info);
- 	preview_config_input_size(prev, active);
- 
- 	if (prev->input == PREVIEW_INPUT_CCDC)
- 		preview_config_inlineoffset(prev, 0);
- 	else
- 		preview_config_inlineoffset(prev,
--				ALIGN(format->width, 0x20) * 2);
-+				ALIGN(format->width, 0x20) *
-+				DIV_ROUND_UP(info->bpp, 8));
- 
- 	preview_setup_hw(prev, update, active);
- 
-@@ -1709,6 +1720,11 @@ __preview_get_crop(struct isp_prev_device *prev, struct v4l2_subdev_fh *fh,
- 
- /* previewer format descriptions */
- static const unsigned int preview_input_fmts[] = {
-+	V4L2_MBUS_FMT_Y8_1X8,
-+	V4L2_MBUS_FMT_SGRBG8_1X8,
-+	V4L2_MBUS_FMT_SRGGB8_1X8,
-+	V4L2_MBUS_FMT_SBGGR8_1X8,
-+	V4L2_MBUS_FMT_SGBRG8_1X8,
- 	V4L2_MBUS_FMT_Y10_1X10,
- 	V4L2_MBUS_FMT_SGRBG10_1X10,
- 	V4L2_MBUS_FMT_SRGGB10_1X10,
--- 
+The usage for this flag value are:
+* Queuing a "to be encoded" v4l2_buffer with flags & V4L2_BUF_FLAG_ENCODE_TIME_DISCONTINUITY informs the driver/IP that a time discontinuity (reset in the bitrate allocation algorithm) should be performed before encoding this frame.
+* The flags bit should be then propagated until the dequeue to let the application know when a buffer is the first one after a time discontinuity.
+
+Few words about the driver itself, it is available in the following context.
+1. STLinux kernel (www.stlinux.com) rather than vanilla kernel since the board support is only available there for now
+2. Multicom (http://www.st.com/internet/com/TECHNICAL_RESOURCES/TECHNICAL_LITERATURE/USER_MANUAL/CD18182595.pdf) based V4L2 driver. Multicom is an ST layer to allow to send and serialize commands to our various IP.
+
 Regards,
 
-Laurent Pinchart
-
+Alain
