@@ -1,98 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35346 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753234Ab2J0LaT (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:45589 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751956Ab2JaL5P convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 07:30:19 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	"Taneja, Archit" <archit@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non zero
-Date: Sat, 27 Oct 2012 13:31:09 +0200
-Message-ID: <2228718.AWOaBDd6ZK@avalon>
-In-Reply-To: <79CD15C6BA57404B839C016229A409A83EB4B619@DBDE01.ent.ti.com>
-References: <1331110876-11895-1-git-send-email-archit@ti.com> <5089461A.9050307@ti.com> <79CD15C6BA57404B839C016229A409A83EB4B619@DBDE01.ent.ti.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 31 Oct 2012 07:57:15 -0400
+Date: Wed, 31 Oct 2012 09:57:02 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Fabio Estevam <fabio.estevam@freescale.com>
+Cc: <g.liakhovetski@gmx.de>, <kernel@pengutronix.de>,
+	<gcembed@gmail.com>, <javier.martin@vista-silicon.com>,
+	<linux-media@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>
+Subject: Re: [PATCH v4 2/2] mx2_camera: Fix regression caused by clock
+ conversion
+Message-ID: <20121031095702.41649bf9@infradead.org>
+In-Reply-To: <1351598606-8485-2-git-send-email-fabio.estevam@freescale.com>
+References: <1351598606-8485-1-git-send-email-fabio.estevam@freescale.com>
+	<1351598606-8485-2-git-send-email-fabio.estevam@freescale.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vaibhav,
+Em Tue, 30 Oct 2012 10:03:26 -0200
+Fabio Estevam <fabio.estevam@freescale.com> escreveu:
 
-On Friday 26 October 2012 09:13:20 Hiremath, Vaibhav wrote:
-> On Thu, Oct 25, 2012 at 19:30:58, Valkeinen, Tomi wrote:
-> > On 2012-03-09 10:03, Hiremath, Vaibhav wrote:
-> > > On Fri, Mar 09, 2012 at 05:17:41, Laurent Pinchart wrote:
-> > >> On Wednesday 07 March 2012 14:31:16 Archit Taneja wrote:
-> > >>> The omap_vout driver tries to set the DSS overlay_info using
-> > >>> set_overlay_info() when the physical address for the overlay is still
-> > >>> not configured. This happens in omap_vout_probe() and
-> > >>> vidioc_s_fmt_vid_out().
-> > >>> 
-> > >>> The calls to omapvid_init(which internally calls set_overlay_info())
-> > >>> are removed from these functions. They don't need to be called as the
-> > >>> omap_vout_device struct anyway maintains the overlay related changes
-> > >>> made. Also, remove the explicit call to set_overlay_info() in
-> > >>> vidioc_streamon(), this was used to set the paddr, this isn't needed
-> > >>> as omapvid_init() does the same thing later.
-> > >>> 
-> > >>> These changes are required as the DSS2 driver since 3.3 kernel doesn't
-> > >>> let you set the overlay info with paddr as 0.
-> > >>> 
-> > >>> Signed-off-by: Archit Taneja <archit@ti.com>
-> > >> 
-> > >> Thanks for the patch. This seems to fix memory corruption that would
-> > >> result in sysfs-related crashes such as
-> > >> 
-> > >> [   31.279541] ------------[ cut here ]------------
-> > >> [   31.284423] WARNING: at fs/sysfs/file.c:343
-> > >> sysfs_open_file+0x70/0x1f8()
-> > >> [   31.291503] missing sysfs attribute operations for kobject: (null)
-> > >> [   31.298004] Modules linked in: mt9p031 aptina_pll omap3_isp
-> > >> [   31.303924] [<c0018260>] (unwind_backtrace+0x0/0xec) from
-> > >> [<c0034488>] (warn_slowpath_common+0x4c/0x64) [   31.313812]
-> > >> [<c0034488>] (warn_slowpath_common+0x4c/0x64) from [<c0034520>]
-> > >> (warn_slowpath_fmt+0x2c/0x3c) [   31.323913] [<c0034520>]
-> > >> (warn_slowpath_fmt+0x2c/0x3c) from [<c01219bc>]
-> > >> (sysfs_open_file+0x70/0x1f8) [   31.333618] [<c01219bc>]
-> > >> (sysfs_open_file+0x70/0x1f8) from [<c00ccc94>]
-> > >> (__dentry_open+0x1f8/0x30c) [   31.343139] [<c00ccc94>]
-> > >> (__dentry_open+0x1f8/0x30c) from [<c00cce58>]
-> > >> (nameidata_to_filp+0x50/0x5c) [   31.352752] [<c00cce58>]
-> > >> (nameidata_to_filp+0x50/0x5c) from [<c00db4c0>] (do_last+0x55c/0x6a0)
-> > >> [   31.361999] [<c00db4c0>] (do_last+0x55c/0x6a0) from [<c00db6bc>]
-> > >> (path_openat+0xb8/0x37c) [   31.370605] [<c00db6bc>]
-> > >> (path_openat+0xb8/0x37c) from [<c00dba60>] (do_filp_open+0x30/0x7c) [ 
-> > >>  31.379486] [<c00dba60>] (do_filp_open+0x30/0x7c) from [<c00cc904>]
-> > >> (do_sys_open+0xd8/0x170) [   31.388366] [<c00cc904>]
-> > >> (do_sys_open+0xd8/0x170) from [<c0012760>] (ret_fast_syscall+0x0/0x3c)
-> > >> [   31.397552] ---[ end trace 13639ab74f345d7e ]---
-> > >> 
-> > >> Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > 
-> > > Thanks Laurent for testing this patch.
-> > > 
-> > >> Please push it to v3.3 :-)
-> > > 
-> > > Will send a pull request today itself.
-> > 
-> > Vaibhav, I don't see this crash fix in 3.3, 3.4, 3.5, 3.6 nor in 3.7-rc.
-> > Are you still maintaining the omap v4l2 driver? Can you finally push
-> > this fix?
+> Since mx27 transitioned to the commmon clock framework in 3.5, the correct way
+> to acquire the csi clock is to get csi_ahb and csi_per clocks separately.
 > 
-> Tomi, Sorry for delayed response.
+> By not doing so the camera sensor does not probe correctly:
 > 
-> Laurent,
-> Can you pull up this patch into your next pull request?
+> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
+> mx2-camera mx2-camera.0: Camera driver attached to camera 0
+> ov2640 0-0030: Product ID error fb:fb
+> mx2-camera mx2-camera.0: Camera driver detached from camera 0
+> mx2-camera mx2-camera.0: MX2 Camera (CSI) driver probed, clock frequency: 66500000
+> 
+> Adapt the mx2_camera driver to the new clock framework and make it functional
+> again.
+> 
+> Tested-by: Gaëtan Carlier <gcembed@gmail.com>
+> Tested-by: Javier Martin <javier.martin@vista-silicon.com>
+> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
 
-I've asked Mauro to pull the patch for v3.8.
+As it seems that those patches depend on some patches at the arm tree,
+the better is to merge them via -arm tree.
 
--- 
-Regards,
+So,
 
-Laurent Pinchart
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
+> ---
+> Changes since v3:
+> - Drop unneeded clk_unprepare calls as pointed out by Guennadi
+> Changes since v2:
+> - Fix clock error handling code as pointed out by Russell King
+> Changes since v1:
+> - Rebased against linux-next 20121008.
+>  drivers/media/platform/soc_camera/mx2_camera.c |   39 ++++++++++++++++++------
+>  1 file changed, 29 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+> index e575ae8..558f6a3 100644
+> --- a/drivers/media/platform/soc_camera/mx2_camera.c
+> +++ b/drivers/media/platform/soc_camera/mx2_camera.c
+> @@ -278,7 +278,8 @@ struct mx2_camera_dev {
+>  	struct device		*dev;
+>  	struct soc_camera_host	soc_host;
+>  	struct soc_camera_device *icd;
+> -	struct clk		*clk_csi, *clk_emma_ahb, *clk_emma_ipg;
+> +	struct clk		*clk_emma_ahb, *clk_emma_ipg;
+> +	struct clk		*clk_csi_ahb, *clk_csi_per;
+>  
+>  	void __iomem		*base_csi, *base_emma;
+>  
+> @@ -464,7 +465,8 @@ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
+>  {
+>  	unsigned long flags;
+>  
+> -	clk_disable_unprepare(pcdev->clk_csi);
+> +	clk_disable_unprepare(pcdev->clk_csi_ahb);
+> +	clk_disable_unprepare(pcdev->clk_csi_per);
+>  	writel(0, pcdev->base_csi + CSICR1);
+>  	if (is_imx27_camera(pcdev)) {
+>  		writel(0, pcdev->base_emma + PRP_CNTL);
+> @@ -492,10 +494,14 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
+>  	if (pcdev->icd)
+>  		return -EBUSY;
+>  
+> -	ret = clk_prepare_enable(pcdev->clk_csi);
+> +	ret = clk_prepare_enable(pcdev->clk_csi_ahb);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> +	ret = clk_prepare_enable(pcdev->clk_csi_per);
+> +	if (ret < 0)
+> +		goto exit_csi_ahb;
+> +
+>  	csicr1 = CSICR1_MCLKEN;
+>  
+>  	if (is_imx27_camera(pcdev))
+> @@ -512,6 +518,11 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
+>  		 icd->devnum);
+>  
+>  	return 0;
+> +
+> +exit_csi_ahb:
+> +	clk_disable_unprepare(pcdev->clk_csi_ahb);
+> +
+> +	return ret;
+>  }
+>  
+>  static void mx2_camera_remove_device(struct soc_camera_device *icd)
+> @@ -1772,10 +1783,17 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+>  		break;
+>  	}
+>  
+> -	pcdev->clk_csi = devm_clk_get(&pdev->dev, "ahb");
+> -	if (IS_ERR(pcdev->clk_csi)) {
+> -		dev_err(&pdev->dev, "Could not get csi clock\n");
+> -		err = PTR_ERR(pcdev->clk_csi);
+> +	pcdev->clk_csi_ahb = devm_clk_get(&pdev->dev, "ahb");
+> +	if (IS_ERR(pcdev->clk_csi_ahb)) {
+> +		dev_err(&pdev->dev, "Could not get csi ahb clock\n");
+> +		err = PTR_ERR(pcdev->clk_csi_ahb);
+> +		goto exit;
+> +	}
+> +
+> +	pcdev->clk_csi_per = devm_clk_get(&pdev->dev, "per");
+> +	if (IS_ERR(pcdev->clk_csi_per)) {
+> +		dev_err(&pdev->dev, "Could not get csi per clock\n");
+> +		err = PTR_ERR(pcdev->clk_csi_per);
+>  		goto exit;
+>  	}
+>  
+> @@ -1785,12 +1803,13 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+>  
+>  		pcdev->platform_flags = pcdev->pdata->flags;
+>  
+> -		rate = clk_round_rate(pcdev->clk_csi, pcdev->pdata->clk * 2);
+> +		rate = clk_round_rate(pcdev->clk_csi_per,
+> +						pcdev->pdata->clk * 2);
+>  		if (rate <= 0) {
+>  			err = -ENODEV;
+>  			goto exit;
+>  		}
+> -		err = clk_set_rate(pcdev->clk_csi, rate);
+> +		err = clk_set_rate(pcdev->clk_csi_per, rate);
+>  		if (err < 0)
+>  			goto exit;
+>  	}
+> @@ -1848,7 +1867,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+>  		goto exit_free_emma;
+>  
+>  	dev_info(&pdev->dev, "MX2 Camera (CSI) driver probed, clock frequency: %ld\n",
+> -			clk_get_rate(pcdev->clk_csi));
+> +			clk_get_rate(pcdev->clk_csi_per));
+>  
+>  	return 0;
+>  
+
+
+
+
+Cheers,
+Mauro
