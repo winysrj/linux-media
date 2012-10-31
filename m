@@ -1,115 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:63682 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932966Ab2JLH7M (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:45571 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932864Ab2JaNDi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Oct 2012 03:59:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCHv10 22/26] v4l: vb2-dma-contig: fail if user ptr buffer is not correctly aligned
-Date: Fri, 12 Oct 2012 09:58:43 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
-	subashrp@gmail.com, mchehab@redhat.com, zhangfei.gao@gmail.com,
-	s.nawrocki@samsung.com, k.debski@samsung.com
-References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com> <2222801.pVl6O4rxaf@avalon> <5077CA45.2040908@samsung.com>
-In-Reply-To: <5077CA45.2040908@samsung.com>
+	Wed, 31 Oct 2012 09:03:38 -0400
+Received: by mail-bk0-f46.google.com with SMTP id jk13so640213bkc.19
+        for <linux-media@vger.kernel.org>; Wed, 31 Oct 2012 06:03:37 -0700 (PDT)
+Message-ID: <50911395.8090805@googlemail.com>
+Date: Wed, 31 Oct 2012 14:03:33 +0200
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201210120958.43877.hverkuil@xs4all.nl>
+To: Benny Amorsen <benny+usenet@amorsen.dk>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 00/23] em28xx: add support fur USB bulk transfers
+References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com> <m3vcdr1ku9.fsf@ursa.amorsen.dk> <CALF0-+WHPbdg6eVS8cN00vfcN_HJLYfkWYN9kpRfDBAyOeFV0g@mail.gmail.com>
+In-Reply-To: <CALF0-+WHPbdg6eVS8cN00vfcN_HJLYfkWYN9kpRfDBAyOeFV0g@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri 12 October 2012 09:44:05 Tomasz Stanislawski wrote:
-> Hi Laurent,
-> Thank you for the review.
-> Please refer to the comments below.
-> 
-> On 10/11/2012 11:36 PM, Laurent Pinchart wrote:
-> > Hi Tomasz,
-> > 
-> > Thanks for the patch.
-> > 
-> > On Wednesday 10 October 2012 16:46:41 Tomasz Stanislawski wrote:
-> >> From: Marek Szyprowski <m.szyprowski@samsung.com>
-> >>
-> >> The DMA transfer must be aligned to a specific value. If userptr is not
-> >> aligned to DMA requirements then unexpected corruptions of the memory may
-> >> occur before or after a buffer.  To prevent such situations, all unligned
-> >> userptr buffers are rejected at VIDIOC_QBUF.
-> >>
-> >> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> >> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >>  drivers/media/v4l2-core/videobuf2-dma-contig.c |   12 ++++++++++++
-> >>  1 file changed, 12 insertions(+)
-> >>
-> >> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> >> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index 2d661fd..571a919
-> >> 100644
-> >> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> >> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> >> @@ -493,6 +493,18 @@ static void *vb2_dc_get_userptr(void *alloc_ctx,
-> >> unsigned long vaddr, struct vm_area_struct *vma;
-> >>  	struct sg_table *sgt;
-> >>  	unsigned long contig_size;
-> >> +	unsigned long dma_align = dma_get_cache_alignment();
-> >> +
-> >> +	/* Only cache aligned DMA transfers are reliable */
-> >> +	if (!IS_ALIGNED(vaddr | size, dma_align)) {
-> >> +		pr_debug("user data must be aligned to %lu bytes\n", dma_align);
-> >> +		return ERR_PTR(-EINVAL);
-> >> +	}
-> > 
-> > Looks good to me.
-> > 
-> >> +	if (!size) {
-> >> +		pr_debug("size is zero\n");
-> >> +		return ERR_PTR(-EINVAL);
-> >> +	}
-> > 
-> > Can this happen ? The vb2 core already has
-> > 
-> >                 /* Check if the provided plane buffer is large enough */
-> >                 if (planes[plane].length < q->plane_sizes[plane]) {
-> >                         ret = -EINVAL;
-> >                         goto err;
-> >                 }
-> > 
-> > Unless queue_setup sets plane_sizes to 0 we can't reach vb2_dc_get_userptr.
-> > 
-> 
-> Yes.. unfortunately, some drivers set plane_size to 0 at queue_setup.
-> Especially, if REQBUFS is called before any S_FMT.
-> Maybe it is just a driver bug.
+Am 31.10.2012 12:57, schrieb Ezequiel Garcia:
+> On Tue, Oct 30, 2012 at 10:39 PM, Benny Amorsen <benny+usenet@amorsen.dk> wrote:
+>> Frank Schäfer <fschaefer.oss@googlemail.com> writes:
+>>
+>>> This patch series adds support for USB bulk transfers to the em28xx driver.
+>> I tried these patches on my Raspberry Pi, 3.6.1 kernel, Nanostick 290e
+>>
+>> options em28xx prefer_bulk=1 core_debug=1 usb_debug=1
+>> options em28xx_dvb debug=1
+>>
+>> [    5.469510] em28xx: New device PCTV Systems PCTV 290e @ 480 Mbps (2013:024f, interface 0, class 0)
+>> [    5.890637] em28xx: DVB interface 0 found
+>> [    6.025292] em28xx #0: chip ID is em28174
+>> [    6.515383] em28xx #0: Identified as PCTV nanoStick T2 290e (card=78)
+>> [    6.567066] em28xx #0: v4l2 driver version 0.1.3
+>> [    6.614720] em28xx #0 em28xx_set_alternate :minimum isoc packet size: 2888 (alt=0)
+>> [    6.663064] em28xx #0 em28xx_set_alternate :setting alternate 0 with wMaxPacketSize=0
+>> [    6.715934] em28xx #0 em28xx_accumulator_set :em28xx Scale: (1,1)-(179,143)
+>> [    6.765694] em28xx #0 em28xx_capture_area_set :em28xx Area Set: (180,144)
+>> [    6.793060] em28xx #0: V4L2 video device registered as video0
+>> [    6.808200] em28xx #0 em28xx_alloc_urbs :em28xx: called em28xx_alloc_isoc in mode 2
+>> [    6.819456] em28xx #0: no endpoint for DVB mode and transfer type 1
+>> [    6.829283] em28xx: Failed to pre-allocate USB transfer buffers for DVB.
+>> [    6.839454] em28xx: probe of 1-1.3.1:1.0 failed with error -22
+>> [    6.852511] usbcore: registered new interface driver em28xx
+>> [    7.255738] em28xx #0 em28xx_accumulator_set :em28xx Scale: (1,1)-(179,143)
+>> [    7.291575] em28xx #0 em28xx_capture_area_set :em28xx Area Set: (180,144)
+>> [    7.326200] em28xx #0 em28xx_uninit_usb_xfer :em28xx: called em28xx_uninit_usb_xfer in mode 1
+>>
+>> Is the Nanostick 290e just fundamentally incompatible with bulk
+>> transfers, or is there hope yet?
+>>
+>> It works great with isochronous transfers on my PC and the Fedora
+>> kernel, but the Raspberry USB host blows up when trying to do
+>> isochronous mode.
+>>
+>>
+> Isn't this completely OT?
+>
+> Anyway, RPI has known issues regarding USB bandwidth.
+>
+> See here
+>
+> https://github.com/ezequielgarcia/stk1160-standalone/issues/8
+> https://github.com/ezequielgarcia/stk1160-standalone/issues/2
+> http://www.raspberrypi.org/phpBB3/viewtopic.php?p=196918#p196918
 
-That's a driver bug. Planes with size 0 make no sense whatsoever. vb2 should
-WARN_ON on that and return an error.
+For DVB, the em28xx always selects the alternate setting with the
+largest wMaxPacketSize.
+There is a module parameter 'alt' to select it manually for experiments,
+but the current code unfortunately applies it for analog capturing only. :(
 
-My guess is that these drivers do not set up a default format as they should.
+Hope this helps,
+Frank
 
-Regards,
-
-	Hans
-
-> However, VB2 makes no sanity check if plane_sizes[] is zero.
-> I was not able to find in Documentation nor code comments
-> any explicit statement that plane_size cannot be zero.
-> 
-> Therefore I have to reject reject a 0-bytes-long user pointer
-> at vb2_dc_get_userptr before creating an empty scatterlist
-> and passing it to the DMA layer.
-> 
 > Regards,
-> Tomasz Stanislawski
-> 
-> >>  	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-> >>  	if (!buf)
-> > 
-> 
+>
+>     Ezequiel
+
