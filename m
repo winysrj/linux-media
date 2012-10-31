@@ -1,76 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:46851 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752651Ab2JILiY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Oct 2012 07:38:24 -0400
-Received: from eusync2.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBM0053OJ0L6S70@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 09 Oct 2012 12:38:45 +0100 (BST)
-Received: from [106.116.147.32] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MBM004QBIZXB9C0@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 09 Oct 2012 12:38:21 +0100 (BST)
-Message-id: <50740CAC.2040009@samsung.com>
-Date: Tue, 09 Oct 2012 13:38:20 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>,
-	linux-media@vger.kernel.org, a.hajda@samsung.com,
-	sakari.ailus@iki.fi, hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	sw0312.kim@samsung.com
-Subject: Re: Media_build broken by [PATCH RFC v3 5/5] m5mols: Implement
- .get_frame_desc subdev callback
-References: <1348674853-24596-1-git-send-email-s.nawrocki@samsung.com>
- <1348674853-24596-6-git-send-email-s.nawrocki@samsung.com>
- <50704D26.9020201@hoogenraad.net> <2290105.hTRlMPSUYP@avalon>
-In-reply-to: <2290105.hTRlMPSUYP@avalon>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33843 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758508Ab2JaQtW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Oct 2012 12:49:22 -0400
+Date: Wed, 31 Oct 2012 17:49:13 +0100
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: "Manjunathappa, Prakash" <prakash.pm@ti.com>
+Cc: "devicetree-discuss@lists.ozlabs.org"
+	<devicetree-discuss@lists.ozlabs.org>,
+	Rob Herring <robherring2@gmail.com>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	"kernel@pengutronix.de" <kernel@pengutronix.de>
+Subject: Re: [PATCH v7 5/8] fbmon: add videomode helpers
+Message-ID: <20121031164913.GA9054@pengutronix.de>
+References: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1351675689-26814-6-git-send-email-s.trumtrar@pengutronix.de>
+ <A73F36158E33644199EB82C5EC81C7BC3E9E1B39@DBDE01.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <A73F36158E33644199EB82C5EC81C7BC3E9E1B39@DBDE01.ent.ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent
+Hi Prakash!
 
-On 10/08/2012 10:42 PM, Laurent Pinchart wrote:
-> Hi,
+On Wed, Oct 31, 2012 at 03:30:03PM +0000, Manjunathappa, Prakash wrote:
+> Hi Steffen,
 > 
-> When did the {get,set}_frame_desc subdev operations reach mainline ? Last I 
-> knew is that they were an RFC, and they're now suddenly in, without even one 
-> ack from an embedded v4l developer :-S I'm not totally happy with that.
+> On Wed, Oct 31, 2012 at 14:58:05, Steffen Trumtrar wrote:
+> > Add a function to convert from the generic videomode to a fb_videomode.
+> > 
+> > Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> > ---
+> >  drivers/video/fbmon.c |   36 ++++++++++++++++++++++++++++++++++++
+> >  include/linux/fb.h    |    2 ++
+> >  2 files changed, 38 insertions(+)
+> > 
+> > diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
+> > index cef6557..b9e6ab3 100644
+> > --- a/drivers/video/fbmon.c
+> > +++ b/drivers/video/fbmon.c
+> > @@ -1373,6 +1373,42 @@ int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_inf
+> >  	kfree(timings);
+> >  	return err;
+> >  }
+> > +
+> > +#if IS_ENABLED(CONFIG_VIDEOMODE)
+> > +int videomode_to_fb_videomode(struct videomode *vm, struct fb_videomode *fbmode)
+> > +{
+> > +	fbmode->xres = vm->hactive;
+> > +	fbmode->left_margin = vm->hback_porch;
+> > +	fbmode->right_margin = vm->hfront_porch;
+> > +	fbmode->hsync_len = vm->hsync_len;
+> > +
+> > +	fbmode->yres = vm->vactive;
+> > +	fbmode->upper_margin = vm->vback_porch;
+> > +	fbmode->lower_margin = vm->vfront_porch;
+> > +	fbmode->vsync_len = vm->vsync_len;
+> > +
+> > +	fbmode->pixclock = KHZ2PICOS(vm->pixelclock / 1000);
+> > +
+> > +	fbmode->sync = 0;
+> > +	fbmode->vmode = 0;
+> > +	if (vm->hah)
+> > +		fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
+> > +	if (vm->vah)
+> > +		fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
+> > +	if (vm->interlaced)
+> > +		fbmode->vmode |= FB_VMODE_INTERLACED;
+> > +	if (vm->doublescan)
+> > +		fbmode->vmode |= FB_VMODE_DOUBLE;
+> > +
+> 
+> "pixelclk-inverted" property of the panel is not percolated fb_videomode.
+> Please let me know if I am missing something.
+> 
 
-Sorry to hear now you have issues with those patches. I've sent a pull request
-on last Wednesday [1], after 3 RFC versions of the whole change set. I've Cced
-many people on these patches, including you and Sakari. I have addressed comments 
-to some patches you raised and I felt you're generally OK or don't have 
-objections (since there was no comments on some patches and I explicitly 
-mentioned there I'd like to get them in v3.7). I'm sorry if it was otherwise.
-
-The problem I'm trying to address with those patches have been there for us for
-over _one year_ [1], making JPEG capture with s5p-fimc effectively unusable in
-the mainline kernel.
-
-We've decided extending struct v4l2_mbus_framefmt was not an option, since it
-is exposed to user-space now. Also using controls turned out to not be helpful,
-since multiple values need to be passed, where there are multiple logical
-streams transmitted by e.g. CSI-2 transmitter in single video frame [2].
-
-It seemed like there is a general agreement on LMML to use the frame 
-descriptor callbacks instead. These callbacks are all in-kernel API and can
-be changed any time. I'll be happy adapt the drivers to whatever sane changes
-are proposed. I've stated in the commit description it's just an preliminary
-form. And it at least let's us to move forward and carry on with more serious
-problems.
-
-I'll try to do better on letting people know, when sending things upstream
-in future.
-
---
+You are right. I forgot that :(
 
 Regards,
-Sylwester
+Steffen
 
-[1] http://patchwork.linuxtv.org/patch/14875
-[2] https://patchwork.kernel.org/patch/1365451
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
