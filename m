@@ -1,62 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:62157 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933486Ab2JWT7d (ORCPT
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:53145 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935556Ab2JaNYH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Oct 2012 15:59:33 -0400
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-Cc: Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 23/23] wl128x: Replace memcpy with struct assignment
-Date: Tue, 23 Oct 2012 16:57:26 -0300
-Message-Id: <1351022246-8201-23-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
-References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+	Wed, 31 Oct 2012 09:24:07 -0400
+Received: by mail-oa0-f46.google.com with SMTP id h16so1393288oag.19
+        for <linux-media@vger.kernel.org>; Wed, 31 Oct 2012 06:24:06 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20121031131652.GM1641@pengutronix.de>
+References: <1351598606-8485-1-git-send-email-fabio.estevam@freescale.com>
+	<20121031095632.536d9362@infradead.org>
+	<20121031131652.GM1641@pengutronix.de>
+Date: Wed, 31 Oct 2012 11:24:06 -0200
+Message-ID: <CAOMZO5CLxM41LYoLmPbfzSTF85Zk4B5SqHeVbGU4WjEOXw0eyg@mail.gmail.com>
+Subject: Re: [PATCH v4 1/2] ARM: clk-imx27: Add missing clock for mx2-camera
+From: Fabio Estevam <festevam@gmail.com>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	g.liakhovetski@gmx.de, kernel@pengutronix.de, gcembed@gmail.com,
+	javier.martin@vista-silicon.com, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This kind of memcpy() is error-prone. Its replacement with a struct
-assignment is prefered because it's type-safe and much easier to read.
+Hi Sascha,
 
-Found by coccinelle. Hand patched and reviewed.
-Tested by compilation only.
+On Wed, Oct 31, 2012 at 11:16 AM, Sascha Hauer <s.hauer@pengutronix.de> wrote:
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
+> Quoting yourself:
+>
+>> Forgot to comment: as patch 2 relies on this change, the better, IMHO, is
+>> to send both via the same tree. If you decide to do so, please get arm
+>> maintainer's ack, instead, and we can merge both via my tree.
+>
+> That's why Fabio resent these patches with my Ack. You are free to take
+> these.
 
-// <smpl>
-@@
-identifier struct_name;
-struct struct_name to;
-struct struct_name from;
-expression E;
-@@
--memcpy(&(to), &(from), E);
-+to = from;
-// </smpl>
+I have just realized that this patch (1/2) will not apply against
+media tree because it does not have commit 27b76486a3 (media:
+mx2_camera: remove cpu_is_xxx by using platform_device_id), which
+changes from mx2_camera.0 to imx27-camera.0.
 
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/radio/wl128x/fmdrv_common.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+So it seems to be better to merge this via arm tree to avoid such conflict.
 
-diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
-index bf867a6..902f19d 100644
---- a/drivers/media/radio/wl128x/fmdrv_common.c
-+++ b/drivers/media/radio/wl128x/fmdrv_common.c
-@@ -1563,8 +1563,7 @@ int fmc_prepare(struct fmdev *fmdev)
- 	fmdev->irq_info.mask = FM_MAL_EVENT;
- 
- 	/* Region info */
--	memcpy(&fmdev->rx.region, &region_configs[default_radio_region],
--			sizeof(struct region_info));
-+	fmdev->rx.region = region_configs[default_radio_region];
- 
- 	fmdev->rx.mute_mode = FM_MUTE_OFF;
- 	fmdev->rx.rf_depend_mute = FM_RX_RF_DEPENDENT_MUTE_OFF;
--- 
-1.7.4.4
+Regards,
 
+Fabio Estevam
