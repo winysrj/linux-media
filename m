@@ -1,79 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:19774 "EHLO
-	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754570Ab2JIPnj (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39259 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932866Ab2JaJ3L (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Oct 2012 11:43:39 -0400
-Date: Tue, 9 Oct 2012 17:43:36 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Jean Delvare <khali@linux-fr.org>
-cc: Julia Lawall <Julia.Lawall@lip6.fr>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ben-linux@fluff.org, w.sang@pengutronix.de,
-	linux-i2c@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	rmallon@gmail.com, shubhrajyoti@ti.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 0/11] introduce macros for i2c_msg initialization
-In-Reply-To: <20121009173237.7c1a49e9@endymion.delvare>
-Message-ID: <alpine.DEB.2.02.1210091737450.1971@hadrien>
-References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <20121009173237.7c1a49e9@endymion.delvare>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Wed, 31 Oct 2012 05:29:11 -0400
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: [PATCH v7 4/8] video: add videomode helpers
+Date: Wed, 31 Oct 2012 10:28:04 +0100
+Message-Id: <1351675689-26814-5-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 9 Oct 2012, Jean Delvare wrote:
+Add helper functions to convert from display timings to a generic videomode
+structure. This videomode can then be converted to the corresponding subsystem
+mode representation (e.g. fb_videomode).
 
-> Hi Julia,
->
-> On Sun,  7 Oct 2012 17:38:30 +0200, Julia Lawall wrote:
-> > This patch set introduces some macros for describing how an i2c_msg is
-> > being initialized.  There are three macros: I2C_MSG_READ, for a read
-> > message, I2C_MSG_WRITE, for a write message, and I2C_MSG_OP, for some other
-> > kind of message, which is expected to be very rarely used.
->
-> "Some other kind of message" is actually messages which need extra
-> flags. They are still read or write messages.
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+---
+ drivers/video/Kconfig     |    6 ++++++
+ drivers/video/Makefile    |    1 +
+ drivers/video/videomode.c |   44 ++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/videomode.h |   36 ++++++++++++++++++++++++++++++++++++
+ 4 files changed, 87 insertions(+)
+ create mode 100644 drivers/video/videomode.c
+ create mode 100644 include/linux/videomode.h
 
-I agree.  We could also have a read with extra options macro and a write
-with extra options macro.  That would give four macros, which is not too
-much more than three.
+diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+index 1421fc8..45dd393 100644
+--- a/drivers/video/Kconfig
++++ b/drivers/video/Kconfig
+@@ -38,6 +38,12 @@ config DISPLAY_TIMING
+        help
+          Say Y here, to use the display timing helpers.
+ 
++config VIDEOMODE
++       bool "Enable videomode helpers"
++       help
++         Say Y here, to use the generic videomode helpers. This allows
++	 converting from display timings to fb_videomode and drm_display_mode
++
+ menuconfig FB
+ 	tristate "Support for frame buffer devices"
+ 	---help---
+diff --git a/drivers/video/Makefile b/drivers/video/Makefile
+index 552c045..fc30439 100644
+--- a/drivers/video/Makefile
++++ b/drivers/video/Makefile
+@@ -168,3 +168,4 @@ obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
+ #video output switch sysfs driver
+ obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
+ obj-$(CONFIG_DISPLAY_TIMING) += display_timing.o
++obj-$(CONFIG_VIDEOMODE) += videomode.o
+diff --git a/drivers/video/videomode.c b/drivers/video/videomode.c
+new file mode 100644
+index 0000000..a9fe010
+--- /dev/null
++++ b/drivers/video/videomode.c
+@@ -0,0 +1,44 @@
++/*
++ * generic display timing functions
++ *
++ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
++ *
++ * This file is released under the GPLv2
++ */
++
++#include <linux/kernel.h>
++#include <linux/export.h>
++#include <linux/errno.h>
++#include <linux/display_timing.h>
++#include <linux/videomode.h>
++
++int videomode_from_timing(struct display_timings *disp, struct videomode *vm,
++			  int index)
++{
++	struct display_timing *dt = NULL;
++
++	dt = display_timings_get(disp, index);
++	if (!dt) {
++		pr_err("%s: no signal timings found\n", __func__);
++		return -EINVAL;
++	}
++
++	vm->pixelclock = display_timing_get_value(&dt->pixelclock, 0);
++	vm->hactive = display_timing_get_value(&dt->hactive, 0);
++	vm->hfront_porch = display_timing_get_value(&dt->hfront_porch, 0);
++	vm->hback_porch = display_timing_get_value(&dt->hback_porch, 0);
++	vm->hsync_len = display_timing_get_value(&dt->hsync_len, 0);
++
++	vm->vactive = display_timing_get_value(&dt->vactive, 0);
++	vm->vfront_porch = display_timing_get_value(&dt->vfront_porch, 0);
++	vm->vback_porch = display_timing_get_value(&dt->vback_porch, 0);
++	vm->vsync_len = display_timing_get_value(&dt->vsync_len, 0);
++
++	vm->vah = dt->vsync_pol_active;
++	vm->hah = dt->hsync_pol_active;
++	vm->interlaced = dt->interlaced;
++	vm->doublescan = dt->doublescan;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(videomode_from_timing);
+diff --git a/include/linux/videomode.h b/include/linux/videomode.h
+new file mode 100644
+index 0000000..f932147
+--- /dev/null
++++ b/include/linux/videomode.h
+@@ -0,0 +1,36 @@
++/*
++ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
++ *
++ * generic videomode description
++ *
++ * This file is released under the GPLv2
++ */
++
++#ifndef __LINUX_VIDEOMODE_H
++#define __LINUX_VIDEOMODE_H
++
++#include <linux/display_timing.h>
++
++struct videomode {
++	u32 pixelclock;
++	u32 refreshrate;
++
++	u32 hactive;
++	u32 hfront_porch;
++	u32 hback_porch;
++	u32 hsync_len;
++
++	u32 vactive;
++	u32 vfront_porch;
++	u32 vback_porch;
++	u32 vsync_len;
++
++	u32 hah;
++	u32 vah;
++	bool interlaced;
++	bool doublescan;
++};
++
++int videomode_from_timing(struct display_timings *disp, struct videomode *vm,
++			  int index);
++#endif
+-- 
+1.7.10.4
 
-> OK, I've read the whole series now and grepped the kernel tree so I
-> have a better overview. There are a lot more occurrences than what you
-> converted. I presume the conversions were just an example and you leave
-> the rest up to the relevant maintainers (e.g. me) if they are
-> interested?
-
-I would be happy to do the rest, or at least to do more.  I just didn't
-want to do 600+ cases before knowing how others felt about the various
-changes.  Actually, now that we seem to have decided to make fewer changes
-at once, I could probably work more quickly.  So far, I have been
-comparing the results after running cpp, as well as checking that the
-sizeof transformation is correct, which is a bit slow.
-
-> Given the huge number of affected drivers (a quick grep suggests 230
-> drivers and more than 300 occurrences), we'd better think twice before
-> going on as it will be intrusive and hard to change afterward.
->
-> So my first question will be: what is your goal with this change? Are
-> you only trying to save a few lines of source code? Or do you expect to
-> actually fix/prevent bugs by introducing these macros? Or something
-> else?
-
-The main goal just seems to be to provide something that is more readable.
-
-> I admit I am not completely convinced by the benefit at the moment. A
-> number of these drivers should be using i2c_smbus_*() functions instead
-> of i2c_transfer() for improved compatibility, or i2c_master_send/recv()
-> for single message transfers (383 occurrences!), so making
-> i2c_transfer() easier to use isn't at the top of my priority list. And
-> I see the extra work for the pre-processor, so we need a good reason
-> for doing that.
-
-OK, if it doesn't seem like a good idea, it is no problem to drop the idea
-completely.  It does seem a bit nicer to have writing indicated as WRITE
-rather than as 0, but that might not be a big enough benefit to justify
-making changes.
-
-julia
