@@ -1,52 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32727 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933334Ab2J0Umy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Oct 2012 16:42:54 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mike Isely <isely@pobox.com>
-Subject: [PATCH 33/68] [media] pvrusb2: get rid of warning: no previous prototype
-Date: Sat, 27 Oct 2012 18:40:51 -0200
-Message-Id: <1351370486-29040-34-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from moutng.kundenserver.de ([212.227.126.186]:64020 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932340Ab2JaK1c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Oct 2012 06:27:32 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id 7A60740BDA
+	for <linux-media@vger.kernel.org>; Wed, 31 Oct 2012 11:27:29 +0100 (CET)
+Date: Wed, 31 Oct 2012 11:27:29 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL] soc-camera fixes for 3.7
+Message-ID: <Pine.LNX.4.64.1210311124350.9048@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/usb/pvrusb2/pvrusb2-v4l2.c:199:5: warning: no previous prototype for 'pvr2_s_std' [-Wmissing-prototypes]
-drivers/media/usb/pvrusb2/pvrusb2-v4l2.c:368:5: warning: no previous prototype for 'pvr2_s_frequency' [-Wmissing-prototypes]
+Hi Mauro
 
-Cc: Mike Isely <isely@pobox.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+The following changes since commit 08f05c49749ee655bef921d12160960a273aad47:
+
+  Return the right error value when dup[23]() newfd argument is too large (2012-10-30 21:27:28 -0700)
+
+are available in the git repository at:
+
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git 3.7-rc3-fixes
+
+for you to fetch changes up to 2819734c24a35207a896373aa055f0ee57c795b0:
+
+  mt9v022: fix the V4L2_CID_EXPOSURE control (2012-10-31 11:14:05 +0100)
+
+----------------------------------------------------------------
+Anatolij Gustschin (1):
+      mt9v022: fix the V4L2_CID_EXPOSURE control
+
+Guennadi Liakhovetski (7):
+      media: sh_vou: fix const cropping related warnings
+      media: sh_mobile_ceu_camera: fix const cropping related warnings
+      media: pxa_camera: fix const cropping related warnings
+      media: mx3_camera: fix const cropping related warnings
+      media: mx2_camera: fix const cropping related warnings
+      media: mx1_camera: use the default .set_crop() implementation
+      media: omap1_camera: fix const cropping related warnings
+
+Wei Yongjun (1):
+      mx2_camera: fix missing unlock on error in mx2_start_streaming()
+
+ drivers/media/i2c/soc_camera/mt9v022.c             |   11 ++++++++---
+ drivers/media/platform/sh_vou.c                    |    3 ++-
+ drivers/media/platform/soc_camera/mx1_camera.c     |    9 ---------
+ drivers/media/platform/soc_camera/mx2_camera.c     |   13 +++++++++----
+ drivers/media/platform/soc_camera/mx3_camera.c     |    5 +++--
+ drivers/media/platform/soc_camera/omap1_camera.c   |    4 ++--
+ drivers/media/platform/soc_camera/pxa_camera.c     |    4 ++--
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |   13 +++++++------
+ 8 files changed, 33 insertions(+), 29 deletions(-)
+
+Thanks
+Guennadi
 ---
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-index db249ca..6930676 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-@@ -196,7 +196,7 @@ static int pvr2_g_std(struct file *file, void *priv, v4l2_std_id *std)
- 	return ret;
- }
- 
--int pvr2_s_std(struct file *file, void *priv, v4l2_std_id *std)
-+static int pvr2_s_std(struct file *file, void *priv, v4l2_std_id *std)
- {
- 	struct pvr2_v4l2_fh *fh = file->private_data;
- 	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
-@@ -365,7 +365,7 @@ static int pvr2_s_tuner(struct file *file, void *priv, struct v4l2_tuner *vt)
- 			vt->audmode);
- }
- 
--int pvr2_s_frequency(struct file *file, void *priv, struct v4l2_frequency *vf)
-+static int pvr2_s_frequency(struct file *file, void *priv, struct v4l2_frequency *vf)
- {
- 	struct pvr2_v4l2_fh *fh = file->private_data;
- 	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
--- 
-1.7.11.7
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
