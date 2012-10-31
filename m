@@ -1,59 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:33845 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752593Ab2JDHYn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Oct 2012 03:24:43 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MBC00CTLXVK9PN0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:43 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MBC006I9XWMLU10@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 04 Oct 2012 16:24:42 +0900 (KST)
-From: Rahul Sharma <rahul.sharma@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Cc: t.stanislaws@samsung.com, inki.dae@samsung.com,
-	kyungmin.park@samsung.com, joshi@samsung.com
-Subject: [PATCH v1 05/14] drm: exynos: hdmi: turn off HPD interrupt in HDMI chip
-Date: Thu, 04 Oct 2012 21:12:43 +0530
-Message-id: <1349365372-21417-6-git-send-email-rahul.sharma@samsung.com>
-In-reply-to: <1349365372-21417-1-git-send-email-rahul.sharma@samsung.com>
-References: <1349365372-21417-1-git-send-email-rahul.sharma@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33112 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750992Ab2JaRDY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Oct 2012 13:03:24 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: Re: [PATCH v7 1/8] video: add display_timing struct and helpers
+Date: Wed, 31 Oct 2012 18:04:15 +0100
+Message-ID: <2778307.KsM7zC9Mqc@avalon>
+In-Reply-To: <1351675689-26814-2-git-send-email-s.trumtrar@pengutronix.de>
+References: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de> <1351675689-26814-2-git-send-email-s.trumtrar@pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Hi Steffen,
 
-The plug/unplug interrupt are handled by a separate interrupt.
-So there is no need to replicate this mechanism in HDMI core.
+Thanks for the patch.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/gpu/drm/exynos/exynos_hdmi.c |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
+As we'll need a v8 anyway due to the comment on patch 5/8, here are a couple 
+of other small comments.
 
-diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
-index 90dce8c..e3ab840 100644
---- a/drivers/gpu/drm/exynos/exynos_hdmi.c
-+++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
-@@ -1532,12 +1532,9 @@ static void hdmi_conf_reset(struct hdmi_context *hdata)
- 
- static void hdmi_conf_init(struct hdmi_context *hdata)
- {
--	/* enable HPD interrupts */
-+	/* disable HPD interrupts */
- 	hdmi_reg_writemask(hdata, HDMI_INTC_CON, 0, HDMI_INTC_EN_GLOBAL |
- 		HDMI_INTC_EN_HPD_PLUG | HDMI_INTC_EN_HPD_UNPLUG);
--	mdelay(10);
--	hdmi_reg_writemask(hdata, HDMI_INTC_CON, ~0, HDMI_INTC_EN_GLOBAL |
--		HDMI_INTC_EN_HPD_PLUG | HDMI_INTC_EN_HPD_UNPLUG);
- 
- 	/* choose HDMI mode */
- 	hdmi_reg_writemask(hdata, HDMI_MODE_SEL,
+On Wednesday 31 October 2012 10:28:01 Steffen Trumtrar wrote:
+> Add display_timing structure and the according helper functions. This allows
+> the description of a display via its supported timing parameters.
+> 
+> Every timing parameter can be specified as a single value or a range
+> <min typ max>.
+> 
+> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> ---
+>  drivers/video/Kconfig          |    5 +++
+>  drivers/video/Makefile         |    1 +
+>  drivers/video/display_timing.c |   24 ++++++++++++++
+>  include/linux/display_timing.h |   69 +++++++++++++++++++++++++++++++++++++
+>  4 files changed, 99 insertions(+)
+>  create mode 100644 drivers/video/display_timing.c
+>  create mode 100644 include/linux/display_timing.h
+> 
+> diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+> index d08d799..1421fc8 100644
+> --- a/drivers/video/Kconfig
+> +++ b/drivers/video/Kconfig
+> @@ -33,6 +33,11 @@ config VIDEO_OUTPUT_CONTROL
+>  	  This framework adds support for low-level control of the video
+>  	  output switch.
+> 
+> +config DISPLAY_TIMING
+> +       bool "Enable display timings helpers"
+> +       help
+> +         Say Y here, to use the display timing helpers.
+> +
+>  menuconfig FB
+>  	tristate "Support for frame buffer devices"
+>  	---help---
+> diff --git a/drivers/video/Makefile b/drivers/video/Makefile
+> index 23e948e..552c045 100644
+> --- a/drivers/video/Makefile
+> +++ b/drivers/video/Makefile
+> @@ -167,3 +167,4 @@ obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
+> 
+>  #video output switch sysfs driver
+>  obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
+> +obj-$(CONFIG_DISPLAY_TIMING) += display_timing.o
+> diff --git a/drivers/video/display_timing.c b/drivers/video/display_timing.c
+> new file mode 100644
+> index 0000000..9ccfdb3
+> --- /dev/null
+> +++ b/drivers/video/display_timing.c
+> @@ -0,0 +1,24 @@
+> +/*
+> + * generic display timing functions
+> + *
+> + * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+> Pengutronix + *
+> + * This file is released under the GPLv2
+> + */
+> +
+> +#include <linux/slab.h>
+> +#include <linux/display_timing.h>
+
+I try to keep #include's sorted alphabetically, but I won't push for that.
+
+> +void timings_release(struct display_timings *disp)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < disp->num_timings; i++)
+
+disp->num_timings is an unsigned int, i should be an unsigned int as well to 
+avoid signed vs. unsigned comparisons.
+
+> +		kfree(disp->timings[i]);
+> +}
+> +
+> +void display_timings_release(struct display_timings *disp)
+> +{
+> +	timings_release(disp);
+> +	kfree(disp->timings);
+> +}
+> diff --git a/include/linux/display_timing.h b/include/linux/display_timing.h
+> new file mode 100644
+> index 0000000..aa02a12
+> --- /dev/null
+> +++ b/include/linux/display_timing.h
+> @@ -0,0 +1,69 @@
+> +/*
+> + * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> + *
+> + * description of display timings
+> + *
+> + * This file is released under the GPLv2
+> + */
+> +
+> +#ifndef __LINUX_DISPLAY_TIMINGS_H
+> +#define __LINUX_DISPLAY_TIMINGS_H
+> +
+> +#include <linux/types.h>
+> +
+> +struct timing_entry {
+> +	u32 min;
+> +	u32 typ;
+> +	u32 max;
+> +};
+> +
+> +struct display_timing {
+> +	struct timing_entry pixelclock;
+> +
+> +	struct timing_entry hactive;
+> +	struct timing_entry hfront_porch;
+> +	struct timing_entry hback_porch;
+> +	struct timing_entry hsync_len;
+> +
+> +	struct timing_entry vactive;
+> +	struct timing_entry vfront_porch;
+> +	struct timing_entry vback_porch;
+> +	struct timing_entry vsync_len;
+> +
+> +	unsigned int vsync_pol_active;
+> +	unsigned int hsync_pol_active;
+> +	unsigned int de_pol_active;
+> +	unsigned int pixelclk_pol;
+> +	bool interlaced;
+> +	bool doublescan;
+> +};
+> +
+> +struct display_timings {
+> +	unsigned int num_timings;
+> +	unsigned int native_mode;
+> +
+> +	struct display_timing **timings;
+> +};
+> +
+> +/* placeholder function until ranges are really needed */
+> +static inline u32 display_timing_get_value(struct timing_entry *te, int
+> index)
+
+What is the index parameter for ?
+
+> +{
+> +	return te->typ;
+> +}
+> +
+> +static inline struct display_timing *display_timings_get(struct
+> display_timings *disp,
+> +							 int index)
+> +{
+> +	struct display_timing *dt;
+> +
+> +	if (disp->num_timings > index) {
+
+index should be an unsigned int for the same reason as above.
+
+> +		dt = disp->timings[index];
+> +		return dt;
+
+Maybe just
+
+	return disp->timings[index];
+
+?
+
+> +	} else
+> +		return NULL;
+> +}
+> +
+> +void timings_release(struct display_timings *disp);
+> +void display_timings_release(struct display_timings *disp);
+> +
+> +#endif
 -- 
-1.7.0.4
+Regards,
+
+Laurent Pinchart
 
