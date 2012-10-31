@@ -1,482 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:59627 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751645Ab2JAOLb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Oct 2012 10:11:31 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MB70065WWR4QFC0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 01 Oct 2012 23:11:29 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MB7007SSWPA4JA0@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 01 Oct 2012 23:11:28 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com,
-	janghyuck.kim@samsung.com, jaeryul.oh@samsung.com,
-	ch.naveen@samsung.com, arun.kk@samsung.com,
-	m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-	kmpark@infradead.org, joshi@samsung.com
-Subject: [PATCH v8 2/6] [media] v4l: Add control definitions for new H264
- encoder features
-Date: Tue, 02 Oct 2012 03:34:55 +0530
-Message-id: <1349129099-6480-3-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1349129099-6480-1-git-send-email-arun.kk@samsung.com>
-References: <1349129099-6480-1-git-send-email-arun.kk@samsung.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:51447 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751588Ab2JaMuW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Oct 2012 08:50:22 -0400
+Received: by mail-bk0-f46.google.com with SMTP id jk13so632784bkc.19
+        for <linux-media@vger.kernel.org>; Wed, 31 Oct 2012 05:50:21 -0700 (PDT)
+Message-ID: <50911079.7010404@googlemail.com>
+Date: Wed, 31 Oct 2012 13:50:17 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: benny+usenet@amorsen.dk
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 00/23] em28xx: add support fur USB bulk transfers
+References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com> <m3vcdr1ku9.fsf@ursa.amorsen.dk>
+In-Reply-To: <m3vcdr1ku9.fsf@ursa.amorsen.dk>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-New controls are added for supporting H264 encoding features like
-- MVC frame packing
-- Flexible macroblock ordering
-- Arbitrary slice ordering
-- Hierarchial coding
+Hi Benny,
 
-Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
-Signed-off-by: Naveen Krishna Chatradhi <ch.naveen@samsung.com>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
----
- Documentation/DocBook/media/v4l/controls.xml |  268 +++++++++++++++++++++++++-
- drivers/media/v4l2-core/v4l2-ctrls.c         |   42 ++++
- include/linux/v4l2-controls.h                |   41 ++++
- 3 files changed, 350 insertions(+), 1 deletions(-)
+Am 31.10.2012 03:39, schrieb Benny Amorsen:
+> Frank Schäfer <fschaefer.oss@googlemail.com> writes:
+>
+>> This patch series adds support for USB bulk transfers to the em28xx driver.
+> I tried these patches on my Raspberry Pi, 3.6.1 kernel, Nanostick 290e
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 272a5f7..ce2cfd3 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -1586,7 +1586,6 @@ frame counter of the frame that is currently displayed (decoded). This value is
- the decoder is started.</entry>
- 	      </row>
- 
--
- 	      <row><entry></entry></row>
- 	      <row>
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_DECODER_SLICE_INTERFACE</constant>&nbsp;</entry>
-@@ -2270,6 +2269,14 @@ Applicable to the MPEG1, MPEG2, MPEG4 encoders.</entry>
- 	      </row>
- 
- 	      <row><entry></entry></row>
-+	      <row id="v4l2-mpeg-video-vbv-delay">
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VBV_DELAY</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">Sets the initial delay in milliseconds for
-+VBV buffer control.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
- 	      <row>
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE</constant>&nbsp;</entry>
- 		<entry>integer</entry>
-@@ -2334,6 +2341,265 @@ Applicable to the MPEG4 decoder.</entry>
- 	      </row><row><entry spanname="descr">vop_time_increment value for MPEG4. Applicable to the MPEG4 encoder.</entry>
- 	      </row>
- 
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_SEI_FRAME_PACKING</constant>&nbsp;</entry>
-+		<entry>boolean</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Enable generation of frame packing supplemental enhancement information in the encoded bitstream.
-+The frame packing SEI message contains the arrangement of L and R planes for 3D viewing. Applicable to the H264 encoder.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_SEI_FP_CURRENT_FRAME_0</constant>&nbsp;</entry>
-+		<entry>boolean</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Sets current frame as frame0 in frame packing SEI.
-+Applicable to the H264 encoder.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row id="v4l2-mpeg-video-h264-sei-fp-arrangement-type">
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE</constant>&nbsp;</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_video_h264_sei_fp_arrangement_type</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Frame packing arrangement type for H264 SEI.
-+Applicable to the H264 encoder.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_CHEKERBOARD</constant>&nbsp;</entry>
-+		      <entry>Pixels are alternatively from L and R.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_COLUMN</constant>&nbsp;</entry>
-+		      <entry>L and R are interlaced by column.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_ROW</constant>&nbsp;</entry>
-+		      <entry>L and R are interlaced by row.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_SIDE_BY_SIDE</constant>&nbsp;</entry>
-+		      <entry>L is on the left, R on the right.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_TOP_BOTTOM</constant>&nbsp;</entry>
-+		      <entry>L is on top, R on bottom.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_TEMPORAL</constant>&nbsp;</entry>
-+		      <entry>One view per frame.</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_FMO</constant>&nbsp;</entry>
-+		<entry>boolean</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Enables flexible macroblock ordering in the encoded bitstream. It is a technique
-+used for restructuring the ordering of macroblocks in pictures. Applicable to the H264 encoder.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row id="v4l2-mpeg-video-h264-fmo-map-type">
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE</constant>&nbsp;</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_video_h264_fmo_map_type</entry>
-+	      </row>
-+	      <row><entry spanname="descr">When using FMO, the map type divides the image in different scan patterns of macroblocks.
-+Applicable to the H264 encoder.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_INTERLEAVED_SLICES</constant>&nbsp;</entry>
-+		      <entry>Slices are interleaved one after other with macroblocks in run length order.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_SCATTERED_SLICES</constant>&nbsp;</entry>
-+		      <entry>Scatters the macroblocks based on a mathematical function known to both encoder and decoder.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_FOREGROUND_WITH_LEFT_OVER</constant>&nbsp;</entry>
-+		      <entry>Macroblocks arranged in rectangular areas or regions of interest.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_BOX_OUT</constant>&nbsp;</entry>
-+		      <entry>Slice groups grow in a cyclic way from centre to outwards.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_RASTER_SCAN</constant>&nbsp;</entry>
-+		      <entry>Slice groups grow in raster scan pattern from left to right.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_WIPE_SCAN</constant>&nbsp;</entry>
-+		      <entry>Slice groups grow in wipe scan pattern from top to bottom.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_EXPLICIT</constant>&nbsp;</entry>
-+		      <entry>User defined map type.</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_FMO_SLICE_GROUP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Number of slice groups in FMO.
-+Applicable to the H264 encoder.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row id="v4l2-mpeg-video-h264-fmo-change-direction">
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_DIRECTION</constant>&nbsp;</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_video_h264_fmo_change_dir</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Specifies a direction of the slice group change for raster and wipe maps.
-+Applicable to the H264 encoder.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_CHANGE_DIR_RIGHT</constant>&nbsp;</entry>
-+		      <entry>Raster scan or wipe right.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_FMO_CHANGE_DIR_LEFT</constant>&nbsp;</entry>
-+		      <entry>Reverse raster scan or wipe left.</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_RATE</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Specifies the size of the first slice group for raster and wipe map.
-+Applicable to the H264 encoder.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_FMO_RUN_LENGTH</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Specifies the number of consecutive macroblocks for the interleaved map.
-+Applicable to the H264 encoder.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_ASO</constant>&nbsp;</entry>
-+		<entry>boolean</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Enables arbitrary slice ordering in encoded bitstream.
-+Applicable to the H264 encoder.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_ASO_SLICE_ORDER</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">Specifies the slice order in ASO. Applicable to the H264 encoder.
-+The supplied 32-bit integer is interpreted as follows (bit
-+0 = least significant bit):</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry>Bit 0:15</entry>
-+		      <entry>Slice ID</entry>
-+		    </row>
-+		    <row>
-+		      <entry>Bit 16:32</entry>
-+		      <entry>Slice position or order</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING</constant>&nbsp;</entry>
-+		<entry>boolean</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Enables H264 hierarchial coding.
-+Applicable to the H264 encoder.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row id="v4l2-mpeg-video-h264-hierarchial-coding-type">
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_TYPE</constant>&nbsp;</entry>
-+		<entry>enum&nbsp;v4l2_mpeg_video_h264_hierarchical_coding_type</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Specifies the hierarchial coding type.
-+Applicable to the H264 encoder.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_HIERARCHICAL_CODING_B</constant>&nbsp;</entry>
-+		      <entry>Hierarchial B coding.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_MPEG_VIDEO_H264_HIERARCHICAL_CODING_P</constant>&nbsp;</entry>
-+		      <entry>Hierarchial P coding.</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Specifies the number of hierarchial coding layers.
-+Applicable to the H264 encoder.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP</constant>&nbsp;</entry>
-+		<entry>integer</entry>
-+	      </row><row><entry spanname="descr">Specifies a user defined QP for each layer. Applicable to the H264 encoder.
-+The supplied 32-bit integer is interpreted as follows (bit
-+0 = least significant bit):</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry>Bit 0:15</entry>
-+		      <entry>QP value</entry>
-+		    </row>
-+		    <row>
-+		      <entry>Bit 16:32</entry>
-+		      <entry>Layer number</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+	      </row>
-+
- 	    </tbody>
- 	  </tgroup>
- 	</table>
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index f400035..a7518cb 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -384,6 +384,25 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Extended SAR",
- 		NULL,
- 	};
-+	static const char * const h264_fp_arrangement_type[] = {
-+		"Checkerboard",
-+		"Column",
-+		"Row",
-+		"Side by side",
-+		"Top Bottom",
-+		"Temporal",
-+		NULL,
-+	};
-+	static const char * const h264_fmo_map_type[] = {
-+		"Interleaved Slices",
-+		"Scattered Slices",
-+		"Foreground With Leftover",
-+		"Box Out",
-+		"Raster Scan",
-+		"Wipe Scan",
-+		"Explicit",
-+		NULL,
-+	};
- 	static const char * const mpeg_mpeg4_level[] = {
- 		"0",
- 		"0b",
-@@ -508,6 +527,10 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return h264_profile;
- 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC:
- 		return vui_sar_idc;
-+	case V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE:
-+		return h264_fp_arrangement_type;
-+	case V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE:
-+		return h264_fmo_map_type;
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
- 		return mpeg_mpeg4_level;
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
-@@ -643,6 +666,22 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_H264_VUI_EXT_SAR_WIDTH:	return "Horizontal Size of SAR";
- 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:		return "Aspect Ratio VUI Enable";
- 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC:		return "VUI Aspect Ratio IDC";
-+	case V4L2_CID_MPEG_VIDEO_H264_SEI_FRAME_PACKING:	return "H264 Enable Frame Packing SEI";
-+	case V4L2_CID_MPEG_VIDEO_H264_SEI_FP_CURRENT_FRAME_0:	return "H264 Set Current Frame as Frame0";
-+	case V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE:	return "H264 Frame Packing Arrangement Type";
-+	case V4L2_CID_MPEG_VIDEO_H264_FMO:			return "H264 Flexible Macroblock Ordering";
-+	case V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE:		return "H264 Map Type for FMO";
-+	case V4L2_CID_MPEG_VIDEO_H264_FMO_SLICE_GROUP:		return "H264 FMO Number of Slice Groups";
-+	case V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_DIRECTION:	return "H264 FMO Direction of the Slice Group Change";
-+	case V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_RATE:		return "H264 FMO Size of the First Slice Group";
-+	case V4L2_CID_MPEG_VIDEO_H264_FMO_RUN_LENGTH:		return "H264 FMO Number of Consecutive MBs";
-+	case V4L2_CID_MPEG_VIDEO_H264_ASO:			return "H264 Arbitrary Slice Ordering";
-+	case V4L2_CID_MPEG_VIDEO_H264_ASO_SLICE_ORDER:		return "H264 ASO Slice Order";
-+	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING:	return "Enable H264 Hierarchial Coding";
-+	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_TYPE:	return "H264 Hierarchial Coding Type";
-+	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER:return "H264 Number of Hierarchial Coding Layers";
-+	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP:
-+								return "H264 Set QP Value for Hierarchial Coding Layers";
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:		return "MPEG4 I-Frame QP Value";
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:		return "MPEG4 P-Frame QP Value";
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:		return "MPEG4 B-Frame QP Value";
-@@ -657,6 +696,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:			return "VBV Buffer Size";
- 	case V4L2_CID_MPEG_VIDEO_DEC_PTS:			return "Video Decoder PTS";
- 	case V4L2_CID_MPEG_VIDEO_DEC_FRAME:			return "Video Decoder Frame Count";
-+	case V4L2_CID_MPEG_VIDEO_VBV_DELAY:			return "Initial Delay for VBV Buffer Control";
- 
- 	/* CAMERA controls */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
-@@ -853,6 +893,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE:
- 	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
- 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC:
-+	case V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE:
-+	case V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE:
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
-diff --git a/include/linux/v4l2-controls.h b/include/linux/v4l2-controls.h
-index 421d24c..86e79af 100644
---- a/include/linux/v4l2-controls.h
-+++ b/include/linux/v4l2-controls.h
-@@ -349,6 +349,7 @@ enum v4l2_mpeg_video_multi_slice_mode {
- #define V4L2_CID_MPEG_VIDEO_VBV_SIZE			(V4L2_CID_MPEG_BASE+222)
- #define V4L2_CID_MPEG_VIDEO_DEC_PTS			(V4L2_CID_MPEG_BASE+223)
- #define V4L2_CID_MPEG_VIDEO_DEC_FRAME			(V4L2_CID_MPEG_BASE+224)
-+#define V4L2_CID_MPEG_VIDEO_VBV_DELAY			(V4L2_CID_MPEG_BASE+225)
- 
- #define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP		(V4L2_CID_MPEG_BASE+300)
- #define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP		(V4L2_CID_MPEG_BASE+301)
-@@ -439,6 +440,46 @@ enum v4l2_mpeg_video_h264_vui_sar_idc {
- 	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_2x1		= 16,
- 	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_EXTENDED	= 17,
- };
-+#define V4L2_CID_MPEG_VIDEO_H264_SEI_FRAME_PACKING		(V4L2_CID_MPEG_BASE+368)
-+#define V4L2_CID_MPEG_VIDEO_H264_SEI_FP_CURRENT_FRAME_0		(V4L2_CID_MPEG_BASE+369)
-+#define V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE	(V4L2_CID_MPEG_BASE+370)
-+enum v4l2_mpeg_video_h264_sei_fp_arrangement_type {
-+	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_CHEKERBOARD	= 0,
-+	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_COLUMN		= 1,
-+	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_ROW		= 2,
-+	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_SIDE_BY_SIDE	= 3,
-+	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_TOP_BOTTOM		= 4,
-+	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_TEMPORAL		= 5,
-+};
-+#define V4L2_CID_MPEG_VIDEO_H264_FMO			(V4L2_CID_MPEG_BASE+371)
-+#define V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE		(V4L2_CID_MPEG_BASE+372)
-+enum v4l2_mpeg_video_h264_fmo_map_type {
-+	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_INTERLEAVED_SLICES		= 0,
-+	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_SCATTERED_SLICES		= 1,
-+	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_FOREGROUND_WITH_LEFT_OVER	= 2,
-+	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_BOX_OUT			= 3,
-+	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_RASTER_SCAN			= 4,
-+	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_WIPE_SCAN			= 5,
-+	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_EXPLICIT			= 6,
-+};
-+#define V4L2_CID_MPEG_VIDEO_H264_FMO_SLICE_GROUP	(V4L2_CID_MPEG_BASE+373)
-+#define V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_DIRECTION	(V4L2_CID_MPEG_BASE+374)
-+enum v4l2_mpeg_video_h264_fmo_change_dir {
-+	V4L2_MPEG_VIDEO_H264_FMO_CHANGE_DIR_RIGHT	= 0,
-+	V4L2_MPEG_VIDEO_H264_FMO_CHANGE_DIR_LEFT	= 1,
-+};
-+#define V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_RATE	(V4L2_CID_MPEG_BASE+375)
-+#define V4L2_CID_MPEG_VIDEO_H264_FMO_RUN_LENGTH		(V4L2_CID_MPEG_BASE+376)
-+#define V4L2_CID_MPEG_VIDEO_H264_ASO			(V4L2_CID_MPEG_BASE+377)
-+#define V4L2_CID_MPEG_VIDEO_H264_ASO_SLICE_ORDER	(V4L2_CID_MPEG_BASE+378)
-+#define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING		(V4L2_CID_MPEG_BASE+379)
-+#define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_TYPE	(V4L2_CID_MPEG_BASE+380)
-+enum v4l2_mpeg_video_h264_hierarchical_coding_type {
-+	V4L2_MPEG_VIDEO_H264_HIERARCHICAL_CODING_B	= 0,
-+	V4L2_MPEG_VIDEO_H264_HIERARCHICAL_CODING_P	= 1,
-+};
-+#define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER	(V4L2_CID_MPEG_BASE+381)
-+#define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP	(V4L2_CID_MPEG_BASE+382)
- #define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP	(V4L2_CID_MPEG_BASE+400)
- #define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP	(V4L2_CID_MPEG_BASE+401)
- #define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP	(V4L2_CID_MPEG_BASE+402)
--- 
-1.7.0.4
+Thank you for testing !
+
+> options em28xx prefer_bulk=1 core_debug=1 usb_debug=1
+> options em28xx_dvb debug=1
+>
+> [    5.469510] em28xx: New device PCTV Systems PCTV 290e @ 480 Mbps (2013:024f, interface 0, class 0)
+> [    5.890637] em28xx: DVB interface 0 found
+> [    6.025292] em28xx #0: chip ID is em28174
+> [    6.515383] em28xx #0: Identified as PCTV nanoStick T2 290e (card=78)
+> [    6.567066] em28xx #0: v4l2 driver version 0.1.3
+> [    6.614720] em28xx #0 em28xx_set_alternate :minimum isoc packet size: 2888 (alt=0)
+> [    6.663064] em28xx #0 em28xx_set_alternate :setting alternate 0 with wMaxPacketSize=0
+> [    6.715934] em28xx #0 em28xx_accumulator_set :em28xx Scale: (1,1)-(179,143)
+> [    6.765694] em28xx #0 em28xx_capture_area_set :em28xx Area Set: (180,144)
+> [    6.793060] em28xx #0: V4L2 video device registered as video0
+> [    6.808200] em28xx #0 em28xx_alloc_urbs :em28xx: called em28xx_alloc_isoc in mode 2
+> [    6.819456] em28xx #0: no endpoint for DVB mode and transfer type 1
+> [    6.829283] em28xx: Failed to pre-allocate USB transfer buffers for DVB.
+> [    6.839454] em28xx: probe of 1-1.3.1:1.0 failed with error -22
+> [    6.852511] usbcore: registered new interface driver em28xx
+> [    7.255738] em28xx #0 em28xx_accumulator_set :em28xx Scale: (1,1)-(179,143)
+> [    7.291575] em28xx #0 em28xx_capture_area_set :em28xx Area Set: (180,144)
+> [    7.326200] em28xx #0 em28xx_uninit_usb_xfer :em28xx: called em28xx_uninit_usb_xfer in mode 1
+>
+> Is the Nanostick 290e just fundamentally incompatible with bulk
+> transfers, or is there hope yet?
+
+It seems like your device has no bulk endpoint for DVB.
+What does lsusb say ?
+
+The module parameter is called prefer_bulk, but what it actually does is
+"force bulk" (which doesn't make much sense when the device has no bulk
+endpoints).
+I will fix this in v2 of the patch series.
+
+> It works great with isochronous transfers on my PC and the Fedora
+> kernel, but the Raspberry USB host blows up when trying to do
+> isochronous mode.
+
+Is this a regression caused by patches or a general issue with the
+Raspberry board ?
+
+Regards,
+Frank
+
+> /Benny
+
 
