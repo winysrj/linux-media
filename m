@@ -1,92 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:53387 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751320Ab2K1Gdx convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 01:33:53 -0500
-From: Libin Yang <lbyang@marvell.com>
-To: Albert Wang <twang13@marvell.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "corbet@lwn.net" <corbet@lwn.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 27 Nov 2012 22:30:33 -0800
-Subject: RE: [PATCH 12/15] [media] marvell-ccic: add soc_camera support in
- mmp driver
-Message-ID: <A63A0DC671D719488CD1A6CD8BDC16CF230A8D79A7@SC-VEXCH4.marvell.com>
-References: <1353677666-24361-1-git-send-email-twang13@marvell.com>
- <Pine.LNX.4.64.1211271620370.22273@axis700.grange>
- <477F20668A386D41ADCC57781B1F70430D1367C90D@SC-VEXCH1.marvell.com>
-In-Reply-To: <477F20668A386D41ADCC57781B1F70430D1367C90D@SC-VEXCH1.marvell.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:38752 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754314Ab2JaXZw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Oct 2012 19:25:52 -0400
+Message-ID: <5091B37A.30509@gmail.com>
+Date: Thu, 01 Nov 2012 00:25:46 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] media: V4L2: support asynchronous subdevice registration
+References: <Pine.LNX.4.64.1210192358520.28993@axis700.grange> <Pine.LNX.4.64.1210200007580.28993@axis700.grange> <Pine.LNX.4.64.1210241548300.2683@axis700.grange> <508D4F79.2000204@gmail.com> <Pine.LNX.4.64.1210290841200.17869@axis700.grange> <5091AF97.7010804@gmail.com>
+In-Reply-To: <5091AF97.7010804@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Guennadi,
-
-Please see my comments below.
-
-Regards,
-Libin 
-
->-----Original Message-----
->From: Albert Wang
->Sent: Wednesday, November 28, 2012 12:06 AM
->To: Guennadi Liakhovetski
->Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
->Subject: RE: [PATCH 12/15] [media] marvell-ccic: add soc_camera support in mmp driver
+On 11/01/2012 12:09 AM, Sylwester Nawrocki wrote:
+> Hi Guennadi,
 >
->Hi, Guennadi
->
->
->>-----Original Message-----
->>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
->>Sent: Tuesday, 27 November, 2012 23:54
->>To: Albert Wang
->>Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
->>Subject: Re: [PATCH 12/15] [media] marvell-ccic: add soc_camera support in mmp
->>driver
->>
-[snip]
-
+> On 10/29/2012 08:52 AM, Guennadi Liakhovetski wrote:
+>>>>> +/*
+>>>>> + * Typically this function will be called during bridge driver probing. It
+>>>>> + * installs bus notifiers to handle asynchronously probing subdevice drivers.
+>>>>> + * Once the bridge driver probing completes, subdevice drivers, waiting in
+>>>>> + * EPROBE_DEFER state are re-probed, at which point they get their platform
+>>>>> + * data, which allows them to complete probing.
+>>>>> + */
+>>>>> +int v4l2_async_group_probe(struct v4l2_async_group *group)
+>>>>> +{
+>>>>> +	struct v4l2_async_subdev *asd, *tmp;
+>>>>> +	bool i2c_used = false, platform_used = false;
+>>>>> +	int ret;
+>>>>> +
+>>>>> +	/* This group is inactive so far - no notifiers yet */
+>>>>> +	list_for_each_entry_safe(asd, tmp,&group->group, list) {
+>>>>> +		if (asd->sdpd.subdev) {
+>>>>> +			/* Simulate a BIND event */
+>>>>> +			if (group->bind_cb)
+>>>>> +				group->bind_cb(group, asd);
+>>>>> +
 >>>
->>>  	mcam = &cam->mcam;
->>> +	spin_lock_init(&mcam->dev_lock);
->>>  	mcam->plat_power_up = mmpcam_power_up;
->>>  	mcam->plat_power_down = mmpcam_power_down;
->>>  	mcam->ctlr_reset = mcam_ctlr_reset;
->>>  	mcam->calc_dphy = mmpcam_calc_dphy;
->>>  	mcam->dev = &pdev->dev;
->>>  	mcam->use_smbus = 0;
->>> +	mcam->card_name = pdata->name;
->>> +	mcam->mclk_min = pdata->mclk_min;
->>> +	mcam->mclk_src = pdata->mclk_src;
->>> +	mcam->mclk_div = pdata->mclk_div;
->>
->>Actually you don't really have to copy everything from platform data to your private
->>driver object during probing. You can access your platform data also at run-time. So,
->>maybe you can survive without adding these
->>.mclk_* struct members?
->>
->Yes, make sense. :)
-
-[Libin] We add such members because we need use these variables in the file mcam-core-soc.c. In the mcam-core-soc.c, the pdata is invisible. I think we can split the probe function and copy them in the file mcam-core-soc.c as you suggested.
-
-[snip]
-
->>> +	int chip_id;
->>>  	/*
->>>  	 * MIPI support
->>>  	 */
->>> --
->>> 1.7.9.5
+>>> Still we can't be sure at this moment asd->sdpd.subdev's driver is
+>>> valid and not unloaded, can we ?
 >>>
+>>> In the case when a sub-device driver is probed after the host driver
+>>> (a caller of this function) I assume doing
+>>>
+>>> 	asd->sdpd.subdev = i2c_get_clientdata(to_i2c_client(dev));
+>>> 	...
+>>> 	ret = v4l2_device_register_subdev(v4l2_dev, asd->sdpd.subdev);
+>>>
+>>> is safe, because it is done in the i2c bus notifier callback itself,
+>>> i.e. under device_lock(dev).
+>>>
+>>> But for these already probed sub-devices, how do we prevent races from
+>>> subdev module unloading ? By not setting CONFIG_MODULE_UNLOAD?... ;)
 >>
->>Thanks
->>Guennadi
->>---
->>Guennadi Liakhovetski, Ph.D.
->>Freelance Open-Source Software Developer
->>http://www.open-technology.de/
+>> Right, I also think there's a race there. I have a solution for it - in
+>> the current mainline version of sh_mobile_ceu_camera.c look at the code
+>> around the line
+>>
+>> 		err = bus_register_notifier(&platform_bus_type,&wait.notifier);
+>>
+>> sh_mobile_ceu_probe(). I think, that guarantees, that we either lock the
+>> module _safely_ in memory per try_module_get(dev->driver->owner) or get
+>> notified, that the module is unavailable. It looks ugly, but I don't have
+>> a better solution ATM. We could do the same here too.
+>
+> IMHO even "ugly" solution is better than completely ignoring the problem.
+>
+> I have some doubts whether your method eliminates the race issue. Firstly,
+> shouldn't the bus_notify callback [1] be active on BUS_NOTIFY_UNBIND_DRIVER,
+> rather than US_NOTIFY_UNBOUND_DRIVER ? Upon US_NOTIFY_UNBOUND_DRIVER
+> dev->driver is already NULL and still it is being referenced in a call to
+> try_module_get() (line 2224, [1]).
+>
+> Secondly, what guarantees that before bus_register_notifier() call [1],
+> we are not already after blocking_notifier_call_chain() (line 504, [2])
+> which means we miss the notification and the sub-device driver is going
+> away together with its module under our feet ?
+
+Hmm, please ignore that one, of course in this case dev->driver is NULL 
+and branch after this line
+
+		if (!csi2_pdev->dev.driver) {
+is entered.
+
+> [1] http://lxr.linux.no/#linux+v3.6/drivers/media/video/sh_mobile_ceu_camera.c#L2055
+> [2] http://lxr.linux.no/#linux+v3.6/drivers/base/dd.c#L478
+>
+> --
+> Thanks,
+> Sylwester
