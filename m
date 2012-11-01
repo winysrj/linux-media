@@ -1,74 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mms3.broadcom.com ([216.31.210.19]:4342 "EHLO mms3.broadcom.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754960Ab2K3Iil (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Nov 2012 03:38:41 -0500
-Message-ID: <50B87082.3020604@broadcom.com>
-Date: Fri, 30 Nov 2012 09:38:26 +0100
-From: "Arend van Spriel" <arend@broadcom.com>
-MIME-Version: 1.0
-To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-cc: linux-kernel@vger.kernel.org, tglx@linutronix.de,
-	backports@vger.kernel.org, alexander.stein@systec-electronic.com,
-	brudley@broadcom.com, rvossen@broadcom.com, frankyl@broadcom.com,
-	kanyan@broadcom.com, linux-wireless@vger.kernel.org,
-	brcm80211-dev-list@broadcom.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, daniel.vetter@ffwll.ch,
-	intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-	srinidhi.kasagar@stericsson.com, linus.walleij@linaro.org,
-	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 0/6] drivers: convert struct spinlock to spinlock_t
-References: <1354221910-22493-1-git-send-email-mcgrof@do-not-panic.com>
-In-Reply-To: <1354221910-22493-1-git-send-email-mcgrof@do-not-panic.com>
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from cpsmtpb-ews08.kpnxchange.com ([213.75.39.13]:52079 "EHLO
+	cpsmtpb-ews08.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757236Ab2KAVAQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Nov 2012 17:00:16 -0400
+Message-ID: <1351803609.1597.16.camel@x61.thuisdomein>
+Subject: [PATCH] [media] tda18212: tda18218: use 'val' if initialized
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Thu, 01 Nov 2012 22:00:09 +0100
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/29/2012 09:45 PM, Luis R. Rodriguez wrote:
-> From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-> 
-> Turns out a few drivers have strayed away from using the
-> spinlock_t typedef and decided to use struct spinlock
-> directly. This series converts these drivers to use
-> spinlock_t. Each change has been compile tested with
-> allmodconfig and sparse checked. Driver developers
-> may want to look at the compile error output / sparse
-> error report supplied in each commit log, in particular
-> brcmfmac and i915, there are quite a few things that
-> are not related to this change that the developers
-> can clean up / fix.
+Commits e666a44fa313cb9329c0381ad02fc6ee1e21cb31 ("[media] tda18212:
+silence compiler warning") and e0e52d4e9f5bce7ea887027c127473eb654a5a04
+("[media] tda18218: silence compiler warning") silenced warnings
+equivalent to these:
+    drivers/media/tuners/tda18212.c: In function ‘tda18212_attach’:
+    drivers/media/tuners/tda18212.c:299:2: warning: ‘val’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+    drivers/media/tuners/tda18218.c: In function ‘tda18218_attach’:
+    drivers/media/tuners/tda18218.c:305:2: warning: ‘val’ may be used uninitialized in this function [-Wmaybe-uninitialized]
 
-So what is the rationale here. During mainlining our drivers we had to
-remove all uses of 'typedef struct foo foo_t;'. The Linux CodingStyle
-(chapter 5 Typedefs) is spending a number of lines explaining why.
+But in both cases 'val' will still be used uninitialized if the calls
+of tda18212_rd_reg() or tda18218_rd_reg() fail. Fix this by only
+printing the "chip id" if the calls of those functions were successful.
+This allows to drop the uninitialized_var() stopgap measure.
 
-So is spinlock_t an exception to this rule simply because the kernel
-uses spinlock_t all over the place. Using Greg's favorite final email
-remark:
+Also stop printing the return values of tda18212_rd_reg() or
+tda18218_rd_reg(), as these are not interesting.
 
-Confused.
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+---
+0) Compile tested only.
 
-Gr. AvS
+ drivers/media/tuners/tda18212.c | 6 +++---
+ drivers/media/tuners/tda18218.c | 6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-> Luis R. Rodriguez (6):
->   ux500: convert struct spinlock to spinlock_t
->   i915: convert struct spinlock to spinlock_t
->   s5p-fimc: convert struct spinlock to spinlock_t
->   s5p-jpeg: convert struct spinlock to spinlock_t
->   brcmfmac: convert struct spinlock to spinlock_t
->   ie6xx_wdt: convert struct spinlock to spinlock_t
-> 
->  drivers/crypto/ux500/cryp/cryp.h               |    4 ++--
->  drivers/crypto/ux500/hash/hash_alg.h           |    4 ++--
->  drivers/gpu/drm/i915/i915_drv.h                |    4 ++--
->  drivers/media/platform/s5p-fimc/mipi-csis.c    |    2 +-
->  drivers/media/platform/s5p-jpeg/jpeg-core.h    |    2 +-
->  drivers/net/wireless/brcm80211/brcmfmac/fweh.h |    2 +-
->  drivers/watchdog/ie6xx_wdt.c                   |    2 +-
->  7 files changed, 10 insertions(+), 10 deletions(-)
-> 
-
+diff --git a/drivers/media/tuners/tda18212.c b/drivers/media/tuners/tda18212.c
+index 5d9f028..e4a84ee 100644
+--- a/drivers/media/tuners/tda18212.c
++++ b/drivers/media/tuners/tda18212.c
+@@ -277,7 +277,7 @@ struct dvb_frontend *tda18212_attach(struct dvb_frontend *fe,
+ {
+ 	struct tda18212_priv *priv = NULL;
+ 	int ret;
+-	u8 uninitialized_var(val);
++	u8 val;
+ 
+ 	priv = kzalloc(sizeof(struct tda18212_priv), GFP_KERNEL);
+ 	if (priv == NULL)
+@@ -296,8 +296,8 @@ struct dvb_frontend *tda18212_attach(struct dvb_frontend *fe,
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
+ 
+-	dev_dbg(&priv->i2c->dev, "%s: ret=%d chip id=%02x\n", __func__, ret,
+-			val);
++	if (!ret)
++		dev_dbg(&priv->i2c->dev, "%s: chip id=%02x\n", __func__, val);
+ 	if (ret || val != 0xc7) {
+ 		kfree(priv);
+ 		return NULL;
+diff --git a/drivers/media/tuners/tda18218.c b/drivers/media/tuners/tda18218.c
+index 1819853..2d31aeb 100644
+--- a/drivers/media/tuners/tda18218.c
++++ b/drivers/media/tuners/tda18218.c
+@@ -277,7 +277,7 @@ struct dvb_frontend *tda18218_attach(struct dvb_frontend *fe,
+ 	struct i2c_adapter *i2c, struct tda18218_config *cfg)
+ {
+ 	struct tda18218_priv *priv = NULL;
+-	u8 uninitialized_var(val);
++	u8 val;
+ 	int ret;
+ 	/* chip default registers values */
+ 	static u8 def_regs[] = {
+@@ -302,8 +302,8 @@ struct dvb_frontend *tda18218_attach(struct dvb_frontend *fe,
+ 
+ 	/* check if the tuner is there */
+ 	ret = tda18218_rd_reg(priv, R00_ID, &val);
+-	dev_dbg(&priv->i2c->dev, "%s: ret=%d chip id=%02x\n", __func__, ret,
+-			val);
++	if (!ret)
++		dev_dbg(&priv->i2c->dev, "%s: chip id=%02x\n", __func__, val);
+ 	if (ret || val != def_regs[R00_ID]) {
+ 		kfree(priv);
+ 		return NULL;
+-- 
+1.7.11.7
 
