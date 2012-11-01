@@ -1,148 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59683 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753530Ab2KIQsm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Nov 2012 11:48:42 -0500
-Date: Fri, 9 Nov 2012 17:48:34 +0100
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
+Received: from moutng.kundenserver.de ([212.227.126.186]:59109 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932447Ab2KAQls (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2012 12:41:48 -0400
+Date: Thu, 1 Nov 2012 17:41:42 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: V4L2 dma-buf support test with UVC + i915 test application
-Message-ID: <20121109174834.5d21e317@gaivota.chehab>
-In-Reply-To: <20121109173742.2a35fcfc@gaivota.chehab>
-References: <16907395.g8mkYBicR5@avalon>
-	<1747552.HEbrOk0BKB@avalon>
-	<20121109173742.2a35fcfc@gaivota.chehab>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH 2/2] media: V4L2: support asynchronous subdevice registration
+In-Reply-To: <201211011715.07726.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1211011732280.19489@axis700.grange>
+References: <Pine.LNX.4.64.1210192358520.28993@axis700.grange>
+ <2556759.AhNR6Lm65l@avalon> <Pine.LNX.4.64.1211011553560.19489@axis700.grange>
+ <201211011715.07726.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 9 Nov 2012 17:37:42 +0100
-Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+On Thu, 1 Nov 2012, Hans Verkuil wrote:
 
-> Em Thu, 08 Nov 2012 19:34:14 +0100
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
-> 
-> > On Thursday 08 November 2012 19:14:18 Laurent Pinchart wrote:
-> > > Hi Mauro,
-> > > 
-> > > Here's the application I've used to test V4L2 dma-buf support with a UVC
-> > > webcam and an Intel GPU supported by the i915 driver.
-> > > 
-> > > The kernel code is available in my git tree at
-> > > 
-> > > git://linuxtv.org/pinchartl/media.git devel/dma-buf-v10
-> > > 
-> > > (http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/devel/v4l2-
-> > > clock)
-> > > 
-> > > Don't forget to enable dma-buf and UVC support when compiling the kernel.
-> > > 
-> > > The userspace code is based on the v4l2-drm-example application written by
-> > > Tomasz (the original code is available at
-> > > git://git.infradead.org/users/kmpark/public-apps). I need to clean up my
-> > > modifications to push them back to the repository, in the meantime the code
-> > > is attached to this e-mail.
-> > > 
-> > > To compile the application, just run make with the KDIR variable set to the
-> > > path to your Linux kernel tree with the dma-buf patches applied. Don't
-> > > forget to make headers_install in the kernel tree as the Makefile will look
-> > > for headers in $KDIR/usr.
-> > > 
-> > > You will need a recent version of libdrm with plane support available.
-> > > 2.4.39 should do.
-> > > 
-> > > The following command line will capture VGA YUYV data from the webcam and
-> > > display it on the screen. You need to run it in a console as root without
-> > > the X server running.
-> > > 
-> > > ./dmabuf-sharing -M i915 -o 7:3:1600x900 -i /dev/video0 -S 640,480 -f YUYV
-> > > -F YUYV -s 640,480@0,0 -t 640,480@0,0 -b 2
+> On Thu November 1 2012 16:01:59 Guennadi Liakhovetski wrote:
+> > On Thu, 1 Nov 2012, Laurent Pinchart wrote:
 > > 
-> > I forgot to mention that the -o parameter takes the connector ID, CRTC ID and 
-> > mode as parameters. The mode is easy to find, but the connector and CRTC IDs 
-> > are a bit more tricky. You can run the modetest application (part of libdrm 
-> > but not installed by most distributions, so a manual compilation is needed) to 
-> > dump all CRTC, encoder and connector information to the console. Pick the 
-> > connector associated with your display, and the CRTC associated with the 
-> > encoder associated with that connector.
+> > > Hello,
+> > > 
+> > > On Monday 22 October 2012 17:22:16 Hans Verkuil wrote:
+> > > > On Mon October 22 2012 16:48:05 Guennadi Liakhovetski wrote:
+> > > > > On Mon, 22 Oct 2012, Hans Verkuil wrote:
+> > > > > > On Mon October 22 2012 14:50:14 Guennadi Liakhovetski wrote:
+> > > > > > > On Mon, 22 Oct 2012, Hans Verkuil wrote:
+> > > > > > > > On Mon October 22 2012 13:08:12 Guennadi Liakhovetski wrote:
+> > > > > > > > > On Mon, 22 Oct 2012, Hans Verkuil wrote:
+> > > > > > > > > > On Sat October 20 2012 00:20:24 Guennadi Liakhovetski wrote:
+> > > > > > > > > > > Currently bridge device drivers register devices for all
+> > > > > > > > > > > subdevices synchronously, tupically, during their probing.
+> > > > > > > > > > > E.g. if an I2C CMOS sensor is attached to a video bridge
+> > > > > > > > > > > device, the bridge driver will create an I2C device and wait
+> > > > > > > > > > > for the respective I2C driver to probe. This makes linking of
+> > > > > > > > > > > devices straight forward, but this approach cannot be used
+> > > > > > > > > > > with intrinsically asynchronous and unordered device
+> > > > > > > > > > > registration systems like the Flattened Device Tree. To
+> > > > > > > > > > > support such systems this patch adds an asynchronous subdevice
+> > > > > > > > > > > registration framework to V4L2. To use it respective (e.g.
+> > > > > > > > > > > I2C) subdevice drivers must request deferred probing as long
+> > > > > > > > > > > as their bridge driver hasn't probed. The bridge driver during
+> > > > > > > > > > > its probing submits a an arbitrary number of subdevice
+> > > > > > > > > > > descriptor groups to the framework to manage. After that it
+> > > > > > > > > > > can add callbacks to each of those groups to be called at
+> > > > > > > > > > > various stages during subdevice probing, e.g. after
+> > > > > > > > > > > completion. Then the bridge driver can request single groups
+> > > > > > > > > > > to be probed, finish its own probing and continue its video
+> > > > > > > > > > > subsystem configuration from its callbacks.
+> > > > > > > > > > 
+> > > > > > > > > > What is the purpose of allowing multiple groups?
+> > > > > > > > > 
+> > > > > > > > > To support, e.g. multiple sensors connected to a single bridge.
+> > > > > > > > 
+> > > > > > > > So, isn't that one group with two sensor subdevs?
+> > > > > > > 
+> > > > > > > No, one group consists of all subdevices, necessary to operate a
+> > > > > > > single video pipeline. A simple group only contains a sensor. More
+> > > > > > > complex groups can contain a CSI-2 interface, a line shifter, or
+> > > > > > > anything else.
+> > > > > > 
+> > > > > > Why? Why would you want to wait for completion of multiple groups? You
+> > > > > > need all subdevs to be registered. If you split them up in multiple
+> > > > > > groups, then you have to wait until all those groups have completed,
+> > > > > > which only makes the bridge driver more complex. It adds nothing to the
+> > > > > > problem that we're trying to solve.
+> > > > > 
+> > > > > I see it differently. Firstly, there's no waiting.
+> > > > 
+> > > > If they are independent, then that's true. But in almost all cases you need
+> > > > them all. Even in cases where theoretically you can 'activate' groups
+> > > > independently, it doesn't add anything. It's overengineering, trying to
+> > > > solve a problem that doesn't exist.
+> > > > 
+> > > > Just keep it simple, that's hard enough.
+> > > 
+> > > I quite agree here. Sure, in theory groups could be interesting, allowing you 
+> > > to start using part of the pipeline before everything is properly initialized, 
+> > > or if a sensor can't be probed for some reason. In practice, however, I don't 
+> > > think we'll get any substantial gain in real use cases. I propose dropping the 
+> > > groups for now, and adding them later if we need to.
+> > 
+> > Good, I need them now:-) These groups is what I map to /dev/video* nodes 
+> > in soc-camera and what corresponds to struct soc_camera_device objects.
+> > 
+> > We need a way to identify how many actual "cameras" (be it decoders, 
+> > encoders, or whatever else end-devices) we have. And this information is 
+> > directly related to instantiating subdevices. You need information about 
+> > subdevices and their possible links - even if you use MC. You need to 
+> > know, that sensor1 is connected to bridge interface1 and sensor2 can be 
+> > connected to interfaces 2 and 3. Why do we want to handle this information 
+> > separately, if it is logically connected to what we're dealing with here 
+> > and handling it here is simple and natural?
 > 
-> Got modetest running, but I didn't figure out what of the values below should be
-> used for the -o parameter:
-> 
-> trying to load module i915...success.
-> Encoders:
-> id	crtc	type	possible crtcs	possible clones	
-> 6	3	LVDS	0x00000003	0x00000001
-> 13	0	DAC	0x00000003	0x00000002
-> 15	0	TVDAC	0x00000003	0x00000004
-> 
-> Connectors:
-> id	encoder	status		type	size (mm)	modes	encoders
-> 5	6	connected	LVDS	290x180		1	6
->   modes:
-> 	name refresh (Hz) hdisp hss hse htot vdisp vss vse vtot)
->   1280x800 60 1280 1328 1360 1448 800 803 809 823 flags: nhsync, nvsync; type: preferred, driver
->   props:
-> 	1 EDID:
-> 		flags: immutable blob
-> 		blobs:
-> 
-> 		value:
-> 			00ffffffffffff0006af241400000000
-> 			01110103801d12780a87f594574f8c27
-> 			27505400000001010101010101010101
-> 			010101010101ee1b00a8502017303020
-> 			360022b410000019ee1b00a850201730
-> 			3020360022b410000000000000fe0044
-> 			573930398042313333455731000000fe
-> 			00000000000000000001010a20200022
-> 	2 DPMS:
-> 		flags: enum
-> 		enums: On=0 Standby=1 Suspend=2 Off=3
-> 		value: 0
-> 	7 scaling mode:
-> 		flags: enum
-> 		enums: None=0 Full=1 Center=2 Full aspect=3
-> 		value: 3
-> 12	0	disconnected	VGA	0x0		0	13
-> 14	0	disconnected	s-video	0x0		0	15
-> 
-> CRTCs:
-> id	fb	pos	size
-> 3	9	(0,0)	(0x0)
->   1280x800 60 1280 1328 1360 1448 800 803 809 823 flags: nhsync, nvsync; type: preferred, driver
->   props:
-> 4	0	(0,0)	(0x0)
->    0 0 0 0 0 0 0 0 0 flags: ; type: 
->   props:
-> 
-> Planes:
-> id	crtc	fb	CRTC x,y	x,y	gamma size
-> 
-> Frame buffers:
-> id	size	pitch
+> Because these are two separate problems. Determining which sensor is connected
+> to which bridge interface should be defined in the device tree and is reflected
+> in the topology reported by the media controller. None of this has anything to
+> do with the asynchronous subdev registration.
 
+Ok, maybe these two notions have to be separated more cleanly. Maybe it 
+would be good to first introduce a notion of subdevice groups, then add 
+notifiers for both - single subdevs and groups.
 
-FYI, this is that I'm getting there: 
+> Your 'group' concept seems to be 1) very vague :-)
 
-# ./dmabuf-sharing -M i915 -o 5:3:1280x800 -i /dev/video0 -S 640,480 -f YUYV -F YUYV -s 640,480@0,0 -t 640,480@0,0 -b 2
+I see it as a flexibility advantage;-)
 
-G_FMT(start): width = 640, height = 480, 4cc = YUYV
-G_FMT(final): width = 640, height = 480, 4cc = YUYV
-size = 614400 pitch = 1280
-bo 1 640x480 bpp 16 size 614400 (614400)
-dbuf_fd = 5
-bo 2 640x480 bpp 16 size 614400 (614400)
-dbuf_fd = 6
-buffers ready
-WARN(dmabuf-sharing.c:278): connector 5 is not supported
-ERROR(dmabuf-sharing.c:441) : failed to find valid mode
+> and 2) specific to soc-camera.
 
-Cheers,
-Mauro
+Not sure about this. I am trying to keep my abstractions within 
+soc-camera, but if we want to implement notifiers and only limit ourselves 
+to per-subdev ones, implementing groups on top of this in soc-camera would 
+be ugly.
+
+> But even for soc-camera I don't see what advantage the group concept brings you
+> with respect to async registration.
+
+I tried to explain this above: it tells me when I can complete soc-camera 
+device instantiation and create a video device node. For example, if on an 
+sh-mobile system I have a parallel and a serial sensors, I would have two 
+groups: group #1 would contain only the parallel sensor, group #2 would 
+contain the serial sensor and the CSI2 interface. Whenever a group is 
+reported as complete, I can instantiate an soc-camera device and register 
+a video device node.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
