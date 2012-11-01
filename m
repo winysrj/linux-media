@@ -1,68 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:64178 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750804Ab2KOWG0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 17:06:26 -0500
-Received: by mail-ee0-f46.google.com with SMTP id b15so1258234eek.19
-        for <linux-media@vger.kernel.org>; Thu, 15 Nov 2012 14:06:25 -0800 (PST)
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: dron0gus@gmail.com, tomasz.figa@gmail.com,
-	oselas@community.pengutronix.de,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH RFC v3 0/3] S3C244X/S3C64XX SoC series camera interface driver
-Date: Thu, 15 Nov 2012 23:05:12 +0100
-Message-Id: <1353017115-11492-1-git-send-email-sylvester.nawrocki@gmail.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:62864 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758502Ab2KAUJF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2012 16:09:05 -0400
+Date: Thu, 1 Nov 2012 21:08:42 +0100
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: Re: [PATCH v7 1/8] video: add display_timing struct and helpers
+Message-ID: <20121101200842.GA13137@avionic-0098.mockup.avionic-design.de>
+References: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1351675689-26814-2-git-send-email-s.trumtrar@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ReaqsoxgOBHFXBhH"
+Content-Disposition: inline
+In-Reply-To: <1351675689-26814-2-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds V4L2 driver for Samsung S3C244X/S3C64XX SoCs
-camera interface.
 
-Changes since v2:
- - use V4L2_CID_TEST_PATTERN instead of a private control,
- - added explicit PM_RUNTIME dependency,
- - device name appended in bus_info in vidioc_querycap ioctl,
- - added image effect controls,
- - added subdev controls value caching to prevent races,
-   when referencing control values in the interrupt context,
- - included patch adding an entry in the MAINTAINERS file.
+--ReaqsoxgOBHFXBhH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Complete branch for testing on mini2440 compatible boards can be pulled
-from:
+On Wed, Oct 31, 2012 at 10:28:01AM +0100, Steffen Trumtrar wrote:
+[...]
+> +void timings_release(struct display_timings *disp)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < disp->num_timings; i++)
+> +		kfree(disp->timings[i]);
+> +}
+> +
+> +void display_timings_release(struct display_timings *disp)
+> +{
+> +	timings_release(disp);
+> +	kfree(disp->timings);
+> +}
 
- git://linuxtv.org/snawrocki/media.git s3c-camif
+I'm not quite sure I understand how these are supposed to be used. The
+only use-case where a struct display_timings is dynamically allocated is
+for the OF helpers. In that case, wouldn't it be more useful to have a
+function that frees the complete structure, including the struct
+display_timings itself? Something like this, which has all of the above
+rolled into one:
 
-I intend to finally send a pull request for this driver this week.
+	void display_timings_free(struct display_timings *disp)
+	{
+		if (disp->timings) {
+			unsigned int i;
 
+			for (i = 0; i < disp->num_timings; i++)
+				kfree(disp->timings[i]);
+		}
 
-Andrey Gusakov (1):
-  s3c-camif: Add image effect controls
+		kfree(disp->timings);
+		kfree(disp);
+	}
 
-Sylwester Nawrocki (2):
-  V4L: Add driver for S3C244X/S3C64XX SoC series camera interface
-  MAINTAINERS: Add entry for S3C24XX/S3C64XX SoC CAMIF driver
+Is there a use-case where a struct display_timings is not dynamically
+allocated? The only one I can think of is where it is defined as
+platform data, but in that case you don't want to be calling
+display_timing_release() on it anyway.
 
- MAINTAINERS                                      |    8 +
- drivers/media/platform/Kconfig                   |   12 +
- drivers/media/platform/Makefile                  |    1 +
- drivers/media/platform/s3c-camif/Makefile        |    5 +
- drivers/media/platform/s3c-camif/camif-capture.c | 1679 ++++++++++++++++++++++
- drivers/media/platform/s3c-camif/camif-core.c    |  662 +++++++++
- drivers/media/platform/s3c-camif/camif-core.h    |  393 +++++
- drivers/media/platform/s3c-camif/camif-regs.c    |  606 ++++++++
- drivers/media/platform/s3c-camif/camif-regs.h    |  269 ++++
- include/media/s3c_camif.h                        |   45 +
- 10 files changed, 3680 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/platform/s3c-camif/Makefile
- create mode 100644 drivers/media/platform/s3c-camif/camif-capture.c
- create mode 100644 drivers/media/platform/s3c-camif/camif-core.c
- create mode 100644 drivers/media/platform/s3c-camif/camif-core.h
- create mode 100644 drivers/media/platform/s3c-camif/camif-regs.c
- create mode 100644 drivers/media/platform/s3c-camif/camif-regs.h
- create mode 100644 include/media/s3c_camif.h
+Thierry
 
---
-1.7.4.1
+--ReaqsoxgOBHFXBhH
+Content-Type: application/pgp-signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQktbKAAoJEN0jrNd/PrOhRqIQAJto5l4A26U8q1YNvZK1MaEv
+EuDvLFbR9zeRbL8/R+N1H0UXI2H8jpmrE2s3GddV41Xe124lJ7ps4gvjolFUiDFq
+OAxu6mVnnM4epoSzk2CgfwzNW3M+5e9Gi9g9/vGtlSoFf4UjhnP1TagSO0JXCoSS
+/tQB186aI9LU6KJGt4N7IlxDwllQm3w/SfH0PTK6QF5aCf8yRexkxuFcZZKvgw/R
+DZzSMJlUdDyI806P+V32JIcvRFGD1HYa4M7JXlY7U+jZ4wZ0MaJJNUnc/vK75rtP
+X6+RW7Kwe3bhbDUiHmWCfdO6LvpYuT7/ZRFY5NwtWmJUCrxlvd40xjBzVq2LmGQB
+cpVvY9fi8vBOp+/6RsLcmRfKmr1PO+czM+DDlS4MyiEX/D7psQQcNAOYkZz66LMg
+8teolpkyWmv/aAmx1HK+nW8siBDTNQk8I0t0DGl3PBobSkA/fBYnj8A1cTueqNvu
+aqeceAMJ2zdtv58agTT12zXV9oZf8tocZvtKRrG4/V+wgqWOZg3qLRX8xChRlF3T
+jG1LZOwgQufzQxAqqN+CKL+dBklK3WZ2q19CZhRdBePuY0eGvQ6kIVtpKINkRFgj
+W3+8I3/AOr1EOa+wLoqMlzY8qWNEy85hr9hdgS7rLqvkGomTAurpKlWth0dGsLEU
+EewZs/bEukAfWXwzHOxQ
+=T5rS
+-----END PGP SIGNATURE-----
+
+--ReaqsoxgOBHFXBhH--
