@@ -1,113 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:37100 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753020Ab2KTLLR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Nov 2012 06:11:17 -0500
-Date: Tue, 20 Nov 2012 12:11:09 +0100
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: devicetree-discuss@lists.ozlabs.org,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	David Airlie <airlied@linux.ie>
-Subject: Re: [PATCH v11 0/6] of: add display helper
-Message-ID: <20121120111109.GC11249@pengutronix.de>
-References: <1352985312-18178-1-git-send-email-s.trumtrar@pengutronix.de>
- <20121120103918.GB11249@pengutronix.de>
- <5248190.b4XqndYeI2@avalon>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2605 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755415Ab2KAQPw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2012 12:15:52 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 2/2] media: V4L2: support asynchronous subdevice registration
+Date: Thu, 1 Nov 2012 17:15:07 +0100
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+References: <Pine.LNX.4.64.1210192358520.28993@axis700.grange> <2556759.AhNR6Lm65l@avalon> <Pine.LNX.4.64.1211011553560.19489@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1211011553560.19489@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5248190.b4XqndYeI2@avalon>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201211011715.07726.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 20, 2012 at 11:52:06AM +0100, Laurent Pinchart wrote:
-> Hi Steffen,
+On Thu November 1 2012 16:01:59 Guennadi Liakhovetski wrote:
+> On Thu, 1 Nov 2012, Laurent Pinchart wrote:
 > 
-> On Tuesday 20 November 2012 11:39:18 Steffen Trumtrar wrote:
-> > On Thu, Nov 15, 2012 at 02:15:06PM +0100, Steffen Trumtrar wrote:
-> > > Hi!
-> > > 
-> > > Changes since v10:
-> > > 	- fix function name (drm_)display_mode_from_videomode
-> > > 	- add acked-by, reviewed-by, tested-by
-> > > 
-> > > Regards,
-> > > Steffen
-> > > 
-> > > Steffen Trumtrar (6):
-> > >   video: add display_timing and videomode
-> > >   video: add of helper for videomode
-> > >   fbmon: add videomode helpers
-> > >   fbmon: add of_videomode helpers
-> > >   drm_modes: add videomode helpers
-> > >   drm_modes: add of_videomode helpers
-> > >  
-> > >  .../devicetree/bindings/video/display-timings.txt  |  107 ++++++++++
-> > >  drivers/gpu/drm/drm_modes.c                        |   70 +++++++
-> > >  drivers/video/Kconfig                              |   19 ++
-> > >  drivers/video/Makefile                             |    4 +
-> > >  drivers/video/display_timing.c                     |   24 +++
-> > >  drivers/video/fbmon.c                              |   86 ++++++++
-> > >  drivers/video/of_display_timing.c                  |  212 +++++++++++++++
-> > >  drivers/video/of_videomode.c                       |   47 +++++
-> > >  drivers/video/videomode.c                          |   45 +++++
-> > >  include/drm/drmP.h                                 |   12 ++
-> > >  include/linux/display_timing.h                     |   69 +++++++
-> > >  include/linux/fb.h                                 |   12 ++
-> > >  include/linux/of_display_timings.h                 |   20 ++
-> > >  include/linux/of_videomode.h                       |   17 ++
-> > >  include/linux/videomode.h                          |   40 ++++
-> > >  15 files changed, 784 insertions(+)
-> > >  create mode 100644
-> > >  Documentation/devicetree/bindings/video/display-timings.txt create mode
-> > >  100644 drivers/video/display_timing.c
-> > >  create mode 100644 drivers/video/of_display_timing.c
-> > >  create mode 100644 drivers/video/of_videomode.c
-> > >  create mode 100644 drivers/video/videomode.c
-> > >  create mode 100644 include/linux/display_timing.h
-> > >  create mode 100644 include/linux/of_display_timings.h
-> > >  create mode 100644 include/linux/of_videomode.h
-> > >  create mode 100644 include/linux/videomode.h
+> > Hello,
 > > 
-> > Ping!
+> > On Monday 22 October 2012 17:22:16 Hans Verkuil wrote:
+> > > On Mon October 22 2012 16:48:05 Guennadi Liakhovetski wrote:
+> > > > On Mon, 22 Oct 2012, Hans Verkuil wrote:
+> > > > > On Mon October 22 2012 14:50:14 Guennadi Liakhovetski wrote:
+> > > > > > On Mon, 22 Oct 2012, Hans Verkuil wrote:
+> > > > > > > On Mon October 22 2012 13:08:12 Guennadi Liakhovetski wrote:
+> > > > > > > > On Mon, 22 Oct 2012, Hans Verkuil wrote:
+> > > > > > > > > On Sat October 20 2012 00:20:24 Guennadi Liakhovetski wrote:
+> > > > > > > > > > Currently bridge device drivers register devices for all
+> > > > > > > > > > subdevices synchronously, tupically, during their probing.
+> > > > > > > > > > E.g. if an I2C CMOS sensor is attached to a video bridge
+> > > > > > > > > > device, the bridge driver will create an I2C device and wait
+> > > > > > > > > > for the respective I2C driver to probe. This makes linking of
+> > > > > > > > > > devices straight forward, but this approach cannot be used
+> > > > > > > > > > with intrinsically asynchronous and unordered device
+> > > > > > > > > > registration systems like the Flattened Device Tree. To
+> > > > > > > > > > support such systems this patch adds an asynchronous subdevice
+> > > > > > > > > > registration framework to V4L2. To use it respective (e.g.
+> > > > > > > > > > I2C) subdevice drivers must request deferred probing as long
+> > > > > > > > > > as their bridge driver hasn't probed. The bridge driver during
+> > > > > > > > > > its probing submits a an arbitrary number of subdevice
+> > > > > > > > > > descriptor groups to the framework to manage. After that it
+> > > > > > > > > > can add callbacks to each of those groups to be called at
+> > > > > > > > > > various stages during subdevice probing, e.g. after
+> > > > > > > > > > completion. Then the bridge driver can request single groups
+> > > > > > > > > > to be probed, finish its own probing and continue its video
+> > > > > > > > > > subsystem configuration from its callbacks.
+> > > > > > > > > 
+> > > > > > > > > What is the purpose of allowing multiple groups?
+> > > > > > > > 
+> > > > > > > > To support, e.g. multiple sensors connected to a single bridge.
+> > > > > > > 
+> > > > > > > So, isn't that one group with two sensor subdevs?
+> > > > > > 
+> > > > > > No, one group consists of all subdevices, necessary to operate a
+> > > > > > single video pipeline. A simple group only contains a sensor. More
+> > > > > > complex groups can contain a CSI-2 interface, a line shifter, or
+> > > > > > anything else.
+> > > > > 
+> > > > > Why? Why would you want to wait for completion of multiple groups? You
+> > > > > need all subdevs to be registered. If you split them up in multiple
+> > > > > groups, then you have to wait until all those groups have completed,
+> > > > > which only makes the bridge driver more complex. It adds nothing to the
+> > > > > problem that we're trying to solve.
+> > > > 
+> > > > I see it differently. Firstly, there's no waiting.
+> > > 
+> > > If they are independent, then that's true. But in almost all cases you need
+> > > them all. Even in cases where theoretically you can 'activate' groups
+> > > independently, it doesn't add anything. It's overengineering, trying to
+> > > solve a problem that doesn't exist.
+> > > 
+> > > Just keep it simple, that's hard enough.
 > > 
-> > Any comments or taker for v11? Errors are fixed, driver is tested and
-> > working, DT binding got two ACKs. So, the series is finished as far as I
-> > can tell.
+> > I quite agree here. Sure, in theory groups could be interesting, allowing you 
+> > to start using part of the pipeline before everything is properly initialized, 
+> > or if a sensor can't be probed for some reason. In practice, however, I don't 
+> > think we'll get any substantial gain in real use cases. I propose dropping the 
+> > groups for now, and adding them later if we need to.
 > 
-> Just one last comment, sorry for not bringing this up earlier. Could you 
-> constify pointer arguments to functions where applicable ? For instance
+> Good, I need them now:-) These groups is what I map to /dev/video* nodes 
+> in soc-camera and what corresponds to struct soc_camera_device objects.
 > 
-> int videomode_from_timing(struct display_timings *disp, struct videomode *vm,
->                           unsigned int index);
-> 
-> The function shouldn't modify disp, so you can make it const. Same for most of 
-> the API functions.
-> 
+> We need a way to identify how many actual "cameras" (be it decoders, 
+> encoders, or whatever else end-devices) we have. And this information is 
+> directly related to instantiating subdevices. You need information about 
+> subdevices and their possible links - even if you use MC. You need to 
+> know, that sensor1 is connected to bridge interface1 and sensor2 can be 
+> connected to interfaces 2 and 3. Why do we want to handle this information 
+> separately, if it is logically connected to what we're dealing with here 
+> and handling it here is simple and natural?
 
-Okay. Will do.
+Because these are two separate problems. Determining which sensor is connected
+to which bridge interface should be defined in the device tree and is reflected
+in the topology reported by the media controller. None of this has anything to
+do with the asynchronous subdev registration.
 
-> You can then add my
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-
-Thanks.
+Your 'group' concept seems to be 1) very vague :-) and 2) specific to soc-camera.
+But even for soc-camera I don't see what advantage the group concept brings you
+with respect to async registration.
 
 Regards,
-Steffen
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+	Hans
