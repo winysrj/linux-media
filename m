@@ -1,38 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:58856 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751467Ab2KLNEs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Nov 2012 08:04:48 -0500
-Received: by mail-ee0-f46.google.com with SMTP id b15so3334170eek.19
-        for <linux-media@vger.kernel.org>; Mon, 12 Nov 2012 05:04:47 -0800 (PST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49173 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755404Ab2KAQEV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2012 12:04:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: media-workshop@linuxtv.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [media-workshop] Tentative Agenda for the November workshop
+Date: Thu, 01 Nov 2012 17:05:12 +0100
+Message-ID: <31457466.htZuxY1j9H@avalon>
+In-Reply-To: <201211011701.02482.hverkuil@xs4all.nl>
+References: <201210221035.56897.hverkuil@xs4all.nl> <Pine.LNX.4.64.1210311408300.12173@axis700.grange> <201211011701.02482.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Date: Mon, 12 Nov 2012 13:04:45 +0000
-Message-ID: <CAE-UT2ug=U4AJghXfXZBuBoa18JsPSjNsvHUEu9FHZvAm1qi1Q@mail.gmail.com>
-Subject: DVB V5 API: Event Model
-From: Martin Rudge <martin.rudge@googlemail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello All,
+On Thursday 01 November 2012 17:01:02 Hans Verkuil wrote:
+> On Wed October 31 2012 14:12:05 Guennadi Liakhovetski wrote:
+> > On Mon, 22 Oct 2012, Guennadi Liakhovetski wrote:
+> > > On Mon, 22 Oct 2012, Hans Verkuil wrote:
+> > > > Hi all,
+> > > > 
+> > > > This is the tentative agenda for the media workshop on November 8,
+> > > > 2012. If you have additional things that you want to discuss, or
+> > > > something is wrong or incomplete in this list, please let me know so I
+> > > > can update the list.
+> > > > 
+> > > > - Explain current merging process (Mauro)
+> > > > - Open floor for discussions on how to improve it (Mauro)
+> > > > - Write down minimum requirements for new V4L2 (and DVB?) drivers,
+> > > >   both for staging and mainline acceptance: which frameworks to use,
+> > > >   v4l2-compliance, etc. (Hans Verkuil)
+> > > > 
+> > > > - V4L2 ambiguities (Hans Verkuil)
+> > > > - TSMux device (a mux rather than a demux): Alain Volmat
+> > > > - dmabuf status, esp. with regards to being able to test
+> > > > (Mauro/Samsung)
+> > > > - Device tree support (Guennadi, not known yet whether this topic is
+> > > > needed)
+> > > 
+> > > + asynchronous probing, I guess. It's probably implicitly included
+> > > though.
+> > 
+> > As the meeting approaches, it would be good to have a decision - do we
+> > want to discuss DT / async or not? My flights this time are not quite long
+> > enough to prepare for the discussion on them;-)
+> 
+> Looking at the current discussions I think discussing possible async
+> solutions would be very useful. The DT implementation itself seems to be
+> OK, at least I haven't seen any big discussions regarding that.
 
-When using the V5 API (DVB-S/S2) for the DVB frontend device (with the
-now merged SEC functionality), setting properties DTV_VOLTAGE and/or
-DTV_TONE generates extra (unwanted?) events.  This is due to utilising
-the legacy FE_SET_FRONTEND IOCTL in their respective implementations.
+Agreed.
 
-Depending on their placement in one "atomic" FE_SET_PROPERTY call,
-they can cause an "incorrect" (premature) SYNC/LOCK event to be
-generated.  For example, when looping issuing tune requests in
-succession during a scan operation. This was with a fairly recent
-media build (pulled Saturday).
+-- 
+Regards,
 
-Conversly using DTV_CLEAR clears the cached values, but doesn't affect
-the frontend (LNB).  This is probably desirable behaviour.
+Laurent Pinchart
 
-Any thoughts, working as designed/intended?
-
-Thanks
-Martin
