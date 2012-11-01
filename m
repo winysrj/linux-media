@@ -1,108 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:39058 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753057Ab2KFWWT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 17:22:19 -0500
-Received: by mail-ea0-f174.google.com with SMTP id c13so370595eaa.19
-        for <linux-media@vger.kernel.org>; Tue, 06 Nov 2012 14:22:18 -0800 (PST)
-Message-ID: <50998D97.3030405@gmail.com>
-Date: Tue, 06 Nov 2012 23:22:15 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-CC: Sakari Ailus <sakari.ailus@iki.fi>,
+Received: from moutng.kundenserver.de ([212.227.17.10]:55340 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758502Ab2KAURo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2012 16:17:44 -0400
+Date: Thu, 1 Nov 2012 21:17:39 +0100
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [RFC] Selections targets at V4L2 video mem-to-mem interface
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: Re: [PATCH v7 3/8] of: add generic videomode description
+Message-ID: <20121101201739.GC13137@avionic-0098.mockup.avionic-design.de>
+References: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1351675689-26814-4-git-send-email-s.trumtrar@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="f+W+jCU1fRNres8c"
+Content-Disposition: inline
+In-Reply-To: <1351675689-26814-4-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
 
-I'd like to clarify the meaning of selection targets on a mem-to-mem video
-device, in order to document it and to make sure new m2m drivers get it
-right, and also that the existing ones, using originally the crop ioctls,
-are converted to the selection ioctls properly.
+--f+W+jCU1fRNres8c
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Until the selections API was introduced we used the CROP ioctls to 
-configure
-cropping on OUTPUT buffer queue and composition onto CAPTURE buffer.
-Looking at Figure 1.2, [1] it seems obvious that there should be applied
-following mapping of the CROP to SELECTION ioctls:
+On Wed, Oct 31, 2012 at 10:28:03AM +0100, Steffen Trumtrar wrote:
+[...]
+> +config OF_VIDEOMODE
+> +	def_bool y
+> +	depends on VIDEOMODE
+> +	help
+> +	  helper to get videomodes from the devicetree
+> +
 
-S_CROP(V4L2_BUF_TYPE_VIDEO_OUTPUT) -> 
-S_SELECTION(V4L2_BUF_TYPE_VIDEO_OUTPUT,
-						  V4L2_SEL_TGT_CROP)
+I think patches 3 and 4 need to be swapped, since patch 4 introduces the
+VIDEOMODE Kconfig symbol (as well as the videomode.h helper) that patch
+3 uses.
 
-S_CROP(V4L2_BUF_TYPE_VIDEO_CAPTURE) -> 
-S_SELECTION(V4L2_BUF_TYPE_VIDEO_CAPTURE,
-						   V4L2_SEL_TGT_COMPOSE)
+Thierry
 
-And that's how selections are currently documented at video output and
-capture interfaces:
+--f+W+jCU1fRNres8c
+Content-Type: application/pgp-signature
 
---------------------------------------------------------------------------------
-*Configuration of video output*
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
 
-For output devices targets and ioctls are used similarly to the video 
-capture
-case. The composing rectangle refers to the insertion of an image into a 
-video
-signal. The cropping rectangles refer to a memory buffer."
+iQIcBAEBAgAGBQJQktjjAAoJEN0jrNd/PrOhYz4P/3cbr9Gtdcr2a5mLvk0QD4Mn
+1LZC6jqEn/BeC+tdgPUVO7eUZfah8TPgfvU+3+vU4H3o0PQcrjRFkpsni7xpjVsH
+Cu70kJt7el8RAsGoLzFlYAduq1EFzSwbdXnsmwK+MoVE1kvzQn7CT1Ad8foYsYG7
+NaKy6YXrEq7ZGn040Jtq6CHidjEyT39OHMimSS5YHCc8k4GfGJxAyYjgMdg+1b77
+wy/nZhRChJQF5E2h+A9Lz5SqGvRY5bZ9kR5Tn2u7JiMd05cmaDDhnLXgN79SmaBc
+2uXPfXd9Ssiy6XfSS0XSTCj/97weGJhkdD7P2j0dEKOJodhbSZJ/88He3OB0vqbL
+uZukjhVohy9xq1+9lHxRnmGqlzuIynOkAAbT9gy9WcHtLL+SdXDLyujtiKt+2rHm
+Xdll2NlzTvnn1Q879x0r66aj/LtB+r/pIlfLyqIm4fcs7atJGWuLgGIc50kkn1oW
+Eq7WOc3N3BagGJrvJQX33CpE1VruNelrevF26g1Zw1iEwPHh6jwgFuiQ7yUcGNvA
+7HkGCY5VUv7VstkR8sil76eC7ezgn8gTlrhoUXD05F3uiVEiGu44LID74s0YfV7K
+pMJoiz25fPpU6hQ1yo28SvEb6StBsWn1rfj4UkVhidVtYM1hzrWMKNzpJpWy+b+H
+TP1l67LSdtaVbFuFSTrx
+=HS2T
+-----END PGP SIGNATURE-----
 
-
-*Configuration of video capture*
-... The top left corner, width and height of the source rectangle, that 
-is the
-area actually sampled, is given by the V4L2_SEL_TGT_CROP target.
-...
-The composing targets refer to a memory buffer.
---------------------------------------------------------------------------------
-
-If we apply this mapping, then current VIDIOC_S/G_CROP -> 
-VIDIOC_S/G_SELECTION
-ioctl fallback code wouldn't be valid, as we have there, e.g.
-
-static int v4l_s_crop(const struct v4l2_ioctl_ops *ops,
-				struct file *file, void *fh, void *arg)
-{
-	struct v4l2_crop *p = arg;
-	struct v4l2_selection s = {
-		.type = p->type,
-		.r = p->c,
-	};
-
-	if (ops->vidioc_s_crop)
-		return ops->vidioc_s_crop(file, fh, p);
-	/* simulate capture crop using selection api */
-
-	/* crop means compose for output devices */
-	if (V4L2_TYPE_IS_OUTPUT(p->type))
-		s.target = V4L2_SEL_TGT_COMPOSE_ACTIVE;
-	else
-		s.target = V4L2_SEL_TGT_CROP_ACTIVE;
-
-	return ops->vidioc_s_selection(file, fh, &s);
-}
-
-i.e. it does exactly opposite to what we would expect for M2M.
-
-One possible solution would be to get hold of struct video_device and
-do proper targets conversion after checking the vfl_dir field.
-
-Does anyone have suggestions on this ?
-
-
-BTW, we still have some V4L2_SEL_TGT*_ACTIVE symbols left, I'll write
-a patch to clean this up.
-
-[1] http://hverkuil.home.xs4all.nl/spec/media.html#idp9025504
-[2] http://hverkuil.home.xs4all.nl/spec/media.html#idp9031840
-
---
-Thanks,
-Sylwester
+--f+W+jCU1fRNres8c--
