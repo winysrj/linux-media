@@ -1,220 +1,229 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:45591 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751604Ab2KCT14 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2012 15:27:56 -0400
-Received: by mail-ee0-f46.google.com with SMTP id b15so2313733eek.19
-        for <linux-media@vger.kernel.org>; Sat, 03 Nov 2012 12:27:55 -0700 (PDT)
-From: Oleg Kravchenko <oleg@kaa.org.ua>
-To: linux-media@vger.kernel.org
-Cc: oleg@kaa.org.ua
-Subject: [PATCH] cx23885: Added support for AVerTV Hybrid Express Slim HC81R (only analog)
-Date: Sat, 03 Nov 2012 21:27:47 +0200
-Message-ID: <2489713.pAFgSjBqdl@comp>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1764 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932242Ab2KBNsE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2012 09:48:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: drivers without explicit MAINTAINERS entry - was: Re: [media-workshop] Tentative Agenda for the November workshop
+Date: Fri, 2 Nov 2012 14:47:49 +0100
+Cc: media-workshop@linuxtv.org,
+	"linux-media" <linux-media@vger.kernel.org>
+References: <201210221035.56897.hverkuil@xs4all.nl> <20121101141244.6c72242c@redhat.com> <20121102111310.755e38aa@gaivota.chehab>
+In-Reply-To: <20121102111310.755e38aa@gaivota.chehab>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="nextPart7243366.ymbf0rDgLt"
-Content-Transfer-Encoding: 7Bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201211021447.49164.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri November 2 2012 14:13:10 Mauro Carvalho Chehab wrote:
+> Em Thu, 1 Nov 2012 14:12:44 -0200
+> Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+> 
+> > Em Thu, 1 Nov 2012 16:44:50 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> > > On Thu October 25 2012 19:27:01 Mauro Carvalho Chehab wrote:
+> > > > Hi Hans,
+> > > > 
+> > > > Em Mon, 22 Oct 2012 10:35:56 +0200
+> > > > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > > > 
+> > > > > Hi all,
+> > > > > 
+> > > > > This is the tentative agenda for the media workshop on November 8, 2012.
+> > > > > If you have additional things that you want to discuss, or something is wrong
+> > > > > or incomplete in this list, please let me know so I can update the list.
+> > > > 
+> > > > Thank you for taking care of it.
+> > > > 
+> > > > > - Explain current merging process (Mauro)
+> > > > > - Open floor for discussions on how to improve it (Mauro)
+> > > > > - Write down minimum requirements for new V4L2 (and DVB?) drivers, both for
+> > > > >   staging and mainline acceptance: which frameworks to use, v4l2-compliance,
+> > > > >   etc. (Hans Verkuil)
+> > > > > - V4L2 ambiguities (Hans Verkuil)
+> > > > > - TSMux device (a mux rather than a demux): Alain Volmat
+> > > > > - dmabuf status, esp. with regards to being able to test (Mauro/Samsung)
+> > > > > - Device tree support (Guennadi, not known yet whether this topic is needed)
+> > > > > - Creating/selecting contexts for hardware that supports this (Samsung, only
+> > > > >   if time is available)
+> > > > 
+> > > > I have an extra theme for discussions there: what should we do with the drivers
+> > > > that don't have any MAINTAINERS entry.
+> > > 
+> > > I've added this topic to the list.
+> > 
+> > Thanks!
+> > 
+> > > > It probably makes sense to mark them as "Orphan" (or, at least, have some
+> > > > criteria to mark them as such). Perhaps before doing that, we could try
+> > > > to see if are there any developer at the community with time and patience
+> > > > to handle them.
+> > > > 
+> > > > This could of course be handled as part of the discussions about how to improve
+> > > > the merge process, but I suspect that this could generate enough discussions
+> > > > to be handled as a separate theme.
+> > > 
+> > > Do we have a 'Maintainer-Light' category? I have a lot of hardware that I can
+> > > test. So while I wouldn't like to be marked as 'The Maintainer of driver X'
+> > > (since I simply don't have the time for that), I wouldn't mind being marked as
+> > > someone who can at least test patches if needed.
+> > 
+> > There are several "maintainance" status there: 
+> > 
+> > 	S: Status, one of the following:
+> > 	   Supported:	Someone is actually paid to look after this.
+> > 	   Maintained:	Someone actually looks after it.
+> > 	   Odd Fixes:	It has a maintainer but they don't have time to do
+> > 			much other than throw the odd patch in. See below..
+> > 	   Orphan:	No current maintainer [but maybe you could take the
+> > 			role as you write your new code].
+> > 	   Obsolete:	Old code. Something tagged obsolete generally means
+> > 			it has been replaced by a better system and you
+> > 			should be using that.
+> > 
+> > (btw, I just realized that I should be changing the EDAC drivers I maintain
+> >  to Supported; the media drivers I maintain should be kept as Maintained).
+> > 
+> > I suspect that the "maintainer-light" category for those radio and similar
+> > old stuff is likely "Odd Fixes".
+> > 
+> > > > There are some issues by not having a MAINTAINERS entry:
+> > > > 	- patches may not flow into the driver maintainer;
+> > > > 	- patches will likely be applied without tests/reviews or may
+> > > > 	  stay for a long time queued;
+> > > > 	- ./scripts/get_maintainer.pl at --no-git-fallback won't return
+> > > > 	  any maintainer[1].
+> > > > 
+> > > > [1] Letting get_maintainer.pl is very time/CPU consuming. Letting it would 
+> > > > delay a lot the patch review process, if applied for every patch, with
+> > > > unreliable and doubtful results. I don't do it, due to the large volume
+> > > > of patches, and because the 'other' results aren't typically the driver
+> > > > maintainer.
+> > > > 
+> > > > An example of this is the results for a patch I just applied
+> > > > (changeset 2866aed103b915ca8ba0ff76d5790caea4e62ced):
+> > > > 
+> > > > 	$ git show --pretty=email|./scripts/get_maintainer.pl
+> > > > 	Mauro Carvalho Chehab <mchehab@infradead.org> (maintainer:MEDIA INPUT INFRA...,commit_signer:7/7=100%)
+> > > > 	Hans Verkuil <hans.verkuil@cisco.com> (commit_signer:4/7=57%)
+> > > > 	Anatolij Gustschin <agust@denx.de> (commit_signer:1/7=14%)
+> > > > 	Wei Yongjun <yongjun_wei@trendmicro.com.cn> (commit_signer:1/7=14%)
+> > > > 	Hans de Goede <hdegoede@redhat.com> (commit_signer:1/7=14%)
+> > > > 	linux-media@vger.kernel.org (open list:MEDIA INPUT INFRA...)
+> > > > 	linux-kernel@vger.kernel.org (open list)
+> > > > 
+> > > > According with this driver's copyrights:
+> > > > 
+> > > >  * Copyright 2008-2010 Freescale Semiconductor, Inc. All Rights Reserved.
+> > > >  *
+> > > >  *  Freescale VIU video driver
+> > > >  *
+> > > >  *  Authors: Hongjun Chen <hong-jun.chen@freescale.com>
+> > > >  *	     Porting to 2.6.35 by DENX Software Engineering,
+> > > >  *	     Anatolij Gustschin <agust@denx.de>
+> > > > 
+> > > > The driver author (Hongjun Chen <hong-jun.chen@freescale.com>) was not even
+> > > > shown there, and the co-author got only 15% hit, while I got 100% and Hans
+> > > > got 57%.
+> > > > 
+> > > > This happens not only to this driver. In a matter of fact, on most cases where
+> > > > no MAINTAINERS entry exist, the driver's author gets a very small hit chance,
+> > > > as, on several of those drivers, the author doesn't post anything else but
+> > > > the initial patch series.
+> > > 
+> > > We probably need to have an entry for all the media drivers, even if it just
+> > > points to the linux-media mailinglist as being the 'collective default maintainer'.
+> > 
+> > Yes, I think that all media drivers should be there. I prefer to tag the ones
+> > that nobody sends us a MAINTAINERS entry with "Orphan", as this tag indicates
+> > that help is wanted. 
+> 
+> I wrote a small shell script to see what's missing, using the analyze_build.pl script
+> at media-build devel_scripts dir:
+> 
+> 	DIR=$(dirname $0)
+> 
+> 	$DIR/analyze_build.pl --path drivers/media/ --show_files_per_module >/tmp/all_drivers
+> 	grep drivers/media/ MAINTAINERS | perl -ne 's/F:\s+//;s,drivers/media/,,; print $_ if (!/^\n/)' >maintained
+> 	grep -v -f maintained /tmp/all_drivers |grep -v -e keymaps -e v4l2-core/ -e dvb-core/ -e media.ko -e rc-core.ko -e ^#| sort >without_maint
+> 
+> I excluded the core files from the list, as they don't need any specific entry. RC
+> keymaps is also a special case, as I don't think any maintainer is needed for them.
+> 
+> Basically, analyze_build.pl says that there are 613 drivers under drivers/media.
+> The above script shows 348 drivers without an explicit maintainer. So, only 43%
+> of the drivers have a formal maintainer.
+> 
+> Yet, on the list below, I think several of them can be easily tagged as
+> "Odd fixes", like cx88 and saa7134. 
+> 
+> I think I'll send today a few RFC MAINTAINERS patches for some stuff below that
+> I can myself be added as "Odd fixes". Yet, I would very much prefer if someone
+> with more time than me could be taking over the "Odd fixes" patches I'll propose.
+> 
+> Regards,
+> Mauro
 
---nextPart7243366.ymbf0rDgLt
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+These two are 'Supported' by me:
 
-Hello! Please review my patch.
+i2c/ad9389b.ko                 = i2c/ad9389b.c
+i2c/adv7604.ko                 = i2c/adv7604.c
 
-Supported inputs:
-Television, S-Video, Component.
+These are 'Maintained' by me:
 
-Modules options:
-options cx25840 firmware=v4l-cx23418-dig.fw   
---nextPart7243366.ymbf0rDgLt
-Content-Disposition: attachment; filename="0001-Added-support-for-AVerTV-Hybrid-Express-Slim-HC81R-o.patch"
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/x-patch; charset="UTF-8"; name="0001-Added-support-for-AVerTV-Hybrid-Express-Slim-HC81R-o.patch"
+i2c/cx2341x.ko                 = i2c/cx2341x.c
+parport/bw-qcam.ko             = parport/bw-qcam.c
+parport/c-qcam.ko              = parport/c-qcam.c
+radio/dsbr100.ko               = radio/dsbr100.c
+radio/radio-cadet.ko           = radio/radio-cadet.c
+radio/radio-isa.ko             = radio/radio-isa.c
+radio/radio-keene.ko           = radio/radio-keene.c
 
->From 383bec3ca55a0939f86a0b1d2aa2e562f227e4d8 Mon Sep 17 00:00:00 2001
-From: Oleh Kravchenko <oleg@kaa.org.ua>
-Date: Tue, 23 Oct 2012 18:47:30 +0300
-Subject: [PATCH] Added support for AVerTV Hybrid Express Slim HC81R (only
- analog)
+There are more radio drivers that can have that status, but I would need
+to check that when I'm back in Oslo.
 
----
- drivers/media/pci/cx23885/cx23885-cards.c |   75 +++++++++++++++++++++++++++++
- drivers/media/pci/cx23885/cx23885-video.c |   15 +++++-
- drivers/media/pci/cx23885/cx23885.h       |    1 +
- 3 files changed, 90 insertions(+), 1 deletions(-)
+I can do 'Odd fixes' for the following:
 
-diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
-index 6277e145..d213019 100644
---- a/drivers/media/pci/cx23885/cx23885-cards.c
-+++ b/drivers/media/pci/cx23885/cx23885-cards.c
-@@ -572,6 +572,35 @@ struct cx23885_board cx23885_boards[] = {
- 	[CX23885_BOARD_PROF_8000] = {
- 		.name		= "Prof Revolution DVB-S2 8000",
- 		.portb		= CX23885_MPEG_DVB,
-+	},
-+	[CX23885_BOARD_AVERMEDIA_HC81R] = {
-+		.name		= "AVerTV Hybrid Express Slim HC81R",
-+		.tuner_type	= TUNER_XC2028,
-+		.tuner_addr	= 0x61, /* 0xc2 >> 1 */
-+		.tuner_bus	= 1,
-+		.porta		= CX23885_ANALOG_VIDEO,
-+		.input          = {{
-+			.type   = CX23885_VMUX_TELEVISION,
-+			.vmux   = CX25840_VIN2_CH1 |
-+				  CX25840_VIN5_CH2 |
-+				  CX25840_NONE0_CH3 |
-+				  CX25840_NONE1_CH3,
-+			.amux   = CX25840_AUDIO8,
-+		}, {
-+			.type   = CX23885_VMUX_SVIDEO,
-+			.vmux   = CX25840_VIN8_CH1 |
-+				  CX25840_NONE_CH2 |
-+				  CX25840_VIN7_CH3 |
-+				  CX25840_SVIDEO_ON,
-+			.amux   = CX25840_AUDIO6,
-+		}, {
-+			.type   = CX23885_VMUX_COMPONENT,
-+			.vmux   = CX25840_VIN1_CH1 |
-+				  CX25840_NONE_CH2 |
-+				  CX25840_NONE0_CH3 |
-+				  CX25840_NONE1_CH3,
-+			.amux   = CX25840_AUDIO6,
-+		} },
- 	}
- };
- const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
-@@ -788,6 +817,10 @@ struct cx23885_subid cx23885_subids[] = {
- 		.subvendor = 0x8000,
- 		.subdevice = 0x3034,
- 		.card      = CX23885_BOARD_PROF_8000,
-+	}, {
-+		.subvendor = 0x1461,
-+		.subdevice = 0xd939,
-+		.card      = CX23885_BOARD_AVERMEDIA_HC81R,
- 	},
- };
- const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
-@@ -1012,6 +1045,10 @@ int cx23885_tuner_callback(void *priv, int component, int command, int arg)
- 	case CX23885_BOARD_NETUP_DUAL_DVB_T_C_CI_RF:
- 		altera_ci_tuner_reset(dev, port->nr);
- 		break;
-+	case CX23885_BOARD_AVERMEDIA_HC81R:
-+		/* XC3028L Reset Command */
-+		bitmask = 1 << 2;
-+		break;
- 	}
- 
- 	if (bitmask) {
-@@ -1301,6 +1338,32 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
- 		/* enable irq */
- 		cx_write(GPIO_ISM, 0x00000000);/* INTERRUPTS active low*/
- 		break;
-+	case CX23885_BOARD_AVERMEDIA_HC81R:
-+		cx_clear(MC417_CTL, 1);
-+		/* GPIO-0,1,2 setup direction as output */
-+		cx_set(GP0_IO, 0x00070000);
-+		mdelay(10);
-+		/* AF9013 demod reset */
-+		cx_set(GP0_IO, 0x00010001);
-+		mdelay(10);
-+		cx_clear(GP0_IO, 0x00010001);
-+		mdelay(10);
-+		cx_set(GP0_IO, 0x00010001);
-+		mdelay(10);
-+		/* demod tune? */
-+		cx_clear(GP0_IO, 0x00030003);
-+		mdelay(10);
-+		cx_set(GP0_IO, 0x00020002);
-+		mdelay(10);
-+		cx_set(GP0_IO, 0x00010001);
-+		mdelay(10);
-+		cx_clear(GP0_IO, 0x00020002);
-+		/* XC3028L tuner reset */
-+		cx_set(GP0_IO, 0x00040004);
-+		cx_clear(GP0_IO, 0x00040004);
-+		cx_set(GP0_IO, 0x00040004);
-+		mdelay(60);
-+		break;
- 	}
- }
- 
-@@ -1515,6 +1578,17 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 	}
- 
- 	switch (dev->board) {
-+	case CX23885_BOARD_AVERMEDIA_HC81R:
-+		/* Defaults for VID B */
-+		ts1->gen_ctrl_val  = 0x4; /* Parallel */
-+		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
-+		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-+		/* Defaults for VID C */
-+		/* DREQ_POL, SMODE, PUNC_CLK, MCLK_POL Serial bus + punc clk */
-+		ts2->gen_ctrl_val  = 0x10e;
-+		ts2->ts_clk_en_val = 0x1; /* Enable TS_CLK */
-+		ts2->src_sel_val     = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-+		break;
- 	case CX23885_BOARD_DVICO_FUSIONHDTV_7_DUAL_EXP:
- 	case CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP:
- 		ts2->gen_ctrl_val  = 0xc; /* Serial bus + punctured clock */
-@@ -1636,6 +1710,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 	case CX23885_BOARD_MPX885:
- 	case CX23885_BOARD_MYGICA_X8507:
- 	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:
-+	case CX23885_BOARD_AVERMEDIA_HC81R:
- 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
- 				&dev->i2c_bus[2].i2c_adap,
- 				"cx25840", 0x88 >> 1, NULL);
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index 1a21926..f131888 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -509,7 +509,8 @@ static int cx23885_video_mux(struct cx23885_dev *dev, unsigned int input)
- 		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1255) ||
- 		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1255_22111) ||
- 		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1850) ||
--		(dev->board == CX23885_BOARD_MYGICA_X8507)) {
-+		(dev->board == CX23885_BOARD_MYGICA_X8507) ||
-+		(dev->board == CX23885_BOARD_AVERMEDIA_HC81R)) {
- 		/* Configure audio routing */
- 		v4l2_subdev_call(dev->sd_cx25840, audio, s_routing,
- 			INPUT(input)->amux, 0, 0);
-@@ -1878,6 +1879,18 @@ int cx23885_video_register(struct cx23885_dev *dev)
- 				};
- 				v4l2_subdev_call(sd, tuner, s_config, &cfg);
- 			}
-+
-+			if (dev->board == CX23885_BOARD_AVERMEDIA_HC81R) {
-+				struct xc2028_ctrl ctrl = {
-+					.fname = "xc3028L-v36.fw",
-+					.max_len = 64
-+				};
-+				struct v4l2_priv_tun_config cfg = {
-+					.tuner = dev->tuner_type,
-+					.priv = &ctrl
-+				};
-+				v4l2_subdev_call(sd, tuner, s_config, &cfg);
-+			}
- 		}
- 	}
- 
-diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
-index 67f40d3..f0c4705 100644
---- a/drivers/media/pci/cx23885/cx23885.h
-+++ b/drivers/media/pci/cx23885/cx23885.h
-@@ -91,6 +91,7 @@
- #define CX23885_BOARD_TEVII_S471               35
- #define CX23885_BOARD_HAUPPAUGE_HVR1255_22111  36
- #define CX23885_BOARD_PROF_8000                37
-+#define CX23885_BOARD_AVERMEDIA_HC81R          38
- 
- #define GPIO_0 0x00000001
- #define GPIO_1 0x00000002
--- 
-1.7.8.6
+i2c/cx25840/cx25840.ko         = i2c/cx25840/cx25840-core.c i2c/cx25840/cx25840-audio.c i2c/cx25840/cx25840-firmware.c i2c/cx25840/cx25840-vbi.c i2c/cx25840/cx25840-ir.c
+i2c/m52790.ko                  = i2c/m52790.c
+i2c/msp3400.ko                 = i2c/msp3400-driver.c i2c/msp3400-kthreads.c
+i2c/saa6588.ko                 = i2c/saa6588.c
+i2c/saa7110.ko                 = i2c/saa7110.c
+i2c/saa7115.ko                 = i2c/saa7115.c
+i2c/saa7127.ko                 = i2c/saa7127.c
+i2c/saa717x.ko                 = i2c/saa717x.c
+i2c/tda7432.ko                 = i2c/tda7432.c
+i2c/tda9840.ko                 = i2c/tda9840.c
+i2c/tea6415c.ko                = i2c/tea6415c.c
+i2c/tea6420.ko                 = i2c/tea6420.c
+i2c/tvaudio.ko                 = i2c/tvaudio.c
+i2c/tveeprom.ko                = i2c/tveeprom.c
+i2c/tvp5150.ko                 = i2c/tvp5150.c
+i2c/wm8739.ko                  = i2c/wm8739.c
+i2c/wm8775.ko                  = i2c/wm8775.c
+parport/pms.ko                 = parport/pms.c
+platform/vivi.ko               = platform/vivi.c
+radio/radio-aimslab.ko         = radio/radio-aimslab.c
+radio/radio-gemtek.ko          = radio/radio-gemtek.c
+radio/radio-maxiradio.ko       = radio/radio-maxiradio.c
+radio/radio-miropcm20.ko       = radio/radio-miropcm20.c
+radio/radio-mr800.ko           = radio/radio-mr800.c
+radio/radio-rtrack2.ko         = radio/radio-rtrack2.c
+radio/radio-si4713.ko          = radio/radio-si4713.c
+usb/cx231xx/cx231xx-alsa.ko    = usb/cx231xx/cx231xx-audio.c
+usb/cx231xx/cx231xx-dvb.ko     = usb/cx231xx/cx231xx-dvb.c
+usb/cx231xx/cx231xx-input.ko   = usb/cx231xx/cx231xx-input.c
+usb/cx231xx/cx231xx.ko         = +
+usb/hdpvr/hdpvr.ko             = usb/hdpvr/hdpvr-control.c usb/hdpvr/hdpvr-core.c usb/hdpvr/hdpvr-video.c usb/hdpvr/hdpvr-i2c.c
+usb/tm6000/tm6000-alsa.ko      = usb/tm6000/tm6000-alsa.c
+usb/tm6000/tm6000.ko           = usb/tm6000/tm6000-cards.c usb/tm6000/tm6000-core.c usb/tm6000/tm6000-i2c.c usb/tm6000/tm6000-video.c usb/tm6000/tm6000-stds.c usb/tm6000/tm6000-input.c
+usb/usbvision/usbvision.ko     = usb/usbvision/usbvision-core.c usb/usbvision/usbvision-video.c usb/usbvision/usbvision-i2c.c usb/usbvision/usbvision-cards.c
 
+Regards,
 
---nextPart7243366.ymbf0rDgLt--
-
+	Hans
