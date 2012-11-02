@@ -1,71 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:41498 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1768601Ab2KOSEE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 13:04:04 -0500
-Received: by mail-wi0-f172.google.com with SMTP id hj6so1540704wib.1
-        for <linux-media@vger.kernel.org>; Thu, 15 Nov 2012 10:04:02 -0800 (PST)
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v10 1/6] video: add display_timing and videomode
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>, kernel@pengutronix.de,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:20876 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932260Ab2KBSz7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2012 14:55:59 -0400
+Date: Fri, 2 Nov 2012 11:55:54 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Joerg Roedel <joerg.roedel@amd.com>,
+	Omar Ramirez Luna <omar.luna@linaro.org>,
+	linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>,
 	linux-media@vger.kernel.org
-In-Reply-To: <2466982.zTBri0jEif@avalon>
-References: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de> <1352971437-29877-2-git-send-email-s.trumtrar@pengutronix.de> <20121115154753.C82223E194B@localhost> <2466982.zTBri0jEif@avalon>
-Date: Thu, 15 Nov 2012 18:03:59 +0000
-Message-Id: <20121115180359.1E6F33E197F@localhost>
+Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to
+ include/linux/omap-iommu.h
+Message-ID: <20121102185553.GZ15766@atomide.com>
+References: <20121025001913.2082.31062.stgit@muffinssi.local>
+ <20121025213935.GD11928@atomide.com>
+ <CAK=WgbaCM+MWiHARvdfaGL6w0c7g4_keAm0ADw1vkSeiZ0CZPw@mail.gmail.com>
+ <6561916.t72K1L6jg4@avalon>
+ <CAK=WgbY2-Ajm-2OSheOgLCd4589WKDSqqKjzHkE5Ogyp4puJ3g@mail.gmail.com>
+ <20121026180039.GM11908@atomide.com>
+ <20121030162938.GH11908@atomide.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20121030162938.GH11908@atomide.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 15 Nov 2012 17:00:57 +0100, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
-> Hi Grant,
+* Tony Lindgren <tony@atomide.com> [121030 09:31]:
 > 
-> On Thursday 15 November 2012 15:47:53 Grant Likely wrote:
-> > On Thu, 15 Nov 2012 10:23:52 +0100, Steffen Trumtrar wrote:
-> > > Add display_timing structure and the according helper functions. This
-> > > allows the description of a display via its supported timing parameters.
-> > > 
-> > > Every timing parameter can be specified as a single value or a range
-> > > <min typ max>.
-> > > 
-> > > Also, add helper functions to convert from display timings to a generic
-> > > videomode structure. This videomode can then be converted to the
-> > > corresponding subsystem mode representation (e.g. fb_videomode).
-> > > 
-> > > Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-> > 
-> > Hmmm... here's my thoughts as an outside reviewer. Correct me if I'm
-> > making an incorrect assumption.
-> > 
-> > It looks to me that the purpose of this entire series is to decode video
-> > timings from the device tree and (eventually) provide the data in the
-> > form 'struct videomode'. Correct?
-> > 
-> > If so, then it looks over engineered. Creating new infrastructure to
-> > allocate, maintain, and free a new 'struct display_timings' doesn't make
-> > any sense when it is an intermediary data format that will never be used
-> > by drivers.
-> > 
-> > Can the DT parsing code instead return a table of struct videomode?
-> > 
-> > But, wait... struct videomode is also a new structure. So it looks like
-> > this series creates two new intermediary data structures;
-> > display_timings and videomode. And at least as far as I can see in this
-> > series struct fb_videomode is the only user.
+> OK so are people happy with the patches in this series?
 > 
-> struct videomode is supposed to slowly replace the various video mode 
-> structures we currently have in the kernel (struct drm_mode_modeinfo, struct 
-> fb_videomode and struct v4l2_bt_timings), at least where possible (userspace 
-> APIs can't be broken). This will make it possible to reuse code across the 
-> DRM, FB and V4L2 subsystems, such as the EDID parser or HDMI encoder drivers. 
-> This rationale might not be clearly explained in the commit message, but 
-> having a shared video mode structure is pretty important.
+> Please everybody ack if no more comments so we can move on
+> towards getting CONFIG_MULTIPLATFORM to work for omaps.
 
-Okay that make sense. What about struct display_timings?
+Looks like Joerg has a new email address, I'll send this
+series out one more time.
 
-g.
+Regards,
+
+Tony
