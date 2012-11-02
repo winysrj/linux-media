@@ -1,131 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60712 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753937Ab2KUL6b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Nov 2012 06:58:31 -0500
-Date: Wed, 21 Nov 2012 12:58:18 +0100
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: Leela Krishna Amudala <leelakrishna.a@gmail.com>
-Cc: "Manjunathappa, Prakash" <prakash.pm@ti.com>,
-	"devicetree-discuss@lists.ozlabs.org"
-	<devicetree-discuss@lists.ozlabs.org>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	David Airlie <airlied@linux.ie>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"kernel@pengutronix.de" <kernel@pengutronix.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v12 3/6] fbmon: add videomode helpers
-Message-ID: <20121121115818.GD14013@pengutronix.de>
-References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de>
- <1353426896-6045-4-git-send-email-s.trumtrar@pengutronix.de>
- <A73F36158E33644199EB82C5EC81C7BC3E9FA769@DBDE01.ent.ti.com>
- <CAL1wa8dQ4QL0SzbXdo8nogBfBjQ8GpaJ134v6zu_iMkWQeXefA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAL1wa8dQ4QL0SzbXdo8nogBfBjQ8GpaJ134v6zu_iMkWQeXefA@mail.gmail.com>
+Received: from mail.mnsspb.ru ([84.204.75.2]:48907 "EHLO mail.mnsspb.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756079Ab2KBNJy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Nov 2012 09:09:54 -0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Kirill Smelkov <kirr@mns.spb.ru>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: [PATCH 2/4] [media] vivi: vivi_dev->line[] was not aligned
+Date: Fri,  2 Nov 2012 17:10:31 +0400
+Message-Id: <483c58f72b5549ba5d8558ba4621c2489f231668.1351861552.git.kirr@mns.spb.ru>
+In-Reply-To: <cover.1351861552.git.kirr@mns.spb.ru>
+References: <cover.1351861552.git.kirr@mns.spb.ru>
+In-Reply-To: <cover.1351861552.git.kirr@mns.spb.ru>
+References: <cover.1351861552.git.kirr@mns.spb.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Though dev->line[] is u8 array we work with it as with u16, u24 or u32
+pixels, and also pass it to memcpy() and it's better to align it to at
+least 4.
 
-On Wed, Nov 21, 2012 at 04:39:01PM +0530, Leela Krishna Amudala wrote:
-> Yes,
-> Even I got the same build error.
-> later I fixed it by including "#include <linux/mxsfb.h>"
-> 
-> Best Wishes,
-> Leela Krishna.
-> 
-> On Wed, Nov 21, 2012 at 3:39 PM, Manjunathappa, Prakash
-> <prakash.pm@ti.com> wrote:
-> > Hi Steffen,
-> >
-> > I am trying to add DT support for da8xx-fb driver on top of your patches.
-> > Encountered below build error. Sorry for reporting it late.
-> >
-> > On Tue, Nov 20, 2012 at 21:24:53, Steffen Trumtrar wrote:
-> >> Add a function to convert from the generic videomode to a fb_videomode.
-> >>
-> >> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-> >> Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-> >> Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-> >> Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-> >> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-> >> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >> ---
-> >>  drivers/video/fbmon.c |   46 ++++++++++++++++++++++++++++++++++++++++++++++
-> >>  include/linux/fb.h    |    6 ++++++
-> >>  2 files changed, 52 insertions(+)
-> >>
-> >> diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
-> >> index cef6557..c1939a6 100644
-> >> --- a/drivers/video/fbmon.c
-> >> +++ b/drivers/video/fbmon.c
-> >> @@ -31,6 +31,7 @@
-> >>  #include <linux/pci.h>
-> >>  #include <linux/slab.h>
-> >>  #include <video/edid.h>
-> >> +#include <linux/videomode.h>
-> >>  #ifdef CONFIG_PPC_OF
-> >>  #include <asm/prom.h>
-> >>  #include <asm/pci-bridge.h>
-> >> @@ -1373,6 +1374,51 @@ int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_inf
-> >>       kfree(timings);
-> >>       return err;
-> >>  }
-> >> +
-> >> +#if IS_ENABLED(CONFIG_VIDEOMODE)
-> >> +int fb_videomode_from_videomode(const struct videomode *vm,
-> >> +                             struct fb_videomode *fbmode)
-> >> +{
-> >> +     unsigned int htotal, vtotal;
-> >> +
-> >> +     fbmode->xres = vm->hactive;
-> >> +     fbmode->left_margin = vm->hback_porch;
-> >> +     fbmode->right_margin = vm->hfront_porch;
-> >> +     fbmode->hsync_len = vm->hsync_len;
-> >> +
-> >> +     fbmode->yres = vm->vactive;
-> >> +     fbmode->upper_margin = vm->vback_porch;
-> >> +     fbmode->lower_margin = vm->vfront_porch;
-> >> +     fbmode->vsync_len = vm->vsync_len;
-> >> +
-> >> +     fbmode->pixclock = KHZ2PICOS(vm->pixelclock / 1000);
-> >> +
-> >> +     fbmode->sync = 0;
-> >> +     fbmode->vmode = 0;
-> >> +     if (vm->hah)
-> >> +             fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
-> >> +     if (vm->vah)
-> >> +             fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
-> >> +     if (vm->interlaced)
-> >> +             fbmode->vmode |= FB_VMODE_INTERLACED;
-> >> +     if (vm->doublescan)
-> >> +             fbmode->vmode |= FB_VMODE_DOUBLE;
-> >> +     if (vm->de)
-> >> +             fbmode->sync |= FB_SYNC_DATA_ENABLE_HIGH_ACT;
-> >
-> > "FB_SYNC_DATA_ENABLE_HIGH_ACT" seems to be mxsfb specific flag, I am getting
-> > build error on this. Please let me know if I am missing something.
-> >
-> > Thanks,
-> > Prakash
-> >
+Before the patch, on x86 offsetof(vivi_dev, line) was 1003 and after
+patch it is 1004.
 
-I compile-tested the series and didn't have that error. But obviously I should
-have. As this is a mxsfs flag, I will throw it out.
+There is slight performance increase, but I think is is slight, only
+because we start copying not from line[0]:
 
-Regards,
-Steffen
+    ---- 8< ---- drivers/media/platform/vivi.c
+    static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
+    {
+            ...
 
+            for (h = 0; h < hmax; h++)
+                    memcpy(vbuf + h * wmax * dev->pixelsize,
+                           dev->line + (dev->mv_count % wmax) * dev->pixelsize,
+                           wmax * dev->pixelsize);
+
+before:
+
+    # cmdline : /home/kirr/local/perf/bin/perf record -g -a sleep 20
+    #
+    # Samples: 49K of event 'cycles'
+    # Event count (approx.): 16799780016
+    #
+    # Overhead          Command         Shared Object
+    # ........  ...............  ....................
+    #
+        27.51%             rawv  libc-2.13.so          [.] __memcpy_ssse3
+        23.77%           vivi-*  [kernel.kallsyms]     [k] memcpy
+         9.96%             Xorg  [unknown]             [.] 0xa76f5e12
+         4.94%           vivi-*  [vivi]                [k] gen_text.constprop.6
+         4.44%             rawv  [vivi]                [k] gen_twopix
+         3.17%           vivi-*  [vivi]                [k] vivi_fillbuff
+         2.45%             rawv  [vivi]                [k] precalculate_line
+         1.20%          swapper  [kernel.kallsyms]     [k] read_hpet
+
+    23.77%           vivi-*  [kernel.kallsyms]     [k] memcpy
+                     |
+                     --- memcpy
+                        |
+                        |--99.28%-- vivi_fillbuff
+                        |          vivi_thread
+                        |          kthread
+                        |          ret_from_kernel_thread
+                         --0.72%-- [...]
+after:
+
+    # cmdline : /home/kirr/local/perf/bin/perf record -g -a sleep 20
+    #
+    # Samples: 49K of event 'cycles'
+    # Event count (approx.): 16475832370
+    #
+    # Overhead          Command           Shared Object
+    # ........  ...............  ......................
+    #
+        29.07%             rawv  libc-2.13.so            [.] __memcpy_ssse3
+        20.57%           vivi-*  [kernel.kallsyms]       [k] memcpy
+        10.20%             Xorg  [unknown]               [.] 0xa7301494
+         5.16%           vivi-*  [vivi]                  [k] gen_text.constprop.6
+         4.43%             rawv  [vivi]                  [k] gen_twopix
+         4.36%           vivi-*  [vivi]                  [k] vivi_fillbuff
+         2.42%             rawv  [vivi]                  [k] precalculate_line
+         1.33%          swapper  [kernel.kallsyms]       [k] read_hpet
+
+Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
+---
+ drivers/media/platform/vivi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+index cb2337e..ddcc712 100644
+--- a/drivers/media/platform/vivi.c
++++ b/drivers/media/platform/vivi.c
+@@ -242,7 +242,7 @@ struct vivi_dev {
+ 	unsigned int		   field_count;
+ 
+ 	u8			   bars[9][3];
+-	u8			   line[MAX_WIDTH * 8];
++	u8			   line[MAX_WIDTH * 8] __attribute__((__aligned__(4)));
+ 	unsigned int		   pixelsize;
+ 	u8			   alpha_component;
+ 	u32			   textfg, textbg;
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.8.0.316.g291341c
+
