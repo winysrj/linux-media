@@ -1,52 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51395 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754039Ab2KHAXQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Nov 2012 19:23:16 -0500
-Message-ID: <509AFB58.2070808@iki.fi>
-Date: Thu, 08 Nov 2012 02:22:48 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:53343 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752477Ab2KBNFc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2012 09:05:32 -0400
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>
-CC: Andrew Karpow <andy@mailbox.tu-berlin.de>,
-	Hubert Lin <hubertwslin@gmail.com>
-Subject: [GIT PULL FOR v3.7] rtl28xxu new USB IDs
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1351846129-19432-1-git-send-email-yamanetoshi@gmail.com>
+References: <1351846129-19432-1-git-send-email-yamanetoshi@gmail.com>
+Date: Fri, 2 Nov 2012 14:05:31 +0100
+Message-ID: <CA+MoWDpRDHXUj7jn38FFbew5X1T=ZqbjZu4OzTV736Z8Bu=2pg@mail.gmail.com>
+Subject: Re: [PATCH] staging/media: Use dev_ printks in cxd2099/cxd2099.[ch]
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: YAMANE Toshiaki <yamanetoshi@gmail.com>
+Cc: Greg Kroah-Hartman <greg@kroah.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro, these are both simple USB ID additions and nothing more. I think 
-it is allowed to push this kind of simple ID additions even after merge 
-window is closed. So I hope to see these for 3.7.
+On Fri, Nov 2, 2012 at 9:48 AM, YAMANE Toshiaki <yamanetoshi@gmail.com> wrote:
+> fixed below checkpatch warnings.
+> - WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+> - WARNING: Prefer netdev_info(netdev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
+> - WARNING: Prefer netdev_warn(netdev, ... then dev_warn(dev, ... then pr_warn(...  to printk(KERN_WARNING ...
+>
+> Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
+Tested-by: Peter Senna Tschudin <peter.senna@gmail.com>
+> ---
+>  drivers/staging/media/cxd2099/cxd2099.c |   29 +++++++++++++++--------------
+>  drivers/staging/media/cxd2099/cxd2099.h |    2 +-
+>  2 files changed, 16 insertions(+), 15 deletions(-)
+>
+> diff --git a/drivers/staging/media/cxd2099/cxd2099.c b/drivers/staging/media/cxd2099/cxd2099.c
+> index 0ff1972..822c487 100644
+> --- a/drivers/staging/media/cxd2099/cxd2099.c
+> +++ b/drivers/staging/media/cxd2099/cxd2099.c
+> @@ -66,8 +66,9 @@ static int i2c_write_reg(struct i2c_adapter *adapter, u8 adr,
+>         struct i2c_msg msg = {.addr = adr, .flags = 0, .buf = m, .len = 2};
+>
+>         if (i2c_transfer(adapter, &msg, 1) != 1) {
+> -               printk(KERN_ERR "Failed to write to I2C register %02x@%02x!\n",
+> -                      reg, adr);
+> +               dev_err(&adapter->dev,
+> +                       "Failed to write to I2C register %02x@%02x!\n",
+> +                       reg, adr);
+>                 return -1;
+>         }
+>         return 0;
+> @@ -79,7 +80,7 @@ static int i2c_write(struct i2c_adapter *adapter, u8 adr,
+>         struct i2c_msg msg = {.addr = adr, .flags = 0, .buf = data, .len = len};
+>
+>         if (i2c_transfer(adapter, &msg, 1) != 1) {
+> -               printk(KERN_ERR "Failed to write to I2C!\n");
+> +               dev_err(&adapter->dev, "Failed to write to I2C!\n");
+>                 return -1;
+>         }
+>         return 0;
+> @@ -94,7 +95,7 @@ static int i2c_read_reg(struct i2c_adapter *adapter, u8 adr,
+>                                    .buf = val, .len = 1} };
+>
+>         if (i2c_transfer(adapter, msgs, 2) != 2) {
+> -               printk(KERN_ERR "error in i2c_read_reg\n");
+> +               dev_err(&adapter->dev, "error in i2c_read_reg\n");
+>                 return -1;
+>         }
+>         return 0;
+> @@ -109,7 +110,7 @@ static int i2c_read(struct i2c_adapter *adapter, u8 adr,
+>                                  .buf = data, .len = n} };
+>
+>         if (i2c_transfer(adapter, msgs, 2) != 2) {
+> -               printk(KERN_ERR "error in i2c_read\n");
+> +               dev_err(&adapter->dev, "error in i2c_read\n");
+>                 return -1;
+>         }
+>         return 0;
+> @@ -277,7 +278,7 @@ static void cam_mode(struct cxd *ci, int mode)
+>  #ifdef BUFFER_MODE
+>                 if (!ci->en.read_data)
+>                         return;
+> -               printk(KERN_INFO "enable cam buffer mode\n");
+> +               dev_info(&ci->i2c->dev, "enable cam buffer mode\n");
+>                 /* write_reg(ci, 0x0d, 0x00); */
+>                 /* write_reg(ci, 0x0e, 0x01); */
+>                 write_regm(ci, 0x08, 0x40, 0x40);
+> @@ -524,7 +525,7 @@ static int slot_reset(struct dvb_ca_en50221 *ca, int slot)
+>                         msleep(10);
+>  #if 0
+>                         read_reg(ci, 0x06, &val);
+> -                       printk(KERN_INFO "%d:%02x\n", i, val);
+> +                       dev_info(&ci->i2c->dev, "%d:%02x\n", i, val);
+>                         if (!(val&0x10))
+>                                 break;
+>  #else
+> @@ -542,7 +543,7 @@ static int slot_shutdown(struct dvb_ca_en50221 *ca, int slot)
+>  {
+>         struct cxd *ci = ca->data;
+>
+> -       printk(KERN_INFO "slot_shutdown\n");
+> +       dev_info(&ci->i2c->dev, "slot_shutdown\n");
+>         mutex_lock(&ci->lock);
+>         write_regm(ci, 0x09, 0x08, 0x08);
+>         write_regm(ci, 0x20, 0x80, 0x80); /* Reset CAM Mode */
+> @@ -578,10 +579,10 @@ static int campoll(struct cxd *ci)
+>
+>         if (istat&0x40) {
+>                 ci->dr = 1;
+> -               printk(KERN_INFO "DR\n");
+> +               dev_info(&ci->i2c->dev, "DR\n");
+>         }
+>         if (istat&0x20)
+> -               printk(KERN_INFO "WC\n");
+> +               dev_info(&ci->i2c->dev, "WC\n");
+>
+>         if (istat&2) {
+>                 u8 slotstat;
+> @@ -597,7 +598,7 @@ static int campoll(struct cxd *ci)
+>                         if (ci->slot_stat) {
+>                                 ci->slot_stat = 0;
+>                                 write_regm(ci, 0x03, 0x00, 0x08);
+> -                               printk(KERN_INFO "NO CAM\n");
+> +                               dev_info(&ci->i2c->dev, "NO CAM\n");
+>                                 ci->ready = 0;
+>                         }
+>                 }
+> @@ -634,7 +635,7 @@ static int read_data(struct dvb_ca_en50221 *ca, int slot, u8 *ebuf, int ecount)
+>         campoll(ci);
+>         mutex_unlock(&ci->lock);
+>
+> -       printk(KERN_INFO "read_data\n");
+> +       dev_info(&ci->i2c->dev, "read_data\n");
+>         if (!ci->dr)
+>                 return 0;
+>
+> @@ -687,7 +688,7 @@ struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+>         u8 val;
+>
+>         if (i2c_read_reg(i2c, cfg->adr, 0, &val) < 0) {
+> -               printk(KERN_INFO "No CXD2099 detected at %02x\n", cfg->adr);
+> +               dev_info(&i2c->dev, "No CXD2099 detected at %02x\n", cfg->adr);
+>                 return NULL;
+>         }
+>
+> @@ -705,7 +706,7 @@ struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+>         ci->en = en_templ;
+>         ci->en.data = ci;
+>         init(ci);
+> -       printk(KERN_INFO "Attached CXD2099AR at %02x\n", ci->cfg.adr);
+> +       dev_info(&i2c->dev, "Attached CXD2099AR at %02x\n", ci->cfg.adr);
+>         return &ci->en;
+>  }
+>  EXPORT_SYMBOL(cxd2099_attach);
+> diff --git a/drivers/staging/media/cxd2099/cxd2099.h b/drivers/staging/media/cxd2099/cxd2099.h
+> index 19c588a..0eb607c 100644
+> --- a/drivers/staging/media/cxd2099/cxd2099.h
+> +++ b/drivers/staging/media/cxd2099/cxd2099.h
+> @@ -43,7 +43,7 @@ struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+>  static inline struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+>                                         void *priv, struct i2c_adapter *i2c)
+>  {
+> -       printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+> +       dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
+>         return NULL;
+>  }
+>  #endif
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Antti
-
-The following changes since commit 1fdead8ad31d3aa833bc37739273fcde89ace93c:
-
-   [media] m5mols: Add missing #include <linux/sizes.h> (2012-10-10 
-08:17:16 -0300)
-
-are available in the git repository at:
-
-   git://linuxtv.org/anttip/media_tree.git for_v3.7-new-rtl28xxu-usb-ids
-
-for you to fetch changes up to 904b87d6f202b1220585ed85b134510891b9b7e5:
-
-   rtl28xxu: 0ccd:00d7 TerraTec Cinergy T Stick+ (2012-11-08 02:18:12 +0200)
-
-----------------------------------------------------------------
-Andrew Karpow (1):
-       rtl28xxu: 0ccd:00d7 TerraTec Cinergy T Stick+
-
-Antti Palosaari (1):
-       rtl28xxu: 1d19:1102 Dexatek DK mini DVB-T Dongle
-
-  drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 4 ++++
-  1 file changed, 4 insertions(+)
 
 
--- 
-http://palosaari.fi/
-
+--
+Peter
