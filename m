@@ -1,62 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:49585 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751272Ab2K1DRH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 22:17:07 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1TdY9C-0007gM-UJ
-	for linux-media@vger.kernel.org; Wed, 28 Nov 2012 04:17:14 +0100
-Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 28 Nov 2012 04:17:14 +0100
-Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 28 Nov 2012 04:17:14 +0100
-To: linux-media@vger.kernel.org
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Subject: anyone here know anyone at ivtvdriver.org?  it's been down a few
- days now
-Date: Tue, 27 Nov 2012 22:16:53 -0500
-Message-ID: <k93vn4$dij$1@ger.gmane.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigCA14D180DCD13DE103971D35"
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:38823 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755313Ab2KBIs5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2012 04:48:57 -0400
+From: YAMANE Toshiaki <yamanetoshi@gmail.com>
+To: Greg Kroah-Hartman <greg@kroah.com>, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	YAMANE Toshiaki <yamanetoshi@gmail.com>
+Subject: [PATCH] staging/media: Use dev_ printks in cxd2099/cxd2099.[ch]
+Date: Fri,  2 Nov 2012 17:48:48 +0900
+Message-Id: <1351846129-19432-1-git-send-email-yamanetoshi@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigCA14D180DCD13DE103971D35
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+fixed below checkpatch warnings.
+- WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+- WARNING: Prefer netdev_info(netdev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
+- WARNING: Prefer netdev_warn(netdev, ... then dev_warn(dev, ... then pr_warn(...  to printk(KERN_WARNING ...
 
-I wonder if anyone here has control over or knows anyone who has control
-over the ivtvdriver.org website and lists.
+Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
+---
+ drivers/staging/media/cxd2099/cxd2099.c |   29 +++++++++++++++--------------
+ drivers/staging/media/cxd2099/cxd2099.h |    2 +-
+ 2 files changed, 16 insertions(+), 15 deletions(-)
 
-They seem to be down and have been for a bit now.
-
-Does anyone know if there is any expectation that this stuff will come
-back or is headed for moribund-land?
-
-Cheers,
-b.
-
-
---------------enigCA14D180DCD13DE103971D35
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iEYEARECAAYFAlC1giUACgkQl3EQlGLyuXCjYACgwSl596rCF+c2Jni+dHpxq9xq
-VmoAoOuLScFHW1gIOdQtcOnc16xN91P6
-=jLW8
------END PGP SIGNATURE-----
-
---------------enigCA14D180DCD13DE103971D35--
+diff --git a/drivers/staging/media/cxd2099/cxd2099.c b/drivers/staging/media/cxd2099/cxd2099.c
+index 0ff1972..822c487 100644
+--- a/drivers/staging/media/cxd2099/cxd2099.c
++++ b/drivers/staging/media/cxd2099/cxd2099.c
+@@ -66,8 +66,9 @@ static int i2c_write_reg(struct i2c_adapter *adapter, u8 adr,
+ 	struct i2c_msg msg = {.addr = adr, .flags = 0, .buf = m, .len = 2};
+ 
+ 	if (i2c_transfer(adapter, &msg, 1) != 1) {
+-		printk(KERN_ERR "Failed to write to I2C register %02x@%02x!\n",
+-		       reg, adr);
++		dev_err(&adapter->dev,
++			"Failed to write to I2C register %02x@%02x!\n",
++			reg, adr);
+ 		return -1;
+ 	}
+ 	return 0;
+@@ -79,7 +80,7 @@ static int i2c_write(struct i2c_adapter *adapter, u8 adr,
+ 	struct i2c_msg msg = {.addr = adr, .flags = 0, .buf = data, .len = len};
+ 
+ 	if (i2c_transfer(adapter, &msg, 1) != 1) {
+-		printk(KERN_ERR "Failed to write to I2C!\n");
++		dev_err(&adapter->dev, "Failed to write to I2C!\n");
+ 		return -1;
+ 	}
+ 	return 0;
+@@ -94,7 +95,7 @@ static int i2c_read_reg(struct i2c_adapter *adapter, u8 adr,
+ 				   .buf = val, .len = 1} };
+ 
+ 	if (i2c_transfer(adapter, msgs, 2) != 2) {
+-		printk(KERN_ERR "error in i2c_read_reg\n");
++		dev_err(&adapter->dev, "error in i2c_read_reg\n");
+ 		return -1;
+ 	}
+ 	return 0;
+@@ -109,7 +110,7 @@ static int i2c_read(struct i2c_adapter *adapter, u8 adr,
+ 				 .buf = data, .len = n} };
+ 
+ 	if (i2c_transfer(adapter, msgs, 2) != 2) {
+-		printk(KERN_ERR "error in i2c_read\n");
++		dev_err(&adapter->dev, "error in i2c_read\n");
+ 		return -1;
+ 	}
+ 	return 0;
+@@ -277,7 +278,7 @@ static void cam_mode(struct cxd *ci, int mode)
+ #ifdef BUFFER_MODE
+ 		if (!ci->en.read_data)
+ 			return;
+-		printk(KERN_INFO "enable cam buffer mode\n");
++		dev_info(&ci->i2c->dev, "enable cam buffer mode\n");
+ 		/* write_reg(ci, 0x0d, 0x00); */
+ 		/* write_reg(ci, 0x0e, 0x01); */
+ 		write_regm(ci, 0x08, 0x40, 0x40);
+@@ -524,7 +525,7 @@ static int slot_reset(struct dvb_ca_en50221 *ca, int slot)
+ 			msleep(10);
+ #if 0
+ 			read_reg(ci, 0x06, &val);
+-			printk(KERN_INFO "%d:%02x\n", i, val);
++			dev_info(&ci->i2c->dev, "%d:%02x\n", i, val);
+ 			if (!(val&0x10))
+ 				break;
+ #else
+@@ -542,7 +543,7 @@ static int slot_shutdown(struct dvb_ca_en50221 *ca, int slot)
+ {
+ 	struct cxd *ci = ca->data;
+ 
+-	printk(KERN_INFO "slot_shutdown\n");
++	dev_info(&ci->i2c->dev, "slot_shutdown\n");
+ 	mutex_lock(&ci->lock);
+ 	write_regm(ci, 0x09, 0x08, 0x08);
+ 	write_regm(ci, 0x20, 0x80, 0x80); /* Reset CAM Mode */
+@@ -578,10 +579,10 @@ static int campoll(struct cxd *ci)
+ 
+ 	if (istat&0x40) {
+ 		ci->dr = 1;
+-		printk(KERN_INFO "DR\n");
++		dev_info(&ci->i2c->dev, "DR\n");
+ 	}
+ 	if (istat&0x20)
+-		printk(KERN_INFO "WC\n");
++		dev_info(&ci->i2c->dev, "WC\n");
+ 
+ 	if (istat&2) {
+ 		u8 slotstat;
+@@ -597,7 +598,7 @@ static int campoll(struct cxd *ci)
+ 			if (ci->slot_stat) {
+ 				ci->slot_stat = 0;
+ 				write_regm(ci, 0x03, 0x00, 0x08);
+-				printk(KERN_INFO "NO CAM\n");
++				dev_info(&ci->i2c->dev, "NO CAM\n");
+ 				ci->ready = 0;
+ 			}
+ 		}
+@@ -634,7 +635,7 @@ static int read_data(struct dvb_ca_en50221 *ca, int slot, u8 *ebuf, int ecount)
+ 	campoll(ci);
+ 	mutex_unlock(&ci->lock);
+ 
+-	printk(KERN_INFO "read_data\n");
++	dev_info(&ci->i2c->dev, "read_data\n");
+ 	if (!ci->dr)
+ 		return 0;
+ 
+@@ -687,7 +688,7 @@ struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+ 	u8 val;
+ 
+ 	if (i2c_read_reg(i2c, cfg->adr, 0, &val) < 0) {
+-		printk(KERN_INFO "No CXD2099 detected at %02x\n", cfg->adr);
++		dev_info(&i2c->dev, "No CXD2099 detected at %02x\n", cfg->adr);
+ 		return NULL;
+ 	}
+ 
+@@ -705,7 +706,7 @@ struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+ 	ci->en = en_templ;
+ 	ci->en.data = ci;
+ 	init(ci);
+-	printk(KERN_INFO "Attached CXD2099AR at %02x\n", ci->cfg.adr);
++	dev_info(&i2c->dev, "Attached CXD2099AR at %02x\n", ci->cfg.adr);
+ 	return &ci->en;
+ }
+ EXPORT_SYMBOL(cxd2099_attach);
+diff --git a/drivers/staging/media/cxd2099/cxd2099.h b/drivers/staging/media/cxd2099/cxd2099.h
+index 19c588a..0eb607c 100644
+--- a/drivers/staging/media/cxd2099/cxd2099.h
++++ b/drivers/staging/media/cxd2099/cxd2099.h
+@@ -43,7 +43,7 @@ struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+ static inline struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+ 					void *priv, struct i2c_adapter *i2c)
+ {
+-	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
++	dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
+ 	return NULL;
+ }
+ #endif
+-- 
+1.7.9.5
 
