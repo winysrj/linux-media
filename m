@@ -1,28 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpbg63.qq.com ([103.7.29.150]:37690 "HELO smtpbg63.qq.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754327Ab2KEOqW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Nov 2012 09:46:22 -0500
-From: "=?utf-8?B?5YaN5Zue6aaW?=" <308123027@qq.com>
-To: "=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>
-Subject: soc camera driver module may case memory leak
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Date: Mon, 5 Nov 2012 22:38:42 +0800
-Message-ID: <tencent_64608E82650520C00B66909A@qq.com>
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:42401 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751118Ab2KBM4h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2012 08:56:37 -0400
+MIME-Version: 1.0
+In-Reply-To: <1351858169-5742-1-git-send-email-yamanetoshi@gmail.com>
+References: <1351858121-5708-1-git-send-email-yamanetoshi@gmail.com>
+	<1351858169-5742-1-git-send-email-yamanetoshi@gmail.com>
+Date: Fri, 2 Nov 2012 13:56:36 +0100
+Message-ID: <CA+MoWDpYP3LsbYZ82hxKeaGa=o2yOnhExvTFkYomOL-2p4aNoA@mail.gmail.com>
+Subject: Re: [PATCH 2/2] Staging/media: Use dev_ printks in go7007/wis-ov7640.c
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: YAMANE Toshiaki <yamanetoshi@gmail.com>
+Cc: Greg Kroah-Hartman <greg@kroah.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RGVhciBzaXI6CndoeSBub3QgY2FsbCAidmlkZW9idWZfbW1hcF9mcmVlIix3aGVuIGRldmlj
-ZSBjbG9zZSBjYWxsICJzb2NfY2FtZXJhX2Nsb3NlIiBpbiBsaW51eC0yLjYueDtkbyB0aGUg
-c2FtZSBpbiBsaW51eC0zLngueD8KdmlkZW8gY2FwdHVyZSBmbG93OgoxKW9wZW4KMilzZXQg
-Zm10CjMpcmVxdWVzdCBidWZmZXItLT5fX3ZpZGVvYnVmX21tYXBfc2V0dXAtLT52aWRlb2J1
-Zl9hbGxvY192YihxKQo0KW1tYXAKNSllbnF1ZXVlLCBkZXF1ZXVlCjYpdW5tYXAKNyljbG9z
-ZS0tLT5zb2NfY2FtZXJhX2Nsb3NlLS0+P3Nob3VsZCBjYWxsOnZpZGVvYnVmX21tYXBfZnJl
-ZQpOT1RFOgpJIGhhdmUgcmV2aWV3ZWQgYWxsIHRoZSBjb2RlLCBmb3VuZDpzb2NfY2FtZXJh
-X2RyaXZlciBkZXZpY2UgZHJpdmVyIGNvZGVycyBoYXMgbm8gd2F5KGNhbGxiYWNrIGZ1bmN0
-aW9uKSB0byBjYWxsIHZpZGVvYnVmX21tYXBfZnJlZTsgaXQgd2lsbCBjYXNlIG1lbW9yeSBs
-ZWFrLg==
+On Fri, Nov 2, 2012 at 1:09 PM, YAMANE Toshiaki <yamanetoshi@gmail.com> wrote:
+> fixed below checkpatch warnings.
+> - WARNING: Prefer netdev_dbg(netdev, ... then dev_dbg(dev, ... then pr_debug(...  to printk(KERN_DEBUG ...
+> - WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+>
+> Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
+Tested-by: Peter Senna Tschudin <peter.senna@gmail.com>
+> ---
+>  drivers/staging/media/go7007/wis-ov7640.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/staging/media/go7007/wis-ov7640.c b/drivers/staging/media/go7007/wis-ov7640.c
+> index eb5efc9..fe46374 100644
+> --- a/drivers/staging/media/go7007/wis-ov7640.c
+> +++ b/drivers/staging/media/go7007/wis-ov7640.c
+> @@ -59,12 +59,12 @@ static int wis_ov7640_probe(struct i2c_client *client,
+>
+>         client->flags = I2C_CLIENT_SCCB;
+>
+> -       printk(KERN_DEBUG
+> +       dev_dbg(&client->dev,
+>                 "wis-ov7640: initializing OV7640 at address %d on %s\n",
+>                 client->addr, adapter->name);
+>
+>         if (write_regs(client, initial_registers) < 0) {
+> -               printk(KERN_ERR "wis-ov7640: error initializing OV7640\n");
+> +               dev_err(&client->dev, "wis-ov7640: error initializing OV7640\n");
+>                 return -ENODEV;
+>         }
+>
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+
+
+--
+Peter
