@@ -1,55 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:43055 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756017Ab2KOKB7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 05:01:59 -0500
-Date: Thu, 15 Nov 2012 11:01:49 +0100
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	dri-devel@lists.freedesktop.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	kernel@pengutronix.de,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v10 6/6] drm_modes: add of_videomode helpers
-Message-ID: <20121115100149.GA1963@pengutronix.de>
-References: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de>
- <1352971437-29877-7-git-send-email-s.trumtrar@pengutronix.de>
- <20121115095848.GA31538@avionic-0098.mockup.avionic-design.de>
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:42898 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752520Ab2KBMmi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2012 08:42:38 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20121115095848.GA31538@avionic-0098.mockup.avionic-design.de>
+In-Reply-To: <1351858121-5708-1-git-send-email-yamanetoshi@gmail.com>
+References: <1351858121-5708-1-git-send-email-yamanetoshi@gmail.com>
+Date: Fri, 2 Nov 2012 13:42:37 +0100
+Message-ID: <CA+MoWDosOnEdHcWQiHrVcYboAvHpKK42z36dy=mmhaV6U9WAdQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] Staging/media: fixed spacing coding style in go7007/wis-ov7640.c
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: YAMANE Toshiaki <yamanetoshi@gmail.com>
+Cc: Greg Kroah-Hartman <greg@kroah.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 15, 2012 at 10:58:49AM +0100, Thierry Reding wrote:
-> On Thu, Nov 15, 2012 at 10:23:57AM +0100, Steffen Trumtrar wrote:
-> [...]
-> > +int of_get_drm_display_mode(struct device_node *np,
-> > +			    struct drm_display_mode *dmode, unsigned int index)
-> > +{
-> > +	struct videomode vm;
-> > +	int ret;
-> > +
-> > +	ret = of_get_videomode(np, &vm, index);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	display_mode_from_videomode(&vm, dmode);
-> 
-> This function is now called drm_display_mode_from_videomode().
-> 
-Well, can't argue with that. You are right.
+On Fri, Nov 2, 2012 at 1:08 PM, YAMANE Toshiaki <yamanetoshi@gmail.com> wrote:
+> fixed below checkpatch error.
+> - ERROR: that open brace { should be on the previous line
+>
+> Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
+Tested-by: Peter Senna Tschudin <peter.senna@gmail.com>
+> ---
+>  drivers/staging/media/go7007/wis-ov7640.c |    3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+>
+> diff --git a/drivers/staging/media/go7007/wis-ov7640.c b/drivers/staging/media/go7007/wis-ov7640.c
+> index 6bc9470..eb5efc9 100644
+> --- a/drivers/staging/media/go7007/wis-ov7640.c
+> +++ b/drivers/staging/media/go7007/wis-ov7640.c
+> @@ -29,8 +29,7 @@ struct wis_ov7640 {
+>         int hue;
+>  };
+>
+> -static u8 initial_registers[] =
+> -{
+> +static u8 initial_registers[] = {
+>         0x12, 0x80,
+>         0x12, 0x54,
+>         0x14, 0x24,
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Regards,
-Steffen
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+
+--
+Peter
