@@ -1,48 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:59221 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752642Ab2KELiS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 06:38:18 -0500
-From: YAMANE Toshiaki <yamanetoshi@gmail.com>
-To: Greg Kroah-Hartman <greg@kroah.com>, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	YAMANE Toshiaki <yamanetoshi@gmail.com>
-Subject: [PATCH 2/2] staging/media: Use dev_ or pr_ printks in go7007/wis-saa7113.c
-Date: Mon,  5 Nov 2012 20:38:12 +0900
-Message-Id: <1352115492-8252-1-git-send-email-yamanetoshi@gmail.com>
-In-Reply-To: <1352115408-8217-1-git-send-email-yamanetoshi@gmail.com>
-References: <1352115408-8217-1-git-send-email-yamanetoshi@gmail.com>
+Received: from mail.mnsspb.ru ([84.204.75.2]:48896 "EHLO mail.mnsspb.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752477Ab2KBNJv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Nov 2012 09:09:51 -0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Kirill Smelkov <kirr@mns.spb.ru>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: [PATCH 0/4] Speedup vivi
+Date: Fri,  2 Nov 2012 17:10:29 +0400
+Message-Id: <cover.1351861552.git.kirr@mns.spb.ru>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fixed below checkpatch warnings.
-- WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-- WARNING: Prefer netdev_dbg(netdev, ... then dev_dbg(dev, ... then pr_debug(...  to printk(KERN_DEBUG ...
+Hello up there. I was trying to use vivi to generate multiple video streams for
+my test-lab environment on atom system and noticed it wastes a lot of cpu.
 
-Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
----
- drivers/staging/media/go7007/wis-saa7113.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Please apply some optimization patches.
 
-diff --git a/drivers/staging/media/go7007/wis-saa7113.c b/drivers/staging/media/go7007/wis-saa7113.c
-index 7f155cb..d7ce95f 100644
---- a/drivers/staging/media/go7007/wis-saa7113.c
-+++ b/drivers/staging/media/go7007/wis-saa7113.c
-@@ -281,12 +281,12 @@ static int wis_saa7113_probe(struct i2c_client *client,
- 	dec->hue = 0;
- 	i2c_set_clientdata(client, dec);
- 
--	printk(KERN_DEBUG
-+	dev_dbg(&client->dev,
- 		"wis-saa7113: initializing SAA7113 at address %d on %s\n",
- 		client->addr, adapter->name);
- 
- 	if (write_regs(client, initial_registers) < 0) {
--		printk(KERN_ERR
-+		dev_err(&client->dev,
- 			"wis-saa7113: error initializing SAA7113\n");
- 		kfree(dec);
- 		return -ENODEV;
+Thanks,
+Kirill
+
+Kirill Smelkov (4):
+  [media] vivi: Optimize gen_text()
+  [media] vivi: vivi_dev->line[] was not aligned
+  [media] vivi: Move computations out of vivi_fillbuf linecopy loop
+  [media] vivi: Optimize precalculate_line()
+
+ drivers/media/platform/vivi.c | 94 ++++++++++++++++++++++++++++++-------------
+ 1 file changed, 65 insertions(+), 29 deletions(-)
+
 -- 
-1.7.9.5
+1.8.0.316.g291341c
 
