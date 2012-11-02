@@ -1,70 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:57907 "EHLO plane.gmane.org"
+Received: from mail.mnsspb.ru ([84.204.75.2]:48928 "EHLO mail.mnsspb.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754275Ab2K1Nec (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 08:34:32 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Tdhmk-0003U8-0s
-	for linux-media@vger.kernel.org; Wed, 28 Nov 2012 14:34:42 +0100
-Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 28 Nov 2012 14:34:42 +0100
-Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 28 Nov 2012 14:34:42 +0100
-To: linux-media@vger.kernel.org
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Subject: Re: ivtv driver inputs randomly "block"
-Date: Wed, 28 Nov 2012 08:34:20 -0500
-Message-ID: <50B612DC.7010906@interlinx.bc.ca>
-References: <k93vu3$ffi$1@ger.gmane.org> <CALF0-+VkANRj+by2n-=UsxZfJwk97ZkNS8R0C-Vt2oX7WN3R0A@mail.gmail.com> <50B60D54.4010302@interlinx.bc.ca> <CALF0-+UHOJDh471aa7URKr1-xbggrbDdg_nDijv2FOUpo=3zaw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig4E0147CA8118C6C878B7BDDA"
-In-Reply-To: <CALF0-+UHOJDh471aa7URKr1-xbggrbDdg_nDijv2FOUpo=3zaw@mail.gmail.com>
+	id S1756079Ab2KBNJ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Nov 2012 09:09:59 -0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Kirill Smelkov <kirr@mns.spb.ru>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: [PATCH 4/4] [media] vivi: Optimize precalculate_line()
+Date: Fri,  2 Nov 2012 17:10:33 +0400
+Message-Id: <23c010fd06bf4378ee46820e4ce91b5f02dcec07.1351861552.git.kirr@mns.spb.ru>
+In-Reply-To: <cover.1351861552.git.kirr@mns.spb.ru>
+References: <cover.1351861552.git.kirr@mns.spb.ru>
+In-Reply-To: <cover.1351861552.git.kirr@mns.spb.ru>
+References: <cover.1351861552.git.kirr@mns.spb.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig4E0147CA8118C6C878B7BDDA
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+precalculate_line() is not very high on profile, but it calls expensive
+gen_twopix(), so let's polish it too:
 
-On 12-11-28 08:13 AM, Ezequiel Garcia wrote:
->=20
-> Try again with
-> modprobe ivtv ivtv_debug=3D10
+    call gen_twopix() only once for every color bar and then distribute
+    the result.
 
-That actually errored out but I think you meant:
+before:
 
-# modprobe ivtv debug=3D10
+    # cmdline : /home/kirr/local/perf/bin/perf record -g -a sleep 20
+    #
+    # Samples: 46K of event 'cycles'
+    # Event count (approx.): 15574200568
+    #
+    # Overhead          Command         Shared Object
+    # ........  ...............  ....................
+    #
+        27.99%             rawv  libc-2.13.so          [.] __memcpy_ssse3
+        23.29%           vivi-*  [kernel.kallsyms]     [k] memcpy
+        10.30%             Xorg  [unknown]             [.] 0xa75c98f8
+         5.34%           vivi-*  [vivi]                [k] gen_text.constprop.6
+         4.61%             rawv  [vivi]                [k] gen_twopix
+         2.64%             rawv  [vivi]                [k] precalculate_line
+         1.37%          swapper  [kernel.kallsyms]     [k] read_hpet
 
-which actually was successful in loading the module.  Now we just wait
-for the failure and see.
+after:
 
-I will update here as soon as I see it again.
+    # cmdline : /home/kirr/local/perf/bin/perf record -g -a sleep 20
+    #
+    # Samples: 45K of event 'cycles'
+    # Event count (approx.): 15561769214
+    #
+    # Overhead          Command         Shared Object
+    # ........  ...............  ....................
+    #
+        30.73%             rawv  libc-2.13.so          [.] __memcpy_ssse3
+        26.78%           vivi-*  [kernel.kallsyms]     [k] memcpy
+        10.68%             Xorg  [unknown]             [.] 0xa73015e9
+         5.55%           vivi-*  [vivi]                [k] gen_text.constprop.6
+         1.36%          swapper  [kernel.kallsyms]     [k] read_hpet
+         0.96%             Xorg  [kernel.kallsyms]     [k] read_hpet
+         ...
+         0.16%             rawv  [vivi]                [k] precalculate_line
+         ...
+         0.14%             rawv  [vivi]                [k] gen_twopix
 
-Cheers,
-b.
+(i.e. gen_twopix and precalculate_line overheads are almost gone)
 
+Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
+---
+ drivers/media/platform/vivi.c | 22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
 
-
---------------enig4E0147CA8118C6C878B7BDDA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iEYEARECAAYFAlC2EtwACgkQl3EQlGLyuXD5awCgyjvDbyXIWu4IMJOg3Gymp+ao
-TNAAoKk4heeBjShmSdIrZK6+MvPPqGpY
-=XVzp
------END PGP SIGNATURE-----
-
---------------enig4E0147CA8118C6C878B7BDDA--
+diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+index 0272d07..37d0af8 100644
+--- a/drivers/media/platform/vivi.c
++++ b/drivers/media/platform/vivi.c
+@@ -517,12 +517,22 @@ static void gen_twopix(struct vivi_dev *dev, u8 *buf, int colorpos, bool odd)
+ 
+ static void precalculate_line(struct vivi_dev *dev)
+ {
+-	int w;
+-
+-	for (w = 0; w < dev->width * 2; w++) {
+-		int colorpos = w / (dev->width / 8) % 8;
+-
+-		gen_twopix(dev, dev->line + w * dev->pixelsize, colorpos, w & 1);
++	unsigned pixsize  = dev->pixelsize;
++	unsigned pixsize2 = 2*pixsize;
++	int colorpos;
++	u8 *pos;
++
++	for (colorpos = 0; colorpos < 16; ++colorpos) {
++		u8 pix[8];
++		int wstart =  colorpos    * dev->width / 8;
++		int wend   = (colorpos+1) * dev->width / 8;
++		int w;
++
++		gen_twopix(dev, &pix[0],        colorpos % 8, 0);
++		gen_twopix(dev, &pix[pixsize],  colorpos % 8, 1);
++
++		for (w = wstart/2*2, pos = dev->line + w*pixsize; w < wend; w += 2, pos += pixsize2)
++			memcpy(pos, pix, pixsize2);
+ 	}
+ }
+ 
+-- 
+1.8.0.316.g291341c
 
