@@ -1,120 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:42825 "EHLO jenni1.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752181Ab2KRPNN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Nov 2012 10:13:13 -0500
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH 5/7] ir-rx51: Convert latency constraints to PM QoS API
-Date: Sun, 18 Nov 2012 17:13:07 +0200
-Message-Id: <1353251589-26143-6-git-send-email-timo.t.kokkonen@iki.fi>
-In-Reply-To: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
-References: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
+Received: from gateway07.websitewelcome.com ([67.18.65.21]:38676 "EHLO
+	gateway07.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1762294Ab2KBRbM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Nov 2012 13:31:12 -0400
+Received: from gator886.hostgator.com (gator886.hostgator.com [174.120.40.226])
+	by gateway07.websitewelcome.com (Postfix) with ESMTP id 84F786B9D96D0
+	for <linux-media@vger.kernel.org>; Fri,  2 Nov 2012 12:22:21 -0500 (CDT)
+From: "Charlie X. Liu" <charlie@sensoray.com>
+To: "'Mauro Carvalho Chehab'" <mchehab@redhat.com>
+Cc: "'Richard'" <tuxbox.guru@gmail.com>, <linux-media@vger.kernel.org>
+References: <CAKQROYViF1PhLNquiPOQAxRs4jnwHXg-kK2PBG3irTtnXpDCwg@mail.gmail.com>	<000d01cdb886$d08f8ed0$71aeac70$@com> <20121102104734.04d708de@gaivota.chehab>
+In-Reply-To: <20121102104734.04d708de@gaivota.chehab>
+Subject: RE: Skeleton LinuxDVB framework
+Date: Fri, 2 Nov 2012 10:22:20 -0700
+Message-ID: <000501cdb91e$9ec4fdc0$dc4ef940$@com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Language: en-us
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert the driver from the obsolete omap_pm_set_max_mpu_wakeup_lat
-API to the new PM QoS API. This allows the callback to be removed from
-the platform data structure.
+Thanks Mauro, for pointing out and clarifying.		-- Charlie
 
-The latency requirements are also adjusted to prevent the MPU from
-going into sleep mode. This is needed as the GP timers have no means
-to wake up the MPU once it has gone into sleep. The "side effect" is
-that from now on the driver actually works even if there is no
-background load keeping the MPU awake.
 
-Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Acked-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |  2 --
- drivers/media/rc/ir-rx51.c                   | 17 ++++++++++++-----
- include/media/ir-rx51.h                      |  2 --
- 3 files changed, 12 insertions(+), 9 deletions(-)
+-----Original Message-----
+From: linux-media-owner@vger.kernel.org
+[mailto:linux-media-owner@vger.kernel.org] On Behalf Of Mauro Carvalho
+Chehab
+Sent: Friday, November 02, 2012 5:48 AM
+To: Charlie X. Liu
+Cc: 'Richard'; linux-media@vger.kernel.org
+Subject: Re: Skeleton LinuxDVB framework
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 020e03c..6d0f29d 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -33,7 +33,6 @@
- #include "common.h"
- #include <plat/dma.h>
- #include <plat/gpmc.h>
--#include <plat/omap-pm.h>
- #include "gpmc-smc91x.h"
- 
- #include "board-rx51.h"
-@@ -1224,7 +1223,6 @@ static void __init rx51_init_tsc2005(void)
- 
- #if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
- static struct lirc_rx51_platform_data rx51_lirc_data = {
--	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
- 	.pwm_timer = 9, /* Use GPT 9 for CIR */
- };
- 
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index 6e1ffa6..96ed23d 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -25,6 +25,7 @@
- #include <linux/platform_device.h>
- #include <linux/sched.h>
- #include <linux/wait.h>
-+#include <linux/pm_qos.h>
- 
- #include <plat/dmtimer.h>
- #include <plat/clock.h>
-@@ -49,6 +50,7 @@ struct lirc_rx51 {
- 	struct omap_dm_timer *pulse_timer;
- 	struct device	     *dev;
- 	struct lirc_rx51_platform_data *pdata;
-+	struct pm_qos_request	pm_qos_request;
- 	wait_queue_head_t     wqueue;
- 
- 	unsigned long	fclk_khz;
-@@ -268,10 +270,16 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
- 		lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
- 
- 	/*
--	 * Adjust latency requirements so the device doesn't go in too
--	 * deep sleep states
-+	 * If the MPU is going into too deep sleep state while we are
-+	 * transmitting the IR code, timers will not be able to wake
-+	 * up the MPU. Thus, we need to set a strict enough latency
-+	 * requirement in order to ensure the interrupts come though
-+	 * properly. The 10us latency requirement is low enough to
-+	 * keep MPU from sleeping and thus ensures the interrupts are
-+	 * getting through properly.
- 	 */
--	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
-+	pm_qos_add_request(&lirc_rx51->pm_qos_request,
-+			PM_QOS_CPU_DMA_LATENCY,	10);
- 
- 	lirc_rx51_on(lirc_rx51);
- 	lirc_rx51->wbuf_index = 1;
-@@ -292,8 +300,7 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
- 	 */
- 	lirc_rx51_stop_tx(lirc_rx51);
- 
--	/* We can sleep again */
--	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
-+	pm_qos_remove_request(&lirc_rx51->pm_qos_request);
- 
- 	return n;
- }
-diff --git a/include/media/ir-rx51.h b/include/media/ir-rx51.h
-index 104aa89..57523f2 100644
---- a/include/media/ir-rx51.h
-+++ b/include/media/ir-rx51.h
-@@ -3,8 +3,6 @@
- 
- struct lirc_rx51_platform_data {
- 	int pwm_timer;
--
--	int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
- };
- 
- #endif
--- 
-1.8.0
+Em Thu, 1 Nov 2012 16:15:41 -0700
+"Charlie X. Liu" <charlie@sensoray.com> escreveu:
+
+> You could check or refer to the following links, for start:
+> 
+> http://linuxtv.org/wiki/index.php/Main_Page
+> http://www.linuxtv.org/wiki/index.php/LinuxTV_dvb-apps
+
+
+Be careful with the docs below:
+
+> http://www.linuxtv.org/docs/dvbapi/dvbapi.html
+> http://linuxtv.org/downloads/legacy/linux-dvb-api-v4/linux-dvb-api-v4-
+> 0-1.pdf http://elinux.org/images/1/13/Celf_linux_dvb_v4.pdf
+
+As DVB version 3 or below is outdated, and v4 was never finished/merged.
+
+The DVBv5 (currently, on version 5.8) is the one you should use:
+
+> http://linuxtv.org/downloads/v4l-dvb-apis/dvbapi.html
+
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org 
+> [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Richard
+> Sent: Thursday, November 01, 2012 6:35 AM
+> To: linux-media@vger.kernel.org
+> Subject: Skeleton LinuxDVB framework
+> 
+> Hi all,
+> 
+> As a newbie to the LinuxDVB Device drivers, I am wondering if there is 
+> a framework template to get a quick start in to DVB device drivers. I 
+> currently have a SOC chip and an manufacturers API that I would like 
+> to make in to a LinuxDVB compliant device. (Tuners/Demods/CA/MPEG 
+> output hardware
+> etc)
+
+It is probably easier to get one driver of each type as an example and
+change it to fill your needs.
+
+> 
+> Any information is greatly appreciated.
+> Richard
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" 
+> in the body of a message to majordomo@vger.kernel.org More majordomo 
+> info at http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" 
+> in the body of a message to majordomo@vger.kernel.org More majordomo 
+> info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+Cheers,
+Mauro
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org More majordomo info at
+http://vger.kernel.org/majordomo-info.html
 
