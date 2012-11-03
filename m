@@ -1,47 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59261 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750895Ab2KFOaJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Nov 2012 09:30:09 -0500
-Message-ID: <50991ED4.9030108@iki.fi>
-Date: Tue, 06 Nov 2012 16:29:40 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:53050 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752800Ab2KCJUv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2012 05:20:51 -0400
+Received: by mail-ie0-f174.google.com with SMTP id k13so6068561iea.19
+        for <linux-media@vger.kernel.org>; Sat, 03 Nov 2012 02:20:51 -0700 (PDT)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: for_v3.8 build is broken
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1351088137-11472-4-git-send-email-k.debski@samsung.com>
+References: <1351088137-11472-1-git-send-email-k.debski@samsung.com>
+	<1351088137-11472-4-git-send-email-k.debski@samsung.com>
+Date: Sat, 3 Nov 2012 14:50:51 +0530
+Message-ID: <CALt3h7_2k0W6ZutaPFn=L0pQVALD9OtrS1m=Bjw-Zn0Q3q05Ww@mail.gmail.com>
+Subject: Re: [PATCH 4/4] s5p-mfc: Change internal buffer allocation from vb2
+ ops to dma_alloc_coherent
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org, jtp.park@samsung.com,
+	arun.kk@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	sunil joshi <joshi@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That build is broken currently.
+Hi Kamil,
 
-drivers/built-in.o: In function `sms_ir_event':
-/home/crope/linuxtv/code/linux/drivers/media/common/siano/smsir.c:48: 
-undefined reference to `ir_raw_event_store'
-/home/crope/linuxtv/code/linux/drivers/media/common/siano/smsir.c:50: 
-undefined reference to `ir_raw_event_handle'
-drivers/built-in.o: In function `sms_ir_init':
-/home/crope/linuxtv/code/linux/drivers/media/common/siano/smsir.c:56: 
-undefined reference to `smscore_get_board_id'
-/home/crope/linuxtv/code/linux/drivers/media/common/siano/smsir.c:60: 
-undefined reference to `rc_allocate_device'
-/home/crope/linuxtv/code/linux/drivers/media/common/siano/smsir.c:72: 
-undefined reference to `sms_get_board'
-/home/crope/linuxtv/code/linux/drivers/media/common/siano/smsir.c:92: 
-undefined reference to `sms_get_board'
-/home/crope/linuxtv/code/linux/drivers/media/common/siano/smsir.c:97: 
-undefined reference to `rc_register_device'
-/home/crope/linuxtv/code/linux/drivers/media/common/siano/smsir.c:100: 
-undefined reference to `rc_free_device'
-drivers/built-in.o: In function `sms_ir_exit':
-/home/crope/linuxtv/code/linux/drivers/media/common/siano/smsir.c:111: 
-undefined reference to `rc_unregister_device'
-make: *** [vmlinux] Error 1
+I found an issue while testing this patch on Exynos4.
 
 
-Antti
+On Wed, Oct 24, 2012 at 7:45 PM, Kamil Debski <k.debski@samsung.com> wrote:
+> Change internal buffer allocation from vb2 memory ops call to direct
+> calls of dma_alloc_coherent. This change shortens the code and makes it
+> much more readable.
+>
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |   20 +--
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr.c    |   30 ++++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |    5 +
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |  198 ++++++++---------------
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |  121 +++++---------
+>  5 files changed, 144 insertions(+), 230 deletions(-)
+>
 
--- 
-http://palosaari.fi/
+[snip]
+
+>  /* Allocate memory for instance data buffer */
+> @@ -233,58 +204,38 @@ int s5p_mfc_alloc_instance_buffer_v5(struct s5p_mfc_ctx *ctx)
+>  {
+>         struct s5p_mfc_dev *dev = ctx->dev;
+>         struct s5p_mfc_buf_size_v5 *buf_size = dev->variant->buf_size->priv;
+> +       int ret;
+>
+>         if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
+>                 ctx->codec_mode == S5P_MFC_CODEC_H264_ENC)
+>                 ctx->ctx.size = buf_size->h264_ctx;
+>         else
+>                 ctx->ctx.size = buf_size->non_h264_ctx;
+> -       ctx->ctx.alloc = vb2_dma_contig_memops.alloc(
+> -               dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->ctx.size);
+> -       if (IS_ERR(ctx->ctx.alloc)) {
+> -               mfc_err("Allocating context buffer failed\n");
+> -               ctx->ctx.alloc = NULL;
+> -               return -ENOMEM;
+> -       }
+> -       ctx->ctx.dma = s5p_mfc_mem_cookie(
+> -               dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->ctx.alloc);
+> -       BUG_ON(ctx->ctx.dma & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
+> -       ctx->ctx.ofs = OFFSETA(ctx->ctx.dma);
+> -       ctx->ctx.virt = vb2_dma_contig_memops.vaddr(ctx->ctx.alloc);
+> -       if (!ctx->ctx.virt) {
+> -               mfc_err("Remapping instance buffer failed\n");
+> -               vb2_dma_contig_memops.put(ctx->ctx.alloc);
+> -               ctx->ctx.alloc = NULL;
+> -               ctx->ctx.ofs = 0;
+> -               ctx->ctx.dma = 0;
+> -               return -ENOMEM;
+> +
+> +       ret = s5p_mfc_alloc_priv_buf(dev->mem_dev_l, &ctx->ctx);
+> +       if (ret) {
+> +               mfc_err("Failed to allocate instance buffer\n");
+> +               return ret;
+>         }
+> +       ctx->ctx.ofs = ctx->ctx.dma - dev->bank1;
+> +
+
+Here the original code does  ctx->ctx.ofs = OFFSETA(ctx->ctx.dma);
+The macro OFFSETA also does a right shift of MFC_OFFSET_SHIFT.
+Without this change, the decoding is not working on Exynos4.
+
+
+>         /* Zero content of the allocated memory */
+>         memset(ctx->ctx.virt, 0, ctx->ctx.size);
+>         wmb();
+>
+
+
+All these patches are working well on Exynos5.
+
+Regards
+Arun
