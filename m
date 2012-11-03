@@ -1,162 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:37055 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754177Ab2K0Lbj convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 06:31:39 -0500
-From: Albert Wang <twang13@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "corbet@lwn.net" <corbet@lwn.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Libin Yang <lbyang@marvell.com>
-Date: Tue, 27 Nov 2012 03:32:39 -0800
-Subject: RE: [PATCH 04/15] [media] marvell-ccic: reset ccic phy when stop
- streaming for stability
-Message-ID: <477F20668A386D41ADCC57781B1F70430D1367C8D7@SC-VEXCH1.marvell.com>
-References: <1353677603-24071-1-git-send-email-twang13@marvell.com>
- <Pine.LNX.4.64.1211271152240.22273@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1211271152240.22273@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from einhorn.in-berlin.de ([192.109.42.8]:55161 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751511Ab2KCJZj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2012 05:25:39 -0400
+Date: Sat, 3 Nov 2012 10:25:20 +0100
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	linux1394-devel@lists.sourceforge.net
+Subject: [PATCH] firedtv: add MAINTAINERS entry
+Message-ID: <20121103102520.2babeb29@stein>
+In-Reply-To: <20121102111310.755e38aa@gaivota.chehab>
+References: <201210221035.56897.hverkuil@xs4all.nl>
+	<20121025152701.0f4145c8@redhat.com>
+	<201211011644.50882.hverkuil@xs4all.nl>
+	<20121101141244.6c72242c@redhat.com>
+	<20121102111310.755e38aa@gaivota.chehab>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Guennadi
+There is currently discussion to add MAINTAINERS records for media
+drivers that don't have one yet, possibly with 'orphan' or 'odd fixes'
+status.  Here is a proper entry for the firedtv driver (for 1394
+attached DVB STBs and 1394 attached DVB cards from Digital Everywhere).
 
-Thanks for your review!
+The L: linux-media and T: linux-media.git lines in this entry are
+redundant to what scripts/get_maintainer.pl would show automatically but
+I added them for folks who read MAINTAINERS directly.  The "(firedtv)"
+string is for those folks as well if they look for driver name rather
+than file path.
+
+The F: drivers/media/firewire/ pattern and the "FireWire media drivers"
+title are currently synonymous with firedtv.  If more drivers get added
+there, this can be revisited.
+
+I don't have documentation or DVB-S2 devices to test, but I have DVB-C
+and DVB-T devices for testing.
+
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+---
+ MAINTAINERS |    8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -3041,6 +3041,14 @@ T:	git git://git.alsa-project.org/alsa-k
+ S:	Maintained
+ F:	sound/firewire/
+ 
++FIREWIRE MEDIA DRIVERS (firedtv)
++M:	Stefan Richter <stefanr@s5r6.in-berlin.de>
++L:	linux-media@vger.kernel.org
++L:	linux1394-devel@lists.sourceforge.net
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
++S:	Maintained
++F:	drivers/media/firewire/
++
+ FIREWIRE SBP-2 TARGET
+ M:	Chris Boot <bootc@bootc.net>
+ L:	linux-scsi@vger.kernel.org
 
 
->-----Original Message-----
->From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
->Sent: Tuesday, 27 November, 2012 18:57
->To: Albert Wang
->Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
->Subject: Re: [PATCH 04/15] [media] marvell-ccic: reset ccic phy when stop streaming for
->stability
->
->On Fri, 23 Nov 2012, Albert Wang wrote:
->
->> From: Libin Yang <lbyang@marvell.com>
->>
->> This patch adds the reset ccic phy operation when stop streaming.
->>
->> Without reset ccic phy, the next start streaming may be unstable.
->>
->> Also need add CCIC2 definition when PXA688/PXA2128 support dual ccics.
->>
->> Signed-off-by: Albert Wang <twang13@marvell.com>
->> Signed-off-by: Libin Yang <lbyang@marvell.com>
->> ---
->>  drivers/media/platform/marvell-ccic/mcam-core.c  |    5 +++++
->>  drivers/media/platform/marvell-ccic/mcam-core.h  |    2 ++
->>  drivers/media/platform/marvell-ccic/mmp-driver.c |   25 ++++++++++++++++++++++
->>  3 files changed, 32 insertions(+)
->>
->> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c
->> b/drivers/media/platform/marvell-ccic/mcam-core.c
->> index b111f0d..760e8ea 100755
->> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
->> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
->> @@ -1053,6 +1053,11 @@ static int mcam_vb_stop_streaming(struct vb2_queue *vq)
->>  		return -EINVAL;
->>  	mcam_ctlr_stop_dma(cam);
->>  	/*
->> +	 * Reset the CCIC PHY after stopping streaming,
->> +	 * otherwise, the CCIC may be unstable.
->> +	 */
->> +	cam->ctlr_reset(cam);
->
->Aren't you breaking the cafe driver by calling .ctrl_reset() without checking for NULL? Same
->holds for your .calc_dphy() callback too.
->
-Sorry, it's our mistake.
-We will fix it soon.
 
->> +	/*
->>  	 * VB2 reclaims the buffers, so we need to forget
->>  	 * about them.
->>  	 */
->> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h
->> b/drivers/media/platform/marvell-ccic/mcam-core.h
->> index 0df6b1c..40368f6 100755
->> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
->> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
->> @@ -103,6 +103,7 @@ struct mcam_camera {
->>  	short int use_smbus;	/* SMBUS or straight I2c? */
->>  	enum mcam_buffer_mode buffer_mode;
->>
->> +	int ccic_id;
->>  	/* MIPI support */
->>  	int bus_type;
->>  	int (*dphy)[3];
->> @@ -119,6 +120,7 @@ struct mcam_camera {
->>  	void (*plat_power_up) (struct mcam_camera *cam);
->>  	void (*plat_power_down) (struct mcam_camera *cam);
->>  	void (*calc_dphy)(struct mcam_camera *cam);
->> +	void (*ctlr_reset)(struct mcam_camera *cam);
->>
->>  	/*
->>  	 * Everything below here is private to the mcam core and diff --git
->> a/drivers/media/platform/marvell-ccic/mmp-driver.c
->> b/drivers/media/platform/marvell-ccic/mmp-driver.c
->> index 80977b0..20046d0 100755
->> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
->> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
->> @@ -103,6 +103,7 @@ static struct mmp_camera *mmpcam_find_device(struct
->platform_device *pdev)
->>  #define CPU_SUBSYS_PMU_BASE	0xd4282800
->>  #define REG_CCIC_DCGCR		0x28	/* CCIC dyn clock gate ctrl reg */
->>  #define REG_CCIC_CRCR		0x50	/* CCIC clk reset ctrl reg	*/
->> +#define REG_CCIC2_CRCR		0xf4	/* CCIC2 clk reset ctrl reg	*/
->>
->>  static void mcam_clk_set(struct mcam_camera *mcam, int on)  { @@
->> -174,6 +175,28 @@ static void mmpcam_power_down(struct mcam_camera *mcam)
->>  	mcam_clk_set(mcam, 0);
->>  }
->>
->> +void mcam_ctlr_reset(struct mcam_camera *mcam) {
->> +	unsigned long val;
->> +	struct mmp_camera *cam = mcam_to_cam(mcam);
->> +
->> +	if (mcam->ccic_id) {
->> +		/*
->> +		 * Using CCIC2
->> +		 */
->> +		val = ioread32(cam->power_regs + REG_CCIC2_CRCR);
->> +		iowrite32(val & ~0x2, cam->power_regs + REG_CCIC2_CRCR);
->> +		iowrite32(val | 0x2, cam->power_regs + REG_CCIC2_CRCR);
->> +	} else {
->> +		/*
->> +		 * Using CCIC1
->> +		 */
->> +		val = ioread32(cam->power_regs + REG_CCIC_CRCR);
->> +		iowrite32(val & ~0x2, cam->power_regs + REG_CCIC_CRCR);
->> +		iowrite32(val | 0x2, cam->power_regs + REG_CCIC_CRCR);
->> +	}
->> +}
->> +
->>  /*
->>   * calc the dphy register values
->>   * There are three dphy registers being used.
->> @@ -301,9 +324,11 @@ static int mmpcam_probe(struct platform_device *pdev)
->>  	mcam = &cam->mcam;
->>  	mcam->plat_power_up = mmpcam_power_up;
->>  	mcam->plat_power_down = mmpcam_power_down;
->> +	mcam->ctlr_reset = mcam_ctlr_reset;
->>  	mcam->calc_dphy = mmpcam_calc_dphy;
->>  	mcam->dev = &pdev->dev;
->>  	mcam->use_smbus = 0;
->> +	mcam->ccic_id = pdev->id;
->>  	mcam->bus_type = pdata->bus_type;
->>  	mcam->dphy = &(pdata->dphy);
->>  	mcam->mipi_enabled = 0;
->> --
->> 1.7.9.5
->
->Thanks
->Guennadi
->---
->Guennadi Liakhovetski, Ph.D.
->Freelance Open-Source Software Developer http://www.open-technology.de/
+On Nov 02 Mauro Carvalho Chehab wrote:
+> Em Thu, 1 Nov 2012 14:12:44 -0200
+> Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+> 
+> > Em Thu, 1 Nov 2012 16:44:50 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+
+(thread [media-workshop] Tentative Agenda for the November workshop)
+> > > On Thu October 25 2012 19:27:01 Mauro Carvalho Chehab wrote:
+> > > > I have an extra theme for discussions there: what should we do with the drivers
+> > > > that don't have any MAINTAINERS entry.
+[...]
+> > > > It probably makes sense to mark them as "Orphan" (or, at least, have some
+> > > > criteria to mark them as such). Perhaps before doing that, we could try
+> > > > to see if are there any developer at the community with time and patience
+> > > > to handle them.
+> > > > 
+> > > > This could of course be handled as part of the discussions about how to improve
+> > > > the merge process, but I suspect that this could generate enough discussions
+> > > > to be handled as a separate theme.
+> > > 
+> > > Do we have a 'Maintainer-Light' category? I have a lot of hardware that I can
+> > > test. So while I wouldn't like to be marked as 'The Maintainer of driver X'
+> > > (since I simply don't have the time for that), I wouldn't mind being marked as
+> > > someone who can at least test patches if needed.
+> > 
+> > There are several "maintainance" status there: 
+> > 
+> > 	S: Status, one of the following:
+> > 	   Supported:	Someone is actually paid to look after this.
+> > 	   Maintained:	Someone actually looks after it.
+> > 	   Odd Fixes:	It has a maintainer but they don't have time to do
+> > 			much other than throw the odd patch in. See below..
+> > 	   Orphan:	No current maintainer [but maybe you could take the
+> > 			role as you write your new code].
+> > 	   Obsolete:	Old code. Something tagged obsolete generally means
+> > 			it has been replaced by a better system and you
+> > 			should be using that.
+> > 
+> > (btw, I just realized that I should be changing the EDAC drivers I maintain
+> >  to Supported; the media drivers I maintain should be kept as Maintained).
+> > 
+> > I suspect that the "maintainer-light" category for those radio and similar
+> > old stuff is likely "Odd Fixes".
+> > 
+> > > > There are some issues by not having a MAINTAINERS entry:
+> > > > 	- patches may not flow into the driver maintainer;
+> > > > 	- patches will likely be applied without tests/reviews or may
+> > > > 	  stay for a long time queued;
+> > > > 	- ./scripts/get_maintainer.pl at --no-git-fallback won't return
+> > > > 	  any maintainer[1].
+> > > > 
+> > > > [1] Letting get_maintainer.pl is very time/CPU consuming. Letting it would 
+> > > > delay a lot the patch review process, if applied for every patch, with
+> > > > unreliable and doubtful results. I don't do it, due to the large volume
+> > > > of patches, and because the 'other' results aren't typically the driver
+> > > > maintainer.
+> > > > 
+> > > > An example of this is the results for a patch I just applied
+> > > > (changeset 2866aed103b915ca8ba0ff76d5790caea4e62ced):
+> > > > 
+> > > > 	$ git show --pretty=email|./scripts/get_maintainer.pl
+[...]
+> > > > The driver author (Hongjun Chen <hong-jun.chen@freescale.com>) was not even
+> > > > shown there, and the co-author got only 15% hit, while I got 100% and Hans
+> > > > got 57%.
+> > > > 
+> > > > This happens not only to this driver. In a matter of fact, on most cases where
+> > > > no MAINTAINERS entry exist, the driver's author gets a very small hit chance,
+> > > > as, on several of those drivers, the author doesn't post anything else but
+> > > > the initial patch series.
+> > > 
+> > > We probably need to have an entry for all the media drivers, even if it just
+> > > points to the linux-media mailinglist as being the 'collective default maintainer'.
+> > 
+> > Yes, I think that all media drivers should be there. I prefer to tag the ones
+> > that nobody sends us a MAINTAINERS entry with "Orphan", as this tag indicates
+> > that help is wanted. 
+> 
+> I wrote a small shell script to see what's missing, using the analyze_build.pl script
+> at media-build devel_scripts dir:
+> 
+> 	DIR=$(dirname $0)
+> 
+> 	$DIR/analyze_build.pl --path drivers/media/ --show_files_per_module >/tmp/all_drivers
+> 	grep drivers/media/ MAINTAINERS | perl -ne 's/F:\s+//;s,drivers/media/,,; print $_ if (!/^\n/)' >maintained
+> 	grep -v -f maintained /tmp/all_drivers |grep -v -e keymaps -e v4l2-core/ -e dvb-core/ -e media.ko -e rc-core.ko -e ^#| sort >without_maint
+> 
+> I excluded the core files from the list, as they don't need any specific entry. RC
+> keymaps is also a special case, as I don't think any maintainer is needed for them.
+> 
+> Basically, analyze_build.pl says that there are 613 drivers under drivers/media.
+> The above script shows 348 drivers without an explicit maintainer. So, only 43%
+> of the drivers have a formal maintainer.
+[...]
+
+-- 
+Stefan Richter
+-=====-===-- =-== ---==
+http://arcgraph.de/sr/
