@@ -1,40 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:35232 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752651Ab2KBMIt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2012 08:08:49 -0400
-From: YAMANE Toshiaki <yamanetoshi@gmail.com>
-To: Greg Kroah-Hartman <greg@kroah.com>, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	YAMANE Toshiaki <yamanetoshi@gmail.com>
-Subject: [PATCH 1/2] Staging/media: fixed spacing coding style in go7007/wis-ov7640.c
-Date: Fri,  2 Nov 2012 21:08:41 +0900
-Message-Id: <1351858121-5708-1-git-send-email-yamanetoshi@gmail.com>
+Received: from blackhole.sdinet.de ([176.9.52.58]:51149 "EHLO mail.sdinet.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751682Ab2KCOjA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Nov 2012 10:39:00 -0400
+Date: Sat, 3 Nov 2012 15:28:51 +0100 (CET)
+From: Sven-Haegar Koch <haegar@sdinet.de>
+To: Daniel Mack <zonque@gmail.com>
+cc: Christof Meerwald <cmeerw@cmeerw.org>,
+	"Artem S. Tashkinov" <t.artem@lycos.com>, pavel@ucw.cz,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	security@kernel.org, linux-media@vger.kernel.org,
+	linux-usb@vger.kernel.org
+Subject: Re: A reliable kernel panic (3.6.2) and system crash when visiting
+ a particular website
+In-Reply-To: <50952744.4090203@gmail.com>
+Message-ID: <alpine.DEB.2.02.1211031527540.28042@aurora.sdinet.de>
+References: <2104474742.26357.1350734815286.JavaMail.mail@webmail05> <20121020162759.GA12551@liondog.tnic> <966148591.30347.1350754909449.JavaMail.mail@webmail08> <20121020203227.GC555@elf.ucw.cz> <20121020225849.GA8976@liondog.tnic>
+ <1781795634.31179.1350774917965.JavaMail.mail@webmail04> <20121103141049.GA24238@edge.cmeerw.net> <50952744.4090203@gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fixed below checkpatch error.
-- ERROR: that open brace { should be on the previous line
+On Sat, 3 Nov 2012, Daniel Mack wrote:
 
-Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
----
- drivers/staging/media/go7007/wis-ov7640.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+> On 03.11.2012 15:10, Christof Meerwald wrote:
+> > On Sat, 20 Oct 2012 23:15:17 +0000 (GMT), Artem S. Tashkinov wrote:
+> >> It's almost definitely either a USB driver bug or video4linux driver bug:
+> >>
+> >> I'm CC'ing linux-media and linux-usb mailing lists, the problem is described here:
+> >> https://lkml.org/lkml/2012/10/20/35
+> >> https://lkml.org/lkml/2012/10/20/148
+> > 
+> > Not sure if it's related, but I am seeing a kernel freeze with a
+> > usb-audio headset (connected via an external USB hub) on Linux 3.5.0
+> > (Ubuntu 12.10) - see
+> 
+> Does Ubuntu 12.10 really ship with 3.5.0? Not any more recent
 
-diff --git a/drivers/staging/media/go7007/wis-ov7640.c b/drivers/staging/media/go7007/wis-ov7640.c
-index 6bc9470..eb5efc9 100644
---- a/drivers/staging/media/go7007/wis-ov7640.c
-+++ b/drivers/staging/media/go7007/wis-ov7640.c
-@@ -29,8 +29,7 @@ struct wis_ov7640 {
- 	int hue;
- };
- 
--static u8 initial_registers[] =
--{
-+static u8 initial_registers[] = {
- 	0x12, 0x80,
- 	0x12, 0x54,
- 	0x14, 0x24,
+They ship 3.5.7 plus some more fixes, but call it 3.5.0-18.29
+
+c'ya
+sven-haegar
+
 -- 
-1.7.9.5
-
+Three may keep a secret, if two of them are dead.
+- Ben F.
