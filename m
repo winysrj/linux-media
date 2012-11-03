@@ -1,55 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2590 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752479Ab2K3Jyn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Nov 2012 04:54:43 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v3 0/9] Media Controller capture driver for DM365
-Date: Fri, 30 Nov 2012 10:54:36 +0100
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	devel@driverdev.osuosl.org,
-	"Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com> <20121130094739.GJ31879@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20121130094739.GJ31879@valkosipuli.retiisi.org.uk>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:34107 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751100Ab2KCEPC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2012 00:15:02 -0400
+Received: by mail-ie0-f174.google.com with SMTP id k13so5937502iea.19
+        for <linux-media@vger.kernel.org>; Fri, 02 Nov 2012 21:15:02 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201211301054.36334.hverkuil@xs4all.nl>
+In-Reply-To: <502AE483.6000001@iki.fi>
+References: <1344987576.21425.YahooMailClassic@web29406.mail.ird.yahoo.com>
+	<502AE483.6000001@iki.fi>
+Date: Fri, 2 Nov 2012 21:14:59 -0700
+Message-ID: <CAA7C2qj=MqjffDMG3Ekb2RLiwnj0dvOzEvhm_RDM=HLED3YvfA@mail.gmail.com>
+Subject: Re: small regression in mediatree/for_v3.7-3 - media_build
+From: VDR User <user.vdr@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: htl10@users.sourceforge.net, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri November 30 2012 10:47:39 Sakari Ailus wrote:
-> On Wed, Nov 28, 2012 at 04:12:00PM +0530, Prabhakar Lad wrote:
-> > From: Manjunath Hadli <manjunath.hadli@ti.com>
-> > 
-> > Mauro/Greg,
-> >  The below series of patches have gone through good amount of reviews, and
-> > agreed by Laurent, Hans and Sakari to be part of the staging tree. I am combining
-> > the patchs with the pull request so we can get them into the 3.8 kernel.
-> > Please pull these patches.If you want a seperate pull request, please let me
-> > know.
-> > 
-> > This patch set adds media controller based capture driver for
-> > DM365.
-> 
-> For the whole set --- granted that the TODO item to "add support for regular
-> V4L2 applications through user space libraries" is added:
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> 
+On Tue, Aug 14, 2012 at 4:51 PM, Antti Palosaari <crope@iki.fi> wrote:
+>> There seems to be a small regression on mediatree/for_v3.7-3
+>> - dmesg/klog get flooded with these:
+>>
+>> [201145.140260] dvb_frontend_poll: 15 callbacks suppressed
+>> [201145.586405] usb_urb_complete: 88 callbacks suppressed
+>> [201150.587308] usb_urb_complete: 3456 callbacks suppressed
+>>
+>> [201468.630197] usb_urb_complete: 3315 callbacks suppressed
+>> [201473.632978] usb_urb_complete: 3529 callbacks suppressed
+>> [201478.635400] usb_urb_complete: 3574 callbacks suppressed
+>>
+>> It seems to be every 5 seconds, but I think that's just klog skipping
+>> repeats and collapsing duplicate entries. This does not happen the last time
+>> I tried playing with the TV stick :-).
+>
+> That's because you has dynamic debugs enabled!
+> modprobe dvb_core; echo -n 'module dvb_core +p' >
+> /sys/kernel/debug/dynamic_debug/control
+> modprobe dvb_usbv2; echo -n 'module dvb_usbv2 +p' >
+> /sys/kernel/debug/dynamic_debug/control
+>
+> If you don't add dvb_core and dvb_usbv2 modules to
+> /sys/kernel/debug/dynamic_debug/control you will not see those.
 
-Ditto for the TODO item.
+I'm getting massive amounts of "dvb_frontend_poll: 20 callbacks
+suppressed" messages in dmesg also and I definitely did not put
+dvb_core or anything else in /sys/kernel/debug/dynamic_debug/control.
+For that matter I don't even have a
+/sys/kernel/debug/dynamic_debug/control file.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> I have added ratelimited version for those few debugs that are flooded
+> normally. This suppressed is coming from ratelimit - it does not print all
+> those similar debugs.
+
+I'm using kernel 3.6.3 with media_build from Oct. 21, 2012. How I can
+disable those messages? I'd rather not see hundreds, possibly
+thousands or millions of those messages. :)
