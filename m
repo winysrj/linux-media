@@ -1,103 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:59693 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751653Ab2KWSL7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 13:11:59 -0500
-Date: Fri, 23 Nov 2012 19:12:32 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Antonio Ospite <ospite@studenti.unina.it>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:43612 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754266Ab2KCNgW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2012 09:36:22 -0400
+Received: by mail-ie0-f174.google.com with SMTP id k13so6198187iea.19
+        for <linux-media@vger.kernel.org>; Sat, 03 Nov 2012 06:36:21 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CA+6av4m8Dqn_p+2MLXO7Z8+J=_=ubf6mFnzvZZ9S8B1Nf+RReg@mail.gmail.com>
+References: <1351773720-22639-1-git-send-email-elezegarcia@gmail.com>
+	<CA+6av4nv=J7wZKKbKVSGyNRVaZUO24Qv8NwbbCK8v_ZrU-7oUQ@mail.gmail.com>
+	<CALF0-+XOLwg-Rnxm2G3mmvORXthGzeczvBEZdKGDoRZH10Wtvw@mail.gmail.com>
+	<CA+6av4m8Dqn_p+2MLXO7Z8+J=_=ubf6mFnzvZZ9S8B1Nf+RReg@mail.gmail.com>
+Date: Sat, 3 Nov 2012 10:36:21 -0300
+Message-ID: <CALF0-+VngaPLF+oJ9MpFArqhXJOZMkSi6XFzCv_YJOqzk-h+HA@mail.gmail.com>
+Subject: Re: [PATCH] stkwebcam: Fix sparse warning on undeclared symbol
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Arvydas Sidorenko <asido4@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Andrea Anacleto <andreaanacleto@libero.it>,
+	Jaime Velasco Juan <jsagarribay@gmail.com>,
 	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] gspca - ov534: Fix the light frequency filter
-Message-ID: <20121123191232.7ed9c546@armhf>
-In-Reply-To: <20121123180909.021c55a8c3795329836c42b7@studenti.unina.it>
-References: <20121122124652.3a832e33@armhf>
-	<20121123180909.021c55a8c3795329836c42b7@studenti.unina.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 23 Nov 2012 18:09:09 +0100
-Antonio Ospite <ospite@studenti.unina.it> wrote:
+Hi Arvydas,
 
-> On Thu, 22 Nov 2012 12:46:52 +0100
-	[snip]
-> Jean-Francois Moine <moinejf@free.fr> wrote:
-> > This patch was done thanks to the documentation of the right
-> > OmniVision sensors.
-> 
-> In the datasheet I have for ov772x, bit[6] of register 0x13 is described
-> as:
-> 
->   Bit[6]: AEC - Step size limit
->     0: Step size is limited to vertical blank
->     1: Unlimited step size
+On Sat, Nov 3, 2012 at 12:48 AM, Arvydas Sidorenko <asido4@gmail.com> wrote:
+>> If you have the time to test it and stamp a "Tested-by" on it, I would
+>> appreciate it.
+>>
+>> Thanks,
+>>
+>>     Ezequiel
+>
+> I applied and tested on 3.7.0-rc3 - everything is ok.
 
-Right, but I don't use the bit 6, it is the bit 5:
+Thanks!
 
-> > +		sccb_reg_write(gspca_dev, 0x13,		/* auto */
-> > +				sccb_reg_read(gspca_dev, 0x13) | 0x20);
-
-which is described as:
-
-   Bit[5]:  Banding filter ON/OFF
-
-> And the patch makes Light Frequency _NOT_ work with the PS3 eye (based
-> on ov772x).
-> 
-> What does the ov767x datasheet say?
-
-Quite the same thing:
-
-   Bit[5]: Banding filter ON/OFF - In order to turn ON the banding
-           filter, BD50ST (0x9D) or BD60ST (0x9E) must be set to a
-           non-zero value.
-           0: OFF
-           1: ON
-
-(the registers 9d and 9e are non zero for the ov767x in ov534.c)
-
-> Maybe we should use the new values only when
-> 	sd->sensor == SENSOR_OV767x
-> 
-> What sensor does Alexander's webcam use?
-
-He has exactly the same webcam as yours: 1415:2000 (ps eye) with
-sensor ov772x.
-
-> > Note: The light frequency filter is either off or automatic.
-> > The application will see either off or "50Hz" only.
-> > 
-> > Tested-by: alexander calderon <fabianp902@gmail.com>
-> > Signed-off-by: Jean-François Moine <moinejf@free.fr>
-> > 
-> > --- a/drivers/media/usb/gspca/ov534.c
-> > +++ b/drivers/media/usb/gspca/ov534.c
-> > @@ -1038,13 +1038,12 @@
-> >  {
-> >  	struct sd *sd = (struct sd *) gspca_dev;
-> > 
-> 
-> drivers/media/usb/gspca/ov534.c: In function ‘setlightfreq’:
-> drivers/media/usb/gspca/ov534.c:1039:13: warning: unused variable ‘sd’ [-Wunused-variable]
-
-Thanks.
-
-Well, here is one of the last message I received from Alexander (in
-fact, his first name is Fabian):
-
-> Thanks for all your help, it is very kind of you, I used the code below,the
-> 60 Hz filter appear to work even at 100fps, but when I used 125 fps it
-> didnt work :( , i guess it is something of detection speed. If you have any
-> other idea I'll be very thankful.
-> 
-> Sincerely Fabian Calderon
-
-So, how may we advance?
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+    Ezequiel
