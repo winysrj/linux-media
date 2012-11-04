@@ -1,74 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56190 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753067Ab2KUNRH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Nov 2012 08:17:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	devicetree-discuss@lists.ozlabs.org,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	David Airlie <airlied@linux.ie>
-Subject: Re: [PATCH v12 0/6] of: add display helper
-Date: Wed, 21 Nov 2012 14:18:05 +0100
-Message-ID: <2518217.KnCDQR760l@avalon>
-In-Reply-To: <20121121082822.GB14013@pengutronix.de>
-References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de> <20121120193531.GB27186@avionic-0098.adnet.avionic-design.de> <20121121082822.GB14013@pengutronix.de>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:57086 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751769Ab2KDWX2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Nov 2012 17:23:28 -0500
+From: Tomasz Figa <tomasz.figa@gmail.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Andrey Gusakov <dron0gus@gmail.com>,
+	In-Bae Jeong <kukyakya@gmail.com>,
+	Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+Subject: Re: S3C244X/S3C64XX SoC camera host interface driver questions
+Date: Sun, 04 Nov 2012 23:23:25 +0100
+Message-ID: <2110908.qaFg5OjAC4@flatron>
+In-Reply-To: <5096E8D7.4070304@gmail.com>
+References: <CAA11ShCpH7Z8eLok=MEh4bcSb6XjtVFfLQEYh2icUtYc-j5hEQ@mail.gmail.com> <CAA11ShCKFfdmd_ydxxCYo9Sv0VhgZW9kCk_F7LAQDg3mr5prrw@mail.gmail.com> <5096E8D7.4070304@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 21 November 2012 09:28:22 Steffen Trumtrar wrote:
-> On Tue, Nov 20, 2012 at 08:35:31PM +0100, Thierry Reding wrote:
-> > On Tue, Nov 20, 2012 at 07:11:29PM +0100, Robert Schwebel wrote:
-> > > On Tue, Nov 20, 2012 at 05:13:19PM +0100, Laurent Pinchart wrote:
-> > > > On Tuesday 20 November 2012 16:54:50 Steffen Trumtrar wrote:
-> > > > > Hi!
-> > > > > 
-> > > > > Changes since v11:
-> > > > > 	- make pointers const where applicable
-> > > > > 	- add reviewed-by Laurent Pinchart
-> > > > 
-> > > > Looks good to me.
-> > > > 
-> > > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > > 
-> > > > Through which tree do you plan to push this ?
-> > > 
-> > > We have no idea yet, and none of the people on Cc: have volunteered
-> > > so far... what do you think?
-> > 
-> > The customary approach would be to take the patches through separate
-> > trees, but I think this particular series is sufficiently interwoven to
-> > warrant taking them all through one tree. However the least that we
-> > should do is collect Acked-by's from the other tree maintainers.
-> > 
-> > Given that most of the patches modify files in drivers/video, Florian's
-> > fbdev tree would be the most obvious candidate, right? If Florian agrees
-> > to take the patches, all we would need is David's Acked-by.
-> > 
-> > How does that sound?
-> > 
-> > Thierry
+Hi Andrey,
+
+On Sunday 04 of November 2012 23:14:47 Sylwester Nawrocki wrote:
+> >> Are you using this version of patches:
+> >> http://git.linuxtv.org/snawrocki/media.git/shortlog/refs/heads/s3c-cam
+> >> if ?> 
+> > I'm using patches from
+> > https://github.com/snawrocki/linux/commits/s3c-camif-v3.5 wich was in
+> > your mail to samsung maillist.
 > 
-> Hi!
-> 
-> That is exactly the way I thought this could happen.
+> I suggest you to update to the s3c-camif branch as above, it includes
+> some bug fixes. Sorry, I don't have exact patch for your issue handy
+> right now.
 
-Sounds good to me as well.
+Yes, you should definitely try the branch pointed by Sylwester, because the 
+one you originally tested does not contain my fixes for S3C6410.
 
--- 
-Regards,
-
-Laurent Pinchart
+Best regards,
+Tomasz Figa
 
