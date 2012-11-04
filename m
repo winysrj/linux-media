@@ -1,107 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.mnsspb.ru ([84.204.75.2]:48907 "EHLO mail.mnsspb.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756079Ab2KBNJy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Nov 2012 09:09:54 -0400
-From: Kirill Smelkov <kirr@mns.spb.ru>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Kirill Smelkov <kirr@mns.spb.ru>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: [PATCH 2/4] [media] vivi: vivi_dev->line[] was not aligned
-Date: Fri,  2 Nov 2012 17:10:31 +0400
-Message-Id: <483c58f72b5549ba5d8558ba4621c2489f231668.1351861552.git.kirr@mns.spb.ru>
-In-Reply-To: <cover.1351861552.git.kirr@mns.spb.ru>
-References: <cover.1351861552.git.kirr@mns.spb.ru>
-In-Reply-To: <cover.1351861552.git.kirr@mns.spb.ru>
-References: <cover.1351861552.git.kirr@mns.spb.ru>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:34257 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751107Ab2KDRKa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Nov 2012 12:10:30 -0500
+Date: Sun, 4 Nov 2012 18:10:20 +0100
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: Re: [PATCH v7 2/8] of: add helper to parse display timings
+Message-ID: <20121104171020.GB5894@pengutronix.de>
+References: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1351675689-26814-3-git-send-email-s.trumtrar@pengutronix.de>
+ <20121101201510.GB13137@avionic-0098.mockup.avionic-design.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20121101201510.GB13137@avionic-0098.mockup.avionic-design.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Though dev->line[] is u8 array we work with it as with u16, u24 or u32
-pixels, and also pass it to memcpy() and it's better to align it to at
-least 4.
+On Thu, Nov 01, 2012 at 09:15:10PM +0100, Thierry Reding wrote:
+> On Wed, Oct 31, 2012 at 10:28:02AM +0100, Steffen Trumtrar wrote:
+> [...]
+> > diff --git a/Documentation/devicetree/bindings/video/display-timings.txt b/Documentation/devicetree/bindings/video/display-timings.txt
+> [...]
+> > @@ -0,0 +1,139 @@
+> > +display-timings bindings
+> > +==================
+> > +
+> > +display-timings-node
+> > +------------
+> 
+> Maybe extend the underline to the length of the section and subsection
+> titles respectively?
+> 
+> > +struct display_timing
+> > +===================
+> 
+> Same here.
+> 
+> > +config OF_DISPLAY_TIMINGS
+> > +	def_bool y
+> > +	depends on DISPLAY_TIMING
+> 
+> Maybe this should be called OF_DISPLAY_TIMING to match DISPLAY_TIMING,
+> or rename DISPLAY_TIMING to DISPLAY_TIMINGS for the sake of consistency?
+> 
 
-Before the patch, on x86 offsetof(vivi_dev, line) was 1003 and after
-patch it is 1004.
+Yes, to all three above.
 
-There is slight performance increase, but I think is is slight, only
-because we start copying not from line[0]:
+> > +/**
+> > + * of_get_display_timing_list - parse all display_timing entries from a device_node
+> > + * @np: device_node with the subnodes
+> > + **/
+> > +struct display_timings *of_get_display_timing_list(struct device_node *np)
+> 
+> Perhaps this would better be named of_get_display_timings() to match the
+> return type?
+> 
 
-    ---- 8< ---- drivers/media/platform/vivi.c
-    static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
-    {
-            ...
+Hm, I'm not really sure about that. I found it to error prone, to have a function
+of_get_display_timing and of_get_display_timings. That's why I chose
+of_get_display_timing_list. But you are correct, that it doesn't match the return
+value. Maybe I should just make the first function static and change the name as you
+suggested.
 
-            for (h = 0; h < hmax; h++)
-                    memcpy(vbuf + h * wmax * dev->pixelsize,
-                           dev->line + (dev->mv_count % wmax) * dev->pixelsize,
-                           wmax * dev->pixelsize);
+> > +	disp = kzalloc(sizeof(*disp), GFP_KERNEL);
+> 
+> Shouldn't you be checking this for allocation failures?
+> 
+> > +	disp->timings = kzalloc(sizeof(struct display_timing *)*disp->num_timings,
+> > +				GFP_KERNEL);
+> 
+> Same here.
+> 
 
-before:
+Yes, to both.
 
-    # cmdline : /home/kirr/local/perf/bin/perf record -g -a sleep 20
-    #
-    # Samples: 49K of event 'cycles'
-    # Event count (approx.): 16799780016
-    #
-    # Overhead          Command         Shared Object
-    # ........  ...............  ....................
-    #
-        27.51%             rawv  libc-2.13.so          [.] __memcpy_ssse3
-        23.77%           vivi-*  [kernel.kallsyms]     [k] memcpy
-         9.96%             Xorg  [unknown]             [.] 0xa76f5e12
-         4.94%           vivi-*  [vivi]                [k] gen_text.constprop.6
-         4.44%             rawv  [vivi]                [k] gen_twopix
-         3.17%           vivi-*  [vivi]                [k] vivi_fillbuff
-         2.45%             rawv  [vivi]                [k] precalculate_line
-         1.20%          swapper  [kernel.kallsyms]     [k] read_hpet
+Regards,
+Steffen
 
-    23.77%           vivi-*  [kernel.kallsyms]     [k] memcpy
-                     |
-                     --- memcpy
-                        |
-                        |--99.28%-- vivi_fillbuff
-                        |          vivi_thread
-                        |          kthread
-                        |          ret_from_kernel_thread
-                         --0.72%-- [...]
-after:
 
-    # cmdline : /home/kirr/local/perf/bin/perf record -g -a sleep 20
-    #
-    # Samples: 49K of event 'cycles'
-    # Event count (approx.): 16475832370
-    #
-    # Overhead          Command           Shared Object
-    # ........  ...............  ......................
-    #
-        29.07%             rawv  libc-2.13.so            [.] __memcpy_ssse3
-        20.57%           vivi-*  [kernel.kallsyms]       [k] memcpy
-        10.20%             Xorg  [unknown]               [.] 0xa7301494
-         5.16%           vivi-*  [vivi]                  [k] gen_text.constprop.6
-         4.43%             rawv  [vivi]                  [k] gen_twopix
-         4.36%           vivi-*  [vivi]                  [k] vivi_fillbuff
-         2.42%             rawv  [vivi]                  [k] precalculate_line
-         1.33%          swapper  [kernel.kallsyms]       [k] read_hpet
-
-Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
----
- drivers/media/platform/vivi.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-index cb2337e..ddcc712 100644
---- a/drivers/media/platform/vivi.c
-+++ b/drivers/media/platform/vivi.c
-@@ -242,7 +242,7 @@ struct vivi_dev {
- 	unsigned int		   field_count;
- 
- 	u8			   bars[9][3];
--	u8			   line[MAX_WIDTH * 8];
-+	u8			   line[MAX_WIDTH * 8] __attribute__((__aligned__(4)));
- 	unsigned int		   pixelsize;
- 	u8			   alpha_component;
- 	u32			   textfg, textbg;
 -- 
-1.8.0.316.g291341c
-
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
