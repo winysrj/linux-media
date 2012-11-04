@@ -1,43 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:55731 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756140Ab2KVU6Z (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:40219 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751020Ab2KDVtI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 15:58:25 -0500
-Received: by mail-ee0-f46.google.com with SMTP id e53so3090132eek.19
-        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2012 12:58:24 -0800 (PST)
-Message-ID: <50AE91EE.4060203@gmail.com>
-Date: Thu, 22 Nov 2012 21:58:22 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.7-rc] Samsung SoC media driver fixes
-References: <50AE6BAC.1030208@samsung.com> <50AE6D36.1060805@samsung.com> <84619288.LAxNEDMoLt@avalon>
-In-Reply-To: <84619288.LAxNEDMoLt@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sun, 4 Nov 2012 16:49:08 -0500
+Subject: Re: [PATCH] cx23885: Added support for AVerTV Hybrid Express Slim
+ HC81R (only analog)
+From: Andy Walls <awalls@md.metrocast.net>
+To: Oleg Kravchenko <oleg@kaa.org.ua>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Date: Sun, 04 Nov 2012 16:49:00 -0500
+In-Reply-To: <2065193.Q95hUZKIgW@comp>
+References: <2489713.pAFgSjBqdl@comp>
+	 <21a4038a-2fef-4947-ab2a-06873e80b185@email.android.com>
+	 <2065193.Q95hUZKIgW@comp>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Message-ID: <1352065741.2631.7.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent.
+On Sun, 2012-11-04 at 09:59 +0200, Oleg Kravchenko wrote:
+> субота, 03-лис-2012 16:41:10 Andy Walls написано:
+> > Oleg Kravchenko <oleg@kaa.org.ua> wrote:
+> > >Hello! Please review my patch.
+> > >
+> > >Supported inputs:
+> > >Television, S-Video, Component.
+> > >
+> > >Modules options:
+> > >options cx25840 firmware=v4l-cx23418-dig.fw
+> > 
+> > Hi,
+> > 
+> > Please do not use the CX23418 digitizer firmware with the CX2388[578] chips.
+> >  Use the proper cx23885 digitizer firmware.  You need the proper firmware
+> > to get the best results in detecting the audio standard in broadcast analog
+> > video.
+> > 
+> > Regards,
+> > Andy
+> 
+> Windows driver use v4l-cx23418-dig.fw
+> 95bc688d3e7599fd5800161e9971cc55  merlinAVC.rom
+> 95bc688d3e7599fd5800161e9971cc55  /lib/firmware/v4l-cx23418-dig.fw
+> 
+> So, i think this is a proper firmware :)
 
-On 11/22/2012 07:55 PM, Laurent Pinchart wrote:
-> On Thursday 22 November 2012 19:21:42 Sylwester Nawrocki wrote:
->> Hi Mauro,
->>
->> this is what I've just sent (this time from the office my samsung.com
->> account) to linux-media@vger.kernel.org. And can't see it neither on the
->> mailing list nor at the patchwork.
->
-> Nothing like that coming from you in my mail server logs. It looks like an
-> SMTP server in the chain silently drops the e-mail.
+Maybe it is, but it is not the v4l-cx23418-dig.fw file:
 
-Thanks for checking it. It seems the vger mailing list are working now,
-and nothing got lost, just delayed for 1 day or so.
+$ md5sum /lib/firmware/v4l-cx23418-dig.fw 
+b3704908fd058485f3ef136941b2e513  /lib/firmware/v4l-cx23418-dig.fw
 
---
+Which can be extracted from this (double) gzipped tar archive:
+http://dl.ivtvdriver.org/ivtv/firmware/cx18-firmware.tar.gz
+(After downloading the file, rename it to cx18-firmware.tar.gz.gz.
+Sorry, I don't know how to stop the web server from gzipping things
+twice. :( )
+
+Mauro or Hans,
+
+Linuxtv.org seems to be serving up the wrong firmware for the CX23418's
+built in CX25843 core:
+http://www.linuxtv.org/downloads/firmware/v4l-cx23418-dig.fw
+
+$ md5sum Downloads/linuxtv.org-v4l-cx23418-dig.fw
+95bc688d3e7599fd5800161e9971cc55 Downloads/linuxtv.org-v4l-cx23418-dig.fw
+
+Can either of you please put the proper firmware file in place at
+LinuxTV.org? 
+
+Thanks.
+
 Regards,
-Sylwester
+Andy
+
