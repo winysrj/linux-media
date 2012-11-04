@@ -1,128 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:32872 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752962Ab2KYE7b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Nov 2012 23:59:31 -0500
-Received: by mail-qc0-f174.google.com with SMTP id o22so7021981qcr.19
-        for <linux-media@vger.kernel.org>; Sat, 24 Nov 2012 20:59:30 -0800 (PST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60426 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753327Ab2KEKdR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 05:33:17 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [RFC 1/4] v4l: Define video buffer flags for timestamp types
+Date: Sun, 04 Nov 2012 13:05:35 +0100
+Message-ID: <5808999.EXgvlF9x5r@avalon>
+In-Reply-To: <1351102583-682-1-git-send-email-sakari.ailus@iki.fi>
+References: <20121024181602.GD23933@valkosipuli.retiisi.org.uk> <1351102583-682-1-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <50B199A9.8050909@gmail.com>
-References: <50B1047B.4040901@gmail.com>
-	<CAGoCfiwpj5ua79wOp8_CZfD_O9EOG7PAA4wE3L4n3-d-+FEhVg@mail.gmail.com>
-	<50B199A9.8050909@gmail.com>
-Date: Sat, 24 Nov 2012 23:59:30 -0500
-Message-ID: <CAGoCfiwoe9Pb2UyCrhQTHuwO1X3ARE5fRMYNDigWSFcbiBDgjA@mail.gmail.com>
-Subject: Re: Poor HVR 1600 Video Quality - Feedback for Devin Heitmueller 2012-11-24
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Bob Lightfoot <boblfoot@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 24, 2012 at 11:08 PM, Bob Lightfoot <boblfoot@gmail.com> wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->
-> Devin :
->      Let me see if I can answer some of your questions.
->
-> 1. lspci -nn -vvv returns the following for the HVR-1600 Card
->
->> 01:00.0 Multimedia video controller [0400]: Conexant Systems, Inc.
->> CX23418 Single-Chip MPEG-2 Encoder with Integrated Analog
->> Video/Broadcast Audio Decoder [14f1:5b7a] Subsystem: Hauppauge
->> computer works Inc. WinTV HVR-1600 [0070:7444] Control: I/O- Mem+
->> BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- Stepping- SERR-
->> FastB2B- DisINTx- Status: Cap+ 66MHz- UDF- FastB2B+ ParErr-
->> DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
->> Latency: 64 (500ns min, 50000ns max), Cache Line Size: 32 bytes
->> Interrupt: pin A routed to IRQ 17 Region 0: Memory at f4000000
->> (32-bit, non-prefetchable) [size=64M] Capabilities: [44] Vital
->> Product Data Not readable Capabilities: [4c] Power Management
->> version 2 Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
->> PME(D0-,D1-,D2-,D3hot-,D3cold-) Status: D0 NoSoftRst- PME-Enable-
->> DSel=0 DScale=0 PME- Kernel driver in use: cx18 Kernel modules:
->> cx18
->
->
-> 2.  Links on Google to files related to this issue :
-> A. The Main Can on the Tuner Card -
->        https://docs.google.com/open?id=0B95B_9punKEmeHBUNHprMnVNV00
-> B. First of the Conextant Chips on Card -
->        https://docs.google.com/open?id=0B95B_9punKEmT2wwbmltSzFWb2c
-> C. Second of the Conextant Chips on Card -
->        https://docs.google.com/open?id=0B95B_9punKEmNTdVMENHUFllNzA
-> D. A Final ESMT Chip on Card -
->        https://docs.google.com/open?id=0B95B_9punKEmYUd5eWNrWEhudWc
-> E. The v4l2-ctl and cat /dev/video2 file made from Svideo1
->        https://docs.google.com/open?id=0B95B_9punKEmUGdJNTI3ZnR2T1k
-> F. The v4l2-ctl and cat /dev/video2 file made from Tuner1
->        https://docs.google.com/open?id=0B95B_9punKEmOUhLWjNyRG02NDA
->
-> 3.  I tested with both the SVideo and Coax Inputs for Analog.  As
-> you'll see from the 10 second videos the SVideo works fine but the
-> Coax Tuner is a problem.
->
-> 4.  I don't know if I am capturing raw for MPEG compressed for certain
-> but I'll go over the test method used to make to two videos and that
-> should also answer this question.
->
-> 5. As far as test tools I have used v4l2-ctl, mplayer, vlc and cat
-> commands for testing.
->
-> 6.  Commands issued in order were as follows for the SVideo Capture:
->     A. v4l2-ctl --list-devices
->     B. v4l2-ctl -d /dev/video2 --list-inputs
->     C. v4l2-ctl -d /dev/video2 --set-input=1  {Note this is SVideo1}
->     D. v4l2-ctl -d /dev/video2 --list-standards | less
->     E. v4l2-ctl -d /dev/video2 --set-standard=1  {Note this is NTSC}
->     F. mplayer /dev/video2 -cache 8192
->     G. close mplayer after successfully watching video
->     H. cat /dev/video2 > hvr1600-svideo1.mpg
->
-> 7.  Commands issued in order were as follows for the Tuner1 Capture:
->     A. v4l2-ctl --list-devices
->     B. v4l2-ctl -d /dev/video2 --list-inputs
->     C. v4l2-ctl -d /dev/video2 --set-input=0 {Note this is Tuner1}
->     D. v4l2-ctl -d /dev/video2 --list-standards | less
->     E. v4l2-ctl -d /dev/video2 --set-standard=1  {Note this is NTSC}
->     F. v4l2-ctl -d /dev/video2 -f 67.250  {Note this is us-bdcst chan 4}
->     G. mplayer /dev/video2 -cache 8192
->     H. close mplayer after successfully watching video
->     I. cat /dev/video2 > hvr1600-Tuner1.mpg
->
-> 8.  It should be obvious by this point, but I am too much of a
-> neophyte to be compiling kernels.  I am running Centos 6 and yum for
-> updates for anything I have applied has come through their packaging
-> and distribution system.
->
-> NOTES : This SVideo looks good but the Tuner1 is garbage.  I also
-> tested the coax input thru my HVR-1850 using xawtv and while it had no
-> audio the video was good although slightly greenish.  So I don't
-> suspect the coax cable, especially since when connected to a standard
-> TV it produces a good picture.
->
-> Hope you can shed an idea or three.
->
-> My end goal it to again record analog video in MythTV.
+Hi Sakari,
 
-Ok, so this narrows it down quite a bit.  The fact that the s-video is
-working but the tuner isn't suggests either the tuner is off tune, or
-the analog demod isn't setup properly.  After running the "v4l2-ctl -s
-1" command, do you see the standard set to NTSC-M if you then run
-"v4l2-ctl --all" ?  Also, do you hear audio properly despite the video
-being corrupt?
+Thanks for the patch.
 
-My guess is that some recent subtle change to the subdev framework is
-probably resulting in the commands not actually being delivered to the
-demod.  I ran into similar problems a few months ago when doing some
-work on the cx18 driver for WSS configuration, although I didn't get a
-chance to push any patches upstream.
+On Wednesday 24 October 2012 21:16:20 Sakari Ailus wrote:
+> Define video buffer flags for different timestamp types. Everything up to
+> now have used either realtime clock or monotonic clock, without a way to
+> tell which clock the timestamp was taken from.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-Devin
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
+> ---
+>  Documentation/DocBook/media/v4l/io.xml |   25 +++++++++++++++++++++++++
+>  include/uapi/linux/videodev2.h         |    4 ++++
+>  2 files changed, 29 insertions(+), 0 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/io.xml
+> b/Documentation/DocBook/media/v4l/io.xml index 7e2f3d7..d598f2c 100644
+> --- a/Documentation/DocBook/media/v4l/io.xml
+> +++ b/Documentation/DocBook/media/v4l/io.xml
+> @@ -938,6 +938,31 @@ Typically applications shall use this flag for output
+> buffers if the data in this buffer has not been created by the CPU but by
+> some DMA-capable unit, in which case caches have not been used.</entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant></entry>
+> +	    <entry>0xe000</entry>
+> +	    <entry>Mask for timestamp types below. To test the
+> +	    timestamp type, mask out bits not belonging to timestamp
+> +	    type by performing a logical and operation with buffer
+> +	    flags and timestamp mask.</tt> </entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN</constant></entry>
+> +	    <entry>0x0000</entry>
+> +	    <entry>Unknown timestamp type. This type is used by
+> +	    drivers before Linux 3.8 and may be either monotonic (see
+> +	    below) or realtime. Monotonic clock has been favoured in
+> +	    embedded systems whereas most of the drivers use the
+> +	    realtime clock.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC</constant></entry>
+> +	    <entry>0x2000</entry>
+> +	    <entry>The buffer timestamp has been taken from the
+> +	    <constant>CLOCK_MONOTONIC</constant> clock. To access the
+> +	    same clock outside V4L2, use <tt>clock_gettime(2)</tt>
+> +	    .</entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 57bfa59..5cd8823 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -686,6 +686,10 @@ struct v4l2_buffer {
+>  /* Cache handling flags */
+>  #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
+>  #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
+> +/* Timestamp type */
+> +#define V4L2_BUF_FLAG_TIMESTAMP_MASK		0xe000
+> +#define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x0000
+> +#define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x2000
+> 
+>  /*
+>   *	O V E R L A Y   P R E V I E W
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
+
