@@ -1,49 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:35282 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1768414Ab2KOQ6i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 11:58:38 -0500
-Received: by mail-bk0-f46.google.com with SMTP id q16so829916bkw.19
-        for <linux-media@vger.kernel.org>; Thu, 15 Nov 2012 08:58:36 -0800 (PST)
-Message-ID: <50A51F3B.9050400@googlemail.com>
-Date: Thu, 15 Nov 2012 17:58:35 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Michael Yang <yze007@gmail.com>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: The em28xx driver error
-References: <loom.20121111T054512-795@post.gmane.org> <50A3CDCD.6020900@googlemail.com> <CAGoCfiwd0Dt49sZO_XEkv5rGwCj+nEDz0sGxw_j8oxKXE=NQAQ@mail.gmail.com> <50A518E8.8060002@googlemail.com> <CAGoCfiw6zPmFbMRMXZEE1NTGfc3cBJqwdh55S9Hk50fmktbEJQ@mail.gmail.com>
-In-Reply-To: <CAGoCfiw6zPmFbMRMXZEE1NTGfc3cBJqwdh55S9Hk50fmktbEJQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:59221 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752642Ab2KELiS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 06:38:18 -0500
+From: YAMANE Toshiaki <yamanetoshi@gmail.com>
+To: Greg Kroah-Hartman <greg@kroah.com>, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	YAMANE Toshiaki <yamanetoshi@gmail.com>
+Subject: [PATCH 2/2] staging/media: Use dev_ or pr_ printks in go7007/wis-saa7113.c
+Date: Mon,  5 Nov 2012 20:38:12 +0900
+Message-Id: <1352115492-8252-1-git-send-email-yamanetoshi@gmail.com>
+In-Reply-To: <1352115408-8217-1-git-send-email-yamanetoshi@gmail.com>
+References: <1352115408-8217-1-git-send-email-yamanetoshi@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 15.11.2012 17:35, schrieb Devin Heitmueller:
-> On Thu, Nov 15, 2012 at 11:31 AM, Frank Schäfer
-> <fschaefer.oss@googlemail.com> wrote:
->> Hmm... I've made some experiments to find out what gcc does on x86 and
->> it seems to ignore bit shifting > 32.
->> I also noticed that this line has been removed in 3.7-rc.
->> So we do NOT want to halve the height for interlaced devices here, right ?
-> Even with the datasheets, it was never clear to me what role the
-> accumulator size played.  It appeared to work regardless of whether it
-> was halved (although making it zero obviously caused problems).
->
-> Hence, since we couldn't see any visible difference, Mauro just
-> removed the code.  My guess is that it effects the on-chip internal
-> buffering hence it's possible that performance/reliability could be
-> effected under extreme load or some edge case, but I don't have any
-> data to back up that assertion at this time.
->
-> Devin
->
-Interesting.
-As the buggy line seemed to have no effect on x86 and the driver was
-working fine, it makes indeed sense to stay with the full height to
-avoid regressions.
+fixed below checkpatch warnings.
+- WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+- WARNING: Prefer netdev_dbg(netdev, ... then dev_dbg(dev, ... then pr_debug(...  to printk(KERN_DEBUG ...
 
-Regards,
-Frank
+Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
+---
+ drivers/staging/media/go7007/wis-saa7113.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/staging/media/go7007/wis-saa7113.c b/drivers/staging/media/go7007/wis-saa7113.c
+index 7f155cb..d7ce95f 100644
+--- a/drivers/staging/media/go7007/wis-saa7113.c
++++ b/drivers/staging/media/go7007/wis-saa7113.c
+@@ -281,12 +281,12 @@ static int wis_saa7113_probe(struct i2c_client *client,
+ 	dec->hue = 0;
+ 	i2c_set_clientdata(client, dec);
+ 
+-	printk(KERN_DEBUG
++	dev_dbg(&client->dev,
+ 		"wis-saa7113: initializing SAA7113 at address %d on %s\n",
+ 		client->addr, adapter->name);
+ 
+ 	if (write_regs(client, initial_registers) < 0) {
+-		printk(KERN_ERR
++		dev_err(&client->dev,
+ 			"wis-saa7113: error initializing SAA7113\n");
+ 		kfree(dec);
+ 		return -ENODEV;
+-- 
+1.7.9.5
+
