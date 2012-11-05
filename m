@@ -1,44 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.hauppauge.com ([167.206.143.4]:3947 "EHLO
-	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753939Ab2K1PgL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 10:36:11 -0500
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, Michael Krufky <mkrufky@linuxtv.org>
-Subject: [PATCH 1/2] au0828: add missing model 72281, usb id 2040:7270 to the model matrix
-Date: Wed, 28 Nov 2012 10:20:25 -0500
-Message-Id: <1354116026-4748-1-git-send-email-mkrufky@linuxtv.org>
+Received: from edge.cmeerw.net ([84.200.12.152]:57976 "EHLO edge.cmeerw.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753207Ab2KETNp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Nov 2012 14:13:45 -0500
+Date: Mon, 5 Nov 2012 20:13:36 +0100
+From: Christof Meerwald <cmeerw@cmeerw.org>
+To: Daniel Mack <zonque@gmail.com>
+Cc: "Artem S. Tashkinov" <t.artem@lycos.com>, pavel@ucw.cz,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	security@kernel.org, linux-media@vger.kernel.org,
+	linux-usb@vger.kernel.org
+Subject: Re: A reliable kernel panic (3.6.2) and system crash when visiting a
+ particular website
+Message-ID: <20121105191336.GA1404@edge.cmeerw.net>
+References: <2104474742.26357.1350734815286.JavaMail.mail@webmail05>
+ <20121020162759.GA12551@liondog.tnic>
+ <966148591.30347.1350754909449.JavaMail.mail@webmail08>
+ <20121020203227.GC555@elf.ucw.cz>
+ <20121020225849.GA8976@liondog.tnic>
+ <1781795634.31179.1350774917965.JavaMail.mail@webmail04>
+ <20121103141049.GA24238@edge.cmeerw.net>
+ <50952744.4090203@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <50952744.4090203@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
----
- drivers/media/usb/au0828/au0828-cards.c |    3 +++
- 1 file changed, 3 insertions(+)
+On Sat, Nov 03, 2012 at 03:16:36PM +0100, Daniel Mack wrote:
+> On 03.11.2012 15:10, Christof Meerwald wrote:
+> > http://comments.gmane.org/gmane.comp.voip.twinkle/3052 and
+> > http://pastebin.com/aHGe1S1X for a self-contained C test.
+> Some questions:
+> 
+>  - Are you seeing the same issue with 3.6.x?
 
-diff --git a/drivers/media/usb/au0828/au0828-cards.c b/drivers/media/usb/au0828/au0828-cards.c
-index 0cb7c28..d12bdd3 100644
---- a/drivers/media/usb/au0828/au0828-cards.c
-+++ b/drivers/media/usb/au0828/au0828-cards.c
-@@ -170,6 +170,7 @@ static void hauppauge_eeprom(struct au0828_dev *dev, u8 *eeprom_data)
- 	case 72241: /* WinTV-HVR950q (OEM, No IR, ATSC/QAM and analog video */
- 	case 72251: /* WinTV-HVR950q (Retail, IR, ATSC/QAM and analog video */
- 	case 72261: /* WinTV-HVR950q (OEM, IR, ATSC/QAM and analog video */
-+	case 72281: /* WinTV-HVR950q (OEM, No IR, ATSC/QAM */
- 	case 72301: /* WinTV-HVR850 (Retail, IR, ATSC and analog video */
- 	case 72500: /* WinTV-HVR950q (OEM, No IR, ATSC/QAM */
- 		break;
-@@ -333,6 +334,8 @@ struct usb_device_id au0828_usb_id_table[] = {
- 		.driver_info = AU0828_BOARD_HAUPPAUGE_HVR950Q },
- 	{ USB_DEVICE(0x2040, 0x7213),
- 		.driver_info = AU0828_BOARD_HAUPPAUGE_HVR950Q },
-+	{ USB_DEVICE(0x2040, 0x7270),
-+		.driver_info = AU0828_BOARD_HAUPPAUGE_HVR950Q },
- 	{ },
- };
- 
+I haven't tried it myself, but the other poster on
+http://comments.gmane.org/gmane.comp.voip.twinkle/3052 mentions 3.6.2
+(and 3.6.3)
+
+>  - If you can reproduce this issue, could you paste the messages in
+> dmesg when this happens? Do they resemble to the list corruption that
+> was reported?
+
+I am not seeing any kernel messages at all - the system just freezes
+and not even the SysRq stuff works after that.
+
+>  - Do you see the same problem with 3.4?
+
+I upgraded from Ubuntu 12.04 (Linux 3.2) where I didn't see the
+problem. However,
+http://www.linuxquestions.org/questions/linux-desktop-74/twinkle-causes-linux-freeze-kernel-3-6-2-a-4175433799/
+mentions 3.4.0
+
+>  - Are you able to apply the patch Alan Stern posted in this thread earlier?
+
+Unfortunately, I am not really in a position to apply kernel patches
+at the moment.
+
+
+> We should really sort this out, but I unfortunately lack a system or
+> setup that shows the bug.
+
+BTW, I have been able to reproduce the problem on a completely
+different machine (also running Ubuntu 12.10, but different hardware).
+The important thing appears to be that the USB audio device is
+connected via a USB 2.0 hub (and then using the test code posted in
+http://pastebin.com/aHGe1S1X specifying the audio device as
+"plughw:Set" (or whatever it's called) seems to trigger the freeze).
+
+So I guess another question is: do you have a USB headset connected
+via a USB 2.0 hub and not seeing the problem or is your USB headset
+not connected via a USB 2.0 hub? (of course, it would also be useful
+if others could comment if they are seeing the problem with that setup
+or not)
+
+
+Christof
+
 -- 
-1.7.10.4
 
+http://cmeerw.org                              sip:cmeerw at cmeerw.org
+mailto:cmeerw at cmeerw.org                   xmpp:cmeerw at cmeerw.org
