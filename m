@@ -1,58 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:60696 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754227Ab2KZEzh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Nov 2012 23:55:37 -0500
-Received: by mail-pb0-f46.google.com with SMTP id wy7so7718128pbc.19
-        for <linux-media@vger.kernel.org>; Sun, 25 Nov 2012 20:55:36 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: t.stanislaws@samsung.com, s.nawrocki@samsung.com,
-	sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 1/9] [media] s5p-tv: Add missing braces around sizeof in sdo_drv.c
-Date: Mon, 26 Nov 2012 10:19:00 +0530
-Message-Id: <1353905348-15475-2-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1353905348-15475-1-git-send-email-sachin.kamat@linaro.org>
-References: <1353905348-15475-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:33603 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752642Ab2KELgb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 06:36:31 -0500
+From: YAMANE Toshiaki <yamanetoshi@gmail.com>
+To: Greg Kroah-Hartman <greg@kroah.com>, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	YAMANE Toshiaki <yamanetoshi@gmail.com>
+Subject: [PATCH 2/2] staging/media: Use dev_ or pr_ printks in go7007/wis-saa7115.c
+Date: Mon,  5 Nov 2012 20:36:26 +0900
+Message-Id: <1352115386-8183-1-git-send-email-yamanetoshi@gmail.com>
+In-Reply-To: <1352115345-8149-1-git-send-email-yamanetoshi@gmail.com>
+References: <1352115345-8149-1-git-send-email-yamanetoshi@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Silences the following checkpatch warnings:
-WARNING: sizeof *sdev should be sizeof(*sdev)
-FILE: media/platform/s5p-tv/sdo_drv.c:304:
-	sdev = devm_kzalloc(&pdev->dev, sizeof *sdev, GFP_KERNEL);
-WARNING: sizeof sdev->sd.name should be sizeof(sdev->sd.name)
-FILE: media/platform/s5p-tv/sdo_drv.c:394:
-	strlcpy(sdev->sd.name, "s5p-sdo", sizeof sdev->sd.name);
+fixed below checkpatch warnings.
+- WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+- WARNING: Prefer netdev_dbg(netdev, ... then dev_dbg(dev, ... then pr_debug(...  to printk(KERN_DEBUG ...
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
 ---
- drivers/media/platform/s5p-tv/sdo_drv.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/staging/media/go7007/wis-saa7115.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-tv/sdo_drv.c b/drivers/media/platform/s5p-tv/sdo_drv.c
-index ad68bbe..91e2de3 100644
---- a/drivers/media/platform/s5p-tv/sdo_drv.c
-+++ b/drivers/media/platform/s5p-tv/sdo_drv.c
-@@ -301,7 +301,7 @@ static int __devinit sdo_probe(struct platform_device *pdev)
- 	struct clk *sclk_vpll;
+diff --git a/drivers/staging/media/go7007/wis-saa7115.c b/drivers/staging/media/go7007/wis-saa7115.c
+index b31a82b..72d5ad9 100644
+--- a/drivers/staging/media/go7007/wis-saa7115.c
++++ b/drivers/staging/media/go7007/wis-saa7115.c
+@@ -414,12 +414,12 @@ static int wis_saa7115_probe(struct i2c_client *client,
+ 	dec->hue = 0;
+ 	i2c_set_clientdata(client, dec);
  
- 	dev_info(dev, "probe start\n");
--	sdev = devm_kzalloc(&pdev->dev, sizeof *sdev, GFP_KERNEL);
-+	sdev = devm_kzalloc(&pdev->dev, sizeof(*sdev), GFP_KERNEL);
- 	if (!sdev) {
- 		dev_err(dev, "not enough memory.\n");
- 		ret = -ENOMEM;
-@@ -394,7 +394,7 @@ static int __devinit sdo_probe(struct platform_device *pdev)
- 	/* configuration of interface subdevice */
- 	v4l2_subdev_init(&sdev->sd, &sdo_sd_ops);
- 	sdev->sd.owner = THIS_MODULE;
--	strlcpy(sdev->sd.name, "s5p-sdo", sizeof sdev->sd.name);
-+	strlcpy(sdev->sd.name, "s5p-sdo", sizeof(sdev->sd.name));
+-	printk(KERN_DEBUG
++	dev_dbg(&client->dev,
+ 		"wis-saa7115: initializing SAA7115 at address %d on %s\n",
+ 		client->addr, adapter->name);
  
- 	/* set default format */
- 	sdev->fmt = sdo_find_format(SDO_DEFAULT_STD);
+ 	if (write_regs(client, initial_registers) < 0) {
+-		printk(KERN_ERR
++		dev_err(&client->dev,
+ 			"wis-saa7115: error initializing SAA7115\n");
+ 		kfree(dec);
+ 		return -ENODEV;
 -- 
-1.7.4.1
+1.7.9.5
 
