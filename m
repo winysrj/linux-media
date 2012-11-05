@@ -1,96 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:43935 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759362Ab2JaXJP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Oct 2012 19:09:15 -0400
-Message-ID: <5091AF97.7010804@gmail.com>
-Date: Thu, 01 Nov 2012 00:09:11 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:43486 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751838Ab2KEXUH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Nov 2012 18:20:07 -0500
+Message-ID: <5098498A.9070707@iki.fi>
+Date: Tue, 06 Nov 2012 01:19:38 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/2] media: V4L2: support asynchronous subdevice registration
-References: <Pine.LNX.4.64.1210192358520.28993@axis700.grange> <Pine.LNX.4.64.1210200007580.28993@axis700.grange> <Pine.LNX.4.64.1210241548300.2683@axis700.grange> <508D4F79.2000204@gmail.com> <Pine.LNX.4.64.1210290841200.17869@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1210290841200.17869@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: Paul Bolle <pebolle@tiscali.nl>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] tda18212: tda18218: use 'val' if initialized
+References: <1351803609.1597.16.camel@x61.thuisdomein>
+In-Reply-To: <1351803609.1597.16.camel@x61.thuisdomein>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+On 11/01/2012 11:00 PM, Paul Bolle wrote:
+> Commits e666a44fa313cb9329c0381ad02fc6ee1e21cb31 ("[media] tda18212:
+> silence compiler warning") and e0e52d4e9f5bce7ea887027c127473eb654a5a04
+> ("[media] tda18218: silence compiler warning") silenced warnings
+> equivalent to these:
+>      drivers/media/tuners/tda18212.c: In function ‘tda18212_attach’:
+>      drivers/media/tuners/tda18212.c:299:2: warning: ‘val’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+>      drivers/media/tuners/tda18218.c: In function ‘tda18218_attach’:
+>      drivers/media/tuners/tda18218.c:305:2: warning: ‘val’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+>
+> But in both cases 'val' will still be used uninitialized if the calls
+> of tda18212_rd_reg() or tda18218_rd_reg() fail. Fix this by only
+> printing the "chip id" if the calls of those functions were successful.
+> This allows to drop the uninitialized_var() stopgap measure.
+>
+> Also stop printing the return values of tda18212_rd_reg() or
+> tda18218_rd_reg(), as these are not interesting.
+>
+> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
 
-On 10/29/2012 08:52 AM, Guennadi Liakhovetski wrote:
->>>> +/*
->>>> + * Typically this function will be called during bridge driver probing. It
->>>> + * installs bus notifiers to handle asynchronously probing subdevice drivers.
->>>> + * Once the bridge driver probing completes, subdevice drivers, waiting in
->>>> + * EPROBE_DEFER state are re-probed, at which point they get their platform
->>>> + * data, which allows them to complete probing.
->>>> + */
->>>> +int v4l2_async_group_probe(struct v4l2_async_group *group)
->>>> +{
->>>> +	struct v4l2_async_subdev *asd, *tmp;
->>>> +	bool i2c_used = false, platform_used = false;
->>>> +	int ret;
->>>> +
->>>> +	/* This group is inactive so far - no notifiers yet */
->>>> +	list_for_each_entry_safe(asd, tmp,&group->group, list) {
->>>> +		if (asd->sdpd.subdev) {
->>>> +			/* Simulate a BIND event */
->>>> +			if (group->bind_cb)
->>>> +				group->bind_cb(group, asd);
->>>> +
->>
->> Still we can't be sure at this moment asd->sdpd.subdev's driver is
->> valid and not unloaded, can we ?
->>
->> In the case when a sub-device driver is probed after the host driver
->> (a caller of this function) I assume doing
->>
->> 	asd->sdpd.subdev = i2c_get_clientdata(to_i2c_client(dev));
->> 	...
->> 	ret = v4l2_device_register_subdev(v4l2_dev, asd->sdpd.subdev);
->>
->> is safe, because it is done in the i2c bus notifier callback itself,
->> i.e. under device_lock(dev).
->>
->> But for these already probed sub-devices, how do we prevent races from
->> subdev module unloading ? By not setting CONFIG_MODULE_UNLOAD?... ;)
-> 
-> Right, I also think there's a race there. I have a solution for it - in
-> the current mainline version of sh_mobile_ceu_camera.c look at the code
-> around the line
-> 
-> 		err = bus_register_notifier(&platform_bus_type,&wait.notifier);
-> 
-> sh_mobile_ceu_probe(). I think, that guarantees, that we either lock the
-> module _safely_ in memory per try_module_get(dev->driver->owner) or get
-> notified, that the module is unavailable. It looks ugly, but I don't have
-> a better solution ATM. We could do the same here too.
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-IMHO even "ugly" solution is better than completely ignoring the problem.
+That patch does not make much sense, but I don't still see any reason to 
+reject it.
 
-I have some doubts whether your method eliminates the race issue. Firstly, 
-shouldn't the bus_notify callback [1] be active on BUS_NOTIFY_UNBIND_DRIVER, 
-rather than US_NOTIFY_UNBOUND_DRIVER ? Upon US_NOTIFY_UNBOUND_DRIVER 
-dev->driver is already NULL and still it is being referenced in a call to 
-try_module_get() (line 2224, [1]).
+> ---
+> 0) Compile tested only.
+>
+>   drivers/media/tuners/tda18212.c | 6 +++---
+>   drivers/media/tuners/tda18218.c | 6 +++---
+>   2 files changed, 6 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/media/tuners/tda18212.c b/drivers/media/tuners/tda18212.c
+> index 5d9f028..e4a84ee 100644
+> --- a/drivers/media/tuners/tda18212.c
+> +++ b/drivers/media/tuners/tda18212.c
+> @@ -277,7 +277,7 @@ struct dvb_frontend *tda18212_attach(struct dvb_frontend *fe,
+>   {
+>   	struct tda18212_priv *priv = NULL;
+>   	int ret;
+> -	u8 uninitialized_var(val);
+> +	u8 val;
+>
+>   	priv = kzalloc(sizeof(struct tda18212_priv), GFP_KERNEL);
+>   	if (priv == NULL)
+> @@ -296,8 +296,8 @@ struct dvb_frontend *tda18212_attach(struct dvb_frontend *fe,
+>   	if (fe->ops.i2c_gate_ctrl)
+>   		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
+>
+> -	dev_dbg(&priv->i2c->dev, "%s: ret=%d chip id=%02x\n", __func__, ret,
+> -			val);
+> +	if (!ret)
+> +		dev_dbg(&priv->i2c->dev, "%s: chip id=%02x\n", __func__, val);
+>   	if (ret || val != 0xc7) {
+>   		kfree(priv);
+>   		return NULL;
+> diff --git a/drivers/media/tuners/tda18218.c b/drivers/media/tuners/tda18218.c
+> index 1819853..2d31aeb 100644
+> --- a/drivers/media/tuners/tda18218.c
+> +++ b/drivers/media/tuners/tda18218.c
+> @@ -277,7 +277,7 @@ struct dvb_frontend *tda18218_attach(struct dvb_frontend *fe,
+>   	struct i2c_adapter *i2c, struct tda18218_config *cfg)
+>   {
+>   	struct tda18218_priv *priv = NULL;
+> -	u8 uninitialized_var(val);
+> +	u8 val;
+>   	int ret;
+>   	/* chip default registers values */
+>   	static u8 def_regs[] = {
+> @@ -302,8 +302,8 @@ struct dvb_frontend *tda18218_attach(struct dvb_frontend *fe,
+>
+>   	/* check if the tuner is there */
+>   	ret = tda18218_rd_reg(priv, R00_ID, &val);
+> -	dev_dbg(&priv->i2c->dev, "%s: ret=%d chip id=%02x\n", __func__, ret,
+> -			val);
+> +	if (!ret)
+> +		dev_dbg(&priv->i2c->dev, "%s: chip id=%02x\n", __func__, val);
+>   	if (ret || val != def_regs[R00_ID]) {
+>   		kfree(priv);
+>   		return NULL;
+>
 
-Secondly, what guarantees that before bus_register_notifier() call [1],
-we are not already after blocking_notifier_call_chain() (line 504, [2])
-which means we miss the notification and the sub-device driver is going 
-away together with its module under our feet ?
 
-[1] http://lxr.linux.no/#linux+v3.6/drivers/media/video/sh_mobile_ceu_camera.c#L2055
-[2] http://lxr.linux.no/#linux+v3.6/drivers/base/dd.c#L478
-
---
-Thanks,
-Sylwester
+-- 
+http://palosaari.fi/
