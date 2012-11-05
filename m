@@ -1,56 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34217 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753571Ab2KMM7i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Nov 2012 07:59:38 -0500
-Date: Tue, 13 Nov 2012 13:59:27 +0100
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: devicetree-discuss@lists.ozlabs.org,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>, kernel@pengutronix.de
-Subject: Re: [PATCH v8 2/6] video: add of helper for videomode
-Message-ID: <20121113125927.GD27797@pengutronix.de>
-References: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
- <1352734626-27412-3-git-send-email-s.trumtrar@pengutronix.de>
- <50A15EAC.9030608@wwwdotorg.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <50A15EAC.9030608@wwwdotorg.org>
+Received: from smtp209.alice.it ([82.57.200.105]:35237 "EHLO smtp209.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933070Ab2KEX2f (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Nov 2012 18:28:35 -0500
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Patrick Boettcher <patrick.boettcher@desy.de>,
+	Antonio Ospite <ospite@studenti.unina.it>
+Subject: [PATCH 1/5] [media] dvb-usb: add a pre_init hook to struct dvb_usb_device_properties
+Date: Tue,  6 Nov 2012 00:28:12 +0100
+Message-Id: <1352158096-17737-2-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1352158096-17737-1-git-send-email-ospite@studenti.unina.it>
+References: <1352158096-17737-1-git-send-email-ospite@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 12, 2012 at 01:40:12PM -0700, Stephen Warren wrote:
-> On 11/12/2012 08:37 AM, Steffen Trumtrar wrote:
-> > This adds support for reading display timings from DT or/and convert one of those
-> > timings to a videomode.
-> > The of_display_timing implementation supports multiple children where each
-> > property can have up to 3 values. All children are read into an array, that
-> > can be queried.
-> > of_get_videomode converts exactly one of that timings to a struct videomode.
-> 
-> > diff --git a/Documentation/devicetree/bindings/video/display-timings.txt b/Documentation/devicetree/bindings/video/display-timings.txt
-> 
-> The device tree bindings look reasonable to me, so,
-> 
-> Acked-by: Stephen Warren <swarren@nvidia.com>
-> 
-> 
+Some devices need to issue a pre-initialization command sequence via
+i2c in order to "enable" the communication with some adapter components.
 
-Thanks,
+This happens for instance in the vp7049 USB DVB-T stick on which the
+frontend cannot be detected without first sending a certain sequence of
+commands via i2c.
 
-Steffen
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+---
 
+If this approach is OK I can send a similar patch for dvb-usb-v2.
+
+Are all the dvb-usb drivers going to be ported to dvb-usb-v2 eventually?
+
+
+ drivers/media/usb/dvb-usb/dvb-usb.h      |    5 +++++
+ drivers/media/usb/dvb-usb/dvb-usb-init.c |    6 ++++++
+ 2 files changed, 11 insertions(+)
+
+diff --git a/drivers/media/usb/dvb-usb/dvb-usb.h b/drivers/media/usb/dvb-usb/dvb-usb.h
+index aab0f99..1fcea68 100644
+--- a/drivers/media/usb/dvb-usb/dvb-usb.h
++++ b/drivers/media/usb/dvb-usb/dvb-usb.h
+@@ -233,6 +233,9 @@ enum dvb_usb_mode {
+  * @size_of_priv: how many bytes shall be allocated for the private field
+  *  of struct dvb_usb_device.
+  *
++ * @pre_init: function executed after i2c initialization but
++ *   before the adapters get initialized
++ *
+  * @power_ctrl: called to enable/disable power of the device.
+  * @read_mac_address: called to read the MAC address of the device.
+  * @identify_state: called to determine the state (cold or warm), when it
+@@ -274,6 +277,8 @@ struct dvb_usb_device_properties {
+ 
+ 	int size_of_priv;
+ 
++	int (*pre_init) (struct dvb_usb_device *);
++
+ 	int num_adapters;
+ 	struct dvb_usb_adapter_properties adapter[MAX_NO_OF_ADAPTER_PER_DEVICE];
+ 
+diff --git a/drivers/media/usb/dvb-usb/dvb-usb-init.c b/drivers/media/usb/dvb-usb/dvb-usb-init.c
+index 169196e..8ab916e 100644
+--- a/drivers/media/usb/dvb-usb/dvb-usb-init.c
++++ b/drivers/media/usb/dvb-usb/dvb-usb-init.c
+@@ -31,6 +31,12 @@ static int dvb_usb_adapter_init(struct dvb_usb_device *d, short *adapter_nrs)
+ 	struct dvb_usb_adapter *adap;
+ 	int ret, n, o;
+ 
++	if (d->props.pre_init) {
++		ret = d->props.pre_init(d);
++		if (ret < 0)
++			return ret;
++	}
++
+ 	for (n = 0; n < d->props.num_adapters; n++) {
+ 		adap = &d->adapter[n];
+ 		adap->dev = d;
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.7.10.4
+
