@@ -1,63 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:48824 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2993440Ab2KOPr6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 10:47:58 -0500
-Received: by mail-wi0-f170.google.com with SMTP id cb5so1219150wib.1
-        for <linux-media@vger.kernel.org>; Thu, 15 Nov 2012 07:47:57 -0800 (PST)
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v10 1/6] video: add display_timing and videomode
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	devicetree-discuss@lists.ozlabs.org
-Cc: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	kernel@pengutronix.de,
-	Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-In-Reply-To: <1352971437-29877-2-git-send-email-s.trumtrar@pengutronix.de>
-References: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de> <1352971437-29877-2-git-send-email-s.trumtrar@pengutronix.de>
-Date: Thu, 15 Nov 2012 15:47:53 +0000
-Message-Id: <20121115154753.C82223E194B@localhost>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:51803 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932121Ab2KEUrE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 15:47:04 -0500
+Received: by mail-ee0-f46.google.com with SMTP id b15so3203350eek.19
+        for <linux-media@vger.kernel.org>; Mon, 05 Nov 2012 12:47:02 -0800 (PST)
+Message-ID: <509825C4.9000604@gmail.com>
+Date: Mon, 05 Nov 2012 21:47:00 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Alain VOLMAT <alain.volmat@st.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: Way to request a time discontinuity in a V4L2 encoder device
+References: <E27519AE45311C49887BE8C438E68FAA01012DC87FE3@SAFEX1MAIL1.st.com> <2626505.HXeeK07UU3@avalon> <E27519AE45311C49887BE8C438E68FAA01012DD27186@SAFEX1MAIL1.st.com>
+In-Reply-To: <E27519AE45311C49887BE8C438E68FAA01012DD27186@SAFEX1MAIL1.st.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 15 Nov 2012 10:23:52 +0100, Steffen Trumtrar <s.trumtrar@pengutronix.de> wrote:
-> Add display_timing structure and the according helper functions. This allows
-> the description of a display via its supported timing parameters.
-> 
-> Every timing parameter can be specified as a single value or a range
-> <min typ max>.
-> 
-> Also, add helper functions to convert from display timings to a generic videomode
-> structure. This videomode can then be converted to the corresponding subsystem
-> mode representation (e.g. fb_videomode).
-> 
-> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Hi,
 
-Hmmm... here's my thoughts as an outside reviewer. Correct me if I'm
-making an incorrect assumption.
+On 11/05/2012 11:45 AM, Alain VOLMAT wrote:
+> Hi Laurent,
+>
+> Yes indeed, meta plane seems a good candidate. It was the other option.
+>
+> The pity with that is that the FMT can thus no longer be standard FMT but
+>  a specific format that include both plane 0 with real frame data and plane
+>1 with meta data.
+> So, standard V4L2 application (that doesn't know about this time
+>discontinuity stuff) wouldn't be able to push things into the encoder since
+>they are not aware of this 2 plane format.
+>
+> Or maybe we should export 2 format, 1 standard one that doesn't have time
+>discontinuity support, thus not best performance but still can do things
+>and a second format that has 2 planes
 
-It looks to me that the purpose of this entire series is to decode video
-timings from the device tree and (eventually) provide the data in the
-form 'struct videomode'. Correct?
+Not sure what media guys think about it, I was considering making it 
+possible
+for applications (or libv4l or any other library) to request additional 
+meta
+data plane at a video capture driver, e.g. with VIDIOC_S_FMT ioctl. With 
+same
+fourcc for e.g. 1-planar buffers with image data and 2-planar buffer with
+meta data in plane 1. However this would be somehow device-specific, rather
+than a completely generic interface. Since frame-meta data is often device
+specific. For camera it would depend on the image sensor whether the 
+additional
+plane request on a /dev/video? would be fulfilled by a driver or not.
 
-If so, then it looks over engineered. Creating new infrastructure to
-allocate, maintain, and free a new 'struct display_timings' doesn't make
-any sense when it is an intermediary data format that will never be used
-by drivers.
+I don't think duplicating 4CCs for the sake of additional meta-data plane is
+a good idea.
 
-Can the DT parsing code instead return a table of struct videomode?
+Your case is a bit different, since you're passing data from application to
+a device. Maybe we could somewhat standardize the meta data buffer content,
+e.g. by using some standard header specifying what kind of meta data 
+follows.
+Perhaps struct v4l2_plane::data_offset can be helpful here. This is how 
+it's
+documented
 
-But, wait... struct videomode is also a new structure. So it looks like
-this series creates two new intermediary data structures;
-display_timings and videomode. And at least as far as I can see in this
-series struct fb_videomode is the only user.
+  * @data_offset:	offset in the plane to the start of data; usually 0,
+  *			unless there is a header in front of the data
 
-g.
+I mean, the header would specify what actual meta-data is in that additional
+plane. Standardising that "standard" meta-data would be another issue.
 
--- 
-Grant Likely, B.Sc, P.Eng.
-Secret Lab Technologies, Ltd.
+I think this per buffer device control issue emerged in the past during the
+Exynos Multi Format Codec development. There were proposals of per-buffer
+v4l2 controls. IIRC it is currently resolved in that driver by doing
+VIDIOC_S_CTRL before QBUF. However the meta data plane approach looks more
+interesting to me.
+
+--
+
+Regards,
+Sylwester
