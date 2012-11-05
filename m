@@ -1,57 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from co202.xi-lite.net ([149.6.83.202]:38126 "EHLO co202.xi-lite.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751492Ab2KGKjl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Nov 2012 05:39:41 -0500
-Message-ID: <509A39F0.3090202@parrot.com>
-Date: Wed, 7 Nov 2012 11:37:36 +0100
-From: Julien BERAUD <julien.beraud@parrot.com>
+Received: from mail-la0-f46.google.com ([209.85.215.46]:45120 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933409Ab2KEWcj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 17:32:39 -0500
+Received: by mail-la0-f46.google.com with SMTP id h6so4656696lag.19
+        for <linux-media@vger.kernel.org>; Mon, 05 Nov 2012 14:32:37 -0800 (PST)
 MIME-Version: 1.0
-To: "laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: omap3isp-bt656 stopping issue
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Tue, 6 Nov 2012 09:32:36 +1100
+Message-ID: <CAF3CQPoEauo4cJTrDuUC=opcc59MLzYuTnxaXvH2DdRsaSA0Bg@mail.gmail.com>
+Subject: Troubles getting HVR-2200 to work
+From: Keith Lockwood <kwlockwo@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi,
 
-I have been working on a platform based on an omap3630 with a tvp5151 in 
-bt656 mode and I have iommu translation faults when starting and 
-stopping capture in a loop a certain number of times.
-I think I have identified the problem and though my working branch is 
-not exactly the same as yours, I think that you have the same issue.
+I am trying to get my HVR-2200 in debian wheezy.  Now seeing it is an
+a older version of the card and wheezy is a 3.2 kernel I would think
+that everything would already be there (which I have read after doing
+a lot of googling).
 
-When stopping ccdc capture(ccdc_set_stream), function ccdc_disable is 
-called which clears the bit  ISPCCDC_PCR_EN (__ccdc_disable) and waits 
-for the current frame to finish.
-In progressive mode, the next vd0_isr will call ccdc_isr_buffer which 
-will wait for the ccdc pcr busy flag to go off and then call function 
-__ccdc_handle_stopping which will set the flags that will allow the 
-stopping process to go on.
+So I have copyied
+http://www.steventoth.net/linux/hvr22xx/firmwares/4019072/NXP7164-2010-03-10.1.fw
+to my /lib/firmware directory.
 
-The problem seems to be that in interlaced mode, if the next vd0_isr is 
-received for the first half of the frame(odd field), the ccdc_isr_buffer 
-routine is not called,  __ccdc_handle_stopping is called and sets the 
-flags that will allow the stopping process to go on without waiting for 
-the frame to finish like it should be the case, or like it is the case 
-if the next vd0_isr is received for the second part of the frame(even 
-field).
+This is the errors i am getting in dmesg:
 
-Calling ccdc_isr_buffer in case ccdc->stopping & CCDC_STOP_REQUEST != 0 
-makes that the flags are set only after the busy signal goes off and it 
-fixes the issue I have.
+[    8.272156] saa7164 driver loaded
+[    8.272601] CORE saa7164[0]: subsystem: 0070:8901, board: Hauppauge
+WinTV-HVR2200 [card=6,autodetected]
+[    8.272606] saa7164[0]/0: found at 0000:02:00.0, rev: 129, irq: 16,
+latency: 0, mmio: 0xfb800000
+[    8.272612] saa7164 0000:02:00.0: setting latency timer to 64
+[    8.287301] saa7164_downloadfirmware() no first image
+[    8.287348] saa7164_downloadfirmware() Waiting for firmware upload
+(NXP7164-2010-03-10.1.fw)
+[    8.603099] saa7164_downloadfirmware() firmware read 4019072 bytes.
+[    8.603102] saa7164_downloadfirmware() firmware loaded.
+[    8.603114] saa7164_downloadfirmware() SecBootLoader.FileSize = 4019072
+[    8.603123] saa7164_downloadfirmware() FirmwareSize = 0x1fd6
+[    8.603125] saa7164_downloadfirmware() BSLSize = 0x0
+[    8.603127] saa7164_downloadfirmware() Reserved = 0x0
+[    8.603129] saa7164_downloadfirmware() Version = 0x1661c00
+[   14.010076] saa7164_downloadimage() image corrupt
 
-By the way, I haven't seen anything in the omap3630 trm that tells me 
-that in case we are in progressive mode, the busy flag goes off after 
-the current field(half frame) is finished instead of the whole frame but 
-I noticed this is the case.
+Can anyone explain to me what image corrupt means, and what I can do
+to correct it.
 
-If there is something I missed, or if the behaviour of the ccdc isn't 
-supposed to be like that, could you explain what I got wrong?
-
-Best Regards,
-Julien BERAUD
-
+Thanks,
+Keith
