@@ -1,48 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:42824 "EHLO jenni1.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752126Ab2KRPNN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Nov 2012 10:13:13 -0500
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH 4/7] ir-rx51: Replace module_{init,exit} macros with module_platform_driver
-Date: Sun, 18 Nov 2012 17:13:06 +0200
-Message-Id: <1353251589-26143-5-git-send-email-timo.t.kokkonen@iki.fi>
-In-Reply-To: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
-References: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:45825 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753246Ab2KELfu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 06:35:50 -0500
+From: YAMANE Toshiaki <yamanetoshi@gmail.com>
+To: Greg Kroah-Hartman <greg@kroah.com>, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	YAMANE Toshiaki <yamanetoshi@gmail.com>
+Subject: [PATCH 1/2] Staging/media: fixed spacing coding style in go7007/wis-saa7115.c
+Date: Mon,  5 Nov 2012 20:35:45 +0900
+Message-Id: <1352115345-8149-1-git-send-email-yamanetoshi@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No reason to avoid using the existing helpers.
+fixed below checkpatch error.
+- ERROR: that open brace { should be on the previous line
 
-Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
 ---
- drivers/media/rc/ir-rx51.c | 12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ drivers/staging/media/go7007/wis-saa7115.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index 16b3c1f..6e1ffa6 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -495,17 +495,7 @@ struct platform_driver lirc_rx51_platform_driver = {
- 	},
+diff --git a/drivers/staging/media/go7007/wis-saa7115.c b/drivers/staging/media/go7007/wis-saa7115.c
+index 46cff59..b31a82b 100644
+--- a/drivers/staging/media/go7007/wis-saa7115.c
++++ b/drivers/staging/media/go7007/wis-saa7115.c
+@@ -32,8 +32,7 @@ struct wis_saa7115 {
+ 	int hue;
  };
  
--static int __init lirc_rx51_init(void)
+-static u8 initial_registers[] =
 -{
--	return platform_driver_register(&lirc_rx51_platform_driver);
--}
--module_init(lirc_rx51_init);
--
--static void __exit lirc_rx51_exit(void)
--{
--	platform_driver_unregister(&lirc_rx51_platform_driver);
--}
--module_exit(lirc_rx51_exit);
-+module_platform_driver(lirc_rx51_platform_driver);
- 
- MODULE_DESCRIPTION("LIRC TX driver for Nokia RX51");
- MODULE_AUTHOR("Nokia Corporation");
++static u8 initial_registers[] = {
+ 	0x01, 0x08,
+ 	0x02, 0xc0,
+ 	0x03, 0x20,
 -- 
-1.8.0
+1.7.9.5
 
