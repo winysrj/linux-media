@@ -1,54 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:41928 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754584Ab2K1MXE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 07:23:04 -0500
-Date: Wed, 28 Nov 2012 15:22:27 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: Re: [PATCH v3 0/9] Media Controller capture driver for DM365
-Message-ID: <20121128122227.GX6186@mwanda>
-References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
- <20121128114537.GN11248@mwanda>
- <201211281256.10839.hansverk@cisco.com>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:62151 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750831Ab2KELLp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 06:11:45 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201211281256.10839.hansverk@cisco.com>
+In-Reply-To: <50979998.8090809@gmail.com>
+References: <CAA11ShCpH7Z8eLok=MEh4bcSb6XjtVFfLQEYh2icUtYc-j5hEQ@mail.gmail.com>
+	<5096C561.5000108@gmail.com>
+	<CAA11ShCKFfdmd_ydxxCYo9Sv0VhgZW9kCk_F7LAQDg3mr5prrw@mail.gmail.com>
+	<5096E8D7.4070304@gmail.com>
+	<CAA11ShDinm7oU4azQYPMrNDsqWPqw+vJNFPpBDNzV=dTeUdZzw@mail.gmail.com>
+	<50979998.8090809@gmail.com>
+Date: Mon, 5 Nov 2012 14:11:45 +0300
+Message-ID: <CAA11ShD6Qug_=t8vGE5LwSpfXW2FsceTonxnF8aO6i2b=inibw@mail.gmail.com>
+Subject: Re: S3C244X/S3C64XX SoC camera host interface driver questions
+From: Andrey Gusakov <dron0gus@gmail.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Tomasz Figa <tomasz.figa@gmail.com>,
+	In-Bae Jeong <kukyakya@gmail.com>,
+	=?ISO-8859-1?Q?Heiko_St=FCbner?= <heiko@sntech.de>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 28, 2012 at 12:56:10PM +0100, Hans Verkuil wrote:
-> On Wed 28 November 2012 12:45:37 Dan Carpenter wrote:
-> > I wish people wouldn't submit big patches right before the merge
-> > window opens...  :/ It's better to let it sit in linux-next for a
-> > couple weeks so people can mess with it a bit.
-> 
-> It's been under review for quite some time now, and the main change since
-> the last posted version is that this is now moved to staging/media.
-> 
-> So it is not yet ready for prime time, but we do want it in to simplify
-> the last remaining improvements needed to move it to drivers/media.
-> 
-> I'm happy with this going in given the circumstances.
-> 
+Hi.
 
-In the end this is just a driver, and I don't especially care.  But
-it's like not just this one which makes me frustrated.  I really
-believe in linux-next and I think everything should spend a couple
-weeks there before being merged.
+Thanks all!
+I make it work! Have to comment out write { REG_GRCOM, 0x3f },	/*
+Analog BLC & regulator */ and have to enable gate clock for fimc at
+probe.
 
-regards,
-dan carpenter
+> Hmm, in my case VER was 0x50. PID, VER = 0x96, 0x50. And this a default
+> value
+> after reset according to the datasheet, ver. 1.3. For ver. 1.91 it is
+> PID, VER = 0x96, 0x52. Perhaps it just indicates ov9652 sensor ov9652.
+> Obviously I didn't test the driver with this one. Possibly the differences
+> can be resolved by comparing the documentation. Not sure if those are
+> significant and how much it makes sense to have single driver for both
+> sensor versions. I'll try to have a look at that.
+Ok. I also try to compate init sequenses from different sources on web.
+
+Next step is to make ov2460 work.
+
+Best regards.
+Andrey.
