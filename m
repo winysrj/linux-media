@@ -1,44 +1,21 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gelbbaer.kn-bremen.de ([78.46.108.116]:44296 "EHLO
-	smtp.kn-bremen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754059Ab2K2Uzh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Nov 2012 15:55:37 -0500
-From: Juergen Lock <nox@jelal.kn-bremen.de>
-Date: Thu, 29 Nov 2012 21:52:59 +0100
-To: linux-media@vger.kernel.org
-Cc: hselasky@c2i.net
-Subject: [PATCH] [media] rtl28xxu: add Terratec Cinergy T Stick RC rev 3
-Message-ID: <20121129205259.GA7548@triton8.kn-bremen.de>
+Received: from mail.olivetcollege.edu ([24.56.220.209]:34577 "EHLO
+	mail.olivetcollege.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751721Ab2KELLw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 06:11:52 -0500
+From: Bryce W Baase <BBaase@Olivetcollege.edu>
+Date: Mon, 5 Nov 2012 06:11:22 -0500
+Subject: =?iso-8859-1?Q?Hall=E5?=
+Message-ID: <2817E2B836E6B04A88213E09D82B7AAB0208BA2D0216@oc-mail-srv1.OlivetCollege.edu>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This just adds the usbid to the rtl28xxu driver, that's all that's
-needed to make the stick work for DVB.
-
-Signed-off-by: Juergen Lock <nox@jelal.kn-bremen.de>
-
---- a/drivers/media/dvb-core/dvb-usb-ids.h
-+++ b/drivers/media/dvb-core/dvb-usb-ids.h
-@@ -162,6 +162,7 @@
- #define USB_PID_TERRATEC_CINERGY_T_USB_XE_REV2		0x0069
- #define USB_PID_TERRATEC_CINERGY_T_STICK		0x0093
- #define USB_PID_TERRATEC_CINERGY_T_STICK_RC		0x0097
-+#define USB_PID_TERRATEC_CINERGY_T_STICK_RC_REV3	0x00d3
- #define USB_PID_TERRATEC_CINERGY_T_STICK_DUAL_RC	0x0099
- #define USB_PID_TERRATEC_CINERGY_T_STICK_BLACK_REV1	0x00a9
- #define USB_PID_TWINHAN_VP7041_COLD			0x3201
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1340,6 +1340,8 @@ static const struct usb_device_id rtl28x
- 		&rtl2832u_props, "NOXON DAB/DAB+ USB dongle", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_NOXON_DAB_STICK_REV2,
- 		&rtl2832u_props, "NOXON DAB/DAB+ USB dongle (rev 2)", NULL) },
-+	{ DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_T_STICK_RC_REV3,
-+		&rtl2832u_props, "Terratec Cinergy T Stick RC (rev 3)", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_TREKSTOR_TERRES_2_0,
- 		&rtl2832u_props, "Trekstor DVB-T Stick Terres 2.0", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_DEXATEK, 0x1101,
+Hallå
+Jag använder detta medium för att informera er om en ömsesidig transaktion som innebär överföring av $ 21.500.000 i min bank i Kina, för att informera dig som mottagare. T Du kan nå mig på sangcchin@yahoo.com.hk<mailto:sangcchin@yahoo.com.hk> för mer information.
+Hälsningar
+Sang Chin.
