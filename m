@@ -1,75 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:53586 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468Ab2K1DeP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 22:34:15 -0500
-Received: by mail-vc0-f174.google.com with SMTP id m18so9737573vcm.19
-        for <linux-media@vger.kernel.org>; Tue, 27 Nov 2012 19:34:14 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <50B54C70.8030607@gmail.com>
-References: <1353905348-15475-1-git-send-email-sachin.kamat@linaro.org>
-	<50B54C70.8030607@gmail.com>
-Date: Wed, 28 Nov 2012 09:04:14 +0530
-Message-ID: <CAK9yfHzwcS97KVsFUKOUC-U33U_JOyTQ0FA2JmNAsXyTwk-oeg@mail.gmail.com>
-Subject: Re: [PATCH 0/9] [media] s5p-tv: Checkpatch Fixes and cleanup
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: t.stanislaws@samsung.com, linux-media@vger.kernel.org,
-	s.nawrocki@samsung.com, patches@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:35046 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750785Ab2KEQAN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 11:00:13 -0500
+Received: by mail-wg0-f44.google.com with SMTP id dr13so4061968wgb.1
+        for <linux-media@vger.kernel.org>; Mon, 05 Nov 2012 08:00:12 -0800 (PST)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, p.zabel@pengutronix.de,
+	s.nawrocki@samsung.com, mchehab@infradead.org,
+	kernel@pengutronix.de,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH 1/2] ARM: i.MX27: Add platform support for IRAM.
+Date: Mon,  5 Nov 2012 16:59:44 +0100
+Message-Id: <1352131185-12079-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 28 November 2012 04:57, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> On 11/26/2012 05:48 AM, Sachin Kamat wrote:
->>
->> Build tested based on samsung/for_v3.8 branch of
->> git://linuxtv.org/snawrocki/media.git tree.
->
->
-> How about testing it on Origen board ?
+Add support for IRAM to i.MX27 non-DT platforms using
+iram_init() function.
 
-I wanted to but could not due to hardware setup problem.
-I will see if I can get it up today (I am off for the rest of the week).
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ arch/arm/mach-imx/mm-imx27.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
->
-> Tomasz, are you OK with this patch series ?
->
-> As a side note, for v3.9, when common clock framework support for the Exynos
-> platforms is merged this driver will need to have clk_(un)prepare added.
-> It will fail to initialize otherwise.
->
->
->> Sachin Kamat (9):
->>    [media] s5p-tv: Add missing braces around sizeof in sdo_drv.c
->>    [media] s5p-tv: Add missing braces around sizeof in mixer_video.c
->>    [media] s5p-tv: Add missing braces around sizeof in mixer_reg.c
->>    [media] s5p-tv: Add missing braces around sizeof in mixer_drv.c
->>    [media] s5p-tv: Add missing braces around sizeof in hdmiphy_drv.c
->>    [media] s5p-tv: Add missing braces around sizeof in hdmi_drv.c
->>    [media] s5p-tv: Use devm_clk_get APIs in sdo_drv.c
->>    [media] s5p-tv: Use devm_* APIs in mixer_drv.c
->>    [media] s5p-tv: Use devm_clk_get APIs in hdmi_drv
->>
->>   drivers/media/platform/s5p-tv/hdmi_drv.c    |   28 +++------
->>   drivers/media/platform/s5p-tv/hdmiphy_drv.c |    2 +-
->>   drivers/media/platform/s5p-tv/mixer_drv.c   |   87
->> +++++++--------------------
->>   drivers/media/platform/s5p-tv/mixer_reg.c   |    6 +-
->>   drivers/media/platform/s5p-tv/mixer_video.c |   18 +++---
->>   drivers/media/platform/s5p-tv/sdo_drv.c     |   43 ++++---------
->>   6 files changed, 57 insertions(+), 127 deletions(-)
->
->
-> --
->
-> Thanks,
-> Sylwester
-
-
-
+diff --git a/arch/arm/mach-imx/mm-imx27.c b/arch/arm/mach-imx/mm-imx27.c
+index e7e24af..fd2416d 100644
+--- a/arch/arm/mach-imx/mm-imx27.c
++++ b/arch/arm/mach-imx/mm-imx27.c
+@@ -27,6 +27,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/mach/map.h>
+ #include <mach/iomux-v1.h>
++#include <mach/iram.h>
+ 
+ /* MX27 memory map definition */
+ static struct map_desc imx27_io_desc[] __initdata = {
+@@ -94,4 +95,6 @@ void __init imx27_soc_init(void)
+ 	/* imx27 has the imx21 type audmux */
+ 	platform_device_register_simple("imx21-audmux", 0, imx27_audmux_res,
+ 					ARRAY_SIZE(imx27_audmux_res));
++	/* imx27 has an iram of 46080 bytes size */
++	iram_init(MX27_IRAM_BASE_ADDR, 46080);
+ }
 -- 
-With warm regards,
-Sachin
+1.7.9.5
+
