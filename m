@@ -1,89 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ch1ehsobe006.messaging.microsoft.com ([216.32.181.186]:10170
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751428Ab2KTHAY (ORCPT
+Received: from out5-smtp.messagingengine.com ([66.111.4.29]:55774 "EHLO
+	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754413Ab2KEPWZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Nov 2012 02:00:24 -0500
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	<linux-media@vger.kernel.org>,
-	<uclinux-dist-devel@blackfin.uclinux.org>
-CC: Scott Jiang <scott.jiang.linux@gmail.com>
-Subject: [PATCH 1/2] v4l2: blackfin: convert ppi driver to a module
-Date: Tue, 20 Nov 2012 14:49:35 -0500
-Message-ID: <1353440976-1112-1-git-send-email-scott.jiang.linux@gmail.com>
+	Mon, 5 Nov 2012 10:22:25 -0500
+Date: Mon, 5 Nov 2012 16:22:31 +0100
+From: Greg Kroah-Hartman <greg@kroah.com>
+To: Joe Perches <joe@perches.com>
+Cc: YAMANE Toshiaki <yamanetoshi@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] staging/media: Use dev_ printks in go7007/s2250-loader.c
+Message-ID: <20121105152231.GA4807@kroah.com>
+References: <1352115282-8081-1-git-send-email-yamanetoshi@gmail.com>
+ <20121105131108.GC27238@kroah.com>
+ <1352128271.16194.8.camel@joe-AO722>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1352128271.16194.8.camel@joe-AO722>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Other drivers can make use of it.
+On Mon, Nov 05, 2012 at 07:11:11AM -0800, Joe Perches wrote:
+> On Mon, 2012-11-05 at 14:11 +0100, Greg Kroah-Hartman wrote:
+> > On Mon, Nov 05, 2012 at 08:34:42PM +0900, YAMANE Toshiaki wrote:
+> > > fixed below checkpatch warnings.
+> > > - WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+> > > - WARNING: Prefer netdev_info(netdev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
+> > > 
+> > > Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
+> > > ---
+> > >  drivers/staging/media/go7007/s2250-loader.c |   35 ++++++++++++++-------------
+> > >  1 file changed, 18 insertions(+), 17 deletions(-)
+> > 
+> > Please note that I don't touch the drivers/staging/media/* files, so
+> > copying me on these patches doesn't do anything :)
+> 
+> Maybe:
+> 
+>  MAINTAINERS |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index b062349..542a541 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -6906,6 +6906,7 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.git
+>  L:	devel@driverdev.osuosl.org
+>  S:	Supported
+>  F:	drivers/staging/
+> +X:	drivers/staging/media/
 
-Signed-off-by: Scott Jiang <scott.jiang.linux@gmail.com>
----
- drivers/media/platform/blackfin/Kconfig  |    6 +++++-
- drivers/media/platform/blackfin/Makefile |    4 ++--
- drivers/media/platform/blackfin/ppi.c    |    7 +++++++
- 3 files changed, 14 insertions(+), 3 deletions(-)
+Sure, that would be good, care to resend it with a signed-off-by: so I
+can apply it?
 
-diff --git a/drivers/media/platform/blackfin/Kconfig b/drivers/media/platform/blackfin/Kconfig
-index ecd5323..519990e 100644
---- a/drivers/media/platform/blackfin/Kconfig
-+++ b/drivers/media/platform/blackfin/Kconfig
-@@ -2,9 +2,13 @@ config VIDEO_BLACKFIN_CAPTURE
- 	tristate "Blackfin Video Capture Driver"
- 	depends on VIDEO_V4L2 && BLACKFIN && I2C
- 	select VIDEOBUF2_DMA_CONTIG
-+	select VIDEO_BLACKFIN_PPI
- 	help
- 	  V4L2 bridge driver for Blackfin video capture device.
- 	  Choose PPI or EPPI as its interface.
- 
- 	  To compile this driver as a module, choose M here: the
--	  module will be called bfin_video_capture.
-+	  module will be called bfin_capture.
-+
-+config VIDEO_BLACKFIN_PPI
-+	tristate
-diff --git a/drivers/media/platform/blackfin/Makefile b/drivers/media/platform/blackfin/Makefile
-index aa3a0a2..30421bc 100644
---- a/drivers/media/platform/blackfin/Makefile
-+++ b/drivers/media/platform/blackfin/Makefile
-@@ -1,2 +1,2 @@
--bfin_video_capture-objs := bfin_capture.o ppi.o
--obj-$(CONFIG_VIDEO_BLACKFIN_CAPTURE) += bfin_video_capture.o
-+obj-$(CONFIG_VIDEO_BLACKFIN_CAPTURE) += bfin_capture.o
-+obj-$(CONFIG_VIDEO_BLACKFIN_PPI)     += ppi.o
-diff --git a/drivers/media/platform/blackfin/ppi.c b/drivers/media/platform/blackfin/ppi.c
-index d295921..9374d67 100644
---- a/drivers/media/platform/blackfin/ppi.c
-+++ b/drivers/media/platform/blackfin/ppi.c
-@@ -17,6 +17,7 @@
-  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
- 
-+#include <linux/module.h>
- #include <linux/slab.h>
- 
- #include <asm/bfin_ppi.h>
-@@ -263,9 +264,15 @@ struct ppi_if *ppi_create_instance(const struct ppi_info *info)
- 	pr_info("ppi probe success\n");
- 	return ppi;
- }
-+EXPORT_SYMBOL(ppi_create_instance);
- 
- void ppi_delete_instance(struct ppi_if *ppi)
- {
- 	peripheral_free_list(ppi->info->pin_req);
- 	kfree(ppi);
- }
-+EXPORT_SYMBOL(ppi_delete_instance);
-+
-+MODULE_DESCRIPTION("Analog Devices PPI driver");
-+MODULE_AUTHOR("Scott Jiang <Scott.Jiang.Linux@gmail.com>");
-+MODULE_LICENSE("GPL v2");
--- 
-1.7.0.4
+thanks,
 
-
+greg k-h
