@@ -1,48 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:35568 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1768407Ab2KOQfa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 11:35:30 -0500
-Received: by mail-qa0-f53.google.com with SMTP id k31so1223838qat.19
-        for <linux-media@vger.kernel.org>; Thu, 15 Nov 2012 08:35:30 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <50A518E8.8060002@googlemail.com>
-References: <loom.20121111T054512-795@post.gmane.org>
-	<50A3CDCD.6020900@googlemail.com>
-	<CAGoCfiwd0Dt49sZO_XEkv5rGwCj+nEDz0sGxw_j8oxKXE=NQAQ@mail.gmail.com>
-	<50A518E8.8060002@googlemail.com>
-Date: Thu, 15 Nov 2012 11:35:29 -0500
-Message-ID: <CAGoCfiw6zPmFbMRMXZEE1NTGfc3cBJqwdh55S9Hk50fmktbEJQ@mail.gmail.com>
-Subject: Re: The em28xx driver error
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: Michael Yang <yze007@gmail.com>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from perches-mx.perches.com ([206.117.179.246]:38301 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S933055Ab2KEPZV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Nov 2012 10:25:21 -0500
+Message-ID: <1352129116.16194.10.camel@joe-AO722>
+Subject: Re: [PATCH] staging/media: Use dev_ printks in go7007/s2250-loader.c
+From: Joe Perches <joe@perches.com>
+To: Greg Kroah-Hartman <greg@kroah.com>
+Cc: YAMANE Toshiaki <yamanetoshi@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Mon, 05 Nov 2012 07:25:16 -0800
+In-Reply-To: <20121105152231.GA4807@kroah.com>
+References: <1352115282-8081-1-git-send-email-yamanetoshi@gmail.com>
+	 <20121105131108.GC27238@kroah.com> <1352128271.16194.8.camel@joe-AO722>
+	 <20121105152231.GA4807@kroah.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 15, 2012 at 11:31 AM, Frank Schäfer
-<fschaefer.oss@googlemail.com> wrote:
-> Hmm... I've made some experiments to find out what gcc does on x86 and
-> it seems to ignore bit shifting > 32.
-> I also noticed that this line has been removed in 3.7-rc.
-> So we do NOT want to halve the height for interlaced devices here, right ?
+On Mon, 2012-11-05 at 16:22 +0100, Greg Kroah-Hartman wrote:
+> On Mon, Nov 05, 2012 at 07:11:11AM -0800, Joe Perches wrote:
+> > On Mon, 2012-11-05 at 14:11 +0100, Greg Kroah-Hartman wrote:
+> > > On Mon, Nov 05, 2012 at 08:34:42PM +0900, YAMANE Toshiaki wrote:
+> > > > fixed below checkpatch warnings.
+> > > > - WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+> > > > - WARNING: Prefer netdev_info(netdev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
+> > > > 
+> > > > Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
+> > > > ---
+> > > >  drivers/staging/media/go7007/s2250-loader.c |   35 ++++++++++++++-------------
+> > > >  1 file changed, 18 insertions(+), 17 deletions(-)
+> > > 
+> > > Please note that I don't touch the drivers/staging/media/* files, so
+> > > copying me on these patches doesn't do anything :)
+> > 
+> > Maybe:
+> > 
+> >  MAINTAINERS |    1 +
+> >  1 files changed, 1 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/MAINTAINERS b/MAINTAINERS
+> > index b062349..542a541 100644
+> > --- a/MAINTAINERS
+> > +++ b/MAINTAINERS
+> > @@ -6906,6 +6906,7 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.git
+> >  L:	devel@driverdev.osuosl.org
+> >  S:	Supported
+> >  F:	drivers/staging/
+> > +X:	drivers/staging/media/
+> 
+> Sure, that would be good, care to resend it with a signed-off-by: so I
+> can apply it?
 
-Even with the datasheets, it was never clear to me what role the
-accumulator size played.  It appeared to work regardless of whether it
-was halved (although making it zero obviously caused problems).
+It was just a nudge.
 
-Hence, since we couldn't see any visible difference, Mauro just
-removed the code.  My guess is that it effects the on-chip internal
-buffering hence it's possible that performance/reliability could be
-effected under extreme load or some edge case, but I don't have any
-data to back up that assertion at this time.
+You're the nominal staging maintainer, if you choose not to
+work on a specific directory under staging, I think you can
+mark it in MAINTAINERS just as easily yourself.
 
-Devin
+cheers, Joe
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
