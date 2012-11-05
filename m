@@ -1,81 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:65470 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756617Ab2KHTMi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:12:38 -0500
-Received: by mail-ee0-f46.google.com with SMTP id b15so1754511eek.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2012 11:12:38 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 12/21] em28xx: remove double checks for urb->status == -ENOENT in urb_data_copy functions
-Date: Thu,  8 Nov 2012 20:11:44 +0200
-Message-Id: <1352398313-3698-13-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from perches-mx.perches.com ([206.117.179.246]:39723 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754378Ab2KEPLR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Nov 2012 10:11:17 -0500
+Message-ID: <1352128271.16194.8.camel@joe-AO722>
+Subject: Re: [PATCH] staging/media: Use dev_ printks in go7007/s2250-loader.c
+From: Joe Perches <joe@perches.com>
+To: Greg Kroah-Hartman <greg@kroah.com>
+Cc: YAMANE Toshiaki <yamanetoshi@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Mon, 05 Nov 2012 07:11:11 -0800
+In-Reply-To: <20121105131108.GC27238@kroah.com>
+References: <1352115282-8081-1-git-send-email-yamanetoshi@gmail.com>
+	 <20121105131108.GC27238@kroah.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This check is already done in the URB handler
-em28xx_irq_callback before calling these functions.
+On Mon, 2012-11-05 at 14:11 +0100, Greg Kroah-Hartman wrote:
+> On Mon, Nov 05, 2012 at 08:34:42PM +0900, YAMANE Toshiaki wrote:
+> > fixed below checkpatch warnings.
+> > - WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+> > - WARNING: Prefer netdev_info(netdev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
+> > 
+> > Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
+> > ---
+> >  drivers/staging/media/go7007/s2250-loader.c |   35 ++++++++++++++-------------
+> >  1 file changed, 18 insertions(+), 17 deletions(-)
+> 
+> Please note that I don't touch the drivers/staging/media/* files, so
+> copying me on these patches doesn't do anything :)
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-dvb.c   |    5 +----
- drivers/media/usb/em28xx/em28xx-video.c |   10 ++--------
- 2 Dateien geändert, 3 Zeilen hinzugefügt(+), 12 Zeilen entfernt(-)
+Maybe:
 
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index eeabc25..1ad4f10 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -134,11 +134,8 @@ static inline int em28xx_dvb_isoc_copy(struct em28xx *dev, struct urb *urb)
- 	if ((dev->state & DEV_DISCONNECTED) || (dev->state & DEV_MISCONFIGURED))
- 		return 0;
+ MAINTAINERS |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index b062349..542a541 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6906,6 +6906,7 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.git
+ L:	devel@driverdev.osuosl.org
+ S:	Supported
+ F:	drivers/staging/
++X:	drivers/staging/media/
  
--	if (urb->status < 0) {
-+	if (urb->status < 0)
- 		print_err_status(dev, -1, urb->status);
--		if (urb->status == -ENOENT)
--			return 0;
--	}
- 
- 	for (i = 0; i < urb->number_of_packets; i++) {
- 		int status = urb->iso_frame_desc[i].status;
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 4024dfc..3518753 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -429,11 +429,8 @@ static inline int em28xx_isoc_copy(struct em28xx *dev, struct urb *urb)
- 	if ((dev->state & DEV_DISCONNECTED) || (dev->state & DEV_MISCONFIGURED))
- 		return 0;
- 
--	if (urb->status < 0) {
-+	if (urb->status < 0)
- 		print_err_status(dev, -1, urb->status);
--		if (urb->status == -ENOENT)
--			return 0;
--	}
- 
- 	buf = dev->usb_ctl.vid_buf;
- 	if (buf != NULL)
-@@ -525,11 +522,8 @@ static inline int em28xx_isoc_copy_vbi(struct em28xx *dev, struct urb *urb)
- 	if ((dev->state & DEV_DISCONNECTED) || (dev->state & DEV_MISCONFIGURED))
- 		return 0;
- 
--	if (urb->status < 0) {
-+	if (urb->status < 0)
- 		print_err_status(dev, -1, urb->status);
--		if (urb->status == -ENOENT)
--			return 0;
--	}
- 
- 	buf = dev->usb_ctl.vid_buf;
- 	if (buf != NULL)
--- 
-1.7.10.4
+ STAGING - AGERE HERMES II and II.5 WIRELESS DRIVERS
+ M:	Henk de Groot <pe1dnn@amsat.org>
+
 
