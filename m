@@ -1,59 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34652 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754211Ab2K2Phh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Nov 2012 10:37:37 -0500
-Message-ID: <50B78121.7050003@iki.fi>
-Date: Thu, 29 Nov 2012 17:37:05 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:36912 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933161Ab2KEW0J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 17:26:09 -0500
+Message-ID: <50983CFD.2030104@gmail.com>
+Date: Mon, 05 Nov 2012 23:26:05 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: "P. van Gaans" <w3ird_n3rd@gmx.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: Available and supported DVB-C USB device
-References: <50B6B9E7.4010803@gmx.net>
-In-Reply-To: <50B6B9E7.4010803@gmx.net>
+To: Andrey Gusakov <dron0gus@gmail.com>
+CC: Tomasz Figa <tomasz.figa@gmail.com>,
+	In-Bae Jeong <kukyakya@gmail.com>,
+	=?ISO-8859-1?Q?Heiko_St=FCbner?= <heiko@sntech.de>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+Subject: Re: S3C244X/S3C64XX SoC camera host interface driver questions
+References: <CAA11ShCpH7Z8eLok=MEh4bcSb6XjtVFfLQEYh2icUtYc-j5hEQ@mail.gmail.com> <5096C561.5000108@gmail.com> <CAA11ShCKFfdmd_ydxxCYo9Sv0VhgZW9kCk_F7LAQDg3mr5prrw@mail.gmail.com> <5096E8D7.4070304@gmail.com> <CAA11ShDinm7oU4azQYPMrNDsqWPqw+vJNFPpBDNzV=dTeUdZzw@mail.gmail.com> <50979998.8090809@gmail.com> <CAA11ShD6Qug_=t8vGE5LwSpfXW2FsceTonxnF8aO6i2b=inibw@mail.gmail.com>
+In-Reply-To: <CAA11ShD6Qug_=t8vGE5LwSpfXW2FsceTonxnF8aO6i2b=inibw@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/29/2012 03:27 AM, P. van Gaans wrote:
-> I'm living in The Netherlands and am looking for a DVB-C USB device
-> that's available, supported and (preferably) affordable. Devices that
-> are available and affordable would appear to be the Delock DVB-C USB
-> stick (which I can't find a whole lot about) and the MSI DigiVox mini Trio.
->
-> According to a message on the mailinglist from 2010 by Matthias Larisch:
->
-> "I recently bought a DigiVox Trio by MSI. This card contains the
-> following chips:
->
-> nxp tda18271hdc2 (tuner)
-> micronas drx 3926ka3 (demodulator, 3in1)
-> em2884
-> atmlh946 64c (eeprom)
-> micronas avf 4910ba1
->
-> so it is comparable to the Terratec Cinergy HTC USB XS HD and the
-> TerraTec H5."
->
-> Back in 2010 it didn't work, but I've noticed the EM2884 and Micronas
-> DRX 3926K (maybe not the same?) and TDA18271HDC2 do work in the PCTV
-> QuatroStick nano. (http://linuxtv.org/wiki/index.php/DVB-C_USB_Devices)
-> So perhaps the MSI could also work?
->
-> Or maybe someone has suggestions for a suitable device. Most of the
-> devices on the wiki page are sadly either unavailable or very expensive.
->
-> Best regards,
->
-> Pim
+Hi Andrey,
 
-I prefer to look Anysee, PCTV and Hauppauge models. There is not very 
-many DVB-C USB devices available and even less which are supported on Linux.
+On 11/05/2012 12:11 PM, Andrey Gusakov wrote:
+> Hi.
+>
+> Thanks all!
+> I make it work! Have to comment out write { REG_GRCOM, 0x3f },	/*
 
-regards
-Antti
+Great news!
 
--- 
-http://palosaari.fi/
+Does the sensor still hang after 0x2f is written to REG_GRCOM instead ?
+
+> Analog BLC&  regulator */ and have to enable gate clock for fimc at
+> probe.
+
+Do you have CONFIG_PM_RUNTIME enabled ? Can you try and see it works
+if you enable it, without additional changes to the clock handling ?
+
+I hope to eventually prepare the ov9650 sensor driver for mainline. Your
+help in making it ready for VER=0x52 would be very much appreciated. :-)
+
+>> Hmm, in my case VER was 0x50. PID, VER = 0x96, 0x50. And this a default
+>> value
+>> after reset according to the datasheet, ver. 1.3. For ver. 1.91 it is
+>> PID, VER = 0x96, 0x52. Perhaps it just indicates ov9652 sensor ov9652.
+>> Obviously I didn't test the driver with this one. Possibly the differences
+>> can be resolved by comparing the documentation. Not sure if those are
+>> significant and how much it makes sense to have single driver for both
+>> sensor versions. I'll try to have a look at that.
+> Ok. I also try to compate init sequenses from different sources on web.
+>
+> Next step is to make ov2460 work.
+
+For now I can only recommend you to make the ov2460 driver more similar
+to the ov9650 one.
+
+--
+Regards,
+Sylwester
