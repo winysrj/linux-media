@@ -1,150 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26284 "EHLO mx1.redhat.com"
+Received: from smtp205.alice.it ([82.57.200.101]:53636 "EHLO smtp205.alice.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752508Ab2K1Tfu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 14:35:50 -0500
-Date: Wed, 28 Nov 2012 17:35:29 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	devel@driverdev.osuosl.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v3 9/9] davinci: vpfe: Add documentation and TODO
-Message-ID: <20121128173529.1a264c53@redhat.com>
-In-Reply-To: <1555450.K4uAzFNhY7@avalon>
-References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
-	<1354099329-20722-10-git-send-email-prabhakar.lad@ti.com>
-	<20121128092213.4bd0870f@redhat.com>
-	<1555450.K4uAzFNhY7@avalon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S933070Ab2KEX2j (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Nov 2012 18:28:39 -0500
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Patrick Boettcher <patrick.boettcher@desy.de>,
+	Antonio Ospite <ospite@studenti.unina.it>
+Subject: [PATCH 4/5] [media] dvb-usb: fix indentation of a for loop
+Date: Tue,  6 Nov 2012 00:28:15 +0100
+Message-Id: <1352158096-17737-5-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1352158096-17737-1-git-send-email-ospite@studenti.unina.it>
+References: <1352158096-17737-1-git-send-email-ospite@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+---
+ drivers/media/usb/dvb-usb/dvb-usb-init.c |   60 +++++++++++++++---------------
+ 1 file changed, 30 insertions(+), 30 deletions(-)
 
-Em Wed, 28 Nov 2012 14:00:14 +0100
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+diff --git a/drivers/media/usb/dvb-usb/dvb-usb-init.c b/drivers/media/usb/dvb-usb/dvb-usb-init.c
+index 8ab916e..619a7f0 100644
+--- a/drivers/media/usb/dvb-usb/dvb-usb-init.c
++++ b/drivers/media/usb/dvb-usb/dvb-usb-init.c
+@@ -44,41 +44,41 @@ static int dvb_usb_adapter_init(struct dvb_usb_device *d, short *adapter_nrs)
+ 
+ 		memcpy(&adap->props, &d->props.adapter[n], sizeof(struct dvb_usb_adapter_properties));
+ 
+-	for (o = 0; o < adap->props.num_frontends; o++) {
+-		struct dvb_usb_adapter_fe_properties *props = &adap->props.fe[o];
+-		/* speed - when running at FULL speed we need a HW PID filter */
+-		if (d->udev->speed == USB_SPEED_FULL && !(props->caps & DVB_USB_ADAP_HAS_PID_FILTER)) {
+-			err("This USB2.0 device cannot be run on a USB1.1 port. (it lacks a hardware PID filter)");
+-			return -ENODEV;
+-		}
++		for (o = 0; o < adap->props.num_frontends; o++) {
++			struct dvb_usb_adapter_fe_properties *props = &adap->props.fe[o];
++			/* speed - when running at FULL speed we need a HW PID filter */
++			if (d->udev->speed == USB_SPEED_FULL && !(props->caps & DVB_USB_ADAP_HAS_PID_FILTER)) {
++				err("This USB2.0 device cannot be run on a USB1.1 port. (it lacks a hardware PID filter)");
++				return -ENODEV;
++			}
+ 
+-		if ((d->udev->speed == USB_SPEED_FULL && props->caps & DVB_USB_ADAP_HAS_PID_FILTER) ||
+-			(props->caps & DVB_USB_ADAP_NEED_PID_FILTERING)) {
+-			info("will use the device's hardware PID filter (table count: %d).", props->pid_filter_count);
+-			adap->fe_adap[o].pid_filtering  = 1;
+-			adap->fe_adap[o].max_feed_count = props->pid_filter_count;
+-		} else {
+-			info("will pass the complete MPEG2 transport stream to the software demuxer.");
+-			adap->fe_adap[o].pid_filtering  = 0;
+-			adap->fe_adap[o].max_feed_count = 255;
+-		}
++			if ((d->udev->speed == USB_SPEED_FULL && props->caps & DVB_USB_ADAP_HAS_PID_FILTER) ||
++				(props->caps & DVB_USB_ADAP_NEED_PID_FILTERING)) {
++				info("will use the device's hardware PID filter (table count: %d).", props->pid_filter_count);
++				adap->fe_adap[o].pid_filtering  = 1;
++				adap->fe_adap[o].max_feed_count = props->pid_filter_count;
++			} else {
++				info("will pass the complete MPEG2 transport stream to the software demuxer.");
++				adap->fe_adap[o].pid_filtering  = 0;
++				adap->fe_adap[o].max_feed_count = 255;
++			}
+ 
+-		if (!adap->fe_adap[o].pid_filtering &&
+-			dvb_usb_force_pid_filter_usage &&
+-			props->caps & DVB_USB_ADAP_HAS_PID_FILTER) {
+-			info("pid filter enabled by module option.");
+-			adap->fe_adap[o].pid_filtering  = 1;
+-			adap->fe_adap[o].max_feed_count = props->pid_filter_count;
+-		}
++			if (!adap->fe_adap[o].pid_filtering &&
++				dvb_usb_force_pid_filter_usage &&
++				props->caps & DVB_USB_ADAP_HAS_PID_FILTER) {
++				info("pid filter enabled by module option.");
++				adap->fe_adap[o].pid_filtering  = 1;
++				adap->fe_adap[o].max_feed_count = props->pid_filter_count;
++			}
+ 
+-		if (props->size_of_priv > 0) {
+-			adap->fe_adap[o].priv = kzalloc(props->size_of_priv, GFP_KERNEL);
+-			if (adap->fe_adap[o].priv == NULL) {
+-				err("no memory for priv for adapter %d fe %d.", n, o);
+-				return -ENOMEM;
++			if (props->size_of_priv > 0) {
++				adap->fe_adap[o].priv = kzalloc(props->size_of_priv, GFP_KERNEL);
++				if (adap->fe_adap[o].priv == NULL) {
++					err("no memory for priv for adapter %d fe %d.", n, o);
++					return -ENOMEM;
++				}
+ 			}
+ 		}
+-	}
+ 
+ 		if (adap->props.size_of_priv > 0) {
+ 			adap->priv = kzalloc(adap->props.size_of_priv, GFP_KERNEL);
+-- 
+1.7.10.4
 
-> Hi Mauro,
-> 
-> Please see below.
-> 
-> On Wednesday 28 November 2012 09:22:13 Mauro Carvalho Chehab wrote:
-> > Hi Prabhakar,
-> > 
-> > Em Wed, 28 Nov 2012 16:12:09 +0530
-> > 
-> > Prabhakar Lad <prabhakar.csengg@gmail.com> escreveu:
-> > > +Introduction
-> > > +============
-> > > +
-> > > + This file documents the Texas Instruments Davinci Video processing Front
-> > > + End (VPFE) driver located under drivers/media/platform/davinci. The
-> > > + original driver exists for Davinci VPFE, which is now being changed to
-> > > + Media Controller Framework.
-> > 
-> > Hmm... please correct me if I'm wrong, but are you wanting to replace an
-> > existing driver at drivers/media/platform/davinci, by another one at
-> > staging that has lots of known issues, as pointed at your TODO????
-> > 
-> > If so, please don't do that. Replacing a driver by some other one is
-> > generally a very bad idea, especially in this case, where the new driver
-> > has clearly several issues, the main one being to define its own proprietary
-> > and undocumented API:
-> >
-> > > +As of now since the interface will undergo few changes all the include
-> > > +files are present in staging itself, to build for dm365 follow below
-> > > +steps,
-> > > +
-> > > +- copy vpfe.h from drivers/staging/media/davinci_vpfe/ to
-> > > +  include/media/davinci/ folder for building the uImage.
-> > > +- copy davinci_vpfe_user.h from drivers/staging/media/davinci_vpfe/ to
-> > > +  include/uapi/linux/davinci_vpfe.h, and add a entry in Kbuild (required
-> > > +  for building application).
-> > > +- copy dm365_ipipeif_user.h from drivers/staging/media/davinci_vpfe/ to
-> > > +  include/uapi/linux/dm365_ipipeif.h and a entry in Kbuild (required
-> > > +  for building application).
-> > 
-> > Among other things, with those ugly and very likely mandatory API calls:
-> >
-> > >+/*
-> > >+ * Private IOCTL
-> > >+ * VIDIOC_VPFE_IPIPEIF_S_CONFIG: Set IPIEIF configuration
-> > >+ * VIDIOC_VPFE_IPIPEIF_G_CONFIG: Get IPIEIF configuration
-> > >+ */
-> > >+#define VIDIOC_VPFE_IPIPEIF_S_CONFIG \
-> > >+	_IOWR('I', BASE_VIDIOC_PRIVATE + 1, struct ipipeif_params)
-> > >+#define VIDIOC_VPFE_IPIPEIF_G_CONFIG \
-> > >+	_IOWR('I', BASE_VIDIOC_PRIVATE + 2, struct ipipeif_params)
-> > >+
-> > >+#endif
-> > 
-> > I remember we rejected already drivers like that with obscure "S_CONFIG"
-> > private ioctl that were suspect to send a big initialization undocumented
-> > blob to the driver, as only the vendor's application would be able to use
-> > such driver.
-> 
-> That's correct, and that's why the driver is going to staging. From there it 
-> will be incrementally fixed and then moved to drivers/media/, or dropped if 
-> not maintained.
-> 
-> > So, instead, of submitting it to staging, you should be sending incremental
-> > patches for the existing driver, adding newer functionality there, and
-> > using the proper V4L2 API, with makes life easier for reviewers and
-> > application developers.
-> 
-> I agree that it would be the best thing to do, but I don't think it's going to 
-> happen. We need to decide between two options.
-> 
-> - Push back now and insist in incremental patches for the existing driver, and 
-> get nothing back as TI will very likely give up completely.
-> - Accept the driver in staging, get it fixed incrementally, and finally move 
-> it to drivers/media/
-> 
-> There's a political side to this issue, we need to decide whether we want to 
-> insist vendors getting everything right before any code reaches mainline, in 
-> which case I believe we will lose some of them in the process, including major 
-> vendors such as TI, or if we can make the mainline learning curve and 
-> experience a bit more smooth by accepting such code in staging.
-> 
-> I would vote for the second option, with a very clear rule that getting the 
-> driver in staging is only one step in the journey: if the development effort 
-> stops there, the driver *will* be removed.
-
-What concerns most is that we'll be adding yet-another-driver for the same
-hardware, but using a different API set (Media controller + subdevs, instead
-of pure V4L2).
-
-It should be noticed that even basic stuff seems to be missing at the driver,
-like proper locks[1].
-
-[1] I'm basing my comments only at this patchset's TODO list - I didn't 
-reviewed the code, but it this is one of the listed items: "Check proper
-serialisation (through mutexes and spinlocks)"
-
-As no regressions are accepted, on non-staging drivers, the switch from the
-already working, stable one to the new one, when this driver reaches the
-required quality, will be a very hard task, as one would need to check the
-exact behavior of the existing driver, and check if the new driver will
-behave the same, in order to warrant that no regressions will be introduced.
-
-This doesn't sound something easy to do, especially if the implementation
-decisions taken on the second driver aren't based on the same way as the
-existing driver.
-
-The risk is that this driver would never be merged upstream, due to those
-conflicts, or that we'll take several years to solve it, before being
-able to warrant that userspace binaries developed for the first driver
-will work as-is with the new one.
-
-Regards,
-Mauro
