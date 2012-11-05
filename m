@@ -1,90 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:58162 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751126Ab2K1HLi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 02:11:38 -0500
-Date: Wed, 28 Nov 2012 08:11:35 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Libin Yang <lbyang@marvell.com>
-cc: Albert Wang <twang13@marvell.com>,
-	"corbet@lwn.net" <corbet@lwn.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH 03/15] [media] marvell-ccic: add clock tree support for
- marvell-ccic driver
-In-Reply-To: <A63A0DC671D719488CD1A6CD8BDC16CF230A8D7846@SC-VEXCH4.marvell.com>
-Message-ID: <Pine.LNX.4.64.1211280807100.32652@axis700.grange>
-References: <1353677595-24034-1-git-send-email-twang13@marvell.com>
- <Pine.LNX.4.64.1211271145320.22273@axis700.grange>
- <477F20668A386D41ADCC57781B1F70430D1367C8D5@SC-VEXCH1.marvell.com>
- <A63A0DC671D719488CD1A6CD8BDC16CF230A8D7846@SC-VEXCH4.marvell.com>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:45137 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753916Ab2KEKtC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 05:49:02 -0500
+Message-ID: <50979998.8090809@gmail.com>
+Date: Mon, 05 Nov 2012 11:48:56 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Andrey Gusakov <dron0gus@gmail.com>
+CC: Tomasz Figa <tomasz.figa@gmail.com>,
+	In-Bae Jeong <kukyakya@gmail.com>,
+	=?ISO-8859-1?Q?Heiko_St=FCbner?= <heiko@sntech.de>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+Subject: Re: S3C244X/S3C64XX SoC camera host interface driver questions
+References: <CAA11ShCpH7Z8eLok=MEh4bcSb6XjtVFfLQEYh2icUtYc-j5hEQ@mail.gmail.com> <5096C561.5000108@gmail.com> <CAA11ShCKFfdmd_ydxxCYo9Sv0VhgZW9kCk_F7LAQDg3mr5prrw@mail.gmail.com> <5096E8D7.4070304@gmail.com> <CAA11ShDinm7oU4azQYPMrNDsqWPqw+vJNFPpBDNzV=dTeUdZzw@mail.gmail.com>
+In-Reply-To: <CAA11ShDinm7oU4azQYPMrNDsqWPqw+vJNFPpBDNzV=dTeUdZzw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Libin
+Hi,
 
-On Tue, 27 Nov 2012, Libin Yang wrote:
+On 11/05/2012 10:44 AM, Andrey Gusakov wrote:
+>>> But documentation on ov9650 is too conflicting and did not cover all
+>>> registers used in driver.
+>> Do you mean the OV9650 datasheet, version 1.3, from September 24, 2004 ?
+> Yes. Also I have datasheet version 1.91 from January 28, 2005 and
+> Application note 1.1 from 7 December 2004
+> All can be found here [1].
+> It seems there is different versions of sensor exist. With VER=0x50
+> and 0x52. I have second one.
 
-> Hello Guennadi,
-> 
-> Thanks for your suggestion, please see my comments below.
-> 
-> Best Regards,
-> Libin 
-> 
-> >>-----Original Message-----
-> >>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
-> >>Sent: Tuesday, 27 November, 2012 18:50
-> >>To: Albert Wang
-> >>Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
-> >>Subject: Re: [PATCH 03/15] [media] marvell-ccic: add clock tree support for marvell-ccic
-> >>driver
-> >>
-> >>> +		mcam->clk_num = pdata->clk_num;
-> >>> +	} else {
-> >>> +		for (i = 0; i < pdata->clk_num; i++) {
-> >>> +			if (mcam->clk[i]) {
-> >>> +				clk_put(mcam->clk[i]);
-> >>> +				mcam->clk[i] = NULL;
-> >>> +			}
-> >>> +		}
-> >>> +		mcam->clk_num = 0;
-> >>> +	}
-> >>> +}
-> >>
-> >>Don't think I like this. IIUC, your driver should only try to use clocks, that it knows about,
-> >>not some random clocks, passed from the platform data. So, you should be using explicit
-> >>clock names. In your platform data you can set whether a specific clock should be used or
-> >>not, but not pass clock names down. Also you might want to consider using devm_clk_get()
-> >>and be more careful with error handling.
-> >>
-> >OK, we will try to enhance it.
-> 
-> [Libin] Because there are some boards using mmp chip, and the clock 
-> names on different board may be totally different. And also this is why 
-> the clock number is not definite. To support more boards, the dynamic 
-> names are used instead of the static names.
+Hmm, in my case VER was 0x50. PID, VER = 0x96, 0x50. And this a default 
+value
+after reset according to the datasheet, ver. 1.3. For ver. 1.91 it is
+PID, VER = 0x96, 0x52. Perhaps it just indicates ov9652 sensor ov9652.
+Obviously I didn't test the driver with this one. Possibly the differences
+can be resolved by comparing the documentation. Not sure if those are
+significant and how much it makes sense to have single driver for both
+sensor versions. I'll try to have a look at that.
 
-No, I don't think it's right. The clock connection ID is the ID of the 
-clock _consumer_, not the clock provider. So, your camera IP block has 
-several clock inputs, and your platforms should provide clock lookup 
-entries with names of those clock _inputs_, not of their clock sources. 
-BTW, I really doubt it your camera block has 4 clock inputs? If some of 
-them are parents of the clocks, that really supply the block (which would 
-also explain why you call it a tree), then you don't have to clk_get() 
-them explicitly. The clock framework will refcount and enable those parent 
-clocks for you. So, I think, you really should fix your platforms.
+...
+>>>> Are you using media-ctl to configure resolution on the camif and sensor
+>>>> subdev ?
+>>>
+>>> I'm using GStreamer:
+>>> gst-launch -v v4l2src device=/dev/video0 \
+>>>           ! video/x-raw-yuv, width=320, height=240 \
+>>>           ! ffmpegcolorspace \
+>>>           ! fbdevsink
+>>
+>>
+>> AFAIR, in the s3c-camif-v3.5 branch there was a bug that the CAMIF input
+>> resolution was not being properly set to what was reported by the sensor
+>> driver (default s3c-camif resolution is 640 x 480). The s3c-camif driver
+>> is supposed to get format from a sensor subdev and set it on the S3C-CAMIF
+>> subdev, upon image sensor subdev registration. Please see function
+>> camif_register_sensor() for details.
+>>
+>> The above issue should be fixed in this branch:
+>> [1] http://git.linuxtv.org/snawrocki/media.git/shortlog/refs/heads/s3c-camif
+>>
+>> Also, it could be verified by setting the formats with media-ctl manually,
+>> before running gst-launch, i.e.
+>>
+>> media-ctl --set-v4l2 '"OV9650":0 [fmt: YUYV2X8/320x240]'
+>> media-ctl --set-v4l2 '"S3C-CAMIF":0 [fmt: YUYV2X8/320x240]'
+>>
+>> with your current kernel and the s3c-camif driver.
+>> media-ctl was integrated in the OSELAS mini2440 BSP and probably is also
+>> in the mini6440 version.
+> Thanks. I'll try it. media-ctl from OpenEmbedded for some reason don't
+> like this params.
 
-This has been discussed multiple times on the mailing lists, feel free to 
-do some research, here one link:
+As you might know the development version can be found here:
+http://git.ideasonboard.org/?p=media-ctl.git;a=summary
 
-http://thread.gmane.org/gmane.linux.ports.arm.kernel/131302/focus=37730
+There has been some change in the command line semantics recently.
+...
+>> I suggest you to update to the s3c-camif branch as above, it includes some
+>> bug fixes. Sorry, I don't have exact patch for your issue handy right now.
+> I just try this branch. No luck. Now it fails on __ov965x_set_params
+> while writing some registers:
+> ...
+> OV9650: i2c_write: 0x40 : 0xc1. ret: 2
+> OV9650: i2c_write: 0x29 : 0x3f. ret: 2
+> OV9650: i2c_write: 0x0F : 0x43. ret: -6
+> ...
+> If I comment out exits on this errors, following writes in sensors
+> give -6 (ENXIO) or -111 (ECONNREFUSED) erros. Seems sensors hung after
+> write to some registers.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Hmm, that looks bad. The driver wasn't tested with VER=0x52 and there
+must be some differences that need to get sorted out.
+
+> [1] http://roboforum.ru/forum36/topic7835.html
+
+--
+
+Regards,
+Sylwester
