@@ -1,92 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:31446 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755145Ab2KUPdy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Nov 2012 10:33:54 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MDU007LOGK5H700@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 22 Nov 2012 00:33:53 +0900 (KST)
-Received: from amdc1344.digital.local ([106.116.147.32])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MDU007TRGK1BY80@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 22 Nov 2012 00:33:53 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sw0312.kim@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] s5p-fimc: Don't use mutex_lock_interruptible() in device
- release()
-Date: Wed, 21 Nov 2012 16:33:35 +0100
-Message-id: <1353512015-15850-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1353512015-15850-1-git-send-email-s.nawrocki@samsung.com>
-References: <1353512015-15850-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:54969 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750846Ab2KFAOk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 19:14:40 -0500
+MIME-Version: 1.0
+In-Reply-To: <1352129116.16194.10.camel@joe-AO722>
+References: <1352115282-8081-1-git-send-email-yamanetoshi@gmail.com>
+	<20121105131108.GC27238@kroah.com>
+	<1352128271.16194.8.camel@joe-AO722>
+	<20121105152231.GA4807@kroah.com>
+	<1352129116.16194.10.camel@joe-AO722>
+Date: Tue, 6 Nov 2012 09:14:39 +0900
+Message-ID: <CAOTypNTcAbteTS-ZEqBHLCc0Wa898jd8aLYdCHCxfxnendGcTg@mail.gmail.com>
+Subject: Re: [PATCH] staging/media: Use dev_ printks in go7007/s2250-loader.c
+From: Toshiaki Yamane <yamanetoshi@gmail.com>
+To: Joe Perches <joe@perches.com>
+Cc: Greg Kroah-Hartman <greg@kroah.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, elezegarcia@gmail.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use uninterruptible mutex_lock in the release() file op to make
-sure all resources are properly freed when a process is being
-terminated. Returning -ERESTARTSYS has no effect for a terminating
-process and this caused driver resources no to be released.
-Not releasing the buffer queue also prevented other drivers to free
-memory, e.g. in MMAP -> USERPTR scenario.
+On Tue, Nov 6, 2012 at 12:25 AM, Joe Perches <joe@perches.com> wrote:
+> On Mon, 2012-11-05 at 16:22 +0100, Greg Kroah-Hartman wrote:
+>> On Mon, Nov 05, 2012 at 07:11:11AM -0800, Joe Perches wrote:
+>> > On Mon, 2012-11-05 at 14:11 +0100, Greg Kroah-Hartman wrote:
+>> > > On Mon, Nov 05, 2012 at 08:34:42PM +0900, YAMANE Toshiaki wrote:
+>> > > > fixed below checkpatch warnings.
+>> > > > - WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+>> > > > - WARNING: Prefer netdev_info(netdev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
+>> > > >
+>> > > > Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
+>> > > > ---
+>> > > >  drivers/staging/media/go7007/s2250-loader.c |   35 ++++++++++++++-------------
+>> > > >  1 file changed, 18 insertions(+), 17 deletions(-)
+>> > >
+>> > > Please note that I don't touch the drivers/staging/media/* files, so
+>> > > copying me on these patches doesn't do anything :)
+>> >
+>> > Maybe:
+>> >
+>> >  MAINTAINERS |    1 +
+>> >  1 files changed, 1 insertions(+), 0 deletions(-)
+>> >
+>> > diff --git a/MAINTAINERS b/MAINTAINERS
+>> > index b062349..542a541 100644
+>> > --- a/MAINTAINERS
+>> > +++ b/MAINTAINERS
+>> > @@ -6906,6 +6906,7 @@ T:    git git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.git
+>> >  L: devel@driverdev.osuosl.org
+>> >  S: Supported
+>> >  F: drivers/staging/
+>> > +X: drivers/staging/media/
+>>
+>> Sure, that would be good, care to resend it with a signed-off-by: so I
+>> can apply it?
+>
+> It was just a nudge.
+>
+> You're the nominal staging maintainer, if you choose not to
+> work on a specific directory under staging, I think you can
+> mark it in MAINTAINERS just as easily yourself.
 
-Reported-by: Kamil Debski <k.debski@samsung.com>
-Reported-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-capture.c |    3 +--
- drivers/media/platform/s5p-fimc/fimc-lite.c    |    3 +--
- drivers/media/platform/s5p-fimc/fimc-m2m.c     |    3 +--
- 3 files changed, 3 insertions(+), 6 deletions(-)
+Thanks for all.
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
-index 3d39d97..e10d6b1 100644
---- a/drivers/media/platform/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
-@@ -556,8 +556,7 @@ static int fimc_capture_close(struct file *file)
- 
- 	dbg("pid: %d, state: 0x%lx", task_pid_nr(current), fimc->state);
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
-+	mutex_lock(&fimc->lock);
- 
- 	if (--fimc->vid_cap.refcnt == 0) {
- 		clear_bit(ST_CAPT_BUSY, &fimc->state);
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
-index 9db246b..2f0a39b 100644
---- a/drivers/media/platform/s5p-fimc/fimc-lite.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
-@@ -491,8 +491,7 @@ static int fimc_lite_close(struct file *file)
- 	struct fimc_lite *fimc = video_drvdata(file);
- 	int ret;
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
-+	mutex_lock(&fimc->lock);
- 
- 	if (--fimc->ref_count == 0 && fimc->out_path == FIMC_IO_DMA) {
- 		clear_bit(ST_FLITE_IN_USE, &fimc->state);
-diff --git a/drivers/media/platform/s5p-fimc/fimc-m2m.c b/drivers/media/platform/s5p-fimc/fimc-m2m.c
-index 4c4e901..dbb7385 100644
---- a/drivers/media/platform/s5p-fimc/fimc-m2m.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-m2m.c
-@@ -718,8 +718,7 @@ static int fimc_m2m_release(struct file *file)
- 	dbg("pid: %d, state: 0x%lx, refcnt= %d",
- 		task_pid_nr(current), fimc->state, fimc->m2m.refcnt);
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
-+	mutex_lock(&fimc->lock);
- 
- 	v4l2_m2m_ctx_release(ctx->m2m_ctx);
- 	fimc_ctrls_delete(ctx);
+I wait Mauro-san will pick the patches.
+And I will send the patches to the correct destination from the next time.
+
+
 -- 
-1.7.9.5
 
+Regards,
+
+YAMANE Toshiaki
