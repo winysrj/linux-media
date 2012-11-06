@@ -1,41 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:43612 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754266Ab2KCNgW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2012 09:36:22 -0400
-Received: by mail-ie0-f174.google.com with SMTP id k13so6198187iea.19
-        for <linux-media@vger.kernel.org>; Sat, 03 Nov 2012 06:36:21 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CA+6av4m8Dqn_p+2MLXO7Z8+J=_=ubf6mFnzvZZ9S8B1Nf+RReg@mail.gmail.com>
-References: <1351773720-22639-1-git-send-email-elezegarcia@gmail.com>
-	<CA+6av4nv=J7wZKKbKVSGyNRVaZUO24Qv8NwbbCK8v_ZrU-7oUQ@mail.gmail.com>
-	<CALF0-+XOLwg-Rnxm2G3mmvORXthGzeczvBEZdKGDoRZH10Wtvw@mail.gmail.com>
-	<CA+6av4m8Dqn_p+2MLXO7Z8+J=_=ubf6mFnzvZZ9S8B1Nf+RReg@mail.gmail.com>
-Date: Sat, 3 Nov 2012 10:36:21 -0300
-Message-ID: <CALF0-+VngaPLF+oJ9MpFArqhXJOZMkSi6XFzCv_YJOqzk-h+HA@mail.gmail.com>
-Subject: Re: [PATCH] stkwebcam: Fix sparse warning on undeclared symbol
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Arvydas Sidorenko <asido4@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Andrea Anacleto <andreaanacleto@libero.it>,
-	Jaime Velasco Juan <jsagarribay@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:33209 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752989Ab2KFTla (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 14:41:30 -0500
+From: YAMANE Toshiaki <yamanetoshi@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org,
+	YAMANE Toshiaki <yamanetoshi@gmail.com>
+Subject: [PATCH] Staging/media: Use dev_ printks in go7007/wis-tw2804.c
+Date: Wed,  7 Nov 2012 04:41:26 +0900
+Message-Id: <1352230886-9508-1-git-send-email-yamanetoshi@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arvydas,
+fixed below checkpatch warning.
+- WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+- WARNING: Prefer netdev_dbg(netdev, ... then dev_dbg(dev, ... then pr_debug(...  to printk(KERN_DEBUG ...
 
-On Sat, Nov 3, 2012 at 12:48 AM, Arvydas Sidorenko <asido4@gmail.com> wrote:
->> If you have the time to test it and stamp a "Tested-by" on it, I would
->> appreciate it.
->>
->> Thanks,
->>
->>     Ezequiel
->
-> I applied and tested on 3.7.0-rc3 - everything is ok.
+Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
+---
+ drivers/staging/media/go7007/wis-tw2804.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-Thanks!
+diff --git a/drivers/staging/media/go7007/wis-tw2804.c b/drivers/staging/media/go7007/wis-tw2804.c
+index 9134f03..69b9063 100644
+--- a/drivers/staging/media/go7007/wis-tw2804.c
++++ b/drivers/staging/media/go7007/wis-tw2804.c
+@@ -128,30 +128,32 @@ static int wis_tw2804_command(struct i2c_client *client,
+ 		int *input = arg;
+ 
+ 		if (*input < 0 || *input > 3) {
+-			printk(KERN_ERR "wis-tw2804: channel %d is not "
+-					"between 0 and 3!\n", *input);
++			dev_err(&client->dev,
++				"channel %d is not between 0 and 3!\n", *input);
+ 			return 0;
+ 		}
+ 		dec->channel = *input;
+-		printk(KERN_DEBUG "wis-tw2804: initializing TW2804 "
+-				"channel %d\n", dec->channel);
++		dev_dbg(&client->dev, "initializing TW2804 channel %d\n",
++			dec->channel);
+ 		if (dec->channel == 0 &&
+ 				write_regs(client, global_registers, 0) < 0) {
+-			printk(KERN_ERR "wis-tw2804: error initializing "
+-					"TW2804 global registers\n");
++			dev_err(&client->dev,
++				"error initializing TW2804 global registers\n");
+ 			return 0;
+ 		}
+ 		if (write_regs(client, channel_registers, dec->channel) < 0) {
+-			printk(KERN_ERR "wis-tw2804: error initializing "
+-					"TW2804 channel %d\n", dec->channel);
++			dev_err(&client->dev,
++				"error initializing TW2804 channel %d\n",
++				dec->channel);
+ 			return 0;
+ 		}
+ 		return 0;
+ 	}
+ 
+ 	if (dec->channel < 0) {
+-		printk(KERN_DEBUG "wis-tw2804: ignoring command %08x until "
+-				"channel number is set\n", cmd);
++		dev_dbg(&client->dev,
++			"ignoring command %08x until channel number is set\n",
++			cmd);
+ 		return 0;
+ 	}
+ 
+@@ -311,7 +313,7 @@ static int wis_tw2804_probe(struct i2c_client *client,
+ 	dec->hue = 128;
+ 	i2c_set_clientdata(client, dec);
+ 
+-	printk(KERN_DEBUG "wis-tw2804: creating TW2804 at address %d on %s\n",
++	dev_dbg(&client->dev, "creating TW2804 at address %d on %s\n",
+ 		client->addr, adapter->name);
+ 
+ 	return 0;
+-- 
+1.7.9.5
 
-    Ezequiel
