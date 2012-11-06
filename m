@@ -1,64 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36966 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753200Ab2KMNqs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Nov 2012 08:46:48 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Archit Taneja <archit@ti.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 1/2] omap_vout: Drop overlay format enumeration
-Date: Tue, 13 Nov 2012 14:47:38 +0100
-Message-Id: <1352814459-8215-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1352814459-8215-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1352814459-8215-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:41742 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750997Ab2KFMeZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 07:34:25 -0500
+From: YAMANE Toshiaki <yamanetoshi@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org,
+	YAMANE Toshiaki <yamanetoshi@gmail.com>
+Subject: [PATCH] Staging/media: Use dev_ printks in go7007/go7007-v4l2.c
+Date: Tue,  6 Nov 2012 21:34:20 +0900
+Message-Id: <1352205260-5863-1-git-send-email-yamanetoshi@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enumerating formats for output overlays doesn't make sense, as the pixel
-format is defined by the display API, not the V4L2 API. Drop the
-vidioc_enum_fmt_vid_overlay ioctl operation.
+fixed below checkpatch warning.
+- WARNING: Prefer netdev_info(netdev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
 ---
- drivers/media/platform/omap/omap_vout.c |   16 ----------------
- 1 files changed, 0 insertions(+), 16 deletions(-)
+ drivers/staging/media/go7007/go7007-v4l2.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
-index 21d55f0..dea33b5 100644
---- a/drivers/media/platform/omap/omap_vout.c
-+++ b/drivers/media/platform/omap/omap_vout.c
-@@ -1232,21 +1232,6 @@ static int vidioc_s_fmt_vid_overlay(struct file *file, void *fh,
- 	return ret;
- }
+diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
+index 980371b..d2d72d5 100644
+--- a/drivers/staging/media/go7007/go7007-v4l2.c
++++ b/drivers/staging/media/go7007/go7007-v4l2.c
+@@ -1811,8 +1811,8 @@ int go7007_v4l2_init(struct go7007 *go)
+ 	}
+ 	video_set_drvdata(go->video_dev, go);
+ 	++go->ref_count;
+-	printk(KERN_INFO "%s: registered device %s [v4l2]\n",
+-	       go->video_dev->name, video_device_node_name(go->video_dev));
++	dev_info(go->dev, "registered device %s [v4l2]\n",
++		 video_device_node_name(go->video_dev));
  
--static int vidioc_enum_fmt_vid_overlay(struct file *file, void *fh,
--			struct v4l2_fmtdesc *fmt)
--{
--	int index = fmt->index;
--
--	if (index >= NUM_OUTPUT_FORMATS)
--		return -EINVAL;
--
--	fmt->flags = omap_formats[index].flags;
--	strlcpy(fmt->description, omap_formats[index].description,
--			sizeof(fmt->description));
--	fmt->pixelformat = omap_formats[index].pixelformat;
--	return 0;
--}
--
- static int vidioc_g_fmt_vid_overlay(struct file *file, void *fh,
- 			struct v4l2_format *f)
- {
-@@ -1862,7 +1847,6 @@ static const struct v4l2_ioctl_ops vout_ioctl_ops = {
- 	.vidioc_s_ctrl       			= vidioc_s_ctrl,
- 	.vidioc_try_fmt_vid_overlay 		= vidioc_try_fmt_vid_overlay,
- 	.vidioc_s_fmt_vid_overlay		= vidioc_s_fmt_vid_overlay,
--	.vidioc_enum_fmt_vid_overlay		= vidioc_enum_fmt_vid_overlay,
- 	.vidioc_g_fmt_vid_overlay		= vidioc_g_fmt_vid_overlay,
- 	.vidioc_cropcap				= vidioc_cropcap,
- 	.vidioc_g_crop				= vidioc_g_crop,
+ 	return 0;
+ }
 -- 
-1.7.8.6
+1.7.9.5
 
