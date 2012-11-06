@@ -1,60 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:18824 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754344Ab2K1VFE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 16:05:04 -0500
-Date: Thu, 29 Nov 2012 00:04:19 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	devel@driverdev.osuosl.org,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v3 0/9] Media Controller capture driver for DM365
-Message-ID: <20121128210419.GO11248@mwanda>
-References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
- <20121128101802.0eafb6e7@redhat.com>
- <20121128172248.GA32286@kroah.com>
- <201211282018.20832.hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:54760 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752348Ab2KFVKF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Nov 2012 16:10:05 -0500
+Message-ID: <50997C8F.6020006@iki.fi>
+Date: Tue, 06 Nov 2012 23:09:35 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201211282018.20832.hverkuil@xs4all.nl>
+To: =?ISO-8859-1?Q?=C1rvai_Zolt=E1n?= <zarvai@inf.u-szeged.hu>
+CC: linux-media@vger.kernel.org, moebius <moebius1@free.fr>
+Subject: Re: avermedia, new version of avertv volar green hd
+References: <5096B744.40308@free.fr> <5097B2FE.3090100@inf.u-szeged.hu> <50997401.7050805@iki.fi>
+In-Reply-To: <50997401.7050805@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 28, 2012 at 08:18:20PM +0100, Hans Verkuil wrote:
-> but in this case it just seems to introduce a second
-> merge window before the 'real' merge window.
-> 
+Also lsusb -vvd 07ca:3835 could be nice to see.
 
-I don't care about this driver, but I mean yes.  That's the point of
-linux-next.
+Antti
 
-I would say the standard rule is that it should sit in linux-next
-for a week.  If I submitted a one line bugfix, normally that sits in
-linux-next for a week before going upstream.
+On 11/06/2012 10:33 PM, Antti Palosaari wrote:
+> Any idea about chipset? Those listed didn't sound any familiar. What are
+> driver file names?
+>
+> regards
+> Antti
+>
+> On 11/05/2012 02:37 PM, Árvai Zoltán wrote:
+>> Hi,
+>>
+>> I asked the local guy from Avermedia about this tuner.
+>> He said it is a new product called  "AVerTV Volar HD M" (A835M). It has
+>> probably the same hardware like the Volar Green, but it has extended
+>> software bundle (e.g. Mac support).
+>> http://www.avermedia.com/Product/ProductDetail.aspx?Id=517
+>>
+>> Regards,
+>> Zoltan
+>>
+>>
+>> On 11/04/2012 07:43 PM, moebius wrote:
+>>> Bonjour,
+>>> It's a dvb-t usb dongle
+>>>
+>>> It's the same name than a former device but with new id : 07ca:3835
+>>> instead of 07ca:a835 and probably new hardware ; and it doesn't work...
+>>>
+>>> I've tried to enter a new device in the v4l-dvb web list but nothing
+>>> has happened ;  the source, can be found at
+>>> http://www.linuxtv.org/wiki/index.php?title=DVB-T_USB_Devices_ListData/Helper&action=edit&section=1
+>>>
+>>>
+>>> I've made a photo too but don't know how I can upload it.
+>>>
+>>> Anyway, here is the source :
+>>>
+>>> ==== AVerMedia AVerTV Volar Green HD 07ca:3835 ====
+>>> {{DeviceDisplayMedium|AVerMedia AVerTV Volar Green HD 07ca:3835}}
+>>> </noinclude><includeonly>
+>>> {{{{{renderwith}}}|src=USB_Device_Data|selatt1={{{selatt1|}}}|selval1={{{selval1|}}}|selatt2={{{selatt2|}}}|selval2={{{selval2|}}}|selatt3={{{selatt3|}}}|selval3={{{selval3|}}}|selatt4={{{selatt4|}}}|selval4={{{selval4|}}}
+>>>
+>>>
+>>> | did=AVerMedia AVerTV Volar Green HD 07ca:3835
+>>> | vendor=[[AVerMedia]]
+>>> | device=[[AVerMedia AVerTV Volar Green HD | AVerTV Volar Green HD]]
+>>> | standard=DVB-T
+>>> | supported={{no}}
+>>> | pic=
+>>> | pic=
+>>> | url=
+>>> | url=
+>>> | hostinterface=USB2.0
+>>> | usbid=07ca:3835
+>>> | hw=unknown (see pic)
+>>> | tuner=
+>>> | demodulator=
+>>> | usbbridge=
+>>> | fw=
+>>> | comment= New version with same name ; main chipset (square, 4x12
+>>> pins) named AV3007 SXB1102 ; a little chip with 8 pins named 402R6
+>>> K207, another one with 5 pins 215L1(or "I" instead of "1") AC1H ; last
+>>> small chip with metal on top T120 WtBF.
+>>> This device don't work on recent ubuntu kernel (3.2.0-23-lowlatency),
+>>> even with the last (04/11/2012) v4l drivers that I've downloaded and
+>>> install today.
+>>> }}
+>>>
+>>> cordialement,
+>>>
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe
+>>> linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
 
-What frustrates me is that last merge window someone merged a driver
-into linux-next for one day.  I submitted a memory corruption fix
-the very next day but the maintainer said my fix arrived too late
-for the 3.7 release.  What's the point of sending it to linux-next
-if you don't have time to take feedback?  So yes, this thread is
-mostly me still being cross about that.  :P
 
-We were all expecting Linus to release the kernel last week so no
-one should have expected to merge new drivers this week anyway.
-
-regards,
-dan carpenter
-
+-- 
+http://palosaari.fi/
