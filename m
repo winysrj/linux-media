@@ -1,52 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:45388 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755525Ab2K2C4Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 21:56:16 -0500
-Received: by mail-qc0-f174.google.com with SMTP id o22so10395601qcr.19
-        for <linux-media@vger.kernel.org>; Wed, 28 Nov 2012 18:56:15 -0800 (PST)
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:39058 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753057Ab2KFWWT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 17:22:19 -0500
+Received: by mail-ea0-f174.google.com with SMTP id c13so370595eaa.19
+        for <linux-media@vger.kernel.org>; Tue, 06 Nov 2012 14:22:18 -0800 (PST)
+Message-ID: <50998D97.3030405@gmail.com>
+Date: Tue, 06 Nov 2012 23:22:15 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Date: Wed, 28 Nov 2012 21:56:15 -0500
-Message-ID: <CAPgLHd_6U7mMeU5r6Axc9WmpUhO1+fv5vnWXVau19zTC_qdz=g@mail.gmail.com>
-Subject: [PATCH -next] [media] mt9v022: fix potential NULL pointer dereference
- in mt9v022_probe()
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: g.liakhovetski@gmx.de, mchehab@redhat.com, agust@denx.de
-Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: LMML <linux-media@vger.kernel.org>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+CC: Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [RFC] Selections targets at V4L2 video mem-to-mem interface
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Hi All,
 
-The dereference to 'icl' should be moved below the NULL test.
+I'd like to clarify the meaning of selection targets on a mem-to-mem video
+device, in order to document it and to make sure new m2m drivers get it
+right, and also that the existing ones, using originally the crop ioctls,
+are converted to the selection ioctls properly.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/media/i2c/soc_camera/mt9v022.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Until the selections API was introduced we used the CROP ioctls to 
+configure
+cropping on OUTPUT buffer queue and composition onto CAPTURE buffer.
+Looking at Figure 1.2, [1] it seems obvious that there should be applied
+following mapping of the CROP to SELECTION ioctls:
 
-diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/mt9v022.c
-index d40a885..7509802 100644
---- a/drivers/media/i2c/soc_camera/mt9v022.c
-+++ b/drivers/media/i2c/soc_camera/mt9v022.c
-@@ -875,7 +875,7 @@ static int mt9v022_probe(struct i2c_client *client,
- 	struct mt9v022 *mt9v022;
- 	struct soc_camera_link *icl = soc_camera_i2c_to_link(client);
- 	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
--	struct mt9v022_platform_data *pdata = icl->priv;
-+	struct mt9v022_platform_data *pdata;
- 	int ret;
- 
- 	if (!icl) {
-@@ -893,6 +893,7 @@ static int mt9v022_probe(struct i2c_client *client,
- 	if (!mt9v022)
- 		return -ENOMEM;
- 
-+	pdata = icl->priv;
- 	v4l2_i2c_subdev_init(&mt9v022->subdev, client, &mt9v022_subdev_ops);
- 	v4l2_ctrl_handler_init(&mt9v022->hdl, 6);
- 	v4l2_ctrl_new_std(&mt9v022->hdl, &mt9v022_ctrl_ops,
+S_CROP(V4L2_BUF_TYPE_VIDEO_OUTPUT) -> 
+S_SELECTION(V4L2_BUF_TYPE_VIDEO_OUTPUT,
+						  V4L2_SEL_TGT_CROP)
+
+S_CROP(V4L2_BUF_TYPE_VIDEO_CAPTURE) -> 
+S_SELECTION(V4L2_BUF_TYPE_VIDEO_CAPTURE,
+						   V4L2_SEL_TGT_COMPOSE)
+
+And that's how selections are currently documented at video output and
+capture interfaces:
+
+--------------------------------------------------------------------------------
+*Configuration of video output*
+
+For output devices targets and ioctls are used similarly to the video 
+capture
+case. The composing rectangle refers to the insertion of an image into a 
+video
+signal. The cropping rectangles refer to a memory buffer."
 
 
+*Configuration of video capture*
+... The top left corner, width and height of the source rectangle, that 
+is the
+area actually sampled, is given by the V4L2_SEL_TGT_CROP target.
+...
+The composing targets refer to a memory buffer.
+--------------------------------------------------------------------------------
+
+If we apply this mapping, then current VIDIOC_S/G_CROP -> 
+VIDIOC_S/G_SELECTION
+ioctl fallback code wouldn't be valid, as we have there, e.g.
+
+static int v4l_s_crop(const struct v4l2_ioctl_ops *ops,
+				struct file *file, void *fh, void *arg)
+{
+	struct v4l2_crop *p = arg;
+	struct v4l2_selection s = {
+		.type = p->type,
+		.r = p->c,
+	};
+
+	if (ops->vidioc_s_crop)
+		return ops->vidioc_s_crop(file, fh, p);
+	/* simulate capture crop using selection api */
+
+	/* crop means compose for output devices */
+	if (V4L2_TYPE_IS_OUTPUT(p->type))
+		s.target = V4L2_SEL_TGT_COMPOSE_ACTIVE;
+	else
+		s.target = V4L2_SEL_TGT_CROP_ACTIVE;
+
+	return ops->vidioc_s_selection(file, fh, &s);
+}
+
+i.e. it does exactly opposite to what we would expect for M2M.
+
+One possible solution would be to get hold of struct video_device and
+do proper targets conversion after checking the vfl_dir field.
+
+Does anyone have suggestions on this ?
+
+
+BTW, we still have some V4L2_SEL_TGT*_ACTIVE symbols left, I'll write
+a patch to clean this up.
+
+[1] http://hverkuil.home.xs4all.nl/spec/media.html#idp9025504
+[2] http://hverkuil.home.xs4all.nl/spec/media.html#idp9031840
+
+--
+Thanks,
+Sylwester
