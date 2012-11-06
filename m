@@ -1,48 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2868 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756270Ab2KWL0N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 06:26:13 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 13/15] MAINTAINERS: add saa6588 entry.
-Date: Fri, 23 Nov 2012 12:25:54 +0100
-Message-Id: <a44b14dec34d3ea3a471d93e06c21e23928e26d1.1353669806.git.hans.verkuil@cisco.com>
-In-Reply-To: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
-References: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <7fb3123c4bf43540c13505c82c408fa492cdd48c.1353669806.git.hans.verkuil@cisco.com>
-References: <7fb3123c4bf43540c13505c82c408fa492cdd48c.1353669806.git.hans.verkuil@cisco.com>
+Received: from mail-out.m-online.net ([212.18.0.10]:38843 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751903Ab2KFNdw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 08:33:52 -0500
+Date: Tue, 6 Nov 2012 14:33:46 +0100
+From: Anatolij Gustschin <agust@denx.de>
+To: Bastian Hecht <hechtb@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Using OV5642 sensor driver for CM8206-A500SA-E
+Message-ID: <20121106143346.46e06f9d@wker>
+In-Reply-To: <CABYn4sxjZjiEt+=JC0vxXHFkCbHbuMRqTrAzgP_y-XKNsnSDHA@mail.gmail.com>
+References: <20121106101423.068bcd3e@wker>
+	<CABYn4sxjZjiEt+=JC0vxXHFkCbHbuMRqTrAzgP_y-XKNsnSDHA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Bastian,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- MAINTAINERS |    8 ++++++++
- 1 file changed, 8 insertions(+)
+On Tue, 6 Nov 2012 10:38:40 +0100
+Bastian Hecht <hechtb@googlemail.com> wrote:
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 1c10922..c12be91 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6422,6 +6422,14 @@ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Supported
- F:	drivers/mmc/host/s3cmci.*
- 
-+SAA6588 RDS RECEIVER DRIVER
-+M:	Hans Verkuil <hverkuil@xs4all.nl>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+W:	http://linuxtv.org
-+S:	Odd Fixes
-+F:	drivers/media/i2c/saa6588*
-+
- SAA7134 VIDEO4LINUX DRIVER
- M:	Mauro Carvalho Chehab <mchehab@redhat.com>
- L:	linux-media@vger.kernel.org
--- 
-1.7.10.4
+> Hi Anatolij,
+> 
+> if I remember correctly I had the same issue inverted. For me the
+> initialization sequence of the freescale driver didn't work. Generally it
+> was quite difficult to deduce anything from the docs to split the
+> initialization into sensible parts. Too many parts were undocumented or
+> didn't work as expected. Maybe there are different hardware revisions out
+> there that need a different register setup.
+> Unfortunately I can only give you some general notes here as I no longer
+> possess an OV5642.
 
+Okay, thanks for the info anyway!
+
+Anatolij
