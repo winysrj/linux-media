@@ -1,75 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:56213 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751496Ab2KKJZI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Nov 2012 04:25:08 -0500
-Received: by mail-qc0-f174.google.com with SMTP id o22so3309188qcr.19
-        for <linux-media@vger.kernel.org>; Sun, 11 Nov 2012 01:25:07 -0800 (PST)
+Received: from 7of9.schinagl.nl ([88.159.158.68]:46103 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751074Ab2KFMBU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Nov 2012 07:01:20 -0500
+Message-ID: <5098FC0B.4040500@schinagl.nl>
+Date: Tue, 06 Nov 2012 13:01:15 +0100
+From: Oliver Schinagl <oliver+list@schinagl.nl>
 MIME-Version: 1.0
-In-Reply-To: <20121102104734.04d708de@gaivota.chehab>
-References: <CAKQROYViF1PhLNquiPOQAxRs4jnwHXg-kK2PBG3irTtnXpDCwg@mail.gmail.com>
-	<000d01cdb886$d08f8ed0$71aeac70$@com>
-	<20121102104734.04d708de@gaivota.chehab>
-Date: Sun, 11 Nov 2012 09:25:07 +0000
-Message-ID: <CAKQROYW6VAppdPFXT1vR0hE+jwZyq9hors2aGkAEW5=dEU0m+A@mail.gmail.com>
-Subject: Re: Skeleton LinuxDVB framework
-From: Richard <tuxbox.guru@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Antti Palosaari <crope@iki.fi>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Add chipid to fc2580.c
+References: <50850116.9060806@schinagl.nl>    <20121028180713.7d852443@redhat.com> <6698470182ac3a8581c577d93cb49f8d.squirrel@webmail.kapsi.fi> <508F9CC2.5070301@schinagl.nl> <50984488.3070904@iki.fi>
+In-Reply-To: <50984488.3070904@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2 November 2012 12:47, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+On 05-11-12 23:58, Antti Palosaari wrote:
+> On 10/30/2012 11:24 AM, Oliver Schinagl wrote:
+>> On 29-10-12 02:09, Antti Palosaari wrote:
+>>> su 28.10.2012 22:07 Mauro Carvalho Chehab kirjoitti:
+>>>> Em Mon, 22 Oct 2012 10:17:26 +0200
+>>>> Oliver Schinagl <oliver+list@schinagl.nl> escreveu:
+>>>>
+>>>>> diff --git a/drivers/media/tuners/fc2580.c
+>>>>> b/drivers/media/tuners/fc2580.c
+>>>>> index aff39ae..102d942 100644
+>>>>> I found a fellow Asus U3100+ user (mentioned him before with the
+>>>>> firmware issue) that even when using the latest firmware, still see's
+>>>>> 0xff as the chipID.
+>>>> You missed to add a signed-off-by on your patch.
+>>>>
+>>>> Maybe it would make sense, in this case, to print some warning 
+>>>> message,
+>>>> as this could be due to a bug either at the hardware or at some place
+>>>> at the driver, like the gpio config settings for this device.
+>>>>
+>>>> Anyway, Antti, your call.
+>>> I am on holiday now and dont want to look much these things at the
+>>> moment.
+>>>
+>>> Having 0x00 or 0xff as chip id is something very very stupid and not
+>>> exits
+>>> in real world. It is good indicator I2C operation was failing. Check
+>>> GPIOs, see windows sniffs, add sleep, test if other I2C reads are 
+>>> working
+>>> later, etc. to find out more info and fix it properly. In worst case
+>>> it is
+>>> possible that I2C reads are not working at all...
+>> This was a random report for someone who I assisted via e-mail to get
+>> the latest git clone from antti's tree. Building, enabling debugging and
+>> getting this information alone took a week. I don't think we have the
+>> possibility to get a dump from anything. The stick has been working fine
+>> from my understanding using the 0xff tunerID. How to handle support for
+>> these 'bugged' tuners, I leave that up to you :)
+>
+> Honestly I don't want to add hack like that with this little 
+> information. It must be found out if all I2C readings are failing, or 
+> just the first one, or some other condition. Currently there is only 
+> two register reads on that driver. Guess what happens if someone 
+> enhances that driver so that one bit from certain register is 
+> changed... Set register bit 7, current register value is 0x00. 
+> Register value will be 0x7ff as read returns always 0xff :-(
+true, do you have some test code, that could test this? or a test module 
+that prints some debug information for this specific case? I could then 
+have the user in question try it out and report his findings?
 
+oliver
 >
-> As DVB version 3 or below is outdated, and v4 was never finished/merged.
->
-> The DVBv5 (currently, on version 5.8) is the one you should use:
->
->> http://linuxtv.org/downloads/v4l-dvb-apis/dvbapi.html
->
->> -----Original Message-----
->> Subject: Skeleton LinuxDVB framework
 >>
->> Hi all,
+>> AFTER your well deserved holiday. Enjoy and have a great time!
 >>
->> As a newbie to the LinuxDVB Device drivers, I am wondering if there is a
->> framework template to get a quick start in to DVB device drivers. I
->> currently have a SOC chip and an manufacturers API that I would like to make
->> in to a LinuxDVB compliant device. (Tuners/Demods/CA/MPEG output hardware
->> etc)
->
-> It is probably easier to get one driver of each type as an example and
-> change it to fill your needs.
->
+>>>
+>>>
+>>>>>
+>>>>> --- a/drivers/media/tuners/fc2580.c
+>>>>> +++ b/drivers/media/tuners/fc2580.c
+>>>>> @@ -497,6 +497,7 @@ struct dvb_frontend *fc2580_attach(struct
+>>>>> dvb_frontend *fe,
+>>>>>           switch (chip_id) {
+>>>>>           case 0x56:
+>>>>>           case 0x5a:
+>>>>> +       case 0xff:
+>>>>>                   break;
+>>>>>           default:
+>>>>>                   goto err;
+>>>>>
+>>>>> -- 
+>>>>> To unsubscribe from this list: send the line "unsubscribe 
+>>>>> linux-media"
+>>>>> in
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>>>>
+>>>> -- 
+>>>> Regards,
+>>>> Mauro
+>>>>
+>>>
+>>> -- 
+>>> To unsubscribe from this list: send the line "unsubscribe 
+>>> linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at http://vger.kernel.org/majordomo-info.html
 >>
->> Any information is greatly appreciated.
->> Richard
+>
+> regards
+> Antti
+>
 
-> Cheers,
-> Mauro
-
-Hi Mauro (and others),
-
-The documentation shows userspace applications quite clearly, and they
-are very easy - its the device driver that I would like to understand
-and implement on a SoC. The 'Copy someone elses' idea will get me to
-an end, but I have to convince my team of engineers/architects that
-the LinuxDVB is the future; and currently I cannot find any
-documentation on the .fops, calling conventions, execution order (what
-is the dependency order of devices) and such.  I would like to promote
-the understanding of the driver, and not blindly hack someone else's
-creations. (Hacking code causes maintenance problems later on)
-I am currently using a proprietary API that was developed originally
-for NeucleusOS that works, and now would like to move to a Linux
-standard type system. (Moving from a Working API to an unknown API is
-a risk)
-
-Are there any architecture/API documentation on how the driver is
-implemented, even pseudo-code would be useful. (Call is 'The Anatomy
-of the DVB driver' if you will)
-
-Best Regards,
-Richard
