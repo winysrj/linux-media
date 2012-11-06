@@ -1,58 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gate2.ipvision.dk ([94.127.49.3]:45159 "EHLO gate2.ipvision.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755502Ab2JaW04 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Oct 2012 18:26:56 -0400
-From: Benny Amorsen <benny+usenet@amorsen.dk>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: Frank =?utf-8?Q?Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 00/23] em28xx: add support fur USB bulk transfers
-References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com>
-	<m3vcdr1ku9.fsf@ursa.amorsen.dk> <50911079.7010404@googlemail.com>
-	<m3pq3ywh0w.fsf@ursa.amorsen.dk>
-	<CALF0-+Xzb_HULqQLkG3OZaG-9bfe7vaLX5nRdgBSehkbyvRqLA@mail.gmail.com>
-Date: Wed, 31 Oct 2012 23:26:51 +0100
-In-Reply-To: <CALF0-+Xzb_HULqQLkG3OZaG-9bfe7vaLX5nRdgBSehkbyvRqLA@mail.gmail.com>
-	(Ezequiel Garcia's message of "Wed, 31 Oct 2012 17:25:12 -0300")
-Message-ID: <m3625qwa50.fsf@ursa.amorsen.dk>
+Received: from moutng.kundenserver.de ([212.227.126.186]:61441 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751017Ab2KFLbB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 06:31:01 -0500
+Date: Tue, 6 Nov 2012 12:30:59 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?utf-8?B?5YaN5Zue6aaW?= <308123027@qq.com>
+cc: =?utf-8?B?bGludXgtbWVkaWE=?= <linux-media@vger.kernel.org>
+Subject: Re: soc camera driver module may case memory leak
+In-Reply-To: <tencent_64608E82650520C00B66909A@qq.com>
+Message-ID: <Pine.LNX.4.64.1211061229000.6451@axis700.grange>
+References: <tencent_64608E82650520C00B66909A@qq.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ezequiel Garcia <elezegarcia@gmail.com> writes:
+Hi
 
-> Very interesting. Let me see if I understand this: you say it's not a
-> problem with USB bandwidth, but with isochronous transfers, in the
-> sense it could achieve enough speed for streaming if bulk transfers
-> were used?
+On Mon, 5 Nov 2012, å~F~Må~[~^é¦~V wrote:
 
-It is more of a hope than a statement... I have no proof.
+> Dear sir:
+> why not call "videobuf_mmap_free",when device close call "soc_camera_close" in linux-2.6.x;
 
-> Do you have any links supporting this?
+I haven't found any version, where this has been done. I don't think this 
+is needed, because videobuf mmap allocations will be freed automatically 
+upon the last close(). Please, dismiss your bugzilla entry.
 
-Only old stuff like http://www.mail-archive.com/linux-usb@vger.kernel.org/msg04232.html
+Thanks
+Guennadi
 
-There are quite a few reports of problems with USB cameras in general
-and Kinect in particular. That seems to point at problems with
-isochronous transfers. A typical USB camera does not need particularly
-much bandwidth.
+> do the same in linux-3.x.x?
+> video capture flow:
+> 1)open
+> 2)set fmt
+> 3)request buffer-->__videobuf_mmap_setup-->videobuf_alloc_vb(q)
+> 4)mmap
+> 5)enqueue, dequeue
+> 6)unmap
+> 7)close--->soc_camera_close-->?should call:videobuf_mmap_free
+> NOTE:
+> I have reviewed all the code, found:soc_camera_driver device driver coders has no way(callback function) to call videobuf_mmap_free; it will case memory leak.N‹§²æìr¸›yúèšØb²X¬¶Ç§vØ^–)Şº{.nÇ+‰·¥Š{±™çbj)í…æèw*jg¬±¨¶‰šŠİ¢j/êäz¹Ş–Šà2ŠŞ™¨è­Ú&¢)ß¡«a¶Úşø®G«éh®æj:+v‰¨Šwè†Ù¥
 
-The Nanostick only needs 40Mbps + overhead for me -- the size of the
-largest MUX in the UK currently. That is less than 10% of the 480Mbps
-theoretically available.
-
-The other problem reports tend to be about "full speed" (11Mbps) USB
-devices which are difficult for the Pi hardware to handle. Most of the
-reports are getting old, some have reported that driver upgrades fixed
-the problems.
-
-I believe most people experience stable ethernet performance (and the
-ethernet is USB attached as you are undoubtedly aware). That is a lot
-more demanding than a USB camera or a Nanostick. However, the ethernet
-chip uses bulk transfers, not isochronous ones.
-
-
-/Benny
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
