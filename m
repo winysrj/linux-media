@@ -1,43 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from firefly.pyther.net ([50.116.37.168]:40641 "EHLO
-	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932314Ab2K1W3M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 17:29:12 -0500
-Message-ID: <50B69037.3080205@pyther.net>
-Date: Wed, 28 Nov 2012 17:29:11 -0500
-From: Matthew Gyurgyik <matthew@pyther.net>
+Received: from mail.tu-berlin.de ([130.149.7.33]:39157 "EHLO mail.tu-berlin.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752619Ab2KFXWF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Nov 2012 18:22:05 -0500
+Received: from i59f704e2.versanet.de ([89.247.4.226] helo=[192.168.178.44])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-2) with esmtpa
+	for <linux-media@vger.kernel.org>
+	id 1TVs9f-0002ld-G8; Wed, 07 Nov 2012 00:01:59 +0100
+Message-ID: <509996BC.5060101@mailbox.tu-berlin.de>
+Date: Wed, 07 Nov 2012 00:01:16 +0100
+From: Andrew Karpow <andy@mailbox.tu-berlin.de>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com>
-In-Reply-To: <50B67851.2010808@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] rtl28xxu: 0ccd:00d7 TerraTec Cinergy T Stick+
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/28/2012 03:47 PM, Frank Schäfer wrote:
-> Your device seems to use a EM2874 bridge.
-That is what appears on the chip.
-> Any chance to open the device and find out which demodulator it uses ?
-To my surprise it was easier to open than expected.
+added usb-id as driver supports the stick
 
-I think this is the demodulator:
+Signed-off-by: Andrew Karpow <andy@mailbox.tu-berlin.de>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-7th Generation
-VS8/QAM Receiver
-LG
-LGDT3305
-1211
-PGU419.00A
-
-I took some pictures (of the entire card): 
-http://pyther.net/a/digivox_atsc/ (SideA_1.jpg, SideA_2.jpg, 
-SideB_1.jpg, SideB_2.jpg)
-> Are you able to compile a kernel on your own to test patches ? It's not
-> that hard... ;)
-I sure can! I've done some kernel bisects in the past.
-
-Thanks
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 0149cdd..093f1ac 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1348,6 +1348,8 @@ static const struct usb_device_id
+rtl28xxu_id_table[] = {
+        &rtl2832u_props, "TerraTec Cinergy T Stick RC (Rev. 3)", NULL) },
+    { DVB_USB_DEVICE(USB_VID_DEXATEK, 0x1102,
+        &rtl2832u_props, "Dexatek DK mini DVB-T Dongle", NULL) },
++   { DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00d7,
++       &rtl2832u_props, "TerraTec Cinergy T Stick+", NULL) },
+    { }
+ };
+ MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
+-- 
+1.7.8.6
