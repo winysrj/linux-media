@@ -1,108 +1,24 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33193 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753753Ab2KLPiX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Nov 2012 10:38:23 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: [PATCH v8 4/6] fbmon: add of_videomode helpers
-Date: Mon, 12 Nov 2012 16:37:04 +0100
-Message-Id: <1352734626-27412-5-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:53141 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750716Ab2KFO1S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 09:27:18 -0500
+Received: by mail-wi0-f172.google.com with SMTP id hq12so4329925wib.1
+        for <linux-media@vger.kernel.org>; Tue, 06 Nov 2012 06:27:17 -0800 (PST)
+From: Oleg Kravchenko <oleg@kaa.org.ua>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] cx23885: Added support for AVerTV Hybrid Express Slim HC81R (only analog)
+Date: Tue, 06 Nov 2012 16:27:11 +0200
+Message-ID: <4725140.82ECDW3KtC@comp>
+In-Reply-To: <21a4038a-2fef-4947-ab2a-06873e80b185@email.android.com>
+References: <2489713.pAFgSjBqdl@comp> <21a4038a-2fef-4947-ab2a-06873e80b185@email.android.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add helper to get fb_videomode from devicetree.
+Hi guys!
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
----
- drivers/video/fbmon.c |   40 ++++++++++++++++++++++++++++++++++++++++
- include/linux/fb.h    |    3 +++
- 2 files changed, 43 insertions(+)
-
-diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
-index d46ecef..c95be79 100644
---- a/drivers/video/fbmon.c
-+++ b/drivers/video/fbmon.c
-@@ -1409,6 +1409,46 @@ int videomode_to_fb_videomode(struct videomode *vm, struct fb_videomode *fbmode)
- EXPORT_SYMBOL_GPL(videomode_to_fb_videomode);
- #endif
- 
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+static void dump_fb_videomode(struct fb_videomode *m)
-+{
-+	pr_debug("fb_videomode = %ux%u@%uHz (%ukHz) %u %u %u %u %u %u %u %u %u\n",
-+		 m->xres, m->yres, m->refresh, m->pixclock, m->left_margin,
-+		 m->right_margin, m->upper_margin, m->lower_margin,
-+		 m->hsync_len, m->vsync_len, m->sync, m->vmode, m->flag);
-+}
-+
-+/**
-+ * of_get_fb_videomode - get a fb_videomode from devicetree
-+ * @np: device_node with the timing specification
-+ * @fb: will be set to the return value
-+ * @index: index into the list of display timings in devicetree
-+ *
-+ * DESCRIPTION:
-+ * This function is expensive and should only be used, if only one mode is to be
-+ * read from DT. To get multiple modes start with of_get_display_timings ond
-+ * work with that instead.
-+ */
-+int of_get_fb_videomode(struct device_node *np, struct fb_videomode *fb,
-+			int index)
-+{
-+	struct videomode vm;
-+	int ret;
-+
-+	ret = of_get_videomode(np, &vm, index);
-+	if (ret)
-+		return ret;
-+
-+	videomode_to_fb_videomode(&vm, fb);
-+
-+	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
-+		vm.vactive, np->name);
-+	dump_fb_videomode(fb);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(of_get_fb_videomode);
-+#endif
- 
- #else
- int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
-diff --git a/include/linux/fb.h b/include/linux/fb.h
-index 46c665b..9892fd6 100644
---- a/include/linux/fb.h
-+++ b/include/linux/fb.h
-@@ -14,6 +14,8 @@
- #include <linux/backlight.h>
- #include <linux/slab.h>
- #include <asm/io.h>
-+#include <linux/of.h>
-+#include <linux/of_videomode.h>
- 
- struct vm_area_struct;
- struct fb_info;
-@@ -714,6 +716,7 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
- extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
- extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
- 
-+extern int of_get_fb_videomode(struct device_node *np, struct fb_videomode *fb, int index);
- extern int videomode_to_fb_videomode(struct videomode *vm, struct fb_videomode *fbmode);
- 
- /* drivers/video/modedb.c */
--- 
-1.7.10.4
-
+So what is with my patch? It is will be accepted?
