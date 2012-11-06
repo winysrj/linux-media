@@ -1,69 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1037 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751844Ab2KPNxK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Nov 2012 08:53:10 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 2/4] v4l: Helper function for obtaining timestamps
-Date: Fri, 16 Nov 2012 14:52:30 +0100
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-References: <20121115220627.GB29863@valkosipuli.retiisi.org.uk> <1353017207-370-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1353017207-370-2-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201211161452.30489.hverkuil@xs4all.nl>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:53156 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751118Ab2KFMeJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 07:34:09 -0500
+From: YAMANE Toshiaki <yamanetoshi@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org,
+	YAMANE Toshiaki <yamanetoshi@gmail.com>
+Subject: [PATCH 2/2] Staging/media: Use dev_ printks in go7007/wis-tw9903.c
+Date: Tue,  6 Nov 2012 21:34:02 +0900
+Message-Id: <1352205243-5829-1-git-send-email-yamanetoshi@gmail.com>
+In-Reply-To: <1352205206-5794-1-git-send-email-yamanetoshi@gmail.com>
+References: <1352205206-5794-1-git-send-email-yamanetoshi@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu November 15 2012 23:06:45 Sakari Ailus wrote:
-> v4l2_get_timestamp() produces a monotonic timestamp but unlike
-> ktime_get_ts(), it uses struct timeval instead of struct timespec, saving
-> the drivers the conversion job when getting timestamps for v4l2_buffer's
-> timestamp field.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/v4l2-core/v4l2-common.c |   10 ++++++++++
->  include/media/v4l2-common.h           |    2 ++
->  2 files changed, 12 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-> index 380ddd8..614316f 100644
-> --- a/drivers/media/v4l2-core/v4l2-common.c
-> +++ b/drivers/media/v4l2-core/v4l2-common.c
-> @@ -978,3 +978,13 @@ const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
->  	return best;
->  }
->  EXPORT_SYMBOL_GPL(v4l2_find_nearest_format);
-> +
-> +void v4l2_get_timestamp(struct timeval *tv)
-> +{
-> +	struct timespec ts;
-> +
-> +	ktime_get_ts(&ts);
-> +	tv->tv_sec = ts.tv_sec;
-> +	tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_get_timestamp);
-> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-> index 1a0b2db..ec7c9c0 100644
-> --- a/include/media/v4l2-common.h
-> +++ b/include/media/v4l2-common.h
-> @@ -225,4 +225,6 @@ bool v4l2_detect_gtf(unsigned frame_height, unsigned hfreq, unsigned vsync,
->  
->  struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait);
->  
-> +void v4l2_get_timestamp(struct timeval *tv);
-> +
->  #endif /* V4L2_COMMON_H_ */
-> 
+fixed below checkpatch warning.
+- WARNING: Prefer netdev_dbg(netdev, ... then dev_dbg(dev, ... then pr_debug(...  to printk(KERN_DEBUG ...
+- WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
+---
+ drivers/staging/media/go7007/wis-tw9903.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-Regards,
+diff --git a/drivers/staging/media/go7007/wis-tw9903.c b/drivers/staging/media/go7007/wis-tw9903.c
+index 3821cd5..246ce17 100644
+--- a/drivers/staging/media/go7007/wis-tw9903.c
++++ b/drivers/staging/media/go7007/wis-tw9903.c
+@@ -127,8 +127,8 @@ static int wis_tw9903_command(struct i2c_client *client,
+ 			0x06, 0xc0, /* reset device */
+ 			0,	0,
+ 		};
+-		printk(KERN_DEBUG "vscale is %04x, hscale is %04x\n",
+-				vscale, hscale);
++		dev_dbg(&client->dev, "vscale is %04x, hscale is %04x\n",
++			vscale, hscale);
+ 		/*write_regs(client, regs);*/
+ 		break;
+ 	}
+@@ -287,12 +287,11 @@ static int wis_tw9903_probe(struct i2c_client *client,
+ 	dec->hue = 0;
+ 	i2c_set_clientdata(client, dec);
+ 
+-	printk(KERN_DEBUG
+-		"wis-tw9903: initializing TW9903 at address %d on %s\n",
++	dev_dbg(&client->dev, "initializing TW9903 at address %d on %s\n",
+ 		client->addr, adapter->name);
+ 
+ 	if (write_regs(client, initial_registers) < 0) {
+-		printk(KERN_ERR "wis-tw9903: error initializing TW9903\n");
++		dev_err(&client->dev, "error initializing TW9903\n");
+ 		kfree(dec);
+ 		return -ENODEV;
+ 	}
+-- 
+1.7.9.5
 
-	Hans
