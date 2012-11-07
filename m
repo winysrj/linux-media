@@ -1,59 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out5-smtp.messagingengine.com ([66.111.4.29]:55774 "EHLO
-	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754413Ab2KEPWZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Nov 2012 10:22:25 -0500
-Date: Mon, 5 Nov 2012 16:22:31 +0100
-From: Greg Kroah-Hartman <greg@kroah.com>
-To: Joe Perches <joe@perches.com>
-Cc: YAMANE Toshiaki <yamanetoshi@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] staging/media: Use dev_ printks in go7007/s2250-loader.c
-Message-ID: <20121105152231.GA4807@kroah.com>
-References: <1352115282-8081-1-git-send-email-yamanetoshi@gmail.com>
- <20121105131108.GC27238@kroah.com>
- <1352128271.16194.8.camel@joe-AO722>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1352128271.16194.8.camel@joe-AO722>
+Received: from mailout1.samsung.com ([203.254.224.24]:49241 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751191Ab2KGGU2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2012 01:20:28 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MD300FQ8TM2NO70@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 07 Nov 2012 15:20:27 +0900 (KST)
+Received: from localhost.localdomain ([107.108.73.106])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MD300H33TKNGW50@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 07 Nov 2012 15:20:27 +0900 (KST)
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	shaik.samsung@gmail.com
+Subject: [PATCH] [media] exynos-gsc: propagate timestamps from src to dst
+ buffers
+Date: Wed, 07 Nov 2012 12:10:24 +0530
+Message-id: <1352270424-14683-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 05, 2012 at 07:11:11AM -0800, Joe Perches wrote:
-> On Mon, 2012-11-05 at 14:11 +0100, Greg Kroah-Hartman wrote:
-> > On Mon, Nov 05, 2012 at 08:34:42PM +0900, YAMANE Toshiaki wrote:
-> > > fixed below checkpatch warnings.
-> > > - WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-> > > - WARNING: Prefer netdev_info(netdev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
-> > > 
-> > > Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
-> > > ---
-> > >  drivers/staging/media/go7007/s2250-loader.c |   35 ++++++++++++++-------------
-> > >  1 file changed, 18 insertions(+), 17 deletions(-)
-> > 
-> > Please note that I don't touch the drivers/staging/media/* files, so
-> > copying me on these patches doesn't do anything :)
-> 
-> Maybe:
-> 
->  MAINTAINERS |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index b062349..542a541 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -6906,6 +6906,7 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.git
->  L:	devel@driverdev.osuosl.org
->  S:	Supported
->  F:	drivers/staging/
-> +X:	drivers/staging/media/
+Make gsc-m2m propagate the timestamp field from source to destination
+buffers
 
-Sure, that would be good, care to resend it with a signed-off-by: so I
-can apply it?
+Signed-off-by: John Sheu <sheu@google.com>
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-m2m.c |   19 ++++++++++++-------
+ 1 files changed, 12 insertions(+), 7 deletions(-)
 
-thanks,
+diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+index 047f0f0..1139276 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
++++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+@@ -99,22 +99,27 @@ static void gsc_m2m_job_abort(void *priv)
+ 		gsc_m2m_job_finish(ctx, VB2_BUF_STATE_ERROR);
+ }
+ 
+-static int gsc_fill_addr(struct gsc_ctx *ctx)
++static int gsc_get_bufs(struct gsc_ctx *ctx)
+ {
+ 	struct gsc_frame *s_frame, *d_frame;
+-	struct vb2_buffer *vb = NULL;
++	struct vb2_buffer *src_vb, *dst_vb;
+ 	int ret;
+ 
+ 	s_frame = &ctx->s_frame;
+ 	d_frame = &ctx->d_frame;
+ 
+-	vb = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
+-	ret = gsc_prepare_addr(ctx, vb, s_frame, &s_frame->addr);
++	src_vb = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
++	ret = gsc_prepare_addr(ctx, src_vb, s_frame, &s_frame->addr);
++
++	dst_vb = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
++	ret |= gsc_prepare_addr(ctx, dst_vb, d_frame, &d_frame->addr);
+ 	if (ret)
+ 		return ret;
+ 
+-	vb = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
+-	return gsc_prepare_addr(ctx, vb, d_frame, &d_frame->addr);
++	memcpy(&dst_vb->v4l2_buf.timestamp, &src_vb->v4l2_buf.timestamp,
++		sizeof(dst_vb->v4l2_buf.timestamp));
++
++	return 0;
+ }
+ 
+ static void gsc_m2m_device_run(void *priv)
+@@ -148,7 +153,7 @@ static void gsc_m2m_device_run(void *priv)
+ 		goto put_device;
+ 	}
+ 
+-	ret = gsc_fill_addr(ctx);
++	ret = gsc_get_bufs(ctx);
+ 	if (ret) {
+ 		pr_err("Wrong address");
+ 		goto put_device;
+-- 
+1.7.0.4
 
-greg k-h
