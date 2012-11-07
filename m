@@ -1,53 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53294 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754079Ab2KEVLI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Nov 2012 16:11:08 -0500
-Message-ID: <50982B4E.8000609@iki.fi>
-Date: Mon, 05 Nov 2012 23:10:38 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 56/68] [media] tua9001: fix a warning
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com> <1351370486-29040-57-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1351370486-29040-57-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from node-sl2798.smtp.com ([173.192.74.130]:58810 "EHLO
+	node-sl2798.smtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750802Ab2KGUbl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2012 15:31:41 -0500
+Received: from pandasent.com (localhost [127.0.0.1])
+	by pandasent.com (Postfix) with ESMTP id F025247D9
+	for <linux-media@vger.kernel.org>; Wed,  7 Nov 2012 20:32:09 +0000 (UTC)
+Message-Id: <VZG4UBRB-NHK4-3A6I-M020-3ZHKN2YDGYLM@gmail.com>
+Mime-Version: 1.0
+From: Hannah Edwards <hannahedwards888@gmail.com>
+To: "Administrator" <linux-media@vger.kernel.org>
+Subject: Checking in on a Broken Link on Your Site About Photo Album Programs
+Date: Wed, 7 Nov 2012 12:31:40 -0800
+Content-Type: text/plain; charset=US-ASCII;
+	format=flowed
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/27/2012 11:41 PM, Mauro Carvalho Chehab wrote:
-> drivers/media/tuners/tua9001.c:211:5: warning: 'ret' may be used uninitialized in this function [-Wmaybe-uninitialized]
->
-> Cc: Antti Palosaari <crope@iki.fi>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->   drivers/media/tuners/tua9001.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/tuners/tua9001.c b/drivers/media/tuners/tua9001.c
-> index 3896684..83a6240 100644
-> --- a/drivers/media/tuners/tua9001.c
-> +++ b/drivers/media/tuners/tua9001.c
-> @@ -136,7 +136,7 @@ static int tua9001_set_params(struct dvb_frontend *fe)
->   {
->   	struct tua9001_priv *priv = fe->tuner_priv;
->   	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-> -	int ret, i;
-> +	int ret = 0, i;
->   	u16 val;
->   	u32 frequency;
->   	struct reg_val data[2];
->
+Hi Administrator,
 
-I cannot see any condition ret could be used as uninitialized. I looked 
-myself that warning earlier too.
+I've reported a broken link on your site http://cvs.linuxtv.org/vdrwiki/index.php/Graphtft-plugin that links to http://www.enlightenment.org/pages/imlib2.html and haven't heard back, so I just wanted to verify whether you're the right person to contact? If not, could you direct me to the person maintaining the website? If you would be interested in updating your website, I have a similar resource that you are more than welcome to use to update. Let me know!
 
-Anyway, I am fine with it.
+Link Replacement Option: http://www.learnstuff.com/learn-about-photo-album-programs-and-sites/
 
-Acked-by: Antti Palosaari <crope@iki.fi>
+Best,
+Hannah Edwards
 
-Antti
--- 
-http://palosaari.fi/
