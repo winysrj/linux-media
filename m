@@ -1,52 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:40300 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932448Ab2KNT6x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Nov 2012 14:58:53 -0500
-Date: Wed, 14 Nov 2012 20:58:41 +0100
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	g.liakhovetski@gmx.de, kernel@pengutronix.de, gcembed@gmail.com,
-	javier.martin@vista-silicon.com, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v4 2/2] mx2_camera: Fix regression caused by clock
- conversion
-Message-ID: <20121114195841.GO10369@pengutronix.de>
-References: <1351598606-8485-1-git-send-email-fabio.estevam@freescale.com>
- <1351598606-8485-2-git-send-email-fabio.estevam@freescale.com>
- <20121031095702.41649bf9@infradead.org>
- <CAOMZO5BFZHWzsKF0mr2h0SRGxEdbz3J+fDEiOqY1BmfGCiCE9A@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOMZO5BFZHWzsKF0mr2h0SRGxEdbz3J+fDEiOqY1BmfGCiCE9A@mail.gmail.com>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:43354 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751727Ab2KGTYL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2012 14:24:11 -0500
+From: YAMANE Toshiaki <yamanetoshi@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Devendra Naga <develkernel412222@gmail.com>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org,
+	YAMANE Toshiaki <yamanetoshi@gmail.com>
+Subject: [PATCH] Staging/media: Use dev_ printks in cxd2099/cxd2099.h
+Date: Thu,  8 Nov 2012 04:24:04 +0900
+Message-Id: <1352316245-8009-1-git-send-email-yamanetoshi@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 14, 2012 at 04:22:40PM -0200, Fabio Estevam wrote:
-> Hi Sascha,
-> 
-> On Wed, Oct 31, 2012 at 9:57 AM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
-> 
-> > As it seems that those patches depend on some patches at the arm tree,
-> > the better is to merge them via -arm tree.
-> >
-> > So,
-> >
-> > Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> Could you please apply this series via your tree?
+fixed below checkpatch warning.
+- WARNING: Prefer netdev_warn(netdev, ... then dev_warn(dev, ... then pr_warn(...  to printk(KERN_WARNING ...
 
-Sure, I already have this in my queue.
+Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
+---
+ drivers/staging/media/cxd2099/cxd2099.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Sascha
-
+diff --git a/drivers/staging/media/cxd2099/cxd2099.h b/drivers/staging/media/cxd2099/cxd2099.h
+index 19c588a..0eb607c 100644
+--- a/drivers/staging/media/cxd2099/cxd2099.h
++++ b/drivers/staging/media/cxd2099/cxd2099.h
+@@ -43,7 +43,7 @@ struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+ static inline struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+ 					void *priv, struct i2c_adapter *i2c)
+ {
+-	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
++	dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
+ 	return NULL;
+ }
+ #endif
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.7.9.5
+
