@@ -1,62 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp208.alice.it ([82.57.200.104]:43199 "EHLO smtp208.alice.it"
+Received: from mx1.redhat.com ([209.132.183.28]:27048 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932348Ab2KEX2f (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Nov 2012 18:28:35 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Patrick Boettcher <patrick.boettcher@desy.de>,
-	Antonio Ospite <ospite@studenti.unina.it>
-Subject: [PATCH 0/5] dvb-usb: support VP-7049 Twinhan DVB-T USB Stick and other fixes
-Date: Tue,  6 Nov 2012 00:28:11 +0100
-Message-Id: <1352158096-17737-1-git-send-email-ospite@studenti.unina.it>
+	id S1753314Ab2KGBP4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 20:15:56 -0500
+Date: Wed, 7 Nov 2012 02:15:48 +0100
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: David =?ISO-8859-1?B?SORyZGVtYW4=?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] siano: fix Kconfig
+Message-ID: <20121107021548.6e94618e@gaivota.chehab>
+In-Reply-To: <20121107001018.31147.34490.stgit@zeus.hardeman.nu>
+References: <20121107001018.31147.34490.stgit@zeus.hardeman.nu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Wed, 07 Nov 2012 01:10:18 +0100
+David Härdeman <david@hardeman.nu> escreveu:
 
-with this series I am adding support for the VP-7049 Twinhan DVB-T USB stick,
-the device comes also under other names as specified in the appropriate commit
-messages.
+> make allmodconfig fails on the staging/for_v3.8 branch:
+> 
+>   LD      init/built-in.o
+> drivers/built-in.o: In function `sms_ir_event':
+> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:48: undefined reference to `ir_raw_event_store'
+> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:50: undefined reference to `ir_raw_event_handle'
+> drivers/built-in.o: In function `sms_ir_init':
+> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:56: undefined reference to `smscore_get_board_id'
+> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:60: undefined reference to `rc_allocate_device'
+> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:72: undefined reference to `sms_get_board'
+> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:92: undefined reference to `sms_get_board'
+> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:97: undefined reference to `rc_register_device'
+> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:100: undefined reference to `rc_free_device'
+> drivers/built-in.o: In function `sms_ir_exit':
+> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:111: undefined reference to `rc_unregister_device'
+> make: *** [vmlinux] Error 1
+> 
+> from drivers/media/common/siano/Kconfig:
+> config SMS_SIANO_RC
+>         bool "Enable Remote Controller support for Siano devices"
+> 
+> from drivers/media/common/siano/Makefile:
+>         obj-$(CONFIG_SMS_SIANO_RC) += smsir.o
+> 
+> Note the "bool" option in the Kconfig which results in these .config options:
+>         CONFIG_SMS_SIANO_MDTV=m
+>         CONFIG_SMS_SIANO_RC=y
+>         CONFIG_RC_CORE=m
+> 
+> So the smsir.ko module gets built in while rc-core is a standalone
+> module. Fix by making smsir a tristate as well. (I hope that's the
+> correct fix, I'm no Kconfig expert).
 
-Patch 1 extends the initialization sequence to support this particular
-hardware, it's a dependency for patch 3. I am open to alternative solutions.
+I suspect that this won't cover all possibilities. It seems that this would
+still be a valid option:
 
-Patches 2 and 3 add support for the hardware, all the pieces were already in
-linux, thanks a lot!
+         CONFIG_SMS_SIANO_MDTV=y
+         CONFIG_SMS_SIANO_RC=m
+         CONFIG_RC_CORE=m
 
-Patches 4 and 5 are trivial fixes for stuff I noticed while looking at the
-code, feel free to ignore especially patch 4 if you find it too intrusive.
+But I don't think it would work.
 
-Please note that I arbitrarily ignored checkpatch.pl warnings and errors
-because I preferred to stick with the code style in use in the dvb-usb files,
-let me know if you want me to do otherwise.
+> 
+> Signed-off-by: David Härdeman <david@hardeman.nu>
+> ---
+>  drivers/media/common/siano/Kconfig |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/common/siano/Kconfig b/drivers/media/common/siano/Kconfig
+> index 3cb7823..239b7ba 100644
+> --- a/drivers/media/common/siano/Kconfig
+> +++ b/drivers/media/common/siano/Kconfig
+> @@ -9,7 +9,7 @@ config SMS_SIANO_MDTV
+>  	default y
+>  
+>  config SMS_SIANO_RC
+> -	bool "Enable Remote Controller support for Siano devices"
+> +	tristate "Enable Remote Controller support for Siano devices"
+>  	depends on SMS_SIANO_MDTV && RC_CORE
+>  	depends on SMS_USB_DRV || SMS_SDIO_DRV
+>  	depends on MEDIA_COMMON_OPTIONS
+> 
 
-Thanks,
-   Antonio
 
-Antonio Ospite (5):
-  [media] dvb-usb: add a pre_init hook to struct
-    dvb_usb_device_properties
-  [media] get_dvb_firmware: add dvb-usb-vp7049-0.95.fw
-  [media] m920x: Add support for the VP-7049 Twinhan DVB-T USB Stick
-  [media] dvb-usb: fix indentation of a for loop
-  [media] m920x: fix a typo in a comment
 
- drivers/media/dvb-core/dvb-usb-ids.h     |    1 +
- drivers/media/usb/dvb-usb/dvb-usb.h      |    5 +
- drivers/media/usb/dvb-usb/dvb-usb-init.c |   66 ++++++-----
- drivers/media/usb/dvb-usb/m920x.c        |  191 +++++++++++++++++++++++++++++-
- Documentation/dvb/get_dvb_firmware       |   15 ++-
- 5 files changed, 246 insertions(+), 32 deletions(-)
 
--- 
-Antonio Ospite
-http://ao2.it
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
+Cheers,
+Mauro
