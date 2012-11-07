@@ -1,135 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44362 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754448Ab2K1UAl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 15:00:41 -0500
-Date: Wed, 28 Nov 2012 22:00:34 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	devel@driverdev.osuosl.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v3 9/9] davinci: vpfe: Add documentation and TODO
-Message-ID: <20121128200034.GF31879@valkosipuli.retiisi.org.uk>
-References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
- <1354099329-20722-10-git-send-email-prabhakar.lad@ti.com>
- <20121128092213.4bd0870f@redhat.com>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:40843 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752619Ab2KGAKZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 19:10:25 -0500
+Subject: [PATCH] siano: fix Kconfig
+To: mchehab@redhat.com
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org
+Date: Wed, 07 Nov 2012 01:10:18 +0100
+Message-ID: <20121107001018.31147.34490.stgit@zeus.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20121128092213.4bd0870f@redhat.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+make allmodconfig fails on the staging/for_v3.8 branch:
 
-On Wed, Nov 28, 2012 at 09:22:13AM -0200, Mauro Carvalho Chehab wrote:
-> Hi Prabhakar,
-> 
-> Em Wed, 28 Nov 2012 16:12:09 +0530
-> Prabhakar Lad <prabhakar.csengg@gmail.com> escreveu:
-> 
-> > +Introduction
-> > +============
-> > +
-> > +This file documents the Texas Instruments Davinci Video processing Front End
-> > +(VPFE) driver located under drivers/media/platform/davinci. The original driver
-> > +exists for Davinci VPFE, which is now being changed to Media Controller
-> > +Framework.
-> 
-> Hmm... please correct me if I'm wrong, but are you wanting to replace an existing
-> driver at drivers/media/platform/davinci, by another one at staging that has
-> lots of known issues, as pointed at your TODO????
+  LD      init/built-in.o
+drivers/built-in.o: In function `sms_ir_event':
+/home/david/checkouts/linux/drivers/media/common/siano/smsir.c:48: undefined reference to `ir_raw_event_store'
+/home/david/checkouts/linux/drivers/media/common/siano/smsir.c:50: undefined reference to `ir_raw_event_handle'
+drivers/built-in.o: In function `sms_ir_init':
+/home/david/checkouts/linux/drivers/media/common/siano/smsir.c:56: undefined reference to `smscore_get_board_id'
+/home/david/checkouts/linux/drivers/media/common/siano/smsir.c:60: undefined reference to `rc_allocate_device'
+/home/david/checkouts/linux/drivers/media/common/siano/smsir.c:72: undefined reference to `sms_get_board'
+/home/david/checkouts/linux/drivers/media/common/siano/smsir.c:92: undefined reference to `sms_get_board'
+/home/david/checkouts/linux/drivers/media/common/siano/smsir.c:97: undefined reference to `rc_register_device'
+/home/david/checkouts/linux/drivers/media/common/siano/smsir.c:100: undefined reference to `rc_free_device'
+drivers/built-in.o: In function `sms_ir_exit':
+/home/david/checkouts/linux/drivers/media/common/siano/smsir.c:111: undefined reference to `rc_unregister_device'
+make: *** [vmlinux] Error 1
 
-This driver going to staging is not going to replace anything as such.
+from drivers/media/common/siano/Kconfig:
+config SMS_SIANO_RC
+        bool "Enable Remote Controller support for Siano devices"
 
-The reason to put the driver to staging is simply that it'd be part of the
-kernel source so people can use it effortlessly, just as any other driver
-that's in staging. If you compare this to them, I think you will find it for
-this driver's favour. Reading the Barcelona mini-summit report, isn't the
-only requirement for staging drivers that they compile? I think this driver
-passes that requiremnt with flying colours.
+from drivers/media/common/siano/Makefile:
+        obj-$(CONFIG_SMS_SIANO_RC) += smsir.o
 
-The driver that's currently in drivers/media/platform/davinci is a) serves a
-small subset of potential use cases and b) lacks most features the hardware
-can offer. This new driver that's intended for staging, is more generic,
-feature-rich and supports standard APIs such as V4L2 subdev and Media
-controller which the old driver does not do at all.
+Note the "bool" option in the Kconfig which results in these .config options:
+        CONFIG_SMS_SIANO_MDTV=m
+        CONFIG_SMS_SIANO_RC=y
+        CONFIG_RC_CORE=m
 
-The TODO file exists to document what needs to be done to this driver to get
-it out of staging. After this is done, its APIs and functionality is similar
-to that offered by the OMAP 3 ISP driver.
+So the smsir.ko module gets built in while rc-core is a standalone
+module. Fix by making smsir a tristate as well. (I hope that's the
+correct fix, I'm no Kconfig expert).
 
-> If so, please don't do that. Replacing a driver by some other one is generally
-> a very bad idea, especially in this case, where the new driver has clearly several
-> issues, the main one being to define its own proprietary and undocumented API:
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/common/siano/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-What's currently is in mainline more closely resembles what the OMAP 3 ISP
-driver used to be in the end of 2008. The code quality is better and it
-contains less hacks, but still that is the case. At the time me and Laurent
-decided that we didn't want to push it to staging, but instead continue
-developing it out-of-tree.
+diff --git a/drivers/media/common/siano/Kconfig b/drivers/media/common/siano/Kconfig
+index 3cb7823..239b7ba 100644
+--- a/drivers/media/common/siano/Kconfig
++++ b/drivers/media/common/siano/Kconfig
+@@ -9,7 +9,7 @@ config SMS_SIANO_MDTV
+ 	default y
+ 
+ config SMS_SIANO_RC
+-	bool "Enable Remote Controller support for Siano devices"
++	tristate "Enable Remote Controller support for Siano devices"
+ 	depends on SMS_SIANO_MDTV && RC_CORE
+ 	depends on SMS_USB_DRV || SMS_SDIO_DRV
+ 	depends on MEDIA_COMMON_OPTIONS
 
-> > +As of now since the interface will undergo few changes all the include
-> > +files are present in staging itself, to build for dm365 follow below steps,
-> > +
-> > +- copy vpfe.h from drivers/staging/media/davinci_vpfe/ to
-> > +  include/media/davinci/ folder for building the uImage.
-> > +- copy davinci_vpfe_user.h from drivers/staging/media/davinci_vpfe/ to
-> > +  include/uapi/linux/davinci_vpfe.h, and add a entry in Kbuild (required
-> > +  for building application).
-> > +- copy dm365_ipipeif_user.h from drivers/staging/media/davinci_vpfe/ to
-> > +  include/uapi/linux/dm365_ipipeif.h and a entry in Kbuild (required
-> > +  for building application).
-> 
-> Among other things, with those ugly and very likely mandatory API calls:
-> 
-> >+/*
-> >+ * Private IOCTL
-> >+ * VIDIOC_VPFE_IPIPEIF_S_CONFIG: Set IPIEIF configuration
-> >+ * VIDIOC_VPFE_IPIPEIF_G_CONFIG: Get IPIEIF configuration
-> >+ */
-> >+#define VIDIOC_VPFE_IPIPEIF_S_CONFIG \
-> >+	_IOWR('I', BASE_VIDIOC_PRIVATE + 1, struct ipipeif_params)
-> >+#define VIDIOC_VPFE_IPIPEIF_G_CONFIG \
-> >+	_IOWR('I', BASE_VIDIOC_PRIVATE + 2, struct ipipeif_params)
-> >+
-> >+#endif	
-> 
-> I remember we rejected already drivers like that with obscure "S_CONFIG"
-> private ioctl that were suspect to send a big initialization undocumented
-> blob to the driver, as only the vendor's application would be able to use
-> such driver.
-
-We know this is bad, and it's not going to stay. Improving the user space
-API is mentioned in the TODO file. Also, much of this configuration is for
-parts that weren't supported by the old driver to begin with.
-
-> So, instead, of submitting it to staging, you should be sending incremental
-> patches for the existing driver, adding newer functionality there, and 
-> using the proper V4L2 API, with makes life easier for reviewers and
-> application developers.
-
-If you're looking to see API compatibility between the two, you will not be
-able to get it: the old driver simply implements a different profile (which
-should be defined but that's a separate issue). This is a new driver and
-deserves to be treated that way.
-
-If someone depends on the old driver currently, we should keep that old
-driver in the tree and eventually remove it once users have moved to use the
-new one. That requires resolving the issues listed in the TODO file and
-accepting the driver as part of the media tree.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
