@@ -1,72 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:40174 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753064Ab2KVTTd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 14:19:33 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1TbVyq-00032g-6q
-	for linux-media@vger.kernel.org; Thu, 22 Nov 2012 13:34:08 +0100
-Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2012 13:34:08 +0100
-Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2012 13:34:08 +0100
-To: linux-media@vger.kernel.org
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Subject: one tuner of a PVR-500 not returning any data
-Date: Thu, 22 Nov 2012 07:33:47 -0500
-Message-ID: <k8l63b$1bd$1@ger.gmane.org>
+Received: from smtpbg56.qq.com ([64.71.138.45]:56327 "HELO smtpbg56.qq.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752611Ab2KGCur (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Nov 2012 21:50:47 -0500
+From: "=?utf-8?B?5YaN5Zue6aaW?=" <308123027@qq.com>
+To: "=?utf-8?B?R3Vlbm5hZGkgTGlha2hvdmV0c2tp?=" <g.liakhovetski@gmx.de>
+Cc: "=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>
+Subject: =?utf-8?B?5Zue5aSN77yaIHNvYyBjYW1lcmEgZHJpdmVyIG1v?=
+ =?utf-8?B?ZHVsZSBtYXkgY2FzZSBtZW1vcnkgbGVhaw==?=
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig125CD5FF34985089AEF45069"
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+Date: Wed, 7 Nov 2012 10:49:54 +0800
+Message-ID: <tencent_0F344C4C45C5FF7B032E92BB@qq.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig125CD5FF34985089AEF45069
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-I have a PVR-500 in a machine here where one of the /dev/video* devices
-can successfully be opened and return data while the other can be
-opened but returns to data to a read(2).  i.e.:
-
-open("/dev/video3", O_RDONLY|O_LARGEFILE) =3D 3
-dup3(3, 0, 0)                           =3D 0
-close(3)                                =3D 0
-fstat64(0, {st_mode=3DS_IFCHR|0660, st_rdev=3Dmakedev(81, 11), ...}) =3D =
-0
-ioctl(0, SNDCTL_TMR_TIMEBASE or TCGETS, 0xbfc7f568) =3D -1 EINVAL (Invali=
-d argument)
-mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0)=
- =3D 0xb7423000
-read(0,=20
-
-and the process blocks there.
-
-Any idea why this might be happening?  Kernel is 3.2.0-33-generic which
-I believe is 3.2.1 based.
-
-b.
-
-
---------------enig125CD5FF34985089AEF45069
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iEYEARECAAYFAlCuG6wACgkQl3EQlGLyuXAQGgCg1ZFkPaAjQnbI7Y2HyK/8qZJc
-AuEAn0bJ4Pjmfraqch0WbtIzRI3y8t9c
-=UQhq
------END PGP SIGNATURE-----
-
---------------enig125CD5FF34985089AEF45069--
+RGVhciBHdWVubmFkaQ0KDQpJJ20gc3VyZSBpdCdzIGEgYnVnLkluIGxpbnV4LTIuNi54LCB3
+ZSBjYWxsIG9wZW4oKSB3aWxsIGFsbG9jYXRlIGEgc3RydWN0IHNvY19jYW1lcmFfZmlsZSB3
+aGljaCBjb250YWlucyBzdHJ1Y3QgdmlkZW9idWZfcXVldWU7dGhlbiB1c3Igd2lsbCBjYWxs
+IHJlcXVlc3RfYnVmZmVyLCBzb2NfY2FtZXJhIG1vZHVsZSB3aWxsIGNhbGwgdmlkZW9idWZf
+YWxsb2NfdmIocSkgd2hpY2ggd2lsbCBiZSBpbnN0YWxsZWQgaW4gcS0+YnVmc1tpXS4NCiAg
+ICAgICAgICAgICBNeSBxdWVzdGlvbiBpcyBob3cgdG8gZnJlZSBxLT5idWZzW2ldIHdoaWNo
+IGlzIGFsbG9jYXRlZCBmcm9tIHZiID0ga3phbGxvYyhzaXplICsgc2l6ZW9mKCptZW0pLCBH
+RlBfS0VSTkVMKSBpZiB3ZSB1c2UgdmlkZW9idWYtZG1hLWNvbnRpZyBtZW1vcnkgbW9kZWw/
+IA0KICAgICAgICAgICAgIHZpZGVvYnVmX21tYXBfZnJlZSgpLT5rZnJlZShxLT5idWZzW2ld
+KSBzaG91bGQgY2FsbCBhdCBldmVyeSBjYWxsIGNsb3NlKCk7d2UgY2FuJ3QgY2FsbCBrZnJl
+ZShxLT5idWZzW2ldKSBhdCBxLT5vcHMtPmJ1Zl9yZWxlYXNlIHdoaWNoIGlzIGNhbGxlZCBp
+biBzdHJlYW1fb2ZmKCksIGJlY2F1c2UgcS0+YnVmc1tpXSByZXNlcnZlIHN0cnVjdCB2aWRl
+b2J1Zl9tYXBwaW5nLCB1bm1hcCgpIHdpbGwgY2FuJ3QgZnJlZSB2aWRlb2J1ZiB3aGljaCBp
+cyB1c2VkIHRvIHN0b3JlIHZpZGVvIGRhdGEuIEFsc28gY2FuJ3QgY2FsbCB2aWRlb2J1Zl9t
+bWFwX2ZyZWUoKS0+a2ZyZWUocS0+YnVmc1tpXSkgYXQgbGFzdCBjbG9zZSgpLCBiZWNhdXNl
+IGluIGxpbnV4LTIuNi54IG9uY2Ugb3BlbigpIGFsbG9jYXRlcyBhIHZpZGVvYnVmX3F1ZXVl
+Lg0KICAgICAgICAgICAgICAgSW4gbGludXgtMy54LngsIHdlIHNob3VsZCBjYWxsIHZpZGVv
+YnVmX21tYXBfZnJlZSgpLT5rZnJlZShxLT5idWZzW2ldKSBvbmx5IG9uY2UgYXQgbW9kdWxl
+IHJlbW92ZSBjYWxsYmNhayBmdW5jdGlvbi4NCiAgICAgICAgICAgICAgWW91IHNheSwgdmlk
+ZW9idWYgbW1hcCBhbGxvY2F0aW9ucyB3aWxsIGJlIGZyZWVkIGF1dG9tYXRpY2FsbHkuIEkg
+d2FudCB0byBrbm93biBzb2NfY2FtZXJhIG1vZHVsZSBob3cgdG8gZnJlZSBxLT5idWZzW2ld
+IGF1dG9tYXRpY2FsbHkuIA0KICAgICAgICAgICAgICBJZiBpcyB0aGVyZSBubyBidWcgaW4g
+c29jIGNhbWVyYSBtb2R1bGUgLCBpJ20gc3VyZSBhbGwgZGV2aWNlIGRyaXZlciB1c2Ugc29j
+IGNhbWVyYSBtb2R1bGUgaGF2ZSBidWdzLCBzdWNoIGFzIHNoX21vYmlsZV9jZXVfY2FlcmEu
+YywgbXgxX2NhZXJhLmMsIG14M19jYWVyYS5jIGV0Yy4gYWxsIG9mIHRoZW0gZG9ubid0IGNh
+bGwgdmlkZW9idWZfbW1hcF9mcmVlKCktPmtmcmVlKHEtPmJ1ZnNbaV0pLg0KDQpZb3VyIHJl
+cGx5IHdpbGwgYmUgaGlnbHkgYXBwcmVjaWF0ZWQhIA0KDQoNCi0tLS0tLS0tLS0tLS0tLS0t
+LSDljp/lp4vpgq7ku7YgLS0tLS0tLS0tLS0tLS0tLS0tDQrlj5Hku7bkuro6ICJHdWVubmFk
+aSBMaWFraG92ZXRza2kiPGcubGlha2hvdmV0c2tpQGdteC5kZT47DQrlj5HpgIHml7bpl7Q6
+IDIwMTLlubQxMeaciDbml6Uo5pif5pyf5LqMKSDmmZrkuIo3OjMwDQrmlLbku7bkuro6ICLl
+ho3lm57pppYiPDMwODEyMzAyN0BxcS5jb20+OyANCuaKhOmAgTogImxpbnV4LW1lZGlhIjxs
+aW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc+OyANCuS4u+mimDogUmU6IHNvYyBjYW1lcmEg
+ZHJpdmVyIG1vZHVsZSBtYXkgY2FzZSBtZW1vcnkgbGVhaw0KDQoNCkhpDQoNCk9uIE1vbiwg
+NSBOb3YgMjAxMiwgIH5Gfk0gflt+XiB+ViB3cm90ZToNCg0KPiBEZWFyIHNpcjoNCj4gd2h5
+IG5vdCBjYWxsICJ2aWRlb2J1Zl9tbWFwX2ZyZWUiLHdoZW4gZGV2aWNlIGNsb3NlIGNhbGwg
+InNvY19jYW1lcmFfY2xvc2UiIGluIGxpbnV4LTIuNi54Ow0KDQpJIGhhdmVuJ3QgZm91bmQg
+YW55IHZlcnNpb24sIHdoZXJlIHRoaXMgaGFzIGJlZW4gZG9uZS4gSSBkb24ndCB0aGluayB0
+aGlzIA0KaXMgbmVlZGVkLCBiZWNhdXNlIHZpZGVvYnVmIG1tYXAgYWxsb2NhdGlvbnMgd2ls
+bCBiZSBmcmVlZCBhdXRvbWF0aWNhbGx5IA0KdXBvbiB0aGUgbGFzdCBjbG9zZSgpLiBQbGVh
+c2UsIGRpc21pc3MgeW91ciBidWd6aWxsYSBlbnRyeS4NCg0KVGhhbmtzDQpHdWVubmFkaQ0K
+DQo+IGRvIHRoZSBzYW1lIGluIGxpbnV4LTMueC54Pw0KPiB2aWRlbyBjYXB0dXJlIGZsb3c6
+DQo+IDEpb3Blbg0KPiAyKXNldCBmbXQNCj4gMylyZXF1ZXN0IGJ1ZmZlci0tPl9fdmlkZW9i
+dWZfbW1hcF9zZXR1cC0tPnZpZGVvYnVmX2FsbG9jX3ZiKHEpDQo+IDQpbW1hcA0KPiA1KWVu
+cXVldWUsIGRlcXVldWUNCj4gNil1bm1hcA0KPiA3KWNsb3NlLS0tPnNvY19jYW1lcmFfY2xv
+c2UtLT4/c2hvdWxkIGNhbGw6dmlkZW9idWZfbW1hcF9mcmVlDQo+IE5PVEU6DQo+IEkgaGF2
+ZSByZXZpZXdlZCBhbGwgdGhlIGNvZGUsIGZvdW5kOnNvY19jYW1lcmFfZHJpdmVyIGRldmlj
+ZSBkcml2ZXIgY29kZXJzIGhhcyBubyB3YXkoY2FsbGJhY2sgZnVuY3Rpb24pIHRvIGNhbGwg
+dmlkZW9idWZfbW1hcF9mcmVlOyBpdCB3aWxsIGNhc2UgbWVtb3J5IGxlYWsuTiByIHkgYiBY
+IMendiBeICneunsubiArIHsgYmopIHcqamcg3aJqLyB6IN6WIDIg3pkgJiAp36EgYSBHIGgg
+ajordiB3INmlDQoNCi0tLQ0KR3Vlbm5hZGkgTGlha2hvdmV0c2tpLCBQaC5ELg0KRnJlZWxh
+bmNlIE9wZW4tU291cmNlIFNvZnR3YXJlIERldmVsb3Blcg0KaHR0cDovL3d3dy5vcGVuLXRl
+Y2hub2xvZ3kuZGUv
 
