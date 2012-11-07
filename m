@@ -1,72 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:32926 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751666Ab2KPOr2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Nov 2012 09:47:28 -0500
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 09/12] davinci: vpss: dm365: set vpss clk ctrl
-Date: Fri, 16 Nov 2012 20:15:11 +0530
-Message-Id: <1353077114-19296-10-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1353077114-19296-1-git-send-email-prabhakar.lad@ti.com>
-References: <1353077114-19296-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:39460 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752188Ab2KGVjS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Nov 2012 16:39:18 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	Milan Tuma <milan.olin@seznam.cz>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] dvb_usb_v2: fix pid_filter callback error logging
+Date: Wed,  7 Nov 2012 23:38:35 +0200
+Message-Id: <1352324315-3077-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunath Hadli <manjunath.hadli@ti.com>
+Code block braces were missing which leds broken error logging and compiler warning.
 
-request_mem_region for VPSS_CLK_CTRL register and ioremap.
-and enable clocks appropriately.
+drivers/media/usb/dvb-usb-v2/dvb_usb_core.c: In function 'dvb_usb_ctrl_feed':
+drivers/media/usb/dvb-usb-v2/dvb_usb_core.c:291:12: warning: 'ret' may be used uninitialized in this function [-Wuninitialized]
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: Milan Tuma <milan.olin@seznam.cz>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/davinci/vpss.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
-index 34ad7bd..a36d694 100644
---- a/drivers/media/platform/davinci/vpss.c
-+++ b/drivers/media/platform/davinci/vpss.c
-@@ -103,6 +103,7 @@ struct vpss_hw_ops {
- struct vpss_oper_config {
- 	__iomem void *vpss_regs_base0;
- 	__iomem void *vpss_regs_base1;
-+	resource_size_t *vpss_regs_base2;
- 	enum vpss_platform_type platform;
- 	spinlock_t vpss_lock;
- 	struct vpss_hw_ops hw_ops;
-@@ -484,11 +485,24 @@ static struct platform_driver vpss_driver = {
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+index 9859d2a..ba51f65 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+@@ -283,14 +283,13 @@ static inline int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed,
  
- static void vpss_exit(void)
- {
-+	iounmap(oper_cfg.vpss_regs_base2);
-+	release_mem_region(*oper_cfg.vpss_regs_base2, 4);
- 	platform_driver_unregister(&vpss_driver);
- }
- 
-+#define VPSS_CLK_CTRL			0x01c40044
-+#define VPSS_CLK_CTRL_VENCCLKEN		BIT(3)
-+#define VPSS_CLK_CTRL_DACCLKEN		BIT(4)
-+
- static int __init vpss_init(void)
- {
-+	if (request_mem_region(VPSS_CLK_CTRL, 4, "vpss_clock_control")) {
-+		oper_cfg.vpss_regs_base2 = ioremap(VPSS_CLK_CTRL, 4);
-+		__raw_writel(VPSS_CLK_CTRL_VENCCLKEN |
-+			     VPSS_CLK_CTRL_DACCLKEN, oper_cfg.vpss_regs_base2);
-+	} else {
-+		return -EBUSY;
+ 	/* activate the pid on the device pid filter */
+ 	if (adap->props->caps & DVB_USB_ADAP_HAS_PID_FILTER &&
+-			adap->pid_filtering &&
+-			adap->props->pid_filter)
++			adap->pid_filtering && adap->props->pid_filter) {
+ 		ret = adap->props->pid_filter(adap, dvbdmxfeed->index,
+ 				dvbdmxfeed->pid, (count == 1) ? 1 : 0);
+-			if (ret < 0)
+-				dev_err(&d->udev->dev, "%s: pid_filter() " \
+-						"failed=%d\n", KBUILD_MODNAME,
+-						ret);
++		if (ret < 0)
++			dev_err(&d->udev->dev, "%s: pid_filter() failed=%d\n",
++					KBUILD_MODNAME, ret);
 +	}
- 	return platform_driver_register(&vpss_driver);
- }
- subsys_initcall(vpss_init);
+ 
+ 	/* start feeding if it is first pid */
+ 	if (adap->feed_count == 1 && count == 1) {
 -- 
-1.7.4.1
+1.7.11.7
 
