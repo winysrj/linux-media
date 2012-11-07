@@ -1,141 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:52287 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750771Ab2K0K5Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 05:57:25 -0500
-Date: Tue, 27 Nov 2012 11:57:22 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Albert Wang <twang13@marvell.com>
-cc: corbet@lwn.net, linux-media@vger.kernel.org,
-	Libin Yang <lbyang@marvell.com>
-Subject: Re: [PATCH 04/15] [media] marvell-ccic: reset ccic phy when stop
- streaming for stability
-In-Reply-To: <1353677603-24071-1-git-send-email-twang13@marvell.com>
-Message-ID: <Pine.LNX.4.64.1211271152240.22273@axis700.grange>
-References: <1353677603-24071-1-git-send-email-twang13@marvell.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:56341 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753530Ab2KGLWR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2012 06:22:17 -0500
+Message-ID: <509A4473.3080506@gmx.net>
+Date: Wed, 07 Nov 2012 12:22:27 +0100
+From: Andreas Nagel <andreasnagel@gmx.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: OMAP3 ISP: VIDIOC_STREAMON and VIDIOC_QBUF calls fail
+References: <5097DF9F.6080603@gmx.net> <20121106215153.GE25623@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20121106215153.GE25623@valkosipuli.retiisi.org.uk>
+Content-Type: multipart/mixed;
+ boundary="------------040602080308000605060306"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 23 Nov 2012, Albert Wang wrote:
+This is a multi-part message in MIME format.
+--------------040602080308000605060306
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> From: Libin Yang <lbyang@marvell.com>
-> 
-> This patch adds the reset ccic phy operation when stop streaming.
-> 
-> Without reset ccic phy, the next start streaming may be unstable.
-> 
-> Also need add CCIC2 definition when PXA688/PXA2128 support dual ccics.
-> 
-> Signed-off-by: Albert Wang <twang13@marvell.com>
-> Signed-off-by: Libin Yang <lbyang@marvell.com>
-> ---
->  drivers/media/platform/marvell-ccic/mcam-core.c  |    5 +++++
->  drivers/media/platform/marvell-ccic/mcam-core.h  |    2 ++
->  drivers/media/platform/marvell-ccic/mmp-driver.c |   25 ++++++++++++++++++++++
->  3 files changed, 32 insertions(+)
-> 
-> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-> index b111f0d..760e8ea 100755
-> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
-> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-> @@ -1053,6 +1053,11 @@ static int mcam_vb_stop_streaming(struct vb2_queue *vq)
->  		return -EINVAL;
->  	mcam_ctlr_stop_dma(cam);
->  	/*
-> +	 * Reset the CCIC PHY after stopping streaming,
-> +	 * otherwise, the CCIC may be unstable.
-> +	 */
-> +	cam->ctlr_reset(cam);
+Hi Sakari,
 
-Aren't you breaking the cafe driver by calling .ctrl_reset() without 
-checking for NULL? Same holds for your .calc_dphy() callback too.
+thanks for helping.
 
-> +	/*
->  	 * VB2 reclaims the buffers, so we need to forget
->  	 * about them.
->  	 */
-> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
-> index 0df6b1c..40368f6 100755
-> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
-> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
-> @@ -103,6 +103,7 @@ struct mcam_camera {
->  	short int use_smbus;	/* SMBUS or straight I2c? */
->  	enum mcam_buffer_mode buffer_mode;
->  
-> +	int ccic_id;
->  	/* MIPI support */
->  	int bus_type;
->  	int (*dphy)[3];
-> @@ -119,6 +120,7 @@ struct mcam_camera {
->  	void (*plat_power_up) (struct mcam_camera *cam);
->  	void (*plat_power_down) (struct mcam_camera *cam);
->  	void (*calc_dphy)(struct mcam_camera *cam);
-> +	void (*ctlr_reset)(struct mcam_camera *cam);
->  
->  	/*
->  	 * Everything below here is private to the mcam core and
-> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
-> index 80977b0..20046d0 100755
-> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
-> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
-> @@ -103,6 +103,7 @@ static struct mmp_camera *mmpcam_find_device(struct platform_device *pdev)
->  #define CPU_SUBSYS_PMU_BASE	0xd4282800
->  #define REG_CCIC_DCGCR		0x28	/* CCIC dyn clock gate ctrl reg */
->  #define REG_CCIC_CRCR		0x50	/* CCIC clk reset ctrl reg	*/
-> +#define REG_CCIC2_CRCR		0xf4	/* CCIC2 clk reset ctrl reg	*/
->  
->  static void mcam_clk_set(struct mcam_camera *mcam, int on)
->  {
-> @@ -174,6 +175,28 @@ static void mmpcam_power_down(struct mcam_camera *mcam)
->  	mcam_clk_set(mcam, 0);
->  }
->  
-> +void mcam_ctlr_reset(struct mcam_camera *mcam)
-> +{
-> +	unsigned long val;
-> +	struct mmp_camera *cam = mcam_to_cam(mcam);
-> +
-> +	if (mcam->ccic_id) {
-> +		/*
-> +		 * Using CCIC2
-> +		 */
-> +		val = ioread32(cam->power_regs + REG_CCIC2_CRCR);
-> +		iowrite32(val & ~0x2, cam->power_regs + REG_CCIC2_CRCR);
-> +		iowrite32(val | 0x2, cam->power_regs + REG_CCIC2_CRCR);
-> +	} else {
-> +		/*
-> +		 * Using CCIC1
-> +		 */
-> +		val = ioread32(cam->power_regs + REG_CCIC_CRCR);
-> +		iowrite32(val & ~0x2, cam->power_regs + REG_CCIC_CRCR);
-> +		iowrite32(val | 0x2, cam->power_regs + REG_CCIC_CRCR);
-> +	}
-> +}
-> +
->  /*
->   * calc the dphy register values
->   * There are three dphy registers being used.
-> @@ -301,9 +324,11 @@ static int mmpcam_probe(struct platform_device *pdev)
->  	mcam = &cam->mcam;
->  	mcam->plat_power_up = mmpcam_power_up;
->  	mcam->plat_power_down = mmpcam_power_down;
-> +	mcam->ctlr_reset = mcam_ctlr_reset;
->  	mcam->calc_dphy = mmpcam_calc_dphy;
->  	mcam->dev = &pdev->dev;
->  	mcam->use_smbus = 0;
-> +	mcam->ccic_id = pdev->id;
->  	mcam->bus_type = pdata->bus_type;
->  	mcam->dphy = &(pdata->dphy);
->  	mcam->mipi_enabled = 0;
-> -- 
-> 1.7.9.5
+> My code sets up the ISP pipeline, configures the format on all the
+> subdevices pads and the actual video device. Works fine so far.
+> Then I passed user pointers (aquired with malloc) to the device
+> driver for the capture buffers. Before issuing VIDIOC_STREAMON, I
+> enqueue my buffers with VIDIOC_QBUF, which fails with errno = EIO. I
+> don't know, why this is happening or where to got from here.
+>> One possibility could be that mapping the buffer to ISP MMU fails for 
+>> a reason or another. Do you set the length field in the buffer? 
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Yes, the length was set when using userptr.
+
+>>
+>> And am I missing something else?
+> The formats on the pads at different ends of the links in the pipeline must
+> match. In most cases, they have to be exactly the same.
+>
+> Have you used the media-ctl test program here?
+>
+> <URL:http://git.ideasonboard.org/media-ctl.git>
+>
+> media-ctl -p gives you (and us) lots of information that helps figuring out
+> what could go wrong here.
+
+All pads do indeed have the same format.
+I ran media-ctl, as you suggested. You can see the topology in the 
+attached textfile.
+
+
+
+Kind regards,
+Andreas
+
+--------------040602080308000605060306
+Content-Type: text/plain; charset=UTF-8;
+ name="topology.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="topology.txt"
+
+Opening media device /dev/media0
+Enumerating entities
+Found 16 entities
+Enumerating pads and links
+Media controller API version 0.0.0
+
+Media device information
+------------------------
+driver          omap3isp
+model           TI OMAP3 ISP
+serial          
+bus info        
+hw revision     0x0
+driver version  0.0.0
+
+Device topology
+- entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev0
+	pad0: Sink
+		<- "OMAP3 ISP CCP2 input":0 []
+	pad1: Source
+		-> "OMAP3 ISP CCDC":0 []
+
+- entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video0
+	pad0: Source
+		-> "OMAP3 ISP CCP2":0 []
+
+- entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev1
+	pad0: Sink
+	pad1: Source
+		-> "OMAP3 ISP CSI2a output":0 []
+		-> "OMAP3 ISP CCDC":0 []
+
+- entity 4: OMAP3 ISP CSI2a output (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video1
+	pad0: Sink
+		<- "OMAP3 ISP CSI2a":1 []
+
+- entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev2
+	pad0: Sink
+		<- "OMAP3 ISP CCP2":1 []
+		<- "OMAP3 ISP CSI2a":1 []
+		<- "tvp514x 2-005d":0 []
+	pad1: Source
+		-> "OMAP3 ISP CCDC output":0 []
+		-> "OMAP3 ISP resizer":0 []
+	pad2: Source
+		-> "OMAP3 ISP preview":0 []
+		-> "OMAP3 ISP AEWB":0 [ENABLED,IMMUTABLE]
+		-> "OMAP3 ISP AF":0 [ENABLED,IMMUTABLE]
+		-> "OMAP3 ISP histogram":0 [ENABLED,IMMUTABLE]
+
+- entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video2
+	pad0: Sink
+		<- "OMAP3 ISP CCDC":1 []
+
+- entity 7: OMAP3 ISP preview (2 pads, 4 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev3
+	pad0: Sink
+		<- "OMAP3 ISP CCDC":2 []
+		<- "OMAP3 ISP preview input":0 []
+	pad1: Source
+		-> "OMAP3 ISP preview output":0 []
+		-> "OMAP3 ISP resizer":0 []
+
+- entity 8: OMAP3 ISP preview input (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video3
+	pad0: Source
+		-> "OMAP3 ISP preview":0 []
+
+- entity 9: OMAP3 ISP preview output (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video4
+	pad0: Sink
+		<- "OMAP3 ISP preview":1 []
+
+- entity 10: OMAP3 ISP resizer (2 pads, 4 links)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev4
+	pad0: Sink
+		<- "OMAP3 ISP CCDC":1 []
+		<- "OMAP3 ISP preview":1 []
+		<- "OMAP3 ISP resizer input":0 []
+	pad1: Source
+		-> "OMAP3 ISP resizer output":0 []
+
+- entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
+             type Node subtype V4L
+             device node name /dev/video5
+	pad0: Source
+		-> "OMAP3 ISP resizer":0 []
+
+- entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
+             type Node subtype V4L
+             device node name /dev/video6
+	pad0: Sink
+		<- "OMAP3 ISP resizer":1 []
+
+- entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev5
+	pad0: Sink
+		<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
+
+- entity 14: OMAP3 ISP AF (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev6
+	pad0: Sink
+		<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
+
+- entity 15: OMAP3 ISP histogram (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev7
+	pad0: Sink
+		<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
+
+- entity 17: tvp514x 2-005d (1 pad, 1 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev8
+	pad0: Source
+		-> "OMAP3 ISP CCDC":0 []
+
+
+
+--------------040602080308000605060306--
