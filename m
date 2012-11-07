@@ -1,213 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58097 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754795Ab2KZOoF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Nov 2012 09:44:05 -0500
-Message-ID: <50B37EEC.6090808@ti.com>
-Date: Mon, 26 Nov 2012 16:38:36 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-MIME-Version: 1.0
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-CC: <devicetree-discuss@lists.ozlabs.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	<linux-fbdev@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	<linux-media@vger.kernel.org>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	<kernel@pengutronix.de>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	David Airlie <airlied@linux.ie>
-Subject: Re: [PATCHv15 3/7] video: add of helper for display timings/videomode
-References: <1353920848-1705-1-git-send-email-s.trumtrar@pengutronix.de> <1353920848-1705-4-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1353920848-1705-4-git-send-email-s.trumtrar@pengutronix.de>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig30E97DFC1D800BE9C603588C"
+Received: from mailout4.samsung.com ([203.254.224.34]:26642 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750910Ab2KGGRP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2012 01:17:15 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MD300HZCTFNC9J0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 07 Nov 2012 15:17:10 +0900 (KST)
+Received: from localhost.localdomain ([107.108.73.106])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MD300HBSTF6GW30@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 07 Nov 2012 15:17:09 +0900 (KST)
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	shaik.samsung@gmail.com
+Subject: [PATCH] [media] exynos-gsc: Adding tiled multi-planar format to
+ G-Scaler
+Date: Wed, 07 Nov 2012 12:07:07 +0530
+Message-id: <1352270227-8369-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---------------enig30E97DFC1D800BE9C603588C
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Adding V4L2_PIX_FMT_NV12MT_16X16 to G-Scaler supported formats.
+If the output or input format is V4L2_PIX_FMT_NV12MT_16X16, configure
+G-Scaler to use GSC_IN_TILE_MODE.
 
-Hi,
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c |    9 +++++++++
+ drivers/media/platform/exynos-gsc/gsc-core.h |    5 +++++
+ drivers/media/platform/exynos-gsc/gsc-regs.c |    6 ++++++
+ 3 files changed, 20 insertions(+), 0 deletions(-)
 
-On 2012-11-26 11:07, Steffen Trumtrar wrote:
-> This adds support for reading display timings from DT into a struct
-> display_timings. The of_display_timing implementation supports multiple=
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index cc7b218..00f1013 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -185,6 +185,15 @@ static const struct gsc_fmt gsc_formats[] = {
+ 		.corder		= GSC_CRCB,
+ 		.num_planes	= 3,
+ 		.num_comp	= 3,
++	}, {
++		.name		= "YUV 4:2:0 non-contig. 2p, Y/CbCr, tiled",
++		.pixelformat	= V4L2_PIX_FMT_NV12MT_16X16,
++		.depth		= { 8, 4 },
++		.color		= GSC_YUV420,
++		.yorder		= GSC_LSB_Y,
++		.corder		= GSC_CBCR,
++		.num_planes	= 2,
++		.num_comp	= 2,
+ 	}
+ };
+ 
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h b/drivers/media/platform/exynos-gsc/gsc-core.h
+index 5f157ef..cc19bba 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.h
++++ b/drivers/media/platform/exynos-gsc/gsc-core.h
+@@ -427,6 +427,11 @@ static inline void gsc_ctx_state_lock_clear(u32 state, struct gsc_ctx *ctx)
+ 	spin_unlock_irqrestore(&ctx->gsc_dev->slock, flags);
+ }
+ 
++static inline int is_tiled(const struct gsc_fmt *fmt)
++{
++	return fmt->pixelformat == V4L2_PIX_FMT_NV12MT_16X16;
++}
++
+ static inline void gsc_hw_enable_control(struct gsc_dev *dev, bool on)
+ {
+ 	u32 cfg = readl(dev->regs + GSC_ENABLE);
+diff --git a/drivers/media/platform/exynos-gsc/gsc-regs.c b/drivers/media/platform/exynos-gsc/gsc-regs.c
+index 0146b35..6f5b5a4 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-regs.c
++++ b/drivers/media/platform/exynos-gsc/gsc-regs.c
+@@ -214,6 +214,9 @@ void gsc_hw_set_in_image_format(struct gsc_ctx *ctx)
+ 		break;
+ 	}
+ 
++	if (is_tiled(frame->fmt))
++		cfg |= GSC_IN_TILE_C_16x8 | GSC_IN_TILE_MODE;
++
+ 	writel(cfg, dev->regs + GSC_IN_CON);
+ }
+ 
+@@ -334,6 +337,9 @@ void gsc_hw_set_out_image_format(struct gsc_ctx *ctx)
+ 		break;
+ 	}
+ 
++	if (is_tiled(frame->fmt))
++		cfg |= GSC_OUT_TILE_C_16x8 | GSC_OUT_TILE_MODE;
++
+ end_set:
+ 	writel(cfg, dev->regs + GSC_OUT_CON);
+ }
+-- 
+1.7.0.4
 
-> subnodes. All children are read into an array, that can be queried.
->=20
-> If no native mode is specified, the first subnode will be used.
->=20
-> For cases where the graphics driver knows there can be only one
-> mode description or where the driver only supports one mode, a helper
-> function of_get_videomode is added, that gets a struct videomode from D=
-T.
->=20
-> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> Acked-by: Stephen Warren <swarren@nvidia.com>
-> Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-> Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-> Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  .../devicetree/bindings/video/display-timing.txt   |  107 ++++++++++
->  drivers/video/Kconfig                              |   15 ++
->  drivers/video/Makefile                             |    2 +
->  drivers/video/of_display_timing.c                  |  219 ++++++++++++=
-++++++++
->  drivers/video/of_videomode.c                       |   54 +++++
->  include/linux/of_display_timing.h                  |   20 ++
->  include/linux/of_videomode.h                       |   18 ++
->  7 files changed, 435 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/video/display-tim=
-ing.txt
->  create mode 100644 drivers/video/of_display_timing.c
->  create mode 100644 drivers/video/of_videomode.c
->  create mode 100644 include/linux/of_display_timing.h
->  create mode 100644 include/linux/of_videomode.h
->=20
-> diff --git a/Documentation/devicetree/bindings/video/display-timing.txt=
- b/Documentation/devicetree/bindings/video/display-timing.txt
-> new file mode 100644
-> index 0000000..e238f27
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/video/display-timing.txt
-> @@ -0,0 +1,107 @@
-> +display-timing bindings
-> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> +
-> +display-timings node
-> +--------------------
-> +
-> +required properties:
-> + - none
-> +
-> +optional properties:
-> + - native-mode: The native mode for the display, in case multiple mode=
-s are
-> +		provided. When omitted, assume the first node is the native.
-> +
-> +timing subnode
-> +--------------
-> +
-> +required properties:
-> + - hactive, vactive: display resolution
-> + - hfront-porch, hback-porch, hsync-len: horizontal display timing par=
-ameters
-> +   in pixels
-> +   vfront-porch, vback-porch, vsync-len: vertical display timing param=
-eters in
-> +   lines
-> + - clock-frequency: display clock in Hz
-> +
-> +optional properties:
-> + - hsync-active: hsync pulse is active low/high/ignored
-> + - vsync-active: vsync pulse is active low/high/ignored
-> + - de-active: data-enable pulse is active low/high/ignored
-> + - pixelclk-inverted: pixelclock is inverted (active on falling edge)/=
-
-> +				non-inverted (active on rising edge)/
-> +				     ignored (ignore property)
-
-I think hsync-active and vsync-active are clear, and commonly used, and
-they are used for both drm and fb mode conversions in later patches.
-
-de-active is not used in drm and fb mode conversions, but I think it's
-also clear.
-
-pixelclk-inverted is not used in the mode conversions. It's also a bit
-unclear to me. What does it mean that pix clock is "active on rising
-edge"? The pixel data is driven on rising edge? How about the sync
-signals and DE, when are they driven? Does your HW have any settings
-related to those?
-
-OMAP has the invert pclk setting, but it also has a setting to define
-when the sync signals are driven. The options are:
-- syncs are driven on rising edge of pclk
-- syncs are driven on falling edge of pclk
-- syncs are driven on the opposite edge of pclk compared to the pixel dat=
-a
-
-For DE there's no setting, except the active high/low.
-
-And if I'm not mistaken, if the optional properties are not defined,
-they are not ignored, but left to the default 0. Which means active low,
-or active on rising edge(?). I think it would be good to have a
-"undefined" value for the properties.
-
-> + - interlaced (bool): boolean to enable interlaced mode
-> + - doublescan (bool): boolean to enable doublescan mode
-> + - doubleclk (bool)
-
-As I mentioned in the other mail, doubleclk is not used nor documented he=
-re.
-
-> +All the optional properties that are not bool follow the following log=
-ic:
-> +    <1>: high active
-> +    <0>: low active
-> +    omitted: not used on hardware
-> +
-> +There are different ways of describing the capabilities of a display. =
-The devicetree
-> +representation corresponds to the one commonly found in datasheets for=
- displays.
-> +If a display supports multiple signal timings, the native-mode can be =
-specified.
-
-I have some of the same concerns for this series than with the
-interpreted power sequences (on fbdev): when you publish the DT
-bindings, it's somewhat final version then, and fixing it later will be
-difficult. Of course, video modes are much clearer than the power
-sequences, so it's possible there won't be any problems with the DT
-bindings.
-
-However, I'd still feel safer if the series would be split to non-DT and
-DT parts. The non-DT parts could be merged quite easily, and people
-could start using them in their kernels. This should expose
-bugs/problems related to the code.
-
-The DT part could be merged later, when there's confidence that the
-timings are good for all platforms.
-
-Or, alternatively, all the non-common bindings (de-active, pck
-invert,...) that are not used for fbdev or drm currently could be left
-out for now. But I'd stil prefer merging it in two parts.
-
- Tomi
-
-
-
---------------enig30E97DFC1D800BE9C603588C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQs37sAAoJEPo9qoy8lh71zJwP/i4Km77Fy9pbVD2ZyioXmyCs
-PNgBGD98c9rDyVLf/v8tRlfdLNLuXhkthJCJz3ZXShIlpppp9UcvU/y8RlPBAywx
-lXaD7lPaeILZjaDHRZnuIpodNndc3Sl8rfNo5TBgOPy6itY8jDSGpWFCvkFVakTa
-RFazhrMcOtECbhHb8IH+a0RVlrjCmaoC8L/Gj7AMFog3NsvGbYpVlDuizaOSDg3/
-oUPCwt/Ru0QsugE1cYbORdgmGsiGT0WRsF5+ZGpCNHW3dxIvQUiTr4H1PdEKHZ4q
-vDTYniwLEeXbqxEp/Ohdy1WZkHgd5DOr+RoTejv/HdcSYZQ1mVaORscPrSO252j1
-UmqaXCc6i821LNg+zS51eMulkAfu04EsnAAnZgCBlhM5hoG3gC58nvhIsugLe2H8
-C5xcxvOMitVwbsmfl8GxZHaWxsmPY0nxwNMTd2if0XgZqUfJ9W2KOnwjxUgL1oNE
-4Emq1QOg5/PXtWJYMqsIP493+10XNa+xmtBTy1NZfNk6DwHm3cYBpdkubl2sVM2s
-GN1NwtyZ2zHuQDPyBZk8VtlfPZrny8xBinKiITOuvR/oMSs9cqbBbECLQz5Uq9kA
-Ikgx+EeoVFbTOuKB4yUctq/TraOu29aDTyc+dwuY6AIV0PlEZzLz98dWp3r34Jz7
-R8Z/Lim2bD1RShc3VxJi
-=JV+3
------END PGP SIGNATURE-----
-
---------------enig30E97DFC1D800BE9C603588C--
