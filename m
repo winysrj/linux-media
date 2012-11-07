@@ -1,243 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:65470 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751702Ab2KHTMb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:12:31 -0500
-Received: by mail-ee0-f46.google.com with SMTP id b15so1754511eek.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2012 11:12:31 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 09/21] em28xx: create a common function for isoc and bulk URB allocation and setup
-Date: Thu,  8 Nov 2012 20:11:41 +0200
-Message-Id: <1352398313-3698-10-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:54346 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754223Ab2KGTYa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2012 14:24:30 -0500
+From: YAMANE Toshiaki <yamanetoshi@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Devendra Naga <develkernel412222@gmail.com>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org,
+	YAMANE Toshiaki <yamanetoshi@gmail.com>
+Subject: [PATCH] Staging/media: Use dev_ printks in cxd2099/cxd2099.c
+Date: Thu,  8 Nov 2012 04:24:25 +0900
+Message-Id: <1352316265-8044-1-git-send-email-yamanetoshi@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename the existing function for isoc transfers em28xx_init_isoc
-to em28xx_init_usb_xfer and extend it.
-URB allocation and setup is now done depending on the USB
-transfer type, which is selected with a new function parameter.
+fixed below checkpatch warnings.
+- WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+- WARNING: Prefer netdev_info(netdev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
 ---
- drivers/media/usb/em28xx/em28xx-cards.c |    6 +-
- drivers/media/usb/em28xx/em28xx-core.c  |  101 +++++++++++++++++--------------
- drivers/media/usb/em28xx/em28xx.h       |    4 +-
- 3 Dateien geändert, 61 Zeilen hinzugefügt(+), 50 Zeilen entfernt(-)
+ drivers/staging/media/cxd2099/cxd2099.c |   29 +++++++++++++++--------------
+ 1 file changed, 15 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index e474ccf..bfce34d 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -3322,10 +3322,10 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+diff --git a/drivers/staging/media/cxd2099/cxd2099.c b/drivers/staging/media/cxd2099/cxd2099.c
+index 0ff1972..822c487 100644
+--- a/drivers/staging/media/cxd2099/cxd2099.c
++++ b/drivers/staging/media/cxd2099/cxd2099.c
+@@ -66,8 +66,9 @@ static int i2c_write_reg(struct i2c_adapter *adapter, u8 adr,
+ 	struct i2c_msg msg = {.addr = adr, .flags = 0, .buf = m, .len = 2};
  
- 	if (has_dvb) {
- 		/* pre-allocate DVB isoc transfer buffers */
--		retval = em28xx_alloc_isoc(dev, EM28XX_DIGITAL_MODE,
--					   EM28XX_DVB_NUM_ISOC_PACKETS,
-+		retval = em28xx_alloc_urbs(dev, EM28XX_DIGITAL_MODE, 0,
- 					   EM28XX_DVB_NUM_BUFS,
--					   dev->dvb_max_pkt_size);
-+					   dev->dvb_max_pkt_size,
-+					   EM28XX_DVB_NUM_ISOC_PACKETS);
- 		if (retval) {
- 			goto unlock_and_free;
- 		}
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index a1ebd08..42388de 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -5,6 +5,7 @@
- 		      Markus Rechberger <mrechberger@gmail.com>
- 		      Mauro Carvalho Chehab <mchehab@infradead.org>
- 		      Sascha Sommer <saschasommer@freenet.de>
-+   Copyright (C) 2012 Frank Schäfer <fschaefer.oss@googlemail.com>
- 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-@@ -1035,10 +1036,10 @@ EXPORT_SYMBOL_GPL(em28xx_stop_urbs);
- /*
-  * Allocate URBs
-  */
--int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
--		      int num_packets, int num_bufs, int max_pkt_size)
-+int em28xx_alloc_urbs(struct em28xx *dev, enum em28xx_mode mode, int xfer_bulk,
-+		      int num_bufs, int max_pkt_size, int packet_multiplier)
- {
--	struct em28xx_usb_bufs *isoc_bufs;
-+	struct em28xx_usb_bufs *usb_bufs;
- 	int i;
- 	int sb_size, pipe;
- 	struct urb *urb;
-@@ -1047,49 +1048,52 @@ int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 	em28xx_isocdbg("em28xx: called em28xx_alloc_isoc in mode %d\n", mode);
- 
- 	if (mode == EM28XX_DIGITAL_MODE)
--		isoc_bufs = &dev->usb_ctl.digital_bufs;
-+		usb_bufs = &dev->usb_ctl.digital_bufs;
- 	else
--		isoc_bufs = &dev->usb_ctl.analog_bufs;
-+		usb_bufs = &dev->usb_ctl.analog_bufs;
- 
- 	/* De-allocates all pending stuff */
- 	em28xx_uninit_usb_xfer(dev, mode);
- 
--	isoc_bufs->num_bufs = num_bufs;
-+	usb_bufs->num_bufs = num_bufs;
- 
--	isoc_bufs->urb = kzalloc(sizeof(void *)*num_bufs,  GFP_KERNEL);
--	if (!isoc_bufs->urb) {
-+	usb_bufs->urb = kzalloc(sizeof(void *)*num_bufs,  GFP_KERNEL);
-+	if (!usb_bufs->urb) {
- 		em28xx_errdev("cannot alloc memory for usb buffers\n");
- 		return -ENOMEM;
+ 	if (i2c_transfer(adapter, &msg, 1) != 1) {
+-		printk(KERN_ERR "Failed to write to I2C register %02x@%02x!\n",
+-		       reg, adr);
++		dev_err(&adapter->dev,
++			"Failed to write to I2C register %02x@%02x!\n",
++			reg, adr);
+ 		return -1;
  	}
- 
--	isoc_bufs->transfer_buffer = kzalloc(sizeof(void *)*num_bufs,
-+	usb_bufs->transfer_buffer = kzalloc(sizeof(void *)*num_bufs,
- 					     GFP_KERNEL);
--	if (!isoc_bufs->transfer_buffer) {
-+	if (!usb_bufs->transfer_buffer) {
- 		em28xx_errdev("cannot allocate memory for usb transfer\n");
--		kfree(isoc_bufs->urb);
-+		kfree(usb_bufs->urb);
- 		return -ENOMEM;
- 	}
- 
--	isoc_bufs->max_pkt_size = max_pkt_size;
--	isoc_bufs->num_packets = num_packets;
-+	usb_bufs->max_pkt_size = max_pkt_size;
-+	if (xfer_bulk)
-+		usb_bufs->num_packets = 0;
-+	else
-+		usb_bufs->num_packets = packet_multiplier;
- 	dev->usb_ctl.vid_buf = NULL;
- 	dev->usb_ctl.vbi_buf = NULL;
- 
--	sb_size = isoc_bufs->num_packets * isoc_bufs->max_pkt_size;
-+	sb_size = packet_multiplier * usb_bufs->max_pkt_size;
- 
- 	/* allocate urbs and transfer buffers */
--	for (i = 0; i < isoc_bufs->num_bufs; i++) {
--		urb = usb_alloc_urb(isoc_bufs->num_packets, GFP_KERNEL);
-+	for (i = 0; i < usb_bufs->num_bufs; i++) {
-+		urb = usb_alloc_urb(usb_bufs->num_packets, GFP_KERNEL);
- 		if (!urb) {
- 			em28xx_err("cannot alloc usb_ctl.urb %i\n", i);
- 			em28xx_uninit_usb_xfer(dev, mode);
- 			return -ENOMEM;
- 		}
--		isoc_bufs->urb[i] = urb;
-+		usb_bufs->urb[i] = urb;
- 
--		isoc_bufs->transfer_buffer[i] = usb_alloc_coherent(dev->udev,
-+		usb_bufs->transfer_buffer[i] = usb_alloc_coherent(dev->udev,
- 			sb_size, GFP_KERNEL, &urb->transfer_dma);
--		if (!isoc_bufs->transfer_buffer[i]) {
-+		if (!usb_bufs->transfer_buffer[i]) {
- 			em28xx_err("unable to allocate %i bytes for transfer"
- 					" buffer %i%s\n",
- 					sb_size, i,
-@@ -1097,35 +1101,42 @@ int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 			em28xx_uninit_usb_xfer(dev, mode);
- 			return -ENOMEM;
- 		}
--		memset(isoc_bufs->transfer_buffer[i], 0, sb_size);
--
--		/* FIXME: this is a hack - should be
--			'desc.bEndpointAddress & USB_ENDPOINT_NUMBER_MASK'
--			should also be using 'desc.bInterval'
--		 */
--		pipe = usb_rcvisocpipe(dev->udev,
--				       mode == EM28XX_ANALOG_MODE ?
--				       EM28XX_EP_ANALOG : EM28XX_EP_DIGITAL);
--
--		usb_fill_int_urb(urb, dev->udev, pipe,
--				 isoc_bufs->transfer_buffer[i], sb_size,
--				 em28xx_irq_callback, dev, 1);
--
--		urb->number_of_packets = isoc_bufs->num_packets;
--		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
--
--		k = 0;
--		for (j = 0; j < isoc_bufs->num_packets; j++) {
--			urb->iso_frame_desc[j].offset = k;
--			urb->iso_frame_desc[j].length =
--						isoc_bufs->max_pkt_size;
--			k += isoc_bufs->max_pkt_size;
-+		memset(usb_bufs->transfer_buffer[i], 0, sb_size);
-+
-+		if (xfer_bulk) { /* bulk */
-+			pipe = usb_rcvbulkpipe(dev->udev,
-+					       mode == EM28XX_ANALOG_MODE ?
-+					       EM28XX_EP_ANALOG :
-+					       EM28XX_EP_DIGITAL);
-+			usb_fill_bulk_urb(urb, dev->udev, pipe,
-+					  usb_bufs->transfer_buffer[i], sb_size,
-+					  em28xx_irq_callback, dev);
-+			urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
-+		} else { /* isoc */
-+			pipe = usb_rcvisocpipe(dev->udev,
-+					       mode == EM28XX_ANALOG_MODE ?
-+					       EM28XX_EP_ANALOG :
-+					       EM28XX_EP_DIGITAL);
-+			usb_fill_int_urb(urb, dev->udev, pipe,
-+					 usb_bufs->transfer_buffer[i], sb_size,
-+					 em28xx_irq_callback, dev, 1);
-+			urb->transfer_flags = URB_ISO_ASAP |
-+					      URB_NO_TRANSFER_DMA_MAP;
-+			k = 0;
-+			for (j = 0; j < usb_bufs->num_packets; j++) {
-+				urb->iso_frame_desc[j].offset = k;
-+				urb->iso_frame_desc[j].length =
-+							usb_bufs->max_pkt_size;
-+				k += usb_bufs->max_pkt_size;
-+			}
- 		}
-+
-+		urb->number_of_packets = usb_bufs->num_packets;
- 	}
- 
  	return 0;
+@@ -79,7 +80,7 @@ static int i2c_write(struct i2c_adapter *adapter, u8 adr,
+ 	struct i2c_msg msg = {.addr = adr, .flags = 0, .buf = data, .len = len};
+ 
+ 	if (i2c_transfer(adapter, &msg, 1) != 1) {
+-		printk(KERN_ERR "Failed to write to I2C!\n");
++		dev_err(&adapter->dev, "Failed to write to I2C!\n");
+ 		return -1;
+ 	}
+ 	return 0;
+@@ -94,7 +95,7 @@ static int i2c_read_reg(struct i2c_adapter *adapter, u8 adr,
+ 				   .buf = val, .len = 1} };
+ 
+ 	if (i2c_transfer(adapter, msgs, 2) != 2) {
+-		printk(KERN_ERR "error in i2c_read_reg\n");
++		dev_err(&adapter->dev, "error in i2c_read_reg\n");
+ 		return -1;
+ 	}
+ 	return 0;
+@@ -109,7 +110,7 @@ static int i2c_read(struct i2c_adapter *adapter, u8 adr,
+ 				 .buf = data, .len = n} };
+ 
+ 	if (i2c_transfer(adapter, msgs, 2) != 2) {
+-		printk(KERN_ERR "error in i2c_read\n");
++		dev_err(&adapter->dev, "error in i2c_read\n");
+ 		return -1;
+ 	}
+ 	return 0;
+@@ -277,7 +278,7 @@ static void cam_mode(struct cxd *ci, int mode)
+ #ifdef BUFFER_MODE
+ 		if (!ci->en.read_data)
+ 			return;
+-		printk(KERN_INFO "enable cam buffer mode\n");
++		dev_info(&ci->i2c->dev, "enable cam buffer mode\n");
+ 		/* write_reg(ci, 0x0d, 0x00); */
+ 		/* write_reg(ci, 0x0e, 0x01); */
+ 		write_regm(ci, 0x08, 0x40, 0x40);
+@@ -524,7 +525,7 @@ static int slot_reset(struct dvb_ca_en50221 *ca, int slot)
+ 			msleep(10);
+ #if 0
+ 			read_reg(ci, 0x06, &val);
+-			printk(KERN_INFO "%d:%02x\n", i, val);
++			dev_info(&ci->i2c->dev, "%d:%02x\n", i, val);
+ 			if (!(val&0x10))
+ 				break;
+ #else
+@@ -542,7 +543,7 @@ static int slot_shutdown(struct dvb_ca_en50221 *ca, int slot)
+ {
+ 	struct cxd *ci = ca->data;
+ 
+-	printk(KERN_INFO "slot_shutdown\n");
++	dev_info(&ci->i2c->dev, "slot_shutdown\n");
+ 	mutex_lock(&ci->lock);
+ 	write_regm(ci, 0x09, 0x08, 0x08);
+ 	write_regm(ci, 0x20, 0x80, 0x80); /* Reset CAM Mode */
+@@ -578,10 +579,10 @@ static int campoll(struct cxd *ci)
+ 
+ 	if (istat&0x40) {
+ 		ci->dr = 1;
+-		printk(KERN_INFO "DR\n");
++		dev_info(&ci->i2c->dev, "DR\n");
+ 	}
+ 	if (istat&0x20)
+-		printk(KERN_INFO "WC\n");
++		dev_info(&ci->i2c->dev, "WC\n");
+ 
+ 	if (istat&2) {
+ 		u8 slotstat;
+@@ -597,7 +598,7 @@ static int campoll(struct cxd *ci)
+ 			if (ci->slot_stat) {
+ 				ci->slot_stat = 0;
+ 				write_regm(ci, 0x03, 0x00, 0x08);
+-				printk(KERN_INFO "NO CAM\n");
++				dev_info(&ci->i2c->dev, "NO CAM\n");
+ 				ci->ready = 0;
+ 			}
+ 		}
+@@ -634,7 +635,7 @@ static int read_data(struct dvb_ca_en50221 *ca, int slot, u8 *ebuf, int ecount)
+ 	campoll(ci);
+ 	mutex_unlock(&ci->lock);
+ 
+-	printk(KERN_INFO "read_data\n");
++	dev_info(&ci->i2c->dev, "read_data\n");
+ 	if (!ci->dr)
+ 		return 0;
+ 
+@@ -687,7 +688,7 @@ struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+ 	u8 val;
+ 
+ 	if (i2c_read_reg(i2c, cfg->adr, 0, &val) < 0) {
+-		printk(KERN_INFO "No CXD2099 detected at %02x\n", cfg->adr);
++		dev_info(&i2c->dev, "No CXD2099 detected at %02x\n", cfg->adr);
+ 		return NULL;
+ 	}
+ 
+@@ -705,7 +706,7 @@ struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+ 	ci->en = en_templ;
+ 	ci->en.data = ci;
+ 	init(ci);
+-	printk(KERN_INFO "Attached CXD2099AR at %02x\n", ci->cfg.adr);
++	dev_info(&i2c->dev, "Attached CXD2099AR at %02x\n", ci->cfg.adr);
+ 	return &ci->en;
  }
--EXPORT_SYMBOL_GPL(em28xx_alloc_isoc);
-+EXPORT_SYMBOL_GPL(em28xx_alloc_urbs);
- 
- /*
-  * Allocate URBs and start IRQ
-@@ -1155,8 +1166,8 @@ int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 	}
- 
- 	if (alloc) {
--		rc = em28xx_alloc_isoc(dev, mode, num_packets,
--				       num_bufs, max_pkt_size);
-+		rc = em28xx_alloc_urbs(dev, mode, 0, num_bufs,
-+				       max_pkt_size, num_packets);
- 		if (rc)
- 			return rc;
- 	}
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 8fb3504..7bc2ddd 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -662,8 +662,8 @@ int em28xx_vbi_supported(struct em28xx *dev);
- int em28xx_set_outfmt(struct em28xx *dev);
- int em28xx_resolution_set(struct em28xx *dev);
- int em28xx_set_alternate(struct em28xx *dev);
--int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
--		      int num_packets, int num_bufs, int max_pkt_size);
-+int em28xx_alloc_urbs(struct em28xx *dev, enum em28xx_mode mode, int xfer_bulk,
-+		      int num_bufs, int max_pkt_size, int packet_multiplier);
- int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 		     int num_packets, int num_bufs, int max_pkt_size,
- 		     int (*isoc_copy) (struct em28xx *dev, struct urb *urb));
+ EXPORT_SYMBOL(cxd2099_attach);
 -- 
-1.7.10.4
+1.7.9.5
 
