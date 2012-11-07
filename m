@@ -1,73 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:44921 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751820Ab2KQPwt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Nov 2012 10:52:49 -0500
-Received: by mail-qa0-f53.google.com with SMTP id k31so2468792qat.19
-        for <linux-media@vger.kernel.org>; Sat, 17 Nov 2012 07:52:48 -0800 (PST)
+Received: from smtp1-g21.free.fr ([212.27.42.1]:50132 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750761Ab2KGNji (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Nov 2012 08:39:38 -0500
+Message-ID: <509A648F.3070803@free.fr>
+Date: Wed, 07 Nov 2012 14:39:27 +0100
+From: moebius <moebius1@free.fr>
 MIME-Version: 1.0
-In-Reply-To: <CAKQROYXaEVasawMTd7XiDOvx_ZxL6H=0MqEds2-C+WFDru0m=Q@mail.gmail.com>
-References: <CAKQROYXaEVasawMTd7XiDOvx_ZxL6H=0MqEds2-C+WFDru0m=Q@mail.gmail.com>
-Date: Sat, 17 Nov 2012 15:52:48 +0000
-Message-ID: <CAKQROYVE6ZtvSLjQq5jyWcPyK1k6oapr=F3Mw5m4mQDHo2fvqg@mail.gmail.com>
-Subject: Re: Linux DVB Explained..
-From: Richard <tuxbox.guru@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org, crope@iki.fi
+Subject: Re: avermedia, new version of avertv volar green hd
+References: <5096B744.40308@free.fr> <5097B2FE.3090100@inf.u-szeged.hu> <50997401.7050805@iki.fi> <50997C8F.6020006@iki.fi>
+In-Reply-To: <50997C8F.6020006@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Apologies Mauro, I accidentailly bumped the 'Send' whilst typing your name.
+Bonjour,
 
-The message is addressed to Mauro and All,
+This is not possible anymore : the device has returned to the seller !
+But AV3007 is perhaps a compagny chip (AV = avermedia ?)
 
-On 17 November 2012 13:35, Richard <tuxbox.guru@gmail.com> wrote:
-> Hi Mau,
->
->
-> I have started documenting a HOWTO on making a linuxDVB device and
-> would like to know what the following is used for....
->
->
-> struct dvb_demux :
-> This has a start_feed and a stop feed.   What feed is this? ... the
-> RAW 188 byte packets from the device perhaps?
->
-> What is the main purpose of this structure?
->
-> struct dmx_demux :
-> This structure holds the frontend device struct and contains the .fops
-> for read/write.  Is this the main interface when using the
-> /dev/dvb/adapterX/demux ? /dvr?
->
->
-> So far...
->
-> adapter = dvb_register_adapter() : Register a new DVB device adapter
-> (called once)
-> dvb_dmx_init(dvbdemux);  // Called once per Demux chain?
-> dvb_dmxdev_init();  // Called once per demux chain ? same as above
->
-> -------------------
-> The hardware I am using has 6 TS data inputs, 4 tuners (linked to TS
-> inputs)  and hardware PID filters and I am trying to establish the
-> relationship of dmx and dmxdev.
->
->
-> Any clarification is most welcome
-> Best Regards,
-> Richard
+cordialement,
 
-To add more queries,
+PS : if you give me an adress, I can post the picture of the opened device
 
-What is the purpose of
-dmx_frontend  and dvb_frontend
-
-The word 'frontend' seems to be sending me in a loop.
-
-Its usually FE->Tuner->Demod->PID Filter-> TS Data  so I am at a loss
-where dmx_frontend goes
-
-Richard
+Le 06/11/2012 22:09, Antti Palosaari a écrit :
+> Also lsusb -vvd 07ca:3835 could be nice to see.
+>
+> Antti
+>
+> On 11/06/2012 10:33 PM, Antti Palosaari wrote:
+>> Any idea about chipset? Those listed didn't sound any familiar. What are
+>> driver file names?
+>>
+>> regards
+>> Antti
+>>
+>> On 11/05/2012 02:37 PM, Árvai Zoltán wrote:
+>>> Hi,
+>>>
+>>> I asked the local guy from Avermedia about this tuner.
+>>> He said it is a new product called  "AVerTV Volar HD M" (A835M). It has
+>>> probably the same hardware like the Volar Green, but it has extended
+>>> software bundle (e.g. Mac support).
+>>> http://www.avermedia.com/Product/ProductDetail.aspx?Id=517
+>>>
+>>> Regards,
+>>> Zoltan
+>>>
+>>>
+>>> On 11/04/2012 07:43 PM, moebius wrote:
+>>>> Bonjour,
+>>>> It's a dvb-t usb dongle
+>>>>
+>>>> It's the same name than a former device but with new id : 07ca:3835
+>>>> instead of 07ca:a835 and probably new hardware ; and it doesn't work...
+>>>>
+>>>> I've tried to enter a new device in the v4l-dvb web list but nothing
+>>>> has happened ;  the source, can be found at
+>>>> http://www.linuxtv.org/wiki/index.php?title=DVB-T_USB_Devices_ListData/Helper&action=edit&section=1
+>>>>
+>>>>
+>>>>
+>>>> I've made a photo too but don't know how I can upload it.
+>>>>
+>>>> Anyway, here is the source :
+>>>>
+>>>> ==== AVerMedia AVerTV Volar Green HD 07ca:3835 ====
+>>>> {{DeviceDisplayMedium|AVerMedia AVerTV Volar Green HD 07ca:3835}}
+>>>> </noinclude><includeonly>
+>>>> {{{{{renderwith}}}|src=USB_Device_Data|selatt1={{{selatt1|}}}|selval1={{{selval1|}}}|selatt2={{{selatt2|}}}|selval2={{{selval2|}}}|selatt3={{{selatt3|}}}|selval3={{{selval3|}}}|selatt4={{{selatt4|}}}|selval4={{{selval4|}}}
+>>>>
+>>>>
+>>>>
+>>>> | did=AVerMedia AVerTV Volar Green HD 07ca:3835
+>>>> | vendor=[[AVerMedia]]
+>>>> | device=[[AVerMedia AVerTV Volar Green HD | AVerTV Volar Green HD]]
+>>>> | standard=DVB-T
+>>>> | supported={{no}}
+>>>> | pic=
+>>>> | pic=
+>>>> | url=
+>>>> | url=
+>>>> | hostinterface=USB2.0
+>>>> | usbid=07ca:3835
+>>>> | hw=unknown (see pic)
+>>>> | tuner=
+>>>> | demodulator=
+>>>> | usbbridge=
+>>>> | fw=
+>>>> | comment= New version with same name ; main chipset (square, 4x12
+>>>> pins) named AV3007 SXB1102 ; a little chip with 8 pins named 402R6
+>>>> K207, another one with 5 pins 215L1(or "I" instead of "1") AC1H ; last
+>>>> small chip with metal on top T120 WtBF.
+>>>> This device don't work on recent ubuntu kernel (3.2.0-23-lowlatency),
+>>>> even with the last (04/11/2012) v4l drivers that I've downloaded and
+>>>> install today.
+>>>> }}
+>>>>
+>>>> cordialement,
+>>>>
+>>>>
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe
+>>>> linux-media" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe
+>>> linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>
+>
