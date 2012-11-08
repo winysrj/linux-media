@@ -1,81 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:43856 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752928Ab2KWNYi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 08:24:38 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1TbtFP-0001Mk-Np
-	for linux-media@vger.kernel.org; Fri, 23 Nov 2012 14:24:47 +0100
-Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 23 Nov 2012 14:24:47 +0100
-Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 23 Nov 2012 14:24:47 +0100
-To: linux-media@vger.kernel.org
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Subject: Re: one tuner of a PVR-500 not returning any data
-Date: Fri, 23 Nov 2012 08:24:26 -0500
-Message-ID: <k8nte9$sj1$1@ger.gmane.org>
-References: <k8l63b$1bd$1@ger.gmane.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig8EFCA0D40B19250257A15A14"
-In-Reply-To: <k8l63b$1bd$1@ger.gmane.org>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:65470 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751702Ab2KHTMf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:12:35 -0500
+Received: by mail-ee0-f46.google.com with SMTP id b15so1754511eek.19
+        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2012 11:12:35 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 11/21] em28xx: clear USB halt/stall condition in em28xx_init_usb_xfer when using bulk transfers
+Date: Thu,  8 Nov 2012 20:11:43 +0200
+Message-Id: <1352398313-3698-12-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig8EFCA0D40B19250257A15A14
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-core.c |   11 +++++++++++
+ 1 Datei geändert, 11 Zeilen hinzugefügt(+)
 
-On 12-11-22 07:33 AM, Brian J. Murrell wrote:
-> I have a PVR-500 in a machine here where one of the /dev/video* devices=
-
-> can successfully be opened and return data while the other can be
-> opened but returns to data to a read(2).  i.e.:
->=20
-> open("/dev/video3", O_RDONLY|O_LARGEFILE) =3D 3
-> dup3(3, 0, 0)                           =3D 0
-> close(3)                                =3D 0
-> fstat64(0, {st_mode=3DS_IFCHR|0660, st_rdev=3Dmakedev(81, 11), ...}) =3D=
- 0
-> ioctl(0, SNDCTL_TMR_TIMEBASE or TCGETS, 0xbfc7f568) =3D -1 EINVAL (Inva=
-lid argument)
-> mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, =
-0) =3D 0xb7423000
-> read(0,=20
->=20
-> and the process blocks there.
-
-FWIW, simply rmoving and inserting the ivtv module seems to have fixed th=
-is.
-
-But really odd (to me at least) that it's just one tuner of a dual-tuner
-card.  So like 1 piece of hardware, with only 1 submodule not working.
-
-b.
-
-
-
-
---------------enig8EFCA0D40B19250257A15A14
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iEYEARECAAYFAlCveQoACgkQl3EQlGLyuXBccwCfc91b9j2z+15tekk1J7rh37YT
-TLwAmgMGA75rvyECYnfhvzVIRIlKhcmt
-=TM7N
------END PGP SIGNATURE-----
-
---------------enig8EFCA0D40B19250257A15A14--
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index d8a8e8b..8b8f783 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -1174,6 +1174,17 @@ int em28xx_init_usb_xfer(struct em28xx *dev, enum em28xx_mode mode,
+ 			return rc;
+ 	}
+ 
++	if (xfer_bulk) {
++		rc = usb_clear_halt(dev->udev, usb_bufs->urb[0]->pipe);
++		if (rc < 0) {
++			em28xx_err("failed to clear USB bulk endpoint "
++				   "stall/halt condition (error=%i)\n",
++				   rc);
++			em28xx_uninit_usb_xfer(dev, mode);
++			return rc;
++		}
++	}
++
+ 	init_waitqueue_head(&dma_q->wq);
+ 	init_waitqueue_head(&vbi_dma_q->wq);
+ 
+-- 
+1.7.10.4
 
