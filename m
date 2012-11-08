@@ -1,25 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from firefly.pyther.net ([50.116.37.168]:42710 "EHLO
-	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752859Ab2K3Bpf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Nov 2012 20:45:35 -0500
-Message-ID: <50B80FBB.5030208@pyther.net>
-Date: Thu, 29 Nov 2012 20:45:31 -0500
-From: Matthew Gyurgyik <matthew@pyther.net>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com>
-In-Reply-To: <50B7B768.5070008@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:41463 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756145Ab2KHP2P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 10:28:15 -0500
+Received: from eusync2.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MD600DUODNWKM00@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 08 Nov 2012 15:28:44 +0000 (GMT)
+Received: from [106.116.147.108] by eusync2.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MD6000RTDN0LV60@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 08 Nov 2012 15:28:13 +0000 (GMT)
+Message-id: <509BCF8C.3060806@samsung.com>
+Date: Thu, 08 Nov 2012 16:28:12 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH 27/26] v4l: vb2: Set data_offset to 0 for single-plane
+ buffers
+References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
+ <1352376336-5404-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <509BA1FE.9010301@samsung.com> <5434150.xFoZpmKjxA@avalon>
+In-reply-to: <5434150.xFoZpmKjxA@avalon>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/29/2012 02:28 PM, Frank Schäfer wrote:
-> Matthew, stay tuned but be patient. ;) Regards, Frank
+Hi Laurent,
+The fix was partially applied in "[PATCHv10 03/26] v4l: vb2: add support for shared buffer (dma_buf)".
+The data_offset is set to 0 for DMABUF capture/output for single-planar API.
 
-Sure thing, just let me know what you need me to do!
+We should define the meaning of data_offset in case of USERPTR and MMAP buffers.
+For output device it is pretty intuitive.
+
+For DMABUF capture devices data_offset maybe used to inform a driver to
+capture the image at some offset inside the DMABUF buffer.
+
+BTW. Should {} be added after "if (V4L2_TYPE_IS_OUTPUT(b->type))"
+to avoid 'interesting' behavior? :)
+
+Regards,
+Tomasz Stanislawski
+
 
