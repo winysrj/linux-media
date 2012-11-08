@@ -1,198 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:63515 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753975Ab2K2Up2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Nov 2012 15:45:28 -0500
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-To: linux-kernel@vger.kernel.org, tglx@linutronix.de
-Cc: backports@vger.kernel.org, alexander.stein@systec-electronic.com,
-	brudley@broadcom.com, rvossen@broadcom.com, arend@broadcom.com,
-	frankyl@broadcom.com, kanyan@broadcom.com,
-	linux-wireless@vger.kernel.org, brcm80211-dev-list@broadcom.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org,
-	dri-devel@lists.freedesktop.org, srinidhi.kasagar@stericsson.com,
-	linus.walleij@linaro.org,
-	"Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Subject: [PATCH 2/6] i915: convert struct spinlock to spinlock_t
-Date: Thu, 29 Nov 2012 12:45:06 -0800
-Message-Id: <1354221910-22493-3-git-send-email-mcgrof@do-not-panic.com>
-In-Reply-To: <1354221910-22493-1-git-send-email-mcgrof@do-not-panic.com>
-References: <1354221910-22493-1-git-send-email-mcgrof@do-not-panic.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:65470 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751702Ab2KHTMb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:12:31 -0500
+Received: by mail-ee0-f46.google.com with SMTP id b15so1754511eek.19
+        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2012 11:12:31 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 09/21] em28xx: create a common function for isoc and bulk URB allocation and setup
+Date: Thu,  8 Nov 2012 20:11:41 +0200
+Message-Id: <1352398313-3698-10-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Rename the existing function for isoc transfers em28xx_init_isoc
+to em28xx_init_usb_xfer and extend it.
+URB allocation and setup is now done depending on the USB
+transfer type, which is selected with a new function parameter.
 
-spinlock_t should always be used.
-
-  LD      drivers/gpu/drm/i915/built-in.o
-  CHECK   drivers/gpu/drm/i915/i915_drv.c
-  CC [M]  drivers/gpu/drm/i915/i915_drv.o
-  CHECK   drivers/gpu/drm/i915/i915_dma.c
-  CC [M]  drivers/gpu/drm/i915/i915_dma.o
-  CHECK   drivers/gpu/drm/i915/i915_irq.c
-  CC [M]  drivers/gpu/drm/i915/i915_irq.o
-  CHECK   drivers/gpu/drm/i915/i915_debugfs.c
-drivers/gpu/drm/i915/i915_debugfs.c:558:31: warning: dereference of noderef expression
-drivers/gpu/drm/i915/i915_debugfs.c:558:39: warning: dereference of noderef expression
-drivers/gpu/drm/i915/i915_debugfs.c:558:51: warning: dereference of noderef expression
-drivers/gpu/drm/i915/i915_debugfs.c:558:63: warning: dereference of noderef expression
-  CC [M]  drivers/gpu/drm/i915/i915_debugfs.o
-  CHECK   drivers/gpu/drm/i915/i915_suspend.c
-  CC [M]  drivers/gpu/drm/i915/i915_suspend.o
-  CHECK   drivers/gpu/drm/i915/i915_gem.c
-drivers/gpu/drm/i915/i915_gem.c:3703:14: warning: incorrect type in assignment (different base types)
-drivers/gpu/drm/i915/i915_gem.c:3703:14:    expected unsigned int [unsigned] [usertype] mask
-drivers/gpu/drm/i915/i915_gem.c:3703:14:    got restricted gfp_t
-drivers/gpu/drm/i915/i915_gem.c:3706:22: warning: invalid assignment: &=
-drivers/gpu/drm/i915/i915_gem.c:3706:22:    left side has type unsigned int
-drivers/gpu/drm/i915/i915_gem.c:3706:22:    right side has type restricted gfp_t
-drivers/gpu/drm/i915/i915_gem.c:3707:22: warning: invalid assignment: |=
-drivers/gpu/drm/i915/i915_gem.c:3707:22:    left side has type unsigned int
-drivers/gpu/drm/i915/i915_gem.c:3707:22:    right side has type restricted gfp_t
-drivers/gpu/drm/i915/i915_gem.c:3711:39: warning: incorrect type in argument 2 (different base types)
-drivers/gpu/drm/i915/i915_gem.c:3711:39:    expected restricted gfp_t [usertype] mask
-drivers/gpu/drm/i915/i915_gem.c:3711:39:    got unsigned int [unsigned] [usertype] mask
-  CC [M]  drivers/gpu/drm/i915/i915_gem.o
-  CHECK   drivers/gpu/drm/i915/i915_gem_context.c
-  CC [M]  drivers/gpu/drm/i915/i915_gem_context.o
-  CHECK   drivers/gpu/drm/i915/i915_gem_debug.c
-  CC [M]  drivers/gpu/drm/i915/i915_gem_debug.o
-  CHECK   drivers/gpu/drm/i915/i915_gem_evict.c
-  CC [M]  drivers/gpu/drm/i915/i915_gem_evict.o
-  CHECK   drivers/gpu/drm/i915/i915_gem_execbuffer.c
-  CC [M]  drivers/gpu/drm/i915/i915_gem_execbuffer.o
-  CHECK   drivers/gpu/drm/i915/i915_gem_gtt.c
-  CC [M]  drivers/gpu/drm/i915/i915_gem_gtt.o
-  CHECK   drivers/gpu/drm/i915/i915_gem_stolen.c
-  CC [M]  drivers/gpu/drm/i915/i915_gem_stolen.o
-  CHECK   drivers/gpu/drm/i915/i915_gem_tiling.c
-  CC [M]  drivers/gpu/drm/i915/i915_gem_tiling.o
-  CHECK   drivers/gpu/drm/i915/i915_sysfs.c
-  CC [M]  drivers/gpu/drm/i915/i915_sysfs.o
-  CHECK   drivers/gpu/drm/i915/i915_trace_points.c
-  CC [M]  drivers/gpu/drm/i915/i915_trace_points.o
-  CHECK   drivers/gpu/drm/i915/intel_display.c
-drivers/gpu/drm/i915/intel_display.c:1736:9: warning: mixing different enum types
-drivers/gpu/drm/i915/intel_display.c:1736:9:     int enum transcoder  versus
-drivers/gpu/drm/i915/intel_display.c:1736:9:     int enum pipe
-drivers/gpu/drm/i915/intel_display.c:3659:48: warning: mixing different enum types
-drivers/gpu/drm/i915/intel_display.c:3659:48:     int enum pipe  versus
-drivers/gpu/drm/i915/intel_display.c:3659:48:     int enum transcoder
-  CC [M]  drivers/gpu/drm/i915/intel_display.o
-  CHECK   drivers/gpu/drm/i915/intel_crt.c
-  CC [M]  drivers/gpu/drm/i915/intel_crt.o
-  CHECK   drivers/gpu/drm/i915/intel_lvds.c
-  CC [M]  drivers/gpu/drm/i915/intel_lvds.o
-  CHECK   drivers/gpu/drm/i915/intel_bios.c
-drivers/gpu/drm/i915/intel_bios.c:706:60: warning: incorrect type in initializer (different address spaces)
-drivers/gpu/drm/i915/intel_bios.c:706:60:    expected struct vbt_header *vbt
-drivers/gpu/drm/i915/intel_bios.c:706:60:    got void [noderef] <asn:2>*vbt
-drivers/gpu/drm/i915/intel_bios.c:726:42: warning: incorrect type in argument 1 (different address spaces)
-drivers/gpu/drm/i915/intel_bios.c:726:42:    expected void const *<noident>
-drivers/gpu/drm/i915/intel_bios.c:726:42:    got unsigned char [noderef] [usertype] <asn:2>*
-drivers/gpu/drm/i915/intel_bios.c:727:40: warning: cast removes address space of expression
-drivers/gpu/drm/i915/intel_bios.c:738:24: warning: cast removes address space of expression
-  CC [M]  drivers/gpu/drm/i915/intel_bios.o
-  CHECK   drivers/gpu/drm/i915/intel_ddi.c
-drivers/gpu/drm/i915/intel_ddi.c:87:6: warning: symbol 'intel_prepare_ddi_buffers' was not declared. Should it be static?
-drivers/gpu/drm/i915/intel_ddi.c:1036:34: warning: mixing different enum types
-drivers/gpu/drm/i915/intel_ddi.c:1036:34:     int enum pipe  versus
-drivers/gpu/drm/i915/intel_ddi.c:1036:34:     int enum transcoder
-  CC [M]  drivers/gpu/drm/i915/intel_ddi.o
-drivers/gpu/drm/i915/intel_ddi.c: In function ‘intel_ddi_setup_hw_pll_state’:
-drivers/gpu/drm/i915/intel_ddi.c:1129:2: warning: ‘port’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-drivers/gpu/drm/i915/intel_ddi.c:1111:12: note: ‘port’ was declared here
-  CHECK   drivers/gpu/drm/i915/intel_dp.c
-  CC [M]  drivers/gpu/drm/i915/intel_dp.o
-  CHECK   drivers/gpu/drm/i915/intel_hdmi.c
-  CC [M]  drivers/gpu/drm/i915/intel_hdmi.o
-  CHECK   drivers/gpu/drm/i915/intel_sdvo.c
-  CC [M]  drivers/gpu/drm/i915/intel_sdvo.o
-  CHECK   drivers/gpu/drm/i915/intel_modes.c
-  CC [M]  drivers/gpu/drm/i915/intel_modes.o
-  CHECK   drivers/gpu/drm/i915/intel_panel.c
-  CC [M]  drivers/gpu/drm/i915/intel_panel.o
-  CHECK   drivers/gpu/drm/i915/intel_pm.c
-drivers/gpu/drm/i915/intel_pm.c:2173:1: warning: symbol 'mchdev_lock' was not declared. Should it be static?
-  CC [M]  drivers/gpu/drm/i915/intel_pm.o
-  CHECK   drivers/gpu/drm/i915/intel_i2c.c
-  CC [M]  drivers/gpu/drm/i915/intel_i2c.o
-  CHECK   drivers/gpu/drm/i915/intel_fb.c
-  CC [M]  drivers/gpu/drm/i915/intel_fb.o
-  CHECK   drivers/gpu/drm/i915/intel_tv.c
-  CC [M]  drivers/gpu/drm/i915/intel_tv.o
-  CHECK   drivers/gpu/drm/i915/intel_dvo.c
-  CC [M]  drivers/gpu/drm/i915/intel_dvo.o
-  CHECK   drivers/gpu/drm/i915/intel_ringbuffer.c
-  CC [M]  drivers/gpu/drm/i915/intel_ringbuffer.o
-  CHECK   drivers/gpu/drm/i915/intel_overlay.c
-  CC [M]  drivers/gpu/drm/i915/intel_overlay.o
-  CHECK   drivers/gpu/drm/i915/intel_sprite.c
-  CC [M]  drivers/gpu/drm/i915/intel_sprite.o
-  CHECK   drivers/gpu/drm/i915/intel_opregion.c
-  CC [M]  drivers/gpu/drm/i915/intel_opregion.o
-  CHECK   drivers/gpu/drm/i915/dvo_ch7xxx.c
-  CC [M]  drivers/gpu/drm/i915/dvo_ch7xxx.o
-  CHECK   drivers/gpu/drm/i915/dvo_ch7017.c
-  CC [M]  drivers/gpu/drm/i915/dvo_ch7017.o
-  CHECK   drivers/gpu/drm/i915/dvo_ivch.c
-  CC [M]  drivers/gpu/drm/i915/dvo_ivch.o
-  CHECK   drivers/gpu/drm/i915/dvo_tfp410.c
-  CC [M]  drivers/gpu/drm/i915/dvo_tfp410.o
-  CHECK   drivers/gpu/drm/i915/dvo_sil164.c
-  CC [M]  drivers/gpu/drm/i915/dvo_sil164.o
-  CHECK   drivers/gpu/drm/i915/dvo_ns2501.c
-  CC [M]  drivers/gpu/drm/i915/dvo_ns2501.o
-  CHECK   drivers/gpu/drm/i915/i915_gem_dmabuf.c
-  CC [M]  drivers/gpu/drm/i915/i915_gem_dmabuf.o
-  CHECK   drivers/gpu/drm/i915/i915_ioc32.c
-  CC [M]  drivers/gpu/drm/i915/i915_ioc32.o
-  CHECK   drivers/gpu/drm/i915/intel_acpi.c
-  CC [M]  drivers/gpu/drm/i915/intel_acpi.o
-  LD [M]  drivers/gpu/drm/i915/i915.o
-  Building modules, stage 2.
-  MODPOST 1 modules
-  CC      drivers/gpu/drm/i915/i915.mod.o
-  LD [M]  drivers/gpu/drm/i915/i915.ko
-
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: intel-gfx@lists.freedesktop.org
-Cc: dri-devel@lists.freedesktop.org
-Reported-by: Hauke Mehrtens <hauke@hauke-m.de>
-Signed-off-by: Luis R. Rodriguez <mcgrof@do-not-panic.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/gpu/drm/i915/i915_drv.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/usb/em28xx/em28xx-cards.c |    6 +-
+ drivers/media/usb/em28xx/em28xx-core.c  |  101 +++++++++++++++++--------------
+ drivers/media/usb/em28xx/em28xx.h       |    4 +-
+ 3 Dateien geändert, 61 Zeilen hinzugefügt(+), 50 Zeilen entfernt(-)
 
-diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
-index 4b83e5f..ef5f33c 100644
---- a/drivers/gpu/drm/i915/i915_drv.h
-+++ b/drivers/gpu/drm/i915/i915_drv.h
-@@ -628,7 +628,7 @@ typedef struct drm_i915_private {
- 	/** forcewake_count is protected by gt_lock */
- 	unsigned forcewake_count;
- 	/** gt_lock is also taken in irq contexts. */
--	struct spinlock gt_lock;
-+	spinlock_t gt_lock;
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index e474ccf..bfce34d 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3322,10 +3322,10 @@ static int em28xx_usb_probe(struct usb_interface *interface,
  
- 	struct intel_gmbus gmbus[GMBUS_NUM_PORTS];
+ 	if (has_dvb) {
+ 		/* pre-allocate DVB isoc transfer buffers */
+-		retval = em28xx_alloc_isoc(dev, EM28XX_DIGITAL_MODE,
+-					   EM28XX_DVB_NUM_ISOC_PACKETS,
++		retval = em28xx_alloc_urbs(dev, EM28XX_DIGITAL_MODE, 0,
+ 					   EM28XX_DVB_NUM_BUFS,
+-					   dev->dvb_max_pkt_size);
++					   dev->dvb_max_pkt_size,
++					   EM28XX_DVB_NUM_ISOC_PACKETS);
+ 		if (retval) {
+ 			goto unlock_and_free;
+ 		}
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index a1ebd08..42388de 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -5,6 +5,7 @@
+ 		      Markus Rechberger <mrechberger@gmail.com>
+ 		      Mauro Carvalho Chehab <mchehab@infradead.org>
+ 		      Sascha Sommer <saschasommer@freenet.de>
++   Copyright (C) 2012 Frank Schäfer <fschaefer.oss@googlemail.com>
  
-@@ -1128,7 +1128,7 @@ struct drm_i915_gem_request {
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+@@ -1035,10 +1036,10 @@ EXPORT_SYMBOL_GPL(em28xx_stop_urbs);
+ /*
+  * Allocate URBs
+  */
+-int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
+-		      int num_packets, int num_bufs, int max_pkt_size)
++int em28xx_alloc_urbs(struct em28xx *dev, enum em28xx_mode mode, int xfer_bulk,
++		      int num_bufs, int max_pkt_size, int packet_multiplier)
+ {
+-	struct em28xx_usb_bufs *isoc_bufs;
++	struct em28xx_usb_bufs *usb_bufs;
+ 	int i;
+ 	int sb_size, pipe;
+ 	struct urb *urb;
+@@ -1047,49 +1048,52 @@ int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
+ 	em28xx_isocdbg("em28xx: called em28xx_alloc_isoc in mode %d\n", mode);
  
- struct drm_i915_file_private {
- 	struct {
--		struct spinlock lock;
-+		spinlock_t lock;
- 		struct list_head request_list;
- 	} mm;
- 	struct idr context_idr;
+ 	if (mode == EM28XX_DIGITAL_MODE)
+-		isoc_bufs = &dev->usb_ctl.digital_bufs;
++		usb_bufs = &dev->usb_ctl.digital_bufs;
+ 	else
+-		isoc_bufs = &dev->usb_ctl.analog_bufs;
++		usb_bufs = &dev->usb_ctl.analog_bufs;
+ 
+ 	/* De-allocates all pending stuff */
+ 	em28xx_uninit_usb_xfer(dev, mode);
+ 
+-	isoc_bufs->num_bufs = num_bufs;
++	usb_bufs->num_bufs = num_bufs;
+ 
+-	isoc_bufs->urb = kzalloc(sizeof(void *)*num_bufs,  GFP_KERNEL);
+-	if (!isoc_bufs->urb) {
++	usb_bufs->urb = kzalloc(sizeof(void *)*num_bufs,  GFP_KERNEL);
++	if (!usb_bufs->urb) {
+ 		em28xx_errdev("cannot alloc memory for usb buffers\n");
+ 		return -ENOMEM;
+ 	}
+ 
+-	isoc_bufs->transfer_buffer = kzalloc(sizeof(void *)*num_bufs,
++	usb_bufs->transfer_buffer = kzalloc(sizeof(void *)*num_bufs,
+ 					     GFP_KERNEL);
+-	if (!isoc_bufs->transfer_buffer) {
++	if (!usb_bufs->transfer_buffer) {
+ 		em28xx_errdev("cannot allocate memory for usb transfer\n");
+-		kfree(isoc_bufs->urb);
++		kfree(usb_bufs->urb);
+ 		return -ENOMEM;
+ 	}
+ 
+-	isoc_bufs->max_pkt_size = max_pkt_size;
+-	isoc_bufs->num_packets = num_packets;
++	usb_bufs->max_pkt_size = max_pkt_size;
++	if (xfer_bulk)
++		usb_bufs->num_packets = 0;
++	else
++		usb_bufs->num_packets = packet_multiplier;
+ 	dev->usb_ctl.vid_buf = NULL;
+ 	dev->usb_ctl.vbi_buf = NULL;
+ 
+-	sb_size = isoc_bufs->num_packets * isoc_bufs->max_pkt_size;
++	sb_size = packet_multiplier * usb_bufs->max_pkt_size;
+ 
+ 	/* allocate urbs and transfer buffers */
+-	for (i = 0; i < isoc_bufs->num_bufs; i++) {
+-		urb = usb_alloc_urb(isoc_bufs->num_packets, GFP_KERNEL);
++	for (i = 0; i < usb_bufs->num_bufs; i++) {
++		urb = usb_alloc_urb(usb_bufs->num_packets, GFP_KERNEL);
+ 		if (!urb) {
+ 			em28xx_err("cannot alloc usb_ctl.urb %i\n", i);
+ 			em28xx_uninit_usb_xfer(dev, mode);
+ 			return -ENOMEM;
+ 		}
+-		isoc_bufs->urb[i] = urb;
++		usb_bufs->urb[i] = urb;
+ 
+-		isoc_bufs->transfer_buffer[i] = usb_alloc_coherent(dev->udev,
++		usb_bufs->transfer_buffer[i] = usb_alloc_coherent(dev->udev,
+ 			sb_size, GFP_KERNEL, &urb->transfer_dma);
+-		if (!isoc_bufs->transfer_buffer[i]) {
++		if (!usb_bufs->transfer_buffer[i]) {
+ 			em28xx_err("unable to allocate %i bytes for transfer"
+ 					" buffer %i%s\n",
+ 					sb_size, i,
+@@ -1097,35 +1101,42 @@ int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
+ 			em28xx_uninit_usb_xfer(dev, mode);
+ 			return -ENOMEM;
+ 		}
+-		memset(isoc_bufs->transfer_buffer[i], 0, sb_size);
+-
+-		/* FIXME: this is a hack - should be
+-			'desc.bEndpointAddress & USB_ENDPOINT_NUMBER_MASK'
+-			should also be using 'desc.bInterval'
+-		 */
+-		pipe = usb_rcvisocpipe(dev->udev,
+-				       mode == EM28XX_ANALOG_MODE ?
+-				       EM28XX_EP_ANALOG : EM28XX_EP_DIGITAL);
+-
+-		usb_fill_int_urb(urb, dev->udev, pipe,
+-				 isoc_bufs->transfer_buffer[i], sb_size,
+-				 em28xx_irq_callback, dev, 1);
+-
+-		urb->number_of_packets = isoc_bufs->num_packets;
+-		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+-
+-		k = 0;
+-		for (j = 0; j < isoc_bufs->num_packets; j++) {
+-			urb->iso_frame_desc[j].offset = k;
+-			urb->iso_frame_desc[j].length =
+-						isoc_bufs->max_pkt_size;
+-			k += isoc_bufs->max_pkt_size;
++		memset(usb_bufs->transfer_buffer[i], 0, sb_size);
++
++		if (xfer_bulk) { /* bulk */
++			pipe = usb_rcvbulkpipe(dev->udev,
++					       mode == EM28XX_ANALOG_MODE ?
++					       EM28XX_EP_ANALOG :
++					       EM28XX_EP_DIGITAL);
++			usb_fill_bulk_urb(urb, dev->udev, pipe,
++					  usb_bufs->transfer_buffer[i], sb_size,
++					  em28xx_irq_callback, dev);
++			urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
++		} else { /* isoc */
++			pipe = usb_rcvisocpipe(dev->udev,
++					       mode == EM28XX_ANALOG_MODE ?
++					       EM28XX_EP_ANALOG :
++					       EM28XX_EP_DIGITAL);
++			usb_fill_int_urb(urb, dev->udev, pipe,
++					 usb_bufs->transfer_buffer[i], sb_size,
++					 em28xx_irq_callback, dev, 1);
++			urb->transfer_flags = URB_ISO_ASAP |
++					      URB_NO_TRANSFER_DMA_MAP;
++			k = 0;
++			for (j = 0; j < usb_bufs->num_packets; j++) {
++				urb->iso_frame_desc[j].offset = k;
++				urb->iso_frame_desc[j].length =
++							usb_bufs->max_pkt_size;
++				k += usb_bufs->max_pkt_size;
++			}
+ 		}
++
++		urb->number_of_packets = usb_bufs->num_packets;
+ 	}
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(em28xx_alloc_isoc);
++EXPORT_SYMBOL_GPL(em28xx_alloc_urbs);
+ 
+ /*
+  * Allocate URBs and start IRQ
+@@ -1155,8 +1166,8 @@ int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
+ 	}
+ 
+ 	if (alloc) {
+-		rc = em28xx_alloc_isoc(dev, mode, num_packets,
+-				       num_bufs, max_pkt_size);
++		rc = em28xx_alloc_urbs(dev, mode, 0, num_bufs,
++				       max_pkt_size, num_packets);
+ 		if (rc)
+ 			return rc;
+ 	}
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 8fb3504..7bc2ddd 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -662,8 +662,8 @@ int em28xx_vbi_supported(struct em28xx *dev);
+ int em28xx_set_outfmt(struct em28xx *dev);
+ int em28xx_resolution_set(struct em28xx *dev);
+ int em28xx_set_alternate(struct em28xx *dev);
+-int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
+-		      int num_packets, int num_bufs, int max_pkt_size);
++int em28xx_alloc_urbs(struct em28xx *dev, enum em28xx_mode mode, int xfer_bulk,
++		      int num_bufs, int max_pkt_size, int packet_multiplier);
+ int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
+ 		     int num_packets, int num_bufs, int max_pkt_size,
+ 		     int (*isoc_copy) (struct em28xx *dev, struct urb *urb));
 -- 
 1.7.10.4
 
