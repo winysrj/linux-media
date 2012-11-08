@@ -1,113 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:55226 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756717Ab2KNLn7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Nov 2012 06:43:59 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: [PATCH v9 6/6] drm_modes: add of_videomode helpers
-Date: Wed, 14 Nov 2012 12:43:23 +0100
-Message-Id: <1352893403-21168-7-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1352893403-21168-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1352893403-21168-1-git-send-email-s.trumtrar@pengutronix.de>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:65470 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751702Ab2KHTMJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:12:09 -0500
+Received: by mail-ee0-f46.google.com with SMTP id b15so1754511eek.19
+        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2012 11:12:08 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 00/21] em28xx: add support fur USB bulk transfers
+Date: Thu,  8 Nov 2012 20:11:32 +0200
+Message-Id: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add helper to get drm_display_mode from devicetree.
+This patch series adds support for USB bulk transfers to the em28xx driver.
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
----
- drivers/gpu/drm/drm_modes.c |   35 ++++++++++++++++++++++++++++++++++-
- include/drm/drmP.h          |    6 ++++++
- 2 files changed, 40 insertions(+), 1 deletion(-)
+Patch 1 is a bugfix for the image data processing with non-interlaced
+devices (webcams) that should be considered for stable (see commit message).
 
-diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
-index 42ea099..c3ae5d2 100644
---- a/drivers/gpu/drm/drm_modes.c
-+++ b/drivers/gpu/drm/drm_modes.c
-@@ -35,7 +35,8 @@
- #include <linux/export.h>
- #include <drm/drmP.h>
- #include <drm/drm_crtc.h>
--#include <linux/videomode.h>
-+#include <linux/of.h>
-+#include <linux/of_videomode.h>
- 
- /**
-  * drm_mode_debug_printmodeline - debug print a mode
-@@ -540,6 +541,38 @@ int display_mode_from_videomode(struct videomode *vm, struct drm_display_mode *d
- EXPORT_SYMBOL_GPL(display_mode_from_videomode);
- #endif
- 
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+/**
-+ * of_get_drm_display_mode - get a drm_display_mode from devicetree
-+ * @np: device_node with the timing specification
-+ * @dmode: will be set to the return value
-+ * @index: index into the list of display timings in devicetree
-+ *
-+ * This function is expensive and should only be used, if only one mode is to be
-+ * read from DT. To get multiple modes start with of_get_display_timings and
-+ * work with that instead.
-+ */
-+int of_get_drm_display_mode(struct device_node *np, struct drm_display_mode *dmode,
-+			unsigned int index)
-+{
-+	struct videomode vm;
-+	int ret;
-+
-+	ret = of_get_videomode(np, &vm, index);
-+	if (ret)
-+		return ret;
-+
-+	display_mode_from_videomode(&vm, dmode);
-+
-+	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
-+		vm.vactive, np->name);
-+	drm_mode_debug_printmodeline(dmode);
-+
-+	return 0;
-+
-+}
-+EXPORT_SYMBOL_GPL(of_get_drm_display_mode);
-+#endif
- /**
-  * drm_mode_set_name - set the name on a mode
-  * @mode: name will be set in this mode
-diff --git a/include/drm/drmP.h b/include/drm/drmP.h
-index 1e0d846..e8f46a1 100644
---- a/include/drm/drmP.h
-+++ b/include/drm/drmP.h
-@@ -56,6 +56,7 @@
- #include <linux/cdev.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
-+#include <linux/of.h>
- #include <linux/videomode.h>
- #if defined(__alpha__) || defined(__powerpc__)
- #include <asm/pgtable.h>	/* For pte_wrprotect */
-@@ -1459,6 +1460,11 @@ drm_mode_create_from_cmdline_mode(struct drm_device *dev,
- extern int display_mode_from_videomode(struct videomode *vm,
- 				       struct drm_display_mode *dmode);
- #endif
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+extern int of_get_drm_display_mode(struct device_node *np,
-+				   struct drm_display_mode *dmode,
-+				   unsigned int index);
-+#endif
- 
- /* Modesetting support */
- extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
+Patches 2-21 extend the driver to support USB bulk transfers.
+USB endpoint mapping had to be extended and is a bit tricky.
+It might still not be sufficient to handle ALL isoc/bulk endpoints 
+of ALL existing devices, but it should work with the devices we have 
+seen so far and (most important !) preserves backwards compatibility to 
+the current driver behavior.
+Isoc endpoints/transfers are preffered by default, patch 21 adds a 
+module parameter to change this behavior.
+
+Changes in v2:
+- remove warnings about untestet changes from the commit messages of
+  patches 14 and 15 (meanwhile changes have been tested)
+- fix interpretation of the new module parameter prefer_bulk (patch 21)
+- drop patches 22 and 23 (they are not really related to USB transfers)
+
+
+
+Frank Schäfer (21):
+  em28xx: fix wrong data offset for non-interlaced mode in
+    em28xx_copy_video
+  em28xx: clarify meaning of field 'progressive' in struct em28xx
+  em28xx: rename isoc packet number constants and parameters
+  em28xx: rename struct em28xx_usb_isoc_bufs to em28xx_usb_bufs
+  em28xx: rename struct em28xx_usb_isoc_ctl to em28xx_usb_ctl
+  em28xx: remove obsolete #define EM28XX_URB_TIMEOUT
+  em28xx: update description of em28xx_irq_callback
+  em28xx: rename function em28xx_uninit_isoc to em28xx_uninit_usb_xfer
+  em28xx: create a common function for isoc and bulk URB allocation and
+    setup
+  em28xx: create a common function for isoc and bulk USB transfer
+    initialization
+  em28xx: clear USB halt/stall condition in em28xx_init_usb_xfer when
+    using bulk transfers
+  em28xx: remove double checks for urb->status == -ENOENT in
+    urb_data_copy functions
+  em28xx: rename function em28xx_isoc_copy and extend for USB bulk
+    transfers
+  em28xx: rename function em28xx_isoc_copy_vbi and extend for USB bulk
+    transfers
+  em28xx: rename function em28xx_dvb_isoc_copy and extend for USB bulk
+    transfers
+  em28xx: rename usb debugging module parameter and macro
+  em28xx: rename some USB parameter fields in struct em28xx to clarify
+    their role
+  em28xx: add fields for analog and DVB USB transfer type selection to
+    struct em28xx
+  em28xx: set USB alternate settings for analog video bulk transfers
+    properly
+  em28xx: improve USB endpoint logic, also use bulk transfers
+  em28xx: add module parameter for selection of the preferred USB
+    transfer type
+
+ drivers/media/usb/em28xx/em28xx-cards.c |  116 +++++++++++---
+ drivers/media/usb/em28xx/em28xx-core.c  |  247 +++++++++++++++++------------
+ drivers/media/usb/em28xx/em28xx-dvb.c   |   85 ++++++----
+ drivers/media/usb/em28xx/em28xx-reg.h   |    4 +-
+ drivers/media/usb/em28xx/em28xx-vbi.c   |    4 +-
+ drivers/media/usb/em28xx/em28xx-video.c |  259 +++++++++++++++++--------------
+ drivers/media/usb/em28xx/em28xx.h       |   78 ++++++----
+ 7 Dateien geändert, 494 Zeilen hinzugefügt(+), 299 Zeilen entfernt(-)
+
 -- 
 1.7.10.4
 
