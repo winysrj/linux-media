@@ -1,138 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.mnsspb.ru ([84.204.75.2]:48919 "EHLO mail.mnsspb.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756079Ab2KBNJ5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Nov 2012 09:09:57 -0400
-From: Kirill Smelkov <kirr@mns.spb.ru>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Kirill Smelkov <kirr@mns.spb.ru>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: [PATCH 3/4] [media] vivi: Move computations out of vivi_fillbuf linecopy loop
-Date: Fri,  2 Nov 2012 17:10:32 +0400
-Message-Id: <f562e12553132bdd90375fd0764989d34b290bf0.1351861552.git.kirr@mns.spb.ru>
-In-Reply-To: <cover.1351861552.git.kirr@mns.spb.ru>
-References: <cover.1351861552.git.kirr@mns.spb.ru>
-In-Reply-To: <cover.1351861552.git.kirr@mns.spb.ru>
-References: <cover.1351861552.git.kirr@mns.spb.ru>
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:33191 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751702Ab2KHTMd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:12:33 -0500
+Received: by mail-ea0-f174.google.com with SMTP id c13so1190326eaa.19
+        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2012 11:12:32 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 10/21] em28xx: create a common function for isoc and bulk USB transfer initialization
+Date: Thu,  8 Nov 2012 20:11:42 +0200
+Message-Id: <1352398313-3698-11-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The "dev->mvcount % wmax" thing was showing high in profiles (we do it
-for each line which ~ 500 per frame)
+- rename em28xx_init_isoc to em28xx_init_usb_xfer
+- add parameter for isoc/bulk transfer selection which is passed to em28xx_alloc_urbs
+- rename local variable isoc_buf to usb_bufs
 
-           │     000010c0 <vivi_fillbuff>:
-                 ...
-      0,39 │ 70:┌─→mov    0x3ff4(%edi),%esi
-      0,22 │ 76:│  mov    0x2a0(%edi),%eax
-      0,30 │    │  mov    -0x84(%ebp),%ebx
-      0,35 │    │  mov    %eax,%edx
-      0,04 │    │  mov    -0x7c(%ebp),%ecx
-      0,35 │    │  sar    $0x1f,%edx
-      0,44 │    │  idivl  -0x7c(%ebp)
-     21,68 │    │  imul   %esi,%ecx
-      0,70 │    │  imul   %esi,%ebx
-      0,52 │    │  add    -0x88(%ebp),%ebx
-      1,65 │    │  mov    %ebx,%eax
-      0,22 │    │  imul   %edx,%esi
-      0,04 │    │  lea    0x3f4(%edi,%esi,1),%edx
-      2,18 │    │→ call   vivi_fillbuff+0xa6
-      0,74 │    │  addl   $0x1,-0x80(%ebp)
-     62,69 │    │  mov    -0x7c(%ebp),%edx
-      1,18 │    │  mov    -0x80(%ebp),%ecx
-      0,35 │    │  add    %edx,-0x84(%ebp)
-      0,61 │    │  cmp    %ecx,-0x8c(%ebp)
-      0,22 │    └──jne    70
-
-so since all variables stay the same for all iterations let's move
-computations out of the loop: the abovementioned division and
-"width*pixelsize" too
-
-before:
-
-    # cmdline : /home/kirr/local/perf/bin/perf record -g -a sleep 20
-    #
-    # Samples: 49K of event 'cycles'
-    # Event count (approx.): 16475832370
-    #
-    # Overhead          Command           Shared Object
-    # ........  ...............  ......................
-    #
-        29.07%             rawv  libc-2.13.so            [.] __memcpy_ssse3
-        20.57%           vivi-*  [kernel.kallsyms]       [k] memcpy
-        10.20%             Xorg  [unknown]               [.] 0xa7301494
-         5.16%           vivi-*  [vivi]                  [k] gen_text.constprop.6
-         4.43%             rawv  [vivi]                  [k] gen_twopix
-         4.36%           vivi-*  [vivi]                  [k] vivi_fillbuff
-         2.42%             rawv  [vivi]                  [k] precalculate_line
-         1.33%          swapper  [kernel.kallsyms]       [k] read_hpet
-
-after:
-
-    # cmdline : /home/kirr/local/perf/bin/perf record -g -a sleep 20
-    #
-    # Samples: 46K of event 'cycles'
-    # Event count (approx.): 15574200568
-    #
-    # Overhead          Command         Shared Object
-    # ........  ...............  ....................
-    #
-        27.99%             rawv  libc-2.13.so          [.] __memcpy_ssse3
-        23.29%           vivi-*  [kernel.kallsyms]     [k] memcpy
-        10.30%             Xorg  [unknown]             [.] 0xa75c98f8
-         5.34%           vivi-*  [vivi]                [k] gen_text.constprop.6
-         4.61%             rawv  [vivi]                [k] gen_twopix
-         2.64%             rawv  [vivi]                [k] precalculate_line
-         1.37%          swapper  [kernel.kallsyms]     [k] read_hpet
-         0.79%             Xorg  [kernel.kallsyms]     [k] read_hpet
-         0.64%             Xorg  [kernel.kallsyms]     [k] unix_poll
-         0.45%             Xorg  [kernel.kallsyms]     [k] fget_light
-         0.43%             rawv  libxcb.so.1.1.0       [.] 0x0000aae9
-         0.40%            runsv  [kernel.kallsyms]     [k] ext2_try_to_allocate
-         0.36%             Xorg  [kernel.kallsyms]     [k] _raw_spin_lock_irqsave
-         0.31%           vivi-*  [vivi]                [k] vivi_fillbuff
-
-(i.e. vivi_fillbuff own overhead is almost gone)
-
-Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/platform/vivi.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/media/usb/em28xx/em28xx-core.c  |   30 ++++++++++++++++--------------
+ drivers/media/usb/em28xx/em28xx-dvb.c   |    9 +++++----
+ drivers/media/usb/em28xx/em28xx-video.c |   20 ++++++++++----------
+ drivers/media/usb/em28xx/em28xx.h       |    8 +++++---
+ 4 Dateien geändert, 36 Zeilen hinzugefügt(+), 31 Zeilen entfernt(-)
 
-diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-index ddcc712..0272d07 100644
---- a/drivers/media/platform/vivi.c
-+++ b/drivers/media/platform/vivi.c
-@@ -579,22 +579,23 @@ static void gen_text(struct vivi_dev *dev, char *basep,
- 
- static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index 42388de..d8a8e8b 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -1141,33 +1141,35 @@ EXPORT_SYMBOL_GPL(em28xx_alloc_urbs);
+ /*
+  * Allocate URBs and start IRQ
+  */
+-int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
+-		     int num_packets, int num_bufs, int max_pkt_size,
+-		     int (*isoc_copy) (struct em28xx *dev, struct urb *urb))
++int em28xx_init_usb_xfer(struct em28xx *dev, enum em28xx_mode mode,
++		    int xfer_bulk, int num_bufs, int max_pkt_size,
++		    int packet_multiplier,
++		    int (*urb_data_copy) (struct em28xx *dev, struct urb *urb))
  {
--	int wmax = dev->width;
-+	int stride = dev->width * dev->pixelsize;
- 	int hmax = dev->height;
- 	struct timeval ts;
- 	void *vbuf = vb2_plane_vaddr(&buf->vb, 0);
- 	unsigned ms;
- 	char str[100];
- 	int h, line = 1;
-+	u8 *linestart;
- 	s32 gain;
+ 	struct em28xx_dmaqueue *dma_q = &dev->vidq;
+ 	struct em28xx_dmaqueue *vbi_dma_q = &dev->vbiq;
+-	struct em28xx_usb_bufs *isoc_bufs;
++	struct em28xx_usb_bufs *usb_bufs;
+ 	int i;
+ 	int rc;
+ 	int alloc;
  
- 	if (!vbuf)
- 		return;
+-	em28xx_isocdbg("em28xx: called em28xx_init_isoc in mode %d\n", mode);
++	em28xx_isocdbg("em28xx: called em28xx_init_usb_xfer in mode %d\n",
++		       mode);
  
-+	linestart = dev->line + (dev->mv_count % dev->width) * dev->pixelsize;
-+
- 	for (h = 0; h < hmax; h++)
--		memcpy(vbuf + h * wmax * dev->pixelsize,
--		       dev->line + (dev->mv_count % wmax) * dev->pixelsize,
--		       wmax * dev->pixelsize);
-+		memcpy(vbuf + h * stride, linestart, stride);
+-	dev->usb_ctl.urb_data_copy = isoc_copy;
++	dev->usb_ctl.urb_data_copy = urb_data_copy;
  
- 	/* Updates stream time */
+ 	if (mode == EM28XX_DIGITAL_MODE) {
+-		isoc_bufs = &dev->usb_ctl.digital_bufs;
+-		/* no need to free/alloc isoc buffers in digital mode */
++		usb_bufs = &dev->usb_ctl.digital_bufs;
++		/* no need to free/alloc usb buffers in digital mode */
+ 		alloc = 0;
+ 	} else {
+-		isoc_bufs = &dev->usb_ctl.analog_bufs;
++		usb_bufs = &dev->usb_ctl.analog_bufs;
+ 		alloc = 1;
+ 	}
  
+ 	if (alloc) {
+-		rc = em28xx_alloc_urbs(dev, mode, 0, num_bufs,
+-				       max_pkt_size, num_packets);
++		rc = em28xx_alloc_urbs(dev, mode, xfer_bulk, num_bufs,
++				       max_pkt_size, packet_multiplier);
+ 		if (rc)
+ 			return rc;
+ 	}
+@@ -1178,8 +1180,8 @@ int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
+ 	em28xx_capture_start(dev, 1);
+ 
+ 	/* submit urbs and enables IRQ */
+-	for (i = 0; i < isoc_bufs->num_bufs; i++) {
+-		rc = usb_submit_urb(isoc_bufs->urb[i], GFP_ATOMIC);
++	for (i = 0; i < usb_bufs->num_bufs; i++) {
++		rc = usb_submit_urb(usb_bufs->urb[i], GFP_ATOMIC);
+ 		if (rc) {
+ 			em28xx_err("submit of urb %i failed (error=%i)\n", i,
+ 				   rc);
+@@ -1190,7 +1192,7 @@ int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(em28xx_init_isoc);
++EXPORT_SYMBOL_GPL(em28xx_init_usb_xfer);
+ 
+ /*
+  * em28xx_wake_i2c()
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 833f10b..eeabc25 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -176,10 +176,11 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
+ 		EM28XX_DVB_NUM_ISOC_PACKETS,
+ 		max_dvb_packet_size);
+ 
+-	return em28xx_init_isoc(dev, EM28XX_DIGITAL_MODE,
+-				EM28XX_DVB_NUM_ISOC_PACKETS,
+-				EM28XX_DVB_NUM_BUFS,
+-				max_dvb_packet_size, em28xx_dvb_isoc_copy);
++	return em28xx_init_usb_xfer(dev, EM28XX_DIGITAL_MODE, 0,
++				    EM28XX_DVB_NUM_BUFS,
++				    max_dvb_packet_size,
++				    EM28XX_DVB_NUM_ISOC_PACKETS,
++				    em28xx_dvb_isoc_copy);
+ }
+ 
+ static int em28xx_stop_streaming(struct em28xx_dvb *dvb)
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 1207a73..4024dfc 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -763,17 +763,17 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
+ 
+ 	if (urb_init) {
+ 		if (em28xx_vbi_supported(dev) == 1)
+-			rc = em28xx_init_isoc(dev, EM28XX_ANALOG_MODE,
+-					      EM28XX_NUM_ISOC_PACKETS,
+-					      EM28XX_NUM_BUFS,
+-					      dev->max_pkt_size,
+-					      em28xx_isoc_copy_vbi);
++			rc = em28xx_init_usb_xfer(dev, EM28XX_ANALOG_MODE, 0,
++						  EM28XX_NUM_BUFS,
++						  dev->max_pkt_size,
++						  EM28XX_NUM_ISOC_PACKETS,
++						  em28xx_isoc_copy_vbi);
+ 		else
+-			rc = em28xx_init_isoc(dev, EM28XX_ANALOG_MODE,
+-					      EM28XX_NUM_ISOC_PACKETS,
+-					      EM28XX_NUM_BUFS,
+-					      dev->max_pkt_size,
+-					      em28xx_isoc_copy);
++			rc = em28xx_init_usb_xfer(dev, EM28XX_ANALOG_MODE, 0,
++						  EM28XX_NUM_BUFS,
++						  dev->max_pkt_size,
++						  EM28XX_NUM_ISOC_PACKETS,
++						  em28xx_isoc_copy);
+ 		if (rc < 0)
+ 			goto fail;
+ 	}
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 7bc2ddd..950a717 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -664,9 +664,11 @@ int em28xx_resolution_set(struct em28xx *dev);
+ int em28xx_set_alternate(struct em28xx *dev);
+ int em28xx_alloc_urbs(struct em28xx *dev, enum em28xx_mode mode, int xfer_bulk,
+ 		      int num_bufs, int max_pkt_size, int packet_multiplier);
+-int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
+-		     int num_packets, int num_bufs, int max_pkt_size,
+-		     int (*isoc_copy) (struct em28xx *dev, struct urb *urb));
++int em28xx_init_usb_xfer(struct em28xx *dev, enum em28xx_mode mode,
++			 int xfer_bulk,
++			 int num_bufs, int max_pkt_size, int packet_multiplier,
++			 int (*urb_data_copy)
++					(struct em28xx *dev, struct urb *urb));
+ void em28xx_uninit_usb_xfer(struct em28xx *dev, enum em28xx_mode mode);
+ void em28xx_stop_urbs(struct em28xx *dev);
+ int em28xx_isoc_dvb_max_packetsize(struct em28xx *dev);
 -- 
-1.8.0.316.g291341c
+1.7.10.4
 
