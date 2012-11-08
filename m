@@ -1,80 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52073 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753562Ab2KIOTb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Nov 2012 09:19:31 -0500
-Message-ID: <509D10D6.3030707@iki.fi>
-Date: Fri, 09 Nov 2012 16:19:02 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:64478 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751702Ab2KHTDs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:03:48 -0500
+Received: by mail-bk0-f46.google.com with SMTP id jk13so1358429bkc.19
+        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2012 11:03:46 -0800 (PST)
+Message-ID: <509BF403.2080002@googlemail.com>
+Date: Thu, 08 Nov 2012 20:03:47 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] it913x: [BUG] fix correct endpoint size when pid filter
- on.
-References: <509AF219.6030907@iki.fi> <1352396904.3036.0.camel@Route3278>  <509C138F.1000402@iki.fi> <1352410221.17913.23.camel@Route3278>
-In-Reply-To: <1352410221.17913.23.camel@Route3278>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 00/23] em28xx: add support fur USB bulk transfers
+References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com> <20121028175752.447c39d5@redhat.com> <508EA1B8.3070304@googlemail.com> <20121029180348.7e7967aa@redhat.com> <508EF1CF.8090602@googlemail.com> <20121030010012.30e1d2de@redhat.com> <20121030020619.6e854f70@redhat.com> <50900BF6.1030502@googlemail.com>
+In-Reply-To: <50900BF6.1030502@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/08/2012 11:30 PM, Malcolm Priestley wrote:
-> On Thu, 2012-11-08 at 22:18 +0200, Antti Palosaari wrote:
->> On 11/08/2012 07:48 PM, Malcolm Priestley wrote:
->>>
->>> On 07/11/12 23:43, Antti Palosaari wrote:
->>>> Malcolm,
->>>> Have you newer tested it with USB1.1 port? Stream is totally broken.
->>>>
->>> Hi Antti
->>>
->>> Hmm, yes it is a bit choppy on dvb-usb-v2.
->>>
->>> I will have a look at it.
+Am 30.10.2012 19:18, schrieb Frank Schäfer:
+> Am 30.10.2012 06:06, schrieb Mauro Carvalho Chehab:
+>
+> <snip>
+>> Did a git bisect. The last patch where the bug doesn't occur is this 
+>> changeset:
+>> 	em28xx: add module parameter for selection of the preferred USB transfer type
 >>
->> Fedora's stock 3.6.5-1.fc17.x86_64 is even more worse - no picture at
->> all when using vlc. Clearly visible difference is pid filter count.
->> dvb-usb says 5 filters whilst dvb-usb-v2 says 32 pid filters.
+>> That means that this changeset broke it:
 >>
->> dvb_usb_v2: will use the device's hardware PID filter (table count: 32)
->> dvb-usb: will use the device's hardware PID filter (table count: 5).
->>
->>
-> I kept the count as the hardware default with dvb-usb-v2, with 5, users
-> can still run in to trouble with Video PIDs.
+>> 	em28xx: use common urb data copying function for vbi and non-vbi devices
+> Ok, thanks.
+> That means we are VERY close...
 >
-> I have traced it to an incorrect endpoint size when the PID filter
-> is enabled. It also affected USB 2.0 with the filter on.
+> I think this is the only change that could cause the trouble:
+>> @@ -599,6 +491,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
+>>  			len = actual_length - 4;
+>>  		} else if (p[0] == 0x22 && p[1] == 0x5a) {
+>>  			/* start video */
+>> +			dev->capture_type = 1;
+>>  			p += 4;
+>>  			len = actual_length - 4;
+>>  		} else {
+> Could you try again with this line commented out ? (em28xx-video.c, line
+> 494 in the patched file).
+> usb_debug=1 would be usefull, too.
+>
+>> I didn't test them with my Silvercrest webcam yet.
+> I re-tested 5 minutes ago with this device and it works fine.
+> Btw, which frame rates do you get  ? ;)
+>
+> Regards,
+> Frank
+
+Today I had the chance to test these patches with a Hauppauge HVR-930c.
+Couldn't test analog TV (not supported yet), but DVB works fine, too.
+
+So patches 1 to 21 have been tested now and do at least not cause any
+regressions.
+
+I would like to drop the last two patches (22+23) of this series, because
+- they are actually not related to USB bulk transfers
+- patch 22 needs to be fixed for analog+vbi (will get an analog device
+for testing next week)
+- I'm working on further improvements/changes in this area (including
+em25xx support)
+So I will better come up with a separate patch series later.
+
+Will send a v2 of this patch series soon.
+
+Regards,
+Frank
 
 
-Bug fixed. Lets add proper tags. Happy weekend!
-
-Reported-by: Antti Palosaari <crope@iki.fi>
-Tested-by: Antti Palosaari <crope@iki.fi>
-
->
->
-> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
-> ---
->   drivers/media/usb/dvb-usb-v2/it913x.c |    3 ++-
->   1 file changed, 2 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/it913x.c b/drivers/media/usb/dvb-usb-v2/it913x.c
-> index 695f910..29300e3 100644
-> --- a/drivers/media/usb/dvb-usb-v2/it913x.c
-> +++ b/drivers/media/usb/dvb-usb-v2/it913x.c
-> @@ -643,7 +643,8 @@ static int it913x_frontend_attach(struct dvb_usb_adapter *adap)
->   	struct it913x_state *st = d->priv;
->   	int ret = 0;
->   	u8 adap_addr = I2C_BASE_ADDR + (adap->id << 5);
-> -	u16 ep_size = adap->stream.buf_size / 4;
-> +	u16 ep_size = (adap->pid_filtering) ? TS_BUFFER_SIZE_PID / 4 :
-> +		TS_BUFFER_SIZE_MAX / 4;
->   	u8 pkt_size = 0x80;
->
->   	if (d->udev->speed != USB_SPEED_HIGH)
->
-
-
--- 
-http://palosaari.fi/
