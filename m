@@ -1,45 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from viridian.itc.Virginia.EDU ([128.143.12.139]:41656 "EHLO
-	viridian.itc.virginia.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754466Ab2KSSiA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Nov 2012 13:38:00 -0500
-From: Bill Pemberton <wfp5p@virginia.edu>
-To: gregkh@linuxfoundation.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: [PATCH 103/493] staging: dt3155v4l: remove use of __devexit_p
-Date: Mon, 19 Nov 2012 13:20:52 -0500
-Message-Id: <1353349642-3677-103-git-send-email-wfp5p@virginia.edu>
-In-Reply-To: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
-References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:33191 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756641Ab2KHTMw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:12:52 -0500
+Received: by mail-ea0-f174.google.com with SMTP id c13so1190326eaa.19
+        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2012 11:12:51 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 18/21] em28xx: add fields for analog and DVB USB transfer type selection to struct em28xx
+Date: Thu,  8 Nov 2012 20:11:50 +0200
+Message-Id: <1352398313-3698-19-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CONFIG_HOTPLUG is going away as an option so __devexit_p is no longer
-needed.
-
-Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org> 
-Cc: linux-media@vger.kernel.org 
-Cc: devel@driverdev.osuosl.org 
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/staging/media/dt3155v4l/dt3155v4l.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/em28xx/em28xx.h |    4 ++++
+ 1 Datei geändert, 4 Zeilen hinzugefügt(+)
 
-diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-index 2e7b711..15f7468 100644
---- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
-+++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-@@ -983,7 +983,7 @@ static struct pci_driver pci_driver = {
- 	.name = DT3155_NAME,
- 	.id_table = pci_ids,
- 	.probe = dt3155_probe,
--	.remove = __devexit_p(dt3155_remove),
-+	.remove = dt3155_remove,
- };
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 6b8d3e6b..f5be522 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -588,9 +588,13 @@ struct em28xx {
+ 	int max_pkt_size;	/* max packet size of the selected ep at alt */
+ 	int num_alt;		/* number of alternative settings */
+ 	unsigned int *alt_max_pkt_size_isoc; /* array of isoc wMaxPacketSize */
++	unsigned int analog_xfer_bulk:1;	/* use bulk instead of isoc
++						   transfers for analog      */
+ 	int dvb_alt_isoc;	/* alternate setting for DVB isoc transfers */
+ 	unsigned int dvb_max_pkt_size_isoc;	/* isoc max packet size of the
+ 						   selected DVB ep at dvb_alt */
++	unsigned int dvb_xfer_bulk:1;		/* use bulk instead of isoc
++						   transfers for DVB          */
+ 	char urb_buf[URB_MAX_CTRL_SIZE];	/* urb control msg buffer */
  
- module_pci_driver(pci_driver);
+ 	/* helper funcs that call usb_control_msg */
 -- 
-1.8.0
+1.7.10.4
 
