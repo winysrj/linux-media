@@ -1,57 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:51278 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752093Ab2KGT0Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2012 14:26:25 -0500
-From: YAMANE Toshiaki <yamanetoshi@gmail.com>
-To: Ben Collins <bcollins@bluecherry.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Ismael Luceno <ismael.luceno@gmail.com>,
-	Devendra Naga <devendra.aaru@gmail.com>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org,
-	YAMANE Toshiaki <yamanetoshi@gmail.com>
-Subject: [PATCH] Staging/media: Use dev_ printks in solo6x10/p2m.c
-Date: Thu,  8 Nov 2012 04:26:19 +0900
-Message-Id: <1352316379-8078-1-git-send-email-yamanetoshi@gmail.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:65470 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751702Ab2KHTM0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:12:26 -0500
+Received: by mail-ee0-f46.google.com with SMTP id b15so1754511eek.19
+        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2012 11:12:25 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 07/21] em28xx: update description of em28xx_irq_callback
+Date: Thu,  8 Nov 2012 20:11:39 +0200
+Message-Id: <1352398313-3698-8-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fixed below checkpatch warning.
-- WARNING: Prefer netdev_warn(netdev, ... then dev_warn(dev, ... then pr_warn(...  to printk(KERN_WARNING ...
+em28xx_irq_callback can be used for isoc and bulk transfers.
 
-Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/staging/media/solo6x10/p2m.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/usb/em28xx/em28xx-core.c |    3 ++-
+ 1 Datei geändert, 2 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
 
-diff --git a/drivers/staging/media/solo6x10/p2m.c b/drivers/staging/media/solo6x10/p2m.c
-index 56210f0..58ab61b 100644
---- a/drivers/staging/media/solo6x10/p2m.c
-+++ b/drivers/staging/media/solo6x10/p2m.c
-@@ -231,15 +231,15 @@ static void run_p2m_test(struct solo_dev *solo_dev)
- 	u32 size = SOLO_JPEG_EXT_ADDR(solo_dev) + SOLO_JPEG_EXT_SIZE(solo_dev);
- 	int i, d;
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index 0892d92..8f50f5c 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -919,7 +919,7 @@ EXPORT_SYMBOL_GPL(em28xx_set_mode);
+    ------------------------------------------------------------------*/
  
--	printk(KERN_WARNING "%s: Testing %u bytes of external ram\n",
--	       SOLO6X10_NAME, size);
-+	dev_warn(&solo_dev->pdev->dev, "Testing %u bytes of external ram\n",
-+		 size);
+ /*
+- * IRQ callback, called by URB callback
++ * URB completion handler for isoc/bulk transfers
+  */
+ static void em28xx_irq_callback(struct urb *urb)
+ {
+@@ -946,6 +946,7 @@ static void em28xx_irq_callback(struct urb *urb)
  
- 	for (i = 0; i < size; i += TEST_CHUNK_SIZE)
- 		for (d = 0; d < 4; d++)
- 			errs += p2m_test(solo_dev, d, i, TEST_CHUNK_SIZE);
- 
--	printk(KERN_WARNING "%s: Found %llu errors during p2m test\n",
--	       SOLO6X10_NAME, errs);
-+	dev_warn(&solo_dev->pdev->dev, "Found %llu errors during p2m test\n",
-+		 errs);
- 
- 	return;
- }
+ 	/* Reset urb buffers */
+ 	for (i = 0; i < urb->number_of_packets; i++) {
++		/* isoc only (bulk: number_of_packets = 0) */
+ 		urb->iso_frame_desc[i].status = 0;
+ 		urb->iso_frame_desc[i].actual_length = 0;
+ 	}
 -- 
-1.7.9.5
+1.7.10.4
 
