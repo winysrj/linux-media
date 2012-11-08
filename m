@@ -1,54 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:47188 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751166Ab2KQNfT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Nov 2012 08:35:19 -0500
-Received: by mail-qc0-f174.google.com with SMTP id o22so2300604qcr.19
-        for <linux-media@vger.kernel.org>; Sat, 17 Nov 2012 05:35:19 -0800 (PST)
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:33191 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756641Ab2KHTMy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:12:54 -0500
+Received: by mail-ea0-f174.google.com with SMTP id c13so1190326eaa.19
+        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2012 11:12:53 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 19/21] em28xx: set USB alternate settings for analog video bulk transfers properly
+Date: Thu,  8 Nov 2012 20:11:51 +0200
+Message-Id: <1352398313-3698-20-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Date: Sat, 17 Nov 2012 13:35:18 +0000
-Message-ID: <CAKQROYXaEVasawMTd7XiDOvx_ZxL6H=0MqEds2-C+WFDru0m=Q@mail.gmail.com>
-Subject: Linux DVB Explained..
-From: Richard <tuxbox.guru@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mau,
+Extend function em28xx_set_alternate:
+- use alternate setting 0 for bulk transfers as default
+- respect module parameter 'alt'=0 for bulk transfers
+- set max_packet_size to 512 bytes for bulk transfers
 
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-core.c |   23 +++++++++++++++--------
+ 1 Datei geändert, 15 Zeilen hinzugefügt(+), 8 Zeilen entfernt(-)
 
-I have started documenting a HOWTO on making a linuxDVB device and
-would like to know what the following is used for....
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index 6b588e2..06d5734 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -805,21 +805,23 @@ int em28xx_resolution_set(struct em28xx *dev)
+ 	return em28xx_scaler_set(dev, dev->hscale, dev->vscale);
+ }
+ 
++/* Set USB alternate setting for analog video */
+ int em28xx_set_alternate(struct em28xx *dev)
+ {
+ 	int errCode, prev_alt = dev->alt;
+ 	int i;
+ 	unsigned int min_pkt_size = dev->width * 2 + 4;
+ 
+-	/*
+-	 * alt = 0 is used only for control messages, so, only values
+-	 * greater than 0 can be used for streaming.
+-	 */
+-	if (alt && alt < dev->num_alt) {
++	/* NOTE: for isoc transfers, only alt settings > 0 are allowed
++		 for bulk transfers, use alt=0 as default value */
++	dev->alt = 0;
++	if ((alt > 0) && (alt < dev->num_alt)) {
+ 		em28xx_coredbg("alternate forced to %d\n", dev->alt);
+ 		dev->alt = alt;
+ 		goto set_alt;
+ 	}
++	if (dev->analog_xfer_bulk)
++		goto set_alt;
+ 
+ 	/* When image size is bigger than a certain value,
+ 	   the frame size should be increased, otherwise, only
+@@ -843,9 +845,14 @@ int em28xx_set_alternate(struct em28xx *dev)
+ 
+ set_alt:
+ 	if (dev->alt != prev_alt) {
+-		em28xx_coredbg("minimum isoc packet size: %u (alt=%d)\n",
+-				min_pkt_size, dev->alt);
+-		dev->max_pkt_size = dev->alt_max_pkt_size_isoc[dev->alt];
++		if (dev->analog_xfer_bulk) {
++			dev->max_pkt_size = 512; /* USB 2.0 spec */
++		} else { /* isoc */
++			em28xx_coredbg("minimum isoc packet size: "
++				       "%u (alt=%d)\n", min_pkt_size, dev->alt);
++			dev->max_pkt_size =
++					  dev->alt_max_pkt_size_isoc[dev->alt];
++		}
+ 		em28xx_coredbg("setting alternate %d with wMaxPacketSize=%u\n",
+ 			       dev->alt, dev->max_pkt_size);
+ 		errCode = usb_set_interface(dev->udev, 0, dev->alt);
+-- 
+1.7.10.4
 
-
-struct dvb_demux :
-This has a start_feed and a stop feed.   What feed is this? ... the
-RAW 188 byte packets from the device perhaps?
-
-What is the main purpose of this structure?
-
-struct dmx_demux :
-This structure holds the frontend device struct and contains the .fops
-for read/write.  Is this the main interface when using the
-/dev/dvb/adapterX/demux ? /dvr?
-
-
-So far...
-
-adapter = dvb_register_adapter() : Register a new DVB device adapter
-(called once)
-dvb_dmx_init(dvbdemux);  // Called once per Demux chain?
-dvb_dmxdev_init();  // Called once per demux chain ? same as above
-
--------------------
-The hardware I am using has 6 TS data inputs, 4 tuners (linked to TS
-inputs)  and hardware PID filters and I am trying to establish the
-relationship of dmx and dmxdev.
-
-
-Any clarification is most welcome
-Best Regards,
-Richard
