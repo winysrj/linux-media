@@ -1,74 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:55430 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755839Ab2KWLLF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 06:11:05 -0500
-Received: by mail-da0-f46.google.com with SMTP id p5so2599382dak.19
-        for <linux-media@vger.kernel.org>; Fri, 23 Nov 2012 03:11:05 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org,
-	patches@linaro.org, Shaik Ameer Basha <shaik.ameer@samsung.com>
-Subject: [PATCH v2 1/4] [media] exynos-gsc: Rearrange error messages for valid prints
-Date: Fri, 23 Nov 2012 16:34:39 +0530
-Message-Id: <1353668682-13366-2-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1353668682-13366-1-git-send-email-sachin.kamat@linaro.org>
-References: <1353668682-13366-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:38724 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756783Ab2KHTyW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:54:22 -0500
+From: YAMANE Toshiaki <yamanetoshi@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Ben Hutchings <ben@decadent.org.uk>,
+	Sean Young <sean@mess.org>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org,
+	YAMANE Toshiaki <yamanetoshi@gmail.com>
+Subject: [PATCH] staging/media: Use pr_ printks in lirc/lirc_bt829.c
+Date: Fri,  9 Nov 2012 04:54:09 +0900
+Message-Id: <1352404449-7666-1-git-send-email-yamanetoshi@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In case of clk_prepare failure, the function gsc_clk_get also prints
-"failed to get clock" which is not correct. Hence move the error
-messages to their respective blocks. While at it, also renamed the labels
-meaningfully.
+fixed below checkpatch warnings.
+- WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+- WARNING: Prefer netdev_info(netdev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
 
-Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+and add pr_fmt.
+
+Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
 ---
- drivers/media/platform/exynos-gsc/gsc-core.c |   19 ++++++++++---------
- 1 files changed, 10 insertions(+), 9 deletions(-)
+ drivers/staging/media/lirc/lirc_bt829.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 6d6f65d..45bcfa7 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1017,25 +1017,26 @@ static int gsc_clk_get(struct gsc_dev *gsc)
- 	dev_dbg(&gsc->pdev->dev, "gsc_clk_get Called\n");
+diff --git a/drivers/staging/media/lirc/lirc_bt829.c b/drivers/staging/media/lirc/lirc_bt829.c
+index 951007a..4a3b1f5 100644
+--- a/drivers/staging/media/lirc/lirc_bt829.c
++++ b/drivers/staging/media/lirc/lirc_bt829.c
+@@ -18,6 +18,8 @@
+  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
  
- 	gsc->clock = clk_get(&gsc->pdev->dev, GSC_CLOCK_GATE_NAME);
--	if (IS_ERR(gsc->clock))
--		goto err_print;
-+	if (IS_ERR(gsc->clock)) {
-+		dev_err(&gsc->pdev->dev, "failed to get clock~~~: %s\n",
-+			GSC_CLOCK_GATE_NAME);
-+		goto err_clk_get;
-+	}
- 
- 	ret = clk_prepare(gsc->clock);
- 	if (ret < 0) {
-+		dev_err(&gsc->pdev->dev, "clock prepare failed for clock: %s\n",
-+			GSC_CLOCK_GATE_NAME);
- 		clk_put(gsc->clock);
- 		gsc->clock = NULL;
--		goto err;
-+		goto err_clk_prepare;
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/threads.h>
+@@ -72,20 +74,19 @@ static struct pci_dev *do_pci_probe(void)
+ 	my_dev = pci_get_device(PCI_VENDOR_ID_ATI,
+ 				PCI_DEVICE_ID_ATI_264VT, NULL);
+ 	if (my_dev) {
+-		printk(KERN_ERR DRIVER_NAME ": Using device: %s\n",
+-		       pci_name(my_dev));
++		pr_err("Using device: %s\n", pci_name(my_dev));
+ 		pci_addr_phys = 0;
+ 		if (my_dev->resource[0].flags & IORESOURCE_MEM) {
+ 			pci_addr_phys = my_dev->resource[0].start;
+-			printk(KERN_INFO DRIVER_NAME ": memory at 0x%08X\n",
++			pr_info("memory at 0x%08X\n",
+ 			        (unsigned int)pci_addr_phys);
+ 		}
+ 		if (pci_addr_phys == 0) {
+-			printk(KERN_ERR DRIVER_NAME ": no memory resource ?\n");
++			pr_err("no memory resource ?\n");
+ 			return NULL;
+ 		}
+ 	} else {
+-		printk(KERN_ERR DRIVER_NAME ": pci_probe failed\n");
++		pr_err("pci_probe failed\n");
+ 		return NULL;
  	}
+ 	return my_dev;
+@@ -140,7 +141,7 @@ int init_module(void)
  
- 	return 0;
- 
--err:
--	dev_err(&gsc->pdev->dev, "clock prepare failed for clock: %s\n",
--					GSC_CLOCK_GATE_NAME);
-+err_clk_prepare:
- 	gsc_clk_put(gsc);
--err_print:
--	dev_err(&gsc->pdev->dev, "failed to get clock~~~: %s\n",
--					GSC_CLOCK_GATE_NAME);
-+err_clk_get:
- 	return -ENXIO;
- }
- 
+ 	atir_minor = lirc_register_driver(&atir_driver);
+ 	if (atir_minor < 0) {
+-		printk(KERN_ERR DRIVER_NAME ": failed to register driver!\n");
++		pr_err("failed to register driver!\n");
+ 		return atir_minor;
+ 	}
+ 	dprintk("driver is registered on minor %d\n", atir_minor);
+@@ -159,7 +160,7 @@ static int atir_init_start(void)
+ {
+ 	pci_addr_lin = ioremap(pci_addr_phys + DATA_PCI_OFF, 0x400);
+ 	if (pci_addr_lin == 0) {
+-		printk(KERN_INFO DRIVER_NAME ": pci mem must be mapped\n");
++		pr_info("pci mem must be mapped\n");
+ 		return 0;
+ 	}
+ 	return 1;
 -- 
-1.7.4.1
+1.7.9.5
 
