@@ -1,106 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43486 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751838Ab2KEXUH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Nov 2012 18:20:07 -0500
-Message-ID: <5098498A.9070707@iki.fi>
-Date: Tue, 06 Nov 2012 01:19:38 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36117 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756631Ab2KHWdp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 8 Nov 2012 17:33:45 -0500
+Date: Fri, 9 Nov 2012 00:33:40 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [RFC 4/4] v4l: Tell user space we're using monotonic timestamps
+Message-ID: <20121108223340.GH25623@valkosipuli.retiisi.org.uk>
+References: <20121024181602.GD23933@valkosipuli.retiisi.org.uk>
+ <6800416.KHKIF7a4Tv@avalon>
+ <20121105140432.GD25623@valkosipuli.retiisi.org.uk>
+ <6798781.iK5M8mTgMg@avalon>
 MIME-Version: 1.0
-To: Paul Bolle <pebolle@tiscali.nl>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] tda18212: tda18218: use 'val' if initialized
-References: <1351803609.1597.16.camel@x61.thuisdomein>
-In-Reply-To: <1351803609.1597.16.camel@x61.thuisdomein>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6798781.iK5M8mTgMg@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/01/2012 11:00 PM, Paul Bolle wrote:
-> Commits e666a44fa313cb9329c0381ad02fc6ee1e21cb31 ("[media] tda18212:
-> silence compiler warning") and e0e52d4e9f5bce7ea887027c127473eb654a5a04
-> ("[media] tda18218: silence compiler warning") silenced warnings
-> equivalent to these:
->      drivers/media/tuners/tda18212.c: In function ‘tda18212_attach’:
->      drivers/media/tuners/tda18212.c:299:2: warning: ‘val’ may be used uninitialized in this function [-Wmaybe-uninitialized]
->      drivers/media/tuners/tda18218.c: In function ‘tda18218_attach’:
->      drivers/media/tuners/tda18218.c:305:2: warning: ‘val’ may be used uninitialized in this function [-Wmaybe-uninitialized]
->
-> But in both cases 'val' will still be used uninitialized if the calls
-> of tda18212_rd_reg() or tda18218_rd_reg() fail. Fix this by only
-> printing the "chip id" if the calls of those functions were successful.
-> This allows to drop the uninitialized_var() stopgap measure.
->
-> Also stop printing the return values of tda18212_rd_reg() or
-> tda18218_rd_reg(), as these are not interesting.
->
-> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+Hi Laurent,
 
-Acked-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+On Thu, Nov 08, 2012 at 01:18:15PM +0100, Laurent Pinchart wrote:
+> On Monday 05 November 2012 16:04:32 Sakari Ailus wrote:
+> > On Sun, Nov 04, 2012 at 01:07:25PM +0100, Laurent Pinchart wrote:
+> > > On Wednesday 24 October 2012 21:16:23 Sakari Ailus wrote:
+> > ...
+> > 
+> > > > @@ -367,7 +368,8 @@ static void __fill_v4l2_buffer(struct vb2_buffer
+> > > > *vb,
+> > > > struct v4l2_buffer *b) /*
+> > > > 
+> > > >  	 * Clear any buffer state related flags.
+> > > >  	 */
+> > > > 
+> > > > -	b->flags &= ~V4L2_BUFFER_STATE_FLAGS;
+> > > > +	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
+> > > > +	b->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> > > 
+> > > That's an issue. Drivers that use videobuf2 would always be restricted to
+> > > monotonic timestamps in the future, even if they provide support for a
+> > > device- specific clock.
+> > > 
+> > > Would it instead make sense to pass a v4l2_buffer pointer to
+> > > v4l2_get_timestamp() and set the monotonic flag there ? Not all callers of
+> > > v4l2_get_timestamp() might have a v4l2_buffer pointer though.
+> > 
+> > For now, this patch assumes that all the VB2 users will use monotonic
+> > timestamps only. Once we have a good use case for different kind of
+> > timestamps and have agreed how to implement them, I was thinking of adding a
+> > similar function to v4l2_get_timestamp() but which would be VB2-aware, with
+> > one argument being the timestamp type. That function could then get the
+> > timestamp and apply the relevant flags.
+> > 
+> > Do you think it'd be enough to support changeable timestamp type for drivers
+> > using VB2 only?
+> 
+> Given that there's no reason to use anything else than VB2 in V4L2 drivers, I 
+> don't see any problem there.
+> 
+> How would that work in practice ? You won't be able to override the timestamp 
+> type flag unconditionally in __fill_v4l2_buffer() anymore.
 
-That patch does not make much sense, but I don't still see any reason to 
-reject it.
+The vb2 already stores struct v4l2_buffer, but unfortunately driver's
+queue_setup() is called before alloctaing buffer objects, or after if less
+buffers can be allocated that way.
 
-> ---
-> 0) Compile tested only.
->
->   drivers/media/tuners/tda18212.c | 6 +++---
->   drivers/media/tuners/tda18218.c | 6 +++---
->   2 files changed, 6 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/media/tuners/tda18212.c b/drivers/media/tuners/tda18212.c
-> index 5d9f028..e4a84ee 100644
-> --- a/drivers/media/tuners/tda18212.c
-> +++ b/drivers/media/tuners/tda18212.c
-> @@ -277,7 +277,7 @@ struct dvb_frontend *tda18212_attach(struct dvb_frontend *fe,
->   {
->   	struct tda18212_priv *priv = NULL;
->   	int ret;
-> -	u8 uninitialized_var(val);
-> +	u8 val;
->
->   	priv = kzalloc(sizeof(struct tda18212_priv), GFP_KERNEL);
->   	if (priv == NULL)
-> @@ -296,8 +296,8 @@ struct dvb_frontend *tda18212_attach(struct dvb_frontend *fe,
->   	if (fe->ops.i2c_gate_ctrl)
->   		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
->
-> -	dev_dbg(&priv->i2c->dev, "%s: ret=%d chip id=%02x\n", __func__, ret,
-> -			val);
-> +	if (!ret)
-> +		dev_dbg(&priv->i2c->dev, "%s: chip id=%02x\n", __func__, val);
->   	if (ret || val != 0xc7) {
->   		kfree(priv);
->   		return NULL;
-> diff --git a/drivers/media/tuners/tda18218.c b/drivers/media/tuners/tda18218.c
-> index 1819853..2d31aeb 100644
-> --- a/drivers/media/tuners/tda18218.c
-> +++ b/drivers/media/tuners/tda18218.c
-> @@ -277,7 +277,7 @@ struct dvb_frontend *tda18218_attach(struct dvb_frontend *fe,
->   	struct i2c_adapter *i2c, struct tda18218_config *cfg)
->   {
->   	struct tda18218_priv *priv = NULL;
-> -	u8 uninitialized_var(val);
-> +	u8 val;
->   	int ret;
->   	/* chip default registers values */
->   	static u8 def_regs[] = {
-> @@ -302,8 +302,8 @@ struct dvb_frontend *tda18218_attach(struct dvb_frontend *fe,
->
->   	/* check if the tuner is there */
->   	ret = tda18218_rd_reg(priv, R00_ID, &val);
-> -	dev_dbg(&priv->i2c->dev, "%s: ret=%d chip id=%02x\n", __func__, ret,
-> -			val);
-> +	if (!ret)
-> +		dev_dbg(&priv->i2c->dev, "%s: chip id=%02x\n", __func__, val);
->   	if (ret || val != def_regs[R00_ID]) {
->   		kfree(priv);
->   		return NULL;
->
+The information could be stored in the buffer queue itself. That'd likely
+make it the easies for the drivers: otherwise drivers need to be involed
+e.g. in querybuf.
 
+What do you think?
+
+Kind regards,
 
 -- 
-http://palosaari.fi/
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
