@@ -1,61 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:36741 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753783Ab2KMTDx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Nov 2012 14:03:53 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1TYLmD-0004Lj-Bo
-	for linux-media@vger.kernel.org; Tue, 13 Nov 2012 20:04:01 +0100
-Received: from 84-72-11-174.dclient.hispeed.ch ([84.72.11.174])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2012 20:04:01 +0100
-Received: from auslands-kv by 84-72-11-174.dclient.hispeed.ch with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2012 20:04:01 +0100
-To: linux-media@vger.kernel.org
-From: Neuer User <auslands-kv@gmx.de>
-Subject: Re: Color problem with MPX-885 card (cx23885)
-Date: Tue, 13 Nov 2012 20:03:43 +0100
-Message-ID: <k7u5id$si8$1@ger.gmane.org>
-References: <k7tkcu$m6j$1@ger.gmane.org> <CAGoCfiwBJv04ffd+gDn1t+_3GPn+KeDdcaRQ+PbrqAjAsiMEHg@mail.gmail.com> <k7tt38$aol$1@ger.gmane.org> <CAGoCfiww92i7w9xuG199Pdv5EQbFButWxT=CHC9Wg2ypY+M1PA@mail.gmail.com> <k7u1vf$q5h$1@ger.gmane.org> <CAGoCfiwNxh6uNXaQLNO7r4e8PXZxQ0+jZGY0ZjzXdy2vbmG-NA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <CAGoCfiwNxh6uNXaQLNO7r4e8PXZxQ0+jZGY0ZjzXdy2vbmG-NA@mail.gmail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:50966 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751013Ab2KIIXA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2012 03:23:00 -0500
+Date: Fri, 9 Nov 2012 09:22:51 +0100
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: Rob Herring <robherring2@gmail.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: Re: [PATCH v7 0/8] of: add display helper
+Message-ID: <20121109082251.GA8598@pengutronix.de>
+References: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
+ <509C25B3.5060509@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <509C25B3.5060509@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 13.11.2012 19:54, schrieb Devin Heitmueller:
-> Almost certainly just changes needed for the cx25840 driver.  These
-> are all basic issues with the video decoder core.  Google around - the
-> cx25840 datasheet is readily available.  You have to watch out though
-> because there are some subtle differences that you won't be able to
-> detect if it's a cx23887 or cx23888 as opposed to the cx23885.
-
-Well, I will try to have a look at the sources, but probably, I won't be
-able to patch it correctly, if the changes necessara are more than
-absolutely basic and obvious...
-
-I once compiled the tw68 driver for another card. And here the borders
-were also not correct. In this driver it was very easy to find the
-settings to change.
+On Thu, Nov 08, 2012 at 03:35:47PM -0600, Rob Herring wrote:
+> On 10/31/2012 04:28 AM, Steffen Trumtrar wrote:
+> > Hi!
+> > 
+> > Finally, v7 of the series.
+> > 
+> > Changes since v6:
+> > 	- get rid of some empty lines etc.
+> > 	- move functions to their subsystems
+> > 	- split of_ from non-of_ functions
+> > 	- add at least some kerneldoc to some functions
+> > 
+> > Regards,
+> > Steffen
+> > 
+> > 
+> > Steffen Trumtrar (8):
+> >   video: add display_timing struct and helpers
+> >   of: add helper to parse display timings
+> >   of: add generic videomode description
+> >   video: add videomode helpers
+> >   fbmon: add videomode helpers
+> >   fbmon: add of_videomode helpers
+> >   drm_modes: add videomode helpers
+> >   drm_modes: add of_videomode helpers
+> > 
+> >  .../devicetree/bindings/video/display-timings.txt  |  139 +++++++++++++++
+> >  drivers/gpu/drm/drm_modes.c                        |   78 +++++++++
+> >  drivers/of/Kconfig                                 |   12 ++
+> >  drivers/of/Makefile                                |    2 +
+> >  drivers/of/of_display_timings.c                    |  185 ++++++++++++++++++++
+> >  drivers/of/of_videomode.c                          |   47 +++++
 > 
-> Regarding the cropped image, what capture resolution are you using?
-> Perhaps the scaler isn't working and you're setting the capture to
-> something like "640x480" (which would effectively crop out lines
-> 640-720 on the horizontal and lines 480-576 on the vertical).
+> Not sure why you moved this, but please move this back to drivers/video.
+> We're trying to move subsystem specific pieces out of drivers/of.
 > 
-> Devin
+> Rob
 > 
 
-Thanks, you probably hinted me into the right direction. I use mplayer
-to play the video stream and mplayer does indeed recognize a 640x480
-video stream.
+Hm, the of_xxx part always was in drivers/of, but I can move that. No problem.
 
-I am not using any crop settings for these tests. But maybe it is
-possible to tell mplayer that the stream is 720x576 instead of the
-640x480 it believes. That is, if the stream coming from the driver is
-really not 640x480.
+Regards,
+Steffen
 
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
