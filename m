@@ -1,111 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46886 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755462Ab2KOAp3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Nov 2012 19:45:29 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
-	hverkuil@xs4all.nl
-Subject: Re: [PATCH 1/1] media: Entities with sink pads must have at least one enabled link
-Date: Thu, 15 Nov 2012 01:46:23 +0100
-Message-ID: <2019126.gp1BvLQNQ8@avalon>
-In-Reply-To: <20121114211344.GU25623@valkosipuli.retiisi.org.uk>
-References: <1351280777-4936-1-git-send-email-sakari.ailus@iki.fi> <50A36307.50502@samsung.com> <20121114211344.GU25623@valkosipuli.retiisi.org.uk>
+Received: from moutng.kundenserver.de ([212.227.17.8]:52113 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752342Ab2KIOBZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2012 09:01:25 -0500
+Date: Fri, 9 Nov 2012 15:01:22 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?utf-8?B?5YaN5Zue6aaW?= <308123027@qq.com>
+cc: =?utf-8?B?bGludXgtbWVkaWE=?= <linux-media@vger.kernel.org>
+Subject: Re: =?utf-8?B?5Zue5aSN77yaIHNvYyBjYW1lcmEgZHJpdmVyIG1v?=
+ =?utf-8?B?ZHVsZSBtYXkgY2FzZSBtZW1vcnkgbGVhaw==?=
+In-Reply-To: <tencent_59FBB90B463B626440DF2EE3@qq.com>
+Message-ID: <Pine.LNX.4.64.1211091456480.5481@axis700.grange>
+References: <tencent_59FBB90B463B626440DF2EE3@qq.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi
 
-On Wednesday 14 November 2012 23:13:45 Sakari Ailus wrote:
-> On Wed, Nov 14, 2012 at 10:23:19AM +0100, Sylwester Nawrocki wrote:
-> > On 11/13/2012 03:24 PM, Sakari Ailus wrote:
-> > > Hi all,
-> > > 
-> > > Comments would be appreciated, either positive or negative. The omap3isp
-> > > driver does the same check itself currently, but I think this is more
-> > > generic than that.
-> > > 
-> > > Thanks.
-> > > 
-> > > On Fri, Oct 26, 2012 at 10:46:17PM +0300, Sakari Ailus wrote:
-> > >> If an entity has sink pads, at least one of them must be connected to
-> > >> another pad with an enabled link. If a driver with multiple sink pads
-> > >> has more strict requirements the check should be done in the driver
-> > >> itself.
-> > >> 
-> > >> Just requiring one sink pad is connected with an enabled link is enough
-> > >> API-wise: entities with sink pads with only disabled links should not
-> > >> be allowed to stream in the first place, but also in a different
-> > >> operation mode a device might require only one of its pads connected
-> > >> with an active link.
-> > >> 
-> > >> If an entity has an ability to function as a source entity another
-> > >> logical entity connected to the aforementioned one should be used for
-> > >> the purpose.
-> > 
-> > Why not leave it to individual drivers ? I'm not sure if it is a good idea
-> > not to allow an entity with sink pads to be used as a source only. It
-> > might be appropriate for most of the cases but likely not all. I'm
-> > inclined not to add this requirement in the API. Just my opinion though.
+Well, I must confess, I'm surprised:-) It looks like you're right. This 
+leak, if indeed there is one, has been there since the very first version 
+of soc-camera. I've spent some time looking at the code and so far I don't 
+find an explanation for the missing videobuf_mmap_free() call. I'll have 
+another look and, unless I find an explanation, why it's not needed, I'll 
+make a patch.
+
+Also keep in mind, that this bug is only relevant for videobuf(1) drivers, 
+which anyway have to be converted to videobuf2;-)
+
+Thanks
+Guennadi
+
+On Wed, 7 Nov 2012, �~F~M�~[~^�~V wrote:
+
+> Dear Guennadi
 > 
-> I'm just wondering what would be the use case for that.
+> I'm sure it's a bug.In linux-2.6.x, we call open() will allocate a struct soc_camera_file which contains struct videobuf_queue;then usr will call request_buffer, soc_camera module will call videobuf_alloc_vb(q) which will be installed in q->bufs[i].
+>              My question is how to free q->bufs[i] which is allocated from vb = kzalloc(size + sizeof(*mem), GFP_KERNEL) if we use videobuf-dma-contig memory model? 
+>              videobuf_mmap_free()->kfree(q->bufs[i]) should call at every call close();we can't call kfree(q->bufs[i]) at q->ops->buf_release which is called in stream_off(), because q->bufs[i] reserve struct videobuf_mapping, unmap() will can't free videobuf which is used to store video data. Also can't call videobuf_mmap_free()->kfree(q->bufs[i]) at last close(), because in linux-2.6.x once open() allocates a videobuf_queue.
+>                In linux-3.x.x, we should call videobuf_mmap_free()->kfree(q->bufs[i]) only once at module remove callbcak function.
+>               You say, videobuf mmap allocations will be freed automatically. I want to known soc_camera module how to free q->bufs[i] automatically. 
+>               If is there no bug in soc camera module , i'm sure all device driver use soc camera module have bugs, such as sh_mobile_ceu_caera.c, mx1_caera.c, mx3_caera.c etc. all of them donn't call videobuf_mmap_free()->kfree(q->bufs[i]).
 > 
-> What comes closest is generating a test pattern, but even that should be a
-> separate subdev: the test pattern can be enabled by enabling the link from
-> the test pattern generator subdev.
-
-That would force creating a separate subdev just to support test pattern 
-generation, I'm not sure if I want to push for that. There might also be other 
-use cases not related to V4L (thus the cross-posting).
-
-> As it seems not everyone is outright happy about the idea of making this
-> mandatory, then how about making it optional?
+> Your reply will be higly appreciated! 
 > 
-> I'd hate having a link validate function for each subdev e.g. in the OMAP 3
-> ISP driver that just checks that its sink pad is actually connected with an
-> enabled link. That'd be lots of mostly useless code.
-
-Agreed.
-
-> If this is done in the framework, the drivers will be spared from copying
-> this code in a number of places. Which was why I originally wrote this
-> patch. The alternative is to re-parse the whole graph in the driver which
-> I'd also like to avoid.
-
-I'd also prefer to avoid that *if*possible*, as we already walk the graph 
-during link validation.
-
-> One opion I can think of is to call link_validate op of struct
-> media_entity_operations also for disabled links on entities that are
-> connected through active links (on V4L2 to a video node right before
-> streaming, for example).
 > 
-> That'd make it easy to perform the check in the drivers.
->
-> What do you think?
+> ------------------ 原始邮件 ------------------
+> 发件人: "Guennadi Liakhovetski"<g.liakhovetski@gmx.de>;
+> 发送时间: 2012年11月6日(星期二) 晚上7:30
+> 收件人: "再回首"<308123027@qq.com>; 
+> 抄送: "linux-media"<linux-media@vger.kernel.org>; 
+> 主题: Re: soc camera driver module may case memory leak
+> 
+> 
+> Hi
+> 
+> On Mon, 5 Nov 2012,  ~F~M ~[~^ ~V wrote:
+> 
+> > Dear sir:
+> > why not call "videobuf_mmap_free",when device close call "soc_camera_close" in linux-2.6.x;
+> 
+> I haven't found any version, where this has been done. I don't think this 
+> is needed, because videobuf mmap allocations will be freed automatically 
+> upon the last close(). Please, dismiss your bugzilla entry.
+> 
+> Thanks
+> Guennadi
+> 
+> > do the same in linux-3.x.x?
+> > video capture flow:
+> > 1)open
+> > 2)set fmt
+> > 3)request buffer-->__videobuf_mmap_setup-->videobuf_alloc_vb(q)
+> > 4)mmap
+> > 5)enqueue, dequeue
+> > 6)unmap
+> > 7)close--->soc_camera_close-->?should call:videobuf_mmap_free
+> > NOTE:
+> > I have reviewed all the code, found:soc_camera_driver device driver coders has no way(callback function) to call videobuf_mmap_free; it will case memory leak.N r y b X ǧv ^ )޺{.n + { bj) w*jg ݢj/ z ޖ 2 ޙ & )ߡ a G h j:+v w ٥
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
 
-I think that would be a bit too complex. Drivers (or the V4L core) would need 
-to gather data from multiple links in some state object to find out if the 
-complete pipeline is valid or not.
-
-Another option would be to set a flag somewhere to indicate whether the check 
-should be performed by the media core or left to drivers. As different types 
-of drivers might need different types of checks, I think I would prefer for 
-now to walk the graph one more time in the OMAP3 ISP driver, as currently 
-done, and revisit this issue when we will have a couple of drivers 
-implementing pipeline validity checks. I'm just a bit uncomfortable adding 
-core code for a feature that has a single user at the moment without a clear 
-view regarding how it would scale.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
