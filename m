@@ -1,73 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35965 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753039Ab2K2N4C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Nov 2012 08:56:02 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id qATDu1QQ032355
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 29 Nov 2012 08:56:01 -0500
-Received: from shalem.localdomain (vpn1-4-237.ams2.redhat.com [10.36.4.237])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id qATDtxu3029598
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 29 Nov 2012 08:56:00 -0500
-Message-ID: <50B769EC.8020707@redhat.com>
-Date: Thu, 29 Nov 2012 14:58:04 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:35031 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754773Ab2KIRI6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2012 12:08:58 -0500
+Received: by mail-lb0-f174.google.com with SMTP id n3so3195527lbo.19
+        for <linux-media@vger.kernel.org>; Fri, 09 Nov 2012 09:08:57 -0800 (PST)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT FIXES FOR 3.8] Various USB webcam fixes
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <509D28B6.5060503@googlemail.com>
+References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
+	<1352398313-3698-22-git-send-email-fschaefer.oss@googlemail.com>
+	<CAGoCfiwHviRd8-tsmwxf8=eLbiapUwnrvCM2qB2M5skiqXMNVw@mail.gmail.com>
+	<509BFBF5.7050209@googlemail.com>
+	<CAGoCfiy5wZUajtDiF53gaDED5MCUrsdabQicbrq+RG3dGU0D_A@mail.gmail.com>
+	<509D28B6.5060503@googlemail.com>
+Date: Fri, 9 Nov 2012 12:08:57 -0500
+Message-ID: <CAGoCfizc==b7khc-979Y6ymnH5FmENQa38-103UN_yDfO70VeQ@mail.gmail.com>
+Subject: Re: [PATCH v2 21/21] em28xx: add module parameter for selection of
+ the preferred USB transfer type
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Fri, Nov 9, 2012 at 11:00 AM, Frank Schäfer
+<fschaefer.oss@googlemail.com> wrote:
+> Well, I deliberately called the module 'prefer_bulk' (and not
+> 'use_bulk', 'force_bulk' ...) which should imply that nothing is guaranteed.
+> And selecting bulk transfers for a device which actually doesn not
+> provide bulk support doesn't make sense and is clearly the users fault.
+> Anway, I'm fine with adding a warning message and maybe I could extend
+> the module parameter description, too.
+>
+> I'm going to wait for further feedback from Mauro before sending an
+> updated version of the patch (series).
 
-Please pull from my tree for some assorted USB webcam fixes for 3.8
+Yeah, none of this should hold up it being merged as-is.  A patch
+adding the warning can be submitted after the fact.
 
-The following changes since commit d8658bca2e5696df2b6c69bc5538f8fe54e4a01e:
+Devin
 
-   [media] omap3isp: Replace cpu_is_omap3630() with ISP revision check (2012-11-28 10:54:46 -0200)
-
-are available in the git repository at:
-
-   git://linuxtv.org/hgoede/gspca.git media-for_v3.8
-
-for you to fetch changes up to 325b64b6cb9090c1bc7cda5444f84b2c00acf926:
-
-   Documentation/media: Remove docs for obsoleted and removed v4l1 drivers (2012-11-29 11:29:48 +0100)
-
-----------------------------------------------------------------
-Hans de Goede (3):
-       gspca-pac207: Add a led_invert module parameter
-       stk-webcam: Add an upside down dmi table, and add the Asus G1 to it
-       Documentation/media: Remove docs for obsoleted and removed v4l1 drivers
-
-Jean-François Moine (1):
-       gspca - stv06xx: Fix a regression with the bridge/sensor vv6410
-
-  Documentation/video4linux/et61x251.txt           | 315 ----------------
-  Documentation/video4linux/ibmcam.txt             | 323 ----------------
-  Documentation/video4linux/m5602.txt              |  12 -
-  Documentation/video4linux/ov511.txt              | 288 --------------
-  Documentation/video4linux/se401.txt              |  54 ---
-  Documentation/video4linux/stv680.txt             |  53 ---
-  Documentation/video4linux/w9968cf.txt            | 458 -----------------------
-  Documentation/video4linux/zc0301.txt             | 270 -------------
-  drivers/media/usb/gspca/pac207.c                 |  32 +-
-  drivers/media/usb/gspca/stv06xx/stv06xx_vv6410.c |   4 +
-  drivers/media/usb/stkwebcam/stk-webcam.c         |  56 ++-
-  11 files changed, 76 insertions(+), 1789 deletions(-)
-  delete mode 100644 Documentation/video4linux/et61x251.txt
-  delete mode 100644 Documentation/video4linux/ibmcam.txt
-  delete mode 100644 Documentation/video4linux/m5602.txt
-  delete mode 100644 Documentation/video4linux/ov511.txt
-  delete mode 100644 Documentation/video4linux/se401.txt
-  delete mode 100644 Documentation/video4linux/stv680.txt
-  delete mode 100644 Documentation/video4linux/w9968cf.txt
-  delete mode 100644 Documentation/video4linux/zc0301.txt
-
-Thanks & Regards,
-
-Hans
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
