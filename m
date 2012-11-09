@@ -1,91 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:35046 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751505Ab2KEQAO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 11:00:14 -0500
-Received: by mail-wg0-f44.google.com with SMTP id dr13so4061968wgb.1
-        for <linux-media@vger.kernel.org>; Mon, 05 Nov 2012 08:00:14 -0800 (PST)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, p.zabel@pengutronix.de,
-	s.nawrocki@samsung.com, mchehab@infradead.org,
-	kernel@pengutronix.de,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH 2/2] media: coda: Use iram_alloc() for codadx6 too.
-Date: Mon,  5 Nov 2012 16:59:45 +0100
-Message-Id: <1352131185-12079-2-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1352131185-12079-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1352131185-12079-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49934 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754503Ab2KITbq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2012 14:31:46 -0500
+Date: Fri, 9 Nov 2012 20:31:33 +0100
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: "Manjunathappa, Prakash" <prakash.pm@ti.com>
+Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	"devicetree-discuss@lists.ozlabs.org"
+	<devicetree-discuss@lists.ozlabs.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"kernel@pengutronix.de" <kernel@pengutronix.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v7 5/8] fbmon: add videomode helpers
+Message-ID: <20121109193133.GD3660@pengutronix.de>
+References: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1351675689-26814-6-git-send-email-s.trumtrar@pengutronix.de>
+ <A73F36158E33644199EB82C5EC81C7BC3E9E1B39@DBDE01.ent.ti.com>
+ <20121108212545.GA32605@pengutronix.de>
+ <A73F36158E33644199EB82C5EC81C7BC3E9E614A@DBDE01.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <A73F36158E33644199EB82C5EC81C7BC3E9E614A@DBDE01.ent.ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use this helper function instead of hardcoding the
-physical address of the IRAM in the i.MX27.
+Hi!
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- drivers/media/video/Kconfig |    2 +-
- drivers/media/video/coda.c  |   18 ++++++++++--------
- 2 files changed, 11 insertions(+), 9 deletions(-)
+On Fri, Nov 09, 2012 at 04:54:16PM +0000, Manjunathappa, Prakash wrote:
+> Hi Steffen,
+> 
+> On Fri, Nov 09, 2012 at 02:55:45, Steffen Trumtrar wrote:
+> > Hi!
+> > 
+> > On Wed, Oct 31, 2012 at 03:30:03PM +0000, Manjunathappa, Prakash wrote:
+> > > Hi Steffen,
+> > > 
+> > > On Wed, Oct 31, 2012 at 14:58:05, Steffen Trumtrar wrote:
+> > > > +#if IS_ENABLED(CONFIG_VIDEOMODE)
+> > > > +int videomode_to_fb_videomode(struct videomode *vm, struct fb_videomode *fbmode)
+> > > > +{
+> > > > +	fbmode->xres = vm->hactive;
+> > > > +	fbmode->left_margin = vm->hback_porch;
+> > > > +	fbmode->right_margin = vm->hfront_porch;
+> > > > +	fbmode->hsync_len = vm->hsync_len;
+> > > > +
+> > > > +	fbmode->yres = vm->vactive;
+> > > > +	fbmode->upper_margin = vm->vback_porch;
+> > > > +	fbmode->lower_margin = vm->vfront_porch;
+> > > > +	fbmode->vsync_len = vm->vsync_len;
+> > > > +
+> > > > +	fbmode->pixclock = KHZ2PICOS(vm->pixelclock / 1000);
+> > > > +
+> > > > +	fbmode->sync = 0;
+> > > > +	fbmode->vmode = 0;
+> > > > +	if (vm->hah)
+> > > > +		fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
+> > > > +	if (vm->vah)
+> > > > +		fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
+> > > > +	if (vm->interlaced)
+> > > > +		fbmode->vmode |= FB_VMODE_INTERLACED;
+> > > > +	if (vm->doublescan)
+> > > > +		fbmode->vmode |= FB_VMODE_DOUBLE;
+> > > > +
+> > > 
+> > > "pixelclk-inverted" property of the panel is not percolated fb_videomode.
+> > > Please let me know if I am missing something.
+> > > 
+> > 
+> > The next version is almost finished. Only thing I'm missing is this.
+> > And I actually do not know which flag would represent an inverted pixelclock
+> > in fb_videomode. Does anybody have any idea what I have to do here?
+> > 
+> > 	if (vm->pixelclk_pol)
+> > 		fbmode->sync = ???
+> > 
+> > That's as far as I have come and I don't see a flag that seems right.
+> > Is this even a valid property of fb_videomode?
+> > 
+> 
+> Thanks for considering it, I see IMX addresses it as proprietary FB_SYNC_ flag.
+> FB_SYNC_CLK_INVERT: arch/arm/plat-mxc/include/mach/mx3fb.h
+> 
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index ecab6ef..0b5f785 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -1229,7 +1229,7 @@ config VIDEO_CODA
- 	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
--	select IRAM_ALLOC if SOC_IMX53
-+	select IRAM_ALLOC
- 	---help---
- 	   Coda is a range of video codec IPs that supports
- 	   H.264, MPEG-4, and other video formats.
-diff --git a/drivers/media/video/coda.c b/drivers/media/video/coda.c
-index 7febcd9..96ecb3f 100644
---- a/drivers/media/video/coda.c
-+++ b/drivers/media/video/coda.c
-@@ -43,6 +43,7 @@
- #define CODA_PARA_BUF_SIZE	(10 * 1024)
- #define CODA_ISRAM_SIZE	(2048 * 2)
- #define CODA7_IRAM_SIZE		0x14000 /* 81920 bytes */
-+#define CODADX6_IRAM_SIZE	45056
- 
- #define CODA_MAX_FRAMEBUFFERS	2
- 
-@@ -1919,6 +1920,8 @@ static int __devinit coda_probe(struct platform_device *pdev)
- 	const struct of_device_id *of_id =
- 			of_match_device(of_match_ptr(coda_dt_ids), &pdev->dev);
- 	const struct platform_device_id *pdev_id;
-+	void __iomem *iram_vaddr;
-+	unsigned long iram_size;
- 	struct coda_dev *dev;
- 	struct resource *res;
- 	int ret, irq;
-@@ -2016,16 +2019,15 @@ static int __devinit coda_probe(struct platform_device *pdev)
- 	}
- 
- 	if (dev->devtype->product == CODA_DX6) {
--		dev->iram_paddr = 0xffff4c00;
-+		iram_size = CODADX6_IRAM_SIZE;
- 	} else {
--		void __iomem *iram_vaddr;
-+		iram_size = CODA7_IRAM_SIZE;
-+	}
- 
--		iram_vaddr = iram_alloc(CODA7_IRAM_SIZE,
--					&dev->iram_paddr);
--		if (!iram_vaddr) {
--			dev_err(&pdev->dev, "unable to alloc iram\n");
--			return -ENOMEM;
--		}
-+	iram_vaddr = iram_alloc(iram_size, &dev->iram_paddr);
-+	if (!iram_vaddr) {
-+		dev_err(&pdev->dev, "unable to alloc iram\n");
-+		return -ENOMEM;
- 	}
- 
- 	platform_set_drvdata(pdev, dev);
+No problem. So, it seems this flag has to be set in some imx-specific
+videomode_to_fb_videomode function. It is included in the
+struct videomode, so that should be no problem. But it will not be
+part of this series.
+
+Regards,
+Steffen
+
 -- 
-1.7.9.5
-
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
