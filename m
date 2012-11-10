@@ -1,139 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:58994 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751899Ab2KWNeb (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.23]:34742 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751666Ab2KJNtY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 08:34:31 -0500
-From: <twang13@marvell.com>
-To: corbet@lwn.net, g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org, Libin Yang <lbyang@marvell.com>,
-	Albert Wang <twang13@marvell.com>
-Subject: [PATCH 08/15] [media] marvell-ccic: switch to resource managed allocation and request
-Date: Fri, 23 Nov 2012 21:33:57 +0800
-Message-Id: <1353677637-24215-1-git-send-email-twang13@marvell.com>
+	Sat, 10 Nov 2012 08:49:24 -0500
+Message-ID: <509E5B58.1020108@gmx.net>
+Date: Sat, 10 Nov 2012 14:49:12 +0100
+From: Andreas Nagel <andreasnagel@gmx.net>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: OMAP3 ISP: VIDIOC_STREAMON and VIDIOC_QBUF calls fail
+References: <5097DF9F.6080603@gmx.net> <20121106215153.GE25623@valkosipuli.retiisi.org.uk> <509A4473.3080506@gmx.net> <4541060.0oGRVnU8K8@avalon> <20121108092905.GF25623@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20121108092905.GF25623@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Libin Yang <lbyang@marvell.com>
+Sakari Ailus schrieb am 08.11.2012 10:29:
+> On Thu, Nov 08, 2012 at 10:26:11AM +0100, Laurent Pinchart wrote:
+>> media-ctl doesn't show pad formats, that's a bit weird. Are you using a recent
+>> version ?
+> This could as well be an issue with the kernel API --- I think that kernel
+> has a version which isn't in mainline. So the IOCTL used to access the media
+> bus formats are quite possibly different.
+>
+> Regards,
+>
 
-This patch switchs to resource managed allocation and request in mmp-driver.
-It can remove free resource operations.
+Hi Sakari,
+hi Laurent,
 
-Signed-off-by: Albert Wang <twang13@marvell.com>
-Signed-off-by: Libin Yang <lbyang@marvell.com>
----
- drivers/media/platform/marvell-ccic/mmp-driver.c |   35 +++++++---------------
- 1 file changed, 10 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
-index 20046d0..c3031e7 100755
---- a/drivers/media/platform/marvell-ccic/mmp-driver.c
-+++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
-@@ -315,7 +315,7 @@ static int mmpcam_probe(struct platform_device *pdev)
- 
- 	pdata = pdev->dev.platform_data;
- 
--	cam = kzalloc(sizeof(*cam), GFP_KERNEL);
-+	cam = devm_kzalloc(&pdev->dev, sizeof(*cam), GFP_KERNEL);
- 	if (cam == NULL)
- 		return -ENOMEM;
- 	cam->pdev = pdev;
-@@ -342,14 +342,12 @@ static int mmpcam_probe(struct platform_device *pdev)
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (res == NULL) {
- 		dev_err(&pdev->dev, "no iomem resource!\n");
--		ret = -ENODEV;
--		goto out_free;
-+		return -ENODEV;
- 	}
--	mcam->regs = ioremap(res->start, resource_size(res));
-+	mcam->regs = devm_request_and_ioremap(&pdev->dev, res);
- 	if (mcam->regs == NULL) {
- 		dev_err(&pdev->dev, "MMIO ioremap fail\n");
--		ret = -ENODEV;
--		goto out_free;
-+		return -ENODEV;
- 	}
- 	/*
- 	 * Power/clock memory is elsewhere; get it too.  Perhaps this
-@@ -358,14 +356,12 @@ static int mmpcam_probe(struct platform_device *pdev)
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
- 	if (res == NULL) {
- 		dev_err(&pdev->dev, "no power resource!\n");
--		ret = -ENODEV;
--		goto out_unmap1;
-+		return -ENODEV;
- 	}
--	cam->power_regs = ioremap(res->start, resource_size(res));
-+	cam->power_regs = devm_request_and_ioremap(&pdev->dev, res);
- 	if (cam->power_regs == NULL) {
- 		dev_err(&pdev->dev, "power MMIO ioremap fail\n");
--		ret = -ENODEV;
--		goto out_unmap1;
-+		return -ENODEV;
- 	}
- 
- 	mcam_init_clk(mcam, pdata, 1);
-@@ -375,9 +371,8 @@ static int mmpcam_probe(struct platform_device *pdev)
- 	 */
- 	mcam->i2c_adapter = platform_get_drvdata(pdata->i2c_device);
- 	if (mcam->i2c_adapter == NULL) {
--		ret = -ENODEV;
- 		dev_err(&pdev->dev, "No i2c adapter\n");
--		goto out_unmap2;
-+		return -ENODEV;
- 	}
- 	/*
- 	 * Sensor GPIO pins.
-@@ -386,7 +381,7 @@ static int mmpcam_probe(struct platform_device *pdev)
- 	if (ret) {
- 		dev_err(&pdev->dev, "Can't get sensor power gpio %d",
- 				pdata->sensor_power_gpio);
--		goto out_unmap2;
-+		return ret;
- 	}
- 	gpio_direction_output(pdata->sensor_power_gpio, 0);
- 	ret = gpio_request(pdata->sensor_reset_gpio, "cam-reset");
-@@ -414,7 +409,7 @@ static int mmpcam_probe(struct platform_device *pdev)
- 		goto out_unregister;
- 	}
- 	cam->irq = res->start;
--	ret = request_irq(cam->irq, mmpcam_irq, IRQF_SHARED,
-+	ret = devm_request_irq(&pdev->dev, cam->irq, mmpcam_irq, IRQF_SHARED,
- 			"mmp-camera", mcam);
- 	if (ret == 0) {
- 		mmpcam_add_device(cam);
-@@ -428,13 +423,7 @@ out_gpio2:
- 	gpio_free(pdata->sensor_reset_gpio);
- out_gpio:
- 	gpio_free(pdata->sensor_power_gpio);
--out_unmap2:
- 	mcam_init_clk(mcam, pdata, 0);
--	iounmap(cam->power_regs);
--out_unmap1:
--	iounmap(mcam->regs);
--out_free:
--	kfree(cam);
- 	return ret;
- }
- 
-@@ -445,16 +434,12 @@ static int mmpcam_remove(struct mmp_camera *cam)
- 	struct mmp_camera_platform_data *pdata;
- 
- 	mmpcam_remove_device(cam);
--	free_irq(cam->irq, mcam);
- 	mccic_shutdown(mcam);
- 	mmpcam_power_down(mcam);
- 	pdata = cam->pdev->dev.platform_data;
- 	gpio_free(pdata->sensor_reset_gpio);
- 	gpio_free(pdata->sensor_power_gpio);
--	iounmap(cam->power_regs);
--	iounmap(mcam->regs);
- 	mcam_init_clk(mcam, pdata, 0);
--	kfree(cam);
- 	return 0;
- }
- 
--- 
-1.7.9.5
+first, I could resolve my issues.
 
+When I allocated buffers with the CMEM library from TI (provides aligned 
+and contiguous memory buffers), I was able to use user pointers. And 
+VIDIOC_STREAMON just failed because of a wrong but similar written 
+pixelformat. Since yesterday, I am now able to capture frames and save 
+them as YUV data in a file.
+
+My Technexion kernel is based on the TI linux kernel and they 
+(Technexion) probably backported some version of Media Controller into 
+that kernel. In order to build Laurents media-ctl application, I had to 
+rename all MEDIA_* constants in the source files (e.g. MEDIA_PAD_FL_SINK 
+into MEDIA_PAD_FLAG_INPUT).
+It's probably true, that this implementation is quite different from the 
+one in mainline or other kernels. That might also be the reason, why 
+media-ctl -p does not print pad formats.
+But as long as Technexion keep board support for themselves, I cannot 
+use another kernel. I already tried that with some mainline and 
+linux-omap versions(3.2, 3.4, 3.6). They don't boot, or if they actually 
+do, I don't see anything because network and tty is not available.
+
+Lastly, the TVP5146 indeed generates interlaced frames.
+
+All the best,
+Andreas
