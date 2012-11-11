@@ -1,199 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:40122 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752306Ab2KPOrn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Nov 2012 09:47:43 -0500
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Rob Landley <rob@landley.net>, <linux-doc@vger.kernel.org>
-Subject: [PATCH v2 12/12] davinci: vpfe: Add documentation
-Date: Fri, 16 Nov 2012 20:15:14 +0530
-Message-Id: <1353077114-19296-13-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1353077114-19296-1-git-send-email-prabhakar.lad@ti.com>
-References: <1353077114-19296-1-git-send-email-prabhakar.lad@ti.com>
+Received: from plane.gmane.org ([80.91.229.3]:56833 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752188Ab2KKEt6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Nov 2012 23:49:58 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1TXPUh-0001D9-Vy
+	for linux-media@vger.kernel.org; Sun, 11 Nov 2012 05:50:04 +0100
+Received: from 183.62.57.93 ([183.62.57.93])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sun, 11 Nov 2012 05:50:03 +0100
+Received: from yze007 by 183.62.57.93 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sun, 11 Nov 2012 05:50:03 +0100
+To: linux-media@vger.kernel.org
+From: Michael Yang <yze007@gmail.com>
+Subject: The em28xx driver error
+Date: Sun, 11 Nov 2012 04:46:40 +0000 (UTC)
+Message-ID: <loom.20121111T054512-795@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunath Hadli <manjunath.hadli@ti.com>
+Hi I am using a v4l2 usb video capturer (em28xx based) on the TI-DM3730 board
+I used the  default driver ,the video can't be captured. I solve this issue by 
+change the em28xx driver :
 
-Add documentation on the Davinci VPFE driver. Document the subdevs,
-and private IOTCLs the driver implements.
+linux-stable/drivers/media/video/em28xx/em28xx-core.c
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Cc: Rob Landley <rob@landley.net>
-Cc: <linux-doc@vger.kernel.org>
----
- Documentation/video4linux/davinci-vpfe-mc.txt |  154 +++++++++++++++++++++++++
- 1 files changed, 154 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/video4linux/davinci-vpfe-mc.txt
+/* FIXME: this only function read values from dev */
+int em28xx_resolution_set(struct em28xx *dev)
+{
+int width, height;
+width = norm_maxw(dev);
+height = norm_maxh(dev);
 
-diff --git a/Documentation/video4linux/davinci-vpfe-mc.txt b/Documentation/video4linux/davinci-vpfe-mc.txt
-new file mode 100644
-index 0000000..1dbd564
---- /dev/null
-+++ b/Documentation/video4linux/davinci-vpfe-mc.txt
-@@ -0,0 +1,154 @@
-+Davinci Video processing Front End (VPFE) driver
-+
-+Copyright (C) 2012 Texas Instruments Inc
-+
-+Contacts: Manjunath Hadli <manjunath.hadli@ti.com>
-+	  Prabhakar Lad <prabhakar.lad@ti.com>
-+
-+
-+Introduction
-+============
-+
-+This file documents the Texas Instruments Davinci Video processing Front End
-+(VPFE) driver located under drivers/media/platform/davinci. The original driver
-+exists for Davinci VPFE, which is now being changed to Media Controller
-+Framework.
-+
-+Currently the driver has been successfully used on the following
-+version of Davinci:
-+
-+	DM365/DM368
-+
-+The driver implements V4L2, Media controller and v4l2_subdev interfaces. Sensor,
-+lens and flash drivers using the v4l2_subdev interface in the kernel are
-+supported.
-+
-+
-+Split to subdevs
-+================
-+
-+The Davinci VPFE is split into V4L2 subdevs, each of the blocks inside the VPFE
-+having one subdev to represent it. Each of the subdevs provide a V4L2 subdev
-+interface to userspace.
-+
-+	DAVINCI ISIF
-+	DAVINCI IPIPEIF
-+	DAVINCI IPIPE
-+	DAVINCI CROP RESIZER
-+	DAVINCI RESIZER A
-+	DAVINCI RESIZER B
-+
-+Each possible link in the VPFE is modeled by a link in the Media controller
-+interface. For an example program see [1].
-+
-+
-+ISIF, IPIPE, and RESIZER block IOCTLs
-+======================================
-+
-+The Davinci Video processing Front End (VPFE) driver supports standard V4L2
-+IOCTLs and controls where possible and practical. Much of the functions provided
-+by the VPFE, however, does not fall under the standard IOCTL's.
-+
-+In general, there is a private ioctl for configuring each of the blocks
-+containing hardware-dependent functions.
-+
-+The following private IOCTLs are supported:
-+
-+	VIDIOC_VPFE_ISIF_[S/G]_RAW_PARAMS
-+	VIDIOC_VPFE_IPIPE_[S/G]_CONFIG
-+	VIDIOC_VPFE_RSZ_[S/G]_CONFIG
-+
-+The parameter structures used by these ioctl's are described in
-+include/uapi/linux/davinci_vpfe.h.
-+
-+The VIDIOC_VPFE_ISIF_S_RAW_PARAMS, VIDIOC_VPFE_IPIPE_S_CONFIG and
-+VIDIOC_VPFE_RSZ_S_CONFIG are used to configure, enable and disable functions in
-+the isif, ipipe and resizer blocks respectively. These IOCTL's control several
-+functions in the blocks they control. VIDIOC_VPFE_ISIF_S_RAW_PARAMS IOCTL
-+accepts a pointer to struct vpfe_isif_raw_config as its argument. Similarly
-+VIDIOC_VPFE_IPIPE_S_CONFIG accepts a pointer to struct vpfe_ipipe_config. And
-+VIDIOC_VPFE_RSZ_S_CONFIG accepts a pointer to struct vpfe_rsz_config as its
-+argument. Similarly VIDIOC_VPFE_ISIF_G_RAW_PARAMS, VIDIOC_VPFE_IPIPE_G_CONFIG
-+and VIDIOC_VPFE_RSZ_G_CONFIG are used to get the current configuration set in
-+the isif, ipipe and resizer blocks respectively.
-+
-+The detailed functions of the VPFE itself related to a given VPFE block is
-+described in the Technical Reference Manuals (TRMs) --- see the end of the
-+document for those.
-+
-+
-+IPIPEIF block IOCTLs
-+======================================
-+
-+The following private IOCTLs are supported:
-+
-+	VIDIOC_VPFE_IPIPEIF_[S/G]_CONFIG
-+
-+The parameter structures used by these ioctl's are described in
-+include/uapi/linux/dm365_ipipeif.h
-+
-+The VIDIOC_VPFE_IPIPEIF_S_CONFIG is used to configure the ipipeif
-+hardware block. The VIDIOC_VPFE_IPIPEIF_S_CONFIG and
-+VIDIOC_VPFE_IPIPEIF_G_CONFIG accepts a pointer to struct ipipeif_params
-+as its argument.
-+
-+
-+VPFE Operating Modes
-+==========================================
-+
-+a: Continuous Modes
-+------------------------
-+
-+1: tvp514x/tvp7002/mt9p031---> DAVINCI ISIF---> SDRAM
-+
-+2: tvp514x/tvp7002/mt9p031---> DAVINCI ISIF---> DAVINCI IPIPEIF--->|
-+                                                                   |
-+   <--------------------<----------------<---------------------<---|
-+   |
-+   V
-+ DAVINCI CROP RESIZER--->DAVINCI RESIZER [A/B]---> SDRAM
-+
-+3: tvp514x/tvp7002/mt9p031---> DAVINCI ISIF---> DAVINCI IPIPEIF--->|
-+                                                                   |
-+   <--------------------<----------------<---------------------<---|
-+   |
-+   V
-+ DAVINCI IPIPE---> DAVINCI CROP RESIZER--->DAVINCI RESIZER [A/B]---> SDRAM
-+
-+a: Single Shot Modes
-+------------------------
-+
-+1: SDRAM---> DAVINCI IPIPEIF---> DAVINCI IPIPE---> DAVINCI CROP RESIZER--->|
-+                                                                           |
-+   <----------------<----------------<------------------<---------------<--|
-+   |
-+   V
-+DAVINCI RESIZER [A/B]---> SDRAM
-+
-+2: SDRAM---> DAVINCI IPIPEIF---> DAVINCI CROP RESIZER--->|
-+                                                         |
-+   <----------------<----------------<---------------<---|
-+   |
-+   V
-+DAVINCI RESIZER [A/B]---> SDRAM
-+
-+
-+Technical reference manuals (TRMs) and other documentation
-+==========================================================
-+
-+Davinci DM365 TRM:
-+<URL:http://www.ti.com/lit/ds/sprs457e/sprs457e.pdf>
-+Referenced MARCH 2009-REVISED JUNE 2011
-+
-+Davinci DM368 TRM:
-+<URL:http://www.ti.com/lit/ds/sprs668c/sprs668c.pdf>
-+Referenced APRIL 2010-REVISED JUNE 2011
-+
-+Davinci Video Processing Front End (VPFE) DM36x
-+<URL:http://www.ti.com/lit/ug/sprufg8c/sprufg8c.pdf>
-+
-+
-+References
-+==========
-+
-+[1] http://git.ideasonboard.org/?p=media-ctl.git;a=summary
--- 
-1.7.4.1
+/* Properly setup VBI */
+dev->vbi_width = 720;
+if (dev->norm & V4L2_STD_525_60)
+dev->vbi_height = 12;
+else
+dev->vbi_height = 18;
+
+if (!dev->progressive)
+height >>= norm_maxh(dev) ;//change to" height = norm_maxh(dev) >> 1 ;"
+
+em28xx_set_outfmt(dev);
+
+
+
+Then I can capture the video.But  about 3 minutes later, the os throw out 
+errors:
+
+Read a frame, the size is:325 
+Read a frame, the size is:304 
+ehci-omap ehci-omap.0: request c15b1000 would overflow (3898+63 >= 3936)  //the 
+video shut up
+ehci-omap ehci-omap.0: request c15b0000 would overflow (3906+63 >= 3936) 
+ehci-omap ehci-omap.0: request c1558800 would overflow (3915+63 >= 3936) 
+ehci-omap ehci-omap.0: request c15b0800 would overflow (3924+63 >= 3936) 
+Read a frame, the size is:253 
+ehci-omap ehci-omap.0: request c143f800 would overflow (3909+63 >= 3936) 
+usb 1-2.2: kworker/0:2 timed out on ep0in len=0/1 
+usb 1-2.2: kworker/0:2 timed out on ep0in len=8/1 
+............
+usb 1-2.2: kworker/0:2 timed out on ep0in len=0/1 
+usb 1-2.2: kworker/0:2 timed out on ep0in len=8/1 
+^Cusb 1-2.2: test_h264 timed out on ep0in len=0/1 
+usb 1-2.2: kworker/0:2 timed out on ep0in len=0/1 
+^Cusb 1-2.2: kworker/0:2 timed out on ep0in len=0/1 
+^Cusb 1-2.2: kworker/0:2 timed out on ep0in len=0/1 
+
+usb 1-2.2: kworker/0:2 timed out on ep0in len=0/1 
+usb 1-2.2: kworker/0:2 timed out on ep0in len=0/1 
+
+usb 1-2.2: kworker/0:2 timed out on ep0in len=0/1 
+^C 
+usb 1-2.2: kworker/0:2 timed out on ep0in len=0/1 
+^Cusb 1-2.2: kworker/0:2 timed out on ep0in len=0/1 
+usb 1-2.2: test_h264 timed out on ep0out len=8/0 
+em28xx #0: cannot change alternate number to 0 (error=-110) 
+
+
+
+Then I try TI OMAP-3530 ,after change the em28xx-driver , the image can be 
+captured but throw the same error after about 3 minutes
+em28xx #0: cannot change alternate number to 0 (error=-110) 
+
+
+This driver source about this error is
+int em28xx_set_alternate(struct em28xx *dev)
+{
+int errCode, prev_alt = dev->alt;
+int i;
+unsigned int min_pkt_size = dev->width * 2 + 4;
+
+/*
+* alt = 0 is used only for control messages, so, only values
+* greater than 0 can be used for streaming.
+*/
+if (alt && alt < dev->num_alt) {
+em28xx_coredbg("alternate forced to %d\n", dev->alt);
+dev->alt = alt;
+goto set_alt;
+}
+
+/* When image size is bigger than a certain value,
+the frame size should be increased, otherwise, only
+green screen will be received.
+*/
+if (dev->width * 2 * dev->height > 720 * 240 * 2)
+min_pkt_size *= 2;
+
+for (i = 0; i < dev->num_alt; i++) {
+/* stop when the selected alt setting offers enough bandwidth */
+if (dev->alt_max_pkt_size[i] >= min_pkt_size) {
+dev->alt = i;
+break;
+/* otherwise make sure that we end up with the maximum bandwidth
+because the min_pkt_size equation might be wrong...
+*/
+} else if (dev->alt_max_pkt_size[i] >
+dev->alt_max_pkt_size[dev->alt])
+dev->alt = i;
+}
+
+set_alt:
+if (dev->alt != prev_alt) {
+em28xx_coredbg("minimum isoc packet size: %u (alt=%d)\n",
+min_pkt_size, dev->alt);
+dev->max_pkt_size = dev->alt_max_pkt_size[dev->alt];
+em28xx_coredbg("setting alternate %d with wMaxPacketSize=%u\n",
+dev->alt, dev->max_pkt_size);
+errCode = usb_set_interface(dev->udev, 0, dev->alt);
+if (errCode < 0) {
+em28xx_errdev("cannot change alternate number to %d (error=%i)\n",
+dev->alt, errCode);
+return errCode;
+}
+}
+return 0;
+}
+
+
+
+
+How can I solve this problem ? Or is there some other USBDVR can work well on 
+the TI DM3730?
 
