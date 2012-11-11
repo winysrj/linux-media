@@ -1,90 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 84-245-11-97.dsl.cambrium.nl ([84.245.11.97]:37227 "EHLO
-	grubby.stderr.nl" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753358Ab2KBNOe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2012 09:14:34 -0400
-From: Matthijs Kooijman <matthijs@stdin.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Stephan Raue <stephan@openelec.tv>,
-	Luis Henriques <luis.henriques@canonical.com>,
-	Matthijs Kooijman <matthijs@stdin.nl>,
-	Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH 2/3] [media] rc: Set rdev before irq setup
-Date: Fri,  2 Nov 2012 14:13:55 +0100
-Message-Id: <1351862036-20384-3-git-send-email-matthijs@stdin.nl>
-In-Reply-To: <1351862036-20384-1-git-send-email-matthijs@stdin.nl>
-References: <20121015110111.GD17159@login.drsnuggles.stderr.nl>
- <1351862036-20384-1-git-send-email-matthijs@stdin.nl>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:56213 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751496Ab2KKJZI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Nov 2012 04:25:08 -0500
+Received: by mail-qc0-f174.google.com with SMTP id o22so3309188qcr.19
+        for <linux-media@vger.kernel.org>; Sun, 11 Nov 2012 01:25:07 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20121102104734.04d708de@gaivota.chehab>
+References: <CAKQROYViF1PhLNquiPOQAxRs4jnwHXg-kK2PBG3irTtnXpDCwg@mail.gmail.com>
+	<000d01cdb886$d08f8ed0$71aeac70$@com>
+	<20121102104734.04d708de@gaivota.chehab>
+Date: Sun, 11 Nov 2012 09:25:07 +0000
+Message-ID: <CAKQROYW6VAppdPFXT1vR0hE+jwZyq9hors2aGkAEW5=dEU0m+A@mail.gmail.com>
+Subject: Re: Skeleton LinuxDVB framework
+From: Richard <tuxbox.guru@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixes a problem in fintek-cir and nuvoton-cir where the
-irq handler would trigger during module load before the rdev member was
-set, causing a NULL pointer crash.
+On 2 November 2012 12:47, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
 
-It seems this crash is very reproducible (just bombard the receiver with
-IR signals during module load), probably because when request_irq is
-called, any pending intterupt is handled immediately, before
-request_irq returns and rdev can be set.
+>
+> As DVB version 3 or below is outdated, and v4 was never finished/merged.
+>
+> The DVBv5 (currently, on version 5.8) is the one you should use:
+>
+>> http://linuxtv.org/downloads/v4l-dvb-apis/dvbapi.html
+>
+>> -----Original Message-----
+>> Subject: Skeleton LinuxDVB framework
+>>
+>> Hi all,
+>>
+>> As a newbie to the LinuxDVB Device drivers, I am wondering if there is a
+>> framework template to get a quick start in to DVB device drivers. I
+>> currently have a SOC chip and an manufacturers API that I would like to make
+>> in to a LinuxDVB compliant device. (Tuners/Demods/CA/MPEG output hardware
+>> etc)
+>
+> It is probably easier to get one driver of each type as an example and
+> change it to fill your needs.
+>
+>>
+>> Any information is greatly appreciated.
+>> Richard
 
-This same crash was supposed to be fixed by commit
-9ef449c6b31bb6a8e6dedc24de475a3b8c79be20 ("[media] rc: Postpone ISR
-registration"), but the crash was still observed on the nuvoton-cir
-driver.
+> Cheers,
+> Mauro
 
-This commit was tested on nuvoton-cir only.
+Hi Mauro (and others),
 
-Signed-off-by: Matthijs Kooijman <matthijs@stdin.nl>
-Cc: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/fintek-cir.c  |    4 +++-
- drivers/media/rc/nuvoton-cir.c |    3 ++-
- 2 files changed, 5 insertions(+), 2 deletions(-)
+The documentation shows userspace applications quite clearly, and they
+are very easy - its the device driver that I would like to understand
+and implement on a SoC. The 'Copy someone elses' idea will get me to
+an end, but I have to convince my team of engineers/architects that
+the LinuxDVB is the future; and currently I cannot find any
+documentation on the .fops, calling conventions, execution order (what
+is the dependency order of devices) and such.  I would like to promote
+the understanding of the driver, and not blindly hack someone else's
+creations. (Hacking code causes maintenance problems later on)
+I am currently using a proprietary API that was developed originally
+for NeucleusOS that works, and now would like to move to a Linux
+standard type system. (Moving from a Working API to an unknown API is
+a risk)
 
-diff --git a/drivers/media/rc/fintek-cir.c b/drivers/media/rc/fintek-cir.c
-index 3d5e57c..5eefe65 100644
---- a/drivers/media/rc/fintek-cir.c
-+++ b/drivers/media/rc/fintek-cir.c
-@@ -557,6 +557,8 @@ static int fintek_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id
- 	/* rx resolution is hardwired to 50us atm, 1, 25, 100 also possible */
- 	rdev->rx_resolution = US_TO_NS(CIR_SAMPLE_PERIOD);
- 
-+	fintek->rdev = rdev;
-+
- 	ret = -EBUSY;
- 	/* now claim resources */
- 	if (!request_region(fintek->cir_addr,
-@@ -572,7 +574,7 @@ static int fintek_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id
- 		goto exit_free_irq;
- 
- 	device_init_wakeup(&pdev->dev, true);
--	fintek->rdev = rdev;
-+
- 	fit_pr(KERN_NOTICE, "driver has been successfully loaded\n");
- 	if (debug)
- 		cir_dump_regs(fintek);
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index 3477e23..c6441e6 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -1065,6 +1065,7 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
- 	/* tx bits */
- 	rdev->tx_resolution = XYZ;
- #endif
-+	nvt->rdev = rdev;
- 
- 	ret = -EBUSY;
- 	/* now claim resources */
-@@ -1089,7 +1090,7 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
- 		goto exit_free_wake_irq;
- 
- 	device_init_wakeup(&pdev->dev, true);
--	nvt->rdev = rdev;
-+
- 	nvt_pr(KERN_NOTICE, "driver has been successfully loaded\n");
- 	if (debug) {
- 		cir_dump_regs(nvt);
--- 
-1.7.10
+Are there any architecture/API documentation on how the driver is
+implemented, even pseudo-code would be useful. (Call is 'The Anatomy
+of the DVB driver' if you will)
 
+Best Regards,
+Richard
