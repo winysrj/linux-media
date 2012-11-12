@@ -1,155 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:56472 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751034Ab2K2PuW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Nov 2012 10:50:22 -0500
-Subject: Re: ivtv driver inputs randomly "block"
-From: Andy Walls <awalls@md.metrocast.net>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: Brian Murrell <brian@interlinx.bc.ca>,
-	linux-media <linux-media@vger.kernel.org>
-Date: Thu, 29 Nov 2012 10:50:17 -0500
-In-Reply-To: <CALF0-+XStqJEiPaQjrBu74of9BYRJZS-9F6F7YzgE3LU6x+TVQ@mail.gmail.com>
-References: <k93vu3$ffi$1@ger.gmane.org>
-	 <CALF0-+VkANRj+by2n-=UsxZfJwk97ZkNS8R0C-Vt2oX7WN3R0A@mail.gmail.com>
-	 <50B60D54.4010302@interlinx.bc.ca>
-	 <CALF0-+UHOJDh471aa7URKr1-xbggrbDdg_nDijv2FOUpo=3zaw@mail.gmail.com>
-	 <50B69C08.7050401@interlinx.bc.ca>
-	 <CALF0-+X0yyQEw+jJCxuQO18gDagtyX-RZW_kurMPS69RQHNPMA@mail.gmail.com>
-	 <CALF0-+XStqJEiPaQjrBu74of9BYRJZS-9F6F7YzgE3LU6x+TVQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1354204218.2505.13.camel@palomino.walls.org>
+Received: from smtpbg65.qq.com ([103.7.28.233]:50716 "HELO smtpbg65.qq.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753079Ab2KLOEg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Nov 2012 09:04:36 -0500
+From: "=?utf-8?B?5YaN5Zue6aaW?=" <308123027@qq.com>
+To: "=?utf-8?B?R3Vlbm5hZGkgTGlha2hvdmV0c2tp?=" <g.liakhovetski@gmx.de>
+Cc: "=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>
+Subject: =?utf-8?B?5Zue5aSN77yaIOWbnuWkje+8miBzb2MgY2FtZXJh?=
+ =?utf-8?B?IGRyaXZlciBtb2R1bGUgbWF5IGNhc2UgbWVtb3J5?=
+ =?utf-8?B?IGxlYWs=?=
 Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+Date: Mon, 12 Nov 2012 22:03:39 +0800
+Message-ID: <tencent_2D6F278C70739E756E409D98@qq.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2012-11-29 at 12:29 -0300, Ezequiel Garcia wrote:
-> Hi Brian,
-> 
-> See my comments below.
-> 
-> On Wed, Nov 28, 2012 at 8:19 PM, Brian J. Murrell <brian@interlinx.bc.ca> wrote:
-> > On 12-11-28 08:13 AM, Ezequiel Garcia wrote:
-> >>
-> >> Try again with
-> >> modprobe ivtv ivtv_debug=10
-> >
-> > OK.  Happened again.  The kernel log for the whole day since starting
-> > the module with debug this morning can be found at
-> > http://brian.interlinx.bc.ca/ivtv-dmesg.txt.bz2.
-> >
-> > Associated with that log there was a successful recording from 09:00:00
-> > until 10:00:00 then another successful recording from 14:00:00 until
-> > 15:00:00 and then failed recordings starting at 15:00:00 until 18:00:00.
-> >
-> > The log cuts off just short of 18:00:00 but there's nothing different
-> > about the pattern from the end of the log until 18:00:04 from the
-> > previous 3 hours or so.
-> >
-> > It seems that the problem lies in amongst the start of these lines from
-> > the log, as my best guess:
-> >
-> > Nov 28 15:00:05 cmurrell kernel: [868297.536049] ivtv0 encoder MPG: VIDIOC_ENCODER_CMD cmd=0, flags=0
-> > Nov 28 15:00:07 cmurrell kernel: [868300.039324] ivtv0:  ioctl: V4L2_ENC_CMD_STOP
-> > Nov 28 15:00:07 cmurrell kernel: [868300.039330] ivtv0:  info: close stopping capture
-> > Nov 28 15:00:07 cmurrell kernel: [868300.039334] ivtv0:  info: Stop Capture
-> > Nov 28 15:00:09 cmurrell kernel: [868302.140151] ivtv0 encoder MPG: VIDIOC_ENCODER_CMD cmd=1, flags=1
-> > Nov 28 15:00:09 cmurrell kernel: [868302.148093] ivtv0:  ioctl: V4L2_ENC_CMD_START
-> > Nov 28 15:00:09 cmurrell kernel: [868302.148101] ivtv0:  info: Start encoder stream encoder MPG
-> > Nov 28 15:00:09 cmurrell kernel: [868302.188580] ivtv0:  info: Setup VBI API header 0x0000bd03 pkts 1 buffs 4 ln 24 sz 1456
-> > Nov 28 15:00:09 cmurrell kernel: [868302.188655] ivtv0:  info: Setup VBI start 0x002fea04 frames 4 fpi 1
-> > Nov 28 15:00:09 cmurrell kernel: [868302.191952] ivtv0:  info: PGM Index at 0x00180150 with 400 elements
-> > Nov 28 15:00:10 cmurrell kernel: [868302.544052] ivtv0 encoder MPG: VIDIOC_ENCODER_CMD cmd=0, flags=0
-> > Nov 28 15:00:12 cmurrell kernel: [868305.047260] ivtv0:  ioctl: V4L2_ENC_CMD_STOP
-> > Nov 28 15:00:12 cmurrell kernel: [868305.047265] ivtv0:  info: close stopping capture
-> > Nov 28 15:00:12 cmurrell kernel: [868305.047270] ivtv0:  info: Stop Capture
-> > ...
-> >
-> > FWIW, the recording software here is MythTV completely up to date on the
-> > 0.25-fixes branch.
-> >
-> > Thoughts?
-> >
-> 
-> Mmm, the log shows this repeating pattern:
-> 
-> ---
-> Nov 28 17:54:46 cmurrell kernel: [878779.229702] ivtv0:  info: Setup
-> VBI start 0x002fea04 frames 4 fpi 1
-> Nov 28 17:54:46 cmurrell kernel: [878779.233129] ivtv0:  info: PGM
-> Index at 0x00180150 with 400 elements
-> Nov 28 17:54:47 cmurrell kernel: [878779.556039] ivtv0 encoder MPG:
-> VIDIOC_ENCODER_CMD cmd=0, flags=0
-> Nov 28 17:54:49 cmurrell kernel: [878782.059204] ivtv0:  ioctl:
-> V4L2_ENC_CMD_STOP
-> Nov 28 17:54:49 cmurrell kernel: [878782.059209] ivtv0:  info: close
-> stopping capture
-> Nov 28 17:54:49 cmurrell kernel: [878782.059214] ivtv0:  info: Stop Capture
-> Nov 28 17:54:51 cmurrell kernel: [878784.156135] ivtv0 encoder MPG:
-> VIDIOC_ENCODER_CMD cmd=1, flags=1
-> Nov 28 17:54:51 cmurrell kernel: [878784.166157] ivtv0:  ioctl:
-> V4L2_ENC_CMD_START
-> Nov 28 17:54:51 cmurrell kernel: [878784.166165] ivtv0:  info: Start
-> encoder stream encoder MPG
-> ---
-> 
-> And from 15:00 to 18:00 recording fails?
-> 
-> Perhaps it would make sense to restart application upon driver failure,
-> now that output is more verbose.
-
-Hi Ezequiel,
-
-Nope.  IIRC, that's just MythTV timing-out, closing the device node, and
-reopening the device node, in attempt to make things work again.
-
-Hi Brian,
-I haven't checked the log you provided yet, but you'll likely need to
-set the module debug flags a little more verbose.
-
-/sbin/modinfo ivtv | less
-[...]
-parm:           debug:Debug level (bitmask). Default: 0
-			   1/0x0001: warning
-			   2/0x0002: info
-			   4/0x0004: mailbox
-			   8/0x0008: ioctl
-			  16/0x0010: file
-			  32/0x0020: dma
-			  64/0x0040: irq
-			 128/0x0080: decoder
-			 256/0x0100: yuv
-			 512/0x0200: i2c
-			1024/0x0400: high volume
-[..]
-
-So maybe as root
-
-# echo 0x07f > /sys/module/ivtv/parameters/debug
-
-until the problem appears.  Then once you experience the problem change
-it to high volume
-
-# echo 0x47f > /sys/module/ivtv/parameters/debug
-
-You may want to also get a baseline of what a good capture looks like
-using high volume debugging.  Be aware that high volume debugging will
-fill up your logs and degrade performance a little, so you don't want to
-normally use high volume debugging.
-
-
-> Regards,
-> 
->     Ezequiel
-> 
-> PS: Please don't drop linux-media list from Cc
-
-+1
-
-The ideas or interest of one individual often spurs that of others.
-
-Regards,
-Andy
+REVBUiBHdWVubmFkaSwNCg0KVGhhbmtzIGZvciB5b3VyIHJlcGx5Lg0KICAgICAgICAgICAg
+ICBTT0MtQ2FtZXJhIGRyaXZlciBtb2R1bGUgaXMgYSBncmVhdCBjb21wb25lbnQgYmFzZWQg
+b24gVjRMMi4NCkl0J3MgdmVyeSBlYXN5IHRvIHVzZS5JIGNhbiB3cml0ZSBJU1AgZHJpdmVy
+IGFuZCBzZW5zb3IgZHJpdmVyIHNlcGFyYXRlbHkgZm9yIA0Kb3VyIGNvbXBhbnkncyBjaGlw
+IHdoaWNoIGlzIGluIHJlc2VhY2guSSBhbSBsb29raW5nIGZvcndhcmQgdG8geW91ciBiZXN0
+IA0KcmVzb2x1dGlvbi4gDQoNCnJvYmluLmxpDQoNCi0tLS0tLS0tLS0tLS0tLS0tLSDljp/l
+p4vpgq7ku7YgLS0tLS0tLS0tLS0tLS0tLS0tDQrlj5Hku7bkuro6ICJHdWVubmFkaSBMaWFr
+aG92ZXRza2kiPGcubGlha2hvdmV0c2tpQGdteC5kZT47DQrlj5HpgIHml7bpl7Q6IDIwMTLl
+ubQxMeaciDnml6Uo5pif5pyf5LqUKSDmmZrkuIoxMDowMQ0K5pS25Lu25Lq6OiAi5YaN5Zue
+6aaWIjwzMDgxMjMwMjdAcXEuY29tPjsgDQrmioTpgIE6ICJsaW51eC1tZWRpYSI8bGludXgt
+bWVkaWFAdmdlci5rZXJuZWwub3JnPjsgDQrkuLvpopg6IFJlOiDlm57lpI3vvJogc29jIGNh
+bWVyYSBkcml2ZXIgbW9kdWxlIG1heSBjYXNlIG1lbW9yeSBsZWFrDQoNCg0KSGkNCg0KV2Vs
+bCwgSSBtdXN0IGNvbmZlc3MsIEknbSBzdXJwcmlzZWQ6LSkgSXQgbG9va3MgbGlrZSB5b3Un
+cmUgcmlnaHQuIFRoaXMgDQpsZWFrLCBpZiBpbmRlZWQgdGhlcmUgaXMgb25lLCBoYXMgYmVl
+biB0aGVyZSBzaW5jZSB0aGUgdmVyeSBmaXJzdCB2ZXJzaW9uIA0Kb2Ygc29jLWNhbWVyYS4g
+SSd2ZSBzcGVudCBzb21lIHRpbWUgbG9va2luZyBhdCB0aGUgY29kZSBhbmQgc28gZmFyIEkg
+ZG9uJ3QgDQpmaW5kIGFuIGV4cGxhbmF0aW9uIGZvciB0aGUgbWlzc2luZyB2aWRlb2J1Zl9t
+bWFwX2ZyZWUoKSBjYWxsLiBJJ2xsIGhhdmUgDQphbm90aGVyIGxvb2sgYW5kLCB1bmxlc3Mg
+SSBmaW5kIGFuIGV4cGxhbmF0aW9uLCB3aHkgaXQncyBub3QgbmVlZGVkLCBJJ2xsIA0KbWFr
+ZSBhIHBhdGNoLg0KDQpBbHNvIGtlZXAgaW4gbWluZCwgdGhhdCB0aGlzIGJ1ZyBpcyBvbmx5
+IHJlbGV2YW50IGZvciB2aWRlb2J1ZigxKSBkcml2ZXJzLCANCndoaWNoIGFueXdheSBoYXZl
+IHRvIGJlIGNvbnZlcnRlZCB0byB2aWRlb2J1ZjI7LSkNCg0KVGhhbmtzDQpHdWVubmFkaQ0K
+DQpPbiBXZWQsIDcgTm92IDIwMTIsICB+Rn5NIH5bfl4gflYgd3JvdGU6DQoNCj4gRGVhciBH
+dWVubmFkaQ0KPiANCj4gSSdtIHN1cmUgaXQncyBhIGJ1Zy5JbiBsaW51eC0yLjYueCwgd2Ug
+Y2FsbCBvcGVuKCkgd2lsbCBhbGxvY2F0ZSBhIHN0cnVjdCBzb2NfY2FtZXJhX2ZpbGUgd2hp
+Y2ggY29udGFpbnMgc3RydWN0IHZpZGVvYnVmX3F1ZXVlO3RoZW4gdXNyIHdpbGwgY2FsbCBy
+ZXF1ZXN0X2J1ZmZlciwgc29jX2NhbWVyYSBtb2R1bGUgd2lsbCBjYWxsIHZpZGVvYnVmX2Fs
+bG9jX3ZiKHEpIHdoaWNoIHdpbGwgYmUgaW5zdGFsbGVkIGluIHEtPmJ1ZnNbaV0uDQo+ICAg
+ICAgICAgICAgICBNeSBxdWVzdGlvbiBpcyBob3cgdG8gZnJlZSBxLT5idWZzW2ldIHdoaWNo
+IGlzIGFsbG9jYXRlZCBmcm9tIHZiID0ga3phbGxvYyhzaXplICsgc2l6ZW9mKCptZW0pLCBH
+RlBfS0VSTkVMKSBpZiB3ZSB1c2UgdmlkZW9idWYtZG1hLWNvbnRpZyBtZW1vcnkgbW9kZWw/
+IA0KPiAgICAgICAgICAgICAgdmlkZW9idWZfbW1hcF9mcmVlKCktPmtmcmVlKHEtPmJ1ZnNb
+aV0pIHNob3VsZCBjYWxsIGF0IGV2ZXJ5IGNhbGwgY2xvc2UoKTt3ZSBjYW4ndCBjYWxsIGtm
+cmVlKHEtPmJ1ZnNbaV0pIGF0IHEtPm9wcy0+YnVmX3JlbGVhc2Ugd2hpY2ggaXMgY2FsbGVk
+IGluIHN0cmVhbV9vZmYoKSwgYmVjYXVzZSBxLT5idWZzW2ldIHJlc2VydmUgc3RydWN0IHZp
+ZGVvYnVmX21hcHBpbmcsIHVubWFwKCkgd2lsbCBjYW4ndCBmcmVlIHZpZGVvYnVmIHdoaWNo
+IGlzIHVzZWQgdG8gc3RvcmUgdmlkZW8gZGF0YS4gQWxzbyBjYW4ndCBjYWxsIHZpZGVvYnVm
+X21tYXBfZnJlZSgpLT5rZnJlZShxLT5idWZzW2ldKSBhdCBsYXN0IGNsb3NlKCksIGJlY2F1
+c2UgaW4gbGludXgtMi42Lnggb25jZSBvcGVuKCkgYWxsb2NhdGVzIGEgdmlkZW9idWZfcXVl
+dWUuDQo+ICAgICAgICAgICAgICAgIEluIGxpbnV4LTMueC54LCB3ZSBzaG91bGQgY2FsbCB2
+aWRlb2J1Zl9tbWFwX2ZyZWUoKS0+a2ZyZWUocS0+YnVmc1tpXSkgb25seSBvbmNlIGF0IG1v
+ZHVsZSByZW1vdmUgY2FsbGJjYWsgZnVuY3Rpb24uDQo+ICAgICAgICAgICAgICAgWW91IHNh
+eSwgdmlkZW9idWYgbW1hcCBhbGxvY2F0aW9ucyB3aWxsIGJlIGZyZWVkIGF1dG9tYXRpY2Fs
+bHkuIEkgd2FudCB0byBrbm93biBzb2NfY2FtZXJhIG1vZHVsZSBob3cgdG8gZnJlZSBxLT5i
+dWZzW2ldIGF1dG9tYXRpY2FsbHkuIA0KPiAgICAgICAgICAgICAgIElmIGlzIHRoZXJlIG5v
+IGJ1ZyBpbiBzb2MgY2FtZXJhIG1vZHVsZSAsIGknbSBzdXJlIGFsbCBkZXZpY2UgZHJpdmVy
+IHVzZSBzb2MgY2FtZXJhIG1vZHVsZSBoYXZlIGJ1Z3MsIHN1Y2ggYXMgc2hfbW9iaWxlX2Nl
+dV9jYWVyYS5jLCBteDFfY2FlcmEuYywgbXgzX2NhZXJhLmMgZXRjLiBhbGwgb2YgdGhlbSBk
+b25uJ3QgY2FsbCB2aWRlb2J1Zl9tbWFwX2ZyZWUoKS0+a2ZyZWUocS0+YnVmc1tpXSkuDQo+
+IA0KPiBZb3VyIHJlcGx5IHdpbGwgYmUgaGlnbHkgYXBwcmVjaWF0ZWQhIA0KPiANCj4gDQo+
+IC0tLS0tLS0tLS0tLS0tLS0tLSDljp/lp4vpgq7ku7YgLS0tLS0tLS0tLS0tLS0tLS0tDQo+
+IOWPkeS7tuS6ujogIkd1ZW5uYWRpIExpYWtob3ZldHNraSI8Zy5saWFraG92ZXRza2lAZ214
+LmRlPjsNCj4g5Y+R6YCB5pe26Ze0OiAyMDEy5bm0MTHmnIg25pelKOaYn+acn+S6jCkg5pma
+5LiKNzozMA0KPiDmlLbku7bkuro6ICLlho3lm57pppYiPDMwODEyMzAyN0BxcS5jb20+OyAN
+Cj4g5oqE6YCBOiAibGludXgtbWVkaWEiPGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZz47
+IA0KPiDkuLvpopg6IFJlOiBzb2MgY2FtZXJhIGRyaXZlciBtb2R1bGUgbWF5IGNhc2UgbWVt
+b3J5IGxlYWsNCj4gDQo+IA0KPiBIaQ0KPiANCj4gT24gTW9uLCA1IE5vdiAyMDEyLCAgfkZ+
+TSB+W35eIH5WIHdyb3RlOg0KPiANCj4gPiBEZWFyIHNpcjoNCj4gPiB3aHkgbm90IGNhbGwg
+InZpZGVvYnVmX21tYXBfZnJlZSIsd2hlbiBkZXZpY2UgY2xvc2UgY2FsbCAic29jX2NhbWVy
+YV9jbG9zZSIgaW4gbGludXgtMi42Lng7DQo+IA0KPiBJIGhhdmVuJ3QgZm91bmQgYW55IHZl
+cnNpb24sIHdoZXJlIHRoaXMgaGFzIGJlZW4gZG9uZS4gSSBkb24ndCB0aGluayB0aGlzIA0K
+PiBpcyBuZWVkZWQsIGJlY2F1c2UgdmlkZW9idWYgbW1hcCBhbGxvY2F0aW9ucyB3aWxsIGJl
+IGZyZWVkIGF1dG9tYXRpY2FsbHkgDQo+IHVwb24gdGhlIGxhc3QgY2xvc2UoKS4gUGxlYXNl
+LCBkaXNtaXNzIHlvdXIgYnVnemlsbGEgZW50cnkuDQo+IA0KPiBUaGFua3MNCj4gR3Vlbm5h
+ZGkNCj4gDQo+ID4gZG8gdGhlIHNhbWUgaW4gbGludXgtMy54Lng/DQo+ID4gdmlkZW8gY2Fw
+dHVyZSBmbG93Og0KPiA+IDEpb3Blbg0KPiA+IDIpc2V0IGZtdA0KPiA+IDMpcmVxdWVzdCBi
+dWZmZXItLT5fX3ZpZGVvYnVmX21tYXBfc2V0dXAtLT52aWRlb2J1Zl9hbGxvY192YihxKQ0K
+PiA+IDQpbW1hcA0KPiA+IDUpZW5xdWV1ZSwgZGVxdWV1ZQ0KPiA+IDYpdW5tYXANCj4gPiA3
+KWNsb3NlLS0tPnNvY19jYW1lcmFfY2xvc2UtLT4/c2hvdWxkIGNhbGw6dmlkZW9idWZfbW1h
+cF9mcmVlDQo+ID4gTk9URToNCj4gPiBJIGhhdmUgcmV2aWV3ZWQgYWxsIHRoZSBjb2RlLCBm
+b3VuZDpzb2NfY2FtZXJhX2RyaXZlciBkZXZpY2UgZHJpdmVyIGNvZGVycyBoYXMgbm8gd2F5
+KGNhbGxiYWNrIGZ1bmN0aW9uKSB0byBjYWxsIHZpZGVvYnVmX21tYXBfZnJlZTsgaXQgd2ls
+bCBjYXNlIG1lbW9yeSBsZWFrLk4gciB5IGIgWCDHp3YgXiAp3rp7Lm4gKyB7IGJqKSB3Kmpn
+IN2iai8geiDeliAyIN6ZICYgKd+hIGEgRyBoIGo6K3YgdyDZpQ0KPiANCj4gLS0tDQo+IEd1
+ZW5uYWRpIExpYWtob3ZldHNraSwgUGguRC4NCj4gRnJlZWxhbmNlIE9wZW4tU291cmNlIFNv
+ZnR3YXJlIERldmVsb3Blcg0KPiBodHRwOi8vd3d3Lm9wZW4tdGVjaG5vbG9neS5kZS8NCg0K
+LS0tDQpHdWVubmFkaSBMaWFraG92ZXRza2ksIFBoLkQuDQpGcmVlbGFuY2UgT3Blbi1Tb3Vy
+Y2UgU29mdHdhcmUgRGV2ZWxvcGVyDQpodHRwOi8vd3d3Lm9wZW4tdGVjaG5vbG9neS5kZS8=
 
