@@ -1,44 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:61242 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753502Ab2KNSWm (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:44299 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754885Ab2K0XM1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Nov 2012 13:22:42 -0500
-Received: by mail-wi0-f178.google.com with SMTP id hm14so449723wib.1
-        for <linux-media@vger.kernel.org>; Wed, 14 Nov 2012 10:22:41 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20121031095702.41649bf9@infradead.org>
-References: <1351598606-8485-1-git-send-email-fabio.estevam@freescale.com>
-	<1351598606-8485-2-git-send-email-fabio.estevam@freescale.com>
-	<20121031095702.41649bf9@infradead.org>
-Date: Wed, 14 Nov 2012 16:22:40 -0200
-Message-ID: <CAOMZO5BFZHWzsKF0mr2h0SRGxEdbz3J+fDEiOqY1BmfGCiCE9A@mail.gmail.com>
-Subject: Re: [PATCH v4 2/2] mx2_camera: Fix regression caused by clock conversion
-From: Fabio Estevam <festevam@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Fabio Estevam <fabio.estevam@freescale.com>, g.liakhovetski@gmx.de,
-	kernel@pengutronix.de, gcembed@gmail.com,
-	javier.martin@vista-silicon.com, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Content-Type: text/plain; charset=UTF-8
+	Tue, 27 Nov 2012 18:12:27 -0500
+Received: by mail-la0-f46.google.com with SMTP id p5so7237938lag.19
+        for <linux-media@vger.kernel.org>; Tue, 27 Nov 2012 15:12:26 -0800 (PST)
+Message-ID: <1352703423.5567.20.camel@linux>
+Subject: [patch 02/03 v2] usb hid quirks for Masterkit MA901 usb radio
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Mon, 12 Nov 2012 07:57:03 +0100
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sascha,
+Don't let Masterkit MA901 USB radio be handled by usb hid drivers.
 
-On Wed, Oct 31, 2012 at 9:57 AM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
+This device will be handled by radio-ma901.c driver.
 
-> As it seems that those patches depend on some patches at the arm tree,
-> the better is to merge them via -arm tree.
->
-> So,
->
-> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
-Could you please apply this series via your tree?
 
-Thanks,
+diff --git a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c
+index 5de3bb3..8e06569 100644
+--- a/drivers/hid/hid-core.c
++++ b/drivers/hid/hid-core.c
+@@ -2025,6 +2025,7 @@ static const struct hid_device_id hid_ignore_list[] = {
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_LD, USB_DEVICE_ID_LD_HYBRID) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_LD, USB_DEVICE_ID_LD_HEATCONTROL) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_MADCATZ, USB_DEVICE_ID_MADCATZ_BEATPAD) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_MASTERKIT, USB_DEVICE_ID_MASTERKIT_MA901RADIO) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_MCC, USB_DEVICE_ID_MCC_PMD1024LS) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_MCC, USB_DEVICE_ID_MCC_PMD1208LS) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_MICROCHIP, USB_DEVICE_ID_PICKIT1) },
+diff --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h
+index 1dcb76f..17aa4f6 100644
+--- a/drivers/hid/hid-ids.h
++++ b/drivers/hid/hid-ids.h
+@@ -533,6 +533,9 @@
+ #define USB_VENDOR_ID_MADCATZ		0x0738
+ #define USB_DEVICE_ID_MADCATZ_BEATPAD	0x4540
+ 
++#define USB_VENDOR_ID_MASTERKIT			0x16c0
++#define USB_DEVICE_ID_MASTERKIT_MA901RADIO	0x05df
++
+ #define USB_VENDOR_ID_MCC		0x09db
+ #define USB_DEVICE_ID_MCC_PMD1024LS	0x0076
+ #define USB_DEVICE_ID_MCC_PMD1208LS	0x007a
 
-Fabio Estevam
+
