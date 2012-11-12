@@ -1,44 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36742 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756614Ab2KHUSw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 Nov 2012 15:18:52 -0500
-Message-ID: <509C138F.1000402@iki.fi>
-Date: Thu, 08 Nov 2012 22:18:23 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: it913x driver with USB1.1
-References: <509AF219.6030907@iki.fi> <1352396904.3036.0.camel@Route3278>
-In-Reply-To: <1352396904.3036.0.camel@Route3278>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33148 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753726Ab2KLPiJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Nov 2012 10:38:09 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: [PATCH v8 1/6] video: add display_timing and videomode
+Date: Mon, 12 Nov 2012 16:37:01 +0100
+Message-Id: <1352734626-27412-2-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/08/2012 07:48 PM, Malcolm Priestley wrote:
->
-> On 07/11/12 23:43, Antti Palosaari wrote:
->> Malcolm,
->> Have you newer tested it with USB1.1 port? Stream is totally broken.
->>
-> Hi Antti
->
-> Hmm, yes it is a bit choppy on dvb-usb-v2.
->
-> I will have a look at it.
+Add display_timing structure and the according helper functions. This allows
+the description of a display via its supported timing parameters.
 
-Fedora's stock 3.6.5-1.fc17.x86_64 is even more worse - no picture at 
-all when using vlc. Clearly visible difference is pid filter count. 
-dvb-usb says 5 filters whilst dvb-usb-v2 says 32 pid filters.
+Every timing parameter can be specified as a single value or a range
+<min typ max>.
 
-dvb_usb_v2: will use the device's hardware PID filter (table count: 32)
-dvb-usb: will use the device's hardware PID filter (table count: 5).
+Also, add helper functions to convert from display timings to a generic videomode
+structure. This videomode can then be converted to the corresponding subsystem
+mode representation (e.g. fb_videomode).
 
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+---
+ drivers/video/Kconfig          |    6 ++++
+ drivers/video/Makefile         |    2 ++
+ drivers/video/display_timing.c |   22 +++++++++++++
+ drivers/video/videomode.c      |   45 ++++++++++++++++++++++++++
+ include/linux/display_timing.h |   69 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/videomode.h      |   39 +++++++++++++++++++++++
+ 6 files changed, 183 insertions(+)
+ create mode 100644 drivers/video/display_timing.c
+ create mode 100644 drivers/video/videomode.c
+ create mode 100644 include/linux/display_timing.h
+ create mode 100644 include/linux/videomode.h
 
-regards
-Antti
-
+diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+index d08d799..2a23b18 100644
+--- a/drivers/video/Kconfig
++++ b/drivers/video/Kconfig
+@@ -33,6 +33,12 @@ config VIDEO_OUTPUT_CONTROL
+ 	  This framework adds support for low-level control of the video 
+ 	  output switch.
+ 
++config DISPLAY_TIMING
++       bool
++
++config VIDEOMODE
++       bool
++
+ menuconfig FB
+ 	tristate "Support for frame buffer devices"
+ 	---help---
+diff --git a/drivers/video/Makefile b/drivers/video/Makefile
+index 23e948e..fc30439 100644
+--- a/drivers/video/Makefile
++++ b/drivers/video/Makefile
+@@ -167,3 +167,5 @@ obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
+ 
+ #video output switch sysfs driver
+ obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
++obj-$(CONFIG_DISPLAY_TIMING) += display_timing.o
++obj-$(CONFIG_VIDEOMODE) += videomode.o
+diff --git a/drivers/video/display_timing.c b/drivers/video/display_timing.c
+new file mode 100644
+index 0000000..04b7b69
+--- /dev/null
++++ b/drivers/video/display_timing.c
+@@ -0,0 +1,22 @@
++/*
++ * generic display timing functions
++ *
++ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
++ *
++ * This file is released under the GPLv2
++ */
++
++#include <linux/display_timing.h>
++#include <linux/slab.h>
++
++void display_timings_release(struct display_timings *disp)
++{
++	if (disp->timings) {
++		unsigned int i;
++
++		for (i = 0; i < disp->num_timings; i++)
++			kfree(disp->timings[i]);
++		kfree(disp->timings);
++	}
++	kfree(disp);
++}
+diff --git a/drivers/video/videomode.c b/drivers/video/videomode.c
+new file mode 100644
+index 0000000..087374a
+--- /dev/null
++++ b/drivers/video/videomode.c
+@@ -0,0 +1,45 @@
++/*
++ * generic display timing functions
++ *
++ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
++ *
++ * This file is released under the GPLv2
++ */
++
++#include <linux/export.h>
++#include <linux/errno.h>
++#include <linux/display_timing.h>
++#include <linux/kernel.h>
++#include <linux/videomode.h>
++
++int videomode_from_timing(struct display_timings *disp, struct videomode *vm,
++			  unsigned int index)
++{
++	struct display_timing *dt;
++
++	dt = display_timings_get(disp, index);
++	if (!dt)
++		return -EINVAL;
++
++	vm->pixelclock = display_timing_get_value(&dt->pixelclock, 0);
++	vm->hactive = display_timing_get_value(&dt->hactive, 0);
++	vm->hfront_porch = display_timing_get_value(&dt->hfront_porch, 0);
++	vm->hback_porch = display_timing_get_value(&dt->hback_porch, 0);
++	vm->hsync_len = display_timing_get_value(&dt->hsync_len, 0);
++
++	vm->vactive = display_timing_get_value(&dt->vactive, 0);
++	vm->vfront_porch = display_timing_get_value(&dt->vfront_porch, 0);
++	vm->vback_porch = display_timing_get_value(&dt->vback_porch, 0);
++	vm->vsync_len = display_timing_get_value(&dt->vsync_len, 0);
++
++	vm->vah = dt->vsync_pol_active;
++	vm->hah = dt->hsync_pol_active;
++	vm->de = dt->de_pol_active;
++	vm->pixelclk_pol = dt->pixelclk_pol;
++
++	vm->interlaced = dt->interlaced;
++	vm->doublescan = dt->doublescan;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(videomode_from_timing);
+diff --git a/include/linux/display_timing.h b/include/linux/display_timing.h
+new file mode 100644
+index 0000000..0ed2a1e
+--- /dev/null
++++ b/include/linux/display_timing.h
+@@ -0,0 +1,69 @@
++/*
++ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
++ *
++ * description of display timings
++ *
++ * This file is released under the GPLv2
++ */
++
++#ifndef __LINUX_DISPLAY_TIMINGS_H
++#define __LINUX_DISPLAY_TIMINGS_H
++
++#include <linux/types.h>
++
++struct timing_entry {
++	u32 min;
++	u32 typ;
++	u32 max;
++};
++
++struct display_timing {
++	struct timing_entry pixelclock;
++
++	struct timing_entry hactive;
++	struct timing_entry hfront_porch;
++	struct timing_entry hback_porch;
++	struct timing_entry hsync_len;
++
++	struct timing_entry vactive;
++	struct timing_entry vfront_porch;
++	struct timing_entry vback_porch;
++	struct timing_entry vsync_len;
++
++	unsigned int vsync_pol_active;
++	unsigned int hsync_pol_active;
++	unsigned int de_pol_active;
++	unsigned int pixelclk_pol;
++	bool interlaced;
++	bool doublescan;
++};
++
++struct display_timings {
++	unsigned int num_timings;
++	unsigned int native_mode;
++
++	struct display_timing **timings;
++};
++
++/* placeholder function until ranges are really needed 
++ * the index parameter should then be used to select one of [min typ max]
++ */
++static inline u32 display_timing_get_value(struct timing_entry *te,
++					   unsigned int index)
++{
++	return te->typ;
++}
++
++static inline struct display_timing *display_timings_get(struct display_timings *disp,
++							 unsigned int index)
++{
++	if (disp->num_timings > index)
++		return disp->timings[index];
++	else
++		return NULL;
++}
++
++void timings_release(struct display_timings *disp);
++void display_timings_release(struct display_timings *disp);
++
++#endif
+diff --git a/include/linux/videomode.h b/include/linux/videomode.h
+new file mode 100644
+index 0000000..0b87fbb
+--- /dev/null
++++ b/include/linux/videomode.h
+@@ -0,0 +1,39 @@
++/*
++ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
++ *
++ * generic videomode description
++ *
++ * This file is released under the GPLv2
++ */
++
++#ifndef __LINUX_VIDEOMODE_H
++#define __LINUX_VIDEOMODE_H
++
++#include <linux/display_timing.h>
++
++struct videomode {
++	u32 pixelclock;
++	u32 refreshrate;
++
++	u32 hactive;
++	u32 hfront_porch;
++	u32 hback_porch;
++	u32 hsync_len;
++
++	u32 vactive;
++	u32 vfront_porch;
++	u32 vback_porch;
++	u32 vsync_len;
++
++	u32 hah;
++	u32 vah;
++	u32 de;
++	u32 pixelclk_pol;
++
++	bool interlaced;
++	bool doublescan;
++};
++
++int videomode_from_timing(struct display_timings *disp, struct videomode *vm,
++			  unsigned int index);
++#endif
 -- 
-http://palosaari.fi/
+1.7.10.4
+
