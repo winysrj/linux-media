@@ -1,86 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:37311 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756999Ab2KHVfv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 16:35:51 -0500
-Message-ID: <509C25B3.5060509@gmail.com>
-Date: Thu, 08 Nov 2012 15:35:47 -0600
-From: Rob Herring <robherring2@gmail.com>
-MIME-Version: 1.0
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-CC: devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33193 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753753Ab2KLPiX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Nov 2012 10:38:23 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
 	dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
 	linux-media@vger.kernel.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: Re: [PATCH v7 0/8] of: add display helper
-References: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: [PATCH v8 4/6] fbmon: add of_videomode helpers
+Date: Mon, 12 Nov 2012 16:37:04 +0100
+Message-Id: <1352734626-27412-5-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/31/2012 04:28 AM, Steffen Trumtrar wrote:
-> Hi!
-> 
-> Finally, v7 of the series.
-> 
-> Changes since v6:
-> 	- get rid of some empty lines etc.
-> 	- move functions to their subsystems
-> 	- split of_ from non-of_ functions
-> 	- add at least some kerneldoc to some functions
-> 
-> Regards,
-> Steffen
-> 
-> 
-> Steffen Trumtrar (8):
->   video: add display_timing struct and helpers
->   of: add helper to parse display timings
->   of: add generic videomode description
->   video: add videomode helpers
->   fbmon: add videomode helpers
->   fbmon: add of_videomode helpers
->   drm_modes: add videomode helpers
->   drm_modes: add of_videomode helpers
-> 
->  .../devicetree/bindings/video/display-timings.txt  |  139 +++++++++++++++
->  drivers/gpu/drm/drm_modes.c                        |   78 +++++++++
->  drivers/of/Kconfig                                 |   12 ++
->  drivers/of/Makefile                                |    2 +
->  drivers/of/of_display_timings.c                    |  185 ++++++++++++++++++++
->  drivers/of/of_videomode.c                          |   47 +++++
+Add helper to get fb_videomode from devicetree.
 
-Not sure why you moved this, but please move this back to drivers/video.
-We're trying to move subsystem specific pieces out of drivers/of.
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+---
+ drivers/video/fbmon.c |   40 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/fb.h    |    3 +++
+ 2 files changed, 43 insertions(+)
 
-Rob
-
->  drivers/video/Kconfig                              |   11 ++
->  drivers/video/Makefile                             |    2 +
->  drivers/video/display_timing.c                     |   24 +++
->  drivers/video/fbmon.c                              |   76 ++++++++
->  drivers/video/videomode.c                          |   44 +++++
->  include/drm/drmP.h                                 |    8 +
->  include/linux/display_timing.h                     |   69 ++++++++
->  include/linux/fb.h                                 |    5 +
->  include/linux/of_display_timings.h                 |   20 +++
->  include/linux/of_videomode.h                       |   15 ++
->  include/linux/videomode.h                          |   36 ++++
->  17 files changed, 773 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/video/display-timings.txt
->  create mode 100644 drivers/of/of_display_timings.c
->  create mode 100644 drivers/of/of_videomode.c
->  create mode 100644 drivers/video/display_timing.c
->  create mode 100644 drivers/video/videomode.c
->  create mode 100644 include/linux/display_timing.h
->  create mode 100644 include/linux/of_display_timings.h
->  create mode 100644 include/linux/of_videomode.h
->  create mode 100644 include/linux/videomode.h
-> 
+diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
+index d46ecef..c95be79 100644
+--- a/drivers/video/fbmon.c
++++ b/drivers/video/fbmon.c
+@@ -1409,6 +1409,46 @@ int videomode_to_fb_videomode(struct videomode *vm, struct fb_videomode *fbmode)
+ EXPORT_SYMBOL_GPL(videomode_to_fb_videomode);
+ #endif
+ 
++#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
++static void dump_fb_videomode(struct fb_videomode *m)
++{
++	pr_debug("fb_videomode = %ux%u@%uHz (%ukHz) %u %u %u %u %u %u %u %u %u\n",
++		 m->xres, m->yres, m->refresh, m->pixclock, m->left_margin,
++		 m->right_margin, m->upper_margin, m->lower_margin,
++		 m->hsync_len, m->vsync_len, m->sync, m->vmode, m->flag);
++}
++
++/**
++ * of_get_fb_videomode - get a fb_videomode from devicetree
++ * @np: device_node with the timing specification
++ * @fb: will be set to the return value
++ * @index: index into the list of display timings in devicetree
++ *
++ * DESCRIPTION:
++ * This function is expensive and should only be used, if only one mode is to be
++ * read from DT. To get multiple modes start with of_get_display_timings ond
++ * work with that instead.
++ */
++int of_get_fb_videomode(struct device_node *np, struct fb_videomode *fb,
++			int index)
++{
++	struct videomode vm;
++	int ret;
++
++	ret = of_get_videomode(np, &vm, index);
++	if (ret)
++		return ret;
++
++	videomode_to_fb_videomode(&vm, fb);
++
++	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
++		vm.vactive, np->name);
++	dump_fb_videomode(fb);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(of_get_fb_videomode);
++#endif
+ 
+ #else
+ int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
+diff --git a/include/linux/fb.h b/include/linux/fb.h
+index 46c665b..9892fd6 100644
+--- a/include/linux/fb.h
++++ b/include/linux/fb.h
+@@ -14,6 +14,8 @@
+ #include <linux/backlight.h>
+ #include <linux/slab.h>
+ #include <asm/io.h>
++#include <linux/of.h>
++#include <linux/of_videomode.h>
+ 
+ struct vm_area_struct;
+ struct fb_info;
+@@ -714,6 +716,7 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
+ extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
+ extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+ 
++extern int of_get_fb_videomode(struct device_node *np, struct fb_videomode *fb, int index);
+ extern int videomode_to_fb_videomode(struct videomode *vm, struct fb_videomode *fbmode);
+ 
+ /* drivers/video/modedb.c */
+-- 
+1.7.10.4
 
