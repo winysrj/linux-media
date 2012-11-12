@@ -1,44 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-02.mandic.com.br ([200.225.81.133]:55160 "EHLO
-	smtp-02.mandic.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932416Ab2KXAeE (ORCPT
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35964 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751685Ab2KLRhQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 19:34:04 -0500
-From: Cesar Eduardo Barros <cesarb@cesarb.net>
-To: linux-kernel@vger.kernel.org
-Cc: Cesar Eduardo Barros <cesarb@cesarb.net>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 08/24] MAINTAINERS: fix drivers/media/usb/dvb-usb/cxusb*
-Date: Fri, 23 Nov 2012 22:26:32 -0200
-Message-Id: <1353716808-16375-9-git-send-email-cesarb@cesarb.net>
-In-Reply-To: <1353716808-16375-1-git-send-email-cesarb@cesarb.net>
-References: <1353716808-16375-1-git-send-email-cesarb@cesarb.net>
+	Mon, 12 Nov 2012 12:37:16 -0500
+Date: Mon, 12 Nov 2012 09:37:13 -0800
+From: Tony Lindgren <tony@atomide.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: hvaibhav@ti.com, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 0/2] omap_vout: remove cpu_is_* uses
+Message-ID: <20121112173713.GI6801@atomide.com>
+References: <1352727220-22540-1-git-send-email-tomi.valkeinen@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1352727220-22540-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver was never at dvb-usb-v2, as far as I could see.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [121112 05:35]:
+> Hi,
+> 
+> This patch removes use of cpu_is_* funcs from omap_vout, and uses omapdss's
+> version instead. The other patch removes an unneeded plat/dma.h include.
+> 
+> These are based on current omapdss master branch, which has the omapdss version
+> code. The omapdss version code is queued for v3.8. I'm not sure which is the
+> best way to handle these patches due to the dependency to omapdss. The easiest
+> option is to merge these for 3.9.
+> 
+> There's still the OMAP DMA use in omap_vout_vrfb.c, which is the last OMAP
+> dependency in the omap_vout driver. I'm not going to touch that, as it doesn't
+> look as trivial as this cpu_is_* removal, and I don't have much knowledge of
+> the omap_vout driver.
+> 
+> Compiled, but not tested.
 
-Cc: Michael Krufky <mkrufky@linuxtv.org>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
----
- MAINTAINERS | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks for fixing this. Can you please resend with the selected
+people cc:d from output of:
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index c382ff9..0488d14 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2594,7 +2594,7 @@ W:	http://github.com/mkrufky
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
- T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
--F:	drivers/media/usb/dvb-usb-v2/cxusb*
-+F:	drivers/media/usb/dvb-usb/cxusb*
- 
- DVB_USB_CYPRESS_FIRMWARE MEDIA DRIVER
- M:	Antti Palosaari <crope@iki.fi>
--- 
-1.7.11.7
+$ scripts/get_maintainer.pl -f drivers/media/platform/omap
 
+So we get the necessary acks.
+
+Regards,
+
+Tony 
