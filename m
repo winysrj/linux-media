@@ -1,180 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34671 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758514Ab2KVXDw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 18:03:52 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] fc2580: write some registers conditionally
-Date: Fri, 23 Nov 2012 01:03:12 +0200
-Message-Id: <1353625392-4974-1-git-send-email-crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58975 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752467Ab2KLLRQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Nov 2012 06:17:16 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Alain VOLMAT <alain.volmat@st.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: Way to request a time discontinuity in a V4L2 encoder device
+Date: Mon, 12 Nov 2012 12:18:10 +0100
+Message-ID: <2030523.VVFEJzW5uv@avalon>
+In-Reply-To: <20121111085106.GK25623@valkosipuli.retiisi.org.uk>
+References: <E27519AE45311C49887BE8C438E68FAA01012DC87FE3@SAFEX1MAIL1.st.com> <509825C4.9000604@gmail.com> <20121111085106.GK25623@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It was a bad idea, as comment also says, to write some "don't care"
-registers as 0xff value. Fix it.
+Hi Sakari,
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/fc2580.c | 61 +++++++++++++++++++++++++------------------
- 1 file changed, 35 insertions(+), 26 deletions(-)
+On Sunday 11 November 2012 10:51:06 Sakari Ailus wrote:
+> On Mon, Nov 05, 2012 at 09:47:00PM +0100, Sylwester Nawrocki wrote:
+> > On 11/05/2012 11:45 AM, Alain VOLMAT wrote:
+> > > Hi Laurent,
+> > >
+> > > Yes indeed, meta plane seems a good candidate. It was the other option.
+> > >
+> > > The pity with that is that the FMT can thus no longer be standard FMT
+> > > but a specific format that include both plane 0 with real frame data and
+> > > plane 1 with meta data.
+> > > So, standard V4L2 application (that doesn't know about this time
+> > > discontinuity stuff) wouldn't be able to push things into the encoder
+> > > since they are not aware of this 2 plane format.
+> > >
+> > > Or maybe we should export 2 format, 1 standard one that doesn't have
+> > > time discontinuity support, thus not best performance but still can do
+> > > things and a second format that has 2 planes
+> > 
+> > Not sure what media guys think about it, I was considering making it
+> > possible for applications (or libv4l or any other library) to request
+> > additional meta data plane at a video capture driver, e.g. with
+> > VIDIOC_S_FMT ioctl. With same fourcc for e.g. 1-planar buffers with image
+> > data and 2-planar buffer with meta data in plane 1. However this would be
+> > somehow device-specific, rather
+> 
+> How about this: add a special 4cc that tells only that the 4cc is defined
+> per-plane, and define it in planes instead? We could also add a flags field
+> to tell that a plane is actually a part of the same image in cases where
+> true multi-plane formats are being used at the same time.
+> 
+> You could use this to pass frame metadata (when it's produced by the sensor
+> itself) to the user space as well.
 
-diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
-index aff39ae..81f38aa 100644
---- a/drivers/media/tuners/fc2580.c
-+++ b/drivers/media/tuners/fc2580.c
-@@ -35,8 +35,6 @@
-  * Currently it blind writes bunch of static registers from the
-  * fc2580_freq_regs_lut[] when fc2580_set_params() is called. Add some
-  * logic to reduce unneeded register writes.
-- * There is also don't-care registers, initialized with value 0xff, and those
-- * are also written to the chip currently (yes, not wise).
-  */
- 
- /* write multiple registers */
-@@ -111,6 +109,17 @@ static int fc2580_rd_reg(struct fc2580_priv *priv, u8 reg, u8 *val)
- 	return fc2580_rd_regs(priv, reg, val, 1);
- }
- 
-+/* write single register conditionally only when value differs from 0xff
-+ * XXX: This is special routine meant only for writing fc2580_freq_regs_lut[]
-+ * values. Do not use for the other purposes. */
-+static int fc2580_wr_reg_ff(struct fc2580_priv *priv, u8 reg, u8 val)
-+{
-+	if (val == 0xff)
-+		return 0;
-+	else
-+		return fc2580_wr_regs(priv, reg, &val, 1);
-+}
-+
- static int fc2580_set_params(struct dvb_frontend *fe)
- {
- 	struct fc2580_priv *priv = fe->tuner_priv;
-@@ -213,99 +222,99 @@ static int fc2580_set_params(struct dvb_frontend *fe)
- 	if (i == ARRAY_SIZE(fc2580_freq_regs_lut))
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x25, fc2580_freq_regs_lut[i].r25_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x25, fc2580_freq_regs_lut[i].r25_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x27, fc2580_freq_regs_lut[i].r27_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x27, fc2580_freq_regs_lut[i].r27_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x28, fc2580_freq_regs_lut[i].r28_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x28, fc2580_freq_regs_lut[i].r28_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x29, fc2580_freq_regs_lut[i].r29_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x29, fc2580_freq_regs_lut[i].r29_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x2b, fc2580_freq_regs_lut[i].r2b_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x2b, fc2580_freq_regs_lut[i].r2b_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x2c, fc2580_freq_regs_lut[i].r2c_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x2c, fc2580_freq_regs_lut[i].r2c_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x2d, fc2580_freq_regs_lut[i].r2d_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x2d, fc2580_freq_regs_lut[i].r2d_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x30, fc2580_freq_regs_lut[i].r30_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x30, fc2580_freq_regs_lut[i].r30_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x44, fc2580_freq_regs_lut[i].r44_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x44, fc2580_freq_regs_lut[i].r44_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x50, fc2580_freq_regs_lut[i].r50_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x50, fc2580_freq_regs_lut[i].r50_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x53, fc2580_freq_regs_lut[i].r53_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x53, fc2580_freq_regs_lut[i].r53_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x5f, fc2580_freq_regs_lut[i].r5f_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x5f, fc2580_freq_regs_lut[i].r5f_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x61, fc2580_freq_regs_lut[i].r61_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x61, fc2580_freq_regs_lut[i].r61_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x62, fc2580_freq_regs_lut[i].r62_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x62, fc2580_freq_regs_lut[i].r62_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x63, fc2580_freq_regs_lut[i].r63_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x63, fc2580_freq_regs_lut[i].r63_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x67, fc2580_freq_regs_lut[i].r67_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x67, fc2580_freq_regs_lut[i].r67_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x68, fc2580_freq_regs_lut[i].r68_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x68, fc2580_freq_regs_lut[i].r68_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x69, fc2580_freq_regs_lut[i].r69_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x69, fc2580_freq_regs_lut[i].r69_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x6a, fc2580_freq_regs_lut[i].r6a_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x6a, fc2580_freq_regs_lut[i].r6a_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x6b, fc2580_freq_regs_lut[i].r6b_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x6b, fc2580_freq_regs_lut[i].r6b_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x6c, fc2580_freq_regs_lut[i].r6c_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x6c, fc2580_freq_regs_lut[i].r6c_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x6d, fc2580_freq_regs_lut[i].r6d_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x6d, fc2580_freq_regs_lut[i].r6d_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x6e, fc2580_freq_regs_lut[i].r6e_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x6e, fc2580_freq_regs_lut[i].r6e_val);
- 	if (ret < 0)
- 		goto err;
- 
--	ret = fc2580_wr_reg(priv, 0x6f, fc2580_freq_regs_lut[i].r6f_val);
-+	ret = fc2580_wr_reg_ff(priv, 0x6f, fc2580_freq_regs_lut[i].r6f_val);
- 	if (ret < 0)
- 		goto err;
- 
+That sounds like a good idea to explore.
+
+> What I haven't yet thought is how this can be told to the user using
+> ENUMFMT.
+> 
+> > than a completely generic interface. Since frame-meta data is often device
+> > specific. For camera it would depend on the image sensor whether the
+> 
+> Device-specific metadata should have their own 4ccs as device specific image
+> formats.
+> 
+> > additional plane request on a /dev/video? would be fulfilled by a driver
+> > or not.
+> > 
+> > I don't think duplicating 4CCs for the sake of additional meta-data plane
+> > is a good idea.
+> 
+> No, that'd really explode the number of different 4ccs.
+> 
+> > Your case is a bit different, since you're passing data from application
+> > to a device. Maybe we could somewhat standardize the meta data buffer
+> > content,
+> 
+> We need to define a proper format for this. It can include other per-buffer
+> parameters to / from the device as well.
+>
+> > e.g. by using some standard header specifying what kind of meta data
+> > follows. Perhaps struct v4l2_plane::data_offset can be helpful here. This
+> > is how it's documented
+> > 
+> >  * @data_offset:	offset in the plane to the start of data; usually 0,
+> >  *			unless there is a header in front of the data
+> > 
+> > I mean, the header would specify what actual meta-data is in that
+> > additional plane. Standardising that "standard" meta-data would be
+> > another issue.
+> > 
+> > I think this per buffer device control issue emerged in the past during
+> > the Exynos Multi Format Codec development. There were proposals of per-
+> > buffer v4l2 controls. IIRC it is currently resolved in that driver by
+> > doing VIDIOC_S_CTRL before QBUF. However the meta data plane approach
+> > looks more interesting to me.
+> 
+> That sounds like a simple (and thus good) solution to me: a button control
+> for resetting the average bitrate calculation. It'd be by far more simple
+> than using the metadata plane for it. Any known drawbacks that I can't see?
+> Even if the number of these parameters grow a little extended controls are
+> fine for the purpose.
+
+The main issue as far as I know would be to synchronize the control with 
+buffers.
+
 -- 
-1.7.11.7
+Regards,
+
+Laurent Pinchart
 
