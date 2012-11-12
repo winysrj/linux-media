@@ -1,61 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:53156 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751118Ab2KFMeJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 07:34:09 -0500
-From: YAMANE Toshiaki <yamanetoshi@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org,
-	YAMANE Toshiaki <yamanetoshi@gmail.com>
-Subject: [PATCH 2/2] Staging/media: Use dev_ printks in go7007/wis-tw9903.c
-Date: Tue,  6 Nov 2012 21:34:02 +0900
-Message-Id: <1352205243-5829-1-git-send-email-yamanetoshi@gmail.com>
-In-Reply-To: <1352205206-5794-1-git-send-email-yamanetoshi@gmail.com>
-References: <1352205206-5794-1-git-send-email-yamanetoshi@gmail.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:37504 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752439Ab2KLJ3e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Nov 2012 04:29:34 -0500
+Received: by mail-ob0-f174.google.com with SMTP id uo13so5991970obb.19
+        for <linux-media@vger.kernel.org>; Mon, 12 Nov 2012 01:29:33 -0800 (PST)
+MIME-Version: 1.0
+Date: Mon, 12 Nov 2012 10:29:33 +0100
+Message-ID: <CAL9G6WWCRp+XZ+rLq_M=R3f23t6e2YOtE7HEz+0Y=pUbpp8AuA@mail.gmail.com>
+Subject: Build v4l-dvb on Debian
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fixed below checkpatch warning.
-- WARNING: Prefer netdev_dbg(netdev, ... then dev_dbg(dev, ... then pr_debug(...  to printk(KERN_DEBUG ...
-- WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+Hello,
 
-Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
----
- drivers/staging/media/go7007/wis-tw9903.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+I want to configure my Debian system (2.6.32 kernel) to work with a
+dual DVB-T USB device. I need recent drivers to get working both
+device (af9013).
 
-diff --git a/drivers/staging/media/go7007/wis-tw9903.c b/drivers/staging/media/go7007/wis-tw9903.c
-index 3821cd5..246ce17 100644
---- a/drivers/staging/media/go7007/wis-tw9903.c
-+++ b/drivers/staging/media/go7007/wis-tw9903.c
-@@ -127,8 +127,8 @@ static int wis_tw9903_command(struct i2c_client *client,
- 			0x06, 0xc0, /* reset device */
- 			0,	0,
- 		};
--		printk(KERN_DEBUG "vscale is %04x, hscale is %04x\n",
--				vscale, hscale);
-+		dev_dbg(&client->dev, "vscale is %04x, hscale is %04x\n",
-+			vscale, hscale);
- 		/*write_regs(client, regs);*/
- 		break;
- 	}
-@@ -287,12 +287,11 @@ static int wis_tw9903_probe(struct i2c_client *client,
- 	dec->hue = 0;
- 	i2c_set_clientdata(client, dec);
- 
--	printk(KERN_DEBUG
--		"wis-tw9903: initializing TW9903 at address %d on %s\n",
-+	dev_dbg(&client->dev, "initializing TW9903 at address %d on %s\n",
- 		client->addr, adapter->name);
- 
- 	if (write_regs(client, initial_registers) < 0) {
--		printk(KERN_ERR "wis-tw9903: error initializing TW9903\n");
-+		dev_err(&client->dev, "error initializing TW9903\n");
- 		kfree(dec);
- 		return -ENODEV;
- 	}
--- 
-1.7.9.5
+There are lots of change made by Antti Palosaari that I want to
+include on the build:
+http://git.kernel.org/?p=linux%2Fkernel%2Fgit%2Ftorvalds%2Flinux.git&a=search&h=HEAD&st=commit&s=af9013
 
+I install the sources this way:
+
+mkdir /usr/local/src/dvb
+cd /usr/local/src/dvb
+git clone git://linuxtv.org/media_build.git
+cd media_build
+./build
+make install
+
+Now, both tuners works great but I have lots of dmesg: (10 lines per second)
+
+# tail /var/log/syslog
+Nov 12 10:27:07 htpc kernel: [56643.368049] usb 1-5: dvb_usb_v2:
+usb_bulk_msg() failed=-19
+Nov 12 10:27:07 htpc kernel: [56643.368060] i2c i2c-1: af9013: i2c rd
+failed=-19 reg=d07c len=2
+Nov 12 10:27:07 htpc kernel: [56643.668039] usb 1-5: dvb_usb_v2:
+usb_bulk_msg() failed=-19
+Nov 12 10:27:07 htpc kernel: [56643.668051] i2c i2c-1: af9013: i2c rd
+failed=-19 reg=d2e1 len=1
+Nov 12 10:27:07 htpc kernel: [56643.668058] usb 1-5: dvb_usb_v2:
+usb_bulk_msg() failed=-19
+Nov 12 10:27:07 htpc kernel: [56643.668065] i2c i2c-1: af9013: i2c wr
+failed=-19 reg=d2e1 len=1
+Nov 12 10:27:08 htpc kernel: [56643.868037] usb 1-5: dvb_usb_v2:
+usb_bulk_msg() failed=-19
+Nov 12 10:27:08 htpc kernel: [56643.868048] i2c i2c-1: af9013: i2c rd
+failed=-19 reg=d391 len=1
+Nov 12 10:27:08 htpc kernel: [56643.868056] usb 1-5: dvb_usb_v2:
+usb_bulk_msg() failed=-19
+Nov 12 10:27:08 htpc kernel: [56643.868062] i2c i2c-1: af9013: i2c wr
+failed=-19 reg=d391 len=1
+
+My questions are:
+
+1. I am missing something? Did I build it correctly?
+
+2. Could I delete all failed message from the dmesg?
+
+Regards.
+
+--
+Josu Lazkano
