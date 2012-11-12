@@ -1,70 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.9]:58011 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751410Ab2KFNSv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 08:18:51 -0500
-Date: Tue, 6 Nov 2012 14:18:45 +0100
-From: Anatolij Gustschin <agust@denx.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] OV5642: fix VIDIOC_S_GROP ioctl
-Message-ID: <20121106141845.4641954a@wker>
-In-Reply-To: <Pine.LNX.4.64.1211061243580.6451@axis700.grange>
-References: <1352157290-13201-1-git-send-email-agust@denx.de>
-	<Pine.LNX.4.64.1211061243580.6451@axis700.grange>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33196 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753757Ab2KLPiY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Nov 2012 10:38:24 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: [PATCH v8 5/6] drm_modes: add videomode helpers
+Date: Mon, 12 Nov 2012 16:37:05 +0100
+Message-Id: <1352734626-27412-6-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 6 Nov 2012 12:45:51 +0100 (CET)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+Add conversion from videomode to drm_display_mode
 
-> On Tue, 6 Nov 2012, Anatolij Gustschin wrote:
-> 
-> > VIDIOC_S_GROP ioctl doesn't work, soc-camera driver reports:
-> > 
-> > soc-camera-pdrv soc-camera-pdrv.0: S_CROP denied: getting current crop failed
-> > 
-> > The issue is caused by checking for V4L2_BUF_TYPE_VIDEO_CAPTURE type
-> > in driver's g_crop callback. This check should be in s_crop instead,
-> > g_crop should just set the type field to V4L2_BUF_TYPE_VIDEO_CAPTURE
-> > as other drivers do. Move the V4L2_BUF_TYPE_VIDEO_CAPTURE type check
-> > to s_crop callback.
-> 
-> I'm not sure this is correct:
-> 
-> http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-crop.html
-> 
-> Or is the .g_crop() subdev operation using a different semantics? Where is 
-> that documented?
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+---
+ drivers/gpu/drm/drm_modes.c |   36 ++++++++++++++++++++++++++++++++++++
+ include/drm/drmP.h          |    3 +++
+ 2 files changed, 39 insertions(+)
 
-I do not know if it is documented somewhere. But it seems natural to me
-that a sensor driver sets the type field to V4L2_BUF_TYPE_VIDEO_CAPTURE
-in its .g_crop(). A sensor is a capture device, not an output or overlay
-device. And this ioctl is a query operation.
-
-OTOH I'm fine with this type checking in .g_crop() and it can help
-to discover bugs in user space apps. The VIDIOC_G_CROP documentation
-states that the type field needs to be set to the respective buffer type
-when querying, so the check in .g_crop() is perfectly valid. But then
-I need following patch to fix the observed issue:
-
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -902,6 +902,8 @@ static int soc_camera_s_crop(struct file *file, void *fh,
-        dev_dbg(icd->pdev, "S_CROP(%ux%u@%u:%u)\n",
-                rect->width, rect->height, rect->left, rect->top);
+diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
+index 59450f3..049624d 100644
+--- a/drivers/gpu/drm/drm_modes.c
++++ b/drivers/gpu/drm/drm_modes.c
+@@ -35,6 +35,7 @@
+ #include <linux/export.h>
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc.h>
++#include <linux/videomode.h>
  
-+       current_crop.type = a->type;
+ /**
+  * drm_mode_debug_printmodeline - debug print a mode
+@@ -504,6 +505,41 @@ drm_gtf_mode(struct drm_device *dev, int hdisplay, int vdisplay, int vrefresh,
+ }
+ EXPORT_SYMBOL(drm_gtf_mode);
+ 
++#if IS_ENABLED(CONFIG_VIDEOMODE)
++int videomode_to_display_mode(struct videomode *vm, struct drm_display_mode *dmode)
++{
++	dmode->hdisplay = vm->hactive;
++	dmode->hsync_start = dmode->hdisplay + vm->hfront_porch;
++	dmode->hsync_end = dmode->hsync_start + vm->hsync_len;
++	dmode->htotal = dmode->hsync_end + vm->hback_porch;
 +
-        /* If get_crop fails, we'll let host and / or client drivers decide */
-        ret = ici->ops->get_crop(icd, &current_crop);
++	dmode->vdisplay = vm->vactive;
++	dmode->vsync_start = dmode->vdisplay + vm->vfront_porch;
++	dmode->vsync_end = dmode->vsync_start + vm->vsync_len;
++	dmode->vtotal = dmode->vsync_end + vm->vback_porch;
++
++	dmode->clock = vm->pixelclock / 1000;
++
++	dmode->flags = 0;
++	if (vm->hah)
++		dmode->flags |= DRM_MODE_FLAG_PHSYNC;
++	else
++		dmode->flags |= DRM_MODE_FLAG_NHSYNC;
++	if (vm->vah)
++		dmode->flags |= DRM_MODE_FLAG_PVSYNC;
++	else
++		dmode->flags |= DRM_MODE_FLAG_NVSYNC;
++	if (vm->interlaced)
++		dmode->flags |= DRM_MODE_FLAG_INTERLACE;
++	if (vm->doublescan)
++		dmode->flags |= DRM_MODE_FLAG_DBLSCAN;
++	drm_mode_set_name(dmode);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(videomode_to_display_mode);
++#endif
++
+ /**
+  * drm_mode_set_name - set the name on a mode
+  * @mode: name will be set in this mode
+diff --git a/include/drm/drmP.h b/include/drm/drmP.h
+index 3fd8280..e9fa1e3 100644
+--- a/include/drm/drmP.h
++++ b/include/drm/drmP.h
+@@ -56,6 +56,7 @@
+ #include <linux/cdev.h>
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
++#include <linux/videomode.h>
+ #if defined(__alpha__) || defined(__powerpc__)
+ #include <asm/pgtable.h>	/* For pte_wrprotect */
+ #endif
+@@ -1454,6 +1455,8 @@ extern struct drm_display_mode *
+ drm_mode_create_from_cmdline_mode(struct drm_device *dev,
+ 				  struct drm_cmdline_mode *cmd);
  
-What do you think?
++extern int videomode_to_display_mode(struct videomode *vm,
++				     struct drm_display_mode *dmode);
+ /* Modesetting support */
+ extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
+ extern void drm_vblank_post_modeset(struct drm_device *dev, int crtc);
+-- 
+1.7.10.4
 
-And the type field should be checked in .s_crop() anyway, I think.
-
-Thanks,
-Anatolij
