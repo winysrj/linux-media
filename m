@@ -1,272 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:62994 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752334Ab2KHSrx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 13:47:53 -0500
+Received: from mail-qa0-f53.google.com ([209.85.216.53]:53417 "EHLO
+	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751427Ab2KLIo0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Nov 2012 03:44:26 -0500
+Received: by mail-qa0-f53.google.com with SMTP id k31so1395721qat.19
+        for <linux-media@vger.kernel.org>; Mon, 12 Nov 2012 00:44:25 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <509AD957.5070301@gmail.com>
-References: <CAA11ShCpH7Z8eLok=MEh4bcSb6XjtVFfLQEYh2icUtYc-j5hEQ@mail.gmail.com>
-	<5096C561.5000108@gmail.com>
-	<CAA11ShCKFfdmd_ydxxCYo9Sv0VhgZW9kCk_F7LAQDg3mr5prrw@mail.gmail.com>
-	<5096E8D7.4070304@gmail.com>
-	<CAA11ShDinm7oU4azQYPMrNDsqWPqw+vJNFPpBDNzV=dTeUdZzw@mail.gmail.com>
-	<50979998.8090809@gmail.com>
-	<CAA11ShD6Qug_=t8vGE5LwSpfXW2FsceTonxnF8aO6i2b=inibw@mail.gmail.com>
-	<50983CFD.2030104@gmail.com>
-	<CAA11ShDAscm8snYzjnC3Fe1MaVXc-FJqhWM677iJwgbgu2_J1Q@mail.gmail.com>
-	<509AD957.5070301@gmail.com>
-Date: Thu, 8 Nov 2012 21:47:52 +0300
-Message-ID: <CAA11ShCn3S_nxXg5_pAsgcMsPFpER7XrHsvg71DrznAmONu7Lg@mail.gmail.com>
-Subject: Re: S3C244X/S3C64XX SoC camera host interface driver questions
-From: Andrey Gusakov <dron0gus@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Tomasz Figa <tomasz.figa@gmail.com>,
-	In-Bae Jeong <kukyakya@gmail.com>,
-	=?ISO-8859-1?Q?Heiko_St=FCbner?= <heiko@sntech.de>,
-	LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-Content-Type: multipart/mixed; boundary=047d7b2e14a9c2f3f604ce004532
+In-Reply-To: <CA+V-a8vDjbmY-+c-aaaEcJ4JXv7Dm_ytUzGPD0eDDe_utB7kxQ@mail.gmail.com>
+References: <CAPgLHd-ivjzSDre+DMVK+mHNpNynoLWJXK36zGW5GRnU0Z4d3g@mail.gmail.com>
+	<CA+V-a8vDjbmY-+c-aaaEcJ4JXv7Dm_ytUzGPD0eDDe_utB7kxQ@mail.gmail.com>
+Date: Mon, 12 Nov 2012 16:44:25 +0800
+Message-ID: <CAPgLHd-jhj3+u4PN5ms7PrYLYe-DEKzHLnPqu3DPw0SH2n6uUg@mail.gmail.com>
+Subject: Re: [PATCH] [media] vpif_display: fix return value check in vpif_reqbufs()
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: prabhakar.csengg@gmail.com
+Cc: mchehab@infradead.org, yongjun_wei@trendmicro.com.cn,
+	linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---047d7b2e14a9c2f3f604ce004532
-Content-Type: text/plain; charset=ISO-8859-1
+Hi Prabhakar,
 
-Hi.
-
-On Thu, Nov 8, 2012 at 1:57 AM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> On 11/06/2012 10:34 PM, Andrey Gusakov wrote:
->>
->> Hi.
->>
->>> Does the sensor still hang after 0x2f is written to REG_GRCOM instead ?
->>
->> Work!
->> I'm looking at drivers/media/usb/gspca/m5602/m5602_ov9650.h
->> It use significantly different init sequence. Some of settings
->> described in Application note for ov9650, some look like magic.
+On 11/09/2012 08:33 PM, Prabhakar Lad wrote:
+> Hi Wei,
 >
+> Thanks for the patch.
 >
-> I guess there are many ways the sensor can be configured initially.
-> I'd like to keep this initialization sequence as thin as possible,
-> and to move relevant settings to corresponding v4l2 controls.
-> Then after v4l2_control_handler_setup() is called, following the initial
-> register list write, the sensor would be configured into some known
-> state. I realize it might be more difficult in practice than it sounds
-> now. :-)
->
->
->>> Do you have CONFIG_PM_RUNTIME enabled ? Can you try and see it works
->>> if you enable it, without additional changes to the clock handling ?
+> On Wed, Oct 24, 2012 at 4:59 PM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
+>> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 >>
->> Work. With CONFIG_PM_RUNTIME and without enabling CLK_GATE at probe.
->
->
-> Ok, thanks. I will add the missing CONFIG_PM_RUNTIME dependency in Kconfig.
-> The driver has to have PM_RUNTIME enabled since on s3c64xx SoCs there are
-> power domains and the camera power domain needs to be enabled for the CAMIF
-> operation. The pm_runtime_* calls in the driver are supposed to ensure that.
-> I wonder why it works for you without PM_RUNTIME, i.e. how comes the power
-> domain is enabled. It is supposed to be off by default.
-DS says that all power domaint are on after reset. My bootloader did
-not switch then off. So when linux start everything is on.
-CONFIG_PM_RUNTIME was disabled, so nothing switch them off in linux
-too.
-
->>> I hope to eventually prepare the ov9650 sensor driver for mainline. Your
->>> help in making it ready for VER=0x52 would be very much appreciated. :-)
+>> In case of error, the function vb2_dma_contig_init_ctx() returns
+>> ERR_PTR() and never returns NULL. The NULL test in the return value
+>> check should be replaced with IS_ERR().
 >>
->> I'll try to helpful.
+>> dpatch engine is used to auto generate this patch.
+>> (https://github.com/weiyj/dpatch)
 >>
+>> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>> ---
+>>  drivers/media/platform/davinci/vpif_display.c | 4 ++--
+>>  1 file changed, 2 insertions(+), 2 deletions(-)
 >>
->>>> Next step is to make ov2460 work.
->>>
->>> For now I can only recommend you to make the ov2460 driver more similar
->>> to the ov9650 one.
->>
->> Thanks, I'll try.
->>
->> P.S. I add support of image effects just for fun. And found in DS that
->> s3c2450 also support effects. It's FIMC in-between of 2440 and
->> 6400/6410. Does anyone have s3c2450 hardware to test it?
+>> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+>> index b716fbd..5453bbb 100644
+>> --- a/drivers/media/platform/davinci/vpif_display.c
+>> +++ b/drivers/media/platform/davinci/vpif_display.c
+>> @@ -972,9 +972,9 @@ static int vpif_reqbufs(struct file *file, void *priv,
+>>         }
+>>         /* Initialize videobuf2 queue as per the buffer type */
+>>         common->alloc_ctx = vb2_dma_contig_init_ctx(vpif_dev);
+>> -       if (!common->alloc_ctx) {
+>> +       if (IS_ERR(common->alloc_ctx)) {
+> Right check would be IS_ERR_OR_NULL(). Can you merge this
+> patch 'vpif_capture: fix return value check in vpif_reqbufs()' with
+> this one  and post a v2 with above changes ?
 
-> Patches adding image effect are welcome. I'm bit to busy to play with these
-> things, other than I don't have hardware to test it.
-> I wasn't really aware of CAMIF in s3c2450. I think a separate variant data
-> structure would need to be defined for s3c2450. If anyone ever needs it
-> it could be added easily. For now I'll pretend this version doesn't exist.
-> :-)
-Attached.
+I will merge those two patch into one.
+And I never see vb2_dma_contig_init_ctx() can return NULL as a return
+value, we still would using IS_ERR_OR_NULL()?
 
-I often get "VIDIOC_QUERYCAP: failed: Inappropriate ioctl for device"
-or "system error: Inappropriate ioctl for device"
-Is it because of not implemented set/get framerate func? How this
-should work? I mean framerate heavy depend of sensor's settings. So
-set/get framerate call to fimc should get/set framerate from sensor.
-What is mechanism of such things?
-And same question about synchronizing format of sensor and FIMC pads.
-I make ov2640 work, but if did not call media-ctl for sensor, format
-of FIMC sink pad and format of sensor source pad different. I think I
-missed something, but reading other sources did not help.
+---------------------------------------------------
+void *vb2_dma_contig_init_ctx(struct device *dev)
+{
+       struct vb2_dc_conf *conf;
 
-Thanks.
-Best regards.
+       conf = kzalloc(sizeof *conf, GFP_KERNEL);
+       if (!conf)
+                 return ERR_PTR(-ENOMEM);
+ 
+       conf->dev = dev;
+ 
+       return conf;
+}
+---------------------------------------------------
 
---047d7b2e14a9c2f3f604ce004532
-Content-Type: application/octet-stream;
-	name="0001-S3C-FIMC-add-effect-controls.patch"
-Content-Disposition: attachment;
-	filename="0001-S3C-FIMC-add-effect-controls.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h9a7csqu0
 
-RnJvbSAwNGI4ODczN2Y2NWY3NzJmOGIzNzUyMzRhOTJjN2NkZDQ4MWVhYzFiIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBBbmRyZXkgR3VzYWtvdiA8ZHJvbl9ndXNAbWFpbC5ydT4KRGF0
-ZTogTW9uLCA1IE5vdiAyMDEyIDE1OjUwOjIzICswNDAwClN1YmplY3Q6IFtQQVRDSF0gUzNDLUZJ
-TUM6IGFkZCBlZmZlY3QgY29udHJvbHMKCgpTaWduZWQtb2ZmLWJ5OiBBbmRyZXkgR3VzYWtvdiA8
-ZHJvbl9ndXNAbWFpbC5ydT4KLS0tCiBkcml2ZXJzL21lZGlhL3BsYXRmb3JtL3MzYy1jYW1pZi9j
-YW1pZi1jYXB0dXJlLmMgfCAgIDU4ICsrKysrKysrKysrKysrKysrKysrLS0KIGRyaXZlcnMvbWVk
-aWEvcGxhdGZvcm0vczNjLWNhbWlmL2NhbWlmLWNvcmUuaCAgICB8ICAgIDUgKysKIGRyaXZlcnMv
-bWVkaWEvcGxhdGZvcm0vczNjLWNhbWlmL2NhbWlmLXJlZ3MuYyAgICB8ICAgMzggKysrKysrKysr
-Ky0tLS0KIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vczNjLWNhbWlmL2NhbWlmLXJlZ3MuaCAgICB8
-ICAgIDYgKystCiA0IGZpbGVzIGNoYW5nZWQsIDg5IGluc2VydGlvbnMoKyksIDE4IGRlbGV0aW9u
-cygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vczNjLWNhbWlmL2NhbWlm
-LWNhcHR1cmUuYyBiL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vczNjLWNhbWlmL2NhbWlmLWNhcHR1
-cmUuYwppbmRleCBjYTMxYzQ1Li4wNDZlYmY2IDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL3Bs
-YXRmb3JtL3MzYy1jYW1pZi9jYW1pZi1jYXB0dXJlLmMKKysrIGIvZHJpdmVycy9tZWRpYS9wbGF0
-Zm9ybS9zM2MtY2FtaWYvY2FtaWYtY2FwdHVyZS5jCkBAIC04MSw2ICs4MSw5IEBAIHN0YXRpYyBp
-bnQgczNjX2NhbWlmX2h3X2luaXQoc3RydWN0IGNhbWlmX2RldiAqY2FtaWYsIHN0cnVjdCBjYW1p
-Zl92cCAqdnApCiAJY2FtaWZfaHdfc2V0X3NvdXJjZV9mb3JtYXQoY2FtaWYpOwogCWNhbWlmX2h3
-X3NldF9jYW1lcmFfY3JvcChjYW1pZik7CiAJY2FtaWZfaHdfc2V0X3Rlc3RfcGF0dGVybihjYW1p
-ZiwgY2FtaWYtPnRlc3RfcGF0dGVybi0+dmFsKTsKKwlpZiAoaXBfcmV2ID49IFMzQzI0NTBfQ0FN
-SUZfSVBfUkVWKQorCQljYW1pZl9od19zZXRfZWZmZWN0KGNhbWlmLCBjYW1pZi0+ZWZmZWN0LT52
-YWwsCisJCQkJY2FtaWYtPmVmZmVjdF9jci0+dmFsLCBjYW1pZi0+ZWZmZWN0X2NiLT52YWwpOwog
-CWlmIChpcF9yZXYgPT0gUzNDNjQxMF9DQU1JRl9JUF9SRVYpCiAJCWNhbWlmX2h3X3NldF9pbnB1
-dF9wYXRoKHZwKTsKIAljYW1pZl9jZmdfdmlkZW9fcGF0aCh2cCk7CkBAIC0xMDgsOCArMTExLDgg
-QEAgc3RhdGljIGludCBzM2NfY2FtaWZfaHdfdnBfaW5pdChzdHJ1Y3QgY2FtaWZfZGV2ICpjYW1p
-Ziwgc3RydWN0IGNhbWlmX3ZwICp2cCkKIAlpZiAoaXBfcmV2ID09IFMzQzI0NFhfQ0FNSUZfSVBf
-UkVWKQogCQljYW1pZl9od19jbGVhcl9maWZvX292ZXJmbG93KHZwKTsKIAljYW1pZl9jZmdfdmlk
-ZW9fcGF0aCh2cCk7Ci0JaWYgKGlwX3JldiA9PSBTM0M2NDEwX0NBTUlGX0lQX1JFVikKLQkJY2Ft
-aWZfaHdfc2V0X2VmZmVjdCh2cCwgZmFsc2UpOworCWlmIChpcF9yZXYgPj0gUzNDMjQ1MF9DQU1J
-Rl9JUF9SRVYpCisJCWNhbWlmX2h3X3NldF9lZmZlY3QoY2FtaWYsIDAsIDAsIDApOwogCXZwLT5z
-dGF0ZSAmPSB+U1RfVlBfQ09ORklHOwogCiAJc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmY2FtaWYt
-PnNsb2NrLCBmbGFncyk7CkBAIC0zNzQsNiArMzc3LDEwIEBAIGlycXJldHVybl90IHMzY19jYW1p
-Zl9pcnFfaGFuZGxlcihpbnQgaXJxLCB2b2lkICpwcml2KQogCQljYW1pZl9od19zZXRfc2NhbGVy
-KHZwKTsKIAkJY2FtaWZfaHdfc2V0X2ZsaXAodnApOwogCQljYW1pZl9od19zZXRfdGVzdF9wYXR0
-ZXJuKGNhbWlmLCBjYW1pZi0+dGVzdF9wYXR0ZXJuLT52YWwpOworCQlpZiAoaXBfcmV2ID49IFMz
-QzI0NTBfQ0FNSUZfSVBfUkVWKQorCQkJY2FtaWZfaHdfc2V0X2VmZmVjdChjYW1pZiwgY2FtaWYt
-PmVmZmVjdC0+dmFsLAorCQkJCQljYW1pZi0+ZWZmZWN0X2NyLT52YWwsCisJCQkJCWNhbWlmLT5l
-ZmZlY3RfY2ItPnZhbCk7CiAJCXZwLT5zdGF0ZSAmPSB+U1RfVlBfQ09ORklHOwogCX0KIHVubG9j
-azoKQEAgLTE1MzAsNyArMTUzNyw3IEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgdjRsMl9jdHJsX29w
-cyBzM2NfY2FtaWZfc3ViZGV2X2N0cmxfb3BzID0gewogCS5zX2N0cmwJPSBzM2NfY2FtaWZfc3Vi
-ZGV2X3NfY3RybCwKIH07CiAKLXN0YXRpYyBjb25zdCBzdHJ1Y3QgdjRsMl9jdHJsX2NvbmZpZyBz
-M2NfY2FtaWZfcHJpdl9jdHJsID0geworc3RhdGljIGNvbnN0IHN0cnVjdCB2NGwyX2N0cmxfY29u
-ZmlnIHMzY19jYW1pZl9wcml2X2N0cmxfdGVzdCA9IHsKIAkub3BzCT0gJnMzY19jYW1pZl9zdWJk
-ZXZfY3RybF9vcHMsCiAJLmlkCT0gVjRMMl9DVFJMX0NMQVNTX1VTRVIgfCAweDEwMDEsCiAJLnR5
-cGUJPSBWNEwyX0NUUkxfVFlQRV9JTlRFR0VSLApAQCAtMTU0MSw2ICsxNTQ4LDM5IEBAIHN0YXRp
-YyBjb25zdCBzdHJ1Y3QgdjRsMl9jdHJsX2NvbmZpZyBzM2NfY2FtaWZfcHJpdl9jdHJsID0gewog
-CS5kZWYJPSAwLAogfTsKIAorc3RhdGljIGNvbnN0IHN0cnVjdCB2NGwyX2N0cmxfY29uZmlnIHMz
-Y19jYW1pZl9wcml2X2N0cmxfZWZmID0geworCS5vcHMJPSAmczNjX2NhbWlmX3N1YmRldl9jdHJs
-X29wcywKKwkuaWQJPSBWNEwyX0NUUkxfQ0xBU1NfVVNFUiB8IDB4MTAwMiwKKwkudHlwZQk9IFY0
-TDJfQ1RSTF9UWVBFX0lOVEVHRVIsCisJLm5hbWUJPSAiRWZmZWN0IiwKKwkubWluCT0gMCwKKwku
-bWF4CT0gNSwKKwkuc3RlcAk9IDEsCisJLmRlZgk9IDAsCit9OworCitzdGF0aWMgY29uc3Qgc3Ry
-dWN0IHY0bDJfY3RybF9jb25maWcgczNjX2NhbWlmX3ByaXZfY3RybF9lZmZfY2IgPSB7CisJLm9w
-cwk9ICZzM2NfY2FtaWZfc3ViZGV2X2N0cmxfb3BzLAorCS5pZAk9IFY0TDJfQ1RSTF9DTEFTU19V
-U0VSIHwgMHgxMDAzLAorCS50eXBlCT0gVjRMMl9DVFJMX1RZUEVfSU5URUdFUiwKKwkubmFtZQk9
-ICJQQVRfQ2IiLAorCS5taW4JPSAxNiwKKwkubWF4CT0gMjQwLAorCS5zdGVwCT0gMSwKKwkuZGVm
-CT0gMTI4LAorfTsKKworc3RhdGljIGNvbnN0IHN0cnVjdCB2NGwyX2N0cmxfY29uZmlnIHMzY19j
-YW1pZl9wcml2X2N0cmxfZWZmX2NyID0geworCS5vcHMJPSAmczNjX2NhbWlmX3N1YmRldl9jdHJs
-X29wcywKKwkuaWQJPSBWNEwyX0NUUkxfQ0xBU1NfVVNFUiB8IDB4MTAwNCwKKwkudHlwZQk9IFY0
-TDJfQ1RSTF9UWVBFX0lOVEVHRVIsCisJLm5hbWUJPSAiUEFUX0NyIiwKKwkubWluCT0gMTYsCisJ
-Lm1heAk9IDI0MCwKKwkuc3RlcAk9IDEsCisJLmRlZgk9IDEyOCwKK307CisKIGludCBzM2NfY2Ft
-aWZfY3JlYXRlX3N1YmRldihzdHJ1Y3QgY2FtaWZfZGV2ICpjYW1pZikKIHsKIAlzdHJ1Y3QgdjRs
-Ml9jdHJsX2hhbmRsZXIgKmhhbmRsZXIgPSAmY2FtaWYtPmN0cmxfaGFuZGxlcjsKQEAgLTE1NjAs
-MTAgKzE2MDAsMTggQEAgaW50IHMzY19jYW1pZl9jcmVhdGVfc3ViZGV2KHN0cnVjdCBjYW1pZl9k
-ZXYgKmNhbWlmKQogCWlmIChyZXQpCiAJCXJldHVybiByZXQ7CiAKLQl2NGwyX2N0cmxfaGFuZGxl
-cl9pbml0KGhhbmRsZXIsIDEpOworCXY0bDJfY3RybF9oYW5kbGVyX2luaXQoaGFuZGxlciwgNCk7
-CiAJY2FtaWYtPnRlc3RfcGF0dGVybiA9IHY0bDJfY3RybF9uZXdfY3VzdG9tKGhhbmRsZXIsCi0J
-CQkJCSZzM2NfY2FtaWZfcHJpdl9jdHJsLCBOVUxMKTsKKwkJCQkJJnMzY19jYW1pZl9wcml2X2N0
-cmxfdGVzdCwgTlVMTCk7CisJY2FtaWYtPmVmZmVjdCA9IHY0bDJfY3RybF9uZXdfY3VzdG9tKGhh
-bmRsZXIsCisJCQkJCSZzM2NfY2FtaWZfcHJpdl9jdHJsX2VmZiwgTlVMTCk7CisJY2FtaWYtPmVm
-ZmVjdF9jciA9IHY0bDJfY3RybF9uZXdfY3VzdG9tKGhhbmRsZXIsCisJCQkJCSZzM2NfY2FtaWZf
-cHJpdl9jdHJsX2VmZl9jYiwgTlVMTCk7CisJY2FtaWYtPmVmZmVjdF9jYiA9IHY0bDJfY3RybF9u
-ZXdfY3VzdG9tKGhhbmRsZXJFZmZlY3QsCisJCQkJCSZzM2NfY2FtaWZfcHJpdl9jdHJsX2VmZl9j
-ciwgTlVMTCk7CisKIAlpZiAoaGFuZGxlci0+ZXJyb3IpIHsKKwkJdjRsMl9jdHJsX2hhbmRsZXJf
-ZnJlZShoYW5kbGVyKTsKIAkJbWVkaWFfZW50aXR5X2NsZWFudXAoJnNkLT5lbnRpdHkpOwogCQly
-ZXR1cm4gaGFuZGxlci0+ZXJyb3I7CiAJfQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9wbGF0
-Zm9ybS9zM2MtY2FtaWYvY2FtaWYtY29yZS5oIGIvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zM2Mt
-Y2FtaWYvY2FtaWYtY29yZS5oCmluZGV4IDk2ZjVkM2QuLjVmOWViM2EgMTAwNjQ0Ci0tLSBhL2Ry
-aXZlcnMvbWVkaWEvcGxhdGZvcm0vczNjLWNhbWlmL2NhbWlmLWNvcmUuaAorKysgYi9kcml2ZXJz
-L21lZGlhL3BsYXRmb3JtL3MzYy1jYW1pZi9jYW1pZi1jb3JlLmgKQEAgLTM5LDYgKzM5LDggQEAK
-ICNkZWZpbmUgQ0FNSUZfU1RPUF9USU1FT1VUCTE1MDAgLyogbXMgKi8KIAogI2RlZmluZSBTM0My
-NDRYX0NBTUlGX0lQX1JFVgkweDIwIC8qIDIuMCAqLworI2RlZmluZSBTM0MyNDUwX0NBTUlGX0lQ
-X1JFVgkweDMwIC8qIDMuMCAtIG5vdCBpbXBsZW1lbnRlZCwgbm90IHRlc3RlZCAqLworI2RlZmlu
-ZSBTM0M2NDAwX0NBTUlGX0lQX1JFVgkweDMxIC8qIDMuMSAtIG5vdCBpbXBsZW1lbnRlZCwgbm90
-IHRlc3RlZCAqLwogI2RlZmluZSBTM0M2NDEwX0NBTUlGX0lQX1JFVgkweDMyIC8qIDMuMiAqLwog
-CiAvKiBzdHJ1Y3QgY2FtaWZfdnA6OnN0YXRlICovCkBAIC0yNzcsNiArMjc5LDkgQEAgc3RydWN0
-IGNhbWlmX2RldiB7CiAKIAlzdHJ1Y3QgdjRsMl9jdHJsX2hhbmRsZXIJY3RybF9oYW5kbGVyOwog
-CXN0cnVjdCB2NGwyX2N0cmwJCSp0ZXN0X3BhdHRlcm47CisJc3RydWN0IHY0bDJfY3RybAkJKmVm
-ZmVjdDsKKwlzdHJ1Y3QgdjRsMl9jdHJsCQkqZWZmZWN0X2NiOworCXN0cnVjdCB2NGwyX2N0cmwJ
-CSplZmZlY3RfY3I7CiAKIAlzdHJ1Y3QgY2FtaWZfdnAJCQl2cFtDQU1JRl9WUF9OVU1dOwogCXN0
-cnVjdCB2YjJfYWxsb2NfY3R4CQkqYWxsb2NfY3R4OwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRp
-YS9wbGF0Zm9ybS9zM2MtY2FtaWYvY2FtaWYtcmVncy5jIGIvZHJpdmVycy9tZWRpYS9wbGF0Zm9y
-bS9zM2MtY2FtaWYvY2FtaWYtcmVncy5jCmluZGV4IGQ4YzU1ZGMuLjFiMDNmNzMgMTAwNjQ0Ci0t
-LSBhL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vczNjLWNhbWlmL2NhbWlmLXJlZ3MuYworKysgYi9k
-cml2ZXJzL21lZGlhL3BsYXRmb3JtL3MzYy1jYW1pZi9jYW1pZi1yZWdzLmMKQEAgLTU3LDYgKzU3
-LDMzIEBAIHZvaWQgY2FtaWZfaHdfc2V0X3Rlc3RfcGF0dGVybihzdHJ1Y3QgY2FtaWZfZGV2ICpj
-YW1pZiwgdW5zaWduZWQgaW50IHBhdHRlcm4pCiAJY2FtaWZfd3JpdGUoY2FtaWYsIFMzQ19DQU1J
-Rl9SRUdfQ0lHQ1RSTCwgY2ZnKTsKIH0KIAordm9pZCBjYW1pZl9od19zZXRfZWZmZWN0KHN0cnVj
-dCBjYW1pZl9kZXYgKmNhbWlmLCB1bnNpZ25lZCBpbnQgZWZmZWN0LAorCQkJdW5zaWduZWQgaW50
-IGNyLCB1bnNpZ25lZCBpbnQgY2IpCit7CisJdTMyIGNmZzsKKworCWlmIChjYW1pZi0+dmFyaWFu
-dC0+aXBfcmV2aXNpb24gPCBTM0MyNDUwX0NBTUlGX0lQX1JFVikKKwkJcmV0dXJuOworCisJY2Zn
-ID0gY2FtaWZfcmVhZChjYW1pZiwgUzNDX0NBTUlGX1JFR19DSUlNR0VGRihjYW1pZi0+dnAtPm9m
-ZnNldCkpOworCS8qIFNldCBlZmZlY3QgKi8KKwljZmcgJj0gfkNJSU1HRUZGX0ZJTl9NQVNLOwor
-CWNmZyB8PSAoZWZmZWN0IDw8IDI2KTsKKwkvKiBTZXQgYm90aCBwYXRocyAqLworCWlmIChjYW1p
-Zi0+dmFyaWFudC0+aXBfcmV2aXNpb24gPj0gUzNDNjQwMF9DQU1JRl9JUF9SRVYpIHsKKwkJaWYg
-KGVmZmVjdCkKKwkJCWNmZyB8PSBDSUlNR0VGRl9JRV9FTkFCTEVfTUFTSzsKKwkJZWxzZQorCQkJ
-Y2ZnICY9IH5DSUlNR0VGRl9JRV9FTkFCTEVfTUFTSzsKKwl9CisJLyogU2V0IENyLCBDYiAqLwor
-CWlmIChlZmZlY3QgPT0gQ0lJTUdFRkZfRklOX0FSQklUUkFSWSkgeworCQljZmcgJj0gfkNJSU1H
-RUZGX1BBVF9DQkNSX01BU0s7CisJCWNmZyB8PSAoKGNiICYgMHhGRikgPDwgMTMpIHwgKGNyICYg
-MHhGRik7CisJfQorCWNhbWlmX3dyaXRlKGNhbWlmLCBTM0NfQ0FNSUZfUkVHX0NJSU1HRUZGKGNh
-bWlmLT52cC0+b2Zmc2V0KSwgY2ZnKTsKK30KKwogc3RhdGljIGNvbnN0IHUzMiBzcmNfcGl4Zm10
-X21hcFs4XVsyXSA9IHsKIAl7IFY0TDJfTUJVU19GTVRfWVVZVjhfMlg4LCBDSVNSQ0ZNVF9PUkRF
-UjQyMl9ZQ0JZQ1IgfSwKIAl7IFY0TDJfTUJVU19GTVRfWVZZVThfMlg4LCBDSVNSQ0ZNVF9PUkRF
-UjQyMl9ZQ1JZQ0IgfSwKQEAgLTQ3MywxNyArNTAwLDYgQEAgdm9pZCBjYW1pZl9od19zZXRfbGFz
-dGlycShzdHJ1Y3QgY2FtaWZfdnAgKnZwLCBpbnQgZW5hYmxlKQogCWNhbWlmX3dyaXRlKHZwLT5j
-YW1pZiwgYWRkciwgY2ZnKTsKIH0KIAotdm9pZCBjYW1pZl9od19zZXRfZWZmZWN0KHN0cnVjdCBj
-YW1pZl92cCAqdnAsIGJvb2wgYWN0aXZlKQotewotCXUzMiBjZmcgPSAwOwotCi0JaWYgKGFjdGl2
-ZSkgewotCQkvKiBUT0RPOiBlZmZlY3RzIHN1cHBvcnQgb24gNjR4eCAqLwotCX0KLQotCWNhbWlm
-X3dyaXRlKHZwLT5jYW1pZiwgUzNDX0NBTUlGX1JFR19DSUlNR0VGRiwgY2ZnKTsKLX0KLQogdm9p
-ZCBjYW1pZl9od19lbmFibGVfY2FwdHVyZShzdHJ1Y3QgY2FtaWZfdnAgKnZwKQogewogCXN0cnVj
-dCBjYW1pZl9kZXYgKmNhbWlmID0gdnAtPmNhbWlmOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRp
-YS9wbGF0Zm9ybS9zM2MtY2FtaWYvY2FtaWYtcmVncy5oIGIvZHJpdmVycy9tZWRpYS9wbGF0Zm9y
-bS9zM2MtY2FtaWYvY2FtaWYtcmVncy5oCmluZGV4IGEzNDg4Y2EuLjIxM2FkYmMgMTAwNjQ0Ci0t
-LSBhL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vczNjLWNhbWlmL2NhbWlmLXJlZ3MuaAorKysgYi9k
-cml2ZXJzL21lZGlhL3BsYXRmb3JtL3MzYy1jYW1pZi9jYW1pZi1yZWdzLmgKQEAgLTE3Nyw4ICsx
-NzcsOSBAQAogI2RlZmluZSBTM0NfQ0FNSUZfUkVHX0NJQ1BUU0VRCQkJMHhjNAogCiAvKiBJbWFn
-ZSBlZmZlY3RzICovCi0jZGVmaW5lIFMzQ19DQU1JRl9SRUdfQ0lJTUdFRkYJCQkweGQwCisjZGVm
-aW5lIFMzQ19DQU1JRl9SRUdfQ0lJTUdFRkYoX29mZnMpCQkoMHhiMCArIChfb2ZmcykpCiAjZGVm
-aW5lICBDSUlNR0VGRl9JRV9FTkFCTEUoaWQpCQkJKDEgPDwgKDMwICsgKGlkKSkpCisjZGVmaW5l
-ICBDSUlNR0VGRl9JRV9FTkFCTEVfTUFTSwkJKDMgPDwgMzApCiAvKiBJbWFnZSBlZmZlY3Q6IDEg
-LSBhZnRlciBzY2FsZXIsIDAgLSBiZWZvcmUgc2NhbGVyICovCiAjZGVmaW5lICBDSUlNR0VGRl9J
-RV9BRlRFUl9TQwkJCSgxIDw8IDI5KQogI2RlZmluZSAgQ0lJTUdFRkZfRklOX01BU0sJCQkoNyA8
-PCAyNikKQEAgLTI0Myw3ICsyNDQsNiBAQCB2b2lkIGNhbWlmX2h3X2NsZWFyX2ZpZm9fb3ZlcmZs
-b3coc3RydWN0IGNhbWlmX3ZwICp2cCk7CiB2b2lkIGNhbWlmX2h3X3NldF9sYXN0aXJxKHN0cnVj
-dCBjYW1pZl92cCAqdnAsIGludCBlbmFibGUpOwogdm9pZCBjYW1pZl9od19zZXRfaW5wdXRfcGF0
-aChzdHJ1Y3QgY2FtaWZfdnAgKnZwKTsKIHZvaWQgY2FtaWZfaHdfZW5hYmxlX3NjYWxlcihzdHJ1
-Y3QgY2FtaWZfdnAgKnZwLCBib29sIG9uKTsKLXZvaWQgY2FtaWZfaHdfc2V0X2VmZmVjdChzdHJ1
-Y3QgY2FtaWZfdnAgKnZwLCBib29sIGFjdGl2ZSk7CiB2b2lkIGNhbWlmX2h3X2VuYWJsZV9jYXB0
-dXJlKHN0cnVjdCBjYW1pZl92cCAqdnApOwogdm9pZCBjYW1pZl9od19kaXNhYmxlX2NhcHR1cmUo
-c3RydWN0IGNhbWlmX3ZwICp2cCk7CiB2b2lkIGNhbWlmX2h3X3NldF9jYW1lcmFfYnVzKHN0cnVj
-dCBjYW1pZl9kZXYgKmNhbWlmKTsKQEAgLTI1NCw2ICsyNTQsOCBAQCB2b2lkIGNhbWlmX2h3X3Nl
-dF9mbGlwKHN0cnVjdCBjYW1pZl92cCAqdnApOwogdm9pZCBjYW1pZl9od19zZXRfb3V0cHV0X2Rt
-YShzdHJ1Y3QgY2FtaWZfdnAgKnZwKTsKIHZvaWQgY2FtaWZfaHdfc2V0X3RhcmdldF9mb3JtYXQo
-c3RydWN0IGNhbWlmX3ZwICp2cCk7CiB2b2lkIGNhbWlmX2h3X3NldF90ZXN0X3BhdHRlcm4oc3Ry
-dWN0IGNhbWlmX2RldiAqY2FtaWYsIHVuc2lnbmVkIGludCBwYXR0ZXJuKTsKK3ZvaWQgY2FtaWZf
-aHdfc2V0X2VmZmVjdChzdHJ1Y3QgY2FtaWZfZGV2ICpjYW1pZiwgdW5zaWduZWQgaW50IGVmZmVj
-dCwKKwkJCXVuc2lnbmVkIGludCBjciwgdW5zaWduZWQgaW50IGNiKTsKIHZvaWQgY2FtaWZfaHdf
-c2V0X291dHB1dF9hZGRyKHN0cnVjdCBjYW1pZl92cCAqdnAsIHN0cnVjdCBjYW1pZl9hZGRyICpw
-YWRkciwKIAkJCSAgICAgIGludCBpbmRleCk7CiB2b2lkIGNhbWlmX2h3X2R1bXBfcmVncyhzdHJ1
-Y3QgY2FtaWZfZGV2ICpjYW1pZiwgY29uc3QgY2hhciAqbGFiZWwpOwotLSAKMS43LjAuNAoK
---047d7b2e14a9c2f3f604ce004532--
+
+
