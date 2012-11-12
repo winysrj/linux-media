@@ -1,53 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from viridian.itc.Virginia.EDU ([128.143.12.139]:41670 "EHLO
-	viridian.itc.virginia.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754518Ab2KSSiI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Nov 2012 13:38:08 -0500
-From: Bill Pemberton <wfp5p@virginia.edu>
-To: gregkh@linuxfoundation.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 027/493] media: remove use of __devexit_p in bt878.c
-Date: Mon, 19 Nov 2012 13:19:36 -0500
-Message-Id: <1353349642-3677-27-git-send-email-wfp5p@virginia.edu>
-In-Reply-To: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
-References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
+Received: from bear.ext.ti.com ([192.94.94.41]:41464 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751353Ab2KLNd7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Nov 2012 08:33:59 -0500
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: <hvaibhav@ti.com>, <linux-media@vger.kernel.org>
+CC: Tony Lindgren <tony@atomide.com>, <linux-omap@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 0/2] omap_vout: remove cpu_is_* uses
+Date: Mon, 12 Nov 2012 15:33:38 +0200
+Message-ID: <1352727220-22540-1-git-send-email-tomi.valkeinen@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CONFIG_HOTPLUG is going away as an option so __devexit_p is no longer
-needed, remove it.
+Hi,
 
-Also fix the indentation for the initialization of the
-bt878_pci_driver struct to make chkpatch happy.
+This patch removes use of cpu_is_* funcs from omap_vout, and uses omapdss's
+version instead. The other patch removes an unneeded plat/dma.h include.
 
-Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org> 
-Cc: linux-media@vger.kernel.org 
----
- drivers/media/pci/bt8xx/bt878.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+These are based on current omapdss master branch, which has the omapdss version
+code. The omapdss version code is queued for v3.8. I'm not sure which is the
+best way to handle these patches due to the dependency to omapdss. The easiest
+option is to merge these for 3.9.
 
-diff --git a/drivers/media/pci/bt8xx/bt878.c b/drivers/media/pci/bt8xx/bt878.c
-index b34fa95..4225a79 100644
---- a/drivers/media/pci/bt8xx/bt878.c
-+++ b/drivers/media/pci/bt8xx/bt878.c
-@@ -570,10 +570,10 @@ static void __devexit bt878_remove(struct pci_dev *pci_dev)
- }
- 
- static struct pci_driver bt878_pci_driver = {
--      .name	= "bt878",
--      .id_table = bt878_pci_tbl,
--      .probe	= bt878_probe,
--      .remove	= __devexit_p(bt878_remove),
-+	.name	  = "bt878",
-+	.id_table = bt878_pci_tbl,
-+	.probe	  = bt878_probe,
-+	.remove   = bt878_remove,
- };
- 
- /*******************************/
+There's still the OMAP DMA use in omap_vout_vrfb.c, which is the last OMAP
+dependency in the omap_vout driver. I'm not going to touch that, as it doesn't
+look as trivial as this cpu_is_* removal, and I don't have much knowledge of
+the omap_vout driver.
+
+Compiled, but not tested.
+
+ Tomi
+
+Tomi Valkeinen (2):
+  [media] omap_vout: use omapdss's version instead of cpu_is_*
+  [media] omap_vout: remove extra include
+
+ drivers/media/platform/omap/omap_vout.c    |    4 +--
+ drivers/media/platform/omap/omap_voutlib.c |   38 ++++++++++++++++++++--------
+ drivers/media/platform/omap/omap_voutlib.h |    3 +++
+ 3 files changed, 32 insertions(+), 13 deletions(-)
+
 -- 
-1.8.0
+1.7.10.4
 
