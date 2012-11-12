@@ -1,42 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:43354 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751727Ab2KGTYL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2012 14:24:11 -0500
-From: YAMANE Toshiaki <yamanetoshi@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Devendra Naga <develkernel412222@gmail.com>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org,
-	YAMANE Toshiaki <yamanetoshi@gmail.com>
-Subject: [PATCH] Staging/media: Use dev_ printks in cxd2099/cxd2099.h
-Date: Thu,  8 Nov 2012 04:24:04 +0900
-Message-Id: <1352316245-8009-1-git-send-email-yamanetoshi@gmail.com>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:26357 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750736Ab2KLJq2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Nov 2012 04:46:28 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Kirill Smelkov <kirr@mns.spb.ru>
+Subject: Re: [PATCH v4] [media] vivi: Teach it to tune FPS
+Date: Mon, 12 Nov 2012 10:46:26 +0100
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+References: <1350914084-31618-1-git-send-email-kirr@mns.spb.ru> <20121107113001.GA3097@tugrik.mns.mnsspb.ru> <20121112081258.GA4809@tugrik.mns.mnsspb.ru>
+In-Reply-To: <20121112081258.GA4809@tugrik.mns.mnsspb.ru>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201211121046.26430.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fixed below checkpatch warning.
-- WARNING: Prefer netdev_warn(netdev, ... then dev_warn(dev, ... then pr_warn(...  to printk(KERN_WARNING ...
+On Mon 12 November 2012 09:12:58 Kirill Smelkov wrote:
 
-Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
----
- drivers/staging/media/cxd2099/cxd2099.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> Ping. Is maybe something stupid on my side?
+> 
 
-diff --git a/drivers/staging/media/cxd2099/cxd2099.h b/drivers/staging/media/cxd2099/cxd2099.h
-index 19c588a..0eb607c 100644
---- a/drivers/staging/media/cxd2099/cxd2099.h
-+++ b/drivers/staging/media/cxd2099/cxd2099.h
-@@ -43,7 +43,7 @@ struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
- static inline struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
- 					void *priv, struct i2c_adapter *i2c)
- {
--	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-+	dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
- 	return NULL;
- }
- #endif
--- 
-1.7.9.5
+No, I've been abroad and haven't had time to look at it. I want to do that
+this week. Ping me again if you haven't heard from me by Saturday.
 
+Regards,
+
+	Hans
