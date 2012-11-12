@@ -1,45 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:20876 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932260Ab2KBSz7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2012 14:55:59 -0400
-Date: Fri, 2 Nov 2012 11:55:54 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Joerg Roedel <joerg.roedel@amd.com>,
-	Omar Ramirez Luna <omar.luna@linaro.org>,
-	linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/6] ARM: OMAP2+: Move plat/iovmm.h to
- include/linux/omap-iommu.h
-Message-ID: <20121102185553.GZ15766@atomide.com>
-References: <20121025001913.2082.31062.stgit@muffinssi.local>
- <20121025213935.GD11928@atomide.com>
- <CAK=WgbaCM+MWiHARvdfaGL6w0c7g4_keAm0ADw1vkSeiZ0CZPw@mail.gmail.com>
- <6561916.t72K1L6jg4@avalon>
- <CAK=WgbY2-Ajm-2OSheOgLCd4589WKDSqqKjzHkE5Ogyp4puJ3g@mail.gmail.com>
- <20121026180039.GM11908@atomide.com>
- <20121030162938.GH11908@atomide.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37214 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752801Ab2KLWrA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Nov 2012 17:47:00 -0500
+Date: Tue, 13 Nov 2012 00:46:55 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: dacohen@gmail.com
+Subject: [PATCH 0/3] Remove V4L2 int device and drivers using it
+Message-ID: <20121112224655.GP25623@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20121030162938.GH11908@atomide.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Tony Lindgren <tony@atomide.com> [121030 09:31]:
-> 
-> OK so are people happy with the patches in this series?
-> 
-> Please everybody ack if no more comments so we can move on
-> towards getting CONFIG_MULTIPLATFORM to work for omaps.
+Hi all,
 
-Looks like Joerg has a new email address, I'll send this
-series out one more time.
+This patchset removes V4L2 int device interface and the two drivers using
+it: omap24xxcam and tcm825x. The status is that these drives do not work;
+the last time I hacked on it I managed to get them to compile about a year
+ago with a number of hacks. There was a hard crash without logs over the
+serial port, after which I had no further time left to continue debugging.
 
-Regards,
+Where I left off with is available here, in the n800-cam branch. That's not
+pretty. Anyway, that's likely a better starting point than the current
+mainline, should someone have some extra time to spend on this.
 
-Tony
+<URL:git://salottisipuli.retiisi.org.uk/~sakke/linux-omap>
+
+Remove these drivers for now so we can get rid of V4L2 int device. Perhaps I
+will have time to fix them at some point but it'll likely come after the
+N900 support.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
