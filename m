@@ -1,139 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:47764 "EHLO
-	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752113Ab2KWNkk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 08:40:40 -0500
-From: Albert Wang <twang13@marvell.com>
-To: corbet@lwn.net, g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org, Libin Yang <lbyang@marvell.com>,
-	Albert Wang <twang13@marvell.com>
-Subject: [PATCH 08/15] [media] marvell-ccic: switch to resource managed allocation and request
-Date: Fri, 23 Nov 2012 21:40:14 +0800
-Message-Id: <1353678014-24559-1-git-send-email-twang13@marvell.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:46080 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751353Ab2KLNeA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Nov 2012 08:34:00 -0500
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: <hvaibhav@ti.com>, <linux-media@vger.kernel.org>
+CC: Tony Lindgren <tony@atomide.com>, <linux-omap@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 1/2] [media] omap_vout: use omapdss's version instead of cpu_is_*
+Date: Mon, 12 Nov 2012 15:33:39 +0200
+Message-ID: <1352727220-22540-2-git-send-email-tomi.valkeinen@ti.com>
+In-Reply-To: <1352727220-22540-1-git-send-email-tomi.valkeinen@ti.com>
+References: <1352727220-22540-1-git-send-email-tomi.valkeinen@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Libin Yang <lbyang@marvell.com>
+cpu_is_* class functions create a dependency to OMAP platform code.
+omapdss driver, which omap_vout uses, exposes a function to get the
+version of the DSS hardware.
 
-This patch switchs to resource managed allocation and request in mmp-driver.
-It can remove free resource operations.
+To remove the dependency to OMAP platform code this patch changes
+omap_vout to use the omapdss version. For most of the checks, the ones
+dealing with DSS differences, this is actually more correct than using
+cpu_is_* functions. For the check whether VRFB is available or not this
+is not really correct, but still works fine.
 
-Signed-off-by: Albert Wang <twang13@marvell.com>
-Signed-off-by: Libin Yang <lbyang@marvell.com>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/media/platform/marvell-ccic/mmp-driver.c |   35 +++++++---------------
- 1 file changed, 10 insertions(+), 25 deletions(-)
+ drivers/media/platform/omap/omap_vout.c    |    3 +--
+ drivers/media/platform/omap/omap_voutlib.c |   38 ++++++++++++++++++++--------
+ drivers/media/platform/omap/omap_voutlib.h |    3 +++
+ 3 files changed, 32 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
-index 20046d0..c3031e7 100755
---- a/drivers/media/platform/marvell-ccic/mmp-driver.c
-+++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
-@@ -315,7 +315,7 @@ static int mmpcam_probe(struct platform_device *pdev)
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index 3ff94a3..7b1afc8 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -44,7 +44,6 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
  
- 	pdata = pdev->dev.platform_data;
+-#include <plat/cpu.h>
+ #include <plat/dma.h>
+ #include <video/omapvrfb.h>
+ #include <video/omapdss.h>
+@@ -2064,7 +2063,7 @@ static int __init omap_vout_create_video_devices(struct platform_device *pdev)
+ 		vout->vid_info.id = k + 1;
  
--	cam = kzalloc(sizeof(*cam), GFP_KERNEL);
-+	cam = devm_kzalloc(&pdev->dev, sizeof(*cam), GFP_KERNEL);
- 	if (cam == NULL)
- 		return -ENOMEM;
- 	cam->pdev = pdev;
-@@ -342,14 +342,12 @@ static int mmpcam_probe(struct platform_device *pdev)
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (res == NULL) {
- 		dev_err(&pdev->dev, "no iomem resource!\n");
--		ret = -ENODEV;
--		goto out_free;
-+		return -ENODEV;
- 	}
--	mcam->regs = ioremap(res->start, resource_size(res));
-+	mcam->regs = devm_request_and_ioremap(&pdev->dev, res);
- 	if (mcam->regs == NULL) {
- 		dev_err(&pdev->dev, "MMIO ioremap fail\n");
--		ret = -ENODEV;
--		goto out_free;
-+		return -ENODEV;
- 	}
- 	/*
- 	 * Power/clock memory is elsewhere; get it too.  Perhaps this
-@@ -358,14 +356,12 @@ static int mmpcam_probe(struct platform_device *pdev)
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
- 	if (res == NULL) {
- 		dev_err(&pdev->dev, "no power resource!\n");
--		ret = -ENODEV;
--		goto out_unmap1;
-+		return -ENODEV;
- 	}
--	cam->power_regs = ioremap(res->start, resource_size(res));
-+	cam->power_regs = devm_request_and_ioremap(&pdev->dev, res);
- 	if (cam->power_regs == NULL) {
- 		dev_err(&pdev->dev, "power MMIO ioremap fail\n");
--		ret = -ENODEV;
--		goto out_unmap1;
-+		return -ENODEV;
- 	}
+ 		/* Set VRFB as rotation_type for omap2 and omap3 */
+-		if (cpu_is_omap24xx() || cpu_is_omap34xx())
++		if (omap_vout_dss_omap24xx() || omap_vout_dss_omap34xx())
+ 			vout->vid_info.rotation_type = VOUT_ROT_VRFB;
  
- 	mcam_init_clk(mcam, pdata, 1);
-@@ -375,9 +371,8 @@ static int mmpcam_probe(struct platform_device *pdev)
- 	 */
- 	mcam->i2c_adapter = platform_get_drvdata(pdata->i2c_device);
- 	if (mcam->i2c_adapter == NULL) {
--		ret = -ENODEV;
- 		dev_err(&pdev->dev, "No i2c adapter\n");
--		goto out_unmap2;
-+		return -ENODEV;
+ 		/* Setup the default configuration for the video devices
+diff --git a/drivers/media/platform/omap/omap_voutlib.c b/drivers/media/platform/omap/omap_voutlib.c
+index 115408b..80b0d88 100644
+--- a/drivers/media/platform/omap/omap_voutlib.c
++++ b/drivers/media/platform/omap/omap_voutlib.c
+@@ -26,7 +26,7 @@
+ 
+ #include <linux/dma-mapping.h>
+ 
+-#include <plat/cpu.h>
++#include <video/omapdss.h>
+ 
+ #include "omap_voutlib.h"
+ 
+@@ -124,7 +124,7 @@ int omap_vout_new_window(struct v4l2_rect *crop,
+ 	win->chromakey = new_win->chromakey;
+ 
+ 	/* Adjust the cropping window to allow for resizing limitation */
+-	if (cpu_is_omap24xx()) {
++	if (omap_vout_dss_omap24xx()) {
+ 		/* For 24xx limit is 8x to 1/2x scaling. */
+ 		if ((crop->height/win->w.height) >= 2)
+ 			crop->height = win->w.height * 2;
+@@ -140,7 +140,7 @@ int omap_vout_new_window(struct v4l2_rect *crop,
+ 			if (crop->height != win->w.height)
+ 				crop->width = 768;
+ 		}
+-	} else if (cpu_is_omap34xx()) {
++	} else if (omap_vout_dss_omap34xx()) {
+ 		/* For 34xx limit is 8x to 1/4x scaling. */
+ 		if ((crop->height/win->w.height) >= 4)
+ 			crop->height = win->w.height * 4;
+@@ -196,7 +196,7 @@ int omap_vout_new_crop(struct v4l2_pix_format *pix,
+ 	if (try_crop.width <= 0 || try_crop.height <= 0)
+ 		return -EINVAL;
+ 
+-	if (cpu_is_omap24xx()) {
++	if (omap_vout_dss_omap24xx()) {
+ 		if (try_crop.height != win->w.height) {
+ 			/* If we're resizing vertically, we can't support a
+ 			 * crop width wider than 768 pixels.
+@@ -207,9 +207,9 @@ int omap_vout_new_crop(struct v4l2_pix_format *pix,
  	}
- 	/*
- 	 * Sensor GPIO pins.
-@@ -386,7 +381,7 @@ static int mmpcam_probe(struct platform_device *pdev)
- 	if (ret) {
- 		dev_err(&pdev->dev, "Can't get sensor power gpio %d",
- 				pdata->sensor_power_gpio);
--		goto out_unmap2;
-+		return ret;
+ 	/* vertical resizing */
+ 	vresize = (1024 * try_crop.height) / win->w.height;
+-	if (cpu_is_omap24xx() && (vresize > 2048))
++	if (omap_vout_dss_omap24xx() && (vresize > 2048))
+ 		vresize = 2048;
+-	else if (cpu_is_omap34xx() && (vresize > 4096))
++	else if (omap_vout_dss_omap34xx() && (vresize > 4096))
+ 		vresize = 4096;
+ 
+ 	win->w.height = ((1024 * try_crop.height) / vresize) & ~1;
+@@ -226,9 +226,9 @@ int omap_vout_new_crop(struct v4l2_pix_format *pix,
  	}
- 	gpio_direction_output(pdata->sensor_power_gpio, 0);
- 	ret = gpio_request(pdata->sensor_reset_gpio, "cam-reset");
-@@ -414,7 +409,7 @@ static int mmpcam_probe(struct platform_device *pdev)
- 		goto out_unregister;
+ 	/* horizontal resizing */
+ 	hresize = (1024 * try_crop.width) / win->w.width;
+-	if (cpu_is_omap24xx() && (hresize > 2048))
++	if (omap_vout_dss_omap24xx() && (hresize > 2048))
+ 		hresize = 2048;
+-	else if (cpu_is_omap34xx() && (hresize > 4096))
++	else if (omap_vout_dss_omap34xx() && (hresize > 4096))
+ 		hresize = 4096;
+ 
+ 	win->w.width = ((1024 * try_crop.width) / hresize) & ~1;
+@@ -243,7 +243,7 @@ int omap_vout_new_crop(struct v4l2_pix_format *pix,
+ 		if (try_crop.width == 0)
+ 			try_crop.width = 2;
  	}
- 	cam->irq = res->start;
--	ret = request_irq(cam->irq, mmpcam_irq, IRQF_SHARED,
-+	ret = devm_request_irq(&pdev->dev, cam->irq, mmpcam_irq, IRQF_SHARED,
- 			"mmp-camera", mcam);
- 	if (ret == 0) {
- 		mmpcam_add_device(cam);
-@@ -428,13 +423,7 @@ out_gpio2:
- 	gpio_free(pdata->sensor_reset_gpio);
- out_gpio:
- 	gpio_free(pdata->sensor_power_gpio);
--out_unmap2:
- 	mcam_init_clk(mcam, pdata, 0);
--	iounmap(cam->power_regs);
--out_unmap1:
--	iounmap(mcam->regs);
--out_free:
--	kfree(cam);
- 	return ret;
+-	if (cpu_is_omap24xx()) {
++	if (omap_vout_dss_omap24xx()) {
+ 		if ((try_crop.height/win->w.height) >= 2)
+ 			try_crop.height = win->w.height * 2;
+ 
+@@ -258,7 +258,7 @@ int omap_vout_new_crop(struct v4l2_pix_format *pix,
+ 			if (try_crop.height != win->w.height)
+ 				try_crop.width = 768;
+ 		}
+-	} else if (cpu_is_omap34xx()) {
++	} else if (omap_vout_dss_omap34xx()) {
+ 		if ((try_crop.height/win->w.height) >= 4)
+ 			try_crop.height = win->w.height * 4;
+ 
+@@ -337,3 +337,21 @@ void omap_vout_free_buffer(unsigned long virtaddr, u32 buf_size)
+ 	}
+ 	free_pages((unsigned long) virtaddr, order);
  }
- 
-@@ -445,16 +434,12 @@ static int mmpcam_remove(struct mmp_camera *cam)
- 	struct mmp_camera_platform_data *pdata;
- 
- 	mmpcam_remove_device(cam);
--	free_irq(cam->irq, mcam);
- 	mccic_shutdown(mcam);
- 	mmpcam_power_down(mcam);
- 	pdata = cam->pdev->dev.platform_data;
- 	gpio_free(pdata->sensor_reset_gpio);
- 	gpio_free(pdata->sensor_power_gpio);
--	iounmap(cam->power_regs);
--	iounmap(mcam->regs);
- 	mcam_init_clk(mcam, pdata, 0);
--	kfree(cam);
- 	return 0;
- }
++
++bool omap_vout_dss_omap24xx(void)
++{
++	return omapdss_get_version() == OMAPDSS_VER_OMAP24xx;
++}
++
++bool omap_vout_dss_omap34xx(void)
++{
++	switch (omapdss_get_version()) {
++	case OMAPDSS_VER_OMAP34xx_ES1:
++	case OMAPDSS_VER_OMAP34xx_ES3:
++	case OMAPDSS_VER_OMAP3630:
++	case OMAPDSS_VER_AM35xx:
++		return true;
++	default:
++		return false;
++	}
++}
+diff --git a/drivers/media/platform/omap/omap_voutlib.h b/drivers/media/platform/omap/omap_voutlib.h
+index e51750a..f9d1c07 100644
+--- a/drivers/media/platform/omap/omap_voutlib.h
++++ b/drivers/media/platform/omap/omap_voutlib.h
+@@ -32,5 +32,8 @@ void omap_vout_new_format(struct v4l2_pix_format *pix,
+ 		struct v4l2_window *win);
+ unsigned long omap_vout_alloc_buffer(u32 buf_size, u32 *phys_addr);
+ void omap_vout_free_buffer(unsigned long virtaddr, u32 buf_size);
++
++bool omap_vout_dss_omap24xx(void);
++bool omap_vout_dss_omap34xx(void);
+ #endif	/* #ifndef OMAP_VOUTLIB_H */
  
 -- 
-1.7.9.5
+1.7.10.4
 
