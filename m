@@ -1,85 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:49241 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191Ab2KGGU2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2012 01:20:28 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MD300FQ8TM2NO70@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 07 Nov 2012 15:20:27 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MD300H33TKNGW50@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 07 Nov 2012 15:20:27 +0900 (KST)
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	shaik.samsung@gmail.com
-Subject: [PATCH] [media] exynos-gsc: propagate timestamps from src to dst
- buffers
-Date: Wed, 07 Nov 2012 12:10:24 +0530
-Message-id: <1352270424-14683-1-git-send-email-shaik.ameer@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:55812 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752657Ab2KLLfA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Nov 2012 06:35:00 -0500
+Message-ID: <50A0DED4.9010500@redhat.com>
+Date: Mon, 12 Nov 2012 09:34:44 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Richard <tuxbox.guru@gmail.com>
+CC: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Subject: Re: Skeleton LinuxDVB framework
+References: <CAKQROYViF1PhLNquiPOQAxRs4jnwHXg-kK2PBG3irTtnXpDCwg@mail.gmail.com> <000d01cdb886$d08f8ed0$71aeac70$@com> <20121102104734.04d708de@gaivota.chehab> <CAKQROYW6VAppdPFXT1vR0hE+jwZyq9hors2aGkAEW5=dEU0m+A@mail.gmail.com>
+In-Reply-To: <CAKQROYW6VAppdPFXT1vR0hE+jwZyq9hors2aGkAEW5=dEU0m+A@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make gsc-m2m propagate the timestamp field from source to destination
-buffers
+Hi Richard,
 
-Signed-off-by: John Sheu <sheu@google.com>
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
----
- drivers/media/platform/exynos-gsc/gsc-m2m.c |   19 ++++++++++++-------
- 1 files changed, 12 insertions(+), 7 deletions(-)
+Em 11-11-2012 07:25, Richard escreveu:
+> Hi Mauro (and others),
+>
+> The documentation shows userspace applications quite clearly, and they
+> are very easy - its the device driver that I would like to understand
+> and implement on a SoC. The 'Copy someone elses' idea will get me to
+> an end, but I have to convince my team of engineers/architects that
+> the LinuxDVB is the future; and currently I cannot find any
+> documentation on the .fops, calling conventions, execution order (what
+> is the dependency order of devices) and such.  I would like to promote
+> the understanding of the driver, and not blindly hack someone else's
+> creations. (Hacking code causes maintenance problems later on)
+> I am currently using a proprietary API that was developed originally
+> for NeucleusOS that works, and now would like to move to a Linux
+> standard type system. (Moving from a Working API to an unknown API is
+> a risk)
+>
+> Are there any architecture/API documentation on how the driver is
+> implemented, even pseudo-code would be useful. (Call is 'The Anatomy
+> of the DVB driver' if you will)
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-index 047f0f0..1139276 100644
---- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-@@ -99,22 +99,27 @@ static void gsc_m2m_job_abort(void *priv)
- 		gsc_m2m_job_finish(ctx, VB2_BUF_STATE_ERROR);
- }
- 
--static int gsc_fill_addr(struct gsc_ctx *ctx)
-+static int gsc_get_bufs(struct gsc_ctx *ctx)
- {
- 	struct gsc_frame *s_frame, *d_frame;
--	struct vb2_buffer *vb = NULL;
-+	struct vb2_buffer *src_vb, *dst_vb;
- 	int ret;
- 
- 	s_frame = &ctx->s_frame;
- 	d_frame = &ctx->d_frame;
- 
--	vb = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
--	ret = gsc_prepare_addr(ctx, vb, s_frame, &s_frame->addr);
-+	src_vb = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
-+	ret = gsc_prepare_addr(ctx, src_vb, s_frame, &s_frame->addr);
-+
-+	dst_vb = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
-+	ret |= gsc_prepare_addr(ctx, dst_vb, d_frame, &d_frame->addr);
- 	if (ret)
- 		return ret;
- 
--	vb = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
--	return gsc_prepare_addr(ctx, vb, d_frame, &d_frame->addr);
-+	memcpy(&dst_vb->v4l2_buf.timestamp, &src_vb->v4l2_buf.timestamp,
-+		sizeof(dst_vb->v4l2_buf.timestamp));
-+
-+	return 0;
- }
- 
- static void gsc_m2m_device_run(void *priv)
-@@ -148,7 +153,7 @@ static void gsc_m2m_device_run(void *priv)
- 		goto put_device;
- 	}
- 
--	ret = gsc_fill_addr(ctx);
-+	ret = gsc_get_bufs(ctx);
- 	if (ret) {
- 		pr_err("Wrong address");
- 		goto put_device;
--- 
-1.7.0.4
+I see. AFAIKT, you won't find any such documentation for the current
+API. The thing is that some userspace developers believe that the better
+documentation is the open sourced code, and that they also prefer to
+code than to write documentation.
 
+There is, however, some recent description for the dvb-usb-v2 API,
+sent to the mailing list (Antti: it makes sense to put the very latest
+version under Documentation/dvb).
+
+So, until very recently, we were still fighting to synchronize the
+userspace API with the code, as there used to have lots of discrepancy
+there. The V4L2 API is a little ahead, in terms of documentation, as
+we started to document the internal API a few years ago (at
+Documentation/video4linux/v4l2-framework.txt). Also, a lwn.net article
+covered several aspects of it.
+
+Yet, there aren't many places where you need to take a look to see how
+the DVB core works:
+
+$ ls -la drivers/media/dvb-core/*.[ch]
+-rw-rw-r-- 1 v4l v4l  8791 Out  6 09:14 drivers/media/dvb-core/demux.h
+-rw-rw-r-- 1 v4l v4l 30946 Out 29 09:46 drivers/media/dvb-core/dmxdev.c
+-rw-rw-r-- 1 v4l v4l  2592 Out 25 16:12 drivers/media/dvb-core/dmxdev.h
+-rw-rw-r-- 1 v4l v4l 45886 Out  6 09:14 drivers/media/dvb-core/dvb_ca_en50221.c
+-rw-rw-r-- 1 v4l v4l  4082 Out  6 09:14 drivers/media/dvb-core/dvb_ca_en50221.h
+-rw-rw-r-- 1 v4l v4l 32288 Out 27 16:15 drivers/media/dvb-core/dvb_demux.c
+-rw-rw-r-- 1 v4l v4l  3811 Out  6 09:14 drivers/media/dvb-core/dvb_demux.h
+-rw-rw-r-- 1 v4l v4l 11848 Out  6 09:14 drivers/media/dvb-core/dvbdev.c
+-rw-rw-r-- 1 v4l v4l  4089 Out  6 09:14 drivers/media/dvb-core/dvbdev.h
+-rw-rw-r-- 1 v4l v4l 12922 Out  6 09:14 drivers/media/dvb-core/dvb_filter.c
+-rw-rw-r-- 1 v4l v4l  6064 Out  6 09:14 drivers/media/dvb-core/dvb_filter.h
+-rw-rw-r-- 1 v4l v4l 71891 Out 29 09:46 drivers/media/dvb-core/dvb_frontend.c
+-rw-rw-r-- 1 v4l v4l 12634 Out 17 09:58 drivers/media/dvb-core/dvb_frontend.h
+-rw-rw-r-- 1 v4l v4l  5423 Out  6 09:14 drivers/media/dvb-core/dvb_math.c
+-rw-rw-r-- 1 v4l v4l  1974 Out  6 09:14 drivers/media/dvb-core/dvb_math.h
+-rw-rw-r-- 1 v4l v4l 42937 Out 27 16:14 drivers/media/dvb-core/dvb_net.c
+-rw-rw-r-- 1 v4l v4l  1686 Out 27 16:14 drivers/media/dvb-core/dvb_net.h
+-rw-rw-r-- 1 v4l v4l  7225 Out  6 09:14 drivers/media/dvb-core/dvb_ringbuffer.c
+-rw-rw-r-- 1 v4l v4l  6340 Out  6 09:14 drivers/media/dvb-core/dvb_ringbuffer.h
+-rw-rw-r-- 1 v4l v4l 15385 Out  6 09:14 drivers/media/dvb-core/dvb-usb-ids.h
+
+The DVB core is typically a way better any proprietary DVB stack. The
+maturity of the code is warranted by having probably the largest developers
+community inspecting it and fixing bugs.
+
+For example, as the code is part of the upstream Kernel, the team of Kernel
+janitors are always looking into the code and fixing issues there. Also,
+when some internal Linux API got changed or fixed, the one that does such
+changes also apply the fixes at the DVB stack, making it properly integrated
+into the Kernel.
+
+As you likely know, the way Linux development works is that interested
+people submit us patches with the things they're working. Others will review
+the submission, asking for corrections, when needed. When everything is ok,
+I merge the stuff and send it upstream. That applies to documentation too.
+
+So, if you're willing to work on writing some documentation for the DVB
+stack, feel free to submit us documentation patches. We can then review
+and eventually fix it if we found anything wrong or imprecisely described.
+
+Regards,
+Mauro
