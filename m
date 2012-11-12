@@ -1,516 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.mnsspb.ru ([84.204.75.2]:34795 "EHLO mail.mnsspb.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751245Ab2KLIMO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Nov 2012 03:12:14 -0500
-Date: Mon, 12 Nov 2012 12:12:58 +0400
-From: Kirill Smelkov <kirr@mns.spb.ru>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v4] [media] vivi: Teach it to tune FPS
-Message-ID: <20121112081258.GA4809@tugrik.mns.mnsspb.ru>
-References: <1350914084-31618-1-git-send-email-kirr@mns.spb.ru>
- <201210230840.04382.hverkuil@xs4all.nl>
- <20121023133521.GA2965@tugrik.mns.mnsspb.ru>
- <201211021542.21944.hverkuil@xs4all.nl>
- <20121107113001.GA3097@tugrik.mns.mnsspb.ru>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20121107113001.GA3097@tugrik.mns.mnsspb.ru>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:25357 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751283Ab2KLPvU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Nov 2012 10:51:20 -0500
+Received: from eusync4.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MDD00EDWTEDB720@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 Nov 2012 15:51:49 +0000 (GMT)
+Received: from AMDN910 ([106.116.147.102])
+ by eusync4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MDD006BATDB2Z20@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 Nov 2012 15:51:17 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Arun Kumar K' <arunkk.samsung@gmail.com>
+Cc: linux-media@vger.kernel.org, jtp.park@samsung.com,
+	arun.kk@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'sunil joshi' <joshi@samsung.com>
+References: <1351088137-11472-1-git-send-email-k.debski@samsung.com>
+ <1351088137-11472-4-git-send-email-k.debski@samsung.com>
+ <CALt3h7_2k0W6ZutaPFn=L0pQVALD9OtrS1m=Bjw-Zn0Q3q05Ww@mail.gmail.com>
+In-reply-to: <CALt3h7_2k0W6ZutaPFn=L0pQVALD9OtrS1m=Bjw-Zn0Q3q05Ww@mail.gmail.com>
+Subject: RE: [PATCH 4/4] s5p-mfc: Change internal buffer allocation from vb2
+ ops to dma_alloc_coherent
+Date: Mon, 12 Nov 2012 16:51:11 +0100
+Message-id: <000001cdc0ed$8b727a50$a2576ef0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 07, 2012 at 03:30:01PM +0400, Kirill Smelkov wrote:
-> On Fri, Nov 02, 2012 at 03:42:21PM +0100, Hans Verkuil wrote:
-> > Thanks for the ping, I forgot about this patch...
-> 
-> Thanks for feedback and for waiting. I'm here again...
-> 
-> 
-> > On Tue October 23 2012 15:35:21 Kirill Smelkov wrote:
-> > > On Tue, Oct 23, 2012 at 08:40:04AM +0200, Hans Verkuil wrote:
-> > > > On Mon October 22 2012 19:01:40 Kirill Smelkov wrote:
-> > > > > On Mon, Oct 22, 2012 at 04:16:14PM +0200, Hans Verkuil wrote:
-> > > > > > On Mon October 22 2012 15:54:44 Kirill Smelkov wrote:
-> > > > > > > I was testing my video-over-ethernet subsystem today, and vivi seemed to
-> > > > > > > be perfect video source for testing when one don't have lots of capture
-> > > > > > > boards and cameras. Only its framerate was hardcoded to NTSC's 30fps,
-> > > > > > > while in my country we usually use PAL (25 fps). That's why the patch.
-> > > > > > > Thanks.
-> > > > > > 
-> > > > > > Rather than introducing a module option, it's much nicer if you can
-> > > > > > implement enum_frameintervals and g/s_parm. This can be made quite flexible
-> > > > > > allowing you to also support 50/59.94/60 fps.
-> > > > > 
-> > > > > Thanks for feedback. I've reworked the patch for FPS to be set via
-> > > > > ->{g,s}_parm(), and yes now it is more flexble, because one can set
-> > > > > different FPS on different vivi devices. Only I don't know V4L2 ioctls
-> > > > > details well enough and various drivers do things differently. The patch
-> > > > > is below. Is it ok?
-> > > > 
-> > > > Close, but it's not quite there.
-> > > > 
-> > > > You should run the v4l2-compliance tool from the v4l-utils.git repository
-> > > > (take the master branch). That will report any errors in your implementation.
-> > > > 
-> > > > In this case g/s_parm doesn't set readbuffers (set it to 1) and if timeperframe
-> > > > equals { 0, 0 }, then you should get a nominal framerate (let's stick to 29.97
-> > > > for that). I would set the nominal framerate whenever the denominator == 0.
-> > > > 
-> > > > For vidioc_enum_frameintervals you need to check the IN fields and fill in the
-> > > > stepwise struct.
-> > > 
-> > > Thanks for pointers and info about v4l2-compliance handy-tool. I've
-> > > tried to correct all the issues you mentioned above and here is the
-> > > patch.
-> > > 
-> > > (Only requirement to set stepwise.step to 1.0 for
-> > >  V4L2_FRMIVAL_TYPE_CONTINUOUS seems a bit illogical to me, but anyway,
-> > >  that's what the V4L2 spec requires...)
-> > > 
-> > > Thanks,
-> > > Kirill
-> > > 
-> > > ---- 8< ----
-> > > From: Kirill Smelkov <kirr@mns.spb.ru>
-> > > Date: Tue, 23 Oct 2012 16:56:59 +0400
-> > > Subject: [PATCH v3] [media] vivi: Teach it to tune FPS
-> > > 
-> > > I was testing my video-over-ethernet subsystem yesterday, and vivi
-> > > seemed to be perfect video source for testing when one don't have lots
-> > > of capture boards and cameras. Only its framerate was hardcoded to
-> > > NTSC's 30fps, while in my country we usually use PAL (25 fps) and I
-> > > needed that to precisely simulate bandwidth.
-> > > 
-> > > That's why here is this patch with ->enum_frameintervals() and
-> > > ->{g,s}_parm() implemented as suggested by Hans Verkuil which passes
-> > > v4l2-compliance and manual testing through v4l2-ctl -P / -p <fps>.
-> > > 
-> > > Regarding newly introduced __get_format(u32 pixelformat) I decided not
-> > > to convert original get_format() to operate on fourcc codes, since >= 3
-> > > places in driver need to deal with v4l2_format and otherwise it won't be
-> > > handy.
-> > > 
-> > > Thanks.
-> > > 
-> > > Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
-> > > ---
-> > >  drivers/media/platform/vivi.c | 84 ++++++++++++++++++++++++++++++++++++++-----
-> > >  1 file changed, 75 insertions(+), 9 deletions(-)
-> > > 
-> > > V3:
-> > >     - corrected issues with V4L2 spec compliance as pointed by Hans
-> > >       Verkuil.
-> > > 
-> > > V2:
-> > > 
-> > >     - reworked FPS setting from module param to via ->{g,s}_parm() as suggested
-> > >       by Hans Verkuil.
-> > > 
-> > > 
-> > > diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-> > > index 3e6902a..3adea58 100644
-> > > --- a/drivers/media/platform/vivi.c
-> > > +++ b/drivers/media/platform/vivi.c
-> > > @@ -36,10 +36,6 @@
-> > >  
-> > >  #define VIVI_MODULE_NAME "vivi"
-> > >  
-> > > -/* Wake up at about 30 fps */
-> > > -#define WAKE_NUMERATOR 30
-> > > -#define WAKE_DENOMINATOR 1001
-> > > -
-> > >  #define MAX_WIDTH 1920
-> > >  #define MAX_HEIGHT 1200
-> > >  
-> > > @@ -69,6 +65,9 @@ MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
-> > >  /* Global font descriptor */
-> > >  static const u8 *font8x16;
-> > >  
-> > > +/* default to NTSC timeperframe */
-> > > +static const struct v4l2_fract TPF_DEFAULT = {.numerator = 1001, .denominator = 30000};
-> > 
-> > Keep the name lower case: tpf_default. Upper case is for defines only.
-> 
-> ok
-> 
-> [...]
-> 
-> > > @@ -1049,6 +1054,63 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
-> > >  	return 0;
-> > >  }
-> > >  
-> > > +/* timeperframe is arbitrary and continous */
-> > > +static int vidioc_enum_frameintervals(struct file *file, void *priv,
-> > > +					     struct v4l2_frmivalenum *fival)
-> > > +{
-> > > +	struct vivi_fmt *fmt;
-> > > +
-> > > +	if (fival->index)
-> > > +		return -EINVAL;
-> > > +
-> > > +	fmt = __get_format(fival->pixel_format);
-> > > +	if (!fmt)
-> > > +		return -EINVAL;
-> > > +
-> > > +	/* regarding width width & height - we support any */
-> > > +
-> > > +	fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
-> > > +
-> > > +	/* fill in stepwise as required by V4L2 spec, i.e.
-> > > +	 *
-> > > +	 * min <= (step = 1.0) <= max
-> > > +	 */
-> > > +	fival->stepwise.step = (struct v4l2_fract) {1, 1};
-> > > +	fival->stepwise.min  = (struct v4l2_fract) {1, 1};
-> > > +	fival->stepwise.max  = (struct v4l2_fract) {2, 1};
-> > 
-> > Shouldn't max for {60, 1} or perhaps even {120, 1} if you want to be able to test 120 Hz
-> > framerates? {2, 1} is 2 fps, which is a bit low :-)
-> 
->  [ see below ... ]
-> 
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +static int vidioc_g_parm(struct file *file, void *priv, struct v4l2_streamparm *parm)
-> > > +{
-> > > +	struct vivi_dev *dev = video_drvdata(file);
-> > > +
-> > > +	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> > > +		return -EINVAL;
-> > > +
-> > > +	parm->parm.capture.capability   = V4L2_CAP_TIMEPERFRAME;
-> > > +	parm->parm.capture.timeperframe = dev->timeperframe;
-> > > +	parm->parm.capture.readbuffers  = 1;
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +static int vidioc_s_parm(struct file *file, void *priv, struct v4l2_streamparm *parm)
-> > > +{
-> > > +	struct vivi_dev *dev = video_drvdata(file);
-> > > +
-> > > +	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> > > +		return -EINVAL;
-> > > +
-> > > +	dev->timeperframe = parm->parm.capture.timeperframe.denominator ?
-> > 
-> > This should check that the fps is between the min and max values as reported by
-> > vidioc_enum_frameintervals(). Fall back to the default if the values are out of
-> > range.
-> 
-> {2, 1} is 0.5 fps and {120, 1} is 1/120 fps :) but anyway, why should we
-> set that artificial limits here?
-> 
-> Thanks for catching the actual bug, but I propose we set min=1/infty and
-> max=infty so that the user chooses which tpf/fps he/she needs, be it
-> 9000 fps or 1 frame per hour. And imho it's better to clip the value,
-> than to fallback to default (but we still reset it if */0 is coming from
-> userspace).
-> 
-> Said all that, here is the interdiff and updated patch.
-> 
-> Thanks,
-> Kirill
-> 
-> diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-> index 37d0af8..5d1b374 100644
-> --- a/drivers/media/platform/vivi.c
-> +++ b/drivers/media/platform/vivi.c
-> @@ -65,8 +65,11 @@ MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
->  /* Global font descriptor */
->  static const u8 *font8x16;
->  
-> -/* default to NTSC timeperframe */
-> -static const struct v4l2_fract TPF_DEFAULT = {.numerator = 1001, .denominator = 30000};
-> +/* timeperframe: min/max and default */
-> +static const struct v4l2_fract
-> +	tpf_min     = {.numerator = 1,		.denominator = UINT_MAX},  /* 1/infty */
-> +	tpf_max     = {.numerator = UINT_MAX,	.denominator = 1},         /* infty */
-> +	tpf_default = {.numerator = 1001,	.denominator = 30000};     /* NTSC */
->  
->  #define dprintk(dev, level, fmt, arg...) \
->  	v4l2_dbg(level, debug, &dev->v4l2_dev, fmt, ## arg)
-> @@ -1098,17 +1101,14 @@ static int vidioc_enum_frameintervals(struct file *file, void *priv,
->  	if (!fmt)
->  		return -EINVAL;
->  
-> -	/* regarding width width & height - we support any */
-> +	/* regarding width & height - we support any */
->  
->  	fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
->  
-> -	/* fill in stepwise as required by V4L2 spec, i.e.
-> -	 *
-> -	 * min <= (step = 1.0) <= max
-> -	 */
-> +	/* fill in stepwise (step=1.0 is requred by V4L2 spec) */
-> +	fival->stepwise.min  = tpf_min;
-> +	fival->stepwise.max  = tpf_max;
->  	fival->stepwise.step = (struct v4l2_fract) {1, 1};
-> -	fival->stepwise.min  = (struct v4l2_fract) {1, 1};
-> -	fival->stepwise.max  = (struct v4l2_fract) {2, 1};
->  
->  	return 0;
->  }
-> @@ -1126,18 +1126,26 @@ static int vidioc_g_parm(struct file *file, void *priv, struct v4l2_streamparm *
->  	return 0;
->  }
->  
-> +#define FRACT_CMP(a, OP, b)	\
-> +	( (u64)(a).numerator * (b).denominator  OP  (u64)(b).numerator * (a).denominator )
-> +
->  static int vidioc_s_parm(struct file *file, void *priv, struct v4l2_streamparm *parm)
->  {
->  	struct vivi_dev *dev = video_drvdata(file);
-> +	struct v4l2_fract tpf;
->  
->  	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->  		return -EINVAL;
->  
-> -	dev->timeperframe = parm->parm.capture.timeperframe.denominator ?
-> -		parm->parm.capture.timeperframe :
-> -		TPF_DEFAULT;	/* {*, 0} resets timing */
-> +	tpf = parm->parm.capture.timeperframe;
->  
-> -	parm->parm.capture.timeperframe = dev->timeperframe;
-> +	/* tpf: {*, 0} resets timing; clip to [min, max]*/
-> +	tpf = tpf.denominator ? tpf : tpf_default;
-> +	tpf = FRACT_CMP(tpf, <, tpf_min) ? tpf_min : tpf;
-> +	tpf = FRACT_CMP(tpf, >, tpf_max) ? tpf_max : tpf;
-> +
-> +	dev->timeperframe = tpf;
-> +	parm->parm.capture.timeperframe = tpf;
->  	parm->parm.capture.readbuffers  = 1;
->  	return 0;
->  }
-> @@ -1361,7 +1369,7 @@ static int __init vivi_create_instance(int inst)
->  		goto free_dev;
->  
->  	dev->fmt = &formats[0];
-> -	dev->timeperframe = TPF_DEFAULT;
-> +	dev->timeperframe = tpf_default;
->  	dev->width = 640;
->  	dev->height = 480;
->  	dev->pixelsize = dev->fmt->depth / 8;
-> 
-> 
-> 
-> ---- 8< ----
-> From: Kirill Smelkov <kirr@mns.spb.ru>
-> Date: Tue, 23 Oct 2012 16:56:59 +0400
-> Subject: [PATCH v4] [media] vivi: Teach it to tune FPS
-> 
-> I was testing my video-over-ethernet subsystem recently, and vivi
-> seemed to be perfect video source for testing when one don't have lots
-> of capture boards and cameras. Only its framerate was hardcoded to
-> NTSC's 30fps, while in my country we usually use PAL (25 fps) and I
-> needed that to precisely simulate bandwidth.
-> 
-> That's why here is this patch with ->enum_frameintervals() and
-> ->{g,s}_parm() implemented as suggested by Hans Verkuil which passes
-> v4l2-compliance and manual testing through v4l2-ctl -P / -p <fps>.
-> 
-> Regarding newly introduced __get_format(u32 pixelformat) I decided not
-> to convert original get_format() to operate on fourcc codes, since >= 3
-> places in driver need to deal with v4l2_format and otherwise it won't be
-> handy.
-> 
-> Thanks.
-> 
-> Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
-> ---
->  drivers/media/platform/vivi.c | 92 ++++++++++++++++++++++++++++++++++++++-----
->  1 file changed, 83 insertions(+), 9 deletions(-)
-> 
-> V4:
->     - corrected fival->stepwise setting and added its check to s_parm();
->       also cosmetics - all as per Hans Verkuil review.
-> 
-> V3:
->     - corrected issues with V4L2 spec compliance as pointed by Hans
->       Verkuil.
-> 
-> V2:
-> 
->     - reworked FPS setting from module param to via ->{g,s}_parm() as suggested
->       by Hans Verkuil.
-> 
-> 
-> diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-> index 6e6dd25..5d1b374 100644
-> --- a/drivers/media/platform/vivi.c
-> +++ b/drivers/media/platform/vivi.c
-> @@ -36,10 +36,6 @@
->  
->  #define VIVI_MODULE_NAME "vivi"
->  
-> -/* Wake up at about 30 fps */
-> -#define WAKE_NUMERATOR 30
-> -#define WAKE_DENOMINATOR 1001
-> -
->  #define MAX_WIDTH 1920
->  #define MAX_HEIGHT 1200
->  
-> @@ -69,6 +65,12 @@ MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
->  /* Global font descriptor */
->  static const u8 *font8x16;
->  
-> +/* timeperframe: min/max and default */
-> +static const struct v4l2_fract
-> +	tpf_min     = {.numerator = 1,		.denominator = UINT_MAX},  /* 1/infty */
-> +	tpf_max     = {.numerator = UINT_MAX,	.denominator = 1},         /* infty */
-> +	tpf_default = {.numerator = 1001,	.denominator = 30000};     /* NTSC */
-> +
->  #define dprintk(dev, level, fmt, arg...) \
->  	v4l2_dbg(level, debug, &dev->v4l2_dev, fmt, ## arg)
->  
-> @@ -150,14 +152,14 @@ static struct vivi_fmt formats[] = {
->  	},
->  };
->  
-> -static struct vivi_fmt *get_format(struct v4l2_format *f)
-> +static struct vivi_fmt *__get_format(u32 pixelformat)
->  {
->  	struct vivi_fmt *fmt;
->  	unsigned int k;
->  
->  	for (k = 0; k < ARRAY_SIZE(formats); k++) {
->  		fmt = &formats[k];
-> -		if (fmt->fourcc == f->fmt.pix.pixelformat)
-> +		if (fmt->fourcc == pixelformat)
->  			break;
->  	}
->  
-> @@ -167,6 +169,11 @@ static struct vivi_fmt *get_format(struct v4l2_format *f)
->  	return &formats[k];
->  }
->  
-> +static struct vivi_fmt *get_format(struct v4l2_format *f)
-> +{
-> +	return __get_format(f->fmt.pix.pixelformat);
-> +}
-> +
->  /* buffer for one video frame */
->  struct vivi_buffer {
->  	/* common v4l buffer stuff -- must be first */
-> @@ -232,6 +239,7 @@ struct vivi_dev {
->  
->  	/* video capture */
->  	struct vivi_fmt            *fmt;
-> +	struct v4l2_fract          timeperframe;
->  	unsigned int               width, height;
->  	struct vb2_queue	   vb_vidq;
->  	unsigned int		   field_count;
-> @@ -691,8 +699,8 @@ static void vivi_thread_tick(struct vivi_dev *dev)
->  	dprintk(dev, 2, "[%p/%d] done\n", buf, buf->vb.v4l2_buf.index);
->  }
->  
-> -#define frames_to_ms(frames)					\
-> -	((frames * WAKE_NUMERATOR * 1000) / WAKE_DENOMINATOR)
-> +#define frames_to_ms(dev, frames)				\
-> +	((frames * dev->timeperframe.numerator * 1000) / dev->timeperframe.denominator)
->  
->  static void vivi_sleep(struct vivi_dev *dev)
->  {
-> @@ -708,7 +716,7 @@ static void vivi_sleep(struct vivi_dev *dev)
->  		goto stop_task;
->  
->  	/* Calculate time to wake up */
-> -	timeout = msecs_to_jiffies(frames_to_ms(1));
-> +	timeout = msecs_to_jiffies(frames_to_ms(dev, 1));
->  
->  	vivi_thread_tick(dev);
->  
-> @@ -1080,6 +1088,68 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
->  	return 0;
->  }
->  
-> +/* timeperframe is arbitrary and continous */
-> +static int vidioc_enum_frameintervals(struct file *file, void *priv,
-> +					     struct v4l2_frmivalenum *fival)
-> +{
-> +	struct vivi_fmt *fmt;
-> +
-> +	if (fival->index)
-> +		return -EINVAL;
-> +
-> +	fmt = __get_format(fival->pixel_format);
-> +	if (!fmt)
-> +		return -EINVAL;
-> +
-> +	/* regarding width & height - we support any */
-> +
-> +	fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
-> +
-> +	/* fill in stepwise (step=1.0 is requred by V4L2 spec) */
-> +	fival->stepwise.min  = tpf_min;
-> +	fival->stepwise.max  = tpf_max;
-> +	fival->stepwise.step = (struct v4l2_fract) {1, 1};
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidioc_g_parm(struct file *file, void *priv, struct v4l2_streamparm *parm)
-> +{
-> +	struct vivi_dev *dev = video_drvdata(file);
-> +
-> +	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;
-> +
-> +	parm->parm.capture.capability   = V4L2_CAP_TIMEPERFRAME;
-> +	parm->parm.capture.timeperframe = dev->timeperframe;
-> +	parm->parm.capture.readbuffers  = 1;
-> +	return 0;
-> +}
-> +
-> +#define FRACT_CMP(a, OP, b)	\
-> +	( (u64)(a).numerator * (b).denominator  OP  (u64)(b).numerator * (a).denominator )
-> +
-> +static int vidioc_s_parm(struct file *file, void *priv, struct v4l2_streamparm *parm)
-> +{
-> +	struct vivi_dev *dev = video_drvdata(file);
-> +	struct v4l2_fract tpf;
-> +
-> +	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;
-> +
-> +	tpf = parm->parm.capture.timeperframe;
-> +
-> +	/* tpf: {*, 0} resets timing; clip to [min, max]*/
-> +	tpf = tpf.denominator ? tpf : tpf_default;
-> +	tpf = FRACT_CMP(tpf, <, tpf_min) ? tpf_min : tpf;
-> +	tpf = FRACT_CMP(tpf, >, tpf_max) ? tpf_max : tpf;
-> +
-> +	dev->timeperframe = tpf;
-> +	parm->parm.capture.timeperframe = tpf;
-> +	parm->parm.capture.readbuffers  = 1;
-> +	return 0;
-> +}
-> +
->  /* --- controls ---------------------------------------------- */
->  
->  static int vivi_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
-> @@ -1238,6 +1308,9 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
->  	.vidioc_enum_input    = vidioc_enum_input,
->  	.vidioc_g_input       = vidioc_g_input,
->  	.vidioc_s_input       = vidioc_s_input,
-> +	.vidioc_enum_frameintervals = vidioc_enum_frameintervals,
-> +	.vidioc_g_parm        = vidioc_g_parm,
-> +	.vidioc_s_parm        = vidioc_s_parm,
->  	.vidioc_streamon      = vb2_ioctl_streamon,
->  	.vidioc_streamoff     = vb2_ioctl_streamoff,
->  	.vidioc_log_status    = v4l2_ctrl_log_status,
-> @@ -1296,6 +1369,7 @@ static int __init vivi_create_instance(int inst)
->  		goto free_dev;
->  
->  	dev->fmt = &formats[0];
-> +	dev->timeperframe = tpf_default;
->  	dev->width = 640;
->  	dev->height = 480;
->  	dev->pixelsize = dev->fmt->depth / 8;
+Hi Arun, 
 
-Ping. Is maybe something stupid on my side?
+Thank you very much for this bug report. This is indeed a mistake on my
+side. I will prepare a patch to fix it.
+
+Best wishes,
+-- 
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
+> From: Arun Kumar K [mailto:arunkk.samsung@gmail.com]
+> Sent: Saturday, November 03, 2012 10:21 AM
+> 
+> Hi Kamil,
+> 
+> I found an issue while testing this patch on Exynos4.
+> 
+> 
+> On Wed, Oct 24, 2012 at 7:45 PM, Kamil Debski <k.debski@samsung.com>
+> wrote:
+> > Change internal buffer allocation from vb2 memory ops call to direct
+> > calls of dma_alloc_coherent. This change shortens the code and makes
+> > it much more readable.
+> >
+> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > ---
+> >  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |   20 +--
+> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr.c    |   30 ++++
+> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |    5 +
+> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |  198
+> > ++++++++---------------
+> > drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |  121 +++++---------
+> >  5 files changed, 144 insertions(+), 230 deletions(-)
+> >
+> 
+> [snip]
+> 
+> >  /* Allocate memory for instance data buffer */ @@ -233,58 +204,38 @@
+> > int s5p_mfc_alloc_instance_buffer_v5(struct s5p_mfc_ctx *ctx)  {
+> >         struct s5p_mfc_dev *dev = ctx->dev;
+> >         struct s5p_mfc_buf_size_v5 *buf_size =
+> > dev->variant->buf_size->priv;
+> > +       int ret;
+> >
+> >         if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
+> >                 ctx->codec_mode == S5P_MFC_CODEC_H264_ENC)
+> >                 ctx->ctx.size = buf_size->h264_ctx;
+> >         else
+> >                 ctx->ctx.size = buf_size->non_h264_ctx;
+> > -       ctx->ctx.alloc = vb2_dma_contig_memops.alloc(
+> > -               dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->ctx.size);
+> > -       if (IS_ERR(ctx->ctx.alloc)) {
+> > -               mfc_err("Allocating context buffer failed\n");
+> > -               ctx->ctx.alloc = NULL;
+> > -               return -ENOMEM;
+> > -       }
+> > -       ctx->ctx.dma = s5p_mfc_mem_cookie(
+> > -               dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->ctx.alloc);
+> > -       BUG_ON(ctx->ctx.dma & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
+> > -       ctx->ctx.ofs = OFFSETA(ctx->ctx.dma);
+> > -       ctx->ctx.virt = vb2_dma_contig_memops.vaddr(ctx->ctx.alloc);
+> > -       if (!ctx->ctx.virt) {
+> > -               mfc_err("Remapping instance buffer failed\n");
+> > -               vb2_dma_contig_memops.put(ctx->ctx.alloc);
+> > -               ctx->ctx.alloc = NULL;
+> > -               ctx->ctx.ofs = 0;
+> > -               ctx->ctx.dma = 0;
+> > -               return -ENOMEM;
+> > +
+> > +       ret = s5p_mfc_alloc_priv_buf(dev->mem_dev_l, &ctx->ctx);
+> > +       if (ret) {
+> > +               mfc_err("Failed to allocate instance buffer\n");
+> > +               return ret;
+> >         }
+> > +       ctx->ctx.ofs = ctx->ctx.dma - dev->bank1;
+> > +
+> 
+> Here the original code does  ctx->ctx.ofs = OFFSETA(ctx->ctx.dma); The
+> macro OFFSETA also does a right shift of MFC_OFFSET_SHIFT.
+> Without this change, the decoding is not working on Exynos4.
+> 
+> 
+> >         /* Zero content of the allocated memory */
+> >         memset(ctx->ctx.virt, 0, ctx->ctx.size);
+> >         wmb();
+> >
+> 
+> 
+> All these patches are working well on Exynos5.
+> 
+> Regards
+> Arun
+
+
