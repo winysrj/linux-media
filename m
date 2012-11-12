@@ -1,114 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:55270 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422644Ab2KNLoR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Nov 2012 06:44:17 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: [PATCH v9 5/6] drm_modes: add videomode helpers
-Date: Wed, 14 Nov 2012 12:43:22 +0100
-Message-Id: <1352893403-21168-6-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1352893403-21168-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1352893403-21168-1-git-send-email-s.trumtrar@pengutronix.de>
+Received: from mail.mnsspb.ru ([84.204.75.2]:60112 "EHLO mail.mnsspb.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751365Ab2KLKob (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Nov 2012 05:44:31 -0500
+Date: Mon, 12 Nov 2012 14:45:19 +0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v4] [media] vivi: Teach it to tune FPS
+Message-ID: <20121112104519.GA2803@tugrik.mns.mnsspb.ru>
+References: <1350914084-31618-1-git-send-email-kirr@mns.spb.ru>
+ <20121107113001.GA3097@tugrik.mns.mnsspb.ru>
+ <20121112081258.GA4809@tugrik.mns.mnsspb.ru>
+ <201211121046.26430.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201211121046.26430.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add conversion from videomode to drm_display_mode
+On Mon, Nov 12, 2012 at 10:46:26AM +0100, Hans Verkuil wrote:
+> On Mon 12 November 2012 09:12:58 Kirill Smelkov wrote:
+> 
+> > Ping. Is maybe something stupid on my side?
+> > 
+> 
+> No, I've been abroad and haven't had time to look at it. I want to do that
+> this week. Ping me again if you haven't heard from me by Saturday.
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
----
- drivers/gpu/drm/drm_modes.c |   36 ++++++++++++++++++++++++++++++++++++
- include/drm/drmP.h          |    6 ++++++
- 2 files changed, 42 insertions(+)
-
-diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
-index 59450f3..42ea099 100644
---- a/drivers/gpu/drm/drm_modes.c
-+++ b/drivers/gpu/drm/drm_modes.c
-@@ -35,6 +35,7 @@
- #include <linux/export.h>
- #include <drm/drmP.h>
- #include <drm/drm_crtc.h>
-+#include <linux/videomode.h>
- 
- /**
-  * drm_mode_debug_printmodeline - debug print a mode
-@@ -504,6 +505,41 @@ drm_gtf_mode(struct drm_device *dev, int hdisplay, int vdisplay, int vrefresh,
- }
- EXPORT_SYMBOL(drm_gtf_mode);
- 
-+#if IS_ENABLED(CONFIG_VIDEOMODE)
-+int display_mode_from_videomode(struct videomode *vm, struct drm_display_mode *dmode)
-+{
-+	dmode->hdisplay = vm->hactive;
-+	dmode->hsync_start = dmode->hdisplay + vm->hfront_porch;
-+	dmode->hsync_end = dmode->hsync_start + vm->hsync_len;
-+	dmode->htotal = dmode->hsync_end + vm->hback_porch;
-+
-+	dmode->vdisplay = vm->vactive;
-+	dmode->vsync_start = dmode->vdisplay + vm->vfront_porch;
-+	dmode->vsync_end = dmode->vsync_start + vm->vsync_len;
-+	dmode->vtotal = dmode->vsync_end + vm->vback_porch;
-+
-+	dmode->clock = vm->pixelclock / 1000;
-+
-+	dmode->flags = 0;
-+	if (vm->hah)
-+		dmode->flags |= DRM_MODE_FLAG_PHSYNC;
-+	else
-+		dmode->flags |= DRM_MODE_FLAG_NHSYNC;
-+	if (vm->vah)
-+		dmode->flags |= DRM_MODE_FLAG_PVSYNC;
-+	else
-+		dmode->flags |= DRM_MODE_FLAG_NVSYNC;
-+	if (vm->interlaced)
-+		dmode->flags |= DRM_MODE_FLAG_INTERLACE;
-+	if (vm->doublescan)
-+		dmode->flags |= DRM_MODE_FLAG_DBLSCAN;
-+	drm_mode_set_name(dmode);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(display_mode_from_videomode);
-+#endif
-+
- /**
-  * drm_mode_set_name - set the name on a mode
-  * @mode: name will be set in this mode
-diff --git a/include/drm/drmP.h b/include/drm/drmP.h
-index 3fd8280..1e0d846 100644
---- a/include/drm/drmP.h
-+++ b/include/drm/drmP.h
-@@ -56,6 +56,7 @@
- #include <linux/cdev.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
-+#include <linux/videomode.h>
- #if defined(__alpha__) || defined(__powerpc__)
- #include <asm/pgtable.h>	/* For pte_wrprotect */
- #endif
-@@ -1454,6 +1455,11 @@ extern struct drm_display_mode *
- drm_mode_create_from_cmdline_mode(struct drm_device *dev,
- 				  struct drm_cmdline_mode *cmd);
- 
-+#if IS_ENABLED(CONFIG_VIDEOMODE)
-+extern int display_mode_from_videomode(struct videomode *vm,
-+				       struct drm_display_mode *dmode);
-+#endif
-+
- /* Modesetting support */
- extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
- extern void drm_vblank_post_modeset(struct drm_device *dev, int crtc);
--- 
-1.7.10.4
-
+Thanks for feedback. ok.
