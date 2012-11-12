@@ -1,48 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2730 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755945Ab2KWL0H (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:36008 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751484Ab2K0XM5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 06:26:07 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 27 Nov 2012 18:12:57 -0500
+Received: by mail-lb0-f174.google.com with SMTP id gi11so7119380lbb.19
+        for <linux-media@vger.kernel.org>; Tue, 27 Nov 2012 15:12:56 -0800 (PST)
+Message-ID: <1352703452.5567.21.camel@linux>
+Subject: [patch 03/03 v2] MAINTAINERS: add entry for radio-ma901 driver
+From: Alexey Klimov <klimov.linux@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 04/15] MAINTAINERS: add radio-keene entry.
-Date: Fri, 23 Nov 2012 12:25:45 +0100
-Message-Id: <6e38edc3af7cb06430b49d69b3e3830e6a0bdd35.1353669806.git.hans.verkuil@cisco.com>
-In-Reply-To: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
-References: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <7fb3123c4bf43540c13505c82c408fa492cdd48c.1353669806.git.hans.verkuil@cisco.com>
-References: <7fb3123c4bf43540c13505c82c408fa492cdd48c.1353669806.git.hans.verkuil@cisco.com>
+Date: Mon, 12 Nov 2012 07:57:32 +0100
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch adds MAINTAINERS entry for radio-ma901 usb radio driver.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- MAINTAINERS |    8 ++++++++
- 1 file changed, 8 insertions(+)
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 5d5462d..95f1181 100644
+index b623679..a36b29c 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -4275,6 +4275,14 @@ W:	http://lse.sourceforge.net/kdump/
+@@ -4723,6 +4723,13 @@ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
  S:	Maintained
- F:	Documentation/kdump/
+ F:	drivers/media/dvb-frontends/m88rs2000*
  
-+KEENE FM RADIO TRANSMITTER DRIVER
-+M:	Hans Verkuil <hverkuil@xs4all.nl>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+W:	http://linuxtv.org
-+S:	Maintained
-+F:	drivers/media/radio/radio-keene*
++MA901 MASTERKIT USB FM RADIO DRIVER
++M:      Alexey Klimov <klimov.linux@gmail.com>
++L:      linux-media@vger.kernel.org
++T:      git git://linuxtv.org/media_tree.git
++S:      Maintained
++F:      drivers/media/radio/radio-ma901.c
 +
- KERNEL AUTOMOUNTER v4 (AUTOFS4)
- M:	Ian Kent <raven@themaw.net>
- L:	autofs@vger.kernel.org
--- 
-1.7.10.4
+ MAC80211
+ M:	Johannes Berg <johannes@sipsolutions.net>
+ L:	linux-wireless@vger.kernel.org
+
 
