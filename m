@@ -1,162 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:56918 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754638Ab2KVSjs (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37342 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751751Ab2KLLDW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 13:39:48 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: "Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
-	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
-	"David Airlie" <airlied@linux.ie>
-Subject: [PATCHv13 1/7] viafb: rename display_timing to via_display_timing
-Date: Thu, 22 Nov 2012 17:00:09 +0100
-Message-Id: <1353600015-6974-2-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1353600015-6974-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1353600015-6974-1-git-send-email-s.trumtrar@pengutronix.de>
+	Mon, 12 Nov 2012 06:03:22 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH v2] media: V4L2: add temporary clock helpers
+Date: Mon, 12 Nov 2012 12:04:16 +0100
+Message-ID: <2036621.k9xkWqC1fF@avalon>
+In-Reply-To: <Pine.LNX.4.64.1210311307550.9048@axis700.grange>
+References: <Pine.LNX.4.64.1210301458250.29432@axis700.grange> <1771793.hErFTLlAOS@avalon> <Pine.LNX.4.64.1210311307550.9048@axis700.grange>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The struct display_timing is specific to the via subsystem. The naming leads to
-collisions with the new struct display_timing, that is supposed to be a shared
-struct between different subsystems.
-To clean this up, prepend the existing struct with the subsystem it is specific
-to.
+Hi Guennadi,
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
----
- drivers/video/via/hw.c              |    6 +++---
- drivers/video/via/hw.h              |    2 +-
- drivers/video/via/lcd.c             |    2 +-
- drivers/video/via/share.h           |    2 +-
- drivers/video/via/via_modesetting.c |    8 ++++----
- drivers/video/via/via_modesetting.h |    6 +++---
- 6 files changed, 13 insertions(+), 13 deletions(-)
+On Wednesday 31 October 2012 14:02:54 Guennadi Liakhovetski wrote:
+> On Wed, 31 Oct 2012, Laurent Pinchart wrote:
+> > On Tuesday 30 October 2012 15:18:38 Guennadi Liakhovetski wrote:
+> > > Typical video devices like camera sensors require an external clock
+> > > source. Many such devices cannot even access their hardware registers
+> > > without a running clock. These clock sources should be controlled by
+> > > their consumers. This should be performed, using the generic clock
+> > > framework. Unfortunately so far only very few systems have been ported
+> > > to that framework. This patch adds a set of temporary helpers, mimicking
+> > > the generic clock API, to V4L2. Platforms, adopting the clock API,
+> > > should switch to using it. Eventually this temporary API should be
+> > > removed.
+> > > 
+> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > ---
+> > > 
+> > > v2: integrated most fixes from Sylwester & Laurent,
+> > > 
+> > > (1) do not register identical clocks
+> > > (2) add clock refcounting
+> > > (3) more robust locking
+> > > (4) duplicate strings to prevent dereferencing invalid memory
+> > > (5) add a private data pointer
+> > > (6) return an error in get_rate() / set_rate() if clock isn't enabled
+> > > (7) support .id=NULL per subdevice
+> > > 
+> > > Thanks to all reviewers!
+> > > 
+> > >  drivers/media/v4l2-core/Makefile   |    2 +-
+> > >  drivers/media/v4l2-core/v4l2-clk.c |  169 +++++++++++++++++++++++++++++
+> > >  include/media/v4l2-clk.h           |   51 +++++++++++
+> > >  3 files changed, 221 insertions(+), 1 deletions(-)
+> > >  create mode 100644 drivers/media/v4l2-core/v4l2-clk.c
+> > >  create mode 100644 include/media/v4l2-clk.h
 
-diff --git a/drivers/video/via/hw.c b/drivers/video/via/hw.c
-index 898590d..5563c67 100644
---- a/drivers/video/via/hw.c
-+++ b/drivers/video/via/hw.c
-@@ -1467,10 +1467,10 @@ void viafb_set_vclock(u32 clk, int set_iga)
- 	via_write_misc_reg_mask(0x0C, 0x0C); /* select external clock */
- }
- 
--struct display_timing var_to_timing(const struct fb_var_screeninfo *var,
-+struct via_display_timing var_to_timing(const struct fb_var_screeninfo *var,
- 	u16 cxres, u16 cyres)
- {
--	struct display_timing timing;
-+	struct via_display_timing timing;
- 	u16 dx = (var->xres - cxres) / 2, dy = (var->yres - cyres) / 2;
- 
- 	timing.hor_addr = cxres;
-@@ -1491,7 +1491,7 @@ struct display_timing var_to_timing(const struct fb_var_screeninfo *var,
- void viafb_fill_crtc_timing(const struct fb_var_screeninfo *var,
- 	u16 cxres, u16 cyres, int iga)
- {
--	struct display_timing crt_reg = var_to_timing(var,
-+	struct via_display_timing crt_reg = var_to_timing(var,
- 		cxres ? cxres : var->xres, cyres ? cyres : var->yres);
- 
- 	if (iga == IGA1)
-diff --git a/drivers/video/via/hw.h b/drivers/video/via/hw.h
-index 6be243c..c3f2572 100644
---- a/drivers/video/via/hw.h
-+++ b/drivers/video/via/hw.h
-@@ -637,7 +637,7 @@ extern int viafb_LCD_ON;
- extern int viafb_DVI_ON;
- extern int viafb_hotplug;
- 
--struct display_timing var_to_timing(const struct fb_var_screeninfo *var,
-+struct via_display_timing var_to_timing(const struct fb_var_screeninfo *var,
- 	u16 cxres, u16 cyres);
- void viafb_fill_crtc_timing(const struct fb_var_screeninfo *var,
- 	u16 cxres, u16 cyres, int iga);
-diff --git a/drivers/video/via/lcd.c b/drivers/video/via/lcd.c
-index 1650379..022b0df 100644
---- a/drivers/video/via/lcd.c
-+++ b/drivers/video/via/lcd.c
-@@ -549,7 +549,7 @@ void viafb_lcd_set_mode(const struct fb_var_screeninfo *var, u16 cxres,
- 	int panel_hres = plvds_setting_info->lcd_panel_hres;
- 	int panel_vres = plvds_setting_info->lcd_panel_vres;
- 	u32 clock;
--	struct display_timing timing;
-+	struct via_display_timing timing;
- 	struct fb_var_screeninfo panel_var;
- 	const struct fb_videomode *mode_crt_table, *panel_crt_table;
- 
-diff --git a/drivers/video/via/share.h b/drivers/video/via/share.h
-index 3158dfc..65c65c6 100644
---- a/drivers/video/via/share.h
-+++ b/drivers/video/via/share.h
-@@ -319,7 +319,7 @@ struct crt_mode_table {
- 	int refresh_rate;
- 	int h_sync_polarity;
- 	int v_sync_polarity;
--	struct display_timing crtc;
-+	struct via_display_timing crtc;
- };
- 
- struct io_reg {
-diff --git a/drivers/video/via/via_modesetting.c b/drivers/video/via/via_modesetting.c
-index 0e431ae..0b414b0 100644
---- a/drivers/video/via/via_modesetting.c
-+++ b/drivers/video/via/via_modesetting.c
-@@ -30,9 +30,9 @@
- #include "debug.h"
- 
- 
--void via_set_primary_timing(const struct display_timing *timing)
-+void via_set_primary_timing(const struct via_display_timing *timing)
- {
--	struct display_timing raw;
-+	struct via_display_timing raw;
- 
- 	raw.hor_total = timing->hor_total / 8 - 5;
- 	raw.hor_addr = timing->hor_addr / 8 - 1;
-@@ -88,9 +88,9 @@ void via_set_primary_timing(const struct display_timing *timing)
- 	via_write_reg_mask(VIACR, 0x17, 0x80, 0x80);
- }
- 
--void via_set_secondary_timing(const struct display_timing *timing)
-+void via_set_secondary_timing(const struct via_display_timing *timing)
- {
--	struct display_timing raw;
-+	struct via_display_timing raw;
- 
- 	raw.hor_total = timing->hor_total - 1;
- 	raw.hor_addr = timing->hor_addr - 1;
-diff --git a/drivers/video/via/via_modesetting.h b/drivers/video/via/via_modesetting.h
-index 06e09fe..f6a6503 100644
---- a/drivers/video/via/via_modesetting.h
-+++ b/drivers/video/via/via_modesetting.h
-@@ -33,7 +33,7 @@
- #define VIA_PITCH_MAX	0x3FF8
- 
- 
--struct display_timing {
-+struct via_display_timing {
- 	u16 hor_total;
- 	u16 hor_addr;
- 	u16 hor_blank_start;
-@@ -49,8 +49,8 @@ struct display_timing {
- };
- 
- 
--void via_set_primary_timing(const struct display_timing *timing);
--void via_set_secondary_timing(const struct display_timing *timing);
-+void via_set_primary_timing(const struct via_display_timing *timing);
-+void via_set_secondary_timing(const struct via_display_timing *timing);
- void via_set_primary_address(u32 addr);
- void via_set_secondary_address(u32 addr);
- void via_set_primary_pitch(u32 pitch);
+[snip]
+
+> > > +int v4l2_clk_enable(struct v4l2_clk *clk)
+> > > +{
+> > > +	if (atomic_inc_return(&clk->enable) == 1 && clk->ops->enable) {
+> > > +		int ret = clk->ops->enable(clk);
+> > > +		if (ret < 0)
+> > > +			atomic_dec(&clk->enable);
+> > > +		return ret;
+> > > +	}
+> > 
+> > I think you need a spinlock here instead of atomic operations. You could
+> > get preempted after atomic_inc_return() and before clk->ops->enable() by
+> > another process that would call v4l2_clk_enable(). The function would
+> > return with enabling the clock.
+> 
+> Sorry, what's the problem then? "Our" instance will succeed and call
+> ->enable() and the preempting instance will see the enable count > 1 and
+> just return.
+
+CPU 0                              CPU 1
+-----------------------------------------------------------------------------
+
+v4l2_clk_enable()
+atomic_inc_return() returns 1
+
+                                   v4l2_clk_enable()
+                                   atomic_inc_return() returns 2
+                                   returns 0 to caller, clock is not enabled
+                                   caller uses the clock and fails
+
+clk->ops->enable()
+
+This could also happen on a non-SMP system if the first task is interrupted 
+between the atomic_inc_return() and clk->ops->enable() calls.
+
+> > One solution would be to add a spinlock to struct v4l2_clk and modify the
+> > enable field from atomic_t to plain unsigned int.
+> > 
+> > > +	return 0;
+> > > +}
+> > > +EXPORT_SYMBOL(v4l2_clk_enable);
+> > > +
+> > > +void v4l2_clk_disable(struct v4l2_clk *clk)
+> > > +{
+> > > +	int enable = atomic_dec_return(&clk->enable);
+> > > +
+> > > +	if (WARN(enable < 0, "Unbalanced %s()!\n", __func__)) {
+> > 
+> > Could you add the clock name to the debug message ?
+> 
+> You mean device / connection IDs? Could do, yes.
+
+Yes.
+
+> > > +		atomic_inc(&clk->enable);
+> > > +		return;
+> > > +	}
+> > > +
+> > > +	if (!enable && clk->ops->disable)
+> > > +		clk->ops->disable(clk);
+> > > +}
+> > > +EXPORT_SYMBOL(v4l2_clk_disable);
+
+[snip]
+
+> > > +void v4l2_clk_unregister(struct v4l2_clk *clk)
+> > > +{
+> > > +	WARN(atomic_read(&clk->enable),
+> > > +	     "Unregistering still enabled %s:%s clock!\n", clk->dev_id,
+> > > clk->id);
+> > 
+> > Shouldn't this warning be based on a get/put refcount instead of an enable
+> > refcount ?
+> 
+> In principle - yes, so, you vote for one more counter?...
+
+Either one more counter, or dropping the warning.
+
+> > I would also turn it into a BUG_ON. The kernel will crash later anyway
+> > when the clock user will try to disable the clock, as you free the clock
+> > object here.
+> 
+> s/when/if/ ;-) With BUG_ON() you, probably, only get one stack dump here,
+> with WARN() you get both - one with the _unregister() stack and one with
+> the _disable() and / or _put() stack... Don't you think the latter option
+> is more informative?
+
+What bothers me is that the later disable/put might not crash immediately but 
+could lead to memory corruption with potential severe consequences if the 
+memory has been reallocated.
+
+> > > +	mutex_lock(&clk_lock);
+> > > +	list_del(&clk->list);
+> > > +	mutex_unlock(&clk_lock);
+> > > +
+> > > +	kfree(clk->id);
+> > > +	kfree(clk->dev_id);
+> > > +	kfree(clk);
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
