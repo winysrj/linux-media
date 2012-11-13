@@ -1,49 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:50286 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753067Ab2KSF3b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Nov 2012 00:29:31 -0500
-Received: by mail-oa0-f46.google.com with SMTP id h16so4494669oag.19
-        for <linux-media@vger.kernel.org>; Sun, 18 Nov 2012 21:29:29 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1353081787-7010-1-git-send-email-hverkuil@xs4all.nl>
-References: <1353081787-7010-1-git-send-email-hverkuil@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 19 Nov 2012 10:59:07 +0530
-Message-ID: <CA+V-a8vosXzByUVBe4vM2z2Pagxs81tmHMY1shF9DDOh0c8_rQ@mail.gmail.com>
-Subject: Re: [RFCv1 PATCH 0/2] Two vpif fixes protecting the dma_queue by a lock
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>
+Received: from plane.gmane.org ([80.91.229.3]:44825 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755291Ab2KMQjU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Nov 2012 11:39:20 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1TYJWJ-0008Jz-9e
+	for linux-media@vger.kernel.org; Tue, 13 Nov 2012 17:39:27 +0100
+Received: from 84-72-11-174.dclient.hispeed.ch ([84.72.11.174])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2012 17:39:27 +0100
+Received: from auslands-kv by 84-72-11-174.dclient.hispeed.ch with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2012 17:39:27 +0100
+To: linux-media@vger.kernel.org
+From: Neuer User <auslands-kv@gmx.de>
+Subject: Re: Color problem with MPX-885 card (cx23885)
+Date: Tue, 13 Nov 2012 17:39:05 +0100
+Message-ID: <k7tt38$aol$1@ger.gmane.org>
+References: <k7tkcu$m6j$1@ger.gmane.org> <CAGoCfiwBJv04ffd+gDn1t+_3GPn+KeDdcaRQ+PbrqAjAsiMEHg@mail.gmail.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAGoCfiwBJv04ffd+gDn1t+_3GPn+KeDdcaRQ+PbrqAjAsiMEHg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hello David
 
-Thanks for the patches.
+Thanks for taking the time to help.
 
-On Fri, Nov 16, 2012 at 9:33 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Prabhakar,
->
-> These two patches add protection to the dma_queue. We discovered that not
-> locking caused race conditions, which caused the display DMA to jam. After
-> adding the lock we never saw this again.
->
-> It makes sense as well since the interrupt routine and normal code both
-> manipulated the same list.
->
-> It's fixed for both capture and display.
->
-Acked-by: Prabhakar Lad <prabhakar.lad@ti.com>
+I had looked through the linux-media GIT tree for any commits that have
+"cx23885" in the description. The last ones I found were from mid 2011.
 
-I'll queue these patches for 3.8.
+That was probably why I did not try any newer kernels. Stupid me. Should
+have tried anyway.
 
-Regards,
---Prabhakar Lad
+I can confirm that the biggest problem, the color problem, is fixed at
+least with kernel 3.5.7 (maybe earlier).
 
-> Regards,
->
->         Hans
->
+The minor ones (card not autodetected, and black border on the left
+side) can probably be dealt with, e.g. in postprocessing. Or is there a
+chance to fix these in the driver?
+
+Michael
+
+Am 13.11.2012 16:02, schrieb Devin Heitmueller:
+> You should start by installing the current media_build tree.  There
+> were a bunch of cx23885 fixes done back in June, which won't be in
+> 12.04.  I believe this issue may already be fixed.
+> 
+> Cheers,
+> 
+> Devin
+> 
+
+
