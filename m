@@ -1,72 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpbg56.qq.com ([64.71.138.45]:56327 "HELO smtpbg56.qq.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752611Ab2KGCur (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Nov 2012 21:50:47 -0500
-From: "=?utf-8?B?5YaN5Zue6aaW?=" <308123027@qq.com>
-To: "=?utf-8?B?R3Vlbm5hZGkgTGlha2hvdmV0c2tp?=" <g.liakhovetski@gmx.de>
-Cc: "=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>
-Subject: =?utf-8?B?5Zue5aSN77yaIHNvYyBjYW1lcmEgZHJpdmVyIG1v?=
- =?utf-8?B?ZHVsZSBtYXkgY2FzZSBtZW1vcnkgbGVhaw==?=
-Mime-Version: 1.0
+Received: from mail01.ipfire.org ([178.63.73.247]:52176 "EHLO
+	mail01.ipfire.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753247Ab2KMIRh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Nov 2012 03:17:37 -0500
+MIME-Version: 1.0
 Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Date: Wed, 7 Nov 2012 10:49:54 +0800
-Message-ID: <tencent_0F344C4C45C5FF7B032E92BB@qq.com>
+ charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Tue, 13 Nov 2012 08:17:34 +0000
+From: Arne Fitzenreiter <Arne.Fitzenreiter@ipfire.org>
+To: <linux-media@vger.kernel.org>, <mchehab@redhat.com>
+Subject: [PATCH] [media] fix tua6034 pll bandwich configuration [resend]
+Message-ID: <edefdcacfac7e65ad271d1f649127995@mail01.ipfire.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RGVhciBHdWVubmFkaQ0KDQpJJ20gc3VyZSBpdCdzIGEgYnVnLkluIGxpbnV4LTIuNi54LCB3
-ZSBjYWxsIG9wZW4oKSB3aWxsIGFsbG9jYXRlIGEgc3RydWN0IHNvY19jYW1lcmFfZmlsZSB3
-aGljaCBjb250YWlucyBzdHJ1Y3QgdmlkZW9idWZfcXVldWU7dGhlbiB1c3Igd2lsbCBjYWxs
-IHJlcXVlc3RfYnVmZmVyLCBzb2NfY2FtZXJhIG1vZHVsZSB3aWxsIGNhbGwgdmlkZW9idWZf
-YWxsb2NfdmIocSkgd2hpY2ggd2lsbCBiZSBpbnN0YWxsZWQgaW4gcS0+YnVmc1tpXS4NCiAg
-ICAgICAgICAgICBNeSBxdWVzdGlvbiBpcyBob3cgdG8gZnJlZSBxLT5idWZzW2ldIHdoaWNo
-IGlzIGFsbG9jYXRlZCBmcm9tIHZiID0ga3phbGxvYyhzaXplICsgc2l6ZW9mKCptZW0pLCBH
-RlBfS0VSTkVMKSBpZiB3ZSB1c2UgdmlkZW9idWYtZG1hLWNvbnRpZyBtZW1vcnkgbW9kZWw/
-IA0KICAgICAgICAgICAgIHZpZGVvYnVmX21tYXBfZnJlZSgpLT5rZnJlZShxLT5idWZzW2ld
-KSBzaG91bGQgY2FsbCBhdCBldmVyeSBjYWxsIGNsb3NlKCk7d2UgY2FuJ3QgY2FsbCBrZnJl
-ZShxLT5idWZzW2ldKSBhdCBxLT5vcHMtPmJ1Zl9yZWxlYXNlIHdoaWNoIGlzIGNhbGxlZCBp
-biBzdHJlYW1fb2ZmKCksIGJlY2F1c2UgcS0+YnVmc1tpXSByZXNlcnZlIHN0cnVjdCB2aWRl
-b2J1Zl9tYXBwaW5nLCB1bm1hcCgpIHdpbGwgY2FuJ3QgZnJlZSB2aWRlb2J1ZiB3aGljaCBp
-cyB1c2VkIHRvIHN0b3JlIHZpZGVvIGRhdGEuIEFsc28gY2FuJ3QgY2FsbCB2aWRlb2J1Zl9t
-bWFwX2ZyZWUoKS0+a2ZyZWUocS0+YnVmc1tpXSkgYXQgbGFzdCBjbG9zZSgpLCBiZWNhdXNl
-IGluIGxpbnV4LTIuNi54IG9uY2Ugb3BlbigpIGFsbG9jYXRlcyBhIHZpZGVvYnVmX3F1ZXVl
-Lg0KICAgICAgICAgICAgICAgSW4gbGludXgtMy54LngsIHdlIHNob3VsZCBjYWxsIHZpZGVv
-YnVmX21tYXBfZnJlZSgpLT5rZnJlZShxLT5idWZzW2ldKSBvbmx5IG9uY2UgYXQgbW9kdWxl
-IHJlbW92ZSBjYWxsYmNhayBmdW5jdGlvbi4NCiAgICAgICAgICAgICAgWW91IHNheSwgdmlk
-ZW9idWYgbW1hcCBhbGxvY2F0aW9ucyB3aWxsIGJlIGZyZWVkIGF1dG9tYXRpY2FsbHkuIEkg
-d2FudCB0byBrbm93biBzb2NfY2FtZXJhIG1vZHVsZSBob3cgdG8gZnJlZSBxLT5idWZzW2ld
-IGF1dG9tYXRpY2FsbHkuIA0KICAgICAgICAgICAgICBJZiBpcyB0aGVyZSBubyBidWcgaW4g
-c29jIGNhbWVyYSBtb2R1bGUgLCBpJ20gc3VyZSBhbGwgZGV2aWNlIGRyaXZlciB1c2Ugc29j
-IGNhbWVyYSBtb2R1bGUgaGF2ZSBidWdzLCBzdWNoIGFzIHNoX21vYmlsZV9jZXVfY2FlcmEu
-YywgbXgxX2NhZXJhLmMsIG14M19jYWVyYS5jIGV0Yy4gYWxsIG9mIHRoZW0gZG9ubid0IGNh
-bGwgdmlkZW9idWZfbW1hcF9mcmVlKCktPmtmcmVlKHEtPmJ1ZnNbaV0pLg0KDQpZb3VyIHJl
-cGx5IHdpbGwgYmUgaGlnbHkgYXBwcmVjaWF0ZWQhIA0KDQoNCi0tLS0tLS0tLS0tLS0tLS0t
-LSDljp/lp4vpgq7ku7YgLS0tLS0tLS0tLS0tLS0tLS0tDQrlj5Hku7bkuro6ICJHdWVubmFk
-aSBMaWFraG92ZXRza2kiPGcubGlha2hvdmV0c2tpQGdteC5kZT47DQrlj5HpgIHml7bpl7Q6
-IDIwMTLlubQxMeaciDbml6Uo5pif5pyf5LqMKSDmmZrkuIo3OjMwDQrmlLbku7bkuro6ICLl
-ho3lm57pppYiPDMwODEyMzAyN0BxcS5jb20+OyANCuaKhOmAgTogImxpbnV4LW1lZGlhIjxs
-aW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc+OyANCuS4u+mimDogUmU6IHNvYyBjYW1lcmEg
-ZHJpdmVyIG1vZHVsZSBtYXkgY2FzZSBtZW1vcnkgbGVhaw0KDQoNCkhpDQoNCk9uIE1vbiwg
-NSBOb3YgMjAxMiwgIH5Gfk0gflt+XiB+ViB3cm90ZToNCg0KPiBEZWFyIHNpcjoNCj4gd2h5
-IG5vdCBjYWxsICJ2aWRlb2J1Zl9tbWFwX2ZyZWUiLHdoZW4gZGV2aWNlIGNsb3NlIGNhbGwg
-InNvY19jYW1lcmFfY2xvc2UiIGluIGxpbnV4LTIuNi54Ow0KDQpJIGhhdmVuJ3QgZm91bmQg
-YW55IHZlcnNpb24sIHdoZXJlIHRoaXMgaGFzIGJlZW4gZG9uZS4gSSBkb24ndCB0aGluayB0
-aGlzIA0KaXMgbmVlZGVkLCBiZWNhdXNlIHZpZGVvYnVmIG1tYXAgYWxsb2NhdGlvbnMgd2ls
-bCBiZSBmcmVlZCBhdXRvbWF0aWNhbGx5IA0KdXBvbiB0aGUgbGFzdCBjbG9zZSgpLiBQbGVh
-c2UsIGRpc21pc3MgeW91ciBidWd6aWxsYSBlbnRyeS4NCg0KVGhhbmtzDQpHdWVubmFkaQ0K
-DQo+IGRvIHRoZSBzYW1lIGluIGxpbnV4LTMueC54Pw0KPiB2aWRlbyBjYXB0dXJlIGZsb3c6
-DQo+IDEpb3Blbg0KPiAyKXNldCBmbXQNCj4gMylyZXF1ZXN0IGJ1ZmZlci0tPl9fdmlkZW9i
-dWZfbW1hcF9zZXR1cC0tPnZpZGVvYnVmX2FsbG9jX3ZiKHEpDQo+IDQpbW1hcA0KPiA1KWVu
-cXVldWUsIGRlcXVldWUNCj4gNil1bm1hcA0KPiA3KWNsb3NlLS0tPnNvY19jYW1lcmFfY2xv
-c2UtLT4/c2hvdWxkIGNhbGw6dmlkZW9idWZfbW1hcF9mcmVlDQo+IE5PVEU6DQo+IEkgaGF2
-ZSByZXZpZXdlZCBhbGwgdGhlIGNvZGUsIGZvdW5kOnNvY19jYW1lcmFfZHJpdmVyIGRldmlj
-ZSBkcml2ZXIgY29kZXJzIGhhcyBubyB3YXkoY2FsbGJhY2sgZnVuY3Rpb24pIHRvIGNhbGwg
-dmlkZW9idWZfbW1hcF9mcmVlOyBpdCB3aWxsIGNhc2UgbWVtb3J5IGxlYWsuTiByIHkgYiBY
-IMendiBeICneunsubiArIHsgYmopIHcqamcg3aJqLyB6IN6WIDIg3pkgJiAp36EgYSBHIGgg
-ajordiB3INmlDQoNCi0tLQ0KR3Vlbm5hZGkgTGlha2hvdmV0c2tpLCBQaC5ELg0KRnJlZWxh
-bmNlIE9wZW4tU291cmNlIFNvZnR3YXJlIERldmVsb3Blcg0KaHR0cDovL3d3dy5vcGVuLXRl
-Y2hub2xvZ3kuZGUv
+Hi Mauro,
+
+i have already send this patch to you and the mailing list around 3 
+weeks ago but get no response.
+The tua6034 pll is corrupted by your commit [media] dvb-pll: use DVBv5 
+parameters on set_params()
+http://git.linuxtv.org/media_tree.git/commit/80d8d4985f280dca3c395286d13b49f910a029e7
+
+[SNIP]
+ /* Infineon TUA6034
+  * used in LG TDTP E102P
+  */
+-static void tua6034_bw(struct dvb_frontend *fe, u8 *buf,
+-                      const struct dvb_frontend_parameters *params)
++static void tua6034_bw(struct dvb_frontend *fe, u8 *buf)
+ {
+-       if (BANDWIDTH_7_MHZ != params->u.ofdm.bandwidth)
++       u32 bw = fe->dtv_property_cache.bandwidth_hz;
++       if (bw == 7000000)
+                buf[3] |= 0x08;
+ }
+[SNIP]
+
+so here is a patch to fix this typo to get the Skymaster DTMU100 
+(HANFTEK UMT010 OEM BOX)
+working again.
+
+Arne
+
+Signed-off-by: Arne Fitzenreiter <Arne.Fitzenreiter@ipfire.org>
+
+---
+
+diff -Naur a/drivers/media/dvb-frontends/dvb-pll.c 
+b/drivers/media/dvb-frontends/dvb-pll.c
+--- a/drivers/media/dvb-frontends/dvb-pll.c	2012-08-14 
+05:45:22.000000000 +0200
++++ b/drivers/media/dvb-frontends/dvb-pll.c	2012-10-25 
+14:06:42.123360189 +0200
+@@ -247,7 +247,7 @@
+static void tua6034_bw(struct dvb_frontend *fe, u8 *buf)
+{
+	u32 bw = fe->dtv_property_cache.bandwidth_hz;
+-	if (bw == 7000000)
++	if (bw != 7000000)
+		buf[3] |= 0x08;
+}
 
