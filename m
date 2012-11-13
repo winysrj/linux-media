@@ -1,95 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:34934 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753058Ab2KYKhv (ORCPT
+Received: from out5-smtp.messagingengine.com ([66.111.4.29]:38311 "EHLO
+	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752119Ab2KMO5b (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Nov 2012 05:37:51 -0500
-Received: by mail-ee0-f46.google.com with SMTP id e53so3997648eek.19
-        for <linux-media@vger.kernel.org>; Sun, 25 Nov 2012 02:37:50 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 2/6] em28xx: make sure the packet size is >= 4 before checking for headers in em28xx_urb_data_copy_vbi()
-Date: Sun, 25 Nov 2012 11:37:33 +0100
-Message-Id: <1353839857-2990-3-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1353839857-2990-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1353839857-2990-1-git-send-email-fschaefer.oss@googlemail.com>
+	Tue, 13 Nov 2012 09:57:31 -0500
+Date: Tue, 13 Nov 2012 06:58:09 -0800
+From: Greg KH <greg@kroah.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	michael hartup <michael.hartup@gmail.com>,
+	linux-rpi-kernel@lists.infradead.org
+Subject: Re: Regarding bulk transfers on stk1160
+Message-ID: <20121113145809.GA15029@kroah.com>
+References: <CALF0-+XthyGJ-LzovTxLAKmMBif-YkLnNNcQBJvtnqTua+Ktag@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CALF0-+XthyGJ-LzovTxLAKmMBif-YkLnNNcQBJvtnqTua+Ktag@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |   45 ++++++++++++++++---------------
- 1 Datei geändert, 24 Zeilen hinzugefügt(+), 21 Zeilen entfernt(-)
+On Tue, Nov 13, 2012 at 10:56:48AM -0300, Ezequiel Garcia wrote:
+> Hello,
+> 
+> A user (Michael Hartup in Cc) wants to use stk1160 on low power, low
+> cost devices (like raspberrypi).
+> 
+> At the moment raspberrypi can't stream using isoc urbs due to problems
+> with usb host driver (dwc-otg)
+> preventing it from achieving the required throughput.
+> For instance, on my rpi setup I can stream (using dd) at 16MB/s; but
+> at least 20 MB/s are required.
+> 
+> Having read that bulk transfers may work better with rpi usb driver, I
+> decided to try to implement
+> those at stk1160. However, I later discovered stk1160 doesn't have any
+> bulk endpoint (see lsusb below).
+> (I'm no expert, but I assume lack of bulk endpoint means I can't use
+> bulk urbs, right?).
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 7994d17..0bbc6dc 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -576,7 +576,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
- 			    urb->iso_frame_desc[i].offset;
- 		}
- 
--		if (actual_length <= 0) {
-+		if (actual_length == 0) {
- 			/* NOTE: happens very often with isoc transfers */
- 			/* em28xx_usbdbg("packet %d is empty",i); - spammy */
- 			continue;
-@@ -585,27 +585,30 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
- 		/* capture type 0 = vbi start
- 		   capture type 1 = video start
- 		   capture type 2 = video in progress */
--		if (p[0] == 0x33 && p[1] == 0x95) {
--			dev->capture_type = 0;
--			dev->vbi_read = 0;
--			em28xx_usbdbg("VBI START HEADER!!!\n");
--			dev->cur_field = p[2];
--			p += 4;
--			len = actual_length - 4;
--		} else if (p[0] == 0x88 && p[1] == 0x88 &&
--			   p[2] == 0x88 && p[3] == 0x88) {
--			/* continuation */
--			p += 4;
--			len = actual_length - 4;
--		} else if (p[0] == 0x22 && p[1] == 0x5a) {
--			/* start video */
--			p += 4;
--			len = actual_length - 4;
--		} else {
--			/* NOTE: With bulk transfers, intermediate data packets
--			 * have no continuation header */
--			len = actual_length;
-+		len = actual_length;
-+		if (len >= 4) {
-+			/* NOTE: headers are always 4 bytes and
-+			 * never split across packets */
-+			if (p[0] == 0x33 && p[1] == 0x95) {
-+				dev->capture_type = 0;
-+				dev->vbi_read = 0;
-+				em28xx_usbdbg("VBI START HEADER!!!\n");
-+				dev->cur_field = p[2];
-+				p += 4;
-+				len -= 4;
-+			} else if (p[0] == 0x88 && p[1] == 0x88 &&
-+				   p[2] == 0x88 && p[3] == 0x88) {
-+				/* continuation */
-+				p += 4;
-+				len -= 4;
-+			} else if (p[0] == 0x22 && p[1] == 0x5a) {
-+				/* start video */
-+				p += 4;
-+				len -= 4;
-+			}
- 		}
-+		/* NOTE: with bulk transfers, intermediate data packets
-+		 * have no continuation header */
- 
- 		vbi_size = dev->vbi_width * dev->vbi_height;
- 
--- 
-1.7.10.4
+Correct, you need to fix the rpi host controller driver in order to make
+this work properly.  Please push back on the developers of that hardware
+so we can get the specs to write a proper driver for it.
 
+Or better yet, buy a board with a working USB port, like a BeagleBone or
+the like :)
+
+Sorry, there's really nothing we can do here,
+
+greg k-h
