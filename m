@@ -1,117 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46292 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1767775Ab2KONPo (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:50852 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751459Ab2KMLbl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 08:15:44 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	Tue, 13 Nov 2012 06:31:41 -0500
+Date: Tue, 13 Nov 2012 12:31:14 +0100
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
 	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: [PATCH v11 6/6] drm_modes: add of_videomode helpers
-Date: Thu, 15 Nov 2012 14:15:12 +0100
-Message-Id: <1352985312-18178-7-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1352985312-18178-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1352985312-18178-1-git-send-email-s.trumtrar@pengutronix.de>
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: Re: [PATCH v8 5/6] drm_modes: add videomode helpers
+Message-ID: <20121113113114.GD30049@avionic-0098.mockup.avionic-design.de>
+References: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1352734626-27412-6-git-send-email-s.trumtrar@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="hoZxPH4CaxYzWscb"
+Content-Disposition: inline
+In-Reply-To: <1352734626-27412-6-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add helper to get drm_display_mode from devicetree.
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/gpu/drm/drm_modes.c |   35 ++++++++++++++++++++++++++++++++++-
- include/drm/drmP.h          |    6 ++++++
- 2 files changed, 40 insertions(+), 1 deletion(-)
+--hoZxPH4CaxYzWscb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
-index 23d951a0..5508037 100644
---- a/drivers/gpu/drm/drm_modes.c
-+++ b/drivers/gpu/drm/drm_modes.c
-@@ -35,7 +35,8 @@
- #include <linux/export.h>
- #include <drm/drmP.h>
- #include <drm/drm_crtc.h>
--#include <linux/videomode.h>
-+#include <linux/of.h>
-+#include <linux/of_videomode.h>
- 
- /**
-  * drm_mode_debug_printmodeline - debug print a mode
-@@ -541,6 +542,38 @@ int drm_display_mode_from_videomode(struct videomode *vm,
- EXPORT_SYMBOL_GPL(drm_display_mode_from_videomode);
- #endif
- 
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+/**
-+ * of_get_drm_display_mode - get a drm_display_mode from devicetree
-+ * @np: device_node with the timing specification
-+ * @dmode: will be set to the return value
-+ * @index: index into the list of display timings in devicetree
-+ *
-+ * This function is expensive and should only be used, if only one mode is to be
-+ * read from DT. To get multiple modes start with of_get_display_timings and
-+ * work with that instead.
-+ */
-+int of_get_drm_display_mode(struct device_node *np,
-+			    struct drm_display_mode *dmode, unsigned int index)
-+{
-+	struct videomode vm;
-+	int ret;
-+
-+	ret = of_get_videomode(np, &vm, index);
-+	if (ret)
-+		return ret;
-+
-+	drm_display_mode_from_videomode(&vm, dmode);
-+
-+	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
-+		vm.vactive, np->name);
-+	drm_mode_debug_printmodeline(dmode);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(of_get_drm_display_mode);
-+#endif
-+
- /**
-  * drm_mode_set_name - set the name on a mode
-  * @mode: name will be set in this mode
-diff --git a/include/drm/drmP.h b/include/drm/drmP.h
-index 341049c..ae132be 100644
---- a/include/drm/drmP.h
-+++ b/include/drm/drmP.h
-@@ -56,6 +56,7 @@
- #include <linux/cdev.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
-+#include <linux/of.h>
- #include <linux/videomode.h>
- #if defined(__alpha__) || defined(__powerpc__)
- #include <asm/pgtable.h>	/* For pte_wrprotect */
-@@ -1459,6 +1460,11 @@ drm_mode_create_from_cmdline_mode(struct drm_device *dev,
- extern int drm_display_mode_from_videomode(struct videomode *vm,
- 					   struct drm_display_mode *dmode);
- #endif
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+extern int of_get_drm_display_mode(struct device_node *np,
-+				   struct drm_display_mode *dmode,
-+				   unsigned int index);
-+#endif
- 
- /* Modesetting support */
- extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
--- 
-1.7.10.4
+On Mon, Nov 12, 2012 at 04:37:05PM +0100, Steffen Trumtrar wrote:
+[...]
+> diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
+[...]
+> +#if IS_ENABLED(CONFIG_VIDEOMODE)
+> +int videomode_to_display_mode(struct videomode *vm, struct drm_display_mode *dmode)
 
+This one as well may be more consistently named
+drm_display_mode_from_videomode().
+
+> diff --git a/include/drm/drmP.h b/include/drm/drmP.h
+[...]
+> +extern int videomode_to_display_mode(struct videomode *vm,
+> +				     struct drm_display_mode *dmode);
+
+And this also needs protection or a dummy.
+
+Thierry
+
+--hoZxPH4CaxYzWscb
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQoi+CAAoJEN0jrNd/PrOh7eEP/1UMe4mFQ4hylZL84gOC+gFV
+urjbU7pSMMfg1z+pTabAq6g/fTlcCmzAW0tfdOjo78MCuyifOw/N9iTxOuWaCkUJ
+VfMCyk5WIhRQWWjd66/FTuLjFRzMbb3bkKwIXxk9xLPDalWKBeBX3Cn79xxnWgEh
+Zx9U4h+J6omaNhCgXyJEsZu8vdBSuXjTGzrnsVsCKYeHP7OUUDCH2YY7s8pWj7Sq
+BuF6EN/Mhrk5vw+tJjXVuLVD57EvXnZyuRikvL3gF43Nvj0xKcPilRL1z1fWniyM
+P3I7sQPB5W7gdxVQZM+KwLSiyX3D8y7apZJxlSaGD9/dXVC9YYiI+3qHbeDQnC/T
+YkqSsiDvwFbg+PA4xN6eYOGNFjtDHmQhJ6cJUUAo7braP+CxYYO3tkrb4in89Dl/
+CaPKtMUwFO3z8et0QkR7g7cAoSwN6EoeOLsFtVqaTWTNgz0VsvKm0pJSUdPRVQO1
+IvdkH4XWke8gRGK6cHYru7g6NQMfl3Jnpf+VEAB96zYQaBELAZvwUFq15n2y4AMe
+8CTsfEkbrpKHd547HhkWffijhX5ohPBgolMFUO7NKk9Sc1I+g1fdFYl25qiPba5w
+I5BrSKfc4qwbPW6WC8ZbeBNzNGtp+nuyFn0hD9b2eLbo3qEavSwL+nfOdGUGSqSC
+Qk5m+qY/BEv3W8VThjwO
+=ul4+
+-----END PGP SIGNATURE-----
+
+--hoZxPH4CaxYzWscb--
