@@ -1,44 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.tu-berlin.de ([130.149.7.33]:39157 "EHLO mail.tu-berlin.de"
+Received: from mx1.redhat.com ([209.132.183.28]:41113 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752619Ab2KFXWF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Nov 2012 18:22:05 -0500
-Received: from i59f704e2.versanet.de ([89.247.4.226] helo=[192.168.178.44])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-2) with esmtpa
-	for <linux-media@vger.kernel.org>
-	id 1TVs9f-0002ld-G8; Wed, 07 Nov 2012 00:01:59 +0100
-Message-ID: <509996BC.5060101@mailbox.tu-berlin.de>
-Date: Wed, 07 Nov 2012 00:01:16 +0100
-From: Andrew Karpow <andy@mailbox.tu-berlin.de>
+	id S1751847Ab2KMJYY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Nov 2012 04:24:24 -0500
+Message-ID: <50A211BE.60606@redhat.com>
+Date: Tue, 13 Nov 2012 07:24:14 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] rtl28xxu: 0ccd:00d7 TerraTec Cinergy T Stick+
-Content-Type: text/plain; charset=UTF-8
+To: Martin Rudge <martin.rudge@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: DVB V5 API: Event Model
+References: <CAE-UT2ug=U4AJghXfXZBuBoa18JsPSjNsvHUEu9FHZvAm1qi1Q@mail.gmail.com>
+In-Reply-To: <CAE-UT2ug=U4AJghXfXZBuBoa18JsPSjNsvHUEu9FHZvAm1qi1Q@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-added usb-id as driver supports the stick
+Em 12-11-2012 11:04, Martin Rudge escreveu:
+> Hello All,
+>
+> When using the V5 API (DVB-S/S2) for the DVB frontend device (with the
+> now merged SEC functionality), setting properties DTV_VOLTAGE and/or
+> DTV_TONE generates extra (unwanted?) events.  This is due to utilising
+> the legacy FE_SET_FRONTEND IOCTL in their respective implementations.
+>
+> Depending on their placement in one "atomic" FE_SET_PROPERTY call,
+> they can cause an "incorrect" (premature) SYNC/LOCK event to be
+> generated.  For example, when looping issuing tune requests in
+> succession during a scan operation. This was with a fairly recent
+> media build (pulled Saturday).
 
-Signed-off-by: Andrew Karpow <andy@mailbox.tu-berlin.de>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+I suspect that this is an undesirable behavior, likely there since the initial
+version of DVB-S2 API. It could be too late to fix, as userspace apps may be
+trusting on this behavior.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 0149cdd..093f1ac 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1348,6 +1348,8 @@ static const struct usb_device_id
-rtl28xxu_id_table[] = {
-        &rtl2832u_props, "TerraTec Cinergy T Stick RC (Rev. 3)", NULL) },
-    { DVB_USB_DEVICE(USB_VID_DEXATEK, 0x1102,
-        &rtl2832u_props, "Dexatek DK mini DVB-T Dongle", NULL) },
-+   { DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00d7,
-+       &rtl2832u_props, "TerraTec Cinergy T Stick+", NULL) },
-    { }
- };
- MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
--- 
-1.7.8.6
+Maybe you could propose a patch and ask app developers what they thing about
+it.
+
+> Conversly using DTV_CLEAR clears the cached values, but doesn't affect
+> the frontend (LNB).  This is probably desirable behaviour.
+
+This is desirable.
+
+> Any thoughts, working as designed/intended?
+
+Regards,
+Mauro
