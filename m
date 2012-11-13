@@ -1,76 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp208.alice.it ([82.57.200.104]:43198 "EHLO smtp208.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932884Ab2KEX2f (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Nov 2012 18:28:35 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Patrick Boettcher <patrick.boettcher@desy.de>,
-	Antonio Ospite <ospite@studenti.unina.it>
-Subject: [PATCH 2/5] [media] get_dvb_firmware: add dvb-usb-vp7049-0.95.fw
-Date: Tue,  6 Nov 2012 00:28:13 +0100
-Message-Id: <1352158096-17737-3-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1352158096-17737-1-git-send-email-ospite@studenti.unina.it>
-References: <1352158096-17737-1-git-send-email-ospite@studenti.unina.it>
+Received: from moutng.kundenserver.de ([212.227.17.8]:54287 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752862Ab2KMLXC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Nov 2012 06:23:02 -0500
+Date: Tue, 13 Nov 2012 12:22:58 +0100
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: Re: [PATCH v8 3/6] fbmon: add videomode helpers
+Message-ID: <20121113112257.GB30049@avionic-0098.mockup.avionic-design.de>
+References: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1352734626-27412-4-git-send-email-s.trumtrar@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="KFztAG8eRSV9hGtP"
+Content-Disposition: inline
+In-Reply-To: <1352734626-27412-4-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Firmware for vp7049 based design, known actual devices are:
-  Twinhan/Azurewave DTV-DVB UDTT7049
-  Digicom Digitune-S
-  Think Xtra Hollywood DVB-T USB2.0
 
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
----
+--KFztAG8eRSV9hGtP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I tried to contact the original manufacturer (Twinhan) but it does not exists
-anymore, Azurewave didn't reply and Digicom told me that they could not
-provide explicit permission to host the firmware on linuxtv.org;
-I decided to put it on my web space for now, let me know if you think it's
-safe to host it on linuxtv.org anyways.
+On Mon, Nov 12, 2012 at 04:37:03PM +0100, Steffen Trumtrar wrote:
+[...]
+> +#if IS_ENABLED(CONFIG_VIDEOMODE)
+> +int videomode_to_fb_videomode(struct videomode *vm, struct fb_videomode =
+*fbmode)
 
-Thanks,
-   Antonio
+The other helpers are named <destination-type>_from_<source-type>(),
+maybe this should follow that example for consistency?
 
- Documentation/dvb/get_dvb_firmware |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+> +{
+> +	fbmode->xres =3D vm->hactive;
+> +	fbmode->left_margin =3D vm->hback_porch;
+> +	fbmode->right_margin =3D vm->hfront_porch;
+> +	fbmode->hsync_len =3D vm->hsync_len;
+> +
+> +	fbmode->yres =3D vm->vactive;
+> +	fbmode->upper_margin =3D vm->vback_porch;
+> +	fbmode->lower_margin =3D vm->vfront_porch;
+> +	fbmode->vsync_len =3D vm->vsync_len;
+> +
+> +	fbmode->pixclock =3D KHZ2PICOS(vm->pixelclock / 1000);
+> +
+> +	fbmode->sync =3D 0;
+> +	fbmode->vmode =3D 0;
+> +	if (vm->hah)
+> +		fbmode->sync |=3D FB_SYNC_HOR_HIGH_ACT;
+> +	if (vm->vah)
+> +		fbmode->sync |=3D FB_SYNC_VERT_HIGH_ACT;
+> +	if (vm->interlaced)
+> +		fbmode->vmode |=3D FB_VMODE_INTERLACED;
+> +	if (vm->doublescan)
+> +		fbmode->vmode |=3D FB_VMODE_DOUBLE;
+> +	if (vm->de)
+> +		fbmode->sync |=3D FB_SYNC_DATA_ENABLE_HIGH_ACT;
+> +	fbmode->refresh =3D 60;
 
-diff --git a/Documentation/dvb/get_dvb_firmware b/Documentation/dvb/get_dvb_firmware
-index 32bc56b..0cdb157 100755
---- a/Documentation/dvb/get_dvb_firmware
-+++ b/Documentation/dvb/get_dvb_firmware
-@@ -23,7 +23,7 @@ use IO::Handle;
- 
- @components = ( "sp8870", "sp887x", "tda10045", "tda10046",
- 		"tda10046lifeview", "av7110", "dec2000t", "dec2540t",
--		"dec3000s", "vp7041", "dibusb", "nxt2002", "nxt2004",
-+		"dec3000s", "vp7041", "vp7049", "dibusb", "nxt2002", "nxt2004",
- 		"or51211", "or51132_qam", "or51132_vsb", "bluebird",
- 		"opera1", "cx231xx", "cx18", "cx23885", "pvrusb2", "mpc718",
- 		"af9015", "ngene", "az6027", "lme2510_lg", "lme2510c_s7395",
-@@ -289,6 +289,19 @@ sub vp7041 {
-     $outfile;
- }
- 
-+sub vp7049 {
-+    my $fwfile = "dvb-usb-vp7049-0.95.fw";
-+    my $url = "http://ao2.it/sites/default/files/blog/2012/11/06/linux-support-digicom-digitune-s-vp7049-udtt7049/$fwfile";
-+    my $hash = "5609fd295168aea88b25ff43a6f79c36";
-+
-+    checkstandard();
-+
-+    wgetfile($fwfile, $url);
-+    verify($fwfile, $hash);
-+
-+    $fwfile;
-+}
-+
- sub dibusb {
- 	my $url = "http://www.linuxtv.org/downloads/firmware/dvb-usb-dibusb-5.0.0.11.fw";
- 	my $outfile = "dvb-dibusb-5.0.0.11.fw";
--- 
-1.7.10.4
+Can the refresh rate not be computed from the pixel clock and the
+horizontal and vertical timings?
 
+> +	fbmode->flag =3D 0;
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(videomode_to_fb_videomode);
+> +#endif
+> +
+> +
+
+There's a gratuitous blank line here.
+
+>  #else
+>  int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
+>  {
+> diff --git a/include/linux/fb.h b/include/linux/fb.h
+> index c7a9571..46c665b 100644
+> --- a/include/linux/fb.h
+> +++ b/include/linux/fb.h
+> @@ -714,6 +714,8 @@ extern void fb_destroy_modedb(struct fb_videomode *mo=
+dedb);
+>  extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int =
+rb);
+>  extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+> =20
+> +extern int videomode_to_fb_videomode(struct videomode *vm, struct fb_vid=
+eomode *fbmode);
+> +
+
+Should you provide a dummy in the !CONFIG_VIDEOMODE case?
+
+Thierry
+
+--KFztAG8eRSV9hGtP
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQoi2RAAoJEN0jrNd/PrOhQhEP/0ss30p/PXakRkp0f0Ghd+jA
+dcak0RUWx2VT2NCDwuCmdIikymiNwRvoZFEcN1/H2UhkYfOvNa5PplmEGxp7LNdY
+wDiJ0H24Rrak4rrA5G1CQ11kFGYAGBIN68S8/rM9vfWsNx7fuZJlKeLpKYeyy1W8
+MQE4n7DpgAWUjpVKHkwObDjM57NIsjWg6fIUqIUm802hu5hFYqwSPntyjhmK2k8F
+KdmWVnvFm7VBJNJniEkegbTjwgA9bpXfJq7muvheGHkmHc0CMUAJ6is0/58ORH8T
+k7mkEpg3IEpnZyqkt/qcmELoHzARmCVwnyORsKv+KpGLgvKMDl/PR5tWI4Vu9Rhc
+kClPnJsCdM52ahwMD277XoCC659BO4frgO9lYbp4D9JFnsJ5vttUlo1EzVSizWOh
+CfkCFrlN38baPIl/6YBJSvL8KdeoKk/CL80TfP+NPU3+4YnqW5202QGO28QAI/I1
+sX2PdMaTp7r0CpnxqAw7cZI8xxNDUVVR6O/2sOZz7cejwg0vMBAGGQeHS23pW1/+
+J6apPWWJDQqldNApV/onessOOkunR2sywCXrlcbkWSLHQ62a9XwJUpN/SDWPDNFw
+MpdeaQWDcU2ZWXYx4a9Tkrqg8qY8B4yZ+ReirZaJQOBuu69rKd02dY36Qjq/EcBZ
+7hUGDjxZS9yUXlzj1ASk
+=N6+0
+-----END PGP SIGNATURE-----
+
+--KFztAG8eRSV9hGtP--
