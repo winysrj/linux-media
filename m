@@ -1,96 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39085 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256Ab2KWMTK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 07:19:10 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 4/6] uvcvideo: Set device_caps in VIDIOC_QUERYCAP
-Date: Fri, 23 Nov 2012 13:20:10 +0100
-Message-ID: <1498367.xoaGbmT0nc@avalon>
-In-Reply-To: <201211161500.29555.hverkuil@xs4all.nl>
-References: <1348758980-21683-1-git-send-email-laurent.pinchart@ideasonboard.com> <1348758980-21683-5-git-send-email-laurent.pinchart@ideasonboard.com> <201211161500.29555.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from plane.gmane.org ([80.91.229.3]:48222 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751748Ab2KMTT3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Nov 2012 14:19:29 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1TYM1H-0005Km-LN
+	for linux-media@vger.kernel.org; Tue, 13 Nov 2012 20:19:35 +0100
+Received: from 84-72-11-174.dclient.hispeed.ch ([84.72.11.174])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2012 20:19:35 +0100
+Received: from auslands-kv by 84-72-11-174.dclient.hispeed.ch with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2012 20:19:35 +0100
+To: linux-media@vger.kernel.org
+From: Neuer User <auslands-kv@gmx.de>
+Subject: Re: Color problem with MPX-885 card (cx23885)
+Date: Tue, 13 Nov 2012 20:19:13 +0100
+Message-ID: <k7u6ff$5nf$1@ger.gmane.org>
+References: <k7tkcu$m6j$1@ger.gmane.org> <CAGoCfiwBJv04ffd+gDn1t+_3GPn+KeDdcaRQ+PbrqAjAsiMEHg@mail.gmail.com> <k7tt38$aol$1@ger.gmane.org> <CAGoCfiww92i7w9xuG199Pdv5EQbFButWxT=CHC9Wg2ypY+M1PA@mail.gmail.com> <k7u1vf$q5h$1@ger.gmane.org> <CAGoCfiwNxh6uNXaQLNO7r4e8PXZxQ0+jZGY0ZjzXdy2vbmG-NA@mail.gmail.com> <k7u5id$si8$1@ger.gmane.org> <CAGoCfizTJXViw4p3kMMg1jaHgSYWDcONC9QVYpkfZ7YDZ2zpuQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAGoCfizTJXViw4p3kMMg1jaHgSYWDcONC9QVYpkfZ7YDZ2zpuQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Am 13.11.2012 20:12, schrieb Devin Heitmueller:
+> Just to be clear, I wasn't intending to suggest that you were using
+> any of the actual V4L2 cropping features.  I'm just saying that if the
+> video scaler were broken, it's possible that the frames are
+> *effectively* being cropped at 640x480.
 
-Thanks for the review.
+Absolutely, you found the problem. Thanks a lot. Indeed as soon as I
+define a resolution (even the 640x480) I get the full picture. Only if
+NO resolution is specified, I get 640x480 as a croped version.
 
-On Friday 16 November 2012 15:00:29 Hans Verkuil wrote:
-> On Thu September 27 2012 17:16:18 Laurent Pinchart wrote:
-> > Set the capabilities field to global capabilities, and the device_caps
-> > field to the video node capabilities.
-> > 
-> > This issue was found by the v4l2-compliance tool.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/usb/uvc/uvc_driver.c |    5 +++++
-> >  drivers/media/usb/uvc/uvc_v4l2.c   |   10 ++++++----
-> >  drivers/media/usb/uvc/uvcvideo.h   |    2 ++
-> >  3 files changed, 13 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> > b/drivers/media/usb/uvc/uvc_driver.c index 5967081..ae24f7d 100644
-> > --- a/drivers/media/usb/uvc/uvc_driver.c
-> > +++ b/drivers/media/usb/uvc/uvc_driver.c
-> > @@ -1741,6 +1741,11 @@ static int uvc_register_video(struct uvc_device
-> > *dev,
-> >  		return ret;
-> >  	}
-> > 
-> > +	if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> > +		stream->chain->caps |= V4L2_CAP_VIDEO_CAPTURE;
-> > +	else
-> > +		stream->chain->caps |= V4L2_CAP_VIDEO_OUTPUT;
-> > +
-> >  	atomic_inc(&dev->nstreams);
-> >  	return 0;
-> >  }
-> > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> > b/drivers/media/usb/uvc/uvc_v4l2.c index 3bd9373..b1aa55f 100644
-> > --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> > @@ -565,12 +565,14 @@ static long uvc_v4l2_do_ioctl(struct file *file,
-> > unsigned int cmd, void *arg)> 
-> >  		usb_make_path(stream->dev->udev,
-> >  			      cap->bus_info, sizeof(cap->bus_info));
-> >  		cap->version = LINUX_VERSION_CODE;
-> > +		cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
-> > +				  | chain->caps;
-> >  		if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> > -			cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
-> > -					  | V4L2_CAP_STREAMING;
-> > +			cap->device_caps = V4L2_CAP_VIDEO_CAPTURE
-> > +					 | V4L2_CAP_STREAMING;
-> >  		else
-> > -			cap->capabilities = V4L2_CAP_VIDEO_OUTPUT
-> > -					  | V4L2_CAP_STREAMING;
-> > +			cap->device_caps = V4L2_CAP_VIDEO_OUTPUT
-> > +					 | V4L2_CAP_STREAMING;
+Funny bug. For me I can live with the current solution. I can define the
+resolution with mplayer and crop out the black left border. (Hopefully
+QTMultimedia can do that also...)
+
+Again, you have been very helpful. Thank you very very much.
+
+Michael
+
 > 
-> This seems weird. Wouldn't it be easier to do:
+> But yeah, you should definitely try capturing at 720x576 in mplayer.
+> You can specific command line arguments to mplayer to set the width
+> and height.
 > 
-> 		cap->device_caps = chain->caps | V4L2_CAP_STREAMING;
+> Devin
 > 
-> You don't need the if/else here.
 
-No, because chain->caps can be V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT 
-as a chain can contain several video nodes. We want to caps of this particular 
-video node only here.
-
-> >  		break;
-> >  	}
-
--- 
-Regards,
-
-Laurent Pinchart
 
