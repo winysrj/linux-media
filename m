@@ -1,72 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3500 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752854Ab2KWNKm (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37596 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753967Ab2KMS3M (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 08:10:42 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 13 Nov 2012 13:29:12 -0500
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:102:6d9a::80:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id D2F276009F
+	for <linux-media@vger.kernel.org>; Tue, 13 Nov 2012 20:29:09 +0200 (EET)
+Date: Tue, 13 Nov 2012 20:29:07 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Michael Hunold <michael@mihu.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/2] MAINTAINERS: add tda9840, tea6415c and tea6420 entries.
-Date: Fri, 23 Nov 2012 14:10:31 +0100
-Message-Id: <802fc6c93c32effb499c09a9b6c6f3af57efdd83.1353675798.git.hans.verkuil@cisco.com>
-In-Reply-To: <1353676231-5684-1-git-send-email-hverkuil@xs4all.nl>
-References: <1353676231-5684-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a2e0787b707c15e5905e9cc9a7be50e9c077f78a.1353675798.git.hans.verkuil@cisco.com>
-References: <a2e0787b707c15e5905e9cc9a7be50e9c077f78a.1353675798.git.hans.verkuil@cisco.com>
+Subject: [GIT PULL FOR 3.8] V4L2 int device removal
+Message-ID: <20121113182907.GS25623@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Mauro,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- MAINTAINERS |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+This removes V4L2 int device and drivers using it. They were in an unusable
+state to begin with.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 76b1c1d..c25ade7 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -7412,6 +7412,14 @@ T:	git git://linuxtv.org/mkrufky/tuners.git
- S:	Maintained
- F:	drivers/media/tuners/tda8290.*
- 
-+TDA9840 MEDIA DRIVER
-+M:	Hans Verkuil <hverkuil@xs4all.nl>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+W:	http://linuxtv.org
-+S:	Maintained
-+F:	drivers/media/i2c/tda9840*
-+
- TEA5761 TUNER DRIVER
- M:	Mauro Carvalho Chehab <mchehab@redhat.com>
- L:	linux-media@vger.kernel.org
-@@ -7428,6 +7436,22 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/tuners/tea5767.*
- 
-+TEA6415C MEDIA DRIVER
-+M:	Hans Verkuil <hverkuil@xs4all.nl>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+W:	http://linuxtv.org
-+S:	Maintained
-+F:	drivers/media/i2c/tea6415c*
-+
-+TEA6420 MEDIA DRIVER
-+M:	Hans Verkuil <hverkuil@xs4all.nl>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+W:	http://linuxtv.org
-+S:	Maintained
-+F:	drivers/media/i2c/tea6420*
-+
- TEAM DRIVER
- M:	Jiri Pirko <jpirko@redhat.com>
- L:	netdev@vger.kernel.org
+Please pull.
+
+The following changes since commit 2c4e11b7c15af70580625657a154ea7ea70b8c76:
+
+  [media] siano: fix RC compilation (2012-11-07 11:09:08 +0100)
+
+are available in the git repository at:
+  ssh://linuxtv.org/git/sailus/media_tree.git no-int-device
+
+Sakari Ailus (3):
+      omap24xxcam: Remove driver
+      tcm825x: Remove driver
+      v4l2-int-if: Remove interface
+
+ drivers/media/i2c/Kconfig                 |    8 -
+ drivers/media/i2c/Makefile                |    1 -
+ drivers/media/i2c/tcm825x.c               |  937 --------------
+ drivers/media/i2c/tcm825x.h               |  200 ---
+ drivers/media/platform/Kconfig            |    7 -
+ drivers/media/platform/Makefile           |    3 -
+ drivers/media/platform/omap24xxcam-dma.c  |  601 ---------
+ drivers/media/platform/omap24xxcam.c      | 1881 -----------------------------
+ drivers/media/platform/omap24xxcam.h      |  593 ---------
+ drivers/media/v4l2-core/Makefile          |    2 +-
+ drivers/media/v4l2-core/v4l2-int-device.c |  164 ---
+ include/media/v4l2-int-device.h           |  308 -----
+ 12 files changed, 1 insertions(+), 4704 deletions(-)
+ delete mode 100644 drivers/media/i2c/tcm825x.c
+ delete mode 100644 drivers/media/i2c/tcm825x.h
+ delete mode 100644 drivers/media/platform/omap24xxcam-dma.c
+ delete mode 100644 drivers/media/platform/omap24xxcam.c
+ delete mode 100644 drivers/media/platform/omap24xxcam.h
+ delete mode 100644 drivers/media/v4l2-core/v4l2-int-device.c
+ delete mode 100644 include/media/v4l2-int-device.h
+
 -- 
-1.7.10.4
+Regarda,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
