@@ -1,115 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:55288 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422647Ab2KNLoX (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36967 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752959Ab2KMNqt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Nov 2012 06:44:23 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: [PATCH v9 3/6] fbmon: add videomode helpers
-Date: Wed, 14 Nov 2012 12:43:20 +0100
-Message-Id: <1352893403-21168-4-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1352893403-21168-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1352893403-21168-1-git-send-email-s.trumtrar@pengutronix.de>
+	Tue, 13 Nov 2012 08:46:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Archit Taneja <archit@ti.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 2/2] omap_vout: Use the output overlay ioctl operations
+Date: Tue, 13 Nov 2012 14:47:39 +0100
+Message-Id: <1352814459-8215-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1352814459-8215-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1352814459-8215-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a function to convert from the generic videomode to a fb_videomode.
+The omap_vout device implements the output overlay API, use the
+corresponding ioctl operations.
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/video/fbmon.c |   38 ++++++++++++++++++++++++++++++++++++++
- include/linux/fb.h    |    5 +++++
- 2 files changed, 43 insertions(+)
+ drivers/media/platform/omap/omap_vout.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
-index cef6557..cccef17 100644
---- a/drivers/video/fbmon.c
-+++ b/drivers/video/fbmon.c
-@@ -31,6 +31,7 @@
- #include <linux/pci.h>
- #include <linux/slab.h>
- #include <video/edid.h>
-+#include <linux/videomode.h>
- #ifdef CONFIG_PPC_OF
- #include <asm/prom.h>
- #include <asm/pci-bridge.h>
-@@ -1373,6 +1374,43 @@ int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_inf
- 	kfree(timings);
- 	return err;
- }
-+
-+#if IS_ENABLED(CONFIG_VIDEOMODE)
-+int fb_videomode_from_videomode(struct videomode *vm, struct fb_videomode *fbmode)
-+{
-+	fbmode->xres = vm->hactive;
-+	fbmode->left_margin = vm->hback_porch;
-+	fbmode->right_margin = vm->hfront_porch;
-+	fbmode->hsync_len = vm->hsync_len;
-+
-+	fbmode->yres = vm->vactive;
-+	fbmode->upper_margin = vm->vback_porch;
-+	fbmode->lower_margin = vm->vfront_porch;
-+	fbmode->vsync_len = vm->vsync_len;
-+
-+	fbmode->pixclock = KHZ2PICOS(vm->pixelclock / 1000);
-+
-+	fbmode->sync = 0;
-+	fbmode->vmode = 0;
-+	if (vm->hah)
-+		fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
-+	if (vm->vah)
-+		fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
-+	if (vm->interlaced)
-+		fbmode->vmode |= FB_VMODE_INTERLACED;
-+	if (vm->doublescan)
-+		fbmode->vmode |= FB_VMODE_DOUBLE;
-+	if (vm->de)
-+		fbmode->sync |= FB_SYNC_DATA_ENABLE_HIGH_ACT;
-+	fbmode->refresh = (vm->pixelclock*1000) / (vm->hactive * vm->vactive);
-+	fbmode->flag = 0;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
-+#endif
-+
-+
- #else
- int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
- {
-diff --git a/include/linux/fb.h b/include/linux/fb.h
-index c7a9571..6a3a675 100644
---- a/include/linux/fb.h
-+++ b/include/linux/fb.h
-@@ -14,6 +14,7 @@
- #include <linux/backlight.h>
- #include <linux/slab.h>
- #include <asm/io.h>
-+#include <linux/videomode.h>
- 
- struct vm_area_struct;
- struct fb_info;
-@@ -714,6 +715,10 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
- extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
- extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
- 
-+#if IS_ENABLED(CONFIG_VIDEOMODE)
-+extern int fb_videomode_from_videomode(struct videomode *vm,
-+				       struct fb_videomode *fbmode);
-+#endif
- /* drivers/video/modedb.c */
- #define VESA_MODEDB_SIZE 34
- extern void fb_var_to_videomode(struct fb_videomode *mode,
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index dea33b5..971f0c2 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -1845,9 +1845,9 @@ static const struct v4l2_ioctl_ops vout_ioctl_ops = {
+ 	.vidioc_s_fbuf				= vidioc_s_fbuf,
+ 	.vidioc_g_fbuf				= vidioc_g_fbuf,
+ 	.vidioc_s_ctrl       			= vidioc_s_ctrl,
+-	.vidioc_try_fmt_vid_overlay 		= vidioc_try_fmt_vid_overlay,
+-	.vidioc_s_fmt_vid_overlay		= vidioc_s_fmt_vid_overlay,
+-	.vidioc_g_fmt_vid_overlay		= vidioc_g_fmt_vid_overlay,
++	.vidioc_try_fmt_vid_out_overlay		= vidioc_try_fmt_vid_overlay,
++	.vidioc_s_fmt_vid_out_overlay		= vidioc_s_fmt_vid_overlay,
++	.vidioc_g_fmt_vid_out_overlay		= vidioc_g_fmt_vid_overlay,
+ 	.vidioc_cropcap				= vidioc_cropcap,
+ 	.vidioc_g_crop				= vidioc_g_crop,
+ 	.vidioc_s_crop				= vidioc_s_crop,
 -- 
-1.7.10.4
+1.7.8.6
 
