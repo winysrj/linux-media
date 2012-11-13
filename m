@@ -1,126 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58412 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751553Ab2K2JXT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Nov 2012 04:23:19 -0500
-Message-ID: <50B729FF.6020402@redhat.com>
-Date: Thu, 29 Nov 2012 10:25:19 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from ks358065.kimsufi.com ([91.121.151.38]:59532 "EHLO
+	ks358065.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751709Ab2KMJrR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Nov 2012 04:47:17 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by ks358065.kimsufi.com (Postfix) with ESMTP id 3B36B1CC04E
+	for <linux-media@vger.kernel.org>; Tue, 13 Nov 2012 10:40:37 +0100 (CET)
+Received: from ks358065.kimsufi.com ([127.0.0.1])
+	by localhost (ks358065.kimsufi.com [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id eTfAja4qAmOl for <linux-media@vger.kernel.org>;
+	Tue, 13 Nov 2012 10:40:23 +0100 (CET)
+Received: from ceatux.localnet (localhost.localdomain [127.0.0.1])
+	by ks358065.kimsufi.com (Postfix) with ESMTPS id 323DC1CC04D
+	for <linux-media@vger.kernel.org>; Tue, 13 Nov 2012 10:40:22 +0100 (CET)
+From: =?iso-8859-15?q?Fr=E9d=E9ric?= <fma@gbiloba.org>
+To: linux-media@vger.kernel.org
+Subject: Support for Terratec Cinergy 2400i DT in kernel 3.x
+Date: Tue, 13 Nov 2012 10:40:22 +0100
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: Antonio Ospite <ospite@studenti.unina.it>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] gspca - ov534: Fix the light frequency filter
-References: <20121122124652.3a832e33@armhf> <20121123180909.021c55a8c3795329836c42b7@studenti.unina.it> <20121123191232.7ed9c546@armhf>
-In-Reply-To: <20121123191232.7ed9c546@armhf>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201211131040.22114.fma@gbiloba.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Francois, Antonio Ospite,
+Hi there,
 
-Could it be that you're both right, and that the register
-Jean-Francois suggest is used (0x13) and uses in his patch
-is for enabling / disabling the light-freq filter, where
-as the register which were used before this patch
-(0x2a, 0x2b) are used to select the light frequency to
-filter for?
+This is my first post on this list; I hope I'm on the right place to discuss this problem. If 
+not, feel free to tell me where I should post.
 
-That would explain everything the 2 50 / 60 hz testers are
-seeing. This assumes that reg 0x13 has the filter always
-enabled before the patch, and the code before the patch
-simply changes the filter freq to such a value it
-effectively disables the filter for 50 Hz. This also
-assumes that the default values in 0x2a and 0x2b are
-valid for 60hz, which explains why Jean Francois' patch
-works for 60 Hz, so with all this combined we should
-have all pieces of the puzzle ...
+I bought this DVB-T dual tuner card, in order to put it in my HTPC (running geeXboX/XBMC).
 
-Anyone wants to do a patch to prove I'm right (or wrong :)
-?
+As far as I know, there where only support (patches) for kernel 2.6.x; I didn't find anything 
+for 3.x branch. So I tried to port the patches. And I think I got something... Well, maybe!
 
-Regards,
+I followed the links on this wiki page:
 
-Hans
+    http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_2400i_DVB-T
 
+It seems that the PCIe bridge used on this card needs a firmware in order to work; this is what 
+the patch does. I used this files:
 
-On 11/23/2012 07:12 PM, Jean-Francois Moine wrote:
-> On Fri, 23 Nov 2012 18:09:09 +0100
-> Antonio Ospite <ospite@studenti.unina.it> wrote:
->
->> On Thu, 22 Nov 2012 12:46:52 +0100
-> 	[snip]
->> Jean-Francois Moine <moinejf@free.fr> wrote:
->>> This patch was done thanks to the documentation of the right
->>> OmniVision sensors.
->>
->> In the datasheet I have for ov772x, bit[6] of register 0x13 is described
->> as:
->>
->>    Bit[6]: AEC - Step size limit
->>      0: Step size is limited to vertical blank
->>      1: Unlimited step size
->
-> Right, but I don't use the bit 6, it is the bit 5:
->
->>> +		sccb_reg_write(gspca_dev, 0x13,		/* auto */
->>> +				sccb_reg_read(gspca_dev, 0x13) | 0x20);
->
-> which is described as:
->
->     Bit[5]:  Banding filter ON/OFF
->
->> And the patch makes Light Frequency _NOT_ work with the PS3 eye (based
->> on ov772x).
->>
->> What does the ov767x datasheet say?
->
-> Quite the same thing:
->
->     Bit[5]: Banding filter ON/OFF - In order to turn ON the banding
->             filter, BD50ST (0x9D) or BD60ST (0x9E) must be set to a
->             non-zero value.
->             0: OFF
->             1: ON
->
-> (the registers 9d and 9e are non zero for the ov767x in ov534.c)
->
->> Maybe we should use the new values only when
->> 	sd->sensor == SENSOR_OV767x
->>
->> What sensor does Alexander's webcam use?
->
-> He has exactly the same webcam as yours: 1415:2000 (ps eye) with
-> sensor ov772x.
->
->>> Note: The light frequency filter is either off or automatic.
->>> The application will see either off or "50Hz" only.
->>>
->>> Tested-by: alexander calderon <fabianp902@gmail.com>
->>> Signed-off-by: Jean-FranÃ§ois Moine <moinejf@free.fr>
->>>
->>> --- a/drivers/media/usb/gspca/ov534.c
->>> +++ b/drivers/media/usb/gspca/ov534.c
->>> @@ -1038,13 +1038,12 @@
->>>   {
->>>   	struct sd *sd = (struct sd *) gspca_dev;
->>>
->>
->> drivers/media/usb/gspca/ov534.c: In function â€˜setlightfreqâ€™:
->> drivers/media/usb/gspca/ov534.c:1039:13: warning: unused variable â€˜sdâ€™ [-Wunused-variable]
->
-> Thanks.
->
-> Well, here is one of the last message I received from Alexander (in
-> fact, his first name is Fabian):
->
->> Thanks for all your help, it is very kind of you, I used the code below,the
->> 60 Hz filter appear to work even at 100fps, but when I used 125 fps it
->> didnt work :( , i guess it is something of detection speed. If you have any
->> other idea I'll be very thankful.
->>
->> Sincerely Fabian Calderon
->
-> So, how may we advance?
->
+    http://wiki.ubuntuusers.de/_attachment?target=/Terratec_Cinergy_2400i_DT/ngene_p11.tar.gz
+
+As my desktop PC runs under debian sid, I only have a 3.2 kernel, so this is the version I 
+patched to test the driver.
+
+I can provide all files needed, but I just want to know if the following messages sounds good 
+or if there are still problems...
+
+During boot, I get:
+
+ nGene PCIE bridge driver, Copyright (C) 2005-2007 Micronas
+ ngene 0000:03:00.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
+ ngene: Found Terratec Integra/Cinergy2400i Dual DVB-T
+ ngene 0000:03:00.0: setting latency timer to 64
+ ngene: Device version 1
+ ngene: Loading firmware file ngene_17.fw.
+ cxd2099_attach: driver disabled by Kconfig
+ DVB: registering new adapter (nGene)
+ DVB: registering adapter 0 frontend 0 (Micronas DRXD DVB-T)...
+ DVB: registering new adapter (nGene)
+ DVB: registering adapter 1 frontend 0 (Micronas DRXD DVB-T)...
+
+Then, when I launch w_scan, I get this from kernel:
+
+ drxd: deviceId = 0000
+ DRX3975D-A2
+ read deviation -520
+ drxd: deviceId = 0000
+ DRX3975D-A2
+ read deviation -333
+
+and this from w_scan (no antenna pluged):
+
+ $ w_scan -ft -cFR
+ w_scan version 20120605 (compiled for DVB API 5.4)
+ using settings for FRANCE
+ DVB aerial
+ DVB-T FR
+ scan type TERRESTRIAL, channellist 5
+ output format vdr-1.6
+ output charset 'UTF-8', use -C <charset> to override
+ Info: using DVB adapter auto detection.
+         /dev/dvb/adapter0/frontend0 -> TERRESTRIAL "Micronas DRXD DVB-T": good :-) ¹
+         /dev/dvb/adapter1/frontend0 -> TERRESTRIAL "Micronas DRXD DVB-T": good :-) ¹
+ Using TERRESTRIAL frontend (adapter /dev/dvb/adapter0/frontend0)
+ -_-_-_-_ Getting frontend capabilities-_-_-_-_ 
+ Using DVB API 5.4
+ frontend 'Micronas DRXD DVB-T' supports
+ INVERSION_AUTO
+ QAM_AUTO
+ TRANSMISSION_MODE_AUTO
+ GUARD_INTERVAL_AUTO
+ HIERARCHY_AUTO
+ FEC_AUTO
+ FREQ (47.12MHz ... 855.25MHz)
+ -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_ 
+ Scanning 8MHz frequencies...
+ 474000: (time: 00:00) 
+ 474166: (time: 00:03) 
+ 473834: (time: 00:05) 
+ ...
+ 849834: (time: 09:57) 
+ 850332: (time: 09:59) 
+ 850498: (time: 10:02) 
+ 858000: (time: 10:04)   skipped: (freq 858000000 unsupported by driver)
+
+ initial_tune:2265: Setting frontend failed QAM_AUTO f = 858000 kHz I999B8C999D999T999G999Y999
+ 858166: (time: 10:04)   skipped: (freq 858166000 unsupported by driver)
+
+ initial_tune:2265: Setting frontend failed QAM_AUTO f = 858166 kHz I999B8C999D999T999G999Y999
+ 857834: (time: 10:04)   skipped: (freq 857834000 unsupported by driver)
+
+ initial_tune:2265: Setting frontend failed QAM_AUTO f = 857834 kHz I999B8C999D999T999G999Y999
+ 858332: (time: 10:04)   skipped: (freq 858332000 unsupported by driver)
+
+ initial_tune:2265: Setting frontend failed QAM_AUTO f = 858332 kHz I999B8C999D999T999G999Y999
+ 858498: (time: 10:04)   skipped: (freq 858498000 unsupported by driver)
+
+ initial_tune:2265: Setting frontend failed QAM_AUTO f = 858498 kHz I999B8C999D999T999G999Y999
+
+ ERROR: Sorry - i couldn't get any working frequency/transponder
+  Nothing to scan!!
+
+Reading all these logs, can you tell me if you see obvious problems? I'm neither a kernel guru 
+(this is my first driver contact), nor a DVB-T user (so far!), so a lot of things are not clear 
+to me.
+
+Thanks for reading.
+
+¹ first time w_scan is launched, these lines take 2-3 seconds, and I guess this is when the 
+drxd kernel messages are output.
+
+-- 
+   Frédéric
