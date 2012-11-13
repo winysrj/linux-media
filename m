@@ -1,60 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52226 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750880Ab2KDVhP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Nov 2012 16:37:15 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id qA4LbEdQ016142
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 4 Nov 2012 16:37:15 -0500
-Received: from shalem.localdomain (vpn1-7-8.ams2.redhat.com [10.36.7.8])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id qA4LbDRt006534
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 4 Nov 2012 16:37:14 -0500
-Message-ID: <5096E078.3000009@redhat.com>
-Date: Sun, 04 Nov 2012 22:39:04 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:55422 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754864Ab2KMRwO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Nov 2012 12:52:14 -0500
+Date: Tue, 13 Nov 2012 18:51:47 +0100
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	devicetree-discuss@lists.ozlabs.org,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>, kernel@pengutronix.de
+Subject: Re: [PATCH v8 2/6] video: add of helper for videomode
+Message-ID: <20121113175147.GA2597@avionic-0098.mockup.avionic-design.de>
+References: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1352734626-27412-3-git-send-email-s.trumtrar@pengutronix.de>
+ <20121113110837.GA30049@avionic-0098.mockup.avionic-design.de>
+ <50A2878D.8020707@wwwdotorg.org>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR 3.8] Miscellaneous fixes
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DocE+STaALJfprDB"
+Content-Disposition: inline
+In-Reply-To: <50A2878D.8020707@wwwdotorg.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-Please pull from my tree for a bunch of miscellaneous fixes for 3.8 .
+--DocE+STaALJfprDB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The following changes since commit 8f7e91a31fb95c50880c76505b416630c0326d93:
+On Tue, Nov 13, 2012 at 10:46:53AM -0700, Stephen Warren wrote:
+> On 11/13/2012 04:08 AM, Thierry Reding wrote:
+> > On Mon, Nov 12, 2012 at 04:37:02PM +0100, Steffen Trumtrar wrote:
+> >> This adds support for reading display timings from DT or/and
+> >> convert one of those timings to a videomode. The
+> >> of_display_timing implementation supports multiple children where
+> >> each property can have up to 3 values. All children are read into
+> >> an array, that can be queried. of_get_videomode converts exactly
+> >> one of that timings to a struct videomode.
+>=20
+> >> diff --git
+> >> a/Documentation/devicetree/bindings/video/display-timings.txt
+> >> b/Documentation/devicetree/bindings/video/display-timings.txt
+>=20
+> >> + - clock-frequency: displayclock in Hz
+> >=20
+> > "display clock"?
+>=20
+> I /think/ I had suggested naming this clock-frequency before so that
+> the property name would be more standardized; other bindings use that
+> same name. But I'm not too attached to the name I guess.
 
-   [media] smiapp-pll: Constify limits argument to smiapp_pll_calculate() (2012-10-29 09:51:38 -0200)
+That's not what I meant. I think "displayclock" should be two words in
+the description of the property. The property name is fine.
 
-are available in the git repository at:
+Thierry
 
-   git://linuxtv.org/hgoede/gspca.git media-for_v3.8
+--DocE+STaALJfprDB
+Content-Type: application/pgp-signature
 
-for you to fetch changes up to e103a482eb63e89a749bab5b6cd645e2c7146346:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
 
-   gspca-sonixb: Add USB-id for Genius Eye 310 (2012-11-04 22:33:10 +0100)
+iQIcBAEBAgAGBQJQooizAAoJEN0jrNd/PrOhNKcP/1C+UHx+FDdiMbn1jonWqRmZ
+Dk0byTBdCR4iGN3OAAwcPppuRnODYTD4chMbePdiLw2KaSWOi4OZU0Z5xiqluY7Q
+S5oU1rKAe4CzfhW2+vknPsJMO33aEXERjhMrHoUnU2sLi5X5vjcgG+NsKX4vbA0x
+Rj6wvraVo6B3h0jNU3mcLQBVj5wCeR/Vjg5924eQXFQTPkM0OeZ+0aLce79wg6pj
+Gkv69BxYPEB1NWcXS7PS8gkJMwXDk5tyQqMmjLSpFBjaPgNJP4ts4XRNZR57MCl2
+LCzbxFhGpv8AkQGd77RCUg2ZMT5qTa5ttif/2jyCQYqdh6S2B/Gxw2341dbUo1tl
+K6FzbKQlCbrY0hCnRu7tp7PaUXBGKBcZb244ObxpVAlXScRBWgbJ+yl6soS2QE7J
+JfNG90cTsANht1C3zYXteCQEH72tnqFZn/pFwOHTV+h438RnNzVlcBjZf/cJe5yL
+e3zBuyTYDrq93Dpot57W53159L1Axyh32pocUpiQZ1AxxaJYob/ot2lHLTDTwBIB
+6K8Pkl9YVBr+062P6p5aNOF0nedbkSZlg36U8C15QWFtqyN+Jt1mf5m8vMcTssh1
+CHbiBx4sYs9wdN20OVoUi4WnzEfm4crFur6ocvbs2m8uyseG1ltVYj1B3GrZJefG
+mm8vCkhKUqioeCgtpF3i
+=LoKL
+-----END PGP SIGNATURE-----
 
-----------------------------------------------------------------
-Frank Schäfer (2):
-       gspca_pac7302: correct register documentation
-       gspca_pac7302: use registers 0x01 and 0x03 for red and blue balance controls
-
-Hans de Goede (4):
-       pwc: Fix codec1 cameras no longer working
-       MAINTAINERS: Add entries for the radioShark and radioShark2 drivers
-       MAINTAINERS: Add an entry for the pwc webcam driver
-       gspca-sonixb: Add USB-id for Genius Eye 310
-
-  MAINTAINERS                       | 22 ++++++++++++++
-  drivers/media/usb/gspca/pac7302.c | 62 ++++++++++++++++++++++++++++-----------
-  drivers/media/usb/gspca/sonixb.c  |  1 +
-  drivers/media/usb/pwc/pwc-ctrl.c  |  2 ++
-  4 files changed, 70 insertions(+), 17 deletions(-)
-
-Thanks & Regards,
-
-Hans
+--DocE+STaALJfprDB--
