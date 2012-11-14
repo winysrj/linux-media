@@ -1,69 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51692 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752726Ab2KVTRB convert rfc822-to-8bit (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:55226 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756717Ab2KNLn7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 14:17:01 -0500
-Date: Thu, 22 Nov 2012 11:41:05 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL] soc-camera + VEU for 3.8
-Message-ID: <20121122114105.1517d582@redhat.com>
-In-Reply-To: <Pine.LNX.4.64.1210311258420.9048@axis700.grange>
-References: <Pine.LNX.4.64.1210311258420.9048@axis700.grange>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 14 Nov 2012 06:43:59 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: [PATCH v9 6/6] drm_modes: add of_videomode helpers
+Date: Wed, 14 Nov 2012 12:43:23 +0100
+Message-Id: <1352893403-21168-7-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1352893403-21168-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1352893403-21168-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 31 Oct 2012 13:01:19 +0100 (CET)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+Add helper to get drm_display_mode from devicetree.
 
-> Hi Mauro
-> 
-> Please pull driver updates for 3.8. Apart from usual soc-camera 
-> development this pull request also includes a new VEU MEM2MEM driver.
-> 
-> The following changes since commit 016e804df1632fa99b1d96825df4c0db075ac196:
-> 
->   media: sh_vou: fix const cropping related warnings (2012-10-31 11:35:51 +0100)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.8
-> 
-> for you to fetch changes up to 223916e1817ce458e947a5f99026ee7d05acaa66:
-> 
->   media: add a VEU MEM2MEM format conversion and scaling driver (2012-10-31 12:54:58 +0100)
-> 
-> ----------------------------------------------------------------
-> Anatolij Gustschin (4):
->       V4L: soc_camera: allow reading from video device if supported
->       mt9v022: add v4l2 controls for blanking
->       mt9v022: support required register settings in snapshot mode
->       mt9v022: set y_skip_top field to zero as default
-> 
-> Frank SchÃ€fer (1):
->       ov2640: add support for V4L2_MBUS_FMT_YUYV8_2X8, V4L2_MBUS_FMT_RGB565_2X8_BE
-> 
-> Guennadi Liakhovetski (1):
->       media: add a VEU MEM2MEM format conversion and scaling driver
-> 
-> Shawn Guo (1):
->       media: mx1_camera: mark the driver BROKEN
-> 
->  arch/arm/mach-pxa/pcm990-baseboard.c           |    6 +
->  drivers/media/i2c/soc_camera/mt9v022.c         |   88 ++-
->  drivers/media/i2c/soc_camera/ov2640.c          |   49 +-
->  drivers/media/platform/Kconfig                 |    9 +
->  drivers/media/platform/Makefile                |    2 +
->  drivers/media/platform/sh_veu.c                | 1264 ++++++++++++++++++++++++
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+---
+ drivers/gpu/drm/drm_modes.c |   35 ++++++++++++++++++++++++++++++++++-
+ include/drm/drmP.h          |    6 ++++++
+ 2 files changed, 40 insertions(+), 1 deletion(-)
 
-Applied, thanks!
+diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
+index 42ea099..c3ae5d2 100644
+--- a/drivers/gpu/drm/drm_modes.c
++++ b/drivers/gpu/drm/drm_modes.c
+@@ -35,7 +35,8 @@
+ #include <linux/export.h>
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc.h>
+-#include <linux/videomode.h>
++#include <linux/of.h>
++#include <linux/of_videomode.h>
+ 
+ /**
+  * drm_mode_debug_printmodeline - debug print a mode
+@@ -540,6 +541,38 @@ int display_mode_from_videomode(struct videomode *vm, struct drm_display_mode *d
+ EXPORT_SYMBOL_GPL(display_mode_from_videomode);
+ #endif
+ 
++#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
++/**
++ * of_get_drm_display_mode - get a drm_display_mode from devicetree
++ * @np: device_node with the timing specification
++ * @dmode: will be set to the return value
++ * @index: index into the list of display timings in devicetree
++ *
++ * This function is expensive and should only be used, if only one mode is to be
++ * read from DT. To get multiple modes start with of_get_display_timings and
++ * work with that instead.
++ */
++int of_get_drm_display_mode(struct device_node *np, struct drm_display_mode *dmode,
++			unsigned int index)
++{
++	struct videomode vm;
++	int ret;
++
++	ret = of_get_videomode(np, &vm, index);
++	if (ret)
++		return ret;
++
++	display_mode_from_videomode(&vm, dmode);
++
++	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
++		vm.vactive, np->name);
++	drm_mode_debug_printmodeline(dmode);
++
++	return 0;
++
++}
++EXPORT_SYMBOL_GPL(of_get_drm_display_mode);
++#endif
+ /**
+  * drm_mode_set_name - set the name on a mode
+  * @mode: name will be set in this mode
+diff --git a/include/drm/drmP.h b/include/drm/drmP.h
+index 1e0d846..e8f46a1 100644
+--- a/include/drm/drmP.h
++++ b/include/drm/drmP.h
+@@ -56,6 +56,7 @@
+ #include <linux/cdev.h>
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
++#include <linux/of.h>
+ #include <linux/videomode.h>
+ #if defined(__alpha__) || defined(__powerpc__)
+ #include <asm/pgtable.h>	/* For pte_wrprotect */
+@@ -1459,6 +1460,11 @@ drm_mode_create_from_cmdline_mode(struct drm_device *dev,
+ extern int display_mode_from_videomode(struct videomode *vm,
+ 				       struct drm_display_mode *dmode);
+ #endif
++#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
++extern int of_get_drm_display_mode(struct device_node *np,
++				   struct drm_display_mode *dmode,
++				   unsigned int index);
++#endif
+ 
+ /* Modesetting support */
+ extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
+-- 
+1.7.10.4
 
-Please submit a MAINTAINERS entry for this new driver.
-
-Regards,
-Mauro
