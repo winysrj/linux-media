@@ -1,98 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:45901 "EHLO
-	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751575Ab2K1H1o convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 02:27:44 -0500
-From: Libin Yang <lbyang@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Albert Wang <twang13@marvell.com>,
-	"corbet@lwn.net" <corbet@lwn.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 27 Nov 2012 23:24:41 -0800
-Subject: RE: [PATCH 02/15] [media] marvell-ccic: add MIPI support for
- marvell-ccic driver
-Message-ID: <A63A0DC671D719488CD1A6CD8BDC16CF230A8D7A04@SC-VEXCH4.marvell.com>
-References: <1353677587-23998-1-git-send-email-twang13@marvell.com>
- <Pine.LNX.4.64.1211271117270.22273@axis700.grange>
- <477F20668A386D41ADCC57781B1F70430D1367C8D1@SC-VEXCH1.marvell.com>
- <A63A0DC671D719488CD1A6CD8BDC16CF230A8D79E9@SC-VEXCH4.marvell.com>
- <Pine.LNX.4.64.1211280812060.32652@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1211280812060.32652@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:64401 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1945916Ab2KNXS6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Nov 2012 18:18:58 -0500
+Received: by mail-wg0-f42.google.com with SMTP id fm10so2897052wgb.1
+        for <linux-media@vger.kernel.org>; Wed, 14 Nov 2012 15:18:56 -0800 (PST)
+Subject: Re: Regarding bulk transfers on stk1160
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+From: Michael Hartup <michael.hartup@gmail.com>
+In-Reply-To: <CALF0-+Xt4bEgXHYV3-4pX4q95yJONsOQvg3wKhKvO-g5mdV8Lw@mail.gmail.com>
+Date: Wed, 14 Nov 2012 23:18:54 +0000
+Cc: Greg KH <greg@kroah.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-rpi-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
 Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Message-Id: <61FF45D8-A60A-432B-A735-8A050A8C4A49@gmail.com>
+References: <CALF0-+XthyGJ-LzovTxLAKmMBif-YkLnNNcQBJvtnqTua+Ktag@mail.gmail.com> <20121113145809.GA15029@kroah.com> <CALF0-+Xt4bEgXHYV3-4pX4q95yJONsOQvg3wKhKvO-g5mdV8Lw@mail.gmail.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
 
->-----Original Message-----
->From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
->Sent: Wednesday, November 28, 2012 3:14 PM
->To: Libin Yang
->Cc: Albert Wang; corbet@lwn.net; linux-media@vger.kernel.org
->Subject: RE: [PATCH 02/15] [media] marvell-ccic: add MIPI support for marvell-ccic driver
->
->On Tue, 27 Nov 2012, Libin Yang wrote:
->
->> Hello Guennadi,
->>
->> Please see my comments below.
->>
->> Best Regards,
->> Libin
->>
->> >-----Original Message-----
->> >From: Albert Wang
->> >Sent: Tuesday, November 27, 2012 7:21 PM
->> >To: Guennadi Liakhovetski
->> >Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
->> >Subject: RE: [PATCH 02/15] [media] marvell-ccic: add MIPI support for marvell-ccic
->driver
->> >
->> >Hi, Guennadi
->> >
->> >We will update the patch by following your good suggestion! :)
->> >
->>
->> [snip]
->>
->> >>> +	pll1 = clk_get(dev, "pll1");
->> >>> +	if (IS_ERR(pll1)) {
->> >>> +		dev_err(dev, "Could not get pll1 clock\n");
->> >>> +		return;
->> >>> +	}
->> >>> +
->> >>> +	tx_clk_esc = clk_get_rate(pll1) / 1000000 / 12;
->> >>> +	clk_put(pll1);
->> >>
->> >>Once you release your clock per "clk_put()" its rate can be changed by some other user,
->> >>so, your tx_clk_esc becomes useless. Better keep the reference to the clock until clean
->up.
->> >>Maybe you can also use
->> >>devm_clk_get() to simplify the clean up.
->> >>
->> >That's a good suggestion.
->> >
->> [Libin] In our code design, the pll1 will never be changed after the system boots up.
->Camera and other components can only get the clk without modifying it.
->
->This doesn't matter. We have a standard API and we have to abide to its
->rules. Your driver can be reused or its code can be copied by others. I
->don't think it should be too difficult to just issue devm_clk_get() once
->and then just forget about it.
+On 14 Nov 2012, at 22:53, Ezequiel Garcia wrote:
 
-[Libin] Yes, you are right. We should consider the driver may be reused. I didn't realize it. Another question is: If we use devm_clk_get(), what I understand, the clk will be put when the device is being released. It means the driver will hold the clk all the time the driver is in the kernel. What do you think if we get the clk when opening the camera, and put it in the close?
+> Hi Greg,
+> 
+> On Tue, Nov 13, 2012 at 11:58 AM, Greg KH <greg@kroah.com> wrote:
+>> 
+>> Or better yet, buy a board with a working USB port, like a BeagleBone or
+>> the like :)
+>> 
+> 
+> Michael Hartup (the interested user) *has* a beaglebone.
+> 
+> I'm trying to help him getting it ready for stk1160.
+> However, Michael is getting choppy video capture.
+> (dmesg doesn't show anything relevant)
+> 
+> @Michael, could you upload those captures somewhere
+> and post the links for everyone to see?
 
->
->Thanks
->Guennadi
->---
->Guennadi Liakhovetski, Ph.D.
->Freelance Open-Source Software Developer
->http://www.open-technology.de/
+> 
+> Is this related to beaglebone's known usb dma issues?
+> 
+> https://github.com/RobertCNelson/linux-dev/issues/2
+> https://groups.google.com/forum/?fromgroups=#!topic/beagleboard/J94PUlo0wzs
+> 
+> Unfortunately, I don't own a beaglebone (and I can't afford one right now)
+> so I can't really see for myself what's going on.
+> 
+> Any help, greatly appreciated.
+> 
+>    Ezequiel
 
-Best Regard,
-Libin
+
+
+Thanks for looking at this gentlemen. I have posted some examples here;
+
+http://bufobufomagic.blogspot.co.uk/2012/11/image-corruption-on-beaglebone-with.html
+
+
+Michael.
