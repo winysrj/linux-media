@@ -1,48 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp23.services.sfr.fr ([93.17.128.22]:49704 "EHLO
-	smtp23.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756109Ab2K0UQF (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:58507 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932820Ab2KNJsL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 15:16:05 -0500
-Message-ID: <50B51F7E.2030008@sfr.fr>
-Date: Tue, 27 Nov 2012 21:15:58 +0100
-From: Patrice Chotard <patrice.chotard@sfr.fr>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Patrice Chotard <patrice.chotard@sfr.fr>,
-	=?iso-8859-1?b?RnLpZOlyaWM=?= <frederic.mantegazza@gbiloba.org>
-Subject: [PATCH] [media] ngene: fix dvb_pll_attach failure
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 14 Nov 2012 04:48:11 -0500
+Received: by mail-bk0-f46.google.com with SMTP id q16so82050bkw.19
+        for <linux-media@vger.kernel.org>; Wed, 14 Nov 2012 01:48:09 -0800 (PST)
+References: <CAE-UT2ug=U4AJghXfXZBuBoa18JsPSjNsvHUEu9FHZvAm1qi1Q@mail.gmail.com> <50A211BE.60606@redhat.com>
+Mime-Version: 1.0 (1.0)
+In-Reply-To: <50A211BE.60606@redhat.com>
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Message-Id: <1C898410-5C98-4E62-8639-C735185AD618@googlemail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+From: Martin Rudge <martin.rudge@googlemail.com>
+Subject: Re: DVB V5 API: Event Model
+Date: Wed, 14 Nov 2012 09:47:56 +0000
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Before dvb_pll_attch call, be sure that drxd demodulator was
-initialized, otherwise, dvb_pll_attach() will always failed.
+Thanks Mauro.
 
-In dvb_pll_attach(), first thing done is to enable the I2C gate
-control in order to probe the pll by performing a read access.
-As demodulator was not initialized, every i2c access failed.
+I'm not familiar with the code, however I'll review the design/code and see what could be done.
 
-Reported-by: frederic.mantegazza@gbiloba.org
-Signed-off-by: Patrice Chotard <patricechotard@free.fr>
----
- drivers/media/pci/ngene/ngene-cards.c |    2 ++
- 1 file changed, 2 insertions(+)
+A quick look suggests the events are originating from the tuning loop, so it's down to the timing of copying the parms for voltage/tone (not currently instigated by a DTV_TUNE).
 
-diff --git a/drivers/media/pci/ngene/ngene-cards.c
-b/drivers/media/pci/ngene/ngene-cards.c
-index 96a13ed..e2192db 100644
---- a/drivers/media/pci/ngene/ngene-cards.c
-+++ b/drivers/media/pci/ngene/ngene-cards.c
-@@ -328,6 +328,8 @@ static int demod_attach_drxd(struct ngene_channel *chan)
- 		return -ENODEV;
- 	}
+Thanks
+Martin
 
-+	/* initialized the DRXD demodulator */
-+	chan->fe->ops.init(chan->fe);
- 	if (!dvb_attach(dvb_pll_attach, chan->fe, feconf->pll_address,
- 			&chan->i2c_adapter,
- 			feconf->pll_type)) {
--- 1.7.10.4
+On 13 Nov 2012, at 09:24, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+
+> Em 12-11-2012 11:04, Martin Rudge escreveu:
+>> Hello All,
+>> 
+>> When using the V5 API (DVB-S/S2) for the DVB frontend device (with the
+>> now merged SEC functionality), setting properties DTV_VOLTAGE and/or
+>> DTV_TONE generates extra (unwanted?) events.  This is due to utilising
+>> the legacy FE_SET_FRONTEND IOCTL in their respective implementations.
+>> 
+>> Depending on their placement in one "atomic" FE_SET_PROPERTY call,
+>> they can cause an "incorrect" (premature) SYNC/LOCK event to be
+>> generated.  For example, when looping issuing tune requests in
+>> succession during a scan operation. This was with a fairly recent
+>> media build (pulled Saturday).
+> 
+> I suspect that this is an undesirable behavior, likely there since the initial
+> version of DVB-S2 API. It could be too late to fix, as userspace apps may be
+> trusting on this behavior.
+> 
+> Maybe you could propose a patch and ask app developers what they thing about
+> it.
+> 
+>> Conversly using DTV_CLEAR clears the cached values, but doesn't affect
+>> the frontend (LNB).  This is probably desirable behaviour.
+> 
+> This is desirable.
+> 
+>> Any thoughts, working as designed/intended?
+> 
+> Regards,
+> Mauro
