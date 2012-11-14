@@ -1,98 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:38690 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754355Ab2KIRDf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2012 12:03:35 -0500
-Received: by mail-bk0-f46.google.com with SMTP id jk13so1744560bkc.19
-        for <linux-media@vger.kernel.org>; Fri, 09 Nov 2012 09:03:34 -0800 (PST)
-Message-ID: <509D2958.9080109@googlemail.com>
-Date: Fri, 09 Nov 2012 18:03:36 +0200
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:64950 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751802Ab2KNMMQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Nov 2012 07:12:16 -0500
+Date: Wed, 14 Nov 2012 13:12:07 +0100
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: Re: [PATCH v9 3/6] fbmon: add videomode helpers
+Message-ID: <20121114121207.GD2803@avionic-0098.mockup.avionic-design.de>
+References: <1352893403-21168-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1352893403-21168-4-git-send-email-s.trumtrar@pengutronix.de>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 00/23] em28xx: add support fur USB bulk transfers
-References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com> <20121028175752.447c39d5@redhat.com> <508EA1B8.3070304@googlemail.com> <20121029180348.7e7967aa@redhat.com> <508EF1CF.8090602@googlemail.com> <20121030010012.30e1d2de@redhat.com> <20121030020619.6e854f70@redhat.com> <50900BF6.1030502@googlemail.com> <509BF403.2080002@googlemail.com> <20121109160216.630ea18f@gaivota.chehab>
-In-Reply-To: <20121109160216.630ea18f@gaivota.chehab>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="1sNVjLsmu1MXqwQ/"
+Content-Disposition: inline
+In-Reply-To: <1352893403-21168-4-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 09.11.2012 17:02, schrieb Mauro Carvalho Chehab:
-> Em Thu, 08 Nov 2012 20:03:47 +0200
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> Am 30.10.2012 19:18, schrieb Frank Schäfer:
->>> Am 30.10.2012 06:06, schrieb Mauro Carvalho Chehab:
->>>
->>> <snip>
->>>> Did a git bisect. The last patch where the bug doesn't occur is this 
->>>> changeset:
->>>> 	em28xx: add module parameter for selection of the preferred USB transfer type
->>>>
->>>> That means that this changeset broke it:
->>>>
->>>> 	em28xx: use common urb data copying function for vbi and non-vbi devices
->>> Ok, thanks.
->>> That means we are VERY close...
->>>
->>> I think this is the only change that could cause the trouble:
->>>> @@ -599,6 +491,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
->>>>  			len = actual_length - 4;
->>>>  		} else if (p[0] == 0x22 && p[1] == 0x5a) {
->>>>  			/* start video */
->>>> +			dev->capture_type = 1;
->>>>  			p += 4;
->>>>  			len = actual_length - 4;
->>>>  		} else {
->>> Could you try again with this line commented out ? (em28xx-video.c, line
->>> 494 in the patched file).
->>> usb_debug=1 would be usefull, too.
->>>
->>>> I didn't test them with my Silvercrest webcam yet.
->>> I re-tested 5 minutes ago with this device and it works fine.
->>> Btw, which frame rates do you get  ? ;)
->>>
->>> Regards,
->>> Frank
->> Today I had the chance to test these patches with a Hauppauge HVR-930c.
->> Couldn't test analog TV (not supported yet), but DVB works fine, too.
-> While I would love to have it, analog support for HVR-930C would likely
-> not happen. I don't know anyone working on it. There are two issues there:
-> 1) it uses an unsupported micronas analog demod chipset;
-> 2) drx-k requrires some changes to tune on analog  mode.
 
-Yeah, I heard about that. :(
+--1sNVjLsmu1MXqwQ/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> As usual, patches for it are of course very welcome.
+On Wed, Nov 14, 2012 at 12:43:20PM +0100, Steffen Trumtrar wrote:
+> Add a function to convert from the generic videomode to a fb_videomode.
+>=20
+> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> ---
+>  drivers/video/fbmon.c |   38 ++++++++++++++++++++++++++++++++++++++
+>  include/linux/fb.h    |    5 +++++
+>  2 files changed, 43 insertions(+)
+>=20
+> diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
+> index cef6557..cccef17 100644
+> --- a/drivers/video/fbmon.c
+> +++ b/drivers/video/fbmon.c
+> @@ -31,6 +31,7 @@
+>  #include <linux/pci.h>
+>  #include <linux/slab.h>
+>  #include <video/edid.h>
+> +#include <linux/videomode.h>
+>  #ifdef CONFIG_PPC_OF
+>  #include <asm/prom.h>
+>  #include <asm/pci-bridge.h>
+> @@ -1373,6 +1374,43 @@ int fb_get_mode(int flags, u32 val, struct fb_var_=
+screeninfo *var, struct fb_inf
+>  	kfree(timings);
+>  	return err;
+>  }
+> +
+> +#if IS_ENABLED(CONFIG_VIDEOMODE)
+> +int fb_videomode_from_videomode(struct videomode *vm, struct fb_videomod=
+e *fbmode)
+> +{
+> +	fbmode->xres =3D vm->hactive;
+> +	fbmode->left_margin =3D vm->hback_porch;
+> +	fbmode->right_margin =3D vm->hfront_porch;
+> +	fbmode->hsync_len =3D vm->hsync_len;
+> +
+> +	fbmode->yres =3D vm->vactive;
+> +	fbmode->upper_margin =3D vm->vback_porch;
+> +	fbmode->lower_margin =3D vm->vfront_porch;
+> +	fbmode->vsync_len =3D vm->vsync_len;
+> +
+> +	fbmode->pixclock =3D KHZ2PICOS(vm->pixelclock / 1000);
+> +
+> +	fbmode->sync =3D 0;
+> +	fbmode->vmode =3D 0;
+> +	if (vm->hah)
+> +		fbmode->sync |=3D FB_SYNC_HOR_HIGH_ACT;
+> +	if (vm->vah)
+> +		fbmode->sync |=3D FB_SYNC_VERT_HIGH_ACT;
+> +	if (vm->interlaced)
+> +		fbmode->vmode |=3D FB_VMODE_INTERLACED;
+> +	if (vm->doublescan)
+> +		fbmode->vmode |=3D FB_VMODE_DOUBLE;
+> +	if (vm->de)
+> +		fbmode->sync |=3D FB_SYNC_DATA_ENABLE_HIGH_ACT;
+> +	fbmode->refresh =3D (vm->pixelclock*1000) / (vm->hactive * vm->vactive);
 
-I don't own this device, just borrowed it for some minutes for testing.
-Apart from that, it seems I will be busy with the Laplace webcam support
-for the next years... :D
+CodingStyle that you should have spaces around '*'. Also I'm not sure if
+that formula is correct. Shouldn't the blanking intervals be counted as
+well? So:
 
-Regards,
-Frank
+	unsigned int htotal =3D vm->hactive + vm->hfront_porch +
+			      vm->hback_porch + vm->hsync_len;
+	unsigned int vtotal =3D vm->vactive + vm->vfront_porch +
+			      vm->vback_porch + vm->vsync_len;
 
->
->> So patches 1 to 21 have been tested now and do at least not cause any
->> regressions.
->>
->> I would like to drop the last two patches (22+23) of this series, because
->> - they are actually not related to USB bulk transfers
->> - patch 22 needs to be fixed for analog+vbi (will get an analog device
->> for testing next week)
->> - I'm working on further improvements/changes in this area (including
->> em25xx support)
->> So I will better come up with a separate patch series later.
-> OK.
->
->> Will send a v2 of this patch series soon.
->>
->> Regards,
->> Frank
->>
->>
-> Cheers,
-> Mauro
+	fbmode->refresh =3D (vm->pixelclock * 1000) / (htotal * vtotal);
 
+?
+
+> +	fbmode->flag =3D 0;
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
+> +#endif
+> +
+> +
+
+Gratuitous blank line.
+
+>  #else
+>  int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
+>  {
+> diff --git a/include/linux/fb.h b/include/linux/fb.h
+> index c7a9571..6a3a675 100644
+> --- a/include/linux/fb.h
+> +++ b/include/linux/fb.h
+> @@ -14,6 +14,7 @@
+>  #include <linux/backlight.h>
+>  #include <linux/slab.h>
+>  #include <asm/io.h>
+> +#include <linux/videomode.h>
+> =20
+>  struct vm_area_struct;
+>  struct fb_info;
+> @@ -714,6 +715,10 @@ extern void fb_destroy_modedb(struct fb_videomode *m=
+odedb);
+>  extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int =
+rb);
+>  extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+> =20
+> +#if IS_ENABLED(CONFIG_VIDEOMODE)
+> +extern int fb_videomode_from_videomode(struct videomode *vm,
+> +				       struct fb_videomode *fbmode);
+> +#endif
+>  /* drivers/video/modedb.c */
+
+These in turn could use an extra blank line.
+
+Thierry
+
+--1sNVjLsmu1MXqwQ/
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQo4qXAAoJEN0jrNd/PrOhPp0QAKnDR5xQNeuo1AHCiFDdir3r
+LLakTtimwaGLkOWFnm7wUuOQ/b1c0lMO5jw4aMy++JcCM4uSIb1bDtJo2GIFPlR9
+wnE7SjlJhoN11mcLvrj0cCd9VDrWRV7VlwNCl8BtS7WKsTifF42gdxbJcld2yjjX
+jGDSaMoPixgdU1NRY57o50Vdj2H1pNlmXzM/pMn6/F2PppSyTHeouhu4GQen76fG
+n/OVZu/MFO+A4ZuSvXwUo77LE5WFBa17UoigYfRNLV9DJFV22QQxiCP1J1Albvwg
+tGie6DMg/h+nhotdGex5ZdJ/j5tJw4TfJ3DkhNCnr2Sk3x7YGIOPMyvMBbACt6P1
+JzxxRRnoKMY59xYp7U8xamFAjX0dAaOdev2r9oLs4QWJ5EpIgOty1s6/NsCTUhH6
+GHaFJQ/WhRytSfbVDfnsBRPFHl5UOYriCCQFpLzSLjP4GeWV+Cw/q7GGPbLdzErr
+RoOkSNbqXEMv0TJmCfHy9t4JgEzcXrw0i4Va3By/HgQH7z4jTYU3Euwkt23BwcC+
+YjZlYVbx4q0bAiCAWC0lgFq1oiKqtxF8paq7VkHFTBN+E097PsbeTV5cSRDcocWp
+kqhmz8KGbZ9YIWIWa3vF97z/OnWWZRBxwWJ8QxhBYXp/hHDiQGJ+91PrPEi6cHZT
+jPZFlA3B21xJiSCXq28G
+=I1z0
+-----END PGP SIGNATURE-----
+
+--1sNVjLsmu1MXqwQ/--
