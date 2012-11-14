@@ -1,98 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59960 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754234Ab2K0NH7 (ORCPT
+Received: from smtp23.services.sfr.fr ([93.17.128.19]:41274 "EHLO
+	smtp23.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753057Ab2KNUqO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 08:07:59 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	kgene.kim@samsung.com, shaik.samsung@gmail.com,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Kamil Debski <k.debski@samsung.com>
-Subject: Re: [PATCH] [media] exynos-gsc: propagate timestamps from src to dst buffers
-Date: Tue, 27 Nov 2012 14:09:02 +0100
-Message-ID: <1464756.TW1DZTO2FN@avalon>
-In-Reply-To: <20121125120950.GD31879@valkosipuli.retiisi.org.uk>
-References: <1352270424-14683-1-git-send-email-shaik.ameer@samsung.com> <50AE9CB6.8020100@gmail.com> <20121125120950.GD31879@valkosipuli.retiisi.org.uk>
+	Wed, 14 Nov 2012 15:46:14 -0500
+Message-ID: <50A4030C.70306@sfr.fr>
+Date: Wed, 14 Nov 2012 21:46:04 +0100
+From: Patrice Chotard <patrice.chotard@sfr.fr>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: =?iso-8859-1?b?RnLpZOlyaWM=?= <fma@gbiloba.org>
+CC: linux-media@vger.kernel.org, rjkm@metzlerbros.de,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: Support for Terratec Cinergy 2400i DT in kernel 3.x
+References: <201211131040.22114.fma@gbiloba.org> <50A2C0C4.9040607@sfr.fr>
+	<201211140948.00913.fma@gbiloba.org>
+In-Reply-To: <201211140948.00913.fma@gbiloba.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Frédéric,
 
-On Sunday 25 November 2012 14:09:50 Sakari Ailus wrote:
-> On Thu, Nov 22, 2012 at 10:44:22PM +0100, Sylwester Nawrocki wrote:
-> >>> the data will not be displayed before this time, secondary to the
-> >>> nominal frame rate determined by the current video standard in enqueued
-> >>> order. Applications can for example zero this field to display frames as
-> >>> soon as possible. The driver stores the time at which the first data
-> >>> byte was actually sent out in the timestamp field. This permits
-> >>> applications to monitor the drift between the video and system clock."
-> >>>
-> >>> In some use cases it might be useful to know exact frame processing
-> >>> time, where driver would be filling OUTPUT and CAPTURE value with exact
-> >>> monotonic clock values corresponding to a frame processing start and end
-> >>> time.
-> >>
-> >> Shouldn't this always be done in memory-to-memory processing? I could
-> >> imagine only performance measurements can benefit from other kind of
-> >> timestamps.
-> >>
-> >> We could use different timestamp type to tell the timestamp source isn't
-> >> any system clock but an input buffer.
-> >>
-> >> What do you think?
-> > 
-> > Yes, it makes sense to me to report with the buffer flag that the source
-> > of timestamp is just an OUTPUT buffer. At least this would solve the
-> > reporting part of the issue. Oh wait, could applications tell by setting
-> > buffer flag what timestamping behaviour they expect from a driver ?
-> 
-> I'd prefer not to. Timestamps not involving use of video nodes or buffers
-> would have no way to choose this. Timestamps only make sense if they're all
-> the same kind of, so you can cmopare them, with possibly some exceptions
-> this could be one of.
+You are right, in the ngene initial commit
+(dae52d009fc950b5c209260d50fcc000f5becd3c), no fw_version was set, so by
+default the ngene_15.fw is selected.
 
-I agree, I'd rather select the timestamp type without involving the buffer. If 
-we used buffer flags to select the timestamp type we would essentially delay 
-timestamp type selection until QBUF time, which could be too late for some 
-devices.
+But in the patch available here
+http://wiki.ubuntuusers.de/_attachment?target=/Terratec_Cinergy_2400i_DT/ngene_p11.tar.gz,
+fw_version = 17 was set in ngene_info_terratec struct.
 
-> In memory-to-memory processing we could possibly also force such timestamps,
-> but that'd require making vb2 timestamp source-aware. I certainly have
-> nothing against that: it's been already planned.
-> 
-> Handling queryctrl requirest that, and I prefer to avoid involving drivers
-> in it.
-> 
-> (Cc Laurent.)
-> 
-> > I can't see an important use of timestamping m2m buffers at device
-> > drivers.
-> 
-> How not important is it then?
-> 
-> > Performance measurement can probably be done in user space with sufficient
-> > accuracy as well. However, it wouldn't be difficult for drivers to
-> 
-> I agree.
-> 
-> > implement multiple time stamping techniques, e.g. OUTPUT -> CAPTURE
-> > timestamp copying or getting timestamps from monotonic clock at frame
-> > processing beginning and end for OUTPUT and CAPTURE respectively.
-> > 
-> > I believe the buffer flags might be a good solution.
-> 
-> Have you looked at the monotonic timestamp patches ("[PATCH 0/4] Monotonic
-> timestamps")?
+Before submitting the ngene patch set i have done tests with all
+available firmware without noticing any difference.
 
--- 
-Regards,
+I really don't known what are the difference between ngene_15.fw and
+ngene_17.fw
 
-Laurent Pinchart
+Perhaps Ralph or Mauro has the answer ?
 
+
+
+On 14/11/2012 09:48, Frédéric wrote:
+> Le mardi 13 novembre 2012, Patrice Chotard a écrit :
+> 
+>> Two patches have been already submitted and are available since v3.7-rc1
+>>
+>> media] ngene: add support for Terratec Cynergy 2400i Dual DVB-T  :
+>> 397e972350c42cbaf3228fe2eec23fecf6a69903
+>>
+>> and
+>>
+>> media] dvb: add support for Thomson DTT7520X :
+>> 5fb67074c6657edc34867cba78255b6f5b505f12
+> 
+> I had a look at your patches. I don't see the '.fw_version' param anymore in the 'ngene_info' 
+> structure... Is it normal?
+> 
