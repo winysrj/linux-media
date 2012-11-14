@@ -1,72 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36845 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755350Ab2KHMRX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 07:17:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [RFC 4/4] v4l: Tell user space we're using monotonic timestamps
-Date: Thu, 08 Nov 2012 13:18:15 +0100
-Message-ID: <6798781.iK5M8mTgMg@avalon>
-In-Reply-To: <20121105140432.GD25623@valkosipuli.retiisi.org.uk>
-References: <20121024181602.GD23933@valkosipuli.retiisi.org.uk> <6800416.KHKIF7a4Tv@avalon> <20121105140432.GD25623@valkosipuli.retiisi.org.uk>
+Received: from ks358065.kimsufi.com ([91.121.151.38]:34031 "EHLO
+	ks358065.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751820Ab2KNIsJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Nov 2012 03:48:09 -0500
+From: =?iso-8859-15?q?Fr=E9d=E9ric?= <fma@gbiloba.org>
+To: Patrice Chotard <patrice.chotard@sfr.fr>
+Subject: Re: Support for Terratec Cinergy 2400i DT in kernel 3.x
+Date: Wed, 14 Nov 2012 09:48:00 +0100
+Cc: linux-media@vger.kernel.org
+References: <201211131040.22114.fma@gbiloba.org> <50A2C0C4.9040607@sfr.fr>
+In-Reply-To: <50A2C0C4.9040607@sfr.fr>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201211140948.00913.fma@gbiloba.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Le mardi 13 novembre 2012, Patrice Chotard a écrit :
 
-On Monday 05 November 2012 16:04:32 Sakari Ailus wrote:
-> On Sun, Nov 04, 2012 at 01:07:25PM +0100, Laurent Pinchart wrote:
-> > On Wednesday 24 October 2012 21:16:23 Sakari Ailus wrote:
-> ...
+> Two patches have been already submitted and are available since v3.7-rc1
 > 
-> > > @@ -367,7 +368,8 @@ static void __fill_v4l2_buffer(struct vb2_buffer
-> > > *vb,
-> > > struct v4l2_buffer *b) /*
-> > > 
-> > >  	 * Clear any buffer state related flags.
-> > >  	 */
-> > > 
-> > > -	b->flags &= ~V4L2_BUFFER_STATE_FLAGS;
-> > > +	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
-> > > +	b->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> > 
-> > That's an issue. Drivers that use videobuf2 would always be restricted to
-> > monotonic timestamps in the future, even if they provide support for a
-> > device- specific clock.
-> > 
-> > Would it instead make sense to pass a v4l2_buffer pointer to
-> > v4l2_get_timestamp() and set the monotonic flag there ? Not all callers of
-> > v4l2_get_timestamp() might have a v4l2_buffer pointer though.
+> media] ngene: add support for Terratec Cynergy 2400i Dual DVB-T  :
+> 397e972350c42cbaf3228fe2eec23fecf6a69903
 > 
-> For now, this patch assumes that all the VB2 users will use monotonic
-> timestamps only. Once we have a good use case for different kind of
-> timestamps and have agreed how to implement them, I was thinking of adding a
-> similar function to v4l2_get_timestamp() but which would be VB2-aware, with
-> one argument being the timestamp type. That function could then get the
-> timestamp and apply the relevant flags.
+> and
 > 
-> Do you think it'd be enough to support changeable timestamp type for drivers
-> using VB2 only?
+> media] dvb: add support for Thomson DTT7520X :
+> 5fb67074c6657edc34867cba78255b6f5b505f12
 
-Given that there's no reason to use anything else than VB2 in V4L2 drivers, I 
-don't see any problem there.
-
-How would that work in practice ? You won't be able to override the timestamp 
-type flag unconditionally in __fill_v4l2_buffer() anymore.
-
-> Alternatively we could make v4l2_get_timestamp() v4l2_buffer-aware, and for
-> drivers that can't provide the buffer pointer we could just set the pointer
-> to NULL, and v4l2_get_timestamp() could ignore it. The driver would then be
-> responsible for setting the right flags to the buffer on its own. As far as
-> I understand, this is essentially what you proposed.
+I had a look at your patches. I don't see the '.fw_version' param anymore in the 'ngene_info' 
+structure... Is it normal?
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+   Frédéric
