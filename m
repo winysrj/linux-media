@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39085 "EHLO
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:55288 "EHLO
 	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753091Ab2KTP4G (ORCPT
+	with ESMTP id S1422647Ab2KNLoX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Nov 2012 10:56:06 -0500
+	Wed, 14 Nov 2012 06:44:23 -0500
 From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
 To: devicetree-discuss@lists.ozlabs.org
 Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
@@ -14,115 +14,102 @@ Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
 	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
 	linux-media@vger.kernel.org,
 	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
-	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
-	"David Airlie" <airlied@linux.ie>
-Subject: [PATCH v12 4/6] fbmon: add of_videomode helpers
-Date: Tue, 20 Nov 2012 16:54:54 +0100
-Message-Id: <1353426896-6045-5-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de>
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: [PATCH v9 3/6] fbmon: add videomode helpers
+Date: Wed, 14 Nov 2012 12:43:20 +0100
+Message-Id: <1352893403-21168-4-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1352893403-21168-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1352893403-21168-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add helper to get fb_videomode from devicetree.
+Add a function to convert from the generic videomode to a fb_videomode.
 
 Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/video/fbmon.c |   42 +++++++++++++++++++++++++++++++++++++++++-
- include/linux/fb.h    |    7 +++++++
- 2 files changed, 48 insertions(+), 1 deletion(-)
+ drivers/video/fbmon.c |   38 ++++++++++++++++++++++++++++++++++++++
+ include/linux/fb.h    |    5 +++++
+ 2 files changed, 43 insertions(+)
 
 diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
-index c1939a6..16c353c 100644
+index cef6557..cccef17 100644
 --- a/drivers/video/fbmon.c
 +++ b/drivers/video/fbmon.c
-@@ -31,7 +31,7 @@
+@@ -31,6 +31,7 @@
  #include <linux/pci.h>
  #include <linux/slab.h>
  #include <video/edid.h>
--#include <linux/videomode.h>
-+#include <linux/of_videomode.h>
++#include <linux/videomode.h>
  #ifdef CONFIG_PPC_OF
  #include <asm/prom.h>
  #include <asm/pci-bridge.h>
-@@ -1418,6 +1418,46 @@ int fb_videomode_from_videomode(const struct videomode *vm,
- EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
- #endif
- 
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+static inline void dump_fb_videomode(const struct fb_videomode *m)
+@@ -1373,6 +1374,43 @@ int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_inf
+ 	kfree(timings);
+ 	return err;
+ }
++
++#if IS_ENABLED(CONFIG_VIDEOMODE)
++int fb_videomode_from_videomode(struct videomode *vm, struct fb_videomode *fbmode)
 +{
-+	pr_debug("fb_videomode = %ux%u@%uHz (%ukHz) %u %u %u %u %u %u %u %u %u\n",
-+		 m->xres, m->yres, m->refresh, m->pixclock, m->left_margin,
-+		 m->right_margin, m->upper_margin, m->lower_margin,
-+		 m->hsync_len, m->vsync_len, m->sync, m->vmode, m->flag);
-+}
++	fbmode->xres = vm->hactive;
++	fbmode->left_margin = vm->hback_porch;
++	fbmode->right_margin = vm->hfront_porch;
++	fbmode->hsync_len = vm->hsync_len;
 +
-+/**
-+ * of_get_fb_videomode - get a fb_videomode from devicetree
-+ * @np: device_node with the timing specification
-+ * @fb: will be set to the return value
-+ * @index: index into the list of display timings in devicetree
-+ *
-+ * DESCRIPTION:
-+ * This function is expensive and should only be used, if only one mode is to be
-+ * read from DT. To get multiple modes start with of_get_display_timings ond
-+ * work with that instead.
-+ */
-+int of_get_fb_videomode(const struct device_node *np, struct fb_videomode *fb,
-+			unsigned int index)
-+{
-+	struct videomode vm;
-+	int ret;
++	fbmode->yres = vm->vactive;
++	fbmode->upper_margin = vm->vback_porch;
++	fbmode->lower_margin = vm->vfront_porch;
++	fbmode->vsync_len = vm->vsync_len;
 +
-+	ret = of_get_videomode(np, &vm, index);
-+	if (ret)
-+		return ret;
++	fbmode->pixclock = KHZ2PICOS(vm->pixelclock / 1000);
 +
-+	fb_videomode_from_videomode(&vm, fb);
-+
-+	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
-+		vm.vactive, np->name);
-+	dump_fb_videomode(fb);
++	fbmode->sync = 0;
++	fbmode->vmode = 0;
++	if (vm->hah)
++		fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
++	if (vm->vah)
++		fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
++	if (vm->interlaced)
++		fbmode->vmode |= FB_VMODE_INTERLACED;
++	if (vm->doublescan)
++		fbmode->vmode |= FB_VMODE_DOUBLE;
++	if (vm->de)
++		fbmode->sync |= FB_SYNC_DATA_ENABLE_HIGH_ACT;
++	fbmode->refresh = (vm->pixelclock*1000) / (vm->hactive * vm->vactive);
++	fbmode->flag = 0;
 +
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(of_get_fb_videomode);
++EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
 +#endif
- 
++
++
  #else
  int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
+ {
 diff --git a/include/linux/fb.h b/include/linux/fb.h
-index 920cbe3..41b5e49 100644
+index c7a9571..6a3a675 100644
 --- a/include/linux/fb.h
 +++ b/include/linux/fb.h
-@@ -15,6 +15,8 @@
+@@ -14,6 +14,7 @@
+ #include <linux/backlight.h>
  #include <linux/slab.h>
  #include <asm/io.h>
- #include <linux/videomode.h>
-+#include <linux/of.h>
-+#include <linux/of_videomode.h>
++#include <linux/videomode.h>
  
  struct vm_area_struct;
  struct fb_info;
-@@ -715,6 +717,11 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
+@@ -714,6 +715,10 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
  extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
  extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
  
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+extern int of_get_fb_videomode(const struct device_node *np,
-+			       struct fb_videomode *fb,
-+			       unsigned int index);
++#if IS_ENABLED(CONFIG_VIDEOMODE)
++extern int fb_videomode_from_videomode(struct videomode *vm,
++				       struct fb_videomode *fbmode);
 +#endif
- #if IS_ENABLED(CONFIG_VIDEOMODE)
- extern int fb_videomode_from_videomode(const struct videomode *vm,
- 				       struct fb_videomode *fbmode);
+ /* drivers/video/modedb.c */
+ #define VESA_MODEDB_SIZE 34
+ extern void fb_var_to_videomode(struct fb_videomode *mode,
 -- 
 1.7.10.4
 
