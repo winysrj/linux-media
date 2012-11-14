@@ -1,90 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:27048 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753314Ab2KGBP4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 20:15:56 -0500
-Date: Wed, 7 Nov 2012 02:15:48 +0100
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: David =?ISO-8859-1?B?SORyZGVtYW4=?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] siano: fix Kconfig
-Message-ID: <20121107021548.6e94618e@gaivota.chehab>
-In-Reply-To: <20121107001018.31147.34490.stgit@zeus.hardeman.nu>
-References: <20121107001018.31147.34490.stgit@zeus.hardeman.nu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:55270 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422644Ab2KNLoR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Nov 2012 06:44:17 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: [PATCH v9 5/6] drm_modes: add videomode helpers
+Date: Wed, 14 Nov 2012 12:43:22 +0100
+Message-Id: <1352893403-21168-6-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1352893403-21168-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1352893403-21168-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 07 Nov 2012 01:10:18 +0100
-David Härdeman <david@hardeman.nu> escreveu:
+Add conversion from videomode to drm_display_mode
 
-> make allmodconfig fails on the staging/for_v3.8 branch:
-> 
->   LD      init/built-in.o
-> drivers/built-in.o: In function `sms_ir_event':
-> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:48: undefined reference to `ir_raw_event_store'
-> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:50: undefined reference to `ir_raw_event_handle'
-> drivers/built-in.o: In function `sms_ir_init':
-> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:56: undefined reference to `smscore_get_board_id'
-> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:60: undefined reference to `rc_allocate_device'
-> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:72: undefined reference to `sms_get_board'
-> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:92: undefined reference to `sms_get_board'
-> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:97: undefined reference to `rc_register_device'
-> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:100: undefined reference to `rc_free_device'
-> drivers/built-in.o: In function `sms_ir_exit':
-> /home/david/checkouts/linux/drivers/media/common/siano/smsir.c:111: undefined reference to `rc_unregister_device'
-> make: *** [vmlinux] Error 1
-> 
-> from drivers/media/common/siano/Kconfig:
-> config SMS_SIANO_RC
->         bool "Enable Remote Controller support for Siano devices"
-> 
-> from drivers/media/common/siano/Makefile:
->         obj-$(CONFIG_SMS_SIANO_RC) += smsir.o
-> 
-> Note the "bool" option in the Kconfig which results in these .config options:
->         CONFIG_SMS_SIANO_MDTV=m
->         CONFIG_SMS_SIANO_RC=y
->         CONFIG_RC_CORE=m
-> 
-> So the smsir.ko module gets built in while rc-core is a standalone
-> module. Fix by making smsir a tristate as well. (I hope that's the
-> correct fix, I'm no Kconfig expert).
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+---
+ drivers/gpu/drm/drm_modes.c |   36 ++++++++++++++++++++++++++++++++++++
+ include/drm/drmP.h          |    6 ++++++
+ 2 files changed, 42 insertions(+)
 
-I suspect that this won't cover all possibilities. It seems that this would
-still be a valid option:
+diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
+index 59450f3..42ea099 100644
+--- a/drivers/gpu/drm/drm_modes.c
++++ b/drivers/gpu/drm/drm_modes.c
+@@ -35,6 +35,7 @@
+ #include <linux/export.h>
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc.h>
++#include <linux/videomode.h>
+ 
+ /**
+  * drm_mode_debug_printmodeline - debug print a mode
+@@ -504,6 +505,41 @@ drm_gtf_mode(struct drm_device *dev, int hdisplay, int vdisplay, int vrefresh,
+ }
+ EXPORT_SYMBOL(drm_gtf_mode);
+ 
++#if IS_ENABLED(CONFIG_VIDEOMODE)
++int display_mode_from_videomode(struct videomode *vm, struct drm_display_mode *dmode)
++{
++	dmode->hdisplay = vm->hactive;
++	dmode->hsync_start = dmode->hdisplay + vm->hfront_porch;
++	dmode->hsync_end = dmode->hsync_start + vm->hsync_len;
++	dmode->htotal = dmode->hsync_end + vm->hback_porch;
++
++	dmode->vdisplay = vm->vactive;
++	dmode->vsync_start = dmode->vdisplay + vm->vfront_porch;
++	dmode->vsync_end = dmode->vsync_start + vm->vsync_len;
++	dmode->vtotal = dmode->vsync_end + vm->vback_porch;
++
++	dmode->clock = vm->pixelclock / 1000;
++
++	dmode->flags = 0;
++	if (vm->hah)
++		dmode->flags |= DRM_MODE_FLAG_PHSYNC;
++	else
++		dmode->flags |= DRM_MODE_FLAG_NHSYNC;
++	if (vm->vah)
++		dmode->flags |= DRM_MODE_FLAG_PVSYNC;
++	else
++		dmode->flags |= DRM_MODE_FLAG_NVSYNC;
++	if (vm->interlaced)
++		dmode->flags |= DRM_MODE_FLAG_INTERLACE;
++	if (vm->doublescan)
++		dmode->flags |= DRM_MODE_FLAG_DBLSCAN;
++	drm_mode_set_name(dmode);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(display_mode_from_videomode);
++#endif
++
+ /**
+  * drm_mode_set_name - set the name on a mode
+  * @mode: name will be set in this mode
+diff --git a/include/drm/drmP.h b/include/drm/drmP.h
+index 3fd8280..1e0d846 100644
+--- a/include/drm/drmP.h
++++ b/include/drm/drmP.h
+@@ -56,6 +56,7 @@
+ #include <linux/cdev.h>
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
++#include <linux/videomode.h>
+ #if defined(__alpha__) || defined(__powerpc__)
+ #include <asm/pgtable.h>	/* For pte_wrprotect */
+ #endif
+@@ -1454,6 +1455,11 @@ extern struct drm_display_mode *
+ drm_mode_create_from_cmdline_mode(struct drm_device *dev,
+ 				  struct drm_cmdline_mode *cmd);
+ 
++#if IS_ENABLED(CONFIG_VIDEOMODE)
++extern int display_mode_from_videomode(struct videomode *vm,
++				       struct drm_display_mode *dmode);
++#endif
++
+ /* Modesetting support */
+ extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
+ extern void drm_vblank_post_modeset(struct drm_device *dev, int crtc);
+-- 
+1.7.10.4
 
-         CONFIG_SMS_SIANO_MDTV=y
-         CONFIG_SMS_SIANO_RC=m
-         CONFIG_RC_CORE=m
-
-But I don't think it would work.
-
-> 
-> Signed-off-by: David Härdeman <david@hardeman.nu>
-> ---
->  drivers/media/common/siano/Kconfig |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/common/siano/Kconfig b/drivers/media/common/siano/Kconfig
-> index 3cb7823..239b7ba 100644
-> --- a/drivers/media/common/siano/Kconfig
-> +++ b/drivers/media/common/siano/Kconfig
-> @@ -9,7 +9,7 @@ config SMS_SIANO_MDTV
->  	default y
->  
->  config SMS_SIANO_RC
-> -	bool "Enable Remote Controller support for Siano devices"
-> +	tristate "Enable Remote Controller support for Siano devices"
->  	depends on SMS_SIANO_MDTV && RC_CORE
->  	depends on SMS_USB_DRV || SMS_SDIO_DRV
->  	depends on MEDIA_COMMON_OPTIONS
-> 
-
-
-
-
-Cheers,
-Mauro
