@@ -1,109 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42205 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751003Ab2KIIv3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Nov 2012 03:51:29 -0500
-Date: Fri, 9 Nov 2012 09:51:11 +0100
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: V4L2 dma-buf support test with UVC + i915 test application
-Message-ID: <20121109095111.0e67be9c@gaivota.chehab>
-In-Reply-To: <1747552.HEbrOk0BKB@avalon>
-References: <16907395.g8mkYBicR5@avalon>
-	<1747552.HEbrOk0BKB@avalon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-ia0-f174.google.com ([209.85.210.174]:51230 "EHLO
+	mail-ia0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1945905Ab2KNWxK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Nov 2012 17:53:10 -0500
+Received: by mail-ia0-f174.google.com with SMTP id y25so630328iay.19
+        for <linux-media@vger.kernel.org>; Wed, 14 Nov 2012 14:53:10 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20121113145809.GA15029@kroah.com>
+References: <CALF0-+XthyGJ-LzovTxLAKmMBif-YkLnNNcQBJvtnqTua+Ktag@mail.gmail.com>
+	<20121113145809.GA15029@kroah.com>
+Date: Wed, 14 Nov 2012 19:53:10 -0300
+Message-ID: <CALF0-+Xt4bEgXHYV3-4pX4q95yJONsOQvg3wKhKvO-g5mdV8Lw@mail.gmail.com>
+Subject: Re: Regarding bulk transfers on stk1160
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Greg KH <greg@kroah.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	michael hartup <michael.hartup@gmail.com>,
+	linux-rpi-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 08 Nov 2012 19:34:14 +0100
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Hi Greg,
 
-> On Thursday 08 November 2012 19:14:18 Laurent Pinchart wrote:
-> > Hi Mauro,
-> > 
-> > Here's the application I've used to test V4L2 dma-buf support with a UVC
-> > webcam and an Intel GPU supported by the i915 driver.
-> > 
-> > The kernel code is available in my git tree at
-> > 
-> > git://linuxtv.org/pinchartl/media.git devel/dma-buf-v10
-> > 
-> > (http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/devel/v4l2-
-> > clock)
-> > 
-> > Don't forget to enable dma-buf and UVC support when compiling the kernel.
-> > 
-> > The userspace code is based on the v4l2-drm-example application written by
-> > Tomasz (the original code is available at
-> > git://git.infradead.org/users/kmpark/public-apps). I need to clean up my
-> > modifications to push them back to the repository, in the meantime the code
-> > is attached to this e-mail.
-> > 
-> > To compile the application, just run make with the KDIR variable set to the
-> > path to your Linux kernel tree with the dma-buf patches applied. Don't
-> > forget to make headers_install in the kernel tree as the Makefile will look
-> > for headers in $KDIR/usr.
-> > 
-> > You will need a recent version of libdrm with plane support available.
-> > 2.4.39 should do.
-> > 
-> > The following command line will capture VGA YUYV data from the webcam and
-> > display it on the screen. You need to run it in a console as root without
-> > the X server running.
-> > 
-> > ./dmabuf-sharing -M i915 -o 7:3:1600x900 -i /dev/video0 -S 640,480 -f YUYV
-> > -F YUYV -s 640,480@0,0 -t 640,480@0,0 -b 2
-> 
-> I forgot to mention that the -o parameter takes the connector ID, CRTC ID and 
-> mode as parameters. The mode is easy to find, but the connector and CRTC IDs 
-> are a bit more tricky. You can run the modetest application (part of libdrm 
-> but not installed by most distributions, so a manual compilation is needed) to 
-> dump all CRTC, encoder and connector information to the console. Pick the 
-> connector associated with your display, and the CRTC associated with the 
-> encoder associated with that connector.
+On Tue, Nov 13, 2012 at 11:58 AM, Greg KH <greg@kroah.com> wrote:
+>
+> Or better yet, buy a board with a working USB port, like a BeagleBone or
+> the like :)
+>
 
-Didn't work:
-$ sudo ./modetest 
-trying to load module i915...failed.
-trying to load module radeon...failed.
-trying to load module nouveau...failed.
-trying to load module vmwgfx...failed.
-trying to load module omapdrm...failed.
-failed to load any modules, aborting.
+Michael Hartup (the interested user) *has* a beaglebone.
 
+I'm trying to help him getting it ready for stk1160.
+However, Michael is getting choppy video capture.
+(dmesg doesn't show anything relevant)
 
-Even so,
+@Michael, could you upload those captures somewhere
+and post the links for everyone to see?
 
-$ sudo /usr/bin/dristat
-/dev/dri/card0
+Is this related to beaglebone's known usb dma issues?
 
-and:
+https://github.com/RobertCNelson/linux-dev/issues/2
+https://groups.google.com/forum/?fromgroups=#!topic/beagleboard/J94PUlo0wzs
 
-$ lsmod|grep i915
-i915                  530346  2 
-video                  18936  1 i915
-i2c_algo_bit           13257  1 i915
-drm_kms_helper         44701  1 i915
-drm                   255010  3 i915,drm_kms_helper
-i2c_core               38314  5 drm,i915,i2c_i801,drm_kms_helper,i2c_algo_bit
+Unfortunately, I don't own a beaglebone (and I can't afford one right now)
+so I can't really see for myself what's going on.
 
-The GPU on this notebook is this one:
+Any help, greatly appreciated.
 
-00:02.0 VGA compatible controller: Intel Corporation Mobile GM965/GL960 Integrated Graphics Controller (primary) (rev 0c) (prog-if 00 [VGA controller])
-	Subsystem: Dell Device 026f
-	Flags: bus master, fast devsel, latency 0, IRQ 45
-	Memory at f8000000 (64-bit, non-prefetchable) [size=1M]
-	Memory at d0000000 (64-bit, prefetchable) [size=256M]
-	I/O ports at 1800 [size=8]
-	Expansion ROM at <unassigned> [disabled]
-	Capabilities: [90] MSI: Enable+ Count=1/1 Maskable- 64bit-
-	Capabilities: [d0] Power Management version 3
-	Kernel driver in use: i915
-
-Regards,
-Mauro
+    Ezequiel
