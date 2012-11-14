@@ -1,85 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:33209 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752989Ab2KFTla (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 14:41:30 -0500
-From: YAMANE Toshiaki <yamanetoshi@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org,
-	YAMANE Toshiaki <yamanetoshi@gmail.com>
-Subject: [PATCH] Staging/media: Use dev_ printks in go7007/wis-tw2804.c
-Date: Wed,  7 Nov 2012 04:41:26 +0900
-Message-Id: <1352230886-9508-1-git-send-email-yamanetoshi@gmail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:34434 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753552Ab2KNOSP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Nov 2012 09:18:15 -0500
+Date: Wed, 14 Nov 2012 15:18:06 +0100
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: Re: [PATCH v9 5/6] drm_modes: add videomode helpers
+Message-ID: <20121114141806.GE18579@pengutronix.de>
+References: <1352893403-21168-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1352893403-21168-6-git-send-email-s.trumtrar@pengutronix.de>
+ <20121114124944.GF2803@avionic-0098.mockup.avionic-design.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20121114124944.GF2803@avionic-0098.mockup.avionic-design.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fixed below checkpatch warning.
-- WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-- WARNING: Prefer netdev_dbg(netdev, ... then dev_dbg(dev, ... then pr_debug(...  to printk(KERN_DEBUG ...
+On Wed, Nov 14, 2012 at 01:49:44PM +0100, Thierry Reding wrote:
+> On Wed, Nov 14, 2012 at 12:43:22PM +0100, Steffen Trumtrar wrote:
+> [...]
+> > diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
+> [...]
+> > @@ -504,6 +505,41 @@ drm_gtf_mode(struct drm_device *dev, int hdisplay, int vdisplay, int vrefresh,
+> >  }
+> >  EXPORT_SYMBOL(drm_gtf_mode);
+> >  
+> > +#if IS_ENABLED(CONFIG_VIDEOMODE)
+> > +int display_mode_from_videomode(struct videomode *vm, struct drm_display_mode *dmode)
+> 
+> Given that this is still a DRM core function, maybe it should get a drm_
+> prefix? Also the line is too long, so you may want to wrap the argument
+> list.
+> 
+> Thierry
 
-Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
----
- drivers/staging/media/go7007/wis-tw2804.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+Yes, seems to fit better to the rest of the file.
 
-diff --git a/drivers/staging/media/go7007/wis-tw2804.c b/drivers/staging/media/go7007/wis-tw2804.c
-index 9134f03..69b9063 100644
---- a/drivers/staging/media/go7007/wis-tw2804.c
-+++ b/drivers/staging/media/go7007/wis-tw2804.c
-@@ -128,30 +128,32 @@ static int wis_tw2804_command(struct i2c_client *client,
- 		int *input = arg;
- 
- 		if (*input < 0 || *input > 3) {
--			printk(KERN_ERR "wis-tw2804: channel %d is not "
--					"between 0 and 3!\n", *input);
-+			dev_err(&client->dev,
-+				"channel %d is not between 0 and 3!\n", *input);
- 			return 0;
- 		}
- 		dec->channel = *input;
--		printk(KERN_DEBUG "wis-tw2804: initializing TW2804 "
--				"channel %d\n", dec->channel);
-+		dev_dbg(&client->dev, "initializing TW2804 channel %d\n",
-+			dec->channel);
- 		if (dec->channel == 0 &&
- 				write_regs(client, global_registers, 0) < 0) {
--			printk(KERN_ERR "wis-tw2804: error initializing "
--					"TW2804 global registers\n");
-+			dev_err(&client->dev,
-+				"error initializing TW2804 global registers\n");
- 			return 0;
- 		}
- 		if (write_regs(client, channel_registers, dec->channel) < 0) {
--			printk(KERN_ERR "wis-tw2804: error initializing "
--					"TW2804 channel %d\n", dec->channel);
-+			dev_err(&client->dev,
-+				"error initializing TW2804 channel %d\n",
-+				dec->channel);
- 			return 0;
- 		}
- 		return 0;
- 	}
- 
- 	if (dec->channel < 0) {
--		printk(KERN_DEBUG "wis-tw2804: ignoring command %08x until "
--				"channel number is set\n", cmd);
-+		dev_dbg(&client->dev,
-+			"ignoring command %08x until channel number is set\n",
-+			cmd);
- 		return 0;
- 	}
- 
-@@ -311,7 +313,7 @@ static int wis_tw2804_probe(struct i2c_client *client,
- 	dec->hue = 128;
- 	i2c_set_clientdata(client, dec);
- 
--	printk(KERN_DEBUG "wis-tw2804: creating TW2804 at address %d on %s\n",
-+	dev_dbg(&client->dev, "creating TW2804 at address %d on %s\n",
- 		client->addr, adapter->name);
- 
- 	return 0;
+Regards,
+Steffen
+
 -- 
-1.7.9.5
-
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
