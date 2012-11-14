@@ -1,87 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38148 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932253Ab2KNVNu (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:51266 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422696Ab2KNMDj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Nov 2012 16:13:50 -0500
-Date: Wed, 14 Nov 2012 23:13:45 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, laurent.pinchart@ideasonboard.com,
-	broonie@opensource.wolfsonmicro.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH 1/1] media: Entities with sink pads must have at least
- one enabled link
-Message-ID: <20121114211344.GU25623@valkosipuli.retiisi.org.uk>
-References: <1351280777-4936-1-git-send-email-sakari.ailus@iki.fi>
- <20121113142409.GR25623@valkosipuli.retiisi.org.uk>
- <50A36307.50502@samsung.com>
+	Wed, 14 Nov 2012 07:03:39 -0500
+Date: Wed, 14 Nov 2012 13:03:20 +0100
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: Re: [PATCH v9 1/6] video: add display_timing and videomode
+Message-ID: <20121114120320.GB2803@avionic-0098.mockup.avionic-design.de>
+References: <1352893403-21168-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1352893403-21168-2-git-send-email-s.trumtrar@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="eJnRUKwClWJh1Khz"
 Content-Disposition: inline
-In-Reply-To: <50A36307.50502@samsung.com>
+In-Reply-To: <1352893403-21168-2-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
 
-Thanks for the comments.
+--eJnRUKwClWJh1Khz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Wed, Nov 14, 2012 at 10:23:19AM +0100, Sylwester Nawrocki wrote:
-> On 11/13/2012 03:24 PM, Sakari Ailus wrote:
-> > Hi all,
-> > 
-> > Comments would be appreciated, either positive or negative. The omap3isp
-> > driver does the same check itself currently, but I think this is more
-> > generic than that.
-> > 
-> > Thanks.
-> > 
-> > On Fri, Oct 26, 2012 at 10:46:17PM +0300, Sakari Ailus wrote:
-> >> If an entity has sink pads, at least one of them must be connected to
-> >> another pad with an enabled link. If a driver with multiple sink pads has
-> >> more strict requirements the check should be done in the driver itself.
-> >>
-> >> Just requiring one sink pad is connected with an enabled link is enough
-> >> API-wise: entities with sink pads with only disabled links should not be
-> >> allowed to stream in the first place, but also in a different operation mode
-> >> a device might require only one of its pads connected with an active link.
-> >>
-> >> If an entity has an ability to function as a source entity another logical
-> >> entity connected to the aforementioned one should be used for the purpose.
-> 
-> Why not leave it to individual drivers ? I'm not sure if it is a good idea
-> not to allow an entity with sink pads to be used as a source only. It might
-> be appropriate for most of the cases but likely not all. I'm inclined not to
-> add this requirement in the API. Just my opinion though.
+On Wed, Nov 14, 2012 at 12:43:18PM +0100, Steffen Trumtrar wrote:
+[...]
+> diff --git a/include/linux/videomode.h b/include/linux/videomode.h
+[...]
+> +int videomode_from_timing(struct display_timings *disp, struct videomode *vm,
+> +			  unsigned int index);
+> +#endif
 
-I'm just wondering what would be the use case for that.
+Nit: should have a blank line before the #endif.
 
-What comes closest is generating a test pattern, but even that should be a
-separate subdev: the test pattern can be enabled by enabling the link from
-the test pattern generator subdev.
+Thierry
 
-As it seems not everyone is outright happy about the idea of making this
-mandatory, then how about making it optional?
+--eJnRUKwClWJh1Khz
+Content-Type: application/pgp-signature
 
-I'd hate having a link validate function for each subdev e.g. in the OMAP 3
-ISP driver that just checks that its sink pad is actually connected with an
-enabled link. That'd be lots of mostly useless code. If this is done in the
-framework, the drivers will be spared from copying this code in a number of
-places. Which was why I originally wrote this patch. The alternative is to
-re-parse the whole graph in the driver which I'd also like to avoid.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
 
-One opion I can think of is to call link_validate op of struct
-media_entity_operations also for disabled links on entities that are
-connected through active links (on V4L2 to a video node right before
-streaming, for example).
+iQIcBAEBAgAGBQJQo4iIAAoJEN0jrNd/PrOht+gQAJkiyHXQntl61lfk0YIlIdgV
+NRt7JONL/qNvqUqj0fXaQTcZIRP9R8IiNzjqw5o0niiC1YDAYDETksyy+ipm0dIp
+41KyzS0pRScWzJL3YBM8elMHTRiKD8vHT/3q5t5a9FeVPdIVk91Y0FXMx/14D90v
+aSu99wY7FfARdMEzkEdy4EhTKRd7TUTnFsSds69dd4XK62hUMtemKcm7T3ekK75k
+WbHAr8hYj/+b3IuR0EmdWf6QAIWPEol67IdBH3HI5MH7HlLmD1JSrtgwL+EGNh2U
+BtFAieO7P6/3RybRmQXj0/LIHg2ylfdHSaT7qf13xn4m0ZS66A8+Y0BXJD1CRG+0
+qQAB/ypKX/6opMCNS4s4XCr7Q1G7o/Hd5/tqSXx/JFP8U29hZlqZ3tLpLsJnsSwB
+rmBhNOStY8Y77tdVmXeG/Q+se4QE5kt6Fg0zcGCREGipCZkIwFqqkFlqNrXhZ/t4
+es5pJ8GcboyZAGDUqNxhPqCdA7GmsQ8n3KU2rPG5PLL1/j+DD5FcHfReSjifLlai
+FcD9qHUF7erGmQP9whnD5x4I/LoYBsWasKugKDXuF+axc1BRHS37GNjYsVNn9iuK
+dAUSC+9rBYGIP7LMPLKw7W+BdHLKs2J1zkAM/8UecfPQ+MXt4w4k8yy+zc1xxgXJ
+KdFK4l73br9LAWx8Qh8w
+=NCno
+-----END PGP SIGNATURE-----
 
-That'd make it easy to perform the check in the drivers.
-
-What do you think?
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+--eJnRUKwClWJh1Khz--
