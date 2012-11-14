@@ -1,129 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42008 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754673Ab2KZJIC (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:62811 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422711Ab2KNMvn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Nov 2012 04:08:02 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	Wed, 14 Nov 2012 07:51:43 -0500
+Date: Wed, 14 Nov 2012 13:51:19 +0100
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
 	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
-	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
-	"David Airlie" <airlied@linux.ie>
-Subject: [PATCHv15 5/7] fbmon: add of_videomode helpers
-Date: Mon, 26 Nov 2012 10:07:26 +0100
-Message-Id: <1353920848-1705-6-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1353920848-1705-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1353920848-1705-1-git-send-email-s.trumtrar@pengutronix.de>
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: Re: [PATCH v9 6/6] drm_modes: add of_videomode helpers
+Message-ID: <20121114125119.GG2803@avionic-0098.mockup.avionic-design.de>
+References: <1352893403-21168-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1352893403-21168-7-git-send-email-s.trumtrar@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="I3tAPq1Rm2pUxvsp"
+Content-Disposition: inline
+In-Reply-To: <1352893403-21168-7-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add helper to get fb_videomode from devicetree.
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
----
- drivers/video/fbmon.c |   42 ++++++++++++++++++++++++++++++++++++++++++
- include/linux/fb.h    |    6 ++++++
- 2 files changed, 48 insertions(+)
+--I3tAPq1Rm2pUxvsp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
-index 733553b..4a8484d 100644
---- a/drivers/video/fbmon.c
-+++ b/drivers/video/fbmon.c
-@@ -28,6 +28,7 @@
-  */
- #include <linux/fb.h>
- #include <linux/module.h>
-+#include <linux/of_videomode.h>
- #include <linux/pci.h>
- #include <linux/slab.h>
- #include <linux/videomode.h>
-@@ -1424,6 +1425,47 @@ int fb_videomode_from_videomode(const struct videomode *vm,
- EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
- #endif
- 
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+static inline void dump_fb_videomode(const struct fb_videomode *m)
-+{
-+	pr_debug("fb_videomode = %ux%u@%uHz (%ukHz) %u %u %u %u %u %u %u %u %u\n",
-+		 m->xres, m->yres, m->refresh, m->pixclock, m->left_margin,
-+		 m->right_margin, m->upper_margin, m->lower_margin,
-+		 m->hsync_len, m->vsync_len, m->sync, m->vmode, m->flag);
-+}
-+
-+/**
-+ * of_get_fb_videomode - get a fb_videomode from devicetree
-+ * @np: device_node with the timing specification
-+ * @fb: will be set to the return value
-+ * @index: index into the list of display timings in devicetree
-+ *
-+ * DESCRIPTION:
-+ * This function is expensive and should only be used, if only one mode is to be
-+ * read from DT. To get multiple modes start with of_get_display_timings ond
-+ * work with that instead.
-+ */
-+int of_get_fb_videomode(struct device_node *np, struct fb_videomode *fb,
-+			int index)
-+{
-+	struct videomode vm;
-+	int ret;
-+
-+	ret = of_get_videomode(np, &vm, index);
-+	if (ret)
-+		return ret;
-+
-+	fb_videomode_from_videomode(&vm, fb);
-+
-+	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
-+		vm.vactive, np->name);
-+	dump_fb_videomode(fb);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(of_get_fb_videomode);
-+#endif
-+
- #else
- int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
- {
-diff --git a/include/linux/fb.h b/include/linux/fb.h
-index 4404ec2..c2d933d 100644
---- a/include/linux/fb.h
-+++ b/include/linux/fb.h
-@@ -20,6 +20,7 @@ struct fb_info;
- struct device;
- struct file;
- struct videomode;
-+struct device_node;
- 
- /* Definitions below are used in the parsed monitor specs */
- #define FB_DPMS_ACTIVE_OFF	1
-@@ -715,6 +716,11 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
- extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
- extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
- 
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+extern int of_get_fb_videomode(struct device_node *np,
-+			       struct fb_videomode *fb,
-+			       int index);
-+#endif
- #if IS_ENABLED(CONFIG_VIDEOMODE)
- extern int fb_videomode_from_videomode(const struct videomode *vm,
- 				       struct fb_videomode *fbmode);
--- 
-1.7.10.4
+On Wed, Nov 14, 2012 at 12:43:23PM +0100, Steffen Trumtrar wrote:
+[...]
+> +EXPORT_SYMBOL_GPL(of_get_drm_display_mode);
+> +#endif
+>  /**
 
+Nit: there should be a blank line between the last two.
+
+Thierry
+
+--I3tAPq1Rm2pUxvsp
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQo5PHAAoJEN0jrNd/PrOh2bAQAKJ/n47kxLl7/OHDAeN6Znay
+shpIyjZQSOV0ncb7J6JGlyJkQnDhYxB7zrcWFSePgNpltztfuxhTcw21ViHf2CpP
+TOYcXCwugbaKN7i4V+25gI6GqwCbX4eqUpGEsMW7uLn5Qk+Nv1q7/m/m1GI72ozs
+IKNhInB4VzyUgEoFnb575MH9Za9kHw00sN1JEHq0ymjkFJnJ/ft5j3LE1bAsw29H
+xwSHQKdDoNFwQ9f/cDybt9jPDCDt75ZZh775qbTpIxKH8wJMqMTmlfpgq9K0Kucv
+XTNbF17GyX4Li4D02PrBfdi++pNONtQJXrMGcl/IzP83ZPUrfDmo/CEeJ+T89xqy
+uY2smevUS3zKkA4RpJ2ZaNTYe2Ys8+sdzDYwiCwxgCbXIy/2JfM46onRDX4eXbaW
+ncrIH1Xcb3o5e5d6pvis/MRUJUR9m5a0aPHwbMh+6dITHPjBOnkai+imRIYE2dxL
+YmtnT1u61CUi4quRNy6NyOPHTQLT7Dki7tnWccXi/hWFBP0m5FnLnWVdeE+ligTC
+cB+qM2b+H7zzHaru5z4vN89pn2SRCi8ozMsF07YPZH0lpi3KXBKc9E7s+5pyZJmE
+py9lDzIeGk3UV1bm+Rk/22uq7L2mCzxoZP0hGey5tk63EUoB81Yumd9VHccVqT5M
+dLIMUdvkkiXMI5s4njUc
+=XRNf
+-----END PGP SIGNATURE-----
+
+--I3tAPq1Rm2pUxvsp--
