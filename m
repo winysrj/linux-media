@@ -1,33 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:26357 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750736Ab2KLJq2 (ORCPT
+Received: from tx2ehsobe001.messaging.microsoft.com ([65.55.88.11]:20803 "EHLO
+	tx2outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1422855Ab2KNNEy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Nov 2012 04:46:28 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Kirill Smelkov <kirr@mns.spb.ru>
-Subject: Re: [PATCH v4] [media] vivi: Teach it to tune FPS
-Date: Mon, 12 Nov 2012 10:46:26 +0100
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-References: <1350914084-31618-1-git-send-email-kirr@mns.spb.ru> <20121107113001.GA3097@tugrik.mns.mnsspb.ru> <20121112081258.GA4809@tugrik.mns.mnsspb.ru>
-In-Reply-To: <20121112081258.GA4809@tugrik.mns.mnsspb.ru>
+	Wed, 14 Nov 2012 08:04:54 -0500
+From: Fabio Estevam <fabio.estevam@freescale.com>
+To: <mchehab@infradead.org>
+CC: <kernel@pengutronix.de>, <p.zabel@pengutronix.de>,
+	<javier.martin@vista-silicon.com>, <linux-media@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: [PATCH] [media] coda: Fix build due to iram.h rename
+Date: Wed, 14 Nov 2012 11:04:42 -0200
+Message-ID: <1352898282-21576-1-git-send-email-fabio.estevam@freescale.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201211121046.26430.hverkuil@xs4all.nl>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 12 November 2012 09:12:58 Kirill Smelkov wrote:
+commit c045e3f13 (ARM: imx: include iram.h rather than mach/iram.h) changed the
+location of iram.h, which causes the following build error when building the coda
+driver:
 
-> Ping. Is maybe something stupid on my side?
-> 
+drivers/media/platform/coda.c:27:23: error: mach/iram.h: No such file or directory
+drivers/media/platform/coda.c: In function 'coda_probe':
+drivers/media/platform/coda.c:2000: error: implicit declaration of function 'iram_alloc'
+drivers/media/platform/coda.c:2001: warning: assignment makes pointer from integer without a cast
+drivers/media/platform/coda.c: In function 'coda_remove':
+drivers/media/platform/coda.c:2024: error: implicit declaration of function 'iram_free
 
-No, I've been abroad and haven't had time to look at it. I want to do that
-this week. Ping me again if you haven't heard from me by Saturday.
+Since the content of iram.h is not imx specific, move it to include/linux/iram.h
+instead.
 
-Regards,
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+---
+ arch/arm/mach-imx/iram_alloc.c              |    3 +--
+ drivers/media/platform/coda.c               |    2 +-
+ {arch/arm/mach-imx => include/linux}/iram.h |    0
+ 3 files changed, 2 insertions(+), 3 deletions(-)
+ rename {arch/arm/mach-imx => include/linux}/iram.h (100%)
 
-	Hans
+diff --git a/arch/arm/mach-imx/iram_alloc.c b/arch/arm/mach-imx/iram_alloc.c
+index 6c80424..11e067f 100644
+--- a/arch/arm/mach-imx/iram_alloc.c
++++ b/arch/arm/mach-imx/iram_alloc.c
+@@ -22,8 +22,7 @@
+ #include <linux/module.h>
+ #include <linux/spinlock.h>
+ #include <linux/genalloc.h>
+-
+-#include "iram.h"
++#include <linux/iram.h>
+ 
+ static unsigned long iram_phys_base;
+ static void __iomem *iram_virt_base;
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index cd04ae2..5c66162 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -23,8 +23,8 @@
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+ #include <linux/of.h>
++#include <linux/iram.h>
+ 
+-#include <mach/iram.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+diff --git a/arch/arm/mach-imx/iram.h b/include/linux/iram.h
+similarity index 100%
+rename from arch/arm/mach-imx/iram.h
+rename to include/linux/iram.h
+-- 
+1.7.9.5
+
+
