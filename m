@@ -1,70 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:63736 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751948Ab2KIMeP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2012 07:34:15 -0500
-Received: by mail-oa0-f46.google.com with SMTP id h16so3961140oag.19
-        for <linux-media@vger.kernel.org>; Fri, 09 Nov 2012 04:34:15 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAPgLHd-ivjzSDre+DMVK+mHNpNynoLWJXK36zGW5GRnU0Z4d3g@mail.gmail.com>
-References: <CAPgLHd-ivjzSDre+DMVK+mHNpNynoLWJXK36zGW5GRnU0Z4d3g@mail.gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 9 Nov 2012 18:03:54 +0530
-Message-ID: <CA+V-a8vDjbmY-+c-aaaEcJ4JXv7Dm_ytUzGPD0eDDe_utB7kxQ@mail.gmail.com>
-Subject: Re: [PATCH] [media] vpif_display: fix return value check in vpif_reqbufs()
-To: Wei Yongjun <weiyj.lk@gmail.com>
-Cc: mchehab@infradead.org, yongjun_wei@trendmicro.com.cn,
-	linux-media@vger.kernel.org,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:46706 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932177Ab2KNJXX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Nov 2012 04:23:23 -0500
+Received: from eusync1.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MDH00D810RS1840@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 14 Nov 2012 09:23:52 +0000 (GMT)
+Received: from [106.116.147.32] by eusync1.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MDH00C930QW6R90@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 14 Nov 2012 09:23:21 +0000 (GMT)
+Message-id: <50A36307.50502@samsung.com>
+Date: Wed, 14 Nov 2012 10:23:19 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, laurent.pinchart@ideasonboard.com,
+	broonie@opensource.wolfsonmicro.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH 1/1] media: Entities with sink pads must have at least one
+ enabled link
+References: <1351280777-4936-1-git-send-email-sakari.ailus@iki.fi>
+ <20121113142409.GR25623@valkosipuli.retiisi.org.uk>
+In-reply-to: <20121113142409.GR25623@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Wei,
+Hi Sakari,
 
-Thanks for the patch.
+On 11/13/2012 03:24 PM, Sakari Ailus wrote:
+> Hi all,
+> 
+> Comments would be appreciated, either positive or negative. The omap3isp
+> driver does the same check itself currently, but I think this is more
+> generic than that.
+> 
+> Thanks.
+> 
+> On Fri, Oct 26, 2012 at 10:46:17PM +0300, Sakari Ailus wrote:
+>> If an entity has sink pads, at least one of them must be connected to
+>> another pad with an enabled link. If a driver with multiple sink pads has
+>> more strict requirements the check should be done in the driver itself.
+>>
+>> Just requiring one sink pad is connected with an enabled link is enough
+>> API-wise: entities with sink pads with only disabled links should not be
+>> allowed to stream in the first place, but also in a different operation mode
+>> a device might require only one of its pads connected with an active link.
+>>
+>> If an entity has an ability to function as a source entity another logical
+>> entity connected to the aforementioned one should be used for the purpose.
 
-On Wed, Oct 24, 2012 at 4:59 PM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
-> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
->
-> In case of error, the function vb2_dma_contig_init_ctx() returns
-> ERR_PTR() and never returns NULL. The NULL test in the return value
-> check should be replaced with IS_ERR().
->
-> dpatch engine is used to auto generate this patch.
-> (https://github.com/weiyj/dpatch)
->
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> ---
->  drivers/media/platform/davinci/vpif_display.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-> index b716fbd..5453bbb 100644
-> --- a/drivers/media/platform/davinci/vpif_display.c
-> +++ b/drivers/media/platform/davinci/vpif_display.c
-> @@ -972,9 +972,9 @@ static int vpif_reqbufs(struct file *file, void *priv,
->         }
->         /* Initialize videobuf2 queue as per the buffer type */
->         common->alloc_ctx = vb2_dma_contig_init_ctx(vpif_dev);
-> -       if (!common->alloc_ctx) {
-> +       if (IS_ERR(common->alloc_ctx)) {
+Why not leave it to individual drivers ? I'm not sure if it is a good idea
+not to allow an entity with sink pads to be used as a source only. It might
+be appropriate for most of the cases but likely not all. I'm inclined not to
+add this requirement in the API. Just my opinion though.
 
-Right check would be IS_ERR_OR_NULL(). Can you merge this
-patch 'vpif_capture: fix return value check in vpif_reqbufs()' with
-this one  and post a v2 with above changes ?
+--
+Thanks,
+Sylwester
 
-Regards,
---Prabhakar Lad
-
->                 vpif_err("Failed to get the context\n");
-> -               return -EINVAL;
-> +               return PTR_ERR(common->alloc_ctx);
->         }
->         q = &common->buffer_queue;
->         q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
