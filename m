@@ -1,111 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49902 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751978Ab2KFAHs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Nov 2012 19:07:48 -0500
-Message-ID: <509854B7.40606@iki.fi>
-Date: Tue, 06 Nov 2012 02:07:19 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Antonio Ospite <ospite@studenti.unina.it>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Patrick Boettcher <patrick.boettcher@desy.de>
-Subject: Re: [PATCH 1/5] [media] dvb-usb: add a pre_init hook to struct dvb_usb_device_properties
-References: <1352158096-17737-1-git-send-email-ospite@studenti.unina.it> <1352158096-17737-2-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1352158096-17737-2-git-send-email-ospite@studenti.unina.it>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:13092 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422817Ab2KNNEv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Nov 2012 08:04:51 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MDH00GYQB01BM50@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 14 Nov 2012 22:04:49 +0900 (KST)
+Received: from localhost.localdomain ([107.108.73.106])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MDH004O6AZ4KYB0@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 14 Nov 2012 22:04:49 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, jtp.park@samsung.com, arun.m@samsung.com,
+	arun.kk@samsung.com
+Subject: [PATCH] [media] s5p-mfc: Handle multi-frame input buffer
+Date: Wed, 14 Nov 2012 18:56:45 +0530
+Message-id: <1352899605-12043-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/06/2012 01:28 AM, Antonio Ospite wrote:
-> Some devices need to issue a pre-initialization command sequence via
-> i2c in order to "enable" the communication with some adapter components.
->
-> This happens for instance in the vp7049 USB DVB-T stick on which the
-> frontend cannot be detected without first sending a certain sequence of
-> commands via i2c.
+When one input buffer has multiple frames, it should be fed
+again to the hardware with the remaining bytes. Removed the
+check for P frame in this scenario as this condition can come with
+all frame types.
 
-I looked patch 3 and it is not I2C communication but direct M9206 memory 
-access you did. I could guess it is GPIO sequence to reset & power demod 
-and tuner. Due to that, correct place for this kind of initialization is 
-inside demod and tuner attach.
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: ARUN MANKUZHI <arun.m@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |    7 ++-----
+ 1 files changed, 2 insertions(+), 5 deletions(-)
 
-With a USB power meter, some trial & error testing, and maybe fw disasm 
-you could even detect those GPIOS :)
-
-
-> Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
-> ---
->
-> If this approach is OK I can send a similar patch for dvb-usb-v2.
-
-There is already such callbacks - but no callback between I2C init and 
-FE attach. There is read_config() which is called first, good place to 
-make probing device and detect hw config. Another new callback is 
-.init() which is called after demod and tuner attach. Stuff like USB 
-interface config should remain here. On USB power management case 
-reset_resume() that function is called too in order re-configure reseted 
-USB IF.
-
-I don't see need yet another new callback.
-
-> Are all the dvb-usb drivers going to be ported to dvb-usb-v2 eventually?
-
-There is still quite many drivers to convert, so maybe it is not happen 
-anytime soon or even later. Feel free to convert that driver. For bonus 
-you will get for example power-management support for free.
-
->
->
->   drivers/media/usb/dvb-usb/dvb-usb.h      |    5 +++++
->   drivers/media/usb/dvb-usb/dvb-usb-init.c |    6 ++++++
->   2 files changed, 11 insertions(+)
->
-> diff --git a/drivers/media/usb/dvb-usb/dvb-usb.h b/drivers/media/usb/dvb-usb/dvb-usb.h
-> index aab0f99..1fcea68 100644
-> --- a/drivers/media/usb/dvb-usb/dvb-usb.h
-> +++ b/drivers/media/usb/dvb-usb/dvb-usb.h
-> @@ -233,6 +233,9 @@ enum dvb_usb_mode {
->    * @size_of_priv: how many bytes shall be allocated for the private field
->    *  of struct dvb_usb_device.
->    *
-> + * @pre_init: function executed after i2c initialization but
-> + *   before the adapters get initialized
-> + *
->    * @power_ctrl: called to enable/disable power of the device.
->    * @read_mac_address: called to read the MAC address of the device.
->    * @identify_state: called to determine the state (cold or warm), when it
-> @@ -274,6 +277,8 @@ struct dvb_usb_device_properties {
->
->   	int size_of_priv;
->
-> +	int (*pre_init) (struct dvb_usb_device *);
-> +
->   	int num_adapters;
->   	struct dvb_usb_adapter_properties adapter[MAX_NO_OF_ADAPTER_PER_DEVICE];
->
-> diff --git a/drivers/media/usb/dvb-usb/dvb-usb-init.c b/drivers/media/usb/dvb-usb/dvb-usb-init.c
-> index 169196e..8ab916e 100644
-> --- a/drivers/media/usb/dvb-usb/dvb-usb-init.c
-> +++ b/drivers/media/usb/dvb-usb/dvb-usb-init.c
-> @@ -31,6 +31,12 @@ static int dvb_usb_adapter_init(struct dvb_usb_device *d, short *adapter_nrs)
->   	struct dvb_usb_adapter *adap;
->   	int ret, n, o;
->
-> +	if (d->props.pre_init) {
-> +		ret = d->props.pre_init(d);
-> +		if (ret < 0)
-> +			return ret;
-> +	}
-> +
->   	for (n = 0; n < d->props.num_adapters; n++) {
->   		adap = &d->adapter[n];
->   		adap->dev = d;
->
-regards
-Antti
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 0ca8dbb..d3cd738 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -382,11 +382,8 @@ static void s5p_mfc_handle_frame(struct s5p_mfc_ctx *ctx,
+ 		ctx->consumed_stream += s5p_mfc_hw_call(dev->mfc_ops,
+ 						get_consumed_stream, dev);
+ 		if (ctx->codec_mode != S5P_MFC_CODEC_H264_DEC &&
+-			s5p_mfc_hw_call(dev->mfc_ops,
+-				get_dec_frame_type, dev) ==
+-					S5P_FIMV_DECODE_FRAME_P_FRAME
+-					&& ctx->consumed_stream + STUFF_BYTE <
+-					src_buf->b->v4l2_planes[0].bytesused) {
++			ctx->consumed_stream + STUFF_BYTE <
++			src_buf->b->v4l2_planes[0].bytesused) {
+ 			/* Run MFC again on the same buffer */
+ 			mfc_debug(2, "Running again the same buffer\n");
+ 			ctx->after_packed_pb = 1;
 -- 
-http://palosaari.fi/
+1.7.0.4
+
