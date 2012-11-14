@@ -1,78 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout1.freenet.de ([195.4.92.91]:38616 "EHLO mout1.freenet.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752355Ab2KVS3H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 13:29:07 -0500
-Received: from [195.4.92.140] (helo=mjail0.freenet.de)
-	by mout1.freenet.de with esmtpa (ID buzz768@freenet.de) (port 25) (Exim 4.76 #1)
-	id 1TbUzK-0000Lf-OZ
-	for linux-media@vger.kernel.org; Thu, 22 Nov 2012 12:30:34 +0100
-Received: from localhost ([::1]:50773 helo=mjail0.freenet.de)
-	by mjail0.freenet.de with esmtpa (ID buzz768@freenet.de) (Exim 4.76 #1)
-	id 1TbUzK-0007PI-Jp
-	for linux-media@vger.kernel.org; Thu, 22 Nov 2012 12:30:34 +0100
-Received: from [195.4.92.19] (port=38159 helo=9.mx.freenet.de)
-	by mjail0.freenet.de with esmtpa (ID buzz768@freenet.de) (Exim 4.76 #1)
-	id 1TbUxA-0006TS-Hm
-	for linux-media@vger.kernel.org; Thu, 22 Nov 2012 12:28:20 +0100
-Received: from p54902e9d.dip.t-dialin.net ([84.144.46.157]:52045 helo=localhost.localdomain)
-	by 9.mx.freenet.de with esmtpsa (ID buzz768@freenet.de) (SSLv3:AES128-SHA:128) (port 465) (Exim 4.76 #1)
-	id 1TbUx9-00019V-Mg
-	for linux-media@vger.kernel.org; Thu, 22 Nov 2012 12:28:20 +0100
-Date: Thu, 22 Nov 2012 12:26:31 +0100
-From: Olaf Bauer <olafbauer@freenet.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] bttv: Filter debugging messages
-Message-ID: <20121122122631.78340fc7@freenet.de>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/9dQvyyZ93XXqz.c3t9Iv0R4"
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:33054 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752390Ab2KNLKZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Nov 2012 06:10:25 -0500
+Date: Wed, 14 Nov 2012 12:10:15 +0100
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: Re: [PATCH v8 1/6] video: add display_timing and videomode
+Message-ID: <20121114111015.GB18579@pengutronix.de>
+References: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1352734626-27412-2-git-send-email-s.trumtrar@pengutronix.de>
+ <20121114105634.GA31801@avionic-0098.mockup.avionic-design.de>
+ <20121114105925.GA18579@pengutronix.de>
+ <20121114110215.GA31999@avionic-0098.mockup.avionic-design.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20121114110215.GA31999@avionic-0098.mockup.avionic-design.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/9dQvyyZ93XXqz.c3t9Iv0R4
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Wed, Nov 14, 2012 at 12:02:15PM +0100, Thierry Reding wrote:
+> On Wed, Nov 14, 2012 at 11:59:25AM +0100, Steffen Trumtrar wrote:
+> > On Wed, Nov 14, 2012 at 11:56:34AM +0100, Thierry Reding wrote:
+> > > On Mon, Nov 12, 2012 at 04:37:01PM +0100, Steffen Trumtrar wrote:
+> > > [...]
+> > > > diff --git a/drivers/video/display_timing.c b/drivers/video/display_timing.c
+> > > [...]
+> > > > +void display_timings_release(struct display_timings *disp)
+> > > > +{
+> > > > +	if (disp->timings) {
+> > > > +		unsigned int i;
+> > > > +
+> > > > +		for (i = 0; i < disp->num_timings; i++)
+> > > > +			kfree(disp->timings[i]);
+> > > > +		kfree(disp->timings);
+> > > > +	}
+> > > > +	kfree(disp);
+> > > > +}
+> > > 
+> > > I think this is still missing an EXPORT_SYMBOL_GPL. Otherwise it can't
+> > > be used from modules.
+> > > 
+> > > Thierry
+> > 
+> > Yes. Just in time. I was just starting to type the send-email command ;-)
+> 
+> Great! In that case don't forget to also look at my other email before
+> sending. =)
+> 
+Sure.
 
-My logfiles and dmesg output have become almost unreadable due to
-repeated, almost empty lines.
 
-[ 3606.212316] >
-[ 3606.212738] >
-...
-[ 3627.177280] >
-[ 3627.177775] >
-...
-
-They start one hour after vdr daemon is launched. Each section contains
-13 lines and is repeated every 21 seconds. Kernel driver for my
-AverMedia DVB-T 771 is bttv, kernel is 3.6.6-1-ARCH (Arch Linux). I
-installed v4l-dvb from git and get the same result but with one line
-appended to each section
-
-[ 3688.860166] >
-[ 3688.860570] >
-[ 3691.188200] dvb_frontend_poll: 8 callbacks suppressed
-
-The attached patch suppresses at least the useless ">" output.
-
-
---MP_/9dQvyyZ93XXqz.c3t9Iv0R4
-Content-Type: text/x-patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=bttv-i2c.patch
-
-diff -ur a/drivers/media/pci/bt8xx/bttv-i2c.c b/drivers/media/pci/bt8xx/bttv-i2c.c
---- a/drivers/media/pci/bt8xx/bttv-i2c.c	2012-11-22 09:56:25.817307254 +0100
-+++ b/drivers/media/pci/bt8xx/bttv-i2c.c	2012-11-22 10:01:46.014371997 +0100
-@@ -174,7 +174,7 @@
- 		if (i2c_debug)
- 			pr_cont(" %02x", msg->buf[cnt]);
- 	}
--	if (!(xmit & BT878_I2C_NOSTOP))
-+	if (i2c_debug && !(xmit & BT878_I2C_NOSTOP))
- 		pr_cont(">\n");
- 	return msg->len;
- 
-
---MP_/9dQvyyZ93XXqz.c3t9Iv0R4--
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
