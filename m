@@ -1,130 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:50787 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753094Ab2KTLmU (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:63666 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750733Ab2KOFWH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Nov 2012 06:42:20 -0500
-Received: by mail-vc0-f174.google.com with SMTP id m18so2245456vcm.19
-        for <linux-media@vger.kernel.org>; Tue, 20 Nov 2012 03:42:20 -0800 (PST)
+	Thu, 15 Nov 2012 00:22:07 -0500
+Received: by mail-ob0-f174.google.com with SMTP id wc20so1313447obb.19
+        for <linux-media@vger.kernel.org>; Wed, 14 Nov 2012 21:22:07 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <50AAA609.2030007@gmail.com>
-References: <1352270227-8369-1-git-send-email-shaik.ameer@samsung.com>
-	<50AAA609.2030007@gmail.com>
-Date: Tue, 20 Nov 2012 17:12:19 +0530
-Message-ID: <CAOD6ATq2rDP8EGg4AAgiGukO_312Fz4DUx1sqpGO4mck7LEarQ@mail.gmail.com>
-Subject: Re: [PATCH] [media] exynos-gsc: Adding tiled multi-planar format to G-Scaler
-From: Shaik Ameer Basha <shaik.samsung@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	kgene.kim@samsung.com
+In-Reply-To: <CAPgLHd-jhj3+u4PN5ms7PrYLYe-DEKzHLnPqu3DPw0SH2n6uUg@mail.gmail.com>
+References: <CAPgLHd-ivjzSDre+DMVK+mHNpNynoLWJXK36zGW5GRnU0Z4d3g@mail.gmail.com>
+ <CA+V-a8vDjbmY-+c-aaaEcJ4JXv7Dm_ytUzGPD0eDDe_utB7kxQ@mail.gmail.com> <CAPgLHd-jhj3+u4PN5ms7PrYLYe-DEKzHLnPqu3DPw0SH2n6uUg@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 15 Nov 2012 10:51:47 +0530
+Message-ID: <CA+V-a8vmgbVFsTUabaWSdy4=CX+9doTqkWk-372iG9BG6AHFqw@mail.gmail.com>
+Subject: Re: [PATCH] [media] vpif_display: fix return value check in vpif_reqbufs()
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: mchehab@infradead.org, yongjun_wei@trendmicro.com.cn,
+	linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi Wei,
 
-On Tue, Nov 20, 2012 at 3:05 AM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> Hi Shaik,
+On Mon, Nov 12, 2012 at 2:14 PM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
+> Hi Prabhakar,
 >
->
-> On 11/07/2012 07:37 AM, Shaik Ameer Basha wrote:
+> On 11/09/2012 08:33 PM, Prabhakar Lad wrote:
+>> Hi Wei,
 >>
->> Adding V4L2_PIX_FMT_NV12MT_16X16 to G-Scaler supported formats.
->> If the output or input format is V4L2_PIX_FMT_NV12MT_16X16, configure
->> G-Scaler to use GSC_IN_TILE_MODE.
+>> Thanks for the patch.
 >>
->> Signed-off-by: Shaik Ameer Basha<shaik.ameer@samsung.com>
->> ---
->>   drivers/media/platform/exynos-gsc/gsc-core.c |    9 +++++++++
->>   drivers/media/platform/exynos-gsc/gsc-core.h |    5 +++++
->>   drivers/media/platform/exynos-gsc/gsc-regs.c |    6 ++++++
->>   3 files changed, 20 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c
->> b/drivers/media/platform/exynos-gsc/gsc-core.c
->> index cc7b218..00f1013 100644
->> --- a/drivers/media/platform/exynos-gsc/gsc-core.c
->> +++ b/drivers/media/platform/exynos-gsc/gsc-core.c
->> @@ -185,6 +185,15 @@ static const struct gsc_fmt gsc_formats[] = {
->>                 .corder         = GSC_CRCB,
->>                 .num_planes     = 3,
->>                 .num_comp       = 3,
->> +       }, {
->> +               .name           = "YUV 4:2:0 non-contig. 2p, Y/CbCr,
->> tiled",
+>> On Wed, Oct 24, 2012 at 4:59 PM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
+>>> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>>>
+>>> In case of error, the function vb2_dma_contig_init_ctx() returns
+>>> ERR_PTR() and never returns NULL. The NULL test in the return value
+>>> check should be replaced with IS_ERR().
+>>>
+>>> dpatch engine is used to auto generate this patch.
+>>> (https://github.com/weiyj/dpatch)
+>>>
+>>> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>>> ---
+>>>  drivers/media/platform/davinci/vpif_display.c | 4 ++--
+>>>  1 file changed, 2 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+>>> index b716fbd..5453bbb 100644
+>>> --- a/drivers/media/platform/davinci/vpif_display.c
+>>> +++ b/drivers/media/platform/davinci/vpif_display.c
+>>> @@ -972,9 +972,9 @@ static int vpif_reqbufs(struct file *file, void *priv,
+>>>         }
+>>>         /* Initialize videobuf2 queue as per the buffer type */
+>>>         common->alloc_ctx = vb2_dma_contig_init_ctx(vpif_dev);
+>>> -       if (!common->alloc_ctx) {
+>>> +       if (IS_ERR(common->alloc_ctx)) {
+>> Right check would be IS_ERR_OR_NULL(). Can you merge this
+>> patch 'vpif_capture: fix return value check in vpif_reqbufs()' with
+>> this one  and post a v2 with above changes ?
 >
+> I will merge those two patch into one.
+> And I never see vb2_dma_contig_init_ctx() can return NULL as a return
+> value, we still would using IS_ERR_OR_NULL()?
 >
-> I have applied this patch to my tree for v3.8, and I've shortened this
-> description like this
->
->                 .name           = "YUV 4:2:0 n.c. 2p, Y/CbCr tiled",
->
-> so it fits in 32 char buffer.
+IS_ERR() should be Ok.
 
-Thanks and that should be fine.
+Regards,
+--Prabhakar Lad
 
+> ---------------------------------------------------
+> void *vb2_dma_contig_init_ctx(struct device *dev)
+> {
+>        struct vb2_dc_conf *conf;
 >
-> There are some too long format descriptions in the driver already.
-> Please check output of VIDIOC_ENUM_FMT ioctl, for instance with
-> 'v4l2-ctl --list-fmt'.
+>        conf = kzalloc(sizeof *conf, GFP_KERNEL);
+>        if (!conf)
+>                  return ERR_PTR(-ENOMEM);
 >
+>        conf->dev = dev;
 >
->> +               .pixelformat    = V4L2_PIX_FMT_NV12MT_16X16,
->> +               .depth          = { 8, 4 },
->> +               .color          = GSC_YUV420,
->> +               .yorder         = GSC_LSB_Y,
->> +               .corder         = GSC_CBCR,
->> +               .num_planes     = 2,
->> +               .num_comp       = 2,
->>         }
->>   };
->>
->> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h
->> b/drivers/media/platform/exynos-gsc/gsc-core.h
->> index 5f157ef..cc19bba 100644
->> --- a/drivers/media/platform/exynos-gsc/gsc-core.h
->> +++ b/drivers/media/platform/exynos-gsc/gsc-core.h
->> @@ -427,6 +427,11 @@ static inline void gsc_ctx_state_lock_clear(u32
->> state, struct gsc_ctx *ctx)
->>         spin_unlock_irqrestore(&ctx->gsc_dev->slock, flags);
->>   }
->>
->> +static inline int is_tiled(const struct gsc_fmt *fmt)
->> +{
->> +       return fmt->pixelformat == V4L2_PIX_FMT_NV12MT_16X16;
->> +}
->> +
->>   static inline void gsc_hw_enable_control(struct gsc_dev *dev, bool on)
->>   {
->>         u32 cfg = readl(dev->regs + GSC_ENABLE);
->> diff --git a/drivers/media/platform/exynos-gsc/gsc-regs.c
->> b/drivers/media/platform/exynos-gsc/gsc-regs.c
->> index 0146b35..6f5b5a4 100644
->> --- a/drivers/media/platform/exynos-gsc/gsc-regs.c
->> +++ b/drivers/media/platform/exynos-gsc/gsc-regs.c
->> @@ -214,6 +214,9 @@ void gsc_hw_set_in_image_format(struct gsc_ctx *ctx)
->>                 break;
->>         }
->>
->> +       if (is_tiled(frame->fmt))
->> +               cfg |= GSC_IN_TILE_C_16x8 | GSC_IN_TILE_MODE;
->> +
->>         writel(cfg, dev->regs + GSC_IN_CON);
->>   }
->>
->> @@ -334,6 +337,9 @@ void gsc_hw_set_out_image_format(struct gsc_ctx *ctx)
->>                 break;
->>         }
->>
->> +       if (is_tiled(frame->fmt))
->> +               cfg |= GSC_OUT_TILE_C_16x8 | GSC_OUT_TILE_MODE;
->> +
->>   end_set:
->>         writel(cfg, dev->regs + GSC_OUT_CON);
->>   }
+>        return conf;
+> }
+> ---------------------------------------------------
 >
 >
-> Thanks,
-> Sylwester
+>
+>
