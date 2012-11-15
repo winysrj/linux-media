@@ -1,62 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:53276 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750813Ab2K2QkW (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:46292 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1767775Ab2KONPo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Nov 2012 11:40:22 -0500
-Received: by mail-ie0-f174.google.com with SMTP id k11so12360709iea.19
-        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2012 08:40:22 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <50B784FC.1080904@interlinx.bc.ca>
-References: <k93vu3$ffi$1@ger.gmane.org>
-	<CALF0-+VkANRj+by2n-=UsxZfJwk97ZkNS8R0C-Vt2oX7WN3R0A@mail.gmail.com>
-	<50B60D54.4010302@interlinx.bc.ca>
-	<CALF0-+UHOJDh471aa7URKr1-xbggrbDdg_nDijv2FOUpo=3zaw@mail.gmail.com>
-	<50B69C08.7050401@interlinx.bc.ca>
-	<CALF0-+X0yyQEw+jJCxuQO18gDagtyX-RZW_kurMPS69RQHNPMA@mail.gmail.com>
-	<CALF0-+XStqJEiPaQjrBu74of9BYRJZS-9F6F7YzgE3LU6x+TVQ@mail.gmail.com>
-	<50B784FC.1080904@interlinx.bc.ca>
-Date: Thu, 29 Nov 2012 13:40:21 -0300
-Message-ID: <CALF0-+XQJTwUpZrz-P7cF0YiXBJezgBJc5SvoKTn+obA_KtDhw@mail.gmail.com>
-Subject: Re: ivtv driver inputs randomly "block"
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Andy Walls <awalls@md.metrocast.net>
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 15 Nov 2012 08:15:44 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: [PATCH v11 6/6] drm_modes: add of_videomode helpers
+Date: Thu, 15 Nov 2012 14:15:12 +0100
+Message-Id: <1352985312-18178-7-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1352985312-18178-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1352985312-18178-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Brian,
+Add helper to get drm_display_mode from devicetree.
 
-On Thu, Nov 29, 2012 at 12:53 PM, Brian J. Murrell
-<brian@interlinx.bc.ca> wrote:
-[...]
->
-> I am sure you would agree that this is not really a suitable
-> work-around, yes?
->
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/gpu/drm/drm_modes.c |   35 ++++++++++++++++++++++++++++++++++-
+ include/drm/drmP.h          |    6 ++++++
+ 2 files changed, 40 insertions(+), 1 deletion(-)
 
-I meant doing that just as a debug trial to know if
-maybe MythTV was doing something wrong.
+diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
+index 23d951a0..5508037 100644
+--- a/drivers/gpu/drm/drm_modes.c
++++ b/drivers/gpu/drm/drm_modes.c
+@@ -35,7 +35,8 @@
+ #include <linux/export.h>
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc.h>
+-#include <linux/videomode.h>
++#include <linux/of.h>
++#include <linux/of_videomode.h>
+ 
+ /**
+  * drm_mode_debug_printmodeline - debug print a mode
+@@ -541,6 +542,38 @@ int drm_display_mode_from_videomode(struct videomode *vm,
+ EXPORT_SYMBOL_GPL(drm_display_mode_from_videomode);
+ #endif
+ 
++#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
++/**
++ * of_get_drm_display_mode - get a drm_display_mode from devicetree
++ * @np: device_node with the timing specification
++ * @dmode: will be set to the return value
++ * @index: index into the list of display timings in devicetree
++ *
++ * This function is expensive and should only be used, if only one mode is to be
++ * read from DT. To get multiple modes start with of_get_display_timings and
++ * work with that instead.
++ */
++int of_get_drm_display_mode(struct device_node *np,
++			    struct drm_display_mode *dmode, unsigned int index)
++{
++	struct videomode vm;
++	int ret;
++
++	ret = of_get_videomode(np, &vm, index);
++	if (ret)
++		return ret;
++
++	drm_display_mode_from_videomode(&vm, dmode);
++
++	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
++		vm.vactive, np->name);
++	drm_mode_debug_printmodeline(dmode);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(of_get_drm_display_mode);
++#endif
++
+ /**
+  * drm_mode_set_name - set the name on a mode
+  * @mode: name will be set in this mode
+diff --git a/include/drm/drmP.h b/include/drm/drmP.h
+index 341049c..ae132be 100644
+--- a/include/drm/drmP.h
++++ b/include/drm/drmP.h
+@@ -56,6 +56,7 @@
+ #include <linux/cdev.h>
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
++#include <linux/of.h>
+ #include <linux/videomode.h>
+ #if defined(__alpha__) || defined(__powerpc__)
+ #include <asm/pgtable.h>	/* For pte_wrprotect */
+@@ -1459,6 +1460,11 @@ drm_mode_create_from_cmdline_mode(struct drm_device *dev,
+ extern int drm_display_mode_from_videomode(struct videomode *vm,
+ 					   struct drm_display_mode *dmode);
+ #endif
++#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
++extern int of_get_drm_display_mode(struct device_node *np,
++				   struct drm_display_mode *dmode,
++				   unsigned int index);
++#endif
+ 
+ /* Modesetting support */
+ extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
+-- 
+1.7.10.4
 
-Andy already answered explaining this shouldn't be the case.
-
-In fact now that Andy is helping you,
-you'll get far better help from him than from me.
-
->> PS: Please don't drop linux-media list from Cc
->
-[...]
->
-> Perhaps you got the copy I CC'd to you directly before you got the copy
-> that went to the list via gmane.
->
-
-Well, this very mail I'm answering appears as being sent to me alone.
-However, the mail can be found on mail-archive so it must be something
-in the way I got it. Never mind.
-
-Thanks,
-
-    Ezequiel
