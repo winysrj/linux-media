@@ -1,130 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp207.alice.it ([82.57.200.103]:34436 "EHLO smtp207.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753975Ab2KZNIL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Nov 2012 08:08:11 -0500
-Date: Mon, 26 Nov 2012 14:08:06 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] gspca - ov534: Fix the light frequency filter
-Message-Id: <20121126140806.65a6aa2b310c774e4edd62c3@studenti.unina.it>
-In-Reply-To: <20121123191232.7ed9c546@armhf>
-References: <20121122124652.3a832e33@armhf>
-	<20121123180909.021c55a8c3795329836c42b7@studenti.unina.it>
-	<20121123191232.7ed9c546@armhf>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:64178 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750804Ab2KOWG0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Nov 2012 17:06:26 -0500
+Received: by mail-ee0-f46.google.com with SMTP id b15so1258234eek.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Nov 2012 14:06:25 -0800 (PST)
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: dron0gus@gmail.com, tomasz.figa@gmail.com,
+	oselas@community.pengutronix.de,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH RFC v3 0/3] S3C244X/S3C64XX SoC series camera interface driver
+Date: Thu, 15 Nov 2012 23:05:12 +0100
+Message-Id: <1353017115-11492-1-git-send-email-sylvester.nawrocki@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 23 Nov 2012 19:12:32 +0100
-Jean-Francois Moine <moinejf@free.fr> wrote:
+This patch series adds V4L2 driver for Samsung S3C244X/S3C64XX SoCs
+camera interface.
 
-> On Fri, 23 Nov 2012 18:09:09 +0100
-> Antonio Ospite <ospite@studenti.unina.it> wrote:
-[...]
-> > In the datasheet I have for ov772x, bit[6] of register 0x13 is described
-> > as:
-> > 
-> >   Bit[6]: AEC - Step size limit
-> >     0: Step size is limited to vertical blank
-> >     1: Unlimited step size
-> 
-> Right, but I don't use the bit 6, it is the bit 5:
->
+Changes since v2:
+ - use V4L2_CID_TEST_PATTERN instead of a private control,
+ - added explicit PM_RUNTIME dependency,
+ - device name appended in bus_info in vidioc_querycap ioctl,
+ - added image effect controls,
+ - added subdev controls value caching to prevent races,
+   when referencing control values in the interrupt context,
+ - included patch adding an entry in the MAINTAINERS file.
 
-Ouch, right! :)
+Complete branch for testing on mini2440 compatible boards can be pulled
+from:
 
-> > > +		sccb_reg_write(gspca_dev, 0x13,		/* auto */
-> > > +				sccb_reg_read(gspca_dev, 0x13) | 0x20);
-> 
-> which is described as:
-> 
->    Bit[5]:  Banding filter ON/OFF
-> 
-> > And the patch makes Light Frequency _NOT_ work with the PS3 eye (based
-> > on ov772x).
-> > 
-> > What does the ov767x datasheet say?
-> 
-> Quite the same thing:
-> 
->    Bit[5]: Banding filter ON/OFF - In order to turn ON the banding
->            filter, BD50ST (0x9D) or BD60ST (0x9E) must be set to a
->            non-zero value.
->            0: OFF
->            1: ON
-> 
-> (the registers 9d and 9e are non zero for the ov767x in ov534.c)
-> 
+ git://linuxtv.org/snawrocki/media.git s3c-camif
 
-In the ov767x datasheet I also see that selecting _what_ filter to
-apply is done in Bit[3] of register 0x3B, but I couldn't find such info
-for ov772x. (FYI a datasheet for ov7740 can be found on the web with
-some theory but resisters are not always the same as ov772x).
+I intend to finally send a pull request for this driver this week.
 
-> > Maybe we should use the new values only when
-> > 	sd->sensor == SENSOR_OV767x
-> > 
-> > What sensor does Alexander's webcam use?
-> 
-> He has exactly the same webcam as yours: 1415:2000 (ps eye) with
-> sensor ov772x.
->
-> > > Note: The light frequency filter is either off or automatic.
-> > > The application will see either off or "50Hz" only.
-> > > 
-> > > Tested-by: alexander calderon <fabianp902@gmail.com>
-> > > Signed-off-by: Jean-François Moine <moinejf@free.fr>
-> > > 
-> > > --- a/drivers/media/usb/gspca/ov534.c
-> > > +++ b/drivers/media/usb/gspca/ov534.c
-> > > @@ -1038,13 +1038,12 @@
-> > >  {
-> > >  	struct sd *sd = (struct sd *) gspca_dev;
-> > > 
-> > 
-> > drivers/media/usb/gspca/ov534.c: In function ‘setlightfreq’:
-> > drivers/media/usb/gspca/ov534.c:1039:13: warning: unused variable ‘sd’ [-Wunused-variable]
-> 
-> Thanks.
-> 
-> Well, here is one of the last message I received from Alexander (in
-> fact, his first name is Fabian):
-> 
-> > Thanks for all your help, it is very kind of you, I used the code below,the
-> > 60 Hz filter appear to work even at 100fps, but when I used 125 fps it
-> > didnt work :( , i guess it is something of detection speed. If you have any
-> > other idea I'll be very thankful.
-> > 
-> > Sincerely Fabian Calderon
->
 
-So he is in a place where a 60Hz power source is used?.
+Andrey Gusakov (1):
+  s3c-camif: Add image effect controls
 
-> So, how may we advance?
+Sylwester Nawrocki (2):
+  V4L: Add driver for S3C244X/S3C64XX SoC series camera interface
+  MAINTAINERS: Add entry for S3C24XX/S3C64XX SoC CAMIF driver
 
-For now I'd NAK the patch since it is a regression for users
-with 50Hz power sources and it looks like it does not _always_ work for
-60Hz either.
+ MAINTAINERS                                      |    8 +
+ drivers/media/platform/Kconfig                   |   12 +
+ drivers/media/platform/Makefile                  |    1 +
+ drivers/media/platform/s3c-camif/Makefile        |    5 +
+ drivers/media/platform/s3c-camif/camif-capture.c | 1679 ++++++++++++++++++++++
+ drivers/media/platform/s3c-camif/camif-core.c    |  662 +++++++++
+ drivers/media/platform/s3c-camif/camif-core.h    |  393 +++++
+ drivers/media/platform/s3c-camif/camif-regs.c    |  606 ++++++++
+ drivers/media/platform/s3c-camif/camif-regs.h    |  269 ++++
+ include/media/s3c_camif.h                        |   45 +
+ 10 files changed, 3680 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/platform/s3c-camif/Makefile
+ create mode 100644 drivers/media/platform/s3c-camif/camif-capture.c
+ create mode 100644 drivers/media/platform/s3c-camif/camif-core.c
+ create mode 100644 drivers/media/platform/s3c-camif/camif-core.h
+ create mode 100644 drivers/media/platform/s3c-camif/camif-regs.c
+ create mode 100644 drivers/media/platform/s3c-camif/camif-regs.h
+ create mode 100644 include/media/s3c_camif.h
 
-Should I remove it from patchwork as well?
+--
+1.7.4.1
 
-As I have the webcam and can perform actual tests I'll coordinate with
-Fabian to have more details about why light frequency filter is not
-working for him with the current code, it works fine for me at 640x480,
-even if I can see that its effect is weaker at 320x240.
-
-Thanks,
-   Antonio
-
--- 
-Antonio Ospite
-http://ao2.it
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
