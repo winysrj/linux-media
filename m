@@ -1,99 +1,281 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4402 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751925Ab2KPNvq (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45772 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946025Ab2KOJYZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Nov 2012 08:51:46 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 1/4] v4l: Define video buffer flags for timestamp types
-Date: Fri, 16 Nov 2012 14:51:29 +0100
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-References: <20121115220627.GB29863@valkosipuli.retiisi.org.uk> <1353017207-370-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1353017207-370-1-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201211161451.29922.hverkuil@xs4all.nl>
+	Thu, 15 Nov 2012 04:24:25 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: [PATCH v10 1/6] video: add display_timing and videomode
+Date: Thu, 15 Nov 2012 10:23:52 +0100
+Message-Id: <1352971437-29877-2-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu November 15 2012 23:06:44 Sakari Ailus wrote:
-> Define video buffer flags for different timestamp types. Everything up to
-> now have used either realtime clock or monotonic clock, without a way to
-> tell which clock the timestamp was taken from.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  Documentation/DocBook/media/v4l/io.xml |   25 +++++++++++++++++++++++++
->  include/uapi/linux/videodev2.h         |    4 ++++
->  2 files changed, 29 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> index 7e2f3d7..d598f2c 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
-> @@ -938,6 +938,31 @@ Typically applications shall use this flag for output buffers if the data
->  in this buffer has not been created by the CPU but by some DMA-capable unit,
->  in which case caches have not been used.</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant></entry>
-> +	    <entry>0xe000</entry>
-> +	    <entry>Mask for timestamp types below. To test the
-> +	    timestamp type, mask out bits not belonging to timestamp
-> +	    type by performing a logical and operation with buffer
-> +	    flags and timestamp mask.</tt> </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN</constant></entry>
-> +	    <entry>0x0000</entry>
-> +	    <entry>Unknown timestamp type. This type is used by
-> +	    drivers before Linux 3.8 and may be either monotonic (see
-> +	    below) or realtime. Monotonic clock has been favoured in
-> +	    embedded systems whereas most of the drivers use the
-> +	    realtime clock.</entry>
+Add display_timing structure and the according helper functions. This allows
+the description of a display via its supported timing parameters.
 
-Isn't 'wallclock time' a better expression? It is probably a good idea as well
-to add the userspace call that gives the same clock: gettimeofday or
-clock_gettime(CLOCK_REALTIME) for the wallclock time and clock_gettime(CLOCK_MONOTONIC)
-for the monotonic time. That way apps can do the same call and compare it to the
-timestamp received.
+Every timing parameter can be specified as a single value or a range
+<min typ max>.
 
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC</constant></entry>
-> +	    <entry>0x2000</entry>
-> +	    <entry>The buffer timestamp has been taken from the
-> +	    <constant>CLOCK_MONOTONIC</constant> clock. To access the
-> +	    same clock outside V4L2, use <tt>clock_gettime(2)</tt>
+Also, add helper functions to convert from display timings to a generic videomode
+structure. This videomode can then be converted to the corresponding subsystem
+mode representation (e.g. fb_videomode).
 
-Ah, you mentioned it here already for the monotonic clock :-)
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+---
+ drivers/video/Kconfig          |    6 ++++
+ drivers/video/Makefile         |    2 ++
+ drivers/video/display_timing.c |   24 ++++++++++++++
+ drivers/video/videomode.c      |   45 ++++++++++++++++++++++++++
+ include/linux/display_timing.h |   69 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/videomode.h      |   40 +++++++++++++++++++++++
+ 6 files changed, 186 insertions(+)
+ create mode 100644 drivers/video/display_timing.c
+ create mode 100644 drivers/video/videomode.c
+ create mode 100644 include/linux/display_timing.h
+ create mode 100644 include/linux/videomode.h
 
-> +	    .</entry>
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 2fff7ff..410ea9f 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -686,6 +686,10 @@ struct v4l2_buffer {
->  /* Cache handling flags */
->  #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
->  #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
-> +/* Timestamp type */
-> +#define V4L2_BUF_FLAG_TIMESTAMP_MASK		0xe000
-> +#define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x0000
-> +#define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x2000
->  
->  /*
->   *	O V E R L A Y   P R E V I E W
-> 
+diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+index d08d799..2a23b18 100644
+--- a/drivers/video/Kconfig
++++ b/drivers/video/Kconfig
+@@ -33,6 +33,12 @@ config VIDEO_OUTPUT_CONTROL
+ 	  This framework adds support for low-level control of the video 
+ 	  output switch.
+ 
++config DISPLAY_TIMING
++       bool
++
++config VIDEOMODE
++       bool
++
+ menuconfig FB
+ 	tristate "Support for frame buffer devices"
+ 	---help---
+diff --git a/drivers/video/Makefile b/drivers/video/Makefile
+index 23e948e..fc30439 100644
+--- a/drivers/video/Makefile
++++ b/drivers/video/Makefile
+@@ -167,3 +167,5 @@ obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
+ 
+ #video output switch sysfs driver
+ obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
++obj-$(CONFIG_DISPLAY_TIMING) += display_timing.o
++obj-$(CONFIG_VIDEOMODE) += videomode.o
+diff --git a/drivers/video/display_timing.c b/drivers/video/display_timing.c
+new file mode 100644
+index 0000000..ac9bbbc
+--- /dev/null
++++ b/drivers/video/display_timing.c
+@@ -0,0 +1,24 @@
++/*
++ * generic display timing functions
++ *
++ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
++ *
++ * This file is released under the GPLv2
++ */
++
++#include <linux/display_timing.h>
++#include <linux/export.h>
++#include <linux/slab.h>
++
++void display_timings_release(struct display_timings *disp)
++{
++	if (disp->timings) {
++		unsigned int i;
++
++		for (i = 0; i < disp->num_timings; i++)
++			kfree(disp->timings[i]);
++		kfree(disp->timings);
++	}
++	kfree(disp);
++}
++EXPORT_SYMBOL_GPL(display_timings_release);
+diff --git a/drivers/video/videomode.c b/drivers/video/videomode.c
+new file mode 100644
+index 0000000..087374a
+--- /dev/null
++++ b/drivers/video/videomode.c
+@@ -0,0 +1,45 @@
++/*
++ * generic display timing functions
++ *
++ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
++ *
++ * This file is released under the GPLv2
++ */
++
++#include <linux/export.h>
++#include <linux/errno.h>
++#include <linux/display_timing.h>
++#include <linux/kernel.h>
++#include <linux/videomode.h>
++
++int videomode_from_timing(struct display_timings *disp, struct videomode *vm,
++			  unsigned int index)
++{
++	struct display_timing *dt;
++
++	dt = display_timings_get(disp, index);
++	if (!dt)
++		return -EINVAL;
++
++	vm->pixelclock = display_timing_get_value(&dt->pixelclock, 0);
++	vm->hactive = display_timing_get_value(&dt->hactive, 0);
++	vm->hfront_porch = display_timing_get_value(&dt->hfront_porch, 0);
++	vm->hback_porch = display_timing_get_value(&dt->hback_porch, 0);
++	vm->hsync_len = display_timing_get_value(&dt->hsync_len, 0);
++
++	vm->vactive = display_timing_get_value(&dt->vactive, 0);
++	vm->vfront_porch = display_timing_get_value(&dt->vfront_porch, 0);
++	vm->vback_porch = display_timing_get_value(&dt->vback_porch, 0);
++	vm->vsync_len = display_timing_get_value(&dt->vsync_len, 0);
++
++	vm->vah = dt->vsync_pol_active;
++	vm->hah = dt->hsync_pol_active;
++	vm->de = dt->de_pol_active;
++	vm->pixelclk_pol = dt->pixelclk_pol;
++
++	vm->interlaced = dt->interlaced;
++	vm->doublescan = dt->doublescan;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(videomode_from_timing);
+diff --git a/include/linux/display_timing.h b/include/linux/display_timing.h
+new file mode 100644
+index 0000000..caee2a8
+--- /dev/null
++++ b/include/linux/display_timing.h
+@@ -0,0 +1,69 @@
++/*
++ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
++ *
++ * description of display timings
++ *
++ * This file is released under the GPLv2
++ */
++
++#ifndef __LINUX_DISPLAY_TIMINGS_H
++#define __LINUX_DISPLAY_TIMINGS_H
++
++#include <linux/types.h>
++
++struct timing_entry {
++	u32 min;
++	u32 typ;
++	u32 max;
++};
++
++struct display_timing {
++	struct timing_entry pixelclock;
++
++	struct timing_entry hactive;
++	struct timing_entry hfront_porch;
++	struct timing_entry hback_porch;
++	struct timing_entry hsync_len;
++
++	struct timing_entry vactive;
++	struct timing_entry vfront_porch;
++	struct timing_entry vback_porch;
++	struct timing_entry vsync_len;
++
++	unsigned int vsync_pol_active;
++	unsigned int hsync_pol_active;
++	unsigned int de_pol_active;
++	unsigned int pixelclk_pol;
++	bool interlaced;
++	bool doublescan;
++};
++
++struct display_timings {
++	unsigned int num_timings;
++	unsigned int native_mode;
++
++	struct display_timing **timings;
++};
++
++/*
++ * placeholder function until ranges are really needed
++ * the index parameter should then be used to select one of [min typ max]
++ */
++static inline u32 display_timing_get_value(struct timing_entry *te,
++					   unsigned int index)
++{
++	return te->typ;
++}
++
++static inline struct display_timing *display_timings_get(struct display_timings *disp,
++							 unsigned int index)
++{
++	if (disp->num_timings > index)
++		return disp->timings[index];
++	else
++		return NULL;
++}
++
++void display_timings_release(struct display_timings *disp);
++
++#endif
+diff --git a/include/linux/videomode.h b/include/linux/videomode.h
+new file mode 100644
+index 0000000..704db7b
+--- /dev/null
++++ b/include/linux/videomode.h
+@@ -0,0 +1,40 @@
++/*
++ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
++ *
++ * generic videomode description
++ *
++ * This file is released under the GPLv2
++ */
++
++#ifndef __LINUX_VIDEOMODE_H
++#define __LINUX_VIDEOMODE_H
++
++#include <linux/display_timing.h>
++
++struct videomode {
++	u32 pixelclock;
++	u32 refreshrate;
++
++	u32 hactive;
++	u32 hfront_porch;
++	u32 hback_porch;
++	u32 hsync_len;
++
++	u32 vactive;
++	u32 vfront_porch;
++	u32 vback_porch;
++	u32 vsync_len;
++
++	u32 hah;
++	u32 vah;
++	u32 de;
++	u32 pixelclk_pol;
++
++	bool interlaced;
++	bool doublescan;
++};
++
++int videomode_from_timing(struct display_timings *disp, struct videomode *vm,
++			  unsigned int index);
++
++#endif
+-- 
+1.7.10.4
 
-Regards,
-
-	Hans
