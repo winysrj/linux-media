@@ -1,102 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:38752 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754314Ab2JaXZw (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45801 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2992975Ab2KOJYc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Oct 2012 19:25:52 -0400
-Message-ID: <5091B37A.30509@gmail.com>
-Date: Thu, 01 Nov 2012 00:25:46 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/2] media: V4L2: support asynchronous subdevice registration
-References: <Pine.LNX.4.64.1210192358520.28993@axis700.grange> <Pine.LNX.4.64.1210200007580.28993@axis700.grange> <Pine.LNX.4.64.1210241548300.2683@axis700.grange> <508D4F79.2000204@gmail.com> <Pine.LNX.4.64.1210290841200.17869@axis700.grange> <5091AF97.7010804@gmail.com>
-In-Reply-To: <5091AF97.7010804@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 15 Nov 2012 04:24:32 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: [PATCH v10 3/6] fbmon: add videomode helpers
+Date: Thu, 15 Nov 2012 10:23:54 +0100
+Message-Id: <1352971437-29877-4-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/01/2012 12:09 AM, Sylwester Nawrocki wrote:
-> Hi Guennadi,
->
-> On 10/29/2012 08:52 AM, Guennadi Liakhovetski wrote:
->>>>> +/*
->>>>> + * Typically this function will be called during bridge driver probing. It
->>>>> + * installs bus notifiers to handle asynchronously probing subdevice drivers.
->>>>> + * Once the bridge driver probing completes, subdevice drivers, waiting in
->>>>> + * EPROBE_DEFER state are re-probed, at which point they get their platform
->>>>> + * data, which allows them to complete probing.
->>>>> + */
->>>>> +int v4l2_async_group_probe(struct v4l2_async_group *group)
->>>>> +{
->>>>> +	struct v4l2_async_subdev *asd, *tmp;
->>>>> +	bool i2c_used = false, platform_used = false;
->>>>> +	int ret;
->>>>> +
->>>>> +	/* This group is inactive so far - no notifiers yet */
->>>>> +	list_for_each_entry_safe(asd, tmp,&group->group, list) {
->>>>> +		if (asd->sdpd.subdev) {
->>>>> +			/* Simulate a BIND event */
->>>>> +			if (group->bind_cb)
->>>>> +				group->bind_cb(group, asd);
->>>>> +
->>>
->>> Still we can't be sure at this moment asd->sdpd.subdev's driver is
->>> valid and not unloaded, can we ?
->>>
->>> In the case when a sub-device driver is probed after the host driver
->>> (a caller of this function) I assume doing
->>>
->>> 	asd->sdpd.subdev = i2c_get_clientdata(to_i2c_client(dev));
->>> 	...
->>> 	ret = v4l2_device_register_subdev(v4l2_dev, asd->sdpd.subdev);
->>>
->>> is safe, because it is done in the i2c bus notifier callback itself,
->>> i.e. under device_lock(dev).
->>>
->>> But for these already probed sub-devices, how do we prevent races from
->>> subdev module unloading ? By not setting CONFIG_MODULE_UNLOAD?... ;)
->>
->> Right, I also think there's a race there. I have a solution for it - in
->> the current mainline version of sh_mobile_ceu_camera.c look at the code
->> around the line
->>
->> 		err = bus_register_notifier(&platform_bus_type,&wait.notifier);
->>
->> sh_mobile_ceu_probe(). I think, that guarantees, that we either lock the
->> module _safely_ in memory per try_module_get(dev->driver->owner) or get
->> notified, that the module is unavailable. It looks ugly, but I don't have
->> a better solution ATM. We could do the same here too.
->
-> IMHO even "ugly" solution is better than completely ignoring the problem.
->
-> I have some doubts whether your method eliminates the race issue. Firstly,
-> shouldn't the bus_notify callback [1] be active on BUS_NOTIFY_UNBIND_DRIVER,
-> rather than US_NOTIFY_UNBOUND_DRIVER ? Upon US_NOTIFY_UNBOUND_DRIVER
-> dev->driver is already NULL and still it is being referenced in a call to
-> try_module_get() (line 2224, [1]).
->
-> Secondly, what guarantees that before bus_register_notifier() call [1],
-> we are not already after blocking_notifier_call_chain() (line 504, [2])
-> which means we miss the notification and the sub-device driver is going
-> away together with its module under our feet ?
+Add a function to convert from the generic videomode to a fb_videomode.
 
-Hmm, please ignore that one, of course in this case dev->driver is NULL 
-and branch after this line
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+---
+ drivers/video/fbmon.c |   46 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/fb.h    |    6 ++++++
+ 2 files changed, 52 insertions(+)
 
-		if (!csi2_pdev->dev.driver) {
-is entered.
+diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
+index cef6557..247e079 100644
+--- a/drivers/video/fbmon.c
++++ b/drivers/video/fbmon.c
+@@ -31,6 +31,7 @@
+ #include <linux/pci.h>
+ #include <linux/slab.h>
+ #include <video/edid.h>
++#include <linux/videomode.h>
+ #ifdef CONFIG_PPC_OF
+ #include <asm/prom.h>
+ #include <asm/pci-bridge.h>
+@@ -1373,6 +1374,51 @@ int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_inf
+ 	kfree(timings);
+ 	return err;
+ }
++
++#if IS_ENABLED(CONFIG_VIDEOMODE)
++int fb_videomode_from_videomode(struct videomode *vm,
++				struct fb_videomode *fbmode)
++{
++	unsigned int htotal, vtotal;
++
++	fbmode->xres = vm->hactive;
++	fbmode->left_margin = vm->hback_porch;
++	fbmode->right_margin = vm->hfront_porch;
++	fbmode->hsync_len = vm->hsync_len;
++
++	fbmode->yres = vm->vactive;
++	fbmode->upper_margin = vm->vback_porch;
++	fbmode->lower_margin = vm->vfront_porch;
++	fbmode->vsync_len = vm->vsync_len;
++
++	fbmode->pixclock = KHZ2PICOS(vm->pixelclock / 1000);
++
++	fbmode->sync = 0;
++	fbmode->vmode = 0;
++	if (vm->hah)
++		fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
++	if (vm->vah)
++		fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
++	if (vm->interlaced)
++		fbmode->vmode |= FB_VMODE_INTERLACED;
++	if (vm->doublescan)
++		fbmode->vmode |= FB_VMODE_DOUBLE;
++	if (vm->de)
++		fbmode->sync |= FB_SYNC_DATA_ENABLE_HIGH_ACT;
++	fbmode->flag = 0;
++
++	htotal = vm->hactive + vm->hfront_porch + vm->hback_porch +
++		 vm->hsync_len;
++	vtotal = vm->vactive + vm->vfront_porch + vm->vback_porch +
++		 vm->vsync_len;
++	fbmode->refresh = (vm->pixelclock * 1000) / (htotal * vtotal);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
++#endif
++
++
+ #else
+ int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
+ {
+diff --git a/include/linux/fb.h b/include/linux/fb.h
+index c7a9571..4024136 100644
+--- a/include/linux/fb.h
++++ b/include/linux/fb.h
+@@ -14,6 +14,7 @@
+ #include <linux/backlight.h>
+ #include <linux/slab.h>
+ #include <asm/io.h>
++#include <linux/videomode.h>
+ 
+ struct vm_area_struct;
+ struct fb_info;
+@@ -714,6 +715,11 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
+ extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
+ extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+ 
++#if IS_ENABLED(CONFIG_VIDEOMODE)
++extern int fb_videomode_from_videomode(struct videomode *vm,
++				       struct fb_videomode *fbmode);
++#endif
++
+ /* drivers/video/modedb.c */
+ #define VESA_MODEDB_SIZE 34
+ extern void fb_var_to_videomode(struct fb_videomode *mode,
+-- 
+1.7.10.4
 
-> [1] http://lxr.linux.no/#linux+v3.6/drivers/media/video/sh_mobile_ceu_camera.c#L2055
-> [2] http://lxr.linux.no/#linux+v3.6/drivers/base/dd.c#L478
->
-> --
-> Thanks,
-> Sylwester
