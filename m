@@ -1,93 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56640 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750892Ab2KUM2H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Nov 2012 07:28:07 -0500
-Message-ID: <50ACC8C1.9020400@ti.com>
-Date: Wed, 21 Nov 2012 14:27:45 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37679 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1768505Ab2KOREV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Nov 2012 12:04:21 -0500
+Received: from avalon.localnet (unknown [91.178.164.30])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 2D5A0359A8
+	for <linux-media@vger.kernel.org>; Thu, 15 Nov 2012 18:04:20 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v3.8] OMAP3 ISP fixes
+Date: Thu, 15 Nov 2012 18:05:14 +0100
+Message-ID: <104079364.xjpdbsAC6V@avalon>
+In-Reply-To: <5165893.K67LFKXKHh@avalon>
+References: <5165893.K67LFKXKHh@avalon>
 MIME-Version: 1.0
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-CC: <devicetree-discuss@lists.ozlabs.org>,
-	Rob Herring <robherring2@gmail.com>,
-	<linux-fbdev@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	<linux-media@vger.kernel.org>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	<kernel@pengutronix.de>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	David Airlie <airlied@linux.ie>
-Subject: Re: [PATCH v12 3/6] fbmon: add videomode helpers
-References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de> <1353426896-6045-4-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1353426896-6045-4-git-send-email-s.trumtrar@pengutronix.de>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigC5A087637FE61696096833B9"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---------------enigC5A087637FE61696096833B9
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Mauro,
 
-On 2012-11-20 17:54, Steffen Trumtrar wrote:
+Once again, please cancel this pull request. One of the patches contains a 
+subtle bug, I'll resubmit it. Sorry for the inconvenience.
 
-> diff --git a/include/linux/fb.h b/include/linux/fb.h
-> index c7a9571..920cbe3 100644
-> --- a/include/linux/fb.h
-> +++ b/include/linux/fb.h
-> @@ -14,6 +14,7 @@
->  #include <linux/backlight.h>
->  #include <linux/slab.h>
->  #include <asm/io.h>
-> +#include <linux/videomode.h>
+On Tuesday 13 November 2012 15:35:20 Laurent Pinchart wrote:
+> Hi Mauro,
+> 
+> The following changes since commit 01aea0bfd8dfa8bc868df33904461984bb10a87a:
+> 
+>   [media] i2c: adv7183: use module_i2c_driver to simplify the code
+> (2012-10-25 17:08:46 -0200)
+> 
+> are available in the git repository at:
+>   git://linuxtv.org/pinchartl/media.git omap3isp/next
+> 
+> Laurent Pinchart (6):
+>       omap3isp: Use monotonic timestamps for statistics buffers
+>       omap3isp: Remove unneeded module memory address definitions
+>       omap3isp: Replace printk with dev_*
+>       omap3isp: preview: Add support for 8-bit formats at the sink pad
+>       omap3isp: Prepare/unprepare clocks before/after enable/disable
+>       omap3isp: Replace cpu_is_omap3630() with ISP revision check
+> 
+> Sakari Ailus (4):
+>       omap3isp: Add CSI configuration registers from control block to ISP
+> resources
+>       omap3isp: Add PHY routing configuration
+>       omap3isp: Configure CSI-2 phy based on platform data
+>       omap3isp: Find source pad from external entity
+> 
+> Note that patch "Replace cpu_is_omap3630() with ISP revision check" has been
+> already submitted and reverted at my request, as the proper solution should
+> be implemented at the clock provider level. This is in progress and will
+> require common clock framework support, which will likely reach mainline in
+> v3.9. In order not to delay cpu_is_omap3630() removal I've decided to
+> resubmit this patch, and will implement the proper fix when the common
+> clock framework will be available for the OMAP3.
+> 
+>  arch/arm/mach-omap2/devices.c                |   10 +
+>  drivers/media/platform/omap3isp/isp.c        |   83 ++++++----
+>  drivers/media/platform/omap3isp/isp.h        |    5 +-
+>  drivers/media/platform/omap3isp/ispcsi2.c    |    6 +-
+>  drivers/media/platform/omap3isp/ispcsiphy.c  |  227 +++++++++++++++++------
+>  drivers/media/platform/omap3isp/ispcsiphy.h  |   10 -
+>  drivers/media/platform/omap3isp/isphist.c    |    8 +-
+>  drivers/media/platform/omap3isp/isppreview.c |   40 +++--
+>  drivers/media/platform/omap3isp/ispreg.h     |   99 +++---------
+>  drivers/media/platform/omap3isp/ispstat.c    |    5 +-
+>  drivers/media/platform/omap3isp/ispstat.h    |    2 +-
+>  drivers/media/platform/omap3isp/ispvideo.c   |    3 +-
+>  12 files changed, 294 insertions(+), 204 deletions(-)
 
-No need for this, just add "struct xxx;".
+-- 
+Regards,
 
->  struct vm_area_struct;
->  struct fb_info;
-> @@ -714,6 +715,11 @@ extern void fb_destroy_modedb(struct fb_videomode =
-*modedb);
->  extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, in=
-t rb);
->  extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
-> =20
-> +#if IS_ENABLED(CONFIG_VIDEOMODE)
-> +extern int fb_videomode_from_videomode(const struct videomode *vm,
-> +				       struct fb_videomode *fbmode);
-> +#endif
-> +
->  /* drivers/video/modedb.c */
->  #define VESA_MODEDB_SIZE 34
->  extern void fb_var_to_videomode(struct fb_videomode *mode,
->=20
+Laurent Pinchart
 
-
-
---------------enigC5A087637FE61696096833B9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQrMjBAAoJEPo9qoy8lh71Q4cP/1dcAq5jTdtLB0cu++W4vXeq
-Ponbk6jqAVyBp57B11VXREKXJQN3nc/OmKvhJAb8v+POUzxD11eXNLeU0Ww6l+gQ
-hwxTmnTAXRnYdlS5+UWdLmxjpIIfJPkUEi15dt0+jw+JsJQVTqlGSr5FusWty9DB
-XiD6coM7g1NjuZDNjHKb1r3ydSK85ZNnq/eKms1DkF/5CexT+TzPMApMWO7eZml3
-I1IHR2C/DwRty1dhe27kIcWOrr32DiCwg3F8CtaamjSnybHJPYfAwMhpDFmkkUjL
-hjhjV6gnZGpo9E777GRnoww/aLm65jAEt7eFwGrXhKMbw/1Jstxgyh/kCEemYfh4
-fR0DoU587a2uvmjLZWmrpqfLE5uOZ6T3Gv9mfx+iRcoTBPiRCpveZH+mNHZSRe0U
-9ml3dCPhX9lyvz+z5gWHAx4kzMn1/S5tEmYCKP53MiLog0eBaQ/XZ+1X8mcz8wG+
-YHCy+iH1SnV0+HSFN6gs00EuCz7l9ysXd5bL5MHHyYI8PVGPAJ+Es6ymy6H4hDJ1
-v6P9HfXnqPkGjZFiBXqbE31qBLe5YocqbfQzpiq5BGbliMZox3X+UfaFTFBOHfsq
-CMYn/P7DCqcB0zOaHaiY7e0n1T4mhxIFM4N5jZXZN7OGTfhzk/+H2JdrQ2E7CR9f
-mBEVd8ibV45KVjnnhkPm
-=h0BO
------END PGP SIGNATURE-----
-
---------------enigC5A087637FE61696096833B9--
