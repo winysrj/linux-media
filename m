@@ -1,147 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:28615 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757407Ab2KVUDe (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38747 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751144Ab2KOWGw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 15:03:34 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MDV00GVEVGKE3Q0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 22 Nov 2012 18:53:30 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MDV00DYRVFJUT40@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 22 Nov 2012 18:53:30 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
+	Thu, 15 Nov 2012 17:06:52 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	arun.m@samsung.com, arun.kk@samsung.com
-Subject: [PATCH] [media] s5p-mfc: Flush DPB buffers during stream off
-Date: Thu, 22 Nov 2012 15:45:55 +0530
-Message-id: <1353579355-11994-1-git-send-email-arun.kk@samsung.com>
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
+Subject: [PATCH 4/4] v4l: Tell user space we're using monotonic timestamps
+Date: Fri, 16 Nov 2012 00:06:47 +0200
+Message-Id: <1353017207-370-4-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20121115220627.GB29863@valkosipuli.retiisi.org.uk>
+References: <20121115220627.GB29863@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Flushing of delay DPB buffers have to be done during stream off.
-In MFC v6, it is done with a risc to host command.
+Set buffer timestamp flags for videobuf, videobuf2 and drivers that use
+neither.
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Signed-off-by: Arun Mankuzhi <arun.m@samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c        |    6 ++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |   15 +++++++++++++--
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   17 +++++++++++------
- 4 files changed, 31 insertions(+), 8 deletions(-)
+ drivers/media/pci/meye/meye.c                 |    4 ++--
+ drivers/media/pci/zoran/zoran_driver.c        |    2 +-
+ drivers/media/platform/omap3isp/ispqueue.c    |    1 +
+ drivers/media/platform/vino.c                 |    3 +++
+ drivers/media/usb/cpia2/cpia2_v4l.c           |    5 ++++-
+ drivers/media/usb/sn9c102/sn9c102_core.c      |    2 +-
+ drivers/media/usb/stkwebcam/stk-webcam.c      |    1 +
+ drivers/media/usb/usbvision/usbvision-video.c |    5 +++--
+ drivers/media/v4l2-core/videobuf-core.c       |    2 +-
+ drivers/media/v4l2-core/videobuf2-core.c      |   10 ++++++----
+ 10 files changed, 23 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index d3cd738..b73b6f2 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -691,6 +691,12 @@ static irqreturn_t s5p_mfc_irq(int irq, void *priv)
- 		s5p_mfc_handle_stream_complete(ctx, reason, err);
+diff --git a/drivers/media/pci/meye/meye.c b/drivers/media/pci/meye/meye.c
+index 288adea..ac7ab6e 100644
+--- a/drivers/media/pci/meye/meye.c
++++ b/drivers/media/pci/meye/meye.c
+@@ -1426,7 +1426,7 @@ static int vidioc_querybuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 		return -EINVAL;
+ 
+ 	buf->bytesused = meye.grab_buffer[index].size;
+-	buf->flags = V4L2_BUF_FLAG_MAPPED;
++	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 
+ 	if (meye.grab_buffer[index].state == MEYE_BUF_USING)
+ 		buf->flags |= V4L2_BUF_FLAG_QUEUED;
+@@ -1499,7 +1499,7 @@ static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 
+ 	buf->index = reqnr;
+ 	buf->bytesused = meye.grab_buffer[reqnr].size;
+-	buf->flags = V4L2_BUF_FLAG_MAPPED;
++	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	buf->field = V4L2_FIELD_NONE;
+ 	buf->timestamp = meye.grab_buffer[reqnr].timestamp;
+ 	buf->sequence = meye.grab_buffer[reqnr].sequence;
+diff --git a/drivers/media/pci/zoran/zoran_driver.c b/drivers/media/pci/zoran/zoran_driver.c
+index 53f12c7..33521a4 100644
+--- a/drivers/media/pci/zoran/zoran_driver.c
++++ b/drivers/media/pci/zoran/zoran_driver.c
+@@ -1334,7 +1334,7 @@ static int zoran_v4l2_buffer_status(struct zoran_fh *fh,
+ 	struct zoran *zr = fh->zr;
+ 	unsigned long flags;
+ 
+-	buf->flags = V4L2_BUF_FLAG_MAPPED;
++	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 
+ 	switch (fh->map_mode) {
+ 	case ZORAN_MAP_MODE_RAW:
+diff --git a/drivers/media/platform/omap3isp/ispqueue.c b/drivers/media/platform/omap3isp/ispqueue.c
+index 15bf3ea..6599963 100644
+--- a/drivers/media/platform/omap3isp/ispqueue.c
++++ b/drivers/media/platform/omap3isp/ispqueue.c
+@@ -674,6 +674,7 @@ static int isp_video_queue_alloc(struct isp_video_queue *queue,
+ 		buf->vbuf.index = i;
+ 		buf->vbuf.length = size;
+ 		buf->vbuf.type = queue->type;
++		buf->vbuf.flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		buf->vbuf.field = V4L2_FIELD_NONE;
+ 		buf->vbuf.memory = memory;
+ 
+diff --git a/drivers/media/platform/vino.c b/drivers/media/platform/vino.c
+index 28350e7..eb5d6f9 100644
+--- a/drivers/media/platform/vino.c
++++ b/drivers/media/platform/vino.c
+@@ -3410,6 +3410,9 @@ static void vino_v4l2_get_buffer_status(struct vino_channel_settings *vcs,
+ 	if (fb->map_count > 0)
+ 		b->flags |= V4L2_BUF_FLAG_MAPPED;
+ 
++	b->flags &= ~V4L2_BUF_FLAG_TIMESTAMP_MASK;
++	b->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++
+ 	b->index = fb->id;
+ 	b->memory = (vcs->fb_queue.type == VINO_MEMORY_MMAP) ?
+ 		V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
+diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+index aeb9d22..d5d42b6 100644
+--- a/drivers/media/usb/cpia2/cpia2_v4l.c
++++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+@@ -825,6 +825,8 @@ static int cpia2_querybuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 	else
+ 		buf->flags = 0;
+ 
++	buf->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++
+ 	switch (cam->buffers[buf->index].status) {
+ 	case FRAME_EMPTY:
+ 	case FRAME_ERROR:
+@@ -943,7 +945,8 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 
+ 	buf->index = frame;
+ 	buf->bytesused = cam->buffers[buf->index].length;
+-	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_DONE;
++	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_DONE
++		| V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	buf->field = V4L2_FIELD_NONE;
+ 	buf->timestamp = cam->buffers[buf->index].timestamp;
+ 	buf->sequence = cam->buffers[buf->index].seq;
+diff --git a/drivers/media/usb/sn9c102/sn9c102_core.c b/drivers/media/usb/sn9c102/sn9c102_core.c
+index 843fadc..2e0e2ff 100644
+--- a/drivers/media/usb/sn9c102/sn9c102_core.c
++++ b/drivers/media/usb/sn9c102/sn9c102_core.c
+@@ -173,7 +173,7 @@ sn9c102_request_buffers(struct sn9c102_device* cam, u32 count,
+ 		cam->frame[i].buf.sequence = 0;
+ 		cam->frame[i].buf.field = V4L2_FIELD_NONE;
+ 		cam->frame[i].buf.memory = V4L2_MEMORY_MMAP;
+-		cam->frame[i].buf.flags = 0;
++		cam->frame[i].buf.flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	}
+ 
+ 	return cam->nbuffers;
+diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
+index c22a4d0..459ebc6 100644
+--- a/drivers/media/usb/stkwebcam/stk-webcam.c
++++ b/drivers/media/usb/stkwebcam/stk-webcam.c
+@@ -470,6 +470,7 @@ static int stk_setup_siobuf(struct stk_camera *dev, int index)
+ 	buf->dev = dev;
+ 	buf->v4lbuf.index = index;
+ 	buf->v4lbuf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	buf->v4lbuf.flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	buf->v4lbuf.field = V4L2_FIELD_NONE;
+ 	buf->v4lbuf.memory = V4L2_MEMORY_MMAP;
+ 	buf->v4lbuf.m.offset = 2*index*buf->v4lbuf.length;
+diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
+index 5c36a57..c6bc8ce 100644
+--- a/drivers/media/usb/usbvision/usbvision-video.c
++++ b/drivers/media/usb/usbvision/usbvision-video.c
+@@ -761,7 +761,7 @@ static int vidioc_querybuf(struct file *file,
+ 	if (vb->index >= usbvision->num_frames)
+ 		return -EINVAL;
+ 	/* Updating the corresponding frame state */
+-	vb->flags = 0;
++	vb->flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	frame = &usbvision->frame[vb->index];
+ 	if (frame->grabstate >= frame_state_ready)
+ 		vb->flags |= V4L2_BUF_FLAG_QUEUED;
+@@ -843,7 +843,8 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *vb)
+ 	vb->memory = V4L2_MEMORY_MMAP;
+ 	vb->flags = V4L2_BUF_FLAG_MAPPED |
+ 		V4L2_BUF_FLAG_QUEUED |
+-		V4L2_BUF_FLAG_DONE;
++		V4L2_BUF_FLAG_DONE |
++		V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	vb->index = f->index;
+ 	vb->sequence = f->sequence;
+ 	vb->timestamp = f->timestamp;
+diff --git a/drivers/media/v4l2-core/videobuf-core.c b/drivers/media/v4l2-core/videobuf-core.c
+index bf7a326..e98db7e 100644
+--- a/drivers/media/v4l2-core/videobuf-core.c
++++ b/drivers/media/v4l2-core/videobuf-core.c
+@@ -337,7 +337,7 @@ static void videobuf_status(struct videobuf_queue *q, struct v4l2_buffer *b,
  		break;
+ 	}
  
-+	case S5P_MFC_R2H_CMD_DPB_FLUSH_RET:
-+		clear_work_bit(ctx);
-+		ctx->state = MFCINST_RUNNING;
-+		wake_up(&ctx->queue);
-+		goto irq_cleanup_hw;
-+
- 	default:
- 		mfc_debug(2, "Unknown int reason\n");
- 		s5p_mfc_hw_call(dev->mfc_ops, clear_int_flags, dev);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index f02e049..3b9b600 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -145,6 +145,7 @@ enum s5p_mfc_inst_state {
- 	MFCINST_RETURN_INST,
- 	MFCINST_ERROR,
- 	MFCINST_ABORT,
-+	MFCINST_FLUSH,
- 	MFCINST_RES_CHANGE_INIT,
- 	MFCINST_RES_CHANGE_FLUSH,
- 	MFCINST_RES_CHANGE_END,
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index eb6a70b..4ba62f6 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -977,24 +977,35 @@ static int s5p_mfc_stop_streaming(struct vb2_queue *q)
- 					S5P_MFC_R2H_CMD_FRAME_DONE_RET, 0);
- 		aborted = 1;
- 	}
--	spin_lock_irqsave(&dev->irqlock, flags);
- 	if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		spin_lock_irqsave(&dev->irqlock, flags);
- 		s5p_mfc_hw_call(dev->mfc_ops, cleanup_queue, &ctx->dst_queue,
- 				&ctx->vq_dst);
- 		INIT_LIST_HEAD(&ctx->dst_queue);
- 		ctx->dst_queue_cnt = 0;
- 		ctx->dpb_flush_flag = 1;
- 		ctx->dec_dst_flag = 0;
-+		spin_unlock_irqrestore(&dev->irqlock, flags);
-+		if (IS_MFCV6(dev) && (ctx->state == MFCINST_RUNNING)) {
-+			ctx->state = MFCINST_FLUSH;
-+			set_work_bit_irqsave(ctx);
-+			s5p_mfc_clean_ctx_int_flags(ctx);
-+			s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
-+			if (s5p_mfc_wait_for_done_ctx(ctx,
-+				S5P_MFC_R2H_CMD_DPB_FLUSH_RET, 0))
-+				mfc_err("Err flushing buffers\n");
-+		}
- 	}
- 	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		spin_lock_irqsave(&dev->irqlock, flags);
- 		s5p_mfc_hw_call(dev->mfc_ops, cleanup_queue, &ctx->src_queue,
- 				&ctx->vq_src);
- 		INIT_LIST_HEAD(&ctx->src_queue);
- 		ctx->src_queue_cnt = 0;
-+		spin_unlock_irqrestore(&dev->irqlock, flags);
- 	}
- 	if (aborted)
- 		ctx->state = MFCINST_RUNNING;
--	spin_unlock_irqrestore(&dev->irqlock, flags);
- 	return 0;
+-	b->flags    = 0;
++	b->flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	if (vb->map)
+ 		b->flags |= V4L2_BUF_FLAG_MAPPED;
+ 
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 432df11..19a5866 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -40,9 +40,10 @@ module_param(debug, int, 0644);
+ #define call_qop(q, op, args...)					\
+ 	(((q)->ops->op) ? ((q)->ops->op(args)) : 0)
+ 
+-#define V4L2_BUFFER_STATE_FLAGS	(V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_QUEUED | \
++#define V4L2_BUFFER_MASK_FLAGS	(V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_QUEUED | \
+ 				 V4L2_BUF_FLAG_DONE | V4L2_BUF_FLAG_ERROR | \
+-				 V4L2_BUF_FLAG_PREPARED)
++				 V4L2_BUF_FLAG_PREPARED | \
++				 V4L2_BUF_FLAG_TIMESTAMP_MASK)
+ 
+ /**
+  * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
+@@ -367,7 +368,8 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 	/*
+ 	 * Clear any buffer state related flags.
+ 	 */
+-	b->flags &= ~V4L2_BUFFER_STATE_FLAGS;
++	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
++	b->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_QUEUED:
+@@ -863,7 +865,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 
+ 	vb->v4l2_buf.field = b->field;
+ 	vb->v4l2_buf.timestamp = b->timestamp;
+-	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_STATE_FLAGS;
++	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
  }
  
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 3a8cfd9..a47e6db 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -1253,12 +1253,14 @@ int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
- static inline void s5p_mfc_set_flush(struct s5p_mfc_ctx *ctx, int flush)
- {
- 	struct s5p_mfc_dev *dev = ctx->dev;
--	unsigned int dpb;
--	if (flush)
--		dpb = READL(S5P_FIMV_SI_CH0_DPB_CONF_CTRL) | (1 << 14);
--	else
--		dpb = READL(S5P_FIMV_SI_CH0_DPB_CONF_CTRL) & ~(1 << 14);
--	WRITEL(dpb, S5P_FIMV_SI_CH0_DPB_CONF_CTRL);
-+
-+	if (flush) {
-+		dev->curr_ctx = ctx->num;
-+		s5p_mfc_clean_ctx_int_flags(ctx);
-+		WRITEL(ctx->inst_no, S5P_FIMV_INSTANCE_ID_V6);
-+		s5p_mfc_hw_call(dev->mfc_cmds, cmd_host2risc, dev,
-+				S5P_FIMV_H2R_CMD_FLUSH_V6, NULL);
-+	}
- }
- 
- /* Decode a single frame */
-@@ -1656,6 +1658,9 @@ void s5p_mfc_try_run_v6(struct s5p_mfc_dev *dev)
- 		case MFCINST_HEAD_PARSED:
- 			ret = s5p_mfc_run_init_dec_buffers(ctx);
- 			break;
-+		case MFCINST_FLUSH:
-+			s5p_mfc_set_flush(ctx, ctx->dpb_flush_flag);
-+			break;
- 		case MFCINST_RES_CHANGE_INIT:
- 			s5p_mfc_run_dec_last_frames(ctx);
- 			break;
+ /**
 -- 
-1.7.0.4
+1.7.2.5
 
