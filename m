@@ -1,274 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:43066 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753454Ab2KPWjI (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45703 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2992975Ab2KOJYI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Nov 2012 17:39:08 -0500
-Received: by mail-ea0-f174.google.com with SMTP id e13so1259969eaa.19
-        for <linux-media@vger.kernel.org>; Fri, 16 Nov 2012 14:39:05 -0800 (PST)
-Message-ID: <50A6C086.50208@gmail.com>
-Date: Fri, 16 Nov 2012 23:39:02 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Alexey Klimov <klimov.linux@gmail.com>
-CC: linux-media@vger.kernel.org, dron0gus@gmail.com,
-	tomasz.figa@gmail.com, oselas@community.pengutronix.de
-Subject: Re: [PATCH RFC v3 1/3] V4L: Add driver for S3C244X/S3C64XX SoC series
- camera interface
-References: <1353017115-11492-1-git-send-email-sylvester.nawrocki@gmail.com> <1353017115-11492-2-git-send-email-sylvester.nawrocki@gmail.com> <CALW4P+JQUcywagZAe5qHRifsSwAnKoDccmhpQ=TSWvxcS-6CqA@mail.gmail.com> <CALW4P+KBd8fxCX8qSuZGYPx8pYj6LhEZfCurzuKuZzApe7Z7Aw@mail.gmail.com>
-In-Reply-To: <CALW4P+KBd8fxCX8qSuZGYPx8pYj6LhEZfCurzuKuZzApe7Z7Aw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 15 Nov 2012 04:24:08 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: [PATCH v10 5/6] drm_modes: add videomode helpers
+Date: Thu, 15 Nov 2012 10:23:56 +0100
+Message-Id: <1352971437-29877-6-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alexey,
+Add conversion from videomode to drm_display_mode
 
-On 11/16/2012 03:10 PM, Alexey Klimov wrote:
->>> +static int s3c_camif_hw_init(struct camif_dev *camif, struct camif_vp
->>> *vp)
->>> +{
->>> +       unsigned int ip_rev = camif->variant->ip_revision;
->>> +       unsigned long flags;
->>> +
->>> +       if (camif->sensor.sd == NULL || vp->out_fmt == NULL)
->>> +               return -EINVAL;
->>> +
->>> +       spin_lock_irqsave(&camif->slock, flags);
->>> +
->>> +       if (ip_rev == S3C244X_CAMIF_IP_REV)
->>> +               camif_hw_clear_fifo_overflow(vp);
->>> +       camif_hw_set_camera_bus(camif);
->>> +       camif_hw_set_source_format(camif);
->>> +       camif_hw_set_camera_crop(camif);
->>> +       camif_hw_set_test_pattern(camif, camif->test_pattern->val);
->>> +       if (ip_rev == S3C6410_CAMIF_IP_REV)
->>> +               camif_hw_set_input_path(vp);
->>> +       camif_cfg_video_path(vp);
->>> +       vp->state&= ~ST_VP_CONFIG;
->>> +
->>> +       spin_unlock_irqrestore(&camif->slock, flags);
->>> +       return 0;
->>> +}
->>> +
->>> +/*
->>> + * Initialize the video path, only up from the scaler stage. The camera
->>> + * input interface set up is skipped. This is useful to enable one of
->>> the
->>> + * video paths when the other is already running.
->>> + */
->>> +static int s3c_camif_hw_vp_init(struct camif_dev *camif, struct camif_vp
->>> *vp)
->>> +{
->>> +       unsigned int ip_rev = camif->variant->ip_revision;
->>> +       unsigned long flags;
->>> +
->>> +       if (vp->out_fmt == NULL)
->>> +               return -EINVAL;
->>> +
->>> +       spin_lock_irqsave(&camif->slock, flags);
->>> +       camif_prepare_dma_offset(vp);
->>> +       if (ip_rev == S3C244X_CAMIF_IP_REV)
->>> +               camif_hw_clear_fifo_overflow(vp);
->>> +       camif_cfg_video_path(vp);
->>> +       if (ip_rev == S3C6410_CAMIF_IP_REV)
->>> +               camif_hw_set_effect(vp, false);
->>> +       vp->state&= ~ST_VP_CONFIG;
->>> +
->>> +       spin_unlock_irqrestore(&camif->slock, flags);
->>> +       return 0;
->>> +}
-...
->>> +/*
->>> + * Reinitialize the driver so it is ready to start streaming again.
->>> + * Return any buffers to vb2, perform CAMIF software reset and
->>> + * turn off streaming at the data pipeline (sensor) if required.
->>> + */
->>> +static int camif_reinitialize(struct camif_vp *vp)
->>> +{
->>> +       struct camif_dev *camif = vp->camif;
->>> +       struct camif_buffer *buf;
->>> +       unsigned long flags;
->>> +       bool streaming;
->>> +
->>> +       spin_lock_irqsave(&camif->slock, flags);
->>> +       streaming = vp->state&  ST_VP_SENSOR_STREAMING;
->>> +
->>> +       vp->state&= ~(ST_VP_PENDING | ST_VP_RUNNING | ST_VP_OFF |
->>> +                      ST_VP_ABORTING | ST_VP_STREAMING |
->>> +                      ST_VP_SENSOR_STREAMING | ST_VP_LASTIRQ);
->>> +
->>> +       /* Release unused buffers */
->>> +       while (!list_empty(&vp->pending_buf_q)) {
->>> +               buf = camif_pending_queue_pop(vp);
->>> +               vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
->>> +       }
->>> +
->>> +       while (!list_empty(&vp->active_buf_q)) {
->>> +               buf = camif_active_queue_pop(vp);
->>> +               vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
->>> +       }
->>> +
->>> +       spin_unlock_irqrestore(&camif->slock, flags);
->>> +
->>> +       if (!streaming)
->>> +               return 0;
->>> +
->>> +       return sensor_set_streaming(camif, 0);
->>> +}
-...
->>> +static int start_streaming(struct vb2_queue *vq, unsigned int count)
->>> +{
->>> +       struct camif_vp *vp = vb2_get_drv_priv(vq);
->>> +       struct camif_dev *camif = vp->camif;
->>> +       unsigned long flags;
->>> +       int ret;
->>> +
->>> +       /*
->>> +        * We assume the codec capture path is always activated
->>> +        * first, before the preview path starts streaming.
->>> +        * This is required to avoid internal FIFO overflow and
->>> +        * a need for CAMIF software reset.
->>> +        */
->>> +       spin_lock_irqsave(&camif->slock, flags);
->
-> Here.
->
->>>
->>> +
->>> +       if (camif->stream_count == 0) {
->>> +               camif_hw_reset(camif);
->>> +               spin_unlock_irqrestore(&camif->slock, flags);
->>> +               ret = s3c_camif_hw_init(camif, vp);
->>> +       } else {
->>> +               spin_unlock_irqrestore(&camif->slock, flags);
->>> +               ret = s3c_camif_hw_vp_init(camif, vp);
->>> +       }
->>> +
->>> +       if (ret<  0) {
->>> +               camif_reinitialize(vp);
->>> +               return ret;
->>> +       }
->>> +
->>> +       spin_lock_irqsave(&camif->slock, flags);
->
-> Could you please check this function? Is it ok that you have double
-> spin_lock_irqsave()? I don't know may be it's okay. Also when you call
-> camif_reinitialize() you didn't call spin_unlock_irqrestore() before and
-> inside camif_reinitialize() you will also call spin_lock_irqsave()..
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+---
+ drivers/gpu/drm/drm_modes.c |   37 +++++++++++++++++++++++++++++++++++++
+ include/drm/drmP.h          |    6 ++++++
+ 2 files changed, 43 insertions(+)
 
-Certainly with nested spinlock locking this code would have been useless.
-I suppose this is what you mean by "double spin_lock_irqsave()". Since
-it is known to work there must be spin_unlock_irqrestore() somewhere,
-before the second spin_lock_irqsave() above. Just look around with more
-focus ;)
+diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
+index 59450f3..23d951a0 100644
+--- a/drivers/gpu/drm/drm_modes.c
++++ b/drivers/gpu/drm/drm_modes.c
+@@ -35,6 +35,7 @@
+ #include <linux/export.h>
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc.h>
++#include <linux/videomode.h>
+ 
+ /**
+  * drm_mode_debug_printmodeline - debug print a mode
+@@ -504,6 +505,42 @@ drm_gtf_mode(struct drm_device *dev, int hdisplay, int vdisplay, int vrefresh,
+ }
+ EXPORT_SYMBOL(drm_gtf_mode);
+ 
++#if IS_ENABLED(CONFIG_VIDEOMODE)
++int drm_display_mode_from_videomode(struct videomode *vm,
++				    struct drm_display_mode *dmode)
++{
++	dmode->hdisplay = vm->hactive;
++	dmode->hsync_start = dmode->hdisplay + vm->hfront_porch;
++	dmode->hsync_end = dmode->hsync_start + vm->hsync_len;
++	dmode->htotal = dmode->hsync_end + vm->hback_porch;
++
++	dmode->vdisplay = vm->vactive;
++	dmode->vsync_start = dmode->vdisplay + vm->vfront_porch;
++	dmode->vsync_end = dmode->vsync_start + vm->vsync_len;
++	dmode->vtotal = dmode->vsync_end + vm->vback_porch;
++
++	dmode->clock = vm->pixelclock / 1000;
++
++	dmode->flags = 0;
++	if (vm->hah)
++		dmode->flags |= DRM_MODE_FLAG_PHSYNC;
++	else
++		dmode->flags |= DRM_MODE_FLAG_NHSYNC;
++	if (vm->vah)
++		dmode->flags |= DRM_MODE_FLAG_PVSYNC;
++	else
++		dmode->flags |= DRM_MODE_FLAG_NVSYNC;
++	if (vm->interlaced)
++		dmode->flags |= DRM_MODE_FLAG_INTERLACE;
++	if (vm->doublescan)
++		dmode->flags |= DRM_MODE_FLAG_DBLSCAN;
++	drm_mode_set_name(dmode);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(drm_display_mode_from_videomode);
++#endif
++
+ /**
+  * drm_mode_set_name - set the name on a mode
+  * @mode: name will be set in this mode
+diff --git a/include/drm/drmP.h b/include/drm/drmP.h
+index 3fd8280..341049c 100644
+--- a/include/drm/drmP.h
++++ b/include/drm/drmP.h
+@@ -56,6 +56,7 @@
+ #include <linux/cdev.h>
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
++#include <linux/videomode.h>
+ #if defined(__alpha__) || defined(__powerpc__)
+ #include <asm/pgtable.h>	/* For pte_wrprotect */
+ #endif
+@@ -1454,6 +1455,11 @@ extern struct drm_display_mode *
+ drm_mode_create_from_cmdline_mode(struct drm_device *dev,
+ 				  struct drm_cmdline_mode *cmd);
+ 
++#if IS_ENABLED(CONFIG_VIDEOMODE)
++extern int drm_display_mode_from_videomode(struct videomode *vm,
++					   struct drm_display_mode *dmode);
++#endif
++
+ /* Modesetting support */
+ extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
+ extern void drm_vblank_post_modeset(struct drm_device *dev, int crtc);
+-- 
+1.7.10.4
 
-Nevertheless, it looks locking can be removed from functions
-s3c_camif_hw_init() and s3c_camif_vp_init(), those are called only from
-one place, where in addition the spinlock is already held. I'm going
-to squash following patch into that one:
-
-----8<------
-diff --git a/drivers/media/platform/s3c-camif/camif-capture.c 
-b/drivers/media/platform/s3c-camif/camif-capture.c
-index c2ecdcc..6401fdb 100644
---- a/drivers/media/platform/s3c-camif/camif-capture.c
-+++ b/drivers/media/platform/s3c-camif/camif-capture.c
-@@ -43,7 +43,7 @@
-  static int debug;
-  module_param(debug, int, 0644);
-
--/* Locking: called with vp->camif->slock held */
-+/* Locking: called with vp->camif->slock spinlock held */
-  static void camif_cfg_video_path(struct camif_vp *vp)
-  {
-  	WARN_ON(s3c_camif_get_scaler_config(vp, &vp->scaler));
-@@ -64,16 +64,14 @@ static void camif_prepare_dma_offset(struct camif_vp 
-*vp)
-  		 f->dma_offset.initial, f->dma_offset.line);
-  }
-
-+/* Locking: called with camif->slock spinlock held */
-  static int s3c_camif_hw_init(struct camif_dev *camif, struct camif_vp *vp)
-  {
-  	const struct s3c_camif_variant *variant = camif->variant;
--	unsigned long flags;
-
-  	if (camif->sensor.sd == NULL || vp->out_fmt == NULL)
-  		return -EINVAL;
-
--	spin_lock_irqsave(&camif->slock, flags);
--
-  	if (variant->ip_revision == S3C244X_CAMIF_IP_REV)
-  		camif_hw_clear_fifo_overflow(vp);
-  	camif_hw_set_camera_bus(camif);
-@@ -88,7 +86,6 @@ static int s3c_camif_hw_init(struct camif_dev *camif, 
-struct camif_vp *vp)
-  	camif_cfg_video_path(vp);
-  	vp->state &= ~ST_VP_CONFIG;
-
--	spin_unlock_irqrestore(&camif->slock, flags);
-  	return 0;
-  }
-
-@@ -96,23 +93,20 @@ static int s3c_camif_hw_init(struct camif_dev 
-*camif, struct camif_vp *vp)
-   * Initialize the video path, only up from the scaler stage. The camera
-   * input interface set up is skipped. This is useful to enable one of the
-   * video paths when the other is already running.
-+ * Locking: called with camif->slock spinlock held.
-   */
-  static int s3c_camif_hw_vp_init(struct camif_dev *camif, struct 
-camif_vp *vp)
-  {
-  	unsigned int ip_rev = camif->variant->ip_revision;
--	unsigned long flags;
-
-  	if (vp->out_fmt == NULL)
-  		return -EINVAL;
-
--	spin_lock_irqsave(&camif->slock, flags);
-  	camif_prepare_dma_offset(vp);
-  	if (ip_rev == S3C244X_CAMIF_IP_REV)
-  		camif_hw_clear_fifo_overflow(vp);
-  	camif_cfg_video_path(vp);
-  	vp->state &= ~ST_VP_CONFIG;
--
--	spin_unlock_irqrestore(&camif->slock, flags);
-  	return 0;
-  }
-
-@@ -401,12 +395,11 @@ static int start_streaming(struct vb2_queue *vq, 
-unsigned int count)
-
-  	if (camif->stream_count == 0) {
-  		camif_hw_reset(camif);
--		spin_unlock_irqrestore(&camif->slock, flags);
-  		ret = s3c_camif_hw_init(camif, vp);
-  	} else {
--		spin_unlock_irqrestore(&camif->slock, flags);
-  		ret = s3c_camif_hw_vp_init(camif, vp);
-  	}
-+	spin_unlock_irqrestore(&camif->slock, flags);
-
-  	if (ret < 0) {
-  		camif_reinitialize(vp);
-@@ -437,8 +430,8 @@ static int start_streaming(struct vb2_queue *vq, 
-unsigned int count)
-  			return ret;
-  		}
-  	}
--	spin_unlock_irqrestore(&camif->slock, flags);
-
-+	spin_unlock_irqrestore(&camif->slock, flags);
-  	return 0;
-  }
----->8------
-
-
-Thank you.
-
-
---
-Regards,
-Sylwester
