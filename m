@@ -1,53 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:42416 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751880Ab2K0M0d (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:46253 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751007Ab2KOVtF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 07:26:33 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0ME500C2UBW2GCH0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 27 Nov 2012 21:26:31 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0ME500HRCBUTOGA0@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 27 Nov 2012 21:26:31 +0900 (KST)
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com
-Subject: [PATCH] [media] exynos-gsc: modify number of output/capture buffers
-Date: Tue, 27 Nov 2012 18:18:58 +0530
-Message-id: <1354020538-8373-1-git-send-email-shaik.ameer@samsung.com>
+	Thu, 15 Nov 2012 16:49:05 -0500
+Received: by mail-la0-f46.google.com with SMTP id h6so1635586lag.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Nov 2012 13:49:03 -0800 (PST)
+Message-ID: <50A553F6.7060503@gmail.com>
+Date: Thu, 15 Nov 2012 21:43:34 +0100
+From: Anders Thomson <aeriksson2@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: tda8290 regression fix
+References: <503F4E19.1050700@gmail.com> <20120915133417.27cb82a1@redhat.com> <5054BD53.7060109@gmail.com> <20120915145834.0b763f73@redhat.com> <5054C521.1090200@gmail.com> <20120915192530.74aedaa6@redhat.com> <50559241.6070408@gmail.com> <505844A0.30001@redhat.com> <5059C242.3010902@gmail.com> <5059F68F.4050009@redhat.com> <505A1C16.40507@gmail.com> <CAGncdOae+VoAAUWz3x84zUA-TCMeMmNONf_ktNFd1p7c-o5H_A@mail.gmail.com> <505C7E64.4040507@redhat.com> <8ed8c988-fa8c-41fc-9f33-cccdceb1b232@email.android.com> <505EF455.9080604@redhat.com> <505F4CBC.1000201@gmail.com> <505F5760.2030602@gmail.com> <505F79CC.9080005@gmail.com> <5069CB5A.6060007@gmail.com>
+In-Reply-To: <5069CB5A.6060007@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-G-Scaler src buffer count as well as destination buffer
-count is increased to 32. This is required for G-Scaler to
-interface with MFC, as MFC demands 32 capture buffers for
-some H264 streams.
+On 2012-10-01 18:56, Anders Thomson wrote:
+> On 2012-09-23 23:06, Anders Thomson wrote:
+> >  Awfully sorry about this. After having had the familty sit in and check
+> >  the differences,
+> >  I must say that the patch does not fix the issue. This time around I
+> >  have x11grabs with
+> >  ffmpeg to show if you want.
+> >
+> >  I'll be away from the card until the end of the coming week. Then, I'll
+> >  bring out the multimeter...
+> >
+> >
+> So, I got the multimeter working over the weekend and pretty much no
+> results there. :-(
+> I tested vanilla 3.5.3, w/ my patch, w/ your "tuner" patch. All three
+> gave a (DC) reading of 0 to 30 mV (yes milli-). Given that the wiki page
+> you referred to spoke of a few volts, I guess this is just noise. Coming
+> to think of it, shouldn't any signal amplification done work on HF, so
+> I'd have to measure the AC on the carrier freq or something? This
+> multimeter is useless in the MHz range...
+>
+> While at it, I created these 20 sec snippets:
+> http://pickup.famthomson.se/output-vanilla.avi
+> vanilla 3.5.3
+>
+> http://pickup.famthomson.se/output-test3.avi
+> This patch:
+>    # cat /TV_TEST3.diff
+> diff --git a/drivers/media/video/saa7134/saa7134-cards.c
+> b/drivers/media/video/saa7134/saa7134-cards.c
+> index bc08f1d..98b482e 100644
+> --- a/drivers/media/video/saa7134/saa7134-cards.c
+> +++ b/drivers/media/video/saa7134/saa7134-cards.c
+> @@ -3291,7 +3291,7 @@ struct saa7134_board saa7134_boards[] = {
+>                   .radio_type     = UNSET,
+>                   .tuner_addr     = ADDR_UNSET,
+>                   .radio_addr     = ADDR_UNSET,
+> -               .tuner_config   = 1,
+> +               .tuner_config   = 0,
+>                   .mpeg           = SAA7134_MPEG_DVB,
+>                   .gpiomask       = 0x000200000,
+>                   .inputs         = {{
+>
+> http://pickup.famthomson.se/output-card.avi
+> This patch:
+>    # cat /TV_CARD.diff
+> diff --git a/drivers/media/common/tuners/tda8290.c
+> b/drivers/media/common/tuners/tda8290.c
+> index 064d14c..498cc7b 100644
+> --- a/drivers/media/common/tuners/tda8290.c
+> +++ b/drivers/media/common/tuners/tda8290.c
+> @@ -635,7 +635,11 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+>
+>                   dvb_attach(tda827x_attach, fe, priv->tda827x_addr,
+>                              priv->i2c_props.adap,&priv->cfg);
+> +               tuner_info("ANDERS: setting switch_addr. was 0x%02x, new
+> 0x%02x\n",priv->cfg.switch_addr,priv->i2c_props.addr);
+>                   priv->cfg.switch_addr = priv->i2c_props.addr;
+> +               priv->cfg.switch_addr = 0xc2 / 2;
+> +               tuner_info("ANDERS: new 0x%02x\n",priv->cfg.switch_addr);
+> +
+>           }
+>           if (fe->ops.tuner_ops.init)
+>                   fe->ops.tuner_ops.init(fe);
+>
+>
+> Would looking again at the specifics on the 2.6.25->26 transition be of
+> any help? I expect some pain to go to such old kernel, but if I can add
+> some printks somewhere, maybe that could help?
+>
+> Cheers,
+> -Anders
+>
+Hi Mauro,
 
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
----
- drivers/media/platform/exynos-gsc/gsc-core.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Picking up this thread again. Did you have chance to look into this?
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index cc7b218..4856dd7 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -935,8 +935,8 @@ static struct gsc_variant gsc_v_100_variant = {
- 	.pix_max		= &gsc_v_100_max,
- 	.pix_min		= &gsc_v_100_min,
- 	.pix_align		= &gsc_v_100_align,
--	.in_buf_cnt		= 8,
--	.out_buf_cnt		= 16,
-+	.in_buf_cnt		= 32,
-+	.out_buf_cnt		= 32,
- 	.sc_up_max		= 8,
- 	.sc_down_max		= 16,
- 	.poly_sc_down_max	= 4,
--- 
-1.7.0.4
-
+/Anders
