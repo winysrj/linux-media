@@ -1,97 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog119.obsmtp.com ([207.126.144.147]:42152 "EHLO
-	eu1sys200aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752886Ab2KEKp3 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Nov 2012 05:45:29 -0500
-From: Alain VOLMAT <alain.volmat@st.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38694 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1768920Ab2KOUZP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Nov 2012 15:25:15 -0500
+Date: Thu, 15 Nov 2012 22:25:10 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Date: Mon, 5 Nov 2012 11:45:14 +0100
-Subject: RE: Way to request a time discontinuity in a V4L2 encoder device
-Message-ID: <E27519AE45311C49887BE8C438E68FAA01012DD27186@SAFEX1MAIL1.st.com>
-References: <E27519AE45311C49887BE8C438E68FAA01012DC87FE3@SAFEX1MAIL1.st.com>
- <2626505.HXeeK07UU3@avalon>
-In-Reply-To: <2626505.HXeeK07UU3@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, broonie@opensource.wolfsonmicro.com,
+	hverkuil@xs4all.nl
+Subject: Re: [PATCH 1/1] media: Entities with sink pads must have at least
+ one enabled link
+Message-ID: <20121115202510.GA29863@valkosipuli.retiisi.org.uk>
+References: <1351280777-4936-1-git-send-email-sakari.ailus@iki.fi>
+ <50A36307.50502@samsung.com>
+ <20121114211344.GU25623@valkosipuli.retiisi.org.uk>
+ <2019126.gp1BvLQNQ8@avalon>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2019126.gp1BvLQNQ8@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Laurent,
 
-Yes indeed, meta plane seems a good candidate. It was the other option.
+Thanks for the comments.
 
-The pity with that is that the FMT can thus no longer be standard FMT but a specific format that include both plane 0 with real frame data and plane 1 with meta data.
-So, standard V4L2 application (that doesn't know about this time discontinuity stuff) wouldn't be able to push things into the encoder since they are not aware of this 2 plane format.
-
-Or maybe we should export 2 format, 1 standard one that doesn't have time discontinuity support, thus not best performance but still can do things and a second format that has 2 planes
-
-Regards,
-
-Alain
-
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Sunday, November 04, 2012 12:54 PM
-> To: Alain VOLMAT
-> Cc: linux-media
-> Subject: Re: Way to request a time discontinuity in a V4L2 encoder device
+On Thu, Nov 15, 2012 at 01:46:23AM +0100, Laurent Pinchart wrote:
+> On Wednesday 14 November 2012 23:13:45 Sakari Ailus wrote:
+> > On Wed, Nov 14, 2012 at 10:23:19AM +0100, Sylwester Nawrocki wrote:
+> > > On 11/13/2012 03:24 PM, Sakari Ailus wrote:
+> > > > Hi all,
+> > > > 
+> > > > Comments would be appreciated, either positive or negative. The omap3isp
+> > > > driver does the same check itself currently, but I think this is more
+> > > > generic than that.
+> > > > 
+> > > > Thanks.
+> > > > 
+> > > > On Fri, Oct 26, 2012 at 10:46:17PM +0300, Sakari Ailus wrote:
+> > > >> If an entity has sink pads, at least one of them must be connected to
+> > > >> another pad with an enabled link. If a driver with multiple sink pads
+> > > >> has more strict requirements the check should be done in the driver
+> > > >> itself.
+> > > >> 
+> > > >> Just requiring one sink pad is connected with an enabled link is enough
+> > > >> API-wise: entities with sink pads with only disabled links should not
+> > > >> be allowed to stream in the first place, but also in a different
+> > > >> operation mode a device might require only one of its pads connected
+> > > >> with an active link.
+> > > >> 
+> > > >> If an entity has an ability to function as a source entity another
+> > > >> logical entity connected to the aforementioned one should be used for
+> > > >> the purpose.
+> > > 
+> > > Why not leave it to individual drivers ? I'm not sure if it is a good idea
+> > > not to allow an entity with sink pads to be used as a source only. It
+> > > might be appropriate for most of the cases but likely not all. I'm
+> > > inclined not to add this requirement in the API. Just my opinion though.
+> > 
+> > I'm just wondering what would be the use case for that.
+> > 
+> > What comes closest is generating a test pattern, but even that should be a
+> > separate subdev: the test pattern can be enabled by enabling the link from
+> > the test pattern generator subdev.
 > 
-> Hi Alain,
-> 
-> On Wednesday 31 October 2012 14:21:30 Alain VOLMAT wrote:
-> > Hi all,
+> That would force creating a separate subdev just to support test pattern 
+> generation, I'm not sure if I want to push for that. There might also be other 
+
+The benefit of standard interfaces and uniform behaviour of those interfaces
+is that you can configure test pattern generation using e.g. media-ctl and
+yavta. Nothing else; not even private controls are needed.
+
+> use cases not related to V4L (thus the cross-posting).
+
+That's certainly possible.
+
+...
+
+> > One opion I can think of is to call link_validate op of struct
+> > media_entity_operations also for disabled links on entities that are
+> > connected through active links (on V4L2 to a video node right before
+> > streaming, for example).
+> > 
+> > That'd make it easy to perform the check in the drivers.
 > >
-> > We have developed a V4L2 mem2mem driver for an H264 encoder running
-> on
-> > an IP of one of our SoC and would like to have one more v4l2_buffer
-> > flag value for that.
-> >
-> > In the context of this driver, we discovered that the current V4L2
-> > encode API is missing the feature to mention to the IP that a time
-> > discontinuity has to be created. Time discontinuity must be triggered
-> > when there is a discontinuity in the stream to be encoded, which would
-> > for example happen when there is a seek in the data to be encoded. In
-> > such case, it means that the IP should reset its bitrate allocation algorithm.
-> >
-> > Considering that this information should be triggered on a frame
-> > basis, the idea is to have it passed via the flags member of
-> > v4l2_buffer, with a new flag
-> V4L2_BUF_FLAG_ENCODE_TIME_DISCONTINUITY.
-> >
-> > The usage for this flag value are:
-> > * Queuing a "to be encoded" v4l2_buffer with flags &
-> > V4L2_BUF_FLAG_ENCODE_TIME_DISCONTINUITY informs the driver/IP
-> that a
-> > time discontinuity (reset in the bitrate allocation algorithm) should
-> > be performed before encoding this frame. * The flags bit should be
-> > then propagated until the dequeue to let the application know when a
-> > buffer is the first one after a time discontinuity.
+> > What do you think?
 > 
-> I wonder whether a buffer flag is the best technical solution for this.
-> There's a very limited quantity of flags, and it seems to me like we'll need
-> more flags like this one in the future. Using flags thus wouldn't scale.
+> I think that would be a bit too complex. Drivers (or the V4L core) would need 
+> to gather data from multiple links in some state object to find out if the 
+> complete pipeline is valid or not.
 > 
-> Encoding a frame obviously requires the contents of the frame itself, but also
-> requires meta data such as time discontinuity. Would it be better to add a
-> meta data plane that would be used to pass all the frame meta data to the
-> encoder ?
-> 
-> > Few words about the driver itself, it is available in the following context.
-> > 1. STLinux kernel (www.stlinux.com) rather than vanilla kernel since
-> > the board support is only available there for now 2. Multicom
-> >
-> (http://www.st.com/internet/com/TECHNICAL_RESOURCES/TECHNICAL_LIT
-> ERATU
-> > RE/US
-> > ER_MANUAL/CD18182595.pdf) based V4L2 driver. Multicom is an ST layer
-> > to allow to send and serialize commands to our various IP.
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
+> Another option would be to set a flag somewhere to indicate whether the check 
+> should be performed by the media core or left to drivers. As different types 
+> of drivers might need different types of checks, I think I would prefer for 
+> now to walk the graph one more time in the OMAP3 ISP driver, as currently 
+> done, and revisit this issue when we will have a couple of drivers 
+> implementing pipeline validity checks. I'm just a bit uncomfortable adding 
+> core code for a feature that has a single user at the moment without a clear 
+> view regarding how it would scale.
 
+Honestly, I think that a driver that has configurable links but does not
+require this check to be done is quite probably broken. I'm not really
+convinced there is even a use case for a subdev operating its all sink pads
+disconnected.
+
+Btw. this "somewhere" could be struct media_pad. It already has a "flags"
+field. We could call it MEDIA_PAD_FL_MUST_CONNECT.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
