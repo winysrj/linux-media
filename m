@@ -1,98 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42880 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751406Ab2KYMJz (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:61604 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756017Ab2KOJ7O (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Nov 2012 07:09:55 -0500
-Date: Sun, 25 Nov 2012 14:09:50 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	kgene.kim@samsung.com, shaik.samsung@gmail.com,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Kamil Debski <k.debski@samsung.com>,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH] [media] exynos-gsc: propagate timestamps from src to
- dst buffers
-Message-ID: <20121125120950.GD31879@valkosipuli.retiisi.org.uk>
-References: <1352270424-14683-1-git-send-email-shaik.ameer@samsung.com>
- <50AAAD6A.80709@gmail.com>
- <20121121193948.GB30360@valkosipuli.retiisi.org.uk>
- <50AE9CB6.8020100@gmail.com>
+	Thu, 15 Nov 2012 04:59:14 -0500
+Date: Thu, 15 Nov 2012 10:58:49 +0100
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
+Subject: Re: [PATCH v10 6/6] drm_modes: add of_videomode helpers
+Message-ID: <20121115095848.GA31538@avionic-0098.mockup.avionic-design.de>
+References: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1352971437-29877-7-git-send-email-s.trumtrar@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="bg08WKrSYDhXBjb5"
 Content-Disposition: inline
-In-Reply-To: <50AE9CB6.8020100@gmail.com>
+In-Reply-To: <1352971437-29877-7-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
 
-On Thu, Nov 22, 2012 at 10:44:22PM +0100, Sylwester Nawrocki wrote:
-> >>the data
-> >>will not be displayed before this time, secondary to the nominal frame rate
-> >>determined by the current video standard in enqueued order.
-> >>Applications can
-> >>for example zero this field to display frames as soon as possible.
-> >>The driver
-> >>stores the time at which the first data byte was actually sent out in the
-> >>timestamp field. This permits applications to monitor the drift between the
-> >>video and system clock."
-> >>
-> >>In some use cases it might be useful to know exact frame processing time,
-> >>where driver would be filling OUTPUT and CAPTURE value with exact monotonic
-> >>clock values corresponding to a frame processing start and end time.
-> >
-> >Shouldn't this always be done in memory-to-memory processing? I could
-> >imagine only performance measurements can benefit from other kind of
-> >timestamps.
-> >
-> >We could use different timestamp type to tell the timestamp source isn't any
-> >system clock but an input buffer.
-> >
-> >What do you think?
-> 
-> Yes, it makes sense to me to report with the buffer flag that the source of
-> timestamp is just an OUTPUT buffer. At least this would solve the reporting
-> part of the issue. Oh wait, could applications tell by setting buffer flag
-> what timestamping behaviour they expect from a driver ?
+--bg08WKrSYDhXBjb5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I'd prefer not to. Timestamps not involving use of video nodes or buffers
-would have no way to choose this. Timestamps only make sense if they're all
-the same kind of, so you can cmopare them, with possibly some exceptions
-this could be one of.
+On Thu, Nov 15, 2012 at 10:23:57AM +0100, Steffen Trumtrar wrote:
+[...]
+> +int of_get_drm_display_mode(struct device_node *np,
+> +			    struct drm_display_mode *dmode, unsigned int index)
+> +{
+> +	struct videomode vm;
+> +	int ret;
+> +
+> +	ret = of_get_videomode(np, &vm, index);
+> +	if (ret)
+> +		return ret;
+> +
+> +	display_mode_from_videomode(&vm, dmode);
 
-In memory-to-memory processing we could possibly also force such timestamps,
-but that'd require making vb2 timestamp source-aware. I certainly have
-nothing against that: it's been already planned.
+This function is now called drm_display_mode_from_videomode().
 
-Handling queryctrl requirest that, and I prefer to avoid involving drivers
-in it.
+Thierry
 
-(Cc Laurent.)
+--bg08WKrSYDhXBjb5
+Content-Type: application/pgp-signature
 
-> I can't see an important use of timestamping m2m buffers at device drivers.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
 
-How not important is it then?
+iQIcBAEBAgAGBQJQpLzYAAoJEN0jrNd/PrOhmfYP/0DHD7I1jSNkjQaYPc0hW9Sa
+KlRgpp741fKnmaiFt9Jaqk3qPIoWp0HmqNBx4Gzsb2r3dIZgUkwocuHcuktYqMB3
+1RGIn2UYFON0rLjKZ97ZIAlCEMPt6NVWjFWSjscLVW5CLkzfmgq88l4qSRRgCnm+
+alE0QMFhCUs/ivJjQjRXRF+Jshg3rXtizj4Sa43AY/uadUQHZJQfVajKrzjYBfFS
+rN103jy0iu2JLYBKydbSB7tvJRHJst4OOaHmegD8194LCDKaoabDYVWQZXQnKGJ+
+mzj1CjYQdpzQVf4AJ+9DOu1BRqWLS1sNR7GoTREuhhoT/bs3Si1YnEAWu5kO2red
+IH/0R5soALEfQJ/NTM5nA67n4B7KcA25KofdSO7XJYu+Gexp1VoFLbqR2ILGarnH
+knDh1Z4wRTxOUpYkfNdNpA0eM8wdjbv3pUOb2wthA841nXtYLuKPd/t/v/4vLCeu
+00bgdBbsvBJdd6Uw08IgBmJ73srBWUHBCmAW05H+Mo3cPb4qP4rhhR9BbkIewHUx
+daiLb/L82bwwl+hE/mrIFQxvhHcCzRH0vJ1OijhRw6WPgPFoSjm1TTSbR8199YEE
+NCcluqDvs58jMQNFUPZGXGw7Rk0uoONGeyC/vj5Uvbbf/cNPQr8B4UIFpsaZ61/a
+Qi9gczL5lOYYM88xup7u
+=NTSA
+-----END PGP SIGNATURE-----
 
-> Performance measurement can probably be done in user space with sufficient
-> accuracy as well. However, it wouldn't be difficult for drivers to
-
-I agree.
-
-> implement
-> multiple time stamping techniques, e.g. OUTPUT -> CAPTURE timestamp copying
-> or getting timestamps from monotonic clock at frame processing beginning and
-> end for OUTPUT and CAPTURE respectively.
-> 
-> I believe the buffer flags might be a good solution.
-
-Have you looked at the monotonic timestamp patches ("[PATCH 0/4] Monotonic
-timestamps")?
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+--bg08WKrSYDhXBjb5--
