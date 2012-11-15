@@ -1,86 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:27211 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755839Ab2KVTNH (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38737 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750939Ab2KOWGv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 14:13:07 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MDV003NIHZ6FJ40@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 22 Nov 2012 14:02:28 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MDV00KHRHYSU450@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 22 Nov 2012 14:02:28 +0900 (KST)
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+	Thu, 15 Nov 2012 17:06:51 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, kgene.kim@samsung.com
-Subject: [PATCH v2] [media] exynos-gsc: propagate timestamps from src to dst
- buffers
-Date: Thu, 22 Nov 2012 10:55:06 +0530
-Message-id: <1353561906-7869-1-git-send-email-shaik.ameer@samsung.com>
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
+Subject: [PATCH 1/4] v4l: Define video buffer flags for timestamp types
+Date: Fri, 16 Nov 2012 00:06:44 +0200
+Message-Id: <1353017207-370-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20121115220627.GB29863@valkosipuli.retiisi.org.uk>
+References: <20121115220627.GB29863@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make gsc-m2m propagate the timestamp field from source to destination
-buffers
+Define video buffer flags for different timestamp types. Everything up to
+now have used either realtime clock or monotonic clock, without a way to
+tell which clock the timestamp was taken from.
 
-Signed-off-by: John Sheu <sheu@google.com>
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/exynos-gsc/gsc-m2m.c |   20 +++++++++++++-------
- 1 files changed, 13 insertions(+), 7 deletions(-)
+ Documentation/DocBook/media/v4l/io.xml |   25 +++++++++++++++++++++++++
+ include/uapi/linux/videodev2.h         |    4 ++++
+ 2 files changed, 29 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-index 047f0f0..39dff20 100644
---- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-@@ -99,22 +99,28 @@ static void gsc_m2m_job_abort(void *priv)
- 		gsc_m2m_job_finish(ctx, VB2_BUF_STATE_ERROR);
- }
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 7e2f3d7..d598f2c 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -938,6 +938,31 @@ Typically applications shall use this flag for output buffers if the data
+ in this buffer has not been created by the CPU but by some DMA-capable unit,
+ in which case caches have not been used.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant></entry>
++	    <entry>0xe000</entry>
++	    <entry>Mask for timestamp types below. To test the
++	    timestamp type, mask out bits not belonging to timestamp
++	    type by performing a logical and operation with buffer
++	    flags and timestamp mask.</tt> </entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN</constant></entry>
++	    <entry>0x0000</entry>
++	    <entry>Unknown timestamp type. This type is used by
++	    drivers before Linux 3.8 and may be either monotonic (see
++	    below) or realtime. Monotonic clock has been favoured in
++	    embedded systems whereas most of the drivers use the
++	    realtime clock.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC</constant></entry>
++	    <entry>0x2000</entry>
++	    <entry>The buffer timestamp has been taken from the
++	    <constant>CLOCK_MONOTONIC</constant> clock. To access the
++	    same clock outside V4L2, use <tt>clock_gettime(2)</tt>
++	    .</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 2fff7ff..410ea9f 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -686,6 +686,10 @@ struct v4l2_buffer {
+ /* Cache handling flags */
+ #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
+ #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
++/* Timestamp type */
++#define V4L2_BUF_FLAG_TIMESTAMP_MASK		0xe000
++#define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x0000
++#define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x2000
  
--static int gsc_fill_addr(struct gsc_ctx *ctx)
-+static int gsc_get_bufs(struct gsc_ctx *ctx)
- {
- 	struct gsc_frame *s_frame, *d_frame;
--	struct vb2_buffer *vb = NULL;
-+	struct vb2_buffer *src_vb, *dst_vb;
- 	int ret;
- 
- 	s_frame = &ctx->s_frame;
- 	d_frame = &ctx->d_frame;
- 
--	vb = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
--	ret = gsc_prepare_addr(ctx, vb, s_frame, &s_frame->addr);
-+	src_vb = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
-+	ret = gsc_prepare_addr(ctx, src_vb, s_frame, &s_frame->addr);
-+	if (ret)
-+		return ret;
-+
-+	dst_vb = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
-+	ret = gsc_prepare_addr(ctx, dst_vb, d_frame, &d_frame->addr);
- 	if (ret)
- 		return ret;
- 
--	vb = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
--	return gsc_prepare_addr(ctx, vb, d_frame, &d_frame->addr);
-+	dst_vb->v4l2_buf.timestamp = src_vb->v4l2_buf.timestamp;
-+
-+	return 0;
- }
- 
- static void gsc_m2m_device_run(void *priv)
-@@ -148,7 +154,7 @@ static void gsc_m2m_device_run(void *priv)
- 		goto put_device;
- 	}
- 
--	ret = gsc_fill_addr(ctx);
-+	ret = gsc_get_bufs(ctx);
- 	if (ret) {
- 		pr_err("Wrong address");
- 		goto put_device;
+ /*
+  *	O V E R L A Y   P R E V I E W
 -- 
-1.7.0.4
+1.7.2.5
 
