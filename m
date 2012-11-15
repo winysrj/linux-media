@@ -1,91 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:38724 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756783Ab2KHTyW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:54:22 -0500
-From: YAMANE Toshiaki <yamanetoshi@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Ben Hutchings <ben@decadent.org.uk>,
-	Sean Young <sean@mess.org>,
-	Rusty Russell <rusty@rustcorp.com.au>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org,
-	YAMANE Toshiaki <yamanetoshi@gmail.com>
-Subject: [PATCH] staging/media: Use pr_ printks in lirc/lirc_bt829.c
-Date: Fri,  9 Nov 2012 04:54:09 +0900
-Message-Id: <1352404449-7666-1-git-send-email-yamanetoshi@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38730 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751219Ab2KOWGb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Nov 2012 17:06:31 -0500
+Date: Fri, 16 Nov 2012 00:06:27 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
+Subject: [PATCH 0/4] Monotonic timestamps
+Message-ID: <20121115220627.GB29863@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fixed below checkpatch warnings.
-- WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-- WARNING: Prefer netdev_info(netdev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
+Hi all,
 
-and add pr_fmt.
+Here's my first monotonic timestamps patch series. Since the RFC series,
+I've corrected a warning in drivers/media/usb/s2255/s2255drv.c that was
+caused by an unused variable.
 
-Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
----
- drivers/staging/media/lirc/lirc_bt829.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+All affected drivers compile without warnings. I've tested this on the OMAP
+3 ISP:
 
-diff --git a/drivers/staging/media/lirc/lirc_bt829.c b/drivers/staging/media/lirc/lirc_bt829.c
-index 951007a..4a3b1f5 100644
---- a/drivers/staging/media/lirc/lirc_bt829.c
-+++ b/drivers/staging/media/lirc/lirc_bt829.c
-@@ -18,6 +18,8 @@
-  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/threads.h>
-@@ -72,20 +74,19 @@ static struct pci_dev *do_pci_probe(void)
- 	my_dev = pci_get_device(PCI_VENDOR_ID_ATI,
- 				PCI_DEVICE_ID_ATI_264VT, NULL);
- 	if (my_dev) {
--		printk(KERN_ERR DRIVER_NAME ": Using device: %s\n",
--		       pci_name(my_dev));
-+		pr_err("Using device: %s\n", pci_name(my_dev));
- 		pci_addr_phys = 0;
- 		if (my_dev->resource[0].flags & IORESOURCE_MEM) {
- 			pci_addr_phys = my_dev->resource[0].start;
--			printk(KERN_INFO DRIVER_NAME ": memory at 0x%08X\n",
-+			pr_info("memory at 0x%08X\n",
- 			        (unsigned int)pci_addr_phys);
- 		}
- 		if (pci_addr_phys == 0) {
--			printk(KERN_ERR DRIVER_NAME ": no memory resource ?\n");
-+			pr_err("no memory resource ?\n");
- 			return NULL;
- 		}
- 	} else {
--		printk(KERN_ERR DRIVER_NAME ": pci_probe failed\n");
-+		pr_err("pci_probe failed\n");
- 		return NULL;
- 	}
- 	return my_dev;
-@@ -140,7 +141,7 @@ int init_module(void)
- 
- 	atir_minor = lirc_register_driver(&atir_driver);
- 	if (atir_minor < 0) {
--		printk(KERN_ERR DRIVER_NAME ": failed to register driver!\n");
-+		pr_err("failed to register driver!\n");
- 		return atir_minor;
- 	}
- 	dprintk("driver is registered on minor %d\n", atir_minor);
-@@ -159,7 +160,7 @@ static int atir_init_start(void)
- {
- 	pci_addr_lin = ioremap(pci_addr_phys + DATA_PCI_OFF, 0x400);
- 	if (pci_addr_lin == 0) {
--		printk(KERN_INFO DRIVER_NAME ": pci mem must be mapped\n");
-+		pr_info("pci mem must be mapped\n");
- 		return 0;
- 	}
- 	return 1;
+02:11:34 sailus@peruna [~]yavta -c1 -f SGBRG10 -F/tmp/foo -s 2864x2048 /dev/video1
+Device /dev/video1 opened.
+Device `OMAP3 ISP CSI2a output' on `media' is a video capture device.
+Video format set: SGBRG10 (30314247) 2864x2048 (stride 5728) buffer size 11730944
+Video format: SGBRG10 (30314247) 2864x2048 (stride 5728) buffer size 11730944
+4 buffers requested.
+length: 11730944 offset: 0 timestamp type: monotonic
+Buffer 0 mapped at address 0xb62cb000.
+length: 11730944 offset: 11730944 timestamp type: monotonic
+Buffer 1 mapped at address 0xb579b000.
+length: 11730944 offset: 23461888 timestamp type: monotonic
+Buffer 2 mapped at address 0xb4c6b000.
+length: 11730944 offset: 35192832 timestamp type: monotonic
+Buffer 3 mapped at address 0xb413b000.
+0 (0) [-] 0 11730944 bytes 310.791595 310.792083 13.331 fps
+Captured 1 frames in 0.075500 seconds (13.244948 fps, 155375737.438942 B/s).
+4 buffers released.
+
+What the patches do is that they
+
+1. Add new buffer flags for timestamp type, and a mask,
+2. convert all the drivers to use monotonic timestamps and
+3. tell that all drivers are using monotonic timestamps.
+
+The assumption is that all drivers will use monotonic timestamps, especially
+the timestamp type is set in videobuf(2) in drivers that use it. This could
+be changed later on if we wish to make it selectable; in this case videobuf2
+would need to be told, and the helper function v4l2_get_timestamp() would
+need to be put to videobuf2 instead.
+
+Comments and questions are very welcome!
+
+Kind regards,
+
 -- 
-1.7.9.5
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
