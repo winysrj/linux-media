@@ -1,94 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:44559 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754215Ab2K1Xrp (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1369 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752550Ab2KPQDu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 18:47:45 -0500
-Message-ID: <50B6A29D.9050004@gmail.com>
-Date: Thu, 29 Nov 2012 00:47:41 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	devel@driverdev.osuosl.org,
+	Fri, 16 Nov 2012 11:03:50 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
 	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v3 0/9] Media Controller capture driver for DM365
-References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com> <20121128114537.GN11248@mwanda> <201211281256.10839.hansverk@cisco.com> <20121128122227.GX6186@mwanda> <50B6663C.6080800@samsung.com> <20121128212952.GP11248@mwanda>
-In-Reply-To: <20121128212952.GP11248@mwanda>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 2/2] vpif_display: protect dma_queue by a spin_lock.
+Date: Fri, 16 Nov 2012 17:03:07 +0100
+Message-Id: <efc928a057f0cbcf18cb5c844e4819bd5c450a5c.1353081640.git.hans.verkuil@cisco.com>
+In-Reply-To: <1353081787-7010-1-git-send-email-hverkuil@xs4all.nl>
+References: <1353081787-7010-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <4d1abc522b7eb1d930105a1f37085324b86ec69c.1353081640.git.hans.verkuil@cisco.com>
+References: <4d1abc522b7eb1d930105a1f37085324b86ec69c.1353081640.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/28/2012 10:29 PM, Dan Carpenter wrote:
-> On Wed, Nov 28, 2012 at 08:30:04PM +0100, Sylwester Nawrocki wrote:
->> On 11/28/2012 01:22 PM, Dan Carpenter wrote:
->>> In the end this is just a driver, and I don't especially care.  But
->>> it's like not just this one which makes me frustrated.  I really
->>> believe in linux-next and I think everything should spend a couple
->>> weeks there before being merged.
->>
->> Couple of weeks in linux-next plus a couple of weeks of final patch
->> series version awaiting to being reviewed and picked up by a maintainer
->> makes almost entire kernel development cycle. These are huge additional
->> delays, especially in the embedded world. Things like these certainly
->> aren't encouraging for moving over from out-of-tree to the mainline
->> development process. And in this case we are talking only about merging
->> driver to the staging tree...
->
-> Yeah.  A couple weeks is probably too long.  But I think a week is
-> totally reasonable.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Agreed, exactly that couple weeks requirement seemed a bit long to me.
+The dma_queue list is accessed by both the interrupt handler and by normal
+code. It needs to be protected by a lock to prevent possible list corruption.
 
-> You have the process wrong.  The maintainer reviews it first, merges
-> it into his -next git tree.  It sits in linux-next for a bit.  The
-> merge window opens up.  It is merged.  It gets tested for 3 months.
-> It is released.
+Corruption has been observed in 'real-life' conditions. Adding this lock made
+it go away.
 
-I believe what you're describing is true for most subsystems.  At
-linux-media the process looks roughly that you prepare a patch and post
-it to the mailing list for review.  Regular developers review it, you
-address the comments and submit again.  Repeat these steps until
-everyone's happy.  Then, when the patch looks like it is ready for
-merging it is preferred to send the maintainer a pull request.
-Now there can be a delay of up to couple weeks.  Afterwards the patch
-in most cases gets merged, with a few possible change requests. However
-it may happen the maintainer has different views on what's has been
-agreed before and you start everything again.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/davinci/vpif_display.c |   22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-With a few sub-maintainers recently appointed hopefully there can be
-seen some improvement.
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index b716fbd..a8c6bd3 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -177,11 +177,14 @@ static void vpif_buffer_queue(struct vb2_buffer *vb)
+ 				struct vpif_disp_buffer, vb);
+ 	struct channel_obj *ch = fh->channel;
+ 	struct common_obj *common;
++	unsigned long flags;
+ 
+ 	common = &ch->common[VPIF_VIDEO_INDEX];
+ 
+ 	/* add the buffer to the DMA queue */
++	spin_lock_irqsave(&common->irqlock, flags);
+ 	list_add_tail(&buf->list, &common->dma_queue);
++	spin_unlock_irqrestore(&common->irqlock, flags);
+ }
+ 
+ /*
+@@ -246,10 +249,13 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+ 	struct vpif_params *vpif = &ch->vpifparams;
+ 	unsigned long addr = 0;
++	unsigned long flags;
+ 	int ret;
+ 
+ 	/* If buffer queue is empty, return error */
++	spin_lock_irqsave(&common->irqlock, flags);
+ 	if (list_empty(&common->dma_queue)) {
++		spin_unlock_irqrestore(&common->irqlock, flags);
+ 		vpif_err("buffer queue is empty\n");
+ 		return -EIO;
+ 	}
+@@ -260,6 +266,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 				       struct vpif_disp_buffer, list);
+ 
+ 	list_del(&common->cur_frm->list);
++	spin_unlock_irqrestore(&common->irqlock, flags);
+ 	/* Mark state of the current frame to active */
+ 	common->cur_frm->vb.state = VB2_BUF_STATE_ACTIVE;
+ 
+@@ -330,6 +337,7 @@ static int vpif_stop_streaming(struct vb2_queue *vq)
+ 	struct vpif_fh *fh = vb2_get_drv_priv(vq);
+ 	struct channel_obj *ch = fh->channel;
+ 	struct common_obj *common;
++	unsigned long flags;
+ 
+ 	if (!vb2_is_streaming(vq))
+ 		return 0;
+@@ -337,12 +345,14 @@ static int vpif_stop_streaming(struct vb2_queue *vq)
+ 	common = &ch->common[VPIF_VIDEO_INDEX];
+ 
+ 	/* release all active buffers */
++	spin_lock_irqsave(&common->irqlock, flags);
+ 	while (!list_empty(&common->dma_queue)) {
+ 		common->next_frm = list_entry(common->dma_queue.next,
+ 						struct vpif_disp_buffer, list);
+ 		list_del(&common->next_frm->list);
+ 		vb2_buffer_done(&common->next_frm->vb, VB2_BUF_STATE_ERROR);
+ 	}
++	spin_unlock_irqrestore(&common->irqlock, flags);
+ 
+ 	return 0;
+ }
+@@ -363,11 +373,13 @@ static void process_progressive_mode(struct common_obj *common)
+ {
+ 	unsigned long addr = 0;
+ 
++	spin_lock(&common->irqlock);
+ 	/* Get the next buffer from buffer queue */
+ 	common->next_frm = list_entry(common->dma_queue.next,
+ 				struct vpif_disp_buffer, list);
+ 	/* Remove that buffer from the buffer queue */
+ 	list_del(&common->next_frm->list);
++	spin_unlock(&common->irqlock);
+ 	/* Mark status of the buffer as active */
+ 	common->next_frm->vb.state = VB2_BUF_STATE_ACTIVE;
+ 
+@@ -398,16 +410,18 @@ static void process_interlaced_mode(int fid, struct common_obj *common)
+ 		common->cur_frm = common->next_frm;
+ 
+ 	} else if (1 == fid) {	/* odd field */
++		spin_lock(&common->irqlock);
+ 		if (list_empty(&common->dma_queue)
+ 		    || (common->cur_frm != common->next_frm)) {
++			spin_unlock(&common->irqlock);
+ 			return;
+ 		}
++		spin_unlock(&common->irqlock);
+ 		/* one field is displayed configure the next
+ 		 * frame if it is available else hold on current
+ 		 * frame */
+ 		/* Get next from the buffer queue */
+ 		process_progressive_mode(common);
+-
+ 	}
+ }
+ 
+@@ -437,8 +451,12 @@ static irqreturn_t vpif_channel_isr(int irq, void *dev_id)
+ 			continue;
+ 
+ 		if (1 == ch->vpifparams.std_info.frm_fmt) {
+-			if (list_empty(&common->dma_queue))
++			spin_lock(&common->irqlock);
++			if (list_empty(&common->dma_queue)) {
++				spin_unlock(&common->irqlock);
+ 				continue;
++			}
++			spin_unlock(&common->irqlock);
+ 
+ 			/* Progressive mode */
+ 			if (!channel_first_int[i][channel_id]) {
+-- 
+1.7.10.4
 
-> It should work as a continuous even flow.  It shouldn't be a rush to
-> submit drivers right before the merge window opens.  It's not hard,
-> you can submit a driver to linux-next at any time.  It magically
-> flows through the process and is released some months later.
->
-> It does suck to add a 3 month delay for people who miss the cut off.
-> Don't wait until the last minute.  In the embedded world you can
-> use git cherry-pick to get the driver from linux-next.
-
-Yeah, it's not unusual to work with specific -rc tree with multiple
-subsystem -next branches on top of it.
-
-It's just those cases where you're told to get feature A in the kernel
-release X and it is already late in the development cycle... But it
-might just be a matter of planning the work adequately with proper
-understanding of the whole process.
-
---
-
-Thanks,
-Sylwester
