@@ -1,68 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:54771 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752549Ab2KCDs4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2012 23:48:56 -0400
-Received: by mail-ie0-f174.google.com with SMTP id k13so5923896iea.19
-        for <linux-media@vger.kernel.org>; Fri, 02 Nov 2012 20:48:56 -0700 (PDT)
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39101 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751564Ab2KPPUI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Nov 2012 10:20:08 -0500
+Date: Fri, 16 Nov 2012 17:20:03 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 1/4] v4l: Define video buffer flags for timestamp types
+Message-ID: <20121116152002.GD29863@valkosipuli.retiisi.org.uk>
+References: <20121115220627.GB29863@valkosipuli.retiisi.org.uk>
+ <1353017207-370-1-git-send-email-sakari.ailus@iki.fi>
+ <201211161451.29922.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CALF0-+XOLwg-Rnxm2G3mmvORXthGzeczvBEZdKGDoRZH10Wtvw@mail.gmail.com>
-References: <1351773720-22639-1-git-send-email-elezegarcia@gmail.com>
-	<CA+6av4nv=J7wZKKbKVSGyNRVaZUO24Qv8NwbbCK8v_ZrU-7oUQ@mail.gmail.com>
-	<CALF0-+XOLwg-Rnxm2G3mmvORXthGzeczvBEZdKGDoRZH10Wtvw@mail.gmail.com>
-Date: Sat, 3 Nov 2012 04:48:55 +0100
-Message-ID: <CA+6av4m8Dqn_p+2MLXO7Z8+J=_=ubf6mFnzvZZ9S8B1Nf+RReg@mail.gmail.com>
-Subject: Re: [PATCH] stkwebcam: Fix sparse warning on undeclared symbol
-From: Arvydas Sidorenko <asido4@gmail.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Andrea Anacleto <andreaanacleto@libero.it>,
-	Jaime Velasco Juan <jsagarribay@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201211161451.29922.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> If you have the time to test it and stamp a "Tested-by" on it, I would
-> appreciate it.
->
-> Thanks,
->
->     Ezequiel
+Hi Hans,
 
-I applied and tested on 3.7.0-rc3 - everything is ok.
-Signed patch is bellow.
+Thanks for the comments!
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
-Tested-by: Arvydas Sidorenko <asido4@gmail.com>
+On Fri, Nov 16, 2012 at 02:51:29PM +0100, Hans Verkuil wrote:
+> On Thu November 15 2012 23:06:44 Sakari Ailus wrote:
+> > diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+> > index 7e2f3d7..d598f2c 100644
+> > --- a/Documentation/DocBook/media/v4l/io.xml
+> > +++ b/Documentation/DocBook/media/v4l/io.xml
+> > @@ -938,6 +938,31 @@ Typically applications shall use this flag for output buffers if the data
+> >  in this buffer has not been created by the CPU but by some DMA-capable unit,
+> >  in which case caches have not been used.</entry>
+> >  	  </row>
+> > +	  <row>
+> > +	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant></entry>
+> > +	    <entry>0xe000</entry>
+> > +	    <entry>Mask for timestamp types below. To test the
+> > +	    timestamp type, mask out bits not belonging to timestamp
+> > +	    type by performing a logical and operation with buffer
+> > +	    flags and timestamp mask.</tt> </entry>
+> > +	  </row>
+> > +	  <row>
+> > +	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN</constant></entry>
+> > +	    <entry>0x0000</entry>
+> > +	    <entry>Unknown timestamp type. This type is used by
+> > +	    drivers before Linux 3.8 and may be either monotonic (see
+> > +	    below) or realtime. Monotonic clock has been favoured in
+> > +	    embedded systems whereas most of the drivers use the
+> > +	    realtime clock.</entry>
+> 
+> Isn't 'wallclock time' a better expression? It is probably a good idea as
+> well to add the userspace call that gives the same clock: gettimeofday or
+> clock_gettime(CLOCK_REALTIME) for the wallclock time and
+> clock_gettime(CLOCK_MONOTONIC) for the monotonic time. That way apps can
+> do the same call and compare it to the timestamp received.
 
----
- drivers/media/usb/stkwebcam/stk-webcam.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c
-b/drivers/media/usb/stkwebcam/stk-webcam.c
-index 86a0fc5..e4839d8 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.c
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-@@ -55,9 +55,6 @@ MODULE_AUTHOR("Jaime Velasco Juan
-<jsagarribay@gmail.com> and Nicolas VIVIEN");
- MODULE_DESCRIPTION("Syntek DC1125 webcam driver");
-
-
--/* bool for webcam LED management */
--int first_init = 1;
--
- /* Some cameras have audio interfaces, we aren't interested in those */
- static struct usb_device_id stkwebcam_table[] = {
- 	{ USB_DEVICE_AND_INTERFACE_INFO(0x174f, 0xa311, 0xff, 0xff, 0xff) },
-@@ -554,6 +551,7 @@ static void stk_free_buffers(struct stk_camera *dev)
-
- static int v4l_stk_open(struct file *fp)
- {
-+    static int first_init = 1; /* webcam LED management */
- 	struct stk_camera *dev;
- 	struct video_device *vdev;
+I'll add a reference to clock_gettime() and change realtime to wall clock
+time. I wonder if I should also add that the unknown timestamp means either
+of the two, or can we allow different kinds of unknown timestamps in the
+future. Probably we should limit this to realtime and monotonic.
 
 -- 
-1.8.0
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
