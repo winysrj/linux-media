@@ -1,224 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56867 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752462Ab2KWMbK (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:52447 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750957Ab2KPG46 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 07:31:10 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v2 6/6] uvcvideo: Add VIDIOC_[GS]_PRIORITY support
-Date: Fri, 23 Nov 2012 13:32:05 +0100
-Message-Id: <1353673925-10050-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201211161507.42201.hverkuil@xs4all.nl>
-References: <201211161507.42201.hverkuil@xs4all.nl>
+	Fri, 16 Nov 2012 01:56:58 -0500
+Received: by mail-pb0-f46.google.com with SMTP id wy7so1734367pbc.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Nov 2012 22:56:58 -0800 (PST)
+From: Tushar Behera <tushar.behera@linaro.org>
+To: linux-kernel@vger.kernel.org
+Cc: patches@linaro.org, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Ian Campbell <ian.campbell@citrix.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Jeremy Fitzhardinge <jeremy@goop.org>,
+	Chas Williams <chas@cmf.nrl.navy.mil>,
+	Jack Steiner <steiner@sgi.com>, Arnd Bergmann <arnd@arndb.de>,
+	Luciano Coelho <coelho@ti.com>, Jiri Kosina <jkosina@suse.cz>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	xen-devel@lists.xensource.com, netdev@vger.kernel.org,
+	virtualization@lists.linux-foundation.org,
+	linux-atm-general@lists.sourceforge.net, linux-usb@vger.kernel.org,
+	linux-input@vger.kernel.org, linux-wireless@vger.kernel.org
+Subject: [PATCH 00/14] Modify signed comparisons of unsigned variables
+Date: Fri, 16 Nov 2012 12:20:32 +0530
+Message-Id: <1353048646-10935-1-git-send-email-tushar.behera@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_driver.c |    3 ++
- drivers/media/usb/uvc/uvc_v4l2.c   |   45 ++++++++++++++++++++++++++++++++++++
- drivers/media/usb/uvc/uvcvideo.h   |    1 +
- 3 files changed, 49 insertions(+), 0 deletions(-)
+The occurrences were identified through the coccinelle script at
+following location.
 
-Resent with larger contexts to make review easier.
+http://www.emn.fr/z-info/coccinelle/rules/find_unsigned.cocci
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index ae24f7d..22f14d2 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1560,10 +1560,11 @@ static int uvc_scan_device(struct uvc_device *dev)
- 			return -ENOMEM;
- 
- 		INIT_LIST_HEAD(&chain->entities);
- 		mutex_init(&chain->ctrl_mutex);
- 		chain->dev = dev;
-+		v4l2_prio_init(&chain->prio);
- 
- 		if (uvc_scan_chain(chain, term) < 0) {
- 			kfree(chain);
- 			continue;
- 		}
-@@ -1720,10 +1721,12 @@ static int uvc_register_video(struct uvc_device *dev,
- 	 * get another one.
- 	 */
- 	vdev->v4l2_dev = &dev->vdev;
- 	vdev->fops = &uvc_fops;
- 	vdev->release = uvc_release;
-+	vdev->prio = &stream->chain->prio;
-+	set_bit(V4L2_FL_USE_FH_PRIO, &vdev->flags);
- 	if (stream->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
- 		vdev->vfl_dir = VFL_DIR_TX;
- 	strlcpy(vdev->name, dev->name, sizeof vdev->name);
- 
- 	/* Set the driver data before calling video_register_device, otherwise
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index bf9d073..d6aa402 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -574,10 +574,23 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 			cap->device_caps = V4L2_CAP_VIDEO_OUTPUT
- 					 | V4L2_CAP_STREAMING;
- 		break;
- 	}
- 
-+	/* Priority */
-+	case VIDIOC_G_PRIORITY:
-+		*(u32 *)arg = v4l2_prio_max(vdev->prio);
-+		break;
-+
-+	case VIDIOC_S_PRIORITY:
-+		ret = v4l2_prio_check(vdev->prio, handle->vfh.prio);
-+		if (ret < 0)
-+			return ret;
-+
-+		return v4l2_prio_change(vdev->prio, &handle->vfh.prio,
-+					*(u32 *)arg);
-+
- 	/* Get, Set & Query control */
- 	case VIDIOC_QUERYCTRL:
- 		return uvc_query_v4l2_ctrl(chain, arg);
- 
- 	case VIDIOC_G_CTRL:
-@@ -604,10 +617,14 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_S_CTRL:
- 	{
- 		struct v4l2_control *ctrl = arg;
- 		struct v4l2_ext_control xctrl;
- 
-+		ret = v4l2_prio_check(vdev->prio, handle->vfh.prio);
-+		if (ret < 0)
-+			return ret;
-+
- 		memset(&xctrl, 0, sizeof xctrl);
- 		xctrl.id = ctrl->id;
- 		xctrl.value = ctrl->value;
- 
- 		ret = uvc_ctrl_begin(chain);
-@@ -651,10 +668,14 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		ret = uvc_ctrl_rollback(handle);
- 		break;
- 	}
- 
- 	case VIDIOC_S_EXT_CTRLS:
-+		ret = v4l2_prio_check(vdev->prio, handle->vfh.prio);
-+		if (ret < 0)
-+			return ret;
-+
- 	case VIDIOC_TRY_EXT_CTRLS:
- 	{
- 		struct v4l2_ext_controls *ctrls = arg;
- 		struct v4l2_ext_control *ctrl = ctrls->controls;
- 		unsigned int i;
-@@ -745,10 +766,14 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 
- 	case VIDIOC_S_INPUT:
- 	{
- 		u32 input = *(u32 *)arg + 1;
- 
-+		ret = v4l2_prio_check(vdev->prio, handle->vfh.prio);
-+		if (ret < 0)
-+			return ret;
-+
- 		if ((ret = uvc_acquire_privileges(handle)) < 0)
- 			return ret;
- 
- 		if (chain->selector == NULL ||
- 		    (chain->dev->quirks & UVC_QUIRK_IGNORE_SELECTOR_UNIT)) {
-@@ -798,10 +823,14 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 
- 		return uvc_v4l2_try_format(stream, arg, &probe, NULL, NULL);
- 	}
- 
- 	case VIDIOC_S_FMT:
-+		ret = v4l2_prio_check(vdev->prio, handle->vfh.prio);
-+		if (ret < 0)
-+			return ret;
-+
- 		if ((ret = uvc_acquire_privileges(handle)) < 0)
- 			return ret;
- 
- 		return uvc_v4l2_set_format(stream, arg);
- 
-@@ -900,10 +929,14 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	/* Get & Set streaming parameters */
- 	case VIDIOC_G_PARM:
- 		return uvc_v4l2_get_streamparm(stream, arg);
- 
- 	case VIDIOC_S_PARM:
-+		ret = v4l2_prio_check(vdev->prio, handle->vfh.prio);
-+		if (ret < 0)
-+			return ret;
-+
- 		if ((ret = uvc_acquire_privileges(handle)) < 0)
- 			return ret;
- 
- 		return uvc_v4l2_set_streamparm(stream, arg);
- 
-@@ -934,10 +967,14 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_S_CROP:
- 		return -ENOTTY;
- 
- 	/* Buffers & streaming */
- 	case VIDIOC_REQBUFS:
-+		ret = v4l2_prio_check(vdev->prio, handle->vfh.prio);
-+		if (ret < 0)
-+			return ret;
-+
- 		if ((ret = uvc_acquire_privileges(handle)) < 0)
- 			return ret;
- 
- 		mutex_lock(&stream->mutex);
- 		ret = uvc_alloc_buffers(&stream->queue, arg);
-@@ -979,10 +1016,14 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		int *type = arg;
- 
- 		if (*type != stream->type)
- 			return -EINVAL;
- 
-+		ret = v4l2_prio_check(vdev->prio, handle->vfh.prio);
-+		if (ret < 0)
-+			return ret;
-+
- 		if (!uvc_has_privileges(handle))
- 			return -EBUSY;
- 
- 		mutex_lock(&stream->mutex);
- 		ret = uvc_video_enable(stream, 1);
-@@ -997,10 +1038,14 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		int *type = arg;
- 
- 		if (*type != stream->type)
- 			return -EINVAL;
- 
-+		ret = v4l2_prio_check(vdev->prio, handle->vfh.prio);
-+		if (ret < 0)
-+			return ret;
-+
- 		if (!uvc_has_privileges(handle))
- 			return -EBUSY;
- 
- 		return uvc_video_enable(stream, 0);
- 	}
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index a6c561f..006ae27 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -370,10 +370,11 @@ struct uvc_video_chain {
- 	struct uvc_entity *processing;		/* Processing unit */
- 	struct uvc_entity *selector;		/* Selector unit */
- 
- 	struct mutex ctrl_mutex;		/* Protects ctrl.info */
- 
-+	struct v4l2_prio_state prio;		/* V4L2 priority state */
- 	u32 caps;				/* V4L2 chain-wide caps */
- };
- 
- struct uvc_stats_frame {
- 	unsigned int size;		/* Number of bytes captured */
+Signed checks for unsigned variables are removed if it is also checked
+for upper error limit. For error checks, IS_ERR_VALUE() macros is used.
+
+Tushar Behera (14):
+  [media] ivtv: Remove redundant check on unsigned variable
+  [media] meye: Remove redundant check on unsigned variable
+  [media] saa7134: Remove redundant check on unsigned variable
+  [media] tlg2300: Remove redundant check on unsigned variable
+  [media] atmel-isi: Update error check for unsigned variables
+  pinctrl: samsung: Update error check for unsigned variables
+  pinctrl: SPEAr: Update error check for unsigned variables
+  xen: netback: Remove redundant check on unsigned variable
+  xen: events: Remove redundant check on unsigned variable
+  atm: Removed redundant check on unsigned variable
+  HID: hiddev: Remove redundant check on unsigned variable
+  gru: Remove redundant check on unsigned variable
+  misc: tsl2550: Remove redundant check on unsigned variable
+  wlcore: Remove redundant check on unsigned variable
+
+ drivers/atm/fore200e.c                        |    2 +-
+ drivers/hid/usbhid/hiddev.c                   |    2 +-
+ drivers/media/pci/ivtv/ivtv-ioctl.c           |    2 +-
+ drivers/media/pci/meye/meye.c                 |    2 +-
+ drivers/media/pci/saa7134/saa7134-video.c     |    2 +-
+ drivers/media/platform/soc_camera/atmel-isi.c |    2 +-
+ drivers/media/usb/tlg2300/pd-video.c          |    2 +-
+ drivers/misc/sgi-gru/grukdump.c               |    2 +-
+ drivers/misc/tsl2550.c                        |    4 ++--
+ drivers/net/wireless/ti/wlcore/debugfs.c      |    2 +-
+ drivers/net/xen-netback/netback.c             |    4 ++--
+ drivers/pinctrl/pinctrl-samsung.c             |    2 +-
+ drivers/pinctrl/spear/pinctrl-plgpio.c        |    2 +-
+ drivers/xen/events.c                          |    2 +-
+ 14 files changed, 16 insertions(+), 16 deletions(-)
+
 -- 
-Regards,
+1.7.4.1
 
-Laurent Pinchart
-
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Linus Walleij <linus.walleij@linaro.org>
+CC: Ian Campbell <ian.campbell@citrix.com>
+CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+CC: Jeremy Fitzhardinge <jeremy@goop.org>
+CC: Chas Williams <chas@cmf.nrl.navy.mil>
+CC: Jack Steiner <steiner@sgi.com>
+CC: Arnd Bergmann <arnd@arndb.de>
+CC: Luciano Coelho <coelho@ti.com>
+CC: Jiri Kosina <jkosina@suse.cz>
+CC: ivtv-devel@ivtvdriver.org
+CC: linux-media@vger.kernel.org
+CC: xen-devel@lists.xensource.com
+CC: netdev@vger.kernel.org
+CC: virtualization@lists.linux-foundation.org
+CC: linux-atm-general@lists.sourceforge.net
+CC: linux-usb@vger.kernel.org
+CC: linux-input@vger.kernel.org
+CC: linux-wireless@vger.kernel.org
