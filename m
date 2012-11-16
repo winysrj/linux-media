@@ -1,61 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:46525 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750776Ab2KFJok (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 04:44:40 -0500
-Received: by mail-la0-f46.google.com with SMTP id h6so171143lag.19
-        for <linux-media@vger.kernel.org>; Tue, 06 Nov 2012 01:44:39 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20121106101423.068bcd3e@wker>
-References: <20121106101423.068bcd3e@wker>
-Date: Tue, 6 Nov 2012 10:44:38 +0100
-Message-ID: <CABYn4szDisJk=LXBhRKKe3dQ4hco-t75RVYLFayyxNjTBteCAQ@mail.gmail.com>
-Subject: Re: Using OV5642 sensor driver for CM8206-A500SA-E
-From: Bastian Hecht <hechtb@googlemail.com>
-To: Anatolij Gustschin <agust@denx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Bastian Hecht <hechtb@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-da0-f46.google.com ([209.85.210.46]:32926 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752220Ab2KPOrc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Nov 2012 09:47:32 -0500
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 10/12] davinci: vpss: dm365: add vpss helper functions to be used in the main driver for setting hardware parameters
+Date: Fri, 16 Nov 2012 20:15:12 +0530
+Message-Id: <1353077114-19296-11-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1353077114-19296-1-git-send-email-prabhakar.lad@ti.com>
+References: <1353077114-19296-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Anatolij,
+From: Manjunath Hadli <manjunath.hadli@ti.com>
 
-if I remember correctly I had the same issue inverted. For me the
-initialization sequence of the freescale driver didn't work. Generally
-it was quite difficult to deduce anything from the docs to split the
-initialization into sensible parts. Too many parts were undocumented
-or didn't work as expected. Maybe there are different hardware
-revisions out there that need a different register setup.
-Unfortunately I can only give you some general notes here as I no
-longer possess an OV5642.
+add interface functions to set sync polarity, interrupt
+completion and pageframe size in vpss to be used by the main driver.
 
-Good luck,
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+---
+ drivers/media/platform/davinci/vpss.c |   32 ++++++++++++++++++++++++++++++++
+ include/media/davinci/vpss.h          |   16 ++++++++++++++++
+ 2 files changed, 48 insertions(+), 0 deletions(-)
 
- Bastian
+diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
+index a36d694..4b7c7ecc 100644
+--- a/drivers/media/platform/davinci/vpss.c
++++ b/drivers/media/platform/davinci/vpss.c
+@@ -97,6 +97,12 @@ struct vpss_hw_ops {
+ 	void (*select_ccdc_source)(enum vpss_ccdc_source_sel src_sel);
+ 	/* clear wbl overflow bit */
+ 	int (*clear_wbl_overflow)(enum vpss_wbl_sel wbl_sel);
++	/* set sync polarity */
++	void (*set_sync_pol)(struct vpss_sync_pol);
++	/* set the PG_FRAME_SIZE register*/
++	void (*set_pg_frame_size)(struct vpss_pg_frame_size);
++	/* check and clear interrupt if occured */
++	int (*dma_complete_interrupt)(void);
+ };
+ 
+ /* vpss configuration */
+@@ -161,6 +167,14 @@ static void dm355_select_ccdc_source(enum vpss_ccdc_source_sel src_sel)
+ 	bl_regw(src_sel << VPSS_HSSISEL_SHIFT, DM355_VPSSBL_CCDCMUX);
+ }
+ 
++int vpss_dma_complete_interrupt(void)
++{
++	if (!oper_cfg.hw_ops.dma_complete_interrupt)
++		return 2;
++	return oper_cfg.hw_ops.dma_complete_interrupt();
++}
++EXPORT_SYMBOL(vpss_dma_complete_interrupt);
++
+ int vpss_select_ccdc_source(enum vpss_ccdc_source_sel src_sel)
+ {
+ 	if (!oper_cfg.hw_ops.select_ccdc_source)
+@@ -186,6 +200,15 @@ static int dm644x_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
+ 	return 0;
+ }
+ 
++void vpss_set_sync_pol(struct vpss_sync_pol sync)
++{
++	if (!oper_cfg.hw_ops.set_sync_pol)
++		return;
++
++	oper_cfg.hw_ops.set_sync_pol(sync);
++}
++EXPORT_SYMBOL(vpss_set_sync_pol);
++
+ int vpss_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
+ {
+ 	if (!oper_cfg.hw_ops.clear_wbl_overflow)
+@@ -351,6 +374,15 @@ void dm365_vpss_set_sync_pol(struct vpss_sync_pol sync)
+ }
+ EXPORT_SYMBOL(dm365_vpss_set_sync_pol);
+ 
++void vpss_set_pg_frame_size(struct vpss_pg_frame_size frame_size)
++{
++	if (!oper_cfg.hw_ops.set_pg_frame_size)
++		return;
++
++	oper_cfg.hw_ops.set_pg_frame_size(frame_size);
++}
++EXPORT_SYMBOL(vpss_set_pg_frame_size);
++
+ void dm365_vpss_set_pg_frame_size(struct vpss_pg_frame_size frame_size)
+ {
+ 	int current_reg = ((frame_size.hlpfr >> 1) - 1) << 16;
+diff --git a/include/media/davinci/vpss.h b/include/media/davinci/vpss.h
+index b586495..153473d 100644
+--- a/include/media/davinci/vpss.h
++++ b/include/media/davinci/vpss.h
+@@ -105,4 +105,20 @@ enum vpss_wbl_sel {
+ };
+ /* clear wbl overflow flag for DM6446 */
+ int vpss_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel);
++
++/* set sync polarity*/
++void vpss_set_sync_pol(struct vpss_sync_pol sync);
++/* set the PG_FRAME_SIZE register */
++void vpss_set_pg_frame_size(struct vpss_pg_frame_size frame_size);
++/*
++ * vpss_check_and_clear_interrupt - check and clear interrupt
++ * @irq - common enumerator for IRQ
++ *
++ * Following return values used:-
++ * 0 - interrupt occurred and cleared
++ * 1 - interrupt not occurred
++ * 2 - interrupt status not available
++ */
++int vpss_dma_complete_interrupt(void);
++
+ #endif
+-- 
+1.7.4.1
 
-2012/11/6 Anatolij Gustschin <agust@denx.de>
->
-> Hi,
->
-> I'm trying to use mainline ov5642 driver for ov5642 based camera
-> module CM8206-A500SA-E from TRULY. The driver loads and initializes
-> the sensor, but the initialization seems to be incomplete, the sensor
-> doesn't generate pixel clock and sync signals.
->
-> For a quick test I've replaced the default initialisation sequences
-> from ov5642_default_regs_init[] and ov5642_default_regs_finalise[]
-> with an init sequence in ov5642_setting_30fps_720P_1280_720[] taken
-> from Freescale ov5642 driver [1] and commented out ov5642_set_resolution()
-> in ov5642_s_power(). With these changes to the mainline driver the
-> sensor starts clocking out pixels and I receive 1280x720 image.
->
-> Is anyone using the mainline ov5642 driver for mentioned TRULY camera
-> module? Just wanted to ask before digging further to find out what
-> changes to the mainline driver are really needed to make it working
-> with TRULY camera module.
->
-> Thanks,
-> Anatolij
->
-> [1] http://git.freescale.com/git/cgit.cgi/imx/linux-2.6-imx.git/plain/drivers/media/video/mxc/capture/ov5642.c?h=imx_3.0.15
