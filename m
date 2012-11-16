@@ -1,64 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38730 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751219Ab2KOWGb (ORCPT
+Received: from mail-da0-f46.google.com ([209.85.210.46]:32926 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751955Ab2KPOrg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 17:06:31 -0500
-Date: Fri, 16 Nov 2012 00:06:27 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
-Subject: [PATCH 0/4] Monotonic timestamps
-Message-ID: <20121115220627.GB29863@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	Fri, 16 Nov 2012 09:47:36 -0500
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 11/12] davinci: vpfe: dm365: add build infrastructure for capture driver
+Date: Fri, 16 Nov 2012 20:15:13 +0530
+Message-Id: <1353077114-19296-12-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1353077114-19296-1-git-send-email-prabhakar.lad@ti.com>
+References: <1353077114-19296-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+From: Manjunath Hadli <manjunath.hadli@ti.com>
 
-Here's my first monotonic timestamps patch series. Since the RFC series,
-I've corrected a warning in drivers/media/usb/s2255/s2255drv.c that was
-caused by an unused variable.
+add build infrastructure for dm365 specific modules for VPFE
+capture driver.
 
-All affected drivers compile without warnings. I've tested this on the OMAP
-3 ISP:
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+---
+ drivers/media/platform/davinci/Kconfig  |   11 +++++++++++
+ drivers/media/platform/davinci/Makefile |    3 +++
+ 2 files changed, 14 insertions(+), 0 deletions(-)
 
-02:11:34 sailus@peruna [~]yavta -c1 -f SGBRG10 -F/tmp/foo -s 2864x2048 /dev/video1
-Device /dev/video1 opened.
-Device `OMAP3 ISP CSI2a output' on `media' is a video capture device.
-Video format set: SGBRG10 (30314247) 2864x2048 (stride 5728) buffer size 11730944
-Video format: SGBRG10 (30314247) 2864x2048 (stride 5728) buffer size 11730944
-4 buffers requested.
-length: 11730944 offset: 0 timestamp type: monotonic
-Buffer 0 mapped at address 0xb62cb000.
-length: 11730944 offset: 11730944 timestamp type: monotonic
-Buffer 1 mapped at address 0xb579b000.
-length: 11730944 offset: 23461888 timestamp type: monotonic
-Buffer 2 mapped at address 0xb4c6b000.
-length: 11730944 offset: 35192832 timestamp type: monotonic
-Buffer 3 mapped at address 0xb413b000.
-0 (0) [-] 0 11730944 bytes 310.791595 310.792083 13.331 fps
-Captured 1 frames in 0.075500 seconds (13.244948 fps, 155375737.438942 B/s).
-4 buffers released.
-
-What the patches do is that they
-
-1. Add new buffer flags for timestamp type, and a mask,
-2. convert all the drivers to use monotonic timestamps and
-3. tell that all drivers are using monotonic timestamps.
-
-The assumption is that all drivers will use monotonic timestamps, especially
-the timestamp type is set in videobuf(2) in drivers that use it. This could
-be changed later on if we wish to make it selectable; in this case videobuf2
-would need to be told, and the helper function v4l2_get_timestamp() would
-need to be put to videobuf2 instead.
-
-Comments and questions are very welcome!
-
-Kind regards,
-
+diff --git a/drivers/media/platform/davinci/Kconfig b/drivers/media/platform/davinci/Kconfig
+index 78e26d2..b52c642 100644
+--- a/drivers/media/platform/davinci/Kconfig
++++ b/drivers/media/platform/davinci/Kconfig
+@@ -119,3 +119,14 @@ config VIDEO_VPBE_DISPLAY
+ 
+ 	    To compile this driver as a module, choose M here: the
+ 	    module will be called vpbe_display.
++
++
++config VIDEO_DM365_VPFE_CAPTURE
++	tristate "DM365 VPFE Media Controller Capture Driver"
++	depends on VIDEO_V4L2 && ARCH_DAVINCI_DM365 && !VIDEO_VPFE_CAPTURE
++	select VIDEOBUF2_DMA_CONTIG
++	help
++	  Support for DM365 VPFE based Media Controller Capture driver.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called vpfe-mc-capture.
+diff --git a/drivers/media/platform/davinci/Makefile b/drivers/media/platform/davinci/Makefile
+index 74ed92d..8ca702e 100644
+--- a/drivers/media/platform/davinci/Makefile
++++ b/drivers/media/platform/davinci/Makefile
+@@ -18,3 +18,6 @@ obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
+ obj-$(CONFIG_VIDEO_ISIF) += isif.o
+ obj-$(CONFIG_VIDEO_DM644X_VPBE) += vpbe.o vpbe_osd.o vpbe_venc.o
+ obj-$(CONFIG_VIDEO_VPBE_DISPLAY) += vpbe_display.o
++obj-$(CONFIG_VIDEO_DM365_VPFE_CAPTURE) += \
++	dm365_isif.o dm365_ipipe_hw.o dm365_ipipe.o \
++	dm365_resizer.o dm365_ipipeif.o vpfe_mc_capture.o vpfe_video.o
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.7.4.1
+
