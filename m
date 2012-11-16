@@ -1,86 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:52756 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752335Ab2KMLfd (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39220 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751353Ab2KPUt7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Nov 2012 06:35:33 -0500
-Date: Tue, 13 Nov 2012 12:35:18 +0100
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Cc: devicetree-discuss@lists.ozlabs.org,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: Re: [PATCH v8 6/6] drm_modes: add of_videomode helpers
-Message-ID: <20121113113518.GE30049@avionic-0098.mockup.avionic-design.de>
-References: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
- <1352734626-27412-7-git-send-email-s.trumtrar@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wTWi5aaYRw9ix9vO"
-Content-Disposition: inline
-In-Reply-To: <1352734626-27412-7-git-send-email-s.trumtrar@pengutronix.de>
+	Fri, 16 Nov 2012 15:49:59 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
+Subject: [PATCH v1.1 1/4] v4l: Define video buffer flags for timestamp types
+Date: Fri, 16 Nov 2012 22:49:55 +0200
+Message-Id: <1353098995-1319-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <201211161658.54968.hverkuil@xs4all.nl>
+References: <201211161658.54968.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Define video buffer flags for different timestamp types. Everything up to
+now have used either realtime clock or monotonic clock, without a way to
+tell which clock the timestamp was taken from.
 
---wTWi5aaYRw9ix9vO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+Changes since v1:
 
-On Mon, Nov 12, 2012 at 04:37:06PM +0100, Steffen Trumtrar wrote:
-[...]
-> +#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-> +static void dump_drm_displaymode(struct drm_display_mode *m)
-> +{
-> +	pr_debug("drm_displaymode =3D %d %d %d %d %d %d %d %d %d\n",
-> +		 m->hdisplay, m->hsync_start, m->hsync_end, m->htotal,
-> +		 m->vdisplay, m->vsync_start, m->vsync_end, m->vtotal,
-> +		 m->clock);
+- Mention about timestamps in API changes
+- Bump API version to 3.8
+- DocBook compile fixes
+- Tell realtime clock is the same as wall clock, and mention how to get such
+  timestamps in the user space
 
-I seem to remember a comment to an earlier version of this patch
-requesting better formatting of this string. Alternatively you might
-want to consider replacing it using drm_mode_debug_printmodeline().
+ Documentation/DocBook/media/v4l/compat.xml |   12 +++++++++++
+ Documentation/DocBook/media/v4l/io.xml     |   29 ++++++++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/v4l2.xml   |   12 ++++++++++-
+ include/uapi/linux/videodev2.h             |    4 +++
+ 4 files changed, 56 insertions(+), 1 deletions(-)
 
-> diff --git a/include/drm/drmP.h b/include/drm/drmP.h
-[...]
-> @@ -1457,6 +1458,10 @@ drm_mode_create_from_cmdline_mode(struct drm_devic=
-e *dev,
-> =20
->  extern int videomode_to_display_mode(struct videomode *vm,
->  				     struct drm_display_mode *dmode);
-> +extern int of_get_drm_display_mode(struct device_node *np,
-> +				   struct drm_display_mode *dmode,
-> +				   int index);
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 4fdf6b5..651ca52 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2477,6 +2477,18 @@ that used it. It was originally scheduled for removal in 2.6.35.
+       </orderedlist>
+     </section>
+ 
++    <section>
++      <title>V4L2 in Linux 3.8</title>
++      <orderedlist>
++        <listitem>
++	  <para>Added timestamp types to
++	  <structfield>flags</structfield> field in
++	  <structname>v4l2_buffer</structname>. See <xref
++	  linkend="buffer-flags" />.</para>
++        </listitem>
++      </orderedlist>
++    </section>
++
+     <section id="other">
+       <title>Relation of V4L2 to other Linux multimedia APIs</title>
+ 
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 7e2f3d7..bcd1c8f7 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -938,6 +938,35 @@ Typically applications shall use this flag for output buffers if the data
+ in this buffer has not been created by the CPU but by some DMA-capable unit,
+ in which case caches have not been used.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MASK</constant></entry>
++	    <entry>0xe000</entry>
++	    <entry>Mask for timestamp types below. To test the
++	    timestamp type, mask out bits not belonging to timestamp
++	    type by performing a logical and operation with buffer
++	    flags and timestamp mask.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN</constant></entry>
++	    <entry>0x0000</entry>
++	    <entry>Unknown timestamp type. This type is used by
++	    drivers before Linux 3.8 and may be either monotonic (see
++	    below) or realtime (wall clock). Monotonic clock has been
++	    favoured in embedded systems whereas most of the drivers
++	    use the realtime clock. Either kinds of timestamps are
++	    available in user space via
++	    <function>clock_gettime(2)</function> using clock IDs
++	    <constant>CLOCK_MONOTONIC</constant> and
++	    <constant>CLOCK_REALTIME</constant>, respectively.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC</constant></entry>
++	    <entry>0x2000</entry>
++	    <entry>The buffer timestamp has been taken from the
++	    <constant>CLOCK_MONOTONIC</constant> clock. To access the
++	    same clock outside V4L2, use
++	    <function>clock_gettime(2)</function> .</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 10ccde9..8b6f29e 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -140,6 +140,16 @@ structs, ioctls) must be noted in more detail in the history chapter
+ applications. -->
+ 
+       <revision>
++	<revnumber>3.8</revnumber>
++	<date>2012-11-16</date>
++	<authorinitials>sa</authorinitials>
++	<revremark>Added timestamp types to
++	<structname>v4l2_buffer</structname>, see <xref
++	linkend="buffer-flags" />.
++	</revremark>
++      </revision>
++
++      <revision>
+ 	<revnumber>3.6</revnumber>
+ 	<date>2012-07-02</date>
+ 	<authorinitials>hv</authorinitials>
+@@ -472,7 +482,7 @@ and discussions on the V4L mailing list.</revremark>
+ </partinfo>
+ 
+ <title>Video for Linux Two API Specification</title>
+- <subtitle>Revision 3.6</subtitle>
++ <subtitle>Revision 3.8</subtitle>
+ 
+   <chapter id="common">
+     &sub-common;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 2fff7ff..410ea9f 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -686,6 +686,10 @@ struct v4l2_buffer {
+ /* Cache handling flags */
+ #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
+ #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
++/* Timestamp type */
++#define V4L2_BUF_FLAG_TIMESTAMP_MASK		0xe000
++#define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x0000
++#define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x2000
+ 
+ /*
+  *	O V E R L A Y   P R E V I E W
+-- 
+1.7.2.5
 
-Also requires either a dummy or protection.
-
-Thierry
-
---wTWi5aaYRw9ix9vO
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQojB2AAoJEN0jrNd/PrOhgKEP/ApMZ4QWYnDY0Un0LZJl7xB1
-AIBq5vHGG3JehdPpWnhPv00ygJ/3EUW5QfAulbXghP+/p6FXwBhPSEkyp68ALtUI
-NgKib56DoWg1L0htQB7zbb/rzfypPHKKMWNRu50CiRt+aQ1FvGCvJJg3JrvPtmaQ
-hPy26pPr36dbBNB2YZo2iEN+jMHqKfoXKd6H+5AN0fsn8fvUsOLyycUyH6fpX7TP
-bzjh9hLTJrvrenII/IukfAwY1UPkq5v3RHfXD632kwTNKz3gVx3s5uPiAZqwIpSW
-s/HIgXJxuJbgoWrs8ghPbTh5O2IwwC4mCUeUwWYzL9S4tDI2oZdEBIgi4HVXux0H
-gpt5e3iip1f5vx3PYdw5qiWI0tnnemSiwTIJoNGuiM2L5BRkMUI/h5ni+CSKUprE
-KkhDJ3qkfHjdcRri4NGHRM/Er7oOaRyz5Kl4Urxg5MN2xp53IvfjPDuJntIYpw8u
-wO0nRvTjcASXJ4UjbKtZA6q1XsGDfiFHZa/lOokE1DMEDzDGOErITjEc92wIPGEs
-/6w5iK8VZtEFC/sY2c8bNZE9tGfM530u+iUTrMLhYPmOAJfYpDOvfFlX+Bx40co2
-HQbCa9zpl3iap/1ecmqm0A+nxSyRFzVdGgZBjeIyL80/J07qX0T9OqiotQRb+htY
-z18U/Vqw8IoOeqn9WFuz
-=FyzF
------END PGP SIGNATURE-----
-
---wTWi5aaYRw9ix9vO--
