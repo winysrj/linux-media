@@ -1,228 +1,274 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2174 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751844Ab2KPNzg (ORCPT
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:43066 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753454Ab2KPWjI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Nov 2012 08:55:36 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 4/4] v4l: Tell user space we're using monotonic timestamps
-Date: Fri, 16 Nov 2012 14:55:20 +0100
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-References: <20121115220627.GB29863@valkosipuli.retiisi.org.uk> <1353017207-370-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1353017207-370-4-git-send-email-sakari.ailus@iki.fi>
+	Fri, 16 Nov 2012 17:39:08 -0500
+Received: by mail-ea0-f174.google.com with SMTP id e13so1259969eaa.19
+        for <linux-media@vger.kernel.org>; Fri, 16 Nov 2012 14:39:05 -0800 (PST)
+Message-ID: <50A6C086.50208@gmail.com>
+Date: Fri, 16 Nov 2012 23:39:02 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Alexey Klimov <klimov.linux@gmail.com>
+CC: linux-media@vger.kernel.org, dron0gus@gmail.com,
+	tomasz.figa@gmail.com, oselas@community.pengutronix.de
+Subject: Re: [PATCH RFC v3 1/3] V4L: Add driver for S3C244X/S3C64XX SoC series
+ camera interface
+References: <1353017115-11492-1-git-send-email-sylvester.nawrocki@gmail.com> <1353017115-11492-2-git-send-email-sylvester.nawrocki@gmail.com> <CALW4P+JQUcywagZAe5qHRifsSwAnKoDccmhpQ=TSWvxcS-6CqA@mail.gmail.com> <CALW4P+KBd8fxCX8qSuZGYPx8pYj6LhEZfCurzuKuZzApe7Z7Aw@mail.gmail.com>
+In-Reply-To: <CALW4P+KBd8fxCX8qSuZGYPx8pYj6LhEZfCurzuKuZzApe7Z7Aw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201211161455.20781.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu November 15 2012 23:06:47 Sakari Ailus wrote:
-> Set buffer timestamp flags for videobuf, videobuf2 and drivers that use
-> neither.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/pci/meye/meye.c                 |    4 ++--
->  drivers/media/pci/zoran/zoran_driver.c        |    2 +-
->  drivers/media/platform/omap3isp/ispqueue.c    |    1 +
->  drivers/media/platform/vino.c                 |    3 +++
->  drivers/media/usb/cpia2/cpia2_v4l.c           |    5 ++++-
->  drivers/media/usb/sn9c102/sn9c102_core.c      |    2 +-
->  drivers/media/usb/stkwebcam/stk-webcam.c      |    1 +
->  drivers/media/usb/usbvision/usbvision-video.c |    5 +++--
->  drivers/media/v4l2-core/videobuf-core.c       |    2 +-
->  drivers/media/v4l2-core/videobuf2-core.c      |   10 ++++++----
->  10 files changed, 23 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/media/pci/meye/meye.c b/drivers/media/pci/meye/meye.c
-> index 288adea..ac7ab6e 100644
-> --- a/drivers/media/pci/meye/meye.c
-> +++ b/drivers/media/pci/meye/meye.c
-> @@ -1426,7 +1426,7 @@ static int vidioc_querybuf(struct file *file, void *fh, struct v4l2_buffer *buf)
->  		return -EINVAL;
->  
->  	buf->bytesused = meye.grab_buffer[index].size;
-> -	buf->flags = V4L2_BUF_FLAG_MAPPED;
-> +	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  
->  	if (meye.grab_buffer[index].state == MEYE_BUF_USING)
->  		buf->flags |= V4L2_BUF_FLAG_QUEUED;
-> @@ -1499,7 +1499,7 @@ static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
->  
->  	buf->index = reqnr;
->  	buf->bytesused = meye.grab_buffer[reqnr].size;
-> -	buf->flags = V4L2_BUF_FLAG_MAPPED;
-> +	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  	buf->field = V4L2_FIELD_NONE;
->  	buf->timestamp = meye.grab_buffer[reqnr].timestamp;
->  	buf->sequence = meye.grab_buffer[reqnr].sequence;
-> diff --git a/drivers/media/pci/zoran/zoran_driver.c b/drivers/media/pci/zoran/zoran_driver.c
-> index 53f12c7..33521a4 100644
-> --- a/drivers/media/pci/zoran/zoran_driver.c
-> +++ b/drivers/media/pci/zoran/zoran_driver.c
-> @@ -1334,7 +1334,7 @@ static int zoran_v4l2_buffer_status(struct zoran_fh *fh,
->  	struct zoran *zr = fh->zr;
->  	unsigned long flags;
->  
-> -	buf->flags = V4L2_BUF_FLAG_MAPPED;
-> +	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  
->  	switch (fh->map_mode) {
->  	case ZORAN_MAP_MODE_RAW:
-> diff --git a/drivers/media/platform/omap3isp/ispqueue.c b/drivers/media/platform/omap3isp/ispqueue.c
-> index 15bf3ea..6599963 100644
-> --- a/drivers/media/platform/omap3isp/ispqueue.c
-> +++ b/drivers/media/platform/omap3isp/ispqueue.c
-> @@ -674,6 +674,7 @@ static int isp_video_queue_alloc(struct isp_video_queue *queue,
->  		buf->vbuf.index = i;
->  		buf->vbuf.length = size;
->  		buf->vbuf.type = queue->type;
-> +		buf->vbuf.flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  		buf->vbuf.field = V4L2_FIELD_NONE;
->  		buf->vbuf.memory = memory;
->  
-> diff --git a/drivers/media/platform/vino.c b/drivers/media/platform/vino.c
-> index 28350e7..eb5d6f9 100644
-> --- a/drivers/media/platform/vino.c
-> +++ b/drivers/media/platform/vino.c
-> @@ -3410,6 +3410,9 @@ static void vino_v4l2_get_buffer_status(struct vino_channel_settings *vcs,
->  	if (fb->map_count > 0)
->  		b->flags |= V4L2_BUF_FLAG_MAPPED;
->  
-> +	b->flags &= ~V4L2_BUF_FLAG_TIMESTAMP_MASK;
-> +	b->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> +
->  	b->index = fb->id;
->  	b->memory = (vcs->fb_queue.type == VINO_MEMORY_MMAP) ?
->  		V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
-> diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
-> index aeb9d22..d5d42b6 100644
-> --- a/drivers/media/usb/cpia2/cpia2_v4l.c
-> +++ b/drivers/media/usb/cpia2/cpia2_v4l.c
-> @@ -825,6 +825,8 @@ static int cpia2_querybuf(struct file *file, void *fh, struct v4l2_buffer *buf)
->  	else
->  		buf->flags = 0;
->  
-> +	buf->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> +
->  	switch (cam->buffers[buf->index].status) {
->  	case FRAME_EMPTY:
->  	case FRAME_ERROR:
-> @@ -943,7 +945,8 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
->  
->  	buf->index = frame;
->  	buf->bytesused = cam->buffers[buf->index].length;
-> -	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_DONE;
-> +	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_DONE
-> +		| V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  	buf->field = V4L2_FIELD_NONE;
->  	buf->timestamp = cam->buffers[buf->index].timestamp;
->  	buf->sequence = cam->buffers[buf->index].seq;
-> diff --git a/drivers/media/usb/sn9c102/sn9c102_core.c b/drivers/media/usb/sn9c102/sn9c102_core.c
-> index 843fadc..2e0e2ff 100644
-> --- a/drivers/media/usb/sn9c102/sn9c102_core.c
-> +++ b/drivers/media/usb/sn9c102/sn9c102_core.c
-> @@ -173,7 +173,7 @@ sn9c102_request_buffers(struct sn9c102_device* cam, u32 count,
->  		cam->frame[i].buf.sequence = 0;
->  		cam->frame[i].buf.field = V4L2_FIELD_NONE;
->  		cam->frame[i].buf.memory = V4L2_MEMORY_MMAP;
-> -		cam->frame[i].buf.flags = 0;
-> +		cam->frame[i].buf.flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  	}
->  
->  	return cam->nbuffers;
-> diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-> index c22a4d0..459ebc6 100644
-> --- a/drivers/media/usb/stkwebcam/stk-webcam.c
-> +++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-> @@ -470,6 +470,7 @@ static int stk_setup_siobuf(struct stk_camera *dev, int index)
->  	buf->dev = dev;
->  	buf->v4lbuf.index = index;
->  	buf->v4lbuf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +	buf->v4lbuf.flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  	buf->v4lbuf.field = V4L2_FIELD_NONE;
->  	buf->v4lbuf.memory = V4L2_MEMORY_MMAP;
->  	buf->v4lbuf.m.offset = 2*index*buf->v4lbuf.length;
-> diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-> index 5c36a57..c6bc8ce 100644
-> --- a/drivers/media/usb/usbvision/usbvision-video.c
-> +++ b/drivers/media/usb/usbvision/usbvision-video.c
-> @@ -761,7 +761,7 @@ static int vidioc_querybuf(struct file *file,
->  	if (vb->index >= usbvision->num_frames)
->  		return -EINVAL;
->  	/* Updating the corresponding frame state */
-> -	vb->flags = 0;
-> +	vb->flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  	frame = &usbvision->frame[vb->index];
->  	if (frame->grabstate >= frame_state_ready)
->  		vb->flags |= V4L2_BUF_FLAG_QUEUED;
-> @@ -843,7 +843,8 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *vb)
->  	vb->memory = V4L2_MEMORY_MMAP;
->  	vb->flags = V4L2_BUF_FLAG_MAPPED |
->  		V4L2_BUF_FLAG_QUEUED |
-> -		V4L2_BUF_FLAG_DONE;
-> +		V4L2_BUF_FLAG_DONE |
-> +		V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  	vb->index = f->index;
->  	vb->sequence = f->sequence;
->  	vb->timestamp = f->timestamp;
-> diff --git a/drivers/media/v4l2-core/videobuf-core.c b/drivers/media/v4l2-core/videobuf-core.c
-> index bf7a326..e98db7e 100644
-> --- a/drivers/media/v4l2-core/videobuf-core.c
-> +++ b/drivers/media/v4l2-core/videobuf-core.c
-> @@ -337,7 +337,7 @@ static void videobuf_status(struct videobuf_queue *q, struct v4l2_buffer *b,
->  		break;
->  	}
->  
-> -	b->flags    = 0;
-> +	b->flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  	if (vb->map)
->  		b->flags |= V4L2_BUF_FLAG_MAPPED;
->  
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 432df11..19a5866 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -40,9 +40,10 @@ module_param(debug, int, 0644);
->  #define call_qop(q, op, args...)					\
->  	(((q)->ops->op) ? ((q)->ops->op(args)) : 0)
->  
-> -#define V4L2_BUFFER_STATE_FLAGS	(V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_QUEUED | \
-> +#define V4L2_BUFFER_MASK_FLAGS	(V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_QUEUED | \
->  				 V4L2_BUF_FLAG_DONE | V4L2_BUF_FLAG_ERROR | \
-> -				 V4L2_BUF_FLAG_PREPARED)
-> +				 V4L2_BUF_FLAG_PREPARED | \
-> +				 V4L2_BUF_FLAG_TIMESTAMP_MASK)
->  
->  /**
->   * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
-> @@ -367,7 +368,8 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
->  	/*
->  	 * Clear any buffer state related flags.
->  	 */
-> -	b->flags &= ~V4L2_BUFFER_STATE_FLAGS;
-> +	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
-> +	b->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  
->  	switch (vb->state) {
->  	case VB2_BUF_STATE_QUEUED:
-> @@ -863,7 +865,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
->  
->  	vb->v4l2_buf.field = b->field;
->  	vb->v4l2_buf.timestamp = b->timestamp;
-> -	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_STATE_FLAGS;
-> +	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
->  }
->  
->  /**
-> 
+Hi Alexey,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+On 11/16/2012 03:10 PM, Alexey Klimov wrote:
+>>> +static int s3c_camif_hw_init(struct camif_dev *camif, struct camif_vp
+>>> *vp)
+>>> +{
+>>> +       unsigned int ip_rev = camif->variant->ip_revision;
+>>> +       unsigned long flags;
+>>> +
+>>> +       if (camif->sensor.sd == NULL || vp->out_fmt == NULL)
+>>> +               return -EINVAL;
+>>> +
+>>> +       spin_lock_irqsave(&camif->slock, flags);
+>>> +
+>>> +       if (ip_rev == S3C244X_CAMIF_IP_REV)
+>>> +               camif_hw_clear_fifo_overflow(vp);
+>>> +       camif_hw_set_camera_bus(camif);
+>>> +       camif_hw_set_source_format(camif);
+>>> +       camif_hw_set_camera_crop(camif);
+>>> +       camif_hw_set_test_pattern(camif, camif->test_pattern->val);
+>>> +       if (ip_rev == S3C6410_CAMIF_IP_REV)
+>>> +               camif_hw_set_input_path(vp);
+>>> +       camif_cfg_video_path(vp);
+>>> +       vp->state&= ~ST_VP_CONFIG;
+>>> +
+>>> +       spin_unlock_irqrestore(&camif->slock, flags);
+>>> +       return 0;
+>>> +}
+>>> +
+>>> +/*
+>>> + * Initialize the video path, only up from the scaler stage. The camera
+>>> + * input interface set up is skipped. This is useful to enable one of
+>>> the
+>>> + * video paths when the other is already running.
+>>> + */
+>>> +static int s3c_camif_hw_vp_init(struct camif_dev *camif, struct camif_vp
+>>> *vp)
+>>> +{
+>>> +       unsigned int ip_rev = camif->variant->ip_revision;
+>>> +       unsigned long flags;
+>>> +
+>>> +       if (vp->out_fmt == NULL)
+>>> +               return -EINVAL;
+>>> +
+>>> +       spin_lock_irqsave(&camif->slock, flags);
+>>> +       camif_prepare_dma_offset(vp);
+>>> +       if (ip_rev == S3C244X_CAMIF_IP_REV)
+>>> +               camif_hw_clear_fifo_overflow(vp);
+>>> +       camif_cfg_video_path(vp);
+>>> +       if (ip_rev == S3C6410_CAMIF_IP_REV)
+>>> +               camif_hw_set_effect(vp, false);
+>>> +       vp->state&= ~ST_VP_CONFIG;
+>>> +
+>>> +       spin_unlock_irqrestore(&camif->slock, flags);
+>>> +       return 0;
+>>> +}
+...
+>>> +/*
+>>> + * Reinitialize the driver so it is ready to start streaming again.
+>>> + * Return any buffers to vb2, perform CAMIF software reset and
+>>> + * turn off streaming at the data pipeline (sensor) if required.
+>>> + */
+>>> +static int camif_reinitialize(struct camif_vp *vp)
+>>> +{
+>>> +       struct camif_dev *camif = vp->camif;
+>>> +       struct camif_buffer *buf;
+>>> +       unsigned long flags;
+>>> +       bool streaming;
+>>> +
+>>> +       spin_lock_irqsave(&camif->slock, flags);
+>>> +       streaming = vp->state&  ST_VP_SENSOR_STREAMING;
+>>> +
+>>> +       vp->state&= ~(ST_VP_PENDING | ST_VP_RUNNING | ST_VP_OFF |
+>>> +                      ST_VP_ABORTING | ST_VP_STREAMING |
+>>> +                      ST_VP_SENSOR_STREAMING | ST_VP_LASTIRQ);
+>>> +
+>>> +       /* Release unused buffers */
+>>> +       while (!list_empty(&vp->pending_buf_q)) {
+>>> +               buf = camif_pending_queue_pop(vp);
+>>> +               vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
+>>> +       }
+>>> +
+>>> +       while (!list_empty(&vp->active_buf_q)) {
+>>> +               buf = camif_active_queue_pop(vp);
+>>> +               vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
+>>> +       }
+>>> +
+>>> +       spin_unlock_irqrestore(&camif->slock, flags);
+>>> +
+>>> +       if (!streaming)
+>>> +               return 0;
+>>> +
+>>> +       return sensor_set_streaming(camif, 0);
+>>> +}
+...
+>>> +static int start_streaming(struct vb2_queue *vq, unsigned int count)
+>>> +{
+>>> +       struct camif_vp *vp = vb2_get_drv_priv(vq);
+>>> +       struct camif_dev *camif = vp->camif;
+>>> +       unsigned long flags;
+>>> +       int ret;
+>>> +
+>>> +       /*
+>>> +        * We assume the codec capture path is always activated
+>>> +        * first, before the preview path starts streaming.
+>>> +        * This is required to avoid internal FIFO overflow and
+>>> +        * a need for CAMIF software reset.
+>>> +        */
+>>> +       spin_lock_irqsave(&camif->slock, flags);
+>
+> Here.
+>
+>>>
+>>> +
+>>> +       if (camif->stream_count == 0) {
+>>> +               camif_hw_reset(camif);
+>>> +               spin_unlock_irqrestore(&camif->slock, flags);
+>>> +               ret = s3c_camif_hw_init(camif, vp);
+>>> +       } else {
+>>> +               spin_unlock_irqrestore(&camif->slock, flags);
+>>> +               ret = s3c_camif_hw_vp_init(camif, vp);
+>>> +       }
+>>> +
+>>> +       if (ret<  0) {
+>>> +               camif_reinitialize(vp);
+>>> +               return ret;
+>>> +       }
+>>> +
+>>> +       spin_lock_irqsave(&camif->slock, flags);
+>
+> Could you please check this function? Is it ok that you have double
+> spin_lock_irqsave()? I don't know may be it's okay. Also when you call
+> camif_reinitialize() you didn't call spin_unlock_irqrestore() before and
+> inside camif_reinitialize() you will also call spin_lock_irqsave()..
 
+Certainly with nested spinlock locking this code would have been useless.
+I suppose this is what you mean by "double spin_lock_irqsave()". Since
+it is known to work there must be spin_unlock_irqrestore() somewhere,
+before the second spin_lock_irqsave() above. Just look around with more
+focus ;)
+
+Nevertheless, it looks locking can be removed from functions
+s3c_camif_hw_init() and s3c_camif_vp_init(), those are called only from
+one place, where in addition the spinlock is already held. I'm going
+to squash following patch into that one:
+
+----8<------
+diff --git a/drivers/media/platform/s3c-camif/camif-capture.c 
+b/drivers/media/platform/s3c-camif/camif-capture.c
+index c2ecdcc..6401fdb 100644
+--- a/drivers/media/platform/s3c-camif/camif-capture.c
++++ b/drivers/media/platform/s3c-camif/camif-capture.c
+@@ -43,7 +43,7 @@
+  static int debug;
+  module_param(debug, int, 0644);
+
+-/* Locking: called with vp->camif->slock held */
++/* Locking: called with vp->camif->slock spinlock held */
+  static void camif_cfg_video_path(struct camif_vp *vp)
+  {
+  	WARN_ON(s3c_camif_get_scaler_config(vp, &vp->scaler));
+@@ -64,16 +64,14 @@ static void camif_prepare_dma_offset(struct camif_vp 
+*vp)
+  		 f->dma_offset.initial, f->dma_offset.line);
+  }
+
++/* Locking: called with camif->slock spinlock held */
+  static int s3c_camif_hw_init(struct camif_dev *camif, struct camif_vp *vp)
+  {
+  	const struct s3c_camif_variant *variant = camif->variant;
+-	unsigned long flags;
+
+  	if (camif->sensor.sd == NULL || vp->out_fmt == NULL)
+  		return -EINVAL;
+
+-	spin_lock_irqsave(&camif->slock, flags);
+-
+  	if (variant->ip_revision == S3C244X_CAMIF_IP_REV)
+  		camif_hw_clear_fifo_overflow(vp);
+  	camif_hw_set_camera_bus(camif);
+@@ -88,7 +86,6 @@ static int s3c_camif_hw_init(struct camif_dev *camif, 
+struct camif_vp *vp)
+  	camif_cfg_video_path(vp);
+  	vp->state &= ~ST_VP_CONFIG;
+
+-	spin_unlock_irqrestore(&camif->slock, flags);
+  	return 0;
+  }
+
+@@ -96,23 +93,20 @@ static int s3c_camif_hw_init(struct camif_dev 
+*camif, struct camif_vp *vp)
+   * Initialize the video path, only up from the scaler stage. The camera
+   * input interface set up is skipped. This is useful to enable one of the
+   * video paths when the other is already running.
++ * Locking: called with camif->slock spinlock held.
+   */
+  static int s3c_camif_hw_vp_init(struct camif_dev *camif, struct 
+camif_vp *vp)
+  {
+  	unsigned int ip_rev = camif->variant->ip_revision;
+-	unsigned long flags;
+
+  	if (vp->out_fmt == NULL)
+  		return -EINVAL;
+
+-	spin_lock_irqsave(&camif->slock, flags);
+  	camif_prepare_dma_offset(vp);
+  	if (ip_rev == S3C244X_CAMIF_IP_REV)
+  		camif_hw_clear_fifo_overflow(vp);
+  	camif_cfg_video_path(vp);
+  	vp->state &= ~ST_VP_CONFIG;
+-
+-	spin_unlock_irqrestore(&camif->slock, flags);
+  	return 0;
+  }
+
+@@ -401,12 +395,11 @@ static int start_streaming(struct vb2_queue *vq, 
+unsigned int count)
+
+  	if (camif->stream_count == 0) {
+  		camif_hw_reset(camif);
+-		spin_unlock_irqrestore(&camif->slock, flags);
+  		ret = s3c_camif_hw_init(camif, vp);
+  	} else {
+-		spin_unlock_irqrestore(&camif->slock, flags);
+  		ret = s3c_camif_hw_vp_init(camif, vp);
+  	}
++	spin_unlock_irqrestore(&camif->slock, flags);
+
+  	if (ret < 0) {
+  		camif_reinitialize(vp);
+@@ -437,8 +430,8 @@ static int start_streaming(struct vb2_queue *vq, 
+unsigned int count)
+  			return ret;
+  		}
+  	}
+-	spin_unlock_irqrestore(&camif->slock, flags);
+
++	spin_unlock_irqrestore(&camif->slock, flags);
+  	return 0;
+  }
+---->8------
+
+
+Thank you.
+
+
+--
 Regards,
-
-	Hans
+Sylwester
