@@ -1,110 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:33191 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751702Ab2KHTMT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:12:19 -0500
-Received: by mail-ea0-f174.google.com with SMTP id c13so1190326eaa.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2012 11:12:18 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 04/21] em28xx: rename struct em28xx_usb_isoc_bufs to em28xx_usb_bufs
-Date: Thu,  8 Nov 2012 20:11:36 +0200
-Message-Id: <1352398313-3698-5-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:36035 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753713Ab2KPVoK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Nov 2012 16:44:10 -0500
+Received: by mail-lb0-f174.google.com with SMTP id gp3so2522343lbb.19
+        for <linux-media@vger.kernel.org>; Fri, 16 Nov 2012 13:44:09 -0800 (PST)
+Message-ID: <1353102239.2101.7.camel@tux>
+Subject: [patch] MAINTAINERS: add an entry for radio-mr800 driver
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Sat, 17 Nov 2012 01:43:59 +0400
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It will be used for USB bulk transfers, too.
+This patch adds MAINTAINERS entry for radio-mr800 usb radio driver.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-core.c |    8 ++++----
- drivers/media/usb/em28xx/em28xx.h      |   10 +++++-----
- 2 Dateien geändert, 9 Zeilen hinzugefügt(+), 9 Zeilen entfernt(-)
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 2520a16..b250a63 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -964,7 +964,7 @@ static void em28xx_irq_callback(struct urb *urb)
- void em28xx_uninit_isoc(struct em28xx *dev, enum em28xx_mode mode)
- {
- 	struct urb *urb;
--	struct em28xx_usb_isoc_bufs *isoc_bufs;
-+	struct em28xx_usb_bufs *isoc_bufs;
- 	int i;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index f4b3aa8..e1d9e38 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4909,6 +4909,13 @@ S:	Maintained
+ F:	Documentation/serial/moxa-smartio
+ F:	drivers/tty/mxser.*
  
- 	em28xx_isocdbg("em28xx: called em28xx_uninit_isoc in mode %d\n", mode);
-@@ -1012,7 +1012,7 @@ void em28xx_stop_urbs(struct em28xx *dev)
- {
- 	int i;
- 	struct urb *urb;
--	struct em28xx_usb_isoc_bufs *isoc_bufs = &dev->isoc_ctl.digital_bufs;
-+	struct em28xx_usb_bufs *isoc_bufs = &dev->isoc_ctl.digital_bufs;
- 
- 	em28xx_isocdbg("em28xx: called em28xx_stop_urbs\n");
- 
-@@ -1036,7 +1036,7 @@ EXPORT_SYMBOL_GPL(em28xx_stop_urbs);
- int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
- 		      int num_packets, int num_bufs, int max_pkt_size)
- {
--	struct em28xx_usb_isoc_bufs *isoc_bufs;
-+	struct em28xx_usb_bufs *isoc_bufs;
- 	int i;
- 	int sb_size, pipe;
- 	struct urb *urb;
-@@ -1134,7 +1134,7 @@ int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
- {
- 	struct em28xx_dmaqueue *dma_q = &dev->vidq;
- 	struct em28xx_dmaqueue *vbi_dma_q = &dev->vbiq;
--	struct em28xx_usb_isoc_bufs *isoc_bufs;
-+	struct em28xx_usb_bufs *isoc_bufs;
- 	int i;
- 	int rc;
- 	int alloc;
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 36a7864..e062a27 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -203,7 +203,7 @@ enum em28xx_mode {
- 
- struct em28xx;
- 
--struct em28xx_usb_isoc_bufs {
-+struct em28xx_usb_bufs {
- 		/* max packet size of isoc transaction */
- 	int				max_pkt_size;
- 
-@@ -213,19 +213,19 @@ struct em28xx_usb_isoc_bufs {
- 		/* number of allocated urbs */
- 	int				num_bufs;
- 
--		/* urb for isoc transfers */
-+		/* urb for isoc/bulk transfers */
- 	struct urb			**urb;
- 
--		/* transfer buffers for isoc transfer */
-+		/* transfer buffers for isoc/bulk transfer */
- 	char				**transfer_buffer;
- };
- 
- struct em28xx_usb_isoc_ctl {
- 		/* isoc transfer buffers for analog mode */
--	struct em28xx_usb_isoc_bufs	analog_bufs;
-+	struct em28xx_usb_bufs		analog_bufs;
- 
- 		/* isoc transfer buffers for digital mode */
--	struct em28xx_usb_isoc_bufs	digital_bufs;
-+	struct em28xx_usb_bufs		digital_bufs;
- 
- 		/* Stores already requested buffers */
- 	struct em28xx_buffer    	*vid_buf;
--- 
-1.7.10.4
++MR800 AVERMEDIA USB FM RADIO DRIVER
++M:	Alexey Klimov <klimov.linux@gmail.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/radio/radio-mr800.c
++
+ MSI LAPTOP SUPPORT
+ M:	"Lee, Chun-Yi" <jlee@novell.com>
+ L:	platform-driver-x86@vger.kernel.org
+
 
