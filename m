@@ -1,87 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:44092 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932209Ab2K1TKA (ORCPT
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:37773 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753723Ab2KPWXH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 14:10:00 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0ME700LI6P8E8G40@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 29 Nov 2012 04:09:59 +0900 (KST)
-Received: from amdc1344.digital.local ([106.116.147.32])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0ME7006TUP7TOU90@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 29 Nov 2012 04:09:59 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sw0312.kim@samsung.com, kyungmin.park@samsung.com,
-	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 09/12] s5p-csis: Add registers logging for debugging
-Date: Wed, 28 Nov 2012 20:09:26 +0100
-Message-id: <1354129766-2821-10-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1354129766-2821-1-git-send-email-s.nawrocki@samsung.com>
-References: <1354129766-2821-1-git-send-email-s.nawrocki@samsung.com>
+	Fri, 16 Nov 2012 17:23:07 -0500
+From: Cyril Roelandt <tipecaml@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-media@vger.kernel.org, gregkh@linuxfoundation.org,
+	mchehab@infradead.org, bcollins@bluecherry.net,
+	Cyril Roelandt <tipecaml@gmail.com>
+Subject: [PATCH] staging/media/solo6x10/v4l2-enc.c: fix error-handling.
+Date: Fri, 16 Nov 2012 23:17:01 +0100
+Message-Id: <1353104221-30176-1-git-send-email-tipecaml@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dump registers contents together with the event counters state
-in VIDIOC_LOG_STATUS ioctl.
+The return values of copy_to_user() and copy_from_user() cannot be negative.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Found using the following semantich patch:
+
+<spml>
+@exists@
+identifier ret;
+statement S;
+expression E;
+@@
+(
+* ret = copy_to_user(...);
+|
+* ret = copy_from_user(...);
+)
+... when != ret = E
+    when != if (ret) { <+... ret = E; ...+> }
+* if (ret < 0)
+  S
+</spml>
+
+Signed-off-by: Cyril Roelandt <tipecaml@gmail.com>
 ---
- drivers/media/platform/s5p-fimc/mipi-csis.c |   28 +++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ drivers/staging/media/solo6x10/v4l2-enc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.c b/drivers/media/platform/s5p-fimc/mipi-csis.c
-index 8ec7c3b..8a06f14 100644
---- a/drivers/media/platform/s5p-fimc/mipi-csis.c
-+++ b/drivers/media/platform/s5p-fimc/mipi-csis.c
-@@ -383,6 +383,30 @@ err:
- 	return -ENXIO;
- }
- 
-+static void dump_regs(struct csis_state *state, const char *label)
-+{
-+	struct {
-+		u32 offset;
-+		const char * const name;
-+	} registers[] = {
-+		{ 0x00, "CTRL" },
-+		{ 0x04, "DPHYCTRL" },
-+		{ 0x08, "CONFIG" },
-+		{ 0x0c, "DPHYSTS" },
-+		{ 0x10, "INTMSK" },
-+		{ 0x2c, "RESOL" },
-+		{ 0x38, "SDW_CONFIG" },
-+	};
-+	u32 i;
-+
-+	v4l2_info(&state->sd, "--- %s ---\n", label);
-+
-+	for (i = 0; i < ARRAY_SIZE(registers); i++) {
-+		u32 cfg = s5pcsis_read(state, registers[i].offset);
-+		v4l2_info(&state->sd, "%10s: 0x%08x\n", registers[i].name, cfg);
-+	}
-+}
-+
- static void s5pcsis_start_stream(struct csis_state *state)
- {
- 	s5pcsis_reset(state);
-@@ -583,7 +607,11 @@ static int s5pcsis_log_status(struct v4l2_subdev *sd)
- {
- 	struct csis_state *state = sd_to_csis_state(sd);
- 
-+	mutex_lock(&state->lock);
- 	s5pcsis_log_counters(state, true);
-+	if (debug && (state->flags & ST_POWERED))
-+		dump_regs(state, __func__);
-+	mutex_unlock(&state->lock);
- 	return 0;
- }
- 
+diff --git a/drivers/staging/media/solo6x10/v4l2-enc.c b/drivers/staging/media/solo6x10/v4l2-enc.c
+index f8f0da9..4977e86 100644
+--- a/drivers/staging/media/solo6x10/v4l2-enc.c
++++ b/drivers/staging/media/solo6x10/v4l2-enc.c
+@@ -1619,6 +1619,8 @@ static int solo_s_ext_ctrls(struct file *file, void *priv,
+ 				solo_enc->osd_text[OSD_TEXT_MAX] = '\0';
+ 				if (!err)
+ 					err = solo_osd_print(solo_enc);
++				else
++					err = -EFAULT;
+ 			}
+ 			break;
+ 		default:
+@@ -1654,6 +1656,8 @@ static int solo_g_ext_ctrls(struct file *file, void *priv,
+ 				err = copy_to_user(ctrl->string,
+ 						   solo_enc->osd_text,
+ 						   OSD_TEXT_MAX);
++				if (err)
++					err = -EFAULT;
+ 			}
+ 			break;
+ 		default:
 -- 
-1.7.9.5
+1.7.10.4
 
