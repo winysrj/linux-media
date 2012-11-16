@@ -1,83 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44552 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1768657Ab2KOS7J (ORCPT
+Received: from mail-da0-f46.google.com ([209.85.210.46]:32926 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751666Ab2KPOr2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 13:59:09 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>, kernel@pengutronix.de,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v10 1/6] video: add display_timing and videomode
-Date: Thu, 15 Nov 2012 20:00:02 +0100
-Message-ID: <1668773.JuvWEH8bU2@avalon>
-In-Reply-To: <20121115180359.1E6F33E197F@localhost>
-References: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de> <2466982.zTBri0jEif@avalon> <20121115180359.1E6F33E197F@localhost>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 16 Nov 2012 09:47:28 -0500
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 09/12] davinci: vpss: dm365: set vpss clk ctrl
+Date: Fri, 16 Nov 2012 20:15:11 +0530
+Message-Id: <1353077114-19296-10-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1353077114-19296-1-git-send-email-prabhakar.lad@ti.com>
+References: <1353077114-19296-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 15 November 2012 18:03:59 Grant Likely wrote:
-> On Thu, 15 Nov 2012 17:00:57 +0100, Laurent Pinchart wrote:
-> > On Thursday 15 November 2012 15:47:53 Grant Likely wrote:
-> > > On Thu, 15 Nov 2012 10:23:52 +0100, Steffen Trumtrar wrote:
-> > > > Add display_timing structure and the according helper functions. This
-> > > > allows the description of a display via its supported timing
-> > > > parameters.
-> > > > 
-> > > > Every timing parameter can be specified as a single value or a range
-> > > > <min typ max>.
-> > > > 
-> > > > Also, add helper functions to convert from display timings to a
-> > > > generic videomode structure. This videomode can then be converted to
-> > > > the corresponding subsystem mode representation (e.g. fb_videomode).
-> > > > 
-> > > > Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-> > > 
-> > > Hmmm... here's my thoughts as an outside reviewer. Correct me if I'm
-> > > making an incorrect assumption.
-> > > 
-> > > It looks to me that the purpose of this entire series is to decode video
-> > > timings from the device tree and (eventually) provide the data in the
-> > > form 'struct videomode'. Correct?
-> > > 
-> > > If so, then it looks over engineered. Creating new infrastructure to
-> > > allocate, maintain, and free a new 'struct display_timings' doesn't make
-> > > any sense when it is an intermediary data format that will never be used
-> > > by drivers.
-> > > 
-> > > Can the DT parsing code instead return a table of struct videomode?
-> > > 
-> > > But, wait... struct videomode is also a new structure. So it looks like
-> > > this series creates two new intermediary data structures;
-> > > display_timings and videomode. And at least as far as I can see in this
-> > > series struct fb_videomode is the only user.
-> > 
-> > struct videomode is supposed to slowly replace the various video mode
-> > structures we currently have in the kernel (struct drm_mode_modeinfo,
-> > struct fb_videomode and struct v4l2_bt_timings), at least where possible
-> > (userspace APIs can't be broken). This will make it possible to reuse
-> > code across the DRM, FB and V4L2 subsystems, such as the EDID parser or
-> > HDMI encoder drivers. This rationale might not be clearly explained in
-> > the commit message, but having a shared video mode structure is pretty
-> > important.
-> 
-> Okay that make sense. What about struct display_timings?
+From: Manjunath Hadli <manjunath.hadli@ti.com>
 
-I'll let Steffen answer on that one as I (currently) have no strong feeling 
-about it. If we were to remove it we would need to carry the number of 
-timings, native timing and timings array around. That wouldn't be very 
-practical for drivers, but it probably all depends on the usage drivers will 
-make of that information.
+request_mem_region for VPSS_CLK_CTRL register and ioremap.
+and enable clocks appropriately.
 
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+---
+ drivers/media/platform/davinci/vpss.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
+index 34ad7bd..a36d694 100644
+--- a/drivers/media/platform/davinci/vpss.c
++++ b/drivers/media/platform/davinci/vpss.c
+@@ -103,6 +103,7 @@ struct vpss_hw_ops {
+ struct vpss_oper_config {
+ 	__iomem void *vpss_regs_base0;
+ 	__iomem void *vpss_regs_base1;
++	resource_size_t *vpss_regs_base2;
+ 	enum vpss_platform_type platform;
+ 	spinlock_t vpss_lock;
+ 	struct vpss_hw_ops hw_ops;
+@@ -484,11 +485,24 @@ static struct platform_driver vpss_driver = {
+ 
+ static void vpss_exit(void)
+ {
++	iounmap(oper_cfg.vpss_regs_base2);
++	release_mem_region(*oper_cfg.vpss_regs_base2, 4);
+ 	platform_driver_unregister(&vpss_driver);
+ }
+ 
++#define VPSS_CLK_CTRL			0x01c40044
++#define VPSS_CLK_CTRL_VENCCLKEN		BIT(3)
++#define VPSS_CLK_CTRL_DACCLKEN		BIT(4)
++
+ static int __init vpss_init(void)
+ {
++	if (request_mem_region(VPSS_CLK_CTRL, 4, "vpss_clock_control")) {
++		oper_cfg.vpss_regs_base2 = ioremap(VPSS_CLK_CTRL, 4);
++		__raw_writel(VPSS_CLK_CTRL_VENCCLKEN |
++			     VPSS_CLK_CTRL_DACCLKEN, oper_cfg.vpss_regs_base2);
++	} else {
++		return -EBUSY;
++	}
+ 	return platform_driver_register(&vpss_driver);
+ }
+ subsys_initcall(vpss_init);
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.4.1
 
