@@ -1,57 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42961 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753646Ab2KZA2F (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:37736 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751364Ab2KPG5H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Nov 2012 19:28:05 -0500
-Date: Mon, 26 Nov 2012 02:28:00 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v2 00/12] Media Controller capture driver for DM365
-Message-ID: <20121126002800.GE31879@valkosipuli.retiisi.org.uk>
-References: <1353077114-19296-1-git-send-email-prabhakar.lad@ti.com>
- <CA+V-a8t5ZJ2Zb+dWkifjjOHOrv1LAvgaJR2x24xKJXrTJs9+jg@mail.gmail.com>
- <20121123135753.GB31879@valkosipuli.retiisi.org.uk>
- <201211231501.52852.hverkuil@xs4all.nl>
- <CA+V-a8sFW7-dkjS=NxM2uJhhOBwTXQ5zGk9hBsA++w6P1PzFMQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CA+V-a8sFW7-dkjS=NxM2uJhhOBwTXQ5zGk9hBsA++w6P1PzFMQ@mail.gmail.com>
+	Fri, 16 Nov 2012 01:57:07 -0500
+Received: by mail-pb0-f46.google.com with SMTP id wy7so1734370pbc.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Nov 2012 22:57:07 -0800 (PST)
+From: Tushar Behera <tushar.behera@linaro.org>
+To: linux-kernel@vger.kernel.org
+Cc: patches@linaro.org, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 03/14] [media] saa7134: Remove redundant check on unsigned variable
+Date: Fri, 16 Nov 2012 12:20:35 +0530
+Message-Id: <1353048646-10935-4-git-send-email-tushar.behera@linaro.org>
+In-Reply-To: <1353048646-10935-1-git-send-email-tushar.behera@linaro.org>
+References: <1353048646-10935-1-git-send-email-tushar.behera@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+No need to check whether the unsigned variable is less than 0.
 
-Hi Prabhakar,
-On Sun, Nov 25, 2012 at 09:57:23PM +0530, Prabhakar Lad wrote:
-> On Fri, Nov 23, 2012 at 7:31 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > On Fri November 23 2012 14:57:53 Sakari Ailus wrote:
-...
-> >> I think it should go under staging, the same directory as the driver.
-> >>
-> >> Hans, Mauro: could you confirm this?
-> >
-> > I agree with that, that way things stay together in one directory.
-> >
-> Ok I'll have the documentation in staging folder itself. What about
-> the header file which is added
-> to include/media/davinci/xxx.h, these header files are used by machine
-> file and drivers
-> only, I think also moving them to staging wont make sense and also
-> these files are expected
-> not to change, what are your suggestion on this ?
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org
+Signed-off-by: Tushar Behera <tushar.behera@linaro.org>
+---
+ drivers/media/pci/saa7134/saa7134-video.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I'd put them to staging if they're related to the driver ifself rather than
-e.g. resource definitions. What would go under arch/arm then?
-
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index 4a77124..3abf527 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -2511,7 +2511,7 @@ int saa7134_video_init1(struct saa7134_dev *dev)
+ 	/* sanitycheck insmod options */
+ 	if (gbuffers < 2 || gbuffers > VIDEO_MAX_FRAME)
+ 		gbuffers = 2;
+-	if (gbufsize < 0 || gbufsize > gbufsize_max)
++	if (gbufsize > gbufsize_max)
+ 		gbufsize = gbufsize_max;
+ 	gbufsize = (gbufsize + PAGE_SIZE - 1) & PAGE_MASK;
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.7.4.1
+
