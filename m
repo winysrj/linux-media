@@ -1,38 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:46926 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753389Ab2KMPPD (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2725 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751590Ab2KPOAd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Nov 2012 10:15:03 -0500
-Received: by mail-ie0-f174.google.com with SMTP id k13so10831174iea.19
-        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2012 07:15:02 -0800 (PST)
+	Fri, 16 Nov 2012 09:00:33 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 4/6] uvcvideo: Set device_caps in VIDIOC_QUERYCAP
+Date: Fri, 16 Nov 2012 15:00:29 +0100
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1348758980-21683-1-git-send-email-laurent.pinchart@ideasonboard.com> <1348758980-21683-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1348758980-21683-5-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <CAE8Q9tDW9D=oP=hNmLot0OoYk9V7xsm0R4SrcY+tpWhgbdTAbA@mail.gmail.com>
-References: <CALF0-+XthyGJ-LzovTxLAKmMBif-YkLnNNcQBJvtnqTua+Ktag@mail.gmail.com>
-	<CAE8Q9tDW9D=oP=hNmLot0OoYk9V7xsm0R4SrcY+tpWhgbdTAbA@mail.gmail.com>
-Date: Tue, 13 Nov 2012 12:15:02 -0300
-Message-ID: <CALF0-+Vu4Gv=NK+PnxUzbvf2PeVw+PCbJv_wVfVLpcAWsCt1PA@mail.gmail.com>
-Subject: Re: Regarding bulk transfers on stk1160
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Gordon Hollingworth <gordon@holliweb.co.uk>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	michael hartup <michael.hartup@gmail.com>,
-	linux-rpi-kernel@lists.infradead.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201211161500.29555.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gordon,
+On Thu September 27 2012 17:16:18 Laurent Pinchart wrote:
+> Set the capabilities field to global capabilities, and the device_caps
+> field to the video node capabilities.
+> 
+> This issue was found by the v4l2-compliance tool.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/usb/uvc/uvc_driver.c |    5 +++++
+>  drivers/media/usb/uvc/uvc_v4l2.c   |   10 ++++++----
+>  drivers/media/usb/uvc/uvcvideo.h   |    2 ++
+>  3 files changed, 13 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+> index 5967081..ae24f7d 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -1741,6 +1741,11 @@ static int uvc_register_video(struct uvc_device *dev,
+>  		return ret;
+>  	}
+>  
+> +	if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> +		stream->chain->caps |= V4L2_CAP_VIDEO_CAPTURE;
+> +	else
+> +		stream->chain->caps |= V4L2_CAP_VIDEO_OUTPUT;
+> +
+>  	atomic_inc(&dev->nstreams);
+>  	return 0;
+>  }
+> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+> index 3bd9373..b1aa55f 100644
+> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> @@ -565,12 +565,14 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>  		usb_make_path(stream->dev->udev,
+>  			      cap->bus_info, sizeof(cap->bus_info));
+>  		cap->version = LINUX_VERSION_CODE;
+> +		cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
+> +				  | chain->caps;
+>  		if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> -			cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
+> -					  | V4L2_CAP_STREAMING;
+> +			cap->device_caps = V4L2_CAP_VIDEO_CAPTURE
+> +					 | V4L2_CAP_STREAMING;
+>  		else
+> -			cap->capabilities = V4L2_CAP_VIDEO_OUTPUT
+> -					  | V4L2_CAP_STREAMING;
+> +			cap->device_caps = V4L2_CAP_VIDEO_OUTPUT
+> +					 | V4L2_CAP_STREAMING;
 
-On Tue, Nov 13, 2012 at 11:05 AM, Gordon Hollingworth
-<gordon@holliweb.co.uk> wrote:
-> Might see if I can get hold of one of these, is there a commercial device name?
->
+This seems weird. Wouldn't it be easier to do:
 
-They're called easycap:
-http://easycap.blogspot.com.ar/
-http://linuxtv.org/wiki/index.php/Easycap
+		cap->device_caps = chain->caps | V4L2_CAP_STREAMING;
 
-Hope this helps,
+You don't need the if/else here.
 
-    Ezequiel
+>  		break;
+>  	}
+>  
+> diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+> index 7244455..28ff015 100644
+> --- a/drivers/media/usb/uvc/uvcvideo.h
+> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> @@ -371,6 +371,8 @@ struct uvc_video_chain {
+>  	struct uvc_entity *selector;		/* Selector unit */
+>  
+>  	struct mutex ctrl_mutex;		/* Protects ctrl.info */
+> +
+> +	u32 caps;				/* V4L2 chain-wide caps */
+>  };
+>  
+>  struct uvc_stats_frame {
+> 
+
+Regards,
+
+	Hans
