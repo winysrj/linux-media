@@ -1,55 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews01.kpnxchange.com ([213.75.39.4]:58330 "EHLO
-	cpsmtpb-ews01.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754260Ab2KAUYc (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39222 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751353Ab2KPUvq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Nov 2012 16:24:32 -0400
-Message-ID: <1351801470.1597.13.camel@x61.thuisdomein>
-Subject: [PATCH] [media] budget-av: only use t_state if initialized
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Thu, 01 Nov 2012 21:24:30 +0100
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Fri, 16 Nov 2012 15:51:46 -0500
+Received: from salottisipuli.retiisi.org.uk (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:6d9a::83:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id D7D376009F
+	for <linux-media@vger.kernel.org>; Fri, 16 Nov 2012 22:51:44 +0200 (EET)
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/1] v4l: There's no __unsigned
+Date: Fri, 16 Nov 2012 22:51:44 +0200
+Message-Id: <1353099104-1364-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Building budget-av.o triggers this GCC warning:
-    In file included from drivers/media/pci/ttpci/budget-av.c:44:0:
-    drivers/media/dvb-frontends/tda8261_cfg.h: In function ‘tda8261_get_bandwidth’:
-    drivers/media/dvb-frontends/tda8261_cfg.h:68:21: warning: ‘t_state.bandwidth’ may be used uninitialized in this function [-Wuninitialized]
+Correct a typo. v4l2_plane.m.userptr is unsigned long, not __unsigned long.
 
-Move the printk() that uses t_state.bandwith to the location where it
-should be initialized to fix this.
-
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
-0) Compile tested only.
+ Documentation/DocBook/media/v4l/io.xml |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-1) By the way, the first two if()-tests in tda8261_get_bandwidth()
-should be superfluous. And the first two if()-tests in both
-tda8261_get_frequency() and tda8261_set_frequency() look bogus to me, as
-they should always succeed. If that's correct, there are some cleanups
-possible in this header.
-
- drivers/media/dvb-frontends/tda8261_cfg.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/dvb-frontends/tda8261_cfg.h b/drivers/media/dvb-frontends/tda8261_cfg.h
-index 1af1ee4..4671074 100644
---- a/drivers/media/dvb-frontends/tda8261_cfg.h
-+++ b/drivers/media/dvb-frontends/tda8261_cfg.h
-@@ -78,7 +78,7 @@ static int tda8261_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
- 			return err;
- 		}
- 		*bandwidth = t_state.bandwidth;
-+		printk("%s: Bandwidth=%d\n", __func__, t_state.bandwidth);
- 	}
--	printk("%s: Bandwidth=%d\n", __func__, t_state.bandwidth);
- 	return 0;
- }
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index bcd1c8f7..1565f31 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -736,7 +736,7 @@ should set this to 0.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry></entry>
+-	    <entry>__unsigned long</entry>
++	    <entry>unsigned long</entry>
+ 	    <entry><structfield>userptr</structfield></entry>
+ 	    <entry>When the memory type in the containing &v4l2-buffer; is
+ 	      <constant>V4L2_MEMORY_USERPTR</constant>, this is a userspace
 -- 
-1.7.11.7
+1.7.2.5
 
