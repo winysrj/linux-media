@@ -1,95 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews08.kpnxchange.com ([213.75.39.13]:52079 "EHLO
-	cpsmtpb-ews08.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757236Ab2KAVAQ (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:55740 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751450Ab2KPG5N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Nov 2012 17:00:16 -0400
-Message-ID: <1351803609.1597.16.camel@x61.thuisdomein>
-Subject: [PATCH] [media] tda18212: tda18218: use 'val' if initialized
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Thu, 01 Nov 2012 22:00:09 +0100
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Fri, 16 Nov 2012 01:57:13 -0500
+Received: by mail-pb0-f46.google.com with SMTP id wy7so1734368pbc.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Nov 2012 22:57:13 -0800 (PST)
+From: Tushar Behera <tushar.behera@linaro.org>
+To: linux-kernel@vger.kernel.org
+Cc: patches@linaro.org, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 05/14] [media] atmel-isi: Update error check for unsigned variables
+Date: Fri, 16 Nov 2012 12:20:37 +0530
+Message-Id: <1353048646-10935-6-git-send-email-tushar.behera@linaro.org>
+In-Reply-To: <1353048646-10935-1-git-send-email-tushar.behera@linaro.org>
+References: <1353048646-10935-1-git-send-email-tushar.behera@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commits e666a44fa313cb9329c0381ad02fc6ee1e21cb31 ("[media] tda18212:
-silence compiler warning") and e0e52d4e9f5bce7ea887027c127473eb654a5a04
-("[media] tda18218: silence compiler warning") silenced warnings
-equivalent to these:
-    drivers/media/tuners/tda18212.c: In function ‘tda18212_attach’:
-    drivers/media/tuners/tda18212.c:299:2: warning: ‘val’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-    drivers/media/tuners/tda18218.c: In function ‘tda18218_attach’:
-    drivers/media/tuners/tda18218.c:305:2: warning: ‘val’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+Checking '< 0' for unsigned variables always returns false. For error
+codes, use IS_ERR_VALUE() instead.
 
-But in both cases 'val' will still be used uninitialized if the calls
-of tda18212_rd_reg() or tda18218_rd_reg() fail. Fix this by only
-printing the "chip id" if the calls of those functions were successful.
-This allows to drop the uninitialized_var() stopgap measure.
-
-Also stop printing the return values of tda18212_rd_reg() or
-tda18218_rd_reg(), as these are not interesting.
-
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org
+Signed-off-by: Tushar Behera <tushar.behera@linaro.org>
 ---
-0) Compile tested only.
+ drivers/media/platform/soc_camera/atmel-isi.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
- drivers/media/tuners/tda18212.c | 6 +++---
- drivers/media/tuners/tda18218.c | 6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/tuners/tda18212.c b/drivers/media/tuners/tda18212.c
-index 5d9f028..e4a84ee 100644
---- a/drivers/media/tuners/tda18212.c
-+++ b/drivers/media/tuners/tda18212.c
-@@ -277,7 +277,7 @@ struct dvb_frontend *tda18212_attach(struct dvb_frontend *fe,
- {
- 	struct tda18212_priv *priv = NULL;
- 	int ret;
--	u8 uninitialized_var(val);
-+	u8 val;
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 6274a91..5bd65df 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -1020,7 +1020,7 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+ 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
  
- 	priv = kzalloc(sizeof(struct tda18212_priv), GFP_KERNEL);
- 	if (priv == NULL)
-@@ -296,8 +296,8 @@ struct dvb_frontend *tda18212_attach(struct dvb_frontend *fe,
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
- 
--	dev_dbg(&priv->i2c->dev, "%s: ret=%d chip id=%02x\n", __func__, ret,
--			val);
-+	if (!ret)
-+		dev_dbg(&priv->i2c->dev, "%s: chip id=%02x\n", __func__, val);
- 	if (ret || val != 0xc7) {
- 		kfree(priv);
- 		return NULL;
-diff --git a/drivers/media/tuners/tda18218.c b/drivers/media/tuners/tda18218.c
-index 1819853..2d31aeb 100644
---- a/drivers/media/tuners/tda18218.c
-+++ b/drivers/media/tuners/tda18218.c
-@@ -277,7 +277,7 @@ struct dvb_frontend *tda18218_attach(struct dvb_frontend *fe,
- 	struct i2c_adapter *i2c, struct tda18218_config *cfg)
- {
- 	struct tda18218_priv *priv = NULL;
--	u8 uninitialized_var(val);
-+	u8 val;
- 	int ret;
- 	/* chip default registers values */
- 	static u8 def_regs[] = {
-@@ -302,8 +302,8 @@ struct dvb_frontend *tda18218_attach(struct dvb_frontend *fe,
- 
- 	/* check if the tuner is there */
- 	ret = tda18218_rd_reg(priv, R00_ID, &val);
--	dev_dbg(&priv->i2c->dev, "%s: ret=%d chip id=%02x\n", __func__, ret,
--			val);
-+	if (!ret)
-+		dev_dbg(&priv->i2c->dev, "%s: chip id=%02x\n", __func__, val);
- 	if (ret || val != def_regs[R00_ID]) {
- 		kfree(priv);
- 		return NULL;
+ 	irq = platform_get_irq(pdev, 0);
+-	if (irq < 0) {
++	if (IS_ERR_VALUE(irq)) {
+ 		ret = irq;
+ 		goto err_req_irq;
+ 	}
 -- 
-1.7.11.7
+1.7.4.1
 
