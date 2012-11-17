@@ -1,59 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:34107 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751100Ab2KCEPC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2012 00:15:02 -0400
-Received: by mail-ie0-f174.google.com with SMTP id k13so5937502iea.19
-        for <linux-media@vger.kernel.org>; Fri, 02 Nov 2012 21:15:02 -0700 (PDT)
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:47188 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751166Ab2KQNfT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Nov 2012 08:35:19 -0500
+Received: by mail-qc0-f174.google.com with SMTP id o22so2300604qcr.19
+        for <linux-media@vger.kernel.org>; Sat, 17 Nov 2012 05:35:19 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <502AE483.6000001@iki.fi>
-References: <1344987576.21425.YahooMailClassic@web29406.mail.ird.yahoo.com>
-	<502AE483.6000001@iki.fi>
-Date: Fri, 2 Nov 2012 21:14:59 -0700
-Message-ID: <CAA7C2qj=MqjffDMG3Ekb2RLiwnj0dvOzEvhm_RDM=HLED3YvfA@mail.gmail.com>
-Subject: Re: small regression in mediatree/for_v3.7-3 - media_build
-From: VDR User <user.vdr@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: htl10@users.sourceforge.net, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Date: Sat, 17 Nov 2012 13:35:18 +0000
+Message-ID: <CAKQROYXaEVasawMTd7XiDOvx_ZxL6H=0MqEds2-C+WFDru0m=Q@mail.gmail.com>
+Subject: Linux DVB Explained..
+From: Richard <tuxbox.guru@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Aug 14, 2012 at 4:51 PM, Antti Palosaari <crope@iki.fi> wrote:
->> There seems to be a small regression on mediatree/for_v3.7-3
->> - dmesg/klog get flooded with these:
->>
->> [201145.140260] dvb_frontend_poll: 15 callbacks suppressed
->> [201145.586405] usb_urb_complete: 88 callbacks suppressed
->> [201150.587308] usb_urb_complete: 3456 callbacks suppressed
->>
->> [201468.630197] usb_urb_complete: 3315 callbacks suppressed
->> [201473.632978] usb_urb_complete: 3529 callbacks suppressed
->> [201478.635400] usb_urb_complete: 3574 callbacks suppressed
->>
->> It seems to be every 5 seconds, but I think that's just klog skipping
->> repeats and collapsing duplicate entries. This does not happen the last time
->> I tried playing with the TV stick :-).
->
-> That's because you has dynamic debugs enabled!
-> modprobe dvb_core; echo -n 'module dvb_core +p' >
-> /sys/kernel/debug/dynamic_debug/control
-> modprobe dvb_usbv2; echo -n 'module dvb_usbv2 +p' >
-> /sys/kernel/debug/dynamic_debug/control
->
-> If you don't add dvb_core and dvb_usbv2 modules to
-> /sys/kernel/debug/dynamic_debug/control you will not see those.
+Hi Mau,
 
-I'm getting massive amounts of "dvb_frontend_poll: 20 callbacks
-suppressed" messages in dmesg also and I definitely did not put
-dvb_core or anything else in /sys/kernel/debug/dynamic_debug/control.
-For that matter I don't even have a
-/sys/kernel/debug/dynamic_debug/control file.
 
-> I have added ratelimited version for those few debugs that are flooded
-> normally. This suppressed is coming from ratelimit - it does not print all
-> those similar debugs.
+I have started documenting a HOWTO on making a linuxDVB device and
+would like to know what the following is used for....
 
-I'm using kernel 3.6.3 with media_build from Oct. 21, 2012. How I can
-disable those messages? I'd rather not see hundreds, possibly
-thousands or millions of those messages. :)
+
+struct dvb_demux :
+This has a start_feed and a stop feed.   What feed is this? ... the
+RAW 188 byte packets from the device perhaps?
+
+What is the main purpose of this structure?
+
+struct dmx_demux :
+This structure holds the frontend device struct and contains the .fops
+for read/write.  Is this the main interface when using the
+/dev/dvb/adapterX/demux ? /dvr?
+
+
+So far...
+
+adapter = dvb_register_adapter() : Register a new DVB device adapter
+(called once)
+dvb_dmx_init(dvbdemux);  // Called once per Demux chain?
+dvb_dmxdev_init();  // Called once per demux chain ? same as above
+
+-------------------
+The hardware I am using has 6 TS data inputs, 4 tuners (linked to TS
+inputs)  and hardware PID filters and I am trying to establish the
+relationship of dmx and dmxdev.
+
+
+Any clarification is most welcome
+Best Regards,
+Richard
