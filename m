@@ -1,49 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:65524 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754633Ab2KIRAy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Nov 2012 12:00:54 -0500
-Received: by mail-bk0-f46.google.com with SMTP id jk13so1743357bkc.19
-        for <linux-media@vger.kernel.org>; Fri, 09 Nov 2012 09:00:53 -0800 (PST)
-Message-ID: <509D28B6.5060503@googlemail.com>
-Date: Fri, 09 Nov 2012 18:00:54 +0200
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 21/21] em28xx: add module parameter for selection of
- the preferred USB transfer type
-References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com> <1352398313-3698-22-git-send-email-fschaefer.oss@googlemail.com> <CAGoCfiwHviRd8-tsmwxf8=eLbiapUwnrvCM2qB2M5skiqXMNVw@mail.gmail.com> <509BFBF5.7050209@googlemail.com> <CAGoCfiy5wZUajtDiF53gaDED5MCUrsdabQicbrq+RG3dGU0D_A@mail.gmail.com>
-In-Reply-To: <CAGoCfiy5wZUajtDiF53gaDED5MCUrsdabQicbrq+RG3dGU0D_A@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from mta-out.inet.fi ([195.156.147.13]:42820 "EHLO jenni1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752051Ab2KRPNN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Nov 2012 10:13:13 -0500
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH 3/7] ir-rx51: Move platform data checking into probe function
+Date: Sun, 18 Nov 2012 17:13:05 +0200
+Message-Id: <1353251589-26143-4-git-send-email-timo.t.kokkonen@iki.fi>
+In-Reply-To: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
+References: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 08.11.2012 21:46, schrieb Devin Heitmueller:
-> On Thu, Nov 8, 2012 at 1:37 PM, Frank Schäfer
-> <fschaefer.oss@googlemail.com> wrote:
->> at least the "Silvercrest Webcam 1.3mpix" (board 71) exposes both
->> endpoint types (0x82=isoc and 0x84=bulk).
-> Ah, interesting.  It might be worthwhile to log a warning in dmesg if
-> the user sets the modprobe option but the board doesn't actually
-> expose any bulk endpoints.  This might help avoid questions from users
-> (we already got one such question by somebody who believed enabling
-> this would put the device into bulk mode even though his hardware
-> didn't support it).
->
-> Devin
->
+This driver is useless without proper platform data. If data is not
+available, we should not register the driver at all. Once this check
+is done, the BUG_ON check during device open is no longer needed.
 
-Well, I deliberately called the module 'prefer_bulk' (and not
-'use_bulk', 'force_bulk' ...) which should imply that nothing is guaranteed.
-And selecting bulk transfers for a device which actually doesn not
-provide bulk support doesn't make sense and is clearly the users fault.
-Anway, I'm fine with adding a warning message and maybe I could extend
-the module parameter description, too.
+Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+---
+ drivers/media/rc/ir-rx51.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-I'm going to wait for further feedback from Mauro before sending an
-updated version of the patch (series).
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index f22e5e4..16b3c1f 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -378,7 +378,6 @@ static long lirc_rx51_ioctl(struct file *filep,
+ static int lirc_rx51_open(struct inode *inode, struct file *file)
+ {
+ 	struct lirc_rx51 *lirc_rx51 = lirc_get_pdata(file);
+-	BUG_ON(!lirc_rx51);
+ 
+ 	file->private_data = lirc_rx51;
+ 
+@@ -458,6 +457,9 @@ static int lirc_rx51_resume(struct platform_device *dev)
+ 
+ static int __devinit lirc_rx51_probe(struct platform_device *dev)
+ {
++	if (!dev->dev.platform_data)
++		return -ENODEV;
++
+ 	lirc_rx51_driver.features = LIRC_RX51_DRIVER_FEATURES;
+ 	lirc_rx51.pdata = dev->dev.platform_data;
+ 	lirc_rx51.pwm_timer_num = lirc_rx51.pdata->pwm_timer;
+-- 
+1.8.0
 
-Regards,
-Frank
