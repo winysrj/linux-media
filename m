@@ -1,90 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:63666 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750733Ab2KOFWH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 00:22:07 -0500
-Received: by mail-ob0-f174.google.com with SMTP id wc20so1313447obb.19
-        for <linux-media@vger.kernel.org>; Wed, 14 Nov 2012 21:22:07 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:9828 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751537Ab2KRJYh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Nov 2012 04:24:37 -0500
+Message-ID: <50A8A939.7040505@redhat.com>
+Date: Sun, 18 Nov 2012 07:24:09 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CAPgLHd-jhj3+u4PN5ms7PrYLYe-DEKzHLnPqu3DPw0SH2n6uUg@mail.gmail.com>
-References: <CAPgLHd-ivjzSDre+DMVK+mHNpNynoLWJXK36zGW5GRnU0Z4d3g@mail.gmail.com>
- <CA+V-a8vDjbmY-+c-aaaEcJ4JXv7Dm_ytUzGPD0eDDe_utB7kxQ@mail.gmail.com> <CAPgLHd-jhj3+u4PN5ms7PrYLYe-DEKzHLnPqu3DPw0SH2n6uUg@mail.gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 15 Nov 2012 10:51:47 +0530
-Message-ID: <CA+V-a8vmgbVFsTUabaWSdy4=CX+9doTqkWk-372iG9BG6AHFqw@mail.gmail.com>
-Subject: Re: [PATCH] [media] vpif_display: fix return value check in vpif_reqbufs()
-To: Wei Yongjun <weiyj.lk@gmail.com>
-Cc: mchehab@infradead.org, yongjun_wei@trendmicro.com.cn,
-	linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com
-Content-Type: text/plain; charset=ISO-8859-1
+To: Kirill Smelkov <kirr@navytux.spb.ru>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	kirr@mns.spb.ru, linux-media@vger.kernel.org
+Subject: Re: [PATCH v4] [media] vivi: Teach it to tune FPS
+References: <1350914084-31618-1-git-send-email-kirr@mns.spb.ru> <201211021542.21944.hverkuil@xs4all.nl> <20121107113001.GA3097@tugrik.mns.mnsspb.ru> <201211161438.09046.hverkuil@xs4all.nl> <50A65FF2.8020801@redhat.com> <20121117104509.GA10789@mini.zxlink>
+In-Reply-To: <20121117104509.GA10789@mini.zxlink>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Wei,
+Em 17-11-2012 08:45, Kirill Smelkov escreveu:
+> On Fri, Nov 16, 2012 at 01:46:58PM -0200, Mauro Carvalho Chehab wrote:
+>> Em 16-11-2012 11:38, Hans Verkuil escreveu:
+>>> On Wed November 7 2012 12:30:01 Kirill Smelkov wrote:
+> [...]
+>
+>>>> diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+>>>> index 37d0af8..5d1b374 100644
+>>>> --- a/drivers/media/platform/vivi.c
+>>>> +++ b/drivers/media/platform/vivi.c
+>>>> @@ -65,8 +65,11 @@ MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
+>>>>   /* Global font descriptor */
+>>>>   static const u8 *font8x16;
+>>>>
+>>>> -/* default to NTSC timeperframe */
+>>>> -static const struct v4l2_fract TPF_DEFAULT = {.numerator = 1001, .denominator = 30000};
+>>>> +/* timeperframe: min/max and default */
+>>>> +static const struct v4l2_fract
+>>>> +	tpf_min     = {.numerator = 1,		.denominator = UINT_MAX},  /* 1/infty */
+>>>> +	tpf_max     = {.numerator = UINT_MAX,	.denominator = 1},         /* infty */
+>>>
+>>> I understand your reasoning here, but I wouldn't go with UINT_MAX here. Something like
+>>> 1/1000 tpf (or 1 ms) up to 86400/1 tpf (or once a day). With UINT_MAX I am afraid we
+>>> might hit application errors when they manipulate these values. The shortest time
+>>> between frames is 1 ms anyway.
+>>>
+>>> It's the only comment I have, it looks good otherwise.
+>>
+>> As those will be a arbitrary values, I suggest to declare a macro for it at the
+>> beginning of vivi.c file, with some comment explaining the rationale of the choose,
+>> and what else needs to be changed, if this changes (e. g. less than 1ms would require
+>> changing the image generation logic, to avoid producing frames with equal content).
+>
+> Maybe something like this? (please note, I'm not a good text writer. If
+> this needs adjustment please help me shape the text up)
+>
+>
+> diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+> index 5d1b374..45b8a81 100644
+> --- a/drivers/media/platform/vivi.c
+> +++ b/drivers/media/platform/vivi.c
+> @@ -36,6 +36,18 @@
+>
+>   #define VIVI_MODULE_NAME "vivi"
+>
+> +/* Maximum allowed frame rate
+> + *
+> + * Vivi will allow setting timeperframe in [1/FPS_MAX - FPS_MAX/1] range.
+> + *
+> + * Ideally FPS_MAX should be infinity, i.e. practically UINT_MAX, but that
+> + * might hit application errors when they manipulate these values.
+> + *
+> + * Besides, for tpf < 1ms image-generation logic should be changed, to avoid
+> + * producing frames with equal content.
+> + */
+> +#define FPS_MAX 1000
+> +
+>   #define MAX_WIDTH 1920
+>   #define MAX_HEIGHT 1200
+>
+> @@ -67,8 +79,8 @@ static const u8 *font8x16;
+>
+>   /* timeperframe: min/max and default */
+>   static const struct v4l2_fract
+> -	tpf_min     = {.numerator = 1,		.denominator = UINT_MAX},  /* 1/infty */
+> -	tpf_max     = {.numerator = UINT_MAX,	.denominator = 1},         /* infty */
+> +	tpf_min     = {.numerator = 1,		.denominator = FPS_MAX},   /* ~1/infty */
+> +	tpf_max     = {.numerator = FPS_MAX,	.denominator = 1},         /* ~infty */
+>   	tpf_default = {.numerator = 1001,	.denominator = 30000};     /* NTSC */
+>
+>   #define dprintk(dev, level, fmt, arg...) \
 
-On Mon, Nov 12, 2012 at 2:14 PM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
-> Hi Prabhakar,
->
-> On 11/09/2012 08:33 PM, Prabhakar Lad wrote:
->> Hi Wei,
->>
->> Thanks for the patch.
->>
->> On Wed, Oct 24, 2012 at 4:59 PM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
->>> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
->>>
->>> In case of error, the function vb2_dma_contig_init_ctx() returns
->>> ERR_PTR() and never returns NULL. The NULL test in the return value
->>> check should be replaced with IS_ERR().
->>>
->>> dpatch engine is used to auto generate this patch.
->>> (https://github.com/weiyj/dpatch)
->>>
->>> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
->>> ---
->>>  drivers/media/platform/davinci/vpif_display.c | 4 ++--
->>>  1 file changed, 2 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
->>> index b716fbd..5453bbb 100644
->>> --- a/drivers/media/platform/davinci/vpif_display.c
->>> +++ b/drivers/media/platform/davinci/vpif_display.c
->>> @@ -972,9 +972,9 @@ static int vpif_reqbufs(struct file *file, void *priv,
->>>         }
->>>         /* Initialize videobuf2 queue as per the buffer type */
->>>         common->alloc_ctx = vb2_dma_contig_init_ctx(vpif_dev);
->>> -       if (!common->alloc_ctx) {
->>> +       if (IS_ERR(common->alloc_ctx)) {
->> Right check would be IS_ERR_OR_NULL(). Can you merge this
->> patch 'vpif_capture: fix return value check in vpif_reqbufs()' with
->> this one  and post a v2 with above changes ?
->
-> I will merge those two patch into one.
-> And I never see vb2_dma_contig_init_ctx() can return NULL as a return
-> value, we still would using IS_ERR_OR_NULL()?
->
-IS_ERR() should be Ok.
+seems OK to me.
 
 Regards,
---Prabhakar Lad
+Mauro
 
-> ---------------------------------------------------
-> void *vb2_dma_contig_init_ctx(struct device *dev)
-> {
->        struct vb2_dc_conf *conf;
 >
->        conf = kzalloc(sizeof *conf, GFP_KERNEL);
->        if (!conf)
->                  return ERR_PTR(-ENOMEM);
->
->        conf->dev = dev;
->
->        return conf;
-> }
-> ---------------------------------------------------
->
->
->
->
+
