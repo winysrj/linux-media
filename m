@@ -1,149 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32776 "EHLO mx1.redhat.com"
+Received: from mta-out.inet.fi ([195.156.147.13]:42825 "EHLO jenni1.inet.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933430Ab2KAQMx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Nov 2012 12:12:53 -0400
-Date: Thu, 1 Nov 2012 14:12:44 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: media-workshop@linuxtv.org,
-	"linux-media" <linux-media@vger.kernel.org>
-Subject: Re: [media-workshop] Tentative Agenda for the November workshop
-Message-ID: <20121101141244.6c72242c@redhat.com>
-In-Reply-To: <201211011644.50882.hverkuil@xs4all.nl>
-References: <201210221035.56897.hverkuil@xs4all.nl>
-	<20121025152701.0f4145c8@redhat.com>
-	<201211011644.50882.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1752181Ab2KRPNN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Nov 2012 10:13:13 -0500
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH 5/7] ir-rx51: Convert latency constraints to PM QoS API
+Date: Sun, 18 Nov 2012 17:13:07 +0200
+Message-Id: <1353251589-26143-6-git-send-email-timo.t.kokkonen@iki.fi>
+In-Reply-To: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
+References: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 1 Nov 2012 16:44:50 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Convert the driver from the obsolete omap_pm_set_max_mpu_wakeup_lat
+API to the new PM QoS API. This allows the callback to be removed from
+the platform data structure.
 
-> On Thu October 25 2012 19:27:01 Mauro Carvalho Chehab wrote:
-> > Hi Hans,
-> > 
-> > Em Mon, 22 Oct 2012 10:35:56 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> > > Hi all,
-> > > 
-> > > This is the tentative agenda for the media workshop on November 8, 2012.
-> > > If you have additional things that you want to discuss, or something is wrong
-> > > or incomplete in this list, please let me know so I can update the list.
-> > 
-> > Thank you for taking care of it.
-> > 
-> > > - Explain current merging process (Mauro)
-> > > - Open floor for discussions on how to improve it (Mauro)
-> > > - Write down minimum requirements for new V4L2 (and DVB?) drivers, both for
-> > >   staging and mainline acceptance: which frameworks to use, v4l2-compliance,
-> > >   etc. (Hans Verkuil)
-> > > - V4L2 ambiguities (Hans Verkuil)
-> > > - TSMux device (a mux rather than a demux): Alain Volmat
-> > > - dmabuf status, esp. with regards to being able to test (Mauro/Samsung)
-> > > - Device tree support (Guennadi, not known yet whether this topic is needed)
-> > > - Creating/selecting contexts for hardware that supports this (Samsung, only
-> > >   if time is available)
-> > 
-> > I have an extra theme for discussions there: what should we do with the drivers
-> > that don't have any MAINTAINERS entry.
-> 
-> I've added this topic to the list.
+The latency requirements are also adjusted to prevent the MPU from
+going into sleep mode. This is needed as the GP timers have no means
+to wake up the MPU once it has gone into sleep. The "side effect" is
+that from now on the driver actually works even if there is no
+background load keeping the MPU awake.
 
-Thanks!
+Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Acked-by: Tony Lindgren <tony@atomide.com>
+Acked-by: Jean Pihet <j-pihet@ti.com>
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |  2 --
+ drivers/media/rc/ir-rx51.c                   | 17 ++++++++++++-----
+ include/media/ir-rx51.h                      |  2 --
+ 3 files changed, 12 insertions(+), 9 deletions(-)
 
-> > It probably makes sense to mark them as "Orphan" (or, at least, have some
-> > criteria to mark them as such). Perhaps before doing that, we could try
-> > to see if are there any developer at the community with time and patience
-> > to handle them.
-> > 
-> > This could of course be handled as part of the discussions about how to improve
-> > the merge process, but I suspect that this could generate enough discussions
-> > to be handled as a separate theme.
-> 
-> Do we have a 'Maintainer-Light' category? I have a lot of hardware that I can
-> test. So while I wouldn't like to be marked as 'The Maintainer of driver X'
-> (since I simply don't have the time for that), I wouldn't mind being marked as
-> someone who can at least test patches if needed.
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 020e03c..6d0f29d 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -33,7 +33,6 @@
+ #include "common.h"
+ #include <plat/dma.h>
+ #include <plat/gpmc.h>
+-#include <plat/omap-pm.h>
+ #include "gpmc-smc91x.h"
+ 
+ #include "board-rx51.h"
+@@ -1224,7 +1223,6 @@ static void __init rx51_init_tsc2005(void)
+ 
+ #if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
+ static struct lirc_rx51_platform_data rx51_lirc_data = {
+-	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
+ 	.pwm_timer = 9, /* Use GPT 9 for CIR */
+ };
+ 
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index 6e1ffa6..96ed23d 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -25,6 +25,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/sched.h>
+ #include <linux/wait.h>
++#include <linux/pm_qos.h>
+ 
+ #include <plat/dmtimer.h>
+ #include <plat/clock.h>
+@@ -49,6 +50,7 @@ struct lirc_rx51 {
+ 	struct omap_dm_timer *pulse_timer;
+ 	struct device	     *dev;
+ 	struct lirc_rx51_platform_data *pdata;
++	struct pm_qos_request	pm_qos_request;
+ 	wait_queue_head_t     wqueue;
+ 
+ 	unsigned long	fclk_khz;
+@@ -268,10 +270,16 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+ 		lirc_rx51->wbuf[count] = -1; /* Insert termination mark */
+ 
+ 	/*
+-	 * Adjust latency requirements so the device doesn't go in too
+-	 * deep sleep states
++	 * If the MPU is going into too deep sleep state while we are
++	 * transmitting the IR code, timers will not be able to wake
++	 * up the MPU. Thus, we need to set a strict enough latency
++	 * requirement in order to ensure the interrupts come though
++	 * properly. The 10us latency requirement is low enough to
++	 * keep MPU from sleeping and thus ensures the interrupts are
++	 * getting through properly.
+ 	 */
+-	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, 50);
++	pm_qos_add_request(&lirc_rx51->pm_qos_request,
++			PM_QOS_CPU_DMA_LATENCY,	10);
+ 
+ 	lirc_rx51_on(lirc_rx51);
+ 	lirc_rx51->wbuf_index = 1;
+@@ -292,8 +300,7 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+ 	 */
+ 	lirc_rx51_stop_tx(lirc_rx51);
+ 
+-	/* We can sleep again */
+-	lirc_rx51->pdata->set_max_mpu_wakeup_lat(lirc_rx51->dev, -1);
++	pm_qos_remove_request(&lirc_rx51->pm_qos_request);
+ 
+ 	return n;
+ }
+diff --git a/include/media/ir-rx51.h b/include/media/ir-rx51.h
+index 104aa89..57523f2 100644
+--- a/include/media/ir-rx51.h
++++ b/include/media/ir-rx51.h
+@@ -3,8 +3,6 @@
+ 
+ struct lirc_rx51_platform_data {
+ 	int pwm_timer;
+-
+-	int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
+ };
+ 
+ #endif
+-- 
+1.8.0
 
-There are several "maintainance" status there: 
-
-	S: Status, one of the following:
-	   Supported:	Someone is actually paid to look after this.
-	   Maintained:	Someone actually looks after it.
-	   Odd Fixes:	It has a maintainer but they don't have time to do
-			much other than throw the odd patch in. See below..
-	   Orphan:	No current maintainer [but maybe you could take the
-			role as you write your new code].
-	   Obsolete:	Old code. Something tagged obsolete generally means
-			it has been replaced by a better system and you
-			should be using that.
-
-(btw, I just realized that I should be changing the EDAC drivers I maintain
- to Supported; the media drivers I maintain should be kept as Maintained).
-
-I suspect that the "maintainer-light" category for those radio and similar
-old stuff is likely "Odd Fixes".
-
-> > There are some issues by not having a MAINTAINERS entry:
-> > 	- patches may not flow into the driver maintainer;
-> > 	- patches will likely be applied without tests/reviews or may
-> > 	  stay for a long time queued;
-> > 	- ./scripts/get_maintainer.pl at --no-git-fallback won't return
-> > 	  any maintainer[1].
-> > 
-> > [1] Letting get_maintainer.pl is very time/CPU consuming. Letting it would 
-> > delay a lot the patch review process, if applied for every patch, with
-> > unreliable and doubtful results. I don't do it, due to the large volume
-> > of patches, and because the 'other' results aren't typically the driver
-> > maintainer.
-> > 
-> > An example of this is the results for a patch I just applied
-> > (changeset 2866aed103b915ca8ba0ff76d5790caea4e62ced):
-> > 
-> > 	$ git show --pretty=email|./scripts/get_maintainer.pl
-> > 	Mauro Carvalho Chehab <mchehab@infradead.org> (maintainer:MEDIA INPUT INFRA...,commit_signer:7/7=100%)
-> > 	Hans Verkuil <hans.verkuil@cisco.com> (commit_signer:4/7=57%)
-> > 	Anatolij Gustschin <agust@denx.de> (commit_signer:1/7=14%)
-> > 	Wei Yongjun <yongjun_wei@trendmicro.com.cn> (commit_signer:1/7=14%)
-> > 	Hans de Goede <hdegoede@redhat.com> (commit_signer:1/7=14%)
-> > 	linux-media@vger.kernel.org (open list:MEDIA INPUT INFRA...)
-> > 	linux-kernel@vger.kernel.org (open list)
-> > 
-> > According with this driver's copyrights:
-> > 
-> >  * Copyright 2008-2010 Freescale Semiconductor, Inc. All Rights Reserved.
-> >  *
-> >  *  Freescale VIU video driver
-> >  *
-> >  *  Authors: Hongjun Chen <hong-jun.chen@freescale.com>
-> >  *	     Porting to 2.6.35 by DENX Software Engineering,
-> >  *	     Anatolij Gustschin <agust@denx.de>
-> > 
-> > The driver author (Hongjun Chen <hong-jun.chen@freescale.com>) was not even
-> > shown there, and the co-author got only 15% hit, while I got 100% and Hans
-> > got 57%.
-> > 
-> > This happens not only to this driver. In a matter of fact, on most cases where
-> > no MAINTAINERS entry exist, the driver's author gets a very small hit chance,
-> > as, on several of those drivers, the author doesn't post anything else but
-> > the initial patch series.
-> 
-> We probably need to have an entry for all the media drivers, even if it just
-> points to the linux-media mailinglist as being the 'collective default maintainer'.
-
-Yes, I think that all media drivers should be there. I prefer to tag the ones
-that nobody sends us a MAINTAINERS entry with "Orphan", as this tag indicates
-that help is wanted. 
-
-> 
-> A MAINTAINERS entry should probably be required as well for new drivers.
-
-Agreed.
-
-Regards,
-Mauro
