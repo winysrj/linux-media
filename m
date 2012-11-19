@@ -1,53 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpfb2-g21.free.fr ([212.27.42.10]:42491 "EHLO
-	smtpfb2-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753556Ab2KVSdn convert rfc822-to-8bit (ORCPT
+Received: from mail-da0-f46.google.com ([209.85.210.46]:53525 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752191Ab2KSDyv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 13:33:43 -0500
-Received: from smtp1-g21.free.fr (smtp1-g21.free.fr [212.27.42.1])
-	by smtpfb2-g21.free.fr (Postfix) with ESMTP id DCDF6CA8B60
-	for <linux-media@vger.kernel.org>; Thu, 22 Nov 2012 12:59:24 +0100 (CET)
-Date: Thu, 22 Nov 2012 12:59:06 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] gspca - stv06xx: Fix a regression with the bridge/sensor
- vv6410
-Message-ID: <20121122125906.35d6f98a@armhf>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Sun, 18 Nov 2012 22:54:51 -0500
+Received: by mail-da0-f46.google.com with SMTP id p5so559812dak.19
+        for <linux-media@vger.kernel.org>; Sun, 18 Nov 2012 19:54:50 -0800 (PST)
+Message-ID: <50A9ADA8.60804@linaro.org>
+Date: Mon, 19 Nov 2012 09:25:20 +0530
+From: Tushar Behera <tushar.behera@linaro.org>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-kernel@vger.kernel.org, patches@linaro.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 05/14] [media] atmel-isi: Update error check for unsigned
+ variables
+References: <1353048646-10935-1-git-send-email-tushar.behera@linaro.org> <1353048646-10935-6-git-send-email-tushar.behera@linaro.org> <Pine.LNX.4.64.1211180014330.30062@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1211180014330.30062@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jean-François Moine <moinejf@free.fr>
+On 11/18/2012 04:46 AM, Guennadi Liakhovetski wrote:
+> On Fri, 16 Nov 2012, Tushar Behera wrote:
+> 
+>> Checking '< 0' for unsigned variables always returns false. For error
+>> codes, use IS_ERR_VALUE() instead.
+> 
+> Wouldn't just changing "irq" type to "int" also work? I think that would 
+> be a more straight-forward solution. If however there are strong arguments 
+> against that, I'm fine with this fix too.
+> 
 
-Setting the H and V flip controls at webcam connection time prevents
-the webcam to work correctly.
+By changing irq to signed variable, we would get compilation warning in
+subsequent line (request_irq).
 
-This patch checks if the webcam is streaming before setting the flips.
-It does not set the flips (nor other controls) at webcam start time.
+> Thanks
+> Guennadi
+> 
+>>
+>> CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+>> CC: linux-media@vger.kernel.org
+>> Signed-off-by: Tushar Behera <tushar.behera@linaro.org>
+>> ---
+>>  drivers/media/platform/soc_camera/atmel-isi.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+>> index 6274a91..5bd65df 100644
+>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+>> @@ -1020,7 +1020,7 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+>>  	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+>>  
+>>  	irq = platform_get_irq(pdev, 0);
+>> -	if (irq < 0) {
+>> +	if (IS_ERR_VALUE(irq)) {
+>>  		ret = irq;
+>>  		goto err_req_irq;
+>>  	}
+>> -- 
+>> 1.7.4.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
 
-Tested-by: Philippe ROUBACH <philippe.roubach@free.fr>
-Signed-off-by: Jean-François Moine <moinejf@free.fr>
-
---- a/drivers/media/usb/gspca/stv06xx/stv06xx_vv6410.c
-+++ b/drivers/media/usb/gspca/stv06xx/stv06xx_vv6410.c
-@@ -52,9 +52,13 @@
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_HFLIP:
-+		if (!gspca_dev->streaming)
-+			return 0;
- 		err = vv6410_set_hflip(gspca_dev, ctrl->val);
- 		break;
- 	case V4L2_CID_VFLIP:
-+		if (!gspca_dev->streaming)
-+			return 0;
- 		err = vv6410_set_vflip(gspca_dev, ctrl->val);
- 		break;
- 	case V4L2_CID_GAIN:
 
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Tushar Behera
