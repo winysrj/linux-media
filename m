@@ -1,102 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:34007 "EHLO
-	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750771Ab2K0LDf convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 06:03:35 -0500
-From: Albert Wang <twang13@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "corbet@lwn.net" <corbet@lwn.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Libin Yang <lbyang@marvell.com>
-Date: Tue, 27 Nov 2012 03:02:23 -0800
-Subject: RE: [PATCH 01/15] [media] marvell-ccic: use internal variable
- replace global frame stats variable
-Message-ID: <477F20668A386D41ADCC57781B1F70430D1367C8CD@SC-VEXCH1.marvell.com>
-References: <1353677577-23962-1-git-send-email-twang13@marvell.com>
- <Pine.LNX.4.64.1211271110530.22273@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1211271110530.22273@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mailout-14.websupport.sk ([37.9.172.143]:33215 "EHLO
+	mailout-14.websupport.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753423Ab2KSP4k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Nov 2012 10:56:40 -0500
+Received: from lb1.websupport.sk (localhost [127.0.0.1])
+	by smtp-cf.websupport.sk (Postfix) with ESMTP id 1A71D1004B88
+	for <linux-media@vger.kernel.org>; Mon, 19 Nov 2012 16:47:04 +0100 (CET)
+Received: from [192.168.1.217] (dsl-static-135.212-5-193.telecom.sk [212.5.193.135])
+	(using TLSv1 with cipher AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: topolsky@maindata.sk)
+	by mail1.websupport.sk (Postfix) with ESMTPSA
+	for <linux-media@vger.kernel.org>; Mon, 19 Nov 2012 16:47:03 +0100 (CET)
+Message-ID: <50AA54BB.1010107@maindata.sk>
+Date: Mon, 19 Nov 2012 16:48:11 +0100
+From: Ondrej Topolsky <topolsky@maindata.sk>
 MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: dvbnet error
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Guennadi
+Dear linuxtv developer-s
 
-Nice to hear you again after holidays. :)
+I am trying (it is now couple of days - of no avail) to create interface 
+with dvbnet utility for decoding IP with MPE (tested with DVB-H signal 
+containing IP packets). I run:
+dvbnet -a 0 -p 1002
+gives me this output:
+Error: couldn't open device 0: 2 No such file or directory
+But the char device /dev/dvb/adapter0/net0 is definitely there (in it's 
+default location).
+For some reason dvbnet_open function in dvb-apps/lib/libdvbapi/dvbnet.c 
+cannot open this device
+I have search mailing(and intenet) list but I haven't found any issue 
+similar to this.
 
->-----Original Message-----
->From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
->Sent: Tuesday, 27 November, 2012 18:16
->To: Albert Wang
->Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
->Subject: Re: [PATCH 01/15] [media] marvell-ccic: use internal variable replace global frame
->stats variable
->
->Hi Albert
->
->On Fri, 23 Nov 2012, Albert Wang wrote:
->
->> From: Libin Yang <lbyang@marvell.com>
->>
->> This patch replaces the global frame stats variables by using internal
->> variables in mcam_camera structure.
->>
->> Signed-off-by: Albert Wang <twang13@marvell.com>
->> Signed-off-by: Libin Yang <lbyang@marvell.com>
->
->Thanks for doing this work! Looks good just one remark below.
->
->> ---
->>  drivers/media/platform/marvell-ccic/mcam-core.c |   30 ++++++++++-------------
->>  drivers/media/platform/marvell-ccic/mcam-core.h |    9 +++++++
->>  2 files changed, 22 insertions(+), 17 deletions(-)
->
->[snip]
->
->> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h
->> b/drivers/media/platform/marvell-ccic/mcam-core.h
->> index bd6acba..e226de4 100755
->> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
->> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
->> @@ -73,6 +73,14 @@ static inline int mcam_buffer_mode_supported(enum
->mcam_buffer_mode mode)
->>  	}
->>  }
->>
->> +/*
->> + * Basic frame states
->> + */
->> +struct mmp_frame_state {
->
->I think this should be "struct mcam_frame_state" - don't think we need to introduce a whole
->new namespace in this header just because of this struct.
->
-Yes, you are right. We should keep same namespace in this header.
-Maybe we did a typo.
+Specs:
 
->> +	unsigned int frames;
->> +	unsigned int singles;
->> +	unsigned int delivered;
->> +};
->>
->>  /*
->>   * A description of one of our devices.
->> @@ -108,6 +116,7 @@ struct mcam_camera {
->>  	unsigned long flags;		/* Buffer status, mainly (dev_lock) */
->>  	int users;			/* How many open FDs */
->>
->> +	struct mmp_frame_state frame_state;	/* Frame state counter */
->>  	/*
->>  	 * Subsystem structures.
->>  	 */
->> --
->> 1.7.9.5
->
->Thanks
->Guennadi
->---
->Guennadi Liakhovetski, Ph.D.
->Freelance Open-Source Software Developer http://www.open-technology.de/
+I have embedded linux set-top Skytec JOBI box which has sh4 architecture 
+and 2.6.32.28_stm24_0207 kernel. It is this device: 
+http://www.satmultimedia.tv/skytec-hd-jobi
+as Os i have installed enigma2 linux.
+
+I thought that maybe there isn't kernel support for MPE, but why should 
+there be net0 device which was created by driver..
+
+My attempts:
+
+After no success with debian  .deb packege of dvb-apps for sh4 
+(installed with ipkg ),
+I cross-compiled dvb-apps staticaly(from mercurial repository).
+Eeverything works: szap, scan.. dvbsnoop. I can tune to signal, zap 
+channels, sniff traffic with dvbtraffic, but dvbnet is giving me that 
+"no such file.." error.
+
+I have other machine which is running debian and is receiving same 
+signal as is STB and I successfuly received IP from MPE (tested with 
+tcpdump) on that other machine with no problem.
+
+I noticed that in /sys/class/dvb/ there is no dvb0.net0 folder (but i am 
+not exactly sure what is /sys/class/dvb folder used for).
+
+Another wierd thing is that when I run dvbnet -h it segfaults and when I 
+run /usr/bin/dvbnet -h it works (its definitely the same binary - with 
+my debug messages).
+
+Questions:
+Can You please tell me why dvbnet cannot open this net0 device - or what 
+should I do to find out?
+Maybe it is used by some process, but i killed TV interface enigma2 
+before trying anything(init 3, init 4 - it is not longer displayed in ps).
+And can You please tell me how to detect if my kernel/driver has MPE 
+support (there is no /proc/kallsyms file on STB) - maybe some C code.
+Finaly I was trying to find some info about MPE but there seem to be 
+very little on internet.
+I would be grateful for any informations or links..
+
+All the best
+
+Ondrej Topolsky
+Programmer at Maindata inc. Slovakia
+
+
+
+
+
+
