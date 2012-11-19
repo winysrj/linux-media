@@ -1,122 +1,341 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39061 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753049Ab2KTP4A (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Nov 2012 10:56:00 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
-	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
-	"David Airlie" <airlied@linux.ie>
-Subject: [PATCH v12 5/6] drm_modes: add videomode helpers
-Date: Tue, 20 Nov 2012 16:54:55 +0100
-Message-Id: <1353426896-6045-6-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de>
+Received: from mail.mnsspb.ru ([84.204.75.2]:45816 "EHLO mail.mnsspb.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751248Ab2KSFwD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Nov 2012 00:52:03 -0500
+Date: Mon, 19 Nov 2012 09:52:36 +0400
+From: Kirill Smelkov <kirr@mns.spb.ru>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v6] [media] vivi: Teach it to tune FPS
+Message-ID: <20121119055236.GA5486@tugrik.mns.mnsspb.ru>
+References: <1350914084-31618-1-git-send-email-kirr@mns.spb.ru>
+ <201211021542.21944.hverkuil@xs4all.nl>
+ <20121107113001.GA3097@tugrik.mns.mnsspb.ru>
+ <201211161438.09046.hverkuil@xs4all.nl>
+ <50A65FF2.8020801@redhat.com>
+ <20121117104509.GA10789@mini.zxlink>
+ <50A8A939.7040505@redhat.com>
+ <50A8A992.3020000@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <50A8A992.3020000@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add conversion from videomode to drm_display_mode
+On Sun, Nov 18, 2012 at 07:25:38AM -0200, Mauro Carvalho Chehab wrote:
+> Em 18-11-2012 07:24, Mauro Carvalho Chehab escreveu:
+> >Em 17-11-2012 08:45, Kirill Smelkov escreveu:
+> >>On Fri, Nov 16, 2012 at 01:46:58PM -0200, Mauro Carvalho Chehab wrote:
+> >>>Em 16-11-2012 11:38, Hans Verkuil escreveu:
+> >>>>On Wed November 7 2012 12:30:01 Kirill Smelkov wrote:
+> >>[...]
+> >>
+> >>>>>diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+> >>>>>index 37d0af8..5d1b374 100644
+> >>>>>--- a/drivers/media/platform/vivi.c
+> >>>>>+++ b/drivers/media/platform/vivi.c
+> >>>>>@@ -65,8 +65,11 @@ MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
+> >>>>>  /* Global font descriptor */
+> >>>>>  static const u8 *font8x16;
+> >>>>>
+> >>>>>-/* default to NTSC timeperframe */
+> >>>>>-static const struct v4l2_fract TPF_DEFAULT = {.numerator = 1001, .denominator = 30000};
+> >>>>>+/* timeperframe: min/max and default */
+> >>>>>+static const struct v4l2_fract
+> >>>>>+    tpf_min     = {.numerator = 1,        .denominator = UINT_MAX},  /* 1/infty */
+> >>>>>+    tpf_max     = {.numerator = UINT_MAX,    .denominator = 1},         /* infty */
+> >>>>
+> >>>>I understand your reasoning here, but I wouldn't go with UINT_MAX here. Something like
+> >>>>1/1000 tpf (or 1 ms) up to 86400/1 tpf (or once a day). With UINT_MAX I am afraid we
+> >>>>might hit application errors when they manipulate these values. The shortest time
+> >>>>between frames is 1 ms anyway.
+> >>>>
+> >>>>It's the only comment I have, it looks good otherwise.
+> >>>
+> >>>As those will be a arbitrary values, I suggest to declare a macro for it at the
+> >>>beginning of vivi.c file, with some comment explaining the rationale of the choose,
+> >>>and what else needs to be changed, if this changes (e. g. less than 1ms would require
+> >>>changing the image generation logic, to avoid producing frames with equal content).
+> >>
+> >>Maybe something like this? (please note, I'm not a good text writer. If
+> >>this needs adjustment please help me shape the text up)
+> >>
+> >>
+> >>diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+> >>index 5d1b374..45b8a81 100644
+> >>--- a/drivers/media/platform/vivi.c
+> >>+++ b/drivers/media/platform/vivi.c
+> >>@@ -36,6 +36,18 @@
+> >>
+> >>  #define VIVI_MODULE_NAME "vivi"
+> >>
+> >>+/* Maximum allowed frame rate
+> >>+ *
+> >>+ * Vivi will allow setting timeperframe in [1/FPS_MAX - FPS_MAX/1] range.
+> >>+ *
+> >>+ * Ideally FPS_MAX should be infinity, i.e. practically UINT_MAX, but that
+> >>+ * might hit application errors when they manipulate these values.
+> >>+ *
+> >>+ * Besides, for tpf < 1ms image-generation logic should be changed, to avoid
+> >>+ * producing frames with equal content.
+> >>+ */
+> >>+#define FPS_MAX 1000
+> >>+
+> >>  #define MAX_WIDTH 1920
+> >>  #define MAX_HEIGHT 1200
+> >>
+> >>@@ -67,8 +79,8 @@ static const u8 *font8x16;
+> >>
+> >>  /* timeperframe: min/max and default */
+> >>  static const struct v4l2_fract
+> >>-    tpf_min     = {.numerator = 1,        .denominator = UINT_MAX},  /* 1/infty */
+> >>-    tpf_max     = {.numerator = UINT_MAX,    .denominator = 1},         /* infty */
+> >>+    tpf_min     = {.numerator = 1,        .denominator = FPS_MAX},   /* ~1/infty */
+> >>+    tpf_max     = {.numerator = FPS_MAX,    .denominator = 1},         /* ~infty */
+> 
+> Was too fast answering it... The comments there should also be dropped, as it doesn't
+> range anymore to infty.
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Ok, agree, let's drop those ~infty comments and be done with it.
+
+
+---- 8< ----
+From: Kirill Smelkov <kirr@mns.spb.ru>
+Date: Tue, 23 Oct 2012 16:56:59 +0400
+Subject: [PATCH v6] [media] vivi: Teach it to tune FPS
+
+I was testing my video-over-ethernet subsystem recently, and vivi
+seemed to be perfect video source for testing when one don't have lots
+of capture boards and cameras. Only its framerate was hardcoded to
+NTSC's 30fps, while in my country we usually use PAL (25 fps) and I
+needed that to precisely simulate bandwidth.
+
+That's why here is this patch with ->enum_frameintervals() and
+->{g,s}_parm() implemented as suggested by Hans Verkuil which passes
+v4l2-compliance and manual testing through v4l2-ctl -P / -p <fps>.
+
+Regarding newly introduced __get_format(u32 pixelformat) I decided not
+to convert original get_format() to operate on fourcc codes, since >= 3
+places in driver need to deal with v4l2_format and otherwise it won't be
+handy.
+
+Thanks.
+
+Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
 ---
- drivers/gpu/drm/drm_modes.c |   37 +++++++++++++++++++++++++++++++++++++
- include/drm/drmP.h          |    6 ++++++
- 2 files changed, 43 insertions(+)
+ drivers/media/platform/vivi.c | 102 ++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 94 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
-index 59450f3..0073b27 100644
---- a/drivers/gpu/drm/drm_modes.c
-+++ b/drivers/gpu/drm/drm_modes.c
-@@ -35,6 +35,7 @@
- #include <linux/export.h>
- #include <drm/drmP.h>
- #include <drm/drm_crtc.h>
-+#include <linux/videomode.h>
+V6:
+    - Moved TPF/FPS limit to beginning of vivi.c and added comment there
+      why that limit is used, to avoid overlows, as suggested by Mauro
+      Carvalho Chehab.
+
+V5:
+    - changed  1/infty - infty/1  limits to  1/1000 - 1000/1, to avoid
+      hitting aplication errors when they try to manipulato those
+      values, as suggested by Hans Verkuil.
+
+V4:
+    - corrected fival->stepwise setting and added its check to s_parm();
+      also cosmetics - all as per Hans Verkuil review.
+
+V3:
+    - corrected issues with V4L2 spec compliance as pointed by Hans
+      Verkuil.
+
+V2:
+
+    - reworked FPS setting from module param to via ->{g,s}_parm() as suggested
+      by Hans Verkuil.
+
+
+diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+index 6e6dd25..9ca920e 100644
+--- a/drivers/media/platform/vivi.c
++++ b/drivers/media/platform/vivi.c
+@@ -36,9 +36,17 @@
  
- /**
-  * drm_mode_debug_printmodeline - debug print a mode
-@@ -504,6 +505,42 @@ drm_gtf_mode(struct drm_device *dev, int hdisplay, int vdisplay, int vrefresh,
+ #define VIVI_MODULE_NAME "vivi"
+ 
+-/* Wake up at about 30 fps */
+-#define WAKE_NUMERATOR 30
+-#define WAKE_DENOMINATOR 1001
++/* Maximum allowed frame rate
++ *
++ * Vivi will allow setting timeperframe in [1/FPS_MAX - FPS_MAX/1] range.
++ *
++ * Ideally FPS_MAX should be infinity, i.e. practically UINT_MAX, but that
++ * might hit application errors when they manipulate these values.
++ *
++ * Besides, for tpf < 1ms image-generation logic should be changed, to avoid
++ * producing frames with equal content.
++ */
++#define FPS_MAX 1000
+ 
+ #define MAX_WIDTH 1920
+ #define MAX_HEIGHT 1200
+@@ -69,6 +77,12 @@ MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
+ /* Global font descriptor */
+ static const u8 *font8x16;
+ 
++/* timeperframe: min/max and default */
++static const struct v4l2_fract
++	tpf_min     = {.numerator = 1,		.denominator = FPS_MAX},
++	tpf_max     = {.numerator = FPS_MAX,	.denominator = 1},
++	tpf_default = {.numerator = 1001,	.denominator = 30000};	/* NTSC */
++
+ #define dprintk(dev, level, fmt, arg...) \
+ 	v4l2_dbg(level, debug, &dev->v4l2_dev, fmt, ## arg)
+ 
+@@ -150,14 +164,14 @@ static struct vivi_fmt formats[] = {
+ 	},
+ };
+ 
+-static struct vivi_fmt *get_format(struct v4l2_format *f)
++static struct vivi_fmt *__get_format(u32 pixelformat)
+ {
+ 	struct vivi_fmt *fmt;
+ 	unsigned int k;
+ 
+ 	for (k = 0; k < ARRAY_SIZE(formats); k++) {
+ 		fmt = &formats[k];
+-		if (fmt->fourcc == f->fmt.pix.pixelformat)
++		if (fmt->fourcc == pixelformat)
+ 			break;
+ 	}
+ 
+@@ -167,6 +181,11 @@ static struct vivi_fmt *get_format(struct v4l2_format *f)
+ 	return &formats[k];
  }
- EXPORT_SYMBOL(drm_gtf_mode);
  
-+#if IS_ENABLED(CONFIG_VIDEOMODE)
-+int drm_display_mode_from_videomode(const struct videomode *vm,
-+				    struct drm_display_mode *dmode)
++static struct vivi_fmt *get_format(struct v4l2_format *f)
 +{
-+	dmode->hdisplay = vm->hactive;
-+	dmode->hsync_start = dmode->hdisplay + vm->hfront_porch;
-+	dmode->hsync_end = dmode->hsync_start + vm->hsync_len;
-+	dmode->htotal = dmode->hsync_end + vm->hback_porch;
++	return __get_format(f->fmt.pix.pixelformat);
++}
 +
-+	dmode->vdisplay = vm->vactive;
-+	dmode->vsync_start = dmode->vdisplay + vm->vfront_porch;
-+	dmode->vsync_end = dmode->vsync_start + vm->vsync_len;
-+	dmode->vtotal = dmode->vsync_end + vm->vback_porch;
+ /* buffer for one video frame */
+ struct vivi_buffer {
+ 	/* common v4l buffer stuff -- must be first */
+@@ -232,6 +251,7 @@ struct vivi_dev {
+ 
+ 	/* video capture */
+ 	struct vivi_fmt            *fmt;
++	struct v4l2_fract          timeperframe;
+ 	unsigned int               width, height;
+ 	struct vb2_queue	   vb_vidq;
+ 	unsigned int		   field_count;
+@@ -691,8 +711,8 @@ static void vivi_thread_tick(struct vivi_dev *dev)
+ 	dprintk(dev, 2, "[%p/%d] done\n", buf, buf->vb.v4l2_buf.index);
+ }
+ 
+-#define frames_to_ms(frames)					\
+-	((frames * WAKE_NUMERATOR * 1000) / WAKE_DENOMINATOR)
++#define frames_to_ms(dev, frames)				\
++	((frames * dev->timeperframe.numerator * 1000) / dev->timeperframe.denominator)
+ 
+ static void vivi_sleep(struct vivi_dev *dev)
+ {
+@@ -708,7 +728,7 @@ static void vivi_sleep(struct vivi_dev *dev)
+ 		goto stop_task;
+ 
+ 	/* Calculate time to wake up */
+-	timeout = msecs_to_jiffies(frames_to_ms(1));
++	timeout = msecs_to_jiffies(frames_to_ms(dev, 1));
+ 
+ 	vivi_thread_tick(dev);
+ 
+@@ -1080,6 +1100,68 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
+ 	return 0;
+ }
+ 
++/* timeperframe is arbitrary and continous */
++static int vidioc_enum_frameintervals(struct file *file, void *priv,
++					     struct v4l2_frmivalenum *fival)
++{
++	struct vivi_fmt *fmt;
 +
-+	dmode->clock = vm->pixelclock / 1000;
++	if (fival->index)
++		return -EINVAL;
 +
-+	dmode->flags = 0;
-+	if (vm->hah)
-+		dmode->flags |= DRM_MODE_FLAG_PHSYNC;
-+	else
-+		dmode->flags |= DRM_MODE_FLAG_NHSYNC;
-+	if (vm->vah)
-+		dmode->flags |= DRM_MODE_FLAG_PVSYNC;
-+	else
-+		dmode->flags |= DRM_MODE_FLAG_NVSYNC;
-+	if (vm->interlaced)
-+		dmode->flags |= DRM_MODE_FLAG_INTERLACE;
-+	if (vm->doublescan)
-+		dmode->flags |= DRM_MODE_FLAG_DBLSCAN;
-+	drm_mode_set_name(dmode);
++	fmt = __get_format(fival->pixel_format);
++	if (!fmt)
++		return -EINVAL;
++
++	/* regarding width & height - we support any */
++
++	fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
++
++	/* fill in stepwise (step=1.0 is requred by V4L2 spec) */
++	fival->stepwise.min  = tpf_min;
++	fival->stepwise.max  = tpf_max;
++	fival->stepwise.step = (struct v4l2_fract) {1, 1};
 +
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(drm_display_mode_from_videomode);
-+#endif
 +
- /**
-  * drm_mode_set_name - set the name on a mode
-  * @mode: name will be set in this mode
-diff --git a/include/drm/drmP.h b/include/drm/drmP.h
-index 3fd8280..de2f6cf 100644
---- a/include/drm/drmP.h
-+++ b/include/drm/drmP.h
-@@ -56,6 +56,7 @@
- #include <linux/cdev.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
-+#include <linux/videomode.h>
- #if defined(__alpha__) || defined(__powerpc__)
- #include <asm/pgtable.h>	/* For pte_wrprotect */
- #endif
-@@ -1454,6 +1455,11 @@ extern struct drm_display_mode *
- drm_mode_create_from_cmdline_mode(struct drm_device *dev,
- 				  struct drm_cmdline_mode *cmd);
++static int vidioc_g_parm(struct file *file, void *priv, struct v4l2_streamparm *parm)
++{
++	struct vivi_dev *dev = video_drvdata(file);
++
++	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	parm->parm.capture.capability   = V4L2_CAP_TIMEPERFRAME;
++	parm->parm.capture.timeperframe = dev->timeperframe;
++	parm->parm.capture.readbuffers  = 1;
++	return 0;
++}
++
++#define FRACT_CMP(a, OP, b)	\
++	( (u64)(a).numerator * (b).denominator  OP  (u64)(b).numerator * (a).denominator )
++
++static int vidioc_s_parm(struct file *file, void *priv, struct v4l2_streamparm *parm)
++{
++	struct vivi_dev *dev = video_drvdata(file);
++	struct v4l2_fract tpf;
++
++	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	tpf = parm->parm.capture.timeperframe;
++
++	/* tpf: {*, 0} resets timing; clip to [min, max]*/
++	tpf = tpf.denominator ? tpf : tpf_default;
++	tpf = FRACT_CMP(tpf, <, tpf_min) ? tpf_min : tpf;
++	tpf = FRACT_CMP(tpf, >, tpf_max) ? tpf_max : tpf;
++
++	dev->timeperframe = tpf;
++	parm->parm.capture.timeperframe = tpf;
++	parm->parm.capture.readbuffers  = 1;
++	return 0;
++}
++
+ /* --- controls ---------------------------------------------- */
  
-+#if IS_ENABLED(CONFIG_VIDEOMODE)
-+extern int drm_display_mode_from_videomode(const struct videomode *vm,
-+					   struct drm_display_mode *dmode);
-+#endif
-+
- /* Modesetting support */
- extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
- extern void drm_vblank_post_modeset(struct drm_device *dev, int crtc);
+ static int vivi_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+@@ -1238,6 +1320,9 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
+ 	.vidioc_enum_input    = vidioc_enum_input,
+ 	.vidioc_g_input       = vidioc_g_input,
+ 	.vidioc_s_input       = vidioc_s_input,
++	.vidioc_enum_frameintervals = vidioc_enum_frameintervals,
++	.vidioc_g_parm        = vidioc_g_parm,
++	.vidioc_s_parm        = vidioc_s_parm,
+ 	.vidioc_streamon      = vb2_ioctl_streamon,
+ 	.vidioc_streamoff     = vb2_ioctl_streamoff,
+ 	.vidioc_log_status    = v4l2_ctrl_log_status,
+@@ -1296,6 +1381,7 @@ static int __init vivi_create_instance(int inst)
+ 		goto free_dev;
+ 
+ 	dev->fmt = &formats[0];
++	dev->timeperframe = tpf_default;
+ 	dev->width = 640;
+ 	dev->height = 480;
+ 	dev->pixelsize = dev->fmt->depth / 8;
 -- 
-1.7.10.4
+1.8.0.289.g7a667bc
 
