@@ -1,32 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1650 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751844Ab2KPNyb (ORCPT
+Received: from viridian.itc.Virginia.EDU ([128.143.12.139]:41503 "EHLO
+	viridian.itc.virginia.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754332Ab2KSSfR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Nov 2012 08:54:31 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 3/4] v4l: Convert drivers to use monotonic timestamps
-Date: Fri, 16 Nov 2012 14:54:21 +0100
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-References: <20121115220627.GB29863@valkosipuli.retiisi.org.uk> <1353017207-370-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1353017207-370-3-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201211161454.21083.hverkuil@xs4all.nl>
+	Mon, 19 Nov 2012 13:35:17 -0500
+From: Bill Pemberton <wfp5p@virginia.edu>
+To: gregkh@linuxfoundation.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: [PATCH 481/493] staging: lirc: remove use of __devexit
+Date: Mon, 19 Nov 2012 13:27:10 -0500
+Message-Id: <1353349642-3677-481-git-send-email-wfp5p@virginia.edu>
+In-Reply-To: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
+References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu November 15 2012 23:06:46 Sakari Ailus wrote:
-> Convert drivers using wall clock time (CLOCK_REALTIME) to timestamp from the
-> monotonic timer (CLOCK_MONOTONIC).
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+CONFIG_HOTPLUG is going away as an option so __devexit is no
+longer needed.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org> 
+Cc: linux-media@vger.kernel.org 
+Cc: devel@driverdev.osuosl.org 
+---
+ drivers/staging/media/lirc/lirc_parallel.c | 2 +-
+ drivers/staging/media/lirc/lirc_serial.c   | 2 +-
+ drivers/staging/media/lirc/lirc_sir.c      | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-Regards,
+diff --git a/drivers/staging/media/lirc/lirc_parallel.c b/drivers/staging/media/lirc/lirc_parallel.c
+index f600c67..ec14bc8 100644
+--- a/drivers/staging/media/lirc/lirc_parallel.c
++++ b/drivers/staging/media/lirc/lirc_parallel.c
+@@ -588,7 +588,7 @@ static int lirc_parallel_probe(struct platform_device *dev)
+ 	return 0;
+ }
+ 
+-static int __devexit lirc_parallel_remove(struct platform_device *dev)
++static int lirc_parallel_remove(struct platform_device *dev)
+ {
+ 	return 0;
+ }
+diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
+index e182da4..71e3bf2 100644
+--- a/drivers/staging/media/lirc/lirc_serial.c
++++ b/drivers/staging/media/lirc/lirc_serial.c
+@@ -927,7 +927,7 @@ exit_free_irq:
+ 	return result;
+ }
+ 
+-static int __devexit lirc_serial_remove(struct platform_device *dev)
++static int lirc_serial_remove(struct platform_device *dev)
+ {
+ 	free_irq(irq, (void *)&hardware);
+ 
+diff --git a/drivers/staging/media/lirc/lirc_sir.c b/drivers/staging/media/lirc/lirc_sir.c
+index 9c211e7..a457998 100644
+--- a/drivers/staging/media/lirc/lirc_sir.c
++++ b/drivers/staging/media/lirc/lirc_sir.c
+@@ -1223,7 +1223,7 @@ static int lirc_sir_probe(struct platform_device *dev)
+ 	return 0;
+ }
+ 
+-static int __devexit lirc_sir_remove(struct platform_device *dev)
++static int lirc_sir_remove(struct platform_device *dev)
+ {
+ 	return 0;
+ }
+-- 
+1.8.0
 
-	Hans
