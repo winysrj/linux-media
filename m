@@ -1,57 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:42819 "EHLO jenni1.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752098Ab2KRPNN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Nov 2012 10:13:13 -0500
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-To: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH 2/7] ir-rx51: Clean up timer initialization code
-Date: Sun, 18 Nov 2012 17:13:04 +0200
-Message-Id: <1353251589-26143-3-git-send-email-timo.t.kokkonen@iki.fi>
-In-Reply-To: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
-References: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.17.9]:62955 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751904Ab2KSWBn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Nov 2012 17:01:43 -0500
+Date: Mon, 19 Nov 2012 23:01:37 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Fabio Estevam <festevam@gmail.com>
+cc: mchehab@infradead.org, hans.verkuil@cisco.com,
+	javier.martin@vista-silicon.com, kernel@pengutronix.de,
+	linux-media@vger.kernel.org,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: Re: [PATCH] [media] soc_camera: mx3_camera: Constify v4l2_crop
+In-Reply-To: <1353223611-18960-1-git-send-email-festevam@gmail.com>
+Message-ID: <Pine.LNX.4.64.1211192300290.17178@axis700.grange>
+References: <1353223611-18960-1-git-send-email-festevam@gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove a redundant macro definition. This is unneeded and becomes more
-readable once the actual timer code is refactored a little.
+Hi Fabio
 
-Signed-off-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+On Sun, 18 Nov 2012, Fabio Estevam wrote:
+
+> Since commit 4f996594ce ([media] v4l2: make vidioc_s_crop const), set_crop 
+> should receive a 'const struct v4l2_crop *' argument type.
+> 
+> Adapt to this new format and get rid of the following build warning:
+
+Thanks for the patches, both mx2-camera and mx3-camera, as well as all 
+other soc-camera drivers, are already fixed in the mainline:
+
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/54807
+
+Thanks
+Guennadi
+
+> 
+> drivers/media/platform/soc_camera/mx3_camera.c:1134: warning: initialization from incompatible pointer type
+> 
+> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+> ---
+>  drivers/media/platform/soc_camera/mx3_camera.c |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
+> index 64d39b1..ae04395 100644
+> --- a/drivers/media/platform/soc_camera/mx3_camera.c
+> +++ b/drivers/media/platform/soc_camera/mx3_camera.c
+> @@ -799,17 +799,17 @@ static inline void stride_align(__u32 *width)
+>   * default g_crop and cropcap from soc_camera.c
+>   */
+>  static int mx3_camera_set_crop(struct soc_camera_device *icd,
+> -			       struct v4l2_crop *a)
+> +			       const struct v4l2_crop *a)
+>  {
+> -	struct v4l2_rect *rect = &a->c;
+> +	struct v4l2_rect rect = a->c;
+>  	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+>  	struct mx3_camera_dev *mx3_cam = ici->priv;
+>  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>  	struct v4l2_mbus_framefmt mf;
+>  	int ret;
+>  
+> -	soc_camera_limit_side(&rect->left, &rect->width, 0, 2, 4096);
+> -	soc_camera_limit_side(&rect->top, &rect->height, 0, 2, 4096);
+> +	soc_camera_limit_side(&rect.left, &rect.width, 0, 2, 4096);
+> +	soc_camera_limit_side(&rect.top, &rect.height, 0, 2, 4096);
+>  
+>  	ret = v4l2_subdev_call(sd, video, s_crop, a);
+>  	if (ret < 0)
+> -- 
+> 1.7.9.5
+> 
+
 ---
- drivers/media/rc/ir-rx51.c | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index 125d4c3..f22e5e4 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -105,11 +105,9 @@ static int init_timing_params(struct lirc_rx51 *lirc_rx51)
- 	return 0;
- }
- 
--#define tics_after(a, b) ((long)(b) - (long)(a) < 0)
--
- static int pulse_timer_set_timeout(struct lirc_rx51 *lirc_rx51, int usec)
- {
--	int counter;
-+	int counter, counter_now;
- 
- 	BUG_ON(usec < 0);
- 
-@@ -122,11 +120,8 @@ static int pulse_timer_set_timeout(struct lirc_rx51 *lirc_rx51, int usec)
- 	omap_dm_timer_set_match(lirc_rx51->pulse_timer, 1, counter);
- 	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer,
- 				     OMAP_TIMER_INT_MATCH);
--	if (tics_after(omap_dm_timer_read_counter(lirc_rx51->pulse_timer),
--		       counter)) {
--		return 1;
--	}
--	return 0;
-+	counter_now = omap_dm_timer_read_counter(lirc_rx51->pulse_timer);
-+	return (counter - counter_now) < 0;
- }
- 
- static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
--- 
-1.8.0
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
