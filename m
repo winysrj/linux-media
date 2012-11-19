@@ -1,99 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpbg65.qq.com ([103.7.28.233]:50716 "HELO smtpbg65.qq.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753079Ab2KLOEg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Nov 2012 09:04:36 -0500
-From: "=?utf-8?B?5YaN5Zue6aaW?=" <308123027@qq.com>
-To: "=?utf-8?B?R3Vlbm5hZGkgTGlha2hvdmV0c2tp?=" <g.liakhovetski@gmx.de>
-Cc: "=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>
-Subject: =?utf-8?B?5Zue5aSN77yaIOWbnuWkje+8miBzb2MgY2FtZXJh?=
- =?utf-8?B?IGRyaXZlciBtb2R1bGUgbWF5IGNhc2UgbWVtb3J5?=
- =?utf-8?B?IGxlYWs=?=
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Date: Mon, 12 Nov 2012 22:03:39 +0800
-Message-ID: <tencent_2D6F278C70739E756E409D98@qq.com>
+Received: from viridian.itc.Virginia.EDU ([128.143.12.139]:41504 "EHLO
+	viridian.itc.virginia.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754350Ab2KSSfT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Nov 2012 13:35:19 -0500
+From: Bill Pemberton <wfp5p@virginia.edu>
+To: gregkh@linuxfoundation.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: [PATCH 482/493] staging: dt3155v4l: remove use of __devexit
+Date: Mon, 19 Nov 2012 13:27:11 -0500
+Message-Id: <1353349642-3677-482-git-send-email-wfp5p@virginia.edu>
+In-Reply-To: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
+References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-REVBUiBHdWVubmFkaSwNCg0KVGhhbmtzIGZvciB5b3VyIHJlcGx5Lg0KICAgICAgICAgICAg
-ICBTT0MtQ2FtZXJhIGRyaXZlciBtb2R1bGUgaXMgYSBncmVhdCBjb21wb25lbnQgYmFzZWQg
-b24gVjRMMi4NCkl0J3MgdmVyeSBlYXN5IHRvIHVzZS5JIGNhbiB3cml0ZSBJU1AgZHJpdmVy
-IGFuZCBzZW5zb3IgZHJpdmVyIHNlcGFyYXRlbHkgZm9yIA0Kb3VyIGNvbXBhbnkncyBjaGlw
-IHdoaWNoIGlzIGluIHJlc2VhY2guSSBhbSBsb29raW5nIGZvcndhcmQgdG8geW91ciBiZXN0
-IA0KcmVzb2x1dGlvbi4gDQoNCnJvYmluLmxpDQoNCi0tLS0tLS0tLS0tLS0tLS0tLSDljp/l
-p4vpgq7ku7YgLS0tLS0tLS0tLS0tLS0tLS0tDQrlj5Hku7bkuro6ICJHdWVubmFkaSBMaWFr
-aG92ZXRza2kiPGcubGlha2hvdmV0c2tpQGdteC5kZT47DQrlj5HpgIHml7bpl7Q6IDIwMTLl
-ubQxMeaciDnml6Uo5pif5pyf5LqUKSDmmZrkuIoxMDowMQ0K5pS25Lu25Lq6OiAi5YaN5Zue
-6aaWIjwzMDgxMjMwMjdAcXEuY29tPjsgDQrmioTpgIE6ICJsaW51eC1tZWRpYSI8bGludXgt
-bWVkaWFAdmdlci5rZXJuZWwub3JnPjsgDQrkuLvpopg6IFJlOiDlm57lpI3vvJogc29jIGNh
-bWVyYSBkcml2ZXIgbW9kdWxlIG1heSBjYXNlIG1lbW9yeSBsZWFrDQoNCg0KSGkNCg0KV2Vs
-bCwgSSBtdXN0IGNvbmZlc3MsIEknbSBzdXJwcmlzZWQ6LSkgSXQgbG9va3MgbGlrZSB5b3Un
-cmUgcmlnaHQuIFRoaXMgDQpsZWFrLCBpZiBpbmRlZWQgdGhlcmUgaXMgb25lLCBoYXMgYmVl
-biB0aGVyZSBzaW5jZSB0aGUgdmVyeSBmaXJzdCB2ZXJzaW9uIA0Kb2Ygc29jLWNhbWVyYS4g
-SSd2ZSBzcGVudCBzb21lIHRpbWUgbG9va2luZyBhdCB0aGUgY29kZSBhbmQgc28gZmFyIEkg
-ZG9uJ3QgDQpmaW5kIGFuIGV4cGxhbmF0aW9uIGZvciB0aGUgbWlzc2luZyB2aWRlb2J1Zl9t
-bWFwX2ZyZWUoKSBjYWxsLiBJJ2xsIGhhdmUgDQphbm90aGVyIGxvb2sgYW5kLCB1bmxlc3Mg
-SSBmaW5kIGFuIGV4cGxhbmF0aW9uLCB3aHkgaXQncyBub3QgbmVlZGVkLCBJJ2xsIA0KbWFr
-ZSBhIHBhdGNoLg0KDQpBbHNvIGtlZXAgaW4gbWluZCwgdGhhdCB0aGlzIGJ1ZyBpcyBvbmx5
-IHJlbGV2YW50IGZvciB2aWRlb2J1ZigxKSBkcml2ZXJzLCANCndoaWNoIGFueXdheSBoYXZl
-IHRvIGJlIGNvbnZlcnRlZCB0byB2aWRlb2J1ZjI7LSkNCg0KVGhhbmtzDQpHdWVubmFkaQ0K
-DQpPbiBXZWQsIDcgTm92IDIwMTIsICB+Rn5NIH5bfl4gflYgd3JvdGU6DQoNCj4gRGVhciBH
-dWVubmFkaQ0KPiANCj4gSSdtIHN1cmUgaXQncyBhIGJ1Zy5JbiBsaW51eC0yLjYueCwgd2Ug
-Y2FsbCBvcGVuKCkgd2lsbCBhbGxvY2F0ZSBhIHN0cnVjdCBzb2NfY2FtZXJhX2ZpbGUgd2hp
-Y2ggY29udGFpbnMgc3RydWN0IHZpZGVvYnVmX3F1ZXVlO3RoZW4gdXNyIHdpbGwgY2FsbCBy
-ZXF1ZXN0X2J1ZmZlciwgc29jX2NhbWVyYSBtb2R1bGUgd2lsbCBjYWxsIHZpZGVvYnVmX2Fs
-bG9jX3ZiKHEpIHdoaWNoIHdpbGwgYmUgaW5zdGFsbGVkIGluIHEtPmJ1ZnNbaV0uDQo+ICAg
-ICAgICAgICAgICBNeSBxdWVzdGlvbiBpcyBob3cgdG8gZnJlZSBxLT5idWZzW2ldIHdoaWNo
-IGlzIGFsbG9jYXRlZCBmcm9tIHZiID0ga3phbGxvYyhzaXplICsgc2l6ZW9mKCptZW0pLCBH
-RlBfS0VSTkVMKSBpZiB3ZSB1c2UgdmlkZW9idWYtZG1hLWNvbnRpZyBtZW1vcnkgbW9kZWw/
-IA0KPiAgICAgICAgICAgICAgdmlkZW9idWZfbW1hcF9mcmVlKCktPmtmcmVlKHEtPmJ1ZnNb
-aV0pIHNob3VsZCBjYWxsIGF0IGV2ZXJ5IGNhbGwgY2xvc2UoKTt3ZSBjYW4ndCBjYWxsIGtm
-cmVlKHEtPmJ1ZnNbaV0pIGF0IHEtPm9wcy0+YnVmX3JlbGVhc2Ugd2hpY2ggaXMgY2FsbGVk
-IGluIHN0cmVhbV9vZmYoKSwgYmVjYXVzZSBxLT5idWZzW2ldIHJlc2VydmUgc3RydWN0IHZp
-ZGVvYnVmX21hcHBpbmcsIHVubWFwKCkgd2lsbCBjYW4ndCBmcmVlIHZpZGVvYnVmIHdoaWNo
-IGlzIHVzZWQgdG8gc3RvcmUgdmlkZW8gZGF0YS4gQWxzbyBjYW4ndCBjYWxsIHZpZGVvYnVm
-X21tYXBfZnJlZSgpLT5rZnJlZShxLT5idWZzW2ldKSBhdCBsYXN0IGNsb3NlKCksIGJlY2F1
-c2UgaW4gbGludXgtMi42Lnggb25jZSBvcGVuKCkgYWxsb2NhdGVzIGEgdmlkZW9idWZfcXVl
-dWUuDQo+ICAgICAgICAgICAgICAgIEluIGxpbnV4LTMueC54LCB3ZSBzaG91bGQgY2FsbCB2
-aWRlb2J1Zl9tbWFwX2ZyZWUoKS0+a2ZyZWUocS0+YnVmc1tpXSkgb25seSBvbmNlIGF0IG1v
-ZHVsZSByZW1vdmUgY2FsbGJjYWsgZnVuY3Rpb24uDQo+ICAgICAgICAgICAgICAgWW91IHNh
-eSwgdmlkZW9idWYgbW1hcCBhbGxvY2F0aW9ucyB3aWxsIGJlIGZyZWVkIGF1dG9tYXRpY2Fs
-bHkuIEkgd2FudCB0byBrbm93biBzb2NfY2FtZXJhIG1vZHVsZSBob3cgdG8gZnJlZSBxLT5i
-dWZzW2ldIGF1dG9tYXRpY2FsbHkuIA0KPiAgICAgICAgICAgICAgIElmIGlzIHRoZXJlIG5v
-IGJ1ZyBpbiBzb2MgY2FtZXJhIG1vZHVsZSAsIGknbSBzdXJlIGFsbCBkZXZpY2UgZHJpdmVy
-IHVzZSBzb2MgY2FtZXJhIG1vZHVsZSBoYXZlIGJ1Z3MsIHN1Y2ggYXMgc2hfbW9iaWxlX2Nl
-dV9jYWVyYS5jLCBteDFfY2FlcmEuYywgbXgzX2NhZXJhLmMgZXRjLiBhbGwgb2YgdGhlbSBk
-b25uJ3QgY2FsbCB2aWRlb2J1Zl9tbWFwX2ZyZWUoKS0+a2ZyZWUocS0+YnVmc1tpXSkuDQo+
-IA0KPiBZb3VyIHJlcGx5IHdpbGwgYmUgaGlnbHkgYXBwcmVjaWF0ZWQhIA0KPiANCj4gDQo+
-IC0tLS0tLS0tLS0tLS0tLS0tLSDljp/lp4vpgq7ku7YgLS0tLS0tLS0tLS0tLS0tLS0tDQo+
-IOWPkeS7tuS6ujogIkd1ZW5uYWRpIExpYWtob3ZldHNraSI8Zy5saWFraG92ZXRza2lAZ214
-LmRlPjsNCj4g5Y+R6YCB5pe26Ze0OiAyMDEy5bm0MTHmnIg25pelKOaYn+acn+S6jCkg5pma
-5LiKNzozMA0KPiDmlLbku7bkuro6ICLlho3lm57pppYiPDMwODEyMzAyN0BxcS5jb20+OyAN
-Cj4g5oqE6YCBOiAibGludXgtbWVkaWEiPGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZz47
-IA0KPiDkuLvpopg6IFJlOiBzb2MgY2FtZXJhIGRyaXZlciBtb2R1bGUgbWF5IGNhc2UgbWVt
-b3J5IGxlYWsNCj4gDQo+IA0KPiBIaQ0KPiANCj4gT24gTW9uLCA1IE5vdiAyMDEyLCAgfkZ+
-TSB+W35eIH5WIHdyb3RlOg0KPiANCj4gPiBEZWFyIHNpcjoNCj4gPiB3aHkgbm90IGNhbGwg
-InZpZGVvYnVmX21tYXBfZnJlZSIsd2hlbiBkZXZpY2UgY2xvc2UgY2FsbCAic29jX2NhbWVy
-YV9jbG9zZSIgaW4gbGludXgtMi42Lng7DQo+IA0KPiBJIGhhdmVuJ3QgZm91bmQgYW55IHZl
-cnNpb24sIHdoZXJlIHRoaXMgaGFzIGJlZW4gZG9uZS4gSSBkb24ndCB0aGluayB0aGlzIA0K
-PiBpcyBuZWVkZWQsIGJlY2F1c2UgdmlkZW9idWYgbW1hcCBhbGxvY2F0aW9ucyB3aWxsIGJl
-IGZyZWVkIGF1dG9tYXRpY2FsbHkgDQo+IHVwb24gdGhlIGxhc3QgY2xvc2UoKS4gUGxlYXNl
-LCBkaXNtaXNzIHlvdXIgYnVnemlsbGEgZW50cnkuDQo+IA0KPiBUaGFua3MNCj4gR3Vlbm5h
-ZGkNCj4gDQo+ID4gZG8gdGhlIHNhbWUgaW4gbGludXgtMy54Lng/DQo+ID4gdmlkZW8gY2Fw
-dHVyZSBmbG93Og0KPiA+IDEpb3Blbg0KPiA+IDIpc2V0IGZtdA0KPiA+IDMpcmVxdWVzdCBi
-dWZmZXItLT5fX3ZpZGVvYnVmX21tYXBfc2V0dXAtLT52aWRlb2J1Zl9hbGxvY192YihxKQ0K
-PiA+IDQpbW1hcA0KPiA+IDUpZW5xdWV1ZSwgZGVxdWV1ZQ0KPiA+IDYpdW5tYXANCj4gPiA3
-KWNsb3NlLS0tPnNvY19jYW1lcmFfY2xvc2UtLT4/c2hvdWxkIGNhbGw6dmlkZW9idWZfbW1h
-cF9mcmVlDQo+ID4gTk9URToNCj4gPiBJIGhhdmUgcmV2aWV3ZWQgYWxsIHRoZSBjb2RlLCBm
-b3VuZDpzb2NfY2FtZXJhX2RyaXZlciBkZXZpY2UgZHJpdmVyIGNvZGVycyBoYXMgbm8gd2F5
-KGNhbGxiYWNrIGZ1bmN0aW9uKSB0byBjYWxsIHZpZGVvYnVmX21tYXBfZnJlZTsgaXQgd2ls
-bCBjYXNlIG1lbW9yeSBsZWFrLk4gciB5IGIgWCDHp3YgXiAp3rp7Lm4gKyB7IGJqKSB3Kmpn
-IN2iai8geiDeliAyIN6ZICYgKd+hIGEgRyBoIGo6K3YgdyDZpQ0KPiANCj4gLS0tDQo+IEd1
-ZW5uYWRpIExpYWtob3ZldHNraSwgUGguRC4NCj4gRnJlZWxhbmNlIE9wZW4tU291cmNlIFNv
-ZnR3YXJlIERldmVsb3Blcg0KPiBodHRwOi8vd3d3Lm9wZW4tdGVjaG5vbG9neS5kZS8NCg0K
-LS0tDQpHdWVubmFkaSBMaWFraG92ZXRza2ksIFBoLkQuDQpGcmVlbGFuY2UgT3Blbi1Tb3Vy
-Y2UgU29mdHdhcmUgRGV2ZWxvcGVyDQpodHRwOi8vd3d3Lm9wZW4tdGVjaG5vbG9neS5kZS8=
+CONFIG_HOTPLUG is going away as an option so __devexit is no
+longer needed.
+
+Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org> 
+Cc: linux-media@vger.kernel.org 
+Cc: devel@driverdev.osuosl.org 
+---
+ drivers/staging/media/dt3155v4l/dt3155v4l.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+index c8af551..2389103 100644
+--- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
++++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+@@ -877,7 +877,7 @@ out:
+ 	return 0;
+ }
+ 
+-static void __devexit
++static void
+ dt3155_free_coherent(struct device *dev)
+ {
+ 	struct dma_coherent_mem *mem = dev->dma_mem;
+@@ -956,7 +956,7 @@ err_video_device_alloc:
+ 	return err;
+ }
+ 
+-static void __devexit
++static void
+ dt3155_remove(struct pci_dev *pdev)
+ {
+ 	struct dt3155_priv *pd = pci_get_drvdata(pdev);
+-- 
+1.8.0
 
