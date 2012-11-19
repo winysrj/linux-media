@@ -1,110 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42130 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757752Ab2KVVZH (ORCPT
+Received: from viridian.itc.Virginia.EDU ([128.143.12.139]:41486 "EHLO
+	viridian.itc.virginia.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754222Ab2KSSer (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 16:25:07 -0500
-Date: Thu, 22 Nov 2012 23:25:02 +0200
-From: 'Sakari Ailus' <sakari.ailus@iki.fi>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: 'Sylwester Nawrocki' <sylvester.nawrocki@gmail.com>,
-	'Shaik Ameer Basha' <shaik.ameer@samsung.com>,
-	linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	kgene.kim@samsung.com, shaik.samsung@gmail.com,
-	'Hans Verkuil' <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] [media] exynos-gsc: propagate timestamps from src to
- dst buffers
-Message-ID: <20121122212502.GC31442@valkosipuli.retiisi.org.uk>
-References: <1352270424-14683-1-git-send-email-shaik.ameer@samsung.com>
- <50AAAD6A.80709@gmail.com>
- <20121121193948.GB30360@valkosipuli.retiisi.org.uk>
- <01c501cdc894$3f9be9f0$bed3bdd0$%debski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <01c501cdc894$3f9be9f0$bed3bdd0$%debski@samsung.com>
+	Mon, 19 Nov 2012 13:34:47 -0500
+From: Bill Pemberton <wfp5p@virginia.edu>
+To: gregkh@linuxfoundation.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 375/493] media: remove use of __devinitconst
+Date: Mon, 19 Nov 2012 13:25:24 -0500
+Message-Id: <1353349642-3677-375-git-send-email-wfp5p@virginia.edu>
+In-Reply-To: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
+References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+CONFIG_HOTPLUG is going away as an option so __devinitconst is no
+longer needed.
 
-On Thu, Nov 22, 2012 at 10:32:09AM +0100, Kamil Debski wrote:
-> Hi Sakari,
-> 
-> > From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
-> > Sent: Wednesday, November 21, 2012 8:40 PM
-> > 
-> > Hi Sylwester and Shaik,
-> > 
-> > On Mon, Nov 19, 2012 at 11:06:34PM +0100, Sylwester Nawrocki wrote:
-> > > On 11/07/2012 07:40 AM, Shaik Ameer Basha wrote:
-> > > >Make gsc-m2m propagate the timestamp field from source to
-> > destination
-> > > >buffers
-> > >
-> > > We probably need some means for letting know the mem-to-mem drivers
-> > > and applications whether timestamps are copied from OUTPUT to CAPTURE
-> > or not.
-> > > Timestamps at only OUTPUT interface are normally used to control
-> > > buffer processing time [1].
-> > >
-> > >
-> > > "struct timeval	timestamp
-> > >
-> > > For input streams this is the system time (as returned by the
-> > > gettimeofday()
-> > > function) when the first data byte was captured. For output streams
-> > 
-> > Thanks for notifying me; this is going to be dependent on the timestamp
-> > type.
-> > 
-> > Also most drivers use the time the buffer is finished rather than when
-> > the "first data byte was captured", but that's separate I think.
-> > 
-> > > the data
-> > > will not be displayed before this time, secondary to the nominal
-> > frame
-> > > rate determined by the current video standard in enqueued order.
-> > > Applications can
-> > > for example zero this field to display frames as soon as possible.
-> > > The driver
-> > > stores the time at which the first data byte was actually sent out in
-> > > the timestamp field. This permits applications to monitor the drift
-> > > between the video and system clock."
-> > >
-> > > In some use cases it might be useful to know exact frame processing
-> > > time, where driver would be filling OUTPUT and CAPTURE value with
-> > > exact monotonic clock values corresponding to a frame processing
-> > start and end time.
-> > 
-> > Shouldn't this always be done in memory-to-memory processing? I could
-> > imagine only performance measurements can benefit from other kind of
-> > timestamps.
-> > 
-> > We could use different timestamp type to tell the timestamp source
-> > isn't any system clock but an input buffer.
-> 
-> I hope that by input buffer you mean the OUTPUT buffer.
-> So the timestamp is copied from the OUTPUT buffer to the corresponding
-> CAPTURE buffer.
+Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org> 
+Cc: linux-media@vger.kernel.org 
+---
+ drivers/media/mmc/siano/smssdio.c  | 2 +-
+ drivers/media/platform/timblogiw.c | 6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-Correct. Input for the device. I think the OMAP 3 ISP also uses these names;
-should it, that's another question. OUTPUT and CAPTURE are good.
-
-> > 
-> > What do you think?
-> 
-> Definite yes, if my assumption above is true. I did reply to your RFC
-> suggesting to include this, but got no reply whatsoever. Maybe it got
-> lost somewhere.
-
-Could be. Anyway, I think we can then say that we agree. :-)
-
-Who will write the patch? :-)
-
+diff --git a/drivers/media/mmc/siano/smssdio.c b/drivers/media/mmc/siano/smssdio.c
+index 0a61bc6..15d3493 100644
+--- a/drivers/media/mmc/siano/smssdio.c
++++ b/drivers/media/mmc/siano/smssdio.c
+@@ -50,7 +50,7 @@
+ #define SMSSDIO_INT		0x04
+ #define SMSSDIO_BLOCK_SIZE	128
+ 
+-static const struct sdio_device_id smssdio_ids[] __devinitconst = {
++static const struct sdio_device_id smssdio_ids[] = {
+ 	{SDIO_DEVICE(SDIO_VENDOR_ID_SIANO, SDIO_DEVICE_ID_SIANO_STELLAR),
+ 	 .driver_data = SMS1XXX_BOARD_SIANO_STELLAR},
+ 	{SDIO_DEVICE(SDIO_VENDOR_ID_SIANO, SDIO_DEVICE_ID_SIANO_NOVA_A0),
+diff --git a/drivers/media/platform/timblogiw.c b/drivers/media/platform/timblogiw.c
+index 574b2dd..384d2cc 100644
+--- a/drivers/media/platform/timblogiw.c
++++ b/drivers/media/platform/timblogiw.c
+@@ -745,7 +745,7 @@ static int timblogiw_mmap(struct file *file, struct vm_area_struct *vma)
+ 
+ /* Platform device functions */
+ 
+-static __devinitconst struct v4l2_ioctl_ops timblogiw_ioctl_ops = {
++static struct v4l2_ioctl_ops timblogiw_ioctl_ops = {
+ 	.vidioc_querycap		= timblogiw_querycap,
+ 	.vidioc_enum_fmt_vid_cap	= timblogiw_enum_fmt,
+ 	.vidioc_g_fmt_vid_cap		= timblogiw_g_fmt,
+@@ -767,7 +767,7 @@ static __devinitconst struct v4l2_ioctl_ops timblogiw_ioctl_ops = {
+ 	.vidioc_enum_framesizes		= timblogiw_enum_framesizes,
+ };
+ 
+-static __devinitconst struct v4l2_file_operations timblogiw_fops = {
++static struct v4l2_file_operations timblogiw_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= timblogiw_open,
+ 	.release	= timblogiw_close,
+@@ -777,7 +777,7 @@ static __devinitconst struct v4l2_file_operations timblogiw_fops = {
+ 	.poll		= timblogiw_poll,
+ };
+ 
+-static __devinitconst struct video_device timblogiw_template = {
++static struct video_device timblogiw_template = {
+ 	.name		= TIMBLOGIWIN_NAME,
+ 	.fops		= &timblogiw_fops,
+ 	.ioctl_ops	= &timblogiw_ioctl_ops,
 -- 
-Kind regards,
+1.8.0
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
