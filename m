@@ -1,46 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-02.mandic.com.br ([200.225.81.133]:48570 "EHLO
-	smtp-02.mandic.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932416Ab2KXAeA (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:61915 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754113Ab2KSUG4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 19:34:00 -0500
-From: Cesar Eduardo Barros <cesarb@cesarb.net>
-To: linux-kernel@vger.kernel.org
-Cc: Cesar Eduardo Barros <cesarb@cesarb.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Josh Wu <josh.wu@atmel.com>, linux-media@vger.kernel.org
-Subject: [PATCH 06/24] MAINTAINERS: fix drivers/media/platform/atmel-isi.c
-Date: Fri, 23 Nov 2012 22:26:30 -0200
-Message-Id: <1353716808-16375-7-git-send-email-cesarb@cesarb.net>
-In-Reply-To: <1353716808-16375-1-git-send-email-cesarb@cesarb.net>
-References: <1353716808-16375-1-git-send-email-cesarb@cesarb.net>
+	Mon, 19 Nov 2012 15:06:56 -0500
+Received: by mail-bk0-f46.google.com with SMTP id q16so2115455bkw.19
+        for <linux-media@vger.kernel.org>; Mon, 19 Nov 2012 12:06:55 -0800 (PST)
+Message-ID: <50AA915D.5020304@gmail.com>
+Date: Mon, 19 Nov 2012 21:06:53 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Shaik Ameer Basha <shaik.ameer@samsung.com>
+CC: linux-media@vger.kernel.org, sw0312.kim@samsung.com
+Subject: Re: [PATCH] exynos-gsc: Add missing video device vfl_dir flag initialization
+References: <1352588276-16260-1-git-send-email-sylvester.nawrocki@gmail.com>
+In-Reply-To: <1352588276-16260-1-git-send-email-sylvester.nawrocki@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This file was moved to drivers/media/platform/soc_camera/atmel-isi.c by
-commit b47ff4a ([media] move soc_camera to its own directory).
+Hi Shaik,
 
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Josh Wu <josh.wu@atmel.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
----
- MAINTAINERS | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Could you let us know if the driver is working fine with this patch
+applied ? I have no exynos5 based board to test it. And this patch
+qualifies as an important fix that should be applied for v3.7, where
+the driver's first appeared.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index dd28c70..05054ad 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1395,7 +1395,7 @@ ATMEL ISI DRIVER
- M:	Josh Wu <josh.wu@atmel.com>
- L:	linux-media@vger.kernel.org
- S:	Supported
--F:	drivers/media/platform/atmel-isi.c
-+F:	drivers/media/platform/soc_camera/atmel-isi.c
- F:	include/media/atmel-isi.h
- 
- ATMEL LCDFB DRIVER
--- 
-1.7.11.7
+Thanks,
+Sylwester
 
+On 11/10/2012 11:57 PM, Sylwester Nawrocki wrote:
+> vfl_dir should be set to VFL_DIR_M2M so valid ioctls for this
+> mem-to-mem device can be properly determined in the v4l2 core.
+>
+> Cc: Shaik Ameer Basha<shaik.ameer@samsung.com>
+> Signed-off-by: Sylwester Nawrocki<sylvester.nawrocki@gmail.com>
+> ---
+> I didn't run-time test this patch.
+>
+>   drivers/media/platform/exynos-gsc/gsc-m2m.c |    1 +
+>   1 files changed, 1 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+> index 3c7f005..88642a8 100644
+> --- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
+> +++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+> @@ -732,6 +732,7 @@ int gsc_register_m2m_device(struct gsc_dev *gsc)
+>   	gsc->vdev.ioctl_ops	=&gsc_m2m_ioctl_ops;
+>   	gsc->vdev.release	= video_device_release_empty;
+>   	gsc->vdev.lock		=&gsc->lock;
+> +	gsc->vdev.vfl_dir	= VFL_DIR_M2M;
+>   	snprintf(gsc->vdev.name, sizeof(gsc->vdev.name), "%s.%d:m2m",
+>   					GSC_MODULE_NAME, gsc->id);
+>
+> --
+> 1.7.4.1
+>
