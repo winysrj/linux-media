@@ -1,62 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46561 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752686Ab2KSALN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Nov 2012 19:11:13 -0500
-Message-ID: <50A97901.5040501@iki.fi>
-Date: Mon, 19 Nov 2012 02:10:41 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Philippe Valembois - Phil <lephilousophe@users.sourceforge.net>
-CC: linux-media@vger.kernel.org, greg@kroah.com
-Subject: Re: Hauppauge WinTV HVR 900 (M/R 65018/B3C0) doesn't work anymore
- since linux 3.6.6
-References: <50A3FF56.3070703@users.sourceforge.net>
-In-Reply-To: <50A3FF56.3070703@users.sourceforge.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39108 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753162Ab2KTP4O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Nov 2012 10:56:14 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
+	"David Airlie" <airlied@linux.ie>
+Subject: [PATCH v12 0/6] of: add display helper
+Date: Tue, 20 Nov 2012 16:54:50 +0100
+Message-Id: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/14/2012 10:30 PM, Philippe Valembois - Phil wrote:
-> Hello,
-> I have posted a bug report here :
-> https://bugzilla.kernel.org/show_bug.cgi?id=50361 and I have been told
-> to send it to the ML too.
->
-> The commit causing the bug has been pushed to kernel between linux-3.5
-> and linux-3.6.
->
-> Here is my bug summary :
->
-> The WinTV HVR900 DVB-T usb stick has stopped working in Linux 3.6.6.
-> The tuner fails at tuning and no DVB channel can be watched.
->
-> Reverting the commit 3de9e9624b36263618470c6e134f22eabf8f2551 fixes the
-> problem
-> and the tuner can tune again. It still seems there is some delay between the
-> moment when the USB stick is plugged and when it can tune : running
-> dvbscan too
-> fast makes the first channels tuning fail but after several seconds it tunes
-> perfectly.
->
-> Don't hesitate to ask me for additional debug.
+Hi!
+
+Changes since v11:
+	- make pointers const where applicable
+	- add reviewed-by Laurent Pinchart
+
+Regards,
+Steffen
 
 
-There is multiple models of that device. What is your device USB ID?
-What it outputs to the system log when stick is plugged? Use dmesg 
-command to see and copy paste output.
+Steffen Trumtrar (6):
+  video: add display_timing and videomode
+  video: add of helper for videomode
+  fbmon: add videomode helpers
+  fbmon: add of_videomode helpers
+  drm_modes: add videomode helpers
+  drm_modes: add of_videomode helpers
 
-Your device supports DVB-C, DVB-T and analog? You tested only DVB-T?
-
-
-I just tested quite many em28xx based sticks with stock 3.6.6 and all 
-seems to work just fine. All em28xx devices I have here are digital 
-only, which makes me wonder if it has something to do with hybrid 
-devices (digital + analog)...
-
-regards
-Antti
+ .../devicetree/bindings/video/display-timings.txt  |  107 ++++++++++
+ drivers/gpu/drm/drm_modes.c                        |   70 +++++++
+ drivers/video/Kconfig                              |   19 ++
+ drivers/video/Makefile                             |    4 +
+ drivers/video/display_timing.c                     |   24 +++
+ drivers/video/fbmon.c                              |   86 ++++++++
+ drivers/video/of_display_timing.c                  |  216 ++++++++++++++++++++
+ drivers/video/of_videomode.c                       |   48 +++++
+ drivers/video/videomode.c                          |   46 +++++
+ include/drm/drmP.h                                 |   12 ++
+ include/linux/display_timing.h                     |   70 +++++++
+ include/linux/fb.h                                 |   13 ++
+ include/linux/of_display_timings.h                 |   20 ++
+ include/linux/of_videomode.h                       |   18 ++
+ include/linux/videomode.h                          |   40 ++++
+ 15 files changed, 793 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/video/display-timings.txt
+ create mode 100644 drivers/video/display_timing.c
+ create mode 100644 drivers/video/of_display_timing.c
+ create mode 100644 drivers/video/of_videomode.c
+ create mode 100644 drivers/video/videomode.c
+ create mode 100644 include/linux/display_timing.h
+ create mode 100644 include/linux/of_display_timings.h
+ create mode 100644 include/linux/of_videomode.h
+ create mode 100644 include/linux/videomode.h
 
 -- 
-http://palosaari.fi/
+1.7.10.4
+
