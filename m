@@ -1,51 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:34934 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752977Ab2KYKht (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:63992 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750821Ab2KTGkH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Nov 2012 05:37:49 -0500
-Received: by mail-ee0-f46.google.com with SMTP id e53so3997648eek.19
-        for <linux-media@vger.kernel.org>; Sun, 25 Nov 2012 02:37:47 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 0/6] em28xx: use common urb data copying function for vbi and non-vbi data streams
-Date: Sun, 25 Nov 2012 11:37:31 +0100
-Message-Id: <1353839857-2990-1-git-send-email-fschaefer.oss@googlemail.com>
+	Tue, 20 Nov 2012 01:40:07 -0500
+Received: by mail-ob0-f174.google.com with SMTP id wc20so5635027obb.19
+        for <linux-media@vger.kernel.org>; Mon, 19 Nov 2012 22:40:05 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPgLHd-p6=0ay8ZKJ=sNzyS5C6x0dJTH=EO1SqwiYciO2gTUJg@mail.gmail.com>
+References: <CAPgLHd-p6=0ay8ZKJ=sNzyS5C6x0dJTH=EO1SqwiYciO2gTUJg@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 20 Nov 2012 12:09:44 +0530
+Message-ID: <CA+V-a8sCnBpOfiwQ719xdri6qdQdEab+dRSoHJ_h2kM3F2cdsQ@mail.gmail.com>
+Subject: Re: [PATCH] [media] vpif_display: fix condition logic in vpif_enum_dv_timings()
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: mchehab@infradead.org, prabhakar.lad@ti.com,
+	yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patches 1-5 prepare function em28xx_urb_data_copy_vbi() to also work with non-vbi video data.
-Patch 6 finally renames em28xx_urb_data_copy_vbi() and changes to code to use this function for both, vbi and non-vbi video data streams.
+Hi Wei,
 
-The changes have been tested with the following devices:
-- "SilverCrest 1.3 MPix webcam" (progressive, non-vbi)
-- "Hauppauge HVR-900 (65008/A1C0)" (interlaced, vbi enabled and disabled)
+On Tue, Oct 30, 2012 at 7:19 PM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>
+> The pattern E == C1 && E == C2 is always false. This patch
+> fix this according to the assumption that && should be ||.
+>
+> dpatch engine is used to auto generate this patch.
+> (https://github.com/weiyj/dpatch)
+>
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> ---
+>  drivers/media/platform/davinci/vpif_display.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+Applied to my tree with following commit message,
 
-This series applies on top of my previous patch series "em28xx: add support fur USB bulk transfers" V2.
+davinci: vpif_display: fix return type check for v4l2_subdev_call()
 
+The v4l2_subdev_call() call returns -ENODEV when subdev is
+null and -ENOIOCTLCMD wnen no icotl is present.
+This patch fixes the return type check for v4l2_subdev_call().
 
+The pattern E == C1 && E == C2 is always false. This patch
+fix this according to the assumption that && should be ||.
 
-Frank Schäfer (6):
-  em28xx: fix video data start position calculation in
-    em28xx_urb_data_copy_vbi()
-  em28xx: make sure the packet size is >= 4 before checking for headers
-    in em28xx_urb_data_copy_vbi()
-  em28xx: fix capture type setting in em28xx_urb_data_copy_vbi()
-  em28xx: fix/improve frame field handling in
-    em28xx_urb_data_copy_vbi()
-  em28xx: em28xx_urb_data_copy_vbi(): calculate vbi_size only if needed
-  em28xx: use common urb data copying function for vbi and non-vbi data
-    streams
+dpatch engine is used to auto generate this patch.
+(https://github.com/weiyj/dpatch)
 
- drivers/media/usb/em28xx/em28xx-video.c |  224 ++++++-------------------------
- drivers/media/usb/em28xx/em28xx.h       |    4 +-
- 2 Dateien geändert, 46 Zeilen hinzugefügt(+), 182 Zeilen entfernt(-)
+Regards,
+--Prabhakar Lad
 
--- 
-1.7.10.4
-
+> diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+> index b716fbd..977ee43 100644
+> --- a/drivers/media/platform/davinci/vpif_display.c
+> +++ b/drivers/media/platform/davinci/vpif_display.c
+> @@ -1380,7 +1380,7 @@ vpif_enum_dv_timings(struct file *file, void *priv,
+>         int ret;
+>
+>         ret = v4l2_subdev_call(ch->sd, video, enum_dv_timings, timings);
+> -       if (ret == -ENOIOCTLCMD && ret == -ENODEV)
+> +       if (ret == -ENOIOCTLCMD || ret == -ENODEV)
+>                 return -EINVAL;
+>         return ret;
+>  }
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
