@@ -1,71 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:49017 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750910Ab2KGGT0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Nov 2012 01:19:26 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MD300FMTTIRNO70@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 07 Nov 2012 15:19:03 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MD300HXHTHI5N50@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 07 Nov 2012 15:19:02 +0900 (KST)
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	shaik.samsung@gmail.com
-Subject: [PATCH] [media] exynos-gsc: Fix settings for input and output image
- RGB type
-Date: Wed, 07 Nov 2012 12:08:31 +0530
-Message-id: <1352270311-9577-1-git-send-email-shaik.ameer@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44479 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751902Ab2KTKvM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Nov 2012 05:51:12 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v11 0/6] of: add display helper
+Date: Tue, 20 Nov 2012 11:52:06 +0100
+Message-ID: <5248190.b4XqndYeI2@avalon>
+In-Reply-To: <20121120103918.GB11249@pengutronix.de>
+References: <1352985312-18178-1-git-send-email-s.trumtrar@pengutronix.de> <20121120103918.GB11249@pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Macros used to set input and output RGB type aren't correct.
-Updating the macros as per register manual.
+Hi Steffen,
 
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
----
- drivers/media/platform/exynos-gsc/gsc-regs.h |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+On Tuesday 20 November 2012 11:39:18 Steffen Trumtrar wrote:
+> On Thu, Nov 15, 2012 at 02:15:06PM +0100, Steffen Trumtrar wrote:
+> > Hi!
+> > 
+> > Changes since v10:
+> > 	- fix function name (drm_)display_mode_from_videomode
+> > 	- add acked-by, reviewed-by, tested-by
+> > 
+> > Regards,
+> > Steffen
+> > 
+> > Steffen Trumtrar (6):
+> >   video: add display_timing and videomode
+> >   video: add of helper for videomode
+> >   fbmon: add videomode helpers
+> >   fbmon: add of_videomode helpers
+> >   drm_modes: add videomode helpers
+> >   drm_modes: add of_videomode helpers
+> >  
+> >  .../devicetree/bindings/video/display-timings.txt  |  107 ++++++++++
+> >  drivers/gpu/drm/drm_modes.c                        |   70 +++++++
+> >  drivers/video/Kconfig                              |   19 ++
+> >  drivers/video/Makefile                             |    4 +
+> >  drivers/video/display_timing.c                     |   24 +++
+> >  drivers/video/fbmon.c                              |   86 ++++++++
+> >  drivers/video/of_display_timing.c                  |  212 +++++++++++++++
+> >  drivers/video/of_videomode.c                       |   47 +++++
+> >  drivers/video/videomode.c                          |   45 +++++
+> >  include/drm/drmP.h                                 |   12 ++
+> >  include/linux/display_timing.h                     |   69 +++++++
+> >  include/linux/fb.h                                 |   12 ++
+> >  include/linux/of_display_timings.h                 |   20 ++
+> >  include/linux/of_videomode.h                       |   17 ++
+> >  include/linux/videomode.h                          |   40 ++++
+> >  15 files changed, 784 insertions(+)
+> >  create mode 100644
+> >  Documentation/devicetree/bindings/video/display-timings.txt create mode
+> >  100644 drivers/video/display_timing.c
+> >  create mode 100644 drivers/video/of_display_timing.c
+> >  create mode 100644 drivers/video/of_videomode.c
+> >  create mode 100644 drivers/video/videomode.c
+> >  create mode 100644 include/linux/display_timing.h
+> >  create mode 100644 include/linux/of_display_timings.h
+> >  create mode 100644 include/linux/of_videomode.h
+> >  create mode 100644 include/linux/videomode.h
+> 
+> Ping!
+> 
+> Any comments or taker for v11? Errors are fixed, driver is tested and
+> working, DT binding got two ACKs. So, the series is finished as far as I
+> can tell.
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-regs.h b/drivers/media/platform/exynos-gsc/gsc-regs.h
-index 533e994..4678f9a 100644
---- a/drivers/media/platform/exynos-gsc/gsc-regs.h
-+++ b/drivers/media/platform/exynos-gsc/gsc-regs.h
-@@ -40,10 +40,10 @@
- #define GSC_IN_ROT_YFLIP		(2 << 16)
- #define GSC_IN_ROT_XFLIP		(1 << 16)
- #define GSC_IN_RGB_TYPE_MASK		(3 << 14)
--#define GSC_IN_RGB_HD_WIDE		(3 << 14)
--#define GSC_IN_RGB_HD_NARROW		(2 << 14)
--#define GSC_IN_RGB_SD_WIDE		(1 << 14)
--#define GSC_IN_RGB_SD_NARROW		(0 << 14)
-+#define GSC_IN_RGB_HD_NARROW		(3 << 14)
-+#define GSC_IN_RGB_HD_WIDE		(2 << 14)
-+#define GSC_IN_RGB_SD_NARROW		(1 << 14)
-+#define GSC_IN_RGB_SD_WIDE		(0 << 14)
- #define GSC_IN_YUV422_1P_ORDER_MASK	(1 << 13)
- #define GSC_IN_YUV422_1P_ORDER_LSB_Y	(0 << 13)
- #define GSC_IN_YUV422_1P_OEDER_LSB_C	(1 << 13)
-@@ -85,10 +85,10 @@
- #define GSC_OUT_GLOBAL_ALPHA_MASK	(0xff << 24)
- #define GSC_OUT_GLOBAL_ALPHA(x)		((x) << 24)
- #define GSC_OUT_RGB_TYPE_MASK		(3 << 10)
--#define GSC_OUT_RGB_HD_NARROW		(3 << 10)
--#define GSC_OUT_RGB_HD_WIDE		(2 << 10)
--#define GSC_OUT_RGB_SD_NARROW		(1 << 10)
--#define GSC_OUT_RGB_SD_WIDE		(0 << 10)
-+#define GSC_OUT_RGB_HD_WIDE		(3 << 10)
-+#define GSC_OUT_RGB_HD_NARROW		(2 << 10)
-+#define GSC_OUT_RGB_SD_WIDE		(1 << 10)
-+#define GSC_OUT_RGB_SD_NARROW		(0 << 10)
- #define GSC_OUT_YUV422_1P_ORDER_MASK	(1 << 9)
- #define GSC_OUT_YUV422_1P_ORDER_LSB_Y	(0 << 9)
- #define GSC_OUT_YUV422_1P_OEDER_LSB_C	(1 << 9)
+Just one last comment, sorry for not bringing this up earlier. Could you 
+constify pointer arguments to functions where applicable ? For instance
+
+int videomode_from_timing(struct display_timings *disp, struct videomode *vm,
+                          unsigned int index);
+
+The function shouldn't modify disp, so you can make it const. Same for most of 
+the API functions.
+
+You can then add my
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> As I'm not sure if I reached the right maintainers with the current CC, I
+> did another get_maintainers and added Florian Schandinat and David Airlie
+> to the list. If I need to resend the series, please tell.
+
 -- 
-1.7.0.4
+Regards,
+
+Laurent Pinchart
 
