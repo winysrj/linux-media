@@ -1,42 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:35242 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751571Ab2KFTkX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 14:40:23 -0500
-From: YAMANE Toshiaki <yamanetoshi@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org,
-	YAMANE Toshiaki <yamanetoshi@gmail.com>
-Subject: [PATCH 1/2] Staging/media: fixed spacing coding style in go7007/wis-uda1342.c
-Date: Wed,  7 Nov 2012 04:40:16 +0900
-Message-Id: <1352230817-9440-1-git-send-email-yamanetoshi@gmail.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:46863 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750952Ab2KTGmt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Nov 2012 01:42:49 -0500
+Received: by mail-ob0-f174.google.com with SMTP id wc20so5636411obb.19
+        for <linux-media@vger.kernel.org>; Mon, 19 Nov 2012 22:42:48 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAPgLHd-QVvRuOFHz0nLKgShmJ383sNs4HD6vxMi4ym75c-q-Zg@mail.gmail.com>
+References: <CAPgLHd-QVvRuOFHz0nLKgShmJ383sNs4HD6vxMi4ym75c-q-Zg@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 20 Nov 2012 12:12:28 +0530
+Message-ID: <CA+V-a8ubmO86-F5iOgw7q4+_irJqN+JhCAE4VazGPa_dajQtxw@mail.gmail.com>
+Subject: Re: [PATCH] [media] vpif_capture: fix condition logic in vpif_capture.c
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: mchehab@infradead.org, prabhakar.lad@ti.com,
+	yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fixed below checkpatch error.
-- ERROR: that open brace { should be on the previous line
+Hi Wei,
 
-Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
----
- drivers/staging/media/go7007/s2250-board.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+On Tue, Oct 30, 2012 at 7:15 PM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>
+> The pattern E == C1 && E == C2 is always false. This patch
+> fix this according to the assumption that && should be ||.
+>
+> dpatch engine is used to auto generate this patch.
+> (https://github.com/weiyj/dpatch)
+>
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> ---
+>  drivers/media/platform/davinci/vpif_capture.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+Applied to my tree with following commit message,
+davinci: vpif_capture: fix return type check for v4l2_subdev_call()
 
-diff --git a/drivers/staging/media/go7007/s2250-board.c b/drivers/staging/media/go7007/s2250-board.c
-index 014d384..6f94c17 100644
---- a/drivers/staging/media/go7007/s2250-board.c
-+++ b/drivers/staging/media/go7007/s2250-board.c
-@@ -103,8 +103,7 @@ static u16 vid_regs_fp[] = {
- };
- 
- /* PAL specific values */
--static u16 vid_regs_fp_pal[] =
--{
-+static u16 vid_regs_fp_pal[] = {
- 	0x120, 0x017,
- 	0x121, 0xd22,
- 	0x122, 0x122,
--- 
-1.7.9.5
+The v4l2_subdev_call() call returns -ENODEV when subdev is
+null and -ENOIOCTLCMD wnen no icotl is present.
+This patch fixes the return type check for v4l2_subdev_call().
 
+The pattern E == C1 && E == C2 is always false. This patch
+fix this according to the assumption that && should be ||.
+
+dpatch engine is used to auto generate this patch.
+(https://github.com/weiyj/dpatch)
+
+Regards,
+--Prabhakar Lad
+
+> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+> index fcabc02..2d28a96 100644
+> --- a/drivers/media/platform/davinci/vpif_capture.c
+> +++ b/drivers/media/platform/davinci/vpif_capture.c
+> @@ -1715,7 +1715,7 @@ vpif_enum_dv_timings(struct file *file, void *priv,
+>         int ret;
+>
+>         ret = v4l2_subdev_call(ch->sd, video, enum_dv_timings, timings);
+> -       if (ret == -ENOIOCTLCMD && ret == -ENODEV)
+> +       if (ret == -ENOIOCTLCMD || ret == -ENODEV)
+>                 return -EINVAL;
+>         return ret;
+>  }
+> @@ -1735,7 +1735,7 @@ vpif_query_dv_timings(struct file *file, void *priv,
+>         int ret;
+>
+>         ret = v4l2_subdev_call(ch->sd, video, query_dv_timings, timings);
+> -       if (ret == -ENOIOCTLCMD && ret == -ENODEV)
+> +       if (ret == -ENOIOCTLCMD || ret == -ENODEV)
+>                 return -ENODATA;
+>         return ret;
+>  }
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
