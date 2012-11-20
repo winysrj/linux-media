@@ -1,87 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52744 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932539Ab2K1W43 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 17:56:29 -0500
-Message-ID: <50B6967C.9070801@iki.fi>
-Date: Thu, 29 Nov 2012 00:55:56 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from ch1ehsobe006.messaging.microsoft.com ([216.32.181.186]:10170
+	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751428Ab2KTHAY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Nov 2012 02:00:24 -0500
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	<linux-media@vger.kernel.org>,
+	<uclinux-dist-devel@blackfin.uclinux.org>
+CC: Scott Jiang <scott.jiang.linux@gmail.com>
+Subject: [PATCH 1/2] v4l2: blackfin: convert ppi driver to a module
+Date: Tue, 20 Nov 2012 14:49:35 -0500
+Message-ID: <1353440976-1112-1-git-send-email-scott.jiang.linux@gmail.com>
 MIME-Version: 1.0
-To: Matthew Gyurgyik <matthew@pyther.net>
-CC: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net>
-In-Reply-To: <50B69037.3080205@pyther.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/29/2012 12:29 AM, Matthew Gyurgyik wrote:
-> On 11/28/2012 03:47 PM, Frank Schäfer wrote:
->> Your device seems to use a EM2874 bridge.
-> That is what appears on the chip.
->> Any chance to open the device and find out which demodulator it uses ?
-> To my surprise it was easier to open than expected.
->
-> I think this is the demodulator:
->
-> 7th Generation
-> VS8/QAM Receiver
-> LG
-> LGDT3305
-> 1211
-> PGU419.00A
->
-> I took some pictures (of the entire card):
-> http://pyther.net/a/digivox_atsc/ (SideA_1.jpg, SideA_2.jpg,
-> SideB_1.jpg, SideB_2.jpg)
->> Are you able to compile a kernel on your own to test patches ? It's not
->> that hard... ;)
-> I sure can! I've done some kernel bisects in the past.
+Other drivers can make use of it.
 
-Very, very, good pics and sniffs!!
+Signed-off-by: Scott Jiang <scott.jiang.linux@gmail.com>
+---
+ drivers/media/platform/blackfin/Kconfig  |    6 +++++-
+ drivers/media/platform/blackfin/Makefile |    4 ++--
+ drivers/media/platform/blackfin/ppi.c    |    7 +++++++
+ 3 files changed, 14 insertions(+), 3 deletions(-)
 
-
- From the sniff you could see I2C addresses
-50 (a0 >> 1) eeprom
-0e (1c >> 1) demod
-60 (c0 >> 1) tuner
-
-
-EM2874, USB-bridge, clocked at 12MHz, crystal on other side of PCB. 
-There is also 32k serial eeprom for EM2874. This large serial eeprom 
-means (very likely) it uses custom firmware which is downloaded from the 
-eeprom.
-
-LGDT3305, demodulator, clocked at 25MHz. Serial TS used between EM2874 
-and LGDT3305.
-
-TDA18271HDC2 is tuner, clocked at 16MHz. Traditional IF used between 
-tuner and demod.
-
-IR receiver is near antenna, which is a little bit long wires to connect 
-to the EM2874, looks weird but no harm.
-
-
-Main GPIO sequence is that one:
-000255: 000006 ms 000990 ms c0 00 00 00 80 00 01 00 <<<  ff
-000256: 000004 ms 000994 ms 40 00 00 00 80 00 01 00 >>>  fe
-000257: 000006 ms 001000 ms c0 00 00 00 80 00 01 00 <<<  fe
-000258: 000004 ms 001004 ms 40 00 00 00 80 00 01 00 >>>  be
-000259: 000139 ms 001143 ms c0 00 00 00 80 00 01 00 <<<  be
-000260: 000005 ms 001148 ms 40 00 00 00 80 00 01 00 >>>  fe
-
-There is some more GPIOs later, just test with trial and error to find 
-out all GPIOs.
-
-Making that device working should be quite easy! There is a little 
-change for proprietary firmware for EM2874 which does some nasty things, 
-but that is very very unlikely.
-
-regards
-Antti
-
+diff --git a/drivers/media/platform/blackfin/Kconfig b/drivers/media/platform/blackfin/Kconfig
+index ecd5323..519990e 100644
+--- a/drivers/media/platform/blackfin/Kconfig
++++ b/drivers/media/platform/blackfin/Kconfig
+@@ -2,9 +2,13 @@ config VIDEO_BLACKFIN_CAPTURE
+ 	tristate "Blackfin Video Capture Driver"
+ 	depends on VIDEO_V4L2 && BLACKFIN && I2C
+ 	select VIDEOBUF2_DMA_CONTIG
++	select VIDEO_BLACKFIN_PPI
+ 	help
+ 	  V4L2 bridge driver for Blackfin video capture device.
+ 	  Choose PPI or EPPI as its interface.
+ 
+ 	  To compile this driver as a module, choose M here: the
+-	  module will be called bfin_video_capture.
++	  module will be called bfin_capture.
++
++config VIDEO_BLACKFIN_PPI
++	tristate
+diff --git a/drivers/media/platform/blackfin/Makefile b/drivers/media/platform/blackfin/Makefile
+index aa3a0a2..30421bc 100644
+--- a/drivers/media/platform/blackfin/Makefile
++++ b/drivers/media/platform/blackfin/Makefile
+@@ -1,2 +1,2 @@
+-bfin_video_capture-objs := bfin_capture.o ppi.o
+-obj-$(CONFIG_VIDEO_BLACKFIN_CAPTURE) += bfin_video_capture.o
++obj-$(CONFIG_VIDEO_BLACKFIN_CAPTURE) += bfin_capture.o
++obj-$(CONFIG_VIDEO_BLACKFIN_PPI)     += ppi.o
+diff --git a/drivers/media/platform/blackfin/ppi.c b/drivers/media/platform/blackfin/ppi.c
+index d295921..9374d67 100644
+--- a/drivers/media/platform/blackfin/ppi.c
++++ b/drivers/media/platform/blackfin/ppi.c
+@@ -17,6 +17,7 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
++#include <linux/module.h>
+ #include <linux/slab.h>
+ 
+ #include <asm/bfin_ppi.h>
+@@ -263,9 +264,15 @@ struct ppi_if *ppi_create_instance(const struct ppi_info *info)
+ 	pr_info("ppi probe success\n");
+ 	return ppi;
+ }
++EXPORT_SYMBOL(ppi_create_instance);
+ 
+ void ppi_delete_instance(struct ppi_if *ppi)
+ {
+ 	peripheral_free_list(ppi->info->pin_req);
+ 	kfree(ppi);
+ }
++EXPORT_SYMBOL(ppi_delete_instance);
++
++MODULE_DESCRIPTION("Analog Devices PPI driver");
++MODULE_AUTHOR("Scott Jiang <Scott.Jiang.Linux@gmail.com>");
++MODULE_LICENSE("GPL v2");
 -- 
-http://palosaari.fi/
+1.7.0.4
+
+
