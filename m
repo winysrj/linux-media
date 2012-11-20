@@ -1,391 +1,538 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:65470 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756641Ab2KHTM5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:12:57 -0500
-Received: by mail-ee0-f46.google.com with SMTP id b15so1754511eek.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2012 11:12:56 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 20/21] em28xx: improve USB endpoint logic, also use bulk transfers
-Date: Thu,  8 Nov 2012 20:11:52 +0200
-Message-Id: <1352398313-3698-21-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39031 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752769Ab2KTPzw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Nov 2012 10:55:52 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
+	"David Airlie" <airlied@linux.ie>
+Subject: =?UTF-8?q?=5BPATCH=20v12=202/6=5D=20video=3A=20add=20of=20helper=20for=20videomode?=
+Date: Tue, 20 Nov 2012 16:54:52 +0100
+Message-Id: <1353426896-6045-3-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current enpoint logic ignores all bulk endpoints and uses
-a fixed mapping between endpint addresses and the supported
-data stream types (analog/audio/DVB):
-  Ep 0x82, isoc	=> analog
-  Ep 0x83, isoc	=> audio
-  Ep 0x84, isoc	=> DVB
+This adds support for reading display timings from DT or/and convert one of those
+timings to a videomode.
+The of_display_timing implementation supports multiple children where each
+property can have up to 3 values. All children are read into an array, that
+can be queried.
+of_get_videomode converts exactly one of that timings to a struct videomode.
 
-Now that the code can also do bulk transfers, the endpoint
-logic has to be extended to also consider bulk endpoints.
-The new logic preserves backwards compatibility and reflects
-the endpoint configurations we have seen so far:
-  Ep 0x82, isoc		=> analog
-  Ep 0x82, bulk		=> analog
-  Ep 0x83, isoc*	=> audio
-  Ep 0x84, isoc		=> digital
-  Ep 0x84, bulk		=> analog or digital**
- (*: audio should always be isoc)
- (**: analog, if ep 0x82 is isoc, otherwise digital)
-
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Stephen Warren <swarren@nvidia.com>
+Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/usb/em28xx/em28xx-cards.c |   97 +++++++++++++++++++++++++------
- drivers/media/usb/em28xx/em28xx-core.c  |   32 ++++++++--
- drivers/media/usb/em28xx/em28xx-dvb.c   |   34 +++++++----
- drivers/media/usb/em28xx/em28xx-reg.h   |    4 +-
- drivers/media/usb/em28xx/em28xx-video.c |   10 ++--
- drivers/media/usb/em28xx/em28xx.h       |   12 ++++
- 6 Dateien geändert, 149 Zeilen hinzugefügt(+), 40 Zeilen entfernt(-)
+ .../devicetree/bindings/video/display-timings.txt  |  107 ++++++++++
+ drivers/video/Kconfig                              |   13 ++
+ drivers/video/Makefile                             |    2 +
+ drivers/video/of_display_timing.c                  |  216 ++++++++++++++++++++
+ drivers/video/of_videomode.c                       |   48 +++++
+ include/linux/of_display_timings.h                 |   20 ++
+ include/linux/of_videomode.h                       |   18 ++
+ 7 files changed, 424 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/video/display-timings.txt
+ create mode 100644 drivers/video/of_display_timing.c
+ create mode 100644 drivers/video/of_videomode.c
+ create mode 100644 include/linux/of_display_timings.h
+ create mode 100644 include/linux/of_videomode.h
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 873b52f..a9344f0 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -6,6 +6,7 @@
- 		      Markus Rechberger <mrechberger@gmail.com>
- 		      Mauro Carvalho Chehab <mchehab@infradead.org>
- 		      Sascha Sommer <saschasommer@freenet.de>
-+   Copyright (C) 2012 Frank Schäfer <fschaefer.oss@googlemail.com>
- 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-@@ -3209,26 +3210,69 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 			if (udev->speed == USB_SPEED_HIGH)
- 				size = size * hb_mult(sizedescr);
- 
--			if (usb_endpoint_xfer_isoc(e) &&
--			    usb_endpoint_dir_in(e)) {
-+			if (usb_endpoint_dir_in(e)) {
- 				switch (e->bEndpointAddress) {
--				case EM28XX_EP_AUDIO:
--					has_audio = true;
--					break;
--				case EM28XX_EP_ANALOG:
-+				case 0x82:
- 					has_video = true;
--					dev->alt_max_pkt_size_isoc[i] = size;
-+					if (usb_endpoint_xfer_isoc(e)) {
-+						dev->analog_ep_isoc =
-+							    e->bEndpointAddress;
-+						dev->alt_max_pkt_size_isoc[i] = size;
-+					} else if (usb_endpoint_xfer_bulk(e)) {
-+						dev->analog_ep_bulk =
-+							    e->bEndpointAddress;
-+					}
-+					break;
-+				case 0x83:
-+					if (usb_endpoint_xfer_isoc(e)) {
-+						has_audio = true;
-+					} else {
-+						printk(KERN_INFO DRIVER_NAME
-+						": error: skipping audio end"
-+						"point 0x83, because it uses"
-+						" bulk transfers !\n");
-+					}
- 					break;
--				case EM28XX_EP_DIGITAL:
--					has_dvb = true;
--					if (size > dev->dvb_max_pkt_size_isoc) {
--						dev->dvb_max_pkt_size_isoc =
--									  size;
--						dev->dvb_alt_isoc = i;
-+				case 0x84:
-+					if (has_video &&
-+					    (usb_endpoint_xfer_bulk(e))) {
-+						dev->analog_ep_bulk =
-+							    e->bEndpointAddress;
-+					} else {
-+						has_dvb = true;
-+						if (usb_endpoint_xfer_isoc(e)) {
-+							dev->dvb_ep_isoc = e->bEndpointAddress;
-+							if (size > dev->dvb_max_pkt_size_isoc) {
-+								dev->dvb_max_pkt_size_isoc = size;
-+								dev->dvb_alt_isoc = i;
-+							}
-+						} else {
-+							dev->dvb_ep_bulk = e->bEndpointAddress;
-+						}
- 					}
- 					break;
- 				}
- 			}
-+			/* NOTE:
-+			 * Old logic with support for isoc transfers only was:
-+			 *  0x82	isoc		=> analog
-+			 *  0x83	isoc		=> audio
-+			 *  0x84	isoc		=> digital
-+			 *
-+			 * New logic with support for bulk transfers
-+			 *  0x82	isoc		=> analog
-+			 *  0x82	bulk		=> analog
-+			 *  0x83	isoc*		=> audio
-+			 *  0x84	isoc		=> digital
-+			 *  0x84	bulk		=> analog or digital**
-+			 * (*: audio should always be isoc)
-+			 * (**: analog, if ep 0x82 is isoc, otherwise digital)
-+			 *
-+			 * The new logic preserves backwards compatibility and
-+			 * reflects the endpoint configurations we have seen
-+			 * so far. But there might be devices for which this
-+			 * logic is not sufficient...
-+			 */
- 		}
- 	}
- 
-@@ -3289,6 +3333,12 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 		goto err_free;
- 	}
- 
-+	/* Select USB transfer types to use */
-+	if (has_video && !dev->analog_ep_isoc)
-+		dev->analog_xfer_bulk = 1;
-+	if (has_dvb && !dev->dvb_ep_isoc)
-+		dev->dvb_xfer_bulk = 1;
+diff --git a/Documentation/devicetree/bindings/video/display-timings.txt b/Documentation/devicetree/bindings/video/display-timings.txt
+new file mode 100644
+index 0000000..a05cade
+--- /dev/null
++++ b/Documentation/devicetree/bindings/video/display-timings.txt
+@@ -0,0 +1,107 @@
++display-timings bindings
++========================
 +
- 	snprintf(dev->name, sizeof(dev->name), "em28xx #%d", nr);
- 	dev->devno = nr;
- 	dev->model = id->driver_info;
-@@ -3323,12 +3373,23 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	}
++display-timings node
++--------------------
++
++required properties:
++ - none
++
++optional properties:
++ - native-mode: The native mode for the display, in case multiple modes are
++		provided. When omitted, assume the first node is the native.
++
++timings subnode
++---------------
++
++required properties:
++ - hactive, vactive: Display resolution
++ - hfront-porch, hback-porch, hsync-len: Horizontal Display timing parameters
++   in pixels
++   vfront-porch, vback-porch, vsync-len: Vertical display timing parameters in
++   lines
++ - clock-frequency: display clock in Hz
++
++optional properties:
++ - hsync-active: Hsync pulse is active low/high/ignored
++ - vsync-active: Vsync pulse is active low/high/ignored
++ - de-active: Data-Enable pulse is active low/high/ignored
++ - pixelclk-inverted: pixelclock is inverted/non-inverted/ignored
++ - interlaced (bool)
++ - doublescan (bool)
++
++All the optional properties that are not bool follow the following logic:
++    <1>: high active
++    <0>: low active
++    omitted: not used on hardware
++
++There are different ways of describing the capabilities of a display. The devicetree
++representation corresponds to the one commonly found in datasheets for displays.
++If a display supports multiple signal timings, the native-mode can be specified.
++
++The parameters are defined as
++
++struct display_timing
++=====================
++
++  +----------+---------------------------------------------+----------+-------+
++  |          |                ↑                            |          |       |
++  |          |                |vback_porch                 |          |       |
++  |          |                ↓                            |          |       |
++  +----------###############################################----------+-------+
++  |          #                ↑                            #          |       |
++  |          #                |                            #          |       |
++  |  hback   #                |                            #  hfront  | hsync |
++  |   porch  #                |       hactive              #  porch   |  len  |
++  |<-------->#<---------------+--------------------------->#<-------->|<----->|
++  |          #                |                            #          |       |
++  |          #                |vactive                     #          |       |
++  |          #                |                            #          |       |
++  |          #                ↓                            #          |       |
++  +----------###############################################----------+-------+
++  |          |                ↑                            |          |       |
++  |          |                |vfront_porch                |          |       |
++  |          |                ↓                            |          |       |
++  +----------+---------------------------------------------+----------+-------+
++  |          |                ↑                            |          |       |
++  |          |                |vsync_len                   |          |       |
++  |          |                ↓                            |          |       |
++  +----------+---------------------------------------------+----------+-------+
++
++
++Example:
++
++	display-timings {
++		native-mode = <&timing0>;
++		timing0: 1920p24 {
++			/* 1920x1080p24 */
++			clock-frequency = <52000000>;
++			hactive = <1920>;
++			vactive = <1080>;
++			hfront-porch = <25>;
++			hback-porch = <25>;
++			hsync-len = <25>;
++			vback-porch = <2>;
++			vfront-porch = <2>;
++			vsync-len = <2>;
++			hsync-active = <1>;
++		};
++	};
++
++Every required property also supports the use of ranges, so the commonly used
++datasheet description with <min typ max>-tuples can be used.
++
++Example:
++
++	timing1: timing {
++		/* 1920x1080p24 */
++		clock-frequency = <148500000>;
++		hactive = <1920>;
++		vactive = <1080>;
++		hsync-len = <0 44 60>;
++		hfront-porch = <80 88 95>;
++		hback-porch = <100 148 160>;
++		vfront-porch = <0 4 6>;
++		vback-porch = <0 36 50>;
++		vsync-len = <0 5 6>;
++	};
+diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+index 2a23b18..807fedd 100644
+--- a/drivers/video/Kconfig
++++ b/drivers/video/Kconfig
+@@ -39,6 +39,19 @@ config DISPLAY_TIMING
+ config VIDEOMODE
+        bool
  
- 	if (has_dvb) {
--		/* pre-allocate DVB isoc transfer buffers */
--		retval = em28xx_alloc_urbs(dev, EM28XX_DIGITAL_MODE, 0,
--					   EM28XX_DVB_NUM_BUFS,
--					   dev->dvb_max_pkt_size_isoc,
--					   EM28XX_DVB_NUM_ISOC_PACKETS);
-+		/* pre-allocate DVB usb transfer buffers */
-+		if (dev->dvb_xfer_bulk) {
-+			retval = em28xx_alloc_urbs(dev, EM28XX_DIGITAL_MODE,
-+					    dev->dvb_xfer_bulk,
-+					    EM28XX_DVB_NUM_BUFS,
-+					    512,
-+					    EM28XX_DVB_BULK_PACKET_MULTIPLIER);
-+		} else {
-+			retval = em28xx_alloc_urbs(dev, EM28XX_DIGITAL_MODE,
-+					    dev->dvb_xfer_bulk,
-+					    EM28XX_DVB_NUM_BUFS,
-+					    dev->dvb_max_pkt_size_isoc,
-+					    EM28XX_DVB_NUM_ISOC_PACKETS);
-+		}
- 		if (retval) {
-+			printk(DRIVER_NAME ": Failed to pre-allocate USB"
-+			       " transfer buffers for DVB.\n");
- 			goto unlock_and_free;
- 		}
- 	}
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 06d5734..c78d38b 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -847,11 +847,13 @@ set_alt:
- 	if (dev->alt != prev_alt) {
- 		if (dev->analog_xfer_bulk) {
- 			dev->max_pkt_size = 512; /* USB 2.0 spec */
-+			dev->packet_multiplier = EM28XX_BULK_PACKET_MULTIPLIER;
- 		} else { /* isoc */
- 			em28xx_coredbg("minimum isoc packet size: "
- 				       "%u (alt=%d)\n", min_pkt_size, dev->alt);
- 			dev->max_pkt_size =
- 					  dev->alt_max_pkt_size_isoc[dev->alt];
-+			dev->packet_multiplier = EM28XX_NUM_ISOC_PACKETS;
- 		}
- 		em28xx_coredbg("setting alternate %d with wMaxPacketSize=%u\n",
- 			       dev->alt, dev->max_pkt_size);
-@@ -1054,10 +1056,28 @@ int em28xx_alloc_urbs(struct em28xx *dev, enum em28xx_mode mode, int xfer_bulk,
- 
- 	em28xx_isocdbg("em28xx: called em28xx_alloc_isoc in mode %d\n", mode);
- 
--	if (mode == EM28XX_DIGITAL_MODE)
-+	/* Check mode and if we have an endpoint for the selected
-+	   transfer type, select buffer				 */
-+	if (mode == EM28XX_DIGITAL_MODE) {
-+		if ((xfer_bulk && !dev->dvb_ep_bulk) ||
-+		    (!xfer_bulk && !dev->dvb_ep_isoc)) {
-+			em28xx_errdev("no endpoint for DVB mode and "
-+				      "transfer type %d\n", xfer_bulk > 0);
-+			return -EINVAL;
-+		}
- 		usb_bufs = &dev->usb_ctl.digital_bufs;
--	else
-+	} else if (mode == EM28XX_ANALOG_MODE) {
-+		if ((xfer_bulk && !dev->analog_ep_bulk) ||
-+		    (!xfer_bulk && !dev->analog_ep_isoc)) {
-+			em28xx_errdev("no endpoint for analog mode and "
-+				      "transfer type %d\n", xfer_bulk > 0);
-+			return -EINVAL;
-+		}
- 		usb_bufs = &dev->usb_ctl.analog_bufs;
-+	} else {
-+		em28xx_errdev("invalid mode selected\n");
++config OF_DISPLAY_TIMING
++	bool "Enable OF display timing support"
++	select DISPLAY_TIMING
++	help
++	  helper to parse display timings from the devicetree
++
++config OF_VIDEOMODE
++	bool "Enable OF videomode support"
++	select VIDEOMODE
++	select OF_DISPLAY_TIMING
++	help
++	  helper to get videomodes from the devicetree
++
+ menuconfig FB
+ 	tristate "Support for frame buffer devices"
+ 	---help---
+diff --git a/drivers/video/Makefile b/drivers/video/Makefile
+index fc30439..b936b00 100644
+--- a/drivers/video/Makefile
++++ b/drivers/video/Makefile
+@@ -168,4 +168,6 @@ obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
+ #video output switch sysfs driver
+ obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
+ obj-$(CONFIG_DISPLAY_TIMING) += display_timing.o
++obj-$(CONFIG_OF_DISPLAY_TIMING) += of_display_timing.o
+ obj-$(CONFIG_VIDEOMODE) += videomode.o
++obj-$(CONFIG_OF_VIDEOMODE) += of_videomode.o
+diff --git a/drivers/video/of_display_timing.c b/drivers/video/of_display_timing.c
+new file mode 100644
+index 0000000..3eb731f
+--- /dev/null
++++ b/drivers/video/of_display_timing.c
+@@ -0,0 +1,216 @@
++/*
++ * OF helpers for parsing display timings
++ *
++ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
++ *
++ * based on of_videomode.c by Sascha Hauer <s.hauer@pengutronix.de>
++ *
++ * This file is released under the GPLv2
++ */
++#include <linux/of.h>
++#include <linux/slab.h>
++#include <linux/export.h>
++#include <linux/of_display_timings.h>
++
++/**
++ * parse_property - parse timing_entry from device_node
++ * @np: device_node with the property
++ * @name: name of the property
++ * @result: will be set to the return value
++ *
++ * DESCRIPTION:
++ * Every display_timing can be specified with either just the typical value or
++ * a range consisting of min/typ/max. This function helps handling this
++ **/
++static int parse_property(const struct device_node *np, const char *name,
++			  struct timing_entry *result)
++{
++	struct property *prop;
++	int length, cells, ret;
++
++	prop = of_find_property(np, name, &length);
++	if (!prop) {
++		pr_err("%s: could not find property %s\n", __func__, name);
 +		return -EINVAL;
 +	}
- 
- 	/* De-allocates all pending stuff */
- 	em28xx_uninit_usb_xfer(dev, mode);
-@@ -1113,8 +1133,8 @@ int em28xx_alloc_urbs(struct em28xx *dev, enum em28xx_mode mode, int xfer_bulk,
- 		if (xfer_bulk) { /* bulk */
- 			pipe = usb_rcvbulkpipe(dev->udev,
- 					       mode == EM28XX_ANALOG_MODE ?
--					       EM28XX_EP_ANALOG :
--					       EM28XX_EP_DIGITAL);
-+					       dev->analog_ep_bulk :
-+					       dev->dvb_ep_bulk);
- 			usb_fill_bulk_urb(urb, dev->udev, pipe,
- 					  usb_bufs->transfer_buffer[i], sb_size,
- 					  em28xx_irq_callback, dev);
-@@ -1122,8 +1142,8 @@ int em28xx_alloc_urbs(struct em28xx *dev, enum em28xx_mode mode, int xfer_bulk,
- 		} else { /* isoc */
- 			pipe = usb_rcvisocpipe(dev->udev,
- 					       mode == EM28XX_ANALOG_MODE ?
--					       EM28XX_EP_ANALOG :
--					       EM28XX_EP_DIGITAL);
-+					       dev->analog_ep_isoc :
-+					       dev->dvb_ep_isoc);
- 			usb_fill_int_urb(urb, dev->udev, pipe,
- 					 usb_bufs->transfer_buffer[i], sb_size,
- 					 em28xx_irq_callback, dev, 1);
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index 3fc7e27..8d44e40 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -176,25 +176,39 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
- {
- 	int rc;
- 	struct em28xx *dev = dvb->adapter.priv;
--	int max_dvb_packet_size;
-+	int dvb_max_packet_size, packet_multiplier, dvb_alt;
 +
-+	if (dev->dvb_xfer_bulk) {
-+		if (!dev->dvb_ep_bulk)
-+			return -ENODEV;
-+		dvb_max_packet_size = 512; /* USB 2.0 spec */
-+		packet_multiplier = EM28XX_DVB_BULK_PACKET_MULTIPLIER;
-+		dvb_alt = 0;
-+	} else { /* isoc */
-+		if (!dev->dvb_ep_isoc)
-+			return -ENODEV;
-+		dvb_max_packet_size = dev->dvb_max_pkt_size_isoc;
-+		if (dvb_max_packet_size < 0)
-+			return dvb_max_packet_size;
-+		packet_multiplier = EM28XX_DVB_NUM_ISOC_PACKETS;
-+		dvb_alt = dev->dvb_alt_isoc;
++	cells = length / sizeof(u32);
++	if (cells == 1) {
++		ret = of_property_read_u32(np, name, &result->typ);
++		result->min = result->typ;
++		result->max = result->typ;
++	} else if (cells == 3) {
++		ret = of_property_read_u32_array(np, name, &result->min, cells);
++	} else {
++		pr_err("%s: illegal timing specification in %s\n", __func__, name);
++		return -EINVAL;
 +	}
- 
--	usb_set_interface(dev->udev, 0, dev->dvb_alt_isoc);
-+	usb_set_interface(dev->udev, 0, dvb_alt);
- 	rc = em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
- 	if (rc < 0)
- 		return rc;
- 
--	max_dvb_packet_size = dev->dvb_max_pkt_size_isoc;
--	if (max_dvb_packet_size < 0)
--		return max_dvb_packet_size;
- 	dprintk(1, "Using %d buffers each with %d x %d bytes\n",
- 		EM28XX_DVB_NUM_BUFS,
--		EM28XX_DVB_NUM_ISOC_PACKETS,
--		max_dvb_packet_size);
-+		packet_multiplier,
-+		dvb_max_packet_size);
- 
--	return em28xx_init_usb_xfer(dev, EM28XX_DIGITAL_MODE, 0,
-+	return em28xx_init_usb_xfer(dev, EM28XX_DIGITAL_MODE,
-+				    dev->dvb_xfer_bulk,
- 				    EM28XX_DVB_NUM_BUFS,
--				    max_dvb_packet_size,
--				    EM28XX_DVB_NUM_ISOC_PACKETS,
-+				    dvb_max_packet_size,
-+				    packet_multiplier,
- 				    em28xx_dvb_urb_data_copy);
- }
- 
-diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
-index 6ff3682..8cd3acf 100644
---- a/drivers/media/usb/em28xx/em28xx-reg.h
-+++ b/drivers/media/usb/em28xx/em28xx-reg.h
-@@ -13,9 +13,9 @@
- #define EM_GPO_3   (1 << 3)
- 
- /* em28xx endpoints */
--#define EM28XX_EP_ANALOG	0x82
-+/* 0x82:   (always ?) analog */
- #define EM28XX_EP_AUDIO		0x83
--#define EM28XX_EP_DIGITAL	0x84
-+/* 0x84:   digital or analog */
- 
- /* em2800 registers */
- #define EM2800_R08_AUDIOSRC 0x08
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 8767c06..4ec54fd 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -788,16 +788,18 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
- 
- 	if (urb_init) {
- 		if (em28xx_vbi_supported(dev) == 1)
--			rc = em28xx_init_usb_xfer(dev, EM28XX_ANALOG_MODE, 0,
-+			rc = em28xx_init_usb_xfer(dev, EM28XX_ANALOG_MODE,
-+						  dev->analog_xfer_bulk,
- 						  EM28XX_NUM_BUFS,
- 						  dev->max_pkt_size,
--						  EM28XX_NUM_ISOC_PACKETS,
-+						  dev->packet_multiplier,
- 						  em28xx_urb_data_copy_vbi);
- 		else
--			rc = em28xx_init_usb_xfer(dev, EM28XX_ANALOG_MODE, 0,
-+			rc = em28xx_init_usb_xfer(dev, EM28XX_ANALOG_MODE,
-+						  dev->analog_xfer_bulk,
- 						  EM28XX_NUM_BUFS,
- 						  dev->max_pkt_size,
--						  EM28XX_NUM_ISOC_PACKETS,
-+						  dev->packet_multiplier,
- 						  em28xx_urb_data_copy);
- 		if (rc < 0)
- 			goto fail;
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index f5be522..aa413bd 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -165,6 +165,12 @@
- #define EM28XX_NUM_ISOC_PACKETS 64
- #define EM28XX_DVB_NUM_ISOC_PACKETS 64
- 
-+/* bulk transfers: transfer buffer size = packet size * packet multiplier
-+   USB 2.0 spec says bulk packet size is always 512 bytes
-+ */
-+#define EM28XX_BULK_PACKET_MULTIPLIER 384
-+#define EM28XX_DVB_BULK_PACKET_MULTIPLIER 384
 +
- #define EM28XX_INTERLACED_DEFAULT 1
- 
- /*
-@@ -584,8 +590,14 @@ struct em28xx {
- 
- 	/* usb transfer */
- 	struct usb_device *udev;	/* the usb device */
-+	u8 analog_ep_isoc;	/* address of isoc endpoint for analog */
-+	u8 analog_ep_bulk;	/* address of bulk endpoint for analog */
-+	u8 dvb_ep_isoc;		/* address of isoc endpoint for DVB */
-+	u8 dvb_ep_bulk;		/* address of bulk endpoint for DVC */
- 	int alt;		/* alternate setting */
- 	int max_pkt_size;	/* max packet size of the selected ep at alt */
-+	int packet_multiplier;	/* multiplier for wMaxPacketSize, used for
-+				   URB buffer size definition */
- 	int num_alt;		/* number of alternative settings */
- 	unsigned int *alt_max_pkt_size_isoc; /* array of isoc wMaxPacketSize */
- 	unsigned int analog_xfer_bulk:1;	/* use bulk instead of isoc
++	return ret;
++}
++
++/**
++ * of_get_display_timing - parse display_timing entry from device_node
++ * @np: device_node with the properties
++ **/
++static struct display_timing *of_get_display_timing(const struct device_node *np)
++{
++	struct display_timing *dt;
++	int ret = 0;
++
++	dt = kzalloc(sizeof(*dt), GFP_KERNEL);
++	if (!dt) {
++		pr_err("%s: could not allocate display_timing struct\n", __func__);
++		return NULL;
++	}
++
++	ret |= parse_property(np, "hback-porch", &dt->hback_porch);
++	ret |= parse_property(np, "hfront-porch", &dt->hfront_porch);
++	ret |= parse_property(np, "hactive", &dt->hactive);
++	ret |= parse_property(np, "hsync-len", &dt->hsync_len);
++	ret |= parse_property(np, "vback-porch", &dt->vback_porch);
++	ret |= parse_property(np, "vfront-porch", &dt->vfront_porch);
++	ret |= parse_property(np, "vactive", &dt->vactive);
++	ret |= parse_property(np, "vsync-len", &dt->vsync_len);
++	ret |= parse_property(np, "clock-frequency", &dt->pixelclock);
++
++	of_property_read_u32(np, "vsync-active", &dt->vsync_pol_active);
++	of_property_read_u32(np, "hsync-active", &dt->hsync_pol_active);
++	of_property_read_u32(np, "de-active", &dt->de_pol_active);
++	of_property_read_u32(np, "pixelclk-inverted", &dt->pixelclk_pol);
++	dt->interlaced = of_property_read_bool(np, "interlaced");
++	dt->doublescan = of_property_read_bool(np, "doublescan");
++
++	if (ret) {
++		pr_err("%s: error reading timing properties\n", __func__);
++		kfree(dt);
++		return NULL;
++	}
++
++	return dt;
++}
++
++/**
++ * of_get_display_timings - parse all display_timing entries from a device_node
++ * @np: device_node with the subnodes
++ **/
++struct display_timings *of_get_display_timings(const struct device_node *np)
++{
++	struct device_node *timings_np;
++	struct device_node *entry;
++	struct device_node *native_mode;
++	struct display_timings *disp;
++
++	if (!np) {
++		pr_err("%s: no devicenode given\n", __func__);
++		return NULL;
++	}
++
++	timings_np = of_find_node_by_name(np, "display-timings");
++	if (!timings_np) {
++		pr_err("%s: could not find display-timings node\n", __func__);
++		return NULL;
++	}
++
++	disp = kzalloc(sizeof(*disp), GFP_KERNEL);
++	if (!disp) {
++		pr_err("%s: could not allocate struct disp'\n", __func__);
++		goto dispfail;
++	}
++
++	entry = of_parse_phandle(timings_np, "native-mode", 0);
++	/* assume first child as native mode if none provided */
++	if (!entry)
++		entry = of_get_next_child(np, NULL);
++	/* if there is no child, it is useless to go on */
++	if (!entry) {
++		pr_err("%s: no timing specifications given\n", __func__);
++		goto entryfail;
++	}
++
++	pr_info("%s: using %s as default timing\n", __func__, entry->name);
++
++	native_mode = entry;
++
++	disp->num_timings = of_get_child_count(timings_np);
++	if (disp->num_timings == 0) {
++		/* should never happen, as entry was already found above */
++		pr_err("%s: no timings specified\n", __func__);
++		goto entryfail;
++	}
++
++	disp->timings = kzalloc(sizeof(struct display_timing *) * disp->num_timings,
++				GFP_KERNEL);
++	if (!disp->timings) {
++		pr_err("%s: could not allocate timings array\n", __func__);
++		goto entryfail;
++	}
++
++	disp->num_timings = 0;
++	disp->native_mode = 0;
++
++	for_each_child_of_node(timings_np, entry) {
++		struct display_timing *dt;
++
++		dt = of_get_display_timing(entry);
++		if (!dt) {
++			/*
++			 * to not encourage wrong devicetrees, fail in case of
++			 * an error
++			 */
++			pr_err("%s: error in timing %d\n", __func__,
++			       disp->num_timings + 1);
++			goto timingfail;
++		}
++
++		if (native_mode == entry)
++			disp->native_mode = disp->num_timings;
++
++		disp->timings[disp->num_timings] = dt;
++		disp->num_timings++;
++	}
++	of_node_put(timings_np);
++	of_node_put(native_mode);
++
++	if (disp->num_timings > 0)
++		pr_info("%s: got %d timings. Using timing #%d as default\n",
++			__func__, disp->num_timings, disp->native_mode + 1);
++	else {
++		pr_err("%s: no valid timings specified\n", __func__);
++		display_timings_release(disp);
++		return NULL;
++	}
++	return disp;
++
++timingfail:
++	if (native_mode)
++		of_node_put(native_mode);
++	display_timings_release(disp);
++entryfail:
++	if (disp)
++		kfree(disp);
++dispfail:
++	of_node_put(timings_np);
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(of_get_display_timings);
++
++/**
++ * of_display_timings_exists - check if a display-timings node is provided
++ * @np: device_node with the timing
++ **/
++int of_display_timings_exists(const struct device_node *np)
++{
++	struct device_node *timings_np;
++
++	if (!np)
++		return -EINVAL;
++
++	timings_np = of_parse_phandle(np, "display-timings", 0);
++	if (!timings_np)
++		return -EINVAL;
++
++	of_node_put(timings_np);
++	return 1;
++}
++EXPORT_SYMBOL_GPL(of_display_timings_exists);
+diff --git a/drivers/video/of_videomode.c b/drivers/video/of_videomode.c
+new file mode 100644
+index 0000000..c573f92
+--- /dev/null
++++ b/drivers/video/of_videomode.c
+@@ -0,0 +1,48 @@
++/*
++ * generic videomode helper
++ *
++ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
++ *
++ * This file is released under the GPLv2
++ */
++#include <linux/of.h>
++#include <linux/of_display_timings.h>
++#include <linux/of_videomode.h>
++#include <linux/export.h>
++
++/**
++ * of_get_videomode - get the videomode #<index> from devicetree
++ * @np - devicenode with the display_timings
++ * @vm - set to return value
++ * @index - index into list of display_timings
++ * DESCRIPTION:
++ * Get a list of all display timings and put the one
++ * specified by index into *vm. This function should only be used, if
++ * only one videomode is to be retrieved. A driver that needs to work
++ * with multiple/all videomodes should work with
++ * of_get_display_timings instead.
++ **/
++int of_get_videomode(const struct device_node *np, struct videomode *vm,
++		     int index)
++{
++	struct display_timings *disp;
++	int ret;
++
++	disp = of_get_display_timings(np);
++	if (!disp) {
++		pr_err("%s: no timings specified\n", __func__);
++		return -EINVAL;
++	}
++
++	if (index == OF_USE_NATIVE_MODE)
++		index = disp->native_mode;
++
++	ret = videomode_from_timing(disp, vm, index);
++	if (ret)
++		return ret;
++
++	display_timings_release(disp);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(of_get_videomode);
+diff --git a/include/linux/of_display_timings.h b/include/linux/of_display_timings.h
+new file mode 100644
+index 0000000..2b4fa0a
+--- /dev/null
++++ b/include/linux/of_display_timings.h
+@@ -0,0 +1,20 @@
++/*
++ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
++ *
++ * display timings of helpers
++ *
++ * This file is released under the GPLv2
++ */
++
++#ifndef __LINUX_OF_DISPLAY_TIMINGS_H
++#define __LINUX_OF_DISPLAY_TIMINGS_H
++
++#include <linux/display_timing.h>
++#include <linux/of.h>
++
++#define OF_USE_NATIVE_MODE -1
++
++struct display_timings *of_get_display_timings(const struct device_node *np);
++int of_display_timings_exists(const struct device_node *np);
++
++#endif
+diff --git a/include/linux/of_videomode.h b/include/linux/of_videomode.h
+new file mode 100644
+index 0000000..4de5fcc
+--- /dev/null
++++ b/include/linux/of_videomode.h
+@@ -0,0 +1,18 @@
++/*
++ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
++ *
++ * videomode of-helpers
++ *
++ * This file is released under the GPLv2
++ */
++
++#ifndef __LINUX_OF_VIDEOMODE_H
++#define __LINUX_OF_VIDEOMODE_H
++
++#include <linux/videomode.h>
++#include <linux/of.h>
++
++int of_get_videomode(const struct device_node *np, struct videomode *vm,
++		     int index);
++
++#endif /* __LINUX_OF_VIDEOMODE_H */
 -- 
 1.7.10.4
 
