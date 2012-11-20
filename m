@@ -1,144 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47823 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752805Ab2KVSak (ORCPT
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:50787 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753094Ab2KTLmU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 13:30:40 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Rob Herring <robherring2@gmail.com>, kernel@pengutronix.de,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCHv13 4/7] fbmon: add videomode helpers
-Date: Thu, 22 Nov 2012 19:31:39 +0100
-Message-ID: <2107534.vAYnU9M0ZA@avalon>
-In-Reply-To: <1353600015-6974-5-git-send-email-s.trumtrar@pengutronix.de>
-References: <1353600015-6974-1-git-send-email-s.trumtrar@pengutronix.de> <1353600015-6974-5-git-send-email-s.trumtrar@pengutronix.de>
+	Tue, 20 Nov 2012 06:42:20 -0500
+Received: by mail-vc0-f174.google.com with SMTP id m18so2245456vcm.19
+        for <linux-media@vger.kernel.org>; Tue, 20 Nov 2012 03:42:20 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <50AAA609.2030007@gmail.com>
+References: <1352270227-8369-1-git-send-email-shaik.ameer@samsung.com>
+	<50AAA609.2030007@gmail.com>
+Date: Tue, 20 Nov 2012 17:12:19 +0530
+Message-ID: <CAOD6ATq2rDP8EGg4AAgiGukO_312Fz4DUx1sqpGO4mck7LEarQ@mail.gmail.com>
+Subject: Re: [PATCH] [media] exynos-gsc: Adding tiled multi-planar format to G-Scaler
+From: Shaik Ameer Basha <shaik.samsung@gmail.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	kgene.kim@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steffen,
+Hi Sylwester,
 
-On Thursday 22 November 2012 17:00:12 Steffen Trumtrar wrote:
-> Add a function to convert from the generic videomode to a fb_videomode.
-> 
-> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-> Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-> Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-> Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-> ---
->  drivers/video/fbmon.c |   44 ++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/fb.h    |    6 ++++++
->  2 files changed, 50 insertions(+)
-> 
-> diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
-> index cef6557..a6a564d 100644
-> --- a/drivers/video/fbmon.c
-> +++ b/drivers/video/fbmon.c
-> @@ -31,6 +31,7 @@
->  #include <linux/pci.h>
->  #include <linux/slab.h>
->  #include <video/edid.h>
-> +#include <linux/videomode.h>
->  #ifdef CONFIG_PPC_OF
->  #include <asm/prom.h>
->  #include <asm/pci-bridge.h>
-> @@ -1373,6 +1374,49 @@ int fb_get_mode(int flags, u32 val, struct
-> fb_var_screeninfo *var, struct fb_inf kfree(timings);
->  	return err;
->  }
-> +
-> +#if IS_ENABLED(CONFIG_VIDEOMODE)
-> +int fb_videomode_from_videomode(const struct videomode *vm,
-> +				struct fb_videomode *fbmode)
-> +{
-> +	unsigned int htotal, vtotal;
-> +
-> +	fbmode->xres = vm->hactive;
-> +	fbmode->left_margin = vm->hback_porch;
-> +	fbmode->right_margin = vm->hfront_porch;
-> +	fbmode->hsync_len = vm->hsync_len;
-> +
-> +	fbmode->yres = vm->vactive;
-> +	fbmode->upper_margin = vm->vback_porch;
-> +	fbmode->lower_margin = vm->vfront_porch;
-> +	fbmode->vsync_len = vm->vsync_len;
-> +
-> +	fbmode->pixclock = KHZ2PICOS(vm->pixelclock / 1000);
+On Tue, Nov 20, 2012 at 3:05 AM, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> Hi Shaik,
+>
+>
+> On 11/07/2012 07:37 AM, Shaik Ameer Basha wrote:
+>>
+>> Adding V4L2_PIX_FMT_NV12MT_16X16 to G-Scaler supported formats.
+>> If the output or input format is V4L2_PIX_FMT_NV12MT_16X16, configure
+>> G-Scaler to use GSC_IN_TILE_MODE.
+>>
+>> Signed-off-by: Shaik Ameer Basha<shaik.ameer@samsung.com>
+>> ---
+>>   drivers/media/platform/exynos-gsc/gsc-core.c |    9 +++++++++
+>>   drivers/media/platform/exynos-gsc/gsc-core.h |    5 +++++
+>>   drivers/media/platform/exynos-gsc/gsc-regs.c |    6 ++++++
+>>   3 files changed, 20 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c
+>> b/drivers/media/platform/exynos-gsc/gsc-core.c
+>> index cc7b218..00f1013 100644
+>> --- a/drivers/media/platform/exynos-gsc/gsc-core.c
+>> +++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+>> @@ -185,6 +185,15 @@ static const struct gsc_fmt gsc_formats[] = {
+>>                 .corder         = GSC_CRCB,
+>>                 .num_planes     = 3,
+>>                 .num_comp       = 3,
+>> +       }, {
+>> +               .name           = "YUV 4:2:0 non-contig. 2p, Y/CbCr,
+>> tiled",
+>
+>
+> I have applied this patch to my tree for v3.8, and I've shortened this
+> description like this
+>
+>                 .name           = "YUV 4:2:0 n.c. 2p, Y/CbCr tiled",
+>
+> so it fits in 32 char buffer.
 
-This results in a division by 0 if vm->pixelclock is equal to zero. As the 
-information is missing from many board files, what would you think about the 
-following ?
+Thanks and that should be fine.
 
-	fbmode->pixclock = vm->pixelclock ? KHZ2PICOS(vm->pixelclock / 1000) : 0;
-
-> +
-> +	fbmode->sync = 0;
-> +	fbmode->vmode = 0;
-> +	if (vm->hah)
-> +		fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
-> +	if (vm->vah)
-> +		fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
-> +	if (vm->interlaced)
-> +		fbmode->vmode |= FB_VMODE_INTERLACED;
-> +	if (vm->doublescan)
-> +		fbmode->vmode |= FB_VMODE_DOUBLE;
-> +	fbmode->flag = 0;
-> +
-> +	htotal = vm->hactive + vm->hfront_porch + vm->hback_porch +
-> +		 vm->hsync_len;
-> +	vtotal = vm->vactive + vm->vfront_porch + vm->vback_porch +
-> +		 vm->vsync_len;
-> +	fbmode->refresh = vm->pixelclock / (htotal * vtotal);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
-> +#endif
-> +
-> +
->  #else
->  int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
->  {
-> diff --git a/include/linux/fb.h b/include/linux/fb.h
-> index c7a9571..4404ec2 100644
-> --- a/include/linux/fb.h
-> +++ b/include/linux/fb.h
-> @@ -19,6 +19,7 @@ struct vm_area_struct;
->  struct fb_info;
->  struct device;
->  struct file;
-> +struct videomode;
-> 
->  /* Definitions below are used in the parsed monitor specs */
->  #define FB_DPMS_ACTIVE_OFF	1
-> @@ -714,6 +715,11 @@ extern void fb_destroy_modedb(struct fb_videomode
-> *modedb); extern int fb_find_mode_cvt(struct fb_videomode *mode, int
-> margins, int rb); extern unsigned char *fb_ddc_read(struct i2c_adapter
-> *adapter);
-> 
-> +#if IS_ENABLED(CONFIG_VIDEOMODE)
-> +extern int fb_videomode_from_videomode(const struct videomode *vm,
-> +				       struct fb_videomode *fbmode);
-> +#endif
-> +
->  /* drivers/video/modedb.c */
->  #define VESA_MODEDB_SIZE 34
->  extern void fb_var_to_videomode(struct fb_videomode *mode,
--- 
-Regards,
-
-Laurent Pinchart
-
+>
+> There are some too long format descriptions in the driver already.
+> Please check output of VIDIOC_ENUM_FMT ioctl, for instance with
+> 'v4l2-ctl --list-fmt'.
+>
+>
+>> +               .pixelformat    = V4L2_PIX_FMT_NV12MT_16X16,
+>> +               .depth          = { 8, 4 },
+>> +               .color          = GSC_YUV420,
+>> +               .yorder         = GSC_LSB_Y,
+>> +               .corder         = GSC_CBCR,
+>> +               .num_planes     = 2,
+>> +               .num_comp       = 2,
+>>         }
+>>   };
+>>
+>> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h
+>> b/drivers/media/platform/exynos-gsc/gsc-core.h
+>> index 5f157ef..cc19bba 100644
+>> --- a/drivers/media/platform/exynos-gsc/gsc-core.h
+>> +++ b/drivers/media/platform/exynos-gsc/gsc-core.h
+>> @@ -427,6 +427,11 @@ static inline void gsc_ctx_state_lock_clear(u32
+>> state, struct gsc_ctx *ctx)
+>>         spin_unlock_irqrestore(&ctx->gsc_dev->slock, flags);
+>>   }
+>>
+>> +static inline int is_tiled(const struct gsc_fmt *fmt)
+>> +{
+>> +       return fmt->pixelformat == V4L2_PIX_FMT_NV12MT_16X16;
+>> +}
+>> +
+>>   static inline void gsc_hw_enable_control(struct gsc_dev *dev, bool on)
+>>   {
+>>         u32 cfg = readl(dev->regs + GSC_ENABLE);
+>> diff --git a/drivers/media/platform/exynos-gsc/gsc-regs.c
+>> b/drivers/media/platform/exynos-gsc/gsc-regs.c
+>> index 0146b35..6f5b5a4 100644
+>> --- a/drivers/media/platform/exynos-gsc/gsc-regs.c
+>> +++ b/drivers/media/platform/exynos-gsc/gsc-regs.c
+>> @@ -214,6 +214,9 @@ void gsc_hw_set_in_image_format(struct gsc_ctx *ctx)
+>>                 break;
+>>         }
+>>
+>> +       if (is_tiled(frame->fmt))
+>> +               cfg |= GSC_IN_TILE_C_16x8 | GSC_IN_TILE_MODE;
+>> +
+>>         writel(cfg, dev->regs + GSC_IN_CON);
+>>   }
+>>
+>> @@ -334,6 +337,9 @@ void gsc_hw_set_out_image_format(struct gsc_ctx *ctx)
+>>                 break;
+>>         }
+>>
+>> +       if (is_tiled(frame->fmt))
+>> +               cfg |= GSC_OUT_TILE_C_16x8 | GSC_OUT_TILE_MODE;
+>> +
+>>   end_set:
+>>         writel(cfg, dev->regs + GSC_OUT_CON);
+>>   }
+>
+>
+> Thanks,
+> Sylwester
