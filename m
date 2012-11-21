@@ -1,72 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:43646 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932475Ab2KVTzn (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:41572 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751513Ab2KUMuQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 14:55:43 -0500
-Received: by mail-wg0-f44.google.com with SMTP id dr13so157716wgb.1
-        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2012 11:55:41 -0800 (PST)
+	Wed, 21 Nov 2012 07:50:16 -0500
+Message-ID: <50ACCDDA.2070606@ti.com>
+Date: Wed, 21 Nov 2012 14:49:30 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <20121116124823.GR10369@pengutronix.de>
-References: <1352131185-12079-1-git-send-email-javier.martin@vista-silicon.com>
-	<20121116124823.GR10369@pengutronix.de>
-Date: Thu, 22 Nov 2012 09:23:18 +0100
-Message-ID: <CACKLOr3Gw-xz0YaVhYGM_FP6M+QOLGxdLjboxrx0Fj4wV2E6NA@mail.gmail.com>
-Subject: Re: [PATCH 1/2] ARM: i.MX27: Add platform support for IRAM.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	p.zabel@pengutronix.de, s.nawrocki@samsung.com,
-	mchehab@infradead.org, kernel@pengutronix.de,
-	Fabio Estevam <festevam@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+CC: <devicetree-discuss@lists.ozlabs.org>,
+	Rob Herring <robherring2@gmail.com>,
+	<linux-fbdev@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	<linux-media@vger.kernel.org>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	<kernel@pengutronix.de>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v12 4/6] fbmon: add of_videomode helpers
+References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de> <1353426896-6045-5-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1353426896-6045-5-git-send-email-s.trumtrar@pengutronix.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig09241D6A5698903053C1AEA5"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16 November 2012 13:48, Sascha Hauer <s.hauer@pengutronix.de> wrote:
-> On Mon, Nov 05, 2012 at 04:59:44PM +0100, Javier Martin wrote:
->> Add support for IRAM to i.MX27 non-DT platforms using
->> iram_init() function.
->>
->> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
->> ---
->>  arch/arm/mach-imx/mm-imx27.c |    3 +++
->>  1 file changed, 3 insertions(+)
->>
->> diff --git a/arch/arm/mach-imx/mm-imx27.c b/arch/arm/mach-imx/mm-imx27.c
->> index e7e24af..fd2416d 100644
->> --- a/arch/arm/mach-imx/mm-imx27.c
->> +++ b/arch/arm/mach-imx/mm-imx27.c
->> @@ -27,6 +27,7 @@
->>  #include <asm/pgtable.h>
->>  #include <asm/mach/map.h>
->>  #include <mach/iomux-v1.h>
->> +#include <mach/iram.h>
->>
->>  /* MX27 memory map definition */
->>  static struct map_desc imx27_io_desc[] __initdata = {
->> @@ -94,4 +95,6 @@ void __init imx27_soc_init(void)
->>       /* imx27 has the imx21 type audmux */
->>       platform_device_register_simple("imx21-audmux", 0, imx27_audmux_res,
->>                                       ARRAY_SIZE(imx27_audmux_res));
->> +     /* imx27 has an iram of 46080 bytes size */
->> +     iram_init(MX27_IRAM_BASE_ADDR, 46080);
->
-> For this rather Philipps sram allocater patches should be used. This
-> would also solve the problem that mach/iram.h cannot be accessed anymore
-> in current -next. Fabio already sent a patch addressing this, but I
-> think we should go for a proper fix rather than just moving iram.h
-> to include/linux/
+--------------enig09241D6A5698903053C1AEA5
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Fine, I'll take a look at Philipps' patches.
+On 2012-11-20 17:54, Steffen Trumtrar wrote:
+> Add helper to get fb_videomode from devicetree.
+>=20
+> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/video/fbmon.c |   42 +++++++++++++++++++++++++++++++++++++++++=
+-
+>  include/linux/fb.h    |    7 +++++++
+>  2 files changed, 48 insertions(+), 1 deletion(-)
 
-Regards.
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+> diff --git a/include/linux/fb.h b/include/linux/fb.h
+> index 920cbe3..41b5e49 100644
+> --- a/include/linux/fb.h
+> +++ b/include/linux/fb.h
+> @@ -15,6 +15,8 @@
+>  #include <linux/slab.h>
+>  #include <asm/io.h>
+>  #include <linux/videomode.h>
+> +#include <linux/of.h>
+> +#include <linux/of_videomode.h>
+
+Guess what? =3D)
+
+To be honest, I don't know what the general opinion is about including
+header files from header files. But I always leave them out if they are
+not strictly needed.
+
+>  struct vm_area_struct;
+>  struct fb_info;
+> @@ -715,6 +717,11 @@ extern void fb_destroy_modedb(struct fb_videomode =
+*modedb);
+>  extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, in=
+t rb);
+>  extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+> =20
+> +#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
+> +extern int of_get_fb_videomode(const struct device_node *np,
+> +			       struct fb_videomode *fb,
+> +			       unsigned int index);
+> +#endif
+>  #if IS_ENABLED(CONFIG_VIDEOMODE)
+>  extern int fb_videomode_from_videomode(const struct videomode *vm,
+>  				       struct fb_videomode *fbmode);
+
+Do you really need these #ifs in the header files? They do make it look
+a bit messy. If somebody uses the functions and CONFIG_VIDEOMODE is not
+enabled, he'll get a linker error anyway.
+
+ Tomi
+
+
+
+--------------enig09241D6A5698903053C1AEA5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQrM3aAAoJEPo9qoy8lh71UA4QAIsNHXhDVDdpYMaHRr31ywwQ
+Rw97qMUy85bOg1TJ8BFXSAV2Lp3sTgSSBolPcYksauFsKeCupiB3UtKaBUAhDatn
+ZKFx3vPbVHh5yu9D+cybOJy5YeN43wyPVZwIZVVAZzcG+XI/X6TqMkGKUoTbh9OO
+L6gqMqlIOHdYI4eDkNBO+hJilGXPYhKD5sYz3sTcraAsw+MlwSa4aQqwHh+w9azY
+3NAWSamFqVlpeK7j3ALJDC0axwVprFa21K1LyUqUSdVJyj0dxyuv+nBCop7+sQme
+lo/3R/YPwA34E3F/Df8FANaNaFqHJ9eOCIqOpgf55fcjCcCvMw59uaAYTSXgx8mY
+rbnjcQcIy4tEsCYH8diz1SMGRkFcyg1FXw66b3uuh8xX76w59zftPO3o9hsqfrvO
+HvBc0/8upNMY/ZNLb1rhAVTn4fzfmN0XEYd/a7gwX3+w8HoF/oszYPDpzRAhujjX
+4rZM4W6hS2z/ZswxycqEj9U08tr2mcyizFGN77li3PXliH/UI2JkREQmtIvtRPb9
+VO7UX8iu85qgCIxqop2xXbnSG24EWBmpFwwiLG5NZJsdPwdx4KDdv1x6+cx1WF/H
+69j1RAqhk0ATiJD5jfaj3SfYGm1BnOdo5yjRvhau56Lyb/ahYjBgX8U52SRehrKZ
+Mr7FzgNL7Zz/0pmen0+o
+=Q6T5
+-----END PGP SIGNATURE-----
+
+--------------enig09241D6A5698903053C1AEA5--
