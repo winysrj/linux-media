@@ -1,143 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50173 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753759Ab2K2KK7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Nov 2012 05:10:59 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	devel@driverdev.osuosl.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v3 0/9] Media Controller capture driver for DM365
-Date: Thu, 29 Nov 2012 11:12:05 +0100
-Message-ID: <3827969.48rJ6ExhZb@avalon>
-In-Reply-To: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
-References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:51322 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755259Ab2KUQsR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Nov 2012 11:48:17 -0500
+Message-ID: <50AD05B9.9040909@ti.com>
+Date: Wed, 21 Nov 2012 18:47:53 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+CC: <devicetree-discuss@lists.ozlabs.org>,
+	Rob Herring <robherring2@gmail.com>,
+	<linux-fbdev@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	<linux-media@vger.kernel.org>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	<kernel@pengutronix.de>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v12 4/6] fbmon: add of_videomode helpers
+References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de> <1353426896-6045-5-git-send-email-s.trumtrar@pengutronix.de> <50ACCDDA.2070606@ti.com> <20121121162436.GB12657@pengutronix.de>
+In-Reply-To: <20121121162436.GB12657@pengutronix.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigC7763C51364F1D39676A556E"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 28 November 2012 16:12:00 Prabhakar Lad wrote:
-> From: Manjunath Hadli <manjunath.hadli@ti.com>
+--------------enigC7763C51364F1D39676A556E
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-For staging, and provided that all parties involved understand that an API 
-compatibility layer with the existing drivers/media/platform/davinci/ driver 
-(called the "existing driver") will need to be provided when this media 
-controller aware driver will move out of staging to drivers/media/ and replace 
-the existing driver,
+On 2012-11-21 18:24, Steffen Trumtrar wrote:
+> On Wed, Nov 21, 2012 at 02:49:30PM +0200, Tomi Valkeinen wrote:
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>> @@ -715,6 +717,11 @@ extern void fb_destroy_modedb(struct fb_videomod=
+e *modedb);
+>>>  extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, =
+int rb);
+>>>  extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+>>> =20
+>>> +#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
+>>> +extern int of_get_fb_videomode(const struct device_node *np,
+>>> +			       struct fb_videomode *fb,
+>>> +			       unsigned int index);
+>>> +#endif
+>>>  #if IS_ENABLED(CONFIG_VIDEOMODE)
+>>>  extern int fb_videomode_from_videomode(const struct videomode *vm,
+>>>  				       struct fb_videomode *fbmode);
+>>
+>> Do you really need these #ifs in the header files? They do make it loo=
+k
+>> a bit messy. If somebody uses the functions and CONFIG_VIDEOMODE is no=
+t
+>> enabled, he'll get a linker error anyway.
+>>
+>=20
+> Well, I don't remember at the moment who requested this, but it was not=
+ my
+> idea to put them there. So, this is a matter of style I guess.
+> But maybe I understood that wrong.
 
-> Mauro/Greg,
->  The below series of patches have gone through good amount of reviews, and
-> agreed by Laurent, Hans and Sakari to be part of the staging tree. I am
-> combining the patchs with the pull request so we can get them into the 3.8
-> kernel. Please pull these patches.If you want a seperate pull request,
-> please let me know.
-> 
-> This patch set adds media controller based capture driver for
-> DM365.
-> 
-> This driver bases its design on Laurent Pinchart's Media Controller Design
-> whose patches for Media Controller and subdev enhancements form the base.
-> The driver also takes copious elements taken from Laurent Pinchart and
-> others' OMAP ISP driver based on Media Controller. So thank you all the
-> people who are responsible for the Media Controller and the OMAP ISP driver.
-> 
-> Also, the core functionality of the driver comes from the arago vpfe capture
-> driver of which the isif capture was based on V4L2, with other drivers like
-> ipipe, ipipeif and Resizer.
-> 
-> Changes for v2:
-> 1: Migrated the driver for videobuf2 usage pointed Hans.
-> 2: Changed the design as pointed by Laurent, Exposed one more subdevs
->    ipipeif and split the resizer subdev into three subdevs.
-> 3: Rearrganed the patch sequence and changed the commit messages.
-> 4: Changed the file architecture as pointed by Laurent.
-> 
-> Changes for v3:
-> 1: Rebased on staging.
-> 2: Seprated out patches which would go into staging.
-> 
-> The following changes since commit c6c22955f80f2db9614b01fe5a3d1cfcd8b3d848:
-> 
->   [media] dma-mapping: fix dma_common_get_sgtable() conditional compilation
-> (2012-11-27 09:42:31 -0200)
-> 
-> are available in the git repository at:
->   git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git vpfe_driver_staging
-> 
-> Manjunath Hadli (9):
->       davinci: vpfe: add v4l2 capture driver with media interface
->       davinci: vpfe: add v4l2 video driver support
->       davinci: vpfe: dm365: add IPIPEIF driver based on media framework
->       davinci: vpfe: dm365: add ISIF driver based on media framework
->       davinci: vpfe: dm365: add IPIPE support for media controller driver
->       davinci: vpfe: dm365: add IPIPE hardware layer support
->       davinci: vpfe: dm365: resizer driver based on media framework
->       davinci: vpfe: dm365: add build infrastructure for capture driver
->       davinci: vpfe: Add documentation and TODO
-> 
->  drivers/staging/media/Kconfig                      |    2 +
->  drivers/staging/media/Makefile                     |    1 +
->  drivers/staging/media/davinci_vpfe/Kconfig         |    9 +
->  drivers/staging/media/davinci_vpfe/Makefile        |    3 +
->  drivers/staging/media/davinci_vpfe/TODO            |   34 +
->  .../staging/media/davinci_vpfe/davinci-vpfe-mc.txt |  154 ++
->  .../staging/media/davinci_vpfe/davinci_vpfe_user.h | 1290 ++++++++++++
->  drivers/staging/media/davinci_vpfe/dm365_ipipe.c   | 1863 +++++++++++++++++
-> drivers/staging/media/davinci_vpfe/dm365_ipipe.h   |  179 ++
->  .../staging/media/davinci_vpfe/dm365_ipipe_hw.c    | 1048 ++++++++++
->  .../staging/media/davinci_vpfe/dm365_ipipe_hw.h    |  559 ++++++
->  drivers/staging/media/davinci_vpfe/dm365_ipipeif.c | 1071 ++++++++++
->  drivers/staging/media/davinci_vpfe/dm365_ipipeif.h |  233 +++
->  .../media/davinci_vpfe/dm365_ipipeif_user.h        |   93 +
->  drivers/staging/media/davinci_vpfe/dm365_isif.c    | 2104 +++++++++++++++++
->  drivers/staging/media/davinci_vpfe/dm365_isif.h    |  203 ++
->  .../staging/media/davinci_vpfe/dm365_isif_regs.h   |  294 +++
->  drivers/staging/media/davinci_vpfe/dm365_resizer.c | 1999 +++++++++++++++++
->  drivers/staging/media/davinci_vpfe/dm365_resizer.h |  244 +++
->  drivers/staging/media/davinci_vpfe/vpfe.h          |   86 +
->  .../staging/media/davinci_vpfe/vpfe_mc_capture.c   |  740 +++++++
->  .../staging/media/davinci_vpfe/vpfe_mc_capture.h   |   97 +
->  drivers/staging/media/davinci_vpfe/vpfe_video.c    | 1620 +++++++++++++++
->  drivers/staging/media/davinci_vpfe/vpfe_video.h    |  155 ++
->  24 files changed, 14081 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/staging/media/davinci_vpfe/Kconfig
->  create mode 100644 drivers/staging/media/davinci_vpfe/Makefile
->  create mode 100644 drivers/staging/media/davinci_vpfe/TODO
->  create mode 100644 drivers/staging/media/davinci_vpfe/davinci-vpfe-mc.txt
->  create mode 100644 drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
->  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipe.c
->  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipe.h
->  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
->  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.h
->  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
->  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipeif.h
->  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipeif_user.h
->  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_isif.c
->  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_isif.h
->  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_isif_regs.h
->  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_resizer.c
->  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_resizer.h
->  create mode 100644 drivers/staging/media/davinci_vpfe/vpfe.h
->  create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
->  create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_mc_capture.h
->  create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_video.c
->  create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_video.h
+Right, one reviewer says this way, and another says that way =3D).
 
--- 
-Regards,
+With the header files I've made I only use #ifs with #else, when I want
+to give a static inline empty/no-op implementation for the function in
+case the feature is not compiled into the kernel.
 
-Laurent Pinchart
+As you said, matter of taste. Up to you.
 
+ Tomi
+
+
+
+--------------enigC7763C51364F1D39676A556E
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQrQW5AAoJEPo9qoy8lh71K8YP/2FV39JzQG+Wr/vQhLzk5Uh/
+QaMhCx33KHJ0U/Z0iqxiR9X24IUXex2c4qj2xccmEOs1BKQC/vT5HXMFgIHhHAs/
+DO5yB3eVPsMe+ymXeSe0TM6QpfLZLbIgX6GkuZ32w9TtXsO32cZb+ohxRtdOsRpW
+NDG0oR5leJAQOhFjuQj+9M4AFjuML4o6/LMorX4zxRpUU0L8FUBDvL9c3MiwqLR5
+MZR1rpaELel5aP6TJNqSMshiHW5HZrp2XgoTU4/6GoBZ+nLDzxTmvztDVkoNqXK0
+V6Edbe9KraIqnyQfFBtu9rsAR7wPWkAQxYbLOi1l6SbNGGvPGKORfIwXq/IxPwsz
+rbfILzcGfTMzL9KUQ13PyZh9ruiGmpcZAPsJ02Zou6qaG+OAl14d1kpyooT0z7El
+mQk2a+9q0UsM52VjJd8PhOG1sL7AXNPv25Gq8NZMDWEzR/0O4En2MVYXTzYimYMR
+S5e+HONIMkdvqL7i/JMia6ml2hIi9tULUPL1qSAfvgPODFPJA4jCezRriKDXxX35
+Z5rdkukuWHPHt89CPmOK2G9if3PB6WjuC6c3YUxQVXnJJkKn8uNkxeVnie0iTYJN
+9VugOpfdqODgSD4d+HlCII3gnhrwQi/JeNZP5zft7jvdcC06rqmNFoWF33tUrO+c
+GmOu+dfYxA7yYA5CBMHM
+=PB4R
+-----END PGP SIGNATURE-----
+
+--------------enigC7763C51364F1D39676A556E--
