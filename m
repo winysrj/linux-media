@@ -1,260 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38070 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932619Ab2KVVop (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:53512 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753598Ab2KULJX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 16:44:45 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, Archit Taneja <archit@ti.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Tom Gall <tom.gall@linaro.org>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>
-Subject: [RFC v2 2/5] video: panel: Add DPI panel support
-Date: Thu, 22 Nov 2012 22:45:33 +0100
-Message-Id: <1353620736-6517-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 21 Nov 2012 06:09:23 -0500
+MIME-Version: 1.0
+In-Reply-To: <A73F36158E33644199EB82C5EC81C7BC3E9FA769@DBDE01.ent.ti.com>
+References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1353426896-6045-4-git-send-email-s.trumtrar@pengutronix.de> <A73F36158E33644199EB82C5EC81C7BC3E9FA769@DBDE01.ent.ti.com>
+From: Leela Krishna Amudala <leelakrishna.a@gmail.com>
+Date: Wed, 21 Nov 2012 16:39:01 +0530
+Message-ID: <CAL1wa8dQ4QL0SzbXdo8nogBfBjQ8GpaJ134v6zu_iMkWQeXefA@mail.gmail.com>
+Subject: Re: [PATCH v12 3/6] fbmon: add videomode helpers
+To: "Manjunathappa, Prakash" <prakash.pm@ti.com>
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"devicetree-discuss@lists.ozlabs.org"
+	<devicetree-discuss@lists.ozlabs.org>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	David Airlie <airlied@linux.ie>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"kernel@pengutronix.de" <kernel@pengutronix.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Yes,
+Even I got the same build error.
+later I fixed it by including "#include <linux/mxsfb.h>"
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/video/display/Kconfig     |   13 +++
- drivers/video/display/Makefile    |    1 +
- drivers/video/display/panel-dpi.c |  147 +++++++++++++++++++++++++++++++++++++
- include/video/panel-dpi.h         |   24 ++++++
- 4 files changed, 185 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/display/panel-dpi.c
- create mode 100644 include/video/panel-dpi.h
+Best Wishes,
+Leela Krishna.
 
-diff --git a/drivers/video/display/Kconfig b/drivers/video/display/Kconfig
-index 1d533e7..0f9b990 100644
---- a/drivers/video/display/Kconfig
-+++ b/drivers/video/display/Kconfig
-@@ -2,3 +2,16 @@ menuconfig DISPLAY_CORE
- 	tristate "Display Core"
- 	---help---
- 	  Support common display framework for graphics devices.
-+
-+if DISPLAY_CORE
-+
-+config DISPLAY_PANEL_DPI
-+	tristate "DPI (Parallel) Display Panels"
-+	---help---
-+	  Support for simple digital (parallel) pixel interface panels. Those
-+	  panels receive pixel data through a parallel bus and have no control
-+	  bus.
-+
-+	  If you are in doubt, say N.
-+
-+endif # DISPLAY_CORE
-diff --git a/drivers/video/display/Makefile b/drivers/video/display/Makefile
-index bd93496..47978d4 100644
---- a/drivers/video/display/Makefile
-+++ b/drivers/video/display/Makefile
-@@ -1 +1,2 @@
- obj-$(CONFIG_DISPLAY_CORE) += display-core.o
-+obj-$(CONFIG_DISPLAY_PANEL_DPI) += panel-dpi.o
-diff --git a/drivers/video/display/panel-dpi.c b/drivers/video/display/panel-dpi.c
-new file mode 100644
-index 0000000..c56197a
---- /dev/null
-+++ b/drivers/video/display/panel-dpi.c
-@@ -0,0 +1,147 @@
-+/*
-+ * DPI Display Panel
-+ *
-+ * Copyright (C) 2012 Renesas Solutions Corp.
-+ *
-+ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+
-+#include <video/display.h>
-+#include <video/panel-dpi.h>
-+
-+struct panel_dpi {
-+	struct display_entity entity;
-+	const struct panel_dpi_platform_data *pdata;
-+};
-+
-+#define to_panel_dpi(p)		container_of(p, struct panel_dpi, entity)
-+
-+static const struct display_entity_interface_params panel_dpi_params = {
-+	.type = DISPLAY_ENTITY_INTERFACE_DPI,
-+};
-+
-+static int panel_dpi_set_state(struct display_entity *entity,
-+			       enum display_entity_state state)
-+{
-+	switch (state) {
-+	case DISPLAY_ENTITY_STATE_OFF:
-+	case DISPLAY_ENTITY_STATE_STANDBY:
-+		display_entity_set_stream(entity->source,
-+					  DISPLAY_ENTITY_STREAM_STOPPED);
-+		break;
-+
-+	case DISPLAY_ENTITY_STATE_ON:
-+		display_entity_set_stream(entity->source,
-+					  DISPLAY_ENTITY_STREAM_CONTINUOUS);
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static int panel_dpi_get_modes(struct display_entity *entity,
-+			       const struct videomode **modes)
-+{
-+	struct panel_dpi *panel = to_panel_dpi(entity);
-+
-+	*modes = panel->pdata->mode;
-+	return 1;
-+}
-+
-+static int panel_dpi_get_size(struct display_entity *entity,
-+			      unsigned int *width, unsigned int *height)
-+{
-+	struct panel_dpi *panel = to_panel_dpi(entity);
-+
-+	*width = panel->pdata->width;
-+	*height = panel->pdata->height;
-+	return 0;
-+}
-+
-+static int panel_dpi_get_params(struct display_entity *entity,
-+				struct display_entity_interface_params *params)
-+{
-+	*params = panel_dpi_params;
-+	return 0;
-+}
-+
-+static const struct display_entity_control_ops panel_dpi_control_ops = {
-+	.set_state = panel_dpi_set_state,
-+	.get_modes = panel_dpi_get_modes,
-+	.get_size = panel_dpi_get_size,
-+	.get_params = panel_dpi_get_params,
-+};
-+
-+static void panel_dpi_release(struct display_entity *entity)
-+{
-+	struct panel_dpi *panel = to_panel_dpi(entity);
-+
-+	kfree(panel);
-+}
-+
-+static int panel_dpi_remove(struct platform_device *pdev)
-+{
-+	struct panel_dpi *panel = platform_get_drvdata(pdev);
-+
-+	platform_set_drvdata(pdev, NULL);
-+	display_entity_unregister(&panel->entity);
-+
-+	return 0;
-+}
-+
-+static int __devinit panel_dpi_probe(struct platform_device *pdev)
-+{
-+	const struct panel_dpi_platform_data *pdata = pdev->dev.platform_data;
-+	struct panel_dpi *panel;
-+	int ret;
-+
-+	if (pdata == NULL)
-+		return -ENODEV;
-+
-+	panel = kzalloc(sizeof(*panel), GFP_KERNEL);
-+	if (panel == NULL)
-+		return -ENOMEM;
-+
-+	panel->pdata = pdata;
-+	panel->entity.dev = &pdev->dev;
-+	panel->entity.release = panel_dpi_release;
-+	panel->entity.ops.ctrl = &panel_dpi_control_ops;
-+
-+	ret = display_entity_register(&panel->entity);
-+	if (ret < 0) {
-+		kfree(panel);
-+		return ret;
-+	}
-+
-+	platform_set_drvdata(pdev, panel);
-+
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops panel_dpi_dev_pm_ops = {
-+};
-+
-+static struct platform_driver panel_dpi_driver = {
-+	.probe = panel_dpi_probe,
-+	.remove = panel_dpi_remove,
-+	.driver = {
-+		.name = "panel_dpi",
-+		.owner = THIS_MODULE,
-+		.pm = &panel_dpi_dev_pm_ops,
-+	},
-+};
-+
-+module_platform_driver(panel_dpi_driver);
-+
-+MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
-+MODULE_DESCRIPTION("DPI Display Panel");
-+MODULE_LICENSE("GPL");
-diff --git a/include/video/panel-dpi.h b/include/video/panel-dpi.h
-new file mode 100644
-index 0000000..0547b4a
---- /dev/null
-+++ b/include/video/panel-dpi.h
-@@ -0,0 +1,24 @@
-+/*
-+ * DPI Display Panel
-+ *
-+ * Copyright (C) 2012 Renesas Solutions Corp.
-+ *
-+ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __PANEL_DPI_H__
-+#define __PANEL_DPI_H__
-+
-+#include <linux/videomode.h>
-+
-+struct panel_dpi_platform_data {
-+	unsigned long width;		/* Panel width in mm */
-+	unsigned long height;		/* Panel height in mm */
-+	const struct videomode *mode;
-+};
-+
-+#endif /* __PANEL_DPI_H__ */
--- 
-1.7.8.6
-
+On Wed, Nov 21, 2012 at 3:39 PM, Manjunathappa, Prakash
+<prakash.pm@ti.com> wrote:
+> Hi Steffen,
+>
+> I am trying to add DT support for da8xx-fb driver on top of your patches.
+> Encountered below build error. Sorry for reporting it late.
+>
+> On Tue, Nov 20, 2012 at 21:24:53, Steffen Trumtrar wrote:
+>> Add a function to convert from the generic videomode to a fb_videomode.
+>>
+>> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+>> Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+>> Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+>> Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+>> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> ---
+>>  drivers/video/fbmon.c |   46 ++++++++++++++++++++++++++++++++++++++++++++++
+>>  include/linux/fb.h    |    6 ++++++
+>>  2 files changed, 52 insertions(+)
+>>
+>> diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
+>> index cef6557..c1939a6 100644
+>> --- a/drivers/video/fbmon.c
+>> +++ b/drivers/video/fbmon.c
+>> @@ -31,6 +31,7 @@
+>>  #include <linux/pci.h>
+>>  #include <linux/slab.h>
+>>  #include <video/edid.h>
+>> +#include <linux/videomode.h>
+>>  #ifdef CONFIG_PPC_OF
+>>  #include <asm/prom.h>
+>>  #include <asm/pci-bridge.h>
+>> @@ -1373,6 +1374,51 @@ int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_inf
+>>       kfree(timings);
+>>       return err;
+>>  }
+>> +
+>> +#if IS_ENABLED(CONFIG_VIDEOMODE)
+>> +int fb_videomode_from_videomode(const struct videomode *vm,
+>> +                             struct fb_videomode *fbmode)
+>> +{
+>> +     unsigned int htotal, vtotal;
+>> +
+>> +     fbmode->xres = vm->hactive;
+>> +     fbmode->left_margin = vm->hback_porch;
+>> +     fbmode->right_margin = vm->hfront_porch;
+>> +     fbmode->hsync_len = vm->hsync_len;
+>> +
+>> +     fbmode->yres = vm->vactive;
+>> +     fbmode->upper_margin = vm->vback_porch;
+>> +     fbmode->lower_margin = vm->vfront_porch;
+>> +     fbmode->vsync_len = vm->vsync_len;
+>> +
+>> +     fbmode->pixclock = KHZ2PICOS(vm->pixelclock / 1000);
+>> +
+>> +     fbmode->sync = 0;
+>> +     fbmode->vmode = 0;
+>> +     if (vm->hah)
+>> +             fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
+>> +     if (vm->vah)
+>> +             fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
+>> +     if (vm->interlaced)
+>> +             fbmode->vmode |= FB_VMODE_INTERLACED;
+>> +     if (vm->doublescan)
+>> +             fbmode->vmode |= FB_VMODE_DOUBLE;
+>> +     if (vm->de)
+>> +             fbmode->sync |= FB_SYNC_DATA_ENABLE_HIGH_ACT;
+>
+> "FB_SYNC_DATA_ENABLE_HIGH_ACT" seems to be mxsfb specific flag, I am getting
+> build error on this. Please let me know if I am missing something.
+>
+> Thanks,
+> Prakash
+>
+>> +     fbmode->flag = 0;
+>> +
+>> +     htotal = vm->hactive + vm->hfront_porch + vm->hback_porch +
+>> +              vm->hsync_len;
+>> +     vtotal = vm->vactive + vm->vfront_porch + vm->vback_porch +
+>> +              vm->vsync_len;
+>> +     fbmode->refresh = (vm->pixelclock * 1000) / (htotal * vtotal);
+>> +
+>> +     return 0;
+>> +}
+>> +EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
+>> +#endif
+>> +
+>> +
+>>  #else
+>>  int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
+>>  {
+>> diff --git a/include/linux/fb.h b/include/linux/fb.h
+>> index c7a9571..920cbe3 100644
+>> --- a/include/linux/fb.h
+>> +++ b/include/linux/fb.h
+>> @@ -14,6 +14,7 @@
+>>  #include <linux/backlight.h>
+>>  #include <linux/slab.h>
+>>  #include <asm/io.h>
+>> +#include <linux/videomode.h>
+>>
+>>  struct vm_area_struct;
+>>  struct fb_info;
+>> @@ -714,6 +715,11 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
+>>  extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
+>>  extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+>>
+>> +#if IS_ENABLED(CONFIG_VIDEOMODE)
+>> +extern int fb_videomode_from_videomode(const struct videomode *vm,
+>> +                                    struct fb_videomode *fbmode);
+>> +#endif
+>> +
+>>  /* drivers/video/modedb.c */
+>>  #define VESA_MODEDB_SIZE 34
+>>  extern void fb_var_to_videomode(struct fb_videomode *mode,
+>> --
+>> 1.7.10.4
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+> _______________________________________________
+> devicetree-discuss mailing list
+> devicetree-discuss@lists.ozlabs.org
+> https://lists.ozlabs.org/listinfo/devicetree-discuss
