@@ -1,175 +1,302 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:55083 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756551Ab2KHTyj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:54:39 -0500
-From: YAMANE Toshiaki <yamanetoshi@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Ben Hutchings <ben@decadent.org.uk>,
-	Sean Young <sean@mess.org>,
-	Rusty Russell <rusty@rustcorp.com.au>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org,
-	YAMANE Toshiaki <yamanetoshi@gmail.com>
-Subject: [PATCH] staging/media: Use pr_ printks in lirc/lirc_parallel.c
-Date: Fri,  9 Nov 2012 04:54:33 +0900
-Message-Id: <1352404473-7701-1-git-send-email-yamanetoshi@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:38965 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753542Ab2KULhx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Nov 2012 06:37:53 -0500
+Message-ID: <50ACBCE4.60701@ti.com>
+Date: Wed, 21 Nov 2012 13:37:08 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+MIME-Version: 1.0
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+CC: <devicetree-discuss@lists.ozlabs.org>,
+	Rob Herring <robherring2@gmail.com>,
+	<linux-fbdev@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	<linux-media@vger.kernel.org>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	<kernel@pengutronix.de>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v12 1/6] video: add display_timing and videomode
+References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de> <1353426896-6045-2-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1353426896-6045-2-git-send-email-s.trumtrar@pengutronix.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig7B8E20EC1036AA7EB2975329"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fixed below checkpatch warnings.
-- WARNING: Prefer netdev_warn(netdev, ... then dev_warn(dev, ... then pr_warn(...  to printk(KERN_WARNING ...
-- WARNING: Prefer netdev_notice(netdev, ... then dev_notice(dev, ... then pr_notice(...  to printk(KERN_NOTICE ...
-- WARNING: Prefer netdev_info(netdev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
+--------------enig7B8E20EC1036AA7EB2975329
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-and add pr_fmt.
+Hi,
 
-Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
----
- drivers/staging/media/lirc/lirc_parallel.c |   49 +++++++++++-----------------
- 1 file changed, 19 insertions(+), 30 deletions(-)
+On 2012-11-20 17:54, Steffen Trumtrar wrote:
+> Add display_timing structure and the according helper functions. This a=
+llows
+> the description of a display via its supported timing parameters.
+>=20
+> Every timing parameter can be specified as a single value or a range
+> <min typ max>.
+>=20
+> Also, add helper functions to convert from display timings to a generic=
+ videomode
+> structure. This videomode can then be converted to the corresponding su=
+bsystem
+> mode representation (e.g. fb_videomode).
 
-diff --git a/drivers/staging/media/lirc/lirc_parallel.c b/drivers/staging/media/lirc/lirc_parallel.c
-index dd2bca7..139920c 100644
---- a/drivers/staging/media/lirc/lirc_parallel.c
-+++ b/drivers/staging/media/lirc/lirc_parallel.c
-@@ -22,6 +22,8 @@
-  *
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- /*** Includes ***/
- 
- #include <linux/module.h>
-@@ -115,8 +117,7 @@ static void out(int offset, int value)
- 		parport_write_control(pport, value);
- 		break;
- 	case LIRC_LP_STATUS:
--		printk(KERN_INFO "%s: attempt to write to status register\n",
--		       LIRC_DRIVER_NAME);
-+		pr_info("attempt to write to status register\n");
- 		break;
- 	}
- }
-@@ -166,27 +167,23 @@ static unsigned int init_lirc_timer(void)
- 		if (default_timer == 0) {
- 			/* autodetect timer */
- 			newtimer = (1000000*count)/timeelapsed;
--			printk(KERN_INFO "%s: %u Hz timer detected\n",
--			       LIRC_DRIVER_NAME, newtimer);
-+			pr_info("%u Hz timer detected\n", newtimer);
- 			return newtimer;
- 		}  else {
- 			newtimer = (1000000*count)/timeelapsed;
- 			if (abs(newtimer - default_timer) > default_timer/10) {
- 				/* bad timer */
--				printk(KERN_NOTICE "%s: bad timer: %u Hz\n",
--				       LIRC_DRIVER_NAME, newtimer);
--				printk(KERN_NOTICE "%s: using default timer: "
--				       "%u Hz\n",
--				       LIRC_DRIVER_NAME, default_timer);
-+				pr_notice("bad timer: %u Hz\n", newtimer);
-+				pr_notice("using default timer: %u Hz\n",
-+					  default_timer);
- 				return default_timer;
- 			} else {
--				printk(KERN_INFO "%s: %u Hz timer detected\n",
--				       LIRC_DRIVER_NAME, newtimer);
-+				pr_info("%u Hz timer detected\n", newtimer);
- 				return newtimer; /* use detected value */
- 			}
- 		}
- 	} else {
--		printk(KERN_NOTICE "%s: no timer detected\n", LIRC_DRIVER_NAME);
-+		pr_notice("no timer detected\n");
- 		return 0;
- 	}
- }
-@@ -194,13 +191,10 @@ static unsigned int init_lirc_timer(void)
- static int lirc_claim(void)
- {
- 	if (parport_claim(ppdevice) != 0) {
--		printk(KERN_WARNING "%s: could not claim port\n",
--		       LIRC_DRIVER_NAME);
--		printk(KERN_WARNING "%s: waiting for port becoming available"
--		       "\n", LIRC_DRIVER_NAME);
-+		pr_warn("could not claim port\n");
-+		pr_warn("waiting for port becoming available\n");
- 		if (parport_claim_or_block(ppdevice) < 0) {
--			printk(KERN_NOTICE "%s: could not claim port, giving"
--			       " up\n", LIRC_DRIVER_NAME);
-+			pr_notice("could not claim port, giving up\n");
- 			return 0;
- 		}
- 	}
-@@ -219,7 +213,7 @@ static void rbuf_write(int signal)
- 	if (nwptr == rptr) {
- 		/* no new signals will be accepted */
- 		lost_irqs++;
--		printk(KERN_NOTICE "%s: buffer overrun\n", LIRC_DRIVER_NAME);
-+		pr_notice("buffer overrun\n");
- 		return;
- 	}
- 	rbuf[wptr] = signal;
-@@ -290,7 +284,7 @@ static void irq_handler(void *blah)
- 		if (signal > timeout
- 		    || (check_pselecd && (in(1) & LP_PSELECD))) {
- 			signal = 0;
--			printk(KERN_NOTICE "%s: timeout\n", LIRC_DRIVER_NAME);
-+			pr_notice("timeout\n");
- 			break;
- 		}
- 	} while (lirc_get_signal());
-@@ -644,8 +638,7 @@ static int __init lirc_parallel_init(void)
- 
- 	result = platform_driver_register(&lirc_parallel_driver);
- 	if (result) {
--		printk(KERN_NOTICE "platform_driver_register"
--					" returned %d\n", result);
-+		pr_notice("platform_driver_register returned %d\n", result);
- 		return result;
- 	}
- 
-@@ -661,8 +654,7 @@ static int __init lirc_parallel_init(void)
- 
- 	pport = parport_find_base(io);
- 	if (pport == NULL) {
--		printk(KERN_NOTICE "%s: no port at %x found\n",
--		       LIRC_DRIVER_NAME, io);
-+		pr_notice("no port at %x found\n", io);
- 		result = -ENXIO;
- 		goto exit_device_put;
- 	}
-@@ -670,8 +662,7 @@ static int __init lirc_parallel_init(void)
- 					   pf, kf, irq_handler, 0, NULL);
- 	parport_put_port(pport);
- 	if (ppdevice == NULL) {
--		printk(KERN_NOTICE "%s: parport_register_device() failed\n",
--		       LIRC_DRIVER_NAME);
-+		pr_notice("parport_register_device() failed\n");
- 		result = -ENXIO;
- 		goto exit_device_put;
- 	}
-@@ -706,14 +697,12 @@ static int __init lirc_parallel_init(void)
- 	driver.dev = &lirc_parallel_dev->dev;
- 	driver.minor = lirc_register_driver(&driver);
- 	if (driver.minor < 0) {
--		printk(KERN_NOTICE "%s: register_chrdev() failed\n",
--		       LIRC_DRIVER_NAME);
-+		pr_notice("register_chrdev() failed\n");
- 		parport_unregister_device(ppdevice);
- 		result = -EIO;
- 		goto exit_device_put;
- 	}
--	printk(KERN_INFO "%s: installed using port 0x%04x irq %d\n",
--	       LIRC_DRIVER_NAME, io, irq);
-+	pr_info("installed using port 0x%04x irq %d\n", io, irq);
- 	return 0;
- 
- exit_device_put:
--- 
-1.7.9.5
+Sorry for reviewing this so late.
 
+One thing I'd like to see is some explanation of the structs involved.
+For example, in this patch you present structs videomode, display_timing
+and display_timings without giving any hint what they represent.
+
+I'm not asking for you to write a long documentation, but perhaps the
+header files could include a few lines of comments above the structs,
+explaining the idea.
+
+> +void display_timings_release(struct display_timings *disp)
+> +{
+> +	if (disp->timings) {
+> +		unsigned int i;
+> +
+> +		for (i =3D 0; i < disp->num_timings; i++)
+> +			kfree(disp->timings[i]);
+> +		kfree(disp->timings);
+> +	}
+> +	kfree(disp);
+> +}
+> +EXPORT_SYMBOL_GPL(display_timings_release);
+
+Perhaps this will become clearer after reading the following patches,
+but it feels a bit odd to add a release function, without anything in
+this patch that would actually allocate the timings.
+
+> diff --git a/drivers/video/videomode.c b/drivers/video/videomode.c
+> new file mode 100644
+> index 0000000..e24f879
+> --- /dev/null
+> +++ b/drivers/video/videomode.c
+> @@ -0,0 +1,46 @@
+> +/*
+> + * generic display timing functions
+> + *
+> + * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pe=
+ngutronix
+> + *
+> + * This file is released under the GPLv2
+> + */
+> +
+> +#include <linux/export.h>
+> +#include <linux/errno.h>
+> +#include <linux/display_timing.h>
+> +#include <linux/kernel.h>
+> +#include <linux/videomode.h>
+> +
+> +int videomode_from_timing(const struct display_timings *disp,
+> +			  struct videomode *vm, unsigned int index)
+> +{
+> +	struct display_timing *dt;
+> +
+> +	dt =3D display_timings_get(disp, index);
+> +	if (!dt)
+> +		return -EINVAL;
+> +
+> +	vm->pixelclock =3D display_timing_get_value(&dt->pixelclock, 0);
+> +	vm->hactive =3D display_timing_get_value(&dt->hactive, 0);
+> +	vm->hfront_porch =3D display_timing_get_value(&dt->hfront_porch, 0);
+> +	vm->hback_porch =3D display_timing_get_value(&dt->hback_porch, 0);
+> +	vm->hsync_len =3D display_timing_get_value(&dt->hsync_len, 0);
+> +
+> +	vm->vactive =3D display_timing_get_value(&dt->vactive, 0);
+> +	vm->vfront_porch =3D display_timing_get_value(&dt->vfront_porch, 0);
+> +	vm->vback_porch =3D display_timing_get_value(&dt->vback_porch, 0);
+> +	vm->vsync_len =3D display_timing_get_value(&dt->vsync_len, 0);
+
+Shouldn't all these calls get the typical value, with index 1?
+
+> +
+> +	vm->vah =3D dt->vsync_pol_active;
+> +	vm->hah =3D dt->hsync_pol_active;
+> +	vm->de =3D dt->de_pol_active;
+> +	vm->pixelclk_pol =3D dt->pixelclk_pol;
+> +
+> +	vm->interlaced =3D dt->interlaced;
+> +	vm->doublescan =3D dt->doublescan;
+> +
+> +	return 0;
+> +}
+> +
+> +EXPORT_SYMBOL_GPL(videomode_from_timing);
+> diff --git a/include/linux/display_timing.h b/include/linux/display_tim=
+ing.h
+> new file mode 100644
+> index 0000000..d5bf03f
+> --- /dev/null
+> +++ b/include/linux/display_timing.h
+> @@ -0,0 +1,70 @@
+> +/*
+> + * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> + *
+> + * description of display timings
+> + *
+> + * This file is released under the GPLv2
+> + */
+> +
+> +#ifndef __LINUX_DISPLAY_TIMINGS_H
+> +#define __LINUX_DISPLAY_TIMINGS_H
+> +
+> +#include <linux/types.h>
+
+What is this needed for? u32? I don't see it defined in types.h
+
+> +
+> +struct timing_entry {
+> +	u32 min;
+> +	u32 typ;
+> +	u32 max;
+> +};
+> +
+> +struct display_timing {
+> +	struct timing_entry pixelclock;
+> +
+> +	struct timing_entry hactive;
+> +	struct timing_entry hfront_porch;
+> +	struct timing_entry hback_porch;
+> +	struct timing_entry hsync_len;
+> +
+> +	struct timing_entry vactive;
+> +	struct timing_entry vfront_porch;
+> +	struct timing_entry vback_porch;
+> +	struct timing_entry vsync_len;
+> +
+> +	unsigned int vsync_pol_active;
+> +	unsigned int hsync_pol_active;
+> +	unsigned int de_pol_active;
+> +	unsigned int pixelclk_pol;
+> +	bool interlaced;
+> +	bool doublescan;
+> +};
+> +
+> +struct display_timings {
+> +	unsigned int num_timings;
+> +	unsigned int native_mode;
+> +
+> +	struct display_timing **timings;
+> +};
+> +
+> +/*
+> + * placeholder function until ranges are really needed
+> + * the index parameter should then be used to select one of [min typ m=
+ax]
+> + */
+> +static inline u32 display_timing_get_value(const struct timing_entry *=
+te,
+> +					   unsigned int index)
+> +{
+> +	return te->typ;
+> +}
+
+Why did you opt for a placeholder here? It feels trivial to me to have
+support to get the min/typ/max value properly.
+
+> +static inline struct display_timing *display_timings_get(const struct
+> +							 display_timings *disp,
+> +							 unsigned int index)
+> +{
+> +	if (disp->num_timings > index)
+> +		return disp->timings[index];
+> +	else
+> +		return NULL;
+> +}
+> +
+> +void display_timings_release(struct display_timings *disp);
+> +
+> +#endif
+> diff --git a/include/linux/videomode.h b/include/linux/videomode.h
+> new file mode 100644
+> index 0000000..5d3e796
+> --- /dev/null
+> +++ b/include/linux/videomode.h
+> @@ -0,0 +1,40 @@
+> +/*
+> + * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> + *
+> + * generic videomode description
+> + *
+> + * This file is released under the GPLv2
+> + */
+> +
+> +#ifndef __LINUX_VIDEOMODE_H
+> +#define __LINUX_VIDEOMODE_H
+> +
+> +#include <linux/display_timing.h>
+
+This is not needed, just add:
+
+struct display_timings;
+
+> +struct videomode {
+> +	u32 pixelclock;
+> +	u32 refreshrate;
+> +
+> +	u32 hactive;
+> +	u32 hfront_porch;
+> +	u32 hback_porch;
+> +	u32 hsync_len;
+> +
+> +	u32 vactive;
+> +	u32 vfront_porch;
+> +	u32 vback_porch;
+> +	u32 vsync_len;
+> +
+> +	u32 hah;
+> +	u32 vah;
+> +	u32 de;
+> +	u32 pixelclk_pol;
+> +
+> +	bool interlaced;
+> +	bool doublescan;
+> +};
+> +
+> +int videomode_from_timing(const struct display_timings *disp,
+> +			  struct videomode *vm, unsigned int index);
+> +
+
+Are this and the few other functions above meant to be used from
+drivers? If so, some explanation of the parameters here would be nice.
+If they are just framework internal, they don't probably need that.
+
+ Tomi
+
+
+
+--------------enig7B8E20EC1036AA7EB2975329
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQrLzkAAoJEPo9qoy8lh71vWsP+gLWZMn8izCWAj3Zddv24QTW
+4tPZofzo9nLeruUYn+seelY5lYlEZAQv4bjoFAyVJJFoKaLvj8DLGiL00Vkv6TqZ
+TC2yRDwj6HT0CIxFxP8544qN31F2VE00ZX1mezChn1U3eiInxCceUJF3L0fu4vhX
+Of3S46p89sLCT6DUeuOPdbTNOWbgayTAyUjJ6vZRDyuqAnWy7BNuv3RZPzh4Lo1B
+JoBl1nmH8d3t/BAuVKJC1bdTSPIHeqwcC5YFHX9zZQ5KJFVUr+6zoavvtD3jSHux
+ekoBy0d6D1K+HXG8SAPRS5NTM0aYfTVDsamg/7BxCGocBkbQmnuOui8Y9Yl27TwB
+Rb6Ram9xM/4gEcMSYCfF1Cddjv3rBLD5dhrPkFLD91pTm5AjMPAA/UuHvpRBCmcN
+xN8Ho+sijDDMa1yzrENERVLa3ZFxrG+LbP/G5nY+ilTefnV4NLeN/bUED5q+OZcs
+w0rg98loQEk5atjE9JtMlDXbJdiI1ahvY88MBzjKg7l7sn4Zdk8e3OfmcwRLsTh/
+HiCVW6DTymRetxVo6UiMqSNXec+IJ9FbRsMwEkH9yi6ftAWOFco5SndljjPSeCyo
+M8wH0b3ZtG0EmNSJ5nyWDvV2txlV7Y6HWgb6bMqNllopN0f8nBlyEGdPsToumWAB
+uxaQV2eO7TDLLwPtf3wV
+=b69s
+-----END PGP SIGNATURE-----
+
+--------------enig7B8E20EC1036AA7EB2975329--
