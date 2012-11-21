@@ -1,70 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59812 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53117 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755180Ab2KMOeZ (ORCPT
+	with ESMTP id S1753870Ab2KVSgC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Nov 2012 09:34:25 -0500
-Received: from avalon.localnet (unknown [91.178.162.106])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 218E1359DA
-	for <linux-media@vger.kernel.org>; Tue, 13 Nov 2012 15:34:24 +0100 (CET)
+	Thu, 22 Nov 2012 13:36:02 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.8] OMAP3 ISP fixes
-Date: Tue, 13 Nov 2012 15:35:20 +0100
-Message-ID: <5165893.K67LFKXKHh@avalon>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v12 3/6] fbmon: add videomode helpers
+Date: Wed, 21 Nov 2012 23:02:44 +0100
+Message-ID: <96696218.4l3uYOulV3@avalon>
+In-Reply-To: <1353426896-6045-4-git-send-email-s.trumtrar@pengutronix.de>
+References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de> <1353426896-6045-4-git-send-email-s.trumtrar@pengutronix.de>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Steffen,
 
-The following changes since commit 01aea0bfd8dfa8bc868df33904461984bb10a87a:
+Sorry, I've just found another small bug below.
 
-  [media] i2c: adv7183: use module_i2c_driver to simplify the code (2012-10-25 
-17:08:46 -0200)
+On Tuesday 20 November 2012 16:54:53 Steffen Trumtrar wrote:
+> Add a function to convert from the generic videomode to a fb_videomode.
+> 
+> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/video/fbmon.c |   46 ++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/fb.h    |    6 ++++++
+>  2 files changed, 52 insertions(+)
+> 
+> diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
+> index cef6557..c1939a6 100644
+> --- a/drivers/video/fbmon.c
+> +++ b/drivers/video/fbmon.c
+> @@ -31,6 +31,7 @@
+>  #include <linux/pci.h>
+>  #include <linux/slab.h>
+>  #include <video/edid.h>
+> +#include <linux/videomode.h>
+>  #ifdef CONFIG_PPC_OF
+>  #include <asm/prom.h>
+>  #include <asm/pci-bridge.h>
+> @@ -1373,6 +1374,51 @@ int fb_get_mode(int flags, u32 val, struct
+> fb_var_screeninfo *var, struct fb_inf kfree(timings);
+>  	return err;
+>  }
+> +
+> +#if IS_ENABLED(CONFIG_VIDEOMODE)
+> +int fb_videomode_from_videomode(const struct videomode *vm,
+> +				struct fb_videomode *fbmode)
+> +{
+> +	unsigned int htotal, vtotal;
+> +
+> +	fbmode->xres = vm->hactive;
+> +	fbmode->left_margin = vm->hback_porch;
+> +	fbmode->right_margin = vm->hfront_porch;
+> +	fbmode->hsync_len = vm->hsync_len;
+> +
+> +	fbmode->yres = vm->vactive;
+> +	fbmode->upper_margin = vm->vback_porch;
+> +	fbmode->lower_margin = vm->vfront_porch;
+> +	fbmode->vsync_len = vm->vsync_len;
+> +
+> +	fbmode->pixclock = KHZ2PICOS(vm->pixelclock / 1000);
+> +
+> +	fbmode->sync = 0;
+> +	fbmode->vmode = 0;
+> +	if (vm->hah)
+> +		fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
+> +	if (vm->vah)
+> +		fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
+> +	if (vm->interlaced)
+> +		fbmode->vmode |= FB_VMODE_INTERLACED;
+> +	if (vm->doublescan)
+> +		fbmode->vmode |= FB_VMODE_DOUBLE;
+> +	if (vm->de)
+> +		fbmode->sync |= FB_SYNC_DATA_ENABLE_HIGH_ACT;
+> +	fbmode->flag = 0;
+> +
+> +	htotal = vm->hactive + vm->hfront_porch + vm->hback_porch +
+> +		 vm->hsync_len;
+> +	vtotal = vm->vactive + vm->vfront_porch + vm->vback_porch +
+> +		 vm->vsync_len;
+> +	fbmode->refresh = (vm->pixelclock * 1000) / (htotal * vtotal);
 
-are available in the git repository at:
-  git://linuxtv.org/pinchartl/media.git omap3isp/next
+This will fail if vm->pixelclock >= ((1 << 32) / 1000). The easiest solution 
+is probably to use 64-bit computation.
 
-Laurent Pinchart (6):
-      omap3isp: Use monotonic timestamps for statistics buffers
-      omap3isp: Remove unneeded module memory address definitions
-      omap3isp: Replace printk with dev_*
-      omap3isp: preview: Add support for 8-bit formats at the sink pad
-      omap3isp: Prepare/unprepare clocks before/after enable/disable
-      omap3isp: Replace cpu_is_omap3630() with ISP revision check
-
-Sakari Ailus (4):
-      omap3isp: Add CSI configuration registers from control block to ISP 
-resources
-      omap3isp: Add PHY routing configuration
-      omap3isp: Configure CSI-2 phy based on platform data
-      omap3isp: Find source pad from external entity
-
-Note that patch "Replace cpu_is_omap3630() with ISP revision check" has been 
-already submitted and reverted at my request, as the proper solution should be 
-implemented at the clock provider level. This is in progress and will require 
-common clock framework support, which will likely reach mainline in v3.9. In 
-order not to delay cpu_is_omap3630() removal I've decided to resubmit this 
-patch, and will implement the proper fix when the common clock framework will 
-be available for the OMAP3.
-
- arch/arm/mach-omap2/devices.c                |   10 +
- drivers/media/platform/omap3isp/isp.c        |   83 ++++++----
- drivers/media/platform/omap3isp/isp.h        |    5 +-
- drivers/media/platform/omap3isp/ispcsi2.c    |    6 +-
- drivers/media/platform/omap3isp/ispcsiphy.c  |  227 ++++++++++++++++++-------
- drivers/media/platform/omap3isp/ispcsiphy.h  |   10 -
- drivers/media/platform/omap3isp/isphist.c    |    8 +-
- drivers/media/platform/omap3isp/isppreview.c |   40 +++--
- drivers/media/platform/omap3isp/ispreg.h     |   99 +++---------
- drivers/media/platform/omap3isp/ispstat.c    |    5 +-
- drivers/media/platform/omap3isp/ispstat.h    |    2 +-
- drivers/media/platform/omap3isp/ispvideo.c   |    3 +-
- 12 files changed, 294 insertions(+), 204 deletions(-)
-
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
+> +#endif
+> +
+> +
+>  #else
+>  int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
+>  {
+> diff --git a/include/linux/fb.h b/include/linux/fb.h
+> index c7a9571..920cbe3 100644
+> --- a/include/linux/fb.h
+> +++ b/include/linux/fb.h
+> @@ -14,6 +14,7 @@
+>  #include <linux/backlight.h>
+>  #include <linux/slab.h>
+>  #include <asm/io.h>
+> +#include <linux/videomode.h>
+> 
+>  struct vm_area_struct;
+>  struct fb_info;
+> @@ -714,6 +715,11 @@ extern void fb_destroy_modedb(struct fb_videomode
+> *modedb); extern int fb_find_mode_cvt(struct fb_videomode *mode, int
+> margins, int rb); extern unsigned char *fb_ddc_read(struct i2c_adapter
+> *adapter);
+> 
+> +#if IS_ENABLED(CONFIG_VIDEOMODE)
+> +extern int fb_videomode_from_videomode(const struct videomode *vm,
+> +				       struct fb_videomode *fbmode);
+> +#endif
+> +
+>  /* drivers/video/modedb.c */
+>  #define VESA_MODEDB_SIZE 34
+>  extern void fb_var_to_videomode(struct fb_videomode *mode,
 -- 
 Regards,
 
