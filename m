@@ -1,120 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39004 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751858Ab2KTPzm (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:31434 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755145Ab2KUPdr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Nov 2012 10:55:42 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
-	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
-	"David Airlie" <airlied@linux.ie>
-Subject: [PATCH v12 6/6] drm_modes: add of_videomode helpers
-Date: Tue, 20 Nov 2012 16:54:56 +0100
-Message-Id: <1353426896-6045-7-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de>
+	Wed, 21 Nov 2012 10:33:47 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MDU007LOGK5H700@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 22 Nov 2012 00:33:46 +0900 (KST)
+Received: from amdc1344.digital.local ([106.116.147.32])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MDU007TRGK1BY80@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 22 Nov 2012 00:33:45 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sw0312.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] exynos-gsc: Don't use mutex_lock_interruptible() in device
+ release()
+Date: Wed, 21 Nov 2012 16:33:34 +0100
+Message-id: <1353512015-15850-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add helper to get drm_display_mode from devicetree.
+Use uninterruptible mutex_lock in the release() file op to make
+sure all resources are properly freed when a process is being
+terminated. Returning -ERESTARTSYS has no effect for a terminating
+process and this may cause driver resources no to be released.
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>
+Reported-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/gpu/drm/drm_modes.c |   35 ++++++++++++++++++++++++++++++++++-
- include/drm/drmP.h          |    6 ++++++
- 2 files changed, 40 insertions(+), 1 deletion(-)
+ drivers/media/platform/exynos-gsc/gsc-m2m.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
-index 0073b27..04feef8 100644
---- a/drivers/gpu/drm/drm_modes.c
-+++ b/drivers/gpu/drm/drm_modes.c
-@@ -35,7 +35,8 @@
- #include <linux/export.h>
- #include <drm/drmP.h>
- #include <drm/drm_crtc.h>
--#include <linux/videomode.h>
-+#include <linux/of.h>
-+#include <linux/of_videomode.h>
+diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+index 047f0f0..910ef76f 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
++++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+@@ -657,8 +657,7 @@ static int gsc_m2m_release(struct file *file)
+ 	pr_debug("pid: %d, state: 0x%lx, refcnt= %d",
+ 		task_pid_nr(current), gsc->state, gsc->m2m.refcnt);
  
- /**
-  * drm_mode_debug_printmodeline - debug print a mode
-@@ -541,6 +542,38 @@ int drm_display_mode_from_videomode(const struct videomode *vm,
- EXPORT_SYMBOL_GPL(drm_display_mode_from_videomode);
- #endif
+-	if (mutex_lock_interruptible(&gsc->lock))
+-		return -ERESTARTSYS;
++	mutex_lock(&gsc->lock);
  
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+/**
-+ * of_get_drm_display_mode - get a drm_display_mode from devicetree
-+ * @np: device_node with the timing specification
-+ * @dmode: will be set to the return value
-+ * @index: index into the list of display timings in devicetree
-+ *
-+ * This function is expensive and should only be used, if only one mode is to be
-+ * read from DT. To get multiple modes start with of_get_display_timings and
-+ * work with that instead.
-+ */
-+int of_get_drm_display_mode(const struct device_node *np,
-+			    struct drm_display_mode *dmode, unsigned int index)
-+{
-+	struct videomode vm;
-+	int ret;
-+
-+	ret = of_get_videomode(np, &vm, index);
-+	if (ret)
-+		return ret;
-+
-+	drm_display_mode_from_videomode(&vm, dmode);
-+
-+	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
-+		vm.vactive, np->name);
-+	drm_mode_debug_printmodeline(dmode);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(of_get_drm_display_mode);
-+#endif
-+
- /**
-  * drm_mode_set_name - set the name on a mode
-  * @mode: name will be set in this mode
-diff --git a/include/drm/drmP.h b/include/drm/drmP.h
-index de2f6cf..377280f 100644
---- a/include/drm/drmP.h
-+++ b/include/drm/drmP.h
-@@ -56,6 +56,7 @@
- #include <linux/cdev.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
-+#include <linux/of.h>
- #include <linux/videomode.h>
- #if defined(__alpha__) || defined(__powerpc__)
- #include <asm/pgtable.h>	/* For pte_wrprotect */
-@@ -1459,6 +1460,11 @@ drm_mode_create_from_cmdline_mode(struct drm_device *dev,
- extern int drm_display_mode_from_videomode(const struct videomode *vm,
- 					   struct drm_display_mode *dmode);
- #endif
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+extern int of_get_drm_display_mode(const struct device_node *np,
-+				   struct drm_display_mode *dmode,
-+				   unsigned int index);
-+#endif
- 
- /* Modesetting support */
- extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
+ 	v4l2_m2m_ctx_release(ctx->m2m_ctx);
+ 	gsc_ctrls_delete(ctx);
 -- 
-1.7.10.4
+1.7.9.5
 
