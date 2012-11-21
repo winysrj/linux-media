@@ -1,43 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:47101 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755511Ab2K0Rfb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 12:35:31 -0500
-Date: Tue, 27 Nov 2012 20:35:09 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Douglas Bagnall <douglas@paradise.net.nz>,
-	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	Jarod Wilson <jarod@redhat.com>,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch 1/2] [media] rc: unlock on error in show_protocols()
-Message-ID: <20121127173509.GE1059@elgon.mountain>
+Received: from bear.ext.ti.com ([192.94.94.41]:40798 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753753Ab2KUMx3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Nov 2012 07:53:29 -0500
+Message-ID: <50ACCEA2.5060401@ti.com>
+Date: Wed, 21 Nov 2012 14:52:50 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+CC: <devicetree-discuss@lists.ozlabs.org>,
+	Rob Herring <robherring2@gmail.com>,
+	<linux-fbdev@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	<linux-media@vger.kernel.org>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	<kernel@pengutronix.de>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v12 6/6] drm_modes: add of_videomode helpers
+References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de> <1353426896-6045-7-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1353426896-6045-7-git-send-email-s.trumtrar@pengutronix.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig47A2311AA235F0CD0772E217"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We recently introduced a new return -ENODEV in this function but we need
-to unlock before returning.
+--------------enig47A2311AA235F0CD0772E217
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+On 2012-11-20 17:54, Steffen Trumtrar wrote:
+> Add helper to get drm_display_mode from devicetree.
+>=20
+> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/gpu/drm/drm_modes.c |   35 ++++++++++++++++++++++++++++++++++-=
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 601d1ac1..d593bc6 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -789,8 +789,10 @@ static ssize_t show_protocols(struct device *device,
- 	} else if (dev->raw) {
- 		enabled = dev->raw->enabled_protocols;
- 		allowed = ir_raw_get_allowed_protocols();
--	} else
-+	} else {
-+		mutex_unlock(&dev->lock);
- 		return -ENODEV;
-+	}
- 
- 	IR_dprintk(1, "allowed - 0x%llx, enabled - 0x%llx\n",
- 		   (long long)allowed,
+>  include/drm/drmP.h          |    6 ++++++
+>  2 files changed, 40 insertions(+), 1 deletion(-)
+>=20
+
+> diff --git a/include/drm/drmP.h b/include/drm/drmP.h
+> index de2f6cf..377280f 100644
+> --- a/include/drm/drmP.h
+> +++ b/include/drm/drmP.h
+> @@ -56,6 +56,7 @@
+>  #include <linux/cdev.h>
+>  #include <linux/mutex.h>
+>  #include <linux/slab.h>
+> +#include <linux/of.h>
+>  #include <linux/videomode.h>
+>  #if defined(__alpha__) || defined(__powerpc__)
+>  #include <asm/pgtable.h>	/* For pte_wrprotect */
+> @@ -1459,6 +1460,11 @@ drm_mode_create_from_cmdline_mode(struct drm_dev=
+ice *dev,
+>  extern int drm_display_mode_from_videomode(const struct videomode *vm,=
+
+>  					   struct drm_display_mode *dmode);
+>  #endif
+> +#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
+> +extern int of_get_drm_display_mode(const struct device_node *np,
+> +				   struct drm_display_mode *dmode,
+> +				   unsigned int index);
+> +#endif
+> =20
+>  /* Modesetting support */
+>  extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
+
+And the same comments here also.
+
+ Tomi
+
+
+
+
+--------------enig47A2311AA235F0CD0772E217
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQrM6iAAoJEPo9qoy8lh71aU0P/iMMN8FZf5o0NLDAOoWjvSlY
+Il8Z1z4NssYUvu+R3f7IS6NIzEE+Sz/Dox/LjCocZDdMfdU/UE+Xee64FmKe027l
+qdLT6NGS5JzcZT265ELXsQzfBuLQmnWpUU/NDM7dNK1UWXVcaanIuAKkDqxgkTNq
+1mTMuajq/XtQRkM5c9lst0UbahD+nNfvkT6WoVW516z1Z8E0DjOJaeaIgUpMKkZF
+NcU143x+lZKZ/vOJs4ZJ4z3FzG8iDvjwKw0QRkfdSkL3sEBe1yVJaiCoi2RkDhsW
+Wi/W3JTvrpvmG2MO/5Ftbs6Cq0jVho/elnU0tlFGYeP1doneR6TAUc85pMneTipG
+FTsDL5S/AgQvx5UI07C8UCU2EV9kOEnPRFi+8xhLOsFav7l3Ze8Y89xuamhc264i
+tNPRE4E5mAJqMLptRyXGzi+iy9UBdONoe2EjlZ3Hy8Kj1khT51C/7Mf1H3BEQ8H7
+C0yUdAmRTmeyRB/dKEPKnZsM6912FCQbcPo3D9it9m2nrZf/Yt/p+YzxZILssbKJ
+HQdLblHfFOVAq3LqIhhtqvfsceEUqijccUs6RxQQaxekk5Tz7jKGXEPX2giRjypf
+HBR4uh/y+xNK7C+Bh4uWg44SzqqpYA3MQQm8i5v7pk7i3C4sUrryegesvfzyaclA
+WvoWLwOZ/ou/Uafx8+IM
+=AX3l
+-----END PGP SIGNATURE-----
+
+--------------enig47A2311AA235F0CD0772E217--
