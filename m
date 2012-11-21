@@ -1,95 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35153 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751870Ab2KFVv7 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:59617 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754156Ab2KULtI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Nov 2012 16:51:59 -0500
-Date: Tue, 6 Nov 2012 23:51:54 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Andreas Nagel <andreasnagel@gmx.net>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: OMAP3 ISP: VIDIOC_STREAMON and VIDIOC_QBUF calls fail
-Message-ID: <20121106215153.GE25623@valkosipuli.retiisi.org.uk>
-References: <5097DF9F.6080603@gmx.net>
+	Wed, 21 Nov 2012 06:49:08 -0500
+Date: Wed, 21 Nov 2012 12:48:43 +0100
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: "Manjunathappa, Prakash" <prakash.pm@ti.com>
+Cc: "devicetree-discuss@lists.ozlabs.org"
+	<devicetree-discuss@lists.ozlabs.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	"kernel@pengutronix.de" <kernel@pengutronix.de>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v12 2/6] video: add of helper for videomode
+Message-ID: <20121121114843.GC14013@pengutronix.de>
+References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1353426896-6045-3-git-send-email-s.trumtrar@pengutronix.de>
+ <A73F36158E33644199EB82C5EC81C7BC3E9FA7A0@DBDE01.ent.ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <5097DF9F.6080603@gmx.net>
+In-Reply-To: <A73F36158E33644199EB82C5EC81C7BC3E9FA7A0@DBDE01.ent.ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andreas,
+Hi!
 
-On Mon, Nov 05, 2012 at 04:47:43PM +0100, Andreas Nagel wrote:
-> Hello,
+On Wed, Nov 21, 2012 at 10:12:43AM +0000, Manjunathappa, Prakash wrote:
+> Hi Steffen,
 > 
-> in order to familiarize myself with Media Controller and V4L2 I am
-> creating a small example program for capturing some frames through
-> the OMAP3 ISP.
-> The hardware used is a TAO-3530 on a Tsunami daughterboard from
-> Technexion. My video source is a standard DVD player connected to
-> the daughterboards S-VIDEO port. That port itself is wired to a
-> TVP5146 decoder chip from TI.
-> A precompiled Android image with a demo app proofs, that the
-> hardware is working fine.
+> On Tue, Nov 20, 2012 at 21:24:52, Steffen Trumtrar wrote:
+> > +/**
+> > + * of_get_display_timings - parse all display_timing entries from a device_node
+> > + * @np: device_node with the subnodes
+> > + **/
+> > +struct display_timings *of_get_display_timings(const struct device_node *np)
+> > +{
+> > +	struct device_node *timings_np;
+> > +	struct device_node *entry;
+> > +	struct device_node *native_mode;
+> > +	struct display_timings *disp;
+> > +
+> > +	if (!np) {
+> > +		pr_err("%s: no devicenode given\n", __func__);
+> > +		return NULL;
+> > +	}
+> > +
+> > +	timings_np = of_find_node_by_name(np, "display-timings");
 > 
-> My example program is mostly based on the following wiki page and
-> the capture example in the V4L2 documentation.
-> http://processors.wiki.ti.com/index.php/Writing_V4L2_Media_Controller_Applications_on_Dm36x_Video_Capture
+> I get below build warnings on this line
+> drivers/video/of_display_timing.c: In function 'of_get_display_timings':
+> drivers/video/of_display_timing.c:109:2: warning: passing argument 1 of 'of_find_node_by_name' discards qualifiers from pointer target type
+> include/linux/of.h:167:28: note: expected 'struct device_node *' but argument is of type 'const struct device_node *'
 > 
-> My code sets up the ISP pipeline, configures the format on all the
-> subdevices pads and the actual video device. Works fine so far.
-> Then I passed user pointers (aquired with malloc) to the device
-> driver for the capture buffers. Before issuing VIDIOC_STREAMON, I
-> enqueue my buffers with VIDIOC_QBUF, which fails with errno = EIO. I
-> don't know, why this is happening or where to got from here.
-
-One possibility could be that mapping the buffer to ISP MMU fails for a
-reason or another. Do you set the length field in the buffer?
-
-> When using memory-mapped buffers instead, mapping the addresses to
-> userspace works fine as well as VIDIOC_QBUF calls. But then
-> VIDIOC_STREAMON fails with EINVAL. According to V4L documentation,
-> EINVAL means
-> a) buffertype (V4L2_BUF_TYPE_VIDEO_CAPTURE in this case) not supported
-> b) no buffers have been allocated (memory mapping)
-> c) or enqueued yet
+> > + * of_display_timings_exists - check if a display-timings node is provided
+> > + * @np: device_node with the timing
+> > + **/
+> > +int of_display_timings_exists(const struct device_node *np)
+> > +{
+> > +	struct device_node *timings_np;
+> > +
+> > +	if (!np)
+> > +		return -EINVAL;
+> > +
+> > +	timings_np = of_parse_phandle(np, "display-timings", 0);
 > 
-> Because I tested V4L2_CAP_VIDEO_CAPTURE capability, I guess option
-> a) does not apply. Buffers have been enqueud, so c) doesn't apply
-> either.
-> What about b) ? As I chose memory-mapped buffers here, the device
-> drivers manages the buffers. How can I make sure, that buffers were
-> actually allocated?
+> Also here:
+> drivers/video/of_display_timing.c: In function 'of_display_timings_exists':
+> drivers/video/of_display_timing.c:209:2: warning: passing argument 1 of 'of_parse_phandle' discards qualifiers from pointer target type
+> include/linux/of.h:258:28: note: expected 'struct device_node *' but argument is of type 'const struct device_node *'
 > 
-> And am I missing something else?
 
-The formats on the pads at different ends of the links in the pipeline must
-match. In most cases, they have to be exactly the same.
+The warnings are because the of-functions do not use const pointers where they
+should. I had two options: don't use const pointers even if they should be and
+have no warnings or use const pointers and have a correct API. (Third option:
+send patches for of-functions). I chose the second option.
 
-Have you used the media-ctl test program here?
+Regards,
+Steffen
 
-<URL:http://git.ideasonboard.org/media-ctl.git>
-
-media-ctl -p gives you (and us) lots of information that helps figuring out
-what could go wrong here.
-
-> I attached my example code. If you need more information, I will provide it.
-> 
-> Note: I have to use the Technexion 2.6.37 kernel, which is based on
-> the TI kernel. It's the only kernel that comes with the ISP driver
-> and Media Controller API onboard and I guess, TI or TN included this
-> stuff somehow. Normally, this shouldn't be available until 2.6.39.
-> Sadly, I cannot use another kernel, because Technexion doesn't push
-> board support anywhere.
-
-This might work but I think it'd be best if you could just use the mainline
-kernel. Others are mostly unsupported.
-
-Cc Laurent.
-
-Kind regards,
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
