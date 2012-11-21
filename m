@@ -1,52 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:30759 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753513Ab2KVSf0 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:59329 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755275Ab2KUQYr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 13:35:26 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sw0312.kim@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	stable@vger.kernel.org, Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH v2 2/2] fimc-lite: Don't use mutex_lock_interruptible() in
- device release()
-Date: Thu, 22 Nov 2012 15:24:49 +0100
-Message-id: <1353594289-7381-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1353594289-7381-1-git-send-email-s.nawrocki@samsung.com>
-References: <1353594289-7381-1-git-send-email-s.nawrocki@samsung.com>
+	Wed, 21 Nov 2012 11:24:47 -0500
+Date: Wed, 21 Nov 2012 17:24:36 +0100
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v12 4/6] fbmon: add of_videomode helpers
+Message-ID: <20121121162436.GB12657@pengutronix.de>
+References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1353426896-6045-5-git-send-email-s.trumtrar@pengutronix.de>
+ <50ACCDDA.2070606@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <50ACCDDA.2070606@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use uninterruptible mutex_lock in the release() file op to make
-sure all resources are properly freed when a process is being
-terminated. Returning -ERESTARTSYS has no effect for a terminating
-process and this may cause driver resources not to be released.
+On Wed, Nov 21, 2012 at 02:49:30PM +0200, Tomi Valkeinen wrote:
+> On 2012-11-20 17:54, Steffen Trumtrar wrote:
+> > Add helper to get fb_videomode from devicetree.
+> > 
+> > Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> > Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+> > Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+> > Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+> > Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> >  drivers/video/fbmon.c |   42 +++++++++++++++++++++++++++++++++++++++++-
+> >  include/linux/fb.h    |    7 +++++++
+> >  2 files changed, 48 insertions(+), 1 deletion(-)
+> 
+> 
+> > diff --git a/include/linux/fb.h b/include/linux/fb.h
+> > index 920cbe3..41b5e49 100644
+> > --- a/include/linux/fb.h
+> > +++ b/include/linux/fb.h
+> > @@ -15,6 +15,8 @@
+> >  #include <linux/slab.h>
+> >  #include <asm/io.h>
+> >  #include <linux/videomode.h>
+> > +#include <linux/of.h>
+> > +#include <linux/of_videomode.h>
+> 
+> Guess what? =)
+> 
+> To be honest, I don't know what the general opinion is about including
+> header files from header files. But I always leave them out if they are
+> not strictly needed.
+> 
 
-This patch is required for stable kernels v3.5+.
+Okay. Seems to fit with the rest of the file;
 
-Cc: stable@vger.kernel.org
-Reported-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-lite.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+> >  struct vm_area_struct;
+> >  struct fb_info;
+> > @@ -715,6 +717,11 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
+> >  extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
+> >  extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+> >  
+> > +#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
+> > +extern int of_get_fb_videomode(const struct device_node *np,
+> > +			       struct fb_videomode *fb,
+> > +			       unsigned int index);
+> > +#endif
+> >  #if IS_ENABLED(CONFIG_VIDEOMODE)
+> >  extern int fb_videomode_from_videomode(const struct videomode *vm,
+> >  				       struct fb_videomode *fbmode);
+> 
+> Do you really need these #ifs in the header files? They do make it look
+> a bit messy. If somebody uses the functions and CONFIG_VIDEOMODE is not
+> enabled, he'll get a linker error anyway.
+> 
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
-index 23f203e..1b309a7 100644
---- a/drivers/media/platform/s5p-fimc/fimc-lite.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
-@@ -491,8 +491,7 @@ static int fimc_lite_close(struct file *file)
- 	struct fimc_lite *fimc = video_drvdata(file);
- 	int ret;
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
-+	mutex_lock(&fimc->lock);
- 
- 	if (--fimc->ref_count == 0 && fimc->out_path == FIMC_IO_DMA) {
- 		clear_bit(ST_FLITE_IN_USE, &fimc->state);
+Well, I don't remember at the moment who requested this, but it was not my
+idea to put them there. So, this is a matter of style I guess.
+But maybe I understood that wrong.
+
+
+Regards,
+Steffen
+
+
+
 -- 
-1.7.9.5
-
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
