@@ -1,43 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:36035 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753713Ab2KPVoK (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:50230 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754688Ab2KUMKu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Nov 2012 16:44:10 -0500
-Received: by mail-lb0-f174.google.com with SMTP id gp3so2522343lbb.19
-        for <linux-media@vger.kernel.org>; Fri, 16 Nov 2012 13:44:09 -0800 (PST)
-Message-ID: <1353102239.2101.7.camel@tux>
-Subject: [patch] MAINTAINERS: add an entry for radio-mr800 driver
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: linux-media@vger.kernel.org
-Date: Sat, 17 Nov 2012 01:43:59 +0400
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+	Wed, 21 Nov 2012 07:10:50 -0500
+Date: Wed, 21 Nov 2012 13:10:47 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Bill Pemberton <wfp5p@virginia.edu>
+cc: gregkh@linuxfoundation.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Heungjun Kim <riverful.kim@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org, mjpeg-users@lists.sourceforge.net,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: =?UTF-8?q?=5BPATCH=20133/493=5D=20remove=20use=20of=20=5F=5Fdevexit=5Fp?=
+In-Reply-To: <1353349642-3677-133-git-send-email-wfp5p@virginia.edu>
+Message-ID: <Pine.LNX.4.64.1211211307000.842@axis700.grange>
+References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
+ <1353349642-3677-133-git-send-email-wfp5p@virginia.edu>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds MAINTAINERS entry for radio-mr800 usb radio driver.
+On Mon, 19 Nov 2012, Bill Pemberton wrote:
 
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+>  drivers/media/platform/sh_vou.c                          | 2 +-
+>  drivers/media/platform/soc_camera/atmel-isi.c            | 2 +-
+>  drivers/media/platform/soc_camera/mx2_camera.c           | 2 +-
+>  drivers/media/platform/soc_camera/mx3_camera.c           | 2 +-
+>  drivers/media/platform/soc_camera/pxa_camera.c           | 2 +-
+>  drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c | 2 +-
+>  drivers/media/platform/soc_camera/sh_mobile_csi2.c       | 2 +-
+>  drivers/media/platform/soc_camera/soc_camera.c           | 2 +-
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index f4b3aa8..e1d9e38 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4909,6 +4909,13 @@ S:	Maintained
- F:	Documentation/serial/moxa-smartio
- F:	drivers/tty/mxser.*
- 
-+MR800 AVERMEDIA USB FM RADIO DRIVER
-+M:	Alexey Klimov <klimov.linux@gmail.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/radio/radio-mr800.c
-+
- MSI LAPTOP SUPPORT
- M:	"Lee, Chun-Yi" <jlee@novell.com>
- L:	platform-driver-x86@vger.kernel.org
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
