@@ -1,52 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:51014 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751207Ab2KWNbL (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:35760 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754155Ab2KUKKU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 08:31:11 -0500
-From: Albert Wang <twang13@marvell.com>
-To: corbet@lwn.net, g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org, lbyang@marvell.com,
-	Albert Wang <twang13@marvell.com>
-Subject: [PATCH 0/15] [media] marvell-ccic: add soc camera support on marvell-ccic
-Date: Fri, 23 Nov 2012 21:30:50 +0800
-Message-Id: <1353677450-23876-1-git-send-email-twang13@marvell.com>
+	Wed, 21 Nov 2012 05:10:20 -0500
+From: "Manjunathappa, Prakash" <prakash.pm@ti.com>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"devicetree-discuss@lists.ozlabs.org"
+	<devicetree-discuss@lists.ozlabs.org>
+CC: Rob Herring <robherring2@gmail.com>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	"kernel@pengutronix.de" <kernel@pengutronix.de>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>
+Subject: RE: [PATCH v12 3/6] fbmon: add videomode helpers
+Date: Wed, 21 Nov 2012 10:09:51 +0000
+Message-ID: <A73F36158E33644199EB82C5EC81C7BC3E9FA769@DBDE01.ent.ti.com>
+References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1353426896-6045-4-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1353426896-6045-4-git-send-email-s.trumtrar@pengutronix.de>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following patches series will add soc camera support on marvell-ccic
+Hi Steffen,
 
-Change log v2:
-	- remove register definition patch
-	- split big patch to some small patches
-	- split mcam-core.c to mcam-core.c and mcam-core-standard.c
-	- add mcam-core-soc.c for soc camera support
-	- split 3 frame buffers support patch into 2 patches
+I am trying to add DT support for da8xx-fb driver on top of your patches.
+Encountered below build error. Sorry for reporting it late.
 
-[PATCH 01/15] [media] marvell-ccic: use internal variable replace
-[PATCH 02/15] [media] marvell-ccic: add MIPI support for marvell-ccic driver
-[PATCH 03/15] [media] marvell-ccic: add clock tree support for marvell-ccic driver
-[PATCH 04/15] [media] marvell-ccic: reset ccic phy when stop streaming for stability
-[PATCH 05/15] [media] marvell-ccic: refine mcam_set_contig_buffer function
-[PATCH 06/15] [media] marvell-ccic: add new formats support for marvell-ccic driver
-[PATCH 07/15] [media] marvell-ccic: add SOF / EOF pair check for marvell-ccic driver
-[PATCH 08/15] [media] marvell-ccic: switch to resource managed allocation and request
-[PATCH 09/15] [media] marvell-ccic: refine vb2_ops for marvell-ccic driver
-[PATCH 10/15] [media] marvell-ccic: split mcam core into 2 parts for soc_camera support
-[PATCH 11/15] [media] marvell-ccic: add soc_camera support in mcam core
-[PATCH 12/15] [media] marvell-ccic: add soc_camera support in mmp driver
-[PATCH 13/15] [media] marvell-ccic: add dma burst mode support in marvell-ccic driver
-[PATCH 14/15] [media] marvell-ccic: use unsigned int type replace int type
-[PATCH 15/15] [media] marvell-ccic: add 3 frame buffers support in DMA_CONTIG mode
+On Tue, Nov 20, 2012 at 21:24:53, Steffen Trumtrar wrote:
+> Add a function to convert from the generic videomode to a fb_videomode.
+> 
+> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/video/fbmon.c |   46 ++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/fb.h    |    6 ++++++
+>  2 files changed, 52 insertions(+)
+> 
+> diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
+> index cef6557..c1939a6 100644
+> --- a/drivers/video/fbmon.c
+> +++ b/drivers/video/fbmon.c
+> @@ -31,6 +31,7 @@
+>  #include <linux/pci.h>
+>  #include <linux/slab.h>
+>  #include <video/edid.h>
+> +#include <linux/videomode.h>
+>  #ifdef CONFIG_PPC_OF
+>  #include <asm/prom.h>
+>  #include <asm/pci-bridge.h>
+> @@ -1373,6 +1374,51 @@ int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_inf
+>  	kfree(timings);
+>  	return err;
+>  }
+> +
+> +#if IS_ENABLED(CONFIG_VIDEOMODE)
+> +int fb_videomode_from_videomode(const struct videomode *vm,
+> +				struct fb_videomode *fbmode)
+> +{
+> +	unsigned int htotal, vtotal;
+> +
+> +	fbmode->xres = vm->hactive;
+> +	fbmode->left_margin = vm->hback_porch;
+> +	fbmode->right_margin = vm->hfront_porch;
+> +	fbmode->hsync_len = vm->hsync_len;
+> +
+> +	fbmode->yres = vm->vactive;
+> +	fbmode->upper_margin = vm->vback_porch;
+> +	fbmode->lower_margin = vm->vfront_porch;
+> +	fbmode->vsync_len = vm->vsync_len;
+> +
+> +	fbmode->pixclock = KHZ2PICOS(vm->pixelclock / 1000);
+> +
+> +	fbmode->sync = 0;
+> +	fbmode->vmode = 0;
+> +	if (vm->hah)
+> +		fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
+> +	if (vm->vah)
+> +		fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
+> +	if (vm->interlaced)
+> +		fbmode->vmode |= FB_VMODE_INTERLACED;
+> +	if (vm->doublescan)
+> +		fbmode->vmode |= FB_VMODE_DOUBLE;
+> +	if (vm->de)
+> +		fbmode->sync |= FB_SYNC_DATA_ENABLE_HIGH_ACT;
 
+"FB_SYNC_DATA_ENABLE_HIGH_ACT" seems to be mxsfb specific flag, I am getting
+build error on this. Please let me know if I am missing something.
 
-v1:
-[PATCH 1/4] [media] mmp: add register definition for marvell ccic
-[PATCH 2/4] [media] marvell-ccic: core: add soc camera support on marvell-ccic mcam-core
-[PATCH 3/4] [media] marvell-ccic: mmp: add soc camera support on marvell-ccic mmp-driver
-[PATCH 4/4] [media] marvell-ccic: core: add 3 frame buffers support in DMA_CONTIG mode
+Thanks,
+Prakash
 
-
-Thanks
-Albert Wang
+> +	fbmode->flag = 0;
+> +
+> +	htotal = vm->hactive + vm->hfront_porch + vm->hback_porch +
+> +		 vm->hsync_len;
+> +	vtotal = vm->vactive + vm->vfront_porch + vm->vback_porch +
+> +		 vm->vsync_len;
+> +	fbmode->refresh = (vm->pixelclock * 1000) / (htotal * vtotal);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
+> +#endif
+> +
+> +
+>  #else
+>  int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
+>  {
+> diff --git a/include/linux/fb.h b/include/linux/fb.h
+> index c7a9571..920cbe3 100644
+> --- a/include/linux/fb.h
+> +++ b/include/linux/fb.h
+> @@ -14,6 +14,7 @@
+>  #include <linux/backlight.h>
+>  #include <linux/slab.h>
+>  #include <asm/io.h>
+> +#include <linux/videomode.h>
+>  
+>  struct vm_area_struct;
+>  struct fb_info;
+> @@ -714,6 +715,11 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
+>  extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
+>  extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+>  
+> +#if IS_ENABLED(CONFIG_VIDEOMODE)
+> +extern int fb_videomode_from_videomode(const struct videomode *vm,
+> +				       struct fb_videomode *fbmode);
+> +#endif
+> +
+>  /* drivers/video/modedb.c */
+>  #define VESA_MODEDB_SIZE 34
+>  extern void fb_var_to_videomode(struct fb_videomode *mode,
+> -- 
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
