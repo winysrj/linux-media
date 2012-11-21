@@ -1,70 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:38917 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751904Ab2KTVpi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Nov 2012 16:45:38 -0500
-Message-ID: <50ABF9FA.8030706@users.sourceforge.net>
-Date: Tue, 20 Nov 2012 22:45:30 +0100
-From: Philippe Valembois - Phil <lephilousophe@users.sourceforge.net>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:34543 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755906Ab2KVTwW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Nov 2012 14:52:22 -0500
+Received: by mail-ee0-f46.google.com with SMTP id e53so3066010eek.19
+        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2012 11:52:21 -0800 (PST)
+Message-ID: <50AD4845.5080209@gmail.com>
+Date: Wed, 21 Nov 2012 22:31:49 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: Greg KH <greg@kroah.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Hauppauge WinTV HVR 900 (M/R 65018/B3C0) doesn't work anymore
- since linux 3.6.6
-References: <50A3FF56.3070703@users.sourceforge.net> <20121116021323.GB492@kroah.com> <50AAB221.6060604@users.sourceforge.net>
-In-Reply-To: <50AAB221.6060604@users.sourceforge.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR 3.8] V4L2 driver for S3C24XX/S3C64XX SoC series camera
+ interface
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 19/11/2012 23:26, Philippe Valembois - Phil a écrit :
-> Le 16/11/2012 03:13, Greg KH a écrit :
->> On Wed, Nov 14, 2012 at 09:30:14PM +0100, Philippe Valembois - Phil wrote:
->>> Hello,
->>> I have posted a bug report here :
->>> https://bugzilla.kernel.org/show_bug.cgi?id=50361 and I have been told
->>> to send it to the ML too.
->>>
->>> The commit causing the bug has been pushed to kernel between linux-3.5
->>> and linux-3.6.
->>>
->>> Here is my bug summary :
->>>
->>> The WinTV HVR900 DVB-T usb stick has stopped working in Linux 3.6.6.
->>> The tuner fails at tuning and no DVB channel can be watched.
->>>
->>> Reverting the commit 3de9e9624b36263618470c6e134f22eabf8f2551 fixes the
->>> problem
->>> and the tuner can tune again. It still seems there is some delay between the
->>> moment when the USB stick is plugged and when it can tune : running
->>> dvbscan too
->>> fast makes the first channels tuning fail but after several seconds it tunes
->>> perfectly.
->>>
->>> Don't hesitate to ask me for additional debug.
->>
->> Does this also fail on Linus's tree?  If so, this patch should be
->> reverted from there too.
->>
->> thanks,
->>
->> greg k-h
->>
-> Hello,
-> sorry for the late reply, I finally compiled fresh Linus' tree and did a
-> fast test : it seems to work. I will now try to find the commit that
-> made it work so you can maybe commit it in the stable branch?
-> 
-> Regards,
-> Philippe Valembois
-> 
-Hi,
-I did new tests on the 3.6.6 kernel and can't make tuner fail anymore. I
-don't understand, it was failing several times and now, nothing...
-I re-extracted the kernel to be sure I didn't left some modifications
-but it's still working.
-Sorry for the disturbance,
+Hi Mauro,
 
-Regards,
-Philippe Valembois
+The following changes since commit 2c4e11b7c15af70580625657a154ea7ea70b8c76:
+
+   [media] siano: fix RC compilation (2012-11-07 11:09:08 +0100)
+
+are available in the git repository at:
+   git://linuxtv.org/snawrocki/media.git mainline/s3c-camif
+
+This is a V4L2 driver for camera host interface embedded in some
+older generation Samsung SoC series - S3C24XX and S3C64XX.
+
+Some more information about the driver can be found in a cover letter
+to the first patch version [1].
+
+Sylwester Nawrocki (2):
+       V4L: Add driver for S3C24XX/S3C64XX SoC series camera interface
+       MAINTAINERS: Add entry for S3C24XX/S3C64XX SoC CAMIF driver
+
+  MAINTAINERS                                      |    8 +
+  drivers/media/platform/Kconfig                   |   12 +
+  drivers/media/platform/Makefile                  |    1 +
+  drivers/media/platform/s3c-camif/Makefile        |    5 +
+  drivers/media/platform/s3c-camif/camif-capture.c | 1675 
+++++++++++++++++++++++
+  drivers/media/platform/s3c-camif/camif-core.c    |  662 +++++++++
+  drivers/media/platform/s3c-camif/camif-core.h    |  393 +++++
+  drivers/media/platform/s3c-camif/camif-regs.c    |  606 ++++++++
+  drivers/media/platform/s3c-camif/camif-regs.h    |  269 ++++
+  include/media/s3c_camif.h                        |   45 +
+  10 files changed, 3676 insertions(+), 0 deletions(-)
+  create mode 100644 drivers/media/platform/s3c-camif/Makefile
+  create mode 100644 drivers/media/platform/s3c-camif/camif-capture.c
+  create mode 100644 drivers/media/platform/s3c-camif/camif-core.c
+  create mode 100644 drivers/media/platform/s3c-camif/camif-core.h
+  create mode 100644 drivers/media/platform/s3c-camif/camif-regs.c
+  create mode 100644 drivers/media/platform/s3c-camif/camif-regs.h
+  create mode 100644 include/media/s3c_camif.h
+
+[1] 
+http://www.mail-archive.com/linux-samsung-soc@vger.kernel.org/msg11849.html
+
+Thanks,
+Sylwester
