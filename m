@@ -1,96 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37667 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42048 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751353Ab2KMVxx (ORCPT
+	by vger.kernel.org with ESMTP id S1756365Ab2KVTYz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Nov 2012 16:53:53 -0500
-Date: Tue, 13 Nov 2012 23:53:46 +0200
+	Thu, 22 Nov 2012 14:24:55 -0500
+Date: Thu, 22 Nov 2012 01:59:00 +0200
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>
-Subject: Re: [RFC/PATCH] v4l: Add V4L2_CID_FLASH_HW_STROBE_MODE control
-Message-ID: <20121113215346.GT25623@valkosipuli.retiisi.org.uk>
-References: <1323115006-4385-1-git-send-email-snjw23@gmail.com>
- <20111205224155.GB938@valkosipuli.localdomain>
- <4EE364C7.1090805@gmail.com>
- <5079B869.3040609@gmail.com>
- <507A82DB.9070104@gmail.com>
- <20121014183032.GD21261@valkosipuli.retiisi.org.uk>
- <507DD597.4050907@gmail.com>
- <20121023200710.GE23685@valkosipuli.retiisi.org.uk>
- <5087AF0B.4030208@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v1.2 1/4] v4l: Define video buffer flags for timestamp
+ types
+Message-ID: <20121121235859.GB31442@valkosipuli.retiisi.org.uk>
+References: <1353098995-1319-1-git-send-email-sakari.ailus@iki.fi>
+ <1353525202-20062-1-git-send-email-sakari.ailus@iki.fi>
+ <201211212353.02256.hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <5087AF0B.4030208@samsung.com>
+In-Reply-To: <201211212353.02256.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi Hans,
 
-On Wed, Oct 24, 2012 at 11:04:11AM +0200, Sylwester Nawrocki wrote:
-> On 10/23/2012 10:07 PM, Sakari Ailus wrote:
-> > On Tue, Oct 16, 2012 at 11:45:59PM +0200, Sylwester Nawrocki wrote:
-> >> On 10/14/2012 08:30 PM, Sakari Ailus wrote:
-> >>> Currently the flash control reference states that "The V4L2 flash controls
-> >>> are intended to provide generic access to flash controller devices. Flash
-> >>> controller devices are typically used in digital cameras".
-> >>>
-> >>> Whether or not higher level controls should be part of the same class is a
-> >>> valid question. The controls intended to expose certain frames with flash
-> >>> are quite different from those used to control the low-level flash chip: the
-> >>> user is fully responsible for timing and the flash sequence.
-> >>>
-> >>> For higher level controls that could be implemented using the low-level
-> >>> controls for the end user, the user would likely prefer to say things like
-> >>> "please give me a frame exposed with flash". Since the timing is no longer
-> >>> implemented by the user, the user would need to know which frames have been
-> >>> exposed and how, at least in a general case. Getting around this could
-> >>> involve configuring the sensor before starting streaming. Perhaps this is an
-> >>> assumption we could accept now, before we have proper means for passing
-> >>> frame-related parameters to user space.
-> >>
-> >> Yes, right. This auto strobe control seems to be a higher level one, since
-> >> we have a firmware program that is taking care of some things that normally
-> >> would be done through the existing Flash class controls by a user space
-> >> application/library.
-> >>
-> >> I'm not really sure if we need a new class. It's even hard to name it.
-> >> I don't see such an auto strobe control as a high level one, from an end 
-> >> application POV. It's more like the existing controls are low level.
+On Wed, Nov 21, 2012 at 11:53:02PM +0100, Hans Verkuil wrote:
+> On Wed November 21 2012 20:13:22 Sakari Ailus wrote:
+> > Define video buffer flags for different timestamp types. Everything up to
+> > now have used either realtime clock or monotonic clock, without a way to
+> > tell which clock the timestamp was taken from.
 > > 
-> > After thinking about it awhile, an alternative I see to this is to put it to
-> > the camera class. It's got other high level controls as well, those related
-> > to e.g. AF. I have to admit I'm not certain which one would be a better
-> > choice in the long run. I'm leaning towards the camera class, though.
+> > Also document that the clock source of the timestamp in the timestamp field
+> > depends on buffer flags.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 > 
-> At first I thought it might be fine to put this control in the camera class.
-> But didn't we agree we classify controls by functionality, not by where
-> they are used ?
-> Since we already have a Flash controller functionality class it seems to me
-> more correct, or less wrong, to put V4L2_CID_FLASH_STROBE_AUTO there.
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Thanks! :-)
+
+> But see my comments below for a separate matter...
 > 
-> In an example configuration, where there is a Flash controller subdev and
-> the Flash controller is strobed in hardware by a camera sensor module, we
-> would have some Flash functionality control at the camera sensor subdev
-> and the Flash subdev. Let's focus on the camera subdev for a moment. 
-> It would have V4L2_CID_FLASH_LED_MODE - to switch between Flash and Torch
-> mode, and V4L2_CID_FLASH_STROBE_AUTO - to determine the flash strobing 
-> behaviour. It would look fishy to have one of these controls in the Camera 
-> class and the other in the Flash class. I would find it hard to explain
-> to someone new learning about v4l2.
+> > ---
+> > Since v1.1:
+> > 
+> > - Change the description of the timestamp field; say that the type of the
+> >   timestamp is dependent on the flags field.
+> > 
+> >  Documentation/DocBook/media/v4l/compat.xml |   12 ++++++
+> >  Documentation/DocBook/media/v4l/io.xml     |   53 ++++++++++++++++++++++------
+> >  Documentation/DocBook/media/v4l/v4l2.xml   |   12 ++++++-
+> >  include/uapi/linux/videodev2.h             |    4 ++
+> >  4 files changed, 69 insertions(+), 12 deletions(-)
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+> > index 4fdf6b5..651ca52 100644
+> > --- a/Documentation/DocBook/media/v4l/compat.xml
+> > +++ b/Documentation/DocBook/media/v4l/compat.xml
+> > @@ -2477,6 +2477,18 @@ that used it. It was originally scheduled for removal in 2.6.35.
+> >        </orderedlist>
+> >      </section>
+> >  
+> > +    <section>
+> > +      <title>V4L2 in Linux 3.8</title>
+> > +      <orderedlist>
+> > +        <listitem>
+> > +	  <para>Added timestamp types to
+> > +	  <structfield>flags</structfield> field in
+> > +	  <structname>v4l2_buffer</structname>. See <xref
+> > +	  linkend="buffer-flags" />.</para>
+> > +        </listitem>
+> > +      </orderedlist>
+> > +    </section>
+> > +
+> >      <section id="other">
+> >        <title>Relation of V4L2 to other Linux multimedia APIs</title>
+> >  
+> > diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+> > index 7e2f3d7..1243fa1 100644
+> > --- a/Documentation/DocBook/media/v4l/io.xml
+> > +++ b/Documentation/DocBook/media/v4l/io.xml
+> > @@ -582,17 +582,19 @@ applications when an output stream.</entry>
+> >  	    <entry>struct timeval</entry>
+> >  	    <entry><structfield>timestamp</structfield></entry>
+> >  	    <entry></entry>
+> > -	    <entry><para>For input streams this is the
+> > -system time (as returned by the <function>gettimeofday()</function>
+> > -function) when the first data byte was captured. For output streams
+> > -the data will not be displayed before this time, secondary to the
+> > -nominal frame rate determined by the current video standard in
+> > -enqueued order. Applications can for example zero this field to
+> > -display frames as soon as possible. The driver stores the time at
+> > -which the first data byte was actually sent out in the
+> > -<structfield>timestamp</structfield> field. This permits
+> > -applications to monitor the drift between the video and system
+> > -clock.</para></entry>
+> > +	    <entry><para>For input streams this is time when the first data
+> > +	    byte was captured,
+> 
+> What should we do with this? In most drivers the timestamp is actually the
+> time that the *last* byte was captured. The reality is that the application
+> doesn't know whether it is the first or the last.
+> 
+> One option is to add a new flag for this, or to leave it open. The last
+> makes me uncomfortable, since there can be quite a difference between the
+> time of the first or last byte, and that definitely has an effect on the
+> A/V sync.
 
-Good points. The flash mode control is still used even if the flash timing
-would be handles by the sensor silently.
+Very true. I'd also prefer to have this defined so the information would be
+available to the user space.
 
-I'm fine with putting it to the flash class.
+> This is a separate topic that should be handled in a separate patch, but I
+> do think we need to take a closer look at this.
+
+I'm not against one more buffer flag to tell which one it is. :-)
+
+There are hardly any other options than the frame start and frame end.
+
+On the other hand, the FRAME_SYNC event is supported by some drivers and
+that can be used to obtain the timestamp from frame start. Not all drivers
+support it nor the applications can be expected to use this just to get a
+timestamp, though.
+
+> > as returned by the
+> > +	    <function>clock_gettime()</function> function for the relevant
+> > +	    clock id; see <constant>V4L2_BUF_FLAG_TIMESTAMP_*</constant> in
+> > +	    <xref linkend="buffer-flags" />. For output streams the data
+> > +	    will not be displayed before this time, secondary to the nominal
+> > +	    frame rate determined by the current video standard in enqueued
+> > +	    order. Applications can for example zero this field to display
+> > +	    frames as soon as possible.
+> 
+> There is not a single driver that supports this feature. There is also no
+> way an application can query the driver whether this feature is supported.
+> Personally I don't think this should be the task of a driver anyway: if you
+> want to postpone displaying a frame, then just wait before calling QBUF.
+> Don't add complicated logic in drivers/vb2 where it needs to hold buffers
+> back if the time hasn't been reached yet.
+
+Assuming realtime clock, there could be some interesting interactions with
+this and daylight saving time or setting system clock, for example.
+
+I'm definitely not against removing this, especially as no driver uses it.
+
+> What might be much more interesting for output devices is if the timestamp
+> field is filled in with the expected display time on return of QBUF. That
+> would be very useful for regulating the flow of new frames.
+> 
+> What do you think?
+
+Fine for me. Sylwester also brought memory-to-memory devices (and
+memory-to-memory processing whether the device is classified as such in API
+or not) to my attention. For those devices it likely wouldn't matter at all
+what's the system time when the frame is processed since the frame wasn't
+captured at that time anyway.
+
+In those cases it might makes sense to use timestamp that e.g. comes from
+the compressed stream, or pass encoder timestamps that are going to be part
+of the compressed stream. I think MPEG-related use cases were briefly
+mentioned in the timestamp discussion earlier.
+
+> > The driver stores the time at which
+> > +	    the first data byte was actually sent out in the
+> > +	    <structfield>timestamp</structfield> field.
+> 
+> Same problem as with the capture time: does the timestamp refer to the first
+> or last byte that's sent out? I think all output drivers set it to the time
+> of the last byte (== when the DMA of the frame is finished).
+
+I haven't actually even seen a capture driver that would do otherwise, but
+that could be just me not knowing many enough. :-) Would we actually break
+something if we changed the definition to say that this is the timestamp
+taken when the frame is done?
 
 -- 
-Kind regards,
+Cheers,
 
 Sakari Ailus
 e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
