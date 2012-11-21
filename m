@@ -1,218 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:57858 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751345Ab2K0Ktq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 05:49:46 -0500
-Date: Tue, 27 Nov 2012 11:49:41 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Albert Wang <twang13@marvell.com>
-cc: corbet@lwn.net, linux-media@vger.kernel.org,
-	Libin Yang <lbyang@marvell.com>
-Subject: Re: [PATCH 03/15] [media] marvell-ccic: add clock tree support for
- marvell-ccic driver
-In-Reply-To: <1353677595-24034-1-git-send-email-twang13@marvell.com>
-Message-ID: <Pine.LNX.4.64.1211271145320.22273@axis700.grange>
-References: <1353677595-24034-1-git-send-email-twang13@marvell.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:39732 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750958Ab2KUMWz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Nov 2012 07:22:55 -0500
+Message-ID: <50ACC781.7010502@ti.com>
+Date: Wed, 21 Nov 2012 14:22:25 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+CC: <devicetree-discuss@lists.ozlabs.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Rob Herring <robherring2@gmail.com>,
+	<linux-fbdev@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	<linux-media@vger.kernel.org>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	<kernel@pengutronix.de>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v12 2/6] video: add of helper for videomode
+References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de> <1353426896-6045-3-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1353426896-6045-3-git-send-email-s.trumtrar@pengutronix.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig12E9ABBEA5C99874EEA541A7"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 23 Nov 2012, Albert Wang wrote:
+--------------enig12E9ABBEA5C99874EEA541A7
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-> From: Libin Yang <lbyang@marvell.com>
-> 
-> This patch adds the clock tree support for marvell-ccic.
-> 
-> Each board may require different clk enabling sequence.
-> Developer need add the clk_name in correct sequence in board driver
-> to use this feature.
-> 
-> Signed-off-by: Libin Yang <lbyang@marvell.com>
-> Signed-off-by: Albert Wang <twang13@marvell.com>
-> ---
->  drivers/media/platform/marvell-ccic/mcam-core.h  |    6 +++
->  drivers/media/platform/marvell-ccic/mmp-driver.c |   57 ++++++++++++++++++++++
->  include/media/mmp-camera.h                       |    5 ++
->  3 files changed, 68 insertions(+)
-> 
-> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
-> index 2d444a1..0df6b1c 100755
-> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
-> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
-> @@ -88,6 +88,7 @@ struct mmp_frame_state {
->   *          the dev_lock spinlock; they are marked as such by comments.
->   *          dev_lock is also required for access to device registers.
->   */
-> +#define NR_MCAM_CLK 4
->  struct mcam_camera {
->  	/*
->  	 * These fields should be set by the platform code prior to
-> @@ -107,6 +108,11 @@ struct mcam_camera {
->  	int (*dphy)[3];
->  	int mipi_enabled;
->  	int lane;			/* lane number */
-> +
-> +	/* clock tree support */
-> +	struct clk *clk[NR_MCAM_CLK];
-> +	int clk_num;
-> +
->  	/*
->  	 * Callbacks from the core to the platform code.
->  	 */
-> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
-> index 9d7aa79..80977b0 100755
-> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
-> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
-> @@ -104,6 +104,23 @@ static struct mmp_camera *mmpcam_find_device(struct platform_device *pdev)
->  #define REG_CCIC_DCGCR		0x28	/* CCIC dyn clock gate ctrl reg */
->  #define REG_CCIC_CRCR		0x50	/* CCIC clk reset ctrl reg	*/
->  
-> +static void mcam_clk_set(struct mcam_camera *mcam, int on)
-> +{
-> +	unsigned int i;
-> +
-> +	if (on) {
-> +		for (i = 0; i < mcam->clk_num; i++) {
-> +			if (mcam->clk[i])
+On 2012-11-20 17:54, Steffen Trumtrar wrote:
 
->From your init below, mcam->clk[i] can be a negative error code.
+> +timings subnode
+> +---------------
+> +
+> +required properties:
+> + - hactive, vactive: Display resolution
+> + - hfront-porch, hback-porch, hsync-len: Horizontal Display timing par=
+ameters
+> +   in pixels
+> +   vfront-porch, vback-porch, vsync-len: Vertical display timing param=
+eters in
+> +   lines
+> + - clock-frequency: display clock in Hz
+> +
+> +optional properties:
+> + - hsync-active: Hsync pulse is active low/high/ignored
+> + - vsync-active: Vsync pulse is active low/high/ignored
+> + - de-active: Data-Enable pulse is active low/high/ignored
+> + - pixelclk-inverted: pixelclock is inverted/non-inverted/ignored
 
-> +				clk_enable(mcam->clk[i]);
-> +		}
-> +	} else {
-> +		for (i = 0; i < mcam->clk_num; i++) {
-> +			if (mcam->clk[i])
-> +				clk_disable(mcam->clk[i]);
-> +		}
-> +	}
-> +}
-> +
->  /*
->   * Power control.
->   */
-> @@ -134,6 +151,8 @@ static void mmpcam_power_up(struct mcam_camera *mcam)
->  	mdelay(5);
->  	gpio_set_value(pdata->sensor_reset_gpio, 1); /* reset is active low */
->  	mdelay(5);
-> +
-> +	mcam_clk_set(mcam, 1);
->  }
->  
->  static void mmpcam_power_down(struct mcam_camera *mcam)
-> @@ -151,6 +170,8 @@ static void mmpcam_power_down(struct mcam_camera *mcam)
->  	pdata = cam->pdev->dev.platform_data;
->  	gpio_set_value(pdata->sensor_power_gpio, 0);
->  	gpio_set_value(pdata->sensor_reset_gpio, 0);
-> +
-> +	mcam_clk_set(mcam, 0);
->  }
->  
->  /*
-> @@ -229,6 +250,37 @@ static irqreturn_t mmpcam_irq(int irq, void *data)
->  	return IRQ_RETVAL(handled);
->  }
->  
-> +static void mcam_init_clk(struct mcam_camera *mcam,
-> +			struct mmp_camera_platform_data *pdata, int init)
-> +{
-> +	unsigned int i;
-> +
-> +	if (NR_MCAM_CLK < pdata->clk_num) {
-> +		dev_warn(mcam->dev, "Too many mcam clocks defined\n");
-> +		mcam->clk_num = 0;
-> +		return;
-> +	}
-> +
-> +	if (init) {
-> +		for (i = 0; i < pdata->clk_num; i++) {
-> +			if (pdata->clk_name[i] != NULL)
-> +				mcam->clk[i] = clk_get(mcam->dev,
-> +						pdata->clk_name[i]);
-> +			if (IS_ERR(mcam->clk[i]))
-> +				dev_warn(mcam->dev, "Could not get clk: %s\n",
-> +						 pdata->clk_name[i]);
+Inverted related to what? And isn't this a bool? Pixel clock is either
+normal (whatever that is), or inverted. It can't be "not used".
 
-You issue a warning but continue initialisation, leaving mcam->clk[i] set 
-to an error value.
+I guess normal case is "pixel data is driven on the rising edge of pixel
+clock"? If that's common knowledge, I guess it doesn't need to be
+mentioned. But I always have to verify from the documentation what
+"normal" means on this particular panel/soc =3D).
 
-> +		}
-> +		mcam->clk_num = pdata->clk_num;
-> +	} else {
-> +		for (i = 0; i < pdata->clk_num; i++) {
-> +			if (mcam->clk[i]) {
-> +				clk_put(mcam->clk[i]);
-> +				mcam->clk[i] = NULL;
-> +			}
-> +		}
-> +		mcam->clk_num = 0;
-> +	}
-> +}
-
-Don't think I like this. IIUC, your driver should only try to use clocks, 
-that it knows about, not some random clocks, passed from the platform 
-data. So, you should be using explicit clock names. In your platform data 
-you can set whether a specific clock should be used or not, but not pass 
-clock names down. Also you might want to consider using devm_clk_get() and 
-be more careful with error handling.
-
->  
->  static int mmpcam_probe(struct platform_device *pdev)
->  {
-> @@ -290,6 +342,8 @@ static int mmpcam_probe(struct platform_device *pdev)
->  		ret = -ENODEV;
->  		goto out_unmap1;
->  	}
+> + - interlaced (bool)
+> + - doublescan (bool)
 > +
-> +	mcam_init_clk(mcam, pdata, 1);
->  	/*
->  	 * Find the i2c adapter.  This assumes, of course, that the
->  	 * i2c bus is already up and functioning.
-> @@ -317,6 +371,7 @@ static int mmpcam_probe(struct platform_device *pdev)
->  		goto out_gpio;
->  	}
->  	gpio_direction_output(pdata->sensor_reset_gpio, 0);
-> +
->  	/*
->  	 * Power the device up and hand it off to the core.
->  	 */
-> @@ -349,6 +404,7 @@ out_gpio2:
->  out_gpio:
->  	gpio_free(pdata->sensor_power_gpio);
->  out_unmap2:
-> +	mcam_init_clk(mcam, pdata, 0);
->  	iounmap(cam->power_regs);
->  out_unmap1:
->  	iounmap(mcam->regs);
-> @@ -372,6 +428,7 @@ static int mmpcam_remove(struct mmp_camera *cam)
->  	gpio_free(pdata->sensor_power_gpio);
->  	iounmap(cam->power_regs);
->  	iounmap(mcam->regs);
-> +	mcam_init_clk(mcam, pdata, 0);
->  	kfree(cam);
->  	return 0;
->  }
-> diff --git a/include/media/mmp-camera.h b/include/media/mmp-camera.h
-> index a0b034a..e161ae0 100755
-> --- a/include/media/mmp-camera.h
-> +++ b/include/media/mmp-camera.h
-> @@ -15,4 +15,9 @@ struct mmp_camera_platform_data {
->  	int mipi_enabled;	/* MIPI enabled flag */
->  	int lane;		/* ccic used lane number; 0 means DVP mode */
->  	int lane_clk;
-> +	/*
-> +	 * clock tree support
-> +	 */
-> +	char *clk_name[4];
-> +	int clk_num;
->  };
-> -- 
-> 1.7.9.5
+> +All the optional properties that are not bool follow the following log=
+ic:
+> +    <1>: high active
+> +    <0>: low active
+> +    omitted: not used on hardware
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Perhaps it's obvious, but no harm being explicit: mention that the bool
+properties are off is omitted.
+
+And I didn't read the rest of the patches yet, so perhaps this is
+already correct, but as I think this framework is usable without DT
+also, the meanings of the fields in the structs should be explained in
+the header files also in case they are not obvious.
+
+> +Example:
+> +
+> +	display-timings {
+> +		native-mode =3D <&timing0>;
+> +		timing0: 1920p24 {
+
+This should still be 1080p24, not 1920p24 =3D).
+
+> +			/* 1920x1080p24 */
+> +			clock-frequency =3D <52000000>;
+> +			hactive =3D <1920>;
+> +			vactive =3D <1080>;
+> +			hfront-porch =3D <25>;
+> +			hback-porch =3D <25>;
+> +			hsync-len =3D <25>;
+> +			vback-porch =3D <2>;
+> +			vfront-porch =3D <2>;
+> +			vsync-len =3D <2>;
+> +			hsync-active =3D <1>;
+> +		};
+> +	};
+> +
+
+> diff --git a/include/linux/of_display_timings.h b/include/linux/of_disp=
+lay_timings.h
+> new file mode 100644
+> index 0000000..2b4fa0a
+> --- /dev/null
+> +++ b/include/linux/of_display_timings.h
+> @@ -0,0 +1,20 @@
+> +/*
+> + * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> + *
+> + * display timings of helpers
+> + *
+> + * This file is released under the GPLv2
+> + */
+> +
+> +#ifndef __LINUX_OF_DISPLAY_TIMINGS_H
+> +#define __LINUX_OF_DISPLAY_TIMINGS_H
+> +
+> +#include <linux/display_timing.h>
+> +#include <linux/of.h>
+
+No need to include these, just add "struct ...;".
+
+> +#define OF_USE_NATIVE_MODE -1
+> +
+> +struct display_timings *of_get_display_timings(const struct device_nod=
+e *np);
+> +int of_display_timings_exists(const struct device_node *np);
+> +
+> +#endif
+> diff --git a/include/linux/of_videomode.h b/include/linux/of_videomode.=
+h
+> new file mode 100644
+> index 0000000..4de5fcc
+> --- /dev/null
+> +++ b/include/linux/of_videomode.h
+> @@ -0,0 +1,18 @@
+> +/*
+> + * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> + *
+> + * videomode of-helpers
+> + *
+> + * This file is released under the GPLv2
+> + */
+> +
+> +#ifndef __LINUX_OF_VIDEOMODE_H
+> +#define __LINUX_OF_VIDEOMODE_H
+> +
+> +#include <linux/videomode.h>
+> +#include <linux/of.h>
+
+Same here.
+
+> +int of_get_videomode(const struct device_node *np, struct videomode *v=
+m,
+> +		     int index);
+> +
+> +#endif /* __LINUX_OF_VIDEOMODE_H */
+>=20
+
+ Tomi
+
+
+
+--------------enig12E9ABBEA5C99874EEA541A7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQrMeBAAoJEPo9qoy8lh71i+QQAJf9vz9dhW7LwdL8cNrrLG/J
+fzKj70w79KPvu7c48IqFi2YlanB/WDhpdgJzoGXNADzvzd2iHgks3T6FQ2Q10ebg
+PWFtSK+KqxaYQZzX98hjaMQgrx2zuFYC/TANa5WSLJ+0SsCqwVgKmXxCbPkYMGuY
+LGwKTZmbg/Bc/kOxR50OKURPJOpk8UrfixbRrGOhhJV9kkG/AFnsDcAWrSkam6he
+zwBPmdOfBPe/y/0xAkaY39tvPefop/rIQnRopQEymRCPS6jDdVN6vEPmJjAJfKww
+VHG8X9CSIvuvnm08eXKKLZJUOSnxdnsymQ0JPeBUoGK7WwkaBkTCBtb2CTwa3m+l
+MPQV4KI3AFaBdX0lqQdZZbfr2lAmFEswBAphSTACDS/FGjo4w3d0YfiI9+BedSQc
+PNVqUhZKo5bC6ygPU+ojYqTFaZpdgeFQX+EwLHxBKO3aGhXzA4LC0dxB9DsgMi4G
+eKaZphvN7fOEJ1sIcCUjLUcYfb17WNawnW6Iq7e7USErG7xt84jOBcF1tT/JbUI3
+cvhqTjmTUZQ6FNHy7FvyMlsoewZGfbZ5qbyofzzKON8S3iwfoliWJ+6TO3B8BRCl
+Hg/QUhPn0aa1OBafi5mJbyj3baw66+8hIkNF4w2OFStPwwH1Usc+lZSGHoQd602s
+M+TrueDNuXOhiMVBtmfs
+=ERtZ
+-----END PGP SIGNATURE-----
+
+--------------enig12E9ABBEA5C99874EEA541A7--
