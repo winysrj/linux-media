@@ -1,123 +1,298 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37178 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752752Ab2KLVzH (ORCPT
+Received: from nm15-vm6.bullet.mail.ne1.yahoo.com ([98.138.91.108]:22858 "EHLO
+	nm15-vm6.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753061Ab2KUEh2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Nov 2012 16:55:07 -0500
-Date: Mon, 12 Nov 2012 23:55:01 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Alain VOLMAT <alain.volmat@st.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: Way to request a time discontinuity in a V4L2 encoder device
-Message-ID: <20121112215501.GO25623@valkosipuli.retiisi.org.uk>
-References: <E27519AE45311C49887BE8C438E68FAA01012DC87FE3@SAFEX1MAIL1.st.com>
- <509825C4.9000604@gmail.com>
- <20121111085106.GK25623@valkosipuli.retiisi.org.uk>
- <2030523.VVFEJzW5uv@avalon>
+	Tue, 20 Nov 2012 23:37:28 -0500
+Message-ID: <1353472289.44205.YahooMailClassic@web5704.biz.mail.ne1.yahoo.com>
+Date: Tue, 20 Nov 2012 20:31:29 -0800 (PST)
+From: Ram <rammiema77@gmail.com>
+Reply-To: mmrsrammie@yahoo.com.mx
+Subject: confidential Business proposal
+To: undisclosed recipients:;
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2030523.VVFEJzW5uv@avalon>
+Content-Type: multipart/mixed; boundary="-1717290100-831983468-1353472289=:44205"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+---1717290100-831983468-1353472289=:44205
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Nov 12, 2012 at 12:18:10PM +0100, Laurent Pinchart wrote:
-> On Sunday 11 November 2012 10:51:06 Sakari Ailus wrote:
-> > On Mon, Nov 05, 2012 at 09:47:00PM +0100, Sylwester Nawrocki wrote:
-> > > On 11/05/2012 11:45 AM, Alain VOLMAT wrote:
-> > > > Hi Laurent,
-> > > >
-> > > > Yes indeed, meta plane seems a good candidate. It was the other option.
-> > > >
-> > > > The pity with that is that the FMT can thus no longer be standard FMT
-> > > > but a specific format that include both plane 0 with real frame data and
-> > > > plane 1 with meta data.
-> > > > So, standard V4L2 application (that doesn't know about this time
-> > > > discontinuity stuff) wouldn't be able to push things into the encoder
-> > > > since they are not aware of this 2 plane format.
-> > > >
-> > > > Or maybe we should export 2 format, 1 standard one that doesn't have
-> > > > time discontinuity support, thus not best performance but still can do
-> > > > things and a second format that has 2 planes
-> > > 
-> > > Not sure what media guys think about it, I was considering making it
-> > > possible for applications (or libv4l or any other library) to request
-> > > additional meta data plane at a video capture driver, e.g. with
-> > > VIDIOC_S_FMT ioctl. With same fourcc for e.g. 1-planar buffers with image
-> > > data and 2-planar buffer with meta data in plane 1. However this would be
-> > > somehow device-specific, rather
-> > 
-> > How about this: add a special 4cc that tells only that the 4cc is defined
-> > per-plane, and define it in planes instead? We could also add a flags field
-> > to tell that a plane is actually a part of the same image in cases where
-> > true multi-plane formats are being used at the same time.
-> > 
-> > You could use this to pass frame metadata (when it's produced by the sensor
-> > itself) to the user space as well.
-> 
-> That sounds like a good idea to explore.
-> 
-> > What I haven't yet thought is how this can be told to the user using
-> > ENUMFMT.
-> > 
-> > > than a completely generic interface. Since frame-meta data is often device
-> > > specific. For camera it would depend on the image sensor whether the
-> > 
-> > Device-specific metadata should have their own 4ccs as device specific image
-> > formats.
-> > 
-> > > additional plane request on a /dev/video? would be fulfilled by a driver
-> > > or not.
-> > > 
-> > > I don't think duplicating 4CCs for the sake of additional meta-data plane
-> > > is a good idea.
-> > 
-> > No, that'd really explode the number of different 4ccs.
-> > 
-> > > Your case is a bit different, since you're passing data from application
-> > > to a device. Maybe we could somewhat standardize the meta data buffer
-> > > content,
-> > 
-> > We need to define a proper format for this. It can include other per-buffer
-> > parameters to / from the device as well.
-> >
-> > > e.g. by using some standard header specifying what kind of meta data
-> > > follows. Perhaps struct v4l2_plane::data_offset can be helpful here. This
-> > > is how it's documented
-> > > 
-> > >  * @data_offset:	offset in the plane to the start of data; usually 0,
-> > >  *			unless there is a header in front of the data
-> > > 
-> > > I mean, the header would specify what actual meta-data is in that
-> > > additional plane. Standardising that "standard" meta-data would be
-> > > another issue.
-> > > 
-> > > I think this per buffer device control issue emerged in the past during
-> > > the Exynos Multi Format Codec development. There were proposals of per-
-> > > buffer v4l2 controls. IIRC it is currently resolved in that driver by
-> > > doing VIDIOC_S_CTRL before QBUF. However the meta data plane approach
-> > > looks more interesting to me.
-> > 
-> > That sounds like a simple (and thus good) solution to me: a button control
-> > for resetting the average bitrate calculation. It'd be by far more simple
-> > than using the metadata plane for it. Any known drawbacks that I can't see?
-> > Even if the number of these parameters grow a little extended controls are
-> > fine for the purpose.
-> 
-> The main issue as far as I know would be to synchronize the control with 
-> buffers.
+=0AView the attached below=0A=0A
+---1717290100-831983468-1353472289=:44205
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document; name="Confidentail.docx"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="Confidentail.docx"
 
-The association to a frame could be done to the next frame to be queued. I
-don't see an issue here in the case of this control at least. This is
-actually almost analogous to keeping the data on a plane of the buffer. The
-delivery of the configuration just takes place through extended controls.
+UEsDBBQABgAIAAAAIQDd/JU3ZgEAACAFAAATAAgCW0NvbnRlbnRfVHlwZXNd
+LnhtbCCiBAIooAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC0VMtuwjAQvFfqP0S+Vomh
+h6qqCBz6OLZIpR9g7A1Y9Uv28vr7bgJEVQtBKuUSKVnvzOzsxIPR2ppsCTFp
+70rWL3osAye90m5Wso/JS37PsoTCKWG8g5JtILHR8PpqMNkESBl1u1SyOWJ4
+4DzJOViRCh/AUaXy0Qqk1zjjQchPMQN+2+vdcekdgsMcaww2HDxBJRYGs+c1
+fd4qiWASyx63B2uukokQjJYCSSlfOvWDJd8xFNTZnElzHdINyWD8IENdOU6w
+63sja6JWkI1FxFdhSQZf+ai48nJhaYaiG+aATl9VWkLbX6OF6CWkRJ5bU7QV
+K7Tb6z+qI+HGQPp/FVvcLnrSOY4+JE57OZsf6s0rUDlZESCihnZ1x0cHRLLs
+EsPvkLvGb1KAlHfgzbN/tgcNzEnKin6JiZgaOJvvV/Ja6JMiVjB9v5j738C7
+hLT5kz7+wYz9dVF3H0gdb+634RcAAAD//wMAUEsDBBQABgAIAAAAIQAekRq3
+8wAAAE4CAAALAAgCX3JlbHMvLnJlbHMgogQCKKAAAgAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAjJLbSgNBDIbvBd9hyH032woi0tneSKF3IusDhJnsAXcOzKTavr2jILpQ
+217m9OfLT9abg5vUO6c8Bq9hWdWg2JtgR99reG23iwdQWchbmoJnDUfOsGlu
+b9YvPJGUoTyMMaui4rOGQSQ+ImYzsKNchci+VLqQHEkJU4+RzBv1jKu6vsf0
+VwOamabaWQ1pZ+9AtcdYNl/WDl03Gn4KZu/Yy4kVyAdhb9kuYipsScZyjWop
+9SwabDDPJZ2RYqwKNuBpotX1RP9fi46FLAmhCYnP83x1nANaXg902aJ5x687
+HyFZLBZ9e/tDg7MvaD4BAAD//wMAUEsDBBQABgAIAAAAIQDWZLNR+gAAADED
+AAAcAAgBd29yZC9fcmVscy9kb2N1bWVudC54bWwucmVscyCiBAEooAABAAAA
+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
+AAAAAAsACwDBAgAAVywAAAAA
 
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+---1717290100-831983468-1353472289=:44205--
