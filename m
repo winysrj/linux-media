@@ -1,88 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:51846 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755245Ab2KNK7p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Nov 2012 05:59:45 -0500
-Date: Wed, 14 Nov 2012 11:59:40 +0100
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Cc: devicetree-discuss@lists.ozlabs.org,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: Re: [PATCH v8 2/6] video: add of helper for videomode
-Message-ID: <20121114105940.GB31801@avionic-0098.mockup.avionic-design.de>
-References: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
- <1352734626-27412-3-git-send-email-s.trumtrar@pengutronix.de>
+Received: from comal.ext.ti.com ([198.47.26.152]:56640 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750892Ab2KUM2H (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Nov 2012 07:28:07 -0500
+Message-ID: <50ACC8C1.9020400@ti.com>
+Date: Wed, 21 Nov 2012 14:27:45 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+CC: <devicetree-discuss@lists.ozlabs.org>,
+	Rob Herring <robherring2@gmail.com>,
+	<linux-fbdev@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	<linux-media@vger.kernel.org>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	<kernel@pengutronix.de>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v12 3/6] fbmon: add videomode helpers
+References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de> <1353426896-6045-4-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1353426896-6045-4-git-send-email-s.trumtrar@pengutronix.de>
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Bn2rw/3z4jIqBvZU"
-Content-Disposition: inline
-In-Reply-To: <1352734626-27412-3-git-send-email-s.trumtrar@pengutronix.de>
+	protocol="application/pgp-signature";
+	boundary="------------enigC5A087637FE61696096833B9"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+--------------enigC5A087637FE61696096833B9
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
---Bn2rw/3z4jIqBvZU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 2012-11-20 17:54, Steffen Trumtrar wrote:
 
-On Mon, Nov 12, 2012 at 04:37:02PM +0100, Steffen Trumtrar wrote:
-[...]
-> diff --git a/include/linux/of_display_timings.h b/include/linux/of_display_timings.h
-[...]
-> +#ifndef __LINUX_OF_DISPLAY_TIMINGS_H
-> +#define __LINUX_OF_DISPLAY_TIMINGS_H
-> +
-> +#include <linux/display_timing.h>
-> +
-> +#define OF_USE_NATIVE_MODE -1
-> +
-> +struct display_timings *of_get_display_timings(struct device_node *np);
-> +int of_display_timings_exists(struct device_node *np);
-
-This either needs to include linux/of.h or a forward declaration of
-struct device_node. Otherwise this will fail to compile if the file
-where this is included from doesn't pull linux/of.h in explicitly.
-
-> diff --git a/include/linux/of_videomode.h b/include/linux/of_videomode.h
-[...]
-> +#ifndef __LINUX_OF_VIDEOMODE_H
-> +#define __LINUX_OF_VIDEOMODE_H
-> +
+> diff --git a/include/linux/fb.h b/include/linux/fb.h
+> index c7a9571..920cbe3 100644
+> --- a/include/linux/fb.h
+> +++ b/include/linux/fb.h
+> @@ -14,6 +14,7 @@
+>  #include <linux/backlight.h>
+>  #include <linux/slab.h>
+>  #include <asm/io.h>
 > +#include <linux/videomode.h>
+
+No need for this, just add "struct xxx;".
+
+>  struct vm_area_struct;
+>  struct fb_info;
+> @@ -714,6 +715,11 @@ extern void fb_destroy_modedb(struct fb_videomode =
+*modedb);
+>  extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, in=
+t rb);
+>  extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+> =20
+> +#if IS_ENABLED(CONFIG_VIDEOMODE)
+> +extern int fb_videomode_from_videomode(const struct videomode *vm,
+> +				       struct fb_videomode *fbmode);
+> +#endif
 > +
-> +int of_get_videomode(struct device_node *np, struct videomode *vm, int index);
+>  /* drivers/video/modedb.c */
+>  #define VESA_MODEDB_SIZE 34
+>  extern void fb_var_to_videomode(struct fb_videomode *mode,
+>=20
 
-Same here.
 
-Thierry
 
---Bn2rw/3z4jIqBvZU
-Content-Type: application/pgp-signature
+--------------enigC5A087637FE61696096833B9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
 
-iQIcBAEBAgAGBQJQo3mcAAoJEN0jrNd/PrOhnCEP/jfAyewli0dTH1Wk4Av6dIxc
-MClbwimHsgufRK4xJ5U7UAH0JB9x9uZ+CSW2s+1covSJ6vHNtBTvzsmn9WZjMO7P
-cWVqLwRDc7Kdn3iNbG3dp87A/G7l98ZGP9JG8fm2zItMFhH6wuMK8Gq43sJjA9jj
-JIaZ8MoD4JCTsKXYH/zdtXSxOdfJIK86z5mPGpAV++tbCLk8Y+aCy41mNbu9I/sz
-gZPaT6n+FPSJi0CSIcGQeIlZHlaprWEy+oMPpCsjaNRF8GQ0PCxZBIavpW0ZPMfo
-N5BMyU31jeK4KAPhRgOMyxH7xySgEgvx2lRjUGRAM4NmKMS4kLGVlXP/NJSpSW1/
-spzTxY8p4Plrom9p6NOJj8v8l0fuqdqrA2ShBE48sBt0cYI2sIhj9SKA/3THjUac
-eYXeCcTXcKg1yLixm7N4pAph7Wy5tS8LXfP3+vSkzIsC8yUWijbMwlsu0SZT7/sM
-JqQzqf7w436VWKAd5tqtS9T3mAE9OJiZnJ4yOUWYNjwf7UVUNm8ZKnhHksmckQFk
-JFG/uya+tinSHySbXZvmwCK3j1/ZJVEqJqKRUFTVpyTV150JhQzEDBNpUVKVJnYn
-4rUj61D71+q5dEVXMLmxrmGShvbnZ3ce+o517wXxtyPivu41Sbr5i8sHd8OZp7+G
-IzJpiANv+hegtxiP2cXi
-=Fyuk
+iQIcBAEBAgAGBQJQrMjBAAoJEPo9qoy8lh71Q4cP/1dcAq5jTdtLB0cu++W4vXeq
+Ponbk6jqAVyBp57B11VXREKXJQN3nc/OmKvhJAb8v+POUzxD11eXNLeU0Ww6l+gQ
+hwxTmnTAXRnYdlS5+UWdLmxjpIIfJPkUEi15dt0+jw+JsJQVTqlGSr5FusWty9DB
+XiD6coM7g1NjuZDNjHKb1r3ydSK85ZNnq/eKms1DkF/5CexT+TzPMApMWO7eZml3
+I1IHR2C/DwRty1dhe27kIcWOrr32DiCwg3F8CtaamjSnybHJPYfAwMhpDFmkkUjL
+hjhjV6gnZGpo9E777GRnoww/aLm65jAEt7eFwGrXhKMbw/1Jstxgyh/kCEemYfh4
+fR0DoU587a2uvmjLZWmrpqfLE5uOZ6T3Gv9mfx+iRcoTBPiRCpveZH+mNHZSRe0U
+9ml3dCPhX9lyvz+z5gWHAx4kzMn1/S5tEmYCKP53MiLog0eBaQ/XZ+1X8mcz8wG+
+YHCy+iH1SnV0+HSFN6gs00EuCz7l9ysXd5bL5MHHyYI8PVGPAJ+Es6ymy6H4hDJ1
+v6P9HfXnqPkGjZFiBXqbE31qBLe5YocqbfQzpiq5BGbliMZox3X+UfaFTFBOHfsq
+CMYn/P7DCqcB0zOaHaiY7e0n1T4mhxIFM4N5jZXZN7OGTfhzk/+H2JdrQ2E7CR9f
+mBEVd8ibV45KVjnnhkPm
+=h0BO
 -----END PGP SIGNATURE-----
 
---Bn2rw/3z4jIqBvZU--
+--------------enigC5A087637FE61696096833B9--
