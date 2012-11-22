@@ -1,62 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36582 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752232Ab2KJUWk (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:56935 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754781Ab2KVSkB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Nov 2012 15:22:40 -0500
-Date: Sat, 10 Nov 2012 22:22:35 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Andreas Nagel <andreasnagel@gmx.net>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: OMAP3 ISP: VIDIOC_STREAMON and VIDIOC_QBUF calls fail
-Message-ID: <20121110202235.GI25623@valkosipuli.retiisi.org.uk>
-References: <5097DF9F.6080603@gmx.net>
- <20121106215153.GE25623@valkosipuli.retiisi.org.uk>
- <509A4473.3080506@gmx.net>
- <4541060.0oGRVnU8K8@avalon>
- <20121108092905.GF25623@valkosipuli.retiisi.org.uk>
- <509E5B58.1020108@gmx.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <509E5B58.1020108@gmx.net>
+	Thu, 22 Nov 2012 13:40:01 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: "Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
+	"David Airlie" <airlied@linux.ie>
+Subject: [PATCHv13 6/7] drm_modes: add videomode helpers
+Date: Thu, 22 Nov 2012 17:00:14 +0100
+Message-Id: <1353600015-6974-7-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1353600015-6974-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1353600015-6974-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andreas,
+Add conversion from videomode to drm_display_mode
 
-On Sat, Nov 10, 2012 at 02:49:12PM +0100, Andreas Nagel wrote:
-> Sakari Ailus schrieb am 08.11.2012 10:29:
-> >On Thu, Nov 08, 2012 at 10:26:11AM +0100, Laurent Pinchart wrote:
-> >>media-ctl doesn't show pad formats, that's a bit weird. Are you using a recent
-> >>version ?
-> >This could as well be an issue with the kernel API --- I think that kernel
-> >has a version which isn't in mainline. So the IOCTL used to access the media
-> >bus formats are quite possibly different.
-> >
-> >Regards,
-> >
-> 
-> Hi Sakari,
-> hi Laurent,
-> 
-> 
-> first, I could resolve my issues.
-> 
-> When I allocated buffers with the CMEM library from TI (provides
-> aligned and contiguous memory buffers), I was able to use user
-> pointers. And VIDIOC_STREAMON just failed because of a wrong but
-> similar written pixelformat. Since yesterday, I am now able to
-> capture frames and save them as YUV data in a file.
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/gpu/drm/drm_modes.c |   37 +++++++++++++++++++++++++++++++++++++
+ include/drm/drmP.h          |    6 ++++++
+ 2 files changed, 43 insertions(+)
 
-Good to hear you got this resolved. Whether the memory is contiguous
-shouldn't matter. The ISP has got an MMU. malloc() typically allocated only
-page aligned buffer (AFAIR) but to be really sure, one can also use
-posix_memalign for the purpose.
-
-Kind regards,
-
+diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
+index 59450f3..0073b27 100644
+--- a/drivers/gpu/drm/drm_modes.c
++++ b/drivers/gpu/drm/drm_modes.c
+@@ -35,6 +35,7 @@
+ #include <linux/export.h>
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc.h>
++#include <linux/videomode.h>
+ 
+ /**
+  * drm_mode_debug_printmodeline - debug print a mode
+@@ -504,6 +505,42 @@ drm_gtf_mode(struct drm_device *dev, int hdisplay, int vdisplay, int vrefresh,
+ }
+ EXPORT_SYMBOL(drm_gtf_mode);
+ 
++#if IS_ENABLED(CONFIG_VIDEOMODE)
++int drm_display_mode_from_videomode(const struct videomode *vm,
++				    struct drm_display_mode *dmode)
++{
++	dmode->hdisplay = vm->hactive;
++	dmode->hsync_start = dmode->hdisplay + vm->hfront_porch;
++	dmode->hsync_end = dmode->hsync_start + vm->hsync_len;
++	dmode->htotal = dmode->hsync_end + vm->hback_porch;
++
++	dmode->vdisplay = vm->vactive;
++	dmode->vsync_start = dmode->vdisplay + vm->vfront_porch;
++	dmode->vsync_end = dmode->vsync_start + vm->vsync_len;
++	dmode->vtotal = dmode->vsync_end + vm->vback_porch;
++
++	dmode->clock = vm->pixelclock / 1000;
++
++	dmode->flags = 0;
++	if (vm->hah)
++		dmode->flags |= DRM_MODE_FLAG_PHSYNC;
++	else
++		dmode->flags |= DRM_MODE_FLAG_NHSYNC;
++	if (vm->vah)
++		dmode->flags |= DRM_MODE_FLAG_PVSYNC;
++	else
++		dmode->flags |= DRM_MODE_FLAG_NVSYNC;
++	if (vm->interlaced)
++		dmode->flags |= DRM_MODE_FLAG_INTERLACE;
++	if (vm->doublescan)
++		dmode->flags |= DRM_MODE_FLAG_DBLSCAN;
++	drm_mode_set_name(dmode);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(drm_display_mode_from_videomode);
++#endif
++
+ /**
+  * drm_mode_set_name - set the name on a mode
+  * @mode: name will be set in this mode
+diff --git a/include/drm/drmP.h b/include/drm/drmP.h
+index 3fd8280..3d0ccaa 100644
+--- a/include/drm/drmP.h
++++ b/include/drm/drmP.h
+@@ -85,6 +85,7 @@ struct module;
+ struct drm_file;
+ struct drm_device;
+ 
++struct videomode;
+ #include <drm/drm_os_linux.h>
+ #include <drm/drm_hashtab.h>
+ #include <drm/drm_mm.h>
+@@ -1454,6 +1455,11 @@ extern struct drm_display_mode *
+ drm_mode_create_from_cmdline_mode(struct drm_device *dev,
+ 				  struct drm_cmdline_mode *cmd);
+ 
++#if IS_ENABLED(CONFIG_VIDEOMODE)
++extern int drm_display_mode_from_videomode(const struct videomode *vm,
++					   struct drm_display_mode *dmode);
++#endif
++
+ /* Modesetting support */
+ extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
+ extern void drm_vblank_post_modeset(struct drm_device *dev, int crtc);
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.7.10.4
+
