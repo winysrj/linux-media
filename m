@@ -1,76 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from viridian.itc.Virginia.EDU ([128.143.12.139]:41486 "EHLO
-	viridian.itc.virginia.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754222Ab2KSSer (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:48623 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756745Ab2KVTUF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Nov 2012 13:34:47 -0500
-From: Bill Pemberton <wfp5p@virginia.edu>
-To: gregkh@linuxfoundation.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 375/493] media: remove use of __devinitconst
-Date: Mon, 19 Nov 2012 13:25:24 -0500
-Message-Id: <1353349642-3677-375-git-send-email-wfp5p@virginia.edu>
-In-Reply-To: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
-References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
+	Thu, 22 Nov 2012 14:20:05 -0500
+Date: Thu, 22 Nov 2012 09:53:42 +0100
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v12 3/6] fbmon: add videomode helpers
+Message-ID: <20121122085342.GB10369@pengutronix.de>
+References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de>
+ <96696218.4l3uYOulV3@avalon>
+ <20121122062000.GW10369@pengutronix.de>
+ <1554720.pFHYnMF1G4@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1554720.pFHYnMF1G4@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CONFIG_HOTPLUG is going away as an option so __devinitconst is no
-longer needed.
+On Thu, Nov 22, 2012 at 09:50:10AM +0100, Laurent Pinchart wrote:
+> Hi Sascha,
+> 
+> On Thursday 22 November 2012 07:20:00 Sascha Hauer wrote:
+> > On Wed, Nov 21, 2012 at 11:02:44PM +0100, Laurent Pinchart wrote:
+> > > Hi Steffen,
+> > > 
+> > > > +
+> > > > +	htotal = vm->hactive + vm->hfront_porch + vm->hback_porch +
+> > > > +		 vm->hsync_len;
+> > > > +	vtotal = vm->vactive + vm->vfront_porch + vm->vback_porch +
+> > > > +		 vm->vsync_len;
+> > > > +	fbmode->refresh = (vm->pixelclock * 1000) / (htotal * vtotal);
+> > > 
+> > > This will fail if vm->pixelclock >= ((1 << 32) / 1000). The easiest
+> > > solution is probably to use 64-bit computation.
+> > 
+> > You have displays with a pixelclock > 4GHz?
+> 
+> vm->pixelclock is expressed in Hz. vm->pixelclock * 1000 will thus overflow if 
+> the clock frequency is >= ~4.3 MHz. I have displays with a clock frequency 
+> higher than that :-)
 
-Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org> 
-Cc: linux-media@vger.kernel.org 
----
- drivers/media/mmc/siano/smssdio.c  | 2 +-
- drivers/media/platform/timblogiw.c | 6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+If vm->pixelclock is in Hz, then the * 1000 above is wrong.
 
-diff --git a/drivers/media/mmc/siano/smssdio.c b/drivers/media/mmc/siano/smssdio.c
-index 0a61bc6..15d3493 100644
---- a/drivers/media/mmc/siano/smssdio.c
-+++ b/drivers/media/mmc/siano/smssdio.c
-@@ -50,7 +50,7 @@
- #define SMSSDIO_INT		0x04
- #define SMSSDIO_BLOCK_SIZE	128
- 
--static const struct sdio_device_id smssdio_ids[] __devinitconst = {
-+static const struct sdio_device_id smssdio_ids[] = {
- 	{SDIO_DEVICE(SDIO_VENDOR_ID_SIANO, SDIO_DEVICE_ID_SIANO_STELLAR),
- 	 .driver_data = SMS1XXX_BOARD_SIANO_STELLAR},
- 	{SDIO_DEVICE(SDIO_VENDOR_ID_SIANO, SDIO_DEVICE_ID_SIANO_NOVA_A0),
-diff --git a/drivers/media/platform/timblogiw.c b/drivers/media/platform/timblogiw.c
-index 574b2dd..384d2cc 100644
---- a/drivers/media/platform/timblogiw.c
-+++ b/drivers/media/platform/timblogiw.c
-@@ -745,7 +745,7 @@ static int timblogiw_mmap(struct file *file, struct vm_area_struct *vma)
- 
- /* Platform device functions */
- 
--static __devinitconst struct v4l2_ioctl_ops timblogiw_ioctl_ops = {
-+static struct v4l2_ioctl_ops timblogiw_ioctl_ops = {
- 	.vidioc_querycap		= timblogiw_querycap,
- 	.vidioc_enum_fmt_vid_cap	= timblogiw_enum_fmt,
- 	.vidioc_g_fmt_vid_cap		= timblogiw_g_fmt,
-@@ -767,7 +767,7 @@ static __devinitconst struct v4l2_ioctl_ops timblogiw_ioctl_ops = {
- 	.vidioc_enum_framesizes		= timblogiw_enum_framesizes,
- };
- 
--static __devinitconst struct v4l2_file_operations timblogiw_fops = {
-+static struct v4l2_file_operations timblogiw_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= timblogiw_open,
- 	.release	= timblogiw_close,
-@@ -777,7 +777,7 @@ static __devinitconst struct v4l2_file_operations timblogiw_fops = {
- 	.poll		= timblogiw_poll,
- };
- 
--static __devinitconst struct video_device timblogiw_template = {
-+static struct video_device timblogiw_template = {
- 	.name		= TIMBLOGIWIN_NAME,
- 	.fops		= &timblogiw_fops,
- 	.ioctl_ops	= &timblogiw_ioctl_ops,
+Sascha
+
 -- 
-1.8.0
-
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
