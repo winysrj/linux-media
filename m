@@ -1,61 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:51850 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751474Ab2KRHOi (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:60565 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755505Ab2KVSqF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Nov 2012 02:14:38 -0500
-Received: by mail-gh0-f174.google.com with SMTP id g15so85250ghb.19
-        for <linux-media@vger.kernel.org>; Sat, 17 Nov 2012 23:14:37 -0800 (PST)
-From: Fabio Estevam <festevam@gmail.com>
-To: g.liakhovetski@gmx.de
-Cc: mchehab@infradead.org, hans.verkuil@cisco.com,
-	javier.martin@vista-silicon.com, kernel@pengutronix.de,
-	linux-media@vger.kernel.org,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH] [media] soc_camera: mx2_camera: Constify v4l2_crop
-Date: Sun, 18 Nov 2012 05:14:23 -0200
-Message-Id: <1353222863-23959-1-git-send-email-festevam@gmail.com>
+	Thu, 22 Nov 2012 13:46:05 -0500
+Received: from eusync3.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MDW0073QIPOLG20@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 22 Nov 2012 18:15:24 +0000 (GMT)
+Received: from [106.116.147.32] by eusync3.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MDW00C4OIP8VR60@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 22 Nov 2012 18:15:09 +0000 (GMT)
+Message-id: <50AE6BAC.1030208@samsung.com>
+Date: Thu, 22 Nov 2012 19:15:08 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.7-rc] Samsung SoC media driver fixes
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@freescale.com>
+Hi Mauro,
 
-Since commit 4f996594ce ([media] v4l2: make vidioc_s_crop const), set_crop 
-should receive a 'const struct v4l2_crop *' argument type.
+The following changes since commit 30677fd9ac7b9a06555318ec4f9a0db39804f9b2:
 
-Adapt to this new format and get rid of the following build warning:
+  s5p-fimc: Fix potential NULL pointer dereference (2012-11-22 10:15:40 +0100)
 
-drivers/media/platform/soc_camera/mx2_camera.c:1529: warning: initialization from incompatible pointer type
+are available in the git repository at:
 
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+  git://git.infradead.org/users/kmpark/linux-samsung media_fixes_for_v3.7
+
+for you to fetch changes up to 28f497f26c67ab734bdb923b457016122368f69a:
+
+  s5p-mfc: Handle multi-frame input buffer (2012-11-22 15:13:53 +0100)
+
+This is a bunch of quite important fixes for the Exynos SoC drivers,
+please apply for v3.7 if possible. This depends on my previous pull
+request (I've applied the patches you indicated you take for v3.7
+previously to the media_fixes_for_v3.7 branch as well).
+
+----------------------------------------------------------------
+Arun Kumar K (2):
+      s5p-mfc: Bug fix of timestamp/timecode copy mechanism
+      s5p-mfc: Handle multi-frame input buffer
+
+Shaik Ameer Basha (1):
+      exynos-gsc: Fix settings for input and output image RGB type
+
+Sylwester Nawrocki (5):
+      s5p-fimc: Prevent race conditions during subdevs registration
+      s5p-fimc: Don't use mutex_lock_interruptible() in device release()
+      fimc-lite: Don't use mutex_lock_interruptible() in device release()
+      exynos-gsc: Don't use mutex_lock_interruptible() in device release()
+      exynos-gsc: Add missing video device vfl_dir flag initialization
+
+ drivers/media/platform/exynos-gsc/gsc-m2m.c     |    4 ++--
+ drivers/media/platform/exynos-gsc/gsc-regs.h    |   16 ++++++++--------
+ drivers/media/platform/s5p-fimc/fimc-capture.c  |   10 +++++++---
+ drivers/media/platform/s5p-fimc/fimc-lite.c     |    6 ++++--
+ drivers/media/platform/s5p-fimc/fimc-m2m.c      |    3 +--
+ drivers/media/platform/s5p-fimc/fimc-mdevice.c  |    4 ++--
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        |    7 ++-----
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    2 +-
+ 8 files changed, 27 insertions(+), 25 deletions(-)
+
 ---
- drivers/media/platform/soc_camera/mx2_camera.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-index e575ae8..5fc3319 100644
---- a/drivers/media/platform/soc_camera/mx2_camera.c
-+++ b/drivers/media/platform/soc_camera/mx2_camera.c
-@@ -1131,15 +1131,15 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
- }
- 
- static int mx2_camera_set_crop(struct soc_camera_device *icd,
--				struct v4l2_crop *a)
-+				const struct v4l2_crop *a)
- {
--	struct v4l2_rect *rect = &a->c;
-+	struct v4l2_rect rect = a->c;
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
- 	struct v4l2_mbus_framefmt mf;
- 	int ret;
- 
--	soc_camera_limit_side(&rect->left, &rect->width, 0, 2, 4096);
--	soc_camera_limit_side(&rect->top, &rect->height, 0, 2, 4096);
-+	soc_camera_limit_side(&rect.left, &rect.width, 0, 2, 4096);
-+	soc_camera_limit_side(&rect.top, &rect.height, 0, 2, 4096);
- 
- 	ret = v4l2_subdev_call(sd, video, s_crop, a);
- 	if (ret < 0)
--- 
-1.7.9.5
-
+Regards,
+Sylwester
