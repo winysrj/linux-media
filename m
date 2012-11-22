@@ -1,93 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3896 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751187Ab2K2Hnm (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:56931 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754780Ab2KVSj6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Nov 2012 02:43:42 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v3 0/9] Media Controller capture driver for DM365
-Date: Thu, 29 Nov 2012 08:43:36 +0100
-Cc: devel@driverdev.osuosl.org,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	LMML <linux-media@vger.kernel.org>
-References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com> <201211282018.20832.hverkuil@xs4all.nl> <20121128193021.GA4174@kroah.com>
-In-Reply-To: <20121128193021.GA4174@kroah.com>
+	Thu, 22 Nov 2012 13:39:58 -0500
+Date: Thu, 22 Nov 2012 12:23:31 +0100
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>,
+	devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v12 3/6] fbmon: add videomode helpers
+Message-ID: <20121122112331.GA24990@pengutronix.de>
+References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1554720.pFHYnMF1G4@avalon>
+ <20121122085342.GB10369@pengutronix.de>
+ <2254661.PBsclu7Klj@avalon>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201211290843.36468.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2254661.PBsclu7Klj@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed November 28 2012 20:30:21 Greg Kroah-Hartman wrote:
-> On Wed, Nov 28, 2012 at 08:18:20PM +0100, Hans Verkuil wrote:
-> > On Wed November 28 2012 18:22:48 Greg Kroah-Hartman wrote:
-> > > On Wed, Nov 28, 2012 at 10:18:02AM -0200, Mauro Carvalho Chehab wrote:
-> > > > Em Wed, 28 Nov 2012 12:56:10 +0100
-> > > > Hans Verkuil <hansverk@cisco.com> escreveu:
-> > > > 
-> > > > > On Wed 28 November 2012 12:45:37 Dan Carpenter wrote:
-> > > > > > I wish people wouldn't submit big patches right before the merge
-> > > > > > window opens...  :/ It's better to let it sit in linux-next for a
-> > > > > > couple weeks so people can mess with it a bit.
+On Thu, Nov 22, 2012 at 10:07:07AM +0100, Laurent Pinchart wrote:
+> On Thursday 22 November 2012 09:53:42 Sascha Hauer wrote:
+> > On Thu, Nov 22, 2012 at 09:50:10AM +0100, Laurent Pinchart wrote:
+> > > On Thursday 22 November 2012 07:20:00 Sascha Hauer wrote:
+> > > > On Wed, Nov 21, 2012 at 11:02:44PM +0100, Laurent Pinchart wrote:
+> > > > > Hi Steffen,
 > > > > > 
-> > > > > It's been under review for quite some time now, and the main change since
-> > > > > the last posted version is that this is now moved to staging/media.
+> > > > > > +
+> > > > > > +	htotal = vm->hactive + vm->hfront_porch + vm->hback_porch +
+> > > > > > +		 vm->hsync_len;
+> > > > > > +	vtotal = vm->vactive + vm->vfront_porch + vm->vback_porch +
+> > > > > > +		 vm->vsync_len;
+> > > > > > +	fbmode->refresh = (vm->pixelclock * 1000) / (htotal * vtotal);
 > > > > > 
-> > > > > So it is not yet ready for prime time, but we do want it in to simplify
-> > > > > the last remaining improvements needed to move it to drivers/media.
+> > > > > This will fail if vm->pixelclock >= ((1 << 32) / 1000). The easiest
+> > > > > solution is probably to use 64-bit computation.
 > > > > 
-> > > > "last remaining improvements"? I didn't review the patchset, but
-> > > > the TODO list seems to have several pending stuff there:
-> > > > 
-> > > > +- User space interface refinement
-> > > > +        - Controls should be used when possible rather than private ioctl
-> > > > +        - No enums should be used
-> > > > +        - Use of MC and V4L2 subdev APIs when applicable
-> > > > +        - Single interface header might suffice
-> > > > +        - Current interface forces to configure everything at once
-> > > > +- Get rid of the dm365_ipipe_hw.[ch] layer
-> > > > +- Active external sub-devices defined by link configuration; no strcmp
-> > > > +  needed
-> > > > +- More generic platform data (i2c adapters)
-> > > > +- The driver should have no knowledge of possible external subdevs; see
-> > > > +  struct vpfe_subdev_id
-> > > > +- Some of the hardware control should be refactorede
-> > > > +- Check proper serialisation (through mutexes and spinlocks)
-> > > > +- Names that are visible in kernel global namespace should have a common
-> > > > +  prefix (or a few)
-> > > > 
-> > > > From the above comments, both Kernelspace and Userspace APIs require 
-> > > > lots of work.
+> > > > You have displays with a pixelclock > 4GHz?
+> > > 
+> > > vm->pixelclock is expressed in Hz. vm->pixelclock * 1000 will thus
+> > > overflow if the clock frequency is >= ~4.3 MHz. I have displays with a
+> > > clock frequency higher than that :-)
 > > 
-> > And that's why it is in staging. Should a long TODO list now suddenly
-> > prevent staging from being used? In Barcelona we discussed this and the
-> > only requirement we came up was was that it should compile.
+> > If vm->pixelclock is in Hz, then the * 1000 above is wrong.
 > 
-> Yes, that's all I care about in staging, but as I stated, I don't
-> maintain drivers/staging/media/ that area is under Mauro's control
-> (MAINTAINERS even says this), and I'm a bit leery of going against the
-> wishes of an existing subsystem maintainer for adding staging drivers
-> that tie into their subsystem.
-> 
-> So if you get Mauro's approval, I'll be glad to queue it up.
+> My bad, I though refresh was expressed in mHz. So yes, the above computation 
+> is wrong.
+>
 
-Just for the record, my comments were addressed to Mauro, not to you.
-I should have stated that in my mail explicitly. As you said, it's
-Mauro's decision.
+Okay. I will fix that with the next version...
+
+> BTW it seems that the refreshrate field in struct videomode isn't used. It 
+> should then be removed.
+> 
+
+...and remove this field.
+
+> I've just realized that the struct videomode fields are not documented. 
+> kerneldoc in include/linux/videomode.h would be a good addition.
+> 
 
 Regards,
+Steffen
 
-	Hans
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
