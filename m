@@ -1,88 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49667 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753958Ab2K1LWe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 06:22:34 -0500
-Date: Wed, 28 Nov 2012 09:22:13 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	<devel@driverdev.osuosl.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v3 9/9] davinci: vpfe: Add documentation and TODO
-Message-ID: <20121128092213.4bd0870f@redhat.com>
-In-Reply-To: <1354099329-20722-10-git-send-email-prabhakar.lad@ti.com>
-References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
-	<1354099329-20722-10-git-send-email-prabhakar.lad@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55252 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754471Ab2KVSvD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Nov 2012 13:51:03 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>
+Subject: Re: [PATCHv13 5/7] fbmon: add of_videomode helpers
+Date: Thu, 22 Nov 2012 18:58:09 +0100
+Message-ID: <2117247.Eyo66IqYf0@avalon>
+In-Reply-To: <1353600015-6974-6-git-send-email-s.trumtrar@pengutronix.de>
+References: <1353600015-6974-1-git-send-email-s.trumtrar@pengutronix.de> <1353600015-6974-6-git-send-email-s.trumtrar@pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Hi Steffen,
 
-Em Wed, 28 Nov 2012 16:12:09 +0530
-Prabhakar Lad <prabhakar.csengg@gmail.com> escreveu:
+On Thursday 22 November 2012 17:00:13 Steffen Trumtrar wrote:
+> Add helper to get fb_videomode from devicetree.
+> 
+> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> +Introduction
-> +============
+This patch results in the following build warning:
+
+drivers/video/fbmon.c: In function 'of_get_fb_videomode':
+drivers/video/fbmon.c:1445: warning: passing argument 1 of 'of_get_videomode' 
+discards qualifiers from pointer target type
+include/linux/of_videomode.h:15: note: expected 'struct device_node *' but 
+argument is of type 'const struct device_node *'
+
+> ---
+>  drivers/video/fbmon.c |   42 +++++++++++++++++++++++++++++++++++++++++-
+>  include/linux/fb.h    |    6 ++++++
+>  2 files changed, 47 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
+> index a6a564d..cd0a035 100644
+> --- a/drivers/video/fbmon.c
+> +++ b/drivers/video/fbmon.c
+> @@ -31,7 +31,7 @@
+>  #include <linux/pci.h>
+>  #include <linux/slab.h>
+>  #include <video/edid.h>
+> -#include <linux/videomode.h>
+> +#include <linux/of_videomode.h>
+>  #ifdef CONFIG_PPC_OF
+>  #include <asm/prom.h>
+>  #include <asm/pci-bridge.h>
+> @@ -1416,6 +1416,46 @@ int fb_videomode_from_videomode(const struct
+> videomode *vm, EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
+>  #endif
+> 
+> +#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
+> +static inline void dump_fb_videomode(const struct fb_videomode *m)
+> +{
+> +	pr_debug("fb_videomode = %ux%u@%uHz (%ukHz) %u %u %u %u %u %u %u %u 
+%u\n",
+> +		 m->xres, m->yres, m->refresh, m->pixclock, m->left_margin,
+> +		 m->right_margin, m->upper_margin, m->lower_margin,
+> +		 m->hsync_len, m->vsync_len, m->sync, m->vmode, m->flag);
+> +}
 > +
-> +This file documents the Texas Instruments Davinci Video processing Front End
-> +(VPFE) driver located under drivers/media/platform/davinci. The original driver
-> +exists for Davinci VPFE, which is now being changed to Media Controller
-> +Framework.
-
-Hmm... please correct me if I'm wrong, but are you wanting to replace an existing
-driver at drivers/media/platform/davinci, by another one at staging that has
-lots of known issues, as pointed at your TODO????
-
-If so, please don't do that. Replacing a driver by some other one is generally
-a very bad idea, especially in this case, where the new driver has clearly several
-issues, the main one being to define its own proprietary and undocumented API:
-
-> +As of now since the interface will undergo few changes all the include
-> +files are present in staging itself, to build for dm365 follow below steps,
+> +/**
+> + * of_get_fb_videomode - get a fb_videomode from devicetree
+> + * @np: device_node with the timing specification
+> + * @fb: will be set to the return value
+> + * @index: index into the list of display timings in devicetree
+> + *
+> + * DESCRIPTION:
+> + * This function is expensive and should only be used, if only one mode is
+> to be + * read from DT. To get multiple modes start with
+> of_get_display_timings ond + * work with that instead.
+> + */
+> +int of_get_fb_videomode(const struct device_node *np, struct fb_videomode
+> *fb, +			unsigned int index)
+> +{
+> +	struct videomode vm;
+> +	int ret;
 > +
-> +- copy vpfe.h from drivers/staging/media/davinci_vpfe/ to
-> +  include/media/davinci/ folder for building the uImage.
-> +- copy davinci_vpfe_user.h from drivers/staging/media/davinci_vpfe/ to
-> +  include/uapi/linux/davinci_vpfe.h, and add a entry in Kbuild (required
-> +  for building application).
-> +- copy dm365_ipipeif_user.h from drivers/staging/media/davinci_vpfe/ to
-> +  include/uapi/linux/dm365_ipipeif.h and a entry in Kbuild (required
-> +  for building application).
-
-Among other things, with those ugly and very likely mandatory API calls:
-
->+/*
->+ * Private IOCTL
->+ * VIDIOC_VPFE_IPIPEIF_S_CONFIG: Set IPIEIF configuration
->+ * VIDIOC_VPFE_IPIPEIF_G_CONFIG: Get IPIEIF configuration
->+ */
->+#define VIDIOC_VPFE_IPIPEIF_S_CONFIG \
->+	_IOWR('I', BASE_VIDIOC_PRIVATE + 1, struct ipipeif_params)
->+#define VIDIOC_VPFE_IPIPEIF_G_CONFIG \
->+	_IOWR('I', BASE_VIDIOC_PRIVATE + 2, struct ipipeif_params)
->+
->+#endif	
-
-I remember we rejected already drivers like that with obscure "S_CONFIG"
-private ioctl that were suspect to send a big initialization undocumented
-blob to the driver, as only the vendor's application would be able to use
-such driver.
-
-So, instead, of submitting it to staging, you should be sending incremental
-patches for the existing driver, adding newer functionality there, and 
-using the proper V4L2 API, with makes life easier for reviewers and
-application developers.
-
+> +	ret = of_get_videomode(np, &vm, index);
+> +	if (ret)
+> +		return ret;
+> +
+> +	fb_videomode_from_videomode(&vm, fb);
+> +
+> +	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
+> +		vm.vactive, np->name);
+> +	dump_fb_videomode(fb);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(of_get_fb_videomode);
+> +#endif
+> 
+>  #else
+>  int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
+> diff --git a/include/linux/fb.h b/include/linux/fb.h
+> index 4404ec2..43a2f81 100644
+> --- a/include/linux/fb.h
+> +++ b/include/linux/fb.h
+> @@ -20,6 +20,7 @@ struct fb_info;
+>  struct device;
+>  struct file;
+>  struct videomode;
+> +struct device_node;
+> 
+>  /* Definitions below are used in the parsed monitor specs */
+>  #define FB_DPMS_ACTIVE_OFF	1
+> @@ -715,6 +716,11 @@ extern void fb_destroy_modedb(struct fb_videomode
+> *modedb); extern int fb_find_mode_cvt(struct fb_videomode *mode, int
+> margins, int rb); extern unsigned char *fb_ddc_read(struct i2c_adapter
+> *adapter);
+> 
+> +#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
+> +extern int of_get_fb_videomode(const struct device_node *np,
+> +			       struct fb_videomode *fb,
+> +			       unsigned int index);
+> +#endif
+>  #if IS_ENABLED(CONFIG_VIDEOMODE)
+>  extern int fb_videomode_from_videomode(const struct videomode *vm,
+>  				       struct fb_videomode *fbmode);
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
+
