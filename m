@@ -1,139 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ks358065.kimsufi.com ([91.121.151.38]:59532 "EHLO
-	ks358065.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751709Ab2KMJrR convert rfc822-to-8bit (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:56925 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754741Ab2KVSjx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Nov 2012 04:47:17 -0500
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by ks358065.kimsufi.com (Postfix) with ESMTP id 3B36B1CC04E
-	for <linux-media@vger.kernel.org>; Tue, 13 Nov 2012 10:40:37 +0100 (CET)
-Received: from ks358065.kimsufi.com ([127.0.0.1])
-	by localhost (ks358065.kimsufi.com [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id eTfAja4qAmOl for <linux-media@vger.kernel.org>;
-	Tue, 13 Nov 2012 10:40:23 +0100 (CET)
-Received: from ceatux.localnet (localhost.localdomain [127.0.0.1])
-	by ks358065.kimsufi.com (Postfix) with ESMTPS id 323DC1CC04D
-	for <linux-media@vger.kernel.org>; Tue, 13 Nov 2012 10:40:22 +0100 (CET)
-From: =?iso-8859-15?q?Fr=E9d=E9ric?= <fma@gbiloba.org>
-To: linux-media@vger.kernel.org
-Subject: Support for Terratec Cinergy 2400i DT in kernel 3.x
-Date: Tue, 13 Nov 2012 10:40:22 +0100
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201211131040.22114.fma@gbiloba.org>
+	Thu, 22 Nov 2012 13:39:53 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: "Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
+	"David Airlie" <airlied@linux.ie>
+Subject: [PATCHv13 5/7] fbmon: add of_videomode helpers
+Date: Thu, 22 Nov 2012 17:00:13 +0100
+Message-Id: <1353600015-6974-6-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1353600015-6974-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1353600015-6974-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi there,
+Add helper to get fb_videomode from devicetree.
 
-This is my first post on this list; I hope I'm on the right place to discuss this problem. If 
-not, feel free to tell me where I should post.
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/video/fbmon.c |   42 +++++++++++++++++++++++++++++++++++++++++-
+ include/linux/fb.h    |    6 ++++++
+ 2 files changed, 47 insertions(+), 1 deletion(-)
 
-I bought this DVB-T dual tuner card, in order to put it in my HTPC (running geeXboX/XBMC).
-
-As far as I know, there where only support (patches) for kernel 2.6.x; I didn't find anything 
-for 3.x branch. So I tried to port the patches. And I think I got something... Well, maybe!
-
-I followed the links on this wiki page:
-
-    http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_2400i_DVB-T
-
-It seems that the PCIe bridge used on this card needs a firmware in order to work; this is what 
-the patch does. I used this files:
-
-    http://wiki.ubuntuusers.de/_attachment?target=/Terratec_Cinergy_2400i_DT/ngene_p11.tar.gz
-
-As my desktop PC runs under debian sid, I only have a 3.2 kernel, so this is the version I 
-patched to test the driver.
-
-I can provide all files needed, but I just want to know if the following messages sounds good 
-or if there are still problems...
-
-During boot, I get:
-
- nGene PCIE bridge driver, Copyright (C) 2005-2007 Micronas
- ngene 0000:03:00.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
- ngene: Found Terratec Integra/Cinergy2400i Dual DVB-T
- ngene 0000:03:00.0: setting latency timer to 64
- ngene: Device version 1
- ngene: Loading firmware file ngene_17.fw.
- cxd2099_attach: driver disabled by Kconfig
- DVB: registering new adapter (nGene)
- DVB: registering adapter 0 frontend 0 (Micronas DRXD DVB-T)...
- DVB: registering new adapter (nGene)
- DVB: registering adapter 1 frontend 0 (Micronas DRXD DVB-T)...
-
-Then, when I launch w_scan, I get this from kernel:
-
- drxd: deviceId = 0000
- DRX3975D-A2
- read deviation -520
- drxd: deviceId = 0000
- DRX3975D-A2
- read deviation -333
-
-and this from w_scan (no antenna pluged):
-
- $ w_scan -ft -cFR
- w_scan version 20120605 (compiled for DVB API 5.4)
- using settings for FRANCE
- DVB aerial
- DVB-T FR
- scan type TERRESTRIAL, channellist 5
- output format vdr-1.6
- output charset 'UTF-8', use -C <charset> to override
- Info: using DVB adapter auto detection.
-         /dev/dvb/adapter0/frontend0 -> TERRESTRIAL "Micronas DRXD DVB-T": good :-) ¹
-         /dev/dvb/adapter1/frontend0 -> TERRESTRIAL "Micronas DRXD DVB-T": good :-) ¹
- Using TERRESTRIAL frontend (adapter /dev/dvb/adapter0/frontend0)
- -_-_-_-_ Getting frontend capabilities-_-_-_-_ 
- Using DVB API 5.4
- frontend 'Micronas DRXD DVB-T' supports
- INVERSION_AUTO
- QAM_AUTO
- TRANSMISSION_MODE_AUTO
- GUARD_INTERVAL_AUTO
- HIERARCHY_AUTO
- FEC_AUTO
- FREQ (47.12MHz ... 855.25MHz)
- -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_ 
- Scanning 8MHz frequencies...
- 474000: (time: 00:00) 
- 474166: (time: 00:03) 
- 473834: (time: 00:05) 
- ...
- 849834: (time: 09:57) 
- 850332: (time: 09:59) 
- 850498: (time: 10:02) 
- 858000: (time: 10:04)   skipped: (freq 858000000 unsupported by driver)
-
- initial_tune:2265: Setting frontend failed QAM_AUTO f = 858000 kHz I999B8C999D999T999G999Y999
- 858166: (time: 10:04)   skipped: (freq 858166000 unsupported by driver)
-
- initial_tune:2265: Setting frontend failed QAM_AUTO f = 858166 kHz I999B8C999D999T999G999Y999
- 857834: (time: 10:04)   skipped: (freq 857834000 unsupported by driver)
-
- initial_tune:2265: Setting frontend failed QAM_AUTO f = 857834 kHz I999B8C999D999T999G999Y999
- 858332: (time: 10:04)   skipped: (freq 858332000 unsupported by driver)
-
- initial_tune:2265: Setting frontend failed QAM_AUTO f = 858332 kHz I999B8C999D999T999G999Y999
- 858498: (time: 10:04)   skipped: (freq 858498000 unsupported by driver)
-
- initial_tune:2265: Setting frontend failed QAM_AUTO f = 858498 kHz I999B8C999D999T999G999Y999
-
- ERROR: Sorry - i couldn't get any working frequency/transponder
-  Nothing to scan!!
-
-Reading all these logs, can you tell me if you see obvious problems? I'm neither a kernel guru 
-(this is my first driver contact), nor a DVB-T user (so far!), so a lot of things are not clear 
-to me.
-
-Thanks for reading.
-
-¹ first time w_scan is launched, these lines take 2-3 seconds, and I guess this is when the 
-drxd kernel messages are output.
-
+diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
+index a6a564d..cd0a035 100644
+--- a/drivers/video/fbmon.c
++++ b/drivers/video/fbmon.c
+@@ -31,7 +31,7 @@
+ #include <linux/pci.h>
+ #include <linux/slab.h>
+ #include <video/edid.h>
+-#include <linux/videomode.h>
++#include <linux/of_videomode.h>
+ #ifdef CONFIG_PPC_OF
+ #include <asm/prom.h>
+ #include <asm/pci-bridge.h>
+@@ -1416,6 +1416,46 @@ int fb_videomode_from_videomode(const struct videomode *vm,
+ EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
+ #endif
+ 
++#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
++static inline void dump_fb_videomode(const struct fb_videomode *m)
++{
++	pr_debug("fb_videomode = %ux%u@%uHz (%ukHz) %u %u %u %u %u %u %u %u %u\n",
++		 m->xres, m->yres, m->refresh, m->pixclock, m->left_margin,
++		 m->right_margin, m->upper_margin, m->lower_margin,
++		 m->hsync_len, m->vsync_len, m->sync, m->vmode, m->flag);
++}
++
++/**
++ * of_get_fb_videomode - get a fb_videomode from devicetree
++ * @np: device_node with the timing specification
++ * @fb: will be set to the return value
++ * @index: index into the list of display timings in devicetree
++ *
++ * DESCRIPTION:
++ * This function is expensive and should only be used, if only one mode is to be
++ * read from DT. To get multiple modes start with of_get_display_timings ond
++ * work with that instead.
++ */
++int of_get_fb_videomode(const struct device_node *np, struct fb_videomode *fb,
++			unsigned int index)
++{
++	struct videomode vm;
++	int ret;
++
++	ret = of_get_videomode(np, &vm, index);
++	if (ret)
++		return ret;
++
++	fb_videomode_from_videomode(&vm, fb);
++
++	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
++		vm.vactive, np->name);
++	dump_fb_videomode(fb);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(of_get_fb_videomode);
++#endif
+ 
+ #else
+ int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
+diff --git a/include/linux/fb.h b/include/linux/fb.h
+index 4404ec2..43a2f81 100644
+--- a/include/linux/fb.h
++++ b/include/linux/fb.h
+@@ -20,6 +20,7 @@ struct fb_info;
+ struct device;
+ struct file;
+ struct videomode;
++struct device_node;
+ 
+ /* Definitions below are used in the parsed monitor specs */
+ #define FB_DPMS_ACTIVE_OFF	1
+@@ -715,6 +716,11 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
+ extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
+ extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+ 
++#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
++extern int of_get_fb_videomode(const struct device_node *np,
++			       struct fb_videomode *fb,
++			       unsigned int index);
++#endif
+ #if IS_ENABLED(CONFIG_VIDEOMODE)
+ extern int fb_videomode_from_videomode(const struct videomode *vm,
+ 				       struct fb_videomode *fbmode);
 -- 
-   Frédéric
+1.7.10.4
+
