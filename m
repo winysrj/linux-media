@@ -1,59 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:58873 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751100Ab2K2HJX (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52085 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756430Ab2KVTLE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Nov 2012 02:09:23 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id BC13A40B98
-	for <linux-media@vger.kernel.org>; Thu, 29 Nov 2012 08:09:21 +0100 (CET)
-Date: Thu, 29 Nov 2012 08:09:21 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 3.7] media: sh-vou: fix compiler warnings
-Message-ID: <Pine.LNX.4.64.1211290807430.11210@axis700.grange>
+	Thu, 22 Nov 2012 14:11:04 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>
+Subject: Re: [PATCH v12 3/6] fbmon: add videomode helpers
+Date: Thu, 22 Nov 2012 10:07:07 +0100
+Message-ID: <2254661.PBsclu7Klj@avalon>
+In-Reply-To: <20121122085342.GB10369@pengutronix.de>
+References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de> <1554720.pFHYnMF1G4@avalon> <20121122085342.GB10369@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-sh-vou causes several "may be used uninitialized" warnings. Even though
-they all are purely theoretical, it is better to fix them.
+On Thursday 22 November 2012 09:53:42 Sascha Hauer wrote:
+> On Thu, Nov 22, 2012 at 09:50:10AM +0100, Laurent Pinchart wrote:
+> > On Thursday 22 November 2012 07:20:00 Sascha Hauer wrote:
+> > > On Wed, Nov 21, 2012 at 11:02:44PM +0100, Laurent Pinchart wrote:
+> > > > Hi Steffen,
+> > > > 
+> > > > > +
+> > > > > +	htotal = vm->hactive + vm->hfront_porch + vm->hback_porch +
+> > > > > +		 vm->hsync_len;
+> > > > > +	vtotal = vm->vactive + vm->vfront_porch + vm->vback_porch +
+> > > > > +		 vm->vsync_len;
+> > > > > +	fbmode->refresh = (vm->pixelclock * 1000) / (htotal * vtotal);
+> > > > 
+> > > > This will fail if vm->pixelclock >= ((1 << 32) / 1000). The easiest
+> > > > solution is probably to use 64-bit computation.
+> > > 
+> > > You have displays with a pixelclock > 4GHz?
+> > 
+> > vm->pixelclock is expressed in Hz. vm->pixelclock * 1000 will thus
+> > overflow if the clock frequency is >= ~4.3 MHz. I have displays with a
+> > clock frequency higher than that :-)
+> 
+> If vm->pixelclock is in Hz, then the * 1000 above is wrong.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+My bad, I though refresh was expressed in mHz. So yes, the above computation 
+is wrong.
 
-I'll be pushing last-minute soc-camera+misc 3.7 fixes shortly, this patch 
-will be there too.
+BTW it seems that the refreshrate field in struct videomode isn't used. It 
+should then be removed.
 
- drivers/media/platform/sh_vou.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+I've just realized that the struct videomode fields are not documented. 
+kerneldoc in include/linux/videomode.h would be a good addition.
 
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index a1c87f0..7494858 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -207,6 +207,7 @@ static void sh_vou_stream_start(struct sh_vou_device *vou_dev,
- #endif
- 
- 	switch (vou_dev->pix.pixelformat) {
-+	default:
- 	case V4L2_PIX_FMT_NV12:
- 	case V4L2_PIX_FMT_NV16:
- 		row_coeff = 1;
-@@ -595,9 +596,9 @@ static void vou_adjust_input(struct sh_vou_geometry *geo, v4l2_std_id std)
-  */
- static void vou_adjust_output(struct sh_vou_geometry *geo, v4l2_std_id std)
- {
--	unsigned int best_err = UINT_MAX, best, width_max, height_max,
--		img_height_max;
--	int i, idx;
-+	unsigned int best_err = UINT_MAX, best = geo->in_width,
-+		width_max, height_max, img_height_max;
-+	int i, idx = 0;
- 
- 	if (std & V4L2_STD_525_60) {
- 		width_max = 858;
 -- 
-1.7.2.5
+Regards,
+
+Laurent Pinchart
 
