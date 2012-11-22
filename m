@@ -1,67 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01.ipfire.org ([178.63.73.247]:52176 "EHLO
-	mail01.ipfire.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753247Ab2KMIRh (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:55731 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756140Ab2KVU6Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Nov 2012 03:17:37 -0500
+	Thu, 22 Nov 2012 15:58:25 -0500
+Received: by mail-ee0-f46.google.com with SMTP id e53so3090132eek.19
+        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2012 12:58:24 -0800 (PST)
+Message-ID: <50AE91EE.4060203@gmail.com>
+Date: Thu, 22 Nov 2012 21:58:22 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8;
- format=flowed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v3.7-rc] Samsung SoC media driver fixes
+References: <50AE6BAC.1030208@samsung.com> <50AE6D36.1060805@samsung.com> <84619288.LAxNEDMoLt@avalon>
+In-Reply-To: <84619288.LAxNEDMoLt@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Date: Tue, 13 Nov 2012 08:17:34 +0000
-From: Arne Fitzenreiter <Arne.Fitzenreiter@ipfire.org>
-To: <linux-media@vger.kernel.org>, <mchehab@redhat.com>
-Subject: [PATCH] [media] fix tua6034 pll bandwich configuration [resend]
-Message-ID: <edefdcacfac7e65ad271d1f649127995@mail01.ipfire.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Laurent.
 
-i have already send this patch to you and the mailing list around 3 
-weeks ago but get no response.
-The tua6034 pll is corrupted by your commit [media] dvb-pll: use DVBv5 
-parameters on set_params()
-http://git.linuxtv.org/media_tree.git/commit/80d8d4985f280dca3c395286d13b49f910a029e7
+On 11/22/2012 07:55 PM, Laurent Pinchart wrote:
+> On Thursday 22 November 2012 19:21:42 Sylwester Nawrocki wrote:
+>> Hi Mauro,
+>>
+>> this is what I've just sent (this time from the office my samsung.com
+>> account) to linux-media@vger.kernel.org. And can't see it neither on the
+>> mailing list nor at the patchwork.
+>
+> Nothing like that coming from you in my mail server logs. It looks like an
+> SMTP server in the chain silently drops the e-mail.
 
-[SNIP]
- /* Infineon TUA6034
-  * used in LG TDTP E102P
-  */
--static void tua6034_bw(struct dvb_frontend *fe, u8 *buf,
--                      const struct dvb_frontend_parameters *params)
-+static void tua6034_bw(struct dvb_frontend *fe, u8 *buf)
- {
--       if (BANDWIDTH_7_MHZ != params->u.ofdm.bandwidth)
-+       u32 bw = fe->dtv_property_cache.bandwidth_hz;
-+       if (bw == 7000000)
-                buf[3] |= 0x08;
- }
-[SNIP]
+Thanks for checking it. It seems the vger mailing list are working now,
+and nothing got lost, just delayed for 1 day or so.
 
-so here is a patch to fix this typo to get the Skymaster DTMU100 
-(HANFTEK UMT010 OEM BOX)
-working again.
-
-Arne
-
-Signed-off-by: Arne Fitzenreiter <Arne.Fitzenreiter@ipfire.org>
-
----
-
-diff -Naur a/drivers/media/dvb-frontends/dvb-pll.c 
-b/drivers/media/dvb-frontends/dvb-pll.c
---- a/drivers/media/dvb-frontends/dvb-pll.c	2012-08-14 
-05:45:22.000000000 +0200
-+++ b/drivers/media/dvb-frontends/dvb-pll.c	2012-10-25 
-14:06:42.123360189 +0200
-@@ -247,7 +247,7 @@
-static void tua6034_bw(struct dvb_frontend *fe, u8 *buf)
-{
-	u32 bw = fe->dtv_property_cache.bandwidth_hz;
--	if (bw == 7000000)
-+	if (bw != 7000000)
-		buf[3] |= 0x08;
-}
-
+--
+Regards,
+Sylwester
