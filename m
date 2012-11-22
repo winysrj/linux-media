@@ -1,66 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:34684 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750927Ab2KDVzh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Nov 2012 16:55:37 -0500
-Received: by mail-ee0-f46.google.com with SMTP id b15so2636997eek.19
-        for <linux-media@vger.kernel.org>; Sun, 04 Nov 2012 13:55:36 -0800 (PST)
-From: Oleg Kravchenko <oleg@kaa.org.ua>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] cx23885: Added support for AVerTV Hybrid Express Slim HC81R (only analog)
-Date: Sun, 04 Nov 2012 23:55:30 +0200
-Message-ID: <1367576.aWvbW7dTER@comp>
-In-Reply-To: <1352065741.2631.7.camel@palomino.walls.org>
-References: <2489713.pAFgSjBqdl@comp> <2065193.Q95hUZKIgW@comp> <1352065741.2631.7.camel@palomino.walls.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47823 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752805Ab2KVSak (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Nov 2012 13:30:40 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Rob Herring <robherring2@gmail.com>, kernel@pengutronix.de,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCHv13 4/7] fbmon: add videomode helpers
+Date: Thu, 22 Nov 2012 19:31:39 +0100
+Message-ID: <2107534.vAYnU9M0ZA@avalon>
+In-Reply-To: <1353600015-6974-5-git-send-email-s.trumtrar@pengutronix.de>
+References: <1353600015-6974-1-git-send-email-s.trumtrar@pengutronix.de> <1353600015-6974-5-git-send-email-s.trumtrar@pengutronix.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-неділя, 04-лис-2012 16:49:00 Andy Walls написано:
-> On Sun, 2012-11-04 at 09:59 +0200, Oleg Kravchenko wrote:
-> > субота, 03-лис-2012 16:41:10 Andy Walls написано:
-> > > Oleg Kravchenko <oleg@kaa.org.ua> wrote:
-> > > >Hello! Please review my patch.
-> > > >
-> > > >Supported inputs:
-> > > >Television, S-Video, Component.
-> > > >
-> > > >Modules options:
-> > > >options cx25840 firmware=v4l-cx23418-dig.fw
-> > > 
-> > > Hi,
-> > > 
-> > > Please do not use the CX23418 digitizer firmware with the CX2388[578]
-> > > chips.> > 
-> > >  Use the proper cx23885 digitizer firmware.  You need the proper
-> > >  firmware
-> > > 
-> > > to get the best results in detecting the audio standard in broadcast
-> > > analog
-> > > video.
-> > > 
-> > > Regards,
-> > > Andy
-> > 
-> > Windows driver use v4l-cx23418-dig.fw
-> > 95bc688d3e7599fd5800161e9971cc55  merlinAVC.rom
-> > 95bc688d3e7599fd5800161e9971cc55  /lib/firmware/v4l-cx23418-dig.fw
-> > 
-> > So, i think this is a proper firmware :)
-> 
-> Maybe it is, but it is not the v4l-cx23418-dig.fw file:
-> 
-> $ md5sum /lib/firmware/v4l-cx23418-dig.fw
-> b3704908fd058485f3ef136941b2e513  /lib/firmware/v4l-cx23418-dig.fw
-> 
-> Which can be extracted from this (double) gzipped tar archive:
-> http://dl.ivtvdriver.org/ivtv/firmware/cx18-firmware.tar.gz
-> (After downloading the file, rename it to cx18-firmware.tar.gz.gz.
-> Sorry, I don't know how to stop the web server from gzipping things
-> twice. :( )
+Hi Steffen,
 
-Ok, i am change /etc/modprobe.d/avermedia_hc81r.conf to:
-options cx25840 firmware=merlinAVC.rom
+On Thursday 22 November 2012 17:00:12 Steffen Trumtrar wrote:
+> Add a function to convert from the generic videomode to a fb_videomode.
+> 
+> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> ---
+>  drivers/video/fbmon.c |   44 ++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/fb.h    |    6 ++++++
+>  2 files changed, 50 insertions(+)
+> 
+> diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
+> index cef6557..a6a564d 100644
+> --- a/drivers/video/fbmon.c
+> +++ b/drivers/video/fbmon.c
+> @@ -31,6 +31,7 @@
+>  #include <linux/pci.h>
+>  #include <linux/slab.h>
+>  #include <video/edid.h>
+> +#include <linux/videomode.h>
+>  #ifdef CONFIG_PPC_OF
+>  #include <asm/prom.h>
+>  #include <asm/pci-bridge.h>
+> @@ -1373,6 +1374,49 @@ int fb_get_mode(int flags, u32 val, struct
+> fb_var_screeninfo *var, struct fb_inf kfree(timings);
+>  	return err;
+>  }
+> +
+> +#if IS_ENABLED(CONFIG_VIDEOMODE)
+> +int fb_videomode_from_videomode(const struct videomode *vm,
+> +				struct fb_videomode *fbmode)
+> +{
+> +	unsigned int htotal, vtotal;
+> +
+> +	fbmode->xres = vm->hactive;
+> +	fbmode->left_margin = vm->hback_porch;
+> +	fbmode->right_margin = vm->hfront_porch;
+> +	fbmode->hsync_len = vm->hsync_len;
+> +
+> +	fbmode->yres = vm->vactive;
+> +	fbmode->upper_margin = vm->vback_porch;
+> +	fbmode->lower_margin = vm->vfront_porch;
+> +	fbmode->vsync_len = vm->vsync_len;
+> +
+> +	fbmode->pixclock = KHZ2PICOS(vm->pixelclock / 1000);
+
+This results in a division by 0 if vm->pixelclock is equal to zero. As the 
+information is missing from many board files, what would you think about the 
+following ?
+
+	fbmode->pixclock = vm->pixelclock ? KHZ2PICOS(vm->pixelclock / 1000) : 0;
+
+> +
+> +	fbmode->sync = 0;
+> +	fbmode->vmode = 0;
+> +	if (vm->hah)
+> +		fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
+> +	if (vm->vah)
+> +		fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
+> +	if (vm->interlaced)
+> +		fbmode->vmode |= FB_VMODE_INTERLACED;
+> +	if (vm->doublescan)
+> +		fbmode->vmode |= FB_VMODE_DOUBLE;
+> +	fbmode->flag = 0;
+> +
+> +	htotal = vm->hactive + vm->hfront_porch + vm->hback_porch +
+> +		 vm->hsync_len;
+> +	vtotal = vm->vactive + vm->vfront_porch + vm->vback_porch +
+> +		 vm->vsync_len;
+> +	fbmode->refresh = vm->pixelclock / (htotal * vtotal);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
+> +#endif
+> +
+> +
+>  #else
+>  int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
+>  {
+> diff --git a/include/linux/fb.h b/include/linux/fb.h
+> index c7a9571..4404ec2 100644
+> --- a/include/linux/fb.h
+> +++ b/include/linux/fb.h
+> @@ -19,6 +19,7 @@ struct vm_area_struct;
+>  struct fb_info;
+>  struct device;
+>  struct file;
+> +struct videomode;
+> 
+>  /* Definitions below are used in the parsed monitor specs */
+>  #define FB_DPMS_ACTIVE_OFF	1
+> @@ -714,6 +715,11 @@ extern void fb_destroy_modedb(struct fb_videomode
+> *modedb); extern int fb_find_mode_cvt(struct fb_videomode *mode, int
+> margins, int rb); extern unsigned char *fb_ddc_read(struct i2c_adapter
+> *adapter);
+> 
+> +#if IS_ENABLED(CONFIG_VIDEOMODE)
+> +extern int fb_videomode_from_videomode(const struct videomode *vm,
+> +				       struct fb_videomode *fbmode);
+> +#endif
+> +
+>  /* drivers/video/modedb.c */
+>  #define VESA_MODEDB_SIZE 34
+>  extern void fb_var_to_videomode(struct fb_videomode *mode,
+-- 
+Regards,
+
+Laurent Pinchart
+
