@@ -1,119 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60941 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46197 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751754Ab2KUNHt (ORCPT
+	with ESMTP id S1752421Ab2KVSyG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Nov 2012 08:07:49 -0500
+	Thu, 22 Nov 2012 13:54:06 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	devicetree-discuss@lists.ozlabs.org,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	David Airlie <airlied@linux.ie>
-Subject: Re: [PATCH v12 4/6] fbmon: add of_videomode helpers
-Date: Wed, 21 Nov 2012 14:08:38 +0100
-Message-ID: <10179127.YBNtqAP453@avalon>
-In-Reply-To: <50ACCDDA.2070606@ti.com>
-References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de> <1353426896-6045-5-git-send-email-s.trumtrar@pengutronix.de> <50ACCDDA.2070606@ti.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v3.7-rc] Samsung SoC media driver fixes
+Date: Thu, 22 Nov 2012 19:55:06 +0100
+Message-ID: <84619288.LAxNEDMoLt@avalon>
+In-Reply-To: <50AE6D36.1060805@samsung.com>
+References: <50AE6BAC.1030208@samsung.com> <50AE6D36.1060805@samsung.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart1659085.vgPrB2GWIs"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sylwester,
 
---nextPart1659085.vgPrB2GWIs
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
-
-Hi Tomi,
-
-On Wednesday 21 November 2012 14:49:30 Tomi Valkeinen wrote:
-> On 2012-11-20 17:54, Steffen Trumtrar wrote:
-> > Add helper to get fb_videomode from devicetree.
-> > 
-> > Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-> > Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-> > Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-> > Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-> > Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/video/fbmon.c |   42 +++++++++++++++++++++++++++++++++++++++++-
-> >  include/linux/fb.h    |    7 +++++++
-> >  2 files changed, 48 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/include/linux/fb.h b/include/linux/fb.h
-> > index 920cbe3..41b5e49 100644
-> > --- a/include/linux/fb.h
-> > +++ b/include/linux/fb.h
-> > @@ -15,6 +15,8 @@
-> > 
-> >  #include <linux/slab.h>
-> >  #include <asm/io.h>
-> >  #include <linux/videomode.h>
-> > 
-> > +#include <linux/of.h>
-> > +#include <linux/of_videomode.h>
+On Thursday 22 November 2012 19:21:42 Sylwester Nawrocki wrote:
+> Hi Mauro,
 > 
-> Guess what? =)
-> 
-> To be honest, I don't know what the general opinion is about including
-> header files from header files. But I always leave them out if they are
-> not strictly needed.
+> this is what I've just sent (this time from the office my samsung.com
+> account) to linux-media@vger.kernel.org. And can't see it neither on the
+> mailing list nor at the patchwork.
 
-I agree, I favor structure declaration as well when possible.
+Nothing like that coming from you in my mail server logs. It looks like an 
+SMTP server in the chain silently drops the e-mail.
 
-> >  struct vm_area_struct;
-> >  struct fb_info;
+> On 11/22/2012 07:15 PM, Sylwester Nawrocki wrote:
+> > Hi Mauro,
 > > 
-> > @@ -715,6 +717,11 @@ extern void fb_destroy_modedb(struct fb_videomode
-> > *modedb);> 
-> >  extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int
-> >  rb); extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+> > The following changes since commit 
+30677fd9ac7b9a06555318ec4f9a0db39804f9b2:
+> >   s5p-fimc: Fix potential NULL pointer dereference (2012-11-22 10:15:40
+> >   +0100)> 
+> > are available in the git repository at:
+> >   git://git.infradead.org/users/kmpark/linux-samsung media_fixes_for_v3.7
 > > 
-> > +#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-> > +extern int of_get_fb_videomode(const struct device_node *np,
-> > +			       struct fb_videomode *fb,
-> > +			       unsigned int index);
-> > +#endif
+> > for you to fetch changes up to 28f497f26c67ab734bdb923b457016122368f69a:
+> >   s5p-mfc: Handle multi-frame input buffer (2012-11-22 15:13:53 +0100)
 > > 
-> >  #if IS_ENABLED(CONFIG_VIDEOMODE)
-> >  extern int fb_videomode_from_videomode(const struct videomode *vm,
+> > This is a bunch of quite important fixes for the Exynos SoC drivers,
+> > please apply for v3.7 if possible. This depends on my previous pull
+> > request (I've applied the patches you indicated you take for v3.7
+> > previously to the media_fixes_for_v3.7 branch as well).
+> > 
+> > ----------------------------------------------------------------
+> > 
+> > Arun Kumar K (2):
+> >       s5p-mfc: Bug fix of timestamp/timecode copy mechanism
+> >       s5p-mfc: Handle multi-frame input buffer
+> > 
+> > Shaik Ameer Basha (1):
+> >       exynos-gsc: Fix settings for input and output image RGB type
+> > 
+> > Sylwester Nawrocki (5):
+> >       s5p-fimc: Prevent race conditions during subdevs registration
+> >       s5p-fimc: Don't use mutex_lock_interruptible() in device release()
+> >       fimc-lite: Don't use mutex_lock_interruptible() in device release()
+> >       exynos-gsc: Don't use mutex_lock_interruptible() in device release()
+> >       exynos-gsc: Add missing video device vfl_dir flag initialization
 > >  
-> >  				       struct fb_videomode *fbmode);
-> 
-> Do you really need these #ifs in the header files? They do make it look
-> a bit messy. If somebody uses the functions and CONFIG_VIDEOMODE is not
-> enabled, he'll get a linker error anyway.
+> >  drivers/media/platform/exynos-gsc/gsc-m2m.c     |    4 ++--
+> >  drivers/media/platform/exynos-gsc/gsc-regs.h    |   16 ++++++++--------
+> >  drivers/media/platform/s5p-fimc/fimc-capture.c  |   10 +++++++---
+> >  drivers/media/platform/s5p-fimc/fimc-lite.c     |    6 ++++--
+> >  drivers/media/platform/s5p-fimc/fimc-m2m.c      |    3 +--
+> >  drivers/media/platform/s5p-fimc/fimc-mdevice.c  |    4 ++--
+> >  drivers/media/platform/s5p-mfc/s5p_mfc.c        |    7 ++-----
+> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    2 +-
+> >  8 files changed, 27 insertions(+), 25 deletions(-)
 
 -- 
 Regards,
 
 Laurent Pinchart
-
---nextPart1659085.vgPrB2GWIs
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQEcBAABAgAGBQJQrNJgAAoJEIkPb2GL7hl1+n0IAIwcErVb/UkPyQ/59qqZNlkn
-A5E/H2P2Jusk7RLIRbTDCq25Uc2Tdu4SdkOhFKGwxMD/4hb0IObvXWLuLnfDXigr
-Tt8Il7HWHKWdULdl4LXJxTx9moosnewa3leAJiJpb64pefR7BiJOAIKgZNuTBt28
-ETw31xySKhYvj4CESJ92rAASe382WQQ4JsjnOWvgcIrIE8zz5zl7E3zLprqhFn48
-Zm9QgD9Yar/BzpuRh0dYKzPrHN+a5f24yzPuxJStpY9Ew9zcWdTAO9UWgFIiL+gQ
-iOJTnJh3eXUjkx38YzWP7l1Dre4Csp+KUyX/YAMSNigy/ZUlzXUGbKB6GlBYins=
-=Q873
------END PGP SIGNATURE-----
-
---nextPart1659085.vgPrB2GWIs--
 
