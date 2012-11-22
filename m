@@ -1,96 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50217 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751141Ab2K2JfQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Nov 2012 04:35:16 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: hvaibhav@ti.com, linux-media@vger.kernel.org,
-	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-	Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 0/2] omap_vout: remove cpu_is_* uses
-Date: Thu, 29 Nov 2012 10:36:19 +0100
-Message-ID: <4208124.v72gFsjH2D@avalon>
-In-Reply-To: <50B72B34.6080808@ti.com>
-References: <1352727220-22540-1-git-send-email-tomi.valkeinen@ti.com> <1421983.jJNXU7RvjW@avalon> <50B72B34.6080808@ti.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart1920695.VqbvWLCQEz"; micalg="pgp-sha1"; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7Bit
+Received: from mail.kapsi.fi ([217.30.184.167]:34671 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758514Ab2KVXDw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Nov 2012 18:03:52 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] fc2580: write some registers conditionally
+Date: Fri, 23 Nov 2012 01:03:12 +0200
+Message-Id: <1353625392-4974-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+It was a bad idea, as comment also says, to write some "don't care"
+registers as 0xff value. Fix it.
 
---nextPart1920695.VqbvWLCQEz
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/fc2580.c | 61 +++++++++++++++++++++++++------------------
+ 1 file changed, 35 insertions(+), 26 deletions(-)
 
-Hi Tomi,
-
-On Thursday 29 November 2012 11:30:28 Tomi Valkeinen wrote:
-> On 2012-11-28 17:13, Laurent Pinchart wrote:
-> > On Monday 12 November 2012 15:33:38 Tomi Valkeinen wrote:
-> >> Hi,
-> >> 
-> >> This patch removes use of cpu_is_* funcs from omap_vout, and uses
-> >> omapdss's version instead. The other patch removes an unneeded plat/dma.h
-> >> include.
-> >> 
-> >> These are based on current omapdss master branch, which has the omapdss
-> >> version code. The omapdss version code is queued for v3.8. I'm not sure
-> >> which is the best way to handle these patches due to the dependency to
-> >> omapdss. The easiest option is to merge these for 3.9.
-> >> 
-> >> There's still the OMAP DMA use in omap_vout_vrfb.c, which is the last
-> >> OMAP dependency in the omap_vout driver. I'm not going to touch that, as
-> >> it doesn't look as trivial as this cpu_is_* removal, and I don't have
-> >> much knowledge of the omap_vout driver.
-> >> 
-> >> Compiled, but not tested.
-> > 
-> > Tested on a Beagleboard-xM.
-> > 
-> > Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Thanks.
-> 
-> > The patches depend on unmerged OMAP DSS patches. Would you like to push
-> > this series through linuxtv or through your DSS tree ? The later might be
-> > easier, depending on when the required DSS patches will hit mainline.
-> 
-> The DSS patches will be merged for 3.8. I can take this via the omapdss
-> tree, as there probably won't be any conflicts with other v4l2 stuff.
-> 
-> Or, we can just delay these until 3.9. These patches remove omap
-> platform dependencies, helping the effort to get common ARM kernel.
-> However, as there's still the VRFB code in the omap_vout driver, the
-> dependency remains. Thus, in way, these patches alone don't help
-> anything, and we could delay these for 3.9 and hope that
-> omap_vout_vrfb.c gets converted also for that merge window.
-
-OK, I'll queue them for v3.9 then.
-
+diff --git a/drivers/media/tuners/fc2580.c b/drivers/media/tuners/fc2580.c
+index aff39ae..81f38aa 100644
+--- a/drivers/media/tuners/fc2580.c
++++ b/drivers/media/tuners/fc2580.c
+@@ -35,8 +35,6 @@
+  * Currently it blind writes bunch of static registers from the
+  * fc2580_freq_regs_lut[] when fc2580_set_params() is called. Add some
+  * logic to reduce unneeded register writes.
+- * There is also don't-care registers, initialized with value 0xff, and those
+- * are also written to the chip currently (yes, not wise).
+  */
+ 
+ /* write multiple registers */
+@@ -111,6 +109,17 @@ static int fc2580_rd_reg(struct fc2580_priv *priv, u8 reg, u8 *val)
+ 	return fc2580_rd_regs(priv, reg, val, 1);
+ }
+ 
++/* write single register conditionally only when value differs from 0xff
++ * XXX: This is special routine meant only for writing fc2580_freq_regs_lut[]
++ * values. Do not use for the other purposes. */
++static int fc2580_wr_reg_ff(struct fc2580_priv *priv, u8 reg, u8 val)
++{
++	if (val == 0xff)
++		return 0;
++	else
++		return fc2580_wr_regs(priv, reg, &val, 1);
++}
++
+ static int fc2580_set_params(struct dvb_frontend *fe)
+ {
+ 	struct fc2580_priv *priv = fe->tuner_priv;
+@@ -213,99 +222,99 @@ static int fc2580_set_params(struct dvb_frontend *fe)
+ 	if (i == ARRAY_SIZE(fc2580_freq_regs_lut))
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x25, fc2580_freq_regs_lut[i].r25_val);
++	ret = fc2580_wr_reg_ff(priv, 0x25, fc2580_freq_regs_lut[i].r25_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x27, fc2580_freq_regs_lut[i].r27_val);
++	ret = fc2580_wr_reg_ff(priv, 0x27, fc2580_freq_regs_lut[i].r27_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x28, fc2580_freq_regs_lut[i].r28_val);
++	ret = fc2580_wr_reg_ff(priv, 0x28, fc2580_freq_regs_lut[i].r28_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x29, fc2580_freq_regs_lut[i].r29_val);
++	ret = fc2580_wr_reg_ff(priv, 0x29, fc2580_freq_regs_lut[i].r29_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x2b, fc2580_freq_regs_lut[i].r2b_val);
++	ret = fc2580_wr_reg_ff(priv, 0x2b, fc2580_freq_regs_lut[i].r2b_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x2c, fc2580_freq_regs_lut[i].r2c_val);
++	ret = fc2580_wr_reg_ff(priv, 0x2c, fc2580_freq_regs_lut[i].r2c_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x2d, fc2580_freq_regs_lut[i].r2d_val);
++	ret = fc2580_wr_reg_ff(priv, 0x2d, fc2580_freq_regs_lut[i].r2d_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x30, fc2580_freq_regs_lut[i].r30_val);
++	ret = fc2580_wr_reg_ff(priv, 0x30, fc2580_freq_regs_lut[i].r30_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x44, fc2580_freq_regs_lut[i].r44_val);
++	ret = fc2580_wr_reg_ff(priv, 0x44, fc2580_freq_regs_lut[i].r44_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x50, fc2580_freq_regs_lut[i].r50_val);
++	ret = fc2580_wr_reg_ff(priv, 0x50, fc2580_freq_regs_lut[i].r50_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x53, fc2580_freq_regs_lut[i].r53_val);
++	ret = fc2580_wr_reg_ff(priv, 0x53, fc2580_freq_regs_lut[i].r53_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x5f, fc2580_freq_regs_lut[i].r5f_val);
++	ret = fc2580_wr_reg_ff(priv, 0x5f, fc2580_freq_regs_lut[i].r5f_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x61, fc2580_freq_regs_lut[i].r61_val);
++	ret = fc2580_wr_reg_ff(priv, 0x61, fc2580_freq_regs_lut[i].r61_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x62, fc2580_freq_regs_lut[i].r62_val);
++	ret = fc2580_wr_reg_ff(priv, 0x62, fc2580_freq_regs_lut[i].r62_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x63, fc2580_freq_regs_lut[i].r63_val);
++	ret = fc2580_wr_reg_ff(priv, 0x63, fc2580_freq_regs_lut[i].r63_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x67, fc2580_freq_regs_lut[i].r67_val);
++	ret = fc2580_wr_reg_ff(priv, 0x67, fc2580_freq_regs_lut[i].r67_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x68, fc2580_freq_regs_lut[i].r68_val);
++	ret = fc2580_wr_reg_ff(priv, 0x68, fc2580_freq_regs_lut[i].r68_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x69, fc2580_freq_regs_lut[i].r69_val);
++	ret = fc2580_wr_reg_ff(priv, 0x69, fc2580_freq_regs_lut[i].r69_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x6a, fc2580_freq_regs_lut[i].r6a_val);
++	ret = fc2580_wr_reg_ff(priv, 0x6a, fc2580_freq_regs_lut[i].r6a_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x6b, fc2580_freq_regs_lut[i].r6b_val);
++	ret = fc2580_wr_reg_ff(priv, 0x6b, fc2580_freq_regs_lut[i].r6b_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x6c, fc2580_freq_regs_lut[i].r6c_val);
++	ret = fc2580_wr_reg_ff(priv, 0x6c, fc2580_freq_regs_lut[i].r6c_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x6d, fc2580_freq_regs_lut[i].r6d_val);
++	ret = fc2580_wr_reg_ff(priv, 0x6d, fc2580_freq_regs_lut[i].r6d_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x6e, fc2580_freq_regs_lut[i].r6e_val);
++	ret = fc2580_wr_reg_ff(priv, 0x6e, fc2580_freq_regs_lut[i].r6e_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	ret = fc2580_wr_reg(priv, 0x6f, fc2580_freq_regs_lut[i].r6f_val);
++	ret = fc2580_wr_reg_ff(priv, 0x6f, fc2580_freq_regs_lut[i].r6f_val);
+ 	if (ret < 0)
+ 		goto err;
+ 
 -- 
-Regards,
-
-Laurent Pinchart
-
---nextPart1920695.VqbvWLCQEz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQEcBAABAgAGBQJQtyyTAAoJEIkPb2GL7hl1VP4H/0XrPiUBRVgIYf/HIKUC+TfO
-V9nlfnHe3DFRNwvcNfLlimQyTa1eCohmB94fryK1ZuJrKdNsNknwNWzphgZg3V44
-6GyqJ51mWShALHj9/DUztdfJd7xk3u870FDV/3wtTcuVkPrSAUSuXXZSTOuidm8I
-Ddvpoh5OJAuRtzoydm40yHemCTLoPpB3Ue3K5kCqxxszDT/OUcmFH2pPdKOvJ5be
-GTJ/vLpT4YQ0OZoQ3Z4WTInzOr0XCVNZMCo4GFA+H8DaZ+BdUrpj0DuSa7+JDImx
-Nb5UJ47uM63mKupHFrfOFcbKAXIcClhEn9KjE6M+iRWtPdOWU9S3s/0IXCZK8TA=
-=CYI2
------END PGP SIGNATURE-----
-
---nextPart1920695.VqbvWLCQEz--
+1.7.11.7
 
