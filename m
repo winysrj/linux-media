@@ -1,66 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:62811 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422711Ab2KNMvn (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:28872 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756416Ab2KVUKs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Nov 2012 07:51:43 -0500
-Date: Wed, 14 Nov 2012 13:51:19 +0100
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Cc: devicetree-discuss@lists.ozlabs.org,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: Re: [PATCH v9 6/6] drm_modes: add of_videomode helpers
-Message-ID: <20121114125119.GG2803@avionic-0098.mockup.avionic-design.de>
-References: <1352893403-21168-1-git-send-email-s.trumtrar@pengutronix.de>
- <1352893403-21168-7-git-send-email-s.trumtrar@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="I3tAPq1Rm2pUxvsp"
-Content-Disposition: inline
-In-Reply-To: <1352893403-21168-7-git-send-email-s.trumtrar@pengutronix.de>
+	Thu, 22 Nov 2012 15:10:48 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MDW00HHP6WVSPW0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 22 Nov 2012 23:00:37 +0900 (KST)
+Received: from amdc1342.digital.local ([106.116.147.39])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MDW001S06WVPK50@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 22 Nov 2012 23:00:37 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: jtp.park@samsung.com, arun.kk@samsung.com, s.nawrocki@samsung.com,
+	Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] s5p-mfc: Context handling in open() bugfix
+Date: Thu, 22 Nov 2012 15:00:28 +0100
+Message-id: <1353592828-13597-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---I3tAPq1Rm2pUxvsp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index d5182d6..31eeb03 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -856,16 +856,16 @@ err_queue_init:
+ 		s5p_mfc_deinit_hw(dev);
+ err_init_hw:
+ err_load_fw:
+-	dev->ctx[ctx->num] = NULL;
+-	del_timer_sync(&dev->watchdog_timer);
+ err_pwr_enable:
+ 	if (dev->num_inst == 1) {
+ 		if (s5p_mfc_power_off() < 0)
+ 			mfc_err("power off failed\n");
++		del_timer_sync(&dev->watchdog_timer);
+ 	}
+ err_ctrls_setup:
+ 	s5p_mfc_dec_ctrls_delete(ctx);
+ err_bad_node:
++	dev->ctx[ctx->num] = NULL;
+ err_no_ctx:
+ 	v4l2_fh_del(&ctx->fh);
+ 	v4l2_fh_exit(&ctx->fh);
+-- 
+1.7.9.5
 
-On Wed, Nov 14, 2012 at 12:43:23PM +0100, Steffen Trumtrar wrote:
-[...]
-> +EXPORT_SYMBOL_GPL(of_get_drm_display_mode);
-> +#endif
->  /**
-
-Nit: there should be a blank line between the last two.
-
-Thierry
-
---I3tAPq1Rm2pUxvsp
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQo5PHAAoJEN0jrNd/PrOh2bAQAKJ/n47kxLl7/OHDAeN6Znay
-shpIyjZQSOV0ncb7J6JGlyJkQnDhYxB7zrcWFSePgNpltztfuxhTcw21ViHf2CpP
-TOYcXCwugbaKN7i4V+25gI6GqwCbX4eqUpGEsMW7uLn5Qk+Nv1q7/m/m1GI72ozs
-IKNhInB4VzyUgEoFnb575MH9Za9kHw00sN1JEHq0ymjkFJnJ/ft5j3LE1bAsw29H
-xwSHQKdDoNFwQ9f/cDybt9jPDCDt75ZZh775qbTpIxKH8wJMqMTmlfpgq9K0Kucv
-XTNbF17GyX4Li4D02PrBfdi++pNONtQJXrMGcl/IzP83ZPUrfDmo/CEeJ+T89xqy
-uY2smevUS3zKkA4RpJ2ZaNTYe2Ys8+sdzDYwiCwxgCbXIy/2JfM46onRDX4eXbaW
-ncrIH1Xcb3o5e5d6pvis/MRUJUR9m5a0aPHwbMh+6dITHPjBOnkai+imRIYE2dxL
-YmtnT1u61CUi4quRNy6NyOPHTQLT7Dki7tnWccXi/hWFBP0m5FnLnWVdeE+ligTC
-cB+qM2b+H7zzHaru5z4vN89pn2SRCi8ozMsF07YPZH0lpi3KXBKc9E7s+5pyZJmE
-py9lDzIeGk3UV1bm+Rk/22uq7L2mCzxoZP0hGey5tk63EUoB81Yumd9VHccVqT5M
-dLIMUdvkkiXMI5s4njUc
-=XRNf
------END PGP SIGNATURE-----
-
---I3tAPq1Rm2pUxvsp--
