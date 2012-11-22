@@ -1,38 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ks358065.kimsufi.com ([91.121.151.38]:34031 "EHLO
-	ks358065.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751820Ab2KNIsJ convert rfc822-to-8bit (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:54254 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754982Ab2KVVvt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Nov 2012 03:48:09 -0500
-From: =?iso-8859-15?q?Fr=E9d=E9ric?= <fma@gbiloba.org>
-To: Patrice Chotard <patrice.chotard@sfr.fr>
-Subject: Re: Support for Terratec Cinergy 2400i DT in kernel 3.x
-Date: Wed, 14 Nov 2012 09:48:00 +0100
-Cc: linux-media@vger.kernel.org
-References: <201211131040.22114.fma@gbiloba.org> <50A2C0C4.9040607@sfr.fr>
-In-Reply-To: <50A2C0C4.9040607@sfr.fr>
+	Thu, 22 Nov 2012 16:51:49 -0500
+Received: by mail-ee0-f46.google.com with SMTP id e53so3107447eek.19
+        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2012 13:51:48 -0800 (PST)
+Message-ID: <50AE9E72.5010903@gmail.com>
+Date: Thu, 22 Nov 2012 22:51:46 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201211140948.00913.fma@gbiloba.org>
+To: Shaik Ameer Basha <shaik.ameer@samsung.com>
+CC: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	kgene.kim@samsung.com
+Subject: Re: [PATCH v2] [media] exynos-gsc: propagate timestamps from src
+ to dst buffers
+References: <1353561906-7869-1-git-send-email-shaik.ameer@samsung.com>
+In-Reply-To: <1353561906-7869-1-git-send-email-shaik.ameer@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le mardi 13 novembre 2012, Patrice Chotard a écrit :
+Hi Shaik,
 
-> Two patches have been already submitted and are available since v3.7-rc1
-> 
-> media] ngene: add support for Terratec Cynergy 2400i Dual DVB-T  :
-> 397e972350c42cbaf3228fe2eec23fecf6a69903
-> 
-> and
-> 
-> media] dvb: add support for Thomson DTT7520X :
-> 5fb67074c6657edc34867cba78255b6f5b505f12
+On 11/22/2012 06:25 AM, Shaik Ameer Basha wrote:
+> Make gsc-m2m propagate the timestamp field from source to destination
+> buffers
+>
+> Signed-off-by: John Sheu<sheu@google.com>
+> Signed-off-by: Shaik Ameer Basha<shaik.ameer@samsung.com>
 
-I had a look at your patches. I don't see the '.fw_version' param anymore in the 'ngene_info' 
-structure... Is it normal?
+I've applied this patch to my tree for v3.8.
 
--- 
-   Frédéric
+Thanks,
+Sylwester
