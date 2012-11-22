@@ -1,55 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:63428 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753096Ab2KYKiF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Nov 2012 05:38:05 -0500
-Received: by mail-ea0-f174.google.com with SMTP id e13so4046398eaa.19
-        for <linux-media@vger.kernel.org>; Sun, 25 Nov 2012 02:38:04 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 5/6] em28xx: em28xx_urb_data_copy_vbi(): calculate vbi_size only if needed
-Date: Sun, 25 Nov 2012 11:37:36 +0100
-Message-Id: <1353839857-2990-6-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1353839857-2990-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1353839857-2990-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mout1.freenet.de ([195.4.92.91]:38616 "EHLO mout1.freenet.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752355Ab2KVS3H (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Nov 2012 13:29:07 -0500
+Received: from [195.4.92.140] (helo=mjail0.freenet.de)
+	by mout1.freenet.de with esmtpa (ID buzz768@freenet.de) (port 25) (Exim 4.76 #1)
+	id 1TbUzK-0000Lf-OZ
+	for linux-media@vger.kernel.org; Thu, 22 Nov 2012 12:30:34 +0100
+Received: from localhost ([::1]:50773 helo=mjail0.freenet.de)
+	by mjail0.freenet.de with esmtpa (ID buzz768@freenet.de) (Exim 4.76 #1)
+	id 1TbUzK-0007PI-Jp
+	for linux-media@vger.kernel.org; Thu, 22 Nov 2012 12:30:34 +0100
+Received: from [195.4.92.19] (port=38159 helo=9.mx.freenet.de)
+	by mjail0.freenet.de with esmtpa (ID buzz768@freenet.de) (Exim 4.76 #1)
+	id 1TbUxA-0006TS-Hm
+	for linux-media@vger.kernel.org; Thu, 22 Nov 2012 12:28:20 +0100
+Received: from p54902e9d.dip.t-dialin.net ([84.144.46.157]:52045 helo=localhost.localdomain)
+	by 9.mx.freenet.de with esmtpsa (ID buzz768@freenet.de) (SSLv3:AES128-SHA:128) (port 465) (Exim 4.76 #1)
+	id 1TbUx9-00019V-Mg
+	for linux-media@vger.kernel.org; Thu, 22 Nov 2012 12:28:20 +0100
+Date: Thu, 22 Nov 2012 12:26:31 +0100
+From: Olaf Bauer <olafbauer@freenet.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] bttv: Filter debugging messages
+Message-ID: <20121122122631.78340fc7@freenet.de>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/9dQvyyZ93XXqz.c3t9Iv0R4"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |    5 ++---
- 1 Datei geändert, 2 Zeilen hinzugefügt(+), 3 Zeilen entfernt(-)
+--MP_/9dQvyyZ93XXqz.c3t9Iv0R4
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 12e4b0a..6843784 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -525,7 +525,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
- 	struct em28xx_buffer    *buf, *vbi_buf;
- 	struct em28xx_dmaqueue  *dma_q = &dev->vidq;
- 	struct em28xx_dmaqueue  *vbi_dma_q = &dev->vbiq;
--	int xfer_bulk, vbi_size, num_packets, i, rc = 1;
-+	int xfer_bulk, num_packets, i, rc = 1;
- 	unsigned int actual_length, len = 0;
- 	unsigned char *p, *outp = NULL, *vbioutp = NULL;
- 
-@@ -612,9 +612,8 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
- 		/* NOTE: with bulk transfers, intermediate data packets
- 		 * have no continuation header */
- 
--		vbi_size = dev->vbi_width * dev->vbi_height;
--
- 		if (dev->capture_type == 0) {
-+			int vbi_size = dev->vbi_width * dev->vbi_height;
- 			if (dev->vbi_read >= vbi_size) {
- 				/* We've already read all the VBI data, so
- 				   treat the rest as video */
--- 
-1.7.10.4
+My logfiles and dmesg output have become almost unreadable due to
+repeated, almost empty lines.
 
+[ 3606.212316] >
+[ 3606.212738] >
+...
+[ 3627.177280] >
+[ 3627.177775] >
+...
+
+They start one hour after vdr daemon is launched. Each section contains
+13 lines and is repeated every 21 seconds. Kernel driver for my
+AverMedia DVB-T 771 is bttv, kernel is 3.6.6-1-ARCH (Arch Linux). I
+installed v4l-dvb from git and get the same result but with one line
+appended to each section
+
+[ 3688.860166] >
+[ 3688.860570] >
+[ 3691.188200] dvb_frontend_poll: 8 callbacks suppressed
+
+The attached patch suppresses at least the useless ">" output.
+
+
+--MP_/9dQvyyZ93XXqz.c3t9Iv0R4
+Content-Type: text/x-patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=bttv-i2c.patch
+
+diff -ur a/drivers/media/pci/bt8xx/bttv-i2c.c b/drivers/media/pci/bt8xx/bttv-i2c.c
+--- a/drivers/media/pci/bt8xx/bttv-i2c.c	2012-11-22 09:56:25.817307254 +0100
++++ b/drivers/media/pci/bt8xx/bttv-i2c.c	2012-11-22 10:01:46.014371997 +0100
+@@ -174,7 +174,7 @@
+ 		if (i2c_debug)
+ 			pr_cont(" %02x", msg->buf[cnt]);
+ 	}
+-	if (!(xmit & BT878_I2C_NOSTOP))
++	if (i2c_debug && !(xmit & BT878_I2C_NOSTOP))
+ 		pr_cont(">\n");
+ 	return msg->len;
+ 
+
+--MP_/9dQvyyZ93XXqz.c3t9Iv0R4--
