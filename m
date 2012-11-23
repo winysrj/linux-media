@@ -1,68 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:58700 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751212Ab2KML20 (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2868 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756270Ab2KWL0N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Nov 2012 06:28:26 -0500
-Date: Tue, 13 Nov 2012 12:28:06 +0100
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Cc: devicetree-discuss@lists.ozlabs.org,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: Re: [PATCH v8 4/6] fbmon: add of_videomode helpers
-Message-ID: <20121113112806.GC30049@avionic-0098.mockup.avionic-design.de>
-References: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
- <1352734626-27412-5-git-send-email-s.trumtrar@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="iFRdW5/EC4oqxDHL"
-Content-Disposition: inline
-In-Reply-To: <1352734626-27412-5-git-send-email-s.trumtrar@pengutronix.de>
+	Fri, 23 Nov 2012 06:26:13 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 13/15] MAINTAINERS: add saa6588 entry.
+Date: Fri, 23 Nov 2012 12:25:54 +0100
+Message-Id: <a44b14dec34d3ea3a471d93e06c21e23928e26d1.1353669806.git.hans.verkuil@cisco.com>
+In-Reply-To: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
+References: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <7fb3123c4bf43540c13505c82c408fa492cdd48c.1353669806.git.hans.verkuil@cisco.com>
+References: <7fb3123c4bf43540c13505c82c408fa492cdd48c.1353669806.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---iFRdW5/EC4oqxDHL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ MAINTAINERS |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-On Mon, Nov 12, 2012 at 04:37:04PM +0100, Steffen Trumtrar wrote:
-[...]
-> diff --git a/include/linux/fb.h b/include/linux/fb.h
-[...]
-> +extern int of_get_fb_videomode(struct device_node *np, struct fb_videomode *fb, int index);
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 1c10922..c12be91 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6422,6 +6422,14 @@ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ S:	Supported
+ F:	drivers/mmc/host/s3cmci.*
+ 
++SAA6588 RDS RECEIVER DRIVER
++M:	Hans Verkuil <hverkuil@xs4all.nl>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++W:	http://linuxtv.org
++S:	Odd Fixes
++F:	drivers/media/i2c/saa6588*
++
+ SAA7134 VIDEO4LINUX DRIVER
+ M:	Mauro Carvalho Chehab <mchehab@redhat.com>
+ L:	linux-media@vger.kernel.org
+-- 
+1.7.10.4
 
-Similarily this should get a dummy for the !CONFIG_OF_VIDEOMODE case,
-right? Either that or the prototype should be protected by
-CONFIG_OF_VIDEOMODE as well.
-
-Thierry
-
---iFRdW5/EC4oqxDHL
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQoi7GAAoJEN0jrNd/PrOhVjIP/36eOoKUDRNb6eN9INfsjTEx
-Jgjo1dTXSOJ3MS/oLaqyCyEHFsJ7/Ykd7AQECwGNhZGMpk5rqlP6qbEFq6EHBSOl
-lB4K5boKPsQskjEoycghzhS+cHmmGMNRyxRPoCOsw15+bRuuCZYokMZpTo2l6o5g
-DxcMwRkggweQ9jCxkjasrzTheC5n3ORJGooxruJJRa53FtCY5YsdudejKJWbY42m
-Rz09e4l44mAI1rTtSXSRpwtZs1all3Zl/whlDtdZLE78az48SobMVj4TQSwLrmay
-NEOfgBLvKVfiKIZCGEKGFJcMpeZ+xbSnP1VyJ6NH0LQrI2KuSeFL6Ueljqi6+6Xe
-BwVUk1cf7Qv38mkdlOtSOj0F0sLGW80VZ3sA3B87Z2ziY/TyDODs0KVat9T4LRPn
-MNUbEFdwVZCXeAC9r62Jg5lv0nhxbZ+4+QZGXThnvjS21vzWm+gh8FTVWHGiMxg2
-unjU1pEU/7k7alAZnXABOMNzzO0lALfZC277Rn87A9KROJ5Cc+51mo5ice2MJBaE
-sgAlULYPCbXZYBkBkpPaHQ+CB3AhYuC63QJUoeYHuLrki6fIYp16T0trgHZAGasK
-6ja7u6KndZIDhsrhyK/cxooBxZpaZNRxnpsmqoUhRP1/CafXYkamtkEMTc6mpT2N
-EbuqVNtAeNkrjcYSuUe3
-=pyCu
------END PGP SIGNATURE-----
-
---iFRdW5/EC4oqxDHL--
