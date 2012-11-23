@@ -1,75 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:54517 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756183Ab2K0UiE (ORCPT
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:4521 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750896Ab2KWMgw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 15:38:04 -0500
-Received: by mail-vb0-f46.google.com with SMTP id ff1so7304506vbb.19
-        for <linux-media@vger.kernel.org>; Tue, 27 Nov 2012 12:38:04 -0800 (PST)
+	Fri, 23 Nov 2012 07:36:52 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 4/6] uvcvideo: Set device_caps in VIDIOC_QUERYCAP
+Date: Fri, 23 Nov 2012 13:36:46 +0100
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1348758980-21683-1-git-send-email-laurent.pinchart@ideasonboard.com> <201211161500.29555.hverkuil@xs4all.nl> <1498367.xoaGbmT0nc@avalon>
+In-Reply-To: <1498367.xoaGbmT0nc@avalon>
 MIME-Version: 1.0
-In-Reply-To: <50B3BA92.6090407@iki.fi>
-References: <CAK02SCLV3677t1UQe56aWA7qBwoLna2=UREq1GAfS9PqT2deEA@mail.gmail.com>
-	<50B3BA92.6090407@iki.fi>
-Date: Tue, 27 Nov 2012 21:38:04 +0100
-Message-ID: <CAK02SCK9DqKSt6e145iYCp-gMsS3vgoVvXi0+3Y=HTUM-qN2Wg@mail.gmail.com>
-Subject: Re: Tuning problems with em28xx-dvb & tda10071 on MIPS-based router board
-From: Ingo Kofler <ingo.kofler@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201211231336.46993.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for the info. Then I'll try to fix it by myself and isolate the
-error by comparing the driver behavior on the PC and my router. I hope
-I can provide a patch for that afterwards.
+On Fri November 23 2012 13:20:10 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thanks for the review.
+> 
+> On Friday 16 November 2012 15:00:29 Hans Verkuil wrote:
+> > On Thu September 27 2012 17:16:18 Laurent Pinchart wrote:
+> > > Set the capabilities field to global capabilities, and the device_caps
+> > > field to the video node capabilities.
+> > > 
+> > > This issue was found by the v4l2-compliance tool.
+> > > 
+> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > ---
+> > > 
+> > >  drivers/media/usb/uvc/uvc_driver.c |    5 +++++
+> > >  drivers/media/usb/uvc/uvc_v4l2.c   |   10 ++++++----
+> > >  drivers/media/usb/uvc/uvcvideo.h   |    2 ++
+> > >  3 files changed, 13 insertions(+), 4 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> > > b/drivers/media/usb/uvc/uvc_driver.c index 5967081..ae24f7d 100644
+> > > --- a/drivers/media/usb/uvc/uvc_driver.c
+> > > +++ b/drivers/media/usb/uvc/uvc_driver.c
+> > > @@ -1741,6 +1741,11 @@ static int uvc_register_video(struct uvc_device
+> > > *dev,
+> > >  		return ret;
+> > >  	}
+> > > 
+> > > +	if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> > > +		stream->chain->caps |= V4L2_CAP_VIDEO_CAPTURE;
+> > > +	else
+> > > +		stream->chain->caps |= V4L2_CAP_VIDEO_OUTPUT;
+> > > +
+> > >  	atomic_inc(&dev->nstreams);
+> > >  	return 0;
+> > >  }
+> > > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> > > b/drivers/media/usb/uvc/uvc_v4l2.c index 3bd9373..b1aa55f 100644
+> > > --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> > > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> > > @@ -565,12 +565,14 @@ static long uvc_v4l2_do_ioctl(struct file *file,
+> > > unsigned int cmd, void *arg)> 
+> > >  		usb_make_path(stream->dev->udev,
+> > >  			      cap->bus_info, sizeof(cap->bus_info));
+> > >  		cap->version = LINUX_VERSION_CODE;
+> > > +		cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
+> > > +				  | chain->caps;
+> > >  		if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> > > -			cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
+> > > -					  | V4L2_CAP_STREAMING;
+> > > +			cap->device_caps = V4L2_CAP_VIDEO_CAPTURE
+> > > +					 | V4L2_CAP_STREAMING;
+> > >  		else
+> > > -			cap->capabilities = V4L2_CAP_VIDEO_OUTPUT
+> > > -					  | V4L2_CAP_STREAMING;
+> > > +			cap->device_caps = V4L2_CAP_VIDEO_OUTPUT
+> > > +					 | V4L2_CAP_STREAMING;
+> > 
+> > This seems weird. Wouldn't it be easier to do:
+> > 
+> > 		cap->device_caps = chain->caps | V4L2_CAP_STREAMING;
+> > 
+> > You don't need the if/else here.
+> 
+> No, because chain->caps can be V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT 
+> as a chain can contain several video nodes. We want to caps of this particular 
+> video node only here.
 
-Are there any hints where I might look first. Since it only works for
-very few transponders I suppose the error in the frontend.... or not?
+That explains it :-)
 
-Regards
-Ingo
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-2012/11/26, Antti Palosaari <crope@iki.fi>:
-> On 11/26/2012 07:50 PM, Ingo Kofler wrote:
->> Hi,
->>
->> I am trying to get my PCTV DVB-S2 stick running on my TP-Link
->> TL-WR1043ND that runs OpenWrt (Attitude Adjustment Beta, Kernel
->> 3.3.8). I have cross-compiled the corresponding kernel modules and
->> deployed them on the router. I have also deployed the firmware on the
->> device.
->>
->> After loading the corresponding modules the /dev/dvb/... devices show
->> up and the dmesg output seems to be fine. Then I tried to test the
->> device using szap and a channels.conf file. Unfortunately, the device
->> cannot tune to most of the transponders except of two. Both are
->> located in the vertical high band of the Astra 19E. For all other
->> transponders I do not get a lock of the frontend.
->>
->> Tuning works fine on my PC using kernel verions 3.2 and 3.5 (the ones
->> that ship with Ubuntu) and using the same channels.conf file and
->> stick. So I conclude that both the stick, the satellite dish and the
->> channels.conf is working. I've also tested it on the router board with
->> an external powered USB Hub (I though that maybe the power of the
->> router's USB port wasn't good enough).
->>
->> Now I have no further ideas. Before I start to debug the C code and
->> try to figure out the difference between the PC and the router - Are
->> there any known issues with this driver? Does it work on MIPS and
->> different endianess?
->
-> No idea if it works or not any other than AMD64 (and i386). I use AMD64
-> Kernel on my computer and I cannot test easily any other arch's as I
-> don't have suitable hardware. i386 is so common which means bug reports
-> are got very quickly and fixed.
->
-> Generally speaking I am a little bit surprised these drivers seems to
-> just work from arch to arch quite often.
->
-> regards
-> Antti
->
-> --
-> http://palosaari.fi/
->
+Regards,
+
+	Hans
