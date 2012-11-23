@@ -1,46 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:60593 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751384Ab2KDH7w convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Nov 2012 02:59:52 -0500
-Received: by mail-ea0-f174.google.com with SMTP id c13so1864015eaa.19
-        for <linux-media@vger.kernel.org>; Sun, 04 Nov 2012 00:59:49 -0700 (PDT)
-From: Oleg Kravchenko <oleg@kaa.org.ua>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] cx23885: Added support for AVerTV Hybrid Express Slim HC81R (only analog)
-Date: Sun, 04 Nov 2012 09:59:41 +0200
-Message-ID: <2065193.Q95hUZKIgW@comp>
-In-Reply-To: <21a4038a-2fef-4947-ab2a-06873e80b185@email.android.com>
-References: <2489713.pAFgSjBqdl@comp> <21a4038a-2fef-4947-ab2a-06873e80b185@email.android.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3724 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756246Ab2KWL0M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Nov 2012 06:26:12 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 09/15] MAINTAINERS: add radio-gemtek entry.
+Date: Fri, 23 Nov 2012 12:25:50 +0100
+Message-Id: <2e7c39a7e5d69826afd721d8916444f4eba16020.1353669806.git.hans.verkuil@cisco.com>
+In-Reply-To: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
+References: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <7fb3123c4bf43540c13505c82c408fa492cdd48c.1353669806.git.hans.verkuil@cisco.com>
+References: <7fb3123c4bf43540c13505c82c408fa492cdd48c.1353669806.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-субота, 03-лис-2012 16:41:10 Andy Walls написано:
-> Oleg Kravchenko <oleg@kaa.org.ua> wrote:
-> >Hello! Please review my patch.
-> >
-> >Supported inputs:
-> >Television, S-Video, Component.
-> >
-> >Modules options:
-> >options cx25840 firmware=v4l-cx23418-dig.fw
-> 
-> Hi,
-> 
-> Please do not use the CX23418 digitizer firmware with the CX2388[578] chips.
->  Use the proper cx23885 digitizer firmware.  You need the proper firmware
-> to get the best results in detecting the audio standard in broadcast analog
-> video.
-> 
-> Regards,
-> Andy
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Windows driver use v4l-cx23418-dig.fw
-95bc688d3e7599fd5800161e9971cc55  merlinAVC.rom
-95bc688d3e7599fd5800161e9971cc55  /lib/firmware/v4l-cx23418-dig.fw
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ MAINTAINERS |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-So, i think this is a proper firmware :)
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 12377a2..5758e93 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -3318,6 +3318,14 @@ W:	http://www.icp-vortex.com/
+ S:	Supported
+ F:	drivers/scsi/gdt*
+ 
++GEMTEK FM RADIO RECEIVER DRIVER
++M:	Hans Verkuil <hverkuil@xs4all.nl>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++W:	http://linuxtv.org
++S:	Maintained
++F:	drivers/media/radio/radio-gemtek*
++
+ GENERIC GPIO I2C DRIVER
+ M:	Haavard Skinnemoen <hskinnemoen@gmail.com>
+ S:	Supported
+-- 
+1.7.10.4
+
