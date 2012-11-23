@@ -1,68 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13513 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752081Ab2KEWz4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Nov 2012 17:55:56 -0500
-Date: Mon, 5 Nov 2012 23:55:41 +0100
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 57/68] [media] anysee: fix a warning
-Message-ID: <20121105235541.6dacdffe@gaivota.chehab.kubiwireless.com>
-In-Reply-To: <50983E03.6090709@iki.fi>
-References: <1351370486-29040-1-git-send-email-mchehab@redhat.com>
-	<1351370486-29040-58-git-send-email-mchehab@redhat.com>
-	<50983E03.6090709@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:41751 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751899Ab2KWNe0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Nov 2012 08:34:26 -0500
+From: Albert Wang <twang13@marvell.com>
+To: corbet@lwn.net, g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, Libin Yang <lbyang@marvell.com>,
+	Albert Wang <twang13@marvell.com>
+Subject: [PATCH 05/15] [media] marvell-ccic: refine mcam_set_contig_buffer function
+Date: Fri, 23 Nov 2012 21:33:31 +0800
+Message-Id: <1353677611-24107-1-git-send-email-twang13@marvell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 06 Nov 2012 00:30:27 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+From: Libin Yang <lbyang@marvell.com>
 
-> On 10/27/2012 11:41 PM, Mauro Carvalho Chehab wrote:
-> > drivers/media/usb/dvb-usb-v2/anysee.c:1179:5: warning: 'tmp' may be used uninitialized in this function [-Wmaybe-uninitialized]
-> >
-> > Cc: Antti Palosaari <crope@iki.fi>
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > ---
-> >   drivers/media/usb/dvb-usb-v2/anysee.c | 2 +-
-> >   1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/media/usb/dvb-usb-v2/anysee.c b/drivers/media/usb/dvb-usb-v2/anysee.c
-> > index e78ca8f..d05c5b5 100644
-> > --- a/drivers/media/usb/dvb-usb-v2/anysee.c
-> > +++ b/drivers/media/usb/dvb-usb-v2/anysee.c
-> > @@ -1170,7 +1170,7 @@ static int anysee_ci_poll_slot_status(struct dvb_ca_en50221 *ci, int slot,
-> >   	struct dvb_usb_device *d = ci->data;
-> >   	struct anysee_state *state = d_to_priv(d);
-> >   	int ret;
-> > -	u8 tmp;
-> > +	u8 tmp = 0;
-> >
-> >   	ret = anysee_rd_reg_mask(d, REG_IOC, &tmp, 0x40);
-> >   	if (ret)
-> >
-> 
-> That is another one I have looked multiple times - you are even asked to 
-> look once few months back. I don't see how it could take that branch. 
-> Maybe uninitialized_var() is a little bit cheaper?
+This patch refines mcam_set_contig_buffer() in mcam core
 
-It is a little cheaper, but I don't like uninitialized_var(), as it can hide
-real problems. So, except when performance is really important, I tend
-to not use it.
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+---
+ drivers/media/platform/marvell-ccic/mcam-core.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-> 
-> Anyway, I am OK with that too.
-> 
-> regards
-> Antti
-> 
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 760e8ea..67d4f2f 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -481,22 +481,21 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
+ 	 */
+ 	if (list_empty(&cam->buffers)) {
+ 		buf = cam->vb_bufs[frame ^ 0x1];
+-		cam->vb_bufs[frame] = buf;
+-		mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR,
+-				vb2_dma_contig_plane_dma_addr(&buf->vb_buf, 0));
+ 		set_bit(CF_SINGLE_BUFFER, &cam->flags);
+ 		cam->frame_state.singles++;
+-		return;
++	} else {
++		/*
++		 * OK, we have a buffer we can use.
++		 */
++		buf = list_first_entry(&cam->buffers, struct mcam_vb_buffer,
++					queue);
++		list_del_init(&buf->queue);
++		clear_bit(CF_SINGLE_BUFFER, &cam->flags);
+ 	}
+-	/*
+-	 * OK, we have a buffer we can use.
+-	 */
+-	buf = list_first_entry(&cam->buffers, struct mcam_vb_buffer, queue);
+-	list_del_init(&buf->queue);
++
++	cam->vb_bufs[frame] = buf;
+ 	mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR,
+ 			vb2_dma_contig_plane_dma_addr(&buf->vb_buf, 0));
+-	cam->vb_bufs[frame] = buf;
+-	clear_bit(CF_SINGLE_BUFFER, &cam->flags);
+ }
+ 
+ /*
+-- 
+1.7.9.5
 
-
-
-
-Cheers,
-Mauro
