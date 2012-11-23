@@ -1,91 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:52447 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750957Ab2KPG46 (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2536 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756290Ab2KWL0P (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Nov 2012 01:56:58 -0500
-Received: by mail-pb0-f46.google.com with SMTP id wy7so1734367pbc.19
-        for <linux-media@vger.kernel.org>; Thu, 15 Nov 2012 22:56:58 -0800 (PST)
-From: Tushar Behera <tushar.behera@linaro.org>
-To: linux-kernel@vger.kernel.org
-Cc: patches@linaro.org, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Ian Campbell <ian.campbell@citrix.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Jeremy Fitzhardinge <jeremy@goop.org>,
-	Chas Williams <chas@cmf.nrl.navy.mil>,
-	Jack Steiner <steiner@sgi.com>, Arnd Bergmann <arnd@arndb.de>,
-	Luciano Coelho <coelho@ti.com>, Jiri Kosina <jkosina@suse.cz>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	xen-devel@lists.xensource.com, netdev@vger.kernel.org,
-	virtualization@lists.linux-foundation.org,
-	linux-atm-general@lists.sourceforge.net, linux-usb@vger.kernel.org,
-	linux-input@vger.kernel.org, linux-wireless@vger.kernel.org
-Subject: [PATCH 00/14] Modify signed comparisons of unsigned variables
-Date: Fri, 16 Nov 2012 12:20:32 +0530
-Message-Id: <1353048646-10935-1-git-send-email-tushar.behera@linaro.org>
+	Fri, 23 Nov 2012 06:26:15 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 07/15] MAINTAINERS: add radio-aztech entry.
+Date: Fri, 23 Nov 2012 12:25:48 +0100
+Message-Id: <9d9fec38e6421b325a85cb6e004c4d4522d443c1.1353669806.git.hans.verkuil@cisco.com>
+In-Reply-To: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
+References: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <7fb3123c4bf43540c13505c82c408fa492cdd48c.1353669806.git.hans.verkuil@cisco.com>
+References: <7fb3123c4bf43540c13505c82c408fa492cdd48c.1353669806.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The occurrences were identified through the coccinelle script at
-following location.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-http://www.emn.fr/z-info/coccinelle/rules/find_unsigned.cocci
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ MAINTAINERS |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Signed checks for unsigned variables are removed if it is also checked
-for upper error limit. For error checks, IS_ERR_VALUE() macros is used.
-
-Tushar Behera (14):
-  [media] ivtv: Remove redundant check on unsigned variable
-  [media] meye: Remove redundant check on unsigned variable
-  [media] saa7134: Remove redundant check on unsigned variable
-  [media] tlg2300: Remove redundant check on unsigned variable
-  [media] atmel-isi: Update error check for unsigned variables
-  pinctrl: samsung: Update error check for unsigned variables
-  pinctrl: SPEAr: Update error check for unsigned variables
-  xen: netback: Remove redundant check on unsigned variable
-  xen: events: Remove redundant check on unsigned variable
-  atm: Removed redundant check on unsigned variable
-  HID: hiddev: Remove redundant check on unsigned variable
-  gru: Remove redundant check on unsigned variable
-  misc: tsl2550: Remove redundant check on unsigned variable
-  wlcore: Remove redundant check on unsigned variable
-
- drivers/atm/fore200e.c                        |    2 +-
- drivers/hid/usbhid/hiddev.c                   |    2 +-
- drivers/media/pci/ivtv/ivtv-ioctl.c           |    2 +-
- drivers/media/pci/meye/meye.c                 |    2 +-
- drivers/media/pci/saa7134/saa7134-video.c     |    2 +-
- drivers/media/platform/soc_camera/atmel-isi.c |    2 +-
- drivers/media/usb/tlg2300/pd-video.c          |    2 +-
- drivers/misc/sgi-gru/grukdump.c               |    2 +-
- drivers/misc/tsl2550.c                        |    4 ++--
- drivers/net/wireless/ti/wlcore/debugfs.c      |    2 +-
- drivers/net/xen-netback/netback.c             |    4 ++--
- drivers/pinctrl/pinctrl-samsung.c             |    2 +-
- drivers/pinctrl/spear/pinctrl-plgpio.c        |    2 +-
- drivers/xen/events.c                          |    2 +-
- 14 files changed, 16 insertions(+), 16 deletions(-)
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index ebacbd5..89db772 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -1499,6 +1499,14 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
+ F:	drivers/media/usb/dvb-usb-v2/az6007.c
+ 
++AZTECH FM RADIO RECEIVER DRIVER
++M:	Hans Verkuil <hverkuil@xs4all.nl>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++W:	http://linuxtv.org
++S:	Maintained
++F:	drivers/media/radio/radio-aztech*
++
+ B43 WIRELESS DRIVER
+ M:	Stefano Brivio <stefano.brivio@polimi.it>
+ L:	linux-wireless@vger.kernel.org
 -- 
-1.7.4.1
+1.7.10.4
 
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Linus Walleij <linus.walleij@linaro.org>
-CC: Ian Campbell <ian.campbell@citrix.com>
-CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-CC: Jeremy Fitzhardinge <jeremy@goop.org>
-CC: Chas Williams <chas@cmf.nrl.navy.mil>
-CC: Jack Steiner <steiner@sgi.com>
-CC: Arnd Bergmann <arnd@arndb.de>
-CC: Luciano Coelho <coelho@ti.com>
-CC: Jiri Kosina <jkosina@suse.cz>
-CC: ivtv-devel@ivtvdriver.org
-CC: linux-media@vger.kernel.org
-CC: xen-devel@lists.xensource.com
-CC: netdev@vger.kernel.org
-CC: virtualization@lists.linux-foundation.org
-CC: linux-atm-general@lists.sourceforge.net
-CC: linux-usb@vger.kernel.org
-CC: linux-input@vger.kernel.org
-CC: linux-wireless@vger.kernel.org
