@@ -1,72 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:50479 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751304Ab2KFLiE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 06:38:04 -0500
-Date: Tue, 6 Nov 2012 12:37:35 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Javier Martin <javier.martin@vista-silicon.com>
-cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	p.zabel@pengutronix.de, s.nawrocki@samsung.com,
-	mchehab@infradead.org, kernel@pengutronix.de
-Subject: Re: [PATCH 1/2] ARM: i.MX27: Add platform support for IRAM.
-In-Reply-To: <1352131185-12079-1-git-send-email-javier.martin@vista-silicon.com>
-Message-ID: <Pine.LNX.4.64.1211061232510.6451@axis700.grange>
-References: <1352131185-12079-1-git-send-email-javier.martin@vista-silicon.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:64565 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754105Ab2KWL5G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Nov 2012 06:57:06 -0500
+Received: by mail-pa0-f46.google.com with SMTP id bh2so3502852pad.19
+        for <linux-media@vger.kernel.org>; Fri, 23 Nov 2012 03:57:05 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 2/6] [media] s5p-fimc: Use devm_clk_get in fimc-core.c
+Date: Fri, 23 Nov 2012 17:20:39 +0530
+Message-Id: <1353671443-2978-3-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1353671443-2978-1-git-send-email-sachin.kamat@linaro.org>
+References: <1353671443-2978-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier
+devm_clk_get is device managed and makes error handling and cleanup
+a bit simpler.
 
-On Mon, 5 Nov 2012, Javier Martin wrote:
-
-> Add support for IRAM to i.MX27 non-DT platforms using
-> iram_init() function.
-
-I'm not sure this belongs in a camera driver. Can IRAM not be used for 
-anything else? I'll check the i.MX27 datasheet when I'm back home after 
-the conference, so far this seems a bit odd.
-
-Thanks
-Guennadi
-
-> 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> ---
->  arch/arm/mach-imx/mm-imx27.c |    3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/arch/arm/mach-imx/mm-imx27.c b/arch/arm/mach-imx/mm-imx27.c
-> index e7e24af..fd2416d 100644
-> --- a/arch/arm/mach-imx/mm-imx27.c
-> +++ b/arch/arm/mach-imx/mm-imx27.c
-> @@ -27,6 +27,7 @@
->  #include <asm/pgtable.h>
->  #include <asm/mach/map.h>
->  #include <mach/iomux-v1.h>
-> +#include <mach/iram.h>
->  
->  /* MX27 memory map definition */
->  static struct map_desc imx27_io_desc[] __initdata = {
-> @@ -94,4 +95,6 @@ void __init imx27_soc_init(void)
->  	/* imx27 has the imx21 type audmux */
->  	platform_device_register_simple("imx21-audmux", 0, imx27_audmux_res,
->  					ARRAY_SIZE(imx27_audmux_res));
-> +	/* imx27 has an iram of 46080 bytes size */
-> +	iram_init(MX27_IRAM_BASE_ADDR, 46080);
->  }
-> -- 
-> 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/platform/s5p-fimc/fimc-core.c |   10 ++--------
+ 1 files changed, 2 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/s5p-fimc/fimc-core.c
+index 8d0d2b9..0c45127 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-core.c
++++ b/drivers/media/platform/s5p-fimc/fimc-core.c
+@@ -814,8 +814,6 @@ static void fimc_clk_put(struct fimc_dev *fimc)
+ 		if (IS_ERR_OR_NULL(fimc->clock[i]))
+ 			continue;
+ 		clk_unprepare(fimc->clock[i]);
+-		clk_put(fimc->clock[i]);
+-		fimc->clock[i] = NULL;
+ 	}
+ }
+ 
+@@ -824,19 +822,15 @@ static int fimc_clk_get(struct fimc_dev *fimc)
+ 	int i, ret;
+ 
+ 	for (i = 0; i < MAX_FIMC_CLOCKS; i++) {
+-		fimc->clock[i] = clk_get(&fimc->pdev->dev, fimc_clocks[i]);
++		fimc->clock[i] = devm_clk_get(&fimc->pdev->dev, fimc_clocks[i]);
+ 		if (IS_ERR(fimc->clock[i]))
+ 			goto err;
+ 		ret = clk_prepare(fimc->clock[i]);
+-		if (ret < 0) {
+-			clk_put(fimc->clock[i]);
+-			fimc->clock[i] = NULL;
++		if (ret < 0)
+ 			goto err;
+-		}
+ 	}
+ 	return 0;
+ err:
+-	fimc_clk_put(fimc);
+ 	dev_err(&fimc->pdev->dev, "failed to get clock: %s\n",
+ 		fimc_clocks[i]);
+ 	return -ENXIO;
+-- 
+1.7.4.1
+
