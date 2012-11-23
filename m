@@ -1,92 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-14.websupport.sk ([37.9.172.143]:33215 "EHLO
-	mailout-14.websupport.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753423Ab2KSP4k (ORCPT
+Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:52575 "EHLO
+	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753362Ab2KWNey (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Nov 2012 10:56:40 -0500
-Received: from lb1.websupport.sk (localhost [127.0.0.1])
-	by smtp-cf.websupport.sk (Postfix) with ESMTP id 1A71D1004B88
-	for <linux-media@vger.kernel.org>; Mon, 19 Nov 2012 16:47:04 +0100 (CET)
-Received: from [192.168.1.217] (dsl-static-135.212-5-193.telecom.sk [212.5.193.135])
-	(using TLSv1 with cipher AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: topolsky@maindata.sk)
-	by mail1.websupport.sk (Postfix) with ESMTPSA
-	for <linux-media@vger.kernel.org>; Mon, 19 Nov 2012 16:47:03 +0100 (CET)
-Message-ID: <50AA54BB.1010107@maindata.sk>
-Date: Mon, 19 Nov 2012 16:48:11 +0100
-From: Ondrej Topolsky <topolsky@maindata.sk>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: dvbnet error
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 23 Nov 2012 08:34:54 -0500
+From: Albert Wang <twang13@marvell.com>
+To: corbet@lwn.net, g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, Albert Wang <twang13@marvell.com>,
+	Libin Yang <lbyang@marvell.com>
+Subject: [PATCH 13/15] [media] marvell-ccic: add dma burst mode support in marvell-ccic driver
+Date: Fri, 23 Nov 2012 21:34:33 +0800
+Message-Id: <1353677673-24397-1-git-send-email-twang13@marvell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear linuxtv developer-s
+This patch adds the dma burst size config support for marvell-ccic.
+Developer can set the dma burst size in specified board driver.
 
-I am trying (it is now couple of days - of no avail) to create interface 
-with dvbnet utility for decoding IP with MPE (tested with DVB-H signal 
-containing IP packets). I run:
-dvbnet -a 0 -p 1002
-gives me this output:
-Error: couldn't open device 0: 2 No such file or directory
-But the char device /dev/dvb/adapter0/net0 is definitely there (in it's 
-default location).
-For some reason dvbnet_open function in dvb-apps/lib/libdvbapi/dvbnet.c 
-cannot open this device
-I have search mailing(and intenet) list but I haven't found any issue 
-similar to this.
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+Signed-off-by: Albert Wang <twang13@marvell.com>
+---
+ .../media/platform/marvell-ccic/mcam-core-soc.c    |    2 +-
+ drivers/media/platform/marvell-ccic/mcam-core.h    |    7 ++++---
+ drivers/media/platform/marvell-ccic/mmp-driver.c   |   11 +++++++++++
+ include/media/mmp-camera.h                         |    1 +
+ 4 files changed, 17 insertions(+), 4 deletions(-)
 
-Specs:
-
-I have embedded linux set-top Skytec JOBI box which has sh4 architecture 
-and 2.6.32.28_stm24_0207 kernel. It is this device: 
-http://www.satmultimedia.tv/skytec-hd-jobi
-as Os i have installed enigma2 linux.
-
-I thought that maybe there isn't kernel support for MPE, but why should 
-there be net0 device which was created by driver..
-
-My attempts:
-
-After no success with debian  .deb packege of dvb-apps for sh4 
-(installed with ipkg ),
-I cross-compiled dvb-apps staticaly(from mercurial repository).
-Eeverything works: szap, scan.. dvbsnoop. I can tune to signal, zap 
-channels, sniff traffic with dvbtraffic, but dvbnet is giving me that 
-"no such file.." error.
-
-I have other machine which is running debian and is receiving same 
-signal as is STB and I successfuly received IP from MPE (tested with 
-tcpdump) on that other machine with no problem.
-
-I noticed that in /sys/class/dvb/ there is no dvb0.net0 folder (but i am 
-not exactly sure what is /sys/class/dvb folder used for).
-
-Another wierd thing is that when I run dvbnet -h it segfaults and when I 
-run /usr/bin/dvbnet -h it works (its definitely the same binary - with 
-my debug messages).
-
-Questions:
-Can You please tell me why dvbnet cannot open this net0 device - or what 
-should I do to find out?
-Maybe it is used by some process, but i killed TV interface enigma2 
-before trying anything(init 3, init 4 - it is not longer displayed in ps).
-And can You please tell me how to detect if my kernel/driver has MPE 
-support (there is no /proc/kallsyms file on STB) - maybe some C code.
-Finaly I was trying to find some info about MPE but there seem to be 
-very little on internet.
-I would be grateful for any informations or links..
-
-All the best
-
-Ondrej Topolsky
-Programmer at Maindata inc. Slovakia
-
-
-
-
-
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core-soc.c b/drivers/media/platform/marvell-ccic/mcam-core-soc.c
+index a0df8b4..518e6dc 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core-soc.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core-soc.c
+@@ -100,7 +100,7 @@ static int mcam_camera_add_device(struct soc_camera_device *icd)
+ 	mcam_ctlr_stop(mcam);
+ 	mcam_set_config_needed(mcam, 1);
+ 	mcam_reg_write(mcam, REG_CTRL1,
+-				   C1_RESERVED | C1_DMAPOSTED);
++			mcam->burst |  C1_RESERVED | C1_DMAPOSTED);
+ 	mcam_reg_write(mcam, REG_CLKCTRL,
+ 		(mcam->mclk_src << 29) | mcam->mclk_div);
+ 	cam_dbg(mcam, "camera: set sensor mclk = %dMHz\n", mcam->mclk_min);
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+index e149aa3..999b581 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+@@ -132,6 +132,7 @@ struct mcam_camera {
+ 	short int use_smbus;	/* SMBUS or straight I2c? */
+ 	enum mcam_buffer_mode buffer_mode;
+ 
++	int burst;
+ 	int mclk_min;
+ 	int mclk_src;
+ 	int mclk_div;
+@@ -419,9 +420,9 @@ int mcam_soc_camera_host_register(struct mcam_camera *mcam);
+ #define   C1_DESC_3WORD   0x00000200	/* Three-word descriptors used */
+ #define	  C1_444ALPHA	  0x00f00000	/* Alpha field in RGB444 */
+ #define	  C1_ALPHA_SHFT	  20
+-#define	  C1_DMAB32	  0x00000000	/* 32-byte DMA burst */
+-#define	  C1_DMAB16	  0x02000000	/* 16-byte DMA burst */
+-#define	  C1_DMAB64	  0x04000000	/* 64-byte DMA burst */
++#define	  C1_DMAB64	  0x00000000	/* 64-byte DMA burst */
++#define	  C1_DMAB128	  0x02000000	/* 128-byte DMA burst */
++#define	  C1_DMAB256	  0x04000000	/* 256-byte DMA burst */
+ #define	  C1_DMAB_MASK	  0x06000000
+ #define	  C1_TWOBUFS	  0x08000000	/* Use only two DMA buffers */
+ #define	  C1_PWRDWN	  0x10000000	/* Power down */
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index bea7224..e840941 100755
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -365,6 +365,17 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	mcam->dphy = &(pdata->dphy);
+ 	mcam->mipi_enabled = 0;
+ 	mcam->lane = pdata->lane;
++	switch (pdata->dma_burst) {
++	case 128:
++		mcam->burst = C1_DMAB128;
++		break;
++	case 256:
++		mcam->burst = C1_DMAB256;
++		break;
++	default:
++		mcam->burst = C1_DMAB64;
++		break;
++	}
+ 	INIT_LIST_HEAD(&mcam->buffers);
+ 
+ 	/*
+diff --git a/include/media/mmp-camera.h b/include/media/mmp-camera.h
+index 731f81f..7a5e63c 100755
+--- a/include/media/mmp-camera.h
++++ b/include/media/mmp-camera.h
+@@ -11,6 +11,7 @@ struct mmp_camera_platform_data {
+ 	int mclk_src;
+ 	int mclk_div;
+ 	int chip_id;
++	int dma_burst;
+ 	/*
+ 	 * MIPI support
+ 	 */
+-- 
+1.7.9.5
 
