@@ -1,376 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:65152 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751851Ab2KMN4t (ORCPT
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:51941 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030268Ab2KWJrq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Nov 2012 08:56:49 -0500
-Received: by mail-ie0-f174.google.com with SMTP id k13so10683643iea.19
-        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2012 05:56:49 -0800 (PST)
+	Fri, 23 Nov 2012 04:47:46 -0500
+Received: by mail-vc0-f174.google.com with SMTP id m18so5418304vcm.19
+        for <linux-media@vger.kernel.org>; Fri, 23 Nov 2012 01:47:46 -0800 (PST)
 MIME-Version: 1.0
-Date: Tue, 13 Nov 2012 10:56:48 -0300
-Message-ID: <CALF0-+XthyGJ-LzovTxLAKmMBif-YkLnNNcQBJvtnqTua+Ktag@mail.gmail.com>
-Subject: Regarding bulk transfers on stk1160
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Cc: michael hartup <michael.hartup@gmail.com>,
-	linux-rpi-kernel@lists.infradead.org
+In-Reply-To: <50AF425E.9030203@samsung.com>
+References: <1353645902-7467-1-git-send-email-sachin.kamat@linaro.org>
+	<1353645902-7467-2-git-send-email-sachin.kamat@linaro.org>
+	<50AF425E.9030203@samsung.com>
+Date: Fri, 23 Nov 2012 15:17:45 +0530
+Message-ID: <CAK9yfHzOs6B0=Z+EwwGt670tNLkpvFX0nkVELMzyyikpgzY=cw@mail.gmail.com>
+Subject: Re: [PATCH 1/4] [media] exynos-gsc: Rearrange error messages for
+ valid prints
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, patches@linaro.org,
+	Shaik Ameer Basha <shaik.ameer@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Sylwester,
 
-A user (Michael Hartup in Cc) wants to use stk1160 on low power, low
-cost devices (like raspberrypi).
+Thanks for the review.
 
-At the moment raspberrypi can't stream using isoc urbs due to problems
-with usb host driver (dwc-otg)
-preventing it from achieving the required throughput.
-For instance, on my rpi setup I can stream (using dd) at 16MB/s; but
-at least 20 MB/s are required.
+On 23 November 2012 15:01, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
+> Hi Sachin,
+>
+> Thanks for the patches.
+>
+> On 11/23/2012 05:44 AM, Sachin Kamat wrote:
+>> In case of clk_prepare failure, the function gsc_clk_get also prints
+>> "failed to get clock" which is not correct. Hence move the error
+>> messages to their respective blocks. While at it, also renamed the labels
+>> meaningfully.
+>>
+>> Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>
+>> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+>> ---
+>>  drivers/media/platform/exynos-gsc/gsc-core.c |   19 ++++++++++---------
+>>  1 files changed, 10 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+>> index 6d6f65d..45bcfa7 100644
+>> --- a/drivers/media/platform/exynos-gsc/gsc-core.c
+>> +++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+>> @@ -1017,25 +1017,26 @@ static int gsc_clk_get(struct gsc_dev *gsc)
+>>       dev_dbg(&gsc->pdev->dev, "gsc_clk_get Called\n");
+>>
+>>       gsc->clock = clk_get(&gsc->pdev->dev, GSC_CLOCK_GATE_NAME);
+>> -     if (IS_ERR(gsc->clock))
+>> -             goto err_print;
+>> +     if (IS_ERR(gsc->clock)) {
+>> +             dev_err(&gsc->pdev->dev, "failed to get clock~~~: %s\n",
+>> +                     GSC_CLOCK_GATE_NAME);
+>> +             goto err_clk_get;
+>
+> You could also just return PTR_ERR(gsc->clock) here and remove
+> err_clk_get label entirely.
 
-Having read that bulk transfers may work better with rpi usb driver, I
-decided to try to implement
-those at stk1160. However, I later discovered stk1160 doesn't have any
-bulk endpoint (see lsusb below).
-(I'm no expert, but I assume lack of bulk endpoint means I can't use
-bulk urbs, right?).
+OK.
 
-We could use a lower alternate setting, but unless we know how to
-reduce device frame rate
-or frame size, this won't work. If there's anyone from syntek reading
-this, we would appreciate
-to have some information on this issue.
+>
+>> +     }
+>>
+>>       ret = clk_prepare(gsc->clock);
+>>       if (ret < 0) {
+>> +             dev_err(&gsc->pdev->dev, "clock prepare failed for clock: %s\n",
+>> +                     GSC_CLOCK_GATE_NAME);
+>>               clk_put(gsc->clock);
+>>               gsc->clock = NULL;
+>> -             goto err;
+>> +             goto err_clk_prepare;
+>>       }
+>>
+>>       return 0;
+>>
+>> -err:
+>> -     dev_err(&gsc->pdev->dev, "clock prepare failed for clock: %s\n",
+>> -                                     GSC_CLOCK_GATE_NAME);
+>> +err_clk_prepare:
+>>       gsc_clk_put(gsc);
+>
+> This call can be removed too. I would remove all labels and gotos in
+> this function. Since there is only one clock, you need to only call
+> clk_put when clk_prepare() fails, there is no need for gsc_clk_put().
 
-If anyone can think of something to solve this, or make a suggestion
-on another low cost, low power board
-to use, I'm sure Michael would appreciate it.
+I have removed gsc_clk_put() in the subsequent patch in this series.
+I will probably incorporate your previous comment and remove the label
+altogether (in patch 3)
+and send it again.
 
-Thanks!
+>
+>> -err_print:
+>> -     dev_err(&gsc->pdev->dev, "failed to get clock~~~: %s\n",
+>> -                                     GSC_CLOCK_GATE_NAME);
+>> +err_clk_get:
+>>       return -ENXIO;
+>>  }
+>
+> As a general remark, I think changes like in this series have to be
+> validated before we can think of applying it. I guess Shaik or
+> somebody else would need to test it. I still have no board I could
+> test Exynos5 Gscaler IP.
 
-    Ezequiel
+Yes you are right. I have already talked to Shaik about it.
+He has agreed to test the same.
 
----
+>
+> --
+>
+> Regards,
+> Sylwester
 
-Bus 002 Device 006: ID 05e1:0408 Syntek Semiconductor Co., Ltd STK1160
-Video Capture Device
-Couldn't open device, some information will be missing
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  idVendor           0x05e1 Syntek Semiconductor Co., Ltd
-  idProduct          0x0408 STK1160 Video Capture Device
-  bcdDevice            0.05
-  iManufacturer           1
-  iProduct                2
-  iSerial                 0
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          251
-    bNumInterfaces          3
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           2
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               5
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       1
-      bNumEndpoints           2
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0002  1x 2 bytes
-        bInterval               5
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0300  1x 768 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       2
-      bNumEndpoints           2
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0002  1x 2 bytes
-        bInterval               5
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x03fc  1x 1020 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       3
-      bNumEndpoints           2
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0002  1x 2 bytes
-        bInterval               5
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0400  1x 1024 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       4
-      bNumEndpoints           2
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0002  1x 2 bytes
-        bInterval               5
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0c00  2x 1024 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       5
-      bNumEndpoints           2
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0002  1x 2 bytes
-        bInterval               5
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x1400  3x 1024 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       0
-      bNumEndpoints           0
-      bInterfaceClass         1 Audio
-      bInterfaceSubClass      1 Control Device
-      bInterfaceProtocol      0
-      iInterface             11
-      AudioControl Interface Descriptor:
-        bLength                 9
-        bDescriptorType        36
-        bDescriptorSubtype      1 (HEADER)
-        bcdADC               1.00
-        wTotalLength           38
-        bInCollection           1
-        baInterfaceNr( 0)       2
-      AudioControl Interface Descriptor:
-        bLength                12
-        bDescriptorType        36
-        bDescriptorSubtype      2 (INPUT_TERMINAL)
-        bTerminalID             1
-        wTerminalType      0x0602 Digital Audio Interface
-        bAssocTerminal          0
-        bNrChannels             2
-        wChannelConfig     0x0003
-          Left Front (L)
-          Right Front (R)
-        iChannelNames           0
-        iTerminal               0
-      AudioControl Interface Descriptor:
-        bLength                 9
-        bDescriptorType        36
-        bDescriptorSubtype      3 (OUTPUT_TERMINAL)
-        bTerminalID             2
-        wTerminalType      0x0101 USB Streaming
-        bAssocTerminal          0
-        bSourceID               3
-        iTerminal               0
-      AudioControl Interface Descriptor:
-        bLength                 8
-        bDescriptorType        36
-        bDescriptorSubtype      6 (FEATURE_UNIT)
-        bUnitID                 3
-        bSourceID               1
-        bControlSize            1
-        bmaControls( 0)      0x01
-          Mute Control
-        iFeature                0
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        2
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass         1 Audio
-      bInterfaceSubClass      2 Streaming
-      bInterfaceProtocol      0
-      iInterface             11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        2
-      bAlternateSetting       1
-      bNumEndpoints           1
-      bInterfaceClass         1 Audio
-      bInterfaceSubClass      2 Streaming
-      bInterfaceProtocol      0
-      iInterface             11
-      AudioStreaming Interface Descriptor:
-        bLength                 7
-        bDescriptorType        36
-        bDescriptorSubtype      1 (AS_GENERAL)
-        bTerminalLink           2
-        bDelay                  1 frames
-        wFormatTag              1 PCM
-      AudioStreaming Interface Descriptor:
-        bLength                11
-        bDescriptorType        36
-        bDescriptorSubtype      2 (FORMAT_TYPE)
-        bFormatType             1 (FORMAT_TYPE_I)
-        bNrChannels             2
-        bSubframeSize           2
-        bBitResolution         16
-        bSamFreqType            1 Discrete
-        tSamFreq[ 0]        48000
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x0100  1x 256 bytes
-        bInterval               4
-        AudioControl Endpoint Descriptor:
-          bLength                 7
-          bDescriptorType        37
-          bDescriptorSubtype      1 (EP_GENERAL)
-          bmAttributes         0x00
-          bLockDelayUnits         0 Undefined
-          wLockDelay              0 Undefined
+
+
+-- 
+With warm regards,
+Sachin
