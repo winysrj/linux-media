@@ -1,103 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44383 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755138Ab2K1UI7 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56861 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750896Ab2KWM3z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 15:08:59 -0500
-Date: Wed, 28 Nov 2012 22:08:54 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v3 1/3] davinci: vpss: dm365: enable ISP registers
-Message-ID: <20121128200854.GH31879@valkosipuli.retiisi.org.uk>
-References: <1354100134-21095-1-git-send-email-prabhakar.lad@ti.com>
- <1354100134-21095-2-git-send-email-prabhakar.lad@ti.com>
+	Fri, 23 Nov 2012 07:29:55 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 6/6] uvcvideo: Add VIDIOC_[GS]_PRIORITY support
+Date: Fri, 23 Nov 2012 13:30:55 +0100
+Message-ID: <1571163.sdKFpUlEDA@avalon>
+In-Reply-To: <201211161507.42201.hverkuil@xs4all.nl>
+References: <1348758980-21683-1-git-send-email-laurent.pinchart@ideasonboard.com> <1348758980-21683-7-git-send-email-laurent.pinchart@ideasonboard.com> <201211161507.42201.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1354100134-21095-2-git-send-email-prabhakar.lad@ti.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 28, 2012 at 04:25:32PM +0530, Prabhakar Lad wrote:
-> From: Manjunath Hadli <manjunath.hadli@ti.com>
+Hi Hans,
+
+Thank you for the review.
+
+On Friday 16 November 2012 15:07:42 Hans Verkuil wrote:
+> On Thu September 27 2012 17:16:20 Laurent Pinchart wrote:
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/usb/uvc/uvc_driver.c |    3 ++
+> >  drivers/media/usb/uvc/uvc_v4l2.c   |   45 +++++++++++++++++++++++++++++++
+> >  drivers/media/usb/uvc/uvcvideo.h   |    1 +
+> >  3 files changed, 49 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> > b/drivers/media/usb/uvc/uvc_driver.c index ae24f7d..22f14d2 100644
+> > --- a/drivers/media/usb/uvc/uvc_driver.c
+> > +++ b/drivers/media/usb/uvc/uvc_driver.c
+
+[snip]
+
+> > @@ -1722,6 +1723,8 @@ static int uvc_register_video(struct uvc_device
+> > *dev,
+> >  	vdev->v4l2_dev = &dev->vdev;
+> >  	vdev->fops = &uvc_fops;
+> >  	vdev->release = uvc_release;
+> > +	vdev->prio = &stream->chain->prio;
+> > +	set_bit(V4L2_FL_USE_FH_PRIO, &vdev->flags);
 > 
-> enable PPCR, enbale ISIF out on BCR and disable all events to
-> get the correct operation from ISIF.
-> 
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> ---
->  drivers/media/platform/davinci/vpss.c |   13 +++++++++++++
->  1 files changed, 13 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
-> index 146e4b0..34ad7bd 100644
-> --- a/drivers/media/platform/davinci/vpss.c
-> +++ b/drivers/media/platform/davinci/vpss.c
-> @@ -52,9 +52,11 @@ MODULE_AUTHOR("Texas Instruments");
->  #define DM355_VPSSBL_EVTSEL_DEFAULT	0x4
->  
->  #define DM365_ISP5_PCCR 		0x04
-> +#define DM365_ISP5_BCR			0x08
->  #define DM365_ISP5_INTSEL1		0x10
->  #define DM365_ISP5_INTSEL2		0x14
->  #define DM365_ISP5_INTSEL3		0x18
-> +#define DM365_ISP5_EVTSEL		0x1c
->  #define DM365_ISP5_CCDCMUX 		0x20
->  #define DM365_ISP5_PG_FRAME_SIZE 	0x28
->  #define DM365_VPBE_CLK_CTRL 		0x00
-> @@ -357,6 +359,10 @@ void dm365_vpss_set_pg_frame_size(struct vpss_pg_frame_size frame_size)
->  }
->  EXPORT_SYMBOL(dm365_vpss_set_pg_frame_size);
->  
-> +#define DM365_ISP5_EVTSEL_EVT_DISABLE	0x00000000
-> +#define DM365_ISP5_BCR_ISIF_OUT_ENABLE	0x00000002
-> +#define DM365_ISP5_PCCR_CLK_ENABLE	0x0000007f
-> +
+> This set_bit() doesn't do anything as long as you are not using
+> video_ioctl2().
 
-How about defining these next to the register definitions themselves? There
-also seems to be one EVTSEL bit defined in the beginning of the first chunk.
-Please group these.
+The bit also makes v4l2_fh_(add|del)() call v4l2_prio_(open|close)().
 
-For that matter --- IMO you could just write zero to the register, without
-defining it a name, if the purpose of the register is to select something
-based on bits that are set.
+> And why aren't you using video_ioctl2()? This is the last driver to do it
+> all manually. If you'd switch to video_ioctl2(), then setting this bit would
+> be all you had to do.
 
->  static int __devinit vpss_probe(struct platform_device *pdev)
->  {
->  	struct resource		*r1, *r2;
-> @@ -426,9 +432,16 @@ static int __devinit vpss_probe(struct platform_device *pdev)
->  		oper_cfg.hw_ops.enable_clock = dm365_enable_clock;
->  		oper_cfg.hw_ops.select_ccdc_source = dm365_select_ccdc_source;
->  		/* Setup vpss interrupts */
-> +		isp5_write((isp5_read(DM365_ISP5_PCCR) |
-> +				DM365_ISP5_PCCR_CLK_ENABLE), DM365_ISP5_PCCR);
-> +		isp5_write((isp5_read(DM365_ISP5_BCR) |
-> +			     DM365_ISP5_BCR_ISIF_OUT_ENABLE), DM365_ISP5_BCR);
->  		isp5_write(DM365_ISP5_INTSEL1_DEFAULT, DM365_ISP5_INTSEL1);
->  		isp5_write(DM365_ISP5_INTSEL2_DEFAULT, DM365_ISP5_INTSEL2);
->  		isp5_write(DM365_ISP5_INTSEL3_DEFAULT, DM365_ISP5_INTSEL3);
-> +		/* No event selected */
-> +		isp5_write((isp5_read(DM365_ISP5_EVTSEL) |
-> +			DM365_ISP5_EVTSEL_EVT_DISABLE), DM365_ISP5_EVTSEL);
+I have a patch for that, I need to resurect it.
 
-What's this? You're reading the value of the register, orring that with zero
-and writing it back? :-)
+> >  	if (stream->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> >  		vdev->vfl_dir = VFL_DIR_TX;
+> >  	
+> >  	strlcpy(vdev->name, dev->name, sizeof vdev->name);
+> > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> > b/drivers/media/usb/uvc/uvc_v4l2.c index bf9d073..d6aa402 100644
+> > --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
 
->  	} else
->  		oper_cfg.hw_ops.clear_wbl_overflow = dm644x_clear_wbl_overflow;
->  
+[snip]
+
+> This patch is hard to read since I can't see for which ioctls you check the
+> prio. Can you regenerate the patch with more context lines? The patch as it
+> is will probably not apply reliably due to the same reason.
+
+My bad. I'll resend it.
+
+> In particular, make sure you also check for the UVC-specific ioctls
+> (UVCIOC_CTRL_MAP might need this, but I'm not sure about that).
+
+The UVC-specific ioctls are only control operations, they don't require 
+priority handling.
 
 -- 
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
+
