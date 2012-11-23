@@ -1,158 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35760 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754155Ab2KUKKU convert rfc822-to-8bit (ORCPT
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:57350 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751256Ab2KWNeU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Nov 2012 05:10:20 -0500
-From: "Manjunathappa, Prakash" <prakash.pm@ti.com>
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"devicetree-discuss@lists.ozlabs.org"
-	<devicetree-discuss@lists.ozlabs.org>
-CC: Rob Herring <robherring2@gmail.com>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	"kernel@pengutronix.de" <kernel@pengutronix.de>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	David Airlie <airlied@linux.ie>
-Subject: RE: [PATCH v12 3/6] fbmon: add videomode helpers
-Date: Wed, 21 Nov 2012 10:09:51 +0000
-Message-ID: <A73F36158E33644199EB82C5EC81C7BC3E9FA769@DBDE01.ent.ti.com>
-References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de>
- <1353426896-6045-4-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1353426896-6045-4-git-send-email-s.trumtrar@pengutronix.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Fri, 23 Nov 2012 08:34:20 -0500
+From: Albert Wang <twang13@marvell.com>
+To: corbet@lwn.net, g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, Libin Yang <lbyang@marvell.com>,
+	Albert Wang <twang13@marvell.com>
+Subject: [PATCH 01/15] [media] marvell-ccic: use internal variable replace global frame stats variable
+Date: Fri, 23 Nov 2012 21:32:57 +0800
+Message-Id: <1353677577-23962-1-git-send-email-twang13@marvell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steffen,
+From: Libin Yang <lbyang@marvell.com>
 
-I am trying to add DT support for da8xx-fb driver on top of your patches.
-Encountered below build error. Sorry for reporting it late.
+This patch replaces the global frame stats variables by using
+internal variables in mcam_camera structure.
 
-On Tue, Nov 20, 2012 at 21:24:53, Steffen Trumtrar wrote:
-> Add a function to convert from the generic videomode to a fb_videomode.
-> 
-> Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-> Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-> Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-> Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/video/fbmon.c |   46 ++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/fb.h    |    6 ++++++
->  2 files changed, 52 insertions(+)
-> 
-> diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
-> index cef6557..c1939a6 100644
-> --- a/drivers/video/fbmon.c
-> +++ b/drivers/video/fbmon.c
-> @@ -31,6 +31,7 @@
->  #include <linux/pci.h>
->  #include <linux/slab.h>
->  #include <video/edid.h>
-> +#include <linux/videomode.h>
->  #ifdef CONFIG_PPC_OF
->  #include <asm/prom.h>
->  #include <asm/pci-bridge.h>
-> @@ -1373,6 +1374,51 @@ int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_inf
->  	kfree(timings);
->  	return err;
->  }
-> +
-> +#if IS_ENABLED(CONFIG_VIDEOMODE)
-> +int fb_videomode_from_videomode(const struct videomode *vm,
-> +				struct fb_videomode *fbmode)
-> +{
-> +	unsigned int htotal, vtotal;
-> +
-> +	fbmode->xres = vm->hactive;
-> +	fbmode->left_margin = vm->hback_porch;
-> +	fbmode->right_margin = vm->hfront_porch;
-> +	fbmode->hsync_len = vm->hsync_len;
-> +
-> +	fbmode->yres = vm->vactive;
-> +	fbmode->upper_margin = vm->vback_porch;
-> +	fbmode->lower_margin = vm->vfront_porch;
-> +	fbmode->vsync_len = vm->vsync_len;
-> +
-> +	fbmode->pixclock = KHZ2PICOS(vm->pixelclock / 1000);
-> +
-> +	fbmode->sync = 0;
-> +	fbmode->vmode = 0;
-> +	if (vm->hah)
-> +		fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
-> +	if (vm->vah)
-> +		fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
-> +	if (vm->interlaced)
-> +		fbmode->vmode |= FB_VMODE_INTERLACED;
-> +	if (vm->doublescan)
-> +		fbmode->vmode |= FB_VMODE_DOUBLE;
-> +	if (vm->de)
-> +		fbmode->sync |= FB_SYNC_DATA_ENABLE_HIGH_ACT;
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+---
+ drivers/media/platform/marvell-ccic/mcam-core.c |   30 ++++++++++-------------
+ drivers/media/platform/marvell-ccic/mcam-core.h |    9 +++++++
+ 2 files changed, 22 insertions(+), 17 deletions(-)
 
-"FB_SYNC_DATA_ENABLE_HIGH_ACT" seems to be mxsfb specific flag, I am getting
-build error on this. Please let me know if I am missing something.
-
-Thanks,
-Prakash
-
-> +	fbmode->flag = 0;
-> +
-> +	htotal = vm->hactive + vm->hfront_porch + vm->hback_porch +
-> +		 vm->hsync_len;
-> +	vtotal = vm->vactive + vm->vfront_porch + vm->vback_porch +
-> +		 vm->vsync_len;
-> +	fbmode->refresh = (vm->pixelclock * 1000) / (htotal * vtotal);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
-> +#endif
-> +
-> +
->  #else
->  int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
->  {
-> diff --git a/include/linux/fb.h b/include/linux/fb.h
-> index c7a9571..920cbe3 100644
-> --- a/include/linux/fb.h
-> +++ b/include/linux/fb.h
-> @@ -14,6 +14,7 @@
->  #include <linux/backlight.h>
->  #include <linux/slab.h>
->  #include <asm/io.h>
-> +#include <linux/videomode.h>
->  
->  struct vm_area_struct;
->  struct fb_info;
-> @@ -714,6 +715,11 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
->  extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
->  extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
->  
-> +#if IS_ENABLED(CONFIG_VIDEOMODE)
-> +extern int fb_videomode_from_videomode(const struct videomode *vm,
-> +				       struct fb_videomode *fbmode);
-> +#endif
-> +
->  /* drivers/video/modedb.c */
->  #define VESA_MODEDB_SIZE 34
->  extern void fb_var_to_videomode(struct fb_videomode *mode,
-> -- 
-> 1.7.10.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index ce2b7b4..7012913f 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -30,13 +30,6 @@
+ 
+ #include "mcam-core.h"
+ 
+-/*
+- * Basic frame stats - to be deleted shortly
+- */
+-static int frames;
+-static int singles;
+-static int delivered;
+-
+ #ifdef MCAM_MODE_VMALLOC
+ /*
+  * Internal DMA buffer management.  Since the controller cannot do S/G I/O,
+@@ -367,10 +360,10 @@ static void mcam_frame_tasklet(unsigned long data)
+ 		if (!test_bit(bufno, &cam->flags))
+ 			continue;
+ 		if (list_empty(&cam->buffers)) {
+-			singles++;
++			cam->frame_state.singles++;
+ 			break;  /* Leave it valid, hope for better later */
+ 		}
+-		delivered++;
++		cam->frame_state.delivered++;
+ 		clear_bit(bufno, &cam->flags);
+ 		buf = list_first_entry(&cam->buffers, struct mcam_vb_buffer,
+ 				queue);
+@@ -452,7 +445,7 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
+ 		mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR,
+ 				vb2_dma_contig_plane_dma_addr(&buf->vb_buf, 0));
+ 		set_bit(CF_SINGLE_BUFFER, &cam->flags);
+-		singles++;
++		cam->frame_state.singles++;
+ 		return;
+ 	}
+ 	/*
+@@ -485,7 +478,7 @@ static void mcam_dma_contig_done(struct mcam_camera *cam, int frame)
+ 	struct mcam_vb_buffer *buf = cam->vb_bufs[frame];
+ 
+ 	if (!test_bit(CF_SINGLE_BUFFER, &cam->flags)) {
+-		delivered++;
++		cam->frame_state.delivered++;
+ 		mcam_buffer_done(cam, frame, &buf->vb_buf);
+ 	}
+ 	mcam_set_contig_buffer(cam, frame);
+@@ -578,13 +571,13 @@ static void mcam_dma_sg_done(struct mcam_camera *cam, int frame)
+ 	 */
+ 	} else {
+ 		set_bit(CF_SG_RESTART, &cam->flags);
+-		singles++;
++		cam->frame_state.singles++;
+ 		cam->vb_bufs[0] = NULL;
+ 	}
+ 	/*
+ 	 * Now we can give the completed frame back to user space.
+ 	 */
+-	delivered++;
++	cam->frame_state.delivered++;
+ 	mcam_buffer_done(cam, frame, &buf->vb_buf);
+ }
+ 
+@@ -1545,7 +1538,9 @@ static int mcam_v4l_open(struct file *filp)
+ 
+ 	filp->private_data = cam;
+ 
+-	frames = singles = delivered = 0;
++	cam->frame_state.frames = 0;
++	cam->frame_state.singles = 0;
++	cam->frame_state.delivered = 0;
+ 	mutex_lock(&cam->s_mutex);
+ 	if (cam->users == 0) {
+ 		ret = mcam_setup_vb2(cam);
+@@ -1566,8 +1561,9 @@ static int mcam_v4l_release(struct file *filp)
+ {
+ 	struct mcam_camera *cam = filp->private_data;
+ 
+-	cam_dbg(cam, "Release, %d frames, %d singles, %d delivered\n", frames,
+-			singles, delivered);
++	cam_dbg(cam, "Release, %d frames, %d singles, %d delivered\n",
++			cam->frame_state.frames, cam->frame_state.singles,
++			cam->frame_state.delivered);
+ 	mutex_lock(&cam->s_mutex);
+ 	(cam->users)--;
+ 	if (cam->users == 0) {
+@@ -1660,7 +1656,7 @@ static void mcam_frame_complete(struct mcam_camera *cam, int frame)
+ 	clear_bit(CF_DMA_ACTIVE, &cam->flags);
+ 	cam->next_buf = frame;
+ 	cam->buf_seq[frame] = ++(cam->sequence);
+-	frames++;
++	cam->frame_state.frames++;
+ 	/*
+ 	 * "This should never happen"
+ 	 */
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+index bd6acba..e226de4 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+@@ -73,6 +73,14 @@ static inline int mcam_buffer_mode_supported(enum mcam_buffer_mode mode)
+ 	}
+ }
+ 
++/*
++ * Basic frame states
++ */
++struct mmp_frame_state {
++	unsigned int frames;
++	unsigned int singles;
++	unsigned int delivered;
++};
+ 
+ /*
+  * A description of one of our devices.
+@@ -108,6 +116,7 @@ struct mcam_camera {
+ 	unsigned long flags;		/* Buffer status, mainly (dev_lock) */
+ 	int users;			/* How many open FDs */
+ 
++	struct mmp_frame_state frame_state;	/* Frame state counter */
+ 	/*
+ 	 * Subsystem structures.
+ 	 */
+-- 
+1.7.9.5
 
