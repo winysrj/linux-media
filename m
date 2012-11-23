@@ -1,54 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:62329 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750890Ab2K0F7y (ORCPT
+Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:47764 "EHLO
+	na3sys009aog127.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752113Ab2KWNkk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 00:59:54 -0500
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH] media: fix a typo CONFIG_HAVE_GENERIC_DMA_COHERENT in videobuf2-dma-contig.c
-Date: Tue, 27 Nov 2012 11:29:39 +0530
-Message-Id: <1353995979-28792-1-git-send-email-prabhakar.lad@ti.com>
+	Fri, 23 Nov 2012 08:40:40 -0500
+From: Albert Wang <twang13@marvell.com>
+To: corbet@lwn.net, g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, Libin Yang <lbyang@marvell.com>,
+	Albert Wang <twang13@marvell.com>
+Subject: [PATCH 08/15] [media] marvell-ccic: switch to resource managed allocation and request
+Date: Fri, 23 Nov 2012 21:40:14 +0800
+Message-Id: <1353678014-24559-1-git-send-email-twang13@marvell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
+From: Libin Yang <lbyang@marvell.com>
 
-from commit 93049b9368a2e257ace66252ab2cc066f3399cad, which adds
-a check HAVE_GENERIC_DMA_COHERENT for dma ops, the check was wrongly
-made it should have been HAVE_GENERIC_DMA_COHERENT but it was
-CONFIG_HAVE_GENERIC_DMA_COHERENT.
-This patch fixes the typo, which was causing following build error:
+This patch switchs to resource managed allocation and request in mmp-driver.
+It can remove free resource operations.
 
-videobuf2-dma-contig.c:743: error: 'vb2_dc_get_dmabuf' undeclared here (not in a function)
-make[3]: *** [drivers/media/v4l2-core/videobuf2-dma-contig.o] Error 1
-
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
 ---
- drivers/media/v4l2-core/videobuf2-dma-contig.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/media/platform/marvell-ccic/mmp-driver.c |   35 +++++++---------------
+ 1 file changed, 10 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 5729450..dfea692 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -739,7 +739,7 @@ static void *vb2_dc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
- const struct vb2_mem_ops vb2_dma_contig_memops = {
- 	.alloc		= vb2_dc_alloc,
- 	.put		= vb2_dc_put,
--#ifdef CONFIG_HAVE_GENERIC_DMA_COHERENT
-+#ifdef HAVE_GENERIC_DMA_COHERENT
- 	.get_dmabuf	= vb2_dc_get_dmabuf,
- #endif
- 	.cookie		= vb2_dc_cookie,
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index 20046d0..c3031e7 100755
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -315,7 +315,7 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 
+ 	pdata = pdev->dev.platform_data;
+ 
+-	cam = kzalloc(sizeof(*cam), GFP_KERNEL);
++	cam = devm_kzalloc(&pdev->dev, sizeof(*cam), GFP_KERNEL);
+ 	if (cam == NULL)
+ 		return -ENOMEM;
+ 	cam->pdev = pdev;
+@@ -342,14 +342,12 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (res == NULL) {
+ 		dev_err(&pdev->dev, "no iomem resource!\n");
+-		ret = -ENODEV;
+-		goto out_free;
++		return -ENODEV;
+ 	}
+-	mcam->regs = ioremap(res->start, resource_size(res));
++	mcam->regs = devm_request_and_ioremap(&pdev->dev, res);
+ 	if (mcam->regs == NULL) {
+ 		dev_err(&pdev->dev, "MMIO ioremap fail\n");
+-		ret = -ENODEV;
+-		goto out_free;
++		return -ENODEV;
+ 	}
+ 	/*
+ 	 * Power/clock memory is elsewhere; get it too.  Perhaps this
+@@ -358,14 +356,12 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+ 	if (res == NULL) {
+ 		dev_err(&pdev->dev, "no power resource!\n");
+-		ret = -ENODEV;
+-		goto out_unmap1;
++		return -ENODEV;
+ 	}
+-	cam->power_regs = ioremap(res->start, resource_size(res));
++	cam->power_regs = devm_request_and_ioremap(&pdev->dev, res);
+ 	if (cam->power_regs == NULL) {
+ 		dev_err(&pdev->dev, "power MMIO ioremap fail\n");
+-		ret = -ENODEV;
+-		goto out_unmap1;
++		return -ENODEV;
+ 	}
+ 
+ 	mcam_init_clk(mcam, pdata, 1);
+@@ -375,9 +371,8 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	 */
+ 	mcam->i2c_adapter = platform_get_drvdata(pdata->i2c_device);
+ 	if (mcam->i2c_adapter == NULL) {
+-		ret = -ENODEV;
+ 		dev_err(&pdev->dev, "No i2c adapter\n");
+-		goto out_unmap2;
++		return -ENODEV;
+ 	}
+ 	/*
+ 	 * Sensor GPIO pins.
+@@ -386,7 +381,7 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "Can't get sensor power gpio %d",
+ 				pdata->sensor_power_gpio);
+-		goto out_unmap2;
++		return ret;
+ 	}
+ 	gpio_direction_output(pdata->sensor_power_gpio, 0);
+ 	ret = gpio_request(pdata->sensor_reset_gpio, "cam-reset");
+@@ -414,7 +409,7 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 		goto out_unregister;
+ 	}
+ 	cam->irq = res->start;
+-	ret = request_irq(cam->irq, mmpcam_irq, IRQF_SHARED,
++	ret = devm_request_irq(&pdev->dev, cam->irq, mmpcam_irq, IRQF_SHARED,
+ 			"mmp-camera", mcam);
+ 	if (ret == 0) {
+ 		mmpcam_add_device(cam);
+@@ -428,13 +423,7 @@ out_gpio2:
+ 	gpio_free(pdata->sensor_reset_gpio);
+ out_gpio:
+ 	gpio_free(pdata->sensor_power_gpio);
+-out_unmap2:
+ 	mcam_init_clk(mcam, pdata, 0);
+-	iounmap(cam->power_regs);
+-out_unmap1:
+-	iounmap(mcam->regs);
+-out_free:
+-	kfree(cam);
+ 	return ret;
+ }
+ 
+@@ -445,16 +434,12 @@ static int mmpcam_remove(struct mmp_camera *cam)
+ 	struct mmp_camera_platform_data *pdata;
+ 
+ 	mmpcam_remove_device(cam);
+-	free_irq(cam->irq, mcam);
+ 	mccic_shutdown(mcam);
+ 	mmpcam_power_down(mcam);
+ 	pdata = cam->pdev->dev.platform_data;
+ 	gpio_free(pdata->sensor_reset_gpio);
+ 	gpio_free(pdata->sensor_power_gpio);
+-	iounmap(cam->power_regs);
+-	iounmap(mcam->regs);
+ 	mcam_init_clk(mcam, pdata, 0);
+-	kfree(cam);
+ 	return 0;
+ }
+ 
 -- 
-1.7.0.4
+1.7.9.5
 
