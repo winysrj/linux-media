@@ -1,92 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44391 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752896Ab2K1USJ (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3500 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752854Ab2KWNKm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 15:18:09 -0500
-Date: Wed, 28 Nov 2012 22:18:04 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Fri, 23 Nov 2012 08:10:42 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Michael Hunold <michael@mihu.de>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v3 2/3] davinci: vpss: dm365: set vpss clk ctrl
-Message-ID: <20121128201804.GI31879@valkosipuli.retiisi.org.uk>
-References: <1354100134-21095-1-git-send-email-prabhakar.lad@ti.com>
- <1354100134-21095-3-git-send-email-prabhakar.lad@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1354100134-21095-3-git-send-email-prabhakar.lad@ti.com>
+Subject: [PATCH 2/2] MAINTAINERS: add tda9840, tea6415c and tea6420 entries.
+Date: Fri, 23 Nov 2012 14:10:31 +0100
+Message-Id: <802fc6c93c32effb499c09a9b6c6f3af57efdd83.1353675798.git.hans.verkuil@cisco.com>
+In-Reply-To: <1353676231-5684-1-git-send-email-hverkuil@xs4all.nl>
+References: <1353676231-5684-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <a2e0787b707c15e5905e9cc9a7be50e9c077f78a.1353675798.git.hans.verkuil@cisco.com>
+References: <a2e0787b707c15e5905e9cc9a7be50e9c077f78a.1353675798.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Wed, Nov 28, 2012 at 04:25:33PM +0530, Prabhakar Lad wrote:
-> From: Manjunath Hadli <manjunath.hadli@ti.com>
-> 
-> request_mem_region for VPSS_CLK_CTRL register and ioremap.
-> and enable clocks appropriately.
-> 
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> ---
->  drivers/media/platform/davinci/vpss.c |   14 ++++++++++++++
->  1 files changed, 14 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
-> index 34ad7bd..a36d694 100644
-> --- a/drivers/media/platform/davinci/vpss.c
-> +++ b/drivers/media/platform/davinci/vpss.c
-> @@ -103,6 +103,7 @@ struct vpss_hw_ops {
->  struct vpss_oper_config {
->  	__iomem void *vpss_regs_base0;
->  	__iomem void *vpss_regs_base1;
-> +	resource_size_t *vpss_regs_base2;
->  	enum vpss_platform_type platform;
->  	spinlock_t vpss_lock;
->  	struct vpss_hw_ops hw_ops;
-> @@ -484,11 +485,24 @@ static struct platform_driver vpss_driver = {
->  
->  static void vpss_exit(void)
->  {
-> +	iounmap(oper_cfg.vpss_regs_base2);
-> +	release_mem_region(*oper_cfg.vpss_regs_base2, 4);
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ MAINTAINERS |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-release_mem_region(VPSS_CLK_CTRL, 4);?
-
->  	platform_driver_unregister(&vpss_driver);
->  }
->  
-> +#define VPSS_CLK_CTRL			0x01c40044
-> +#define VPSS_CLK_CTRL_VENCCLKEN		BIT(3)
-> +#define VPSS_CLK_CTRL_DACCLKEN		BIT(4)
-> +
->  static int __init vpss_init(void)
->  {
-> +	if (request_mem_region(VPSS_CLK_CTRL, 4, "vpss_clock_control")) {
-
-if (!request_mem_region())
-	return -EBUSY;
-
-...
-
-> +		oper_cfg.vpss_regs_base2 = ioremap(VPSS_CLK_CTRL, 4);
-> +		__raw_writel(VPSS_CLK_CTRL_VENCCLKEN |
-> +			     VPSS_CLK_CTRL_DACCLKEN, oper_cfg.vpss_regs_base2);
-> +	} else {
-> +		return -EBUSY;
-> +	}
->  	return platform_driver_register(&vpss_driver);
->  }
->  subsys_initcall(vpss_init);
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 76b1c1d..c25ade7 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7412,6 +7412,14 @@ T:	git git://linuxtv.org/mkrufky/tuners.git
+ S:	Maintained
+ F:	drivers/media/tuners/tda8290.*
+ 
++TDA9840 MEDIA DRIVER
++M:	Hans Verkuil <hverkuil@xs4all.nl>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++W:	http://linuxtv.org
++S:	Maintained
++F:	drivers/media/i2c/tda9840*
++
+ TEA5761 TUNER DRIVER
+ M:	Mauro Carvalho Chehab <mchehab@redhat.com>
+ L:	linux-media@vger.kernel.org
+@@ -7428,6 +7436,22 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
+ F:	drivers/media/tuners/tea5767.*
+ 
++TEA6415C MEDIA DRIVER
++M:	Hans Verkuil <hverkuil@xs4all.nl>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++W:	http://linuxtv.org
++S:	Maintained
++F:	drivers/media/i2c/tea6415c*
++
++TEA6420 MEDIA DRIVER
++M:	Hans Verkuil <hverkuil@xs4all.nl>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++W:	http://linuxtv.org
++S:	Maintained
++F:	drivers/media/i2c/tea6420*
++
+ TEAM DRIVER
+ M:	Jiri Pirko <jpirko@redhat.com>
+ L:	netdev@vger.kernel.org
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.7.10.4
+
