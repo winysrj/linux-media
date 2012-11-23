@@ -1,58 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:46811 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755792Ab2K1TJq (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3346 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753854Ab2KWL0H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 14:09:46 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0ME700HZQP81F3B0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 29 Nov 2012 04:09:45 +0900 (KST)
-Received: from amdc1344.digital.local ([106.116.147.32])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0ME7006TUP7TOU90@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 29 Nov 2012 04:09:44 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+	Fri, 23 Nov 2012 06:26:07 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: sw0312.kim@samsung.com, kyungmin.park@samsung.com,
-	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 03/12] fimc-lite: Register dump function cleanup
-Date: Wed, 28 Nov 2012 20:09:20 +0100
-Message-id: <1354129766-2821-4-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1354129766-2821-1-git-send-email-s.nawrocki@samsung.com>
-References: <1354129766-2821-1-git-send-email-s.nawrocki@samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 03/15] MAINTAINERS: add entry for the quickcam parallel port webcams.
+Date: Fri, 23 Nov 2012 12:25:44 +0100
+Message-Id: <0962d2ac8a7522ca3d4e4178ef0639b2818b1ee4.1353669806.git.hans.verkuil@cisco.com>
+In-Reply-To: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
+References: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <7fb3123c4bf43540c13505c82c408fa492cdd48c.1353669806.git.hans.verkuil@cisco.com>
+References: <7fb3123c4bf43540c13505c82c408fa492cdd48c.1353669806.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use v4l2_info() to make it possible to identify which FIMC-LITE
-device instance the logs refer to.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/s5p-fimc/fimc-lite-reg.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ MAINTAINERS |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite-reg.c b/drivers/media/platform/s5p-fimc/fimc-lite-reg.c
-index a22d7eb..ad63ebf 100644
---- a/drivers/media/platform/s5p-fimc/fimc-lite-reg.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-lite-reg.c
-@@ -292,9 +292,11 @@ void flite_hw_dump_regs(struct fimc_lite *dev, const char *label)
- 	};
- 	u32 i;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 4db8384..5d5462d 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6069,6 +6069,14 @@ L:	linux-hexagon@vger.kernel.org
+ S:	Supported
+ F:	arch/hexagon/
  
--	pr_info("--- %s ---\n", label);
-+	v4l2_info(&dev->subdev, "--- %s ---\n", label);
++QUICKCAM PARALLEL PORT WEBCAMS
++M:	Hans Verkuil <hverkuil@xs4all.nl>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++W:	http://linuxtv.org
++S:	Odd Fixes
++F:	drivers/media/parport/*-qcam*
 +
- 	for (i = 0; i < ARRAY_SIZE(registers); i++) {
- 		u32 cfg = readl(dev->regs + registers[i].offset);
--		pr_info("%s: %s:\t0x%08x\n", __func__, registers[i].name, cfg);
-+		v4l2_info(&dev->subdev, "%9s: 0x%08x\n",
-+			  registers[i].name, cfg);
- 	}
- }
+ RADOS BLOCK DEVICE (RBD)
+ M:	Yehuda Sadeh <yehuda@inktank.com>
+ M:	Sage Weil <sage@inktank.com>
 -- 
-1.7.9.5
+1.7.10.4
 
