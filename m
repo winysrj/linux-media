@@ -1,65 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:40649 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751326Ab2K1DYz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 22:24:55 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1TdYGm-0006Gl-Sf
-	for linux-media@vger.kernel.org; Wed, 28 Nov 2012 04:25:04 +0100
-Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 28 Nov 2012 04:25:04 +0100
-Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 28 Nov 2012 04:25:04 +0100
-To: linux-media@vger.kernel.org
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Subject: ivtv driver inputs randomly "block"
-Date: Tue, 27 Nov 2012 22:20:37 -0500
-Message-ID: <k93vu3$ffi$1@ger.gmane.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigBA47949618D1771B68945022"
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49402 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758532Ab2KWJFD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Nov 2012 04:05:03 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: "Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
+	"David Airlie" <airlied@linux.ie>
+Subject: [PATCHv14 0/7] of: add display helper
+Date: Fri, 23 Nov 2012 10:04:20 +0100
+Message-Id: <1353661467-28545-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigBA47949618D1771B68945022
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi!
 
-I have a machine with a PVR-150 and a PVR-500 in it on a
-3.2.0-33-generic (Ubuntu kernel, based on 3.2.1 IIUC) kernel.
+Changes since v13:
+        - fix "const struct *" warning
+                (reported by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>)
+        - prevent division by zero in fb_videomode_from_videomode
 
-I am having problems where at random times random /dev/video[0,1,2]
-inputs will just block on read.  It's not the same input every time and
-it's not even the same card every time.  This is all hardware which has
-worked without any such problems before.
+Changes since v12:
+        - rename struct display_timing to via_display_timing in via subsystem
+        - fix refreshrate calculation
+        - fix "const struct *" warnings
+                (reported by: Manjunathappa, Prakash <prakash.pm@ti.com>)
+        - some CodingStyle fixes
+        - rewrite parts of commit messages and display-timings.txt
+        - let display_timing_get_value get all values instead of just typical
 
-To remedy the hanging input I simply have to rmmod ivtv && modprobe ivtv
-and all is back to normal again, until it happens again.
+Changes since v11:
+        - make pointers const where applicable
+        - add reviewed-by Laurent Pinchart
 
-Any ideas?
+Changes since v10:
+        - fix function name (drm_)display_mode_from_videomode
+        - add acked-by, reviewed-by, tested-by
 
-b.
+Changes since v9:
+        - don't leak memory when previous timings were correct
+        - CodingStyle fixes
+        - move blank lines around
+
+Changes since v8:
+        - fix memory leaks
+        - change API to be more consistent (foo_from_bar(struct bar, struct foo))
+        - include headers were necessary
+        - misc minor bufixe
+
+Changes since v7:
+        - move of_xxx to drivers/video
+        - remove non-binding documentation from display-timings.txt
+        - squash display_timings and videomode in one patch
+        - misc minor fixes
+
+Changes since v6:
+        - get rid of some empty lines etc.
+        - move functions to their subsystems
+        - split of_ from non-of_ functions
+        - add at least some kerneldoc to some functions
+
+Changes since v5:
+        - removed all display stuff and just describe timings
+
+Changes since v4:
+        - refactored functions
+
+Changes since v3:
+        - print error messages
+        - free alloced memory
+        - general cleanup
+
+Changes since v2:
+        - use hardware-near property-names
+        - provide a videomode structure
+        - allow ranges for all properties (<min,typ,max>)
+        - functions to get display_mode or fb_videomode
 
 
---------------enigBA47949618D1771B68945022
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+Steffen Trumtrar (7):
+  viafb: rename display_timing to via_display_timing
+  video: add display_timing and videomode
+  video: add of helper for display timings/videomode
+  fbmon: add videomode helpers
+  fbmon: add of_videomode helpers
+  drm_modes: add videomode helpers
+  drm_modes: add of_videomode helpers
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
+ .../devicetree/bindings/video/display-timings.txt  |  107 ++++++++++
+ drivers/gpu/drm/drm_modes.c                        |   69 ++++++
+ drivers/video/Kconfig                              |   21 ++
+ drivers/video/Makefile                             |    4 +
+ drivers/video/display_timing.c                     |   24 +++
+ drivers/video/fbmon.c                              |   89 ++++++++
+ drivers/video/of_display_timing.c                  |  223 ++++++++++++++++++++
+ drivers/video/of_videomode.c                       |   48 +++++
+ drivers/video/via/hw.c                             |    6 +-
+ drivers/video/via/hw.h                             |    2 +-
+ drivers/video/via/lcd.c                            |    2 +-
+ drivers/video/via/share.h                          |    2 +-
+ drivers/video/via/via_modesetting.c                |    8 +-
+ drivers/video/via/via_modesetting.h                |    6 +-
+ drivers/video/videomode.c                          |   45 ++++
+ include/drm/drmP.h                                 |   12 ++
+ include/linux/display_timing.h                     |  104 +++++++++
+ include/linux/fb.h                                 |   12 ++
+ include/linux/of_display_timings.h                 |   20 ++
+ include/linux/of_videomode.h                       |   18 ++
+ include/linux/videomode.h                          |   52 +++++
+ 21 files changed, 861 insertions(+), 13 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/video/display-timings.txt
+ create mode 100644 drivers/video/display_timing.c
+ create mode 100644 drivers/video/of_display_timing.c
+ create mode 100644 drivers/video/of_videomode.c
+ create mode 100644 drivers/video/videomode.c
+ create mode 100644 include/linux/display_timing.h
+ create mode 100644 include/linux/of_display_timings.h
+ create mode 100644 include/linux/of_videomode.h
+ create mode 100644 include/linux/videomode.h
 
-iEYEARECAAYFAlC1gwUACgkQl3EQlGLyuXBIHQCfQwnqN/ptzSjMZyRhnnpsYtE9
-zy0AoK3Ep1jydxff4f7BlOgDBxZ7W5Xf
-=SU2L
------END PGP SIGNATURE-----
-
---------------enigBA47949618D1771B68945022--
+-- 
+1.7.10.4
 
