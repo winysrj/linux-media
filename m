@@ -1,48 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3204 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756303Ab2KWL0P (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:56796 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755267Ab2KWEvW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 06:26:15 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 22 Nov 2012 23:51:22 -0500
+Received: by mail-pb0-f46.google.com with SMTP id wy7so6266460pbc.19
+        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2012 20:51:22 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 14/15] MAINTAINERS: add usbvision entry.
-Date: Fri, 23 Nov 2012 12:25:55 +0100
-Message-Id: <e944e5190cdc994deeaf70d23c002a60428d3991.1353669806.git.hans.verkuil@cisco.com>
-In-Reply-To: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
-References: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <7fb3123c4bf43540c13505c82c408fa492cdd48c.1353669806.git.hans.verkuil@cisco.com>
-References: <7fb3123c4bf43540c13505c82c408fa492cdd48c.1353669806.git.hans.verkuil@cisco.com>
+Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 0/4] [media] exynos-gsc: Some fixes
+Date: Fri, 23 Nov 2012 10:14:58 +0530
+Message-Id: <1353645902-7467-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Patch series build tested and based on samsung/for_v3.8 branch of
+git://linuxtv.org/snawrocki/media.git.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- MAINTAINERS |    8 ++++++++
- 1 file changed, 8 insertions(+)
+Sachin Kamat (4):
+  [media] exynos-gsc: Rearrange error messages for valid prints
+  [media] exynos-gsc: Remove gsc_clk_put call from gsc_clk_get
+  [media] exynos-gsc: Use devm_clk_get()
+  [media] exynos-gsc: Fix checkpatch warning in gsc-m2m.c
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index c12be91..4a61ea4 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8030,6 +8030,14 @@ S:	Maintained
- F:	drivers/media/usb/uvc/
- F:	include/uapi/linux/uvcvideo.h
- 
-+USB VISION DRIVER
-+M:	Hans Verkuil <hverkuil@xs4all.nl>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+W:	http://linuxtv.org
-+S:	Odd Fixes
-+F:	drivers/media/usb/usbvision/
-+
- USB WIRELESS RNDIS DRIVER (rndis_wlan)
- M:	Jussi Kivilinna <jussi.kivilinna@mbnet.fi>
- L:	linux-wireless@vger.kernel.org
+ drivers/media/platform/exynos-gsc/gsc-core.c |   21 ++++++++-------------
+ drivers/media/platform/exynos-gsc/gsc-m2m.c  |    2 +-
+ 2 files changed, 9 insertions(+), 14 deletions(-)
+
 -- 
-1.7.10.4
+1.7.4.1
 
