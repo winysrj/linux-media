@@ -1,41 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:51827 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932430Ab2K1PXL (ORCPT
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:51681 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753393Ab2KWMMq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 10:23:11 -0500
-Received: by mail-la0-f46.google.com with SMTP id p5so7796373lag.19
-        for <linux-media@vger.kernel.org>; Wed, 28 Nov 2012 07:23:09 -0800 (PST)
-MIME-Version: 1.0
-Date: Wed, 28 Nov 2012 10:23:09 -0500
-Message-ID: <CAOcJUbzLTOASaHDAgCdFiYtOKoUM4oTEOP3EpbD9EE_zdT2O6w@mail.gmail.com>
-Subject: [PULL] au0828: update model matrix | git://linuxtv.org/mkrufky/hauppauge
- voyager-72281
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 23 Nov 2012 07:12:46 -0500
+Received: by mail-gh0-f174.google.com with SMTP id g15so1029991ghb.19
+        for <linux-media@vger.kernel.org>; Fri, 23 Nov 2012 04:12:45 -0800 (PST)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: <linux-media@vger.kernel.org>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH] stk1160: Replace BUG_ON with WARN_ON
+Date: Fri, 23 Nov 2012 09:12:35 -0300
+Message-Id: <1353672755-4694-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit c6c22955f80f2db9614b01fe5a3d1cfcd8b3d848:
+This situation is not even an error condition so it's stupid to BUG_ON.
+Learn the lesson:
+http://permalink.gmane.org/gmane.linux.kernel/1347333
 
-  [media] dma-mapping: fix dma_common_get_sgtable() conditional
-compilation (2012-11-27 09:42:31 -0200)
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/usb/stk1160/stk1160-video.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-are available in the git repository at:
+diff --git a/drivers/media/usb/stk1160/stk1160-video.c b/drivers/media/usb/stk1160/stk1160-video.c
+index f8dcf6d..07186c7 100644
+--- a/drivers/media/usb/stk1160/stk1160-video.c
++++ b/drivers/media/usb/stk1160/stk1160-video.c
+@@ -78,7 +78,7 @@ struct stk1160_buffer *stk1160_next_buffer(struct stk1160 *dev)
+ 	unsigned long flags = 0;
+ 
+ 	/* Current buffer must be NULL when this functions gets called */
+-	BUG_ON(dev->urb_ctl.buf);
++	WARN_ON(dev->urb_ctl.buf);
+ 
+ 	spin_lock_irqsave(&dev->buf_lock, flags);
+ 	if (!list_empty(&dev->avail_bufs)) {
+-- 
+1.7.8.6
 
-  git://linuxtv.org/mkrufky/hauppauge voyager-72281
-
-for you to fetch changes up to 72567f3cfafe31c1612efe52e2893e960cc8dd00:
-
-  au0828: update model matrix entries for 72261, 72271 & 72281
-(2012-11-28 09:46:24 -0500)
-
-----------------------------------------------------------------
-Michael Krufky (2):
-      au0828: add missing model 72281, usb id 2040:7270 to the model matrix
-      au0828: update model matrix entries for 72261, 72271 & 72281
-
- drivers/media/usb/au0828/au0828-cards.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
