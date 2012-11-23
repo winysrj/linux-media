@@ -1,105 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bruce.bmat.com ([176.9.54.181]:34477 "EHLO bruce.bmat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751426Ab2KTLTc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Nov 2012 06:19:32 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by bruce.bmat.com (Postfix) with ESMTP id 41C56674063
-	for <linux-media@vger.kernel.org>; Tue, 20 Nov 2012 12:19:31 +0100 (CET)
-Received: from bruce.bmat.com ([127.0.0.1])
-	by localhost (bruce.bmat.com [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id oAxjMZhQjwkh for <linux-media@vger.kernel.org>;
-	Tue, 20 Nov 2012 12:19:29 +0100 (CET)
-Received: from MacBook-Pro-de-Marc.local (164.red-80-28-250.adsl.static.ccgg.telefonica.net [80.28.250.164])
-	(Authenticated sender: mbolos@bmat.es)
-	by bruce.bmat.com (Postfix) with ESMTPSA id 67DBA674062
-	for <linux-media@vger.kernel.org>; Tue, 20 Nov 2012 12:19:28 +0100 (CET)
-Message-ID: <50AB6769.1020700@bmat.es>
-Date: Tue, 20 Nov 2012 12:20:09 +0100
-From: =?ISO-8859-1?Q?Marc_Bol=F3s?= <mark@bmat.es>
-Reply-To: mark@bmat.es
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39085 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751256Ab2KWMTK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Nov 2012 07:19:10 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 4/6] uvcvideo: Set device_caps in VIDIOC_QUERYCAP
+Date: Fri, 23 Nov 2012 13:20:10 +0100
+Message-ID: <1498367.xoaGbmT0nc@avalon>
+In-Reply-To: <201211161500.29555.hverkuil@xs4all.nl>
+References: <1348758980-21683-1-git-send-email-laurent.pinchart@ideasonboard.com> <1348758980-21683-5-git-send-email-laurent.pinchart@ideasonboard.com> <201211161500.29555.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Fwd: Re: Question Hauppauge Nova-S-Plus.
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear again sirs,
+Hi Hans,
 
-After some investigation I've found 2 new clues.
+Thanks for the review.
 
-1 - The problem begins always with a small signal drop. It usually lasts 
-only a few seconds but that's enough to crash the adapter connected to 
-the antenna.
-2 - Now the news: if noticed that when this happens, the driver's kernel 
-module belonging to that same adapter just dies, as you can see in the 
-ps output below with my adapter /dev/dvb/adapter9:
+On Friday 16 November 2012 15:00:29 Hans Verkuil wrote:
+> On Thu September 27 2012 17:16:18 Laurent Pinchart wrote:
+> > Set the capabilities field to global capabilities, and the device_caps
+> > field to the video node capabilities.
+> > 
+> > This issue was found by the v4l2-compliance tool.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/usb/uvc/uvc_driver.c |    5 +++++
+> >  drivers/media/usb/uvc/uvc_v4l2.c   |   10 ++++++----
+> >  drivers/media/usb/uvc/uvcvideo.h   |    2 ++
+> >  3 files changed, 13 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> > b/drivers/media/usb/uvc/uvc_driver.c index 5967081..ae24f7d 100644
+> > --- a/drivers/media/usb/uvc/uvc_driver.c
+> > +++ b/drivers/media/usb/uvc/uvc_driver.c
+> > @@ -1741,6 +1741,11 @@ static int uvc_register_video(struct uvc_device
+> > *dev,
+> >  		return ret;
+> >  	}
+> > 
+> > +	if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> > +		stream->chain->caps |= V4L2_CAP_VIDEO_CAPTURE;
+> > +	else
+> > +		stream->chain->caps |= V4L2_CAP_VIDEO_OUTPUT;
+> > +
+> >  	atomic_inc(&dev->nstreams);
+> >  	return 0;
+> >  }
+> > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> > b/drivers/media/usb/uvc/uvc_v4l2.c index 3bd9373..b1aa55f 100644
+> > --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> > @@ -565,12 +565,14 @@ static long uvc_v4l2_do_ioctl(struct file *file,
+> > unsigned int cmd, void *arg)> 
+> >  		usb_make_path(stream->dev->udev,
+> >  			      cap->bus_info, sizeof(cap->bus_info));
+> >  		cap->version = LINUX_VERSION_CODE;
+> > +		cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
+> > +				  | chain->caps;
+> >  		if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> > -			cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
+> > -					  | V4L2_CAP_STREAMING;
+> > +			cap->device_caps = V4L2_CAP_VIDEO_CAPTURE
+> > +					 | V4L2_CAP_STREAMING;
+> >  		else
+> > -			cap->capabilities = V4L2_CAP_VIDEO_OUTPUT
+> > -					  | V4L2_CAP_STREAMING;
+> > +			cap->device_caps = V4L2_CAP_VIDEO_OUTPUT
+> > +					 | V4L2_CAP_STREAMING;
+> 
+> This seems weird. Wouldn't it be easier to do:
+> 
+> 		cap->device_caps = chain->caps | V4L2_CAP_STREAMING;
+> 
+> You don't need the if/else here.
 
-root@*********:/home/*****# ps aux | grep cx88
-root       903  0.0  0.0      0     0 ?        S    Nov19   0:00 [cx88 
-tvaudio]
-root      2036  0.2  0.0      0     0 ?        S    Nov19   3:36 
-[cx88[8] dvb]
-root      2037  0.2  0.0      0     0 ?        S    Nov19   3:34 
-[cx88[2] dvb]
-root      2038  1.1  0.0      0     0 ?        S    Nov19  17:11 
-[cx88[1] dvb]
-root      2039  1.0  0.0      0     0 ?        S    Nov19  15:34 
-[cx88[11] dvb]
-root      2040  0.1  0.0      0     0 ?        S    Nov19   2:49 
-[cx88[3] dvb]
-root      2041  1.0  0.0      0     0 ?        S    Nov19  16:12 
-[cx88[5] dvb]
-root      2043  0.1  0.0      0     0 ?        S    Nov19   2:56 
-[cx88[7] dvb]
-root     21951  0.0  0.0      0     0 ?        S    10:11   0:00 
-[cx88[6] dvb]
-root     21975  0.0  0.0      0     0 ?        S    10:11   0:00 
-[cx88[4] dvb]
-root     22741  0.0  0.0   7552   868 pts/4    S+   10:30   0:00 grep cx88
+No, because chain->caps can be V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT 
+as a chain can contain several video nodes. We want to caps of this particular 
+video node only here.
 
-The adapter's device files /dev/dvb/adapterX are kept in their place, 
-but they are no longer readable nor writeable.
-My question is: which module is the responsible for launching the kernel 
-processes [cx88[XX] dvb]? Is there some way of manually launching one of 
-them?
-How can I restore the crashed device without needing to restart the 
-machine or even remove the driver and affect the remaining working adapters?
+> >  		break;
+> >  	}
 
-Thank you very much for your help and time.
+-- 
+Regards,
 
-Kind regards.
+Laurent Pinchart
 
-El 13/08/12 11:44, Marc Bolós escribió:
->
-> Dear sirs,
->
-> I'm a systems engineer (from spain, so excuse my bad english) working
-> for some time with all kinds of TV receivers.
->
-> First I wanted to thank you all for your work.
->
-> I saw that sometimes your tips on this list are very helpfull, so I
-> wanted to make you a question that maybe you can help me with.
->
-> I've been working for some time with those devices, and recently I have
-> a problem which I've never seen before. The point is that I tune
-> properly frequency and I start watching all channels, but after some
-> time  one or 2 tuners stops, and you cannot tune again any frequency
-> until you reboot all server.
->
-> One thing very strange there is that always are the same tuners which
-> fails. Signal is OK.
->
-> I don't have any error on syslog nor dmesg. And once you reboot it works
-> again.
->
-> Have anyone seen this problem before and can help me please?
->
-> Thanks a lot for your time,
-> Kind regards
->
-> Marc.
->
