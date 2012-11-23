@@ -1,285 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46278 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1767775Ab2KONPm (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42538 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752690Ab2KWN56 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 08:15:42 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: [PATCH v11 1/6] video: add display_timing and videomode
-Date: Thu, 15 Nov 2012 14:15:07 +0100
-Message-Id: <1352985312-18178-2-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1352985312-18178-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1352985312-18178-1-git-send-email-s.trumtrar@pengutronix.de>
+	Fri, 23 Nov 2012 08:57:58 -0500
+Date: Fri, 23 Nov 2012 15:57:53 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH v2 00/12] Media Controller capture driver for DM365
+Message-ID: <20121123135753.GB31879@valkosipuli.retiisi.org.uk>
+References: <1353077114-19296-1-git-send-email-prabhakar.lad@ti.com>
+ <20121123131344.GA31879@valkosipuli.retiisi.org.uk>
+ <CA+V-a8t5ZJ2Zb+dWkifjjOHOrv1LAvgaJR2x24xKJXrTJs9+jg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+V-a8t5ZJ2Zb+dWkifjjOHOrv1LAvgaJR2x24xKJXrTJs9+jg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add display_timing structure and the according helper functions. This allows
-the description of a display via its supported timing parameters.
+Hi Prabhakar,
 
-Every timing parameter can be specified as a single value or a range
-<min typ max>.
+On Fri, Nov 23, 2012 at 06:51:28PM +0530, Prabhakar Lad wrote:
+> Hi Sakari,
+> 
+> On Fri, Nov 23, 2012 at 6:43 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > Hi Prabhakar and others,
+> >
+> > (Just resending; Laurent's e-mail address corrected, cc Hans, too.)
+> >
+> > On Fri, Nov 16, 2012 at 08:15:02PM +0530, Prabhakar Lad wrote:
+> >> From: Manjunath Hadli <manjunath.hadli@ti.com>
+> >>
+> >> This patch set adds media controller based capture driver for
+> >> DM365.
+> >>
+> >> This driver bases its design on Laurent Pinchart's Media Controller Design
+> >> whose patches for Media Controller and subdev enhancements form the base.
+> >> The driver also takes copious elements taken from Laurent Pinchart and
+> >> others' OMAP ISP driver based on Media Controller. So thank you all the
+> >> people who are responsible for the Media Controller and the OMAP ISP driver.
+> >>
+> >> Also, the core functionality of the driver comes from the arago vpfe capture
+> >> driver of which the isif capture was based on V4L2, with other drivers like
+> >> ipipe, ipipeif and Resizer.
+> >>
+> >> Changes for v2:
+> >> 1: Migrated the driver for videobuf2 usage pointed Hans.
+> >> 2: Changed the design as pointed by Laurent, Exposed one more subdevs
+> >>    ipipeif and split the resizer subdev into three subdevs.
+> >> 3: Rearrganed the patch sequence and changed the commit messages.
+> >> 4: Changed the file architecture as pointed by Laurent.
+> >>
+> >> Manjunath Hadli (12):
+> >>   davinci: vpfe: add v4l2 capture driver with media interface
+> >>   davinci: vpfe: add v4l2 video driver support
+> >>   davinci: vpfe: dm365: add IPIPEIF driver based on media framework
+> >>   davinci: vpfe: dm365: add ISIF driver based on media framework
+> >>   davinci: vpfe: dm365: add IPIPE support for media controller driver
+> >>   davinci: vpfe: dm365: add IPIPE hardware layer support
+> >>   davinci: vpfe: dm365: resizer driver based on media framework
+> >>   davinci: vpss: dm365: enable ISP registers
+> >>   davinci: vpss: dm365: set vpss clk ctrl
+> >>   davinci: vpss: dm365: add vpss helper functions to be used in the
+> >>     main driver for setting hardware parameters
+> >>   davinci: vpfe: dm365: add build infrastructure for capture driver
+> >>   davinci: vpfe: Add documentation
+> >
+> > As discussed, here's the todo list for inclusion to staging.
+> >
+> > - User space interface refinement
+> >         - Controls should be used when possible rather than private ioctl
+> >         - No enums should be used
+> >         - Use of MC and V4L2 subdev APIs when applicable
+> >         - Single interface header might suffice
+> >         - Current interface forces to configure everything at once
+> > - Get rid of the dm365_ipipe_hw.[ch] layer
+> > - Active external sub-devices defined by link configuration; no strcmp
+> >   needed
+> > - More generic platform data (i2c adapters)
+> > - The driver should have no knowledge of possible external subdevs; see
+> >   struct vpfe_subdev_id
+> > - Some of the hardware control should be refactorede
+> > - Check proper serialisation (through mutexes and spinlocks)
+> > - Names that are visible in kernel global namespace should have a common
+> >   prefix (or a few)
+> >
+> > This list likely isn't complete, but some items such as the locking one is
+> > there simply because I'm not certain of the state of it.
+> >
+> Thanks a lot. I'll include this TODO's in documentation patch itself,
+> But I am not sure if the driver is going in staging, the documentation
+> file would still be present under Documentation directory  or even
+> this should go in staging directory itself ?
 
-Also, add helper functions to convert from display timings to a generic videomode
-structure. This videomode can then be converted to the corresponding subsystem
-mode representation (e.g. fb_videomode).
+I think it should go under staging, the same directory as the driver.
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/video/Kconfig          |    6 ++++
- drivers/video/Makefile         |    2 ++
- drivers/video/display_timing.c |   24 ++++++++++++++
- drivers/video/videomode.c      |   45 ++++++++++++++++++++++++++
- include/linux/display_timing.h |   69 ++++++++++++++++++++++++++++++++++++++++
- include/linux/videomode.h      |   40 +++++++++++++++++++++++
- 6 files changed, 186 insertions(+)
- create mode 100644 drivers/video/display_timing.c
- create mode 100644 drivers/video/videomode.c
- create mode 100644 include/linux/display_timing.h
- create mode 100644 include/linux/videomode.h
+Hans, Mauro: could you confirm this?
 
-diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index d08d799..2a23b18 100644
---- a/drivers/video/Kconfig
-+++ b/drivers/video/Kconfig
-@@ -33,6 +33,12 @@ config VIDEO_OUTPUT_CONTROL
- 	  This framework adds support for low-level control of the video 
- 	  output switch.
- 
-+config DISPLAY_TIMING
-+       bool
-+
-+config VIDEOMODE
-+       bool
-+
- menuconfig FB
- 	tristate "Support for frame buffer devices"
- 	---help---
-diff --git a/drivers/video/Makefile b/drivers/video/Makefile
-index 23e948e..fc30439 100644
---- a/drivers/video/Makefile
-+++ b/drivers/video/Makefile
-@@ -167,3 +167,5 @@ obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
- 
- #video output switch sysfs driver
- obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
-+obj-$(CONFIG_DISPLAY_TIMING) += display_timing.o
-+obj-$(CONFIG_VIDEOMODE) += videomode.o
-diff --git a/drivers/video/display_timing.c b/drivers/video/display_timing.c
-new file mode 100644
-index 0000000..ac9bbbc
---- /dev/null
-+++ b/drivers/video/display_timing.c
-@@ -0,0 +1,24 @@
-+/*
-+ * generic display timing functions
-+ *
-+ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
-+ *
-+ * This file is released under the GPLv2
-+ */
-+
-+#include <linux/display_timing.h>
-+#include <linux/export.h>
-+#include <linux/slab.h>
-+
-+void display_timings_release(struct display_timings *disp)
-+{
-+	if (disp->timings) {
-+		unsigned int i;
-+
-+		for (i = 0; i < disp->num_timings; i++)
-+			kfree(disp->timings[i]);
-+		kfree(disp->timings);
-+	}
-+	kfree(disp);
-+}
-+EXPORT_SYMBOL_GPL(display_timings_release);
-diff --git a/drivers/video/videomode.c b/drivers/video/videomode.c
-new file mode 100644
-index 0000000..087374a
---- /dev/null
-+++ b/drivers/video/videomode.c
-@@ -0,0 +1,45 @@
-+/*
-+ * generic display timing functions
-+ *
-+ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
-+ *
-+ * This file is released under the GPLv2
-+ */
-+
-+#include <linux/export.h>
-+#include <linux/errno.h>
-+#include <linux/display_timing.h>
-+#include <linux/kernel.h>
-+#include <linux/videomode.h>
-+
-+int videomode_from_timing(struct display_timings *disp, struct videomode *vm,
-+			  unsigned int index)
-+{
-+	struct display_timing *dt;
-+
-+	dt = display_timings_get(disp, index);
-+	if (!dt)
-+		return -EINVAL;
-+
-+	vm->pixelclock = display_timing_get_value(&dt->pixelclock, 0);
-+	vm->hactive = display_timing_get_value(&dt->hactive, 0);
-+	vm->hfront_porch = display_timing_get_value(&dt->hfront_porch, 0);
-+	vm->hback_porch = display_timing_get_value(&dt->hback_porch, 0);
-+	vm->hsync_len = display_timing_get_value(&dt->hsync_len, 0);
-+
-+	vm->vactive = display_timing_get_value(&dt->vactive, 0);
-+	vm->vfront_porch = display_timing_get_value(&dt->vfront_porch, 0);
-+	vm->vback_porch = display_timing_get_value(&dt->vback_porch, 0);
-+	vm->vsync_len = display_timing_get_value(&dt->vsync_len, 0);
-+
-+	vm->vah = dt->vsync_pol_active;
-+	vm->hah = dt->hsync_pol_active;
-+	vm->de = dt->de_pol_active;
-+	vm->pixelclk_pol = dt->pixelclk_pol;
-+
-+	vm->interlaced = dt->interlaced;
-+	vm->doublescan = dt->doublescan;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(videomode_from_timing);
-diff --git a/include/linux/display_timing.h b/include/linux/display_timing.h
-new file mode 100644
-index 0000000..caee2a8
---- /dev/null
-+++ b/include/linux/display_timing.h
-@@ -0,0 +1,69 @@
-+/*
-+ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
-+ *
-+ * description of display timings
-+ *
-+ * This file is released under the GPLv2
-+ */
-+
-+#ifndef __LINUX_DISPLAY_TIMINGS_H
-+#define __LINUX_DISPLAY_TIMINGS_H
-+
-+#include <linux/types.h>
-+
-+struct timing_entry {
-+	u32 min;
-+	u32 typ;
-+	u32 max;
-+};
-+
-+struct display_timing {
-+	struct timing_entry pixelclock;
-+
-+	struct timing_entry hactive;
-+	struct timing_entry hfront_porch;
-+	struct timing_entry hback_porch;
-+	struct timing_entry hsync_len;
-+
-+	struct timing_entry vactive;
-+	struct timing_entry vfront_porch;
-+	struct timing_entry vback_porch;
-+	struct timing_entry vsync_len;
-+
-+	unsigned int vsync_pol_active;
-+	unsigned int hsync_pol_active;
-+	unsigned int de_pol_active;
-+	unsigned int pixelclk_pol;
-+	bool interlaced;
-+	bool doublescan;
-+};
-+
-+struct display_timings {
-+	unsigned int num_timings;
-+	unsigned int native_mode;
-+
-+	struct display_timing **timings;
-+};
-+
-+/*
-+ * placeholder function until ranges are really needed
-+ * the index parameter should then be used to select one of [min typ max]
-+ */
-+static inline u32 display_timing_get_value(struct timing_entry *te,
-+					   unsigned int index)
-+{
-+	return te->typ;
-+}
-+
-+static inline struct display_timing *display_timings_get(struct display_timings *disp,
-+							 unsigned int index)
-+{
-+	if (disp->num_timings > index)
-+		return disp->timings[index];
-+	else
-+		return NULL;
-+}
-+
-+void display_timings_release(struct display_timings *disp);
-+
-+#endif
-diff --git a/include/linux/videomode.h b/include/linux/videomode.h
-new file mode 100644
-index 0000000..704db7b
---- /dev/null
-+++ b/include/linux/videomode.h
-@@ -0,0 +1,40 @@
-+/*
-+ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
-+ *
-+ * generic videomode description
-+ *
-+ * This file is released under the GPLv2
-+ */
-+
-+#ifndef __LINUX_VIDEOMODE_H
-+#define __LINUX_VIDEOMODE_H
-+
-+#include <linux/display_timing.h>
-+
-+struct videomode {
-+	u32 pixelclock;
-+	u32 refreshrate;
-+
-+	u32 hactive;
-+	u32 hfront_porch;
-+	u32 hback_porch;
-+	u32 hsync_len;
-+
-+	u32 vactive;
-+	u32 vfront_porch;
-+	u32 vback_porch;
-+	u32 vsync_len;
-+
-+	u32 hah;
-+	u32 vah;
-+	u32 de;
-+	u32 pixelclk_pol;
-+
-+	bool interlaced;
-+	bool doublescan;
-+};
-+
-+int videomode_from_timing(struct display_timings *disp, struct videomode *vm,
-+			  unsigned int index);
-+
-+#endif
 -- 
-1.7.10.4
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
