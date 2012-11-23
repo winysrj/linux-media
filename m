@@ -1,80 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ch1ehsobe004.messaging.microsoft.com ([216.32.181.184]:17383
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753914Ab2KIP6H convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Nov 2012 10:58:07 -0500
-From: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
-	"dacohen@gmail.com" <dacohen@gmail.com>
-Subject: AW: [omap3-isp-live] Autofocus buffer interpretation of H3A engine
-Date: Fri, 9 Nov 2012 15:57:58 +0000
-Message-ID: <6EE9CD707FBED24483D4CB0162E854671008F9FD@AM2PRD0710MB375.eurprd07.prod.outlook.com>
-References: <6EE9CD707FBED24483D4CB0162E854671007E05D@AM2PRD0710MB375.eurprd07.prod.outlook.com>
- <1588578.t5rbryooTj@avalon>
-In-Reply-To: <1588578.t5rbryooTj@avalon>
-Content-Language: de-DE
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:44668 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752951Ab2KWNgG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Nov 2012 08:36:06 -0500
+From: Albert Wang <twang13@marvell.com>
+To: corbet@lwn.net, g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, lbyang@marvell.com,
+	Albert Wang <twang13@marvell.com>
+Subject: [PATCH 14/15] [media] marvell-ccic: use unsigned int type replace int type
+Date: Fri, 23 Nov 2012 21:34:39 +0800
+Message-Id: <1353677679-24443-1-git-send-email-twang13@marvell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This patch use unsigned int type replace int type in marvell-ccic.
 
-Laurent Pinchart wrote on 2012-11-04:
+These variables: frame number, buf number, irq... should be unsigned.
 
-> The AD5821 is similar to the AD5820, for which I have a driver that I need to
-> clean up and post. Would you be interested in that ?
-Yes, you can send me the driver. Just as a note:
-I (probably) found an error in the current ad5398 and ad5821 driver 
-http://lxr.free-electrons.com/source/drivers/regulator/ad5398.c
-It seems that the enable and disable functions are switched
-(at least for the ad5821). Also it's not possible to set the maximum current.
-I've done a patch but didn't have the time to submit it. Is this the right place
-for it?
+Signed-off-by: Albert Wang <twang13@marvell.com>
+---
+ .../media/platform/marvell-ccic/mcam-core-soc.h    |    2 +-
+ .../platform/marvell-ccic/mcam-core-standard.h     |   10 ++++-----
+ drivers/media/platform/marvell-ccic/mcam-core.c    |   22 ++++++++++----------
+ drivers/media/platform/marvell-ccic/mcam-core.h    |    2 +-
+ drivers/media/platform/marvell-ccic/mmp-driver.c   |    2 +-
+ 5 files changed, 19 insertions(+), 19 deletions(-)
 
-> Even though that buffer structure is pretty simple, I'm afraid I can't provide
-> that information as it's covered by an NDA.
-I have written the TI-support and here's the answer:
-START QUOTE
-" After checking it seems that we unfortunately do not make the DM37x H3A documention available. 
-Implementing Autofocus is quite complexe and the documentation is likely not going to provide enough help. 
-A lot of experience is required to handle the mecanics and control loop aspect for the Autofocus.
-
-We have partners that do have experience with the H3A module and that might be able to help. 
-For example MMS that mentionned is the below document:
-     http://www.ti.com/lit/ml/swpt052/swpt052.pdf
-Also Leopard Imaging has experience on the H3A:
-    https://www.leopardimaging.com/Services.html
-END QUOTE
-
-It's sad that they can't provide any further information, because we are not that far
-to get this stuff working...
-
-> could try to figure it out ourselves. Looking at the FCam project, I've
-> found
-> 
-> http://vcs.maemo.org/svn/fcam/fcam-
-> dev/tags/1.1.0/src/N900/V4L2Sensor.cpp
-> 
-> Does that help figuring out what the buffer contains ?
-
-That helps a lot! Thank you. I found also a little info here:
-http://www.mail-archive.com/davinci-linux-open-source@linux.davincidsp.com/msg18438.html
-
-> I haven't started, and it's currently not on my to-do list I'm afraid.
-That's too bad, as your help is always appreciated. Have you already seen my patch for the
-rotation in your omap3-isp-live program? I have seen also another little issue, if you are
-interested (snapshot_init should be after aewb as the output format changes during
-snapshot-init).
-
-I am now off for 3 weeks (annual refresher course in the Swiss armed forces).
-
-Regards,
-Florian
-
-
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core-soc.h b/drivers/media/platform/marvell-ccic/mcam-core-soc.h
+index a5b5fa6..bff8b2a 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core-soc.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core-soc.h
+@@ -11,7 +11,7 @@ extern const struct vb2_ops mcam_soc_vb2_ops;
+ 
+ extern void mcam_ctlr_power_up(struct mcam_camera *cam);
+ extern void mcam_ctlr_power_down(struct mcam_camera *cam);
+-extern void mcam_dma_contig_done(struct mcam_camera *cam, int frame);
++extern void mcam_dma_contig_done(struct mcam_camera *cam, unsigned int frame);
+ extern void mcam_ctlr_stop(struct mcam_camera *cam);
+ extern int mcam_config_mipi(struct mcam_camera *mcam, int enable);
+ extern void mcam_ctlr_image(struct mcam_camera *cam);
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core-standard.h b/drivers/media/platform/marvell-ccic/mcam-core-standard.h
+index 148a1a1..090c1a2 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core-standard.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core-standard.h
+@@ -4,8 +4,8 @@
+  * Copyright 2011 Jonathan Corbet corbet@lwn.net
+  */
+ extern bool alloc_bufs_at_read;
+-extern int n_dma_bufs;
+-extern int buffer_mode;
++extern unsigned int n_dma_bufs;
++extern unsigned int buffer_mode;
+ extern const struct vb2_ops mcam_vb2_sg_ops;
+ extern const struct vb2_ops mcam_vb2_ops;
+ 
+@@ -17,12 +17,12 @@ extern void mcam_ctlr_init(struct mcam_camera *cam);
+ extern int mcam_cam_init(struct mcam_camera *cam);
+ extern void mcam_free_dma_bufs(struct mcam_camera *cam);
+ extern void mcam_ctlr_dma_sg(struct mcam_camera *cam);
+-extern void mcam_dma_sg_done(struct mcam_camera *cam, int frame);
++extern void mcam_dma_sg_done(struct mcam_camera *cam, unsigned int frame);
+ extern int mcam_check_dma_buffers(struct mcam_camera *cam);
+ extern void mcam_set_config_needed(struct mcam_camera *cam, int needed);
+ extern int __mcam_cam_reset(struct mcam_camera *cam);
+ extern int mcam_alloc_dma_bufs(struct mcam_camera *cam, int loadtime);
+ extern void mcam_ctlr_dma_contig(struct mcam_camera *cam);
+-extern void mcam_dma_contig_done(struct mcam_camera *cam, int frame);
++extern void mcam_dma_contig_done(struct mcam_camera *cam, unsigned int frame);
+ extern void mcam_ctlr_dma_vmalloc(struct mcam_camera *cam);
+-extern void mcam_vmalloc_done(struct mcam_camera *cam, int frame);
++extern void mcam_vmalloc_done(struct mcam_camera *cam, unsigned int frame);
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 3b05d8c..2d200d6 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -111,7 +111,7 @@ static inline struct mcam_vb_buffer *vb_to_mvb(struct vb2_buffer *vb)
+ /*
+  * Hand a completed buffer back to user space.
+  */
+-static void mcam_buffer_done(struct mcam_camera *cam, int frame,
++static void mcam_buffer_done(struct mcam_camera *cam, unsigned int frame,
+ 		struct vb2_buffer *vbuf)
+ {
+ 	vbuf->v4l2_buf.bytesused = cam->pix_format.sizeimage;
+@@ -125,7 +125,7 @@ static void mcam_buffer_done(struct mcam_camera *cam, int frame,
+  */
+ static void mcam_reset_buffers(struct mcam_camera *cam)
+ {
+-	int i;
++	unsigned int i;
+ 
+ 	cam->next_buf = -1;
+ 	for (i = 0; i < cam->nbufs; i++) {
+@@ -216,7 +216,7 @@ int mcam_config_mipi(struct mcam_camera *mcam, int enable)
+  */
+ int mcam_alloc_dma_bufs(struct mcam_camera *cam, int loadtime)
+ {
+-	int i;
++	unsigned int i;
+ 
+ 	mcam_set_config_needed(cam, 1);
+ 	if (loadtime)
+@@ -257,7 +257,7 @@ int mcam_alloc_dma_bufs(struct mcam_camera *cam, int loadtime)
+ 
+ void mcam_free_dma_bufs(struct mcam_camera *cam)
+ {
+-	int i;
++	unsigned int i;
+ 
+ 	for (i = 0; i < cam->nbufs; i++) {
+ 		dma_free_coherent(cam->dev, cam->dma_buf_size,
+@@ -296,7 +296,7 @@ void mcam_ctlr_dma_vmalloc(struct mcam_camera *cam)
+ static void mcam_frame_tasklet(unsigned long data)
+ {
+ 	struct mcam_camera *cam = (struct mcam_camera *) data;
+-	int i;
++	unsigned int i;
+ 	unsigned long flags;
+ 	struct mcam_vb_buffer *buf;
+ 
+@@ -344,7 +344,7 @@ int mcam_check_dma_buffers(struct mcam_camera *cam)
+ 	return 0;
+ }
+ 
+-void mcam_vmalloc_done(struct mcam_camera *cam, int frame)
++void mcam_vmalloc_done(struct mcam_camera *cam, unsigned int frame)
+ {
+ 	tasklet_schedule(&cam->s_tasklet);
+ }
+@@ -396,7 +396,7 @@ static bool mcam_fmt_is_planar(__u32 pfmt)
+  * space.  In this way, we always have a buffer to DMA to and don't
+  * have to try to play games stopping and restarting the controller.
+  */
+-static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
++static void mcam_set_contig_buffer(struct mcam_camera *cam, unsigned int frame)
+ {
+ 	struct mcam_vb_buffer *buf;
+ 	struct v4l2_pix_format *fmt = &cam->pix_format;
+@@ -442,7 +442,7 @@ void mcam_ctlr_dma_contig(struct mcam_camera *cam)
+ /*
+  * Frame completion handling.
+  */
+-void mcam_dma_contig_done(struct mcam_camera *cam, int frame)
++void mcam_dma_contig_done(struct mcam_camera *cam, unsigned int frame)
+ {
+ 	struct mcam_vb_buffer *buf = cam->vb_bufs[frame];
+ 
+@@ -518,7 +518,7 @@ void mcam_ctlr_dma_sg(struct mcam_camera *cam)
+  * safely change the DMA descriptor array here and restart things
+  * (assuming there's another buffer waiting to go).
+  */
+-void mcam_dma_sg_done(struct mcam_camera *cam, int frame)
++void mcam_dma_sg_done(struct mcam_camera *cam, unsigned int frame)
+ {
+ 	struct mcam_vb_buffer *buf = cam->vb_bufs[0];
+ 
+@@ -935,7 +935,7 @@ static int mcam_vb_queue_setup(struct vb2_queue *vq,
+ 		void *alloc_ctxs[])
+ {
+ 	struct mcam_camera *cam = get_mcam(vq);
+-	int minbufs = (cam->buffer_mode == B_DMA_contig) ? 3 : 2;
++	unsigned int minbufs = (cam->buffer_mode == B_DMA_contig) ? 3 : 2;
+ 
+ 	sizes[0] = cam->pix_format.sizeimage;
+ 	*num_planes = 1; /* Someday we have to support planar formats... */
+@@ -1207,7 +1207,7 @@ const struct vb2_ops mcam_soc_vb2_ops = {
+ /*
+  * Interrupt handler stuff
+  */
+-static void mcam_frame_complete(struct mcam_camera *cam, int frame)
++static void mcam_frame_complete(struct mcam_camera *cam, unsigned int frame)
+ {
+ 	/*
+ 	 * Basic frame housekeeping.
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+index 999b581..5b2cf6e 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+@@ -197,7 +197,7 @@ struct mcam_camera {
+ 
+ 	/* Mode-specific ops, set at open time */
+ 	void (*dma_setup)(struct mcam_camera *cam);
+-	void (*frame_complete)(struct mcam_camera *cam, int frame);
++	void (*frame_complete)(struct mcam_camera *cam, unsigned int frame);
+ 
+ 	/* Current operating parameters */
+ 	u32 sensor_type;		/* Currently ov7670 only */
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index e840941..9b631b7 100755
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -52,7 +52,7 @@ struct mmp_camera {
+ 	struct list_head devlist;
+ 	/* will change here */
+ 	struct clk *clk[3];	/* CCIC_GATE, CCIC_RST, CCIC_DBG clocks */
+-	int irq;
++	unsigned int irq;
+ };
+ 
+ static inline struct mmp_camera *mcam_to_cam(struct mcam_camera *mcam)
+-- 
+1.7.9.5
 
