@@ -1,54 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:14189 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752511Ab2K1Jcp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 04:32:45 -0500
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Malcolm Priestley <tvboxspy@gmail.com>,
-	linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH 1/2] dvb-frontends: use %*ph[N] to dump small buffers
-Date: Wed, 28 Nov 2012 11:32:32 +0200
-Message-Id: <1354095153-18352-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from mail-da0-f46.google.com ([209.85.210.46]:63829 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754105Ab2KWL5A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Nov 2012 06:57:00 -0500
+Received: by mail-da0-f46.google.com with SMTP id p5so2614834dak.19
+        for <linux-media@vger.kernel.org>; Fri, 23 Nov 2012 03:57:00 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 0/6][media] s5p-*: Use devm_clk_get APIs
+Date: Fri, 23 Nov 2012 17:20:37 +0530
+Message-Id: <1353671443-2978-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/media/dvb-frontends/ix2505v.c |    2 +-
- drivers/media/dvb-frontends/or51211.c |    5 +----
- 2 files changed, 2 insertions(+), 5 deletions(-)
+This series is based on samsung/for_v3.8 branch of
+git://linuxtv.org/snawrocki/media.git tree.
 
-diff --git a/drivers/media/dvb-frontends/ix2505v.c b/drivers/media/dvb-frontends/ix2505v.c
-index bc5a820..0e3387e 100644
---- a/drivers/media/dvb-frontends/ix2505v.c
-+++ b/drivers/media/dvb-frontends/ix2505v.c
-@@ -212,7 +212,7 @@ static int ix2505v_set_params(struct dvb_frontend *fe)
- 		lpf = 0xb;
- 
- 	deb_info("Osc=%x b_w=%x lpf=%x\n", local_osc, b_w, lpf);
--	deb_info("Data 0=[%x%x%x%x]\n", data[0], data[1], data[2], data[3]);
-+	deb_info("Data 0=[%4phN]\n", data);
- 
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1);
-diff --git a/drivers/media/dvb-frontends/or51211.c b/drivers/media/dvb-frontends/or51211.c
-index c625b57..1af997e 100644
---- a/drivers/media/dvb-frontends/or51211.c
-+++ b/drivers/media/dvb-frontends/or51211.c
-@@ -471,10 +471,7 @@ static int or51211_init(struct dvb_frontend* fe)
- 			  i--;
- 			}
- 		}
--		dprintk("read_fwbits %x %x %x %x %x %x %x %x %x %x\n",
--			rec_buf[0], rec_buf[1], rec_buf[2], rec_buf[3],
--			rec_buf[4], rec_buf[5], rec_buf[6], rec_buf[7],
--			rec_buf[8], rec_buf[9]);
-+		dprintk("read_fwbits %10ph\n", rec_buf);
- 
- 		printk(KERN_INFO "or51211: ver TU%02x%02x%02x VSB mode %02x"
- 		       " Status %02x\n",
+MFC and FIMC have been tested on Origen board.
+Others build tested.
+
+Sachin Kamat (6):
+  [media] s5p-fimc: Use devm_clk_get in mipi-csis.c
+  [media] s5p-fimc: Use devm_clk_get in fimc-core.c
+  [media] s5p-fimc: Use devm_clk_get in fimc-lite.c
+  [media] s5p-g2d: Use devm_clk_get APIs.
+  [media] s5p-jpeg: Use devm_clk_get APIs.
+  [media] s5p-mfc: Use devm_clk_get APIs
+
+ drivers/media/platform/s5p-fimc/fimc-core.c |   10 ++--------
+ drivers/media/platform/s5p-fimc/fimc-lite.c |    8 +-------
+ drivers/media/platform/s5p-fimc/mipi-csis.c |    6 +-----
+ drivers/media/platform/s5p-g2d/g2d.c        |   14 ++++----------
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |    4 +---
+ drivers/media/platform/s5p-mfc/s5p_mfc_pm.c |   14 ++++----------
+ 6 files changed, 13 insertions(+), 43 deletions(-)
+
 -- 
-1.7.10.4
+1.7.4.1
 
