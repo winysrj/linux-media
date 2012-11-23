@@ -1,77 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:51803 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751126Ab2K1HOa (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1475 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755322Ab2KWM4l (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 02:14:30 -0500
-Date: Wed, 28 Nov 2012 08:14:23 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Libin Yang <lbyang@marvell.com>
-cc: Albert Wang <twang13@marvell.com>,
-	"corbet@lwn.net" <corbet@lwn.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH 02/15] [media] marvell-ccic: add MIPI support for
- marvell-ccic driver
-In-Reply-To: <A63A0DC671D719488CD1A6CD8BDC16CF230A8D79E9@SC-VEXCH4.marvell.com>
-Message-ID: <Pine.LNX.4.64.1211280812060.32652@axis700.grange>
-References: <1353677587-23998-1-git-send-email-twang13@marvell.com>
- <Pine.LNX.4.64.1211271117270.22273@axis700.grange>
- <477F20668A386D41ADCC57781B1F70430D1367C8D1@SC-VEXCH1.marvell.com>
- <A63A0DC671D719488CD1A6CD8BDC16CF230A8D79E9@SC-VEXCH4.marvell.com>
+	Fri, 23 Nov 2012 07:56:41 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 6/6] uvcvideo: Add VIDIOC_[GS]_PRIORITY support
+Date: Fri, 23 Nov 2012 13:56:37 +0100
+Cc: linux-media@vger.kernel.org
+References: <201211161507.42201.hverkuil@xs4all.nl> <1353673925-10050-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1353673925-10050-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201211231356.37989.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 27 Nov 2012, Libin Yang wrote:
+Hi Laurent,
 
-> Hello Guennadi,
-> 
-> Please see my comments below.
-> 
-> Best Regards,
-> Libin 
-> 
-> >-----Original Message-----
-> >From: Albert Wang
-> >Sent: Tuesday, November 27, 2012 7:21 PM
-> >To: Guennadi Liakhovetski
-> >Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
-> >Subject: RE: [PATCH 02/15] [media] marvell-ccic: add MIPI support for marvell-ccic driver
-> >
-> >Hi, Guennadi
-> >
-> >We will update the patch by following your good suggestion! :)
-> >
-> 
-> [snip]
-> 
-> >>> +	pll1 = clk_get(dev, "pll1");
-> >>> +	if (IS_ERR(pll1)) {
-> >>> +		dev_err(dev, "Could not get pll1 clock\n");
-> >>> +		return;
-> >>> +	}
-> >>> +
-> >>> +	tx_clk_esc = clk_get_rate(pll1) / 1000000 / 12;
-> >>> +	clk_put(pll1);
-> >>
-> >>Once you release your clock per "clk_put()" its rate can be changed by some other user,
-> >>so, your tx_clk_esc becomes useless. Better keep the reference to the clock until clean up.
-> >>Maybe you can also use
-> >>devm_clk_get() to simplify the clean up.
-> >>
-> >That's a good suggestion.
-> >
-> [Libin] In our code design, the pll1 will never be changed after the system boots up. Camera and other components can only get the clk without modifying it.
+You were right about your remark about setting USE_FH_PRIO: you do need to do
+that here.
 
-This doesn't matter. We have a standard API and we have to abide to its 
-rules. Your driver can be reused or its code can be copied by others. I 
-don't think it should be too difficult to just issue devm_clk_get() once 
-and then just forget about it.
+Thanks for reposting with more context, now I can see where the prio checks are
+added :-)
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+I have just one small remark:
+
+On Fri November 23 2012 13:32:05 Laurent Pinchart wrote:
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/usb/uvc/uvc_driver.c |    3 ++
+>  drivers/media/usb/uvc/uvc_v4l2.c   |   45 ++++++++++++++++++++++++++++++++++++
+>  drivers/media/usb/uvc/uvcvideo.h   |    1 +
+>  3 files changed, 49 insertions(+), 0 deletions(-)
+> 
+> Resent with larger contexts to make review easier.
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+> index ae24f7d..22f14d2 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -651,10 +668,14 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>  		ret = uvc_ctrl_rollback(handle);
+>  		break;
+>  	}
+>  
+>  	case VIDIOC_S_EXT_CTRLS:
+> +		ret = v4l2_prio_check(vdev->prio, handle->vfh.prio);
+> +		if (ret < 0)
+> +			return ret;
+
+Please add a /* fall through */ comment here.
+
+> +
+>  	case VIDIOC_TRY_EXT_CTRLS:
+>  	{
+>  		struct v4l2_ext_controls *ctrls = arg;
+>  		struct v4l2_ext_control *ctrl = ctrls->controls;
+>  		unsigned int i;
+
+After making that change you can add my Acked-by:
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
