@@ -1,113 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:46103 "EHLO 7of9.schinagl.nl"
+Received: from smtp1-g21.free.fr ([212.27.42.1]:59693 "EHLO smtp1-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751074Ab2KFMBU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Nov 2012 07:01:20 -0500
-Message-ID: <5098FC0B.4040500@schinagl.nl>
-Date: Tue, 06 Nov 2012 13:01:15 +0100
-From: Oliver Schinagl <oliver+list@schinagl.nl>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Add chipid to fc2580.c
-References: <50850116.9060806@schinagl.nl>    <20121028180713.7d852443@redhat.com> <6698470182ac3a8581c577d93cb49f8d.squirrel@webmail.kapsi.fi> <508F9CC2.5070301@schinagl.nl> <50984488.3070904@iki.fi>
-In-Reply-To: <50984488.3070904@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1751653Ab2KWSL7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Nov 2012 13:11:59 -0500
+Date: Fri, 23 Nov 2012 19:12:32 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Antonio Ospite <ospite@studenti.unina.it>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] gspca - ov534: Fix the light frequency filter
+Message-ID: <20121123191232.7ed9c546@armhf>
+In-Reply-To: <20121123180909.021c55a8c3795329836c42b7@studenti.unina.it>
+References: <20121122124652.3a832e33@armhf>
+	<20121123180909.021c55a8c3795329836c42b7@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05-11-12 23:58, Antti Palosaari wrote:
-> On 10/30/2012 11:24 AM, Oliver Schinagl wrote:
->> On 29-10-12 02:09, Antti Palosaari wrote:
->>> su 28.10.2012 22:07 Mauro Carvalho Chehab kirjoitti:
->>>> Em Mon, 22 Oct 2012 10:17:26 +0200
->>>> Oliver Schinagl <oliver+list@schinagl.nl> escreveu:
->>>>
->>>>> diff --git a/drivers/media/tuners/fc2580.c
->>>>> b/drivers/media/tuners/fc2580.c
->>>>> index aff39ae..102d942 100644
->>>>> I found a fellow Asus U3100+ user (mentioned him before with the
->>>>> firmware issue) that even when using the latest firmware, still see's
->>>>> 0xff as the chipID.
->>>> You missed to add a signed-off-by on your patch.
->>>>
->>>> Maybe it would make sense, in this case, to print some warning 
->>>> message,
->>>> as this could be due to a bug either at the hardware or at some place
->>>> at the driver, like the gpio config settings for this device.
->>>>
->>>> Anyway, Antti, your call.
->>> I am on holiday now and dont want to look much these things at the
->>> moment.
->>>
->>> Having 0x00 or 0xff as chip id is something very very stupid and not
->>> exits
->>> in real world. It is good indicator I2C operation was failing. Check
->>> GPIOs, see windows sniffs, add sleep, test if other I2C reads are 
->>> working
->>> later, etc. to find out more info and fix it properly. In worst case
->>> it is
->>> possible that I2C reads are not working at all...
->> This was a random report for someone who I assisted via e-mail to get
->> the latest git clone from antti's tree. Building, enabling debugging and
->> getting this information alone took a week. I don't think we have the
->> possibility to get a dump from anything. The stick has been working fine
->> from my understanding using the 0xff tunerID. How to handle support for
->> these 'bugged' tuners, I leave that up to you :)
->
-> Honestly I don't want to add hack like that with this little 
-> information. It must be found out if all I2C readings are failing, or 
-> just the first one, or some other condition. Currently there is only 
-> two register reads on that driver. Guess what happens if someone 
-> enhances that driver so that one bit from certain register is 
-> changed... Set register bit 7, current register value is 0x00. 
-> Register value will be 0x7ff as read returns always 0xff :-(
-true, do you have some test code, that could test this? or a test module 
-that prints some debug information for this specific case? I could then 
-have the user in question try it out and report his findings?
+On Fri, 23 Nov 2012 18:09:09 +0100
+Antonio Ospite <ospite@studenti.unina.it> wrote:
 
-oliver
->
->>
->> AFTER your well deserved holiday. Enjoy and have a great time!
->>
->>>
->>>
->>>>>
->>>>> --- a/drivers/media/tuners/fc2580.c
->>>>> +++ b/drivers/media/tuners/fc2580.c
->>>>> @@ -497,6 +497,7 @@ struct dvb_frontend *fc2580_attach(struct
->>>>> dvb_frontend *fe,
->>>>>           switch (chip_id) {
->>>>>           case 0x56:
->>>>>           case 0x5a:
->>>>> +       case 0xff:
->>>>>                   break;
->>>>>           default:
->>>>>                   goto err;
->>>>>
->>>>> -- 
->>>>> To unsubscribe from this list: send the line "unsubscribe 
->>>>> linux-media"
->>>>> in
->>>>> the body of a message to majordomo@vger.kernel.org
->>>>> More majordomo info at http://vger.kernel.org/majordomo-info.html
->>>>
->>>> -- 
->>>> Regards,
->>>> Mauro
->>>>
->>>
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe 
->>> linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at http://vger.kernel.org/majordomo-info.html
->>
->
-> regards
-> Antti
->
+> On Thu, 22 Nov 2012 12:46:52 +0100
+	[snip]
+> Jean-Francois Moine <moinejf@free.fr> wrote:
+> > This patch was done thanks to the documentation of the right
+> > OmniVision sensors.
+> 
+> In the datasheet I have for ov772x, bit[6] of register 0x13 is described
+> as:
+> 
+>   Bit[6]: AEC - Step size limit
+>     0: Step size is limited to vertical blank
+>     1: Unlimited step size
 
+Right, but I don't use the bit 6, it is the bit 5:
+
+> > +		sccb_reg_write(gspca_dev, 0x13,		/* auto */
+> > +				sccb_reg_read(gspca_dev, 0x13) | 0x20);
+
+which is described as:
+
+   Bit[5]:  Banding filter ON/OFF
+
+> And the patch makes Light Frequency _NOT_ work with the PS3 eye (based
+> on ov772x).
+> 
+> What does the ov767x datasheet say?
+
+Quite the same thing:
+
+   Bit[5]: Banding filter ON/OFF - In order to turn ON the banding
+           filter, BD50ST (0x9D) or BD60ST (0x9E) must be set to a
+           non-zero value.
+           0: OFF
+           1: ON
+
+(the registers 9d and 9e are non zero for the ov767x in ov534.c)
+
+> Maybe we should use the new values only when
+> 	sd->sensor == SENSOR_OV767x
+> 
+> What sensor does Alexander's webcam use?
+
+He has exactly the same webcam as yours: 1415:2000 (ps eye) with
+sensor ov772x.
+
+> > Note: The light frequency filter is either off or automatic.
+> > The application will see either off or "50Hz" only.
+> > 
+> > Tested-by: alexander calderon <fabianp902@gmail.com>
+> > Signed-off-by: Jean-François Moine <moinejf@free.fr>
+> > 
+> > --- a/drivers/media/usb/gspca/ov534.c
+> > +++ b/drivers/media/usb/gspca/ov534.c
+> > @@ -1038,13 +1038,12 @@
+> >  {
+> >  	struct sd *sd = (struct sd *) gspca_dev;
+> > 
+> 
+> drivers/media/usb/gspca/ov534.c: In function ‘setlightfreq’:
+> drivers/media/usb/gspca/ov534.c:1039:13: warning: unused variable ‘sd’ [-Wunused-variable]
+
+Thanks.
+
+Well, here is one of the last message I received from Alexander (in
+fact, his first name is Fabian):
+
+> Thanks for all your help, it is very kind of you, I used the code below,the
+> 60 Hz filter appear to work even at 100fps, but when I used 125 fps it
+> didnt work :( , i guess it is something of detection speed. If you have any
+> other idea I'll be very thankful.
+> 
+> Sincerely Fabian Calderon
+
+So, how may we advance?
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
