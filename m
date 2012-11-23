@@ -1,75 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60432 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753136Ab2KEKdS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 05:33:18 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, sakari.ailus@iki.fi, dacohen@gmail.com
-Subject: Re: [omap3-isp-live] Autofocus buffer interpretation of H3A engine
-Date: Sun, 04 Nov 2012 12:47:25 +0100
-Message-ID: <1588578.t5rbryooTj@avalon>
-In-Reply-To: <6EE9CD707FBED24483D4CB0162E854671007E05D@AM2PRD0710MB375.eurprd07.prod.outlook.com>
-References: <6EE9CD707FBED24483D4CB0162E854671007E05D@AM2PRD0710MB375.eurprd07.prod.outlook.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:54541 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030213Ab2KWID3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Nov 2012 03:03:29 -0500
+Date: Fri, 23 Nov 2012 09:03:19 +0100
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	devicetree-discuss@lists.ozlabs.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>, kernel@pengutronix.de,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCHv13 4/7] fbmon: add videomode helpers
+Message-ID: <20121123080319.GB20282@pengutronix.de>
+References: <1353600015-6974-1-git-send-email-s.trumtrar@pengutronix.de>
+ <2107534.vAYnU9M0ZA@avalon>
+ <20121122230949.GA8698@pengutronix.de>
+ <2692338.s0PjnOCRb5@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2692338.s0PjnOCRb5@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Florian,
-
-On Thursday 01 November 2012 11:17:44 Florian Neuhaus wrote:
-> Hi Laurent
+On Fri, Nov 23, 2012 at 12:52:08AM +0100, Laurent Pinchart wrote:
+> On Friday 23 November 2012 00:09:49 Steffen Trumtrar wrote:
+> > On Thu, Nov 22, 2012 at 07:31:39PM +0100, Laurent Pinchart wrote:
+> > > On Thursday 22 November 2012 17:00:12 Steffen Trumtrar wrote:
+> > > > Add a function to convert from the generic videomode to a fb_videomode.
+> > > > 
+> > > > Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> > > > Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+> > > > Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+> > > > Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+> > > > Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > > > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+> > > > ---
+> > > > 
+> > > >  drivers/video/fbmon.c |   44 ++++++++++++++++++++++++++++++++++++++++++
+> > > >  include/linux/fb.h    |    6 ++++++
+> > > >  2 files changed, 50 insertions(+)
+> > > > 
+> > > > diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
+> > > > index cef6557..a6a564d 100644
+> > > > --- a/drivers/video/fbmon.c
+> > > > +++ b/drivers/video/fbmon.c
+> > > > @@ -31,6 +31,7 @@
+> > > > 
+> > > >  #include <linux/pci.h>
+> > > >  #include <linux/slab.h>
+> > > >  #include <video/edid.h>
+> > > > 
+> > > > +#include <linux/videomode.h>
+> > > > 
+> > > >  #ifdef CONFIG_PPC_OF
+> > > >  #include <asm/prom.h>
+> > > >  #include <asm/pci-bridge.h>
+> > > > 
+> > > > @@ -1373,6 +1374,49 @@ int fb_get_mode(int flags, u32 val, struct
+> > > > fb_var_screeninfo *var, struct fb_inf kfree(timings);
+> > > > 
+> > > >  	return err;
+> > > >  
+> > > >  }
+> > > > 
+> > > > +
+> > > > +#if IS_ENABLED(CONFIG_VIDEOMODE)
+> > > > +int fb_videomode_from_videomode(const struct videomode *vm,
+> > > > +				struct fb_videomode *fbmode)
+> > > > +{
+> > > > +	unsigned int htotal, vtotal;
+> > > > +
+> > > > +	fbmode->xres = vm->hactive;
+> > > > +	fbmode->left_margin = vm->hback_porch;
+> > > > +	fbmode->right_margin = vm->hfront_porch;
+> > > > +	fbmode->hsync_len = vm->hsync_len;
+> > > > +
+> > > > +	fbmode->yres = vm->vactive;
+> > > > +	fbmode->upper_margin = vm->vback_porch;
+> > > > +	fbmode->lower_margin = vm->vfront_porch;
+> > > > +	fbmode->vsync_len = vm->vsync_len;
+> > > > +
+> > > > +	fbmode->pixclock = KHZ2PICOS(vm->pixelclock / 1000);
+> > > 
+> > > This results in a division by 0 if vm->pixelclock is equal to zero. As the
+> > > information is missing from many board files, what would you think about
+> > > the following ?
+> > > 
+> > > 	fbmode->pixclock = vm->pixelclock ? KHZ2PICOS(vm->pixelclock / 1000) : 0;
+> > 
+> > Grrr...you are right. I will fix that...
 > 
-> I am adapting your current omap3-isp-live application to fit our needs
-> (http://git.ideasonboard.org/omap3-isp-live.git/commit/619164a994c8d878249d
-> 6c1b8b16c27074a04209). For this I need to implement an autofocus algorithm
-> to control an attached actuator. Let me summarize what components I use:
+> Thank you.
 > 
-> - beagleboard-xm
-> - mt9p031 on leopardimaging li-5m03
-> - own developed voice-coil-motor (vcm) driven by current regulator ad5821
 
-The AD5821 is similar to the AD5820, for which I have a driver that I need to 
-clean up and post. Would you be interested in that ?
+I have to thank you for bulletproofing my code o/\o
 
-> - kernel 3.5 out of the linux-omap tree
+> > > > +	htotal = vm->hactive + vm->hfront_porch + vm->hback_porch +
+> > > > +		 vm->hsync_len;
+> > > > +	vtotal = vm->vactive + vm->vfront_porch + vm->vback_porch +
+> > > > +		 vm->vsync_len;
+> > > > +	fbmode->refresh = vm->pixelclock / (htotal * vtotal);
+> > > > +
+> > 
+> > ...and obviously this, too.
 > 
-> To generate a control signal for my vcm, I need to interpret the values
-> generated by the AF engine of the omap3isp, h3a module. I see, that you
-> have already implemented a working auto-exposure functionality with the
-> AEWB module - so I have done the same with the AF module. But now I have
-> problems to interpret the generated values in omap3_isp_af_process. Do you
-> know how the paxel-buffer is structured?
-
-Even though that buffer structure is pretty simple, I'm afraid I can't provide 
-that information as it's covered by an NDA.
-
-Note that a description of the buffer's contents won't help you much, as you 
-wouldn't know how to compute the IIR filters coefficients.
-
-There's two way to move forward here. We could ask TI to release the required 
-information to produce an open-source AF implementation, or we could try to 
-figure it out ourselves. Looking at the FCam project, I've found
-
-http://vcs.maemo.org/svn/fcam/fcam-dev/tags/1.1.0/src/N900/V4L2Sensor.cpp
-
-Does that help figuring out what the buffer contains ?
-
-> I see that the received buffer has the size of
+> That one is less of an issue in my opinion. A mode with a zero htotal or 
+> vtotal is clearly invalid, while we have modes with no pixel clock value.
 > 
-> buf_size = af->paxel.h_cnt * af->paxel.v_cnt * OMAP3ISP_AF_PAXEL_SIZE;
-> 
-> where  OMAP3ISP_AF_PAXEL_SIZE is 48 bytes, but what is in the 48 bytes?
-> 
-> Have you made some progress in implementing an autofocus algorithm?
 
-I haven't started, and it's currently not on my to-do list I'm afraid.
+Yes, you I are right. But while I'm on it, might as well prevent an error.
 
--- 
 Regards,
-
-Laurent Pinchart
-
+Steffen
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
