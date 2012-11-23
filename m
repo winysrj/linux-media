@@ -1,163 +1,310 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42049 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754685Ab2KZJIJ (ORCPT
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:50471 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752317Ab2KWNe2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Nov 2012 04:08:09 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
-	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
-	"David Airlie" <airlied@linux.ie>
-Subject: [PATCHv15 1/7] viafb: rename display_timing to via_display_timing
-Date: Mon, 26 Nov 2012 10:07:22 +0100
-Message-Id: <1353920848-1705-2-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1353920848-1705-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1353920848-1705-1-git-send-email-s.trumtrar@pengutronix.de>
+	Fri, 23 Nov 2012 08:34:28 -0500
+From: Albert Wang <twang13@marvell.com>
+To: corbet@lwn.net, g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, Libin Yang <lbyang@marvell.com>,
+	Albert Wang <twang13@marvell.com>
+Subject: [PATCH 06/15] [media] marvell-ccic: add new formats support for marvell-ccic driver
+Date: Fri, 23 Nov 2012 21:33:41 +0800
+Message-Id: <1353677621-24143-1-git-send-email-twang13@marvell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The struct display_timing is specific to the via subsystem. The naming leads to
-collisions with the new struct display_timing, that is supposed to be a shared
-struct between different subsystems.
-To clean this up, prepend the existing struct with the subsystem it is specific
-to.
+From: Libin Yang <lbyang@marvell.com>
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+This patch adds the new formats support for marvell-ccic.
+
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
 ---
- drivers/video/via/hw.c              |    6 +++---
- drivers/video/via/hw.h              |    2 +-
- drivers/video/via/lcd.c             |    2 +-
- drivers/video/via/share.h           |    2 +-
- drivers/video/via/via_modesetting.c |    8 ++++----
- drivers/video/via/via_modesetting.h |    6 +++---
- 6 files changed, 13 insertions(+), 13 deletions(-)
+ drivers/media/platform/marvell-ccic/mcam-core.c |  178 ++++++++++++++++++-----
+ drivers/media/platform/marvell-ccic/mcam-core.h |    6 +
+ 2 files changed, 151 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/video/via/hw.c b/drivers/video/via/hw.c
-index 898590d..5563c67 100644
---- a/drivers/video/via/hw.c
-+++ b/drivers/video/via/hw.c
-@@ -1467,10 +1467,10 @@ void viafb_set_vclock(u32 clk, int set_iga)
- 	via_write_misc_reg_mask(0x0C, 0x0C); /* select external clock */
- }
- 
--struct display_timing var_to_timing(const struct fb_var_screeninfo *var,
-+struct via_display_timing var_to_timing(const struct fb_var_screeninfo *var,
- 	u16 cxres, u16 cyres)
- {
--	struct display_timing timing;
-+	struct via_display_timing timing;
- 	u16 dx = (var->xres - cxres) / 2, dy = (var->yres - cyres) / 2;
- 
- 	timing.hor_addr = cxres;
-@@ -1491,7 +1491,7 @@ struct display_timing var_to_timing(const struct fb_var_screeninfo *var,
- void viafb_fill_crtc_timing(const struct fb_var_screeninfo *var,
- 	u16 cxres, u16 cyres, int iga)
- {
--	struct display_timing crt_reg = var_to_timing(var,
-+	struct via_display_timing crt_reg = var_to_timing(var,
- 		cxres ? cxres : var->xres, cyres ? cyres : var->yres);
- 
- 	if (iga == IGA1)
-diff --git a/drivers/video/via/hw.h b/drivers/video/via/hw.h
-index 6be243c..c3f2572 100644
---- a/drivers/video/via/hw.h
-+++ b/drivers/video/via/hw.h
-@@ -637,7 +637,7 @@ extern int viafb_LCD_ON;
- extern int viafb_DVI_ON;
- extern int viafb_hotplug;
- 
--struct display_timing var_to_timing(const struct fb_var_screeninfo *var,
-+struct via_display_timing var_to_timing(const struct fb_var_screeninfo *var,
- 	u16 cxres, u16 cyres);
- void viafb_fill_crtc_timing(const struct fb_var_screeninfo *var,
- 	u16 cxres, u16 cyres, int iga);
-diff --git a/drivers/video/via/lcd.c b/drivers/video/via/lcd.c
-index 1650379..022b0df 100644
---- a/drivers/video/via/lcd.c
-+++ b/drivers/video/via/lcd.c
-@@ -549,7 +549,7 @@ void viafb_lcd_set_mode(const struct fb_var_screeninfo *var, u16 cxres,
- 	int panel_hres = plvds_setting_info->lcd_panel_hres;
- 	int panel_vres = plvds_setting_info->lcd_panel_vres;
- 	u32 clock;
--	struct display_timing timing;
-+	struct via_display_timing timing;
- 	struct fb_var_screeninfo panel_var;
- 	const struct fb_videomode *mode_crt_table, *panel_crt_table;
- 
-diff --git a/drivers/video/via/share.h b/drivers/video/via/share.h
-index 3158dfc..65c65c6 100644
---- a/drivers/video/via/share.h
-+++ b/drivers/video/via/share.h
-@@ -319,7 +319,7 @@ struct crt_mode_table {
- 	int refresh_rate;
- 	int h_sync_polarity;
- 	int v_sync_polarity;
--	struct display_timing crtc;
-+	struct via_display_timing crtc;
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 67d4f2f..c9f7250 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -110,6 +110,30 @@ static struct mcam_format_struct {
+ 		.bpp		= 2,
+ 	},
+ 	{
++		.desc		= "UYVY 4:2:2",
++		.pixelformat	= V4L2_PIX_FMT_UYVY,
++		.mbus_code	= V4L2_MBUS_FMT_UYVY8_2X8,
++		.bpp		= 2,
++	},
++	{
++		.desc		= "YUV 4:2:2 PLANAR",
++		.pixelformat	= V4L2_PIX_FMT_YUV422P,
++		.mbus_code	= V4L2_MBUS_FMT_UYVY8_2X8,
++		.bpp		= 2,
++	},
++	{
++		.desc		= "YUV 4:2:0 PLANAR",
++		.pixelformat	= V4L2_PIX_FMT_YUV420,
++		.mbus_code	= V4L2_MBUS_FMT_YUYV8_1_5X8,
++		.bpp		= 2,
++	},
++	{
++		.desc		= "YVU 4:2:0 PLANAR",
++		.pixelformat	= V4L2_PIX_FMT_YVU420,
++		.mbus_code	= V4L2_MBUS_FMT_YVYU8_1_5X8,
++		.bpp		= 2,
++	},
++	{
+ 		.desc		= "RGB 444",
+ 		.pixelformat	= V4L2_PIX_FMT_RGB444,
+ 		.mbus_code	= V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE,
+@@ -168,6 +192,12 @@ struct mcam_dma_desc {
+ 	u32 segment_len;
  };
  
- struct io_reg {
-diff --git a/drivers/video/via/via_modesetting.c b/drivers/video/via/via_modesetting.c
-index 0e431ae..0b414b0 100644
---- a/drivers/video/via/via_modesetting.c
-+++ b/drivers/video/via/via_modesetting.c
-@@ -30,9 +30,9 @@
- #include "debug.h"
- 
- 
--void via_set_primary_timing(const struct display_timing *timing)
-+void via_set_primary_timing(const struct via_display_timing *timing)
- {
--	struct display_timing raw;
-+	struct via_display_timing raw;
- 
- 	raw.hor_total = timing->hor_total / 8 - 5;
- 	raw.hor_addr = timing->hor_addr / 8 - 1;
-@@ -88,9 +88,9 @@ void via_set_primary_timing(const struct display_timing *timing)
- 	via_write_reg_mask(VIACR, 0x17, 0x80, 0x80);
- }
- 
--void via_set_secondary_timing(const struct display_timing *timing)
-+void via_set_secondary_timing(const struct via_display_timing *timing)
- {
--	struct display_timing raw;
-+	struct via_display_timing raw;
- 
- 	raw.hor_total = timing->hor_total - 1;
- 	raw.hor_addr = timing->hor_addr - 1;
-diff --git a/drivers/video/via/via_modesetting.h b/drivers/video/via/via_modesetting.h
-index 06e09fe..f6a6503 100644
---- a/drivers/video/via/via_modesetting.h
-+++ b/drivers/video/via/via_modesetting.h
-@@ -33,7 +33,7 @@
- #define VIA_PITCH_MAX	0x3FF8
- 
- 
--struct display_timing {
-+struct via_display_timing {
- 	u16 hor_total;
- 	u16 hor_addr;
- 	u16 hor_blank_start;
-@@ -49,8 +49,8 @@ struct display_timing {
++struct yuv_pointer_t {
++	dma_addr_t y;
++	dma_addr_t u;
++	dma_addr_t v;
++};
++
+ /*
+  * Our buffer type for working with videobuf2.  Note that the vb2
+  * developers have decreed that struct vb2_buffer must be at the
+@@ -179,6 +209,7 @@ struct mcam_vb_buffer {
+ 	struct mcam_dma_desc *dma_desc;	/* Descriptor virtual address */
+ 	dma_addr_t dma_desc_pa;		/* Descriptor physical address */
+ 	int dma_desc_nent;		/* Number of mapped descriptors */
++	struct yuv_pointer_t yuv_p;
  };
  
+ static inline struct mcam_vb_buffer *vb_to_mvb(struct vb2_buffer *vb)
+@@ -465,6 +496,18 @@ static inline int mcam_check_dma_buffers(struct mcam_camera *cam)
+ /*
+  * DMA-contiguous code.
+  */
++
++static bool mcam_fmt_is_planar(__u32 pfmt)
++{
++	switch (pfmt) {
++	case V4L2_PIX_FMT_YUV422P:
++	case V4L2_PIX_FMT_YUV420:
++	case V4L2_PIX_FMT_YVU420:
++		return true;
++	}
++	return false;
++}
++
+ /*
+  * Set up a contiguous buffer for the given frame.  Here also is where
+  * the underrun strategy is set: if there is no buffer available, reuse
+@@ -476,6 +519,8 @@ static inline int mcam_check_dma_buffers(struct mcam_camera *cam)
+ static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
+ {
+ 	struct mcam_vb_buffer *buf;
++	struct v4l2_pix_format *fmt = &cam->pix_format;
++
+ 	/*
+ 	 * If there are no available buffers, go into single mode
+ 	 */
+@@ -494,8 +539,13 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
+ 	}
  
--void via_set_primary_timing(const struct display_timing *timing);
--void via_set_secondary_timing(const struct display_timing *timing);
-+void via_set_primary_timing(const struct via_display_timing *timing);
-+void via_set_secondary_timing(const struct via_display_timing *timing);
- void via_set_primary_address(u32 addr);
- void via_set_secondary_address(u32 addr);
- void via_set_primary_pitch(u32 pitch);
+ 	cam->vb_bufs[frame] = buf;
+-	mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR,
+-			vb2_dma_contig_plane_dma_addr(&buf->vb_buf, 0));
++	mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR, buf->yuv_p.y);
++	if (mcam_fmt_is_planar(fmt->pixelformat)) {
++		mcam_reg_write(cam, frame == 0 ?
++					REG_U0BAR : REG_U1BAR, buf->yuv_p.u);
++		mcam_reg_write(cam, frame == 0 ?
++					REG_V0BAR : REG_V1BAR, buf->yuv_p.v);
++	}
+ }
+ 
+ /*
+@@ -653,49 +703,91 @@ static inline void mcam_sg_restart(struct mcam_camera *cam)
+  */
+ static void mcam_ctlr_image(struct mcam_camera *cam)
+ {
+-	int imgsz;
+ 	struct v4l2_pix_format *fmt = &cam->pix_format;
++	u32 widthy = 0, widthuv = 0, imgsz_h, imgsz_w;
++
++	cam_dbg(cam, "camera: bytesperline = %d; height = %d\n",
++		fmt->bytesperline, fmt->sizeimage / fmt->bytesperline);
++	imgsz_h = (fmt->height << IMGSZ_V_SHIFT) & IMGSZ_V_MASK;
++	imgsz_w = fmt->bytesperline & IMGSZ_H_MASK;
++
++	if (fmt->pixelformat == V4L2_PIX_FMT_YUV420
++		|| fmt->pixelformat == V4L2_PIX_FMT_YVU420)
++		imgsz_w = (fmt->bytesperline * 4 / 3) & IMGSZ_H_MASK;
++	else if (fmt->pixelformat == V4L2_PIX_FMT_JPEG)
++		imgsz_h = (fmt->sizeimage / fmt->bytesperline) << IMGSZ_V_SHIFT;
++
++	switch (fmt->pixelformat) {
++	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_UYVY:
++		widthy = fmt->width * 2;
++		widthuv = fmt->width * 2;
++		break;
++	case V4L2_PIX_FMT_RGB565:
++		widthy = fmt->width * 2;
++		widthuv = 0;
++		break;
++	case V4L2_PIX_FMT_JPEG:
++		widthy = fmt->bytesperline;
++		widthuv = fmt->bytesperline;
++		break;
++	case V4L2_PIX_FMT_YUV422P:
++	case V4L2_PIX_FMT_YUV420:
++	case V4L2_PIX_FMT_YVU420:
++		widthy = fmt->width;
++		widthuv = fmt->width / 2;
++		break;
++	default:
++		break;
++	}
++
++	mcam_reg_write_mask(cam, REG_IMGPITCH, widthuv << 16 | widthy,
++			IMGP_YP_MASK | IMGP_UVP_MASK);
++	mcam_reg_write(cam, REG_IMGSIZE, imgsz_h | imgsz_w);
++	mcam_reg_write(cam, REG_IMGOFFSET, 0x0);
+ 
+-	imgsz = ((fmt->height << IMGSZ_V_SHIFT) & IMGSZ_V_MASK) |
+-		(fmt->bytesperline & IMGSZ_H_MASK);
+-	mcam_reg_write(cam, REG_IMGSIZE, imgsz);
+-	mcam_reg_write(cam, REG_IMGOFFSET, 0);
+-	/* YPITCH just drops the last two bits */
+-	mcam_reg_write_mask(cam, REG_IMGPITCH, fmt->bytesperline,
+-			IMGP_YP_MASK);
+ 	/*
+ 	 * Tell the controller about the image format we are using.
+ 	 */
+-	switch (cam->pix_format.pixelformat) {
++	switch (fmt->pixelformat) {
++	case V4L2_PIX_FMT_YUV422P:
++		mcam_reg_write_mask(cam, REG_CTRL0,
++			C0_DF_YUV | C0_YUV_PLANAR | C0_YUVE_YVYU, C0_DF_MASK);
++		break;
++	case V4L2_PIX_FMT_YUV420:
++	case V4L2_PIX_FMT_YVU420:
++		mcam_reg_write_mask(cam, REG_CTRL0,
++			C0_DF_YUV | C0_YUV_420PL | C0_YUVE_YVYU, C0_DF_MASK);
++		break;
+ 	case V4L2_PIX_FMT_YUYV:
+-	    mcam_reg_write_mask(cam, REG_CTRL0,
+-			    C0_DF_YUV|C0_YUV_PACKED|C0_YUVE_YUYV,
+-			    C0_DF_MASK);
+-	    break;
+-
++		mcam_reg_write_mask(cam, REG_CTRL0,
++			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_UYVY, C0_DF_MASK);
++		break;
++	case V4L2_PIX_FMT_UYVY:
++		mcam_reg_write_mask(cam, REG_CTRL0,
++			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_YUYV, C0_DF_MASK);
++		break;
++	case V4L2_PIX_FMT_JPEG:
++		mcam_reg_write_mask(cam, REG_CTRL0,
++			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_YUYV, C0_DF_MASK);
++		break;
+ 	case V4L2_PIX_FMT_RGB444:
+-	    mcam_reg_write_mask(cam, REG_CTRL0,
+-			    C0_DF_RGB|C0_RGBF_444|C0_RGB4_XRGB,
+-			    C0_DF_MASK);
+-		/* Alpha value? */
+-	    break;
+-
++		mcam_reg_write_mask(cam, REG_CTRL0,
++			C0_DF_RGB | C0_RGBF_444 | C0_RGB4_XRGB, C0_DF_MASK);
++		break;
+ 	case V4L2_PIX_FMT_RGB565:
+-	    mcam_reg_write_mask(cam, REG_CTRL0,
+-			    C0_DF_RGB|C0_RGBF_565|C0_RGB5_BGGR,
+-			    C0_DF_MASK);
+-	    break;
+-
++		mcam_reg_write_mask(cam, REG_CTRL0,
++			C0_DF_RGB | C0_RGBF_565 | C0_RGB5_BGGR, C0_DF_MASK);
++		break;
+ 	default:
+-	    cam_err(cam, "Unknown format %x\n", cam->pix_format.pixelformat);
+-	    break;
++		cam_err(cam, "camera: unknown format: %c\n", fmt->pixelformat);
++		break;
+ 	}
++
+ 	/*
+ 	 * Make sure it knows we want to use hsync/vsync.
+ 	 */
+-	mcam_reg_write_mask(cam, REG_CTRL0, C0_SIF_HVSYNC,
+-			C0_SIFM_MASK);
+-
++	mcam_reg_write_mask(cam, REG_CTRL0, C0_SIF_HVSYNC, C0_SIFM_MASK);
+ 	/*
+ 	 * This field controls the generation of EOF(DVP only)
+ 	 */
+@@ -706,7 +798,6 @@ static void mcam_ctlr_image(struct mcam_camera *cam)
+ 	}
+ }
+ 
+-
+ /*
+  * Configure the controller for operation; caller holds the
+  * device mutex.
+@@ -979,11 +1070,32 @@ static void mcam_vb_buf_queue(struct vb2_buffer *vb)
+ {
+ 	struct mcam_vb_buffer *mvb = vb_to_mvb(vb);
+ 	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
++	struct v4l2_pix_format *fmt = &cam->pix_format;
+ 	unsigned long flags;
+ 	int start;
++	dma_addr_t dma_handle;
++	u32 base_size = fmt->width * fmt->height;
+ 
+ 	spin_lock_irqsave(&cam->dev_lock, flags);
++	dma_handle = vb2_dma_contig_plane_dma_addr(vb, 0);
++	BUG_ON(!dma_handle);
+ 	start = (cam->state == S_BUFWAIT) && !list_empty(&cam->buffers);
++
++	if (cam->pix_format.pixelformat == V4L2_PIX_FMT_YUV422P) {
++		mvb->yuv_p.y = dma_handle;
++		mvb->yuv_p.u = mvb->yuv_p.y + base_size;
++		mvb->yuv_p.v = mvb->yuv_p.u + base_size / 2;
++	} else if (cam->pix_format.pixelformat == V4L2_PIX_FMT_YUV420) {
++		mvb->yuv_p.y = dma_handle;
++		mvb->yuv_p.u = mvb->yuv_p.y + base_size;
++		mvb->yuv_p.v = mvb->yuv_p.u + base_size / 4;
++	} else if (cam->pix_format.pixelformat == V4L2_PIX_FMT_YVU420) {
++		mvb->yuv_p.y = dma_handle;
++		mvb->yuv_p.v = mvb->yuv_p.y + base_size;
++		mvb->yuv_p.u = mvb->yuv_p.v + base_size / 4;
++	} else
++		mvb->yuv_p.y = dma_handle;
++
+ 	list_add(&mvb->queue, &cam->buffers);
+ 	if (cam->state == S_STREAMING && test_bit(CF_SG_RESTART, &cam->flags))
+ 		mcam_sg_restart(cam);
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+index 40368f6..3f75d7d 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+@@ -233,6 +233,12 @@ int mccic_resume(struct mcam_camera *cam);
+ #define REG_Y0BAR	0x00
+ #define REG_Y1BAR	0x04
+ #define REG_Y2BAR	0x08
++#define REG_U0BAR	0x0c
++#define REG_U1BAR	0x10
++#define REG_U2BAR	0x14
++#define REG_V0BAR	0x18
++#define REG_V1BAR	0x1C
++#define REG_V2BAR	0x20
+ 
+ /*
+  * register definitions for MIPI support
 -- 
-1.7.10.4
+1.7.9.5
 
