@@ -1,125 +1,323 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:54789 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256Ab2KWT4W (ORCPT
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:45979 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753362Ab2KWNeq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 14:56:22 -0500
-Date: Fri, 23 Nov 2012 20:56:07 +0100
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Tom Gall <tom.gall@linaro.org>,
-	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC v2 0/5] Common Display Framework
-Message-ID: <20121123195607.GA20990@avionic-0098.adnet.avionic-design.de>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3MwIy2ne0vdjdPXF"
-Content-Disposition: inline
-In-Reply-To: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 23 Nov 2012 08:34:46 -0500
+From: Albert Wang <twang13@marvell.com>
+To: corbet@lwn.net, g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, Albert Wang <twang13@marvell.com>,
+	Libin Yang <lbyang@marvell.com>
+Subject: [PATCH 12/15] [media] marvell-ccic: add soc_camera support in mmp driver
+Date: Fri, 23 Nov 2012 21:34:26 +0800
+Message-Id: <1353677666-24361-1-git-send-email-twang13@marvell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch adds the soc_camera support in the platform driver: mmp-driver.c.
+Specified board driver also should be modified to support soc_camera by passing
+some platform datas to platform driver.
 
---3MwIy2ne0vdjdPXF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Currently the soc_camera mode in mmp driver only supports B_DMA_contig mode.
 
-On Thu, Nov 22, 2012 at 10:45:31PM +0100, Laurent Pinchart wrote:
-[...]
-> Display entities are accessed by driver using notifiers. Any driver can
-> register a display entity notifier with the CDF, which then calls the not=
-ifier
-> when a matching display entity is registered. The reason for this asynchr=
-onous
-> mode of operation, compared to how drivers acquire regulator or clock
-> resources, is that the display entities can use resources provided by the
-> display driver. For instance a panel can be a child of the DBI or DSI bus
-> controlled by the display device, or use a clock provided by that device.=
- We
-> can't defer the display device probe until the panel is registered and al=
-so
-> defer the panel device probe until the display is registered. As most dis=
-play
-> drivers need to handle output devices hotplug (HDMI monitors for instance=
-),
-> handling other display entities through a notification system seemed to b=
-e the
-> easiest solution.
->=20
-> Note that this brings a different issue after registration, as display
-> controller and display entity drivers would take a reference to each othe=
-r.
-> Those circular references would make driver unloading impossible. One pos=
-sible
-> solution to this problem would be to simulate an unplug event for the dis=
-play
-> entity, to force the display driver to release the dislay entities it use=
-s. We
-> would need a userspace API for that though. Better solutions would of cou=
-rse
-> be welcome.
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+Signed-off-by: Albert Wang <twang13@marvell.com>
+---
+ drivers/media/platform/Makefile                  |    4 +-
+ drivers/media/platform/marvell-ccic/Kconfig      |   22 ++++++
+ drivers/media/platform/marvell-ccic/mmp-driver.c |   80 +++++++++++++++++++---
+ include/media/mmp-camera.h                       |    2 +
+ 4 files changed, 97 insertions(+), 11 deletions(-)
 
-Maybe I don't understand all of the underlying issues correctly, but a
-parent/child model would seem like a better solution to me. We discussed
-this back when designing the DT bindings for Tegra DRM and came to the
-conclusion that the output resource of the display controller (RGB,
-HDMI, DSI or TVO) was the most suitable candidate to be the parent of
-the panel or display attached to it. The reason for that decision was
-that it keeps the flow of data or addressing of nodes consistent. So the
-chain would look something like this (on Tegra):
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index baaa550..feae003 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -11,8 +11,8 @@ obj-$(CONFIG_VIDEO_TIMBERDALE)	+= timblogiw.o
+ obj-$(CONFIG_VIDEO_M32R_AR_M64278) += arv.o
+ 
+ obj-$(CONFIG_VIDEO_VIA_CAMERA) += via-camera.o
+-obj-$(CONFIG_VIDEO_CAFE_CCIC) += marvell-ccic/
+-obj-$(CONFIG_VIDEO_MMP_CAMERA) += marvell-ccic/
++
++obj-$(CONFIG_VIDEO_MARVELL_CCIC)       += marvell-ccic/
+ 
+ obj-$(CONFIG_VIDEO_OMAP2)		+= omap2cam.o
+ obj-$(CONFIG_VIDEO_OMAP3)	+= omap3isp/
+diff --git a/drivers/media/platform/marvell-ccic/Kconfig b/drivers/media/platform/marvell-ccic/Kconfig
+index bf739e3..6e3eaa0 100755
+--- a/drivers/media/platform/marvell-ccic/Kconfig
++++ b/drivers/media/platform/marvell-ccic/Kconfig
+@@ -1,23 +1,45 @@
++config VIDEO_MARVELL_CCIC
++       tristate
++config VIDEO_MRVL_SOC_CAMERA
++       tristate
++
+ config VIDEO_CAFE_CCIC
+ 	tristate "Marvell 88ALP01 (Cafe) CMOS Camera Controller support"
+ 	depends on PCI && I2C && VIDEO_V4L2
+ 	select VIDEO_OV7670
+ 	select VIDEOBUF2_VMALLOC
+ 	select VIDEOBUF2_DMA_CONTIG
++	select VIDEO_MARVELL_CCIC
+ 	---help---
+ 	  This is a video4linux2 driver for the Marvell 88ALP01 integrated
+ 	  CMOS camera controller.  This is the controller found on first-
+ 	  generation OLPC systems.
+ 
++choice
++	prompt "Camera support on Marvell MMP"
++	depends on ARCH_MMP && VIDEO_V4L2
++	optional
+ config VIDEO_MMP_CAMERA
+ 	tristate "Marvell Armada 610 integrated camera controller support"
+ 	depends on ARCH_MMP && I2C && VIDEO_V4L2
+ 	select VIDEO_OV7670
+ 	select I2C_GPIO
+ 	select VIDEOBUF2_DMA_SG
++	select VIDEO_MARVELL_CCIC
+ 	---help---
+ 	  This is a Video4Linux2 driver for the integrated camera
+ 	  controller found on Marvell Armada 610 application
+ 	  processors (and likely beyond).  This is the controller found
+ 	  in OLPC XO 1.75 systems.
+ 
++config VIDEO_MMP_SOC_CAMERA
++	bool "Marvell MMP camera driver based on SOC_CAMERA"
++	depends on VIDEO_DEV && SOC_CAMERA && ARCH_MMP && VIDEO_V4L2
++	select VIDEOBUF2_DMA_CONTIG
++	select VIDEO_MARVELL_CCIC
++	select VIDEO_MRVL_SOC_CAMERA
++	---help---
++	  This is a Video4Linux2 driver for the Marvell Mobile Soc
++	  PXA910/PXA688/PXA2128/PXA988 CCIC
++	  (CMOS Camera Interface Controller)
++endchoice
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index c3031e7..bea7224 100755
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -4,6 +4,12 @@
+  *
+  * Copyright 2011 Jonathan Corbet <corbet@lwn.net>
+  *
++ * History:
++ * Support Soc Camera
++ * Support MIPI interface and Dual CCICs in Soc Camera mode
++ * Sep-2012: Libin Yang <lbyang@marvell.com>
++ *           Albert Wang <twang13@marvell.com>
++ *
+  * This file may be distributed under the terms of the GNU General
+  * Public License, version 2.
+  */
+@@ -28,6 +34,10 @@
+ #include <linux/list.h>
+ #include <linux/pm.h>
+ #include <linux/clk.h>
++#include <linux/regulator/consumer.h>
++#include <media/videobuf2-dma-contig.h>
++#include <media/soc_camera.h>
++#include <media/soc_mediabus.h>
+ 
+ #include "mcam-core.h"
+ 
+@@ -40,6 +50,8 @@ struct mmp_camera {
+ 	struct platform_device *pdev;
+ 	struct mcam_camera mcam;
+ 	struct list_head devlist;
++	/* will change here */
++	struct clk *clk[3];	/* CCIC_GATE, CCIC_RST, CCIC_DBG clocks */
+ 	int irq;
+ };
+ 
+@@ -135,7 +147,9 @@ static void mmpcam_power_up_ctlr(struct mmp_camera *cam)
+ static void mmpcam_power_up(struct mcam_camera *mcam)
+ {
+ 	struct mmp_camera *cam = mcam_to_cam(mcam);
++#ifndef CONFIG_VIDEO_MMP_SOC_CAMERA
+ 	struct mmp_camera_platform_data *pdata;
++#endif
+ /*
+  * Turn on power and clocks to the controller.
+  */
+@@ -144,34 +158,40 @@ static void mmpcam_power_up(struct mcam_camera *mcam)
+  * Provide power to the sensor.
+  */
+ 	mcam_reg_write(mcam, REG_CLKCTRL, 0x60000002);
++#ifndef CONFIG_VIDEO_MMP_SOC_CAMERA
+ 	pdata = cam->pdev->dev.platform_data;
+ 	gpio_set_value(pdata->sensor_power_gpio, 1);
+ 	mdelay(5);
++#endif
+ 	mcam_reg_clear_bit(mcam, REG_CTRL1, 0x10000000);
++#ifndef CONFIG_VIDEO_MMP_SOC_CAMERA
+ 	gpio_set_value(pdata->sensor_reset_gpio, 0); /* reset is active low */
+ 	mdelay(5);
+ 	gpio_set_value(pdata->sensor_reset_gpio, 1); /* reset is active low */
+ 	mdelay(5);
+-
++#endif
+ 	mcam_clk_set(mcam, 1);
+ }
+ 
+ static void mmpcam_power_down(struct mcam_camera *mcam)
+ {
+ 	struct mmp_camera *cam = mcam_to_cam(mcam);
++#ifndef CONFIG_VIDEO_MMP_SOC_CAMERA
+ 	struct mmp_camera_platform_data *pdata;
++#endif
+ /*
+  * Turn off clocks and set reset lines
+  */
+ 	iowrite32(0, cam->power_regs + REG_CCIC_DCGCR);
+ 	iowrite32(0, cam->power_regs + REG_CCIC_CRCR);
++#ifndef CONFIG_VIDEO_MMP_SOC_CAMERA
+ /*
+  * Shut down the sensor.
+  */
+ 	pdata = cam->pdev->dev.platform_data;
+ 	gpio_set_value(pdata->sensor_power_gpio, 0);
+ 	gpio_set_value(pdata->sensor_reset_gpio, 0);
+-
++#endif
+ 	mcam_clk_set(mcam, 0);
+ }
+ 
+@@ -322,20 +342,31 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	INIT_LIST_HEAD(&cam->devlist);
+ 
+ 	mcam = &cam->mcam;
++	spin_lock_init(&mcam->dev_lock);
+ 	mcam->plat_power_up = mmpcam_power_up;
+ 	mcam->plat_power_down = mmpcam_power_down;
+ 	mcam->ctlr_reset = mcam_ctlr_reset;
+ 	mcam->calc_dphy = mmpcam_calc_dphy;
+ 	mcam->dev = &pdev->dev;
+ 	mcam->use_smbus = 0;
++	mcam->card_name = pdata->name;
++	mcam->mclk_min = pdata->mclk_min;
++	mcam->mclk_src = pdata->mclk_src;
++	mcam->mclk_div = pdata->mclk_div;
++#ifdef CONFIG_VIDEO_MMP_SOC_CAMERA
++	mcam->chip_id = pdata->chip_id;
++	mcam->buffer_mode = B_DMA_contig;
++#else
++	mcam->chip_id = V4L2_IDENT_ARMADA610;
++	mcam->buffer_mode = B_DMA_sg;
++#endif
+ 	mcam->ccic_id = pdev->id;
+ 	mcam->bus_type = pdata->bus_type;
+ 	mcam->dphy = &(pdata->dphy);
+ 	mcam->mipi_enabled = 0;
+ 	mcam->lane = pdata->lane;
+-	mcam->chip_id = V4L2_IDENT_ARMADA610;
+-	mcam->buffer_mode = B_DMA_sg;
+-	spin_lock_init(&mcam->dev_lock);
++	INIT_LIST_HEAD(&mcam->buffers);
++
+ 	/*
+ 	 * Get our I/O memory.
+ 	 */
+@@ -365,9 +396,22 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	mcam_init_clk(mcam, pdata, 1);
++#ifdef CONFIG_VIDEO_MMP_SOC_CAMERA
++	mcam->vb_alloc_ctx =
++		vb2_dma_contig_init_ctx(&pdev->dev);
++	if (IS_ERR(mcam->vb_alloc_ctx))
++		return PTR_ERR(mcam->vb_alloc_ctx);
++
++	ret = mcam_soc_camera_host_register(mcam);
++	if (ret)
++		goto out_free_ctx;
++#endif
++
++#ifdef CONFIG_VIDEO_MMP_CAMERA
+ 	/*
+ 	 * Find the i2c adapter.  This assumes, of course, that the
+ 	 * i2c bus is already up and functioning.
++	 * soc-camera manages i2c interface in sensor side
+ 	 */
+ 	mcam->i2c_adapter = platform_get_drvdata(pdata->i2c_device);
+ 	if (mcam->i2c_adapter == NULL) {
+@@ -396,9 +440,10 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	 * Power the device up and hand it off to the core.
+ 	 */
+ 	mmpcam_power_up(mcam);
++#endif
+ 	ret = mccic_register(mcam);
+ 	if (ret)
+-		goto out_gpio2;
++		goto ccic_register_fail;
+ 	/*
+ 	 * Finally, set up our IRQ now that the core is ready to
+ 	 * deal with it.
+@@ -418,12 +463,21 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 
+ out_unregister:
+ 	mccic_shutdown(mcam);
+-out_gpio2:
++ccic_register_fail:
++#ifdef CONFIG_VIDEO_MMP_CAMERA
+ 	mmpcam_power_down(mcam);
++	mcam_init_clk(mcam, pdata, 0);
+ 	gpio_free(pdata->sensor_reset_gpio);
+ out_gpio:
+ 	gpio_free(pdata->sensor_power_gpio);
++#endif
++#ifdef CONFIG_VIDEO_MMP_SOC_CAMERA
++	soc_camera_host_unregister(&mcam->soc_host);
+ 	mcam_init_clk(mcam, pdata, 0);
++out_free_ctx:
++	vb2_dma_contig_cleanup_ctx(mcam->vb_alloc_ctx);
++	mcam->vb_alloc_ctx = NULL;
++#endif
+ 	return ret;
+ }
+ 
+@@ -431,14 +485,22 @@ out_gpio:
+ static int mmpcam_remove(struct mmp_camera *cam)
+ {
+ 	struct mcam_camera *mcam = &cam->mcam;
+-	struct mmp_camera_platform_data *pdata;
++#ifdef CONFIG_VIDEO_MMP_SOC_CAMERA
++	struct soc_camera_host *soc_host = &mcam->soc_host;
++#endif
++	struct mmp_camera_platform_data *pdata = cam->pdev->dev.platform_data;
+ 
+ 	mmpcam_remove_device(cam);
+ 	mccic_shutdown(mcam);
+ 	mmpcam_power_down(mcam);
+-	pdata = cam->pdev->dev.platform_data;
++#ifdef CONFIG_VIDEO_MMP_SOC_CAMERA
++	soc_camera_host_unregister(soc_host);
++	vb2_dma_contig_cleanup_ctx(mcam->vb_alloc_ctx);
++	mcam->vb_alloc_ctx = NULL;
++#else
+ 	gpio_free(pdata->sensor_reset_gpio);
+ 	gpio_free(pdata->sensor_power_gpio);
++#endif
+ 	mcam_init_clk(mcam, pdata, 0);
+ 	return 0;
+ }
+diff --git a/include/media/mmp-camera.h b/include/media/mmp-camera.h
+index 36891ed..731f81f 100755
+--- a/include/media/mmp-camera.h
++++ b/include/media/mmp-camera.h
+@@ -6,9 +6,11 @@ struct mmp_camera_platform_data {
+ 	struct platform_device *i2c_device;
+ 	int sensor_power_gpio;
+ 	int sensor_reset_gpio;
++	char name[16];
+ 	int mclk_min;
+ 	int mclk_src;
+ 	int mclk_div;
++	int chip_id;
+ 	/*
+ 	 * MIPI support
+ 	 */
+-- 
+1.7.9.5
 
-	CPU
-	+-host1x
-	  +-dc
-	    +-rgb
-	    | +-panel
-	    +-hdmi
-	      +-monitor
-
-In a natural way this makes the output resource the master of the panel
-or display. From a programming point of view this becomes quite easy to
-implement and is very similar to how other busses like I2C or SPI are
-modelled. In device tree these would be represented as subnodes, while
-with platform data some kind of lookup could be done like for regulators
-or alternatively a board setup registration mechanism like what's in
-place for I2C or SPI.
-
-Thierry
-
---3MwIy2ne0vdjdPXF
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQr9TXAAoJEN0jrNd/PrOhiLsP/1PCCWZJ1Udmo6KJN7EgQ6TK
-zXV/YWYfNQAkKvhyMU9tK+1YAOYm754AyTEzd1xew22ubMBCrRYz61sWeNeS8Z/M
-4GsUJvB+3Ywo7PMiYy8KX3ENiD1EJ77qUBFwX1ov8FvzvcdV9NtlRDuUpzqEMyOO
-dwfBLeWb1ky1ET8FscssZW2vISKZUMwrTxGsLoQWd8lYB98IqQ0MT12urCW7yJ+K
-dpipU4mubXgPiysUu6tJZ7v/Zy3UGahZmN6Nxlkr6ohmJ2oiyHXuPsJ98fp5iXB2
-8c0W/4Lqrhi6V2AkDWXgO+/FYMki/3+P3WMpZUwSh0Ju6/sS09unE9ZLcr7UyYTD
-4vIWuTk6EWQKjyM5CB8l5Iv+osyHN5NyI1YvkexNt3p8sH46Geqh136RxIL9V68B
-2lyvmAUHiZbdJDxXKCM57OhG9tuVOztHxw214DbstglyXWfhn3Lz9zjkHVr3AHsf
-n1eFdC0ng+Ohul4LUhBGtY77U7QRgsUkfAXBFwNF5Rgoid67EELfYUg4B2Mq68Yj
-Hbj/I+tn703ugIDd5PpPtdZTm7sR0MGU2tOgxaEQx3cYsrWwr2GB943aFtrg6g4A
-a39zwktP54azTcnu7ApIHvx0fScEqnyekh1DWXVSuSAW0Sa8KrqhyUlmAIJo3Ko/
-b+wnZ13hGC+CI6CtJmYw
-=MxeW
------END PGP SIGNATURE-----
-
---3MwIy2ne0vdjdPXF--
