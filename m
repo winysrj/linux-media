@@ -1,15 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3231 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756267Ab2KWL0N (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4543 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756005Ab2KWL0M (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 06:26:13 -0500
+	Fri, 23 Nov 2012 06:26:12 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 10/15] MAINTAINERS: add radio-maxiradio entry.
-Date: Fri, 23 Nov 2012 12:25:51 +0100
-Message-Id: <13092593f659233fc10d6a21ace5678523f6541c.1353669806.git.hans.verkuil@cisco.com>
+Subject: [PATCH 11/15] MAINTAINERS: add radio-miropcm20 entry.
+Date: Fri, 23 Nov 2012 12:25:52 +0100
+Message-Id: <3aad58bbfe8d4f9eb4c0f01f56b1fd703db984c3.1353669806.git.hans.verkuil@cisco.com>
 In-Reply-To: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
 References: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
 In-Reply-To: <7fb3123c4bf43540c13505c82c408fa492cdd48c.1353669806.git.hans.verkuil@cisco.com>
@@ -25,24 +25,24 @@ Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
  1 file changed, 8 insertions(+)
 
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 5758e93..4870e1b 100644
+index 4870e1b..bd09f47 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -4883,6 +4883,14 @@ S:	Maintained
- F:	Documentation/hwmon/max6650
- F:	drivers/hwmon/max6650.c
+@@ -4974,6 +4974,14 @@ S:	Supported
+ F:	Documentation/mips/
+ F:	arch/mips/
  
-+MAXIRADIO FM RADIO RECEIVER DRIVER
++MIROSOUND PCM20 FM RADIO RECEIVER DRIVER
 +M:	Hans Verkuil <hverkuil@xs4all.nl>
 +L:	linux-media@vger.kernel.org
 +T:	git git://linuxtv.org/media_tree.git
 +W:	http://linuxtv.org
-+S:	Maintained
-+F:	drivers/media/radio/radio-maxiradio*
++S:	Odd Fixes
++F:	drivers/media/radio/radio-miropcm20*
 +
- MEDIA INPUT INFRASTRUCTURE (V4L/DVB)
- M:	Mauro Carvalho Chehab <mchehab@redhat.com>
- P:	LinuxTV.org Project
+ MODULE SUPPORT
+ M:	Rusty Russell <rusty@rustcorp.com.au>
+ S:	Maintained
 -- 
 1.7.10.4
 
