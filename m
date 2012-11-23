@@ -1,61 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:41840 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752968Ab2KMOKu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Nov 2012 09:10:50 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1TYHCc-0007ty-DZ
-	for linux-media@vger.kernel.org; Tue, 13 Nov 2012 15:10:58 +0100
-Received: from 84-72-11-174.dclient.hispeed.ch ([84.72.11.174])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2012 15:10:58 +0100
-Received: from auslands-kv by 84-72-11-174.dclient.hispeed.ch with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2012 15:10:58 +0100
-To: linux-media@vger.kernel.org
-From: Neuer User <auslands-kv@gmx.de>
-Subject: Color problem with MPX-885 card (cx23885)
-Date: Tue, 13 Nov 2012 15:10:40 +0100
-Message-ID: <k7tkcu$m6j$1@ger.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:64596 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752113Ab2KWPW7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Nov 2012 10:22:59 -0500
+Received: from eusync4.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MDY00LGC5EOZC70@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 23 Nov 2012 15:23:12 +0000 (GMT)
+Received: from AMDC1061.digital.local ([106.116.147.88])
+ by eusync4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MDY003BI5DXCUB0@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 23 Nov 2012 15:22:57 +0000 (GMT)
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 0/3] s5c73m3 camera sensor driver
+Date: Fri, 23 Nov 2012 16:22:27 +0100
+Message-id: <1353684150-24581-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+This patch series adds V4L2 driver for S5C73M3 camera sensor.
 
-First of all, I don't know, if this is the right mailing list. I haven't
-found any other. The video4linux list seems to be abandoned.
+This is I2C driver with SPI bus used for firmware upload.
 
-I am testing a Commell MPX-885 mini-pcie card, which is based on a
-cx23885 chip. There is "initial" support in the linux kernel for this card:
+Driver exposes two sub-devices:
+- pure sensor with two source pads (ISP, JPEG),
+- output-interface pad with two sink sensors (ISP, JPEG) and one
+source pad.
+ISP and JPEG pads are connected by immutable links.
+Two pads allow support for custom camera format V4L2_MBUS_FMT_S5C_UYVY_JPEG_1X8
+in which each frame contains two images in UYVY and JPEG format.
+Size of each image can be configured independently using pads.
 
-http://git.kernel.org/?p=linux/kernel/git/stable/linux-stable.git;a=commit;h=2cb9ccd4612907c0a30de9be1c694672e0cd8933
+Regards
+Andrzej
 
-My system is based on Ubuntu 12.04LTS amd64 with kernel 3.2.0.32.
-
-The driver in general works. There are a couple of problems, however,
-which to my mind are probably easy to fix for someone understanding the
-driver:
-
-1.) MINOR PROBLEM: The card is not auto-recognized. The module needs to be
-loaded with the option "card=32" to get it recognized.
-2.) MINOR PROBLEM: With PAL camera, there is a black left border of
-about 20-30 pixel. No border on the right side.
-3.) MAJOR PROBLEM: The image is mainly black & white only with some
-green and red information. There are vertical light green and red stripes
-
-I have attached a captured image demonstrating the color problem (and
-also the border) to a bug report here:
-https://bugzilla.kernel.org/show_bug.cgi?id=50411
-
-I would really like to get this card fully working. Is there anybody
-here who can help me or direct me to a place where someone can help me.
-
-Thanks a lot
-
-Michael
 
