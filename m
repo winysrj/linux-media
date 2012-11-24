@@ -1,219 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38747 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751144Ab2KOWGw (ORCPT
+Received: from mail-ye0-f174.google.com ([209.85.213.174]:64348 "EHLO
+	mail-ye0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751891Ab2KXRbv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 17:06:52 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Sat, 24 Nov 2012 12:31:51 -0500
+Received: by mail-ye0-f174.google.com with SMTP id m6so826544yen.19
+        for <linux-media@vger.kernel.org>; Sat, 24 Nov 2012 09:31:49 -0800 (PST)
+Message-ID: <50B1047B.4040901@gmail.com>
+Date: Sat, 24 Nov 2012 12:31:39 -0500
+From: Bob Lightfoot <boblfoot@gmail.com>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
-Subject: [PATCH 4/4] v4l: Tell user space we're using monotonic timestamps
-Date: Fri, 16 Nov 2012 00:06:47 +0200
-Message-Id: <1353017207-370-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20121115220627.GB29863@valkosipuli.retiisi.org.uk>
-References: <20121115220627.GB29863@valkosipuli.retiisi.org.uk>
+Subject: Poor HVR 1600 Video Quality
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Set buffer timestamp flags for videobuf, videobuf2 and drivers that use
-neither.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/pci/meye/meye.c                 |    4 ++--
- drivers/media/pci/zoran/zoran_driver.c        |    2 +-
- drivers/media/platform/omap3isp/ispqueue.c    |    1 +
- drivers/media/platform/vino.c                 |    3 +++
- drivers/media/usb/cpia2/cpia2_v4l.c           |    5 ++++-
- drivers/media/usb/sn9c102/sn9c102_core.c      |    2 +-
- drivers/media/usb/stkwebcam/stk-webcam.c      |    1 +
- drivers/media/usb/usbvision/usbvision-video.c |    5 +++--
- drivers/media/v4l2-core/videobuf-core.c       |    2 +-
- drivers/media/v4l2-core/videobuf2-core.c      |   10 ++++++----
- 10 files changed, 23 insertions(+), 12 deletions(-)
+Dear Linux Media Community:
+    I am struggling with what has changed in recent {past 6-9 months} of
+kernel releases as related to the HVR-1600 Tuner Card and Analog Signal
+processing.  I spent the bulk of today going through my video chain
+feeding into the HVR-1600 and tried multiple sources all of which
+provide good video and sound when fed into a Sanyo TV bought in the
+1990s.  They all produce recordings similar to the attached file.
+It almost looks like noise on the system and I am beginning to suspect
+my card may be hosed on the analog side.  Just looking for any thing I
+may have missed while RTFM and Google.  I'd share a 1 minute sample
+capture but 30.5 mb is too large to attach to a google email and I'm not
+sure where to drop a sample file for others to download and check out.
+It should be noted analog video was fine, but sound was intermittent
+with the kernels and drivers in use back in May.  Now the sound it rock
+solid, but the video has gone noisy.
 
-diff --git a/drivers/media/pci/meye/meye.c b/drivers/media/pci/meye/meye.c
-index 288adea..ac7ab6e 100644
---- a/drivers/media/pci/meye/meye.c
-+++ b/drivers/media/pci/meye/meye.c
-@@ -1426,7 +1426,7 @@ static int vidioc_querybuf(struct file *file, void *fh, struct v4l2_buffer *buf)
- 		return -EINVAL;
- 
- 	buf->bytesused = meye.grab_buffer[index].size;
--	buf->flags = V4L2_BUF_FLAG_MAPPED;
-+	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 
- 	if (meye.grab_buffer[index].state == MEYE_BUF_USING)
- 		buf->flags |= V4L2_BUF_FLAG_QUEUED;
-@@ -1499,7 +1499,7 @@ static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
- 
- 	buf->index = reqnr;
- 	buf->bytesused = meye.grab_buffer[reqnr].size;
--	buf->flags = V4L2_BUF_FLAG_MAPPED;
-+	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	buf->field = V4L2_FIELD_NONE;
- 	buf->timestamp = meye.grab_buffer[reqnr].timestamp;
- 	buf->sequence = meye.grab_buffer[reqnr].sequence;
-diff --git a/drivers/media/pci/zoran/zoran_driver.c b/drivers/media/pci/zoran/zoran_driver.c
-index 53f12c7..33521a4 100644
---- a/drivers/media/pci/zoran/zoran_driver.c
-+++ b/drivers/media/pci/zoran/zoran_driver.c
-@@ -1334,7 +1334,7 @@ static int zoran_v4l2_buffer_status(struct zoran_fh *fh,
- 	struct zoran *zr = fh->zr;
- 	unsigned long flags;
- 
--	buf->flags = V4L2_BUF_FLAG_MAPPED;
-+	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 
- 	switch (fh->map_mode) {
- 	case ZORAN_MAP_MODE_RAW:
-diff --git a/drivers/media/platform/omap3isp/ispqueue.c b/drivers/media/platform/omap3isp/ispqueue.c
-index 15bf3ea..6599963 100644
---- a/drivers/media/platform/omap3isp/ispqueue.c
-+++ b/drivers/media/platform/omap3isp/ispqueue.c
-@@ -674,6 +674,7 @@ static int isp_video_queue_alloc(struct isp_video_queue *queue,
- 		buf->vbuf.index = i;
- 		buf->vbuf.length = size;
- 		buf->vbuf.type = queue->type;
-+		buf->vbuf.flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		buf->vbuf.field = V4L2_FIELD_NONE;
- 		buf->vbuf.memory = memory;
- 
-diff --git a/drivers/media/platform/vino.c b/drivers/media/platform/vino.c
-index 28350e7..eb5d6f9 100644
---- a/drivers/media/platform/vino.c
-+++ b/drivers/media/platform/vino.c
-@@ -3410,6 +3410,9 @@ static void vino_v4l2_get_buffer_status(struct vino_channel_settings *vcs,
- 	if (fb->map_count > 0)
- 		b->flags |= V4L2_BUF_FLAG_MAPPED;
- 
-+	b->flags &= ~V4L2_BUF_FLAG_TIMESTAMP_MASK;
-+	b->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+
- 	b->index = fb->id;
- 	b->memory = (vcs->fb_queue.type == VINO_MEMORY_MMAP) ?
- 		V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
-diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
-index aeb9d22..d5d42b6 100644
---- a/drivers/media/usb/cpia2/cpia2_v4l.c
-+++ b/drivers/media/usb/cpia2/cpia2_v4l.c
-@@ -825,6 +825,8 @@ static int cpia2_querybuf(struct file *file, void *fh, struct v4l2_buffer *buf)
- 	else
- 		buf->flags = 0;
- 
-+	buf->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+
- 	switch (cam->buffers[buf->index].status) {
- 	case FRAME_EMPTY:
- 	case FRAME_ERROR:
-@@ -943,7 +945,8 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
- 
- 	buf->index = frame;
- 	buf->bytesused = cam->buffers[buf->index].length;
--	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_DONE;
-+	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_DONE
-+		| V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	buf->field = V4L2_FIELD_NONE;
- 	buf->timestamp = cam->buffers[buf->index].timestamp;
- 	buf->sequence = cam->buffers[buf->index].seq;
-diff --git a/drivers/media/usb/sn9c102/sn9c102_core.c b/drivers/media/usb/sn9c102/sn9c102_core.c
-index 843fadc..2e0e2ff 100644
---- a/drivers/media/usb/sn9c102/sn9c102_core.c
-+++ b/drivers/media/usb/sn9c102/sn9c102_core.c
-@@ -173,7 +173,7 @@ sn9c102_request_buffers(struct sn9c102_device* cam, u32 count,
- 		cam->frame[i].buf.sequence = 0;
- 		cam->frame[i].buf.field = V4L2_FIELD_NONE;
- 		cam->frame[i].buf.memory = V4L2_MEMORY_MMAP;
--		cam->frame[i].buf.flags = 0;
-+		cam->frame[i].buf.flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	}
- 
- 	return cam->nbuffers;
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-index c22a4d0..459ebc6 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.c
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-@@ -470,6 +470,7 @@ static int stk_setup_siobuf(struct stk_camera *dev, int index)
- 	buf->dev = dev;
- 	buf->v4lbuf.index = index;
- 	buf->v4lbuf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	buf->v4lbuf.flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	buf->v4lbuf.field = V4L2_FIELD_NONE;
- 	buf->v4lbuf.memory = V4L2_MEMORY_MMAP;
- 	buf->v4lbuf.m.offset = 2*index*buf->v4lbuf.length;
-diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-index 5c36a57..c6bc8ce 100644
---- a/drivers/media/usb/usbvision/usbvision-video.c
-+++ b/drivers/media/usb/usbvision/usbvision-video.c
-@@ -761,7 +761,7 @@ static int vidioc_querybuf(struct file *file,
- 	if (vb->index >= usbvision->num_frames)
- 		return -EINVAL;
- 	/* Updating the corresponding frame state */
--	vb->flags = 0;
-+	vb->flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	frame = &usbvision->frame[vb->index];
- 	if (frame->grabstate >= frame_state_ready)
- 		vb->flags |= V4L2_BUF_FLAG_QUEUED;
-@@ -843,7 +843,8 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *vb)
- 	vb->memory = V4L2_MEMORY_MMAP;
- 	vb->flags = V4L2_BUF_FLAG_MAPPED |
- 		V4L2_BUF_FLAG_QUEUED |
--		V4L2_BUF_FLAG_DONE;
-+		V4L2_BUF_FLAG_DONE |
-+		V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	vb->index = f->index;
- 	vb->sequence = f->sequence;
- 	vb->timestamp = f->timestamp;
-diff --git a/drivers/media/v4l2-core/videobuf-core.c b/drivers/media/v4l2-core/videobuf-core.c
-index bf7a326..e98db7e 100644
---- a/drivers/media/v4l2-core/videobuf-core.c
-+++ b/drivers/media/v4l2-core/videobuf-core.c
-@@ -337,7 +337,7 @@ static void videobuf_status(struct videobuf_queue *q, struct v4l2_buffer *b,
- 		break;
- 	}
- 
--	b->flags    = 0;
-+	b->flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	if (vb->map)
- 		b->flags |= V4L2_BUF_FLAG_MAPPED;
- 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 432df11..19a5866 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -40,9 +40,10 @@ module_param(debug, int, 0644);
- #define call_qop(q, op, args...)					\
- 	(((q)->ops->op) ? ((q)->ops->op(args)) : 0)
- 
--#define V4L2_BUFFER_STATE_FLAGS	(V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_QUEUED | \
-+#define V4L2_BUFFER_MASK_FLAGS	(V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_QUEUED | \
- 				 V4L2_BUF_FLAG_DONE | V4L2_BUF_FLAG_ERROR | \
--				 V4L2_BUF_FLAG_PREPARED)
-+				 V4L2_BUF_FLAG_PREPARED | \
-+				 V4L2_BUF_FLAG_TIMESTAMP_MASK)
- 
- /**
-  * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
-@@ -367,7 +368,8 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
- 	/*
- 	 * Clear any buffer state related flags.
- 	 */
--	b->flags &= ~V4L2_BUFFER_STATE_FLAGS;
-+	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
-+	b->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_QUEUED:
-@@ -863,7 +865,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
- 
- 	vb->v4l2_buf.field = b->field;
- 	vb->v4l2_buf.timestamp = b->timestamp;
--	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_STATE_FLAGS;
-+	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
- }
- 
- /**
--- 
-1.7.2.5
+The particulars of my system are as follows:
 
+HP Pavillion Elite M9040n - Purchased 2010 with an HVR-1600
+
+uname -a :
+> Linux mythbox.ladodomain 2.6.32-279.14.1.el6.x86_64 #1 SMP Tue Nov
+>  6 23:43:09 UTC 2012 x86_64 x86_64 x86_64 GNU/Linux
+
+lspci -vvv :
+> 01:00.0 Multimedia video controller: Conexant Systems, Inc. CX23418
+> Single-Chip MPEG-2 Encoder with Integrated Analog Video/Broadcast
+> Audio Decoder Subsystem: Hauppauge computer works Inc. WinTV
+> HVR-1600 Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+
+> VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx- Status: Cap+
+> 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort-
+> <MAbort- >SERR- <PERR- INTx- Latency: 64 (500ns min, 50000ns max),
+> Cache Line Size: 32 bytes Interrupt: pin A routed to IRQ 17 Region
+> 0: Memory at f4000000 (32-bit, non-prefetchable) [size=64M]
+> Capabilities: [44] Vital Product Data Not readable Capabilities:
+> [4c] Power Management version 2 Flags: PMEClk- DSI+ D1- D2-
+> AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-) Status: D0 
+> NoSoftRst- PME-Enable- DSel=0 DScale=0 PME- Kernel driver in use: 
+> cx18 Kernel modules: cx18
+
+lsmod | grep cx18 :
+> cx18_alsa               7420  1 cx18                  125338  59 
+> cx18_alsa i2c_algo_bit            5762  1 cx18 cx2341x 19763  2 
+> cx18,cx23885 v4l2_common            10670  6 
+> cs5345,cx18,tuner,cx25840,cx23885,cx2341x videodev 76310  7 
+> cs5345,cx18,tuner,cx25840,cx23885,cx2341x,v4l2_common dvb_core 
+> 104074  3 cx18,cx23885,videobuf_dvb tveeprom 14044  2 cx18,cx23885 
+> snd_pcm                85828  3 
+> cx18_alsa,snd_hda_intel,snd_hda_codec snd                    71339
+>  15 
+> cx18_alsa,snd_hda_codec_realtek,snd_hda_intel,snd_hda_codec,snd_hwdep,snd_seq,snd_seq_device,snd_pcm,snd_timer
+>
+>
+>
+> 
+Sincerely,
+Bob Lightfoot
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.14 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iQEcBAEBAgAGBQJQsQR7AAoJEKqgpLIhfz3XnuAH/AuO5z4Lz2hJD+ItBztf5uUE
+UEvPEvOkacQxDHJr7yMNdNd8XfHQiyahKS8brnATlUJLSllQ7L4QfyFJdL+X2o0z
+0QXln/M6jdx+o86Yd284fKtWBQBPMAnpWRDH4TVMeitHsJyFgNAZgSlkSXlg+Slv
+qET4vDLnmLRZ32n+bZop+2gr3KySgg/K6wepo38rreiUneF4aQdYJoslKV7PjrXE
+Z87KjEp+iB2p4kTdRR4cO0bCIMtInzpdxfS5vJi33T2XHFvTqD7u3TfTDIQ31A4b
+ey9gC1ahAXrFOYp2rxFYZK17733Py2MicLU+vE8tIkt62kKvfwQB3RZHwVxNFjY=
+=HYnR
+-----END PGP SIGNATURE-----
