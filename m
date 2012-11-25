@@ -1,63 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:57623 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754852Ab2K1AwV (ORCPT
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:63428 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753096Ab2KYKiF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 19:52:21 -0500
+	Sun, 25 Nov 2012 05:38:05 -0500
+Received: by mail-ea0-f174.google.com with SMTP id e13so4046398eaa.19
+        for <linux-media@vger.kernel.org>; Sun, 25 Nov 2012 02:38:04 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 5/6] em28xx: em28xx_urb_data_copy_vbi(): calculate vbi_size only if needed
+Date: Sun, 25 Nov 2012 11:37:36 +0100
+Message-Id: <1353839857-2990-6-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1353839857-2990-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1353839857-2990-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <20121128081514.84c71b8eb965a7d11cb1ff07@canb.auug.org.au>
-References: <20121127172548.cd502ebfb903face1dc98554@canb.auug.org.au>
-	<50B5072F.6090708@infradead.org>
-	<20121128081514.84c71b8eb965a7d11cb1ff07@canb.auug.org.au>
-Date: Wed, 28 Nov 2012 09:52:19 +0900
-Message-ID: <CAH9JG2WfpNttdthgZEAM+W5T8rrZwOULSBGaSB8XdVDVMhC1FA@mail.gmail.com>
-Subject: Re: linux-next: Tree for Nov 27 (media/v4l2-core/videobuf2-dma-contig.c)
-From: Kyungmin Park <kyungmin.park@samsung.com>
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Randy Dunlap <rdunlap@infradead.org>, linux-next@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-video.c |    5 ++---
+ 1 Datei geändert, 2 Zeilen hinzugefügt(+), 3 Zeilen entfernt(-)
 
-It's fixed already and you will check it at Nov 28 tree
-http://www.spinics.net/lists/linux-media/msg56830.html
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 12e4b0a..6843784 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -525,7 +525,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
+ 	struct em28xx_buffer    *buf, *vbi_buf;
+ 	struct em28xx_dmaqueue  *dma_q = &dev->vidq;
+ 	struct em28xx_dmaqueue  *vbi_dma_q = &dev->vbiq;
+-	int xfer_bulk, vbi_size, num_packets, i, rc = 1;
++	int xfer_bulk, num_packets, i, rc = 1;
+ 	unsigned int actual_length, len = 0;
+ 	unsigned char *p, *outp = NULL, *vbioutp = NULL;
+ 
+@@ -612,9 +612,8 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
+ 		/* NOTE: with bulk transfers, intermediate data packets
+ 		 * have no continuation header */
+ 
+-		vbi_size = dev->vbi_width * dev->vbi_height;
+-
+ 		if (dev->capture_type == 0) {
++			int vbi_size = dev->vbi_width * dev->vbi_height;
+ 			if (dev->vbi_read >= vbi_size) {
+ 				/* We've already read all the VBI data, so
+ 				   treat the rest as video */
+-- 
+1.7.10.4
 
-Thank you,
-Kyungmin Park
-
-On 11/28/12, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> [Just adding some cc's]
->
-> On Tue, 27 Nov 2012 10:32:15 -0800 Randy Dunlap <rdunlap@infradead.org>
-> wrote:
->>
->> On 11/26/2012 10:25 PM, Stephen Rothwell wrote:
->>
->> > Hi all,
->> >
->> > Changes since 20121126:
->> >
->>
->>
->> on i386:
->>
->> drivers/media/v4l2-core/videobuf2-dma-contig.c:743:16: error:
->> 'vb2_dc_get_dmabuf' undeclared here (not in a function)
->>
->>
->> Full randconfig file is attached.
->>
->> --
->> ~Randy
->
->
-> --
-> Cheers,
-> Stephen Rothwell                    sfr@canb.auug.org.au
->
