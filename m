@@ -1,69 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:60390 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752255Ab2KQXQG (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:34934 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753058Ab2KYKhv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Nov 2012 18:16:06 -0500
-Date: Sun, 18 Nov 2012 00:16:02 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Tushar Behera <tushar.behera@linaro.org>
-cc: linux-kernel@vger.kernel.org, patches@linaro.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 05/14] [media] atmel-isi: Update error check for unsigned
- variables
-In-Reply-To: <1353048646-10935-6-git-send-email-tushar.behera@linaro.org>
-Message-ID: <Pine.LNX.4.64.1211180014330.30062@axis700.grange>
-References: <1353048646-10935-1-git-send-email-tushar.behera@linaro.org>
- <1353048646-10935-6-git-send-email-tushar.behera@linaro.org>
+	Sun, 25 Nov 2012 05:37:51 -0500
+Received: by mail-ee0-f46.google.com with SMTP id e53so3997648eek.19
+        for <linux-media@vger.kernel.org>; Sun, 25 Nov 2012 02:37:50 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 2/6] em28xx: make sure the packet size is >= 4 before checking for headers in em28xx_urb_data_copy_vbi()
+Date: Sun, 25 Nov 2012 11:37:33 +0100
+Message-Id: <1353839857-2990-3-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1353839857-2990-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1353839857-2990-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 16 Nov 2012, Tushar Behera wrote:
-
-> Checking '< 0' for unsigned variables always returns false. For error
-> codes, use IS_ERR_VALUE() instead.
-
-Wouldn't just changing "irq" type to "int" also work? I think that would 
-be a more straight-forward solution. If however there are strong arguments 
-against that, I'm fine with this fix too.
-
-Thanks
-Guennadi
-
-> 
-> CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-> CC: linux-media@vger.kernel.org
-> Signed-off-by: Tushar Behera <tushar.behera@linaro.org>
-> ---
->  drivers/media/platform/soc_camera/atmel-isi.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-> index 6274a91..5bd65df 100644
-> --- a/drivers/media/platform/soc_camera/atmel-isi.c
-> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
-> @@ -1020,7 +1020,7 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
->  	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
->  
->  	irq = platform_get_irq(pdev, 0);
-> -	if (irq < 0) {
-> +	if (IS_ERR_VALUE(irq)) {
->  		ret = irq;
->  		goto err_req_irq;
->  	}
-> -- 
-> 1.7.4.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/usb/em28xx/em28xx-video.c |   45 ++++++++++++++++---------------
+ 1 Datei geändert, 24 Zeilen hinzugefügt(+), 21 Zeilen entfernt(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 7994d17..0bbc6dc 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -576,7 +576,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
+ 			    urb->iso_frame_desc[i].offset;
+ 		}
+ 
+-		if (actual_length <= 0) {
++		if (actual_length == 0) {
+ 			/* NOTE: happens very often with isoc transfers */
+ 			/* em28xx_usbdbg("packet %d is empty",i); - spammy */
+ 			continue;
+@@ -585,27 +585,30 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
+ 		/* capture type 0 = vbi start
+ 		   capture type 1 = video start
+ 		   capture type 2 = video in progress */
+-		if (p[0] == 0x33 && p[1] == 0x95) {
+-			dev->capture_type = 0;
+-			dev->vbi_read = 0;
+-			em28xx_usbdbg("VBI START HEADER!!!\n");
+-			dev->cur_field = p[2];
+-			p += 4;
+-			len = actual_length - 4;
+-		} else if (p[0] == 0x88 && p[1] == 0x88 &&
+-			   p[2] == 0x88 && p[3] == 0x88) {
+-			/* continuation */
+-			p += 4;
+-			len = actual_length - 4;
+-		} else if (p[0] == 0x22 && p[1] == 0x5a) {
+-			/* start video */
+-			p += 4;
+-			len = actual_length - 4;
+-		} else {
+-			/* NOTE: With bulk transfers, intermediate data packets
+-			 * have no continuation header */
+-			len = actual_length;
++		len = actual_length;
++		if (len >= 4) {
++			/* NOTE: headers are always 4 bytes and
++			 * never split across packets */
++			if (p[0] == 0x33 && p[1] == 0x95) {
++				dev->capture_type = 0;
++				dev->vbi_read = 0;
++				em28xx_usbdbg("VBI START HEADER!!!\n");
++				dev->cur_field = p[2];
++				p += 4;
++				len -= 4;
++			} else if (p[0] == 0x88 && p[1] == 0x88 &&
++				   p[2] == 0x88 && p[3] == 0x88) {
++				/* continuation */
++				p += 4;
++				len -= 4;
++			} else if (p[0] == 0x22 && p[1] == 0x5a) {
++				/* start video */
++				p += 4;
++				len -= 4;
++			}
+ 		}
++		/* NOTE: with bulk transfers, intermediate data packets
++		 * have no continuation header */
+ 
+ 		vbi_size = dev->vbi_width * dev->vbi_height;
+ 
+-- 
+1.7.10.4
+
