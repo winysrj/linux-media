@@ -1,78 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:59732 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750881Ab2K2Q3d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Nov 2012 11:29:33 -0500
-Date: Thu, 29 Nov 2012 08:29:27 -0800
-From: Tony Lindgren <tony@atomide.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, hvaibhav@ti.com,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	Archit Taneja <archit@ti.com>
-Subject: Re: [PATCH 0/2] omap_vout: remove cpu_is_* uses
-Message-ID: <20121129162927.GF5312@atomide.com>
-References: <1352727220-22540-1-git-send-email-tomi.valkeinen@ti.com>
- <1421983.jJNXU7RvjW@avalon>
- <50B72B34.6080808@ti.com>
- <4208124.v72gFsjH2D@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4208124.v72gFsjH2D@avalon>
+Received: from mx1.redhat.com ([209.132.183.28]:30247 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753367Ab2KYUDX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Nov 2012 15:03:23 -0500
+Date: Sun, 25 Nov 2012 18:02:45 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	arm-linux <linux-arm-kernel@lists.infradead.org>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org
+Cc: Christian Robottom Reis <kiko@linaro.org>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	k.debski@samsung.com, pawel@osciak.com, sumit.semwal@ti.com,
+	Anmar Oueja <anmar.oueja@linaro.org>,
+	Arnd Bergmann <arnd@arndb.de>
+Subject: DMABUF V4L2 patches got merged
+Message-ID: <20121125180245.658e68a7@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [121129 01:37]:
-> Hi Tomi,
-> 
-> On Thursday 29 November 2012 11:30:28 Tomi Valkeinen wrote:
-> > On 2012-11-28 17:13, Laurent Pinchart wrote:
-> > > On Monday 12 November 2012 15:33:38 Tomi Valkeinen wrote:
-> > >> Hi,
-> > >> 
-> > >> This patch removes use of cpu_is_* funcs from omap_vout, and uses
-> > >> omapdss's version instead. The other patch removes an unneeded plat/dma.h
-> > >> include.
-> > >> 
-> > >> These are based on current omapdss master branch, which has the omapdss
-> > >> version code. The omapdss version code is queued for v3.8. I'm not sure
-> > >> which is the best way to handle these patches due to the dependency to
-> > >> omapdss. The easiest option is to merge these for 3.9.
-> > >> 
-> > >> There's still the OMAP DMA use in omap_vout_vrfb.c, which is the last
-> > >> OMAP dependency in the omap_vout driver. I'm not going to touch that, as
-> > >> it doesn't look as trivial as this cpu_is_* removal, and I don't have
-> > >> much knowledge of the omap_vout driver.
-> > >> 
-> > >> Compiled, but not tested.
-> > > 
-> > > Tested on a Beagleboard-xM.
-> > > 
-> > > Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > Thanks.
-> > 
-> > > The patches depend on unmerged OMAP DSS patches. Would you like to push
-> > > this series through linuxtv or through your DSS tree ? The later might be
-> > > easier, depending on when the required DSS patches will hit mainline.
-> > 
-> > The DSS patches will be merged for 3.8. I can take this via the omapdss
-> > tree, as there probably won't be any conflicts with other v4l2 stuff.
-> > 
-> > Or, we can just delay these until 3.9. These patches remove omap
-> > platform dependencies, helping the effort to get common ARM kernel.
-> > However, as there's still the VRFB code in the omap_vout driver, the
-> > dependency remains. Thus, in way, these patches alone don't help
-> > anything, and we could delay these for 3.9 and hope that
-> > omap_vout_vrfb.c gets converted also for that merge window.
-> 
-> OK, I'll queue them for v3.9 then.
+Hi all,
 
-Please rather queue the cpu_is_omap removal to v3.8 so I can
-remove plat/cpu.h for omap2+.
+Today, I finally merged the DMABUF V4L2 patches from Tomasz.
 
-Regards,
+The DMABUF allows replacing the old V4L2 Overlay method by something more
+robust and safer.
 
-Tony
+It was a long road to get them ready for their upstream inclusion, and to
+be able to test on both embedded and personal computers.
+
+Along this weekend, I was able to test it using 4 different test scenarios:
+
+	- vivi + s5p-tv;
+	- uvcvideo + fimc (m2m) + s5p-tv;
+	- s5k4ecgx + fimc (m2m) + s5p-tv;
+	- uvcvideo + i915.
+
+The first 3 tests ran on a Samsung Origen Rev. A board; the 4th one on a
+notebook, with a Sandy Bridge i5core processor with GPU, and an embedded
+UVC camera.
+
+While testing the s5k4ecgx sensor driver, I also added support for multiplane
+at libv4l, via its plugin interface:
+
+	http://git.linuxtv.org/v4l-utils.git/commit/ced1be346fe4f61c864cba9d81f66089d4e32a56	
+
+Such tests wouldn't be possible without the help of Linaro and Samsung,
+with donated me some hardware for the tests, and Ideas on Board for making
+uvcvideo + i915 driver to work especially for this test.
+
+Thank you all for your support!
+
+In particular, Sylwester helped me a lot to fix several non-related issues with
+the Origen board, that was not running with an upstream Kernel.
+
+There are a number of patches required to make the Origen board to work with an 
+Upstream Kernel. Also, its sensor driver (s5k4ecgx) was not submitted upstream 
+yet. In order to help others that may need to do similar tests, I added the 
+needed patches on my experimental tree, at branch origen+dmabuf:
+
+	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/origen%2Bdmabuf
+
+Still missing there are the wireless/bluetooth support. It seems that there are
+some patches for it already, but they aren't submitted upstream, nor I didn't
+test they.
+
+I expect that Linaro and Samsung will be able to submit real soon the pending 
+patches needed by Origen in time for its addition on 3.8.
+
+Thank you all!
+Mauro
