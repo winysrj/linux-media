@@ -1,73 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from viridian.itc.Virginia.EDU ([128.143.12.139]:41686 "EHLO
-	viridian.itc.virginia.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754521Ab2KSSiI (ORCPT
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:58459 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750708Ab2KYFCW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Nov 2012 13:38:08 -0500
-From: Bill Pemberton <wfp5p@virginia.edu>
-To: gregkh@linuxfoundation.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: [PATCH 104/493] staging: lirc: remove use of __devexit_p
-Date: Mon, 19 Nov 2012 13:20:53 -0500
-Message-Id: <1353349642-3677-104-git-send-email-wfp5p@virginia.edu>
-In-Reply-To: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
-References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
+	Sun, 25 Nov 2012 00:02:22 -0500
+Received: by mail-qc0-f174.google.com with SMTP id o22so7022542qcr.19
+        for <linux-media@vger.kernel.org>; Sat, 24 Nov 2012 21:02:22 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <50B199A9.8050909@gmail.com>
+References: <50B1047B.4040901@gmail.com>
+	<CAGoCfiwpj5ua79wOp8_CZfD_O9EOG7PAA4wE3L4n3-d-+FEhVg@mail.gmail.com>
+	<50B199A9.8050909@gmail.com>
+Date: Sun, 25 Nov 2012 00:02:21 -0500
+Message-ID: <CAGoCfiyygbarz55T6KhGcM0ssNwkpXiiye7bvdk=t8Ln_c0q1A@mail.gmail.com>
+Subject: Re: Poor HVR 1600 Video Quality - Feedback for Devin Heitmueller 2012-11-24
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Bob Lightfoot <boblfoot@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CONFIG_HOTPLUG is going away as an option so __devexit_p is no longer
-needed.
+On Sat, Nov 24, 2012 at 11:08 PM, Bob Lightfoot <boblfoot@gmail.com> wrote:
+> Hope you can shed an idea or three.
+>
+> My end goal it to again record analog video in MythTV.
 
-Signed-off-by: Bill Pemberton <wfp5p@virginia.edu>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org> 
-Cc: linux-media@vger.kernel.org 
-Cc: devel@driverdev.osuosl.org 
----
- drivers/staging/media/lirc/lirc_parallel.c | 2 +-
- drivers/staging/media/lirc/lirc_serial.c   | 2 +-
- drivers/staging/media/lirc/lirc_sir.c      | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+Two other questions:
 
-diff --git a/drivers/staging/media/lirc/lirc_parallel.c b/drivers/staging/media/lirc/lirc_parallel.c
-index dd2bca7..610230f 100644
---- a/drivers/staging/media/lirc/lirc_parallel.c
-+++ b/drivers/staging/media/lirc/lirc_parallel.c
-@@ -606,7 +606,7 @@ static int lirc_parallel_resume(struct platform_device *dev)
- 
- static struct platform_driver lirc_parallel_driver = {
- 	.probe	= lirc_parallel_probe,
--	.remove	= __devexit_p(lirc_parallel_remove),
-+	.remove	= lirc_parallel_remove,
- 	.suspend	= lirc_parallel_suspend,
- 	.resume	= lirc_parallel_resume,
- 	.driver	= {
-diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
-index 97ef670..002f325 100644
---- a/drivers/staging/media/lirc/lirc_serial.c
-+++ b/drivers/staging/media/lirc/lirc_serial.c
-@@ -1148,7 +1148,7 @@ static int lirc_serial_resume(struct platform_device *dev)
- 
- static struct platform_driver lirc_serial_driver = {
- 	.probe		= lirc_serial_probe,
--	.remove		= __devexit_p(lirc_serial_remove),
-+	.remove		= lirc_serial_remove,
- 	.suspend	= lirc_serial_suspend,
- 	.resume		= lirc_serial_resume,
- 	.driver		= {
-diff --git a/drivers/staging/media/lirc/lirc_sir.c b/drivers/staging/media/lirc/lirc_sir.c
-index 4afc3b4..420e3df 100644
---- a/drivers/staging/media/lirc/lirc_sir.c
-+++ b/drivers/staging/media/lirc/lirc_sir.c
-@@ -1230,7 +1230,7 @@ static int __devexit lirc_sir_remove(struct platform_device *dev)
- 
- static struct platform_driver lirc_sir_driver = {
- 	.probe		= lirc_sir_probe,
--	.remove		= __devexit_p(lirc_sir_remove),
-+	.remove		= lirc_sir_remove,
- 	.driver		= {
- 		.name	= "lirc_sir",
- 		.owner	= THIS_MODULE,
+Have you tried dropping the card into a Windows box to make sure your
+hardware isn't just dead?  I know you said you thought it worked 6-9
+months ago, but it's possible that it is just dumb luck that part of
+the hardware died and it has nothing to do with the kernel revision.
+
+Also, what kernel did it work last on?  If you could determine a
+specific revision, it would help narrow down where the problem was
+introduced (assuming it really is a regression in the kernel).
+
+Devin
+
 -- 
-1.8.0
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
