@@ -1,117 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:54444 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750957Ab2KPIxP (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:54654 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755357Ab2KZMhy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Nov 2012 03:53:15 -0500
-Date: Fri, 16 Nov 2012 09:53:04 +0100
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>, kernel@pengutronix.de,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v10 1/6] video: add display_timing and videomode
-Message-ID: <20121116085304.GA7493@pengutronix.de>
-References: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de>
- <1352971437-29877-2-git-send-email-s.trumtrar@pengutronix.de>
- <20121115154753.C82223E194B@localhost>
- <2466982.zTBri0jEif@avalon>
- <20121115180359.1E6F33E197F@localhost>
+	Mon, 26 Nov 2012 07:37:54 -0500
+Message-ID: <50B36286.7010704@ti.com>
+Date: Mon, 26 Nov 2012 14:37:26 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20121115180359.1E6F33E197F@localhost>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+CC: <devicetree-discuss@lists.ozlabs.org>,
+	Rob Herring <robherring2@gmail.com>,
+	<linux-fbdev@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	<linux-media@vger.kernel.org>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	<kernel@pengutronix.de>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>
+Subject: Re: [PATCHv15 2/7] video: add display_timing and videomode
+References: <1353920848-1705-1-git-send-email-s.trumtrar@pengutronix.de> <1353920848-1705-3-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1353920848-1705-3-git-send-email-s.trumtrar@pengutronix.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigE10E60E74F53751CDC28A32F"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Grant,
+--------------enigE10E60E74F53751CDC28A32F
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 15, 2012 at 06:03:59PM +0000, Grant Likely wrote:
-> On Thu, 15 Nov 2012 17:00:57 +0100, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
-> > Hi Grant,
-> > 
-> > On Thursday 15 November 2012 15:47:53 Grant Likely wrote:
-> > > On Thu, 15 Nov 2012 10:23:52 +0100, Steffen Trumtrar wrote:
-> > > > Add display_timing structure and the according helper functions. This
-> > > > allows the description of a display via its supported timing parameters.
-> > > > 
-> > > > Every timing parameter can be specified as a single value or a range
-> > > > <min typ max>.
-> > > > 
-> > > > Also, add helper functions to convert from display timings to a generic
-> > > > videomode structure. This videomode can then be converted to the
-> > > > corresponding subsystem mode representation (e.g. fb_videomode).
-> > > > 
-> > > > Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-> > > 
-> > > Hmmm... here's my thoughts as an outside reviewer. Correct me if I'm
-> > > making an incorrect assumption.
-> > > 
-> > > It looks to me that the purpose of this entire series is to decode video
-> > > timings from the device tree and (eventually) provide the data in the
-> > > form 'struct videomode'. Correct?
-> > > 
+On 2012-11-26 11:07, Steffen Trumtrar wrote:
 
-For the time being it is straight from devicetree via struct videomode
-to struct drm_display_mode or fb_videomode. Correct.
+> +/*
+> + * Subsystem independent description of a videomode.
+> + * Can be generated from struct display_timing.
+> + */
+> +struct videomode {
+> +	u32 pixelclock;		/* pixelclock in Hz */
 
-> > > If so, then it looks over engineered. Creating new infrastructure to
-> > > allocate, maintain, and free a new 'struct display_timings' doesn't make
-> > > any sense when it is an intermediary data format that will never be used
-> > > by drivers.
-> > > 
-> > > Can the DT parsing code instead return a table of struct videomode?
-> > > 
+I don't know if this is of any importance, but the linux clock framework
+manages clock rates with unsigned long. Would it be better to use the
+same type here?
 
-See below.
+> +	u32 hactive;
+> +	u32 hfront_porch;
+> +	u32 hback_porch;
+> +	u32 hsync_len;
+> +
+> +	u32 vactive;
+> +	u32 vfront_porch;
+> +	u32 vback_porch;
+> +	u32 vsync_len;
+> +
+> +	u32 hah;		/* hsync active high */
+> +	u32 vah;		/* vsync active high */
+> +	u32 de;			/* data enable */
+> +	u32 pixelclk_pol;
 
-> > > But, wait... struct videomode is also a new structure. So it looks like
-> > > this series creates two new intermediary data structures;
-> > > display_timings and videomode. And at least as far as I can see in this
-> > > series struct fb_videomode is the only user.
+What values will these 4 have? Aren't these booleans?
 
-struct drm_display_mode is also a user in this series see 5/6 and 6/6.
+The data enable comment should be "data enable active high".
 
-> > 
-> > struct videomode is supposed to slowly replace the various video mode 
-> > structures we currently have in the kernel (struct drm_mode_modeinfo, struct 
-> > fb_videomode and struct v4l2_bt_timings), at least where possible (userspace 
-> > APIs can't be broken). This will make it possible to reuse code across the 
-> > DRM, FB and V4L2 subsystems, such as the EDID parser or HDMI encoder drivers. 
-> > This rationale might not be clearly explained in the commit message, but 
-> > having a shared video mode structure is pretty important.
->
+The next patch says in the devtree binding documentation that the values
+may be on/off/ignored. Is that represented here somehow, i.e. values are
+0/1/2 or so? If not, what does it mean if the value is left out from
+devtree data, meaning "not used on hardware"?
 
-That.
+There's also a "doubleclk" value mentioned in the devtree bindings doc,
+but not shown here.
 
-> Okay that make sense. What about struct display_timings?
-> 
+I think this videomode struct is the one that display drivers are going
+to use (?), in addition to the display_timing, so it would be good to
+document it well.
 
-The reason for defining an intermediary step is because of the different things
-that are described:
-- struct display_timing describes the signal ranges a display supports
-- struct display_timings describes all timing settings of a display
-- struct videomode describes one single mode generated from that settings
-
-It is possible to generate multiple struct videomodes from one
-struct display_timing based on the circumstances. And that is a task for the
-driver using the display_timing infos. This means drivers are supposed to use
-struct display_timings if they need to generate a struct videomode from the
-timing ranges of one entry.
-This is just the first step in that direction.
-I hope this makes the need for struct display_timings a little clearer.
-The other solution would be the one Laurent suggested and pass multiple values
-around. Which in my opinion doesn't make it better, more practical or cleaner.
+ Tomi
 
 
-Regards,
-Steffen
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+--------------enigE10E60E74F53751CDC28A32F
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQs2KKAAoJEPo9qoy8lh71Kb4QAI/EpmPrknERI/HM5+43WedB
+vhuC6WTKEnoURcQpotJL+wl0WNuLENGR/pkGiRBT2wJVuhERHv7/XeYV4umMvGcR
+yCF4gBYlZrbYYG1tZinJgDJlSgdir7a6j39sXz4ufnxgm11ONVlfqg7iGKCjJ3jS
+7e4qVjmRT5CJ7T+odtuVcJvIlyQw69lSDImJ7EFkqiIopAmpvKQzdb5uCvS6FYAg
+ukJGmH6tPGgMtk25YKIT+CJACs1lZfDysHcX4RpAb4AN29SV0gBsFN/wnVATOCP1
+hUAStv/72Z/jxWvG0Cq1jxwyVB4M6k3WcxoZwGj6yOcquUYH/JUVUtUwwx94qV7l
+l95c4qxgTN+R5H5EKhzBtrZLWGEBWFi/BKM5Fot+4qW5rcF7G4R7hbsVqq3vKr9v
+pwDlTSpi5RG7yZ1bfe6MBGLUFXaivqeWq0UgUPmiK361z5eRU4xtQHs498/VGajz
+UiQQqzlILQlk8EkImHN5SpMbO6JQKUOF8BFYct9fqxMU6PrPUsXJZ8QXp84arEes
+OOrk56fozhgSpQy+H42tEiOfnhPLrUn0ckq1e7L9uPz10xmyMLZdgmeOcEtPntvw
+2JKKL8qBpuuFZiJly9xxKupa6XmQvdghEXJoQCrE9nZA4rgh68ls9oq+WSFAo8iO
+NN0oVfiviH2sJb4GrI46
+=0bJ/
+-----END PGP SIGNATURE-----
+
+--------------enigE10E60E74F53751CDC28A32F--
