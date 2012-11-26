@@ -1,63 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:42401 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751118Ab2KBM4h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2012 08:56:37 -0400
-MIME-Version: 1.0
-In-Reply-To: <1351858169-5742-1-git-send-email-yamanetoshi@gmail.com>
-References: <1351858121-5708-1-git-send-email-yamanetoshi@gmail.com>
-	<1351858169-5742-1-git-send-email-yamanetoshi@gmail.com>
-Date: Fri, 2 Nov 2012 13:56:36 +0100
-Message-ID: <CA+MoWDpYP3LsbYZ82hxKeaGa=o2yOnhExvTFkYomOL-2p4aNoA@mail.gmail.com>
-Subject: Re: [PATCH 2/2] Staging/media: Use dev_ printks in go7007/wis-ov7640.c
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: YAMANE Toshiaki <yamanetoshi@gmail.com>
-Cc: Greg Kroah-Hartman <greg@kroah.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-da0-f46.google.com ([209.85.210.46]:48914 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751814Ab2KZG04 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Nov 2012 01:26:56 -0500
+Received: by mail-da0-f46.google.com with SMTP id p5so3568955dak.19
+        for <linux-media@vger.kernel.org>; Sun, 25 Nov 2012 22:26:56 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: shaik.ameer@samsung.com, sylvester.nawrocki@gmail.com,
+	s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH v2 1/3] [media] exynos-gsc: Rearrange error messages for valid prints
+Date: Mon, 26 Nov 2012 11:50:19 +0530
+Message-Id: <1353910821-21408-2-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1353910821-21408-1-git-send-email-sachin.kamat@linaro.org>
+References: <1353910821-21408-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 2, 2012 at 1:09 PM, YAMANE Toshiaki <yamanetoshi@gmail.com> wrote:
-> fixed below checkpatch warnings.
-> - WARNING: Prefer netdev_dbg(netdev, ... then dev_dbg(dev, ... then pr_debug(...  to printk(KERN_DEBUG ...
-> - WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
->
-> Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
-Tested-by: Peter Senna Tschudin <peter.senna@gmail.com>
-> ---
->  drivers/staging/media/go7007/wis-ov7640.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/staging/media/go7007/wis-ov7640.c b/drivers/staging/media/go7007/wis-ov7640.c
-> index eb5efc9..fe46374 100644
-> --- a/drivers/staging/media/go7007/wis-ov7640.c
-> +++ b/drivers/staging/media/go7007/wis-ov7640.c
-> @@ -59,12 +59,12 @@ static int wis_ov7640_probe(struct i2c_client *client,
->
->         client->flags = I2C_CLIENT_SCCB;
->
-> -       printk(KERN_DEBUG
-> +       dev_dbg(&client->dev,
->                 "wis-ov7640: initializing OV7640 at address %d on %s\n",
->                 client->addr, adapter->name);
->
->         if (write_regs(client, initial_registers) < 0) {
-> -               printk(KERN_ERR "wis-ov7640: error initializing OV7640\n");
-> +               dev_err(&client->dev, "wis-ov7640: error initializing OV7640\n");
->                 return -ENODEV;
->         }
->
-> --
-> 1.7.9.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In case of clk_prepare failure, the function gsc_clk_get also prints
+"failed to get clock" which is not correct. Hence move the error
+messages to their respective blocks. While at it, also renamed the labels
+meaningfully.
 
+Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c |   19 ++++++++++---------
+ 1 files changed, 10 insertions(+), 9 deletions(-)
 
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 6d6f65d..45bcfa7 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -1017,25 +1017,26 @@ static int gsc_clk_get(struct gsc_dev *gsc)
+ 	dev_dbg(&gsc->pdev->dev, "gsc_clk_get Called\n");
+ 
+ 	gsc->clock = clk_get(&gsc->pdev->dev, GSC_CLOCK_GATE_NAME);
+-	if (IS_ERR(gsc->clock))
+-		goto err_print;
++	if (IS_ERR(gsc->clock)) {
++		dev_err(&gsc->pdev->dev, "failed to get clock~~~: %s\n",
++			GSC_CLOCK_GATE_NAME);
++		goto err_clk_get;
++	}
+ 
+ 	ret = clk_prepare(gsc->clock);
+ 	if (ret < 0) {
++		dev_err(&gsc->pdev->dev, "clock prepare failed for clock: %s\n",
++			GSC_CLOCK_GATE_NAME);
+ 		clk_put(gsc->clock);
+ 		gsc->clock = NULL;
+-		goto err;
++		goto err_clk_prepare;
+ 	}
+ 
+ 	return 0;
+ 
+-err:
+-	dev_err(&gsc->pdev->dev, "clock prepare failed for clock: %s\n",
+-					GSC_CLOCK_GATE_NAME);
++err_clk_prepare:
+ 	gsc_clk_put(gsc);
+-err_print:
+-	dev_err(&gsc->pdev->dev, "failed to get clock~~~: %s\n",
+-					GSC_CLOCK_GATE_NAME);
++err_clk_get:
+ 	return -ENXIO;
+ }
+ 
+-- 
+1.7.4.1
 
---
-Peter
