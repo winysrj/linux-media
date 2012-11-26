@@ -1,115 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45703 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2992975Ab2KOJYI (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:53739 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754156Ab2KZEzn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 04:24:08 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: [PATCH v10 5/6] drm_modes: add videomode helpers
-Date: Thu, 15 Nov 2012 10:23:56 +0100
-Message-Id: <1352971437-29877-6-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de>
+	Sun, 25 Nov 2012 23:55:43 -0500
+Received: by mail-pa0-f46.google.com with SMTP id bh2so4742413pad.19
+        for <linux-media@vger.kernel.org>; Sun, 25 Nov 2012 20:55:42 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: t.stanislaws@samsung.com, s.nawrocki@samsung.com,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 3/9] [media] s5p-tv: Add missing braces around sizeof in mixer_reg.c
+Date: Mon, 26 Nov 2012 10:19:02 +0530
+Message-Id: <1353905348-15475-4-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1353905348-15475-1-git-send-email-sachin.kamat@linaro.org>
+References: <1353905348-15475-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add conversion from videomode to drm_display_mode
+Silences checkpatch warnings of the type:
+WARNING: sizeof filter_y_horiz_tap8 should be sizeof(filter_y_horiz_tap8)
+FILE: media/platform/s5p-tv/mixer_reg.c:473:
+		filter_y_horiz_tap8, sizeof filter_y_horiz_tap8);
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 ---
- drivers/gpu/drm/drm_modes.c |   37 +++++++++++++++++++++++++++++++++++++
- include/drm/drmP.h          |    6 ++++++
- 2 files changed, 43 insertions(+)
+ drivers/media/platform/s5p-tv/mixer_reg.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
-index 59450f3..23d951a0 100644
---- a/drivers/gpu/drm/drm_modes.c
-+++ b/drivers/gpu/drm/drm_modes.c
-@@ -35,6 +35,7 @@
- #include <linux/export.h>
- #include <drm/drmP.h>
- #include <drm/drm_crtc.h>
-+#include <linux/videomode.h>
- 
- /**
-  * drm_mode_debug_printmodeline - debug print a mode
-@@ -504,6 +505,42 @@ drm_gtf_mode(struct drm_device *dev, int hdisplay, int vdisplay, int vrefresh,
+diff --git a/drivers/media/platform/s5p-tv/mixer_reg.c b/drivers/media/platform/s5p-tv/mixer_reg.c
+index 3b1670a..b713403 100644
+--- a/drivers/media/platform/s5p-tv/mixer_reg.c
++++ b/drivers/media/platform/s5p-tv/mixer_reg.c
+@@ -470,11 +470,11 @@ static inline void mxr_reg_vp_filter_set(struct mxr_device *mdev,
+ static void mxr_reg_vp_default_filter(struct mxr_device *mdev)
+ {
+ 	mxr_reg_vp_filter_set(mdev, VP_POLY8_Y0_LL,
+-		filter_y_horiz_tap8, sizeof filter_y_horiz_tap8);
++		filter_y_horiz_tap8, sizeof(filter_y_horiz_tap8));
+ 	mxr_reg_vp_filter_set(mdev, VP_POLY4_Y0_LL,
+-		filter_y_vert_tap4, sizeof filter_y_vert_tap4);
++		filter_y_vert_tap4, sizeof(filter_y_vert_tap4));
+ 	mxr_reg_vp_filter_set(mdev, VP_POLY4_C0_LL,
+-		filter_cr_horiz_tap4, sizeof filter_cr_horiz_tap4);
++		filter_cr_horiz_tap4, sizeof(filter_cr_horiz_tap4));
  }
- EXPORT_SYMBOL(drm_gtf_mode);
  
-+#if IS_ENABLED(CONFIG_VIDEOMODE)
-+int drm_display_mode_from_videomode(struct videomode *vm,
-+				    struct drm_display_mode *dmode)
-+{
-+	dmode->hdisplay = vm->hactive;
-+	dmode->hsync_start = dmode->hdisplay + vm->hfront_porch;
-+	dmode->hsync_end = dmode->hsync_start + vm->hsync_len;
-+	dmode->htotal = dmode->hsync_end + vm->hback_porch;
-+
-+	dmode->vdisplay = vm->vactive;
-+	dmode->vsync_start = dmode->vdisplay + vm->vfront_porch;
-+	dmode->vsync_end = dmode->vsync_start + vm->vsync_len;
-+	dmode->vtotal = dmode->vsync_end + vm->vback_porch;
-+
-+	dmode->clock = vm->pixelclock / 1000;
-+
-+	dmode->flags = 0;
-+	if (vm->hah)
-+		dmode->flags |= DRM_MODE_FLAG_PHSYNC;
-+	else
-+		dmode->flags |= DRM_MODE_FLAG_NHSYNC;
-+	if (vm->vah)
-+		dmode->flags |= DRM_MODE_FLAG_PVSYNC;
-+	else
-+		dmode->flags |= DRM_MODE_FLAG_NVSYNC;
-+	if (vm->interlaced)
-+		dmode->flags |= DRM_MODE_FLAG_INTERLACE;
-+	if (vm->doublescan)
-+		dmode->flags |= DRM_MODE_FLAG_DBLSCAN;
-+	drm_mode_set_name(dmode);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(drm_display_mode_from_videomode);
-+#endif
-+
- /**
-  * drm_mode_set_name - set the name on a mode
-  * @mode: name will be set in this mode
-diff --git a/include/drm/drmP.h b/include/drm/drmP.h
-index 3fd8280..341049c 100644
---- a/include/drm/drmP.h
-+++ b/include/drm/drmP.h
-@@ -56,6 +56,7 @@
- #include <linux/cdev.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
-+#include <linux/videomode.h>
- #if defined(__alpha__) || defined(__powerpc__)
- #include <asm/pgtable.h>	/* For pte_wrprotect */
- #endif
-@@ -1454,6 +1455,11 @@ extern struct drm_display_mode *
- drm_mode_create_from_cmdline_mode(struct drm_device *dev,
- 				  struct drm_cmdline_mode *cmd);
- 
-+#if IS_ENABLED(CONFIG_VIDEOMODE)
-+extern int drm_display_mode_from_videomode(struct videomode *vm,
-+					   struct drm_display_mode *dmode);
-+#endif
-+
- /* Modesetting support */
- extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
- extern void drm_vblank_post_modeset(struct drm_device *dev, int crtc);
+ static void mxr_reg_mxr_dump(struct mxr_device *mdev)
 -- 
-1.7.10.4
+1.7.4.1
 
