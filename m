@@ -1,60 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2087 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751590Ab2KPOJZ (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:56097 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751814Ab2KZG1D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Nov 2012 09:09:25 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 0/6] uvcvideo: V4L2 compliance fixes
-Date: Fri, 16 Nov 2012 15:09:20 +0100
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <1348758980-21683-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1348758980-21683-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201211161509.20625.hverkuil@xs4all.nl>
+	Mon, 26 Nov 2012 01:27:03 -0500
+Received: by mail-pb0-f46.google.com with SMTP id wy7so7770073pbc.19
+        for <linux-media@vger.kernel.org>; Sun, 25 Nov 2012 22:27:03 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: shaik.ameer@samsung.com, sylvester.nawrocki@gmail.com,
+	s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH v2 3/3] [media] exynos-gsc: Use devm_clk_get()
+Date: Mon, 26 Nov 2012 11:50:21 +0530
+Message-Id: <1353910821-21408-4-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1353910821-21408-1-git-send-email-sachin.kamat@linaro.org>
+References: <1353910821-21408-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+devm_clk_get() is a device managed function and makes error handling
+a bit simpler.
 
-My apologies for the long delay before I got around to reviewing these.
+Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c |   17 ++++-------------
+ 1 files changed, 4 insertions(+), 13 deletions(-)
 
-On Thu September 27 2012 17:16:14 Laurent Pinchart wrote:
-> Hi everybody,
-> 
-> Here are 6 patches that fix V4L2 compliance issues in the uvcvideo driver found
-> by the v4l2-compliance tool.
-> 
-> I'm working on the last remaining issue (control classes not implemented).
-> 
-> Laurent Pinchart (6):
->   uvcvideo: Set error_idx properly for extended controls API failures
->   uvcvideo: Return -EACCES when trying to access a read/write-only
->     control
->   uvcvideo: Don't fail when an unsupported format is requested
->   uvcvideo: Set device_caps in VIDIOC_QUERYCAP
->   uvcvideo: Return -ENOTTY for unsupported ioctls
->   uvcvideo: Add VIDIOC_[GS]_PRIORITY support
-> 
->  drivers/media/usb/uvc/uvc_ctrl.c   |   21 +++++----
->  drivers/media/usb/uvc/uvc_driver.c |    8 +++
->  drivers/media/usb/uvc/uvc_v4l2.c   |   89 ++++++++++++++++++++++++++++-------
->  drivers/media/usb/uvc/uvc_video.c  |    1 +
->  drivers/media/usb/uvc/uvcvideo.h   |    4 ++
->  5 files changed, 96 insertions(+), 27 deletions(-)
-> 
-> 
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index c8b82c0..0c22ad5 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -1002,11 +1002,8 @@ static void *gsc_get_drv_data(struct platform_device *pdev)
+ 
+ static void gsc_clk_put(struct gsc_dev *gsc)
+ {
+-	if (!IS_ERR(gsc->clock)) {
++	if (!IS_ERR(gsc->clock))
+ 		clk_unprepare(gsc->clock);
+-		clk_put(gsc->clock);
+-		gsc->clock = NULL;
+-	}
+ }
+ 
+ static int gsc_clk_get(struct gsc_dev *gsc)
+@@ -1015,28 +1012,22 @@ static int gsc_clk_get(struct gsc_dev *gsc)
+ 
+ 	dev_dbg(&gsc->pdev->dev, "gsc_clk_get Called\n");
+ 
+-	gsc->clock = clk_get(&gsc->pdev->dev, GSC_CLOCK_GATE_NAME);
++	gsc->clock = devm_clk_get(&gsc->pdev->dev, GSC_CLOCK_GATE_NAME);
+ 	if (IS_ERR(gsc->clock)) {
+ 		dev_err(&gsc->pdev->dev, "failed to get clock~~~: %s\n",
+ 			GSC_CLOCK_GATE_NAME);
+-		goto err_clk_get;
++		return PTR_ERR(gsc->clock);
+ 	}
+ 
+ 	ret = clk_prepare(gsc->clock);
+ 	if (ret < 0) {
+ 		dev_err(&gsc->pdev->dev, "clock prepare failed for clock: %s\n",
+ 			GSC_CLOCK_GATE_NAME);
+-		clk_put(gsc->clock);
+ 		gsc->clock = ERR_PTR(-EINVAL);
+-		goto err_clk_prepare;
++		return ret;
+ 	}
+ 
+ 	return 0;
+-
+-err_clk_prepare:
+-	gsc_clk_put(gsc);
+-err_clk_get:
+-	return -ENXIO;
+ }
+ 
+ static int gsc_m2m_suspend(struct gsc_dev *gsc)
+-- 
+1.7.4.1
 
-For patches 1, 2, 3 and 5:
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-I've got some comments for patches 4 and 6. See my reply to those.
-
-Regards,
-
-	Hans
