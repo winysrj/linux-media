@@ -1,155 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:33409 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751457Ab2KWNYn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 08:24:43 -0500
-Message-ID: <50AF7911.8080500@free.fr>
-Date: Fri, 23 Nov 2012 14:24:33 +0100
-From: moebius <moebius1@free.fr>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: avermedia, new version of avertv volar green hd
-References: <5096B744.40308@free.fr> <5097B2FE.3090100@inf.u-szeged.hu> <50997401.7050805@iki.fi> <50997C8F.6020006@iki.fi> <509A648F.3070803@free.fr> <509A7CD5.3030202@iki.fi>
-In-Reply-To: <509A7CD5.3030202@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:63121 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754290Ab2KZEzk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Nov 2012 23:55:40 -0500
+Received: by mail-pb0-f46.google.com with SMTP id wy7so7718146pbc.19
+        for <linux-media@vger.kernel.org>; Sun, 25 Nov 2012 20:55:39 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: t.stanislaws@samsung.com, s.nawrocki@samsung.com,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 2/9] [media] s5p-tv: Add missing braces around sizeof in mixer_video.c
+Date: Mon, 26 Nov 2012 10:19:01 +0530
+Message-Id: <1353905348-15475-3-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1353905348-15475-1-git-send-email-sachin.kamat@linaro.org>
+References: <1353905348-15475-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bonjour,
+Silences several checkpatch warnings of the type:
+WARNING: sizeof *out should be sizeof(*out)
+FILE: media/platform/s5p-tv/mixer_video.c:98:
+		out = kzalloc(sizeof *out, GFP_KERNEL);
 
-A little in late but here is the pic location :
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/s5p-tv/mixer_video.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
-http://dl.free.fr/n7m8Gfe5q
+diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+index 9b52f3a..155c092 100644
+--- a/drivers/media/platform/s5p-tv/mixer_video.c
++++ b/drivers/media/platform/s5p-tv/mixer_video.c
+@@ -95,7 +95,7 @@ int __devinit mxr_acquire_video(struct mxr_device *mdev,
+ 		/* trying to register next output */
+ 		if (sd == NULL)
+ 			continue;
+-		out = kzalloc(sizeof *out, GFP_KERNEL);
++		out = kzalloc(sizeof(*out), GFP_KERNEL);
+ 		if (out == NULL) {
+ 			mxr_err(mdev, "no memory for '%s'\n",
+ 				conf->output_name);
+@@ -127,7 +127,7 @@ fail_output:
+ 	/* kfree is NULL-safe */
+ 	for (i = 0; i < mdev->output_cnt; ++i)
+ 		kfree(mdev->output[i]);
+-	memset(mdev->output, 0, sizeof mdev->output);
++	memset(mdev->output, 0, sizeof(mdev->output));
+ 
+ fail_vb2_allocator:
+ 	/* freeing allocator context */
+@@ -160,8 +160,8 @@ static int mxr_querycap(struct file *file, void *priv,
+ 
+ 	mxr_dbg(layer->mdev, "%s:%d\n", __func__, __LINE__);
+ 
+-	strlcpy(cap->driver, MXR_DRIVER_NAME, sizeof cap->driver);
+-	strlcpy(cap->card, layer->vfd.name, sizeof cap->card);
++	strlcpy(cap->driver, MXR_DRIVER_NAME, sizeof(cap->driver));
++	strlcpy(cap->card, layer->vfd.name, sizeof(cap->card));
+ 	sprintf(cap->bus_info, "%d", layer->idx);
+ 	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_OUTPUT_MPLANE;
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+@@ -192,7 +192,7 @@ static void mxr_layer_default_geo(struct mxr_layer *layer)
+ 	struct mxr_device *mdev = layer->mdev;
+ 	struct v4l2_mbus_framefmt mbus_fmt;
+ 
+-	memset(&layer->geo, 0, sizeof layer->geo);
++	memset(&layer->geo, 0, sizeof(layer->geo));
+ 
+ 	mxr_get_mbus_fmt(mdev, &mbus_fmt);
+ 
+@@ -425,7 +425,7 @@ static int mxr_s_selection(struct file *file, void *fh,
+ 	struct mxr_geometry tmp;
+ 	struct v4l2_rect res;
+ 
+-	memset(&res, 0, sizeof res);
++	memset(&res, 0, sizeof(res));
+ 
+ 	mxr_dbg(layer->mdev, "%s: rect: %dx%d@%d,%d\n", __func__,
+ 		s->r.width, s->r.height, s->r.left, s->r.top);
+@@ -464,7 +464,7 @@ static int mxr_s_selection(struct file *file, void *fh,
+ 	/* apply change and update geometry if needed */
+ 	if (target) {
+ 		/* backup current geometry if setup fails */
+-		memcpy(&tmp, geo, sizeof tmp);
++		memcpy(&tmp, geo, sizeof(tmp));
+ 
+ 		/* apply requested selection */
+ 		target->x_offset = s->r.left;
+@@ -496,7 +496,7 @@ static int mxr_s_selection(struct file *file, void *fh,
+ fail:
+ 	/* restore old geometry, which is not touched if target is NULL */
+ 	if (target)
+-		memcpy(geo, &tmp, sizeof tmp);
++		memcpy(geo, &tmp, sizeof(tmp));
+ 	return -ERANGE;
+ }
+ 
+@@ -1061,7 +1061,7 @@ struct mxr_layer *mxr_base_layer_create(struct mxr_device *mdev,
+ {
+ 	struct mxr_layer *layer;
+ 
+-	layer = kzalloc(sizeof *layer, GFP_KERNEL);
++	layer = kzalloc(sizeof(*layer), GFP_KERNEL);
+ 	if (layer == NULL) {
+ 		mxr_err(mdev, "not enough memory for layer.\n");
+ 		goto fail;
+-- 
+1.7.4.1
 
-cordialement,
-
-
-
-Le 07/11/2012 16:23, Antti Palosaari a écrit :
-> Hello
-> If possible put those pictures somewhere to the net and give link
-> everyone could take a look. If that's not possible then I am still happy
-> to get those pics to my that email address.
->
-> regards
-> Antti
->
-> On 11/07/2012 03:39 PM, moebius wrote:
->> Bonjour,
->>
->> This is not possible anymore : the device has returned to the seller !
->> But AV3007 is perhaps a compagny chip (AV = avermedia ?)
->>
->> cordialement,
->>
->> PS : if you give me an adress, I can post the picture of the opened
->> device
->>
->> Le 06/11/2012 22:09, Antti Palosaari a écrit :
->>> Also lsusb -vvd 07ca:3835 could be nice to see.
->>>
->>> Antti
->>>
->>> On 11/06/2012 10:33 PM, Antti Palosaari wrote:
->>>> Any idea about chipset? Those listed didn't sound any familiar. What
->>>> are
->>>> driver file names?
->>>>
->>>> regards
->>>> Antti
->>>>
->>>> On 11/05/2012 02:37 PM, Árvai Zoltán wrote:
->>>>> Hi,
->>>>>
->>>>> I asked the local guy from Avermedia about this tuner.
->>>>> He said it is a new product called  "AVerTV Volar HD M" (A835M). It
->>>>> has
->>>>> probably the same hardware like the Volar Green, but it has extended
->>>>> software bundle (e.g. Mac support).
->>>>> http://www.avermedia.com/Product/ProductDetail.aspx?Id=517
->>>>>
->>>>> Regards,
->>>>> Zoltan
->>>>>
->>>>>
->>>>> On 11/04/2012 07:43 PM, moebius wrote:
->>>>>> Bonjour,
->>>>>> It's a dvb-t usb dongle
->>>>>>
->>>>>> It's the same name than a former device but with new id : 07ca:3835
->>>>>> instead of 07ca:a835 and probably new hardware ; and it doesn't
->>>>>> work...
->>>>>>
->>>>>> I've tried to enter a new device in the v4l-dvb web list but nothing
->>>>>> has happened ;  the source, can be found at
->>>>>> http://www.linuxtv.org/wiki/index.php?title=DVB-T_USB_Devices_ListData/Helper&action=edit&section=1
->>>>>>
->>>>>>
->>>>>>
->>>>>>
->>>>>>
->>>>>> I've made a photo too but don't know how I can upload it.
->>>>>>
->>>>>> Anyway, here is the source :
->>>>>>
->>>>>> ==== AVerMedia AVerTV Volar Green HD 07ca:3835 ====
->>>>>> {{DeviceDisplayMedium|AVerMedia AVerTV Volar Green HD 07ca:3835}}
->>>>>> </noinclude><includeonly>
->>>>>> {{{{{renderwith}}}|src=USB_Device_Data|selatt1={{{selatt1|}}}|selval1={{{selval1|}}}|selatt2={{{selatt2|}}}|selval2={{{selval2|}}}|selatt3={{{selatt3|}}}|selval3={{{selval3|}}}|selatt4={{{selatt4|}}}|selval4={{{selval4|}}}
->>>>>>
->>>>>>
->>>>>>
->>>>>>
->>>>>>
->>>>>> | did=AVerMedia AVerTV Volar Green HD 07ca:3835
->>>>>> | vendor=[[AVerMedia]]
->>>>>> | device=[[AVerMedia AVerTV Volar Green HD | AVerTV Volar Green HD]]
->>>>>> | standard=DVB-T
->>>>>> | supported={{no}}
->>>>>> | pic=
->>>>>> | pic=
->>>>>> | url=
->>>>>> | url=
->>>>>> | hostinterface=USB2.0
->>>>>> | usbid=07ca:3835
->>>>>> | hw=unknown (see pic)
->>>>>> | tuner=
->>>>>> | demodulator=
->>>>>> | usbbridge=
->>>>>> | fw=
->>>>>> | comment= New version with same name ; main chipset (square, 4x12
->>>>>> pins) named AV3007 SXB1102 ; a little chip with 8 pins named 402R6
->>>>>> K207, another one with 5 pins 215L1(or "I" instead of "1") AC1H ;
->>>>>> last
->>>>>> small chip with metal on top T120 WtBF.
->>>>>> This device don't work on recent ubuntu kernel (3.2.0-23-lowlatency),
->>>>>> even with the last (04/11/2012) v4l drivers that I've downloaded and
->>>>>> install today.
->>>>>> }}
->>>>>>
->>>>>> cordialement,
->>>>>>
->>>>>>
->>>>>> --
->>>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>>> linux-media" in
->>>>>> the body of a message to majordomo@vger.kernel.org
->>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>
->>>>> --
->>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>> linux-media" in
->>>>> the body of a message to majordomo@vger.kernel.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>
->>>>
->>>
->>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
