@@ -1,87 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49512 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932197Ab2K2DH4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 22:07:56 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC] dvb_usb_v2: make remote controller optional
-Date: Thu, 29 Nov 2012 05:07:10 +0200
-Message-Id: <1354158430-2053-1-git-send-email-crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42961 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753646Ab2KZA2F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Nov 2012 19:28:05 -0500
+Date: Mon, 26 Nov 2012 02:28:00 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v2 00/12] Media Controller capture driver for DM365
+Message-ID: <20121126002800.GE31879@valkosipuli.retiisi.org.uk>
+References: <1353077114-19296-1-git-send-email-prabhakar.lad@ti.com>
+ <CA+V-a8t5ZJ2Zb+dWkifjjOHOrv1LAvgaJR2x24xKJXrTJs9+jg@mail.gmail.com>
+ <20121123135753.GB31879@valkosipuli.retiisi.org.uk>
+ <201211231501.52852.hverkuil@xs4all.nl>
+ <CA+V-a8sFW7-dkjS=NxM2uJhhOBwTXQ5zGk9hBsA++w6P1PzFMQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+V-a8sFW7-dkjS=NxM2uJhhOBwTXQ5zGk9hBsA++w6P1PzFMQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make it possible to compile dvb_usb_v2 driver without the remote
-controller (RC-core).
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/Kconfig        |  2 +-
- drivers/media/usb/dvb-usb-v2/dvb_usb.h      |  9 +++++++++
- drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 12 ++++++++++++
- 3 files changed, 22 insertions(+), 1 deletion(-)
+Hi Prabhakar,
+On Sun, Nov 25, 2012 at 09:57:23PM +0530, Prabhakar Lad wrote:
+> On Fri, Nov 23, 2012 at 7:31 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > On Fri November 23 2012 14:57:53 Sakari Ailus wrote:
+...
+> >> I think it should go under staging, the same directory as the driver.
+> >>
+> >> Hans, Mauro: could you confirm this?
+> >
+> > I agree with that, that way things stay together in one directory.
+> >
+> Ok I'll have the documentation in staging folder itself. What about
+> the header file which is added
+> to include/media/davinci/xxx.h, these header files are used by machine
+> file and drivers
+> only, I think also moving them to staging wont make sense and also
+> these files are expected
+> not to change, what are your suggestion on this ?
 
-diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
-index 834bfec..d3e826f 100644
---- a/drivers/media/usb/dvb-usb-v2/Kconfig
-+++ b/drivers/media/usb/dvb-usb-v2/Kconfig
-@@ -1,6 +1,6 @@
- config DVB_USB_V2
- 	tristate "Support for various USB DVB devices v2"
--	depends on DVB_CORE && USB && I2C && RC_CORE
-+	depends on DVB_CORE && USB && I2C
- 	help
- 	  By enabling this you will be able to choose the various supported
- 	  USB1.1 and USB2.0 DVB devices.
-diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb.h b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-index 059291b..e2678a7 100644
---- a/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-+++ b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-@@ -400,4 +400,13 @@ extern int dvb_usbv2_reset_resume(struct usb_interface *);
- extern int dvb_usbv2_generic_rw(struct dvb_usb_device *, u8 *, u16, u8 *, u16);
- extern int dvb_usbv2_generic_write(struct dvb_usb_device *, u8 *, u16);
- 
-+/* stub implementations that will be never called when RC-core is disabled */
-+#if !defined(CONFIG_RC_CORE) && !defined(CONFIG_RC_CORE_MODULE)
-+#define rc_repeat(args...)
-+#define rc_keydown(args...)
-+#define rc_keydown_notimeout(args...)
-+#define rc_keyup(args...)
-+#define rc_g_keycode_from_table(args...) 0
-+#endif
-+
- #endif
-diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-index 671b4fa..94f134c 100644
---- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-@@ -102,6 +102,7 @@ static int dvb_usbv2_i2c_exit(struct dvb_usb_device *d)
- 	return 0;
- }
- 
-+#if defined(CONFIG_RC_CORE) || defined(CONFIG_RC_CORE_MODULE)
- static void dvb_usb_read_remote_control(struct work_struct *work)
- {
- 	struct dvb_usb_device *d = container_of(work,
-@@ -202,6 +203,17 @@ static int dvb_usbv2_remote_exit(struct dvb_usb_device *d)
- 
- 	return 0;
- }
-+#else
-+static int dvb_usbv2_remote_init(struct dvb_usb_device *d)
-+{
-+	return 0;
-+}
-+
-+static int dvb_usbv2_remote_exit(struct dvb_usb_device *d)
-+{
-+	return 0;
-+}
-+#endif
- 
- static void dvb_usb_data_complete(struct usb_data_stream *stream, u8 *buf,
- 		size_t len)
+I'd put them to staging if they're related to the driver ifself rather than
+e.g. resource definitions. What would go under arch/arm then?
+
 -- 
-1.7.11.7
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
