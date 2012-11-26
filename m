@@ -1,89 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36973 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753688Ab2KLPUo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Nov 2012 10:20:44 -0500
-Date: Mon, 12 Nov 2012 17:20:40 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [RFC 4/4] v4l: Tell user space we're using monotonic timestamps
-Message-ID: <20121112152040.GN25623@valkosipuli.retiisi.org.uk>
-References: <20121024181602.GD23933@valkosipuli.retiisi.org.uk>
- <6798781.iK5M8mTgMg@avalon>
- <20121108223340.GH25623@valkosipuli.retiisi.org.uk>
- <2245780.DkC4JqNsLp@avalon>
+Received: from mail.kernel.org ([198.145.19.201]:37520 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755625Ab2KZWwJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Nov 2012 17:52:09 -0500
+Date: Mon, 26 Nov 2012 14:52:06 -0800
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: Fw: [PATCH] dma-mapping: fix dma_common_get_sgtable()
+ conditional compilation
+Message-ID: <20121126225206.GC28995@kroah.com>
+References: <20121126181837.0596a25a@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <2245780.DkC4JqNsLp@avalon>
+In-Reply-To: <20121126181837.0596a25a@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 12, 2012 at 01:17:31PM +0100, Laurent Pinchart wrote:
-> Hi Sakari,
+On Mon, Nov 26, 2012 at 06:18:37PM -0200, Mauro Carvalho Chehab wrote:
+> Hi Greg,
 > 
-> On Friday 09 November 2012 00:33:40 Sakari Ailus wrote:
-> > On Thu, Nov 08, 2012 at 01:18:15PM +0100, Laurent Pinchart wrote:
-> > > On Monday 05 November 2012 16:04:32 Sakari Ailus wrote:
-> > > > On Sun, Nov 04, 2012 at 01:07:25PM +0100, Laurent Pinchart wrote:
-> > > > > On Wednesday 24 October 2012 21:16:23 Sakari Ailus wrote:
-> > > > ...
-> > > > 
-> > > > > > @@ -367,7 +368,8 @@ static void __fill_v4l2_buffer(struct vb2_buffer
-> > > > > > *vb,
-> > > > > > struct v4l2_buffer *b) /*
-> > > > > > 
-> > > > > >  	 * Clear any buffer state related flags.
-> > > > > >  	 */
-> > > > > > 
-> > > > > > -	b->flags &= ~V4L2_BUFFER_STATE_FLAGS;
-> > > > > > +	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
-> > > > > > +	b->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> > > > > 
-> > > > > That's an issue. Drivers that use videobuf2 would always be restricted
-> > > > > to monotonic timestamps in the future, even if they provide support
-> > > > > for a device- specific clock.
-> > > > > 
-> > > > > Would it instead make sense to pass a v4l2_buffer pointer to
-> > > > > v4l2_get_timestamp() and set the monotonic flag there ? Not all
-> > > > > callers of v4l2_get_timestamp() might have a v4l2_buffer pointer
-> > > > > though.
-> > > > 
-> > > > For now, this patch assumes that all the VB2 users will use monotonic
-> > > > timestamps only. Once we have a good use case for different kind of
-> > > > timestamps and have agreed how to implement them, I was thinking of
-> > > > adding a similar function to v4l2_get_timestamp() but which would be
-> > > > VB2-aware, with one argument being the timestamp type. That function
-> > > > could then get the timestamp and apply the relevant flags.
-> > > > 
-> > > > Do you think it'd be enough to support changeable timestamp type for
-> > > > drivers using VB2 only?
-> > > 
-> > > Given that there's no reason to use anything else than VB2 in V4L2
-> > > drivers, I don't see any problem there.
-> > > 
-> > > How would that work in practice ? You won't be able to override the
-> > > timestamp type flag unconditionally in __fill_v4l2_buffer() anymore.
-> > 
-> > The vb2 already stores struct v4l2_buffer, but unfortunately driver's
-> > queue_setup() is called before alloctaing buffer objects, or after if less
-> > buffers can be allocated that way.
-> > 
-> > The information could be stored in the buffer queue itself. That'd likely
-> > make it the easies for the drivers: otherwise drivers need to be involed
-> > e.g. in querybuf.
-> > 
-> > What do you think?
+> Are you maintaining drivers/base/dma-mapping.c? The enclosed path is needed to
+> enable DMABUF handling on V4L2 on some architectures, like x86_64, as we need
+> dma_common_get_sgtable() on drivers/media/v4l2-core/videobuf2-dma-contig.c.
 > 
-> I don't foresee any need for per-buffer timestamps for now, so I would be fine 
-> with a per-queue flag.
+> Would you mind acking it, in order to let this patch flow via my tree? This way,
+> I can revert a workaround I had to apply there, in order to avoid linux-next
+> compilation breakage.
+> 
+> Thanks!
+> Mauro
+> 
+> -
+> 
+> From: Marek Szyprowski <m.szyprowski@samsung.com>
+> Date: Mon, 26 Nov 2012 14:41:48 +0100
+> 
+> dma_common_get_sgtable() function doesn't depend on
+> ARCH_HAS_DMA_DECLARE_COHERENT_MEMORY, so it must not be compiled
+> conditionally.
+> 
+> Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Should I take that as Acked-by to this patch? :-)
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
--- 
-Cheers,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
