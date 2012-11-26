@@ -1,91 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:46101 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754332Ab2K1Ko1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 05:44:27 -0500
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	<devel@driverdev.osuosl.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v3 8/9] davinci: vpfe: dm365: add build infrastructure for capture driver
-Date: Wed, 28 Nov 2012 16:12:08 +0530
-Message-Id: <1354099329-20722-9-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
-References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:60409 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755969Ab2KZUSr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Nov 2012 15:18:47 -0500
+Date: Mon, 26 Nov 2012 18:18:37 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Fw: [PATCH] dma-mapping: fix dma_common_get_sgtable() conditional
+ compilation
+Message-ID: <20121126181837.0596a25a@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunath Hadli <manjunath.hadli@ti.com>
+Hi Greg,
 
-add build infrastructure for dm365 specific modules for VPFE
-capture driver.
+Are you maintaining drivers/base/dma-mapping.c? The enclosed path is needed to
+enable DMABUF handling on V4L2 on some architectures, like x86_64, as we need
+dma_common_get_sgtable() on drivers/media/v4l2-core/videobuf2-dma-contig.c.
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Would you mind acking it, in order to let this patch flow via my tree? This way,
+I can revert a workaround I had to apply there, in order to avoid linux-next
+compilation breakage.
+
+Thanks!
+Mauro
+
+-
+
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Date: Mon, 26 Nov 2012 14:41:48 +0100
+
+dma_common_get_sgtable() function doesn't depend on
+ARCH_HAS_DMA_DECLARE_COHERENT_MEMORY, so it must not be compiled
+conditionally.
+
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/staging/media/Kconfig               |    2 ++
- drivers/staging/media/Makefile              |    1 +
- drivers/staging/media/davinci_vpfe/Kconfig  |    9 +++++++++
- drivers/staging/media/davinci_vpfe/Makefile |    3 +++
- 4 files changed, 15 insertions(+), 0 deletions(-)
- create mode 100644 drivers/staging/media/davinci_vpfe/Kconfig
- create mode 100644 drivers/staging/media/davinci_vpfe/Makefile
+ drivers/base/dma-mapping.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
-index 427218b..ae0abc3 100644
---- a/drivers/staging/media/Kconfig
-+++ b/drivers/staging/media/Kconfig
-@@ -23,6 +23,8 @@ source "drivers/staging/media/as102/Kconfig"
+diff --git a/drivers/base/dma-mapping.c b/drivers/base/dma-mapping.c
+index 3fbedc7..0ce39a3 100644
+--- a/drivers/base/dma-mapping.c
++++ b/drivers/base/dma-mapping.c
+@@ -218,6 +218,8 @@ void dmam_release_declared_memory(struct device *dev)
+ }
+ EXPORT_SYMBOL(dmam_release_declared_memory);
  
- source "drivers/staging/media/cxd2099/Kconfig"
- 
-+source "drivers/staging/media/davinci_vpfe/Kconfig"
++#endif
 +
- source "drivers/staging/media/dt3155v4l/Kconfig"
+ /*
+  * Create scatter-list for the already allocated DMA buffer.
+  */
+@@ -236,8 +238,6 @@ int dma_common_get_sgtable(struct device *dev, struct sg_table *sgt,
+ }
+ EXPORT_SYMBOL(dma_common_get_sgtable);
  
- source "drivers/staging/media/go7007/Kconfig"
-diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
-index aec6eb9..2b97cae 100644
---- a/drivers/staging/media/Makefile
-+++ b/drivers/staging/media/Makefile
-@@ -4,3 +4,4 @@ obj-$(CONFIG_LIRC_STAGING)	+= lirc/
- obj-$(CONFIG_SOLO6X10)		+= solo6x10/
- obj-$(CONFIG_VIDEO_DT3155)	+= dt3155v4l/
- obj-$(CONFIG_VIDEO_GO7007)	+= go7007/
-+obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
-diff --git a/drivers/staging/media/davinci_vpfe/Kconfig b/drivers/staging/media/davinci_vpfe/Kconfig
-new file mode 100644
-index 0000000..2e4a28b
---- /dev/null
-+++ b/drivers/staging/media/davinci_vpfe/Kconfig
-@@ -0,0 +1,9 @@
-+config VIDEO_DM365_VPFE
-+	tristate "DM365 VPFE Media Controller Capture Driver"
-+	depends on VIDEO_V4L2 && ARCH_DAVINCI_DM365 && !VIDEO_VPFE_CAPTURE
-+	select VIDEOBUF2_DMA_CONTIG
-+	help
-+	  Support for DM365 VPFE based Media Controller Capture driver.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called vpfe-mc-capture.
-diff --git a/drivers/staging/media/davinci_vpfe/Makefile b/drivers/staging/media/davinci_vpfe/Makefile
-new file mode 100644
-index 0000000..c64515c
---- /dev/null
-+++ b/drivers/staging/media/davinci_vpfe/Makefile
-@@ -0,0 +1,3 @@
-+obj-$(CONFIG_VIDEO_DM365_VPFE) += \
-+	dm365_isif.o dm365_ipipe_hw.o dm365_ipipe.o \
-+	dm365_resizer.o dm365_ipipeif.o vpfe_mc_capture.o vpfe_video.o
+-#endif
+-
+ /*
+  * Create userspace mapping for the DMA-coherent memory.
+  */
 -- 
-1.7.4.1
+1.7.9.5
 
+
+
+-- 
+Regards,
+Mauro
