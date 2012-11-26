@@ -1,48 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4425 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756285Ab2KWL0P (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:53739 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754302Ab2KZEzq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 06:26:15 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sun, 25 Nov 2012 23:55:46 -0500
+Received: by mail-pa0-f46.google.com with SMTP id bh2so4742413pad.19
+        for <linux-media@vger.kernel.org>; Sun, 25 Nov 2012 20:55:45 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 15/15] MAINTAINERS: add vivi entry.
-Date: Fri, 23 Nov 2012 12:25:56 +0100
-Message-Id: <89762f8eb16398a5c47fc322f8dea1ee4e39e80b.1353669806.git.hans.verkuil@cisco.com>
-In-Reply-To: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
-References: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <7fb3123c4bf43540c13505c82c408fa492cdd48c.1353669806.git.hans.verkuil@cisco.com>
-References: <7fb3123c4bf43540c13505c82c408fa492cdd48c.1353669806.git.hans.verkuil@cisco.com>
+Cc: t.stanislaws@samsung.com, s.nawrocki@samsung.com,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 4/9] [media] s5p-tv: Add missing braces around sizeof in mixer_drv.c
+Date: Mon, 26 Nov 2012 10:19:03 +0530
+Message-Id: <1353905348-15475-5-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1353905348-15475-1-git-send-email-sachin.kamat@linaro.org>
+References: <1353905348-15475-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Silences checkpatch warnings of type:
+WARNING: sizeof mdev->res should be sizeof(mdev->res)
+FILE: media/platform/s5p-tv/mixer_drv.c:301:
+	memset(&mdev->res, 0, sizeof mdev->res);
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+WARNING: sizeof *mdev should be sizeof(*mdev)
+FILE: media/platform/s5p-tv/mixer_drv.c:385:
+	mdev = kzalloc(sizeof *mdev, GFP_KERNEL);
+
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 ---
- MAINTAINERS |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/platform/s5p-tv/mixer_drv.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 4a61ea4..80b8f68 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8185,6 +8185,14 @@ L:	netdev@vger.kernel.org
- S:	Maintained
- F:	drivers/net/ethernet/via/via-velocity.*
+diff --git a/drivers/media/platform/s5p-tv/mixer_drv.c b/drivers/media/platform/s5p-tv/mixer_drv.c
+index ca0f297..a6dee4d 100644
+--- a/drivers/media/platform/s5p-tv/mixer_drv.c
++++ b/drivers/media/platform/s5p-tv/mixer_drv.c
+@@ -298,7 +298,7 @@ static void mxr_release_resources(struct mxr_device *mdev)
+ {
+ 	mxr_release_clocks(mdev);
+ 	mxr_release_plat_resources(mdev);
+-	memset(&mdev->res, 0, sizeof mdev->res);
++	memset(&mdev->res, 0, sizeof(mdev->res));
+ }
  
-+VIVI VIRTUAL VIDEO DRIVER
-+M:	Hans Verkuil <hverkuil@xs4all.nl>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+W:	http://linuxtv.org
-+S:	Maintained
-+F:	drivers/media/platform/vivi*
-+
- VLAN (802.1Q)
- M:	Patrick McHardy <kaber@trash.net>
- L:	netdev@vger.kernel.org
+ static void mxr_release_layers(struct mxr_device *mdev)
+@@ -382,7 +382,7 @@ static int __devinit mxr_probe(struct platform_device *pdev)
+ 	/* mdev does not exist yet so no mxr_dbg is used */
+ 	dev_info(dev, "probe start\n");
+ 
+-	mdev = kzalloc(sizeof *mdev, GFP_KERNEL);
++	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
+ 	if (!mdev) {
+ 		dev_err(dev, "not enough memory.\n");
+ 		ret = -ENOMEM;
 -- 
-1.7.10.4
+1.7.4.1
 
