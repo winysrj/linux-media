@@ -1,120 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37073 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754588Ab2K1M7O (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:54054 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753752Ab2KZPUW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 07:59:14 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	devel@driverdev.osuosl.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v3 9/9] davinci: vpfe: Add documentation and TODO
-Date: Wed, 28 Nov 2012 14:00:14 +0100
-Message-ID: <1555450.K4uAzFNhY7@avalon>
-In-Reply-To: <20121128092213.4bd0870f@redhat.com>
-References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com> <1354099329-20722-10-git-send-email-prabhakar.lad@ti.com> <20121128092213.4bd0870f@redhat.com>
+	Mon, 26 Nov 2012 10:20:22 -0500
+Date: Mon, 26 Nov 2012 16:20:14 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Anatolij Gustschin <agust@denx.de>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] OV5642: fix VIDIOC_S_GROP ioctl
+In-Reply-To: <20121106141845.4641954a@wker>
+Message-ID: <Pine.LNX.4.64.1211261618390.11501@axis700.grange>
+References: <1352157290-13201-1-git-send-email-agust@denx.de>
+ <Pine.LNX.4.64.1211061243580.6451@axis700.grange> <20121106141845.4641954a@wker>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Anatolij
 
-Please see below.
+Sorry for a delay
 
-On Wednesday 28 November 2012 09:22:13 Mauro Carvalho Chehab wrote:
-> Hi Prabhakar,
+On Tue, 6 Nov 2012, Anatolij Gustschin wrote:
+
+> On Tue, 6 Nov 2012 12:45:51 +0100 (CET)
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 > 
-> Em Wed, 28 Nov 2012 16:12:09 +0530
+> > On Tue, 6 Nov 2012, Anatolij Gustschin wrote:
+> > 
+> > > VIDIOC_S_GROP ioctl doesn't work, soc-camera driver reports:
+> > > 
+> > > soc-camera-pdrv soc-camera-pdrv.0: S_CROP denied: getting current crop failed
+> > > 
+> > > The issue is caused by checking for V4L2_BUF_TYPE_VIDEO_CAPTURE type
+> > > in driver's g_crop callback. This check should be in s_crop instead,
+> > > g_crop should just set the type field to V4L2_BUF_TYPE_VIDEO_CAPTURE
+> > > as other drivers do. Move the V4L2_BUF_TYPE_VIDEO_CAPTURE type check
+> > > to s_crop callback.
+> > 
+> > I'm not sure this is correct:
+> > 
+> > http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-crop.html
+> > 
+> > Or is the .g_crop() subdev operation using a different semantics? Where is 
+> > that documented?
 > 
-> Prabhakar Lad <prabhakar.csengg@gmail.com> escreveu:
-> > +Introduction
-> > +============
-> > +
-> > + This file documents the Texas Instruments Davinci Video processing Front
-> > + End (VPFE) driver located under drivers/media/platform/davinci. The
-> > + original driver exists for Davinci VPFE, which is now being changed to
-> > + Media Controller Framework.
+> I do not know if it is documented somewhere. But it seems natural to me
+> that a sensor driver sets the type field to V4L2_BUF_TYPE_VIDEO_CAPTURE
+> in its .g_crop(). A sensor is a capture device, not an output or overlay
+> device. And this ioctl is a query operation.
 > 
-> Hmm... please correct me if I'm wrong, but are you wanting to replace an
-> existing driver at drivers/media/platform/davinci, by another one at
-> staging that has lots of known issues, as pointed at your TODO????
+> OTOH I'm fine with this type checking in .g_crop() and it can help
+> to discover bugs in user space apps. The VIDIOC_G_CROP documentation
+> states that the type field needs to be set to the respective buffer type
+> when querying, so the check in .g_crop() is perfectly valid. But then
+> I need following patch to fix the observed issue:
 > 
-> If so, please don't do that. Replacing a driver by some other one is
-> generally a very bad idea, especially in this case, where the new driver
-> has clearly several issues, the main one being to define its own proprietary
-> and undocumented API:
->
-> > +As of now since the interface will undergo few changes all the include
-> > +files are present in staging itself, to build for dm365 follow below
-> > +steps,
-> > +
-> > +- copy vpfe.h from drivers/staging/media/davinci_vpfe/ to
-> > +  include/media/davinci/ folder for building the uImage.
-> > +- copy davinci_vpfe_user.h from drivers/staging/media/davinci_vpfe/ to
-> > +  include/uapi/linux/davinci_vpfe.h, and add a entry in Kbuild (required
-> > +  for building application).
-> > +- copy dm365_ipipeif_user.h from drivers/staging/media/davinci_vpfe/ to
-> > +  include/uapi/linux/dm365_ipipeif.h and a entry in Kbuild (required
-> > +  for building application).
-> 
-> Among other things, with those ugly and very likely mandatory API calls:
->
-> >+/*
-> >+ * Private IOCTL
-> >+ * VIDIOC_VPFE_IPIPEIF_S_CONFIG: Set IPIEIF configuration
-> >+ * VIDIOC_VPFE_IPIPEIF_G_CONFIG: Get IPIEIF configuration
-> >+ */
-> >+#define VIDIOC_VPFE_IPIPEIF_S_CONFIG \
-> >+	_IOWR('I', BASE_VIDIOC_PRIVATE + 1, struct ipipeif_params)
-> >+#define VIDIOC_VPFE_IPIPEIF_G_CONFIG \
-> >+	_IOWR('I', BASE_VIDIOC_PRIVATE + 2, struct ipipeif_params)
-> >+
-> >+#endif
-> 
-> I remember we rejected already drivers like that with obscure "S_CONFIG"
-> private ioctl that were suspect to send a big initialization undocumented
-> blob to the driver, as only the vendor's application would be able to use
-> such driver.
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -902,6 +902,8 @@ static int soc_camera_s_crop(struct file *file, void *fh,
+>         dev_dbg(icd->pdev, "S_CROP(%ux%u@%u:%u)\n",
+>                 rect->width, rect->height, rect->left, rect->top);
+>  
+> +       current_crop.type = a->type;
+> +
+>         /* If get_crop fails, we'll let host and / or client drivers decide */
+>         ret = ici->ops->get_crop(icd, &current_crop);
+>  
+> What do you think?
 
-That's correct, and that's why the driver is going to staging. From there it 
-will be incrementally fixed and then moved to drivers/media/, or dropped if 
-not maintained.
+Yes, this makes sense. Please, submit a patch.
 
-> So, instead, of submitting it to staging, you should be sending incremental
-> patches for the existing driver, adding newer functionality there, and
-> using the proper V4L2 API, with makes life easier for reviewers and
-> application developers.
+> And the type field should be checked in .s_crop() anyway, I think.
 
-I agree that it would be the best thing to do, but I don't think it's going to 
-happen. We need to decide between two options.
+It is checked in soc_camera_s_crop() just a couple of lines above the 
+snippet above. Or what do you mean?
 
-- Push back now and insist in incremental patches for the existing driver, and 
-get nothing back as TI will very likely give up completely.
-- Accept the driver in staging, get it fixed incrementally, and finally move 
-it to drivers/media/
-
-There's a political side to this issue, we need to decide whether we want to 
-insist vendors getting everything right before any code reaches mainline, in 
-which case I believe we will lose some of them in the process, including major 
-vendors such as TI, or if we can make the mainline learning curve and 
-experience a bit more smooth by accepting such code in staging.
-
-I would vote for the second option, with a very clear rule that getting the 
-driver in staging is only one step in the journey: if the development effort 
-stops there, the driver *will* be removed.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
