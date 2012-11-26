@@ -1,127 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:56925 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754741Ab2KVSjx (ORCPT
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:62900 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753904Ab2KZEyb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 13:39:53 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: "Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
-	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
-	"David Airlie" <airlied@linux.ie>
-Subject: [PATCHv13 5/7] fbmon: add of_videomode helpers
-Date: Thu, 22 Nov 2012 17:00:13 +0100
-Message-Id: <1353600015-6974-6-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1353600015-6974-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1353600015-6974-1-git-send-email-s.trumtrar@pengutronix.de>
+	Sun, 25 Nov 2012 23:54:31 -0500
+Received: by mail-vc0-f174.google.com with SMTP id m18so7234548vcm.19
+        for <linux-media@vger.kernel.org>; Sun, 25 Nov 2012 20:54:31 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <50B23A09.4010105@gmail.com>
+References: <1353671443-2978-1-git-send-email-sachin.kamat@linaro.org>
+	<1353671443-2978-2-git-send-email-sachin.kamat@linaro.org>
+	<50B23A09.4010105@gmail.com>
+Date: Mon, 26 Nov 2012 10:24:29 +0530
+Message-ID: <CAK9yfHy=PfSXkvVNbFBBfpX1WJXo2jR4tucMojei1=rcCR-xOQ@mail.gmail.com>
+Subject: Re: [PATCH 1/6] [media] s5p-fimc: Use devm_clk_get in mipi-csis.c
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	patches@linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add helper to get fb_videomode from devicetree.
+Hi Sylwester,
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/video/fbmon.c |   42 +++++++++++++++++++++++++++++++++++++++++-
- include/linux/fb.h    |    6 ++++++
- 2 files changed, 47 insertions(+), 1 deletion(-)
+On 25 November 2012 21:02, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> Hi Sachin,
+>
+>
+> On 11/23/2012 12:50 PM, Sachin Kamat wrote:
+>>
+>> devm_clk_get is device managed and makes error handling and cleanup
+>> a bit simpler.
+>
+>
+> Can we postpone this once devm_clk_prepare() is available ?
+Ok. No problem. I will hold on till then.
 
-diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
-index a6a564d..cd0a035 100644
---- a/drivers/video/fbmon.c
-+++ b/drivers/video/fbmon.c
-@@ -31,7 +31,7 @@
- #include <linux/pci.h>
- #include <linux/slab.h>
- #include <video/edid.h>
--#include <linux/videomode.h>
-+#include <linux/of_videomode.h>
- #ifdef CONFIG_PPC_OF
- #include <asm/prom.h>
- #include <asm/pci-bridge.h>
-@@ -1416,6 +1416,46 @@ int fb_videomode_from_videomode(const struct videomode *vm,
- EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
- #endif
- 
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+static inline void dump_fb_videomode(const struct fb_videomode *m)
-+{
-+	pr_debug("fb_videomode = %ux%u@%uHz (%ukHz) %u %u %u %u %u %u %u %u %u\n",
-+		 m->xres, m->yres, m->refresh, m->pixclock, m->left_margin,
-+		 m->right_margin, m->upper_margin, m->lower_margin,
-+		 m->hsync_len, m->vsync_len, m->sync, m->vmode, m->flag);
-+}
-+
-+/**
-+ * of_get_fb_videomode - get a fb_videomode from devicetree
-+ * @np: device_node with the timing specification
-+ * @fb: will be set to the return value
-+ * @index: index into the list of display timings in devicetree
-+ *
-+ * DESCRIPTION:
-+ * This function is expensive and should only be used, if only one mode is to be
-+ * read from DT. To get multiple modes start with of_get_display_timings ond
-+ * work with that instead.
-+ */
-+int of_get_fb_videomode(const struct device_node *np, struct fb_videomode *fb,
-+			unsigned int index)
-+{
-+	struct videomode vm;
-+	int ret;
-+
-+	ret = of_get_videomode(np, &vm, index);
-+	if (ret)
-+		return ret;
-+
-+	fb_videomode_from_videomode(&vm, fb);
-+
-+	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
-+		vm.vactive, np->name);
-+	dump_fb_videomode(fb);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(of_get_fb_videomode);
-+#endif
- 
- #else
- int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
-diff --git a/include/linux/fb.h b/include/linux/fb.h
-index 4404ec2..43a2f81 100644
---- a/include/linux/fb.h
-+++ b/include/linux/fb.h
-@@ -20,6 +20,7 @@ struct fb_info;
- struct device;
- struct file;
- struct videomode;
-+struct device_node;
- 
- /* Definitions below are used in the parsed monitor specs */
- #define FB_DPMS_ACTIVE_OFF	1
-@@ -715,6 +716,11 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
- extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
- extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
- 
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+extern int of_get_fb_videomode(const struct device_node *np,
-+			       struct fb_videomode *fb,
-+			       unsigned int index);
-+#endif
- #if IS_ENABLED(CONFIG_VIDEOMODE)
- extern int fb_videomode_from_videomode(const struct videomode *vm,
- 				       struct fb_videomode *fbmode);
+>
+>
+>> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
+>> ---
+>>   drivers/media/platform/s5p-fimc/mipi-csis.c |    6 +-----
+>>   1 files changed, 1 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.c
+>> b/drivers/media/platform/s5p-fimc/mipi-csis.c
+>> index 4c961b1..d624bfa 100644
+>> --- a/drivers/media/platform/s5p-fimc/mipi-csis.c
+>> +++ b/drivers/media/platform/s5p-fimc/mipi-csis.c
+>> @@ -341,8 +341,6 @@ static void s5pcsis_clk_put(struct csis_state *state)
+>>                 if (IS_ERR_OR_NULL(state->clock[i]))
+>>                         continue;
+>>                 clk_unprepare(state->clock[i]);
+>> -               clk_put(state->clock[i]);
+>> -               state->clock[i] = NULL;
+>
+>
+> This line shouldn't be removed, it protects from releasing already
+> released clock resource.
+
+Wouldn't 'state->clock[i] = NULL' cause a problem when put gets called
+upon exit from this function by devres f/w as its argument would be
+NULL?
+In that case devm_clk_put would be better here?
+
+> In fact state->clock[i] = ERR_PTR(-EINVAL);
+> would be more correct, but that's a different story.
+>
+>
+>>         }
+>>   }
+>>
+>> @@ -352,13 +350,11 @@ static int s5pcsis_clk_get(struct csis_state *state)
+>>         int i, ret;
+>>
+>>         for (i = 0; i<  NUM_CSIS_CLOCKS; i++) {
+>> -               state->clock[i] = clk_get(dev, csi_clock_name[i]);
+>> +               state->clock[i] = devm_clk_get(dev, csi_clock_name[i]);
+>>                 if (IS_ERR(state->clock[i]))
+>>                         goto err;
+>>                 ret = clk_prepare(state->clock[i]);
+>>                 if (ret<  0) {
+>> -                       clk_put(state->clock[i]);
+>> -                       state->clock[i] = NULL;
+>
+>
+> And same here, now we have a pointer to valid, unprepared clock in
+> state->clock[i]. When s5pcsis_clk_put() gets called afterwards it will
+> invoke unbalanced clk_unprepare() in this clock.
+>
+> I would prefer to hold on with that sort of changes in s5p-fimc driver,
+> until after devm_clk_prepare() is available.
+
+Ok.
+
+>
+>>                         goto err;
+>>                 }
+>>         }
+>
+>
+> Regards,
+> Sylwester
+
+
+
 -- 
-1.7.10.4
-
+With warm regards,
+Sachin
