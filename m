@@ -1,105 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:61884 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751334Ab2KWNVu (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42008 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754673Ab2KZJIC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 08:21:50 -0500
-MIME-Version: 1.0
-In-Reply-To: <20121123131344.GA31879@valkosipuli.retiisi.org.uk>
-References: <1353077114-19296-1-git-send-email-prabhakar.lad@ti.com> <20121123131344.GA31879@valkosipuli.retiisi.org.uk>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 23 Nov 2012 18:51:28 +0530
-Message-ID: <CA+V-a8t5ZJ2Zb+dWkifjjOHOrv1LAvgaJR2x24xKJXrTJs9+jg@mail.gmail.com>
-Subject: Re: [PATCH v2 00/12] Media Controller capture driver for DM365
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 26 Nov 2012 04:08:02 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
+	"David Airlie" <airlied@linux.ie>
+Subject: [PATCHv15 5/7] fbmon: add of_videomode helpers
+Date: Mon, 26 Nov 2012 10:07:26 +0100
+Message-Id: <1353920848-1705-6-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1353920848-1705-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1353920848-1705-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Add helper to get fb_videomode from devicetree.
 
-On Fri, Nov 23, 2012 at 6:43 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Prabhakar and others,
->
-> (Just resending; Laurent's e-mail address corrected, cc Hans, too.)
->
-> On Fri, Nov 16, 2012 at 08:15:02PM +0530, Prabhakar Lad wrote:
->> From: Manjunath Hadli <manjunath.hadli@ti.com>
->>
->> This patch set adds media controller based capture driver for
->> DM365.
->>
->> This driver bases its design on Laurent Pinchart's Media Controller Design
->> whose patches for Media Controller and subdev enhancements form the base.
->> The driver also takes copious elements taken from Laurent Pinchart and
->> others' OMAP ISP driver based on Media Controller. So thank you all the
->> people who are responsible for the Media Controller and the OMAP ISP driver.
->>
->> Also, the core functionality of the driver comes from the arago vpfe capture
->> driver of which the isif capture was based on V4L2, with other drivers like
->> ipipe, ipipeif and Resizer.
->>
->> Changes for v2:
->> 1: Migrated the driver for videobuf2 usage pointed Hans.
->> 2: Changed the design as pointed by Laurent, Exposed one more subdevs
->>    ipipeif and split the resizer subdev into three subdevs.
->> 3: Rearrganed the patch sequence and changed the commit messages.
->> 4: Changed the file architecture as pointed by Laurent.
->>
->> Manjunath Hadli (12):
->>   davinci: vpfe: add v4l2 capture driver with media interface
->>   davinci: vpfe: add v4l2 video driver support
->>   davinci: vpfe: dm365: add IPIPEIF driver based on media framework
->>   davinci: vpfe: dm365: add ISIF driver based on media framework
->>   davinci: vpfe: dm365: add IPIPE support for media controller driver
->>   davinci: vpfe: dm365: add IPIPE hardware layer support
->>   davinci: vpfe: dm365: resizer driver based on media framework
->>   davinci: vpss: dm365: enable ISP registers
->>   davinci: vpss: dm365: set vpss clk ctrl
->>   davinci: vpss: dm365: add vpss helper functions to be used in the
->>     main driver for setting hardware parameters
->>   davinci: vpfe: dm365: add build infrastructure for capture driver
->>   davinci: vpfe: Add documentation
->
-> As discussed, here's the todo list for inclusion to staging.
->
-> - User space interface refinement
->         - Controls should be used when possible rather than private ioctl
->         - No enums should be used
->         - Use of MC and V4L2 subdev APIs when applicable
->         - Single interface header might suffice
->         - Current interface forces to configure everything at once
-> - Get rid of the dm365_ipipe_hw.[ch] layer
-> - Active external sub-devices defined by link configuration; no strcmp
->   needed
-> - More generic platform data (i2c adapters)
-> - The driver should have no knowledge of possible external subdevs; see
->   struct vpfe_subdev_id
-> - Some of the hardware control should be refactorede
-> - Check proper serialisation (through mutexes and spinlocks)
-> - Names that are visible in kernel global namespace should have a common
->   prefix (or a few)
->
-> This list likely isn't complete, but some items such as the locking one is
-> there simply because I'm not certain of the state of it.
->
-Thanks a lot. I'll include this TODO's in documentation patch itself,
-But I am not sure if the driver is going in staging, the documentation
-file would still be present under Documentation directory  or even
-this should go in staging directory itself ?
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+---
+ drivers/video/fbmon.c |   42 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/fb.h    |    6 ++++++
+ 2 files changed, 48 insertions(+)
 
-Regards,
---Prabhakar Lad
+diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
+index 733553b..4a8484d 100644
+--- a/drivers/video/fbmon.c
++++ b/drivers/video/fbmon.c
+@@ -28,6 +28,7 @@
+  */
+ #include <linux/fb.h>
+ #include <linux/module.h>
++#include <linux/of_videomode.h>
+ #include <linux/pci.h>
+ #include <linux/slab.h>
+ #include <linux/videomode.h>
+@@ -1424,6 +1425,47 @@ int fb_videomode_from_videomode(const struct videomode *vm,
+ EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
+ #endif
+ 
++#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
++static inline void dump_fb_videomode(const struct fb_videomode *m)
++{
++	pr_debug("fb_videomode = %ux%u@%uHz (%ukHz) %u %u %u %u %u %u %u %u %u\n",
++		 m->xres, m->yres, m->refresh, m->pixclock, m->left_margin,
++		 m->right_margin, m->upper_margin, m->lower_margin,
++		 m->hsync_len, m->vsync_len, m->sync, m->vmode, m->flag);
++}
++
++/**
++ * of_get_fb_videomode - get a fb_videomode from devicetree
++ * @np: device_node with the timing specification
++ * @fb: will be set to the return value
++ * @index: index into the list of display timings in devicetree
++ *
++ * DESCRIPTION:
++ * This function is expensive and should only be used, if only one mode is to be
++ * read from DT. To get multiple modes start with of_get_display_timings ond
++ * work with that instead.
++ */
++int of_get_fb_videomode(struct device_node *np, struct fb_videomode *fb,
++			int index)
++{
++	struct videomode vm;
++	int ret;
++
++	ret = of_get_videomode(np, &vm, index);
++	if (ret)
++		return ret;
++
++	fb_videomode_from_videomode(&vm, fb);
++
++	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
++		vm.vactive, np->name);
++	dump_fb_videomode(fb);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(of_get_fb_videomode);
++#endif
++
+ #else
+ int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
+ {
+diff --git a/include/linux/fb.h b/include/linux/fb.h
+index 4404ec2..c2d933d 100644
+--- a/include/linux/fb.h
++++ b/include/linux/fb.h
+@@ -20,6 +20,7 @@ struct fb_info;
+ struct device;
+ struct file;
+ struct videomode;
++struct device_node;
+ 
+ /* Definitions below are used in the parsed monitor specs */
+ #define FB_DPMS_ACTIVE_OFF	1
+@@ -715,6 +716,11 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
+ extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
+ extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+ 
++#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
++extern int of_get_fb_videomode(struct device_node *np,
++			       struct fb_videomode *fb,
++			       int index);
++#endif
+ #if IS_ENABLED(CONFIG_VIDEOMODE)
+ extern int fb_videomode_from_videomode(const struct videomode *vm,
+ 				       struct fb_videomode *fbmode);
+-- 
+1.7.10.4
 
-> --
-> Kind regards,
->
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
