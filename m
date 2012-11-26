@@ -1,110 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:40477 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751705Ab2K1XTu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 18:19:50 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Tdqv7-0000zp-Ph
-	for linux-media@vger.kernel.org; Thu, 29 Nov 2012 00:19:57 +0100
-Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2012 00:19:57 +0100
-Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2012 00:19:57 +0100
-To: linux-media@vger.kernel.org
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Subject: Re: ivtv driver inputs randomly "block"
-Date: Wed, 28 Nov 2012 18:19:36 -0500
-Message-ID: <50B69C08.7050401@interlinx.bc.ca>
-References: <k93vu3$ffi$1@ger.gmane.org> <CALF0-+VkANRj+by2n-=UsxZfJwk97ZkNS8R0C-Vt2oX7WN3R0A@mail.gmail.com> <50B60D54.4010302@interlinx.bc.ca> <CALF0-+UHOJDh471aa7URKr1-xbggrbDdg_nDijv2FOUpo=3zaw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigD3E80407E8982D8BD1C761D9"
-In-Reply-To: <CALF0-+UHOJDh471aa7URKr1-xbggrbDdg_nDijv2FOUpo=3zaw@mail.gmail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42049 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754685Ab2KZJIJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Nov 2012 04:08:09 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
+	"David Airlie" <airlied@linux.ie>
+Subject: [PATCHv15 1/7] viafb: rename display_timing to via_display_timing
+Date: Mon, 26 Nov 2012 10:07:22 +0100
+Message-Id: <1353920848-1705-2-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1353920848-1705-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1353920848-1705-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigD3E80407E8982D8BD1C761D9
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+The struct display_timing is specific to the via subsystem. The naming leads to
+collisions with the new struct display_timing, that is supposed to be a shared
+struct between different subsystems.
+To clean this up, prepend the existing struct with the subsystem it is specific
+to.
 
-On 12-11-28 08:13 AM, Ezequiel Garcia wrote:
->=20
-> Try again with
-> modprobe ivtv ivtv_debug=3D10
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+---
+ drivers/video/via/hw.c              |    6 +++---
+ drivers/video/via/hw.h              |    2 +-
+ drivers/video/via/lcd.c             |    2 +-
+ drivers/video/via/share.h           |    2 +-
+ drivers/video/via/via_modesetting.c |    8 ++++----
+ drivers/video/via/via_modesetting.h |    6 +++---
+ 6 files changed, 13 insertions(+), 13 deletions(-)
 
-OK.  Happened again.  The kernel log for the whole day since starting
-the module with debug this morning can be found at
-http://brian.interlinx.bc.ca/ivtv-dmesg.txt.bz2.
-
-Associated with that log there was a successful recording from 09:00:00
-until 10:00:00 then another successful recording from 14:00:00 until
-15:00:00 and then failed recordings starting at 15:00:00 until 18:00:00.
-
-The log cuts off just short of 18:00:00 but there's nothing different
-about the pattern from the end of the log until 18:00:04 from the
-previous 3 hours or so.
-
-It seems that the problem lies in amongst the start of these lines from
-the log, as my best guess:
-
-Nov 28 15:00:05 cmurrell kernel: [868297.536049] ivtv0 encoder MPG: VIDIO=
-C_ENCODER_CMD cmd=3D0, flags=3D0
-Nov 28 15:00:07 cmurrell kernel: [868300.039324] ivtv0:  ioctl: V4L2_ENC_=
-CMD_STOP
-Nov 28 15:00:07 cmurrell kernel: [868300.039330] ivtv0:  info: close stop=
-ping capture
-Nov 28 15:00:07 cmurrell kernel: [868300.039334] ivtv0:  info: Stop Captu=
-re
-Nov 28 15:00:09 cmurrell kernel: [868302.140151] ivtv0 encoder MPG: VIDIO=
-C_ENCODER_CMD cmd=3D1, flags=3D1
-Nov 28 15:00:09 cmurrell kernel: [868302.148093] ivtv0:  ioctl: V4L2_ENC_=
-CMD_START
-Nov 28 15:00:09 cmurrell kernel: [868302.148101] ivtv0:  info: Start enco=
-der stream encoder MPG
-Nov 28 15:00:09 cmurrell kernel: [868302.188580] ivtv0:  info: Setup VBI =
-API header 0x0000bd03 pkts 1 buffs 4 ln 24 sz 1456
-Nov 28 15:00:09 cmurrell kernel: [868302.188655] ivtv0:  info: Setup VBI =
-start 0x002fea04 frames 4 fpi 1
-Nov 28 15:00:09 cmurrell kernel: [868302.191952] ivtv0:  info: PGM Index =
-at 0x00180150 with 400 elements
-Nov 28 15:00:10 cmurrell kernel: [868302.544052] ivtv0 encoder MPG: VIDIO=
-C_ENCODER_CMD cmd=3D0, flags=3D0
-Nov 28 15:00:12 cmurrell kernel: [868305.047260] ivtv0:  ioctl: V4L2_ENC_=
-CMD_STOP
-Nov 28 15:00:12 cmurrell kernel: [868305.047265] ivtv0:  info: close stop=
-ping capture
-Nov 28 15:00:12 cmurrell kernel: [868305.047270] ivtv0:  info: Stop Captu=
-re
-=2E..
-
-FWIW, the recording software here is MythTV completely up to date on the
-0.25-fixes branch.
-
-Thoughts?
-
-b.
-
-
-
---------------enigD3E80407E8982D8BD1C761D9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iEYEARECAAYFAlC2nAkACgkQl3EQlGLyuXDSqACfa4QSDmYDQT1UNUgIH2/2I1kJ
-AeMAoKr03+nSRNUlbqaFZZHbGU4J77IP
-=oT5l
------END PGP SIGNATURE-----
-
---------------enigD3E80407E8982D8BD1C761D9--
+diff --git a/drivers/video/via/hw.c b/drivers/video/via/hw.c
+index 898590d..5563c67 100644
+--- a/drivers/video/via/hw.c
++++ b/drivers/video/via/hw.c
+@@ -1467,10 +1467,10 @@ void viafb_set_vclock(u32 clk, int set_iga)
+ 	via_write_misc_reg_mask(0x0C, 0x0C); /* select external clock */
+ }
+ 
+-struct display_timing var_to_timing(const struct fb_var_screeninfo *var,
++struct via_display_timing var_to_timing(const struct fb_var_screeninfo *var,
+ 	u16 cxres, u16 cyres)
+ {
+-	struct display_timing timing;
++	struct via_display_timing timing;
+ 	u16 dx = (var->xres - cxres) / 2, dy = (var->yres - cyres) / 2;
+ 
+ 	timing.hor_addr = cxres;
+@@ -1491,7 +1491,7 @@ struct display_timing var_to_timing(const struct fb_var_screeninfo *var,
+ void viafb_fill_crtc_timing(const struct fb_var_screeninfo *var,
+ 	u16 cxres, u16 cyres, int iga)
+ {
+-	struct display_timing crt_reg = var_to_timing(var,
++	struct via_display_timing crt_reg = var_to_timing(var,
+ 		cxres ? cxres : var->xres, cyres ? cyres : var->yres);
+ 
+ 	if (iga == IGA1)
+diff --git a/drivers/video/via/hw.h b/drivers/video/via/hw.h
+index 6be243c..c3f2572 100644
+--- a/drivers/video/via/hw.h
++++ b/drivers/video/via/hw.h
+@@ -637,7 +637,7 @@ extern int viafb_LCD_ON;
+ extern int viafb_DVI_ON;
+ extern int viafb_hotplug;
+ 
+-struct display_timing var_to_timing(const struct fb_var_screeninfo *var,
++struct via_display_timing var_to_timing(const struct fb_var_screeninfo *var,
+ 	u16 cxres, u16 cyres);
+ void viafb_fill_crtc_timing(const struct fb_var_screeninfo *var,
+ 	u16 cxres, u16 cyres, int iga);
+diff --git a/drivers/video/via/lcd.c b/drivers/video/via/lcd.c
+index 1650379..022b0df 100644
+--- a/drivers/video/via/lcd.c
++++ b/drivers/video/via/lcd.c
+@@ -549,7 +549,7 @@ void viafb_lcd_set_mode(const struct fb_var_screeninfo *var, u16 cxres,
+ 	int panel_hres = plvds_setting_info->lcd_panel_hres;
+ 	int panel_vres = plvds_setting_info->lcd_panel_vres;
+ 	u32 clock;
+-	struct display_timing timing;
++	struct via_display_timing timing;
+ 	struct fb_var_screeninfo panel_var;
+ 	const struct fb_videomode *mode_crt_table, *panel_crt_table;
+ 
+diff --git a/drivers/video/via/share.h b/drivers/video/via/share.h
+index 3158dfc..65c65c6 100644
+--- a/drivers/video/via/share.h
++++ b/drivers/video/via/share.h
+@@ -319,7 +319,7 @@ struct crt_mode_table {
+ 	int refresh_rate;
+ 	int h_sync_polarity;
+ 	int v_sync_polarity;
+-	struct display_timing crtc;
++	struct via_display_timing crtc;
+ };
+ 
+ struct io_reg {
+diff --git a/drivers/video/via/via_modesetting.c b/drivers/video/via/via_modesetting.c
+index 0e431ae..0b414b0 100644
+--- a/drivers/video/via/via_modesetting.c
++++ b/drivers/video/via/via_modesetting.c
+@@ -30,9 +30,9 @@
+ #include "debug.h"
+ 
+ 
+-void via_set_primary_timing(const struct display_timing *timing)
++void via_set_primary_timing(const struct via_display_timing *timing)
+ {
+-	struct display_timing raw;
++	struct via_display_timing raw;
+ 
+ 	raw.hor_total = timing->hor_total / 8 - 5;
+ 	raw.hor_addr = timing->hor_addr / 8 - 1;
+@@ -88,9 +88,9 @@ void via_set_primary_timing(const struct display_timing *timing)
+ 	via_write_reg_mask(VIACR, 0x17, 0x80, 0x80);
+ }
+ 
+-void via_set_secondary_timing(const struct display_timing *timing)
++void via_set_secondary_timing(const struct via_display_timing *timing)
+ {
+-	struct display_timing raw;
++	struct via_display_timing raw;
+ 
+ 	raw.hor_total = timing->hor_total - 1;
+ 	raw.hor_addr = timing->hor_addr - 1;
+diff --git a/drivers/video/via/via_modesetting.h b/drivers/video/via/via_modesetting.h
+index 06e09fe..f6a6503 100644
+--- a/drivers/video/via/via_modesetting.h
++++ b/drivers/video/via/via_modesetting.h
+@@ -33,7 +33,7 @@
+ #define VIA_PITCH_MAX	0x3FF8
+ 
+ 
+-struct display_timing {
++struct via_display_timing {
+ 	u16 hor_total;
+ 	u16 hor_addr;
+ 	u16 hor_blank_start;
+@@ -49,8 +49,8 @@ struct display_timing {
+ };
+ 
+ 
+-void via_set_primary_timing(const struct display_timing *timing);
+-void via_set_secondary_timing(const struct display_timing *timing);
++void via_set_primary_timing(const struct via_display_timing *timing);
++void via_set_secondary_timing(const struct via_display_timing *timing);
+ void via_set_primary_address(u32 addr);
+ void via_set_secondary_address(u32 addr);
+ void via_set_primary_pitch(u32 pitch);
+-- 
+1.7.10.4
 
