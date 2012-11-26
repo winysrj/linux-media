@@ -1,73 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47052 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1768327Ab2KOQAE (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:56097 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751814Ab2KZG1A (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 11:00:04 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	devicetree-discuss@lists.ozlabs.org, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>, kernel@pengutronix.de,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v10 1/6] video: add display_timing and videomode
-Date: Thu, 15 Nov 2012 17:00:57 +0100
-Message-ID: <2466982.zTBri0jEif@avalon>
-In-Reply-To: <20121115154753.C82223E194B@localhost>
-References: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de> <1352971437-29877-2-git-send-email-s.trumtrar@pengutronix.de> <20121115154753.C82223E194B@localhost>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 26 Nov 2012 01:27:00 -0500
+Received: by mail-pb0-f46.google.com with SMTP id wy7so7770073pbc.19
+        for <linux-media@vger.kernel.org>; Sun, 25 Nov 2012 22:27:00 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: shaik.ameer@samsung.com, sylvester.nawrocki@gmail.com,
+	s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 2/3] [media] exynos-gsc: Correct clock handling
+Date: Mon, 26 Nov 2012 11:50:20 +0530
+Message-Id: <1353910821-21408-3-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1353910821-21408-1-git-send-email-sachin.kamat@linaro.org>
+References: <1353910821-21408-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Grant,
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 
-On Thursday 15 November 2012 15:47:53 Grant Likely wrote:
-> On Thu, 15 Nov 2012 10:23:52 +0100, Steffen Trumtrar wrote:
-> > Add display_timing structure and the according helper functions. This
-> > allows the description of a display via its supported timing parameters.
-> > 
-> > Every timing parameter can be specified as a single value or a range
-> > <min typ max>.
-> > 
-> > Also, add helper functions to convert from display timings to a generic
-> > videomode structure. This videomode can then be converted to the
-> > corresponding subsystem mode representation (e.g. fb_videomode).
-> > 
-> > Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-> 
-> Hmmm... here's my thoughts as an outside reviewer. Correct me if I'm
-> making an incorrect assumption.
-> 
-> It looks to me that the purpose of this entire series is to decode video
-> timings from the device tree and (eventually) provide the data in the
-> form 'struct videomode'. Correct?
-> 
-> If so, then it looks over engineered. Creating new infrastructure to
-> allocate, maintain, and free a new 'struct display_timings' doesn't make
-> any sense when it is an intermediary data format that will never be used
-> by drivers.
-> 
-> Can the DT parsing code instead return a table of struct videomode?
-> 
-> But, wait... struct videomode is also a new structure. So it looks like
-> this series creates two new intermediary data structures;
-> display_timings and videomode. And at least as far as I can see in this
-> series struct fb_videomode is the only user.
+Make sure there is no unbalanced clk_unprepare call and add missing
+clock release in the driver's remove() callback.
 
-struct videomode is supposed to slowly replace the various video mode 
-structures we currently have in the kernel (struct drm_mode_modeinfo, struct 
-fb_videomode and struct v4l2_bt_timings), at least where possible (userspace 
-APIs can't be broken). This will make it possible to reuse code across the 
-DRM, FB and V4L2 subsystems, such as the EDID parser or HDMI encoder drivers. 
-This rationale might not be clearly explained in the commit message, but 
-having a shared video mode structure is pretty important.
+Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c |   15 ++++++++-------
+ 1 files changed, 8 insertions(+), 7 deletions(-)
 
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 45bcfa7..c8b82c0 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -1002,12 +1002,11 @@ static void *gsc_get_drv_data(struct platform_device *pdev)
+ 
+ static void gsc_clk_put(struct gsc_dev *gsc)
+ {
+-	if (IS_ERR_OR_NULL(gsc->clock))
+-		return;
+-
+-	clk_unprepare(gsc->clock);
+-	clk_put(gsc->clock);
+-	gsc->clock = NULL;
++	if (!IS_ERR(gsc->clock)) {
++		clk_unprepare(gsc->clock);
++		clk_put(gsc->clock);
++		gsc->clock = NULL;
++	}
+ }
+ 
+ static int gsc_clk_get(struct gsc_dev *gsc)
+@@ -1028,7 +1027,7 @@ static int gsc_clk_get(struct gsc_dev *gsc)
+ 		dev_err(&gsc->pdev->dev, "clock prepare failed for clock: %s\n",
+ 			GSC_CLOCK_GATE_NAME);
+ 		clk_put(gsc->clock);
+-		gsc->clock = NULL;
++		gsc->clock = ERR_PTR(-EINVAL);
+ 		goto err_clk_prepare;
+ 	}
+ 
+@@ -1106,6 +1105,7 @@ static int gsc_probe(struct platform_device *pdev)
+ 	init_waitqueue_head(&gsc->irq_queue);
+ 	spin_lock_init(&gsc->slock);
+ 	mutex_init(&gsc->lock);
++	gsc->clock = ERR_PTR(-EINVAL);
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	gsc->regs = devm_request_and_ioremap(dev, res);
+@@ -1169,6 +1169,7 @@ static int __devexit gsc_remove(struct platform_device *pdev)
+ 
+ 	vb2_dma_contig_cleanup_ctx(gsc->alloc_ctx);
+ 	pm_runtime_disable(&pdev->dev);
++	gsc_clk_put(gsc);
+ 
+ 	dev_dbg(&pdev->dev, "%s driver unloaded\n", pdev->name);
+ 	return 0;
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.4.1
 
