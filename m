@@ -1,107 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.mnsspb.ru ([84.204.75.2]:48928 "EHLO mail.mnsspb.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756079Ab2KBNJ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Nov 2012 09:09:59 -0400
-From: Kirill Smelkov <kirr@mns.spb.ru>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Kirill Smelkov <kirr@mns.spb.ru>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: [PATCH 4/4] [media] vivi: Optimize precalculate_line()
-Date: Fri,  2 Nov 2012 17:10:33 +0400
-Message-Id: <23c010fd06bf4378ee46820e4ce91b5f02dcec07.1351861552.git.kirr@mns.spb.ru>
-In-Reply-To: <cover.1351861552.git.kirr@mns.spb.ru>
-References: <cover.1351861552.git.kirr@mns.spb.ru>
-In-Reply-To: <cover.1351861552.git.kirr@mns.spb.ru>
-References: <cover.1351861552.git.kirr@mns.spb.ru>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:48136 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753853Ab2KZD4B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Nov 2012 22:56:01 -0500
+MIME-Version: 1.0
+In-Reply-To: <20121126002800.GE31879@valkosipuli.retiisi.org.uk>
+References: <1353077114-19296-1-git-send-email-prabhakar.lad@ti.com>
+ <CA+V-a8t5ZJ2Zb+dWkifjjOHOrv1LAvgaJR2x24xKJXrTJs9+jg@mail.gmail.com>
+ <20121123135753.GB31879@valkosipuli.retiisi.org.uk> <201211231501.52852.hverkuil@xs4all.nl>
+ <CA+V-a8sFW7-dkjS=NxM2uJhhOBwTXQ5zGk9hBsA++w6P1PzFMQ@mail.gmail.com> <20121126002800.GE31879@valkosipuli.retiisi.org.uk>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 26 Nov 2012 09:25:40 +0530
+Message-ID: <CA+V-a8vpm1Wz9Yxmy0vJZaKw7NCiq1VP4qhFgZApgRk3Lb_XEA@mail.gmail.com>
+Subject: Re: [PATCH v2 00/12] Media Controller capture driver for DM365
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-precalculate_line() is not very high on profile, but it calls expensive
-gen_twopix(), so let's polish it too:
+HI Sakari,
 
-    call gen_twopix() only once for every color bar and then distribute
-    the result.
+On Mon, Nov 26, 2012 at 5:58 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+>
+> Hi Prabhakar,
+> On Sun, Nov 25, 2012 at 09:57:23PM +0530, Prabhakar Lad wrote:
+>> On Fri, Nov 23, 2012 at 7:31 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> > On Fri November 23 2012 14:57:53 Sakari Ailus wrote:
+> ...
+>> >> I think it should go under staging, the same directory as the driver.
+>> >>
+>> >> Hans, Mauro: could you confirm this?
+>> >
+>> > I agree with that, that way things stay together in one directory.
+>> >
+>> Ok I'll have the documentation in staging folder itself. What about
+>> the header file which is added
+>> to include/media/davinci/xxx.h, these header files are used by machine
+>> file and drivers
+>> only, I think also moving them to staging wont make sense and also
+>> these files are expected
+>> not to change, what are your suggestion on this ?
+>
+> I'd put them to staging if they're related to the driver ifself rather than
+> e.g. resource definitions. What would go under arch/arm then?
+>
+I am targeting only the driver to get into 3.8 and not the machine
+changes for DM365.
 
-before:
-
-    # cmdline : /home/kirr/local/perf/bin/perf record -g -a sleep 20
-    #
-    # Samples: 46K of event 'cycles'
-    # Event count (approx.): 15574200568
-    #
-    # Overhead          Command         Shared Object
-    # ........  ...............  ....................
-    #
-        27.99%             rawv  libc-2.13.so          [.] __memcpy_ssse3
-        23.29%           vivi-*  [kernel.kallsyms]     [k] memcpy
-        10.30%             Xorg  [unknown]             [.] 0xa75c98f8
-         5.34%           vivi-*  [vivi]                [k] gen_text.constprop.6
-         4.61%             rawv  [vivi]                [k] gen_twopix
-         2.64%             rawv  [vivi]                [k] precalculate_line
-         1.37%          swapper  [kernel.kallsyms]     [k] read_hpet
-
-after:
-
-    # cmdline : /home/kirr/local/perf/bin/perf record -g -a sleep 20
-    #
-    # Samples: 45K of event 'cycles'
-    # Event count (approx.): 15561769214
-    #
-    # Overhead          Command         Shared Object
-    # ........  ...............  ....................
-    #
-        30.73%             rawv  libc-2.13.so          [.] __memcpy_ssse3
-        26.78%           vivi-*  [kernel.kallsyms]     [k] memcpy
-        10.68%             Xorg  [unknown]             [.] 0xa73015e9
-         5.55%           vivi-*  [vivi]                [k] gen_text.constprop.6
-         1.36%          swapper  [kernel.kallsyms]     [k] read_hpet
-         0.96%             Xorg  [kernel.kallsyms]     [k] read_hpet
-         ...
-         0.16%             rawv  [vivi]                [k] precalculate_line
-         ...
-         0.14%             rawv  [vivi]                [k] gen_twopix
-
-(i.e. gen_twopix and precalculate_line overheads are almost gone)
-
-Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
----
- drivers/media/platform/vivi.c | 22 ++++++++++++++++------
- 1 file changed, 16 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-index 0272d07..37d0af8 100644
---- a/drivers/media/platform/vivi.c
-+++ b/drivers/media/platform/vivi.c
-@@ -517,12 +517,22 @@ static void gen_twopix(struct vivi_dev *dev, u8 *buf, int colorpos, bool odd)
- 
- static void precalculate_line(struct vivi_dev *dev)
- {
--	int w;
--
--	for (w = 0; w < dev->width * 2; w++) {
--		int colorpos = w / (dev->width / 8) % 8;
--
--		gen_twopix(dev, dev->line + w * dev->pixelsize, colorpos, w & 1);
-+	unsigned pixsize  = dev->pixelsize;
-+	unsigned pixsize2 = 2*pixsize;
-+	int colorpos;
-+	u8 *pos;
-+
-+	for (colorpos = 0; colorpos < 16; ++colorpos) {
-+		u8 pix[8];
-+		int wstart =  colorpos    * dev->width / 8;
-+		int wend   = (colorpos+1) * dev->width / 8;
-+		int w;
-+
-+		gen_twopix(dev, &pix[0],        colorpos % 8, 0);
-+		gen_twopix(dev, &pix[pixsize],  colorpos % 8, 1);
-+
-+		for (w = wstart/2*2, pos = dev->line + w*pixsize; w < wend; w += 2, pos += pixsize2)
-+			memcpy(pos, pix, pixsize2);
- 	}
- }
- 
--- 
-1.8.0.316.g291341c
-
+Regards,
+--Prabhakar
+> --
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
