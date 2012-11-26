@@ -1,48 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:33191 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756641Ab2KHTMw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:12:52 -0500
-Received: by mail-ea0-f174.google.com with SMTP id c13so1190326eaa.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2012 11:12:51 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 18/21] em28xx: add fields for analog and DVB USB transfer type selection to struct em28xx
-Date: Thu,  8 Nov 2012 20:11:50 +0200
-Message-Id: <1352398313-3698-19-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
+Received: from smtp1-g21.free.fr ([212.27.42.1]:46919 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756569Ab2KZRuU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Nov 2012 12:50:20 -0500
+Date: Mon, 26 Nov 2012 18:51:02 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Antonio Ospite <ospite@studenti.unina.it>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] gspca - ov534: Fix the light frequency filter
+Message-ID: <20121126185102.28afbd11@armhf>
+In-Reply-To: <20121126181241.d13631659092083fb9021aac@studenti.unina.it>
+References: <20121122124652.3a832e33@armhf>
+	<20121123180909.021c55a8c3795329836c42b7@studenti.unina.it>
+	<20121123191232.7ed9c546@armhf>
+	<20121126140806.65a6aa2b310c774e4edd62c3@studenti.unina.it>
+	<20121126162318.228c249f@armhf>
+	<20121126181241.d13631659092083fb9021aac@studenti.unina.it>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx.h |    4 ++++
- 1 Datei geändert, 4 Zeilen hinzugefügt(+)
+On Mon, 26 Nov 2012 18:12:41 +0100
+Antonio Ospite <ospite@studenti.unina.it> wrote:
 
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 6b8d3e6b..f5be522 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -588,9 +588,13 @@ struct em28xx {
- 	int max_pkt_size;	/* max packet size of the selected ep at alt */
- 	int num_alt;		/* number of alternative settings */
- 	unsigned int *alt_max_pkt_size_isoc; /* array of isoc wMaxPacketSize */
-+	unsigned int analog_xfer_bulk:1;	/* use bulk instead of isoc
-+						   transfers for analog      */
- 	int dvb_alt_isoc;	/* alternate setting for DVB isoc transfers */
- 	unsigned int dvb_max_pkt_size_isoc;	/* isoc max packet size of the
- 						   selected DVB ep at dvb_alt */
-+	unsigned int dvb_xfer_bulk:1;		/* use bulk instead of isoc
-+						   transfers for DVB          */
- 	char urb_buf[URB_MAX_CTRL_SIZE];	/* urb control msg buffer */
- 
- 	/* helper funcs that call usb_control_msg */
+> BTW the documentation might also be wrong or inaccurate.
+
+The ov7670 documentation has exactly the same description of the
+register 0x2b, and I don't think that the manufacturer would greatly
+change the meaning of such low registers in so close sensors.
+
 -- 
-1.7.10.4
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
