@@ -1,111 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33196 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753757Ab2KLPiY (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:53739 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754351Ab2KZEz6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Nov 2012 10:38:24 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: [PATCH v8 5/6] drm_modes: add videomode helpers
-Date: Mon, 12 Nov 2012 16:37:05 +0100
-Message-Id: <1352734626-27412-6-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
+	Sun, 25 Nov 2012 23:55:58 -0500
+Received: by mail-pa0-f46.google.com with SMTP id bh2so4742413pad.19
+        for <linux-media@vger.kernel.org>; Sun, 25 Nov 2012 20:55:57 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: t.stanislaws@samsung.com, s.nawrocki@samsung.com,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 8/9] [media] s5p-tv: Use devm_* APIs in mixer_drv.c
+Date: Mon, 26 Nov 2012 10:19:07 +0530
+Message-Id: <1353905348-15475-9-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1353905348-15475-1-git-send-email-sachin.kamat@linaro.org>
+References: <1353905348-15475-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add conversion from videomode to drm_display_mode
+devm_* APIs are device managed and make error handling and
+cleanup simpler.
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 ---
- drivers/gpu/drm/drm_modes.c |   36 ++++++++++++++++++++++++++++++++++++
- include/drm/drmP.h          |    3 +++
- 2 files changed, 39 insertions(+)
+ drivers/media/platform/s5p-tv/mixer_drv.c |   85 +++++++----------------------
+ 1 files changed, 20 insertions(+), 65 deletions(-)
 
-diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
-index 59450f3..049624d 100644
---- a/drivers/gpu/drm/drm_modes.c
-+++ b/drivers/gpu/drm/drm_modes.c
-@@ -35,6 +35,7 @@
- #include <linux/export.h>
- #include <drm/drmP.h>
- #include <drm/drm_crtc.h>
-+#include <linux/videomode.h>
+diff --git a/drivers/media/platform/s5p-tv/mixer_drv.c b/drivers/media/platform/s5p-tv/mixer_drv.c
+index a6dee4d..279e395 100644
+--- a/drivers/media/platform/s5p-tv/mixer_drv.c
++++ b/drivers/media/platform/s5p-tv/mixer_drv.c
+@@ -160,78 +160,44 @@ static int __devinit mxr_acquire_plat_resources(struct mxr_device *mdev,
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "mxr");
+ 	if (res == NULL) {
+ 		mxr_err(mdev, "get memory resource failed.\n");
+-		ret = -ENXIO;
+-		goto fail;
++		return -ENXIO;
+ 	}
  
- /**
-  * drm_mode_debug_printmodeline - debug print a mode
-@@ -504,6 +505,41 @@ drm_gtf_mode(struct drm_device *dev, int hdisplay, int vdisplay, int vrefresh,
+-	mdev->res.mxr_regs = ioremap(res->start, resource_size(res));
++	mdev->res.mxr_regs = devm_ioremap(&pdev->dev, res->start,
++					  resource_size(res));
+ 	if (mdev->res.mxr_regs == NULL) {
+ 		mxr_err(mdev, "register mapping failed.\n");
+-		ret = -ENXIO;
+-		goto fail;
++		return -ENXIO;
+ 	}
+ 
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "vp");
+ 	if (res == NULL) {
+ 		mxr_err(mdev, "get memory resource failed.\n");
+-		ret = -ENXIO;
+-		goto fail_mxr_regs;
++		return -ENXIO;
+ 	}
+ 
+-	mdev->res.vp_regs = ioremap(res->start, resource_size(res));
++	mdev->res.vp_regs = devm_ioremap(&pdev->dev, res->start,
++					 resource_size(res));
+ 	if (mdev->res.vp_regs == NULL) {
+ 		mxr_err(mdev, "register mapping failed.\n");
+-		ret = -ENXIO;
+-		goto fail_mxr_regs;
++		return -ENXIO;
+ 	}
+ 
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_IRQ, "irq");
+ 	if (res == NULL) {
+ 		mxr_err(mdev, "get interrupt resource failed.\n");
+-		ret = -ENXIO;
+-		goto fail_vp_regs;
++		return -ENXIO;
+ 	}
+ 
+-	ret = request_irq(res->start, mxr_irq_handler, 0, "s5p-mixer", mdev);
++	ret = devm_request_irq(&pdev->dev, res->start, mxr_irq_handler, 0,
++				"s5p-mixer", mdev);
+ 	if (ret) {
+ 		mxr_err(mdev, "request interrupt failed.\n");
+-		goto fail_vp_regs;
++		return ret;
+ 	}
+ 	mdev->res.irq = res->start;
+ 
+ 	return 0;
+-
+-fail_vp_regs:
+-	iounmap(mdev->res.vp_regs);
+-
+-fail_mxr_regs:
+-	iounmap(mdev->res.mxr_regs);
+-
+-fail:
+-	return ret;
+-}
+-
+-static void mxr_release_plat_resources(struct mxr_device *mdev)
+-{
+-	free_irq(mdev->res.irq, mdev);
+-	iounmap(mdev->res.vp_regs);
+-	iounmap(mdev->res.mxr_regs);
+-}
+-
+-static void mxr_release_clocks(struct mxr_device *mdev)
+-{
+-	struct mxr_resources *res = &mdev->res;
+-
+-	if (!IS_ERR_OR_NULL(res->sclk_dac))
+-		clk_put(res->sclk_dac);
+-	if (!IS_ERR_OR_NULL(res->sclk_hdmi))
+-		clk_put(res->sclk_hdmi);
+-	if (!IS_ERR_OR_NULL(res->sclk_mixer))
+-		clk_put(res->sclk_mixer);
+-	if (!IS_ERR_OR_NULL(res->vp))
+-		clk_put(res->vp);
+-	if (!IS_ERR_OR_NULL(res->mixer))
+-		clk_put(res->mixer);
  }
- EXPORT_SYMBOL(drm_gtf_mode);
  
-+#if IS_ENABLED(CONFIG_VIDEOMODE)
-+int videomode_to_display_mode(struct videomode *vm, struct drm_display_mode *dmode)
-+{
-+	dmode->hdisplay = vm->hactive;
-+	dmode->hsync_start = dmode->hdisplay + vm->hfront_porch;
-+	dmode->hsync_end = dmode->hsync_start + vm->hsync_len;
-+	dmode->htotal = dmode->hsync_end + vm->hback_porch;
-+
-+	dmode->vdisplay = vm->vactive;
-+	dmode->vsync_start = dmode->vdisplay + vm->vfront_porch;
-+	dmode->vsync_end = dmode->vsync_start + vm->vsync_len;
-+	dmode->vtotal = dmode->vsync_end + vm->vback_porch;
-+
-+	dmode->clock = vm->pixelclock / 1000;
-+
-+	dmode->flags = 0;
-+	if (vm->hah)
-+		dmode->flags |= DRM_MODE_FLAG_PHSYNC;
-+	else
-+		dmode->flags |= DRM_MODE_FLAG_NHSYNC;
-+	if (vm->vah)
-+		dmode->flags |= DRM_MODE_FLAG_PVSYNC;
-+	else
-+		dmode->flags |= DRM_MODE_FLAG_NVSYNC;
-+	if (vm->interlaced)
-+		dmode->flags |= DRM_MODE_FLAG_INTERLACE;
-+	if (vm->doublescan)
-+		dmode->flags |= DRM_MODE_FLAG_DBLSCAN;
-+	drm_mode_set_name(dmode);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(videomode_to_display_mode);
-+#endif
-+
- /**
-  * drm_mode_set_name - set the name on a mode
-  * @mode: name will be set in this mode
-diff --git a/include/drm/drmP.h b/include/drm/drmP.h
-index 3fd8280..e9fa1e3 100644
---- a/include/drm/drmP.h
-+++ b/include/drm/drmP.h
-@@ -56,6 +56,7 @@
- #include <linux/cdev.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
-+#include <linux/videomode.h>
- #if defined(__alpha__) || defined(__powerpc__)
- #include <asm/pgtable.h>	/* For pte_wrprotect */
- #endif
-@@ -1454,6 +1455,8 @@ extern struct drm_display_mode *
- drm_mode_create_from_cmdline_mode(struct drm_device *dev,
- 				  struct drm_cmdline_mode *cmd);
+ static int mxr_acquire_clocks(struct mxr_device *mdev)
+@@ -239,27 +205,27 @@ static int mxr_acquire_clocks(struct mxr_device *mdev)
+ 	struct mxr_resources *res = &mdev->res;
+ 	struct device *dev = mdev->dev;
  
-+extern int videomode_to_display_mode(struct videomode *vm,
-+				     struct drm_display_mode *dmode);
- /* Modesetting support */
- extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
- extern void drm_vblank_post_modeset(struct drm_device *dev, int crtc);
+-	res->mixer = clk_get(dev, "mixer");
++	res->mixer = devm_clk_get(dev, "mixer");
+ 	if (IS_ERR_OR_NULL(res->mixer)) {
+ 		mxr_err(mdev, "failed to get clock 'mixer'\n");
+ 		goto fail;
+ 	}
+-	res->vp = clk_get(dev, "vp");
++	res->vp = devm_clk_get(dev, "vp");
+ 	if (IS_ERR_OR_NULL(res->vp)) {
+ 		mxr_err(mdev, "failed to get clock 'vp'\n");
+ 		goto fail;
+ 	}
+-	res->sclk_mixer = clk_get(dev, "sclk_mixer");
++	res->sclk_mixer = devm_clk_get(dev, "sclk_mixer");
+ 	if (IS_ERR_OR_NULL(res->sclk_mixer)) {
+ 		mxr_err(mdev, "failed to get clock 'sclk_mixer'\n");
+ 		goto fail;
+ 	}
+-	res->sclk_hdmi = clk_get(dev, "sclk_hdmi");
++	res->sclk_hdmi = devm_clk_get(dev, "sclk_hdmi");
+ 	if (IS_ERR_OR_NULL(res->sclk_hdmi)) {
+ 		mxr_err(mdev, "failed to get clock 'sclk_hdmi'\n");
+ 		goto fail;
+ 	}
+-	res->sclk_dac = clk_get(dev, "sclk_dac");
++	res->sclk_dac = devm_clk_get(dev, "sclk_dac");
+ 	if (IS_ERR_OR_NULL(res->sclk_dac)) {
+ 		mxr_err(mdev, "failed to get clock 'sclk_dac'\n");
+ 		goto fail;
+@@ -267,7 +233,6 @@ static int mxr_acquire_clocks(struct mxr_device *mdev)
+ 
+ 	return 0;
+ fail:
+-	mxr_release_clocks(mdev);
+ 	return -ENODEV;
+ }
+ 
+@@ -276,19 +241,16 @@ static int __devinit mxr_acquire_resources(struct mxr_device *mdev,
+ {
+ 	int ret;
+ 	ret = mxr_acquire_plat_resources(mdev, pdev);
+-
+ 	if (ret)
+ 		goto fail;
+ 
+ 	ret = mxr_acquire_clocks(mdev);
+ 	if (ret)
+-		goto fail_plat;
++		goto fail;
+ 
+ 	mxr_info(mdev, "resources acquired\n");
+ 	return 0;
+ 
+-fail_plat:
+-	mxr_release_plat_resources(mdev);
+ fail:
+ 	mxr_err(mdev, "resources acquire failed\n");
+ 	return ret;
+@@ -296,8 +258,6 @@ fail:
+ 
+ static void mxr_release_resources(struct mxr_device *mdev)
+ {
+-	mxr_release_clocks(mdev);
+-	mxr_release_plat_resources(mdev);
+ 	memset(&mdev->res, 0, sizeof(mdev->res));
+ }
+ 
+@@ -382,7 +342,7 @@ static int __devinit mxr_probe(struct platform_device *pdev)
+ 	/* mdev does not exist yet so no mxr_dbg is used */
+ 	dev_info(dev, "probe start\n");
+ 
+-	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
++	mdev = devm_kzalloc(dev, sizeof(*mdev), GFP_KERNEL);
+ 	if (!mdev) {
+ 		dev_err(dev, "not enough memory.\n");
+ 		ret = -ENOMEM;
+@@ -399,7 +359,7 @@ static int __devinit mxr_probe(struct platform_device *pdev)
+ 	/* acquire resources: regs, irqs, clocks, regulators */
+ 	ret = mxr_acquire_resources(mdev, pdev);
+ 	if (ret)
+-		goto fail_mem;
++		goto fail;
+ 
+ 	/* configure resources for video output */
+ 	ret = mxr_acquire_video(mdev, mxr_output_conf,
+@@ -423,9 +383,6 @@ fail_video:
+ fail_resources:
+ 	mxr_release_resources(mdev);
+ 
+-fail_mem:
+-	kfree(mdev);
+-
+ fail:
+ 	dev_info(dev, "probe failed\n");
+ 	return ret;
+@@ -442,8 +399,6 @@ static int __devexit mxr_remove(struct platform_device *pdev)
+ 	mxr_release_video(mdev);
+ 	mxr_release_resources(mdev);
+ 
+-	kfree(mdev);
+-
+ 	dev_info(dev, "remove successful\n");
+ 	return 0;
+ }
 -- 
-1.7.10.4
+1.7.4.1
 
