@@ -1,145 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:54552 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754783Ab2KMKmF (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:54955 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757559Ab2K0Hjx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Nov 2012 05:42:05 -0500
-Date: Tue, 13 Nov 2012 11:41:59 +0100
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Cc: devicetree-discuss@lists.ozlabs.org,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: Re: [PATCH v8 1/6] video: add display_timing and videomode
-Message-ID: <20121113104159.GA18645@avionic-0098.mockup.avionic-design.de>
-References: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
- <1352734626-27412-2-git-send-email-s.trumtrar@pengutronix.de>
+	Tue, 27 Nov 2012 02:39:53 -0500
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="y0ulUmNC+osPPQO6"
-Content-Disposition: inline
-In-Reply-To: <1352734626-27412-2-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <50B46A83.8020703@samsung.com>
+References: <1353995979-28792-1-git-send-email-prabhakar.lad@ti.com> <50B46A83.8020703@samsung.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 27 Nov 2012 13:09:32 +0530
+Message-ID: <CA+V-a8tLvO2dywNNS8ykpsiCMiuSuVNF2QPCk+CrevVtDxxxsg@mail.gmail.com>
+Subject: Re: [PATCH] media: fix a typo CONFIG_HAVE_GENERIC_DMA_COHERENT in videobuf2-dma-contig.c
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Marek,
 
---y0ulUmNC+osPPQO6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, Nov 27, 2012 at 12:53 PM, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
+> Hello,
+>
+>
+> On 11/27/2012 6:59 AM, Prabhakar Lad wrote:
+>>
+>> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+>>
+>> from commit 93049b9368a2e257ace66252ab2cc066f3399cad, which adds
+>> a check HAVE_GENERIC_DMA_COHERENT for dma ops, the check was wrongly
+>> made it should have been HAVE_GENERIC_DMA_COHERENT but it was
+>> CONFIG_HAVE_GENERIC_DMA_COHERENT.
+>> This patch fixes the typo, which was causing following build error:
+>>
+>> videobuf2-dma-contig.c:743: error: 'vb2_dc_get_dmabuf' undeclared here
+>> (not in a function)
+>> make[3]: *** [drivers/media/v4l2-core/videobuf2-dma-contig.o] Error 1
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+>
+>
+> The CONFIG_HAVE_GENERIC_DMA_COHERENT based patch was a quick workaround
+> for the build problem in linux-next and should be reverted now. The
+> correct patch has been posted for drivers/base/dma-mapping.c to LKML,
+> see http://www.spinics.net/lists/linux-next/msg22890.html
+>
+I was referring to this patch from Mauro,
+http://git.linuxtv.org/media_tree.git/commitdiff/93049b9368a2e257ace66252ab2cc066f3399cad
+which introduced this build error.
 
-On Mon, Nov 12, 2012 at 04:37:01PM +0100, Steffen Trumtrar wrote:
-[...]
-> diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-> index d08d799..2a23b18 100644
-> --- a/drivers/video/Kconfig
-> +++ b/drivers/video/Kconfig
-> @@ -33,6 +33,12 @@ config VIDEO_OUTPUT_CONTROL
->  	  This framework adds support for low-level control of the video=20
->  	  output switch.
-> =20
-> +config DISPLAY_TIMING
-
-DISPLAY_TIMINGS?
-
->  #video output switch sysfs driver
->  obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) +=3D output.o
-> +obj-$(CONFIG_DISPLAY_TIMING) +=3D display_timing.o
-
-display_timings.o?
-
-> +obj-$(CONFIG_VIDEOMODE) +=3D videomode.o
-> diff --git a/drivers/video/display_timing.c b/drivers/video/display_timin=
-g.c
-
-display_timings.c?
-
-> +int videomode_from_timing(struct display_timings *disp, struct videomode=
- *vm,
-> +			  unsigned int index)
-
-I find the indexing API a bit confusing. But that's perhaps just a
-matter of personal preference.
-
-Also the ordering of arguments seems a little off. I find it more
-natural to have the destination pointer in the first argument, similar
-to the memcpy() function, so this would be:
-
-int videomode_from_timing(struct videomode *vm, struct display_timings *dis=
-p,
-			  unsigned int index);
-
-Actually, when reading videomode_from_timing() I'd expect the argument
-list to be:
-
-int videomode_from_timing(struct videomode *vm, struct display_timing *timi=
-ng);
-
-Am I the only one confused by this?
-
-> diff --git a/include/linux/display_timing.h b/include/linux/display_timin=
-g.h
-
-display_timings.h?
-
-> +/* placeholder function until ranges are really needed=20
-
-The above line has trailing whitespace. Also the block comment should
-have the opening /* on a separate line.
-
-> + * the index parameter should then be used to select one of [min typ max]
-
-If index is supposed to select min, typ or max, then maybe an enum would
-be a better candidate? Or alternatively provide separate accessors, like
-display_timing_get_{minimum,typical,maximum}().
-
-> + */
-> +static inline u32 display_timing_get_value(struct timing_entry *te,
-> +					   unsigned int index)
-> +{
-> +	return te->typ;
-> +}
-> +
-> +static inline struct display_timing *display_timings_get(struct display_=
-timings *disp,
-> +							 unsigned int index)
-> +{
-> +	if (disp->num_timings > index)
-> +		return disp->timings[index];
-> +	else
-> +		return NULL;
-> +}
-> +
-> +void timings_release(struct display_timings *disp);
-
-This function no longer exists.
-
-Thierry
-
---y0ulUmNC+osPPQO6
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQoiP3AAoJEN0jrNd/PrOhtfgQALgmaNdfNzpfBJ/Jg/3kgWDh
-TF3gGypoynS2vU0brqo8AkNJLcyxj1SpWLXbD/vOg7yoIMIrTphUilb/7zG2+jWr
-9M8pPRLpjy8e67mSE6AE3bt/KIC8lo10sTambqLKlIUKLsJlyvsvx023xUVhgrOB
-LV8y0uXiYms51ePH2+mgEDfVPE0W+szrbaJ9s9xW4J8FpnrwcMZM9yKT9eesVhdc
-az8187GfyE/fqMB3sW6nShQbwF3rx/7CLIeQ8oiiUxeqLnW6vZ4jd6IVVj/3war7
-wtYGOWXdbblBo9xi5UhMq+grO6i4uetFnf8G0RK4gs18eNEOSjorF0iUPcS6TcUE
-Hd//uuyUboLhs/r5F8/g9hr8DCF7SuOVoWXmZOwqq3dgUGNNtenxsAZ171AiO3b0
-hh04wX0oyGG53rk83Mw8L3Ek0hH11YlUaI2fHOldY23B9CCK3wxpNtbvBZNRpZjC
-xOp4e9SQh9WouKjJpZWTBp7hQVxdUCtbrqcjF9Dmm2TddSEd0Q3EM08evr47YqMh
-hszlG2Clz2UofdOq1SUTClxrL89Ta/b0OKgFoxJAfFKw+jV/3ofYCK/+Yzatpxl9
-URyS/Uw9Wq1lRdDTPXhpuoci+1HPGd1Mnp9cxkyWtI8gLdVrr7uEwWLyDa3NlbKa
-X/RvG8pcurYyfeE0F2wQ
-=VsRp
------END PGP SIGNATURE-----
-
---y0ulUmNC+osPPQO6--
+Regards,
+--Prabhakar Lad
+>
+>> ---
+>>   drivers/media/v4l2-core/videobuf2-dma-contig.c |    2 +-
+>>   1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> index 5729450..dfea692 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> @@ -739,7 +739,7 @@ static void *vb2_dc_attach_dmabuf(void *alloc_ctx,
+>> struct dma_buf *dbuf,
+>>   const struct vb2_mem_ops vb2_dma_contig_memops = {
+>>         .alloc          = vb2_dc_alloc,
+>>         .put            = vb2_dc_put,
+>> -#ifdef CONFIG_HAVE_GENERIC_DMA_COHERENT
+>> +#ifdef HAVE_GENERIC_DMA_COHERENT
+>>         .get_dmabuf     = vb2_dc_get_dmabuf,
+>>   #endif
+>>         .cookie         = vb2_dc_cookie,
+>
+>
+> Best regards
+> --
+> Marek Szyprowski
+> Samsung Poland R&D Center
+>
+>
