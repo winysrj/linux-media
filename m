@@ -1,54 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:48782 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751609Ab2KFVeY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 16:34:24 -0500
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:56396 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755888Ab2K0QQt convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Nov 2012 11:16:49 -0500
+From: Albert Wang <twang13@marvell.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: "corbet@lwn.net" <corbet@lwn.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Date: Tue, 27 Nov 2012 08:07:44 -0800
+Subject: RE: [PATCH 13/15] [media] marvell-ccic: add dma burst mode support
+ in marvell-ccic driver
+Message-ID: <477F20668A386D41ADCC57781B1F70430D1367C90E@SC-VEXCH1.marvell.com>
+References: <1353677673-24397-1-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1211271655190.22273@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1211271655190.22273@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <50983CFD.2030104@gmail.com>
-References: <CAA11ShCpH7Z8eLok=MEh4bcSb6XjtVFfLQEYh2icUtYc-j5hEQ@mail.gmail.com>
-	<5096C561.5000108@gmail.com>
-	<CAA11ShCKFfdmd_ydxxCYo9Sv0VhgZW9kCk_F7LAQDg3mr5prrw@mail.gmail.com>
-	<5096E8D7.4070304@gmail.com>
-	<CAA11ShDinm7oU4azQYPMrNDsqWPqw+vJNFPpBDNzV=dTeUdZzw@mail.gmail.com>
-	<50979998.8090809@gmail.com>
-	<CAA11ShD6Qug_=t8vGE5LwSpfXW2FsceTonxnF8aO6i2b=inibw@mail.gmail.com>
-	<50983CFD.2030104@gmail.com>
-Date: Wed, 7 Nov 2012 00:34:24 +0300
-Message-ID: <CAA11ShDAscm8snYzjnC3Fe1MaVXc-FJqhWM677iJwgbgu2_J1Q@mail.gmail.com>
-Subject: Re: S3C244X/S3C64XX SoC camera host interface driver questions
-From: Andrey Gusakov <dron0gus@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Tomasz Figa <tomasz.figa@gmail.com>,
-	In-Bae Jeong <kukyakya@gmail.com>,
-	=?ISO-8859-1?Q?Heiko_St=FCbner?= <heiko@sntech.de>,
-	LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi.
-
-> Does the sensor still hang after 0x2f is written to REG_GRCOM instead ?
-Work!
-I'm looking at drivers/media/usb/gspca/m5602/m5602_ov9650.h
-It use significantly different init sequence. Some of settings
-described in Application note for ov9650, some look like magic.
-
-> Do you have CONFIG_PM_RUNTIME enabled ? Can you try and see it works
-> if you enable it, without additional changes to the clock handling ?
-Work. With CONFIG_PM_RUNTIME and without enabling CLK_GATE at probe.
-
-> I hope to eventually prepare the ov9650 sensor driver for mainline. Your
-> help in making it ready for VER=0x52 would be very much appreciated. :-)
-I'll try to helpful.
+Hi, Guennadi
 
 
->> Next step is to make ov2460 work.
-> For now I can only recommend you to make the ov2460 driver more similar
-> to the ov9650 one.
-Thanks, I'll try.
+>-----Original Message-----
+>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+>Sent: Tuesday, 27 November, 2012 23:56
+>To: Albert Wang
+>Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
+>Subject: Re: [PATCH 13/15] [media] marvell-ccic: add dma burst mode support in
+>marvell-ccic driver
+>
+>On Fri, 23 Nov 2012, Albert Wang wrote:
+>
+>> This patch adds the dma burst size config support for marvell-ccic.
+>> Developer can set the dma burst size in specified board driver.
+>>
+>> Signed-off-by: Libin Yang <lbyang@marvell.com>
+>> Signed-off-by: Albert Wang <twang13@marvell.com>
+>> ---
+>>  .../media/platform/marvell-ccic/mcam-core-soc.c    |    2 +-
+>>  drivers/media/platform/marvell-ccic/mcam-core.h    |    7 ++++---
+>>  drivers/media/platform/marvell-ccic/mmp-driver.c   |   11 +++++++++++
+>>  include/media/mmp-camera.h                         |    1 +
+>>  4 files changed, 17 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/marvell-ccic/mcam-core-soc.c
+>> b/drivers/media/platform/marvell-ccic/mcam-core-soc.c
+>> index a0df8b4..518e6dc 100644
+>> --- a/drivers/media/platform/marvell-ccic/mcam-core-soc.c
+>> +++ b/drivers/media/platform/marvell-ccic/mcam-core-soc.c
+>> @@ -100,7 +100,7 @@ static int mcam_camera_add_device(struct
+>soc_camera_device *icd)
+>>  	mcam_ctlr_stop(mcam);
+>>  	mcam_set_config_needed(mcam, 1);
+>>  	mcam_reg_write(mcam, REG_CTRL1,
+>> -				   C1_RESERVED | C1_DMAPOSTED);
+>> +			mcam->burst |  C1_RESERVED | C1_DMAPOSTED);
+>>  	mcam_reg_write(mcam, REG_CLKCTRL,
+>>  		(mcam->mclk_src << 29) | mcam->mclk_div);
+>>  	cam_dbg(mcam, "camera: set sensor mclk = %dMHz\n", mcam->mclk_min);
+>> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h
+>> b/drivers/media/platform/marvell-ccic/mcam-core.h
+>> index e149aa3..999b581 100755
+>> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
+>> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+>> @@ -132,6 +132,7 @@ struct mcam_camera {
+>>  	short int use_smbus;	/* SMBUS or straight I2c? */
+>>  	enum mcam_buffer_mode buffer_mode;
+>>
+>> +	int burst;
+>>  	int mclk_min;
+>>  	int mclk_src;
+>>  	int mclk_div;
+>> @@ -419,9 +420,9 @@ int mcam_soc_camera_host_register(struct mcam_camera
+>*mcam);
+>>  #define   C1_DESC_3WORD   0x00000200	/* Three-word descriptors used */
+>>  #define	  C1_444ALPHA	  0x00f00000	/* Alpha field in RGB444 */
+>>  #define	  C1_ALPHA_SHFT	  20
+>> -#define	  C1_DMAB32	  0x00000000	/* 32-byte DMA burst */
+>> -#define	  C1_DMAB16	  0x02000000	/* 16-byte DMA burst */
+>> -#define	  C1_DMAB64	  0x04000000	/* 64-byte DMA burst */
+>> +#define	  C1_DMAB64	  0x00000000	/* 64-byte DMA burst */
+>> +#define	  C1_DMAB128	  0x02000000	/* 128-byte DMA burst */
+>> +#define	  C1_DMAB256	  0x04000000	/* 256-byte DMA burst */
+>
+>Was this a bug in the driver or is it a different IP version?
+>
+I think it's a bug in old code. We didn't find the definition in our specs.
 
-P.S. I add support of image effects just for fun. And found in DS that
-s3c2450 also support effects. It's FIMC in-between of 2440 and
-6400/6410. Does anyone have s3c2450 hardware to test it?
+>Thanks
+>Guennadi
+>
+>>  #define	  C1_DMAB_MASK	  0x06000000
+>>  #define	  C1_TWOBUFS	  0x08000000	/* Use only two DMA buffers */
+>>  #define	  C1_PWRDWN	  0x10000000	/* Power down */
+>> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> b/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> index bea7224..e840941 100755
+>> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> @@ -365,6 +365,17 @@ static int mmpcam_probe(struct platform_device *pdev)
+>>  	mcam->dphy = &(pdata->dphy);
+>>  	mcam->mipi_enabled = 0;
+>>  	mcam->lane = pdata->lane;
+>> +	switch (pdata->dma_burst) {
+>> +	case 128:
+>> +		mcam->burst = C1_DMAB128;
+>> +		break;
+>> +	case 256:
+>> +		mcam->burst = C1_DMAB256;
+>> +		break;
+>> +	default:
+>> +		mcam->burst = C1_DMAB64;
+>> +		break;
+>> +	}
+>>  	INIT_LIST_HEAD(&mcam->buffers);
+>>
+>>  	/*
+>> diff --git a/include/media/mmp-camera.h b/include/media/mmp-camera.h
+>> index 731f81f..7a5e63c 100755
+>> --- a/include/media/mmp-camera.h
+>> +++ b/include/media/mmp-camera.h
+>> @@ -11,6 +11,7 @@ struct mmp_camera_platform_data {
+>>  	int mclk_src;
+>>  	int mclk_div;
+>>  	int chip_id;
+>> +	int dma_burst;
+>>  	/*
+>>  	 * MIPI support
+>>  	 */
+>> --
+>> 1.7.9.5
+>>
+>
+>---
+>Guennadi Liakhovetski, Ph.D.
+>Freelance Open-Source Software Developer
+>http://www.open-technology.de/
