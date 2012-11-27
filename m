@@ -1,90 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42834 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964838Ab2KOK3A (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:52661 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756095Ab2K0QuF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 05:29:00 -0500
-Date: Thu, 15 Nov 2012 11:28:50 +0100
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: linux-fbdev@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	dri-devel@lists.freedesktop.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	kernel@pengutronix.de,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v10 0/6] of: add display helper
-Message-ID: <20121115102850.GB1963@pengutronix.de>
-References: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de>
- <20121115102411.GA17272@avionic-0098.mockup.avionic-design.de>
+	Tue, 27 Nov 2012 11:50:05 -0500
+Date: Tue, 27 Nov 2012 17:50:00 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Albert Wang <twang13@marvell.com>
+cc: "corbet@lwn.net" <corbet@lwn.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Subject: RE: [PATCH 11/15] [media] marvell-ccic: add soc_camera support in
+ mcam core
+In-Reply-To: <477F20668A386D41ADCC57781B1F70430D1367C90C@SC-VEXCH1.marvell.com>
+Message-ID: <Pine.LNX.4.64.1211271740410.22273@axis700.grange>
+References: <1353677659-24324-1-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1211271516010.22273@axis700.grange>
+ <477F20668A386D41ADCC57781B1F70430D1367C90C@SC-VEXCH1.marvell.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20121115102411.GA17272@avionic-0098.mockup.avionic-design.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 15, 2012 at 11:24:11AM +0100, Thierry Reding wrote:
-> On Thu, Nov 15, 2012 at 10:23:51AM +0100, Steffen Trumtrar wrote:
-> > Hi!
-> > 
-> > Changes since v9:
-> > 	- don't leak memory when previous timings were correct
-> > 	- CodingStyle fixes
-> > 	- move blank lines around
-> > 
-> > Regards,
-> > Steffen
-> > 
-> > 
-> > Steffen Trumtrar (6):
-> >   video: add display_timing and videomode
-> >   video: add of helper for videomode
-> >   fbmon: add videomode helpers
-> >   fbmon: add of_videomode helpers
-> >   drm_modes: add videomode helpers
-> >   drm_modes: add of_videomode helpers
-> > 
-> >  .../devicetree/bindings/video/display-timings.txt  |  107 ++++++++++
-> >  drivers/gpu/drm/drm_modes.c                        |   70 +++++++
-> >  drivers/video/Kconfig                              |   19 ++
-> >  drivers/video/Makefile                             |    4 +
-> >  drivers/video/display_timing.c                     |   24 +++
-> >  drivers/video/fbmon.c                              |   86 ++++++++
-> >  drivers/video/of_display_timing.c                  |  212 ++++++++++++++++++++
-> >  drivers/video/of_videomode.c                       |   47 +++++
-> >  drivers/video/videomode.c                          |   45 +++++
-> >  include/drm/drmP.h                                 |   12 ++
-> >  include/linux/display_timing.h                     |   69 +++++++
-> >  include/linux/fb.h                                 |   12 ++
-> >  include/linux/of_display_timings.h                 |   20 ++
-> >  include/linux/of_videomode.h                       |   17 ++
-> >  include/linux/videomode.h                          |   40 ++++
-> >  15 files changed, 784 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/video/display-timings.txt
-> >  create mode 100644 drivers/video/display_timing.c
-> >  create mode 100644 drivers/video/of_display_timing.c
-> >  create mode 100644 drivers/video/of_videomode.c
-> >  create mode 100644 drivers/video/videomode.c
-> >  create mode 100644 include/linux/display_timing.h
-> >  create mode 100644 include/linux/of_display_timings.h
-> >  create mode 100644 include/linux/of_videomode.h
-> >  create mode 100644 include/linux/videomode.h
-> 
-> With the one change that I pointed out, the whole series:
-> 
+On Tue, 27 Nov 2012, Albert Wang wrote:
 
-Already fixed.
+[snip]
 
-> Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-> Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+> >> +static int mcam_camera_set_fmt(struct soc_camera_device *icd,
+> >> +                    struct v4l2_format *f)
+> >> +{
+> >> +    struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+> >> +    struct mcam_camera *mcam = ici->priv;
+> >> +    const struct soc_camera_format_xlate *xlate = NULL;
+> >> +    struct v4l2_mbus_framefmt mf;
+> >> +    struct v4l2_pix_format *pix = &f->fmt.pix;
+> >> +    int ret = 0;
+> >
+> >No need to initialise ret.
+> >
+> Yes, but it looks there is no "bad" impact if we initialize it. :)
+> I just want to keep the rule: initialize it before use it. :)
 
-\o/ Thanks
+No, please, don't. Firstly, it adds bloat. Secondly, such "blind" 
+initialisation can hide real bugs: the variable is initialised, so the 
+compiler doesn't complain, then you use it in your code, but in reality, 
+the value, that you used is meaningless in your context and you get a 
+hidden bug.
 
+[snip]
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+> >> +static int mcam_camera_try_fmt(struct soc_camera_device *icd,
+> >> +                    struct v4l2_format *f)
+> >> +{
+> >> +    struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+> >> +    struct mcam_camera *mcam = ici->priv;
+> >> +    const struct soc_camera_format_xlate *xlate;
+> >> +    struct v4l2_pix_format *pix = &f->fmt.pix;
+> >> +    struct v4l2_mbus_framefmt mf;
+> >> +    __u32 pixfmt = pix->pixelformat;
+> >> +    int ret = 0;
+> >
+> >No need to initialise ret.
+> >
+> >> +
+> >> +    xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
+> >> +    if (!xlate) {
+> >> +            cam_err(mcam, "camera: format: %c not found\n",
+> >> +                    pix->pixelformat);
+> >> +            return -EINVAL;
+> >
+> >You shouldn't fail .try_fmt() (unless something really bad happens). Just
+> >pick up a default supported format.
+> >
+> Do you means we just need pick up the default supported format when try_fmt()?
+
+If you don't find the requested format - yes, just pick up any format, that 
+you can support.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
