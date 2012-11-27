@@ -1,110 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53869 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933492Ab2KAPV4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2012 11:21:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: Re: [PATCH 2/2] media: V4L2: support asynchronous subdevice registration
-Date: Thu, 01 Nov 2012 16:22:47 +0100
-Message-ID: <8972792.NYUAGLi0Fu@avalon>
-In-Reply-To: <Pine.LNX.4.64.1211011553560.19489@axis700.grange>
-References: <Pine.LNX.4.64.1210192358520.28993@axis700.grange> <2556759.AhNR6Lm65l@avalon> <Pine.LNX.4.64.1211011553560.19489@axis700.grange>
+Received: from comal.ext.ti.com ([198.47.26.152]:40592 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754088Ab2K0NII (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Nov 2012 08:08:08 -0500
+Message-ID: <50B4BB0F.8070306@ti.com>
+Date: Tue, 27 Nov 2012 15:07:27 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: <linux-fbdev@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	<linux-media@vger.kernel.org>, Archit Taneja <archit@ti.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Bryan Wu <bryan.wu@canonical.com>,
+	Inki Dae <inki.dae@samsung.com>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Tom Gall <tom.gall@linaro.org>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>
+Subject: Re: [RFC v2 1/5] video: Add generic display entity core
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <1353620736-6517-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1353620736-6517-2-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigE45A9C0E179F35D5945D0348"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+--------------enigE45A9C0E179F35D5945D0348
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Thursday 01 November 2012 16:01:59 Guennadi Liakhovetski wrote:
-> On Thu, 1 Nov 2012, Laurent Pinchart wrote:
-> > On Monday 22 October 2012 17:22:16 Hans Verkuil wrote:
-> > > On Mon October 22 2012 16:48:05 Guennadi Liakhovetski wrote:
-> > > > On Mon, 22 Oct 2012, Hans Verkuil wrote:
-> > > > > On Mon October 22 2012 14:50:14 Guennadi Liakhovetski wrote:
-> > > > > > On Mon, 22 Oct 2012, Hans Verkuil wrote:
-> > > > > > > On Mon October 22 2012 13:08:12 Guennadi Liakhovetski wrote:
-> > > > > > > > On Mon, 22 Oct 2012, Hans Verkuil wrote:
-> > > > > > > > > On Sat October 20 2012 00:20:24 Guennadi Liakhovetski wrote:
-> > > > > > > > > > Currently bridge device drivers register devices for all
-> > > > > > > > > > subdevices synchronously, tupically, during their probing.
-> > > > > > > > > > E.g. if an I2C CMOS sensor is attached to a video bridge
-> > > > > > > > > > device, the bridge driver will create an I2C device and
-> > > > > > > > > > wait for the respective I2C driver to probe. This makes
-> > > > > > > > > > linking of devices straight forward, but this approach
-> > > > > > > > > > cannot be used with intrinsically asynchronous and
-> > > > > > > > > > unordered device registration systems like the Flattened
-> > > > > > > > > > Device Tree. To support such systems this patch adds an
-> > > > > > > > > > asynchronous subdevice registration framework to V4L2. To
-> > > > > > > > > > use it respective (e.g. I2C) subdevice drivers must
-> > > > > > > > > > request deferred probing as long as their bridge driver
-> > > > > > > > > > hasn't probed. The bridge driver during its probing
-> > > > > > > > > > submits a an arbitrary number of subdevice descriptor
-> > > > > > > > > > groups to the framework to manage. After that it can add
-> > > > > > > > > > callbacks to each of those groups to be called at various
-> > > > > > > > > > stages during subdevice probing, e.g. after completion.
-> > > > > > > > > > Then the bridge driver can request single groups to be
-> > > > > > > > > > probed, finish its own probing and continue its video
-> > > > > > > > > > subsystem configuration from its callbacks.
-> > > > > > > > > 
-> > > > > > > > > What is the purpose of allowing multiple groups?
-> > > > > > > > 
-> > > > > > > > To support, e.g. multiple sensors connected to a single
-> > > > > > > > bridge.
-> > > > > > > 
-> > > > > > > So, isn't that one group with two sensor subdevs?
-> > > > > > 
-> > > > > > No, one group consists of all subdevices, necessary to operate a
-> > > > > > single video pipeline. A simple group only contains a sensor. More
-> > > > > > complex groups can contain a CSI-2 interface, a line shifter, or
-> > > > > > anything else.
-> > > > > 
-> > > > > Why? Why would you want to wait for completion of multiple groups?
-> > > > > You need all subdevs to be registered. If you split them up in
-> > > > > multiple groups, then you have to wait until all those groups have
-> > > > > completed, which only makes the bridge driver more complex. It adds
-> > > > > nothing to the problem that we're trying to solve.
-> > > > 
-> > > > I see it differently. Firstly, there's no waiting.
-> > > 
-> > > If they are independent, then that's true. But in almost all cases you
-> > > need them all. Even in cases where theoretically you can 'activate'
-> > > groups independently, it doesn't add anything. It's overengineering,
-> > > trying to solve a problem that doesn't exist.
-> > > 
-> > > Just keep it simple, that's hard enough.
-> > 
-> > I quite agree here. Sure, in theory groups could be interesting, allowing
-> > you to start using part of the pipeline before everything is properly
-> > initialized, or if a sensor can't be probed for some reason. In practice,
-> > however, I don't think we'll get any substantial gain in real use cases.
-> > I propose dropping the groups for now, and adding them later if we need
-> > to.
-> 
-> Good, I need them now:-) These groups is what I map to /dev/video* nodes
-> in soc-camera and what corresponds to struct soc_camera_device objects.
-> 
-> We need a way to identify how many actual "cameras" (be it decoders,
-> encoders, or whatever else end-devices) we have. And this information is
-> directly related to instantiating subdevices. You need information about
-> subdevices and their possible links - even if you use MC. You need to
-> know, that sensor1 is connected to bridge interface1 and sensor2 can be
-> connected to interfaces 2 and 3. Why do we want to handle this information
-> separately, if it is logically connected to what we're dealing with here
-> and handling it here is simple and natural?
+Hi,
 
-Connection information is definitely required, but that doesn't mean we need 
-to wait on groups independently.
+On 2012-11-22 23:45, Laurent Pinchart wrote:
+> +/**
+> + * display_entity_get_modes - Get video modes supported by the display=
+ entity
+> + * @entity The display entity
+> + * @modes: Pointer to an array of modes
+> + *
+> + * Fill the modes argument with a pointer to an array of video modes. =
+The array
+> + * is owned by the display entity.
+> + *
+> + * Return the number of supported modes on success (including 0 if no =
+mode is
+> + * supported) or a negative error code otherwise.
+> + */
+> +int display_entity_get_modes(struct display_entity *entity,
+> +			     const struct videomode **modes)
+> +{
+> +	if (!entity->ops.ctrl || !entity->ops.ctrl->get_modes)
+> +		return 0;
+> +
+> +	return entity->ops.ctrl->get_modes(entity, modes);
+> +}
+> +EXPORT_SYMBOL_GPL(display_entity_get_modes);
+> +
+> +/**
+> + * display_entity_get_size - Get display entity physical size
+> + * @entity: The display entity
+> + * @width: Physical width in millimeters
+> + * @height: Physical height in millimeters
+> + *
+> + * When applicable, for instance for display panels, retrieve the disp=
+lay
+> + * physical size in millimeters.
+> + *
+> + * Return 0 on success or a negative error code otherwise.
+> + */
+> +int display_entity_get_size(struct display_entity *entity,
+> +			    unsigned int *width, unsigned int *height)
+> +{
+> +	if (!entity->ops.ctrl || !entity->ops.ctrl->get_size)
+> +		return -EOPNOTSUPP;
+> +
+> +	return entity->ops.ctrl->get_size(entity, width, height);
+> +}
+> +EXPORT_SYMBOL_GPL(display_entity_get_size);
 
--- 
-Regards,
+How do you envision these to be used with, say, DVI monitors with EDID
+data? Should each panel driver, that manages a device with EDID, read
+and parse the EDID itself? I guess that shouldn't be too difficult with
+a common EDID lib, but that will only expose some of the information
+found from EDID. Should the upper levels also have a way to get the raw
+EDID data, in addition to funcs like above?
 
-Laurent Pinchart
+ Tomi
 
+
+
+--------------enigE45A9C0E179F35D5945D0348
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQtLsPAAoJEPo9qoy8lh71N8cP/23ASSeUAx1kPHy6k/dyTWo6
+Y1u0jj7AbdsXFVv+9Y7bT0RmDm3bcStLbqjR7p6ZmKv21D0XoqN56IyxMVchmDe2
+bDm4org1UvSh+in8azpBnurhNJIWPAXuDdR8mxSmUzeWGoM9NDsKDd6aAddhgn2L
+bGvHAp36oUFCPcmJYVDHCxvsD8ygLogzlTTZLWuS5Jadcszn4oy9I3PCLyMHMpmN
+kgSUI8oVZHYoZjFqSA6Pu0JpbzyutFgi0fQ4arQRp2HPjU0TE1I1xh0F0L8Bp36u
+1Ww4pROW6q6u1QBlqSuEFgq+NRHZDn5FsJBK7f+jcGSW0KO2E9W1BD8DDRGQ45eC
+JDsPHJnZ8coaF+nj6rgfdoEc/bQrj2z/dVaebiLuHvTd9nQ/Y1F9KUs8cT5REYKC
+WAtE07az5BBbO8CWbQcxKvggHYNI6mvnVwgkGpuwA10kkH4xSyqpUIn9q9uPNRBi
+NAMlkyyYgQC3FNws2FSztsTYPvYxtNoofDPYW/RgQai9AgyGxfVhqr1UVl7URMab
+WL6QuzKxOhJM7QHjyr368FMYoMVaF2Q1vOdrf9JK6ZMWdnhE0TbE/sGprxUXapf2
+N/iLzekNdNVb9e4gHT4mCP+6K8EKwv9YLcUHv25G2pBlWObMyEWVZlO9lp2apy3a
+n2weir1DuygMEyA4qVv6
+=talx
+-----END PGP SIGNATURE-----
+
+--------------enigE45A9C0E179F35D5945D0348--
