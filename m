@@ -1,47 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from edge.cmeerw.net ([84.200.12.152]:48585 "EHLO edge.cmeerw.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753274Ab2KCOR1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 3 Nov 2012 10:17:27 -0400
-Date: Sat, 3 Nov 2012 15:10:49 +0100
-From: Christof Meerwald <cmeerw@cmeerw.org>
-To: "Artem S. Tashkinov" <t.artem@lycos.com>
-Cc: pavel@ucw.cz, linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	security@kernel.org, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org
-Subject: Re: A reliable kernel panic (3.6.2) and system crash when visiting a
- particular website
-Message-ID: <20121103141049.GA24238@edge.cmeerw.net>
-References: <2104474742.26357.1350734815286.JavaMail.mail@webmail05>
- <20121020162759.GA12551@liondog.tnic>
- <966148591.30347.1350754909449.JavaMail.mail@webmail08>
- <20121020203227.GC555@elf.ucw.cz>
- <20121020225849.GA8976@liondog.tnic>
- <1781795634.31179.1350774917965.JavaMail.mail@webmail04>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1781795634.31179.1350774917965.JavaMail.mail@webmail04>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:14798 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758140Ab2K0HXu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Nov 2012 02:23:50 -0500
+Message-id: <50B46A83.8020703@samsung.com>
+Date: Tue, 27 Nov 2012 08:23:47 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: Re: [PATCH] media: fix a typo CONFIG_HAVE_GENERIC_DMA_COHERENT in
+ videobuf2-dma-contig.c
+References: <1353995979-28792-1-git-send-email-prabhakar.lad@ti.com>
+In-reply-to: <1353995979-28792-1-git-send-email-prabhakar.lad@ti.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 20 Oct 2012 23:15:17 +0000 (GMT), Artem S. Tashkinov wrote:
-> It's almost definitely either a USB driver bug or video4linux driver bug:
+Hello,
+
+On 11/27/2012 6:59 AM, Prabhakar Lad wrote:
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
 >
-> I'm CC'ing linux-media and linux-usb mailing lists, the problem is described here:
-> https://lkml.org/lkml/2012/10/20/35
-> https://lkml.org/lkml/2012/10/20/148
+> from commit 93049b9368a2e257ace66252ab2cc066f3399cad, which adds
+> a check HAVE_GENERIC_DMA_COHERENT for dma ops, the check was wrongly
+> made it should have been HAVE_GENERIC_DMA_COHERENT but it was
+> CONFIG_HAVE_GENERIC_DMA_COHERENT.
+> This patch fixes the typo, which was causing following build error:
+>
+> videobuf2-dma-contig.c:743: error: 'vb2_dc_get_dmabuf' undeclared here (not in a function)
+> make[3]: *** [drivers/media/v4l2-core/videobuf2-dma-contig.o] Error 1
+>
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
 
-Not sure if it's related, but I am seeing a kernel freeze with a
-usb-audio headset (connected via an external USB hub) on Linux 3.5.0
-(Ubuntu 12.10) - see
-http://comments.gmane.org/gmane.comp.voip.twinkle/3052 and
-http://pastebin.com/aHGe1S1X for a self-contained C test.
+The CONFIG_HAVE_GENERIC_DMA_COHERENT based patch was a quick workaround
+for the build problem in linux-next and should be reverted now. The
+correct patch has been posted for drivers/base/dma-mapping.c to LKML,
+see http://www.spinics.net/lists/linux-next/msg22890.html
 
+> ---
+>   drivers/media/v4l2-core/videobuf2-dma-contig.c |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> index 5729450..dfea692 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -739,7 +739,7 @@ static void *vb2_dc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
+>   const struct vb2_mem_ops vb2_dma_contig_memops = {
+>   	.alloc		= vb2_dc_alloc,
+>   	.put		= vb2_dc_put,
+> -#ifdef CONFIG_HAVE_GENERIC_DMA_COHERENT
+> +#ifdef HAVE_GENERIC_DMA_COHERENT
+>   	.get_dmabuf	= vb2_dc_get_dmabuf,
+>   #endif
+>   	.cookie		= vb2_dc_cookie,
 
-Christof
-
+Best regards
 -- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
-http://cmeerw.org                              sip:cmeerw at cmeerw.org
-mailto:cmeerw at cmeerw.org                   xmpp:cmeerw at cmeerw.org
+
