@@ -1,20 +1,22 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40728 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51117 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761539Ab2KAOlM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2012 10:41:12 -0400
+	with ESMTP id S1755813Ab2K0ORU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Nov 2012 09:17:20 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
 	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: Re: [PATCH 2/2] media: V4L2: support asynchronous subdevice registration
-Date: Thu, 01 Nov 2012 15:42:02 +0100
-Message-ID: <2556759.AhNR6Lm65l@avalon>
-In-Reply-To: <201210221722.16382.hverkuil@xs4all.nl>
-References: <Pine.LNX.4.64.1210192358520.28993@axis700.grange> <Pine.LNX.4.64.1210221553390.26216@axis700.grange> <201210221722.16382.hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2] media: V4L2: add temporary clock helpers
+Date: Tue, 27 Nov 2012 15:18:23 +0100
+Message-ID: <3188473.q8yhc1O96z@avalon>
+In-Reply-To: <50B1FB29.2060302@iki.fi>
+References: <Pine.LNX.4.64.1210301458250.29432@axis700.grange> <50AEACA5.1010805@gmail.com> <50B1FB29.2060302@iki.fi>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
@@ -23,108 +25,136 @@ List-ID: <linux-media.vger.kernel.org>
 
 Hello,
 
-On Monday 22 October 2012 17:22:16 Hans Verkuil wrote:
-> On Mon October 22 2012 16:48:05 Guennadi Liakhovetski wrote:
-> > On Mon, 22 Oct 2012, Hans Verkuil wrote:
-> > > On Mon October 22 2012 14:50:14 Guennadi Liakhovetski wrote:
-> > > > On Mon, 22 Oct 2012, Hans Verkuil wrote:
-> > > > > On Mon October 22 2012 13:08:12 Guennadi Liakhovetski wrote:
-> > > > > > On Mon, 22 Oct 2012, Hans Verkuil wrote:
-> > > > > > > On Sat October 20 2012 00:20:24 Guennadi Liakhovetski wrote:
-> > > > > > > > Currently bridge device drivers register devices for all
-> > > > > > > > subdevices synchronously, tupically, during their probing.
-> > > > > > > > E.g. if an I2C CMOS sensor is attached to a video bridge
-> > > > > > > > device, the bridge driver will create an I2C device and wait
-> > > > > > > > for the respective I2C driver to probe. This makes linking of
-> > > > > > > > devices straight forward, but this approach cannot be used
-> > > > > > > > with intrinsically asynchronous and unordered device
-> > > > > > > > registration systems like the Flattened Device Tree. To
-> > > > > > > > support such systems this patch adds an asynchronous subdevice
-> > > > > > > > registration framework to V4L2. To use it respective (e.g.
-> > > > > > > > I2C) subdevice drivers must request deferred probing as long
-> > > > > > > > as their bridge driver hasn't probed. The bridge driver during
-> > > > > > > > its probing submits a an arbitrary number of subdevice
-> > > > > > > > descriptor groups to the framework to manage. After that it
-> > > > > > > > can add callbacks to each of those groups to be called at
-> > > > > > > > various stages during subdevice probing, e.g. after
-> > > > > > > > completion. Then the bridge driver can request single groups
-> > > > > > > > to be probed, finish its own probing and continue its video
-> > > > > > > > subsystem configuration from its callbacks.
-> > > > > > > 
-> > > > > > > What is the purpose of allowing multiple groups?
-> > > > > > 
-> > > > > > To support, e.g. multiple sensors connected to a single bridge.
-> > > > > 
-> > > > > So, isn't that one group with two sensor subdevs?
-> > > > 
-> > > > No, one group consists of all subdevices, necessary to operate a
-> > > > single video pipeline. A simple group only contains a sensor. More
-> > > > complex groups can contain a CSI-2 interface, a line shifter, or
-> > > > anything else.
-> > > 
-> > > Why? Why would you want to wait for completion of multiple groups? You
-> > > need all subdevs to be registered. If you split them up in multiple
-> > > groups, then you have to wait until all those groups have completed,
-> > > which only makes the bridge driver more complex. It adds nothing to the
-> > > problem that we're trying to solve.
+On Sunday 25 November 2012 13:04:09 Sakari Ailus wrote:
+> Sylwester Nawrocki wrote:
+> > On 11/14/2012 02:06 PM, Laurent Pinchart wrote:
+> > ...
 > > 
-> > I see it differently. Firstly, there's no waiting.
+> >>>>>>>> +
+> >>>>>>>> +static DEFINE_MUTEX(clk_lock);
+> >>>>>>>> +static LIST_HEAD(v4l2_clk);
+> >>>>>>> 
+> >>>>>>> As Sylwester mentioned, what about s/v4l2_clk/v4l2_clks/ ?
+> >>>>>> 
+> >>>>>> Don't you think naming of a static variable isn't important enough?
+> >>>>>> ;-) I think code authors should have enough freedom to at least pick
+> >>>>>> up single vs. plural form:-) "clks" is too many consonants for my
+> >>>>>> taste, if it were anything important I'd rather agree to
+> >>>>>> "clk_head" or
+> >>>>>> "clk_list" or something similar.
+> >>>>> 
+> >>>>> clk_list makes sense IMO since the clk_ prefis is the same.
+> > 
+> > FWIW, clk_list looks fine for me as well.
+> > 
+> >>>>>>>> +void v4l2_clk_put(struct v4l2_clk *clk)
+> >>>>>>>> +{
+> >>>>>>>> +    if (!IS_ERR(clk))
+> >>>>>>>> +        module_put(clk->ops->owner);
+> >>>>>>>> +}
+> >>>>>>>> +EXPORT_SYMBOL(v4l2_clk_put);
+> >>>>>>>> +
+> >>>>>>>> +int v4l2_clk_enable(struct v4l2_clk *clk)
+> >>>>>>>> +{
+> >>>>>>>> +    if (atomic_inc_return(&clk->enable) == 1&&
+> >>>>>>>> clk->ops->enable) {
+> >>>>>>>> +        int ret = clk->ops->enable(clk);
+> >>>>>>>> +        if (ret<  0)
+> >>>>>>>> +            atomic_dec(&clk->enable);
+> >>>>>>>> +        return ret;
+> >>>>>>>> +    }
+> >>>>>>> 
+> >>>>>>> I think you need a spinlock here instead of atomic operations. You
+> >>>>>>> could get preempted after atomic_inc_return() and before
+> >>>>>>> clk->ops->enable() by another process that would call
+> >>>>>>> v4l2_clk_enable(). The function would return with enabling the
+> >>>>>>> clock.
+> >>>>>> 
+> >>>>>> Sorry, what's the problem then? "Our" instance will succeed and call
+> >>>>>> ->enable() and the preempting instance will see the enable count>  1
+> >>>>>> and just return.
+> >>>>> 
+> >>>>> The clock is guaranteed to be enabled only after the call has
+> >>>>> returned. The second caller of v4lw_clk_enable() thus may proceed
+> >>>>> without the clock being enabled.
+> >>>>> 
+> >>>>> In principle enable() might also want to sleep, so how about using a
+> >>>>> mutex for the purpose instead of a spinlock?
+> >>>> 
+> >>>> If enable() needs to sleep we should split the enable call into prepare
+> >>>> and enable, like the common clock framework did.
+> >>> 
+> >>> I'm pretty sure we won't need to toggle this from interrupt context
+> >>> which is what the clock framework does, AFAIU. Accessing i2c subdevs
+> >>> mandates sleeping already.
+> >>> 
+> >>> We might not need to have a mutex either if no driver needs to sleep for
+> >>> this, still I guess this is more likely. I'm ok with both; just
+> >>> thought to mention this.
+> >> 
+> >> Right, I'm fine with a mutex for now, we'll split enable into enable and
+> >> prepare later if needed.
+> > 
+> > How about just dropping reference counting from this code entirely ?
+> > What would be use cases for multiple users of a single clock ? E.g.
+> > multiple sensors case where each one uses same clock provided by a host
+> > interface ? If we allow the sensor subdev drivers to be setting the clock
+> > frequency and each sensor uses different frequency, then I can't see how
+> > this can work reliably. I mean it's the clock's provider that should
+> > coordinate and reference count the clock users. If a clock is enabled for
+> > one sensor and some other sensor is attempting to set different frequency
+> > then the set_rate callback should return an error. The clock provider will
+> > need use internally a lock for the clock anyway, and to track the clock
+> > reference count too. So I'm inclined to leave all this refcounting bits
+> > out to individual clock providers.
 > 
-> If they are independent, then that's true. But in almost all cases you need
-> them all. Even in cases where theoretically you can 'activate' groups
-> independently, it doesn't add anything. It's overengineering, trying to
-> solve a problem that doesn't exist.
+> The common clock framework achieves this through notifiers. That'd be
+> probably overkill in this case.
 > 
-> Just keep it simple, that's hard enough.
+> What comes to the implementation now, would it be enough if changing the
+> clock rate would work once after the clock first had users, with this
+> capability renewed once all users are gone?
+> 
+> I wonder if enabling the clock should be allowed at all if the rate
+> hasn't been explicitly set. I don't know of a sensor driver which would
+> be able to use a non-predefined clock frequency.
 
-I quite agree here. Sure, in theory groups could be interesting, allowing you 
-to start using part of the pipeline before everything is properly initialized, 
-or if a sensor can't be probed for some reason. In practice, however, I don't 
-think we'll get any substantial gain in real use cases. I propose dropping the 
-groups for now, and adding them later if we need to.
+OK, maybe we should try to refocus here.
 
-> > Secondly, you don't need all of them. With groups as soon as one group is
-> > complete you can start using it. If you require all your subdevices to
-> > complete their probing before you can use anything. In fact, some
-> > subdevices might never probe, but groups, that don't need them can be used
-> > regardless.
-> > 
-> > > > > A bridge driver has a list of subdevs. There is no concept of
-> > > > > 'groups'. Perhaps I misunderstand?
-> > > > 
-> > > > Well, we have a group ID, which can be used for what I'm proposing
-> > > > groups for. At least on soc-camera we use the group ID exactly for
-> > > > this purpose. We attach all subdevices to a V4L2 device, but assign
-> > > > group IDs according to pipelines. Then subdevice operations only act
-> > > > on members of one pipeline. I know that we currently don't specify
-> > > > precisely what that group ID should be used for in general. So, this
-> > > > my group concept is an extension of what we currently have in V4L2.
-> > > 
-> > > How the grp_id field is used is entirely up to the bridge driver. It may
-> > > not be used at all, it may uniquely identify each subdev, it may put
-> > > each subdev in a particular group and perhaps a single subdev might
-> > > belong to multiple groups. There is no standard concept of a group.
-> > > It's just a simple method (actually, more of a hack) of allowing bridge
-> > > drivers to call ops for some subset of the sub-devices.
-> > 
-> > Yes, I know, at least it's something that loosely indicates a group
-> > concept in the current code:-)
-> > 
-> > > Frankly, I wonder if most of the drivers that use grp_id actually need
-> > > it at all.
-> > > 
-> > > Just drop the group concept, things can be simplified quite a bit
-> > > without it.
-> > 
-> > So far I think we should keep it. Also think about our DT layout. A bridge
-> > can have several ports each with multiple links (maybe it has already been
-> > decided to change names, don't remember by heart, sorry). Each of them
-> > would then start a group.
-> 
-> So? What does that gain you?
-> 
-> I don't have time today to go over the remainder of your reply, I'll try to
-> answer that later in the week.
+The purpose of the V4L2 clock helpers is to get rid of clock-related board 
+callbacks (or other direct clock provider-consumer dependencies) without 
+waiting for the common clock framework to be available on a particular 
+platform. With that in mind, the following problems need to be solved.
+
+- Multiple consumers for a single clock
+
+A video sensor and the associated lens and/or flash controllers could share 
+the same input clock. How to arbitrate rate requests from the individual 
+consumers is still an open problem, but that's true for the common clock 
+framework too. I wouldn't vote against requiring the common clock framework 
+for this use case. This would mean that most of the locking and reference 
+counting could (but doesn't have to) be dropped from the V4L2 clock helpers 
+(reference counting can still be useful for debugging purposes).
+
+- Clock provider/consumer outside of V4L2
+
+If the clock provider isn't a V4L2 device, I think the common clock framework 
+must be used by the consumer to access the clock. Similarly, if the provider 
+is a V4L2 device and the consumer isn't, the common clock framework must be 
+used as well (although I don't think this case will happen in practice, I 
+can't really imagine a USB transceiver using the ISP clock for instance).
+
+- Common clock framework fallback
+
+This is a new item. Sensor (or other clock consumer) drivers can't tell 
+whether the clock provider exposes its clock(s) through the common clock 
+framework or through the V4L2 clock helpers. ISP (or other clock provider) 
+drivers, on the other hand, are tied to a platform (or a very limited set of 
+platforms) and use the common clock framework if available, or the V4L2 clock 
+helpers otherwise. During the transition clock consumers will need to support 
+both. For that reason I believe that the V4L2 clock helpers should retrieve 
+the requested clock through the common clock framework first, and then look at 
+the V4L2 clocks if the clock wasn't available from the common clock framework.
 
 -- 
 Regards,
