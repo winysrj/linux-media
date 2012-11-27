@@ -1,148 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:50191 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751112Ab2K0L4Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 06:56:16 -0500
-Date: Tue, 27 Nov 2012 12:56:11 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Albert Wang <twang13@marvell.com>
-cc: corbet@lwn.net, linux-media@vger.kernel.org,
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:35105 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755888Ab2K0QRH convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Nov 2012 11:17:07 -0500
+From: Albert Wang <twang13@marvell.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: "corbet@lwn.net" <corbet@lwn.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
 	Libin Yang <lbyang@marvell.com>
-Subject: Re: [PATCH 07/15] [media] marvell-ccic: add SOF / EOF pair check
- for marvell-ccic driver
-In-Reply-To: <1353677628-24179-1-git-send-email-twang13@marvell.com>
-Message-ID: <Pine.LNX.4.64.1211271251020.22273@axis700.grange>
-References: <1353677628-24179-1-git-send-email-twang13@marvell.com>
+Date: Tue, 27 Nov 2012 08:15:10 -0800
+Subject: RE: [PATCH 14/15] [media] marvell-ccic: use unsigned int type
+ replace int type
+Message-ID: <477F20668A386D41ADCC57781B1F70430D1367C911@SC-VEXCH1.marvell.com>
+References: <1353677679-24443-1-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1211271656580.22273@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1211271656580.22273@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 23 Nov 2012, Albert Wang wrote:
+Hi, Guennadi
 
-> From: Libin Yang <lbyang@marvell.com>
-> 
-> This patch adds the SOFx/EOFx pair check for marvell-ccic.
-> 
-> When switching format, the last EOF may not arrive when stop streamning.
-> And the EOF will be detected in the next start streaming.
-> 
-> Must ensure clear the obsolete frame flags before every really start streaming.
-> 
-> Signed-off-by: Albert Wang <twang13@marvell.com>
-> Signed-off-by: Libin Yang <lbyang@marvell.com>
-> ---
->  drivers/media/platform/marvell-ccic/mcam-core.c |   33 ++++++++++++++++++-----
->  1 file changed, 26 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-> index c9f7250..16da8ae 100755
-> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
-> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-> @@ -93,6 +93,9 @@ MODULE_PARM_DESC(buffer_mode,
->  #define CF_CONFIG_NEEDED 4	/* Must configure hardware */
->  #define CF_SINGLE_BUFFER 5	/* Running with a single buffer */
->  #define CF_SG_RESTART	 6	/* SG restart needed */
-> +#define CF_FRAME_SOF0	 7	/* Frame 0 started */
-> +#define CF_FRAME_SOF1	 8
-> +#define CF_FRAME_SOF2	 9
->  
->  #define sensor_call(cam, o, f, args...) \
->  	v4l2_subdev_call(cam->sensor, o, f, ##args)
-> @@ -250,8 +253,10 @@ static void mcam_reset_buffers(struct mcam_camera *cam)
->  	int i;
->  
->  	cam->next_buf = -1;
-> -	for (i = 0; i < cam->nbufs; i++)
-> +	for (i = 0; i < cam->nbufs; i++) {
->  		clear_bit(i, &cam->flags);
-> +		clear_bit(CF_FRAME_SOF0 + i, &cam->flags);
-> +	}
->  }
->  
->  static inline int mcam_needs_config(struct mcam_camera *cam)
-> @@ -1130,6 +1135,7 @@ static void mcam_vb_wait_finish(struct vb2_queue *vq)
->  static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
->  {
->  	struct mcam_camera *cam = vb2_get_drv_priv(vq);
-> +	unsigned int frame;
->  
->  	if (cam->state != S_IDLE) {
->  		INIT_LIST_HEAD(&cam->buffers);
-> @@ -1147,6 +1153,14 @@ static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
->  		cam->state = S_BUFWAIT;
->  		return 0;
->  	}
-> +
-> +	/*
-> +	 * Ensure clear the obsolete frame flags
-> +	 * before every really start streaming
-> +	 */
-> +	for (frame = 0; frame < cam->nbufs; frame++)
-> +		clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
-> +
->  	return mcam_read_setup(cam);
->  }
->  
-> @@ -1865,9 +1879,11 @@ int mccic_irq(struct mcam_camera *cam, unsigned int irqs)
->  	 * each time.
->  	 */
->  	for (frame = 0; frame < cam->nbufs; frame++)
-> -		if (irqs & (IRQ_EOF0 << frame)) {
-> +		if (irqs & (IRQ_EOF0 << frame) &&
-> +			test_bit(CF_FRAME_SOF0 + frame, &cam->flags)) {
->  			mcam_frame_complete(cam, frame);
->  			handled = 1;
-> +			clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
->  			if (cam->buffer_mode == B_DMA_sg)
->  				break;
->  		}
-> @@ -1876,11 +1892,14 @@ int mccic_irq(struct mcam_camera *cam, unsigned int irqs)
->  	 * code assumes that we won't get multiple frame interrupts
->  	 * at once; may want to rethink that.
->  	 */
-> -	if (irqs & (IRQ_SOF0 | IRQ_SOF1 | IRQ_SOF2)) {
-> -		set_bit(CF_DMA_ACTIVE, &cam->flags);
-> -		handled = 1;
-> -		if (cam->buffer_mode == B_DMA_sg)
-> -			mcam_ctlr_stop(cam);
-> +	for (frame = 0; frame < cam->nbufs; frame++) {
-> +		if (irqs & (IRQ_SOF0 << frame)) {
-> +			set_bit(CF_DMA_ACTIVE, &cam->flags);
-> +			set_bit(CF_FRAME_SOF0 + frame, &cam->flags);
-> +			handled = IRQ_HANDLED;
-> +			if (cam->buffer_mode == B_DMA_sg)
-> +				mcam_ctlr_stop(cam);
-> +		}
 
-Maybe it would be good to be more careful here. Is it actually possible 
-that more than one IRQ_SOFx bit is set here? It probably is. In this case 
-your loop will perform some actions like calling mcam_ctlr_stop() multiple 
-times. So, maybe you could do something like
+>-----Original Message-----
+>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+>Sent: Wednesday, 28 November, 2012 00:02
+>To: Albert Wang
+>Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
+>Subject: Re: [PATCH 14/15] [media] marvell-ccic: use unsigned int type replace int type
+>
+>On Fri, 23 Nov 2012, Albert Wang wrote:
+>
+>> This patch use unsigned int type replace int type in marvell-ccic.
+>>
+>> These variables: frame number, buf number, irq... should be unsigned.
+>
+>Several issues to be considered here:
+>
+>* most these variables will never take values > INT_MAX, so, this isn't
+>  very important
+>* sometimes it is convenient to use a variable, that normally should only
+>  take positive values, to also check for negative values. These variables
+>  should be signed.
+>* compile-time compatibility: if variables are used as arguments of
+>  functions or are compared or assigned to other variables, their types
+>  should be compatible.
+>* my "old" cross-compiler was hiding many such problems, I'm sure at
+>  marvell you use new enough compilers to warn you about any such
+>  issues:-)
+>
+>So, mainly, just make sure you get no compiler warnings, otherwise it's not very
+>important, IMHO.
+>
 
-+	for (frame = 0; frame < cam->nbufs; frame++) {
-+		if (irqs & (IRQ_SOF0 << frame)) {
-+			set_bit(CF_FRAME_SOF0 + frame, &cam->flags);
-+			handled = IRQ_HANDLED;
-+		}
-+	}
-+
-+	if (handled == IRQ_HANDLED) {
-+		set_bit(CF_DMA_ACTIVE, &cam->flags);
-+		if (cam->buffer_mode == B_DMA_sg)
-+			mcam_ctlr_stop(cam);
-+	}
+Yes, usually you are right.
+For frame number and buf number, the one of prime reasons is it is prepared for the next patch:
+add 3 frame buffer support, we must use unsigned type in some operations. :)
 
->  	}
->  	return handled;
->  }
-> -- 
-> 1.7.9.5
+For irq, it's for compiler warning. :)
+
+
+>Thanks
+>Guennadi
+>
+
 
 Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Albert Wang
+86-21-61092656
+>>
+>> Signed-off-by: Albert Wang <twang13@marvell.com>
+>> ---
+>>  .../media/platform/marvell-ccic/mcam-core-soc.h    |    2 +-
+>>  .../platform/marvell-ccic/mcam-core-standard.h     |   10 ++++-----
+>>  drivers/media/platform/marvell-ccic/mcam-core.c    |   22 ++++++++++----------
+>>  drivers/media/platform/marvell-ccic/mcam-core.h    |    2 +-
+>>  drivers/media/platform/marvell-ccic/mmp-driver.c   |    2 +-
+>>  5 files changed, 19 insertions(+), 19 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/marvell-ccic/mcam-core-soc.h
+>> b/drivers/media/platform/marvell-ccic/mcam-core-soc.h
+>> index a5b5fa6..bff8b2a 100644
+>> --- a/drivers/media/platform/marvell-ccic/mcam-core-soc.h
+>> +++ b/drivers/media/platform/marvell-ccic/mcam-core-soc.h
+>> @@ -11,7 +11,7 @@ extern const struct vb2_ops mcam_soc_vb2_ops;
+>>
+>>  extern void mcam_ctlr_power_up(struct mcam_camera *cam);  extern void
+>> mcam_ctlr_power_down(struct mcam_camera *cam); -extern void
+>> mcam_dma_contig_done(struct mcam_camera *cam, int frame);
+>> +extern void mcam_dma_contig_done(struct mcam_camera *cam, unsigned
+>> +int frame);
+>>  extern void mcam_ctlr_stop(struct mcam_camera *cam);  extern int
+>> mcam_config_mipi(struct mcam_camera *mcam, int enable);  extern void
+>> mcam_ctlr_image(struct mcam_camera *cam); diff --git
+>> a/drivers/media/platform/marvell-ccic/mcam-core-standard.h
+>> b/drivers/media/platform/marvell-ccic/mcam-core-standard.h
+>> index 148a1a1..090c1a2 100644
+>> --- a/drivers/media/platform/marvell-ccic/mcam-core-standard.h
+>> +++ b/drivers/media/platform/marvell-ccic/mcam-core-standard.h
+>> @@ -4,8 +4,8 @@
+>>   * Copyright 2011 Jonathan Corbet corbet@lwn.net
+>>   */
+>>  extern bool alloc_bufs_at_read;
+>> -extern int n_dma_bufs;
+>> -extern int buffer_mode;
+>> +extern unsigned int n_dma_bufs;
+>> +extern unsigned int buffer_mode;
+>>  extern const struct vb2_ops mcam_vb2_sg_ops;  extern const struct
+>> vb2_ops mcam_vb2_ops;
+>>
+>> @@ -17,12 +17,12 @@ extern void mcam_ctlr_init(struct mcam_camera
+>> *cam);  extern int mcam_cam_init(struct mcam_camera *cam);  extern
+>> void mcam_free_dma_bufs(struct mcam_camera *cam);  extern void
+>> mcam_ctlr_dma_sg(struct mcam_camera *cam); -extern void
+>> mcam_dma_sg_done(struct mcam_camera *cam, int frame);
+>> +extern void mcam_dma_sg_done(struct mcam_camera *cam, unsigned int
+>> +frame);
+>>  extern int mcam_check_dma_buffers(struct mcam_camera *cam);  extern
+>> void mcam_set_config_needed(struct mcam_camera *cam, int needed);
+>> extern int __mcam_cam_reset(struct mcam_camera *cam);  extern int
+>> mcam_alloc_dma_bufs(struct mcam_camera *cam, int loadtime);  extern
+>> void mcam_ctlr_dma_contig(struct mcam_camera *cam); -extern void
+>> mcam_dma_contig_done(struct mcam_camera *cam, int frame);
+>> +extern void mcam_dma_contig_done(struct mcam_camera *cam, unsigned
+>> +int frame);
+>>  extern void mcam_ctlr_dma_vmalloc(struct mcam_camera *cam); -extern
+>> void mcam_vmalloc_done(struct mcam_camera *cam, int frame);
+>> +extern void mcam_vmalloc_done(struct mcam_camera *cam, unsigned int
+>> +frame);
+>> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c
+>> b/drivers/media/platform/marvell-ccic/mcam-core.c
+>> index 3b05d8c..2d200d6 100755
+>> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
+>> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+>> @@ -111,7 +111,7 @@ static inline struct mcam_vb_buffer
+>> *vb_to_mvb(struct vb2_buffer *vb)
+>>  /*
+>>   * Hand a completed buffer back to user space.
+>>   */
+>> -static void mcam_buffer_done(struct mcam_camera *cam, int frame,
+>> +static void mcam_buffer_done(struct mcam_camera *cam, unsigned int
+>> +frame,
+>>  		struct vb2_buffer *vbuf)
+>>  {
+>>  	vbuf->v4l2_buf.bytesused = cam->pix_format.sizeimage; @@ -125,7
+>> +125,7 @@ static void mcam_buffer_done(struct mcam_camera *cam, int frame,
+>>   */
+>>  static void mcam_reset_buffers(struct mcam_camera *cam)  {
+>> -	int i;
+>> +	unsigned int i;
+>>
+>>  	cam->next_buf = -1;
+>>  	for (i = 0; i < cam->nbufs; i++) {
+>> @@ -216,7 +216,7 @@ int mcam_config_mipi(struct mcam_camera *mcam, int enable)
+>>   */
+>>  int mcam_alloc_dma_bufs(struct mcam_camera *cam, int loadtime)  {
+>> -	int i;
+>> +	unsigned int i;
+>>
+>>  	mcam_set_config_needed(cam, 1);
+>>  	if (loadtime)
+>> @@ -257,7 +257,7 @@ int mcam_alloc_dma_bufs(struct mcam_camera *cam,
+>> int loadtime)
+>>
+>>  void mcam_free_dma_bufs(struct mcam_camera *cam)  {
+>> -	int i;
+>> +	unsigned int i;
+>>
+>>  	for (i = 0; i < cam->nbufs; i++) {
+>>  		dma_free_coherent(cam->dev, cam->dma_buf_size, @@ -296,7 +296,7
+>@@
+>> void mcam_ctlr_dma_vmalloc(struct mcam_camera *cam)  static void
+>> mcam_frame_tasklet(unsigned long data)  {
+>>  	struct mcam_camera *cam = (struct mcam_camera *) data;
+>> -	int i;
+>> +	unsigned int i;
+>>  	unsigned long flags;
+>>  	struct mcam_vb_buffer *buf;
+>>
+>> @@ -344,7 +344,7 @@ int mcam_check_dma_buffers(struct mcam_camera *cam)
+>>  	return 0;
+>>  }
+>>
+>> -void mcam_vmalloc_done(struct mcam_camera *cam, int frame)
+>> +void mcam_vmalloc_done(struct mcam_camera *cam, unsigned int frame)
+>>  {
+>>  	tasklet_schedule(&cam->s_tasklet);
+>>  }
+>> @@ -396,7 +396,7 @@ static bool mcam_fmt_is_planar(__u32 pfmt)
+>>   * space.  In this way, we always have a buffer to DMA to and don't
+>>   * have to try to play games stopping and restarting the controller.
+>>   */
+>> -static void mcam_set_contig_buffer(struct mcam_camera *cam, int
+>> frame)
+>> +static void mcam_set_contig_buffer(struct mcam_camera *cam, unsigned
+>> +int frame)
+>>  {
+>>  	struct mcam_vb_buffer *buf;
+>>  	struct v4l2_pix_format *fmt = &cam->pix_format; @@ -442,7 +442,7 @@
+>> void mcam_ctlr_dma_contig(struct mcam_camera *cam)
+>>  /*
+>>   * Frame completion handling.
+>>   */
+>> -void mcam_dma_contig_done(struct mcam_camera *cam, int frame)
+>> +void mcam_dma_contig_done(struct mcam_camera *cam, unsigned int
+>> +frame)
+>>  {
+>>  	struct mcam_vb_buffer *buf = cam->vb_bufs[frame];
+>>
+>> @@ -518,7 +518,7 @@ void mcam_ctlr_dma_sg(struct mcam_camera *cam)
+>>   * safely change the DMA descriptor array here and restart things
+>>   * (assuming there's another buffer waiting to go).
+>>   */
+>> -void mcam_dma_sg_done(struct mcam_camera *cam, int frame)
+>> +void mcam_dma_sg_done(struct mcam_camera *cam, unsigned int frame)
+>>  {
+>>  	struct mcam_vb_buffer *buf = cam->vb_bufs[0];
+>>
+>> @@ -935,7 +935,7 @@ static int mcam_vb_queue_setup(struct vb2_queue *vq,
+>>  		void *alloc_ctxs[])
+>>  {
+>>  	struct mcam_camera *cam = get_mcam(vq);
+>> -	int minbufs = (cam->buffer_mode == B_DMA_contig) ? 3 : 2;
+>> +	unsigned int minbufs = (cam->buffer_mode == B_DMA_contig) ? 3 : 2;
+>>
+>>  	sizes[0] = cam->pix_format.sizeimage;
+>>  	*num_planes = 1; /* Someday we have to support planar formats... */
+>> @@ -1207,7 +1207,7 @@ const struct vb2_ops mcam_soc_vb2_ops = {
+>>  /*
+>>   * Interrupt handler stuff
+>>   */
+>> -static void mcam_frame_complete(struct mcam_camera *cam, int frame)
+>> +static void mcam_frame_complete(struct mcam_camera *cam, unsigned int
+>> +frame)
+>>  {
+>>  	/*
+>>  	 * Basic frame housekeeping.
+>> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h
+>> b/drivers/media/platform/marvell-ccic/mcam-core.h
+>> index 999b581..5b2cf6e 100755
+>> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
+>> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+>> @@ -197,7 +197,7 @@ struct mcam_camera {
+>>
+>>  	/* Mode-specific ops, set at open time */
+>>  	void (*dma_setup)(struct mcam_camera *cam);
+>> -	void (*frame_complete)(struct mcam_camera *cam, int frame);
+>> +	void (*frame_complete)(struct mcam_camera *cam, unsigned int frame);
+>>
+>>  	/* Current operating parameters */
+>>  	u32 sensor_type;		/* Currently ov7670 only */
+>> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> b/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> index e840941..9b631b7 100755
+>> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> @@ -52,7 +52,7 @@ struct mmp_camera {
+>>  	struct list_head devlist;
+>>  	/* will change here */
+>>  	struct clk *clk[3];	/* CCIC_GATE, CCIC_RST, CCIC_DBG clocks */
+>> -	int irq;
+>> +	unsigned int irq;
+>>  };
+>>
+>>  static inline struct mmp_camera *mcam_to_cam(struct mcam_camera
+>> *mcam)
+>> --
+>> 1.7.9.5
+>>
+>
+>---
+>Guennadi Liakhovetski, Ph.D.
+>Freelance Open-Source Software Developer http://www.open-technology.de/
