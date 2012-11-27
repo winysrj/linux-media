@@ -1,59 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:37775 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752846Ab2KSW0u (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Nov 2012 17:26:50 -0500
-Message-ID: <50AAB221.6060604@users.sourceforge.net>
-Date: Mon, 19 Nov 2012 23:26:41 +0100
-From: Philippe Valembois - Phil <lephilousophe@users.sourceforge.net>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:48885 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752246Ab2K0M2h convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Nov 2012 07:28:37 -0500
+From: Albert Wang <twang13@marvell.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: "corbet@lwn.net" <corbet@lwn.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Date: Tue, 27 Nov 2012 04:15:01 -0800
+Subject: RE: [PATCH 07/15] [media] marvell-ccic: add SOF / EOF pair check
+ for marvell-ccic driver
+Message-ID: <477F20668A386D41ADCC57781B1F70430D1367C8ED@SC-VEXCH1.marvell.com>
+References: <1353677628-24179-1-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1211271251020.22273@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1211271251020.22273@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Greg KH <greg@kroah.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Hauppauge WinTV HVR 900 (M/R 65018/B3C0) doesn't work anymore
- since linux 3.6.6
-References: <50A3FF56.3070703@users.sourceforge.net> <20121116021323.GB492@kroah.com>
-In-Reply-To: <20121116021323.GB492@kroah.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 16/11/2012 03:13, Greg KH a écrit :
-> On Wed, Nov 14, 2012 at 09:30:14PM +0100, Philippe Valembois - Phil wrote:
->> Hello,
->> I have posted a bug report here :
->> https://bugzilla.kernel.org/show_bug.cgi?id=50361 and I have been told
->> to send it to the ML too.
->>
->> The commit causing the bug has been pushed to kernel between linux-3.5
->> and linux-3.6.
->>
->> Here is my bug summary :
->>
->> The WinTV HVR900 DVB-T usb stick has stopped working in Linux 3.6.6.
->> The tuner fails at tuning and no DVB channel can be watched.
->>
->> Reverting the commit 3de9e9624b36263618470c6e134f22eabf8f2551 fixes the
->> problem
->> and the tuner can tune again. It still seems there is some delay between the
->> moment when the USB stick is plugged and when it can tune : running
->> dvbscan too
->> fast makes the first channels tuning fail but after several seconds it tunes
->> perfectly.
->>
->> Don't hesitate to ask me for additional debug.
-> 
-> Does this also fail on Linus's tree?  If so, this patch should be
-> reverted from there too.
-> 
-> thanks,
-> 
-> greg k-h
-> 
-Hello,
-sorry for the late reply, I finally compiled fresh Linus' tree and did a
-fast test : it seems to work. I will now try to find the commit that
-made it work so you can maybe commit it in the stable branch?
+Hi, Guennadi
 
-Regards,
-Philippe Valembois
+
+>-----Original Message-----
+>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+>Sent: Tuesday, 27 November, 2012 19:56
+>To: Albert Wang
+>Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
+>Subject: Re: [PATCH 07/15] [media] marvell-ccic: add SOF / EOF pair check for marvell-
+>ccic driver
+>
+>On Fri, 23 Nov 2012, Albert Wang wrote:
+>
+>> From: Libin Yang <lbyang@marvell.com>
+>>
+>> This patch adds the SOFx/EOFx pair check for marvell-ccic.
+>>
+>> When switching format, the last EOF may not arrive when stop streamning.
+>> And the EOF will be detected in the next start streaming.
+>>
+>> Must ensure clear the obsolete frame flags before every really start streaming.
+>>
+>> Signed-off-by: Albert Wang <twang13@marvell.com>
+>> Signed-off-by: Libin Yang <lbyang@marvell.com>
+>> ---
+>>  drivers/media/platform/marvell-ccic/mcam-core.c |   33 ++++++++++++++++++-----
+>>  1 file changed, 26 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c
+>> b/drivers/media/platform/marvell-ccic/mcam-core.c
+>> index c9f7250..16da8ae 100755
+>> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
+>> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+>> @@ -93,6 +93,9 @@ MODULE_PARM_DESC(buffer_mode,
+>>  #define CF_CONFIG_NEEDED 4	/* Must configure hardware */
+>>  #define CF_SINGLE_BUFFER 5	/* Running with a single buffer */
+>>  #define CF_SG_RESTART	 6	/* SG restart needed */
+>> +#define CF_FRAME_SOF0	 7	/* Frame 0 started */
+>> +#define CF_FRAME_SOF1	 8
+>> +#define CF_FRAME_SOF2	 9
+>>
+>>  #define sensor_call(cam, o, f, args...) \
+>>  	v4l2_subdev_call(cam->sensor, o, f, ##args) @@ -250,8 +253,10 @@
+>> static void mcam_reset_buffers(struct mcam_camera *cam)
+>>  	int i;
+>>
+>>  	cam->next_buf = -1;
+>> -	for (i = 0; i < cam->nbufs; i++)
+>> +	for (i = 0; i < cam->nbufs; i++) {
+>>  		clear_bit(i, &cam->flags);
+>> +		clear_bit(CF_FRAME_SOF0 + i, &cam->flags);
+>> +	}
+>>  }
+>>
+>>  static inline int mcam_needs_config(struct mcam_camera *cam) @@
+>> -1130,6 +1135,7 @@ static void mcam_vb_wait_finish(struct vb2_queue
+>> *vq)  static int mcam_vb_start_streaming(struct vb2_queue *vq,
+>> unsigned int count)  {
+>>  	struct mcam_camera *cam = vb2_get_drv_priv(vq);
+>> +	unsigned int frame;
+>>
+>>  	if (cam->state != S_IDLE) {
+>>  		INIT_LIST_HEAD(&cam->buffers);
+>> @@ -1147,6 +1153,14 @@ static int mcam_vb_start_streaming(struct vb2_queue *vq,
+>unsigned int count)
+>>  		cam->state = S_BUFWAIT;
+>>  		return 0;
+>>  	}
+>> +
+>> +	/*
+>> +	 * Ensure clear the obsolete frame flags
+>> +	 * before every really start streaming
+>> +	 */
+>> +	for (frame = 0; frame < cam->nbufs; frame++)
+>> +		clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
+>> +
+>>  	return mcam_read_setup(cam);
+>>  }
+>>
+>> @@ -1865,9 +1879,11 @@ int mccic_irq(struct mcam_camera *cam, unsigned int irqs)
+>>  	 * each time.
+>>  	 */
+>>  	for (frame = 0; frame < cam->nbufs; frame++)
+>> -		if (irqs & (IRQ_EOF0 << frame)) {
+>> +		if (irqs & (IRQ_EOF0 << frame) &&
+>> +			test_bit(CF_FRAME_SOF0 + frame, &cam->flags)) {
+>>  			mcam_frame_complete(cam, frame);
+>>  			handled = 1;
+>> +			clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
+>>  			if (cam->buffer_mode == B_DMA_sg)
+>>  				break;
+>>  		}
+>> @@ -1876,11 +1892,14 @@ int mccic_irq(struct mcam_camera *cam, unsigned int irqs)
+>>  	 * code assumes that we won't get multiple frame interrupts
+>>  	 * at once; may want to rethink that.
+>>  	 */
+>> -	if (irqs & (IRQ_SOF0 | IRQ_SOF1 | IRQ_SOF2)) {
+>> -		set_bit(CF_DMA_ACTIVE, &cam->flags);
+>> -		handled = 1;
+>> -		if (cam->buffer_mode == B_DMA_sg)
+>> -			mcam_ctlr_stop(cam);
+>> +	for (frame = 0; frame < cam->nbufs; frame++) {
+>> +		if (irqs & (IRQ_SOF0 << frame)) {
+>> +			set_bit(CF_DMA_ACTIVE, &cam->flags);
+>> +			set_bit(CF_FRAME_SOF0 + frame, &cam->flags);
+>> +			handled = IRQ_HANDLED;
+>> +			if (cam->buffer_mode == B_DMA_sg)
+>> +				mcam_ctlr_stop(cam);
+>> +		}
+>
+>Maybe it would be good to be more careful here. Is it actually possible that more than one
+>IRQ_SOFx bit is set here? It probably is. In this case your loop will perform some actions
+>like calling mcam_ctlr_stop() multiple times. So, maybe you could do something like
+>
+Actually, we thought about this case before we do that.
+The answer is we think this case won't occur.
+
+But we still think your proposal is safer than ours, we will adopt your suggestion.
+
+>+	for (frame = 0; frame < cam->nbufs; frame++) {
+>+		if (irqs & (IRQ_SOF0 << frame)) {
+>+			set_bit(CF_FRAME_SOF0 + frame, &cam->flags);
+>+			handled = IRQ_HANDLED;
+>+		}
+>+	}
+>+
+>+	if (handled == IRQ_HANDLED) {
+>+		set_bit(CF_DMA_ACTIVE, &cam->flags);
+>+		if (cam->buffer_mode == B_DMA_sg)
+>+			mcam_ctlr_stop(cam);
+>+	}
+>
+>>  	}
+>>  	return handled;
+>>  }
+>> --
+>> 1.7.9.5
+>
+>Thanks
+>Guennadi
+>---
+>Guennadi Liakhovetski, Ph.D.
+>Freelance Open-Source Software Developer http://www.open-technology.de/
