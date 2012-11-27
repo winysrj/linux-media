@@ -1,64 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43137 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161054Ab2KNKWp (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57579 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755861Ab2K0Qcj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Nov 2012 05:22:45 -0500
-Message-ID: <50A370F1.4020405@ti.com>
-Date: Wed, 14 Nov 2012 12:22:41 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+	Tue, 27 Nov 2012 11:32:39 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [yavta PATCH 2/2] Print v4l2_buffer timestamp type
+Date: Tue, 27 Nov 2012 17:33:43 +0100
+Message-ID: <1389859.pZ9IpEcYuE@avalon>
+In-Reply-To: <1353017384-472-2-git-send-email-sakari.ailus@iki.fi>
+References: <20121115220932.GC29863@valkosipuli.retiisi.org.uk> <1353017384-472-2-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Taneja, Archit" <archit@ti.com>
-Subject: Concerning OMAP v4l2 driver (omap_vout)
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigA79779E7E91318C1C47C229D"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---------------enigA79779E7E91318C1C47C229D
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Sakari,
 
-Hi Vaibhav,
+Thanks for the patch.
 
-I'd like to get clarity on the omap_vout maintenance. You've been the
-maintainer of omap_vout, but you have lately been quite inactive in this
-role, and getting omap_vout patches merged has not been as fluent as it
-could be.
+On Friday 16 November 2012 00:09:44 Sakari Ailus wrote:
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  yavta.c |   12 +++++++++++-
+>  1 files changed, 11 insertions(+), 1 deletions(-)
+> 
+> diff --git a/yavta.c b/yavta.c
+> index bf3e096..a50f11e 100644
+> --- a/yavta.c
+> +++ b/yavta.c
+> @@ -464,6 +464,7 @@ static int video_alloc_buffers(struct device *dev, int
+> nbufs,
+> 
+>  	/* Map the buffers. */
+>  	for (i = 0; i < rb.count; ++i) {
+> +		const char *ts_type = "invalid";
 
-Do you still want to continue in this role? Will you have time for it?
-Any ideas or suggestions how we should manage omap_vout in the future?
+Any reason for not moving this to a default case ? That shouldn't be the most 
+common case, it will nearly always get overwritten so that's hardly an 
+optimization :-)
 
- Tomi
+>  		memset(&buf, 0, sizeof buf);
+>  		buf.index = i;
+>  		buf.type = dev->type;
+> @@ -474,7 +475,16 @@ static int video_alloc_buffers(struct device *dev, int
+> nbufs, strerror(errno), errno);
+>  			return ret;
+>  		}
+> -		printf("length: %u offset: %u\n", buf.length, buf.m.offset);
+> +		switch (buf.flags & V4L2_BUF_FLAG_TIMESTAMP_MASK) {
+> +		case V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN:
+> +			ts_type = "unknown";
+> +			break;
+> +		case V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC:
+> +			ts_type = "monotonic";
+> +			break;
+> +		}
+> +		printf("length: %u offset: %u timestamp type: %s\n",
+> +		       buf.length, buf.m.offset, ts_type);
+> 
+>  		switch (dev->memtype) {
+>  		case V4L2_MEMORY_MMAP:
+-- 
+Regards,
 
+Laurent Pinchart
 
---------------enigA79779E7E91318C1C47C229D
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQo3DxAAoJEPo9qoy8lh71hG0P/idbwOqQI6n6/InqXwPIuLNb
-Wlur0r0CaMXPJ37/z0WsML4RazVAsnWaBscmY+vyUJIGgARWB2axtxwanu8KBJpQ
-vpdBAI3K/JLl0E26NGUMYiHzrUWrvqMKE8a7i/Gzx5x+bS0HKAnoJ2I+Xn51S/YA
-hhrKsCH1gbXNdjAObpTu0jsNmt1Kc3zMZa8JI9hmdNdoy2NuHk+T16rYhknm4I52
-wiUNpSeipRyGCuGsax4+6qtIn/553F4xFyiG5/Ig1B0zP9fSLKpAAlI95hjU4cj8
-aCVdopGr2Svn8lnneqqvSrhmHYb0aJK1g6BtXf2G1//t2/QMJuUDd/KNnaC/HAWY
-DBiEKMuA5Nzmcwrjci+2XSyk441V4bULLxOuXvcsz5pTyUL5EKENHzulwcQqWI5Z
-zfhhaFjJcgncvDvFYQVV47Sd2tZV+gOc+IVtBa+eqBUKmOTWNf8iwJ4UGiR0MMFf
-qRHZVnvDefWqvEHsswjPOwGlpdsLPU8avT398+NfKQQyDAGSq9mFU6/xjRom3gzV
-meI0O/wRa/9mSTDEceW1kFh0nY8BYVVJ3MDLcgd5/wCgaBXV4TWIldTqUTTF2MEu
-SLxtQgBCSftLKiTV8h2yJShhNhF3Dk5tJoRn1/ov72Dw88dPC9SbuFc+ndyBDRQl
-QuLgcABom7BUgGJsNwl5
-=9aHT
------END PGP SIGNATURE-----
-
---------------enigA79779E7E91318C1C47C229D--
