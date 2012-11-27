@@ -1,111 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:63121 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754290Ab2KZEzk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Nov 2012 23:55:40 -0500
-Received: by mail-pb0-f46.google.com with SMTP id wy7so7718146pbc.19
-        for <linux-media@vger.kernel.org>; Sun, 25 Nov 2012 20:55:39 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: t.stanislaws@samsung.com, s.nawrocki@samsung.com,
-	sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 2/9] [media] s5p-tv: Add missing braces around sizeof in mixer_video.c
-Date: Mon, 26 Nov 2012 10:19:01 +0530
-Message-Id: <1353905348-15475-3-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1353905348-15475-1-git-send-email-sachin.kamat@linaro.org>
-References: <1353905348-15475-1-git-send-email-sachin.kamat@linaro.org>
+Received: from na3sys009aog135.obsmtp.com ([74.125.149.84]:40544 "EHLO
+	na3sys009aog135.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754149Ab2K0L1V convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Nov 2012 06:27:21 -0500
+From: Albert Wang <twang13@marvell.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: "corbet@lwn.net" <corbet@lwn.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Date: Tue, 27 Nov 2012 03:28:26 -0800
+Subject: RE: [PATCH 03/15] [media] marvell-ccic: add clock tree support for
+ marvell-ccic driver
+Message-ID: <477F20668A386D41ADCC57781B1F70430D1367C8D5@SC-VEXCH1.marvell.com>
+References: <1353677595-24034-1-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1211271145320.22273@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1211271145320.22273@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Silences several checkpatch warnings of the type:
-WARNING: sizeof *out should be sizeof(*out)
-FILE: media/platform/s5p-tv/mixer_video.c:98:
-		out = kzalloc(sizeof *out, GFP_KERNEL);
+Hi, Guennadi
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/platform/s5p-tv/mixer_video.c |   18 +++++++++---------
- 1 files changed, 9 insertions(+), 9 deletions(-)
+We will update it soon.
 
-diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
-index 9b52f3a..155c092 100644
---- a/drivers/media/platform/s5p-tv/mixer_video.c
-+++ b/drivers/media/platform/s5p-tv/mixer_video.c
-@@ -95,7 +95,7 @@ int __devinit mxr_acquire_video(struct mxr_device *mdev,
- 		/* trying to register next output */
- 		if (sd == NULL)
- 			continue;
--		out = kzalloc(sizeof *out, GFP_KERNEL);
-+		out = kzalloc(sizeof(*out), GFP_KERNEL);
- 		if (out == NULL) {
- 			mxr_err(mdev, "no memory for '%s'\n",
- 				conf->output_name);
-@@ -127,7 +127,7 @@ fail_output:
- 	/* kfree is NULL-safe */
- 	for (i = 0; i < mdev->output_cnt; ++i)
- 		kfree(mdev->output[i]);
--	memset(mdev->output, 0, sizeof mdev->output);
-+	memset(mdev->output, 0, sizeof(mdev->output));
- 
- fail_vb2_allocator:
- 	/* freeing allocator context */
-@@ -160,8 +160,8 @@ static int mxr_querycap(struct file *file, void *priv,
- 
- 	mxr_dbg(layer->mdev, "%s:%d\n", __func__, __LINE__);
- 
--	strlcpy(cap->driver, MXR_DRIVER_NAME, sizeof cap->driver);
--	strlcpy(cap->card, layer->vfd.name, sizeof cap->card);
-+	strlcpy(cap->driver, MXR_DRIVER_NAME, sizeof(cap->driver));
-+	strlcpy(cap->card, layer->vfd.name, sizeof(cap->card));
- 	sprintf(cap->bus_info, "%d", layer->idx);
- 	cap->device_caps = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_OUTPUT_MPLANE;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-@@ -192,7 +192,7 @@ static void mxr_layer_default_geo(struct mxr_layer *layer)
- 	struct mxr_device *mdev = layer->mdev;
- 	struct v4l2_mbus_framefmt mbus_fmt;
- 
--	memset(&layer->geo, 0, sizeof layer->geo);
-+	memset(&layer->geo, 0, sizeof(layer->geo));
- 
- 	mxr_get_mbus_fmt(mdev, &mbus_fmt);
- 
-@@ -425,7 +425,7 @@ static int mxr_s_selection(struct file *file, void *fh,
- 	struct mxr_geometry tmp;
- 	struct v4l2_rect res;
- 
--	memset(&res, 0, sizeof res);
-+	memset(&res, 0, sizeof(res));
- 
- 	mxr_dbg(layer->mdev, "%s: rect: %dx%d@%d,%d\n", __func__,
- 		s->r.width, s->r.height, s->r.left, s->r.top);
-@@ -464,7 +464,7 @@ static int mxr_s_selection(struct file *file, void *fh,
- 	/* apply change and update geometry if needed */
- 	if (target) {
- 		/* backup current geometry if setup fails */
--		memcpy(&tmp, geo, sizeof tmp);
-+		memcpy(&tmp, geo, sizeof(tmp));
- 
- 		/* apply requested selection */
- 		target->x_offset = s->r.left;
-@@ -496,7 +496,7 @@ static int mxr_s_selection(struct file *file, void *fh,
- fail:
- 	/* restore old geometry, which is not touched if target is NULL */
- 	if (target)
--		memcpy(geo, &tmp, sizeof tmp);
-+		memcpy(geo, &tmp, sizeof(tmp));
- 	return -ERANGE;
- }
- 
-@@ -1061,7 +1061,7 @@ struct mxr_layer *mxr_base_layer_create(struct mxr_device *mdev,
- {
- 	struct mxr_layer *layer;
- 
--	layer = kzalloc(sizeof *layer, GFP_KERNEL);
-+	layer = kzalloc(sizeof(*layer), GFP_KERNEL);
- 	if (layer == NULL) {
- 		mxr_err(mdev, "not enough memory for layer.\n");
- 		goto fail;
--- 
-1.7.4.1
+>-----Original Message-----
+>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+>Sent: Tuesday, 27 November, 2012 18:50
+>To: Albert Wang
+>Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
+>Subject: Re: [PATCH 03/15] [media] marvell-ccic: add clock tree support for marvell-ccic
+>driver
+>
+>On Fri, 23 Nov 2012, Albert Wang wrote:
+>
+>> From: Libin Yang <lbyang@marvell.com>
+>>
+>> This patch adds the clock tree support for marvell-ccic.
+>>
+>> Each board may require different clk enabling sequence.
+>> Developer need add the clk_name in correct sequence in board driver to
+>> use this feature.
+>>
+>> Signed-off-by: Libin Yang <lbyang@marvell.com>
+>> Signed-off-by: Albert Wang <twang13@marvell.com>
+>> ---
+>>  drivers/media/platform/marvell-ccic/mcam-core.h  |    6 +++
+>>  drivers/media/platform/marvell-ccic/mmp-driver.c |   57 ++++++++++++++++++++++
+>>  include/media/mmp-camera.h                       |    5 ++
+>>  3 files changed, 68 insertions(+)
+>>
+>> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h
+>> b/drivers/media/platform/marvell-ccic/mcam-core.h
+>> index 2d444a1..0df6b1c 100755
+>> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
+>> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+>> @@ -88,6 +88,7 @@ struct mmp_frame_state {
+>>   *          the dev_lock spinlock; they are marked as such by comments.
+>>   *          dev_lock is also required for access to device registers.
+>>   */
+>> +#define NR_MCAM_CLK 4
+>>  struct mcam_camera {
+>>  	/*
+>>  	 * These fields should be set by the platform code prior to @@
+>> -107,6 +108,11 @@ struct mcam_camera {
+>>  	int (*dphy)[3];
+>>  	int mipi_enabled;
+>>  	int lane;			/* lane number */
+>> +
+>> +	/* clock tree support */
+>> +	struct clk *clk[NR_MCAM_CLK];
+>> +	int clk_num;
+>> +
+>>  	/*
+>>  	 * Callbacks from the core to the platform code.
+>>  	 */
+>> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> b/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> index 9d7aa79..80977b0 100755
+>> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> @@ -104,6 +104,23 @@ static struct mmp_camera *mmpcam_find_device(struct
+>platform_device *pdev)
+>>  #define REG_CCIC_DCGCR		0x28	/* CCIC dyn clock gate ctrl reg */
+>>  #define REG_CCIC_CRCR		0x50	/* CCIC clk reset ctrl reg	*/
+>>
+>> +static void mcam_clk_set(struct mcam_camera *mcam, int on) {
+>> +	unsigned int i;
+>> +
+>> +	if (on) {
+>> +		for (i = 0; i < mcam->clk_num; i++) {
+>> +			if (mcam->clk[i])
+>
+>From your init below, mcam->clk[i] can be a negative error code.
+>
+Yes. We will fix it.
+>> +				clk_enable(mcam->clk[i]);
+>> +		}
+>> +	} else {
+>> +		for (i = 0; i < mcam->clk_num; i++) {
+>> +			if (mcam->clk[i])
+>> +				clk_disable(mcam->clk[i]);
+>> +		}
+>> +	}
+>> +}
+>> +
+>>  /*
+>>   * Power control.
+>>   */
+>> @@ -134,6 +151,8 @@ static void mmpcam_power_up(struct mcam_camera *mcam)
+>>  	mdelay(5);
+>>  	gpio_set_value(pdata->sensor_reset_gpio, 1); /* reset is active low */
+>>  	mdelay(5);
+>> +
+>> +	mcam_clk_set(mcam, 1);
+>>  }
+>>
+>>  static void mmpcam_power_down(struct mcam_camera *mcam) @@ -151,6
+>> +170,8 @@ static void mmpcam_power_down(struct mcam_camera *mcam)
+>>  	pdata = cam->pdev->dev.platform_data;
+>>  	gpio_set_value(pdata->sensor_power_gpio, 0);
+>>  	gpio_set_value(pdata->sensor_reset_gpio, 0);
+>> +
+>> +	mcam_clk_set(mcam, 0);
+>>  }
+>>
+>>  /*
+>> @@ -229,6 +250,37 @@ static irqreturn_t mmpcam_irq(int irq, void *data)
+>>  	return IRQ_RETVAL(handled);
+>>  }
+>>
+>> +static void mcam_init_clk(struct mcam_camera *mcam,
+>> +			struct mmp_camera_platform_data *pdata, int init) {
+>> +	unsigned int i;
+>> +
+>> +	if (NR_MCAM_CLK < pdata->clk_num) {
+>> +		dev_warn(mcam->dev, "Too many mcam clocks defined\n");
+>> +		mcam->clk_num = 0;
+>> +		return;
+>> +	}
+>> +
+>> +	if (init) {
+>> +		for (i = 0; i < pdata->clk_num; i++) {
+>> +			if (pdata->clk_name[i] != NULL)
+>> +				mcam->clk[i] = clk_get(mcam->dev,
+>> +						pdata->clk_name[i]);
+>> +			if (IS_ERR(mcam->clk[i]))
+>> +				dev_warn(mcam->dev, "Could not get clk: %s\n",
+>> +						 pdata->clk_name[i]);
+>
+>You issue a warning but continue initialisation, leaving mcam->clk[i] set to an error value.
+>
+Yes, thanks to point it out.
+>> +		}
+>> +		mcam->clk_num = pdata->clk_num;
+>> +	} else {
+>> +		for (i = 0; i < pdata->clk_num; i++) {
+>> +			if (mcam->clk[i]) {
+>> +				clk_put(mcam->clk[i]);
+>> +				mcam->clk[i] = NULL;
+>> +			}
+>> +		}
+>> +		mcam->clk_num = 0;
+>> +	}
+>> +}
+>
+>Don't think I like this. IIUC, your driver should only try to use clocks, that it knows about,
+>not some random clocks, passed from the platform data. So, you should be using explicit
+>clock names. In your platform data you can set whether a specific clock should be used or
+>not, but not pass clock names down. Also you might want to consider using devm_clk_get()
+>and be more careful with error handling.
+>
+OK, we will try to enhance it.
 
+>>
+>>  static int mmpcam_probe(struct platform_device *pdev)  { @@ -290,6
+>> +342,8 @@ static int mmpcam_probe(struct platform_device *pdev)
+>>  		ret = -ENODEV;
+>>  		goto out_unmap1;
+>>  	}
+>> +
+>> +	mcam_init_clk(mcam, pdata, 1);
+>>  	/*
+>>  	 * Find the i2c adapter.  This assumes, of course, that the
+>>  	 * i2c bus is already up and functioning.
+>> @@ -317,6 +371,7 @@ static int mmpcam_probe(struct platform_device *pdev)
+>>  		goto out_gpio;
+>>  	}
+>>  	gpio_direction_output(pdata->sensor_reset_gpio, 0);
+>> +
+>>  	/*
+>>  	 * Power the device up and hand it off to the core.
+>>  	 */
+>> @@ -349,6 +404,7 @@ out_gpio2:
+>>  out_gpio:
+>>  	gpio_free(pdata->sensor_power_gpio);
+>>  out_unmap2:
+>> +	mcam_init_clk(mcam, pdata, 0);
+>>  	iounmap(cam->power_regs);
+>>  out_unmap1:
+>>  	iounmap(mcam->regs);
+>> @@ -372,6 +428,7 @@ static int mmpcam_remove(struct mmp_camera *cam)
+>>  	gpio_free(pdata->sensor_power_gpio);
+>>  	iounmap(cam->power_regs);
+>>  	iounmap(mcam->regs);
+>> +	mcam_init_clk(mcam, pdata, 0);
+>>  	kfree(cam);
+>>  	return 0;
+>>  }
+>> diff --git a/include/media/mmp-camera.h b/include/media/mmp-camera.h
+>> index a0b034a..e161ae0 100755
+>> --- a/include/media/mmp-camera.h
+>> +++ b/include/media/mmp-camera.h
+>> @@ -15,4 +15,9 @@ struct mmp_camera_platform_data {
+>>  	int mipi_enabled;	/* MIPI enabled flag */
+>>  	int lane;		/* ccic used lane number; 0 means DVP mode */
+>>  	int lane_clk;
+>> +	/*
+>> +	 * clock tree support
+>> +	 */
+>> +	char *clk_name[4];
+>> +	int clk_num;
+>>  };
+>> --
+>> 1.7.9.5
+>
+>Thanks
+>Guennadi
+>---
+>Guennadi Liakhovetski, Ph.D.
+>Freelance Open-Source Software Developer http://www.open-technology.de/
