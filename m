@@ -1,238 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60422 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47316 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752886Ab2KEKdR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 05:33:17 -0500
+	with ESMTP id S1755373Ab2K0QD0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Nov 2012 11:03:26 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [RFC 4/4] v4l: Tell user space we're using monotonic timestamps
-Date: Sun, 04 Nov 2012 13:07:25 +0100
-Message-ID: <6800416.KHKIF7a4Tv@avalon>
-In-Reply-To: <1351102583-682-4-git-send-email-sakari.ailus@iki.fi>
-References: <20121024181602.GD23933@valkosipuli.retiisi.org.uk> <1351102583-682-4-git-send-email-sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH v1.2 1/4] v4l: Define video buffer flags for timestamp types
+Date: Tue, 27 Nov 2012 17:04:29 +0100
+Message-ID: <5788992.si3u8AaYMi@avalon>
+In-Reply-To: <20121121235859.GB31442@valkosipuli.retiisi.org.uk>
+References: <1353098995-1319-1-git-send-email-sakari.ailus@iki.fi> <201211212353.02256.hverkuil@xs4all.nl> <20121121235859.GB31442@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hello,
 
-Thanks for the patch.
+On Thursday 22 November 2012 01:59:00 Sakari Ailus wrote:
+> On Wed, Nov 21, 2012 at 11:53:02PM +0100, Hans Verkuil wrote:
+> > On Wed November 21 2012 20:13:22 Sakari Ailus wrote:
+> > > Define video buffer flags for different timestamp types. Everything up
+> > > to now have used either realtime clock or monotonic clock, without a way
+> > > to tell which clock the timestamp was taken from.
+> > > 
+> > > Also document that the clock source of the timestamp in the timestamp
+> > > field depends on buffer flags.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Thanks! :-)
+> 
+> > But see my comments below for a separate matter...
+> > 
+> > > ---
+> > > Since v1.1:
+> > > 
+> > > - Change the description of the timestamp field; say that the type of
+> > >   the timestamp is dependent on the flags field.
+> > >  
+> > >  Documentation/DocBook/media/v4l/compat.xml |   12 ++++++
+> > >  Documentation/DocBook/media/v4l/io.xml     |   53 +++++++++++++++++----
+> > >  Documentation/DocBook/media/v4l/v4l2.xml   |   12 ++++++-
+> > >  include/uapi/linux/videodev2.h             |    4 ++
+> > >  4 files changed, 69 insertions(+), 12 deletions(-)
+> > > 
+> > > diff --git a/Documentation/DocBook/media/v4l/compat.xml
+> > > b/Documentation/DocBook/media/v4l/compat.xml index 4fdf6b5..651ca52
+> > > 100644
+> > > --- a/Documentation/DocBook/media/v4l/compat.xml
+> > > +++ b/Documentation/DocBook/media/v4l/compat.xml
+> > > @@ -2477,6 +2477,18 @@ that used it. It was originally scheduled for
+> > > removal in 2.6.35.
+> > >        </orderedlist>
+> > >      </section>
+> > > 
+> > > +    <section>
+> > > +      <title>V4L2 in Linux 3.8</title>
+> > > +      <orderedlist>
+> > > +        <listitem>
+> > > +	  <para>Added timestamp types to
+> > > +	  <structfield>flags</structfield> field in
+> > > +	  <structname>v4l2_buffer</structname>. See <xref
+> > > +	  linkend="buffer-flags" />.</para>
+> > > +        </listitem>
+> > > +      </orderedlist>
+> > > +    </section>
+> > > +
+> > >      <section id="other">
+> > >        <title>Relation of V4L2 to other Linux multimedia APIs</title>
+> > > 
+> > > diff --git a/Documentation/DocBook/media/v4l/io.xml
+> > > b/Documentation/DocBook/media/v4l/io.xml index 7e2f3d7..1243fa1 100644
+> > > --- a/Documentation/DocBook/media/v4l/io.xml
+> > > +++ b/Documentation/DocBook/media/v4l/io.xml
+> > > @@ -582,17 +582,19 @@ applications when an output stream.</entry>
+> > >  	    <entry>struct timeval</entry>
+> > >  	    <entry><structfield>timestamp</structfield></entry>
+> > >  	    <entry></entry>
+> > > -	    <entry><para>For input streams this is the
+> > > -system time (as returned by the <function>gettimeofday()</function>
+> > > -function) when the first data byte was captured. For output streams
+> > > -the data will not be displayed before this time, secondary to the
+> > > -nominal frame rate determined by the current video standard in
+> > > -enqueued order. Applications can for example zero this field to
+> > > -display frames as soon as possible. The driver stores the time at
+> > > -which the first data byte was actually sent out in the
+> > > -<structfield>timestamp</structfield> field. This permits
+> > > -applications to monitor the drift between the video and system
+> > > -clock.</para></entry>
+> > > +	    <entry><para>For input streams this is time when the first data
+> > > +	    byte was captured,
+> > 
+> > What should we do with this? In most drivers the timestamp is actually the
+> > time that the *last* byte was captured. The reality is that the
+> > application doesn't know whether it is the first or the last.
+> > 
+> > One option is to add a new flag for this, or to leave it open. The last
+> > makes me uncomfortable, since there can be quite a difference between the
+> > time of the first or last byte, and that definitely has an effect on the
+> > A/V sync.
+> 
+> Very true. I'd also prefer to have this defined so the information would be
+> available to the user space.
+> 
+> > This is a separate topic that should be handled in a separate patch, but I
+> > do think we need to take a closer look at this.
+> 
+> I'm not against one more buffer flag to tell which one it is. :-)
+> 
+> There are hardly any other options than the frame start and frame end.
+> 
+> On the other hand, the FRAME_SYNC event is supported by some drivers and
+> that can be used to obtain the timestamp from frame start. Not all drivers
+> support it nor the applications can be expected to use this just to get a
+> timestamp, though.
+> 
+> > > as returned by the
+> > > +	    <function>clock_gettime()</function> function for the relevant
+> > > +	    clock id; see <constant>V4L2_BUF_FLAG_TIMESTAMP_*</constant> in
+> > > +	    <xref linkend="buffer-flags" />. For output streams the data
+> > > +	    will not be displayed before this time, secondary to the nominal
+> > > +	    frame rate determined by the current video standard in enqueued
+> > > +	    order. Applications can for example zero this field to display
+> > > +	    frames as soon as possible.
+> > 
+> > There is not a single driver that supports this feature. There is also no
+> > way an application can query the driver whether this feature is supported.
+> > Personally I don't think this should be the task of a driver anyway: if
+> > you want to postpone displaying a frame, then just wait before calling
+> > QBUF. Don't add complicated logic in drivers/vb2 where it needs to hold
+> > buffers back if the time hasn't been reached yet.
+> 
+> Assuming realtime clock, there could be some interesting interactions with
+> this and daylight saving time or setting system clock, for example.
+> 
+> I'm definitely not against removing this, especially as no driver uses it.
 
-On Wednesday 24 October 2012 21:16:23 Sakari Ailus wrote:
-> Set buffer timestamp flags for videobuf, videobuf2 and drivers that use
-> neither.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/pci/meye/meye.c                 |    4 ++--
->  drivers/media/pci/zoran/zoran_driver.c        |    2 +-
->  drivers/media/platform/omap3isp/ispqueue.c    |    1 +
->  drivers/media/platform/vino.c                 |    3 +++
->  drivers/media/usb/cpia2/cpia2_v4l.c           |    5 ++++-
->  drivers/media/usb/sn9c102/sn9c102_core.c      |    2 +-
->  drivers/media/usb/stkwebcam/stk-webcam.c      |    1 +
->  drivers/media/usb/usbvision/usbvision-video.c |    5 +++--
->  drivers/media/v4l2-core/videobuf-core.c       |    2 +-
->  drivers/media/v4l2-core/videobuf2-core.c      |   10 ++++++----
->  10 files changed, 23 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/media/pci/meye/meye.c b/drivers/media/pci/meye/meye.c
-> index 86713e0..d3e5ca0 100644
-> --- a/drivers/media/pci/meye/meye.c
-> +++ b/drivers/media/pci/meye/meye.c
-> @@ -1426,7 +1426,7 @@ static int vidioc_querybuf(struct file *file, void
-> *fh, struct v4l2_buffer *buf) return -EINVAL;
-> 
->  	buf->bytesused = meye.grab_buffer[index].size;
-> -	buf->flags = V4L2_BUF_FLAG_MAPPED;
-> +	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> 
->  	if (meye.grab_buffer[index].state == MEYE_BUF_USING)
->  		buf->flags |= V4L2_BUF_FLAG_QUEUED;
-> @@ -1499,7 +1499,7 @@ static int vidioc_dqbuf(struct file *file, void *fh,
-> struct v4l2_buffer *buf)
-> 
->  	buf->index = reqnr;
->  	buf->bytesused = meye.grab_buffer[reqnr].size;
-> -	buf->flags = V4L2_BUF_FLAG_MAPPED;
-> +	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  	buf->field = V4L2_FIELD_NONE;
->  	buf->timestamp = meye.grab_buffer[reqnr].timestamp;
->  	buf->sequence = meye.grab_buffer[reqnr].sequence;
-> diff --git a/drivers/media/pci/zoran/zoran_driver.c
-> b/drivers/media/pci/zoran/zoran_driver.c index 53f12c7..33521a4 100644
-> --- a/drivers/media/pci/zoran/zoran_driver.c
-> +++ b/drivers/media/pci/zoran/zoran_driver.c
-> @@ -1334,7 +1334,7 @@ static int zoran_v4l2_buffer_status(struct zoran_fh
-> *fh, struct zoran *zr = fh->zr;
->  	unsigned long flags;
-> 
-> -	buf->flags = V4L2_BUF_FLAG_MAPPED;
-> +	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> 
->  	switch (fh->map_mode) {
->  	case ZORAN_MAP_MODE_RAW:
-> diff --git a/drivers/media/platform/omap3isp/ispqueue.c
-> b/drivers/media/platform/omap3isp/ispqueue.c index 15bf3ea..6599963 100644
-> --- a/drivers/media/platform/omap3isp/ispqueue.c
-> +++ b/drivers/media/platform/omap3isp/ispqueue.c
-> @@ -674,6 +674,7 @@ static int isp_video_queue_alloc(struct isp_video_queue
-> *queue, buf->vbuf.index = i;
->  		buf->vbuf.length = size;
->  		buf->vbuf.type = queue->type;
-> +		buf->vbuf.flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  		buf->vbuf.field = V4L2_FIELD_NONE;
->  		buf->vbuf.memory = memory;
-> 
-> diff --git a/drivers/media/platform/vino.c b/drivers/media/platform/vino.c
-> index 28350e7..eb5d6f9 100644
-> --- a/drivers/media/platform/vino.c
-> +++ b/drivers/media/platform/vino.c
-> @@ -3410,6 +3410,9 @@ static void vino_v4l2_get_buffer_status(struct
-> vino_channel_settings *vcs, if (fb->map_count > 0)
->  		b->flags |= V4L2_BUF_FLAG_MAPPED;
-> 
-> +	b->flags &= ~V4L2_BUF_FLAG_TIMESTAMP_MASK;
-> +	b->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> +
->  	b->index = fb->id;
->  	b->memory = (vcs->fb_queue.type == VINO_MEMORY_MMAP) ?
->  		V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
-> diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c
-> b/drivers/media/usb/cpia2/cpia2_v4l.c index aeb9d22..d5d42b6 100644
-> --- a/drivers/media/usb/cpia2/cpia2_v4l.c
-> +++ b/drivers/media/usb/cpia2/cpia2_v4l.c
-> @@ -825,6 +825,8 @@ static int cpia2_querybuf(struct file *file, void *fh,
-> struct v4l2_buffer *buf) else
->  		buf->flags = 0;
-> 
-> +	buf->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> +
->  	switch (cam->buffers[buf->index].status) {
->  	case FRAME_EMPTY:
->  	case FRAME_ERROR:
-> @@ -943,7 +945,8 @@ static int cpia2_dqbuf(struct file *file, void *fh,
-> struct v4l2_buffer *buf)
-> 
->  	buf->index = frame;
->  	buf->bytesused = cam->buffers[buf->index].length;
-> -	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_DONE;
-> +	buf->flags = V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_DONE
-> +		| V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  	buf->field = V4L2_FIELD_NONE;
->  	buf->timestamp = cam->buffers[buf->index].timestamp;
->  	buf->sequence = cam->buffers[buf->index].seq;
-> diff --git a/drivers/media/usb/sn9c102/sn9c102_core.c
-> b/drivers/media/usb/sn9c102/sn9c102_core.c index 843fadc..2e0e2ff 100644
-> --- a/drivers/media/usb/sn9c102/sn9c102_core.c
-> +++ b/drivers/media/usb/sn9c102/sn9c102_core.c
-> @@ -173,7 +173,7 @@ sn9c102_request_buffers(struct sn9c102_device* cam, u32
-> count, cam->frame[i].buf.sequence = 0;
->  		cam->frame[i].buf.field = V4L2_FIELD_NONE;
->  		cam->frame[i].buf.memory = V4L2_MEMORY_MMAP;
-> -		cam->frame[i].buf.flags = 0;
-> +		cam->frame[i].buf.flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  	}
-> 
->  	return cam->nbuffers;
-> diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c
-> b/drivers/media/usb/stkwebcam/stk-webcam.c index c22a4d0..459ebc6 100644
-> --- a/drivers/media/usb/stkwebcam/stk-webcam.c
-> +++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-> @@ -470,6 +470,7 @@ static int stk_setup_siobuf(struct stk_camera *dev, int
-> index) buf->dev = dev;
->  	buf->v4lbuf.index = index;
->  	buf->v4lbuf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +	buf->v4lbuf.flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  	buf->v4lbuf.field = V4L2_FIELD_NONE;
->  	buf->v4lbuf.memory = V4L2_MEMORY_MMAP;
->  	buf->v4lbuf.m.offset = 2*index*buf->v4lbuf.length;
-> diff --git a/drivers/media/usb/usbvision/usbvision-video.c
-> b/drivers/media/usb/usbvision/usbvision-video.c index 5c36a57..c6bc8ce
-> 100644
-> --- a/drivers/media/usb/usbvision/usbvision-video.c
-> +++ b/drivers/media/usb/usbvision/usbvision-video.c
-> @@ -761,7 +761,7 @@ static int vidioc_querybuf(struct file *file,
->  	if (vb->index >= usbvision->num_frames)
->  		return -EINVAL;
->  	/* Updating the corresponding frame state */
-> -	vb->flags = 0;
-> +	vb->flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  	frame = &usbvision->frame[vb->index];
->  	if (frame->grabstate >= frame_state_ready)
->  		vb->flags |= V4L2_BUF_FLAG_QUEUED;
-> @@ -843,7 +843,8 @@ static int vidioc_dqbuf(struct file *file, void *priv,
-> struct v4l2_buffer *vb) vb->memory = V4L2_MEMORY_MMAP;
->  	vb->flags = V4L2_BUF_FLAG_MAPPED |
->  		V4L2_BUF_FLAG_QUEUED |
-> -		V4L2_BUF_FLAG_DONE;
-> +		V4L2_BUF_FLAG_DONE |
-> +		V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  	vb->index = f->index;
->  	vb->sequence = f->sequence;
->  	vb->timestamp = f->timestamp;
-> diff --git a/drivers/media/v4l2-core/videobuf-core.c
-> b/drivers/media/v4l2-core/videobuf-core.c index bf7a326..e98db7e 100644
-> --- a/drivers/media/v4l2-core/videobuf-core.c
-> +++ b/drivers/media/v4l2-core/videobuf-core.c
-> @@ -337,7 +337,7 @@ static void videobuf_status(struct videobuf_queue *q,
-> struct v4l2_buffer *b, break;
->  	}
-> 
-> -	b->flags    = 0;
-> +	b->flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  	if (vb->map)
->  		b->flags |= V4L2_BUF_FLAG_MAPPED;
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> b/drivers/media/v4l2-core/videobuf2-core.c index 432df11..19a5866 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -40,9 +40,10 @@ module_param(debug, int, 0644);
->  #define call_qop(q, op, args...)					\
->  	(((q)->ops->op) ? ((q)->ops->op(args)) : 0)
-> 
-> -#define V4L2_BUFFER_STATE_FLAGS	(V4L2_BUF_FLAG_MAPPED |
-> V4L2_BUF_FLAG_QUEUED | \ +#define
-> V4L2_BUFFER_MASK_FLAGS	(V4L2_BUF_FLAG_MAPPED | V4L2_BUF_FLAG_QUEUED | \
-> V4L2_BUF_FLAG_DONE | V4L2_BUF_FLAG_ERROR | \
-> -				 V4L2_BUF_FLAG_PREPARED)
-> +				 V4L2_BUF_FLAG_PREPARED | \
-> +				 V4L2_BUF_FLAG_TIMESTAMP_MASK)
-> 
->  /**
->   * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
-> @@ -367,7 +368,8 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb,
-> struct v4l2_buffer *b) /*
->  	 * Clear any buffer state related flags.
->  	 */
-> -	b->flags &= ~V4L2_BUFFER_STATE_FLAGS;
-> +	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
-> +	b->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+Acked.
 
-That's an issue. Drivers that use videobuf2 would always be restricted to 
-monotonic timestamps in the future, even if they provide support for a device-
-specific clock.
+> > What might be much more interesting for output devices is if the timestamp
+> > field is filled in with the expected display time on return of QBUF. That
+> > would be very useful for regulating the flow of new frames.
 
-Would it instead make sense to pass a v4l2_buffer pointer to 
-v4l2_get_timestamp() and set the monotonic flag there ? Not all callers of 
-v4l2_get_timestamp() might have a v4l2_buffer pointer though.
+Acked as well.
 
->  	switch (vb->state) {
->  	case VB2_BUF_STATE_QUEUED:
-> @@ -863,7 +865,7 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb,
-> const struct v4l2_buffer *b
+> > What do you think?
 > 
->  	vb->v4l2_buf.field = b->field;
->  	vb->v4l2_buf.timestamp = b->timestamp;
-> -	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_STATE_FLAGS;
-> +	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_MASK_FLAGS;
->  }
+> Fine for me. Sylwester also brought memory-to-memory devices (and
+> memory-to-memory processing whether the device is classified as such in API
+> or not) to my attention. For those devices it likely wouldn't matter at all
+> what's the system time when the frame is processed since the frame wasn't
+> captured at that time anyway.
 > 
->  /**
+> In those cases it might makes sense to use timestamp that e.g. comes from
+> the compressed stream, or pass encoder timestamps that are going to be part
+> of the compressed stream. I think MPEG-related use cases were briefly
+> mentioned in the timestamp discussion earlier.
+
+When uncompressing a stream you will get the MPEG embedded timestamp on the 
+capture side. The timestamp returned to userspace at QBUF time on the output 
+side will still be unused. I don't really see a use case for returning the 
+timestamp at which the frame is expected to be processed by the codec, so we 
+could just make the field reserved for future use in that case.
+
+> > > The driver stores the time at which
+> > > +	    the first data byte was actually sent out in the
+> > > +	    <structfield>timestamp</structfield> field.
+> > 
+> > Same problem as with the capture time: does the timestamp refer to the
+> > first or last byte that's sent out? I think all output drivers set it to
+> > the time of the last byte (== when the DMA of the frame is finished).
+> 
+> I haven't actually even seen a capture driver that would do otherwise, but
+> that could be just me not knowing many enough. :-) Would we actually break
+> something if we changed the definition to say that this is the timestamp
+> taken when the frame is done?
+
+For software timestamps we could do that, but for hardware timestamps the 
+exact timestamping time may vary.
 
 -- 
 Regards,
