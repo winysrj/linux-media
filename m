@@ -1,82 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46197 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752421Ab2KVSyG (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:52287 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750771Ab2K0K5Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 13:54:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.7-rc] Samsung SoC media driver fixes
-Date: Thu, 22 Nov 2012 19:55:06 +0100
-Message-ID: <84619288.LAxNEDMoLt@avalon>
-In-Reply-To: <50AE6D36.1060805@samsung.com>
-References: <50AE6BAC.1030208@samsung.com> <50AE6D36.1060805@samsung.com>
+	Tue, 27 Nov 2012 05:57:25 -0500
+Date: Tue, 27 Nov 2012 11:57:22 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Albert Wang <twang13@marvell.com>
+cc: corbet@lwn.net, linux-media@vger.kernel.org,
+	Libin Yang <lbyang@marvell.com>
+Subject: Re: [PATCH 04/15] [media] marvell-ccic: reset ccic phy when stop
+ streaming for stability
+In-Reply-To: <1353677603-24071-1-git-send-email-twang13@marvell.com>
+Message-ID: <Pine.LNX.4.64.1211271152240.22273@axis700.grange>
+References: <1353677603-24071-1-git-send-email-twang13@marvell.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On Fri, 23 Nov 2012, Albert Wang wrote:
 
-On Thursday 22 November 2012 19:21:42 Sylwester Nawrocki wrote:
-> Hi Mauro,
+> From: Libin Yang <lbyang@marvell.com>
 > 
-> this is what I've just sent (this time from the office my samsung.com
-> account) to linux-media@vger.kernel.org. And can't see it neither on the
-> mailing list nor at the patchwork.
+> This patch adds the reset ccic phy operation when stop streaming.
+> 
+> Without reset ccic phy, the next start streaming may be unstable.
+> 
+> Also need add CCIC2 definition when PXA688/PXA2128 support dual ccics.
+> 
+> Signed-off-by: Albert Wang <twang13@marvell.com>
+> Signed-off-by: Libin Yang <lbyang@marvell.com>
+> ---
+>  drivers/media/platform/marvell-ccic/mcam-core.c  |    5 +++++
+>  drivers/media/platform/marvell-ccic/mcam-core.h  |    2 ++
+>  drivers/media/platform/marvell-ccic/mmp-driver.c |   25 ++++++++++++++++++++++
+>  3 files changed, 32 insertions(+)
+> 
+> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+> index b111f0d..760e8ea 100755
+> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
+> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+> @@ -1053,6 +1053,11 @@ static int mcam_vb_stop_streaming(struct vb2_queue *vq)
+>  		return -EINVAL;
+>  	mcam_ctlr_stop_dma(cam);
+>  	/*
+> +	 * Reset the CCIC PHY after stopping streaming,
+> +	 * otherwise, the CCIC may be unstable.
+> +	 */
+> +	cam->ctlr_reset(cam);
 
-Nothing like that coming from you in my mail server logs. It looks like an 
-SMTP server in the chain silently drops the e-mail.
+Aren't you breaking the cafe driver by calling .ctrl_reset() without 
+checking for NULL? Same holds for your .calc_dphy() callback too.
 
-> On 11/22/2012 07:15 PM, Sylwester Nawrocki wrote:
-> > Hi Mauro,
-> > 
-> > The following changes since commit 
-30677fd9ac7b9a06555318ec4f9a0db39804f9b2:
-> >   s5p-fimc: Fix potential NULL pointer dereference (2012-11-22 10:15:40
-> >   +0100)> 
-> > are available in the git repository at:
-> >   git://git.infradead.org/users/kmpark/linux-samsung media_fixes_for_v3.7
-> > 
-> > for you to fetch changes up to 28f497f26c67ab734bdb923b457016122368f69a:
-> >   s5p-mfc: Handle multi-frame input buffer (2012-11-22 15:13:53 +0100)
-> > 
-> > This is a bunch of quite important fixes for the Exynos SoC drivers,
-> > please apply for v3.7 if possible. This depends on my previous pull
-> > request (I've applied the patches you indicated you take for v3.7
-> > previously to the media_fixes_for_v3.7 branch as well).
-> > 
-> > ----------------------------------------------------------------
-> > 
-> > Arun Kumar K (2):
-> >       s5p-mfc: Bug fix of timestamp/timecode copy mechanism
-> >       s5p-mfc: Handle multi-frame input buffer
-> > 
-> > Shaik Ameer Basha (1):
-> >       exynos-gsc: Fix settings for input and output image RGB type
-> > 
-> > Sylwester Nawrocki (5):
-> >       s5p-fimc: Prevent race conditions during subdevs registration
-> >       s5p-fimc: Don't use mutex_lock_interruptible() in device release()
-> >       fimc-lite: Don't use mutex_lock_interruptible() in device release()
-> >       exynos-gsc: Don't use mutex_lock_interruptible() in device release()
-> >       exynos-gsc: Add missing video device vfl_dir flag initialization
-> >  
-> >  drivers/media/platform/exynos-gsc/gsc-m2m.c     |    4 ++--
-> >  drivers/media/platform/exynos-gsc/gsc-regs.h    |   16 ++++++++--------
-> >  drivers/media/platform/s5p-fimc/fimc-capture.c  |   10 +++++++---
-> >  drivers/media/platform/s5p-fimc/fimc-lite.c     |    6 ++++--
-> >  drivers/media/platform/s5p-fimc/fimc-m2m.c      |    3 +--
-> >  drivers/media/platform/s5p-fimc/fimc-mdevice.c  |    4 ++--
-> >  drivers/media/platform/s5p-mfc/s5p_mfc.c        |    7 ++-----
-> >  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    2 +-
-> >  8 files changed, 27 insertions(+), 25 deletions(-)
+> +	/*
+>  	 * VB2 reclaims the buffers, so we need to forget
+>  	 * about them.
+>  	 */
+> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+> index 0df6b1c..40368f6 100755
+> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
+> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+> @@ -103,6 +103,7 @@ struct mcam_camera {
+>  	short int use_smbus;	/* SMBUS or straight I2c? */
+>  	enum mcam_buffer_mode buffer_mode;
+>  
+> +	int ccic_id;
+>  	/* MIPI support */
+>  	int bus_type;
+>  	int (*dphy)[3];
+> @@ -119,6 +120,7 @@ struct mcam_camera {
+>  	void (*plat_power_up) (struct mcam_camera *cam);
+>  	void (*plat_power_down) (struct mcam_camera *cam);
+>  	void (*calc_dphy)(struct mcam_camera *cam);
+> +	void (*ctlr_reset)(struct mcam_camera *cam);
+>  
+>  	/*
+>  	 * Everything below here is private to the mcam core and
+> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+> index 80977b0..20046d0 100755
+> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
+> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+> @@ -103,6 +103,7 @@ static struct mmp_camera *mmpcam_find_device(struct platform_device *pdev)
+>  #define CPU_SUBSYS_PMU_BASE	0xd4282800
+>  #define REG_CCIC_DCGCR		0x28	/* CCIC dyn clock gate ctrl reg */
+>  #define REG_CCIC_CRCR		0x50	/* CCIC clk reset ctrl reg	*/
+> +#define REG_CCIC2_CRCR		0xf4	/* CCIC2 clk reset ctrl reg	*/
+>  
+>  static void mcam_clk_set(struct mcam_camera *mcam, int on)
+>  {
+> @@ -174,6 +175,28 @@ static void mmpcam_power_down(struct mcam_camera *mcam)
+>  	mcam_clk_set(mcam, 0);
+>  }
+>  
+> +void mcam_ctlr_reset(struct mcam_camera *mcam)
+> +{
+> +	unsigned long val;
+> +	struct mmp_camera *cam = mcam_to_cam(mcam);
+> +
+> +	if (mcam->ccic_id) {
+> +		/*
+> +		 * Using CCIC2
+> +		 */
+> +		val = ioread32(cam->power_regs + REG_CCIC2_CRCR);
+> +		iowrite32(val & ~0x2, cam->power_regs + REG_CCIC2_CRCR);
+> +		iowrite32(val | 0x2, cam->power_regs + REG_CCIC2_CRCR);
+> +	} else {
+> +		/*
+> +		 * Using CCIC1
+> +		 */
+> +		val = ioread32(cam->power_regs + REG_CCIC_CRCR);
+> +		iowrite32(val & ~0x2, cam->power_regs + REG_CCIC_CRCR);
+> +		iowrite32(val | 0x2, cam->power_regs + REG_CCIC_CRCR);
+> +	}
+> +}
+> +
+>  /*
+>   * calc the dphy register values
+>   * There are three dphy registers being used.
+> @@ -301,9 +324,11 @@ static int mmpcam_probe(struct platform_device *pdev)
+>  	mcam = &cam->mcam;
+>  	mcam->plat_power_up = mmpcam_power_up;
+>  	mcam->plat_power_down = mmpcam_power_down;
+> +	mcam->ctlr_reset = mcam_ctlr_reset;
+>  	mcam->calc_dphy = mmpcam_calc_dphy;
+>  	mcam->dev = &pdev->dev;
+>  	mcam->use_smbus = 0;
+> +	mcam->ccic_id = pdev->id;
+>  	mcam->bus_type = pdata->bus_type;
+>  	mcam->dphy = &(pdata->dphy);
+>  	mcam->mipi_enabled = 0;
+> -- 
+> 1.7.9.5
 
--- 
-Regards,
-
-Laurent Pinchart
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
