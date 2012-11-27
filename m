@@ -1,96 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:64565 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754105Ab2KWL5L (ORCPT
+Received: from aotearoadigitalarts.org.nz ([72.14.179.101]:51291 "EHLO
+	linode.halo.gen.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932082Ab2K0UK5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 06:57:11 -0500
-Received: by mail-pa0-f46.google.com with SMTP id bh2so3502852pad.19
-        for <linux-media@vger.kernel.org>; Fri, 23 Nov 2012 03:57:11 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org,
-	patches@linaro.org, Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH 4/6] [media] s5p-g2d: Use devm_clk_get APIs.
-Date: Fri, 23 Nov 2012 17:20:41 +0530
-Message-Id: <1353671443-2978-5-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1353671443-2978-1-git-send-email-sachin.kamat@linaro.org>
-References: <1353671443-2978-1-git-send-email-sachin.kamat@linaro.org>
+	Tue, 27 Nov 2012 15:10:57 -0500
+Message-ID: <50B519D4.7050904@paradise.net.nz>
+Date: Wed, 28 Nov 2012 08:51:48 +1300
+From: Douglas Bagnall <douglas@paradise.net.nz>
+MIME-Version: 1.0
+To: Dan Carpenter <dan.carpenter@oracle.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	=?UTF-8?B?RGF2aWQgSMOkcmRl?= =?UTF-8?B?bWFu?= <david@hardeman.nu>,
+	Jarod Wilson <jarod@redhat.com>,
+	Ezequiel Garcia <elezegarcia@gmail.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch 1/2] [media] rc: unlock on error in show_protocols()
+References: <20121127173509.GE1059@elgon.mountain>
+In-Reply-To: <20121127173509.GE1059@elgon.mountain>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-devm_clk_get() is device managed function and makes error handling
-and exit code a bit simpler.
+On 28/11/12 06:35, Dan Carpenter wrote:
+> We recently introduced a new return -ENODEV in this function but we need
+> to unlock before returning.
 
-Cc: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/platform/s5p-g2d/g2d.c |   14 ++++----------
- 1 files changed, 4 insertions(+), 10 deletions(-)
+There is an identical patch here (scroll down):
+https://patchwork.kernel.org/patch/1284081/
 
-diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
-index 1bfbc32..77819d3 100644
---- a/drivers/media/platform/s5p-g2d/g2d.c
-+++ b/drivers/media/platform/s5p-g2d/g2d.c
-@@ -714,7 +714,7 @@ static int g2d_probe(struct platform_device *pdev)
- 			return -ENOENT;
- 	}
- 
--	dev->clk = clk_get(&pdev->dev, "sclk_fimg2d");
-+	dev->clk = devm_clk_get(&pdev->dev, "sclk_fimg2d");
- 	if (IS_ERR_OR_NULL(dev->clk)) {
- 		dev_err(&pdev->dev, "failed to get g2d clock\n");
- 		return -ENXIO;
-@@ -726,7 +726,7 @@ static int g2d_probe(struct platform_device *pdev)
- 		goto put_clk;
- 	}
- 
--	dev->gate = clk_get(&pdev->dev, "fimg2d");
-+	dev->gate = devm_clk_get(&pdev->dev, "fimg2d");
- 	if (IS_ERR_OR_NULL(dev->gate)) {
- 		dev_err(&pdev->dev, "failed to get g2d clock gate\n");
- 		ret = -ENXIO;
-@@ -736,7 +736,7 @@ static int g2d_probe(struct platform_device *pdev)
- 	ret = clk_prepare(dev->gate);
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to prepare g2d clock gate\n");
--		goto put_clk_gate;
-+		goto unprep_clk;
- 	}
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-@@ -752,7 +752,7 @@ static int g2d_probe(struct platform_device *pdev)
- 						0, pdev->name, dev);
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to install IRQ\n");
--		goto put_clk_gate;
-+		goto unprep_clk;
- 	}
- 
- 	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
-@@ -804,13 +804,9 @@ alloc_ctx_cleanup:
- 	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
- unprep_clk_gate:
- 	clk_unprepare(dev->gate);
--put_clk_gate:
--	clk_put(dev->gate);
- unprep_clk:
- 	clk_unprepare(dev->clk);
- put_clk:
--	clk_put(dev->clk);
--
- 	return ret;
- }
- 
-@@ -824,9 +820,7 @@ static int g2d_remove(struct platform_device *pdev)
- 	v4l2_device_unregister(&dev->v4l2_dev);
- 	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
- 	clk_unprepare(dev->gate);
--	clk_put(dev->gate);
- 	clk_unprepare(dev->clk);
--	clk_put(dev->clk);
- 	return 0;
- }
- 
--- 
-1.7.4.1
+I'm not sure what happened to it.
+
+Douglas
+
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> 
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index 601d1ac1..d593bc6 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -789,8 +789,10 @@ static ssize_t show_protocols(struct device *device,
+>  	} else if (dev->raw) {
+>  		enabled = dev->raw->enabled_protocols;
+>  		allowed = ir_raw_get_allowed_protocols();
+> -	} else
+> +	} else {
+> +		mutex_unlock(&dev->lock);
+>  		return -ENODEV;
+> +	}
+>  
+>  	IR_dprintk(1, "allowed - 0x%llx, enabled - 0x%llx\n",
+>  		   (long long)allowed,
+> 
 
