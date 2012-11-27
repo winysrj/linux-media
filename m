@@ -1,154 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37970 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751730Ab2K1Tz4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 14:55:56 -0500
-Date: Wed, 28 Nov 2012 17:55:44 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	Julia Lawall <Julia.Lawall@lip6.fr>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/23] media: Replace memcpy with struct assignment
-Message-ID: <20121128175544.4266260d@redhat.com>
-In-Reply-To: <CALF0-+USC6ButEO0pMRPFj8hGtL90wi3FrxL-BkE1oF42qcggg@mail.gmail.com>
-References: <CALF0-+XH4AfJUcNHXdMTwXf-=f24Zpe3VOw_1eQ9WBV1-6ZVjQ@mail.gmail.com>
-	<CALF0-+USC6ButEO0pMRPFj8hGtL90wi3FrxL-BkE1oF42qcggg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:57840 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754512Ab2K0QpX convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Nov 2012 11:45:23 -0500
+From: Albert Wang <twang13@marvell.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: "corbet@lwn.net" <corbet@lwn.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Date: Tue, 27 Nov 2012 08:44:37 -0800
+Subject: RE: [PATCH 15/15] [media] marvell-ccic: add 3 frame buffers support
+ in DMA_CONTIG mode
+Message-ID: <477F20668A386D41ADCC57781B1F70430D1367C918@SC-VEXCH1.marvell.com>
+References: <1353677705-24479-1-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1211271713100.22273@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1211271713100.22273@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 28 Nov 2012 16:06:31 -0300
-Ezequiel Garcia <elezegarcia@gmail.com> escreveu:
+Hi, Guennadi
 
-> On Tue, Oct 23, 2012 at 4:57 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> > Hello everyone,
-> >
-> > This is a large patchset that replaces struct memcpy with struct assignment,
-> > whenever possible at drivers/media.
-> >
-> > The patches are hand applied and every change has been thoroughly reviewed.
-> > However, to avoid regressions and angry users we'd like to have Acks
-> > from maintainers.
-> >
-> > A simplified version of the semantic match that finds
-> > this problem is as follows: (http://coccinelle.lip6.fr/)
-> >
-> > // <smpl>
-> > @@
-> > identifier struct_name;
-> > struct struct_name to;
-> > struct struct_name from;
-> > expression E;
-> > @@
-> > -memcpy(&(to), &(from), E);
-> > +to = from;
-> > // </smpl>
-> >
-> > If you're thinking this change is very minor and doesn't worh the pain,
-> > you might change your opinion reading this report from Dan Carpenter:
-> >
-> > http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/49553
-> >
-> > The report clearly shows how copy-paste programming paradigm, combined with
-> > lack of memcpy type-safety can lead to very strange code.
-> >
-> > Not to mention, using struct assignment instead of memcpy
-> > is by far more readable.
-> >
-> > Comments, feedback and flames are welcome. Thanks!
-> >
-> > Peter Senna Tschudin, Ezequiel Garcia (23):
-> >  wl128x: Replace memcpy with struct assignment
-> >  radio-wl1273: Replace memcpy with struct assignment
-> >  dvb-frontends: Replace memcpy with struct assignment
-> >  dvb-core: Replace memcpy with struct assignment
-> >  bttv: Replace memcpy with struct assignment
-> >  cx18: Replace memcpy with struct assignment
-> >  cx23885: Replace memcpy with struct assignment
-> >  cx88: Replace memcpy with struct assignment
-> >  ivtv: Replace memcpy with struct assignment
-> >  tuners/tda18271: Replace memcpy with struct assignment
-> >  tuners/xc2028: Replace memcpy with struct assignment
-> >  tuners/xc4000: Replace memcpy with struct assignment
-> >  au0828: Replace memcpy with struct assignment
-> >  dvb-usb/friio-fe: Replace memcpy with struct assignment
-> >  zr36067: Replace memcpy with struct assignment
-> >  cx25840: Replace memcpy with struct assignment
-> >  hdpvr: Replace memcpy with struct assignment
-> >  pvrusb2: Replace memcpy with struct assignment
-> >  pwc: Replace memcpy with struct assignment
-> >  sn9c102: Replace memcpy with struct assignment
-> >  usbvision: Replace memcpy with struct assignment
-> >  cx231xx: Replace memcpy with struct assignment
-> >  uvc: Replace memcpy with struct assignment
-> >
-> >  drivers/media/dvb-core/dvb_frontend.c        |    2 +-
-> >  drivers/media/dvb-frontends/cx24116.c        |    2 +-
-> >  drivers/media/dvb-frontends/drxd_hard.c      |    5 ++---
-> >  drivers/media/dvb-frontends/stv0299.c        |    2 +-
-> >  drivers/media/i2c/cx25840/cx25840-ir.c       |    6 ++----
-> >  drivers/media/pci/bt8xx/bttv-i2c.c           |    3 +--
-> >  drivers/media/pci/cx18/cx18-i2c.c            |    6 ++----
-> >  drivers/media/pci/cx23885/cx23885-video.c    |    3 +--
-> >  drivers/media/pci/cx23885/cx23888-ir.c       |    6 ++----
-> >  drivers/media/pci/cx88/cx88-cards.c          |    2 +-
-> >  drivers/media/pci/cx88/cx88-i2c.c            |    3 +--
-> >  drivers/media/pci/cx88/cx88-vp3054-i2c.c     |    3 +--
-> >  drivers/media/pci/ivtv/ivtv-i2c.c            |   12 ++++--------
-> >  drivers/media/pci/zoran/zoran_card.c         |    3 +--
-> >  drivers/media/radio/radio-wl1273.c           |    3 +--
-> >  drivers/media/radio/wl128x/fmdrv_common.c    |    3 +--
-> >  drivers/media/tuners/tda18271-maps.c         |    6 ++----
-> >  drivers/media/tuners/tuner-xc2028.c          |    2 +-
-> >  drivers/media/tuners/xc4000.c                |    2 +-
-> >  drivers/media/usb/au0828/au0828-cards.c      |    2 +-
-> >  drivers/media/usb/au0828/au0828-i2c.c        |    9 +++------
-> >  drivers/media/usb/cx231xx/cx231xx-cards.c    |    2 +-
-> >  drivers/media/usb/cx231xx/cx231xx-video.c    |    3 +--
-> >  drivers/media/usb/dvb-usb/friio-fe.c         |    5 ++---
-> >  drivers/media/usb/hdpvr/hdpvr-i2c.c          |    3 +--
-> >  drivers/media/usb/pvrusb2/pvrusb2-encoder.c  |    3 +--
-> >  drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c |    4 ++--
-> >  drivers/media/usb/pvrusb2/pvrusb2-v4l2.c     |    2 +-
-> >  drivers/media/usb/pwc/pwc-if.c               |    2 +-
-> >  drivers/media/usb/sn9c102/sn9c102_core.c     |    4 ++--
-> >  drivers/media/usb/usbvision/usbvision-i2c.c  |    3 +--
-> >  drivers/media/usb/uvc/uvc_v4l2.c             |    6 +++---
-> >  32 files changed, 47 insertions(+), 75 deletions(-)
-> >
-> 
-> Hi Mauro,
-> 
-> Given we're very near merge window, I'm wondering if you're
-> considering picking this series.
-> There's no rush, but if there's anything to review, please let me know.
+Thanks a lot for your review! :)
 
-Hi Ezequiel,
+>-----Original Message-----
+>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+>Sent: Wednesday, 28 November, 2012 00:30
+>To: Albert Wang
+>Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
+>Subject: Re: [PATCH 15/15] [media] marvell-ccic: add 3 frame buffers support in
+>DMA_CONTIG mode
+>
+>On Fri, 23 Nov 2012, Albert Wang wrote:
+>
+>> This patch adds support of 3 frame buffers in DMA-contiguous mode.
+>>
+>> In current DMA_CONTIG mode, only 2 frame buffers can be supported.
+>> Actually, Marvell CCIC can support at most 3 frame buffers.
+>>
+>> Currently 2 frame buffers mode will be used by default.
+>> To use 3 frame buffers mode, can do:
+>>   define MAX_FRAME_BUFS 3
+>> in mcam-core.h
+>>
+>> Signed-off-by: Albert Wang <twang13@marvell.com>
+>> ---
+>>  drivers/media/platform/marvell-ccic/mcam-core.c |   59 +++++++++++++++++------
+>>  drivers/media/platform/marvell-ccic/mcam-core.h |   11 +++++
+>>  2 files changed, 55 insertions(+), 15 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c
+>> b/drivers/media/platform/marvell-ccic/mcam-core.c
+>> index 2d200d6..3b75594 100755
+>> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
+>> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+>> @@ -401,13 +401,32 @@ static void mcam_set_contig_buffer(struct mcam_camera
+>*cam, unsigned int frame)
+>>  	struct mcam_vb_buffer *buf;
+>>  	struct v4l2_pix_format *fmt = &cam->pix_format;
+>>
+>> -	/*
+>> -	 * If there are no available buffers, go into single mode
+>> -	 */
+>>  	if (list_empty(&cam->buffers)) {
+>> -		buf = cam->vb_bufs[frame ^ 0x1];
+>> -		set_bit(CF_SINGLE_BUFFER, &cam->flags);
+>> -		cam->frame_state.singles++;
+>> +		/*
+>> +		 * If there are no available buffers
+>> +		 * go into single buffer mode
+>> +		 *
+>> +		 * If CCIC use Two Buffers mode
+>> +		 * will use another remaining frame buffer
+>> +		 * frame 0 -> buf 1
+>> +		 * frame 1 -> buf 0
+>> +		 *
+>> +		 * If CCIC use Three Buffers mode
+>> +		 * will use the 2rd remaining frame buffer
+>> +		 * frame 0 -> buf 2
+>> +		 * frame 1 -> buf 0
+>> +		 * frame 2 -> buf 1
+>> +		 */
+>> +		buf = cam->vb_bufs[(frame + (MAX_FRAME_BUFS - 1))
+>> +						% MAX_FRAME_BUFS];
+>> +		if (cam->frame_state.tribufs == 0)
+>> +			cam->frame_state.tribufs++;
+>
+>TBH, I don't understand what the "tribuf" field means and what it is doing. Could you
+>explain a bit?
+>
+Yes, in the first version, I just use tribufs in the 3 frame buffer mode.
+Then I consolidated the controls of 2 buffers mode and 3 buffers mode according to Jonathan's suggestion.
+But still continue to use the "tribufs", maybe it's confused.
 
-Thanks for your offering.
+>> +		else {
+>> +			set_bit(CF_SINGLE_BUFFER, &cam->flags);
+>> +			cam->frame_state.singles++;
+>> +			if (cam->frame_state.tribufs < 2)
+>> +				cam->frame_state.tribufs++;
+>
+>This seems to be the only location, where tribuf affects the control flow.
+>So, it looks like, it controls, if no more buffers are on the queue, wheather you need to
+>set the CF_SINGLE_BUFFER flag and increment the singles count.
+>
+Yes, the tribufs indicates which conditions we need set the single buffer flag.
 
-There are 400+ patches pending today at patchwork. I doubt I'll have enough
-time for all of them, so, I'll skip cleanup patches like the above, in order
-to try to focus on bug fixes and patches that brings new functionality to
-existing code and with a low risk of breaking anything.
 
-Next year, we'll start implementing the sub-maintainers, and, with their
-help, I suspect we'll be able to finally apply those patches.
-
-If you want us to help, feel free to review/test the individual patches
-submitted by non-maintainers to the ML. We tend to apply faster patches
-that are more reviewed. 
-
-Hmm... well, actually it is just the opposite: we explicitly delay 
-not-reviewed patches for unmaintained/bad maintained drivers,
-to see if someone acks or nacks them after testing.
-
-Regards,
-Mauro
+>Thanks
+>Guennadi
+>
+>> +		}
+>>  	} else {
+>>  		/*
+>>  		 * OK, we have a buffer we can use.
+>> @@ -416,15 +435,15 @@ static void mcam_set_contig_buffer(struct mcam_camera
+>*cam, unsigned int frame)
+>>  					queue);
+>>  		list_del_init(&buf->queue);
+>>  		clear_bit(CF_SINGLE_BUFFER, &cam->flags);
+>> +		if (cam->frame_state.tribufs != (3 - MAX_FRAME_BUFS))
+>> +			cam->frame_state.tribufs--;
+>>  	}
+>>
+>>  	cam->vb_bufs[frame] = buf;
+>> -	mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR, buf->yuv_p.y);
+>> +	mcam_reg_write(cam, REG_Y0BAR + (frame << 2), buf->yuv_p.y);
+>>  	if (mcam_fmt_is_planar(fmt->pixelformat)) {
+>> -		mcam_reg_write(cam, frame == 0 ?
+>> -					REG_U0BAR : REG_U1BAR, buf->yuv_p.u);
+>> -		mcam_reg_write(cam, frame == 0 ?
+>> -					REG_V0BAR : REG_V1BAR, buf->yuv_p.v);
+>> +		mcam_reg_write(cam, REG_U0BAR + (frame << 2), buf->yuv_p.u);
+>> +		mcam_reg_write(cam, REG_V0BAR + (frame << 2), buf->yuv_p.v);
+>>  	}
+>>  }
+>>
+>> @@ -433,10 +452,14 @@ static void mcam_set_contig_buffer(struct mcam_camera
+>*cam, unsigned int frame)
+>>   */
+>>  void mcam_ctlr_dma_contig(struct mcam_camera *cam)  {
+>> -	mcam_reg_set_bit(cam, REG_CTRL1, C1_TWOBUFS);
+>> -	cam->nbufs = 2;
+>> -	mcam_set_contig_buffer(cam, 0);
+>> -	mcam_set_contig_buffer(cam, 1);
+>> +	unsigned int frame;
+>> +
+>> +	cam->nbufs = MAX_FRAME_BUFS;
+>> +	for (frame = 0; frame < cam->nbufs; frame++)
+>> +		mcam_set_contig_buffer(cam, frame);
+>> +
+>> +	if (cam->nbufs == 2)
+>> +		mcam_reg_set_bit(cam, REG_CTRL1, C1_TWOBUFS);
+>>  }
+>>
+>>  /*
+>> @@ -1043,6 +1066,12 @@ static int mcam_vb_start_streaming(struct vb2_queue *vq,
+>unsigned int count)
+>>  	for (frame = 0; frame < cam->nbufs; frame++)
+>>  		clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
+>>
+>> +	/*
+>> +	 *  If CCIC use Two Buffers mode, init tribufs == 1
+>> +	 *  If CCIC use Three Buffers mode, init tribufs == 0
+>> +	 */
+>> +	cam->frame_state.tribufs = 3 - MAX_FRAME_BUFS;
+>> +
+>>  	return mcam_read_setup(cam);
+>>  }
+>>
+>> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h
+>> b/drivers/media/platform/marvell-ccic/mcam-core.h
+>> index 5b2cf6e..6420754 100755
+>> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
+>> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+>> @@ -68,6 +68,13 @@ enum mcam_state {
+>>  #define MAX_DMA_BUFS 3
+>>
+>>  /*
+>> + * CCIC can support at most 3 frame buffers in DMA_CONTIG buffer mode
+>> + * 2 - Use Two Buffers mode
+>> + * 3 - Use Three Buffers mode
+>> + */
+>> +#define MAX_FRAME_BUFS 2 /* Current marvell-ccic used Two Buffers
+>> +mode */
+>> +
+>> +/*
+>>   * Different platforms work best with different buffer modes, so we
+>>   * let the platform pick.
+>>   */
+>> @@ -105,6 +112,10 @@ struct mmp_frame_state {
+>>  	unsigned int frames;
+>>  	unsigned int singles;
+>>  	unsigned int delivered;
+>> +	/*
+>> +	 * Only tribufs == 2 can enter single buffer mode
+>> +	 */
+>> +	unsigned int tribufs;
+>>  };
+>>
+>>  /*
+>> --
+>> 1.7.9.5
+>>
+>
+>---
+>Guennadi Liakhovetski, Ph.D.
+>Freelance Open-Source Software Developer
+>http://www.open-technology.de/
