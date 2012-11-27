@@ -1,98 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2725 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751590Ab2KPOAd (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:18595 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758137Ab2K0HwB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Nov 2012 09:00:33 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 4/6] uvcvideo: Set device_caps in VIDIOC_QUERYCAP
-Date: Fri, 16 Nov 2012 15:00:29 +0100
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <1348758980-21683-1-git-send-email-laurent.pinchart@ideasonboard.com> <1348758980-21683-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1348758980-21683-5-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201211161500.29555.hverkuil@xs4all.nl>
+	Tue, 27 Nov 2012 02:52:01 -0500
+Message-id: <50B4711D.3060702@samsung.com>
+Date: Tue, 27 Nov 2012 08:51:57 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: Re: [PATCH] media: fix a typo CONFIG_HAVE_GENERIC_DMA_COHERENT in
+ videobuf2-dma-contig.c
+References: <1353995979-28792-1-git-send-email-prabhakar.lad@ti.com>
+ <50B46A83.8020703@samsung.com>
+ <CA+V-a8tLvO2dywNNS8ykpsiCMiuSuVNF2QPCk+CrevVtDxxxsg@mail.gmail.com>
+In-reply-to: <CA+V-a8tLvO2dywNNS8ykpsiCMiuSuVNF2QPCk+CrevVtDxxxsg@mail.gmail.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu September 27 2012 17:16:18 Laurent Pinchart wrote:
-> Set the capabilities field to global capabilities, and the device_caps
-> field to the video node capabilities.
-> 
-> This issue was found by the v4l2-compliance tool.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/usb/uvc/uvc_driver.c |    5 +++++
->  drivers/media/usb/uvc/uvc_v4l2.c   |   10 ++++++----
->  drivers/media/usb/uvc/uvcvideo.h   |    2 ++
->  3 files changed, 13 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-> index 5967081..ae24f7d 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -1741,6 +1741,11 @@ static int uvc_register_video(struct uvc_device *dev,
->  		return ret;
->  	}
->  
-> +	if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		stream->chain->caps |= V4L2_CAP_VIDEO_CAPTURE;
-> +	else
-> +		stream->chain->caps |= V4L2_CAP_VIDEO_OUTPUT;
-> +
->  	atomic_inc(&dev->nstreams);
->  	return 0;
->  }
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-> index 3bd9373..b1aa55f 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -565,12 +565,14 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  		usb_make_path(stream->dev->udev,
->  			      cap->bus_info, sizeof(cap->bus_info));
->  		cap->version = LINUX_VERSION_CODE;
-> +		cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
-> +				  | chain->caps;
->  		if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> -			cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
-> -					  | V4L2_CAP_STREAMING;
-> +			cap->device_caps = V4L2_CAP_VIDEO_CAPTURE
-> +					 | V4L2_CAP_STREAMING;
->  		else
-> -			cap->capabilities = V4L2_CAP_VIDEO_OUTPUT
-> -					  | V4L2_CAP_STREAMING;
-> +			cap->device_caps = V4L2_CAP_VIDEO_OUTPUT
-> +					 | V4L2_CAP_STREAMING;
+Hello,
 
-This seems weird. Wouldn't it be easier to do:
+On 11/27/2012 8:39 AM, Prabhakar Lad wrote:
+> Hi Marek,
+>
+> On Tue, Nov 27, 2012 at 12:53 PM, Marek Szyprowski
+> <m.szyprowski@samsung.com> wrote:
+> > Hello,
+> >
+> >
+> > On 11/27/2012 6:59 AM, Prabhakar Lad wrote:
+> >>
+> >> From: Lad, Prabhakar <prabhakar.lad@ti.com>
+> >>
+> >> from commit 93049b9368a2e257ace66252ab2cc066f3399cad, which adds
+> >> a check HAVE_GENERIC_DMA_COHERENT for dma ops, the check was wrongly
+> >> made it should have been HAVE_GENERIC_DMA_COHERENT but it was
+> >> CONFIG_HAVE_GENERIC_DMA_COHERENT.
+> >> This patch fixes the typo, which was causing following build error:
+> >>
+> >> videobuf2-dma-contig.c:743: error: 'vb2_dc_get_dmabuf' undeclared here
+> >> (not in a function)
+> >> make[3]: *** [drivers/media/v4l2-core/videobuf2-dma-contig.o] Error 1
+> >>
+> >> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> >> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> >
+> >
+> > The CONFIG_HAVE_GENERIC_DMA_COHERENT based patch was a quick workaround
+> > for the build problem in linux-next and should be reverted now. The
+> > correct patch has been posted for drivers/base/dma-mapping.c to LKML,
+> > see http://www.spinics.net/lists/linux-next/msg22890.html
+>
+> I was referring to this patch from Mauro,
+> http://git.linuxtv.org/media_tree.git/commitdiff/93049b9368a2e257ace66252ab2cc066f3399cad
+> which introduced this build error.
 
-		cap->device_caps = chain->caps | V4L2_CAP_STREAMING;
+I know, with my patch the workaround introduced by Mauro is not needed 
+at all.
 
-You don't need the if/else here.
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
->  		break;
->  	}
->  
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-> index 7244455..28ff015 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -371,6 +371,8 @@ struct uvc_video_chain {
->  	struct uvc_entity *selector;		/* Selector unit */
->  
->  	struct mutex ctrl_mutex;		/* Protects ctrl.info */
-> +
-> +	u32 caps;				/* V4L2 chain-wide caps */
->  };
->  
->  struct uvc_stats_frame {
-> 
 
-Regards,
-
-	Hans
