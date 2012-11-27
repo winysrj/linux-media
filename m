@@ -1,310 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:50471 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752317Ab2KWNe2 (ORCPT
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:45825 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751764Ab2K0Vz7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 08:34:28 -0500
-From: Albert Wang <twang13@marvell.com>
-To: corbet@lwn.net, g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org, Libin Yang <lbyang@marvell.com>,
-	Albert Wang <twang13@marvell.com>
-Subject: [PATCH 06/15] [media] marvell-ccic: add new formats support for marvell-ccic driver
-Date: Fri, 23 Nov 2012 21:33:41 +0800
-Message-Id: <1353677621-24143-1-git-send-email-twang13@marvell.com>
+	Tue, 27 Nov 2012 16:55:59 -0500
+Received: by mail-vb0-f46.google.com with SMTP id ff1so7385747vbb.19
+        for <linux-media@vger.kernel.org>; Tue, 27 Nov 2012 13:55:58 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CA+8K-g=2DOsWs1Px=T0q69GPmcFQFgH6WpVepyZDrxYheN=VeQ@mail.gmail.com>
+References: <CA+8K-g=2DOsWs1Px=T0q69GPmcFQFgH6WpVepyZDrxYheN=VeQ@mail.gmail.com>
+Date: Tue, 27 Nov 2012 22:55:58 +0100
+Message-ID: <CA+8K-gmxss6DfkMcHYuaa1yn2LdF_qAQiZOnQUMqc2UO8LDvPA@mail.gmail.com>
+Subject: cx231xx device not working
+From: Vincent Gerris <vgerris@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Libin Yang <lbyang@marvell.com>
+Hi,
 
-This patch adds the new formats support for marvell-ccic.
+I recently bought an Elro DVR14 set in a sale.
+I plugged in Ubuntu Linux 12.10 with recent updates and noticed the
+following in dmesg:
 
-Signed-off-by: Albert Wang <twang13@marvell.com>
-Signed-off-by: Libin Yang <lbyang@marvell.com>
----
- drivers/media/platform/marvell-ccic/mcam-core.c |  178 ++++++++++++++++++-----
- drivers/media/platform/marvell-ccic/mcam-core.h |    6 +
- 2 files changed, 151 insertions(+), 33 deletions(-)
+[ 3339.600316] usb 2-1: new high-speed USB device number 7 using ehci_hcd
+[ 3339.736181] usb 2-1: New USB device found, idVendor=0572, idProduct=58a6
+[ 3339.736192] usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 3339.736200] usb 2-1: Product: Polaris AV Capture
+[ 3339.736207] usb 2-1: Manufacturer: Conexant Corporation
+[ 3339.736213] usb 2-1: SerialNumber: 0000000002
+[ 3339.741425] cx231xx #0: New device Conexant Corporation Polaris AV
+Capture @ 480 Mbps (0572:58a6) with 6 interfaces
+[ 3339.741433] cx231xx #0: registering interface 1
+[ 3339.741551] cx231xx #0: can't change interface 4 alt no. to 3: Max.
+Pkt size = 0
+[ 3339.741672] cx231xx #0: can't change interface 5 alt no. to 1: Max.
+Pkt size = 0
+[ 3339.741798] cx231xx #0: Identified as Conexant VIDEO GRABBER (card=5)
+[ 3339.834063] cx231xx #0: cx231xx_dif_set_standard: setStandard to ffffffff
+[ 3339.841321] cx231xx #0: Changing the i2c master port to 3
+[ 3339.846561] cx25840 9-0044: cx23102 A/V decoder found @ 0x88 (cx231xx #0)
+[ 3339.865576] cx25840 9-0044:  Firmware download size changed to 16
+bytes max length
+[ 3341.999466] cx25840 9-0044: loaded v4l-cx231xx-avcore-01.fw
+firmware (16382 bytes)
+[ 3342.039833] attach 417 5
+[ 3342.039843] cx231xx #0: cx231xx_417_register()
+[ 3342.039849] cx231xx #0: cx231xx_video_dev_alloc()
+[ 3342.040114] cx231xx #0: cx231xx #0: v4l2 driver version 0.0.2
+[ 3342.063910] cx231xx #0: cx231xx_dif_set_standard: setStandard to ffffffff
+[ 3342.114209] cx231xx #0: video_mux : 0
+[ 3342.114218] cx231xx #0: do_mode_ctrl_overrides : 0xb000
+[ 3342.115053] cx231xx #0: do_mode_ctrl_overrides NTSC
+[ 3342.121757] cx231xx #0: cx231xx #0/0: registered device video2 [v4l2]
+[ 3342.122004] cx231xx #0: cx231xx #0/0: registered device vbi0
+[ 3342.122010] cx231xx #0: V4L2 device registered as video2 and vbi0
+[ 3342.122016] cx231xx #0: cx231xx-audio.c: probing for cx231xx non
+standard usbaudio
+[ 3342.122499] cx231xx #0: EndPoint Addr 0x83, Alternate settings: 3
+[ 3342.122504] cx231xx #0: Alternate setting 0, max size= 512
+[ 3342.122509] cx231xx #0: Alternate setting 1, max size= 28
+[ 3342.122514] cx231xx #0: Alternate setting 2, max size= 52
+[ 3342.122519] cx231xx #0: EndPoint Addr 0x84, Alternate settings: 5
+[ 3342.122524] cx231xx #0: Alternate setting 0, max size= 512
+[ 3342.122528] cx231xx #0: Alternate setting 1, max size= 184
+[ 3342.122533] cx231xx #0: Alternate setting 2, max size= 728
+[ 3342.122537] cx231xx #0: Alternate setting 3, max size= 2892
+[ 3342.122542] cx231xx #0: Alternate setting 4, max size= 1800
+[ 3342.122547] cx231xx #0: EndPoint Addr 0x85, Alternate settings: 2
+[ 3342.122551] cx231xx #0: Alternate setting 0, max size= 512
+[ 3342.122555] cx231xx #0: Alternate setting 1, max size= 512
+[ 3342.122560] cx231xx #0: EndPoint Addr 0x86, Alternate settings: 2
+[ 3342.122565] cx231xx #0: Alternate setting 0, max size= 512
+[ 3342.122569] cx231xx #0: Alternate setting 1, max size= 576
+[ 3342.122574] cx231xx #0: EndPoint Addr 0x81, Alternate settings: 6
+[ 3342.122578] cx231xx #0: Alternate setting 0, max size= 512
+[ 3342.122583] cx231xx #0: Alternate setting 1, max size= 64
+[ 3342.122587] cx231xx #0: Alternate setting 2, max size= 128
+[ 3342.122591] cx231xx #0: Alternate setting 3, max size= 316
+[ 3342.122595] cx231xx #0: Alternate setting 4, max size= 712
+[ 3342.122600] cx231xx #0: Alternate setting 5, max size= 1424
+[ 3342.593524] cx231xx #0: UsbInterface::sendCommand, failed with status --71
+[ 3342.597936] cx231xx #0: UsbInterface::sendCommand, failed with status --71
+[ 3342.597939] cx231xx #0: cx231xx_initialize_codec()
+[ 3342.601917] cx231xx #0: UsbInterface::sendCommand, failed with status --71
+[ 3342.606041] cx231xx #0: UsbInterface::sendCommand, failed with status --71
+[ 3342.610260] cx231xx #0: UsbInterface::sendCommand, failed with status --71
+[ 3342.614291] cx231xx #0: UsbInterface::sendCommand, failed with status --71
+[ 3342.618664] cx231xx #0: UsbInterface::sendCommand, failed with status --71
+[ 3342.622964] cx231xx #0: UsbInterface::sendCommand, failed with status --71
+[ 3342.626914] cx231xx #0: UsbInterface::sendCommand, failed with status --71
+[ 3342.633590] cx231xx #0: UsbInterface::sendCommand, failed with status --71
+[ 3342.637546] cx231xx #0: UsbInterface::sendCommand, failed with status --71
+[ 3342.641673] cx231xx #0: UsbInterface::sendCommand, failed with status --71
+[ 3342.645800] cx231xx #0: UsbInterface::sendCommand, failed with status --71
+[ 3342.645803] cx231xx_load_firmware: Error with mc417_register_write
+[ 3342.645806] cx231xx_initialize_codec() f/w load failed
+[ 3342.645824] cx231xx #0:  setPowerMode::mode = 48, No Change req.
+[ 3342.658192] cx231xx #0: UsbInterface::sendCommand, failed with status --71
+[ 3342.662312] cx231xx #0: UsbInterface::sendCommand, failed with status --71
+[ 3342.662488] cx231xx #0: cx231xx_stop_stream():: ep_mask = 8
+[ 3342.670943] cx231xx #0: can't change interface 4 alt no. to 0 (err=-71)
+[ 3342.680104] cx231xx #0: can't change interface 3 alt no. to 1 (err=-71)
+[ 3342.680119] cx231xx #0: failed to set alternate setting !
+[ 3342.688925] cx231xx #0: cx231xx_stop_stream():: ep_mask = 8
+[ 3342.697175] cx231xx #0: UsbInterface::sendCommand, failed with status --71
+[ 3342.701316] cx231xx #0: can't change interface 3 alt no. to 1 (err=-71)
+[ 3342.701323] cx231xx #0: failed to set alternate setting !
+[ 3342.705685] cx231xx #0: can't change interface 3 alt no. to 1 (err=-71)
+[ 3342.705691] cx231xx #0: failed to set alternate setting !
 
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 67d4f2f..c9f7250 100755
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -110,6 +110,30 @@ static struct mcam_format_struct {
- 		.bpp		= 2,
- 	},
- 	{
-+		.desc		= "UYVY 4:2:2",
-+		.pixelformat	= V4L2_PIX_FMT_UYVY,
-+		.mbus_code	= V4L2_MBUS_FMT_UYVY8_2X8,
-+		.bpp		= 2,
-+	},
-+	{
-+		.desc		= "YUV 4:2:2 PLANAR",
-+		.pixelformat	= V4L2_PIX_FMT_YUV422P,
-+		.mbus_code	= V4L2_MBUS_FMT_UYVY8_2X8,
-+		.bpp		= 2,
-+	},
-+	{
-+		.desc		= "YUV 4:2:0 PLANAR",
-+		.pixelformat	= V4L2_PIX_FMT_YUV420,
-+		.mbus_code	= V4L2_MBUS_FMT_YUYV8_1_5X8,
-+		.bpp		= 2,
-+	},
-+	{
-+		.desc		= "YVU 4:2:0 PLANAR",
-+		.pixelformat	= V4L2_PIX_FMT_YVU420,
-+		.mbus_code	= V4L2_MBUS_FMT_YVYU8_1_5X8,
-+		.bpp		= 2,
-+	},
-+	{
- 		.desc		= "RGB 444",
- 		.pixelformat	= V4L2_PIX_FMT_RGB444,
- 		.mbus_code	= V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE,
-@@ -168,6 +192,12 @@ struct mcam_dma_desc {
- 	u32 segment_len;
- };
- 
-+struct yuv_pointer_t {
-+	dma_addr_t y;
-+	dma_addr_t u;
-+	dma_addr_t v;
-+};
-+
- /*
-  * Our buffer type for working with videobuf2.  Note that the vb2
-  * developers have decreed that struct vb2_buffer must be at the
-@@ -179,6 +209,7 @@ struct mcam_vb_buffer {
- 	struct mcam_dma_desc *dma_desc;	/* Descriptor virtual address */
- 	dma_addr_t dma_desc_pa;		/* Descriptor physical address */
- 	int dma_desc_nent;		/* Number of mapped descriptors */
-+	struct yuv_pointer_t yuv_p;
- };
- 
- static inline struct mcam_vb_buffer *vb_to_mvb(struct vb2_buffer *vb)
-@@ -465,6 +496,18 @@ static inline int mcam_check_dma_buffers(struct mcam_camera *cam)
- /*
-  * DMA-contiguous code.
-  */
-+
-+static bool mcam_fmt_is_planar(__u32 pfmt)
-+{
-+	switch (pfmt) {
-+	case V4L2_PIX_FMT_YUV422P:
-+	case V4L2_PIX_FMT_YUV420:
-+	case V4L2_PIX_FMT_YVU420:
-+		return true;
-+	}
-+	return false;
-+}
-+
- /*
-  * Set up a contiguous buffer for the given frame.  Here also is where
-  * the underrun strategy is set: if there is no buffer available, reuse
-@@ -476,6 +519,8 @@ static inline int mcam_check_dma_buffers(struct mcam_camera *cam)
- static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
- {
- 	struct mcam_vb_buffer *buf;
-+	struct v4l2_pix_format *fmt = &cam->pix_format;
-+
- 	/*
- 	 * If there are no available buffers, go into single mode
- 	 */
-@@ -494,8 +539,13 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
- 	}
- 
- 	cam->vb_bufs[frame] = buf;
--	mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR,
--			vb2_dma_contig_plane_dma_addr(&buf->vb_buf, 0));
-+	mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR, buf->yuv_p.y);
-+	if (mcam_fmt_is_planar(fmt->pixelformat)) {
-+		mcam_reg_write(cam, frame == 0 ?
-+					REG_U0BAR : REG_U1BAR, buf->yuv_p.u);
-+		mcam_reg_write(cam, frame == 0 ?
-+					REG_V0BAR : REG_V1BAR, buf->yuv_p.v);
-+	}
- }
- 
- /*
-@@ -653,49 +703,91 @@ static inline void mcam_sg_restart(struct mcam_camera *cam)
-  */
- static void mcam_ctlr_image(struct mcam_camera *cam)
- {
--	int imgsz;
- 	struct v4l2_pix_format *fmt = &cam->pix_format;
-+	u32 widthy = 0, widthuv = 0, imgsz_h, imgsz_w;
-+
-+	cam_dbg(cam, "camera: bytesperline = %d; height = %d\n",
-+		fmt->bytesperline, fmt->sizeimage / fmt->bytesperline);
-+	imgsz_h = (fmt->height << IMGSZ_V_SHIFT) & IMGSZ_V_MASK;
-+	imgsz_w = fmt->bytesperline & IMGSZ_H_MASK;
-+
-+	if (fmt->pixelformat == V4L2_PIX_FMT_YUV420
-+		|| fmt->pixelformat == V4L2_PIX_FMT_YVU420)
-+		imgsz_w = (fmt->bytesperline * 4 / 3) & IMGSZ_H_MASK;
-+	else if (fmt->pixelformat == V4L2_PIX_FMT_JPEG)
-+		imgsz_h = (fmt->sizeimage / fmt->bytesperline) << IMGSZ_V_SHIFT;
-+
-+	switch (fmt->pixelformat) {
-+	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_UYVY:
-+		widthy = fmt->width * 2;
-+		widthuv = fmt->width * 2;
-+		break;
-+	case V4L2_PIX_FMT_RGB565:
-+		widthy = fmt->width * 2;
-+		widthuv = 0;
-+		break;
-+	case V4L2_PIX_FMT_JPEG:
-+		widthy = fmt->bytesperline;
-+		widthuv = fmt->bytesperline;
-+		break;
-+	case V4L2_PIX_FMT_YUV422P:
-+	case V4L2_PIX_FMT_YUV420:
-+	case V4L2_PIX_FMT_YVU420:
-+		widthy = fmt->width;
-+		widthuv = fmt->width / 2;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	mcam_reg_write_mask(cam, REG_IMGPITCH, widthuv << 16 | widthy,
-+			IMGP_YP_MASK | IMGP_UVP_MASK);
-+	mcam_reg_write(cam, REG_IMGSIZE, imgsz_h | imgsz_w);
-+	mcam_reg_write(cam, REG_IMGOFFSET, 0x0);
- 
--	imgsz = ((fmt->height << IMGSZ_V_SHIFT) & IMGSZ_V_MASK) |
--		(fmt->bytesperline & IMGSZ_H_MASK);
--	mcam_reg_write(cam, REG_IMGSIZE, imgsz);
--	mcam_reg_write(cam, REG_IMGOFFSET, 0);
--	/* YPITCH just drops the last two bits */
--	mcam_reg_write_mask(cam, REG_IMGPITCH, fmt->bytesperline,
--			IMGP_YP_MASK);
- 	/*
- 	 * Tell the controller about the image format we are using.
- 	 */
--	switch (cam->pix_format.pixelformat) {
-+	switch (fmt->pixelformat) {
-+	case V4L2_PIX_FMT_YUV422P:
-+		mcam_reg_write_mask(cam, REG_CTRL0,
-+			C0_DF_YUV | C0_YUV_PLANAR | C0_YUVE_YVYU, C0_DF_MASK);
-+		break;
-+	case V4L2_PIX_FMT_YUV420:
-+	case V4L2_PIX_FMT_YVU420:
-+		mcam_reg_write_mask(cam, REG_CTRL0,
-+			C0_DF_YUV | C0_YUV_420PL | C0_YUVE_YVYU, C0_DF_MASK);
-+		break;
- 	case V4L2_PIX_FMT_YUYV:
--	    mcam_reg_write_mask(cam, REG_CTRL0,
--			    C0_DF_YUV|C0_YUV_PACKED|C0_YUVE_YUYV,
--			    C0_DF_MASK);
--	    break;
--
-+		mcam_reg_write_mask(cam, REG_CTRL0,
-+			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_UYVY, C0_DF_MASK);
-+		break;
-+	case V4L2_PIX_FMT_UYVY:
-+		mcam_reg_write_mask(cam, REG_CTRL0,
-+			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_YUYV, C0_DF_MASK);
-+		break;
-+	case V4L2_PIX_FMT_JPEG:
-+		mcam_reg_write_mask(cam, REG_CTRL0,
-+			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_YUYV, C0_DF_MASK);
-+		break;
- 	case V4L2_PIX_FMT_RGB444:
--	    mcam_reg_write_mask(cam, REG_CTRL0,
--			    C0_DF_RGB|C0_RGBF_444|C0_RGB4_XRGB,
--			    C0_DF_MASK);
--		/* Alpha value? */
--	    break;
--
-+		mcam_reg_write_mask(cam, REG_CTRL0,
-+			C0_DF_RGB | C0_RGBF_444 | C0_RGB4_XRGB, C0_DF_MASK);
-+		break;
- 	case V4L2_PIX_FMT_RGB565:
--	    mcam_reg_write_mask(cam, REG_CTRL0,
--			    C0_DF_RGB|C0_RGBF_565|C0_RGB5_BGGR,
--			    C0_DF_MASK);
--	    break;
--
-+		mcam_reg_write_mask(cam, REG_CTRL0,
-+			C0_DF_RGB | C0_RGBF_565 | C0_RGB5_BGGR, C0_DF_MASK);
-+		break;
- 	default:
--	    cam_err(cam, "Unknown format %x\n", cam->pix_format.pixelformat);
--	    break;
-+		cam_err(cam, "camera: unknown format: %c\n", fmt->pixelformat);
-+		break;
- 	}
-+
- 	/*
- 	 * Make sure it knows we want to use hsync/vsync.
- 	 */
--	mcam_reg_write_mask(cam, REG_CTRL0, C0_SIF_HVSYNC,
--			C0_SIFM_MASK);
--
-+	mcam_reg_write_mask(cam, REG_CTRL0, C0_SIF_HVSYNC, C0_SIFM_MASK);
- 	/*
- 	 * This field controls the generation of EOF(DVP only)
- 	 */
-@@ -706,7 +798,6 @@ static void mcam_ctlr_image(struct mcam_camera *cam)
- 	}
- }
- 
--
- /*
-  * Configure the controller for operation; caller holds the
-  * device mutex.
-@@ -979,11 +1070,32 @@ static void mcam_vb_buf_queue(struct vb2_buffer *vb)
- {
- 	struct mcam_vb_buffer *mvb = vb_to_mvb(vb);
- 	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
-+	struct v4l2_pix_format *fmt = &cam->pix_format;
- 	unsigned long flags;
- 	int start;
-+	dma_addr_t dma_handle;
-+	u32 base_size = fmt->width * fmt->height;
- 
- 	spin_lock_irqsave(&cam->dev_lock, flags);
-+	dma_handle = vb2_dma_contig_plane_dma_addr(vb, 0);
-+	BUG_ON(!dma_handle);
- 	start = (cam->state == S_BUFWAIT) && !list_empty(&cam->buffers);
-+
-+	if (cam->pix_format.pixelformat == V4L2_PIX_FMT_YUV422P) {
-+		mvb->yuv_p.y = dma_handle;
-+		mvb->yuv_p.u = mvb->yuv_p.y + base_size;
-+		mvb->yuv_p.v = mvb->yuv_p.u + base_size / 2;
-+	} else if (cam->pix_format.pixelformat == V4L2_PIX_FMT_YUV420) {
-+		mvb->yuv_p.y = dma_handle;
-+		mvb->yuv_p.u = mvb->yuv_p.y + base_size;
-+		mvb->yuv_p.v = mvb->yuv_p.u + base_size / 4;
-+	} else if (cam->pix_format.pixelformat == V4L2_PIX_FMT_YVU420) {
-+		mvb->yuv_p.y = dma_handle;
-+		mvb->yuv_p.v = mvb->yuv_p.y + base_size;
-+		mvb->yuv_p.u = mvb->yuv_p.v + base_size / 4;
-+	} else
-+		mvb->yuv_p.y = dma_handle;
-+
- 	list_add(&mvb->queue, &cam->buffers);
- 	if (cam->state == S_STREAMING && test_bit(CF_SG_RESTART, &cam->flags))
- 		mcam_sg_restart(cam);
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
-index 40368f6..3f75d7d 100755
---- a/drivers/media/platform/marvell-ccic/mcam-core.h
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.h
-@@ -233,6 +233,12 @@ int mccic_resume(struct mcam_camera *cam);
- #define REG_Y0BAR	0x00
- #define REG_Y1BAR	0x04
- #define REG_Y2BAR	0x08
-+#define REG_U0BAR	0x0c
-+#define REG_U1BAR	0x10
-+#define REG_U2BAR	0x14
-+#define REG_V0BAR	0x18
-+#define REG_V1BAR	0x1C
-+#define REG_V2BAR	0x20
- 
- /*
-  * register definitions for MIPI support
--- 
-1.7.9.5
+A fellow hacker helped me trying to see if it worked and issued this command:
+vincent@ThinkPad-T400s:~$ mplayer -tv device=/dev/video1 pvr://
+MPlayer svn r34540 (Ubuntu), built with gcc-4.6 (C) 2000-2012 MPlayer Team
+mplayer: could not connect to socket
+mplayer: No such file or directory
+Failed to open LIRC support. You will not be able to use your remote control.
 
+Playing pvr://.
+[v4l2] select channel list europe-east, entries 133
+[pvr] Using device /dev/video1
+[pvr] Detected VideoGrabber
+[v4l2] Available video inputs: '#0, Composite1' '#1, S-Video'
+[v4l2] Available audio inputs: '#0, VideoGrabber A'
+[v4l2] Available norms: '#0, NTSC-M' '#1, NTSC-M-JP' '#2, NTSC-443'
+'#3, PAL-BG' '#4, PAL-I' '#5, PAL-DK' '#6, PAL-M' '#7, PAL-N' '#8,
+PAL-Nc' '#9, PAL-60' '#10, SECAM-DK' '#11, SECAM-L'
+[v4l2] Using current set frequency 0, to set channel
+[encoder] Error setting MPEG controls (Operation not permitted).
+[pvr] can't set encoder settings
+Failed to open pvr://.
+
+
+Exiting... (End of file)
+
+Then as root I got some more:
+root@ThinkPad-T400s:~# mplayer -tv device=/dev/video1 pvr://
+Creating config file: /root/.mplayer/config
+MPlayer svn r34540 (Ubuntu), built with gcc-4.6 (C) 2000-2012 MPlayer Team
+mplayer: could not connect to socket
+mplayer: No such file or directory
+Failed to open LIRC support. You will not be able to use your remote control.
+
+Playing pvr://.
+[v4l2] select channel list europe-east, entries 133
+[pvr] Using device /dev/video1
+[pvr] Detected VideoGrabber
+[v4l2] Available video inputs: '#0, Composite1' '#1, S-Video'
+[v4l2] Available audio inputs: '#0, VideoGrabber A'
+[v4l2] Available norms: '#0, NTSC-M' '#1, NTSC-M-JP' '#2, NTSC-443'
+'#3, PAL-BG' '#4, PAL-I' '#5, PAL-DK' '#6, PAL-M' '#7, PAL-N' '#8,
+PAL-Nc' '#9, PAL-60' '#10, SECAM-DK' '#11, SECAM-L'
+[v4l2] Using current set frequency 0, to set channel
+[v4l2] Video input: Composite1
+[v4l2] Audio input: VideoGrabber A
+[v4l2] Norm: NTSC-M.
+libavformat version 53.21.0 (external)
+Mismatching header version 53.19.0
+[pvr] failed with errno 22 when reading 2048 bytes
+[pvr] read 0 bytes
+[pvr] failed with errno 22 when reading 2048 bytes
+[pvr] read 0 bytes
+[pvr] failed with errno 22 when reading 2048 bytes
+[pvr] read 0 bytes
+[pvr] failed with errno 22 when reading 2048 bytes
+[pvr] read 0 bytes
+[pvr] failed with errno 22 when reading 2048 bytes
+[pvr] read 0 bytes
+
+MPlayer interrupted by signal 2 in module: demux_open
+[pvr] failed with errno 4 when reading 2048 bytes
+[pvr] read 0 bytes
+[pvr] failed with errno 4 when reading 2048 bytes
+[pvr] read 0 bytes
+[pvr] failed with errno 4 when reading 2048 bytes
+[pvr] read 0 bytes
+[pvr] failed with errno 4 when reading 2048 bytes
+[pvr] read 0 bytes
+[pvr] failed with errno 4 when reading 2048 bytes
+[pvr] read 0 bytes
+
+MPlayer interrupted by signal 2 in module: demux_open (after a ctrl+c)
+
+More info about the device:
+http://www.elro.eu/en/products/category/beveiliging/camerabewaking/dvrs/bewakingsrecorder
+The box says DVR14 USB DVR BOX and TE-3204E
+Lot no: 12SX11 Version 2
+
+I got this email as a tip to mail to, so I hope anybody has a clue?
+Any help is appreciated.
+By the way, the Windows driver I use is the one that does not have
+Windows_XP added to it.
+That one seems to be for a 3104 or something device.
+
+Thanks for any help!
+
+Kind regards,
+Vincent
