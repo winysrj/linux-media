@@ -1,64 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:34543 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755906Ab2KVTwW (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:60137 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755861Ab2K0QjI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 14:52:22 -0500
-Received: by mail-ee0-f46.google.com with SMTP id e53so3066010eek.19
-        for <linux-media@vger.kernel.org>; Thu, 22 Nov 2012 11:52:21 -0800 (PST)
-Message-ID: <50AD4845.5080209@gmail.com>
-Date: Wed, 21 Nov 2012 22:31:49 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Tue, 27 Nov 2012 11:39:08 -0500
+Date: Tue, 27 Nov 2012 17:39:02 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Albert Wang <twang13@marvell.com>
+cc: "corbet@lwn.net" <corbet@lwn.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Subject: RE: [PATCH 10/15] [media] marvell-ccic: split mcam core into 2 parts
+ for soc_camera support
+In-Reply-To: <477F20668A386D41ADCC57781B1F70430D1367C905@SC-VEXCH1.marvell.com>
+Message-ID: <Pine.LNX.4.64.1211271735530.22273@axis700.grange>
+References: <1353677652-24288-1-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1211271405340.22273@axis700.grange>
+ <477F20668A386D41ADCC57781B1F70430D1367C905@SC-VEXCH1.marvell.com>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR 3.8] V4L2 driver for S3C24XX/S3C64XX SoC series camera
- interface
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Tue, 27 Nov 2012, Albert Wang wrote:
 
-The following changes since commit 2c4e11b7c15af70580625657a154ea7ea70b8c76:
+[snip]
 
-   [media] siano: fix RC compilation (2012-11-07 11:09:08 +0100)
+> >you did change a couple of things - like replaced printk() with cam_err(), and actually
+> >here:
+> >
+> >> +		cam_err(cam, "marvell-cam: Cafe can't do S/G I/O," \
+> >> +			"attempting vmalloc mode instead\n");
+> >
+> >and here
+> >
+> >> +			cam_warn(cam, "Unable to alloc DMA buffers at load" \
+> >> +					"will try again later\n");
+> >
+> >the backslashes are not needed... Also in these declarations:
+> >
+> Sorry, I have to clarify it. :)
+> I replaced printk() and add backslashes just because the tool scripts/checkpatch.pl.
+> It will report error when remove the blackslash and report warning when using printk().
+> But these errors and warnings will be reported only in latest kernel code. :)
+> 
+> If you think we can ignore these errors and warnings, I'm OK to get back to the original code. :)
 
-are available in the git repository at:
-   git://linuxtv.org/snawrocki/media.git mainline/s3c-camif
+Replacing printk() with cam_*() is ok, just please remove the backslashes. 
+Actually, there are also spaces missing in above strings - when they'll be 
+pasted together. As for checkpatch, I would ignore this its warning, 
+because this is not new code, this has been there also in the original 
+driver, you're just moving the code around.
 
-This is a V4L2 driver for camera host interface embedded in some
-older generation Samsung SoC series - S3C24XX and S3C64XX.
-
-Some more information about the driver can be found in a cover letter
-to the first patch version [1].
-
-Sylwester Nawrocki (2):
-       V4L: Add driver for S3C24XX/S3C64XX SoC series camera interface
-       MAINTAINERS: Add entry for S3C24XX/S3C64XX SoC CAMIF driver
-
-  MAINTAINERS                                      |    8 +
-  drivers/media/platform/Kconfig                   |   12 +
-  drivers/media/platform/Makefile                  |    1 +
-  drivers/media/platform/s3c-camif/Makefile        |    5 +
-  drivers/media/platform/s3c-camif/camif-capture.c | 1675 
-++++++++++++++++++++++
-  drivers/media/platform/s3c-camif/camif-core.c    |  662 +++++++++
-  drivers/media/platform/s3c-camif/camif-core.h    |  393 +++++
-  drivers/media/platform/s3c-camif/camif-regs.c    |  606 ++++++++
-  drivers/media/platform/s3c-camif/camif-regs.h    |  269 ++++
-  include/media/s3c_camif.h                        |   45 +
-  10 files changed, 3676 insertions(+), 0 deletions(-)
-  create mode 100644 drivers/media/platform/s3c-camif/Makefile
-  create mode 100644 drivers/media/platform/s3c-camif/camif-capture.c
-  create mode 100644 drivers/media/platform/s3c-camif/camif-core.c
-  create mode 100644 drivers/media/platform/s3c-camif/camif-core.h
-  create mode 100644 drivers/media/platform/s3c-camif/camif-regs.c
-  create mode 100644 drivers/media/platform/s3c-camif/camif-regs.h
-  create mode 100644 include/media/s3c_camif.h
-
-[1] 
-http://www.mail-archive.com/linux-samsung-soc@vger.kernel.org/msg11849.html
-
-Thanks,
-Sylwester
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
