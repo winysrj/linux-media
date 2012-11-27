@@ -1,53 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52878 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751588Ab2KHMEt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 07:04:49 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 27/26] v4l: vb2: Set data_offset to 0 for single-plane buffers
-Date: Thu,  8 Nov 2012 13:05:36 +0100
-Message-Id: <1352376336-5404-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
-References: <1349880405-26049-1-git-send-email-t.stanislaws@samsung.com>
+Received: from smtp23.services.sfr.fr ([93.17.128.22]:49704 "EHLO
+	smtp23.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756109Ab2K0UQF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Nov 2012 15:16:05 -0500
+Message-ID: <50B51F7E.2030008@sfr.fr>
+Date: Tue, 27 Nov 2012 21:15:58 +0100
+From: Patrice Chotard <patrice.chotard@sfr.fr>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Patrice Chotard <patrice.chotard@sfr.fr>,
+	=?iso-8859-1?b?RnLpZOlyaWM=?= <frederic.mantegazza@gbiloba.org>
+Subject: [PATCH] [media] ngene: fix dvb_pll_attach failure
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Single-planar V4L2 buffers are converted to multi-planar vb2 buffers
-with a single plane when queued. The plane data_offset field is not
-available in the single-planar API and must be set to 0 for dmabuf
-buffers and all output buffers.
+Before dvb_pll_attch call, be sure that drxd demodulator was
+initialized, otherwise, dvb_pll_attach() will always failed.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+In dvb_pll_attach(), first thing done is to enable the I2C gate
+control in order to probe the pll by performing a read access.
+As demodulator was not initialized, every i2c access failed.
+
+Reported-by: frederic.mantegazza@gbiloba.org
+Signed-off-by: Patrice Chotard <patricechotard@free.fr>
 ---
- drivers/media/v4l2-core/videobuf2-core.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/media/pci/ngene/ngene-cards.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index b0402f2..3eae3d8 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -931,6 +931,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
- 		 */
- 		if (V4L2_TYPE_IS_OUTPUT(b->type))
- 			v4l2_planes[0].bytesused = b->bytesused;
-+			v4l2_planes[0].data_offset = 0;
- 
- 		if (b->memory == V4L2_MEMORY_USERPTR) {
- 			v4l2_planes[0].m.userptr = b->m.userptr;
-@@ -940,6 +941,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
- 		if (b->memory == V4L2_MEMORY_DMABUF) {
- 			v4l2_planes[0].m.fd = b->m.fd;
- 			v4l2_planes[0].length = b->length;
-+			v4l2_planes[0].data_offset = 0;
- 		}
- 
+diff --git a/drivers/media/pci/ngene/ngene-cards.c
+b/drivers/media/pci/ngene/ngene-cards.c
+index 96a13ed..e2192db 100644
+--- a/drivers/media/pci/ngene/ngene-cards.c
++++ b/drivers/media/pci/ngene/ngene-cards.c
+@@ -328,6 +328,8 @@ static int demod_attach_drxd(struct ngene_channel *chan)
+ 		return -ENODEV;
  	}
--- 
-Regards,
 
-Laurent Pinchart
-
++	/* initialized the DRXD demodulator */
++	chan->fe->ops.init(chan->fe);
+ 	if (!dvb_attach(dvb_pll_attach, chan->fe, feconf->pll_address,
+ 			&chan->i2c_adapter,
+ 			feconf->pll_type)) {
+-- 1.7.10.4
