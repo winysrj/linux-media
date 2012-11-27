@@ -1,98 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:61228 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751355Ab2K2T2i (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:57416 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755529Ab2K0OMz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Nov 2012 14:28:38 -0500
-Received: by mail-bk0-f46.google.com with SMTP id q16so6462748bkw.19
-        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2012 11:28:36 -0800 (PST)
-Message-ID: <50B7B768.5070008@googlemail.com>
-Date: Thu, 29 Nov 2012 20:28:40 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+	Tue, 27 Nov 2012 09:12:55 -0500
+Date: Tue, 27 Nov 2012 15:12:49 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Albert Wang <twang13@marvell.com>
+cc: corbet@lwn.net, linux-media@vger.kernel.org,
+	Libin Yang <lbyang@marvell.com>
+Subject: Re: [PATCH 10/15] [media] marvell-ccic: split mcam core into 2 parts
+ for soc_camera support
+In-Reply-To: <1353677652-24288-1-git-send-email-twang13@marvell.com>
+Message-ID: <Pine.LNX.4.64.1211271405340.22273@axis700.grange>
+References: <1353677652-24288-1-git-send-email-twang13@marvell.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Matthew Gyurgyik <matthew@pyther.net>, linux-media@vger.kernel.org
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi>
-In-Reply-To: <50B6C530.4010701@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 29.11.2012 03:15, schrieb Antti Palosaari:
-> On 11/29/2012 04:05 AM, Matthew Gyurgyik wrote:
->> On 11/28/2012 05:55 PM, Antti Palosaari wrote:
->>>
->>> Very, very, good pics and sniffs!!
->>>
->>>
->>> From the sniff you could see I2C addresses
->>> 50 (a0 >> 1) eeprom
->>> 0e (1c >> 1) demod
->>> 60 (c0 >> 1) tuner
->>>
->>>
->>> EM2874, USB-bridge, clocked at 12MHz, crystal on other side of PCB.
->>> There is also 32k serial eeprom for EM2874. This large serial eeprom
->>> means (very likely) it uses custom firmware which is downloaded from
->>> the eeprom.
->>>
->>> LGDT3305, demodulator, clocked at 25MHz. Serial TS used between EM2874
->>> and LGDT3305.
->>>
->>> TDA18271HDC2 is tuner, clocked at 16MHz. Traditional IF used between
->>> tuner and demod.
->>>
->>> IR receiver is near antenna, which is a little bit long wires to
->>> connect to the EM2874, looks weird but no harm.
->>>
->>>
->>> Main GPIO sequence is that one:
->>> 000255: 000006 ms 000990 ms c0 00 00 00 80 00 01 00 <<< ff
->>> 000256: 000004 ms 000994 ms 40 00 00 00 80 00 01 00 >>> fe
->>> 000257: 000006 ms 001000 ms c0 00 00 00 80 00 01 00 <<< fe
->>> 000258: 000004 ms 001004 ms 40 00 00 00 80 00 01 00 >>> be
->>> 000259: 000139 ms 001143 ms c0 00 00 00 80 00 01 00 <<< be
->>> 000260: 000005 ms 001148 ms 40 00 00 00 80 00 01 00 >>> fe
->>>
->>> There is some more GPIOs later, just test with trial and error to find
->>> out all GPIOs.
->>>
->>> Making that device working should be quite easy! There is a little
->>> change for proprietary firmware for EM2874 which does some nasty
->>> things, but that is very very unlikely.
+On Fri, 23 Nov 2012, Albert Wang wrote:
 
-Do we know any devices with a "real" proprietary firmware ??
-I'm not talking about custom USB ID, endpoint configuration and minor
-stuff like this...
+> This patch splits mcam core into 2 parts to prepare for soc_camera support.
+> 
+> The first part remains in mcam-core. This part includes the HW operations
+> and vb2 callback functions.
+> 
+> The second part is moved to mcam-core-standard.c. This part is relevant with
+> the implementation of using v4l2.
+> 
+> Signed-off-by: Libin Yang <lbyang@marvell.com>
+> Signed-off-by: Albert Wang <twang13@marvell.com>
+> ---
+>  drivers/media/platform/marvell-ccic/Makefile       |    4 +-
+>  .../platform/marvell-ccic/mcam-core-standard.c     |  767 +++++++++++++++++
+>  .../platform/marvell-ccic/mcam-core-standard.h     |   28 +
+>  drivers/media/platform/marvell-ccic/mcam-core.c    |  873 +-------------------
+>  drivers/media/platform/marvell-ccic/mcam-core.h    |   45 +
+>  5 files changed, 883 insertions(+), 834 deletions(-)
+>  create mode 100644 drivers/media/platform/marvell-ccic/mcam-core-standard.c
+>  create mode 100644 drivers/media/platform/marvell-ccic/mcam-core-standard.h
 
->>>
->>> regards
->>> Antti
->>
->> Thanks for the information. That is way over my head. Is there same
->> basic reading someone could recommend so I can start to understand the
->> basics of all this?
->>
->> In the mean time, I'm willing to do any testing necessary.
->>
->
-> Maybe I could give hour or two for that if you could make tests I ask?
->
-> If someone else would like to hack with it, I am very happy too. Frank?
->
+Nice :-) I hope, you'll excuse me, that I won't be verifying this patch 
+thoroughly, instead, I'll trust you to move the code around without actually 
+changing anything in it. Actually, you did change a couple of things - like
+replaced printk() with cam_err(), and actually here:
 
-Seems like we have all we need, right ? A TDA18271 driver seems to be in
-place, what about the LGDT3305 demodulator ?
-I can try to put the puzzle together, but not before weekend.
-Matthew, stay tuned but be patient. ;)
+> +		cam_err(cam, "marvell-cam: Cafe can't do S/G I/O," \
+> +			"attempting vmalloc mode instead\n");
 
-Regards,
-Frank
+and here
 
+> +			cam_warn(cam, "Unable to alloc DMA buffers at load" \
+> +					"will try again later\n");
 
-> regards
-> Antti
->
+the backslashes are not needed... Also in these declarations:
 
+> -static inline int mcam_alloc_dma_bufs(struct mcam_camera *cam, int loadtime)
+> +inline int mcam_alloc_dma_bufs(struct mcam_camera *cam, int loadtime)
+>  {
+>  	return 0;
+>  }
+>  
+> -static inline void mcam_free_dma_bufs(struct mcam_camera *cam)
+> +inline void mcam_free_dma_bufs(struct mcam_camera *cam)
+>  {
+>  	return;
+>  }
+>  
+> -static inline int mcam_check_dma_buffers(struct mcam_camera *cam)
+> +inline int mcam_check_dma_buffers(struct mcam_camera *cam)
+>  {
+>  	return 0;
+>  }
+
+please also remove "inline." Yet another hunk:
+
+> -static void mcam_ctlr_stop(struct mcam_camera *cam)
+> +void mcam_ctlr_stop(struct mcam_camera *cam)
+
+doesn't seem to be needed. In the header:
+
+> diff --git a/drivers/media/platform/marvell-ccic/mcam-core-standard.h b/drivers/media/platform/marvell-ccic/mcam-core-standard.h
+> new file mode 100644
+> index 0000000..148a1a1
+> --- /dev/null
+> +++ b/drivers/media/platform/marvell-ccic/mcam-core-standard.h
+> @@ -0,0 +1,28 @@
+> +/*
+> + * Marvell camera core structures.
+> + *
+> + * Copyright 2011 Jonathan Corbet corbet@lwn.net
+> + */
+> +extern bool alloc_bufs_at_read;
+> +extern int n_dma_bufs;
+> +extern int buffer_mode;
+> +extern const struct vb2_ops mcam_vb2_sg_ops;
+> +extern const struct vb2_ops mcam_vb2_ops;
+
+Do all these variables really have to be exported? If yes - please prefix 
+them all with "mcam_..." to avoid polluting the kernel name-space. You 
+don't want to make a symbol named like "n_dma_bufs" or "buffer_mode" be 
+visible to the entire kernel;-) In function declarations:
+
+> +extern void mcam_ctlr_stop_dma(struct mcam_camera *cam);
+> +extern int mcam_config_mipi(struct mcam_camera *mcam, int enable);
+> +extern void mcam_ctlr_power_up(struct mcam_camera *cam);
+> +extern void mcam_ctlr_power_down(struct mcam_camera *cam);
+> +extern void mcam_ctlr_init(struct mcam_camera *cam);
+> +extern int mcam_cam_init(struct mcam_camera *cam);
+> +extern void mcam_free_dma_bufs(struct mcam_camera *cam);
+> +extern void mcam_ctlr_dma_sg(struct mcam_camera *cam);
+> +extern void mcam_dma_sg_done(struct mcam_camera *cam, int frame);
+> +extern int mcam_check_dma_buffers(struct mcam_camera *cam);
+> +extern void mcam_set_config_needed(struct mcam_camera *cam, int needed);
+> +extern int __mcam_cam_reset(struct mcam_camera *cam);
+> +extern int mcam_alloc_dma_bufs(struct mcam_camera *cam, int loadtime);
+> +extern void mcam_ctlr_dma_contig(struct mcam_camera *cam);
+> +extern void mcam_dma_contig_done(struct mcam_camera *cam, int frame);
+> +extern void mcam_ctlr_dma_vmalloc(struct mcam_camera *cam);
+> +extern void mcam_vmalloc_done(struct mcam_camera *cam, int frame);
+
+the keyword "extern" isn't needed.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
