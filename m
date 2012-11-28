@@ -1,95 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:23780 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751493Ab2KZQJK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Nov 2012 11:09:10 -0500
-Received: from eusync2.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0ME30047ORJWA6B0@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 26 Nov 2012 16:09:32 +0000 (GMT)
-Received: from [106.116.147.32] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0ME300IRTRJ7B810@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 26 Nov 2012 16:09:08 +0000 (GMT)
-Message-id: <50B39422.2060906@samsung.com>
-Date: Mon, 26 Nov 2012 17:09:06 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.7-rc] Samsung SoC media driver fixes
-References: <50AE6BAC.1030208@samsung.com>
-In-reply-to: <50AE6BAC.1030208@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail.kapsi.fi ([217.30.184.167]:39254 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754471Ab2K1Lja (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 06:39:30 -0500
+Message-ID: <50B5F7D2.9020005@iki.fi>
+Date: Wed, 28 Nov 2012 13:38:58 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Ingo Kofler <ingo.kofler@gmail.com>
+CC: =?UTF-8?B?Sm9lbCBXaXLEgW11IFBhdWxpbmc=?= <joel@aenertia.net>,
+	linux-media@vger.kernel.org
+Subject: Re: Tuning problems with em28xx-dvb & tda10071 on MIPS-based router
+ board
+References: <CAK02SCLV3677t1UQe56aWA7qBwoLna2=UREq1GAfS9PqT2deEA@mail.gmail.com> <CAKiAkGTWXfC6yW8NSdbRqgm5G4EmXjRp2=MCwAiQzmEfSBMC9w@mail.gmail.com> <CAK02SCLaUB-aeXYKPj+2-js5n7Z+qtQ0hJoYgKTCeOUc1umz-g@mail.gmail.com>
+In-Reply-To: <CAK02SCLaUB-aeXYKPj+2-js5n7Z+qtQ0hJoYgKTCeOUc1umz-g@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 11/28/2012 10:05 AM, Ingo Kofler wrote:
+> I know that they are not that powerful. I don't want to dump the whole
+> transportstream but just a single program (~ 10 mbit/s) contained in
+> it. Filtering based on the PID is done in the device isn't it?
 
-On 11/22/2012 07:15 PM, Sylwester Nawrocki wrote:
-> The following changes since commit 30677fd9ac7b9a06555318ec4f9a0db39804f9b2:
-> 
->   s5p-fimc: Fix potential NULL pointer dereference (2012-11-22 10:15:40 +0100)
-> 
-> are available in the git repository at:
-> 
->   git://git.infradead.org/users/kmpark/linux-samsung media_fixes_for_v3.7
-> 
-> for you to fetch changes up to 28f497f26c67ab734bdb923b457016122368f69a:
-> 
->   s5p-mfc: Handle multi-frame input buffer (2012-11-22 15:13:53 +0100)
-> 
-> This is a bunch of quite important fixes for the Exynos SoC drivers,
-> please apply for v3.7 if possible. This depends on my previous pull
-> request (I've applied the patches you indicated you take for v3.7
-> previously to the media_fixes_for_v3.7 branch as well).
+Used em28xx chip supports pid filtering but driver doesn't.
 
-I have fixed 2 build warnings caused by patch
-"s5p-fimc: Prevent race conditions during subdevs registration".
-Here is an updated pull request:
+Antti
 
-The following changes since commit 30677fd9ac7b9a06555318ec4f9a0db39804f9b2:
+>
+> Ingo
+>
+> 2012/11/27 Joel Wirāmu Pauling <joel@aenertia.net>:
+>> The 1043nd and similar ar7xxx chipsets only support around 30-40bit
+>> transfers across the CPU and chip-set bus.
+>>
+>> I would be very surprised if you could reliably put an mpeg2 stream on the
+>> wire from them.
+>>
+>>
+>> -Joel
+>>
+>> http://gplus.to/aenertia
+>> http://linkedin.com/in/aenertia
+>> @aenertia
+>>
+>>
+>>
+>>
+>> On 27 November 2012 06:50, Ingo Kofler <ingo.kofler@gmail.com> wrote:
+>>>
+>>> Hi,
+>>>
+>>> I am trying to get my PCTV DVB-S2 stick running on my TP-Link
+>>> TL-WR1043ND that runs OpenWrt (Attitude Adjustment Beta, Kernel
+>>> 3.3.8). I have cross-compiled the corresponding kernel modules and
+>>> deployed them on the router. I have also deployed the firmware on the
+>>> device.
+>>>
+>>> After loading the corresponding modules the /dev/dvb/... devices show
+>>> up and the dmesg output seems to be fine. Then I tried to test the
+>>> device using szap and a channels.conf file. Unfortunately, the device
+>>> cannot tune to most of the transponders except of two. Both are
+>>> located in the vertical high band of the Astra 19E. For all other
+>>> transponders I do not get a lock of the frontend.
+>>>
+>>> Tuning works fine on my PC using kernel verions 3.2 and 3.5 (the ones
+>>> that ship with Ubuntu) and using the same channels.conf file and
+>>> stick. So I conclude that both the stick, the satellite dish and the
+>>> channels.conf is working. I've also tested it on the router board with
+>>> an external powered USB Hub (I though that maybe the power of the
+>>> router's USB port wasn't good enough).
+>>>
+>>> Now I have no further ideas. Before I start to debug the C code and
+>>> try to figure out the difference between the PC and the router - Are
+>>> there any known issues with this driver? Does it work on MIPS and
+>>> different endianess?
+>>>
+>>> Best regards,
+>>> Ingo
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-  s5p-fimc: Fix potential NULL pointer dereference (2012-11-22 10:15:40 +0100)
 
-are available in the git repository at:
-
-  git://git.infradead.org/users/kmpark/linux-samsung media_fixes_for_v3.7
-
-for you to fetch changes up to ffc64574688e1d6f110ca91cef2573f7eca1dbab:
-
-  s5p-mfc: Handle multi-frame input buffer (2012-11-26 15:55:04 +0100)
-
-----------------------------------------------------------------
-Arun Kumar K (2):
-      s5p-mfc: Bug fix of timestamp/timecode copy mechanism
-      s5p-mfc: Handle multi-frame input buffer
-
-Shaik Ameer Basha (1):
-      exynos-gsc: Fix settings for input and output image RGB type
-
-Sylwester Nawrocki (5):
-      s5p-fimc: Prevent race conditions during subdevs registration
-      s5p-fimc: Don't use mutex_lock_interruptible() in device release()
-      fimc-lite: Don't use mutex_lock_interruptible() in device release()
-      exynos-gsc: Don't use mutex_lock_interruptible() in device release()
-      exynos-gsc: Add missing video device vfl_dir flag initialization
-
- drivers/media/platform/exynos-gsc/gsc-m2m.c     |    4 ++--
- drivers/media/platform/exynos-gsc/gsc-regs.h    |   16 ++++++++--------
- drivers/media/platform/s5p-fimc/fimc-capture.c  |   10 +++++++---
- drivers/media/platform/s5p-fimc/fimc-lite.c     |    6 ++++--
- drivers/media/platform/s5p-fimc/fimc-m2m.c      |    3 +--
- drivers/media/platform/s5p-fimc/fimc-mdevice.c  |    4 ++--
- drivers/media/platform/s5p-mfc/s5p_mfc.c        |    7 ++-----
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    2 +-
- 8 files changed, 27 insertions(+), 25 deletions(-)
-
-
-Regards,
 -- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+http://palosaari.fi/
