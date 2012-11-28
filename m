@@ -1,119 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46246 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1767785Ab2KONPf (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:56313 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752197Ab2K1Hmt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 08:15:35 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: [PATCH v11 5/6] drm_modes: add videomode helpers
-Date: Thu, 15 Nov 2012 14:15:11 +0100
-Message-Id: <1352985312-18178-6-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1352985312-18178-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1352985312-18178-1-git-send-email-s.trumtrar@pengutronix.de>
+	Wed, 28 Nov 2012 02:42:49 -0500
+Date: Wed, 28 Nov 2012 08:42:47 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Libin Yang <lbyang@marvell.com>
+cc: Albert Wang <twang13@marvell.com>,
+	"corbet@lwn.net" <corbet@lwn.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH 02/15] [media] marvell-ccic: add MIPI support for
+ marvell-ccic driver
+In-Reply-To: <A63A0DC671D719488CD1A6CD8BDC16CF230A8D7A04@SC-VEXCH4.marvell.com>
+Message-ID: <Pine.LNX.4.64.1211280841390.32652@axis700.grange>
+References: <1353677587-23998-1-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1211271117270.22273@axis700.grange>
+ <477F20668A386D41ADCC57781B1F70430D1367C8D1@SC-VEXCH1.marvell.com>
+ <A63A0DC671D719488CD1A6CD8BDC16CF230A8D79E9@SC-VEXCH4.marvell.com>
+ <Pine.LNX.4.64.1211280812060.32652@axis700.grange>
+ <A63A0DC671D719488CD1A6CD8BDC16CF230A8D7A04@SC-VEXCH4.marvell.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add conversion from videomode to drm_display_mode
+On Tue, 27 Nov 2012, Libin Yang wrote:
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Hi Guennadi,
+> 
+> >-----Original Message-----
+> >From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+> >Sent: Wednesday, November 28, 2012 3:14 PM
+> >To: Libin Yang
+> >Cc: Albert Wang; corbet@lwn.net; linux-media@vger.kernel.org
+> >Subject: RE: [PATCH 02/15] [media] marvell-ccic: add MIPI support for marvell-ccic driver
+> >
+> >On Tue, 27 Nov 2012, Libin Yang wrote:
+> >
+> >> Hello Guennadi,
+> >>
+> >> Please see my comments below.
+> >>
+> >> Best Regards,
+> >> Libin
+> >>
+> >> >-----Original Message-----
+> >> >From: Albert Wang
+> >> >Sent: Tuesday, November 27, 2012 7:21 PM
+> >> >To: Guennadi Liakhovetski
+> >> >Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
+> >> >Subject: RE: [PATCH 02/15] [media] marvell-ccic: add MIPI support for marvell-ccic
+> >driver
+> >> >
+> >> >Hi, Guennadi
+> >> >
+> >> >We will update the patch by following your good suggestion! :)
+> >> >
+> >>
+> >> [snip]
+> >>
+> >> >>> +	pll1 = clk_get(dev, "pll1");
+> >> >>> +	if (IS_ERR(pll1)) {
+> >> >>> +		dev_err(dev, "Could not get pll1 clock\n");
+> >> >>> +		return;
+> >> >>> +	}
+> >> >>> +
+> >> >>> +	tx_clk_esc = clk_get_rate(pll1) / 1000000 / 12;
+> >> >>> +	clk_put(pll1);
+> >> >>
+> >> >>Once you release your clock per "clk_put()" its rate can be changed by some other user,
+> >> >>so, your tx_clk_esc becomes useless. Better keep the reference to the clock until clean
+> >up.
+> >> >>Maybe you can also use
+> >> >>devm_clk_get() to simplify the clean up.
+> >> >>
+> >> >That's a good suggestion.
+> >> >
+> >> [Libin] In our code design, the pll1 will never be changed after the system boots up.
+> >Camera and other components can only get the clk without modifying it.
+> >
+> >This doesn't matter. We have a standard API and we have to abide to its
+> >rules. Your driver can be reused or its code can be copied by others. I
+> >don't think it should be too difficult to just issue devm_clk_get() once
+> >and then just forget about it.
+> 
+> [Libin] Yes, you are right. We should consider the driver may be reused. 
+> I didn't realize it. Another question is: If we use devm_clk_get(), what 
+> I understand, the clk will be put when the device is being released. It 
+> means the driver will hold the clk all the time the driver is in the 
+> kernel. What do you think if we get the clk when opening the camera, and 
+> put it in the close?
+
+Sure, that's fine too.
+
+Thanks
+Guennadi
 ---
- drivers/gpu/drm/drm_modes.c |   37 +++++++++++++++++++++++++++++++++++++
- include/drm/drmP.h          |    6 ++++++
- 2 files changed, 43 insertions(+)
-
-diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
-index 59450f3..23d951a0 100644
---- a/drivers/gpu/drm/drm_modes.c
-+++ b/drivers/gpu/drm/drm_modes.c
-@@ -35,6 +35,7 @@
- #include <linux/export.h>
- #include <drm/drmP.h>
- #include <drm/drm_crtc.h>
-+#include <linux/videomode.h>
- 
- /**
-  * drm_mode_debug_printmodeline - debug print a mode
-@@ -504,6 +505,42 @@ drm_gtf_mode(struct drm_device *dev, int hdisplay, int vdisplay, int vrefresh,
- }
- EXPORT_SYMBOL(drm_gtf_mode);
- 
-+#if IS_ENABLED(CONFIG_VIDEOMODE)
-+int drm_display_mode_from_videomode(struct videomode *vm,
-+				    struct drm_display_mode *dmode)
-+{
-+	dmode->hdisplay = vm->hactive;
-+	dmode->hsync_start = dmode->hdisplay + vm->hfront_porch;
-+	dmode->hsync_end = dmode->hsync_start + vm->hsync_len;
-+	dmode->htotal = dmode->hsync_end + vm->hback_porch;
-+
-+	dmode->vdisplay = vm->vactive;
-+	dmode->vsync_start = dmode->vdisplay + vm->vfront_porch;
-+	dmode->vsync_end = dmode->vsync_start + vm->vsync_len;
-+	dmode->vtotal = dmode->vsync_end + vm->vback_porch;
-+
-+	dmode->clock = vm->pixelclock / 1000;
-+
-+	dmode->flags = 0;
-+	if (vm->hah)
-+		dmode->flags |= DRM_MODE_FLAG_PHSYNC;
-+	else
-+		dmode->flags |= DRM_MODE_FLAG_NHSYNC;
-+	if (vm->vah)
-+		dmode->flags |= DRM_MODE_FLAG_PVSYNC;
-+	else
-+		dmode->flags |= DRM_MODE_FLAG_NVSYNC;
-+	if (vm->interlaced)
-+		dmode->flags |= DRM_MODE_FLAG_INTERLACE;
-+	if (vm->doublescan)
-+		dmode->flags |= DRM_MODE_FLAG_DBLSCAN;
-+	drm_mode_set_name(dmode);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(drm_display_mode_from_videomode);
-+#endif
-+
- /**
-  * drm_mode_set_name - set the name on a mode
-  * @mode: name will be set in this mode
-diff --git a/include/drm/drmP.h b/include/drm/drmP.h
-index 3fd8280..341049c 100644
---- a/include/drm/drmP.h
-+++ b/include/drm/drmP.h
-@@ -56,6 +56,7 @@
- #include <linux/cdev.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
-+#include <linux/videomode.h>
- #if defined(__alpha__) || defined(__powerpc__)
- #include <asm/pgtable.h>	/* For pte_wrprotect */
- #endif
-@@ -1454,6 +1455,11 @@ extern struct drm_display_mode *
- drm_mode_create_from_cmdline_mode(struct drm_device *dev,
- 				  struct drm_cmdline_mode *cmd);
- 
-+#if IS_ENABLED(CONFIG_VIDEOMODE)
-+extern int drm_display_mode_from_videomode(struct videomode *vm,
-+					   struct drm_display_mode *dmode);
-+#endif
-+
- /* Modesetting support */
- extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
- extern void drm_vblank_post_modeset(struct drm_device *dev, int crtc);
--- 
-1.7.10.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
