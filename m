@@ -1,64 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:65470 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756656Ab2KHTM6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:12:58 -0500
-Received: by mail-ee0-f46.google.com with SMTP id b15so1754511eek.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2012 11:12:58 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 21/21] em28xx: add module parameter for selection of the preferred USB transfer type
-Date: Thu,  8 Nov 2012 20:11:53 +0200
-Message-Id: <1352398313-3698-22-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-out.m-online.net ([212.18.0.9]:39387 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932196Ab2K1UPy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 15:15:54 -0500
+From: Anatolij Gustschin <agust@denx.de>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH] soc_camera: fix VIDIOC_S_GROP ioctl
+Date: Wed, 28 Nov 2012 21:15:51 +0100
+Message-Id: <1354133751-31985-1-git-send-email-agust@denx.de>
+In-Reply-To: <Pine.LNX.4.64.1211261618390.11501@axis700.grange>
+References: <Pine.LNX.4.64.1211261618390.11501@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-By default, isoc transfers are used if possible.
-With the new module parameter, bulk can be selected as the
-preferred USB transfer type.
+Sometimes VIDIOC_S_GROP ioctl doesn't work, soc-camera driver reports:
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+soc-camera-pdrv soc-camera-pdrv.0: S_CROP denied: getting current crop failed
+
+The VIDIOC_G_CROP documentation states that the type field needs to be
+set to the respective buffer type when querying, so the check in .g_crop()
+of the subdevices returns -EINVAL if the type is not set properly. Here the
+uninitialized local variable 'current_crop' is passed to the .g_crop() and
+this leads to the observed error. Initialize the type field of the local
+'current_crop' before get_crop call.
+
+Signed-off-by: Anatolij Gustschin <agust@denx.de>
 ---
- drivers/media/usb/em28xx/em28xx-cards.c |   11 +++++++++--
- 1 Datei geändert, 9 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
+ drivers/media/platform/soc_camera/soc_camera.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index a9344f0..7f5b303 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -61,6 +61,11 @@ static unsigned int card[]     = {[0 ... (EM28XX_MAXBOARDS - 1)] = UNSET };
- module_param_array(card,  int, NULL, 0444);
- MODULE_PARM_DESC(card,     "card type");
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index d3f0b84..7ebc784 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -902,6 +902,8 @@ static int soc_camera_s_crop(struct file *file, void *fh,
+ 	dev_dbg(icd->pdev, "S_CROP(%ux%u@%u:%u)\n",
+ 		rect->width, rect->height, rect->left, rect->top);
  
-+static unsigned int prefer_bulk;
-+module_param(prefer_bulk, int, 0644);
-+MODULE_PARM_DESC(prefer_bulk, "prefer USB bulk transfers");
++	current_crop.type = a->type;
 +
-+
- /* Bitmask marking allocated devices from 0 to EM28XX_MAXBOARDS - 1 */
- static unsigned long em28xx_devused;
+ 	/* If get_crop fails, we'll let host and / or client drivers decide */
+ 	ret = ici->ops->get_crop(icd, &current_crop);
  
-@@ -3334,9 +3339,11 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	}
- 
- 	/* Select USB transfer types to use */
--	if (has_video && !dev->analog_ep_isoc)
-+	if (has_video &&
-+	    (!dev->analog_ep_isoc || (prefer_bulk && dev->analog_ep_bulk)))
- 		dev->analog_xfer_bulk = 1;
--	if (has_dvb && !dev->dvb_ep_isoc)
-+	if (has_dvb &&
-+	    (!dev->dvb_ep_isoc || (prefer_bulk && dev->dvb_ep_bulk)))
- 		dev->dvb_xfer_bulk = 1;
- 
- 	snprintf(dev->name, sizeof(dev->name), "em28xx #%d", nr);
 -- 
-1.7.10.4
+1.7.1
 
