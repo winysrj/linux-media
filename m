@@ -1,173 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:52163 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754624Ab2KMIck (ORCPT
+Received: from mx1.redhat.com ([209.132.183.28]:34245 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754510Ab2K1MSZ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Nov 2012 03:32:40 -0500
-Date: Tue, 13 Nov 2012 09:32:30 +0100
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: devicetree-discuss@lists.ozlabs.org,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Wed, 28 Nov 2012 07:18:25 -0500
+Date: Wed, 28 Nov 2012 10:18:02 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>, devel@driverdev.osuosl.org,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	"Sakari Ailus" <sakari.ailus@iki.fi>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: Re: [PATCH v8 2/6] video: add of helper for videomode
-Message-ID: <20121113083230.GA27797@pengutronix.de>
-References: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
- <1352734626-27412-3-git-send-email-s.trumtrar@pengutronix.de>
- <20121112185840.GX10369@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20121112185840.GX10369@pengutronix.de>
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: Re: [PATCH v3 0/9] Media Controller capture driver for DM365
+Message-ID: <20121128101802.0eafb6e7@redhat.com>
+In-Reply-To: <201211281256.10839.hansverk@cisco.com>
+References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
+	<20121128114537.GN11248@mwanda>
+	<201211281256.10839.hansverk@cisco.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Em Wed, 28 Nov 2012 12:56:10 +0100
+Hans Verkuil <hansverk@cisco.com> escreveu:
 
-On Mon, Nov 12, 2012 at 07:58:40PM +0100, Sascha Hauer wrote:
-> Hi Steffen,
+> On Wed 28 November 2012 12:45:37 Dan Carpenter wrote:
+> > I wish people wouldn't submit big patches right before the merge
+> > window opens...  :/ It's better to let it sit in linux-next for a
+> > couple weeks so people can mess with it a bit.
 > 
-> You lose memory in several places:
+> It's been under review for quite some time now, and the main change since
+> the last posted version is that this is now moved to staging/media.
 > 
-> On Mon, Nov 12, 2012 at 04:37:02PM +0100, Steffen Trumtrar wrote:
-> > +static struct display_timing *of_get_display_timing(struct device_node *np)
-> > +{
-> > +	struct display_timing *dt;
-> > +	int ret = 0;
-> > +
-> > +	dt = kzalloc(sizeof(*dt), GFP_KERNEL);
-> > +	if (!dt) {
-> > +		pr_err("%s: could not allocate display_timing struct\n", __func__);
-> > +		return NULL;
-> > +	}
-> > +
-> > +	ret |= parse_property(np, "hback-porch", &dt->hback_porch);
-> > +	ret |= parse_property(np, "hfront-porch", &dt->hfront_porch);
-> > +	ret |= parse_property(np, "hactive", &dt->hactive);
-> > +	ret |= parse_property(np, "hsync-len", &dt->hsync_len);
-> > +	ret |= parse_property(np, "vback-porch", &dt->vback_porch);
-> > +	ret |= parse_property(np, "vfront-porch", &dt->vfront_porch);
-> > +	ret |= parse_property(np, "vactive", &dt->vactive);
-> > +	ret |= parse_property(np, "vsync-len", &dt->vsync_len);
-> > +	ret |= parse_property(np, "clock-frequency", &dt->pixelclock);
-> > +
-> > +	of_property_read_u32(np, "vsync-active", &dt->vsync_pol_active);
-> > +	of_property_read_u32(np, "hsync-active", &dt->hsync_pol_active);
-> > +	of_property_read_u32(np, "de-active", &dt->de_pol_active);
-> > +	of_property_read_u32(np, "pixelclk-inverted", &dt->pixelclk_pol);
-> > +	dt->interlaced = of_property_read_bool(np, "interlaced");
-> > +	dt->doublescan = of_property_read_bool(np, "doublescan");
-> > +
-> > +	if (ret) {
-> > +		pr_err("%s: error reading timing properties\n", __func__);
-> > +		return NULL;
-> 
-> Here
-> 
-> > +	}
-> > +
-> > +	return dt;
-> > +}
-> > +
-> > +/**
-> > + * of_get_display_timings - parse all display_timing entries from a device_node
-> > + * @np: device_node with the subnodes
-> > + **/
-> > +struct display_timings *of_get_display_timings(struct device_node *np)
-> > +{
-> > +	struct device_node *timings_np;
-> > +	struct device_node *entry;
-> > +	struct device_node *native_mode;
-> > +	struct display_timings *disp;
-> > +
-> > +	if (!np) {
-> > +		pr_err("%s: no devicenode given\n", __func__);
-> > +		return NULL;
-> > +	}
-> > +
-> > +	timings_np = of_find_node_by_name(np, "display-timings");
-> > +	if (!timings_np) {
-> > +		pr_err("%s: could not find display-timings node\n", __func__);
-> > +		return NULL;
-> > +	}
-> > +
-> > +	disp = kzalloc(sizeof(*disp), GFP_KERNEL);
-> > +	if (!disp)
-> > +		return -ENOMEM;
-> > +
-> > +	entry = of_parse_phandle(timings_np, "native-mode", 0);
-> > +	/* assume first child as native mode if none provided */
-> > +	if (!entry)
-> > +		entry = of_get_next_child(np, NULL);
-> > +	if (!entry) {
-> > +		pr_err("%s: no timing specifications given\n", __func__);
-> > +		return NULL;
-> 
-> Here
-> 
-> > +	}
-> > +
-> > +	pr_info("%s: using %s as default timing\n", __func__, entry->name);
-> > +
-> > +	native_mode = entry;
-> > +
-> > +	disp->num_timings = of_get_child_count(timings_np);
-> > +	disp->timings = kzalloc(sizeof(struct display_timing *)*disp->num_timings,
-> > +				GFP_KERNEL);
-> > +	if (!disp->timings)
-> > +		return -ENOMEM;
-> 
-> Here
-> 
-> > +
-> > +	disp->num_timings = 0;
-> > +	disp->native_mode = 0;
-> > +
-> > +	for_each_child_of_node(timings_np, entry) {
-> > +		struct display_timing *dt;
-> > +
-> > +		dt = of_get_display_timing(entry);
-> > +		if (!dt) {
-> > +			/* to not encourage wrong devicetrees, fail in case of an error */
-> > +			pr_err("%s: error in timing %d\n", __func__, disp->num_timings+1);
-> > +			return NULL;
-> 
-> Here
-> 
-> > +		}
-> > +
-> > +		if (native_mode == entry)
-> > +			disp->native_mode = disp->num_timings;
-> > +
-> > +		disp->timings[disp->num_timings] = dt;
-> > +		disp->num_timings++;
-> > +	}
-> > +	of_node_put(timings_np);
-> > +
-> > +	if (disp->num_timings > 0)
-> > +		pr_info("%s: got %d timings. Using timing #%d as default\n", __func__,
-> > +			disp->num_timings , disp->native_mode + 1);
-> > +	else {
-> > +		pr_err("%s: no valid timings specified\n", __func__);
-> > +		return NULL;
-> 
-> and here
-> 
+> So it is not yet ready for prime time, but we do want it in to simplify
+> the last remaining improvements needed to move it to drivers/media.
 
-Well,... you are right. :-(
+"last remaining improvements"? I didn't review the patchset, but
+the TODO list seems to have several pending stuff there:
 
-Regards,
-Steffen
++- User space interface refinement
++        - Controls should be used when possible rather than private ioctl
++        - No enums should be used
++        - Use of MC and V4L2 subdev APIs when applicable
++        - Single interface header might suffice
++        - Current interface forces to configure everything at once
++- Get rid of the dm365_ipipe_hw.[ch] layer
++- Active external sub-devices defined by link configuration; no strcmp
++  needed
++- More generic platform data (i2c adapters)
++- The driver should have no knowledge of possible external subdevs; see
++  struct vpfe_subdev_id
++- Some of the hardware control should be refactorede
++- Check proper serialisation (through mutexes and spinlocks)
++- Names that are visible in kernel global namespace should have a common
++  prefix (or a few)
+
+>From the above comments, both Kernelspace and Userspace APIs require 
+lots of work.
+
+Also, it is not clear at all if this is a fork of the existing davinci
+driver, or if it is a completely new driver for an already-supported
+hardware, making very hard (if not impossible) to review it, and, if it
+is yet-another-driver for the same hardware, moving it out of staging
+will be a big issue, as it won't be trivial to check for regressions
+introduced by a different driver.
+
+> 
+> I'm happy with this going in given the circumstances.
+
+Well, I'm not.
 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Regards,
+Mauro
