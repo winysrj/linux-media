@@ -1,85 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:57760 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751445Ab2KFLqG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 06:46:06 -0500
-Date: Tue, 6 Nov 2012 12:45:51 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Anatolij Gustschin <agust@denx.de>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] OV5642: fix VIDIOC_S_GROP ioctl
-In-Reply-To: <1352157290-13201-1-git-send-email-agust@denx.de>
-Message-ID: <Pine.LNX.4.64.1211061243580.6451@axis700.grange>
-References: <1352157290-13201-1-git-send-email-agust@denx.de>
+Received: from mail.kernel.org ([198.145.19.201]:59312 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755962Ab2K1TaX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 14:30:23 -0500
+Date: Wed, 28 Nov 2012 11:30:21 -0800
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: devel@driverdev.osuosl.org,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v3 0/9] Media Controller capture driver for DM365
+Message-ID: <20121128193021.GA4174@kroah.com>
+References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
+ <20121128101802.0eafb6e7@redhat.com>
+ <20121128172248.GA32286@kroah.com>
+ <201211282018.20832.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201211282018.20832.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 6 Nov 2012, Anatolij Gustschin wrote:
-
-> VIDIOC_S_GROP ioctl doesn't work, soc-camera driver reports:
+On Wed, Nov 28, 2012 at 08:18:20PM +0100, Hans Verkuil wrote:
+> On Wed November 28 2012 18:22:48 Greg Kroah-Hartman wrote:
+> > On Wed, Nov 28, 2012 at 10:18:02AM -0200, Mauro Carvalho Chehab wrote:
+> > > Em Wed, 28 Nov 2012 12:56:10 +0100
+> > > Hans Verkuil <hansverk@cisco.com> escreveu:
+> > > 
+> > > > On Wed 28 November 2012 12:45:37 Dan Carpenter wrote:
+> > > > > I wish people wouldn't submit big patches right before the merge
+> > > > > window opens...  :/ It's better to let it sit in linux-next for a
+> > > > > couple weeks so people can mess with it a bit.
+> > > > 
+> > > > It's been under review for quite some time now, and the main change since
+> > > > the last posted version is that this is now moved to staging/media.
+> > > > 
+> > > > So it is not yet ready for prime time, but we do want it in to simplify
+> > > > the last remaining improvements needed to move it to drivers/media.
+> > > 
+> > > "last remaining improvements"? I didn't review the patchset, but
+> > > the TODO list seems to have several pending stuff there:
+> > > 
+> > > +- User space interface refinement
+> > > +        - Controls should be used when possible rather than private ioctl
+> > > +        - No enums should be used
+> > > +        - Use of MC and V4L2 subdev APIs when applicable
+> > > +        - Single interface header might suffice
+> > > +        - Current interface forces to configure everything at once
+> > > +- Get rid of the dm365_ipipe_hw.[ch] layer
+> > > +- Active external sub-devices defined by link configuration; no strcmp
+> > > +  needed
+> > > +- More generic platform data (i2c adapters)
+> > > +- The driver should have no knowledge of possible external subdevs; see
+> > > +  struct vpfe_subdev_id
+> > > +- Some of the hardware control should be refactorede
+> > > +- Check proper serialisation (through mutexes and spinlocks)
+> > > +- Names that are visible in kernel global namespace should have a common
+> > > +  prefix (or a few)
+> > > 
+> > > From the above comments, both Kernelspace and Userspace APIs require 
+> > > lots of work.
 > 
-> soc-camera-pdrv soc-camera-pdrv.0: S_CROP denied: getting current crop failed
-> 
-> The issue is caused by checking for V4L2_BUF_TYPE_VIDEO_CAPTURE type
-> in driver's g_crop callback. This check should be in s_crop instead,
-> g_crop should just set the type field to V4L2_BUF_TYPE_VIDEO_CAPTURE
-> as other drivers do. Move the V4L2_BUF_TYPE_VIDEO_CAPTURE type check
-> to s_crop callback.
+> And that's why it is in staging. Should a long TODO list now suddenly
+> prevent staging from being used? In Barcelona we discussed this and the
+> only requirement we came up was was that it should compile.
 
-I'm not sure this is correct:
+Yes, that's all I care about in staging, but as I stated, I don't
+maintain drivers/staging/media/ that area is under Mauro's control
+(MAINTAINERS even says this), and I'm a bit leery of going against the
+wishes of an existing subsystem maintainer for adding staging drivers
+that tie into their subsystem.
 
-http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-crop.html
+So if you get Mauro's approval, I'll be glad to queue it up.
 
-Or is the .g_crop() subdev operation using a different semantics? Where is 
-that documented?
+thanks,
 
-Thanks
-Guennadi
-
-> 
-> Signed-off-by: Anatolij Gustschin <agust@denx.de>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  drivers/media/i2c/soc_camera/ov5642.c |    7 ++++---
->  1 files changed, 4 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/soc_camera/ov5642.c b/drivers/media/i2c/soc_camera/ov5642.c
-> index 8577e0c..19863e5 100644
-> --- a/drivers/media/i2c/soc_camera/ov5642.c
-> +++ b/drivers/media/i2c/soc_camera/ov5642.c
-> @@ -872,6 +872,9 @@ static int ov5642_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
->  	struct v4l2_rect rect = a->c;
->  	int ret;
->  
-> +	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;
-> +
->  	v4l_bound_align_image(&rect.width, 48, OV5642_MAX_WIDTH, 1,
->  			      &rect.height, 32, OV5642_MAX_HEIGHT, 1, 0);
->  
-> @@ -899,9 +902,7 @@ static int ov5642_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
->  	struct ov5642 *priv = to_ov5642(client);
->  	struct v4l2_rect *rect = &a->c;
->  
-> -	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> -		return -EINVAL;
-> -
-> +	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->  	*rect = priv->crop_rect;
->  
->  	return 0;
-> -- 
-> 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+greg k-h
