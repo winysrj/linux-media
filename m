@@ -1,55 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:14628 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753918Ab2K1KOd (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39777 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932358Ab2K1PQT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 05:14:33 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0ME700H3Q0G7F330@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 28 Nov 2012 19:14:32 +0900 (KST)
-Received: from amdc1342.digital.local ([106.116.147.39])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0ME70056P0G1CG81@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 28 Nov 2012 19:14:32 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
+	Wed, 28 Nov 2012 10:16:19 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: jtp.park@samsung.com, arun.kk@samsung.com, s.nawrocki@samsung.com,
-	Kamil Debski <k.debski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] MAINTAINERS: add g2d entry.
-Date: Wed, 28 Nov 2012 11:14:22 +0100
-Message-id: <1354097662-25565-1-git-send-email-k.debski@samsung.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Vaibhav Hiremath <hvaibhav@ti.com>,
+	Archit Taneja <archit@ti.com>
+Subject: [GIT PULL FOR v3.8] OMAP VOUT fixes
+Date: Wed, 28 Nov 2012 16:17:23 +0100
+Message-ID: <17143281.p5Zi55G1L9@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- MAINTAINERS |    8 ++++++++
- 1 file changed, 8 insertions(+)
+Hi Mauro,
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index b623679..c675df0 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1092,6 +1092,14 @@ F:	arch/arm/mach-s5pv210/mach-goni.c
- F:	arch/arm/mach-exynos/mach-universal_c210.c
- F:	arch/arm/mach-exynos/mach-nuri.c
- 
-+ARM/SAMSUNG S5P SERIES 2D GRAPHICS ACCELERATION (G2D) SUPPORT
-+M:	Kyungmin Park <kyungmin.park@samsung.com>
-+M:	Kamil Debski <k.debski@samsung.com>
-+L:	linux-arm-kernel@lists.infradead.org
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/platform/s5p-g2d/
-+
- ARM/SAMSUNG S5P SERIES FIMC SUPPORT
- M:	Kyungmin Park <kyungmin.park@samsung.com>
- M:	Sylwester Nawrocki <s.nawrocki@samsung.com>
+The two patches included in this pull requests have been previously posted to 
+the list and acked. As the omap_vout seems unmaintained, here's a pull 
+request.
+
+If no maintainer steps up in response to this e-mail I'll send a patch for 
+MAINTAINERS to list myself as a 'Odd Fixes' maintainer.
+
+The following changes since commit d8658bca2e5696df2b6c69bc5538f8fe54e4a01e:                                                                                                                               
+                                                                                                                                                                                                           
+  [media] omap3isp: Replace cpu_is_omap3630() with ISP revision check 
+(2012-11-28 10:54:46 -0200)
+
+are available in the git repository at:
+  git://linuxtv.org/pinchartl/media.git omap3/vout
+
+Laurent Pinchart (2):
+      omap_vout: Drop overlay format enumeration
+      omap_vout: Use the output overlay ioctl operations
+
+ drivers/media/platform/omap/omap_vout.c |   22 +++-------------------
+ 1 files changed, 3 insertions(+), 19 deletions(-)
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
