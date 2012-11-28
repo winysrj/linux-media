@@ -1,60 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:34970 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753146Ab2KSJtq (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:39740 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754831Ab2K1Vah (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Nov 2012 04:49:46 -0500
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
+	Wed, 28 Nov 2012 16:30:37 -0500
+Date: Thu, 29 Nov 2012 00:29:52 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: devel@driverdev.osuosl.org,
 	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Joe Perches <joe@perches.com>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>
-Subject: [PATCH] MAINTAINERS: Add entry for Davinci video drivers
-Date: Mon, 19 Nov 2012 15:18:21 +0530
-Message-Id: <1353318501-19880-1-git-send-email-prabhakar.lad@ti.com>
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v3 0/9] Media Controller capture driver for DM365
+Message-ID: <20121128212952.GP11248@mwanda>
+References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
+ <20121128114537.GN11248@mwanda>
+ <201211281256.10839.hansverk@cisco.com>
+ <20121128122227.GX6186@mwanda>
+ <50B6663C.6080800@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <50B6663C.6080800@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
+On Wed, Nov 28, 2012 at 08:30:04PM +0100, Sylwester Nawrocki wrote:
+> On 11/28/2012 01:22 PM, Dan Carpenter wrote:
+> > In the end this is just a driver, and I don't especially care.  But
+> > it's like not just this one which makes me frustrated.  I really
+> > believe in linux-next and I think everything should spend a couple
+> > weeks there before being merged.
+> 
+> Couple of weeks in linux-next plus a couple of weeks of final patch
+> series version awaiting to being reviewed and picked up by a maintainer
+> makes almost entire kernel development cycle. These are huge additional
+> delays, especially in the embedded world. Things like these certainly
+> aren't encouraging for moving over from out-of-tree to the mainline
+> development process. And in this case we are talking only about merging
+> driver to the staging tree...
 
-This patch adds an entry in MAINTAINERS file for
-TI Davinci media drivers.
+Yeah.  A couple weeks is probably too long.  But I think a week is
+totally reasonable.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
----
- MAINTAINERS |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+You have the process wrong.  The maintainer reviews it first, merges
+it into his -next git tree.  It sits in linux-next for a bit.  The
+merge window opens up.  It is merged.  It gets tested for 3 months.
+It is released.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index f4b3aa8..9474cb4 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6619,6 +6619,18 @@ S:	Supported
- F:	arch/arm/mach-davinci
- F:	drivers/i2c/busses/i2c-davinci.c
- 
-+TI DAVINCI SERIES MEDIA DRIVER
-+M:	Manjunath Hadli <manjunath.hadli@ti.com>
-+M:	Prabhakar Lad <prabhakar.lad@ti.com>
-+L:	linux-media@vger.kernel.org
-+L:	davinci-linux-open-source@linux.davincidsp.com (moderated for non-subscribers)
-+W:	http://linuxtv.org/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git
-+S:	Supported
-+F:	drivers/media/platform/davinci/
-+F:	include/media/davinci/
-+
- SIS 190 ETHERNET DRIVER
- M:	Francois Romieu <romieu@fr.zoreil.com>
- L:	netdev@vger.kernel.org
--- 
-1.7.4.1
+It should work as a continuous even flow.  It shouldn't be a rush to
+submit drivers right before the merge window opens.  It's not hard,
+you can submit a driver to linux-next at any time.  It magically
+flows through the process and is released some months later.
+
+It does suck to add a 3 month delay for people who miss the cut off.
+Don't wait until the last minute.  In the embedded world you can
+use git cherry-pick to get the driver from linux-next.
+
+regards,
+dan carpenter
 
