@@ -1,104 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37488 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754540Ab2KMOYP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Nov 2012 09:24:15 -0500
-Date: Tue, 13 Nov 2012 16:24:10 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Cc: laurent.pinchart@ideasonboard.com,
-	broonie@opensource.wolfsonmicro.com, hverkuil@xs4all.nl,
-	sylwester.nawrocki@gmail.com
-Subject: Re: [PATCH 1/1] media: Entities with sink pads must have at least
- one enabled link
-Message-ID: <20121113142409.GR25623@valkosipuli.retiisi.org.uk>
-References: <1351280777-4936-1-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1351280777-4936-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mx1.redhat.com ([209.132.183.28]:26284 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752508Ab2K1Tfu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 14:35:50 -0500
+Date: Wed, 28 Nov 2012 17:35:29 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	devel@driverdev.osuosl.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v3 9/9] davinci: vpfe: Add documentation and TODO
+Message-ID: <20121128173529.1a264c53@redhat.com>
+In-Reply-To: <1555450.K4uAzFNhY7@avalon>
+References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
+	<1354099329-20722-10-git-send-email-prabhakar.lad@ti.com>
+	<20121128092213.4bd0870f@redhat.com>
+	<1555450.K4uAzFNhY7@avalon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Laurent,
 
-Comments would be appreciated, either positive or negative. The omap3isp
-driver does the same check itself currently, but I think this is more
-generic than that.
+Em Wed, 28 Nov 2012 14:00:14 +0100
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Thanks.
+> Hi Mauro,
+> 
+> Please see below.
+> 
+> On Wednesday 28 November 2012 09:22:13 Mauro Carvalho Chehab wrote:
+> > Hi Prabhakar,
+> > 
+> > Em Wed, 28 Nov 2012 16:12:09 +0530
+> > 
+> > Prabhakar Lad <prabhakar.csengg@gmail.com> escreveu:
+> > > +Introduction
+> > > +============
+> > > +
+> > > + This file documents the Texas Instruments Davinci Video processing Front
+> > > + End (VPFE) driver located under drivers/media/platform/davinci. The
+> > > + original driver exists for Davinci VPFE, which is now being changed to
+> > > + Media Controller Framework.
+> > 
+> > Hmm... please correct me if I'm wrong, but are you wanting to replace an
+> > existing driver at drivers/media/platform/davinci, by another one at
+> > staging that has lots of known issues, as pointed at your TODO????
+> > 
+> > If so, please don't do that. Replacing a driver by some other one is
+> > generally a very bad idea, especially in this case, where the new driver
+> > has clearly several issues, the main one being to define its own proprietary
+> > and undocumented API:
+> >
+> > > +As of now since the interface will undergo few changes all the include
+> > > +files are present in staging itself, to build for dm365 follow below
+> > > +steps,
+> > > +
+> > > +- copy vpfe.h from drivers/staging/media/davinci_vpfe/ to
+> > > +  include/media/davinci/ folder for building the uImage.
+> > > +- copy davinci_vpfe_user.h from drivers/staging/media/davinci_vpfe/ to
+> > > +  include/uapi/linux/davinci_vpfe.h, and add a entry in Kbuild (required
+> > > +  for building application).
+> > > +- copy dm365_ipipeif_user.h from drivers/staging/media/davinci_vpfe/ to
+> > > +  include/uapi/linux/dm365_ipipeif.h and a entry in Kbuild (required
+> > > +  for building application).
+> > 
+> > Among other things, with those ugly and very likely mandatory API calls:
+> >
+> > >+/*
+> > >+ * Private IOCTL
+> > >+ * VIDIOC_VPFE_IPIPEIF_S_CONFIG: Set IPIEIF configuration
+> > >+ * VIDIOC_VPFE_IPIPEIF_G_CONFIG: Get IPIEIF configuration
+> > >+ */
+> > >+#define VIDIOC_VPFE_IPIPEIF_S_CONFIG \
+> > >+	_IOWR('I', BASE_VIDIOC_PRIVATE + 1, struct ipipeif_params)
+> > >+#define VIDIOC_VPFE_IPIPEIF_G_CONFIG \
+> > >+	_IOWR('I', BASE_VIDIOC_PRIVATE + 2, struct ipipeif_params)
+> > >+
+> > >+#endif
+> > 
+> > I remember we rejected already drivers like that with obscure "S_CONFIG"
+> > private ioctl that were suspect to send a big initialization undocumented
+> > blob to the driver, as only the vendor's application would be able to use
+> > such driver.
+> 
+> That's correct, and that's why the driver is going to staging. From there it 
+> will be incrementally fixed and then moved to drivers/media/, or dropped if 
+> not maintained.
+> 
+> > So, instead, of submitting it to staging, you should be sending incremental
+> > patches for the existing driver, adding newer functionality there, and
+> > using the proper V4L2 API, with makes life easier for reviewers and
+> > application developers.
+> 
+> I agree that it would be the best thing to do, but I don't think it's going to 
+> happen. We need to decide between two options.
+> 
+> - Push back now and insist in incremental patches for the existing driver, and 
+> get nothing back as TI will very likely give up completely.
+> - Accept the driver in staging, get it fixed incrementally, and finally move 
+> it to drivers/media/
+> 
+> There's a political side to this issue, we need to decide whether we want to 
+> insist vendors getting everything right before any code reaches mainline, in 
+> which case I believe we will lose some of them in the process, including major 
+> vendors such as TI, or if we can make the mainline learning curve and 
+> experience a bit more smooth by accepting such code in staging.
+> 
+> I would vote for the second option, with a very clear rule that getting the 
+> driver in staging is only one step in the journey: if the development effort 
+> stops there, the driver *will* be removed.
 
-On Fri, Oct 26, 2012 at 10:46:17PM +0300, Sakari Ailus wrote:
-> If an entity has sink pads, at least one of them must be connected to
-> another pad with an enabled link. If a driver with multiple sink pads has
-> more strict requirements the check should be done in the driver itself.
-> 
-> Just requiring one sink pad is connected with an enabled link is enough
-> API-wise: entities with sink pads with only disabled links should not be
-> allowed to stream in the first place, but also in a different operation mode
-> a device might require only one of its pads connected with an active link.
-> 
-> If an entity has an ability to function as a source entity another logical
-> entity connected to the aforementioned one should be used for the purpose.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/media-entity.c |   16 +++++++++++++---
->  1 files changed, 13 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index e1cd132..8846ea7 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -227,6 +227,7 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
->  	media_entity_graph_walk_start(&graph, entity);
->  
->  	while ((entity = media_entity_graph_walk_next(&graph))) {
-> +		bool has_sink = false, active_sink = false;
->  		unsigned int i;
->  
->  		entity->stream_count++;
-> @@ -243,18 +244,27 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
->  		for (i = 0; i < entity->num_links; i++) {
->  			struct media_link *link = &entity->links[i];
->  
-> +			/* Are we the sink or not? */
-> +			if (link->sink->entity != entity)
-> +				continue;
-> +
-> +			has_sink = true;
-> +
->  			/* Is this pad part of an enabled link? */
->  			if (!(link->flags & MEDIA_LNK_FL_ENABLED))
->  				continue;
->  
-> -			/* Are we the sink or not? */
-> -			if (link->sink->entity != entity)
-> -				continue;
-> +			active_sink = true;
->  
->  			ret = entity->ops->link_validate(link);
->  			if (ret < 0 && ret != -ENOIOCTLCMD)
->  				goto error;
->  		}
-> +
-> +		if (has_sink && !active_sink) {
-> +			ret = -EPIPE;
-> +			goto error;
-> +		}
->  	}
->  
->  	mutex_unlock(&mdev->graph_mutex);
-> -- 
-> 1.7.2.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+What concerns most is that we'll be adding yet-another-driver for the same
+hardware, but using a different API set (Media controller + subdevs, instead
+of pure V4L2).
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+It should be noticed that even basic stuff seems to be missing at the driver,
+like proper locks[1].
+
+[1] I'm basing my comments only at this patchset's TODO list - I didn't 
+reviewed the code, but it this is one of the listed items: "Check proper
+serialisation (through mutexes and spinlocks)"
+
+As no regressions are accepted, on non-staging drivers, the switch from the
+already working, stable one to the new one, when this driver reaches the
+required quality, will be a very hard task, as one would need to check the
+exact behavior of the existing driver, and check if the new driver will
+behave the same, in order to warrant that no regressions will be introduced.
+
+This doesn't sound something easy to do, especially if the implementation
+decisions taken on the second driver aren't based on the same way as the
+existing driver.
+
+The risk is that this driver would never be merged upstream, due to those
+conflicts, or that we'll take several years to solve it, before being
+able to warrant that userspace binaries developed for the first driver
+will work as-is with the new one.
+
+Regards,
+Mauro
