@@ -1,93 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3640 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753747Ab2K2S0e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Nov 2012 13:26:34 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id qATIQVoX061621
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 29 Nov 2012 19:26:33 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id C695265A0030
-	for <linux-media@vger.kernel.org>; Thu, 29 Nov 2012 19:26:31 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20121129182631.C695265A0030@alastor.dyndns.org>
-Date: Thu, 29 Nov 2012 19:26:31 +0100 (CET)
+Received: from mga02.intel.com ([134.134.136.20]:14189 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752511Ab2K1Jcp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 04:32:45 -0500
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Malcolm Priestley <tvboxspy@gmail.com>,
+	linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH 1/2] dvb-frontends: use %*ph[N] to dump small buffers
+Date: Wed, 28 Nov 2012 11:32:32 +0200
+Message-Id: <1354095153-18352-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/media/dvb-frontends/ix2505v.c |    2 +-
+ drivers/media/dvb-frontends/or51211.c |    5 +----
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
-Results of the daily build of media_tree:
+diff --git a/drivers/media/dvb-frontends/ix2505v.c b/drivers/media/dvb-frontends/ix2505v.c
+index bc5a820..0e3387e 100644
+--- a/drivers/media/dvb-frontends/ix2505v.c
++++ b/drivers/media/dvb-frontends/ix2505v.c
+@@ -212,7 +212,7 @@ static int ix2505v_set_params(struct dvb_frontend *fe)
+ 		lpf = 0xb;
+ 
+ 	deb_info("Osc=%x b_w=%x lpf=%x\n", local_osc, b_w, lpf);
+-	deb_info("Data 0=[%x%x%x%x]\n", data[0], data[1], data[2], data[3]);
++	deb_info("Data 0=[%4phN]\n", data);
+ 
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+diff --git a/drivers/media/dvb-frontends/or51211.c b/drivers/media/dvb-frontends/or51211.c
+index c625b57..1af997e 100644
+--- a/drivers/media/dvb-frontends/or51211.c
++++ b/drivers/media/dvb-frontends/or51211.c
+@@ -471,10 +471,7 @@ static int or51211_init(struct dvb_frontend* fe)
+ 			  i--;
+ 			}
+ 		}
+-		dprintk("read_fwbits %x %x %x %x %x %x %x %x %x %x\n",
+-			rec_buf[0], rec_buf[1], rec_buf[2], rec_buf[3],
+-			rec_buf[4], rec_buf[5], rec_buf[6], rec_buf[7],
+-			rec_buf[8], rec_buf[9]);
++		dprintk("read_fwbits %10ph\n", rec_buf);
+ 
+ 		printk(KERN_INFO "or51211: ver TU%02x%02x%02x VSB mode %02x"
+ 		       " Status %02x\n",
+-- 
+1.7.10.4
 
-date:        Thu Nov 29 19:00:10 CET 2012
-git hash:    d8658bca2e5696df2b6c69bc5538f8fe54e4a01e
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
-
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: OK
-linux-git-arm-eabi-omap: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: WARNINGS
-linux-git-x86_64: OK
-linux-2.6.31.12-i686: ERRORS
-linux-2.6.32.6-i686: ERRORS
-linux-2.6.33-i686: ERRORS
-linux-2.6.34-i686: ERRORS
-linux-2.6.35.3-i686: ERRORS
-linux-2.6.36-i686: ERRORS
-linux-2.6.37-i686: ERRORS
-linux-2.6.38.2-i686: ERRORS
-linux-2.6.39.1-i686: ERRORS
-linux-3.0-i686: ERRORS
-linux-3.1-i686: ERRORS
-linux-3.2.1-i686: ERRORS
-linux-3.3-i686: ERRORS
-linux-3.4-i686: ERRORS
-linux-3.5-i686: ERRORS
-linux-3.6-i686: ERRORS
-linux-3.7-rc1-i686: ERRORS
-linux-2.6.31.12-x86_64: ERRORS
-linux-2.6.32.6-x86_64: ERRORS
-linux-2.6.33-x86_64: ERRORS
-linux-2.6.34-x86_64: ERRORS
-linux-2.6.35.3-x86_64: ERRORS
-linux-2.6.36-x86_64: ERRORS
-linux-2.6.37-x86_64: ERRORS
-linux-2.6.38.2-x86_64: ERRORS
-linux-2.6.39.1-x86_64: ERRORS
-linux-3.0-x86_64: ERRORS
-linux-3.1-x86_64: ERRORS
-linux-3.2.1-x86_64: ERRORS
-linux-3.3-x86_64: ERRORS
-linux-3.4-x86_64: ERRORS
-linux-3.5-x86_64: ERRORS
-linux-3.6-x86_64: ERRORS
-linux-3.7-rc1-x86_64: ERRORS
-apps: WARNINGS
-spec-git: WARNINGS
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
