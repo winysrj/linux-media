@@ -1,88 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:59522 "EHLO
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:21646 "EHLO
 	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753062Ab2KVSbq (ORCPT
+	with ESMTP id S1753759Ab2K1KNW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 13:31:46 -0500
-Received: from eusync3.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+	Wed, 28 Nov 2012 05:13:22 -0500
+Received: from eusync1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
  by mailout2.w1.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MDW00L5VJ0M9Z30@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 22 Nov 2012 18:21:58 +0000 (GMT)
-Received: from [106.116.147.32] by eusync3.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MDW00CADJ07VR60@eusync3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 22 Nov 2012 18:21:43 +0000 (GMT)
-Message-id: <50AE6D36.1060805@samsung.com>
-Date: Thu, 22 Nov 2012 19:21:42 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+ 17 2011)) with ESMTP id <0ME700I2Y0EN7K50@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Nov 2012 10:13:35 +0000 (GMT)
+Received: from AMDN910 ([106.116.147.102])
+ by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0ME700MHI0E0RM70@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Nov 2012 10:13:20 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Sachin Kamat' <sachin.kamat@linaro.org>,
+	linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>, patches@linaro.org
+References: <1353671443-2978-1-git-send-email-sachin.kamat@linaro.org>
+ <1353671443-2978-7-git-send-email-sachin.kamat@linaro.org>
+In-reply-to: <1353671443-2978-7-git-send-email-sachin.kamat@linaro.org>
+Subject: RE: [PATCH 6/6] [media] s5p-mfc: Use devm_clk_get APIs
+Date: Wed, 28 Nov 2012 11:13:13 +0100
+Message-id: <008101cdcd50$f9db0290$ed9107b0$%debski@samsung.com>
 MIME-version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [GIT PULL FOR v3.7-rc] Samsung SoC media driver fixes
-References: <50AE6BAC.1030208@samsung.com>
-In-reply-to: <50AE6BAC.1030208@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
+Content-type: text/plain; charset=us-ascii
 Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Sachin,
 
-this is what I've just sent (this time from the office my samsung.com account)
-to linux-media@vger.kernel.org. And can't see it neither on the mailing list
-nor at the patchwork.
+The comments from Sylwester also apply to the patches you have sent to MFC
+and G2D.
 
-Regards,
-Sylwester
+I don't see the benefit of switching to devm_clk_get(), it does some
+allocations and hence uses more resources. Leaving that aside there is no
+support for devm_clk_prepare and I would rather wait until it is included in
+the kernel.
 
-On 11/22/2012 07:15 PM, Sylwester Nawrocki wrote:
-> Hi Mauro,
+Best wishes,
+-- 
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Sachin Kamat
+> Sent: Friday, November 23, 2012 12:51 PM
+> To: linux-media@vger.kernel.org
+> Cc: s.nawrocki@samsung.com; sachin.kamat@linaro.org;
+> patches@linaro.org; Kamil Debski
+> Subject: [PATCH 6/6] [media] s5p-mfc: Use devm_clk_get APIs
 > 
-> The following changes since commit 30677fd9ac7b9a06555318ec4f9a0db39804f9b2:
+> devm_clk_get() is device managed function and makes error handling and
+> exit code a bit simpler.
 > 
->   s5p-fimc: Fix potential NULL pointer dereference (2012-11-22 10:15:40 +0100)
-> 
-> are available in the git repository at:
-> 
->   git://git.infradead.org/users/kmpark/linux-samsung media_fixes_for_v3.7
-> 
-> for you to fetch changes up to 28f497f26c67ab734bdb923b457016122368f69a:
-> 
->   s5p-mfc: Handle multi-frame input buffer (2012-11-22 15:13:53 +0100)
-> 
-> This is a bunch of quite important fixes for the Exynos SoC drivers,
-> please apply for v3.7 if possible. This depends on my previous pull
-> request (I've applied the patches you indicated you take for v3.7
-> previously to the media_fixes_for_v3.7 branch as well).
-> 
-> ----------------------------------------------------------------
-> Arun Kumar K (2):
->       s5p-mfc: Bug fix of timestamp/timecode copy mechanism
->       s5p-mfc: Handle multi-frame input buffer
-> 
-> Shaik Ameer Basha (1):
->       exynos-gsc: Fix settings for input and output image RGB type
-> 
-> Sylwester Nawrocki (5):
->       s5p-fimc: Prevent race conditions during subdevs registration
->       s5p-fimc: Don't use mutex_lock_interruptible() in device release()
->       fimc-lite: Don't use mutex_lock_interruptible() in device release()
->       exynos-gsc: Don't use mutex_lock_interruptible() in device release()
->       exynos-gsc: Add missing video device vfl_dir flag initialization
-> 
->  drivers/media/platform/exynos-gsc/gsc-m2m.c     |    4 ++--
->  drivers/media/platform/exynos-gsc/gsc-regs.h    |   16 ++++++++--------
->  drivers/media/platform/s5p-fimc/fimc-capture.c  |   10 +++++++---
->  drivers/media/platform/s5p-fimc/fimc-lite.c     |    6 ++++--
->  drivers/media/platform/s5p-fimc/fimc-m2m.c      |    3 +--
->  drivers/media/platform/s5p-fimc/fimc-mdevice.c  |    4 ++--
->  drivers/media/platform/s5p-mfc/s5p_mfc.c        |    7 ++-----
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    2 +-
->  8 files changed, 27 insertions(+), 25 deletions(-)
-> 
+> Cc: Kamil Debski <k.debski@samsung.com>
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 > ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc_pm.c |   14 ++++----------
+>  1 files changed, 4 insertions(+), 10 deletions(-)
 > 
-> Regards,
-> Sylwester
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+> index 2895333..4864d93 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+> @@ -37,7 +37,7 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
+> 
+>  	pm = &dev->pm;
+>  	p_dev = dev;
+> -	pm->clock_gate = clk_get(&dev->plat_dev->dev, MFC_GATE_CLK_NAME);
+> +	pm->clock_gate = devm_clk_get(&dev->plat_dev->dev,
+> MFC_GATE_CLK_NAME);
+>  	if (IS_ERR(pm->clock_gate)) {
+>  		mfc_err("Failed to get clock-gating control\n");
+>  		ret = PTR_ERR(pm->clock_gate);
+> @@ -47,10 +47,10 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
+>  	ret = clk_prepare(pm->clock_gate);
+>  	if (ret) {
+>  		mfc_err("Failed to preapre clock-gating control\n");
+> -		goto err_p_ip_clk;
+> +		goto err_g_ip_clk;
+>  	}
+> 
+> -	pm->clock = clk_get(&dev->plat_dev->dev, dev->variant-
+> >mclk_name);
+> +	pm->clock = devm_clk_get(&dev->plat_dev->dev,
+> +dev->variant->mclk_name);
+>  	if (IS_ERR(pm->clock)) {
+>  		mfc_err("Failed to get MFC clock\n");
+>  		ret = PTR_ERR(pm->clock);
+> @@ -60,7 +60,7 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
+>  	ret = clk_prepare(pm->clock);
+>  	if (ret) {
+>  		mfc_err("Failed to prepare MFC clock\n");
+> -		goto err_p_ip_clk_2;
+> +		goto err_g_ip_clk_2;
+>  	}
+> 
+>  	atomic_set(&pm->power, 0);
+> @@ -72,12 +72,8 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
+>  	atomic_set(&clk_ref, 0);
+>  #endif
+>  	return 0;
+> -err_p_ip_clk_2:
+> -	clk_put(pm->clock);
+>  err_g_ip_clk_2:
+>  	clk_unprepare(pm->clock_gate);
+> -err_p_ip_clk:
+> -	clk_put(pm->clock_gate);
+>  err_g_ip_clk:
+>  	return ret;
+>  }
+> @@ -85,9 +81,7 @@ err_g_ip_clk:
+>  void s5p_mfc_final_pm(struct s5p_mfc_dev *dev)  {
+>  	clk_unprepare(pm->clock_gate);
+> -	clk_put(pm->clock_gate);
+>  	clk_unprepare(pm->clock);
+> -	clk_put(pm->clock);
+>  #ifdef CONFIG_PM_RUNTIME
+>  	pm_runtime_disable(pm->device);
+>  #endif
+> --
+> 1.7.4.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in the body of a message to majordomo@vger.kernel.org More majordomo
+> info at  http://vger.kernel.org/majordomo-info.html
+
+
