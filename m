@@ -1,137 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moh3-ve3.go2.pl ([193.17.41.87]:51293 "EHLO moh3-ve3.go2.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752264Ab2KPT1x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Nov 2012 14:27:53 -0500
-Received: from moh3-ve3.go2.pl (unknown [10.0.0.158])
-	by moh3-ve3.go2.pl (Postfix) with ESMTP id A6C12B5A71C
-	for <linux-media@vger.kernel.org>; Fri, 16 Nov 2012 20:27:45 +0100 (CET)
-Received: from unknown (unknown [10.0.0.108])
-	by moh3-ve3.go2.pl (Postfix) with SMTP
-	for <linux-media@vger.kernel.org>; Fri, 16 Nov 2012 20:27:45 +0100 (CET)
-Message-ID: <50A693AF.4080707@tlen.pl>
-Date: Fri, 16 Nov 2012 20:27:43 +0100
-From: Wojciech Myrda <vojcek@tlen.pl>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:54560 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753548Ab2K1TGb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 14:06:31 -0500
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Mariusz Bialonczyk <manio@skyboo.net>, liplianin@me.by
-Subject: Re: Bugs in DVB-S Prof-Tuner 8000 driver (idle & suspend)
-References: <5072E5BA.2020205@tlen.pl>
-In-Reply-To: <5072E5BA.2020205@tlen.pl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CALF0-+XH4AfJUcNHXdMTwXf-=f24Zpe3VOw_1eQ9WBV1-6ZVjQ@mail.gmail.com>
+References: <CALF0-+XH4AfJUcNHXdMTwXf-=f24Zpe3VOw_1eQ9WBV1-6ZVjQ@mail.gmail.com>
+Date: Wed, 28 Nov 2012 16:06:31 -0300
+Message-ID: <CALF0-+USC6ButEO0pMRPFj8hGtL90wi3FrxL-BkE1oF42qcggg@mail.gmail.com>
+Subject: Re: [PATCH 0/23] media: Replace memcpy with struct assignment
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	Julia Lawall <Julia.Lawall@lip6.fr>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-W dniu 08.10.2012 16:39, Wojciech Myrda pisze:
-> Hi,
+On Tue, Oct 23, 2012 at 4:57 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> Hello everyone,
 >
-> I am using these new driver http://patchwork.linuxtv.org/patch/14300/
-> for my card. It generally works great allowing me to send DiseqC
-> commands, tune to LNBs etc but only as long as I do not use idle or
-> suspend with it which in first circumstance leads to kernel panics for
-> which I acquired number of pictures http://bigvo.dyndns.org/dvb/cx23885/
-> and in second requires reloading the driver to work properly
+> This is a large patchset that replaces struct memcpy with struct assignment,
+> whenever possible at drivers/media.
 >
+> The patches are hand applied and every change has been thoroughly reviewed.
+> However, to avoid regressions and angry users we'd like to have Acks
+> from maintainers.
 >
-> CARD INFO
-> [    4.600476] cx23885 driver version 0.0.3 loaded
-> [    4.600828] CORE cx23885[0]: subsystem: 8000:3034, board: Prof
-> Revolution DVB-S2 8000 [card=37,autodetected]
-> [    5.334312] cx23885_dvb_register() allocating 1 frontend(s)
-> [    5.334342] cx23885[0]: cx23885 based dvb card
-> [    5.423938] DVB: registering new adapter (cx23885[0])
-> [    5.424427] cx23885_dev_checkrevision() Hardware revision = 0xb0
-> [    5.424437] cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 16,
-> latency: 0, mmio: 0xfe600000
+> A simplified version of the semantic match that finds
+> this problem is as follows: (http://coccinelle.lip6.fr/)
 >
-> More info here: http://bigvo.dyndns.org/dvb/
+> // <smpl>
+> @@
+> identifier struct_name;
+> struct struct_name to;
+> struct struct_name from;
+> expression E;
+> @@
+> -memcpy(&(to), &(from), E);
+> +to = from;
+> // </smpl>
 >
-> If anyone is willing to take time and effort to improve the code for the
-> driver I would greatly appreciate it and I am willing to test it
+> If you're thinking this change is very minor and doesn't worh the pain,
+> you might change your opinion reading this report from Dan Carpenter:
 >
-> Regards,
-> _WM
+> http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/49553
+>
+> The report clearly shows how copy-paste programming paradigm, combined with
+> lack of memcpy type-safety can lead to very strange code.
+>
+> Not to mention, using struct assignment instead of memcpy
+> is by far more readable.
+>
+> Comments, feedback and flames are welcome. Thanks!
+>
+> Peter Senna Tschudin, Ezequiel Garcia (23):
+>  wl128x: Replace memcpy with struct assignment
+>  radio-wl1273: Replace memcpy with struct assignment
+>  dvb-frontends: Replace memcpy with struct assignment
+>  dvb-core: Replace memcpy with struct assignment
+>  bttv: Replace memcpy with struct assignment
+>  cx18: Replace memcpy with struct assignment
+>  cx23885: Replace memcpy with struct assignment
+>  cx88: Replace memcpy with struct assignment
+>  ivtv: Replace memcpy with struct assignment
+>  tuners/tda18271: Replace memcpy with struct assignment
+>  tuners/xc2028: Replace memcpy with struct assignment
+>  tuners/xc4000: Replace memcpy with struct assignment
+>  au0828: Replace memcpy with struct assignment
+>  dvb-usb/friio-fe: Replace memcpy with struct assignment
+>  zr36067: Replace memcpy with struct assignment
+>  cx25840: Replace memcpy with struct assignment
+>  hdpvr: Replace memcpy with struct assignment
+>  pvrusb2: Replace memcpy with struct assignment
+>  pwc: Replace memcpy with struct assignment
+>  sn9c102: Replace memcpy with struct assignment
+>  usbvision: Replace memcpy with struct assignment
+>  cx231xx: Replace memcpy with struct assignment
+>  uvc: Replace memcpy with struct assignment
+>
+>  drivers/media/dvb-core/dvb_frontend.c        |    2 +-
+>  drivers/media/dvb-frontends/cx24116.c        |    2 +-
+>  drivers/media/dvb-frontends/drxd_hard.c      |    5 ++---
+>  drivers/media/dvb-frontends/stv0299.c        |    2 +-
+>  drivers/media/i2c/cx25840/cx25840-ir.c       |    6 ++----
+>  drivers/media/pci/bt8xx/bttv-i2c.c           |    3 +--
+>  drivers/media/pci/cx18/cx18-i2c.c            |    6 ++----
+>  drivers/media/pci/cx23885/cx23885-video.c    |    3 +--
+>  drivers/media/pci/cx23885/cx23888-ir.c       |    6 ++----
+>  drivers/media/pci/cx88/cx88-cards.c          |    2 +-
+>  drivers/media/pci/cx88/cx88-i2c.c            |    3 +--
+>  drivers/media/pci/cx88/cx88-vp3054-i2c.c     |    3 +--
+>  drivers/media/pci/ivtv/ivtv-i2c.c            |   12 ++++--------
+>  drivers/media/pci/zoran/zoran_card.c         |    3 +--
+>  drivers/media/radio/radio-wl1273.c           |    3 +--
+>  drivers/media/radio/wl128x/fmdrv_common.c    |    3 +--
+>  drivers/media/tuners/tda18271-maps.c         |    6 ++----
+>  drivers/media/tuners/tuner-xc2028.c          |    2 +-
+>  drivers/media/tuners/xc4000.c                |    2 +-
+>  drivers/media/usb/au0828/au0828-cards.c      |    2 +-
+>  drivers/media/usb/au0828/au0828-i2c.c        |    9 +++------
+>  drivers/media/usb/cx231xx/cx231xx-cards.c    |    2 +-
+>  drivers/media/usb/cx231xx/cx231xx-video.c    |    3 +--
+>  drivers/media/usb/dvb-usb/friio-fe.c         |    5 ++---
+>  drivers/media/usb/hdpvr/hdpvr-i2c.c          |    3 +--
+>  drivers/media/usb/pvrusb2/pvrusb2-encoder.c  |    3 +--
+>  drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c |    4 ++--
+>  drivers/media/usb/pvrusb2/pvrusb2-v4l2.c     |    2 +-
+>  drivers/media/usb/pwc/pwc-if.c               |    2 +-
+>  drivers/media/usb/sn9c102/sn9c102_core.c     |    4 ++--
+>  drivers/media/usb/usbvision/usbvision-i2c.c  |    3 +--
+>  drivers/media/usb/uvc/uvc_v4l2.c             |    6 +++---
+>  32 files changed, 47 insertions(+), 75 deletions(-)
+>
 
-hi guys,
+Hi Mauro,
 
-I tried to use my Prof card once again now that 3.7 kernel reached rc-5
-to find my system crash after something about 2 hours of testing the
-card. This time for a change I did notice that first after I made number
-of tunnings to different channels few minutes before the crash I was not
-able to tune to in to any frequency.
+Given we're very near merge window, I'm wondering if you're
+considering picking this series.
+There's no rush, but if there's anything to review, please let me know.
 
-My system without the card did work for a month with no problem
-therefore the problem is definetly with the card or the way the in
-kernel driver for it works. Please take a look at the error and let me
-know if there is any thing I can do to get rid of this problem :(
+Thanks!
 
-
-
-BUG: unable to handle kernel NULL pointer deference at 00000000000000a8
-IP: [<ffffffffa01d38a0>] cx23885_video_wakeup+0x20/0x160 [ cx23885]
-PGD 127716067 PUD 12b2f1067 PMD 0
-Oops: 0000 [#1] SMP
-Modules linked in: des_generic ecb md4 sha256_generic md5 hmac
-nls_cp1250 cifs ipv6 dvb_ttpci saa7146_vv ttpci_eeprom saa7146
-ir_rc6_decoder ir_lirc_codec lirc_dev w83627ehf hwmon_vid phx_k8(O)
-mperf(O) thermal fan rc_imon_pad imon usbhid stb6100 stv090x cx23885
-btcx_risc psmouse snd_hda_codec_realtek altera_ci videobuf_dvb tda18271
-pcspkr altera_stapi tveeprom cx2341x videobuf_dma_sg k10temp dvb_core
-rc_core v4l2_common xhci_hcd r8169 videodev mii media snd_hda_codec_hdmi
-videobuf_core ohci_hcd sr_mod cdrom snd_hda_intel ehci_hcd snd_hda_codec
-snd_hwdep snd_pcm usbcore snd_page_alloc usb_common snd_timer snd
-parport_pc parport processor thermal_sys
-CPU 1
-Pid: 0, comm: swapper/1 Tained: G 0 3.7.0-rc5 #1 System manufacuter
-System Product Name/E35M1-M PRO
-RIP: 0010:[<ffffffffa01d38a0>] [<ffffffffa01d38a0>]
-cx23885_video_wakeup+0x20/0x160 [ cx23885]
-RSP: 0018:ffff88013ed03de8 EFLAGS: 00010082
-RAX: ffffc90011400000 RBX: 0000000000000000 RCX: 0000000000000060
-RDX: 00000000ffffffff RSI: ffff880137586070 RDI: ffff880137584000
-RBP: ffff880137586070 R08: 000000000000000a R09: 0000000000000000
-R10: 00000000000003cb R11: 00000000000003ca R12: 0000000000000000
-R13: 00000000ffffffff R14: 00000000ffffffff R15: 00000000ffffffff
-FS: 00007f1b27b73700(0000) GS:ffff88013ed00000(0000) knlGS:00000000f1bfab40
-CS: 0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 00000000000000a8 CR3: 000000012743b000 CR4: 00000000000007e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process swapper/1 (pid: 0, threadinfo ffff88013a8a6000, task
-ffff88013a87c080
-Stack:
-ffff88013ed03e38 ffff88013ed03df8 00000000ffffffff 00000000ffffffff
-ffff880137584000 0000000000000000 00000000ffffffff 00000000ffffffff
-00000000ffffffff ffffffffa01d4360 ffff880137584000 00000000ffffffff
-Call Trace:
-<IRQ>
-[<ffffffffa01d4360>] ? cx23885_video_irq+0x100/0x1c0 [ cx23885]
-[<ffffffffa01d7ea4>] ? cx23885_irq+0x434/0x920 [ cx23885]
-[<ffffffff8109cab9>] ? rcu_process_callbacks+0x459/0x540
-[<ffffffffa00067a5>] ? azx_interrupt+0x105/0x1b0 [snd_hda_intel]
-[<ffffffff81096624>] ? handle_irq_event_percpu+0x54/0x1f0
-[<ffffffff810967f6>] ? handle_irq_event+0x36/0x60
-[<ffffffff8109967c>] ? handle_fasteoi_irq+0x4c/0xe0
-[<ffffffff81003df5>] ? handle_irq+0x15/0x20
-[<ffffffff81003ac3>] ? do_IRQ+0x53/0xd0
-[<ffffffff814ab9ea>] ? common_interrupt+0x6a/0x6a
-<EOI>
-[<ffffffffa0012005>] ? acpi_idle_enter_simple+0xb5/0xe6 [processor]
-[<ffffffffa0012000>] ? acpi_idle_enter_simple+0xb0/0xe6 [processor]
-[<ffffffff813e6b12>] ? cpuidle_idle_call+0xa2/0x270
-[<ffffffff8100b24a>] ? cpu_idle+0x7a/0xd0
-Code: 12 2d e1 e9 52 ff ff ff 0f 1f 00 41 57 41 56 41 89 d6 41 55 41 54
-55 48 89 f5 53 48 83 ec 18 48 8b 1e 48 39 de 0f 84 e1 00 00 00 <66> 3b
-93 a8 00 00 00 41 89 d4 0f 88 b4 00 00 00 48 8d 43 c8 45
-RIP [<ffffffffa01d38a0>] cx23885_video_wakeup+0x20/0x160 [ cx23885]
-RSP <ffff88013ed03de8>
-CR2: 00000000000000a8
-Kernel panic – not syncing: Fatal exception in interrupt
-panic occured, switching back to text console
-
-Regards,
-_WM
-
-
-
+    Ezequiel
