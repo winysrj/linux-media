@@ -1,82 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:61263 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753555Ab2KATBe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2012 15:01:34 -0400
-Received: by mail-ea0-f174.google.com with SMTP id c13so1100241eaa.19
-        for <linux-media@vger.kernel.org>; Thu, 01 Nov 2012 12:01:32 -0700 (PDT)
-Message-ID: <5092C70A.2000009@gmail.com>
-Date: Thu, 01 Nov 2012 20:01:30 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: media-workshop@linuxtv.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [media-workshop] Tentative Agenda for the November workshop
-References: <201210221035.56897.hverkuil@xs4all.nl> <Pine.LNX.4.64.1210311408300.12173@axis700.grange> <201211011701.02482.hverkuil@xs4all.nl> <31457466.htZuxY1j9H@avalon>
-In-Reply-To: <31457466.htZuxY1j9H@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:46805 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755721Ab2K1TJj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 14:09:39 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0ME700HZQP81F3B0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 29 Nov 2012 04:09:37 +0900 (KST)
+Received: from amdc1344.digital.local ([106.116.147.32])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0ME7006TUP7TOU90@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 29 Nov 2012 04:09:37 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sw0312.kim@samsung.com, kyungmin.park@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 00/12] Exynos FIMC driver updates
+Date: Wed, 28 Nov 2012 20:09:17 +0100
+Message-id: <1354129766-2821-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/01/2012 05:05 PM, Laurent Pinchart wrote:
-> On Thursday 01 November 2012 17:01:02 Hans Verkuil wrote:
->> On Wed October 31 2012 14:12:05 Guennadi Liakhovetski wrote:
->>> On Mon, 22 Oct 2012, Guennadi Liakhovetski wrote:
->>>> On Mon, 22 Oct 2012, Hans Verkuil wrote:
->>>>> Hi all,
->>>>>
->>>>> This is the tentative agenda for the media workshop on November 8,
->>>>> 2012. If you have additional things that you want to discuss, or
->>>>> something is wrong or incomplete in this list, please let me know so I
->>>>> can update the list.
->>>>>
->>>>> - Explain current merging process (Mauro)
->>>>> - Open floor for discussions on how to improve it (Mauro)
->>>>> - Write down minimum requirements for new V4L2 (and DVB?) drivers,
->>>>>    both for staging and mainline acceptance: which frameworks to use,
->>>>>    v4l2-compliance, etc. (Hans Verkuil)
->>>>>
->>>>> - V4L2 ambiguities (Hans Verkuil)
->>>>> - TSMux device (a mux rather than a demux): Alain Volmat
->>>>> - dmabuf status, esp. with regards to being able to test
->>>>> (Mauro/Samsung)
->>>>> - Device tree support (Guennadi, not known yet whether this topic is
->>>>> needed)
->>>>
->>>> + asynchronous probing, I guess. It's probably implicitly included
->>>> though.
->>>
->>> As the meeting approaches, it would be good to have a decision - do we
->>> want to discuss DT / async or not? My flights this time are not quite long
->>> enough to prepare for the discussion on them;-)
->>
->> Looking at the current discussions I think discussing possible async
->> solutions would be very useful. The DT implementation itself seems to be
->> OK, at least I haven't seen any big discussions regarding that.
-> 
-> Agreed.
+This patch series contains mainly prerequisite changes for adding
+FIMC-IS (camera ISP) device support for Exynos4x12 SoCs.
+The ISP driver itself is under development and I intend to post
+initial version of it soon.
 
-That was my impression too, the bindings itself look fine in general.
-At least basic features of hardware are now covered, the not very common
-ones might be easily covered later when needed. 
+Sylwester Nawrocki (12):
+  V4L: DocBook: Add V4L2_MBUS_FMT_YUV10_1X30 media bus pixel code
+  s5p-fimc: Fix horizontal/vertical image flip
+  fimc-lite: Register dump function cleanup
+  s5p-fimc: Clean up capture enable/disable helpers
+  s5p-fimc: Add variant data structure for Exynos4x12
+  s5p-csis: Add support for raw Bayer pixel formats
+  s5p-csis: Enable only data lanes that are actively used
+  s5p-csis: Correct the event counters logging
+  s5p-csis: Add registers logging for debugging
+  fimc-lite: Remove empty subdev s_power callback
+  s5p-fimc: Add sensor group ids for fimc-is
+  fimc-lite: Add ISP FIFO output support
 
-I did an initial implementation for the s5p-fimc driver, with an I2C/SPI 
-sensor subdev, based on current DT bindings and the (slightly modified) 
-v4l2-of helpers. Relying only on the deferred probing mechanism and not 
-using the notifiers.
-
-It's relatively simple and works without that much changes comparing to 
-the previous non-dt version. Still there are possible races when subdevs 
-are loadable modules. However, the non-dt version has also problems in 
-this respect, as I misinterpreted in the past the get_driver()/put_driver() 
-functions [1]. So that needs to get fixed somehow to make the modules usage 
-reliable.
+ Documentation/DocBook/media/v4l/subdev-formats.xml |  718 ++++++--------------
+ Documentation/DocBook/media_api.tmpl               |    1 +
+ drivers/media/platform/s5p-fimc/fimc-capture.c     |    8 +-
+ drivers/media/platform/s5p-fimc/fimc-core.c        |   90 ++-
+ drivers/media/platform/s5p-fimc/fimc-core.h        |    8 +-
+ drivers/media/platform/s5p-fimc/fimc-lite-reg.c    |    6 +-
+ drivers/media/platform/s5p-fimc/fimc-lite.c        |  156 +++--
+ drivers/media/platform/s5p-fimc/fimc-lite.h        |    7 +-
+ drivers/media/platform/s5p-fimc/fimc-m2m.c         |    2 +-
+ drivers/media/platform/s5p-fimc/fimc-mdevice.c     |   23 +-
+ drivers/media/platform/s5p-fimc/fimc-mdevice.h     |   12 +-
+ drivers/media/platform/s5p-fimc/fimc-reg.c         |   48 +-
+ drivers/media/platform/s5p-fimc/fimc-reg.h         |    4 +-
+ drivers/media/platform/s5p-fimc/mipi-csis.c        |   58 +-
+ include/uapi/linux/v4l2-mediabus.h                 |    3 +-
+ 15 files changed, 487 insertions(+), 657 deletions(-)
 
 --
-Regards,
-Sylwester
+1.7.9.5
 
-[1] http://git.kernel.org/?p=linux/kernel/git/stable/linux-stable.git;a=commitdiff;h=fde25a9b63b9a3dc91365c394a426ebe64cfc2da
