@@ -1,36 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35864 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751619Ab2KHJ3L (ORCPT
+Received: from firefly.pyther.net ([50.116.37.168]:40641 "EHLO
+	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932314Ab2K1W3M (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 Nov 2012 04:29:11 -0500
-Date: Thu, 8 Nov 2012 11:29:06 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Andreas Nagel <andreasnagel@gmx.net>, linux-media@vger.kernel.org
-Subject: Re: OMAP3 ISP: VIDIOC_STREAMON and VIDIOC_QBUF calls fail
-Message-ID: <20121108092905.GF25623@valkosipuli.retiisi.org.uk>
-References: <5097DF9F.6080603@gmx.net>
- <20121106215153.GE25623@valkosipuli.retiisi.org.uk>
- <509A4473.3080506@gmx.net>
- <4541060.0oGRVnU8K8@avalon>
+	Wed, 28 Nov 2012 17:29:12 -0500
+Message-ID: <50B69037.3080205@pyther.net>
+Date: Wed, 28 Nov 2012 17:29:11 -0500
+From: Matthew Gyurgyik <matthew@pyther.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4541060.0oGRVnU8K8@avalon>
+To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com>
+In-Reply-To: <50B67851.2010808@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 08, 2012 at 10:26:11AM +0100, Laurent Pinchart wrote:
-> media-ctl doesn't show pad formats, that's a bit weird. Are you using a recent 
-> version ?
+On 11/28/2012 03:47 PM, Frank Schäfer wrote:
+> Your device seems to use a EM2874 bridge.
+That is what appears on the chip.
+> Any chance to open the device and find out which demodulator it uses ?
+To my surprise it was easier to open than expected.
 
-This could as well be an issue with the kernel API --- I think that kernel
-has a version which isn't in mainline. So the IOCTL used to access the media
-bus formats are quite possibly different.
+I think this is the demodulator:
 
-Regards,
+7th Generation
+VS8/QAM Receiver
+LG
+LGDT3305
+1211
+PGU419.00A
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+I took some pictures (of the entire card): 
+http://pyther.net/a/digivox_atsc/ (SideA_1.jpg, SideA_2.jpg, 
+SideB_1.jpg, SideB_2.jpg)
+> Are you able to compile a kernel on your own to test patches ? It's not
+> that hard... ;)
+I sure can! I've done some kernel bisects in the past.
+
+Thanks
