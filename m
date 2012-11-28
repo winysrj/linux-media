@@ -1,70 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:51177 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751706Ab2KWNcr (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:46811 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755792Ab2K1TJq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 08:32:47 -0500
-From: Albert Wang <twang13@marvell.com>
-To: corbet@lwn.net, g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org, lbyang@marvell.com,
-	Albert Wang <twang13@marvell.com>
-Subject: [PATCH 0/15] [media] marvell-ccic: add soc camera support on marvell-ccic
-Date: Fri, 23 Nov 2012 21:32:26 +0800
-Message-Id: <1353677546-23926-1-git-send-email-twang13@marvell.com>
+	Wed, 28 Nov 2012 14:09:46 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0ME700HZQP81F3B0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 29 Nov 2012 04:09:45 +0900 (KST)
+Received: from amdc1344.digital.local ([106.116.147.32])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0ME7006TUP7TOU90@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 29 Nov 2012 04:09:44 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sw0312.kim@samsung.com, kyungmin.park@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 03/12] fimc-lite: Register dump function cleanup
+Date: Wed, 28 Nov 2012 20:09:20 +0100
+Message-id: <1354129766-2821-4-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1354129766-2821-1-git-send-email-s.nawrocki@samsung.com>
+References: <1354129766-2821-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following patches series will add soc camera support on marvell-ccic
+Use v4l2_info() to make it possible to identify which FIMC-LITE
+device instance the logs refer to.
 
-Change log v2:
-	- remove register definition patch
-	- split big patch to some small patches
-	- split mcam-core.c to mcam-core.c and mcam-core-standard.c
-	- add mcam-core-soc.c for soc camera support
-	- split 3 frame buffers support patch into 2 patches
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-fimc/fimc-lite-reg.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-[PATCH 01/15] [media] marvell-ccic: use internal variable replace
-
-[PATCH 02/15] [media] marvell-ccic: add MIPI support for marvell-ccic driver
-
-[PATCH 03/15] [media] marvell-ccic: add clock tree support for marvell-ccic driver
-
-[PATCH 04/15] [media] marvell-ccic: reset ccic phy when stop streaming for stability
-
-[PATCH 05/15] [media] marvell-ccic: refine mcam_set_contig_buffer function
-
-[PATCH 06/15] [media] marvell-ccic: add new formats support for marvell-ccic driver
-
-[PATCH 07/15] [media] marvell-ccic: add SOF / EOF pair check for marvell-ccic driver
-
-[PATCH 08/15] [media] marvell-ccic: switch to resource managed allocation and request
-
-[PATCH 09/15] [media] marvell-ccic: refine vb2_ops for marvell-ccic driver
-
-[PATCH 10/15] [media] marvell-ccic: split mcam core into 2 parts for soc_camera support
-
-[PATCH 11/15] [media] marvell-ccic: add soc_camera support in mcam core
-
-[PATCH 12/15] [media] marvell-ccic: add soc_camera support in mmp driver
-
-[PATCH 13/15] [media] marvell-ccic: add dma burst mode support in marvell-ccic driver
-
-[PATCH 14/15] [media] marvell-ccic: use unsigned int type replace int type
-
-[PATCH 15/15] [media] marvell-ccic: add 3 frame buffers support in DMA_CONTIG mode
-
-
-v1:
-
-[PATCH 1/4] [media] mmp: add register definition for marvell ccic
-
-[PATCH 2/4] [media] marvell-ccic: core: add soc camera support on marvell-ccic mcam-core
-
-[PATCH 3/4] [media] marvell-ccic: mmp: add soc camera support on marvell-ccic mmp-driver
-
-[PATCH 4/4] [media] marvell-ccic: core: add 3 frame buffers support in DMA_CONTIG mode
-
-
-Thanks
-Albert Wang
+diff --git a/drivers/media/platform/s5p-fimc/fimc-lite-reg.c b/drivers/media/platform/s5p-fimc/fimc-lite-reg.c
+index a22d7eb..ad63ebf 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-lite-reg.c
++++ b/drivers/media/platform/s5p-fimc/fimc-lite-reg.c
+@@ -292,9 +292,11 @@ void flite_hw_dump_regs(struct fimc_lite *dev, const char *label)
+ 	};
+ 	u32 i;
+ 
+-	pr_info("--- %s ---\n", label);
++	v4l2_info(&dev->subdev, "--- %s ---\n", label);
++
+ 	for (i = 0; i < ARRAY_SIZE(registers); i++) {
+ 		u32 cfg = readl(dev->regs + registers[i].offset);
+-		pr_info("%s: %s:\t0x%08x\n", __func__, registers[i].name, cfg);
++		v4l2_info(&dev->subdev, "%9s: 0x%08x\n",
++			  registers[i].name, cfg);
+ 	}
+ }
+-- 
+1.7.9.5
 
