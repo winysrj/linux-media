@@ -1,54 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:39723 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754378Ab2KEPLR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Nov 2012 10:11:17 -0500
-Message-ID: <1352128271.16194.8.camel@joe-AO722>
-Subject: Re: [PATCH] staging/media: Use dev_ printks in go7007/s2250-loader.c
-From: Joe Perches <joe@perches.com>
-To: Greg Kroah-Hartman <greg@kroah.com>
-Cc: YAMANE Toshiaki <yamanetoshi@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Mon, 05 Nov 2012 07:11:11 -0800
-In-Reply-To: <20121105131108.GC27238@kroah.com>
-References: <1352115282-8081-1-git-send-email-yamanetoshi@gmail.com>
-	 <20121105131108.GC27238@kroah.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:53387 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751320Ab2K1Gdx convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 01:33:53 -0500
+From: Libin Yang <lbyang@marvell.com>
+To: Albert Wang <twang13@marvell.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: "corbet@lwn.net" <corbet@lwn.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 27 Nov 2012 22:30:33 -0800
+Subject: RE: [PATCH 12/15] [media] marvell-ccic: add soc_camera support in
+ mmp driver
+Message-ID: <A63A0DC671D719488CD1A6CD8BDC16CF230A8D79A7@SC-VEXCH4.marvell.com>
+References: <1353677666-24361-1-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1211271620370.22273@axis700.grange>
+ <477F20668A386D41ADCC57781B1F70430D1367C90D@SC-VEXCH1.marvell.com>
+In-Reply-To: <477F20668A386D41ADCC57781B1F70430D1367C90D@SC-VEXCH1.marvell.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2012-11-05 at 14:11 +0100, Greg Kroah-Hartman wrote:
-> On Mon, Nov 05, 2012 at 08:34:42PM +0900, YAMANE Toshiaki wrote:
-> > fixed below checkpatch warnings.
-> > - WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-> > - WARNING: Prefer netdev_info(netdev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
-> > 
-> > Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
-> > ---
-> >  drivers/staging/media/go7007/s2250-loader.c |   35 ++++++++++++++-------------
-> >  1 file changed, 18 insertions(+), 17 deletions(-)
-> 
-> Please note that I don't touch the drivers/staging/media/* files, so
-> copying me on these patches doesn't do anything :)
+Hello Guennadi,
 
-Maybe:
+Please see my comments below.
 
- MAINTAINERS |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Regards,
+Libin 
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index b062349..542a541 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6906,6 +6906,7 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/staging.git
- L:	devel@driverdev.osuosl.org
- S:	Supported
- F:	drivers/staging/
-+X:	drivers/staging/media/
- 
- STAGING - AGERE HERMES II and II.5 WIRELESS DRIVERS
- M:	Henk de Groot <pe1dnn@amsat.org>
+>-----Original Message-----
+>From: Albert Wang
+>Sent: Wednesday, November 28, 2012 12:06 AM
+>To: Guennadi Liakhovetski
+>Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
+>Subject: RE: [PATCH 12/15] [media] marvell-ccic: add soc_camera support in mmp driver
+>
+>Hi, Guennadi
+>
+>
+>>-----Original Message-----
+>>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+>>Sent: Tuesday, 27 November, 2012 23:54
+>>To: Albert Wang
+>>Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
+>>Subject: Re: [PATCH 12/15] [media] marvell-ccic: add soc_camera support in mmp
+>>driver
+>>
+[snip]
 
+>>>
+>>>  	mcam = &cam->mcam;
+>>> +	spin_lock_init(&mcam->dev_lock);
+>>>  	mcam->plat_power_up = mmpcam_power_up;
+>>>  	mcam->plat_power_down = mmpcam_power_down;
+>>>  	mcam->ctlr_reset = mcam_ctlr_reset;
+>>>  	mcam->calc_dphy = mmpcam_calc_dphy;
+>>>  	mcam->dev = &pdev->dev;
+>>>  	mcam->use_smbus = 0;
+>>> +	mcam->card_name = pdata->name;
+>>> +	mcam->mclk_min = pdata->mclk_min;
+>>> +	mcam->mclk_src = pdata->mclk_src;
+>>> +	mcam->mclk_div = pdata->mclk_div;
+>>
+>>Actually you don't really have to copy everything from platform data to your private
+>>driver object during probing. You can access your platform data also at run-time. So,
+>>maybe you can survive without adding these
+>>.mclk_* struct members?
+>>
+>Yes, make sense. :)
 
+[Libin] We add such members because we need use these variables in the file mcam-core-soc.c. In the mcam-core-soc.c, the pdata is invisible. I think we can split the probe function and copy them in the file mcam-core-soc.c as you suggested.
+
+[snip]
+
+>>> +	int chip_id;
+>>>  	/*
+>>>  	 * MIPI support
+>>>  	 */
+>>> --
+>>> 1.7.9.5
+>>>
+>>
+>>Thanks
+>>Guennadi
+>>---
+>>Guennadi Liakhovetski, Ph.D.
+>>Freelance Open-Source Software Developer
+>>http://www.open-technology.de/
