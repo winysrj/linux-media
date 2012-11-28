@@ -1,57 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.9]:48273 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755673Ab2K1US6 (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:64926 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752814Ab2K1TSa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 15:18:58 -0500
-Date: Wed, 28 Nov 2012 21:18:51 +0100
-From: Anatolij Gustschin <agust@denx.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] OV5642: fix VIDIOC_S_GROP ioctl
-Message-ID: <20121128211851.7072e6f9@wker>
-In-Reply-To: <Pine.LNX.4.64.1211261618390.11501@axis700.grange>
-References: <1352157290-13201-1-git-send-email-agust@denx.de>
-	<Pine.LNX.4.64.1211061243580.6451@axis700.grange>
-	<20121106141845.4641954a@wker>
-	<Pine.LNX.4.64.1211261618390.11501@axis700.grange>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Wed, 28 Nov 2012 14:18:30 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0ME7009ROPMTF440@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 29 Nov 2012 04:18:29 +0900 (KST)
+Received: from amdc1344.digital.local ([106.116.147.32])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0ME700C69PML0A30@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 29 Nov 2012 04:18:29 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sw0312.kim@samsung.com, kyungmin.park@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 10/12] fimc-lite: Remove empty subdev s_power callback
+Date: Wed, 28 Nov 2012 20:18:16 +0100
+Message-id: <1354130298-3071-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+There is nothing to do in s_power callback so remove it.
 
-On Mon, 26 Nov 2012 16:20:14 +0100 (CET)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-...
-> > --- a/drivers/media/platform/soc_camera/soc_camera.c
-> > +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> > @@ -902,6 +902,8 @@ static int soc_camera_s_crop(struct file *file, void *fh,
-> >         dev_dbg(icd->pdev, "S_CROP(%ux%u@%u:%u)\n",
-> >                 rect->width, rect->height, rect->left, rect->top);
-> >  
-> > +       current_crop.type = a->type;
-> > +
-> >         /* If get_crop fails, we'll let host and / or client drivers decide */
-> >         ret = ici->ops->get_crop(icd, &current_crop);
-> >  
-> > What do you think?
-> 
-> Yes, this makes sense. Please, submit a patch.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-fimc/fimc-lite.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-Done.
+diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
+index 1b309a7..d9e7d6f 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-lite.c
++++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
+@@ -1195,18 +1195,10 @@ static int fimc_lite_subdev_s_stream(struct v4l2_subdev *sd, int on)
+ 	/* TODO: */
+ 
+ 	return 0;
+-}
+ 
+-static int fimc_lite_subdev_s_power(struct v4l2_subdev *sd, int on)
+-{
+-	struct fimc_lite *fimc = v4l2_get_subdevdata(sd);
+ 
+-	if (fimc->out_path == FIMC_IO_DMA)
+-		return -ENOIOCTLCMD;
+ 
+-	/* TODO: */
+ 
+-	return 0;
+ }
+ 
+ static int fimc_lite_log_status(struct v4l2_subdev *sd)
+@@ -1308,7 +1300,6 @@ static const struct v4l2_subdev_video_ops fimc_lite_subdev_video_ops = {
+ };
+ 
+ static const struct v4l2_subdev_core_ops fimc_lite_core_ops = {
+-	.s_power = fimc_lite_subdev_s_power,
+ 	.log_status = fimc_lite_log_status,
+ };
+ 
+-- 
+1.7.9.5
 
-> 
-> > And the type field should be checked in .s_crop() anyway, I think.
-> 
-> It is checked in soc_camera_s_crop() just a couple of lines above the 
-> snippet above. Or what do you mean?
-
-Yes, you are right! Okay, then there is no need to check it again
-in the subdevice driver.
-
-Thanks,
-
-Anatolij
