@@ -1,56 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:34211 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753667Ab2KCOQp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Nov 2012 10:16:45 -0400
-Message-ID: <50952744.4090203@gmail.com>
-Date: Sat, 03 Nov 2012 15:16:36 +0100
-From: Daniel Mack <zonque@gmail.com>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:44790 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754744Ab2K1NNd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 08:13:33 -0500
+Received: by mail-ie0-f174.google.com with SMTP id k11so10005883iea.19
+        for <linux-media@vger.kernel.org>; Wed, 28 Nov 2012 05:13:33 -0800 (PST)
 MIME-Version: 1.0
-To: Christof Meerwald <cmeerw@cmeerw.org>
-CC: "Artem S. Tashkinov" <t.artem@lycos.com>, pavel@ucw.cz,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	security@kernel.org, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org
-Subject: Re: A reliable kernel panic (3.6.2) and system crash when visiting
- a particular website
-References: <2104474742.26357.1350734815286.JavaMail.mail@webmail05> <20121020162759.GA12551@liondog.tnic> <966148591.30347.1350754909449.JavaMail.mail@webmail08> <20121020203227.GC555@elf.ucw.cz> <20121020225849.GA8976@liondog.tnic> <1781795634.31179.1350774917965.JavaMail.mail@webmail04> <20121103141049.GA24238@edge.cmeerw.net>
-In-Reply-To: <20121103141049.GA24238@edge.cmeerw.net>
+In-Reply-To: <50B60D54.4010302@interlinx.bc.ca>
+References: <k93vu3$ffi$1@ger.gmane.org>
+	<CALF0-+VkANRj+by2n-=UsxZfJwk97ZkNS8R0C-Vt2oX7WN3R0A@mail.gmail.com>
+	<50B60D54.4010302@interlinx.bc.ca>
+Date: Wed, 28 Nov 2012 10:13:32 -0300
+Message-ID: <CALF0-+UHOJDh471aa7URKr1-xbggrbDdg_nDijv2FOUpo=3zaw@mail.gmail.com>
+Subject: Re: ivtv driver inputs randomly "block"
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03.11.2012 15:10, Christof Meerwald wrote:
-> On Sat, 20 Oct 2012 23:15:17 +0000 (GMT), Artem S. Tashkinov wrote:
->> It's almost definitely either a USB driver bug or video4linux driver bug:
+On Wed, Nov 28, 2012 at 10:10 AM, Brian J. Murrell
+<brian@interlinx.bc.ca> wrote:
+> On 12-11-28 08:08 AM, Ezequiel Garcia wrote:
 >>
->> I'm CC'ing linux-media and linux-usb mailing lists, the problem is described here:
->> https://lkml.org/lkml/2012/10/20/35
->> https://lkml.org/lkml/2012/10/20/148
-> 
-> Not sure if it's related, but I am seeing a kernel freeze with a
-> usb-audio headset (connected via an external USB hub) on Linux 3.5.0
-> (Ubuntu 12.10) - see
+>> Can you post a dmesg output when this happens?
+>
+> Unfortunately, there is nothing at all in dmesg when this happens.
+>
 
-Does Ubuntu 12.10 really ship with 3.5.0? Not any more recent
-
-> http://comments.gmane.org/gmane.comp.voip.twinkle/3052 and
-> http://pastebin.com/aHGe1S1X for a self-contained C test.
-
-Some questions:
-
- - Are you seeing the same issue with 3.6.x?
- - If you can reproduce this issue, could you paste the messages in
-dmesg when this happens? Do they resemble to the list corruption that
-was reported?
- - Do you see the same problem with 3.4?
- - Are you able to apply the patch Alan Stern posted in this thread earlier?
-
-We should really sort this out, but I unfortunately lack a system or
-setup that shows the bug.
-
-
-Thanks,
-Daniel
-
+Try again with
+modprobe ivtv ivtv_debug=10
