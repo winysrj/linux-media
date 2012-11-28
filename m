@@ -1,81 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:53525 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752191Ab2KSDyv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Nov 2012 22:54:51 -0500
-Received: by mail-da0-f46.google.com with SMTP id p5so559812dak.19
-        for <linux-media@vger.kernel.org>; Sun, 18 Nov 2012 19:54:50 -0800 (PST)
-Message-ID: <50A9ADA8.60804@linaro.org>
-Date: Mon, 19 Nov 2012 09:25:20 +0530
-From: Tushar Behera <tushar.behera@linaro.org>
+Received: from mail.kernel.org ([198.145.19.201]:34359 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754351Ab2K1UqD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 15:46:03 -0500
+Date: Wed, 28 Nov 2012 12:46:00 -0800
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+	devel@driverdev.osuosl.org,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v3 0/9] Media Controller capture driver for DM365
+Message-ID: <20121128204600.GA2605@kroah.com>
+References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
+ <20121128114537.GN11248@mwanda>
+ <201211281256.10839.hansverk@cisco.com>
+ <20121128122227.GX6186@mwanda>
+ <50B6663C.6080800@samsung.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: linux-kernel@vger.kernel.org, patches@linaro.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 05/14] [media] atmel-isi: Update error check for unsigned
- variables
-References: <1353048646-10935-1-git-send-email-tushar.behera@linaro.org> <1353048646-10935-6-git-send-email-tushar.behera@linaro.org> <Pine.LNX.4.64.1211180014330.30062@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1211180014330.30062@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <50B6663C.6080800@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/18/2012 04:46 AM, Guennadi Liakhovetski wrote:
-> On Fri, 16 Nov 2012, Tushar Behera wrote:
+On Wed, Nov 28, 2012 at 08:30:04PM +0100, Sylwester Nawrocki wrote:
+> On 11/28/2012 01:22 PM, Dan Carpenter wrote:
+> > In the end this is just a driver, and I don't especially care.  But
+> > it's like not just this one which makes me frustrated.  I really
+> > believe in linux-next and I think everything should spend a couple
+> > weeks there before being merged.
 > 
->> Checking '< 0' for unsigned variables always returns false. For error
->> codes, use IS_ERR_VALUE() instead.
-> 
-> Wouldn't just changing "irq" type to "int" also work? I think that would 
-> be a more straight-forward solution. If however there are strong arguments 
-> against that, I'm fine with this fix too.
-> 
+> Couple of weeks in linux-next plus a couple of weeks of final patch
+> series version awaiting to being reviewed and picked up by a maintainer
+> makes almost entire kernel development cycle.
 
-By changing irq to signed variable, we would get compilation warning in
-subsequent line (request_irq).
+If I were to take this today, it would only live in linux-next for less
+than a week before it would be sent to Linus due to where we are in the
+development cycle, so Dan's objections are quite valid.
 
-> Thanks
-> Guennadi
-> 
->>
->> CC: Mauro Carvalho Chehab <mchehab@infradead.org>
->> CC: linux-media@vger.kernel.org
->> Signed-off-by: Tushar Behera <tushar.behera@linaro.org>
->> ---
->>  drivers/media/platform/soc_camera/atmel-isi.c |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
->> index 6274a91..5bd65df 100644
->> --- a/drivers/media/platform/soc_camera/atmel-isi.c
->> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
->> @@ -1020,7 +1020,7 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
->>  	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
->>  
->>  	irq = platform_get_irq(pdev, 0);
->> -	if (irq < 0) {
->> +	if (IS_ERR_VALUE(irq)) {
->>  		ret = irq;
->>  		goto err_req_irq;
->>  	}
->> -- 
->> 1.7.4.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> 
+> These are huge additional delays, especially in the embedded world.
 
+Embedded is special just like everyone else.
 
--- 
-Tushar Behera
+greg k-h
