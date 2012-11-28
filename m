@@ -1,47 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:58572 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932476Ab2K2B1F (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:51803 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751126Ab2K1HOa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 20:27:05 -0500
-Message-ID: <50B6B9E7.4010803@gmx.net>
-Date: Thu, 29 Nov 2012 02:27:03 +0100
-From: "P. van Gaans" <w3ird_n3rd@gmx.net>
+	Wed, 28 Nov 2012 02:14:30 -0500
+Date: Wed, 28 Nov 2012 08:14:23 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Libin Yang <lbyang@marvell.com>
+cc: Albert Wang <twang13@marvell.com>,
+	"corbet@lwn.net" <corbet@lwn.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH 02/15] [media] marvell-ccic: add MIPI support for
+ marvell-ccic driver
+In-Reply-To: <A63A0DC671D719488CD1A6CD8BDC16CF230A8D79E9@SC-VEXCH4.marvell.com>
+Message-ID: <Pine.LNX.4.64.1211280812060.32652@axis700.grange>
+References: <1353677587-23998-1-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1211271117270.22273@axis700.grange>
+ <477F20668A386D41ADCC57781B1F70430D1367C8D1@SC-VEXCH1.marvell.com>
+ <A63A0DC671D719488CD1A6CD8BDC16CF230A8D79E9@SC-VEXCH4.marvell.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Available and supported DVB-C USB device
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm living in The Netherlands and am looking for a DVB-C USB device 
-that's available, supported and (preferably) affordable. Devices that 
-are available and affordable would appear to be the Delock DVB-C USB 
-stick (which I can't find a whole lot about) and the MSI DigiVox mini Trio.
+On Tue, 27 Nov 2012, Libin Yang wrote:
 
-According to a message on the mailinglist from 2010 by Matthias Larisch:
+> Hello Guennadi,
+> 
+> Please see my comments below.
+> 
+> Best Regards,
+> Libin 
+> 
+> >-----Original Message-----
+> >From: Albert Wang
+> >Sent: Tuesday, November 27, 2012 7:21 PM
+> >To: Guennadi Liakhovetski
+> >Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
+> >Subject: RE: [PATCH 02/15] [media] marvell-ccic: add MIPI support for marvell-ccic driver
+> >
+> >Hi, Guennadi
+> >
+> >We will update the patch by following your good suggestion! :)
+> >
+> 
+> [snip]
+> 
+> >>> +	pll1 = clk_get(dev, "pll1");
+> >>> +	if (IS_ERR(pll1)) {
+> >>> +		dev_err(dev, "Could not get pll1 clock\n");
+> >>> +		return;
+> >>> +	}
+> >>> +
+> >>> +	tx_clk_esc = clk_get_rate(pll1) / 1000000 / 12;
+> >>> +	clk_put(pll1);
+> >>
+> >>Once you release your clock per "clk_put()" its rate can be changed by some other user,
+> >>so, your tx_clk_esc becomes useless. Better keep the reference to the clock until clean up.
+> >>Maybe you can also use
+> >>devm_clk_get() to simplify the clean up.
+> >>
+> >That's a good suggestion.
+> >
+> [Libin] In our code design, the pll1 will never be changed after the system boots up. Camera and other components can only get the clk without modifying it.
 
-"I recently bought a DigiVox Trio by MSI. This card contains the
-following chips:
+This doesn't matter. We have a standard API and we have to abide to its 
+rules. Your driver can be reused or its code can be copied by others. I 
+don't think it should be too difficult to just issue devm_clk_get() once 
+and then just forget about it.
 
-nxp tda18271hdc2 (tuner)
-micronas drx 3926ka3 (demodulator, 3in1)
-em2884
-atmlh946 64c (eeprom)
-micronas avf 4910ba1
-
-so it is comparable to the Terratec Cinergy HTC USB XS HD and the
-TerraTec H5."
-
-Back in 2010 it didn't work, but I've noticed the EM2884 and Micronas 
-DRX 3926K (maybe not the same?) and TDA18271HDC2 do work in the PCTV
-QuatroStick nano. (http://linuxtv.org/wiki/index.php/DVB-C_USB_Devices) 
-So perhaps the MSI could also work?
-
-Or maybe someone has suggestions for a suitable device. Most of the 
-devices on the wiki page are sadly either unavailable or very expensive.
-
-Best regards,
-
-Pim
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
