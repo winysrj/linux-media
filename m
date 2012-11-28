@@ -1,50 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:46122 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755175Ab2KMRHC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Nov 2012 12:07:02 -0500
-Received: by mail-qa0-f53.google.com with SMTP id k31so2345510qat.19
-        for <linux-media@vger.kernel.org>; Tue, 13 Nov 2012 09:07:01 -0800 (PST)
+Received: from na3sys009aog138.obsmtp.com ([74.125.149.19]:54394 "EHLO
+	na3sys009aog138.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750961Ab2K1CO0 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Nov 2012 21:14:26 -0500
+From: Libin Yang <lbyang@marvell.com>
+To: Albert Wang <twang13@marvell.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: "corbet@lwn.net" <corbet@lwn.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 27 Nov 2012 18:14:06 -0800
+Subject: RE: [PATCH 03/15] [media] marvell-ccic: add clock tree support for
+ marvell-ccic driver
+Message-ID: <A63A0DC671D719488CD1A6CD8BDC16CF230A8D7846@SC-VEXCH4.marvell.com>
+References: <1353677595-24034-1-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1211271145320.22273@axis700.grange>
+ <477F20668A386D41ADCC57781B1F70430D1367C8D5@SC-VEXCH1.marvell.com>
+In-Reply-To: <477F20668A386D41ADCC57781B1F70430D1367C8D5@SC-VEXCH1.marvell.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <k7tt38$aol$1@ger.gmane.org>
-References: <k7tkcu$m6j$1@ger.gmane.org>
-	<CAGoCfiwBJv04ffd+gDn1t+_3GPn+KeDdcaRQ+PbrqAjAsiMEHg@mail.gmail.com>
-	<k7tt38$aol$1@ger.gmane.org>
-Date: Tue, 13 Nov 2012 12:07:01 -0500
-Message-ID: <CAGoCfiww92i7w9xuG199Pdv5EQbFButWxT=CHC9Wg2ypY+M1PA@mail.gmail.com>
-Subject: Re: Color problem with MPX-885 card (cx23885)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Neuer User <auslands-kv@gmx.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 13, 2012 at 11:39 AM, Neuer User <auslands-kv@gmx.de> wrote:
-> I had looked through the linux-media GIT tree for any commits that have
-> "cx23885" in the description. The last ones I found were from mid 2011.
+Hello Guennadi,
 
-Yeah, the changes were actually made to the cx25840 driver, which is
-used/shared by the cx23885.
+Thanks for your suggestion, please see my comments below.
 
-> I can confirm that the biggest problem, the color problem, is fixed at
-> least with kernel 3.5.7 (maybe earlier).
+Best Regards,
+Libin 
 
-Ok, good.
+>>-----Original Message-----
+>>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+>>Sent: Tuesday, 27 November, 2012 18:50
+>>To: Albert Wang
+>>Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
+>>Subject: Re: [PATCH 03/15] [media] marvell-ccic: add clock tree support for marvell-ccic
+>>driver
+>>
+>>> +		mcam->clk_num = pdata->clk_num;
+>>> +	} else {
+>>> +		for (i = 0; i < pdata->clk_num; i++) {
+>>> +			if (mcam->clk[i]) {
+>>> +				clk_put(mcam->clk[i]);
+>>> +				mcam->clk[i] = NULL;
+>>> +			}
+>>> +		}
+>>> +		mcam->clk_num = 0;
+>>> +	}
+>>> +}
+>>
+>>Don't think I like this. IIUC, your driver should only try to use clocks, that it knows about,
+>>not some random clocks, passed from the platform data. So, you should be using explicit
+>>clock names. In your platform data you can set whether a specific clock should be used or
+>>not, but not pass clock names down. Also you might want to consider using devm_clk_get()
+>>and be more careful with error handling.
+>>
+>OK, we will try to enhance it.
 
-> The minor ones (card not autodetected, and black border on the left
-> side) can probably be dealt with, e.g. in postprocessing. Or is there a
-> chance to fix these in the driver?
-
-They can almost certainly be fixed in the driver (the black border is
-a result of incorrect HSYNC configuration for PAL standards).  The
-bigger issue though is finding someone willing to do the work.  If
-this is for a commercial application, you may wish to reach out to
-Steven Toth.  He did the original MPX support as a consulting project.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+[Libin] Because there are some boards using mmp chip, and the clock names on different board may be totally different. And also this is why the clock number is not definite. To support more boards, the dynamic names are used instead of the static names.
+>
+>>>
+>>>  static int mmpcam_probe(struct platform_device *pdev)  { @@ -290,6
