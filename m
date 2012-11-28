@@ -1,100 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:46992 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754957Ab2KUPDm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Nov 2012 10:03:42 -0500
-Message-ID: <50ACED4A.5040806@gmail.com>
-Date: Wed, 21 Nov 2012 09:03:38 -0600
-From: Rob Herring <robherring2@gmail.com>
-MIME-Version: 1.0
-To: Thierry Reding <thierry.reding@avionic-design.de>
-CC: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Manjunathappa, Prakash" <prakash.pm@ti.com>,
-	"devicetree-discuss@lists.ozlabs.org"
-	<devicetree-discuss@lists.ozlabs.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	"kernel@pengutronix.de" <kernel@pengutronix.de>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	David Airlie <airlied@linux.ie>,
-	Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v12 2/6] video: add of helper for videomode
-References: <1353426896-6045-1-git-send-email-s.trumtrar@pengutronix.de> <1353426896-6045-3-git-send-email-s.trumtrar@pengutronix.de> <A73F36158E33644199EB82C5EC81C7BC3E9FA7A0@DBDE01.ent.ti.com> <20121121114843.GC14013@pengutronix.de> <20121121115236.GA8886@avionic-0098.adnet.avionic-design.de>
-In-Reply-To: <20121121115236.GA8886@avionic-0098.adnet.avionic-design.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from plane.gmane.org ([80.91.229.3]:57907 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754275Ab2K1Nec (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 08:34:32 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1Tdhmk-0003U8-0s
+	for linux-media@vger.kernel.org; Wed, 28 Nov 2012 14:34:42 +0100
+Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 28 Nov 2012 14:34:42 +0100
+Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 28 Nov 2012 14:34:42 +0100
+To: linux-media@vger.kernel.org
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: Re: ivtv driver inputs randomly "block"
+Date: Wed, 28 Nov 2012 08:34:20 -0500
+Message-ID: <50B612DC.7010906@interlinx.bc.ca>
+References: <k93vu3$ffi$1@ger.gmane.org> <CALF0-+VkANRj+by2n-=UsxZfJwk97ZkNS8R0C-Vt2oX7WN3R0A@mail.gmail.com> <50B60D54.4010302@interlinx.bc.ca> <CALF0-+UHOJDh471aa7URKr1-xbggrbDdg_nDijv2FOUpo=3zaw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig4E0147CA8118C6C878B7BDDA"
+In-Reply-To: <CALF0-+UHOJDh471aa7URKr1-xbggrbDdg_nDijv2FOUpo=3zaw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/21/2012 05:52 AM, Thierry Reding wrote:
-> On Wed, Nov 21, 2012 at 12:48:43PM +0100, Steffen Trumtrar wrote:
->> Hi!
->>
->> On Wed, Nov 21, 2012 at 10:12:43AM +0000, Manjunathappa, Prakash wrote:
->>> Hi Steffen,
->>>
->>> On Tue, Nov 20, 2012 at 21:24:52, Steffen Trumtrar wrote:
->>>> +/**
->>>> + * of_get_display_timings - parse all display_timing entries from a device_node
->>>> + * @np: device_node with the subnodes
->>>> + **/
->>>> +struct display_timings *of_get_display_timings(const struct device_node *np)
->>>> +{
->>>> +	struct device_node *timings_np;
->>>> +	struct device_node *entry;
->>>> +	struct device_node *native_mode;
->>>> +	struct display_timings *disp;
->>>> +
->>>> +	if (!np) {
->>>> +		pr_err("%s: no devicenode given\n", __func__);
->>>> +		return NULL;
->>>> +	}
->>>> +
->>>> +	timings_np = of_find_node_by_name(np, "display-timings");
->>>
->>> I get below build warnings on this line
->>> drivers/video/of_display_timing.c: In function 'of_get_display_timings':
->>> drivers/video/of_display_timing.c:109:2: warning: passing argument 1 of 'of_find_node_by_name' discards qualifiers from pointer target type
->>> include/linux/of.h:167:28: note: expected 'struct device_node *' but argument is of type 'const struct device_node *'
->>>
->>>> + * of_display_timings_exists - check if a display-timings node is provided
->>>> + * @np: device_node with the timing
->>>> + **/
->>>> +int of_display_timings_exists(const struct device_node *np)
->>>> +{
->>>> +	struct device_node *timings_np;
->>>> +
->>>> +	if (!np)
->>>> +		return -EINVAL;
->>>> +
->>>> +	timings_np = of_parse_phandle(np, "display-timings", 0);
->>>
->>> Also here:
->>> drivers/video/of_display_timing.c: In function 'of_display_timings_exists':
->>> drivers/video/of_display_timing.c:209:2: warning: passing argument 1 of 'of_parse_phandle' discards qualifiers from pointer target type
->>> include/linux/of.h:258:28: note: expected 'struct device_node *' but argument is of type 'const struct device_node *'
->>>
->>
->> The warnings are because the of-functions do not use const pointers where they
->> should. I had two options: don't use const pointers even if they should be and
->> have no warnings or use const pointers and have a correct API. (Third option:
->> send patches for of-functions). I chose the second option.
-> 
-> Maybe a better approach would be a combination of 1 and 3: don't use
-> const pointers for struct device_node for now and bring the issue up
-> with the OF maintainers, possibly with patches attached that fix the
-> problematic functions.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig4E0147CA8118C6C878B7BDDA
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Why does this need to be const? Since some DT functions increment
-refcount the node, I'm not sure that making struct device_node const in
-general is right thing to do. I do think it should be okay for
-of_parse_phandle.
+On 12-11-28 08:13 AM, Ezequiel Garcia wrote:
+>=20
+> Try again with
+> modprobe ivtv ivtv_debug=3D10
 
-Rob
+That actually errored out but I think you meant:
+
+# modprobe ivtv debug=3D10
+
+which actually was successful in loading the module.  Now we just wait
+for the failure and see.
+
+I will update here as soon as I see it again.
+
+Cheers,
+b.
+
+
+
+--------------enig4E0147CA8118C6C878B7BDDA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iEYEARECAAYFAlC2EtwACgkQl3EQlGLyuXD5awCgyjvDbyXIWu4IMJOg3Gymp+ao
+TNAAoKk4heeBjShmSdIrZK6+MvPPqGpY
+=XVzp
+-----END PGP SIGNATURE-----
+
+--------------enig4E0147CA8118C6C878B7BDDA--
+
