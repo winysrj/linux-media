@@ -1,615 +1,1835 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44351 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932299Ab2KOAO5 (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:53280 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753495Ab2K1KnF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Nov 2012 19:14:57 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	David Cohen <dacohen@gmail.com>, linux-media@vger.kernel.org
-Subject: [PATCH] ad5820: Voice coil motor controller driver
-Date: Thu, 15 Nov 2012 01:15:46 +0100
-Message-Id: <1352938546-22104-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <6EE9CD707FBED24483D4CB0162E854671008F9FD@AM2PRD0710MB375.eurprd07.prod.outlook.com>
-References: <6EE9CD707FBED24483D4CB0162E854671008F9FD@AM2PRD0710MB375.eurprd07.prod.outlook.com>
+	Wed, 28 Nov 2012 05:43:05 -0500
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	<devel@driverdev.osuosl.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v3 2/9] davinci: vpfe: add v4l2 video driver support
+Date: Wed, 28 Nov 2012 16:12:02 +0530
+Message-Id: <1354099329-20722-3-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
+References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The AD5820 is a voice coil motor controller typically used to control
-lens position in digital cameras.
+From: Manjunath Hadli <manjunath.hadli@ti.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Add a generic video driver functionality to be used by all the vpfe
+drivers for davinci SoCs. The functionality includes all the
+standard v4l2 interfaces including streaming. The video node
+interface can be used both as an input and output node for both
+continuous and single shot modes. Also supports dv_presets to include
+HD modes, wth support for both user pointer IO and mmap. The buffering
+mechanism is based on videobuf2 interface.
+
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
 ---
- drivers/media/i2c/Kconfig  |    9 +
- drivers/media/i2c/Makefile |    1 +
- drivers/media/i2c/ad5820.c |  496 ++++++++++++++++++++++++++++++++++++++++++++
- include/media/ad5820.h     |   30 +++
- 4 files changed, 536 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/i2c/ad5820.c
- create mode 100644 include/media/ad5820.h
+ drivers/staging/media/davinci_vpfe/vpfe_video.c | 1620 +++++++++++++++++++++++
+ drivers/staging/media/davinci_vpfe/vpfe_video.h |  155 +++
+ 2 files changed, 1775 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_video.c
+ create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_video.h
 
-Hi Florian,
-
-This is the ad5820 driver I've told you about. The code is compile-tested only
-as I haven't had time to try it on an N900 (the only device I own that
-includes an ad5820).
-
-It should be quite easy to adapt the driver to support both the ad5820 and the
-ad5821. Would you have time to give it a try ?
-
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 24d78e2..65597cf 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -534,6 +534,15 @@ config VIDEO_AS3645A
- 	  This is a driver for the AS3645A and LM3555 flash controllers. It has
- 	  build in control for flash, torch and indicator LEDs.
- 
-+comment "Lens controllers"
-+
-+config VIDEO_AD5820
-+	tristate "AD5820 lens voice coil support"
-+	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
-+	---help---
-+	  This is a driver for the AD5820 camera lens voice coil.
-+	  It is used for example in Nokia RX51.
-+
- comment "Video improvement chips"
- 
- config VIDEO_UPD64031A
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index b1d62df..975cfb8 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -58,6 +58,7 @@ obj-$(CONFIG_VIDEO_SR030PC30)	+= sr030pc30.o
- obj-$(CONFIG_VIDEO_NOON010PC30)	+= noon010pc30.o
- obj-$(CONFIG_VIDEO_S5K6AA)	+= s5k6aa.o
- obj-$(CONFIG_VIDEO_S5K4ECGX)	+= s5k4ecgx.o
-+obj-$(CONFIG_VIDEO_AD5820)	+= ad5820.o
- obj-$(CONFIG_VIDEO_ADP1653)	+= adp1653.o
- obj-$(CONFIG_VIDEO_AS3645A)	+= as3645a.o
- obj-$(CONFIG_VIDEO_SMIAPP_PLL)	+= smiapp-pll.o
-diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
 new file mode 100644
-index 0000000..995774f
+index 0000000..99ccbeb
 --- /dev/null
-+++ b/drivers/media/i2c/ad5820.c
-@@ -0,0 +1,496 @@
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -0,0 +1,1620 @@
 +/*
-+ * AD5820 DAC driver for camera voice coil focus.
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Copyright (C) 2007 Texas Instruments
-+ *
-+ * Contact: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *          Sakari Ailus <sakari.ailus@iki.fi>
++ * Copyright (C) 2012 Texas Instruments Inc
 + *
 + * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
 + *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ *
++ * Contributors:
++ *      Manjunath Hadli <manjunath.hadli@ti.com>
++ *      Prabhakar Lad <prabhakar.lad@ti.com>
 + */
 +
-+#include <linux/bitops.h>
-+#include <linux/delay.h>
-+#include <linux/errno.h>
-+#include <linux/gpio.h>
-+#include <linux/i2c.h>
-+#include <linux/kernel.h>
 +#include <linux/module.h>
-+#include <linux/regulator/consumer.h>
-+#include <linux/sched.h>
 +#include <linux/slab.h>
 +
-+#include <media/ad5820.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
++#include <media/v4l2-ioctl.h>
 +
-+/* Register definitions */
-+#define AD5820_POWER_DOWN		(1 << 15)
-+#define AD5820_DAC_SHIFT		4
-+#define AD5820_RAMP_MODE_LINEAR		(0 << 3)
-+#define AD5820_RAMP_MODE_64_16		(1 << 3)
++#include "vpfe.h"
++#include "vpfe_mc_capture.h"
 +
-+#define CODE_TO_RAMP_US(s)		((s) == 0 ? 0 : (1 << ((s) - 1)) * 50)
-+#define RAMP_US_TO_CODE(c)		fls(((c) + ((c)>>1)) / 50)
++/* minimum number of buffers needed in cont-mode */
++#define MIN_NUM_BUFFERS			3
 +
-+struct ad5820_device {
-+	struct v4l2_subdev subdev;
++static int debug;
 +
-+	struct regulator *vana;
-+	int xshutdown;
-+
-+	struct v4l2_ctrl_handler ctrls;
-+	u32 focus_absolute;
-+	u32 focus_ramp_time;
-+	u32 focus_ramp_mode;
-+
-+	struct mutex power_lock;
-+	int power_count;
-+
-+	int standby:1;
-+};
-+
-+#define to_ad5820_device(sd)	container_of(sd, struct ad5820_device, subdev)
-+
-+/**
-+ * @brief I2C write using i2c_transfer().
-+ * @param coil - the driver data structure
-+ * @param data - register value to be written
-+ * @returns nonnegative on success, negative if failed
-+ */
-+static int ad5820_write(struct ad5820_device *coil, u16 data)
++/* get v4l2 subdev pointer to external subdev which is active */
++static struct media_entity *vpfe_get_input_entity
++			(struct vpfe_video_device *video)
 +{
-+	struct i2c_client *client = v4l2_get_subdevdata(&coil->subdev);
-+	struct i2c_msg msg;
-+	int r;
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct media_pad *remote;
 +
-+	if (!client->adapter)
-+		return -ENODEV;
++	remote = media_entity_remote_source(&vpfe_dev->vpfe_isif.pads[0]);
++	if (remote == NULL) {
++		pr_err("Invalid media connection to isif/ccdc\n");
++		return NULL;
++	}
++	return remote->entity;
++}
 +
-+	data = cpu_to_be16(data);
-+	msg.addr  = client->addr;
-+	msg.flags = 0;
-+	msg.len   = 2;
-+	msg.buf   = (u8 *)&data;
++/* updates external subdev(sensor/decoder) which is active */
++static int vpfe_update_current_ext_subdev(struct vpfe_video_device *video)
++{
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct vpfe_config *vpfe_cfg;
++	struct v4l2_subdev *subdev;
++	struct media_pad *remote;
++	int i;
 +
-+	r = i2c_transfer(client->adapter, &msg, 1);
-+	if (r < 0) {
-+		dev_err(&client->dev, "write failed, error %d\n", r);
-+		return r;
++	remote = media_entity_remote_source(&vpfe_dev->vpfe_isif.pads[0]);
++	if (remote == NULL) {
++		pr_err("Invalid media connection to isif/ccdc\n");
++		return -EINVAL;
 +	}
 +
++	subdev = media_entity_to_v4l2_subdev(remote->entity);
++	vpfe_cfg = vpfe_dev->pdev->platform_data;
++	for (i = 0; i < vpfe_cfg->num_subdevs; i++) {
++		if (!strcmp(vpfe_cfg->sub_devs[i].module_name, subdev->name)) {
++			video->current_ext_subdev = &vpfe_cfg->sub_devs[i];
++			break;
++		}
++	}
++
++	/* if user not linked decoder/sensor to isif/ccdc */
++	if (i == vpfe_cfg->num_subdevs) {
++		pr_err("Invalid media chain connection to isif/ccdc\n");
++		return -EINVAL;
++	}
++	/* find the v4l2 subdev pointer */
++	for (i = 0; i < vpfe_dev->num_ext_subdevs; i++) {
++		if (!strcmp(video->current_ext_subdev->module_name,
++			vpfe_dev->sd[i]->name))
++			video->current_ext_subdev->subdev = vpfe_dev->sd[i];
++	}
 +	return 0;
 +}
 +
-+/**
-+ * @brief I2C read using i2c_transfer().
-+ * @param coil - the driver data structure
-+ * @returns unsigned 16-bit register value on success, negative if failed
-+ */
-+static int ad5820_read(struct ad5820_device *coil)
++/* get the subdev which is connected to the output video node */
++static struct v4l2_subdev *
++vpfe_video_remote_subdev(struct vpfe_video_device *video, u32 *pad)
 +{
-+	struct i2c_client *client = v4l2_get_subdevdata(&coil->subdev);
-+	struct i2c_msg msg;
-+	int r;
-+	u16 data = 0;
++	struct media_pad *remote = media_entity_remote_source(&video->pad);
 +
-+	if (!client->adapter)
-+		return -ENODEV;
-+
-+	msg.addr  = client->addr;
-+	msg.flags = I2C_M_RD;
-+	msg.len   = 2;
-+	msg.buf   = (u8 *)&data;
-+
-+	r = i2c_transfer(client->adapter, &msg, 1);
-+	if (r < 0) {
-+		dev_err(&client->dev, "read failed, error %d\n", r);
-+		return r;
-+	}
-+
-+	return be16_to_cpu(data);
++	if (remote == NULL || remote->entity->type != MEDIA_ENT_T_V4L2_SUBDEV)
++		return NULL;
++	if (pad)
++		*pad = remote->index;
++	return media_entity_to_v4l2_subdev(remote->entity);
 +}
 +
-+/* Calculate status word and write it to the device based on current
-+ * values of V4L2 controls. It is assumed that the stored V4L2 control
-+ * values are properly limited and rounded. */
-+static int ad5820_update_hw(struct ad5820_device *coil)
++/* get the format set at output pad of the adjacent subdev */
++static int
++__vpfe_video_get_format(struct vpfe_video_device *video,
++			struct v4l2_format *format)
 +{
-+	u16 status;
-+
-+	status = RAMP_US_TO_CODE(coil->focus_ramp_time);
-+	status |= coil->focus_ramp_mode
-+		? AD5820_RAMP_MODE_64_16 : AD5820_RAMP_MODE_LINEAR;
-+	status |= coil->focus_absolute << AD5820_DAC_SHIFT;
-+
-+	if (coil->standby)
-+		status |= AD5820_POWER_DOWN;
-+
-+	return ad5820_write(coil, status);
-+}
-+
-+/* --------------------------------------------------------------------------
-+ * Power handling
-+ */
-+
-+static void ad5820_power_off(struct ad5820_device *coil)
-+{
-+	if (coil->xshutdown != -1)
-+		gpio_set_value(coil->xshutdown, 0);
-+
-+	regulator_disable(coil->vana);
-+}
-+
-+static int ad5820_power_on(struct ad5820_device *coil)
-+{
++	struct v4l2_subdev_format fmt;
++	struct v4l2_subdev *subdev;
++	struct media_pad *remote;
++	u32 pad;
 +	int ret;
 +
-+	ret = regulator_enable(coil->vana);
-+	if (ret < 0)
-+		return ret;
++	subdev = vpfe_video_remote_subdev(video, &pad);
++	if (subdev == NULL)
++		return -EINVAL;
 +
-+	if (coil->xshutdown != -1)
-+		gpio_set_value(coil->xshutdown, 1);
++	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++	remote = media_entity_remote_source(&video->pad);
++	fmt.pad = remote->index;
++
++	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
++	if (ret == -ENOIOCTLCMD)
++		return -EINVAL;
++
++	format->type = video->type;
++	/* convert mbus_format to v4l2_format */
++	v4l2_fill_pix_format(&format->fmt.pix, &fmt.format);
++	mbus_to_pix(&fmt.format, &format->fmt.pix);
 +
 +	return 0;
 +}
 +
-+/* --------------------------------------------------------------------------
-+ * V4L2 controls
-+ */
-+
-+#define V4L2_CID_FOCUS_AD5820_RAMP_TIME		(V4L2_CID_USER_BASE | 0x1000)
-+#define V4L2_CID_FOCUS_AD5820_RAMP_MODE		(V4L2_CID_USER_BASE | 0x1001)
-+
-+static int ad5820_set_ctrl(struct v4l2_ctrl *ctrl)
++/* make a note of pipeline details */
++static void vpfe_prepare_pipeline(struct vpfe_video_device *video)
 +{
-+	struct ad5820_device *coil =
-+		container_of(ctrl->handler, struct ad5820_device, ctrls);
-+	u32 code;
-+	int r = 0;
++	struct media_entity *entity = &video->video_dev.entity;
++	struct media_device *mdev = entity->parent;
++	struct vpfe_pipeline *pipe = &video->pipe;
++	struct vpfe_video_device *far_end = NULL;
++	struct media_entity_graph graph;
 +
-+	switch (ctrl->id) {
-+	case V4L2_CID_FOCUS_ABSOLUTE:
-+		coil->focus_absolute = ctrl->val;
-+		return ad5820_update_hw(coil);
++	pipe->input_num = 0;
++	pipe->output_num = 0;
 +
-+	case V4L2_CID_FOCUS_AD5820_RAMP_TIME:
-+		code = RAMP_US_TO_CODE(ctrl->val);
-+		ctrl->val = CODE_TO_RAMP_US(code);
-+		coil->focus_ramp_time = ctrl->val;
-+		break;
++	if (video->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		pipe->inputs[pipe->input_num++] = video;
++	else
++		pipe->outputs[pipe->output_num++] = video;
 +
-+	case V4L2_CID_FOCUS_AD5820_RAMP_MODE:
-+		coil->focus_ramp_mode = ctrl->val;
-+		break;
++	mutex_lock(&mdev->graph_mutex);
++	media_entity_graph_walk_start(&graph, entity);
++	while ((entity = media_entity_graph_walk_next(&graph))) {
++		if (entity == &video->video_dev.entity)
++			continue;
++		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
++			continue;
++		far_end = to_vpfe_video(media_entity_to_video_device(entity));
++		if (far_end->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
++			pipe->inputs[pipe->input_num++] = far_end;
++		else
++			pipe->outputs[pipe->output_num++] = far_end;
 +	}
-+
-+	return r;
++	mutex_unlock(&mdev->graph_mutex);
 +}
 +
-+static const struct v4l2_ctrl_ops ad5820_ctrl_ops = {
-+	.s_ctrl = ad5820_set_ctrl,
-+};
-+
-+static const char * const ad5820_focus_menu[] = {
-+	"Linear ramp",
-+	"64/16 ramp",
-+};
-+
-+static const struct v4l2_ctrl_config ad5820_ctrls[] = {
-+	{
-+		.ops		= &ad5820_ctrl_ops,
-+		.id		= V4L2_CID_FOCUS_AD5820_RAMP_TIME,
-+		.type		= V4L2_CTRL_TYPE_INTEGER,
-+		.name		= "Focus ramping time [us]",
-+		.min		= 0,
-+		.max		= 3200,
-+		.step		= 50,
-+		.def		= 0,
-+		.flags		= 0,
-+	},
-+	{
-+		.ops		= &ad5820_ctrl_ops,
-+		.id		= V4L2_CID_FOCUS_AD5820_RAMP_MODE,
-+		.type		= V4L2_CTRL_TYPE_MENU,
-+		.name		= "Focus ramping mode",
-+		.min		= 0,
-+		.max		= ARRAY_SIZE(ad5820_focus_menu),
-+		.step		= 0,
-+		.def		= 0,
-+		.flags		= 0,
-+		.qmenu		= ad5820_focus_menu,
-+	},
-+};
-+
-+/* --------------------------------------------------------------------------
-+ * V4L2 subdev operations
-+ */
-+
-+static int __ad5820_set_power(struct ad5820_device *coil, bool on)
++/* update pipe state selected by user */
++static int vpfe_update_pipe_state(struct vpfe_video_device *video)
 +{
++	struct vpfe_pipeline *pipe = &video->pipe;
 +	int ret;
 +
-+	if (!on) {
-+		/* Go to standby first as real power off my be denied by the
-+		 * hardware (single power line control for both coil and
-+		 * sensor).
-+		 */
-+		coil->standby = 1;
-+		ad5820_update_hw(coil);
-+		ad5820_power_off(coil);
-+		return 0;
++	vpfe_prepare_pipeline(video);
++
++	/* Find out if there is any input video
++	  if yes, it is single shot.
++	*/
++	if (pipe->input_num == 0) {
++		pipe->state = VPFE_PIPELINE_STREAM_CONTINUOUS;
++		ret = vpfe_update_current_ext_subdev(video);
++		if (ret) {
++			pr_err("Invalid external subdev\n");
++			return ret;
++		}
++	} else {
++		pipe->state = VPFE_PIPELINE_STREAM_SINGLESHOT;
 +	}
-+
-+	ret = ad5820_power_on(coil);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* Restore the hardware settings. */
-+	coil->standby = 0;
-+	ret = ad5820_update_hw(coil);
-+	if (ret < 0) {
-+		coil->standby = 1;
-+		return ret;
-+	}
-+
++	video->initialized = 1;
++	video->skip_frame_count = 1;
++	video->skip_frame_count_init = 1;
 +	return 0;
 +}
 +
-+static int ad5820_set_power(struct v4l2_subdev *subdev, int on)
++/* checks wether pipeline is ready for enabling */
++int vpfe_video_is_pipe_ready(struct vpfe_pipeline *pipe)
 +{
-+	struct ad5820_device *coil = to_ad5820_device(subdev);
++	int i;
++
++	for (i = 0; i < pipe->input_num; i++)
++		if (!pipe->inputs[i]->started ||
++			pipe->inputs[i]->state != VPFE_VIDEO_BUFFER_QUEUED)
++			return 0;
++	for (i = 0; i < pipe->output_num; i++)
++		if (!pipe->outputs[i]->started ||
++			pipe->outputs[i]->state != VPFE_VIDEO_BUFFER_QUEUED)
++			return 0;
++	return 1;
++}
++
++/**
++ * Validate a pipeline by checking both ends of all links for format
++ * discrepancies.
++ *
++ * Return 0 if all formats match, or -EPIPE if at least one link is found with
++ * different formats on its two ends.
++ */
++static int vpfe_video_validate_pipeline(struct vpfe_pipeline *pipe)
++{
++	struct v4l2_subdev_format fmt_source;
++	struct v4l2_subdev_format fmt_sink;
++	struct v4l2_subdev *subdev;
++	struct media_pad *pad;
++	int ret;
++
++	/*
++	 * Should not matter if it is output[0] or 1 as
++	 * the general ideas is to traverse backwards and
++	 * the fact that the out video node always has the
++	 * format of the connected pad.
++	 */
++	subdev = vpfe_video_remote_subdev(pipe->outputs[0], NULL);
++	if (subdev == NULL)
++		return -EPIPE;
++
++	while (1) {
++		/* Retrieve the sink format */
++		pad = &subdev->entity.pads[0];
++		if (!(pad->flags & MEDIA_PAD_FL_SINK))
++			break;
++
++		fmt_sink.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++		fmt_sink.pad = pad->index;
++		ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL,
++				       &fmt_sink);
++
++		if (ret < 0 && ret != -ENOIOCTLCMD)
++			return -EPIPE;
++
++		/* Retrieve the source format */
++		pad = media_entity_remote_source(pad);
++		if (pad == NULL ||
++			pad->entity->type != MEDIA_ENT_T_V4L2_SUBDEV)
++			break;
++
++		subdev = media_entity_to_v4l2_subdev(pad->entity);
++
++		fmt_source.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++		fmt_source.pad = pad->index;
++		ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt_source);
++		if (ret < 0 && ret != -ENOIOCTLCMD)
++			return -EPIPE;
++
++		/* Check if the two ends match */
++		if (fmt_source.format.code != fmt_sink.format.code ||
++		    fmt_source.format.width != fmt_sink.format.width ||
++		    fmt_source.format.height != fmt_sink.format.height)
++			return -EPIPE;
++	}
++	return 0;
++}
++
++/*
++ * vpfe_pipeline_enable() - Enable streaming on a pipeline
++ * @vpfe_dev: vpfe device
++ * @pipe: vpfe pipeline
++ *
++ * Walk the entities chain starting at the pipeline output video node and start
++ * all modules in the chain in the given mode.
++ *
++ * Return 0 if successful, or the return value of the failed video::s_stream
++ * operation otherwise.
++ */
++static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
++{
++	struct media_entity_graph graph;
++	struct media_entity *entity;
++	struct v4l2_subdev *subdev;
++	struct media_device *mdev;
 +	int ret = 0;
 +
-+	mutex_lock(&coil->power_lock);
++	if (pipe->state == VPFE_PIPELINE_STREAM_CONTINUOUS)
++		entity = vpfe_get_input_entity(pipe->outputs[0]);
++	else
++		entity = &pipe->inputs[0]->video_dev.entity;
 +
-+	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
-+	 * update the power state.
-+	 */
-+	if (coil->power_count == !on) {
-+		ret = __ad5820_set_power(coil, !!on);
-+		if (ret < 0)
-+			goto done;
++	mdev = entity->parent;
++	mutex_lock(&mdev->graph_mutex);
++	media_entity_graph_walk_start(&graph, entity);
++	while ((entity = media_entity_graph_walk_next(&graph))) {
++
++		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
++			continue;
++		subdev = media_entity_to_v4l2_subdev(entity);
++		ret = v4l2_subdev_call(subdev, video, s_stream, 1);
++		if (ret < 0 && ret != -ENOIOCTLCMD)
++			break;
 +	}
-+
-+	/* Update the power count. */
-+	coil->power_count += on ? 1 : -1;
-+	WARN_ON(coil->power_count < 0);
-+
-+done:
-+	mutex_unlock(&coil->power_lock);
++	mutex_unlock(&mdev->graph_mutex);
 +	return ret;
 +}
 +
-+static int ad5820_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	return ad5820_set_power(sd, 1);
-+}
-+
-+static int ad5820_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	return ad5820_set_power(sd, 0);
-+}
-+
-+static const struct v4l2_subdev_core_ops ad5820_core_ops = {
-+	.s_power = ad5820_set_power,
-+};
-+
-+static const struct v4l2_subdev_ops ad5820_ops = {
-+	.core = &ad5820_core_ops,
-+};
-+
-+static const struct v4l2_subdev_internal_ops ad5820_internal_ops = {
-+	.open = ad5820_open,
-+	.close = ad5820_close,
-+};
-+
-+/* --------------------------------------------------------------------------
-+ * I2C driver
++/*
++ * vpfe_pipeline_disable() - Disable streaming on a pipeline
++ * @vpfe_dev: vpfe device
++ * @pipe: VPFE pipeline
++ *
++ * Walk the entities chain starting at the pipeline output video node and stop
++ * all modules in the chain.
++ *
++ * Return 0 if all modules have been properly stopped, or -ETIMEDOUT if a module
++ * can't be stopped.
 + */
-+#ifdef CONFIG_PM
-+
-+static int ad5820_suspend(struct device *dev)
++static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
 +{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-+	struct ad5820_device *coil = to_ad5820_device(subdev);
++	struct media_entity_graph graph;
++	struct media_entity *entity;
++	struct v4l2_subdev *subdev;
++	struct media_device *mdev;
++	int ret = 0;
 +
-+	if (!coil->power_count)
-+		return 0;
++	if (pipe->state == VPFE_PIPELINE_STREAM_CONTINUOUS)
++		entity = vpfe_get_input_entity(pipe->outputs[0]);
++	else
++		entity = &pipe->inputs[0]->video_dev.entity;
 +
-+	ad5820_power_off(coil);
-+	return 0;
-+}
++	mdev = entity->parent;
++	mutex_lock(&mdev->graph_mutex);
++	media_entity_graph_walk_start(&graph, entity);
 +
-+static int ad5820_resume(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-+	struct ad5820_device *coil = to_ad5820_device(subdev);
++	while ((entity = media_entity_graph_walk_next(&graph))) {
 +
-+	if (!coil->power_count)
-+		return 0;
-+
-+	return __ad5820_set_power(coil, true);
-+}
-+
-+#endif /* CONFIG_PM */
-+
-+static int ad5820_detect(struct ad5820_device *coil)
-+{
-+	const u16 status = AD5820_POWER_DOWN | 0x3ff0;
-+	int ret;
-+
-+	if (ad5820_power_on(coil) < 0)
-+		return -ENODEV;
-+
-+	if (ad5820_write(coil, status) || ad5820_read(coil) != status) {
-+		ad5820_power_off(coil);
-+		return -ENODEV;
++		if (media_entity_type(entity) == MEDIA_ENT_T_DEVNODE)
++			continue;
++		subdev = media_entity_to_v4l2_subdev(entity);
++		ret = v4l2_subdev_call(subdev, video, s_stream, 0);
++		if (ret < 0 && ret != -ENOIOCTLCMD)
++			break;
 +	}
++	mutex_unlock(&mdev->graph_mutex);
 +
-+	__ad5820_set_power(coil, false);
-+	return ret;
++	return (ret == 0) ? ret : -ETIMEDOUT ;
 +}
 +
-+static int ad5820_probe(struct i2c_client *client,
-+			const struct i2c_device_id *devid)
++/*
++ * vpfe_pipeline_set_stream() - Enable/disable streaming on a pipeline
++ * @vpfe_dev: VPFE device
++ * @pipe: VPFE pipeline
++ * @state: Stream state (stopped or active)
++ *
++ * Set the pipeline to the given stream state.
++ *
++ * Return 0 if successfull, or the return value of the failed video::s_stream
++ * operation otherwise.
++ */
++static int vpfe_pipeline_set_stream(struct vpfe_pipeline *pipe,
++			    enum vpfe_pipeline_stream_state state)
 +{
-+	struct ad5820_platform_data *pdata = client->dev.platform_data;
-+	struct ad5820_device *coil;
-+	unsigned int i;
-+	int ret = -ENODEV;
++	if (state == VPFE_PIPELINE_STREAM_STOPPED)
++		return vpfe_pipeline_disable(pipe);
 +
-+	coil = kzalloc(sizeof(*coil), GFP_KERNEL);
-+	if (coil == NULL)
++	return vpfe_pipeline_enable(pipe);
++}
++
++static int all_videos_stopped(struct vpfe_video_device *video)
++{
++	struct vpfe_pipeline *pipe = &video->pipe;
++	int i;
++
++	for (i = 0; i < pipe->input_num; i++)
++		if (pipe->inputs[i]->started)
++			return 0;
++	for (i = 0; i < pipe->output_num; i++)
++		if (pipe->outputs[i]->started)
++			return 0;
++	return 1;
++}
++
++/*
++ * vpfe_open() - open video device
++ * @file: file pointer
++ *
++ * initialize media pipeline state, allocate memory for file handle
++ *
++ * Return 0 if successful, or the return -ENODEV otherwise.
++ */
++static int vpfe_open(struct file *file)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_fh *handle;
++
++	/* Allocate memory for the file handle object */
++	handle = kzalloc(sizeof(struct vpfe_fh), GFP_KERNEL);
++
++	if (handle == NULL)
 +		return -ENOMEM;
 +
-+	mutex_init(&coil->power_lock);
-+	coil->focus_absolute = 0;
-+	coil->focus_ramp_time = 0;
-+	coil->focus_ramp_mode = 0;
-+	coil->xshutdown = -1;
++	v4l2_fh_init(&handle->vfh, &video->video_dev);
++	v4l2_fh_add(&handle->vfh);
 +
-+	coil->vana = regulator_get(&client->dev, "VANA");
-+	if (IS_ERR(coil->vana)) {
-+		dev_err(&client->dev, "could not get regulator for vana\n");
-+		goto done;
++	mutex_lock(&video->lock);
++	/* If decoder is not initialized. initialize it */
++	if (!video->initialized && vpfe_update_pipe_state(video)) {
++		mutex_unlock(&video->lock);
++		return -ENODEV;
 +	}
++	/* Increment device users counter */
++	video->usrs++;
++	/* Set io_allowed member to false */
++	handle->io_allowed = 0;
++	v4l2_prio_open(&video->prio, &handle->prio);
++	handle->video = video;
++	file->private_data = &handle->vfh;
++	mutex_unlock(&video->lock);
 +
-+	if (pdata && pdata->xshutdown != -1) {
-+		ret = gpio_request_one(pdata->xshutdown, GPIOF_OUT_INIT_LOW,
-+				       "ad5820_xshutdown");
-+		if (ret < 0)
-+			goto done;
++	return 0;
++}
 +
-+		coil->xshutdown = pdata->xshutdown;
++/* get the next buffer available from dma queue */
++static unsigned long
++vpfe_video_get_next_buffer(struct vpfe_video_device *video)
++{
++	video->cur_frm = video->next_frm =
++		list_entry(video->dma_queue.next,
++			   struct vpfe_cap_buffer, list);
++
++	list_del(&video->next_frm->list);
++	video->next_frm->vb.state = VB2_BUF_STATE_ACTIVE;
++	return vb2_dma_contig_plane_dma_addr(&video->next_frm->vb, 0);
++}
++
++/* schedule the next buffer which is available on dma queue */
++void vpfe_video_schedule_next_buffer(struct vpfe_video_device *video)
++{
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	unsigned long addr;
++
++	if (list_empty(&video->dma_queue))
++		return;
++
++	video->next_frm = list_entry(video->dma_queue.next,
++					struct vpfe_cap_buffer, list);
++
++	if (VPFE_PIPELINE_STREAM_SINGLESHOT == video->pipe.state)
++		video->cur_frm = video->next_frm;
++
++	list_del(&video->next_frm->list);
++	video->next_frm->vb.state = VB2_BUF_STATE_ACTIVE;
++	addr = vb2_dma_contig_plane_dma_addr(&video->next_frm->vb, 0);
++	video->ops->queue(vpfe_dev, addr);
++	video->state = VPFE_VIDEO_BUFFER_QUEUED;
++}
++
++/* schedule the buffer for capturing bottom field */
++void vpfe_video_schedule_bottom_field(struct vpfe_video_device *video)
++{
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	unsigned long addr;
++
++	addr = vb2_dma_contig_plane_dma_addr(&video->cur_frm->vb, 0);
++	addr += video->field_off;
++	video->ops->queue(vpfe_dev, addr);
++}
++
++/* make buffer available for dequeue */
++void vpfe_video_process_buffer_complete(struct vpfe_video_device *video)
++{
++	struct vpfe_pipeline *pipe = &video->pipe;
++
++	do_gettimeofday(&video->cur_frm->vb.v4l2_buf.timestamp);
++	vb2_buffer_done(&video->cur_frm->vb, VB2_BUF_STATE_DONE);
++	if (pipe->state == VPFE_PIPELINE_STREAM_CONTINUOUS)
++		video->cur_frm = video->next_frm;
++}
++
++/* vpfe_stop_capture() - stop streaming */
++static void vpfe_stop_capture(struct vpfe_video_device *video)
++{
++	struct vpfe_pipeline *pipe = &video->pipe;
++
++	video->started = 0;
++
++	if (video->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		return;
++	if (all_videos_stopped(video))
++		vpfe_pipeline_set_stream(pipe,
++					 VPFE_PIPELINE_STREAM_STOPPED);
++}
++
++/*
++ * vpfe_release() - release video device
++ * @file: file pointer
++ *
++ * deletes buffer queue, frees the buffers and the vpfe file handle
++ *
++ * Return 0
++ */
++static int vpfe_release(struct file *file)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct v4l2_fh *vfh = file->private_data;
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct vpfe_fh *fh = container_of(vfh, struct vpfe_fh, vfh);
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_release\n");
++
++	/* Get the device lock */
++	mutex_lock(&video->lock);
++	/* if this instance is doing IO */
++	if (fh->io_allowed) {
++		if (video->started) {
++			vpfe_stop_capture(video);
++			/* mark pipe state as stopped in vpfe_release(),
++			   as app might call streamon() after streamoff()
++			   in which case driver has to start streaming.
++			*/
++			video->pipe.state = VPFE_PIPELINE_STREAM_STOPPED;
++			vb2_streamoff(&video->buffer_queue,
++				      video->buffer_queue.type);
++		}
++		video->io_usrs = 0;
++		/* Free buffers allocated */
++		vb2_queue_release(&video->buffer_queue);
++		vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
 +	}
++	/* Decrement device users counter */
++	video->usrs--;
++	/* Close the priority */
++	v4l2_prio_close(&video->prio, fh->prio);
++	/* If this is the last file handle */
++	if (!video->usrs)
++		video->initialized = 0;
++	mutex_unlock(&video->lock);
++	file->private_data = NULL;
++	/* Free memory allocated to file handle object */
++	v4l2_fh_del(vfh);
++	kzfree(fh);
++	return 0;
++}
 +
-+	ret = ad5820_detect(coil);
-+	if (ret < 0) {
-+		dev_err(&client->dev, "not detected\n");
-+		goto done;
++/*
++ * vpfe_mmap() - It is used to map kernel space buffers
++ * into user spaces
++ */
++static int vpfe_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_mmap\n");
++	return vb2_mmap(&video->buffer_queue, vma);
++}
++
++/*
++ * vpfe_poll() - It is used for select/poll system call
++ */
++static unsigned int vpfe_poll(struct file *file, poll_table *wait)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_poll\n");
++	if (video->started)
++		return vb2_poll(&video->buffer_queue, file, wait);
++	return 0;
++}
++
++/* vpfe capture driver file operations */
++static const struct v4l2_file_operations vpfe_fops = {
++	.owner = THIS_MODULE,
++	.open = vpfe_open,
++	.release = vpfe_release,
++	.unlocked_ioctl = video_ioctl2,
++	.mmap = vpfe_mmap,
++	.poll = vpfe_poll
++};
++
++/*
++ * vpfe_querycap() - query capabilities of video device
++ * @file: file pointer
++ * @priv: void pointer
++ * @cap: pointer to v4l2_capability structure
++ *
++ * fills v4l2 capabilities structure
++ *
++ * Return 0
++ */
++static int vpfe_querycap(struct file *file, void  *priv,
++			       struct v4l2_capability *cap)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_querycap\n");
++
++	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++	else
++		cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
++	cap->device_caps = cap->capabilities;
++	cap->version = VPFE_CAPTURE_VERSION_CODE;
++	strlcpy(cap->driver, CAPTURE_DRV_NAME, sizeof(cap->driver));
++	strlcpy(cap->bus_info, "VPFE", sizeof(cap->bus_info));
++	strlcpy(cap->card, vpfe_dev->cfg->card_name, sizeof(cap->card));
++
++	return 0;
++}
++
++/*
++ * vpfe_g_fmt() - get the format which is active on video device
++ * @file: file pointer
++ * @priv: void pointer
++ * @fmt: pointer to v4l2_format structure
++ *
++ * fills v4l2 format structure with active format
++ *
++ * Return 0
++ */
++static int vpfe_g_fmt(struct file *file, void *priv,
++				struct v4l2_format *fmt)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_g_fmt\n");
++	/* Fill in the information about format */
++	*fmt = video->fmt;
++	return 0;
++}
++
++/*
++ * vpfe_enum_fmt() - enum formats supported on media chain
++ * @file: file pointer
++ * @priv: void pointer
++ * @fmt: pointer to v4l2_fmtdesc structure
++ *
++ * fills v4l2_fmtdesc structure with output format set on adjacent subdev,
++ * only one format is enumearted as subdevs are already configured
++ *
++ * Return 0 if successfull, error code otherwise
++ */
++static int vpfe_enum_fmt(struct file *file, void  *priv,
++				   struct v4l2_fmtdesc *fmt)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct v4l2_subdev_format sd_fmt;
++	struct v4l2_mbus_framefmt mbus;
++	struct v4l2_subdev *subdev;
++	struct v4l2_format format;
++	struct media_pad *remote;
++	int ret;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_enum_fmt\n");
++
++	/* since already subdev pad format is set,
++	only one pixel format is available */
++	if (fmt->index > 0) {
++		v4l2_err(&vpfe_dev->v4l2_dev, "Invalid index\n");
++		return -EINVAL;
 +	}
++	/* get the remote pad */
++	remote = media_entity_remote_source(&video->pad);
++	if (remote == NULL) {
++		v4l2_err(&vpfe_dev->v4l2_dev,
++			 "invalid remote pad for video node\n");
++		return -EINVAL;
++	}
++	/* get the remote subdev */
++	subdev = vpfe_video_remote_subdev(video, NULL);
++	if (subdev == NULL) {
++		v4l2_err(&vpfe_dev->v4l2_dev,
++			 "invalid remote subdev for video node\n");
++		return -EINVAL;
++	}
++	sd_fmt.pad = remote->index;
++	sd_fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++	/* get output format of remote subdev */
++	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &sd_fmt);
++	if (ret) {
++		v4l2_err(&vpfe_dev->v4l2_dev,
++			 "invalid remote subdev for video node\n");
++		return ret;
++	}
++	/* convert to pix format */
++	mbus.code = sd_fmt.format.code;
++	mbus_to_pix(&mbus, &format.fmt.pix);
++	/* copy the result */
++	fmt->pixelformat = format.fmt.pix.pixelformat;
 +
-+	v4l2_ctrl_handler_init(&coil->ctrls, ARRAY_SIZE(ad5820_ctrls) + 1);
++	return 0;
++}
 +
-+	/* V4L2_CID_FOCUS_ABSOLUTE
-+	 *
-+	 * Minimum current is 0 mA, maximum is 100 mA. Thus, 1 code is
-+	 * equivalent to 100/1023 = 0.0978 mA. Nevertheless, we do not use [mA]
-+	 * for focus position, because it is meaningless for user. Meaningful
-+	 * would be to use focus distance or even its inverse, but since the
-+	 * driver doesn't have sufficiently knowledge to do the conversion, we
-+	 * will just use abstract codes here. In any case, smaller value = focus
-+	 * position farther from camera. The default zero value means focus at
-+	 * infinity, and also least current consumption.
++/*
++ * vpfe_s_fmt() - set the format on video device
++ * @file: file pointer
++ * @priv: void pointer
++ * @fmt: pointer to v4l2_format structure
++ *
++ * validate and set the format on video device
++ *
++ * Return 0 on success, error code otherwise
++ */
++static int vpfe_s_fmt(struct file *file, void *priv,
++				struct v4l2_format *fmt)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct v4l2_format format;
++	int ret;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_fmt\n");
++	/* If streaming is started, return error */
++	if (video->started) {
++		v4l2_err(&vpfe_dev->v4l2_dev, "Streaming is started\n");
++		return -EBUSY;
++	}
++	/* get adjacent subdev's output pad format */
++	ret = __vpfe_video_get_format(video, &format);
++	if (ret)
++		return ret;
++	*fmt = format;
++	video->fmt = *fmt;
++	return 0;
++}
++
++/*
++ * vpfe_try_fmt() - try the format on video device
++ * @file: file pointer
++ * @priv: void pointer
++ * @fmt: pointer to v4l2_format structure
++ *
++ * validate the format, update with correct format
++ * based on output format set on adjacent subdev
++ *
++ * Return 0 on success, error code otherwise
++ */
++static int vpfe_try_fmt(struct file *file, void *priv,
++				  struct v4l2_format *fmt)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct v4l2_format format;
++	int ret;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_try_fmt\n");
++	/* get adjacent subdev's output pad format */
++	ret = __vpfe_video_get_format(video, &format);
++	if (ret)
++		return ret;
++
++	*fmt = format;
++	return 0;
++}
++
++/*
++ * vpfe_enum_input() - enum inputs supported on media chain
++ * @file: file pointer
++ * @priv: void pointer
++ * @fmt: pointer to v4l2_fmtdesc structure
++ *
++ * fills v4l2_input structure with input available on media chain,
++ * only one input is enumearted as media chain is setup by this time
++ *
++ * Return 0 if successfull, -EINVAL is media chain is invalid
++ */
++static int vpfe_enum_input(struct file *file, void *priv,
++				 struct v4l2_input *inp)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_ext_subdev_info *sdinfo = video->current_ext_subdev;
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_enum_input\n");
++	/* enumerate from the subdev user has choosen through mc */
++	if (inp->index < sdinfo->num_inputs) {
++		memcpy(inp, &sdinfo->inputs[inp->index],
++		       sizeof(struct v4l2_input));
++		return 0;
++	}
++	return -EINVAL;
++}
++
++/*
++ * vpfe_g_input() - get index of the input which is active
++ * @file: file pointer
++ * @priv: void pointer
++ * @index: pointer to unsigned int
++ *
++ * set index with input index which is active
++ */
++static int vpfe_g_input(struct file *file, void *priv, unsigned int *index)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_g_input\n");
++
++	*index = video->current_input;
++	return 0;
++}
++
++/*
++ * vpfe_s_input() - set input which is pointed by input index
++ * @file: file pointer
++ * @priv: void pointer
++ * @index: pointer to unsigned int
++ *
++ * set input on external subdev
++ *
++ * Return 0 on success, error code otherwise
++ */
++static int vpfe_s_input(struct file *file, void *priv, unsigned int index)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct vpfe_ext_subdev_info *sdinfo;
++	struct vpfe_route *route;
++	struct v4l2_input *inps;
++	u32 output;
++	u32 input;
++	int ret;
++	int i;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_input\n");
++
++	ret = mutex_lock_interruptible(&video->lock);
++	if (ret)
++		return ret;
++	/*
++	 * If streaming is started return device busy
++	 * error
 +	 */
-+	v4l2_ctrl_new_std(&coil->ctrls, &ad5820_ctrl_ops,
-+			  V4L2_CID_FOCUS_ABSOLUTE, 0, 1023, 1, 0);
-+
-+	/* V4L2_CID_TEST_PATTERN and V4L2_CID_MODE_* */
-+	for (i = 0; i < ARRAY_SIZE(ad5820_ctrls); ++i)
-+		v4l2_ctrl_new_custom(&coil->ctrls, &ad5820_ctrls[i], NULL);
-+
-+	if (coil->ctrls.error) {
-+		ret = coil->ctrls.error;
-+		goto done;
++	if (video->started) {
++		v4l2_err(&vpfe_dev->v4l2_dev, "Streaming is on\n");
++		ret = -EBUSY;
++		goto unlock_out;
 +	}
 +
-+	coil->subdev.ctrl_handler = &coil->ctrls;
++	sdinfo = video->current_ext_subdev;
++	if (!sdinfo->registered) {
++		ret = -EINVAL;
++		goto unlock_out;
++	}
++	if (vpfe_dev->cfg->setup_input &&
++		vpfe_dev->cfg->setup_input(sdinfo->grp_id) < 0) {
++		ret = -EFAULT;
++		v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
++			  "couldn't setup input for %s\n",
++			  sdinfo->module_name);
++		goto unlock_out;
++	}
++	route = &sdinfo->routes[index];
++	if (route && sdinfo->can_route) {
++		input = route->input;
++		output = route->output;
++		ret = v4l2_device_call_until_err(&vpfe_dev->v4l2_dev,
++						 sdinfo->grp_id, video,
++						 s_routing, input, output, 0);
++		if (ret) {
++			v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
++				"s_input:error in setting input in decoder\n");
++			ret = -EINVAL;
++			goto unlock_out;
++		}
++	}
++	/* set standards set by subdev in video device */
++	for (i = 0; i < sdinfo->num_inputs; i++) {
++		inps = &sdinfo->inputs[i];
++		video->video_dev.tvnorms |= inps->std;
++	}
++	video->current_input = index;
++unlock_out:
++	mutex_unlock(&video->lock);
++	return ret;
++}
 +
-+	v4l2_i2c_subdev_init(&coil->subdev, client, &ad5820_ops);
-+	coil->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	coil->subdev.internal_ops = &ad5820_internal_ops;
++/*
++ * vpfe_querystd() - query std which is being input on external subdev
++ * @file: file pointer
++ * @priv: void pointer
++ * @std_id: pointer to v4l2_std_id structure
++ *
++ * call external subdev through v4l2_device_call_until_err to
++ * get the std that is being active.
++ *
++ * Return 0 on success, error code otherwise
++ */
++static int vpfe_querystd(struct file *file, void *priv, v4l2_std_id *std_id)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct vpfe_ext_subdev_info *sdinfo;
++	int ret;
 +
-+	ret = media_entity_init(&coil->subdev.entity, 0, NULL, 0);
-+	if (ret < 0)
-+		goto done;
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_querystd\n");
 +
-+	ret = 0;
++	ret = mutex_lock_interruptible(&video->lock);
++	sdinfo = video->current_ext_subdev;
++	if (ret)
++		return ret;
++	/* Call querystd function of decoder device */
++	ret = v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
++					 video, querystd, std_id);
++	mutex_unlock(&video->lock);
++	return ret;
++}
 +
-+done:
++/*
++ * vpfe_s_std() - set std on external subdev
++ * @file: file pointer
++ * @priv: void pointer
++ * @std_id: pointer to v4l2_std_id structure
++ *
++ * set std pointed by std_id on external subdev by calling it using
++ * v4l2_device_call_until_err
++ *
++ * Return 0 on success, error code otherwise
++ */
++static int vpfe_s_std(struct file *file, void *priv, v4l2_std_id *std_id)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct vpfe_ext_subdev_info *sdinfo;
++	int ret;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_std\n");
++
++	/* Call decoder driver function to set the standard */
++	ret = mutex_lock_interruptible(&video->lock);
++	if (ret)
++		return ret;
++	sdinfo = video->current_ext_subdev;
++	/* If streaming is started, return device busy error */
++	if (video->started) {
++		v4l2_err(&vpfe_dev->v4l2_dev, "streaming is started\n");
++		ret = -EBUSY;
++		goto unlock_out;
++	}
++	ret = v4l2_device_call_until_err(&vpfe_dev->v4l2_dev, sdinfo->grp_id,
++					 core, s_std, *std_id);
 +	if (ret < 0) {
-+		v4l2_ctrl_handler_free(&coil->ctrls);
-+		media_entity_cleanup(&coil->subdev.entity);
-+
-+		if (coil->xshutdown != -1)
-+			gpio_free(coil->xshutdown);
-+		regulator_put(coil->vana);
-+
-+		kfree(coil);
++		v4l2_err(&vpfe_dev->v4l2_dev, "Failed to set standard\n");
++		video->stdid = V4L2_STD_UNKNOWN;
++		goto unlock_out;
 +	}
++	video->stdid = *std_id;
++unlock_out:
++	mutex_unlock(&video->lock);
++	return ret;
++}
++
++static int vpfe_g_std(struct file *file, void *priv, v4l2_std_id *tvnorm)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_g_std\n");
++	*tvnorm = video->stdid;
++	return 0;
++}
++
++/*
++ * vpfe_enum_dv_timings() - enumerate dv_timings which are supported by
++ *			to external subdev
++ * @file: file pointer
++ * @priv: void pointer
++ * @timings: pointer to v4l2_enum_dv_timings structure
++ *
++ * enum dv_timings's which are supported by external subdev through
++ * v4l2_subdev_call
++ *
++ * Return 0 on success, error code otherwise
++ */
++static int
++vpfe_enum_dv_timings(struct file *file, void *fh,
++		  struct v4l2_enum_dv_timings *timings)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct v4l2_subdev *subdev = video->current_ext_subdev->subdev;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_enum_dv_timings\n");
++	return v4l2_subdev_call(subdev, video, enum_dv_timings, timings);
++}
++
++/*
++ * vpfe_query_dv_timings() - query the dv_timings which is being input
++ *			to external subdev
++ * @file: file pointer
++ * @priv: void pointer
++ * @timings: pointer to v4l2_dv_timings structure
++ *
++ * get dv_timings which is being input on external subdev through
++ * v4l2_subdev_call
++ *
++ * Return 0 on success, error code otherwise
++ */
++static int
++vpfe_query_dv_timings(struct file *file, void *fh,
++		   struct v4l2_dv_timings *timings)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct v4l2_subdev *subdev = video->current_ext_subdev->subdev;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_query_dv_timings\n");
++	return v4l2_subdev_call(subdev, video, query_dv_timings, timings);
++}
++
++/*
++ * vpfe_s_dv_timings() - set dv_preset on external subdev
++ * @file: file pointer
++ * @priv: void pointer
++ * @timings: pointer to v4l2_dv_timings structure
++ *
++ * set dv_timings pointed by preset on external subdev through
++ * v4l2_device_call_until_err, this configures amplifier also
++ *
++ * Return 0 on success, error code otherwise
++ */
++static int
++vpfe_s_dv_timings(struct file *file, void *fh,
++		  struct v4l2_dv_timings *timings)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_dv_timings\n");
++
++	video->stdid = V4L2_STD_UNKNOWN;
++	return v4l2_device_call_until_err(&vpfe_dev->v4l2_dev,
++					  video->current_ext_subdev->grp_id,
++					  video, s_dv_timings, timings);
++}
++
++/*
++ * vpfe_g_dv_timings() - get dv_preset which is set on external subdev
++ * @file: file pointer
++ * @priv: void pointer
++ * @timings: pointer to v4l2_dv_timings structure
++ *
++ * get dv_preset which is set on external subdev through
++ * v4l2_subdev_call
++ *
++ * Return 0 on success, error code otherwise
++ */
++static int
++vpfe_g_dv_timings(struct file *file, void *fh,
++	      struct v4l2_dv_timings *timings)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct v4l2_subdev *subdev = video->current_ext_subdev->subdev;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_g_dv_timings\n");
++	return v4l2_subdev_call(subdev, video, g_dv_timings, timings);
++}
++
++/*
++ *  Videobuf operations
++ */
++/*
++ * vpfe_buffer_queue_setup : Callback function for buffer setup.
++ * @vq: vb2_queue ptr
++ * @fmt: v4l2 format
++ * @nbuffers: ptr to number of buffers requested by application
++ * @nplanes:: contains number of distinct video planes needed to hold a frame
++ * @sizes[]: contains the size (in bytes) of each plane.
++ * @alloc_ctxs: ptr to allocation context
++ *
++ * This callback function is called when reqbuf() is called to adjust
++ * the buffer nbuffers and buffer size
++ */
++static int
++vpfe_buffer_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
++			unsigned int *nbuffers, unsigned int *nplanes,
++			unsigned int sizes[], void *alloc_ctxs[])
++{
++	struct vpfe_fh *fh = vb2_get_drv_priv(vq);
++	struct vpfe_video_device *video = fh->video;
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct vpfe_pipeline *pipe = &video->pipe;
++	unsigned long size;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_buffer_queue_setup\n");
++	size = video->fmt.fmt.pix.sizeimage;
++
++	if (vpfe_dev->video_limit) {
++		while (size * *nbuffers > vpfe_dev->video_limit)
++			(*nbuffers)--;
++	}
++	if (pipe->state == VPFE_PIPELINE_STREAM_CONTINUOUS) {
++		if (*nbuffers < MIN_NUM_BUFFERS)
++			*nbuffers = MIN_NUM_BUFFERS;
++	}
++	*nplanes = 1;
++	sizes[0] = size;
++	alloc_ctxs[0] = video->alloc_ctx;
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
++		 "nbuffers=%d, size=%lu\n", *nbuffers, size);
++	return 0;
++}
++
++/*
++ * vpfe_buffer_prepare : callback function for buffer prepare
++ * @vb: ptr to vb2_buffer
++ *
++ * This is the callback function for buffer prepare when vb2_qbuf()
++ * function is called. The buffer is prepared and user space virtual address
++ * or user address is converted into  physical address
++ */
++static int vpfe_buffer_prepare(struct vb2_buffer *vb)
++{
++	struct vpfe_fh *fh = vb2_get_drv_priv(vb->vb2_queue);
++	struct vpfe_video_device *video = fh->video;
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	unsigned long addr;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_buffer_prepare\n");
++
++	if (vb->state != VB2_BUF_STATE_ACTIVE &&
++	    vb->state != VB2_BUF_STATE_PREPARED)
++		return 0;
++
++	/* Initialize buffer */
++	vb2_set_plane_payload(vb, 0, video->fmt.fmt.pix.sizeimage);
++	if (vb2_plane_vaddr(vb, 0) &&
++		vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
++			return -EINVAL;
++
++	addr = vb2_dma_contig_plane_dma_addr(vb, 0);
++	/* Make sure user addresses are aligned to 32 bytes */
++	if (!ALIGN(addr, 32))
++		return -EINVAL;
++
++	return 0;
++}
++
++static void vpfe_buffer_queue(struct vb2_buffer *vb)
++{
++	/* Get the file handle object and device object */
++	struct vpfe_fh *fh = vb2_get_drv_priv(vb->vb2_queue);
++	struct vpfe_video_device *video = fh->video;
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct vpfe_pipeline *pipe = &video->pipe;
++	struct vpfe_cap_buffer *buf = container_of(vb,
++				struct vpfe_cap_buffer, vb);
++	unsigned long flags;
++	unsigned long empty;
++	unsigned long addr;
++
++	spin_lock_irqsave(&video->dma_queue_lock, flags);
++	empty = list_empty(&video->dma_queue);
++	/* add the buffer to the DMA queue */
++	list_add_tail(&buf->list, &video->dma_queue);
++	spin_unlock_irqrestore(&video->dma_queue_lock, flags);
++	/* this case happens in case of single shot */
++	if (empty && video->started && pipe->state ==
++		VPFE_PIPELINE_STREAM_SINGLESHOT &&
++		video->state == VPFE_VIDEO_BUFFER_NOT_QUEUED) {
++		spin_lock(&video->dma_queue_lock);
++		addr = vpfe_video_get_next_buffer(video);
++		video->ops->queue(vpfe_dev, addr);
++
++		video->state = VPFE_VIDEO_BUFFER_QUEUED;
++		spin_unlock(&video->dma_queue_lock);
++
++		/* enable h/w each time in single shot */
++		if (vpfe_video_is_pipe_ready(pipe))
++			vpfe_pipeline_set_stream(pipe,
++					VPFE_PIPELINE_STREAM_SINGLESHOT);
++	}
++}
++
++/* vpfe_start_capture() - start streaming on all the subdevs */
++static int vpfe_start_capture(struct vpfe_video_device *video)
++{
++	struct vpfe_pipeline *pipe = &video->pipe;
++	int ret = 0;
++
++	video->started = 1;
++	if (vpfe_video_is_pipe_ready(pipe))
++		ret = vpfe_pipeline_set_stream(pipe, pipe->state);
 +
 +	return ret;
 +}
 +
-+static int __exit ad5820_remove(struct i2c_client *client)
++static int vpfe_start_streaming(struct vb2_queue *vq, unsigned int count)
 +{
-+	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-+	struct ad5820_device *coil = to_ad5820_device(subdev);
++	struct vpfe_fh *fh = vb2_get_drv_priv(vq);
++	struct vpfe_video_device *video = fh->video;
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	unsigned long addr;
++	int ret;
 +
-+	v4l2_device_unregister_subdev(&coil->subdev);
-+	v4l2_ctrl_handler_free(&coil->ctrls);
-+	media_entity_cleanup(&coil->subdev.entity);
++	ret = mutex_lock_interruptible(&video->lock);
++	if (ret)
++		goto streamoff;
 +
-+	if (coil->xshutdown != -1)
-+		gpio_free(coil->xshutdown);
-+	regulator_put(coil->vana);
++	/* Get the next frame from the buffer queue */
++	video->cur_frm = video->next_frm =
++		list_entry(video->dma_queue.next, struct vpfe_cap_buffer, list);
++	/* Remove buffer from the buffer queue */
++	list_del(&video->cur_frm->list);
++	/* Mark state of the current frame to active */
++	video->cur_frm->vb.state = VB2_BUF_STATE_ACTIVE;
++	/* Initialize field_id and started member */
++	video->field_id = 0;
++	addr = vb2_dma_contig_plane_dma_addr(&video->cur_frm->vb, 0);
++	video->ops->queue(vpfe_dev, addr);
++	video->state = VPFE_VIDEO_BUFFER_QUEUED;
 +
-+	kfree(coil);
++	ret = vpfe_start_capture(video);
++	if (ret)
++		goto unlock_out;
++
++	mutex_unlock(&video->lock);
++
++	return ret;
++unlock_out:
++	mutex_unlock(&video->lock);
++streamoff:
++	ret = vb2_streamoff(&video->buffer_queue, video->buffer_queue.type);
 +	return 0;
 +}
 +
-+static const struct i2c_device_id ad5820_id_table[] = {
-+	{ AD5820_NAME, 0 },
-+	{ }
++static int vpfe_buffer_init(struct vb2_buffer *vb)
++{
++	struct vpfe_cap_buffer *buf = container_of(vb,
++						   struct vpfe_cap_buffer, vb);
++
++	INIT_LIST_HEAD(&buf->list);
++	return 0;
++}
++
++/* abort streaming and wait for last buffer */
++static int vpfe_stop_streaming(struct vb2_queue *vq)
++{
++	struct vpfe_fh *fh = vb2_get_drv_priv(vq);
++	struct vpfe_video_device *video = fh->video;
++
++	if (!vb2_is_streaming(vq))
++		return 0;
++	/* release all active buffers */
++	while (!list_empty(&video->dma_queue)) {
++		video->next_frm = list_entry(video->dma_queue.next,
++						struct vpfe_cap_buffer, list);
++		list_del(&video->next_frm->list);
++		vb2_buffer_done(&video->next_frm->vb, VB2_BUF_STATE_ERROR);
++	}
++	return 0;
++}
++
++static void vpfe_buf_cleanup(struct vb2_buffer *vb)
++{
++	struct vpfe_fh *fh = vb2_get_drv_priv(vb->vb2_queue);
++	struct vpfe_video_device *video = fh->video;
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct vpfe_cap_buffer *buf = container_of(vb,
++					struct vpfe_cap_buffer, vb);
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_buf_cleanup\n");
++	if (vb->state == VB2_BUF_STATE_ACTIVE)
++		list_del_init(&buf->list);
++}
++
++static struct vb2_ops video_qops = {
++	.queue_setup		= vpfe_buffer_queue_setup,
++	.buf_init		= vpfe_buffer_init,
++	.buf_prepare		= vpfe_buffer_prepare,
++	.start_streaming	= vpfe_start_streaming,
++	.stop_streaming		= vpfe_stop_streaming,
++	.buf_cleanup		= vpfe_buf_cleanup,
++	.buf_queue		= vpfe_buffer_queue,
 +};
-+MODULE_DEVICE_TABLE(i2c, ad5820_id_table);
 +
-+static SIMPLE_DEV_PM_OPS(ad5820_pm_ops, ad5820_suspend, ad5820_resume);
-+
-+static struct i2c_driver ad5820_i2c_driver = {
-+	.driver		= {
-+		.name	= AD5820_NAME,
-+		.pm	= &ad5820_pm_ops,
-+	},
-+	.probe		= ad5820_probe,
-+	.remove		= __exit_p(ad5820_remove),
-+	.id_table	= ad5820_id_table,
-+};
-+
-+module_i2c_driver(ad5820_i2c_driver);
-+
-+MODULE_AUTHOR("Tuukka Toivonen <tuukka.o.toivonen@nokia.com>");
-+MODULE_DESCRIPTION("AD5820 camera lens driver");
-+MODULE_LICENSE("GPL");
-diff --git a/include/media/ad5820.h b/include/media/ad5820.h
-new file mode 100644
-index 0000000..2c28131
---- /dev/null
-+++ b/include/media/ad5820.h
-@@ -0,0 +1,30 @@
 +/*
-+ * AD5820 DAC driver for camera voice coil focus.
++ * vpfe_reqbufs() - supported REQBUF only once opening
++ * the device.
++ */
++static int vpfe_reqbufs(struct file *file, void *priv,
++			struct v4l2_requestbuffers *req_buf)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct vpfe_fh *fh = file->private_data;
++	struct vb2_queue *q;
++	int ret;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_reqbufs\n");
++
++	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != req_buf->type &&
++	    V4L2_BUF_TYPE_VIDEO_OUTPUT != req_buf->type) {
++		v4l2_err(&vpfe_dev->v4l2_dev, "Invalid buffer type\n");
++		return -EINVAL;
++	}
++
++	ret = mutex_lock_interruptible(&video->lock);
++	if (ret)
++		return ret;
++
++	if (video->io_usrs != 0) {
++		v4l2_err(&vpfe_dev->v4l2_dev, "Only one IO user allowed\n");
++		ret = -EBUSY;
++		goto unlock_out;
++	}
++	video->memory = req_buf->memory;
++
++	/* Initialize videobuf2 queue as per the buffer type */
++	video->alloc_ctx = vb2_dma_contig_init_ctx(vpfe_dev->pdev);
++	if (IS_ERR(video->alloc_ctx)) {
++		v4l2_err(&vpfe_dev->v4l2_dev, "Failed to get the context\n");
++		return PTR_ERR(video->alloc_ctx);
++	}
++
++	q = &video->buffer_queue;
++	q->type = req_buf->type;
++	q->io_modes = VB2_MMAP | VB2_USERPTR;
++	q->drv_priv = fh;
++	q->ops = &video_qops;
++	q->mem_ops = &vb2_dma_contig_memops;
++	q->buf_struct_size = sizeof(struct vpfe_cap_buffer);
++
++	ret = vb2_queue_init(q);
++	if (ret) {
++		v4l2_err(&vpfe_dev->v4l2_dev, "vb2_queue_init() failed\n");
++		vb2_dma_contig_cleanup_ctx(vpfe_dev->pdev);
++		return ret;
++	}
++
++	fh->io_allowed = 1;
++	video->io_usrs = 1;
++	INIT_LIST_HEAD(&video->dma_queue);
++	ret = vb2_reqbufs(&video->buffer_queue, req_buf);
++
++unlock_out:
++	mutex_unlock(&video->lock);
++	return ret;
++}
++
++/*
++ * vpfe_querybuf() - query buffers for exchange
++ */
++static int vpfe_querybuf(struct file *file, void *priv,
++			 struct v4l2_buffer *buf)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_querybuf\n");
++
++	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != buf->type &&
++	    V4L2_BUF_TYPE_VIDEO_OUTPUT != buf->type) {
++		v4l2_err(&vpfe_dev->v4l2_dev, "Invalid buf type\n");
++		return  -EINVAL;
++	}
++
++	if (video->memory != V4L2_MEMORY_MMAP) {
++		v4l2_err(&vpfe_dev->v4l2_dev, "Invalid memory\n");
++		return -EINVAL;
++	}
++
++	/* Call vb2_querybuf to get information */
++	return vb2_querybuf(&video->buffer_queue, buf);
++}
++
++/*
++ * vpfe_qbuf() - queue buffers for capture or processing
++ */
++static int vpfe_qbuf(struct file *file, void *priv,
++		     struct v4l2_buffer *p)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct vpfe_fh *fh = file->private_data;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_qbuf\n");
++
++	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != p->type &&
++	    V4L2_BUF_TYPE_VIDEO_OUTPUT != p->type) {
++		v4l2_err(&vpfe_dev->v4l2_dev, "Invalid buf type\n");
++		return -EINVAL;
++	}
++	/*
++	 * If this file handle is not allowed to do IO,
++	 * return error
++	 */
++	if (!fh->io_allowed) {
++		v4l2_err(&vpfe_dev->v4l2_dev, "fh->io_allowed\n");
++		return -EACCES;
++	}
++
++	return vb2_qbuf(&video->buffer_queue, p);
++}
++
++/*
++ * vpfe_dqbuf() - deque buffer which is done with processing
++ */
++static int vpfe_dqbuf(struct file *file, void *priv,
++		      struct v4l2_buffer *buf)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_dqbuf\n");
++
++	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != buf->type &&
++	    V4L2_BUF_TYPE_VIDEO_OUTPUT != buf->type) {
++		v4l2_err(&vpfe_dev->v4l2_dev, "Invalid buf type\n");
++		return -EINVAL;
++	}
++
++	return vb2_dqbuf(&video->buffer_queue,
++			 buf, (file->f_flags & O_NONBLOCK));
++}
++
++/*
++ * vpfe_streamon() - get dv_preset which is set on external subdev
++ * @file: file pointer
++ * @priv: void pointer
++ * @buf_type: enum v4l2_buf_type
 + *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Copyright (C) 2007 Texas Instruments
++ * queue buffer onto hardware for capture/processing and
++ * start all the subdevs which are in media chain
 + *
-+ * Contact: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *          Sakari Ailus <sakari.ailus@iki.fi>
++ * Return 0 on success, error code otherwise
++ */
++static int vpfe_streamon(struct file *file, void *priv,
++			 enum v4l2_buf_type buf_type)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct vpfe_pipeline *pipe = &video->pipe;
++	struct vpfe_fh *fh = file->private_data;
++	struct vpfe_ext_subdev_info *sdinfo;
++	int ret = -EINVAL;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_streamon\n");
++
++	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != buf_type &&
++	    V4L2_BUF_TYPE_VIDEO_OUTPUT != buf_type) {
++		v4l2_err(&vpfe_dev->v4l2_dev, "Invalid buf type\n");
++		return ret;
++	}
++	/* If file handle is not allowed IO, return error */
++	if (!fh->io_allowed) {
++		v4l2_err(&vpfe_dev->v4l2_dev, "fh->io_allowed\n");
++		return -EACCES;
++	}
++	sdinfo = video->current_ext_subdev;
++	/* If buffer queue is empty, return error */
++	if (list_empty(&video->buffer_queue.queued_list)) {
++		v4l2_err(&vpfe_dev->v4l2_dev, "buffer queue is empty\n");
++		return -EIO;
++	}
++	/* Validate the pipeline */
++	if (V4L2_BUF_TYPE_VIDEO_CAPTURE == buf_type) {
++		ret = vpfe_video_validate_pipeline(pipe);
++		if (ret < 0)
++			return ret;
++	}
++	/* Call vb2_streamon to start streaming */
++	return vb2_streamon(&video->buffer_queue, buf_type);
++}
++
++/*
++ * vpfe_streamoff() - get dv_preset which is set on external subdev
++ * @file: file pointer
++ * @priv: void pointer
++ * @buf_type: enum v4l2_buf_type
++ *
++ * stop all the subdevs which are in media chain
++ *
++ * Return 0 on success, error code otherwise
++ */
++static int vpfe_streamoff(struct file *file, void *priv,
++			  enum v4l2_buf_type buf_type)
++{
++	struct vpfe_video_device *video = video_drvdata(file);
++	struct vpfe_device *vpfe_dev = video->vpfe_dev;
++	struct vpfe_fh *fh = file->private_data;
++	int ret = 0;
++
++	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_streamoff\n");
++
++	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
++	    buf_type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
++		v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "Invalid buf type\n");
++		return -EINVAL;
++	}
++
++	/* If io is allowed for this file handle, return error */
++	if (!fh->io_allowed) {
++		v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "fh->io_allowed\n");
++		return -EACCES;
++	}
++
++	/* If streaming is not started, return error */
++	if (!video->started) {
++		v4l2_err(&vpfe_dev->v4l2_dev, "device is not started\n");
++		return -EINVAL;
++	}
++
++	ret = mutex_lock_interruptible(&video->lock);
++	if (ret)
++		return ret;
++
++	vpfe_stop_capture(video);
++	ret = vb2_streamoff(&video->buffer_queue, buf_type);
++	mutex_unlock(&video->lock);
++
++	return ret;
++}
++
++/* vpfe capture ioctl operations */
++static const struct v4l2_ioctl_ops vpfe_ioctl_ops = {
++	.vidioc_querycap	 = vpfe_querycap,
++	.vidioc_g_fmt_vid_cap    = vpfe_g_fmt,
++	.vidioc_s_fmt_vid_cap    = vpfe_s_fmt,
++	.vidioc_try_fmt_vid_cap  = vpfe_try_fmt,
++	.vidioc_enum_fmt_vid_cap = vpfe_enum_fmt,
++	.vidioc_g_fmt_vid_out    = vpfe_g_fmt,
++	.vidioc_s_fmt_vid_out    = vpfe_s_fmt,
++	.vidioc_try_fmt_vid_out  = vpfe_try_fmt,
++	.vidioc_enum_fmt_vid_out = vpfe_enum_fmt,
++	.vidioc_enum_input	 = vpfe_enum_input,
++	.vidioc_g_input		 = vpfe_g_input,
++	.vidioc_s_input		 = vpfe_s_input,
++	.vidioc_querystd	 = vpfe_querystd,
++	.vidioc_s_std		 = vpfe_s_std,
++	.vidioc_g_std		 = vpfe_g_std,
++	.vidioc_enum_dv_timings	 = vpfe_enum_dv_timings,
++	.vidioc_query_dv_timings = vpfe_query_dv_timings,
++	.vidioc_s_dv_timings	 = vpfe_s_dv_timings,
++	.vidioc_g_dv_timings	 = vpfe_g_dv_timings,
++	.vidioc_reqbufs		 = vpfe_reqbufs,
++	.vidioc_querybuf	 = vpfe_querybuf,
++	.vidioc_qbuf		 = vpfe_qbuf,
++	.vidioc_dqbuf		 = vpfe_dqbuf,
++	.vidioc_streamon	 = vpfe_streamon,
++	.vidioc_streamoff	 = vpfe_streamoff,
++};
++
++/* VPFE video init function */
++int vpfe_video_init(struct vpfe_video_device *video, const char *name)
++{
++	const char *direction;
++	int ret;
++
++	switch (video->type) {
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++		direction = "output";
++		video->pad.flags = MEDIA_PAD_FL_SINK;
++		video->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++		break;
++
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		direction = "input";
++		video->pad.flags = MEDIA_PAD_FL_SOURCE;
++		video->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
++		break;
++
++	default:
++		return -EINVAL;
++	}
++	/* Initialize field of video device */
++	video->video_dev.release = video_device_release;
++	video->video_dev.fops = &vpfe_fops;
++	video->video_dev.ioctl_ops = &vpfe_ioctl_ops;
++	video->video_dev.minor = -1;
++	video->video_dev.tvnorms = 0;
++	snprintf(video->video_dev.name, sizeof(video->video_dev.name),
++		 "DAVINCI VIDEO %s %s", name, direction);
++
++	/* Initialize prio member of device object */
++	v4l2_prio_init(&video->prio);
++	spin_lock_init(&video->irqlock);
++	spin_lock_init(&video->dma_queue_lock);
++	mutex_init(&video->lock);
++	ret = media_entity_init(&video->video_dev.entity,
++				1, &video->pad, 0);
++	if (ret < 0)
++		return ret;
++
++	video_set_drvdata(&video->video_dev, video);
++
++	return 0;
++}
++
++/* vpfe video device register function */
++int vpfe_video_register(struct vpfe_video_device *video,
++			struct v4l2_device *vdev)
++{
++	int ret;
++
++	video->video_dev.v4l2_dev = vdev;
++
++	ret = video_register_device(&video->video_dev, VFL_TYPE_GRABBER, -1);
++	if (ret < 0)
++		pr_err("%s: could not register video device (%d)\n",
++		       __func__, ret);
++	return ret;
++}
++
++/* vpfe video device unregister function */
++void vpfe_video_unregister(struct vpfe_video_device *video)
++{
++	if (video_is_registered(&video->video_dev)) {
++		media_entity_cleanup(&video->video_dev.entity);
++		video_unregister_device(&video->video_dev);
++	}
++}
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.h b/drivers/staging/media/davinci_vpfe/vpfe_video.h
+new file mode 100644
+index 0000000..bf8af01
+--- /dev/null
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.h
+@@ -0,0 +1,155 @@
++/*
++ * Copyright (C) 2012 Texas Instruments Inc
 + *
 + * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
 + *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ *
++ * Contributors:
++ *      Manjunath Hadli <manjunath.hadli@ti.com>
++ *      Prabhakar Lad <prabhakar.lad@ti.com>
 + */
 +
-+#ifndef __AD5820_H__
-+#define __AD5820_H__
++#ifndef _DAVINCI_VPFE_VIDEO_H
++#define _DAVINCI_VPFE_VIDEO_H
 +
-+#define AD5820_NAME		"ad5820"
-+#define AD5820_I2C_ADDR		(0x18 >> 1)
++#include <media/videobuf2-dma-contig.h>
 +
-+struct ad5820_platform_data {
-+	int xshutdown;
++struct vpfe_device;
++
++/*
++ * struct vpfe_video_operations - VPFE video operations
++ * @queue:	Resume streaming when a buffer is queued. Called on VIDIOC_QBUF
++ *		if there was no buffer previously queued.
++ */
++struct vpfe_video_operations {
++	int(*queue) (struct vpfe_device *vpfe_dev, unsigned long addr);
 +};
 +
-+#endif /* __AD5820_H__ */
++enum vpfe_pipeline_stream_state {
++	VPFE_PIPELINE_STREAM_STOPPED = 0,
++	VPFE_PIPELINE_STREAM_CONTINUOUS = 1,
++	VPFE_PIPELINE_STREAM_SINGLESHOT = 2,
++};
++
++enum vpfe_video_state {
++	/* indicates that buffer is not queued */
++	VPFE_VIDEO_BUFFER_NOT_QUEUED = 0,
++	/* indicates that buffer is queued */
++	VPFE_VIDEO_BUFFER_QUEUED = 1,
++};
++
++struct vpfe_pipeline {
++	/* media pipeline */
++	struct media_pipeline		*pipe;
++	/* state of the pipeline, continuous,
++	 * single-shot or stopped
++	 */
++	enum vpfe_pipeline_stream_state	state;
++	/* number of active input video entities */
++	unsigned int			input_num;
++	/* number of active output video entities */
++	unsigned int			output_num;
++	/* input video nodes in case of single-shot mode */
++	struct vpfe_video_device	*inputs[10];
++	/* capturing video nodes */
++	struct vpfe_video_device	*outputs[10];
++};
++
++#define to_vpfe_pipeline(__e) \
++	container_of((__e)->pipe, struct vpfe_pipeline, pipe)
++
++#define to_vpfe_video(vdev) \
++	container_of(vdev, struct vpfe_video_device, video_dev)
++
++struct vpfe_cap_buffer {
++	struct vb2_buffer vb;
++	struct list_head list;
++};
++
++struct vpfe_video_device {
++	/* vpfe device */
++	struct vpfe_device			*vpfe_dev;
++	/* video dev */
++	struct video_device			video_dev;
++	/* media pad of video entity */
++	struct media_pad			pad;
++	/* video operations supported by video device */
++	const struct vpfe_video_operations	*ops;
++	/* type of the video buffers used by user */
++	enum v4l2_buf_type			type;
++	/* Indicates id of the field which is being captured */
++	u32					field_id;
++	/* pipeline for which video device is part of */
++	struct vpfe_pipeline			pipe;
++	/* Indicates whether streaming started */
++	u8					started;
++	/* Indicates state of the stream */
++	unsigned int				state;
++	/* current input at the sub device */
++	int					current_input;
++	/*
++	 * This field keeps track of type of buffer exchange mechanism
++	 * user has selected
++	 */
++	enum v4l2_memory			memory;
++	/* Used to keep track of state of the priority */
++	struct v4l2_prio_state			prio;
++	/* number of open instances of the channel */
++	u32					usrs;
++	/* flag to indicate whether decoder is initialized */
++	u8					initialized;
++	/* skip frame count */
++	u8					skip_frame_count;
++	/* skip frame count init value */
++	u8					skip_frame_count_init;
++	/* time per frame for skipping */
++	struct v4l2_fract			timeperframe;
++	/* ptr to currently selected sub device */
++	struct vpfe_ext_subdev_info		*current_ext_subdev;
++	/* Pointer pointing to current vpfe_cap_buffer */
++	struct vpfe_cap_buffer			*cur_frm;
++	/* Pointer pointing to next vpfe_cap_buffer */
++	struct vpfe_cap_buffer			*next_frm;
++	/* Used to store pixel format */
++	struct v4l2_format			fmt;
++	struct vb2_queue			buffer_queue;
++	/* allocator-specific contexts for each plane */
++	struct vb2_alloc_ctx *alloc_ctx;
++	/* Queue of filled frames */
++	struct list_head			dma_queue;
++	spinlock_t				irqlock;
++	/* IRQ lock for DMA queue */
++	spinlock_t				dma_queue_lock;
++	/* lock used to access this structure */
++	struct mutex				lock;
++	/* number of users performing IO */
++	u32					io_usrs;
++	/* Currently selected or default standard */
++	v4l2_std_id				stdid;
++	/*
++	 * offset where second field starts from the starting of the
++	 * buffer for field seperated YCbCr formats
++	 */
++	u32					field_off;
++};
++
++int vpfe_video_is_pipe_ready(struct vpfe_pipeline *pipe);
++void vpfe_video_unregister(struct vpfe_video_device *video);
++int vpfe_video_register(struct vpfe_video_device *video,
++			struct v4l2_device *vdev);
++int vpfe_video_init(struct vpfe_video_device *video, const char *name);
++void vpfe_video_process_buffer_complete(struct vpfe_video_device *video);
++void vpfe_video_schedule_bottom_field(struct vpfe_video_device *video);
++void vpfe_video_schedule_next_buffer(struct vpfe_video_device *video);
++
++#endif		/* _DAVINCI_VPFE_VIDEO_H */
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.4.1
 
