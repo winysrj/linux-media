@@ -1,48 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:33603 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752642Ab2KELgb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 06:36:31 -0500
-From: YAMANE Toshiaki <yamanetoshi@gmail.com>
-To: Greg Kroah-Hartman <greg@kroah.com>, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	YAMANE Toshiaki <yamanetoshi@gmail.com>
-Subject: [PATCH 2/2] staging/media: Use dev_ or pr_ printks in go7007/wis-saa7115.c
-Date: Mon,  5 Nov 2012 20:36:26 +0900
-Message-Id: <1352115386-8183-1-git-send-email-yamanetoshi@gmail.com>
-In-Reply-To: <1352115345-8149-1-git-send-email-yamanetoshi@gmail.com>
-References: <1352115345-8149-1-git-send-email-yamanetoshi@gmail.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:58162 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751126Ab2K1HLi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 02:11:38 -0500
+Date: Wed, 28 Nov 2012 08:11:35 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Libin Yang <lbyang@marvell.com>
+cc: Albert Wang <twang13@marvell.com>,
+	"corbet@lwn.net" <corbet@lwn.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH 03/15] [media] marvell-ccic: add clock tree support for
+ marvell-ccic driver
+In-Reply-To: <A63A0DC671D719488CD1A6CD8BDC16CF230A8D7846@SC-VEXCH4.marvell.com>
+Message-ID: <Pine.LNX.4.64.1211280807100.32652@axis700.grange>
+References: <1353677595-24034-1-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1211271145320.22273@axis700.grange>
+ <477F20668A386D41ADCC57781B1F70430D1367C8D5@SC-VEXCH1.marvell.com>
+ <A63A0DC671D719488CD1A6CD8BDC16CF230A8D7846@SC-VEXCH4.marvell.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fixed below checkpatch warnings.
-- WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-- WARNING: Prefer netdev_dbg(netdev, ... then dev_dbg(dev, ... then pr_debug(...  to printk(KERN_DEBUG ...
+Hi Libin
 
-Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
+On Tue, 27 Nov 2012, Libin Yang wrote:
+
+> Hello Guennadi,
+> 
+> Thanks for your suggestion, please see my comments below.
+> 
+> Best Regards,
+> Libin 
+> 
+> >>-----Original Message-----
+> >>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+> >>Sent: Tuesday, 27 November, 2012 18:50
+> >>To: Albert Wang
+> >>Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
+> >>Subject: Re: [PATCH 03/15] [media] marvell-ccic: add clock tree support for marvell-ccic
+> >>driver
+> >>
+> >>> +		mcam->clk_num = pdata->clk_num;
+> >>> +	} else {
+> >>> +		for (i = 0; i < pdata->clk_num; i++) {
+> >>> +			if (mcam->clk[i]) {
+> >>> +				clk_put(mcam->clk[i]);
+> >>> +				mcam->clk[i] = NULL;
+> >>> +			}
+> >>> +		}
+> >>> +		mcam->clk_num = 0;
+> >>> +	}
+> >>> +}
+> >>
+> >>Don't think I like this. IIUC, your driver should only try to use clocks, that it knows about,
+> >>not some random clocks, passed from the platform data. So, you should be using explicit
+> >>clock names. In your platform data you can set whether a specific clock should be used or
+> >>not, but not pass clock names down. Also you might want to consider using devm_clk_get()
+> >>and be more careful with error handling.
+> >>
+> >OK, we will try to enhance it.
+> 
+> [Libin] Because there are some boards using mmp chip, and the clock 
+> names on different board may be totally different. And also this is why 
+> the clock number is not definite. To support more boards, the dynamic 
+> names are used instead of the static names.
+
+No, I don't think it's right. The clock connection ID is the ID of the 
+clock _consumer_, not the clock provider. So, your camera IP block has 
+several clock inputs, and your platforms should provide clock lookup 
+entries with names of those clock _inputs_, not of their clock sources. 
+BTW, I really doubt it your camera block has 4 clock inputs? If some of 
+them are parents of the clocks, that really supply the block (which would 
+also explain why you call it a tree), then you don't have to clk_get() 
+them explicitly. The clock framework will refcount and enable those parent 
+clocks for you. So, I think, you really should fix your platforms.
+
+This has been discussed multiple times on the mailing lists, feel free to 
+do some research, here one link:
+
+http://thread.gmane.org/gmane.linux.ports.arm.kernel/131302/focus=37730
+
+Thanks
+Guennadi
 ---
- drivers/staging/media/go7007/wis-saa7115.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/staging/media/go7007/wis-saa7115.c b/drivers/staging/media/go7007/wis-saa7115.c
-index b31a82b..72d5ad9 100644
---- a/drivers/staging/media/go7007/wis-saa7115.c
-+++ b/drivers/staging/media/go7007/wis-saa7115.c
-@@ -414,12 +414,12 @@ static int wis_saa7115_probe(struct i2c_client *client,
- 	dec->hue = 0;
- 	i2c_set_clientdata(client, dec);
- 
--	printk(KERN_DEBUG
-+	dev_dbg(&client->dev,
- 		"wis-saa7115: initializing SAA7115 at address %d on %s\n",
- 		client->addr, adapter->name);
- 
- 	if (write_regs(client, initial_registers) < 0) {
--		printk(KERN_ERR
-+		dev_err(&client->dev,
- 			"wis-saa7115: error initializing SAA7115\n");
- 		kfree(dec);
- 		return -ENODEV;
--- 
-1.7.9.5
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
