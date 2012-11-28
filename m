@@ -1,132 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:46010 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752642Ab2KELiv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 06:38:51 -0500
-From: YAMANE Toshiaki <yamanetoshi@gmail.com>
-To: Greg Kroah-Hartman <greg@kroah.com>, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	YAMANE Toshiaki <yamanetoshi@gmail.com>
-Subject: [PATCH 1/2] staging/media: Use dev_ printks in go7007/go7007-fw.c
-Date: Mon,  5 Nov 2012 20:38:46 +0900
-Message-Id: <1352115526-8287-1-git-send-email-yamanetoshi@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:52744 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932539Ab2K1W43 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 17:56:29 -0500
+Message-ID: <50B6967C.9070801@iki.fi>
+Date: Thu, 29 Nov 2012 00:55:56 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Matthew Gyurgyik <matthew@pyther.net>
+CC: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net>
+In-Reply-To: <50B69037.3080205@pyther.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fixed below checkpatch warning.
-- WARNING: Prefer netdev_dbg(netdev, ... then dev_dbg(dev, ... then pr_debug(...  to printk(KERN_DEBUG ...
-- WARNING: Prefer netdev_err(netdev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
+On 11/29/2012 12:29 AM, Matthew Gyurgyik wrote:
+> On 11/28/2012 03:47 PM, Frank Schäfer wrote:
+>> Your device seems to use a EM2874 bridge.
+> That is what appears on the chip.
+>> Any chance to open the device and find out which demodulator it uses ?
+> To my surprise it was easier to open than expected.
+>
+> I think this is the demodulator:
+>
+> 7th Generation
+> VS8/QAM Receiver
+> LG
+> LGDT3305
+> 1211
+> PGU419.00A
+>
+> I took some pictures (of the entire card):
+> http://pyther.net/a/digivox_atsc/ (SideA_1.jpg, SideA_2.jpg,
+> SideB_1.jpg, SideB_2.jpg)
+>> Are you able to compile a kernel on your own to test patches ? It's not
+>> that hard... ;)
+> I sure can! I've done some kernel bisects in the past.
 
-Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
----
- drivers/staging/media/go7007/go7007-fw.c |   42 ++++++++++++++----------------
- 1 file changed, 20 insertions(+), 22 deletions(-)
+Very, very, good pics and sniffs!!
 
-diff --git a/drivers/staging/media/go7007/go7007-fw.c b/drivers/staging/media/go7007/go7007-fw.c
-index c9a6409..f99c05b 100644
---- a/drivers/staging/media/go7007/go7007-fw.c
-+++ b/drivers/staging/media/go7007/go7007-fw.c
-@@ -382,8 +382,8 @@ static int gen_mjpeghdr_to_package(struct go7007 *go, __le16 *code, int space)
- 
- 	buf = kzalloc(4096, GFP_KERNEL);
- 	if (buf == NULL) {
--		printk(KERN_ERR "go7007: unable to allocate 4096 bytes for "
--				"firmware construction\n");
-+		dev_err(go->dev,
-+			"unable to allocate 4096 bytes for firmware construction\n");
- 		return -1;
- 	}
- 
-@@ -652,8 +652,8 @@ static int gen_mpeg1hdr_to_package(struct go7007 *go,
- 
- 	buf = kzalloc(5120, GFP_KERNEL);
- 	if (buf == NULL) {
--		printk(KERN_ERR "go7007: unable to allocate 5120 bytes for "
--				"firmware construction\n");
-+		dev_err(go->dev,
-+			"unable to allocate 5120 bytes for firmware construction\n");
- 		return -1;
- 	}
- 	framelen[0] = mpeg1_frame_header(go, buf, 0, 1, PFRAME);
-@@ -839,8 +839,8 @@ static int gen_mpeg4hdr_to_package(struct go7007 *go,
- 
- 	buf = kzalloc(5120, GFP_KERNEL);
- 	if (buf == NULL) {
--		printk(KERN_ERR "go7007: unable to allocate 5120 bytes for "
--				"firmware construction\n");
-+		dev_err(go->dev,
-+			"unable to allocate 5120 bytes for firmware construction\n");
- 		return -1;
- 	}
- 	framelen[0] = mpeg4_frame_header(go, buf, 0, PFRAME);
-@@ -1545,9 +1545,8 @@ static int do_special(struct go7007 *go, u16 type, __le16 *code, int space,
- 	case SPECIAL_MODET:
- 		return modet_to_package(go, code, space);
- 	}
--	printk(KERN_ERR
--		"go7007: firmware file contains unsupported feature %04x\n",
--		type);
-+	dev_err(go->dev,
-+		"firmware file contains unsupported feature %04x\n", type);
- 	return -1;
- }
- 
-@@ -1577,15 +1576,16 @@ int go7007_construct_fw_image(struct go7007 *go, u8 **fw, int *fwlen)
- 		return -1;
- 	}
- 	if (request_firmware(&fw_entry, go->board_info->firmware, go->dev)) {
--		printk(KERN_ERR
--			"go7007: unable to load firmware from file \"%s\"\n",
-+		dev_err(go->dev,
-+			"unable to load firmware from file \"%s\"\n",
- 			go->board_info->firmware);
- 		return -1;
- 	}
- 	code = kzalloc(codespace * 2, GFP_KERNEL);
- 	if (code == NULL) {
--		printk(KERN_ERR "go7007: unable to allocate %d bytes for "
--				"firmware construction\n", codespace * 2);
-+		dev_err(go->dev,
-+			"unable to allocate %d bytes for firmware construction\n",
-+			codespace * 2);
- 		goto fw_failed;
- 	}
- 	src = (__le16 *)fw_entry->data;
-@@ -1594,9 +1594,9 @@ int go7007_construct_fw_image(struct go7007 *go, u8 **fw, int *fwlen)
- 		chunk_flags = __le16_to_cpu(src[0]);
- 		chunk_len = __le16_to_cpu(src[1]);
- 		if (chunk_len + 2 > srclen) {
--			printk(KERN_ERR "go7007: firmware file \"%s\" "
--					"appears to be corrupted\n",
--					go->board_info->firmware);
-+			dev_err(go->dev,
-+				"firmware file \"%s\" appears to be corrupted\n",
-+				go->board_info->firmware);
- 			goto fw_failed;
- 		}
- 		if (chunk_flags & mode_flag) {
-@@ -1604,17 +1604,15 @@ int go7007_construct_fw_image(struct go7007 *go, u8 **fw, int *fwlen)
- 				ret = do_special(go, __le16_to_cpu(src[2]),
- 					&code[i], codespace - i, framelen);
- 				if (ret < 0) {
--					printk(KERN_ERR "go7007: insufficient "
--							"memory for firmware "
--							"construction\n");
-+					dev_err(go->dev,
-+						"insufficient memory for firmware construction\n");
- 					goto fw_failed;
- 				}
- 				i += ret;
- 			} else {
- 				if (codespace - i < chunk_len) {
--					printk(KERN_ERR "go7007: insufficient "
--							"memory for firmware "
--							"construction\n");
-+					dev_err(go->dev,
-+						"insufficient memory for firmware construction\n");
- 					goto fw_failed;
- 				}
- 				memcpy(&code[i], &src[2], chunk_len * 2);
+
+ From the sniff you could see I2C addresses
+50 (a0 >> 1) eeprom
+0e (1c >> 1) demod
+60 (c0 >> 1) tuner
+
+
+EM2874, USB-bridge, clocked at 12MHz, crystal on other side of PCB. 
+There is also 32k serial eeprom for EM2874. This large serial eeprom 
+means (very likely) it uses custom firmware which is downloaded from the 
+eeprom.
+
+LGDT3305, demodulator, clocked at 25MHz. Serial TS used between EM2874 
+and LGDT3305.
+
+TDA18271HDC2 is tuner, clocked at 16MHz. Traditional IF used between 
+tuner and demod.
+
+IR receiver is near antenna, which is a little bit long wires to connect 
+to the EM2874, looks weird but no harm.
+
+
+Main GPIO sequence is that one:
+000255: 000006 ms 000990 ms c0 00 00 00 80 00 01 00 <<<  ff
+000256: 000004 ms 000994 ms 40 00 00 00 80 00 01 00 >>>  fe
+000257: 000006 ms 001000 ms c0 00 00 00 80 00 01 00 <<<  fe
+000258: 000004 ms 001004 ms 40 00 00 00 80 00 01 00 >>>  be
+000259: 000139 ms 001143 ms c0 00 00 00 80 00 01 00 <<<  be
+000260: 000005 ms 001148 ms 40 00 00 00 80 00 01 00 >>>  fe
+
+There is some more GPIOs later, just test with trial and error to find 
+out all GPIOs.
+
+Making that device working should be quite easy! There is a little 
+change for proprietary firmware for EM2874 which does some nasty things, 
+but that is very very unlikely.
+
+regards
+Antti
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
