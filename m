@@ -1,72 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:58456 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752526Ab2K0RPr (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:64935 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753495Ab2K1Kmb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 12:15:47 -0500
-Date: Tue, 27 Nov 2012 18:15:42 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Albert Wang <twang13@marvell.com>
-cc: corbet@lwn.net, linux-media@vger.kernel.org, lbyang@marvell.com
-Subject: Re: [PATCH 0/15] [media] marvell-ccic: add soc camera support on
- marvell-ccic
-In-Reply-To: <1353677450-23876-1-git-send-email-twang13@marvell.com>
-Message-ID: <Pine.LNX.4.64.1211271813350.22273@axis700.grange>
-References: <1353677450-23876-1-git-send-email-twang13@marvell.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Wed, 28 Nov 2012 05:42:31 -0500
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	<devel@driverdev.osuosl.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v3 0/9] Media Controller capture driver for DM365
+Date: Wed, 28 Nov 2012 16:12:00 +0530
+Message-Id: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laxman
+From: Manjunath Hadli <manjunath.hadli@ti.com>
 
-Just a general comment: this patch series is a huge improvement over the 
-previous versions, now it is actually already reviewable! :-) Thanks for 
-keeping on with this work!
+Mauro/Greg,
+ The below series of patches have gone through good amount of reviews, and
+agreed by Laurent, Hans and Sakari to be part of the staging tree. I am combining
+the patchs with the pull request so we can get them into the 3.8 kernel.
+Please pull these patches.If you want a seperate pull request, please let me
+know.
 
-Best regards
-Guennadi
+This patch set adds media controller based capture driver for
+DM365.
 
-On Fri, 23 Nov 2012, Albert Wang wrote:
+This driver bases its design on Laurent Pinchart's Media Controller Design
+whose patches for Media Controller and subdev enhancements form the base.
+The driver also takes copious elements taken from Laurent Pinchart and
+others' OMAP ISP driver based on Media Controller. So thank you all the
+people who are responsible for the Media Controller and the OMAP ISP driver.
 
-> The following patches series will add soc camera support on marvell-ccic
-> 
-> Change log v2:
-> 	- remove register definition patch
-> 	- split big patch to some small patches
-> 	- split mcam-core.c to mcam-core.c and mcam-core-standard.c
-> 	- add mcam-core-soc.c for soc camera support
-> 	- split 3 frame buffers support patch into 2 patches
-> 
-> [PATCH 01/15] [media] marvell-ccic: use internal variable replace
-> [PATCH 02/15] [media] marvell-ccic: add MIPI support for marvell-ccic driver
-> [PATCH 03/15] [media] marvell-ccic: add clock tree support for marvell-ccic driver
-> [PATCH 04/15] [media] marvell-ccic: reset ccic phy when stop streaming for stability
-> [PATCH 05/15] [media] marvell-ccic: refine mcam_set_contig_buffer function
-> [PATCH 06/15] [media] marvell-ccic: add new formats support for marvell-ccic driver
-> [PATCH 07/15] [media] marvell-ccic: add SOF / EOF pair check for marvell-ccic driver
-> [PATCH 08/15] [media] marvell-ccic: switch to resource managed allocation and request
-> [PATCH 09/15] [media] marvell-ccic: refine vb2_ops for marvell-ccic driver
-> [PATCH 10/15] [media] marvell-ccic: split mcam core into 2 parts for soc_camera support
-> [PATCH 11/15] [media] marvell-ccic: add soc_camera support in mcam core
-> [PATCH 12/15] [media] marvell-ccic: add soc_camera support in mmp driver
-> [PATCH 13/15] [media] marvell-ccic: add dma burst mode support in marvell-ccic driver
-> [PATCH 14/15] [media] marvell-ccic: use unsigned int type replace int type
-> [PATCH 15/15] [media] marvell-ccic: add 3 frame buffers support in DMA_CONTIG mode
-> 
-> 
-> v1:
-> [PATCH 1/4] [media] mmp: add register definition for marvell ccic
-> [PATCH 2/4] [media] marvell-ccic: core: add soc camera support on marvell-ccic mcam-core
-> [PATCH 3/4] [media] marvell-ccic: mmp: add soc camera support on marvell-ccic mmp-driver
-> [PATCH 4/4] [media] marvell-ccic: core: add 3 frame buffers support in DMA_CONTIG mode
-> 
-> 
-> Thanks
-> Albert Wang
-> 
+Also, the core functionality of the driver comes from the arago vpfe capture
+driver of which the isif capture was based on V4L2, with other drivers like
+ipipe, ipipeif and Resizer.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Changes for v2:
+1: Migrated the driver for videobuf2 usage pointed Hans.
+2: Changed the design as pointed by Laurent, Exposed one more subdevs
+   ipipeif and split the resizer subdev into three subdevs.
+3: Rearrganed the patch sequence and changed the commit messages.
+4: Changed the file architecture as pointed by Laurent.
+
+Changes for v3:
+1: Rebased on staging.
+2: Seprated out patches which would go into staging.
+
+The following changes since commit c6c22955f80f2db9614b01fe5a3d1cfcd8b3d848:
+
+  [media] dma-mapping: fix dma_common_get_sgtable() conditional compilation (2012-11-27 09:42:31 -0200)
+
+are available in the git repository at:
+  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git vpfe_driver_staging
+
+Manjunath Hadli (9):
+      davinci: vpfe: add v4l2 capture driver with media interface
+      davinci: vpfe: add v4l2 video driver support
+      davinci: vpfe: dm365: add IPIPEIF driver based on media framework
+      davinci: vpfe: dm365: add ISIF driver based on media framework
+      davinci: vpfe: dm365: add IPIPE support for media controller driver
+      davinci: vpfe: dm365: add IPIPE hardware layer support
+      davinci: vpfe: dm365: resizer driver based on media framework
+      davinci: vpfe: dm365: add build infrastructure for capture driver
+      davinci: vpfe: Add documentation and TODO
+
+ drivers/staging/media/Kconfig                      |    2 +
+ drivers/staging/media/Makefile                     |    1 +
+ drivers/staging/media/davinci_vpfe/Kconfig         |    9 +
+ drivers/staging/media/davinci_vpfe/Makefile        |    3 +
+ drivers/staging/media/davinci_vpfe/TODO            |   34 +
+ .../staging/media/davinci_vpfe/davinci-vpfe-mc.txt |  154 ++
+ .../staging/media/davinci_vpfe/davinci_vpfe_user.h | 1290 ++++++++++++
+ drivers/staging/media/davinci_vpfe/dm365_ipipe.c   | 1863 +++++++++++++++++
+ drivers/staging/media/davinci_vpfe/dm365_ipipe.h   |  179 ++
+ .../staging/media/davinci_vpfe/dm365_ipipe_hw.c    | 1048 ++++++++++
+ .../staging/media/davinci_vpfe/dm365_ipipe_hw.h    |  559 ++++++
+ drivers/staging/media/davinci_vpfe/dm365_ipipeif.c | 1071 ++++++++++
+ drivers/staging/media/davinci_vpfe/dm365_ipipeif.h |  233 +++
+ .../media/davinci_vpfe/dm365_ipipeif_user.h        |   93 +
+ drivers/staging/media/davinci_vpfe/dm365_isif.c    | 2104 ++++++++++++++++++++
+ drivers/staging/media/davinci_vpfe/dm365_isif.h    |  203 ++
+ .../staging/media/davinci_vpfe/dm365_isif_regs.h   |  294 +++
+ drivers/staging/media/davinci_vpfe/dm365_resizer.c | 1999 +++++++++++++++++++
+ drivers/staging/media/davinci_vpfe/dm365_resizer.h |  244 +++
+ drivers/staging/media/davinci_vpfe/vpfe.h          |   86 +
+ .../staging/media/davinci_vpfe/vpfe_mc_capture.c   |  740 +++++++
+ .../staging/media/davinci_vpfe/vpfe_mc_capture.h   |   97 +
+ drivers/staging/media/davinci_vpfe/vpfe_video.c    | 1620 +++++++++++++++
+ drivers/staging/media/davinci_vpfe/vpfe_video.h    |  155 ++
+ 24 files changed, 14081 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/staging/media/davinci_vpfe/Kconfig
+ create mode 100644 drivers/staging/media/davinci_vpfe/Makefile
+ create mode 100644 drivers/staging/media/davinci_vpfe/TODO
+ create mode 100644 drivers/staging/media/davinci_vpfe/davinci-vpfe-mc.txt
+ create mode 100644 drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipe.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipeif.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipeif_user.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_isif.c
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_isif.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_isif_regs.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_resizer.c
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_resizer.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/vpfe.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+ create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_mc_capture.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_video.c
+ create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_video.h
+
+-- 
+1.7.4.1
+
