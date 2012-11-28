@@ -1,118 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33169 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753744Ab2KLPiQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Nov 2012 10:38:16 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: [PATCH v8 6/6] drm_modes: add of_videomode helpers
-Date: Mon, 12 Nov 2012 16:37:06 +0100
-Message-Id: <1352734626-27412-7-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1352734626-27412-1-git-send-email-s.trumtrar@pengutronix.de>
+Received: from mx1.redhat.com ([209.132.183.28]:49667 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753958Ab2K1LWe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 06:22:34 -0500
+Date: Wed, 28 Nov 2012 09:22:13 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	<devel@driverdev.osuosl.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v3 9/9] davinci: vpfe: Add documentation and TODO
+Message-ID: <20121128092213.4bd0870f@redhat.com>
+In-Reply-To: <1354099329-20722-10-git-send-email-prabhakar.lad@ti.com>
+References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
+	<1354099329-20722-10-git-send-email-prabhakar.lad@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add helper to get drm_display_mode from devicetree.
+Hi Prabhakar,
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
----
- drivers/gpu/drm/drm_modes.c |   41 +++++++++++++++++++++++++++++++++++++++++
- include/drm/drmP.h          |    5 +++++
- 2 files changed, 46 insertions(+)
+Em Wed, 28 Nov 2012 16:12:09 +0530
+Prabhakar Lad <prabhakar.csengg@gmail.com> escreveu:
 
-diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
-index 049624d..c77da59 100644
---- a/drivers/gpu/drm/drm_modes.c
-+++ b/drivers/gpu/drm/drm_modes.c
-@@ -35,6 +35,7 @@
- #include <linux/export.h>
- #include <drm/drmP.h>
- #include <drm/drm_crtc.h>
-+#include <linux/of.h>
- #include <linux/videomode.h>
- 
- /**
-@@ -540,6 +541,46 @@ int videomode_to_display_mode(struct videomode *vm, struct drm_display_mode *dmo
- EXPORT_SYMBOL_GPL(videomode_to_display_mode);
- #endif
- 
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+static void dump_drm_displaymode(struct drm_display_mode *m)
-+{
-+	pr_debug("drm_displaymode = %d %d %d %d %d %d %d %d %d\n",
-+		 m->hdisplay, m->hsync_start, m->hsync_end, m->htotal,
-+		 m->vdisplay, m->vsync_start, m->vsync_end, m->vtotal,
-+		 m->clock);
-+}
-+
-+/**
-+ * of_get_drm_display_mode - get a drm_display_mode from devicetree
-+ * @np: device_node with the timing specification
-+ * @dmode: will be set to the return value
-+ * @index: index into the list of display timings in devicetree
-+ * 
-+ * This function is expensive and should only be used, if only one mode is to be
-+ * read from DT. To get multiple modes start with of_get_display_timings and
-+ * work with that instead.
-+ */
-+int of_get_drm_display_mode(struct device_node *np, struct drm_display_mode *dmode,
-+			int index)
-+{
-+	struct videomode vm;
-+	int ret;
-+
-+	ret = of_get_videomode(np, &vm, index);
-+	if (ret)
-+		return ret;
-+
-+	videomode_to_display_mode(&vm, dmode);
-+
-+	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
-+		vm.vactive, np->name);
-+	dump_drm_displaymode(dmode);
-+
-+	return 0;
-+
-+}
-+EXPORT_SYMBOL_GPL(of_get_drm_display_mode);
-+#endif
- /**
-  * drm_mode_set_name - set the name on a mode
-  * @mode: name will be set in this mode
-diff --git a/include/drm/drmP.h b/include/drm/drmP.h
-index e9fa1e3..4f9c44e 100644
---- a/include/drm/drmP.h
-+++ b/include/drm/drmP.h
-@@ -56,6 +56,7 @@
- #include <linux/cdev.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
-+#include <linux/of.h>
- #include <linux/videomode.h>
- #if defined(__alpha__) || defined(__powerpc__)
- #include <asm/pgtable.h>	/* For pte_wrprotect */
-@@ -1457,6 +1458,10 @@ drm_mode_create_from_cmdline_mode(struct drm_device *dev,
- 
- extern int videomode_to_display_mode(struct videomode *vm,
- 				     struct drm_display_mode *dmode);
-+extern int of_get_drm_display_mode(struct device_node *np,
-+				   struct drm_display_mode *dmode,
-+				   int index);
-+
- /* Modesetting support */
- extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
- extern void drm_vblank_post_modeset(struct drm_device *dev, int crtc);
--- 
-1.7.10.4
+> +Introduction
+> +============
+> +
+> +This file documents the Texas Instruments Davinci Video processing Front End
+> +(VPFE) driver located under drivers/media/platform/davinci. The original driver
+> +exists for Davinci VPFE, which is now being changed to Media Controller
+> +Framework.
 
+Hmm... please correct me if I'm wrong, but are you wanting to replace an existing
+driver at drivers/media/platform/davinci, by another one at staging that has
+lots of known issues, as pointed at your TODO????
+
+If so, please don't do that. Replacing a driver by some other one is generally
+a very bad idea, especially in this case, where the new driver has clearly several
+issues, the main one being to define its own proprietary and undocumented API:
+
+> +As of now since the interface will undergo few changes all the include
+> +files are present in staging itself, to build for dm365 follow below steps,
+> +
+> +- copy vpfe.h from drivers/staging/media/davinci_vpfe/ to
+> +  include/media/davinci/ folder for building the uImage.
+> +- copy davinci_vpfe_user.h from drivers/staging/media/davinci_vpfe/ to
+> +  include/uapi/linux/davinci_vpfe.h, and add a entry in Kbuild (required
+> +  for building application).
+> +- copy dm365_ipipeif_user.h from drivers/staging/media/davinci_vpfe/ to
+> +  include/uapi/linux/dm365_ipipeif.h and a entry in Kbuild (required
+> +  for building application).
+
+Among other things, with those ugly and very likely mandatory API calls:
+
+>+/*
+>+ * Private IOCTL
+>+ * VIDIOC_VPFE_IPIPEIF_S_CONFIG: Set IPIEIF configuration
+>+ * VIDIOC_VPFE_IPIPEIF_G_CONFIG: Get IPIEIF configuration
+>+ */
+>+#define VIDIOC_VPFE_IPIPEIF_S_CONFIG \
+>+	_IOWR('I', BASE_VIDIOC_PRIVATE + 1, struct ipipeif_params)
+>+#define VIDIOC_VPFE_IPIPEIF_G_CONFIG \
+>+	_IOWR('I', BASE_VIDIOC_PRIVATE + 2, struct ipipeif_params)
+>+
+>+#endif	
+
+I remember we rejected already drivers like that with obscure "S_CONFIG"
+private ioctl that were suspect to send a big initialization undocumented
+blob to the driver, as only the vendor's application would be able to use
+such driver.
+
+So, instead, of submitting it to staging, you should be sending incremental
+patches for the existing driver, adding newer functionality there, and 
+using the proper V4L2 API, with makes life easier for reviewers and
+application developers.
+
+Regards,
+Mauro
