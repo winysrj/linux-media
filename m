@@ -1,89 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.19.201]:59312 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755962Ab2K1TaX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 14:30:23 -0500
-Date: Wed, 28 Nov 2012 11:30:21 -0800
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: devel@driverdev.osuosl.org,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44391 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752896Ab2K1USJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 15:18:09 -0500
+Date: Wed, 28 Nov 2012 22:18:04 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
 	LKML <linux-kernel@vger.kernel.org>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
 	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v3 0/9] Media Controller capture driver for DM365
-Message-ID: <20121128193021.GA4174@kroah.com>
-References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
- <20121128101802.0eafb6e7@redhat.com>
- <20121128172248.GA32286@kroah.com>
- <201211282018.20832.hverkuil@xs4all.nl>
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v3 2/3] davinci: vpss: dm365: set vpss clk ctrl
+Message-ID: <20121128201804.GI31879@valkosipuli.retiisi.org.uk>
+References: <1354100134-21095-1-git-send-email-prabhakar.lad@ti.com>
+ <1354100134-21095-3-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <201211282018.20832.hverkuil@xs4all.nl>
+In-Reply-To: <1354100134-21095-3-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 28, 2012 at 08:18:20PM +0100, Hans Verkuil wrote:
-> On Wed November 28 2012 18:22:48 Greg Kroah-Hartman wrote:
-> > On Wed, Nov 28, 2012 at 10:18:02AM -0200, Mauro Carvalho Chehab wrote:
-> > > Em Wed, 28 Nov 2012 12:56:10 +0100
-> > > Hans Verkuil <hansverk@cisco.com> escreveu:
-> > > 
-> > > > On Wed 28 November 2012 12:45:37 Dan Carpenter wrote:
-> > > > > I wish people wouldn't submit big patches right before the merge
-> > > > > window opens...  :/ It's better to let it sit in linux-next for a
-> > > > > couple weeks so people can mess with it a bit.
-> > > > 
-> > > > It's been under review for quite some time now, and the main change since
-> > > > the last posted version is that this is now moved to staging/media.
-> > > > 
-> > > > So it is not yet ready for prime time, but we do want it in to simplify
-> > > > the last remaining improvements needed to move it to drivers/media.
-> > > 
-> > > "last remaining improvements"? I didn't review the patchset, but
-> > > the TODO list seems to have several pending stuff there:
-> > > 
-> > > +- User space interface refinement
-> > > +        - Controls should be used when possible rather than private ioctl
-> > > +        - No enums should be used
-> > > +        - Use of MC and V4L2 subdev APIs when applicable
-> > > +        - Single interface header might suffice
-> > > +        - Current interface forces to configure everything at once
-> > > +- Get rid of the dm365_ipipe_hw.[ch] layer
-> > > +- Active external sub-devices defined by link configuration; no strcmp
-> > > +  needed
-> > > +- More generic platform data (i2c adapters)
-> > > +- The driver should have no knowledge of possible external subdevs; see
-> > > +  struct vpfe_subdev_id
-> > > +- Some of the hardware control should be refactorede
-> > > +- Check proper serialisation (through mutexes and spinlocks)
-> > > +- Names that are visible in kernel global namespace should have a common
-> > > +  prefix (or a few)
-> > > 
-> > > From the above comments, both Kernelspace and Userspace APIs require 
-> > > lots of work.
+Hi Prabhakar,
+
+On Wed, Nov 28, 2012 at 04:25:33PM +0530, Prabhakar Lad wrote:
+> From: Manjunath Hadli <manjunath.hadli@ti.com>
 > 
-> And that's why it is in staging. Should a long TODO list now suddenly
-> prevent staging from being used? In Barcelona we discussed this and the
-> only requirement we came up was was that it should compile.
+> request_mem_region for VPSS_CLK_CTRL register and ioremap.
+> and enable clocks appropriately.
+> 
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> ---
+>  drivers/media/platform/davinci/vpss.c |   14 ++++++++++++++
+>  1 files changed, 14 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
+> index 34ad7bd..a36d694 100644
+> --- a/drivers/media/platform/davinci/vpss.c
+> +++ b/drivers/media/platform/davinci/vpss.c
+> @@ -103,6 +103,7 @@ struct vpss_hw_ops {
+>  struct vpss_oper_config {
+>  	__iomem void *vpss_regs_base0;
+>  	__iomem void *vpss_regs_base1;
+> +	resource_size_t *vpss_regs_base2;
+>  	enum vpss_platform_type platform;
+>  	spinlock_t vpss_lock;
+>  	struct vpss_hw_ops hw_ops;
+> @@ -484,11 +485,24 @@ static struct platform_driver vpss_driver = {
+>  
+>  static void vpss_exit(void)
+>  {
+> +	iounmap(oper_cfg.vpss_regs_base2);
+> +	release_mem_region(*oper_cfg.vpss_regs_base2, 4);
 
-Yes, that's all I care about in staging, but as I stated, I don't
-maintain drivers/staging/media/ that area is under Mauro's control
-(MAINTAINERS even says this), and I'm a bit leery of going against the
-wishes of an existing subsystem maintainer for adding staging drivers
-that tie into their subsystem.
+release_mem_region(VPSS_CLK_CTRL, 4);?
 
-So if you get Mauro's approval, I'll be glad to queue it up.
+>  	platform_driver_unregister(&vpss_driver);
+>  }
+>  
+> +#define VPSS_CLK_CTRL			0x01c40044
+> +#define VPSS_CLK_CTRL_VENCCLKEN		BIT(3)
+> +#define VPSS_CLK_CTRL_DACCLKEN		BIT(4)
+> +
+>  static int __init vpss_init(void)
+>  {
+> +	if (request_mem_region(VPSS_CLK_CTRL, 4, "vpss_clock_control")) {
 
-thanks,
+if (!request_mem_region())
+	return -EBUSY;
 
-greg k-h
+...
+
+> +		oper_cfg.vpss_regs_base2 = ioremap(VPSS_CLK_CTRL, 4);
+> +		__raw_writel(VPSS_CLK_CTRL_VENCCLKEN |
+> +			     VPSS_CLK_CTRL_DACCLKEN, oper_cfg.vpss_regs_base2);
+> +	} else {
+> +		return -EBUSY;
+> +	}
+>  	return platform_driver_register(&vpss_driver);
+>  }
+>  subsys_initcall(vpss_init);
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
