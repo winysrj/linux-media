@@ -1,124 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45801 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2992975Ab2KOJYc (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:36238 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932134Ab2K1VQs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 04:24:32 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: [PATCH v10 3/6] fbmon: add videomode helpers
-Date: Thu, 15 Nov 2012 10:23:54 +0100
-Message-Id: <1352971437-29877-4-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1352971437-29877-1-git-send-email-s.trumtrar@pengutronix.de>
+	Wed, 28 Nov 2012 16:16:48 -0500
+Received: by mail-la0-f46.google.com with SMTP id p5so8113052lag.19
+        for <linux-media@vger.kernel.org>; Wed, 28 Nov 2012 13:16:47 -0800 (PST)
+Message-ID: <1354137392.27302.4.camel@linux>
+Subject: [patch] MAINTAINERS: add entry for dsbr100 usb radio driver
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, klimov.linux@gmail.com
+Date: Wed, 28 Nov 2012 22:16:32 +0100
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a function to convert from the generic videomode to a fb_videomode.
+This patch adds MAINTAINERS entry for dsbr100 usb radio driver.
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
----
- drivers/video/fbmon.c |   46 ++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/fb.h    |    6 ++++++
- 2 files changed, 52 insertions(+)
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
-diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
-index cef6557..247e079 100644
---- a/drivers/video/fbmon.c
-+++ b/drivers/video/fbmon.c
-@@ -31,6 +31,7 @@
- #include <linux/pci.h>
- #include <linux/slab.h>
- #include <video/edid.h>
-+#include <linux/videomode.h>
- #ifdef CONFIG_PPC_OF
- #include <asm/prom.h>
- #include <asm/pci-bridge.h>
-@@ -1373,6 +1374,51 @@ int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_inf
- 	kfree(timings);
- 	return err;
- }
-+
-+#if IS_ENABLED(CONFIG_VIDEOMODE)
-+int fb_videomode_from_videomode(struct videomode *vm,
-+				struct fb_videomode *fbmode)
-+{
-+	unsigned int htotal, vtotal;
-+
-+	fbmode->xres = vm->hactive;
-+	fbmode->left_margin = vm->hback_porch;
-+	fbmode->right_margin = vm->hfront_porch;
-+	fbmode->hsync_len = vm->hsync_len;
-+
-+	fbmode->yres = vm->vactive;
-+	fbmode->upper_margin = vm->vback_porch;
-+	fbmode->lower_margin = vm->vfront_porch;
-+	fbmode->vsync_len = vm->vsync_len;
-+
-+	fbmode->pixclock = KHZ2PICOS(vm->pixelclock / 1000);
-+
-+	fbmode->sync = 0;
-+	fbmode->vmode = 0;
-+	if (vm->hah)
-+		fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
-+	if (vm->vah)
-+		fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
-+	if (vm->interlaced)
-+		fbmode->vmode |= FB_VMODE_INTERLACED;
-+	if (vm->doublescan)
-+		fbmode->vmode |= FB_VMODE_DOUBLE;
-+	if (vm->de)
-+		fbmode->sync |= FB_SYNC_DATA_ENABLE_HIGH_ACT;
-+	fbmode->flag = 0;
-+
-+	htotal = vm->hactive + vm->hfront_porch + vm->hback_porch +
-+		 vm->hsync_len;
-+	vtotal = vm->vactive + vm->vfront_porch + vm->vback_porch +
-+		 vm->vsync_len;
-+	fbmode->refresh = (vm->pixelclock * 1000) / (htotal * vtotal);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
-+#endif
-+
-+
- #else
- int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
- {
-diff --git a/include/linux/fb.h b/include/linux/fb.h
-index c7a9571..4024136 100644
---- a/include/linux/fb.h
-+++ b/include/linux/fb.h
-@@ -14,6 +14,7 @@
- #include <linux/backlight.h>
- #include <linux/slab.h>
- #include <asm/io.h>
-+#include <linux/videomode.h>
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index a36b29c..38da55f 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2528,6 +2528,13 @@ S:	Supported
+ F:	drivers/gpu/drm/exynos
+ F:	include/drm/exynos*
  
- struct vm_area_struct;
- struct fb_info;
-@@ -714,6 +715,11 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
- extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
- extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
- 
-+#if IS_ENABLED(CONFIG_VIDEOMODE)
-+extern int fb_videomode_from_videomode(struct videomode *vm,
-+				       struct fb_videomode *fbmode);
-+#endif
++DSBR100 USB FM RADIO DRIVER
++M:	Alexey Klimov <klimov.linux@gmail.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/radio/dsbr100.c
 +
- /* drivers/video/modedb.c */
- #define VESA_MODEDB_SIZE 34
- extern void fb_var_to_videomode(struct fb_videomode *mode,
--- 
-1.7.10.4
+ DSCC4 DRIVER
+ M:	Francois Romieu <romieu@fr.zoreil.com>
+ L:	netdev@vger.kernel.org
+
+
 
