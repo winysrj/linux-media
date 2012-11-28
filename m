@@ -1,124 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46291 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1767791Ab2KONPo (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:46809 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755749Ab2K1TJn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Nov 2012 08:15:44 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: [PATCH v11 4/6] fbmon: add of_videomode helpers
-Date: Thu, 15 Nov 2012 14:15:10 +0100
-Message-Id: <1352985312-18178-5-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1352985312-18178-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1352985312-18178-1-git-send-email-s.trumtrar@pengutronix.de>
+	Wed, 28 Nov 2012 14:09:43 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sw0312.kim@samsung.com, kyungmin.park@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	stable@vger.kernel.org
+Subject: [PATCH RFC 02/12] s5p-fimc: Fix horizontal/vertical image flip
+Date: Wed, 28 Nov 2012 20:09:19 +0100
+Message-id: <1354129766-2821-3-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1354129766-2821-1-git-send-email-s.nawrocki@samsung.com>
+References: <1354129766-2821-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add helper to get fb_videomode from devicetree.
+Setting FIMC_REG_CITRGFMT_FLIP_X_MIRROR bit causes X-axis image
+flip (vertical flip) and thus it corresponds to V4L2_CID_VFLIP.
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+Likewise, setting FIMC_REG_CITRGFMT_FLIP_Y_MIRROR bit causes Y-axis
+image flip (horizontal flip) and thus it corresponds to V4L2_CID_HFLIP.
+
+Currently the driver does X-axis flip when V4L2_CID_HFLIP is set and
+Y-axis flip for V4L2_CID_VFLIP. Fix this incorrect assignment by setting
+proper FIMC_REG_CITRGFMT register bits for ctx->hflip and ctx->vflip.
+
+Cc: stable@vger.kernel.org
+Reported-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/video/fbmon.c |   42 +++++++++++++++++++++++++++++++++++++++++-
- include/linux/fb.h    |    6 ++++++
- 2 files changed, 47 insertions(+), 1 deletion(-)
+ drivers/media/platform/s5p-fimc/fimc-reg.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
-index 247e079..9e8c5fa 100644
---- a/drivers/video/fbmon.c
-+++ b/drivers/video/fbmon.c
-@@ -31,7 +31,7 @@
- #include <linux/pci.h>
- #include <linux/slab.h>
- #include <video/edid.h>
--#include <linux/videomode.h>
-+#include <linux/of_videomode.h>
- #ifdef CONFIG_PPC_OF
- #include <asm/prom.h>
- #include <asm/pci-bridge.h>
-@@ -1418,6 +1418,46 @@ int fb_videomode_from_videomode(struct videomode *vm,
- EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
- #endif
+diff --git a/drivers/media/platform/s5p-fimc/fimc-reg.c b/drivers/media/platform/s5p-fimc/fimc-reg.c
+index 2c9d0c0..9c3c461 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-reg.c
++++ b/drivers/media/platform/s5p-fimc/fimc-reg.c
+@@ -44,9 +44,9 @@ static u32 fimc_hw_get_in_flip(struct fimc_ctx *ctx)
+ 	u32 flip = FIMC_REG_MSCTRL_FLIP_NORMAL;
  
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+static inline void dump_fb_videomode(struct fb_videomode *m)
-+{
-+	pr_debug("fb_videomode = %ux%u@%uHz (%ukHz) %u %u %u %u %u %u %u %u %u\n",
-+		 m->xres, m->yres, m->refresh, m->pixclock, m->left_margin,
-+		 m->right_margin, m->upper_margin, m->lower_margin,
-+		 m->hsync_len, m->vsync_len, m->sync, m->vmode, m->flag);
-+}
-+
-+/**
-+ * of_get_fb_videomode - get a fb_videomode from devicetree
-+ * @np: device_node with the timing specification
-+ * @fb: will be set to the return value
-+ * @index: index into the list of display timings in devicetree
-+ *
-+ * DESCRIPTION:
-+ * This function is expensive and should only be used, if only one mode is to be
-+ * read from DT. To get multiple modes start with of_get_display_timings ond
-+ * work with that instead.
-+ */
-+int of_get_fb_videomode(struct device_node *np, struct fb_videomode *fb,
-+			unsigned int index)
-+{
-+	struct videomode vm;
-+	int ret;
-+
-+	ret = of_get_videomode(np, &vm, index);
-+	if (ret)
-+		return ret;
-+
-+	fb_videomode_from_videomode(&vm, fb);
-+
-+	pr_info("%s: got %dx%d display mode from %s\n", __func__, vm.hactive,
-+		vm.vactive, np->name);
-+	dump_fb_videomode(fb);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(of_get_fb_videomode);
-+#endif
+ 	if (ctx->hflip)
+-		flip = FIMC_REG_MSCTRL_FLIP_X_MIRROR;
+-	if (ctx->vflip)
+ 		flip = FIMC_REG_MSCTRL_FLIP_Y_MIRROR;
++	if (ctx->vflip)
++		flip = FIMC_REG_MSCTRL_FLIP_X_MIRROR;
  
- #else
- int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
-diff --git a/include/linux/fb.h b/include/linux/fb.h
-index 4024136..dc8f693 100644
---- a/include/linux/fb.h
-+++ b/include/linux/fb.h
-@@ -15,6 +15,8 @@
- #include <linux/slab.h>
- #include <asm/io.h>
- #include <linux/videomode.h>
-+#include <linux/of.h>
-+#include <linux/of_videomode.h>
+ 	if (ctx->rotation <= 90)
+ 		return flip;
+@@ -59,9 +59,9 @@ static u32 fimc_hw_get_target_flip(struct fimc_ctx *ctx)
+ 	u32 flip = FIMC_REG_CITRGFMT_FLIP_NORMAL;
  
- struct vm_area_struct;
- struct fb_info;
-@@ -715,6 +717,10 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
- extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
- extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+ 	if (ctx->hflip)
+-		flip |= FIMC_REG_CITRGFMT_FLIP_X_MIRROR;
+-	if (ctx->vflip)
+ 		flip |= FIMC_REG_CITRGFMT_FLIP_Y_MIRROR;
++	if (ctx->vflip)
++		flip |= FIMC_REG_CITRGFMT_FLIP_X_MIRROR;
  
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+extern int of_get_fb_videomode(struct device_node *np, struct fb_videomode *fb,
-+			       unsigned int index);
-+#endif
- #if IS_ENABLED(CONFIG_VIDEOMODE)
- extern int fb_videomode_from_videomode(struct videomode *vm,
- 				       struct fb_videomode *fbmode);
+ 	if (ctx->rotation <= 90)
+ 		return flip;
 -- 
-1.7.10.4
+1.7.9.5
 
