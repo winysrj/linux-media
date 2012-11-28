@@ -1,53 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:65470 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751702Ab2KHTM0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:12:26 -0500
-Received: by mail-ee0-f46.google.com with SMTP id b15so1754511eek.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2012 11:12:25 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 07/21] em28xx: update description of em28xx_irq_callback
-Date: Thu,  8 Nov 2012 20:11:39 +0200
-Message-Id: <1352398313-3698-8-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from plane.gmane.org ([80.91.229.3]:40649 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751326Ab2K1DYz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Nov 2012 22:24:55 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1TdYGm-0006Gl-Sf
+	for linux-media@vger.kernel.org; Wed, 28 Nov 2012 04:25:04 +0100
+Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 28 Nov 2012 04:25:04 +0100
+Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 28 Nov 2012 04:25:04 +0100
+To: linux-media@vger.kernel.org
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: ivtv driver inputs randomly "block"
+Date: Tue, 27 Nov 2012 22:20:37 -0500
+Message-ID: <k93vu3$ffi$1@ger.gmane.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigBA47949618D1771B68945022"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-em28xx_irq_callback can be used for isoc and bulk transfers.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigBA47949618D1771B68945022
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-core.c |    3 ++-
- 1 Datei geändert, 2 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+I have a machine with a PVR-150 and a PVR-500 in it on a
+3.2.0-33-generic (Ubuntu kernel, based on 3.2.1 IIUC) kernel.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 0892d92..8f50f5c 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -919,7 +919,7 @@ EXPORT_SYMBOL_GPL(em28xx_set_mode);
-    ------------------------------------------------------------------*/
- 
- /*
-- * IRQ callback, called by URB callback
-+ * URB completion handler for isoc/bulk transfers
-  */
- static void em28xx_irq_callback(struct urb *urb)
- {
-@@ -946,6 +946,7 @@ static void em28xx_irq_callback(struct urb *urb)
- 
- 	/* Reset urb buffers */
- 	for (i = 0; i < urb->number_of_packets; i++) {
-+		/* isoc only (bulk: number_of_packets = 0) */
- 		urb->iso_frame_desc[i].status = 0;
- 		urb->iso_frame_desc[i].actual_length = 0;
- 	}
--- 
-1.7.10.4
+I am having problems where at random times random /dev/video[0,1,2]
+inputs will just block on read.  It's not the same input every time and
+it's not even the same card every time.  This is all hardware which has
+worked without any such problems before.
+
+To remedy the hanging input I simply have to rmmod ivtv && modprobe ivtv
+and all is back to normal again, until it happens again.
+
+Any ideas?
+
+b.
+
+
+--------------enigBA47949618D1771B68945022
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iEYEARECAAYFAlC1gwUACgkQl3EQlGLyuXBIHQCfQwnqN/ptzSjMZyRhnnpsYtE9
+zy0AoK3Ep1jydxff4f7BlOgDBxZ7W5Xf
+=SU2L
+-----END PGP SIGNATURE-----
+
+--------------enigBA47949618D1771B68945022--
 
