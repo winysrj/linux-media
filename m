@@ -1,54 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ks358065.kimsufi.com ([91.121.151.38]:40021 "EHLO
-	ks358065.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932782Ab2KNJgO convert rfc822-to-8bit (ORCPT
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:38196 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755033Ab2K1Uzc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Nov 2012 04:36:14 -0500
-From: =?iso-8859-15?q?Fr=E9d=E9ric?= <fma@gbiloba.org>
-To: Patrice Chotard <patrice.chotard@sfr.fr>
-Subject: Re: Support for Terratec Cinergy 2400i DT in kernel 3.x
-Date: Wed, 14 Nov 2012 10:36:06 +0100
-References: <201211131040.22114.fma@gbiloba.org> <50A2C0C4.9040607@sfr.fr> <201211140948.00913.fma@gbiloba.org>
-In-Reply-To: <201211140948.00913.fma@gbiloba.org>
-Cc: linux-media@vger.kernel.org
+	Wed, 28 Nov 2012 15:55:32 -0500
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201211141036.06971.fma@gbiloba.org>
+In-Reply-To: <20121128175544.4266260d@redhat.com>
+References: <CALF0-+XH4AfJUcNHXdMTwXf-=f24Zpe3VOw_1eQ9WBV1-6ZVjQ@mail.gmail.com>
+	<CALF0-+USC6ButEO0pMRPFj8hGtL90wi3FrxL-BkE1oF42qcggg@mail.gmail.com>
+	<20121128175544.4266260d@redhat.com>
+Date: Wed, 28 Nov 2012 17:55:30 -0300
+Message-ID: <CALF0-+UkZi5OwwTdE=U+-iudLFJuQQpuXAuXBk=dStoCSss0YQ@mail.gmail.com>
+Subject: Re: [PATCH 0/23] media: Replace memcpy with struct assignment
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	Julia Lawall <Julia.Lawall@lip6.fr>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le mercredi 14 novembre 2012, Frédéric a écrit :
+On Wed, Nov 28, 2012 at 4:55 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+[...]
+>
+> There are 400+ patches pending today at patchwork. I doubt I'll have enough
+> time for all of them, so, I'll skip cleanup patches like the above, in order
+> to try to focus on bug fixes and patches that brings new functionality to
+> existing code and with a low risk of breaking anything.
+>
 
-> I had a look at your patches. I don't see the '.fw_version' param anymore
-> in the 'ngene_info' structure... Is it normal?
+I understand completely.
 
-I also noticed some differences in the PLL presets:
 
-In your patch:
+> Next year, we'll start implementing the sub-maintainers, and, with their
+> help, I suspect we'll be able to finally apply those patches.
+>
+> If you want us to help, feel free to review/test the individual patches
+> submitted by non-maintainers to the ML. We tend to apply faster patches
+> that are more reviewed.
+>
+> Hmm... well, actually it is just the opposite: we explicitly delay
+> not-reviewed patches for unmaintained/bad maintained drivers,
+> to see if someone acks or nacks them after testing.
+>
 
-    .entries = {
-            {  305000000, 166667, 0xb4, 0x12 },
-            {  405000000, 166667, 0xbc, 0x12 },
-            {  445000000, 166667, 0xbc, 0x12 },
-            {  465000000, 166667, 0xf4, 0x18 },
-            {  735000000, 166667, 0xfc, 0x18 },
-            {  835000000, 166667, 0xbc, 0x18 },
-            {  999999999, 166667, 0xfc, 0x18 },
-    },
+I'll try to help whenever possible.
 
-In original patch:
+Thanks,
 
-    if (freq<177000000 || freq>858000000)
-        return -EINVAL;
-    else if (freq<305000000) { c1=0xb4; c2=0x12; }
-    else if (freq<405000000) { c1=0xbc; c2=0x12; }
-    else if (freq<445000000) { c1=0xf4; c2=0x12; }
-    else if (freq<465000000) { c1=0xfc; c2=0x12; }
-    else if (freq<735000000) { c1=0xbc; c2=0x18; }
-    else if (freq<835000000) { c1=0xf4; c2=0x18; }
-    else { c1=0xfc; c2=0x18; }
-
--- 
-   Frédéric
+    Ezequiel
