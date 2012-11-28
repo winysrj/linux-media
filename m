@@ -1,138 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42004 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754669Ab2KZJIA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Nov 2012 04:08:00 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
-	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
-	"David Airlie" <airlied@linux.ie>
-Subject: [PATCHv15 4/7] fbmon: add videomode helpers
-Date: Mon, 26 Nov 2012 10:07:25 +0100
-Message-Id: <1353920848-1705-5-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1353920848-1705-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1353920848-1705-1-git-send-email-s.trumtrar@pengutronix.de>
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:45901 "EHLO
+	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751575Ab2K1H1o convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 02:27:44 -0500
+From: Libin Yang <lbyang@marvell.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Albert Wang <twang13@marvell.com>,
+	"corbet@lwn.net" <corbet@lwn.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 27 Nov 2012 23:24:41 -0800
+Subject: RE: [PATCH 02/15] [media] marvell-ccic: add MIPI support for
+ marvell-ccic driver
+Message-ID: <A63A0DC671D719488CD1A6CD8BDC16CF230A8D7A04@SC-VEXCH4.marvell.com>
+References: <1353677587-23998-1-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1211271117270.22273@axis700.grange>
+ <477F20668A386D41ADCC57781B1F70430D1367C8D1@SC-VEXCH1.marvell.com>
+ <A63A0DC671D719488CD1A6CD8BDC16CF230A8D79E9@SC-VEXCH4.marvell.com>
+ <Pine.LNX.4.64.1211280812060.32652@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1211280812060.32652@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a function to convert from the generic videomode to a fb_videomode.
+Hi Guennadi,
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
----
- drivers/video/fbmon.c |   51 +++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/fb.h    |    6 ++++++
- 2 files changed, 57 insertions(+)
+>-----Original Message-----
+>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+>Sent: Wednesday, November 28, 2012 3:14 PM
+>To: Libin Yang
+>Cc: Albert Wang; corbet@lwn.net; linux-media@vger.kernel.org
+>Subject: RE: [PATCH 02/15] [media] marvell-ccic: add MIPI support for marvell-ccic driver
+>
+>On Tue, 27 Nov 2012, Libin Yang wrote:
+>
+>> Hello Guennadi,
+>>
+>> Please see my comments below.
+>>
+>> Best Regards,
+>> Libin
+>>
+>> >-----Original Message-----
+>> >From: Albert Wang
+>> >Sent: Tuesday, November 27, 2012 7:21 PM
+>> >To: Guennadi Liakhovetski
+>> >Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
+>> >Subject: RE: [PATCH 02/15] [media] marvell-ccic: add MIPI support for marvell-ccic
+>driver
+>> >
+>> >Hi, Guennadi
+>> >
+>> >We will update the patch by following your good suggestion! :)
+>> >
+>>
+>> [snip]
+>>
+>> >>> +	pll1 = clk_get(dev, "pll1");
+>> >>> +	if (IS_ERR(pll1)) {
+>> >>> +		dev_err(dev, "Could not get pll1 clock\n");
+>> >>> +		return;
+>> >>> +	}
+>> >>> +
+>> >>> +	tx_clk_esc = clk_get_rate(pll1) / 1000000 / 12;
+>> >>> +	clk_put(pll1);
+>> >>
+>> >>Once you release your clock per "clk_put()" its rate can be changed by some other user,
+>> >>so, your tx_clk_esc becomes useless. Better keep the reference to the clock until clean
+>up.
+>> >>Maybe you can also use
+>> >>devm_clk_get() to simplify the clean up.
+>> >>
+>> >That's a good suggestion.
+>> >
+>> [Libin] In our code design, the pll1 will never be changed after the system boots up.
+>Camera and other components can only get the clk without modifying it.
+>
+>This doesn't matter. We have a standard API and we have to abide to its
+>rules. Your driver can be reused or its code can be copied by others. I
+>don't think it should be too difficult to just issue devm_clk_get() once
+>and then just forget about it.
 
-diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
-index cef6557..733553b 100644
---- a/drivers/video/fbmon.c
-+++ b/drivers/video/fbmon.c
-@@ -30,6 +30,7 @@
- #include <linux/module.h>
- #include <linux/pci.h>
- #include <linux/slab.h>
-+#include <linux/videomode.h>
- #include <video/edid.h>
- #ifdef CONFIG_PPC_OF
- #include <asm/prom.h>
-@@ -1373,6 +1374,56 @@ int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_inf
- 	kfree(timings);
- 	return err;
- }
-+
-+#if IS_ENABLED(CONFIG_VIDEOMODE)
-+int fb_videomode_from_videomode(const struct videomode *vm,
-+				struct fb_videomode *fbmode)
-+{
-+	unsigned int htotal, vtotal;
-+
-+	fbmode->xres = vm->hactive;
-+	fbmode->left_margin = vm->hback_porch;
-+	fbmode->right_margin = vm->hfront_porch;
-+	fbmode->hsync_len = vm->hsync_len;
-+
-+	fbmode->yres = vm->vactive;
-+	fbmode->upper_margin = vm->vback_porch;
-+	fbmode->lower_margin = vm->vfront_porch;
-+	fbmode->vsync_len = vm->vsync_len;
-+
-+	/* prevent division by zero in KHZ2PICOS macro */
-+	fbmode->pixclock = vm->pixelclock ? KHZ2PICOS(vm->pixelclock / 1000) : 0;
-+
-+	fbmode->sync = 0;
-+	fbmode->vmode = 0;
-+	if (vm->hah)
-+		fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
-+	if (vm->vah)
-+		fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
-+	if (vm->interlaced)
-+		fbmode->vmode |= FB_VMODE_INTERLACED;
-+	if (vm->doublescan)
-+		fbmode->vmode |= FB_VMODE_DOUBLE;
-+	fbmode->flag = 0;
-+
-+	htotal = vm->hactive + vm->hfront_porch + vm->hback_porch +
-+		 vm->hsync_len;
-+	vtotal = vm->vactive + vm->vfront_porch + vm->vback_porch +
-+		 vm->vsync_len;
-+	/* prevent division by zero */
-+	if (htotal && vtotal)
-+		fbmode->refresh = vm->pixelclock / (htotal * vtotal);
-+	/* a mode must have htotal and vtotal != 0 or it is invalid */
-+	else {
-+		fbmode->refresh = 0;
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
-+#endif
-+
- #else
- int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
- {
-diff --git a/include/linux/fb.h b/include/linux/fb.h
-index c7a9571..4404ec2 100644
---- a/include/linux/fb.h
-+++ b/include/linux/fb.h
-@@ -19,6 +19,7 @@ struct vm_area_struct;
- struct fb_info;
- struct device;
- struct file;
-+struct videomode;
- 
- /* Definitions below are used in the parsed monitor specs */
- #define FB_DPMS_ACTIVE_OFF	1
-@@ -714,6 +715,11 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
- extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
- extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
- 
-+#if IS_ENABLED(CONFIG_VIDEOMODE)
-+extern int fb_videomode_from_videomode(const struct videomode *vm,
-+				       struct fb_videomode *fbmode);
-+#endif
-+
- /* drivers/video/modedb.c */
- #define VESA_MODEDB_SIZE 34
- extern void fb_var_to_videomode(struct fb_videomode *mode,
--- 
-1.7.10.4
+[Libin] Yes, you are right. We should consider the driver may be reused. I didn't realize it. Another question is: If we use devm_clk_get(), what I understand, the clk will be put when the device is being released. It means the driver will hold the clk all the time the driver is in the kernel. What do you think if we get the clk when opening the camera, and put it in the close?
 
+>
+>Thanks
+>Guennadi
+>---
+>Guennadi Liakhovetski, Ph.D.
+>Freelance Open-Source Software Developer
+>http://www.open-technology.de/
+
+Best Regard,
+Libin
