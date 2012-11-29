@@ -1,41 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.hauppauge.com ([167.206.143.4]:4910 "EHLO
-	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753259Ab2K1Qf0 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:53381 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752687Ab2K2KA5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 11:35:26 -0500
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: linux-media@vger.kernel.org
-Cc: Michael Krufky <mkrufky@linuxtv.org>
-Subject: [PATCH 2/2] au0828: update model matrix entries for 72261, 72271 & 72281
-Date: Wed, 28 Nov 2012 11:35:01 -0500
-Message-Id: <1354120501-4819-2-git-send-email-mkrufky@linuxtv.org>
-In-Reply-To: <1354120501-4819-1-git-send-email-mkrufky@linuxtv.org>
-References: <1354120501-4819-1-git-send-email-mkrufky@linuxtv.org>
+	Thu, 29 Nov 2012 05:00:57 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id 2A15640B98
+	for <linux-media@vger.kernel.org>; Thu, 29 Nov 2012 11:00:52 +0100 (CET)
+Date: Thu, 29 Nov 2012 11:00:52 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] MAINTAINERS: add entries for sh_veu and sh_vou V4L2 drivers
+Message-ID: <Pine.LNX.4.64.1211291100230.11210@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
----
- drivers/media/usb/au0828/au0828-cards.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+sh_vou might be better described by "Odd Fixes," but mark it "Maintained"
+for now. sh_veu is a new driver and might see some development in the
+future.
 
-diff --git a/drivers/media/usb/au0828/au0828-cards.c b/drivers/media/usb/au0828/au0828-cards.c
-index d12bdd3..cf309d8 100644
---- a/drivers/media/usb/au0828/au0828-cards.c
-+++ b/drivers/media/usb/au0828/au0828-cards.c
-@@ -169,8 +169,9 @@ static void hauppauge_eeprom(struct au0828_dev *dev, u8 *eeprom_data)
- 	case 72231: /* WinTV-HVR950q (OEM, IR, ATSC/QAM and analog video */
- 	case 72241: /* WinTV-HVR950q (OEM, No IR, ATSC/QAM and analog video */
- 	case 72251: /* WinTV-HVR950q (Retail, IR, ATSC/QAM and analog video */
--	case 72261: /* WinTV-HVR950q (OEM, IR, ATSC/QAM and analog video */
--	case 72281: /* WinTV-HVR950q (OEM, No IR, ATSC/QAM */
-+	case 72261: /* WinTV-HVR950q (OEM, No IR, ATSC/QAM and analog video */
-+	case 72271: /* WinTV-HVR950q (OEM, No IR, ATSC/QAM and analog video */
-+	case 72281: /* WinTV-HVR950q (OEM, No IR, ATSC/QAM and analog video */
- 	case 72301: /* WinTV-HVR850 (Retail, IR, ATSC and analog video */
- 	case 72500: /* WinTV-HVR950q (OEM, No IR, ATSC/QAM */
- 		break;
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ MAINTAINERS |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 9fba9ed..c20199e 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6719,6 +6719,20 @@ M:	Robin Holt <holt@sgi.com>
+ S:	Maintained
+ F:	drivers/misc/sgi-xp/
+ 
++SH_VEU V4L2 MEM2MEM DRIVER
++M:	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/platform/sh_veu.c
++F:	include/media/sh_veu.h
++
++SH_VOU V4L2 OUTPUT DRIVER
++M:	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/platform/sh_vou.c
++F:	include/media/sh_vou.h
++
+ SIMPLE FIRMWARE INTERFACE (SFI)
+ M:	Len Brown <lenb@kernel.org>
+ L:	sfi-devel@simplefirmware.org
 -- 
-1.7.10.4
+1.7.2.5
 
