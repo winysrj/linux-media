@@ -1,50 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:50252 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756107Ab2KBNlm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Nov 2012 09:41:42 -0400
-Received: by mail-ie0-f174.google.com with SMTP id k13so5016919iea.19
-        for <linux-media@vger.kernel.org>; Fri, 02 Nov 2012 06:41:41 -0700 (PDT)
+Received: from firefly.pyther.net ([50.116.37.168]:40920 "EHLO
+	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754110Ab2K2CFV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 21:05:21 -0500
+Message-ID: <50B6C2DF.4020509@pyther.net>
+Date: Wed, 28 Nov 2012 21:05:19 -0500
+From: Matthew Gyurgyik <matthew@pyther.net>
 MIME-Version: 1.0
-In-Reply-To: <CA+6av4nv=J7wZKKbKVSGyNRVaZUO24Qv8NwbbCK8v_ZrU-7oUQ@mail.gmail.com>
-References: <1351773720-22639-1-git-send-email-elezegarcia@gmail.com>
-	<CA+6av4nv=J7wZKKbKVSGyNRVaZUO24Qv8NwbbCK8v_ZrU-7oUQ@mail.gmail.com>
-Date: Fri, 2 Nov 2012 10:41:41 -0300
-Message-ID: <CALF0-+XOLwg-Rnxm2G3mmvORXthGzeczvBEZdKGDoRZH10Wtvw@mail.gmail.com>
-Subject: Re: [PATCH] stkwebcam: Fix sparse warning on undeclared symbol
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Arvydas Sidorenko <asido4@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Andrea Anacleto <andreaanacleto@libero.it>,
-	Jaime Velasco Juan <jsagarribay@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Antti Palosaari <crope@iki.fi>
+CC: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi>
+In-Reply-To: <50B6967C.9070801@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arvydas,
-
-On Fri, Nov 2, 2012 at 4:35 AM, Arvydas Sidorenko <asido4@gmail.com> wrote:
->> why the heck do we need this first_init?
+On 11/28/2012 05:55 PM, Antti Palosaari wrote:
 >
-> first_init was introduced in 7b1c8f58fcdbed75 for turning off LED when
-> the cam finishes
-> the capture.
-> Andrea Anacleto <andreaanacleto@libero.it> claimed that the change
-> broke his webcam
-> on the same laptop, so he introduced that variable to fix the issue.
-> It didn't have any
-> impact to my cam so I merged it's patch and resent my fix to the maintainer.
+> Very, very, good pics and sniffs!!
+>
+>
+> From the sniff you could see I2C addresses
+> 50 (a0 >> 1) eeprom
+> 0e (1c >> 1) demod
+> 60 (c0 >> 1) tuner
+>
+>
+> EM2874, USB-bridge, clocked at 12MHz, crystal on other side of PCB. 
+> There is also 32k serial eeprom for EM2874. This large serial eeprom 
+> means (very likely) it uses custom firmware which is downloaded from 
+> the eeprom.
+>
+> LGDT3305, demodulator, clocked at 25MHz. Serial TS used between EM2874 
+> and LGDT3305.
+>
+> TDA18271HDC2 is tuner, clocked at 16MHz. Traditional IF used between 
+> tuner and demod.
+>
+> IR receiver is near antenna, which is a little bit long wires to 
+> connect to the EM2874, looks weird but no harm.
+>
+>
+> Main GPIO sequence is that one:
+> 000255: 000006 ms 000990 ms c0 00 00 00 80 00 01 00 <<< ff
+> 000256: 000004 ms 000994 ms 40 00 00 00 80 00 01 00 >>> fe
+> 000257: 000006 ms 001000 ms c0 00 00 00 80 00 01 00 <<< fe
+> 000258: 000004 ms 001004 ms 40 00 00 00 80 00 01 00 >>> be
+> 000259: 000139 ms 001143 ms c0 00 00 00 80 00 01 00 <<< be
+> 000260: 000005 ms 001148 ms 40 00 00 00 80 00 01 00 >>> fe
+>
+> There is some more GPIOs later, just test with trial and error to find 
+> out all GPIOs.
+>
+> Making that device working should be quite easy! There is a little 
+> change for proprietary firmware for EM2874 which does some nasty 
+> things, but that is very very unlikely.
+>
+> regards
+> Antti
 
-I understand.
+Thanks for the information. That is way over my head. Is there same 
+basic reading someone could recommend so I can start to understand the 
+basics of all this?
 
-It sounds a bit weird to me. However, I can't argue since I don't have
-a device to test.
+In the mean time, I'm willing to do any testing necessary.
 
-This patch doesn't change the functionality in any way.
-If you have the time to test it and stamp a "Tested-by" on it, I would
-appreciate it.
-
-Thanks,
-
-    Ezequiel
