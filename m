@@ -1,126 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40592 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754088Ab2K0NII (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 08:08:08 -0500
-Message-ID: <50B4BB0F.8070306@ti.com>
-Date: Tue, 27 Nov 2012 15:07:27 +0200
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:45383 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932197Ab2K2DIw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 22:08:52 -0500
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: <linux-fbdev@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
-	<linux-media@vger.kernel.org>, Archit Taneja <archit@ti.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Tom Gall <tom.gall@linaro.org>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>
-Subject: Re: [RFC v2 1/5] video: Add generic display entity core
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <1353620736-6517-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1353620736-6517-2-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigE45A9C0E179F35D5945D0348"
+In-Reply-To: <20121128173529.1a264c53@redhat.com>
+References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
+ <1354099329-20722-10-git-send-email-prabhakar.lad@ti.com> <20121128092213.4bd0870f@redhat.com>
+ <1555450.K4uAzFNhY7@avalon> <20121128173529.1a264c53@redhat.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 29 Nov 2012 08:38:30 +0530
+Message-ID: <CA+V-a8sB7hcX2BEcdXnVm7s+P+9DoLm1wxUuAoGbchUooigLBw@mail.gmail.com>
+Subject: Re: [PATCH v3 9/9] davinci: vpfe: Add documentation and TODO
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	devel@driverdev.osuosl.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---------------enigE45A9C0E179F35D5945D0348
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Mauro,
 
-Hi,
+On Thu, Nov 29, 2012 at 1:05 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Hi Laurent,
+>
+> Em Wed, 28 Nov 2012 14:00:14 +0100
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+>
+>> Hi Mauro,
+>>
+>> Please see below.
+>>
+>> On Wednesday 28 November 2012 09:22:13 Mauro Carvalho Chehab wrote:
+>> > Hi Prabhakar,
+>> >
+>> > Em Wed, 28 Nov 2012 16:12:09 +0530
+>> >
+>> > Prabhakar Lad <prabhakar.csengg@gmail.com> escreveu:
+>> > > +Introduction
+>> > > +============
+>> > > +
+>> > > + This file documents the Texas Instruments Davinci Video processing Front
+>> > > + End (VPFE) driver located under drivers/media/platform/davinci. The
+>> > > + original driver exists for Davinci VPFE, which is now being changed to
+>> > > + Media Controller Framework.
+>> >
+>> > Hmm... please correct me if I'm wrong, but are you wanting to replace an
+>> > existing driver at drivers/media/platform/davinci, by another one at
+>> > staging that has lots of known issues, as pointed at your TODO????
+>> >
+>> > If so, please don't do that. Replacing a driver by some other one is
+>> > generally a very bad idea, especially in this case, where the new driver
+>> > has clearly several issues, the main one being to define its own proprietary
+>> > and undocumented API:
+>> >
+>> > > +As of now since the interface will undergo few changes all the include
+>> > > +files are present in staging itself, to build for dm365 follow below
+>> > > +steps,
+>> > > +
+>> > > +- copy vpfe.h from drivers/staging/media/davinci_vpfe/ to
+>> > > +  include/media/davinci/ folder for building the uImage.
+>> > > +- copy davinci_vpfe_user.h from drivers/staging/media/davinci_vpfe/ to
+>> > > +  include/uapi/linux/davinci_vpfe.h, and add a entry in Kbuild (required
+>> > > +  for building application).
+>> > > +- copy dm365_ipipeif_user.h from drivers/staging/media/davinci_vpfe/ to
+>> > > +  include/uapi/linux/dm365_ipipeif.h and a entry in Kbuild (required
+>> > > +  for building application).
+>> >
+>> > Among other things, with those ugly and very likely mandatory API calls:
+>> >
+>> > >+/*
+>> > >+ * Private IOCTL
+>> > >+ * VIDIOC_VPFE_IPIPEIF_S_CONFIG: Set IPIEIF configuration
+>> > >+ * VIDIOC_VPFE_IPIPEIF_G_CONFIG: Get IPIEIF configuration
+>> > >+ */
+>> > >+#define VIDIOC_VPFE_IPIPEIF_S_CONFIG \
+>> > >+  _IOWR('I', BASE_VIDIOC_PRIVATE + 1, struct ipipeif_params)
+>> > >+#define VIDIOC_VPFE_IPIPEIF_G_CONFIG \
+>> > >+  _IOWR('I', BASE_VIDIOC_PRIVATE + 2, struct ipipeif_params)
+>> > >+
+>> > >+#endif
+>> >
+>> > I remember we rejected already drivers like that with obscure "S_CONFIG"
+>> > private ioctl that were suspect to send a big initialization undocumented
+>> > blob to the driver, as only the vendor's application would be able to use
+>> > such driver.
+>>
+>> That's correct, and that's why the driver is going to staging. From there it
+>> will be incrementally fixed and then moved to drivers/media/, or dropped if
+>> not maintained.
+>>
+>> > So, instead, of submitting it to staging, you should be sending incremental
+>> > patches for the existing driver, adding newer functionality there, and
+>> > using the proper V4L2 API, with makes life easier for reviewers and
+>> > application developers.
+>>
+>> I agree that it would be the best thing to do, but I don't think it's going to
+>> happen. We need to decide between two options.
+>>
+>> - Push back now and insist in incremental patches for the existing driver, and
+>> get nothing back as TI will very likely give up completely.
+>> - Accept the driver in staging, get it fixed incrementally, and finally move
+>> it to drivers/media/
+>>
+>> There's a political side to this issue, we need to decide whether we want to
+>> insist vendors getting everything right before any code reaches mainline, in
+>> which case I believe we will lose some of them in the process, including major
+>> vendors such as TI, or if we can make the mainline learning curve and
+>> experience a bit more smooth by accepting such code in staging.
+>>
+>> I would vote for the second option, with a very clear rule that getting the
+>> driver in staging is only one step in the journey: if the development effort
+>> stops there, the driver *will* be removed.
+>
+> What concerns most is that we'll be adding yet-another-driver for the same
+> hardware, but using a different API set (Media controller + subdevs, instead
+> of pure V4L2).
+>
+> It should be noticed that even basic stuff seems to be missing at the driver,
+> like proper locks[1].
+>
+> [1] I'm basing my comments only at this patchset's TODO list - I didn't
+> reviewed the code, but it this is one of the listed items: "Check proper
+> serialisation (through mutexes and spinlocks)"
+>
+This was just a quick TODO list provided by Sakari, These code was being
+targeted for media folder itself and not staging. This code is well
+tested on DM365
+EVM. The TODO list might be looking long but trust me this would be
+fixed up quickly.
 
-On 2012-11-22 23:45, Laurent Pinchart wrote:
-> +/**
-> + * display_entity_get_modes - Get video modes supported by the display=
- entity
-> + * @entity The display entity
-> + * @modes: Pointer to an array of modes
-> + *
-> + * Fill the modes argument with a pointer to an array of video modes. =
-The array
-> + * is owned by the display entity.
-> + *
-> + * Return the number of supported modes on success (including 0 if no =
-mode is
-> + * supported) or a negative error code otherwise.
-> + */
-> +int display_entity_get_modes(struct display_entity *entity,
-> +			     const struct videomode **modes)
-> +{
-> +	if (!entity->ops.ctrl || !entity->ops.ctrl->get_modes)
-> +		return 0;
-> +
-> +	return entity->ops.ctrl->get_modes(entity, modes);
-> +}
-> +EXPORT_SYMBOL_GPL(display_entity_get_modes);
-> +
-> +/**
-> + * display_entity_get_size - Get display entity physical size
-> + * @entity: The display entity
-> + * @width: Physical width in millimeters
-> + * @height: Physical height in millimeters
-> + *
-> + * When applicable, for instance for display panels, retrieve the disp=
-lay
-> + * physical size in millimeters.
-> + *
-> + * Return 0 on success or a negative error code otherwise.
-> + */
-> +int display_entity_get_size(struct display_entity *entity,
-> +			    unsigned int *width, unsigned int *height)
-> +{
-> +	if (!entity->ops.ctrl || !entity->ops.ctrl->get_size)
-> +		return -EOPNOTSUPP;
-> +
-> +	return entity->ops.ctrl->get_size(entity, width, height);
-> +}
-> +EXPORT_SYMBOL_GPL(display_entity_get_size);
+> As no regressions are accepted, on non-staging drivers, the switch from the
+> already working, stable one to the new one, when this driver reaches the
+> required quality, will be a very hard task, as one would need to check the
+> exact behavior of the existing driver, and check if the new driver will
+> behave the same, in order to warrant that no regressions will be introduced.
+>
+> This doesn't sound something easy to do, especially if the implementation
+> decisions taken on the second driver aren't based on the same way as the
+> existing driver.
+>
+> The risk is that this driver would never be merged upstream, due to those
+> conflicts, or that we'll take several years to solve it, before being
+> able to warrant that userspace binaries developed for the first driver
+> will work as-is with the new one.
+>
+This is pretty much similar as OMAP3isp driver. The current driver is based
+on V4l2 lacking major features such as ipipe, and resizing. The new driver
+which has being added uses the Media controller framewrok, uses videobuf2,
+supports ipipe and resizing driver and obvious advantages  of media controller
+framework. If driver with these new features and enhancement doesn't make into
+just because taking into mind of the users of old driver.
 
-How do you envision these to be used with, say, DVI monitors with EDID
-data? Should each panel driver, that manages a device with EDID, read
-and parse the EDID itself? I guess that shouldn't be too difficult with
-a common EDID lib, but that will only expose some of the information
-found from EDID. Should the upper levels also have a way to get the raw
-EDID data, in addition to funcs like above?
+This is something similar like you have videobuf and videobuf2. But
+there were no
+incremental patches for videobuf itself, but it was added new. But now
+there is rule
+for users writing a new driver should write using videobuf2 only, so
+that slowly videobuf
+phases of, Similarly the users will need to be encouraged to use the new drivers
+with such a huge list of features in new driver and slowly phase of
+the old driver.
 
- Tomi
+Regards,
+--Prabhakar Lad
 
-
-
---------------enigE45A9C0E179F35D5945D0348
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJQtLsPAAoJEPo9qoy8lh71N8cP/23ASSeUAx1kPHy6k/dyTWo6
-Y1u0jj7AbdsXFVv+9Y7bT0RmDm3bcStLbqjR7p6ZmKv21D0XoqN56IyxMVchmDe2
-bDm4org1UvSh+in8azpBnurhNJIWPAXuDdR8mxSmUzeWGoM9NDsKDd6aAddhgn2L
-bGvHAp36oUFCPcmJYVDHCxvsD8ygLogzlTTZLWuS5Jadcszn4oy9I3PCLyMHMpmN
-kgSUI8oVZHYoZjFqSA6Pu0JpbzyutFgi0fQ4arQRp2HPjU0TE1I1xh0F0L8Bp36u
-1Ww4pROW6q6u1QBlqSuEFgq+NRHZDn5FsJBK7f+jcGSW0KO2E9W1BD8DDRGQ45eC
-JDsPHJnZ8coaF+nj6rgfdoEc/bQrj2z/dVaebiLuHvTd9nQ/Y1F9KUs8cT5REYKC
-WAtE07az5BBbO8CWbQcxKvggHYNI6mvnVwgkGpuwA10kkH4xSyqpUIn9q9uPNRBi
-NAMlkyyYgQC3FNws2FSztsTYPvYxtNoofDPYW/RgQai9AgyGxfVhqr1UVl7URMab
-WL6QuzKxOhJM7QHjyr368FMYoMVaF2Q1vOdrf9JK6ZMWdnhE0TbE/sGprxUXapf2
-N/iLzekNdNVb9e4gHT4mCP+6K8EKwv9YLcUHv25G2pBlWObMyEWVZlO9lp2apy3a
-n2weir1DuygMEyA4qVv6
-=talx
------END PGP SIGNATURE-----
-
---------------enigE45A9C0E179F35D5945D0348--
+> Regards,
+> Mauro
