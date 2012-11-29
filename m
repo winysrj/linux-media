@@ -1,93 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:3037 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755779Ab2K1S0u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 13:26:50 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr19.xs4all.nl (8.13.8/8.13.8) with ESMTP id qASIQlwm008392
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Wed, 28 Nov 2012 19:26:48 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 7E80F65A002F
-	for <linux-media@vger.kernel.org>; Wed, 28 Nov 2012 19:26:46 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20121128182646.7E80F65A002F@alastor.dyndns.org>
-Date: Wed, 28 Nov 2012 19:26:46 +0100 (CET)
+Received: from mail.kapsi.fi ([217.30.184.167]:57640 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753602Ab2K2VWJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Nov 2012 16:22:09 -0500
+Message-ID: <50B7D1E2.8000600@iki.fi>
+Date: Thu, 29 Nov 2012 23:21:38 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Juergen Lock <nox@jelal.kn-bremen.de>
+CC: linux-media@vger.kernel.org, hselasky@c2i.net
+Subject: Re: [PATCH] [media] rtl28xxu: add Terratec Cinergy T Stick RC rev
+ 3
+References: <20121129205259.GA7548@triton8.kn-bremen.de>
+In-Reply-To: <20121129205259.GA7548@triton8.kn-bremen.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 11/29/2012 10:52 PM, Juergen Lock wrote:
+> This just adds the usbid to the rtl28xxu driver, that's all that's
+> needed to make the stick work for DVB.
+>
+> Signed-off-by: Juergen Lock <nox@jelal.kn-bremen.de>
+>
+> --- a/drivers/media/dvb-core/dvb-usb-ids.h
+> +++ b/drivers/media/dvb-core/dvb-usb-ids.h
+> @@ -162,6 +162,7 @@
+>   #define USB_PID_TERRATEC_CINERGY_T_USB_XE_REV2		0x0069
+>   #define USB_PID_TERRATEC_CINERGY_T_STICK		0x0093
+>   #define USB_PID_TERRATEC_CINERGY_T_STICK_RC		0x0097
+> +#define USB_PID_TERRATEC_CINERGY_T_STICK_RC_REV3	0x00d3
+>   #define USB_PID_TERRATEC_CINERGY_T_STICK_DUAL_RC	0x0099
+>   #define USB_PID_TERRATEC_CINERGY_T_STICK_BLACK_REV1	0x00a9
+>   #define USB_PID_TWINHAN_VP7041_COLD			0x3201
+> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> @@ -1340,6 +1340,8 @@ static const struct usb_device_id rtl28x
+>   		&rtl2832u_props, "NOXON DAB/DAB+ USB dongle", NULL) },
+>   	{ DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_NOXON_DAB_STICK_REV2,
+>   		&rtl2832u_props, "NOXON DAB/DAB+ USB dongle (rev 2)", NULL) },
+> +	{ DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_T_STICK_RC_REV3,
+> +		&rtl2832u_props, "Terratec Cinergy T Stick RC (rev 3)", NULL) },
+>   	{ DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_TREKSTOR_TERRES_2_0,
+>   		&rtl2832u_props, "Trekstor DVB-T Stick Terres 2.0", NULL) },
+>   	{ DVB_USB_DEVICE(USB_VID_DEXATEK, 0x1101,
+> --
 
-Results of the daily build of media_tree:
+That patch is already applied!
 
-date:        Wed Nov 28 19:00:23 CET 2012
-git hash:    d8658bca2e5696df2b6c69bc5538f8fe54e4a01e
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+Due to that, nack. It is non-relevant.
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: OK
-linux-git-arm-eabi-omap: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: WARNINGS
-linux-git-x86_64: OK
-linux-2.6.31.12-i686: ERRORS
-linux-2.6.32.6-i686: ERRORS
-linux-2.6.33-i686: ERRORS
-linux-2.6.34-i686: ERRORS
-linux-2.6.35.3-i686: ERRORS
-linux-2.6.36-i686: ERRORS
-linux-2.6.37-i686: ERRORS
-linux-2.6.38.2-i686: ERRORS
-linux-2.6.39.1-i686: ERRORS
-linux-3.0-i686: ERRORS
-linux-3.1-i686: ERRORS
-linux-3.2.1-i686: ERRORS
-linux-3.3-i686: ERRORS
-linux-3.4-i686: ERRORS
-linux-3.5-i686: ERRORS
-linux-3.6-i686: ERRORS
-linux-3.7-rc1-i686: ERRORS
-linux-2.6.31.12-x86_64: ERRORS
-linux-2.6.32.6-x86_64: ERRORS
-linux-2.6.33-x86_64: ERRORS
-linux-2.6.34-x86_64: ERRORS
-linux-2.6.35.3-x86_64: ERRORS
-linux-2.6.36-x86_64: ERRORS
-linux-2.6.37-x86_64: ERRORS
-linux-2.6.38.2-x86_64: ERRORS
-linux-2.6.39.1-x86_64: ERRORS
-linux-3.0-x86_64: ERRORS
-linux-3.1-x86_64: ERRORS
-linux-3.2.1-x86_64: ERRORS
-linux-3.3-x86_64: ERRORS
-linux-3.4-x86_64: ERRORS
-linux-3.5-x86_64: ERRORS
-linux-3.6-x86_64: ERRORS
-linux-3.7-rc1-x86_64: ERRORS
-apps: WARNINGS
-spec-git: WARNINGS
-sparse: ERRORS
 
-Detailed results are available here:
+Antti
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+http://palosaari.fi/
