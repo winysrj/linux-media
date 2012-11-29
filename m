@@ -1,132 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:57726 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755401Ab2KVSlR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 13:41:17 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MDV00BGOX15U7S0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 22 Nov 2012 19:27:20 +0900 (KST)
-Received: from amdc1344.digital.local ([106.116.147.32])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MDV00FPGX1ACB60@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 22 Nov 2012 19:27:20 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sw0312.kim@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] s5p-fimc: Prevent race conditions during subdevs registration
-Date: Thu, 22 Nov 2012 11:27:07 +0100
-Message-id: <1353580027-19671-1-git-send-email-s.nawrocki@samsung.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47784 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751392Ab2K2Jae (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Nov 2012 04:30:34 -0500
+Message-ID: <50B72B34.6080808@ti.com>
+Date: Thu, 29 Nov 2012 11:30:28 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: <hvaibhav@ti.com>, <linux-media@vger.kernel.org>,
+	Tony Lindgren <tony@atomide.com>, <linux-omap@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 0/2] omap_vout: remove cpu_is_* uses
+References: <1352727220-22540-1-git-send-email-tomi.valkeinen@ti.com> <1421983.jJNXU7RvjW@avalon>
+In-Reply-To: <1421983.jJNXU7RvjW@avalon>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig1E1569D2376A14706E77B630"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make sure when fimc and fimc-lite capture video node is registered
-it has valid pipeline_ops assigned to it. Otherwise when a video
-node is opened right after is was registered there, might be an
-attempt to use ops that are just being assigned, after function
-v4l2_device_register_subdev() returns.
+--------------enig1E1569D2376A14706E77B630
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-capture.c |    7 ++++++-
- drivers/media/platform/s5p-fimc/fimc-lite.c    |    3 +++
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |    4 ++--
- 3 files changed, 11 insertions(+), 3 deletions(-)
+On 2012-11-28 17:13, Laurent Pinchart wrote:
+> Hi Tomi,
+>=20
+> On Monday 12 November 2012 15:33:38 Tomi Valkeinen wrote:
+>> Hi,
+>>
+>> This patch removes use of cpu_is_* funcs from omap_vout, and uses omap=
+dss's
+>> version instead. The other patch removes an unneeded plat/dma.h includ=
+e.
+>>
+>> These are based on current omapdss master branch, which has the omapds=
+s
+>> version code. The omapdss version code is queued for v3.8. I'm not sur=
+e
+>> which is the best way to handle these patches due to the dependency to=
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
-index 3d39d97..3fc896b 100644
---- a/drivers/media/platform/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
-@@ -1774,9 +1774,13 @@ static int fimc_capture_subdev_registered(struct v4l2_subdev *sd)
- 	if (ret)
- 		return ret;
+>> omapdss. The easiest option is to merge these for 3.9.
+>>
+>> There's still the OMAP DMA use in omap_vout_vrfb.c, which is the last =
+OMAP
+>> dependency in the omap_vout driver. I'm not going to touch that, as it=
 
-+	fimc->pipeline_ops = v4l2_get_subdev_hostdata(sd);
-+
- 	ret = fimc_register_capture_device(fimc, sd->v4l2_dev);
--	if (ret)
-+	if (ret) {
- 		fimc_unregister_m2m_device(fimc);
-+		fimc->pipeline_ops = NULL;
-+	}
+>> doesn't look as trivial as this cpu_is_* removal, and I don't have muc=
+h
+>> knowledge of the omap_vout driver.
+>>
+>> Compiled, but not tested.
+>=20
+> Tested on a Beagleboard-xM.
+>=20
+> Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
- 	return ret;
- }
-@@ -1793,6 +1797,7 @@ static void fimc_capture_subdev_unregistered(struct v4l2_subdev *sd)
- 	if (video_is_registered(&fimc->vid_cap.vfd)) {
- 		video_unregister_device(&fimc->vid_cap.vfd);
- 		media_entity_cleanup(&fimc->vid_cap.vfd.entity);
-+		fimc->pipeline_ops = NULL;
- 	}
- 	kfree(fimc->vid_cap.ctx);
- 	fimc->vid_cap.ctx = NULL;
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
-index 9db246b..23f203e 100644
---- a/drivers/media/platform/s5p-fimc/fimc-lite.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
-@@ -1263,10 +1263,12 @@ static int fimc_lite_subdev_registered(struct v4l2_subdev *sd)
- 		return ret;
+Thanks.
 
- 	video_set_drvdata(vfd, fimc);
-+	fimc->pipeline_ops = v4l2_get_subdev_hostdata(sd);
+> The patches depend on unmerged OMAP DSS patches. Would you like to push=
+ this=20
+> series through linuxtv or through your DSS tree ? The later might be ea=
+sier,=20
+> depending on when the required DSS patches will hit mainline.
 
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
- 	if (ret < 0) {
- 		media_entity_cleanup(&vfd->entity);
-+		fimc->pipeline_ops = NULL;
- 		return ret;
- 	}
+The DSS patches will be merged for 3.8. I can take this via the omapdss
+tree, as there probably won't be any conflicts with other v4l2 stuff.
 
-@@ -1285,6 +1287,7 @@ static void fimc_lite_subdev_unregistered(struct v4l2_subdev *sd)
- 	if (video_is_registered(&fimc->vfd)) {
- 		video_unregister_device(&fimc->vfd);
- 		media_entity_cleanup(&fimc->vfd.entity);
-+		fimc->pipeline_ops = NULL;
- 	}
- }
+Or, we can just delay these until 3.9. These patches remove omap
+platform dependencies, helping the effort to get common ARM kernel.
+However, as there's still the VRFB code in the omap_vout driver, the
+dependency remains. Thus, in way, these patches alone don't help
+anything, and we could delay these for 3.9 and hope that
+omap_vout_vrfb.c gets converted also for that merge window.
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index 38ea4d1..df6e6ef 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -352,6 +352,7 @@ static int fimc_register_callback(struct device *dev, void *p)
+ Tomi
 
- 	sd = &fimc->vid_cap.subdev;
- 	sd->grp_id = FIMC_GROUP_ID;
-+	v4l2_set_subdev_hostdata(sd, &fimc_pipeline_ops);
 
- 	ret = v4l2_device_register_subdev(&fmd->v4l2_dev, sd);
- 	if (ret) {
-@@ -360,7 +361,6 @@ static int fimc_register_callback(struct device *dev, void *p)
- 		return ret;
- 	}
 
--	fimc->pipeline_ops = &fimc_pipeline_ops;
- 	fmd->fimc[fimc->id] = fimc;
- 	return 0;
- }
-@@ -375,6 +375,7 @@ static int fimc_lite_register_callback(struct device *dev, void *p)
- 		return 0;
+--------------enig1E1569D2376A14706E77B630
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
- 	fimc->subdev.grp_id = FLITE_GROUP_ID;
-+	v4l2_set_subdev_hostdata(&fimc->subdev, &fimc_pipeline_ops);
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
 
- 	ret = v4l2_device_register_subdev(&fmd->v4l2_dev, &fimc->subdev);
- 	if (ret) {
-@@ -384,7 +385,6 @@ static int fimc_lite_register_callback(struct device *dev, void *p)
- 		return ret;
- 	}
+iQIcBAEBAgAGBQJQtys0AAoJEPo9qoy8lh71j/wP/RmpUGLbU2L3uAozPqw2os6U
+nTT81JEzJNn5WsVvRbywdS27MtqJjvVl9xWHJBomQVeZ7dYQLJqaC6tPihY2fV50
+2PUe4vHHVIeMDYxAHA1xzm28/3awz5slogxF4tefLbzYdSuhATtZrliS3z5Kr5rH
+eV5Fs9kQ98tdEXZf+sfJ44IdEbjFhsLFulytvpmpkADaM4R0uI1bnaU7x7/4e8lE
+1I3tH8sJhkdHmL4wshXiurfPElGq1KiPcj2jd+8PB+vH+u8EOhDewtHhmNa6SOaV
++/GHLw11u81C4wBlEbcl8XSSqvJZ2qgyEUkW7hLQ8G7JaTsbvDHpLj8F8oAfD/XG
+dimNIoYxowZ8x9Cb7WVlB6age/zwaJ2eixHAcJEREEa5aEuW5sh9L0ZwpumAqFej
+fUdVD8FJ0fuoohmsR0JQAflFqp6RDXoAKFMVSyVZpqX55KtckLAV9ImsQfyJztTi
+siOyHTyGwE9ovOi8+sQMT/OKNzWG1mGpWSuGzs/gPaKA82WpmAYPcKsloXJlt8yl
+FM9WhEFtXfUAhYIbfw02pWPu0dDsCqni0GyOhGAQZMN9R3eRRBiIGYHT5yq8A1vy
+mxBPzItE5p8XpNvSU2L/7U7/K8phVhqPXg5loIEQG59EAYWSXuCKYS18ilUNc0Ti
+GNyXNvFCy5LHfrUQ5lx8
+=pGaO
+-----END PGP SIGNATURE-----
 
--	fimc->pipeline_ops = &fimc_pipeline_ops;
- 	fmd->fimc_lite[fimc->index] = fimc;
- 	return 0;
- }
---
-1.7.9.5
-
+--------------enig1E1569D2376A14706E77B630--
