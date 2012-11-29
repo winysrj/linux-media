@@ -1,45 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bootes.telenet.ru ([94.31.183.22]:40399 "EHLO bootes"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753111Ab2KYQc2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Nov 2012 11:32:28 -0500
-From: Alex Volkov <alex@bootes.telenet.ru>
+Received: from gelbbaer.kn-bremen.de ([78.46.108.116]:44296 "EHLO
+	smtp.kn-bremen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754059Ab2K2Uzh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Nov 2012 15:55:37 -0500
+From: Juergen Lock <nox@jelal.kn-bremen.de>
+Date: Thu, 29 Nov 2012 21:52:59 +0100
 To: linux-media@vger.kernel.org
-Subject: [PATCH/RFC] remote control type initialization in saa7134-input.c
-Date: Sun, 25 Nov 2012 22:06:56 +0600
-Cc: linux-kernel@vger.kernel.org, michael@mihu.de,
-	Jonathan Nieder <jrnieder@gmail.com>
+Cc: hselasky@c2i.net
+Subject: [PATCH] [media] rtl28xxu: add Terratec Cinergy T Stick RC rev 3
+Message-ID: <20121129205259.GA7548@triton8.kn-bremen.de>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201211252206.57134.alex@bootes.telenet.ru>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Function saa7134_probe_i2c_ir(..) in saa7134-input.c does not set any RC type
-for Pinnacle PCTV 110i (and perhaps other) remote controls. For some other RCs
-the setting (assinging some value to "type" member of the device structure)
-is done either in this function or elsewhere (AFAIR), but not for PCTV.
+This just adds the usbid to the rtl28xxu driver, that's all that's
+needed to make the stick work for DVB.
 
-This renders PCTV's remote control unavailable as input device in all kernels
-since 2.6.37 to the 3.2.32 at least (which I tested), and I believe this
-remains this way in current 3.6.x too.
+Signed-off-by: Juergen Lock <nox@jelal.kn-bremen.de>
 
-The patch attached here (made against 3.2.32) puts RC's type initialization
-(to RC_TYPE_OTHER) before board type testing "switch". (Perhaps, putting it
-to 110i's "case" would be more correct, but it seem to work anyway.)
-
-Signed-off-by: Alex Volkov <alex@bootes.telenet.ru>
-
---- 
---- a/drivers/media/video/saa7134/saa7134-input.c	2012-10-17 08:50:15.000000000 +0600
-+++ b/drivers/media/video/saa7134/saa7134-input.c	2012-11-25 21:49:42.000000000 +0600
-@@ -858,6 +858,7 @@ void saa7134_probe_i2c_ir(struct saa7134
- 	memset(&info, 0, sizeof(struct i2c_board_info));
- 	memset(&dev->init_data, 0, sizeof(dev->init_data));
- 	strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
-+	dev->init_data.type = RC_TYPE_OTHER;
- 
- 	switch (dev->board) {
- 	case SAA7134_BOARD_PINNACLE_PCTV_110i:
+--- a/drivers/media/dvb-core/dvb-usb-ids.h
++++ b/drivers/media/dvb-core/dvb-usb-ids.h
+@@ -162,6 +162,7 @@
+ #define USB_PID_TERRATEC_CINERGY_T_USB_XE_REV2		0x0069
+ #define USB_PID_TERRATEC_CINERGY_T_STICK		0x0093
+ #define USB_PID_TERRATEC_CINERGY_T_STICK_RC		0x0097
++#define USB_PID_TERRATEC_CINERGY_T_STICK_RC_REV3	0x00d3
+ #define USB_PID_TERRATEC_CINERGY_T_STICK_DUAL_RC	0x0099
+ #define USB_PID_TERRATEC_CINERGY_T_STICK_BLACK_REV1	0x00a9
+ #define USB_PID_TWINHAN_VP7041_COLD			0x3201
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1340,6 +1340,8 @@ static const struct usb_device_id rtl28x
+ 		&rtl2832u_props, "NOXON DAB/DAB+ USB dongle", NULL) },
+ 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_NOXON_DAB_STICK_REV2,
+ 		&rtl2832u_props, "NOXON DAB/DAB+ USB dongle (rev 2)", NULL) },
++	{ DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_T_STICK_RC_REV3,
++		&rtl2832u_props, "Terratec Cinergy T Stick RC (rev 3)", NULL) },
+ 	{ DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_TREKSTOR_TERRES_2_0,
+ 		&rtl2832u_props, "Trekstor DVB-T Stick Terres 2.0", NULL) },
+ 	{ DVB_USB_DEVICE(USB_VID_DEXATEK, 0x1101,
