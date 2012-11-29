@@ -1,75 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:64478 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751702Ab2KHTDs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:03:48 -0500
-Received: by mail-bk0-f46.google.com with SMTP id jk13so1358429bkc.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2012 11:03:46 -0800 (PST)
-Message-ID: <509BF403.2080002@googlemail.com>
-Date: Thu, 08 Nov 2012 20:03:47 +0200
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:60980 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751003Ab2K2RIc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Nov 2012 12:08:32 -0500
+Message-ID: <50B79682.1020305@ti.com>
+Date: Thu, 29 Nov 2012 19:08:18 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 00/23] em28xx: add support fur USB bulk transfers
-References: <1350838349-14763-1-git-send-email-fschaefer.oss@googlemail.com> <20121028175752.447c39d5@redhat.com> <508EA1B8.3070304@googlemail.com> <20121029180348.7e7967aa@redhat.com> <508EF1CF.8090602@googlemail.com> <20121030010012.30e1d2de@redhat.com> <20121030020619.6e854f70@redhat.com> <50900BF6.1030502@googlemail.com>
-In-Reply-To: <50900BF6.1030502@googlemail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tony Lindgren <tony@atomide.com>, <hvaibhav@ti.com>,
+	<linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 0/2] omap_vout: remove cpu_is_* uses
+References: <1352727220-22540-1-git-send-email-tomi.valkeinen@ti.com> <4208124.v72gFsjH2D@avalon> <20121129162927.GF5312@atomide.com> <2148719.6v36XORg4e@avalon> <20121129150535.17ea00e9@redhat.com>
+In-Reply-To: <20121129150535.17ea00e9@redhat.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig10D5E92F1217FE72CE04FBD1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 30.10.2012 19:18, schrieb Frank Schäfer:
-> Am 30.10.2012 06:06, schrieb Mauro Carvalho Chehab:
->
-> <snip>
->> Did a git bisect. The last patch where the bug doesn't occur is this 
->> changeset:
->> 	em28xx: add module parameter for selection of the preferred USB transfer type
+--------------enig10D5E92F1217FE72CE04FBD1
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 2012-11-29 19:05, Mauro Carvalho Chehab wrote:
+> Em Thu, 29 Nov 2012 17:39:45 +0100
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+
+>>> Please rather queue the cpu_is_omap removal to v3.8 so I can
+>>> remove plat/cpu.h for omap2+.
 >>
->> That means that this changeset broke it:
->>
->> 	em28xx: use common urb data copying function for vbi and non-vbi devices
-> Ok, thanks.
-> That means we are VERY close...
->
-> I think this is the only change that could cause the trouble:
->> @@ -599,6 +491,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
->>  			len = actual_length - 4;
->>  		} else if (p[0] == 0x22 && p[1] == 0x5a) {
->>  			/* start video */
->> +			dev->capture_type = 1;
->>  			p += 4;
->>  			len = actual_length - 4;
->>  		} else {
-> Could you try again with this line commented out ? (em28xx-video.c, line
-> 494 in the patched file).
-> usb_debug=1 would be usefull, too.
->
->> I didn't test them with my Silvercrest webcam yet.
-> I re-tested 5 minutes ago with this device and it works fine.
-> Btw, which frame rates do you get  ? ;)
->
-> Regards,
-> Frank
+>> In that case the patches should go through the DSS tree. Mauro, are yo=
+u fine=20
+>> with that ?
+>=20
+> Sure.
+>=20
+> For both patches:
+>=20
+> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Today I had the chance to test these patches with a Hauppauge HVR-930c.
-Couldn't test analog TV (not supported yet), but DVB works fine, too.
+Okay, thanks, I'll apply them to omapdss tree.
 
-So patches 1 to 21 have been tested now and do at least not cause any
-regressions.
-
-I would like to drop the last two patches (22+23) of this series, because
-- they are actually not related to USB bulk transfers
-- patch 22 needs to be fixed for analog+vbi (will get an analog device
-for testing next week)
-- I'm working on further improvements/changes in this area (including
-em25xx support)
-So I will better come up with a separate patch series later.
-
-Will send a v2 of this patch series soon.
-
-Regards,
-Frank
+ Tomi
 
 
+
+--------------enig10D5E92F1217FE72CE04FBD1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQt5aCAAoJEPo9qoy8lh71uJsP/jWyWZqf1/QWpVeqszGYfO3D
+uQyt4jpoRrTlXggLHuoieU0+TI06ufiK1LzTFP7FBRJzuaglg0sHPndsXQA2jj14
+AhdX/8L9MUsjEDggZUiK9GHUwbl+1qgiES4V1GRbknds4ZZ7O3Z4SpaK+Si2s8y5
+Hq7i2vDvv7ekCw3PcXpNtGisa+fCfTTYw9mKc/TC7dnLWWtIYNvm/Xiciy0C7Nb1
+geYM7ZIme7pFkR1o7U+SF2Ne/os4I95v6UiPJJ6nv8N49PUKvGtTegvodQ1dZpyy
+OLQpYnNBYlvMr/89A+8CwVsVZ8HIFo8/6s7OAWzJMYfncgWC0CH/u12Pte/3i8YB
+rIFb8fSO7qvBKJHFtCXeHG+lnPukO/v5coCVhkFfC5ErsKedSTX086LRHLrylKKC
+Jkq5eedY7Ma7ZHYqYMm1NHKALJHPBm0+dUjWLYtGBcyKC9Mq+SFpvdIYRqoQqOgs
+anomeiv/D7r3CADqyD9nRC2G3yfnVdnruqp2crhvq43GEbCU+4Dqd6VK8ChURH+A
+bJrFLgZiQrXvFNFIF+P2jc+aypyzjrLFO+75F0HF/g50C2DD9PMwlDl0nD8UlZrv
+emkB1wTw5HIsr2yJj2egurrObVt4bL290bvyLr3xkOkkRDJiUlrFBpZmTJnqurL0
+4E5ePk9UwFHPq8JD5Jow
+=0oLo
+-----END PGP SIGNATURE-----
+
+--------------enig10D5E92F1217FE72CE04FBD1--
