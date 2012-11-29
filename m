@@ -1,193 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47316 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755373Ab2K0QD0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 11:03:26 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [PATCH v1.2 1/4] v4l: Define video buffer flags for timestamp types
-Date: Tue, 27 Nov 2012 17:04:29 +0100
-Message-ID: <5788992.si3u8AaYMi@avalon>
-In-Reply-To: <20121121235859.GB31442@valkosipuli.retiisi.org.uk>
-References: <1353098995-1319-1-git-send-email-sakari.ailus@iki.fi> <201211212353.02256.hverkuil@xs4all.nl> <20121121235859.GB31442@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kapsi.fi ([217.30.184.167]:49512 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932197Ab2K2DH4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 22:07:56 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC] dvb_usb_v2: make remote controller optional
+Date: Thu, 29 Nov 2012 05:07:10 +0200
+Message-Id: <1354158430-2053-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Make it possible to compile dvb_usb_v2 driver without the remote
+controller (RC-core).
 
-On Thursday 22 November 2012 01:59:00 Sakari Ailus wrote:
-> On Wed, Nov 21, 2012 at 11:53:02PM +0100, Hans Verkuil wrote:
-> > On Wed November 21 2012 20:13:22 Sakari Ailus wrote:
-> > > Define video buffer flags for different timestamp types. Everything up
-> > > to now have used either realtime clock or monotonic clock, without a way
-> > > to tell which clock the timestamp was taken from.
-> > > 
-> > > Also document that the clock source of the timestamp in the timestamp
-> > > field depends on buffer flags.
-> > > 
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Thanks! :-)
-> 
-> > But see my comments below for a separate matter...
-> > 
-> > > ---
-> > > Since v1.1:
-> > > 
-> > > - Change the description of the timestamp field; say that the type of
-> > >   the timestamp is dependent on the flags field.
-> > >  
-> > >  Documentation/DocBook/media/v4l/compat.xml |   12 ++++++
-> > >  Documentation/DocBook/media/v4l/io.xml     |   53 +++++++++++++++++----
-> > >  Documentation/DocBook/media/v4l/v4l2.xml   |   12 ++++++-
-> > >  include/uapi/linux/videodev2.h             |    4 ++
-> > >  4 files changed, 69 insertions(+), 12 deletions(-)
-> > > 
-> > > diff --git a/Documentation/DocBook/media/v4l/compat.xml
-> > > b/Documentation/DocBook/media/v4l/compat.xml index 4fdf6b5..651ca52
-> > > 100644
-> > > --- a/Documentation/DocBook/media/v4l/compat.xml
-> > > +++ b/Documentation/DocBook/media/v4l/compat.xml
-> > > @@ -2477,6 +2477,18 @@ that used it. It was originally scheduled for
-> > > removal in 2.6.35.
-> > >        </orderedlist>
-> > >      </section>
-> > > 
-> > > +    <section>
-> > > +      <title>V4L2 in Linux 3.8</title>
-> > > +      <orderedlist>
-> > > +        <listitem>
-> > > +	  <para>Added timestamp types to
-> > > +	  <structfield>flags</structfield> field in
-> > > +	  <structname>v4l2_buffer</structname>. See <xref
-> > > +	  linkend="buffer-flags" />.</para>
-> > > +        </listitem>
-> > > +      </orderedlist>
-> > > +    </section>
-> > > +
-> > >      <section id="other">
-> > >        <title>Relation of V4L2 to other Linux multimedia APIs</title>
-> > > 
-> > > diff --git a/Documentation/DocBook/media/v4l/io.xml
-> > > b/Documentation/DocBook/media/v4l/io.xml index 7e2f3d7..1243fa1 100644
-> > > --- a/Documentation/DocBook/media/v4l/io.xml
-> > > +++ b/Documentation/DocBook/media/v4l/io.xml
-> > > @@ -582,17 +582,19 @@ applications when an output stream.</entry>
-> > >  	    <entry>struct timeval</entry>
-> > >  	    <entry><structfield>timestamp</structfield></entry>
-> > >  	    <entry></entry>
-> > > -	    <entry><para>For input streams this is the
-> > > -system time (as returned by the <function>gettimeofday()</function>
-> > > -function) when the first data byte was captured. For output streams
-> > > -the data will not be displayed before this time, secondary to the
-> > > -nominal frame rate determined by the current video standard in
-> > > -enqueued order. Applications can for example zero this field to
-> > > -display frames as soon as possible. The driver stores the time at
-> > > -which the first data byte was actually sent out in the
-> > > -<structfield>timestamp</structfield> field. This permits
-> > > -applications to monitor the drift between the video and system
-> > > -clock.</para></entry>
-> > > +	    <entry><para>For input streams this is time when the first data
-> > > +	    byte was captured,
-> > 
-> > What should we do with this? In most drivers the timestamp is actually the
-> > time that the *last* byte was captured. The reality is that the
-> > application doesn't know whether it is the first or the last.
-> > 
-> > One option is to add a new flag for this, or to leave it open. The last
-> > makes me uncomfortable, since there can be quite a difference between the
-> > time of the first or last byte, and that definitely has an effect on the
-> > A/V sync.
-> 
-> Very true. I'd also prefer to have this defined so the information would be
-> available to the user space.
-> 
-> > This is a separate topic that should be handled in a separate patch, but I
-> > do think we need to take a closer look at this.
-> 
-> I'm not against one more buffer flag to tell which one it is. :-)
-> 
-> There are hardly any other options than the frame start and frame end.
-> 
-> On the other hand, the FRAME_SYNC event is supported by some drivers and
-> that can be used to obtain the timestamp from frame start. Not all drivers
-> support it nor the applications can be expected to use this just to get a
-> timestamp, though.
-> 
-> > > as returned by the
-> > > +	    <function>clock_gettime()</function> function for the relevant
-> > > +	    clock id; see <constant>V4L2_BUF_FLAG_TIMESTAMP_*</constant> in
-> > > +	    <xref linkend="buffer-flags" />. For output streams the data
-> > > +	    will not be displayed before this time, secondary to the nominal
-> > > +	    frame rate determined by the current video standard in enqueued
-> > > +	    order. Applications can for example zero this field to display
-> > > +	    frames as soon as possible.
-> > 
-> > There is not a single driver that supports this feature. There is also no
-> > way an application can query the driver whether this feature is supported.
-> > Personally I don't think this should be the task of a driver anyway: if
-> > you want to postpone displaying a frame, then just wait before calling
-> > QBUF. Don't add complicated logic in drivers/vb2 where it needs to hold
-> > buffers back if the time hasn't been reached yet.
-> 
-> Assuming realtime clock, there could be some interesting interactions with
-> this and daylight saving time or setting system clock, for example.
-> 
-> I'm definitely not against removing this, especially as no driver uses it.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/Kconfig        |  2 +-
+ drivers/media/usb/dvb-usb-v2/dvb_usb.h      |  9 +++++++++
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 12 ++++++++++++
+ 3 files changed, 22 insertions(+), 1 deletion(-)
 
-Acked.
-
-> > What might be much more interesting for output devices is if the timestamp
-> > field is filled in with the expected display time on return of QBUF. That
-> > would be very useful for regulating the flow of new frames.
-
-Acked as well.
-
-> > What do you think?
-> 
-> Fine for me. Sylwester also brought memory-to-memory devices (and
-> memory-to-memory processing whether the device is classified as such in API
-> or not) to my attention. For those devices it likely wouldn't matter at all
-> what's the system time when the frame is processed since the frame wasn't
-> captured at that time anyway.
-> 
-> In those cases it might makes sense to use timestamp that e.g. comes from
-> the compressed stream, or pass encoder timestamps that are going to be part
-> of the compressed stream. I think MPEG-related use cases were briefly
-> mentioned in the timestamp discussion earlier.
-
-When uncompressing a stream you will get the MPEG embedded timestamp on the 
-capture side. The timestamp returned to userspace at QBUF time on the output 
-side will still be unused. I don't really see a use case for returning the 
-timestamp at which the frame is expected to be processed by the codec, so we 
-could just make the field reserved for future use in that case.
-
-> > > The driver stores the time at which
-> > > +	    the first data byte was actually sent out in the
-> > > +	    <structfield>timestamp</structfield> field.
-> > 
-> > Same problem as with the capture time: does the timestamp refer to the
-> > first or last byte that's sent out? I think all output drivers set it to
-> > the time of the last byte (== when the DMA of the frame is finished).
-> 
-> I haven't actually even seen a capture driver that would do otherwise, but
-> that could be just me not knowing many enough. :-) Would we actually break
-> something if we changed the definition to say that this is the timestamp
-> taken when the frame is done?
-
-For software timestamps we could do that, but for hardware timestamps the 
-exact timestamping time may vary.
-
+diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
+index 834bfec..d3e826f 100644
+--- a/drivers/media/usb/dvb-usb-v2/Kconfig
++++ b/drivers/media/usb/dvb-usb-v2/Kconfig
+@@ -1,6 +1,6 @@
+ config DVB_USB_V2
+ 	tristate "Support for various USB DVB devices v2"
+-	depends on DVB_CORE && USB && I2C && RC_CORE
++	depends on DVB_CORE && USB && I2C
+ 	help
+ 	  By enabling this you will be able to choose the various supported
+ 	  USB1.1 and USB2.0 DVB devices.
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb.h b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
+index 059291b..e2678a7 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb.h
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
+@@ -400,4 +400,13 @@ extern int dvb_usbv2_reset_resume(struct usb_interface *);
+ extern int dvb_usbv2_generic_rw(struct dvb_usb_device *, u8 *, u16, u8 *, u16);
+ extern int dvb_usbv2_generic_write(struct dvb_usb_device *, u8 *, u16);
+ 
++/* stub implementations that will be never called when RC-core is disabled */
++#if !defined(CONFIG_RC_CORE) && !defined(CONFIG_RC_CORE_MODULE)
++#define rc_repeat(args...)
++#define rc_keydown(args...)
++#define rc_keydown_notimeout(args...)
++#define rc_keyup(args...)
++#define rc_g_keycode_from_table(args...) 0
++#endif
++
+ #endif
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+index 671b4fa..94f134c 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+@@ -102,6 +102,7 @@ static int dvb_usbv2_i2c_exit(struct dvb_usb_device *d)
+ 	return 0;
+ }
+ 
++#if defined(CONFIG_RC_CORE) || defined(CONFIG_RC_CORE_MODULE)
+ static void dvb_usb_read_remote_control(struct work_struct *work)
+ {
+ 	struct dvb_usb_device *d = container_of(work,
+@@ -202,6 +203,17 @@ static int dvb_usbv2_remote_exit(struct dvb_usb_device *d)
+ 
+ 	return 0;
+ }
++#else
++static int dvb_usbv2_remote_init(struct dvb_usb_device *d)
++{
++	return 0;
++}
++
++static int dvb_usbv2_remote_exit(struct dvb_usb_device *d)
++{
++	return 0;
++}
++#endif
+ 
+ static void dvb_usb_data_complete(struct usb_data_stream *stream, u8 *buf,
+ 		size_t len)
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.11.7
 
