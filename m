@@ -1,130 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:47517 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751514Ab2KYO5P (ORCPT
+Received: from mail-da0-f46.google.com ([209.85.210.46]:63515 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753975Ab2K2Up2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Nov 2012 09:57:15 -0500
-Received: by mail-ee0-f46.google.com with SMTP id e53so4056493eek.19
-        for <linux-media@vger.kernel.org>; Sun, 25 Nov 2012 06:57:14 -0800 (PST)
-Message-ID: <50B231C8.9040807@gmail.com>
-Date: Sun, 25 Nov 2012 15:57:12 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Thu, 29 Nov 2012 15:45:28 -0500
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+To: linux-kernel@vger.kernel.org, tglx@linutronix.de
+Cc: backports@vger.kernel.org, alexander.stein@systec-electronic.com,
+	brudley@broadcom.com, rvossen@broadcom.com, arend@broadcom.com,
+	frankyl@broadcom.com, kanyan@broadcom.com,
+	linux-wireless@vger.kernel.org, brcm80211-dev-list@broadcom.com,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org,
+	dri-devel@lists.freedesktop.org, srinidhi.kasagar@stericsson.com,
+	linus.walleij@linaro.org,
+	"Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Subject: [PATCH 2/6] i915: convert struct spinlock to spinlock_t
+Date: Thu, 29 Nov 2012 12:45:06 -0800
+Message-Id: <1354221910-22493-3-git-send-email-mcgrof@do-not-panic.com>
+In-Reply-To: <1354221910-22493-1-git-send-email-mcgrof@do-not-panic.com>
+References: <1354221910-22493-1-git-send-email-mcgrof@do-not-panic.com>
 MIME-Version: 1.0
-To: Shaik Ameer Basha <shaik.samsung@gmail.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, patches@linaro.org
-Subject: Re: [PATCH v2 0/4] [media] exynos-gsc: Some fixes
-References: <1353668682-13366-1-git-send-email-sachin.kamat@linaro.org> <CAOD6ATpPKvG3H2Z3_XK+yozM3KC4kh5=70HM2hpMUYvPfpe_6w@mail.gmail.com>
-In-Reply-To: <CAOD6ATpPKvG3H2Z3_XK+yozM3KC4kh5=70HM2hpMUYvPfpe_6w@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks Shaik,
+From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
 
-Sachin, I've applied the last patch fixing the checkpatch.pl warning.
+spinlock_t should always be used.
 
-As for the remaining three, can you please squash them, together
-with following patch
+  LD      drivers/gpu/drm/i915/built-in.o
+  CHECK   drivers/gpu/drm/i915/i915_drv.c
+  CC [M]  drivers/gpu/drm/i915/i915_drv.o
+  CHECK   drivers/gpu/drm/i915/i915_dma.c
+  CC [M]  drivers/gpu/drm/i915/i915_dma.o
+  CHECK   drivers/gpu/drm/i915/i915_irq.c
+  CC [M]  drivers/gpu/drm/i915/i915_irq.o
+  CHECK   drivers/gpu/drm/i915/i915_debugfs.c
+drivers/gpu/drm/i915/i915_debugfs.c:558:31: warning: dereference of noderef expression
+drivers/gpu/drm/i915/i915_debugfs.c:558:39: warning: dereference of noderef expression
+drivers/gpu/drm/i915/i915_debugfs.c:558:51: warning: dereference of noderef expression
+drivers/gpu/drm/i915/i915_debugfs.c:558:63: warning: dereference of noderef expression
+  CC [M]  drivers/gpu/drm/i915/i915_debugfs.o
+  CHECK   drivers/gpu/drm/i915/i915_suspend.c
+  CC [M]  drivers/gpu/drm/i915/i915_suspend.o
+  CHECK   drivers/gpu/drm/i915/i915_gem.c
+drivers/gpu/drm/i915/i915_gem.c:3703:14: warning: incorrect type in assignment (different base types)
+drivers/gpu/drm/i915/i915_gem.c:3703:14:    expected unsigned int [unsigned] [usertype] mask
+drivers/gpu/drm/i915/i915_gem.c:3703:14:    got restricted gfp_t
+drivers/gpu/drm/i915/i915_gem.c:3706:22: warning: invalid assignment: &=
+drivers/gpu/drm/i915/i915_gem.c:3706:22:    left side has type unsigned int
+drivers/gpu/drm/i915/i915_gem.c:3706:22:    right side has type restricted gfp_t
+drivers/gpu/drm/i915/i915_gem.c:3707:22: warning: invalid assignment: |=
+drivers/gpu/drm/i915/i915_gem.c:3707:22:    left side has type unsigned int
+drivers/gpu/drm/i915/i915_gem.c:3707:22:    right side has type restricted gfp_t
+drivers/gpu/drm/i915/i915_gem.c:3711:39: warning: incorrect type in argument 2 (different base types)
+drivers/gpu/drm/i915/i915_gem.c:3711:39:    expected restricted gfp_t [usertype] mask
+drivers/gpu/drm/i915/i915_gem.c:3711:39:    got unsigned int [unsigned] [usertype] mask
+  CC [M]  drivers/gpu/drm/i915/i915_gem.o
+  CHECK   drivers/gpu/drm/i915/i915_gem_context.c
+  CC [M]  drivers/gpu/drm/i915/i915_gem_context.o
+  CHECK   drivers/gpu/drm/i915/i915_gem_debug.c
+  CC [M]  drivers/gpu/drm/i915/i915_gem_debug.o
+  CHECK   drivers/gpu/drm/i915/i915_gem_evict.c
+  CC [M]  drivers/gpu/drm/i915/i915_gem_evict.o
+  CHECK   drivers/gpu/drm/i915/i915_gem_execbuffer.c
+  CC [M]  drivers/gpu/drm/i915/i915_gem_execbuffer.o
+  CHECK   drivers/gpu/drm/i915/i915_gem_gtt.c
+  CC [M]  drivers/gpu/drm/i915/i915_gem_gtt.o
+  CHECK   drivers/gpu/drm/i915/i915_gem_stolen.c
+  CC [M]  drivers/gpu/drm/i915/i915_gem_stolen.o
+  CHECK   drivers/gpu/drm/i915/i915_gem_tiling.c
+  CC [M]  drivers/gpu/drm/i915/i915_gem_tiling.o
+  CHECK   drivers/gpu/drm/i915/i915_sysfs.c
+  CC [M]  drivers/gpu/drm/i915/i915_sysfs.o
+  CHECK   drivers/gpu/drm/i915/i915_trace_points.c
+  CC [M]  drivers/gpu/drm/i915/i915_trace_points.o
+  CHECK   drivers/gpu/drm/i915/intel_display.c
+drivers/gpu/drm/i915/intel_display.c:1736:9: warning: mixing different enum types
+drivers/gpu/drm/i915/intel_display.c:1736:9:     int enum transcoder  versus
+drivers/gpu/drm/i915/intel_display.c:1736:9:     int enum pipe
+drivers/gpu/drm/i915/intel_display.c:3659:48: warning: mixing different enum types
+drivers/gpu/drm/i915/intel_display.c:3659:48:     int enum pipe  versus
+drivers/gpu/drm/i915/intel_display.c:3659:48:     int enum transcoder
+  CC [M]  drivers/gpu/drm/i915/intel_display.o
+  CHECK   drivers/gpu/drm/i915/intel_crt.c
+  CC [M]  drivers/gpu/drm/i915/intel_crt.o
+  CHECK   drivers/gpu/drm/i915/intel_lvds.c
+  CC [M]  drivers/gpu/drm/i915/intel_lvds.o
+  CHECK   drivers/gpu/drm/i915/intel_bios.c
+drivers/gpu/drm/i915/intel_bios.c:706:60: warning: incorrect type in initializer (different address spaces)
+drivers/gpu/drm/i915/intel_bios.c:706:60:    expected struct vbt_header *vbt
+drivers/gpu/drm/i915/intel_bios.c:706:60:    got void [noderef] <asn:2>*vbt
+drivers/gpu/drm/i915/intel_bios.c:726:42: warning: incorrect type in argument 1 (different address spaces)
+drivers/gpu/drm/i915/intel_bios.c:726:42:    expected void const *<noident>
+drivers/gpu/drm/i915/intel_bios.c:726:42:    got unsigned char [noderef] [usertype] <asn:2>*
+drivers/gpu/drm/i915/intel_bios.c:727:40: warning: cast removes address space of expression
+drivers/gpu/drm/i915/intel_bios.c:738:24: warning: cast removes address space of expression
+  CC [M]  drivers/gpu/drm/i915/intel_bios.o
+  CHECK   drivers/gpu/drm/i915/intel_ddi.c
+drivers/gpu/drm/i915/intel_ddi.c:87:6: warning: symbol 'intel_prepare_ddi_buffers' was not declared. Should it be static?
+drivers/gpu/drm/i915/intel_ddi.c:1036:34: warning: mixing different enum types
+drivers/gpu/drm/i915/intel_ddi.c:1036:34:     int enum pipe  versus
+drivers/gpu/drm/i915/intel_ddi.c:1036:34:     int enum transcoder
+  CC [M]  drivers/gpu/drm/i915/intel_ddi.o
+drivers/gpu/drm/i915/intel_ddi.c: In function ‘intel_ddi_setup_hw_pll_state’:
+drivers/gpu/drm/i915/intel_ddi.c:1129:2: warning: ‘port’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+drivers/gpu/drm/i915/intel_ddi.c:1111:12: note: ‘port’ was declared here
+  CHECK   drivers/gpu/drm/i915/intel_dp.c
+  CC [M]  drivers/gpu/drm/i915/intel_dp.o
+  CHECK   drivers/gpu/drm/i915/intel_hdmi.c
+  CC [M]  drivers/gpu/drm/i915/intel_hdmi.o
+  CHECK   drivers/gpu/drm/i915/intel_sdvo.c
+  CC [M]  drivers/gpu/drm/i915/intel_sdvo.o
+  CHECK   drivers/gpu/drm/i915/intel_modes.c
+  CC [M]  drivers/gpu/drm/i915/intel_modes.o
+  CHECK   drivers/gpu/drm/i915/intel_panel.c
+  CC [M]  drivers/gpu/drm/i915/intel_panel.o
+  CHECK   drivers/gpu/drm/i915/intel_pm.c
+drivers/gpu/drm/i915/intel_pm.c:2173:1: warning: symbol 'mchdev_lock' was not declared. Should it be static?
+  CC [M]  drivers/gpu/drm/i915/intel_pm.o
+  CHECK   drivers/gpu/drm/i915/intel_i2c.c
+  CC [M]  drivers/gpu/drm/i915/intel_i2c.o
+  CHECK   drivers/gpu/drm/i915/intel_fb.c
+  CC [M]  drivers/gpu/drm/i915/intel_fb.o
+  CHECK   drivers/gpu/drm/i915/intel_tv.c
+  CC [M]  drivers/gpu/drm/i915/intel_tv.o
+  CHECK   drivers/gpu/drm/i915/intel_dvo.c
+  CC [M]  drivers/gpu/drm/i915/intel_dvo.o
+  CHECK   drivers/gpu/drm/i915/intel_ringbuffer.c
+  CC [M]  drivers/gpu/drm/i915/intel_ringbuffer.o
+  CHECK   drivers/gpu/drm/i915/intel_overlay.c
+  CC [M]  drivers/gpu/drm/i915/intel_overlay.o
+  CHECK   drivers/gpu/drm/i915/intel_sprite.c
+  CC [M]  drivers/gpu/drm/i915/intel_sprite.o
+  CHECK   drivers/gpu/drm/i915/intel_opregion.c
+  CC [M]  drivers/gpu/drm/i915/intel_opregion.o
+  CHECK   drivers/gpu/drm/i915/dvo_ch7xxx.c
+  CC [M]  drivers/gpu/drm/i915/dvo_ch7xxx.o
+  CHECK   drivers/gpu/drm/i915/dvo_ch7017.c
+  CC [M]  drivers/gpu/drm/i915/dvo_ch7017.o
+  CHECK   drivers/gpu/drm/i915/dvo_ivch.c
+  CC [M]  drivers/gpu/drm/i915/dvo_ivch.o
+  CHECK   drivers/gpu/drm/i915/dvo_tfp410.c
+  CC [M]  drivers/gpu/drm/i915/dvo_tfp410.o
+  CHECK   drivers/gpu/drm/i915/dvo_sil164.c
+  CC [M]  drivers/gpu/drm/i915/dvo_sil164.o
+  CHECK   drivers/gpu/drm/i915/dvo_ns2501.c
+  CC [M]  drivers/gpu/drm/i915/dvo_ns2501.o
+  CHECK   drivers/gpu/drm/i915/i915_gem_dmabuf.c
+  CC [M]  drivers/gpu/drm/i915/i915_gem_dmabuf.o
+  CHECK   drivers/gpu/drm/i915/i915_ioc32.c
+  CC [M]  drivers/gpu/drm/i915/i915_ioc32.o
+  CHECK   drivers/gpu/drm/i915/intel_acpi.c
+  CC [M]  drivers/gpu/drm/i915/intel_acpi.o
+  LD [M]  drivers/gpu/drm/i915/i915.o
+  Building modules, stage 2.
+  MODPOST 1 modules
+  CC      drivers/gpu/drm/i915/i915.mod.o
+  LD [M]  drivers/gpu/drm/i915/i915.ko
 
- From cb7b42d2089206c8134fa195c0d1f4145fcb4f72 Mon Sep 17 00:00:00 2001
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Date: Sun, 25 Nov 2012 14:16:02 +0100
-Subject: [PATCH] exynos-gsc: Correct clock handling
-
-Make sure there is no unbalanced clk_unprepare call and add missing
-clock release in the driver's remove() callback.
-
-Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: intel-gfx@lists.freedesktop.org
+Cc: dri-devel@lists.freedesktop.org
+Reported-by: Hauke Mehrtens <hauke@hauke-m.de>
+Signed-off-by: Luis R. Rodriguez <mcgrof@do-not-panic.com>
 ---
-  drivers/media/platform/exynos-gsc/gsc-core.c |    9 +++++----
-  1 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/gpu/drm/i915/i915_drv.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c 
-b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 5a285b2..0c22ad5 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1002,10 +1002,8 @@ static void *gsc_get_drv_data(struct 
-platform_device *pdev)
-
-  static void gsc_clk_put(struct gsc_dev *gsc)
-  {
--	if (IS_ERR_OR_NULL(gsc->clock))
--		return;
--
--	clk_unprepare(gsc->clock);
-+	if (!IS_ERR(gsc->clock))
-+		clk_unprepare(gsc->clock);
-  }
-
-  static int gsc_clk_get(struct gsc_dev *gsc)
-@@ -1025,6 +1023,7 @@ static int gsc_clk_get(struct gsc_dev *gsc)
-  	if (ret < 0) {
-  		dev_err(&gsc->pdev->dev, "clock prepare failed for clock: %s\n",
-  			GSC_CLOCK_GATE_NAME);
-+		gsc->clock = ERR_PTR(-EINVAL);
-  		return ret;
-  	}
-
-@@ -1097,6 +1096,7 @@ static int gsc_probe(struct platform_device *pdev)
-  	init_waitqueue_head(&gsc->irq_queue);
-  	spin_lock_init(&gsc->slock);
-  	mutex_init(&gsc->lock);
-+	gsc->clock = ERR_PTR(-EINVAL);
-
-  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-  	gsc->regs = devm_request_and_ioremap(dev, res);
-@@ -1160,6 +1160,7 @@ static int __devexit gsc_remove(struct 
-platform_device *pdev)
-
-  	vb2_dma_contig_cleanup_ctx(gsc->alloc_ctx);
-  	pm_runtime_disable(&pdev->dev);
-+	gsc_clk_put(gsc);
-
-  	dev_dbg(&pdev->dev, "%s driver unloaded\n", pdev->name);
-  	return 0;
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index 4b83e5f..ef5f33c 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -628,7 +628,7 @@ typedef struct drm_i915_private {
+ 	/** forcewake_count is protected by gt_lock */
+ 	unsigned forcewake_count;
+ 	/** gt_lock is also taken in irq contexts. */
+-	struct spinlock gt_lock;
++	spinlock_t gt_lock;
+ 
+ 	struct intel_gmbus gmbus[GMBUS_NUM_PORTS];
+ 
+@@ -1128,7 +1128,7 @@ struct drm_i915_gem_request {
+ 
+ struct drm_i915_file_private {
+ 	struct {
+-		struct spinlock lock;
++		spinlock_t lock;
+ 		struct list_head request_list;
+ 	} mm;
+ 	struct idr context_idr;
 -- 
-1.7.4.1
+1.7.10.4
 
-And then maybe create 2 patches out of it, one adding missing gsc_clk_put()
-in the gsc_remove() callback and the other converting to devm_clk_get() ?
-
-I don't like how one of these patches adds something that is mostly removed
-in subsequent one. This is just unneeded churn that makes the changes more
-difficult to follow.
-
-Thanks,
-Sylwester
-
-On 11/25/2012 08:00 AM, Shaik Ameer Basha wrote:
-> Hi Sylwester,
->
-> I tested this patch series. Looks good to me.
->
-> Thanks,
-> Shaik Ameer Basha
->
-> On Fri, Nov 23, 2012 at 4:34 PM, Sachin Kamat<sachin.kamat@linaro.org>  wrote:
->> Changes since v1:
->> Removed the label 'err' from function gsc_clk_get as suggested
->> by Sylwester Nawrocki<s.nawrocki@samsung.com>  in patch 3/4.
->> Other patches remain the same.
->>
->> Patch series build tested and based on samsung/for_v3.8 branch of
->> git://linuxtv.org/snawrocki/media.git.
->>
->> Sachin Kamat (4):
->>    [media] exynos-gsc: Rearrange error messages for valid prints
->>    [media] exynos-gsc: Remove gsc_clk_put call from gsc_clk_get
->>    [media] exynos-gsc: Use devm_clk_get()
->>    [media] exynos-gsc: Fix checkpatch warning in gsc-m2m.c
->>
->>   drivers/media/platform/exynos-gsc/gsc-core.c |   21 ++++++++-------------
->>   drivers/media/platform/exynos-gsc/gsc-m2m.c  |    2 +-
->>   2 files changed, 9 insertions(+), 14 deletions(-)
->>
->> --
->> 1.7.4.1
