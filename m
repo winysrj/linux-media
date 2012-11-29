@@ -1,65 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:53582 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751864Ab2KXRpe (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3640 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753747Ab2K2S0e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Nov 2012 12:45:34 -0500
-Received: by mail-qc0-f174.google.com with SMTP id o22so6871697qcr.19
-        for <linux-media@vger.kernel.org>; Sat, 24 Nov 2012 09:45:34 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <50B1047B.4040901@gmail.com>
-References: <50B1047B.4040901@gmail.com>
-Date: Sat, 24 Nov 2012 12:45:33 -0500
-Message-ID: <CAGoCfiwpj5ua79wOp8_CZfD_O9EOG7PAA4wE3L4n3-d-+FEhVg@mail.gmail.com>
-Subject: Re: Poor HVR 1600 Video Quality
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Bob Lightfoot <boblfoot@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 29 Nov 2012 13:26:34 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id qATIQVoX061621
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Thu, 29 Nov 2012 19:26:33 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id C695265A0030
+	for <linux-media@vger.kernel.org>; Thu, 29 Nov 2012 19:26:31 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20121129182631.C695265A0030@alastor.dyndns.org>
+Date: Thu, 29 Nov 2012 19:26:31 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 24, 2012 at 12:31 PM, Bob Lightfoot <boblfoot@gmail.com> wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->
-> Dear Linux Media Community:
->     I am struggling with what has changed in recent {past 6-9 months} of
-> kernel releases as related to the HVR-1600 Tuner Card and Analog Signal
-> processing.  I spent the bulk of today going through my video chain
-> feeding into the HVR-1600 and tried multiple sources all of which
-> provide good video and sound when fed into a Sanyo TV bought in the
-> 1990s.  They all produce recordings similar to the attached file.
-> It almost looks like noise on the system and I am beginning to suspect
-> my card may be hosed on the analog side.  Just looking for any thing I
-> may have missed while RTFM and Google.  I'd share a 1 minute sample
-> capture but 30.5 mb is too large to attach to a google email and I'm not
-> sure where to drop a sample file for others to download and check out.
-> It should be noted analog video was fine, but sound was intermittent
-> with the kernels and drivers in use back in May.  Now the sound it rock
-> solid, but the video has gone noisy.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-A few questions,
+Results of the daily build of media_tree:
 
-Which version of the HVR-1600 do you have?  Could you provide the
-exact PCI ID, vendor ID, and subsystem ID?
+date:        Thu Nov 29 19:00:10 CET 2012
+git hash:    d8658bca2e5696df2b6c69bc5538f8fe54e4a01e
+gcc version:      i686-linux-gcc (GCC) 4.7.1
+host hardware:    x86_64
+host os:          3.4.07-marune
 
-Can you post the 1-minute video to a website where it can be downloaded?
+linux-git-arm-eabi-davinci: WARNINGS
+linux-git-arm-eabi-exynos: OK
+linux-git-arm-eabi-omap: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: WARNINGS
+linux-git-x86_64: OK
+linux-2.6.31.12-i686: ERRORS
+linux-2.6.32.6-i686: ERRORS
+linux-2.6.33-i686: ERRORS
+linux-2.6.34-i686: ERRORS
+linux-2.6.35.3-i686: ERRORS
+linux-2.6.36-i686: ERRORS
+linux-2.6.37-i686: ERRORS
+linux-2.6.38.2-i686: ERRORS
+linux-2.6.39.1-i686: ERRORS
+linux-3.0-i686: ERRORS
+linux-3.1-i686: ERRORS
+linux-3.2.1-i686: ERRORS
+linux-3.3-i686: ERRORS
+linux-3.4-i686: ERRORS
+linux-3.5-i686: ERRORS
+linux-3.6-i686: ERRORS
+linux-3.7-rc1-i686: ERRORS
+linux-2.6.31.12-x86_64: ERRORS
+linux-2.6.32.6-x86_64: ERRORS
+linux-2.6.33-x86_64: ERRORS
+linux-2.6.34-x86_64: ERRORS
+linux-2.6.35.3-x86_64: ERRORS
+linux-2.6.36-x86_64: ERRORS
+linux-2.6.37-x86_64: ERRORS
+linux-2.6.38.2-x86_64: ERRORS
+linux-2.6.39.1-x86_64: ERRORS
+linux-3.0-x86_64: ERRORS
+linux-3.1-x86_64: ERRORS
+linux-3.2.1-x86_64: ERRORS
+linux-3.3-x86_64: ERRORS
+linux-3.4-x86_64: ERRORS
+linux-3.5-x86_64: ERRORS
+linux-3.6-x86_64: ERRORS
+linux-3.7-rc1-x86_64: ERRORS
+apps: WARNINGS
+spec-git: WARNINGS
+sparse: ERRORS
 
-Are you using the coax input?  Composite?  S-video?  If you're using
-the coax input, it would be good just as a test for you to try the
-s-video input, as that would help rule out various problems that could
-be introduced by the tuner and demodulation phases.
+Detailed results are available here:
 
-Are you capturing MPEG compressed video or raw?  The HVR-1600 supports both.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-Are you familiar enough with compiling kernels that you could bisect
-this down to a specific commit which introduces the problem?
+Full logs are available here:
 
-What application(s) are you testing with?
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-Devin
+The V4L-DVB specification from this daily build is here:
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+http://www.xs4all.nl/~hverkuil/spec/media.html
