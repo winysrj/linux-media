@@ -1,50 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44895 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752488Ab2K3Jro (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Nov 2012 04:47:44 -0500
-Date: Fri, 30 Nov 2012 11:47:39 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	devel@driverdev.osuosl.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v3 0/9] Media Controller capture driver for DM365
-Message-ID: <20121130094739.GJ31879@valkosipuli.retiisi.org.uk>
-References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:35965 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753039Ab2K2N4C (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Nov 2012 08:56:02 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id qATDu1QQ032355
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 29 Nov 2012 08:56:01 -0500
+Received: from shalem.localdomain (vpn1-4-237.ams2.redhat.com [10.36.4.237])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id qATDtxu3029598
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 29 Nov 2012 08:56:00 -0500
+Message-ID: <50B769EC.8020707@redhat.com>
+Date: Thu, 29 Nov 2012 14:58:04 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT FIXES FOR 3.8] Various USB webcam fixes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 28, 2012 at 04:12:00PM +0530, Prabhakar Lad wrote:
-> From: Manjunath Hadli <manjunath.hadli@ti.com>
-> 
-> Mauro/Greg,
->  The below series of patches have gone through good amount of reviews, and
-> agreed by Laurent, Hans and Sakari to be part of the staging tree. I am combining
-> the patchs with the pull request so we can get them into the 3.8 kernel.
-> Please pull these patches.If you want a seperate pull request, please let me
-> know.
-> 
-> This patch set adds media controller based capture driver for
-> DM365.
+Hi Mauro,
 
-For the whole set --- granted that the TODO item to "add support for regular
-V4L2 applications through user space libraries" is added:
+Please pull from my tree for some assorted USB webcam fixes for 3.8
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+The following changes since commit d8658bca2e5696df2b6c69bc5538f8fe54e4a01e:
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+   [media] omap3isp: Replace cpu_is_omap3630() with ISP revision check (2012-11-28 10:54:46 -0200)
+
+are available in the git repository at:
+
+   git://linuxtv.org/hgoede/gspca.git media-for_v3.8
+
+for you to fetch changes up to 325b64b6cb9090c1bc7cda5444f84b2c00acf926:
+
+   Documentation/media: Remove docs for obsoleted and removed v4l1 drivers (2012-11-29 11:29:48 +0100)
+
+----------------------------------------------------------------
+Hans de Goede (3):
+       gspca-pac207: Add a led_invert module parameter
+       stk-webcam: Add an upside down dmi table, and add the Asus G1 to it
+       Documentation/media: Remove docs for obsoleted and removed v4l1 drivers
+
+Jean-François Moine (1):
+       gspca - stv06xx: Fix a regression with the bridge/sensor vv6410
+
+  Documentation/video4linux/et61x251.txt           | 315 ----------------
+  Documentation/video4linux/ibmcam.txt             | 323 ----------------
+  Documentation/video4linux/m5602.txt              |  12 -
+  Documentation/video4linux/ov511.txt              | 288 --------------
+  Documentation/video4linux/se401.txt              |  54 ---
+  Documentation/video4linux/stv680.txt             |  53 ---
+  Documentation/video4linux/w9968cf.txt            | 458 -----------------------
+  Documentation/video4linux/zc0301.txt             | 270 -------------
+  drivers/media/usb/gspca/pac207.c                 |  32 +-
+  drivers/media/usb/gspca/stv06xx/stv06xx_vv6410.c |   4 +
+  drivers/media/usb/stkwebcam/stk-webcam.c         |  56 ++-
+  11 files changed, 76 insertions(+), 1789 deletions(-)
+  delete mode 100644 Documentation/video4linux/et61x251.txt
+  delete mode 100644 Documentation/video4linux/ibmcam.txt
+  delete mode 100644 Documentation/video4linux/m5602.txt
+  delete mode 100644 Documentation/video4linux/ov511.txt
+  delete mode 100644 Documentation/video4linux/se401.txt
+  delete mode 100644 Documentation/video4linux/stv680.txt
+  delete mode 100644 Documentation/video4linux/w9968cf.txt
+  delete mode 100644 Documentation/video4linux/zc0301.txt
+
+Thanks & Regards,
+
+Hans
