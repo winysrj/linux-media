@@ -1,93 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42203 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751428Ab2KVXxu (ORCPT
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:64658 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752947Ab2K2P3T (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Nov 2012 18:53:50 -0500
-Date: Fri, 23 Nov 2012 01:53:45 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	laurent.pinchard@ideasonboard.com
-Subject: Re: [PATCH v2 00/12] Media Controller capture driver for DM365
-Message-ID: <20121122235344.GD31442@valkosipuli.retiisi.org.uk>
-References: <1353077114-19296-1-git-send-email-prabhakar.lad@ti.com>
+	Thu, 29 Nov 2012 10:29:19 -0500
+Received: by mail-ie0-f174.google.com with SMTP id k11so12214504iea.19
+        for <linux-media@vger.kernel.org>; Thu, 29 Nov 2012 07:29:19 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1353077114-19296-1-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <CALF0-+X0yyQEw+jJCxuQO18gDagtyX-RZW_kurMPS69RQHNPMA@mail.gmail.com>
+References: <k93vu3$ffi$1@ger.gmane.org>
+	<CALF0-+VkANRj+by2n-=UsxZfJwk97ZkNS8R0C-Vt2oX7WN3R0A@mail.gmail.com>
+	<50B60D54.4010302@interlinx.bc.ca>
+	<CALF0-+UHOJDh471aa7URKr1-xbggrbDdg_nDijv2FOUpo=3zaw@mail.gmail.com>
+	<50B69C08.7050401@interlinx.bc.ca>
+	<CALF0-+X0yyQEw+jJCxuQO18gDagtyX-RZW_kurMPS69RQHNPMA@mail.gmail.com>
+Date: Thu, 29 Nov 2012 12:29:18 -0300
+Message-ID: <CALF0-+XStqJEiPaQjrBu74of9BYRJZS-9F6F7YzgE3LU6x+TVQ@mail.gmail.com>
+Subject: Re: ivtv driver inputs randomly "block"
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Brian Murrell <brian@interlinx.bc.ca>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar and others,
+Hi Brian,
 
-On Fri, Nov 16, 2012 at 08:15:02PM +0530, Prabhakar Lad wrote:
-> From: Manjunath Hadli <manjunath.hadli@ti.com>
-> 
-> This patch set adds media controller based capture driver for
-> DM365.
-> 
-> This driver bases its design on Laurent Pinchart's Media Controller Design
-> whose patches for Media Controller and subdev enhancements form the base.
-> The driver also takes copious elements taken from Laurent Pinchart and
-> others' OMAP ISP driver based on Media Controller. So thank you all the
-> people who are responsible for the Media Controller and the OMAP ISP driver.
-> 
-> Also, the core functionality of the driver comes from the arago vpfe capture
-> driver of which the isif capture was based on V4L2, with other drivers like
-> ipipe, ipipeif and Resizer.
-> 
-> Changes for v2:
-> 1: Migrated the driver for videobuf2 usage pointed Hans.
-> 2: Changed the design as pointed by Laurent, Exposed one more subdevs
->    ipipeif and split the resizer subdev into three subdevs.
-> 3: Rearrganed the patch sequence and changed the commit messages.
-> 4: Changed the file architecture as pointed by Laurent.
-> 
-> Manjunath Hadli (12):
->   davinci: vpfe: add v4l2 capture driver with media interface
->   davinci: vpfe: add v4l2 video driver support
->   davinci: vpfe: dm365: add IPIPEIF driver based on media framework
->   davinci: vpfe: dm365: add ISIF driver based on media framework
->   davinci: vpfe: dm365: add IPIPE support for media controller driver
->   davinci: vpfe: dm365: add IPIPE hardware layer support
->   davinci: vpfe: dm365: resizer driver based on media framework
->   davinci: vpss: dm365: enable ISP registers
->   davinci: vpss: dm365: set vpss clk ctrl
->   davinci: vpss: dm365: add vpss helper functions to be used in the
->     main driver for setting hardware parameters
->   davinci: vpfe: dm365: add build infrastructure for capture driver
->   davinci: vpfe: Add documentation
+See my comments below.
 
-As discussed, here's the todo list for inclusion to staging.
+On Wed, Nov 28, 2012 at 8:19 PM, Brian J. Murrell <brian@interlinx.bc.ca> wrote:
+> On 12-11-28 08:13 AM, Ezequiel Garcia wrote:
+>>
+>> Try again with
+>> modprobe ivtv ivtv_debug=10
+>
+> OK.  Happened again.  The kernel log for the whole day since starting
+> the module with debug this morning can be found at
+> http://brian.interlinx.bc.ca/ivtv-dmesg.txt.bz2.
+>
+> Associated with that log there was a successful recording from 09:00:00
+> until 10:00:00 then another successful recording from 14:00:00 until
+> 15:00:00 and then failed recordings starting at 15:00:00 until 18:00:00.
+>
+> The log cuts off just short of 18:00:00 but there's nothing different
+> about the pattern from the end of the log until 18:00:04 from the
+> previous 3 hours or so.
+>
+> It seems that the problem lies in amongst the start of these lines from
+> the log, as my best guess:
+>
+> Nov 28 15:00:05 cmurrell kernel: [868297.536049] ivtv0 encoder MPG: VIDIOC_ENCODER_CMD cmd=0, flags=0
+> Nov 28 15:00:07 cmurrell kernel: [868300.039324] ivtv0:  ioctl: V4L2_ENC_CMD_STOP
+> Nov 28 15:00:07 cmurrell kernel: [868300.039330] ivtv0:  info: close stopping capture
+> Nov 28 15:00:07 cmurrell kernel: [868300.039334] ivtv0:  info: Stop Capture
+> Nov 28 15:00:09 cmurrell kernel: [868302.140151] ivtv0 encoder MPG: VIDIOC_ENCODER_CMD cmd=1, flags=1
+> Nov 28 15:00:09 cmurrell kernel: [868302.148093] ivtv0:  ioctl: V4L2_ENC_CMD_START
+> Nov 28 15:00:09 cmurrell kernel: [868302.148101] ivtv0:  info: Start encoder stream encoder MPG
+> Nov 28 15:00:09 cmurrell kernel: [868302.188580] ivtv0:  info: Setup VBI API header 0x0000bd03 pkts 1 buffs 4 ln 24 sz 1456
+> Nov 28 15:00:09 cmurrell kernel: [868302.188655] ivtv0:  info: Setup VBI start 0x002fea04 frames 4 fpi 1
+> Nov 28 15:00:09 cmurrell kernel: [868302.191952] ivtv0:  info: PGM Index at 0x00180150 with 400 elements
+> Nov 28 15:00:10 cmurrell kernel: [868302.544052] ivtv0 encoder MPG: VIDIOC_ENCODER_CMD cmd=0, flags=0
+> Nov 28 15:00:12 cmurrell kernel: [868305.047260] ivtv0:  ioctl: V4L2_ENC_CMD_STOP
+> Nov 28 15:00:12 cmurrell kernel: [868305.047265] ivtv0:  info: close stopping capture
+> Nov 28 15:00:12 cmurrell kernel: [868305.047270] ivtv0:  info: Stop Capture
+> ...
+>
+> FWIW, the recording software here is MythTV completely up to date on the
+> 0.25-fixes branch.
+>
+> Thoughts?
+>
 
-- User space interface refinement
-	- Controls should be used when possible rather than private ioctl
-	- No enums should be used
-	- Use of MC and V4L2 subdev APIs when applicable
-	- Single interface header might suffice
-	- Current interface forces to configure everything at once
-- Get rid of the dm365_ipipe_hw.[ch] layer
-- Active external sub-devices defined by link configuration; no strcmp
-  needed
-- More generic platform data (i2c adapters)
-- The driver should have no knowledge of possible external subdevs; see
-  struct vpfe_subdev_id
-- Some of the hardware control should be refactorede
-- Check proper serialisation (through mutexes and spinlocks)
-- Names that are visible in kernel global namespace should have a common
-  prefix (or a few)
+Mmm, the log shows this repeating pattern:
 
-This list likely isn't complete, but some items such as the locking one is
-there simply because I'm not certain of the state of it.
+---
+Nov 28 17:54:46 cmurrell kernel: [878779.229702] ivtv0:  info: Setup
+VBI start 0x002fea04 frames 4 fpi 1
+Nov 28 17:54:46 cmurrell kernel: [878779.233129] ivtv0:  info: PGM
+Index at 0x00180150 with 400 elements
+Nov 28 17:54:47 cmurrell kernel: [878779.556039] ivtv0 encoder MPG:
+VIDIOC_ENCODER_CMD cmd=0, flags=0
+Nov 28 17:54:49 cmurrell kernel: [878782.059204] ivtv0:  ioctl:
+V4L2_ENC_CMD_STOP
+Nov 28 17:54:49 cmurrell kernel: [878782.059209] ivtv0:  info: close
+stopping capture
+Nov 28 17:54:49 cmurrell kernel: [878782.059214] ivtv0:  info: Stop Capture
+Nov 28 17:54:51 cmurrell kernel: [878784.156135] ivtv0 encoder MPG:
+VIDIOC_ENCODER_CMD cmd=1, flags=1
+Nov 28 17:54:51 cmurrell kernel: [878784.166157] ivtv0:  ioctl:
+V4L2_ENC_CMD_START
+Nov 28 17:54:51 cmurrell kernel: [878784.166165] ivtv0:  info: Start
+encoder stream encoder MPG
+---
 
--- 
-Kind regards,
+And from 15:00 to 18:00 recording fails?
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Perhaps it would make sense to restart application upon driver failure,
+now that output is more verbose.
+
+Regards,
+
+    Ezequiel
+
+PS: Please don't drop linux-media list from Cc
