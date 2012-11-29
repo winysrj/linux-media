@@ -1,53 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43603 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751661Ab2KGXRN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Nov 2012 18:17:13 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] dvb_usb_v2: switch interruptible mutex to normal
-Date: Thu,  8 Nov 2012 01:16:40 +0200
-Message-Id: <1352330200-4850-1-git-send-email-crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50217 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751141Ab2K2JfQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Nov 2012 04:35:16 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: hvaibhav@ti.com, linux-media@vger.kernel.org,
+	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
+	Archit Taneja <archit@ti.com>
+Subject: Re: [PATCH 0/2] omap_vout: remove cpu_is_* uses
+Date: Thu, 29 Nov 2012 10:36:19 +0100
+Message-ID: <4208124.v72gFsjH2D@avalon>
+In-Reply-To: <50B72B34.6080808@ti.com>
+References: <1352727220-22540-1-git-send-email-tomi.valkeinen@ti.com> <1421983.jJNXU7RvjW@avalon> <50B72B34.6080808@ti.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="nextPart1920695.VqbvWLCQEz"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7Bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes error: dvb_usb_v2: pid_filter() failed=-4
 
-error code -4 is EINTR, Interrupted system call
+--nextPart1920695.VqbvWLCQEz
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 
-That error blocks I/O in some cases as -EINTR error was returned
-by the mutex which was protecting USB control messages. We want
-configure hardware to sleep mode on every case after tuning is
-stopped. That kind of behavior is blocks it, leaving hardware some
-unwanted state in worst case.
+Hi Tomi,
 
-That error was seen every time when af9015 was plugged to USB1.1
-which leads use of hardware PID filters. Stop tuning (tzap) with
-ctrl+c failed as driver tries to remove hardware PID filters.
+On Thursday 29 November 2012 11:30:28 Tomi Valkeinen wrote:
+> On 2012-11-28 17:13, Laurent Pinchart wrote:
+> > On Monday 12 November 2012 15:33:38 Tomi Valkeinen wrote:
+> >> Hi,
+> >> 
+> >> This patch removes use of cpu_is_* funcs from omap_vout, and uses
+> >> omapdss's version instead. The other patch removes an unneeded plat/dma.h
+> >> include.
+> >> 
+> >> These are based on current omapdss master branch, which has the omapdss
+> >> version code. The omapdss version code is queued for v3.8. I'm not sure
+> >> which is the best way to handle these patches due to the dependency to
+> >> omapdss. The easiest option is to merge these for 3.9.
+> >> 
+> >> There's still the OMAP DMA use in omap_vout_vrfb.c, which is the last
+> >> OMAP dependency in the omap_vout driver. I'm not going to touch that, as
+> >> it doesn't look as trivial as this cpu_is_* removal, and I don't have
+> >> much knowledge of the omap_vout driver.
+> >> 
+> >> Compiled, but not tested.
+> > 
+> > Tested on a Beagleboard-xM.
+> > 
+> > Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> Thanks.
+> 
+> > The patches depend on unmerged OMAP DSS patches. Would you like to push
+> > this series through linuxtv or through your DSS tree ? The later might be
+> > easier, depending on when the required DSS patches will hit mainline.
+> 
+> The DSS patches will be merged for 3.8. I can take this via the omapdss
+> tree, as there probably won't be any conflicts with other v4l2 stuff.
+> 
+> Or, we can just delay these until 3.9. These patches remove omap
+> platform dependencies, helping the effort to get common ARM kernel.
+> However, as there's still the VRFB code in the omap_vout driver, the
+> dependency remains. Thus, in way, these patches alone don't help
+> anything, and we could delay these for 3.9 and hope that
+> omap_vout_vrfb.c gets converted also for that merge window.
 
-Tested with every hardware which uses routine in question.
+OK, I'll queue them for v3.9 then.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c
-index 0431bee..5716662 100644
---- a/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c
-@@ -32,9 +32,7 @@ int dvb_usbv2_generic_rw(struct dvb_usb_device *d, u8 *wbuf, u16 wlen, u8 *rbuf,
- 		return -EINVAL;
- 	}
- 
--	ret = mutex_lock_interruptible(&d->usb_mutex);
--	if (ret < 0)
--		return ret;
-+	mutex_lock(&d->usb_mutex);
- 
- 	dev_dbg(&d->udev->dev, "%s: >>> %*ph\n", __func__, wlen, wbuf);
- 
 -- 
-1.7.11.7
+Regards,
+
+Laurent Pinchart
+
+--nextPart1920695.VqbvWLCQEz
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQEcBAABAgAGBQJQtyyTAAoJEIkPb2GL7hl1VP4H/0XrPiUBRVgIYf/HIKUC+TfO
+V9nlfnHe3DFRNwvcNfLlimQyTa1eCohmB94fryK1ZuJrKdNsNknwNWzphgZg3V44
+6GyqJ51mWShALHj9/DUztdfJd7xk3u870FDV/3wtTcuVkPrSAUSuXXZSTOuidm8I
+Ddvpoh5OJAuRtzoydm40yHemCTLoPpB3Ue3K5kCqxxszDT/OUcmFH2pPdKOvJ5be
+GTJ/vLpT4YQ0OZoQ3Z4WTInzOr0XCVNZMCo4GFA+H8DaZ+BdUrpj0DuSa7+JDImx
+Nb5UJ47uM63mKupHFrfOFcbKAXIcClhEn9KjE6M+iRWtPdOWU9S3s/0IXCZK8TA=
+=CYI2
+-----END PGP SIGNATURE-----
+
+--nextPart1920695.VqbvWLCQEz--
 
