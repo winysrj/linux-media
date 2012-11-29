@@ -1,42 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:58817 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756572Ab2KHTqD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Nov 2012 14:46:03 -0500
-Received: by mail-la0-f46.google.com with SMTP id h6so2409253lag.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Nov 2012 11:46:02 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <509BFBF5.7050209@googlemail.com>
-References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
-	<1352398313-3698-22-git-send-email-fschaefer.oss@googlemail.com>
-	<CAGoCfiwHviRd8-tsmwxf8=eLbiapUwnrvCM2qB2M5skiqXMNVw@mail.gmail.com>
-	<509BFBF5.7050209@googlemail.com>
-Date: Thu, 8 Nov 2012 14:46:02 -0500
-Message-ID: <CAGoCfiy5wZUajtDiF53gaDED5MCUrsdabQicbrq+RG3dGU0D_A@mail.gmail.com>
-Subject: Re: [PATCH v2 21/21] em28xx: add module parameter for selection of
- the preferred USB transfer type
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:56472 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751034Ab2K2PuW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Nov 2012 10:50:22 -0500
+Subject: Re: ivtv driver inputs randomly "block"
+From: Andy Walls <awalls@md.metrocast.net>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: Brian Murrell <brian@interlinx.bc.ca>,
+	linux-media <linux-media@vger.kernel.org>
+Date: Thu, 29 Nov 2012 10:50:17 -0500
+In-Reply-To: <CALF0-+XStqJEiPaQjrBu74of9BYRJZS-9F6F7YzgE3LU6x+TVQ@mail.gmail.com>
+References: <k93vu3$ffi$1@ger.gmane.org>
+	 <CALF0-+VkANRj+by2n-=UsxZfJwk97ZkNS8R0C-Vt2oX7WN3R0A@mail.gmail.com>
+	 <50B60D54.4010302@interlinx.bc.ca>
+	 <CALF0-+UHOJDh471aa7URKr1-xbggrbDdg_nDijv2FOUpo=3zaw@mail.gmail.com>
+	 <50B69C08.7050401@interlinx.bc.ca>
+	 <CALF0-+X0yyQEw+jJCxuQO18gDagtyX-RZW_kurMPS69RQHNPMA@mail.gmail.com>
+	 <CALF0-+XStqJEiPaQjrBu74of9BYRJZS-9F6F7YzgE3LU6x+TVQ@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1354204218.2505.13.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 8, 2012 at 1:37 PM, Frank Schäfer
-<fschaefer.oss@googlemail.com> wrote:
-> at least the "Silvercrest Webcam 1.3mpix" (board 71) exposes both
-> endpoint types (0x82=isoc and 0x84=bulk).
+On Thu, 2012-11-29 at 12:29 -0300, Ezequiel Garcia wrote:
+> Hi Brian,
+> 
+> See my comments below.
+> 
+> On Wed, Nov 28, 2012 at 8:19 PM, Brian J. Murrell <brian@interlinx.bc.ca> wrote:
+> > On 12-11-28 08:13 AM, Ezequiel Garcia wrote:
+> >>
+> >> Try again with
+> >> modprobe ivtv ivtv_debug=10
+> >
+> > OK.  Happened again.  The kernel log for the whole day since starting
+> > the module with debug this morning can be found at
+> > http://brian.interlinx.bc.ca/ivtv-dmesg.txt.bz2.
+> >
+> > Associated with that log there was a successful recording from 09:00:00
+> > until 10:00:00 then another successful recording from 14:00:00 until
+> > 15:00:00 and then failed recordings starting at 15:00:00 until 18:00:00.
+> >
+> > The log cuts off just short of 18:00:00 but there's nothing different
+> > about the pattern from the end of the log until 18:00:04 from the
+> > previous 3 hours or so.
+> >
+> > It seems that the problem lies in amongst the start of these lines from
+> > the log, as my best guess:
+> >
+> > Nov 28 15:00:05 cmurrell kernel: [868297.536049] ivtv0 encoder MPG: VIDIOC_ENCODER_CMD cmd=0, flags=0
+> > Nov 28 15:00:07 cmurrell kernel: [868300.039324] ivtv0:  ioctl: V4L2_ENC_CMD_STOP
+> > Nov 28 15:00:07 cmurrell kernel: [868300.039330] ivtv0:  info: close stopping capture
+> > Nov 28 15:00:07 cmurrell kernel: [868300.039334] ivtv0:  info: Stop Capture
+> > Nov 28 15:00:09 cmurrell kernel: [868302.140151] ivtv0 encoder MPG: VIDIOC_ENCODER_CMD cmd=1, flags=1
+> > Nov 28 15:00:09 cmurrell kernel: [868302.148093] ivtv0:  ioctl: V4L2_ENC_CMD_START
+> > Nov 28 15:00:09 cmurrell kernel: [868302.148101] ivtv0:  info: Start encoder stream encoder MPG
+> > Nov 28 15:00:09 cmurrell kernel: [868302.188580] ivtv0:  info: Setup VBI API header 0x0000bd03 pkts 1 buffs 4 ln 24 sz 1456
+> > Nov 28 15:00:09 cmurrell kernel: [868302.188655] ivtv0:  info: Setup VBI start 0x002fea04 frames 4 fpi 1
+> > Nov 28 15:00:09 cmurrell kernel: [868302.191952] ivtv0:  info: PGM Index at 0x00180150 with 400 elements
+> > Nov 28 15:00:10 cmurrell kernel: [868302.544052] ivtv0 encoder MPG: VIDIOC_ENCODER_CMD cmd=0, flags=0
+> > Nov 28 15:00:12 cmurrell kernel: [868305.047260] ivtv0:  ioctl: V4L2_ENC_CMD_STOP
+> > Nov 28 15:00:12 cmurrell kernel: [868305.047265] ivtv0:  info: close stopping capture
+> > Nov 28 15:00:12 cmurrell kernel: [868305.047270] ivtv0:  info: Stop Capture
+> > ...
+> >
+> > FWIW, the recording software here is MythTV completely up to date on the
+> > 0.25-fixes branch.
+> >
+> > Thoughts?
+> >
+> 
+> Mmm, the log shows this repeating pattern:
+> 
+> ---
+> Nov 28 17:54:46 cmurrell kernel: [878779.229702] ivtv0:  info: Setup
+> VBI start 0x002fea04 frames 4 fpi 1
+> Nov 28 17:54:46 cmurrell kernel: [878779.233129] ivtv0:  info: PGM
+> Index at 0x00180150 with 400 elements
+> Nov 28 17:54:47 cmurrell kernel: [878779.556039] ivtv0 encoder MPG:
+> VIDIOC_ENCODER_CMD cmd=0, flags=0
+> Nov 28 17:54:49 cmurrell kernel: [878782.059204] ivtv0:  ioctl:
+> V4L2_ENC_CMD_STOP
+> Nov 28 17:54:49 cmurrell kernel: [878782.059209] ivtv0:  info: close
+> stopping capture
+> Nov 28 17:54:49 cmurrell kernel: [878782.059214] ivtv0:  info: Stop Capture
+> Nov 28 17:54:51 cmurrell kernel: [878784.156135] ivtv0 encoder MPG:
+> VIDIOC_ENCODER_CMD cmd=1, flags=1
+> Nov 28 17:54:51 cmurrell kernel: [878784.166157] ivtv0:  ioctl:
+> V4L2_ENC_CMD_START
+> Nov 28 17:54:51 cmurrell kernel: [878784.166165] ivtv0:  info: Start
+> encoder stream encoder MPG
+> ---
+> 
+> And from 15:00 to 18:00 recording fails?
+> 
+> Perhaps it would make sense to restart application upon driver failure,
+> now that output is more verbose.
 
-Ah, interesting.  It might be worthwhile to log a warning in dmesg if
-the user sets the modprobe option but the board doesn't actually
-expose any bulk endpoints.  This might help avoid questions from users
-(we already got one such question by somebody who believed enabling
-this would put the device into bulk mode even though his hardware
-didn't support it).
+Hi Ezequiel,
 
-Devin
+Nope.  IIRC, that's just MythTV timing-out, closing the device node, and
+reopening the device node, in attempt to make things work again.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hi Brian,
+I haven't checked the log you provided yet, but you'll likely need to
+set the module debug flags a little more verbose.
+
+/sbin/modinfo ivtv | less
+[...]
+parm:           debug:Debug level (bitmask). Default: 0
+			   1/0x0001: warning
+			   2/0x0002: info
+			   4/0x0004: mailbox
+			   8/0x0008: ioctl
+			  16/0x0010: file
+			  32/0x0020: dma
+			  64/0x0040: irq
+			 128/0x0080: decoder
+			 256/0x0100: yuv
+			 512/0x0200: i2c
+			1024/0x0400: high volume
+[..]
+
+So maybe as root
+
+# echo 0x07f > /sys/module/ivtv/parameters/debug
+
+until the problem appears.  Then once you experience the problem change
+it to high volume
+
+# echo 0x47f > /sys/module/ivtv/parameters/debug
+
+You may want to also get a baseline of what a good capture looks like
+using high volume debugging.  Be aware that high volume debugging will
+fill up your logs and degrade performance a little, so you don't want to
+normally use high volume debugging.
+
+
+> Regards,
+> 
+>     Ezequiel
+> 
+> PS: Please don't drop linux-media list from Cc
+
++1
+
+The ideas or interest of one individual often spurs that of others.
+
+Regards,
+Andy
+
