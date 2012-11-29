@@ -1,136 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54827 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753115Ab2K2Mqu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Nov 2012 07:46:50 -0500
-Message-ID: <50B758F3.5060008@ti.com>
-Date: Thu, 29 Nov 2012 18:15:39 +0530
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	<devel@driverdev.osuosl.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50173 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753759Ab2K2KK7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Nov 2012 05:10:59 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
 	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
 	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Hans Verkuil <hansverk@cisco.com>,
+	devel@driverdev.osuosl.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	LMML <linux-media@vger.kernel.org>
+	Hans Verkuil <hans.verkuil@cisco.com>
 Subject: Re: [PATCH v3 0/9] Media Controller capture driver for DM365
-References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com> <201211282018.20832.hverkuil@xs4all.nl> <20121128193021.GA4174@kroah.com> <201211290843.36468.hverkuil@xs4all.nl> <20121129083956.227f55ee@redhat.com>
-In-Reply-To: <20121129083956.227f55ee@redhat.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Date: Thu, 29 Nov 2012 11:12:05 +0100
+Message-ID: <3827969.48rJ6ExhZb@avalon>
+In-Reply-To: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
+References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Wednesday 28 November 2012 16:12:00 Prabhakar Lad wrote:
+> From: Manjunath Hadli <manjunath.hadli@ti.com>
 
-On Thursday 29 November 2012 04:09 PM, Mauro Carvalho Chehab wrote:
-> Em Thu, 29 Nov 2012 08:43:36 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+For staging, and provided that all parties involved understand that an API 
+compatibility layer with the existing drivers/media/platform/davinci/ driver 
+(called the "existing driver") will need to be provided when this media 
+controller aware driver will move out of staging to drivers/media/ and replace 
+the existing driver,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> Mauro/Greg,
+>  The below series of patches have gone through good amount of reviews, and
+> agreed by Laurent, Hans and Sakari to be part of the staging tree. I am
+> combining the patchs with the pull request so we can get them into the 3.8
+> kernel. Please pull these patches.If you want a seperate pull request,
+> please let me know.
 > 
->> On Wed November 28 2012 20:30:21 Greg Kroah-Hartman wrote:
->>> On Wed, Nov 28, 2012 at 08:18:20PM +0100, Hans Verkuil wrote:
->>>> On Wed November 28 2012 18:22:48 Greg Kroah-Hartman wrote:
->>>>> On Wed, Nov 28, 2012 at 10:18:02AM -0200, Mauro Carvalho Chehab wrote:
->>>>>> Em Wed, 28 Nov 2012 12:56:10 +0100
->>>>>> Hans Verkuil <hansverk@cisco.com> escreveu:
->>>>>>
->>>>>>> On Wed 28 November 2012 12:45:37 Dan Carpenter wrote:
->>>>>>>> I wish people wouldn't submit big patches right before the merge
->>>>>>>> window opens...  :/ It's better to let it sit in linux-next for a
->>>>>>>> couple weeks so people can mess with it a bit.
->>>>>>>
->>>>>>> It's been under review for quite some time now, and the main change since
->>>>>>> the last posted version is that this is now moved to staging/media.
->>>>>>>
->>>>>>> So it is not yet ready for prime time, but we do want it in to simplify
->>>>>>> the last remaining improvements needed to move it to drivers/media.
->>>>>>
->>>>>> "last remaining improvements"? I didn't review the patchset, but
->>>>>> the TODO list seems to have several pending stuff there:
->>>>>>
->>>>>> +- User space interface refinement
->>>>>> +        - Controls should be used when possible rather than private ioctl
->>>>>> +        - No enums should be used
->>>>>> +        - Use of MC and V4L2 subdev APIs when applicable
->>>>>> +        - Single interface header might suffice
->>>>>> +        - Current interface forces to configure everything at once
->>>>>> +- Get rid of the dm365_ipipe_hw.[ch] layer
->>>>>> +- Active external sub-devices defined by link configuration; no strcmp
->>>>>> +  needed
->>>>>> +- More generic platform data (i2c adapters)
->>>>>> +- The driver should have no knowledge of possible external subdevs; see
->>>>>> +  struct vpfe_subdev_id
->>>>>> +- Some of the hardware control should be refactorede
->>>>>> +- Check proper serialisation (through mutexes and spinlocks)
->>>>>> +- Names that are visible in kernel global namespace should have a common
->>>>>> +  prefix (or a few)
->>>>>>
->>>>>> From the above comments, both Kernelspace and Userspace APIs require 
->>>>>> lots of work.
->>>>
->>>> And that's why it is in staging. Should a long TODO list now suddenly
->>>> prevent staging from being used? In Barcelona we discussed this and the
->>>> only requirement we came up was was that it should compile.
->>>
->>> Yes, that's all I care about in staging, but as I stated, I don't
->>> maintain drivers/staging/media/ that area is under Mauro's control
->>> (MAINTAINERS even says this), and I'm a bit leery of going against the
->>> wishes of an existing subsystem maintainer for adding staging drivers
->>> that tie into their subsystem.
+> This patch set adds media controller based capture driver for
+> DM365.
 > 
-> On my understanding, this is not a "normal" staging driver for some
-> unsupported hardware. It is a driver that is meant to replace an 
-> existing driver, whose plans is to implement a different, userspace-incompatible
-> API set than the existing one. In other words, merging it as-is would give the
-> false impression that only solving the TODO items would be enough to promote it.
+> This driver bases its design on Laurent Pinchart's Media Controller Design
+> whose patches for Media Controller and subdev enhancements form the base.
+> The driver also takes copious elements taken from Laurent Pinchart and
+> others' OMAP ISP driver based on Media Controller. So thank you all the
+> people who are responsible for the Media Controller and the OMAP ISP driver.
 > 
-> However, the main criteria for a replacement driver is to not cause any
-> regression. So, a compatibility layer and compatibility tests that warrants
-> this is a requirement (eventually using the  libv4l's LD_PRELOAD approach). 
+> Also, the core functionality of the driver comes from the arago vpfe capture
+> driver of which the isif capture was based on V4L2, with other drivers like
+> ipipe, ipipeif and Resizer.
 > 
-> So, if the ones working on the driver are also willing to work on the 
-> needed compatibility bits, I'm ok on merging it at staging; if not, there's
-> no sense on spending everybody's time on something that will be discarded
-> on a few kernel cycles.
+> Changes for v2:
+> 1: Migrated the driver for videobuf2 usage pointed Hans.
+> 2: Changed the design as pointed by Laurent, Exposed one more subdevs
+>    ipipeif and split the resizer subdev into three subdevs.
+> 3: Rearrganed the patch sequence and changed the commit messages.
+> 4: Changed the file architecture as pointed by Laurent.
 > 
-> So, the main discussion here is not about merging it at staging or not; is
-> to be sure that, once it got merged, the right things will be addressed,
-> in order to allow it to replace the existing driver.
+> Changes for v3:
+> 1: Rebased on staging.
+> 2: Seprated out patches which would go into staging.
 > 
-> Of course, Dan's request is valid; pushing it right now at -next will give
-> only a week for the others to review a big driver. So, better to delay it.
+> The following changes since commit c6c22955f80f2db9614b01fe5a3d1cfcd8b3d848:
 > 
-> In any case, there are already 400+ patches on my queue that arrived
-> before these late-submitted patch series. So, it would be delayed
-> anyway to the next cycle, due to the very high volume of pending stuff
-> there, and to his late submission.
+>   [media] dma-mapping: fix dma_common_get_sgtable() conditional compilation
+> (2012-11-27 09:42:31 -0200)
 > 
-> So, in summary:
+> are available in the git repository at:
+>   git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git vpfe_driver_staging
 > 
-> Prabhakar/Manju:
+> Manjunath Hadli (9):
+>       davinci: vpfe: add v4l2 capture driver with media interface
+>       davinci: vpfe: add v4l2 video driver support
+>       davinci: vpfe: dm365: add IPIPEIF driver based on media framework
+>       davinci: vpfe: dm365: add ISIF driver based on media framework
+>       davinci: vpfe: dm365: add IPIPE support for media controller driver
+>       davinci: vpfe: dm365: add IPIPE hardware layer support
+>       davinci: vpfe: dm365: resizer driver based on media framework
+>       davinci: vpfe: dm365: add build infrastructure for capture driver
+>       davinci: vpfe: Add documentation and TODO
 > 
-> If you'll be committed to make sure that no regressions will happen when this
-> driver will be promoted and replace the existing driver, please update
-> the TODO to point that the compatibility bits is needed.
-Sure Mauro. All this long wait to get into the mainline would be for
-nothing if we do not go ahead and make the necessary changes you want us
-to do to get to the media folder. We will update the TODO patch and
-resend the series.
-> 
-> I'll then merge it after the end of the merge window.
-thank you very much.
-> 
-> Regards,
-> Mauro
-> 
-Thanks and Regards,
--Manju
+>  drivers/staging/media/Kconfig                      |    2 +
+>  drivers/staging/media/Makefile                     |    1 +
+>  drivers/staging/media/davinci_vpfe/Kconfig         |    9 +
+>  drivers/staging/media/davinci_vpfe/Makefile        |    3 +
+>  drivers/staging/media/davinci_vpfe/TODO            |   34 +
+>  .../staging/media/davinci_vpfe/davinci-vpfe-mc.txt |  154 ++
+>  .../staging/media/davinci_vpfe/davinci_vpfe_user.h | 1290 ++++++++++++
+>  drivers/staging/media/davinci_vpfe/dm365_ipipe.c   | 1863 +++++++++++++++++
+> drivers/staging/media/davinci_vpfe/dm365_ipipe.h   |  179 ++
+>  .../staging/media/davinci_vpfe/dm365_ipipe_hw.c    | 1048 ++++++++++
+>  .../staging/media/davinci_vpfe/dm365_ipipe_hw.h    |  559 ++++++
+>  drivers/staging/media/davinci_vpfe/dm365_ipipeif.c | 1071 ++++++++++
+>  drivers/staging/media/davinci_vpfe/dm365_ipipeif.h |  233 +++
+>  .../media/davinci_vpfe/dm365_ipipeif_user.h        |   93 +
+>  drivers/staging/media/davinci_vpfe/dm365_isif.c    | 2104 +++++++++++++++++
+>  drivers/staging/media/davinci_vpfe/dm365_isif.h    |  203 ++
+>  .../staging/media/davinci_vpfe/dm365_isif_regs.h   |  294 +++
+>  drivers/staging/media/davinci_vpfe/dm365_resizer.c | 1999 +++++++++++++++++
+>  drivers/staging/media/davinci_vpfe/dm365_resizer.h |  244 +++
+>  drivers/staging/media/davinci_vpfe/vpfe.h          |   86 +
+>  .../staging/media/davinci_vpfe/vpfe_mc_capture.c   |  740 +++++++
+>  .../staging/media/davinci_vpfe/vpfe_mc_capture.h   |   97 +
+>  drivers/staging/media/davinci_vpfe/vpfe_video.c    | 1620 +++++++++++++++
+>  drivers/staging/media/davinci_vpfe/vpfe_video.h    |  155 ++
+>  24 files changed, 14081 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/staging/media/davinci_vpfe/Kconfig
+>  create mode 100644 drivers/staging/media/davinci_vpfe/Makefile
+>  create mode 100644 drivers/staging/media/davinci_vpfe/TODO
+>  create mode 100644 drivers/staging/media/davinci_vpfe/davinci-vpfe-mc.txt
+>  create mode 100644 drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
+>  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+>  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipe.h
+>  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+>  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.h
+>  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
+>  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipeif.h
+>  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipeif_user.h
+>  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_isif.c
+>  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_isif.h
+>  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_isif_regs.h
+>  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_resizer.c
+>  create mode 100644 drivers/staging/media/davinci_vpfe/dm365_resizer.h
+>  create mode 100644 drivers/staging/media/davinci_vpfe/vpfe.h
+>  create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+>  create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_mc_capture.h
+>  create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_video.c
+>  create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_video.h
+
+-- 
+Regards,
+
+Laurent Pinchart
 
