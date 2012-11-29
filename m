@@ -1,83 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:51425 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933410Ab2K0KQm (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:49749 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752946Ab2K2Bi5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 05:16:42 -0500
-Date: Tue, 27 Nov 2012 11:16:26 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Albert Wang <twang13@marvell.com>
-cc: corbet@lwn.net, linux-media@vger.kernel.org,
-	Libin Yang <lbyang@marvell.com>
-Subject: Re: [PATCH 01/15] [media] marvell-ccic: use internal variable replace
- global frame stats variable
-In-Reply-To: <1353677577-23962-1-git-send-email-twang13@marvell.com>
-Message-ID: <Pine.LNX.4.64.1211271110530.22273@axis700.grange>
-References: <1353677577-23962-1-git-send-email-twang13@marvell.com>
+	Wed, 28 Nov 2012 20:38:57 -0500
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <20121128201804.GI31879@valkosipuli.retiisi.org.uk>
+References: <1354100134-21095-1-git-send-email-prabhakar.lad@ti.com>
+ <1354100134-21095-3-git-send-email-prabhakar.lad@ti.com> <20121128201804.GI31879@valkosipuli.retiisi.org.uk>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 29 Nov 2012 07:08:36 +0530
+Message-ID: <CA+V-a8vRndz7aEMfJjyUcSAwv6G5X2SZ+r_a9AzUbqzbLRDCYA@mail.gmail.com>
+Subject: Re: [PATCH v3 2/3] davinci: vpss: dm365: set vpss clk ctrl
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Albert
+Hi Sakari,
 
-On Fri, 23 Nov 2012, Albert Wang wrote:
+Thanks for the quick review.
 
-> From: Libin Yang <lbyang@marvell.com>
-> 
-> This patch replaces the global frame stats variables by using
-> internal variables in mcam_camera structure.
-> 
-> Signed-off-by: Albert Wang <twang13@marvell.com>
-> Signed-off-by: Libin Yang <lbyang@marvell.com>
+On Thu, Nov 29, 2012 at 1:48 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Prabhakar,
+>
+> On Wed, Nov 28, 2012 at 04:25:33PM +0530, Prabhakar Lad wrote:
+>> From: Manjunath Hadli <manjunath.hadli@ti.com>
+>>
+>> request_mem_region for VPSS_CLK_CTRL register and ioremap.
+>> and enable clocks appropriately.
+>>
+>> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+>> ---
+>>  drivers/media/platform/davinci/vpss.c |   14 ++++++++++++++
+>>  1 files changed, 14 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
+>> index 34ad7bd..a36d694 100644
+>> --- a/drivers/media/platform/davinci/vpss.c
+>> +++ b/drivers/media/platform/davinci/vpss.c
+>> @@ -103,6 +103,7 @@ struct vpss_hw_ops {
+>>  struct vpss_oper_config {
+>>       __iomem void *vpss_regs_base0;
+>>       __iomem void *vpss_regs_base1;
+>> +     resource_size_t *vpss_regs_base2;
+>>       enum vpss_platform_type platform;
+>>       spinlock_t vpss_lock;
+>>       struct vpss_hw_ops hw_ops;
+>> @@ -484,11 +485,24 @@ static struct platform_driver vpss_driver = {
+>>
+>>  static void vpss_exit(void)
+>>  {
+>> +     iounmap(oper_cfg.vpss_regs_base2);
+>> +     release_mem_region(*oper_cfg.vpss_regs_base2, 4);
+>
+> release_mem_region(VPSS_CLK_CTRL, 4);?
+>
+Ok.
 
-Thanks for doing this work! Looks good just one remark below.
+>>       platform_driver_unregister(&vpss_driver);
+>>  }
+>>
+>> +#define VPSS_CLK_CTRL                        0x01c40044
+>> +#define VPSS_CLK_CTRL_VENCCLKEN              BIT(3)
+>> +#define VPSS_CLK_CTRL_DACCLKEN               BIT(4)
+>> +
+>>  static int __init vpss_init(void)
+>>  {
+>> +     if (request_mem_region(VPSS_CLK_CTRL, 4, "vpss_clock_control")) {
+>
+> if (!request_mem_region())
+>         return -EBUSY;
+>
+Ok makes sense returning early on failure.
 
-> ---
->  drivers/media/platform/marvell-ccic/mcam-core.c |   30 ++++++++++-------------
->  drivers/media/platform/marvell-ccic/mcam-core.h |    9 +++++++
->  2 files changed, 22 insertions(+), 17 deletions(-)
+Regards,
+--Prabhakar
 
-[snip]
-
-> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
-> index bd6acba..e226de4 100755
-> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
-> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
-> @@ -73,6 +73,14 @@ static inline int mcam_buffer_mode_supported(enum mcam_buffer_mode mode)
->  	}
->  }
->  
-> +/*
-> + * Basic frame states
-> + */
-> +struct mmp_frame_state {
-
-I think this should be "struct mcam_frame_state" - don't think we need to 
-introduce a whole new namespace in this header just because of this 
-struct.
-
-> +	unsigned int frames;
-> +	unsigned int singles;
-> +	unsigned int delivered;
-> +};
->  
->  /*
->   * A description of one of our devices.
-> @@ -108,6 +116,7 @@ struct mcam_camera {
->  	unsigned long flags;		/* Buffer status, mainly (dev_lock) */
->  	int users;			/* How many open FDs */
->  
-> +	struct mmp_frame_state frame_state;	/* Frame state counter */
->  	/*
->  	 * Subsystem structures.
->  	 */
-> -- 
-> 1.7.9.5
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> ...
+>
+>> +             oper_cfg.vpss_regs_base2 = ioremap(VPSS_CLK_CTRL, 4);
+>> +             __raw_writel(VPSS_CLK_CTRL_VENCCLKEN |
+>> +                          VPSS_CLK_CTRL_DACCLKEN, oper_cfg.vpss_regs_base2);
+>> +     } else {
+>> +             return -EBUSY;
+>> +     }
+>>       return platform_driver_register(&vpss_driver);
+>>  }
+>>  subsys_initcall(vpss_init);
+>
+> --
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
