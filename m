@@ -1,184 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:50936 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755959Ab2K0Qa1 (ORCPT
+Received: from forward3.mail.yandex.net ([77.88.46.8]:59184 "EHLO
+	forward3.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754259Ab2K2Tel (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Nov 2012 11:30:27 -0500
-Date: Tue, 27 Nov 2012 17:30:25 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Albert Wang <twang13@marvell.com>
-cc: corbet@lwn.net, linux-media@vger.kernel.org, lbyang@marvell.com
-Subject: Re: [PATCH 15/15] [media] marvell-ccic: add 3 frame buffers support
- in DMA_CONTIG mode
-In-Reply-To: <1353677705-24479-1-git-send-email-twang13@marvell.com>
-Message-ID: <Pine.LNX.4.64.1211271713100.22273@axis700.grange>
-References: <1353677705-24479-1-git-send-email-twang13@marvell.com>
+	Thu, 29 Nov 2012 14:34:41 -0500
+Received: from web24d.yandex.ru (web24d.yandex.ru [77.88.46.54])
+	by forward3.mail.yandex.net (Yandex) with ESMTP id 130ECB41E91
+	for <linux-media@vger.kernel.org>; Thu, 29 Nov 2012 23:27:39 +0400 (MSK)
+From: CrazyCat <crazycat69@yandex.ru>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] stv0900: Multistream support
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Message-Id: <165401354217258@web24d.yandex.ru>
+Date: Thu, 29 Nov 2012 21:27:38 +0200
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 23 Nov 2012, Albert Wang wrote:
+Multistream support for stv0900. For Netup Dual S2 CI with STV0900BAC/AAC.
 
-> This patch adds support of 3 frame buffers in DMA-contiguous mode.
-> 
-> In current DMA_CONTIG mode, only 2 frame buffers can be supported.
-> Actually, Marvell CCIC can support at most 3 frame buffers.
-> 
-> Currently 2 frame buffers mode will be used by default.
-> To use 3 frame buffers mode, can do:
->   define MAX_FRAME_BUFS 3
-> in mcam-core.h
-> 
-> Signed-off-by: Albert Wang <twang13@marvell.com>
-> ---
->  drivers/media/platform/marvell-ccic/mcam-core.c |   59 +++++++++++++++++------
->  drivers/media/platform/marvell-ccic/mcam-core.h |   11 +++++
->  2 files changed, 55 insertions(+), 15 deletions(-)
-> 
-> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-> index 2d200d6..3b75594 100755
-> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
-> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-> @@ -401,13 +401,32 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, unsigned int frame)
->  	struct mcam_vb_buffer *buf;
->  	struct v4l2_pix_format *fmt = &cam->pix_format;
->  
-> -	/*
-> -	 * If there are no available buffers, go into single mode
-> -	 */
->  	if (list_empty(&cam->buffers)) {
-> -		buf = cam->vb_bufs[frame ^ 0x1];
-> -		set_bit(CF_SINGLE_BUFFER, &cam->flags);
-> -		cam->frame_state.singles++;
-> +		/*
-> +		 * If there are no available buffers
-> +		 * go into single buffer mode
-> +		 *
-> +		 * If CCIC use Two Buffers mode
-> +		 * will use another remaining frame buffer
-> +		 * frame 0 -> buf 1
-> +		 * frame 1 -> buf 0
-> +		 *
-> +		 * If CCIC use Three Buffers mode
-> +		 * will use the 2rd remaining frame buffer
-> +		 * frame 0 -> buf 2
-> +		 * frame 1 -> buf 0
-> +		 * frame 2 -> buf 1
-> +		 */
-> +		buf = cam->vb_bufs[(frame + (MAX_FRAME_BUFS - 1))
-> +						% MAX_FRAME_BUFS];
-> +		if (cam->frame_state.tribufs == 0)
-> +			cam->frame_state.tribufs++;
-
-TBH, I don't understand what the "tribuf" field means and what it is 
-doing. Could you explain a bit?
-
-> +		else {
-> +			set_bit(CF_SINGLE_BUFFER, &cam->flags);
-> +			cam->frame_state.singles++;
-> +			if (cam->frame_state.tribufs < 2)
-> +				cam->frame_state.tribufs++;
-
-This seems to be the only location, where tribuf affects the control flow. 
-So, it looks like, it controls, if no more buffers are on the queue, 
-wheather you need to set the CF_SINGLE_BUFFER flag and increment the 
-singles count. 
-
-Thanks
-Guennadi
-
-> +		}
->  	} else {
->  		/*
->  		 * OK, we have a buffer we can use.
-> @@ -416,15 +435,15 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, unsigned int frame)
->  					queue);
->  		list_del_init(&buf->queue);
->  		clear_bit(CF_SINGLE_BUFFER, &cam->flags);
-> +		if (cam->frame_state.tribufs != (3 - MAX_FRAME_BUFS))
-> +			cam->frame_state.tribufs--;
->  	}
->  
->  	cam->vb_bufs[frame] = buf;
-> -	mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR, buf->yuv_p.y);
-> +	mcam_reg_write(cam, REG_Y0BAR + (frame << 2), buf->yuv_p.y);
->  	if (mcam_fmt_is_planar(fmt->pixelformat)) {
-> -		mcam_reg_write(cam, frame == 0 ?
-> -					REG_U0BAR : REG_U1BAR, buf->yuv_p.u);
-> -		mcam_reg_write(cam, frame == 0 ?
-> -					REG_V0BAR : REG_V1BAR, buf->yuv_p.v);
-> +		mcam_reg_write(cam, REG_U0BAR + (frame << 2), buf->yuv_p.u);
-> +		mcam_reg_write(cam, REG_V0BAR + (frame << 2), buf->yuv_p.v);
->  	}
->  }
->  
-> @@ -433,10 +452,14 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, unsigned int frame)
->   */
->  void mcam_ctlr_dma_contig(struct mcam_camera *cam)
->  {
-> -	mcam_reg_set_bit(cam, REG_CTRL1, C1_TWOBUFS);
-> -	cam->nbufs = 2;
-> -	mcam_set_contig_buffer(cam, 0);
-> -	mcam_set_contig_buffer(cam, 1);
-> +	unsigned int frame;
-> +
-> +	cam->nbufs = MAX_FRAME_BUFS;
-> +	for (frame = 0; frame < cam->nbufs; frame++)
-> +		mcam_set_contig_buffer(cam, frame);
-> +
-> +	if (cam->nbufs == 2)
-> +		mcam_reg_set_bit(cam, REG_CTRL1, C1_TWOBUFS);
->  }
->  
->  /*
-> @@ -1043,6 +1066,12 @@ static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
->  	for (frame = 0; frame < cam->nbufs; frame++)
->  		clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
->  
-> +	/*
-> +	 *  If CCIC use Two Buffers mode, init tribufs == 1
-> +	 *  If CCIC use Three Buffers mode, init tribufs == 0
-> +	 */
-> +	cam->frame_state.tribufs = 3 - MAX_FRAME_BUFS;
-> +
->  	return mcam_read_setup(cam);
->  }
->  
-> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
-> index 5b2cf6e..6420754 100755
-> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
-> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
-> @@ -68,6 +68,13 @@ enum mcam_state {
->  #define MAX_DMA_BUFS 3
->  
->  /*
-> + * CCIC can support at most 3 frame buffers in DMA_CONTIG buffer mode
-> + * 2 - Use Two Buffers mode
-> + * 3 - Use Three Buffers mode
-> + */
-> +#define MAX_FRAME_BUFS 2 /* Current marvell-ccic used Two Buffers mode */
-> +
-> +/*
->   * Different platforms work best with different buffer modes, so we
->   * let the platform pick.
->   */
-> @@ -105,6 +112,10 @@ struct mmp_frame_state {
->  	unsigned int frames;
->  	unsigned int singles;
->  	unsigned int delivered;
-> +	/*
-> +	 * Only tribufs == 2 can enter single buffer mode
-> +	 */
-> +	unsigned int tribufs;
->  };
->  
->  /*
-> -- 
-> 1.7.9.5
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
+diff --git a/drivers/media/dvb-frontends/stv0900_core.c b/drivers/media/dvb-frontends/stv0900_core.c
+index b551ca3..0fb34e1 100644
+--- a/drivers/media/dvb-frontends/stv0900_core.c
++++ b/drivers/media/dvb-frontends/stv0900_core.c
+@@ -1558,6 +1558,27 @@ static int stv0900_status(struct stv0900_internal *intp,
+ 	return locked;
+ }
+ 
++static int stv0900_set_mis(struct stv0900_internal *intp,
++				enum fe_stv0900_demod_num demod, int mis)
++{
++	enum fe_stv0900_error error = STV0900_NO_ERROR;
++
++	dprintk("%s\n", __func__);
++
++	if (mis < 0 || mis > 255) {
++		dprintk("Disable MIS filtering\n");
++		stv0900_write_bits(intp, FILTER_EN, 0);
++	} else {
++		dprintk("Enable MIS filtering - %d\n", mis);
++		stv0900_write_bits(intp, FILTER_EN, 1);
++		stv0900_write_reg(intp, ISIENTRY, mis);
++		stv0900_write_reg(intp, ISIBITENA, 0xff);
++	}
++
++	return error;
++}
++
++
+ static enum dvbfe_search stv0900_search(struct dvb_frontend *fe)
+ {
+ 	struct stv0900_state *state = fe->demodulator_priv;
+@@ -1578,6 +1599,8 @@ static enum dvbfe_search stv0900_search(struct dvb_frontend *fe)
+ 	if (state->config->set_ts_params)
+ 		state->config->set_ts_params(fe, 0);
+ 
++	stv0900_set_mis(intp, demod, c->stream_id);
++
+ 	p_result.locked = FALSE;
+ 	p_search.path = demod;
+ 	p_search.frequency = c->frequency;
+@@ -1935,6 +1958,9 @@ struct dvb_frontend *stv0900_attach(const struct stv0900_config *config,
+ 		if (err_stv0900)
+ 			goto error;
+ 
++		if (state->internal->chip_id >= 0x30)
++			state->frontend.ops.info.caps |= FE_CAN_MULTISTREAM;
++
+ 		break;
+ 	default:
+ 		goto error;
+diff --git a/drivers/media/dvb-frontends/stv0900_reg.h b/drivers/media/dvb-frontends/stv0900_reg.h
+index 731afe9..511ed2a 100644
+--- a/drivers/media/dvb-frontends/stv0900_reg.h
++++ b/drivers/media/dvb-frontends/stv0900_reg.h
+@@ -3446,8 +3446,11 @@ extern s32 shiftx(s32 x, int demod, s32 shift);
+ #define R0900_P1_PDELCTRL1 0xf550
+ #define PDELCTRL1 REGx(R0900_P1_PDELCTRL1)
+ #define F0900_P1_INV_MISMASK 0xf5500080
++#define INV_MISMASK FLDx(F0900_P1_INV_MISMASK)
+ #define F0900_P1_FILTER_EN 0xf5500020
++#define FILTER_EN FLDx(F0900_P1_FILTER_EN)
+ #define F0900_P1_EN_MIS00 0xf5500002
++#define EN_MIS00 FLDx(F0900_P1_EN_MIS00)
+ #define F0900_P1_ALGOSWRST 0xf5500001
+ #define ALGOSWRST FLDx(F0900_P1_ALGOSWRST)
+ 
