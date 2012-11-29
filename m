@@ -1,67 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:56583 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750734Ab2K1HIF convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 02:08:05 -0500
-From: Libin Yang <lbyang@marvell.com>
-To: Albert Wang <twang13@marvell.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "corbet@lwn.net" <corbet@lwn.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 27 Nov 2012 23:07:28 -0800
-Subject: RE: [PATCH 02/15] [media] marvell-ccic: add MIPI support for
- marvell-ccic driver
-Message-ID: <A63A0DC671D719488CD1A6CD8BDC16CF230A8D79E9@SC-VEXCH4.marvell.com>
-References: <1353677587-23998-1-git-send-email-twang13@marvell.com>
- <Pine.LNX.4.64.1211271117270.22273@axis700.grange>
- <477F20668A386D41ADCC57781B1F70430D1367C8D1@SC-VEXCH1.marvell.com>
-In-Reply-To: <477F20668A386D41ADCC57781B1F70430D1367C8D1@SC-VEXCH1.marvell.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from moutng.kundenserver.de ([212.227.17.8]:49568 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751407Ab2K2JVl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Nov 2012 04:21:41 -0500
+Date: Thu, 29 Nov 2012 10:21:28 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL] soc-camera + VEU for 3.8
+In-Reply-To: <20121122114422.2acdb70e@redhat.com>
+Message-ID: <Pine.LNX.4.64.1211291018410.11210@axis700.grange>
+References: <Pine.LNX.4.64.1210311258420.9048@axis700.grange>
+ <20121122114105.1517d582@redhat.com> <20121122114422.2acdb70e@redhat.com>
 MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Guennadi,
+Hi Mauro
 
-Please see my comments below.
+On Thu, 22 Nov 2012, Mauro Carvalho Chehab wrote:
 
-Best Regards,
-Libin 
+> Em Thu, 22 Nov 2012 11:41:05 -0200
+> Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+> 
+> > Em Wed, 31 Oct 2012 13:01:19 +0100 (CET)
+> > Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+> > 
+> > > Hi Mauro
+> > > 
+> > > Please pull driver updates for 3.8. Apart from usual soc-camera 
+> > > development this pull request also includes a new VEU MEM2MEM driver.
+> > > 
+> > > The following changes since commit 016e804df1632fa99b1d96825df4c0db075ac196:
+> > > 
+> > >   media: sh_vou: fix const cropping related warnings (2012-10-31 11:35:51 +0100)
+> > > 
+> > > are available in the git repository at:
+> > > 
+> > >   git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.8
+> > > 
+> > > for you to fetch changes up to 223916e1817ce458e947a5f99026ee7d05acaa66:
+> > > 
+> > >   media: add a VEU MEM2MEM format conversion and scaling driver (2012-10-31 12:54:58 +0100)
+> > > 
+> > > ----------------------------------------------------------------
+> > > Anatolij Gustschin (4):
+> > >       V4L: soc_camera: allow reading from video device if supported
+> > >       mt9v022: add v4l2 controls for blanking
+> > >       mt9v022: support required register settings in snapshot mode
+> > >       mt9v022: set y_skip_top field to zero as default
+> > > 
+> > > Frank SchÃ€fer (1):
+> > >       ov2640: add support for V4L2_MBUS_FMT_YUYV8_2X8, V4L2_MBUS_FMT_RGB565_2X8_BE
+> > > 
+> > > Guennadi Liakhovetski (1):
+> > >       media: add a VEU MEM2MEM format conversion and scaling driver
+> > > 
+> > > Shawn Guo (1):
+> > >       media: mx1_camera: mark the driver BROKEN
+> > > 
+> > >  arch/arm/mach-pxa/pcm990-baseboard.c           |    6 +
+> > >  drivers/media/i2c/soc_camera/mt9v022.c         |   88 ++-
+> > >  drivers/media/i2c/soc_camera/ov2640.c          |   49 +-
+> > >  drivers/media/platform/Kconfig                 |    9 +
+> > >  drivers/media/platform/Makefile                |    2 +
+> > >  drivers/media/platform/sh_veu.c                | 1264 ++++++++++++++++++++++++
+> > 
+> > Applied, thanks!
+> > 
+> > Please submit a MAINTAINERS entry for this new driver.
+> 
+> Hmm... there are also some new warnings introduced by it (compiled on x86_64):
+> 
+> drivers/media/platform/sh_veu.c: In function 'sh_veu_process':
+> drivers/media/platform/sh_veu.c:269:2: warning: format '%x' expects argument of type 'unsigned int', but argument 5 has type 'dma_addr_t' [-Wformat]
+> drivers/media/platform/sh_veu.c:276:2: warning: format '%x' expects argument of type 'unsigned int', but argument 5 has type 'dma_addr_t' [-Wformat]
+> drivers/media/platform/sh_veu.c: In function 'sh_veu_probe':
+> drivers/media/platform/sh_veu.c:1199:2: warning: passing argument 1 of 'v4l2_m2m_init' discards 'const' qualifier from pointer target type [enabled by default]
+> In file included from drivers/media/platform/sh_veu.c:27:0:
+> include/media/v4l2-mem2mem.h:125:22: note: expected 'struct v4l2_m2m_ops *' but argument is of type 'const struct v4l2_m2m_ops *'
+> 
+> I'll just drop "media: add a VEU MEM2MEM format conversion and scaling driver" and
+> wait for a warning-free version with a MAINTAINERS entry patch series.
 
->-----Original Message-----
->From: Albert Wang
->Sent: Tuesday, November 27, 2012 7:21 PM
->To: Guennadi Liakhovetski
->Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
->Subject: RE: [PATCH 02/15] [media] marvell-ccic: add MIPI support for marvell-ccic driver
->
->Hi, Guennadi
->
->We will update the patch by following your good suggestion! :)
->
+They are there, because the following my patch of 11.09
 
-[snip]
+https://patchwork.kernel.org/patch/1437601/
 
->>> +	pll1 = clk_get(dev, "pll1");
->>> +	if (IS_ERR(pll1)) {
->>> +		dev_err(dev, "Could not get pll1 clock\n");
->>> +		return;
->>> +	}
->>> +
->>> +	tx_clk_esc = clk_get_rate(pll1) / 1000000 / 12;
->>> +	clk_put(pll1);
->>
->>Once you release your clock per "clk_put()" its rate can be changed by some other user,
->>so, your tx_clk_esc becomes useless. Better keep the reference to the clock until clean up.
->>Maybe you can also use
->>devm_clk_get() to simplify the clean up.
->>
->That's a good suggestion.
->
-[Libin] In our code design, the pll1 will never be changed after the system boots up. Camera and other components can only get the clk without modifying it.
+hasn't been applied. It is for the core, so, I'm not pulling it via my 
+tree. I actually thought, I'd forgotten to post it, so, I just re-sent it, 
+sorry. Could you apply it, please? I'm currently preparing a "last" 3.8 
+pull request for soc-camera, I'll include this sh-veu driver there again 
+too.
 
-
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
