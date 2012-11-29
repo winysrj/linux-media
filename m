@@ -1,49 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:61441 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751017Ab2KFLbB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Nov 2012 06:31:01 -0500
-Date: Tue, 6 Nov 2012 12:30:59 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: =?utf-8?B?5YaN5Zue6aaW?= <308123027@qq.com>
-cc: =?utf-8?B?bGludXgtbWVkaWE=?= <linux-media@vger.kernel.org>
-Subject: Re: soc camera driver module may case memory leak
-In-Reply-To: <tencent_64608E82650520C00B66909A@qq.com>
-Message-ID: <Pine.LNX.4.64.1211061229000.6451@axis700.grange>
-References: <tencent_64608E82650520C00B66909A@qq.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:49538 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754777Ab2K2QMQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Nov 2012 11:12:16 -0500
+Received: from eusync1.samsung.com (mailout4.w1.samsung.com [210.118.77.14])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0ME9002RRBP8GN60@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 29 Nov 2012 16:12:44 +0000 (GMT)
+Received: from [106.116.147.32] by eusync1.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0ME9006VSBOD7L00@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 29 Nov 2012 16:12:14 +0000 (GMT)
+Message-id: <50B7895D.5010707@samsung.com>
+Date: Thu, 29 Nov 2012 17:12:13 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>
+Subject: [GIT PULL FOR 3.8] exynos-gsc driver updates
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Hi Mauro,
 
-On Mon, 5 Nov 2012, Â~F~MÂ~[~^È¶~V wrote:
+The following changes since commit d8658bca2e5696df2b6c69bc5538f8fe54e4a01e:
 
-> Dear sir:
-> why not call "videobuf_mmap_free",when device close call "soc_camera_close" in linux-2.6.x;
+  [media] omap3isp: Replace cpu_is_omap3630() with ISP revision check (2012-11-28 10:54:46 -0200)
 
-I haven't found any version, where this has been done. I don't think this 
-is needed, because videobuf mmap allocations will be freed automatically 
-upon the last close(). Please, dismiss your bugzilla entry.
+are available in the git repository at:
 
-Thanks
-Guennadi
+  git://git.infradead.org/users/kmpark/linux-samsung exynos_gsc_v3.8
 
-> do the same in linux-3.x.x?
-> video capture flow:
-> 1)open
-> 2)set fmt
-> 3)request buffer-->__videobuf_mmap_setup-->videobuf_alloc_vb(q)
-> 4)mmap
-> 5)enqueue, dequeue
-> 6)unmap
-> 7)close--->soc_camera_close-->?should call:videobuf_mmap_free
-> NOTE:
-> I have reviewed all the code, found:soc_camera_driver device driver coders has no way(callback function) to call videobuf_mmap_free; it will case memory leak.Nãß≤ÊÏr∏õy˙Ëöÿb≤X¨∂«ßvÿ^ñ)ﬁ∫{.n«+â∑•ä{±ôÁbj)ÌÖÊËw*jg¨±®∂âöéä›¢j/ÅÍ‰zπﬁñä‡2äﬁô®Ë≠⁄&¢)ﬂ°´a∂⁄˛¯ÆG´ùÈhÆÊj:+vâ®äwËÜŸ•
+for you to fetch changes up to db40d9baead29e1e0efdfbd9e4f03d0f65457bdf:
+
+  exynos-gsc: modify number of output/capture buffers (2012-11-29 11:49:59 +0100)
+
+----------------------------------------------------------------
+Sachin Kamat (3):
+      exynos-gsc: Fix checkpatch warning in gsc-m2m.c
+      exynos-gsc: Rearrange error messages for valid prints
+      exynos-gsc: Use devm_clk_get()
+
+Shaik Ameer Basha (3):
+      exynos-gsc: Adding tiled multi-planar format to G-Scaler
+      exynos-gsc: propagate timestamps from src to dst buffers
+      exynos-gsc: modify number of output/capture buffers
+
+Sylwester Nawrocki (1):
+      exynos-gsc: Correct the clock handling
+
+ drivers/media/platform/exynos-gsc/gsc-core.c |   48 ++++++++++++++------------
+ drivers/media/platform/exynos-gsc/gsc-core.h |    5 +++
+ drivers/media/platform/exynos-gsc/gsc-m2m.c  |   22 +++++++-----
+ drivers/media/platform/exynos-gsc/gsc-regs.c |    6 ++++
+ 4 files changed, 50 insertions(+), 31 deletions(-)
 
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
+Regards,
+Sylwester
