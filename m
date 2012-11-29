@@ -1,101 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:58870 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2992467Ab2KAUPQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Nov 2012 16:15:16 -0400
-Date: Thu, 1 Nov 2012 21:15:10 +0100
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Cc: devicetree-discuss@lists.ozlabs.org,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1678 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751188Ab2K2Hkw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Nov 2012 02:40:52 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [PATCH v3 0/9] Media Controller capture driver for DM365
+Date: Thu, 29 Nov 2012 08:40:40 +0100
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	devel@driverdev.osuosl.org,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Hans Verkuil <hansverk@cisco.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de
-Subject: Re: [PATCH v7 2/8] of: add helper to parse display timings
-Message-ID: <20121101201510.GB13137@avionic-0098.mockup.avionic-design.de>
-References: <1351675689-26814-1-git-send-email-s.trumtrar@pengutronix.de>
- <1351675689-26814-3-git-send-email-s.trumtrar@pengutronix.de>
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	LMML <linux-media@vger.kernel.org>
+References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com> <20121128212952.GP11248@mwanda> <50B6A29D.9050004@gmail.com>
+In-Reply-To: <50B6A29D.9050004@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="H+4ONPRPur6+Ovig"
-Content-Disposition: inline
-In-Reply-To: <1351675689-26814-3-git-send-email-s.trumtrar@pengutronix.de>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201211290840.40670.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu November 29 2012 00:47:41 Sylwester Nawrocki wrote:
+> On 11/28/2012 10:29 PM, Dan Carpenter wrote:
+> > On Wed, Nov 28, 2012 at 08:30:04PM +0100, Sylwester Nawrocki wrote:
+> >> On 11/28/2012 01:22 PM, Dan Carpenter wrote:
+> >>> In the end this is just a driver, and I don't especially care.  But
+> >>> it's like not just this one which makes me frustrated.  I really
+> >>> believe in linux-next and I think everything should spend a couple
+> >>> weeks there before being merged.
+> >>
+> >> Couple of weeks in linux-next plus a couple of weeks of final patch
+> >> series version awaiting to being reviewed and picked up by a maintainer
+> >> makes almost entire kernel development cycle. These are huge additional
+> >> delays, especially in the embedded world. Things like these certainly
+> >> aren't encouraging for moving over from out-of-tree to the mainline
+> >> development process. And in this case we are talking only about merging
+> >> driver to the staging tree...
+> >
+> > Yeah.  A couple weeks is probably too long.  But I think a week is
+> > totally reasonable.
+> 
+> Agreed, exactly that couple weeks requirement seemed a bit long to me.
+> 
+> > You have the process wrong.  The maintainer reviews it first, merges
+> > it into his -next git tree.  It sits in linux-next for a bit.  The
+> > merge window opens up.  It is merged.  It gets tested for 3 months.
+> > It is released.
+> 
+> I believe what you're describing is true for most subsystems.  At
+> linux-media the process looks roughly that you prepare a patch and post
+> it to the mailing list for review.  Regular developers review it, you
+> address the comments and submit again.  Repeat these steps until
+> everyone's happy.  Then, when the patch looks like it is ready for
+> merging it is preferred to send the maintainer a pull request.
+> Now there can be a delay of up to couple weeks.  Afterwards the patch
+> in most cases gets merged, with a few possible change requests. However
+> it may happen the maintainer has different views on what's has been
+> agreed before and you start everything again.
 
---H+4ONPRPur6+Ovig
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Yes, and the problem is that the maintainer (Mauro) tends to look at this
+close to the merge window, generally leaving you with very little time to
+make adjustments.
 
-On Wed, Oct 31, 2012 at 10:28:02AM +0100, Steffen Trumtrar wrote:
-[...]
-> diff --git a/Documentation/devicetree/bindings/video/display-timings.txt b/Documentation/devicetree/bindings/video/display-timings.txt
-[...]
-> @@ -0,0 +1,139 @@
-> +display-timings bindings
-> +==================
-> +
-> +display-timings-node
-> +------------
+In all honesty, in this particular case the pull request came in late
+because other reviewers asked TI to move the driver to staging because we
+thought the driver wasn't quite ready yet.
 
-Maybe extend the underline to the length of the section and subsection
-titles respectively?
+If it would just be merged as a staging driver, then it would most likely
+be sitting in linux-next by now since a few days, well in time for the merge
+window. Instead we are having this whole discussion :-(
 
-> +struct display_timing
-> +===================
+> With a few sub-maintainers recently appointed hopefully there can be
+> seen some improvement.
 
-Same here.
+I sincerely hope so. Of course, since I'm going to be one of the sub-maintainers
+I'm going to see this from the other side as well, so I might get the same
+critisism in the future :-)
 
-> +config OF_DISPLAY_TIMINGS
-> +	def_bool y
-> +	depends on DISPLAY_TIMING
+> > It should work as a continuous even flow.  It shouldn't be a rush to
+> > submit drivers right before the merge window opens.  It's not hard,
+> > you can submit a driver to linux-next at any time.  It magically
+> > flows through the process and is released some months later.
+> >
+> > It does suck to add a 3 month delay for people who miss the cut off.
+> > Don't wait until the last minute.  In the embedded world you can
+> > use git cherry-pick to get the driver from linux-next.
+> 
+> Yeah, it's not unusual to work with specific -rc tree with multiple
+> subsystem -next branches on top of it.
+> 
+> It's just those cases where you're told to get feature A in the kernel
+> release X and it is already late in the development cycle... But it
+> might just be a matter of planning the work adequately with proper
+> understanding of the whole process.
 
-Maybe this should be called OF_DISPLAY_TIMING to match DISPLAY_TIMING,
-or rename DISPLAY_TIMING to DISPLAY_TIMINGS for the sake of consistency?
+Well, it would work if you can rely on patches being reviewed and merged
+in a timely manner. Hopefully that will happen when the sub-maintainers
+can start next year. It should make everything more predictable.
 
-> +/**
-> + * of_get_display_timing_list - parse all display_timing entries from a device_node
-> + * @np: device_node with the subnodes
-> + **/
-> +struct display_timings *of_get_display_timing_list(struct device_node *np)
+Regards,
 
-Perhaps this would better be named of_get_display_timings() to match the
-return type?
-
-> +	disp = kzalloc(sizeof(*disp), GFP_KERNEL);
-
-Shouldn't you be checking this for allocation failures?
-
-> +	disp->timings = kzalloc(sizeof(struct display_timing *)*disp->num_timings,
-> +				GFP_KERNEL);
-
-Same here.
-
-Thierry
-
---H+4ONPRPur6+Ovig
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQkthOAAoJEN0jrNd/PrOh5oQQAKMOCiP5VHl1/kmm6+vDnRYl
-cLpDZftk5BNOTWtHtCBLZXZSvao+77Q33rTdsNBX+2R+5EIhE39DttNdGGnmIvuX
-XLqSbeswInP+HrsPgLJAG85V0lwgJxE8MlLe9L2Gb2P1tcgeTdcMbNPAMQ6d5caI
-fUS+b6oCg3yBqcHA93LQbKM7bhO3v5PoaQ4KVc/cK13+ohz/X+ekqm7e8EZG635T
-SN1HkQPH9vwcxPRa0Tr1W2fyYQXeT+dY76tRCQkgWkAVXRtbroqVtSIc7lOpm9Ix
-E9LXXs09zu0MGWzxXm1bzoBBqcIsu8KonImVwlQTyop2UJ5vmFjvSoPUm/20vyM4
-xe3Mne4y7NDQeWaGNWm3F16C74+WDS+SJskrY3FJk3uKNVwp7eCBtAaFDJRc2vfC
-767YAtBst6ZcS+CGoApywbJttZDqRwLvSMG3RXaectXoS4/32fZQDODCIAlnOy8E
-RzKQ9BTwsZjLP0vn7NLmo45yw4Lglc55hCEIsiOcxNw4TypSWDNDH9z9g4l4estN
-AyizcdnlQEkjv16Iv4npffmIp/soCFJdgBMb/60Z5fP9uiES2E/y5euWocOOmB5y
-0dfNJ7NhL9lLoAm7yUWOtTm4yW592WLFPIinXKxQ2yRysGWNRLVwJSQ8Zg25C/OL
-kGdy3JzMseTNog2fKV9e
-=EPmH
------END PGP SIGNATURE-----
-
---H+4ONPRPur6+Ovig--
+	Hans
