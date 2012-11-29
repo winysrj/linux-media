@@ -1,33 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2474 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753854Ab2KWL0E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 06:26:04 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id qANBQ1kk089186
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 23 Nov 2012 12:26:02 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.cisco.com (64-103-25-233.cisco.com [64.103.25.233])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id CC7C45060032
-	for <linux-media@vger.kernel.org>; Fri, 23 Nov 2012 12:26:00 +0100 (CET)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 00/15] Adding entries for various drivers to MAINTAINERS.
-Date: Fri, 23 Nov 2012 12:25:41 +0100
-Message-Id: <1353669956-4843-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:43565 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754625Ab2K2OXF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Nov 2012 09:23:05 -0500
+Message-ID: <50B77045.3010102@redhat.com>
+Date: Thu, 29 Nov 2012 15:25:09 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] gspca - stv06xx: Fix a regression with the bridge/sensor
+ vv6410
+References: <20121122125906.35d6f98a@armhf>
+In-Reply-To: <20121122125906.35d6f98a@armhf>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds 'Supported' entries for the adv7604/ad9389b drivers.
+Hi,
 
-In addition there is a bunch of other drivers that I maintain or can do
-odd fixes for.
+Thanks for the patch I've added this to my tree, and it is part
+of the pull-request I just send to Mauro for 3.8
 
 Regards,
 
-	Hans
+Hans
 
+On 11/22/2012 12:59 PM, Jean-Francois Moine wrote:
+> From: Jean-François Moine <moinejf@free.fr>
+>
+> Setting the H and V flip controls at webcam connection time prevents
+> the webcam to work correctly.
+>
+> This patch checks if the webcam is streaming before setting the flips.
+> It does not set the flips (nor other controls) at webcam start time.
+>
+> Tested-by: Philippe ROUBACH <philippe.roubach@free.fr>
+> Signed-off-by: Jean-François Moine <moinejf@free.fr>
+>
+> --- a/drivers/media/usb/gspca/stv06xx/stv06xx_vv6410.c
+> +++ b/drivers/media/usb/gspca/stv06xx/stv06xx_vv6410.c
+> @@ -52,9 +52,13 @@
+>
+>   	switch (ctrl->id) {
+>   	case V4L2_CID_HFLIP:
+> +		if (!gspca_dev->streaming)
+> +			return 0;
+>   		err = vv6410_set_hflip(gspca_dev, ctrl->val);
+>   		break;
+>   	case V4L2_CID_VFLIP:
+> +		if (!gspca_dev->streaming)
+> +			return 0;
+>   		err = vv6410_set_vflip(gspca_dev, ctrl->val);
+>   		break;
+>   	case V4L2_CID_GAIN:
+>
