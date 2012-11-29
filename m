@@ -1,59 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.9]:57720 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751347Ab2KEXO7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Nov 2012 18:14:59 -0500
-From: Anatolij Gustschin <agust@denx.de>
+Received: from mailout-de.gmx.net ([213.165.64.23]:58572 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932476Ab2K2B1F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Nov 2012 20:27:05 -0500
+Message-ID: <50B6B9E7.4010803@gmx.net>
+Date: Thu, 29 Nov 2012 02:27:03 +0100
+From: "P. van Gaans" <w3ird_n3rd@gmx.net>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: Anatolij Gustschin <agust@denx.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH] OV5642: fix VIDIOC_S_GROP ioctl
-Date: Tue,  6 Nov 2012 00:14:50 +0100
-Message-Id: <1352157290-13201-1-git-send-email-agust@denx.de>
+Subject: Available and supported DVB-C USB device
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VIDIOC_S_GROP ioctl doesn't work, soc-camera driver reports:
+I'm living in The Netherlands and am looking for a DVB-C USB device 
+that's available, supported and (preferably) affordable. Devices that 
+are available and affordable would appear to be the Delock DVB-C USB 
+stick (which I can't find a whole lot about) and the MSI DigiVox mini Trio.
 
-soc-camera-pdrv soc-camera-pdrv.0: S_CROP denied: getting current crop failed
+According to a message on the mailinglist from 2010 by Matthias Larisch:
 
-The issue is caused by checking for V4L2_BUF_TYPE_VIDEO_CAPTURE type
-in driver's g_crop callback. This check should be in s_crop instead,
-g_crop should just set the type field to V4L2_BUF_TYPE_VIDEO_CAPTURE
-as other drivers do. Move the V4L2_BUF_TYPE_VIDEO_CAPTURE type check
-to s_crop callback.
+"I recently bought a DigiVox Trio by MSI. This card contains the
+following chips:
 
-Signed-off-by: Anatolij Gustschin <agust@denx.de>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/i2c/soc_camera/ov5642.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+nxp tda18271hdc2 (tuner)
+micronas drx 3926ka3 (demodulator, 3in1)
+em2884
+atmlh946 64c (eeprom)
+micronas avf 4910ba1
 
-diff --git a/drivers/media/i2c/soc_camera/ov5642.c b/drivers/media/i2c/soc_camera/ov5642.c
-index 8577e0c..19863e5 100644
---- a/drivers/media/i2c/soc_camera/ov5642.c
-+++ b/drivers/media/i2c/soc_camera/ov5642.c
-@@ -872,6 +872,9 @@ static int ov5642_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
- 	struct v4l2_rect rect = a->c;
- 	int ret;
- 
-+	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
- 	v4l_bound_align_image(&rect.width, 48, OV5642_MAX_WIDTH, 1,
- 			      &rect.height, 32, OV5642_MAX_HEIGHT, 1, 0);
- 
-@@ -899,9 +902,7 @@ static int ov5642_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
- 	struct ov5642 *priv = to_ov5642(client);
- 	struct v4l2_rect *rect = &a->c;
- 
--	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		return -EINVAL;
--
-+	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	*rect = priv->crop_rect;
- 
- 	return 0;
--- 
-1.7.1
+so it is comparable to the Terratec Cinergy HTC USB XS HD and the
+TerraTec H5."
 
+Back in 2010 it didn't work, but I've noticed the EM2884 and Micronas 
+DRX 3926K (maybe not the same?) and TDA18271HDC2 do work in the PCTV
+QuatroStick nano. (http://linuxtv.org/wiki/index.php/DVB-C_USB_Devices) 
+So perhaps the MSI could also work?
+
+Or maybe someone has suggestions for a suitable device. Most of the 
+devices on the wiki page are sadly either unavailable or very expensive.
+
+Best regards,
+
+Pim
