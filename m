@@ -1,49 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:59254 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.8]:51195 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932907Ab2KWHqF (ORCPT
+	with ESMTP id S1753908Ab2K2Kn0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Nov 2012 02:46:05 -0500
-Date: Fri, 23 Nov 2012 08:45:28 +0100 (CET)
+	Thu, 29 Nov 2012 05:43:26 -0500
+Date: Thu, 29 Nov 2012 11:43:19 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Bill Pemberton <wfp5p@virginia.edu>
-cc: gregkh@linuxfoundation.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Heungjun Kim <riverful.kim@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org, mjpeg-users@lists.sourceforge.net,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: =?UTF-8?q?=5BPATCH=20444/493=5D=20media=3A=20remove=20use=20of=20=5F=5Fdevexit?=
-In-Reply-To: <1353349642-3677-444-git-send-email-wfp5p@virginia.edu>
-Message-ID: <Pine.LNX.4.64.1211230843460.14984@axis700.grange>
-References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
- <1353349642-3677-444-git-send-email-wfp5p@virginia.edu>
+To: Javier Martin <javier.martin@vista-silicon.com>
+cc: linux-media@vger.kernel.org, fabio.estevam@freescale.com
+Subject: Re: [PATCH v2 0/4] media: mx2_camera: Remove i.mx25 and clean up.
+In-Reply-To: <1351607342-18030-1-git-send-email-javier.martin@vista-silicon.com>
+Message-ID: <Pine.LNX.4.64.1211291139350.11210@axis700.grange>
+References: <1351607342-18030-1-git-send-email-javier.martin@vista-silicon.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 19 Nov 2012, Bill Pemberton wrote:
+Hi Javier
 
-> CONFIG_HOTPLUG is going away as an option so __devexit is no
-> longer needed.
+On Tue, 30 Oct 2012, Javier Martin wrote:
 
->  drivers/media/platform/sh_vou.c                          | 2 +-
->  drivers/media/platform/soc_camera/atmel-isi.c            | 2 +-
->  drivers/media/platform/soc_camera/mx2_camera.c           | 2 +-
->  drivers/media/platform/soc_camera/mx3_camera.c           | 2 +-
->  drivers/media/platform/soc_camera/pxa_camera.c           | 2 +-
->  drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c | 2 +-
->  drivers/media/platform/soc_camera/sh_mobile_csi2.c       | 2 +-
->  drivers/media/platform/soc_camera/soc_camera.c           | 2 +-
+> Changes since v1:
+>  - Remove i.MX25 support in the Kconfig file too in patch 1.
+> 
+> [PATCH v2 1/4] media: mx2_camera: Remove i.mx25 support.
+> [PATCH v2 2/4] media: mx2_camera: Add image size HW limits.
+> [PATCH v2 3/4] media: mx2_camera: Remove 'buf_cleanup' callback.
+> [PATCH v2 4/4] media: mx2_camera: Remove buffer states.
 
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Now that Fabio has confirmed, that the driver is working on i.MX25, we 
+don't need to remove support for it. So, patch 1 is dropped, patch 2 I 
+adjusted to be i.MX27-specific, patch also cannot be applied if i.MX25 is 
+kept, patch 4 cannot be used either, becuase the buffer state is actually 
+checked on i.MX25. It might be possible to remove or simplify it still, 
+but that would require a different patch.
 
 Thanks
 Guennadi
