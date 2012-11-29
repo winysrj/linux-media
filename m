@@ -1,89 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33256 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751386Ab2KLLWm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Nov 2012 06:22:42 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Dario Carmignani <carmignani.dario@gmail.com>
-Cc: g.liakhovetski@gmx.de,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: mt9t031-VPFE integration issues...
-Date: Mon, 12 Nov 2012 12:23:36 +0100
-Message-ID: <6068465.jCEtSekhgB@avalon>
-In-Reply-To: <CAAXAVK013mjBg4v6JN_hMS5kS6sPEQfOjwtmyBP+c6CngswwmQ@mail.gmail.com>
-References: <Pine.LNX.4.64.0910030105570.6075@axis700.grange> <Pine.LNX.4.64.1211101434490.13812@axis700.grange> <CAAXAVK013mjBg4v6JN_hMS5kS6sPEQfOjwtmyBP+c6CngswwmQ@mail.gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:53621 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751465Ab2K2TrV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Nov 2012 14:47:21 -0500
+Message-ID: <50B7BBA8.4050000@iki.fi>
+Date: Thu, 29 Nov 2012 21:46:48 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+CC: Matthew Gyurgyik <matthew@pyther.net>, linux-media@vger.kernel.org
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com>
+In-Reply-To: <50B7B768.5070008@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dario,
+On 11/29/2012 09:28 PM, Frank Schäfer wrote:
+> Am 29.11.2012 03:15, schrieb Antti Palosaari:
+>> On 11/29/2012 04:05 AM, Matthew Gyurgyik wrote:
+>>> On 11/28/2012 05:55 PM, Antti Palosaari wrote:
+>>>>
+>>>> Very, very, good pics and sniffs!!
+>>>>
+>>>>
+>>>>  From the sniff you could see I2C addresses
+>>>> 50 (a0 >> 1) eeprom
+>>>> 0e (1c >> 1) demod
+>>>> 60 (c0 >> 1) tuner
+>>>>
+>>>>
+>>>> EM2874, USB-bridge, clocked at 12MHz, crystal on other side of PCB.
+>>>> There is also 32k serial eeprom for EM2874. This large serial eeprom
+>>>> means (very likely) it uses custom firmware which is downloaded from
+>>>> the eeprom.
+>>>>
+>>>> LGDT3305, demodulator, clocked at 25MHz. Serial TS used between EM2874
+>>>> and LGDT3305.
+>>>>
+>>>> TDA18271HDC2 is tuner, clocked at 16MHz. Traditional IF used between
+>>>> tuner and demod.
+>>>>
+>>>> IR receiver is near antenna, which is a little bit long wires to
+>>>> connect to the EM2874, looks weird but no harm.
+>>>>
+>>>>
+>>>> Main GPIO sequence is that one:
+>>>> 000255: 000006 ms 000990 ms c0 00 00 00 80 00 01 00 <<< ff
+>>>> 000256: 000004 ms 000994 ms 40 00 00 00 80 00 01 00 >>> fe
+>>>> 000257: 000006 ms 001000 ms c0 00 00 00 80 00 01 00 <<< fe
+>>>> 000258: 000004 ms 001004 ms 40 00 00 00 80 00 01 00 >>> be
+>>>> 000259: 000139 ms 001143 ms c0 00 00 00 80 00 01 00 <<< be
+>>>> 000260: 000005 ms 001148 ms 40 00 00 00 80 00 01 00 >>> fe
+>>>>
+>>>> There is some more GPIOs later, just test with trial and error to find
+>>>> out all GPIOs.
+>>>>
+>>>> Making that device working should be quite easy! There is a little
+>>>> change for proprietary firmware for EM2874 which does some nasty
+>>>> things, but that is very very unlikely.
+>
+> Do we know any devices with a "real" proprietary firmware ??
+> I'm not talking about custom USB ID, endpoint configuration and minor
+> stuff like this...
 
-On Saturday 10 November 2012 16:58:05 Dario Carmignani wrote:
-> Hi,
-> Thank you.
-> 
-> The main issue I have is that when I use vpfe system and soc camera at the
-> same time, I'm able to register ov772x i2c address with soc system, but vpfe
-> seems not to be able to register ov772x device because it is now linked to
-> the soc. But maybe I'm not doing the right thing.
+I am not aware any such em28xx device. Default firmware seems to be just 
+enough for most cases. Normally there is 2k eeprom which is used to 
+store some basic configuration information, USB IDs and some other 
+properties.
 
-I've hacked the ov772x driver for use with the OMAP3 ISP driver. You can find 
-the patches at 
-http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/board/beagle/ov772x. 
-They're not upstreamable as-is, work is in progress to implement a proper 
-solution, but that will still need time. I don't expect a solution in mainline 
-before v3.9, if not v3.10.
+I don't know how much expensive 32k eeprom is than 2k eeprom, but one 
+possibility is also it is just used because they have had a lot of 
+spare 32k eeproms to waste...
 
-> Il giorno 10-nov-2012 14:56, "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-> ha scritto:
-> > On Sat, 10 Nov 2012, Carmignani Dario wrote:
-> > > Hi,
-> > > 
-> > > thanks for the answer.
-> > > 
-> > > Sorry, but I actually have not so clear how I can use soc-camera sensor
-> > > driver with, for example, vpfe for dm365.
-> > > 
-> > > Can you please give me some hints?
-> > 
-> > Sorry, I'm not working with those systems. I don't even have access to
-> > non-soc-camera systems with soc-camera-based sensors. Basically you'll
-> > have to take a mainline camera-enabled dm365-based board (if there are
-> > any) as an example and use struct soc_camera_link as platform data for the
-> > ov772x driver. I think, Laurent (cc'ed) has a git-tree online somewhere
-> > with an example, using soc-camera originated sensor drivers with a
-> > non-soc-camera system. Try to find his mail about this on the list.
-> >
-> > > > Guennadi Liakhovetski <mailto:g.liakhovetski@gmx.de>
-> > > > 10 novembre 2012 13:44
-> > > > 
-> > > > > Hi,
-> > > > > 
-> > > > > I've just wrote you a while ago.
-> > > > > 
-> > > > > I'm working on a different sensor, but that is based on soc-camera
-> > > > > framework as well: ov772x.
-> > > > > 
-> > > > > I've tried to remove in the ov772x driver the most part of the
-> > > > > dependecy from soc-camera. But I guess that I've remove also the bus
-> > > > > negotiation, without substituting it with something else.
-> > > > > 
-> > > > > Have you tried to do something similar on MT9t031 sensor?
-> > > > 
-> > > > In principle it's not too difficult to use soc-camera sensor drivers
-> > > > with non-soc-camera hosts, it should be possible already now without
-> > > > any sensor driver (most drivers, including ov772x; mt9t031 would be a
-> > > > bit more difficult because of its power management, but if you don't
-> > > > need it, it can be disabled) modifications. However, currencly such
-> > > > driver re-use is not very elegant or natural. Work is in progress to
-> > > > improve it. So, you can either try now or wait until those
-> > > > improvements are in place, don't hold your breath though.
+>
+>>>>
+>>>> regards
+>>>> Antti
+>>>
+>>> Thanks for the information. That is way over my head. Is there same
+>>> basic reading someone could recommend so I can start to understand the
+>>> basics of all this?
+>>>
+>>> In the mean time, I'm willing to do any testing necessary.
+>>>
+>>
+>> Maybe I could give hour or two for that if you could make tests I ask?
+>>
+>> If someone else would like to hack with it, I am very happy too. Frank?
+>>
+>
+> Seems like we have all we need, right ? A TDA18271 driver seems to be in
+> place, what about the LGDT3305 demodulator ?
+> I can try to put the puzzle together, but not before weekend.
+> Matthew, stay tuned but be patient. ;)
+
+Good!
+
+Yes, there is existing drivers for all the used chips. Just make correct 
+device profile (and hope there is no any nasty custom fw things).
+
+
+regards
+Antti
+
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
