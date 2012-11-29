@@ -1,65 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:41961 "EHLO smtp1-g21.free.fr"
+Received: from smtp205.alice.it ([82.57.200.101]:58725 "EHLO smtp205.alice.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752618Ab2KDSnZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Nov 2012 13:43:25 -0500
-Received: from [IPv6:2a01:e34:ef32:80c0:316a:cf75:7e20:94c2] (unknown [IPv6:2a01:e34:ef32:80c0:316a:cf75:7e20:94c2])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id 015F0940193
-	for <linux-media@vger.kernel.org>; Sun,  4 Nov 2012 19:43:17 +0100 (CET)
-Message-ID: <5096B744.40308@free.fr>
-Date: Sun, 04 Nov 2012 19:43:16 +0100
-From: moebius <moebius1@free.fr>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: avermedia, new version of avertv volar green hd
-Content-Type: text/plain; charset=UTF-8; format=flowed
+	id S1753766Ab2K2WPK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Nov 2012 17:15:10 -0500
+Date: Thu, 29 Nov 2012 23:14:56 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Jean-Francois Moine <moinejf@free.fr>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] gspca - ov534: Fix the light frequency filter
+Message-Id: <20121129231456.569fd4b4ebf1eca3840b076b@studenti.unina.it>
+In-Reply-To: <50B729FF.6020402@redhat.com>
+References: <20121122124652.3a832e33@armhf>
+	<20121123180909.021c55a8c3795329836c42b7@studenti.unina.it>
+	<20121123191232.7ed9c546@armhf>
+	<50B729FF.6020402@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bonjour,
-It's a dvb-t usb dongle
+On Thu, 29 Nov 2012 10:25:19 +0100
+Hans de Goede <hdegoede@redhat.com> wrote:
 
-It's the same name than a former device but with new id : 07ca:3835 
-instead of 07ca:a835 and probably new hardware ; and it doesn't work...
+> Hi Jean-Francois, Antonio Ospite,
+> 
+> Could it be that you're both right, and that the register
+> Jean-Francois suggest is used (0x13) and uses in his patch
+> is for enabling / disabling the light-freq filter, where
+> as the register which were used before this patch
+> (0x2a, 0x2b) are used to select the light frequency to
+> filter for?
+>
 
-I've tried to enter a new device in the v4l-dvb web list but nothing has 
-happened ;  the source, can be found at 
-http://www.linuxtv.org/wiki/index.php?title=DVB-T_USB_Devices_ListData/Helper&action=edit&section=1 
+I too thought about something along this line after looking in the
+"OV7670 Implementation Guide": there is a relationship between the
+banding filter and the maximum exposure, and the latter is somewhat
+related to dummy lines/pixels. So this would make sense.
 
-I've made a photo too but don't know how I can upload it.
+> That would explain everything the 2 50 / 60 hz testers are
+> seeing. This assumes that reg 0x13 has the filter always
+> enabled before the patch, and the code before the patch
+> simply changes the filter freq to such a value it
+> effectively disables the filter for 50 Hz. This also
+> assumes that the default values in 0x2a and 0x2b are
+> valid for 60hz, which explains why Jean Francois' patch
+> works for 60 Hz, so with all this combined we should
+> have all pieces of the puzzle ...
+> 
+> Anyone wants to do a patch to prove I'm right (or wrong :)
+> ?
 
-Anyway, here is the source :
+I contacted Fabian Alexander Calderon off-list using the email address
+in the tested-by line in the patch sent by Jean-Francois, I am waiting
+for a reply from him.
 
-==== AVerMedia AVerTV Volar Green HD 07ca:3835 ====
-{{DeviceDisplayMedium|AVerMedia AVerTV Volar Green HD 07ca:3835}}
-</noinclude><includeonly>
-{{{{{renderwith}}}|src=USB_Device_Data|selatt1={{{selatt1|}}}|selval1={{{selval1|}}}|selatt2={{{selatt2|}}}|selval2={{{selval2|}}}|selatt3={{{selatt3|}}}|selval3={{{selval3|}}}|selatt4={{{selatt4|}}}|selval4={{{selval4|}}}
-| did=AVerMedia AVerTV Volar Green HD 07ca:3835
-| vendor=[[AVerMedia]]
-| device=[[AVerMedia AVerTV Volar Green HD | AVerTV Volar Green HD]]
-| standard=DVB-T
-| supported={{no}}
-| pic=
-| pic=
-| url=
-| url=
-| hostinterface=USB2.0
-| usbid=07ca:3835
-| hw=unknown (see pic)
-| tuner=
-| demodulator=
-| usbbridge=
-| fw=
-| comment= New version with same name ; main chipset (square, 4x12 pins) 
-named AV3007 SXB1102 ; a little chip with 8 pins named 402R6 K207, 
-another one with 5 pins 215L1(or "I" instead of "1") AC1H ; last small 
-chip with metal on top T120 WtBF.
-This device don't work on recent ubuntu kernel (3.2.0-23-lowlatency), 
-even with the last (04/11/2012) v4l drivers that I've downloaded and 
-install today.
-}}
+I can cook something which uses register 0x13 and still makes the
+filter apply on 50Hz, but I'll test for an actual test before
+submitting it.
 
-cordialement,
+Thanks,
+   Antonio
 
+-- 
+Antonio Ospite
+http://ao2.it
 
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
