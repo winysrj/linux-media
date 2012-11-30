@@ -1,55 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:35224 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751409Ab2K1Kzj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 05:55:39 -0500
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v3 0/3] Davinci VPSS helper functions for VPFE
-Date: Wed, 28 Nov 2012 16:25:31 +0530
-Message-Id: <1354100134-21095-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mms3.broadcom.com ([216.31.210.19]:4342 "EHLO mms3.broadcom.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754960Ab2K3Iil (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Nov 2012 03:38:41 -0500
+Message-ID: <50B87082.3020604@broadcom.com>
+Date: Fri, 30 Nov 2012 09:38:26 +0100
+From: "Arend van Spriel" <arend@broadcom.com>
+MIME-Version: 1.0
+To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+cc: linux-kernel@vger.kernel.org, tglx@linutronix.de,
+	backports@vger.kernel.org, alexander.stein@systec-electronic.com,
+	brudley@broadcom.com, rvossen@broadcom.com, frankyl@broadcom.com,
+	kanyan@broadcom.com, linux-wireless@vger.kernel.org,
+	brcm80211-dev-list@broadcom.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, daniel.vetter@ffwll.ch,
+	intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+	srinidhi.kasagar@stericsson.com, linus.walleij@linaro.org,
+	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 0/6] drivers: convert struct spinlock to spinlock_t
+References: <1354221910-22493-1-git-send-email-mcgrof@do-not-panic.com>
+In-Reply-To: <1354221910-22493-1-git-send-email-mcgrof@do-not-panic.com>
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunath Hadli <manjunath.hadli@ti.com>
+On 11/29/2012 09:45 PM, Luis R. Rodriguez wrote:
+> From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+> 
+> Turns out a few drivers have strayed away from using the
+> spinlock_t typedef and decided to use struct spinlock
+> directly. This series converts these drivers to use
+> spinlock_t. Each change has been compile tested with
+> allmodconfig and sparse checked. Driver developers
+> may want to look at the compile error output / sparse
+> error report supplied in each commit log, in particular
+> brcmfmac and i915, there are quite a few things that
+> are not related to this change that the developers
+> can clean up / fix.
 
-Hi Mauro,
+So what is the rationale here. During mainlining our drivers we had to
+remove all uses of 'typedef struct foo foo_t;'. The Linux CodingStyle
+(chapter 5 Typedefs) is spending a number of lines explaining why.
 
-This patchset, was part of the DM365 capture driver series, I have split
-them up and made as separate series as the capture patches will now be going
-under staging and made as version V3. This patches have undergone
-several reviews along with the capture driver.
+So is spinlock_t an exception to this rule simply because the kernel
+uses spinlock_t all over the place. Using Greg's favorite final email
+remark:
 
-I am combining the patches with the pull request so we can get them into the
-3.8 kernel. Please pull these patches.If you want a separate pull request,
-please let me know.
+Confused.
 
-The following changes since commit c6c22955f80f2db9614b01fe5a3d1cfcd8b3d848:
+Gr. AvS
 
-  [media] dma-mapping: fix dma_common_get_sgtable() conditional compilation (2012-11-27 09:42:31 -0200)
+> Luis R. Rodriguez (6):
+>   ux500: convert struct spinlock to spinlock_t
+>   i915: convert struct spinlock to spinlock_t
+>   s5p-fimc: convert struct spinlock to spinlock_t
+>   s5p-jpeg: convert struct spinlock to spinlock_t
+>   brcmfmac: convert struct spinlock to spinlock_t
+>   ie6xx_wdt: convert struct spinlock to spinlock_t
+> 
+>  drivers/crypto/ux500/cryp/cryp.h               |    4 ++--
+>  drivers/crypto/ux500/hash/hash_alg.h           |    4 ++--
+>  drivers/gpu/drm/i915/i915_drv.h                |    4 ++--
+>  drivers/media/platform/s5p-fimc/mipi-csis.c    |    2 +-
+>  drivers/media/platform/s5p-jpeg/jpeg-core.h    |    2 +-
+>  drivers/net/wireless/brcm80211/brcmfmac/fweh.h |    2 +-
+>  drivers/watchdog/ie6xx_wdt.c                   |    2 +-
+>  7 files changed, 10 insertions(+), 10 deletions(-)
+> 
 
-are available in the git repository at:
-  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git for_mauro
-
-Manjunath Hadli (3):
-      davinci: vpss: dm365: enable ISP registers
-      davinci: vpss: dm365: set vpss clk ctrl
-      davinci: vpss: dm365: add vpss helper functions to be used in the main driver for setting hardware parameters
-
- drivers/media/platform/davinci/vpss.c |   59 +++++++++++++++++++++++++++++++++
- include/media/davinci/vpss.h          |   16 +++++++++
- 2 files changed, 75 insertions(+), 0 deletions(-)
-
-
--- 
-1.7.4.1
 
