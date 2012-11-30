@@ -1,62 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f51.google.com ([209.85.212.51]:36013 "EHLO
-	mail-vb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753072Ab2L0QEX (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:61544 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758058Ab2K3MBd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Dec 2012 11:04:23 -0500
-MIME-Version: 1.0
-In-Reply-To: <2286035.iP368aB6Vk@avalon>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<1671267.x0lxGrFjjV@avalon>
-	<87pq26ay2z.fsf@intel.com>
-	<2286035.iP368aB6Vk@avalon>
-Date: Thu, 27 Dec 2012 10:04:22 -0600
-Message-ID: <CAF6AEGth+rriTf7X3AXytN+YXxjx4XqMB1ow6ZE2QUro-hqYgw@mail.gmail.com>
-Subject: Re: [RFC v2 0/5] Common Display Framework
-From: Rob Clark <rob.clark@linaro.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	linux-fbdev@vger.kernel.org,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Tom Gall <tom.gall@linaro.org>,
-	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
-	dri-devel@lists.freedesktop.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 30 Nov 2012 07:01:33 -0500
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	<devel@driverdev.osuosl.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH v4 0/9] Media Controller capture driver for DM365
+Date: Fri, 30 Nov 2012 17:31:10 +0530
+Message-Id: <1354276879-27244-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 24, 2012 at 11:27 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Wednesday 19 December 2012 16:57:56 Jani Nikula wrote:
->> It just seems to me that, at least from a DRM/KMS perspective, adding
->> another layer (=CDF) for HDMI or DP (or legacy outputs) would be
->> overengineering it. They are pretty well standardized, and I don't see there
->> would be a need to write multiple display drivers for them. Each display
->> controller has one, and can easily handle any chip specific requirements
->> right there. It's my gut feeling that an additional framework would just get
->> in the way. Perhaps there could be more common HDMI/DP helper style code in
->> DRM to reduce overlap across KMS drivers, but that's another thing.
->>
->> So is the HDMI/DP drivers using CDF a more interesting idea from a non-DRM
->> perspective? Or, put another way, is it more of an alternative to using DRM?
->> Please enlighten me if there's some real benefit here that I fail to see!
->
-> As Rob pointed out, you can have external HDMI/DP encoders, and even internal
-> HDMI/DP encoder IPs can be shared between SoCs and SoC vendors. CDF aims at
-> sharing a single driver between SoCs and boards for a given HDMI/DP encoder.
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-just fwiw, drm already has something a bit like this.. the i2c
-encoder-slave.  With support for a couple external i2c encoders which
-could in theory be shared between devices.
+The below series of patches have gone through good amount of reviews, and
+agreed by Laurent, Hans and Sakari to be part of the staging tree.
 
-BR,
--R
+This patch set adds media controller based capture driver for
+DM365.
+
+This driver bases its design on Laurent Pinchart's Media Controller Design
+whose patches for Media Controller and subdev enhancements form the base.
+The driver also takes copious elements taken from Laurent Pinchart and
+others' OMAP ISP driver based on Media Controller. So thank you all the
+people who are responsible for the Media Controller and the OMAP ISP driver.
+
+Also, the core functionality of the driver comes from the arago vpfe capture
+driver of which the isif capture was based on V4L2, with other drivers like
+ipipe, ipipeif and Resizer.
+
+Changes for v4:
+1: Added a entry in TODO, to have a compatibility layer while replacing the
+   older driver.
+2: Included the ACK's in commit message.
+
+Changes for v3:
+1: Rebased on staging.
+2: Seprated out patches which would go into staging.
+
+Changes for v2:
+1: Migrated the driver for videobuf2 usage pointed Hans.
+2: Changed the design as pointed by Laurent, Exposed one more subdevs
+   ipipeif and split the resizer subdev into three subdevs.
+3: Rearrganed the patch sequence and changed the commit messages.
+4: Changed the file architecture as pointed by Laurent.
+
+Manjunath Hadli (9):
+  davinci: vpfe: add v4l2 capture driver with media interface
+  davinci: vpfe: add v4l2 video driver support
+  davinci: vpfe: dm365: add IPIPEIF driver based on media framework
+  davinci: vpfe: dm365: add ISIF driver based on media framework
+  davinci: vpfe: dm365: add IPIPE support for media controller driver
+  davinci: vpfe: dm365: add IPIPE hardware layer support
+  davinci: vpfe: dm365: resizer driver based on media framework
+  davinci: vpfe: dm365: add build infrastructure for capture driver
+  davinci: vpfe: Add documentation and TODO
+
+ drivers/staging/media/Kconfig                      |    2 +
+ drivers/staging/media/Makefile                     |    1 +
+ drivers/staging/media/davinci_vpfe/Kconfig         |    9 +
+ drivers/staging/media/davinci_vpfe/Makefile        |    3 +
+ drivers/staging/media/davinci_vpfe/TODO            |   37 +
+ .../staging/media/davinci_vpfe/davinci-vpfe-mc.txt |  154 ++
+ .../staging/media/davinci_vpfe/davinci_vpfe_user.h | 1290 ++++++++++++
+ drivers/staging/media/davinci_vpfe/dm365_ipipe.c   | 1863 +++++++++++++++++
+ drivers/staging/media/davinci_vpfe/dm365_ipipe.h   |  179 ++
+ .../staging/media/davinci_vpfe/dm365_ipipe_hw.c    | 1048 ++++++++++
+ .../staging/media/davinci_vpfe/dm365_ipipe_hw.h    |  559 ++++++
+ drivers/staging/media/davinci_vpfe/dm365_ipipeif.c | 1071 ++++++++++
+ drivers/staging/media/davinci_vpfe/dm365_ipipeif.h |  233 +++
+ .../media/davinci_vpfe/dm365_ipipeif_user.h        |   93 +
+ drivers/staging/media/davinci_vpfe/dm365_isif.c    | 2104 ++++++++++++++++++++
+ drivers/staging/media/davinci_vpfe/dm365_isif.h    |  203 ++
+ .../staging/media/davinci_vpfe/dm365_isif_regs.h   |  294 +++
+ drivers/staging/media/davinci_vpfe/dm365_resizer.c | 1999 +++++++++++++++++++
+ drivers/staging/media/davinci_vpfe/dm365_resizer.h |  244 +++
+ drivers/staging/media/davinci_vpfe/vpfe.h          |   86 +
+ .../staging/media/davinci_vpfe/vpfe_mc_capture.c   |  740 +++++++
+ .../staging/media/davinci_vpfe/vpfe_mc_capture.h   |   97 +
+ drivers/staging/media/davinci_vpfe/vpfe_video.c    | 1620 +++++++++++++++
+ drivers/staging/media/davinci_vpfe/vpfe_video.h    |  155 ++
+ 24 files changed, 14084 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/staging/media/davinci_vpfe/Kconfig
+ create mode 100644 drivers/staging/media/davinci_vpfe/Makefile
+ create mode 100644 drivers/staging/media/davinci_vpfe/TODO
+ create mode 100644 drivers/staging/media/davinci_vpfe/davinci-vpfe-mc.txt
+ create mode 100644 drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipe.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.c
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipe_hw.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipeif.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_ipipeif_user.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_isif.c
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_isif.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_isif_regs.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_resizer.c
+ create mode 100644 drivers/staging/media/davinci_vpfe/dm365_resizer.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/vpfe.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+ create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_mc_capture.h
+ create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_video.c
+ create mode 100644 drivers/staging/media/davinci_vpfe/vpfe_video.h
+
+-- 
+1.7.4.1
+
