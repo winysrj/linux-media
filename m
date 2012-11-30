@@ -1,71 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51451 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751395Ab2LKAhU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 19:37:20 -0500
-Received: from avalon.ideasonboard.com (unknown [91.178.169.86])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 42E6635A85
-	for <linux-media@vger.kernel.org>; Tue, 11 Dec 2012 01:37:19 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/2] MAINTAINERS: Add entries for Aptina sensor drivers
-Date: Tue, 11 Dec 2012 01:38:23 +0100
-Message-Id: <1355186304-17399-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mms3.broadcom.com ([216.31.210.19]:2304 "EHLO mms3.broadcom.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751645Ab2K3VVo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Nov 2012 16:21:44 -0500
+Message-ID: <50B9235D.7050309@broadcom.com>
+Date: Fri, 30 Nov 2012 22:21:33 +0100
+From: "Arend van Spriel" <arend@broadcom.com>
+MIME-Version: 1.0
+To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+cc: linux-kernel@vger.kernel.org, tglx@linutronix.de,
+	backports@vger.kernel.org, alexander.stein@systec-electronic.com,
+	brudley@broadcom.com, rvossen@broadcom.com, frankyl@broadcom.com,
+	kanyan@broadcom.com, linux-wireless@vger.kernel.org,
+	brcm80211-dev-list@broadcom.com, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, daniel.vetter@ffwll.ch,
+	intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+	srinidhi.kasagar@stericsson.com, linus.walleij@linaro.org,
+	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 0/6] drivers: convert struct spinlock to spinlock_t
+References: <1354221910-22493-1-git-send-email-mcgrof@do-not-panic.com>
+ <50B87082.3020604@broadcom.com>
+ <CAB=NE6UO8jPYOktteaLeihVqLp251-Q=jv5z_OThXoR+JtRKeg@mail.gmail.com>
+ <CAB=NE6UVA1As_07HOvCbi4oK+CgbNNeeNMfz8agB-00ZRP973w@mail.gmail.com>
+In-Reply-To: <CAB=NE6UVA1As_07HOvCbi4oK+CgbNNeeNMfz8agB-00ZRP973w@mail.gmail.com>
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an entry for the mt9m032, mt9p031, mt9t001 and mt9v032 Aptina sensor
-drivers.
+On 11/30/2012 09:25 PM, Luis R. Rodriguez wrote:
+> On Fri, Nov 30, 2012 at 11:18 AM, Luis R. Rodriguez
+> <mcgrof@do-not-panic.com> wrote:
+>> On Fri, Nov 30, 2012 at 12:38 AM, Arend van Spriel <arend@broadcom.com> wrote:
+>>> So what is the rationale here. During mainlining our drivers we had to
+>>> remove all uses of 'typedef struct foo foo_t;'. The Linux CodingStyle
+>>> (chapter 5 Typedefs) is spending a number of lines explaining why.
+>>>
+>>> So is spinlock_t an exception to this rule simply because the kernel
+>>> uses spinlock_t all over the place.
+>>
+>> Yes.
+> 
+> Let me provide a better explanation. In practice drivers should not be
+> creating their own typedefs given that generally the reasons to create
+> them do not exist for drivers. The kernel may provide their own though
+> for reasons explained in CodingStyle and in such cases the drivers
+> should use these supplied typedefs.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- MAINTAINERS |   32 ++++++++++++++++++++++++++++++++
- 1 files changed, 32 insertions(+), 0 deletions(-)
+Ok. Fine by me. It just looked like a case of saying a and doing b.
+Thanks for taking time giving the better explanation :-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 9fba9ed..d4b699b 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -5008,6 +5008,38 @@ L:	platform-driver-x86@vger.kernel.org
- S:	Supported
- F:	drivers/platform/x86/msi-wmi.c
- 
-+MT9M032 SENSOR DRIVER
-+M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/i2c/mt9m032.c
-+F:	include/media/mt9m032.h
-+
-+MT9P031 SENSOR DRIVER
-+M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/i2c/mt9p031.c
-+F:	include/media/mt9p031.h
-+
-+MT9T001 SENSOR DRIVER
-+M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/i2c/mt9t001.c
-+F:	include/media/mt9t001.h
-+
-+MT9V032 SENSOR DRIVER
-+M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/i2c/mt9v032.c
-+F:	include/media/mt9v032.h
-+
- MULTIFUNCTION DEVICES (MFD)
- M:	Samuel Ortiz <sameo@linux.intel.com>
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/sameo/mfd-2.6.git
--- 
-1.7.8.6
+Gr. AvS
+
 
