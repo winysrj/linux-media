@@ -1,35 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:64807 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932083Ab2K1NJA (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2590 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752479Ab2K3Jyn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Nov 2012 08:09:00 -0500
-Received: by mail-ie0-f174.google.com with SMTP id k11so9998453iea.19
-        for <linux-media@vger.kernel.org>; Wed, 28 Nov 2012 05:09:00 -0800 (PST)
+	Fri, 30 Nov 2012 04:54:43 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v3 0/9] Media Controller capture driver for DM365
+Date: Fri, 30 Nov 2012 10:54:36 +0100
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	devel@driverdev.osuosl.org,
+	"Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1354099329-20722-1-git-send-email-prabhakar.lad@ti.com> <20121130094739.GJ31879@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20121130094739.GJ31879@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <k93vu3$ffi$1@ger.gmane.org>
-References: <k93vu3$ffi$1@ger.gmane.org>
-Date: Wed, 28 Nov 2012 10:08:59 -0300
-Message-ID: <CALF0-+VkANRj+by2n-=UsxZfJwk97ZkNS8R0C-Vt2oX7WN3R0A@mail.gmail.com>
-Subject: Re: ivtv driver inputs randomly "block"
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201211301054.36334.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 28, 2012 at 12:20 AM, Brian J. Murrell
-<brian@interlinx.bc.ca> wrote:
->
-> To remedy the hanging input I simply have to rmmod ivtv && modprobe ivtv
-> and all is back to normal again, until it happens again.
->
-> Any ideas?
->
+On Fri November 30 2012 10:47:39 Sakari Ailus wrote:
+> On Wed, Nov 28, 2012 at 04:12:00PM +0530, Prabhakar Lad wrote:
+> > From: Manjunath Hadli <manjunath.hadli@ti.com>
+> > 
+> > Mauro/Greg,
+> >  The below series of patches have gone through good amount of reviews, and
+> > agreed by Laurent, Hans and Sakari to be part of the staging tree. I am combining
+> > the patchs with the pull request so we can get them into the 3.8 kernel.
+> > Please pull these patches.If you want a seperate pull request, please let me
+> > know.
+> > 
+> > This patch set adds media controller based capture driver for
+> > DM365.
+> 
+> For the whole set --- granted that the TODO item to "add support for regular
+> V4L2 applications through user space libraries" is added:
+> 
+> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> 
 
-Can you post a dmesg output when this happens?
+Ditto for the TODO item.
 
-Thanks,
-
-    Ezequiel
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
