@@ -1,222 +1,354 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1336 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751364Ab2KPM7N (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3087 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756077Ab2K3LMN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Nov 2012 07:59:13 -0500
+	Fri, 30 Nov 2012 06:12:13 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
-	"linux-media" <linux-media@vger.kernel.org>
-Subject: Barcelona Media Summit Report
-Date: Fri, 16 Nov 2012 13:58:54 +0100
+To: Kirill Smelkov <kirr@mns.spb.ru>
+Subject: Re: [PATCH v6] [media] vivi: Teach it to tune FPS
+Date: Fri, 30 Nov 2012 12:10:59 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+References: <1350914084-31618-1-git-send-email-kirr@mns.spb.ru> <20121119055236.GA5486@tugrik.mns.mnsspb.ru> <20121130110214.GA10056@tugrik.mns.mnsspb.ru>
+In-Reply-To: <20121130110214.GA10056@tugrik.mns.mnsspb.ru>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201211161358.54938.hverkuil@xs4all.nl>
+Message-Id: <201211301210.59509.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Fri November 30 2012 12:02:14 Kirill Smelkov wrote:
+> On Mon, Nov 19, 2012 at 09:52:36AM +0400, Kirill Smelkov wrote:
+> > On Sun, Nov 18, 2012 at 07:25:38AM -0200, Mauro Carvalho Chehab wrote:
+> > > Em 18-11-2012 07:24, Mauro Carvalho Chehab escreveu:
+> > > >Em 17-11-2012 08:45, Kirill Smelkov escreveu:
+> > > >>On Fri, Nov 16, 2012 at 01:46:58PM -0200, Mauro Carvalho Chehab wrote:
+> > > >>>Em 16-11-2012 11:38, Hans Verkuil escreveu:
+> > > >>>>On Wed November 7 2012 12:30:01 Kirill Smelkov wrote:
+> > > >>[...]
+> > > >>
+> > > >>>>>diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+> > > >>>>>index 37d0af8..5d1b374 100644
+> > > >>>>>--- a/drivers/media/platform/vivi.c
+> > > >>>>>+++ b/drivers/media/platform/vivi.c
+> > > >>>>>@@ -65,8 +65,11 @@ MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
+> > > >>>>>  /* Global font descriptor */
+> > > >>>>>  static const u8 *font8x16;
+> > > >>>>>
+> > > >>>>>-/* default to NTSC timeperframe */
+> > > >>>>>-static const struct v4l2_fract TPF_DEFAULT = {.numerator = 1001, .denominator = 30000};
+> > > >>>>>+/* timeperframe: min/max and default */
+> > > >>>>>+static const struct v4l2_fract
+> > > >>>>>+    tpf_min     = {.numerator = 1,        .denominator = UINT_MAX},  /* 1/infty */
+> > > >>>>>+    tpf_max     = {.numerator = UINT_MAX,    .denominator = 1},         /* infty */
+> > > >>>>
+> > > >>>>I understand your reasoning here, but I wouldn't go with UINT_MAX here. Something like
+> > > >>>>1/1000 tpf (or 1 ms) up to 86400/1 tpf (or once a day). With UINT_MAX I am afraid we
+> > > >>>>might hit application errors when they manipulate these values. The shortest time
+> > > >>>>between frames is 1 ms anyway.
+> > > >>>>
+> > > >>>>It's the only comment I have, it looks good otherwise.
+> > > >>>
+> > > >>>As those will be a arbitrary values, I suggest to declare a macro for it at the
+> > > >>>beginning of vivi.c file, with some comment explaining the rationale of the choose,
+> > > >>>and what else needs to be changed, if this changes (e. g. less than 1ms would require
+> > > >>>changing the image generation logic, to avoid producing frames with equal content).
+> > > >>
+> > > >>Maybe something like this? (please note, I'm not a good text writer. If
+> > > >>this needs adjustment please help me shape the text up)
+> > > >>
+> > > >>
+> > > >>diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+> > > >>index 5d1b374..45b8a81 100644
+> > > >>--- a/drivers/media/platform/vivi.c
+> > > >>+++ b/drivers/media/platform/vivi.c
+> > > >>@@ -36,6 +36,18 @@
+> > > >>
+> > > >>  #define VIVI_MODULE_NAME "vivi"
+> > > >>
+> > > >>+/* Maximum allowed frame rate
+> > > >>+ *
+> > > >>+ * Vivi will allow setting timeperframe in [1/FPS_MAX - FPS_MAX/1] range.
+> > > >>+ *
+> > > >>+ * Ideally FPS_MAX should be infinity, i.e. practically UINT_MAX, but that
+> > > >>+ * might hit application errors when they manipulate these values.
+> > > >>+ *
+> > > >>+ * Besides, for tpf < 1ms image-generation logic should be changed, to avoid
+> > > >>+ * producing frames with equal content.
+> > > >>+ */
+> > > >>+#define FPS_MAX 1000
+> > > >>+
+> > > >>  #define MAX_WIDTH 1920
+> > > >>  #define MAX_HEIGHT 1200
+> > > >>
+> > > >>@@ -67,8 +79,8 @@ static const u8 *font8x16;
+> > > >>
+> > > >>  /* timeperframe: min/max and default */
+> > > >>  static const struct v4l2_fract
+> > > >>-    tpf_min     = {.numerator = 1,        .denominator = UINT_MAX},  /* 1/infty */
+> > > >>-    tpf_max     = {.numerator = UINT_MAX,    .denominator = 1},         /* infty */
+> > > >>+    tpf_min     = {.numerator = 1,        .denominator = FPS_MAX},   /* ~1/infty */
+> > > >>+    tpf_max     = {.numerator = FPS_MAX,    .denominator = 1},         /* ~infty */
+> > > 
+> > > Was too fast answering it... The comments there should also be dropped, as it doesn't
+> > > range anymore to infty.
+> > 
+> > Ok, agree, let's drop those ~infty comments and be done with it.
+> > 
+> > 
+> > ---- 8< ----
+> > From: Kirill Smelkov <kirr@mns.spb.ru>
+> > Date: Tue, 23 Oct 2012 16:56:59 +0400
+> > Subject: [PATCH v6] [media] vivi: Teach it to tune FPS
+> > 
+> > I was testing my video-over-ethernet subsystem recently, and vivi
+> > seemed to be perfect video source for testing when one don't have lots
+> > of capture boards and cameras. Only its framerate was hardcoded to
+> > NTSC's 30fps, while in my country we usually use PAL (25 fps) and I
+> > needed that to precisely simulate bandwidth.
+> > 
+> > That's why here is this patch with ->enum_frameintervals() and
+> > ->{g,s}_parm() implemented as suggested by Hans Verkuil which passes
+> > v4l2-compliance and manual testing through v4l2-ctl -P / -p <fps>.
+> > 
+> > Regarding newly introduced __get_format(u32 pixelformat) I decided not
+> > to convert original get_format() to operate on fourcc codes, since >= 3
+> > places in driver need to deal with v4l2_format and otherwise it won't be
+> > handy.
+> > 
+> > Thanks.
+> > 
+> > Signed-off-by: Kirill Smelkov <kirr@mns.spb.ru>
+> > ---
+> >  drivers/media/platform/vivi.c | 102 ++++++++++++++++++++++++++++++++++++++----
+> >  1 file changed, 94 insertions(+), 8 deletions(-)
+> > 
+> > V6:
+> >     - Moved TPF/FPS limit to beginning of vivi.c and added comment there
+> >       why that limit is used, to avoid overlows, as suggested by Mauro
+> >       Carvalho Chehab.
+> > 
+> > V5:
+> >     - changed  1/infty - infty/1  limits to  1/1000 - 1000/1, to avoid
+> >       hitting aplication errors when they try to manipulato those
+> >       values, as suggested by Hans Verkuil.
+> > 
+> > V4:
+> >     - corrected fival->stepwise setting and added its check to s_parm();
+> >       also cosmetics - all as per Hans Verkuil review.
+> > 
+> > V3:
+> >     - corrected issues with V4L2 spec compliance as pointed by Hans
+> >       Verkuil.
+> > 
+> > V2:
+> > 
+> >     - reworked FPS setting from module param to via ->{g,s}_parm() as suggested
+> >       by Hans Verkuil.
+> > 
+> > 
+> > diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+> > index 6e6dd25..9ca920e 100644
+> > --- a/drivers/media/platform/vivi.c
+> > +++ b/drivers/media/platform/vivi.c
+> > @@ -36,9 +36,17 @@
+> >  
+> >  #define VIVI_MODULE_NAME "vivi"
+> >  
+> > -/* Wake up at about 30 fps */
+> > -#define WAKE_NUMERATOR 30
+> > -#define WAKE_DENOMINATOR 1001
+> > +/* Maximum allowed frame rate
+> > + *
+> > + * Vivi will allow setting timeperframe in [1/FPS_MAX - FPS_MAX/1] range.
+> > + *
+> > + * Ideally FPS_MAX should be infinity, i.e. practically UINT_MAX, but that
+> > + * might hit application errors when they manipulate these values.
+> > + *
+> > + * Besides, for tpf < 1ms image-generation logic should be changed, to avoid
+> > + * producing frames with equal content.
+> > + */
+> > +#define FPS_MAX 1000
+> >  
+> >  #define MAX_WIDTH 1920
+> >  #define MAX_HEIGHT 1200
+> > @@ -69,6 +77,12 @@ MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
+> >  /* Global font descriptor */
+> >  static const u8 *font8x16;
+> >  
+> > +/* timeperframe: min/max and default */
+> > +static const struct v4l2_fract
+> > +	tpf_min     = {.numerator = 1,		.denominator = FPS_MAX},
+> > +	tpf_max     = {.numerator = FPS_MAX,	.denominator = 1},
+> > +	tpf_default = {.numerator = 1001,	.denominator = 30000};	/* NTSC */
+> > +
+> >  #define dprintk(dev, level, fmt, arg...) \
+> >  	v4l2_dbg(level, debug, &dev->v4l2_dev, fmt, ## arg)
+> >  
+> > @@ -150,14 +164,14 @@ static struct vivi_fmt formats[] = {
+> >  	},
+> >  };
+> >  
+> > -static struct vivi_fmt *get_format(struct v4l2_format *f)
+> > +static struct vivi_fmt *__get_format(u32 pixelformat)
+> >  {
+> >  	struct vivi_fmt *fmt;
+> >  	unsigned int k;
+> >  
+> >  	for (k = 0; k < ARRAY_SIZE(formats); k++) {
+> >  		fmt = &formats[k];
+> > -		if (fmt->fourcc == f->fmt.pix.pixelformat)
+> > +		if (fmt->fourcc == pixelformat)
+> >  			break;
+> >  	}
+> >  
+> > @@ -167,6 +181,11 @@ static struct vivi_fmt *get_format(struct v4l2_format *f)
+> >  	return &formats[k];
+> >  }
+> >  
+> > +static struct vivi_fmt *get_format(struct v4l2_format *f)
+> > +{
+> > +	return __get_format(f->fmt.pix.pixelformat);
+> > +}
+> > +
+> >  /* buffer for one video frame */
+> >  struct vivi_buffer {
+> >  	/* common v4l buffer stuff -- must be first */
+> > @@ -232,6 +251,7 @@ struct vivi_dev {
+> >  
+> >  	/* video capture */
+> >  	struct vivi_fmt            *fmt;
+> > +	struct v4l2_fract          timeperframe;
+> >  	unsigned int               width, height;
+> >  	struct vb2_queue	   vb_vidq;
+> >  	unsigned int		   field_count;
+> > @@ -691,8 +711,8 @@ static void vivi_thread_tick(struct vivi_dev *dev)
+> >  	dprintk(dev, 2, "[%p/%d] done\n", buf, buf->vb.v4l2_buf.index);
+> >  }
+> >  
+> > -#define frames_to_ms(frames)					\
+> > -	((frames * WAKE_NUMERATOR * 1000) / WAKE_DENOMINATOR)
+> > +#define frames_to_ms(dev, frames)				\
+> > +	((frames * dev->timeperframe.numerator * 1000) / dev->timeperframe.denominator)
+> >  
+> >  static void vivi_sleep(struct vivi_dev *dev)
+> >  {
+> > @@ -708,7 +728,7 @@ static void vivi_sleep(struct vivi_dev *dev)
+> >  		goto stop_task;
+> >  
+> >  	/* Calculate time to wake up */
+> > -	timeout = msecs_to_jiffies(frames_to_ms(1));
+> > +	timeout = msecs_to_jiffies(frames_to_ms(dev, 1));
+> >  
+> >  	vivi_thread_tick(dev);
+> >  
+> > @@ -1080,6 +1100,68 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
+> >  	return 0;
+> >  }
+> >  
+> > +/* timeperframe is arbitrary and continous */
+> > +static int vidioc_enum_frameintervals(struct file *file, void *priv,
+> > +					     struct v4l2_frmivalenum *fival)
+> > +{
+> > +	struct vivi_fmt *fmt;
+> > +
+> > +	if (fival->index)
+> > +		return -EINVAL;
+> > +
+> > +	fmt = __get_format(fival->pixel_format);
+> > +	if (!fmt)
+> > +		return -EINVAL;
+> > +
+> > +	/* regarding width & height - we support any */
+> > +
+> > +	fival->type = V4L2_FRMIVAL_TYPE_CONTINUOUS;
+> > +
+> > +	/* fill in stepwise (step=1.0 is requred by V4L2 spec) */
+> > +	fival->stepwise.min  = tpf_min;
+> > +	fival->stepwise.max  = tpf_max;
+> > +	fival->stepwise.step = (struct v4l2_fract) {1, 1};
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int vidioc_g_parm(struct file *file, void *priv, struct v4l2_streamparm *parm)
+> > +{
+> > +	struct vivi_dev *dev = video_drvdata(file);
+> > +
+> > +	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> > +		return -EINVAL;
+> > +
+> > +	parm->parm.capture.capability   = V4L2_CAP_TIMEPERFRAME;
+> > +	parm->parm.capture.timeperframe = dev->timeperframe;
+> > +	parm->parm.capture.readbuffers  = 1;
+> > +	return 0;
+> > +}
+> > +
+> > +#define FRACT_CMP(a, OP, b)	\
+> > +	( (u64)(a).numerator * (b).denominator  OP  (u64)(b).numerator * (a).denominator )
+> > +
+> > +static int vidioc_s_parm(struct file *file, void *priv, struct v4l2_streamparm *parm)
+> > +{
+> > +	struct vivi_dev *dev = video_drvdata(file);
+> > +	struct v4l2_fract tpf;
+> > +
+> > +	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> > +		return -EINVAL;
+> > +
+> > +	tpf = parm->parm.capture.timeperframe;
+> > +
+> > +	/* tpf: {*, 0} resets timing; clip to [min, max]*/
+> > +	tpf = tpf.denominator ? tpf : tpf_default;
+> > +	tpf = FRACT_CMP(tpf, <, tpf_min) ? tpf_min : tpf;
+> > +	tpf = FRACT_CMP(tpf, >, tpf_max) ? tpf_max : tpf;
+> > +
+> > +	dev->timeperframe = tpf;
+> > +	parm->parm.capture.timeperframe = tpf;
+> > +	parm->parm.capture.readbuffers  = 1;
+> > +	return 0;
+> > +}
+> > +
+> >  /* --- controls ---------------------------------------------- */
+> >  
+> >  static int vivi_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+> > @@ -1238,6 +1320,9 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
+> >  	.vidioc_enum_input    = vidioc_enum_input,
+> >  	.vidioc_g_input       = vidioc_g_input,
+> >  	.vidioc_s_input       = vidioc_s_input,
+> > +	.vidioc_enum_frameintervals = vidioc_enum_frameintervals,
+> > +	.vidioc_g_parm        = vidioc_g_parm,
+> > +	.vidioc_s_parm        = vidioc_s_parm,
+> >  	.vidioc_streamon      = vb2_ioctl_streamon,
+> >  	.vidioc_streamoff     = vb2_ioctl_streamoff,
+> >  	.vidioc_log_status    = v4l2_ctrl_log_status,
+> > @@ -1296,6 +1381,7 @@ static int __init vivi_create_instance(int inst)
+> >  		goto free_dev;
+> >  
+> >  	dev->fmt = &formats[0];
+> > +	dev->timeperframe = tpf_default;
+> >  	dev->width = 640;
+> >  	dev->height = 480;
+> >  	dev->pixelsize = dev->fmt->depth / 8;
+> 
+> 
+> Mauro, Hans, what's the state of this patch? Just a ping, I know you are
+> under load.
+> 
+> Thanks,
+> Kirill
+> 
+> 
+> P.S. Hans, if this is ok for you, would you please add your ack?
+> 
 
-This is the report of the Barcelona Media Summit on November 8. For those who
-were in attendence: please correct any mistakes I may have made.
+Looks good to me!
 
-My presentation for the 'Minimum Requirements for New Drivers' and the 'V4L2
-Ambiguities' can be found here:
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-http://hverkuil.home.xs4all.nl/presentations/ambiguities2.odp
-
-I'd appreciate it if other presentations shown during the meeting can be made
-available as well.
-
-Enjoy!
+Thanks,
 
 	Hans
-
-Merging Process
-===============
-
-The morning was spent discussing the merging process. Basically the number of
-patch submissions increased from 200 a month two years ago to 700 a month this
-year. Mauro is unable to keep up with that flood and a solution needed to be
-found.
-
-Mauro explained the current merge process, and after that the floor was opened
-for discussions.
-
-One of the problems is that it can be difficult to categorize patches since
-often they are just prefixed with [PATCH]. Depending on who mailed it that
-might mean an urgent regression fix, a patch that's ready to be merged or a
-patch that needs review. There is no reliable way of knowing that without
-actually looking at the mail.
-
-One thing that we want to improve is to make sure that the regular contributors
-at least use well defined patch prefixes. That means that we need a standard
-prefix for regression fixes that need to go into the current rcX kernel asap.
-This will make it easy to recognize them. We also need a prefix for patches that
-we want to have reviewed before a final git pull request is posted. Laurent will
-look into extending patchwork to have such patches be marked as 'Under Review'
-automatically.
-
-There is a distinction between RFC patches and patches you consider final (i.e.
-ready for merging), but want people to look at. RFC patches will typically need
-more work, but you want people to check it out and make sure you are going in
-the right direction. Review patches are what you consider the final version, but
-you want to give people a final chance to comment on them before posting the pull
-request.
-
-We also want to improve the MAINTAINERS file: it must be complete (with the
-exception of RC keymaps, where that doesn't make sense). When posting review
-patches the reviewed-by/acked-by from the actual person mentioned in the
-MAINTAINERS file is sufficient to get the patch merged. Obviously, if someone
-not responsible for the driver in question has good technical arguments why
-it's wrong, then that should be taken into account.
-
-In addition, the current list of media driver maintainers in that file needs
-to be validated: are all emails still current, and is everyone still willing
-to maintain their driver?
-
-New drivers also must come with a MAINTAINERS entry.
-
-In other words, the MAINTAINERS file will become more important.
-
-The final decision we made was to appoint submaintainers of parts of the media
-subsystem. Those submaintainers will take over Mauro's job for those parts
-that they are responsible for, and make periodic pull requests to Mauro to
-pull in the patches they have collected.
-
-The submaintainers will be:
-
-- Mike Krufky: frontends/tuners/demodulators
-	In addition he'll be the reviewer for DVB core patches.
-- Hans Verkuil: V4L2 drivers and video A/D and D/A subdev drivers (aka video
-	receivers and transmitters). In addition he'll be the reviewer for
-	V4L2 core patches.
-- Laurent Pinchart: sensor subdev drivers
-- Kamil Debski: codec (aka memory-to-memory) drivers
-- Hans de Goede: non-UVC USB webcam drivers
-- Guennadi Liakhovetski: soc-camera drivers
-
-In addition, certain SoC vendors will remain responsible for their own drivers
-(Samsung, TI) and will keep sending them straight to Mauro.
-
-The first step is to get the MAINTAINERS file into shape and to improve
-patchwork, after that we need to clearly document the new structure. Only
-when that is done do the new submaintainers start their work.
-
-
-Requirements for New V4L2 Drivers
-=================================
-
-The next topic was to document the requirements for new drivers.
-
-For the staging tree we want drivers to compile at the time of submission.
-That is all it should take to be accepted into staging.
-
-For inclusion into the mainline kernel we require the following:
-
-- Use struct v4l2_device for bridge drivers, use struct v4l2_subdev for
-  sub-device drivers.
-- Use the control framework for control handling.
-- Use struct v4l2_fh if the driver supports events (implied by the use of
-  controls) or priority handling.
-- Use videobuf2 for buffer handling. Mike Krufky will look into extending
-  vb2 to support DVB buffers.
-- Must pass the v4l2-compliance tests.
-
-This will be documented as well in Documentation/video4linux/SubmittingDrivers.txt.
-
-
-V4L2 Ambiguities
-================
-
-In San Diego we discussed a lot of V4L2 ambiguities and how to resolve them,
-but we didn't have time to go through all of them. We finished it in Barcelona.
-
-- What to do if the colorspace is unknown? This happens with UVC webcams that
-  do not report this. The decision was to make a V4L2_COLORSPACE_UNKNOWN. If
-  that is reported, then no colorspace conversion should be attempted by the
-  application.
-
-- Pixel Aspect Ratio: currently this is only available from VIDIOC_CROPCAP,
-  which conflicts with the new selection API, and it doesn't really belong
-  there anyway.
-
-  The decision was to implement the pixel aspect ratio as a control, which
-  implies adding a control type for fractions. This needs good documentation
-  and a code example.
-
-- Should we add a QUERYCAP ioctl for subdevice nodes? The conclusion was that
-  we should add a VIDIOC_SUBDEV_QUERYCAP ioctl. Initially that just needs a
-  version field and some reserved fields and it can be handled in v4l2-subdev.c.
-
-- Tuner ownership: how should the tuner ownership be handled? The proposal
-  I wrote for this was accepted, with the addition that the code to handle
-  tuner ownership should be shared between DVB and V4L2. I have my name
-  and Hans de Goede's name next to this topic, but I've forgotten what we
-  were supposed to do :-)
-
-
-Transport Stream Muxer
-======================
-
-ST discussed how to design a driver for a hardware Transport Stream Muxer:
-this hardware contains a number of DMA engines allowing many transport streams
-(up to 8192, which is the theoretical maximum) to be muxed into a single big
-transport stream.
-
-Due to the large number of possible transport streams one cannot make a video
-node for each of them. So the solution is to have one memory-to-memory device.
-Every time it is opened you make a new context (filehandle specific) and after
-setting up the PID (and possibly other (meta) data) you can write the TS to it.
-There is only one output stream, though. Perhaps we need a new /dev/tsmuxX
-device node for this, that's still to be decided.
-
-ST will make an RFC for this idea to discuss this further on the mailinglist.
-
-
-DMABUF Testing
-==============
-
-Progress had been made on this: Laurent showed UVC using DMABUF passing the buffer
-directly to the i915 GPU.
-
-
-Asynchronous Loading for Device Tree
-====================================
-
-The device tree patches posted by Guennadi were well received, but the part
-dealing with async loading of devices led to a lot of discussion on the
-mailinglist so we tried to come to a conclusion during the summit meeting.
-
-The current patch uses a field in the platform_data of a subdevice to detect
-whether the bridge driver was present. A better solution is to check for the
-presence of required resources (e.g. a clock) instead: if not present, then
-defer probing.
-
-It was noted that the asynchronous behavior of the device tree will lead to
-subdevices that are loaded in a random order. This might cause subtle problems
-in the future if the order of device initialization matters for certain boards.
-It shouldn't matter, but theory and reality are different things. There is
-nothing that can be done about it at the moment. Should this become a problem,
-then that should be discussed with the DT developers since this is a DT problem
-and is not specific to V4L2.
-
-The 'group' idea in the async loading patches wasn't liked. Instead the suggestion
-was to provide two different notification methods: a notification when the last
-required subdev is loaded, and a notification for each loaded subdev. The latter
-can be used when not all subdevs might be present. In that case the bridge driver
-needs to be able to decide when sufficient subdevs were found in order to start up.
-
-
-Conclusion
-==========
-
-We managed to get through all topics during this one-day summit, so it was very
-productive. I'd like to thank all who were there, it's always a pleasure to meet
-you all!
-
-Regards,
-
-	Hans Verkuil
