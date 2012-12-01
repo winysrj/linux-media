@@ -1,77 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:53967 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751555Ab2LPQ4C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 11:56:02 -0500
-Date: Sun, 16 Dec 2012 09:56:01 -0700
-From: Jonathan Corbet <corbet@lwn.net>
-To: Albert Wang <twang13@marvell.com>
-Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	Libin Yang <lbyang@marvell.com>
-Subject: Re: [PATCH V3 15/15] [media] marvell-ccic: add 3 frame buffers
- support in DMA_CONTIG mode
-Message-ID: <20121216095601.4a086356@hpe.lwn.net>
-In-Reply-To: <1355565484-15791-16-git-send-email-twang13@marvell.com>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
-	<1355565484-15791-16-git-send-email-twang13@marvell.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from mxweb01do.versatel-west.de ([62.214.96.172]:33778 "HELO
+	mxweb01do.versatel-west.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752441Ab2LAPgG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 1 Dec 2012 10:36:06 -0500
+Received: from cinnamon-sage.de (i577A3D15.versanet.de [87.122.61.21])
+	(dvb@flensrocker.de authenticated bits=0)
+	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id qB1FTJRx001197
+	for <linux-media@vger.kernel.org>; Sat, 1 Dec 2012 16:29:20 +0100
+Received: from 192.168.23.2:64486 by cinnamon-sage.de for <andreas.regel@gmx.de>,<linux-media@vger.kernel.org> ; 01.12.2012 16:29:18
+Message-ID: <50BA224F.30504@flensrocker.de>
+Date: Sat, 01 Dec 2012 16:29:19 +0100
+From: Lars Hanisch <dvb@flensrocker.de>
+MIME-Version: 1.0
+To: Andreas Regel <andreas.regel@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Not receiving any messages since 2012-11-04
+References: <50BA1CAB.8050801@gmx.de>
+In-Reply-To: <50BA1CAB.8050801@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 15 Dec 2012 17:58:04 +0800
-Albert Wang <twang13@marvell.com> wrote:
+Hi,
 
-> This patch adds support of 3 frame buffers in DMA-contiguous mode.
+Am 01.12.2012 16:05, schrieb Andreas Regel:
+> am I the only one that is receiveing no mails from linux-media since Nov 04, 2012?
+
+ Here's everything fine AICT.
+
+Regards,
+Lars.
+
 > 
-> In current DMA_CONTIG mode, only 2 frame buffers can be supported.
-> Actually, Marvell CCIC can support at most 3 frame buffers.
-> 
-> Currently 2 frame buffers mode will be used by default.
-> To use 3 frame buffers mode, can do:
->   define MAX_FRAME_BUFS 3
-> in mcam-core.h
-
-Now that the code supports three buffers properly, is there any reason not
-to use that mode by default?
-
-Did you test that it works properly if allocation of the third buffer fails?
-
-Otherwise looks OK except for one thing:
-
-> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
-> index 765d47c..9bf31c8 100755
-> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
-> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
-> @@ -62,6 +62,13 @@ enum mcam_state {
->  #define MAX_DMA_BUFS 3
->  
->  /*
-> + * CCIC can support at most 3 frame buffers in DMA_CONTIG buffer mode
-> + * 2 - Use Two Buffers mode
-> + * 3 - Use Three Buffers mode
-> + */
-> +#define MAX_FRAME_BUFS 2 /* Current marvell-ccic used Two Buffers mode */
-> +
-> +/*
->   * Different platforms work best with different buffer modes, so we
->   * let the platform pick.
->   */
-> @@ -99,6 +106,10 @@ struct mcam_frame_state {
->  	unsigned int frames;
->  	unsigned int singles;
->  	unsigned int delivered;
-> +	/*
-> +	 * Only usebufs == 2 can enter single buffer mode
-> +	 */
-> +	unsigned int usebufs;
->  };
-
-What is the purpose of the "usebufs" field?  The code maintains it in
-various places, but I don't see anywhere that actually uses that value for
-anything.
-
-Thanks,
-
-jon
+> Best regards
+> Andreas
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
