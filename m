@@ -1,99 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35726 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752125Ab2LXMyX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Dec 2012 07:54:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com
-Subject: [PATCH v2 1/2] v4l2-compliance: Print invalid return codes in control tests
-Date: Mon, 24 Dec 2012 13:55:41 +0100
-Message-Id: <1356353742-17327-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from userp1040.oracle.com ([156.151.31.81]:35342 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753326Ab2LBKnS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Dec 2012 05:43:18 -0500
+Date: Sun, 2 Dec 2012 13:43:13 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] mantis: cleanup NULL checking in mantis_ca_exit()
+Message-ID: <20121202104313.GC16078@elgon.mountain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Smatch complainst that the call to mantis_evmgr_exit() dereferences "ca"
+but then we check it for NULL on the next line.  I've moved the NULL
+check forward to avoid that.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 ---
- utils/v4l2-compliance/v4l2-test-controls.cpp |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+There aren't any callers for this function.  It is commented out in
+mantis_dvb_exit().
 
-diff --git a/utils/v4l2-compliance/v4l2-test-controls.cpp b/utils/v4l2-compliance/v4l2-test-controls.cpp
-index 27c0117..2e03551 100644
---- a/utils/v4l2-compliance/v4l2-test-controls.cpp
-+++ b/utils/v4l2-compliance/v4l2-test-controls.cpp
-@@ -153,7 +153,7 @@ static int checkQCtrl(struct node *node, struct test_queryctrl &qctrl)
- 		qmenu.index = i;
- 		ret = doioctl(node, VIDIOC_QUERYMENU, &qmenu);
- 		if (ret && ret != EINVAL)
--			return fail("invalid QUERYMENU return code\n");
-+			return fail("invalid QUERYMENU return code (%d)\n", ret);
- 		if (ret)
- 			continue;
- 		if (i < qctrl.minimum || i > qctrl.maximum)
-@@ -194,7 +194,7 @@ int testQueryControls(struct node *node)
- 		if (ret == ENOTTY)
- 			return ret;
- 		if (ret && ret != EINVAL)
--			return fail("invalid queryctrl return code\n");
-+			return fail("invalid queryctrl return code (%d)\n", ret);
- 		if (ret)
- 			break;
- 		if (checkQCtrl(node, qctrl))
-@@ -244,7 +244,7 @@ int testQueryControls(struct node *node)
- 		qctrl.id = id;
- 		ret = doioctl(node, VIDIOC_QUERYCTRL, &qctrl);
- 		if (ret && ret != EINVAL)
--			return fail("invalid queryctrl return code\n");
-+			return fail("invalid queryctrl return code (%d)\n", ret);
- 		if (ret)
- 			continue;
- 		if (qctrl.id != id)
-@@ -260,7 +260,7 @@ int testQueryControls(struct node *node)
- 		qctrl.id = id;
- 		ret = doioctl(node, VIDIOC_QUERYCTRL, &qctrl);
- 		if (ret && ret != EINVAL)
--			return fail("invalid queryctrl return code\n");
-+			return fail("invalid queryctrl return code (%d)\n", ret);
- 		if (ret)
- 			break;
- 		if (qctrl.id != id)
-@@ -352,7 +352,7 @@ int testSimpleControls(struct node *node)
- 			ctrl.id = iter->id;
- 			ctrl.value = iter->default_value;
- 		} else if (ret)
--			return fail("g_ctrl returned an error\n");
-+			return fail("g_ctrl returned an error (%d)\n", ret);
- 		else if (checkSimpleCtrl(ctrl, *iter))
- 			return fail("invalid control %08x\n", iter->id);
- 		
-@@ -417,7 +417,7 @@ int testSimpleControls(struct node *node)
- 				if (!valid && !ret)
- 					return fail("could set invalid menu item %d\n", i);
- 				if (ret && ret != EINVAL)
--					return fail("setting invalid menu item returned wrong error\n");
-+					return fail("setting invalid menu item returned wrong error (%d)\n", ret);
- 			}
- 		} else {
- 			// at least min, max and default values should work
-@@ -581,7 +581,7 @@ int testExtendedControls(struct node *node)
- 			if (ctrls.error_idx != 0)
- 				return fail("invalid error index read only control\n");
- 		} else if (ret) {
--			return fail("try_ext_ctrls returned an error\n");
-+			return fail("try_ext_ctrls returned an error (%d)\n", ret);
- 		}
- 		
- 		// Try to set the current value (or the default value for write only controls)
-@@ -597,7 +597,7 @@ int testExtendedControls(struct node *node)
- 				ret = 0;
- 			}
- 			if (ret)
--				return fail("s_ext_ctrls returned an error\n");
-+				return fail("s_ext_ctrls returned an error (%d)\n", ret);
- 		
- 			if (checkExtendedCtrl(ctrl, *iter))
- 				return fail("s_ext_ctrls returned invalid control contents (%08x)\n", iter->id);
--- 
-1.7.8.6
-
+diff --git a/drivers/media/pci/mantis/mantis_ca.c b/drivers/media/pci/mantis/mantis_ca.c
+index 3d70469..60c6c2f 100644
+--- a/drivers/media/pci/mantis/mantis_ca.c
++++ b/drivers/media/pci/mantis/mantis_ca.c
+@@ -198,11 +198,12 @@ void mantis_ca_exit(struct mantis_pci *mantis)
+ 	struct mantis_ca *ca = mantis->mantis_ca;
+ 
+ 	dprintk(MANTIS_DEBUG, 1, "Mantis CA exit");
++	if (!ca)
++		return;
+ 
+ 	mantis_evmgr_exit(ca);
+ 	dprintk(MANTIS_ERROR, 1, "Unregistering EN50221 device");
+-	if (ca)
+-		dvb_ca_en50221_release(&ca->en50221);
++	dvb_ca_en50221_release(&ca->en50221);
+ 
+ 	kfree(ca);
+ }
