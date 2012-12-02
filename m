@@ -1,56 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f47.google.com ([74.125.83.47]:40387 "EHLO
-	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754173Ab2L1W4g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Dec 2012 17:56:36 -0500
-Received: by mail-ee0-f47.google.com with SMTP id e51so5326510eek.20
-        for <linux-media@vger.kernel.org>; Fri, 28 Dec 2012 14:56:35 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media <linux-media@vger.kernel.org>
-Cc: Malcolm Priestley <tvboxspy@gmail.com>,
-	Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-Subject: [GIT PULL FOR v3.9] the rest for TeVii s421, s632 DVB cards and Montage ds3000, rs2000 demods
-Date: Sat, 29 Dec 2012 01:56:37 +0300
-Message-ID: <3107952.IAy7bspQ8Z@useri>
+Received: from mail.kapsi.fi ([217.30.184.167]:44441 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751673Ab2LBOXq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 Dec 2012 09:23:46 -0500
+Message-ID: <50BB6451.7080601@iki.fi>
+Date: Sun, 02 Dec 2012 16:23:13 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="ISO-8859-1"
+To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+CC: Matthew Gyurgyik <matthew@pyther.net>, linux-media@vger.kernel.org
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com>
+In-Reply-To: <50BB3F2C.5080107@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit c19bec500168108bf28710fae304523679ffb40f:
+On 12/02/2012 01:44 PM, Frank Schäfer wrote:
+> Am 30.11.2012 02:45, schrieb Matthew Gyurgyik:
+>> On 11/29/2012 02:28 PM, Frank Schäfer wrote:
+>>> Matthew, stay tuned but be patient. ;) Regards, Frank
+>>
+>> Sure thing, just let me know what you need me to do!
+>>
+>
+> Ok, please test the attached experimental patch and post the dmesg output.
+>
+> Open questions:
+> - setting of EM2874 register 0x0f (XCLK): the Windows doesn't touch this
+> register, so the default value seems to be used.
+>    The patch adds 2 debugging lines to find out the default which default
+> value the em2874 uses.
+>    For now, I've set this to 12MHz, because the picture shows a 12MHz
+> oszillator.
+> - meaning of the gpio sequence / gpio lines assignment (see comments in
+> the patch).
+> - remote control support: looking at the product picture on the MSI website,
+>    the remote control could be the same as sues by the Digivox III. But
+> that's just a guess.
+> - LGDT3305 configuration: a few parameters can not be taken form the USB
+> log. Will ask the author of the driver for help.
+>
+> But let's do things step by step and see what happens with the patch.
+>
+> Regards,
+> Frank
+>
 
-  [media] vivi: Constify structures (2012-12-28 13:32:51 -0200)
+Hello
+I looked the patch quickly and here are the findings:
+I2C addresses are in "8-bit" format. Will not work. Example for tuner, 
+0xc0 should be 0x60. Same for the demod. Due to that, no worth to test 
+patch. I2C addresses are normally 7-bit, but "unofficial" 8-bit notation 
+is also used widely. em28xx uses official notation as almost all other 
+media drivers.
 
-are available in the git repository at:
+You are using tda18271c2dd tuner driver. I recommended to change to the 
+other driver named tda18271. tda18271c2dd is very bad choice in that 
+case as it discards all the I2C error without any error logging and just 
+silently ignores. I remember case when I used that tuner driver for one 
+em28xx + drx-k combination and wasted very many hours trying to get it 
+working due to missing error logging :/
 
-  git://git.linuxtv.org/liplianin/media_tree.git ts2020_1_v3.9
+Don't care XCLK register, it most likely will just as it is. There is 
+many EM2874 boards already supported.
 
-for you to fetch changes up to 3a36fae7540e031a811e6c28cd37c7db4baf142b:
+12MHz clock is correct and it is seen from the hardware. Generally 12MHz 
+xtal is used very often for USB (device to device) as it is suitable 
+reference clock.
 
-  m88rs2000: make use ts2020 (2012-12-29 01:40:33 +0300)
+According to comments, GPIO7 is used when streaming is started / 
+stopped. It is about 99% sure LOCK LED :)
 
-----------------------------------------------------------------
-Igor M. Liplianin (4):
-      Tevii S421 and S632 support, Kconfig part
-      m88rs2000: SNR, BER implemented
-      ds3000: lock led procedure added
-      m88rs2000: make use ts2020
+When you look sniffs and see some GPIO is changed for example just 
+before and after tuner communication you could make assumption it does 
+have something to do with tuner (example tuner hw reset / standby).
 
- drivers/media/dvb-frontends/ds3000.c    |  12 +++++
- drivers/media/dvb-frontends/ds3000.h    |   2 +
- drivers/media/dvb-frontends/m88rs2000.c | 412 ++++++++++++++++++++++++++++++++++++++++-----------------------------------------------------------------------------------------------------
- drivers/media/dvb-frontends/m88rs2000.h |   6 ---
- drivers/media/dvb-frontends/ts2020.c    | 381 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------------------------------------------------
- drivers/media/dvb-frontends/ts2020.h    |   1 +
- drivers/media/pci/cx23885/cx23885-dvb.c |   1 +
- drivers/media/pci/cx88/cx88-dvb.c       |   1 +
- drivers/media/pci/dm1105/dm1105.c       |   1 +
- drivers/media/usb/dvb-usb-v2/Kconfig    |   1 +
- drivers/media/usb/dvb-usb-v2/lmedm04.c  |   9 +++-
- drivers/media/usb/dvb-usb/Kconfig       |   1 +
- drivers/media/usb/dvb-usb/dw2102.c      |  56 ++++++++++++--------
- 13 files changed, 395 insertions(+), 489 deletions(-)
+You should look used intermediate frequencies from the tuner driver and 
+configure demod according to that. OK, 3-4 MHz sounds very reasonable 
+low-IF values used with tda18271. tda18271 driver supports also get IF 
+callback, but demod driver not. That callback allows automatically 
+configure correct IF according to what tuner uses. Anyhow, in that case 
+you must ensure those manually from tuner driver as demod driver does 
+not support get IF. IF is *critical*, if it is wrong then nothing works 
+(because demodulator does not get signal from tuner).
 
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
