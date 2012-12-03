@@ -1,43 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f43.google.com ([209.85.160.43]:48829 "EHLO
-	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752082Ab2L1K0U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Dec 2012 05:26:20 -0500
-Received: by mail-pb0-f43.google.com with SMTP id um15so5844327pbc.2
-        for <linux-media@vger.kernel.org>; Fri, 28 Dec 2012 02:26:19 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, s.nawrocki@samsung.com,
-	sylvester.nawrocki@gmail.com, sachin.kamat@linaro.org,
-	patches@linaro.org
-Subject: [PATCH 1/3] [media] s5p-mfc: use mfc_err instead of printk
-Date: Fri, 28 Dec 2012 15:48:26 +0530
-Message-Id: <1356689908-6866-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:46195 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752153Ab2LCCur (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Dec 2012 21:50:47 -0500
+Received: by mail-qc0-f174.google.com with SMTP id o22so1273869qcr.19
+        for <linux-media@vger.kernel.org>; Sun, 02 Dec 2012 18:50:47 -0800 (PST)
+MIME-Version: 1.0
+Date: Sun, 2 Dec 2012 21:50:47 -0500
+Message-ID: <CAPgLHd-9LAbh_VvKsGZOy5tTtoHd1--TREKV=E9KUnc=DLkxng@mail.gmail.com>
+Subject: [PATCH -next] [media] media: davinci: vpbe: return error code on
+ error in vpbe_display_g_crop()
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: manjunath.hadli@ti.com, prabhakar.lad@ti.com, mchehab@redhat.com
+Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use mfc_err for consistency. Also silences checkpatch warning.
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+We have assigned error code to 'ret' if crop->type is not
+V4L2_BUF_TYPE_VIDEO_OUTPUT, but never use it. 
+We'd better return the error code on this error.
+
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ drivers/media/platform/davinci/vpbe_display.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-index bf7d010..bb99d3d 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
-@@ -187,8 +187,7 @@ int s5p_mfc_alloc_codec_buffers_v5(struct s5p_mfc_ctx *ctx)
- 		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->bank1_size);
- 		if (IS_ERR(ctx->bank1_buf)) {
- 			ctx->bank1_buf = NULL;
--			printk(KERN_ERR
--			       "Buf alloc for decoding failed (port A)\n");
-+			mfc_err("Buf alloc for decoding failed (port A)\n");
- 			return -ENOMEM;
- 		}
- 		ctx->bank1_phys = s5p_mfc_mem_cookie(
--- 
-1.7.4.1
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 2bfde79..119a100 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -791,7 +791,6 @@ static int vpbe_display_g_crop(struct file *file, void *priv,
+ 	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
+ 	struct osd_state *osd_device = fh->disp_dev->osd_device;
+ 	struct v4l2_rect *rect = &crop->c;
+-	int ret;
+ 
+ 	v4l2_dbg(1, debug, &vpbe_dev->v4l2_dev,
+ 			"VIDIOC_G_CROP, layer id = %d\n",
+@@ -799,7 +798,7 @@ static int vpbe_display_g_crop(struct file *file, void *priv,
+ 
+ 	if (crop->type != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+ 		v4l2_err(&vpbe_dev->v4l2_dev, "Invalid buf type\n");
+-		ret = -EINVAL;
++		return -EINVAL;
+ 	}
+ 	osd_device->ops.get_layer_config(osd_device,
+ 				layer->layer_info.id, cfg);
+
 
