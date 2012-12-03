@@ -1,37 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp208.alice.it ([82.57.200.104]:43035 "EHLO smtp208.alice.it"
+Received: from mx1.redhat.com ([209.132.183.28]:48781 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753308Ab2L2Wh1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Dec 2012 17:37:27 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>
-Subject: [PATCH 0/2] v4l-utils: some fixes for contrib/m920x/m920x_parse.pl
-Date: Sat, 29 Dec 2012 23:37:06 +0100
-Message-Id: <1356820628-24992-1-git-send-email-ospite@studenti.unina.it>
+	id S1754193Ab2LCOcb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Dec 2012 09:32:31 -0500
+Message-ID: <50BCB7EB.6090707@redhat.com>
+Date: Mon, 03 Dec 2012 12:32:11 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for 3.8-final] media-fixes
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Here are a couple of fixes for the contrib/m920x/m920x_parse.pl script.
+Hi Linus,
 
-Patch 01 makes extracting firmwares more robust, my previous tests were on
-a trimmed down USB dump so I missed the need for stricter checks, now I tested
-the script with a pristine dump pre-processed with parse-sniffusb2.pl and the
-firmware can be extracted with no problems.
+Please pull from:
+   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
 
-Patch 02 works around a warning.
+For some driver fixes for s5p/exynos (mostly race fixes).
 
-Antonio Ospite (2):
-  contrib/m920x/m920x_parse.pl: stricter check when extracting firmware
-  contrib/m920x/m920x_parse.pl: silence a warning
+Thanks!
+Mauro
 
- contrib/m920x/m920x_parse.pl |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+-
 
--- 
-Antonio Ospite
-http://ao2.it
+The following changes since commit 86163adb8125a4ce85e0b23a50be82bd8c0daf95:
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
+   [media] rtl28xxu: 0ccd:00d7 TerraTec Cinergy T Stick+ (2012-11-22 12:04:53 -0200)
+
+are available in the git repository at:
+
+   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+
+for you to fetch changes up to d2a0db1ee01aea154ccc460e45a16857e32c4427:
+
+   [media] s5p-mfc: Handle multi-frame input buffer (2012-11-26 18:43:27 -0200)
+
+----------------------------------------------------------------
+Arun Kumar K (2):
+       [media] s5p-mfc: Bug fix of timestamp/timecode copy mechanism
+       [media] s5p-mfc: Handle multi-frame input buffer
+
+Shaik Ameer Basha (1):
+       [media] exynos-gsc: Fix settings for input and output image RGB type
+
+Sylwester Nawrocki (5):
+       [media] s5p-fimc: Prevent race conditions during subdevs registration
+       [media] s5p-fimc: Don't use mutex_lock_interruptible() in device release()
+       [media] fimc-lite: Don't use mutex_lock_interruptible() in device release()
+       [media] exynos-gsc: Don't use mutex_lock_interruptible() in device release()
+       [media] exynos-gsc: Add missing video device vfl_dir flag initialization
+
+  drivers/media/platform/exynos-gsc/gsc-m2m.c     |  4 ++--
+  drivers/media/platform/exynos-gsc/gsc-regs.h    | 16 ++++++++--------
+  drivers/media/platform/s5p-fimc/fimc-capture.c  | 10 +++++++---
+  drivers/media/platform/s5p-fimc/fimc-lite.c     |  6 ++++--
+  drivers/media/platform/s5p-fimc/fimc-m2m.c      |  3 +--
+  drivers/media/platform/s5p-fimc/fimc-mdevice.c  |  4 ++--
+  drivers/media/platform/s5p-mfc/s5p_mfc.c        |  7 ++-----
+  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |  2 +-
+  8 files changed, 27 insertions(+), 25 deletions(-)
+
