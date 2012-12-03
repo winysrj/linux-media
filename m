@@ -1,58 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59741 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752038Ab2LWNoi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Dec 2012 08:44:38 -0500
-Date: Sun, 23 Dec 2012 11:44:13 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:47536 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751291Ab2LCKLi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2012 05:11:38 -0500
+Received: by mail-qa0-f46.google.com with SMTP id r4so1235515qaq.19
+        for <linux-media@vger.kernel.org>; Mon, 03 Dec 2012 02:11:37 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1354528977.50830.YahooMailNeo@web160606.mail.bf1.yahoo.com>
+References: <1354528977.50830.YahooMailNeo@web160606.mail.bf1.yahoo.com>
+Date: Mon, 3 Dec 2012 05:11:37 -0500
+Message-ID: <CAGoCfiw-UanZdDkZ0mE7iRmtPrRhOhk1PAT2QoxJd=h=NvpaKg@mail.gmail.com>
+Subject: Re: How to use multiple video devices simultaneously
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Dmitriy Alekseev <alexeev6@yahoo.com>
 Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 21/21] em28xx: add module parameter for selection of
- the preferred USB transfer type
-Message-ID: <20121223114413.6d2c7dc1@redhat.com>
-In-Reply-To: <1352398313-3698-22-git-send-email-fschaefer.oss@googlemail.com>
-References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
-	<1352398313-3698-22-git-send-email-fschaefer.oss@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Frank,
+On Mon, Dec 3, 2012 at 5:02 AM, Dmitriy Alekseev <alexeev6@yahoo.com> wrote:
+> Hello.
+>
+> I have a pair of capture dongles Avermedia DVD EZMaker 7 (C039) which have cx231xx chip.
+> Now using vlc and gst-launch-0.10 I can watch/stream video only from one of them simultaneously.
+>
+> For example videolan messages I got opening second device:
+> [0x7f055c001688] v4l2 demux error:
+> VIDIOC_QBUF failed libv4l2: error mmapping buffer 0: Device or resource busy
+> [0x7f055c001688] v4l2 demux error:
+> VIDIOC_QBUF failed libv4l2: warning v4l2 mmap buffers still mapped on close()
+> [0x7f055c002ec8] v4l2 access error: mmap failed (Device or resource busy)
+> [0x7f055c002ec8] v4l2 access error: mmap failed (Device or resource busy)
+> [0xb5c698] main input error: open of `v4l2:///dev/video0' failed: (null)
+>
+> I wonder, what the problem is?
 
-Em Thu,  8 Nov 2012 20:11:53 +0200
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+You're probably using too much USB bandwidth.  A single USB host
+controller does not have enough bandwidth to support two full
+resolution video captures at the same time.  The video is
+uncompressed, and each will try to use around 60% of the available USB
+bandwidth.
 
-> By default, isoc transfers are used if possible.
-> With the new module parameter, bulk can be selected as the
-> preferred USB transfer type.
+For a scenario like this, you would need to have two separate USB host
+controllers, reduce the capture resolution significantly, or choose
+different boards (such as a PCI or PCIe product).
 
-I did some tests yesterday with prefer_bulk. IMHO, webcams should
-select bulk mode by default, as this allows more than one camera to
-work at the same time (I tested yesterday with 3 Silvercrest ones on
-my notebook). With ISOC transfers, the core won't let it to happen, as
-a single camera reserves 51% of the max allowed isoc traffic.
+Devin
 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-cards.c |   11 +++++++++--
->  1 Datei geändert, 9 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
-> 
-> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-> index a9344f0..7f5b303 100644
-> --- a/drivers/media/usb/em28xx/em28xx-cards.c
-> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
-> @@ -61,6 +61,11 @@ static unsigned int card[]     = {[0 ... (EM28XX_MAXBOARDS - 1)] = UNSET };
->  module_param_array(card,  int, NULL, 0444);
->  MODULE_PARM_DESC(card,     "card type");
->  
-> +static unsigned int prefer_bulk;
-> +module_param(prefer_bulk, int, 0644);
-
-This needs to be changed to 0444, as prefer_bulk doesn't allow changing
-it dynamically, as the test is done during device probe, not at stream on.
-
-Regards,
-Mauro
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
