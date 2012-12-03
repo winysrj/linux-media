@@ -1,82 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38265 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753833Ab2LKPSR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Dec 2012 10:18:17 -0500
-Date: Tue, 11 Dec 2012 13:17:59 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media" <linux-media@vger.kernel.org>
-Subject: Re: RFC: First draft of guidelines for submitting patches to
- linux-media
-Message-ID: <20121211131759.2b9543d6@redhat.com>
-In-Reply-To: <201212111415.31483.hverkuil@xs4all.nl>
-References: <201212101407.09338.hverkuil@xs4all.nl>
-	<201212111415.31483.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:62901 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752089Ab2LCGAx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2012 01:00:53 -0500
+Received: by mail-oa0-f46.google.com with SMTP id h16so2307924oag.19
+        for <linux-media@vger.kernel.org>; Sun, 02 Dec 2012 22:00:52 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAPgLHd_6Jnu5x0rEwVr-3Uw04f1MjB96AVQ1KAWFSoeCB2Gupg@mail.gmail.com>
+References: <CAPgLHd_6Jnu5x0rEwVr-3Uw04f1MjB96AVQ1KAWFSoeCB2Gupg@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 3 Dec 2012 11:30:32 +0530
+Message-ID: <CA+V-a8t7w2TcyxO6ZPbpp3hV82e1592B7-32fOWt_tVLjvJWGw@mail.gmail.com>
+Subject: Re: [PATCH -next] [media] davinci: vpbe: remove unused variable in vpbe_initialize()
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: manjunath.hadli@ti.com, prabhakar.lad@ti.com, mchehab@redhat.com,
+	yongjun_wei@trendmicro.com.cn,
+	davinci-linux-open-source@linux.davincidsp.com,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 11 Dec 2012 14:15:31 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Wei,
 
-> On Mon 10 December 2012 14:07:09 Hans Verkuil wrote:
-> > Hi all,
-> > 
-> > As discussed in Barcelona I would write a text describing requirements for new
-> > drivers and what to expect when submitting patches to linux-media.
-> > 
-> > This is a first rough draft and nothing is fixed yet.
-> > 
-> > I have a few open questions:
-> > 
-> > 1) Where to put it? One thing I would propose that we improve is to move the
-> > dvb and video4linux directories in Documentation/ to Documentation/media to
-> > correctly reflect the drivers/media structure. If we do that, then we can put
-> > this document in Documentation/media/SubmittingMediaPatches.
-> > 
-> > Alternatively, this is something we can document in our wiki.
-> > 
-> > 2) Are there DVB requirements as well for new drivers? We discussed a list of
-> > V4L2 requirements in Barcelona, but I wonder if there is a similar list that
-> > can be made for DVB drivers. Input on that will be welcome.
-> > 
-> > 3) This document describes the situation we will have when the submaintainers
-> > take their place early next year. So please check if I got that part right.
-> > 
-> > 4) In Barcelona we discussed 'tags' for patches to help organize them. I've
-> > made a proposal for those in this document. Feedback is very welcome.
-> > 
-> > 5) As discussed in Barcelona there will be git tree maintainers for specific
-> > platforms, but we didn't really go into detail who would be responsible for
-> > which platform. If you want to maintain a particular platform, then please
-> > let me know.
-> > 
-> > 6) The patchwork section is very short at the moment. It should be extended
-> > when patchwork gets support to recognize the various tags.
-> > 
-> > 7) Anything else that should be discussed here?
-> 
-> How to submit patches for a stable kernel.
-> 
-> I can never remember, and I'm sure I'm not the only one :-)
+Thanks for the patch.
 
-The standard way is to add this tag:
+On Mon, Dec 3, 2012 at 8:23 AM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>
+> The variable 'output_index' is initialized but never used
+> otherwise, so remove the unused variable.
+>
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-	Cc: stable@vger.kernel.org
+Acked-by: Prabhakar Lad <prabhakar.lad@ti.com>
 
-eventually with a comment saying to what versions it should be applied, like:
+Regards,
+--Prabhakar
 
-	Cc: stable@vger.kernel.org	# for v3.5 and upper
-
-If it is noticed later the need for it on stable, or a backport is needed,
-the patch author should send the patch to stable@vger.kernel.org, c/c the ML,
-preferably pointing to the upstream commit ID. The patch has to be merged
-upstream before being merged at stable.
-
--- 
-
-Cheers,
-Mauro
+> ---
+>  drivers/media/platform/davinci/vpbe.c | 2 --
+>  1 file changed, 2 deletions(-)
+>
+> diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+> index 7f5cf9b..e0c79c1 100644
+> --- a/drivers/media/platform/davinci/vpbe.c
+> +++ b/drivers/media/platform/davinci/vpbe.c
+> @@ -584,7 +584,6 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+>         struct v4l2_subdev **enc_subdev;
+>         struct osd_state *osd_device;
+>         struct i2c_adapter *i2c_adap;
+> -       int output_index;
+>         int num_encoders;
+>         int ret = 0;
+>         int err;
+> @@ -731,7 +730,6 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+>         /* set the current encoder and output to that of venc by default */
+>         vpbe_dev->current_sd_index = 0;
+>         vpbe_dev->current_out_index = 0;
+> -       output_index = 0;
+>
+>         mutex_unlock(&vpbe_dev->lock);
+>
+>
+>
+> _______________________________________________
+> Davinci-linux-open-source mailing list
+> Davinci-linux-open-source@linux.davincidsp.com
+> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
