@@ -1,124 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:45849 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752884Ab2LJPqB convert rfc822-to-8bit (ORCPT
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:50020 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750918Ab2LDFHU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 10:46:01 -0500
-Received: by mail-qa0-f53.google.com with SMTP id a19so1631043qad.19
-        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2012 07:46:00 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <50C60220.8050908@googlemail.com>
-References: <50B5779A.9090807@pyther.net>
-	<50BB6451.7080601@iki.fi>
-	<50BB8D72.8050803@googlemail.com>
-	<50BCEC60.4040206@googlemail.com>
-	<50BD5CC3.1030100@pyther.net>
-	<CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com>
-	<50BD6310.8000808@pyther.net>
-	<CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com>
-	<50BE65F0.8020303@googlemail.com>
-	<50BEC253.4080006@pyther.net>
-	<50BF3F9A.3020803@iki.fi>
-	<50BFBE39.90901@pyther.net>
-	<50BFC445.6020305@iki.fi>
-	<50BFCBBB.5090407@pyther.net>
-	<50BFECEA.9060808@iki.fi>
-	<50BFFFF6.1000204@pyther.net>
-	<50C11301.10205@googlemail.com>
-	<50C12302.80603@pyther.net>
-	<50C34628.5030407@googlemail.com>
-	<50C34A50.6000207@pyther.net>
-	<50C35AD1.3040000@googlemail.com>
-	<50C48891.2050903@googlemail.com>
-	<50C4A520.6020908@pyther.net>
-	<CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com>
-	<50C4BA20.8060003@googlemail.com>
-	<50C4BAFB.60304@googlemail.com>
-	<50C4C525.6020006@googlemail.com>
-	<50C4D011.6010700@pyther.net>
-	<50C60220.8050908@googlemail.com>
-Date: Mon, 10 Dec 2012 10:46:00 -0500
-Message-ID: <CAGoCfizTfZVFkNvdQuuisOugM2BGipYd_75R63nnj=K7E8ULWQ@mail.gmail.com>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: Matthew Gyurgyik <matthew@pyther.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Tue, 4 Dec 2012 00:07:20 -0500
+Message-ID: <1354597630.17107.42.camel@deadeye.wl.decadent.org.uk>
+Subject: Re: [GIT PULL] linux-firmware: cx23885: update to Version 2.06.139
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Tim Gardner <rtg.canonical@gmail.com>
+Cc: tim.gardner@canonical.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Tue, 04 Dec 2012 05:07:10 +0000
+In-Reply-To: <50BCEBCB.4080303@gmail.com>
+References: <50BCEBCB.4080303@gmail.com>
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-HhT6AtSnLrSekVnwOFHD"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 10, 2012 at 10:39 AM, Frank Schäfer
-<fschaefer.oss@googlemail.com> wrote:
-> Am 09.12.2012 18:53, schrieb Matthew Gyurgyik:
->> On 12/09/2012 12:06 PM, Frank Schäfer wrote:
->>> Forget this sh... (never do multiple things at the same time ;) )
->>>
->>> Reg 0x50 is set to according to rc_type specified in the selected remote
->>> control map.
->>> So if the correct map is selected, everything should be fine (as long as
->>> it is RC_TYPE_NEC or RC_TYPE_RC5 because we don't support others yet).
->>>
->>> RC_MAP_KWORLD_315U and RC_MAP_MSI_DIGIVOX_III are both RC_TYPE_NEC, so
->>> the stick seems to use no NEC protocol.
->>>
->>> Matthew, insert a line
->>>
->>>          ir_config = 0x01;
->>>
->>> before
->>>
->>> 380        em28xx_write_regs(dev, EM2874_R50_IR_CONFIG, &ir_config, 1);
->>>
->>> in em28xx-input.c and see if something shows up in the dmesg output.
->>>
->>> Regards,
->>> Frank
->>
->> That seems to be a bit more successful!
->>
->> Here is the dmesg output:
->>
->>> [root@tux ~]# dmesg -t | sort | uniq | grep 'em28xx IR' | grep handle
->>> em28xx IR (em28xx #0)/ir: 6em28xx_ir_handle_key: toggle: 0, count: 1,
->>> key 0x61d6
->>> em28xx IR (em28xx #0)/ir: 6em28xx_ir_handle_key: toggle: 0, count: 2,
->>> key 0x61d6
->>> em28xx IR (em28xx #0)/ir: 6em28xx_ir_handle_key: toggle: 1, count: 1,
->>> key 0x61d6
->>> em28xx IR (em28xx #0)/ir: em28xx_ir_handle_key: toggle: 0, count: 1,
->>> key 0x61d6
->>> em28xx IR (em28xx #0)/ir: em28xx_ir_handle_key: toggle: 0, count: 2,
->>> key 0x61d6
->>> em28xx IR (em28xx #0)/ir: em28xx_ir_handle_key: toggle: 1, count: 1,
->>> key 0x61d6
->>> em28xx IR (em28xx #0)/ir: em28xx_ir_handle_key: toggle: 1, count: 2,
->>> key 0x61d6
->>
->> I pressed all the buttons on the remote (40 buttons).
->
-> Did you cut the dmesg output ? Or do you really get these messages for
-> key 0x61d6 only ?
->
-> It seems like things are working different with reg 0x50 = 0x01. Taking
-> a look into the datasheet might help, but I don't have it. ;)
 
-Setting that bit turns off NEC parity checking.  I don't think we've
-ever had a need for it before, which is why it isn't exposed as
-configurable functionality in the driver.
+--=-HhT6AtSnLrSekVnwOFHD
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-No clear answer on how this should be fixed, if that's what is really
-required.  I guess in theory we could introduce some new board config
-option, but that would likely interfere with the ability to
-reconfigure the RC protocol at runtime.  An alternative would be a new
-property of the RC profile, but that would pollute the definition of
-the struct presumably to work around some bug in a crappy remote
-control.
+On Mon, 2012-12-03 at 11:13 -0700, Tim Gardner wrote:
+> Ben - what is your policy on extracting firmware from Windows drivers?
 
-Devin
+I suppose the policy should be that the driver's licence must allow
+extracting and then distributing the result.  Which I wouldn't expect
+ever to be the case, in practice.
 
---
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Your commit message refers to the Hauppuage driver package at
+<http://steventoth.net/linux/hvr1800/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip=
+>.  I didn't find any licence text, other than 'All rights reserved', in ei=
+ther that or the currently distributed version of the same driver <http://w=
+ww.wintvcd.co.uk/drivers/HVR-12x0-14x0-17x0-33x0-44x0_1_48_29272_SIGNED.zip=
+>.
+
+> It seems like it ought to be OK, and they _are_ the same files that are
+> covered under the license in WHENCE.
+
+I'm not sure how you can say they are the same files, as you're
+proposing to change the contents.  The copyright on the current files
+belongs to the chipset vendor, Conexant, and Hauppuage *presumably* used
+firmware supplied by Conexant, but either of them might have chosen a
+different licence for the versions in this driver package.
+
+> The following changes since commit bda53ca96deb3cacbef10a7a84bbaee2d09c7f=
+34:
+>=20
+>   brcm: new firmware version for brcmsmac (2012-12-03 14:46:28 +0000)
+>=20
+> are available in the git repository at:
+>=20
+>   git://kernel.ubuntu.com/rtg/linux-firmware.git master
+>=20
+> for you to fetch changes up to 3c592f80519a7e82eadeccfad7a5cd1604ca463c:
+>=20
+>   cx23885: update to Version 2.06.139 (2012-12-03 11:07:43 -0700)
+>=20
+> ----------------------------------------------------------------
+> Tim Gardner (1):
+>       cx23885: update to Version 2.06.139
+>=20
+>  v4l-cx23885-avcore-01.fw |  Bin 16382 -> 16382 bytes
+>  v4l-cx23885-enc.fw       |  Bin 16382 -> 376836 bytes
+>  2 files changed, 0 insertions(+), 0 deletions(-)
+
+How odd, these two files are currently identical to each other...
+
+Ben.
+
+--=20
+Ben Hutchings
+Always try to do things in chronological order;
+it's less confusing that way.
+
+--=-HhT6AtSnLrSekVnwOFHD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIVAwUAUL2E/ue/yOyVhhEJAQrnsBAAmwD3kF3P5GByRFQVqsNPr3whghomTECm
+QeLmh2ac0J8NcwjYL/U02SMtO1i+XcU0D7hAHBfFZNyaGcUZVvEL8KSbnvN8pCI7
+9zpdYMDDIc7tv4gkKBaD4SQ/wIeiVyhBRRVG1w3Tep03FsUQAyPL+FAUlY8LcAdy
+A2aarC+S70epphK22Kz5Pxsxgnup+MBhs5gWJWiEg3bslAV24TRJZCkFnmx5S9OP
+dYSi0H9YKZ0EFcJT01+phPFmj4iMCiv82J5VQrXCVuQ46+eAniyGXTcgH4Ug7bZ9
+B0T3InJlWONub5MhuPZvuvvFw7V5I5SZNjs2df30B7fkxes4cIjzVSmUYy7ZypJn
+QnBnKWtG6lYuVgjIrhpSyqGhI0dL94OnkZ2QUIg4cidvGhZDHQMqCy5mUB5lnTfF
+07VLBp6LIGPXpHz0L2xHLFvPX9bTWyCWnrHwkQSdguMY2bWCjaOOcVd14ov7/fPU
+a+5na+43ywEV29rkNEuBcuy5jyj+CftBGwM7MVEwn9cPjfBraHwpt8VyklFNh8Mp
+oBjdZtJChrTJo3819CKpnpC3bVRGdJu4FF62ERkhdQWDRLCmgD+20t8XJllaZTsv
+MDlEZ4Lc7Jn7aLfKQHzoEPOPk9KRBfK9TGr2Qayz/ZWH2vR6O25mXlEqXRZCvsJ8
+jMl+xh63lJA=
+=g677
+-----END PGP SIGNATURE-----
+
+--=-HhT6AtSnLrSekVnwOFHD--
