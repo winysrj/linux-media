@@ -1,61 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61038 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750947Ab2LWO5k convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Dec 2012 09:57:40 -0500
-Date: Sun, 23 Dec 2012 12:57:15 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Patch update notification: 37 patches updated
-Message-ID: <20121223125715.782e17e0@redhat.com>
-In-Reply-To: <50D70AFB.5070702@googlemail.com>
-References: <20121223000802.14820.14465@www.linuxtv.org>
-	<50D70AFB.5070702@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:45627 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751701Ab2LDQRx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Dec 2012 11:17:53 -0500
+Received: by mail-vc0-f174.google.com with SMTP id d16so3189151vcd.19
+        for <linux-media@vger.kernel.org>; Tue, 04 Dec 2012 08:17:52 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1354637265-23335-1-git-send-email-mkrufky@linuxtv.org>
+References: <1354637265-23335-1-git-send-email-mkrufky@linuxtv.org>
+Date: Tue, 4 Dec 2012 11:17:51 -0500
+Message-ID: <CAGoCfixR7oANQM4SoUBY1qpGt=Y4PedD85G+SXncg4ab9YiRng@mail.gmail.com>
+Subject: Re: [PATCH 1/2] au0828: remove forced dependency of VIDEO_AU0828 on VIDEO_V4L2
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Michael Krufky <mkrufky@linuxtv.org>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 23 Dec 2012 14:45:31 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+On Tue, Dec 4, 2012 at 11:07 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> This patch removes the dependendency of VIDEO_AU0828 on VIDEO_V4L2 by
+> creating a new Kconfig option, VIDEO_AU0828_V4L2, which enables analog
+> video capture support and depends on VIDEO_V4L2 itself.
+>
+> With VIDEO_AU0828_V4L2 disabled, the driver will only support digital
+> television and will not depend on the v4l2-core. With VIDEO_AU0828_V4L2
+> enabled, the driver will be built with the analog v4l2 support included.
 
-> Hi Mauro,
-> 
-> Am 23.12.2012 01:08, schrieb Patchwork:
-> > Hello,
-> >
-> > The following patches (submitted by you) have been updated in patchwork:
-> >
-> >  * [3/6] em28xx: fix capture type setting in em28xx_urb_data_copy_vbi()
-> >      - http://patchwork.linuxtv.org/patch/15651/
-> >     was: New
-> >     now: Accepted
-> >
-> >  * [8/9] em28xx: move the em2710/em2750/em28xx specific frame data processing code to a separate function
-> >      - http://patchwork.linuxtv.org/patch/15798/
-> >     was: New
-> >     now: Accepted
-> >
-> >  * [4/6] em28xx: fix/improve frame field handling in em28xx_urb_data_copy_vbi()
-> >      - http://patchwork.linuxtv.org/patch/15652/
-> >     was: New
-> >     now: Accepted
-> 
-> This patch has not been applied yet to the media-tree.
-> Without this patch, frame data processing for non-interlaced devices is
-> broken.
+Hi Mike,
 
-Not sure what happened there: I couldn't see this specific patch. Yet,
-at least some of the changes there seem to be applied. My guess is that
-somehow, this patch got merged with some other patch, or maybe the
-conflicts solving when the vbi-merge patches got applied (partially)
-fixed it.
+This is generally good stuff.  A couple of thoughts.
 
-In any case, you'll need to rebase it, as it doesn't apply anymore.
+It seems that this driver effectively takes the approach which is the
+exact reverse of all the other hybrid drivers - it mandates DVB with
+V4L as optional, whereas most of the other drivers mandate V4L with
+DVB is optional.  Now I recognize that in this case it was done
+because of some specific business need -- however I have to wonder if
+the moving around of all the code to no longer be "video" vs. "dvb"
+specific could be leveraged to allow users to select either condition
+- to select DVB, V4L, or both.
 
+This seems like the direction things are going in -- we've
+restructured the tree based on bus interface type (pci/usb/etc) rather
+than v4l versus dvb.  This might be an opportunity to define the model
+for how other hybrid devices could also be refactored to not have V4L
+or DVB if not needed.
 
-Cheers,
-Mauro
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
