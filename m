@@ -1,99 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f170.google.com ([209.85.214.170]:40888 "EHLO
-	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751318Ab2LWRLO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Dec 2012 12:11:14 -0500
+Received: from mail-la0-f46.google.com ([209.85.215.46]:34457 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752975Ab2LDQZ7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Dec 2012 11:25:59 -0500
+Received: by mail-la0-f46.google.com with SMTP id p5so3449263lag.19
+        for <linux-media@vger.kernel.org>; Tue, 04 Dec 2012 08:25:58 -0800 (PST)
 MIME-Version: 1.0
-Date: Sun, 23 Dec 2012 17:46:07 +0100
-Message-ID: <CADDKRnB=KYBuue10BnPpiRD=rrrATgxt-DfgLHmK-cqRAvJsUQ@mail.gmail.com>
-Subject: [v3.8-rc1] Multimedia regression, ioctl(17,..)-API changed ?
-From: =?UTF-8?Q?J=C3=B6rg_Otte?= <jrg.otte@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <CAGoCfixR7oANQM4SoUBY1qpGt=Y4PedD85G+SXncg4ab9YiRng@mail.gmail.com>
+References: <1354637265-23335-1-git-send-email-mkrufky@linuxtv.org>
+	<CAGoCfixR7oANQM4SoUBY1qpGt=Y4PedD85G+SXncg4ab9YiRng@mail.gmail.com>
+Date: Tue, 4 Dec 2012 11:25:58 -0500
+Message-ID: <CAOcJUbwfV+9+k1ds0WK8KdEfrFncKuVS8U49Vde52-FEjDikSA@mail.gmail.com>
+Subject: Re: [PATCH 1/2] au0828: remove forced dependency of VIDEO_AU0828 on VIDEO_V4L2
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With kernel v3.8 all multimedia programs under KDE4 don't work (Kubuntu 12.04).
-They alltogether ( at least Dragonplayer (Mediaplayer), Knotify4
-(system-sound),
-System-Settings-Multimedia,..) are looping forever producing 100% CPU-usage
-and must be killed.
+On Tue, Dec 4, 2012 at 11:17 AM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Tue, Dec 4, 2012 at 11:07 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+>> This patch removes the dependendency of VIDEO_AU0828 on VIDEO_V4L2 by
+>> creating a new Kconfig option, VIDEO_AU0828_V4L2, which enables analog
+>> video capture support and depends on VIDEO_V4L2 itself.
+>>
+>> With VIDEO_AU0828_V4L2 disabled, the driver will only support digital
+>> television and will not depend on the v4l2-core. With VIDEO_AU0828_V4L2
+>> enabled, the driver will be built with the analog v4l2 support included.
+>
+> Hi Mike,
+>
+> This is generally good stuff.  A couple of thoughts.
+>
+> It seems that this driver effectively takes the approach which is the
+> exact reverse of all the other hybrid drivers - it mandates DVB with
+> V4L as optional, whereas most of the other drivers mandate V4L with
+> DVB is optional.  Now I recognize that in this case it was done
+> because of some specific business need -- however I have to wonder if
+> the moving around of all the code to no longer be "video" vs. "dvb"
+> specific could be leveraged to allow users to select either condition
+> - to select DVB, V4L, or both.
+>
+> This seems like the direction things are going in -- we've
+> restructured the tree based on bus interface type (pci/usb/etc) rather
+> than v4l versus dvb.  This might be an opportunity to define the model
+> for how other hybrid devices could also be refactored to not have V4L
+> or DVB if not needed.
 
-With kernel 3.7 there are no problems.
+Thanks for your comments, Devin.  I agree with you that it would be
+nice to be able to choose to disable DVB just like how we can disable
+V4L, but the reason why I did this to V4L first was not simply due to
+the business need -- I did this because of how easy it was to do.  The
+driver was originally developed as a DVB-only driver, and later analog
+support was added to it (by you ;-) ).  As a result, conditionalizing
+the analog support was rather easy.  Doing the same for DVB would
+probably not be very difficult either, but I also believe in small
+patches and gradual changes.
 
-I compared an strace of Dragonplayer under 3.7 and 3.8 kernels. The
-main difference
-of both traces are the following corresponding outputs just before
-looping in v3.8
-begins:
+These patches allow us to build the au0828 driver (and its
+dependencies) without the need for the v4l-core.  This is especially
+helpful when backporting digital support to older kernels without the
+need to muck through the v4l2 api changes.
 
-v3.7:
-ioctl(17, VIDIOC_ENUMSTD, 0x7fff6cce66a0) = -1 EINVAL (Invalid argument)
-ioctl(17, VIDIOC_QUERYCTRL, 0x7fff6cce66f0) = -1 EINVAL (Invalid argument)
+Do you have any issues with these two patches as-is?  Any suggestions?
+ If not, is it OK with you if I request that Mauro merge this for v3.9
+?
 
-v3.8:
-ioctl(17, VIDIOC_ENUMSTD, 0x7fffc3be6990) = -1 ENOTTY (Inappropriate
-ioctl for device)
-ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-or directory)
+Cheers,
 
-So error number EINVAL was changed to ENOTTY/ENOENT
-
-When Dragonplayer under v3.8 comes to ioctl(17, VIDIOC_QUERYCTRL,...)
-and sees error
-number ENOENT instead of EINVAL it loops forever producing 100% CPU
-usage like so:
-
-  .
-  .
-ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-or directory)
-ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-or directory)
-ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-or directory)
-ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-or directory)
-ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-or directory)
-ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-or directory)
-ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-or directory)
-ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-or directory)
-ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-or directory)
-ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-or directory)
-ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-or directory)
-  .
-  and so on
-  .
-
-For me it looks like that KDE4 multimedia is not aware of the new error numbers.
-
-Looking through the commits I found driver uvcvideo producing the changed
-error numbers.
-
-commit f0ed2ce840b3a59b587e8aa398538141a86e9588
-Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-[media] uvcvideo: Set error_idx properly for extended controls API failures
-
-To verify this I built a v3.8-kernel without uvcvideo (USB_VIDEO_CLASS=n)
-and the problem disappeared!
-
-Simply reverting the commit is not an option for me because then I am left
-with merge conflicts and I don't know how to resolve.
-
-Unfortunately without uvcvideo I lost my usb-camera support.
-
--- Jörg
-
-Please CC me I'm not subscribed
+Mike Krufky
