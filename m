@@ -1,42 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f172.google.com ([209.85.214.172]:41643 "EHLO
-	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752357Ab2LXI5A convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Dec 2012 03:57:00 -0500
+Received: from mail-vb0-f52.google.com ([209.85.212.52]:32991 "EHLO
+	mail-vb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751005Ab2LDQf2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Dec 2012 11:35:28 -0500
+Received: by mail-vb0-f52.google.com with SMTP id ez10so921745vbb.11
+        for <linux-media@vger.kernel.org>; Tue, 04 Dec 2012 08:35:27 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20121223183743.0400ac93@redhat.com>
-References: <CADDKRnB=KYBuue10BnPpiRD=rrrATgxt-DfgLHmK-cqRAvJsUQ@mail.gmail.com>
-	<20121223183743.0400ac93@redhat.com>
-Date: Mon, 24 Dec 2012 09:56:59 +0100
-Message-ID: <CADDKRnB4Qz6Qiy9SC6fspf39jUVOD4VSHY97pL_YVL8T+EVzig@mail.gmail.com>
-Subject: Re: [v3.8-rc1] Multimedia regression, ioctl(17,..)-API changed ?
-From: =?UTF-8?Q?J=C3=B6rg_Otte?= <jrg.otte@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <CAOcJUbwfV+9+k1ds0WK8KdEfrFncKuVS8U49Vde52-FEjDikSA@mail.gmail.com>
+References: <1354637265-23335-1-git-send-email-mkrufky@linuxtv.org>
+	<CAGoCfixR7oANQM4SoUBY1qpGt=Y4PedD85G+SXncg4ab9YiRng@mail.gmail.com>
+	<CAOcJUbwfV+9+k1ds0WK8KdEfrFncKuVS8U49Vde52-FEjDikSA@mail.gmail.com>
+Date: Tue, 4 Dec 2012 11:29:00 -0500
+Message-ID: <CAGoCfiw2-_4uRjjBYpirXgqzOcb+d_jAybnFNuE8ZYDu8pdm3w@mail.gmail.com>
+Subject: Re: [PATCH 1/2] au0828: remove forced dependency of VIDEO_AU0828 on VIDEO_V4L2
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Michael Krufky <mkrufky@linuxtv.org>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/12/23 Mauro Carvalho Chehab <mchehab@redhat.com>:
-> Hi Jörg,
->
-> Em Sun, 23 Dec 2012 17:46:07 +0100
-> Jörg Otte <jrg.otte@gmail.com> escreveu:
->
->> With kernel v3.8 all multimedia programs under KDE4 don't work (Kubuntu 12.04).
->> They alltogether ( at least Dragonplayer (Mediaplayer), Knotify4
->> (system-sound),
->> System-Settings-Multimedia,..) are looping forever producing 100% CPU-usage
->> and must be killed.
->>
->> With kernel 3.7 there are no problems.
->
-> Do you have any other non-uvc device to test?
+On Tue, Dec 4, 2012 at 11:25 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> Do you have any issues with these two patches as-is?  Any suggestions?
+>  If not, is it OK with you if I request that Mauro merge this for v3.9
+> ?
 
-No I haven't.
+I have no specific issues with the patch as-is.
 
-Thanks, Jörg
+Reviewed-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
