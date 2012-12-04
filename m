@@ -1,141 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42793 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758875Ab2LIT5M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Dec 2012 14:57:12 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans-Frieder Vogt <hfvogt@gmx.net>
-Subject: [PATCH RFC 09/17] fc0012: use config directly from the config struct
-Date: Sun,  9 Dec 2012 21:56:20 +0200
-Message-Id: <1355082988-6211-9-git-send-email-crope@iki.fi>
-In-Reply-To: <1355082988-6211-1-git-send-email-crope@iki.fi>
-References: <1355082988-6211-1-git-send-email-crope@iki.fi>
+Received: from firefly.pyther.net ([50.116.37.168]:51124 "EHLO
+	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751099Ab2LDCPd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2012 21:15:33 -0500
+Message-ID: <50BD5CC3.1030100@pyther.net>
+Date: Mon, 03 Dec 2012 21:15:31 -0500
+From: Matthew Gyurgyik <matthew@pyther.net>
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+CC: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com>
+In-Reply-To: <50BCEC60.4040206@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No need to copy config to the driver state. Those are coming from
-the const struct and could be used directly.
+On 12/03/2012 01:16 PM, Frank Schäfer wrote:
+>
+> Here is v2 of the patch (attached).
+>
+> Antti, could you please take a look at the std_map for the tuner ?
+> I'm not sure what the correct and complete map is.
+>
+> For a first test, I've selected the same std_map as used with the KWorld
+> A340 (LGDT3304 + TDA18271 C1/C2):
+>
+> static struct tda18271_std_map kworld_a340_std_map = {
+>      .atsc_6   = { .if_freq = 3250, .agc_mode = 3, .std = 0,
+>                .if_lvl = 1, .rfagc_top = 0x37, },
+>      .qam_6    = { .if_freq = 4000, .agc_mode = 3, .std = 1,
+>                .if_lvl = 1, .rfagc_top = 0x37, },
+> };
+>
+>
+> These are the relevant tda18271 register values the taken from Matthews
+> USB-log:
+>
+> EP3 (0x05): 0x1d
+> EP4 (0x06): 0x60
+> EB22 (0x25): 0x37
+>
+> The LGDT3305 is configured for QAM and IF=4000kHz, which leads to a
+> tda18271_std_map_item with
+>
+> {
+>   .if_freq = 4000,
+>   .agc_mode = 3,
+>   .std = 5,
+>   .fm_rfn = 0,
+>   .if_lvl = 0,
+>   .rfagc_top = 0x37,
+>   }
+>
+> According to the datasheet and tda18271-maps.c, this should be qam_6,
+> qam_7 or qam_8.
+>
+> Do we need further USB-logs from the Windows driver ?
+> And if yes, do you have any advice for Matthew how to create them ?
+>
+> Regards,
+> Frank
+>
+>
+>
 
-Cc: Hans-Frieder Vogt <hfvogt@gmx.net>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/fc0012-priv.h    |  3 ---
- drivers/media/tuners/fc0012.c         | 17 ++++++++---------
- drivers/media/tuners/fc0012.h         |  2 +-
- drivers/media/usb/dvb-usb-v2/af9035.c |  4 ++--
- 4 files changed, 11 insertions(+), 15 deletions(-)
+What git branch are you writing the patch against?
 
-diff --git a/drivers/media/tuners/fc0012-priv.h b/drivers/media/tuners/fc0012-priv.h
-index 1195ee9..3b98bf9 100644
---- a/drivers/media/tuners/fc0012-priv.h
-+++ b/drivers/media/tuners/fc0012-priv.h
-@@ -33,9 +33,6 @@
- struct fc0012_priv {
- 	struct i2c_adapter *i2c;
- 	const struct fc0012_config *cfg;
--	u8 addr;
--	u8 dual_master;
--	u8 xtal_freq;
- 
- 	u32 frequency;
- 	u32 bandwidth;
-diff --git a/drivers/media/tuners/fc0012.c b/drivers/media/tuners/fc0012.c
-index 1a52b76..01f5e40 100644
---- a/drivers/media/tuners/fc0012.c
-+++ b/drivers/media/tuners/fc0012.c
-@@ -25,7 +25,7 @@ static int fc0012_writereg(struct fc0012_priv *priv, u8 reg, u8 val)
- {
- 	u8 buf[2] = {reg, val};
- 	struct i2c_msg msg = {
--		.addr = priv->addr, .flags = 0, .buf = buf, .len = 2
-+		.addr = priv->cfg->i2c_address, .flags = 0, .buf = buf, .len = 2
- 	};
- 
- 	if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
-@@ -38,8 +38,10 @@ static int fc0012_writereg(struct fc0012_priv *priv, u8 reg, u8 val)
- static int fc0012_readreg(struct fc0012_priv *priv, u8 reg, u8 *val)
- {
- 	struct i2c_msg msg[2] = {
--		{ .addr = priv->addr, .flags = 0, .buf = &reg, .len = 1 },
--		{ .addr = priv->addr, .flags = I2C_M_RD, .buf = val, .len = 1 },
-+		{ .addr = priv->cfg->i2c_address, .flags = 0,
-+			.buf = &reg, .len = 1 },
-+		{ .addr = priv->cfg->i2c_address, .flags = I2C_M_RD,
-+			.buf = val, .len = 1 },
- 	};
- 
- 	if (i2c_transfer(priv->i2c, msg, 2) != 2) {
-@@ -88,7 +90,7 @@ static int fc0012_init(struct dvb_frontend *fe)
- 		0x04,	/* reg. 0x15: Enable LNA COMPS */
- 	};
- 
--	switch (priv->xtal_freq) {
-+	switch (priv->cfg->xtal_freq) {
- 	case FC_XTAL_27_MHZ:
- 	case FC_XTAL_28_8_MHZ:
- 		reg[0x07] |= 0x20;
-@@ -98,7 +100,7 @@ static int fc0012_init(struct dvb_frontend *fe)
- 		break;
- 	}
- 
--	if (priv->dual_master)
-+	if (priv->cfg->dual_master)
- 		reg[0x0c] |= 0x02;
- 
- 	if (priv->cfg->loop_through)
-@@ -147,7 +149,7 @@ static int fc0012_set_params(struct dvb_frontend *fe)
- 			goto exit;
- 	}
- 
--	switch (priv->xtal_freq) {
-+	switch (priv->cfg->xtal_freq) {
- 	case FC_XTAL_27_MHZ:
- 		xtal_freq_khz_2 = 27000 / 2;
- 		break;
-@@ -449,9 +451,6 @@ struct dvb_frontend *fc0012_attach(struct dvb_frontend *fe,
- 
- 	priv->i2c = i2c;
- 	priv->cfg = cfg;
--	priv->dual_master = cfg->dual_master;
--	priv->addr = cfg->i2c_address;
--	priv->xtal_freq = cfg->xtal_freq;
- 
- 	info("Fitipower FC0012 successfully attached.");
- 
-diff --git a/drivers/media/tuners/fc0012.h b/drivers/media/tuners/fc0012.h
-index 83a98e7..3fb53b8 100644
---- a/drivers/media/tuners/fc0012.h
-+++ b/drivers/media/tuners/fc0012.h
-@@ -35,7 +35,7 @@ struct fc0012_config {
- 	 */
- 	enum fc001x_xtal_freq xtal_freq;
- 
--	int dual_master;
-+	bool dual_master;
- 
- 	/*
- 	 * RF loop-through
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 1c7fe5a..68e0e804 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -906,13 +906,13 @@ static const struct fc0012_config af9035_fc0012_config[] = {
- 	{
- 		.i2c_address = 0x63,
- 		.xtal_freq = FC_XTAL_36_MHZ,
--		.dual_master = 1,
-+		.dual_master = true,
- 		.loop_through = true,
- 		.clock_out = true,
- 	}, {
- 		.i2c_address = 0x63 | 0x80, /* I2C bus select hack */
- 		.xtal_freq = FC_XTAL_36_MHZ,
--		.dual_master = 1,
-+		.dual_master = true,
- 	}
- };
- 
--- 
-1.7.11.7
+I had to manually apply the patch by editing each file specified in the 
+patch. The patch failed to apply against master (I'm assuming)
 
+I used these commands to check out the code (patched against this code 
+base after completing the steps below):
+>   git clone git://github.com/torvalds/linux.git v4l-dvb
+>   cd v4l-dvb
+>   git remote add linuxtv git://linuxtv.org/media_tree.git
+>   git remote update
+
+At first I got this error:
+> [  709.649264] DVB: Unable to find symbol lgdt3305_attach()
+http://pyther.net/a/digivox_atsc/patch2/dmesg_before_lgdt3305.txt
+
+I had to go back into the kernel config uncheck "Autoselect tuners and 
+i2c modules to build" and then it included all device drivers under 
+"Customise DVB Frontend"
+
+Now the kernel detects the card however, I was unable to successfully 
+capture a mpeg2 stream.
+
+> $ dmesg
+http://pyther.net/a/digivox_atsc/patch2/dmesg.txt
+
+I attempted to tune to a channel using azap. The channels.conf was 
+generated using my pci based tuner card that I have in another system.
+
+> [root@tux ~]# azap -r -c /home/pyther/channels.conf "WATE-DT"
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> tuning to 525000000 Hz
+> video pid 0x07c0, audio pid 0x07c1
+> status 00 | signal 4b11 | snr 0066 | ber 00000000 | unc 0000ffff |
+> status 1f | signal ffff | snr 01d8 | ber 00000000 | unc 0000ffff | FE_HAS_LOCK
+
+http://pyther.net/a/digivox_atsc/patch2/azap_wate-dt.txt
+http://pyther.net/a/digivox_atsc/patch2/azap_ionlife.txt
+
+Although, it looked like tuning was semi-successful, I tried the following
+
+   * cat /dev/dvb/adapter0/dvr0 (no output)
+   * mplayer /dev/dvb/adapter0/dvr0 (no output)
+   * cat /dev/dvb/adapter0/dvr0 > test.mpg (test.mpg was 0 bytes)
+
+I then attempted to do a tv channel scan:
+> [root@tux ~]# scan -A 2 -t 1 
+> /usr/share/dvb/atsc/us-Cable-Standard-center-frequencies-QAM256 > 
+> ~/channels.conf
+It got through a few channels before it crashed with this error
+> start_filter:1752: ERROR: ioctl DMX_SET_FILTER failed: 71 Protocol error
+http://pyther.net/a/digivox_atsc/patch2/dmesg_after_scan.txt
+http://pyther.net/a/digivox_atsc/patch2/lspci_after_scan.txt
+
+While tuned into a channel using azap I ran dvbtraffic:
+http://pyther.net/a/digivox_atsc/patch2/dvbtraffic.txt
+
+Just let me know what you need me to do next. I really appreciate the 
+work and help!
+
+Regards,
+Matthew
