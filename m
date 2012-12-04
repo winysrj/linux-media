@@ -1,130 +1,308 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:3905 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751722Ab2LVQyR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Dec 2012 11:54:17 -0500
-Date: Sat, 22 Dec 2012 14:53:52 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] em28xx: input: fix oops on device removal
-Message-ID: <20121222145352.3bac5b64@redhat.com>
-In-Reply-To: <50D5BDAE.4030502@googlemail.com>
-References: <1355416457-19692-1-git-send-email-fschaefer.oss@googlemail.com>
-	<50D48126.8050307@googlemail.com>
-	<20121221213541.2dda362d@redhat.com>
-	<50D5BDAE.4030502@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from moutng.kundenserver.de ([212.227.126.186]:52355 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751452Ab2LDKmX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Dec 2012 05:42:23 -0500
+Date: Tue, 4 Dec 2012 11:42:15 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH v3] media: V4L2: add temporary clock helpers
+Message-ID: <Pine.LNX.4.64.1212041136250.26918@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 22 Dec 2012 15:03:26 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+Typical video devices like camera sensors require an external clock source.
+Many such devices cannot even access their hardware registers without a
+running clock. These clock sources should be controlled by their consumers.
+This should be performed, using the generic clock framework. Unfortunately
+so far only very few systems have been ported to that framework. This patch
+adds a set of temporary helpers, mimicking the generic clock API, to V4L2.
+Platforms, adopting the clock API, should switch to using it. Eventually
+this temporary API should be removed.
 
-> Am 22.12.2012 00:35, schrieb Mauro Carvalho Chehab:
-> > Em Fri, 21 Dec 2012 16:32:54 +0100
-> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >
-> >> Am 13.12.2012 17:34, schrieb Frank Schäfer:
-> >>> When em28xx_ir_init() fails du to an error in em28xx_ir_change_protocol(), it
-> >>> frees the memory of struct em28xx_IR *ir, but doesn't set the corresponding
-> >>> pointer in the device struct to NULL.
-> >>> On device removal, em28xx_ir_fini() gets called, which then calls
-> >>> rc_unregister_device() with a pointer to freed memory.
-> >>>
-> >>> Fixes bug 26572 (http://bugzilla.kernel.org/show_bug.cgi?id=26572)
-> >>>
-> >>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> >>>
-> >>> Cc: stable@kernel.org	# at least all kernels since 2.6.32 (incl.)
-> >>> ---
-> >>>  drivers/media/usb/em28xx/em28xx-input.c |    9 ++++-----
-> >>>  1 Datei geändert, 4 Zeilen hinzugefügt(+), 5 Zeilen entfernt(-)
-> >>>
-> >>> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-> >>> index 660bf80..5c7d768 100644
-> >>> --- a/drivers/media/usb/em28xx/em28xx-input.c
-> >>> +++ b/drivers/media/usb/em28xx/em28xx-input.c
-> >>> @@ -538,7 +538,7 @@ static int em28xx_ir_init(struct em28xx *dev)
-> >>>  	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
-> >>>  	rc = rc_allocate_device();
-> >>>  	if (!ir || !rc)
-> >>> -		goto err_out_free;
-> >>> +		goto error;
-> >>>  
-> >>>  	/* record handles to ourself */
-> >>>  	ir->dev = dev;
-> >>> @@ -559,7 +559,7 @@ static int em28xx_ir_init(struct em28xx *dev)
-> >>>  	rc_type = RC_BIT_UNKNOWN;
-> >>>  	err = em28xx_ir_change_protocol(rc, &rc_type);
-> >>>  	if (err)
-> >>> -		goto err_out_free;
-> >>> +		goto error;
-> >>>  
-> >>>  	/* This is how often we ask the chip for IR information */
-> >>>  	ir->polling = 100; /* ms */
-> >>> @@ -584,7 +584,7 @@ static int em28xx_ir_init(struct em28xx *dev)
-> >>>  	/* all done */
-> >>>  	err = rc_register_device(rc);
-> >>>  	if (err)
-> >>> -		goto err_out_stop;
-> >>> +		goto error;
-> >>>  
-> >>>  	em28xx_register_i2c_ir(dev);
-> >>>  
-> >>> @@ -597,9 +597,8 @@ static int em28xx_ir_init(struct em28xx *dev)
-> >>>  
-> >>>  	return 0;
-> >>>  
-> >>> - err_out_stop:
-> >>> +error:
-> >>>  	dev->ir = NULL;
-> >>> - err_out_free:
-> >>>  	rc_free_device(rc);
-> >>>  	kfree(ir);
-> >>>  	return err;
-> >> Ping !?
-> >> Mauro, this patch is really easy to review and it fixes a 2 years old bug...
-> >> Isn't this one of those patches that should be applied immediately ?
-> > This one is not on my queue... Patchwork doesn't seem to catch it:
-> >
-> > http://patchwork.linuxtv.org/project/linux-media/list/?submitter=44&state=*
-> 
-> Hmm... I didn't notice that.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-In any case, FYI, I typically don't even read any emails on my inbox with
-the word "PATCH" on it. I just handle whatever it is in patchwork. So, c/c me
-patches won't work, and just annoys me ;)
+v3: (thanks for all the comments)
 
-Instead, you need to check a few mins after posting a patch to see if patchwork
-got it.
+1. add and use a mutex to protect the enable counter instead of an atomic 
+variable
+2. add a use-count
+3. add "const" to dev_id
+4. move allocations outside the mutex
+5. allow rate reading and setting on disabled clock
+6. rename the clock list head:-)
 
-Unfortunately, patchwork doesn't (yet) notify the sender when a new patch
-arrives there.
+ drivers/media/v4l2-core/Makefile   |    2 +-
+ drivers/media/v4l2-core/v4l2-clk.c |  176 ++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-clk.h           |   54 +++++++++++
+ 3 files changed, 231 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/media/v4l2-core/v4l2-clk.c
+ create mode 100644 include/media/v4l2-clk.h
 
-> > Hmm... perhaps it is due to the accent on your name. Weird that it got
-> > other patches from you. You should likely thank python for discriminating
-> > e-mails with accents.
-> 
-> My first guess would be the cc line. Maybe the comment confused patchwork...
+diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+index c2d61d4..d065c01 100644
+--- a/drivers/media/v4l2-core/Makefile
++++ b/drivers/media/v4l2-core/Makefile
+@@ -5,7 +5,7 @@
+ tuner-objs	:=	tuner-core.o
+ 
+ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+-			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o
++			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o
+ ifeq ($(CONFIG_COMPAT),y)
+   videodev-objs += v4l2-compat-ioctl32.o
+ endif
+diff --git a/drivers/media/v4l2-core/v4l2-clk.c b/drivers/media/v4l2-core/v4l2-clk.c
+new file mode 100644
+index 0000000..2225081
+--- /dev/null
++++ b/drivers/media/v4l2-core/v4l2-clk.c
+@@ -0,0 +1,176 @@
++/*
++ * V4L2 clock service
++ *
++ * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/atomic.h>
++#include <linux/errno.h>
++#include <linux/list.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/string.h>
++
++#include <media/v4l2-clk.h>
++#include <media/v4l2-subdev.h>
++
++static DEFINE_MUTEX(clk_lock);
++static LIST_HEAD(clk_list);
++
++static struct v4l2_clk *v4l2_clk_find(const char *dev_id, const char *id)
++{
++	struct v4l2_clk *clk;
++
++	list_for_each_entry(clk, &clk_list, list) {
++		if (strcmp(dev_id, clk->dev_id))
++			continue;
++
++		if (!id || !clk->id || !strcmp(clk->id, id))
++			return clk;
++	}
++
++	return ERR_PTR(-ENODEV);
++}
++
++struct v4l2_clk *v4l2_clk_get(struct v4l2_subdev *sd, const char *id)
++{
++	struct v4l2_clk *clk;
++
++	mutex_lock(&clk_lock);
++	clk = v4l2_clk_find(sd->name, id);
++
++	if (!IS_ERR(clk) && !try_module_get(clk->ops->owner))
++		clk = ERR_PTR(-ENODEV);
++	mutex_unlock(&clk_lock);
++
++	if (!IS_ERR(clk))
++		atomic_inc(&clk->use_count);
++
++	return clk;
++}
++EXPORT_SYMBOL(v4l2_clk_get);
++
++void v4l2_clk_put(struct v4l2_clk *clk)
++{
++	if (!IS_ERR(clk)) {
++		atomic_dec(&clk->use_count);
++		module_put(clk->ops->owner);
++	}
++}
++EXPORT_SYMBOL(v4l2_clk_put);
++
++int v4l2_clk_enable(struct v4l2_clk *clk)
++{
++	int ret;
++	mutex_lock(&clk->lock);
++	if (++clk->enable == 1 && clk->ops->enable) {
++		ret = clk->ops->enable(clk);
++		if (ret < 0)
++			clk->enable--;
++	} else {
++		ret = 0;
++	}
++	mutex_unlock(&clk->lock);
++	return ret;
++}
++EXPORT_SYMBOL(v4l2_clk_enable);
++
++void v4l2_clk_disable(struct v4l2_clk *clk)
++{
++	int enable;
++
++	mutex_lock(&clk->lock);
++	enable = --clk->enable;
++	if (WARN(enable < 0, "Unbalanced %s() on %s:%s!\n", __func__,
++		 clk->dev_id, clk->id))
++		clk->enable++;
++	else if (!enable && clk->ops->disable)
++		clk->ops->disable(clk);
++	mutex_unlock(&clk->lock);
++}
++EXPORT_SYMBOL(v4l2_clk_disable);
++
++unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk)
++{
++	if (!clk->ops->get_rate)
++		return -ENOSYS;
++
++	return clk->ops->get_rate(clk);
++}
++EXPORT_SYMBOL(v4l2_clk_get_rate);
++
++int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate)
++{
++	if (!clk->ops->set_rate)
++		return -ENOSYS;
++
++	return clk->ops->set_rate(clk, rate);
++}
++EXPORT_SYMBOL(v4l2_clk_set_rate);
++
++struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
++				   const char *dev_id,
++				   const char *id, void *priv)
++{
++	struct v4l2_clk *clk;
++	int ret;
++
++	if (!ops || !dev_id)
++		return ERR_PTR(-EINVAL);
++
++	clk = kzalloc(sizeof(struct v4l2_clk), GFP_KERNEL);
++	if (!clk)
++		return ERR_PTR(-ENOMEM);
++
++	clk->id = kstrdup(id, GFP_KERNEL);
++	clk->dev_id = kstrdup(dev_id, GFP_KERNEL);
++	if ((id && !clk->id) || !clk->dev_id) {
++		ret = -ENOMEM;
++		goto ealloc;
++	}
++	clk->ops = ops;
++	clk->priv = priv;
++	atomic_set(&clk->use_count, 0);
++	mutex_init(&clk->lock);
++
++	mutex_lock(&clk_lock);
++	if (!IS_ERR(v4l2_clk_find(dev_id, id))) {
++		mutex_unlock(&clk_lock);
++		ret = -EEXIST;
++		goto eexist;
++	}
++	list_add_tail(&clk->list, &clk_list);
++	mutex_unlock(&clk_lock);
++
++	return clk;
++
++eexist:
++ealloc:
++	kfree(clk->id);
++	kfree(clk->dev_id);
++	kfree(clk);
++	return ERR_PTR(ret);
++}
++EXPORT_SYMBOL(v4l2_clk_register);
++
++void v4l2_clk_unregister(struct v4l2_clk *clk)
++{
++	if (unlikely(atomic_read(&clk->use_count))) {
++		pr_err("%s(): Unregistering ref-counted %s:%s clock!\n",
++		       __func__, clk->dev_id, clk->id);
++		BUG();
++	}
++
++	mutex_lock(&clk_lock);
++	list_del(&clk->list);
++	mutex_unlock(&clk_lock);
++
++	kfree(clk->id);
++	kfree(clk->dev_id);
++	kfree(clk);
++}
++EXPORT_SYMBOL(v4l2_clk_unregister);
+diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
+new file mode 100644
+index 0000000..9b67472
+--- /dev/null
++++ b/include/media/v4l2-clk.h
+@@ -0,0 +1,54 @@
++/*
++ * V4L2 clock service
++ *
++ * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * ATTENTION: This is a temporary API and it shall be replaced by the generic
++ * clock API, when the latter becomes widely available.
++ */
++
++#ifndef MEDIA_V4L2_CLK_H
++#define MEDIA_V4L2_CLK_H
++
++#include <linux/atomic.h>
++#include <linux/list.h>
++#include <linux/mutex.h>
++
++struct module;
++struct v4l2_subdev;
++
++struct v4l2_clk {
++	struct list_head list;
++	const struct v4l2_clk_ops *ops;
++	const char *dev_id;
++	const char *id;
++	int enable;
++	struct mutex lock; /* Protect the enable count */
++	atomic_t use_count;
++	void *priv;
++};
++
++struct v4l2_clk_ops {
++	struct module	*owner;
++	int		(*enable)(struct v4l2_clk *clk);
++	void		(*disable)(struct v4l2_clk *clk);
++	unsigned long	(*get_rate)(struct v4l2_clk *clk);
++	int		(*set_rate)(struct v4l2_clk *clk, unsigned long);
++};
++
++struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
++				   const char *dev_name,
++				   const char *name, void *priv);
++void v4l2_clk_unregister(struct v4l2_clk *clk);
++struct v4l2_clk *v4l2_clk_get(struct v4l2_subdev *sd, const char *id);
++void v4l2_clk_put(struct v4l2_clk *clk);
++int v4l2_clk_enable(struct v4l2_clk *clk);
++void v4l2_clk_disable(struct v4l2_clk *clk);
++unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk);
++int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate);
++
++#endif
+-- 
+1.7.2.5
 
-It shouldn't. C/c should be accepted properly.
-
-My guess is that it is related to accents. Patchwork has a very bad history
-with accented e-mails: python has a very bad habit of aborting any script 
-if an unknown character is detected. There are lots of patches inside
-patchwork's git tree to fix it, but there are still some cases where python
-insists to die with accented chars.
-
-> > Could you please try to re-submit it being sure that your email got
-> > properly encoded with UTF-8?
-> 
-> Sure, but 've definitely sent it UTF-8 encoded last time (using git
-> send-email).
-
-Your second patch arrived there fine. Thanks!
-
-Mauro
