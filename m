@@ -1,109 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:62971 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750784Ab2LUNMV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Dec 2012 08:12:21 -0500
-Received: by mail-la0-f50.google.com with SMTP id c1so4905942lah.23
-        for <linux-media@vger.kernel.org>; Fri, 21 Dec 2012 05:12:19 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAOcJUby47hZKEB8NODjCD5DeTToCPc233H6G77jaDQ_yyVDfig@mail.gmail.com>
-References: <CAOcJUbw3Z+TTvURsOSKS0qaYY2mV3_9H5HCE2JH6vjX=QSDaDw@mail.gmail.com>
-	<CAOcJUby47hZKEB8NODjCD5DeTToCPc233H6G77jaDQ_yyVDfig@mail.gmail.com>
-Date: Fri, 21 Dec 2012 08:12:19 -0500
-Message-ID: <CAOcJUbx5+R=nDEp6189CDVTzf=0n+PgRoj2au3M2WZEOOGPQSg@mail.gmail.com>
-Subject: Re: [PULL] dvb-frontends: use %*ph[N] to dump small buffers
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:53841 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752641Ab2LDQyH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Dec 2012 11:54:07 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MEI00196N1IEKB0@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 04 Dec 2012 16:56:43 +0000 (GMT)
+Received: from [106.116.147.32] by eusync1.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MEI00EU2MY4NG00@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 04 Dec 2012 16:54:04 +0000 (GMT)
+Message-id: <50BE2AAC.9040603@samsung.com>
+Date: Tue, 04 Dec 2012 17:54:04 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] s5p-fimc driver updates for Exynos4x12 SoC support
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Argh!  I forgot one pwclient command:
+Hi Mauro,
 
-pwclient update -s 'accepted' 15938
+This series is mainly prerequisite patches for camera devices (FIMC, FIMC-LITE,
+MIPI-CSIS, FIMC-IS) support on Exynos4x12 (two- and quad-core) SoCs. Exynos4412
+is a processor found on Origen 4 Quad dev board for example.
+It would have been good to have this series in 3.8, however if it is already
+not reachable then please pull for 3.9.
 
-Thanks again,
+The following changes since commit df5450d51945b4a1a506200e11267626a6d324e3:
 
-Mike
+  Merge tag 'v3.7-rc8' into staging/for_v3.8 (2012-12-04 10:46:21 -0200)
 
-On Fri, Dec 21, 2012 at 8:10 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> Mauro,
->
-> updated pwclient script and pull request follows:
->
-> pwclient update -s 'superseded' 15687
-> pwclient update -s 'superseded' 15688
-> pwclient update -s 'superseded' 15933
->
-> The following changes since commit 5b7d8de7d2328f7b25fe4645eafee7e48f9b7df3:
->
->   [media] au0828: break au0828_card_setup() down into smaller
-> functions (2012-12-17 14:34:27 -0200)
->
-> are available in the git repository at:
->
->   git://git.linuxtv.org/mkrufky/tuners frontends
->
-> for you to fetch changes up to cf866aea2dd6730b20be9ad69f8829675b0e6234:
->
->   or51211: apply pr_fmt and use pr_* macros instead of printk
-> (2012-12-18 08:20:28 -0500)
->
-> ----------------------------------------------------------------
-> Andy Shevchenko (3):
->       or51211: use %*ph[N] to dump small buffers
->       ix2505v: use %*ph[N] to dump small buffers
->       or51211: apply pr_fmt and use pr_* macros instead of printk
->
->  drivers/media/dvb-frontends/ix2505v.c |    2 +-
->  drivers/media/dvb-frontends/or51211.c |   99
-> ++++++++++++++++++++++++++++++++++++++++++++-------------------------------------------------------
->  2 files changed, 45 insertions(+), 56 deletions(-)
->
-> Cheers,
->
-> Mike
->
-> On Mon, Dec 17, 2012 at 9:16 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
->> Mauro,
->>
->> Please apply the following to update status in patchwork along with
->> the following merge request...
->>
->> pwclient update -s 'superseded' 15687
->> pwclient update -s 'changes requested' 15688
->>
->> I am marking 15687 as superseded because I broke the patch into two
->> separate patches.  (see merge request below)
->> 15688 causes new build warnings, so I've asked Andy to resubmit.
->>
->> Please merge:
->>
->> The following changes since commit 5b7d8de7d2328f7b25fe4645eafee7e48f9b7df3:
->>
->>   [media] au0828: break au0828_card_setup() down into smaller
->> functions (2012-12-17 14:34:27 -0200)
->>
->> are available in the git repository at:
->>
->>   git://git.linuxtv.org/mkrufky/tuners frontends
->>
->> for you to fetch changes up to 34c87fa2214d134c0028c97d7aab3dd769bb3bf0:
->>
->>   ix2505v: use %*ph[N] to dump small buffers (2012-12-17 20:12:29 -0500)
->>
->> ----------------------------------------------------------------
->> Andy Shevchenko (2):
->>       or51211: use %*ph[N] to dump small buffers
->>       ix2505v: use %*ph[N] to dump small buffers
->>
->>  drivers/media/dvb-frontends/ix2505v.c |    2 +-
->>  drivers/media/dvb-frontends/or51211.c |    5 +----
->>  2 files changed, 2 insertions(+), 5 deletions(-)
->>
->> Cheers,
->>
->> Mike
+are available in the git repository at:
+
+
+  git://git.infradead.org/users/kmpark/linux-samsung v4l_s5p_fimc
+
+for you to fetch changes up to c78a1a3584a7a2b89e84e57382abec9153a477fe:
+
+  s5p-fimc: Improved pipeline try format routine (2012-12-04 16:47:27 +0100)
+
+----------------------------------------------------------------
+Andrzej Hajda (1):
+      s5p-fimc: Add support for sensors with multiple pads
+
+Sylwester Nawrocki (10):
+      V4L: DocBook: Add V4L2_MBUS_FMT_YUV10_1X30 media bus pixel code
+      fimc-lite: Register dump function cleanup
+      s5p-fimc: Clean up capture enable/disable helpers
+      s5p-fimc: Add variant data structure for Exynos4x12
+      s5p-csis: Add support for raw Bayer pixel formats
+      s5p-csis: Enable only data lanes that are actively used
+      s5p-csis: Add registers logging for debugging
+      s5p-fimc: Add sensor group ids for fimc-is
+      fimc-lite: Add ISP FIFO output support
+      s5p-fimc: Improved pipeline try format routine
+
+ Documentation/DocBook/media/v4l/subdev-formats.xml |  718 ++++++--------------
+ Documentation/DocBook/media_api.tmpl               |    1 +
+ drivers/media/platform/s5p-fimc/fimc-capture.c     |  105 ++-
+ drivers/media/platform/s5p-fimc/fimc-core.c        |   90 ++-
+ drivers/media/platform/s5p-fimc/fimc-core.h        |    8 +-
+ drivers/media/platform/s5p-fimc/fimc-lite-reg.c    |    6 +-
+ drivers/media/platform/s5p-fimc/fimc-lite.c        |  146 +++-
+ drivers/media/platform/s5p-fimc/fimc-lite.h        |    7 +-
+ drivers/media/platform/s5p-fimc/fimc-m2m.c         |    2 +-
+ drivers/media/platform/s5p-fimc/fimc-mdevice.c     |   26 +-
+ drivers/media/platform/s5p-fimc/fimc-mdevice.h     |   12 +-
+ drivers/media/platform/s5p-fimc/fimc-reg.c         |   40 +-
+ drivers/media/platform/s5p-fimc/fimc-reg.h         |    4 +-
+ drivers/media/platform/s5p-fimc/mipi-csis.c        |   52 +-
+ include/uapi/linux/v4l2-mediabus.h                 |    3 +-
+ 15 files changed, 548 insertions(+), 672 deletions(-)
+
+---
+
+Regards,
+Sylwester
