@@ -1,49 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imr-mb01.mx.aol.com ([64.12.207.164]:53130 "EHLO
-	imr-mb01.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751925Ab2LJVZz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 16:25:55 -0500
-Received: from mtaout-mb01.r1000.mx.aol.com (mtaout-mb01.r1000.mx.aol.com [172.29.41.65])
-	by imr-mb01.mx.aol.com (Outbound Mail Relay) with ESMTP id 74C531C00019F
-	for <linux-media@vger.kernel.org>; Mon, 10 Dec 2012 16:25:54 -0500 (EST)
-Received: from [192.168.1.34] (unknown [201.255.111.161])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mtaout-mb01.r1000.mx.aol.com (MUA/Third Party Client Interface) with ESMTPSA id 66156E0000A1
-	for <linux-media@vger.kernel.org>; Mon, 10 Dec 2012 16:25:53 -0500 (EST)
-Message-ID: <50C652A4.7040807@netscape.net>
-Date: Mon, 10 Dec 2012 18:22:44 -0300
-From: =?ISO-8859-1?Q?Alfredo_Jes=FAs_Delaiti?=
-	<alfredodelaiti@netscape.net>
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:56054 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751997Ab2LEBMf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Dec 2012 20:12:35 -0500
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [PATCH v3 3/4] sta2x11_vip: convert to videobuf2 and control framework
+Date: Wed, 05 Dec 2012 02:12:24 +0100
+Message-ID: <8113379.Pqy1l62Utl@number-5>
+In-Reply-To: <50BE2193.4020103@redhat.com>
+References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com> <1348484332-8106-3-git-send-email-federico.vaga@gmail.com> <50BE2193.4020103@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Kworld PCI Analog TV Card Lite PVR-7134SE
-References: <50C62497.5000209@gmail.com>
-In-Reply-To: <50C62497.5000209@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+On Tuesday 04 December 2012 14:15:15 Mauro Carvalho Chehab wrote:
+> Em 24-09-2012 07:58, Federico Vaga escreveu:
+> > This patch re-write the driver and use the videobuf2
+> > interface instead of the old videobuf. Moreover, it uses also
+> > the control framework which allows the driver to inherit
+> > controls from its subdevice (ADV7180)
+> > 
+> > Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
+> > Acked-by: Giancarlo Asnaghi <giancarlo.asnaghi@st.com>
+> >
+> > [..........]
+> > 
+> >   /*
+> >   
+> >    * This is the driver for the STA2x11 Video Input Port.
+> >    *
+> > 
+> > + * Copyright (C) 2012       ST Microelectronics
+> > 
+> >    * Copyright (C) 2010       WindRiver Systems, Inc.
+> >    *
+> >    * This program is free software; you can redistribute it and/or modify
+> >    it
+> > 
+> > @@ -19,36 +20,30 @@
+> > 
+> >    * The full GNU General Public License is included in this distribution
+> >    in
+> >    * the file called "COPYING".
+> >    *
+> > 
+> > - * Author: Andreas Kies <andreas.kies@windriver.com>
+> > - *		Vlad Lungu <vlad.lungu@windriver.com>
+> 
+> Why are you dropping those authorship data?
+> 
+> Ok, it is clear to me that most of the code there got rewritten, and,
+> while IANAL, I think they still have some copyrights on it.
+> 
+> So, if you're willing to do that, you need to get authors ack
+> on such patch.
 
-Read:
+I re-write the driver, and also the first version of the driver has many 
+modification made by me, many bug fix, style review, remove useless code.
+The first time I didn't add myself as author because the logic of the driver 
+did not change. This time, plus the old change I think there is nothing of the 
+original driver because I rewrite it from the hardware manual. Practically, It 
+is a new driver for the same device.
 
-http://www.linuxtv.org/wiki/index.php/Kworld_PCI_Analog_TV_Card_Lite
+Anyway I will try to contact the original authors for the acked-by.
 
-Alfredo
+> >   MODULE_DESCRIPTION("STA2X11 Video Input Port driver");
+> > 
+> > -MODULE_AUTHOR("Wind River");
+> 
+> Same note applies here: we need Wind River's ack on that to drop it.
 
-El 10/12/12 15:06, Saad Bin Javed escribió:
-> Can anybody help setting up this card? I posted details in an earlier 
-> message but got no response. This list is my last hope to get this 
-> thing working.
->
-> Regards,
->
-> Saad
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I will try also for this. But I think that this is not a windriver driver 
+because I re-wrote it from the hardware manual. I used the old driver because 
+I thought that it was better than propose a patch that remove the old driver 
+and add my driver.
+I did not remove the 2010 Copyright from windriver, because they did the job, 
+but this work was paid by ST (copyright 2012) and made completely by me.
 
+Is my thinking wrong?
+
+Just a question for the future so I avoid to redo the same error. If I re-
+wrote most of a driver I cannot change the authorship automatically without 
+the acked-by of the previous author. If I ask to the previous author and he 
+does not give me the acked-by (or he is unreachable, he change email address), 
+then the driver is written by me but the author is someone else? Right? So, it 
+is better if I propose a patch which remove a driver and a patch which add my 
+driver?
+
+Thank you
+
+-- 
+Federico Vaga
