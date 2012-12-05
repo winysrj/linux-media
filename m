@@ -1,128 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46250 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932172Ab2LRRGV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Dec 2012 12:06:21 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
-	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
-	"David Airlie" <airlied@linux.ie>,
-	"Rob Clark" <robdclark@gmail.com>,
-	"Leela Krishna Amudala" <leelakrishna.a@gmail.com>
-Subject: [PATCHv16 5/7] fbmon: add of_videomode helpers
-Date: Tue, 18 Dec 2012 18:04:14 +0100
-Message-Id: <1355850256-16135-6-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1355850256-16135-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1355850256-16135-1-git-send-email-s.trumtrar@pengutronix.de>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:44386 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753926Ab2LEMp4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2012 07:45:56 -0500
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	'Mauro Carvalho Chehab' <mchehab@infradead.org>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	'Hans Verkuil' <hans.verkuil@cisco.com>,
+	'Giancarlo Asnaghi' <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	'Jonathan Corbet' <corbet@lwn.net>
+Subject: Re: [PATCH v3 2/4] videobuf2-dma-streaming: new videobuf2 memory allocator
+Date: Wed, 05 Dec 2012 13:50:33 +0100
+Message-ID: <1685240.Ttn3DTWMJc@harkonnen>
+In-Reply-To: <50BE1F06.10308@redhat.com>
+References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com> <055901cd9a52$5995fcd0$0cc1f670$%szyprowski@samsung.com> <50BE1F06.10308@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add helper to get fb_videomode from devicetree.
+On Tuesday 04 December 2012 14:04:22 Mauro Carvalho Chehab wrote:
+> Em 24-09-2012 09:44, Marek Szyprowski escreveu:
+> > Hello,
+> > 
+> > On Monday, September 24, 2012 12:59 PM Federico Vaga wrote:
+> >> The DMA streaming allocator is similar to the DMA contig but it use the
+> >> DMA streaming interface (dma_map_single, dma_unmap_single). The
+> >> allocator allocates buffers and immediately map the memory for DMA
+> >> transfer. For each buffer prepare/finish it does a DMA synchronization.
+> 
+> Hmm.. the explanation didn't convince me, e. g.:
+> 	1) why is it needed;
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/video/fbmon.c |   42 ++++++++++++++++++++++++++++++++++++++++++
- include/linux/fb.h    |    4 ++++
- 2 files changed, 46 insertions(+)
+This allocator is needed because some device (like STA2X11 VIP) cannot work 
+with DMA sg or DMA coherent. Some other device (like the one used by Jonathan 
+when he proposes vb2-dma-nc allocator) can obtain much better performance with 
+DMA streaming than coherent.
 
-diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
-index 17ce135..94ad0f7 100644
---- a/drivers/video/fbmon.c
-+++ b/drivers/video/fbmon.c
-@@ -31,6 +31,7 @@
- #include <linux/pci.h>
- #include <linux/slab.h>
- #include <video/edid.h>
-+#include <video/of_videomode.h>
- #include <video/videomode.h>
- #ifdef CONFIG_PPC_OF
- #include <asm/prom.h>
-@@ -1425,6 +1426,47 @@ int fb_videomode_from_videomode(const struct videomode *vm,
- EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
- #endif
- 
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+static inline void dump_fb_videomode(const struct fb_videomode *m)
-+{
-+	pr_debug("fb_videomode = %ux%u@%uHz (%ukHz) %u %u %u %u %u %u %u %u %u\n",
-+		 m->xres, m->yres, m->refresh, m->pixclock, m->left_margin,
-+		 m->right_margin, m->upper_margin, m->lower_margin,
-+		 m->hsync_len, m->vsync_len, m->sync, m->vmode, m->flag);
-+}
-+
-+/**
-+ * of_get_fb_videomode - get a fb_videomode from devicetree
-+ * @np: device_node with the timing specification
-+ * @fb: will be set to the return value
-+ * @index: index into the list of display timings in devicetree
-+ *
-+ * DESCRIPTION:
-+ * This function is expensive and should only be used, if only one mode is to be
-+ * read from DT. To get multiple modes start with of_get_display_timings ond
-+ * work with that instead.
-+ */
-+int of_get_fb_videomode(struct device_node *np, struct fb_videomode *fb,
-+			int index)
-+{
-+	struct videomode vm;
-+	int ret;
-+
-+	ret = of_get_videomode(np, &vm, index);
-+	if (ret)
-+		return ret;
-+
-+	fb_videomode_from_videomode(&vm, fb);
-+
-+	pr_debug("%s: got %dx%d display mode from %s\n",
-+		of_node_full_name(np), vm.hactive, vm.vactive, np->name);
-+	dump_fb_videomode(fb);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(of_get_fb_videomode);
-+#endif
-+
- #else
- int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
- {
-diff --git a/include/linux/fb.h b/include/linux/fb.h
-index 100a176..58b9860 100644
---- a/include/linux/fb.h
-+++ b/include/linux/fb.h
-@@ -20,6 +20,7 @@ struct fb_info;
- struct device;
- struct file;
- struct videomode;
-+struct device_node;
- 
- /* Definitions below are used in the parsed monitor specs */
- #define FB_DPMS_ACTIVE_OFF	1
-@@ -715,6 +716,9 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
- extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
- extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
- 
-+extern int of_get_fb_videomode(struct device_node *np,
-+			       struct fb_videomode *fb,
-+			       int index);
- extern int fb_videomode_from_videomode(const struct videomode *vm,
- 				       struct fb_videomode *fbmode);
- 
+> 	2) why vb2-dma-config can't be patched to use dma_map_single
+> (eventually using a different vb2_io_modes bit?);
+
+I did not modify vb2-dma-contig because I was thinking that each DMA memory 
+allocator should reflect a DMA API.
+
+> 	3) what are the usecases for it.
+> 
+> Could you please detail it? Without that, one that would be needing to
+> write a driver will have serious doubts about what would be the right
+> driver for its usage. Also, please document it at the driver itself.
+
+I did not write all this details because the reasons to use vb2-dma-contig, 
+vb2-dma-sg or vb2-dma-streaming are the same reasons because someone choose 
+SG, coherent or streaming API. This is already documented in the DMA-*.txt 
+files, so I did not rewrite it to avoid duplication.
+
 -- 
-1.7.10.4
-
+Federico Vaga
