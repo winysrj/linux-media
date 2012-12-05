@@ -1,70 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp209.alice.it ([82.57.200.105]:39853 "EHLO smtp209.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751844Ab2LJVhn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 16:37:43 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv2 0/9] dvb-usb/m920x: support VP-7049 DVB-T USB Stick and other fixes
-Date: Mon, 10 Dec 2012 22:37:08 +0100
-Message-Id: <1355175437-21623-1-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1352158096-17737-1-git-send-email-ospite@studenti.unina.it>
-References: <1352158096-17737-1-git-send-email-ospite@studenti.unina.it>
+Received: from mailout-de.gmx.net ([213.165.64.23]:59759 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751643Ab2LEJ4v (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2012 04:56:51 -0500
+Message-ID: <50BF1A5F.60700@gmx.de>
+Date: Wed, 05 Dec 2012 10:56:47 +0100
+From: Markus Feldmann <feldmann_markus@gmx.de>
+MIME-Version: 1.0
+To: Mailing List Linux Media <linux-media@vger.kernel.org>
+Subject: Re: ASUS My Cinema U3000 Mini DVBT Tuner
+References: <50BF0C9B.70407@gmx.de>
+In-Reply-To: <50BF0C9B.70407@gmx.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Here  is my <lsusb -v> output for this device:
 
-Here is a second iteration of the patchset to add support for the
-Twinhan VP7049 DVB-T USB Stick, v1 is at:
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/56714
 
-Patches from 1 to 7 are small fixes or refactorings to make the addition
-of the new device easier.
 
-Patches 8 and 9 are specific to the device.
+Bus 001 Device 006: ID 0b05:171f ASUSTek Computer, Inc. My Cinema U3000 
+Mini [DiBcom DiB7700P]
+Device Descriptor:
+   bLength                18
+   bDescriptorType         1
+   bcdUSB               2.00
+   bDeviceClass            0 (Defined at Interface level)
+   bDeviceSubClass         0
+   bDeviceProtocol         0
+   bMaxPacketSize0        64
+   idVendor           0x0b05 ASUSTek Computer, Inc.
+   idProduct          0x171f My Cinema U3000 Mini [DiBcom DiB7700P]
+   bcdDevice            1.00
+   iManufacturer           1 DIBCOM
+   iProduct                2 STK7700
+   iSerial                 3 6803800468
+   bNumConfigurations      1
+   Configuration Descriptor:
+     bLength                 9
+     bDescriptorType         2
+     wTotalLength           46
+     bNumInterfaces          1
+     bConfigurationValue     1
+     iConfiguration          0
+     bmAttributes         0xa0
+       (Bus Powered)
+       Remote Wakeup
+     MaxPower              500mA
+     Interface Descriptor:
+       bLength                 9
+       bDescriptorType         4
+       bInterfaceNumber        0
+       bAlternateSetting       0
+       bNumEndpoints           4
+       bInterfaceClass       255 Vendor Specific Class
+       bInterfaceSubClass      0
+       bInterfaceProtocol      0
+       iInterface              0
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x01  EP 1 OUT
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0200  1x 512 bytes
+         bInterval               1
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x81  EP 1 IN
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0200  1x 512 bytes
+         bInterval               1
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x82  EP 2 IN
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0200  1x 512 bytes
+         bInterval               1
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x83  EP 3 IN
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0200  1x 512 bytes
+         bInterval               1
+Device Qualifier (for other device speed):
+   bLength                10
+   bDescriptorType         6
+   bcdUSB               2.00
+   bDeviceClass            0 (Defined at Interface level)
+   bDeviceSubClass         0
+   bDeviceProtocol         0
+   bMaxPacketSize0        64
+   bNumConfigurations      1
+Device Status:     0x0000
+   (Bus Powered)
 
-Changes since v1:
-  - Patches 1-7: more refactorings
-
-  - Patch 9: don't add a .pre_init callback to dvb-usb, Antti convinced
-    me that the initialization is better done just before the frontend
-    attach is called.
-
-  - Patch 9: use the RC core infrastructure, the keymap I needed was
-    already here: I could reuse the rc-twinhan1027 driver without
-    touching anything in it.
-
-Again I deliberately ignored some checkpatch.pl warnings and errors
-because I preferred to stick with the code style in use in the
-dvb-usb/m920x files, let me know if you want me to do otherwise.
-
-Thanks,
-   Antonio
-
-Antonio Ospite (9):
-  [media] dvb-usb: fix indentation of a for loop
-  [media] m920x: fix a typo in a comment
-  [media] m920x: factor out a m920x_write_seq() function
-  [media] m920x: factor out a m920x_parse_rc_state() function
-  [media] m920x: avoid repeating RC state parsing at each keycode
-  [media] m920x: introduce m920x_rc_core_query()
-  [media] m920x: send the RC init sequence also when rc.core is used
-  [media] get_dvb_firmware: add entry for the vp7049 firmware
-  [media] m920x: add support for the VP-7049 Twinhan DVB-T USB Stick
-
- Documentation/dvb/get_dvb_firmware       |   15 +-
- drivers/media/dvb-core/dvb-usb-ids.h     |    1 +
- drivers/media/usb/dvb-usb/dvb-usb-init.c |   60 +++----
- drivers/media/usb/dvb-usb/m920x.c        |  269 ++++++++++++++++++++++++------
- 4 files changed, 266 insertions(+), 79 deletions(-)
-
--- 
-Antonio Ospite
-http://ao2.it
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
