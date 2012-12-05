@@ -1,110 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.univ-tours.fr ([193.52.209.50]:29599 "EHLO
-	hermes.univ-tours.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752290Ab2L2NLh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Dec 2012 08:11:37 -0500
-Message-ID: <50DEE9C5.7020407@lissyx.dyndns.org>
-Date: Sat, 29 Dec 2012 14:01:57 +0100
-From: Alexandre Lissy <lissyx+mozfr@lissyx.dyndns.org>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:53788 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753405Ab2LENW6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2012 08:22:58 -0500
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [PATCH v3 3/4] sta2x11_vip: convert to videobuf2 and control framework
+Date: Wed, 05 Dec 2012 14:27:35 +0100
+Message-ID: <1773237.zC2M0dmkYp@harkonnen>
+In-Reply-To: <50BF47CA.5070205@redhat.com>
+References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com> <2637992.xolQO8ly5c@harkonnen> <50BF47CA.5070205@redhat.com>
 MIME-Version: 1.0
-To: Alexey Klimov <klimov.linux@gmail.com>,
-	Alexandre LISSY <alexandrelissy@free.fr>
-CC: linux-media@vger.kernel.org
-Subject: Re: iMon Knob driver issue
-References: <5081109E.7060809@free.fr> <50DEDD43.3080300@free.fr> <CALW4P+++ZZXAGkn+jRVi2D4iz_UpUVUQLFDoQGGfAUMmgUhntg@mail.gmail.com>
-In-Reply-To: <CALW4P+++ZZXAGkn+jRVi2D4iz_UpUVUQLFDoQGGfAUMmgUhntg@mail.gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------040504060504020709040501"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040504060504020709040501
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-
-Le 29/12/2012 13:31, Alexey Klimov a écrit :
-> Hello Alexandre,
+> > Ok, I understand. I will write something like this.
+> > 
+> >   * Copyright (C) 2012       ST Microelectronics
+> >   *      author: Federico Vaga <federico.vaga@gmail.com>
+> >   * Copyright (C) 2010       WindRiver Systems, Inc.
+> >   *      authors: Andreas Kies <andreas.kies@windriver.com>
+> >   *               Vlad Lungu <vlad.lungu@windriver.com>
 > 
-> On Sat, Dec 29, 2012 at 4:08 PM, Alexandre LISSY <alexandrelissy@free.fr> wrote:
->> Hello,
->>
->> Please find attached a small patch for the iMon Knob driver. I've been
-> 
-> Could you please also add your Signed-off-by to the patch? It looks
-> like it's missed.
-> 
+> Sounds perfect to me.
 
-Sure, sorry for forgetting this, here it is !
+I will answer to this with a patch
 
---------------040504060504020709040501
-Content-Type: text/x-diff;
- name="0001-fix-iMon-Knob-event-interpretation-issues.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0001-fix-iMon-Knob-event-interpretation-issues.patch"
+> As you said, the best place to discuss about it is likely at LKML.
+> [...]
+> Btw, this is why it is called "git blame", and not "git authorship":
+> it is a tool to identify who was the last one that modified the code.
+> Its main usage is to identify who might have introduced a bug on the
+> code.
 
->From cca7718a9902a4d5cffbf158b5853980a08ef930 Mon Sep 17 00:00:00 2001
-From: Alexandre Lissy <alexandrelissy@free.fr>
-Date: Sun, 2 Sep 2012 20:35:20 +0200
-Subject: [PATCH] fix: iMon Knob event interpretation issues
+I know I know, it was just a stupid example to expose the problem that I have 
+in my mind. I know that it is very difficult (impossible?) to assign the 
+authorship of a single line, and git blame it is not the tool to do this :)
 
-Events for the iMon Knob pad where not correctly interpreted, resulting
-in buggy mouse movements (cursor going straight out of the screen), key
-pad only generating KEY_RIGHT and KEY_DOWN events. A reproducer is:
+I think you understand what I mean despite the stupid example
 
-int main(int argc, char ** argv)
-{
-        char rel_x = 0x00; printf("rel_x:%d @%s:%d\n", rel_x, __FILE__, __LINE__);
-        rel_x = 0x0f; printf("rel_x:%d @%s:%d\n", rel_x, __FILE__, __LINE__);
-        rel_x |= ~0x0f; printf("rel_x:%d @%s:%d\n", rel_x, __FILE__, __LINE__);
-
-        return 0;
-}
-
-(running on x86 or amd64)
-$ ./test
-rel_x:0 @test.c:6
-rel_x:15 @test.c:7
-rel_x:-1 @test.c:8
-
-(running on armv6)
-rel_x:0 @test.c:6
-rel_x:15 @test.c:7
-rel_x:255 @test.c:8
-
-Forcing the rel_x and rel_y variables as signed char fixes the issue.
-
-Signed-off-by: Alexandre Lissy <alexandrelissy@free.fr>
----
- drivers/media/rc/imon.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index 5dd0386..9d30ca9 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -1225,7 +1225,7 @@ static u32 imon_panel_key_lookup(u64 code)
- static bool imon_mouse_event(struct imon_context *ictx,
- 			     unsigned char *buf, int len)
- {
--	char rel_x = 0x00, rel_y = 0x00;
-+	signed char rel_x = 0x00, rel_y = 0x00;
- 	u8 right_shift = 1;
- 	bool mouse_input = true;
- 	int dir = 0;
-@@ -1301,7 +1301,7 @@ static void imon_touch_event(struct imon_context *ictx, unsigned char *buf)
- static void imon_pad_to_keys(struct imon_context *ictx, unsigned char *buf)
- {
- 	int dir = 0;
--	char rel_x = 0x00, rel_y = 0x00;
-+	signed char rel_x = 0x00, rel_y = 0x00;
- 	u16 timeout, threshold;
- 	u32 scancode = KEY_RESERVED;
- 	unsigned long flags;
 -- 
-1.7.10.4
-
-
---------------040504060504020709040501--
+Federico Vaga
