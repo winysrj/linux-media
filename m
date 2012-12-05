@@ -1,84 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:56873 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752494Ab2LRDFu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Dec 2012 22:05:50 -0500
-From: Albert Wang <twang13@marvell.com>
-To: Jonathan Corbet <corbet@lwn.net>
-CC: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Libin Yang <lbyang@marvell.com>
-Date: Mon, 17 Dec 2012 19:04:26 -0800
-Subject: RE: [PATCH V3 10/15] [media] marvell-ccic: split mcam-core into 2
- parts for soc_camera support
-Message-ID: <477F20668A386D41ADCC57781B1F70430D13C8D0E3@SC-VEXCH1.marvell.com>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
-	<1355565484-15791-11-git-send-email-twang13@marvell.com>
-	<20121216093717.4be8feff@hpe.lwn.net>
-	<477F20668A386D41ADCC57781B1F70430D13C8CCE4@SC-VEXCH1.marvell.com>
- <20121217082832.7f363d05@lwn.net>
-In-Reply-To: <20121217082832.7f363d05@lwn.net>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from firefly.pyther.net ([50.116.37.168]:53320 "EHLO
+	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752808Ab2LEDlJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Dec 2012 22:41:09 -0500
+Message-ID: <50BEC253.4080006@pyther.net>
+Date: Tue, 04 Dec 2012 22:41:07 -0500
+From: Matthew Gyurgyik <matthew@pyther.net>
 MIME-Version: 1.0
+To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com>
+In-Reply-To: <50BE65F0.8020303@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksIEpvbmF0aGFuDQoNCg0KPi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+RnJvbTogSm9u
-YXRoYW4gQ29yYmV0IFttYWlsdG86Y29yYmV0QGx3bi5uZXRdDQo+U2VudDogTW9uZGF5LCAxNyBE
-ZWNlbWJlciwgMjAxMiAyMzoyOQ0KPlRvOiBBbGJlcnQgV2FuZw0KPkNjOiBnLmxpYWtob3ZldHNr
-aUBnbXguZGU7IGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZzsgTGliaW4gWWFuZw0KPlN1Ympl
-Y3Q6IFJlOiBbUEFUQ0ggVjMgMTAvMTVdIFttZWRpYV0gbWFydmVsbC1jY2ljOiBzcGxpdCBtY2Ft
-LWNvcmUgaW50byAyIHBhcnRzIGZvcg0KPnNvY19jYW1lcmEgc3VwcG9ydA0KPg0KPk9uIFN1biwg
-MTYgRGVjIDIwMTIgMTQ6MTI6MTEgLTA4MDANCj5BbGJlcnQgV2FuZyA8dHdhbmcxM0BtYXJ2ZWxs
-LmNvbT4gd3JvdGU6DQo+DQo+PiA+IC0gSXMgdGhlIHNvY19jYW1lcmEgbW9kZSBuZWNlc3Nhcnk/
-ICBJcyB0aGVyZSBzb21ldGhpbmcgeW91J3JlIHRyeWluZw0KPj4gPiAgIHRvIGRvIHRoYXQgY2Fu
-J3QgYmUgZG9uZSB3aXRob3V0IGl0PyAgT3IsIGF0IGxlYXN0LCBkb2VzIGl0IGFkZA0KPj4gPiAg
-IHN1ZmZpY2llbnQgYmVuZWZpdCB0byBiZSB3b3J0aCB0aGlzIHdvcms/ICBJdCB3b3VsZCBiZSBu
-aWNlIGlmIHRoZQ0KPj4gPiAgIHJlYXNvbmluZyBiZWhpbmQgdGhpcyBjaGFuZ2Ugd2VyZSBwdXQg
-aW50byB0aGUgY2hhbmdlbG9nLg0KPj4gPg0KPj4gW0FsYmVydCBXYW5nXSBXZSBqdXN0IHdhbnQg
-dG8gYWRkIG9uZSBtb3JlIG9wdGlvbiBmb3IgdXNlci4gOikNCj4+IEFuZCB3ZSBzcGxpdCBpdCB0
-byAyIHBhcnRzIGJlY2F1c2Ugd2Ugd2FudCB0byBrZWVwIHRoZSBvcmlnaW5hbCBtb2RlLg0KPj4N
-Cj4+ID4gLSBJZiB0aGUgc29jX2NhbWVyYSBjaGFuZ2UgaXMgZGVlbWVkIHRvIGJlIHdvcnRod2hp
-bGUsIGlzIHRoZXJlDQo+PiA+ICAgYW55dGhpbmcgcHJldmVudGluZyB5b3UgZnJvbSBkb2luZyBp
-dCAxMDAlIHNvIGl0J3MgdGhlIG9ubHkgbW9kZQ0KPj4gPiAgIHVzZWQ/DQo+PiA+DQo+PiBbQWxi
-ZXJ0IFdhbmddIE5vLCBidXQgY3VycmVudCBhbGwgTWFydmVsbCBwbGF0Zm9ybSBoYXZlIHVzZWQg
-dGhlIHNvY19jYW1lcmEgaW4gY2FtZXJhDQo+ZHJpdmVyLiA6KQ0KPj4gU28gd2UganVzdCBob3Bl
-IHRoZSBtYXJ2ZWxsLWNjaWMgY2FuIGhhdmUgdGhpcyBvcHRpb24uIDopDQo+DQo+T0ssIHNvIHRo
-aXMsIEkgdGhpbmssIGlzIHRoZSBvbmUgcmVtYWluaW5nIHBvaW50IG9mIGRpc2FncmVlbWVudCBo
-ZXJlOw0KPnVuZm9ydHVuYXRlbHkgaXQncyBhIGJpZ2dpc2ggb25lLg0KPg0KPlVzZXJzLCBJIGJl
-bGlldmUsIGRvbid0IHJlYWxseSBjYXJlIHdoaWNoIHVuZGVybHlpbmcgZnJhbWV3b3JrIHRoZSBk
-cml2ZXINCj5pcyB1c2luZzsgdGhleSBqdXN0IHdhbnQgYSBjYW1lcmEgaW1wbGVtZW50aW5nIHRo
-ZSBWNEwyIHNwZWMuICBTbywgdGhpcw0KPnBhcnRpY3VsYXIgb3B0aW9uIGRvZXMgbm90IGhhdmUg
-YW55IHJlYWwgdmFsdWUgZm9yIHRoZW0uICBCdXQgaXQgaGFzIGENCj5yZWFsIGNvc3QgaW4gdGVy
-bXMgb2YgZHVwbGljYXRlZCBjb2RlLCBhZGRlZCBjb21wbGV4aXR5LCBhbmQgbmFtZXNwYWNlDQo+
-cG9sbHV0aW9uLiAgSWYgeW91IGJlbGlldmUgSSdtIHdyb25nLCBwbGVhc2UgdGVsbCBtZSB3aHks
-IGJ1dCBJIHRoaW5rIHRoYXQNCj50aGlzIG9wdGlvbiBpcyBub3Qgd29ydGggdGhlIGNvc3QuDQo+
-DQo+VGhlIHJlYXNvbiBmb3IgdGhlIHNvY19jYW1lcmEgY29udmVyc2lvbiBpcyBiZWNhdXNlIHRo
-YXQncyBob3cgeW91cg0KPmRyaXZlcnMgZG8gaXQg4oCUIG5vdCBuZWNlc3NhcmlseSB0aGUgc3Ry
-b25nZXN0IG9mIHJlYXNvbnMuICBPZiBjb3Vyc2UsIHRoZQ0KPnJlYXNvbiBmb3Iga2VlcGluZyB0
-aGluZ3MgYXMgdGhleSBhcmUgaXMgYmVjYXVzZSB0aGF0J3MgaG93IHRoZSBpbi10cmVlDQo+ZHJp
-dmVycyBkb2VzIGl0OyBub3QgbmVjZXNzYXJpbHkgYSB3aG9sZSBsb3Qgc3Ryb25nZXIuDQo+DQo+
-SSdtIG5vdCBzb2xkIG9uIHRoZSBzb2NfY2FtZXJhIGNvbnZlcnNpb24sIGJ1dCBuZWl0aGVyIGFt
-IEkgaW1wbGFjYWJseQ0KPm9wcG9zZWQgdG8gaXQuICBCdXQgSSAqcmVhbGx5KiBkaXNsaWtlIHRo
-ZSBpZGVhIG9mIGhhdmluZyBib3RoLCBJIGRvbid0DQo+c2VlIHRoYXQgbGVhZGluZyB0byBnb29k
-IHRoaW5ncyBpbiB0aGUgbG9uZyBydW4uICBTbyBjYW4gSSBhc2sgb25lIG1vcmUNCj50aW1lOiBp
-ZiBzb2NfY2FtZXJhIGlzIGltcG9ydGFudCB0byB5b3UsIGNvdWxkIHlvdSBwbGVhc2UganVzdCBj
-b252ZXJ0IHRoZQ0KPmRyaXZlciBvdmVyIDEwMCUgYW5kIGRyb3AgdGhlIG90aGVyIG1vZGUgZW50
-aXJlbHk/ICBJdCBzZWVtcyB0aGF0IHNob3VsZA0KPmJlIGVhc2llciB0aGFuIHRyeWluZyB0byBz
-dXBwb3J0IGJvdGgsIGFuZCBpdCBzaG91bGQgY2VydGFpbmx5IGJlIGVhc2llcg0KPnRvIG1haW50
-YWluIGluIHRoZSBmdXR1cmUuDQo+DQpbQWxiZXJ0IFdhbmddIFNvIGlmIHdlIGFkZCBCX0RNQV9T
-RyBhbmQgQl9WTUFMTE9DIHN1cHBvcnQgYW5kIE9MUEMgWE8gMS4wIHN1cHBvcnQgaW4gc29jX2Nh
-bWVyYSBtb2RlLg0KVGhlbiB3ZSBjYW4ganVzdCByZW1vdmUgdGhlIG9yaWdpbmFsIG1vZGUgYW5k
-IG9ubHkgc3VwcG9ydCBzb2NfY2FtZXJhIG1vZGUgaW4gbWFydmVsbC1jY2ljPw0KDQo+SSdtIHNv
-cnJ5IHRvIGJlIG9ibm94aW91cyBhYm91dCB0aGlzLg0KPg0KPk1lYW53aGlsZSwgdGhlIGJ1bGsg
-b2YgdGhpcyBsYXN0IHBhdGNoIHNlcmllcyBzZWVtcyBnb29kOyBtb3N0IG9mIHRoZW0NCj5oYXZl
-IG15IGFja3MsIGFuZCBJIHNhdyBhY2tzIGZyb20gR3Vlbm5hZGkgb24gc29tZSBhcyB3ZWxsLiAg
-SSB3b3VsZA0KPnJlY29tbWVuZCB0aGF0IHlvdSBzZXBhcmF0ZSB0aG9zZSBvdXQgaW50byBhIGRp
-ZmZlcmVudCBzZXJpZXMgYW5kIHN1Ym1pdA0KPnRoZW0gZm9yIG1lcmdpbmcsIHByZXN1bWFibHkg
-Zm9yIDMuOS4gIFRoYXQgd2lsbCBnaXZlIHlvdSBhIGJpdCBsZXNzIGNvZGUNCj50byBjYXJyeSBn
-b2luZyBmb3J3YXJkIGFzIHRoaXMgbGFzdCBwYXJ0IGdldHMgd29ya2VkIG91dC4NCj4NCj5UaGFu
-a3MgYWdhaW4gZm9yIGRvaW5nIHRoaXMgd29yayBhbmQgcGVyc2V2ZXJpbmcgd2l0aCBpdCENCj4N
-Cj5qb24NCg0KDQpUaGFua3MNCkFsYmVydCBXYW5nDQo4Ni0yMS02MTA5MjY1Ng0K
+On 12/04/2012 04:06 PM, Frank Schäfer wrote:
+> I double-checked the log and it is indeed set to LGDT3305_MPEG_SERIAL,
+> but LGDT3305_TPCLK_FALLING_EDGE is used instead of
+> LGDT3305_TPCLK_RISING_EDGE.
+> OTOH, the KWorld A340 bord sets this to LGDT3305_MPEG_PARALLEL...
+>
+> Matthew, could you please test V3 of the patch ? It is written against
+> the media_tree staging/for_v3.8 (see http://git.linuxtv.org/media_tree.git).
+> You could also already test the remote control key map (e.g. with evtest)
+>
+> Regards,
+> Frank
+Version 3 has the same behavior has v2. It seems I can tune a channel, 
+but trying to watch it fails. There is no data being set to 
+/dev/dvb/adapter0/dvr0
+
+Tune channel
+> [root@tux ~]# azap -r -c /home/pyther/channels.conf "ION LIF"
+
+> [root@tux ~]# dvbdate
+> dvbdate: Unable to get time from multiplex.
+
+I got further on a channel scan but then encountered some errors (no 
+channels detected):
+
+http://pyther.net/a/digivox_atsc/patch3/scan.txt
+http://pyther.net/a/digivox_atsc/patch3/dmesg_after_scan.txt
+
+dmesg: http://pyther.net/a/digivox_atsc/patch3/dmesg.txt
+azap: http://pyther.net/a/digivox_atsc/patch3/azap.txt
+dvbtraffic: http://pyther.net/a/digivox_atsc/patch3/dvbtraffic.txt
+
+Matthew
