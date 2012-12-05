@@ -1,57 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mms3.broadcom.com ([216.31.210.19]:2304 "EHLO mms3.broadcom.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751645Ab2K3VVo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Nov 2012 16:21:44 -0500
-Message-ID: <50B9235D.7050309@broadcom.com>
-Date: Fri, 30 Nov 2012 22:21:33 +0100
-From: "Arend van Spriel" <arend@broadcom.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:49125 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752119Ab2LENkY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2012 08:40:24 -0500
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [PATCH v3 3/4] sta2x11_vip: convert to videobuf2 and control framework
+Date: Wed, 05 Dec 2012 14:45:01 +0100
+Message-ID: <7613127.WGiHT7h3dc@harkonnen>
+In-Reply-To: <50BF4E25.3010207@redhat.com>
+References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com> <1773237.zC2M0dmkYp@harkonnen> <50BF4E25.3010207@redhat.com>
 MIME-Version: 1.0
-To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-cc: linux-kernel@vger.kernel.org, tglx@linutronix.de,
-	backports@vger.kernel.org, alexander.stein@systec-electronic.com,
-	brudley@broadcom.com, rvossen@broadcom.com, frankyl@broadcom.com,
-	kanyan@broadcom.com, linux-wireless@vger.kernel.org,
-	brcm80211-dev-list@broadcom.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, daniel.vetter@ffwll.ch,
-	intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-	srinidhi.kasagar@stericsson.com, linus.walleij@linaro.org,
-	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 0/6] drivers: convert struct spinlock to spinlock_t
-References: <1354221910-22493-1-git-send-email-mcgrof@do-not-panic.com>
- <50B87082.3020604@broadcom.com>
- <CAB=NE6UO8jPYOktteaLeihVqLp251-Q=jv5z_OThXoR+JtRKeg@mail.gmail.com>
- <CAB=NE6UVA1As_07HOvCbi4oK+CgbNNeeNMfz8agB-00ZRP973w@mail.gmail.com>
-In-Reply-To: <CAB=NE6UVA1As_07HOvCbi4oK+CgbNNeeNMfz8agB-00ZRP973w@mail.gmail.com>
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/30/2012 09:25 PM, Luis R. Rodriguez wrote:
-> On Fri, Nov 30, 2012 at 11:18 AM, Luis R. Rodriguez
-> <mcgrof@do-not-panic.com> wrote:
->> On Fri, Nov 30, 2012 at 12:38 AM, Arend van Spriel <arend@broadcom.com> wrote:
->>> So what is the rationale here. During mainlining our drivers we had to
->>> remove all uses of 'typedef struct foo foo_t;'. The Linux CodingStyle
->>> (chapter 5 Typedefs) is spending a number of lines explaining why.
->>>
->>> So is spinlock_t an exception to this rule simply because the kernel
->>> uses spinlock_t all over the place.
->>
->> Yes.
+> Not sure if you got my point: the main point of removing MODULE_AUTHOR
+> and other copyright stuff is that such patch may easily be doing something
+> that could be considered a copyright violation, being bad not only to
+> the affected driver, but to the entire Kernel.
 > 
-> Let me provide a better explanation. In practice drivers should not be
-> creating their own typedefs given that generally the reasons to create
-> them do not exist for drivers. The kernel may provide their own though
-> for reasons explained in CodingStyle and in such cases the drivers
-> should use these supplied typedefs.
+> So, we need to handle it with due care. Getting other authors's
+> acks on such patch seems to be the only safe way of doing that.
 
-Ok. Fine by me. It just looked like a case of saying a and doing b.
-Thanks for taking time giving the better explanation :-)
+Yes I got the point.
 
-Gr. AvS
+Thank you
 
-
+-- 
+Federico Vaga
