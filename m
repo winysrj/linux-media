@@ -1,119 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:52819 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754924Ab2LROmL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Dec 2012 09:42:11 -0500
-Message-id: <50D080B6.1020109@samsung.com>
-Date: Tue, 18 Dec 2012 15:41:58 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:36188 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751599Ab2LELf3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Dec 2012 06:35:29 -0500
+Message-ID: <50BF315C.8090203@redhat.com>
+Date: Wed, 05 Dec 2012 09:34:52 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
 To: Federico Vaga <federico.vaga@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	'Mauro Carvalho Chehab' <mchehab@infradead.org>,
-	'Pawel Osciak' <pawel@osciak.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>,
-	'Giancarlo Asnaghi' <giancarlo.asnaghi@st.com>,
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
 	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v3 2/4] videobuf2-dma-streaming: new videobuf2 memory
- allocator
-References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com>
- <1685240.Ttn3DTWMJc@harkonnen> <50BF5950.2040805@redhat.com>
- <1535483.0HokefWAdm@harkonnen>
-In-reply-to: <1535483.0HokefWAdm@harkonnen>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+	Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [PATCH v3 3/4] sta2x11_vip: convert to videobuf2 and control
+ framework
+References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com> <1348484332-8106-3-git-send-email-federico.vaga@gmail.com> <50BE2193.4020103@redhat.com> <8113379.Pqy1l62Utl@number-5>
+In-Reply-To: <8113379.Pqy1l62Utl@number-5>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Federico,
 
-I'm sorry for the delay, I've been terribly busy recently.
-
-On 12/11/2012 2:54 PM, Federico Vaga wrote:
-
->> > This allocator is needed because some device (like STA2X11 VIP) cannot
->> > work
->> > with DMA sg or DMA coherent. Some other device (like the one used by
->> > Jonathan when he proposes vb2-dma-nc allocator) can obtain much better
->> > performance with DMA streaming than coherent.
+Em 04-12-2012 23:12, Federico Vaga escreveu:
+> On Tuesday 04 December 2012 14:15:15 Mauro Carvalho Chehab wrote:
+>> Em 24-09-2012 07:58, Federico Vaga escreveu:
+>>> This patch re-write the driver and use the videobuf2
+>>> interface instead of the old videobuf. Moreover, it uses also
+>>> the control framework which allows the driver to inherit
+>>> controls from its subdevice (ADV7180)
+>>>
+>>> Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
+>>> Acked-by: Giancarlo Asnaghi <giancarlo.asnaghi@st.com>
+>>>
+>>> [..........]
+>>>
+>>>    /*
+>>>
+>>>     * This is the driver for the STA2x11 Video Input Port.
+>>>     *
+>>>
+>>> + * Copyright (C) 2012       ST Microelectronics
+>>>
+>>>     * Copyright (C) 2010       WindRiver Systems, Inc.
+>>>     *
+>>>     * This program is free software; you can redistribute it and/or modify
+>>>     it
+>>>
+>>> @@ -19,36 +20,30 @@
+>>>
+>>>     * The full GNU General Public License is included in this distribution
+>>>     in
+>>>     * the file called "COPYING".
+>>>     *
+>>>
+>>> - * Author: Andreas Kies <andreas.kies@windriver.com>
+>>> - *		Vlad Lungu <vlad.lungu@windriver.com>
 >>
->> Ok, please add such explanations at the patch's descriptions, as it is
->> important not only for me, but to others that may need to use it..
->
-> OK
->
->> >> 	2) why vb2-dma-config can't be patched to use dma_map_single
->> >>
->> >> (eventually using a different vb2_io_modes bit?);
->> >
->> > I did not modify vb2-dma-contig because I was thinking that each DMA
->> > memory allocator should reflect a DMA API.
+>> Why are you dropping those authorship data?
 >>
->> The basic reason for having more than one VB low-level handling (vb2 was
->> inspired on this concept) is that some DMA APIs are very different than
->> the other ones (see vmalloc x DMA S/G for example).
+>> Ok, it is clear to me that most of the code there got rewritten, and,
+>> while IANAL, I think they still have some copyrights on it.
 >>
->> I didn't make a diff between videobuf2-dma-streaming and
->> videobuf2-dma-contig, so I can't tell if it makes sense to merge them or
->> not, but the above argument seems too weak. I was expecting for a technical
->> reason why it wouldn't make sense for merging them.
+>> So, if you're willing to do that, you need to get authors ack
+>> on such patch.
 >
-> I cannot work on this now. But I think that I can do an integration like the
-> one that I pushed some month ago (a8f3c203e19b702fa5e8e83a9b6fb3c5a6d1cce4).
-> Wind River made that changes to videobuf-contig and I tested, fixed and
-> pushed.
+> I re-write the driver, and also the first version of the driver has many
+> modification made by me, many bug fix, style review, remove useless code.
+> The first time I didn't add myself as author because the logic of the driver
+> did not change. This time, plus the old change I think there is nothing of the
+> original driver because I rewrite it from the hardware manual. Practically, It
+> is a new driver for the same device.
+
+Yeah, there are many changes there that justifies adding you at its
+authorship, and that's ok. Also, anyone saying the size of your patch
+will recognize your and ST efforts to improve the driver.
+
+However, as some parts of the code were preserved, dropping the old
+authors doesn't sound right (and can even be illegal, in the light
+of the GPL license). It would be ok, though, if you would be
+changing it to something like:
+
+	Copyright (c) 2010 by ...
+or
+	Original driver from ...
+
+or some other similar wording that would preserve their names
+there. We do that even when something is rewritten, like, for
+example, drivers/media/v4l2-core/videobuf-core.c:
+
+  * (c) 2007 Mauro Carvalho Chehab, <mchehab@infradead.org>
+  *
+  * Highly based on video-buf written originally by:
+  * (c) 2001,02 Gerd Knorr <kraxel@bytesex.org>
+  * (c) 2006 Mauro Carvalho Chehab, <mchehab@infradead.org>
+  * (c) 2006 Ted Walther and John Sokol
+
 >
->> >> 	3) what are the usecases for it.
->> >>
->> >> Could you please detail it? Without that, one that would be needing to
->> >> write a driver will have serious doubts about what would be the right
->> >> driver for its usage. Also, please document it at the driver itself.
+> Anyway I will try to contact the original authors for the acked-by.
 >
-> I don't have a full understand of the board so I don't know exactly why
-> dma_alloc_coherent does not work. I focused my development on previous work by
-> Wind River. I asked to Wind River (which did all the work on this board) for
-> the technical explanation about why coherent doesn't work, but they do not
-> know. That's why I made the new allocator: coherent doesn't work and HW
-> doesn't support SG.
-
-Ok, now I see the whole image. I was convinced that this so called 
-streaming allocator is required for performance reasons, not because of 
-the broken platform support for coherent calls.
-
-My ultimate goal is to have support for both non-cached (coherent) and 
-cached (non-coherent) buffers in the dma mapping subsystem on top of the 
-common API. Then both types of buffers will be easily supported by 
-dma-contig vb2 allocator. Currently support for streaming-style buffers 
-requires completely different dma mapping calls, although from the 
-device driver point of view the buffers behaves similarly, so 
-implementing them as a separate allocator seems to be the best idea.
-
-I can take a look at the dma coherent issues with that board, but I will 
-need some help as I don't have this hardware.
-
->> I'm not a DMA performance expert. As such, from that comment, it sounded to
->> me that replacing dma-config/dma-sg by dma streaming will always give
->> "performance optimizations the hardware allow".
+>>>    MODULE_DESCRIPTION("STA2X11 Video Input Port driver");
+>>>
+>>> -MODULE_AUTHOR("Wind River");
+>>
+>> Same note applies here: we need Wind River's ack on that to drop it.
 >
-> me too, I'm not a DMA performance expert. I'm just an user of the DMA API. On
-> my hardware simply it works only with that interface, it is not a performance
-> problem.
+> I will try also for this. But I think that this is not a windriver driver
+> because I re-wrote it from the hardware manual. I used the old driver because
+> I thought that it was better than propose a patch that remove the old driver
+> and add my driver.
+> I did not remove the 2010 Copyright from windriver, because they did the job,
+> but this work was paid by ST (copyright 2012) and made completely by me.
+
+The same reason why you didn't drop windriver's copyright also applies here:
+while most of the code changed, there are still a few things left from the
+original driver.
+
+> Is my thinking wrong?
 >
->> On a separate but related issue, while doing DMABUF tests with an Exynos4
->> hardware, using a s5p sensor, sending data to s5p-tv, I noticed a CPU
->> consumption of about 42%, which seems too high. Could it be related to
->> not using the DMA streaming API?
+> Just a question for the future so I avoid to redo the same error. If I re-
+> wrote most of a driver I cannot change the authorship automatically without
+> the acked-by of the previous author. If I ask to the previous author and he
+> does not give me the acked-by (or he is unreachable, he change email address),
+> then the driver is written by me but the author is someone else? Right? So, it
+> is better if I propose a patch which remove a driver and a patch which add my
+> driver?
 
-This might be related to the excessive cpu cache flushing on dma buf 
-buffers as there were some misunderstanding who is responsible of that 
-(I saw some strange code in drm, but it has been changed a few times). I 
-will add this issue to my todo list.
+The only way of not preserving the original authors here were if you
+start from scratch, without looking at the original code (and you can
+somehow, be able to proof it), otherwise, the code will be fit as a
+"derivative work", in the light of GPL, and should be preserving the
+original authorship.
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+Something started from scratch like that will hardly be accepted upstream,
+as regressions will likely be introduced, and previously supported
+hardware/features may be lost in the process.
 
+Of course the original author can abdicate to his rights of keeping his
+name on it. Yet, even if he opt/accept to not keep his name explicitly
+there, his copyrights are preserved, with the help of the git history.
+
+That's said, no single kernel developer/company has full copyrights on
+any part of the Kernel, as their code are based on someone else's work.
+For example, all Kernel drivers depend on drivers/base, with in turn,
+depends on memory management, generic helper functions, arch code, etc.
+
+So, IMHO, there's not much point on dropping authorship messages.
+
+Regards,
+Mauro
