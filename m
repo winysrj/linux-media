@@ -1,93 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2679 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750983Ab2LPUrt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 15:47:49 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr19.xs4all.nl (8.13.8/8.13.8) with ESMTP id qBGKljNR044242
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sun, 16 Dec 2012 21:47:47 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 12E1417000E7
-	for <linux-media@vger.kernel.org>; Sun, 16 Dec 2012 21:47:44 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20121216204745.12E1417000E7@alastor.dyndns.org>
-Date: Sun, 16 Dec 2012 21:47:44 +0100 (CET)
+Received: from mail.kapsi.fi ([217.30.184.167]:49285 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752422Ab2LEWCP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Dec 2012 17:02:15 -0500
+Message-ID: <50BFC445.6020305@iki.fi>
+Date: Thu, 06 Dec 2012 00:01:41 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Matthew Gyurgyik <matthew@pyther.net>
+CC: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net>
+In-Reply-To: <50BFBE39.90901@pyther.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 12/05/2012 11:35 PM, Matthew Gyurgyik wrote:
+> On 12/05/2012 07:35 AM, Antti Palosaari wrote:
+>>
+>> There is something really wrong.
+>>
+>> I am not at US expert but why the hell
+>> us-Cable-Standard-center-frequencies-QAM256 scans up to 999MHz whilst
+>> demodulator max is set 858? Either one is wrong.
+>>
+>> Also, demod seems to be HAS_LOCK about all the time. As that basic
+>> LOCK flag is simply false you cannot even thing if there is correct
+>> configuration on TS interface. If you start zapping that known channel
+>> and then unplug & plug antenna cable did you see still all the time
+>> HAS_LOCK? (it should disappear when antenna cable is unplugged).
+>>
+>> regards
+>> Antti
+>>
+> When I disconnected the coax cable, the lock went away. When I
+> reconnected FE_HAS_LOCK came back.
+>
+> http://pyther.net/a/digivox_atsc/patch3/azap_disconnect_coax.txt
 
-Results of the daily build of media_tree:
+OK, fine, I was then wrong. I have to say you have a lot of channels 
+over there what I can see from scan result [1]. Those channels which 
+says "tuning failed" are channels where is no transmission and those 
+"filter timeout pid" means there is ta ransmission and demod locks. Here 
+in Finland we have only ~4 MUX DVB-T and maybe other 4 for DVB-T2.
 
-date:        Sun Dec 16 19:00:27 CET 2012
-git hash:    49cc629df16f2a15917800a8579bd9c25c41b634
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+It is then actually working quite well from the developer point of view 
+(as demod loses lock when antenna is unplugged). It means tuner and 
+demodular are working but interface (transport stream interface, TS IF) 
+between demod and USB-bridge is still broken.
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: OK
-linux-git-arm-eabi-omap: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: WARNINGS
-linux-3.5-i686: WARNINGS
-linux-3.6-i686: WARNINGS
-linux-3.7-i686: ERRORS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: WARNINGS
-linux-3.5-x86_64: WARNINGS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-x86_64: ERRORS
-apps: WARNINGS
-spec-git: WARNINGS
-sparse: ERRORS
+I tried to look again your sniff if I can see what it does just before 
+streaming starts, but unfortunately there is no any mention about those 
+streaming packets (isoc packets where picture stream is going). Did you 
+remove those yourself?
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+[1] http://pyther.net/a/digivox_atsc/patch3/scan.txt
 
-Full logs are available here:
+regards
+Antti
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+http://palosaari.fi/
