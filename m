@@ -1,120 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f181.google.com ([209.85.220.181]:32809 "EHLO
-	mail-vc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752521Ab2LSP0l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Dec 2012 10:26:41 -0500
+Received: from mail-da0-f46.google.com ([209.85.210.46]:64749 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752455Ab2LEHzv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2012 02:55:51 -0500
 MIME-Version: 1.0
-In-Reply-To: <87pq26ay2z.fsf@intel.com>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<1608840.IleINgrx5J@avalon>
-	<87pq28hb72.fsf@intel.com>
-	<1671267.x0lxGrFjjV@avalon>
-	<87pq26ay2z.fsf@intel.com>
-Date: Wed, 19 Dec 2012 09:26:40 -0600
-Message-ID: <CAF6AEGuSt0CL2sFGK-PZnw6+r9zhGHO4CEjJEWaR8eGhks2=UQ@mail.gmail.com>
-Subject: Re: [RFC v2 0/5] Common Display Framework
-From: Rob Clark <rob.clark@linaro.org>
-To: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+In-Reply-To: <1353920848-1705-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1353920848-1705-1-git-send-email-s.trumtrar@pengutronix.de>
+From: Leela Krishna Amudala <l.krishna@samsung.com>
+Date: Wed, 5 Dec 2012 13:25:30 +0530
+Message-ID: <CAL1wa8fJ-mCsQFFo5wMLDRcUoOyWvTvFDLKsrrG9k-mxQTsTbg@mail.gmail.com>
+Subject: Re: [PATCHv15 0/7] of: add display helper
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
 	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Tom Gall <tom.gall@linaro.org>,
-	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 19, 2012 at 8:57 AM, Jani Nikula
-<jani.nikula@linux.intel.com> wrote:
->
-> Hi Laurent -
->
-> On Tue, 18 Dec 2012, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
->> Hi Jani,
->>
->> On Monday 17 December 2012 18:53:37 Jani Nikula wrote:
->>> I can see the need for a framework for DSI panels and such (in fact Tomi
->>> and I have talked about it like 2-3 years ago already!) but what is the
->>> story for HDMI and DP? In particular, what's the relationship between
->>> DRM and CDF here? Is there a world domination plan to switch the DRM
->>> drivers to use this framework too? ;) Do you have some rough plans how
->>> DRM and CDF should work together in general?
->>
->> There's always a world domination plan, isn't there ? :-)
->>
->> I certainly want CDF to be used by DRM (or more accurately KMS). That's what
->> the C stands for, common refers to sharing panel and other display entity
->> drivers between FBDEV, KMS and V4L2.
->>
->> I currently have no plan to expose CDF internals to userspace through the KMS
->> API. We might have to do so later if the hardware complexity grows in such a
->> way that finer control than what KMS provides needs to be exposed to
->> userspace, but I don't think we're there yet. The CDF API will thus only be
->> used internally in the kernel by display controller drivers. The KMS core
->> might get functions to handle common display entity operations, but the bulk
->> of the work will be in the display controller drivers to start with. We will
->> then see what can be abstracted in KMS helper functions.
->>
->> Regarding HDMI and DP, I imagine HDMI and DP drivers that would use the CDF
->> API. That's just a thought for now, I haven't tried to implement them, but it
->> would be nice to handle HDMI screens and DPI/DBI/DSI panels in a generic way.
->>
->> Do you have thoughts to share on this topic ?
->
-> It just seems to me that, at least from a DRM/KMS perspective, adding
-> another layer (=CDF) for HDMI or DP (or legacy outputs) would be
-> overengineering it. They are pretty well standardized, and I don't see
-> there would be a need to write multiple display drivers for them. Each
-> display controller has one, and can easily handle any chip specific
-> requirements right there. It's my gut feeling that an additional
-> framework would just get in the way. Perhaps there could be more common
-> HDMI/DP helper style code in DRM to reduce overlap across KMS drivers,
-> but that's another thing.
->
-> So is the HDMI/DP drivers using CDF a more interesting idea from a
-> non-DRM perspective? Or, put another way, is it more of an alternative
-> to using DRM? Please enlighten me if there's some real benefit here that
-> I fail to see!
+Hello Steffen,
 
-fwiw, I think there are at least a couple cases where multiple SoC's
-have the same HDMI IP block.
+Any update on version 16 ?
 
-And, there are also external HDMI encoders (for example connected over
-i2c) that can also be shared between boards.  So I think there will be
-a number of cases where CDF is appropriate for HDMI drivers.  Although
-trying to keep this all independent of DRM (as opposed to just
-something similar to what drivers/gpu/i2c is today) seems a bit
-overkill for me.  Being able to use the helpers in drm and avoiding an
-extra layer of translation seems like the better option to me.  So my
-vote would be drivers/gpu/cdf.
+Best Wishes,
+Leela Krishna Amudala.
 
-BR,
--R
-
-> For DSI panels (or DSI-to-whatever bridges) it's of course another
-> story. You typically need a panel specific driver. And here I see the
-> main point of the whole CDF: decoupling display controllers and the
-> panel drivers, and sharing panel (and converter chip) specific drivers
-> across display controllers. Making it easy to write new drivers, as
-> there would be a model to follow. I'm definitely in favour of coming up
-> with some framework that would tackle that.
+On Mon, Nov 26, 2012 at 2:37 PM, Steffen Trumtrar
+<s.trumtrar@pengutronix.de> wrote:
+> Hi!
+>
+> Changes since v14:
+>         - fix "const struct *" warning
+>                 (reported by: Leela Krishna Amudala <l.krishna@samsung.com>)
+>         - return -EINVAL when htotal or vtotal are zero
+>         - remove unreachable code in of_get_display_timings
+>         - include headers in .c files and not implicit in .h
+>         - sort includes alphabetically
+>         - fix lower/uppercase in binding documentation
+>         - rebase onto v3.7-rc7
+>
+> Changes since v13:
+>         - fix "const struct *" warning
+>                 (reported by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>)
+>         - prevent division by zero in fb_videomode_from_videomode
+>
+> Changes since v12:
+>         - rename struct display_timing to via_display_timing in via subsystem
+>         - fix refreshrate calculation
+>         - fix "const struct *" warnings
+>                 (reported by: Manjunathappa, Prakash <prakash.pm@ti.com>)
+>         - some CodingStyle fixes
+>         - rewrite parts of commit messages and display-timings.txt
+>         - let display_timing_get_value get all values instead of just typical
+>
+> Changes since v11:
+>         - make pointers const where applicable
+>         - add reviewed-by Laurent Pinchart
+>
+> Changes since v10:
+>         - fix function name (drm_)display_mode_from_videomode
+>         - add acked-by, reviewed-by, tested-by
+>
+> Changes since v9:
+>         - don't leak memory when previous timings were correct
+>         - CodingStyle fixes
+>         - move blank lines around
+>
+> Changes since v8:
+>         - fix memory leaks
+>         - change API to be more consistent (foo_from_bar(struct bar, struct foo))
+>         - include headers were necessary
+>         - misc minor bufixe
+>
+> Changes since v7:
+>         - move of_xxx to drivers/video
+>         - remove non-binding documentation from display-timings.txt
+>         - squash display_timings and videomode in one patch
+>         - misc minor fixes
+>
+> Changes since v6:
+>         - get rid of some empty lines etc.
+>         - move functions to their subsystems
+>         - split of_ from non-of_ functions
+>         - add at least some kerneldoc to some functions
+>
+> Changes since v5:
+>         - removed all display stuff and just describe timings
+>
+> Changes since v4:
+>         - refactored functions
+>
+> Changes since v3:
+>         - print error messages
+>         - free alloced memory
+>         - general cleanup
+>
+> Changes since v2:
+>         - use hardware-near property-names
+>         - provide a videomode structure
+>         - allow ranges for all properties (<min,typ,max>)
+>         - functions to get display_mode or fb_videomode
 >
 >
-> BR,
-> Jani.
+> Steffen Trumtrar (7):
+>   viafb: rename display_timing to via_display_timing
+>   video: add display_timing and videomode
+>   video: add of helper for display timings/videomode
+>   fbmon: add videomode helpers
+>   fbmon: add of_videomode helpers
+>   drm_modes: add videomode helpers
+>   drm_modes: add of_videomode helpers
+>
+>  .../devicetree/bindings/video/display-timing.txt   |  107 ++++++++++
+>  drivers/gpu/drm/drm_modes.c                        |   70 +++++++
+>  drivers/video/Kconfig                              |   21 ++
+>  drivers/video/Makefile                             |    4 +
+>  drivers/video/display_timing.c                     |   24 +++
+>  drivers/video/fbmon.c                              |   93 +++++++++
+>  drivers/video/of_display_timing.c                  |  219 ++++++++++++++++++++
+>  drivers/video/of_videomode.c                       |   54 +++++
+>  drivers/video/via/hw.c                             |    6 +-
+>  drivers/video/via/hw.h                             |    2 +-
+>  drivers/video/via/lcd.c                            |    2 +-
+>  drivers/video/via/share.h                          |    2 +-
+>  drivers/video/via/via_modesetting.c                |    8 +-
+>  drivers/video/via/via_modesetting.h                |    6 +-
+>  drivers/video/videomode.c                          |   44 ++++
+>  include/drm/drmP.h                                 |   13 ++
+>  include/linux/display_timing.h                     |  104 ++++++++++
+>  include/linux/fb.h                                 |   12 ++
+>  include/linux/of_display_timing.h                  |   20 ++
+>  include/linux/of_videomode.h                       |   18 ++
+>  include/linux/videomode.h                          |   54 +++++
+>  21 files changed, 870 insertions(+), 13 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/video/display-timing.txt
+>  create mode 100644 drivers/video/display_timing.c
+>  create mode 100644 drivers/video/of_display_timing.c
+>  create mode 100644 drivers/video/of_videomode.c
+>  create mode 100644 drivers/video/videomode.c
+>  create mode 100644 include/linux/display_timing.h
+>  create mode 100644 include/linux/of_display_timing.h
+>  create mode 100644 include/linux/of_videomode.h
+>  create mode 100644 include/linux/videomode.h
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> 1.7.10.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
