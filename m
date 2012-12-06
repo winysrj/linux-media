@@ -1,329 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:63019 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750958Ab2LaQDp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Dec 2012 11:03:45 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
-	rob.herring@calxeda.com, thomas.abraham@linaro.org,
-	t.figa@samsung.com, sw0312.kim@samsung.com,
-	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC v2 04/15] s5p-fimc: Support for FIMC devices instantiated
- from the device tree
-Date: Mon, 31 Dec 2012 17:03:02 +0100
-Message-id: <1356969793-27268-5-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
-References: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:56654 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751552Ab2LFEyj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2012 23:54:39 -0500
+MIME-Version: 1.0
+In-Reply-To: <201212051308.34309.hverkuil@xs4all.nl>
+References: <1354708169-1139-1-git-send-email-prabhakar.csengg@gmail.com> <201212051308.34309.hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 6 Dec 2012 10:24:18 +0530
+Message-ID: <CA+V-a8t+KxCYunkrT715zQks=5HOrFk2PSM2Ss_kTj4iXg=PJg@mail.gmail.com>
+Subject: Re: [PATCH RFC v2] media: v4l2-ctrl: Add gain controls
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	LDOC <linux-doc@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Chris MacGregor <chris@cybermato.com>,
+	Rob Landley <rob@landley.net>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for FIMC devices instantiated from devicetree
-for S5PV210 and Exynos4 SoCs. The FIMC IP features include colorspace
-conversion and scaling (mem-to-mem) and parallel/MIPI CSI2 bus video
-capture interface.
+Hi Hans,
 
-Multiple SoC revision specific parameters are defined statically
-in the driver and are used for both dt and non-dt. Specific driver
-static data is selected based on the compatible property, and
-previously platform device name was used to match driver data with
-a specific SoC/IP version.
+On Wed, Dec 5, 2012 at 5:38 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> (resend without HTML formatting)
+>
+> On Wed 5 December 2012 12:49:29 Prabhakar Lad wrote:
+>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>
+>> add support for per color component digital/analog gain controls
+>> and also their corresponding offset.
+>
+> Some obvious questions below...
+>
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Hans de Goede <hdegoede@redhat.com>
+>> Cc: Chris MacGregor <chris@cybermato.com>
+>> Cc: Rob Landley <rob@landley.net>
+>> Cc: Jeongtae Park <jtp.park@samsung.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+>> ---
+>>  Changes for v2:
+>>  1: Fixed review comments pointed by Laurent.
+>>  2: Rebased on latest tree.
+>>
+>>  Documentation/DocBook/media/v4l/controls.xml |   54 ++++++++++++++++++++++++++
+>>  drivers/media/v4l2-core/v4l2-ctrls.c         |   11 +++++
+>>  include/uapi/linux/v4l2-controls.h           |   11 +++++
+>>  3 files changed, 76 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+>> index 7fe5be1..847a9bb 100644
+>> --- a/Documentation/DocBook/media/v4l/controls.xml
+>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+>> @@ -4543,6 +4543,60 @@ interface and may change in the future.</para>
+>>           specific test patterns can be used to test if a device is working
+>>           properly.</entry>
+>>         </row>
+>> +       <row>
+>> +         <entry spanname="id"><constant>V4L2_CID_GAIN_RED</constant></entry>
+>> +         <entry>integer</entry>
+>> +       </row>
+>> +       <row>
+>> +         <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN_RED</constant></entry>
+>> +         <entry>integer</entry>
+>> +       </row>
+>> +       <row>
+>> +         <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN_BLUE</constant></entry>
+>> +         <entry>integer</entry>
+>> +       </row>
+>> +       <row>
+>> +         <entry spanname="id"><constant>V4L2_CID_GAIN_BLUE</constant></entry>
+>> +         <entry>integer</entry>
+>> +       </row>
+>> +       <row>
+>> +         <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN</constant></entry>
+>> +         <entry>integer</entry>
+>> +       </row>
+>> +       <row>
+>> +         <entry spanname="descr"> Some capture/sensor devices have
+>> +         the capability to set per color component digital/analog gain values.</entry>
+>> +       </row>
+>> +       <row>
+>> +         <entry spanname="id"><constant>V4L2_CID_GAIN_OFFSET</constant></entry>
+>> +         <entry>integer</entry>
+>> +       </row>
+>> +       <row>
+>> +         <entry spanname="id"><constant>V4L2_CID_BLUE_OFFSET</constant></entry>
+>> +         <entry>integer</entry>
+>> +       </row>
+>> +       <row>
+>> +         <entry spanname="id"><constant>V4L2_CID_RED_OFFSET</constant></entry>
+>> +         <entry>integer</entry>
+>> +       </row>
+>> +       <row>
+>> +         <entry spanname="id"><constant>V4L2_CID_GREEN_OFFSET</constant></entry>
+>> +         <entry>integer</entry>
+>> +       </row>
+>> +       <row>
+>> +         <entry spanname="id"><constant>V4L2_CID_GREEN_RED_OFFSET</constant></entry>
+>> +         <entry>integer</entry>
+>> +       </row>
+>> +       <row>
+>> +         <entry spanname="id"><constant>V4L2_CID_GREEN_BLUE_OFFSET</constant></entry>
+>> +         <entry>integer</entry>
+>> +       </row>
+>> +       <row>
+>> +         <entry spanname="descr"> Some capture/sensor devices have the
+>> +         capability to set per color component digital/analog gain offset values.
+>> +         V4L2_CID_GAIN_OFFSET is the global gain offset and the rest are per
+>> +         color component gain offsets.</entry>
+>
+> If I set both V4L2_CID_GAIN_RED and V4L2_CID_RED_OFFSET, how are they supposed
+> to interact? Or are they mutually exclusive?
+>
+> And if I set both V4L2_CID_GAIN_OFFSET and V4L2_CID_RED_OFFSET, how are they supposed
+> to interact?
+>
+> This questions should be answered in the documentation...
+>
+I haven’t worked on the hardware which supports both, What is the general
+behaviour when the hardware supports both per color component and global
+and both of them are set ? That could be helpful for me to document.
 
-Aliases are used to determine an index of the IP which is essential
-for linking FIMC IP with other ones, like MIPI-CSIS (MIPI CSI2 bus
-frontend) or FIMC-LITE and FIMC-IS ISP.
+Regards,
+--Prabhakar Lad
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- .../devicetree/bindings/media/soc/samsung-fimc.txt |   92 ++++++++++++++++++++
- drivers/media/platform/s5p-fimc/fimc-capture.c     |    2 +-
- drivers/media/platform/s5p-fimc/fimc-core.c        |   84 ++++++++++++------
- 3 files changed, 148 insertions(+), 30 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
-
-diff --git a/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt b/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
-new file mode 100644
-index 0000000..fab7e61
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
-@@ -0,0 +1,92 @@
-+Samsung S5P/EXYNOS SoC Camera Subsystem (FIMC)
-+----------------------------------------------
-+
-+The Exynos Camera subsystem comprises of multiple sub-devices that are
-+represented by separate platform devices. Some of the IPs come in different
-+variants accross the SoC revisions (FIMC) and some remain mostly unchanged
-+(MIPI CSIS, FIMC-LITE).
-+
-+All those sub-subdevices are defined as parent nodes of the common device
-+node, which also includes common properties of the whole subsystem not really
-+specific to any single sub-device, like common camera port pins or external
-+clocks for image sensors attached to the SoC.
-+
-+Common 'camera' node
-+--------------------
-+
-+Required properties:
-+
-+- compatible	   : must be "samsung,fimc", "simple-bus"
-+
-+- pinctrl-names    : pinctrl names for camera port pinmux control, the values
-+		     must be "default, "inactive".  "default" corresponds to
-+		     pinmux configured for camera parallel bus; "inactive" is
-+		     different from "default" only in that the CAMCLK pin is
-+		     in high impedance state.
-+- pinctrl-0..1	   : pinctrl properties corresponding to pinctrl-names
-+
-+The 'camera' node must include at least one 'fimc' child node.
-+
-+
-+'fimc' device nodes
-+-------------------
-+
-+Required properties:
-+
-+- compatible : "samsung,s5pv210-fimc" for S5PV210,
-+	       "samsung,exynos4210-fimc" for Exynos4210,
-+	       "samsung,exynos4212-fimc" for Exynos4212/4412 SoCs;
-+- reg	     : physical base address and size of the device memory mapped
-+	       registers;
-+- interrupts : FIMC interrupt to the CPU should be described here;
-+
-+For every fimc node a numbered alias should be present in the aliases node.
-+Aliases are of the form fimc<n>, where <n> is an integer (0...N) specifying
-+the IP's instance index.
-+
-+'parallel-ports' node
-+-----------------------
-+
-+This node should contain child 'port' nodes specifying active parallel video
-+input ports. It includes camera A and camera B inputs. 'reg' property in the
-+port nodes specifies the input - 0, 1 indicates input A, B respectively.
-+
-+Optional properties
-+
-+- samsung,camclk-out	 : specifies clock output for remote sensor,
-+			   0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
-+
-+
-+Example:
-+
-+	aliases {
-+		csis0 = &csis_0;
-+		fimc0 = &fimc_0;
-+	};
-+
-+	camera {
-+		compatible = "samsung,fimc", "simple-bus";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		status = "okay";
-+
-+		pinctrl-names = "default", "inactive";
-+		pinctrl-0 = <&cam_port_a_clk_active>;
-+		pinctrl-1 = <&cam_port_a_clk_idle>;
-+
-+		fimc_0: fimc@11800000 {
-+			compatible = "samsung,exynos4210-fimc";
-+			reg = <0x11800000 0x1000>;
-+			interrupts = <0 85 0>;
-+			status = "okay";
-+		};
-+
-+		csis_0: csis@11880000 {
-+			compatible = "samsung,exynos4210-csis";
-+			reg = <0x11880000 0x1000>;
-+			interrupts = <0 78 0>;
-+			max-data-lanes = <4>;
-+		};
-+	};
-+
-+[1] Documentation/devicetree/bindings/media/soc/samsung-mipi-csis.txt
-diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
-index 18a70e4..e716753 100644
---- a/drivers/media/platform/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
-@@ -1888,7 +1888,7 @@ int fimc_initialize_capture_subdev(struct fimc_dev *fimc)
- 
- 	v4l2_subdev_init(sd, &fimc_subdev_ops);
- 	sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
--	snprintf(sd->name, sizeof(sd->name), "FIMC.%d", fimc->pdev->id);
-+	snprintf(sd->name, sizeof(sd->name), "FIMC.%d", fimc->id);
- 
- 	fimc->vid_cap.sd_pads[FIMC_SD_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
- 	fimc->vid_cap.sd_pads[FIMC_SD_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
-diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/s5p-fimc/fimc-core.c
-index 2a1558a..e7eabb7 100644
---- a/drivers/media/platform/s5p-fimc/fimc-core.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-core.c
-@@ -21,6 +21,8 @@
- #include <linux/pm_runtime.h>
- #include <linux/list.h>
- #include <linux/io.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
- #include <linux/slab.h>
- #include <linux/clk.h>
- #include <media/v4l2-ioctl.h>
-@@ -879,45 +881,54 @@ static int fimc_m2m_resume(struct fimc_dev *fimc)
- 	return 0;
- }
- 
-+static const struct of_device_id fimc_of_match[];
-+
- static int fimc_probe(struct platform_device *pdev)
- {
--	const struct fimc_drvdata *drv_data = fimc_get_drvdata(pdev);
--	struct s5p_platform_fimc *pdata;
-+	struct fimc_drvdata *drv_data = NULL;
-+	struct device *dev = &pdev->dev;
-+	const struct of_device_id *of_id;
- 	struct fimc_dev *fimc;
- 	struct resource *res;
- 	int ret = 0;
- 
--	if (pdev->id >= drv_data->num_entities) {
--		dev_err(&pdev->dev, "Invalid platform device id: %d\n",
--			pdev->id);
--		return -EINVAL;
--	}
--
--	fimc = devm_kzalloc(&pdev->dev, sizeof(*fimc), GFP_KERNEL);
-+	fimc = devm_kzalloc(dev, sizeof(*fimc), GFP_KERNEL);
- 	if (!fimc)
- 		return -ENOMEM;
- 
--	fimc->id = pdev->id;
-+	if (dev->of_node) {
-+		of_id = of_match_node(fimc_of_match, dev->of_node);
-+		if (of_id)
-+			drv_data = (struct fimc_drvdata *)of_id->data;
-+
-+		fimc->id = of_alias_get_id(dev->of_node, "fimc");
-+	} else {
-+		drv_data = fimc_get_drvdata(pdev);
-+		fimc->id = pdev->id;
-+	}
-+
-+	if (!drv_data || fimc->id < 0 || fimc->id >= drv_data->num_entities) {
-+		dev_err(dev, "Invalid driver data or device index (%d)\n",
-+			fimc->id);
-+		return -EINVAL;
-+	}
- 
- 	fimc->variant = drv_data->variant[fimc->id];
- 	fimc->pdev = pdev;
--	pdata = pdev->dev.platform_data;
--	fimc->pdata = pdata;
--
- 	init_waitqueue_head(&fimc->irq_queue);
- 	spin_lock_init(&fimc->slock);
- 	mutex_init(&fimc->lock);
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	fimc->regs = devm_request_and_ioremap(&pdev->dev, res);
-+	fimc->regs = devm_request_and_ioremap(dev, res);
- 	if (fimc->regs == NULL) {
--		dev_err(&pdev->dev, "Failed to obtain io memory\n");
-+		dev_err(dev, "Failed to obtain io memory\n");
- 		return -ENOENT;
- 	}
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
- 	if (res == NULL) {
--		dev_err(&pdev->dev, "Failed to get IRQ resource\n");
-+		dev_err(dev, "Failed to get IRQ resource\n");
- 		return -ENXIO;
- 	}
- 
-@@ -927,10 +938,10 @@ static int fimc_probe(struct platform_device *pdev)
- 	clk_set_rate(fimc->clock[CLK_BUS], drv_data->lclk_frequency);
- 	clk_enable(fimc->clock[CLK_BUS]);
- 
--	ret = devm_request_irq(&pdev->dev, res->start, fimc_irq_handler,
--			       0, dev_name(&pdev->dev), fimc);
-+	ret = devm_request_irq(dev, res->start, fimc_irq_handler,
-+			       0, dev_name(dev), fimc);
- 	if (ret) {
--		dev_err(&pdev->dev, "failed to install irq (%d)\n", ret);
-+		dev_err(dev, "failed to install irq (%d)\n", ret);
- 		goto err_clk;
- 	}
- 
-@@ -939,23 +950,23 @@ static int fimc_probe(struct platform_device *pdev)
- 		goto err_clk;
- 
- 	platform_set_drvdata(pdev, fimc);
--	pm_runtime_enable(&pdev->dev);
--	ret = pm_runtime_get_sync(&pdev->dev);
-+	pm_runtime_enable(dev);
-+	ret = pm_runtime_get_sync(dev);
- 	if (ret < 0)
- 		goto err_sd;
- 	/* Initialize contiguous memory allocator */
--	fimc->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
-+	fimc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
- 	if (IS_ERR(fimc->alloc_ctx)) {
- 		ret = PTR_ERR(fimc->alloc_ctx);
- 		goto err_pm;
- 	}
- 
--	dev_dbg(&pdev->dev, "FIMC.%d registered successfully\n", fimc->id);
-+	dev_dbg(dev, "FIMC.%d registered successfully\n", fimc->id);
- 
--	pm_runtime_put(&pdev->dev);
-+	pm_runtime_put(dev);
- 	return 0;
- err_pm:
--	pm_runtime_put(&pdev->dev);
-+	pm_runtime_put(dev);
- err_sd:
- 	fimc_unregister_capture_subdev(fimc);
- err_clk:
-@@ -1267,10 +1278,24 @@ static const struct platform_device_id fimc_driver_ids[] = {
- 		.name		= "exynos4x12-fimc",
- 		.driver_data	= (unsigned long)&fimc_drvdata_exynos4x12,
- 	},
--	{},
-+	{ },
- };
- MODULE_DEVICE_TABLE(platform, fimc_driver_ids);
- 
-+static const struct of_device_id fimc_of_match[] __devinitconst = {
-+	{
-+		.compatible = "samsung,s5pv210-fimc",
-+		.data = &fimc_drvdata_s5pv210,
-+	}, {
-+		.compatible = "samsung,exynos4210-fimc",
-+		.data = &fimc_drvdata_exynos4210,
-+	}, {
-+		.compatible = "samsung,exynos4212-fimc",
-+		.data = &fimc_drvdata_exynos4x12,
-+	},
-+	{ /* sentinel */ },
-+};
-+
- static const struct dev_pm_ops fimc_pm_ops = {
- 	SET_SYSTEM_SLEEP_PM_OPS(fimc_suspend, fimc_resume)
- 	SET_RUNTIME_PM_OPS(fimc_runtime_suspend, fimc_runtime_resume, NULL)
-@@ -1281,9 +1306,10 @@ static struct platform_driver fimc_driver = {
- 	.remove		= __devexit_p(fimc_remove),
- 	.id_table	= fimc_driver_ids,
- 	.driver = {
--		.name	= FIMC_MODULE_NAME,
--		.owner	= THIS_MODULE,
--		.pm     = &fimc_pm_ops,
-+		.of_match_table = of_match_ptr(fimc_of_match),
-+		.name		= FIMC_MODULE_NAME,
-+		.owner		= THIS_MODULE,
-+		.pm     	= &fimc_pm_ops,
- 	}
- };
- 
--- 
-1.7.9.5
-
+> Regards,
+>
+>         Hans
+>
+>> +       </row>
+>>         <row><entry></entry></row>
+>>       </tbody>
+>>        </tgroup>
+>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> index f6ee201..05e3708 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> @@ -790,6 +790,17 @@ const char *v4l2_ctrl_get_name(u32 id)
+>>       case V4L2_CID_LINK_FREQ:                return "Link Frequency";
+>>       case V4L2_CID_PIXEL_RATE:               return "Pixel Rate";
+>>       case V4L2_CID_TEST_PATTERN:             return "Test Pattern";
+>> +     case V4L2_CID_GAIN_RED:                 return "Gain Red";
+>> +     case V4L2_CID_GAIN_GREEN_RED:           return "Gain Green Red";
+>> +     case V4L2_CID_GAIN_GREEN_BLUE:          return "Gain Green Blue";
+>> +     case V4L2_CID_GAIN_BLUE:                return "Gain Blue";
+>> +     case V4L2_CID_GAIN_GREEN:               return "Gain Green";
+>> +     case V4L2_CID_GAIN_OFFSET:              return "Gain Offset";
+>> +     case V4L2_CID_BLUE_OFFSET:              return "Gain Blue Offset";
+>> +     case V4L2_CID_RED_OFFSET:               return "Gain Red Offset";
+>> +     case V4L2_CID_GREEN_OFFSET:             return "Gain Green Offset";
+>> +     case V4L2_CID_GREEN_RED_OFFSET:         return "Gain Green Red Offset";
+>> +     case V4L2_CID_GREEN_BLUE_OFFSET:        return "Gain Green Blue Offset";
+>>
+>>       /* DV controls */
+>>       case V4L2_CID_DV_CLASS:                 return "Digital Video Controls";
+>> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+>> index f56c945..9b6b233 100644
+>> --- a/include/uapi/linux/v4l2-controls.h
+>> +++ b/include/uapi/linux/v4l2-controls.h
+>> @@ -799,5 +799,16 @@ enum v4l2_jpeg_chroma_subsampling {
+>>  #define V4L2_CID_LINK_FREQ                   (V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
+>>  #define V4L2_CID_PIXEL_RATE                  (V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
+>>  #define V4L2_CID_TEST_PATTERN                        (V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
+>> +#define V4L2_CID_GAIN_RED                    (V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
+>> +#define V4L2_CID_GAIN_GREEN_RED                      (V4L2_CID_IMAGE_PROC_CLASS_BASE + 5)
+>> +#define V4L2_CID_GAIN_GREEN_BLUE             (V4L2_CID_IMAGE_PROC_CLASS_BASE + 6)
+>> +#define V4L2_CID_GAIN_BLUE                   (V4L2_CID_IMAGE_PROC_CLASS_BASE + 7)
+>> +#define V4L2_CID_GAIN_GREEN                  (V4L2_CID_IMAGE_PROC_CLASS_BASE + 8)
+>> +#define V4L2_CID_GAIN_OFFSET                 (V4L2_CID_IMAGE_PROC_CLASS_BASE + 9)
+>> +#define V4L2_CID_BLUE_OFFSET                 (V4L2_CID_IMAGE_PROC_CLASS_BASE + 10)
+>> +#define V4L2_CID_RED_OFFSET                  (V4L2_CID_IMAGE_PROC_CLASS_BASE + 11)
+>> +#define V4L2_CID_GREEN_OFFSET                        (V4L2_CID_IMAGE_PROC_CLASS_BASE + 12)
+>> +#define V4L2_CID_GREEN_RED_OFFSET            (V4L2_CID_IMAGE_PROC_CLASS_BASE + 13)
+>> +#define V4L2_CID_GREEN_BLUE_OFFSET           (V4L2_CID_IMAGE_PROC_CLASS_BASE + 14)
+>>
+>>  #endif
+>>
