@@ -1,58 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ia0-f179.google.com ([209.85.210.179]:42719 "EHLO
-	mail-ia0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751063Ab2LTQkL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Dec 2012 11:40:11 -0500
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58106 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754149Ab2LFBXj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2012 20:23:39 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH v3] media: V4L2: add temporary clock helpers
+Date: Thu, 06 Dec 2012 02:24:47 +0100
+Message-ID: <1885008.m7crYYR2Uy@avalon>
+In-Reply-To: <Pine.LNX.4.64.1212041136250.26918@axis700.grange>
+References: <Pine.LNX.4.64.1212041136250.26918@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <1354971050-5784-1-git-send-email-sasha.levin@oracle.com>
-References: <1354971050-5784-1-git-send-email-sasha.levin@oracle.com>
-From: Sasha Levin <levinsasha928@gmail.com>
-Date: Thu, 20 Dec 2012 11:39:47 -0500
-Message-ID: <CA+1xoqdZ06HdshtX0FET0t1iQF8cOFBrXYOkvR-XHV0UDJY8hQ@mail.gmail.com>
-Subject: Re: [PATCH] rc-core: don't return from store_protocols without
- releasing device mutex
-To: Sasha Levin <sasha.levin@oracle.com>
-Cc: mchehab@redhat.com, david@hardeman.nu, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ping?
+Hi Guennadi,
 
-On Sat, Dec 8, 2012 at 7:50 AM, Sasha Levin <sasha.levin@oracle.com> wrote:
-> Commit c003ab1b ("[media] rc-core: add separate defines for protocol bitmaps
-> and numbers") has introduced a bug which allows store_protocols() to return
-> without releasing the device mutex it's holding.
->
-> Doing that would cause infinite hangs waiting on device mutex next time
-> around.
->
-> Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
-> ---
->  drivers/media/rc/rc-main.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index 601d1ac1..0510f4d 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -890,7 +890,8 @@ static ssize_t store_protocols(struct device *device,
->
->                 if (i == ARRAY_SIZE(proto_names)) {
->                         IR_dprintk(1, "Unknown protocol: '%s'\n", tmp);
-> -                       return -EINVAL;
-> +                       ret = -EINVAL;
-> +                       goto out;
->                 }
->
->                 count++;
-> --
-> 1.8.0
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Thanks for the patch.
+
+On Tuesday 04 December 2012 11:42:15 Guennadi Liakhovetski wrote:
+> Typical video devices like camera sensors require an external clock source.
+> Many such devices cannot even access their hardware registers without a
+> running clock. These clock sources should be controlled by their consumers.
+> This should be performed, using the generic clock framework. Unfortunately
+> so far only very few systems have been ported to that framework. This patch
+> adds a set of temporary helpers, mimicking the generic clock API, to V4L2.
+> Platforms, adopting the clock API, should switch to using it. Eventually
+> this temporary API should be removed.
+
+As discussed on Jabber, I think we should make the clock helpers use the 
+common clock framework when available, to avoid pushing support for the two 
+APIs to all sensor drivers. Do you plan to include that in v4 ? :-)
+
+-- 
+Regards,
+
+Laurent Pinchart
+
