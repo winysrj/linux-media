@@ -1,65 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34455 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752076Ab2LXLlE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Dec 2012 06:41:04 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com
-Subject: [PATCH] v4l2-compliance: Print invalid return codes in control tests
-Date: Mon, 24 Dec 2012 12:42:22 +0100
-Message-Id: <1356349342-7501-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:60176 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752362Ab2LFV53 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Dec 2012 16:57:29 -0500
+Received: by mail-qc0-f174.google.com with SMTP id o22so3568875qcr.19
+        for <linux-media@vger.kernel.org>; Thu, 06 Dec 2012 13:57:29 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <50C11301.10205@googlemail.com>
+References: <50B5779A.9090807@pyther.net>
+	<50B67851.2010808@googlemail.com>
+	<50B69037.3080205@pyther.net>
+	<50B6967C.9070801@iki.fi>
+	<50B6C2DF.4020509@pyther.net>
+	<50B6C530.4010701@iki.fi>
+	<50B7B768.5070008@googlemail.com>
+	<50B80FBB.5030208@pyther.net>
+	<50BB3F2C.5080107@googlemail.com>
+	<50BB6451.7080601@iki.fi>
+	<50BB8D72.8050803@googlemail.com>
+	<50BCEC60.4040206@googlemail.com>
+	<50BD5CC3.1030100@pyther.net>
+	<CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com>
+	<50BD6310.8000808@pyther.net>
+	<CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com>
+	<50BE65F0.8020303@googlemail.com>
+	<50BEC253.4080006@pyther.net>
+	<50BF3F9A.3020803@iki.fi>
+	<50BFBE39.90901@pyther.net>
+	<50BFC445.6020305@iki.fi>
+	<50BFCBBB.5090407@pyther.net>
+	<50BFECEA.9060808@iki.fi>
+	<50BFFFF6.1000204@pyther.net>
+	<50C11301.10205@googlemail.com>
+Date: Thu, 6 Dec 2012 16:57:28 -0500
+Message-ID: <CAGoCfiwi3HVBjBh7TzWmwSbVH4S-0174=mqKA64Jw2zYz6K6LA@mail.gmail.com>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Cc: Matthew Gyurgyik <matthew@pyther.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- utils/v4l2-compliance/v4l2-test-controls.cpp |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+On Thu, Dec 6, 2012 at 4:49 PM, Frank Schäfer
+<fschaefer.oss@googlemail.com> wrote:
+>
+> Am 06.12.2012 03:16, schrieb Matthew Gyurgyik:
+> > On 12/05/2012 07:55 PM, Antti Palosaari wrote:
+> >>
+> >> It was good snoop. I didn't saw nothing very interesting. But, I
+> >> think I found the reason. Just add that one line writing 0x42 to
+> >> register 0x0d. IIRC I saw earlier it caused that kind of bug...
+> >>
+> >> +static struct em28xx_reg_seq msi_digivox_atsc[] = {
+> >> +    {EM2874_R80_GPIO, 0xff, 0xff,  50}, /* GPIO_0=1 */
+> >> +    {0x0d,            0xff, 0xff,   0},
+> >> +    {EM2874_R80_GPIO, 0xfe, 0xff,   0}, /* GPIO_0=0 */
+> >>     {0x0d,            0x42, 0xff,   0},
+> >> +    {EM2874_R80_GPIO, 0xbe, 0xff, 135}, /* GPIO_6=0 */
+> >> +    {EM2874_R80_GPIO, 0xfe, 0xff, 135}, /* GPIO_6=1 */
+> >> +    {EM2874_R80_GPIO, 0x7e, 0xff,  20}, /* GPIO_7=0 */
+> >> +    {             -1,   -1,   -1,  -1},
+> >> +};
+> >>
+> >> regards
+> >> Antti
+> >>
+> >>
+> > I added that line, recompiled, tried the new module. Unfortunately
+> > there was no improvement. I didn't see any differences in any of the
+> > output (dmesg, azap). Let me know if there is any info you want me to
+> > get.
+> >
+> > Matthew
+>
+> Did you switch back to
+>
+>     .mpeg_mode      = LGDT3305_MPEG_SERIAL,
+>     .tpclk_edge         = LGDT3305_TPCLK_FALLING_EDGE,
+>
+> in struct lgdt3305_config em2874_lgdt3305_dev (em28xx-dvb.c) before
+> testing this ?
+>
+> You could also play with the other gpio settings.
+>
+> And the last idea (at the moment):
+>
+> +    /* 0db0:8810 MSI DIGIVOX ATSC (HU345-Q)
+> +     * Empia EM2874B + TDA18271HDC2 + LGDT3305 */
+> +    [EM2874_BOARD_MSI_DIGIVOX_ATSC] = {
+> +        .name         = "MSI DIGIVOX ATSC",
+> +        .dvb_gpio     = msi_digivox_atsc,
+> +        .has_dvb      = 1,
+> +        .tuner_type   = TUNER_ABSENT,
+> +        .ir_codes     = RC_MAP_MSI_DIGIVOX_III,        /* just a guess
+> from looking at the picture */
+> +        .xclk         = EM28XX_XCLK_FREQUENCY_12MHZ,    /* TODO */
+> +        .i2c_speed    = EM2874_I2C_SECONDARY_BUS_SELECT |
+> +                EM28XX_I2C_CLK_WAIT_ENABLE |
+> +                EM28XX_I2C_FREQ_100_KHZ,
+> +    },
+>
+> => change .xclk to 0x0f.
+> We know that 12MHz is the right xclk setting, which means 0x07. But OTOH
+> the Windows drivers seems to use 0x0f instead and we don't what 0x0f
+> means...
+>
+> Hope this helps,
+> Frank
 
-diff --git a/utils/v4l2-compliance/v4l2-test-controls.cpp b/utils/v4l2-compliance/v4l2-test-controls.cpp
-index 1a1dc96..e16d71d 100644
---- a/utils/v4l2-compliance/v4l2-test-controls.cpp
-+++ b/utils/v4l2-compliance/v4l2-test-controls.cpp
-@@ -153,7 +153,7 @@ static int checkQCtrl(struct node *node, struct test_queryctrl &qctrl)
- 		qmenu.index = i;
- 		ret = doioctl(node, VIDIOC_QUERYMENU, &qmenu);
- 		if (ret && ret != EINVAL)
--			return fail("invalid QUERYMENU return code\n");
-+			return fail("invalid QUERYMENU return code (%d)\n", ret);
- 		if (ret)
- 			continue;
- 		if (i < qctrl.minimum || i > qctrl.maximum)
-@@ -194,7 +194,7 @@ int testQueryControls(struct node *node)
- 		if (ret == ENOTTY)
- 			return ret;
- 		if (ret && ret != EINVAL)
--			return fail("invalid queryctrl return code\n");
-+			return fail("invalid queryctrl return code (%d)\n", ret);
- 		if (ret)
- 			break;
- 		if (checkQCtrl(node, qctrl))
-@@ -244,7 +244,7 @@ int testQueryControls(struct node *node)
- 		qctrl.id = id;
- 		ret = doioctl(node, VIDIOC_QUERYCTRL, &qctrl);
- 		if (ret && ret != EINVAL)
--			return fail("invalid queryctrl return code\n");
-+			return fail("invalid queryctrl return code (%d)\n", ret);
- 		if (ret)
- 			continue;
- 		if (qctrl.id != id)
-@@ -260,7 +260,7 @@ int testQueryControls(struct node *node)
- 		qctrl.id = id;
- 		ret = doioctl(node, VIDIOC_QUERYCTRL, &qctrl);
- 		if (ret && ret != EINVAL)
--			return fail("invalid queryctrl return code\n");
-+			return fail("invalid queryctrl return code (%d)\n", ret);
- 		if (ret)
- 			break;
- 		if (qctrl.id != id)
--- 
-Regards,
+I'm pretty sure the XCLK register isn't used at all on the em2874
+(it's probably being set in the Windows driver because of some shared
+code with the older devices).
 
-Laurent Pinchart
+Devin
 
+--
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
