@@ -1,59 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f53.google.com ([209.85.215.53]:59960 "EHLO
-	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752691Ab2LRCQQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Dec 2012 21:16:16 -0500
-Received: by mail-la0-f53.google.com with SMTP id w12so64490lag.12
-        for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 18:16:14 -0800 (PST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50936 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752908Ab2LFBVx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2012 20:21:53 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>
+Subject: Re: [RFC PATCH] vb2: force output buffers to fault into memory
+Date: Thu, 06 Dec 2012 02:23 +0100
+Message-ID: <2230570.TblGvim78c@avalon>
+In-Reply-To: <201212041648.40108.hverkuil@xs4all.nl>
+References: <201212041648.40108.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Date: Mon, 17 Dec 2012 21:16:14 -0500
-Message-ID: <CAOcJUbw3Z+TTvURsOSKS0qaYY2mV3_9H5HCE2JH6vjX=QSDaDw@mail.gmail.com>
-Subject: [PULL] dvb-frontends: use %*ph[N] to dump small buffers
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Hi Hans,
 
-Please apply the following to update status in patchwork along with
-the following merge request...
+On Tuesday 04 December 2012 16:48:40 Hans Verkuil wrote:
+> (repost after accidentally using HTML formatting)
+> 
+> This needs a good review. The change is minor, but as I am not a mm expert,
+> I'd like to get some more feedback on this. The dma-sg change has been
+> successfully tested on our hardware, but I don't have any hardware to test
+> the vmalloc change.
+> 
+> Note that the 'write' attribute is still stored internally and used to tell
+> whether set_page_dirty_lock() should be called during put_userptr.
+> 
+> It is my understanding that that still makes sense, so I didn't change that.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> --- start patch ---
+> 
+> When calling get_user_pages for output buffers, the 'write' argument is set
+> to 0 (since the DMA isn't writing to memory), This can cause unexpected
+> results:
+> 
+> If you calloc() buffer memory and do not fill that memory afterwards, then
+> the kernel assigns most of that memory to one single physical 'zero' page.
+> 
+> If you queue that buffer to the V4L2 driver, then it will call
+> get_user_pages and store the results. Next you dequeue it, fill the buffer
+> and queue it again. Now the V4L2 core code sees the same userptr and length
+> and expects it to be the same buffer that it got before and it will reuse
+> the results of the previous get_user_pages call. But that still points to
+> zero pages, whereas userspace filled it up and so changed the buffer to use
+> different pages. In other words, the pages the V4L2 core knows about are no
+> longer correct.
+> 
+> The solution is to always set 'write' to 1 as this will force the kernel to
+> fault in proper pages.
 
-pwclient update -s 'superseded' 15687
-pwclient update -s 'changes requested' 15688
+I'm wondering if we should really force faulting pages. The buffer given to 
+the driver might be real read-only memory, in which case faulting the pages 
+would probably hurt (agreed, that's pretty unlikely, but it's still a valid 
+use case according to the API).
 
-I am marking 15687 as superseded because I broke the patch into two
-separate patches.  (see merge request below)
-15688 causes new build warnings, so I've asked Andy to resubmit.
+Moreover, this wouldn't fix all similar userptr-related issues. An application 
+could remap a completely different memory area to the same userspace address 
+between two QBUF calls, and videobuf2 would not handle that properly. That's 
+also a valid use case according to the API, and it would be pretty difficult 
+to handle it correctly in an efficient way on the kernel side. I think we 
+could modify the spec to forbid mapping changes between QBUF calls, and in 
+that case the zero-page mapping situation you described could be forbidden as 
+well. If we clearly document it in the spec we could push the responsibility 
+of faulting the pages to userspace.
 
-Please merge:
+> We do this for videobuf2-dma-sg.c and videobuf2-vmalloc.c, but not for
+> videobuf2-dma-contig.c since the userptr there is already supposed to
+> point to contiguous memory and shouldn't use the zero page at all.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-dma-sg.c  |    3 ++-
+>  drivers/media/v4l2-core/videobuf2-vmalloc.c |    4 +++-
+>  2 files changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> b/drivers/media/v4l2-core/videobuf2-dma-sg.c index 25c3b36..c29f159 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> @@ -143,7 +143,8 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx,
+> unsigned long vaddr, num_pages_from_user = get_user_pages(current,
+> current->mm,
+>  					     vaddr & PAGE_MASK,
+>  					     buf->sg_desc.num_pages,
+> -					     write,
+> +					     1, /* always set write to force
+> +						   faulting all pages */
+>  					     1, /* force */
+>  					     buf->pages,
+>  					     NULL);
+> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> b/drivers/media/v4l2-core/videobuf2-vmalloc.c index a47fd4f..c8d8519 100644
+> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> @@ -107,7 +107,9 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx,
+> unsigned long vaddr, /* current->mm->mmap_sem is taken by videobuf2 core */
+>  		n_pages = get_user_pages(current, current->mm,
+>  					 vaddr & PAGE_MASK, buf->n_pages,
+> -					 write, 1, /* force */
+> +					 1, /* always set write to force
+> +					       faulting all pages */
+> +					 1, /* force */
+>  					 buf->pages, NULL);
+>  		if (n_pages != buf->n_pages)
+>  			goto fail_get_user_pages;
+-- 
+Regards,
 
-The following changes since commit 5b7d8de7d2328f7b25fe4645eafee7e48f9b7df3:
+Laurent Pinchart
 
-  [media] au0828: break au0828_card_setup() down into smaller
-functions (2012-12-17 14:34:27 -0200)
-
-are available in the git repository at:
-
-  git://git.linuxtv.org/mkrufky/tuners frontends
-
-for you to fetch changes up to 34c87fa2214d134c0028c97d7aab3dd769bb3bf0:
-
-  ix2505v: use %*ph[N] to dump small buffers (2012-12-17 20:12:29 -0500)
-
-----------------------------------------------------------------
-Andy Shevchenko (2):
-      or51211: use %*ph[N] to dump small buffers
-      ix2505v: use %*ph[N] to dump small buffers
-
- drivers/media/dvb-frontends/ix2505v.c |    2 +-
- drivers/media/dvb-frontends/or51211.c |    5 +----
- 2 files changed, 2 insertions(+), 5 deletions(-)
-
-Cheers,
-
-Mike
