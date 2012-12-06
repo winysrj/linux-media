@@ -1,39 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp205.alice.it ([82.57.200.101]:59981 "EHLO smtp205.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751962Ab2LJVho (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 16:37:44 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCHv2 2/9] [media] m920x: fix a typo in a comment
-Date: Mon, 10 Dec 2012 22:37:10 +0100
-Message-Id: <1355175437-21623-3-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1355175437-21623-1-git-send-email-ospite@studenti.unina.it>
-References: <1352158096-17737-1-git-send-email-ospite@studenti.unina.it>
- <1355175437-21623-1-git-send-email-ospite@studenti.unina.it>
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:62289 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964918Ab2LFHyW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Dec 2012 02:54:22 -0500
+Received: by mail-oa0-f46.google.com with SMTP id h16so6019546oag.19
+        for <linux-media@vger.kernel.org>; Wed, 05 Dec 2012 23:54:22 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1353349642-3677-234-git-send-email-wfp5p@virginia.edu>
+References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu> <1353349642-3677-234-git-send-email-wfp5p@virginia.edu>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 6 Dec 2012 13:24:02 +0530
+Message-ID: <CA+V-a8u05u-kZUtx758yJSkXGWfgxLEqXnd7G2gDB5hWwhuB=g@mail.gmail.com>
+Subject: Re: [PATCH 234/493] media: remove use of __devinit
+To: Bill Pemberton <wfp5p@virginia.edu>
+Cc: gregkh@linuxfoundation.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org,
+	mjpeg-users@lists.sourceforge.net,
+	linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
----
- drivers/media/usb/dvb-usb/m920x.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Mon, Nov 19, 2012 at 11:53 PM, Bill Pemberton <wfp5p@virginia.edu> wrote:
+> CONFIG_HOTPLUG is going away as an option so __devinit is no longer
+> needed.
+> ---
+[Snip]
+...
+>  drivers/media/platform/davinci/dm355_ccdc.c        |  2 +-
+>  drivers/media/platform/davinci/dm644x_ccdc.c       |  2 +-
+>  drivers/media/platform/davinci/isif.c              |  2 +-
+>  drivers/media/platform/davinci/vpbe.c              |  2 +-
+>  drivers/media/platform/davinci/vpbe_display.c      |  6 ++---
+>  drivers/media/platform/davinci/vpfe_capture.c      |  2 +-
+>  drivers/media/platform/davinci/vpif.c              |  2 +-
+>  drivers/media/platform/davinci/vpss.c              |  2 +-
 
-diff --git a/drivers/media/usb/dvb-usb/m920x.c b/drivers/media/usb/dvb-usb/m920x.c
-index 661bb75..433696d 100644
---- a/drivers/media/usb/dvb-usb/m920x.c
-+++ b/drivers/media/usb/dvb-usb/m920x.c
-@@ -591,7 +591,7 @@ static struct m920x_inits tvwalkertwin_rc_init [] = {
- };
- 
- static struct m920x_inits pinnacle310e_init[] = {
--	/* without these the tuner don't work */
-+	/* without these the tuner doesn't work */
- 	{ 0xff20,         0x9b },
- 	{ 0xff22,         0x70 },
- 
--- 
-1.7.10.4
+Acked-by: Prabhakar Lad <prabhakar.lad@ti.com>
 
+Regards,
+--Prabhakar
+
+> --
+> 1.8.0
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
