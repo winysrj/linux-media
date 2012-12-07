@@ -1,60 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:44549 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751594Ab2LUKk7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Dec 2012 05:40:59 -0500
+Received: from btbn.de ([81.169.184.248]:46020 "EHLO btbn.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030216Ab2LGNPW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Dec 2012 08:15:22 -0500
+Received: from [IPv6:2001:470:713b:0:4c94:bf18:bc09:b6ed] (unknown [IPv6:2001:470:713b:0:4c94:bf18:bc09:b6ed])
+	by btbn.de (Postfix) with ESMTPSA id F3C89960083
+	for <linux-media@vger.kernel.org>; Fri,  7 Dec 2012 14:06:13 +0100 (CET)
+Message-ID: <50C1E9B6.1080809@rothenpieler.org>
+Date: Fri, 07 Dec 2012 14:05:58 +0100
+From: Timo Rothenpieler <timo@rothenpieler.org>
 MIME-Version: 1.0
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 21 Dec 2012 16:10:38 +0530
-Message-ID: <CA+V-a8s=ykTn1AW3iSZZG1qQWH9L-sEs2Fu=DN_gjGu2Dv5-tQ@mail.gmail.com>
-Subject: [GIT PULL FOR v3.9] Davinci VPBE Trivial Fixes
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Subject: Updated de-Unitymedia scan data
+Content-Type: multipart/mixed;
+ boundary="------------020401070609060907010907"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This is a multi-part message in MIME format.
+--------------020401070609060907010907
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Please pull the following patches for DaVinci VPBE driver.
-One of the patch has ARM changes and is Acked-by the ARM
-maintainer.
+The current de-Unitymedia scan data is quite outdated.
+I attached an updated one, generated from the data embedded in the DVB 
+Stream.
 
-Thanks and Regards,
---Prabhakar Lad
+--------------020401070609060907010907
+Content-Type: text/plain; charset=windows-1252;
+ name="de-Unitymedia"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="de-Unitymedia"
 
+# Unitymedia
+# Generated from information included in dvb mux - 2012-12-05
+# freq sr fec mod
+C 113000000 6900000 NONE QAM256
+C 121000000 6900000 NONE QAM256
+C 129000000 6900000 NONE QAM256
+C 346000000 6900000 NONE QAM256
+C 354000000 6900000 NONE QAM256
+C 362000000 6900000 NONE QAM256
+C 370000000 6900000 NONE QAM256
+C 378000000 6900000 NONE QAM256
+C 386000000 6900000 NONE QAM256
+C 394000000 6900000 NONE QAM256
+C 402000000 6900000 NONE QAM256
+C 410000000 6900000 NONE QAM256
+C 418000000 6900000 NONE QAM256
+C 426000000 6900000 NONE QAM256
+C 434000000 6900000 NONE QAM256
+C 442000000 6900000 NONE QAM256
+C 450000000 6900000 NONE QAM256
+C 458000000 6900000 NONE QAM256
+C 466000000 6900000 NONE QAM256
+C 522000000 6900000 NONE QAM256
+C 530000000 6900000 NONE QAM256
+C 538000000 6900000 NONE QAM256
+C 546000000 6900000 NONE QAM256
+C 554000000 6900000 NONE QAM256
+C 562000000 6900000 NONE QAM256
+C 570000000 6900000 NONE QAM256
+C 610000000 6900000 NONE QAM64
+C 650000000 6900000 NONE QAM256
+C 658000000 6900000 NONE QAM256
+C 666000000 6900000 NONE QAM256
+C 674000000 6900000 NONE QAM256
+C 682000000 6900000 NONE QAM256
+C 690000000 6900000 NONE QAM256
+C 698000000 6900000 NONE QAM256
+C 706000000 6900000 NONE QAM256
+C 746000000 6900000 NONE QAM64
+C 754000000 6900000 NONE QAM64
+C 762000000 6900000 NONE QAM64
+C 770000000 6900000 NONE QAM64
+C 778000000 6900000 NONE QAM64
+C 786000000 6900000 NONE QAM64
+C 794000000 6900000 NONE QAM64
+C 802000000 6900000 NONE QAM64
+C 810000000 6900000 NONE QAM64
 
-The following changes since commit 4bb891ebf60eb43ebd04e09bbcad24013067873f:
-
-  [media] ivtv: ivtv-driver: Replace 'flush_work_sync()' (2012-12-20
-15:22:30 -0200)
-
-are available in the git repository at:
-  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git davinci_media
-
-Lad, Prabhakar (2):
-      davinci: vpbe: pass different platform names to handle different ip's
-      media: davinci: vpbe: enable building of vpbe driver for DM355 and DM365
-
-Wei Yongjun (3):
-      media: davinci: vpbe: fix return value check in vpbe_display_reqbufs()
-      media: davinci: vpbe: return error code on error in vpbe_display_g_crop()
-      davinci: vpbe: remove unused variable in vpbe_initialize()
-
- arch/arm/mach-davinci/board-dm644x-evm.c      |    8 ++--
- arch/arm/mach-davinci/dm644x.c                |   10 +---
- drivers/media/platform/davinci/Kconfig        |   22 ++------
- drivers/media/platform/davinci/Makefile       |    4 +-
- drivers/media/platform/davinci/vpbe.c         |    6 +--
- drivers/media/platform/davinci/vpbe_display.c |    9 ++--
- drivers/media/platform/davinci/vpbe_osd.c     |   35 ++++++++++----
- drivers/media/platform/davinci/vpbe_venc.c    |   65 +++++++++++++++++--------
- include/media/davinci/vpbe_osd.h              |    5 +-
- include/media/davinci/vpbe_venc.h             |    5 +-
- 10 files changed, 95 insertions(+), 74 deletions(-)
+--------------020401070609060907010907--
