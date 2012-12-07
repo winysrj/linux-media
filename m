@@ -1,179 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f179.google.com ([209.85.220.179]:63001 "EHLO
-	mail-vc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750838Ab2LTVpD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Dec 2012 16:45:03 -0500
-MIME-Version: 1.0
-In-Reply-To: <CAF6AEGtkgwtPON+FvWYKVYPVBvkwoPOLkpT-pvVC-QuuvoYCJA@mail.gmail.com>
-References: <50D255F5.5030602@nvidia.com>
-	<1356009263-15822-1-git-send-email-daniel.vetter@ffwll.ch>
-	<CAF6AEGtkgwtPON+FvWYKVYPVBvkwoPOLkpT-pvVC-QuuvoYCJA@mail.gmail.com>
-Date: Thu, 20 Dec 2012 15:45:02 -0600
-Message-ID: <CAF6AEGtbh7CxvJXh=9THbRREG36n8Co9aDyRjL9YQ8um=qO9dg@mail.gmail.com>
-Subject: Re: [PATCH] [RFC] dma-buf: implement vmap refcounting in the
- interface logic
-From: Rob Clark <robdclark@gmail.com>
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: DRI Development <dri-devel@lists.freedesktop.org>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	Aaron Plattner <aplattner@nvidia.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:37332 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030790Ab2LGO3d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2012 09:29:33 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MEO008TP0DP0D80@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 07 Dec 2012 14:32:18 +0000 (GMT)
+Received: from [127.0.0.1] ([106.116.147.30])
+ by eusync2.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0MEO000PN096DA10@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 07 Dec 2012 14:29:32 +0000 (GMT)
+Message-id: <50C1FD4A.7020808@samsung.com>
+Date: Fri, 07 Dec 2012 15:29:30 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	LMML <linux-media@vger.kernel.org>,
+	Pawel Osciak <pawel@osciak.com>
+Subject: Re: [RFC PATCH] vb2: force output buffers to fault into memory
+References: <201212041648.40108.hverkuil@xs4all.nl> <2230570.TblGvim78c@avalon>
+In-reply-to: <2230570.TblGvim78c@avalon>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 20, 2012 at 10:50 AM, Rob Clark <robdclark@gmail.com> wrote:
-> On Thu, Dec 20, 2012 at 7:14 AM, Daniel Vetter <daniel.vetter@ffwll.ch> wrote:
->> All drivers which implement this need to have some sort of refcount to
->> allow concurrent vmap usage. Hence implement this in the dma-buf core.
->>
->> To protect against concurrent calls we need a lock, which potentially
->> causes new funny locking inversions. But this shouldn't be a problem
->> for exporters with statically allocated backing storage, and more
->> dynamic drivers have decent issues already anyway.
->>
->> Inspired by some refactoring patches from Aaron Plattner, who
->> implemented the same idea, but only for drm/prime drivers.
->>
->> v2: Check in dma_buf_release that no dangling vmaps are left.
->> Suggested by Aaron Plattner. We might want to do similar checks for
->> attachments, but that's for another patch. Also fix up ERR_PTR return
->> for vmap.
->>
->> v3: Check whether the passed-in vmap address matches with the cached
->> one for vunmap. Eventually we might want to remove that parameter -
->> compared to the kmap functions there's no need for the vaddr for
->> unmapping.  Suggested by Chris Wilson.
->>
->> v4: Fix a brown-paper-bag bug spotted by Aaron Plattner.
+Hello,
+
+On 12/6/2012 2:23 AM, Laurent Pinchart wrote:
+> Hi Hans,
 >
-> yeah, I think the locking does worry me a bit but hopefully should be
-> able to do something better when reservations land
+> On Tuesday 04 December 2012 16:48:40 Hans Verkuil wrote:
+> > (repost after accidentally using HTML formatting)
+> >
+> > This needs a good review. The change is minor, but as I am not a mm expert,
+> > I'd like to get some more feedback on this. The dma-sg change has been
+> > successfully tested on our hardware, but I don't have any hardware to test
+> > the vmalloc change.
+> >
+> > Note that the 'write' attribute is still stored internally and used to tell
+> > whether set_page_dirty_lock() should be called during put_userptr.
+> >
+> > It is my understanding that that still makes sense, so I didn't change that.
+> >
+> > Regards,
+> >
+> > 	Hans
+> >
+> > --- start patch ---
+> >
+> > When calling get_user_pages for output buffers, the 'write' argument is set
+> > to 0 (since the DMA isn't writing to memory), This can cause unexpected
+> > results:
+> >
+> > If you calloc() buffer memory and do not fill that memory afterwards, then
+> > the kernel assigns most of that memory to one single physical 'zero' page.
+> >
+> > If you queue that buffer to the V4L2 driver, then it will call
+> > get_user_pages and store the results. Next you dequeue it, fill the buffer
+> > and queue it again. Now the V4L2 core code sees the same userptr and length
+> > and expects it to be the same buffer that it got before and it will reuse
+> > the results of the previous get_user_pages call. But that still points to
+> > zero pages, whereas userspace filled it up and so changed the buffer to use
+> > different pages. In other words, the pages the V4L2 core knows about are no
+> > longer correct.
+> >
+> > The solution is to always set 'write' to 1 as this will force the kernel to
+> > fault in proper pages.
 >
-> Signed-off-by: Rob Clark <rob@ti.com>
-
-or even,
-
-Reviewed-by: Rob Clark <rob@ti.com>
-
-
+> I'm wondering if we should really force faulting pages. The buffer given to
+> the driver might be real read-only memory, in which case faulting the pages
+> would probably hurt (agreed, that's pretty unlikely, but it's still a valid
+> use case according to the API).
 >
->> Cc: Aaron Plattner <aplattner@nvidia.com>
->> Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
->> ---
->>  Documentation/dma-buf-sharing.txt |  6 +++++-
->>  drivers/base/dma-buf.c            | 43 ++++++++++++++++++++++++++++++++++-----
->>  include/linux/dma-buf.h           |  4 +++-
->>  3 files changed, 46 insertions(+), 7 deletions(-)
->>
->> diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
->> index 0188903..4966b1b 100644
->> --- a/Documentation/dma-buf-sharing.txt
->> +++ b/Documentation/dma-buf-sharing.txt
->> @@ -302,7 +302,11 @@ Access to a dma_buf from the kernel context involves three steps:
->>        void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
->>
->>     The vmap call can fail if there is no vmap support in the exporter, or if it
->> -   runs out of vmalloc space. Fallback to kmap should be implemented.
->> +   runs out of vmalloc space. Fallback to kmap should be implemented. Note that
->> +   the dma-buf layer keeps a reference count for all vmap access and calls down
->> +   into the exporter's vmap function only when no vmapping exists, and only
->> +   unmaps it once. Protection against concurrent vmap/vunmap calls is provided
->> +   by taking the dma_buf->lock mutex.
->>
->>  3. Finish access
->>
->> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
->> index a3f79c4..26b68de 100644
->> --- a/drivers/base/dma-buf.c
->> +++ b/drivers/base/dma-buf.c
->> @@ -39,6 +39,8 @@ static int dma_buf_release(struct inode *inode, struct file *file)
->>
->>         dmabuf = file->private_data;
->>
->> +       BUG_ON(dmabuf->vmapping_counter);
->> +
->>         dmabuf->ops->release(dmabuf);
->>         kfree(dmabuf);
->>         return 0;
->> @@ -482,12 +484,34 @@ EXPORT_SYMBOL_GPL(dma_buf_mmap);
->>   */
->>  void *dma_buf_vmap(struct dma_buf *dmabuf)
->>  {
->> +       void *ptr;
->> +
->>         if (WARN_ON(!dmabuf))
->>                 return NULL;
->>
->> -       if (dmabuf->ops->vmap)
->> -               return dmabuf->ops->vmap(dmabuf);
->> -       return NULL;
->> +       if (!dmabuf->ops->vmap)
->> +               return NULL;
->> +
->> +       mutex_lock(&dmabuf->lock);
->> +       if (dmabuf->vmapping_counter) {
->> +               dmabuf->vmapping_counter++;
->> +               BUG_ON(!dmabuf->vmap_ptr);
->> +               ptr = dmabuf->vmap_ptr;
->> +               goto out_unlock;
->> +       }
->> +
->> +       BUG_ON(dmabuf->vmap_ptr);
->> +
->> +       ptr = dmabuf->ops->vmap(dmabuf);
->> +       if (IS_ERR_OR_NULL(ptr))
->> +               goto out_unlock;
->> +
->> +       dmabuf->vmap_ptr = ptr;
->> +       dmabuf->vmapping_counter = 1;
->> +
->> +out_unlock:
->> +       mutex_unlock(&dmabuf->lock);
->> +       return ptr;
->>  }
->>  EXPORT_SYMBOL_GPL(dma_buf_vmap);
->>
->> @@ -501,7 +525,16 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
->>         if (WARN_ON(!dmabuf))
->>                 return;
->>
->> -       if (dmabuf->ops->vunmap)
->> -               dmabuf->ops->vunmap(dmabuf, vaddr);
->> +       BUG_ON(!dmabuf->vmap_ptr);
->> +       BUG_ON(dmabuf->vmapping_counter == 0);
->> +       BUG_ON(dmabuf->vmap_ptr != vaddr);
->> +
->> +       mutex_lock(&dmabuf->lock);
->> +       if (--dmabuf->vmapping_counter == 0) {
->> +               if (dmabuf->ops->vunmap)
->> +                       dmabuf->ops->vunmap(dmabuf, vaddr);
->> +               dmabuf->vmap_ptr = NULL;
->> +       }
->> +       mutex_unlock(&dmabuf->lock);
->>  }
->>  EXPORT_SYMBOL_GPL(dma_buf_vunmap);
->> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
->> index bd2e52c..e3bf2f6 100644
->> --- a/include/linux/dma-buf.h
->> +++ b/include/linux/dma-buf.h
->> @@ -119,8 +119,10 @@ struct dma_buf {
->>         struct file *file;
->>         struct list_head attachments;
->>         const struct dma_buf_ops *ops;
->> -       /* mutex to serialize list manipulation and attach/detach */
->> +       /* mutex to serialize list manipulation, attach/detach and vmap/unmap */
->>         struct mutex lock;
->> +       unsigned vmapping_counter;
->> +       void *vmap_ptr;
->>         void *priv;
->>  };
->>
->> --
->> 1.7.11.7
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Moreover, this wouldn't fix all similar userptr-related issues. An application
+> could remap a completely different memory area to the same userspace address
+> between two QBUF calls, and videobuf2 would not handle that properly. That's
+> also a valid use case according to the API, and it would be pretty difficult
+> to handle it correctly in an efficient way on the kernel side. I think we
+> could modify the spec to forbid mapping changes between QBUF calls, and in
+> that case the zero-page mapping situation you described could be forbidden as
+> well. If we clearly document it in the spec we could push the responsibility
+> of faulting the pages to userspace.
+
+I've spent some time thinking on this issue and I came to the conclusion 
+that it
+might be a good idea extend the v4l2 spec with such case. Changing the 
+write
+parameter for get_user_pages() is only a workaround, which doesn't even 
+work for
+all possible use cases, so I agree with Laurent that user ptr usage 
+should be
+much better documented. I only wonder if it a good idea to require 
+faulting in
+pages from the user space application. Can we assume that memset(ptr, 0, 
+buf_size)
+will do the job in all cases? I expect yes, but I would like to be 
+really sure,
+this will be probably put into the documentation for the reference code.
+
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
