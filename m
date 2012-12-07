@@ -1,94 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:58416 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755397Ab2LRWIA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Dec 2012 17:08:00 -0500
-Received: from mailout-de.gmx.net ([10.1.76.38]) by mrigmx.server.lan
- (mrigmx002) with ESMTP (Nemesis) id 0M6PTB-1Ssibr2pXX-00yQnY for
- <linux-media@vger.kernel.org>; Tue, 18 Dec 2012 23:02:56 +0100
-Content-Type: multipart/mixed; boundary="========GMX228781355868174298363"
-Date: Tue, 18 Dec 2012 23:02:54 +0100
-From: "Patrick Pfyffer" <patrick.pfyffer@gmx.net>
-Message-ID: <20121218220254.228780@gmx.net>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:38648 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1424070Ab2LGDV7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Dec 2012 22:21:59 -0500
+Received: by mail-qc0-f174.google.com with SMTP id o22so26809qcr.19
+        for <linux-media@vger.kernel.org>; Thu, 06 Dec 2012 19:21:58 -0800 (PST)
 MIME-Version: 1.0
-Subject: Two new DVB-C scan lists for Switzerland
-To: linux-media@vger.kernel.org
+In-Reply-To: <50C1490E.8040203@pyther.net>
+References: <50B5779A.9090807@pyther.net>
+	<50B67851.2010808@googlemail.com>
+	<50B69037.3080205@pyther.net>
+	<50B6967C.9070801@iki.fi>
+	<50B6C2DF.4020509@pyther.net>
+	<50B6C530.4010701@iki.fi>
+	<50B7B768.5070008@googlemail.com>
+	<50B80FBB.5030208@pyther.net>
+	<50BB3F2C.5080107@googlemail.com>
+	<50BB6451.7080601@iki.fi>
+	<50BB8D72.8050803@googlemail.com>
+	<50BCEC60.4040206@googlemail.com>
+	<50BD5CC3.1030100@pyther.net>
+	<CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com>
+	<50BD6310.8000808@pyther.net>
+	<CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com>
+	<50BE65F0.8020303@googlemail.com>
+	<50BEC253.4080006@pyther.net>
+	<50BF3F9A.3020803@iki.fi>
+	<50BFBE39.90901@pyther.net>
+	<50BFC445.6020305@iki.fi>
+	<50BFCBBB.5090407@pyther.net>
+	<50BFECEA.9060808@iki.fi>
+	<50BFFFF6.1000204@pyther.net>
+	<50C11301.10205@googlemail.com>
+	<50C12302.80603@pyther.net>
+	<50C1490E.8040203@pyther.net>
+Date: Thu, 6 Dec 2012 22:21:58 -0500
+Message-ID: <CAGoCfiwCUhBdkL3c9ppB42s5UpqooWP5P=H454ff_+4Jzxom4w@mail.gmail.com>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Matthew Gyurgyik <matthew@pyther.net>
+Cc: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---========GMX228781355868174298363
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+On Thu, Dec 6, 2012 at 8:40 PM, Matthew Gyurgyik <matthew@pyther.net> wrote:
+> I was able to do a bit of testing tonight and this is what I found.
+>
+> A channel scan was unsuccessful:
+> http://pyther.net/a/digivox_atsc/dec06/scan.txt (no errors in dmesg)
+>
+> Changing channels by pressing "h" in "mplayer dvb://" caused mplayer to
+> crash and this messages to be logged in dmesg
+> http://pyther.net/a/digivox_atsc/dec06/dmesg_mplayer_switch_channels.txt
 
-Dear linux-dvb Members
+This looks like a combination of a misconfiguration of GPIOs and
+mplayer not properly handling an exception condition.  You should
+definitely bring this up with the mplayer developers since their app
+shouldn't crash under this circumstance.
 
-I would like to kindly ask you to add the two attached new scan list to your repository.
-http://linuxtv.org/hg/dvb-apps/file/5e68946b0e0d/util/scan/dvb-c
+> Audio is out-of-sync in mplayer. Using cache helps, but over time the audio
+> still goes out of sync.
+> http://pyther.net/a/digivox_atsc/dec06/mplayer_audio_out_of_sync.txt
 
-The files will add new entries for two cable networks in Switzerland:
-- GGA Pratteln
-- interGGA
+This has nothing to do with the tuner.  The tuner delivers the MPEG2
+stream already compressed and synchronized.  If you're playback is
+out-of-sync, it's probably your ALSA drivers, PulseAudio, or mplayer
+that is the culprit.
 
-They are both fully non-encrypted free-to-air networks but also contain some pay-tv transponders.
+> Using azap to tune and using cat /dev/dvb/adapter0/dvr0 > test.mpg to
+> generate a test.mpg
+>
+> mplayer plays the file fine without audio-sync issues, but VLC and Xine
+> refuse to play it. (is this normal?)
 
+What errors are VLC or Xine showing?  Unless the stream is really
+corrupt VLC and Xine should play it fine.  And if the stream were
+corrupt it wouldn't play with mplayer either?  This sounds like bugs
+in VLC and Xine.
 
-Could you also remove the list below because it's useless:
-http://linuxtv.org/hg/dvb-apps/file/5e68946b0e0d/util/scan/dvb-c/ch-unknown
+There's definitely something going on in the tuner which is causing
+the channel scan to fail (and probably the tuning failure in mplayer).
+ But all the stuff with actual playback causing segfaults, A/V sync
+issues, and failures to play back in certain applications are all
+userland problems that you would need to raise with the developers for
+those respective projects.
 
-Thank you very much
+Cheers,
 
-Patrick Pfyffer
+Devin
 
---========GMX228781355868174298363
-Content-Type: application/octet-stream; name="ch-GGA-Pratteln"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="ch-GGA-Pratteln"
-
-IyBEVkItQyB0cmFuc3BvbmRlci9tdXhlcyBzY2FuCiMgR0dBIFByYXR0ZWxuLCBTd2l0emVybGFu
-ZAojIHd3dy5nZ2EtcHJhdHRlbG4uY2gKIyBOZXR3b3JrIElEOiAxODYKIyAyMDEyLTEyLTE3Cgoj
-IGZyZXEgICAgICBzciAgICAgIGZlYyAgbW9kICAgIENvbW1lbnQKQyAzMTQwMDAwMDAgNjkwMDAw
-MCBOT05FIFFBTTI1NgpDIDM2MjAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgMzc4MDAwMDAw
-IDY5MDAwMDAgTk9ORSBRQU0yNTYKQyAzOTQwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDQ3
-NDAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNDgyMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0y
-NTYgIyBUZWxlY2x1YgpDIDU3MDAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNTc4MDAwMDAw
-IDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA1ODYwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDU5
-NDAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNjAyMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0y
-NTYKQyA2NTgwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDY2NjAwMDAwMCA2OTAwMDAwIE5P
-TkUgUUFNMjU2CkMgNjc0MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYJIyBJbnRlcnRhaW5tZW50
-CkMgNjgyMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYJIyBJbnRlcnRhaW5tZW50CkMgNjkwMDAw
-MDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYJIyBJbnRlcnRhaW5tZW50CkMgNjk4MDAwMDAwIDY5MDAw
-MDAgTk9ORSBRQU0yNTYKQyA3MDYwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDcxNDAwMDAw
-MCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNzIyMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA3
-MzAwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDczODAwMDAwMCA2OTAwMDAwIE5PTkUgUUFN
-MjU2CSMgSW50ZXJ0YWlubWVudApDIDc0NjAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNzU0
-MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYJIyBJbnRlcnRhaW5tZW50CkMgNzYyMDAwMDAwIDY5
-MDAwMDAgTk9ORSBRQU0yNTYKQyA3NzAwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDc3ODAw
-MDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNzg2MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYK
-QyA3OTQwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDgwMjAwMDAwMCA2OTAwMDAwIE5PTkUg
-UUFNMjU2CkMgODEwMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA4MTgwMDAwMDAgNjkwMDAw
-MCBOT05FIFFBTTI1NgpDIDgyNjAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgODM0MDAwMDAw
-IDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA4NDIwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1Ngo=
---========GMX228781355868174298363
-Content-Type: application/octet-stream; name="ch-interGGA"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="ch-interGGA"
-
-IyBEVkItQyB0cmFuc3BvbmRlci9tdXhlcyBzY2FuCiMgaW50ZXJHR0EsIFN3aXR6ZXJsYW5kCiMg
-d3d3LmludGVyZ2dhLWFnLmNoCiMgTmV0d29yayBJRDogNTU1CiMgMjAxMi0xMi0xOAoKIyBmcmVx
-ICAgICAgc3IgICAgICBmZWMgIG1vZCAgICBDb21tZW50CkMgNDc0MDAwMDAwIDY5MDAwMDAgTk9O
-RSBRQU0yNTYKQyA0ODIwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDQ5MDAwMDAwMCA2OTAw
-MDAwIE5PTkUgUUFNMjU2CkMgNDk4MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA1MDYwMDAw
-MDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDUxNDAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMg
-NTIyMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA1MzAwMDAwMDAgNjkwMDAwMCBOT05FIFFB
-TTI1NgpDIDYwMjAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNjEwMDAwMDAwIDY5MDAwMDAg
-Tk9ORSBRQU0yNTYKQyA2MTgwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDYyNjAwMDAwMCA2
-OTAwMDAwIE5PTkUgUUFNMjU2CkMgNjM0MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA2NDIw
-MDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDY1MDAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2
-CkMgNjU4MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA2NjYwMDAwMDAgNjkwMDAwMCBOT05F
-IFFBTTI1NgpDIDY3NDAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNjgyMDAwMDAwIDY5MDAw
-MDAgTk9ORSBRQU0yNTYKQyA2OTAwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDY5ODAwMDAw
-MCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNzA2MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA3
-MTQwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDcyMjAwMDAwMCA2OTAwMDAwIE5PTkUgUUFN
-MjU2CkMgNzMwMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA3MzgwMDAwMDAgNjkwMDAwMCBO
-T05FIFFBTTI1NgpDIDc0NjAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2Cg==
---========GMX228781355868174298363--
+--
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
