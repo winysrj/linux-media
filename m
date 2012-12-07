@@ -1,55 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fep17.mx.upcmail.net ([62.179.121.37]:59622 "EHLO
-	fep17.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752071Ab2LVVZW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Dec 2012 16:25:22 -0500
-Received: from edge04.upcmail.net ([192.168.13.239])
-          by viefep17-int.chello.at
-          (InterMail vM.8.01.05.05 201-2260-151-110-20120111) with ESMTP
-          id <20121222212516.MOKL7658.viefep17-int.chello.at@edge04.upcmail.net>
-          for <linux-media@vger.kernel.org>;
-          Sat, 22 Dec 2012 22:25:16 +0100
-Message-ID: <50D62544.5060708@hispeed.ch>
-Date: Sat, 22 Dec 2012 22:25:24 +0100
-From: Roland Scheidegger <rscheidegger_lists@hispeed.ch>
+Received: from hqemgate03.nvidia.com ([216.228.121.140]:17613 "EHLO
+	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423478Ab2LGRsc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2012 12:48:32 -0500
+Message-ID: <50C22BE8.4080203@nvidia.com>
+Date: Fri, 7 Dec 2012 09:48:24 -0800
+From: Aaron Plattner <aplattner@nvidia.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: terratec h5 rev. 3?
-References: <50D3F5A8.5010903@hispeed.ch>
-In-Reply-To: <50D3F5A8.5010903@hispeed.ch>
-Content-Type: text/plain; charset=ISO-8859-15
+To: Inki Dae <inki.dae@samsung.com>
+CC: "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Jerome Glisse <j.glisse@gmail.com>,
+	David Airlie <airlied@linux.ie>,
+	Joonyoung Shim <jy0922.shim@samsung.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2] drm/exynos: use prime helpers
+References: <1354817271-5121-5-git-send-email-aplattner@nvidia.com> <1354819712-7019-1-git-send-email-aplattner@nvidia.com> <CAAQKjZOomB2TkKtgZpS0DHM=vOzozWM-6AaztuWPMnxDXZx6Rg@mail.gmail.com>
+In-Reply-To: <CAAQKjZOomB2TkKtgZpS0DHM=vOzozWM-6AaztuWPMnxDXZx6Rg@mail.gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 21.12.2012 06:38, schrieb linux-media-owner@vger.kernel.org:
+On 12/06/2012 10:36 PM, Inki Dae wrote:
+>
 > Hi,
-> 
-> I've recently got a terratec h5 for dvb-c and thought it would be
-> supported but it looks like it's a newer revision not recognized by em28xx.
-> After using the new_id hack it gets recognized and using various htc
-> cards (notably h5 or cinergy htc stick, cards 79 and 82 respectively) it
-> seems to _nearly_ work but not quite (I was using h5 firmware for the
-> older version). Tuning, channel scan works however tv (or dvb radio)
-> does not, since it appears the error rate is going through the roof
-> (with some imagination it is possible to see some parts of the picture
-> sometimes and hear some audio pieces). femon tells something like this:
+>
+> CCing media guys.
+>
+> I agree with you but we should consider one issue released to v4l2.
+>
+> As you may know, V4L2-based driver uses vb2 as buffer manager and the
+> vb2 includes dmabuf feature>(import and export) And v4l2 uses streaming
+> concept>(qbuf and dqbuf)
+> With dmabuf and iommu, generally qbuf imports a fd into its own buffer
+> and maps it with its own iommu table calling dma_buf_map_attachment().
+> And dqbuf calls dma_buf_unmap_attachment() to unmap that buffer from its
+> own iommu table.
+> But now vb2's unmap_dma_buf callback is nothing to do. I think that the
+> reason is the below issue,
+>
+> If qbuf maps buffer with iomm table and dqbuf unmaps it from iommu table
+> then it has performance deterioration because qbuf and dqbuf are called
+> repeatedly.
+> And this means map/unmap are repeated also. So I think media guys moved
+> dma_unmap_sg call from its own unmap_dma_buf callback to detach callback
+> instead.
+> For this, you can refer to vb2_dc_dmabuf_ops_unmap and
+> vb2_dc_dmabuf_ops_detach function.
+>
+> So I added the below patch to avoid that performance deterioration and
+> am testing it now.(this patch is derived from videobuf2-dma-contig.c)
+> http://git.kernel.org/?p=linux/kernel/git/daeinki/drm-exynos.git;a=commit;h=576b1c3de8b90cf1570b8418b60afd1edaae4e30
+>
+> Thus, I'm not sure that your common set could cover all the cases
+> including other frameworks. Please give me any opinions.
 
-<snip>
-Hmm actually it doesn't work any better at all with windows neither, so
-I guess it doesn't like my cable signal (I do have another mantis-based
-pci dvb-c card which works without issue). Maybe the tuner is just crappy.
-So I guess it wouldn't hurt to simply add the usb id of this card
-(0ccd:10b6) as another terratec h5 (this doesn't get you the IR but it's
-a start I guess).
-The dvb-t part though works without issue on windows, and I could not
-get that to work in linux (I've used kaffeine and dvb-fe-tool to force
-the dvbt delivery system if that's supposed to work). When scanning the
-right frequency it spew out some error messages though:
-DvbScanFilter::timerEvent: timeout while reading section; type = 0 pid = 0
-kaffeine(7527) DvbScanFilter::timerEvent: timeout while reading section;
-type = 2 pid = 17
+It seems like this adjustment would make perfect sense to add to the 
+helper layer I suggested.  E.g., instead of having an exynos_attach 
+structure that caches the sgt, there'd be a struct drm_gem_prime_attach 
+that would do the same thing, and save the sgt it gets from 
+driver->gem_prime_get_sg.  Then it would benefit nouveau and radeon, too.
 
-Roland
+Alternatively, patch #4 could be dropped and Exynos can continue to 
+reimplement all of this core functionality, since the helpers are 
+optional, but I don't see anything about this change that should make it 
+Exynos-specific, unless I'm missing something.
 
+--
+Aaron
