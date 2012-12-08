@@ -1,59 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f177.google.com ([209.85.214.177]:42980 "EHLO
-	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750778Ab2LLFmS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Dec 2012 00:42:18 -0500
+Received: from firefly.pyther.net ([50.116.37.168]:32979 "EHLO
+	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758211Ab2LHVlB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Dec 2012 16:41:01 -0500
+Message-ID: <50C3B3EB.40606@pyther.net>
+Date: Sat, 08 Dec 2012 16:40:59 -0500
+From: Matthew Gyurgyik <matthew@pyther.net>
 MIME-Version: 1.0
-In-Reply-To: <1355271894-5284-3-git-send-email-tipecaml@gmail.com>
-References: <1355271894-5284-1-git-send-email-tipecaml@gmail.com> <1355271894-5284-3-git-send-email-tipecaml@gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Wed, 12 Dec 2012 10:40:45 +0530
-Message-ID: <CA+V-a8swnn89Nj2t07VRmeyBYuaV__F1fuyPUA8_+-sT3Yd5xQ@mail.gmail.com>
-Subject: Re: [PATCH 2/5] media: davinci: fix return value check in vpbe_display_reqbufs().
-To: Cyril Roelandt <tipecaml@gmail.com>
-Cc: linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	Prabhakar Lad <prabhakar.lad@ti.com>, mchehab@redhat.com,
-	linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com
-Content-Type: text/plain; charset=ISO-8859-1
+To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+CC: Antti Palosaari <crope@iki.fi>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com> <50C3701D.9000700@pyther .net> <50C37DA8.4080608@googlemai
+ l.com>
+In-Reply-To: <50C37DA8.4080608@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Cyril,
-
-On Wed, Dec 12, 2012 at 5:54 AM, Cyril Roelandt <tipecaml@gmail.com> wrote:
-> vb2_dma_contig_init_ctx() returns ERR_PTR and never returns NULL, so IS_ERR
-> should be used instead of a NULL check.
+On 12/08/2012 12:49 PM, Frank Schäfer wrote:
+> Am 08.12.2012 17:51, schrieb Matthew Gyurgyik:
 >
-patch fixing this issue has been already posted with a better fix
-https://patchwork.kernel.org/patch/1830231/
-
-Regards,
---Prabhakar Lad
-
-> Signed-off-by: Cyril Roelandt <tipecaml@gmail.com>
-> ---
->  drivers/media/platform/davinci/vpbe_display.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> That shouldn't be necessary. I just noticed that there is a module
+> parameter 'ir_debug'. ;)
+> With ir_debug enabled, you should see messages
 >
-> diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-> index 2bfde79..2db4eff 100644
-> --- a/drivers/media/platform/davinci/vpbe_display.c
-> +++ b/drivers/media/platform/davinci/vpbe_display.c
-> @@ -1393,7 +1393,7 @@ static int vpbe_display_reqbufs(struct file *file, void *priv,
->         }
->         /* Initialize videobuf queue as per the buffer type */
->         layer->alloc_ctx = vb2_dma_contig_init_ctx(vpbe_dev->pdev);
-> -       if (!layer->alloc_ctx) {
-> +       if (IS_ERR(layer->alloc_ctx)) {
->                 v4l2_err(&vpbe_dev->v4l2_dev, "Failed to get the context\n");
->                 return -EINVAL;
->         }
-> --
-> 1.7.10.4
+>          em28xx_ir_handle_key: toggle: XX, count: XX, key XXYYZZ
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> everytime you press a button. Once we know the key codes, we can set up
+> a key map (if it doesn't exist yet).
+>
+
+Maybe I'm doing something wrong but didn't have any luck :(
+
+> [root@tux ~]# sudo rmmod em28xx_rc
+> [root@tux ~]# sudo rmmod em28xx_dvb
+> [root@tux ~]# sudo rmmod em28xx
+> [root@tux ~]# modprobe em28xx_rc ir_debug=1
+
+I don't see any additional messages in dmesg.
+
+I verified the remote still works in windows (a stupidity check on my part)
