@@ -1,46 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51452 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751402Ab2LKAhU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 19:37:20 -0500
-Received: from avalon.ideasonboard.com (unknown [91.178.169.86])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 7312035A87
-	for <linux-media@vger.kernel.org>; Tue, 11 Dec 2012 01:37:19 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/2] MAINTAINERS: Add an entry for the ad3645a LED flash controller driver
-Date: Tue, 11 Dec 2012 01:38:24 +0100
-Message-Id: <1355186304-17399-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1355186304-17399-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1355186304-17399-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:64860 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965358Ab2LHPbw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Dec 2012 10:31:52 -0500
+Received: by mail-ee0-f46.google.com with SMTP id e53so806669eek.19
+        for <linux-media@vger.kernel.org>; Sat, 08 Dec 2012 07:31:51 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 7/9] em28xx: em28xx_urb_data_copy(): move duplicate code for capture_type=0 and capture_type=2 to a function
+Date: Sat,  8 Dec 2012 16:31:30 +0100
+Message-Id: <1354980692-3791-8-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1354980692-3791-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1354980692-3791-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- MAINTAINERS |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+Reduce code duplication by moving the duplicate code for dev->capture_type=0
+(vbi start) and dev->capture_type=2 (video start) to a function.
+The same function will also be called by the (not yet existing) em25xx frame
+data processing code.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index d4b699b..47678e4 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1258,6 +1258,14 @@ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
- F:	arch/arm64/
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-video.c |   45 +++++++++++++++++--------------
+ 1 Datei geändert, 25 Zeilen hinzugefügt(+), 20 Zeilen entfernt(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 60df756..61c7321 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -358,6 +358,27 @@ static inline struct em28xx_buffer *get_next_buf(struct em28xx *dev,
+ 	return buf;
+ }
  
-+AS3645A LED FLASH CONTROLLER DRIVER
-+M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/i2c/as3645a.c
-+F:	include/media/as3645a.h
++/*
++ * Finish the current buffer if completed and prepare for the next field
++ */
++static struct em28xx_buffer *
++finish_field_prepare_next(struct em28xx *dev,
++			  struct em28xx_buffer *buf,
++			  struct em28xx_dmaqueue *dma_q)
++{
++	if (dev->progressive || dev->top_field) { /* Brand new frame */
++		if (buf != NULL)
++			finish_buffer(dev, buf);
++		buf = get_next_buf(dev, dma_q);
++	}
++	if (buf != NULL) {
++		buf->top_field = dev->top_field;
++		buf->pos = 0;
++	}
 +
- ASC7621 HARDWARE MONITOR DRIVER
- M:	George Joseph <george.joseph@fairview5.com>
- L:	lm-sensors@lm-sensors.org
++	return buf;
++}
++
+ /* Processes and copies the URB data content (video and VBI data) */
+ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
+ {
+@@ -448,17 +469,9 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
+ 		 * have no continuation header */
+ 
+ 		if (dev->capture_type == 0) {
++			vbi_buf = finish_field_prepare_next(dev, vbi_buf, vbi_dma_q);
++			dev->usb_ctl.vbi_buf = vbi_buf;
+ 			dev->capture_type = 1;
+-			if (dev->top_field) { /* Brand new frame */
+-				if (vbi_buf != NULL)
+-					finish_buffer(dev, vbi_buf);
+-				vbi_buf = get_next_buf(dev, vbi_dma_q);
+-				dev->usb_ctl.vbi_buf = vbi_buf;
+-			}
+-			if (vbi_buf != NULL) {
+-				vbi_buf->top_field = dev->top_field;
+-				vbi_buf->pos = 0;
+-			}
+ 		}
+ 
+ 		if (dev->capture_type == 1) {
+@@ -480,17 +493,9 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
+ 		}
+ 
+ 		if (dev->capture_type == 2) {
++			buf = finish_field_prepare_next(dev, buf, dma_q);
++			dev->usb_ctl.vid_buf = buf;
+ 			dev->capture_type = 3;
+-			if (dev->progressive || dev->top_field) {
+-				if (buf != NULL)
+-					finish_buffer(dev, buf);
+-				buf = get_next_buf(dev, dma_q);
+-				dev->usb_ctl.vid_buf = buf;
+-			}
+-			if (buf != NULL) {
+-				buf->top_field = dev->top_field;
+-				buf->pos = 0;
+-			}
+ 		}
+ 
+ 		if (buf != NULL && dev->capture_type == 3 && len > 0)
 -- 
-1.7.8.6
+1.7.10.4
 
