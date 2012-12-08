@@ -1,48 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:48591 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753909Ab2K3U0H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Nov 2012 15:26:07 -0500
-MIME-Version: 1.0
-In-Reply-To: <CAB=NE6UO8jPYOktteaLeihVqLp251-Q=jv5z_OThXoR+JtRKeg@mail.gmail.com>
-References: <1354221910-22493-1-git-send-email-mcgrof@do-not-panic.com>
- <50B87082.3020604@broadcom.com> <CAB=NE6UO8jPYOktteaLeihVqLp251-Q=jv5z_OThXoR+JtRKeg@mail.gmail.com>
-From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Date: Fri, 30 Nov 2012 12:25:43 -0800
-Message-ID: <CAB=NE6UVA1As_07HOvCbi4oK+CgbNNeeNMfz8agB-00ZRP973w@mail.gmail.com>
-Subject: Re: [PATCH 0/6] drivers: convert struct spinlock to spinlock_t
-To: Arend van Spriel <arend@broadcom.com>
-Cc: linux-kernel@vger.kernel.org, tglx@linutronix.de,
-	backports@vger.kernel.org, alexander.stein@systec-electronic.com,
-	brudley@broadcom.com, rvossen@broadcom.com, frankyl@broadcom.com,
-	kanyan@broadcom.com, linux-wireless@vger.kernel.org,
-	brcm80211-dev-list@broadcom.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, daniel.vetter@ffwll.ch,
-	intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-	srinidhi.kasagar@stericsson.com, linus.walleij@linaro.org,
-	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from userp1040.oracle.com ([156.151.31.81]:25483 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755041Ab2LHMvU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Dec 2012 07:51:20 -0500
+From: Sasha Levin <sasha.levin@oracle.com>
+To: mchehab@redhat.com
+Cc: david@hardeman.nu, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Sasha Levin <sasha.levin@oracle.com>
+Subject: [PATCH] rc-core: don't return from store_protocols without releasing device mutex
+Date: Sat,  8 Dec 2012 07:50:50 -0500
+Message-Id: <1354971050-5784-1-git-send-email-sasha.levin@oracle.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 30, 2012 at 11:18 AM, Luis R. Rodriguez
-<mcgrof@do-not-panic.com> wrote:
-> On Fri, Nov 30, 2012 at 12:38 AM, Arend van Spriel <arend@broadcom.com> wrote:
->> So what is the rationale here. During mainlining our drivers we had to
->> remove all uses of 'typedef struct foo foo_t;'. The Linux CodingStyle
->> (chapter 5 Typedefs) is spending a number of lines explaining why.
->>
->> So is spinlock_t an exception to this rule simply because the kernel
->> uses spinlock_t all over the place.
->
-> Yes.
+Commit c003ab1b ("[media] rc-core: add separate defines for protocol bitmaps
+and numbers") has introduced a bug which allows store_protocols() to return
+without releasing the device mutex it's holding.
 
-Let me provide a better explanation. In practice drivers should not be
-creating their own typedefs given that generally the reasons to create
-them do not exist for drivers. The kernel may provide their own though
-for reasons explained in CodingStyle and in such cases the drivers
-should use these supplied typedefs.
+Doing that would cause infinite hangs waiting on device mutex next time
+around.
 
-  Luis
+Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+---
+ drivers/media/rc/rc-main.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 601d1ac1..0510f4d 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -890,7 +890,8 @@ static ssize_t store_protocols(struct device *device,
+ 
+ 		if (i == ARRAY_SIZE(proto_names)) {
+ 			IR_dprintk(1, "Unknown protocol: '%s'\n", tmp);
+-			return -EINVAL;
++			ret = -EINVAL;
++			goto out;
+ 		}
+ 
+ 		count++;
+-- 
+1.8.0
+
