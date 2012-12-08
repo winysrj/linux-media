@@ -1,105 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:39847 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755412Ab2LRWJJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Dec 2012 17:09:09 -0500
-Message-ID: <50D0E7A7.90002@schinagl.nl>
-Date: Tue, 18 Dec 2012 23:01:11 +0100
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:64860 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965355Ab2LHPbj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Dec 2012 10:31:39 -0500
+Received: by mail-ee0-f46.google.com with SMTP id e53so806669eek.19
+        for <linux-media@vger.kernel.org>; Sat, 08 Dec 2012 07:31:38 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 2/9] em28xx: use common function for video and vbi buffer completion
+Date: Sat,  8 Dec 2012 16:31:25 +0100
+Message-Id: <1354980692-3791-3-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1354980692-3791-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1354980692-3791-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-CC: pfister@linuxtv.org, adq_dvb@lidskialf.net, js@linuxtv.org,
-	cus@fazekas.hu, mws@linuxtv.org, jmccrohan@gmail.com,
-	jirislaby@gmail.com, shaulkr@gmail.com, mkrufky@linuxtv.org,
-	mchehab@redhat.com, lubomir.carik@gmail.com
-Subject: Re: [RFC] Initial scan files troubles and brainstorming
-References: <507FE752.6010409@schinagl.nl>
-In-Reply-To: <507FE752.6010409@schinagl.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Unfortunatly, I have had zero replies.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-video.c |   33 +++++--------------------------
+ 1 Datei geändert, 5 Zeilen hinzugefügt(+), 28 Zeilen entfernt(-)
 
-So why bring it up again? On 2012/11/30 Jakub Kasprzycki provided us 
-with updated polish DVB-T frequencies for his region. This has yet to be 
-merged, almost 3 weeks later.
-
-While I know people are busy and merging frequency updates doesn't seem 
-critical, for people who somewhat depend on them, the sooner, the better.
-
-Since I didn't expect anybody to actually do the work, just was asking 
-for your thoughts, I've done the work. I've setup a repository and 
-purged all unrelated files. All history should have been preserved.
-
-I'll quickly repeat why I think this approach would be quite reasonable.
-
-* dvb-apps binary changes don't result in unnecessary releases
-* frequency updates don't result in unnecessary dvb-app releases
-* Less strict requirements for commits (code reviews etc)
-* Possibly easier entry for new submitters
-* much easier to package (tag it once per month if an update was)
-* Separate maintainer possible
-* just seems more logical to have it separated ;)
-
-This obviously should find a nice home on linuxtv where it belongs!
-
-Here is my personal repository with the work I mentioned done.
-git://git.schinagl.nl/dvb_frequency_scanfiles.git
-
-If an issue is that none of the original maintainers are not looking 
-forward to do the job, I am willing to take maintenance on me for now.
-
-Anyway, hopefully this time we can get some form of discussion going :)
-
-Oliver
-
-On 10/18/12 13:26, Oliver Schinagl wrote:
-> Hello list,
->
-> I was talking to someone over at tvheadend and was told that the
-> linux-media initial scan files tend to be often very out dated. Also
-> when newer files are submitted, requests to merge them are simply being
-> ignored. Obviously I have zero proof to back those claims. True or not,
-> they have decided to keep a local copy and try to keep that up to date
-> as possible. One of the reasons to take this approach, is because major
-> distro's also do it in this way.
-> 1
-> This obviously results in a duplication of work and since it's factual
-> data really wasted resources, no central repository of said factual
-> data, but spread and makes it confusing on top of that for users of this
-> data.
->
-> Now I don't know the proper solution or if it really is a problem. Well
-> it appears to be so I guess ;)
->
-> Something that comes to mind, is to split off the initial scan files
-> from the dvb-apps package and have a seperate git tree for it, like for
-> example the firmware git tree. I feel this has several advantages over
-> the current setup.
->
-> One could have /usr/share/dvb/ as a git tree and simply pull to have an
-> up to date tree.
-> Initialscan file 'users (as in developers)' can more easily clone it and
-> do pull requests.
-> Possibly more lenient commit access, e.g. allow a 'trusted' developer of
-> a dvb project to have commit rights, without much risk of breaking any
-> source code.
-> Other things I haven't thought of yet.
-> Since there really isn't a 'stable' release, current trunk can be
-> considered the go to release, unverified changes could live in a branch?
->
-> Again, if everybody can firmly claim there is no problem and that the
-> initial scanfiles are updated nearly when an actually change takes
-> place, then we should try convince downstream maintainers of course.
->
-> Anyway, this is just something that was on my mind and wanted some
-> feedback on.
->
-> Oliver
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 6acdfea..71a3181 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -154,36 +154,15 @@ static struct v4l2_queryctrl ac97_qctrl[] = {
+    ------------------------------------------------------------------*/
+ 
+ /*
+- * Announces that a buffer were filled and request the next
++ * Finish the current buffer
+  */
+-static inline void buffer_filled(struct em28xx *dev,
+-				  struct em28xx_dmaqueue *dma_q,
+-				  struct em28xx_buffer *buf)
++static inline void finish_buffer(struct em28xx *dev,
++				 struct em28xx_buffer *buf)
+ {
+-	/* Advice that buffer was filled */
+ 	em28xx_usbdbg("[%p/%d] wakeup\n", buf, buf->vb.i);
+ 	buf->vb.state = VIDEOBUF_DONE;
+ 	buf->vb.field_count++;
+ 	do_gettimeofday(&buf->vb.ts);
+-
+-	dev->usb_ctl.vid_buf = NULL;
+-
+-	list_del(&buf->vb.queue);
+-	wake_up(&buf->vb.done);
+-}
+-
+-static inline void vbi_buffer_filled(struct em28xx *dev,
+-				     struct em28xx_dmaqueue *dma_q,
+-				     struct em28xx_buffer *buf)
+-{
+-	/* Advice that buffer was filled */
+-	em28xx_usbdbg("[%p/%d] wakeup\n", buf, buf->vb.i);
+-	buf->vb.state = VIDEOBUF_DONE;
+-	buf->vb.field_count++;
+-	do_gettimeofday(&buf->vb.ts);
+-
+-	dev->usb_ctl.vbi_buf = NULL;
+-
+ 	list_del(&buf->vb.queue);
+ 	wake_up(&buf->vb.done);
+ }
+@@ -484,9 +463,7 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
+ 				if (dev->vbi_read == 0 && dev->top_field) {
+ 					/* Brand new frame */
+ 					if (vbi_buf != NULL)
+-						vbi_buffer_filled(dev,
+-								  vbi_dma_q,
+-								  vbi_buf);
++						finish_buffer(dev, vbi_buf);
+ 					vbi_buf = get_next_buf(dev, vbi_dma_q);
+ 					dev->usb_ctl.vbi_buf = vbi_buf;
+ 					if (vbi_buf == NULL)
+@@ -523,7 +500,7 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
+ 			dev->capture_type = 2;
+ 			if (dev->progressive || dev->top_field) {
+ 				if (buf != NULL)
+-					buffer_filled(dev, dma_q, buf);
++					finish_buffer(dev, buf);
+ 				buf = get_next_buf(dev, dma_q);
+ 				dev->usb_ctl.vid_buf = buf;
+ 				if (buf == NULL)
+-- 
+1.7.10.4
 
