@@ -1,84 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:51740 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752319Ab2LZRgB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Dec 2012 12:36:01 -0500
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id 624C040BDC
-	for <linux-media@vger.kernel.org>; Wed, 26 Dec 2012 18:35:59 +0100 (CET)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1Tnutb-0001cX-1v
-	for linux-media@vger.kernel.org; Wed, 26 Dec 2012 18:35:59 +0100
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 6/6] soc-camera: fix repeated regulator requesting
-Date: Wed, 26 Dec 2012 18:35:58 +0100
-Message-Id: <1356543358-6180-7-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1356543358-6180-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1356543358-6180-1-git-send-email-g.liakhovetski@gmx.de>
+Received: from firefly.pyther.net ([50.116.37.168]:60733 "EHLO
+	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964908Ab2LHQvn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Dec 2012 11:51:43 -0500
+Message-ID: <50C3701D.9000700@pyther.net>
+Date: Sat, 08 Dec 2012 11:51:41 -0500
+From: Matthew Gyurgyik <matthew@pyther.net>
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+CC: Antti Palosaari <crope@iki.fi>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com>
+In-Reply-To: <50C35AD1.3040000@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently devm_regulator_bulk_get() is called by soc-camera during host
-driver probing, but regulators are attached to the camera platform
-device, that is staying, independent whether the host probed successfully
-or not. This can lead to repeated regulator requesting, if the host
-driver is re-probed. Move the call to platform device probing to avoid
-this.
+On 12/08/2012 10:20 AM, Frank Schäfer wrote:
+> Am 08.12.2012 15:10, schrieb Matthew Gyurgyik:
+>
+> Ok, thanks. So the USB log was right and the bridge setup should be
+> complete, except that the remote control doesn't work yet...
+>
+> Could you please test the patch in the attachment ?
+> Changes from V3:
+> - use the correct demodulator configuration
+> - changed the remote control map to RC_MAP_KWORLD_315U (same as DIGIVOX
+> III but without NEC extended address byte)
+> - switched from the KWorld std_map for the tuner to a custom one. For
+> QAM, I selected the values from the log and for atsc I took the standard
+> values from the tda18271 driver.
+>
+> Regards,
+> Frank
+>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/platform/soc_camera/soc_camera.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+I tested the patch and this is what I found
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index 4285a8b..0b6ddff 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1146,11 +1146,6 @@ static int soc_camera_probe(struct soc_camera_device *icd)
- 	if (ret < 0)
- 		return ret;
- 
--	ret = devm_regulator_bulk_get(icd->pdev, ssdd->num_regulators,
--				      ssdd->regulators);
--	if (ret < 0)
--		goto ereg;
--
- 	/* The camera could have been already on, try to reset */
- 	if (ssdd->reset)
- 		ssdd->reset(icd->pdev);
-@@ -1255,7 +1250,6 @@ evdc:
- 	ici->ops->remove(icd);
- 	mutex_unlock(&ici->host_lock);
- eadd:
--ereg:
- 	v4l2_ctrl_handler_free(&icd->ctrl_handler);
- 	return ret;
- }
-@@ -1542,7 +1536,9 @@ static int soc_camera_video_start(struct soc_camera_device *icd)
- static int __devinit soc_camera_pdrv_probe(struct platform_device *pdev)
- {
- 	struct soc_camera_desc *sdesc = pdev->dev.platform_data;
-+	struct soc_camera_subdev_desc *ssdd = &sdesc->subdev_desc;
- 	struct soc_camera_device *icd;
-+	int ret;
- 
- 	if (!sdesc)
- 		return -EINVAL;
-@@ -1551,6 +1547,11 @@ static int __devinit soc_camera_pdrv_probe(struct platform_device *pdev)
- 	if (!icd)
- 		return -ENOMEM;
- 
-+	ret = devm_regulator_bulk_get(&pdev->dev, ssdd->num_regulators,
-+				      ssdd->regulators);
-+	if (ret < 0)
-+		return ret;
-+
- 	icd->iface = sdesc->host_desc.bus_id;
- 	icd->sdesc = sdesc;
- 	icd->pdev = &pdev->dev;
--- 
-1.7.2.5
+The remote still doesn't work, would it be helpful to do a usb snoop 
+while using the remote in windows (not sure I can make the win7 driver 
+work in xp)?
 
+http://pyther.net/a/digivox_atsc/patch4/evtest.txt
+
+A channel scan still fails with the following error:
+ > start_filter:1752: ERROR: ioctl DMX_SET_FILTER failed: 71 Protocol error
+
+However there are no messages in dmesg that indicate any errors / warnings.
+http://pyther.net/a/digivox_atsc/patch4/scan.txt
+
+When using mplayer dvb://
+
+It seems that switching channels work a bit better, I can switch more 
+channels before I get errors and mplayer closes.
+
+http://pyther.net/a/digivox_atsc/patch4/mplayer.txt
+
+Dmesg: http://pyther.net/a/digivox_atsc/patch4/dmesg.txt
+
+Thanks,
+Matthew
