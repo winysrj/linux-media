@@ -1,176 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:38287 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965358Ab2LHPbt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Dec 2012 10:31:49 -0500
-Received: by mail-ea0-f174.google.com with SMTP id e13so548069eaa.19
-        for <linux-media@vger.kernel.org>; Sat, 08 Dec 2012 07:31:48 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 6/9] em28xx: move caching of pointer to vmalloc memory in videobuf to struct em28xx_buffer
-Date: Sat,  8 Dec 2012 16:31:29 +0100
-Message-Id: <1354980692-3791-7-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1354980692-3791-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1354980692-3791-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:53158 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965420Ab2LHRtU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Dec 2012 12:49:20 -0500
+Received: by mail-ee0-f46.google.com with SMTP id e53so846804eek.19
+        for <linux-media@vger.kernel.org>; Sat, 08 Dec 2012 09:49:19 -0800 (PST)
+Message-ID: <50C37DA8.4080608@googlemail.com>
+Date: Sat, 08 Dec 2012 18:49:28 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+To: Matthew Gyurgyik <matthew@pyther.net>
+CC: Antti Palosaari <crope@iki.fi>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com> <50C3701D.9000700@pyther.net>
+In-Reply-To: <50C3701D.9000700@pyther.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the current code em28xx_urb_data_copy() caches the pointer to the vmalloc
-memory in videobuf locally.
-The alternative would be to call videobuf_to_vmalloc() for each processed USB
-data packet (isoc USB transfers => 64 times per URB) in the em28xx_copy_*()
-functions.
+Am 08.12.2012 17:51, schrieb Matthew Gyurgyik:
+> On 12/08/2012 10:20 AM, Frank Sch�fer wrote:
+>> Am 08.12.2012 15:10, schrieb Matthew Gyurgyik:
+>>
+>> Ok, thanks. So the USB log was right and the bridge setup should be
+>> complete, except that the remote control doesn't work yet...
+>>
+>> Could you please test the patch in the attachment ?
+>> Changes from V3:
+>> - use the correct demodulator configuration
+>> - changed the remote control map to RC_MAP_KWORLD_315U (same as DIGIVOX
+>> III but without NEC extended address byte)
+>> - switched from the KWorld std_map for the tuner to a custom one. For
+>> QAM, I selected the values from the log and for atsc I took the standard
+>> values from the tda18271 driver.
+>>
+>> Regards,
+>> Frank
+>>
+>
+> I tested the patch and this is what I found
+>
+> The remote still doesn't work, would it be helpful to do a usb snoop
+> while using the remote in windows (not sure I can make the win7 driver
+> work in xp)?
 
-With the next commits, the data processing code will be split into functions
-for serveral reasons:
-- em28xx_urb_data_copy() is generally way to long, making it less readable
-- there is code duplication between VBI and video data processing
-- support for em25xx data processing (uses a different header and frame
-  end signaling mechanism) will be added
+That shouldn't be necessary. I just noticed that there is a module
+parameter 'ir_debug'. ;)
+With ir_debug enabled, you should see messages
 
-This would require extensive usage of pointer-pointers, which usually makes the
-code less readable and prone to bugs.
+        em28xx_ir_handle_key: toggle: XX, count: XX, key XXYYZZ
 
-The better solution is to cache the pointer in struct em28xx_buffer.
-This also improves consistency, because we already track the buffer fill count there.
+everytime you press a button. Once we know the key codes, we can set up
+a key map (if it doesn't exist yet).
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |   29 +++++++++--------------------
- drivers/media/usb/em28xx/em28xx.h       |    3 +++
- 2 Dateien geändert, 12 Zeilen hinzugefügt(+), 20 Zeilen entfernt(-)
+>
+> http://pyther.net/a/digivox_atsc/patch4/evtest.txt
+>
+> A channel scan still fails with the following error:
+> > start_filter:1752: ERROR: ioctl DMX_SET_FILTER failed: 71 Protocol
+> error
+>
+> However there are no messages in dmesg that indicate any errors /
+> warnings.
+> http://pyther.net/a/digivox_atsc/patch4/scan.txt
+>
+> When using mplayer dvb://
+>
+> It seems that switching channels work a bit better, I can switch more
+> channels before I get errors and mplayer closes.
+>
+> http://pyther.net/a/digivox_atsc/patch4/mplayer.txt
+>
+> Dmesg: http://pyther.net/a/digivox_atsc/patch4/dmesg.txt
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 70bc562..60df756 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -173,11 +173,12 @@ static inline void finish_buffer(struct em28xx *dev,
- static void em28xx_copy_video(struct em28xx *dev,
- 			      struct em28xx_buffer *buf,
- 			      unsigned char *p,
--			      unsigned char *outp, unsigned long len)
-+			      unsigned long len)
- {
- 	void *fieldstart, *startwrite, *startread;
- 	int  linesdone, currlinedone, offset, lencopy, remain;
- 	int bytesperline = dev->width << 1;
-+	unsigned char *outp = buf->vb_buf;
- 
- 	if (buf->pos + len > buf->vb.size)
- 		len = buf->vb.size - buf->pos;
-@@ -249,11 +250,12 @@ static void em28xx_copy_video(struct em28xx *dev,
- static void em28xx_copy_vbi(struct em28xx *dev,
- 			    struct em28xx_buffer *buf,
- 			    unsigned char *p,
--			    unsigned char *outp, unsigned long len)
-+			    unsigned long len)
- {
- 	void *startwrite, *startread;
- 	int  offset;
- 	int bytesperline;
-+	unsigned char *outp;
- 
- 	if (dev == NULL) {
- 		em28xx_usbdbg("dev is null\n");
-@@ -268,6 +270,7 @@ static void em28xx_copy_vbi(struct em28xx *dev,
- 		em28xx_usbdbg("p is null\n");
- 		return;
- 	}
-+	outp = buf->vb_buf;
- 	if (outp == NULL) {
- 		em28xx_usbdbg("outp is null\n");
- 		return;
-@@ -350,6 +353,7 @@ static inline struct em28xx_buffer *get_next_buf(struct em28xx *dev,
- 	outp = videobuf_to_vmalloc(&buf->vb);
- 	memset(outp, 0, buf->vb.size);
- 	buf->pos = 0;
-+	buf->vb_buf = outp;
- 
- 	return buf;
- }
-@@ -362,7 +366,7 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
- 	struct em28xx_dmaqueue  *vbi_dma_q = &dev->vbiq;
- 	int xfer_bulk, num_packets, i, rc = 1;
- 	unsigned int actual_length, len = 0;
--	unsigned char *p, *outp = NULL, *vbioutp = NULL;
-+	unsigned char *p;
- 
- 	if (!dev)
- 		return 0;
-@@ -376,12 +380,7 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
- 	xfer_bulk = usb_pipebulk(urb->pipe);
- 
- 	buf = dev->usb_ctl.vid_buf;
--	if (buf != NULL)
--		outp = videobuf_to_vmalloc(&buf->vb);
--
- 	vbi_buf = dev->usb_ctl.vbi_buf;
--	if (vbi_buf != NULL)
--		vbioutp = videobuf_to_vmalloc(&vbi_buf->vb);
- 
- 	if (xfer_bulk) /* bulk */
- 		num_packets = 1;
-@@ -455,11 +454,6 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
- 					finish_buffer(dev, vbi_buf);
- 				vbi_buf = get_next_buf(dev, vbi_dma_q);
- 				dev->usb_ctl.vbi_buf = vbi_buf;
--				if (vbi_buf == NULL)
--					vbioutp = NULL;
--				else
--					vbioutp =
--					  videobuf_to_vmalloc(&vbi_buf->vb);
- 			}
- 			if (vbi_buf != NULL) {
- 				vbi_buf->top_field = dev->top_field;
-@@ -474,8 +468,7 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
- 
- 			/* Copy VBI data */
- 			if (vbi_buf != NULL)
--				em28xx_copy_vbi(dev, vbi_buf, p, vbioutp,
--						vbi_data_len);
-+				em28xx_copy_vbi(dev, vbi_buf, p, vbi_data_len);
- 			dev->vbi_read += vbi_data_len;
- 
- 			if (vbi_data_len < len) {
-@@ -493,10 +486,6 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
- 					finish_buffer(dev, buf);
- 				buf = get_next_buf(dev, dma_q);
- 				dev->usb_ctl.vid_buf = buf;
--				if (buf == NULL)
--					outp = NULL;
--				else
--					outp = videobuf_to_vmalloc(&buf->vb);
- 			}
- 			if (buf != NULL) {
- 				buf->top_field = dev->top_field;
-@@ -505,7 +494,7 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
- 		}
- 
- 		if (buf != NULL && dev->capture_type == 3 && len > 0)
--			em28xx_copy_video(dev, buf, p, outp, len);
-+			em28xx_copy_video(dev, buf, p, len);
- 	}
- 	return rc;
- }
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 7507aa6..062841e 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -258,6 +258,9 @@ struct em28xx_buffer {
- 	unsigned int pos;
- 	/* NOTE; in interlaced mode, this value is reset to zero at
- 	 * the start of each new field (not frame !)		   */
-+
-+	/* pointer to vmalloc memory address in vb */
-+	char *vb_buf;
- };
- 
- struct em28xx_dmaqueue {
--- 
-1.7.10.4
+Ok. Hopefully the tuner experts have some ideas... Antti, Devin ?
+
+Regards,
+Frank
+
+>
+> Thanks,
+> Matthew
 
