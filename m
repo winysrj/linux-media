@@ -1,103 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:56054 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751997Ab2LEBMf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Dec 2012 20:12:35 -0500
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH v3 3/4] sta2x11_vip: convert to videobuf2 and control framework
-Date: Wed, 05 Dec 2012 02:12:24 +0100
-Message-ID: <8113379.Pqy1l62Utl@number-5>
-In-Reply-To: <50BE2193.4020103@redhat.com>
-References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com> <1348484332-8106-3-git-send-email-federico.vaga@gmail.com> <50BE2193.4020103@redhat.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:33382 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758211Ab2LHVrw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 8 Dec 2012 16:47:52 -0500
+Message-ID: <50C3B567.3070300@iki.fi>
+Date: Sat, 08 Dec 2012 23:47:19 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Matthew Gyurgyik <matthew@pyther.net>
+CC: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com> <50C3701D.9000700@pyther .net> <50C37DA8.4080608@googlemai l.com> <50C3B3EB.40606@pyther.net>
+In-Reply-To: <50C3B3EB.40606@pyther.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 04 December 2012 14:15:15 Mauro Carvalho Chehab wrote:
-> Em 24-09-2012 07:58, Federico Vaga escreveu:
-> > This patch re-write the driver and use the videobuf2
-> > interface instead of the old videobuf. Moreover, it uses also
-> > the control framework which allows the driver to inherit
-> > controls from its subdevice (ADV7180)
-> > 
-> > Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
-> > Acked-by: Giancarlo Asnaghi <giancarlo.asnaghi@st.com>
-> >
-> > [..........]
-> > 
-> >   /*
-> >   
-> >    * This is the driver for the STA2x11 Video Input Port.
-> >    *
-> > 
-> > + * Copyright (C) 2012       ST Microelectronics
-> > 
-> >    * Copyright (C) 2010       WindRiver Systems, Inc.
-> >    *
-> >    * This program is free software; you can redistribute it and/or modify
-> >    it
-> > 
-> > @@ -19,36 +20,30 @@
-> > 
-> >    * The full GNU General Public License is included in this distribution
-> >    in
-> >    * the file called "COPYING".
-> >    *
-> > 
-> > - * Author: Andreas Kies <andreas.kies@windriver.com>
-> > - *		Vlad Lungu <vlad.lungu@windriver.com>
-> 
-> Why are you dropping those authorship data?
-> 
-> Ok, it is clear to me that most of the code there got rewritten, and,
-> while IANAL, I think they still have some copyrights on it.
-> 
-> So, if you're willing to do that, you need to get authors ack
-> on such patch.
+On 12/08/2012 11:40 PM, Matthew Gyurgyik wrote:
+> On 12/08/2012 12:49 PM, Frank Schäfer wrote:
+>> Am 08.12.2012 17:51, schrieb Matthew Gyurgyik:
+>>
+>> That shouldn't be necessary. I just noticed that there is a module
+>> parameter 'ir_debug'. ;)
+>> With ir_debug enabled, you should see messages
+>>
+>>          em28xx_ir_handle_key: toggle: XX, count: XX, key XXYYZZ
+>>
+>> everytime you press a button. Once we know the key codes, we can set up
+>> a key map (if it doesn't exist yet).
+>>
+>
+> Maybe I'm doing something wrong but didn't have any luck :(
+>
+>> [root@tux ~]# sudo rmmod em28xx_rc
+>> [root@tux ~]# sudo rmmod em28xx_dvb
+>> [root@tux ~]# sudo rmmod em28xx
+>> [root@tux ~]# modprobe em28xx_rc ir_debug=1
+>
+> I don't see any additional messages in dmesg.
+>
+> I verified the remote still works in windows (a stupidity check on my part)
 
-I re-write the driver, and also the first version of the driver has many 
-modification made by me, many bug fix, style review, remove useless code.
-The first time I didn't add myself as author because the logic of the driver 
-did not change. This time, plus the old change I think there is nothing of the 
-original driver because I rewrite it from the hardware manual. Practically, It 
-is a new driver for the same device.
+Maybe Kernel debugs are not enabled? em28xx driver is a little bit 
+legacy in logging too as it uses own logging whilst nowadays dynamic 
+logging is recommended.
 
-Anyway I will try to contact the original authors for the acked-by.
+replace KERN_DEBUG as KERN_INFO inside em28xx-input.c and test. It will 
+change driver to use Kernel normal log writings instead of current debug 
+ones.
 
-> >   MODULE_DESCRIPTION("STA2X11 Video Input Port driver");
-> > 
-> > -MODULE_AUTHOR("Wind River");
-> 
-> Same note applies here: we need Wind River's ack on that to drop it.
+regards
+Antti
 
-I will try also for this. But I think that this is not a windriver driver 
-because I re-wrote it from the hardware manual. I used the old driver because 
-I thought that it was better than propose a patch that remove the old driver 
-and add my driver.
-I did not remove the 2010 Copyright from windriver, because they did the job, 
-but this work was paid by ST (copyright 2012) and made completely by me.
-
-Is my thinking wrong?
-
-Just a question for the future so I avoid to redo the same error. If I re-
-wrote most of a driver I cannot change the authorship automatically without 
-the acked-by of the previous author. If I ask to the previous author and he 
-does not give me the acked-by (or he is unreachable, he change email address), 
-then the driver is written by me but the author is someone else? Right? So, it 
-is better if I propose a patch which remove a driver and a patch which add my 
-driver?
-
-Thank you
 
 -- 
-Federico Vaga
+http://palosaari.fi/
