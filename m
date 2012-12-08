@@ -1,75 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60322 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752121Ab2L0TTR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Dec 2012 14:19:17 -0500
-Date: Thu, 27 Dec 2012 20:19:05 +0100
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Rob Clark <rob.clark@linaro.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Jani Nikula <jani.nikula@linux.intel.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	linux-fbdev@vger.kernel.org,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Tom Gall <tom.gall@linaro.org>,
-	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
-	dri-devel@lists.freedesktop.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC v2 0/5] Common Display Framework
-Message-ID: <20121227191905.GR24458@pengutronix.de>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1671267.x0lxGrFjjV@avalon>
- <87pq26ay2z.fsf@intel.com>
- <2286035.iP368aB6Vk@avalon>
- <CAF6AEGth+rriTf7X3AXytN+YXxjx4XqMB1ow6ZE2QUro-hqYgw@mail.gmail.com>
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:38287 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965354Ab2LHPbh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Dec 2012 10:31:37 -0500
+Received: by mail-ea0-f174.google.com with SMTP id e13so548069eaa.19
+        for <linux-media@vger.kernel.org>; Sat, 08 Dec 2012 07:31:36 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 1/9] em28xx: refactor get_next_buf() and use it for vbi data, too
+Date: Sat,  8 Dec 2012 16:31:24 +0100
+Message-Id: <1354980692-3791-2-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1354980692-3791-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1354980692-3791-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAF6AEGth+rriTf7X3AXytN+YXxjx4XqMB1ow6ZE2QUro-hqYgw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 27, 2012 at 10:04:22AM -0600, Rob Clark wrote:
-> On Mon, Dec 24, 2012 at 11:27 AM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
-> > On Wednesday 19 December 2012 16:57:56 Jani Nikula wrote:
-> >> It just seems to me that, at least from a DRM/KMS perspective, adding
-> >> another layer (=CDF) for HDMI or DP (or legacy outputs) would be
-> >> overengineering it. They are pretty well standardized, and I don't see there
-> >> would be a need to write multiple display drivers for them. Each display
-> >> controller has one, and can easily handle any chip specific requirements
-> >> right there. It's my gut feeling that an additional framework would just get
-> >> in the way. Perhaps there could be more common HDMI/DP helper style code in
-> >> DRM to reduce overlap across KMS drivers, but that's another thing.
-> >>
-> >> So is the HDMI/DP drivers using CDF a more interesting idea from a non-DRM
-> >> perspective? Or, put another way, is it more of an alternative to using DRM?
-> >> Please enlighten me if there's some real benefit here that I fail to see!
-> >
-> > As Rob pointed out, you can have external HDMI/DP encoders, and even internal
-> > HDMI/DP encoder IPs can be shared between SoCs and SoC vendors. CDF aims at
-> > sharing a single driver between SoCs and boards for a given HDMI/DP encoder.
-> 
-> just fwiw, drm already has something a bit like this.. the i2c
-> encoder-slave.  With support for a couple external i2c encoders which
-> could in theory be shared between devices.
+get_next_buf() and vbi_get_next_buf() do exactly the same just with a
+different dma queue and buffer. Saving the new buffer pointer back to the
+device struct in em28xx_urb_data_copy() instead of doing this from inside
+these functions makes it possible to get rid of one of them.
 
-The problem with this code is that it only works when the i2c device is
-registered by a master driver. Once the i2c device comes from the
-devicetree there is no possibility to find it.
+Also refactor the function parameters and return type:
+- pass a pointer to struct em28xx as parameter (instead of obtaining the
+  pointer from the dma queue pointer with the container_of macro) like we do
+  it in all other functions
+- instead of using a pointer-pointer, return the pointer to the new buffer
+  as return value of the function
 
-Sascha
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-video.c |   58 ++++++++-----------------------
+ 1 Datei geändert, 15 Zeilen hinzugefügt(+), 43 Zeilen entfernt(-)
 
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 6282d48..6acdfea 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -358,57 +358,26 @@ static inline void print_err_status(struct em28xx *dev,
+ }
+ 
+ /*
+- * video-buf generic routine to get the next available buffer
++ * get the next available buffer from dma queue
+  */
+-static inline void get_next_buf(struct em28xx_dmaqueue *dma_q,
+-					  struct em28xx_buffer **buf)
++static inline struct em28xx_buffer *get_next_buf(struct em28xx *dev,
++						 struct em28xx_dmaqueue *dma_q)
+ {
+-	struct em28xx *dev = container_of(dma_q, struct em28xx, vidq);
++	struct em28xx_buffer *buf;
+ 	char *outp;
+ 
+ 	if (list_empty(&dma_q->active)) {
+ 		em28xx_usbdbg("No active queue to serve\n");
+-		dev->usb_ctl.vid_buf = NULL;
+-		*buf = NULL;
+-		return;
+-	}
+-
+-	/* Get the next buffer */
+-	*buf = list_entry(dma_q->active.next, struct em28xx_buffer, vb.queue);
+-	/* Cleans up buffer - Useful for testing for frame/URB loss */
+-	outp = videobuf_to_vmalloc(&(*buf)->vb);
+-	memset(outp, 0, (*buf)->vb.size);
+-
+-	dev->usb_ctl.vid_buf = *buf;
+-
+-	return;
+-}
+-
+-/*
+- * video-buf generic routine to get the next available VBI buffer
+- */
+-static inline void vbi_get_next_buf(struct em28xx_dmaqueue *dma_q,
+-				    struct em28xx_buffer **buf)
+-{
+-	struct em28xx *dev = container_of(dma_q, struct em28xx, vbiq);
+-	char *outp;
+-
+-	if (list_empty(&dma_q->active)) {
+-		em28xx_usbdbg("No active queue to serve\n");
+-		dev->usb_ctl.vbi_buf = NULL;
+-		*buf = NULL;
+-		return;
++		return NULL;
+ 	}
+ 
+ 	/* Get the next buffer */
+-	*buf = list_entry(dma_q->active.next, struct em28xx_buffer, vb.queue);
++	buf = list_entry(dma_q->active.next, struct em28xx_buffer, vb.queue);
+ 	/* Cleans up buffer - Useful for testing for frame/URB loss */
+-	outp = videobuf_to_vmalloc(&(*buf)->vb);
+-	memset(outp, 0x00, (*buf)->vb.size);
+-
+-	dev->usb_ctl.vbi_buf = *buf;
++	outp = videobuf_to_vmalloc(&buf->vb);
++	memset(outp, 0, buf->vb.size);
+ 
+-	return;
++	return buf;
+ }
+ 
+ /* Processes and copies the URB data content (video and VBI data) */
+@@ -518,7 +487,8 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
+ 						vbi_buffer_filled(dev,
+ 								  vbi_dma_q,
+ 								  vbi_buf);
+-					vbi_get_next_buf(vbi_dma_q, &vbi_buf);
++					vbi_buf = get_next_buf(dev, vbi_dma_q);
++					dev->usb_ctl.vbi_buf = vbi_buf;
+ 					if (vbi_buf == NULL)
+ 						vbioutp = NULL;
+ 					else
+@@ -529,7 +499,8 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
+ 				if (dev->vbi_read == 0) {
+ 					vbi_dma_q->pos = 0;
+ 					if (vbi_buf != NULL)
+-						vbi_buf->top_field = dev->top_field;
++						vbi_buf->top_field
++						  = dev->top_field;
+ 				}
+ 
+ 				dev->vbi_read += len;
+@@ -553,7 +524,8 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
+ 			if (dev->progressive || dev->top_field) {
+ 				if (buf != NULL)
+ 					buffer_filled(dev, dma_q, buf);
+-				get_next_buf(dma_q, &buf);
++				buf = get_next_buf(dev, dma_q);
++				dev->usb_ctl.vid_buf = buf;
+ 				if (buf == NULL)
+ 					outp = NULL;
+ 				else
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.7.10.4
+
