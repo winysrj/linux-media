@@ -1,222 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from forward2h.mail.yandex.net ([84.201.187.147]:47974 "EHLO
-	forward2h.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751318Ab2L1NTZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Dec 2012 08:19:25 -0500
-Date: Fri, 28 Dec 2012 17:12:56 +0400
-From: Kirill Smelkov <kirr@navytux.spb.ru>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH,v2] [media] vivi: Constify structures
-Message-ID: <20121228131256.GA2688@mini.zxlink>
-References: <1356535783-24173-1-git-send-email-kirr@navytux.spb.ru>
- <201212271255.11159.hverkuil@xs4all.nl>
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:51085 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756735Ab2LIRGg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Dec 2012 12:06:36 -0500
+Received: by mail-ea0-f174.google.com with SMTP id e13so810160eaa.19
+        for <linux-media@vger.kernel.org>; Sun, 09 Dec 2012 09:06:35 -0800 (PST)
+Message-ID: <50C4C525.6020006@googlemail.com>
+Date: Sun, 09 Dec 2012 18:06:45 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201212271255.11159.hverkuil@xs4all.nl>
+To: Matthew Gyurgyik <matthew@pyther.net>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com> <50C48891.2050903@googlemail.com> <50C4A520.6020908@pyther.net> <CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com> <50C4BA20.8060003@googlemail.com> <50C4BAFB.60304@googlemail.com>
+In-Reply-To: <50C4BAFB.60304@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 27, 2012 at 12:55:11PM +0100, Hans Verkuil wrote:
-> On Wed December 26 2012 16:29:43 Kirill Smelkov wrote:
-> > Most of *_ops and other structures in vivi.c were already declared const
-> > but some have not. Constify and code/data will take less space:
-> > 
-> >     $ size drivers/media/platform/vivi.o
-> >               text    data     bss     dec     hex filename
-> >     before:  12569     248       8   12825    3219 drivers/media/platform/vivi.o
-> >     after:   12308      20       8   12336    3030 drivers/media/platform/vivi.o
-> > 
-> > i.e. vivi.o is now ~500 bytes less.
-> > 
-> > Signed-off-by: Kirill Smelkov <kirr@navytux.spb.ru>
-> > ---
-> >  drivers/media/platform/vivi.c | 26 +++++++++++++-------------
-> >  1 file changed, 13 insertions(+), 13 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-> > index ec65089..bed04e1 100644
-> > --- a/drivers/media/platform/vivi.c
-> > +++ b/drivers/media/platform/vivi.c
-> > @@ -91,13 +91,13 @@ static const struct v4l2_fract
-> >     ------------------------------------------------------------------*/
-> >  
-> >  struct vivi_fmt {
-> > -	char  *name;
-> > +	const char  *name;
-> 
-> Just use one space before '*' since it no longer lines up to anything.
+Am 09.12.2012 17:23, schrieb Frank Schäfer:
+> Am 09.12.2012 17:19, schrieb Frank Schäfer:
+>> Am 09.12.2012 16:46, schrieb Devin Heitmueller:
+>>> On Sun, Dec 9, 2012 at 9:50 AM, Matthew Gyurgyik <matthew@pyther.net> wrote:
+>>>> Just to make sure I'm not misunderstanding, the messages should get logged
+>>>> to dmesg, correct?
+>>> I wrote the original IR support for the em2874, but it seems to have
+>>> changed a bit since I submitted it.  One thing that jumps out at me is
+>>> if you specify a remote control of the wrong *type* (e.g. the driver
+>>> is configured for RC5 but the actual remote is configured for NEC),
+>>> then you're likely to get no events from the device.
+>>>
+>>> You may wish to lookup what type of remote RC_MAP_KWORLD_315U is, and
+>>> try a remote that is of the other protocol type (e.g. if
+>>> RC_MAP_KWORLD_315U is RC5 then try a remote which is NEC).  Then see
+>>> if you get events.  If so, then you know you have the correct RC
+>>> protocol and just need to adjust the RC profile specified.
+>>>
+>>> Also, it's possible the remote control is an RC6 remote, which I never
+>>> got around to adding em2874 driver support for.  Take a look at the
+>>> windows trace and see what register R50 is being set to.  In
+>>> particular, bits [3-2] will tell you what RC protocol the Windows
+>>> driver expects the remote to be.  I'm pretty sure I put the definition
+>>> for the relevant bits in em28xx-reg.h.
+>> According to the USB log, register 0x50 is set to 0x01.
+>>
+>> em28xx-reg.h says:
+>>
+>> /* em2874 IR config register (0x50) */
+>> #define EM2874_IR_NEC           0x00
+>> #define EM2874_IR_RC5           0x04
+>> #define EM2874_IR_RC6_MODE_0    0x08
+>> #define EM2874_IR_RC6_MODE_6A   0x0b
+>>
+>> Any idea what 0x01 is ?
+>>
+>> It also seems that em28xx_ir_change_protocol() always sets reg 0x05 to
+>> EM2874_IR_RC5...
+> Sorry, I was wrong. Of course it sets 0x05 to EM2874_IR_RC5 or
+> EM2874_IR_NEC depending on field .xclk in the board struct.
 
-[...]
-> > @@ -191,7 +191,7 @@ struct vivi_buffer {
-> >  	/* common v4l buffer stuff -- must be first */
-> >  	struct vb2_buffer	vb;
-> >  	struct list_head	list;
-> > -	struct vivi_fmt        *fmt;
-> > +	struct vivi_fmt const  *fmt;
-> >  };
-> >  
-> >  struct vivi_dmaqueue {
-> > @@ -250,7 +250,7 @@ struct vivi_dev {
-> >  	int			   input;
-> >  
-> >  	/* video capture */
-> > -	struct vivi_fmt            *fmt;
-> > +	struct vivi_fmt const      *fmt;
-> 
-> 'const' should be before 'struct' for consistency reasons.
+Forget this sh... (never do multiple things at the same time ;) )
 
-It's just a matter of style, and in this case I though putting const
-after would not distract from the fact that fmt is `struct vivi_fmt *`
-and also to align types beginning with non-const ones.
+Reg 0x50 is set to according to rc_type specified in the selected remote
+control map.
+So if the correct map is selected, everything should be fine (as long as
+it is RC_TYPE_NEC or RC_TYPE_RC5 because we don't support others yet).
 
-But anyway, style is style and this is not a big deal, so here you are
-with corrected patch.
+RC_MAP_KWORLD_315U and RC_MAP_MSI_DIGIVOX_III are both RC_TYPE_NEC, so
+the stick seems to use no NEC protocol.
 
-Thanks,
-Kirill
+Matthew, insert a line
 
----- 8< ----
-From: Kirill Smelkov <kirr@navytux.spb.ru>
-Date: Wed, 26 Dec 2012 19:23:26 +0400
-Subject: [PATCH,v2] [media] vivi: Constify structures
+        ir_config = 0x01;
 
-Most of *_ops and other structures in vivi.c were already declared const
-but some have not. Constify and code/data will take less space:
+before
 
-    $ size drivers/media/platform/vivi.o
-              text    data     bss     dec     hex filename
-    before:  12569     248       8   12825    3219 drivers/media/platform/vivi.o
-    after:   12308      20       8   12336    3030 drivers/media/platform/vivi.o
+380        em28xx_write_regs(dev, EM2874_R50_IR_CONFIG, &ir_config, 1);
 
-i.e. vivi.o is now ~500 bytes less.
+in em28xx-input.c and see if something shows up in the dmesg output.
 
-Signed-off-by: Kirill Smelkov <kirr@navytux.spb.ru>
----
- drivers/media/platform/vivi.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
-
- v2:
-    
-    - put 'const' always before anything, as noted by Hans Verkuil.
-    - no changes otherwise.
+Regards,
+Frank
 
 
-diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-index ec65089..8a33a71 100644
---- a/drivers/media/platform/vivi.c
-+++ b/drivers/media/platform/vivi.c
-@@ -91,13 +91,13 @@ static const struct v4l2_fract
-    ------------------------------------------------------------------*/
- 
- struct vivi_fmt {
--	char  *name;
-+	const char *name;
- 	u32   fourcc;          /* v4l2 format id */
- 	u8    depth;
- 	bool  is_yuv;
- };
- 
--static struct vivi_fmt formats[] = {
-+static const struct vivi_fmt formats[] = {
- 	{
- 		.name     = "4:2:2, packed, YUYV",
- 		.fourcc   = V4L2_PIX_FMT_YUYV,
-@@ -164,9 +164,9 @@ static struct vivi_fmt formats[] = {
- 	},
- };
- 
--static struct vivi_fmt *__get_format(u32 pixelformat)
-+static const struct vivi_fmt *__get_format(u32 pixelformat)
- {
--	struct vivi_fmt *fmt;
-+	const struct vivi_fmt *fmt;
- 	unsigned int k;
- 
- 	for (k = 0; k < ARRAY_SIZE(formats); k++) {
-@@ -181,7 +181,7 @@ static struct vivi_fmt *__get_format(u32 pixelformat)
- 	return &formats[k];
- }
- 
--static struct vivi_fmt *get_format(struct v4l2_format *f)
-+static const struct vivi_fmt *get_format(struct v4l2_format *f)
- {
- 	return __get_format(f->fmt.pix.pixelformat);
- }
-@@ -191,7 +191,7 @@ struct vivi_buffer {
- 	/* common v4l buffer stuff -- must be first */
- 	struct vb2_buffer	vb;
- 	struct list_head	list;
--	struct vivi_fmt        *fmt;
-+	const struct vivi_fmt  *fmt;
- };
- 
- struct vivi_dmaqueue {
-@@ -250,7 +250,7 @@ struct vivi_dev {
- 	int			   input;
- 
- 	/* video capture */
--	struct vivi_fmt            *fmt;
-+	const struct vivi_fmt      *fmt;
- 	struct v4l2_fract          timeperframe;
- 	unsigned int               width, height;
- 	struct vb2_queue	   vb_vidq;
-@@ -297,7 +297,7 @@ struct bar_std {
- 
- /* Maximum number of bars are 10 - otherwise, the input print code
-    should be modified */
--static struct bar_std bars[] = {
-+static const struct bar_std bars[] = {
- 	{	/* Standard ITU-R color bar sequence */
- 		{ COLOR_WHITE, COLOR_AMBER, COLOR_CYAN, COLOR_GREEN,
- 		  COLOR_MAGENTA, COLOR_RED, COLOR_BLUE, COLOR_BLACK, COLOR_BLACK }
-@@ -926,7 +926,7 @@ static void vivi_unlock(struct vb2_queue *vq)
- }
- 
- 
--static struct vb2_ops vivi_video_qops = {
-+static const struct vb2_ops vivi_video_qops = {
- 	.queue_setup		= queue_setup,
- 	.buf_prepare		= buffer_prepare,
- 	.buf_queue		= buffer_queue,
-@@ -957,7 +957,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
- static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
- 					struct v4l2_fmtdesc *f)
- {
--	struct vivi_fmt *fmt;
-+	const struct vivi_fmt *fmt;
- 
- 	if (f->index >= ARRAY_SIZE(formats))
- 		return -EINVAL;
-@@ -993,7 +993,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 			struct v4l2_format *f)
- {
- 	struct vivi_dev *dev = video_drvdata(file);
--	struct vivi_fmt *fmt;
-+	const struct vivi_fmt *fmt;
- 
- 	fmt = get_format(f);
- 	if (!fmt) {
-@@ -1102,7 +1102,7 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
- static int vidioc_enum_frameintervals(struct file *file, void *priv,
- 					     struct v4l2_frmivalenum *fival)
- {
--	struct vivi_fmt *fmt;
-+	const struct vivi_fmt *fmt;
- 
- 	if (fival->index)
- 		return -EINVAL;
-@@ -1330,7 +1330,7 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
- 
--static struct video_device vivi_template = {
-+static const struct video_device vivi_template = {
- 	.name		= "vivi",
- 	.fops           = &vivi_fops,
- 	.ioctl_ops 	= &vivi_ioctl_ops,
--- 
-1.8.1.rc3.329.g036938a
