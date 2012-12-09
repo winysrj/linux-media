@@ -1,68 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50247 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:42206 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758881Ab2LIT5M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	id S1758884Ab2LIT5M (ORCPT <rfc822;linux-media@vger.kernel.org>);
 	Sun, 9 Dec 2012 14:57:12 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans-Frieder Vogt <hfvogt@gmx.net>
-Subject: [PATCH RFC 12/17] fc0012: remove unused callback and correct one comment
-Date: Sun,  9 Dec 2012 21:56:23 +0200
-Message-Id: <1355082988-6211-12-git-send-email-crope@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC 15/17] af9033: update fc0011 init sequence
+Date: Sun,  9 Dec 2012 21:56:26 +0200
+Message-Id: <1355082988-6211-15-git-send-email-crope@iki.fi>
 In-Reply-To: <1355082988-6211-1-git-send-email-crope@iki.fi>
 References: <1355082988-6211-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no need to keep dummy sleep() callback implementation as
-DVB-core checks existence of it before calls callback. Due to that
-we can remove it.
-
-FC0012 is based of direct-conversion receiver architecture
-(aka Zero-IF) where is no IF used. Due to that IF is always 0 Hz.
-Fix comment to point that.
-
-Cc: Hans-Frieder Vogt <hfvogt@gmx.net>
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/tuners/fc0012.c | 10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ drivers/media/dvb-frontends/af9033_priv.h | 72 +++++++++++++++----------------
+ 1 file changed, 36 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/media/tuners/fc0012.c b/drivers/media/tuners/fc0012.c
-index 4491f06..f4d0e79 100644
---- a/drivers/media/tuners/fc0012.c
-+++ b/drivers/media/tuners/fc0012.c
-@@ -129,12 +129,6 @@ static int fc0012_init(struct dvb_frontend *fe)
- 	return ret;
- }
+diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
+index e0be040..1fb84a2 100644
+--- a/drivers/media/dvb-frontends/af9033_priv.h
++++ b/drivers/media/dvb-frontends/af9033_priv.h
+@@ -339,14 +339,14 @@ static const struct reg_val tuner_init_tua9001[] = {
+ /* Fitipower fc0011 tuner init
+    AF9033_TUNER_FC0011    = 0x28 */
+ static const struct reg_val tuner_init_fc0011[] = {
+-	{ 0x800046, AF9033_TUNER_FC0011 },
++	{ 0x800046, 0x28 },
+ 	{ 0x800057, 0x00 },
+ 	{ 0x800058, 0x01 },
+ 	{ 0x80005f, 0x00 },
+ 	{ 0x800060, 0x00 },
+ 	{ 0x800068, 0xa5 },
+ 	{ 0x80006e, 0x01 },
+-	{ 0x800071, 0x0A },
++	{ 0x800071, 0x0a },
+ 	{ 0x800072, 0x02 },
+ 	{ 0x800074, 0x01 },
+ 	{ 0x800079, 0x01 },
+@@ -354,7 +354,7 @@ static const struct reg_val tuner_init_fc0011[] = {
+ 	{ 0x800094, 0x00 },
+ 	{ 0x800095, 0x00 },
+ 	{ 0x800096, 0x00 },
+-	{ 0x80009b, 0x2D },
++	{ 0x80009b, 0x2d },
+ 	{ 0x80009c, 0x60 },
+ 	{ 0x80009d, 0x23 },
+ 	{ 0x8000a4, 0x50 },
+@@ -362,39 +362,39 @@ static const struct reg_val tuner_init_fc0011[] = {
+ 	{ 0x8000b3, 0x01 },
+ 	{ 0x8000b7, 0x88 },
+ 	{ 0x8000b8, 0xa6 },
+-	{ 0x8000c3, 0x01 },
+-	{ 0x8000c4, 0x01 },
+-	{ 0x8000c7, 0x69 },
+-	{ 0x80F007, 0x00 },
+-	{ 0x80F00A, 0x1B },
+-	{ 0x80F00B, 0x1B },
+-	{ 0x80F00C, 0x1B },
+-	{ 0x80F00D, 0x1B },
+-	{ 0x80F00E, 0xFF },
+-	{ 0x80F00F, 0x01 },
+-	{ 0x80F010, 0x00 },
+-	{ 0x80F011, 0x02 },
+-	{ 0x80F012, 0xFF },
+-	{ 0x80F013, 0x01 },
+-	{ 0x80F014, 0x00 },
+-	{ 0x80F015, 0x02 },
+-	{ 0x80F01B, 0xEF },
+-	{ 0x80F01C, 0x01 },
+-	{ 0x80F01D, 0x0f },
+-	{ 0x80F01E, 0x02 },
+-	{ 0x80F01F, 0x6E },
+-	{ 0x80F020, 0x00 },
+-	{ 0x80F025, 0xDE },
+-	{ 0x80F026, 0x00 },
+-	{ 0x80F027, 0x0A },
+-	{ 0x80F028, 0x03 },
+-	{ 0x80F029, 0x6E },
+-	{ 0x80F02A, 0x00 },
+-	{ 0x80F047, 0x00 },
+-	{ 0x80F054, 0x00 },
+-	{ 0x80F055, 0x00 },
+-	{ 0x80F077, 0x01 },
+-	{ 0x80F1E6, 0x00 },
++	{ 0x8000c5, 0x01 },
++	{ 0x8000c6, 0x01 },
++	{ 0x8000c9, 0x69 },
++	{ 0x80f007, 0x00 },
++	{ 0x80f00a, 0x1b },
++	{ 0x80f00b, 0x1b },
++	{ 0x80f00c, 0x1b },
++	{ 0x80f00d, 0x1b },
++	{ 0x80f00e, 0xff },
++	{ 0x80f00f, 0x01 },
++	{ 0x80f010, 0x00 },
++	{ 0x80f011, 0x02 },
++	{ 0x80f012, 0xff },
++	{ 0x80f013, 0x01 },
++	{ 0x80f014, 0x00 },
++	{ 0x80f015, 0x02 },
++	{ 0x80f01b, 0xef },
++	{ 0x80f01c, 0x01 },
++	{ 0x80f01d, 0x0f },
++	{ 0x80f01e, 0x02 },
++	{ 0x80f01f, 0x6e },
++	{ 0x80f020, 0x00 },
++	{ 0x80f025, 0xde },
++	{ 0x80f026, 0x00 },
++	{ 0x80f027, 0x0a },
++	{ 0x80f028, 0x03 },
++	{ 0x80f029, 0x6e },
++	{ 0x80f02a, 0x00 },
++	{ 0x80f047, 0x00 },
++	{ 0x80f054, 0x00 },
++	{ 0x80f055, 0x00 },
++	{ 0x80f077, 0x01 },
++	{ 0x80f1e6, 0x00 },
+ };
  
--static int fc0012_sleep(struct dvb_frontend *fe)
--{
--	/* nothing to do here */
--	return 0;
--}
--
- static int fc0012_set_params(struct dvb_frontend *fe)
- {
- 	struct fc0012_priv *priv = fe->tuner_priv;
-@@ -343,8 +337,7 @@ static int fc0012_get_frequency(struct dvb_frontend *fe, u32 *frequency)
- 
- static int fc0012_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- {
--	/* CHECK: always ? */
--	*frequency = 0;
-+	*frequency = 0; /* Zero-IF */
- 	return 0;
- }
- 
-@@ -437,7 +430,6 @@ static const struct dvb_tuner_ops fc0012_tuner_ops = {
- 	.release	= fc0012_release,
- 
- 	.init		= fc0012_init,
--	.sleep		= fc0012_sleep,
- 
- 	.set_params	= fc0012_set_params,
- 
+ /* Fitipower FC0012 tuner init
 -- 
 1.7.11.7
 
