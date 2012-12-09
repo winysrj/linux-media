@@ -1,46 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34717 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:58296 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752912Ab2L2NDJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Dec 2012 08:03:09 -0500
-Date: Sat, 29 Dec 2012 11:02:43 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"media-workshop@linuxtv.org" <media-workshop@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [media-workshop] Barcelona Media Summit Report
-Message-ID: <20121229110243.2bc33fbc@redhat.com>
-In-Reply-To: <20121229105338.55b87473@redhat.com>
-References: <201211161358.54938.hverkuil@xs4all.nl>
-	<20121229100813.6057011b@redhat.com>
-	<20121229105338.55b87473@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1758867Ab2LIT5M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Dec 2012 14:57:12 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, Hans-Frieder Vogt <hfvogt@gmx.net>
+Subject: [PATCH RFC 07/17] fc0012: enable clock output on attach()
+Date: Sun,  9 Dec 2012 21:56:18 +0200
+Message-Id: <1355082988-6211-7-git-send-email-crope@iki.fi>
+In-Reply-To: <1355082988-6211-1-git-send-email-crope@iki.fi>
+References: <1355082988-6211-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 29 Dec 2012 10:53:38 -0200
-Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+We need feed clock to slave demodulator at the very beginning
+in case of dual tuner configuration.
 
-...
-> - Tuner ownership: how should the tuner ownership be handled? The proposal
->  I wrote for this was accepted, with the addition that the code to handle
->  tuner ownership should be shared between DVB and V4L2.
+I am not sure if that configuration changes clock output divider
+or enable clock output itself...
 
-> I have my name
->  and Hans de Goede's name next to this topic, but I've forgotten what we
->    were supposed to do :-)
+Cc: Hans-Frieder Vogt <hfvogt@gmx.net>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/fc0012.c | 7 +++++++
+ drivers/media/tuners/fc0012.h | 5 +++++
+ 2 files changed, 12 insertions(+)
 
-The above obviously is not right ;) As far as I remember, it should be,
-instead:
-
-Hans de Goede, with the help of Hans Verkuil, will be working on an RFC
-code to handle tuner ownership for radio and video.
-
-
+diff --git a/drivers/media/tuners/fc0012.c b/drivers/media/tuners/fc0012.c
+index 636f951..1a52b76 100644
+--- a/drivers/media/tuners/fc0012.c
++++ b/drivers/media/tuners/fc0012.c
+@@ -460,6 +460,13 @@ struct dvb_frontend *fc0012_attach(struct dvb_frontend *fe,
+ 	if (priv->cfg->loop_through)
+ 		fc0012_writereg(priv, 0x09, 0x6f);
+ 
++	/*
++	 * TODO: Clock out en or div?
++	 * For dual tuner configuration clearing bit [0] is required.
++	 */
++	if (priv->cfg->clock_out)
++		fc0012_writereg(priv, 0x0b, 0x82);
++
+ 	memcpy(&fe->ops.tuner_ops, &fc0012_tuner_ops,
+ 		sizeof(struct dvb_tuner_ops));
+ 
+diff --git a/drivers/media/tuners/fc0012.h b/drivers/media/tuners/fc0012.h
+index 891d66d..83a98e7 100644
+--- a/drivers/media/tuners/fc0012.h
++++ b/drivers/media/tuners/fc0012.h
+@@ -41,6 +41,11 @@ struct fc0012_config {
+ 	 * RF loop-through
+ 	 */
+ 	bool loop_through;
++
++	/*
++	 * clock output
++	 */
++	bool clock_out;
+ };
+ 
+ #if defined(CONFIG_MEDIA_TUNER_FC0012) || \
 -- 
+1.7.11.7
 
-Cheers,
-Mauro
