@@ -1,70 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53916 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:42793 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756662Ab2LNRzd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Dec 2012 12:55:33 -0500
-Message-ID: <50CB67F4.3090802@iki.fi>
-Date: Fri, 14 Dec 2012 19:55:00 +0200
+	id S1758875Ab2LIT5M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Dec 2012 14:57:12 -0500
 From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Patrice Chotard <patrice.chotard@sfr.fr>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	=?ISO-8859-1?Q?Fr=E9d=E9ric?= <frederic.mantegazza@gbiloba.org>
-Subject: Re: [PATCH] [media] ngene: fix dvb_pll_attach failure
-References: <50B51F7E.2030008@sfr.fr> <50CB61A6.7060308@sfr.fr>
-In-Reply-To: <50CB61A6.7060308@sfr.fr>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, Hans-Frieder Vogt <hfvogt@gmx.net>
+Subject: [PATCH RFC 09/17] fc0012: use config directly from the config struct
+Date: Sun,  9 Dec 2012 21:56:20 +0200
+Message-Id: <1355082988-6211-9-git-send-email-crope@iki.fi>
+In-Reply-To: <1355082988-6211-1-git-send-email-crope@iki.fi>
+References: <1355082988-6211-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/14/2012 07:28 PM, Patrice Chotard wrote:
-> Before dvb_pll_attch call, be sure that drxd demodulator was
-> initialized, otherwise, dvb_pll_attach() will always failed.
->
-> In dvb_pll_attach(), first thing done is to enable the I2C gate
-> control in order to probe the pll by performing a read access.
-> As demodulator was not initialized, every i2c access failed.
->
-> Reported-by: frederic.mantegazza@gbiloba.org
-> Signed-off-by: Patrice Chotard <patricechotard@free.fr>
-> ---
->   drivers/media/pci/ngene/ngene-cards.c |    2 ++
->   1 file changed, 2 insertions(+)
->
-> diff --git a/drivers/media/pci/ngene/ngene-cards.c
-> b/drivers/media/pci/ngene/ngene-cards.c
-> index 96a13ed..e2192db 100644
-> --- a/drivers/media/pci/ngene/ngene-cards.c
-> +++ b/drivers/media/pci/ngene/ngene-cards.c
-> @@ -328,6 +328,8 @@ static int demod_attach_drxd(struct ngene_channel *chan)
->   		return -ENODEV;
->   	}
->
-> +	/* initialized the DRXD demodulator */
-> +	chan->fe->ops.init(chan->fe);
->   	if (!dvb_attach(dvb_pll_attach, chan->fe, feconf->pll_address,
->   			&chan->i2c_adapter,
->   			feconf->pll_type)) {
->
+No need to copy config to the driver state. Those are coming from
+the const struct and could be used directly.
 
-I don't like that as this causes again more deviation against normal 
-procedures. If gate open is needed (for probe or id check?) then 
-pll/tuner attach should open it. If that is not easily possible then 
-calling gate_control() before pll attach is allowed. init() is very, 
-very, bad as generally starts whole chip => starts eating power etc.
+Cc: Hans-Frieder Vogt <hfvogt@gmx.net>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/fc0012-priv.h    |  3 ---
+ drivers/media/tuners/fc0012.c         | 17 ++++++++---------
+ drivers/media/tuners/fc0012.h         |  2 +-
+ drivers/media/usb/dvb-usb-v2/af9035.c |  4 ++--
+ 4 files changed, 11 insertions(+), 15 deletions(-)
 
-
-Even better would be to let whole gate-control to responsibility of 
-DVB-core, but unfortunately current situation is quite mess. Gate is 
-operated sometimes by DVB-core (like for init/sleep) and for some cases 
-it is left for responsibility of tuner driver. So on real life there is 
-mixed solutions and  for init/sleep gate is even double controlled.
-
-
-regards
-Antti
-
+diff --git a/drivers/media/tuners/fc0012-priv.h b/drivers/media/tuners/fc0012-priv.h
+index 1195ee9..3b98bf9 100644
+--- a/drivers/media/tuners/fc0012-priv.h
++++ b/drivers/media/tuners/fc0012-priv.h
+@@ -33,9 +33,6 @@
+ struct fc0012_priv {
+ 	struct i2c_adapter *i2c;
+ 	const struct fc0012_config *cfg;
+-	u8 addr;
+-	u8 dual_master;
+-	u8 xtal_freq;
+ 
+ 	u32 frequency;
+ 	u32 bandwidth;
+diff --git a/drivers/media/tuners/fc0012.c b/drivers/media/tuners/fc0012.c
+index 1a52b76..01f5e40 100644
+--- a/drivers/media/tuners/fc0012.c
++++ b/drivers/media/tuners/fc0012.c
+@@ -25,7 +25,7 @@ static int fc0012_writereg(struct fc0012_priv *priv, u8 reg, u8 val)
+ {
+ 	u8 buf[2] = {reg, val};
+ 	struct i2c_msg msg = {
+-		.addr = priv->addr, .flags = 0, .buf = buf, .len = 2
++		.addr = priv->cfg->i2c_address, .flags = 0, .buf = buf, .len = 2
+ 	};
+ 
+ 	if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
+@@ -38,8 +38,10 @@ static int fc0012_writereg(struct fc0012_priv *priv, u8 reg, u8 val)
+ static int fc0012_readreg(struct fc0012_priv *priv, u8 reg, u8 *val)
+ {
+ 	struct i2c_msg msg[2] = {
+-		{ .addr = priv->addr, .flags = 0, .buf = &reg, .len = 1 },
+-		{ .addr = priv->addr, .flags = I2C_M_RD, .buf = val, .len = 1 },
++		{ .addr = priv->cfg->i2c_address, .flags = 0,
++			.buf = &reg, .len = 1 },
++		{ .addr = priv->cfg->i2c_address, .flags = I2C_M_RD,
++			.buf = val, .len = 1 },
+ 	};
+ 
+ 	if (i2c_transfer(priv->i2c, msg, 2) != 2) {
+@@ -88,7 +90,7 @@ static int fc0012_init(struct dvb_frontend *fe)
+ 		0x04,	/* reg. 0x15: Enable LNA COMPS */
+ 	};
+ 
+-	switch (priv->xtal_freq) {
++	switch (priv->cfg->xtal_freq) {
+ 	case FC_XTAL_27_MHZ:
+ 	case FC_XTAL_28_8_MHZ:
+ 		reg[0x07] |= 0x20;
+@@ -98,7 +100,7 @@ static int fc0012_init(struct dvb_frontend *fe)
+ 		break;
+ 	}
+ 
+-	if (priv->dual_master)
++	if (priv->cfg->dual_master)
+ 		reg[0x0c] |= 0x02;
+ 
+ 	if (priv->cfg->loop_through)
+@@ -147,7 +149,7 @@ static int fc0012_set_params(struct dvb_frontend *fe)
+ 			goto exit;
+ 	}
+ 
+-	switch (priv->xtal_freq) {
++	switch (priv->cfg->xtal_freq) {
+ 	case FC_XTAL_27_MHZ:
+ 		xtal_freq_khz_2 = 27000 / 2;
+ 		break;
+@@ -449,9 +451,6 @@ struct dvb_frontend *fc0012_attach(struct dvb_frontend *fe,
+ 
+ 	priv->i2c = i2c;
+ 	priv->cfg = cfg;
+-	priv->dual_master = cfg->dual_master;
+-	priv->addr = cfg->i2c_address;
+-	priv->xtal_freq = cfg->xtal_freq;
+ 
+ 	info("Fitipower FC0012 successfully attached.");
+ 
+diff --git a/drivers/media/tuners/fc0012.h b/drivers/media/tuners/fc0012.h
+index 83a98e7..3fb53b8 100644
+--- a/drivers/media/tuners/fc0012.h
++++ b/drivers/media/tuners/fc0012.h
+@@ -35,7 +35,7 @@ struct fc0012_config {
+ 	 */
+ 	enum fc001x_xtal_freq xtal_freq;
+ 
+-	int dual_master;
++	bool dual_master;
+ 
+ 	/*
+ 	 * RF loop-through
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 1c7fe5a..68e0e804 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -906,13 +906,13 @@ static const struct fc0012_config af9035_fc0012_config[] = {
+ 	{
+ 		.i2c_address = 0x63,
+ 		.xtal_freq = FC_XTAL_36_MHZ,
+-		.dual_master = 1,
++		.dual_master = true,
+ 		.loop_through = true,
+ 		.clock_out = true,
+ 	}, {
+ 		.i2c_address = 0x63 | 0x80, /* I2C bus select hack */
+ 		.xtal_freq = FC_XTAL_36_MHZ,
+-		.dual_master = 1,
++		.dual_master = true,
+ 	}
+ };
+ 
 -- 
-http://palosaari.fi/
+1.7.11.7
+
