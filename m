@@ -1,120 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 88-149-150-131.v4.ngi.it ([88.149.150.131]:39274 "EHLO
-	vajra.unixproducts.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752234Ab2LPUNM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 15:13:12 -0500
-To: <linux-media@vger.kernel.org>
-Subject: Re: cannot make this Asus my cinema-u3100miniplusv2 work under linux
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Sun, 16 Dec 2012 21:13:09 +0100
-From: Renato Gallo <renatogallo@unixproducts.com>
-In-Reply-To: <50CE0AFA.9030308@iki.fi>
-References: <8e9f16405c8583e35cb97bb7d7daef4b@unixproducts.com>
- <50CDDF9A.1080509@iki.fi>
- <cd31dc6ada9161825c7dff975a3da945@unixproducts.com>
- <50CE0AFA.9030308@iki.fi>
-Message-ID: <1af6a5408ee3ebccebc3885bba06fc69@unixproducts.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:33069 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758882Ab2LIT5M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Dec 2012 14:57:12 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC 13/17] af9033: update demod init sequence
+Date: Sun,  9 Dec 2012 21:56:24 +0200
+Message-Id: <1355082988-6211-13-git-send-email-crope@iki.fi>
+In-Reply-To: <1355082988-6211-1-git-send-email-crope@iki.fi>
+References: <1355082988-6211-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i found it is a problem with kaffeine, with other programs i can lock a 
-signal but reception is very very sketchy (like in unviewable).
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/af9033_priv.h | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-GlovX xine-lib # dmesg |grep e4000
-GlovX xine-lib # dmesg |grep FC0012
-GlovX xine-lib # dmesg |grep FC0013
-[   28.281685] fc0013: Fitipower FC0013 successfully attached.
-GlovX xine-lib # dmesg |grep FC2580
-GlovX xine-lib # dmesg |grep TUA
-GlovX xine-lib #
-
-
-Il 16/12/2012 18:55 Antti Palosaari ha scritto:
-> On 12/16/2012 07:15 PM, Renato Gallo wrote:
->> now the modules loads and kaffeine recognizes the device but i 
->> cannot
->> find any channels.
->> can it be a tuner bug ?
->
-> I think it is bad antenna / weak signal. Try w_scan, scan, tzap.
->
-> Could you say which RF-tuner it finds from your device? use dmesg to
-> dump output. It could be for example e4000, FC0012, FC0013, FC2580,
-> TUA9001 etc.
->
-> Antti
->
->>
->>
->> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
->> section;
->> type = 0 pid = 0
->> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
->> section;
->> type = 2 pid = 17
->> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
->> section;
->> type = 4 pid = 16
->> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
->> section;
->> type = 0 pid = 0
->> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
->> section;
->> type = 2 pid = 17
->> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
->> section;
->> type = 4 pid = 16
->> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->>
->>
->> Il 16/12/2012 15:50 Antti Palosaari ha scritto:
->>> On 12/16/2012 04:23 PM, Renato Gallo wrote:
->>>> any news on this ?
->>>>
->>>>
->>>>
->>>>
->>>>
->>>> Asus my cinema-u3100miniplusv2
->>>>
->>>> Bus 001 Device 015: ID 1b80:d3a8 Afatech
->>>>
->>>> [ 6956.333440] usb 1-6.3.6: new high-speed USB device number 16 
->>>> using
->>>> ehci_hcd
->>>> [ 6956.453943] usb 1-6.3.6: New USB device found, idVendor=1b80,
->>>> idProduct=d3a8
->>>> [ 6956.453950] usb 1-6.3.6: New USB device strings: Mfr=1, 
->>>> Product=2,
->>>> SerialNumber=0
->>>> [ 6956.453955] usb 1-6.3.6: Product: Rtl2832UDVB
->>>> [ 6956.453959] usb 1-6.3.6: Manufacturer: Realtek
->>>>
->>>
->>> Seems to be Realtek RTL2832U. Add that USB ID to the driver and 
->>> test.
->>> It is very high probability it starts working.
->>>
->>> Here is the patch:
->>>
->>> 
->>> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/rtl28xxu-usb-ids
->>>
->>>
->>> Please test and report.
->>>
->>> regards
->>> Antti
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe 
->> linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
+index 288cd45..d96d128 100644
+--- a/drivers/media/dvb-frontends/af9033_priv.h
++++ b/drivers/media/dvb-frontends/af9033_priv.h
+@@ -199,10 +199,9 @@ static const struct reg_val ofsm_init[] = {
+ 	{ 0x8000a6, 0x01 },
+ 	{ 0x8000a9, 0x00 },
+ 	{ 0x8000aa, 0x01 },
+-	{ 0x8000ab, 0x01 },
+ 	{ 0x8000b0, 0x01 },
+-	{ 0x8000c0, 0x05 },
+-	{ 0x8000c4, 0x19 },
++	{ 0x8000c4, 0x05 },
++	{ 0x8000c8, 0x19 },
+ 	{ 0x80f000, 0x0f },
+ 	{ 0x80f016, 0x10 },
+ 	{ 0x80f017, 0x04 },
+-- 
+1.7.11.7
 
