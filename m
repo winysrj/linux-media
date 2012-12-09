@@ -1,70 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:40724 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752568Ab2LKDNU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 22:13:20 -0500
-From: Cyril Roelandt <tipecaml@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, michael@mihu.de,
-	mchehab@redhat.com, linux-media@vger.kernel.org,
-	Cyril Roelandt <tipecaml@gmail.com>
-Subject: [PATCH 1/1] media: saa7146: don't use mutex_lock_interruptible() in device_release().
-Date: Tue, 11 Dec 2012 04:05:28 +0100
-Message-Id: <1355195128-10209-2-git-send-email-tipecaml@gmail.com>
-In-Reply-To: <1355195128-10209-1-git-send-email-tipecaml@gmail.com>
-References: <1355195128-10209-1-git-send-email-tipecaml@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:30310 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934051Ab2LIPSC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Dec 2012 10:18:02 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id qB9FI1NY002578
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 9 Dec 2012 10:18:02 -0500
+Received: from shalem.localdomain (vpn1-6-45.ams2.redhat.com [10.36.6.45])
+	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id qB9FI0Db005418
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 9 Dec 2012 10:18:01 -0500
+Message-ID: <50C4AC30.1060006@redhat.com>
+Date: Sun, 09 Dec 2012 16:20:16 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR 3.8] Various USB webcam fixes <resend>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use uninterruptible mutex_lock in the release() file op to make sure all
-resources are properly freed when a process is being terminated. Returning
--ERESTARTSYS has no effect for a terminating process and this may cause driver
-resources not to be released.
+<resend of the same mail from 29 November, as it seems to have been missed>
 
-This was found using the following semantic patch (http://coccinelle.lip6.fr/):
+Hi Mauro,
 
-<spml>
-@r@
-identifier fops;
-identifier release_func;
-@@
-static const struct v4l2_file_operations fops = {
-.release = release_func
-};
+Please pull from my tree for some assorted USB webcam fixes for 3.8
 
-@depends on r@
-identifier r.release_func;
-expression E;
-@@
-static int release_func(...)
-{
-...
-- if (mutex_lock_interruptible(E)) return -ERESTARTSYS;
-+ mutex_lock(E);
-...
-}
-</spml>
+The following changes since commit d8658bca2e5696df2b6c69bc5538f8fe54e4a01e:
 
-Signed-off-by: Cyril Roelandt <tipecaml@gmail.com>
----
- drivers/media/common/saa7146/saa7146_fops.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+   [media] omap3isp: Replace cpu_is_omap3630() with ISP revision check (2012-11-28 10:54:46 -0200)
 
-diff --git a/drivers/media/common/saa7146/saa7146_fops.c b/drivers/media/common/saa7146/saa7146_fops.c
-index b3890bd..0afe98d 100644
---- a/drivers/media/common/saa7146/saa7146_fops.c
-+++ b/drivers/media/common/saa7146/saa7146_fops.c
-@@ -265,8 +265,7 @@ static int fops_release(struct file *file)
- 
- 	DEB_EE("file:%p\n", file);
- 
--	if (mutex_lock_interruptible(vdev->lock))
--		return -ERESTARTSYS;
-+	mutex_lock(vdev->lock);
- 
- 	if (vdev->vfl_type == VFL_TYPE_VBI) {
- 		if (dev->ext_vv_data->capabilities & V4L2_CAP_VBI_CAPTURE)
--- 
-1.7.10.4
+are available in the git repository at:
 
+   git://linuxtv.org/hgoede/gspca.git media-for_v3.8
+
+for you to fetch changes up to 325b64b6cb9090c1bc7cda5444f84b2c00acf926:
+
+   Documentation/media: Remove docs for obsoleted and removed v4l1 drivers (2012-11-29 11:29:48 +0100)
+
+----------------------------------------------------------------
+Hans de Goede (3):
+       gspca-pac207: Add a led_invert module parameter
+       stk-webcam: Add an upside down dmi table, and add the Asus G1 to it
+       Documentation/media: Remove docs for obsoleted and removed v4l1 drivers
+
+Jean-François Moine (1):
+       gspca - stv06xx: Fix a regression with the bridge/sensor vv6410
+
+  Documentation/video4linux/et61x251.txt           | 315 ----------------
+  Documentation/video4linux/ibmcam.txt             | 323 ----------------
+  Documentation/video4linux/m5602.txt              |  12 -
+  Documentation/video4linux/ov511.txt              | 288 --------------
+  Documentation/video4linux/se401.txt              |  54 ---
+  Documentation/video4linux/stv680.txt             |  53 ---
+  Documentation/video4linux/w9968cf.txt            | 458 -----------------------
+  Documentation/video4linux/zc0301.txt             | 270 -------------
+  drivers/media/usb/gspca/pac207.c                 |  32 +-
+  drivers/media/usb/gspca/stv06xx/stv06xx_vv6410.c |   4 +
+  drivers/media/usb/stkwebcam/stk-webcam.c         |  56 ++-
+  11 files changed, 76 insertions(+), 1789 deletions(-)
+  delete mode 100644 Documentation/video4linux/et61x251.txt
+  delete mode 100644 Documentation/video4linux/ibmcam.txt
+  delete mode 100644 Documentation/video4linux/m5602.txt
+  delete mode 100644 Documentation/video4linux/ov511.txt
+  delete mode 100644 Documentation/video4linux/se401.txt
+  delete mode 100644 Documentation/video4linux/stv680.txt
+  delete mode 100644 Documentation/video4linux/w9968cf.txt
+  delete mode 100644 Documentation/video4linux/zc0301.txt
+
+Thanks & Regards,
+
+Hans
