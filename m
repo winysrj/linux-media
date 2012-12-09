@@ -1,50 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:60662 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932202Ab2LNTlW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Dec 2012 14:41:22 -0500
-Date: Fri, 14 Dec 2012 11:41:16 -0800
-From: Tony Lindgren <tony@atomide.com>
-To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 1/7] ir-rx51: Handle signals properly
-Message-ID: <20121214194115.GL4989@atomide.com>
-References: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
- <1353251589-26143-2-git-send-email-timo.t.kokkonen@iki.fi>
- <20121120195755.GM18567@atomide.com>
- <20121214172809.GT4989@atomide.com>
- <20121214172616.GC9620@arwen.pp.htv.fi>
- <50CB7E88.9050207@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <50CB7E88.9050207@iki.fi>
+Received: from mail.kapsi.fi ([217.30.184.167]:43744 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751919Ab2LIT5M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Dec 2012 14:57:12 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, Hans-Frieder Vogt <hfvogt@gmx.net>
+Subject: [PATCH RFC 06/17] fc0012: add RF loop through
+Date: Sun,  9 Dec 2012 21:56:17 +0200
+Message-Id: <1355082988-6211-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1355082988-6211-1-git-send-email-crope@iki.fi>
+References: <1355082988-6211-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Timo Kokkonen <timo.t.kokkonen@iki.fi> [121214 11:33]:
-> On 12/14/12 19:26, Felipe Balbi wrote:
-> > 
-> > if it's really for PWM, shouldn't we be using drivers/pwm/ ??
-> > 
-> 
-> Now that Neil Brown posted the PWM driver for omap, I've been thinking
-> about whether converting the ir-rx51 into the PWM API would work. Maybe
-> controlling the PWM itself would be sufficient, but the ir-rx51 uses
-> also another dmtimer for creating accurate (enough) timing source for
-> the IR pulse edges.
+Cc: Hans-Frieder Vogt <hfvogt@gmx.net>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/fc0012-priv.h | 1 +
+ drivers/media/tuners/fc0012.c      | 7 +++++++
+ drivers/media/tuners/fc0012.h      | 5 +++++
+ 3 files changed, 13 insertions(+)
 
-OK.
+diff --git a/drivers/media/tuners/fc0012-priv.h b/drivers/media/tuners/fc0012-priv.h
+index 4577c91..1195ee9 100644
+--- a/drivers/media/tuners/fc0012-priv.h
++++ b/drivers/media/tuners/fc0012-priv.h
+@@ -32,6 +32,7 @@
  
-> I haven't tried whether the default 32kHz clock source is enough for
-> that. Now that I think about it, I don't see why it wouldn't be good
-> enough. I think it would even be possible to just use the PWM api alone
+ struct fc0012_priv {
+ 	struct i2c_adapter *i2c;
++	const struct fc0012_config *cfg;
+ 	u8 addr;
+ 	u8 dual_master;
+ 	u8 xtal_freq;
+diff --git a/drivers/media/tuners/fc0012.c b/drivers/media/tuners/fc0012.c
+index 5ede0c0..636f951 100644
+--- a/drivers/media/tuners/fc0012.c
++++ b/drivers/media/tuners/fc0012.c
+@@ -101,6 +101,9 @@ static int fc0012_init(struct dvb_frontend *fe)
+ 	if (priv->dual_master)
+ 		reg[0x0c] |= 0x02;
+ 
++	if (priv->cfg->loop_through)
++		reg[0x09] |= 0x01;
++
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
+ 
+@@ -445,6 +448,7 @@ struct dvb_frontend *fc0012_attach(struct dvb_frontend *fe,
+ 		return NULL;
+ 
+ 	priv->i2c = i2c;
++	priv->cfg = cfg;
+ 	priv->dual_master = cfg->dual_master;
+ 	priv->addr = cfg->i2c_address;
+ 	priv->xtal_freq = cfg->xtal_freq;
+@@ -453,6 +457,9 @@ struct dvb_frontend *fc0012_attach(struct dvb_frontend *fe,
+ 
+ 	fe->tuner_priv = priv;
+ 
++	if (priv->cfg->loop_through)
++		fc0012_writereg(priv, 0x09, 0x6f);
++
+ 	memcpy(&fe->ops.tuner_ops, &fc0012_tuner_ops,
+ 		sizeof(struct dvb_tuner_ops));
+ 
+diff --git a/drivers/media/tuners/fc0012.h b/drivers/media/tuners/fc0012.h
+index 41946f8..891d66d 100644
+--- a/drivers/media/tuners/fc0012.h
++++ b/drivers/media/tuners/fc0012.h
+@@ -36,6 +36,11 @@ struct fc0012_config {
+ 	enum fc001x_xtal_freq xtal_freq;
+ 
+ 	int dual_master;
++
++	/*
++	 * RF loop-through
++	 */
++	bool loop_through;
+ };
+ 
+ #if defined(CONFIG_MEDIA_TUNER_FC0012) || \
+-- 
+1.7.11.7
 
-Cool.
-
-Regards,
-
-Tony
