@@ -1,64 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41440 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751209Ab2LaQ2g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Dec 2012 11:28:36 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH 1/2] omap3isp: Remove unneeded memset after kzalloc
-Date: Mon, 31 Dec 2012 17:29:54 +0100
-Message-Id: <1356971395-3135-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:34357 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934052Ab2LIMsI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Dec 2012 07:48:08 -0500
+Received: by mail-ea0-f174.google.com with SMTP id e13so755158eaa.19
+        for <linux-media@vger.kernel.org>; Sun, 09 Dec 2012 04:48:07 -0800 (PST)
+Message-ID: <50C48891.2050903@googlemail.com>
+Date: Sun, 09 Dec 2012 13:48:17 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Matthew Gyurgyik <matthew@pyther.net>
+CC: Antti Palosaari <crope@iki.fi>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com> <50C3701D.9000700@pyther .net> <50C37DA8.4080608@googlemai l.com> <50C3B3EB.40606@pyther .net> <50C3B567.3070300@i ki.fi> <50C3B969.1090301@pyther.net>
+In-Reply-To: <50C3B969.1090301@pyther.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kzalloc initializes the memory it allocates to 0, there's no need for an
-explicit memset.
+Am 08.12.2012 23:04, schrieb Matthew Gyurgyik:
+> On 12/08/2012 04:47 PM, Antti Palosaari wrote:
+>> On 12/08/2012 11:40 PM, Matthew Gyurgyik wrote:
+>>> On 12/08/2012 12:49 PM, Frank Schäfer wrote:
+>>>> Am 08.12.2012 17:51, schrieb Matthew Gyurgyik:
+>>>>
+>>>> That shouldn't be necessary. I just noticed that there is a module
+>>>> parameter 'ir_debug'. ;)
+>>>> With ir_debug enabled, you should see messages
+>>>>
+>>>>          em28xx_ir_handle_key: toggle: XX, count: XX, key XXYYZZ
+>>>>
+>>>> everytime you press a button. Once we know the key codes, we can
+>>>> set up
+>>>> a key map (if it doesn't exist yet).
+>>>>
+>>>
+>>> Maybe I'm doing something wrong but didn't have any luck :(
+>>>
+>>>> [root@tux ~]# sudo rmmod em28xx_rc
+>>>> [root@tux ~]# sudo rmmod em28xx_dvb
+>>>> [root@tux ~]# sudo rmmod em28xx
+>>>> [root@tux ~]# modprobe em28xx_rc ir_debug=1
+>>>
+>>> I don't see any additional messages in dmesg.
+>>>
+>>> I verified the remote still works in windows (a stupidity check on my
+>>> part)
+>>
+>> Maybe Kernel debugs are not enabled? em28xx driver is a little bit
+>> legacy in logging too as it uses own logging whilst nowadays dynamic
+>> logging is recommended.
+>>
+>> replace KERN_DEBUG as KERN_INFO inside em28xx-input.c and test. It will
+>> change driver to use Kernel normal log writings instead of current debug
+>> ones.
+>>
+>> regards
+>> Antti
+>>
+>>
+> That unfortunately doesn't make any difference.
+>
+> I even tried adding a print statment before the debug line got called
+> like this (line 97 added; em28xx-input.c):
+>  97     printk(KERN_INFO "key %02x\n", b);
+>  98     i2cdprintk("key %02x\n", b);
+>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/isph3a_aewb.c |    1 -
- drivers/media/platform/omap3isp/isph3a_af.c   |    1 -
- drivers/media/platform/omap3isp/isphist.c     |    1 -
- 3 files changed, 0 insertions(+), 3 deletions(-)
+The relevant line is
 
-diff --git a/drivers/media/platform/omap3isp/isph3a_aewb.c b/drivers/media/platform/omap3isp/isph3a_aewb.c
-index 036e996..1b908fd 100644
---- a/drivers/media/platform/omap3isp/isph3a_aewb.c
-+++ b/drivers/media/platform/omap3isp/isph3a_aewb.c
-@@ -306,7 +306,6 @@ int omap3isp_h3a_aewb_init(struct isp_device *isp)
- 	if (!aewb_cfg)
- 		return -ENOMEM;
- 
--	memset(aewb, 0, sizeof(*aewb));
- 	aewb->ops = &h3a_aewb_ops;
- 	aewb->priv = aewb_cfg;
- 	aewb->dma_ch = -1;
-diff --git a/drivers/media/platform/omap3isp/isph3a_af.c b/drivers/media/platform/omap3isp/isph3a_af.c
-index 42ccce3..d645b41 100644
---- a/drivers/media/platform/omap3isp/isph3a_af.c
-+++ b/drivers/media/platform/omap3isp/isph3a_af.c
-@@ -369,7 +369,6 @@ int omap3isp_h3a_af_init(struct isp_device *isp)
- 	if (af_cfg == NULL)
- 		return -ENOMEM;
- 
--	memset(af, 0, sizeof(*af));
- 	af->ops = &h3a_af_ops;
- 	af->priv = af_cfg;
- 	af->dma_ch = -1;
-diff --git a/drivers/media/platform/omap3isp/isphist.c b/drivers/media/platform/omap3isp/isphist.c
-index 2d759c5..da2fa98 100644
---- a/drivers/media/platform/omap3isp/isphist.c
-+++ b/drivers/media/platform/omap3isp/isphist.c
-@@ -481,7 +481,6 @@ int omap3isp_hist_init(struct isp_device *isp)
- 	if (hist_cfg == NULL)
- 		return -ENOMEM;
- 
--	memset(hist, 0, sizeof(*hist));
- 	hist->isp = isp;
- 
- 	if (HIST_CONFIG_DMA)
--- 
-1.7.8.6
+297        dprintk("%s: toggle: %d, count: %d, key 0x%02x%02x\n", __func__,
+
+Change it to
+
+297        printk(KERN_INFO "%s: toggle: %d, count: %d, key
+0x%02x%02x\n", __func__,
+
+Also double-check that the IR module (em28xx_rc) is enabled / gets loaded.
+
+Regards,
+Frank
+
 
