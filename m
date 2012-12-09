@@ -1,96 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53440 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753183Ab2LXRjG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Dec 2012 12:39:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Rob Clark <rob.clark@linaro.org>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Jani Nikula <jani.nikula@linux.intel.com>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Tom Gall <tom.gall@linaro.org>,
-	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	hans.verkuil@cisco.com
-Subject: Re: [RFC v2 0/5] Common Display Framework
-Date: Mon, 24 Dec 2012 18:40:30 +0100
-Message-ID: <1488203.DaUueByIJ6@avalon>
-In-Reply-To: <CAF6AEGt6=RhKRnJZJVytzObvxm2GuvwADNhACOR9vnY-9n=ATw@mail.gmail.com>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <50D1DF42.3070008@ti.com> <CAF6AEGt6=RhKRnJZJVytzObvxm2GuvwADNhACOR9vnY-9n=ATw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kapsi.fi ([217.30.184.167]:59092 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758876Ab2LIT5M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Dec 2012 14:57:12 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC 08/17] af9035: add support for fc0012 dual tuner configuration
+Date: Sun,  9 Dec 2012 21:56:19 +0200
+Message-Id: <1355082988-6211-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1355082988-6211-1-git-send-email-crope@iki.fi>
+References: <1355082988-6211-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+That adds support for AF9035 dual devices having FC0012 tuners.
 
-(CC'ing Hans Verkuil)
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 56 +++++++++++++++++++++++++----------
+ 1 file changed, 41 insertions(+), 15 deletions(-)
 
-On Wednesday 19 December 2012 10:05:27 Rob Clark wrote:
-> On Wed, Dec 19, 2012 at 9:37 AM, Tomi Valkeinen wrote:
-> > On 2012-12-19 17:26, Rob Clark wrote:
-> >> And, there are also external HDMI encoders (for example connected over
-> >> i2c) that can also be shared between boards.  So I think there will be
-> >> a number of cases where CDF is appropriate for HDMI drivers.  Although
-> >> trying to keep this all independent of DRM (as opposed to just something
-> >> similar to what drivers/gpu/i2c is today) seems a bit overkill for me. 
-> >> Being able to use the helpers in drm and avoiding an extra layer of
-> >> translation seems like the better option to me.  So my vote would be
-> >> drivers/gpu/cdf.
-> > 
-> > Well, we need to think about that. I would like to keep CDF independent
-> > of DRM. I don't like tying different components/frameworks together if
-> > there's no real need for that.
-> > 
-> > Also, something that Laurent mentioned in our face-to-face discussions:
-> > Some IPs/chips can be used for other purposes than with DRM.
-> > 
-> > He had an example of a board, that (if I understood right) gets video
-> > signal from somewhere outside the board, processes the signal with some
-> > IPs/chips, and then outputs the signal. So there's no framebuffer, and
-> > the image is not stored anywhere. I think the framework used in these
-> > cases is always v4l2.
-> > 
-> > The IPs/chips in the above model may be the exact same IPs/chips that
-> > are used with "normal" display. If the CDF was tied to DRM, using the
-> > same drivers for normal and these streaming cases would probably not be
-> > possible.
-> 
-> Well, maybe there is a way, but it really seems to be over-complicating
-> things unnecessarily to keep CDF independent of DRM..  there will be a lot
-> more traditional uses of CDF compared to one crazy use-case.  So I don't
-> really fancy making it more difficult than in needs to be for everyone.
-
-Most of the use cases will be in DRM, we agree on that. However, I don't think 
-that the use case mentioned by Tomi is in any way crazy. TI has DaVinci chips 
-that can process/capture/generate up to 18 (if my memory is correct) video 
-streams, and those are extensively used in video conferencing solutions or set 
-top boxes for instance. A couple of the output video streams are display-based 
-and should be handled by DRM/KMS, but most of them are V4L2 streams. That's 
-something we should discuss with Hans Verkuil, he might be able to provide us 
-with more information.
-
-> Probably the thing to do is take a step back and reconsider that one crazy
-> use-case.  For example, KMS doesn't enforce that the buffer handled passed
-> when you create a drm framebuffer object to scan out is a GEM buffer.  So on
-> that one crazy platform, maybe it makes sense to have a DRM/KMS display
-> driver that takes a handle to identify which video stream coming from the
-> capture end of the pipeline.  Anyways, that is just an off-the-top-of-my-
-> head idea, probably there are other options too.
-
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 6cf9ad5..1c7fe5a 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -597,6 +597,8 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 		/* disable dual mode if driver does not support it */
+ 		if (i == 1)
+ 			switch (tmp) {
++			case AF9033_TUNER_FC0012:
++				break;
+ 			default:
+ 				state->dual_mode = false;
+ 				dev_info(&d->udev->dev, "%s: driver does not " \
+@@ -900,10 +902,18 @@ static const struct fc2580_config af9035_fc2580_config = {
+ 	.clock = 16384000,
+ };
+ 
+-static const struct fc0012_config af9035_fc0012_config = {
+-	.i2c_address = 0x63,
+-	.xtal_freq = FC_XTAL_36_MHZ,
+-	.dual_master = 1,
++static const struct fc0012_config af9035_fc0012_config[] = {
++	{
++		.i2c_address = 0x63,
++		.xtal_freq = FC_XTAL_36_MHZ,
++		.dual_master = 1,
++		.loop_through = true,
++		.clock_out = true,
++	}, {
++		.i2c_address = 0x63 | 0x80, /* I2C bus select hack */
++		.xtal_freq = FC_XTAL_36_MHZ,
++		.dual_master = 1,
++	}
+ };
+ 
+ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
+@@ -912,6 +922,7 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
+ 	struct dvb_usb_device *d = adap_to_d(adap);
+ 	int ret;
+ 	struct dvb_frontend *fe;
++	struct i2c_msg msg[1];
+ 	u8 tuner_addr;
+ 	/*
+ 	 * XXX: Hack used in that function: we abuse unused I2C address bit [7]
+@@ -1034,23 +1045,38 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
+ 		 * my test I didn't find any difference.
+ 		 */
+ 
+-		/* configure gpiot2 as output and high */
+-		ret = af9035_wr_reg_mask(d, 0xd8eb, 0x01, 0x01);
+-		if (ret < 0)
+-			goto err;
++		if (adap->id == 0) {
++			/* configure gpiot2 as output and high */
++			ret = af9035_wr_reg_mask(d, 0xd8eb, 0x01, 0x01);
++			if (ret < 0)
++				goto err;
+ 
+-		ret = af9035_wr_reg_mask(d, 0xd8ec, 0x01, 0x01);
+-		if (ret < 0)
+-			goto err;
++			ret = af9035_wr_reg_mask(d, 0xd8ec, 0x01, 0x01);
++			if (ret < 0)
++				goto err;
+ 
+-		ret = af9035_wr_reg_mask(d, 0xd8ed, 0x01, 0x01);
+-		if (ret < 0)
+-			goto err;
++			ret = af9035_wr_reg_mask(d, 0xd8ed, 0x01, 0x01);
++			if (ret < 0)
++				goto err;
++		} else {
++			/*
++			 * FIXME: That belongs for the FC0012 driver.
++			 * Write 02 to FC0012 master tuner register 0d directly
++			 * in order to make slave tuner working.
++			 */
++			msg[0].addr = 0x63;
++			msg[0].flags = 0;
++			msg[0].len = 2;
++			msg[0].buf = "\x0d\x02";
++			ret = i2c_transfer(&d->i2c_adap, msg, 1);
++			if (ret < 0)
++				goto err;
++		}
+ 
+ 		usleep_range(10000, 50000);
+ 
+ 		fe = dvb_attach(fc0012_attach, adap->fe[0], &d->i2c_adap,
+-				&af9035_fc0012_config);
++				&af9035_fc0012_config[adap->id]);
+ 		break;
+ 	default:
+ 		fe = NULL;
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.11.7
 
