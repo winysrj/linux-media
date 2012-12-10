@@ -1,151 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:51036 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752313Ab2LZRgB (ORCPT
+Received: from mx1.redhat.com ([209.132.183.28]:33367 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750823Ab2LJTky convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Dec 2012 12:36:01 -0500
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id 295E540B98
-	for <linux-media@vger.kernel.org>; Wed, 26 Dec 2012 18:35:59 +0100 (CET)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1Tnuta-0001cL-S3
-	for linux-media@vger.kernel.org; Wed, 26 Dec 2012 18:35:58 +0100
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/6] media: soc-camera: properly fix camera probing races
-Date: Wed, 26 Dec 2012 18:35:54 +0100
-Message-Id: <1356543358-6180-3-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1356543358-6180-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1356543358-6180-1-git-send-email-g.liakhovetski@gmx.de>
+	Mon, 10 Dec 2012 14:40:54 -0500
+Date: Mon, 10 Dec 2012 17:40:36 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: RFC: First draft of guidelines for submitting patches to
+ linux-media
+Message-ID: <20121210174036.03dd521c@redhat.com>
+In-Reply-To: <50C63543.8020500@googlemail.com>
+References: <201212101407.09338.hverkuil@xs4all.nl>
+	<50C60620.2010603@googlemail.com>
+	<201212101727.29074.hverkuil@xs4all.nl>
+	<20121210153816.0d4d9b64@redhat.com>
+	<50C63543.8020500@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The recently introduced host_lock causes lockdep warnings, besides, list
-enumeration in scan_add_host() must be protected by holdint the list_lock.
-OTOH, holding .video_lock in soc_camera_open() isn't enough to protect
-the host during its building of the pipeline, because .video_lock is per
-soc-camera device. If, e.g. more than one sensor can be attached to a host
-and the user tries to open both device nodes simultaneously, host's .add()
-method can be called simultaneously for both sensors. Fix these problems
-by holding list_lock instead of .host_lock in scan_add_host() and taking
-it shortly at the beginning of soc_camera_open(), and using .host_lock to
-protect host's .add() and .remove() operations only.
+Em Mon, 10 Dec 2012 20:17:23 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/platform/soc_camera/soc_camera.c |   22 +++++++++++++++++++---
- include/media/soc_camera.h                     |    2 +-
- 2 files changed, 20 insertions(+), 4 deletions(-)
+> Am 10.12.2012 18:38, schrieb Mauro Carvalho Chehab:
+> > Em Mon, 10 Dec 2012 17:27:29 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >
+> >> On Mon December 10 2012 16:56:16 Frank Schäfer wrote:
+> >>> Am 10.12.2012 14:07, schrieb Hans Verkuil:
+> >>>
+> >>> <snip>
+> >>>> 3) This document describes the situation we will have when the submaintainers
+> >>>> take their place early next year. So please check if I got that part right.
+> >>> ...
+> >>>
+> >>>> Reviewed-by/Acked-by
+> >>>> ====================
+> >>>>
+> >>>> Within the media subsystem there are three levels of maintainership: Mauro
+> >>>> Carvalho Chehab is the maintainer of the whole subsystem and the
+> >>>> DVB/V4L/IR/Media Controller core code in particular, then there are a number of
+> >>>> submaintainers for specific areas of the subsystem:
+> >>>>
+> >>>> - Kamil Debski: codec (aka memory-to-memory) drivers
+> >>>> - Hans de Goede: non-UVC USB webcam drivers
+> >>>> - Mike Krufky: frontends/tuners/demodulators In addition he'll be the reviewer
+> >>>>   for DVB core patches.
+> >>>> - Guennadi Liakhovetski: soc-camera drivers
+> >>>> - Laurent Pinchart: sensor subdev drivers.  In addition he'll be the reviewer
+> >>>>   for Media Controller core patches.
+> >>>> - Hans Verkuil: V4L2 drivers and video A/D and D/A subdev drivers (aka video
+> >>>>   receivers and transmitters). In addition he'll be the reviewer for V4L2 core
+> >>>>   patches.
+> >>>>
+> >>>> Finally there are maintainers for specific drivers. This is documented in the
+> >>>> MAINTAINERS file.
+> >>>>
+> >>>> When modifying existing code you need to get the Reviewed-by/Acked-by of the
+> >>>> maintainer of that code. So CC that maintainer when posting patches. If said
+> >>>> maintainer is unavailable then the submaintainer or even Mauro can accept it as
+> >>>> well, but that should be the exception, not the rule.
+> >>>>
+> >>>> Once patches are accepted they will flow through the git tree of the
+> >>>> submaintainer to the git tree of the maintainer (Mauro) who will do a final
+> >>>> review.
+> >>>>
+> >>>> There are a few exceptions: code for certain platforms goes through git trees
+> >>>> specific to that platform. The submaintainer will still review it and add a
+> >>>> acked-by or reviewed-by line, but it will not go through the submaintainer's
+> >>>> git tree.
+> >>>>
+> >>>> The platform maintainers are:
+> >>>>
+> >>>> TDB
+> >>>>
+> >>>> In case patches touch on areas that are the responsibility of multiple
+> >>>> submaintainers, then they will decide among one another who will merge the
+> >>>> patches.
+> >>> I've read this "when the submaintainers take their place early next
+> >>> year, everything will be fine" several times now.
+> >> I doubt everything will be fine, but I sure hope it will be better at least.
+> >> In other words, don't expect miracles :-)
+> >>
+> >>> But can anyone please explain me what's going to change ?
+> >>> AFAICS, the above exactly describes the _current_ situation.
+> >>> We already have sub-maintainers, sub-trees etc, right !? And the people
+> >>> listed above are already doing the same job at the moment.
+> >>>
+> >>> Looking at patchwork, it seems we are behind at least 1 complete kernel
+> >>> release cycle.
+> > No, this is not true; git pull requests are typically handled faster, as
+> > the material there is submitted either by a driver maintainer or by a
+> > sub-maintainer. The delay there for -git is currently 2 weeks, as we closed our
+> > merge window at the beginning of -rc7 (expecting that there won't be a -rc8).
+> 
+> But it's not "git pull request" vs. "patches sent to the list directly",
+> it's "reviewed" vs. "not reviewed", right ?
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index 4d7ec3d..37c53e7 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -517,7 +517,14 @@ static int soc_camera_open(struct file *file)
- 		/* No device driver attached */
- 		return -ENODEV;
- 
-+	/*
-+	 * Don't mess with the host during probe: wait until the loop in
-+	 * scan_add_host() completes
-+	 */
-+	if (mutex_lock_interruptible(&list_lock))
-+		return -ERESTARTSYS;
- 	ici = to_soc_camera_host(icd->parent);
-+	mutex_unlock(&list_lock);
- 
- 	if (mutex_lock_interruptible(&icd->video_lock))
- 		return -ERESTARTSYS;
-@@ -548,7 +555,6 @@ static int soc_camera_open(struct file *file)
- 		if (icl->reset)
- 			icl->reset(icd->pdev);
- 
--		/* Don't mess with the host during probe */
- 		mutex_lock(&ici->host_lock);
- 		ret = ici->ops->add(icd);
- 		mutex_unlock(&ici->host_lock);
-@@ -602,7 +608,9 @@ esfmt:
- eresume:
- 	__soc_camera_power_off(icd);
- epower:
-+	mutex_lock(&ici->host_lock);
- 	ici->ops->remove(icd);
-+	mutex_unlock(&ici->host_lock);
- eiciadd:
- 	icd->use_count--;
- 	module_put(ici->ops->owner);
-@@ -625,7 +633,9 @@ static int soc_camera_close(struct file *file)
- 
- 		if (ici->ops->init_videobuf2)
- 			vb2_queue_release(&icd->vb2_vidq);
-+		mutex_lock(&ici->host_lock);
- 		ici->ops->remove(icd);
-+		mutex_unlock(&ici->host_lock);
- 
- 		__soc_camera_power_off(icd);
- 	}
-@@ -1050,7 +1060,7 @@ static void scan_add_host(struct soc_camera_host *ici)
- {
- 	struct soc_camera_device *icd;
- 
--	mutex_lock(&ici->host_lock);
-+	mutex_lock(&list_lock);
- 
- 	list_for_each_entry(icd, &devices, list) {
- 		if (icd->iface == ici->nr) {
-@@ -1059,7 +1069,7 @@ static void scan_add_host(struct soc_camera_host *ici)
- 		}
- 	}
- 
--	mutex_unlock(&ici->host_lock);
-+	mutex_unlock(&list_lock);
- }
- 
- #ifdef CONFIG_I2C_BOARDINFO
-@@ -1146,7 +1156,9 @@ static int soc_camera_probe(struct soc_camera_device *icd)
- 	if (icl->reset)
- 		icl->reset(icd->pdev);
- 
-+	mutex_lock(&ici->host_lock);
- 	ret = ici->ops->add(icd);
-+	mutex_unlock(&ici->host_lock);
- 	if (ret < 0)
- 		goto eadd;
- 
-@@ -1218,7 +1230,9 @@ static int soc_camera_probe(struct soc_camera_device *icd)
- 		icd->field		= mf.field;
- 	}
- 
-+	mutex_lock(&ici->host_lock);
- 	ici->ops->remove(icd);
-+	mutex_unlock(&ici->host_lock);
- 
- 	mutex_unlock(&icd->video_lock);
- 
-@@ -1240,7 +1254,9 @@ eadddev:
- 	video_device_release(icd->vdev);
- 	icd->vdev = NULL;
- evdc:
-+	mutex_lock(&ici->host_lock);
- 	ici->ops->remove(icd);
-+	mutex_unlock(&ici->host_lock);
- eadd:
- ereg:
- 	v4l2_ctrl_handler_free(&icd->ctrl_handler);
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index 6442edc..0370a95 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -62,7 +62,7 @@ struct soc_camera_device {
- struct soc_camera_host {
- 	struct v4l2_device v4l2_dev;
- 	struct list_head list;
--	struct mutex host_lock;		/* Protect during probing */
-+	struct mutex host_lock;		/* Protect pipeline modifications */
- 	unsigned char nr;		/* Host number */
- 	u32 capabilities;
- 	void *priv;
--- 
-1.7.2.5
+A patch reviewed by a sub-maintainer/driver maintainers typically goes to me 
+via a git pull request.
 
+> > The very large of individual patches have a longer delays, due to the lack of
+> > driver maintainers reviews.
+> 
+> That's what I said, the problem is that we lack maintainers/reviewers.
+
+We (used to) lack to have sub-maintainers formally (except for gspca and
+soc_camera). Even driver's maintainership is currently shady, as most 
+drivers lack a MAINTAINERS entry. That is in the process of being fixed.
+
+> And people beeing subsystem maintainers AND driver maintainers have to
+> find a balance between processing pull requests and reviewing patches.
+> I'm not sure if I have understood yet how this balance should look
+> like... Can you elaborate a bit on this ?
+> At the moment it's ~12 weeks / ~2 weeks. What's the target value ? ;)
+
+Please wait for it to be implemented before complaining it ;) The 
+sub-maintainers new schema will start to work likely by Feb/Mar 2013.
+
+Also, the reviewing process is not equal to all patches: trivial patches
+can be merged quicker; core API changes should take a longer time, as
+it is expected to have more review before merging them.
+
+> >>> And the reason seems to be, that (at least some) maintainers don't have
+> >>> the resources to review them in time (no reproaches !).
+> >>>
+> >>> But to me this seems to be no structural problem.
+> >>> If a maintainer (permanently) doesn't have the time to review patches,
+> >>> he should leave maintainership to someone else.
+> > Agreed.
+> >
+> >>> So the actual problem seems to be, that we don't have enough
+> >>> maintainers/reviewers, right ?
+> >> The main problem is that all the work is done by Mauro. Sure, people help
+> >> out with reviews but a lot of the final administrative and merge effort is
+> >> done by one person only. In particular the patch flow is something he can't
+> >> keep up with anymore. So by assigning official submaintainers who get access
+> >> to patchwork and can process patches quickly we hope that his job will become
+> >> a lot easier.
+> >>
+> >> So the core two changes are 1) giving clear responsibilities to submaintainers
+> >> and 2) giving submaintainers access to patchwork to keep track of the patches.
+> >>
+> >> So patch submitters no longer have to wait until Mauro gets around to cleaning
+> >> out patchwork. Instead the submaintainers can do that themselves and collect
+> >> accepted patches in their git tree and post regular pull requests for Mauro.
+> >>
+> >> It should simplify things substantially for Mauro, we hope.
+> >>
+> >> I think we have enough people doing reviews etc. (although more are always
+> >> welcome), it's the patchflow itself that is the problem.
+> > Yeah, the issue is that both reviewed, non-reviewed and rejected/commented
+> > patches go into the very same queue, forcing me to revisit each patch again, 
+> > even the rejected/commented ones, and the previous versions of newer patches.
+> >
+> > By giving rights and responsibilities to the sub-maintainers to manage their
+> > stuff directly at patchwork, those patches that tend to stay at patchwork for
+> > a long time will likely disappear, and the queue will be cleaner.
+> 
+> So who can get an account / is supposed to access patchwork ?
+> - subsystem maintainers ?
+> - driver maintainers ?
+> - patch creators ?
+
+Subsystem maintainers only, except if someone can fix patchwork, adding
+proper ACL's there to allow patch creators to manage their own patches
+and sub-system maintainers to delegate work to driver maintainers, without
+giving them full rights, and being notified about status changes on
+those driver's patches.
+
+The current way patchwork implements it requires a very high degree of trust
+between the ones handling patches there, as anyone with access to patchwork
+can do bad things there affecting someone's else workflow. 
+
+Regards,
+Mauro
