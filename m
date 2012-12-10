@@ -1,73 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:51703 "EHLO
-	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750711Ab2LQFGN convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Dec 2012 00:06:13 -0500
-From: Albert Wang <twang13@marvell.com>
-To: Jonathan Corbet <corbet@lwn.net>
-CC: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Libin Yang <lbyang@marvell.com>
-Date: Sun, 16 Dec 2012 21:06:00 -0800
-Subject: RE: [PATCH V3 15/15] [media] marvell-ccic: add 3 frame buffers
- support in DMA_CONTIG mode
-Message-ID: <477F20668A386D41ADCC57781B1F70430D13C8CD48@SC-VEXCH1.marvell.com>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
-	<1355565484-15791-16-git-send-email-twang13@marvell.com>
-	<20121216095601.4a086356@hpe.lwn.net>
-	<477F20668A386D41ADCC57781B1F70430D13C8CCE7@SC-VEXCH1.marvell.com>
- <20121216155503.2ce60997@lwn.net>
-In-Reply-To: <20121216155503.2ce60997@lwn.net>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:58655 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753488Ab2LJP4I (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Dec 2012 10:56:08 -0500
+Received: by mail-la0-f46.google.com with SMTP id p5so2040656lag.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2012 07:56:06 -0800 (PST)
+Message-ID: <50C60620.2010603@googlemail.com>
+Date: Mon, 10 Dec 2012 16:56:16 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: RFC: First draft of guidelines for submitting patches to linux-media
+References: <201212101407.09338.hverkuil@xs4all.nl>
+In-Reply-To: <201212101407.09338.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Jonathan
+Am 10.12.2012 14:07, schrieb Hans Verkuil:
+
+<snip>
+> 3) This document describes the situation we will have when the submaintainers
+> take their place early next year. So please check if I got that part right.
+...
+
+> Reviewed-by/Acked-by
+> ====================
+>
+> Within the media subsystem there are three levels of maintainership: Mauro
+> Carvalho Chehab is the maintainer of the whole subsystem and the
+> DVB/V4L/IR/Media Controller core code in particular, then there are a number of
+> submaintainers for specific areas of the subsystem:
+>
+> - Kamil Debski: codec (aka memory-to-memory) drivers
+> - Hans de Goede: non-UVC USB webcam drivers
+> - Mike Krufky: frontends/tuners/demodulators In addition he'll be the reviewer
+>   for DVB core patches.
+> - Guennadi Liakhovetski: soc-camera drivers
+> - Laurent Pinchart: sensor subdev drivers.  In addition he'll be the reviewer
+>   for Media Controller core patches.
+> - Hans Verkuil: V4L2 drivers and video A/D and D/A subdev drivers (aka video
+>   receivers and transmitters). In addition he'll be the reviewer for V4L2 core
+>   patches.
+>
+> Finally there are maintainers for specific drivers. This is documented in the
+> MAINTAINERS file.
+>
+> When modifying existing code you need to get the Reviewed-by/Acked-by of the
+> maintainer of that code. So CC that maintainer when posting patches. If said
+> maintainer is unavailable then the submaintainer or even Mauro can accept it as
+> well, but that should be the exception, not the rule.
+>
+> Once patches are accepted they will flow through the git tree of the
+> submaintainer to the git tree of the maintainer (Mauro) who will do a final
+> review.
+>
+> There are a few exceptions: code for certain platforms goes through git trees
+> specific to that platform. The submaintainer will still review it and add a
+> acked-by or reviewed-by line, but it will not go through the submaintainer's
+> git tree.
+>
+> The platform maintainers are:
+>
+> TDB
+>
+> In case patches touch on areas that are the responsibility of multiple
+> submaintainers, then they will decide among one another who will merge the
+> patches.
+
+I've read this "when the submaintainers take their place early next
+year, everything will be fine" several times now.
+But can anyone please explain me what's going to change ?
+AFAICS, the above exactly describes the _current_ situation.
+We already have sub-maintainers, sub-trees etc, right !? And the people
+listed above are already doing the same job at the moment.
+
+Looking at patchwork, it seems we are behind at least 1 complete kernel
+release cycle.
+And the reason seems to be, that (at least some) maintainers don't have
+the resources to review them in time (no reproaches !).
+
+But to me this seems to be no structural problem.
+If a maintainer (permanently) doesn't have the time to review patches,
+he should leave maintainership to someone else.
+
+So the actual problem seems to be, that we don't have enough
+maintainers/reviewers, right ?
 
 
->-----Original Message-----
->From: Jonathan Corbet [mailto:corbet@lwn.net]
->Sent: Monday, 17 December, 2012 06:55
->To: Albert Wang
->Cc: g.liakhovetski@gmx.de; linux-media@vger.kernel.org; Libin Yang
->Subject: Re: [PATCH V3 15/15] [media] marvell-ccic: add 3 frame buffers support in
->DMA_CONTIG mode
->
->On Sun, 16 Dec 2012 14:34:31 -0800
->Albert Wang <twang13@marvell.com> wrote:
->
->> >What is the purpose of the "usebufs" field?  The code maintains it in
->> >various places, but I don't see anywhere that actually uses that value for
->> >anything.
->> >
->> [Albert Wang] Two buffers mode doesn't need it.
->> But Three buffers mode need it indicates which conditions we need set the single
->buffer flag.
->> I used "tribufs" as the name in the previous version, but it looks it's a confused name
->when we merged
->> Two buffers mode and Three buffers mode with same code by removing #ifdef based
->on your comments months ago. :)
->> So we just changed the name with "usebufs".
->
->OK, I misread the code a bit, sorry.  I do find the variable confusing
->still, but it clearly does play a role.
->
->I think that using three buffers by default would make sense.  I don't
->think that increased overruns are an unbreakable ABI feature :)
->
-[Albert Wang] OK, we can change the default to three buffers mode.
+<snip>
 
->Feel free to add my ack to this one.
+> Patchwork
+> =========
 >
->Thanks,
+> Patchwork is an automated system that takes care of all posted patches. It can
+> be found here: http://patchwork.linuxtv.org/project/linux-media/list/
 >
->jon
+> If your patch does not appear in patchwork after [TBD], then check if you used
+> the right patch tags and if your patch is formatted correctly (no HTML, no
+> mangled lines).
+>
+> Whenever you patch changes state you'll get an email informing you about that.
 
+What if people send a V2 of a patch (series). Should they mark V1 as
+superseeded themselves ?
+And what about maintainers not using patchwork ? Are they nevertheless
+supposed to take care of the status of their patches ?
 
-Thanks
-Albert Wang
-86-21-61092656
+Regards,
+Frank
+
