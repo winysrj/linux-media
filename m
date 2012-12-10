@@ -1,59 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:61161 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752559Ab2LQPQr (ORCPT
+Received: from mail01.ipfire.org ([178.63.73.247]:43384 "EHLO
+	mail01.ipfire.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751555Ab2LJJMc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Dec 2012 10:16:47 -0500
-Received: by mail-lb0-f174.google.com with SMTP id gi11so4831162lbb.19
-        for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 07:16:46 -0800 (PST)
+	Mon, 10 Dec 2012 04:12:32 -0500
 MIME-Version: 1.0
-In-Reply-To: <CAOcJUbzLTOASaHDAgCdFiYtOKoUM4oTEOP3EpbD9EE_zdT2O6w@mail.gmail.com>
-References: <CAOcJUbzLTOASaHDAgCdFiYtOKoUM4oTEOP3EpbD9EE_zdT2O6w@mail.gmail.com>
-Date: Mon, 17 Dec 2012 10:16:46 -0500
-Message-ID: <CAOcJUbzK_CG3p5vcddm5hp02QFOOaw2Nh4LKuqR0HHQJA+0ENA@mail.gmail.com>
-Subject: Re: [PULL] au0828: update model matrix | git://linuxtv.org/mkrufky/hauppauge
- voyager-72281
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+ charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Mon, 10 Dec 2012 09:12:29 +0000
+From: Arne Fitzenreiter <Arne.Fitzenreiter@ipfire.org>
+To: <linux-media@vger.kernel.org>, <trivial@kernel.org>
+Subject: [PATCH] [media] fix tua6034 pll bandwich configuration [3rd and
+ last attempt]
+Message-ID: <c391b828d500549858eca574a253d69b@mail01.ipfire.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As discussed on irc, the following pwclient commands should update the
-status of the patches in patchwork to correspond with this merge
-request:
+i have already send this patch twice and the mailing list but get no 
+response. (Three weeks delay between the mails).
+Why mail mails are ignored?
 
-pwclient update -s 'superseded' 15708
-pwclient update -s 'superseded' 15709
-pwclient update -s 'superseded' 15710
-pwclient update -s 'superseded' 15711
-pwclient update -s 'accepted' 15707
+The tua6034 pll is corrupted by commit "[media] dvb-pll: use DVBv5 
+parameters on set_params()"
+http://git.linuxtv.org/media_tree.git/commit/80d8d4985f280dca3c395286d13b49f910a029e7
 
+[SNIP]
+/* Infineon TUA6034
+ * used in LG TDTP E102P
+ */
+-static void tua6034_bw(struct dvb_frontend *fe, u8 *buf,
+-                      const struct dvb_frontend_parameters *params)
++static void tua6034_bw(struct dvb_frontend *fe, u8 *buf)
+{
+-       if (BANDWIDTH_7_MHZ != params->u.ofdm.bandwidth)
++       u32 bw = fe->dtv_property_cache.bandwidth_hz;
++       if (bw == 7000000)
+               buf[3] |= 0x08;
+}
+[/SNIP]
 
-Cheers,
+so here is a patch to fix this typo to get the Skymaster DTMU100 
+(HANFTEK UMT010 OEM BOX)
+working again.
 
-Mike
+Arne
 
-On Wed, Nov 28, 2012 at 10:23 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> The following changes since commit c6c22955f80f2db9614b01fe5a3d1cfcd8b3d848:
->
->   [media] dma-mapping: fix dma_common_get_sgtable() conditional
-> compilation (2012-11-27 09:42:31 -0200)
->
-> are available in the git repository at:
->
->   git://linuxtv.org/mkrufky/hauppauge voyager-72281
->
-> for you to fetch changes up to 72567f3cfafe31c1612efe52e2893e960cc8dd00:
->
->   au0828: update model matrix entries for 72261, 72271 & 72281
-> (2012-11-28 09:46:24 -0500)
->
-> ----------------------------------------------------------------
-> Michael Krufky (2):
->       au0828: add missing model 72281, usb id 2040:7270 to the model matrix
->       au0828: update model matrix entries for 72261, 72271 & 72281
->
->  drivers/media/usb/au0828/au0828-cards.c |    6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
+Resolves-bug: https://bugzilla.kernel.org/show_bug.cgi?id=51011
+
+diff -Naur linux-3.7-rc7-org/drivers/media/dvb-frontends/dvb-pll.c 
+linux-3.7-rc7/drivers/media/dvb-frontends/dvb-pll.c
+--- linux-3.7-rc7-org/drivers/media/dvb-frontends/dvb-pll.c	2012-11-26 
+02:59:19.000000000 +0100
++++ linux-3.7-rc7/drivers/media/dvb-frontends/dvb-pll.c	2012-11-27 
+09:45:16.736775252 +0100
+@@ -247,7 +247,7 @@
+ static void tua6034_bw(struct dvb_frontend *fe, u8 *buf)
+ {
+ 	u32 bw = fe->dtv_property_cache.bandwidth_hz;
+-	if (bw == 7000000)
++	if (bw != 7000000)
+ 		buf[3] |= 0x08;
+ }
+
