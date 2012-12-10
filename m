@@ -1,131 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13231 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:52783 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752573Ab2LWUiL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Dec 2012 15:38:11 -0500
-Date: Sun, 23 Dec 2012 18:37:43 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [v3.8-rc1] Multimedia regression, ioctl(17,..)-API changed ?
-Message-ID: <20121223183743.0400ac93@redhat.com>
-In-Reply-To: <CADDKRnB=KYBuue10BnPpiRD=rrrATgxt-DfgLHmK-cqRAvJsUQ@mail.gmail.com>
-References: <CADDKRnB=KYBuue10BnPpiRD=rrrATgxt-DfgLHmK-cqRAvJsUQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	id S1753470Ab2LJAqV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Dec 2012 19:46:21 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>,
+	Malcolm Priestley <tvboxspy@gmail.com>
+Subject: [PATCH RFC 08/11] it913x: remove unused define and increase module version
+Date: Mon, 10 Dec 2012 02:45:32 +0200
+Message-Id: <1355100335-2123-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1355100335-2123-1-git-send-email-crope@iki.fi>
+References: <1355100335-2123-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jörg,
+Cc: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/it913x.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Em Sun, 23 Dec 2012 17:46:07 +0100
-Jörg Otte <jrg.otte@gmail.com> escreveu:
+diff --git a/drivers/media/usb/dvb-usb-v2/it913x.c b/drivers/media/usb/dvb-usb-v2/it913x.c
+index 5dc352b..3d20e38 100644
+--- a/drivers/media/usb/dvb-usb-v2/it913x.c
++++ b/drivers/media/usb/dvb-usb-v2/it913x.c
+@@ -309,7 +309,6 @@ static struct i2c_algorithm it913x_i2c_algo = {
+ 
+ /* Callbacks for DVB USB */
+ #if defined(CONFIG_RC_CORE) || defined(CONFIG_RC_CORE_MODULE)
+-#define IT913X_POLL 250
+ static int it913x_rc_query(struct dvb_usb_device *d)
+ {
+ 	u8 ibuf[4];
+@@ -801,7 +800,7 @@ module_usb_driver(it913x_driver);
+ 
+ MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
+ MODULE_DESCRIPTION("it913x USB 2 Driver");
+-MODULE_VERSION("1.32");
++MODULE_VERSION("1.33");
+ MODULE_LICENSE("GPL");
+ MODULE_FIRMWARE(FW_IT9135_V1);
+ MODULE_FIRMWARE(FW_IT9135_V2);
+-- 
+1.7.11.7
 
-> With kernel v3.8 all multimedia programs under KDE4 don't work (Kubuntu 12.04).
-> They alltogether ( at least Dragonplayer (Mediaplayer), Knotify4
-> (system-sound),
-> System-Settings-Multimedia,..) are looping forever producing 100% CPU-usage
-> and must be killed.
-> 
-> With kernel 3.7 there are no problems.
-
-Do you have any other non-uvc device to test?
-
-> I compared an strace of Dragonplayer under 3.7 and 3.8 kernels. The
-> main difference
-> of both traces are the following corresponding outputs just before
-> looping in v3.8
-> begins:
-> 
-> v3.7:
-> ioctl(17, VIDIOC_ENUMSTD, 0x7fff6cce66a0) = -1 EINVAL (Invalid argument)
-
-This ioctl returns -ENOTTY already with other media drivers on v3.7.
-
-> ioctl(17, VIDIOC_QUERYCTRL, 0x7fff6cce66f0) = -1 EINVAL (Invalid argument)
-
-This change is new, and, AFAIKT, only UVC returns -ENOENT on 3.8-rc1.
-
-This is likely the source of the troubles.
-
-> 
-> v3.8:
-> ioctl(17, VIDIOC_ENUMSTD, 0x7fffc3be6990) = -1 ENOTTY (Inappropriate
-> ioctl for device)
-> ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-> or directory)
-> 
-> So error number EINVAL was changed to ENOTTY/ENOENT
-> 
-> When Dragonplayer under v3.8 comes to ioctl(17, VIDIOC_QUERYCTRL,...)
-> and sees error
-> number ENOENT instead of EINVAL it loops forever producing 100% CPU
-> usage like so:
-> 
->   .
->   .
-> ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-> or directory)
-> ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-> or directory)
-> ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-> or directory)
-> ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-> or directory)
-> ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-> or directory)
-> ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-> or directory)
-> ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-> or directory)
-> ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-> or directory)
-> ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-> or directory)
-> ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-> or directory)
-> ioctl(17, VIDIOC_QUERYCTRL, 0x7fffc3be69e0) = -1 ENOENT (No such file
-> or directory)
-
-Yeah, it started an endless loop here, likely because kde4 seems to be
-expecting either 0 or -EINVAL error code for VIDIOC_QUERYCTRL.
-
-It should be noticed that there are other valid error codes here. For
-example, if this ioctl is not implemented, -ENOTTY may also be returned.
-Fortunately, almost all drivers do implement this ioctl.
-
-The expected return error codes for this ioctl are described at:
-	http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-queryctrl.html
-
-In practice, except for the uvc driver, the current return codes are
-EINVAL/EACCES/ENOTTY.
-
->   .
->   and so on
->   .
-> 
-> For me it looks like that KDE4 multimedia is not aware of the new error numbers.
-> 
-> Looking through the commits I found driver uvcvideo producing the changed
-> error numbers.
-> 
-> commit f0ed2ce840b3a59b587e8aa398538141a86e9588
-> Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> [media] uvcvideo: Set error_idx properly for extended controls API failures
-> 
-> To verify this I built a v3.8-kernel without uvcvideo (USB_VIDEO_CLASS=n)
-> and the problem disappeared!
-> 
-> Simply reverting the commit is not an option for me because then I am left
-> with merge conflicts and I don't know how to resolve.
-> 
-> Unfortunately without uvcvideo I lost my usb-camera support.
-
-Rafael made a patch fixing it, and Linus should be applying it.
-
-Regards,
-Mauro
