@@ -1,87 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:17369 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751620Ab2LJTrB (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:40726 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751716Ab2LJTDP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 14:47:01 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
-	rob.herring@calxeda.com, thomas.abraham@linaro.org,
-	t.figa@samsung.com, sw0312.kim@samsung.com,
-	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 10/12] ARM: dts: Add FIMC and MIPI CSIS device nodes for
- Exynos4x12
-Date: Mon, 10 Dec 2012 20:46:04 +0100
-Message-id: <1355168766-6068-11-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
-References: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 10 Dec 2012 14:03:15 -0500
+Received: by mail-bk0-f46.google.com with SMTP id q16so1246098bkw.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2012 11:03:14 -0800 (PST)
+Message-ID: <1355166143.4229.2.camel@canaries64>
+Subject: Re: [PATCH RFC 08/11] it913x: remove unused define and increase
+ module version
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1355100335-2123-8-git-send-email-crope@iki.fi>
+References: <1355100335-2123-1-git-send-email-crope@iki.fi>
+	 <1355100335-2123-8-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 10 Dec 2012 19:02:23 +0000
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add common camera node and fimc nodes specific to Exynos4212
-and Exynos4412 SoCs.
+On Mon, 2012-12-10 at 02:45 +0200, Antti Palosaari wrote:
+> Cc: Malcolm Priestley <tvboxspy@gmail.com>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+Acked-by: Malcolm Priestley <tvboxspy@gmail.com>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/boot/dts/exynos4x12.dtsi |   36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+>  drivers/media/usb/dvb-usb-v2/it913x.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/usb/dvb-usb-v2/it913x.c b/drivers/media/usb/dvb-usb-v2/it913x.c
+> index 5dc352b..3d20e38 100644
+> --- a/drivers/media/usb/dvb-usb-v2/it913x.c
+> +++ b/drivers/media/usb/dvb-usb-v2/it913x.c
+> @@ -309,7 +309,6 @@ static struct i2c_algorithm it913x_i2c_algo = {
+>  
+>  /* Callbacks for DVB USB */
+>  #if defined(CONFIG_RC_CORE) || defined(CONFIG_RC_CORE_MODULE)
+> -#define IT913X_POLL 250
+>  static int it913x_rc_query(struct dvb_usb_device *d)
+>  {
+>  	u8 ibuf[4];
+> @@ -801,7 +800,7 @@ module_usb_driver(it913x_driver);
+>  
+>  MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
+>  MODULE_DESCRIPTION("it913x USB 2 Driver");
+> -MODULE_VERSION("1.32");
+> +MODULE_VERSION("1.33");
+>  MODULE_LICENSE("GPL");
+>  MODULE_FIRMWARE(FW_IT9135_V1);
+>  MODULE_FIRMWARE(FW_IT9135_V2);
 
-diff --git a/arch/arm/boot/dts/exynos4x12.dtsi b/arch/arm/boot/dts/exynos4x12.dtsi
-index 3cb4862..e8fd4b7 100644
---- a/arch/arm/boot/dts/exynos4x12.dtsi
-+++ b/arch/arm/boot/dts/exynos4x12.dtsi
-@@ -26,6 +26,8 @@
- 		pinctrl1 = &pinctrl_1;
- 		pinctrl2 = &pinctrl_2;
- 		pinctrl3 = &pinctrl_3;
-+		fimc-lite0 = &fimc_lite_0;
-+		fimc-lite1 = &fimc_lite_1;
- 	};
- 
- 	pd_isp: isp-power-domain@10023CA0 {
-@@ -75,4 +77,38 @@
- 		reg = <0x106E0000 0x1000>;
- 		interrupts = <0 72 0>;
- 	};
-+
-+	camera {
-+		fimc_0: fimc@11800000 {
-+			compatible = "samsung,exynos4212-fimc";
-+		};
-+
-+		fimc_1: fimc@11810000 {
-+			compatible = "samsung,exynos4212-fimc";
-+		};
-+
-+		fimc_2: fimc@11820000 {
-+			compatible = "samsung,exynos4212-fimc";
-+		};
-+
-+		fimc_3: fimc@11830000 {
-+			compatible = "samsung,exynos4212-fimc";
-+		};
-+
-+		fimc_lite_0: fimc_lite@12390000 {
-+			compatible = "samsung,exynos4212-fimc-lite";
-+			reg = <0x12390000 0x1000>;
-+			interrupts = <0 125 0>;
-+			power-domain = <&pd_isp>;
-+			status = "disabled";
-+		};
-+
-+		fimc_lite_1: fimc_lite@123a0000 {
-+			compatible = "samsung,exynos4212-fimc-lite";
-+			reg = <0x123a0000 0x1000>;
-+			interrupts = <0 126 0>;
-+			power-domain = <&pd_isp>;
-+			status = "disabled";
-+		};
-+	};
- };
--- 
-1.7.9.5
 
