@@ -1,61 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:44950 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752597Ab2LKI51 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Dec 2012 03:57:27 -0500
-Received: by mail-we0-f174.google.com with SMTP id x10so1552128wey.19
-        for <linux-media@vger.kernel.org>; Tue, 11 Dec 2012 00:57:26 -0800 (PST)
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH RFC 05/13] of: Add empty for_each_available_child_of_node() macro definition
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>, g.liakhovetski@gmx.de,
-	linux-media@vger.kernel.org
-Cc: rob.herring@calxeda.com, thomas.abraham@linaro.org,
-	t.figa@samsung.com, sw0312.kim@samsung.com,
-	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-kernel@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-In-Reply-To: <1355168499-5847-6-git-send-email-s.nawrocki@samsung.com>
-References: <1355168499-5847-1-git-send-email-s.nawrocki@samsung.com> <1355168499-5847-6-git-send-email-s.nawrocki@samsung.com>
-Date: Tue, 11 Dec 2012 08:57:07 +0000
-Message-Id: <20121211085707.8D4F03E076D@localhost>
+Received: from mail.kapsi.fi ([217.30.184.167]:45078 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753281Ab2LJAqV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Dec 2012 19:46:21 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>,
+	Malcolm Priestley <tvboxspy@gmail.com>
+Subject: [PATCH RFC 07/11] it913x: make remote controller optional
+Date: Mon, 10 Dec 2012 02:45:31 +0200
+Message-Id: <1355100335-2123-7-git-send-email-crope@iki.fi>
+In-Reply-To: <1355100335-2123-1-git-send-email-crope@iki.fi>
+References: <1355100335-2123-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 10 Dec 2012 20:41:31 +0100, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
-> Add this empty macro definition so users can be compiled without
-> excluding this macro call with preprocessor directives when CONFIG_OF
-> is disabled.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Do not compile remote controller when RC-core is disabled by Kconfig.
 
-What non-OF code is calling this function?
+Cc: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/it913x.c | 36 +++++++++++++++++++----------------
+ 1 file changed, 20 insertions(+), 16 deletions(-)
 
-g.
-
-> ---
->  include/linux/of.h |    3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/include/linux/of.h b/include/linux/of.h
-> index 2fb0dbe..7df42cc 100644
-> --- a/include/linux/of.h
-> +++ b/include/linux/of.h
-> @@ -332,6 +332,9 @@ static inline bool of_have_populated_dt(void)
->  #define for_each_child_of_node(parent, child) \
->  	while (0)
->  
-> +#define for_each_available_child_of_node(parent, child) \
-> +	while (0)
-> +
->  static inline struct device_node *of_get_child_by_name(
->  					const struct device_node *node,
->  					const char *name)
-> -- 
-> 1.7.9.5
-> 
-
+diff --git a/drivers/media/usb/dvb-usb-v2/it913x.c b/drivers/media/usb/dvb-usb-v2/it913x.c
+index 4720428..5dc352b 100644
+--- a/drivers/media/usb/dvb-usb-v2/it913x.c
++++ b/drivers/media/usb/dvb-usb-v2/it913x.c
+@@ -308,6 +308,7 @@ static struct i2c_algorithm it913x_i2c_algo = {
+ };
+ 
+ /* Callbacks for DVB USB */
++#if defined(CONFIG_RC_CORE) || defined(CONFIG_RC_CORE_MODULE)
+ #define IT913X_POLL 250
+ static int it913x_rc_query(struct dvb_usb_device *d)
+ {
+@@ -334,6 +335,25 @@ static int it913x_rc_query(struct dvb_usb_device *d)
+ 	return ret;
+ }
+ 
++static int it913x_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
++{
++	struct it913x_state *st = d->priv;
++
++	if (st->proprietary_ir == false) {
++		rc->map_name = NULL;
++		return 0;
++	}
++
++	rc->allowed_protos = RC_BIT_NEC;
++	rc->query = it913x_rc_query;
++	rc->interval = 250;
++
++	return 0;
++}
++#else
++	#define it913x_get_rc_config NULL
++#endif
++
+ /* Firmware sets raw */
+ static const char fw_it9135_v1[] = FW_IT9135_V1;
+ static const char fw_it9135_v2[] = FW_IT9135_V2;
+@@ -695,22 +715,6 @@ static int it913x_frontend_attach(struct dvb_usb_adapter *adap)
+ }
+ 
+ /* DVB USB Driver */
+-static int it913x_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
+-{
+-	struct it913x_state *st = d->priv;
+-
+-	if (st->proprietary_ir == false) {
+-		rc->map_name = NULL;
+-		return 0;
+-	}
+-
+-	rc->allowed_protos = RC_BIT_NEC;
+-	rc->query = it913x_rc_query;
+-	rc->interval = 250;
+-
+-	return 0;
+-}
+-
+ static int it913x_get_adapter_count(struct dvb_usb_device *d)
+ {
+ 	struct it913x_state *st = d->priv;
 -- 
-Grant Likely, B.Sc, P.Eng.
-Secret Lab Technologies, Ltd.
+1.7.11.7
+
