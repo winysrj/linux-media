@@ -1,45 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:35342 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753326Ab2LBKnS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Dec 2012 05:43:18 -0500
-Date: Sun, 2 Dec 2012 13:43:13 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] mantis: cleanup NULL checking in mantis_ca_exit()
-Message-ID: <20121202104313.GC16078@elgon.mountain>
+Received: from mail-la0-f46.google.com ([209.85.215.46]:45109 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751879Ab2LJU2y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Dec 2012 15:28:54 -0500
+Received: by mail-la0-f46.google.com with SMTP id p5so2271546lag.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2012 12:28:52 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Date: Mon, 10 Dec 2012 22:28:52 +0200
+Message-ID: <CAJCbrz6aomi3_jsUbQMtbqdjAV04pUF0jMLBx3tE_Hauv_xi+A@mail.gmail.com>
+Subject: invert camera option
+From: Sergey Ivanov <icegood1980@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Smatch complainst that the call to mantis_evmgr_exit() dereferences "ca"
-but then we check it for NULL on the next line.  I've moved the NULL
-check forward to avoid that.
+Hi there!
+Could you consider an option to invert camera manually if it cannot be
+inverted properly automatically?
+2012 outside and i still suffered of that problem
+(http://ubuntuforums.org/showthread.php?t=2093384)
+And other suffer too:
+http://ubuntuforums.org/showthread.php?t=838210&highlight=uvcvideo+ubuntu+patch
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
-There aren't any callers for this function.  It is commented out in
-mantis_dvb_exit().
-
-diff --git a/drivers/media/pci/mantis/mantis_ca.c b/drivers/media/pci/mantis/mantis_ca.c
-index 3d70469..60c6c2f 100644
---- a/drivers/media/pci/mantis/mantis_ca.c
-+++ b/drivers/media/pci/mantis/mantis_ca.c
-@@ -198,11 +198,12 @@ void mantis_ca_exit(struct mantis_pci *mantis)
- 	struct mantis_ca *ca = mantis->mantis_ca;
- 
- 	dprintk(MANTIS_DEBUG, 1, "Mantis CA exit");
-+	if (!ca)
-+		return;
- 
- 	mantis_evmgr_exit(ca);
- 	dprintk(MANTIS_ERROR, 1, "Unregistering EN50221 device");
--	if (ca)
--		dvb_ca_en50221_release(&ca->en50221);
-+	dvb_ca_en50221_release(&ca->en50221);
- 
- 	kfree(ca);
- }
+It might be option in uvcvideo.conf or whatever...
+--
+Kind regards,
+Sergey Ivanov
