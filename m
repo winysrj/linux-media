@@ -1,56 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:32850 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751945Ab2LDJYQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Dec 2012 04:24:16 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MEI001LH25AW040@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 04 Dec 2012 09:26:52 +0000 (GMT)
-Received: from [106.116.147.32] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MEI001TW24EBQ70@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 04 Dec 2012 09:24:14 +0000 (GMT)
-Message-id: <50BDC13D.2080100@samsung.com>
-Date: Tue, 04 Dec 2012 10:24:13 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR 3.8-rc] s5p-fimc driver fixes
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from cantor2.suse.de ([195.135.220.15]:55641 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751498Ab2LJOPO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Dec 2012 09:15:14 -0500
+Date: Mon, 10 Dec 2012 15:15:08 +0100 (CET)
+From: Jiri Kosina <jkosina@suse.cz>
+To: Arne Fitzenreiter <Arne.Fitzenreiter@ipfire.org>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] [media] fix tua6034 pll bandwich configuration [3rd and
+ last attempt]
+In-Reply-To: <c391b828d500549858eca574a253d69b@mail01.ipfire.org>
+Message-ID: <alpine.LNX.2.00.1212101514320.31825@pobox.suse.cz>
+References: <c391b828d500549858eca574a253d69b@mail01.ipfire.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+On Mon, 10 Dec 2012, Arne Fitzenreiter wrote:
 
-the following are just two bug fixes for Exynos FIMC/MIPI-CSIS drivers.
-Please pull for 3.8.
+> i have already send this patch twice and the mailing list but get no response.
+> (Three weeks delay between the mails).
+> Why mail mails are ignored?
 
-The following changes since commit d8658bca2e5696df2b6c69bc5538f8fe54e4a01e:
+I have no idea, but I'd like to have this taken through media tree rather 
+than trivial.
 
-  [media] omap3isp: Replace cpu_is_omap3630() with ISP revision check
-(2012-11-28 10:54:46 -0200)
+Adding Mauro to CC.
 
-are available in the git repository at:
+> 
+> The tua6034 pll is corrupted by commit "[media] dvb-pll: use DVBv5 parameters
+> on set_params()"
+> http://git.linuxtv.org/media_tree.git/commit/80d8d4985f280dca3c395286d13b49f910a029e7
+> 
+> [SNIP]
+> /* Infineon TUA6034
+> * used in LG TDTP E102P
+> */
+> -static void tua6034_bw(struct dvb_frontend *fe, u8 *buf,
+> -                      const struct dvb_frontend_parameters *params)
+> +static void tua6034_bw(struct dvb_frontend *fe, u8 *buf)
+> {
+> -       if (BANDWIDTH_7_MHZ != params->u.ofdm.bandwidth)
+> +       u32 bw = fe->dtv_property_cache.bandwidth_hz;
+> +       if (bw == 7000000)
+>               buf[3] |= 0x08;
+> }
+> [/SNIP]
+> 
+> so here is a patch to fix this typo to get the Skymaster DTMU100 (HANFTEK
+> UMT010 OEM BOX)
+> working again.
+> 
+> Arne
+> 
+> Resolves-bug: https://bugzilla.kernel.org/show_bug.cgi?id=51011
+> 
+> diff -Naur linux-3.7-rc7-org/drivers/media/dvb-frontends/dvb-pll.c
+> linux-3.7-rc7/drivers/media/dvb-frontends/dvb-pll.c
+> --- linux-3.7-rc7-org/drivers/media/dvb-frontends/dvb-pll.c	2012-11-26
+> 02:59:19.000000000 +0100
+> +++ linux-3.7-rc7/drivers/media/dvb-frontends/dvb-pll.c	2012-11-27
+> 09:45:16.736775252 +0100
+> @@ -247,7 +247,7 @@
+> static void tua6034_bw(struct dvb_frontend *fe, u8 *buf)
+> {
+> 	u32 bw = fe->dtv_property_cache.bandwidth_hz;
+> -	if (bw == 7000000)
+> +	if (bw != 7000000)
+> 		buf[3] |= 0x08;
+> }
+> 
 
-  git://git.infradead.org/users/kmpark/linux-samsung v4l_s5p_fimc_fixes
-
-for you to fetch changes up to c3f9f35d39a15bbfc038fb53d143337a41cfc488:
-
-  s5p-csis: Correct the event counters logging (2012-12-03 10:17:52 +0100)
-
-----------------------------------------------------------------
-Sylwester Nawrocki (2):
-      s5p-fimc: Fix horizontal/vertical image flip
-      s5p-csis: Correct the event counters logging
-
- drivers/media/platform/s5p-fimc/fimc-reg.c  |    8 ++++----
- drivers/media/platform/s5p-fimc/mipi-csis.c |    6 +++---
- 2 files changed, 7 insertions(+), 7 deletions(-)
-
---
-
-Regards,
-Sylwester
+-- 
+Jiri Kosina
+SUSE Labs
