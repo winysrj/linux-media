@@ -1,80 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62400 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752556Ab2LUTMt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Dec 2012 14:12:49 -0500
-Date: Fri, 21 Dec 2012 17:12:25 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PULL] video_visstrim staging/ov7670_for_v3.7
-Message-ID: <20121221171225.6bce4504@redhat.com>
-In-Reply-To: <1351527301-17855-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1351527301-17855-1-git-send-email-javier.martin@vista-silicon.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:17167 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750952Ab2LJTmk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Dec 2012 14:42:40 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com,
+	thomas.abraham@linaro.org, t.figa@samsung.com,
+	sw0312.kim@samsung.com, kyungmin.park@samsung.com,
+	devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 11/13] v4l2-of: Add v4l2_of_parse_data_lanes() function
+Date: Mon, 10 Dec 2012 20:41:37 +0100
+Message-id: <1355168499-5847-12-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1355168499-5847-1-git-send-email-s.nawrocki@samsung.com>
+References: <1355168499-5847-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 29 Oct 2012 17:15:01 +0100
-Javier Martin <javier.martin@vista-silicon.com> escreveu:
+Put the data-lanes property parsing code and make a separate function
+out of it, so it can be used in drivers that don't need all features
+packed in v4l2_of_parse_link().
 
-> Hi Mauro,
-> since there was some confusion regarding my two last series
-> for the ov7670 I've decided to send this pull request to 
-> make things more clear and avoid merging order issues.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/v4l2-core/v4l2-of.c |   48 ++++++++++++++++++++++++-------------
+ include/media/v4l2-of.h           |   28 ++++++++++++++++------
+ 2 files changed, 52 insertions(+), 24 deletions(-)
 
-Thanks but you forgot to ad your SOB on the patches there. For example:
-	https://github.com/jmartinc/video_visstrim/commit/923befe62c190dfcab66d3402b450d8f26ad98cf
-
-Could you please sign them?
-
-Thanks!
-Mauro
-
-
-
-> 
-> It should apply properly in your current tree.
-> 
-> The following changes since commit 1534e55974c7e2f57623457c0f6b4108c6ef4776:
-> 
->   media: coda: Add Philipp's patches. (2012-09-24 17:30:53 +0200)
-> 
-> are available in the git repository at:
-> 
->   https://github.com/jmartinc/video_visstrim.git staging/ov7670_for_v3.7 
-> 
-> for you to fetch changes up to 5a594e1b96d3363aedf74d9bd37a2d669beab0bc:
-> 
->   ov7670: remove legacy ctrl callbacks. (2012-09-28 13:18:23 +0200)
-> 
-> ----------------------------------------------------------------
-> Javier Martin (9):
->       media: ov7670: add support for ov7675.
->       media: ov7670: make try_fmt() consistent with 'min_height' and 'min_width'.
->       media: ov7670: calculate framerate properly for ov7675.
->       media: ov7670: add possibility to bypass pll for ov7675.
->       media: ov7670: Add possibility to disable pixclk during hblank.
->       ov7670: use the control framework
->       mcam-core: implement the control framework.
->       via-camera: implement the control framework.
->       ov7670: remove legacy ctrl callbacks.
-> 
->  drivers/media/i2c/ov7670.c                      |  587 +++++++++++++----------
->  drivers/media/platform/marvell-ccic/mcam-core.c |   54 +--
->  drivers/media/platform/marvell-ccic/mcam-core.h |    2 +
->  drivers/media/platform/via-camera.c             |   60 +--
->  include/media/ov7670.h                          |    2 +
->  5 files changed, 369 insertions(+), 336 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+index 4e6658c..032ee67 100644
+--- a/drivers/media/v4l2-core/v4l2-of.c
++++ b/drivers/media/v4l2-core/v4l2-of.c
+@@ -15,6 +15,35 @@
+ 
+ #include <media/v4l2-of.h>
+ 
++
++/**
++ * v4l2_of_parse_data_lanes() - parse data-lanes property
++ * @node: a node containing data-lanes property [in]
++ * @mipi_csi2: data lanes configuration [out]
++ *
++ * Return: 0 on success or negative error value otherwise.
++ */
++int v4l2_of_parse_data_lanes(const struct device_node *node,
++				struct v4l2_of_mipi_csi2 *mipi_csi2)
++{
++	struct property *prop = of_find_property(node, "data-lanes", NULL);
++	u32 data_lanes[ARRAY_SIZE(mipi_csi2->data_lanes)];
++	const __be32 *lane = NULL;
++	int i = 0;
++
++	if (!prop)
++		return -EINVAL;
++
++	do {
++		lane = of_prop_next_u32(prop, lane, &data_lanes[i]);
++	} while (lane && i++ < ARRAY_SIZE(data_lanes));
++
++	mipi_csi2->num_data_lanes = i;
++	while (i--)
++		mipi_csi2->data_lanes[i] = data_lanes[i];
++	return 0;
++}
++
+ /*
+  * All properties are optional. If none are found, we don't set any flags. This
+  * means, the port has a static configuration and no properties have to be
+@@ -29,11 +58,9 @@ void v4l2_of_parse_link(const struct device_node *node,
+ 			struct v4l2_of_link *link)
+ {
+ 	const struct device_node *port_node = of_get_parent(node);
++	bool data_lanes_present = false;
+ 	int size;
+ 	unsigned int v;
+-	u32 data_lanes[ARRAY_SIZE(link->mipi_csi_2.data_lanes)];
+-	bool data_lanes_present;
+-	struct property *prop;
+ 
+ 	memset(link, 0, sizeof(*link));
+ 
+@@ -84,21 +111,8 @@ void v4l2_of_parse_link(const struct device_node *node,
+ 	if (!of_property_read_u32(node, "clock-lanes", &v))
+ 		link->mipi_csi_2.clock_lane = v;
+ 
+-	prop = of_find_property(node, "data-lanes", NULL);
+-	if (prop) {
+-		int i = 0;
+-		const __be32 *lane = NULL;
+-		do {
+-			lane = of_prop_next_u32(prop, lane, &data_lanes[i]);
+-		} while (lane && i++ < ARRAY_SIZE(data_lanes));
+-
+-		link->mipi_csi_2.num_data_lanes = i;
+-		while (i--)
+-			link->mipi_csi_2.data_lanes[i] = data_lanes[i];
++	if (!v4l2_of_parse_data_lanes(node, &link->mipi_csi_2))
+ 		data_lanes_present = true;
+-	} else {
+-		data_lanes_present = false;
+-	}
+ 
+ 	if (of_get_property(node, "clock-noncontinuous", &size))
+ 		link->mbus_flags |= V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
+diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+index ccb1ebe..9b036e6 100644
+--- a/include/media/v4l2-of.h
++++ b/include/media/v4l2-of.h
+@@ -13,11 +13,18 @@
+ 
+ #include <linux/list.h>
+ #include <linux/types.h>
++#include <linux/errno.h>
+ 
+ #include <media/v4l2-mediabus.h>
+ 
+ struct device_node;
+ 
++struct v4l2_of_mipi_csi2 {
++	unsigned char data_lanes[4];
++	unsigned char clock_lane;
++	unsigned short num_data_lanes;
++};
++
+ struct v4l2_of_link {
+ 	unsigned int port;
+ 	unsigned int addr;
+@@ -30,17 +37,15 @@ struct v4l2_of_link {
+ 			unsigned char bus_width;
+ 			unsigned char data_shift;
+ 		} parallel;
+-		struct {
+-			unsigned char data_lanes[4];
+-			unsigned char clock_lane;
+-			unsigned short num_data_lanes;
+-		} mipi_csi_2;
++		struct v4l2_of_mipi_csi2 mipi_csi_2;
+ 	};
+ };
+ 
+ #ifdef CONFIG_OF
+ void v4l2_of_parse_link(const struct device_node *node,
+ 			struct v4l2_of_link *link);
++int v4l2_of_parse_data_lanes(const struct device_node *node,
++			   struct v4l2_of_mipi_csi2 *mipi_csi2);
+ struct device_node *v4l2_of_get_next_link(const struct device_node *parent,
+ 					struct device_node *previous);
+ struct device_node *v4l2_of_get_remote(const struct device_node *node);
+@@ -49,15 +54,24 @@ static inline void v4l2_of_parse_link(const struct device_node *node,
+ 				      struct v4l2_of_link *link)
+ {
+ }
++
++static inline int v4l2_of_parse_data_lanes(const struct device_node *node,
++				struct v4l2_of_mipi_csi2 *mipi_csi2)
++{
++	return -ENOSYS;
++}
++
+ static inline struct device_node *v4l2_of_get_next_link(const struct device_node *parent,
+ 						struct device_node *previous)
+ {
+ 	return NULL;
+ }
++
+ static inline struct device_node *v4l2_of_get_remote(const struct device_node *node)
+ {
+ 	return NULL;
+ }
+-#endif
+ 
+-#endif
++#endif /* CONFIG_OF */
++
++#endif /* _V4L2_OF_H */
 -- 
+1.7.9.5
 
-Cheers,
-Mauro
