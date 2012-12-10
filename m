@@ -1,45 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from firefly.pyther.net ([50.116.37.168]:32979 "EHLO
-	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758211Ab2LHVlB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Dec 2012 16:41:01 -0500
-Message-ID: <50C3B3EB.40606@pyther.net>
-Date: Sat, 08 Dec 2012 16:40:59 -0500
-From: Matthew Gyurgyik <matthew@pyther.net>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-CC: Antti Palosaari <crope@iki.fi>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com> <50C3701D.9000700@pyther .net> <50C37DA8.4080608@googlemai
- l.com>
-In-Reply-To: <50C37DA8.4080608@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mailout4.samsung.com ([203.254.224.34]:20791 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752143Ab2LJTq5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Dec 2012 14:46:57 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 09/12] ARM: dts: Add ISP power domain node for Exynos4x12
+Date: Mon, 10 Dec 2012 20:46:03 +0100
+Message-id: <1355168766-6068-10-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
+References: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/08/2012 12:49 PM, Frank Schäfer wrote:
-> Am 08.12.2012 17:51, schrieb Matthew Gyurgyik:
->
-> That shouldn't be necessary. I just noticed that there is a module
-> parameter 'ir_debug'. ;)
-> With ir_debug enabled, you should see messages
->
->          em28xx_ir_handle_key: toggle: XX, count: XX, key XXYYZZ
->
-> everytime you press a button. Once we know the key codes, we can set up
-> a key map (if it doesn't exist yet).
->
+The ISP power domain is a common power domain for fimc-lite
+and fimc-is (ISP) devices.
 
-Maybe I'm doing something wrong but didn't have any luck :(
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/boot/dts/exynos4x12.dtsi |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-> [root@tux ~]# sudo rmmod em28xx_rc
-> [root@tux ~]# sudo rmmod em28xx_dvb
-> [root@tux ~]# sudo rmmod em28xx
-> [root@tux ~]# modprobe em28xx_rc ir_debug=1
+diff --git a/arch/arm/boot/dts/exynos4x12.dtsi b/arch/arm/boot/dts/exynos4x12.dtsi
+index c34810c..3cb4862 100644
+--- a/arch/arm/boot/dts/exynos4x12.dtsi
++++ b/arch/arm/boot/dts/exynos4x12.dtsi
+@@ -28,6 +28,11 @@
+ 		pinctrl3 = &pinctrl_3;
+ 	};
+ 
++	pd_isp: isp-power-domain@10023CA0 {
++		compatible = "samsung,exynos4210-pd";
++		reg = <0x10023CA0 0x20>;
++	};
++
+ 	combiner:interrupt-controller@10440000 {
+ 		interrupts = <0 0 0>, <0 1 0>, <0 2 0>, <0 3 0>,
+ 			     <0 4 0>, <0 5 0>, <0 6 0>, <0 7 0>,
+-- 
+1.7.9.5
 
-I don't see any additional messages in dmesg.
-
-I verified the remote still works in windows (a stupidity check on my part)
