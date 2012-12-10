@@ -1,123 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:60176 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752362Ab2LFV53 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Dec 2012 16:57:29 -0500
-Received: by mail-qc0-f174.google.com with SMTP id o22so3568875qcr.19
-        for <linux-media@vger.kernel.org>; Thu, 06 Dec 2012 13:57:29 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <50C11301.10205@googlemail.com>
-References: <50B5779A.9090807@pyther.net>
-	<50B67851.2010808@googlemail.com>
-	<50B69037.3080205@pyther.net>
-	<50B6967C.9070801@iki.fi>
-	<50B6C2DF.4020509@pyther.net>
-	<50B6C530.4010701@iki.fi>
-	<50B7B768.5070008@googlemail.com>
-	<50B80FBB.5030208@pyther.net>
-	<50BB3F2C.5080107@googlemail.com>
-	<50BB6451.7080601@iki.fi>
-	<50BB8D72.8050803@googlemail.com>
-	<50BCEC60.4040206@googlemail.com>
-	<50BD5CC3.1030100@pyther.net>
-	<CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com>
-	<50BD6310.8000808@pyther.net>
-	<CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com>
-	<50BE65F0.8020303@googlemail.com>
-	<50BEC253.4080006@pyther.net>
-	<50BF3F9A.3020803@iki.fi>
-	<50BFBE39.90901@pyther.net>
-	<50BFC445.6020305@iki.fi>
-	<50BFCBBB.5090407@pyther.net>
-	<50BFECEA.9060808@iki.fi>
-	<50BFFFF6.1000204@pyther.net>
-	<50C11301.10205@googlemail.com>
-Date: Thu, 6 Dec 2012 16:57:28 -0500
-Message-ID: <CAGoCfiwi3HVBjBh7TzWmwSbVH4S-0174=mqKA64Jw2zYz6K6LA@mail.gmail.com>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: Matthew Gyurgyik <matthew@pyther.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail.kapsi.fi ([217.30.184.167]:37354 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753480Ab2LJAqW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Dec 2012 19:46:22 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC 09/11] dvb_usb_v2: remove rc-core stub implementations
+Date: Mon, 10 Dec 2012 02:45:33 +0200
+Message-Id: <1355100335-2123-9-git-send-email-crope@iki.fi>
+In-Reply-To: <1355100335-2123-1-git-send-email-crope@iki.fi>
+References: <1355100335-2123-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 6, 2012 at 4:49 PM, Frank Schäfer
-<fschaefer.oss@googlemail.com> wrote:
->
-> Am 06.12.2012 03:16, schrieb Matthew Gyurgyik:
-> > On 12/05/2012 07:55 PM, Antti Palosaari wrote:
-> >>
-> >> It was good snoop. I didn't saw nothing very interesting. But, I
-> >> think I found the reason. Just add that one line writing 0x42 to
-> >> register 0x0d. IIRC I saw earlier it caused that kind of bug...
-> >>
-> >> +static struct em28xx_reg_seq msi_digivox_atsc[] = {
-> >> +    {EM2874_R80_GPIO, 0xff, 0xff,  50}, /* GPIO_0=1 */
-> >> +    {0x0d,            0xff, 0xff,   0},
-> >> +    {EM2874_R80_GPIO, 0xfe, 0xff,   0}, /* GPIO_0=0 */
-> >>     {0x0d,            0x42, 0xff,   0},
-> >> +    {EM2874_R80_GPIO, 0xbe, 0xff, 135}, /* GPIO_6=0 */
-> >> +    {EM2874_R80_GPIO, 0xfe, 0xff, 135}, /* GPIO_6=1 */
-> >> +    {EM2874_R80_GPIO, 0x7e, 0xff,  20}, /* GPIO_7=0 */
-> >> +    {             -1,   -1,   -1,  -1},
-> >> +};
-> >>
-> >> regards
-> >> Antti
-> >>
-> >>
-> > I added that line, recompiled, tried the new module. Unfortunately
-> > there was no improvement. I didn't see any differences in any of the
-> > output (dmesg, azap). Let me know if there is any info you want me to
-> > get.
-> >
-> > Matthew
->
-> Did you switch back to
->
->     .mpeg_mode      = LGDT3305_MPEG_SERIAL,
->     .tpclk_edge         = LGDT3305_TPCLK_FALLING_EDGE,
->
-> in struct lgdt3305_config em2874_lgdt3305_dev (em28xx-dvb.c) before
-> testing this ?
->
-> You could also play with the other gpio settings.
->
-> And the last idea (at the moment):
->
-> +    /* 0db0:8810 MSI DIGIVOX ATSC (HU345-Q)
-> +     * Empia EM2874B + TDA18271HDC2 + LGDT3305 */
-> +    [EM2874_BOARD_MSI_DIGIVOX_ATSC] = {
-> +        .name         = "MSI DIGIVOX ATSC",
-> +        .dvb_gpio     = msi_digivox_atsc,
-> +        .has_dvb      = 1,
-> +        .tuner_type   = TUNER_ABSENT,
-> +        .ir_codes     = RC_MAP_MSI_DIGIVOX_III,        /* just a guess
-> from looking at the picture */
-> +        .xclk         = EM28XX_XCLK_FREQUENCY_12MHZ,    /* TODO */
-> +        .i2c_speed    = EM2874_I2C_SECONDARY_BUS_SELECT |
-> +                EM28XX_I2C_CLK_WAIT_ENABLE |
-> +                EM28XX_I2C_FREQ_100_KHZ,
-> +    },
->
-> => change .xclk to 0x0f.
-> We know that 12MHz is the right xclk setting, which means 0x07. But OTOH
-> the Windows drivers seems to use 0x0f instead and we don't what 0x0f
-> means...
->
-> Hope this helps,
-> Frank
+Those are not needed anymore as all dvb-usb-v2 drivers has proper
+dependency checks for RC-core.
 
-I'm pretty sure the XCLK register isn't used at all on the em2874
-(it's probably being set in the Windows driver because of some shared
-code with the older devices).
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/dvb_usb.h | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-Devin
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb.h b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
+index e2678a7..059291b 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb.h
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
+@@ -400,13 +400,4 @@ extern int dvb_usbv2_reset_resume(struct usb_interface *);
+ extern int dvb_usbv2_generic_rw(struct dvb_usb_device *, u8 *, u16, u8 *, u16);
+ extern int dvb_usbv2_generic_write(struct dvb_usb_device *, u8 *, u16);
+ 
+-/* stub implementations that will be never called when RC-core is disabled */
+-#if !defined(CONFIG_RC_CORE) && !defined(CONFIG_RC_CORE_MODULE)
+-#define rc_repeat(args...)
+-#define rc_keydown(args...)
+-#define rc_keydown_notimeout(args...)
+-#define rc_keyup(args...)
+-#define rc_g_keycode_from_table(args...) 0
+-#endif
+-
+ #endif
+-- 
+1.7.11.7
 
---
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
