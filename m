@@ -1,81 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:39678 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751974Ab2L0XCm (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:17382 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752230Ab2LJTrF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Dec 2012 18:02:42 -0500
-Received: by mail-ee0-f50.google.com with SMTP id b45so5084804eek.9
-        for <linux-media@vger.kernel.org>; Thu, 27 Dec 2012 15:02:40 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 4/6] em28xx: IR RC: get rid of function em28xx_get_key_terratec()
-Date: Fri, 28 Dec 2012 00:02:46 +0100
-Message-Id: <1356649368-5426-5-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1356649368-5426-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1356649368-5426-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Mon, 10 Dec 2012 14:47:05 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 11/12] ARM: dts: Add camera pinctrl nodes for Exynos4x12
+ SoCs
+Date: Mon, 10 Dec 2012 20:46:05 +0100
+Message-id: <1355168766-6068-12-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
+References: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Module "ir-kbd-i2c" already provides this function as IR_KBD_GET_KEY_KNC1.
+Add separate nodes for the CAMCLK pin and turn off pull-up on camera
+port A. Default driver strength for CAMCLK pin is increased to maximum.
+The driver strength change can be moved to board specific part if it
+is considered more appropriate.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/usb/em28xx/em28xx-input.c |   30 +-----------------------------
- 1 Datei geändert, 1 Zeile hinzugefügt(+), 29 Zeilen entfernt(-)
+ arch/arm/boot/dts/exynos4x12-pinctrl.dtsi |   33 +++++++++++++++++++++++------
+ 1 file changed, 26 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-index 631e252..62b6cb7 100644
---- a/drivers/media/usb/em28xx/em28xx-input.c
-+++ b/drivers/media/usb/em28xx/em28xx-input.c
-@@ -85,34 +85,6 @@ struct em28xx_IR {
-  I2C IR based get keycodes - should be used with ir-kbd-i2c
-  **********************************************************/
+diff --git a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
+index 56f4669..e3225d0 100644
+--- a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
++++ b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
+@@ -401,15 +401,28 @@
+ 			samsung,pin-drv = <0>;
+ 		};
  
--static int em28xx_get_key_terratec(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
--{
--	unsigned char b;
--
--	/* poll IR chip */
--	if (1 != i2c_master_recv(ir->c, &b, 1)) {
--		i2cdprintk("read error\n");
--		return -EIO;
--	}
--
--	/* it seems that 0xFE indicates that a button is still hold
--	   down, while 0xff indicates that no button is hold
--	   down. 0xfe sequences are sometimes interrupted by 0xFF */
--
--	i2cdprintk("key %02x\n", b);
--
--	if (b == 0xff)
--		return 0;
--
--	if (b == 0xfe)
--		/* keep old data */
--		return 1;
--
--	*ir_key = b;
--	*ir_raw = b;
--	return 1;
--}
--
- static int em28xx_get_key_em_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- {
- 	unsigned char buf[2];
-@@ -476,7 +448,7 @@ static int em28xx_register_i2c_ir(struct em28xx *dev, struct rc_dev *rc_dev)
- 	case EM2820_BOARD_TERRATEC_CINERGY_250:
- 		dev->init_data.name = "i2c IR (EM28XX Terratec)";
- 		dev->init_data.type = RC_BIT_OTHER;
--		dev->init_data.get_key = em28xx_get_key_terratec;
-+		dev->init_data.internal_get_key_func = IR_KBD_GET_KEY_KNC1;
- 		break;
- 	case EM2820_BOARD_PINNACLE_USB_2:
- 		dev->init_data.name = "i2c IR (EM28XX Pinnacle PCTV)";
+-		cam_port_a: cam-port-a {
++		cam_port_a_io: cam-port-a-io {
+ 			samsung,pins = "gpj0-0", "gpj0-1", "gpj0-2", "gpj0-3",
+ 					"gpj0-4", "gpj0-5", "gpj0-6", "gpj0-7",
+-					"gpj1-0", "gpj1-1", "gpj1-2", "gpj1-3",
+-					"gpj1-4";
++					"gpj1-0", "gpj1-1", "gpj1-2", "gpj1-4";
+ 			samsung,pin-function = <2>;
+-			samsung,pin-pud = <3>;
++			samsung,pin-pud = <0>;
+ 			samsung,pin-drv = <0>;
+ 		};
++
++		cam_port_a_clk_active: cam-port-a-clk-active {
++			samsung,pins = "gpj1-3";
++			samsung,pin-function = <2>;
++			samsung,pin-pud = <0>;
++			samsung,pin-drv = <3>;
++		};
++
++		cam_port_a_clk_idle: cam-port-a-clk-idle {
++			samsung,pins = "gpj1-3";
++			samsung,pin-function = <2>;
++			samsung,pin-pud = <0>;
++			samsung,pin-drv = <3>;
++		};
+ 	};
+ 
+ 	pinctrl@11000000 {
+@@ -834,11 +847,17 @@
+ 			samsung,pin-drv = <0>;
+ 		};
+ 
+-		cam_port_b: cam-port-b {
++		cam_port_b_io: cam-port-b-io {
+ 			samsung,pins = "gpm0-0", "gpm0-1", "gpm0-2", "gpm0-3",
+ 					"gpm0-4", "gpm0-5", "gpm0-6", "gpm0-7",
+-					"gpm1-0", "gpm1-1", "gpm2-0", "gpm2-1",
+-					"gpm2-2";
++					"gpm1-0", "gpm1-1", "gpm2-0", "gpm2-1";
++			samsung,pin-function = <3>;
++			samsung,pin-pud = <3>;
++			samsung,pin-drv = <0>;
++		};
++
++		cam_port_b_clk: cam-port-b-clk {
++			samsung,pins = "gpm2-2";
+ 			samsung,pin-function = <3>;
+ 			samsung,pin-pud = <3>;
+ 			samsung,pin-drv = <0>;
 -- 
-1.7.10.4
+1.7.9.5
 
