@@ -1,92 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2324 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754159Ab2LEUwZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2012 15:52:25 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id qB5KqMCI014693
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Wed, 5 Dec 2012 21:52:23 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 43C2C65A0314
-	for <linux-media@vger.kernel.org>; Wed,  5 Dec 2012 21:52:22 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:60241 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752781Ab2LJAqV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Dec 2012 19:46:21 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20121205205222.43C2C65A0314@alastor.dyndns.org>
-Date: Wed,  5 Dec 2012 21:52:22 +0100 (CET)
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC 02/11] rtl28xxu: make remote controller optional
+Date: Mon, 10 Dec 2012 02:45:26 +0200
+Message-Id: <1355100335-2123-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1355100335-2123-1-git-send-email-crope@iki.fi>
+References: <1355100335-2123-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Do not compile remote controller when RC-core is disabled by Kconfig.
 
-Results of the daily build of media_tree:
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-date:        Wed Dec  5 19:00:19 CET 2012
-git hash:    16427faf28674451a7a0485ab0a929402f355ffd
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index eddda69..9a68903 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1125,7 +1125,7 @@ err:
+ 	return ret;
+ }
+ 
+-
++#if defined(CONFIG_RC_CORE) || defined(CONFIG_RC_CORE_MODULE)
+ static int rtl2831u_rc_query(struct dvb_usb_device *d)
+ {
+ 	int ret, i;
+@@ -1208,7 +1208,11 @@ static int rtl2831u_get_rc_config(struct dvb_usb_device *d,
+ 
+ 	return 0;
+ }
++#else
++	#define rtl2831u_get_rc_config NULL
++#endif
+ 
++#if defined(CONFIG_RC_CORE) || defined(CONFIG_RC_CORE_MODULE)
+ static int rtl2832u_rc_query(struct dvb_usb_device *d)
+ {
+ 	int ret, i;
+@@ -1280,6 +1284,9 @@ static int rtl2832u_get_rc_config(struct dvb_usb_device *d,
+ 
+ 	return 0;
+ }
++#else
++	#define rtl2832u_get_rc_config NULL
++#endif
+ 
+ static const struct dvb_usb_device_properties rtl2831u_props = {
+ 	.driver_name = KBUILD_MODNAME,
+-- 
+1.7.11.7
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: OK
-linux-git-arm-eabi-omap: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: WARNINGS
-linux-git-x86_64: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: ERRORS
-linux-3.5-i686: ERRORS
-linux-3.6-i686: WARNINGS
-linux-3.7-rc1-i686: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: ERRORS
-linux-3.5-x86_64: ERRORS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: WARNINGS
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
