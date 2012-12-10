@@ -1,84 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51688 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752790Ab2LKNKm (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:17369 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751620Ab2LJTrB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Dec 2012 08:10:42 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Mon, 10 Dec 2012 14:47:01 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH] omap3isp: csiphy: Fix an uninitialized variable compiler warning
-Date: Tue, 11 Dec 2012 14:11:52 +0100
-Message-Id: <1355231512-5158-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 10/12] ARM: dts: Add FIMC and MIPI CSIS device nodes for
+ Exynos4x12
+Date: Mon, 10 Dec 2012 20:46:04 +0100
+Message-id: <1355168766-6068-11-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
+References: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/platform/omap3isp/ispcsiphy.c: In function
-‘csiphy_routing_cfg’:
-drivers/media/platform/omap3isp/ispcsiphy.c:71:57: warning: ‘shift’
-may be used uninitialized in this function [-Wuninitialized]
-drivers/media/platform/omap3isp/ispcsiphy.c:40:6: note: ‘shift’ was
-declared here
+Add common camera node and fimc nodes specific to Exynos4212
+and Exynos4412 SoCs.
 
-The warning is a false positive but the compiler is right in
-complaining. Fix it by using the correct enum data type for the iface
-argument and adding a default case in the switch statement.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/platform/omap3isp/ispcsiphy.c |   13 ++++++++-----
- 1 files changed, 8 insertions(+), 5 deletions(-)
+ arch/arm/boot/dts/exynos4x12.dtsi |   36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
-index 3d56b33..c09de32 100644
---- a/drivers/media/platform/omap3isp/ispcsiphy.c
-+++ b/drivers/media/platform/omap3isp/ispcsiphy.c
-@@ -32,7 +32,8 @@
- #include "ispreg.h"
- #include "ispcsiphy.h"
+diff --git a/arch/arm/boot/dts/exynos4x12.dtsi b/arch/arm/boot/dts/exynos4x12.dtsi
+index 3cb4862..e8fd4b7 100644
+--- a/arch/arm/boot/dts/exynos4x12.dtsi
++++ b/arch/arm/boot/dts/exynos4x12.dtsi
+@@ -26,6 +26,8 @@
+ 		pinctrl1 = &pinctrl_1;
+ 		pinctrl2 = &pinctrl_2;
+ 		pinctrl3 = &pinctrl_3;
++		fimc-lite0 = &fimc_lite_0;
++		fimc-lite1 = &fimc_lite_1;
+ 	};
  
--static void csiphy_routing_cfg_3630(struct isp_csiphy *phy, u32 iface,
-+static void csiphy_routing_cfg_3630(struct isp_csiphy *phy,
-+				    enum isp_interface_type iface,
- 				    bool ccp2_strobe)
- {
- 	u32 reg = isp_reg_readl(
-@@ -40,6 +41,8 @@ static void csiphy_routing_cfg_3630(struct isp_csiphy *phy, u32 iface,
- 	u32 shift, mode;
- 
- 	switch (iface) {
-+	default:
-+	/* Should not happen in practice, but let's keep the compiler happy. */
- 	case ISP_INTERFACE_CCP2B_PHY1:
- 		reg &= ~OMAP3630_CONTROL_CAMERA_PHY_CTRL_CSI1_RX_SEL_PHY2;
- 		shift = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_PHY1_SHIFT;
-@@ -59,9 +62,8 @@ static void csiphy_routing_cfg_3630(struct isp_csiphy *phy, u32 iface,
- 	}
- 
- 	/* Select data/clock or data/strobe mode for CCP2 */
--	switch (iface) {
--	case ISP_INTERFACE_CCP2B_PHY1:
--	case ISP_INTERFACE_CCP2B_PHY2:
-+	if (iface == ISP_INTERFACE_CCP2B_PHY1 ||
-+	    iface == ISP_INTERFACE_CCP2B_PHY2) {
- 		if (ccp2_strobe)
- 			mode = OMAP3630_CONTROL_CAMERA_PHY_CTRL_CAMMODE_CCP2_DATA_STROBE;
- 		else
-@@ -110,7 +112,8 @@ static void csiphy_routing_cfg_3430(struct isp_csiphy *phy, u32 iface, bool on,
-  * and 3630, so they will not hold their contents in off-mode. This isn't an
-  * issue since the MPU power domain is forced on whilst the ISP is in use.
-  */
--static void csiphy_routing_cfg(struct isp_csiphy *phy, u32 iface, bool on,
-+static void csiphy_routing_cfg(struct isp_csiphy *phy,
-+			       enum isp_interface_type iface, bool on,
- 			       bool ccp2_strobe)
- {
- 	if (phy->isp->mmio_base[OMAP3_ISP_IOMEM_3630_CONTROL_CAMERA_PHY_CTRL]
+ 	pd_isp: isp-power-domain@10023CA0 {
+@@ -75,4 +77,38 @@
+ 		reg = <0x106E0000 0x1000>;
+ 		interrupts = <0 72 0>;
+ 	};
++
++	camera {
++		fimc_0: fimc@11800000 {
++			compatible = "samsung,exynos4212-fimc";
++		};
++
++		fimc_1: fimc@11810000 {
++			compatible = "samsung,exynos4212-fimc";
++		};
++
++		fimc_2: fimc@11820000 {
++			compatible = "samsung,exynos4212-fimc";
++		};
++
++		fimc_3: fimc@11830000 {
++			compatible = "samsung,exynos4212-fimc";
++		};
++
++		fimc_lite_0: fimc_lite@12390000 {
++			compatible = "samsung,exynos4212-fimc-lite";
++			reg = <0x12390000 0x1000>;
++			interrupts = <0 125 0>;
++			power-domain = <&pd_isp>;
++			status = "disabled";
++		};
++
++		fimc_lite_1: fimc_lite@123a0000 {
++			compatible = "samsung,exynos4212-fimc-lite";
++			reg = <0x123a0000 0x1000>;
++			interrupts = <0 126 0>;
++			power-domain = <&pd_isp>;
++			status = "disabled";
++		};
++	};
+ };
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
