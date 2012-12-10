@@ -1,62 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:15709 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751400Ab2LaQEM (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:17113 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751965Ab2LJTmI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Dec 2012 11:04:12 -0500
+	Mon, 10 Dec 2012 14:42:08 -0500
 From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
-	rob.herring@calxeda.com, thomas.abraham@linaro.org,
-	t.figa@samsung.com, sw0312.kim@samsung.com,
-	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC v2 10/15] ARM: EXYNOS4: Add OF_DEV_AUXDATA for FIMC,
- FIMC-LITE and CSIS
-Date: Mon, 31 Dec 2012 17:03:08 +0100
-Message-id: <1356969793-27268-11-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
-References: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
+To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com,
+	thomas.abraham@linaro.org, t.figa@samsung.com,
+	sw0312.kim@samsung.com, kyungmin.park@samsung.com,
+	devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
+Subject: [PATCH RFC 03/13] OF: define of_*_cmp() macros also if CONFIG_OF isn't
+ set
+Date: Mon, 10 Dec 2012 20:41:29 +0100
+Message-id: <1355168499-5847-4-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1355168499-5847-1-git-send-email-s.nawrocki@samsung.com>
+References: <1355168499-5847-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add these temporary OF_DEV_AUXDATA entries so we can use clocks
-before common clock framework support for Exynos4 is available.
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+of_*_cmp() macros do not depend on any OF functions and can be defined also
+if CONFIG_OF isn't set. Also include linux/string.h, required by those
+macros.
+
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- arch/arm/mach-exynos/mach-exynos4-dt.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ include/linux/of.h |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-exynos/mach-exynos4-dt.c b/arch/arm/mach-exynos/mach-exynos4-dt.c
-index 2890bf7..3ce0c52 100644
---- a/arch/arm/mach-exynos/mach-exynos4-dt.c
-+++ b/arch/arm/mach-exynos/mach-exynos4-dt.c
-@@ -77,6 +77,22 @@ static const struct of_dev_auxdata exynos4_auxdata_lookup[] __initconst = {
- 				"exynos4210-spi.2", NULL),
- 	OF_DEV_AUXDATA("arm,pl330", EXYNOS4_PA_PDMA0, "dma-pl330.0", NULL),
- 	OF_DEV_AUXDATA("arm,pl330", EXYNOS4_PA_PDMA1, "dma-pl330.1", NULL),
-+	OF_DEV_AUXDATA("samsung,exynos4210-csis", EXYNOS4_PA_MIPI_CSIS0,
-+				"s5p-mipi-csis.0", NULL),
-+	OF_DEV_AUXDATA("samsung,exynos4210-csis", EXYNOS4_PA_MIPI_CSIS1,
-+				"s5p-mipi-csis.1", NULL),
-+	OF_DEV_AUXDATA("samsung,exynos4212-fimc", EXYNOS4_PA_FIMC0,
-+				"exynos4-fimc.0", NULL),
-+	OF_DEV_AUXDATA("samsung,exynos4212-fimc", EXYNOS4_PA_FIMC1,
-+				"exynos4-fimc.1", NULL),
-+	OF_DEV_AUXDATA("samsung,exynos4212-fimc", EXYNOS4_PA_FIMC2,
-+				"exynos4-fimc.2", NULL),
-+	OF_DEV_AUXDATA("samsung,exynos4212-fimc", EXYNOS4_PA_FIMC3,
-+				"exynos4-fimc.3", NULL),
-+	OF_DEV_AUXDATA("samsung,exynos4212-fimc-lite", EXYNOS4_PA_FIMC_LITE(0),
-+				"exynos-fimc-lite.0", NULL),
-+	OF_DEV_AUXDATA("samsung,exynos4212-fimc-lite", EXYNOS4_PA_FIMC_LITE(1),
-+				"exynos-fimc-lite.1", NULL),
- 	{},
- };
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 9ba8cf1..38d4b1a 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -85,6 +85,14 @@ static inline struct device_node *of_node_get(struct device_node *node)
+ static inline void of_node_put(struct device_node *node) { }
+ #endif /* !CONFIG_OF_DYNAMIC */
  
++/* Default string compare functions, Allow arch asm/prom.h to override */
++#if !defined(of_compat_cmp)
++#include <linux/string.h>
++#define of_compat_cmp(s1, s2, l)	strcasecmp((s1), (s2))
++#define of_prop_cmp(s1, s2)		strcmp((s1), (s2))
++#define of_node_cmp(s1, s2)		strcasecmp((s1), (s2))
++#endif
++
+ #ifdef CONFIG_OF
+ 
+ /* Pointer for first entry in chain of all nodes. */
+@@ -143,13 +151,6 @@ static inline unsigned long of_read_ulong(const __be32 *cell, int size)
+ #define OF_ROOT_NODE_SIZE_CELLS_DEFAULT 1
+ #endif
+ 
+-/* Default string compare functions, Allow arch asm/prom.h to override */
+-#if !defined(of_compat_cmp)
+-#define of_compat_cmp(s1, s2, l)	strcasecmp((s1), (s2))
+-#define of_prop_cmp(s1, s2)		strcmp((s1), (s2))
+-#define of_node_cmp(s1, s2)		strcasecmp((s1), (s2))
+-#endif
+-
+ /* flag descriptions */
+ #define OF_DYNAMIC	1 /* node and properties were allocated via kmalloc */
+ #define OF_DETACHED	2 /* node has been detached from the device tree */
 -- 
 1.7.9.5
 
