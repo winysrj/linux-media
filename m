@@ -1,70 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:60009 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755074Ab2L2AE6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Dec 2012 19:04:58 -0500
-Date: Fri, 28 Dec 2012 22:04:26 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Igor M. Liplianin" <liplianin@me.by>
-Cc: Konstantin Dimitrov <kosio.dimitrov@gmail.com>,
-	Malcolm Priestley <tvboxspy@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.9] separate Montage ts2020 from ds3000 and
- rs2000, support for new TeVii cards
-Message-ID: <20121228220426.0330ce40@infradead.org>
-In-Reply-To: <13048798.3Y05dB7H81@useri>
-References: <1541475.yBqmJOQMfq@useri>
-	<20121227193338.4e14c1d6@infradead.org>
-	<13048798.3Y05dB7H81@useri>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail.kapsi.fi ([217.30.184.167]:57679 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753496Ab2LJAqW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 9 Dec 2012 19:46:22 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH RFC 10/11] dvb_usb_v2: use dummy function defines instead stub functions
+Date: Mon, 10 Dec 2012 02:45:34 +0200
+Message-Id: <1355100335-2123-10-git-send-email-crope@iki.fi>
+In-Reply-To: <1355100335-2123-1-git-send-email-crope@iki.fi>
+References: <1355100335-2123-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 29 Dec 2012 01:06:29 +0300
-"Igor M. Liplianin" <liplianin@me.by> escreveu:
+I think it is better (cheaper) to use dummy defines for functions
+that has no meaning when remote controller is disabled by Kconfig.
 
-> On 27 Ð´ÐµÐºÐ°Ð±Ñ€Ñ_ 2012 19:33:38 Mauro Carvalho Chehab wrote:
-> > Hi Igor,
-> Hi Mauro,
-> 
-> > 
-> > Em Mon, 24 Dec 2012 11:23:56 +0300
-> > 
-> > "Igor M. Liplianin" <liplianin@me.by> escreveu:
-> > > The following changes since commit 8b2aea7878f64814544d0527c659011949d52358:
-> > >   [media] em28xx: prefer bulk mode on webcams (2012-12-23 17:24:30 -0200)
-> > > 
-> > > are available in the git repository at:
-> > >   git://git.linuxtv.org/liplianin/media_tree.git ts2020_v3.9
-> > > 
-> > > for you to fetch changes up to 2ff52e6f487c2ee841f3df9709d1b4e4416a1b15:
-> > >   ts2020: separate from m88rs2000 (2012-12-24 01:26:12 +0300)
-> > > 
-> > > ----------------------------------------------------------------
-> > > 
-> > > Igor M. Liplianin (4):
-> > >       Tevii S421 and S632 support
-> > >       
-> > >       
-> > >       m88rs2000: SNR BER implemented
-> > >       ds3000: lock led procedure added
-> > >       ts2020: separate from m88rs2000
-> > 
-> > You forgot to add your SOB and patch descriptions on the above
-> > patches.
-> Actually, I made it two months ago, enough to forget.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-Yeah, there were too many things happening on the 4th quarter, with
-delayed patch push. Also, janitors requested us to not apply patches
-after -rc7. The better is to submit your work before -rc5, in order
-to give enough time for review.
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+index 94f134c..1330c64 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+@@ -204,15 +204,8 @@ static int dvb_usbv2_remote_exit(struct dvb_usb_device *d)
+ 	return 0;
+ }
+ #else
+-static int dvb_usbv2_remote_init(struct dvb_usb_device *d)
+-{
+-	return 0;
+-}
+-
+-static int dvb_usbv2_remote_exit(struct dvb_usb_device *d)
+-{
+-	return 0;
+-}
++	#define dvb_usbv2_remote_init(args...) 0
++	#define dvb_usbv2_remote_exit(args...)
+ #endif
+ 
+ static void dvb_usb_data_complete(struct usb_data_stream *stream, u8 *buf,
+-- 
+1.7.11.7
 
-> So, I will add SOB, description and resend. 
-
-Applied, thanks.
-
-Regards,
-Mauro
