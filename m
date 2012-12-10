@@ -1,176 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 88-149-150-131.v4.ngi.it ([88.149.150.131]:39487 "EHLO
-	vajra.unixproducts.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751365Ab2LPV1A (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:31574 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751046Ab2LJNnw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 16:27:00 -0500
-To: <linux-media@vger.kernel.org>
-Subject: Re: cannot make this Asus my cinema-u3100miniplusv2 work under linux
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Sun, 16 Dec 2012 22:26:58 +0100
-From: Renato Gallo <renatogallo@unixproducts.com>
-In-Reply-To: <50CE3BA0.5030503@iki.fi>
-References: <8e9f16405c8583e35cb97bb7d7daef4b@unixproducts.com>
- <50CDDF9A.1080509@iki.fi>
- <cd31dc6ada9161825c7dff975a3da945@unixproducts.com>
- <50CE0AFA.9030308@iki.fi>
- <1af6a5408ee3ebccebc3885bba06fc69@unixproducts.com> <50CE3070.10309@iki.fi>
- <810ffd737b21a0f46e383a76dd4313a2@unixproducts.com>
- <50CE3BA0.5030503@iki.fi>
-Message-ID: <d6185b9c5a69b273609bce494f0302b1@unixproducts.com>
+	Mon, 10 Dec 2012 08:43:52 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MET00HZIHXBAA70@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 10 Dec 2012 13:46:27 +0000 (GMT)
+Received: from AMDC1061.digital.local ([106.116.147.88])
+ by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0MET00JXCI4V1O40@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 10 Dec 2012 13:43:50 +0000 (GMT)
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 0/2] V4L: Add auto focus area control and selection
+Date: Mon, 10 Dec 2012 14:43:37 +0100
+Message-id: <1355147019-25375-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I will be honored if my name will be added as reporter, thanks for your 
-kind and fast advice. I have ordered another portable (30 db) antenna 
-and will talk about that in a future reply to this thread :)
+This set of patches is created by Sylwester Nawrocki, with small changes by me.
 
-Il 16/12/2012 22:22 Antti Palosaari ha scritto:
-> That antenna is your problem.
->
-> I will send that patch to the Kernel 3.8, but as I think it is maybe
-> too late for 3.8 it will eventually go to the 3.9 which is out
-> sometime near beginning of next summer.
->
-> If you wish I add your name as reporter then reply. Otherwise case
-> closed. Feedback from the better antenna could be nice too.
->
->
-> Antti
->
->
-> On 12/16/2012 11:16 PM, Renato Gallo wrote:
->> stock one that came with the device
->>
->> http://unixproducts.com/antenna.jpg
->>
->>
->> Il 16/12/2012 21:34 Antti Palosaari ha scritto:
->>> It is very likely weak signal issue as I said. What kind of antenna
->>> you are using?
->>>
->>> Antti
->>>
->>>
->>> On 12/16/2012 10:13 PM, Renato Gallo wrote:
->>>> i found it is a problem with kaffeine, with other programs i can 
->>>> lock a
->>>> signal but reception is very very sketchy (like in unviewable).
->>>>
->>>> GlovX xine-lib # dmesg |grep e4000
->>>> GlovX xine-lib # dmesg |grep FC0012
->>>> GlovX xine-lib # dmesg |grep FC0013
->>>> [   28.281685] fc0013: Fitipower FC0013 successfully attached.
->>>> GlovX xine-lib # dmesg |grep FC2580
->>>> GlovX xine-lib # dmesg |grep TUA
->>>> GlovX xine-lib #
->>>>
->>>>
->>>> Il 16/12/2012 18:55 Antti Palosaari ha scritto:
->>>>> On 12/16/2012 07:15 PM, Renato Gallo wrote:
->>>>>> now the modules loads and kaffeine recognizes the device but i 
->>>>>> cannot
->>>>>> find any channels.
->>>>>> can it be a tuner bug ?
->>>>>
->>>>> I think it is bad antenna / weak signal. Try w_scan, scan, tzap.
->>>>>
->>>>> Could you say which RF-tuner it finds from your device? use dmesg 
->>>>> to
->>>>> dump output. It could be for example e4000, FC0012, FC0013, 
->>>>> FC2580,
->>>>> TUA9001 etc.
->>>>>
->>>>> Antti
->>>>>
->>>>>>
->>>>>>
->>>>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>>> section;
->>>>>> type = 0 pid = 0
->>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>>> section;
->>>>>> type = 2 pid = 17
->>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>>> section;
->>>>>> type = 4 pid = 16
->>>>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>>> section;
->>>>>> type = 0 pid = 0
->>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>>> section;
->>>>>> type = 2 pid = 17
->>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>>> section;
->>>>>> type = 4 pid = 16
->>>>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->>>>>>
->>>>>>
->>>>>> Il 16/12/2012 15:50 Antti Palosaari ha scritto:
->>>>>>> On 12/16/2012 04:23 PM, Renato Gallo wrote:
->>>>>>>> any news on this ?
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>> Asus my cinema-u3100miniplusv2
->>>>>>>>
->>>>>>>> Bus 001 Device 015: ID 1b80:d3a8 Afatech
->>>>>>>>
->>>>>>>> [ 6956.333440] usb 1-6.3.6: new high-speed USB device number 
->>>>>>>> 16
->>>>>>>> using
->>>>>>>> ehci_hcd
->>>>>>>> [ 6956.453943] usb 1-6.3.6: New USB device found, 
->>>>>>>> idVendor=1b80,
->>>>>>>> idProduct=d3a8
->>>>>>>> [ 6956.453950] usb 1-6.3.6: New USB device strings: Mfr=1,
->>>>>>>> Product=2,
->>>>>>>> SerialNumber=0
->>>>>>>> [ 6956.453955] usb 1-6.3.6: Product: Rtl2832UDVB
->>>>>>>> [ 6956.453959] usb 1-6.3.6: Manufacturer: Realtek
->>>>>>>>
->>>>>>>
->>>>>>> Seems to be Realtek RTL2832U. Add that USB ID to the driver and 
->>>>>>> test.
->>>>>>> It is very high probability it starts working.
->>>>>>>
->>>>>>> Here is the patch:
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> 
->>>>>>> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/rtl28xxu-usb-ids
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> Please test and report.
->>>>>>>
->>>>>>> regards
->>>>>>> Antti
->>>>>>
->>>>>> --
->>>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>>> linux-media" in
->>>>>> the body of a message to majordomo@vger.kernel.org
->>>>>> More majordomo info at  
->>>>>> http://vger.kernel.org/majordomo-info.html
->>>>
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe
->>>> linux-media" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> --
->> To unsubscribe from this list: send the line "unsubscribe 
->> linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This set of patches extends the camera class with control
+V4L2_CID_AUTO_FOCUS_AREA for determining the area of the frame that
+camera uses for auto-focus.
+The control takes care of three cases:
+- V4L2_AUTO_FOCUS_AREA_ALL, normal auto-focus, 
+	whole frame is used for auto-focus,
+- V4L2_AUTO_FOCUS_AREA_RECTANGLE, user provides rectangle or spot
+	as an area of interest,
+- V4L2_AUTO_FOCUS_AREA_OBJECT_DETECTION, object/face detection engine
+	of the camera should be used for auto-focus.
+
+In case of the rectangle or the spot its coordinates shall be passed
+to the driver using selection API (VIDIOC_SUBDEV_S_SELECTION) with
+V4L2_SEL_TGT_AUTO_FOCUS as a target name. In case of spot width and
+height of the rectangle shall be set to 0.
+
+We (me and Sylwester) are not sure if this is the best solution.
+
+I would like to propose another solution which seems to me more natural,
+but probably it would require extending controls API.
+The solution is neither formalized, neither implemented at the moment.
+
+The solution takes an advantage of the fact VIDIOC_(G/S/TRY)_EXT_CTRLS
+ioctls can be called with multiple controls per call.
+There could be added four pseudo-controls, lets call them for short:
+LEFT, TOP, WIDTH, HEIGHT.
+Those controls could be passed together with V4L2_AUTO_FOCUS_AREA_RECTANGLE
+control in one ioctl as a kind of control parameters.
+
+For example setting auto-focus spot would require calling VIDIOC_S_EXT_CTRLS
+with the following controls:
+- V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_RECTANGLE
+- LEFT = ...
+- RIGHT = ...
+
+Setting AF rectangle:
+- V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_RECTANGLE
+- LEFT = ...
+- TOP = ...
+- WIDTH = ...
+- HEIGHT = ...
+
+Setting  AF object detection:
+- V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_OBJECT_DETECTION
+
+I have presented all three cases to show the advantages of this solution:
+- atomicity - control and its parameters are passed in one call,
+- flexibility - we are not limited by a fixed number of parameters,
+- no-redundancy(?) - we can pass only required parameters
+	(no need to pass null width and height in case of spot selection),
+- extensibility - it is possible to extend parameters in the future,
+for example add parameters to V4L2_AUTO_FOCUS_AREA_OBJECT_DETECTION,
+- backward compatibility, 
+- re-usability - this schema could be used in other controls,
+	pseudo-controls could be re-used in other controls as well.
+
+I hope this e-mail will trigger some discussion about the proposed solution.
+
+Regards
+Andrzej Hajda
 
