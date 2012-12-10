@@ -1,59 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:46639 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755214Ab2LCRYN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2012 12:24:13 -0500
-Received: by mail-lb0-f174.google.com with SMTP id gi11so2576638lbb.19
-        for <linux-media@vger.kernel.org>; Mon, 03 Dec 2012 09:24:12 -0800 (PST)
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4739 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752174Ab2LJQ2M convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Dec 2012 11:28:12 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Subject: Re: RFC: First draft of guidelines for submitting patches to linux-media
+Date: Mon, 10 Dec 2012 17:27:29 +0100
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <201212101407.09338.hverkuil@xs4all.nl> <50C60620.2010603@googlemail.com>
+In-Reply-To: <50C60620.2010603@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <1354555082-11308-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1354555082-11308-1-git-send-email-fschaefer.oss@googlemail.com>
-Date: Mon, 3 Dec 2012 12:24:12 -0500
-Message-ID: <CAOcJUbxYoz=S1PWV+Jdf5r8cbu3oy677iQkvBmYOOCGqEEWEkg@mail.gmail.com>
-Subject: Re: [PATCH] tda18271: add missing entries for qam_7 to
- tda18271_update_std_map() and tda18271_dump_std_map()
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 8BIT
+Message-Id: <201212101727.29074.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Frank,
+On Mon December 10 2012 16:56:16 Frank Schäfer wrote:
+> Am 10.12.2012 14:07, schrieb Hans Verkuil:
+> 
+> <snip>
+> > 3) This document describes the situation we will have when the submaintainers
+> > take their place early next year. So please check if I got that part right.
+> ...
+> 
+> > Reviewed-by/Acked-by
+> > ====================
+> >
+> > Within the media subsystem there are three levels of maintainership: Mauro
+> > Carvalho Chehab is the maintainer of the whole subsystem and the
+> > DVB/V4L/IR/Media Controller core code in particular, then there are a number of
+> > submaintainers for specific areas of the subsystem:
+> >
+> > - Kamil Debski: codec (aka memory-to-memory) drivers
+> > - Hans de Goede: non-UVC USB webcam drivers
+> > - Mike Krufky: frontends/tuners/demodulators In addition he'll be the reviewer
+> >   for DVB core patches.
+> > - Guennadi Liakhovetski: soc-camera drivers
+> > - Laurent Pinchart: sensor subdev drivers.  In addition he'll be the reviewer
+> >   for Media Controller core patches.
+> > - Hans Verkuil: V4L2 drivers and video A/D and D/A subdev drivers (aka video
+> >   receivers and transmitters). In addition he'll be the reviewer for V4L2 core
+> >   patches.
+> >
+> > Finally there are maintainers for specific drivers. This is documented in the
+> > MAINTAINERS file.
+> >
+> > When modifying existing code you need to get the Reviewed-by/Acked-by of the
+> > maintainer of that code. So CC that maintainer when posting patches. If said
+> > maintainer is unavailable then the submaintainer or even Mauro can accept it as
+> > well, but that should be the exception, not the rule.
+> >
+> > Once patches are accepted they will flow through the git tree of the
+> > submaintainer to the git tree of the maintainer (Mauro) who will do a final
+> > review.
+> >
+> > There are a few exceptions: code for certain platforms goes through git trees
+> > specific to that platform. The submaintainer will still review it and add a
+> > acked-by or reviewed-by line, but it will not go through the submaintainer's
+> > git tree.
+> >
+> > The platform maintainers are:
+> >
+> > TDB
+> >
+> > In case patches touch on areas that are the responsibility of multiple
+> > submaintainers, then they will decide among one another who will merge the
+> > patches.
+> 
+> I've read this "when the submaintainers take their place early next
+> year, everything will be fine" several times now.
 
-Thank you for your patch -- I'll merge it to my tree later on today.
+I doubt everything will be fine, but I sure hope it will be better at least.
+In other words, don't expect miracles :-)
 
-Best regards,
+> But can anyone please explain me what's going to change ?
+> AFAICS, the above exactly describes the _current_ situation.
+> We already have sub-maintainers, sub-trees etc, right !? And the people
+> listed above are already doing the same job at the moment.
+> 
+> Looking at patchwork, it seems we are behind at least 1 complete kernel
+> release cycle.
+> And the reason seems to be, that (at least some) maintainers don't have
+> the resources to review them in time (no reproaches !).
+> 
+> But to me this seems to be no structural problem.
+> If a maintainer (permanently) doesn't have the time to review patches,
+> he should leave maintainership to someone else.
+> 
+> So the actual problem seems to be, that we don't have enough
+> maintainers/reviewers, right ?
 
-Mike Krufky
+The main problem is that all the work is done by Mauro. Sure, people help
+out with reviews but a lot of the final administrative and merge effort is
+done by one person only. In particular the patch flow is something he can't
+keep up with anymore. So by assigning official submaintainers who get access
+to patchwork and can process patches quickly we hope that his job will become
+a lot easier.
 
-2012/12/3 Frank Schäfer <fschaefer.oss@googlemail.com>:
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/tuners/tda18271-fe.c |    2 ++
->  1 Datei geändert, 2 Zeilen hinzugefügt(+)
->
-> diff --git a/drivers/media/tuners/tda18271-fe.c b/drivers/media/tuners/tda18271-fe.c
-> index 72c26fd..e778686 100644
-> --- a/drivers/media/tuners/tda18271-fe.c
-> +++ b/drivers/media/tuners/tda18271-fe.c
-> @@ -1122,6 +1122,7 @@ static int tda18271_dump_std_map(struct dvb_frontend *fe)
->         tda18271_dump_std_item(dvbt_7, "dvbt 7");
->         tda18271_dump_std_item(dvbt_8, "dvbt 8");
->         tda18271_dump_std_item(qam_6,  "qam 6 ");
-> +       tda18271_dump_std_item(qam_7,  "qam 7 ");
->         tda18271_dump_std_item(qam_8,  "qam 8 ");
->
->         return 0;
-> @@ -1149,6 +1150,7 @@ static int tda18271_update_std_map(struct dvb_frontend *fe,
->         tda18271_update_std(dvbt_7, "dvbt 7");
->         tda18271_update_std(dvbt_8, "dvbt 8");
->         tda18271_update_std(qam_6,  "qam 6");
-> +       tda18271_update_std(qam_7,  "qam 7");
->         tda18271_update_std(qam_8,  "qam 8");
->
->         return 0;
-> --
-> 1.7.10.4
->
+So the core two changes are 1) giving clear responsibilities to submaintainers
+and 2) giving submaintainers access to patchwork to keep track of the patches.
+
+So patch submitters no longer have to wait until Mauro gets around to cleaning
+out patchwork. Instead the submaintainers can do that themselves and collect
+accepted patches in their git tree and post regular pull requests for Mauro.
+
+It should simplify things substantially for Mauro, we hope.
+
+I think we have enough people doing reviews etc. (although more are always
+welcome), it's the patchflow itself that is the problem.
+
+Regards,
+
+	Hans
