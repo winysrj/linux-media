@@ -1,55 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from server.prisktech.co.nz ([115.188.14.127]:58466 "EHLO
-	server.prisktech.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754363Ab2LRI3D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Dec 2012 03:29:03 -0500
-From: Tony Prisk <linux@prisktech.co.nz>
-To: Mike Turquette <mturquette@linaro.org>
-Cc: Tony Prisk <linux@prisktech.co.nz>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 6/6] clk: s5p-g2d: Fix incorrect usage of IS_ERR_OR_NULL
-Date: Tue, 18 Dec 2012 21:28:41 +1300
-Message-Id: <1355819321-21914-7-git-send-email-linux@prisktech.co.nz>
-In-Reply-To: <1355819321-21914-1-git-send-email-linux@prisktech.co.nz>
-References: <1355819321-21914-1-git-send-email-linux@prisktech.co.nz>
+Received: from mx1.redhat.com ([209.132.183.28]:34451 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750803Ab2LJSny (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Dec 2012 13:43:54 -0500
+Date: Mon, 10 Dec 2012 16:43:27 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: RFC: First draft of guidelines for submitting patches to
+ linux-media
+Message-ID: <20121210164327.6303290d@redhat.com>
+In-Reply-To: <50C61FC4.7090100@iki.fi>
+References: <201212101407.09338.hverkuil@xs4all.nl>
+	<50C60620.2010603@googlemail.com>
+	<201212101727.29074.hverkuil@xs4all.nl>
+	<20121210153816.0d4d9b64@redhat.com>
+	<50C61FC4.7090100@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace IS_ERR_OR_NULL with IS_ERR on clk_get results.
+Em Mon, 10 Dec 2012 19:45:40 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Signed-off-by: Tony Prisk <linux@prisktech.co.nz>
-CC: Kyungmin Park <kyungmin.park@samsung.com>
-CC: Tomasz Stanislawski <t.stanislaws@samsung.com>
-CC: linux-media@vger.kernel.org
----
- drivers/media/platform/s5p-g2d/g2d.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> On 12/10/2012 07:38 PM, Mauro Carvalho Chehab wrote:
+> > Yeah, the issue is that both reviewed, non-reviewed and rejected/commented
+> > patches go into the very same queue, forcing me to revisit each patch again,
+> > even the rejected/commented ones, and the previous versions of newer patches.
+> >
+> > By giving rights and responsibilities to the sub-maintainers to manage their
+> > stuff directly at patchwork, those patches that tend to stay at patchwork for
+> > a long time will likely disappear, and the queue will be cleaner.
+> 
+> Is there any change module maintainer responsibility of patch could do 
+> what ever he likes to given patch in patchwork?
+> 
+> I have looked it already many times but I can drop only my own patches. 
+> If someone sends patch to my driver X and I pick it up my GIT tree I 
+> would like to mark it superseded for patchwork (which is not possible 
+> currently).
 
-diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
-index 1bfbc32..dcd5335 100644
---- a/drivers/media/platform/s5p-g2d/g2d.c
-+++ b/drivers/media/platform/s5p-g2d/g2d.c
-@@ -715,7 +715,7 @@ static int g2d_probe(struct platform_device *pdev)
- 	}
- 
- 	dev->clk = clk_get(&pdev->dev, "sclk_fimg2d");
--	if (IS_ERR_OR_NULL(dev->clk)) {
-+	if (IS_ERR(dev->clk)) {
- 		dev_err(&pdev->dev, "failed to get g2d clock\n");
- 		return -ENXIO;
- 	}
-@@ -727,7 +727,7 @@ static int g2d_probe(struct platform_device *pdev)
- 	}
- 
- 	dev->gate = clk_get(&pdev->dev, "fimg2d");
--	if (IS_ERR_OR_NULL(dev->gate)) {
-+	if (IS_ERR(dev->gate)) {
- 		dev_err(&pdev->dev, "failed to get g2d clock gate\n");
- 		ret = -ENXIO;
- 		goto unprep_clk;
--- 
-1.7.9.5
+Patchwork's ACL is very limited. It has 3 types there:
+	- People (every email it detects);
+	- User (the ones that created a password);
+	- Project maintainers;
 
+A "people" can't do anything special, except be promoted to "users", by
+setting a password for him.
+
+An "user" can only set his emails, enable/disable opt-out/opt-in, set his
+primary project and the number of patches per page.
+
+The Project maintainers can do everything in the project.
+
+It would be great to have a feature there allowing the user to change the
+status of their own patches, and to let the project maintainers to delegate
+a patch to an user[1].
+
+[1] well, I think it can delegate it right now, but only a project
+maintainer can change the patch status, so, delegation doesn't work
+if the "delegated user" is not a project owner.
+
+Regards,
+Mauro
