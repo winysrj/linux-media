@@ -1,108 +1,58 @@
-Return-Path: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <gconesa@gmail.com>) id 1TWyt9-0005MO-1x
-	for linux-dvb@linuxtv.org; Sat, 10 Nov 2012 01:25:31 +0100
-Received: from mail-vb0-f54.google.com ([209.85.212.54])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-3) with esmtps
-	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
-	id 1TWyt8-0006cl-FB; Sat, 10 Nov 2012 01:25:31 +0100
-Received: by mail-vb0-f54.google.com with SMTP id l1so4577105vba.41
-	for <linux-dvb@linuxtv.org>; Fri, 09 Nov 2012 16:25:29 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAD3n7HTKGg2myT4FbdysQg4d4ebyyV=Ldo46ngtBXpEcoW2koA@mail.gmail.com>
-References: <CAD3n7HTKGg2myT4FbdysQg4d4ebyyV=Ldo46ngtBXpEcoW2koA@mail.gmail.com>
-From: Guillermo Conesa <gconesa@gmail.com>
-Date: Sat, 10 Nov 2012 01:25:08 +0100
-Message-ID: <CAD3n7HRJioVi0c_Wh2HQBb7ktXhgB5Ft8-iGm7S8-wncqCinLQ@mail.gmail.com>
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Support for AVerMedia DVB-T/PAL A326 hybrid (hardware
-	encoder) ?
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0102627956=="
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mailout4.samsung.com ([203.254.224.34]:20522 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751310Ab2LJTmB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Dec 2012 14:42:01 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com,
+	thomas.abraham@linaro.org, t.figa@samsung.com,
+	sw0312.kim@samsung.com, kyungmin.park@samsung.com,
+	devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org
+Subject: [PATCH RFC 01/13] i2c: add dummy inline functions for when
+ CONFIG_OF_I2C(_MODULE) isn't defined
+Date: Mon, 10 Dec 2012 20:41:27 +0100
+Message-id: <1355168499-5847-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1355168499-5847-1-git-send-email-s.nawrocki@samsung.com>
+References: <1355168499-5847-1-git-send-email-s.nawrocki@samsung.com>
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
---===============0102627956==
-Content-Type: multipart/alternative; boundary=bcaec54ee94afb1bca04ce191a02
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
---bcaec54ee94afb1bca04ce191a02
-Content-Type: text/plain; charset=ISO-8859-1
+If CONFIG_OF_I2C and CONFIG_OF_I2C_MODULE are undefined no declaration of
+of_find_i2c_device_by_node and of_find_i2c_adapter_by_node will be
+available. Add dummy inline functions to avoid compilation breakage.
 
-Hi all,
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ include/linux/of_i2c.h |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-I own an hp Omni 27. I've been diving through www.linuxtv.org/wiki so that
-I could find a driver for my TV card.
-I apologize because despite it is my computer I'm not really sure that I
-know the proper model of the tv card, I think it is an AverMedia DVB-T/PAL
-A326 hybrid.
+diff --git a/include/linux/of_i2c.h b/include/linux/of_i2c.h
+index 1cb775f..cfb545c 100644
+--- a/include/linux/of_i2c.h
++++ b/include/linux/of_i2c.h
+@@ -29,6 +29,18 @@ static inline void of_i2c_register_devices(struct i2c_adapter *adap)
+ {
+ 	return;
+ }
++
++static inline struct i2c_client *of_find_i2c_device_by_node(struct device_node *node)
++{
++	return NULL;
++}
++
++/* must call put_device() when done with returned i2c_adapter device */
++static inline struct i2c_adapter *of_find_i2c_adapter_by_node(
++						struct device_node *node)
++{
++	return NULL;
++}
+ #endif /* CONFIG_OF_I2C */
+ 
+ #endif /* __LINUX_OF_I2C_H */
+-- 
+1.7.9.5
 
-As far as I've seen on the web it seems that there's no driver developed
-for this card. I would like to know if it is planned to developed one, or
-if anyone would like to do it or if any of the ones that are developed is
-compatible with this card.
-
-if it helps, I have installed Ubuntu 12.04.1. I'm a little newbie on this,
-so I'd be glad if there's a solution you show me all the console commands
-steps, otherwise I understand that you are occupied people so any kind of
-help will be appreciated.
-
-Thank you very much for your time and I hope you can help me.
-
-Best Regards
-
->
->
-
---bcaec54ee94afb1bca04ce191a02
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<div class=3D"gmail_quote">Hi all,<br><br>I own an hp Omni 27. I&#39;ve bee=
-n diving through <a href=3D"http://www.linuxtv.org/wiki" target=3D"_blank">=
-www.linuxtv.org/wiki</a> so that I could find a driver for my TV card.<br>I=
- apologize because despite it is my computer I&#39;m not really sure that I=
- know the proper model of the tv card, I think it is an AverMedia DVB-T/PAL=
- A326 hybrid.<br>
-
-
-<br>As far as I&#39;ve seen on the web it seems that there&#39;s no driver =
-developed for this card. I would like to know if it is planned to developed=
- one, or if anyone would like to do it or if any of the ones that are devel=
-oped is compatible with this card.<br>
-
-
-<br>if it helps, I have installed Ubuntu 12.04.1. I&#39;m a little newbie o=
-n this, so I&#39;d be glad if there&#39;s a solution you show me all the co=
-nsole commands steps, otherwise I understand that you are occupied people s=
-o any kind of help will be appreciated.<br>
-
-
-<br>Thank you very much for your time and I hope you can help me.<br><br>Be=
-st Regards<br><blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;=
-border-left:1px #ccc solid;padding-left:1ex"><br>
-</blockquote></div><br>
-
---bcaec54ee94afb1bca04ce191a02--
-
-
---===============0102627956==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0102627956==--
