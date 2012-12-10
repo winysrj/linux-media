@@ -1,53 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from firefly.pyther.net ([50.116.37.168]:53320 "EHLO
-	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752808Ab2LEDlJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Dec 2012 22:41:09 -0500
-Message-ID: <50BEC253.4080006@pyther.net>
-Date: Tue, 04 Dec 2012 22:41:07 -0500
-From: Matthew Gyurgyik <matthew@pyther.net>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com>
-In-Reply-To: <50BE65F0.8020303@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mailout4.samsung.com ([203.254.224.34]:20737 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751879Ab2LJTqS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Dec 2012 14:46:18 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 00/12] Device tree support for Exynos4 SoC camera drivers
+Date: Mon, 10 Dec 2012 20:45:54 +0100
+Message-id: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/04/2012 04:06 PM, Frank Schäfer wrote:
-> I double-checked the log and it is indeed set to LGDT3305_MPEG_SERIAL,
-> but LGDT3305_TPCLK_FALLING_EDGE is used instead of
-> LGDT3305_TPCLK_RISING_EDGE.
-> OTOH, the KWorld A340 bord sets this to LGDT3305_MPEG_PARALLEL...
->
-> Matthew, could you please test V3 of the patch ? It is written against
-> the media_tree staging/for_v3.8 (see http://git.linuxtv.org/media_tree.git).
-> You could also already test the remote control key map (e.g. with evtest)
->
-> Regards,
-> Frank
-Version 3 has the same behavior has v2. It seems I can tune a channel, 
-but trying to watch it fails. There is no data being set to 
-/dev/dvb/adapter0/dvr0
+This patch series adds support for Samsung Exynos4 SoC camera subsystem
+drivers. It depends on the video input interfaces bindings and the V4L2 OF
+parsing helpers.
 
-Tune channel
-> [root@tux ~]# azap -r -c /home/pyther/channels.conf "ION LIF"
+Full tree containing these patches can be browsed at:
+http://git.infradead.org/users/kmpark/linux-samsung/shortlog/refs/heads/v3.7-rc8-pq-camera-dt
 
-> [root@tux ~]# dvbdate
-> dvbdate: Unable to get time from multiplex.
+Sylwester Nawrocki (12):
+  s5p-csis: Add device tree support
+  s5p-fimc: Add device tree support for FIMC devices
+  s5p-fimc: Add device tree support for FIMC-LITE
+  s5p-fimc: Instantiate media device from device tree
+  s5p-fimc: Add device tree based sensors registration
+  s5p-fimc: Use pinctrl API for camera ports configuration
+  ARM: EXYNOS4: Add OF_DEV_AUXDATA for FIMC, FIMC-LITE and CSIS
+  ARM: dts: Add camera node exynos4.dtsi
+  ARM: dts: Add ISP power domain node for Exynos4x12
+  ARM: dts: Add FIMC and MIPI CSIS device nodes for Exynos4x12
+  ARM: dts: Add camera pinctrl nodes for Exynos4x12 SoCs
+  ARM: dts: Add camera device nodes nodes for PQ board
 
-I got further on a channel scan but then encountered some errors (no 
-channels detected):
+ .../devicetree/bindings/media/soc/samsung-fimc.txt |  183 ++++++++
+ .../bindings/media/soc/samsung-mipi-csis.txt       |   82 ++++
+ arch/arm/boot/dts/exynos4.dtsi                     |   64 +++
+ arch/arm/boot/dts/exynos4412-slp_pq.dts            |  130 ++++++
+ arch/arm/boot/dts/exynos4x12-pinctrl.dtsi          |   33 +-
+ arch/arm/boot/dts/exynos4x12.dtsi                  |   41 ++
+ arch/arm/mach-exynos/mach-exynos4-dt.c             |   16 +
+ drivers/media/platform/s5p-fimc/fimc-capture.c     |    2 +-
+ drivers/media/platform/s5p-fimc/fimc-core.c        |   84 ++--
+ drivers/media/platform/s5p-fimc/fimc-lite.c        |   65 ++-
+ drivers/media/platform/s5p-fimc/fimc-mdevice.c     |  462 ++++++++++++++------
+ drivers/media/platform/s5p-fimc/fimc-mdevice.h     |   10 +
+ drivers/media/platform/s5p-fimc/mipi-csis.c        |  155 +++++--
+ drivers/media/platform/s5p-fimc/mipi-csis.h        |    1 +
+ 14 files changed, 1109 insertions(+), 219 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
+ create mode 100644 Documentation/devicetree/bindings/media/soc/samsung-mipi-csis.txt
 
-http://pyther.net/a/digivox_atsc/patch3/scan.txt
-http://pyther.net/a/digivox_atsc/patch3/dmesg_after_scan.txt
+--
+1.7.9.5
 
-dmesg: http://pyther.net/a/digivox_atsc/patch3/dmesg.txt
-azap: http://pyther.net/a/digivox_atsc/patch3/azap.txt
-dvbtraffic: http://pyther.net/a/digivox_atsc/patch3/dvbtraffic.txt
-
-Matthew
