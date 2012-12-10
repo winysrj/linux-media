@@ -1,95 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3294 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753330Ab2LXVFO (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4692 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751006Ab2LJXVI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Dec 2012 16:05:14 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id qBOL5B9v066755
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Mon, 24 Dec 2012 22:05:13 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 66E2911E00D9
-	for <linux-media@vger.kernel.org>; Mon, 24 Dec 2012 22:05:05 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20121224210505.66E2911E00D9@alastor.dyndns.org>
-Date: Mon, 24 Dec 2012 22:05:05 +0100 (CET)
+	Mon, 10 Dec 2012 18:21:08 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: andrea <mariofutire@googlemail.com>
+Subject: Re: Understanding v4l2-ctl flags
+Date: Tue, 11 Dec 2012 00:20:32 +0100
+Cc: linux-media@vger.kernel.org
+References: <ka5jci$q8q$1@ger.gmane.org>
+In-Reply-To: <ka5jci$q8q$1@ger.gmane.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201212110020.32055.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Mon December 10 2012 22:14:59 andrea wrote:
+> Hi,
+> 
+> I have a Logitech webcam under PWC.
+> I've managed to use v4l2-ctl to change come controls, but some of them seem to be unsupported.
+> 
+> v4l2-ctl reports the following flags
+> 
+> inactive
+> update
+> slider
+> write-only
+> ** no flags at all **
+> 
+> e.g.
+> 
+> restore_factory_settings (button) : flags=update, write-only
+> 
+> What is the meaning of them?
+> I can guess that inactive means unsupported, but do I care about the others?
 
-Results of the daily build of media_tree:
+See the documentation for control flags:
 
-date:        Mon Dec 24 19:00:24 CET 2012
-git hash:    8b2aea7878f64814544d0527c659011949d52358
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+http://hverkuil.home.xs4all.nl/spec/media.html#control-flags
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: OK
-linux-git-arm-eabi-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: WARNINGS
-linux-3.5-i686: WARNINGS
-linux-3.6-i686: WARNINGS
-linux-3.7-i686: WARNINGS
-linux-3.8-rc1-i686: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: WARNINGS
-linux-3.5-x86_64: WARNINGS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-x86_64: WARNINGS
-linux-3.8-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+'inactive' doesn't mean unsupported, it just means that setting the control
+probably will have no effect at the moment. E.g. setting the gain when autogain
+is selected doesn't do anything. Only when the autogain is turned off can you
+set the gain control.
 
-Detailed results are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+	Hans
