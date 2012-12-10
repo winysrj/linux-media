@@ -1,93 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3195 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2992421Ab2K3Uwl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Nov 2012 15:52:41 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id qAUKqZHC086744
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 30 Nov 2012 21:52:40 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 9DD6C65A022E
-	for <linux-media@vger.kernel.org>; Fri, 30 Nov 2012 21:52:33 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from plane.gmane.org ([80.91.229.3]:41660 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751550Ab2LJVPL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Dec 2012 16:15:11 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1TiAh7-0007rt-TZ
+	for linux-media@vger.kernel.org; Mon, 10 Dec 2012 22:15:21 +0100
+Received: from cpc3-heme9-2-0-cust93.9-1.cable.virginmedia.com ([81.111.156.94])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2012 22:15:21 +0100
+Received: from mariofutire by cpc3-heme9-2-0-cust93.9-1.cable.virginmedia.com with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2012 22:15:21 +0100
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20121130205233.9DD6C65A022E@alastor.dyndns.org>
-Date: Fri, 30 Nov 2012 21:52:33 +0100 (CET)
+From: andrea <mariofutire@googlemail.com>
+Subject: Understanding v4l2-ctl flags
+Date: Mon, 10 Dec 2012 21:14:59 +0000
+Message-ID: <ka5jci$q8q$1@ger.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+I have a Logitech webcam under PWC.
+I've managed to use v4l2-ctl to change come controls, but some of them seem to be unsupported.
 
-date:        Fri Nov 30 19:00:20 CET 2012
-git hash:    d8658bca2e5696df2b6c69bc5538f8fe54e4a01e
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+v4l2-ctl reports the following flags
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: OK
-linux-git-arm-eabi-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: WARNINGS
-linux-git-x86_64: OK
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: ERRORS
-linux-3.5-i686: ERRORS
-linux-3.6-i686: WARNINGS
-linux-3.7-rc1-i686: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: ERRORS
-linux-3.5-x86_64: ERRORS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: WARNINGS
-sparse: ERRORS
+inactive
+update
+slider
+write-only
+** no flags at all **
 
-Detailed results are available here:
+e.g.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+restore_factory_settings (button) : flags=update, write-only
 
-Full logs are available here:
+What is the meaning of them?
+I can guess that inactive means unsupported, but do I care about the others?
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
