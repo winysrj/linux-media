@@ -1,70 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:17847 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752260Ab2LVXmw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Dec 2012 18:42:52 -0500
-Date: Sat, 22 Dec 2012 21:42:24 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Roland Scheidegger <rscheidegger_lists@hispeed.ch>
-Cc: linux-media@vger.kernel.org
-Subject: Re: terratec h5 rev. 3?
-Message-ID: <20121222214224.409ed60a@redhat.com>
-In-Reply-To: <50D62544.5060708@hispeed.ch>
-References: <50D3F5A8.5010903@hispeed.ch>
-	<50D62544.5060708@hispeed.ch>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:17347 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752358Ab2LJTqp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Dec 2012 14:46:45 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 06/12]  s5p-fimc: Use pinctrl API for camera ports
+ configuration
+Date: Mon, 10 Dec 2012 20:46:00 +0100
+Message-id: <1355168766-6068-7-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
+References: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 22 Dec 2012 22:25:24 +0100
-Roland Scheidegger <rscheidegger_lists@hispeed.ch> escreveu:
+Before the camera ports can be used the pinmux needs to be configured
+properly. This patch adds a function to get the pinctrl states and to
+set default camera port pinmux state during the media driver's probe().
+The camera port(s) are configured for video bus operation in this way.
 
-> Am 21.12.2012 06:38, schrieb linux-media-owner@vger.kernel.org:
-> > Hi,
-> > 
-> > I've recently got a terratec h5 for dvb-c and thought it would be
-> > supported but it looks like it's a newer revision not recognized by em28xx.
-> > After using the new_id hack it gets recognized and using various htc
-> > cards (notably h5 or cinergy htc stick, cards 79 and 82 respectively) it
-> > seems to _nearly_ work but not quite (I was using h5 firmware for the
-> > older version). Tuning, channel scan works however tv (or dvb radio)
-> > does not, since it appears the error rate is going through the roof
-> > (with some imagination it is possible to see some parts of the picture
-> > sometimes and hear some audio pieces). femon tells something like this:
-> 
-> <snip>
-> Hmm actually it doesn't work any better at all with windows neither, so
-> I guess it doesn't like my cable signal (I do have another mantis-based
-> pci dvb-c card which works without issue). Maybe the tuner is just crappy.
-> So I guess it wouldn't hurt to simply add the usb id of this card
-> (0ccd:10b6) as another terratec h5 (this doesn't get you the IR but it's
-> a start I guess).
-> The dvb-t part though works without issue on windows, and I could not
-> get that to work in linux (I've used kaffeine and dvb-fe-tool to force
-> the dvbt delivery system if that's supposed to work). When scanning the
-> right frequency it spew out some error messages though:
-> DvbScanFilter::timerEvent: timeout while reading section; type = 0 pid = 0
-> kaffeine(7527) DvbScanFilter::timerEvent: timeout while reading section;
-> type = 2 pid = 17
+"inactive" pinctrl state is intended for setting clock output pin(s)
+into high impedance state when camera sensors are powered off.
 
-If DVB-T is also not working, then I suspect that the device is different
-than the previous revisions. There are two ways to connect the DRX-K with
-em28xx: serial or parallel. Maybe you need to touch that.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyugmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-fimc/fimc-mdevice.c |   35 +++++++++++++++++++++---
+ drivers/media/platform/s5p-fimc/fimc-mdevice.h |    6 ++++
+ 2 files changed, 37 insertions(+), 4 deletions(-)
 
-The better would be to sniff the usb traffic using the tools at v4l-utils.git
-and see what's happening there.
-> 
-> Roland
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+index ee718af..74d16a3 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
++++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+@@ -1064,13 +1064,33 @@ static ssize_t fimc_md_sysfs_store(struct device *dev,
+ static DEVICE_ATTR(subdev_conf_mode, S_IWUSR | S_IRUGO,
+ 		   fimc_md_sysfs_show, fimc_md_sysfs_store);
+ 
++static int fimc_md_get_pinctrl(struct fimc_md *fmd)
++{
++	fmd->pinctl = devm_pinctrl_get_select_default(&fmd->pdev->dev);
++	if (IS_ERR(fmd->pinctl))
++		return PTR_ERR(fmd->pinctl);
++
++	fmd->pinctl_state_default = pinctrl_lookup_state(fmd->pinctl,
++						 PINCTRL_STATE_DEFAULT);
++	if (IS_ERR(fmd->pinctl_state_default))
++		return PTR_ERR(fmd->pinctl_state_default);
++
++	fmd->pinctl_state_idle = pinctrl_lookup_state(fmd->pinctl,
++						PINCTRL_STATE_INACTIVE);
++	if (IS_ERR(fmd->pinctl_state_idle))
++		return PTR_ERR(fmd->pinctl_state_idle);
++
++	return 0;
++}
++
+ static int fimc_md_probe(struct platform_device *pdev)
+ {
++	struct device *dev = &pdev->dev;
+ 	struct v4l2_device *v4l2_dev;
+ 	struct fimc_md *fmd;
+ 	int ret;
+ 
+-	fmd = devm_kzalloc(&pdev->dev, sizeof(*fmd), GFP_KERNEL);
++	fmd = devm_kzalloc(dev, sizeof(*fmd), GFP_KERNEL);
+ 	if (!fmd)
+ 		return -ENOMEM;
+ 
+@@ -1080,7 +1100,7 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 	strlcpy(fmd->media_dev.model, "SAMSUNG S5P FIMC",
+ 		sizeof(fmd->media_dev.model));
+ 	fmd->media_dev.link_notify = fimc_md_link_notify;
+-	fmd->media_dev.dev = &pdev->dev;
++	fmd->media_dev.dev = dev;
+ 
+ 	v4l2_dev = &fmd->v4l2_dev;
+ 	v4l2_dev->mdev = &fmd->media_dev;
+@@ -1088,7 +1108,7 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 	strlcpy(v4l2_dev->name, "s5p-fimc-md", sizeof(v4l2_dev->name));
+ 
+ 
+-	ret = v4l2_device_register(&pdev->dev, &fmd->v4l2_dev);
++	ret = v4l2_device_register(dev, &fmd->v4l2_dev);
+ 	if (ret < 0) {
+ 		v4l2_err(v4l2_dev, "Failed to register v4l2_device: %d\n", ret);
+ 		return ret;
+@@ -1107,15 +1127,22 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 	/* Protect the media graph while we're registering entities */
+ 	mutex_lock(&fmd->media_dev.graph_mutex);
+ 
++	if (dev->of_node) {
++		ret = fimc_md_get_pinctrl(fmd);
++		if (ret < 0)
++			goto err_unlock;
++	}
++
+ 	ret = fimc_md_register_platform_entities(fmd);
+ 	if (ret)
+ 		goto err_unlock;
+ 
+-	if (pdev->dev.platform_data || pdev->dev.of_node) {
++	if (dev->platform_data || dev->of_node) {
+ 		ret = fimc_md_register_sensor_entities(fmd);
+ 		if (ret)
+ 			goto err_unlock;
+ 	}
++
+ 	ret = fimc_md_create_links(fmd);
+ 	if (ret)
+ 		goto err_unlock;
+diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.h b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
+index 1b7850c..89cecaa 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-mdevice.h
++++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
+@@ -10,6 +10,7 @@
+ #define FIMC_MDEVICE_H_
+ 
+ #include <linux/clk.h>
++#include <linux/pinctrl/consumer.h>
+ #include <linux/platform_device.h>
+ #include <linux/mutex.h>
+ #include <media/media-device.h>
+@@ -25,6 +26,8 @@
+ #define FIMC_LITE_OF_NODE_NAME	"fimc_lite"
+ #define CSIS_OF_NODE_NAME	"csis"
+ 
++#define PINCTRL_STATE_INACTIVE	"inactive"
++
+ /* Group IDs of sensor, MIPI-CSIS, FIMC-LITE and the writeback subdevs. */
+ #define GRP_ID_SENSOR		(1 << 8)
+ #define GRP_ID_FIMC_IS_SENSOR	(1 << 9)
+@@ -85,6 +88,9 @@ struct fimc_md {
+ 	struct media_device media_dev;
+ 	struct v4l2_device v4l2_dev;
+ 	struct platform_device *pdev;
++	struct pinctrl *pinctl;
++	struct pinctrl_state *pinctl_state_default;
++	struct pinctrl_state *pinctl_state_idle;
+ 	bool user_subdev_api;
+ 	spinlock_t slock;
+ };
 -- 
+1.7.9.5
 
-Cheers,
-Mauro
