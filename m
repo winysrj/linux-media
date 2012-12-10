@@ -1,63 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:47338 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751491Ab2LPWAz convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 17:00:55 -0500
-From: Albert Wang <twang13@marvell.com>
-To: Jonathan Corbet <corbet@lwn.net>
-CC: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Libin Yang <lbyang@marvell.com>
-Date: Sun, 16 Dec 2012 14:00:54 -0800
-Subject: RE: [PATCH V3 07/15] [media] marvell-ccic: add SOF / EOF pair check
- for marvell-ccic driver
-Message-ID: <477F20668A386D41ADCC57781B1F70430D13C8CCE1@SC-VEXCH1.marvell.com>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
-	<1355565484-15791-8-git-send-email-twang13@marvell.com>
- <20121216091915.08c4ba80@hpe.lwn.net>
-In-Reply-To: <20121216091915.08c4ba80@hpe.lwn.net>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mailout4.samsung.com ([203.254.224.34]:20787 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752491Ab2LJTqx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Dec 2012 14:46:53 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 08/12] ARM: dts: Add camera node exynos4.dtsi
+Date: Mon, 10 Dec 2012 20:46:02 +0100
+Message-id: <1355168766-6068-9-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
+References: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Jonathan
+This adds common FIMC device nodes for all Exynos4 SoCs.
 
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/boot/dts/exynos4.dtsi |   64 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
->-----Original Message-----
->From: Jonathan Corbet [mailto:corbet@lwn.net]
->Sent: Monday, 17 December, 2012 00:19
->To: Albert Wang
->Cc: g.liakhovetski@gmx.de; linux-media@vger.kernel.org; Libin Yang
->Subject: Re: [PATCH V3 07/15] [media] marvell-ccic: add SOF / EOF pair check for
->marvell-ccic driver
->
->On Sat, 15 Dec 2012 17:57:56 +0800
->Albert Wang <twang13@marvell.com> wrote:
->
->> From: Libin Yang <lbyang@marvell.com>
->>
->> This patch adds the SOFx/EOFx pair check for marvell-ccic.
->>
->> When switching format, the last EOF may not arrive when stop streamning.
->> And the EOF will be detected in the next start streaming.
->>
->> Must ensure clear the obsolete frame flags before every really start streaming.
->
->"obsolete" doesn't quite read right; it suggests that the flags only
->apply to older hardware.  I'd suggest "left over" or some such (in the
->code comment too).  Otherwise seems fine.
->
-[Albert Wang] OK, we will change the "bad" word. :)
+diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
+index 15d5d39..633d2e2 100644
+--- a/arch/arm/boot/dts/exynos4.dtsi
++++ b/arch/arm/boot/dts/exynos4.dtsi
+@@ -28,6 +28,12 @@
+ 		spi0 = &spi_0;
+ 		spi1 = &spi_1;
+ 		spi2 = &spi_2;
++		csis0 = &csis_0;
++		csis1 = &csis_1;
++		fimc0 = &fimc_0;
++		fimc1 = &fimc_1;
++		fimc2 = &fimc_2;
++		fimc3 = &fimc_3;
+ 	};
+ 
+ 	pd_mfc: mfc-power-domain@10023C40 {
+@@ -104,6 +110,64 @@
+ 		power-domain = <&pd_lcd0>;
+ 	};
+ 
++	camera {
++		compatible = "samsung,fimc", "simple-bus";
++		status = "disabled";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		fimc_0: fimc@11800000 {
++			compatible = "samsung,exynos4210-fimc";
++			reg = <0x11800000 0x1000>;
++			interrupts = <0 84 0>;
++			power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++
++		fimc_1: fimc@11810000 {
++			compatible = "samsung,exynos4210-fimc";
++			reg = <0x11810000 0x1000>;
++			interrupts = <0 85 0>;
++			power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++
++		fimc_2: fimc@11820000 {
++			compatible = "samsung,exynos4210-fimc";
++			reg = <0x11820000 0x1000>;
++			interrupts = <0 86 0>;
++			power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++
++		fimc_3: fimc@11830000 {
++			compatible = "samsung,exynos4210-fimc";
++			reg = <0x11830000 0x1000>;
++			interrupts = <0 87 0>;
++			power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++
++		csis_0: csis@11880000 {
++			compatible = "samsung,exynos4210-csis";
++			reg = <0x11880000 0x4000>;
++			interrupts = <0 78 0>;
++			max-data-lanes = <4>;
++			power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++
++		csis_1: csis@11890000 {
++			compatible = "samsung,exynos4210-csis";
++			reg = <0x11890000 0x4000>;
++			interrupts = <0 80 0>;
++			max-data-lanes = <2>;
++			power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++	};
++
+ 	watchdog@10060000 {
+ 		compatible = "samsung,s3c2410-wdt";
+ 		reg = <0x10060000 0x100>;
+-- 
+1.7.9.5
 
->Acked-by: Jonathan Corbet <corbet@lwn.net>
->
->jon
-
-
-Thanks
-Albert Wang
-86-21-61092656
