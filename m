@@ -1,155 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:36712 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752621Ab2LLJXG (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:39256 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751867Ab2LJTcN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Dec 2012 04:23:06 -0500
-Message-ID: <50C84CF7.7030602@canonical.com>
-Date: Wed, 12 Dec 2012 10:23:03 +0100
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+	Mon, 10 Dec 2012 14:32:13 -0500
+Received: by mail-bk0-f46.google.com with SMTP id q16so1260410bkw.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2012 11:32:11 -0800 (PST)
+Message-ID: <50C638C7.10200@googlemail.com>
+Date: Mon, 10 Dec 2012 20:32:23 +0100
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Sumit Semwal <sumit.semwal@linaro.org>
-CC: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH, resend] dma-buf: remove fallback for !CONFIG_DMA_SHARED_BUFFER
-Content-Type: text/plain; charset=ISO-8859-1
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: EM2800 and audio via USB ?
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Documentation says that code requiring dma-buf should add it to
-select, so inline fallbacks are not going to be used. A link error
-will make it obvious what went wrong, instead of silently doing
-nothing at runtime.
+Hi,
 
-Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Reviewed-by: Rob Clark <rob.clark@linaro.org>
+does anyone know if the EM2800 is capable of delivering audio via USB ?
+AFAIK, it doesn't have AC97 included.
 
----
-Resubmit since it seemed to have gotten lost last cycle.
+I recently got some real legacy hardware: a Terratec Cinergy 200 USB
+(EM2800 + SAA7113 +TDA9887).
+This device has an audio line-in input (also SVIDEO + Composite), but no
+extra AC97 IC.
+I wonder how this is supposed to work (I actually can't get it working ;) )
 
- include/linux/dma-buf.h | 99 -------------------------------------------------
- 1 file changed, 99 deletions(-)
-
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index eb48f38..bd2e52c 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -156,7 +156,6 @@ static inline void get_dma_buf(struct dma_buf *dmabuf)
- 	get_file(dmabuf->file);
- }
- 
--#ifdef CONFIG_DMA_SHARED_BUFFER
- struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
- 							struct device *dev);
- void dma_buf_detach(struct dma_buf *dmabuf,
-@@ -184,103 +183,5 @@ int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
- 		 unsigned long);
- void *dma_buf_vmap(struct dma_buf *);
- void dma_buf_vunmap(struct dma_buf *, void *vaddr);
--#else
--
--static inline struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
--							struct device *dev)
--{
--	return ERR_PTR(-ENODEV);
--}
--
--static inline void dma_buf_detach(struct dma_buf *dmabuf,
--				  struct dma_buf_attachment *dmabuf_attach)
--{
--	return;
--}
--
--static inline struct dma_buf *dma_buf_export(void *priv,
--					     const struct dma_buf_ops *ops,
--					     size_t size, int flags)
--{
--	return ERR_PTR(-ENODEV);
--}
--
--static inline int dma_buf_fd(struct dma_buf *dmabuf, int flags)
--{
--	return -ENODEV;
--}
--
--static inline struct dma_buf *dma_buf_get(int fd)
--{
--	return ERR_PTR(-ENODEV);
--}
--
--static inline void dma_buf_put(struct dma_buf *dmabuf)
--{
--	return;
--}
--
--static inline struct sg_table *dma_buf_map_attachment(
--	struct dma_buf_attachment *attach, enum dma_data_direction write)
--{
--	return ERR_PTR(-ENODEV);
--}
--
--static inline void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
--			struct sg_table *sg, enum dma_data_direction dir)
--{
--	return;
--}
--
--static inline int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
--					   size_t start, size_t len,
--					   enum dma_data_direction dir)
--{
--	return -ENODEV;
--}
--
--static inline void dma_buf_end_cpu_access(struct dma_buf *dmabuf,
--					  size_t start, size_t len,
--					  enum dma_data_direction dir)
--{
--}
--
--static inline void *dma_buf_kmap_atomic(struct dma_buf *dmabuf,
--					unsigned long pnum)
--{
--	return NULL;
--}
--
--static inline void dma_buf_kunmap_atomic(struct dma_buf *dmabuf,
--					 unsigned long pnum, void *vaddr)
--{
--}
--
--static inline void *dma_buf_kmap(struct dma_buf *dmabuf, unsigned long pnum)
--{
--	return NULL;
--}
--
--static inline void dma_buf_kunmap(struct dma_buf *dmabuf,
--				  unsigned long pnum, void *vaddr)
--{
--}
--
--static inline int dma_buf_mmap(struct dma_buf *dmabuf,
--			       struct vm_area_struct *vma,
--			       unsigned long pgoff)
--{
--	return -ENODEV;
--}
--
--static inline void *dma_buf_vmap(struct dma_buf *dmabuf)
--{
--	return NULL;
--}
--
--static inline void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
--{
--}
--#endif /* CONFIG_DMA_SHARED_BUFFER */
- 
- #endif /* __DMA_BUF_H__ */
--- 
-1.8.0
-
-
+Thanks,
+Frank
