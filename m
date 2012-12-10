@@ -1,81 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f182.google.com ([209.85.215.182]:32902 "EHLO
-	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751576Ab2LWNeL (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:47034 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751437Ab2LJPjE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Dec 2012 08:34:11 -0500
-Received: by mail-ea0-f182.google.com with SMTP id a14so2626885eaa.13
-        for <linux-media@vger.kernel.org>; Sun, 23 Dec 2012 05:34:10 -0800 (PST)
-Message-ID: <50D70864.4070903@googlemail.com>
-Date: Sun, 23 Dec 2012 14:34:28 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+	Mon, 10 Dec 2012 10:39:04 -0500
+Received: by mail-lb0-f174.google.com with SMTP id gi11so2095076lbb.19
+        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2012 07:39:02 -0800 (PST)
+Message-ID: <50C60220.8050908@googlemail.com>
+Date: Mon, 10 Dec 2012 16:39:12 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 16/21] em28xx: rename usb debugging module parameter
- and macro
-References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com> <1352398313-3698-17-git-send-email-fschaefer.oss@googlemail.com> <20121222181019.775f8c3f@redhat.com>
-In-Reply-To: <20121222181019.775f8c3f@redhat.com>
-Content-Type: text/plain; charset=UTF-8
+To: Matthew Gyurgyik <matthew@pyther.net>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com> <50C48891.2050903@googlemail.com> <50C4A520.6020908@pyther.net> <CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com> <50C4BA20.8060003@googlemail.com> <50C4BAFB.60304@googlemail.com> <50C4C525.6020006@googlemail.com> <50C4D011.6010700@pyther.net>
+In-Reply-To: <50C4D011.6010700@pyther.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 22.12.2012 21:10, schrieb Mauro Carvalho Chehab:
-> Em Thu,  8 Nov 2012 20:11:48 +0200
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> Rename module parameter isoc_debug to usb_debug and macro
->> em28xx_isocdbg to em28xx_usb dbg to reflect that they are
->> used for isoc and bulk USB transfers.
+Am 09.12.2012 18:53, schrieb Matthew Gyurgyik:
+> On 12/09/2012 12:06 PM, Frank Sch�fer wrote:
+>> Forget this sh... (never do multiple things at the same time ;) )
 >>
->> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->> ---
->>  drivers/media/usb/em28xx/em28xx-video.c |   58 +++++++++++++++----------------
->>  1 Datei geändert, 28 Zeilen hinzugefügt(+), 30 Zeilen entfernt(-)
+>> Reg 0x50 is set to according to rc_type specified in the selected remote
+>> control map.
+>> So if the correct map is selected, everything should be fine (as long as
+>> it is RC_TYPE_NEC or RC_TYPE_RC5 because we don't support others yet).
 >>
->> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
->> index d6de1cc..f435206 100644
->> --- a/drivers/media/usb/em28xx/em28xx-video.c
->> +++ b/drivers/media/usb/em28xx/em28xx-video.c
->> @@ -58,13 +58,13 @@
->>  		printk(KERN_INFO "%s %s :"fmt, \
->>  			 dev->name, __func__ , ##arg); } while (0)
->>  
->> -static unsigned int isoc_debug;
->> -module_param(isoc_debug, int, 0644);
->> -MODULE_PARM_DESC(isoc_debug, "enable debug messages [isoc transfers]");
->> +static unsigned int usb_debug;
->> +module_param(usb_debug, int, 0644);
->> +MODULE_PARM_DESC(usb_debug, "enable debug messages [isoc transfers]");
-> NACK: usb_debug is too generic: it could refer to control URB's, stream
-> URB's, and other non-URB related USB debugging.
-
-Depends on what you think should be the role of this debug parameter.
-
-> Also, it can cause some harm for the ones using it.
+>> RC_MAP_KWORLD_315U and RC_MAP_MSI_DIGIVOX_III are both RC_TYPE_NEC, so
+>> the stick seems to use no NEC protocol.
+>>
+>> Matthew, insert a line
+>>
+>>          ir_config = 0x01;
+>>
+>> before
+>>
+>> 380        em28xx_write_regs(dev, EM2874_R50_IR_CONFIG, &ir_config, 1);
+>>
+>> in em28xx-input.c and see if something shows up in the dmesg output.
+>>
+>> Regards,
+>> Frank
 >
-> As the rest of this series don't depend on this one, I'll just skip it.
+> That seems to be a bit more successful!
 >
-> IMHO, the better is to either live it as-is, to avoid breaking for
-> someone with "isoc_debug" parameter on their /etc/modprobe.d, or to
-> do a "deprecate" path:
+> Here is the dmesg output:
 >
-> 	- adding a new one called "stream_debug" (or something like that);
-> 	- keep the old one for a while, printing a warning message to
-> point that this got removed; 
-> 	- after a few kernel cycles, remove the legacy one.
+>> [root@tux ~]# dmesg -t | sort | uniq | grep 'em28xx IR' | grep handle
+>> em28xx IR (em28xx #0)/ir: 6em28xx_ir_handle_key: toggle: 0, count: 1,
+>> key 0x61d6
+>> em28xx IR (em28xx #0)/ir: 6em28xx_ir_handle_key: toggle: 0, count: 2,
+>> key 0x61d6
+>> em28xx IR (em28xx #0)/ir: 6em28xx_ir_handle_key: toggle: 1, count: 1,
+>> key 0x61d6
+>> em28xx IR (em28xx #0)/ir: em28xx_ir_handle_key: toggle: 0, count: 1,
+>> key 0x61d6
+>> em28xx IR (em28xx #0)/ir: em28xx_ir_handle_key: toggle: 0, count: 2,
+>> key 0x61d6
+>> em28xx IR (em28xx #0)/ir: em28xx_ir_handle_key: toggle: 1, count: 1,
+>> key 0x61d6
+>> em28xx IR (em28xx #0)/ir: em28xx_ir_handle_key: toggle: 1, count: 2,
+>> key 0x61d6
+>
+> I pressed all the buttons on the remote (40 buttons).
 
-So module parameters are part of the API ? Hmmm... that's new to me.
+Did you cut the dmesg output ? Or do you really get these messages for
+key 0x61d6 only ?
 
-> Even better: simply unify all debug params into a single one, where 
-> each bit means one type of debug, like what was done on other drivers.
-
-Yeah, I agree, that would be the best solution.
-The whole debugging code could need an overhault, but I really can't do
-that all at once.
+It seems like things are working different with reg 0x50 = 0x01. Taking
+a look into the datasheet might help, but I don't have it. ;)
 
 Regards,
 Frank
 
+>
+> Thanks,
+> Matthew
 
