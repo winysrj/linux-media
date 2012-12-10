@@ -1,88 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:53924 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750803Ab2LEMTo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2012 07:19:44 -0500
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH v3 3/4] sta2x11_vip: convert to videobuf2 and control framework
-Date: Wed, 05 Dec 2012 13:24:20 +0100
-Message-ID: <2637992.xolQO8ly5c@harkonnen>
-In-Reply-To: <50BF315C.8090203@redhat.com>
-References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com> <8113379.Pqy1l62Utl@number-5> <50BF315C.8090203@redhat.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp209.alice.it ([82.57.200.105]:39853 "EHLO smtp209.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751844Ab2LJVhn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Dec 2012 16:37:43 -0500
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCHv2 0/9] dvb-usb/m920x: support VP-7049 DVB-T USB Stick and other fixes
+Date: Mon, 10 Dec 2012 22:37:08 +0100
+Message-Id: <1355175437-21623-1-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1352158096-17737-1-git-send-email-ospite@studenti.unina.it>
+References: <1352158096-17737-1-git-send-email-ospite@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thank you Mauro for the good explanation
+Hi,
 
-> Yeah, there are many changes there that justifies adding you at its
-> authorship, and that's ok. Also, anyone saying the size of your patch
-> will recognize your and ST efforts to improve the driver.
-> 
-> However, as some parts of the code were preserved, dropping the old
-> authors doesn't sound right (and can even be illegal, in the light
-> of the GPL license). It would be ok, though, if you would be
-> changing it to something like:
-> 
-> 	Copyright (c) 2010 by ...
-> or
-> 	Original driver from ...
+Here is a second iteration of the patchset to add support for the
+Twinhan VP7049 DVB-T USB Stick, v1 is at:
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/56714
 
-Ok, I understand. I will write something like this.
- * Copyright (C) 2012       ST Microelectronics
- *      author: Federico Vaga <federico.vaga@gmail.com>
- * Copyright (C) 2010       WindRiver Systems, Inc.
- *      authors: Andreas Kies <andreas.kies@windriver.com>
- *               Vlad Lungu <vlad.lungu@windriver.com>
+Patches from 1 to 7 are small fixes or refactorings to make the addition
+of the new device easier.
 
+Patches 8 and 9 are specific to the device.
 
-> The only way of not preserving the original authors here were if you
-> start from scratch, without looking at the original code (and you can
-> somehow, be able to proof it), otherwise, the code will be fit as a
-> "derivative work", in the light of GPL, and should be preserving the
-> original authorship.
-> 
-> Something started from scratch like that will hardly be accepted upstream,
-> as regressions will likely be introduced, and previously supported
-> hardware/features may be lost in the process.
+Changes since v1:
+  - Patches 1-7: more refactorings
 
-I understand
- 
-> Of course the original author can abdicate to his rights of keeping his
-> name on it. Yet, even if he opt/accept to not keep his name explicitly
-> there, his copyrights are preserved, with the help of the git history.
-> 
-> That's said, no single kernel developer/company has full copyrights on
-> any part of the Kernel, as their code are based on someone else's work.
-> For example, all Kernel drivers depend on drivers/base, with in turn,
-> depends on memory management, generic helper functions, arch code, etc.
+  - Patch 9: don't add a .pre_init callback to dvb-usb, Antti convinced
+    me that the initialization is better done just before the frontend
+    attach is called.
 
-yeah I know :)
+  - Patch 9: use the RC core infrastructure, the keymap I needed was
+    already here: I could reuse the rc-twinhan1027 driver without
+    touching anything in it.
 
-> So, IMHO, there's not much point on dropping authorship messages.
+Again I deliberately ignored some checkpatch.pl warnings and errors
+because I preferred to stick with the code style in use in the
+dvb-usb/m920x files, let me know if you want me to do otherwise.
 
-So the MODULE_AUTHOR will be Windriver forever until they drop authorship? 
-Also if in the next future 0 windriver lines will be in the code?
+Thanks,
+   Antonio
 
-(general talking, not about this driver)
-If I do git blame on a driver with MODULE_AUTHOR("Mr. X"); but only the 
-MODULE_AUTHOR line is from Mr X; there is not an automatically system which 
-remove the MODULE_AUTHOR? Ok, probably it was the original author of the code 
-and the comment header with the copyright history gives to Mr X all the 
-honours, but there is nothing from him in the code. It is not better to remove 
-MODULE_AUTHOR or replace it with who wrotes most of the code?
-I know that this is not the best place to talk about this, just a little 
-curiosity
+Antonio Ospite (9):
+  [media] dvb-usb: fix indentation of a for loop
+  [media] m920x: fix a typo in a comment
+  [media] m920x: factor out a m920x_write_seq() function
+  [media] m920x: factor out a m920x_parse_rc_state() function
+  [media] m920x: avoid repeating RC state parsing at each keycode
+  [media] m920x: introduce m920x_rc_core_query()
+  [media] m920x: send the RC init sequence also when rc.core is used
+  [media] get_dvb_firmware: add entry for the vp7049 firmware
+  [media] m920x: add support for the VP-7049 Twinhan DVB-T USB Stick
+
+ Documentation/dvb/get_dvb_firmware       |   15 +-
+ drivers/media/dvb-core/dvb-usb-ids.h     |    1 +
+ drivers/media/usb/dvb-usb/dvb-usb-init.c |   60 +++----
+ drivers/media/usb/dvb-usb/m920x.c        |  269 ++++++++++++++++++++++++------
+ 4 files changed, 266 insertions(+), 79 deletions(-)
 
 -- 
-Federico Vaga
+Antonio Ospite
+http://ao2.it
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
