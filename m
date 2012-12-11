@@ -1,103 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:50020 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750918Ab2LDFHU (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:35515 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752711Ab2LKNuH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Dec 2012 00:07:20 -0500
-Message-ID: <1354597630.17107.42.camel@deadeye.wl.decadent.org.uk>
-Subject: Re: [GIT PULL] linux-firmware: cx23885: update to Version 2.06.139
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Tim Gardner <rtg.canonical@gmail.com>
-Cc: tim.gardner@canonical.com, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Tue, 04 Dec 2012 05:07:10 +0000
-In-Reply-To: <50BCEBCB.4080303@gmail.com>
-References: <50BCEBCB.4080303@gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-HhT6AtSnLrSekVnwOFHD"
-Mime-Version: 1.0
+	Tue, 11 Dec 2012 08:50:07 -0500
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	'Mauro Carvalho Chehab' <mchehab@infradead.org>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	'Hans Verkuil' <hans.verkuil@cisco.com>,
+	'Giancarlo Asnaghi' <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v3 2/4] videobuf2-dma-streaming: new videobuf2 memory allocator
+Date: Tue, 11 Dec 2012 14:54:44 +0100
+Message-ID: <1535483.0HokefWAdm@harkonnen>
+In-Reply-To: <50BF5950.2040805@redhat.com>
+References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com> <1685240.Ttn3DTWMJc@harkonnen> <50BF5950.2040805@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Sorry for the late answer to this.
 
---=-HhT6AtSnLrSekVnwOFHD
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> > This allocator is needed because some device (like STA2X11 VIP) cannot
+> > work
+> > with DMA sg or DMA coherent. Some other device (like the one used by
+> > Jonathan when he proposes vb2-dma-nc allocator) can obtain much better
+> > performance with DMA streaming than coherent.
+> 
+> Ok, please add such explanations at the patch's descriptions, as it is
+> important not only for me, but to others that may need to use it..
 
-On Mon, 2012-12-03 at 11:13 -0700, Tim Gardner wrote:
-> Ben - what is your policy on extracting firmware from Windows drivers?
+OK
 
-I suppose the policy should be that the driver's licence must allow
-extracting and then distributing the result.  Which I wouldn't expect
-ever to be the case, in practice.
+> >> 	2) why vb2-dma-config can't be patched to use dma_map_single
+> >> 
+> >> (eventually using a different vb2_io_modes bit?);
+> > 
+> > I did not modify vb2-dma-contig because I was thinking that each DMA
+> > memory
+> > allocator should reflect a DMA API.
+> 
+> The basic reason for having more than one VB low-level handling (vb2 was
+> inspired on this concept) is that some DMA APIs are very different than
+> the other ones (see vmalloc x DMA S/G for example).
+> 
+> I didn't make a diff between videobuf2-dma-streaming and
+> videobuf2-dma-contig, so I can't tell if it makes sense to merge them or
+> not, but the above argument seems too weak. I was expecting for a technical
+> reason why it wouldn't make sense for merging them.
 
-Your commit message refers to the Hauppuage driver package at
-<http://steventoth.net/linux/hvr1800/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip=
->.  I didn't find any licence text, other than 'All rights reserved', in ei=
-ther that or the currently distributed version of the same driver <http://w=
-ww.wintvcd.co.uk/drivers/HVR-12x0-14x0-17x0-33x0-44x0_1_48_29272_SIGNED.zip=
->.
+I cannot work on this now. But I think that I can do an integration like the 
+one that I pushed some month ago (a8f3c203e19b702fa5e8e83a9b6fb3c5a6d1cce4).
+Wind River made that changes to videobuf-contig and I tested, fixed and 
+pushed.
 
-> It seems like it ought to be OK, and they _are_ the same files that are
-> covered under the license in WHENCE.
+> >> 	3) what are the usecases for it.
+> >> 
+> >> Could you please detail it? Without that, one that would be needing to
+> >> write a driver will have serious doubts about what would be the right
+> >> driver for its usage. Also, please document it at the driver itself.
 
-I'm not sure how you can say they are the same files, as you're
-proposing to change the contents.  The copyright on the current files
-belongs to the chipset vendor, Conexant, and Hauppuage *presumably* used
-firmware supplied by Conexant, but either of them might have chosen a
-different licence for the versions in this driver package.
+I don't have a full understand of the board so I don't know exactly why 
+dma_alloc_coherent does not work. I focused my development on previous work by 
+Wind River. I asked to Wind River (which did all the work on this board) for 
+the technical explanation about why coherent doesn't work, but they do not 
+know. That's why I made the new allocator: coherent doesn't work and HW 
+doesn't support SG.
 
-> The following changes since commit bda53ca96deb3cacbef10a7a84bbaee2d09c7f=
-34:
->=20
->   brcm: new firmware version for brcmsmac (2012-12-03 14:46:28 +0000)
->=20
-> are available in the git repository at:
->=20
->   git://kernel.ubuntu.com/rtg/linux-firmware.git master
->=20
-> for you to fetch changes up to 3c592f80519a7e82eadeccfad7a5cd1604ca463c:
->=20
->   cx23885: update to Version 2.06.139 (2012-12-03 11:07:43 -0700)
->=20
-> ----------------------------------------------------------------
-> Tim Gardner (1):
->       cx23885: update to Version 2.06.139
->=20
->  v4l-cx23885-avcore-01.fw |  Bin 16382 -> 16382 bytes
->  v4l-cx23885-enc.fw       |  Bin 16382 -> 376836 bytes
->  2 files changed, 0 insertions(+), 0 deletions(-)
+> I'm not a DMA performance expert. As such, from that comment, it sounded to
+> me that replacing dma-config/dma-sg by dma streaming will always give
+> "performance optimizations the hardware allow".
 
-How odd, these two files are currently identical to each other...
+me too, I'm not a DMA performance expert. I'm just an user of the DMA API. On 
+my hardware simply it works only with that interface, it is not a performance 
+problem.
 
-Ben.
+> On a separate but related issue, while doing DMABUF tests with an Exynos4
+> hardware, using a s5p sensor, sending data to s5p-tv, I noticed a CPU
+> consumption of about 42%, which seems too high. Could it be related to
+> not using the DMA streaming API?
 
---=20
-Ben Hutchings
-Always try to do things in chronological order;
-it's less confusing that way.
+As I wrote above, I'm not a DMA performance expert. I skip this
 
---=-HhT6AtSnLrSekVnwOFHD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIVAwUAUL2E/ue/yOyVhhEJAQrnsBAAmwD3kF3P5GByRFQVqsNPr3whghomTECm
-QeLmh2ac0J8NcwjYL/U02SMtO1i+XcU0D7hAHBfFZNyaGcUZVvEL8KSbnvN8pCI7
-9zpdYMDDIc7tv4gkKBaD4SQ/wIeiVyhBRRVG1w3Tep03FsUQAyPL+FAUlY8LcAdy
-A2aarC+S70epphK22Kz5Pxsxgnup+MBhs5gWJWiEg3bslAV24TRJZCkFnmx5S9OP
-dYSi0H9YKZ0EFcJT01+phPFmj4iMCiv82J5VQrXCVuQ46+eAniyGXTcgH4Ug7bZ9
-B0T3InJlWONub5MhuPZvuvvFw7V5I5SZNjs2df30B7fkxes4cIjzVSmUYy7ZypJn
-QnBnKWtG6lYuVgjIrhpSyqGhI0dL94OnkZ2QUIg4cidvGhZDHQMqCy5mUB5lnTfF
-07VLBp6LIGPXpHz0L2xHLFvPX9bTWyCWnrHwkQSdguMY2bWCjaOOcVd14ov7/fPU
-a+5na+43ywEV29rkNEuBcuy5jyj+CftBGwM7MVEwn9cPjfBraHwpt8VyklFNh8Mp
-oBjdZtJChrTJo3819CKpnpC3bVRGdJu4FF62ERkhdQWDRLCmgD+20t8XJllaZTsv
-MDlEZ4Lc7Jn7aLfKQHzoEPOPk9KRBfK9TGr2Qayz/ZWH2vR6O25mXlEqXRZCvsJ8
-jMl+xh63lJA=
-=g677
------END PGP SIGNATURE-----
-
---=-HhT6AtSnLrSekVnwOFHD--
+-- 
+Federico Vaga
