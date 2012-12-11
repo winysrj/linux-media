@@ -1,371 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:45967 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755236Ab2LRQ6Y (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:20169 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753343Ab2LKQKA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Dec 2012 11:58:24 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicestree-discuss@lists.ozlabs.org
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
-	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
-	"David Airlie" <airlied@linux.ie>,
-	"Rob Clark" <robdclark@gmail.com>,
-	"Leela Krishna Amudala" <leelakrishna.a@gmail.com>
-Subject: =?UTF-8?q?=5BPATCHv16=202/7=5D=20video=3A=20add=20display=5Ftiming=20and=20videomode?=
-Date: Tue, 18 Dec 2012 17:57:48 +0100
-Message-Id: <1355849873-8051-3-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1355849873-8051-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1355849873-8051-1-git-send-email-s.trumtrar@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Tue, 11 Dec 2012 11:10:00 -0500
+Message-id: <50C75AD5.2040105@samsung.com>
+Date: Tue, 11 Dec 2012 17:09:57 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH RFC 05/13] of: Add empty for_each_available_child_of_node()
+ macro definition
+References: <1355168499-5847-1-git-send-email-s.nawrocki@samsung.com>
+ <1355168499-5847-6-git-send-email-s.nawrocki@samsung.com>
+ <20121211085707.8D4F03E076D@localhost>
+In-reply-to: <20121211085707.8D4F03E076D@localhost>
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add display_timing structure and the according helper functions. This allows
-the description of a display via its supported timing parameters.
+On 12/11/2012 09:57 AM, Grant Likely wrote:
+> On Mon, 10 Dec 2012 20:41:31 +0100, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
+>> Add this empty macro definition so users can be compiled without
+>> excluding this macro call with preprocessor directives when CONFIG_OF
+>> is disabled.
+>>
+>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> 
+> What non-OF code is calling this function?
 
-Also, add helper functions to convert from display timings to a generic videomode
-structure.
+It is used in a driver [1] in an OF specific function. The patch is
+in my second series that depends this one.
+"[PATCH RFC 00/12] Device tree support for Exynos4 SoC camera drivers"
 
-The struct display_timing specifies all needed parameters to describe the signal
-properties of a display in one mode. This includes
-    - ranges for signals that may have min-, max- and typical values
-    - single integers for signals that can be on, off or are ignored
-    - booleans for signals that are either on or off
+I thought it was better to add this empty macro definition rather
+than using #ifdef CONFIG_OF in the code. However, in this case
+the local variables would remain unused, so it's not really any
+good solution. It just looked cumbersome to me to have in the code
+something like
 
-As a display may support multiple modes like this, a struct display_timings is
-added, that holds all given struct display_timing pointers and declares the
-native mode of the display.
+#ifdef CONFIG_OF
+int func(void)
+{
+	int x;
+	....
+	return x;
+}	
+#else
+#define func() (-ENOSYS)
+#endif
 
-Although a display may state that a signal can be in a range, it is driven with
-fixed values that indicate a videomode. Therefore graphic drivers don't need all
-the information of struct display_timing, but would generate a videomode from
-the given set of supported signal timings and work with that.
+After all it's not that bad and allows to compile out all OF code
+when it's unused.
 
-The video subsystems all define their own structs that describe a mode and work
-with that (e.g. fb_videomode or drm_display_mode). To slowly replace all those
-various structures and allow code reuse across those subsystems, add struct
-videomode as a generic description.
+Please ignore patches 05..07/13, I'll drop them in next iteration.
+And sorry for the noise.
 
-This patch only includes the most basic fields in struct videomode. All missing
-fields that are needed to have a really generic video mode description can be
-added at a later stage.
+[1] http://patchwork.linuxtv.org/patch/15852/
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/video/Kconfig          |    6 ++
- drivers/video/Makefile         |    2 +
- drivers/video/display_timing.c |   24 ++++++++
- drivers/video/videomode.c      |   39 +++++++++++++
- include/video/display_timing.h |  124 ++++++++++++++++++++++++++++++++++++++++
- include/video/videomode.h      |   48 ++++++++++++++++
- 6 files changed, 243 insertions(+)
- create mode 100644 drivers/video/display_timing.c
- create mode 100644 drivers/video/videomode.c
- create mode 100644 include/video/display_timing.h
- create mode 100644 include/video/videomode.h
+>> ---
+>>  include/linux/of.h |    3 +++
+>>  1 file changed, 3 insertions(+)
+>>
+>> diff --git a/include/linux/of.h b/include/linux/of.h
+>> index 2fb0dbe..7df42cc 100644
+>> --- a/include/linux/of.h
+>> +++ b/include/linux/of.h
+>> @@ -332,6 +332,9 @@ static inline bool of_have_populated_dt(void)
+>>  #define for_each_child_of_node(parent, child) \
+>>  	while (0)
+>>  
+>> +#define for_each_available_child_of_node(parent, child) \
+>> +	while (0)
+>> +
+>>  static inline struct device_node *of_get_child_by_name(
+>>  					const struct device_node *node,
+>>  					const char *name)
+>> -- 
+>> 1.7.9.5
 
-diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index d08d799..2a23b18 100644
---- a/drivers/video/Kconfig
-+++ b/drivers/video/Kconfig
-@@ -33,6 +33,12 @@ config VIDEO_OUTPUT_CONTROL
- 	  This framework adds support for low-level control of the video 
- 	  output switch.
- 
-+config DISPLAY_TIMING
-+       bool
-+
-+config VIDEOMODE
-+       bool
-+
- menuconfig FB
- 	tristate "Support for frame buffer devices"
- 	---help---
-diff --git a/drivers/video/Makefile b/drivers/video/Makefile
-index 23e948e..fc30439 100644
---- a/drivers/video/Makefile
-+++ b/drivers/video/Makefile
-@@ -167,3 +167,5 @@ obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
- 
- #video output switch sysfs driver
- obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
-+obj-$(CONFIG_DISPLAY_TIMING) += display_timing.o
-+obj-$(CONFIG_VIDEOMODE) += videomode.o
-diff --git a/drivers/video/display_timing.c b/drivers/video/display_timing.c
-new file mode 100644
-index 0000000..5e1822c
---- /dev/null
-+++ b/drivers/video/display_timing.c
-@@ -0,0 +1,24 @@
-+/*
-+ * generic display timing functions
-+ *
-+ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
-+ *
-+ * This file is released under the GPLv2
-+ */
-+
-+#include <linux/export.h>
-+#include <linux/slab.h>
-+#include <video/display_timing.h>
-+
-+void display_timings_release(struct display_timings *disp)
-+{
-+	if (disp->timings) {
-+		unsigned int i;
-+
-+		for (i = 0; i < disp->num_timings; i++)
-+			kfree(disp->timings[i]);
-+		kfree(disp->timings);
-+	}
-+	kfree(disp);
-+}
-+EXPORT_SYMBOL_GPL(display_timings_release);
-diff --git a/drivers/video/videomode.c b/drivers/video/videomode.c
-new file mode 100644
-index 0000000..21c47a2
---- /dev/null
-+++ b/drivers/video/videomode.c
-@@ -0,0 +1,39 @@
-+/*
-+ * generic display timing functions
-+ *
-+ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
-+ *
-+ * This file is released under the GPLv2
-+ */
-+
-+#include <linux/errno.h>
-+#include <linux/export.h>
-+#include <video/display_timing.h>
-+#include <video/videomode.h>
-+
-+int videomode_from_timing(const struct display_timings *disp,
-+			  struct videomode *vm, unsigned int index)
-+{
-+	struct display_timing *dt;
-+
-+	dt = display_timings_get(disp, index);
-+	if (!dt)
-+		return -EINVAL;
-+
-+	vm->pixelclock = display_timing_get_value(&dt->pixelclock, TE_TYP);
-+	vm->hactive = display_timing_get_value(&dt->hactive, TE_TYP);
-+	vm->hfront_porch = display_timing_get_value(&dt->hfront_porch, TE_TYP);
-+	vm->hback_porch = display_timing_get_value(&dt->hback_porch, TE_TYP);
-+	vm->hsync_len = display_timing_get_value(&dt->hsync_len, TE_TYP);
-+
-+	vm->vactive = display_timing_get_value(&dt->vactive, TE_TYP);
-+	vm->vfront_porch = display_timing_get_value(&dt->vfront_porch, TE_TYP);
-+	vm->vback_porch = display_timing_get_value(&dt->vback_porch, TE_TYP);
-+	vm->vsync_len = display_timing_get_value(&dt->vsync_len, TE_TYP);
-+
-+	vm->dmt_flags = dt->dmt_flags;
-+	vm->data_flags = dt->data_flags;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(videomode_from_timing);
-diff --git a/include/video/display_timing.h b/include/video/display_timing.h
-new file mode 100644
-index 0000000..71e9a38
---- /dev/null
-+++ b/include/video/display_timing.h
-@@ -0,0 +1,124 @@
-+/*
-+ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
-+ *
-+ * description of display timings
-+ *
-+ * This file is released under the GPLv2
-+ */
-+
-+#ifndef __LINUX_DISPLAY_TIMING_H
-+#define __LINUX_DISPLAY_TIMING_H
-+
-+#include <linux/bitops.h>
-+#include <linux/types.h>
-+
-+/* VESA display monitor timing parameters */
-+#define VESA_DMT_HSYNC_LOW		BIT(0)
-+#define VESA_DMT_HSYNC_HIGH		BIT(1)
-+#define VESA_DMT_VSYNC_LOW		BIT(2)
-+#define VESA_DMT_VSYNC_HIGH		BIT(3)
-+
-+/* display specific flags */
-+#define DISPLAY_FLAGS_DE_LOW		BIT(0)	/* data enable flag */
-+#define DISPLAY_FLAGS_DE_HIGH		BIT(1)
-+#define DISPLAY_FLAGS_PIXDATA_POSEDGE	BIT(2)	/* drive data on pos. edge */
-+#define DISPLAY_FLAGS_PIXDATA_NEGEDGE	BIT(3)	/* drive data on neg. edge */
-+#define DISPLAY_FLAGS_INTERLACED	BIT(4)
-+#define DISPLAY_FLAGS_DOUBLESCAN	BIT(5)
-+
-+/*
-+ * A single signal can be specified via a range of minimal and maximal values
-+ * with a typical value, that lies somewhere inbetween.
-+ */
-+struct timing_entry {
-+	u32 min;
-+	u32 typ;
-+	u32 max;
-+};
-+
-+enum timing_entry_index {
-+	TE_MIN = 0,
-+	TE_TYP = 1,
-+	TE_MAX = 2,
-+};
-+
-+/*
-+ * Single "mode" entry. This describes one set of signal timings a display can
-+ * have in one setting. This struct can later be converted to struct videomode
-+ * (see include/video/videomode.h). As each timing_entry can be defined as a
-+ * range, one struct display_timing may become multiple struct videomodes.
-+ *
-+ * Example: hsync active high, vsync active low
-+ *
-+ *				    Active Video
-+ * Video  ______________________XXXXXXXXXXXXXXXXXXXXXX_____________________
-+ *	  |<- sync ->|<- back ->|<----- active ----->|<- front ->|<- sync..
-+ *	  |	     |	 porch  |		     |	 porch	 |
-+ *
-+ * HSync _|¯¯¯¯¯¯¯¯¯¯|___________________________________________|¯¯¯¯¯¯¯¯¯
-+ *
-+ * VSync ¯|__________|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|_________
-+ */
-+struct display_timing {
-+	struct timing_entry pixelclock;
-+
-+	struct timing_entry hactive;		/* hor. active video */
-+	struct timing_entry hfront_porch;	/* hor. front porch */
-+	struct timing_entry hback_porch;	/* hor. back porch */
-+	struct timing_entry hsync_len;		/* hor. sync len */
-+
-+	struct timing_entry vactive;		/* ver. active video */
-+	struct timing_entry vfront_porch;	/* ver. front porch */
-+	struct timing_entry vback_porch;	/* ver. back porch */
-+	struct timing_entry vsync_len;		/* ver. sync len */
-+
-+	unsigned int dmt_flags;			/* VESA DMT flags */
-+	unsigned int data_flags;		/* video data flags */
-+};
-+
-+/*
-+ * This describes all timing settings a display provides.
-+ * The native_mode is the default setting for this display.
-+ * Drivers that can handle multiple videomodes should work with this struct and
-+ * convert each entry to the desired end result.
-+ */
-+struct display_timings {
-+	unsigned int num_timings;
-+	unsigned int native_mode;
-+
-+	struct display_timing **timings;
-+};
-+
-+/* get value specified by index from struct timing_entry */
-+static inline u32 display_timing_get_value(const struct timing_entry *te,
-+					   enum timing_entry_index index)
-+{
-+	switch (index) {
-+	case TE_MIN:
-+		return te->min;
-+		break;
-+	case TE_TYP:
-+		return te->typ;
-+		break;
-+	case TE_MAX:
-+		return te->max;
-+		break;
-+	default:
-+		return te->typ;
-+	}
-+}
-+
-+/* get one entry from struct display_timings */
-+static inline struct display_timing *display_timings_get(const struct
-+							 display_timings *disp,
-+							 unsigned int index)
-+{
-+	if (disp->num_timings > index)
-+		return disp->timings[index];
-+	else
-+		return NULL;
-+}
-+
-+void display_timings_release(struct display_timings *disp);
-+
-+#endif
-diff --git a/include/video/videomode.h b/include/video/videomode.h
-new file mode 100644
-index 0000000..a421562
---- /dev/null
-+++ b/include/video/videomode.h
-@@ -0,0 +1,48 @@
-+/*
-+ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
-+ *
-+ * generic videomode description
-+ *
-+ * This file is released under the GPLv2
-+ */
-+
-+#ifndef __LINUX_VIDEOMODE_H
-+#define __LINUX_VIDEOMODE_H
-+
-+#include <linux/types.h>
-+#include <video/display_timing.h>
-+
-+/*
-+ * Subsystem independent description of a videomode.
-+ * Can be generated from struct display_timing.
-+ */
-+struct videomode {
-+	unsigned long pixelclock;	/* pixelclock in Hz */
-+
-+	u32 hactive;
-+	u32 hfront_porch;
-+	u32 hback_porch;
-+	u32 hsync_len;
-+
-+	u32 vactive;
-+	u32 vfront_porch;
-+	u32 vback_porch;
-+	u32 vsync_len;
-+
-+	unsigned int dmt_flags;	/* VESA DMT flags */
-+	unsigned int data_flags; /* video data flags */
-+};
-+
-+/**
-+ * videomode_from_timing - convert display timing to videomode
-+ * @disp: structure with all possible timing entries
-+ * @vm: return value
-+ * @index: index into the list of display timings in devicetree
-+ *
-+ * DESCRIPTION:
-+ * This function converts a struct display_timing to a struct videomode.
-+ */
-+int videomode_from_timing(const struct display_timings *disp,
-+			  struct videomode *vm, unsigned int index);
-+
-+#endif
--- 
-1.7.10.4
+Thanks,
+Sylwester
 
