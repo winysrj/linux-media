@@ -1,129 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56855 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751347Ab2LZLch (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.23]:56214 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753170Ab2LKOs2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Dec 2012 06:32:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 1/6] uvcvideo: Set error_idx properly for extended controls API failures
-Date: Wed, 26 Dec 2012 12:33:58 +0100
-Message-ID: <22611337.csYnEZHssR@avalon>
-In-Reply-To: <201212251250.51838.hverkuil@xs4all.nl>
-References: <1348758980-21683-1-git-send-email-laurent.pinchart@ideasonboard.com> <1427386.yhbGQRN2rP@avalon> <201212251250.51838.hverkuil@xs4all.nl>
+	Tue, 11 Dec 2012 09:48:28 -0500
+Message-ID: <50C747B7.20107@gmx.net>
+Date: Tue, 11 Dec 2012 15:48:23 +0100
+From: Andreas Nagel <andreasnagel@gmx.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media@vger.kernel.org
+Subject: How to configure resizer in ISP pipeline?
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hello,
 
-On Tuesday 25 December 2012 12:50:51 Hans Verkuil wrote:
-> On Tue December 25 2012 12:23:00 Laurent Pinchart wrote:
-> > On Tuesday 25 December 2012 12:15:25 Hans Verkuil wrote:
-> > > On Mon December 24 2012 13:27:08 Laurent Pinchart wrote:
-> > > > On Thursday 27 September 2012 17:16:15 Laurent Pinchart wrote:
-> > > > > When one of the requested controls doesn't exist the error_idx field
-> > > > > must reflect that situation. For G_EXT_CTRLS and S_EXT_CTRLS,
-> > > > > error_idx must be set to the control count. For TRY_EXT_CTRLS, it
-> > > > > must be set to the index of the unexisting control.
-> > > > > 
-> > > > > This issue was found by the v4l2-compliance tool.
-> > > > 
-> > > > I'm revisiting this patch as it has been reverted in v3.8-rc1.
-> > > > 
-> > > > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > > > ---
-> > > > > 
-> > > > >  drivers/media/usb/uvc/uvc_ctrl.c |   17 ++++++++++-------
-> > > > >  drivers/media/usb/uvc/uvc_v4l2.c |   19 ++++++++++++-------
-> > > > >  2 files changed, 22 insertions(+), 14 deletions(-)
-> > > > 
-> > > > [snip]
-> > > > 
-> > > > > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> > > > > b/drivers/media/usb/uvc/uvc_v4l2.c index f00db30..e5817b9 100644
-> > > > > --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> > > > > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> > > > > @@ -591,8 +591,10 @@ static long uvc_v4l2_do_ioctl(struct file
-> > > > > *file,
-> > > > 
-> > > > [snip]
-> > > > 
-> > > > > @@ -637,8 +639,9 @@ static long uvc_v4l2_do_ioctl(struct file *file,
-> > > > > unsigned int cmd, void *arg) ret = uvc_ctrl_get(chain, ctrl);
-> > > > >  			if (ret < 0) {
-> > > > >  				uvc_ctrl_rollback(handle);
-> > > > > 
-> > > > > -				ctrls->error_idx = i;
-> > > > > -				return ret;
-> > > > > +				ctrls->error_idx = ret == -ENOENT
-> > > > > +						 ? ctrls->count : i;
-> > > > > +				return ret == -ENOENT ? -EINVAL : ret;
-> > > > >  			}
-> > > > >  		}
-> > > > >  		ctrls->error_idx = 0;
-> > > > > @@ -661,8 +664,10 @@ static long uvc_v4l2_do_ioctl(struct file
-> > > > > *file,
-> > > > > unsigned int cmd, void *arg) ret = uvc_ctrl_set(chain, ctrl);
-> > > > >  			if (ret < 0) {
-> > > > >  				uvc_ctrl_rollback(handle);
-> > > > > 
-> > > > > -				ctrls->error_idx = i;
-> > > > > -				return ret;
-> > > > > +				ctrls->error_idx = (ret == -ENOENT &&
-> > > > > +						    cmd == VIDIOC_S_EXT_CTRLS)
-> > > > > +						 ? ctrls->count : i;
-> > > > > +				return ret == -ENOENT ? -EINVAL : ret;
-> > > > >  			}
-> > > > >  		}
-> > > > 
-> > > > I've reread the V4L2 specification, and the least I can say is that
-> > > > the text is pretty ambiguous. Let's clarify it.
-> > > > 
-> > > > Is there a reason to differentiate between invalid control IDs and
-> > > > other errors as far as error_idx is concerned ? It would be simpler if
-> > > > error_idx was set to the index of the first error for get and try
-> > > > operations, regardless of the error type. What do you think ?
-> > > 
-> > > There is a good reason for doing this: the G/S_EXT_CTRLS ioctls have to
-> > > be as atomic as possible, i.e. it should try hard to prevent leaving the
-> > > hardware in an inconsistent state because not all controls could be set.
-> > > It can never be fully atomic since writing multiple registers over usb
-> > > or i2c can always return errors for one of those writes, but it should
-> > > certainly check for all the obvious errors first that do not require
-> > > actually writing to the hardware, such as whether all the controls in
-> > > the control list actually exist.
-> > > 
-> > > And for such errors error_idx should be set to the number of controls to
-> > > indicate that none of the controls were actually set but that there was
-> > > a problem with the list of controls itself.
-> > 
-> > For S_EXT_CTRLS, sure, but G_EXT_CTRLS doesn't modify the hardware state,
-> > so it could get all controls up to the erroneous one.
-> 
-> I have thought about that but I decided against it. One reason is to have
-> get and set behave the same since both access the hardware. The other
-> reason is that even getting a control value might change the hardware
-> state, for example by resetting some internal hardware counter when a
-> register is read (it's rare but there is hardware like that). Furthermore,
-> reading hardware registers can be slow so why not do the sanity check
-> first?
+using Media Controller API, I can successfully configure a simple ISP 
+pipeline on an OMAP3530 and capture video data. Now I want to include 
+the resizer. So the pipeline would look like this (where MEM would be 
+the devnode corresponding to "resizer output"):
 
-Get can indeed change the device state in rare cases, but the information 
-won't be lost, as the value of all controls before error_idx will be returned.
+Sensor --> CCDC --> Resizer --> MEM
 
-What bothers me with the current G_EXT_CTRLS implementation (beside that it's 
-very slightly more complex for the uvcvideo driver than the one I propose) is 
-that an application will have no way to know for which control G_EXT_CTRLS 
-failed. This is especially annoying during development.
+My "sensor" (TVP5146) already provides YUV data, so I can skip the 
+previewer. I tried setting the input and output pad of the resizer 
+subdevice to incoming resolution (input pad) and desired resolution 
+(output pad). For example: 720x576 --> 352x288. But it didn't work out 
+quite well.
 
-Maybe we could leave this behaviour as driver-specific ?
+Can someone explain how one properly configures the resizer in an ISP 
+pipeline (with Media Controller API) ? I spend some hours researching, 
+but this topic seems to be a well guarded secret...
 
--- 
-Regards,
-
-Laurent Pinchart
-
+Kind regards,
+Andreas
