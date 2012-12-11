@@ -1,51 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:58373 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750859Ab2LPSXa (ORCPT
+Received: from gate2.ipvision.dk ([94.127.49.3]:38350 "EHLO gate2.ipvision.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753487Ab2LKWk0 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 13:23:30 -0500
-Received: by mail-ea0-f174.google.com with SMTP id e13so2061535eaa.19
-        for <linux-media@vger.kernel.org>; Sun, 16 Dec 2012 10:23:29 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 0/5] em28xx: i2c bug fixes and cleanups
-Date: Sun, 16 Dec 2012 19:23:26 +0100
-Message-Id: <1355682211-13604-1-git-send-email-fschaefer.oss@googlemail.com>
+	Tue, 11 Dec 2012 17:40:26 -0500
+From: Benny Amorsen <benny+usenet@amorsen.dk>
+To: Frank =?utf-8?Q?Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: EM2800 and audio via USB ?
+References: <50C638C7.10200@googlemail.com>
+	<CAGoCfiwUkhVBwgykXTAb01gQ-p6ebzoh0JZDge7uPrnhhRv6CQ@mail.gmail.com>
+	<50C79ACF.4010402@googlemail.com>
+Date: Tue, 11 Dec 2012 23:27:59 +0100
+In-Reply-To: <50C79ACF.4010402@googlemail.com> ("Frank =?utf-8?Q?Sch=C3=A4?=
+ =?utf-8?Q?fer=22's?= message of
+	"Tue, 11 Dec 2012 21:42:55 +0100")
+Message-ID: <m36248ql5c.fsf@ursa.amorsen.dk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series contains some I2C bug fixes / cleanups / unifications and 
-improvements for the em28xx driver, which I've made while working on adding 
-support for the em25xx/em276x i2c bus B support and playing with the 
-Terratec Cinergy 200 USB which I've got recently.
+Frank Schäfer <fschaefer.oss@googlemail.com> writes:
 
-Patches 1 and 5 are cleanup/unification patches, patches 2, 3, 4 fix some bugs.
-Patch 3 actually fixes 2 bugs, but separate commits didn't make sense, because 
-more or less the whole function had to be rewritten.
+> Yes, I remeber these days ;)
+> I just wonder why it has a "line-in" input. It seems it is completely
+> useless...
 
-Changelog v2:
-- removed i2c address type/range check from patch 5 as requested by Antti Palosaari
+Just a guess: The line-in is patched through to line-out when the TV
+tuner is not in use. That way you do not have to move cables all the
+time if you have another device you want to use with line-in on your
+soundcard.
 
 
-Frank Schäfer (5):
-  em28xx: clean up the data type mess of the i2c transfer function
-    parameters
-  em28xx: respect the message size constraints for i2c transfers
-  em28xx: fix two severe bugs in function em2800_i2c_recv_bytes()
-  em28xx: fix the i2c adapter functionality flags
-  em28xx: fix+improve+unify i2c error handling, debug messages and code
-    comments
-
- drivers/media/usb/em28xx/em28xx-core.c |    5 +-
- drivers/media/usb/em28xx/em28xx-i2c.c  |  276 +++++++++++++++++++-------------
- drivers/media/usb/em28xx/em28xx.h      |    2 +-
- 3 Dateien geändert, 168 Zeilen hinzugefügt(+), 115 Zeilen entfernt(-)
-
--- 
-1.7.10.4
+/Benny
 
