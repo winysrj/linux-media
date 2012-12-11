@@ -1,76 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:61386 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751016Ab2LIQXP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Dec 2012 11:23:15 -0500
-Received: by mail-ea0-f174.google.com with SMTP id e13so800945eaa.19
-        for <linux-media@vger.kernel.org>; Sun, 09 Dec 2012 08:23:13 -0800 (PST)
-Message-ID: <50C4BAFB.60304@googlemail.com>
-Date: Sun, 09 Dec 2012 17:23:23 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Matthew Gyurgyik <matthew@pyther.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com> <50C48891.2050903@googlemail.com> <50C4A520.6020908@pyther.net> <CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com> <50C4BA20.8060003@googlemail.com>
-In-Reply-To: <50C4BA20.8060003@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:39186 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752050Ab2LKIwC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Dec 2012 03:52:02 -0500
+Received: by mail-wg0-f46.google.com with SMTP id dr13so2316537wgb.1
+        for <linux-media@vger.kernel.org>; Tue, 11 Dec 2012 00:52:01 -0800 (PST)
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH RFC 04/13] OF: make a function pointer argument const
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>, g.liakhovetski@gmx.de,
+	linux-media@vger.kernel.org
+Cc: rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-kernel@vger.kernel.org
+In-Reply-To: <1355168499-5847-5-git-send-email-s.nawrocki@samsung.com>
+References: <1355168499-5847-1-git-send-email-s.nawrocki@samsung.com> <1355168499-5847-5-git-send-email-s.nawrocki@samsung.com>
+Date: Tue, 11 Dec 2012 08:51:48 +0000
+Message-Id: <20121211085148.DB67A3E076D@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 09.12.2012 17:19, schrieb Frank Schäfer:
-> Am 09.12.2012 16:46, schrieb Devin Heitmueller:
->> On Sun, Dec 9, 2012 at 9:50 AM, Matthew Gyurgyik <matthew@pyther.net> wrote:
->>> Just to make sure I'm not misunderstanding, the messages should get logged
->>> to dmesg, correct?
->> I wrote the original IR support for the em2874, but it seems to have
->> changed a bit since I submitted it.  One thing that jumps out at me is
->> if you specify a remote control of the wrong *type* (e.g. the driver
->> is configured for RC5 but the actual remote is configured for NEC),
->> then you're likely to get no events from the device.
->>
->> You may wish to lookup what type of remote RC_MAP_KWORLD_315U is, and
->> try a remote that is of the other protocol type (e.g. if
->> RC_MAP_KWORLD_315U is RC5 then try a remote which is NEC).  Then see
->> if you get events.  If so, then you know you have the correct RC
->> protocol and just need to adjust the RC profile specified.
->>
->> Also, it's possible the remote control is an RC6 remote, which I never
->> got around to adding em2874 driver support for.  Take a look at the
->> windows trace and see what register R50 is being set to.  In
->> particular, bits [3-2] will tell you what RC protocol the Windows
->> driver expects the remote to be.  I'm pretty sure I put the definition
->> for the relevant bits in em28xx-reg.h.
-> According to the USB log, register 0x50 is set to 0x01.
->
-> em28xx-reg.h says:
->
-> /* em2874 IR config register (0x50) */
-> #define EM2874_IR_NEC           0x00
-> #define EM2874_IR_RC5           0x04
-> #define EM2874_IR_RC6_MODE_0    0x08
-> #define EM2874_IR_RC6_MODE_6A   0x0b
->
-> Any idea what 0x01 is ?
->
-> It also seems that em28xx_ir_change_protocol() always sets reg 0x05 to
-> EM2874_IR_RC5...
+On Mon, 10 Dec 2012 20:41:30 +0100, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
+> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> 
+> The "struct device_node *" argument of of_parse_phandle_*() can be const.
 
-Sorry, I was wrong. Of course it sets 0x05 to EM2874_IR_RC5 or
-EM2874_IR_NEC depending on field .xclk in the board struct.
+This is a good time to talk about commit text. Again, the patch looks
+fine, but it helps *a lot* if you give me some details about how you
+constructed the patch and tested it.
 
-Frank
+What architectures did you build? What defconfigs did you use? Did you look
+at all the users, or can you say the users should all be good?
 
->
-> Regards,
-> Frank
->
->> Devin
->>
->> --
->> Devin J. Heitmueller - Kernel Labs
->> http://www.kernellabs.com
+It also always helps to tell my *why* you made a change.
 
+Otherwise you leave all the leg work up to me or another maintainer.
+We've got a lot of work. Anything you can do to make that easier makes
+us less grumpy. :-)
+
+I'll try to apply the patch (I've actually already merged another one
+that does of_parse_phandle, but not of_parse_phandle_with_args, so I'll
+need to resolve the conflict)
+
+g.
+
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>  drivers/of/base.c  |    4 ++--
+>  include/linux/of.h |    6 +++---
+>  2 files changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/of/base.c b/drivers/of/base.c
+> index af3b22a..c180205 100644
+> --- a/drivers/of/base.c
+> +++ b/drivers/of/base.c
+> @@ -894,7 +894,7 @@ EXPORT_SYMBOL_GPL(of_property_count_strings);
+>   * of_node_put() on it when done.
+>   */
+>  struct device_node *
+> -of_parse_phandle(struct device_node *np, const char *phandle_name, int index)
+> +of_parse_phandle(const struct device_node *np, const char *phandle_name, int index)
+>  {
+>  	const __be32 *phandle;
+>  	int size;
+> @@ -939,7 +939,7 @@ EXPORT_SYMBOL(of_parse_phandle);
+>   * To get a device_node of the `node2' node you may call this:
+>   * of_parse_phandle_with_args(node3, "list", "#list-cells", 1, &args);
+>   */
+> -int of_parse_phandle_with_args(struct device_node *np, const char *list_name,
+> +int of_parse_phandle_with_args(const struct device_node *np, const char *list_name,
+>  				const char *cells_name, int index,
+>  				struct of_phandle_args *out_args)
+>  {
+> diff --git a/include/linux/of.h b/include/linux/of.h
+> index 38d4b1a..2fb0dbe 100644
+> --- a/include/linux/of.h
+> +++ b/include/linux/of.h
+> @@ -256,10 +256,10 @@ extern int of_n_size_cells(struct device_node *np);
+>  extern const struct of_device_id *of_match_node(
+>  	const struct of_device_id *matches, const struct device_node *node);
+>  extern int of_modalias_node(struct device_node *node, char *modalias, int len);
+> -extern struct device_node *of_parse_phandle(struct device_node *np,
+> +extern struct device_node *of_parse_phandle(const struct device_node *np,
+>  					    const char *phandle_name,
+>  					    int index);
+> -extern int of_parse_phandle_with_args(struct device_node *np,
+> +extern int of_parse_phandle_with_args(const struct device_node *np,
+>  	const char *list_name, const char *cells_name, int index,
+>  	struct of_phandle_args *out_args);
+>  
+> @@ -412,7 +412,7 @@ static inline int of_property_match_string(struct device_node *np,
+>  	return -ENOSYS;
+>  }
+>  
+> -static inline struct device_node *of_parse_phandle(struct device_node *np,
+> +static inline struct device_node *of_parse_phandle(const struct device_node *np,
+>  						   const char *phandle_name,
+>  						   int index)
+>  {
+> -- 
+> 1.7.9.5
+> 
+
+-- 
+Grant Likely, B.Sc, P.Eng.
+Secret Lab Technologies, Ltd.
