@@ -1,126 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49040 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752065Ab2LENLH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Dec 2012 08:11:07 -0500
-Message-ID: <50BF47CA.5070205@redhat.com>
-Date: Wed, 05 Dec 2012 11:10:34 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:44907 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752585Ab2LKLze (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Dec 2012 06:55:34 -0500
+Received: by mail-lb0-f174.google.com with SMTP id gi11so2780467lbb.19
+        for <linux-media@vger.kernel.org>; Tue, 11 Dec 2012 03:55:32 -0800 (PST)
+Message-ID: <50C71F2E.6090004@gmail.com>
+Date: Tue, 11 Dec 2012 16:55:26 +0500
+From: Saad Bin Javed <sbjaved@gmail.com>
 MIME-Version: 1.0
-To: Federico Vaga <federico.vaga@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH v3 3/4] sta2x11_vip: convert to videobuf2 and control
- framework
-References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com> <8113379.Pqy1l62Utl@number-5> <50BF315C.8090203@redhat.com> <2637992.xolQO8ly5c@harkonnen>
-In-Reply-To: <2637992.xolQO8ly5c@harkonnen>
+To: linux-media@vger.kernel.org
+Subject: Re: Kworld PCI Analog TV Card Lite PVR-7134SE
+References: <50C71D1D.4030709@gmail.com>
+In-Reply-To: <50C71D1D.4030709@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 05-12-2012 10:24, Federico Vaga escreveu:
-> Thank you Mauro for the good explanation
+On 12/11/2012 02:22 AM, Alfredo Jesús Delaiti wrote:
+> Hi
 >
->> Yeah, there are many changes there that justifies adding you at its
->> authorship, and that's ok. Also, anyone saying the size of your patch
->> will recognize your and ST efforts to improve the driver.
->>
->> However, as some parts of the code were preserved, dropping the old
->> authors doesn't sound right (and can even be illegal, in the light
->> of the GPL license). It would be ok, though, if you would be
->> changing it to something like:
->>
->> 	Copyright (c) 2010 by ...
->> or
->> 	Original driver from ...
+> Read:
 >
-> Ok, I understand. I will write something like this.
->   * Copyright (C) 2012       ST Microelectronics
->   *      author: Federico Vaga <federico.vaga@gmail.com>
->   * Copyright (C) 2010       WindRiver Systems, Inc.
->   *      authors: Andreas Kies <andreas.kies@windriver.com>
->   *               Vlad Lungu <vlad.lungu@windriver.com>
-
-Sounds perfect to me.
-
->> So, IMHO, there's not much point on dropping authorship messages.
+> http://www.linuxtv.org/wiki/index.php/Kworld_PCI_Analog_TV_Card_Lite
 >
-> So the MODULE_AUTHOR will be Windriver forever until they drop authorship?
-> Also if in the next future 0 windriver lines will be in the code?
+> Alfredo
 >
-> (general talking, not about this driver)
-> If I do git blame on a driver with MODULE_AUTHOR("Mr. X"); but only the
-> MODULE_AUTHOR line is from Mr X; there is not an automatically system which
-> remove the MODULE_AUTHOR? Ok, probably it was the original author of the code
-> and the comment header with the copyright history gives to Mr X all the
-> honours, but there is nothing from him in the code. It is not better to remove
-> MODULE_AUTHOR or replace it with who wrotes most of the code?
-> I know that this is not the best place to talk about this, just a little
-> curiosity
+> El 10/12/12 15:06, Saad Bin Javed escribió:
+>> Can anybody help setting up this card? I posted details in an earlier
+>> message but got no response. This list is my last hope to get this
+>> thing working.
 
-As you said, the best place to discuss about it is likely at LKML.
-It could make sense to have some policy with regards to MODULE_AUTHOR(),
-stating when it could be modified, preferably reviewed by some experienced
-open source lawyers. I'm not aware of any.
+I've tried following the wiki, but i'm unable to set the correct tuner.
+Please take a look at my card and onboard chips
+(http://tinypic.com/view.php?pic=2lwnmuc&s=6) and the dmesg output.
 
-In any case, I don't think anyone should rely on "git blame" for it.
-The tool that helps to get code authorship is "git log -M", but
-to get the real authorship requires a lot more of just calling it.
+This is after manually specifying card=153 and tuner=61 (sudo modprobe
+saa7134 card=153 tuner=61)
 
-A trivial case where git blame will likely be giving wrong "credits"
-is if a driver has all functions reordered. It may happen that git blame
-will give credits to the one that reordered the functions, and not to
-the original code's author.
+[ 2142.483753] Linux video capture interface: v2.00
+[ 2142.517975] saa7130/34: v4l2 driver version 0, 2, 17 loaded
+[ 2142.518013] saa7134 0000:02:00.0: PCI INT A -> GSI 16 (level, low) ->
+IRQ 16
+[ 2142.518021] saa7134[0]: found at 0000:02:00.0, rev: 1, irq: 16,
+latency: 32, mmio: 0xfe400000
+[ 2142.518030] saa7134[0]: subsystem: 17de:712b, board: Kworld Plus TV
+Analog Lite PCI [card=153,insmod option]
+[ 2142.518050] saa7134[0]: board init: gpio is 80407f
+[ 2142.546076] IR NEC protocol handler initialized
+[ 2142.548285] IR RC5(x) protocol handler initialized
+[ 2142.550044] IR RC6 protocol handler initialized
+[ 2142.552768] IR JVC protocol handler initialized
+[ 2142.554466] IR Sony protocol handler initialized
+[ 2142.562683] Registered IR keymap rc-kworld-plus-tv-analog
+[ 2142.562767] input: saa7134 IR (Kworld Plus TV Anal as
+/devices/pci0000:00/0000:00:1c.0/0000:01:00.0/0000:02:00.0/rc/rc0/input7
+[ 2142.563834] rc0: saa7134 IR (Kworld Plus TV Anal as
+/devices/pci0000:00/0000:00:1c.0/0000:01:00.0/0000:02:00.0/rc/rc0
+[ 2142.564266] IR MCE Keyboard/mouse protocol handler initialized
+[ 2142.587345] lirc_dev: IR Remote Control driver registered, major 250
+[ 2142.587783] IR LIRC bridge handler initialized
+[ 2142.710404] saa7134[0]: i2c eeprom 00: de 17 2b 71 10 28 ff ff ff ff
+ff ff ff ff ff ff
+[ 2142.710416] saa7134[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 2142.710427] saa7134[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 2142.710436] saa7134[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 2142.710446] saa7134[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 2142.710456] saa7134[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 2142.710466] saa7134[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 2142.710476] saa7134[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 2142.710485] saa7134[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 2142.710495] saa7134[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 2142.710505] saa7134[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 2142.710515] saa7134[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 2142.710525] saa7134[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 2142.710534] saa7134[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 2142.710544] saa7134[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 2142.710554] saa7134[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff
+[ 2142.725718] i2c-core: driver [tuner] using legacy suspend method
+[ 2142.725721] i2c-core: driver [tuner] using legacy resume method
+[ 2142.754313] All bytes are equal. It is not a TEA5767
+[ 2142.754323] tuner 14-0060: Tuner -1 found with type(s) Radio TV.
+[ 2142.756682] tea5767 14-0060: type set to Philips TEA5767HN FM Radio
+[ 2142.786402] saa7134[0]: registered device video0 [v4l2]
+[ 2142.787009] saa7134[0]: registered device vbi0
+[ 2142.787585] saa7134[0]: registered device radio0
+[ 2142.810813] saa7134 ALSA driver for DMA sound loaded
+[ 2142.810839] saa7134[0]/alsa: saa7134[0] at 0xfe400000 irq 16
+registered as card -2
 
-There are more subtle cases, though. For example, please assume that
-the original driver has to call a certain function to do some needed
-work to initialize the device:
+Saad
 
-	call_function_foo();
 
-And a reviewer latter add a logic to deal with errors, like:
 
-	ret = call_function_foo();
-	if (ret)
-		return ret;
 
-The reviewer wrote 2 additional lines, and modified 1 original line.
-Yet, his contribution didn't make the code to work. The one that did it
-was the single-line patch that added call_function_foo(). So, in this
-case, a single line change was more significant for the driver than a
-3 line addition[1]. Also, again, git blame will give the "credits"
-for the line that calls call_function_foo() to the wrong guy.
-
-Btw, this is why it is called "git blame", and not "git authorship":
-it is a tool to identify who was the last one that modified the code.
-Its main usage is to identify who might have introduced a bug on the
-code.
-
-Let's assume that call_function_foo() could be returning some non-error
-positive values, under certain circumstances. In that case, the above
-code would actually be introducing a bug by using:
-	if (ret)
-instead of
-	if (ret < 0)
-
-So, the 3 line patch is not only be less relevant for the driver to
-work than the original author's code, but it is actually wrong
-and introduced a serious driver regression, preventing it to work.
-Git blame was made to address such cases: once a bug got bisected, it
-helps to get the changelog that made the change, pointing to who made
-the changes and why. So, a proper fix for the bug can be better
-prepared, to not only fix the bug, but to also address the issue
-pointed by the blamed patchset.
-
-Regards,
-Mauro
-
-[1] Please, don't get be wrong on that: we do want patches adding
-proper error handling. They are important to improve the driver's
-reliability.
