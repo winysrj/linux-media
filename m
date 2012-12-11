@@ -1,248 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from racoon.tvdr.de ([188.40.50.18]:55840 "EHLO racoon.tvdr.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752998Ab2L2Rt3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Dec 2012 12:49:29 -0500
-Received: from dolphin.tvdr.de (dolphin.tvdr.de [192.168.100.2])
-	by racoon.tvdr.de (8.14.5/8.14.5) with ESMTP id qBTHnRtq010245
-	for <linux-media@vger.kernel.org>; Sat, 29 Dec 2012 18:49:27 +0100
-Received: from [192.168.100.11] (falcon.tvdr.de [192.168.100.11])
-	by dolphin.tvdr.de (8.14.4/8.14.4) with ESMTP id qBTHnLux012708
-	for <linux-media@vger.kernel.org>; Sat, 29 Dec 2012 18:49:22 +0100
-Message-ID: <50DF2D21.7010707@tvdr.de>
-Date: Sat, 29 Dec 2012 18:49:21 +0100
-From: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47778 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754019Ab2LKVEx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Dec 2012 16:04:53 -0500
+Date: Tue, 11 Dec 2012 23:04:49 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Cc: linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH RFC 1/2] V4L: Add auto focus selection targets
+Message-ID: <20121211210449.GB3747@valkosipuli.retiisi.org.uk>
+References: <1355147019-25375-1-git-send-email-a.hajda@samsung.com>
+ <1355147019-25375-2-git-send-email-a.hajda@samsung.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-media] Re: [PATCH RFCv3] dvb: Add DVBv5 properties for
- quality parameters
-References: <1356739006-22111-1-git-send-email-mchehab@redhat.com> <CAGoCfix=2-pXmTE149XvwT+f7j1F29L3Q-dse0y_Rc-3LKucsQ@mail.gmail.com>
-In-Reply-To: <CAGoCfix=2-pXmTE149XvwT+f7j1F29L3Q-dse0y_Rc-3LKucsQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1355147019-25375-2-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 29.12.2012 17:36, Devin Heitmueller wrote:
-> On Fri, Dec 28, 2012 at 6:56 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> The DVBv3 quality parameters are limited on several ways:
->>          - Doesn't provide any way to indicate the used measure;
->>          - Userspace need to guess how to calculate the measure;
->>          - Only a limited set of stats are supported;
->>          - Doesn't provide QoS measure for the OFDM TPS/TMCC
->>            carriers, used to detect the network parameters for
->>            DVB-T/ISDB-T;
->>          - Can't be called in a way to require them to be filled
->>            all at once (atomic reads from the hardware), with may
->>            cause troubles on interpreting them on userspace;
->>          - On some OFDM delivery systems, the carriers can be
->>            independently modulated, having different properties.
->>            Currently, there's no way to report per-layer stats;
->> This RFC adds the header definitions meant to solve that issues.
->> After discussed, I'll write a patch for the DocBook and add support
->> for it on some demods. Support for dvbv5-zap and dvbv5-scan tools
->> will also have support for those features.
->
-> Hi Mauro,
->
-> As I've told you multiple times in the past, where this proposal falls
-> apart is in its complete lack of specificity for real world scenarios.
->
-> You have a units field which is "decibels", but in what unit?  1 dB /
-> unit?  0.1 db / unit?  1/255 db / unit?  This particular issue is why
-> the current snr field varies across even demods where we have the
-> datasheets.  Many demods reported in 0.1 dB increments, while others
-> reported in 1/255 dB increments.
->
-> What happens when you ask for the SNR field when there is so signal
-> lock (on most demods the SNR registers return garbage in this case)?
-> What is the return value to userland?  What happens when the data is
-> unavailable for some other reason?  What happens when you have group
-> of statistics being asked for in a single call and *one* of them
-> cannot be provided for some reason (in which case you cannot rely on a
-> simple errno value since it doesn't apply to the entire call)?
->
-> You need to take a step back and think about this from an application
-> implementors standpoint.  Most app developers for the existing apps
-> look to show two data points:  a signal indicator (0-100%), and some
-> form of SNR (usually in dB, plotted on a scale where something like 40
-> dB=100% [of course this max varies by modulation type]).  What would I
-> need to do with the data you've provided to show that info?  Do I
-> really need to be a background in signal theory and understand the
-> difference between SNR and CNR in order to tell the user how good his
-> signal is?
->
-> Since as an app developer I typically only have one or two tuners, how
-> the hell am I supposed to write a piece of code that shows those two
-> pieces of information given the huge number of different combinations
-> of data types that demods could return given the proposed API?
->
-> We have similar issues for UNC/BER values.  Is the value returned the
-> number of errors since the last time the application asked?  Is it the
-> number of errors in the last two seconds?  Is it the number of errors
-> since I reached signal lock?  Does asking for the value clear out the
-> counter?  How do we handle the case where I asked for the data for the
-> first time ten minutes after I reached signal lock?  Are drivers
-> internally supposed to be polling the register and updating the
-> counters even when the application doesn't ask for the data (to handle
-> cases where the demod's registers only have an error count for the
-> last second's worth of data)?
->
-> And where the examples that show "typical values" for the different
-> modulation types?  For example, I'm no expert in DVB-C but I'm trying
-> to write an app which can be used by those users.  What range of
-> values will the API typically return for that modulation type?  What
-> values are "good" values, which represent "excellent" signal
-> conditions, and what values suggest that the signal will probably be
-> failing?
->
-> What happens when a driver doesn't support a particular statistic?
-> Right now some drivers return -EINVAL, others just set the field to
-> zero or 0x1fff (in which case the user is mislead to believe that
-> there is no signal lock *all* the time).
->
-> EXAMPLES EXAMPLES EXAMPLES.  This is the whole reason that the API
-> behaves inconsistently today - somebody who did one of the early
-> demods returned in 1/255 dB format, and then some other developer who
-> didn't have the first piece of hardware wrote a driver and because
-> he/she didn't *know* what the field was supposed to contain (and
-> couldn't try it his/herself), that developer wrote a driver which
-> returned in 0.1 dB format.
->
-> This needs to be defined *in the spec*, or else we'll end up with
-> developers (both app developers and kernel develoeprs implementing new
-> demods) guessing how the API should behave based on whatever hardware
-> they have, which is how we got in this mess in the first place.
->
-> In short, you need to describe typical usage scenarios in terms of
-> what values the API should be returning for different modulation
-> types, and you need to describe in detail how the "edge cases" are
-> handled such as what happens when there is only a partial signal lock
-> and only some stats will be valid at that point in time.
->
-> The approach you've taken is probably a reasonable framework, but in
-> reality the problems you are trying to solve are the wrong ones.  The
-> *real* problem isn't that we don't have the ability to show some
-> obscure statistic for transport layers that nobody actually cares
-> about.  The real problem is that even for the simplest cases we have
-> today there is a complete lack of uniformity across demodulators.  If
-> we did nothing else but fix the drivers so that the existing calls
-> return the data in a normalized way, we would solve 99% of whatever
-> everybody has been complaining about for years.
->
-> That said, sure let's build a whole new API which deals with the new
-> functionality you've described - but let's make sure that we don't
-> repeat the same mistakes and end up with inconsistent data even for
-> the three or four stats that typical application developers really
-> care about.
+Hi Andrzej,
 
-I wholeheartedly agree!
+Many thanks for the patch!
 
-With the current driver API, VDR implements a GetSignalStrength() function
-that basically looks like this:
+On Mon, Dec 10, 2012 at 02:43:38PM +0100, Andrzej Hajda wrote:
+> From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> 
+> The camera automatic focus algorithms may require setting up
+> a spot or rectangle coordinates.
+> 
+> The automatic focus selection targets are introduced in order
+> to allow applications to query and set such coordinates. Those
+> selections are intended to be used together with the automatic
+> focus controls available in the camera control class.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  Documentation/DocBook/media/v4l/selection-api.xml  |   32 ++++++++++++++++-
+>  .../DocBook/media/v4l/selections-common.xml        |   37 ++++++++++++++++++++
+>  .../media/v4l/vidioc-subdev-g-selection.xml        |    4 +--
+>  include/uapi/linux/v4l2-common.h                   |    5 +++
+>  4 files changed, 75 insertions(+), 3 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/selection-api.xml b/Documentation/DocBook/media/v4l/selection-api.xml
+> index 4c238ce..8caf67b 100644
+> --- a/Documentation/DocBook/media/v4l/selection-api.xml
+> +++ b/Documentation/DocBook/media/v4l/selection-api.xml
+> @@ -1,6 +1,6 @@
+>  <section id="selection-api">
+>  
+> -  <title>Experimental API for cropping, composing and scaling</title>
+> +  <title>Experimental selections API</title>
 
+Hmm. I wonder if it'd be enough to call this just "Selection API". There's a
+note just below telling it's experimental.
 
-int cDvbTuner::GetSignalStrength(void) const
-{
-   uint16_t Signal;
-   ioctl(fd_frontend, FE_READ_SIGNAL_STRENGTH, &Signal);
-   uint16_t MaxSignal = 0xFFFF; // Let's assume the default is using the entire range.
-   // Use the subsystemId to identify individual devices in case they need
-   // special treatment to map their Signal value into the range 0...0xFFFF.
-   switch (subsystemId) {
-     case 0x13C21019: MaxSignal = 670; break; // TT-budget S2-3200 (DVB-S/DVB-S2)
-     }
-   int s = int(Signal) * 100 / MaxSignal;
-   if (s > 100)
-      s = 100;
-   return s;
-}
+>        <note>
+>  	<title>Experimental</title>
+> @@ -9,6 +9,10 @@
+>  interface and may change in the future.</para>
+>        </note>
+>  
+> + <section>
+> +
+> + <title>Image cropping, composing and scaling</title>
+> +
+>    <section>
+>      <title>Introduction</title>
+>  
+> @@ -321,5 +325,31 @@ V4L2_BUF_TYPE_VIDEO_OUTPUT </constant> for other devices</para>
+>        </example>
+>  
+>     </section>
+> + </section>
+> +
+> + <section>
+> +     <title>Automatic focus regions of interest</title>
+> +
+> +<para>The camera automatic focus algorithms may require configuration of
+> +regions of interest in form of rectangle or spot coordinates. The automatic
+> +focus selection targets allow applications to query and set such coordinates.
+> +Those selections are intended to be used together with the
+> +<constant>V4L2_CID_AUTO_FOCUS_AREA</constant> <link linkend="camera-controls">
+> +camera class</link> control. The <constant>V4L2_SEL_TGT_AUTO_FOCUS</constant>
+> +target is used for querying or setting actual spot or rectangle coordinates,
+> +while <constant>V4L2_SEL_TGT_AUTO_FOCUS_BOUNDS</constant> target determines
+> +bounds for a single spot or rectangle.
+> +These selections are only effective when the <constant>V4L2_CID_AUTO_FOCUS_AREA
+> +</constant>control is set to
+> +<constant>V4L2_AUTO_FOCUS_AREA_RECTANGLE</constant>. The new coordinates shall
+> +be accepted and applied to hardware when the focus area control value is
+> +changed and also during a &VIDIOC-S-SELECTION; ioctl call, only when the focus
+> +area control is already set to required value.</para>
+> +
+> +<para>When the <structfield>width</structfield> and
+> +<structfield>height</structfield> of the selection rectangle are set to 0 the
+> +selection determines spot coordinates, rather than a rectangle.</para>
+> +
+> + </section>
+>  
+>  </section>
+> diff --git a/Documentation/DocBook/media/v4l/selections-common.xml b/Documentation/DocBook/media/v4l/selections-common.xml
+> index 7502f78..9f0c477 100644
+> --- a/Documentation/DocBook/media/v4l/selections-common.xml
+> +++ b/Documentation/DocBook/media/v4l/selections-common.xml
+> @@ -93,6 +93,22 @@
+>  	    <entry>Yes</entry>
+>  	    <entry>No</entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_SEL_TGT_AUTO_FOCUS</constant></entry>
+> +	    <entry>0x1001</entry>
+> +	    <entry>Actual automatic focus rectangle.</entry>
+> +	    <entry>Yes</entry>
+> +	    <entry>Yes</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_SEL_TGT_AUTO_FOCUS_BOUNDS</constant></entry>
+> +	    <entry>0x1002</entry>
+> +	    <entry>Bounds of the automatic focus region of interest. All valid
+> +	    automatic focus rectangles fit inside the automatic focus bounds
+> +	    rectangle.</entry>
+> +	    <entry>Yes</entry>
+> +	    <entry>Yes</entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> @@ -158,7 +174,28 @@
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> +  </section>
+> +
+> +  <section>
+> +      <title>Automatic focus regions of interest</title>
+> +
+> +      <para>The camera automatic focus algorithms may require configuration
+> +      of a region or multiple regions of interest in form of rectangle or spot
+> +      coordinates.</para>
+> +
+> +      <para>A single rectangle of interest is represented in &v4l2-rect;
+> +      by the coordinates of the top left corner and the rectangle size. Both
+> +      the coordinates and sizes are expressed in pixels. When the <structfield>
+> +      width</structfield> and <structfield>height</structfield> fields of
+> +      &v4l2-rect; are set to 0 the selection determines spot coordinates,
+> +      rather than a rectangle.</para>
+>  
+> +      <para>Auto focus rectangles are reset to their default values when the
+> +      output image format is modified. Drivers should use the output image size
+> +      as the auto focus rectangle default value, but hardware requirements may
+> +      prevent this.
+> +      </para>
+> +      <para>The auto focus selections on input pads are not defined.</para>
+>    </section>
+>  
+>  </section>
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+> index 1ba9e99..95e759f 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+> @@ -57,8 +57,8 @@
+>  
+>      <para>The selections are used to configure various image
+>      processing functionality performed by the subdevs which affect the
+> -    image size. This currently includes cropping, scaling and
+> -    composition.</para>
+> +    image size. This currently includes cropping, scaling, composition
+> +    and automatic focus regions of interest.</para>
 
+AF window does not affect image size. :-)
 
-And the GetSignalQuality() function is even more elaborate:
+Also, on subdevs one needs to ask the question which other rectangle the AF
+window is related to. On video nodes it's obvious that it's the captured
+format (or is it?), but on subdevs I could imagine it might be related to
+almost any rectangle, depending on hardware.
 
+One option would be to add a new field to tell the parent window.
 
-int cDvbTuner::GetSignalQuality(void) const
-{
-   fe_status_t Status;
-   if (GetFrontendStatus(Status)) {
-      // Actually one would expect these checks to be done from FE_HAS_SIGNAL to FE_HAS_LOCK, but some drivers (like the stb0899) are broken, so FE_HAS_LOCK is the only one that (hopefully) is generally reliable...
-      if ((Status & FE_HAS_LOCK) == 0) {
-         if ((Status & FE_HAS_SIGNAL) == 0)
-            return 0;
-         if ((Status & FE_HAS_CARRIER) == 0)
-            return 1;
-         if ((Status & FE_HAS_VITERBI) == 0)
-            return 2;
-         if ((Status & FE_HAS_SYNC) == 0)
-            return 3;
-         return 4;
-         }
-      uint16_t Snr;
-      while (1) {
-            if (ioctl(fd_frontend, FE_READ_SNR, &Snr) != -1)
-               break;
-            if (errno == EOPNOTSUPP) {
-               Snr = 0xFFFF;
-               break;
-               }
-            if (errno != EINTR)
-               return -1;
-            }
-      uint32_t Ber;
-      while (1) {
-            if (ioctl(fd_frontend, FE_READ_BER, &Ber) != -1)
-               break;
-            if (errno == EOPNOTSUPP) {
-               Ber = 0;
-               break;
-               }
-            if (errno != EINTR)
-               return -1;
-            }
-      uint32_t Unc;
-      while (1) {
-            if (ioctl(fd_frontend, FE_READ_UNCORRECTED_BLOCKS, &Unc) != -1)
-               break;
-            if (errno == EOPNOTSUPP) {
-               Unc = 0;
-               break;
-               }
-            if (errno != EINTR)
-               return -1;
-            }
-      uint16_t MaxSnr = 0xFFFF; // Let's assume the default is using the entire range.
-      // Use the subsystemId to identify individual devices in case they need
-      // special treatment to map their Snr value into the range 0...0xFFFF.
-      switch (subsystemId) {
-        case 0x13C21019: MaxSnr = 200; break; // TT-budget S2-3200 (DVB-S/DVB-S2)
-        }
-      int a = int(Snr) * 100 / MaxSnr;
-      int b = 100 - (Unc * 10 + (Ber / 256) * 5);
-      if (b < 0)
-         b = 0;
-      int q = LOCK_THRESHOLD + a * b * (100 - LOCK_THRESHOLD) / 100 / 100;
-      if (q > 100)
-         q = 100;
-      return q;
-      }
-   return -1;
-}
+What about multiple AF windows of interest? That's not unheard of either. I
+see a forthcoming need for enumerating targets (and sub-targets such as
+window ids) here.
 
+>      <para>The selection API replaces <link
+>      linkend="vidioc-subdev-g-crop">the old subdev crop API</link>. All
+> diff --git a/include/uapi/linux/v4l2-common.h b/include/uapi/linux/v4l2-common.h
+> index 4f0667e..0372ccb 100644
+> --- a/include/uapi/linux/v4l2-common.h
+> +++ b/include/uapi/linux/v4l2-common.h
+> @@ -50,6 +50,11 @@
+>  /* Current composing area plus all padding pixels */
+>  #define V4L2_SEL_TGT_COMPOSE_PADDED	0x0103
+>  
+> +/* Auto focus region of interest */
+> +#define V4L2_SEL_TGT_AUTO_FOCUS		0x0200
+> +/* Auto focus region bounds */
+> +#define V4L2_SEL_TGT_AUTO_FOCUS_BOUNDS	0x0201
 
-As you can see, there is some code for known demods to correctly set their maximum values.
-However, I don't have all available demods so I can only test what I have at hand.
-And AFAIK this doesn't work with USB devices, because there is no subsystemId for those
-(so I'm told).
-What I would really wish for is that FE_READ_SIGNAL_STRENGTH (which is already there)
-would return a *normalized* value in some defined range (0..100 or 0x0000..0xFFFF),
-and that some new FE_READ_SIGNAL_QUALITY would do the same for the signal quality,
-internally using whatever parameters are useful for the given demod.
-This doesn't have to become a bloated API that is probably only of theoretical
-value in the first place. It's these two simple, straighforward functions that are
-of practical value. Please make it so the we can finally have a defined interface
-for this!
+I see different numbers here and in the documentation. I'd favour numbers in
+the documentation --- these targets are very different from what's defined
+up to now.
 
-Klaus
+> +
+>  /* Backward compatibility target definitions --- to be removed. */
+>  #define V4L2_SEL_TGT_CROP_ACTIVE	V4L2_SEL_TGT_CROP
+>  #define V4L2_SEL_TGT_COMPOSE_ACTIVE	V4L2_SEL_TGT_COMPOSE
 
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
