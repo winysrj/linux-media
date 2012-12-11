@@ -1,85 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:54007 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754000Ab2LCKSN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2012 05:18:13 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MEG009OM9YLGE40@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 03 Dec 2012 10:20:58 +0000 (GMT)
-Received: from [106.116.147.108] by eusync1.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MEG00LAJ9YBPC60@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 03 Dec 2012 10:18:11 +0000 (GMT)
-Message-id: <50BC7C61.60207@samsung.com>
-Date: Mon, 03 Dec 2012 11:18:09 +0100
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	patches@linaro.org
-Subject: Re: [PATCH 0/9] [media] s5p-tv: Checkpatch Fixes and cleanup
-References: <1353905348-15475-1-git-send-email-sachin.kamat@linaro.org>
- <50B54C70.8030607@gmail.com>
- <CAK9yfHzwcS97KVsFUKOUC-U33U_JOyTQ0FA2JmNAsXyTwk-oeg@mail.gmail.com>
- <CAK9yfHwue=Gb8O=mUpOVMR0PO6Ve+e=j_JNCRHP3ORh=mebh3w@mail.gmail.com>
- <CAK9yfHxEiz_W+QnhsdkyAxazCK4-0fkgOywPN=kiVX7-aTV5zg@mail.gmail.com>
-In-reply-to: <CAK9yfHxEiz_W+QnhsdkyAxazCK4-0fkgOywPN=kiVX7-aTV5zg@mail.gmail.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1374 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752108Ab2LKHXJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Dec 2012 02:23:09 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Cyril Roelandt <tipecaml@gmail.com>
+Subject: Re: [PATCH 1/1] media: saa7146: don't use mutex_lock_interruptible() in device_release().
+Date: Tue, 11 Dec 2012 08:22:19 +0100
+Cc: linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	michael@mihu.de, mchehab@redhat.com, linux-media@vger.kernel.org
+References: <1355195128-10209-1-git-send-email-tipecaml@gmail.com> <1355195128-10209-2-git-send-email-tipecaml@gmail.com>
+In-Reply-To: <1355195128-10209-2-git-send-email-tipecaml@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201212110822.19555.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/03/2012 05:28 AM, Sachin Kamat wrote:
-> On 28 November 2012 11:33, Sachin Kamat <sachin.kamat@linaro.org> wrote:
-> 
->>>> How about testing it on Origen board ?
->>>
->>> I wanted to but could not due to hardware setup problem.
->>> I will see if I can get it up today (I am off for the rest of the week).
->>
->> Tested this series with test application on Origen. Works fine.
->>
->>>
->>>>
->>>> Tomasz, are you OK with this patch series ?
+On Tue December 11 2012 04:05:28 Cyril Roelandt wrote:
+> Use uninterruptible mutex_lock in the release() file op to make sure all
+> resources are properly freed when a process is being terminated. Returning
+> -ERESTARTSYS has no effect for a terminating process and this may cause driver
+> resources not to be released.
 
-Hi Sachin Kamat,
-I am OK with patches from "s5p-tv: Add missing braces around sizeof in ..." family.
-You can add my Acked-by to them.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-The devm_clk patches should be postponed until s5p-tv gets integrated with
-clk_prepare/unprepare stuff.
+Thanks!
 
-Regards,
-Tomasz Stanislawski
+	Hans
 
-
+> This was found using the following semantic patch (http://coccinelle.lip6.fr/):
 > 
-> Hi Tomasz,
+> <spml>
+> @r@
+> identifier fops;
+> identifier release_func;
+> @@
+> static const struct v4l2_file_operations fops = {
+> .release = release_func
+> };
 > 
-> Any comments on this series?
+> @depends on r@
+> identifier r.release_func;
+> expression E;
+> @@
+> static int release_func(...)
+> {
+> ...
+> - if (mutex_lock_interruptible(E)) return -ERESTARTSYS;
+> + mutex_lock(E);
+> ...
+> }
+> </spml>
 > 
-> Regards,
-> Sachin
+> Signed-off-by: Cyril Roelandt <tipecaml@gmail.com>
+> ---
+>  drivers/media/common/saa7146/saa7146_fops.c |    3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
 > 
+> diff --git a/drivers/media/common/saa7146/saa7146_fops.c b/drivers/media/common/saa7146/saa7146_fops.c
+> index b3890bd..0afe98d 100644
+> --- a/drivers/media/common/saa7146/saa7146_fops.c
+> +++ b/drivers/media/common/saa7146/saa7146_fops.c
+> @@ -265,8 +265,7 @@ static int fops_release(struct file *file)
+>  
+>  	DEB_EE("file:%p\n", file);
+>  
+> -	if (mutex_lock_interruptible(vdev->lock))
+> -		return -ERESTARTSYS;
+> +	mutex_lock(vdev->lock);
+>  
+>  	if (vdev->vfl_type == VFL_TYPE_VBI) {
+>  		if (dev->ext_vv_data->capabilities & V4L2_CAP_VBI_CAPTURE)
 > 
->>>>
->>>>
->>>>> Sachin Kamat (9):
->>>>>    [media] s5p-tv: Add missing braces around sizeof in sdo_drv.c
->>>>>    [media] s5p-tv: Add missing braces around sizeof in mixer_video.c
->>>>>    [media] s5p-tv: Add missing braces around sizeof in mixer_reg.c
->>>>>    [media] s5p-tv: Add missing braces around sizeof in mixer_drv.c
->>>>>    [media] s5p-tv: Add missing braces around sizeof in hdmiphy_drv.c
->>>>>    [media] s5p-tv: Add missing braces around sizeof in hdmi_drv.c
->>>>>    [media] s5p-tv: Use devm_clk_get APIs in sdo_drv.c
->>>>>    [media] s5p-tv: Use devm_* APIs in mixer_drv.c
->>>>>    [media] s5p-tv: Use devm_clk_get APIs in hdmi_drv
->>>>>
-> 
-> 
-> 
-
