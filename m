@@ -1,107 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60211 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752972Ab2L2Ucw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Dec 2012 15:32:52 -0500
-Date: Sat, 29 Dec 2012 18:32:24 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: ABI breakage due to "Unsupported formats in TRY_FMT/S_FMT"
- recommendation
-Message-ID: <20121229183224.349c9cf3@redhat.com>
-In-Reply-To: <CAGoCfizjL=CozEwxPhvbHwBCHjYGS8VzNx1ewNHh2ebVzhVSVg@mail.gmail.com>
-References: <CAGoCfiwzFFZ+hLOKT-5cHTJOiY8ZsRVXmDx+W7x+7uMXMKWk5g@mail.gmail.com>
-	<20121228222744.6b567a9b@redhat.com>
-	<201212291253.45189.hverkuil@xs4all.nl>
-	<20121229122334.00ea0b8a@redhat.com>
-	<CAGoCfizjL=CozEwxPhvbHwBCHjYGS8VzNx1ewNHh2ebVzhVSVg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-oa0-f46.google.com ([209.85.219.46]:54350 "EHLO
+	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751421Ab2LKJdP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Dec 2012 04:33:15 -0500
+MIME-Version: 1.0
+In-Reply-To: <201212110956.43081.hverkuil@xs4all.nl>
+References: <1354708169-1139-1-git-send-email-prabhakar.csengg@gmail.com>
+ <CA+V-a8t+KxCYunkrT715zQks=5HOrFk2PSM2Ss_kTj4iXg=PJg@mail.gmail.com>
+ <20121206095431.GA2887@valkosipuli.retiisi.org.uk> <201212110956.43081.hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 11 Dec 2012 15:02:53 +0530
+Message-ID: <CA+V-a8uj_=ZEMHCmJWMy8_2mYXddCiKjTd+q-SgjjWjddD35SA@mail.gmail.com>
+Subject: Re: [PATCH RFC v2] media: v4l2-ctrl: Add gain controls
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	LDOC <linux-doc@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Chris MacGregor <chris@cybermato.com>,
+	Rob Landley <rob@landley.net>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 29 Dec 2012 14:52:14 -0500
-Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+Hi Hans,
 
-> On Sat, Dec 29, 2012 at 9:23 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
-> > On a tvtime compiled without libv4l, the cx18 driver will fail with the
-> > current logic, as it doesn't return an error when format doesn't
-> > match. So, tvtime will fail anyway with 50% of the TV drivers that don't
-> > support YUYV directly. It will also fail with most cameras, as they're
-> > generally based on proprietary/bayer formats and/or may not have the
-> > resolutions that tvtime requires.
-> >
-> > That's said, libv4l does format conversion. So, if the logic on libv4l
-> > is working properly, and as tvtime does upport libv4l upstream,
-> > no real bug should be seen with tvtime, even if the device doesn't
-> > support neither UYVY or YUYV.
-> 
-> Tvtime doesn't use libv4l (and never has), unless you added support
-> very recently and it's not in the linuxtv.org tree. 
+On Tue, Dec 11, 2012 at 2:26 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Thu 6 December 2012 10:54:32 Sakari Ailus wrote:
+>> Hi Prabhakar and Hans,
+>>
+>> On Thu, Dec 06, 2012 at 10:24:18AM +0530, Prabhakar Lad wrote:
+>> > Hi Hans,
+>> >
+>> > On Wed, Dec 5, 2012 at 5:38 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> > > (resend without HTML formatting)
+>> > >
+>> > > On Wed 5 December 2012 12:49:29 Prabhakar Lad wrote:
+>> > >> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> > >>
+>> > >> add support for per color component digital/analog gain controls
+>> > >> and also their corresponding offset.
+>> > >
+>> > > Some obvious questions below...
+>> > >
+>> > >>
+>> > >> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> > >> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> > >> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> > >> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+>> > >> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> > >> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> > >> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> > >> Cc: Hans de Goede <hdegoede@redhat.com>
+>> > >> Cc: Chris MacGregor <chris@cybermato.com>
+>> > >> Cc: Rob Landley <rob@landley.net>
+>> > >> Cc: Jeongtae Park <jtp.park@samsung.com>
+>> > >> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+>> > >> ---
+>> > >>  Changes for v2:
+>> > >>  1: Fixed review comments pointed by Laurent.
+>> > >>  2: Rebased on latest tree.
+>> > >>
+>> > >>  Documentation/DocBook/media/v4l/controls.xml |   54 ++++++++++++++++++++++++++
+>> > >>  drivers/media/v4l2-core/v4l2-ctrls.c         |   11 +++++
+>> > >>  include/uapi/linux/v4l2-controls.h           |   11 +++++
+>> > >>  3 files changed, 76 insertions(+), 0 deletions(-)
+>> > >>
+>> > >> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+>> > >> index 7fe5be1..847a9bb 100644
+>> > >> --- a/Documentation/DocBook/media/v4l/controls.xml
+>> > >> +++ b/Documentation/DocBook/media/v4l/controls.xml
+>> > >> @@ -4543,6 +4543,60 @@ interface and may change in the future.</para>
+>> > >>           specific test patterns can be used to test if a device is working
+>> > >>           properly.</entry>
+>> > >>         </row>
+>> > >> +       <row>
+>> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_RED</constant></entry>
+>> > >> +         <entry>integer</entry>
+>> > >> +       </row>
+>> > >> +       <row>
+>> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN_RED</constant></entry>
+>> > >> +         <entry>integer</entry>
+>> > >> +       </row>
+>> > >> +       <row>
+>> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN_BLUE</constant></entry>
+>> > >> +         <entry>integer</entry>
+>> > >> +       </row>
+>> > >> +       <row>
+>> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_BLUE</constant></entry>
+>> > >> +         <entry>integer</entry>
+>> > >> +       </row>
+>> > >> +       <row>
+>> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN</constant></entry>
+>> > >> +         <entry>integer</entry>
+>> > >> +       </row>
+>> > >> +       <row>
+>> > >> +         <entry spanname="descr"> Some capture/sensor devices have
+>> > >> +         the capability to set per color component digital/analog gain values.</entry>
+>> > >> +       </row>
+>> > >> +       <row>
+>> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_OFFSET</constant></entry>
+>> > >> +         <entry>integer</entry>
+>> > >> +       </row>
+>> > >> +       <row>
+>> > >> +         <entry spanname="id"><constant>V4L2_CID_BLUE_OFFSET</constant></entry>
+>> > >> +         <entry>integer</entry>
+>> > >> +       </row>
+>> > >> +       <row>
+>> > >> +         <entry spanname="id"><constant>V4L2_CID_RED_OFFSET</constant></entry>
+>> > >> +         <entry>integer</entry>
+>> > >> +       </row>
+>> > >> +       <row>
+>> > >> +         <entry spanname="id"><constant>V4L2_CID_GREEN_OFFSET</constant></entry>
+>> > >> +         <entry>integer</entry>
+>> > >> +       </row>
+>> > >> +       <row>
+>> > >> +         <entry spanname="id"><constant>V4L2_CID_GREEN_RED_OFFSET</constant></entry>
+>> > >> +         <entry>integer</entry>
+>> > >> +       </row>
+>> > >> +       <row>
+>> > >> +         <entry spanname="id"><constant>V4L2_CID_GREEN_BLUE_OFFSET</constant></entry>
+>> > >> +         <entry>integer</entry>
+>> > >> +       </row>
+>> > >> +       <row>
+>> > >> +         <entry spanname="descr"> Some capture/sensor devices have the
+>> > >> +         capability to set per color component digital/analog gain offset values.
+>> > >> +         V4L2_CID_GAIN_OFFSET is the global gain offset and the rest are per
+>> > >> +         color component gain offsets.</entry>
+>> > >
+>> > > If I set both V4L2_CID_GAIN_RED and V4L2_CID_RED_OFFSET, how are they supposed
+>> > > to interact? Or are they mutually exclusive?
+>> > >
+>> > > And if I set both V4L2_CID_GAIN_OFFSET and V4L2_CID_RED_OFFSET, how are they supposed
+>> > > to interact?
+>> > >
+>> > > This questions should be answered in the documentation...
+>> > >
+>> > I haven’t worked on the hardware which supports both, What is the general
+>> > behaviour when the hardware supports both per color component and global
+>> > and both of them are set ? That could be helpful for me to document.
+>>
+>> I'd guess most of the time only either one is supported,
+>
+> Are you talking about GAIN_RED vs GAIN_RED_OFFSET or GAIN_OFFSET vs RED_OFFSET?
+> Or both?
+>
+>> and when someone
+>> thinks of supporting both on the same device, we can start thinking of the
+>> interaction of per-component and global ones. That may be hardware specific
+>> as well, so standardising it might not be possible.
+>>
+>> I think it'd be far more important to know which unit is it. Many such
+>> controls are indeed fixed point values but the location of the point varies.
+>> For unstance, u16,u16 and u8,u8 aren't uncommon. We currently have no way to
+>> tell this to the user space. This isn't in any way specific to gain or
+>> offset controls, though.
+>
+> There are no standardized units for gain at the moment, and I don't really see
+> that happening any time soon. Fixed point isn't supported at all as a control
+> type, so that will have to be converted to an integer anyway.
+>
+> Prabhakar, which of these controls are actually supported by your hardware?
+>
+my hardware supports gain red, gain blue, gain green red, gain green blue and
+global gain offset.
 
-No, I didn't add. Not sure why I was thinking that support for it was
-added.
+Regards,
+--Prabhakar Lad
 
-> I started to look
-> into making it use libv4l some months back, but libv4l only supports
-> providing the video to the app in a few select formats (e.g. RGB
-> formats and YUV 4:2:0).  Tvtime specifically needs the video in YUYV
-> or UYVY because it does all its overlays directly onto the video
-> buffer, the deinterlacers expect YUYV, and the XVideo support in the
-> app currently only does YUYV.
-> 
-> Changing the app to work with 4:2:0 would mean cleaning up the rats
-> nest that does all of the above functions - certainly not impossible,
-> but not trivial either.  In fact, it would probably be better to add
-> the colorspace conversion code to libv4l to support providing YUYV to
-> the app when it asks for it.
-
-Agreed. Adding YUYV support at libv4l should be easy.
-
-> > The above also applies to MythTV, except that I'm not sure if MythTV uses
-> > libv4l.
-> 
-> It does not.
-> 
-> There's no doubt that both MythTV and Tvtime could use an overhaul of
-> their V4L2 code (which became as nasty as it is primarily due to all
-> the years of the kernel's lack of specified behavior and failure to
-> enforce consistency across boards).  That's not really relevant to the
-> discussion at hand though, which is about breaking existing
-> applications (and possibly all the apps other than the two or three
-> common open source apps I raised as examples).
-
-Well, xawtv won't break, even without libv4l. Codes based on it won't
-likely break either.
-
-Applications that use libv4l will do whatever behavior libv4l does.
-
-I suspect your couple examples are the most used applications that
-don't fit into either case.
-
-So, in order to make the kernel drivers consistent, we need to know 
-what other applications that don't use libv4l and would behave bad
-with driver changes at VIDIOC_S_FMT's way to return data to implement
-what it is at the specs.
-
-Then, work on a solution that will work everywhere.
-
-We can only touch the drivers afer being sure that no regressions
-will happen.
-
-> I would love to take a half dozen tuner boards of various types and
-> spend a week cleaning up Myth's code, but frankly I just don't have
-> the time/energy to take on such a task.
-> 
-> Devin
-> 
-
-
--- 
-
-Cheers,
-Mauro
+> Regards,
+>
+>         Hans
