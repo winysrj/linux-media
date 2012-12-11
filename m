@@ -1,155 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:60680 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753536Ab2L1OND (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47808 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754155Ab2LKWHD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Dec 2012 09:13:03 -0500
-Received: by mail-ie0-f174.google.com with SMTP id c11so12849720ieb.33
-        for <linux-media@vger.kernel.org>; Fri, 28 Dec 2012 06:13:03 -0800 (PST)
+	Tue, 11 Dec 2012 17:07:03 -0500
+Date: Wed, 12 Dec 2012 00:06:56 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	LDOC <linux-doc@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Chris MacGregor <chris@cybermato.com>,
+	Rob Landley <rob@landley.net>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH RFC v2] media: v4l2-ctrl: Add gain controls
+Message-ID: <20121211220656.GD3747@valkosipuli.retiisi.org.uk>
+References: <1354708169-1139-1-git-send-email-prabhakar.csengg@gmail.com>
+ <CA+V-a8t+KxCYunkrT715zQks=5HOrFk2PSM2Ss_kTj4iXg=PJg@mail.gmail.com>
+ <20121206095431.GA2887@valkosipuli.retiisi.org.uk>
+ <201212110956.43081.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Date: Fri, 28 Dec 2012 11:13:03 -0300
-Message-ID: <CALF0-+U_am2qBv=ifRgeocP_OehyRZCUpdfd+y1Uqnf7B7cKJQ@mail.gmail.com>
-Subject: saa711x doesn't match in easycap devices (stk1160 bridged)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <201212110956.43081.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everyone,
+Hi Hans,
 
-Some stk1160 users (a lot acually) are reporting that stk1160 is broken.
-The reports come in the out of tree driver [1], but probably the issue
-is in mainline too.
+On Tue, Dec 11, 2012 at 09:56:42AM +0100, Hans Verkuil wrote:
+...
+> > > > If I set both V4L2_CID_GAIN_RED and V4L2_CID_RED_OFFSET, how are they supposed
+> > > > to interact? Or are they mutually exclusive?
+> > > >
+> > > > And if I set both V4L2_CID_GAIN_OFFSET and V4L2_CID_RED_OFFSET, how are they supposed
+> > > > to interact?
+> > > >
+> > > > This questions should be answered in the documentation...
+> > > >
+> > > I haven’t worked on the hardware which supports both, What is the general
+> > > behaviour when the hardware supports both per color component and global
+> > > and both of them are set ? That could be helpful for me to document.
+> > 
+> > I'd guess most of the time only either one is supported,
+> 
+> Are you talking about GAIN_RED vs GAIN_RED_OFFSET or GAIN_OFFSET vs RED_OFFSET?
+> Or both?
 
-Now, it seems to me the problem is the saa711x decoder can't get matched,
-see a portion of dmesg.
+Per-component vs. global controls.
 
-[89947.448813] usb 1-2.4: New device Syntek Semiconductor USB 2.0
-Video Capture Controller @ 480 Mbps (05e1:0408, interface 0, class 0)
-[89947.448827] usb 1-2.4: video interface 0 found
-[89948.200366] saa7115 21-0025: chip found @ 0x4a (ID 000000000000000)
-does not match a known saa711x chip.
-[89948.200555] stk1160: driver ver 0.9.3 successfully loaded
-[...]
+Few devices support both; AFAIR on SMIA the user can choose which one to
+use, but the driver implements neither currently.
 
-I'm working on this right now, but would like to know, given the ID
-seems to be NULL,
-what would be the right thing to do here.
-Perhaps, replacing the -ENODEV error by a just warning and keep going?
+> > and when someone
+> > thinks of supporting both on the same device, we can start thinking of the
+> > interaction of per-component and global ones. That may be hardware specific
+> > as well, so standardising it might not be possible.
+> > 
+> > I think it'd be far more important to know which unit is it. Many such
+> > controls are indeed fixed point values but the location of the point varies.
+> > For unstance, u16,u16 and u8,u8 aren't uncommon. We currently have no way to
+> > tell this to the user space. This isn't in any way specific to gain or
+> > offset controls, though.
+> 
+> There are no standardized units for gain at the moment, and I don't really see
+> that happening any time soon. Fixed point isn't supported at all as a control
+> type, so that will have to be converted to an integer anyway.
 
-Further debugging [2] shows the chip doesn't seem to have a proper
-chipid (as expected):
+Do you think it'd require a new control type? There might be many; some
+devices use funny fixed point values, such as u8.u5. I guess you could use
+step for those, sure.
 
-[ 304.059917] stk1160_i2c_xfer: addr=4a
-[ 304.084238] OK
-[ 304.084483] stk1160_i2c_xfer: addr=4a
-[ 304.084498] subaddr=0 write=0
-[ 304.108254] OK
-[ 304.108276] stk1160_i2c_xfer: addr=4a
-[ 304.108286] subaddr=0
-[ 304.132367] read=10
-[ 304.132378] OK
-[ 304.132394] stk1160_i2c_xfer: addr=4a
-[ 304.132403] subaddr=0 write=1
-[ 304.156269] OK
-[ 304.156288] stk1160_i2c_xfer: addr=4a
-[ 304.156297] subaddr=0
-[ 304.180490] read=10
-[ 304.180500] OK
-[ 304.180514] stk1160_i2c_xfer: addr=4a
-[ 304.180523] subaddr=0 write=2
-[ 304.204249] OK
-[ 304.204268] stk1160_i2c_xfer: addr=4a
-[ 304.204276] subaddr=0
-[ 304.228365] read=10
-[ 304.228374] OK
-[ 304.228388] stk1160_i2c_xfer: addr=4a
-[ 304.228397] subaddr=0 write=3
-[ 304.252267] OK
-[ 304.252286] stk1160_i2c_xfer: addr=4a
-[ 304.252295] subaddr=0
-[ 304.276363] read=10
-[ 304.276372] OK
-[ 304.276386] stk1160_i2c_xfer: addr=4a
-[ 304.276395] subaddr=0 write=4
-[ 304.300248] OK
-[ 304.300266] stk1160_i2c_xfer: addr=4a
-[ 304.300275] subaddr=0
-[ 304.324363] read=10
-[ 304.324373] OK
-[ 304.324386] stk1160_i2c_xfer: addr=4a
-[ 304.324394] subaddr=0 write=5
-[ 304.348250] OK
-[ 304.348268] stk1160_i2c_xfer: addr=4a
-[ 304.348277] subaddr=0
-[ 304.372364] read=10
-[ 304.372374] OK
-[ 304.372387] stk1160_i2c_xfer: addr=4a
-[ 304.372396] subaddr=0 write=6
-[ 304.396250] OK
-[ 304.396266] stk1160_i2c_xfer: addr=4a
-[ 304.396275] subaddr=0
-[ 304.420363] read=10
-[ 304.420372] OK
-[ 304.420386] stk1160_i2c_xfer: addr=4a
-[ 304.420395] subaddr=0 write=7
-[ 304.444253] OK
-[ 304.444274] stk1160_i2c_xfer: addr=4a
-[ 304.444283] subaddr=0
-[ 304.468364] read=10
-[ 304.468374] OK
-[ 304.468389] stk1160_i2c_xfer: addr=4a
-[ 304.468398] subaddr=0 write=8
-[ 304.492248] OK
-[ 304.492266] stk1160_i2c_xfer: addr=4a
-[ 304.492275] subaddr=0
-[ 304.516360] read=10
-[ 304.516370] OK
-[ 304.516384] stk1160_i2c_xfer: addr=4a
-[ 304.516392] subaddr=0 write=9
-[ 304.540248] OK
-[ 304.540278] stk1160_i2c_xfer: addr=4a
-[ 304.540291] subaddr=0
-[ 304.564638] read=10
-[ 304.564653] OK
-[ 304.564675] stk1160_i2c_xfer: addr=4a
-[ 304.564687] subaddr=0 write=a
-[ 304.565874] OK
-[ 304.565895] stk1160_i2c_xfer: addr=4a
-[ 304.565904] subaddr=0
-[ 304.588370] read=10
-[ 304.588376] OK
-[ 304.588386] stk1160_i2c_xfer: addr=4a
-[ 304.588390] subaddr=0 write=b
-[ 304.612222] OK
-[ 304.612241] stk1160_i2c_xfer: addr=4a
-[ 304.612249] subaddr=0
-[ 304.636369] read=10
-[ 304.636380] OK
-[ 304.636396] stk1160_i2c_xfer: addr=4a
-[ 304.636405] subaddr=0 write=c
-[ 304.660268] OK
-[ 304.660288] stk1160_i2c_xfer: addr=4a
-[ 304.660297] subaddr=0
-[ 304.684364] read=10
-[ 304.684374] OK
-[ 304.684388] stk1160_i2c_xfer: addr=4a
-[ 304.684396] subaddr=0 write=d
-[ 304.708249] OK
-[ 304.708267] stk1160_i2c_xfer: addr=4a
-[ 304.708276] subaddr=0
-[ 304.732366] read=10
-[ 304.732375] OK
-[ 304.732389] stk1160_i2c_xfer: addr=4a
-[ 304.732398] subaddr=0 write=e
-[ 304.756251] OK
-[ 304.756270] stk1160_i2c_xfer: addr=4a
-[ 304.756279] subaddr=0
-[ 304.780365] read=10
+For instance, some sensors natively use lines to tell the exposure value
+(and in low level sensors control the granularity really matters, so lines
+it should be) whereas some SoC ones could use µs instead.
+
+This is about units and prefixes IMO. Fixed point is just a prefix, such as
+milli or micro, but instead of being a power of ten it's a power of two.
+
+This would also allow telling the user about a gain control that e.g. the
+value 0x100 means "no gain".
+
+I think someone should write an RFC about this. :-)
 
 -- 
-    Ezequiel
+Kind regards,
 
-[1] https://github.com/ezequielgarcia/stk1160-standalone/issues/14
-[2] https://github.com/ezequielgarcia/stk1160-standalone/issues/14#issuecomment-11732376
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
