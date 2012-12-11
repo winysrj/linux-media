@@ -1,97 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56821 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:33510 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753570Ab2LJAqW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Dec 2012 19:46:22 -0500
+	id S1754019Ab2LKU7j (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Dec 2012 15:59:39 -0500
+Message-ID: <50C79E9A.3050301@iki.fi>
+Date: Tue, 11 Dec 2012 22:59:06 +0200
 From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC 11/11] dvb_usb_v2: change rc polling active/deactive logic
-Date: Mon, 10 Dec 2012 02:45:35 +0200
-Message-Id: <1355100335-2123-11-git-send-email-crope@iki.fi>
-In-Reply-To: <1355100335-2123-1-git-send-email-crope@iki.fi>
-References: <1355100335-2123-1-git-send-email-crope@iki.fi>
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Matthew Gyurgyik <matthew@pyther.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com> <50C48891.2050903@googlemail.com> <50C4A520.6020908@pyther.net> <CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com> <50C4BA20.8060003@googlemail.com> <50C4BAFB.60304@googlemail.com> <50C4C525.6020006@googlemail.com> <50C4D011.6010700@pyther.net> <50C60220.8050908@googlemail.com> <CAGoCfizTfZVFkNvdQuuisOugM2BGipYd_75R63nnj=K7E8ULWQ@mail.gmail.com> <50C60772.2010904@googlemail.com> <CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com> <50C6226C.8090302@iki! .fi> <50C636E7.8060003@googlemail.com> <50C64AB0.7020407@iki.fi> <50C79CD6.4060501@googlemail.com>
+In-Reply-To: <50C79CD6.4060501@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use own flag to mark when rc polling is active/deactive and make
-decisions, like start/stop polling on suspend/resume, against that.
+On 12/11/2012 10:51 PM, Frank Schäfer wrote:
+> Am 10.12.2012 21:48, schrieb Antti Palosaari:
+>> On 12/10/2012 09:24 PM, Frank Schäfer wrote:
+>>> Am 10.12.2012 18:57, schrieb Antti Palosaari:
+>>>> On 12/10/2012 06:13 PM, Devin Heitmueller wrote:
+>>>>> On Mon, Dec 10, 2012 at 11:01 AM, Frank Schäfer
+>>>>>> Adding a new property to the RC profile certainly seems to be the
+>>>>>> cleanest solution.
+>>>>>> Do all protocols have paritiy checking ? Otherwise we could add a new
+>>>>>> type RC_TYPE_NEC_NO_PARITY.
+>>>>>> OTOH, introducing a new bitfield in struct rc_map might be usefull
+>>>>>> for
+>>>>>> other flags, too, in the future...
+>>>>>
+>>>>> It's probably also worth mentioning that in that mode the device
+>>>>> reports four bytes, not two.  I guess perhaps if parity is ignored it
+>>>>> reports the data in some other format?  You will probably have to do
+>>>>> some experimentation there.
+>
+> ...
+>
+>>>>
+>>>> Uh, current em28xx NEC implementation is locked to traditional 16 bit
+>>>> NEC, where is hw checksum used.
+>>>>
+>>>> Implementation should be changed to more general to support 24 and 32
+>>>> bit NEC too. There is multiple drivers doing already that, for example
+>>>> AF9015.
+>>>>
+>>>
+>>> Hmm... are there and documents (, links, books, ...) where I can learn
+>>> more about all those RC protocols ?
+>>
+>> Specification comes here:
+>> NEC send always 32 bit, 4 bytes. There is 3 different "sub" protocols:
+>>
+>> 1) 16bit NEC standard, 1 byte address code, 1 byte key code
+>> full 4 byte code: AA BB CC DD
+>> where:
+>> AA = address code
+>> BB = ~address code
+>> CC = key code
+>> DD = ~key code
+>>
+>> checksum:
+>> AA + BB = 0xff
+>> CC + DD = 0xff
+>>
+>> 2) 24bit NEC extended, 2 byte address code, 1 byte key code
+>> full 4 byte code: AA BB CC DD
+>> where:
+>> AA = address code (MSB)
+>> BB = address code (LSB)
+>> CC = key code
+>> DD = ~key code
+>>
+>> 3) 32bit NEC full, 4 byte key code
+>> full 4 byte code: AA BB CC DD
+>> where:
+>> AA =
+>> BB =
+>> CC =
+>> DD =
+>>
+>> I am not sure if there is separate parts for address and key code in
+>> case of 32bit NEC. See some existing remote keytables if there is any
+>> such table. It is very rare protocol. 1) and 2) are much more common.
+>>
+>
+> Many thanks.
+> So the problem is, that we have only a single RC_TYPE for all 3 protocol
+> variants and need a method to distinguish between them, right ?
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/dvb_usb.h      |  3 ++-
- drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 10 +++++++---
- 2 files changed, 9 insertions(+), 4 deletions(-)
+Yes, that is. I have said it "million" times I would like to see that 
+implemented as a one single 4 byte NEC, but it is currently what it is. 
+What I understand David Härdeman has done some work toward that too, but 
+it is not ready.
+See current af9015 driver as example how driver makes decision which 
+variant of NEC is used. You will need something similar. Read all 4 NEC 
+bytes from the hardware and then use driver to make decision which 
+variant it is. I am quite sure em28xx hardware supports reading all 4 
+bytes, but if not, you will need to do some other tricks.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb.h b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-index 059291b..3cac8bd 100644
---- a/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-+++ b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-@@ -347,6 +347,7 @@ struct dvb_usb_adapter {
-  * @props: device properties
-  * @name: device name
-  * @rc_map: name of rc codes table
-+ * @rc_polling_active: set when RC polling is active
-  * @udev: pointer to the device's struct usb_device
-  * @intf: pointer to the device's usb interface
-  * @rc: remote controller configuration
-@@ -364,7 +365,7 @@ struct dvb_usb_device {
- 	const struct dvb_usb_device_properties *props;
- 	const char *name;
- 	const char *rc_map;
--
-+	bool rc_polling_active;
- 	struct usb_device *udev;
- 	struct usb_interface *intf;
- 	struct dvb_usb_rc rc;
-diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-index 1330c64..95968d3 100644
---- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-@@ -113,13 +113,16 @@ static void dvb_usb_read_remote_control(struct work_struct *work)
- 	 * When the parameter has been set to 1 via sysfs while the
- 	 * driver was running, or when bulk mode is enabled after IR init.
- 	 */
--	if (dvb_usbv2_disable_rc_polling || d->rc.bulk_mode)
-+	if (dvb_usbv2_disable_rc_polling || d->rc.bulk_mode) {
-+		d->rc_polling_active = false;
- 		return;
-+	}
- 
- 	ret = d->rc.query(d);
- 	if (ret < 0) {
- 		dev_err(&d->udev->dev, "%s: rc.query() failed=%d\n",
- 				KBUILD_MODNAME, ret);
-+		d->rc_polling_active = false;
- 		return; /* stop polling */
- 	}
- 
-@@ -183,6 +186,7 @@ static int dvb_usbv2_remote_init(struct dvb_usb_device *d)
- 				d->rc.interval);
- 		schedule_delayed_work(&d->rc_query_work,
- 				msecs_to_jiffies(d->rc.interval));
-+		d->rc_polling_active = true;
- 	}
- 
- 	return 0;
-@@ -964,7 +968,7 @@ int dvb_usbv2_suspend(struct usb_interface *intf, pm_message_t msg)
- 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
- 	/* stop remote controller poll */
--	if (d->rc.query && !d->rc.bulk_mode)
-+	if (d->rc_polling_active)
- 		cancel_delayed_work_sync(&d->rc_query_work);
- 
- 	for (i = MAX_NO_OF_ADAPTER_PER_DEVICE - 1; i >= 0; i--) {
-@@ -1011,7 +1015,7 @@ static int dvb_usbv2_resume_common(struct dvb_usb_device *d)
- 	}
- 
- 	/* start remote controller poll */
--	if (d->rc.query && !d->rc.bulk_mode)
-+	if (d->rc_polling_active)
- 		schedule_delayed_work(&d->rc_query_work,
- 				msecs_to_jiffies(d->rc.interval));
- 
+regards
+Antti
+
 -- 
-1.7.11.7
-
+http://palosaari.fi/
