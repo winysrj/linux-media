@@ -1,197 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:54181 "EHLO
-	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751454Ab2LOJ7w (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:40754 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753736Ab2LKUlG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Dec 2012 04:59:52 -0500
-From: Albert Wang <twang13@marvell.com>
-To: corbet@lwn.net, g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org, Libin Yang <lbyang@marvell.com>,
-	Albert Wang <twang13@marvell.com>
-Subject: [PATCH V3 03/15] [media] marvell-ccic: add clock tree support for marvell-ccic driver
-Date: Sat, 15 Dec 2012 17:57:52 +0800
-Message-Id: <1355565484-15791-4-git-send-email-twang13@marvell.com>
-In-Reply-To: <1355565484-15791-1-git-send-email-twang13@marvell.com>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+	Tue, 11 Dec 2012 15:41:06 -0500
+Received: by mail-bk0-f46.google.com with SMTP id q16so1844641bkw.19
+        for <linux-media@vger.kernel.org>; Tue, 11 Dec 2012 12:41:05 -0800 (PST)
+Message-ID: <50C79A6D.9010008@googlemail.com>
+Date: Tue, 11 Dec 2012 21:41:17 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: RFC: First draft of guidelines for submitting patches to linux-media
+References: <201212101407.09338.hverkuil@xs4all.nl> <50C60620.2010603@googlemail.com> <201212101727.29074.hverkuil@xs4all.nl> <20121210153816.0d4d9b64@redhat.com> <50C63543.8020500@googlemail.com> <20121210174036.03dd521c@redhat.com>
+In-Reply-To: <20121210174036.03dd521c@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Libin Yang <lbyang@marvell.com>
+Am 10.12.2012 20:40, schrieb Mauro Carvalho Chehab:
 
-This patch adds the clock tree support for marvell-ccic.
+[snip]
 
-Each board may require different clk enabling sequence.
-Developer need add the clk_name in correct sequence in board driver
-to use this feature.
+>> And people beeing subsystem maintainers AND driver maintainers have to
+>> find a balance between processing pull requests and reviewing patches.
+>> I'm not sure if I have understood yet how this balance should look
+>> like... Can you elaborate a bit on this ?
+>> At the moment it's ~12 weeks / ~2 weeks. What's the target value ? ;)
+> Please wait for it to be implemented before complaining it ;) The 
+> sub-maintainers new schema will start to work likely by Feb/Mar 2013.
 
-Signed-off-by: Libin Yang <lbyang@marvell.com>
-Signed-off-by: Albert Wang <twang13@marvell.com>
----
- drivers/media/platform/marvell-ccic/mcam-core.h  |    4 ++
- drivers/media/platform/marvell-ccic/mmp-driver.c |   57 +++++++++++++++++++++-
- include/media/mmp-camera.h                       |    5 ++
- 3 files changed, 65 insertions(+), 1 deletion(-)
+I don't want to complain (yet ;) ). I'm just trying to understand what
+is supposed to reduce the review times...
+Haven't succeeded yet, because the same amount work seems to be
+redivided among the same amount of maintainer/reviewer resources (=people).
 
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
-index ca63010..86e634e 100755
---- a/drivers/media/platform/marvell-ccic/mcam-core.h
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.h
-@@ -88,6 +88,7 @@ struct mcam_frame_state {
-  *          the dev_lock spinlock; they are marked as such by comments.
-  *          dev_lock is also required for access to device registers.
-  */
-+#define NR_MCAM_CLK 4
- struct mcam_camera {
- 	/*
- 	 * These fields should be set by the platform code prior to
-@@ -109,6 +110,9 @@ struct mcam_camera {
- 	int lane;			/* lane number */
- 
- 	struct clk *pll1;
-+	/* clock tree support */
-+	struct clk *clk[NR_MCAM_CLK];
-+	int clk_num;
- 
- 	/*
- 	 * Callbacks from the core to the platform code.
-diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
-index 603fa0a..2c4dce3 100755
---- a/drivers/media/platform/marvell-ccic/mmp-driver.c
-+++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
-@@ -104,6 +104,23 @@ static struct mmp_camera *mmpcam_find_device(struct platform_device *pdev)
- #define REG_CCIC_DCGCR		0x28	/* CCIC dyn clock gate ctrl reg */
- #define REG_CCIC_CRCR		0x50	/* CCIC clk reset ctrl reg	*/
- 
-+static void mcam_clk_set(struct mcam_camera *mcam, int on)
-+{
-+	unsigned int i;
-+
-+	if (on) {
-+		for (i = 0; i < mcam->clk_num; i++) {
-+			if (mcam->clk[i])
-+				clk_enable(mcam->clk[i]);
-+		}
-+	} else {
-+		for (i = mcam->clk_num; i > 0; i--) {
-+			if (mcam->clk[i - 1])
-+				clk_disable(mcam->clk[i - 1]);
-+		}
-+	}
-+}
-+
- /*
-  * Power control.
-  */
-@@ -134,6 +151,8 @@ static void mmpcam_power_up(struct mcam_camera *mcam)
- 	mdelay(5);
- 	gpio_set_value(pdata->sensor_reset_gpio, 1); /* reset is active low */
- 	mdelay(5);
-+
-+	mcam_clk_set(mcam, 1);
- }
- 
- static void mmpcam_power_down(struct mcam_camera *mcam)
-@@ -151,6 +170,8 @@ static void mmpcam_power_down(struct mcam_camera *mcam)
- 	pdata = cam->pdev->dev.platform_data;
- 	gpio_set_value(pdata->sensor_power_gpio, 0);
- 	gpio_set_value(pdata->sensor_reset_gpio, 0);
-+
-+	mcam_clk_set(mcam, 0);
- }
- 
- /*
-@@ -202,7 +223,7 @@ void mmpcam_calc_dphy(struct mcam_camera *mcam)
- 	 * pll1 will never be changed, it is a fixed value
- 	 */
- 
--	if (IS_ERR(mcam->pll1))
-+	if (IS_ERR_OR_NULL(mcam->pll1))
- 		return;
- 
- 	tx_clk_esc = clk_get_rate(mcam->pll1) / 1000000 / 12;
-@@ -229,6 +250,35 @@ static irqreturn_t mmpcam_irq(int irq, void *data)
- 	return IRQ_RETVAL(handled);
- }
- 
-+static void mcam_init_clk(struct mcam_camera *mcam,
-+			struct mmp_camera_platform_data *pdata, int init)
-+{
-+	unsigned int i;
-+
-+	if (NR_MCAM_CLK < pdata->clk_num) {
-+		dev_err(mcam->dev, "Too many mcam clocks defined\n");
-+		mcam->clk_num = 0;
-+		return;
-+	}
-+
-+	if (init) {
-+		for (i = 0; i < pdata->clk_num; i++) {
-+			if (pdata->clk_name[i] != NULL) {
-+				mcam->clk[i] = devm_clk_get(mcam->dev,
-+						pdata->clk_name[i]);
-+				if (IS_ERR(mcam->clk[i])) {
-+					dev_err(mcam->dev,
-+						"Could not get clk: %s\n",
-+						pdata->clk_name[i]);
-+					mcam->clk_num = 0;
-+					return;
-+				}
-+			}
-+		}
-+		mcam->clk_num = pdata->clk_num;
-+	} else
-+		mcam->clk_num = 0;
-+}
- 
- static int mmpcam_probe(struct platform_device *pdev)
- {
-@@ -293,6 +343,8 @@ static int mmpcam_probe(struct platform_device *pdev)
- 		ret = -ENODEV;
- 		goto out_unmap1;
- 	}
-+
-+	mcam_init_clk(mcam, pdata, 1);
- 	/*
- 	 * Find the i2c adapter.  This assumes, of course, that the
- 	 * i2c bus is already up and functioning.
-@@ -320,6 +372,7 @@ static int mmpcam_probe(struct platform_device *pdev)
- 		goto out_gpio;
- 	}
- 	gpio_direction_output(pdata->sensor_reset_gpio, 0);
-+
- 	/*
- 	 * Power the device up and hand it off to the core.
- 	 */
-@@ -352,6 +405,7 @@ out_gpio2:
- out_gpio:
- 	gpio_free(pdata->sensor_power_gpio);
- out_unmap2:
-+	mcam_init_clk(mcam, pdata, 0);
- 	iounmap(cam->power_regs);
- out_unmap1:
- 	iounmap(mcam->regs);
-@@ -375,6 +429,7 @@ static int mmpcam_remove(struct mmp_camera *cam)
- 	gpio_free(pdata->sensor_power_gpio);
- 	iounmap(cam->power_regs);
- 	iounmap(mcam->regs);
-+	mcam_init_clk(mcam, pdata, 0);
- 	kfree(cam);
- 	return 0;
- }
-diff --git a/include/media/mmp-camera.h b/include/media/mmp-camera.h
-index 813efe2..c339d43 100755
---- a/include/media/mmp-camera.h
-+++ b/include/media/mmp-camera.h
-@@ -16,4 +16,9 @@ struct mmp_camera_platform_data {
- 	int mipi_enabled;	/* MIPI enabled flag */
- 	int lane;		/* ccic used lane number; 0 means DVP mode */
- 	int lane_clk;
-+	/*
-+	 * clock tree support
-+	 */
-+	char *clk_name[4];
-+	int clk_num;
- };
--- 
-1.7.9.5
+Anyway, I will be patient and hope that things will evolve as planed.
+I will also try to test and/or review patches from other if possible.
+
+[snip]
+
+>> So who can get an account / is supposed to access patchwork ?
+>> - subsystem maintainers ?
+>> - driver maintainers ?
+>> - patch creators ?
+> Subsystem maintainers only, except if someone can fix patchwork, adding
+> proper ACL's there to allow patch creators to manage their own patches
+> and sub-system maintainers to delegate work to driver maintainers, without
+> giving them full rights, and being notified about status changes on
+> those driver's patches.
+
+Ok, thanks, I think this should be mentioned in the document.
+
+Regards,
+Frank
+
 
