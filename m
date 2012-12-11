@@ -1,196 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:31574 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751321Ab2LJNnx (ORCPT
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:62024 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752552Ab2LKIpZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 08:43:53 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MET00B4GI832T80@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 10 Dec 2012 13:46:27 +0000 (GMT)
-Received: from AMDC1061.digital.local ([106.116.147.88])
- by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
- (7.0.4.23.0) 64bit (built Aug 10 2011))
- with ESMTPA id <0MET00JXCI4V1O40@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 10 Dec 2012 13:43:50 +0000 (GMT)
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Andrzej Hajda <a.hajda@samsung.com>
-Subject: [PATCH RFC 1/2] V4L: Add auto focus selection targets
-Date: Mon, 10 Dec 2012 14:43:38 +0100
-Message-id: <1355147019-25375-2-git-send-email-a.hajda@samsung.com>
-In-reply-to: <1355147019-25375-1-git-send-email-a.hajda@samsung.com>
-References: <1355147019-25375-1-git-send-email-a.hajda@samsung.com>
+	Tue, 11 Dec 2012 03:45:25 -0500
+Received: by mail-wi0-f180.google.com with SMTP id hj13so2075866wib.1
+        for <linux-media@vger.kernel.org>; Tue, 11 Dec 2012 00:45:24 -0800 (PST)
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH RFC 03/13] OF: define of_*_cmp() macros also if CONFIG_OF isn't set
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>, g.liakhovetski@gmx.de,
+	linux-media@vger.kernel.org
+Cc: rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-kernel@vger.kernel.org
+In-Reply-To: <1355168499-5847-4-git-send-email-s.nawrocki@samsung.com>
+References: <1355168499-5847-1-git-send-email-s.nawrocki@samsung.com> <1355168499-5847-4-git-send-email-s.nawrocki@samsung.com>
+Date: Tue, 11 Dec 2012 08:45:09 +0000
+Message-Id: <20121211084509.2DEE83E076D@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+On Mon, 10 Dec 2012 20:41:29 +0100, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
+> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> 
+> of_*_cmp() macros do not depend on any OF functions and can be defined also
+> if CONFIG_OF isn't set. Also include linux/string.h, required by those
+> macros.
 
-The camera automatic focus algorithms may require setting up
-a spot or rectangle coordinates.
+Patch looks fine, but I'd like to know the situation where you found
+this problem. Again, anything calling these of_ helpers is probably
+CONFIG_OF specific code.
 
-The automatic focus selection targets are introduced in order
-to allow applications to query and set such coordinates. Those
-selections are intended to be used together with the automatic
-focus controls available in the camera control class.
+I've resisted doing a blanket add of these helpers outside of CONFIG_OF
+exactly because it helps identify CONFIG_OF code that should be compiled
+out when CONFIG_OF=n
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/media/v4l/selection-api.xml  |   32 ++++++++++++++++-
- .../DocBook/media/v4l/selections-common.xml        |   37 ++++++++++++++++++++
- .../media/v4l/vidioc-subdev-g-selection.xml        |    4 +--
- include/uapi/linux/v4l2-common.h                   |    5 +++
- 4 files changed, 75 insertions(+), 3 deletions(-)
+g.
 
-diff --git a/Documentation/DocBook/media/v4l/selection-api.xml b/Documentation/DocBook/media/v4l/selection-api.xml
-index 4c238ce..8caf67b 100644
---- a/Documentation/DocBook/media/v4l/selection-api.xml
-+++ b/Documentation/DocBook/media/v4l/selection-api.xml
-@@ -1,6 +1,6 @@
- <section id="selection-api">
- 
--  <title>Experimental API for cropping, composing and scaling</title>
-+  <title>Experimental selections API</title>
- 
-       <note>
- 	<title>Experimental</title>
-@@ -9,6 +9,10 @@
- interface and may change in the future.</para>
-       </note>
- 
-+ <section>
-+
-+ <title>Image cropping, composing and scaling</title>
-+
-   <section>
-     <title>Introduction</title>
- 
-@@ -321,5 +325,31 @@ V4L2_BUF_TYPE_VIDEO_OUTPUT </constant> for other devices</para>
-       </example>
- 
-    </section>
-+ </section>
-+
-+ <section>
-+     <title>Automatic focus regions of interest</title>
-+
-+<para>The camera automatic focus algorithms may require configuration of
-+regions of interest in form of rectangle or spot coordinates. The automatic
-+focus selection targets allow applications to query and set such coordinates.
-+Those selections are intended to be used together with the
-+<constant>V4L2_CID_AUTO_FOCUS_AREA</constant> <link linkend="camera-controls">
-+camera class</link> control. The <constant>V4L2_SEL_TGT_AUTO_FOCUS</constant>
-+target is used for querying or setting actual spot or rectangle coordinates,
-+while <constant>V4L2_SEL_TGT_AUTO_FOCUS_BOUNDS</constant> target determines
-+bounds for a single spot or rectangle.
-+These selections are only effective when the <constant>V4L2_CID_AUTO_FOCUS_AREA
-+</constant>control is set to
-+<constant>V4L2_AUTO_FOCUS_AREA_RECTANGLE</constant>. The new coordinates shall
-+be accepted and applied to hardware when the focus area control value is
-+changed and also during a &VIDIOC-S-SELECTION; ioctl call, only when the focus
-+area control is already set to required value.</para>
-+
-+<para>When the <structfield>width</structfield> and
-+<structfield>height</structfield> of the selection rectangle are set to 0 the
-+selection determines spot coordinates, rather than a rectangle.</para>
-+
-+ </section>
- 
- </section>
-diff --git a/Documentation/DocBook/media/v4l/selections-common.xml b/Documentation/DocBook/media/v4l/selections-common.xml
-index 7502f78..9f0c477 100644
---- a/Documentation/DocBook/media/v4l/selections-common.xml
-+++ b/Documentation/DocBook/media/v4l/selections-common.xml
-@@ -93,6 +93,22 @@
- 	    <entry>Yes</entry>
- 	    <entry>No</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_TGT_AUTO_FOCUS</constant></entry>
-+	    <entry>0x1001</entry>
-+	    <entry>Actual automatic focus rectangle.</entry>
-+	    <entry>Yes</entry>
-+	    <entry>Yes</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_TGT_AUTO_FOCUS_BOUNDS</constant></entry>
-+	    <entry>0x1002</entry>
-+	    <entry>Bounds of the automatic focus region of interest. All valid
-+	    automatic focus rectangles fit inside the automatic focus bounds
-+	    rectangle.</entry>
-+	    <entry>Yes</entry>
-+	    <entry>Yes</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-@@ -158,7 +174,28 @@
- 	</tbody>
-       </tgroup>
-     </table>
-+  </section>
-+
-+  <section>
-+      <title>Automatic focus regions of interest</title>
-+
-+      <para>The camera automatic focus algorithms may require configuration
-+      of a region or multiple regions of interest in form of rectangle or spot
-+      coordinates.</para>
-+
-+      <para>A single rectangle of interest is represented in &v4l2-rect;
-+      by the coordinates of the top left corner and the rectangle size. Both
-+      the coordinates and sizes are expressed in pixels. When the <structfield>
-+      width</structfield> and <structfield>height</structfield> fields of
-+      &v4l2-rect; are set to 0 the selection determines spot coordinates,
-+      rather than a rectangle.</para>
- 
-+      <para>Auto focus rectangles are reset to their default values when the
-+      output image format is modified. Drivers should use the output image size
-+      as the auto focus rectangle default value, but hardware requirements may
-+      prevent this.
-+      </para>
-+      <para>The auto focus selections on input pads are not defined.</para>
-   </section>
- 
- </section>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-index 1ba9e99..95e759f 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-@@ -57,8 +57,8 @@
- 
-     <para>The selections are used to configure various image
-     processing functionality performed by the subdevs which affect the
--    image size. This currently includes cropping, scaling and
--    composition.</para>
-+    image size. This currently includes cropping, scaling, composition
-+    and automatic focus regions of interest.</para>
- 
-     <para>The selection API replaces <link
-     linkend="vidioc-subdev-g-crop">the old subdev crop API</link>. All
-diff --git a/include/uapi/linux/v4l2-common.h b/include/uapi/linux/v4l2-common.h
-index 4f0667e..0372ccb 100644
---- a/include/uapi/linux/v4l2-common.h
-+++ b/include/uapi/linux/v4l2-common.h
-@@ -50,6 +50,11 @@
- /* Current composing area plus all padding pixels */
- #define V4L2_SEL_TGT_COMPOSE_PADDED	0x0103
- 
-+/* Auto focus region of interest */
-+#define V4L2_SEL_TGT_AUTO_FOCUS		0x0200
-+/* Auto focus region bounds */
-+#define V4L2_SEL_TGT_AUTO_FOCUS_BOUNDS	0x0201
-+
- /* Backward compatibility target definitions --- to be removed. */
- #define V4L2_SEL_TGT_CROP_ACTIVE	V4L2_SEL_TGT_CROP
- #define V4L2_SEL_TGT_COMPOSE_ACTIVE	V4L2_SEL_TGT_COMPOSE
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>  include/linux/of.h |   15 ++++++++-------
+>  1 file changed, 8 insertions(+), 7 deletions(-)
+> 
+> diff --git a/include/linux/of.h b/include/linux/of.h
+> index 9ba8cf1..38d4b1a 100644
+> --- a/include/linux/of.h
+> +++ b/include/linux/of.h
+> @@ -85,6 +85,14 @@ static inline struct device_node *of_node_get(struct device_node *node)
+>  static inline void of_node_put(struct device_node *node) { }
+>  #endif /* !CONFIG_OF_DYNAMIC */
+>  
+> +/* Default string compare functions, Allow arch asm/prom.h to override */
+> +#if !defined(of_compat_cmp)
+> +#include <linux/string.h>
+> +#define of_compat_cmp(s1, s2, l)	strcasecmp((s1), (s2))
+> +#define of_prop_cmp(s1, s2)		strcmp((s1), (s2))
+> +#define of_node_cmp(s1, s2)		strcasecmp((s1), (s2))
+> +#endif
+> +
+>  #ifdef CONFIG_OF
+>  
+>  /* Pointer for first entry in chain of all nodes. */
+> @@ -143,13 +151,6 @@ static inline unsigned long of_read_ulong(const __be32 *cell, int size)
+>  #define OF_ROOT_NODE_SIZE_CELLS_DEFAULT 1
+>  #endif
+>  
+> -/* Default string compare functions, Allow arch asm/prom.h to override */
+> -#if !defined(of_compat_cmp)
+> -#define of_compat_cmp(s1, s2, l)	strcasecmp((s1), (s2))
+> -#define of_prop_cmp(s1, s2)		strcmp((s1), (s2))
+> -#define of_node_cmp(s1, s2)		strcasecmp((s1), (s2))
+> -#endif
+> -
+>  /* flag descriptions */
+>  #define OF_DYNAMIC	1 /* node and properties were allocated via kmalloc */
+>  #define OF_DETACHED	2 /* node has been detached from the device tree */
+> -- 
+> 1.7.9.5
+> 
+
 -- 
-1.7.10.4
-
+Grant Likely, B.Sc, P.Eng.
+Secret Lab Technologies, Ltd.
