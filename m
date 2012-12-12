@@ -1,47 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-02.mandic.com.br ([200.225.81.133]:50280 "EHLO
-	smtp-02.mandic.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753847Ab2LKVuR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Dec 2012 16:50:17 -0500
-From: Cesar Eduardo Barros <cesarb@cesarb.net>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, Joe Perches <joe@perches.com>,
-	Cesar Eduardo Barros <cesarb@cesarb.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Josh Wu <josh.wu@atmel.com>, linux-media@vger.kernel.org
-Subject: [PATCH 06/19] MAINTAINERS: fix drivers/media/platform/atmel-isi.c
-Date: Tue, 11 Dec 2012 19:49:48 -0200
-Message-Id: <1355262601-4263-7-git-send-email-cesarb@cesarb.net>
-In-Reply-To: <1355262601-4263-1-git-send-email-cesarb@cesarb.net>
-References: <1355262601-4263-1-git-send-email-cesarb@cesarb.net>
+Received: from mga09.intel.com ([134.134.136.24]:11713 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754843Ab2LLRwe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Dec 2012 12:52:34 -0500
+Date: Wed, 12 Dec 2012 09:52:35 -0800
+From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: laurent.pinchart@ideasonboard.com, linux-usb@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Martin Barrett <martin.barrett@collabora.co.uk>
+Subject: Re: issue with uvcvideo and xhci
+Message-ID: <20121212175235.GD21295@xanatos>
+References: <50C86ECC.9050505@collabora.co.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <50C86ECC.9050505@collabora.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This file was moved to drivers/media/platform/soc_camera/atmel-isi.c by
-commit b47ff4a ([media] move soc_camera to its own directory).
+On Wed, Dec 12, 2012 at 12:47:24PM +0100, Javier Martinez Canillas wrote:
+> Hello,
+> 
+> We have an issue when trying to use USB cameras on a particular machine using
+> the latest mainline Linux 3.7 kernel. This is not a regression since the same
+> issue is present with older kernels (i.e: 3.5).
+> 
+> The cameras work fine when plugged to an USB2.0 port (using the EHCI HCD host
+> controller driver) but they don't when using the USB3.0 port (using the xHCI
+> HCD host controller driver).
+> 
+> The machine's USB3.0 host controller is a NEC Corporation uPD720200 USB 3.0 Host
+> Controller (rev 04).
+> 
+> When enabling trace on the uvcvideo driver I see that most frames are lost:
+> 
+> Dec 12 11:07:58 thinclient kernel: [ 4965.597637] uvcvideo: USB isochronous
+> frame lost (-18).
+> Dec 12 11:07:58 thinclient kernel: [ 4965.597642] uvcvideo: USB isochronous
+> frame lost (-18).
+> Dec 12 11:07:58 thinclient kernel: [ 4965.597647] uvcvideo: Marking buffer as
+> bad (error bit set).
+> Dec 12 11:07:58 thinclient kernel: [ 4965.597651] uvcvideo: Frame complete (EOF
+> found).
+> Dec 12 11:07:58 thinclient kernel: [ 4965.597655] uvcvideo: EOF in empty payload.
+> Dec 12 11:07:58 thinclient kernel: [ 4965.597661] uvcvideo: Dropping payload
+> (out of sync).
+> Dec 12 11:07:58 thinclient kernel: [ 4965.813294] uvcvideo: frame 486 stats:
+> 0/2/8 packets, 0/0/8 pts
+> 
+> The uvcvideo checks if urb->iso_frame_desc[i].status < 0 on the
+> uvc_video_decode_isoc() function (drivers/media/usb/uvc/uvc_video.c).
+> 
+> I checked on the xhci driver and the only place where this error code (-EXDEV)
+> is assigned to frame->status is inside the skip_isoc_td() function
+> (drivers/usb/host/xhci-ring.c).
+> 
+> At this point I'm not sure if this is a bug on the xhci driver, another quirk
+> needed by the XHCI_NEC_HOST, a camera misconfiguration on the USB Video Class
+> driver or a firmware/hardware bug.
 
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Josh Wu <josh.wu@atmel.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
----
- MAINTAINERS | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+It's a known performance issue, although it's not clear whether it's on
+the xHCI driver side or the host controller side.  When an interface
+setting is enabled where the isochronous endpoint requires two
+additional transfers per service interval, the NEC host controller
+starts reporting many missed service intervals.  The xHCI driver then
+finds all the frame buffers that were skipped and marks them with the
+-EXDEV status.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 1fb780e..efbdf54 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1395,7 +1395,7 @@ ATMEL ISI DRIVER
- M:	Josh Wu <josh.wu@atmel.com>
- L:	linux-media@vger.kernel.org
- S:	Supported
--F:	drivers/media/platform/atmel-isi.c
-+F:	drivers/media/platform/soc_camera/atmel-isi.c
- F:	include/media/atmel-isi.h
- 
- ATMEL LCDFB DRIVER
--- 
-1.7.11.7
+An error status of Missed Service Interval means the host controller
+could not access the transfer memory fast enough through the PCI bus to
+service the endpoint in time.  It could be a host hardware issue, or it
+could be software slowing down the system to a crawl.  I lean towards a
+software issue since, as you said, the Windows driver works fine.
+(Although who knows what NEC quirks the Windows driver is working
+around...)
 
+The NEC xHCI host controller is a 0.96 revision, which doesn't support
+the Block Event Interrupt (BEI) flag which cuts down on the number of
+interrupts per URB submitted.  So the xHCI driver's interrupt routine
+gets called on every single service interval, rather than being called
+once per URB.
+
+Since the Linux xHCI driver isn't really optimized for performance yet,
+the interrupt handler is probably pretty slow and could cause delays in
+submitting future URBs.  The high amount of interrupts is probably
+causing other systems to be starved, possibly leading to the xHCI host
+controller not being able to access memory fast enough to service the
+endpoint.
+
+> The cameras are reported to work on the same machine but using another operating
+> system (Windows).
+
+Windows probably uses Event Data TRBs to cut the interrupts down to one
+per URB.  It would take a major effort to make the xHCI driver use Event
+Data TRBs.
+
+> I was wondering if you can give me some pointers on how to be sure what's the
+> issue or if this rings any bells to you.
+
+I don't have time to work on performance issues right now, as I have
+several other critical bugs (mostly around failed S3/S4).  However, if
+you want to try to fix this issue yourself, I suggest you run perf and
+see where the bottle necks in the xHCI interrupt handler are.
+
+I suspect that part of it is that the interrupt handler reads the xHCI
+status register.  That PCI register read is pretty costly, and it's not
+necessary since 99% of the time the host controller is going to report
+an OK status.  And there's no guarantee that when the host does have an
+error that it will set a bad status.
+
+But without an analysis by perf, we won't really know where the
+bottlenecks are.
+
+Sarah Sharp
