@@ -1,92 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3031 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753884Ab2LBUwh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Dec 2012 15:52:37 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id qB2KqYNM066543
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sun, 2 Dec 2012 21:52:36 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 4314165A0041
-	for <linux-media@vger.kernel.org>; Sun,  2 Dec 2012 21:52:34 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20121202205234.4314165A0041@alastor.dyndns.org>
-Date: Sun,  2 Dec 2012 21:52:34 +0100 (CET)
+Received: from mx1.redhat.com ([209.132.183.28]:21107 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752650Ab2LLNI3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Dec 2012 08:08:29 -0500
+Date: Wed, 12 Dec 2012 10:54:47 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Vagner Nishimoto <vnishimoto@ibest.com.br>
+Cc: linux-media@vger.kernel.org
+Subject: Re: DibCom 8000 ISDB-T
+Message-ID: <20121212105447.7a0f0e2f@redhat.com>
+In-Reply-To: <50C863AA.9060908@ibest.com.br>
+References: <50C863AA.9060908@ibest.com.br>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Oi Vagner,
 
-Results of the daily build of media_tree:
+Em Wed, 12 Dec 2012 08:59:54 -0200
+Vagner Nishimoto <vnishimoto@ibest.com.br> escreveu:
 
-date:        Sun Dec  2 19:00:21 CET 2012
-git hash:    d8658bca2e5696df2b6c69bc5538f8fe54e4a01e
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+> 
+> Hi,
+> 
+> I'm using DiBcom 8000 ISDB-T driver and openSUSE 12.2 kernel 3.4.11.
+> The problem is mplayer and others players can't sintonize.
+> The only program that work is VLC 2.0
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: OK
-linux-git-arm-eabi-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: WARNINGS
-linux-git-x86_64: OK
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: ERRORS
-linux-3.5-i686: ERRORS
-linux-3.6-i686: WARNINGS
-linux-3.7-rc1-i686: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: ERRORS
-linux-3.5-x86_64: ERRORS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: WARNINGS
-sparse: ERRORS
+There are very few players that are capable of properly parsing the AAC 
+audio encoding used in Brazil. The thing is that the aac parser used in 
+libfaad doesn't handle well errors, and doesn't converge well, when it 
+doesn't get an audio stream at the start bits. VLC uses its own parser 
+for AAC, with works fine.
 
-Detailed results are available here:
+Also, most DVB applications can work with ISDB-T only in emulation
+mode, as they use DVBv3 API, with doesn't support ISDB. 
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+In any case, this is something that needs to be fixed at each application.
 
-Full logs are available here:
+The proper way is for you to open bug reports for each application you're
+noticing issues (either at openSUSE bug tracking system or by using
+each application's way to report bugs).
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+Abraços,
+Mauro
 
-The V4L-DVB specification from this daily build is here:
+> 
+> mplayer dvb://globo -v
+> 
+> MPlayer dev-SVN-r35127-4.7-openSUSE Linux 12.2 (x86_64)-Packman (C) 2000-2012 
+> MPlayer Team
+> CPU vendor name: GenuineIntel  max cpuid level: 13
+> CPU: Intel(R) Core(TM)2 Quad CPU    Q9550  @ 2.83GHz (Family: 6, Model: 23, 
+> Stepping: 10)
+> extended cpuid-level: 8
+> extended cache-info: 402686016
+> Detected cache-line size is 64 bytes
+> CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNowExt: 0 SSE: 1 SSE2: 1 SSSE3: 1
+> Compiled with runtime CPU detection.
+> get_path('codecs.conf') -> '/home/vagner/.mplayer/codecs.conf'
+> Reading optional codecs config file /home/vagner/.mplayer/codecs.conf: No such 
+> file or directory
+> Reading optional codecs config file /etc/mplayer/codecs.conf: No such file or 
+> directory
+> Using built-in default codecs.conf.
+> init_freetype
+> Using MMX (with tiny bit MMX2) Optimized OnScreenDisplay
+> get_path('fonts') -> '/home/vagner/.mplayer/fonts'
+> Configuration: --enable-debug --prefix=/usr --confdir=/etc/mplayer 
+> --datadir=/usr/share/mplayer --libdir=/usr/lib64 --mandir=/usr/share/man 
+> --disable-libdvdcss-internal --enable-runtime-cpudetection --enable-bl 
+> --enable-fbdev --enable-gui --enable-menu --language=all --enable-xvmc 
+> --with-xvmclib=XvMCW --enable-smb --enable-joystick --enable-radio 
+> --enable-radio-capture --enable-dvdnav --disable-nemesi --disable-wii 
+> --enable-faad --disable-tv-v4l1 --enable-v4l2 --disable-zr --disable-qtx 
+> --disable-arts --disable-esd --disable-mp3lib
+> CommandLine: 'dvb://globo' '-v'
+> Using nanosleep() timing
+> get_path('input.conf') -> '/home/vagner/.mplayer/input.conf'
+> Parsing input config file /home/vagner/.mplayer/input.conf
+> Input config file /home/vagner/.mplayer/input.conf parsed: 92 binds
+> get_path('globo.conf') -> '/home/vagner/.mplayer/globo.conf'
+> 
+> Playing dvb://globo.
+> get_path('sub/') -> '/home/vagner/.mplayer/sub/'
+> TUNER TYPE SEEMS TO BE DVB-T
+> get_path('channels.conf') -> '/home/vagner/.mplayer/channels.conf'
+> get_path('channels.conf.ter') -> '/home/vagner/.mplayer/channels.conf.ter'
+> get_path('channels.conf') -> '/home/vagner/.mplayer/channels.conf'
+> CONFIG_READ FILE: /home/vagner/.mplayer/channels.conf, type: 2
+> TER, NUM: 0, NUM_FIELDS: 11, NAME: cultura, FREQ: 533142857 PIDS:  8196  8196  0
+> TER, NUM: 1, NUM_FIELDS: 11, NAME: sbt, FREQ: 557142857 PIDS:  8196  8196  0
+> TER, NUM: 2, NUM_FIELDS: 11, NAME: globo, FREQ: 497142857 PIDS:  8196  8196  0
+> TER, NUM: 3, NUM_FIELDS: 11, NAME: record, FREQ: 509142857 PIDS:  8196  8196  0
+> TER, NUM: 4, NUM_FIELDS: 11, NAME: redetv, FREQ: 563142857 PIDS:  8196  8196  0
+> TER, NUM: 5, NUM_FIELDS: 11, NAME: gazeta, FREQ: 491142857 PIDS:  8196  8196  0
+> TER, NUM: 6, NUM_FIELDS: 11, NAME: band, FREQ: 527142857 PIDS:  8196  8196  0
+> TER, NUM: 7, NUM_FIELDS: 11, NAME: megatv, FREQ: 479142857 PIDS:  8196  8196  0
+> TER, NUM: 8, NUM_FIELDS: 11, NAME: canal21, FREQ: 521142857 PIDS:  8196  8196  0
+> TER, NUM: 9, NUM_FIELDS: 11, NAME: cnt, FREQ: 545142857 PIDS:  8196  8196  0
+> TER, NUM: 10, NUM_FIELDS: 11, NAME: rit, FREQ: 569142857 PIDS:  8196  8196  0
+> TER, NUM: 11, NUM_FIELDS: 11, NAME: mtv, FREQ: 575142857 PIDS:  8196  8196  0
+> TER, NUM: 12, NUM_FIELDS: 11, NAME: toptv, FREQ: 587142857 PIDS:  8196  8196  0
+> TER, NUM: 13, NUM_FIELDS: 11, NAME: redevida, FREQ: 623142857 PIDS:  8196  8196  0
+> TER, NUM: 14, NUM_FIELDS: 11, NAME: tvdiario, FREQ: 701142857 PIDS:  8196  8196  0
+> TER, NUM: 15, NUM_FIELDS: 11, NAME: aparecida, FREQ: 635142857 PIDS:  8196  8196  0
+> TER, NUM: 16, NUM_FIELDS: 11, NAME: rcnews, FREQ: 647142857 PIDS:  8196  8196  0
+> TER, NUM: 17, NUM_FIELDS: 11, NAME: ngt, FREQ: 671142857 PIDS:  8196  8196  0
+> TER, NUM: 18, NUM_FIELDS: 11, NAME: terraviva, FREQ: 683142857 PIDS:  8196  8196  0
+> TER, NUM: 19, NUM_FIELDS: 11, NAME: redebrasil, FREQ: 725142857 PIDS:  8192
+> TER, NUM: 20, NUM_FIELDS: 11, NAME: mack, FREQ: 749142857 PIDS:  8196  8196  0
+> TER, NUM: 21, NUM_FIELDS: 11, NAME: tvcamara, FREQ: 755142857 PIDS:  8196  8196  0
+> TER, NUM: 22, NUM_FIELDS: 11, NAME: tvbrasil, FREQ: 767142857 PIDS:  8196  8196  0
+> TER, NUM: 23, NUM_FIELDS: 11, NAME: tvjustiça, FREQ: 773142857 PIDS:  8196  8196  0
+> DVB_CONFIG, can't open device /dev/dvb/adapter1/frontend0, skipping
+> DVB_CONFIG, can't open device /dev/dvb/adapter2/frontend0, skipping
+> DVB_CONFIG, can't open device /dev/dvb/adapter3/frontend0, skipping
+> OPEN_DVB: prog=globo, card=1, type=2
+> 
+> dvb_streaming_start(PROG: globo, CARD: 1, FILE: (null))
+> PROGRAM NUMBER 2: name=globo, freq=497142857
+> DVB_OPEN_DEVICES(3)
+> OPEN(0), file /dev/dvb/adapter0/demux0: FD=4, CNT=0
+> OPEN(1), file /dev/dvb/adapter0/demux0: FD=5, CNT=1
+> OPEN(2), file /dev/dvb/adapter0/demux0: FD=6, CNT=2
+> DVB_SET_CHANNEL: new channel name=globo, card: 0, channel 2
+> dvb_tune Freq: 497142857
+> TUNE_IT, fd_frontend 3, fd_sec -1
+> freq 497142857, srate 0, pol Using DVB card "DiBcom 8000 ISDB-T"
+> tuning DVB-T to 497142857 Hz, bandwidth: 2
+> dvb_tune, TUNING FAILED
+> DVBIN_CLOSE, close(2), fd=6, COUNT=2
+> DVBIN_CLOSE, close(1), fd=5, COUNT=1
+> DVBIN_CLOSE, close(0), fd=4, COUNT=0
+> 
+> vo: x11 uninit called but X11 not initialized..
+> 
+> Exiting... (End of file)
+> 
+> With Ubuntu 12.10 is the same.
+> 
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+
+-- 
+
+Cheers,
+Mauro
