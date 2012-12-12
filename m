@@ -1,43 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36310 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750818Ab2LJRqR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 12:46:17 -0500
-Message-ID: <50C61FC4.7090100@iki.fi>
-Date: Mon, 10 Dec 2012 19:45:40 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:39558 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754860Ab2LLVe2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Dec 2012 16:34:28 -0500
+Received: by mail-ee0-f46.google.com with SMTP id e53so817732eek.19
+        for <linux-media@vger.kernel.org>; Wed, 12 Dec 2012 13:34:27 -0800 (PST)
+Message-ID: <50C8F86F.2090503@googlemail.com>
+Date: Wed, 12 Dec 2012 22:34:39 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	=?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: RFC: First draft of guidelines for submitting patches to linux-media
-References: <201212101407.09338.hverkuil@xs4all.nl> <50C60620.2010603@googlemail.com> <201212101727.29074.hverkuil@xs4all.nl> <20121210153816.0d4d9b64@redhat.com>
-In-Reply-To: <20121210153816.0d4d9b64@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Antti Palosaari <crope@iki.fi>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Matthew Gyurgyik <matthew@pyther.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com> <50C48891.2050903@googlemail.com> <50C4A520.6020908@pyther.net> <CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com> <50C4BA20.8060003@googlemail.com> <50C4BAFB.60304@googlemail.com> <50C4C525.6020006@googlemail.com> <50C4D011.6010700@pyther.net> <50C60220.8050908@googlemail.com> <CAGoCfizTfZVFkNvdQuuisOugM2BGipYd_75R63nnj=K7E8ULWQ@mail.gmail.com> <50C60772.2010904@googlemail.com> <CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com> <50C6226C.8090302@iki! .fi> <50C636E7.8060003@googlemail.com> <50C64AB0.7020407@iki.fi> <50C79CD6.4060501@googlemail.com> <50C79E9A.3050301@iki.fi> <50C8F645.60308@googlemail.com>
+In-Reply-To: <50C8F645.60308@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/10/2012 07:38 PM, Mauro Carvalho Chehab wrote:
-> Yeah, the issue is that both reviewed, non-reviewed and rejected/commented
-> patches go into the very same queue, forcing me to revisit each patch again,
-> even the rejected/commented ones, and the previous versions of newer patches.
->
-> By giving rights and responsibilities to the sub-maintainers to manage their
-> stuff directly at patchwork, those patches that tend to stay at patchwork for
-> a long time will likely disappear, and the queue will be cleaner.
+Am 12.12.2012 22:25, schrieb Frank Schäfer:
 
-Is there any change module maintainer responsibility of patch could do 
-what ever he likes to given patch in patchwork?
+...
+> Am 11.12.2012 21:59, schrieb Antti Palosaari:
+>> See current af9015 driver as example how driver makes decision which
+>> variant of NEC is used. You will need something similar. Read all 4
+>> NEC bytes from the hardware and then use driver to make decision which
+>> variant it is.
+> Yes, checking for inverted address and key code bytes would be a
+> possibility...
 
-I have looked it already many times but I can drop only my own patches. 
-If someone sends patch to my driver X and I pick it up my GIT tree I 
-would like to mark it superseded for patchwork (which is not possible 
-currently).
+The problem here is of course, that we have to configure the device first.
+So we need to know the protocol variant before getting any bytes from
+the device...
 
-regards
-Antti
-
--- 
-http://palosaari.fi/
+Frank
