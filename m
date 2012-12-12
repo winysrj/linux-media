@@ -1,115 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:15703 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751400Ab2LaQEH (ORCPT
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:56248 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755440Ab2LLW27 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Dec 2012 11:04:07 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
-	rob.herring@calxeda.com, thomas.abraham@linaro.org,
-	t.figa@samsung.com, sw0312.kim@samsung.com,
-	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC v2 09/15] s5p-fimc: Use pinctrl API for camera ports
- configuration
-Date: Mon, 31 Dec 2012 17:03:07 +0100
-Message-id: <1356969793-27268-10-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
-References: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
+	Wed, 12 Dec 2012 17:28:59 -0500
+Message-ID: <50C90528.2040602@collabora.co.uk>
+Date: Wed, 12 Dec 2012 23:28:56 +0100
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+MIME-Version: 1.0
+To: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+CC: laurent.pinchart@ideasonboard.com, linux-usb@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Martin Barrett <martin.barrett@collabora.co.uk>
+Subject: Re: issue with uvcvideo and xhci
+References: <50C86ECC.9050505@collabora.co.uk> <20121212175235.GD21295@xanatos>
+In-Reply-To: <20121212175235.GD21295@xanatos>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Before the camera ports can be used the pinmux needs to be configured
-properly. This patch adds a function to get the pinctrl states and to
-set default camera port pinmux state during the media driver's probe().
-The camera port(s) are configured for video bus operation in this way.
+On 12/12/2012 06:52 PM, Sarah Sharp wrote:
+> On Wed, Dec 12, 2012 at 12:47:24PM +0100, Javier Martinez Canillas wrote:
+>> Hello,
+>> 
+>> We have an issue when trying to use USB cameras on a particular machine using
+>> the latest mainline Linux 3.7 kernel. This is not a regression since the same
+>> issue is present with older kernels (i.e: 3.5).
+>> 
+>> The cameras work fine when plugged to an USB2.0 port (using the EHCI HCD host
+>> controller driver) but they don't when using the USB3.0 port (using the xHCI
+>> HCD host controller driver).
+>> 
+>> The machine's USB3.0 host controller is a NEC Corporation uPD720200 USB 3.0 Host
+>> Controller (rev 04).
+>> 
+>> When enabling trace on the uvcvideo driver I see that most frames are lost:
+>> 
+>> Dec 12 11:07:58 thinclient kernel: [ 4965.597637] uvcvideo: USB isochronous
+>> frame lost (-18).
+>> Dec 12 11:07:58 thinclient kernel: [ 4965.597642] uvcvideo: USB isochronous
+>> frame lost (-18).
+>> Dec 12 11:07:58 thinclient kernel: [ 4965.597647] uvcvideo: Marking buffer as
+>> bad (error bit set).
+>> Dec 12 11:07:58 thinclient kernel: [ 4965.597651] uvcvideo: Frame complete (EOF
+>> found).
+>> Dec 12 11:07:58 thinclient kernel: [ 4965.597655] uvcvideo: EOF in empty payload.
+>> Dec 12 11:07:58 thinclient kernel: [ 4965.597661] uvcvideo: Dropping payload
+>> (out of sync).
+>> Dec 12 11:07:58 thinclient kernel: [ 4965.813294] uvcvideo: frame 486 stats:
+>> 0/2/8 packets, 0/0/8 pts
+>> 
+>> The uvcvideo checks if urb->iso_frame_desc[i].status < 0 on the
+>> uvc_video_decode_isoc() function (drivers/media/usb/uvc/uvc_video.c).
+>> 
+>> I checked on the xhci driver and the only place where this error code (-EXDEV)
+>> is assigned to frame->status is inside the skip_isoc_td() function
+>> (drivers/usb/host/xhci-ring.c).
+>> 
+>> At this point I'm not sure if this is a bug on the xhci driver, another quirk
+>> needed by the XHCI_NEC_HOST, a camera misconfiguration on the USB Video Class
+>> driver or a firmware/hardware bug.
+> 
+> It's a known performance issue, although it's not clear whether it's on
+> the xHCI driver side or the host controller side.  When an interface
+> setting is enabled where the isochronous endpoint requires two
+> additional transfers per service interval, the NEC host controller
+> starts reporting many missed service intervals.  The xHCI driver then
+> finds all the frame buffers that were skipped and marks them with the
+> -EXDEV status.
+>
+> An error status of Missed Service Interval means the host controller
+> could not access the transfer memory fast enough through the PCI bus to
+> service the endpoint in time.  It could be a host hardware issue, or it
+> could be software slowing down the system to a crawl.  I lean towards a
+> software issue since, as you said, the Windows driver works fine.
+> (Although who knows what NEC quirks the Windows driver is working
+> around...)
+>
+> The NEC xHCI host controller is a 0.96 revision, which doesn't support
+> the Block Event Interrupt (BEI) flag which cuts down on the number of
+> interrupts per URB submitted.  So the xHCI driver's interrupt routine
+> gets called on every single service interval, rather than being called
+> once per URB.
+> 
+> Since the Linux xHCI driver isn't really optimized for performance yet,
+> the interrupt handler is probably pretty slow and could cause delays in
+> submitting future URBs.  The high amount of interrupts is probably
+> causing other systems to be starved, possibly leading to the xHCI host
+> controller not being able to access memory fast enough to service the
+> endpoint.
+>
 
-"inactive" pinctrl state is intended for setting clock output pin(s)
-into high impedance state when camera sensors are powered off.
+Hi Sarah,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyugmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |   25 ++++++++++++++++++++++++
- drivers/media/platform/s5p-fimc/fimc-mdevice.h |    6 ++++++
- 2 files changed, 31 insertions(+)
+Thanks for the explanation. Now it makes sense to me and I understand why it
+works when I decrease either the frame rate or the frame size below certain
+thresholds.
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index 3ac6ea8..9e4ed9e 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -1123,6 +1123,25 @@ static ssize_t fimc_md_sysfs_store(struct device *dev,
- static DEVICE_ATTR(subdev_conf_mode, S_IWUSR | S_IRUGO,
- 		   fimc_md_sysfs_show, fimc_md_sysfs_store);
- 
-+static int fimc_md_get_pinctrl(struct fimc_md *fmd)
-+{
-+	fmd->pinctl = devm_pinctrl_get_select_default(&fmd->pdev->dev);
-+	if (IS_ERR(fmd->pinctl))
-+		return PTR_ERR(fmd->pinctl);
-+
-+	fmd->pinctl_state_default = pinctrl_lookup_state(fmd->pinctl,
-+						 PINCTRL_STATE_DEFAULT);
-+	if (IS_ERR(fmd->pinctl_state_default))
-+		return PTR_ERR(fmd->pinctl_state_default);
-+
-+	fmd->pinctl_state_idle = pinctrl_lookup_state(fmd->pinctl,
-+						PINCTRL_STATE_INACTIVE);
-+	if (IS_ERR(fmd->pinctl_state_idle))
-+		return PTR_ERR(fmd->pinctl_state_idle);
-+
-+	return 0;
-+}
-+
- static int fimc_md_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
-@@ -1167,6 +1186,12 @@ static int fimc_md_probe(struct platform_device *pdev)
- 	/* Protect the media graph while we're registering entities */
- 	mutex_lock(&fmd->media_dev.graph_mutex);
- 
-+	if (dev->of_node) {
-+		ret = fimc_md_get_pinctrl(fmd);
-+		if (ret < 0)
-+			goto err_unlock;
-+	}
-+
- 	if (fmd->pdev->dev.of_node)
- 		ret = fimc_md_register_of_platform_entities(fmd);
- 	else
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.h b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-index 1b7850c..89cecaa 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-@@ -10,6 +10,7 @@
- #define FIMC_MDEVICE_H_
- 
- #include <linux/clk.h>
-+#include <linux/pinctrl/consumer.h>
- #include <linux/platform_device.h>
- #include <linux/mutex.h>
- #include <media/media-device.h>
-@@ -25,6 +26,8 @@
- #define FIMC_LITE_OF_NODE_NAME	"fimc_lite"
- #define CSIS_OF_NODE_NAME	"csis"
- 
-+#define PINCTRL_STATE_INACTIVE	"inactive"
-+
- /* Group IDs of sensor, MIPI-CSIS, FIMC-LITE and the writeback subdevs. */
- #define GRP_ID_SENSOR		(1 << 8)
- #define GRP_ID_FIMC_IS_SENSOR	(1 << 9)
-@@ -85,6 +88,9 @@ struct fimc_md {
- 	struct media_device media_dev;
- 	struct v4l2_device v4l2_dev;
- 	struct platform_device *pdev;
-+	struct pinctrl *pinctl;
-+	struct pinctrl_state *pinctl_state_default;
-+	struct pinctrl_state *pinctl_state_idle;
- 	bool user_subdev_api;
- 	spinlock_t slock;
- };
--- 
-1.7.9.5
+>> The cameras are reported to work on the same machine but using another operating
+>> system (Windows).
+> 
+> Windows probably uses Event Data TRBs to cut the interrupts down to one
+> per URB.  It would take a major effort to make the xHCI driver use Event
+> Data TRBs.
+> 
+>> I was wondering if you can give me some pointers on how to be sure what's the
+>> issue or if this rings any bells to you.
+> 
+> I don't have time to work on performance issues right now, as I have
+> several other critical bugs (mostly around failed S3/S4).  However, if
+> you want to try to fix this issue yourself, I suggest you run perf and
+> see where the bottle necks in the xHCI interrupt handler are.
+> 
+> I suspect that part of it is that the interrupt handler reads the xHCI
+> status register.  That PCI register read is pretty costly, and it's not
+> necessary since 99% of the time the host controller is going to report
+> an OK status.  And there's no guarantee that when the host does have an
+> error that it will set a bad status.
+> 
+> But without an analysis by perf, we won't really know where the
+> bottlenecks are.
+> 
+> Sarah Sharp
+> 
 
+Ok, I'll try do some performance analysis to figure out where these bottlenecks
+could be and if I can do anything to improve them.
+
+Thanks a lot for your help!
+
+Best regards,
+Javier
