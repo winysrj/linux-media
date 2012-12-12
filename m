@@ -1,60 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:59863 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751448Ab2LQJhU (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:36712 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752621Ab2LLJXG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Dec 2012 04:37:20 -0500
-Date: Mon, 17 Dec 2012 10:37:14 +0100
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Fabio Estevam <fabio.estevam@freescale.com>
-Cc: mchehab@infradead.org, kernel@pengutronix.de,
-	p.zabel@pengutronix.de, javier.martin@vista-silicon.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] coda: Fix build due to iram.h rename
-Message-ID: <20121217093714.GI26326@pengutronix.de>
-References: <1352898282-21576-1-git-send-email-fabio.estevam@freescale.com>
+	Wed, 12 Dec 2012 04:23:06 -0500
+Message-ID: <50C84CF7.7030602@canonical.com>
+Date: Wed, 12 Dec 2012 10:23:03 +0100
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1352898282-21576-1-git-send-email-fabio.estevam@freescale.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+CC: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH, resend] dma-buf: remove fallback for !CONFIG_DMA_SHARED_BUFFER
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 14, 2012 at 11:04:42AM -0200, Fabio Estevam wrote:
-> commit c045e3f13 (ARM: imx: include iram.h rather than mach/iram.h) changed the
-> location of iram.h, which causes the following build error when building the coda
-> driver:
-> 
-> drivers/media/platform/coda.c:27:23: error: mach/iram.h: No such file or directory
-> drivers/media/platform/coda.c: In function 'coda_probe':
-> drivers/media/platform/coda.c:2000: error: implicit declaration of function 'iram_alloc'
-> drivers/media/platform/coda.c:2001: warning: assignment makes pointer from integer without a cast
-> drivers/media/platform/coda.c: In function 'coda_remove':
-> drivers/media/platform/coda.c:2024: error: implicit declaration of function 'iram_free
-> 
-> Since the content of iram.h is not imx specific, move it to include/linux/iram.h
-> instead.
+Documentation says that code requiring dma-buf should add it to
+select, so inline fallbacks are not going to be used. A link error
+will make it obvious what went wrong, instead of silently doing
+nothing at runtime.
 
-Generally we need a fix for this, but:
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Reviewed-by: Rob Clark <rob.clark@linaro.org>
 
-> diff --git a/arch/arm/mach-imx/iram.h b/include/linux/iram.h
-> similarity index 100%
-> rename from arch/arm/mach-imx/iram.h
-> rename to include/linux/iram.h
+---
+Resubmit since it seemed to have gotten lost last cycle.
 
-We shouldn't introduce a file include/linux/iram.h which is purely i.MX
-specific. The name is far too generic. I would rather suggest
-include/linux/platform_data/imx-iram.h (Although it's not exactly
-platform_data, so I'm open for better suggestions).
+ include/linux/dma-buf.h | 99 -------------------------------------------------
+ 1 file changed, 99 deletions(-)
 
-As a side note this i.MX specific iram stuff (hopefully) is obsolete
-after the next merge window as Philip already has patches for a generic
-iram allocator which didn't make it into this merge window.
-
-Sascha
-
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index eb48f38..bd2e52c 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -156,7 +156,6 @@ static inline void get_dma_buf(struct dma_buf *dmabuf)
+ 	get_file(dmabuf->file);
+ }
+ 
+-#ifdef CONFIG_DMA_SHARED_BUFFER
+ struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+ 							struct device *dev);
+ void dma_buf_detach(struct dma_buf *dmabuf,
+@@ -184,103 +183,5 @@ int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
+ 		 unsigned long);
+ void *dma_buf_vmap(struct dma_buf *);
+ void dma_buf_vunmap(struct dma_buf *, void *vaddr);
+-#else
+-
+-static inline struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+-							struct device *dev)
+-{
+-	return ERR_PTR(-ENODEV);
+-}
+-
+-static inline void dma_buf_detach(struct dma_buf *dmabuf,
+-				  struct dma_buf_attachment *dmabuf_attach)
+-{
+-	return;
+-}
+-
+-static inline struct dma_buf *dma_buf_export(void *priv,
+-					     const struct dma_buf_ops *ops,
+-					     size_t size, int flags)
+-{
+-	return ERR_PTR(-ENODEV);
+-}
+-
+-static inline int dma_buf_fd(struct dma_buf *dmabuf, int flags)
+-{
+-	return -ENODEV;
+-}
+-
+-static inline struct dma_buf *dma_buf_get(int fd)
+-{
+-	return ERR_PTR(-ENODEV);
+-}
+-
+-static inline void dma_buf_put(struct dma_buf *dmabuf)
+-{
+-	return;
+-}
+-
+-static inline struct sg_table *dma_buf_map_attachment(
+-	struct dma_buf_attachment *attach, enum dma_data_direction write)
+-{
+-	return ERR_PTR(-ENODEV);
+-}
+-
+-static inline void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
+-			struct sg_table *sg, enum dma_data_direction dir)
+-{
+-	return;
+-}
+-
+-static inline int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
+-					   size_t start, size_t len,
+-					   enum dma_data_direction dir)
+-{
+-	return -ENODEV;
+-}
+-
+-static inline void dma_buf_end_cpu_access(struct dma_buf *dmabuf,
+-					  size_t start, size_t len,
+-					  enum dma_data_direction dir)
+-{
+-}
+-
+-static inline void *dma_buf_kmap_atomic(struct dma_buf *dmabuf,
+-					unsigned long pnum)
+-{
+-	return NULL;
+-}
+-
+-static inline void dma_buf_kunmap_atomic(struct dma_buf *dmabuf,
+-					 unsigned long pnum, void *vaddr)
+-{
+-}
+-
+-static inline void *dma_buf_kmap(struct dma_buf *dmabuf, unsigned long pnum)
+-{
+-	return NULL;
+-}
+-
+-static inline void dma_buf_kunmap(struct dma_buf *dmabuf,
+-				  unsigned long pnum, void *vaddr)
+-{
+-}
+-
+-static inline int dma_buf_mmap(struct dma_buf *dmabuf,
+-			       struct vm_area_struct *vma,
+-			       unsigned long pgoff)
+-{
+-	return -ENODEV;
+-}
+-
+-static inline void *dma_buf_vmap(struct dma_buf *dmabuf)
+-{
+-	return NULL;
+-}
+-
+-static inline void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
+-{
+-}
+-#endif /* CONFIG_DMA_SHARED_BUFFER */
+ 
+ #endif /* __DMA_BUF_H__ */
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.8.0
+
+
