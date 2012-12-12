@@ -1,60 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f52.google.com ([209.85.210.52]:52922 "EHLO
-	mail-da0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752915Ab2L1K01 (ORCPT
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:53452 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933182Ab2LLAc4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Dec 2012 05:26:27 -0500
-Received: by mail-da0-f52.google.com with SMTP id f10so4726916dak.25
-        for <linux-media@vger.kernel.org>; Fri, 28 Dec 2012 02:26:26 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, s.nawrocki@samsung.com,
-	sylvester.nawrocki@gmail.com, sachin.kamat@linaro.org,
-	patches@linaro.org
-Subject: [PATCH 3/3] [media] s5p-mfc: Use of_match_ptr and CONFIG_OF
-Date: Fri, 28 Dec 2012 15:48:28 +0530
-Message-Id: <1356689908-6866-3-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1356689908-6866-1-git-send-email-sachin.kamat@linaro.org>
-References: <1356689908-6866-1-git-send-email-sachin.kamat@linaro.org>
+	Tue, 11 Dec 2012 19:32:56 -0500
+From: Cyril Roelandt <tipecaml@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org,
+	Cyril Roelandt <tipecaml@gmail.com>, manjunath.hadli@ti.com,
+	prabhakar.lad@ti.com, mchehab@redhat.com,
+	linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com
+Subject: [PATCH 2/5] media: davinci: fix return value check in vpbe_display_reqbufs().
+Date: Wed, 12 Dec 2012 01:24:51 +0100
+Message-Id: <1355271894-5284-3-git-send-email-tipecaml@gmail.com>
+In-Reply-To: <1355271894-5284-1-git-send-email-tipecaml@gmail.com>
+References: <1355271894-5284-1-git-send-email-tipecaml@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This builds the code only if DT is enabled.
+vb2_dma_contig_init_ctx() returns ERR_PTR and never returns NULL, so IS_ERR
+should be used instead of a NULL check.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Cyril Roelandt <tipecaml@gmail.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/media/platform/davinci/vpbe_display.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 3930177..65ed603 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1405,6 +1405,7 @@ static struct platform_device_id mfc_driver_ids[] = {
- };
- MODULE_DEVICE_TABLE(platform, mfc_driver_ids);
- 
-+#ifdef CONFIG_OF
- static const struct of_device_id exynos_mfc_match[] = {
- 	{
- 		.compatible = "samsung,mfc-v5",
-@@ -1416,6 +1417,7 @@ static const struct of_device_id exynos_mfc_match[] = {
- 	{},
- };
- MODULE_DEVICE_TABLE(of, exynos_mfc_match);
-+#endif
- 
- static void *mfc_get_drv_data(struct platform_device *pdev)
- {
-@@ -1442,7 +1444,7 @@ static struct platform_driver s5p_mfc_driver = {
- 		.name	= S5P_MFC_NAME,
- 		.owner	= THIS_MODULE,
- 		.pm	= &s5p_mfc_pm_ops,
--		.of_match_table = exynos_mfc_match,
-+		.of_match_table = of_match_ptr(exynos_mfc_match),
- 	},
- };
- 
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 2bfde79..2db4eff 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -1393,7 +1393,7 @@ static int vpbe_display_reqbufs(struct file *file, void *priv,
+ 	}
+ 	/* Initialize videobuf queue as per the buffer type */
+ 	layer->alloc_ctx = vb2_dma_contig_init_ctx(vpbe_dev->pdev);
+-	if (!layer->alloc_ctx) {
++	if (IS_ERR(layer->alloc_ctx)) {
+ 		v4l2_err(&vpbe_dev->v4l2_dev, "Failed to get the context\n");
+ 		return -EINVAL;
+ 	}
 -- 
-1.7.4.1
+1.7.10.4
 
