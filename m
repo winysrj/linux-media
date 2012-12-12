@@ -1,93 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4477 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751592Ab2LSUra (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:30228 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752255Ab2LLLUV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Dec 2012 15:47:30 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id qBJKlQq4014931
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Wed, 19 Dec 2012 21:47:28 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id A9AEC11E00AB
-	for <linux-media@vger.kernel.org>; Wed, 19 Dec 2012 21:47:26 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Wed, 12 Dec 2012 06:20:21 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MEX006VJ0T2WS30@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 12 Dec 2012 20:20:00 +0900 (KST)
+Received: from amdc1342.digital.local ([106.116.147.39])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MEX00JKD0T4V190@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 12 Dec 2012 20:20:00 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20121219204726.A9AEC11E00AB@alastor.dyndns.org>
-Date: Wed, 19 Dec 2012 21:47:26 +0100 (CET)
+Cc: jtp.park@samsung.com, arun.kk@samsung.com, s.nawrocki@samsung.com,
+	posciak@google.com, Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] s5p-mfc: Fix interrupt error handling routine
+Date: Wed, 12 Dec 2012 12:19:44 +0100
+Message-id: <1355311184-30029-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |   88 +++++++++++++-----------------
+ 1 file changed, 37 insertions(+), 51 deletions(-)
 
-Results of the daily build of media_tree:
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 3afe879..5448ad1 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -412,62 +412,48 @@ leave_handle_frame:
+ }
+ 
+ /* Error handling for interrupt */
+-static void s5p_mfc_handle_error(struct s5p_mfc_ctx *ctx,
+-				 unsigned int reason, unsigned int err)
++static void s5p_mfc_handle_error(struct s5p_mfc_dev *dev,
++		struct s5p_mfc_ctx *ctx, unsigned int reason, unsigned int err)
+ {
+-	struct s5p_mfc_dev *dev;
+ 	unsigned long flags;
+ 
+-	/* If no context is available then all necessary
+-	 * processing has been done. */
+-	if (ctx == NULL)
+-		return;
+-
+-	dev = ctx->dev;
+ 	mfc_err("Interrupt Error: %08x\n", err);
+-	s5p_mfc_hw_call(dev->mfc_ops, clear_int_flags, dev);
+-	wake_up_dev(dev, reason, err);
+ 
+-	/* Error recovery is dependent on the state of context */
+-	switch (ctx->state) {
+-	case MFCINST_INIT:
+-		/* This error had to happen while acquireing instance */
+-	case MFCINST_GOT_INST:
+-		/* This error had to happen while parsing the header */
+-	case MFCINST_HEAD_PARSED:
+-		/* This error had to happen while setting dst buffers */
+-	case MFCINST_RETURN_INST:
+-		/* This error had to happen while releasing instance */
+-		clear_work_bit(ctx);
+-		wake_up_ctx(ctx, reason, err);
+-		if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+-			BUG();
+-		s5p_mfc_clock_off();
+-		ctx->state = MFCINST_ERROR;
+-		break;
+-	case MFCINST_FINISHING:
+-	case MFCINST_FINISHED:
+-	case MFCINST_RUNNING:
+-		/* It is higly probable that an error occured
+-		 * while decoding a frame */
+-		clear_work_bit(ctx);
+-		ctx->state = MFCINST_ERROR;
+-		/* Mark all dst buffers as having an error */
+-		spin_lock_irqsave(&dev->irqlock, flags);
+-		s5p_mfc_hw_call(dev->mfc_ops, cleanup_queue, &ctx->dst_queue,
+-				&ctx->vq_dst);
+-		/* Mark all src buffers as having an error */
+-		s5p_mfc_hw_call(dev->mfc_ops, cleanup_queue, &ctx->src_queue,
+-				&ctx->vq_src);
+-		spin_unlock_irqrestore(&dev->irqlock, flags);
+-		if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+-			BUG();
+-		s5p_mfc_clock_off();
+-		break;
+-	default:
+-		mfc_err("Encountered an error interrupt which had not been handled\n");
+-		break;
++	if (ctx != NULL) {
++		/* Error recovery is dependent on the state of context */
++		switch (ctx->state) {
++		case MFCINST_RES_CHANGE_INIT:
++		case MFCINST_RES_CHANGE_FLUSH:
++		case MFCINST_RES_CHANGE_END:
++		case MFCINST_FINISHING:
++		case MFCINST_FINISHED:
++		case MFCINST_RUNNING:
++			/* It is higly probable that an error occured
++			 * while decoding a frame */
++			clear_work_bit(ctx);
++			ctx->state = MFCINST_ERROR;
++			/* Mark all dst buffers as having an error */
++			spin_lock_irqsave(&dev->irqlock, flags);
++			s5p_mfc_hw_call(dev->mfc_ops, cleanup_queue,
++						&ctx->dst_queue, &ctx->vq_dst);
++			/* Mark all src buffers as having an error */
++			s5p_mfc_hw_call(dev->mfc_ops, cleanup_queue,
++						&ctx->src_queue, &ctx->vq_src);
++			spin_unlock_irqrestore(&dev->irqlock, flags);
++			wake_up_ctx(ctx, reason, err);
++			break;
++		default:
++			clear_work_bit(ctx);
++			ctx->state = MFCINST_ERROR;
++			wake_up_ctx(ctx, reason, err);
++			break;
++		}
+ 	}
++	if (test_and_clear_bit(0, &dev->hw_lock) == 0)
++		BUG();
++	s5p_mfc_hw_call(dev->mfc_ops, clear_int_flags, dev);
++	s5p_mfc_clock_off();
++	wake_up_dev(dev, reason, err);
+ 	return;
+ }
+ 
+@@ -632,7 +618,7 @@ static irqreturn_t s5p_mfc_irq(int irq, void *priv)
+ 				dev->warn_start)
+ 			s5p_mfc_handle_frame(ctx, reason, err);
+ 		else
+-			s5p_mfc_handle_error(ctx, reason, err);
++			s5p_mfc_handle_error(dev, ctx, reason, err);
+ 		clear_bit(0, &dev->enter_suspend);
+ 		break;
+ 
+-- 
+1.7.9.5
 
-date:        Wed Dec 19 19:00:26 CET 2012
-git hash:    49cc629df16f2a15917800a8579bd9c25c41b634
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
-
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: OK
-linux-git-arm-eabi-omap: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: WARNINGS
-linux-3.5-i686: WARNINGS
-linux-3.6-i686: WARNINGS
-linux-3.7-i686: ERRORS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: WARNINGS
-linux-3.5-x86_64: WARNINGS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-x86_64: ERRORS
-apps: WARNINGS
-spec-git: WARNINGS
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
