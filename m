@@ -1,85 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32883 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752597Ab2LXPGl convert rfc822-to-8bit (ORCPT
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:49455 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754616Ab2LLQjf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Dec 2012 10:06:41 -0500
-Date: Mon, 24 Dec 2012 13:06:15 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Patch update notification: 37 patches updated
-Message-ID: <20121224130615.00211d85@redhat.com>
-In-Reply-To: <50D834D6.7080207@googlemail.com>
-References: <20121223000802.14820.14465@www.linuxtv.org>
-	<50D70AFB.5070702@googlemail.com>
-	<20121223125715.782e17e0@redhat.com>
-	<50D834D6.7080207@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 12 Dec 2012 11:39:35 -0500
+Received: by mail-wi0-f177.google.com with SMTP id hm2so752711wib.16
+        for <linux-media@vger.kernel.org>; Wed, 12 Dec 2012 08:39:34 -0800 (PST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: "Fricke, Silvio" <SFricke@data-modul.com>
+Cc: "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Guitarte =?ISO-8859-1?Q?P=E9rez=2C_Jes=FAs?= Fernando
+	<JGuitarte@data-modul.com>
+Subject: Re: request for linux driver for Analogix ANX9804/ANX9805
+Date: Wed, 12 Dec 2012 17:33:24 +0100
+Message-ID: <2199300.65rVC8Ir9f@dibcom294>
+In-Reply-To: <CB1254936A837D40B8C8611AEC83D691065C2388@MS-DM-M01.DATA-MODUL.com>
+References: <CB1254936A837D40B8C8611AEC83D691065C2388@MS-DM-M01.DATA-MODUL.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 24 Dec 2012 11:56:22 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-
-> Am 23.12.2012 15:57, schrieb Mauro Carvalho Chehab:
-> > Em Sun, 23 Dec 2012 14:45:31 +0100
-> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >
-> >> Hi Mauro,
-> >>
-> >> Am 23.12.2012 01:08, schrieb Patchwork:
-> >>> Hello,
-> >>>
-> >>> The following patches (submitted by you) have been updated in patchwork:
-> >>>
-> >>>  * [3/6] em28xx: fix capture type setting in em28xx_urb_data_copy_vbi()
-> >>>      - http://patchwork.linuxtv.org/patch/15651/
-> >>>     was: New
-> >>>     now: Accepted
-> >>>
-> >>>  * [8/9] em28xx: move the em2710/em2750/em28xx specific frame data processing code to a separate function
-> >>>      - http://patchwork.linuxtv.org/patch/15798/
-> >>>     was: New
-> >>>     now: Accepted
-> >>>
-> >>>  * [4/6] em28xx: fix/improve frame field handling in em28xx_urb_data_copy_vbi()
-> >>>      - http://patchwork.linuxtv.org/patch/15652/
-> >>>     was: New
-> >>>     now: Accepted
-> >> This patch has not been applied yet to the media-tree.
-> >> Without this patch, frame data processing for non-interlaced devices is
-> >> broken.
-> > Not sure what happened there: I couldn't see this specific patch. Yet,
-> > at least some of the changes there seem to be applied. My guess is that
-> > somehow, this patch got merged with some other patch, or maybe the
-> > conflicts solving when the vbi-merge patches got applied (partially)
-> > fixed it.
-> >
-> > In any case, you'll need to rebase it, as it doesn't apply anymore.
+On Wednesday 12 December 2012 13:20:46 Fricke, Silvio wrote:
+> Hi,
 > 
-> Ok, I did a git diff against my local version and all changes (except
-> the remaining i2c stuff) seem to be applied.
+> We have developed a prototype of an i.mx6 CPU-module connected to an
+> ANALOGIX AN9804 chip. This is a DisplayPort/HDMI-Transmitter [1]. This is
+> a converter for simple rgb-signals to DisplayPort and HDMI signals. The
+> ANX is connected with the i.mx6 over i2c. Audio plays in this context
+> also a role.
 > 
-> One thing I noticed: you fixed strings with lines > 80 characters.
-> This is handled differently everywhere...
-> I know splitting strings breaks grepping, OTOH checkpatch complains.
-> So you prefer violating the 80 chars rule ?
+> The chip has these features:
+>
+>  [..]
+> 
+> I have checked it, and it does not exist any kind of linux driver for the
+> ANX9804. My company doesn't have currently the skills (and manpower) to
+> bring this device to mainline kernel. Have someone skills and courage to
+> bring this hardware device to mainline kernel? I will offer one iMX6
+> based development board for developing the device driver and after
+> success of the project, for the developer as gift to dominate the world.
 
-80-chars is a warning, and, from time to time, it rises discussions here
-and at LKML, as there are know cases where this is violated for good.
+What do you call this then? http://members.efn.org/~rick/work/anx9804/
 
-We prefer to not break long string lines due to grep. It also can makes the
-code a little more obfuscate (like on one place on your patchset where
-the same string was broken into 3 or 4 lines).
+The development of such a driver basically driven by one thing: the 
+information about how to program this device. Registers/firmwares/program-
+flows.
 
-The hole idea of the 80 cols rule is to avoid obfuscation, by avoiding
-having complex logic inside the Kernel, and not to create more obfuscation ;)
+In a second, yet important, step, you need to be know with which kind of 
+(already existing or not) API you want to use this device.
 
-Of course, we don't want a big "style fix" patch changing it, but, as the
-code is being touched, we fix those style stuff.
+In your Email there is no indication of both of this. Please clarify.
 
-Regards,
-Mauro
+best regards,
+--
+Patrick
+
+Kernel Labs Inc.
+http://www.kernellabs.com/
