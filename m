@@ -1,96 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from co202.xi-lite.net ([149.6.83.202]:35404 "EHLO co202.xi-lite.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755766Ab2LNOSr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Dec 2012 09:18:47 -0500
-Message-ID: <50CB3535.2080400@parrot.com>
-Date: Fri, 14 Dec 2012 15:18:29 +0100
-From: Julien BERAUD <julien.beraud@parrot.com>
+Received: from imr-ma03.mx.aol.com ([64.12.206.41]:51682 "EHLO
+	imr-ma03.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754602Ab2LLTdb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 Dec 2012 14:33:31 -0500
+Message-ID: <50C8D90D.6060202@netscape.net>
+Date: Wed, 12 Dec 2012 16:20:45 -0300
+From: =?ISO-8859-1?Q?Alfredo_Jes=FAs_Delaiti?=
+	<alfredodelaiti@netscape.net>
 MIME-Version: 1.0
-To: jean-philippe francois <jp.francois@cynove.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: Lockup on second streamon with omap3-isp
-References: <CAGGh5h0dVOsT-PCoCBtjj=+rLzViwnM2e9hG+sbWQk5iS-ThEQ@mail.gmail.com> <2747531.0sXdUv33Rd@avalon> <CAGGh5h13mOVtWPLGowvtvZM1Ufx2PST3DCokJzspGFcsUo=FiA@mail.gmail.com> <2243690.V1TtfkZKP0@avalon> <CAGGh5h1TB-=YqM0m-xbC7q7Y-AtzxYAhm+wUGSqTeO51PA25aA@mail.gmail.com> <CAGGh5h23vLD=L1D2PHwQD8XeT8edypcSx=kbf7aATQUCfQ14zg@mail.gmail.com>
-In-Reply-To: <CAGGh5h23vLD=L1D2PHwQD8XeT8edypcSx=kbf7aATQUCfQ14zg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+To: Saad Bin Javed <sbjaved@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Kworld PCI Analog TV Card Lite PVR-7134SE
+References: <50C62497.5000209@gmail.com> <50C652A4.7040807@netscape.net> <50C71D1D.4030709@gmail.com> <50C81440.3060306@netscape.net> <50C81AF5.4050308@gmail.com>
+In-Reply-To: <50C81AF5.4050308@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Philippe,
+Hi
 
-I have had exactly the same problem and the following workaround has 
-caused no regression on our board yet.
-I can't explain exactly why it works and I think that it is internal to 
-the isp.
+El 12/12/12 02:49, Saad Bin Javed escribi�:
+> Dear Alfredo,
+>
+> Thank you for helping me.
+>
+>> Is the same card:
+>>
+>> Board indentification  : 713XTV VRE: J
+>
+> Yes, I have the same board. 713XTV VRE:J
+>
+>> Please try:  modprobe
+>> saa7134 card=63 tuner=43 or  modprobe saa7134 card=59 tuner=56
+>>
+>> please tell me  which  program  you use to  watch TV.
+>> Use xawtvand set it  well,run from a  terminal
+>
+Sorry is xawtv
 
-In function ccdc_set_stream, don't disable the ccdc_subclk when stopping 
-capture:
+> I'm using tv-time and scantv. I've also tried VLC and Mplayer. I will 
+> try xawtvand.
+>
+>> What is your  country  and  TV standard?,
+>> Do the  channels  are correctly set?
+>
+> Country: Pakistan, TV Standard: PAL-B
+> Since the proper tuner is not getting detected, I can't scan for 
+> channels. BTW I tried the card in a windows box borrowed from my 
+> cousin. The card works fine.
+>
+>> I had a  similar problem  and what I did was  try  all  tuners
+>>
+>> example:
+>>
+>> modprobe saa7134 card=63 tuner=1
+>> modprobe saa7134 card=63 tuner=2
+>> ...
+>> modprobe saa7134 card=63 tuner=63
+>>
+>> modprobe saa7134 card=59 tuner=1
+>> modprobe saa7134 card=59 tuner=2
+>> ...
+>> modprobe saa7134 card=59 tuner=56
+>>
+>
+> I will try different card/tuner combinations but since there are 50+ 
+> cards and 50+ tuners, you can imagine the number of combinations :)
+> Plus I can't seem to unload the saa7134 module using "modprobe -r" or 
+> "rmmod"...It gives a FATAL module in use error. So I have to reboot 
+> the machine every time to set new card/tuner which SUCKS.
+>
+>> I think that your card isn't 153.There are many  cards  with  the same
+>> name  but different  electronic.
+>>
+>> The tuner is what is below the sticker that says kworld. Perhaps you can
+>> see the name of the tuner.
+>
+> In the jpeg link I posted in the earlier message, I have labelled all 
+> the onboard chips. Have a look again: 
+> http://tinypic.com/view.php?pic=2lwnmuc&s=6
+> I can't seem to find which chip is the tuner. I emailed Kworld 
+> support, they say its a TENA TNF9533BDF/BK tuner. I can't find any 
+> chip onbaord with this name!
 
-                 ret = ccdc_disable(ccdc);
-                 if (ccdc->output & CCDC_OUTPUT_MEMORY)
-                         omap3isp_sbl_disable(isp, 
-OMAP3_ISP_SBL_CCDC_WRITE);
--               omap3isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_CCDC);
-+               //omap3isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_CCDC);
+Ok, see /usr/src/linux/Documentation/video4linux/CARDLIST.tuner --> 
+tuner=61 - Tena TNF9533-D/IF/TNF9533-B/DF
 
-I know that it is still a workaround but I hope that maybe it will help 
-someone to understand the real cause of this issue.
+try:
 
-Best Regards,
-Julien BERAUD
+modprobe saa7134 card=63 tuner=61
 
-Le 13/12/2012 15:14, jean-philippe francois a écrit :
-> Hi,
->
-> I have news on the "IRQ storm on second streamon" problem.
-> Reminder :
-> Given a perfectly fine HSYNC / VSYNC / PIXELCLOK configuration, the
-> omap3-isp (at least until 3.4) will go into an interrupt storm when
-> streamon is called for the second time, unless you are able to stop
-> the sensor when not streaming. I have reproduced this on three
-> different board, with three different sensor.
->
-> On board 1, the problem disappeared by itself (in fact not by itself,
-> see below) and the board is not in my possession anymore.
-> On board 2, I implemented a working s_stream operation in the subdev
-> driver, so the problem was solved because the sensor would effectively
-> stop streaming when told to, keeping the ISP + CCDC happy
-> On board 3, I can't stop the streaming, or I did not figure out how to
-> make it stop  yet.
->
-> I tried to disable the HS_VS_IRQ, but it did not help, so I came back
-> looking at the code of board 1, which was running fine with a 3.4
-> kernel. And I discovered the problem doesn't happen if I break the
-> pipeline between two consecutive streamon.
->
-> In other word if I do the following :
->
-> media-ctl -l '16:0->5:0[1], 5:1->6:0[1]'
-> media-ctl -f '16:0 [SBGGR8 2560x800 (0, 0)/2560x800]'
-> yavta ....
-> yavta ...       <--------- board locks up, soft lockup is fired
->
-> But if I do this instead :
->
-> media-ctl -l '16:0->5:0[0], 5:1->6:0[0]'
-> media-ctl -l '16:0->5:0[1], 5:1->6:0[1]'
-> media-ctl -f '16:0 [SBGGR8 2560x800 (0, 0)/2560x800]'
-> yavta ....
-> media-ctl -l '16:0->5:0[0], 5:1->6:0[0]'
-> media-ctl -l '16:0->5:0[1], 5:1->6:0[1]'
-> media-ctl -f '16:0 [SBGGR8 2560x800 (0, 0)/2560x800]'
-> yavta ...       <--------- image are acquired, board doesn't lock up anymore
->
-> It would be interesting to go from this workaround to the elimination of
-> the root cause. What can I do / test next to stop this bug from hapenning ?
->
-> Regards,
-> Jean-Philippe François
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+or
+
+modprobe saa7134 card=59 tuner=61
+
+good luck,
+
+Alfredo
 
