@@ -1,71 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:57356 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751723Ab2L0WPr (ORCPT
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:63085 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752800Ab2LMKvg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Dec 2012 17:15:47 -0500
-Date: Thu, 27 Dec 2012 20:15:12 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Fabio Estevam <fabio.estevam@freescale.com>, kernel@pengutronix.de,
-	p.zabel@pengutronix.de, javier.martin@vista-silicon.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] coda: Fix build due to iram.h rename
-Message-ID: <20121227201512.0a5c5828@infradead.org>
-In-Reply-To: <20121217093714.GI26326@pengutronix.de>
-References: <1352898282-21576-1-git-send-email-fabio.estevam@freescale.com>
-	<20121217093714.GI26326@pengutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Thu, 13 Dec 2012 05:51:36 -0500
+Received: by mail-vb0-f46.google.com with SMTP id b13so1973356vby.19
+        for <linux-media@vger.kernel.org>; Thu, 13 Dec 2012 02:51:35 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <016a01cdd912$a4243f10$ec6cbd30$%debski@samsung.com>
+References: <1355311184-30029-1-git-send-email-k.debski@samsung.com>
+	<CAK9yfHyNO8jhjtueR9eL=q-85AB_CN9Ok61LftBG8ufmZzJzbQ@mail.gmail.com>
+	<016a01cdd912$a4243f10$ec6cbd30$%debski@samsung.com>
+Date: Thu, 13 Dec 2012 16:21:35 +0530
+Message-ID: <CALt3h7_q3EcrtWB9jr-0ST_QfY=7MD--mSJLmj7LFNf1-Lb4oQ@mail.gmail.com>
+Subject: Re: [PATCH] s5p-mfc: Fix interrupt error handling routine
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Sachin Kamat <sachin.kamat@linaro.org>,
+	LMML <linux-media@vger.kernel.org>, jtp.park@samsung.com,
+	Arun Kumar K <arun.kk@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	posciak@google.com, Kyungmin Park <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 17 Dec 2012 10:37:14 +0100
-Sascha Hauer <s.hauer@pengutronix.de> escreveu:
+Hi Kamil,
 
-> On Wed, Nov 14, 2012 at 11:04:42AM -0200, Fabio Estevam wrote:
-> > commit c045e3f13 (ARM: imx: include iram.h rather than mach/iram.h) changed the
-> > location of iram.h, which causes the following build error when building the coda
-> > driver:
-> > 
-> > drivers/media/platform/coda.c:27:23: error: mach/iram.h: No such file or directory
-> > drivers/media/platform/coda.c: In function 'coda_probe':
-> > drivers/media/platform/coda.c:2000: error: implicit declaration of function 'iram_alloc'
-> > drivers/media/platform/coda.c:2001: warning: assignment makes pointer from integer without a cast
-> > drivers/media/platform/coda.c: In function 'coda_remove':
-> > drivers/media/platform/coda.c:2024: error: implicit declaration of function 'iram_free
-> > 
-> > Since the content of iram.h is not imx specific, move it to include/linux/iram.h
-> > instead.
-> 
-> Generally we need a fix for this, but:
-> 
-> > diff --git a/arch/arm/mach-imx/iram.h b/include/linux/iram.h
-> > similarity index 100%
-> > rename from arch/arm/mach-imx/iram.h
-> > rename to include/linux/iram.h
-> 
-> We shouldn't introduce a file include/linux/iram.h which is purely i.MX
-> specific. The name is far too generic. I would rather suggest
-> include/linux/platform_data/imx-iram.h (Although it's not exactly
-> platform_data, so I'm open for better suggestions).
-> 
-> As a side note this i.MX specific iram stuff (hopefully) is obsolete
-> after the next merge window as Philip already has patches for a generic
-> iram allocator which didn't make it into this merge window.
+>
+> No problem. First I would like to see this tested by Arun Kumar (he has
+> Exynos 5) and Pawel Osciak (he did report the problem to me).
+>
 
-Hi Sasha,
+I tested this on Exynos5 with some error streams and found no issues.
+If there is any specific error stream to test then please tell me.
 
-This compilation breakage seems to still be happening.
-
-Just tested here with arm32 "allmodconfig", on a tree based on Linus one,
-with -next and -media patches applied on it:
-
-drivers/media//platform/coda.c:27:23: fatal error: mach/iram.h: No such file or directory
-compilation terminated.
-
-I don't mind how this would be named, but this should be fixed somehow ;)
-
-Regards,
-Mauro
+Regards
+Arun Kumar
