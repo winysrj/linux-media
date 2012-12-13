@@ -1,215 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:15682 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750958Ab2LaQDu (ORCPT
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:35341 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933336Ab2LMOOD convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Dec 2012 11:03:50 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
-	rob.herring@calxeda.com, thomas.abraham@linaro.org,
-	t.figa@samsung.com, sw0312.kim@samsung.com,
-	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC v2 05/15] s5p-fimc: Support for FIMC-LITE devices
- instantiated from the device tree
-Date: Mon, 31 Dec 2012 17:03:03 +0100
-Message-id: <1356969793-27268-6-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
-References: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
+	Thu, 13 Dec 2012 09:14:03 -0500
+Received: by mail-ie0-f174.google.com with SMTP id c11so3917397ieb.19
+        for <linux-media@vger.kernel.org>; Thu, 13 Dec 2012 06:14:02 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAGGh5h1TB-=YqM0m-xbC7q7Y-AtzxYAhm+wUGSqTeO51PA25aA@mail.gmail.com>
+References: <CAGGh5h0dVOsT-PCoCBtjj=+rLzViwnM2e9hG+sbWQk5iS-ThEQ@mail.gmail.com>
+	<2747531.0sXdUv33Rd@avalon>
+	<CAGGh5h13mOVtWPLGowvtvZM1Ufx2PST3DCokJzspGFcsUo=FiA@mail.gmail.com>
+	<2243690.V1TtfkZKP0@avalon>
+	<CAGGh5h1TB-=YqM0m-xbC7q7Y-AtzxYAhm+wUGSqTeO51PA25aA@mail.gmail.com>
+Date: Thu, 13 Dec 2012 15:14:02 +0100
+Message-ID: <CAGGh5h23vLD=L1D2PHwQD8XeT8edypcSx=kbf7aATQUCfQ14zg@mail.gmail.com>
+Subject: Re: Lockup on second streamon with omap3-isp
+From: jean-philippe francois <jp.francois@cynove.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add support for binding the driver to FIMC-LITE devices
-instantiated from the device tree.
+Hi,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- .../devicetree/bindings/media/soc/samsung-fimc.txt |   16 +++++
- drivers/media/platform/s5p-fimc/fimc-lite.c        |   65 ++++++++++++++------
- 2 files changed, 62 insertions(+), 19 deletions(-)
+I have news on the "IRQ storm on second streamon" problem.
+Reminder :
+Given a perfectly fine HSYNC / VSYNC / PIXELCLOK configuration, the
+omap3-isp (at least until 3.4) will go into an interrupt storm when
+streamon is called for the second time, unless you are able to stop
+the sensor when not streaming. I have reproduced this on three
+different board, with three different sensor.
 
-diff --git a/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt b/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
-index fab7e61..5bbda07 100644
---- a/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
-+++ b/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
-@@ -57,6 +57,22 @@ Optional properties
- 			   0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
- 
- 
-+'fimc-lite' device nodes
-+-----------------------
-+
-+Required properties:
-+
-+- compatible : should be "samsung,exynos4212-fimc" for Exynos4212 and
-+	       Exynos4412 SoCs;
-+- reg	     : physical base address and size of the device memory mapped
-+	       registers;
-+- interrupts : should contain FIMC-LITE interrupt;
-+
-+For every fimc-lite node a numbered alias should be present in the aliases
-+node. Aliases are in form of fimc-lite<n>, where <n> is an integer (0...N)
-+specifying the IP's instance index.
-+
-+
- Example:
- 
- 	aliases {
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
-index ef31c39..cfa3952 100644
---- a/drivers/media/platform/s5p-fimc/fimc-lite.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
-@@ -17,6 +17,7 @@
- #include <linux/kernel.h>
- #include <linux/list.h>
- #include <linux/module.h>
-+#include <linux/of.h>
- #include <linux/types.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
-@@ -1490,18 +1491,34 @@ static int fimc_lite_clk_get(struct fimc_lite *fimc)
- 	return ret;
- }
- 
-+static const struct of_device_id flite_of_match[];
-+
- static int __devinit fimc_lite_probe(struct platform_device *pdev)
- {
--	struct flite_drvdata *drv_data = fimc_lite_get_drvdata(pdev);
-+	struct flite_drvdata *drv_data = NULL;
-+	struct device *dev = &pdev->dev;
-+	const struct of_device_id *of_id;
- 	struct fimc_lite *fimc;
- 	struct resource *res;
- 	int ret;
- 
--	fimc = devm_kzalloc(&pdev->dev, sizeof(*fimc), GFP_KERNEL);
-+	fimc = devm_kzalloc(dev, sizeof(*fimc), GFP_KERNEL);
- 	if (!fimc)
- 		return -ENOMEM;
- 
--	fimc->index = pdev->id;
-+	if (dev->of_node) {
-+		of_id = of_match_node(flite_of_match, dev->of_node);
-+		if (of_id)
-+			drv_data = (struct flite_drvdata *)of_id->data;
-+		fimc->index = of_alias_get_id(dev->of_node, "fimc-lite");
-+	} else {
-+		drv_data = fimc_lite_get_drvdata(pdev);
-+		fimc->index = pdev->id;
-+	}
-+
-+	if (!drv_data || fimc->index < 0 || fimc->index >= FIMC_LITE_MAX_DEVS)
-+		return -EINVAL;
-+
- 	fimc->variant = drv_data->variant[fimc->index];
- 	fimc->pdev = pdev;
- 
-@@ -1510,15 +1527,15 @@ static int __devinit fimc_lite_probe(struct platform_device *pdev)
- 	mutex_init(&fimc->lock);
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	fimc->regs = devm_request_and_ioremap(&pdev->dev, res);
-+	fimc->regs = devm_request_and_ioremap(dev, res);
- 	if (fimc->regs == NULL) {
--		dev_err(&pdev->dev, "Failed to obtain io memory\n");
-+		dev_err(dev, "Failed to obtain io memory\n");
- 		return -ENOENT;
- 	}
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
- 	if (res == NULL) {
--		dev_err(&pdev->dev, "Failed to get IRQ resource\n");
-+		dev_err(dev, "Failed to get IRQ resource\n");
- 		return -ENXIO;
- 	}
- 
-@@ -1526,10 +1543,10 @@ static int __devinit fimc_lite_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
--	ret = devm_request_irq(&pdev->dev, res->start, flite_irq_handler,
--			       0, dev_name(&pdev->dev), fimc);
-+	ret = devm_request_irq(dev, res->start, flite_irq_handler,
-+			       0, dev_name(dev), fimc);
- 	if (ret) {
--		dev_err(&pdev->dev, "Failed to install irq (%d)\n", ret);
-+		dev_err(dev, "Failed to install irq (%d)\n", ret);
- 		goto err_clk;
- 	}
- 
-@@ -1539,23 +1556,23 @@ static int __devinit fimc_lite_probe(struct platform_device *pdev)
- 		goto err_clk;
- 
- 	platform_set_drvdata(pdev, fimc);
--	pm_runtime_enable(&pdev->dev);
--	ret = pm_runtime_get_sync(&pdev->dev);
-+	pm_runtime_enable(dev);
-+	ret = pm_runtime_get_sync(dev);
- 	if (ret < 0)
- 		goto err_sd;
- 
--	fimc->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
-+	fimc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
- 	if (IS_ERR(fimc->alloc_ctx)) {
- 		ret = PTR_ERR(fimc->alloc_ctx);
- 		goto err_pm;
- 	}
--	pm_runtime_put(&pdev->dev);
-+	pm_runtime_put(dev);
- 
--	dev_dbg(&pdev->dev, "FIMC-LITE.%d registered successfully\n",
-+	dev_dbg(dev, "FIMC-LITE.%d registered successfully\n",
- 		fimc->index);
- 	return 0;
- err_pm:
--	pm_runtime_put(&pdev->dev);
-+	pm_runtime_put(dev);
- err_sd:
- 	fimc_lite_unregister_capture_subdev(fimc);
- err_clk:
-@@ -1646,6 +1663,12 @@ static int __devexit fimc_lite_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static const struct dev_pm_ops fimc_lite_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(fimc_lite_suspend, fimc_lite_resume)
-+	SET_RUNTIME_PM_OPS(fimc_lite_runtime_suspend, fimc_lite_runtime_resume,
-+			   NULL)
-+};
-+
- static struct flite_variant fimc_lite0_variant_exynos4 = {
- 	.max_width		= 8192,
- 	.max_height		= 8192,
-@@ -1671,17 +1694,21 @@ static struct platform_device_id fimc_lite_driver_ids[] = {
- };
- MODULE_DEVICE_TABLE(platform, fimc_lite_driver_ids);
- 
--static const struct dev_pm_ops fimc_lite_pm_ops = {
--	SET_SYSTEM_SLEEP_PM_OPS(fimc_lite_suspend, fimc_lite_resume)
--	SET_RUNTIME_PM_OPS(fimc_lite_runtime_suspend, fimc_lite_runtime_resume,
--			   NULL)
-+static const struct of_device_id flite_of_match[] __devinitconst = {
-+	{
-+		.compatible = "samsung,exynos4212-fimc-lite",
-+		.data = &fimc_lite_drvdata_exynos4,
-+	},
-+	{ /* sentinel */ },
- };
-+MODULE_DEVICE_TABLE(of, flite_of_match);
- 
- static struct platform_driver fimc_lite_driver = {
- 	.probe		= fimc_lite_probe,
- 	.remove		= __devexit_p(fimc_lite_remove),
- 	.id_table	= fimc_lite_driver_ids,
- 	.driver = {
-+		.of_match_table = of_match_ptr(flite_of_match),
- 		.name		= FIMC_LITE_DRV_NAME,
- 		.owner		= THIS_MODULE,
- 		.pm		= &fimc_lite_pm_ops,
--- 
-1.7.9.5
+On board 1, the problem disappeared by itself (in fact not by itself,
+see below) and the board is not in my possession anymore.
+On board 2, I implemented a working s_stream operation in the subdev
+driver, so the problem was solved because the sensor would effectively
+stop streaming when told to, keeping the ISP + CCDC happy
+On board 3, I can't stop the streaming, or I did not figure out how to
+make it stop  yet.
 
+I tried to disable the HS_VS_IRQ, but it did not help, so I came back
+looking at the code of board 1, which was running fine with a 3.4
+kernel. And I discovered the problem doesn't happen if I break the
+pipeline between two consecutive streamon.
+
+In other word if I do the following :
+
+media-ctl -l '16:0->5:0[1], 5:1->6:0[1]'
+media-ctl -f '16:0 [SBGGR8 2560x800 (0, 0)/2560x800]'
+yavta ....
+yavta ...       <--------- board locks up, soft lockup is fired
+
+But if I do this instead :
+
+media-ctl -l '16:0->5:0[0], 5:1->6:0[0]'
+media-ctl -l '16:0->5:0[1], 5:1->6:0[1]'
+media-ctl -f '16:0 [SBGGR8 2560x800 (0, 0)/2560x800]'
+yavta ....
+media-ctl -l '16:0->5:0[0], 5:1->6:0[0]'
+media-ctl -l '16:0->5:0[1], 5:1->6:0[1]'
+media-ctl -f '16:0 [SBGGR8 2560x800 (0, 0)/2560x800]'
+yavta ...       <--------- image are acquired, board doesn't lock up anymore
+
+It would be interesting to go from this workaround to the elimination of
+the root cause. What can I do / test next to stop this bug from hapenning ?
+
+Regards,
+Jean-Philippe François
