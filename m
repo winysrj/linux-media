@@ -1,104 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38252 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752864Ab2LXOLE convert rfc822-to-8bit (ORCPT
+Received: from mx1.redhat.com ([209.132.183.28]:9775 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754309Ab2LMUEk convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Dec 2012 09:11:04 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomasz Figa <t.figa@samsung.com>
-Cc: dri-devel@lists.freedesktop.org,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	linux-fbdev@vger.kernel.org,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Tom Gall <tom.gall@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ragesh Radhakrishnan <Ragesh.R@linaro.org>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	sunil joshi <joshi@samsung.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC v2 0/5] Common Display Framework
-Date: Mon, 24 Dec 2012 15:12:28 +0100
-Message-ID: <3445117.L94DmxEvrl@avalon>
-In-Reply-To: <7255068.DBf2OgseHL@amdc1227>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <CAD025yQoCiNaKvaCwvUWhk_jV70CPhV35UzV9MR6HtE+1baCxg@mail.gmail.com> <7255068.DBf2OgseHL@amdc1227>
-MIME-Version: 1.0
+	Thu, 13 Dec 2012 15:04:40 -0500
+Date: Thu, 13 Dec 2012 18:04:11 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
+	Matthew Gyurgyik <matthew@pyther.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+Message-ID: <20121213180411.74c2bc28@redhat.com>
+In-Reply-To: <CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com>
+References: <50B5779A.9090807@pyther.net>
+	<50BE65F0.8020303@googlemail.com>
+	<50BEC253.4080006@pyther.net>
+	<50BF3F9A.3020803@iki.fi>
+	<50BFBE39.90901@pyther.net>
+	<50BFC445.6020305@iki.fi>
+	<50BFCBBB.5090407@pyther.net>
+	<50BFECEA.9060808@iki.fi>
+	<50BFFFF6.1000204@pyther.net>
+	<50C11301.10205@googlemail.com>
+	<50C12302.80603@pyther.net>
+	<50C34628.5030407@googlemail.com>
+	<50C34A50.6000207@pyther.net>
+	<50C35AD1.3040000@googlemail.com>
+	<50C48891.2050903@googlemail.com>
+	<50C4A520.6020908@pyther.net>
+	<CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com>
+	<50C4BA20.8060003@googlemail.com>
+	<50C4BAFB.60304@googlemail.com>
+	<50C4C525.6020006@googlemail.com>
+	<50C4D011.6010700@pyther.net>
+	<50C60220.8050908@googlemail.com>
+	<CAGoCfizTfZVFkNvdQuuisOugM2BGipYd_75R63nnj=K7E8ULWQ@mail.gmail.com>
+	<50C60772.2010904@googlemail.com>
+	<CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+Em Mon, 10 Dec 2012 11:13:07 -0500
+Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
 
-On Friday 21 December 2012 11:00:52 Tomasz Figa wrote:
-> On Tuesday 18 of December 2012 08:31:30 Vikas Sajjan wrote:
-> > On 17 December 2012 20:55, Laurent Pinchart wrote:
-> > > Hi Vikas,
-> > > 
-> > > Sorry for the late reply. I now have more time to work on CDF, so
-> > > delays should be much shorter.
-> > > 
-> > > On Thursday 06 December 2012 10:51:15 Vikas Sajjan wrote:
-> > > > Hi Laurent,
-> > > > 
-> > > > I was thinking of porting CDF to samsung EXYNOS 5250 platform, what
-> > > > I found is that, the exynos display controller is MIPI DSI based
-> > > > controller.
-> > > > 
-> > > > But if I look at CDF patches, it has only support for MIPI DBI based
-> > > > Display controller.
-> > > > 
-> > > > So my question is, do we have any generic framework for MIPI DSI
-> > > > based display controller? basically I wanted to know, how to go about
-> > > > porting CDF for such kind of display controller.
-> > > 
-> > > MIPI DSI support is not available yet. The only reason for that is
-> > > that I don't have any MIPI DSI hardware to write and test the code
-> > > with :-)
-> > > 
-> > > The common display framework should definitely support MIPI DSI. I
-> > > think the existing MIPI DBI code could be used as a base, so the
-> > > implementation shouldn't be too high.
-> > > 
-> > > Yeah, i was also thinking in similar lines, below is my though for
-> > > MIPI DSI support in CDF.
-> > 
-> > o   MIPI DSI support as part of CDF framework will expose
-> > §  mipi_dsi_register_device(mpi_device) (will be called mach-xxx-dt.c
-> > file )
-> > §  mipi_dsi_register_driver(mipi_driver, bus ops) (will be called from
-> > platform specific init driver call )
-> > ·    bus ops will be
-> > o   read data
-> > o   write data
-> > o   write command
-> > §  MIPI DSI will be registered as bus_register()
-> > 
-> > When MIPI DSI probe is called, it (e.g., Exynos or OMAP MIPI DSI) will
-> > initialize the MIPI DSI HW IP.
-> > 
-> > This probe will also parse the DT file for MIPI DSI based panel, add
-> > the panel device (device_add() ) to kernel and register the display
-> > entity with its control and  video ops with CDF.
-> > 
-> > I can give this a try.
+> On Mon, Dec 10, 2012 at 11:01 AM, Frank SchÃ¤fer
+> > Adding a new property to the RC profile certainly seems to be the
+> > cleanest solution.
+> > Do all protocols have paritiy checking ? Otherwise we could add a new
+> > type RC_TYPE_NEC_NO_PARITY.
+> > OTOH, introducing a new bitfield in struct rc_map might be usefull for
+> > other flags, too, in the future...
 > 
-> I am currently in progress of reworking Exynos MIPI DSIM code and s6e8ax0
-> LCD driver to use the v2 RFC of Common Display Framework. I have most of
-> the work done, I have just to solve several remaining problems.
+> It's probably also worth mentioning that in that mode the device
+> reports four bytes, not two.  I guess perhaps if parity is ignored it
+> reports the data in some other format?  You will probably have to do
+> some experimentation there.
 
-Do you already have code that you can publish ? I'm particularly interested 
-(and I think Tomi Valkeinen would be as well) in looking at the DSI operations 
-you expose to DSI sinks (panels, transceivers, ...).
+Hmm... that explains why em28xx weren't working properly with NEC extended
+codes ;)
 
--- 
+IMO, the better is to set it for NEC, and let the driver to do the parity
+check, in order to properly handle the variants of the NEC protocol (16, 24
+or 32 bits).
+
+Due to the way the RC keycode is stored, there's no risk on keeping it
+disabled, as a keycode generated by a 16-bit NEC remote with a parity
+error will produce a 24 or 32 bits keycode. Such keycode will be discarded
+for a keytable with 16 bits keycodes.
+
 Regards,
-
-Laurent Pinchart
-
+Mauro.
