@@ -1,106 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44890 "EHLO mail.kapsi.fi"
+Received: from bear.ext.ti.com ([192.94.94.41]:43681 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751430Ab2LORQj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Dec 2012 12:16:39 -0500
-Message-ID: <50CCB057.9060704@iki.fi>
-Date: Sat, 15 Dec 2012 19:16:07 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1752622Ab2LNRds (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Dec 2012 12:33:48 -0500
+Date: Fri, 14 Dec 2012 19:26:16 +0200
+From: Felipe Balbi <balbi@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+CC: Timo Kokkonen <timo.t.kokkonen@iki.fi>,
+	<linux-omap@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	<linux-arm-kernel@lists.infradead.org>
+Subject: Re: [PATCH 1/7] ir-rx51: Handle signals properly
+Message-ID: <20121214172616.GC9620@arwen.pp.htv.fi>
+Reply-To: <balbi@ti.com>
+References: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
+ <1353251589-26143-2-git-send-email-timo.t.kokkonen@iki.fi>
+ <20121120195755.GM18567@atomide.com>
+ <20121214172809.GT4989@atomide.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH 5/5] em28xx: fix+improve+unify i2c error handling, debug
- messages and code comments
-References: <1355502533-25636-1-git-send-email-fschaefer.oss@googlemail.com> <1355502533-25636-6-git-send-email-fschaefer.oss@googlemail.com> <50CB5BF8.5070201@iki.fi> <50CC7499.8020507@googlemail.com> <50CC7F4E.5060803@iki.fi> <50CCA493.4070309@googlemail.com>
-In-Reply-To: <50CCA493.4070309@googlemail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="E13BgyNx05feLLmH"
+Content-Disposition: inline
+In-Reply-To: <20121214172809.GT4989@atomide.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/15/2012 06:25 PM, Frank Schäfer wrote:
-> Am 15.12.2012 14:46, schrieb Antti Palosaari:
->> On 12/15/2012 03:01 PM, Frank Schäfer wrote:
->>> Am 14.12.2012 18:03, schrieb Antti Palosaari:
->>>> On 12/14/2012 06:28 PM, Frank Schäfer wrote:
->>>>> - check i2c slave address range (only 7 bit addresses supported)
->>>>> - do not pass USB specific error codes to userspace/i2c-subsystem
->>>>> - unify the returned error codes and make them compliant with
->>>>>      the i2c subsystem spec
->>>>> - check number of actually transferred bytes (via USB) everywehere
->>>>> - fix/improve debug messages
->>>>> - improve code comments
->>>>>
->>>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->>>>
->>>>
->>>>> @@ -244,16 +294,20 @@ static int em28xx_i2c_xfer(struct i2c_adapter
->>>>> *i2c_adap,
->>>>>             dprintk2(2, "%s %s addr=%x len=%d:",
->>>>>                  (msgs[i].flags & I2C_M_RD) ? "read" : "write",
->>>>>                  i == num - 1 ? "stop" : "nonstop", addr, msgs[i].len);
->>>>> +        if (addr > 0xff) {
->>>>> +            dprintk2(2, " ERROR: 10 bit addresses not supported\n");
->>>>> +            return -EOPNOTSUPP;
->>>>> +        }
->>>>
->>>> There is own flag for 10bit I2C address. Use it (and likely not
->>>> compare at all addr validly like that). This kind of address
->>>> validation check is quite unnecessary - and after all if it is wanted
->>>> then correct place is somewhere in I2C routines.
->>>
->>> Well, to be 100% sure and strict, we should check both, the flag and the
->>> actual address.
->>> We support 7 bit addresses only, no matter which i2c algo is used. So
->>> doing the address check in each i2c routine seems to be unnecessary code
->>> duplication to me ?
->>
->> I will repeat me, I see it overkill to check address correctness. And
->> as I said, that one is general validly could be done easily in I2C
->> core - so why the hell you wish make it just only for em28xx ?
->>
->> I am quite sure if that kind of address validness are saw important
->> they are already implemented by I2C core.
->>
->> Make patch for I2C which does that address validation against client
->> 10BIT flag and sent it to the mailing list for discussion.
->
-> The I2C core doesn't know about the capabilities of the adapter.
-> Hence it doesn't know if ten bit addresses will work (the same as with
-> the message size constraints).
-> All it does ist to check the client for I2C_CLIENT_TEN && addr > 0x7f
-> once, when it is instanciated with a call to i2c_new_device().
-> But we don't use this function in em28xx and the same applies to many
-> other drivers as well.
-> Apart from that, the client address and flags can change anytime later
-> (e.g. when probing devices).
+--E13BgyNx05feLLmH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-yes, it does not need to know if adapter supports 10 bit or not, or how 
-many bytes adapter could send at once. It is up to adapter to check those.
+Hi,
 
-But it could check if client tries to send using invalid address (client 
-says it is 7BIT, but address is 10BIT), just situation you are adding to 
-em28xx adapter.
+On Fri, Dec 14, 2012 at 09:28:09AM -0800, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [121120 12:00]:
+> > Hi,
+> >=20
+> > * Timo Kokkonen <timo.t.kokkonen@iki.fi> [121118 07:15]:
+> > > --- a/drivers/media/rc/ir-rx51.c
+> > > +++ b/drivers/media/rc/ir-rx51.c
+> > > @@ -74,6 +74,19 @@ static void lirc_rx51_off(struct lirc_rx51 *lirc_r=
+x51)
+> > >  			      OMAP_TIMER_TRIGGER_NONE);
+> > >  }
+> > > =20
+> > > +static void lirc_rx51_stop_tx(struct lirc_rx51 *lirc_rx51)
+> > > +{
+> > > +	if (lirc_rx51->wbuf_index < 0)
+> > > +		return;
+> > > +
+> > > +	lirc_rx51_off(lirc_rx51);
+> > > +	lirc_rx51->wbuf_index =3D -1;
+> > > +	omap_dm_timer_stop(lirc_rx51->pwm_timer);
+> > > +	omap_dm_timer_stop(lirc_rx51->pulse_timer);
+> > > +	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+> > > +	wake_up(&lirc_rx51->wqueue);
+> > > +}
+> > > +
+> > >  static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+> > >  {
+> > >  	u32 load, match;
+> >=20
+> > Good fixes in general.. But you won't be able to access the
+> > omap_dm_timer functions after we enable ARM multiplatform support
+> > for omap2+. That's for v3.9 probably right after v3.8-rc1.
+> >=20
+> > We need to find some Linux generic API to use hardware timers
+> > like this, so I've added Thomas Gleixner and linux-arm-kernel
+> > mailing list to cc.
+> >=20
+> > If no such API is available, then maybe we can export some of
+> > the omap_dm_timer functions if Thomas is OK with that.
+>=20
+> Just to update the status on this.. It seems that we'll be moving
+> parts of plat/dmtimer into a minimal include/linux/timer-omap.h
+> unless people have better ideas on what to do with custom
+> hardware timers for PWM etc.
 
-If you are worried flags and address could change during operation, I2C 
-core could check it too. Every driver I have seen are using I2C routines 
-to send messages, and if there is check lets say eg. inside 
-i2c_transfer() then it benefits all the others than em28xx. That is NOT 
-em28xx *only* issue, it is common for all of our drivers. As it is 
-common, adding check for each driver sounds wrong. General check should 
-be done in general level, and hw specific issues are for driver.
+if it's really for PWM, shouldn't we be using drivers/pwm/ ??
 
+Meaning that $SUBJECT would just request a PWM device and use it. That
+doesn't solve the whole problem, however, as pwm-omap.c would still need
+access to timer-omap.h.
 
-> But if you hate the check, I can kick it out.
-> The risk that it will cause any problems in practice is small.
+--=20
+balbi
 
-Mostly, I am trying to explain you are trying to add that check to wrong 
-place. Need of whole check is another issue.
+--E13BgyNx05feLLmH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-regards
-Antti
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
--- 
-http://palosaari.fi/
+iQIcBAEBAgAGBQJQy2E4AAoJEIaOsuA1yqREsesQAK30CFedD1Gas2SmqCJVh/tT
+xsWHwNmBXKf02QuvNkfnNaiEbZF9cEn0Y/hrhHBmeMRBkwwfCXb6cxwm/2yds4Mb
+7/RPnm59BcTa52bc03n0L6RjsW1zMIhtSSL1jphJHDJlvULtKvFv6akQ0UPiXVxO
+rEFgZ7t1To/ZTtbJOYJ28uWsBJ6HhW4HJNORmTl4jgJx1w93KxbI8pF2mwlRMZr0
+Pd2ca4V9zfvXaxEw6JN342ZyaGJhtm2Xm22amPJ2y0+zy8u/OwfthdAgFOR3askD
+oh+74s01dAebTJOTUtxShA8Y/6SW+lhXcbMLlH99m5b1BxOhRtEL7FkO/b4OD3cW
+oKcImVeH8KY/mrXY0yBxe+iOwVWS4UK9OCf6KOv8kU5V+XZp3k6I2PwGCzZWKihw
+5PbxzFVJVUvlL9izH3qap8QP75yVjRYHXQPejj7hgdgpNvk1dKnEzC1lYA/vM7Gq
+rXbF0WLEjBguK5zuxZiKq6/V0OJVVvFP7hKzP5ozQMQTMFZtJ+zRW2Nhm2w0FKwn
+Fk0YPPPRCcGb4EAS4zoRWrL7/kr2J2IbolxeswJI2+dXBFETxFOjvzNLqtlXGJyr
+rLSzH/PeBHgWVkNfBdXUC/wFJT0VQrmXML2EBe6Artg/Ysbj6O0Z59gjhKtTJPo1
+CX0swDnAoGDueuENJ6ma
+=FXYI
+-----END PGP SIGNATURE-----
+
+--E13BgyNx05feLLmH--
