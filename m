@@ -1,79 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:42739 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752775Ab2LGMGh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2012 07:06:37 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MEN00AP6TMZJ6Z0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 07 Dec 2012 21:06:35 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MEN0020ATLU04A0@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 07 Dec 2012 21:06:35 +0900 (KST)
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com
-Subject: [PATCH] [media] exynos-gsc: Support dmabuf export buffer
-Date: Fri, 07 Dec 2012 17:58:55 +0530
-Message-id: <1354883335-27961-1-git-send-email-shaik.ameer@samsung.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:46363 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755955Ab2LNPXy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Dec 2012 10:23:54 -0500
+Received: by mail-bk0-f46.google.com with SMTP id q16so1805139bkw.19
+        for <linux-media@vger.kernel.org>; Fri, 14 Dec 2012 07:23:52 -0800 (PST)
+Message-ID: <50CB4494.2060501@googlemail.com>
+Date: Fri, 14 Dec 2012 16:24:04 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/9] em28xx: refactor the frame data processing code
+References: <1354980692-3791-1-git-send-email-fschaefer.oss@googlemail.com> <CAGoCfiw1wN+KgvNLqDSmbz5AwswPT9K48XOM4RnfKvHkmmR59g@mail.gmail.com> <50CA16EB.7060201@googlemail.com> <CAGoCfixtaQ4Jj2dW7XaAzcqEBTDj3xRnO_iCP=kOnhaxYwO2rw@mail.gmail.com>
+In-Reply-To: <CAGoCfixtaQ4Jj2dW7XaAzcqEBTDj3xRnO_iCP=kOnhaxYwO2rw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the dmabuf export buffer feature to the
-Exynos G-Scaler driver.
+Am 13.12.2012 19:16, schrieb Devin Heitmueller:
+> On Thu, Dec 13, 2012 at 12:56 PM, Frank Schäfer
+> <fschaefer.oss@googlemail.com> wrote:
+>> Am 13.12.2012 18:36, schrieb Devin Heitmueller:
+>>> On Sat, Dec 8, 2012 at 10:31 AM, Frank Schäfer
+>>> <fschaefer.oss@googlemail.com> wrote:
+>>>> This patch series refactors the frame data processing code in em28xx-video.c to
+>>>> - reduce code duplication
+>>>> - fix a bug in vbi data processing
+>>>> - prepare for adding em25xx/em276x frame data processing support
+>>>> - clean up the code and make it easier to understand
+>>> Hi Frank,
+>>>
+>>> Do you have these patches in a git tree somewhere that I can do a git
+>>> pull from?  If not then that's fine - I'll just save off the patches
+>>> and apply them by hand.
+>> No, I have no public git tree.
+>>
+>>> I've basically got your patches, fixes Hans did for v4l2 compliance,
+>>> and I've got a tree that converts the driver to videobuf2 (which
+>>> obviously heavily conflicts with the URB handler cleanup you did).
+>>> Plan is to suck them all into a single tree, deal with the merge
+>>> issues, then issue a pull request to Mauro.
+>> Ahhh, videobuf2 !
+>> Good to know, because I've put this on my TODO list... ;)
+> It's harder than it looks.  There are currently no other devices
+> ported to vb2 which have VBI and/or radio devices.  Hence I have to
+> refactor the locking a bit (since the URB callback feeds two different
+> VB2 queues).  In other words, there's no other driver to look at as a
+> model and copy the business logic from.
 
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
----
- drivers/media/platform/exynos-gsc/gsc-m2m.c |   12 ++++++++++--
- 1 files changed, 10 insertions(+), 2 deletions(-)
+Yeah, that's one of the reasons why I decided to do it later ;)
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-index c267c57..d0c3e42 100644
---- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-@@ -367,6 +367,13 @@ static int gsc_m2m_reqbufs(struct file *file, void *fh,
- 	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
- }
- 
-+static int gsc_m2m_expbuf(struct file *file, void *fh,
-+				struct v4l2_exportbuffer *eb)
-+{
-+	struct gsc_ctx *ctx = fh_to_ctx(fh);
-+	return v4l2_m2m_expbuf(file, ctx->m2m_ctx, eb);
-+}
-+
- static int gsc_m2m_querybuf(struct file *file, void *fh,
- 					struct v4l2_buffer *buf)
- {
-@@ -548,6 +555,7 @@ static const struct v4l2_ioctl_ops gsc_m2m_ioctl_ops = {
- 	.vidioc_s_fmt_vid_cap_mplane	= gsc_m2m_s_fmt_mplane,
- 	.vidioc_s_fmt_vid_out_mplane	= gsc_m2m_s_fmt_mplane,
- 	.vidioc_reqbufs			= gsc_m2m_reqbufs,
-+	.vidioc_expbuf                  = gsc_m2m_expbuf,
- 	.vidioc_querybuf		= gsc_m2m_querybuf,
- 	.vidioc_qbuf			= gsc_m2m_qbuf,
- 	.vidioc_dqbuf			= gsc_m2m_dqbuf,
-@@ -565,7 +573,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 
- 	memset(src_vq, 0, sizeof(*src_vq));
- 	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
--	src_vq->io_modes = VB2_MMAP | VB2_USERPTR;
-+	src_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
- 	src_vq->drv_priv = ctx;
- 	src_vq->ops = &gsc_m2m_qops;
- 	src_vq->mem_ops = &vb2_dma_contig_memops;
-@@ -577,7 +585,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 
- 	memset(dst_vq, 0, sizeof(*dst_vq));
- 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
--	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR;
-+	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
- 	dst_vq->drv_priv = ctx;
- 	dst_vq->ops = &gsc_m2m_qops;
- 	dst_vq->mem_ops = &vb2_dma_contig_memops;
--- 
-1.7.0.4
+>
+>> Yes, there will likely be heavy merge conflicts...
+>> In which tree are the videobuf2 patches ?
+> It's in a private tree right now, and it doesn't support VBI
+> currently.  Once I've setup a public tree with yours and Hans changes,
+> I'll start merging in my changes.
+
+I suggest to do the conversion on top of my patches, as they should make
+things much easier for you.
+I unified the handling of the VBI and video buffers, leaving just a few
+common functions dealing with the videobuf stuff.
+
+In any case, we should develop against a common tree with a minimum
+number of pending patches.
+And we should coordinate development.
+I don't work on further changes of the frame processing stuff at the moment.
+Some I2C fixes/changes will be next. After that, I will try to fix
+support for remote controls with external IR IC (connected via i2c).
+
+> Obviously it would be great for you to test with your webcam and make
+> sure I didn't break anything along the way.
+
+Sure, I will be glad to test your changes.
+
+> I've also got changes to support V4L2_FIELD_SEQ_TB, which is needed in
+> order to take the output and feed to certain hardware deinterlacers.
+> In reality this is pretty much just a matter of treating the video
+> data as progressive but changing the field type indicator.
+
+Ok, so I assume most of the changes will happen in em28xx_copy_video().
+Maybe we can then use a common copy function for video and VBI. Placing
+the field data sequentially in the videobuf is what we already do with
+the VBI data in em28xx_copy_vbi()
+
+Regards,
+Frank
+
+> I'm generally pretty easy to find in #linuxtv or #v4l if you want to
+> discuss further.
+>
+> Cheers,
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
 
