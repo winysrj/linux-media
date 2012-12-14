@@ -1,86 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40968 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752392Ab2LWAIO convert rfc822-to-8bit (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:41617 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755599Ab2LNQ26 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Dec 2012 19:08:14 -0500
-Date: Sat, 22 Dec 2012 22:07:46 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org,
-	Sascha Sommer <saschasommer@freenet.de>
-Subject: Re: [PATCH v2 2/5] em28xx: respect the message size constraints for
- i2c transfers
-Message-ID: <20121222220746.64611c08@redhat.com>
-In-Reply-To: <1355682211-13604-3-git-send-email-fschaefer.oss@googlemail.com>
-References: <1355682211-13604-1-git-send-email-fschaefer.oss@googlemail.com>
-	<1355682211-13604-3-git-send-email-fschaefer.oss@googlemail.com>
-Mime-Version: 1.0
+	Fri, 14 Dec 2012 11:28:58 -0500
+Received: by mail-ee0-f46.google.com with SMTP id e53so2052143eek.19
+        for <linux-media@vger.kernel.org>; Fri, 14 Dec 2012 08:28:57 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org, dheitmueller@kernellabs.com,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 0/5] em28xx: i2c bug fixes and cleanups
+Date: Fri, 14 Dec 2012 17:28:48 +0100
+Message-Id: <1355502533-25636-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 16 Dec 2012 19:23:28 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+This patch series contains some I2C bug fixes / cleanups / unifications and 
+improvements for the em28xx driver, which I've made while working on adding 
+support for the em25xx/em276x i2c bus B support and playing with the 
+Terratec Cinergy 200 USB which I've got recently.
 
-> The em2800 can transfer up to 4 bytes per i2c message.
-> All other em25xx/em27xx/28xx chips can transfer at least 64 bytes per message.
-> 
-> I2C adapters should never split messages transferred via the I2C subsystem
-> into multiple message transfers, because the result will almost always NOT be
-> the same as when the whole data is transferred to the I2C client in a single
-> message.
-> If the message size exceeds the capabilities of the I2C adapter, -EOPNOTSUPP
-> should be returned.
-> 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-i2c.c |   44 ++++++++++++++-------------------
->  1 Datei geändert, 18 Zeilen hinzugefügt(+), 26 Zeilen entfernt(-)
-> 
-> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-> index 44533e4..c508c12 100644
-> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
-> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-> @@ -50,14 +50,18 @@ do {							\
->  } while (0)
->  
->  /*
-> - * em2800_i2c_send_max4()
-> - * send up to 4 bytes to the i2c device
-> + * em2800_i2c_send_bytes()
-> + * send up to 4 bytes to the em2800 i2c device
->   */
-> -static int em2800_i2c_send_max4(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
-> +static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
->  {
->  	int ret;
->  	int write_timeout;
->  	u8 b2[6];
-> +
-> +	if (len < 1 || len > 4)
-> +		return -EOPNOTSUPP;
-> +
+Patches 1 and 5 are cleanup/unification patches, patches 2, 3, 4 fix some bugs.
+Patch 3 actually fixes 2 bugs, but separate commits didn't make sense, because 
+more or less the whole function had to be rewritten.
 
-Except if you actually tested it with all em2800 devices, I think that
-this change just broke it for em2800.
 
-Maybe Sascha could review this patch series on his em2800 devices.
+Frank Schäfer (5):
+  em28xx: clean up the data type mess of the i2c transfer function
+    parameters
+  em28xx: respect the message size constraints for i2c transfers
+  em28xx: fix two severe bugs in function em2800_i2c_recv_bytes()
+  em28xx: fix the i2c adapter functionality flags
+  em28xx: fix+improve+unify i2c error handling, debug messages and code
+    comments
 
-Those devices are limited, and just like other devices (cx231xx for example),
-the I2C bus need to split long messages, otherwise the I2C devices will
-fail.
+ drivers/media/usb/em28xx/em28xx-core.c |    5 +-
+ drivers/media/usb/em28xx/em28xx-i2c.c  |  280 +++++++++++++++++++-------------
+ drivers/media/usb/em28xx/em28xx.h      |    2 +-
+ 3 Dateien geändert, 172 Zeilen hinzugefügt(+), 115 Zeilen entfernt(-)
 
-Btw, there was already a long discussion with regards to splitting long
-I2C messages at the I2C bus or at the I2C adapters. The decision was
-to do it at the I2C bus logic, as it is simpler than making a code
-at each I2C client for them to properly handle -EOPNOTSUPP and implement
-a fallback logic to reduce the transfer window until reach what's
-supported by the device.
+-- 
+1.7.10.4
 
-So, for now, I won't apply this patch series (except for patch 1, with
-is obviously correct).
-
-Cheers,
-Mauro
