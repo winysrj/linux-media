@@ -1,70 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45920 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751757Ab2LDXWO (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:39776 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756075Ab2LNLCy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Dec 2012 18:22:14 -0500
-Date: Wed, 5 Dec 2012 01:22:08 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH RFC 3/3] s5p-fimc: improved pipeline try format routine
-Message-ID: <20121204232208.GP31879@valkosipuli.retiisi.org.uk>
-References: <1353684150-24581-1-git-send-email-a.hajda@samsung.com>
- <1353684150-24581-4-git-send-email-a.hajda@samsung.com>
+	Fri, 14 Dec 2012 06:02:54 -0500
+Subject: [PATCH 06/12] media/rc: fix oops on unloading module rc-core
+To: linux-kernel@vger.kernel.org
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Date: Fri, 14 Dec 2012 15:02:48 +0400
+Message-ID: <20121214110248.11019.36202.stgit@zurg>
+In-Reply-To: <20121214110229.11019.63713.stgit@zurg>
+References: <20121214110229.11019.63713.stgit@zurg>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1353684150-24581-4-git-send-email-a.hajda@samsung.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrzej,
+During modiles initialization rc-core schedules work which calls
+request_module() several times to load ir-*-decoder modules, but
+it does not wait or cancel this work on module unloading.
 
-On Fri, Nov 23, 2012 at 04:22:30PM +0100, Andrzej Hajda wrote:
-> Function support variable number of subdevs in pipe-line.
-> 
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/platform/s5p-fimc/fimc-capture.c |  100 +++++++++++++++---------
->  1 file changed, 64 insertions(+), 36 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
-> index 3acbea3..39c4555 100644
-> --- a/drivers/media/platform/s5p-fimc/fimc-capture.c
-> +++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
-> @@ -794,6 +794,21 @@ static int fimc_cap_enum_fmt_mplane(struct file *file, void *priv,
->  	return 0;
->  }
->  
-> +static struct media_entity *fimc_pipeline_get_head(struct media_entity *me)
-> +{
-> +	struct media_pad *pad = &me->pads[0];
-> +
-> +	while (!(pad->flags & MEDIA_PAD_FL_SOURCE)) {
-> +		pad = media_entity_remote_source(pad);
-> +		if (!pad)
-> +			break;
+rc-core should use request_module_nowait() instead, because it
+anyway cannot load modules synchronously or cancel/wait pending
+work on unloading, because this leads to deadlock on modules_mutex
+between several "modprobe" processes.
 
-Isn't it an error if a sink pad of the entity isn't connected?
-media_entity_remote_source(pad) returns NULL if the link is disabled. I'm
-just wondering if this is possible.
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/rc/ir-raw.c       |   17 +----------------
+ drivers/media/rc/rc-core-priv.h |   16 ++++++++--------
+ 2 files changed, 9 insertions(+), 24 deletions(-)
 
-> +		me = pad->entity;
-> +		pad = &me->pads[0];
-> +	}
-> +
-> +	return me;
-> +}
-> +
+diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/ir-raw.c
+index 97dc8d1..17c94be 100644
+--- a/drivers/media/rc/ir-raw.c
++++ b/drivers/media/rc/ir-raw.c
+@@ -31,11 +31,6 @@ static DEFINE_MUTEX(ir_raw_handler_lock);
+ static LIST_HEAD(ir_raw_handler_list);
+ static u64 available_protocols;
+ 
+-#ifdef MODULE
+-/* Used to load the decoders */
+-static struct work_struct wq_load;
+-#endif
+-
+ static int ir_raw_event_thread(void *data)
+ {
+ 	struct ir_raw_event ev;
+@@ -347,8 +342,7 @@ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler)
+ }
+ EXPORT_SYMBOL(ir_raw_handler_unregister);
+ 
+-#ifdef MODULE
+-static void init_decoders(struct work_struct *work)
++void ir_raw_init(void)
+ {
+ 	/* Load the decoder modules */
+ 
+@@ -365,12 +359,3 @@ static void init_decoders(struct work_struct *work)
+ 	   it is needed to change the CONFIG_MODULE test at rc-core.h
+ 	 */
+ }
+-#endif
+-
+-void ir_raw_init(void)
+-{
+-#ifdef MODULE
+-	INIT_WORK(&wq_load, init_decoders);
+-	schedule_work(&wq_load);
+-#endif
+-}
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 96f0a8b..5d87287 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -165,56 +165,56 @@ void ir_raw_init(void);
+ 
+ /* from ir-nec-decoder.c */
+ #ifdef CONFIG_IR_NEC_DECODER_MODULE
+-#define load_nec_decode()	request_module("ir-nec-decoder")
++#define load_nec_decode()	request_module_nowait("ir-nec-decoder")
+ #else
+ static inline void load_nec_decode(void) { }
+ #endif
+ 
+ /* from ir-rc5-decoder.c */
+ #ifdef CONFIG_IR_RC5_DECODER_MODULE
+-#define load_rc5_decode()	request_module("ir-rc5-decoder")
++#define load_rc5_decode()	request_module_nowait("ir-rc5-decoder")
+ #else
+ static inline void load_rc5_decode(void) { }
+ #endif
+ 
+ /* from ir-rc6-decoder.c */
+ #ifdef CONFIG_IR_RC6_DECODER_MODULE
+-#define load_rc6_decode()	request_module("ir-rc6-decoder")
++#define load_rc6_decode()	request_module_nowait("ir-rc6-decoder")
+ #else
+ static inline void load_rc6_decode(void) { }
+ #endif
+ 
+ /* from ir-jvc-decoder.c */
+ #ifdef CONFIG_IR_JVC_DECODER_MODULE
+-#define load_jvc_decode()	request_module("ir-jvc-decoder")
++#define load_jvc_decode()	request_module_nowait("ir-jvc-decoder")
+ #else
+ static inline void load_jvc_decode(void) { }
+ #endif
+ 
+ /* from ir-sony-decoder.c */
+ #ifdef CONFIG_IR_SONY_DECODER_MODULE
+-#define load_sony_decode()	request_module("ir-sony-decoder")
++#define load_sony_decode()	request_module_nowait("ir-sony-decoder")
+ #else
+ static inline void load_sony_decode(void) { }
+ #endif
+ 
+ /* from ir-sanyo-decoder.c */
+ #ifdef CONFIG_IR_SANYO_DECODER_MODULE
+-#define load_sanyo_decode()	request_module("ir-sanyo-decoder")
++#define load_sanyo_decode()	request_module_nowait("ir-sanyo-decoder")
+ #else
+ static inline void load_sanyo_decode(void) { }
+ #endif
+ 
+ /* from ir-mce_kbd-decoder.c */
+ #ifdef CONFIG_IR_MCE_KBD_DECODER_MODULE
+-#define load_mce_kbd_decode()	request_module("ir-mce_kbd-decoder")
++#define load_mce_kbd_decode()	request_module_nowait("ir-mce_kbd-decoder")
+ #else
+ static inline void load_mce_kbd_decode(void) { }
+ #endif
+ 
+ /* from ir-lirc-codec.c */
+ #ifdef CONFIG_IR_LIRC_CODEC_MODULE
+-#define load_lirc_codec()	request_module("ir-lirc-codec")
++#define load_lirc_codec()	request_module_nowait("ir-lirc-codec")
+ #else
+ static inline void load_lirc_codec(void) { }
+ #endif
 
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
