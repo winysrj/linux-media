@@ -1,51 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42640 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752258Ab2LXM3H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Dec 2012 07:29:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Subject: Re: [RFC/PATCH] v4l2-compliance: Reject invalid ioctl error codes
-Date: Mon, 24 Dec 2012 13:30:30 +0100
-Message-ID: <1951365.pbMKjqvrx2@avalon>
-In-Reply-To: <201212241024.48384.hverkuil@xs4all.nl>
-References: <1356301444-10191-1-git-send-email-laurent.pinchart@ideasonboard.com> <201212241024.48384.hverkuil@xs4all.nl>
+Received: from comal.ext.ti.com ([198.47.26.152]:35641 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753459Ab2LNJhJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Dec 2012 04:37:09 -0500
+From: <sumit.semwal@ti.com>
+To: <sumit.semwal@linaro.org>
+CC: <linaro-mm-sig@lists.linaro.org>, <linux-media@vger.kernel.org>,
+	<dri-devel@lists.freedesktop.org>,
+	Sumit Semwal <sumit.semwal@ti.com>
+Subject: [PATCH] dma-buf: Add debugfs support
+Date: Fri, 14 Dec 2012 15:06:57 +0530
+Message-ID: <1355477817-5750-1-git-send-email-sumit.semwal@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Sumit Semwal <sumit.semwal@linaro.org>
 
-On Monday 24 December 2012 10:24:48 Hans Verkuil wrote:
-> On Sun December 23 2012 23:24:04 Laurent Pinchart wrote:
-> > The recent uvcvideo regression that broke pulseaudio/KDE (see commit
-> > 9c016d61097cc39427a2f5025bdd97ac633d26a6 in the mainline kernel) was
-> > caused by the uvcvideo driver returning a -ENOENT error code to
-> > userspace by mistake.
-> > 
-> > To make sure such regressions will be caught before reaching users, test
-> > ioctl error codes to make sure they're valid.
-> 
-> I don't like this change. Error codes should be checked in the test for
-> the actual ioctl.
-> 
-> Apparently it is QUERYCTRL that is returning the wrong error code in uvc,
-> but looking at the code in v4l2-test-controls.cpp it is already checking
-> for ENOTTY or EINVAL and returning a failure if it is a different error
-> code. So why is that not triggered in this case?
+Add debugfs support to make it easier to print debug information
+about the dma-buf buffers.
 
-I've just checked that, the missing control class issue made the control tests 
-stop early before hitting the wrong return value. I guess that's a good reason 
-to fix *all* compliance errors...
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+---
+ drivers/base/dma-buf.c  |  149 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/dma-buf.h |    6 +-
+ 2 files changed, 154 insertions(+), 1 deletion(-)
 
-We can drop this patch.
-
+diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+index a3f79c4..49fcf0f 100644
+--- a/drivers/base/dma-buf.c
++++ b/drivers/base/dma-buf.c
+@@ -27,9 +27,18 @@
+ #include <linux/dma-buf.h>
+ #include <linux/anon_inodes.h>
+ #include <linux/export.h>
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>
+ 
+ static inline int is_dma_buf_file(struct file *);
+ 
++struct dma_buf_list {
++	struct list_head head;
++	struct mutex lock;
++};
++
++static struct dma_buf_list db_list;
++
+ static int dma_buf_release(struct inode *inode, struct file *file)
+ {
+ 	struct dma_buf *dmabuf;
+@@ -40,6 +49,11 @@ static int dma_buf_release(struct inode *inode, struct file *file)
+ 	dmabuf = file->private_data;
+ 
+ 	dmabuf->ops->release(dmabuf);
++
++	mutex_lock(&db_list.lock);
++	list_del(&dmabuf->list_node);
++	mutex_unlock(&db_list.lock);
++
+ 	kfree(dmabuf);
+ 	return 0;
+ }
+@@ -120,6 +134,10 @@ struct dma_buf *dma_buf_export(void *priv, const struct dma_buf_ops *ops,
+ 	mutex_init(&dmabuf->lock);
+ 	INIT_LIST_HEAD(&dmabuf->attachments);
+ 
++	mutex_lock(&db_list.lock);
++	list_add(&dmabuf->list_node, &db_list.head);
++	mutex_unlock(&db_list.lock);
++
+ 	return dmabuf;
+ }
+ EXPORT_SYMBOL_GPL(dma_buf_export);
+@@ -505,3 +523,134 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
+ 		dmabuf->ops->vunmap(dmabuf, vaddr);
+ }
+ EXPORT_SYMBOL_GPL(dma_buf_vunmap);
++
++static int dma_buf_init_debugfs(void);
++static void dma_buf_uninit_debugfs(void);
++
++static void __init dma_buf_init(void)
++{
++	mutex_init(&db_list.lock);
++	INIT_LIST_HEAD(&db_list.head);
++	dma_buf_init_debugfs();
++}
++
++static void __exit dma_buf_deinit(void)
++{
++	dma_buf_uninit_debugfs();
++}
++
++#ifdef CONFIG_DEBUG_FS
++static int dma_buf_describe(struct seq_file *s)
++{
++	int ret;
++	struct dma_buf *buf_obj;
++	struct dma_buf_attachment *attach_obj;
++	int count = 0, attach_count;
++	size_t size = 0;
++
++	ret = mutex_lock_interruptible(&db_list.lock);
++
++	if (ret)
++		return ret;
++
++	seq_printf(s, "\nDma-buf Objects:\n");
++	seq_printf(s, "\tsize\tflags\tmode\tcount\n");
++
++	list_for_each_entry(buf_obj, &db_list.head, list_node) {
++		seq_printf(s, "\t");
++
++		seq_printf(s, "%08zu\t%08x\t%08x\t%08d\n",
++				buf_obj->size, buf_obj->file->f_flags,
++				buf_obj->file->f_mode,
++				buf_obj->file->f_count.counter);
++
++		seq_printf(s, "\t\tAttached Devices:\n");
++		attach_count = 0;
++
++		list_for_each_entry(attach_obj, &buf_obj->attachments, node) {
++			seq_printf(s, "\t\t");
++
++			seq_printf(s, "%s\n", attach_obj->dev->init_name);
++			attach_count++;
++		}
++
++		seq_printf(s, "\n\t\tTotal %d devices attached\n",
++				attach_count);
++
++		count++;
++		size += buf_obj->size;
++	}
++
++	seq_printf(s, "\nTotal %d objects, %zu bytes\n", count, size);
++
++	mutex_unlock(&db_list.lock);
++	return 0;
++}
++
++static int dma_buf_show(struct seq_file *s, void *unused)
++{
++	void (*func)(struct seq_file *) = s->private;
++	func(s);
++	return 0;
++}
++
++static int dma_buf_debug_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, dma_buf_show, inode->i_private);
++}
++
++static const struct file_operations dma_buf_debug_fops = {
++	.open           = dma_buf_debug_open,
++	.read           = seq_read,
++	.llseek         = seq_lseek,
++	.release        = single_release,
++};
++
++static struct dentry *dma_buf_debugfs_dir;
++
++static int dma_buf_init_debugfs(void)
++{
++	int err = 0;
++	dma_buf_debugfs_dir = debugfs_create_dir("dma_buf", NULL);
++	if (IS_ERR(dma_buf_debugfs_dir)) {
++		err = PTR_ERR(dma_buf_debugfs_dir);
++		dma_buf_debugfs_dir = NULL;
++		return err;
++	}
++
++	err = dma_buf_debugfs_create_file("bufinfo", dma_buf_describe);
++
++	if (err)
++		pr_debug("dma_buf: debugfs: failed to create node bufinfo\n");
++
++	return err;
++}
++
++static void dma_buf_uninit_debugfs(void)
++{
++	if (dma_buf_debugfs_dir)
++		debugfs_remove_recursive(dma_buf_debugfs_dir);
++}
++
++int dma_buf_debugfs_create_file(const char *name,
++				int (*write)(struct seq_file *))
++{
++	struct dentry *d;
++
++	d = debugfs_create_file(name, S_IRUGO, dma_buf_debugfs_dir,
++			write, &dma_buf_debug_fops);
++
++	if (IS_ERR(d))
++		return PTR_ERR(d);
++
++	return 0;
++}
++#else
++static inline int dma_buf_init_debugfs(void)
++{
++	return 0;
++}
++static inline void dma_buf_uninit_debugfs(void)
++{
++}
++#endif
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index bd2e52c..160453f 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -112,6 +112,7 @@ struct dma_buf_ops {
+  * @file: file pointer used for sharing buffers across, and for refcounting.
+  * @attachments: list of dma_buf_attachment that denotes all devices attached.
+  * @ops: dma_buf_ops associated with this buffer object.
++ * @list_node: node for dma_buf accounting and debugging.
+  * @priv: exporter specific private data for this buffer object.
+  */
+ struct dma_buf {
+@@ -121,6 +122,8 @@ struct dma_buf {
+ 	const struct dma_buf_ops *ops;
+ 	/* mutex to serialize list manipulation and attach/detach */
+ 	struct mutex lock;
++
++	struct list_head list_node;
+ 	void *priv;
+ };
+ 
+@@ -183,5 +186,6 @@ int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
+ 		 unsigned long);
+ void *dma_buf_vmap(struct dma_buf *);
+ void dma_buf_vunmap(struct dma_buf *, void *vaddr);
+-
++int dma_buf_debugfs_create_file(const char *name,
++				int (*write)(struct seq_file *));
+ #endif /* __DMA_BUF_H__ */
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
