@@ -1,104 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42178 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932073Ab2LGKzc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2012 05:55:32 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH] omap3isp: preview: Lower the crop margins
-Date: Fri,  7 Dec 2012 11:56:37 +0100
-Message-Id: <1354877797-28333-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:46225 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756313Ab2LNQ3B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Dec 2012 11:29:01 -0500
+Received: by mail-ea0-f174.google.com with SMTP id e13so1374805eaa.19
+        for <linux-media@vger.kernel.org>; Fri, 14 Dec 2012 08:29:00 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org, dheitmueller@kernellabs.com,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 2/5] em28xx: respect the message size constraints for i2c transfers
+Date: Fri, 14 Dec 2012 17:28:50 +0100
+Message-Id: <1355502533-25636-3-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1355502533-25636-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1355502533-25636-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The preview engine includes filters that consume columns and lines as
-part of their operation, thus resulting in a cropped image. To allow
-turning those filters on/off during streaming without affecting the
-output image size, the driver adds additional cropping to make the total
-number of cropped columns and lines constant regardless of which filters
-are enabled.
+The em2800 can transfer up to 4 bytes per i2c message.
+All other em25xx/em27xx/28xx chips can transfer at least 64 bytes per message.
 
-This process needlessly includes the CFA filter, as whether the filter
-is enabled only depends on the sink pad format, which can't change
-during streaming.
+I2C adapters should never split messages transferred via the I2C subsystem
+into multiple message transfers, because the result will almost always NOT be
+the same as when the whole data is transferred to the I2C client in a single
+message.
+If the message size exceeds the capabilities of the I2C adapter, -EOPNOTSUPP
+should be returned.
 
-Exclude the CFA filter from the preview engine margins.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/platform/omap3isp/isppreview.c |   31 +++++++++++++++++--------
- 1 files changed, 21 insertions(+), 10 deletions(-)
+ drivers/media/usb/em28xx/em28xx-i2c.c |   44 ++++++++++++++-------------------
+ 1 Datei geändert, 18 Zeilen hinzugefügt(+), 26 Zeilen entfernt(-)
 
-diff --git a/drivers/media/platform/omap3isp/isppreview.c b/drivers/media/platform/omap3isp/isppreview.c
-index 691b92a..e2e4610 100644
---- a/drivers/media/platform/omap3isp/isppreview.c
-+++ b/drivers/media/platform/omap3isp/isppreview.c
-@@ -82,8 +82,9 @@ static struct omap3isp_prev_csc flr_prev_csc = {
-  * The preview engine crops several rows and columns internally depending on
-  * which filters are enabled. To avoid format changes when the filters are
-  * enabled or disabled (which would prevent them from being turned on or off
-- * during streaming), the driver assumes all the filters are enabled when
-- * computing sink crop and source format limits.
-+ * during streaming), the driver assumes all filters that can be configured
-+ * during streaming are enabled when computing sink crop and source format
-+ * limits.
-  *
-  * If a filter is disabled, additional cropping is automatically added at the
-  * preview engine input by the driver to avoid overflow at line and frame end.
-@@ -92,25 +93,23 @@ static struct omap3isp_prev_csc flr_prev_csc = {
-  * Median filter		4 pixels
-  * Noise filter,
-  * Faulty pixels correction	4 pixels, 4 lines
-- * CFA filter			4 pixels, 4 lines in Bayer mode
-- *					  2 lines in other modes
-  * Color suppression		2 pixels
-  * or luma enhancement
-  * -------------------------------------------------------------
-- * Maximum total		14 pixels, 8 lines
-+ * Maximum total		10 pixels, 4 lines
-  *
-  * The color suppression and luma enhancement filters are applied after bayer to
-  * YUV conversion. They thus can crop one pixel on the left and one pixel on the
-  * right side of the image without changing the color pattern. When both those
-  * filters are disabled, the driver must crop the two pixels on the same side of
-  * the image to avoid changing the bayer pattern. The left margin is thus set to
-- * 8 pixels and the right margin to 6 pixels.
-+ * 6 pixels and the right margin to 4 pixels.
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 44533e4..c508c12 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -50,14 +50,18 @@ do {							\
+ } while (0)
+ 
+ /*
+- * em2800_i2c_send_max4()
+- * send up to 4 bytes to the i2c device
++ * em2800_i2c_send_bytes()
++ * send up to 4 bytes to the em2800 i2c device
   */
- 
--#define PREV_MARGIN_LEFT	8
--#define PREV_MARGIN_RIGHT	6
--#define PREV_MARGIN_TOP		4
--#define PREV_MARGIN_BOTTOM	4
-+#define PREV_MARGIN_LEFT	6
-+#define PREV_MARGIN_RIGHT	4
-+#define PREV_MARGIN_TOP		2
-+#define PREV_MARGIN_BOTTOM	2
- 
- #define PREV_MIN_IN_WIDTH	64
- #define PREV_MIN_IN_HEIGHT	8
-@@ -1849,6 +1848,18 @@ static void preview_try_crop(struct isp_prev_device *prev,
- 		right -= 2;
- 	}
- 
-+	/* The CFA filter crops 4 lines and 4 columns in Bayer mode, and 2 lines
-+	 * and no columns in other modes. Increase the margins based on the sink
-+	 * format.
-+	 */
-+	if (sink->code != V4L2_MBUS_FMT_Y8_1X8 &&
-+	    sink->code != V4L2_MBUS_FMT_Y10_1X10) {
-+		left += 2;
-+		right -= 2;
-+		top += 2;
-+		bottom -= 2;
-+	}
+-static int em2800_i2c_send_max4(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
++static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+ {
+ 	int ret;
+ 	int write_timeout;
+ 	u8 b2[6];
 +
- 	/* Restrict left/top to even values to keep the Bayer pattern. */
- 	crop->left &= ~1;
- 	crop->top &= ~1;
++	if (len < 1 || len > 4)
++		return -EOPNOTSUPP;
++
+ 	BUG_ON(len < 1 || len > 4);
+ 	b2[5] = 0x80 + len - 1;
+ 	b2[4] = addr;
+@@ -86,29 +90,6 @@ static int em2800_i2c_send_max4(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+ }
+ 
+ /*
+- * em2800_i2c_send_bytes()
+- */
+-static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+-{
+-	u8 *bufPtr = buf;
+-	int ret;
+-	int wrcount = 0;
+-	int count;
+-	int maxLen = 4;
+-	while (len > 0) {
+-		count = (len > maxLen) ? maxLen : len;
+-		ret = em2800_i2c_send_max4(dev, addr, bufPtr, count);
+-		if (ret > 0) {
+-			len -= count;
+-			bufPtr += count;
+-			wrcount += count;
+-		} else
+-			return (ret < 0) ? ret : -EFAULT;
+-	}
+-	return wrcount;
+-}
+-
+-/*
+  * em2800_i2c_check_for_device()
+  * check if there is a i2c_device at the supplied address
+  */
+@@ -150,6 +131,10 @@ static int em2800_i2c_check_for_device(struct em28xx *dev, u8 addr)
+ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+ {
+ 	int ret;
++
++	if (len < 1 || len > 4)
++		return -EOPNOTSUPP;
++
+ 	/* check for the device and set i2c read address */
+ 	ret = em2800_i2c_check_for_device(dev, addr);
+ 	if (ret) {
+@@ -176,6 +161,9 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+ 	int wrcount = 0;
+ 	int write_timeout, ret;
+ 
++	if (len < 1 || len > 64)
++		return -EOPNOTSUPP;
++
+ 	wrcount = dev->em28xx_write_regs_req(dev, stop ? 2 : 3, addr, buf, len);
+ 
+ 	/* Seems to be required after a write */
+@@ -197,6 +185,10 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
+ {
+ 	int ret;
++
++	if (len < 1 || len > 64)
++		return -EOPNOTSUPP;
++
+ 	ret = dev->em28xx_read_reg_req_len(dev, 2, addr, buf, len);
+ 	if (ret < 0) {
+ 		em28xx_warn("reading i2c device failed (error=%i)\n", ret);
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
