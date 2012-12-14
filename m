@@ -1,99 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:56410 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750725Ab2LRG30 (ORCPT
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:46037 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753848Ab2LNX0t (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Dec 2012 01:29:26 -0500
+	Fri, 14 Dec 2012 18:26:49 -0500
+Received: by mail-qa0-f46.google.com with SMTP id r4so1221523qaq.19
+        for <linux-media@vger.kernel.org>; Fri, 14 Dec 2012 15:26:48 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <CAPM=9txFJzJ0haTyBnr8hEmmqNb+gSAyBno+Zs0Z-qvVMTwz9A@mail.gmail.com>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<CAPM=9txFJzJ0haTyBnr8hEmmqNb+gSAyBno+Zs0Z-qvVMTwz9A@mail.gmail.com>
-Date: Tue, 18 Dec 2012 00:21:32 -0600
-Message-ID: <CAF6AEGsLdLasS4=j1PsX_P8miG8NcTXMUP9VYj+4gdU8Qhm2YQ@mail.gmail.com>
-Subject: Re: [RFC v2 0/5] Common Display Framework
-From: Rob Clark <rob.clark@linaro.org>
-To: Dave Airlie <airlied@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Tom Gall <tom.gall@linaro.org>,
-	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <50CBB01B.2050700@iki.fi>
+References: <50B51F7E.2030008@sfr.fr>
+	<50CB61A6.7060308@sfr.fr>
+	<50CB67F4.3090802@iki.fi>
+	<50CBA8BE.8020205@sfr.fr>
+	<50CBB01B.2050700@iki.fi>
+Date: Fri, 14 Dec 2012 18:26:48 -0500
+Message-ID: <CAGoCfiznjVr0Km_gPV6bMsXUZXQJYLptTEFGTXcO5ZipBVd8nQ@mail.gmail.com>
+Subject: Re: [PATCH] [media] ngene: fix dvb_pll_attach failure
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Patrice Chotard <patrice.chotard@sfr.fr>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	=?ISO-8859-1?B?RnLpZOlyaWM=?= <frederic.mantegazza@gbiloba.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 17, 2012 at 11:04 PM, Dave Airlie <airlied@gmail.com> wrote:
->>
->> Many developers showed interest in the first RFC, and I've had the opportunity
->> to discuss it with most of them. I would like to thank (in no particular
->> order) Tomi Valkeinen for all the time he spend helping me to draft v2, Marcus
->> Lorentzon for his useful input during Linaro Connect Q4 2012, and Linaro for
->> inviting me to Connect and providing a venue to discuss this topic.
->>
+On Fri, Dec 14, 2012 at 6:02 PM, Antti Palosaari <crope@iki.fi> wrote:
+
+> That one is better solution...
 >
-> So this might be a bit off topic but this whole CDF triggered me
-> looking at stuff I generally avoid:
+> but it is clearly DRXD driver bug - it should offer working I2C gate control
+> after attach() :-( I looked quickly DRXD driver and there is clearly some
+> other places to enhance too. But I suspect there is no maintainer, nor
+> interest from anyone to start fix things properly, so only reasonable way is
+> to add that hack to get it working...
 >
-> The biggest problem I'm having currently with the whole ARM graphics
-> and output world is the proliferation of platform drivers for every
-> little thing. The whole ordering of operations with respect to things
-> like suspend/resume or dynamic power management is going to be a real
-> nightmare if there are dependencies between the drivers. How do you
-> enforce ordering of s/r operations between all the various components?
+> Honestly, I hate this kind of hacks :/ That makes our live hard on long run.
+> It goes slowly more and more hard to make any core changes as regressions
+> will happen due to this kind of hacks.
+>
+> So send new patch which put demod chip sleeping after tuner attach. Or even
+> better, find out what is minimal set of commands needed do execute during
+> attach in order to offer working I2C gate (I suspect firmware load is
+> needed).
 
-I tend to think that sub-devices are useful just to have a way to
-probe hw which may or may not be there, since on ARM we often don't
-have any alternative.. but beyond that, suspend/resume, and other
-life-cycle aspects, they should really be treated as all one device.
-Especially to avoid undefined suspend/resume ordering.
+Opening the gate at the end of the attach callback should be a trivial
+exercise.  Should just be a call to drxd_config_i2c(fe, enable) at the
+end of drxd_attach().
 
-CDF or some sort of mechanism to share panel drivers between drivers
-is useful.  Keeping it within drm, is probably a good idea, if nothing
-else to simplify re-use of helper fxns (like avi-infoframe stuff, for
-example) and avoid dealing with merging changes across multiple trees.
-  Treating them more like shared libraries and less like sub-devices
-which can be dynamically loaded/unloaded (ie. they should be not built
-as separate modules or suspend/resumed or probed/removed independently
-of the master driver) is a really good idea to avoid uncovering nasty
-synchronization issues later (remove vs modeset or pageflip) or
-surprising userspace in bad ways.
+Devin
 
-> The other thing I'd like you guys to do is kill the idea of fbdev and
-> v4l drivers that are "shared" with the drm codebase, really just
-> implement fbdev and v4l on top of the drm layer, some people might
-> think this is some sort of maintainer thing, but really nothing else
-> makes sense, and having these shared display frameworks just to avoid
-> having using drm/kms drivers seems totally pointless. Fix the drm
-> fbdev emulation if an fbdev interface is needed. But creating a fourth
-> framework because our previous 3 frameworks didn't work out doesn't
-> seem like a situation I want to get behind too much.
-
-yeah, let's not have multiple frameworks to do the same thing.. For
-fbdev, it is pretty clear that it is a dead end.  For v4l2
-(subdev+mcf), it is perhaps bit more flexible when it comes to random
-arbitrary hw pipelines than kms.  But to take advantage of that, your
-userspace isn't going to be portable anyways, so you might as well use
-driver specific properties/ioctls.  But I tend to think that is more
-useful for cameras.  And from userspace perspective, kms planes are
-less painful to use for output than v4l2, so lets stick to drm/kms for
-output (and not try to add camera/capture support to kms).. k, thx
-
-BR,
--R
-
-> Dave.
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+--
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
