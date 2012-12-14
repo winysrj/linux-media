@@ -1,183 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:54350 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751421Ab2LKJdP convert rfc822-to-8bit (ORCPT
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:28894 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756620Ab2LNRqg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Dec 2012 04:33:15 -0500
+	Fri, 14 Dec 2012 12:46:36 -0500
+Date: Fri, 14 Dec 2012 09:46:29 -0800
+From: Tony Lindgren <tony@atomide.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>, linux-omap@vger.kernel.org,
+	linux-media@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 1/7] ir-rx51: Handle signals properly
+Message-ID: <20121214174629.GV4989@atomide.com>
+References: <1353251589-26143-1-git-send-email-timo.t.kokkonen@iki.fi>
+ <1353251589-26143-2-git-send-email-timo.t.kokkonen@iki.fi>
+ <20121120195755.GM18567@atomide.com>
+ <20121214172809.GT4989@atomide.com>
+ <20121214172616.GC9620@arwen.pp.htv.fi>
 MIME-Version: 1.0
-In-Reply-To: <201212110956.43081.hverkuil@xs4all.nl>
-References: <1354708169-1139-1-git-send-email-prabhakar.csengg@gmail.com>
- <CA+V-a8t+KxCYunkrT715zQks=5HOrFk2PSM2Ss_kTj4iXg=PJg@mail.gmail.com>
- <20121206095431.GA2887@valkosipuli.retiisi.org.uk> <201212110956.43081.hverkuil@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 11 Dec 2012 15:02:53 +0530
-Message-ID: <CA+V-a8uj_=ZEMHCmJWMy8_2mYXddCiKjTd+q-SgjjWjddD35SA@mail.gmail.com>
-Subject: Re: [PATCH RFC v2] media: v4l2-ctrl: Add gain controls
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	LDOC <linux-doc@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Chris MacGregor <chris@cybermato.com>,
-	Rob Landley <rob@landley.net>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20121214172616.GC9620@arwen.pp.htv.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+* Felipe Balbi <balbi@ti.com> [121214 09:36]:
+> Hi,
+> 
+> On Fri, Dec 14, 2012 at 09:28:09AM -0800, Tony Lindgren wrote:
+> > * Tony Lindgren <tony@atomide.com> [121120 12:00]:
+> > > Hi,
+> > > 
+> > > * Timo Kokkonen <timo.t.kokkonen@iki.fi> [121118 07:15]:
+> > > > --- a/drivers/media/rc/ir-rx51.c
+> > > > +++ b/drivers/media/rc/ir-rx51.c
+> > > > @@ -74,6 +74,19 @@ static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
+> > > >  			      OMAP_TIMER_TRIGGER_NONE);
+> > > >  }
+> > > >  
+> > > > +static void lirc_rx51_stop_tx(struct lirc_rx51 *lirc_rx51)
+> > > > +{
+> > > > +	if (lirc_rx51->wbuf_index < 0)
+> > > > +		return;
+> > > > +
+> > > > +	lirc_rx51_off(lirc_rx51);
+> > > > +	lirc_rx51->wbuf_index = -1;
+> > > > +	omap_dm_timer_stop(lirc_rx51->pwm_timer);
+> > > > +	omap_dm_timer_stop(lirc_rx51->pulse_timer);
+> > > > +	omap_dm_timer_set_int_enable(lirc_rx51->pulse_timer, 0);
+> > > > +	wake_up(&lirc_rx51->wqueue);
+> > > > +}
+> > > > +
+> > > >  static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+> > > >  {
+> > > >  	u32 load, match;
+> > > 
+> > > Good fixes in general.. But you won't be able to access the
+> > > omap_dm_timer functions after we enable ARM multiplatform support
+> > > for omap2+. That's for v3.9 probably right after v3.8-rc1.
+> > > 
+> > > We need to find some Linux generic API to use hardware timers
+> > > like this, so I've added Thomas Gleixner and linux-arm-kernel
+> > > mailing list to cc.
+> > > 
+> > > If no such API is available, then maybe we can export some of
+> > > the omap_dm_timer functions if Thomas is OK with that.
+> > 
+> > Just to update the status on this.. It seems that we'll be moving
+> > parts of plat/dmtimer into a minimal include/linux/timer-omap.h
+> > unless people have better ideas on what to do with custom
+> > hardware timers for PWM etc.
+> 
+> if it's really for PWM, shouldn't we be using drivers/pwm/ ??
+> 
+> Meaning that $SUBJECT would just request a PWM device and use it. That
+> doesn't solve the whole problem, however, as pwm-omap.c would still need
+> access to timer-omap.h.
 
-On Tue, Dec 11, 2012 at 2:26 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Thu 6 December 2012 10:54:32 Sakari Ailus wrote:
->> Hi Prabhakar and Hans,
->>
->> On Thu, Dec 06, 2012 at 10:24:18AM +0530, Prabhakar Lad wrote:
->> > Hi Hans,
->> >
->> > On Wed, Dec 5, 2012 at 5:38 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> > > (resend without HTML formatting)
->> > >
->> > > On Wed 5 December 2012 12:49:29 Prabhakar Lad wrote:
->> > >> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> > >>
->> > >> add support for per color component digital/analog gain controls
->> > >> and also their corresponding offset.
->> > >
->> > > Some obvious questions below...
->> > >
->> > >>
->> > >> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> > >> Cc: Sakari Ailus <sakari.ailus@iki.fi>
->> > >> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> > >> Cc: Kyungmin Park <kyungmin.park@samsung.com>
->> > >> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> > >> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> > >> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> > >> Cc: Hans de Goede <hdegoede@redhat.com>
->> > >> Cc: Chris MacGregor <chris@cybermato.com>
->> > >> Cc: Rob Landley <rob@landley.net>
->> > >> Cc: Jeongtae Park <jtp.park@samsung.com>
->> > >> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
->> > >> ---
->> > >>  Changes for v2:
->> > >>  1: Fixed review comments pointed by Laurent.
->> > >>  2: Rebased on latest tree.
->> > >>
->> > >>  Documentation/DocBook/media/v4l/controls.xml |   54 ++++++++++++++++++++++++++
->> > >>  drivers/media/v4l2-core/v4l2-ctrls.c         |   11 +++++
->> > >>  include/uapi/linux/v4l2-controls.h           |   11 +++++
->> > >>  3 files changed, 76 insertions(+), 0 deletions(-)
->> > >>
->> > >> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
->> > >> index 7fe5be1..847a9bb 100644
->> > >> --- a/Documentation/DocBook/media/v4l/controls.xml
->> > >> +++ b/Documentation/DocBook/media/v4l/controls.xml
->> > >> @@ -4543,6 +4543,60 @@ interface and may change in the future.</para>
->> > >>           specific test patterns can be used to test if a device is working
->> > >>           properly.</entry>
->> > >>         </row>
->> > >> +       <row>
->> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_RED</constant></entry>
->> > >> +         <entry>integer</entry>
->> > >> +       </row>
->> > >> +       <row>
->> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN_RED</constant></entry>
->> > >> +         <entry>integer</entry>
->> > >> +       </row>
->> > >> +       <row>
->> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN_BLUE</constant></entry>
->> > >> +         <entry>integer</entry>
->> > >> +       </row>
->> > >> +       <row>
->> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_BLUE</constant></entry>
->> > >> +         <entry>integer</entry>
->> > >> +       </row>
->> > >> +       <row>
->> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN</constant></entry>
->> > >> +         <entry>integer</entry>
->> > >> +       </row>
->> > >> +       <row>
->> > >> +         <entry spanname="descr"> Some capture/sensor devices have
->> > >> +         the capability to set per color component digital/analog gain values.</entry>
->> > >> +       </row>
->> > >> +       <row>
->> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_OFFSET</constant></entry>
->> > >> +         <entry>integer</entry>
->> > >> +       </row>
->> > >> +       <row>
->> > >> +         <entry spanname="id"><constant>V4L2_CID_BLUE_OFFSET</constant></entry>
->> > >> +         <entry>integer</entry>
->> > >> +       </row>
->> > >> +       <row>
->> > >> +         <entry spanname="id"><constant>V4L2_CID_RED_OFFSET</constant></entry>
->> > >> +         <entry>integer</entry>
->> > >> +       </row>
->> > >> +       <row>
->> > >> +         <entry spanname="id"><constant>V4L2_CID_GREEN_OFFSET</constant></entry>
->> > >> +         <entry>integer</entry>
->> > >> +       </row>
->> > >> +       <row>
->> > >> +         <entry spanname="id"><constant>V4L2_CID_GREEN_RED_OFFSET</constant></entry>
->> > >> +         <entry>integer</entry>
->> > >> +       </row>
->> > >> +       <row>
->> > >> +         <entry spanname="id"><constant>V4L2_CID_GREEN_BLUE_OFFSET</constant></entry>
->> > >> +         <entry>integer</entry>
->> > >> +       </row>
->> > >> +       <row>
->> > >> +         <entry spanname="descr"> Some capture/sensor devices have the
->> > >> +         capability to set per color component digital/analog gain offset values.
->> > >> +         V4L2_CID_GAIN_OFFSET is the global gain offset and the rest are per
->> > >> +         color component gain offsets.</entry>
->> > >
->> > > If I set both V4L2_CID_GAIN_RED and V4L2_CID_RED_OFFSET, how are they supposed
->> > > to interact? Or are they mutually exclusive?
->> > >
->> > > And if I set both V4L2_CID_GAIN_OFFSET and V4L2_CID_RED_OFFSET, how are they supposed
->> > > to interact?
->> > >
->> > > This questions should be answered in the documentation...
->> > >
->> > I haven’t worked on the hardware which supports both, What is the general
->> > behaviour when the hardware supports both per color component and global
->> > and both of them are set ? That could be helpful for me to document.
->>
->> I'd guess most of the time only either one is supported,
->
-> Are you talking about GAIN_RED vs GAIN_RED_OFFSET or GAIN_OFFSET vs RED_OFFSET?
-> Or both?
->
->> and when someone
->> thinks of supporting both on the same device, we can start thinking of the
->> interaction of per-component and global ones. That may be hardware specific
->> as well, so standardising it might not be possible.
->>
->> I think it'd be far more important to know which unit is it. Many such
->> controls are indeed fixed point values but the location of the point varies.
->> For unstance, u16,u16 and u8,u8 aren't uncommon. We currently have no way to
->> tell this to the user space. This isn't in any way specific to gain or
->> offset controls, though.
->
-> There are no standardized units for gain at the moment, and I don't really see
-> that happening any time soon. Fixed point isn't supported at all as a control
-> type, so that will have to be converted to an integer anyway.
->
-> Prabhakar, which of these controls are actually supported by your hardware?
->
-my hardware supports gain red, gain blue, gain green red, gain green blue and
-global gain offset.
+That would only help with omap_dm_timer_set_pwm() I think.
+
+The other functions are also needed by the clocksource and clockevent
+drivers. And tidspbridge too:
+
+$ grep -r omap_dm_timer drivers/
+...
 
 Regards,
---Prabhakar Lad
 
-> Regards,
->
->         Hans
+Tony
