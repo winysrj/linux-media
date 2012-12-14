@@ -1,119 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:42693 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752040Ab2LPWEp convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 17:04:45 -0500
-From: Albert Wang <twang13@marvell.com>
-To: Jonathan Corbet <corbet@lwn.net>
-CC: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Libin Yang <lbyang@marvell.com>
-Date: Sun, 16 Dec 2012 14:04:40 -0800
-Subject: RE: [PATCH V3 09/15] [media] marvell-ccic: add get_mcam function
- for marvell-ccic driver
-Message-ID: <477F20668A386D41ADCC57781B1F70430D13C8CCE3@SC-VEXCH1.marvell.com>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
-	<1355565484-15791-10-git-send-email-twang13@marvell.com>
- <20121216092440.110ecf5f@hpe.lwn.net>
-In-Reply-To: <20121216092440.110ecf5f@hpe.lwn.net>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:45362 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756345Ab2LNPow (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Dec 2012 10:44:52 -0500
+Received: by mail-bk0-f46.google.com with SMTP id q16so1820462bkw.19
+        for <linux-media@vger.kernel.org>; Fri, 14 Dec 2012 07:44:50 -0800 (PST)
+Message-ID: <50CB497F.6070803@googlemail.com>
+Date: Fri, 14 Dec 2012 16:45:03 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/9] em28xx: refactor the frame data processing code
+References: <1354980692-3791-1-git-send-email-fschaefer.oss@googlemail.com> <CAGoCfiw1wN+KgvNLqDSmbz5AwswPT9K48XOM4RnfKvHkmmR59g@mail.gmail.com> <50CA16EB.7060201@googlemail.com> <CAGoCfixtaQ4Jj2dW7XaAzcqEBTDj3xRnO_iCP=kOnhaxYwO2rw@mail.gmail.com> <50CB4494.2060501@googlemail.com> <CAGoCfixTeu6m0dcmpy7p=_BM8oZknCwyJ=jFPPM7bgJKC=-=jg@mail.gmail.com>
+In-Reply-To: <CAGoCfixTeu6m0dcmpy7p=_BM8oZknCwyJ=jFPPM7bgJKC=-=jg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Jonathan
-
-
->-----Original Message-----
->From: Jonathan Corbet [mailto:corbet@lwn.net]
->Sent: Monday, 17 December, 2012 00:25
->To: Albert Wang
->Cc: g.liakhovetski@gmx.de; linux-media@vger.kernel.org; Libin Yang
->Subject: Re: [PATCH V3 09/15] [media] marvell-ccic: add get_mcam function for marvell-
->ccic driver
+Am 14.12.2012 16:29, schrieb Devin Heitmueller:
+>>>> Yes, there will likely be heavy merge conflicts...
+>>>> In which tree are the videobuf2 patches ?
+>>> It's in a private tree right now, and it doesn't support VBI
+>>> currently.  Once I've setup a public tree with yours and Hans changes,
+>>> I'll start merging in my changes.
+>> I suggest to do the conversion on top of my patches, as they should make
+>> things much easier for you.
+>> I unified the handling of the VBI and video buffers, leaving just a few
+>> common functions dealing with the videobuf stuff.
+> Yup, that's exactly what I had planned.
 >
->On Sat, 15 Dec 2012 17:57:58 +0800
->Albert Wang <twang13@marvell.com> wrote:
->
->> This patch adds get_mcam() inline function which is prepared for
->> adding soc_camera support in marvell-ccic driver
->
->Time for a bikeshed moment: "get" generally is understood to mean
->incrementing a reference count in kernel code.  Can it have a name like
->vbq_to_mcam() instead?
->
-[Albert Wang] Sure. It looks your name is more professional. :)
-
->Also:
->
->> @@ -1073,14 +1073,17 @@ static int mcam_vb_queue_setup(struct vb2_queue *vq,
->>  static void mcam_vb_buf_queue(struct vb2_buffer *vb)
->>  {
->>  	struct mcam_vb_buffer *mvb = vb_to_mvb(vb);
->> -	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
->> +	struct mcam_camera *cam = get_mcam(vb->vb2_queue);
->>  	struct v4l2_pix_format *fmt = &cam->pix_format;
->>  	unsigned long flags;
->>  	int start;
->>  	dma_addr_t dma_handle;
->> +	unsigned long size;
->>  	u32 pixel_count = fmt->width * fmt->height;
+>> In any case, we should develop against a common tree with a minimum
+>> number of pending patches.
+>> And we should coordinate development.
+>> I don't work on further changes of the frame processing stuff at the moment.
+>> Some I2C fixes/changes will be next. After that, I will try to fix
+>> support for remote controls with external IR IC (connected via i2c).
 >>
->>  	spin_lock_irqsave(&cam->dev_lock, flags);
->> +	size = vb2_plane_size(vb, 0);
->> +	vb2_set_plane_payload(vb, 0, size);
->>  	dma_handle = vb2_dma_contig_plane_dma_addr(vb, 0);
->>  	BUG_ON(!dma_handle);
->>  	start = (cam->state == S_BUFWAIT) && !list_empty(&cam->buffers);
->
->There is an unrelated change here that belongs in a separate patch.
->
-[Albert Wang] OK
-
->> @@ -1138,9 +1141,12 @@ static void mcam_vb_wait_finish(struct vb2_queue *vq)
->>   */
->>  static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
->>  {
->> -	struct mcam_camera *cam = vb2_get_drv_priv(vq);
->> +	struct mcam_camera *cam = get_mcam(vq);
->>  	unsigned int frame;
+>>> Obviously it would be great for you to test with your webcam and make
+>>> sure I didn't break anything along the way.
+>> Sure, I will be glad to test your changes.
 >>
->> +	if (count < 2)
->> +		return -EINVAL;
->> +
->
->Here too - unrelated change.
->
-[Albert Wang] Em, it looks we should add a new patch to contain these changes. :)
+>>> I've also got changes to support V4L2_FIELD_SEQ_TB, which is needed in
+>>> order to take the output and feed to certain hardware deinterlacers.
+>>> In reality this is pretty much just a matter of treating the video
+>>> data as progressive but changing the field type indicator.
+>> Ok, so I assume most of the changes will happen in em28xx_copy_video().
+> The changes really are all over the tree because it's not just vb2
+> support but also support for v4l2_fh, which means every ioctl() has a
+> change to its arguments, and there is no longer an open/close call
+> implemented.  Also significant impact on the locking model.
 
->>  	if (cam->state != S_IDLE) {
->>  		INIT_LIST_HEAD(&cam->buffers);
->>  		return -EINVAL;
->> @@ -1170,7 +1176,7 @@ static int mcam_vb_start_streaming(struct vb2_queue *vq,
->unsigned int count)
->>
->>  static int mcam_vb_stop_streaming(struct vb2_queue *vq)
->>  {
->> -	struct mcam_camera *cam = vb2_get_drv_priv(vq);
->> +	struct mcam_camera *cam = get_mcam(vq);
->>  	unsigned long flags;
->>
->>  	if (cam->state == S_BUFWAIT) {
->> @@ -1181,6 +1187,7 @@ static int mcam_vb_stop_streaming(struct vb2_queue *vq)
->>  	if (cam->state != S_STREAMING)
->>  		return -EINVAL;
->>  	mcam_ctlr_stop_dma(cam);
->> +	cam->state = S_IDLE;
->
->...and also here ...
->
->jon
+Ok. Sounds like a lot of fun... ;)
 
- 
+If the changes are all over the tree, we will likely get more collisions.
+So we should both make our changes public as soon as possible.
 
-Thanks
-Albert Wang
-86-21-61092656
+>
+>> Maybe we can then use a common copy function for video and VBI. Placing
+>> the field data sequentially in the videobuf is what we already do with
+>> the VBI data in em28xx_copy_vbi()
+> Let's get something that works, at which point we can tune/optimize as needed.
+
+I agree.
+
+Frank
+
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+
