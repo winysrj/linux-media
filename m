@@ -1,58 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50956 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750876Ab2LUUne (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Dec 2012 15:43:34 -0500
-Date: Fri, 21 Dec 2012 18:43:11 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: YAMANE Toshiaki <yamanetoshi@gmail.com>
-Cc: Greg Kroah-Hartman <greg@kroah.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/2] staging/media: Fix trailing statements should be on
- next line in go7007/go7007-fw.c
-Message-ID: <20121221184311.2da34111@redhat.com>
-In-Reply-To: <1352115573-8321-1-git-send-email-yamanetoshi@gmail.com>
-References: <1352115526-8287-1-git-send-email-yamanetoshi@gmail.com>
-	<1352115573-8321-1-git-send-email-yamanetoshi@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp23.services.sfr.fr ([93.17.128.20]:3657 "EHLO
+	smtp23.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751869Ab2LOXLl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Dec 2012 18:11:41 -0500
+Message-ID: <50CD03A0.602@sfr.fr>
+Date: Sun, 16 Dec 2012 00:11:28 +0100
+From: Patrice Chotard <patrice.chotard@sfr.fr>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: =?iso-8859-1?b?RnLpZOlyaWM=?= <frederic.mantegazza@gbiloba.org>
+Subject: [PATCH 1/2] [media] drxd: allow functional gate control after,
+ attach
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon,  5 Nov 2012 20:39:33 +0900
-YAMANE Toshiaki <yamanetoshi@gmail.com> escreveu:
+Previously, gate control didn't work until drxd_init()
+execution. Migrate necessary set of commands in drxd_attach
+to allow gate control to be used by tuner which are
+accessible through i2c gate.
 
-> fixed below checkpatch error.
-> - ERROR: trailing statements should be on next line
-> 
-> Signed-off-by: YAMANE Toshiaki <yamanetoshi@gmail.com>
-> ---
->  drivers/staging/media/go7007/go7007-fw.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/go7007/go7007-fw.c b/drivers/staging/media/go7007/go7007-fw.c
-> index f99c05b..cfce760 100644
-> --- a/drivers/staging/media/go7007/go7007-fw.c
-> +++ b/drivers/staging/media/go7007/go7007-fw.c
-> @@ -725,7 +725,8 @@ static int vti_bitlen(struct go7007 *go)
->  {
->  	unsigned int i, max_time_incr = go->sensor_framerate / go->fps_scale;
->  
-> -	for (i = 31; (max_time_incr & ((1 << i) - 1)) == max_time_incr; --i);
-> +	for (i = 31; (max_time_incr & ((1 << i) - 1)) == max_time_incr; --i)
-> +		;
+Reported-by: frederic.mantegazza@gbiloba.org
+Signed-off-by: Patrice Chotard <patricechotard@free.fr>
+---
+ drivers/media/dvb-frontends/drxd_hard.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-Nah, this doesn't sound right to me. IMO, in this specific case,
-checkpatch.pl did a bad job.
+diff --git a/drivers/media/dvb-frontends/drxd_hard.c
+b/drivers/media/dvb-frontends/drxd_hard.c
+index 6d98537..b2ab1e8 100644
+--- a/drivers/media/dvb-frontends/drxd_hard.c
++++ b/drivers/media/dvb-frontends/drxd_hard.c
+@@ -2978,6 +2978,10 @@ struct dvb_frontend *drxd_attach(const struct
+drxd_config *config,
+ 	       sizeof(struct dvb_frontend_ops));
+ 	state->frontend.demodulator_priv = state;
+ 	ConfigureMPEGOutput(state, 0);
++	/* add few initialization to allow gate control */
++	CDRXD(state, state->config.IF ? state->config.IF : 36000000);
++	InitHI(state);
++
+ 	return &state->frontend;
 
-At least on my eyes, the first line is easier to read than the other
-two ones.
-
->  	return i + 1;
->  }
->  
-
-
-Regards,
-Mauro
+ error:
+-- 
+1.7.10.4
