@@ -1,99 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:34275 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750784Ab2LUNKm (ORCPT
+Received: from smtp23.services.sfr.fr ([93.17.128.20]:3213 "EHLO
+	smtp23.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751869Ab2LOXL0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Dec 2012 08:10:42 -0500
-Received: by mail-la0-f46.google.com with SMTP id p5so5034094lag.19
-        for <linux-media@vger.kernel.org>; Fri, 21 Dec 2012 05:10:41 -0800 (PST)
+	Sat, 15 Dec 2012 18:11:26 -0500
+Message-ID: <50CD038F.2020501@sfr.fr>
+Date: Sun, 16 Dec 2012 00:11:11 +0100
+From: Patrice Chotard <patrice.chotard@sfr.fr>
 MIME-Version: 1.0
-In-Reply-To: <CAOcJUbw3Z+TTvURsOSKS0qaYY2mV3_9H5HCE2JH6vjX=QSDaDw@mail.gmail.com>
-References: <CAOcJUbw3Z+TTvURsOSKS0qaYY2mV3_9H5HCE2JH6vjX=QSDaDw@mail.gmail.com>
-Date: Fri, 21 Dec 2012 08:10:41 -0500
-Message-ID: <CAOcJUby47hZKEB8NODjCD5DeTToCPc233H6G77jaDQ_yyVDfig@mail.gmail.com>
-Subject: Re: [PULL] dvb-frontends: use %*ph[N] to dump small buffers
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: =?iso-8859-1?b?RnLpZOlyaWM=?= <frederic.mantegazza@gbiloba.org>
+Subject: [PATCH 0/2] fix dvb_pll_attach failure for ngene
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
 
-updated pwclient script and pull request follows:
 
-pwclient update -s 'superseded' 15687
-pwclient update -s 'superseded' 15688
-pwclient update -s 'superseded' 15933
+Patrice Chotard (2):
+  [media] drxd: allow functional gate control after attach
+  [media] ngene: separate demodulator and tuner attach
 
-The following changes since commit 5b7d8de7d2328f7b25fe4645eafee7e48f9b7df3:
+ drivers/media/dvb-frontends/drxd_hard.c |    4 ++++
+ drivers/media/pci/ngene/ngene-cards.c   |   10 ++++++++++
+ 2 files changed, 14 insertions(+)
 
-  [media] au0828: break au0828_card_setup() down into smaller
-functions (2012-12-17 14:34:27 -0200)
-
-are available in the git repository at:
-
-  git://git.linuxtv.org/mkrufky/tuners frontends
-
-for you to fetch changes up to cf866aea2dd6730b20be9ad69f8829675b0e6234:
-
-  or51211: apply pr_fmt and use pr_* macros instead of printk
-(2012-12-18 08:20:28 -0500)
-
-----------------------------------------------------------------
-Andy Shevchenko (3):
-      or51211: use %*ph[N] to dump small buffers
-      ix2505v: use %*ph[N] to dump small buffers
-      or51211: apply pr_fmt and use pr_* macros instead of printk
-
- drivers/media/dvb-frontends/ix2505v.c |    2 +-
- drivers/media/dvb-frontends/or51211.c |   99
-++++++++++++++++++++++++++++++++++++++++++++-------------------------------------------------------
- 2 files changed, 45 insertions(+), 56 deletions(-)
-
-Cheers,
-
-Mike
-
-On Mon, Dec 17, 2012 at 9:16 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> Mauro,
->
-> Please apply the following to update status in patchwork along with
-> the following merge request...
->
-> pwclient update -s 'superseded' 15687
-> pwclient update -s 'changes requested' 15688
->
-> I am marking 15687 as superseded because I broke the patch into two
-> separate patches.  (see merge request below)
-> 15688 causes new build warnings, so I've asked Andy to resubmit.
->
-> Please merge:
->
-> The following changes since commit 5b7d8de7d2328f7b25fe4645eafee7e48f9b7df3:
->
->   [media] au0828: break au0828_card_setup() down into smaller
-> functions (2012-12-17 14:34:27 -0200)
->
-> are available in the git repository at:
->
->   git://git.linuxtv.org/mkrufky/tuners frontends
->
-> for you to fetch changes up to 34c87fa2214d134c0028c97d7aab3dd769bb3bf0:
->
->   ix2505v: use %*ph[N] to dump small buffers (2012-12-17 20:12:29 -0500)
->
-> ----------------------------------------------------------------
-> Andy Shevchenko (2):
->       or51211: use %*ph[N] to dump small buffers
->       ix2505v: use %*ph[N] to dump small buffers
->
->  drivers/media/dvb-frontends/ix2505v.c |    2 +-
->  drivers/media/dvb-frontends/or51211.c |    5 +----
->  2 files changed, 2 insertions(+), 5 deletions(-)
->
-> Cheers,
->
-> Mike
+-- 
+1.7.10.4
