@@ -1,51 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:55407 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753130Ab2LRCZR (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1588 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752655Ab2LOUr7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Dec 2012 21:25:17 -0500
-Received: by mail-lb0-f169.google.com with SMTP id gk1so209317lbb.14
-        for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 18:25:15 -0800 (PST)
-MIME-Version: 1.0
-Date: Mon, 17 Dec 2012 20:56:15 -0500
-Message-ID: <CAOcJUbxUwYJL+ktLHQGdqbeRfVcRfePwnT5mfJ5GbRwkB4f9Kw@mail.gmail.com>
-Subject: dvb: or51211: apply pr_fmt and use pr_* macros instead of printk
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sat, 15 Dec 2012 15:47:59 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id qBFKltnJ054930
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sat, 15 Dec 2012 21:47:58 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 4A52917000FD
+	for <linux-media@vger.kernel.org>; Sat, 15 Dec 2012 21:47:55 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20121215204755.4A52917000FD@alastor.dyndns.org>
+Date: Sat, 15 Dec 2012 21:47:55 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Your patch from Nov 28 entitled, "dvb: or51211: apply pr_fmt and use
-pr_* macros instead of printk" located in patchwork at the URL:
+Results of the daily build of media_tree:
 
-http://patchwork.linuxtv.org/patch/15688/
+date:        Sat Dec 15 19:00:28 CET 2012
+git hash:    49cc629df16f2a15917800a8579bd9c25c41b634
+gcc version:      i686-linux-gcc (GCC) 4.7.1
+host hardware:    x86_64
+host os:          3.4.07-marune
 
-...creates the following build warning:
+linux-git-arm-eabi-davinci: WARNINGS
+linux-git-arm-eabi-exynos: OK
+linux-git-arm-eabi-omap: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-i686: WARNINGS
+linux-2.6.37-i686: WARNINGS
+linux-2.6.38.2-i686: WARNINGS
+linux-2.6.39.1-i686: WARNINGS
+linux-3.0-i686: WARNINGS
+linux-3.1-i686: WARNINGS
+linux-3.2.1-i686: WARNINGS
+linux-3.3-i686: WARNINGS
+linux-3.4-i686: WARNINGS
+linux-3.5-i686: WARNINGS
+linux-3.6-i686: WARNINGS
+linux-3.7-i686: ERRORS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-x86_64: WARNINGS
+linux-2.6.37-x86_64: WARNINGS
+linux-2.6.38.2-x86_64: WARNINGS
+linux-2.6.39.1-x86_64: WARNINGS
+linux-3.0-x86_64: WARNINGS
+linux-3.1-x86_64: WARNINGS
+linux-3.2.1-x86_64: WARNINGS
+linux-3.3-x86_64: WARNINGS
+linux-3.4-x86_64: WARNINGS
+linux-3.5-x86_64: WARNINGS
+linux-3.6-x86_64: WARNINGS
+linux-3.7-x86_64: ERRORS
+apps: WARNINGS
+spec-git: WARNINGS
+sparse: ERRORS
 
-  CC [M]  drivers/media/dvb-frontends/or51211.o
-drivers/media/dvb-frontends/or51211.c:45:0: warning: "pr_fmt"
-redefined [enabled by default]
-In file included from include/linux/kernel.h:13:0,
-                 from drivers/media/dvb-frontends/or51211.c:33:
-include/linux/printk.h:180:0: note: this is the location of the
-previous definition
-drivers/media/dvb-frontends/or51211.c:45:0: warning: "pr_fmt"
-redefined [enabled by default]
-In file included from include/linux/kernel.h:13:0,
-                 from drivers/media/dvb-frontends/or51211.c:33:
-include/linux/printk.h:180:0: note: this is the location of the
-previous definition
+Detailed results are available here:
 
-Please take a look at your patch and send a revised version if you
-think it's appropriate.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-I will have the other "use %*ph[N] to dump small buffers" patches
-merged -- thanks for your contribution!
+Full logs are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-Mike Krufky
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
