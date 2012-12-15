@@ -1,36 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from firefly.pyther.net ([50.116.37.168]:55311 "EHLO
-	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754057Ab2LFCcG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2012 21:32:06 -0500
-Message-ID: <50C003A3.7050208@pyther.net>
-Date: Wed, 05 Dec 2012 21:32:03 -0500
-From: Matthew Gyurgyik <matthew@pyther.net>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com>
-In-Reply-To: <50BE65F0.8020303@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:48593 "EHLO
+	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753138Ab2LOKAG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Dec 2012 05:00:06 -0500
+From: Albert Wang <twang13@marvell.com>
+To: corbet@lwn.net, g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, Albert Wang <twang13@marvell.com>,
+	Libin Yang <lbyang@marvell.com>
+Subject: [PATCH V3 13/15] [media] marvell-ccic: add dma burst mode support in marvell-ccic driver
+Date: Sat, 15 Dec 2012 17:58:02 +0800
+Message-Id: <1355565484-15791-14-git-send-email-twang13@marvell.com>
+In-Reply-To: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/04/2012 04:06 PM, Frank Schäfer wrote:
->
-> I double-checked the log and it is indeed set to LGDT3305_MPEG_SERIAL,
-> but LGDT3305_TPCLK_FALLING_EDGE is used instead of
-> LGDT3305_TPCLK_RISING_EDGE.
-> OTOH, the KWorld A340 bord sets this to LGDT3305_MPEG_PARALLEL...
->
-> Matthew, could you please test V3 of the patch ? It is written against
-> the media_tree staging/for_v3.8 (see http://git.linuxtv.org/media_tree.git).
-> You could also already test the remote control key map (e.g. with evtest)
-I tested the remote using evtest. However, no events are generated in 
-evtest. I verified the remote works in windows.
-> Regards,
-> Frank
->
+This patch adds the dma burst size config support for marvell-ccic.
+Developer can set the dma burst size in specified board driver.
+
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+---
+ .../media/platform/marvell-ccic/mcam-core-soc.c    |    2 +-
+ drivers/media/platform/marvell-ccic/mcam-core.h    |    7 ++++---
+ drivers/media/platform/marvell-ccic/mmp-driver.c   |   11 +++++++++++
+ include/media/mmp-camera.h                         |    1 +
+ 4 files changed, 17 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core-soc.c b/drivers/media/platform/marvell-ccic/mcam-core-soc.c
+index 9016dc6..5b1dcfe 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core-soc.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core-soc.c
+@@ -83,7 +83,7 @@ static int mcam_camera_add_device(struct soc_camera_device *icd)
+ 	mcam_ctlr_stop(mcam);
+ 	mcam_set_config_needed(mcam, 1);
+ 	mcam_reg_write(mcam, REG_CTRL1,
+-				   C1_RESERVED | C1_DMAPOSTED);
++			mcam->burst |  C1_RESERVED | C1_DMAPOSTED);
+ 	mcam_reg_write(mcam, REG_CLKCTRL,
+ 		(mcam->mclk_src << 29) | mcam->mclk_div);
+ 	cam_dbg(mcam, "camera: set sensor mclk = %dMHz\n", mcam->mclk_min);
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+index 57442e0..e1025f2 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+@@ -126,6 +126,7 @@ struct mcam_camera {
+ 	short int use_smbus;	/* SMBUS or straight I2c? */
+ 	enum mcam_buffer_mode buffer_mode;
+ 
++	int burst;
+ 	int mclk_min;
+ 	int mclk_src;
+ 	int mclk_div;
+@@ -411,9 +412,9 @@ int mcam_soc_camera_host_register(struct mcam_camera *mcam);
+ #define   C1_DESC_3WORD   0x00000200	/* Three-word descriptors used */
+ #define	  C1_444ALPHA	  0x00f00000	/* Alpha field in RGB444 */
+ #define	  C1_ALPHA_SHFT	  20
+-#define	  C1_DMAB32	  0x00000000	/* 32-byte DMA burst */
+-#define	  C1_DMAB16	  0x02000000	/* 16-byte DMA burst */
+-#define	  C1_DMAB64	  0x04000000	/* 64-byte DMA burst */
++#define	  C1_DMAB64	  0x00000000	/* 64-byte DMA burst */
++#define	  C1_DMAB128	  0x02000000	/* 128-byte DMA burst */
++#define	  C1_DMAB256	  0x04000000	/* 256-byte DMA burst */
+ #define	  C1_DMAB_MASK	  0x06000000
+ #define	  C1_TWOBUFS	  0x08000000	/* Use only two DMA buffers */
+ #define	  C1_PWRDWN	  0x10000000	/* Power down */
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index cd850f4..3469f02 100755
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -400,6 +400,17 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	mcam->dphy = pdata->dphy;
+ 	mcam->mipi_enabled = 0;
+ 	mcam->lane = pdata->lane;
++	switch (pdata->dma_burst) {
++	case 128:
++		mcam->burst = C1_DMAB128;
++		break;
++	case 256:
++		mcam->burst = C1_DMAB256;
++		break;
++	default:
++		mcam->burst = C1_DMAB64;
++		break;
++	}
+ 	INIT_LIST_HEAD(&mcam->buffers);
+ 
+ 	/*
+diff --git a/include/media/mmp-camera.h b/include/media/mmp-camera.h
+index ec4f21f..4da0df7 100755
+--- a/include/media/mmp-camera.h
++++ b/include/media/mmp-camera.h
+@@ -13,6 +13,7 @@ struct mmp_camera_platform_data {
+ 	int mclk_src;
+ 	int mclk_div;
+ 	int chip_id;
++	int dma_burst;
+ 	/*
+ 	 * MIPI support
+ 	 */
+-- 
+1.7.9.5
 
