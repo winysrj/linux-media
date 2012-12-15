@@ -1,188 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:18940 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752351Ab2LEMI7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2012 07:08:59 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: Re: [PATCH RFC v2] media: v4l2-ctrl: Add gain controls
-Date: Wed, 5 Dec 2012 13:08:34 +0100
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	LDOC <linux-doc@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Chris MacGregor <chris@cybermato.com>,
-	Rob Landley <rob@landley.net>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <1354708169-1139-1-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1354708169-1139-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from zeniv.linux.org.uk ([195.92.253.2]:56712 "EHLO
+	ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751586Ab2LOUMi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Dec 2012 15:12:38 -0500
+Date: Sat, 15 Dec 2012 20:12:37 +0000
+From: Al Viro <viro@ZenIV.linux.org.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH] omap_vout: find_vma() needs ->mmap_sem held
+Message-ID: <20121215201237.GW4939@ZenIV.linux.org.uk>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201212051308.34309.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(resend without HTML formatting)
+	Walking rbtree while it's modified is a Bad Idea(tm); besides,
+the result of find_vma() can be freed just as it's getting returned
+to caller.  Fortunately, it's easy to fix - just take ->mmap_sem a bit
+earlier (and don't bother with find_vma() at all if virtp >= PAGE_OFFSET -
+in that case we don't even look at its result).
 
-On Wed 5 December 2012 12:49:29 Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> 
-> add support for per color component digital/analog gain controls
-> and also their corresponding offset.
-
-Some obvious questions below...
-
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Hans de Goede <hdegoede@redhat.com>
-> Cc: Chris MacGregor <chris@cybermato.com>
-> Cc: Rob Landley <rob@landley.net>
-> Cc: Jeongtae Park <jtp.park@samsung.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> ---
->  Changes for v2:
->  1: Fixed review comments pointed by Laurent.
->  2: Rebased on latest tree.
-> 
->  Documentation/DocBook/media/v4l/controls.xml |   54 ++++++++++++++++++++++++++
->  drivers/media/v4l2-core/v4l2-ctrls.c         |   11 +++++
->  include/uapi/linux/v4l2-controls.h           |   11 +++++
->  3 files changed, 76 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index 7fe5be1..847a9bb 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -4543,6 +4543,60 @@ interface and may change in the future.</para>
->  	    specific test patterns can be used to test if a device is working
->  	    properly.</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_GAIN_RED</constant></entry>
-> +	    <entry>integer</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN_RED</constant></entry>
-> +	    <entry>integer</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN_BLUE</constant></entry>
-> +	    <entry>integer</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_GAIN_BLUE</constant></entry>
-> +	    <entry>integer</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN</constant></entry>
-> +	    <entry>integer</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr"> Some capture/sensor devices have
-> +	    the capability to set per color component digital/analog gain values.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_GAIN_OFFSET</constant></entry>
-> +	    <entry>integer</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_BLUE_OFFSET</constant></entry>
-> +	    <entry>integer</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_RED_OFFSET</constant></entry>
-> +	    <entry>integer</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_GREEN_OFFSET</constant></entry>
-> +	    <entry>integer</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_GREEN_RED_OFFSET</constant></entry>
-> +	    <entry>integer</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_GREEN_BLUE_OFFSET</constant></entry>
-> +	    <entry>integer</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr"> Some capture/sensor devices have the
-> +	    capability to set per color component digital/analog gain offset values.
-> +	    V4L2_CID_GAIN_OFFSET is the global gain offset and the rest are per
-> +	    color component gain offsets.</entry>
-
-If I set both V4L2_CID_GAIN_RED and V4L2_CID_RED_OFFSET, how are they supposed
-to interact? Or are they mutually exclusive?
-
-And if I set both V4L2_CID_GAIN_OFFSET and V4L2_CID_RED_OFFSET, how are they supposed
-to interact?
-
-This questions should be answered in the documentation...
-
-Regards,
-
-        Hans
-
-> +	  </row>
->  	  <row><entry></entry></row>
->  	</tbody>
->        </tgroup>
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index f6ee201..05e3708 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -790,6 +790,17 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
->  	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
->  	case V4L2_CID_TEST_PATTERN:		return "Test Pattern";
-> +	case V4L2_CID_GAIN_RED:			return "Gain Red";
-> +	case V4L2_CID_GAIN_GREEN_RED:		return "Gain Green Red";
-> +	case V4L2_CID_GAIN_GREEN_BLUE:		return "Gain Green Blue";
-> +	case V4L2_CID_GAIN_BLUE:		return "Gain Blue";
-> +	case V4L2_CID_GAIN_GREEN:		return "Gain Green";
-> +	case V4L2_CID_GAIN_OFFSET:		return "Gain Offset";
-> +	case V4L2_CID_BLUE_OFFSET:		return "Gain Blue Offset";
-> +	case V4L2_CID_RED_OFFSET:		return "Gain Red Offset";
-> +	case V4L2_CID_GREEN_OFFSET:		return "Gain Green Offset";
-> +	case V4L2_CID_GREEN_RED_OFFSET:		return "Gain Green Red Offset";
-> +	case V4L2_CID_GREEN_BLUE_OFFSET:	return "Gain Green Blue Offset";
->  
->  	/* DV controls */
->  	case V4L2_CID_DV_CLASS:			return "Digital Video Controls";
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index f56c945..9b6b233 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -799,5 +799,16 @@ enum v4l2_jpeg_chroma_subsampling {
->  #define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
->  #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
->  #define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
-> +#define V4L2_CID_GAIN_RED			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
-> +#define V4L2_CID_GAIN_GREEN_RED			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 5)
-> +#define V4L2_CID_GAIN_GREEN_BLUE		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 6)
-> +#define V4L2_CID_GAIN_BLUE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 7)
-> +#define V4L2_CID_GAIN_GREEN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 8)
-> +#define V4L2_CID_GAIN_OFFSET			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 9)
-> +#define V4L2_CID_BLUE_OFFSET			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 10)
-> +#define V4L2_CID_RED_OFFSET			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 11)
-> +#define V4L2_CID_GREEN_OFFSET			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 12)
-> +#define V4L2_CID_GREEN_RED_OFFSET		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 13)
-> +#define V4L2_CID_GREEN_BLUE_OFFSET		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 14)
->  
->  #endif
-> 
+Cc: stable@vger.kernel.org [2.6.35]
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index 9935040..984512f 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -207,19 +207,21 @@ static u32 omap_vout_uservirt_to_phys(u32 virtp)
+ 	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
+ 
+-	vma = find_vma(mm, virtp);
+ 	/* For kernel direct-mapped memory, take the easy way */
+-	if (virtp >= PAGE_OFFSET) {
+-		physp = virt_to_phys((void *) virtp);
++	if (virtp >= PAGE_OFFSET)
++		return virt_to_phys((void *) virtp);
++
++	down_read(&current->mm->mmap_sem);
++	vma = find_vma(mm, virtp);
+ 	} else if (vma && (vma->vm_flags & VM_IO) && vma->vm_pgoff) {
+ 		/* this will catch, kernel-allocated, mmaped-to-usermode
+ 		   addresses */
+ 		physp = (vma->vm_pgoff << PAGE_SHIFT) + (virtp - vma->vm_start);
++		up_read(&current->mm->mmap_sem);
+ 	} else {
+ 		/* otherwise, use get_user_pages() for general userland pages */
+ 		int res, nr_pages = 1;
+ 		struct page *pages;
+-		down_read(&current->mm->mmap_sem);
+ 
+ 		res = get_user_pages(current, current->mm, virtp, nr_pages, 1,
+ 				0, &pages, NULL);
