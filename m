@@ -1,88 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from firefly.pyther.net ([50.116.37.168]:58172 "EHLO
-	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932675Ab2LGLtT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2012 06:49:19 -0500
-Message-ID: <50C1D7BD.90609@pyther.net>
-Date: Fri, 07 Dec 2012 06:49:17 -0500
-From: Matthew Gyurgyik <matthew@pyther.net>
+Received: from smtp21.services.sfr.fr ([93.17.128.4]:5672 "EHLO
+	smtp21.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751514Ab2LOKWu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Dec 2012 05:22:50 -0500
+Message-ID: <50CC4F78.7020404@sfr.fr>
+Date: Sat, 15 Dec 2012 11:22:48 +0100
+From: Patrice Chotard <patrice.chotard@sfr.fr>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C1490E.8040203@pyther.net> <CAGoCfiwCUhBdkL3c9ppB42s5UpqooWP5P=H454ff_+4Jzxom4w@mail.gmail.com>
-In-Reply-To: <CAGoCfiwCUhBdkL3c9ppB42s5UpqooWP5P=H454ff_+4Jzxom4w@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	=?iso-8859-1?b?RnLpZOlyaWM=?= <frederic.mantegazza@gbiloba.org>
+Subject: Re: [PATCH] [media] ngene: fix dvb_pll_attach failure
+References: <50B51F7E.2030008@sfr.fr> <50CB61A6.7060308@sfr.fr>
+	<50CB67F4.3090802@iki.fi> <50CBA8BE.8020205@sfr.fr>
+	<50CBB01B.2050700@iki.fi>
+In-Reply-To: <50CBB01B.2050700@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/06/2012 10:21 PM, Devin Heitmueller wrote:
-> On Thu, Dec 6, 2012 at 8:40 PM, Matthew Gyurgyik <matthew@pyther.net> wrote:
->> I was able to do a bit of testing tonight and this is what I found.
+Le 15/12/2012 00:02, Antti Palosaari a écrit :
+> On 12/15/2012 12:31 AM, Patrice Chotard wrote:
+>> Le 14/12/2012 18:55, Antti Palosaari a écrit :
+>>> On 12/14/2012 07:28 PM, Patrice Chotard wrote:
+>>>> Before dvb_pll_attch call, be sure that drxd demodulator was
+>>>> initialized, otherwise, dvb_pll_attach() will always failed.
+>>>>
+>>>> In dvb_pll_attach(), first thing done is to enable the I2C gate
+>>>> control in order to probe the pll by performing a read access.
+>>>> As demodulator was not initialized, every i2c access failed.
+>>>>
+>>>> Reported-by: frederic.mantegazza@gbiloba.org
+>>>> Signed-off-by: Patrice Chotard <patricechotard@free.fr>
+>>>> ---
+>>>>    drivers/media/pci/ngene/ngene-cards.c |    2 ++
+>>>>    1 file changed, 2 insertions(+)
+>>>>
+>>>> diff --git a/drivers/media/pci/ngene/ngene-cards.c
+>>>> b/drivers/media/pci/ngene/ngene-cards.c
+>>>> index 96a13ed..e2192db 100644
+>>>> --- a/drivers/media/pci/ngene/ngene-cards.c
+>>>> +++ b/drivers/media/pci/ngene/ngene-cards.c
+>>>> @@ -328,6 +328,8 @@ static int demod_attach_drxd(struct ngene_channel
+>>>> *chan)
+>>>>            return -ENODEV;
+>>>>        }
+>>>>
+>>>> +    /* initialized the DRXD demodulator */
+>>>> +    chan->fe->ops.init(chan->fe);
+>>>>        if (!dvb_attach(dvb_pll_attach, chan->fe, feconf->pll_address,
+>>>>                &chan->i2c_adapter,
+>>>>                feconf->pll_type)) {
+>>>>
+>>>
+>>> I don't like that as this causes again more deviation against normal
+>>> procedures. If gate open is needed (for probe or id check?) then
+>>> pll/tuner attach should open it. If that is not easily possible then
+>>> calling gate_control() before pll attach is allowed. init() is very,
+>>> very, bad as generally starts whole chip => starts eating power etc.
+>>>
+>>>
+>>> Even better would be to let whole gate-control to responsibility of
+>>> DVB-core, but unfortunately current situation is quite mess. Gate is
+>>> operated sometimes by DVB-core (like for init/sleep) and for some cases
+>>> it is left for responsibility of tuner driver. So on real life there is
+>>> mixed solutions and  for init/sleep gate is even double controlled.
+>>>
+>>>
+>>> regards
+>>> Antti
+>>>
 >>
->> A channel scan was unsuccessful:
->> http://pyther.net/a/digivox_atsc/dec06/scan.txt (no errors in dmesg)
+>> Hi Antti,
 >>
->> Changing channels by pressing "h" in "mplayer dvb://" caused mplayer to
->> crash and this messages to be logged in dmesg
->> http://pyther.net/a/digivox_atsc/dec06/dmesg_mplayer_switch_channels.txt
-> This looks like a combination of a misconfiguration of GPIOs and
-> mplayer not properly handling an exception condition.  You should
-> definitely bring this up with the mplayer developers since their app
-> shouldn't crash under this circumstance.
-
-Sorry I misspoke. mplayer isn't crashing, however it can't read data 
-from the tuner and thus closes.
-
-for completeness, mplayer output: 
-http://pyther.net/a/digivox_atsc/dec06/mplayer_channel_switch.txt
-
->
->> Audio is out-of-sync in mplayer. Using cache helps, but over time the audio
->> still goes out of sync.
->> http://pyther.net/a/digivox_atsc/dec06/mplayer_audio_out_of_sync.txt
-> This has nothing to do with the tuner.  The tuner delivers the MPEG2
-> stream already compressed and synchronized.  If you're playback is
-> out-of-sync, it's probably your ALSA drivers, PulseAudio, or mplayer
-> that is the culprit.
-Ok that make sense, I'd bank it being on mplayer and how it reads the 
-stream.
-
->
->> Using azap to tune and using cat /dev/dvb/adapter0/dvr0 > test.mpg to
->> generate a test.mpg
+>> Unfortunately, opening gate doesn't work with drxd demodulator before
+>> its initialization (drxd_init() call).
+>> Also, in dvb_pll_attach(), first thing done is opening the gate control.
 >>
->> mplayer plays the file fine without audio-sync issues, but VLC and Xine
->> refuse to play it. (is this normal?)
-> What errors are VLC or Xine showing?  Unless the stream is really
-> corrupt VLC and Xine should play it fine.  And if the stream were
-> corrupt it wouldn't play with mplayer either?  This sounds like bugs
-> in VLC and Xine.
-I would agree with. I got the chance to test another mpeg from my other 
-tuner (that I know works well) and had the same issue.
+>> I was aware by calling init() directly in demod_attach_drxd() was not
+>> good at the power consumption point of view, but it was the only
+>> solution to make it work.
+>>
+>> To stop the power consumption, it would be possible to call the
+>> frontends :
+>>
+>>       }
+>>
+>> +    /* initialized the DRXD demodulator */
+>> +    chan->fe->ops.init(chan->fe);
+>>       if (!dvb_attach(dvb_pll_attach, chan->fe, feconf->pll_address,
+>>               &chan->i2c_adapter,
+>>               feconf->pll_type)) {
+>>           pr_err("No pll(%d) found!\n", feconf->pll_type);
+>>           return -ENODEV;
+>>       }
+>> +    chan->fe->ops.sleep(chan->fe);
+>>       return 0;
+>>   }
+>>
+>> Thanks for your feedback.
+> 
+> That one is better solution...
+> 
+> but it is clearly DRXD driver bug - it should offer working I2C gate
+> control after attach() :-( I looked quickly DRXD driver and there is
+> clearly some other places to enhance too. But I suspect there is no
+> maintainer, nor interest from anyone to start fix things properly, so
+> only reasonable way is to add that hack to get it working...
+> 
+> Honestly, I hate this kind of hacks :/ That makes our live hard on long
+> run. It goes slowly more and more hard to make any core changes as
+> regressions will happen due to this kind of hacks.
+> 
+> So send new patch which put demod chip sleeping after tuner attach. Or
+> even better, find out what is minimal set of commands needed do execute
+> during attach in order to offer working I2C gate (I suspect firmware
+> load is needed).
+> 
+> 
+> regards
+> Antti
+> 
 
-The vlc errors consist of similar messages such as those below:
-> [0x7f0200c015a8] ts demux warning: lost synchro
-> [0x7f0200c015a8] ts demux debug: skipping 187 bytes of garbage
-I had thought I was able to play previous captures in VLC. I was unable 
-to test my other card (that I know works well) last night. Now I see 
-this is not the case, and it separate issue.
+I fully understand your point of view.
+I don't promise anything, but as you advice, i will try to find the
+minimal set of commands to make the gate control working during attach.
 
-> There's definitely something going on in the tuner which is causing
-> the channel scan to fail (and probably the tuning failure in mplayer).
->   But all the stuff with actual playback causing segfaults, A/V sync
-> issues, and failures to play back in certain applications are all
-> userland problems that you would need to raise with the developers for
-> those respective projects.
->
-> Cheers,
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
+Patrice
 
