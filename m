@@ -1,81 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:39052 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751892Ab2LHNwb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Dec 2012 08:52:31 -0500
-Received: by mail-ee0-f46.google.com with SMTP id e53so778246eek.19
-        for <linux-media@vger.kernel.org>; Sat, 08 Dec 2012 05:52:30 -0800 (PST)
-Message-ID: <50C34628.5030407@googlemail.com>
-Date: Sat, 08 Dec 2012 14:52:40 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Matthew Gyurgyik <matthew@pyther.net>
-CC: Antti Palosaari <crope@iki.fi>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net>
-In-Reply-To: <50C12302.80603@pyther.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:42296 "EHLO
+	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751454Ab2LOJ74 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Dec 2012 04:59:56 -0500
+From: Albert Wang <twang13@marvell.com>
+To: corbet@lwn.net, g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, Libin Yang <lbyang@marvell.com>,
+	Albert Wang <twang13@marvell.com>
+Subject: [PATCH V3 07/15] [media] marvell-ccic: add SOF / EOF pair check for marvell-ccic driver
+Date: Sat, 15 Dec 2012 17:57:56 +0800
+Message-Id: <1355565484-15791-8-git-send-email-twang13@marvell.com>
+In-Reply-To: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 06.12.2012 23:58, schrieb Matthew Gyurgyik:
-> On 12/06/2012 04:49 PM, Frank Schäfer wrote:
->>
->>
->> Did you switch back to
->>
->>      .mpeg_mode      = LGDT3305_MPEG_SERIAL,
->>      .tpclk_edge         = LGDT3305_TPCLK_FALLING_EDGE,
->>
->> in struct lgdt3305_config em2874_lgdt3305_dev (em28xx-dvb.c) before
->> testing this ?
->>
->> You could also play with the other gpio settings.
->>
->> And the last idea (at the moment):
->>
->> +    /* 0db0:8810 MSI DIGIVOX ATSC (HU345-Q)
->> +     * Empia EM2874B + TDA18271HDC2 + LGDT3305 */
->> +    [EM2874_BOARD_MSI_DIGIVOX_ATSC] = {
->> +        .name         = "MSI DIGIVOX ATSC",
->> +        .dvb_gpio     = msi_digivox_atsc,
->> +        .has_dvb      = 1,
->> +        .tuner_type   = TUNER_ABSENT,
->> +        .ir_codes     = RC_MAP_MSI_DIGIVOX_III,        /* just a guess
->> from looking at the picture */
->> +        .xclk         = EM28XX_XCLK_FREQUENCY_12MHZ,    /* TODO */
->> +        .i2c_speed    = EM2874_I2C_SECONDARY_BUS_SELECT |
->> +                EM28XX_I2C_CLK_WAIT_ENABLE |
->> +                EM28XX_I2C_FREQ_100_KHZ,
->> +    },
->>
->> => change .xclk to 0x0f.
->> We know that 12MHz is the right xclk setting, which means 0x07. But OTOH
->> the Windows drivers seems to use 0x0f instead and we don't what 0x0f
->> means...
->>
->> Hope this helps,
->> Frank
->>
->
-> I lied, it works! I must have forgotten to do run make modules_install
-> or something! This patch accurately states my current code changes:
-> http://pyther.net/a/digivox_atsc/diff-Dec-06-v1.patch
+From: Libin Yang <lbyang@marvell.com>
 
-Great, that's a big one step forward.
+This patch adds the SOFx/EOFx pair check for marvell-ccic.
 
-Based on this (your) patch, could you please verify that ist was really
-the adding of
+When switching format, the last EOF may not arrive when stop streamning.
+And the EOF will be detected in the next start streaming.
 
-    {0x0d,            0x42, 0xff,   0},
+Must ensure clear the obsolete frame flags before every really start streaming.
 
-to struct em28xx_reg_seq msi_digivox_atsc ? The tests before this change
-were all made with a wrong combination of configuration values for the
-LGDT3305...
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+---
+ drivers/media/platform/marvell-ccic/mcam-core.c |   30 ++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 4 deletions(-)
 
-Regards,
-Frank
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index a679917..c3c8873 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -94,6 +94,9 @@ MODULE_PARM_DESC(buffer_mode,
+ #define CF_CONFIG_NEEDED 4	/* Must configure hardware */
+ #define CF_SINGLE_BUFFER 5	/* Running with a single buffer */
+ #define CF_SG_RESTART	 6	/* SG restart needed */
++#define CF_FRAME_SOF0	 7	/* Frame 0 started */
++#define CF_FRAME_SOF1	 8
++#define CF_FRAME_SOF2	 9
+ 
+ #define sensor_call(cam, o, f, args...) \
+ 	v4l2_subdev_call(cam->sensor, o, f, ##args)
+@@ -251,8 +254,10 @@ static void mcam_reset_buffers(struct mcam_camera *cam)
+ 	int i;
+ 
+ 	cam->next_buf = -1;
+-	for (i = 0; i < cam->nbufs; i++)
++	for (i = 0; i < cam->nbufs; i++) {
+ 		clear_bit(i, &cam->flags);
++		clear_bit(CF_FRAME_SOF0 + i, &cam->flags);
++	}
+ }
+ 
+ static inline int mcam_needs_config(struct mcam_camera *cam)
+@@ -1134,6 +1139,7 @@ static void mcam_vb_wait_finish(struct vb2_queue *vq)
+ static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct mcam_camera *cam = vb2_get_drv_priv(vq);
++	unsigned int frame;
+ 
+ 	if (cam->state != S_IDLE) {
+ 		INIT_LIST_HEAD(&cam->buffers);
+@@ -1151,6 +1157,14 @@ static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 		cam->state = S_BUFWAIT;
+ 		return 0;
+ 	}
++
++	/*
++	 * Ensure clear the obsolete frame flags
++	 * before every really start streaming
++	 */
++	for (frame = 0; frame < cam->nbufs; frame++)
++		clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
++
+ 	return mcam_read_setup(cam);
+ }
+ 
+@@ -1875,9 +1889,11 @@ int mccic_irq(struct mcam_camera *cam, unsigned int irqs)
+ 	 * each time.
+ 	 */
+ 	for (frame = 0; frame < cam->nbufs; frame++)
+-		if (irqs & (IRQ_EOF0 << frame)) {
++		if (irqs & (IRQ_EOF0 << frame) &&
++			test_bit(CF_FRAME_SOF0 + frame, &cam->flags)) {
+ 			mcam_frame_complete(cam, frame);
+ 			handled = 1;
++			clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
+ 			if (cam->buffer_mode == B_DMA_sg)
+ 				break;
+ 		}
+@@ -1886,9 +1902,15 @@ int mccic_irq(struct mcam_camera *cam, unsigned int irqs)
+ 	 * code assumes that we won't get multiple frame interrupts
+ 	 * at once; may want to rethink that.
+ 	 */
+-	if (irqs & (IRQ_SOF0 | IRQ_SOF1 | IRQ_SOF2)) {
++	for (frame = 0; frame < cam->nbufs; frame++) {
++		if (irqs & (IRQ_SOF0 << frame)) {
++			set_bit(CF_FRAME_SOF0 + frame, &cam->flags);
++			handled = IRQ_HANDLED;
++		}
++	}
++
++	if (handled == IRQ_HANDLED) {
+ 		set_bit(CF_DMA_ACTIVE, &cam->flags);
+-		handled = 1;
+ 		if (cam->buffer_mode == B_DMA_sg)
+ 			mcam_ctlr_stop(cam);
+ 	}
+-- 
+1.7.9.5
 
