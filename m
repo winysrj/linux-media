@@ -1,190 +1,365 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:49408 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752099Ab2L2L5O (ORCPT
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:33358 "EHLO
+	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751514Ab2LOKAA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Dec 2012 06:57:14 -0500
-Received: by mail-ea0-f180.google.com with SMTP id f13so4530095eai.11
-        for <linux-media@vger.kernel.org>; Sat, 29 Dec 2012 03:57:12 -0800 (PST)
-Message-ID: <1356780864.2762.8.camel@canaries64>
-Subject: [PATCH] lmedm04: correct I2C values to 7 bit addressing.
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Cc: "Igor M. Liplianin" <liplianin@me.by>,
-	Konstantin Dimitrov <kosio.dimitrov@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Date: Sat, 29 Dec 2012 11:34:24 +0000
-In-Reply-To: <20121228220426.0330ce40@infradead.org>
-References: <1541475.yBqmJOQMfq@useri>
-	 <20121227193338.4e14c1d6@infradead.org> <13048798.3Y05dB7H81@useri>
-	 <20121228220426.0330ce40@infradead.org>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Sat, 15 Dec 2012 05:00:00 -0500
+From: Albert Wang <twang13@marvell.com>
+To: corbet@lwn.net, g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, Albert Wang <twang13@marvell.com>,
+	Libin Yang <lbyang@marvell.com>
+Subject: [PATCH V3 12/15] [media] marvell-ccic: add soc_camera support in mmp driver
+Date: Sat, 15 Dec 2012 17:58:01 +0800
+Message-Id: <1355565484-15791-13-git-send-email-twang13@marvell.com>
+In-Reply-To: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2012-12-28 at 22:04 -0200, Mauro Carvalho Chehab wrote:
-> Em Sat, 29 Dec 2012 01:06:29 +0300
-> "Igor M. Liplianin" <liplianin@me.by> escreveu:
-> 
-> > On 27 Ð´ÐµÐºÐ°Ð±Ñ€Ñ_ 2012 19:33:38 Mauro Carvalho Chehab wrote:
-> > > Hi Igor,
-> > Hi Mauro,
-> > 
-> > > 
-> > > Em Mon, 24 Dec 2012 11:23:56 +0300
-> > > 
-> > > "Igor M. Liplianin" <liplianin@me.by> escreveu:
-> > > > The following changes since commit 8b2aea7878f64814544d0527c659011949d52358:
-> > > >   [media] em28xx: prefer bulk mode on webcams (2012-12-23 17:24:30 -0200)
-> > > > 
-> > > > are available in the git repository at:
-> > > >   git://git.linuxtv.org/liplianin/media_tree.git ts2020_v3.9
-> > > > 
-> > > > for you to fetch changes up to 2ff52e6f487c2ee841f3df9709d1b4e4416a1b15:
-> > > >   ts2020: separate from m88rs2000 (2012-12-24 01:26:12 +0300)
-> > > > 
-> 
-> Applied, thanks.
-Hi all,
+This patch adds the soc_camera support in the platform driver: mmp-driver.c.
+Specified board driver also should be modified to support soc_camera by passing
+some platform datas to platform driver.
 
-The separation the lmedm04 fails on the ts2020 portion because the correct
-I2C addressing.
+Currently the soc_camera mode in mmp driver only supports B_DMA_contig mode.
 
-So, it's time to correct the addressing in the remainder of lmedm04.
-
-Tested all tuners.
-
-
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+Signed-off-by: Albert Wang <twang13@marvell.com>
 ---
- drivers/media/usb/dvb-usb-v2/lmedm04.c | 29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+ drivers/media/platform/Makefile                  |    4 +-
+ drivers/media/platform/marvell-ccic/Kconfig      |   22 ++++
+ drivers/media/platform/marvell-ccic/mmp-driver.c |  147 ++++++++++++++--------
+ include/media/mmp-camera.h                       |    2 +
+ 4 files changed, 120 insertions(+), 55 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-index b5e1f73..f30c58c 100644
---- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
-+++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-@@ -627,8 +627,8 @@ static int lme2510_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
- 		gate = 5;
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index baaa550..95c1ce5 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -11,8 +11,6 @@ obj-$(CONFIG_VIDEO_TIMBERDALE)	+= timblogiw.o
+ obj-$(CONFIG_VIDEO_M32R_AR_M64278) += arv.o
  
- 	for (i = 0; i < num; i++) {
--		read_o = 1 & (msg[i].flags & I2C_M_RD);
--		read = i+1 < num && (msg[i+1].flags & I2C_M_RD);
-+		read_o = msg[i].flags & I2C_M_RD;
-+		read = i + 1 < num && msg[i + 1].flags & I2C_M_RD;
- 		read |= read_o;
- 		gate = (msg[i].addr == st->i2c_tuner_addr)
- 			? (read)	? st->i2c_tuner_gate_r
-@@ -641,7 +641,8 @@ static int lme2510_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
- 		else
- 			obuf[1] = msg[i].len + read + 1;
+ obj-$(CONFIG_VIDEO_VIA_CAMERA) += via-camera.o
+-obj-$(CONFIG_VIDEO_CAFE_CCIC) += marvell-ccic/
+-obj-$(CONFIG_VIDEO_MMP_CAMERA) += marvell-ccic/
  
--		obuf[2] = msg[i].addr;
-+		obuf[2] = msg[i].addr << 1;
+ obj-$(CONFIG_VIDEO_OMAP2)		+= omap2cam.o
+ obj-$(CONFIG_VIDEO_OMAP3)	+= omap3isp/
+@@ -43,6 +41,8 @@ obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
+ 
+ obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
+ 
++obj-$(CONFIG_VIDEO_MARVELL_CCIC) 	+= marvell-ccic/
 +
- 		if (read) {
- 			if (read_o)
- 				len = 3;
-@@ -895,27 +896,27 @@ static int lme2510_kill_urb(struct usb_data_stream *stream)
+ obj-y	+= davinci/
+ 
+ obj-$(CONFIG_ARCH_OMAP)	+= omap/
+diff --git a/drivers/media/platform/marvell-ccic/Kconfig b/drivers/media/platform/marvell-ccic/Kconfig
+index bf739e3..910c068 100755
+--- a/drivers/media/platform/marvell-ccic/Kconfig
++++ b/drivers/media/platform/marvell-ccic/Kconfig
+@@ -1,23 +1,45 @@
++config VIDEO_MARVELL_CCIC
++       tristate
++config VIDEO_MRVL_SOC_CAMERA
++       bool
++
+ config VIDEO_CAFE_CCIC
+ 	tristate "Marvell 88ALP01 (Cafe) CMOS Camera Controller support"
+ 	depends on PCI && I2C && VIDEO_V4L2
+ 	select VIDEO_OV7670
+ 	select VIDEOBUF2_VMALLOC
+ 	select VIDEOBUF2_DMA_CONTIG
++	select VIDEO_MARVELL_CCIC
+ 	---help---
+ 	  This is a video4linux2 driver for the Marvell 88ALP01 integrated
+ 	  CMOS camera controller.  This is the controller found on first-
+ 	  generation OLPC systems.
+ 
++choice
++	prompt "Camera support on Marvell MMP"
++	depends on ARCH_MMP && VIDEO_V4L2
++	optional
+ config VIDEO_MMP_CAMERA
+ 	tristate "Marvell Armada 610 integrated camera controller support"
+ 	depends on ARCH_MMP && I2C && VIDEO_V4L2
+ 	select VIDEO_OV7670
+ 	select I2C_GPIO
+ 	select VIDEOBUF2_DMA_SG
++	select VIDEO_MARVELL_CCIC
+ 	---help---
+ 	  This is a Video4Linux2 driver for the integrated camera
+ 	  controller found on Marvell Armada 610 application
+ 	  processors (and likely beyond).  This is the controller found
+ 	  in OLPC XO 1.75 systems.
+ 
++config VIDEO_MMP_SOC_CAMERA
++	bool "Marvell MMP camera driver based on SOC_CAMERA"
++	depends on VIDEO_DEV && SOC_CAMERA && ARCH_MMP && VIDEO_V4L2
++	select VIDEOBUF2_DMA_CONTIG
++	select VIDEO_MARVELL_CCIC
++	select VIDEO_MRVL_SOC_CAMERA
++	---help---
++	  This is a Video4Linux2 driver for the Marvell Mobile Soc
++	  PXA910/PXA688/PXA2128/PXA988 CCIC
++	  (CMOS Camera Interface Controller)
++endchoice
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index 40c243e..cd850f4 100755
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -28,6 +28,10 @@
+ #include <linux/list.h>
+ #include <linux/pm.h>
+ #include <linux/clk.h>
++#include <linux/regulator/consumer.h>
++#include <media/videobuf2-dma-contig.h>
++#include <media/soc_camera.h>
++#include <media/soc_mediabus.h>
+ 
+ #include "mcam-core.h"
+ 
+@@ -40,6 +44,8 @@ struct mmp_camera {
+ 	struct platform_device *pdev;
+ 	struct mcam_camera mcam;
+ 	struct list_head devlist;
++	/* will change here */
++	struct clk *clk[3];	/* CCIC_GATE, CCIC_RST, CCIC_DBG clocks */
+ 	int irq;
+ };
+ 
+@@ -144,15 +150,17 @@ static void mmpcam_power_up(struct mcam_camera *mcam)
+  * Provide power to the sensor.
+  */
+ 	mcam_reg_write(mcam, REG_CLKCTRL, 0x60000002);
+-	pdata = cam->pdev->dev.platform_data;
+-	gpio_set_value(pdata->sensor_power_gpio, 1);
+-	mdelay(5);
++	if (mcam->chip_id == V4L2_IDENT_ARMADA610) {
++		pdata = cam->pdev->dev.platform_data;
++		gpio_set_value(pdata->sensor_power_gpio, 1);
++		mdelay(5);
++		/* reset is active low */
++		gpio_set_value(pdata->sensor_reset_gpio, 0);
++		mdelay(5);
++		gpio_set_value(pdata->sensor_reset_gpio, 1);
++		mdelay(5);
++	}
+ 	mcam_reg_clear_bit(mcam, REG_CTRL1, 0x10000000);
+-	gpio_set_value(pdata->sensor_reset_gpio, 0); /* reset is active low */
+-	mdelay(5);
+-	gpio_set_value(pdata->sensor_reset_gpio, 1); /* reset is active low */
+-	mdelay(5);
+-
+ 	mcam_clk_set(mcam, 1);
  }
  
- static struct tda10086_config tda10086_config = {
--	.demod_address = 0x1c,
-+	.demod_address = 0x0e,
- 	.invert = 0,
- 	.diseqc_tone = 1,
- 	.xtal_freq = TDA10086_XTAL_16M,
- };
- 
- static struct stv0288_config lme_config = {
--	.demod_address = 0xd0,
-+	.demod_address = 0x68,
- 	.min_delay_ms = 15,
- 	.inittab = s7395_inittab,
- };
- 
- static struct ix2505v_config lme_tuner = {
--	.tuner_address = 0xc0,
-+	.tuner_address = 0x60,
- 	.min_delay_ms = 100,
- 	.tuner_gain = 0x0,
- 	.tuner_chargepump = 0x3,
- };
- 
- static struct stv0299_config sharp_z0194_config = {
--	.demod_address = 0xd0,
-+	.demod_address = 0x68,
- 	.inittab = sharp_z0194a_inittab,
- 	.mclk = 88000000UL,
- 	.invert = 0,
-@@ -944,7 +945,7 @@ static int dm04_rs2000_set_ts_param(struct dvb_frontend *fe,
+@@ -165,13 +173,14 @@ static void mmpcam_power_down(struct mcam_camera *mcam)
+  */
+ 	iowrite32(0, cam->power_regs + REG_CCIC_DCGCR);
+ 	iowrite32(0, cam->power_regs + REG_CCIC_CRCR);
+-/*
+- * Shut down the sensor.
+- */
+-	pdata = cam->pdev->dev.platform_data;
+-	gpio_set_value(pdata->sensor_power_gpio, 0);
+-	gpio_set_value(pdata->sensor_reset_gpio, 0);
+-
++	if (mcam->chip_id == V4L2_IDENT_ARMADA610) {
++		/*
++		 * Shut down the sensor.
++		 */
++		pdata = cam->pdev->dev.platform_data;
++		gpio_set_value(pdata->sensor_power_gpio, 0);
++		gpio_set_value(pdata->sensor_reset_gpio, 0);
++	}
+ 	mcam_clk_set(mcam, 0);
  }
  
- static struct m88rs2000_config m88rs2000_config = {
--	.demod_addr = 0xd0,
-+	.demod_addr = 0x68,
- 	.set_ts_params = dm04_rs2000_set_ts_param,
- };
+@@ -303,6 +312,52 @@ static void mcam_init_clk(struct mcam_camera *mcam,
+ 		mcam->clk_num = 0;
+ }
  
-@@ -1054,7 +1055,7 @@ static int dm04_lme2510_frontend_attach(struct dvb_usb_adapter *adap)
- 			info("TUN Found Frontend TDA10086");
- 			st->i2c_tuner_gate_w = 4;
- 			st->i2c_tuner_gate_r = 4;
--			st->i2c_tuner_addr = 0xc0;
-+			st->i2c_tuner_addr = 0x60;
- 			st->tuner_config = TUNER_LG;
- 			if (st->dvb_usb_lme2510_firmware != TUNER_LG) {
- 				st->dvb_usb_lme2510_firmware = TUNER_LG;
-@@ -1070,7 +1071,7 @@ static int dm04_lme2510_frontend_attach(struct dvb_usb_adapter *adap)
- 			info("FE Found Stv0299");
- 			st->i2c_tuner_gate_w = 4;
- 			st->i2c_tuner_gate_r = 5;
--			st->i2c_tuner_addr = 0xc0;
-+			st->i2c_tuner_addr = 0x60;
- 			st->tuner_config = TUNER_S0194;
- 			if (st->dvb_usb_lme2510_firmware != TUNER_S0194) {
- 				st->dvb_usb_lme2510_firmware = TUNER_S0194;
-@@ -1087,7 +1088,7 @@ static int dm04_lme2510_frontend_attach(struct dvb_usb_adapter *adap)
- 			info("FE Found Stv0288");
- 			st->i2c_tuner_gate_w = 4;
- 			st->i2c_tuner_gate_r = 5;
--			st->i2c_tuner_addr = 0xc0;
-+			st->i2c_tuner_addr = 0x60;
- 			st->tuner_config = TUNER_S7395;
- 			if (st->dvb_usb_lme2510_firmware != TUNER_S7395) {
- 				st->dvb_usb_lme2510_firmware = TUNER_S7395;
-@@ -1106,7 +1107,7 @@ static int dm04_lme2510_frontend_attach(struct dvb_usb_adapter *adap)
- 					&d->i2c_adap);
- 			st->i2c_tuner_gate_w = 5;
- 			st->i2c_tuner_gate_r = 5;
--			st->i2c_tuner_addr = 0xc0;
-+			st->i2c_tuner_addr = 0x60;
- 			st->tuner_config = TUNER_RS2000;
- 			st->fe_set_voltage =
- 				adap->fe[0]->ops.set_voltage;
-@@ -1151,7 +1152,7 @@ static int dm04_lme2510_tuner(struct dvb_usb_adapter *adap)
++static int mmp_probe(struct mcam_camera *mcam, struct platform_device *pdev)
++{
++	struct mmp_camera_platform_data *pdata;
++	int ret;
++
++	pdata = pdev->dev.platform_data;
++	if (!pdata)
++		return -ENODEV;
++
++	/*
++	 * Find the i2c adapter.  This assumes, of course, that the
++	 * i2c bus is already up and functioning.
++	 * soc-camera manages i2c interface in sensor side
++	 */
++	mcam->i2c_adapter = platform_get_drvdata(pdata->i2c_device);
++	if (mcam->i2c_adapter == NULL) {
++		dev_err(&pdev->dev, "No i2c adapter\n");
++		return -ENODEV;
++	}
++	/*
++	 * Sensor GPIO pins.
++	 */
++	ret = devm_gpio_request(&pdev->dev, pdata->sensor_power_gpio,
++				"cam-power");
++	if (ret) {
++		dev_err(&pdev->dev, "Can't get sensor power gpio %d",
++				pdata->sensor_power_gpio);
++		return ret;
++	}
++	gpio_direction_output(pdata->sensor_power_gpio, 0);
++	ret = devm_gpio_request(&pdev->dev, pdata->sensor_reset_gpio,
++				"cam-reset");
++	if (ret) {
++		dev_err(&pdev->dev, "Can't get sensor reset gpio %d",
++				pdata->sensor_reset_gpio);
++		return ret;
++	}
++	gpio_direction_output(pdata->sensor_reset_gpio, 0);
++
++	/*
++	 * Power the device up and hand it off to the core.
++	 */
++	mmpcam_power_up(mcam);
++	return ret;
++}
++
+ static int mmpcam_probe(struct platform_device *pdev)
+ {
+ 	struct mmp_camera *cam;
+@@ -322,6 +377,7 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	INIT_LIST_HEAD(&cam->devlist);
  
- 	switch (st->tuner_config) {
- 	case TUNER_LG:
--		if (dvb_attach(tda826x_attach, adap->fe[0], 0xc0,
-+		if (dvb_attach(tda826x_attach, adap->fe[0], 0x60,
- 			&d->i2c_adap, 1))
- 			ret = st->tuner_config;
- 		break;
-@@ -1161,7 +1162,7 @@ static int dm04_lme2510_tuner(struct dvb_usb_adapter *adap)
- 			ret = st->tuner_config;
- 		break;
- 	case TUNER_S0194:
--		if (dvb_attach(dvb_pll_attach , adap->fe[0], 0xc0,
-+		if (dvb_attach(dvb_pll_attach , adap->fe[0], 0x60,
- 			&d->i2c_adap, DVB_PLL_OPERA1))
- 			ret = st->tuner_config;
- 		break;
+ 	mcam = &cam->mcam;
++	spin_lock_init(&mcam->dev_lock);
+ 	mcam->plat_power_up = mmpcam_power_up;
+ 	mcam->plat_power_down = mmpcam_power_down;
+ 	mcam->ctlr_reset = mcam_ctlr_reset;
+@@ -329,14 +385,23 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	mcam->pll1 = NULL;
+ 	mcam->dev = &pdev->dev;
+ 	mcam->use_smbus = 0;
++	mcam->card_name = pdata->name;
++	mcam->mclk_min = pdata->mclk_min;
++	mcam->mclk_src = pdata->mclk_src;
++	mcam->mclk_div = pdata->mclk_div;
++	if (pdata->chip_id != V4L2_IDENT_NONE)
++		mcam->chip_id = pdata->chip_id;
++	else
++		mcam->chip_id = V4L2_IDENT_ARMADA610;
++	/* set B_DMA_sg as default */
++	mcam->buffer_mode = B_DMA_sg;
+ 	mcam->ccic_id = pdev->id;
+ 	mcam->bus_type = pdata->bus_type;
+ 	mcam->dphy = pdata->dphy;
+ 	mcam->mipi_enabled = 0;
+ 	mcam->lane = pdata->lane;
+-	mcam->chip_id = V4L2_IDENT_ARMADA610;
+-	mcam->buffer_mode = B_DMA_sg;
+-	spin_lock_init(&mcam->dev_lock);
++	INIT_LIST_HEAD(&mcam->buffers);
++
+ 	/*
+ 	 * Get our I/O memory.
+ 	 */
+@@ -366,40 +431,13 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	mcam_init_clk(mcam, pdata, 1);
+-	/*
+-	 * Find the i2c adapter.  This assumes, of course, that the
+-	 * i2c bus is already up and functioning.
+-	 */
+-	mcam->i2c_adapter = platform_get_drvdata(pdata->i2c_device);
+-	if (mcam->i2c_adapter == NULL) {
+-		dev_err(&pdev->dev, "No i2c adapter\n");
+-		ret = -ENODEV;
+-		goto out_uninit_clk;
+-	}
+-	/*
+-	 * Sensor GPIO pins.
+-	 */
+-	ret = devm_gpio_request(&pdev->dev, pdata->sensor_power_gpio,
+-					"cam-power");
+-	if (ret) {
+-		dev_err(&pdev->dev, "Can't get sensor power gpio %d",
+-				pdata->sensor_power_gpio);
+-		goto out_uninit_clk;
+-	}
+-	gpio_direction_output(pdata->sensor_power_gpio, 0);
+-	ret = devm_gpio_request(&pdev->dev, pdata->sensor_reset_gpio,
+-					"cam-reset");
+-	if (ret) {
+-		dev_err(&pdev->dev, "Can't get sensor reset gpio %d",
+-				pdata->sensor_reset_gpio);
+-		goto out_uninit_clk;
++
++	if (mcam->chip_id == V4L2_IDENT_ARMADA610) {
++		ret = mmp_probe(mcam, pdev);
++		if (ret)
++			goto out_uninit_clk;
+ 	}
+-	gpio_direction_output(pdata->sensor_reset_gpio, 0);
+ 
+-	/*
+-	 * Power the device up and hand it off to the core.
+-	 */
+-	mmpcam_power_up(mcam);
+ 	ret = mccic_register(mcam);
+ 	if (ret)
+ 		goto out_power_down;
+@@ -415,6 +453,9 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	cam->irq = res->start;
+ 	ret = devm_request_irq(&pdev->dev, cam->irq, mmpcam_irq, IRQF_SHARED,
+ 					"mmp-camera", mcam);
++	if (ret)
++		goto out_unregister;
++
+ 	if (ret == 0) {
+ 		mmpcam_add_device(cam);
+ 		return 0;
+@@ -423,7 +464,8 @@ static int mmpcam_probe(struct platform_device *pdev)
+ out_unregister:
+ 	mccic_shutdown(mcam);
+ out_power_down:
+-	mmpcam_power_down(mcam);
++	if (mcam->chip_id == V4L2_IDENT_ARMADA610)
++		mmpcam_power_down(mcam);
+ out_uninit_clk:
+ 	mcam_init_clk(mcam, pdata, 0);
+ 	return ret;
+@@ -433,12 +475,11 @@ out_uninit_clk:
+ static int mmpcam_remove(struct mmp_camera *cam)
+ {
+ 	struct mcam_camera *mcam = &cam->mcam;
+-	struct mmp_camera_platform_data *pdata;
++	struct mmp_camera_platform_data *pdata = cam->pdev->dev.platform_data;
+ 
+ 	mmpcam_remove_device(cam);
+ 	mccic_shutdown(mcam);
+ 	mmpcam_power_down(mcam);
+-	pdata = cam->pdev->dev.platform_data;
+ 	mcam_init_clk(mcam, pdata, 0);
+ 	return 0;
+ }
+diff --git a/include/media/mmp-camera.h b/include/media/mmp-camera.h
+index 9968031..ec4f21f 100755
+--- a/include/media/mmp-camera.h
++++ b/include/media/mmp-camera.h
+@@ -7,10 +7,12 @@ struct mmp_camera_platform_data {
+ 	struct platform_device *i2c_device;
+ 	int sensor_power_gpio;
+ 	int sensor_reset_gpio;
++	char name[16];
+ 	enum v4l2_mbus_type bus_type;
+ 	int mclk_min;
+ 	int mclk_src;
+ 	int mclk_div;
++	int chip_id;
+ 	/*
+ 	 * MIPI support
+ 	 */
 -- 
-1.8.0
-
-
-
+1.7.9.5
 
