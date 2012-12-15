@@ -1,234 +1,310 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.hauppauge.com ([167.206.143.4]:1609 "EHLO
-	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753585Ab2LDQIH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Dec 2012 11:08:07 -0500
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: linux-media@vger.kernel.org
-Cc: dheitmueller@kernellabs.com, Michael Krufky <mkrufky@linuxtv.org>
-Subject: [PATCH 1/2] au0828: remove forced dependency of VIDEO_AU0828 on VIDEO_V4L2
-Date: Tue,  4 Dec 2012 11:07:44 -0500
-Message-Id: <1354637265-23335-1-git-send-email-mkrufky@linuxtv.org>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:64804 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756425Ab2LONLM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Dec 2012 08:11:12 -0500
+Received: by mail-ee0-f46.google.com with SMTP id e53so2432864eek.19
+        for <linux-media@vger.kernel.org>; Sat, 15 Dec 2012 05:11:11 -0800 (PST)
+Message-ID: <50CC76FC.5030208@googlemail.com>
+Date: Sat, 15 Dec 2012 14:11:24 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Antti Palosaari <crope@iki.fi>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Matthew Gyurgyik <matthew@pyther.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	Jarod Wilson <jwilson@redhat.com>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com> <50C48891.2050903@googlemail.com> <50C4A520.6020908@pyther.net> <CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com> <50C4BA20.8060003@googlemail.com> <50C4BAFB.60304@googlemail.com> <50C4C525.6020006@googlemail.com> <50C4D011.6010700@pyther.net> <50C60220.8050908@googlemail.com> <CAGoCfizTfZVFkNvdQuuisOugM2BGipYd_75R63nnj=K7E8ULWQ@mail.gmail.com> <50C60772.2010904@googlemail.com> <CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com> <50C6226C.8090302@iki! .fi> <50C636E7.8060003@googlemail.com> <50C64AB0.7020407@iki.fi> <50C79CD6.4060501@googlemail.com> <50C79E9A.3050301@iki.fi> <20121213182336.2cca9da6@redhat.! com> <50CB46CE.60407@googlemail.com> <20121214173950.79bb963e@redhat.com> <20121214222631.1f191d6e@redhat.co! m> <50CBCAB9.602@iki.fi> <20121214235412.2598c91c@redhat.com>
+In-Reply-To: <20121214235412.2598c91c@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch removes the dependendency of VIDEO_AU0828 on VIDEO_V4L2 by
-creating a new Kconfig option, VIDEO_AU0828_V4L2, which enables analog
-video capture support and depends on VIDEO_V4L2 itself.
+Am 15.12.2012 02:54, schrieb Mauro Carvalho Chehab:
+> Em Sat, 15 Dec 2012 02:56:25 +0200
+> Antti Palosaari <crope@iki.fi> escreveu:
+>
+>> On 12/15/2012 02:26 AM, Mauro Carvalho Chehab wrote:
+>>> Em Fri, 14 Dec 2012 17:39:50 -0200
+>>> Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+>>>
+>>>>> Anyway, first we have to GET the bytes from the hardware. That's our
+>>>>> current problem !
+>>>>> And the hardware seems to need a different setup for reg 0x50 for the
+>>>>> different NEC sub protocols.
+>>>>> Which means that the we need to know the sub protocol BEFORE we get any
+>>>>> bytes from the device.
+>>>> No. All em28xx needs is to make sure that the NEC protocol will return
+>>>> the full 32 bits scancode.
+>>> It seems a way easier/quicker to just add the proper support there at the
+>>> driver than keep answering to this thread ;)
+>>>
+>>> Tested here with a Terratec HTC stick, and using two different IR's:
+>>> 	- a Terratec IR (address code 0x14 - standard NEC);
+>>> 	- a Pixelview IR (address code 0x866b - 24 bits NEC).
+>>>
+>>> All tests were done with the very latest version of ir-keytable, found at
+>>> v4l-utils.git tree (http://git.linuxtv.org/v4l-utils.git).
+>>>
+>>> See the results, with the Terratec table loaded (default when the
+>>> driver is loaded):
+>>>
+>>> 	# ir-keytable -t
+>>> 	Testing events. Please, press CTRL-C to abort.
+>>> 		# Terratec IR
+>>> 	1355529698.198046: event type EV_MSC(0x04): scancode = 0x1402
+>>> 	1355529698.198046: event type EV_KEY(0x01) key_down: KEY_1(0x0001)
+>>> 	1355529698.198046: event type EV_SYN(0x00).
+>>> 	11355529698.298170: event type EV_MSC(0x04): scancode = 0x1402
+>>> 	1355529698.298170: event type EV_SYN(0x00).
+>>> 	1355529698.547998: event type EV_KEY(0x01) key_up: KEY_1(0x0001)
+>>> 	1355529698.547998: event type EV_SYN(0x00).
+>>> 		# Pixelview IR
+>>> 	1355530261.416415: event type EV_MSC(0x04): scancode = 0x866b01
+>>> 	1355530261.416415: event type EV_SYN(0x00).
+>>> 	1355530262.216301: event type EV_MSC(0x04): scancode = 0x866b0b
+>>> 	1355530262.216301: event type EV_SYN(0x00).
+>>>
+>>> Replacing the keytable to the Pixelview's one:
+>>>
+>>> 	# ir-keytable -w /etc/rc_keymaps/pixelview_002t -c
+>>> 	Read pixelview_002t table
+>>> 	Old keytable cleared
+>>> 	Wrote 26 keycode(s) to driver
+>>> 	Protocols changed to NEC
+>>>
+>>> 	# ir-keytable -t
+>>> 	Testing events. Please, press CTRL-C to abort.
+>>> 	1355530569.420398: event type EV_MSC(0x04): scancode = 0x1402
+>>> 	1355530569.420398: event type EV_SYN(0x00).
+>>> 	1355530588.120409: event type EV_MSC(0x04): scancode = 0x866b01
+>>> 	1355530588.120409: event type EV_KEY(0x01) key_down: KEY_1(0x0001)
+>>> 	1355530591.670077: event type EV_SYN(0x00).
+>>>
+>>> And, finally, keeping both keytables active at the same time:
+>>>
+>>> 	# ir-keytable -c -w /etc/rc_keymaps/pixelview_002t -w /etc/rc_keymaps/nec_terratec_cinergy_xs
+>>> 	Read pixelview_002t table
+>>> 	Read nec_terratec_cinergy_xs table
+>>> 	Old keytable cleared
+>>> 	Wrote 74 keycode(s) to driver
+>>> 	Protocols changed to NEC
+>>>
+>>> 	# sudo ir-keytable  -t
+>>> 	Testing events. Please, press CTRL-C to abort.
+>>> 	1355530856.325201: event type EV_MSC(0x04): scancode = 0x866b01
+>>> 	1355530856.325201: event type EV_KEY(0x01) key_down: KEY_1(0x0001)
+>>> 	1355530856.325201: event type EV_SYN(0x00).
+>>> 	11355530856.575070: event type EV_KEY(0x01) key_up: KEY_1(0x0001)
+>>> 	1355530856.575070: event type EV_SYN(0x00).
+>>> 	1355530869.125226: event type EV_MSC(0x04): scancode = 0x1402
+>>> 	1355530869.125226: event type EV_KEY(0x01) key_down: KEY_1(0x0001)
+>>> 	1355530869.125226: event type EV_SYN(0x00).
+>>> 	11355530869.225216: event type EV_MSC(0x04): scancode = 0x1402
+>>> 	1355530869.225216: event type EV_SYN(0x00).
+>>> 	1355530869.475075: event type EV_KEY(0x01) key_up: KEY_1(0x0001)
+>>> 	1355530869.475075: event type EV_SYN(0x00).
+>>>
+>>> -
+>>>
+>>> em28xx: add support for 24bits/32 bits NEC variants on em2874 and upper
+>>>
+>>> By disabling the NEC parity check, it is possible to handle all 3 NEC
+>>> protocol variants (32, 24 or 16 bits).
+>>>
+>>> Change the driver in order to handle all of them.
+>>>
+>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
+>>
+>>
+>>
+>> NACK. NEC variant selection logic is broken by design.
+>>
+>>
+>>
+>>
+>>
+>>> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+>>> index 97d36b4..c84e4c8 100644
+>>> --- a/drivers/media/usb/em28xx/em28xx-input.c
+>>> +++ b/drivers/media/usb/em28xx/em28xx-input.c
+>>> @@ -57,8 +57,8 @@ MODULE_PARM_DESC(ir_debug, "enable debug messages [IR]");
+>>>   struct em28xx_ir_poll_result {
+>>>   	unsigned int toggle_bit:1;
+>>>   	unsigned int read_count:7;
+>>> -	u8 rc_address;
+>>> -	u8 rc_data[4]; /* 1 byte on em2860/2880, 4 on em2874 */
+>>> +
+>>> +	u32 scancode;
+>>>   };
+>>>
+>>>   struct em28xx_IR {
+>>> @@ -72,6 +72,7 @@ struct em28xx_IR {
+>>>   	struct delayed_work work;
+>>>   	unsigned int full_code:1;
+>>>   	unsigned int last_readcount;
+>>> +	u64 rc_type;
+>>>
+>>>   	int  (*get_key)(struct em28xx_IR *, struct em28xx_ir_poll_result *);
+>>>   };
+>>> @@ -236,11 +237,8 @@ static int default_polling_getkey(struct em28xx_IR *ir,
+>>>   	/* Infrared read count (Reg 0x45[6:0] */
+>>>   	poll_result->read_count = (msg[0] & 0x7f);
+>>>
+>>> -	/* Remote Control Address (Reg 0x46) */
+>>> -	poll_result->rc_address = msg[1];
+>>> -
+>>> -	/* Remote Control Data (Reg 0x47) */
+>>> -	poll_result->rc_data[0] = msg[2];
+>>> +	/* Remote Control Address/Data (Regs 0x46/0x47) */
+>>> +	poll_result->scancode = msg[1] << 8 | msg[2];
+>>>
+>>>   	return 0;
+>>>   }
+>>> @@ -266,13 +264,30 @@ static int em2874_polling_getkey(struct em28xx_IR *ir,
+>>>   	/* Infrared read count (Reg 0x51[6:0] */
+>>>   	poll_result->read_count = (msg[0] & 0x7f);
+>>>
+>>> -	/* Remote Control Address (Reg 0x52) */
+>>> -	poll_result->rc_address = msg[1];
+>>> -
+>>> -	/* Remote Control Data (Reg 0x53-55) */
+>>> -	poll_result->rc_data[0] = msg[2];
+>>> -	poll_result->rc_data[1] = msg[3];
+>>> -	poll_result->rc_data[2] = msg[4];
+>>> +		/* Remote Control Address (Reg 0x52) */
+>>> +		/* Remote Control Data (Reg 0x53-0x55) */
+>>> +	switch (ir->rc_type) {
+>>> +	case RC_TYPE_RC5:
+>>> +		poll_result->scancode = msg[1] << 8 | msg[2];
+>>> +		break;
+>>> +	case RC_TYPE_NEC:
+>>> +		if ((msg[3] ^ msg[4]) != 0xff) 		/* 32 bits NEC */
+>> See for example KEY_CYCLEWINDOWS from RC_MAP_TIVO. Do you think it 
+>> works..... :-(
+> 	{ 0xa10cfa05, KEY_CYCLEWINDOWS }, /* Window */
+>
+> You're right: for it to work, this key would be needed to be defined as:
+>
+> 	{ 0xa10c05, KEY_CYCLEWINDOWS }, /* Window */
+>
+> I agree, that's weird, but a vendor that uses a key definition like
+> that doesn't know what he's doing, as a remote control with address = 0xa10c
+> will very likely produce the same code.
+>
+> Btw, the way it is currently declared won't work either with mceusb, as
+> the IR decoder also does the same thing.
+>
+> (c/c Jarod, as he added the Tivo IR).
+>
+> ...
+>
+>> OK, it is much better and I can even see that in Kernel than keeping 
+>> old, very limited implementation.
+>>
+>> My aim was just to probe whole variant selection method is quite broken, 
+>> and it is impossible to get working with 100% reliable. As I have said 
+>> loudly :) , I want 32bit scancodes for all NEC remotes, no variants at 
+>> all. I think you are about the only person who wants to keep current 
+>> multiple NEC variant implementation...
+> I'm not bound to it, and no, I'm not the only one that voted for this
+> implementation. This were discussed in the past, when support for "extended"
+> nec got added (24 bits). When the first 32 bits NEC-yet-another-weird-variant
+> arrived, the choice was natural.
+>
+> The thing is: userspace can't be broken by whatever change we do. The way
+> it got implemented were the one that wouldn't generate regressions.
+> It is as simple as that.
+>
+> Cheers,
+> Mauro
 
-With VIDEO_AU0828_V4L2 disabled, the driver will only support digital
-television and will not depend on the v4l2-core. With VIDEO_AU0828_V4L2
-enabled, the driver will be built with the analog v4l2 support included.
+Sorry.... we completely lost the focus !
+Do you remeber the thread title ? ;)
 
-By default, the VIDEO_AU0828_V4L2 option will be set to Y, so as to
-preserve the original behavior.
+We have two separate issues here.
+1) Making Matthews hardware / the scancode retrieval code work
+And _if_ it turns out that we can't make it work without knowing the sub
+protocol type in advance
+2) how to handle this (which doesn't necessarily mean that we have to
+solve it in the RC core)
 
-Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
----
- drivers/media/usb/Kconfig               |    2 +-
- drivers/media/usb/au0828/Kconfig        |   17 ++++++++++++++---
- drivers/media/usb/au0828/Makefile       |    6 +++++-
- drivers/media/usb/au0828/au0828-cards.c |    4 ++++
- drivers/media/usb/au0828/au0828-core.c  |   13 ++++++++++++-
- drivers/media/usb/au0828/au0828-i2c.c   |    4 ++++
- drivers/media/usb/au0828/au0828.h       |    2 ++
- 7 files changed, 42 insertions(+), 6 deletions(-)
+So lets focus on 1) first:
+After reading the code again, it boils down to the following code lines
+in em28xx_ir_handle_key():
 
-diff --git a/drivers/media/usb/Kconfig b/drivers/media/usb/Kconfig
-index 6746994..0a7d520 100644
---- a/drivers/media/usb/Kconfig
-+++ b/drivers/media/usb/Kconfig
-@@ -21,7 +21,6 @@ endif
- 
- if MEDIA_ANALOG_TV_SUPPORT
- 	comment "Analog TV USB devices"
--source "drivers/media/usb/au0828/Kconfig"
- source "drivers/media/usb/pvrusb2/Kconfig"
- source "drivers/media/usb/hdpvr/Kconfig"
- source "drivers/media/usb/tlg2300/Kconfig"
-@@ -31,6 +30,7 @@ endif
- 
- if (MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT)
- 	comment "Analog/digital TV USB devices"
-+source "drivers/media/usb/au0828/Kconfig"
- source "drivers/media/usb/cx231xx/Kconfig"
- source "drivers/media/usb/tm6000/Kconfig"
- endif
-diff --git a/drivers/media/usb/au0828/Kconfig b/drivers/media/usb/au0828/Kconfig
-index 1766c0c..953a37c 100644
---- a/drivers/media/usb/au0828/Kconfig
-+++ b/drivers/media/usb/au0828/Kconfig
-@@ -1,17 +1,28 @@
- 
- config VIDEO_AU0828
- 	tristate "Auvitek AU0828 support"
--	depends on I2C && INPUT && DVB_CORE && USB && VIDEO_V4L2
-+	depends on I2C && INPUT && DVB_CORE && USB
- 	select I2C_ALGOBIT
- 	select VIDEO_TVEEPROM
- 	select VIDEOBUF_VMALLOC
- 	select DVB_AU8522_DTV if MEDIA_SUBDRV_AUTOSELECT
--	select DVB_AU8522_V4L if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_XC5000 if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_MXL5007T if MEDIA_SUBDRV_AUTOSELECT
- 	select MEDIA_TUNER_TDA18271 if MEDIA_SUBDRV_AUTOSELECT
- 	---help---
--	  This is a video4linux driver for Auvitek's USB device.
-+	  This is a hybrid analog/digital tv capture driver for
-+	  Auvitek's AU0828 USB device.
- 
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called au0828
-+
-+config VIDEO_AU0828_V4L2
-+	bool "Auvitek AU0828 v4l2 analog video support"
-+	depends on VIDEO_AU0828 && VIDEO_V4L2
-+	select DVB_AU8522_V4L if MEDIA_SUBDRV_AUTOSELECT
-+	default y
-+	---help---
-+	  This is a video4linux driver for Auvitek's USB device.
-+
-+	  Choose Y here to include support for v4l2 analog video
-+	  capture within the au0828 driver.
-diff --git a/drivers/media/usb/au0828/Makefile b/drivers/media/usb/au0828/Makefile
-index 98cc20c..be3bdf6 100644
---- a/drivers/media/usb/au0828/Makefile
-+++ b/drivers/media/usb/au0828/Makefile
-@@ -1,4 +1,8 @@
--au0828-objs	:= au0828-core.o au0828-i2c.o au0828-cards.o au0828-dvb.o au0828-video.o au0828-vbi.o
-+au0828-objs	:= au0828-core.o au0828-i2c.o au0828-cards.o au0828-dvb.o
-+
-+ifeq ($(CONFIG_VIDEO_AU0828_V4L2),y)
-+  au0828-objs   += au0828-video.o au0828-vbi.o
-+endif
- 
- obj-$(CONFIG_VIDEO_AU0828) += au0828.o
- 
-diff --git a/drivers/media/usb/au0828/au0828-cards.c b/drivers/media/usb/au0828/au0828-cards.c
-index cf309d8..7b5b742 100644
---- a/drivers/media/usb/au0828/au0828-cards.c
-+++ b/drivers/media/usb/au0828/au0828-cards.c
-@@ -188,9 +188,11 @@ static void hauppauge_eeprom(struct au0828_dev *dev, u8 *eeprom_data)
- void au0828_card_setup(struct au0828_dev *dev)
- {
- 	static u8 eeprom[256];
-+#ifdef CONFIG_VIDEO_AU0828_V4L2
- 	struct tuner_setup tun_setup;
- 	struct v4l2_subdev *sd;
- 	unsigned int mode_mask = T_ANALOG_TV;
-+#endif
- 
- 	dprintk(1, "%s()\n", __func__);
- 
-@@ -211,6 +213,7 @@ void au0828_card_setup(struct au0828_dev *dev)
- 		break;
- 	}
- 
-+#ifdef CONFIG_VIDEO_AU0828_V4L2
- 	if (AUVI_INPUT(0).type != AU0828_VMUX_UNDEFINED) {
- 		/* Load the analog demodulator driver (note this would need to
- 		   be abstracted out if we ever need to support a different
-@@ -236,6 +239,7 @@ void au0828_card_setup(struct au0828_dev *dev)
- 		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_type_addr,
- 				     &tun_setup);
- 	}
-+#endif
- }
- 
- /*
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 745a80a..1e6f40e 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -134,13 +134,17 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
- 	/* Digital TV */
- 	au0828_dvb_unregister(dev);
- 
-+#ifdef CONFIG_VIDEO_AU0828_V4L2
- 	if (AUVI_INPUT(0).type != AU0828_VMUX_UNDEFINED)
- 		au0828_analog_unregister(dev);
-+#endif
- 
- 	/* I2C */
- 	au0828_i2c_unregister(dev);
- 
-+#ifdef CONFIG_VIDEO_AU0828_V4L2
- 	v4l2_device_unregister(&dev->v4l2_dev);
-+#endif
- 
- 	usb_set_intfdata(interface, NULL);
- 
-@@ -155,7 +159,10 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
- static int au0828_usb_probe(struct usb_interface *interface,
- 	const struct usb_device_id *id)
- {
--	int ifnum, retval;
-+	int ifnum;
-+#ifdef CONFIG_VIDEO_AU0828_V4L2
-+	int retval;
-+#endif
- 	struct au0828_dev *dev;
- 	struct usb_device *usbdev = interface_to_usbdev(interface);
- 
-@@ -194,6 +201,7 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 	dev->usbdev = usbdev;
- 	dev->boardnr = id->driver_info;
- 
-+#ifdef CONFIG_VIDEO_AU0828_V4L2
- 	/* Create the v4l2_device */
- 	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
- 	if (retval) {
-@@ -203,6 +211,7 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 		kfree(dev);
- 		return -EIO;
- 	}
-+#endif
- 
- 	/* Power Up the bridge */
- 	au0828_write(dev, REG_600, 1 << 4);
-@@ -216,9 +225,11 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 	/* Setup */
- 	au0828_card_setup(dev);
- 
-+#ifdef CONFIG_VIDEO_AU0828_V4L2
- 	/* Analog TV */
- 	if (AUVI_INPUT(0).type != AU0828_VMUX_UNDEFINED)
- 		au0828_analog_register(dev, interface);
-+#endif
- 
- 	/* Digital TV */
- 	au0828_dvb_register(dev);
-diff --git a/drivers/media/usb/au0828/au0828-i2c.c b/drivers/media/usb/au0828/au0828-i2c.c
-index 4ded17f..20d69b5 100644
---- a/drivers/media/usb/au0828/au0828-i2c.c
-+++ b/drivers/media/usb/au0828/au0828-i2c.c
-@@ -378,7 +378,11 @@ int au0828_i2c_register(struct au0828_dev *dev)
- 
- 	dev->i2c_adap.algo = &dev->i2c_algo;
- 	dev->i2c_adap.algo_data = dev;
-+#ifdef CONFIG_VIDEO_AU0828_V4L2
- 	i2c_set_adapdata(&dev->i2c_adap, &dev->v4l2_dev);
-+#else
-+	i2c_set_adapdata(&dev->i2c_adap, dev);
-+#endif
- 	i2c_add_adapter(&dev->i2c_adap);
- 
- 	dev->i2c_client.adapter = &dev->i2c_adap;
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index 66a56ef..e579ff6 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -199,8 +199,10 @@ struct au0828_dev {
- 	struct au0828_dvb		dvb;
- 	struct work_struct              restart_streaming;
- 
-+#ifdef CONFIG_VIDEO_AU0828_V4L2
- 	/* Analog */
- 	struct v4l2_device v4l2_dev;
-+#endif
- 	int users;
- 	unsigned int resources;	/* resources in use */
- 	struct video_device *vdev;
--- 
-1.7.10.4
+    if (unlikely(poll_result.read_count != ir->last_readcount)) {
+        dprintk("%s: toggle: %d, count: %d, key 0x%02x%02x\n", __func__,
+        ...
+        rc_keydown(...)
+
+With reg 0x50 set to EM2874_IR_NEC=0x00, Matthew doesn't get any
+debugging messages when he presses the RC buttons.
+With reg 0x50 set to 0x01, there are only few messages, with the same
+single scancode:
+
+Am 10.12.2012 17:00, schrieb Matthew Gyurgyik:
+>>> Here is the dmesg output:
+>>>
+>>>> [root@tux ~]# dmesg -t | sort | uniq | grep 'em28xx IR' | grep handle
+>>>> em28xx IR (em28xx #0)/ir: 6em28xx_ir_handle_key: toggle: 0, count: 1,
+>>>> key 0x61d6
+>>>> em28xx IR (em28xx #0)/ir: 6em28xx_ir_handle_key: toggle: 0, count: 2,
+>>>> key 0x61d6
+>>>> em28xx IR (em28xx #0)/ir: 6em28xx_ir_handle_key: toggle: 1, count: 1,
+>>>> key 0x61d6
+>>>> em28xx IR (em28xx #0)/ir: em28xx_ir_handle_key: toggle: 0, count: 1,
+>>>> key 0x61d6
+>>>> em28xx IR (em28xx #0)/ir: em28xx_ir_handle_key: toggle: 0, count: 2,
+>>>> key 0x61d6
+>>>> em28xx IR (em28xx #0)/ir: em28xx_ir_handle_key: toggle: 1, count: 1,
+>>>> key 0x61d6
+>>>> em28xx IR (em28xx #0)/ir: em28xx_ir_handle_key: toggle: 1, count: 2,
+>>>> key 0x61d6
+>>>
+>>> I pressed all the buttons on the remote (40 buttons).
+>>
+>> Did you cut the dmesg output ? Or do you really get these messages for
+>> key 0x61d6 only ?
+>
+> Correct, I only got the messages for key 0x61d6 regardless of which
+> physical button I press. 
+
+So if Matthew didn't make any mistakes, the problem seems to be the read
+count handling...
+
+
+----------------------------------
+
+
+Concerning the rc core / keymap stuff: it seems like there are some weak
+spots.
+The discussion is focussed on the scan codes and it seems to have a long
+history.
+I just want to make clear that I don't have an opinion about this yet
+(nor do I want to change someone elses opinion !). I actually don't care
+about it at the moment.
+If we're going to discuss this further, I suggest to do that in a
+separate thread with a more meaningful title.
+
+
+Regards,
+Frank
+
+
+
+
+
+
+
+
+
+
+
 
