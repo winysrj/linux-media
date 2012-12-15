@@ -1,175 +1,283 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:34625 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753046Ab2LQPKe (ORCPT
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:60467 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751745Ab2LOVNz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Dec 2012 10:10:34 -0500
-Received: by mail-lb0-f174.google.com with SMTP id gi11so4823625lbb.19
-        for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 07:10:32 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAOcJUbxdvHZFqtvv5CEcgrWqof1425O+9Bp=GgE41kDm-QMrKg@mail.gmail.com>
-References: <1355706724-25663-1-git-send-email-mkrufky@linuxtv.org>
-	<CAOcJUbxdvHZFqtvv5CEcgrWqof1425O+9Bp=GgE41kDm-QMrKg@mail.gmail.com>
-Date: Mon, 17 Dec 2012 10:10:32 -0500
-Message-ID: <CAOcJUbwqihx8NydLR9jqOXCn3Sd8aF7XND+jeGG9mxUHOwfrNw@mail.gmail.com>
-Subject: Re: [PATCH] tda10071: make sure both tuner and demod i2c addresses
- are specified
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, crope@iki.fi,
-	Michael Krufky <mkrufky@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sat, 15 Dec 2012 16:13:55 -0500
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org
+Cc: swarren@wwwdotorg.org, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, nicolas.thery@st.com,
+	s.hauer@pengutronix.de, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl, devicetree-discuss@lists.ozlabs.org,
+	linux-doc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] [media] Add common binding documentation for video interfaces
+Date: Sat, 15 Dec 2012 22:13:36 +0100
+Message-Id: <1355606016-6509-1-git-send-email-sylvester.nawrocki@gmail.com>
+In-Reply-To: <1355168499-5847-9-git-send-email-s.nawrocki@samsung.com>
+References: <1355168499-5847-9-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As discussed on irc, the following pwclient commands should update the
-status of the patches in patchwork to correspond with this merge
-request:
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-pwclient update -s 'superseded' 15923
-pwclient update -s 'accepted' 15930
+This patch adds a document describing common OF bindings for video
+capture, output and video processing devices. It is currently mainly
+focused on video capture devices, with data interfaces defined in
+standards like ITU-R BT.656 or MIPI CSI-2.
+It also documents a method of describing data links between devices.
 
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+Hi,
 
-Cheers,
+This is an updated version of patch [1]. My changes include resolving
+issues pointed out during review, i.e.:
+ - renaming 'link' node to 'endpoint,
+ - renaming 'remote' phandle to 'remote-endpoint',
+ - file v4l2.txt renamed to video-interfaces.txt,
+ - removed references to V4L2,
+ - added short description of the example DT snippet
 
-Mike
+and additionally:
+ - added "Required properties' paragraph,
+ - updated description of 'data-lanes' property,
+ - renamed all erroneous occurrences of 'data-width' to 'bus-width',
+ - added 'bus-width' property description,
+ - modified description of hsync-active, vsync-active properties,
+ - added a little paragraph further explaining that each endpoint
+   node has properties determining configuration of its corresponding
+   device.
 
-On Mon, Dec 17, 2012 at 10:09 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> Mauro,
->
-> Please merge:
->
-> The following changes since commit 4c8e64232d4a71e68d68b9093506966c0244a526:
->
->   cx23885: add basic DVB-S2 support for Hauppauge HVR-4400 (2012-12-16
-> 12:27:25 -0500)
->
-> are available in the git repository at:
->
->   git://linuxtv.org/mkrufky/tuners tda10071
->
-> for you to fetch changes up to 326e65af0104faf8a243e534eb8bfdb35b73f4ed:
->
->   tda10071: make sure both tuner and demod i2c addresses are specified
-> (2012-12-16 18:05:02 -0500)
->
-> ----------------------------------------------------------------
-> Michael Krufky (1):
->       tda10071: make sure both tuner and demod i2c addresses are specified
->
->  drivers/media/dvb-frontends/tda10071.c  |   18 +++++++++++++++---
->  drivers/media/dvb-frontends/tda10071.h  |    4 ++--
->  drivers/media/pci/cx23885/cx23885-dvb.c |    2 +-
->  drivers/media/usb/em28xx/em28xx-dvb.c   |    3 ++-
->  4 files changed, 20 insertions(+), 7 deletions(-)
->
-> Cheers,
->
-> Mike
->
-> On Sun, Dec 16, 2012 at 8:12 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
->> display an error message if either tuner_i2c_addr or demod_i2c_addr
->> are not specified in the tda10071_config structure
->>
->> Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
->> ---
->>  drivers/media/dvb-frontends/tda10071.c  |   18 +++++++++++++++---
->>  drivers/media/dvb-frontends/tda10071.h  |    4 ++--
->>  drivers/media/pci/cx23885/cx23885-dvb.c |    2 +-
->>  drivers/media/usb/em28xx/em28xx-dvb.c   |    3 ++-
->>  4 files changed, 20 insertions(+), 7 deletions(-)
->>
->> diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
->> index 7103629..02f9234 100644
->> --- a/drivers/media/dvb-frontends/tda10071.c
->> +++ b/drivers/media/dvb-frontends/tda10071.c
->> @@ -30,7 +30,7 @@ static int tda10071_wr_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
->>         u8 buf[len+1];
->>         struct i2c_msg msg[1] = {
->>                 {
->> -                       .addr = priv->cfg.i2c_address,
->> +                       .addr = priv->cfg.demod_i2c_addr,
->>                         .flags = 0,
->>                         .len = sizeof(buf),
->>                         .buf = buf,
->> @@ -59,12 +59,12 @@ static int tda10071_rd_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
->>         u8 buf[len];
->>         struct i2c_msg msg[2] = {
->>                 {
->> -                       .addr = priv->cfg.i2c_address,
->> +                       .addr = priv->cfg.demod_i2c_addr,
->>                         .flags = 0,
->>                         .len = 1,
->>                         .buf = &reg,
->>                 }, {
->> -                       .addr = priv->cfg.i2c_address,
->> +                       .addr = priv->cfg.demod_i2c_addr,
->>                         .flags = I2C_M_RD,
->>                         .len = sizeof(buf),
->>                         .buf = buf,
->> @@ -1202,6 +1202,18 @@ struct dvb_frontend *tda10071_attach(const struct tda10071_config *config,
->>                 goto error;
->>         }
->>
->> +       /* make sure demod i2c address is specified */
->> +       if (!config->demod_i2c_addr) {
->> +               dev_dbg(&i2c->dev, "%s: invalid demod i2c address!\n", __func__);
->> +               goto error;
->> +       }
->> +
->> +       /* make sure tuner i2c address is specified */
->> +       if (!config->tuner_i2c_addr) {
->> +               dev_dbg(&i2c->dev, "%s: invalid tuner i2c address!\n", __func__);
->> +               goto error;
->> +       }
->> +
->>         /* setup the priv */
->>         priv->i2c = i2c;
->>         memcpy(&priv->cfg, config, sizeof(struct tda10071_config));
->> diff --git a/drivers/media/dvb-frontends/tda10071.h b/drivers/media/dvb-frontends/tda10071.h
->> index a20d5c4..bff1c38 100644
->> --- a/drivers/media/dvb-frontends/tda10071.h
->> +++ b/drivers/media/dvb-frontends/tda10071.h
->> @@ -28,10 +28,10 @@ struct tda10071_config {
->>          * Default: none, must set
->>          * Values: 0x55,
->>          */
->> -       u8 i2c_address;
->> +       u8 demod_i2c_addr;
->>
->>         /* Tuner I2C address.
->> -        * Default: 0x14
->> +        * Default: none, must set
->>          * Values: 0x14, 0x54, ...
->>          */
->>         u8 tuner_i2c_addr;
->> diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
->> index cf84c53..a1aae56 100644
->> --- a/drivers/media/pci/cx23885/cx23885-dvb.c
->> +++ b/drivers/media/pci/cx23885/cx23885-dvb.c
->> @@ -662,7 +662,7 @@ static struct mt2063_config terratec_mt2063_config[] = {
->>  };
->>
->>  static const struct tda10071_config hauppauge_tda10071_config = {
->> -       .i2c_address = 0x05,
->> +       .demod_i2c_addr = 0x05,
->>         .tuner_i2c_addr = 0x54,
->>         .i2c_wr_max = 64,
->>         .ts_mode = TDA10071_TS_SERIAL,
->> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
->> index 63f2e70..e800881 100644
->> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
->> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
->> @@ -714,7 +714,8 @@ static struct tda18271_config em28xx_cxd2820r_tda18271_config = {
->>  };
->>
->>  static const struct tda10071_config em28xx_tda10071_config = {
->> -       .i2c_address = 0x55, /* (0xaa >> 1) */
->> +       .demod_i2c_addr = 0x55, /* (0xaa >> 1) */
->> +       .tuner_i2c_addr = 0x14,
->>         .i2c_wr_max = 64,
->>         .ts_mode = TDA10071_TS_SERIAL,
->>         .spec_inv = 0,
->> --
->> 1.7.10.4
->>
+[1] https://patchwork.kernel.org/patch/1514381/
+
+I'm still unsure about the first sentence, as these bindings can be
+used for describing SoC internal connections between modules as well.
+
+I was considering adding something like:
+
+"This document describes common bindings for video capture, processing
+and output devices using data buses defined in standards like ITU-R
+BT.656, MIPI CSI-2,..."
+
+before the "General concept" paragraph.
+
+And maybe Documentation/devicetree/bindings/video/ would a better place
+for this video-interfaces.txt file ?
+
+Thanks,
+Sylwester
+---
+ .../devicetree/bindings/media/video-interfaces.txt |  198 ++++++++++++++++++++
+ 1 files changed, 198 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/video-interfaces.txt
+
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+new file mode 100644
+index 0000000..10ebbc4
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -0,0 +1,198 @@
++Common bindings for video data receiver and transmitter interfaces
++
++General concept
++---------------
++
++Video data pipelines usually consist of external devices, e.g. camera sensors,
++controlled over an I2C, SPI or UART bus, and SoC internal IP blocks, including
++video DMA engines and video data processors.
++
++SoC internal blocks are described by DT nodes, placed similarly to other SoC
++blocks.  External devices are represented as child nodes of their respective
++bus controller nodes, e.g. I2C.
++
++Data interfaces on all video devices are described by their child 'port' nodes.
++Configuration of a port depends on other devices participating in the data
++transfer and is described by 'endpoint' subnodes.
++
++dev {
++	#address-cells = <1>;
++	#size-cells = <0>;
++	port@0 {
++		endpoint@0 { ... };
++		endpoint@1 { ... };
++	};
++	port@1 { ... };
++};
++
++If a port can be configured to work with more than one other device on the same
++bus, an 'endpoint' child node must be provided for each of them.  If more than
++one port is present in a device node or there is more than one endpoint at a
++port, a common scheme, using '#address-cells', '#size-cells' and 'reg' properties
++is used.
++
++Two 'endpoint' nodes are linked with each other through their 'remote-endpoint'
++phandles.  An endpoint subnode of a device contains all properties needed for
++configuration of this device for data exchange with the other device.  In most
++cases properties at the peer 'endpoint' nodes will be identical, however
++they might need to be different when there are any signal modifications on the
++bus between two devices, e.g. there are logic signal inverters on the lines.
++
++Required properties
++-------------------
++
++If there is more that one 'port' or more than one 'endpoint' node following
++properties are required in relevant parent node:
++
++- #address-cells : number of cells required to define port number, should be 1.
++- #size-cells    : should be zero.
++
++Optional endpoint properties
++----------------------------
++
++- remote-endpoint : phandle to an 'endpoint' subnode of the other device node.
++- slave-mode : a boolean property, run the link in slave mode. Default is master
++  mode.
++- bus-width : the number of data lines, valid for parallel buses.
++- data-shift: on parallel data busses, if bus-width is used to specify the
++  number of data lines, data-shift can be used to specify which data lines are
++  used, e.g. "bus-width=<10>; data-shift=<2>;" means, that lines 9:2 are used.
++- hsync-active : active state of HSYNC signal, 0/1 for LOW/HIGH respectively.
++- vsync-active : active state of VSYNC signal, 0/1 for LOW/HIGH respectively.
++  Note, that if HSYNC and VSYNC polarities are not specified, embedded
++  synchronization may be required, where supported.
++- data-active : similar to HSYNC and VSYNC, specifies data line polarity.
++- field-even-active: field signal level during the even field data transmission.
++- pclk-sample : rising (1) or falling (0) edge to sample the pixel clock signal.
++- data-lanes : an array of physical data lane indexes. Position of an entry
++  determines logical lane number, while the value of an entry indicates physical
++  lane, e.g. for 2-lane MIPI CSI-2 bus we could have "data-lanes = <1>, <2>;",
++  assuming the clock lane is on hardware lane 0. This property is valid for
++  serial buses only (e.g. MIPI CSI-2).
++- clock-lanes : a number of physical lane used as a clock lane.
++- clock-noncontinuous : a boolean property to allow MIPI CSI-2 non-continuous
++  clock mode.
++
++Example
++-------
++
++The below example snippet describes two data pipelines.  ov772x and imx074 are
++camera sensors with parallel and serial (MIPI CSI-2) video bus respectively.
++Both sensors are on I2C control bus corresponding to i2c0 controller node.
++ov772x sensor is linked directly to the ceu0 video host interface.  imx074 is
++linked to ceu0 through MIPI CSI-2 receiver (csi2). ceu0 has a (single) DMA
++engine writing captured data to memory.  ceu0 node has single 'port' node which
++indicates at any time only one of following data pipeline can be active:
++ov772x -> ceu0 or imx074 -> csi2 -> ceu0.
++
++	ceu0: ceu@0xfe910000 {
++		compatible = "renesas,sh-mobile-ceu";
++		reg = <0xfe910000 0xa0>;
++		interrupts = <0x880>;
++
++		mclk: master_clock {
++			compatible = "renesas,ceu-clock";
++			#clock-cells = <1>;
++			clock-frequency = <50000000>;	/* Max clock frequency */
++			clock-output-names = "mclk";
++		};
++
++		port {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			ceu0_1: endpoint@1 {
++				reg = <1>;		/* Local endpoint # */
++				remote = <&ov772x_1_1>;	/* Remote phandle */
++				bus-width = <8>;	/* Used data lines */
++				data-shift = <0>;	/* Lines 7:0 are used */
++
++				/* If hsync-active/vsync-active are missing,
++				   embedded bt.605 sync is used */
++				hsync-active = <1>;	/* Active high */
++				vsync-active = <1>;	/* Active high */
++				data-active = <1>;	/* Active high */
++				pclk-sample = <1>;	/* Rising */
++			};
++
++			ceu0_0: endpoint@0 {
++				reg = <0>;
++				remote = <&csi2_2>;
++				immutable;
++			};
++		};
++	};
++
++	i2c0: i2c@0xfff20000 {
++		...
++		ov772x_1: camera@0x21 {
++			compatible = "omnivision,ov772x";
++			reg = <0x21>;
++			vddio-supply = <&regulator1>;
++			vddcore-supply = <&regulator2>;
++
++			clock-frequency = <20000000>;
++			clocks = <&mclk 0>;
++			clock-names = "xclk";
++
++			port {
++				/* With 1 endpoint per port no need in addresses. */
++				ov772x_1_1: endpoint {
++					bus-width = <8>;
++					remote-endpoint = <&ceu0_1>;
++					hsync-active = <1>;
++					vsync-active = <0>; /* Who came up with an
++							       inverter here ?... */
++					data-active = <1>;
++					pclk-sample = <1>;
++				};
++			};
++		};
++
++		imx074: camera@0x1a {
++			compatible = "sony,imx074";
++			reg = <0x1a>;
++			vddio-supply = <&regulator1>;
++			vddcore-supply = <&regulator2>;
++
++			clock-frequency = <30000000>;	/* Shared clock with ov772x_1 */
++			clocks = <&mclk 0>;
++			clock-names = "sysclk";		/* Assuming this is the
++							   name in the datasheet */
++			port {
++				imx074_1: endpoint {
++					clock-lanes = <0>;
++					data-lanes = <1>, <2>;
++					remote-endpoint = <&csi2_1>;
++				};
++			};
++		};
++	};
++
++	csi2: csi2@0xffc90000 {
++		compatible = "renesas,sh-mobile-csi2";
++		reg = <0xffc90000 0x1000>;
++		interrupts = <0x17a0>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@1 {
++			compatible = "renesas,csi2c";	/* One of CSI2I and CSI2C. */
++			reg = <1>;			/* CSI-2 PHY #1 of 2: PHY_S,
++							   PHY_M has port address 0,
++							   is unused. */
++			csi2_1: endpoint {
++				clock-lanes = <0>;
++				data-lanes = <2>, <1>;
++				remote-endpoint = <&imx074_1>;
++			};
++		};
++		port@2 {
++			reg = <2>;			/* port 2: link to the CEU */
++
++			csi2_2: endpoint {
++				immutable;
++				remote-endpoint = <&ceu0_0>;
++			};
++		};
++	};
+--
+1.7.4.1
+
