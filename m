@@ -1,196 +1,351 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:52783 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752148Ab2LHWVF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Dec 2012 17:21:05 -0500
-Received: by mail-ea0-f174.google.com with SMTP id e13so628196eaa.19
-        for <linux-media@vger.kernel.org>; Sat, 08 Dec 2012 14:21:03 -0800 (PST)
-From: Oleh Kravchenko <oleg@kaa.org.ua>
-To: linux-media@vger.kernel.org
-Cc: Oleh Kravchenko <oleg@kaa.org.ua>
-Subject: [PATCH] [media] Added support for AVerTV Hybrid Express Slim HC81R
-Date: Sun,  9 Dec 2012 00:20:59 +0200
-Message-Id: <1355005259-10475-1-git-send-email-oleg@kaa.org.ua>
+Received: from na3sys009aog134.obsmtp.com ([74.125.149.83]:48373 "EHLO
+	na3sys009aog134.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751171Ab2LOJ7t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Dec 2012 04:59:49 -0500
+From: Albert Wang <twang13@marvell.com>
+To: corbet@lwn.net, g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, Libin Yang <lbyang@marvell.com>,
+	Albert Wang <twang13@marvell.com>
+Subject: [PATCH V3 02/15] [media] marvell-ccic: add MIPI support for marvell-ccic driver
+Date: Sat, 15 Dec 2012 17:57:51 +0800
+Message-Id: <1355565484-15791-3-git-send-email-twang13@marvell.com>
+In-Reply-To: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch provide only analog support.
-The device is based on AF9013 demodulator, XC3028 tuner
-and CX23885 chipset; subsystem id: 1461:d939
+From: Libin Yang <lbyang@marvell.com>
 
-Signed-off-by: Oleh Kravchenko <oleg@kaa.org.ua>
+This patch adds the MIPI support for marvell-ccic.
+Board driver should determine whether using MIPI or not.
+
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
 ---
- drivers/media/pci/cx23885/cx23885-cards.c |   75 +++++++++++++++++++++++++++++
- drivers/media/pci/cx23885/cx23885-video.c |   15 +++++-
- drivers/media/pci/cx23885/cx23885.h       |    1 +
- 3 files changed, 90 insertions(+), 1 deletions(-)
+ drivers/media/platform/marvell-ccic/mcam-core.c  |   70 ++++++++++++++++++++
+ drivers/media/platform/marvell-ccic/mcam-core.h  |   24 ++++++-
+ drivers/media/platform/marvell-ccic/mmp-driver.c |   75 +++++++++++++++++++++-
+ include/media/mmp-camera.h                       |   10 +++
+ 4 files changed, 177 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
-index 6277e145..d213019 100644
---- a/drivers/media/pci/cx23885/cx23885-cards.c
-+++ b/drivers/media/pci/cx23885/cx23885-cards.c
-@@ -572,6 +572,35 @@ struct cx23885_board cx23885_boards[] = {
- 	[CX23885_BOARD_PROF_8000] = {
- 		.name		= "Prof Revolution DVB-S2 8000",
- 		.portb		= CX23885_MPEG_DVB,
-+	},
-+	[CX23885_BOARD_AVERMEDIA_HC81R] = {
-+		.name		= "AVerTV Hybrid Express Slim HC81R",
-+		.tuner_type	= TUNER_XC2028,
-+		.tuner_addr	= 0x61, /* 0xc2 >> 1 */
-+		.tuner_bus	= 1,
-+		.porta		= CX23885_ANALOG_VIDEO,
-+		.input          = {{
-+			.type   = CX23885_VMUX_TELEVISION,
-+			.vmux   = CX25840_VIN2_CH1 |
-+				  CX25840_VIN5_CH2 |
-+				  CX25840_NONE0_CH3 |
-+				  CX25840_NONE1_CH3,
-+			.amux   = CX25840_AUDIO8,
-+		}, {
-+			.type   = CX23885_VMUX_SVIDEO,
-+			.vmux   = CX25840_VIN8_CH1 |
-+				  CX25840_NONE_CH2 |
-+				  CX25840_VIN7_CH3 |
-+				  CX25840_SVIDEO_ON,
-+			.amux   = CX25840_AUDIO6,
-+		}, {
-+			.type   = CX23885_VMUX_COMPONENT,
-+			.vmux   = CX25840_VIN1_CH1 |
-+				  CX25840_NONE_CH2 |
-+				  CX25840_NONE0_CH3 |
-+				  CX25840_NONE1_CH3,
-+			.amux   = CX25840_AUDIO6,
-+		} },
- 	}
- };
- const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
-@@ -788,6 +817,10 @@ struct cx23885_subid cx23885_subids[] = {
- 		.subvendor = 0x8000,
- 		.subdevice = 0x3034,
- 		.card      = CX23885_BOARD_PROF_8000,
-+	}, {
-+		.subvendor = 0x1461,
-+		.subdevice = 0xd939,
-+		.card      = CX23885_BOARD_AVERMEDIA_HC81R,
- 	},
- };
- const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
-@@ -1012,6 +1045,10 @@ int cx23885_tuner_callback(void *priv, int component, int command, int arg)
- 	case CX23885_BOARD_NETUP_DUAL_DVB_T_C_CI_RF:
- 		altera_ci_tuner_reset(dev, port->nr);
- 		break;
-+	case CX23885_BOARD_AVERMEDIA_HC81R:
-+		/* XC3028L Reset Command */
-+		bitmask = 1 << 2;
-+		break;
- 	}
- 
- 	if (bitmask) {
-@@ -1301,6 +1338,32 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
- 		/* enable irq */
- 		cx_write(GPIO_ISM, 0x00000000);/* INTERRUPTS active low*/
- 		break;
-+	case CX23885_BOARD_AVERMEDIA_HC81R:
-+		cx_clear(MC417_CTL, 1);
-+		/* GPIO-0,1,2 setup direction as output */
-+		cx_set(GP0_IO, 0x00070000);
-+		mdelay(10);
-+		/* AF9013 demod reset */
-+		cx_set(GP0_IO, 0x00010001);
-+		mdelay(10);
-+		cx_clear(GP0_IO, 0x00010001);
-+		mdelay(10);
-+		cx_set(GP0_IO, 0x00010001);
-+		mdelay(10);
-+		/* demod tune? */
-+		cx_clear(GP0_IO, 0x00030003);
-+		mdelay(10);
-+		cx_set(GP0_IO, 0x00020002);
-+		mdelay(10);
-+		cx_set(GP0_IO, 0x00010001);
-+		mdelay(10);
-+		cx_clear(GP0_IO, 0x00020002);
-+		/* XC3028L tuner reset */
-+		cx_set(GP0_IO, 0x00040004);
-+		cx_clear(GP0_IO, 0x00040004);
-+		cx_set(GP0_IO, 0x00040004);
-+		mdelay(60);
-+		break;
- 	}
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 7012913f..f6ae06d 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -19,6 +19,7 @@
+ #include <linux/delay.h>
+ #include <linux/vmalloc.h>
+ #include <linux/io.h>
++#include <linux/clk.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+@@ -253,6 +254,50 @@ static void mcam_ctlr_stop(struct mcam_camera *cam)
+ 	mcam_reg_clear_bit(cam, REG_CTRL0, C0_ENABLE);
  }
  
-@@ -1515,6 +1578,17 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 	}
- 
- 	switch (dev->board) {
-+	case CX23885_BOARD_AVERMEDIA_HC81R:
-+		/* Defaults for VID B */
-+		ts1->gen_ctrl_val  = 0x4; /* Parallel */
-+		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
-+		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-+		/* Defaults for VID C */
-+		/* DREQ_POL, SMODE, PUNC_CLK, MCLK_POL Serial bus + punc clk */
-+		ts2->gen_ctrl_val  = 0x10e;
-+		ts2->ts_clk_en_val = 0x1; /* Enable TS_CLK */
-+		ts2->src_sel_val     = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-+		break;
- 	case CX23885_BOARD_DVICO_FUSIONHDTV_7_DUAL_EXP:
- 	case CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP:
- 		ts2->gen_ctrl_val  = 0xc; /* Serial bus + punctured clock */
-@@ -1636,6 +1710,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 	case CX23885_BOARD_MPX885:
- 	case CX23885_BOARD_MYGICA_X8507:
- 	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:
-+	case CX23885_BOARD_AVERMEDIA_HC81R:
- 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
- 				&dev->i2c_bus[2].i2c_adap,
- 				"cx25840", 0x88 >> 1, NULL);
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index 1a21926..f131888 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -509,7 +509,8 @@ static int cx23885_video_mux(struct cx23885_dev *dev, unsigned int input)
- 		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1255) ||
- 		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1255_22111) ||
- 		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1850) ||
--		(dev->board == CX23885_BOARD_MYGICA_X8507)) {
-+		(dev->board == CX23885_BOARD_MYGICA_X8507) ||
-+		(dev->board == CX23885_BOARD_AVERMEDIA_HC81R)) {
- 		/* Configure audio routing */
- 		v4l2_subdev_call(dev->sd_cx25840, audio, s_routing,
- 			INPUT(input)->amux, 0, 0);
-@@ -1878,6 +1879,18 @@ int cx23885_video_register(struct cx23885_dev *dev)
- 				};
- 				v4l2_subdev_call(sd, tuner, s_config, &cfg);
- 			}
++static int mcam_config_mipi(struct mcam_camera *mcam, int enable)
++{
++	if (mcam->bus_type == V4L2_MBUS_CSI2 && enable) {
++		/* Using MIPI mode and enable MIPI */
++		cam_dbg(mcam, "camera: DPHY3=0x%x, DPHY5=0x%x, DPHY6=0x%x\n",
++			mcam->dphy[0], mcam->dphy[1], mcam->dphy[2]);
++		mcam_reg_write(mcam, REG_CSI2_DPHY3, mcam->dphy[0]);
++		mcam_reg_write(mcam, REG_CSI2_DPHY6, mcam->dphy[2]);
++		mcam_reg_write(mcam, REG_CSI2_DPHY5, mcam->dphy[1]);
 +
-+			if (dev->board == CX23885_BOARD_AVERMEDIA_HC81R) {
-+				struct xc2028_ctrl ctrl = {
-+					.fname = "xc3028L-v36.fw",
-+					.max_len = 64
-+				};
-+				struct v4l2_priv_tun_config cfg = {
-+					.tuner = dev->tuner_type,
-+					.priv = &ctrl
-+				};
-+				v4l2_subdev_call(sd, tuner, s_config, &cfg);
++		if (mcam->mipi_enabled == 0) {
++			/*
++			 * 0x41 actives 1 lane
++			 * 0x43 actives 2 lanes
++			 * 0x47 actives 4 lanes
++			 * There is no 3 lanes case
++			 */
++			switch (mcam->lane) {
++			case 1:
++				mcam_reg_write(mcam, REG_CSI2_CTRL0, 0x41);
++				break;
++			case 2:
++				mcam_reg_write(mcam, REG_CSI2_CTRL0, 0x43);
++				break;
++			case 4:
++				mcam_reg_write(mcam, REG_CSI2_CTRL0, 0x47);
++				break;
++			default:
++				cam_err(mcam, "camera: lane number set err");
++				return -EINVAL;
 +			}
- 		}
++			mcam->mipi_enabled = 1;
++		}
++	} else {
++		/* Using Parallel mode or disable MIPI */
++		mcam_reg_write(mcam, REG_CSI2_DPHY3, 0x0);
++		mcam_reg_write(mcam, REG_CSI2_DPHY6, 0x0);
++		mcam_reg_write(mcam, REG_CSI2_DPHY5, 0x0);
++		mcam_reg_write(mcam, REG_CSI2_CTRL0, 0x0);
++		mcam->mipi_enabled = 0;
++	}
++	return 0;
++}
++
+ /* ------------------------------------------------------------------- */
+ 
+ #ifdef MCAM_MODE_VMALLOC
+@@ -656,6 +701,15 @@ static void mcam_ctlr_image(struct mcam_camera *cam)
+ 	 */
+ 	mcam_reg_write_mask(cam, REG_CTRL0, C0_SIF_HVSYNC,
+ 			C0_SIFM_MASK);
++
++	/*
++	 * This field controls the generation of EOF(DVP only)
++	 */
++	if (cam->bus_type != V4L2_MBUS_CSI2) {
++		mcam_reg_set_bit(cam, REG_CTRL0,
++				C0_EOF_VSYNC | C0_VEDGE_CTRL);
++		mcam_reg_write(cam, REG_CTRL3, 0x4);
++	}
+ }
+ 
+ 
+@@ -886,6 +940,16 @@ static int mcam_read_setup(struct mcam_camera *cam)
+ 	spin_lock_irqsave(&cam->dev_lock, flags);
+ 	clear_bit(CF_DMA_ACTIVE, &cam->flags);
+ 	mcam_reset_buffers(cam);
++	/*
++	 * Update CSI2_DPHY value
++	 */
++	if (cam->calc_dphy)
++		cam->calc_dphy(cam);
++	cam_dbg(cam, "camera: DPHY sets: dphy3=0x%x, dphy5=0x%x, dphy6=0x%x\n",
++			cam->dphy[0], cam->dphy[1], cam->dphy[2]);
++	ret = mcam_config_mipi(cam, 1);
++	if (ret < 0)
++		return ret;
+ 	mcam_ctlr_irq_enable(cam);
+ 	cam->state = S_STREAMING;
+ 	if (!test_bit(CF_SG_RESTART, &cam->flags))
+@@ -1551,6 +1615,11 @@ static int mcam_v4l_open(struct file *filp)
+ 		mcam_set_config_needed(cam, 1);
  	}
+ 	(cam->users)++;
++	cam->pll1 = devm_clk_get(cam->dev, "pll1");
++	if (IS_ERR(cam->pll1)) {
++		cam_err(cam, "Could not get pll1 clock\n");
++		ret = PTR_ERR(cam->pll1);
++	}
+ out:
+ 	mutex_unlock(&cam->s_mutex);
+ 	return ret;
+@@ -1569,6 +1638,7 @@ static int mcam_v4l_release(struct file *filp)
+ 	if (cam->users == 0) {
+ 		mcam_ctlr_stop_dma(cam);
+ 		mcam_cleanup_vb2(cam);
++		mcam_config_mipi(cam, 0);
+ 		mcam_ctlr_power_down(cam);
+ 		if (cam->buffer_mode == B_vmalloc && alloc_bufs_at_read)
+ 			mcam_free_dma_bufs(cam);
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+index 5e802c6..ca63010 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+@@ -101,11 +101,21 @@ struct mcam_camera {
+ 	short int clock_speed;	/* Sensor clock speed, default 30 */
+ 	short int use_smbus;	/* SMBUS or straight I2c? */
+ 	enum mcam_buffer_mode buffer_mode;
++
++	enum v4l2_mbus_type bus_type;
++	/* MIPI support */
++	int *dphy;
++	int mipi_enabled;
++	int lane;			/* lane number */
++
++	struct clk *pll1;
++
+ 	/*
+ 	 * Callbacks from the core to the platform code.
+ 	 */
+ 	void (*plat_power_up) (struct mcam_camera *cam);
+ 	void (*plat_power_down) (struct mcam_camera *cam);
++	void (*calc_dphy)(struct mcam_camera *cam);
  
-diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
-index 67f40d3..f0c4705 100644
---- a/drivers/media/pci/cx23885/cx23885.h
-+++ b/drivers/media/pci/cx23885/cx23885.h
-@@ -91,6 +91,7 @@
- #define CX23885_BOARD_TEVII_S471               35
- #define CX23885_BOARD_HAUPPAUGE_HVR1255_22111  36
- #define CX23885_BOARD_PROF_8000                37
-+#define CX23885_BOARD_AVERMEDIA_HC81R          38
+ 	/*
+ 	 * Everything below here is private to the mcam core and
+@@ -218,6 +228,15 @@ int mccic_resume(struct mcam_camera *cam);
+ #define REG_Y0BAR	0x00
+ #define REG_Y1BAR	0x04
+ #define REG_Y2BAR	0x08
++
++/*
++ * register definitions for MIPI support
++ */
++#define REG_CSI2_CTRL0	0x100
++#define REG_CSI2_DPHY3	0x12c
++#define REG_CSI2_DPHY5	0x134
++#define REG_CSI2_DPHY6	0x138
++
+ /* ... */
  
- #define GPIO_0 0x00000001
- #define GPIO_1 0x00000002
+ #define REG_IMGPITCH	0x24	/* Image pitch register */
+@@ -292,7 +311,9 @@ int mccic_resume(struct mcam_camera *cam);
+ #define	  C0_DOWNSCALE	  0x08000000	/* Enable downscaler */
+ #define	  C0_SIFM_MASK	  0xc0000000	/* SIF mode bits */
+ #define	  C0_SIF_HVSYNC	  0x00000000	/* Use H/VSYNC */
+-#define	  CO_SOF_NOSYNC	  0x40000000	/* Use inband active signaling */
++#define	  C0_SOF_NOSYNC	  0x40000000	/* Use inband active signaling */
++#define	  C0_EOF_VSYNC	  0x00400000	/* Generate EOF by VSYNC */
++#define	  C0_VEDGE_CTRL   0x00800000	/* Detect falling edge of VSYNC */
+ 
+ /* Bits below C1_444ALPHA are not present in Cafe */
+ #define REG_CTRL1	0x40	/* Control 1 */
+@@ -308,6 +329,7 @@ int mccic_resume(struct mcam_camera *cam);
+ #define	  C1_TWOBUFS	  0x08000000	/* Use only two DMA buffers */
+ #define	  C1_PWRDWN	  0x10000000	/* Power down */
+ 
++#define REG_CTRL3	0x1ec	/* CCIC parallel mode */
+ #define REG_CLKCTRL	0x88	/* Clock control */
+ #define	  CLK_DIV_MASK	  0x0000ffff	/* Upper bits RW "reserved" */
+ 
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index c4c17fe..603fa0a 100755
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -27,6 +27,7 @@
+ #include <linux/delay.h>
+ #include <linux/list.h>
+ #include <linux/pm.h>
++#include <linux/clk.h>
+ 
+ #include "mcam-core.h"
+ 
+@@ -152,6 +153,69 @@ static void mmpcam_power_down(struct mcam_camera *mcam)
+ 	gpio_set_value(pdata->sensor_reset_gpio, 0);
+ }
+ 
++/*
++ * calc the dphy register values
++ * There are three dphy registers being used.
++ * dphy[0] can be set with a default value
++ * or be calculated dynamically
++ */
++void mmpcam_calc_dphy(struct mcam_camera *mcam)
++{
++	struct mmp_camera *cam = mcam_to_cam(mcam);
++	struct mmp_camera_platform_data *pdata = cam->pdev->dev.platform_data;
++	struct device *dev = &cam->pdev->dev;
++	unsigned long tx_clk_esc;
++
++	/*
++	 * If dphy[0] is calculated dynamically,
++	 * pdata->lane_clk should be already set
++	 * either in the board driver statically
++	 * or in the sensor driver dynamically.
++	 */
++	switch (pdata->dphy3_algo) {
++	case 1:
++		/*
++		 * dphy3_algo == 1
++		 * Calculate CSI2_DPHY3 algo for PXA910
++		 */
++		pdata->dphy[0] = ((1 + pdata->lane_clk * 80 / 1000) & 0xff) << 8
++			| (1 + pdata->lane_clk * 35 / 1000);
++		break;
++	case 2:
++		/*
++		 * dphy3_algo == 2
++		 * Calculate CSI2_DPHY3 algo for PXA2128
++		 */
++		pdata->dphy[0] =
++			((2 + pdata->lane_clk * 110 / 1000) & 0xff) << 8
++			| (1 + pdata->lane_clk * 35 / 1000);
++		break;
++	default:
++		/*
++		 * dphy3_algo == 0
++		 * Use default CSI2_DPHY3 value for PXA688/PXA988
++		 */
++		dev_dbg(dev, "camera: use the default CSI2_DPHY3 value\n");
++	}
++
++	/*
++	 * pll1 will never be changed, it is a fixed value
++	 */
++
++	if (IS_ERR(mcam->pll1))
++		return;
++
++	tx_clk_esc = clk_get_rate(mcam->pll1) / 1000000 / 12;
++
++	/*
++	 * Update dphy6 according to current tx_clk_esc
++	 */
++	pdata->dphy[2] = ((534 * tx_clk_esc / 2000 - 1) & 0xff) << 8
++			| ((38 * tx_clk_esc / 1000 - 1) & 0xff);
++
++	dev_dbg(dev, "camera: DPHY sets: dphy3=0x%x, dphy5=0x%x, dphy6=0x%x\n",
++		pdata->dphy[0], pdata->dphy[1], pdata->dphy[2]);
++}
+ 
+ static irqreturn_t mmpcam_irq(int irq, void *data)
+ {
+@@ -174,6 +238,10 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	struct mmp_camera_platform_data *pdata;
+ 	int ret;
+ 
++	pdata = pdev->dev.platform_data;
++	if (!pdata)
++		return -ENODEV;
++
+ 	cam = kzalloc(sizeof(*cam), GFP_KERNEL);
+ 	if (cam == NULL)
+ 		return -ENOMEM;
+@@ -183,8 +251,14 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	mcam = &cam->mcam;
+ 	mcam->plat_power_up = mmpcam_power_up;
+ 	mcam->plat_power_down = mmpcam_power_down;
++	mcam->calc_dphy = mmpcam_calc_dphy;
++	mcam->pll1 = NULL;
+ 	mcam->dev = &pdev->dev;
+ 	mcam->use_smbus = 0;
++	mcam->bus_type = pdata->bus_type;
++	mcam->dphy = pdata->dphy;
++	mcam->mipi_enabled = 0;
++	mcam->lane = pdata->lane;
+ 	mcam->chip_id = V4L2_IDENT_ARMADA610;
+ 	mcam->buffer_mode = B_DMA_sg;
+ 	spin_lock_init(&mcam->dev_lock);
+@@ -223,7 +297,6 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	 * Find the i2c adapter.  This assumes, of course, that the
+ 	 * i2c bus is already up and functioning.
+ 	 */
+-	pdata = pdev->dev.platform_data;
+ 	mcam->i2c_adapter = platform_get_drvdata(pdata->i2c_device);
+ 	if (mcam->i2c_adapter == NULL) {
+ 		ret = -ENODEV;
+diff --git a/include/media/mmp-camera.h b/include/media/mmp-camera.h
+index 7611963..813efe2 100755
+--- a/include/media/mmp-camera.h
++++ b/include/media/mmp-camera.h
+@@ -1,3 +1,4 @@
++#include <media/v4l2-mediabus.h>
+ /*
+  * Information for the Marvell Armada MMP camera
+  */
+@@ -6,4 +7,13 @@ struct mmp_camera_platform_data {
+ 	struct platform_device *i2c_device;
+ 	int sensor_power_gpio;
+ 	int sensor_reset_gpio;
++	enum v4l2_mbus_type bus_type;
++	/*
++	 * MIPI support
++	 */
++	int dphy[3];		/* DPHY: CSI2_DPHY3, CSI2_DPHY5, CSI2_DPHY6 */
++	int dphy3_algo;		/* Exist 2 algos for calculate CSI2_DPHY3 */
++	int mipi_enabled;	/* MIPI enabled flag */
++	int lane;		/* ccic used lane number; 0 means DVP mode */
++	int lane_clk;
+ };
 -- 
-1.7.8.6
+1.7.9.5
 
