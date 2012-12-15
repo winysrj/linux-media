@@ -1,154 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:53969 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753597Ab2LQXtK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Dec 2012 18:49:10 -0500
-Received: by mail-ea0-f174.google.com with SMTP id e13so2799205eaa.33
-        for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 15:49:09 -0800 (PST)
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: DRI Development <dri-devel@lists.freedesktop.org>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Aaron Plattner <aplattner@nvidia.com>
-Subject: [PATCH] [RFC] dma-buf: implement vmap refcounting in the interface logic
-Date: Tue, 18 Dec 2012 00:31:50 +0100
-Message-Id: <1355787110-19968-1-git-send-email-daniel.vetter@ffwll.ch>
+Received: from mail.kapsi.fi ([217.30.184.167]:44256 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750795Ab2LOQwZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Dec 2012 11:52:25 -0500
+Message-ID: <50CCAAA4.4030808@iki.fi>
+Date: Sat, 15 Dec 2012 18:51:48 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Matthew Gyurgyik <matthew@pyther.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	Jarod Wilson <jwilson@redhat.com>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50C35AD1.3040000@googlemail.com> <50C48891.2050903@googlemail.com> <50C4A520.6020908@pyther.net> <CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com> <50C4BA20.8060003@googlemail.com> <50C4BAFB.60304@googlemail.com> <50C4C525.6020006@googlemail.com> <50C4D011.6010700@pyther.net> <50C60220.8050908@googlemail.com> <CAGoCfizTfZVFkNvdQuuisOugM2BGipYd_75R63nnj=K7E8ULWQ@mail.gmail.com> <50C60772.2010904@googlemail.com> <CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com> <50C6226C.8090302@iki! .fi> <50C636E7.8060003@googlemail.com> <50C64AB0.7020407@iki.fi> <50C79CD6.4060501@googlemail.com> <50C79E9A.3050301@iki.fi> <20121213182336.2cca9da6@redhat.! com> <50CB46CE.60407@googlemail.com> <20121214173950.79bb963e@redhat.com> <20121214222631.1f191d6e@redhat.co! m> <50CBCAB9.602@iki.fi> <20121214235412.2598c91c@redhat.com> <50CC76FC.5030208@googlemail.com> <50CC7D3F.9020108@iki.fi> <50CCA39F.5000309@googlemail.com>
+In-Reply-To: <50CCA39F.5000309@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All drivers which implement this need to have some sort of refcount to
-allow concurrent vmap usage. Hence implement this in the dma-buf core.
+On 12/15/2012 06:21 PM, Frank Schäfer wrote:
+> Am 15.12.2012 14:38, schrieb Antti Palosaari:
+>> On 12/15/2012 03:11 PM, Frank Schäfer wrote:
+>>> Am 15.12.2012 02:54, schrieb Mauro Carvalho Chehab:
+>>>> Em Sat, 15 Dec 2012 02:56:25 +0200
+>>>> Antti Palosaari <crope@iki.fi> escreveu:
+>>>>
+>>>>> On 12/15/2012 02:26 AM, Mauro Carvalho Chehab wrote:
+>>>>>> Em Fri, 14 Dec 2012 17:39:50 -0200
+>>>>>> Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
 
-To protect against concurrent calls we need a lock, which potentially
-causes new funny locking inversions. But this shouldn't be a problem
-for exporters with statically allocated backing storage, and more
-dynamic drivers have decent issues already anyway.
+>>> Am 10.12.2012 17:00, schrieb Matthew Gyurgyik:
+>>>>>> Here is the dmesg output:
+>>>>>>
+>>>>>>> [root@tux ~]# dmesg -t | sort | uniq | grep 'em28xx IR' | grep
+>>>>>>> handle
+>>>>>>> em28xx IR (em28xx #0)/ir: 6em28xx_ir_handle_key: toggle: 0,
+>>>>>>> count: 1,
+>>>>>>> key 0x61d6
+>>>>>>> em28xx IR (em28xx #0)/ir: 6em28xx_ir_handle_key: toggle: 0,
+>>>>>>> count: 2,
+>>>>>>> key 0x61d6
+>>>>>>> em28xx IR (em28xx #0)/ir: 6em28xx_ir_handle_key: toggle: 1,
+>>>>>>> count: 1,
+>>>>>>> key 0x61d6
+>>>>>>> em28xx IR (em28xx #0)/ir: em28xx_ir_handle_key: toggle: 0, count: 1,
+>>>>>>> key 0x61d6
+>>>>>>> em28xx IR (em28xx #0)/ir: em28xx_ir_handle_key: toggle: 0, count: 2,
+>>>>>>> key 0x61d6
+>>>>>>> em28xx IR (em28xx #0)/ir: em28xx_ir_handle_key: toggle: 1, count: 1,
+>>>>>>> key 0x61d6
+>>>>>>> em28xx IR (em28xx #0)/ir: em28xx_ir_handle_key: toggle: 1, count: 2,
+>>>>>>> key 0x61d6
+>>>>>>
+>>>>>> I pressed all the buttons on the remote (40 buttons).
+>>>>>
+>>>>> Did you cut the dmesg output ? Or do you really get these messages for
+>>>>> key 0x61d6 only ?
+>>>>
+>>>> Correct, I only got the messages for key 0x61d6 regardless of which
+>>>> physical button I press.
+>>>
+>>> So if Matthew didn't make any mistakes, the problem seems to be the read
+>>> count handling...
+>>
+>> That is what happened and it is correct behavior as Matthews remote is
+>> 24 bit NEC (and driver does not know how to handle it). If you look
+>> again those raw dumps which I send previous mail you could see the
+>> issue. 61d6 seen here is remote controller address, two first bits. It
+>> outputs that because debug does not output rest 2 remaining bytes
+>> where is actual key code. If you set em28xx to 32bit NEC mode then key
+>> code for that remote set 61d6 by driver mistakenly as it does not know
+>> there is 2 bytes more to handle.
+>
+> Antti, the problem with Matthews RC isn't the number of bytes printed to
+> the log.
+> The problems is, that NO messages appear in the log (with one exception).
 
-Inspired by some refactoring patches from Aaron Plattner, who
-implemented the same idea, but only for drm/prime drivers.
+What is that exception?
 
-v2: Check in dma_buf_release that no dangling vmaps are left.
-Suggested by Aaron Plattner. We might want to do similar checks for
-attachments, but that's for another patch. Also fix up ERR_PTR return
-for vmap.
+In that case there should be around 40 similar debug lines - as address 
+byte is same for all buttons and debug prints only address byte, toggle 
+and count. As toggle and count still outputs some numbers we will see 
+that many line. Without toggle and count there is likely only one debug 
+line seen as output is piped through uniq which drops similar lines.
 
-Cc: Aaron Plattner <aplattner@nvidia.com>
-Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
----
-Compile-tested only - Aaron has been bugging me too a bit too often
-about this on irc.
+>> I copy & pasted here relevant lines from the em28xx driver. Maybe you
+>> could now see why code is wrong - why the extended address byte is set
+>> as to scancode mistakenly. Look especially care following variables:
+>> msg[1], msg[2], poll_result->rc_address and poll_result.rc_data[0]
+>>
+>> static int em2874_polling_getkey()
+>> {
+>> rc = dev->em28xx_read_reg_req_len(dev, 0, EM2874_R51_IR, msg,
+>> sizeof(msg));
+>>
+>> /* Remote Control Address (Reg 0x52) */
+>> poll_result->rc_address = msg[1];
+>>
+>> /* Remote Control Data (Reg 0x53-55) */
+>> poll_result->rc_data[0] = msg[2];
+>> poll_result->rc_data[1] = msg[3];
+>> poll_result->rc_data[2] = msg[4];
+>> }
+>>
+>
+> You missed the relevant part of the code:
+>
+> static int em2874_polling_getkey()
+> {
+> ...
+>      /* Infrared read count (Reg 0x51[6:0] */
+>      poll_result->read_count = (msg[0] & 0x7f);
+> ...
+> }
+>
+>
+>>
+>>
+>> static void em28xx_ir_handle_key()
+>> {
+>> dprintk("%s: toggle: %d, count: %d, key 0x%02x%02x\n", __func__,
+>>      poll_result.toggle_bit, poll_result.read_count,
+>>      poll_result.rc_address, poll_result.rc_data[0]);
+>> }
+>>
+>
+> Same here, you missed the if () statement:
+>
+> static void em28xx_ir_handle_key(struct em28xx_IR *ir)
+> {
+> ...
+>      if (unlikely(poll_result.read_count != ir->last_readcount)) {
+>          dprintk("%s: toggle: %d, count: %d, key 0x%02x%02x\n", __func__,
+>              poll_result.toggle_bit, poll_result.read_count,
+>              poll_result.rc_address, poll_result.rc_data[0]);
+> ...
+> }
+>
+>
+> It doesn't matter which format the scancode (4 bytes) has, a message
+> should be printed in any case.
+> But according to Matthew, that doesn't happen. Hence, the
+> poll_result.read_count != ir->last_readcount must be the problem.
 
-Cheers, Daniel
----
- Documentation/dma-buf-sharing.txt |  6 +++++-
- drivers/base/dma-buf.c            | 42 ++++++++++++++++++++++++++++++++++-----
- include/linux/dma-buf.h           |  4 +++-
- 3 files changed, 45 insertions(+), 7 deletions(-)
+I don't see which messages are missing.
 
-diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-index 0188903..4966b1b 100644
---- a/Documentation/dma-buf-sharing.txt
-+++ b/Documentation/dma-buf-sharing.txt
-@@ -302,7 +302,11 @@ Access to a dma_buf from the kernel context involves three steps:
-       void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
- 
-    The vmap call can fail if there is no vmap support in the exporter, or if it
--   runs out of vmalloc space. Fallback to kmap should be implemented.
-+   runs out of vmalloc space. Fallback to kmap should be implemented. Note that
-+   the dma-buf layer keeps a reference count for all vmap access and calls down
-+   into the exporter's vmap function only when no vmapping exists, and only
-+   unmaps it once. Protection against concurrent vmap/vunmap calls is provided
-+   by taking the dma_buf->lock mutex.
- 
- 3. Finish access
- 
-diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-index a3f79c4..36af5de 100644
---- a/drivers/base/dma-buf.c
-+++ b/drivers/base/dma-buf.c
-@@ -39,6 +39,8 @@ static int dma_buf_release(struct inode *inode, struct file *file)
- 
- 	dmabuf = file->private_data;
- 
-+	BUG_ON(dmabuf->vmapping_counter);
-+
- 	dmabuf->ops->release(dmabuf);
- 	kfree(dmabuf);
- 	return 0;
-@@ -482,12 +484,34 @@ EXPORT_SYMBOL_GPL(dma_buf_mmap);
-  */
- void *dma_buf_vmap(struct dma_buf *dmabuf)
- {
-+	void *ptr;
-+
- 	if (WARN_ON(!dmabuf))
- 		return NULL;
- 
--	if (dmabuf->ops->vmap)
--		return dmabuf->ops->vmap(dmabuf);
--	return NULL;
-+	if (!dmabuf->ops->vmap)
-+		return NULL;
-+
-+	mutex_lock(&dmabuf->lock);
-+	if (dmabuf->vmapping_counter) {
-+		dmabuf->vmapping_counter++;
-+		BUG_ON(!dmabuf->vmap_ptr);
-+		ptr = dmabuf->vmap_ptr;
-+		goto out_unlock;
-+	}
-+
-+	BUG_ON(dmabuf->vmap_ptr);
-+
-+	ptr = dmabuf->ops->vmap(dmabuf);
-+	if (IS_ERR_OR_NULL(ptr))
-+		goto out_unlock;
-+
-+	dmabuf->vmap_ptr = ptr;
-+	dmabuf->vmapping_counter = 1;
-+
-+out_unlock:
-+	mutex_unlock(&dmabuf->lock);
-+	return ptr;
- }
- EXPORT_SYMBOL_GPL(dma_buf_vmap);
- 
-@@ -501,7 +525,15 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
- 	if (WARN_ON(!dmabuf))
- 		return;
- 
--	if (dmabuf->ops->vunmap)
--		dmabuf->ops->vunmap(dmabuf, vaddr);
-+	BUG_ON(!dmabuf->vmap_ptr);
-+	BUG_ON(dmabuf->vmapping_counter > 0);
-+
-+	mutex_lock(&dmabuf->lock);
-+	if (--dmabuf->vmapping_counter == 0) {
-+		if (dmabuf->ops->vunmap)
-+			dmabuf->ops->vunmap(dmabuf, vaddr);
-+		dmabuf->vmap_ptr = NULL;
-+	}
-+	mutex_unlock(&dmabuf->lock);
- }
- EXPORT_SYMBOL_GPL(dma_buf_vunmap);
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index bd2e52c..e3bf2f6 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -119,8 +119,10 @@ struct dma_buf {
- 	struct file *file;
- 	struct list_head attachments;
- 	const struct dma_buf_ops *ops;
--	/* mutex to serialize list manipulation and attach/detach */
-+	/* mutex to serialize list manipulation, attach/detach and vmap/unmap */
- 	struct mutex lock;
-+	unsigned vmapping_counter;
-+	void *vmap_ptr;
- 	void *priv;
- };
- 
+I think read_count is not incremented in case NEC 16bit checksum fails - 
+hw just discards whole code => read_count not increase => no debug. For 
+my tests there was always 81/01 when key was pressed and 00 when no key 
+pressed (as seen also logs I posted yesterday).
+
+>> I am about 99% sure Mauro's patch works correctly for Matthews device.
+>>
+>
+> If Matthew didn't make any mistakes, I can't see how these patches can
+> make it work. Which doesn't mean that they don't make sense.
+>
+>
+> Matthew, could you please validate your test results and try Mauros
+> patches ?
+> If it doesn't work, please create another USB-log.
+>
+>
+>> Maybe you missed point hardware returns different format in case of
+>> 32bit and 16bit values. If it is 16bit mode it return only 2 bytes and
+>> if 32bit mode it returns 4 bytes?
+>>
+>
+> No.
+>
+>
+> Regards,
+> Frank
+
+regards
+Antti
+
 -- 
-1.7.11.7
-
+http://palosaari.fi/
