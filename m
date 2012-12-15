@@ -1,92 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog133.obsmtp.com ([74.125.149.82]:35127 "EHLO
-	na3sys009aog133.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751057Ab2LOJ7t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Dec 2012 04:59:49 -0500
-From: Albert Wang <twang13@marvell.com>
-To: corbet@lwn.net, g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org, Albert Wang <twang13@marvell.com>
-Subject: [PATCH V3 00/15] [media] marvell-ccic: add soc camera support on marvell-ccic
-Date: Sat, 15 Dec 2012 17:57:49 +0800
-Message-Id: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:44890 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751430Ab2LORQj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Dec 2012 12:16:39 -0500
+Message-ID: <50CCB057.9060704@iki.fi>
+Date: Sat, 15 Dec 2012 19:16:07 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [PATCH 5/5] em28xx: fix+improve+unify i2c error handling, debug
+ messages and code comments
+References: <1355502533-25636-1-git-send-email-fschaefer.oss@googlemail.com> <1355502533-25636-6-git-send-email-fschaefer.oss@googlemail.com> <50CB5BF8.5070201@iki.fi> <50CC7499.8020507@googlemail.com> <50CC7F4E.5060803@iki.fi> <50CCA493.4070309@googlemail.com>
+In-Reply-To: <50CCA493.4070309@googlemail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following patches series will add soc_camera support on marvell-ccic
+On 12/15/2012 06:25 PM, Frank Schäfer wrote:
+> Am 15.12.2012 14:46, schrieb Antti Palosaari:
+>> On 12/15/2012 03:01 PM, Frank Schäfer wrote:
+>>> Am 14.12.2012 18:03, schrieb Antti Palosaari:
+>>>> On 12/14/2012 06:28 PM, Frank Schäfer wrote:
+>>>>> - check i2c slave address range (only 7 bit addresses supported)
+>>>>> - do not pass USB specific error codes to userspace/i2c-subsystem
+>>>>> - unify the returned error codes and make them compliant with
+>>>>>      the i2c subsystem spec
+>>>>> - check number of actually transferred bytes (via USB) everywehere
+>>>>> - fix/improve debug messages
+>>>>> - improve code comments
+>>>>>
+>>>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>>>>
+>>>>
+>>>>> @@ -244,16 +294,20 @@ static int em28xx_i2c_xfer(struct i2c_adapter
+>>>>> *i2c_adap,
+>>>>>             dprintk2(2, "%s %s addr=%x len=%d:",
+>>>>>                  (msgs[i].flags & I2C_M_RD) ? "read" : "write",
+>>>>>                  i == num - 1 ? "stop" : "nonstop", addr, msgs[i].len);
+>>>>> +        if (addr > 0xff) {
+>>>>> +            dprintk2(2, " ERROR: 10 bit addresses not supported\n");
+>>>>> +            return -EOPNOTSUPP;
+>>>>> +        }
+>>>>
+>>>> There is own flag for 10bit I2C address. Use it (and likely not
+>>>> compare at all addr validly like that). This kind of address
+>>>> validation check is quite unnecessary - and after all if it is wanted
+>>>> then correct place is somewhere in I2C routines.
+>>>
+>>> Well, to be 100% sure and strict, we should check both, the flag and the
+>>> actual address.
+>>> We support 7 bit addresses only, no matter which i2c algo is used. So
+>>> doing the address check in each i2c routine seems to be unnecessary code
+>>> duplication to me ?
+>>
+>> I will repeat me, I see it overkill to check address correctness. And
+>> as I said, that one is general validly could be done easily in I2C
+>> core - so why the hell you wish make it just only for em28xx ?
+>>
+>> I am quite sure if that kind of address validness are saw important
+>> they are already implemented by I2C core.
+>>
+>> Make patch for I2C which does that address validation against client
+>> 10BIT flag and sent it to the mailing list for discussion.
+>
+> The I2C core doesn't know about the capabilities of the adapter.
+> Hence it doesn't know if ten bit addresses will work (the same as with
+> the message size constraints).
+> All it does ist to check the client for I2C_CLIENT_TEN && addr > 0x7f
+> once, when it is instanciated with a call to i2c_new_device().
+> But we don't use this function in em28xx and the same applies to many
+> other drivers as well.
+> Apart from that, the client address and flags can change anytime later
+> (e.g. when probing devices).
 
-Patch set V3 - Change log:
-	- correct and enhance the implementation of some functions
-	- replace most of preprocessor instruction with runtime detect
-	- use devm_clk_get and devm_gpio_request which were missed in previous version
-	- change code format in some funcions: replace if-else with switch
-	- change some confused variable names
-	- remove unnecessary functions: buf_init, buf_cleanup ...
-	- remove unnecessary keyword: inline, extern ...
-	- remove unnecessary include header file name
-	- remove duplicated and unused code
-	- remove unnecessary initialization of ret variable
-	- [PATCH 09/15] change description
+yes, it does not need to know if adapter supports 10 bit or not, or how 
+many bytes adapter could send at once. It is up to adapter to check those.
 
-Patch set V2 - Change log:
-	- remove register definition patch
-	- split big patch to some small patches
-	- split mcam-core.c to mcam-core.c and mcam-core-standard.c
-	- add mcam-core-soc.c for soc camera support
-	- split 3 frame buffers support patch into 2 patches
+But it could check if client tries to send using invalid address (client 
+says it is 7BIT, but address is 10BIT), just situation you are adding to 
+em28xx adapter.
 
-Patch set V1:
-Log:
-	- add mmp register definition
-	- add soc_camera support on mcam core and mmp driver
-	- add 3 frames buffers support in DMA_CONTIG mode
+If you are worried flags and address could change during operation, I2C 
+core could check it too. Every driver I have seen are using I2C routines 
+to send messages, and if there is check lets say eg. inside 
+i2c_transfer() then it benefits all the others than em28xx. That is NOT 
+em28xx *only* issue, it is common for all of our drivers. As it is 
+common, adding check for each driver sounds wrong. General check should 
+be done in general level, and hw specific issues are for driver.
 
-Thanks
-Albert Wang
 
---
-Albert Wang (7):
-  [media] marvell-ccic: add get_mcam function for marvell-ccic driver
-  [media] marvell-ccic: split mcam-core into 2 parts for soc_camera
-    support
-  [media] marvell-ccic: add soc_camera support in mcam core
-  [media] marvell-ccic: add soc_camera support in mmp driver
-  [media] marvell-ccic: add dma burst mode support in marvell-ccic
-    driver
-  [media] marvell-ccic: use unsigned int type replace int type
-  [media] marvell-ccic: add 3 frame buffers support in DMA_CONTIG mode
+> But if you hate the check, I can kick it out.
+> The risk that it will cause any problems in practice is small.
 
-Libin Yang (8):
-  [media] marvell-ccic: use internal variable replace global frame
-    stats variable:w
-  [media] marvell-ccic: add MIPI support for marvell-ccic driver
-  [media] marvell-ccic: add clock tree support for marvell-ccic driver
-  [media] marvell-ccic: reset ccic phy when stop streaming for
-    stability
-  [media] marvell-ccic: refine mcam_set_contig_buffer function
-  [media] marvell-ccic: add new formats support for marvell-ccic driver
-  [media] marvell-ccic: add SOF / EOF pair check for marvell-ccic
-    driver
-  [media] marvell-ccic: switch to resource managed allocation and
-    request
+Mostly, I am trying to explain you are trying to add that check to wrong 
+place. Need of whole check is another issue.
 
- drivers/media/platform/Makefile                    |    4 +-
- drivers/media/platform/marvell-ccic/Kconfig        |   22 +
- drivers/media/platform/marvell-ccic/Makefile       |    6 +-
- .../media/platform/marvell-ccic/mcam-core-soc.c    |  416 +++++++
- .../media/platform/marvell-ccic/mcam-core-soc.h    |   19 +
- .../platform/marvell-ccic/mcam-core-standard.c     |  820 +++++++++++++
- .../platform/marvell-ccic/mcam-core-standard.h     |   26 +
- drivers/media/platform/marvell-ccic/mcam-core.c    | 1276 +++++---------------
- drivers/media/platform/marvell-ccic/mcam-core.h    |  155 ++-
- drivers/media/platform/marvell-ccic/mmp-driver.c   |  347 ++++--
- include/media/mmp-camera.h                         |   21 +
- 11 files changed, 2071 insertions(+), 1041 deletions(-)
- create mode 100644 drivers/media/platform/marvell-ccic/mcam-core-soc.c
- create mode 100644 drivers/media/platform/marvell-ccic/mcam-core-soc.h
- create mode 100644 drivers/media/platform/marvell-ccic/mcam-core-standard.c
- create mode 100644 drivers/media/platform/marvell-ccic/mcam-core-standard.h
+regards
+Antti
 
 -- 
-1.7.9.5
-
+http://palosaari.fi/
