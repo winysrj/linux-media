@@ -1,74 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f52.google.com ([209.85.215.52]:38894 "EHLO
-	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752215Ab2LZP5j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Dec 2012 10:57:39 -0500
-Received: by mail-la0-f52.google.com with SMTP id l5so10686971lah.25
-        for <linux-media@vger.kernel.org>; Wed, 26 Dec 2012 07:57:37 -0800 (PST)
-MIME-Version: 1.0
-Date: Wed, 26 Dec 2012 10:57:37 -0500
-Message-ID: <CAOcJUbz3_4=kjHCOa8RKP+eE2a8GyEdt0KOzHc4aG+e12i+Gzg@mail.gmail.com>
-Subject: [PULL] dvb: push down ioctl lock in dvb_usercopy / fix ioctls failing
- if frontend open/closed too fast
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Nikolaus Schulz <schulz@macnetix.de>,
-	Juergen Lock <nox@jelal.kn-bremen.de>,
+Received: from mx1.redhat.com ([209.132.183.28]:16574 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756820Ab2LOAes (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Dec 2012 19:34:48 -0500
+Date: Fri, 14 Dec 2012 22:34:18 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
+	Antti Palosaari <crope@iki.fi>,
 	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Antti Palosaari <crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+	Matthew Gyurgyik <matthew@pyther.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+Message-ID: <20121214223418.6485a7cb@redhat.com>
+In-Reply-To: <20121214222631.1f191d6e@redhat.com>
+References: <50B5779A.9090807@pyther.net>
+	<50C12302.80603@pyther.net>
+	<50C34628.5030407@googlemail.com>
+	<50C34A50.6000207@pyther.net>
+	<50C35AD1.3040000@googlemail.com>
+	<50C48891.2050903@googlemail.com>
+	<50C4A520.6020908@pyther.net>
+	<CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com>
+	<50C4BA20.8060003@googlemail.com>
+	<50C4BAFB.60304@googlemail.com>
+	<50C4C525.6020006@googlemail.com>
+	<50C4D011.6010700@pyther.net>
+	<50C60220.8050908@googlemail.com>
+	<CAGoCfizTfZVFkNvdQuuisOugM2BGipYd_75R63nnj=K7E8ULWQ@mail.gmail.com>
+	<50C60772.2010904@googlemail.com>
+	<CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com>
+	<50C6226C.8090302@iki! .fi>
+	<50C636E7.8060003@googlemail.com>
+	<50C64AB0.7020407@iki.fi>
+	<50C79CD6.4060501@googlemail.com>
+	<50C79E9A.3050301@iki.fi>
+	<20121213182336.2cca9da6@redhat.!
+ com>
+	<50CB46CE.60407@googlemail.com>
+	<20121214173950.79bb963e@redhat.com>
+	<20121214222631.1f191d6e@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Em Fri, 14 Dec 2012 22:26:31 -0200
+Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
 
-The following two patches have been on the mailing lists for a while
-with no complaints.  I have been testing them for the past few days
-and all seems well.  I haven't been able to test the AV7110 driver
-myself, but the patch is sane and should not cause any regressions.  I
-believe these are fine for the 3.9 branch - let's merge this into our
-devel branch asap to get some wider testing.
+> Em Fri, 14 Dec 2012 17:39:50 -0200
+> Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+> 
+> > > Anyway, first we have to GET the bytes from the hardware. That's our
+> > > current problem !
+> > > And the hardware seems to need a different setup for reg 0x50 for the
+> > > different NEC sub protocols.
+> > > Which means that the we need to know the sub protocol BEFORE we get any
+> > > bytes from the device.
+> > 
+> > No. All em28xx needs is to make sure that the NEC protocol will return
+> > the full 32 bits scancode.
+> 
+> It seems a way easier/quicker to just add the proper support there at the
+> driver than keep answering to this thread ;)
+> 
+> Tested here with a Terratec HTC stick, and using two different IR's:
+> 	- a Terratec IR (address code 0x14 - standard NEC);
+> 	- a Pixelview IR (address code 0x866b - 24 bits NEC).
 
-Please apply the following to update status in patchwork along with
-the following merge request...
+Just in case, I tested also that RC5 keeps working, by using a
+Hauppauge grey control:
 
-pwclient update -s 'accepted' 12989
-pwclient update -s 'superseded' 14665
+	# ir-keytable  -c -w /etc/rc_keymaps/hauppauge 
+	Read hauppauge table
+	Old keytable cleared
+	Wrote 136 keycode(s) to driver
+	Protocols changed to RC-5 
 
+	# sudo ir-keytable  -t 
+	Testing events. Please, press CTRL-C to abort.
+	1355531445.443208: event type EV_MSC(0x04): scancode = 0x1e02
+	1355531445.443208: event type EV_KEY(0x01) key_down: KEY_2(0x0001)
+	1355531445.443208: event type EV_SYN(0x00).
+	21355531445.543207: event type EV_MSC(0x04): scancode = 0x1e02
+	1355531445.543207: event type EV_SYN(0x00).
+	1355531445.793072: event type EV_KEY(0x01) key_up: KEY_2(0x0001)
+	1355531445.793072: event type EV_SYN(0x00).
+	1355531446.643224: event type EV_MSC(0x04): scancode = 0x1e02
+	1355531446.643224: event type EV_KEY(0x01) key_down: KEY_2(0x0001)
+	1355531446.643224: event type EV_SYN(0x00).
+	21355531446.743205: event type EV_MSC(0x04): scancode = 0x1e02
+	1355531446.743205: event type EV_SYN(0x00).
 
-The following changes since commit 8b2aea7878f64814544d0527c659011949d52358:
-
-  [media] em28xx: prefer bulk mode on webcams (2012-12-23 17:24:30 -0200)
-
-are available in the git repository at:
-
-  git://git.linuxtv.org/mkrufky/dvb core
-
-for you to fetch changes up to 93851d93d1b2eb8d678cc46a3e29c4945001a761:
-
-  dvb: push down ioctl lock in dvb_usercopy (2012-12-23 17:21:01 -0500)
-
-----------------------------------------------------------------
-Juergen Lock (1):
-      dvb_frontend: fix ioctls failing if frontend open/closed too fast
-
-Nikolaus Schulz (1):
-      dvb: push down ioctl lock in dvb_usercopy
-
- drivers/media/dvb-core/dvb_ca_en50221.c |    9 +++++++++
- drivers/media/dvb-core/dvb_frontend.c   |   19 ++++++++++++++-----
- drivers/media/dvb-core/dvb_net.c        |   71
-++++++++++++++++++++++++++++++++++++++++++++++++-----------------------
- drivers/media/dvb-core/dvb_net.h        |    1 +
- drivers/media/dvb-core/dvbdev.c         |    2 --
- drivers/media/pci/ttpci/av7110.c        |    2 ++
- drivers/media/pci/ttpci/av7110.h        |    2 ++
- drivers/media/pci/ttpci/av7110_av.c     |    8 ++++++++
- drivers/media/pci/ttpci/av7110_ca.c     |   24 +++++++++++++++++-------
- 9 files changed, 101 insertions(+), 37 deletions(-)
 
 Cheers,
-
-Mike
+Mauro
