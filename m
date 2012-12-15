@@ -1,178 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34723 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751737Ab2LEJAd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2012 04:00:33 -0500
-Date: Wed, 5 Dec 2012 10:00:16 +0100
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: Leela Krishna Amudala <l.krishna@samsung.com>
-Cc: devicetree-discuss@lists.ozlabs.org,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	David Airlie <airlied@linux.ie>
-Subject: Re: [PATCHv15 0/7] of: add display helper
-Message-ID: <20121205090016.GA22014@pengutronix.de>
-References: <1353920848-1705-1-git-send-email-s.trumtrar@pengutronix.de>
- <CAL1wa8fJ-mCsQFFo5wMLDRcUoOyWvTvFDLKsrrG9k-mxQTsTbg@mail.gmail.com>
+Received: from smtp23.services.sfr.fr ([93.17.128.20]:4102 "EHLO
+	smtp23.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751869Ab2LOXL4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Dec 2012 18:11:56 -0500
+Message-ID: <50CD03AF.3080602@sfr.fr>
+Date: Sun, 16 Dec 2012 00:11:43 +0100
+From: Patrice Chotard <patrice.chotard@sfr.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAL1wa8fJ-mCsQFFo5wMLDRcUoOyWvTvFDLKsrrG9k-mxQTsTbg@mail.gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: =?iso-8859-1?b?RnLpZOlyaWM=?= <frederic.mantegazza@gbiloba.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 2/2] [media] ngene: separate demodulator and tuner attach
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Leela,
+Previously, demodulator and tuner attach was done in the
+demod_attach callback. Migrate the tuner part in the
+tuner_attach callback in ngene_info to do thing in right place.
 
-unfortunately, nothing new as of yet. I have to work on other stuff at the moment.
+Signed-off-by: Patrice Chotard <patricechotard@free.fr>
+---
+ drivers/media/pci/ngene/ngene-cards.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-Regards,
-Steffen
+diff --git a/drivers/media/pci/ngene/ngene-cards.c
+b/drivers/media/pci/ngene/ngene-cards.c
+index 96a13ed..8db3fa1 100644
+--- a/drivers/media/pci/ngene/ngene-cards.c
++++ b/drivers/media/pci/ngene/ngene-cards.c
+@@ -328,6 +328,15 @@ static int demod_attach_drxd(struct ngene_channel
+*chan)
+ 		return -ENODEV;
+ 	}
 
-
-On Wed, Dec 05, 2012 at 01:25:30PM +0530, Leela Krishna Amudala wrote:
-> Hello Steffen,
-> 
-> Any update on version 16 ?
-> 
-> Best Wishes,
-> Leela Krishna Amudala.
-> 
-> On Mon, Nov 26, 2012 at 2:37 PM, Steffen Trumtrar
-> <s.trumtrar@pengutronix.de> wrote:
-> > Hi!
-> >
-> > Changes since v14:
-> >         - fix "const struct *" warning
-> >                 (reported by: Leela Krishna Amudala <l.krishna@samsung.com>)
-> >         - return -EINVAL when htotal or vtotal are zero
-> >         - remove unreachable code in of_get_display_timings
-> >         - include headers in .c files and not implicit in .h
-> >         - sort includes alphabetically
-> >         - fix lower/uppercase in binding documentation
-> >         - rebase onto v3.7-rc7
-> >
-> > Changes since v13:
-> >         - fix "const struct *" warning
-> >                 (reported by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>)
-> >         - prevent division by zero in fb_videomode_from_videomode
-> >
-> > Changes since v12:
-> >         - rename struct display_timing to via_display_timing in via subsystem
-> >         - fix refreshrate calculation
-> >         - fix "const struct *" warnings
-> >                 (reported by: Manjunathappa, Prakash <prakash.pm@ti.com>)
-> >         - some CodingStyle fixes
-> >         - rewrite parts of commit messages and display-timings.txt
-> >         - let display_timing_get_value get all values instead of just typical
-> >
-> > Changes since v11:
-> >         - make pointers const where applicable
-> >         - add reviewed-by Laurent Pinchart
-> >
-> > Changes since v10:
-> >         - fix function name (drm_)display_mode_from_videomode
-> >         - add acked-by, reviewed-by, tested-by
-> >
-> > Changes since v9:
-> >         - don't leak memory when previous timings were correct
-> >         - CodingStyle fixes
-> >         - move blank lines around
-> >
-> > Changes since v8:
-> >         - fix memory leaks
-> >         - change API to be more consistent (foo_from_bar(struct bar, struct foo))
-> >         - include headers were necessary
-> >         - misc minor bufixe
-> >
-> > Changes since v7:
-> >         - move of_xxx to drivers/video
-> >         - remove non-binding documentation from display-timings.txt
-> >         - squash display_timings and videomode in one patch
-> >         - misc minor fixes
-> >
-> > Changes since v6:
-> >         - get rid of some empty lines etc.
-> >         - move functions to their subsystems
-> >         - split of_ from non-of_ functions
-> >         - add at least some kerneldoc to some functions
-> >
-> > Changes since v5:
-> >         - removed all display stuff and just describe timings
-> >
-> > Changes since v4:
-> >         - refactored functions
-> >
-> > Changes since v3:
-> >         - print error messages
-> >         - free alloced memory
-> >         - general cleanup
-> >
-> > Changes since v2:
-> >         - use hardware-near property-names
-> >         - provide a videomode structure
-> >         - allow ranges for all properties (<min,typ,max>)
-> >         - functions to get display_mode or fb_videomode
-> >
-> >
-> > Steffen Trumtrar (7):
-> >   viafb: rename display_timing to via_display_timing
-> >   video: add display_timing and videomode
-> >   video: add of helper for display timings/videomode
-> >   fbmon: add videomode helpers
-> >   fbmon: add of_videomode helpers
-> >   drm_modes: add videomode helpers
-> >   drm_modes: add of_videomode helpers
-> >
-> >  .../devicetree/bindings/video/display-timing.txt   |  107 ++++++++++
-> >  drivers/gpu/drm/drm_modes.c                        |   70 +++++++
-> >  drivers/video/Kconfig                              |   21 ++
-> >  drivers/video/Makefile                             |    4 +
-> >  drivers/video/display_timing.c                     |   24 +++
-> >  drivers/video/fbmon.c                              |   93 +++++++++
-> >  drivers/video/of_display_timing.c                  |  219 ++++++++++++++++++++
-> >  drivers/video/of_videomode.c                       |   54 +++++
-> >  drivers/video/via/hw.c                             |    6 +-
-> >  drivers/video/via/hw.h                             |    2 +-
-> >  drivers/video/via/lcd.c                            |    2 +-
-> >  drivers/video/via/share.h                          |    2 +-
-> >  drivers/video/via/via_modesetting.c                |    8 +-
-> >  drivers/video/via/via_modesetting.h                |    6 +-
-> >  drivers/video/videomode.c                          |   44 ++++
-> >  include/drm/drmP.h                                 |   13 ++
-> >  include/linux/display_timing.h                     |  104 ++++++++++
-> >  include/linux/fb.h                                 |   12 ++
-> >  include/linux/of_display_timing.h                  |   20 ++
-> >  include/linux/of_videomode.h                       |   18 ++
-> >  include/linux/videomode.h                          |   54 +++++
-> >  21 files changed, 870 insertions(+), 13 deletions(-)
-> >  create mode 100644 Documentation/devicetree/bindings/video/display-timing.txt
-> >  create mode 100644 drivers/video/display_timing.c
-> >  create mode 100644 drivers/video/of_display_timing.c
-> >  create mode 100644 drivers/video/of_videomode.c
-> >  create mode 100644 drivers/video/videomode.c
-> >  create mode 100644 include/linux/display_timing.h
-> >  create mode 100644 include/linux/of_display_timing.h
-> >  create mode 100644 include/linux/of_videomode.h
-> >  create mode 100644 include/linux/videomode.h
-> >
-> > --
-> > 1.7.10.4
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
++	return 0;
++}
++
++static int tuner_attach_dtt7520x(struct ngene_channel *chan)
++{
++	struct drxd_config *feconf;
++
++	feconf = chan->dev->card_info->fe_config[chan->number];
++
+ 	if (!dvb_attach(dvb_pll_attach, chan->fe, feconf->pll_address,
+ 			&chan->i2c_adapter,
+ 			feconf->pll_type)) {
+@@ -722,6 +731,7 @@ static struct ngene_info ngene_info_terratec = {
+ 	.name           = "Terratec Integra/Cinergy2400i Dual DVB-T",
+ 	.io_type        = {NGENE_IO_TSIN, NGENE_IO_TSIN},
+ 	.demod_attach   = {demod_attach_drxd, demod_attach_drxd},
++	.tuner_attach	= {tuner_attach_dtt7520x, tuner_attach_dtt7520x},
+ 	.fe_config      = {&fe_terratec_dvbt_0, &fe_terratec_dvbt_1},
+ 	.i2c_access     = 1,
+ };
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.7.10.4
