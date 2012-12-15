@@ -1,65 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:56199 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752509Ab2LFWDN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Dec 2012 17:03:13 -0500
-Received: by mail-qa0-f46.google.com with SMTP id r4so1324459qaq.19
-        for <linux-media@vger.kernel.org>; Thu, 06 Dec 2012 14:03:12 -0800 (PST)
+Received: from zeniv.linux.org.uk ([195.92.253.2]:56752 "EHLO
+	ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751691Ab2LOUia (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Dec 2012 15:38:30 -0500
+Date: Sat, 15 Dec 2012 20:38:29 +0000
+From: Al Viro <viro@ZenIV.linux.org.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] omap_vout: find_vma() needs ->mmap_sem held
+Message-ID: <20121215203828.GX4939@ZenIV.linux.org.uk>
+References: <20121215201237.GW4939@ZenIV.linux.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <50C115BB.1020005@googlemail.com>
-References: <50B5779A.9090807@pyther.net>
-	<50B67851.2010808@googlemail.com>
-	<50B69037.3080205@pyther.net>
-	<50B6967C.9070801@iki.fi>
-	<50B6C2DF.4020509@pyther.net>
-	<50B6C530.4010701@iki.fi>
-	<50B7B768.5070008@googlemail.com>
-	<50B80FBB.5030208@pyther.net>
-	<50BB3F2C.5080107@googlemail.com>
-	<50BB6451.7080601@iki.fi>
-	<50BB8D72.8050803@googlemail.com>
-	<50BCEC60.4040206@googlemail.com>
-	<50BD5CC3.1030100@pyther.net>
-	<CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com>
-	<50BD6310.8000808@pyther.net>
-	<CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com>
-	<50BE65F0.8020303@googlemail.com>
-	<50BEC253.4080006@pyther.net>
-	<50BF3F9A.3020803@iki.fi>
-	<50BFBE39.90901@pyther.net>
-	<50BFC445.6020305@iki.fi>
-	<50BFCBBB.5090407@pyther.net>
-	<50BFECEA.9060808@iki.fi>
-	<50BFFFF6.1000204@pyther.net>
-	<50C11301.10205@googlemail.com>
-	<CAGoCfiwi3HVBjBh7TzWmwSbVH4S-0174=mqKA64Jw2zYz6K6LA@mail.gmail.com>
-	<50C115BB.1020005@googlemail.com>
-Date: Thu, 6 Dec 2012 17:03:12 -0500
-Message-ID: <CAGoCfiwKGxFt33bf7C0h8akhVJy2ED-R1vGgpe+nJpHYoAVKWg@mail.gmail.com>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: Matthew Gyurgyik <matthew@pyther.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20121215201237.GW4939@ZenIV.linux.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 6, 2012 at 5:01 PM, Frank Schäfer
-<fschaefer.oss@googlemail.com> wrote:
-> That's possible, because Matthews log doesn't show any access to this
-> register.
-> If it is not used, the question is if writing 0x07 to this register can
-> cause any trouble...
+On Sat, Dec 15, 2012 at 08:12:37PM +0000, Al Viro wrote:
+> 	Walking rbtree while it's modified is a Bad Idea(tm); besides,
+> the result of find_vma() can be freed just as it's getting returned
+> to caller.  Fortunately, it's easy to fix - just take ->mmap_sem a bit
+> earlier (and don't bother with find_vma() at all if virtp >= PAGE_OFFSET -
+> in that case we don't even look at its result).
 
-Historically speaking, on that family of devices registers that are no
-longer used get treated as scratch registers (meaning writing to them
-has no adverse effect).
-
-Devin
-
---
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+	While we are at it, what prevents VIDIOC_PREPARE_BUF calling
+v4l_prepare_buf() -> (e.g) vb2_ioctl_prepare_buf() -> vb2_prepare_buf() ->
+__buf_prepare() -> __qbuf_userptr() -> vb2_vmalloc_get_userptr() -> find_vma(),
+AFAICS without having taken ->mmap_sem anywhere in process?  The code flow
+is bloody convoluted and depends on a bunch of things done by initialization,
+so I certainly might've missed something...
