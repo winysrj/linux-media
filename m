@@ -1,128 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3548 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751511Ab2LWRT6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Dec 2012 12:19:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: cron job: media_tree daily build: ERRORS
-Date: Sun, 23 Dec 2012 18:19:45 +0100
-Cc: linux-media@vger.kernel.org
-References: <20121222204617.56D2911E00C2@alastor.dyndns.org> <20121222214059.66571fcc@redhat.com>
-In-Reply-To: <20121222214059.66571fcc@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from mx1.redhat.com ([209.132.183.28]:28424 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752282Ab2LOCQV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Dec 2012 21:16:21 -0500
+Date: Fri, 14 Dec 2012 23:39:47 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Matthew Gyurgyik <matthew@pyther.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+Message-ID: <20121214233947.5471ba4c@redhat.com>
+In-Reply-To: <50CBCE9A.4070006@iki.fi>
+References: <50B5779A.9090807@pyther.net>
+	<50C34A50.6000207@pyther.net>
+	<50C35AD1.3040000@googlemail.com>
+	<50C48891.2050903@googlemail.com>
+	<50C4A520.6020908@pyther.net>
+	<CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com>
+	<50C4BA20.8060003@googlemail.com>
+	<50C4BAFB.60304@googlemail.com>
+	<50C4C525.6020006@googlemail.com>
+	<50C4D011.6010700@pyther.net>
+	<50C60220.8050908@googlemail.com>
+	<CAGoCfizTfZVFkNvdQuuisOugM2BGipYd_75R63nnj=K7E8ULWQ@mail.gmail.com>
+	<50C60772.2010904@googlemail.com>
+	<CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com>
+	<50C6226C.8090302@iki! .fi>
+	<50C636E7.8060003@googlemail.com>
+	<50C64AB0.7020407@iki.fi>
+	<50C79CD6.4060501@googlemail.com>
+	<50C79E9A.3050301@iki.fi>
+	<20121213182336.2cca9da6@redhat.! com>
+	<50CB46CE.60407@googlemail.com>
+	<20121214173950.79bb963e@redhat.com>
+	<20121214222631.1f191d6e@redhat.co! m>
+	<50CBCAB9.602@iki.fi>
+	<20121214230324.1e45c182@redhat.com>
+	<50CBCE9A.4070006@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201212231819.45197.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun December 23 2012 00:40:59 Mauro Carvalho Chehab wrote:
-> Em Sat, 22 Dec 2012 21:46:17 +0100 (CET)
-> "Hans Verkuil" <hverkuil@xs4all.nl> escreveu:
-> 
-> > This message is generated daily by a cron job that builds media_tree for
-> > the kernels and architectures in the list below.
-> > 
-> > Results of the daily build of media_tree:
-> > 
-> > date:        Sat Dec 22 19:00:28 CET 2012
-> > git hash:    0dae88392395e228e67436cd08f084d395b39df5
-> > gcc version:      i686-linux-gcc (GCC) 4.7.1
-> > host hardware:    x86_64
-> > host os:          3.4.07-marune
-> > 
-> > linux-git-arm-eabi-davinci: ERRORS
-> > linux-git-arm-eabi-exynos: ERRORS
-> > linux-git-arm-eabi-omap: ERRORS
-> > linux-git-i686: OK
-> > linux-git-m32r: OK
-> > linux-git-mips: OK
-> > linux-git-powerpc64: OK
-> > linux-git-sh: ERRORS
-> > linux-git-x86_64: OK
-> > linux-2.6.31.12-i686: WARNINGS
-> > linux-2.6.32.6-i686: WARNINGS
-> > linux-2.6.33-i686: WARNINGS
-> > linux-2.6.34-i686: WARNINGS
-> > linux-2.6.35.3-i686: WARNINGS
-> > linux-2.6.36-i686: WARNINGS
-> > linux-2.6.37-i686: WARNINGS
-> > linux-2.6.38.2-i686: WARNINGS
-> > linux-2.6.39.1-i686: WARNINGS
-> > linux-3.0-i686: WARNINGS
-> > linux-3.1-i686: WARNINGS
-> > linux-3.2.1-i686: WARNINGS
-> > linux-3.3-i686: WARNINGS
-> > linux-3.4-i686: WARNINGS
-> > linux-3.5-i686: WARNINGS
-> > linux-3.6-i686: WARNINGS
-> > linux-3.7-i686: ERRORS
-> > linux-3.8-rc1-i686: ERRORS
-> > linux-2.6.31.12-x86_64: WARNINGS
-> > linux-2.6.32.6-x86_64: WARNINGS
-> > linux-2.6.33-x86_64: WARNINGS
-> > linux-2.6.34-x86_64: WARNINGS
-> > linux-2.6.35.3-x86_64: WARNINGS
-> > linux-2.6.36-x86_64: WARNINGS
-> > linux-2.6.37-x86_64: WARNINGS
-> > linux-2.6.38.2-x86_64: WARNINGS
-> > linux-2.6.39.1-x86_64: WARNINGS
-> > linux-3.0-x86_64: WARNINGS
-> > linux-3.1-x86_64: WARNINGS
-> > linux-3.2.1-x86_64: WARNINGS
-> > linux-3.3-x86_64: WARNINGS
-> > linux-3.4-x86_64: WARNINGS
-> > linux-3.5-x86_64: WARNINGS
-> > linux-3.6-x86_64: WARNINGS
-> > linux-3.7-x86_64: ERRORS
-> > linux-3.8-rc1-x86_64: ERRORS
-> > apps: WARNINGS
-> > spec-git: OK
-> > sparse: ERRORS
-> > 
-> > Detailed results are available here:
-> > 
-> > http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-> 
-> linux-3.7-x86_64: ERRORS
-> 
-> In file included from include/linux/usb/ch9.h:35:0,
->                  from include/linux/usb.h:5,
->                  from /home/hans/work/build/media_build/v4l/au0828.h:22,
->                  from /home/hans/work/build/media_build/v4l/au0828-i2c.c:28:
-> include/uapi/linux/usb/ch9.h:597:19: error: expected declaration specifiers or '...' before '(' token
-> In file included from include/linux/usb/ch9.h:35:0,
->                  from include/linux/usb.h:5,
->                  from /home/hans/work/build/media_build/v4l/au0828.h:22,
->                  from /home/hans/work/build/media_build/v4l/au0828-core.c:28:
-> include/uapi/linux/usb/ch9.h:597:19: error: expected declaration specifiers or '...' before '(' token
-> make[3]: *** [/home/hans/work/build/media_build/v4l/au0828-core.o] Error 1
-> make[3]: *** Waiting for unfinished jobs....
-> make[3]: *** [/home/hans/work/build/media_build/v4l/au0828-i2c.o] Error 1
-> In file included from include/linux/usb/ch9.h:35:0,
->                  from include/linux/usb.h:5,
->                  from /home/hans/work/build/media_build/v4l/au0828.h:22,
->                  from /home/hans/work/build/media_build/v4l/au0828-cards.c:22:
-> include/uapi/linux/usb/ch9.h:597:19: error: expected declaration specifiers or '...' before '(' token
-> make[3]: *** [/home/hans/work/build/media_build/v4l/au0828-cards.o] Error 1
-> make[2]: *** [_module_/home/hans/work/build/media_build/v4l] Error 2
-> make[2]: Leaving directory `/home/hans/work/build/trees/x86_64/linux-3.7'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/home/hans/work/build/media_build/v4l'
-> make: *** [all] Error 2
-> Sat Dec 22 21:41:06 CET 2012
-> 
-> It seems that it is still using an older version of the media-build.git tree.
+Em Sat, 15 Dec 2012 03:12:58 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Sorry, my fault. Some test code of mine interfered with the updating of
-media_build. I've taken steps to ensure that that doesn't happen in the
-future.
+> On 12/15/2012 03:03 AM, Mauro Carvalho Chehab wrote:
+> > Em Sat, 15 Dec 2012 02:56:25 +0200
+> > Antti Palosaari <crope@iki.fi> escreveu:
+> >
+> >> NACK. NEC variant selection logic is broken by design.
+> >
+> > If you think so, then feel free to fix it without causing regressions to
+> > the existing userspace.
+> >
+> > While you don't do it, I don't see anything wrong on this patch, as it
+> > will behave just like any other NEC decoder.
+> 
+> yes, so true as I mentioned end of the mail.
 
-I did a test build earlier today and it's back to WARNINGS instead of ERRORS.
+Oh, I didn't saw your comments. Sorry.
+
+Please, next time, drop the part of the code that you're not commenting.
+On long emails like that, it is sometimes hard to see what's out there.
+
+I'll reply to your comments there again.
+
+> But it is very high 
+> probability there is some non/wrong working keys when 32bit NEC variant 
+> remote is used with that implementation.
+> 
+> And what happened those patches David sends sometime ago. I remember 
+> there was a patch for the af9015 which removes that kind of logic from 
+> the driver. If not change NEC to 32bit at least heuristic could be moved 
+> to single point - rc-core.
+
+There were some problems on his series, and it was breaking the userspace
+API.
+
+David made a new series, with a smaller set of patches that got applied,
+without those changes.
+
+The big issue there is to not break the current NEC userspace tables.
+
+Unfortunately, when the NEC software decoder was written, it were taking
+care only of the real NEC standard (the 24-bits and 32-bits variants aren't
+part of any spec I'm aware of). When we latter added support for those
+weird variants (RC-5 variants; Sony variants; NEC variants), it was
+decided, after long debates at the mailing list, to not create a new 
+protocol for each, but, instead, to add support for them into the existing 
+code.
+
+This is OK on most cases, as the variants are real variants, and the decoder
+can properly distinguish them.
+
+Unfortunately, NEC protocol variants don't fill on such case, as the only
+difference is that they doesn't honour to the checksum bytes. So, again
+after long discussions, it was decided to implement it the way it is.
+
+Changing it right now is not trivial, as it is easy to break existing
+userspace.
 
 Regards,
+Mauro
 
-	Hans
