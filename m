@@ -1,142 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39465 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:25052 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751151Ab2LZOxM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Dec 2012 09:53:12 -0500
-Date: Wed, 26 Dec 2012 12:00:35 -0200
+	id S1755943Ab2LOM3f (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Dec 2012 07:29:35 -0500
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id qBFCTZMQ020694
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 15 Dec 2012 07:29:35 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 1/6] uvcvideo: Set error_idx properly for extended
- controls API failures
-Message-ID: <20121226120035.237e242f@redhat.com>
-In-Reply-To: <22611337.csYnEZHssR@avalon>
-References: <1348758980-21683-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<1427386.yhbGQRN2rP@avalon>
-	<201212251250.51838.hverkuil@xs4all.nl>
-	<22611337.csYnEZHssR@avalon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/2] [media] em28xx: add support for NEC proto variants on em2874 and upper
+Date: Sat, 15 Dec 2012 10:29:11 -0200
+Message-Id: <1355574552-18472-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1355574552-18472-1-git-send-email-mchehab@redhat.com>
+References: <1355574552-18472-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 26 Dec 2012 12:33:58 +0100
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+By disabling the NEC parity check, it is possible to handle all 3 NEC
+protocol variants (32, 24 or 16 bits).
 
-> Hi Hans,
-> 
-> On Tuesday 25 December 2012 12:50:51 Hans Verkuil wrote:
-> > On Tue December 25 2012 12:23:00 Laurent Pinchart wrote:
-> > > On Tuesday 25 December 2012 12:15:25 Hans Verkuil wrote:
-> > > > On Mon December 24 2012 13:27:08 Laurent Pinchart wrote:
-> > > > > On Thursday 27 September 2012 17:16:15 Laurent Pinchart wrote:
-> > > > > > When one of the requested controls doesn't exist the error_idx field
-> > > > > > must reflect that situation. For G_EXT_CTRLS and S_EXT_CTRLS,
-> > > > > > error_idx must be set to the control count. For TRY_EXT_CTRLS, it
-> > > > > > must be set to the index of the unexisting control.
-> > > > > > 
-> > > > > > This issue was found by the v4l2-compliance tool.
-> > > > > 
-> > > > > I'm revisiting this patch as it has been reverted in v3.8-rc1.
-> > > > > 
-> > > > > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > > > > ---
-> > > > > > 
-> > > > > >  drivers/media/usb/uvc/uvc_ctrl.c |   17 ++++++++++-------
-> > > > > >  drivers/media/usb/uvc/uvc_v4l2.c |   19 ++++++++++++-------
-> > > > > >  2 files changed, 22 insertions(+), 14 deletions(-)
-> > > > > 
-> > > > > [snip]
-> > > > > 
-> > > > > > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> > > > > > b/drivers/media/usb/uvc/uvc_v4l2.c index f00db30..e5817b9 100644
-> > > > > > --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> > > > > > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> > > > > > @@ -591,8 +591,10 @@ static long uvc_v4l2_do_ioctl(struct file
-> > > > > > *file,
-> > > > > 
-> > > > > [snip]
-> > > > > 
-> > > > > > @@ -637,8 +639,9 @@ static long uvc_v4l2_do_ioctl(struct file *file,
-> > > > > > unsigned int cmd, void *arg) ret = uvc_ctrl_get(chain, ctrl);
-> > > > > >  			if (ret < 0) {
-> > > > > >  				uvc_ctrl_rollback(handle);
-> > > > > > 
-> > > > > > -				ctrls->error_idx = i;
-> > > > > > -				return ret;
-> > > > > > +				ctrls->error_idx = ret == -ENOENT
-> > > > > > +						 ? ctrls->count : i;
-> > > > > > +				return ret == -ENOENT ? -EINVAL : ret;
-> > > > > >  			}
-> > > > > >  		}
-> > > > > >  		ctrls->error_idx = 0;
-> > > > > > @@ -661,8 +664,10 @@ static long uvc_v4l2_do_ioctl(struct file
-> > > > > > *file,
-> > > > > > unsigned int cmd, void *arg) ret = uvc_ctrl_set(chain, ctrl);
-> > > > > >  			if (ret < 0) {
-> > > > > >  				uvc_ctrl_rollback(handle);
-> > > > > > 
-> > > > > > -				ctrls->error_idx = i;
-> > > > > > -				return ret;
-> > > > > > +				ctrls->error_idx = (ret == -ENOENT &&
-> > > > > > +						    cmd == VIDIOC_S_EXT_CTRLS)
-> > > > > > +						 ? ctrls->count : i;
-> > > > > > +				return ret == -ENOENT ? -EINVAL : ret;
-> > > > > >  			}
-> > > > > >  		}
-> > > > > 
-> > > > > I've reread the V4L2 specification, and the least I can say is that
-> > > > > the text is pretty ambiguous. Let's clarify it.
-> > > > > 
-> > > > > Is there a reason to differentiate between invalid control IDs and
-> > > > > other errors as far as error_idx is concerned ? It would be simpler if
-> > > > > error_idx was set to the index of the first error for get and try
-> > > > > operations, regardless of the error type. What do you think ?
-> > > > 
-> > > > There is a good reason for doing this: the G/S_EXT_CTRLS ioctls have to
-> > > > be as atomic as possible, i.e. it should try hard to prevent leaving the
-> > > > hardware in an inconsistent state because not all controls could be set.
-> > > > It can never be fully atomic since writing multiple registers over usb
-> > > > or i2c can always return errors for one of those writes, but it should
-> > > > certainly check for all the obvious errors first that do not require
-> > > > actually writing to the hardware, such as whether all the controls in
-> > > > the control list actually exist.
-> > > > 
-> > > > And for such errors error_idx should be set to the number of controls to
-> > > > indicate that none of the controls were actually set but that there was
-> > > > a problem with the list of controls itself.
-> > > 
-> > > For S_EXT_CTRLS, sure, but G_EXT_CTRLS doesn't modify the hardware state,
-> > > so it could get all controls up to the erroneous one.
-> > 
-> > I have thought about that but I decided against it. One reason is to have
-> > get and set behave the same since both access the hardware. The other
-> > reason is that even getting a control value might change the hardware
-> > state, for example by resetting some internal hardware counter when a
-> > register is read (it's rare but there is hardware like that). Furthermore,
-> > reading hardware registers can be slow so why not do the sanity check
-> > first?
-> 
-> Get can indeed change the device state in rare cases, but the information 
-> won't be lost, as the value of all controls before error_idx will be returned.
+Change the driver in order to handle all of them.
 
-Huh? reading a control should never alter the device's state. If the hardware
-is resetting a register, then such register should be shadowed, and some other
-way to explicitly reset its value should be used.
+Unfortunately, em2860/em2863 provide only 16 bits for the IR scancode,
+even when NEC parity is disabled. So, this change should affect only
+em2874 and newer devices, with provides up to 32 bits for the scancode.
 
-> What bothers me with the current G_EXT_CTRLS implementation (beside that it's 
-> very slightly more complex for the uvcvideo driver than the one I propose) is 
-> that an application will have no way to know for which control G_EXT_CTRLS 
-> failed. This is especially annoying during development.
-> 
-> Maybe we could leave this behaviour as driver-specific ?
+Tested with one NEC-16, one NEC-24 and one RC5 IR.
 
-driver-specific behavior for IOCTL's should be avoided, as applications will
-fail if they see something it doesn't expect.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/usb/em28xx/em28xx-input.c | 58 +++++++++++++++++++++------------
+ drivers/media/usb/em28xx/em28xx-reg.h   |  1 +
+ 2 files changed, 39 insertions(+), 20 deletions(-)
 
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index 660bf80..507370c 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -57,8 +57,8 @@ MODULE_PARM_DESC(ir_debug, "enable debug messages [IR]");
+ struct em28xx_ir_poll_result {
+ 	unsigned int toggle_bit:1;
+ 	unsigned int read_count:7;
+-	u8 rc_address;
+-	u8 rc_data[4]; /* 1 byte on em2860/2880, 4 on em2874 */
++
++	u32 scancode;
+ };
+ 
+ struct em28xx_IR {
+@@ -72,6 +72,7 @@ struct em28xx_IR {
+ 	struct delayed_work work;
+ 	unsigned int full_code:1;
+ 	unsigned int last_readcount;
++	u64 rc_type;
+ 
+ 	int  (*get_key)(struct em28xx_IR *, struct em28xx_ir_poll_result *);
+ };
+@@ -236,11 +237,8 @@ static int default_polling_getkey(struct em28xx_IR *ir,
+ 	/* Infrared read count (Reg 0x45[6:0] */
+ 	poll_result->read_count = (msg[0] & 0x7f);
+ 
+-	/* Remote Control Address (Reg 0x46) */
+-	poll_result->rc_address = msg[1];
+-
+-	/* Remote Control Data (Reg 0x47) */
+-	poll_result->rc_data[0] = msg[2];
++	/* Remote Control Address/Data (Regs 0x46/0x47) */
++	poll_result->scancode = msg[1] << 8 | msg[2];
+ 
+ 	return 0;
+ }
+@@ -266,13 +264,32 @@ static int em2874_polling_getkey(struct em28xx_IR *ir,
+ 	/* Infrared read count (Reg 0x51[6:0] */
+ 	poll_result->read_count = (msg[0] & 0x7f);
+ 
+-	/* Remote Control Address (Reg 0x52) */
+-	poll_result->rc_address = msg[1];
+-
+-	/* Remote Control Data (Reg 0x53-55) */
+-	poll_result->rc_data[0] = msg[2];
+-	poll_result->rc_data[1] = msg[3];
+-	poll_result->rc_data[2] = msg[4];
++	/*
++	 * Remote Control Address (Reg 0x52)
++	 * Remote Control Data (Reg 0x53-0x55)
++	 */
++	switch (ir->rc_type) {
++	case RC_BIT_RC5:
++		poll_result->scancode = msg[1] << 8 | msg[2];
++		break;
++	case RC_BIT_NEC:
++		if ((msg[3] ^ msg[4]) != 0xff)		/* 32 bits NEC */
++			poll_result->scancode = (msg[1] << 24) |
++						(msg[2] << 16) |
++						(msg[3] << 8)  |
++						 msg[4];
++		else if ((msg[1] ^ msg[2]) != 0xff)	/* 24 bits NEC */
++			poll_result->scancode = (msg[1] << 16) |
++						(msg[2] << 8)  |
++						 msg[3];
++		else					/* Normal NEC */
++			poll_result->scancode = msg[1] << 8 | msg[3];
++		break;
++	default:
++		poll_result->scancode = (msg[1] << 24) | (msg[2] << 16) |
++					(msg[3] << 8)  | msg[4];
++		break;
++	}
+ 
+ 	return 0;
+ }
+@@ -294,17 +311,16 @@ static void em28xx_ir_handle_key(struct em28xx_IR *ir)
+ 	}
+ 
+ 	if (unlikely(poll_result.read_count != ir->last_readcount)) {
+-		dprintk("%s: toggle: %d, count: %d, key 0x%02x%02x\n", __func__,
++		dprintk("%s: toggle: %d, count: %d, key 0x%04x\n", __func__,
+ 			poll_result.toggle_bit, poll_result.read_count,
+-			poll_result.rc_address, poll_result.rc_data[0]);
++			poll_result.scancode);
+ 		if (ir->full_code)
+ 			rc_keydown(ir->rc,
+-				   poll_result.rc_address << 8 |
+-				   poll_result.rc_data[0],
++				   poll_result.scancode,
+ 				   poll_result.toggle_bit);
+ 		else
+ 			rc_keydown(ir->rc,
+-				   poll_result.rc_data[0],
++				   poll_result.scancode & 0xff,
+ 				   poll_result.toggle_bit);
+ 
+ 		if (ir->dev->chip_id == CHIP_ID_EM2874 ||
+@@ -360,12 +376,14 @@ static int em28xx_ir_change_protocol(struct rc_dev *rc_dev, u64 *rc_type)
+ 		*rc_type = RC_BIT_RC5;
+ 	} else if (*rc_type & RC_BIT_NEC) {
+ 		dev->board.xclk &= ~EM28XX_XCLK_IR_RC5_MODE;
+-		ir_config = EM2874_IR_NEC;
++		ir_config = EM2874_IR_NEC | EM2874_IR_NEC_NO_PARITY;
+ 		ir->full_code = 1;
+ 		*rc_type = RC_BIT_NEC;
+ 	} else if (*rc_type != RC_BIT_UNKNOWN)
+ 		rc = -EINVAL;
+ 
++	ir->rc_type = *rc_type;
++
+ 	em28xx_write_reg_bits(dev, EM28XX_R0F_XCLK, dev->board.xclk,
+ 			      EM28XX_XCLK_IR_RC5_MODE);
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
+index 6ff3682..2ad3573 100644
+--- a/drivers/media/usb/em28xx/em28xx-reg.h
++++ b/drivers/media/usb/em28xx/em28xx-reg.h
+@@ -177,6 +177,7 @@
+ 
+ /* em2874 IR config register (0x50) */
+ #define EM2874_IR_NEC           0x00
++#define EM2874_IR_NEC_NO_PARITY 0x01
+ #define EM2874_IR_RC5           0x04
+ #define EM2874_IR_RC6_MODE_0    0x08
+ #define EM2874_IR_RC6_MODE_6A   0x0b
 -- 
+1.7.11.7
 
-Cheers,
-Mauro
