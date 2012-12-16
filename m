@@ -1,96 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:51543 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751710Ab2LEI6G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2012 03:58:06 -0500
-Message-ID: <50BF0C9B.70407@gmx.de>
-Date: Wed, 05 Dec 2012 09:58:03 +0100
-From: Markus Feldmann <feldmann_markus@gmx.de>
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:49771 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750713Ab2LPWT4 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Dec 2012 17:19:56 -0500
+From: Albert Wang <twang13@marvell.com>
+To: Jonathan Corbet <corbet@lwn.net>
+CC: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Date: Sun, 16 Dec 2012 14:19:54 -0800
+Subject: RE: [PATCH V3 12/15] [media] marvell-ccic: add soc_camera support
+ in mmp driver
+Message-ID: <477F20668A386D41ADCC57781B1F70430D13C8CCE5@SC-VEXCH1.marvell.com>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+	<1355565484-15791-13-git-send-email-twang13@marvell.com>
+ <20121216094613.79718cc8@hpe.lwn.net>
+In-Reply-To: <20121216094613.79718cc8@hpe.lwn.net>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Mailing List Linux Media <linux-media@vger.kernel.org>
-Subject: ASUS My Cinema U3000 Mini DVBT Tuner
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+Hi, Jonathan
 
-i am trying to get this DVBT usb device to work on my Linux Mint Debian 
-System. I configured my kernel 3.6.2, but i am not sure whether 
-something is missing.
 
-When i plug in this device i get the following <dmesg>:
-[58564.761059] usb 1-1.1: new high-speed USB device number 8 using ehci_hcd
-[58564.845858] usb 1-1.1: New USB device found, idVendor=0b05, 
-idProduct=171f
-[58564.845863] usb 1-1.1: New USB device strings: Mfr=1, Product=2, 
-SerialNumber=3
-[58564.845867] usb 1-1.1: Product: STK7700
-[58564.845870] usb 1-1.1: Manufacturer: DIBCOM
-[58564.845874] usb 1-1.1: SerialNumber: 6803800468
-[58565.243046] dvb-usb: found a 'ASUS My Cinema U3000 Mini DVBT Tuner' 
-in cold state, will try to load a firmware
-[58565.359590] dvb-usb: downloading firmware from file 
-'dvb-usb-dib0700-1.20.fw'
-[58565.560519] dib0700: firmware started successfully.
-[58566.061319] dvb-usb: found a 'ASUS My Cinema U3000 Mini DVBT Tuner' 
-in warm state.
-[58566.061375] dvb-usb: will pass the complete MPEG2 transport stream to 
-the software demuxer.
-[58566.061506] DVB: registering new adapter (ASUS My Cinema U3000 Mini 
-DVBT Tuner)
-[58566.105071] dib0700: stk7700P2_frontend_attach: 
-dib7000p_i2c_enumeration failed.  Cannot continue
-[58566.105071]
-[58566.105078] dvb-usb: no frontend was attached by 'ASUS My Cinema 
-U3000 Mini DVBT Tuner'
-[58566.167327] Registered IR keymap rc-dib0700-rc5
-[58566.167539] input: IR-receiver inside an USB DVB receiver as 
-/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.1/rc/rc0/input18
-[58566.167625] rc0: IR-receiver inside an USB DVB receiver as 
-/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.1/rc/rc0
-[58566.167889] dvb-usb: schedule remote query interval to 50 msecs.
-[58566.167894] dvb-usb: ASUS My Cinema U3000 Mini DVBT Tuner 
-successfully initialized and connected.
-[58566.168136] usbcore: registered new interface driver dvb_usb_dib0700
-[58612.073124] usb 1-1.1: USB disconnect, device number 8
-[58612.112148] dvb-usb: ASUS My Cinema U3000 Mini DVBT Tuner 
-successfully deinitialized and disconnected.
-[58621.960328] usb 1-1.1: new high-speed USB device number 9 using ehci_hcd
-[58622.044735] usb 1-1.1: New USB device found, idVendor=0b05, 
-idProduct=171f
-[58622.044741] usb 1-1.1: New USB device strings: Mfr=1, Product=2, 
-SerialNumber=3
-[58622.044745] usb 1-1.1: Product: STK7700
-[58622.044748] usb 1-1.1: Manufacturer: DIBCOM
-[58622.044751] usb 1-1.1: SerialNumber: 6803800468
-[58622.045479] dvb-usb: found a 'ASUS My Cinema U3000 Mini DVBT Tuner' 
-in cold state, will try to load a firmware
-[58622.049845] dvb-usb: downloading firmware from file 
-'dvb-usb-dib0700-1.20.fw'
-[58622.251193] dib0700: firmware started successfully.
-[58622.751730] dvb-usb: found a 'ASUS My Cinema U3000 Mini DVBT Tuner' 
-in warm state.
-[58622.751790] dvb-usb: will pass the complete MPEG2 transport stream to 
-the software demuxer.
-[58622.751958] DVB: registering new adapter (ASUS My Cinema U3000 Mini 
-DVBT Tuner)
-[58622.795727] dib0700: stk7700P2_frontend_attach: 
-dib7000p_i2c_enumeration failed.  Cannot continue
-[58622.795727]
-[58622.795733] dvb-usb: no frontend was attached by 'ASUS My Cinema 
-U3000 Mini DVBT Tuner'
-[58622.795742] Registered IR keymap rc-dib0700-rc5
-[58622.795922] input: IR-receiver inside an USB DVB receiver as 
-/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.1/rc/rc1/input19
-[58622.796059] rc1: IR-receiver inside an USB DVB receiver as 
-/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.1/rc/rc1
-[58622.796364] dvb-usb: schedule remote query interval to 50 msecs.
-[58622.796369] dvb-usb: ASUS My Cinema U3000 Mini DVBT Tuner 
-successfully initialized and connected.
 
-It seems that i have no frontend? Am i right? Do you have some advice 
-for me?
+>-----Original Message-----
+>From: Jonathan Corbet [mailto:corbet@lwn.net]
+>Sent: Monday, 17 December, 2012 00:46
+>To: Albert Wang
+>Cc: g.liakhovetski@gmx.de; linux-media@vger.kernel.org; Libin Yang
+>Subject: Re: [PATCH V3 12/15] [media] marvell-ccic: add soc_camera support in mmp
+>driver
+>
+>On Sat, 15 Dec 2012 17:58:01 +0800
+>Albert Wang <twang13@marvell.com> wrote:
+>
+>> This patch adds the soc_camera support in the platform driver: mmp-driver.c.
+>> Specified board driver also should be modified to support soc_camera by passing
+>> some platform datas to platform driver.
+>>
+>> Currently the soc_camera mode in mmp driver only supports B_DMA_contig mode.
+>
+>You do intend to add the other modes (or SG, at least) in the future?
+>
+[Albert Wang] Yes, if need we can add the other modes in the future.
 
-regards Markus
+>> --- a/drivers/media/platform/marvell-ccic/Kconfig
+>> +++ b/drivers/media/platform/marvell-ccic/Kconfig
+>> @@ -1,23 +1,45 @@
+>> +config VIDEO_MARVELL_CCIC
+>> +       tristate
+>> +config VIDEO_MRVL_SOC_CAMERA
+>> +       bool
+>
+>If Linus sees this you'll get an unpleasant reminder that vowels are not
+>actually in short supply; I'd suggest spelling out "MARVELL".
+>
+[Albert Wang] Sorry, we will change it.
+
+>> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c
+>b/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> index 40c243e..cd850f4 100755
+>> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> @@ -28,6 +28,10 @@
+>>  #include <linux/list.h>
+>>  #include <linux/pm.h>
+>>  #include <linux/clk.h>
+>> +#include <linux/regulator/consumer.h>
+>> +#include <media/videobuf2-dma-contig.h>
+>> +#include <media/soc_camera.h>
+>> +#include <media/soc_mediabus.h>
+>>
+>>  #include "mcam-core.h"
+>>
+>> @@ -40,6 +44,8 @@ struct mmp_camera {
+>>  	struct platform_device *pdev;
+>>  	struct mcam_camera mcam;
+>>  	struct list_head devlist;
+>> +	/* will change here */
+>> +	struct clk *clk[3];	/* CCIC_GATE, CCIC_RST, CCIC_DBG clocks */
+>
+>What does that comment mean?
+>
+[Albert Wang] It means there are 3 clk setting, gate_clk, rst_clk, dbg_clk.
+Forgive me, the name of CCIC_DBG register is not good, but it's our actual register name. :(
+
+>>  	int irq;
+>>  };
+>>
+>> @@ -144,15 +150,17 @@ static void mmpcam_power_up(struct mcam_camera
+>*mcam)
+>>   * Provide power to the sensor.
+>>   */
+>>  	mcam_reg_write(mcam, REG_CLKCTRL, 0x60000002);
+>> -	pdata = cam->pdev->dev.platform_data;
+>> -	gpio_set_value(pdata->sensor_power_gpio, 1);
+>> -	mdelay(5);
+>> +	if (mcam->chip_id == V4L2_IDENT_ARMADA610) {
+>
+>I'm seeing a lot of these tests being added to the code.  I can imagine
+>more in the future as new chipsets are supported in the driver.  Maybe it's
+>time to add a structure to hide chipset-specific low-level operations?  It
+>would make the code a lot cleaner.
+>
+[Albert Wang] OK, we will do it.
+
+>Actually, things like mmpcam_power_up() were meant to be exactly that.  Can
+>we just define a different version of this function for different chipsets?
+>
+[Albert Wang] Sure.
+
+>> +		pdata = cam->pdev->dev.platform_data;
+>> +		gpio_set_value(pdata->sensor_power_gpio, 1);
+>> +		mdelay(5);
+>> +		/* reset is active low */
+>> +		gpio_set_value(pdata->sensor_reset_gpio, 0);
+>> +		mdelay(5);
+>> +		gpio_set_value(pdata->sensor_reset_gpio, 1);
+>> +		mdelay(5);
+>> +	}
+>>  	mcam_reg_clear_bit(mcam, REG_CTRL1, 0x10000000);
+>> -	gpio_set_value(pdata->sensor_reset_gpio, 0); /* reset is active low */
+>> -	mdelay(5);
+>> -	gpio_set_value(pdata->sensor_reset_gpio, 1); /* reset is active low */
+>> -	mdelay(5);
+>> -
+>>  	mcam_clk_set(mcam, 1);
+>>  }
+>>
+>> @@ -165,13 +173,14 @@ static void mmpcam_power_down(struct mcam_camera
+>*mcam)
+>>   */
+>>  	iowrite32(0, cam->power_regs + REG_CCIC_DCGCR);
+>>  	iowrite32(0, cam->power_regs + REG_CCIC_CRCR);
+>> -/*
+>> - * Shut down the sensor.
+>> - */
+>> -	pdata = cam->pdev->dev.platform_data;
+>> -	gpio_set_value(pdata->sensor_power_gpio, 0);
+>> -	gpio_set_value(pdata->sensor_reset_gpio, 0);
+>> -
+>> +	if (mcam->chip_id == V4L2_IDENT_ARMADA610) {
+>
+>Same comment applies here.
+>
+>> +		/*
+>> +		 * Shut down the sensor.
+>> +		 */
+>> +		pdata = cam->pdev->dev.platform_data;
+>> +		gpio_set_value(pdata->sensor_power_gpio, 0);
+>> +		gpio_set_value(pdata->sensor_reset_gpio, 0);
+>> +	}
+>>  	mcam_clk_set(mcam, 0);
+>
+>jon
+
+
+Thanks
+Albert Wang
+86-21-61092656
