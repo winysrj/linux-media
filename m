@@ -1,115 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:33231 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751113Ab2LVOKF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Dec 2012 09:10:05 -0500
-Received: by mail-ee0-f46.google.com with SMTP id e53so2966475eek.33
-        for <linux-media@vger.kernel.org>; Sat, 22 Dec 2012 06:10:04 -0800 (PST)
-Message-ID: <50D5BDAE.4030502@googlemail.com>
-Date: Sat, 22 Dec 2012 15:03:26 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] em28xx: input: fix oops on device removal
-References: <1355416457-19692-1-git-send-email-fschaefer.oss@googlemail.com> <50D48126.8050307@googlemail.com> <20121221213541.2dda362d@redhat.com>
-In-Reply-To: <20121221213541.2dda362d@redhat.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from tex.lwn.net ([70.33.254.29]:53876 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751450Ab2LPQqP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Dec 2012 11:46:15 -0500
+Date: Sun, 16 Dec 2012 09:46:13 -0700
+From: Jonathan Corbet <corbet@lwn.net>
+To: Albert Wang <twang13@marvell.com>
+Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	Libin Yang <lbyang@marvell.com>
+Subject: Re: [PATCH V3 12/15] [media] marvell-ccic: add soc_camera support
+ in mmp driver
+Message-ID: <20121216094613.79718cc8@hpe.lwn.net>
+In-Reply-To: <1355565484-15791-13-git-send-email-twang13@marvell.com>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+	<1355565484-15791-13-git-send-email-twang13@marvell.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 22.12.2012 00:35, schrieb Mauro Carvalho Chehab:
-> Em Fri, 21 Dec 2012 16:32:54 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> Am 13.12.2012 17:34, schrieb Frank Schäfer:
->>> When em28xx_ir_init() fails du to an error in em28xx_ir_change_protocol(), it
->>> frees the memory of struct em28xx_IR *ir, but doesn't set the corresponding
->>> pointer in the device struct to NULL.
->>> On device removal, em28xx_ir_fini() gets called, which then calls
->>> rc_unregister_device() with a pointer to freed memory.
->>>
->>> Fixes bug 26572 (http://bugzilla.kernel.org/show_bug.cgi?id=26572)
->>>
->>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->>>
->>> Cc: stable@kernel.org	# at least all kernels since 2.6.32 (incl.)
->>> ---
->>>  drivers/media/usb/em28xx/em28xx-input.c |    9 ++++-----
->>>  1 Datei geändert, 4 Zeilen hinzugefügt(+), 5 Zeilen entfernt(-)
->>>
->>> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
->>> index 660bf80..5c7d768 100644
->>> --- a/drivers/media/usb/em28xx/em28xx-input.c
->>> +++ b/drivers/media/usb/em28xx/em28xx-input.c
->>> @@ -538,7 +538,7 @@ static int em28xx_ir_init(struct em28xx *dev)
->>>  	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
->>>  	rc = rc_allocate_device();
->>>  	if (!ir || !rc)
->>> -		goto err_out_free;
->>> +		goto error;
->>>  
->>>  	/* record handles to ourself */
->>>  	ir->dev = dev;
->>> @@ -559,7 +559,7 @@ static int em28xx_ir_init(struct em28xx *dev)
->>>  	rc_type = RC_BIT_UNKNOWN;
->>>  	err = em28xx_ir_change_protocol(rc, &rc_type);
->>>  	if (err)
->>> -		goto err_out_free;
->>> +		goto error;
->>>  
->>>  	/* This is how often we ask the chip for IR information */
->>>  	ir->polling = 100; /* ms */
->>> @@ -584,7 +584,7 @@ static int em28xx_ir_init(struct em28xx *dev)
->>>  	/* all done */
->>>  	err = rc_register_device(rc);
->>>  	if (err)
->>> -		goto err_out_stop;
->>> +		goto error;
->>>  
->>>  	em28xx_register_i2c_ir(dev);
->>>  
->>> @@ -597,9 +597,8 @@ static int em28xx_ir_init(struct em28xx *dev)
->>>  
->>>  	return 0;
->>>  
->>> - err_out_stop:
->>> +error:
->>>  	dev->ir = NULL;
->>> - err_out_free:
->>>  	rc_free_device(rc);
->>>  	kfree(ir);
->>>  	return err;
->> Ping !?
->> Mauro, this patch is really easy to review and it fixes a 2 years old bug...
->> Isn't this one of those patches that should be applied immediately ?
-> This one is not on my queue... Patchwork doesn't seem to catch it:
->
-> http://patchwork.linuxtv.org/project/linux-media/list/?submitter=44&state=*
+On Sat, 15 Dec 2012 17:58:01 +0800
+Albert Wang <twang13@marvell.com> wrote:
 
-Hmm... I didn't notice that.
+> This patch adds the soc_camera support in the platform driver: mmp-driver.c.
+> Specified board driver also should be modified to support soc_camera by passing
+> some platform datas to platform driver.
+> 
+> Currently the soc_camera mode in mmp driver only supports B_DMA_contig mode.
 
-> Hmm... perhaps it is due to the accent on your name. Weird that it got
-> other patches from you. You should likely thank python for discriminating
-> e-mails with accents.
+You do intend to add the other modes (or SG, at least) in the future?
 
-My first guess would be the cc line. Maybe the comment confused patchwork...
+> --- a/drivers/media/platform/marvell-ccic/Kconfig
+> +++ b/drivers/media/platform/marvell-ccic/Kconfig
+> @@ -1,23 +1,45 @@
+> +config VIDEO_MARVELL_CCIC
+> +       tristate
+> +config VIDEO_MRVL_SOC_CAMERA
+> +       bool
 
-> Could you please try to re-submit it being sure that your email got
-> properly encoded with UTF-8?
+If Linus sees this you'll get an unpleasant reminder that vowels are not
+actually in short supply; I'd suggest spelling out "MARVELL".
 
-Sure, but 've definitely sent it UTF-8 encoded last time (using git
-send-email).
+> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+> index 40c243e..cd850f4 100755
+> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
+> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+> @@ -28,6 +28,10 @@
+>  #include <linux/list.h>
+>  #include <linux/pm.h>
+>  #include <linux/clk.h>
+> +#include <linux/regulator/consumer.h>
+> +#include <media/videobuf2-dma-contig.h>
+> +#include <media/soc_camera.h>
+> +#include <media/soc_mediabus.h>
+>  
+>  #include "mcam-core.h"
+>  
+> @@ -40,6 +44,8 @@ struct mmp_camera {
+>  	struct platform_device *pdev;
+>  	struct mcam_camera mcam;
+>  	struct list_head devlist;
+> +	/* will change here */
+> +	struct clk *clk[3];	/* CCIC_GATE, CCIC_RST, CCIC_DBG clocks */
 
->
-> Regards,
-> Mauro
->
-> PS.: my intention is to try to merge tomorrow all em28xx patches.
+What does that comment mean?
 
-Great !
+>  	int irq;
+>  };
+>  
+> @@ -144,15 +150,17 @@ static void mmpcam_power_up(struct mcam_camera *mcam)
+>   * Provide power to the sensor.
+>   */
+>  	mcam_reg_write(mcam, REG_CLKCTRL, 0x60000002);
+> -	pdata = cam->pdev->dev.platform_data;
+> -	gpio_set_value(pdata->sensor_power_gpio, 1);
+> -	mdelay(5);
+> +	if (mcam->chip_id == V4L2_IDENT_ARMADA610) {
 
-Regards,
-Frank
+I'm seeing a lot of these tests being added to the code.  I can imagine
+more in the future as new chipsets are supported in the driver.  Maybe it's
+time to add a structure to hide chipset-specific low-level operations?  It
+would make the code a lot cleaner.
+
+Actually, things like mmpcam_power_up() were meant to be exactly that.  Can
+we just define a different version of this function for different chipsets?
+
+> +		pdata = cam->pdev->dev.platform_data;
+> +		gpio_set_value(pdata->sensor_power_gpio, 1);
+> +		mdelay(5);
+> +		/* reset is active low */
+> +		gpio_set_value(pdata->sensor_reset_gpio, 0);
+> +		mdelay(5);
+> +		gpio_set_value(pdata->sensor_reset_gpio, 1);
+> +		mdelay(5);
+> +	}
+>  	mcam_reg_clear_bit(mcam, REG_CTRL1, 0x10000000);
+> -	gpio_set_value(pdata->sensor_reset_gpio, 0); /* reset is active low */
+> -	mdelay(5);
+> -	gpio_set_value(pdata->sensor_reset_gpio, 1); /* reset is active low */
+> -	mdelay(5);
+> -
+>  	mcam_clk_set(mcam, 1);
+>  }
+>  
+> @@ -165,13 +173,14 @@ static void mmpcam_power_down(struct mcam_camera *mcam)
+>   */
+>  	iowrite32(0, cam->power_regs + REG_CCIC_DCGCR);
+>  	iowrite32(0, cam->power_regs + REG_CCIC_CRCR);
+> -/*
+> - * Shut down the sensor.
+> - */
+> -	pdata = cam->pdev->dev.platform_data;
+> -	gpio_set_value(pdata->sensor_power_gpio, 0);
+> -	gpio_set_value(pdata->sensor_reset_gpio, 0);
+> -
+> +	if (mcam->chip_id == V4L2_IDENT_ARMADA610) {
+
+Same comment applies here.
+
+> +		/*
+> +		 * Shut down the sensor.
+> +		 */
+> +		pdata = cam->pdev->dev.platform_data;
+> +		gpio_set_value(pdata->sensor_power_gpio, 0);
+> +		gpio_set_value(pdata->sensor_reset_gpio, 0);
+> +	}
+>  	mcam_clk_set(mcam, 0);
+
+jon
