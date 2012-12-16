@@ -1,37 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avon.wwwdotorg.org ([70.85.31.133]:38409 "EHLO
-	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750721Ab2LRROd (ORCPT
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:36240 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751775Ab2LPSXl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Dec 2012 12:14:33 -0500
-Message-ID: <50D0A475.7010800@wwwdotorg.org>
-Date: Tue, 18 Dec 2012 10:14:29 -0700
-From: Stephen Warren <swarren@wwwdotorg.org>
+	Sun, 16 Dec 2012 13:23:41 -0500
+Received: by mail-ea0-f174.google.com with SMTP id e13so2061584eaa.19
+        for <linux-media@vger.kernel.org>; Sun, 16 Dec 2012 10:23:40 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 4/5] em28xx: fix the i2c adapter functionality flags
+Date: Sun, 16 Dec 2012 19:23:30 +0100
+Message-Id: <1355682211-13604-5-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1355682211-13604-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1355682211-13604-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-CC: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	grant.likely@secretlab.ca, rob.herring@calxeda.com,
-	nicolas.thery@st.com, s.hauer@pengutronix.de,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH] [media] Add common binding documentation for video interfaces
-References: <1355168499-5847-9-git-send-email-s.nawrocki@samsung.com> <1355606016-6509-1-git-send-email-sylvester.nawrocki@gmail.com>
-In-Reply-To: <1355606016-6509-1-git-send-email-sylvester.nawrocki@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/15/2012 02:13 PM, Sylwester Nawrocki wrote:
-> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> 
-> This patch adds a document describing common OF bindings for video
-> capture, output and video processing devices. It is currently mainly
-> focused on video capture devices, with data interfaces defined in
-> standards like ITU-R BT.656 or MIPI CSI-2.
-> It also documents a method of describing data links between devices.
+I2C_FUNC_SMBUS_EMUL includes flag I2C_FUNC_SMBUS_WRITE_BLOCK_DATA which signals
+that up to 31 data bytes can be written to the ic2 client.
+But the EM2800 supports only i2c messages with max. 4 data bytes.
+I2C_FUNC_IC2 should be set if a master_xfer fucntion pointer is provided in
+struct i2c_algorithm.
 
-(quickly/briefly)
-Reviewed-by: Stephen Warren <swarren@nvidia.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-i2c.c |    6 +++++-
+ 1 Datei geändert, 5 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 940ff4d..7118535 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -445,7 +445,11 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+  */
+ static u32 functionality(struct i2c_adapter *adap)
+ {
+-	return I2C_FUNC_SMBUS_EMUL;
++	struct em28xx *dev = adap->algo_data;
++	u32 func_flags = I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
++	if (dev->board.is_em2800)
++		func_flags &= ~I2C_FUNC_SMBUS_WRITE_BLOCK_DATA;
++	return func_flags;
+ }
+ 
+ static struct i2c_algorithm em28xx_algo = {
+-- 
+1.7.10.4
 
