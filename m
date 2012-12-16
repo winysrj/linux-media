@@ -1,58 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:38287 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965337Ab2LHPbf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Dec 2012 10:31:35 -0500
-Received: by mail-ea0-f174.google.com with SMTP id e13so548069eaa.19
-        for <linux-media@vger.kernel.org>; Sat, 08 Dec 2012 07:31:34 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 0/9] em28xx: refactor the frame data processing code
-Date: Sat,  8 Dec 2012 16:31:23 +0100
-Message-Id: <1354980692-3791-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:58043 "EHLO
+	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750981Ab2LPWed convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Dec 2012 17:34:33 -0500
+From: Albert Wang <twang13@marvell.com>
+To: Jonathan Corbet <corbet@lwn.net>
+CC: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Date: Sun, 16 Dec 2012 14:34:31 -0800
+Subject: RE: [PATCH V3 15/15] [media] marvell-ccic: add 3 frame buffers
+ support in DMA_CONTIG mode
+Message-ID: <477F20668A386D41ADCC57781B1F70430D13C8CCE7@SC-VEXCH1.marvell.com>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+	<1355565484-15791-16-git-send-email-twang13@marvell.com>
+ <20121216095601.4a086356@hpe.lwn.net>
+In-Reply-To: <20121216095601.4a086356@hpe.lwn.net>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series refactors the frame data processing code in em28xx-video.c to
-- reduce code duplication
-- fix a bug in vbi data processing
-- prepare for adding em25xx/em276x frame data processing support
-- clean up the code and make it easier to understand
-
-It applies on top of my previous patch series 
-"em28xx: add support fur USB bulk transfers"
-"em28xx: use common urb data copying function for vbi and non-vbi data streams"
-
-The changes have been tested with the following devices:
-- "SilverCrest 1.3 MPix webcam" (progressive, non-vbi)
-- "Hauppauge HVR-900 (65008/A1C0)" (interlaced, vbi enabled and disabled)
+Hi, Jonathan
 
 
-Frank Schäfer (9):
-  em28xx: refactor get_next_buf() and use it for vbi data, too
-  em28xx: use common function for video and vbi buffer completion
-  em28xx: remove obsolete field 'frame' from struct em28xx_buffer
-  em28xx: move field 'pos' from struct em28xx_dmaqueue to struct
-    em28xx_buffer
-  em28xx: refactor VBI data processing code in em28xx_urb_data_copy()
-  em28xx: move caching of pointer to vmalloc memory in videobuf to
-    struct em28xx_buffer
-  em28xx: em28xx_urb_data_copy(): move duplicate code for
-    capture_type=0 and capture_type=2 to a function
-  em28xx: move the em2710/em2750/em28xx specific frame data processing
-    code to a separate function
-  em28xx: clean up and unify functions em28xx_copy_vbi()
-    em28xx_copy_video()
+>-----Original Message-----
+>From: Jonathan Corbet [mailto:corbet@lwn.net]
+>Sent: Monday, 17 December, 2012 00:56
+>To: Albert Wang
+>Cc: g.liakhovetski@gmx.de; linux-media@vger.kernel.org; Libin Yang
+>Subject: Re: [PATCH V3 15/15] [media] marvell-ccic: add 3 frame buffers support in
+>DMA_CONTIG mode
+>
+>On Sat, 15 Dec 2012 17:58:04 +0800
+>Albert Wang <twang13@marvell.com> wrote:
+>
+>> This patch adds support of 3 frame buffers in DMA-contiguous mode.
+>>
+>> In current DMA_CONTIG mode, only 2 frame buffers can be supported.
+>> Actually, Marvell CCIC can support at most 3 frame buffers.
+>>
+>> Currently 2 frame buffers mode will be used by default.
+>> To use 3 frame buffers mode, can do:
+>>   define MAX_FRAME_BUFS 3
+>> in mcam-core.h
+>
+>Now that the code supports three buffers properly, is there any reason not
+>to use that mode by default?
+>
+[Albert Wang] Because the original code use the two buffers mode, so we keep it. :)
 
- drivers/media/usb/em28xx/em28xx-video.c |  374 ++++++++++++-------------------
- drivers/media/usb/em28xx/em28xx.h       |   12 +-
- 2 Dateien geändert, 154 Zeilen hinzugefügt(+), 232 Zeilen entfernt(-)
+>Did you test that it works properly if allocation of the third buffer fails?
+>
+[Albert Wang] Yes, we test it in our Marvell platforms.
 
--- 
-1.7.10.4
+>Otherwise looks OK except for one thing:
+>
+>> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h
+>b/drivers/media/platform/marvell-ccic/mcam-core.h
+>> index 765d47c..9bf31c8 100755
+>> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
+>> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+>> @@ -62,6 +62,13 @@ enum mcam_state {
+>>  #define MAX_DMA_BUFS 3
+>>
+>>  /*
+>> + * CCIC can support at most 3 frame buffers in DMA_CONTIG buffer mode
+>> + * 2 - Use Two Buffers mode
+>> + * 3 - Use Three Buffers mode
+>> + */
+>> +#define MAX_FRAME_BUFS 2 /* Current marvell-ccic used Two Buffers mode */
+>> +
+>> +/*
+>>   * Different platforms work best with different buffer modes, so we
+>>   * let the platform pick.
+>>   */
+>> @@ -99,6 +106,10 @@ struct mcam_frame_state {
+>>  	unsigned int frames;
+>>  	unsigned int singles;
+>>  	unsigned int delivered;
+>> +	/*
+>> +	 * Only usebufs == 2 can enter single buffer mode
+>> +	 */
+>> +	unsigned int usebufs;
+>>  };
+>
+>What is the purpose of the "usebufs" field?  The code maintains it in
+>various places, but I don't see anywhere that actually uses that value for
+>anything.
+>
+[Albert Wang] Two buffers mode doesn't need it.
+But Three buffers mode need it indicates which conditions we need set the single buffer flag.
+I used "tribufs" as the name in the previous version, but it looks it's a confused name when we merged
+Two buffers mode and Three buffers mode with same code by removing #ifdef based on your comments months ago. :)
+So we just changed the name with "usebufs".
 
+>Thanks,
+>
+>jon
+
+
+Thanks
+Albert Wang
+86-21-61092656
