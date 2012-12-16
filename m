@@ -1,53 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from firefly.pyther.net ([50.116.37.168]:49927 "EHLO
-	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751368Ab2LQBJy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 20:09:54 -0500
-Message-ID: <50CE70E0.2070809@pyther.net>
-Date: Sun, 16 Dec 2012 20:09:52 -0500
-From: Matthew Gyurgyik <matthew@pyther.net>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	Jarod Wilson <jwilson@redhat.com>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50C48891.2050903@googlemail.com> <50C4A520.6020908@pyther.net> <CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com> <50C4BA20.8060003@googlemail.com> <50C4BAFB.60304@googlemail.com> <50C4C525.6020006@googlemail.com> <50C4D011.6010700@pyther.net> <50C60220.8050908@googlemail.com> <CAGoCfizTfZVFkNvdQuuisOugM2BGipYd_75R63nnj=K7E8ULWQ@mail.gmail.com> <50C60772.2010904@googlemail.com> <CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com> <50C6226C.8090302@iki! .fi> <50C636E7.8060003@googlemail.com> <50C64AB0.7020407@iki.fi> <50C79CD6.4060501@googlemail.com> <50C79E9A.3050301@iki.fi> <20121213182336.2cca9da6@redhat.! com> <50CB46CE.60407@googlemail.com> <20121214173950.79bb963e@redhat.com> <20121214222631.1f191d6e@redhat.co! m> <50CBCAB9.602@iki.fi> <20121214235412.2598c91c@redhat.com> <50CC76FC.5030208@googlemail.com> <50CC7D3F.9020108@iki.fi> <50CCA39F.5000309@googlemail.co m> <50CCAAA4.4030808@iki.fi>
-In-Reply-To: <50CCAAA4.4030808@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from tex.lwn.net ([70.33.254.29]:53736 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750955Ab2LPQYm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Dec 2012 11:24:42 -0500
+Date: Sun, 16 Dec 2012 09:24:40 -0700
+From: Jonathan Corbet <corbet@lwn.net>
+To: Albert Wang <twang13@marvell.com>
+Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	Libin Yang <lbyang@marvell.com>
+Subject: Re: [PATCH V3 09/15] [media] marvell-ccic: add get_mcam function
+ for marvell-ccic driver
+Message-ID: <20121216092440.110ecf5f@hpe.lwn.net>
+In-Reply-To: <1355565484-15791-10-git-send-email-twang13@marvell.com>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+	<1355565484-15791-10-git-send-email-twang13@marvell.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/15/2012 06:21 PM, Frank Schäfer wrote:
->> Matthew, could you please validate your test results and try Mauros
->> patches ? If it doesn't work, please create another USB-log.
->>
+On Sat, 15 Dec 2012 17:57:58 +0800
+Albert Wang <twang13@marvell.com> wrote:
 
-Sorry it took me so long to test the patch, but the results look 
-promising, I actually got various keycodes!
+> This patch adds get_mcam() inline function which is prepared for
+> adding soc_camera support in marvell-ccic driver
 
-dmesg: http://pyther.net/a/digivox_atsc/dec16/dmesg_remote.txt
+Time for a bikeshed moment: "get" generally is understood to mean
+incrementing a reference count in kernel code.  Can it have a name like
+vbq_to_mcam() instead?
 
-evtest was also generating output
+Also:
 
-Event: time 1355705906.950551, type 4 (EV_MSC), code 4 (MSC_SCAN), value 
-61d618e7
-Event: time 1355705906.950551, -------------- SYN_REPORT ------------
+> @@ -1073,14 +1073,17 @@ static int mcam_vb_queue_setup(struct vb2_queue *vq,
+>  static void mcam_vb_buf_queue(struct vb2_buffer *vb)
+>  {
+>  	struct mcam_vb_buffer *mvb = vb_to_mvb(vb);
+> -	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct mcam_camera *cam = get_mcam(vb->vb2_queue);
+>  	struct v4l2_pix_format *fmt = &cam->pix_format;
+>  	unsigned long flags;
+>  	int start;
+>  	dma_addr_t dma_handle;
+> +	unsigned long size;
+>  	u32 pixel_count = fmt->width * fmt->height;
+>  
+>  	spin_lock_irqsave(&cam->dev_lock, flags);
+> +	size = vb2_plane_size(vb, 0);
+> +	vb2_set_plane_payload(vb, 0, size);
+>  	dma_handle = vb2_dma_contig_plane_dma_addr(vb, 0);
+>  	BUG_ON(!dma_handle);
+>  	start = (cam->state == S_BUFWAIT) && !list_empty(&cam->buffers);
 
-This is the current patch I'm using: 
-http://pyther.net/a/digivox_atsc/dec16/dmesg_remote.txt
+There is an unrelated change here that belongs in a separate patch.
 
-What needs to be done to generate a keymap file?
+> @@ -1138,9 +1141,12 @@ static void mcam_vb_wait_finish(struct vb2_queue *vq)
+>   */
+>  static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
+>  {
+> -	struct mcam_camera *cam = vb2_get_drv_priv(vq);
+> +	struct mcam_camera *cam = get_mcam(vq);
+>  	unsigned int frame;
+>  
+> +	if (count < 2)
+> +		return -EINVAL;
+> +
 
-Is there anything I can collect or try to do, to get channel scanning 
-working?
+Here too - unrelated change.
 
-Just let me know what you need me to do. I really appreciate all the help!
+>  	if (cam->state != S_IDLE) {
+>  		INIT_LIST_HEAD(&cam->buffers);
+>  		return -EINVAL;
+> @@ -1170,7 +1176,7 @@ static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
+>  
+>  static int mcam_vb_stop_streaming(struct vb2_queue *vq)
+>  {
+> -	struct mcam_camera *cam = vb2_get_drv_priv(vq);
+> +	struct mcam_camera *cam = get_mcam(vq);
+>  	unsigned long flags;
+>  
+>  	if (cam->state == S_BUFWAIT) {
+> @@ -1181,6 +1187,7 @@ static int mcam_vb_stop_streaming(struct vb2_queue *vq)
+>  	if (cam->state != S_STREAMING)
+>  		return -EINVAL;
+>  	mcam_ctlr_stop_dma(cam);
+> +	cam->state = S_IDLE;
 
-Thanks,
-Matthew
+...and also here ...
+
+jon
