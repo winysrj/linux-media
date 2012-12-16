@@ -1,53 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:52033 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752391Ab2LNL57 (ORCPT
+Received: from cpsmtpb-ews01.kpnxchange.com ([213.75.39.4]:55592 "EHLO
+	cpsmtpb-ews01.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752010Ab2LPUGW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Dec 2012 06:57:59 -0500
-Received: by mail-lb0-f174.google.com with SMTP id gi11so2730168lbb.19
-        for <linux-media@vger.kernel.org>; Fri, 14 Dec 2012 03:57:57 -0800 (PST)
-Message-ID: <50CB1442.50002@gmail.com>
-Date: Fri, 14 Dec 2012 12:57:54 +0100
-From: Maarten Lankhorst <m.b.lankhorst@gmail.com>
-MIME-Version: 1.0
-To: sumit.semwal@ti.com
-CC: sumit.semwal@linaro.org, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: Add debugfs support
-References: <1355477817-5750-1-git-send-email-sumit.semwal@ti.com>
-In-Reply-To: <1355477817-5750-1-git-send-email-sumit.semwal@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 16 Dec 2012 15:06:22 -0500
+Message-ID: <1355688070.767.4.camel@x61.thuisdomein>
+Subject: Re: [PATCH] omap_vout: find_vma() needs ->mmap_sem held
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Date: Sun, 16 Dec 2012 21:01:10 +0100
+In-Reply-To: <20121215201237.GW4939@ZenIV.linux.org.uk>
+References: <20121215201237.GW4939@ZenIV.linux.org.uk>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op 14-12-12 10:36, sumit.semwal@ti.com schreef:
-> From: Sumit Semwal <sumit.semwal@linaro.org>
->
-> Add debugfs support to make it easier to print debug information
-> about the dma-buf buffers.
->
-I like the idea, I don't know if it could be done in a free manner, but for bonus points
-could we also have the dma-buf fd be obtainable that way from a debugfs entry?
+On Sat, 2012-12-15 at 20:12 +0000, Al Viro wrote:
+> 	Walking rbtree while it's modified is a Bad Idea(tm); besides,
+> the result of find_vma() can be freed just as it's getting returned
+> to caller.  Fortunately, it's easy to fix - just take ->mmap_sem a bit
+> earlier (and don't bother with find_vma() at all if virtp >= PAGE_OFFSET -
+> in that case we don't even look at its result).
+> 
+> Cc: stable@vger.kernel.org [2.6.35]
+> Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+> ---
+> diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+> index 9935040..984512f 100644
+> --- a/drivers/media/platform/omap/omap_vout.c
+> +++ b/drivers/media/platform/omap/omap_vout.c
+> @@ -207,19 +207,21 @@ static u32 omap_vout_uservirt_to_phys(u32 virtp)
+>  	struct vm_area_struct *vma;
+>  	struct mm_struct *mm = current->mm;
+>  
+> -	vma = find_vma(mm, virtp);
+>  	/* For kernel direct-mapped memory, take the easy way */
+> -	if (virtp >= PAGE_OFFSET) {
+> -		physp = virt_to_phys((void *) virtp);
+> +	if (virtp >= PAGE_OFFSET)
+> +		return virt_to_phys((void *) virtp);
+> +
+> +	down_read(&current->mm->mmap_sem);
+> +	vma = find_vma(mm, virtp);
+>  	} else if (vma && (vma->vm_flags & VM_IO) && vma->vm_pgoff) {
 
-Doing so would allow me to 'steal' a dma-buf from an existing mapping easily, and test against that.
+Shouldn't that line become 
+    if (vma && (vma->vm_flags & VM_IO) && vma->vm_pgoff) {
 
-Also I think the name of the device and process that exported the dma-buf would be useful
-to have as well, even if in case of the device that would mean changing the api slightly to record it.
+so that this actually compiles?
 
-I was thinking of having a directory structure like this:
+>  		/* this will catch, kernel-allocated, mmaped-to-usermode
+>  		   addresses */
+>  		physp = (vma->vm_pgoff << PAGE_SHIFT) + (virtp - vma->vm_start);
+> +		up_read(&current->mm->mmap_sem);
+>  	} else {
+>  		/* otherwise, use get_user_pages() for general userland pages */
+>  		int res, nr_pages = 1;
+>  		struct page *pages;
+> -		down_read(&current->mm->mmap_sem);
+>  
+>  		res = get_user_pages(current, current->mm, virtp, nr_pages, 1,
+>  				0, &pages, NULL);
 
-/sys/kernel/debug/dma_buf/stats
 
-and then for each dma-buf:
-
-/sys/kernel/debug/dma-buf/exporting_file.c/<number>-fd
-/sys/kernel/debug/dma-buf/exporting_file.c/<number>-attachments
-/sys/kernel/debug/dma-buf/exporting_file.c/<number>-info
-
-Opening the fd file would give you back the original fd, or fail with -EIO if refcount was dropped to 0.
-
-Would something like this be doable? I don't know debugfs that well, but I don't see why it wouldn't be,
-
-~Maarten
+Paul Bolle
 
