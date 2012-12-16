@@ -1,90 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:47417 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753164Ab2LPQDT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 11:03:19 -0500
+Received: from mail.kapsi.fi ([217.30.184.167]:55987 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752322Ab2LPUf2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Dec 2012 15:35:28 -0500
+Message-ID: <50CE3070.10309@iki.fi>
+Date: Sun, 16 Dec 2012 22:34:56 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Date: Sun, 16 Dec 2012 17:03:18 +0100
-Message-ID: <CAMuHMdVPBUzN8fsNHFzrEqev9BsvVCVR2fWySCOecjVA-J1qjg@mail.gmail.com>
-Subject: dma_mmap_coherent / ARCH_HAS_DMA_MMAP_COHERENT
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Linux-Arch <linux-arch@vger.kernel.org>
-Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Renato Gallo <renatogallo@unixproducts.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: cannot make this Asus my cinema-u3100miniplusv2 work under linux
+References: <8e9f16405c8583e35cb97bb7d7daef4b@unixproducts.com> <50CDDF9A.1080509@iki.fi> <cd31dc6ada9161825c7dff975a3da945@unixproducts.com> <50CE0AFA.9030308@iki.fi> <1af6a5408ee3ebccebc3885bba06fc69@unixproducts.com>
+In-Reply-To: <1af6a5408ee3ebccebc3885bba06fc69@unixproducts.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_mmap’:
-drivers/media/v4l2-core/videobuf2-dma-contig.c:204: error: implicit
-declaration of function ‘dma_mmap_coherent’
-drivers/media/v4l2-core/videobuf2-dma-contig.c: In function
-‘vb2_dc_get_base_sgt’:
-drivers/media/v4l2-core/videobuf2-dma-contig.c:387: error: implicit
-declaration of function ‘dma_get_sgtable’
-make[6]: *** [drivers/media/v4l2-core/videobuf2-dma-contig.o] Error 1
-make[6]: Target `__build' not remade because of errors.
-make[5]: *** [drivers/media/v4l2-core] Error 2
+It is very likely weak signal issue as I said. What kind of antenna you 
+are using?
 
-Both dma_mmap_coherent() and dma_get_sgtable() are defined in
-include/asm-generic/dma-mapping-common.h only, which is included by
-<asm/dma-mapping.h> on alpha, arm, arm64, hexagon, ia64, microblaze, mips,
-openrisc, powerpc, s390, sh, sparc, tile, unicore32, x86.
-Should the remaining architectures include this, too?
-Should it be moved to <linux/dma-mapping.h>?
+Antti
 
-Furthermore, there's ARCH_HAS_DMA_MMAP_COHERENT, which is defined
-by powerpc only:
-arch/powerpc/include/asm/dma-mapping.h:#define ARCH_HAS_DMA_MMAP_COHERENT
 
-and handled in some fishy way in sound/core/pcm_native.c:
+On 12/16/2012 10:13 PM, Renato Gallo wrote:
+> i found it is a problem with kaffeine, with other programs i can lock a
+> signal but reception is very very sketchy (like in unviewable).
+>
+> GlovX xine-lib # dmesg |grep e4000
+> GlovX xine-lib # dmesg |grep FC0012
+> GlovX xine-lib # dmesg |grep FC0013
+> [   28.281685] fc0013: Fitipower FC0013 successfully attached.
+> GlovX xine-lib # dmesg |grep FC2580
+> GlovX xine-lib # dmesg |grep TUA
+> GlovX xine-lib #
+>
+>
+> Il 16/12/2012 18:55 Antti Palosaari ha scritto:
+>> On 12/16/2012 07:15 PM, Renato Gallo wrote:
+>>> now the modules loads and kaffeine recognizes the device but i cannot
+>>> find any channels.
+>>> can it be a tuner bug ?
+>>
+>> I think it is bad antenna / weak signal. Try w_scan, scan, tzap.
+>>
+>> Could you say which RF-tuner it finds from your device? use dmesg to
+>> dump output. It could be for example e4000, FC0012, FC0013, FC2580,
+>> TUA9001 etc.
+>>
+>> Antti
+>>
+>>>
+>>>
+>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
+>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading section;
+>>> type = 0 pid = 0
+>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading section;
+>>> type = 2 pid = 17
+>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading section;
+>>> type = 4 pid = 16
+>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
+>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading section;
+>>> type = 0 pid = 0
+>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading section;
+>>> type = 2 pid = 17
+>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading section;
+>>> type = 4 pid = 16
+>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
+>>>
+>>>
+>>> Il 16/12/2012 15:50 Antti Palosaari ha scritto:
+>>>> On 12/16/2012 04:23 PM, Renato Gallo wrote:
+>>>>> any news on this ?
+>>>>>
+>>>>>
+>>>>>
+>>>>>
+>>>>>
+>>>>> Asus my cinema-u3100miniplusv2
+>>>>>
+>>>>> Bus 001 Device 015: ID 1b80:d3a8 Afatech
+>>>>>
+>>>>> [ 6956.333440] usb 1-6.3.6: new high-speed USB device number 16 using
+>>>>> ehci_hcd
+>>>>> [ 6956.453943] usb 1-6.3.6: New USB device found, idVendor=1b80,
+>>>>> idProduct=d3a8
+>>>>> [ 6956.453950] usb 1-6.3.6: New USB device strings: Mfr=1, Product=2,
+>>>>> SerialNumber=0
+>>>>> [ 6956.453955] usb 1-6.3.6: Product: Rtl2832UDVB
+>>>>> [ 6956.453959] usb 1-6.3.6: Manufacturer: Realtek
+>>>>>
+>>>>
+>>>> Seems to be Realtek RTL2832U. Add that USB ID to the driver and test.
+>>>> It is very high probability it starts working.
+>>>>
+>>>> Here is the patch:
+>>>>
+>>>>
+>>>> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/rtl28xxu-usb-ids
+>>>>
+>>>>
+>>>>
+>>>> Please test and report.
+>>>>
+>>>> regards
+>>>> Antti
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe
+>>> linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-#ifndef ARCH_HAS_DMA_MMAP_COHERENT
-/* This should be defined / handled globally! */
-#ifdef CONFIG_ARM
-#define ARCH_HAS_DMA_MMAP_COHERENT
-#endif
-#endif
 
-/*
- * mmap the DMA buffer on RAM
- */
-int snd_pcm_lib_default_mmap(struct snd_pcm_substream *substream,
-                             struct vm_area_struct *area)
-{
-        area->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-#ifdef ARCH_HAS_DMA_MMAP_COHERENT
-        if (!substream->ops->page &&
-            substream->dma_buffer.dev.type == SNDRV_DMA_TYPE_DEV)
-                return dma_mmap_coherent(substream->dma_buffer.dev.dev,
-                                         area,
-                                         substream->runtime->dma_area,
-                                         substream->runtime->dma_addr,
-                                         area->vm_end - area->vm_start);
-#elif defined(CONFIG_MIPS) && defined(CONFIG_DMA_NONCOHERENT)
-        if (substream->dma_buffer.dev.type == SNDRV_DMA_TYPE_DEV &&
-            !plat_device_is_coherent(substream->dma_buffer.dev.dev))
-                area->vm_page_prot = pgprot_noncached(area->vm_page_prot);
-#endif /* ARCH_HAS_DMA_MMAP_COHERENT */
-        /* mmap with fault handler */
-        area->vm_ops = &snd_pcm_vm_ops_data_fault;
-        return 0;
-}
-EXPORT_SYMBOL_GPL(snd_pcm_lib_default_mmap);
-
-What's up here?
-
-Thx!
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+-- 
+http://palosaari.fi/
