@@ -1,153 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:17347 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752358Ab2LJTqp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 14:46:45 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
-	rob.herring@calxeda.com, thomas.abraham@linaro.org,
-	t.figa@samsung.com, sw0312.kim@samsung.com,
-	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 06/12]  s5p-fimc: Use pinctrl API for camera ports
- configuration
-Date: Mon, 10 Dec 2012 20:46:00 +0100
-Message-id: <1355168766-6068-7-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
-References: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:40997 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750798Ab2LPVXL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Dec 2012 16:23:11 -0500
+Message-ID: <50CE3BA0.5030503@iki.fi>
+Date: Sun, 16 Dec 2012 23:22:40 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Renato Gallo <renatogallo@unixproducts.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: cannot make this Asus my cinema-u3100miniplusv2 work under linux
+References: <8e9f16405c8583e35cb97bb7d7daef4b@unixproducts.com> <50CDDF9A.1080509@iki.fi> <cd31dc6ada9161825c7dff975a3da945@unixproducts.com> <50CE0AFA.9030308@iki.fi> <1af6a5408ee3ebccebc3885bba06fc69@unixproducts.com> <50CE3070.10309@iki.fi> <810ffd737b21a0f46e383a76dd4313a2@unixproducts.com>
+In-Reply-To: <810ffd737b21a0f46e383a76dd4313a2@unixproducts.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Before the camera ports can be used the pinmux needs to be configured
-properly. This patch adds a function to get the pinctrl states and to
-set default camera port pinmux state during the media driver's probe().
-The camera port(s) are configured for video bus operation in this way.
+That antenna is your problem.
 
-"inactive" pinctrl state is intended for setting clock output pin(s)
-into high impedance state when camera sensors are powered off.
+I will send that patch to the Kernel 3.8, but as I think it is maybe too 
+late for 3.8 it will eventually go to the 3.9 which is out sometime near 
+beginning of next summer.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyugmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |   35 +++++++++++++++++++++---
- drivers/media/platform/s5p-fimc/fimc-mdevice.h |    6 ++++
- 2 files changed, 37 insertions(+), 4 deletions(-)
+If you wish I add your name as reporter then reply. Otherwise case 
+closed. Feedback from the better antenna could be nice too.
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index ee718af..74d16a3 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -1064,13 +1064,33 @@ static ssize_t fimc_md_sysfs_store(struct device *dev,
- static DEVICE_ATTR(subdev_conf_mode, S_IWUSR | S_IRUGO,
- 		   fimc_md_sysfs_show, fimc_md_sysfs_store);
- 
-+static int fimc_md_get_pinctrl(struct fimc_md *fmd)
-+{
-+	fmd->pinctl = devm_pinctrl_get_select_default(&fmd->pdev->dev);
-+	if (IS_ERR(fmd->pinctl))
-+		return PTR_ERR(fmd->pinctl);
-+
-+	fmd->pinctl_state_default = pinctrl_lookup_state(fmd->pinctl,
-+						 PINCTRL_STATE_DEFAULT);
-+	if (IS_ERR(fmd->pinctl_state_default))
-+		return PTR_ERR(fmd->pinctl_state_default);
-+
-+	fmd->pinctl_state_idle = pinctrl_lookup_state(fmd->pinctl,
-+						PINCTRL_STATE_INACTIVE);
-+	if (IS_ERR(fmd->pinctl_state_idle))
-+		return PTR_ERR(fmd->pinctl_state_idle);
-+
-+	return 0;
-+}
-+
- static int fimc_md_probe(struct platform_device *pdev)
- {
-+	struct device *dev = &pdev->dev;
- 	struct v4l2_device *v4l2_dev;
- 	struct fimc_md *fmd;
- 	int ret;
- 
--	fmd = devm_kzalloc(&pdev->dev, sizeof(*fmd), GFP_KERNEL);
-+	fmd = devm_kzalloc(dev, sizeof(*fmd), GFP_KERNEL);
- 	if (!fmd)
- 		return -ENOMEM;
- 
-@@ -1080,7 +1100,7 @@ static int fimc_md_probe(struct platform_device *pdev)
- 	strlcpy(fmd->media_dev.model, "SAMSUNG S5P FIMC",
- 		sizeof(fmd->media_dev.model));
- 	fmd->media_dev.link_notify = fimc_md_link_notify;
--	fmd->media_dev.dev = &pdev->dev;
-+	fmd->media_dev.dev = dev;
- 
- 	v4l2_dev = &fmd->v4l2_dev;
- 	v4l2_dev->mdev = &fmd->media_dev;
-@@ -1088,7 +1108,7 @@ static int fimc_md_probe(struct platform_device *pdev)
- 	strlcpy(v4l2_dev->name, "s5p-fimc-md", sizeof(v4l2_dev->name));
- 
- 
--	ret = v4l2_device_register(&pdev->dev, &fmd->v4l2_dev);
-+	ret = v4l2_device_register(dev, &fmd->v4l2_dev);
- 	if (ret < 0) {
- 		v4l2_err(v4l2_dev, "Failed to register v4l2_device: %d\n", ret);
- 		return ret;
-@@ -1107,15 +1127,22 @@ static int fimc_md_probe(struct platform_device *pdev)
- 	/* Protect the media graph while we're registering entities */
- 	mutex_lock(&fmd->media_dev.graph_mutex);
- 
-+	if (dev->of_node) {
-+		ret = fimc_md_get_pinctrl(fmd);
-+		if (ret < 0)
-+			goto err_unlock;
-+	}
-+
- 	ret = fimc_md_register_platform_entities(fmd);
- 	if (ret)
- 		goto err_unlock;
- 
--	if (pdev->dev.platform_data || pdev->dev.of_node) {
-+	if (dev->platform_data || dev->of_node) {
- 		ret = fimc_md_register_sensor_entities(fmd);
- 		if (ret)
- 			goto err_unlock;
- 	}
-+
- 	ret = fimc_md_create_links(fmd);
- 	if (ret)
- 		goto err_unlock;
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.h b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-index 1b7850c..89cecaa 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-@@ -10,6 +10,7 @@
- #define FIMC_MDEVICE_H_
- 
- #include <linux/clk.h>
-+#include <linux/pinctrl/consumer.h>
- #include <linux/platform_device.h>
- #include <linux/mutex.h>
- #include <media/media-device.h>
-@@ -25,6 +26,8 @@
- #define FIMC_LITE_OF_NODE_NAME	"fimc_lite"
- #define CSIS_OF_NODE_NAME	"csis"
- 
-+#define PINCTRL_STATE_INACTIVE	"inactive"
-+
- /* Group IDs of sensor, MIPI-CSIS, FIMC-LITE and the writeback subdevs. */
- #define GRP_ID_SENSOR		(1 << 8)
- #define GRP_ID_FIMC_IS_SENSOR	(1 << 9)
-@@ -85,6 +88,9 @@ struct fimc_md {
- 	struct media_device media_dev;
- 	struct v4l2_device v4l2_dev;
- 	struct platform_device *pdev;
-+	struct pinctrl *pinctl;
-+	struct pinctrl_state *pinctl_state_default;
-+	struct pinctrl_state *pinctl_state_idle;
- 	bool user_subdev_api;
- 	spinlock_t slock;
- };
+
+Antti
+
+
+On 12/16/2012 11:16 PM, Renato Gallo wrote:
+> stock one that came with the device
+>
+> http://unixproducts.com/antenna.jpg
+>
+>
+> Il 16/12/2012 21:34 Antti Palosaari ha scritto:
+>> It is very likely weak signal issue as I said. What kind of antenna
+>> you are using?
+>>
+>> Antti
+>>
+>>
+>> On 12/16/2012 10:13 PM, Renato Gallo wrote:
+>>> i found it is a problem with kaffeine, with other programs i can lock a
+>>> signal but reception is very very sketchy (like in unviewable).
+>>>
+>>> GlovX xine-lib # dmesg |grep e4000
+>>> GlovX xine-lib # dmesg |grep FC0012
+>>> GlovX xine-lib # dmesg |grep FC0013
+>>> [   28.281685] fc0013: Fitipower FC0013 successfully attached.
+>>> GlovX xine-lib # dmesg |grep FC2580
+>>> GlovX xine-lib # dmesg |grep TUA
+>>> GlovX xine-lib #
+>>>
+>>>
+>>> Il 16/12/2012 18:55 Antti Palosaari ha scritto:
+>>>> On 12/16/2012 07:15 PM, Renato Gallo wrote:
+>>>>> now the modules loads and kaffeine recognizes the device but i cannot
+>>>>> find any channels.
+>>>>> can it be a tuner bug ?
+>>>>
+>>>> I think it is bad antenna / weak signal. Try w_scan, scan, tzap.
+>>>>
+>>>> Could you say which RF-tuner it finds from your device? use dmesg to
+>>>> dump output. It could be for example e4000, FC0012, FC0013, FC2580,
+>>>> TUA9001 etc.
+>>>>
+>>>> Antti
+>>>>
+>>>>>
+>>>>>
+>>>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
+>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
+>>>>> section;
+>>>>> type = 0 pid = 0
+>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
+>>>>> section;
+>>>>> type = 2 pid = 17
+>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
+>>>>> section;
+>>>>> type = 4 pid = 16
+>>>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
+>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
+>>>>> section;
+>>>>> type = 0 pid = 0
+>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
+>>>>> section;
+>>>>> type = 2 pid = 17
+>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
+>>>>> section;
+>>>>> type = 4 pid = 16
+>>>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
+>>>>>
+>>>>>
+>>>>> Il 16/12/2012 15:50 Antti Palosaari ha scritto:
+>>>>>> On 12/16/2012 04:23 PM, Renato Gallo wrote:
+>>>>>>> any news on this ?
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> Asus my cinema-u3100miniplusv2
+>>>>>>>
+>>>>>>> Bus 001 Device 015: ID 1b80:d3a8 Afatech
+>>>>>>>
+>>>>>>> [ 6956.333440] usb 1-6.3.6: new high-speed USB device number 16
+>>>>>>> using
+>>>>>>> ehci_hcd
+>>>>>>> [ 6956.453943] usb 1-6.3.6: New USB device found, idVendor=1b80,
+>>>>>>> idProduct=d3a8
+>>>>>>> [ 6956.453950] usb 1-6.3.6: New USB device strings: Mfr=1,
+>>>>>>> Product=2,
+>>>>>>> SerialNumber=0
+>>>>>>> [ 6956.453955] usb 1-6.3.6: Product: Rtl2832UDVB
+>>>>>>> [ 6956.453959] usb 1-6.3.6: Manufacturer: Realtek
+>>>>>>>
+>>>>>>
+>>>>>> Seems to be Realtek RTL2832U. Add that USB ID to the driver and test.
+>>>>>> It is very high probability it starts working.
+>>>>>>
+>>>>>> Here is the patch:
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/rtl28xxu-usb-ids
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> Please test and report.
+>>>>>>
+>>>>>> regards
+>>>>>> Antti
+>>>>>
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe
+>>>>> linux-media" in
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe
+>>> linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
