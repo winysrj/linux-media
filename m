@@ -1,65 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:41223 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755156Ab2LCE26 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Dec 2012 23:28:58 -0500
-Received: by mail-vc0-f174.google.com with SMTP id d16so1408474vcd.19
-        for <linux-media@vger.kernel.org>; Sun, 02 Dec 2012 20:28:57 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAK9yfHwue=Gb8O=mUpOVMR0PO6Ve+e=j_JNCRHP3ORh=mebh3w@mail.gmail.com>
-References: <1353905348-15475-1-git-send-email-sachin.kamat@linaro.org>
-	<50B54C70.8030607@gmail.com>
-	<CAK9yfHzwcS97KVsFUKOUC-U33U_JOyTQ0FA2JmNAsXyTwk-oeg@mail.gmail.com>
-	<CAK9yfHwue=Gb8O=mUpOVMR0PO6Ve+e=j_JNCRHP3ORh=mebh3w@mail.gmail.com>
-Date: Mon, 3 Dec 2012 09:58:57 +0530
-Message-ID: <CAK9yfHxEiz_W+QnhsdkyAxazCK4-0fkgOywPN=kiVX7-aTV5zg@mail.gmail.com>
-Subject: Re: [PATCH 0/9] [media] s5p-tv: Checkpatch Fixes and cleanup
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	patches@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from tex.lwn.net ([70.33.254.29]:53856 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750859Ab2LPQhT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Dec 2012 11:37:19 -0500
+Date: Sun, 16 Dec 2012 09:37:17 -0700
+From: Jonathan Corbet <corbet@lwn.net>
+To: Albert Wang <twang13@marvell.com>
+Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	Libin Yang <lbyang@marvell.com>
+Subject: Re: [PATCH V3 10/15] [media] marvell-ccic: split mcam-core into 2
+ parts for soc_camera support
+Message-ID: <20121216093717.4be8feff@hpe.lwn.net>
+In-Reply-To: <1355565484-15791-11-git-send-email-twang13@marvell.com>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+	<1355565484-15791-11-git-send-email-twang13@marvell.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 28 November 2012 11:33, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+On Sat, 15 Dec 2012 17:57:59 +0800
+Albert Wang <twang13@marvell.com> wrote:
 
->>> How about testing it on Origen board ?
->>
->> I wanted to but could not due to hardware setup problem.
->> I will see if I can get it up today (I am off for the rest of the week).
->
-> Tested this series with test application on Origen. Works fine.
->
->>
->>>
->>> Tomasz, are you OK with this patch series ?
+> This patch splits mcam-core into 2 parts to prepare for soc_camera support.
+> 
+> The first part remains in mcam-core.c. This part includes the HW operations
+> and vb2 callback functions.
+> 
+> The second part is moved to mcam-core-standard.c. This part is relevant with
+> the implementation of using V4L2.
 
-Hi Tomasz,
+OK, I'll confess I'm still not 100% sold on this part.  Can I repeat
+the questions I raised before?
 
-Any comments on this series?
+ - Is the soc_camera mode necessary?  Is there something you're trying
+   to do that can't be done without it?  Or, at least, does it add
+   sufficient benefit to be worth this work?  It would be nice if the
+   reasoning behind this change were put into the changelog.
 
-Regards,
-Sachin
+ - If the soc_camera change is deemed to be worthwhile, is there
+   anything preventing you from doing it 100% so it's the only mode
+   used?
 
+The split as you've done it here is an improvement over what came
+before, but it still results in a lot of duplicated code; it also adds
+a *lot* of symbols to the global namespace.  If this is really the only
+way then we'll find a way to make it work, but I'd like to be sure that
+we can't do something better.
 
->>>
->>>
->>>> Sachin Kamat (9):
->>>>    [media] s5p-tv: Add missing braces around sizeof in sdo_drv.c
->>>>    [media] s5p-tv: Add missing braces around sizeof in mixer_video.c
->>>>    [media] s5p-tv: Add missing braces around sizeof in mixer_reg.c
->>>>    [media] s5p-tv: Add missing braces around sizeof in mixer_drv.c
->>>>    [media] s5p-tv: Add missing braces around sizeof in hdmiphy_drv.c
->>>>    [media] s5p-tv: Add missing braces around sizeof in hdmi_drv.c
->>>>    [media] s5p-tv: Use devm_clk_get APIs in sdo_drv.c
->>>>    [media] s5p-tv: Use devm_* APIs in mixer_drv.c
->>>>    [media] s5p-tv: Use devm_clk_get APIs in hdmi_drv
->>>>
+Thanks,
 
-
-
--- 
-With warm regards,
-Sachin
+jon
