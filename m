@@ -1,83 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:53841 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752641Ab2LDQyH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Dec 2012 11:54:07 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MEI00196N1IEKB0@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 04 Dec 2012 16:56:43 +0000 (GMT)
-Received: from [106.116.147.32] by eusync1.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MEI00EU2MY4NG00@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 04 Dec 2012 16:54:04 +0000 (GMT)
-Message-id: <50BE2AAC.9040603@samsung.com>
-Date: Tue, 04 Dec 2012 17:54:04 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL] s5p-fimc driver updates for Exynos4x12 SoC support
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:59216 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750859Ab2LPSXb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Dec 2012 13:23:31 -0500
+Received: by mail-ee0-f46.google.com with SMTP id e53so2824295eek.19
+        for <linux-media@vger.kernel.org>; Sun, 16 Dec 2012 10:23:30 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 1/5] em28xx: clean up the data type mess of the i2c transfer function parameters
+Date: Sun, 16 Dec 2012 19:23:27 +0100
+Message-Id: <1355682211-13604-2-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1355682211-13604-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1355682211-13604-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-This series is mainly prerequisite patches for camera devices (FIMC, FIMC-LITE,
-MIPI-CSIS, FIMC-IS) support on Exynos4x12 (two- and quad-core) SoCs. Exynos4412
-is a processor found on Origen 4 Quad dev board for example.
-It would have been good to have this series in 3.8, however if it is already
-not reachable then please pull for 3.9.
-
-The following changes since commit df5450d51945b4a1a506200e11267626a6d324e3:
-
-  Merge tag 'v3.7-rc8' into staging/for_v3.8 (2012-12-04 10:46:21 -0200)
-
-are available in the git repository at:
-
-
-  git://git.infradead.org/users/kmpark/linux-samsung v4l_s5p_fimc
-
-for you to fetch changes up to c78a1a3584a7a2b89e84e57382abec9153a477fe:
-
-  s5p-fimc: Improved pipeline try format routine (2012-12-04 16:47:27 +0100)
-
-----------------------------------------------------------------
-Andrzej Hajda (1):
-      s5p-fimc: Add support for sensors with multiple pads
-
-Sylwester Nawrocki (10):
-      V4L: DocBook: Add V4L2_MBUS_FMT_YUV10_1X30 media bus pixel code
-      fimc-lite: Register dump function cleanup
-      s5p-fimc: Clean up capture enable/disable helpers
-      s5p-fimc: Add variant data structure for Exynos4x12
-      s5p-csis: Add support for raw Bayer pixel formats
-      s5p-csis: Enable only data lanes that are actively used
-      s5p-csis: Add registers logging for debugging
-      s5p-fimc: Add sensor group ids for fimc-is
-      fimc-lite: Add ISP FIFO output support
-      s5p-fimc: Improved pipeline try format routine
-
- Documentation/DocBook/media/v4l/subdev-formats.xml |  718 ++++++--------------
- Documentation/DocBook/media_api.tmpl               |    1 +
- drivers/media/platform/s5p-fimc/fimc-capture.c     |  105 ++-
- drivers/media/platform/s5p-fimc/fimc-core.c        |   90 ++-
- drivers/media/platform/s5p-fimc/fimc-core.h        |    8 +-
- drivers/media/platform/s5p-fimc/fimc-lite-reg.c    |    6 +-
- drivers/media/platform/s5p-fimc/fimc-lite.c        |  146 +++-
- drivers/media/platform/s5p-fimc/fimc-lite.h        |    7 +-
- drivers/media/platform/s5p-fimc/fimc-m2m.c         |    2 +-
- drivers/media/platform/s5p-fimc/fimc-mdevice.c     |   26 +-
- drivers/media/platform/s5p-fimc/fimc-mdevice.h     |   12 +-
- drivers/media/platform/s5p-fimc/fimc-reg.c         |   40 +-
- drivers/media/platform/s5p-fimc/fimc-reg.h         |    4 +-
- drivers/media/platform/s5p-fimc/mipi-csis.c        |   52 +-
- include/uapi/linux/v4l2-mediabus.h                 |    3 +-
- 15 files changed, 548 insertions(+), 672 deletions(-)
-
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
+ drivers/media/usb/em28xx/em28xx-i2c.c |   28 +++++++++++-----------------
+ 1 Datei geändert, 11 Zeilen hinzugefügt(+), 17 Zeilen entfernt(-)
 
-Regards,
-Sylwester
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 1683bd9..44533e4 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -53,12 +53,11 @@ do {							\
+  * em2800_i2c_send_max4()
+  * send up to 4 bytes to the i2c device
+  */
+-static int em2800_i2c_send_max4(struct em28xx *dev, unsigned char addr,
+-				char *buf, int len)
++static int em2800_i2c_send_max4(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+ {
+ 	int ret;
+ 	int write_timeout;
+-	unsigned char b2[6];
++	u8 b2[6];
+ 	BUG_ON(len < 1 || len > 4);
+ 	b2[5] = 0x80 + len - 1;
+ 	b2[4] = addr;
+@@ -89,15 +88,13 @@ static int em2800_i2c_send_max4(struct em28xx *dev, unsigned char addr,
+ /*
+  * em2800_i2c_send_bytes()
+  */
+-static int em2800_i2c_send_bytes(void *data, unsigned char addr, char *buf,
+-				 short len)
++static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+ {
+-	char *bufPtr = buf;
++	u8 *bufPtr = buf;
+ 	int ret;
+ 	int wrcount = 0;
+ 	int count;
+ 	int maxLen = 4;
+-	struct em28xx *dev = (struct em28xx *)data;
+ 	while (len > 0) {
+ 		count = (len > maxLen) ? maxLen : len;
+ 		ret = em2800_i2c_send_max4(dev, addr, bufPtr, count);
+@@ -115,9 +112,9 @@ static int em2800_i2c_send_bytes(void *data, unsigned char addr, char *buf,
+  * em2800_i2c_check_for_device()
+  * check if there is a i2c_device at the supplied address
+  */
+-static int em2800_i2c_check_for_device(struct em28xx *dev, unsigned char addr)
++static int em2800_i2c_check_for_device(struct em28xx *dev, u8 addr)
+ {
+-	char msg;
++	u8 msg;
+ 	int ret;
+ 	int write_timeout;
+ 	msg = addr;
+@@ -150,8 +147,7 @@ static int em2800_i2c_check_for_device(struct em28xx *dev, unsigned char addr)
+  * em2800_i2c_recv_bytes()
+  * read from the i2c device
+  */
+-static int em2800_i2c_recv_bytes(struct em28xx *dev, unsigned char addr,
+-				 char *buf, int len)
++static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+ {
+ 	int ret;
+ 	/* check for the device and set i2c read address */
+@@ -174,11 +170,10 @@ static int em2800_i2c_recv_bytes(struct em28xx *dev, unsigned char addr,
+ /*
+  * em28xx_i2c_send_bytes()
+  */
+-static int em28xx_i2c_send_bytes(void *data, unsigned char addr, char *buf,
+-				 short len, int stop)
++static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
++				 u16 len, int stop)
+ {
+ 	int wrcount = 0;
+-	struct em28xx *dev = (struct em28xx *)data;
+ 	int write_timeout, ret;
+ 
+ 	wrcount = dev->em28xx_write_regs_req(dev, stop ? 2 : 3, addr, buf, len);
+@@ -199,8 +194,7 @@ static int em28xx_i2c_send_bytes(void *data, unsigned char addr, char *buf,
+  * em28xx_i2c_recv_bytes()
+  * read a byte from the i2c device
+  */
+-static int em28xx_i2c_recv_bytes(struct em28xx *dev, unsigned char addr,
+-				 char *buf, int len)
++static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
+ {
+ 	int ret;
+ 	ret = dev->em28xx_read_reg_req_len(dev, 2, addr, buf, len);
+@@ -217,7 +211,7 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, unsigned char addr,
+  * em28xx_i2c_check_for_device()
+  * check if there is a i2c_device at the supplied address
+  */
+-static int em28xx_i2c_check_for_device(struct em28xx *dev, unsigned char addr)
++static int em28xx_i2c_check_for_device(struct em28xx *dev, u16 addr)
+ {
+ 	int ret;
+ 
+-- 
+1.7.10.4
+
