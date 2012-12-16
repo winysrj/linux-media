@@ -1,95 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4317 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751492Ab2LZUP7 (ORCPT
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:60473 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751568Ab2LPSXg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Dec 2012 15:15:59 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id qBQKFuEa062529
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Wed, 26 Dec 2012 21:15:58 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 6EF8911E00D5
-	for <linux-media@vger.kernel.org>; Wed, 26 Dec 2012 21:15:51 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20121226201551.6EF8911E00D5@alastor.dyndns.org>
-Date: Wed, 26 Dec 2012 21:15:51 +0100 (CET)
+	Sun, 16 Dec 2012 13:23:36 -0500
+Received: by mail-ea0-f174.google.com with SMTP id e13so2061563eaa.19
+        for <linux-media@vger.kernel.org>; Sun, 16 Dec 2012 10:23:35 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 2/5] em28xx: respect the message size constraints for i2c transfers
+Date: Sun, 16 Dec 2012 19:23:28 +0100
+Message-Id: <1355682211-13604-3-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1355682211-13604-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1355682211-13604-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The em2800 can transfer up to 4 bytes per i2c message.
+All other em25xx/em27xx/28xx chips can transfer at least 64 bytes per message.
 
-Results of the daily build of media_tree:
+I2C adapters should never split messages transferred via the I2C subsystem
+into multiple message transfers, because the result will almost always NOT be
+the same as when the whole data is transferred to the I2C client in a single
+message.
+If the message size exceeds the capabilities of the I2C adapter, -EOPNOTSUPP
+should be returned.
 
-date:        Wed Dec 26 19:00:21 CET 2012
-git hash:    30ebc5e44d057a1619ad63fe32c8c1670c37c4b8
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-i2c.c |   44 ++++++++++++++-------------------
+ 1 Datei geändert, 18 Zeilen hinzugefügt(+), 26 Zeilen entfernt(-)
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: OK
-linux-git-arm-eabi-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.12-i686: ERRORS
-linux-2.6.32.6-i686: ERRORS
-linux-2.6.33-i686: ERRORS
-linux-2.6.34-i686: ERRORS
-linux-2.6.35.3-i686: ERRORS
-linux-2.6.36-i686: ERRORS
-linux-2.6.37-i686: ERRORS
-linux-2.6.38.2-i686: ERRORS
-linux-2.6.39.1-i686: ERRORS
-linux-3.0-i686: ERRORS
-linux-3.1-i686: ERRORS
-linux-3.2.1-i686: ERRORS
-linux-3.3-i686: ERRORS
-linux-3.4-i686: ERRORS
-linux-3.5-i686: ERRORS
-linux-3.6-i686: ERRORS
-linux-3.7-i686: ERRORS
-linux-3.8-rc1-i686: ERRORS
-linux-2.6.31.12-x86_64: ERRORS
-linux-2.6.32.6-x86_64: ERRORS
-linux-2.6.33-x86_64: ERRORS
-linux-2.6.34-x86_64: ERRORS
-linux-2.6.35.3-x86_64: ERRORS
-linux-2.6.36-x86_64: ERRORS
-linux-2.6.37-x86_64: ERRORS
-linux-2.6.38.2-x86_64: ERRORS
-linux-2.6.39.1-x86_64: ERRORS
-linux-3.0-x86_64: ERRORS
-linux-3.1-x86_64: ERRORS
-linux-3.2.1-x86_64: ERRORS
-linux-3.3-x86_64: ERRORS
-linux-3.4-x86_64: ERRORS
-linux-3.5-x86_64: ERRORS
-linux-3.6-x86_64: ERRORS
-linux-3.7-x86_64: ERRORS
-linux-3.8-rc1-x86_64: ERRORS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 44533e4..c508c12 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -50,14 +50,18 @@ do {							\
+ } while (0)
+ 
+ /*
+- * em2800_i2c_send_max4()
+- * send up to 4 bytes to the i2c device
++ * em2800_i2c_send_bytes()
++ * send up to 4 bytes to the em2800 i2c device
+  */
+-static int em2800_i2c_send_max4(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
++static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+ {
+ 	int ret;
+ 	int write_timeout;
+ 	u8 b2[6];
++
++	if (len < 1 || len > 4)
++		return -EOPNOTSUPP;
++
+ 	BUG_ON(len < 1 || len > 4);
+ 	b2[5] = 0x80 + len - 1;
+ 	b2[4] = addr;
+@@ -86,29 +90,6 @@ static int em2800_i2c_send_max4(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+ }
+ 
+ /*
+- * em2800_i2c_send_bytes()
+- */
+-static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+-{
+-	u8 *bufPtr = buf;
+-	int ret;
+-	int wrcount = 0;
+-	int count;
+-	int maxLen = 4;
+-	while (len > 0) {
+-		count = (len > maxLen) ? maxLen : len;
+-		ret = em2800_i2c_send_max4(dev, addr, bufPtr, count);
+-		if (ret > 0) {
+-			len -= count;
+-			bufPtr += count;
+-			wrcount += count;
+-		} else
+-			return (ret < 0) ? ret : -EFAULT;
+-	}
+-	return wrcount;
+-}
+-
+-/*
+  * em2800_i2c_check_for_device()
+  * check if there is a i2c_device at the supplied address
+  */
+@@ -150,6 +131,10 @@ static int em2800_i2c_check_for_device(struct em28xx *dev, u8 addr)
+ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+ {
+ 	int ret;
++
++	if (len < 1 || len > 4)
++		return -EOPNOTSUPP;
++
+ 	/* check for the device and set i2c read address */
+ 	ret = em2800_i2c_check_for_device(dev, addr);
+ 	if (ret) {
+@@ -176,6 +161,9 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+ 	int wrcount = 0;
+ 	int write_timeout, ret;
+ 
++	if (len < 1 || len > 64)
++		return -EOPNOTSUPP;
++
+ 	wrcount = dev->em28xx_write_regs_req(dev, stop ? 2 : 3, addr, buf, len);
+ 
+ 	/* Seems to be required after a write */
+@@ -197,6 +185,10 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
+ {
+ 	int ret;
++
++	if (len < 1 || len > 64)
++		return -EOPNOTSUPP;
++
+ 	ret = dev->em28xx_read_reg_req_len(dev, 2, addr, buf, len);
+ 	if (ret < 0) {
+ 		em28xx_warn("reading i2c device failed (error=%i)\n", ret);
+-- 
+1.7.10.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
