@@ -1,74 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate03.nvidia.com ([216.228.121.140]:17613 "EHLO
-	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423478Ab2LGRsc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2012 12:48:32 -0500
-Message-ID: <50C22BE8.4080203@nvidia.com>
-Date: Fri, 7 Dec 2012 09:48:24 -0800
-From: Aaron Plattner <aplattner@nvidia.com>
-MIME-Version: 1.0
-To: Inki Dae <inki.dae@samsung.com>
-CC: "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Jerome Glisse <j.glisse@gmail.com>,
-	David Airlie <airlied@linux.ie>,
-	Joonyoung Shim <jy0922.shim@samsung.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2] drm/exynos: use prime helpers
-References: <1354817271-5121-5-git-send-email-aplattner@nvidia.com> <1354819712-7019-1-git-send-email-aplattner@nvidia.com> <CAAQKjZOomB2TkKtgZpS0DHM=vOzozWM-6AaztuWPMnxDXZx6Rg@mail.gmail.com>
-In-Reply-To: <CAAQKjZOomB2TkKtgZpS0DHM=vOzozWM-6AaztuWPMnxDXZx6Rg@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2679 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750983Ab2LPUrt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Dec 2012 15:47:49 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr19.xs4all.nl (8.13.8/8.13.8) with ESMTP id qBGKljNR044242
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sun, 16 Dec 2012 21:47:47 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 12E1417000E7
+	for <linux-media@vger.kernel.org>; Sun, 16 Dec 2012 21:47:44 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20121216204745.12E1417000E7@alastor.dyndns.org>
+Date: Sun, 16 Dec 2012 21:47:44 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/06/2012 10:36 PM, Inki Dae wrote:
->
-> Hi,
->
-> CCing media guys.
->
-> I agree with you but we should consider one issue released to v4l2.
->
-> As you may know, V4L2-based driver uses vb2 as buffer manager and the
-> vb2 includes dmabuf feature>(import and export) And v4l2 uses streaming
-> concept>(qbuf and dqbuf)
-> With dmabuf and iommu, generally qbuf imports a fd into its own buffer
-> and maps it with its own iommu table calling dma_buf_map_attachment().
-> And dqbuf calls dma_buf_unmap_attachment() to unmap that buffer from its
-> own iommu table.
-> But now vb2's unmap_dma_buf callback is nothing to do. I think that the
-> reason is the below issue,
->
-> If qbuf maps buffer with iomm table and dqbuf unmaps it from iommu table
-> then it has performance deterioration because qbuf and dqbuf are called
-> repeatedly.
-> And this means map/unmap are repeated also. So I think media guys moved
-> dma_unmap_sg call from its own unmap_dma_buf callback to detach callback
-> instead.
-> For this, you can refer to vb2_dc_dmabuf_ops_unmap and
-> vb2_dc_dmabuf_ops_detach function.
->
-> So I added the below patch to avoid that performance deterioration and
-> am testing it now.(this patch is derived from videobuf2-dma-contig.c)
-> http://git.kernel.org/?p=linux/kernel/git/daeinki/drm-exynos.git;a=commit;h=576b1c3de8b90cf1570b8418b60afd1edaae4e30
->
-> Thus, I'm not sure that your common set could cover all the cases
-> including other frameworks. Please give me any opinions.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-It seems like this adjustment would make perfect sense to add to the 
-helper layer I suggested.  E.g., instead of having an exynos_attach 
-structure that caches the sgt, there'd be a struct drm_gem_prime_attach 
-that would do the same thing, and save the sgt it gets from 
-driver->gem_prime_get_sg.  Then it would benefit nouveau and radeon, too.
+Results of the daily build of media_tree:
 
-Alternatively, patch #4 could be dropped and Exynos can continue to 
-reimplement all of this core functionality, since the helpers are 
-optional, but I don't see anything about this change that should make it 
-Exynos-specific, unless I'm missing something.
+date:        Sun Dec 16 19:00:27 CET 2012
+git hash:    49cc629df16f2a15917800a8579bd9c25c41b634
+gcc version:      i686-linux-gcc (GCC) 4.7.1
+host hardware:    x86_64
+host os:          3.4.07-marune
 
---
-Aaron
+linux-git-arm-eabi-davinci: WARNINGS
+linux-git-arm-eabi-exynos: OK
+linux-git-arm-eabi-omap: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-i686: WARNINGS
+linux-2.6.37-i686: WARNINGS
+linux-2.6.38.2-i686: WARNINGS
+linux-2.6.39.1-i686: WARNINGS
+linux-3.0-i686: WARNINGS
+linux-3.1-i686: WARNINGS
+linux-3.2.1-i686: WARNINGS
+linux-3.3-i686: WARNINGS
+linux-3.4-i686: WARNINGS
+linux-3.5-i686: WARNINGS
+linux-3.6-i686: WARNINGS
+linux-3.7-i686: ERRORS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-x86_64: WARNINGS
+linux-2.6.37-x86_64: WARNINGS
+linux-2.6.38.2-x86_64: WARNINGS
+linux-2.6.39.1-x86_64: WARNINGS
+linux-3.0-x86_64: WARNINGS
+linux-3.1-x86_64: WARNINGS
+linux-3.2.1-x86_64: WARNINGS
+linux-3.3-x86_64: WARNINGS
+linux-3.4-x86_64: WARNINGS
+linux-3.5-x86_64: WARNINGS
+linux-3.6-x86_64: WARNINGS
+linux-3.7-x86_64: ERRORS
+apps: WARNINGS
+spec-git: WARNINGS
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
