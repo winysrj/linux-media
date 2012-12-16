@@ -1,110 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:53271 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751507Ab2LTVhb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Dec 2012 16:37:31 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: AverMedia Satelllite Hybrid+FM A706
-Date: Thu, 20 Dec 2012 22:37:11 +0100
-Cc: linux-media@vger.kernel.org
-References: <201212182245.50722.linux@rainbow-software.org>
-In-Reply-To: <201212182245.50722.linux@rainbow-software.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:38551 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752375Ab2LPMD0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Dec 2012 07:03:26 -0500
+Message-ID: <50CDB86E.800@iki.fi>
+Date: Sun, 16 Dec 2012 14:02:54 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Patrice Chotard <patrice.chotard@sfr.fr>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	=?ISO-8859-1?Q?Fr=E9d=E9ric?= <frederic.mantegazza@gbiloba.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 2/2] [media] ngene: separate demodulator and tuner attach
+References: <50CD03AF.3080602@sfr.fr>
+In-Reply-To: <50CD03AF.3080602@sfr.fr>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201212202237.12376.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update:
-GPIO 9 is CE6313 SLEEP signal
-GPIO 23 is CE5039 SLEEP signal
-GPIO 25 is CE6313 RESET# signal - this one needs to be set high for CE6313 to 
-appear on I2C bus
+On 12/16/2012 01:11 AM, Patrice Chotard wrote:
+> Previously, demodulator and tuner attach was done in the
+> demod_attach callback. Migrate the tuner part in the
+> tuner_attach callback in ngene_info to do thing in right place.
+>
+> Signed-off-by: Patrice Chotard <patricechotard@free.fr>
+> ---
+>   drivers/media/pci/ngene/ngene-cards.c |   10 ++++++++++
+>   1 file changed, 10 insertions(+)
+>
+> diff --git a/drivers/media/pci/ngene/ngene-cards.c
+> b/drivers/media/pci/ngene/ngene-cards.c
+> index 96a13ed..8db3fa1 100644
+> --- a/drivers/media/pci/ngene/ngene-cards.c
+> +++ b/drivers/media/pci/ngene/ngene-cards.c
+> @@ -328,6 +328,15 @@ static int demod_attach_drxd(struct ngene_channel
+> *chan)
+>   		return -ENODEV;
+>   	}
+>
+> +	return 0;
+> +}
+> +
+> +static int tuner_attach_dtt7520x(struct ngene_channel *chan)
+> +{
+> +	struct drxd_config *feconf;
+> +
+> +	feconf = chan->dev->card_info->fe_config[chan->number];
+> +
+>   	if (!dvb_attach(dvb_pll_attach, chan->fe, feconf->pll_address,
+>   			&chan->i2c_adapter,
+>   			feconf->pll_type)) {
+> @@ -722,6 +731,7 @@ static struct ngene_info ngene_info_terratec = {
+>   	.name           = "Terratec Integra/Cinergy2400i Dual DVB-T",
+>   	.io_type        = {NGENE_IO_TSIN, NGENE_IO_TSIN},
+>   	.demod_attach   = {demod_attach_drxd, demod_attach_drxd},
+> +	.tuner_attach	= {tuner_attach_dtt7520x, tuner_attach_dtt7520x},
+>   	.fe_config      = {&fe_terratec_dvbt_0, &fe_terratec_dvbt_1},
+>   	.i2c_access     = 1,
+>   };
+>
 
-But there is a problem with CE5039 (zl10039) - the I2C bus breaks during its 
-initialization (SDA stuck low):
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Here it works (communication with CE6313):
-[  921.556682] start xfer
-[  921.556684] send address
-[  921.556687] saa7133[0]: i2c data => 0x1c
-[  921.556690] saa7133[0]: i2c stat <= BUSY
-[  921.556725] saa7133[0]: i2c stat <= BUSY
-[  921.556759] saa7133[0]: i2c stat <= BUSY
-[  921.556794] saa7133[0]: i2c stat <= BUSY
-[  921.556828] saa7133[0]: i2c stat <= DONE_WRITE
-[  921.556831] saa7133[0]: i2c stat <= DONE_WRITE
-[  921.556833] write bytes
-[  921.556836] saa7133[0]: i2c data => 0x14
-[  921.556838] saa7133[0]: i2c stat <= BUSY
-[  921.556873] saa7133[0]: i2c stat <= BUSY
-[  921.556907] saa7133[0]: i2c stat <= BUSY
-[  921.556942] saa7133[0]: i2c stat <= DONE_WRITE
-[  921.556945] saa7133[0]: i2c stat <= DONE_WRITE
-[  921.556948] saa7133[0]: i2c data => 0x40
-[  921.556950] saa7133[0]: i2c stat <= BUSY
-[  921.556985] saa7133[0]: i2c stat <= BUSY
-[  921.557019] saa7133[0]: i2c stat <= BUSY
-[  921.557054] saa7133[0]: i2c stat <= DONE_WRITE
-[  921.557057] saa7133[0]: i2c stat <= DONE_WRITE
-[  921.557058] xfer done
-[  921.557060] saa7133[0]: i2c attr => STOP
-[  921.557064] saa7133[0]: i2c stat <= BUSY
-[  921.557098] saa7133[0]: i2c stat <= DONE_STOP
-[  921.557101] saa7133[0]: i2c stat <= DONE_STOP
+Looks very correct, but I am not familiar with n-gene.
 
-Here starts CE5039 communication:
-[  921.564672] zl10039_read
-[  921.564677] saa7133[0]: i2c stat <= DONE_STOP
-[  921.564679] start xfer
-[  921.564681] send address
-[  921.564684] saa7133[0]: i2c data => 0xc0
-[  921.564686] saa7133[0]: i2c stat <= BUSY
-[  921.564721] saa7133[0]: i2c stat <= BUSY
-[  921.564755] saa7133[0]: i2c stat <= BUSY
-[  921.564790] saa7133[0]: i2c stat <= BUSY
-
-And here it breaks:
-[  921.564824] saa7133[0]: i2c stat <= ARB_LOST
-[  921.564827] saa7133[0]: i2c stat <= ARB_LOST
-[  921.564829] zl10039_read: i2c read error
-[  921.564833] saa7133[0]: i2c stat <= ARB_LOST
-[  921.564834] saa7133[0]: i2c reset
-[  921.564837] saa7133[0]: i2c stat <= ARB_LOST
-[  921.564839] saa7133[0]: i2c stat => ARB_LOST
-[  921.564843] saa7133[0]: i2c stat <= ARB_LOST
-[  921.564877] saa7133[0]: i2c stat <= IDLE
-[  921.564879] saa7133[0]: i2c attr => NOP
-
-And everything is broken now (until reloading saa7134 module):
-[  921.564882] start xfer
-[  921.564883] send address
-[  921.564886] saa7133[0]: i2c data => 0x1c
-[  921.564889] saa7133[0]: i2c stat <= BUSY
-[  921.564923] saa7133[0]: i2c stat <= BUSY
-[  921.564958] saa7133[0]: i2c stat <= BUSY
-[  921.564992] saa7133[0]: i2c stat <= BUSY
-[  921.565026] saa7133[0]: i2c stat <= BUSY
-[  921.565061] saa7133[0]: i2c stat <= BUSY
-[  921.565095] saa7133[0]: i2c stat <= BUSY
-[  921.565130] saa7133[0]: i2c stat <= BUSY
-[  921.565164] saa7133[0]: i2c stat <= BUSY
-[  921.565199] saa7133[0]: i2c stat <= BUSY
-[  921.565233] saa7133[0]: i2c stat <= BUSY
-[  921.565268] saa7133[0]: i2c stat <= BUSY
-[  921.565302] saa7133[0]: i2c stat <= BUSY
-[  921.565336] saa7133[0]: i2c stat <= BUSY
-[  921.565371] saa7133[0]: i2c stat <= BUSY
-[  921.565405] saa7133[0]: i2c stat <= BUSY
-[  921.565440] mt312_read: ret == -5
-[  921.565450] saa7133[0]/dvb: dvb_init: No zl10039 found!
-
-
+regards
+Antti
 
 -- 
-Ondrej Zary
+http://palosaari.fi/
