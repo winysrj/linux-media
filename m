@@ -1,21 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sudo-host.com ([184.107.192.90]:52353 "EHLO
-	host.jc2tinvites.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751783Ab2LGVZz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Dec 2012 16:25:55 -0500
-Received: from [64.95.243.76] (port=2037 helo=ycr76.dansbar.biz)
-	by host.si-muhamad-bin-abdul-kareem-134108.tmp with esmtpa (Exim 4.80)
-	(envelope-from <postal@jc2tinvites.com>)
-	id 1Th138-0006Ma-9N
-	for linux-media@vger.kernel.org; Fri, 07 Dec 2012 11:45:18 -0500
-MIME-Version: 1.0
-From: "JC2TInvite" <postal@jc2tinvites.com>
-Reply-To: info@jc2tinvites.com
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47258 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751132Ab2LQKhG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Dec 2012 05:37:06 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Date: Thu, 6 Dec 2012 16:43:41 -0800
-Message-ID: <1000191291400303081988@supreme-5a3a9ca>
+Cc: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH v2] v4l: vb2: Set data_offset to 0 for single-plane output buffers
+Date: Mon, 17 Dec 2012 11:38:16 +0100
+Message-Id: <1355740696-11400-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+
+Single-planar V4L2 buffers are converted to multi-planar vb2 buffers
+with a single plane when queued. The plane data_offset field is not
+available in the single-planar API and must be set to 0 for all output
+buffers.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+Hi Marek,
+
+Could you please take this patch in your tree ?
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 9f81be2..e02c479 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -921,8 +921,10 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b
+ 		 * In videobuf we use our internal V4l2_planes struct for
+ 		 * single-planar buffers as well, for simplicity.
+ 		 */
+-		if (V4L2_TYPE_IS_OUTPUT(b->type))
++		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
+ 			v4l2_planes[0].bytesused = b->bytesused;
++			v4l2_planes[0].data_offset = 0;
++		}
+ 
+ 		if (b->memory == V4L2_MEMORY_USERPTR) {
+ 			v4l2_planes[0].m.userptr = b->m.userptr;
+-- 
+Regards,
+
+Laurent Pinchart
 
