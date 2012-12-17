@@ -1,127 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55310 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754070Ab2LYVEY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Dec 2012 16:04:24 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: William Swanson <swansontec@gmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	William Swanson <william.swanson@fuel7.com>
-Subject: Re: [PATCH] omap3isp: Add support for interlaced input data
-Date: Tue, 25 Dec 2012 22:05:48 +0100
-Message-ID: <1447136.vJuIcl6Gth@avalon>
-In-Reply-To: <1355796739-2580-1-git-send-email-william.swanson@fuel7.com>
-References: <1355796739-2580-1-git-send-email-william.swanson@fuel7.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:41380 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752668Ab2LQP3p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Dec 2012 10:29:45 -0500
+Message-ID: <50CF3A4B.8030206@ti.com>
+Date: Mon, 17 Dec 2012 17:29:15 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: <linux-fbdev@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	<linux-media@vger.kernel.org>, Archit Taneja <archit@ti.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Bryan Wu <bryan.wu@canonical.com>,
+	Inki Dae <inki.dae@samsung.com>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Tom Gall <tom.gall@linaro.org>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>
+Subject: Re: [RFC v2 0/5] Common Display Framework
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <50AF8D79.1070309@ti.com> <1608840.IleINgrx5J@avalon>
+In-Reply-To: <1608840.IleINgrx5J@avalon>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enigBD476092AD842E19B0435E94"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi William,
+--------------enigBD476092AD842E19B0435E94
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for the patch.
+On 2012-12-17 16:36, Laurent Pinchart wrote:
+> Hi Tomi,
+>=20
+> I finally have time to work on a v3 :-)
+>=20
+> On Friday 23 November 2012 16:51:37 Tomi Valkeinen wrote:
+>> On 2012-11-22 23:45, Laurent Pinchart wrote:
+>>> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+>>>
+>>> Hi everybody,
+>>>
+>>> Here's the second RFC of what was previously known as the Generic Pan=
+el
+>>> Framework.
+>>
+>> Nice work! Thanks for working on this.
+>>
+>> I was doing some testing with the code, seeing how to use it in omapds=
+s.
+>> Here are some thoughts:
+>>
+>> In your model the DSS gets the panel devices connected to it from
+>> platform data. After the DSS and the panel drivers are loaded, DSS get=
+s
+>> a notification and connects DSS and the panel.
+>>
+>> I think it's a bit limited way. First of all, it'll make the DT data a=
 
-On Monday 17 December 2012 18:12:19 William Swanson wrote:
-> If the remote video sensor reports an interlaced video mode, the CCDC block
-> should configure itself appropriately.
+>> bit more complex (although this is not a major problem). With your
+>> model, you'll need something like:
+>>
+>> soc-base.dtsi:
+>>
+>> dss {
+>> 	dpi0: dpi {
+>> 	};
+>> };
+>>
+>> board.dts:
+>>
+>> &dpi0 {
+>> 	panel =3D &dpi-panel;
+>> };
+>>
+>> / {
+>> 	dpi-panel: dpi-panel {
+>> 		...panel data...;
+>> 	};
+>> };
+>>
+>> Second, it'll prevent hotplug, and even if real hotplug would not be
+>> supported, it'll prevent cases where the connected panel must be found=
 
-What will the CCDC do in that case ? Will it capture fields or frames to 
-memory ? If frames, what's the field layout ? You will most likely need to 
-modify ispvideo.c as well, to support interlacing in the V4L2 API, and 
-possibly add interlaced formats support to the media bus API.
+>> dynamically (like reading ID from eeprom).
+>=20
+> Hotplug definitely needs to be supported, as the common display framewo=
+rk also=20
+> targets HDMI and DP. The notification mechanism was actually designed t=
+o=20
+> support hotplug.
 
-> ---
->  drivers/media/platform/omap3isp/ispccdc.c |   16 ++++++++++++++--
->  include/media/omap3isp.h                  |    3 +++
->  2 files changed, 17 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispccdc.c
-> b/drivers/media/platform/omap3isp/ispccdc.c index 60e60aa..5443ef4 100644
-> --- a/drivers/media/platform/omap3isp/ispccdc.c
-> +++ b/drivers/media/platform/omap3isp/ispccdc.c
-> @@ -970,10 +970,11 @@ void omap3isp_ccdc_max_rate(struct isp_ccdc_device
-> *ccdc, * @ccdc: Pointer to ISP CCDC device.
->   * @pdata: Parallel interface platform data (may be NULL)
->   * @data_size: Data size
-> + * @interlaced: Use interlaced mode instead of progressive mode
->   */
->  static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
->  				struct isp_parallel_platform_data *pdata,
-> -				unsigned int data_size)
-> +				unsigned int data_size, bool interlaced)
->  {
->  	struct isp_device *isp = to_isp_device(ccdc);
->  	const struct v4l2_mbus_framefmt *format;
-> @@ -1004,9 +1005,15 @@ static void ccdc_config_sync_if(struct
-> isp_ccdc_device *ccdc, break;
->  	}
-> 
-> +	if (interlaced)
-> +		syn_mode |= ISPCCDC_SYN_MODE_FLDMODE;
-> +
->  	if (pdata && pdata->data_pol)
->  		syn_mode |= ISPCCDC_SYN_MODE_DATAPOL;
-> 
-> +	if (pdata && pdata->fld_pol)
-> +		syn_mode |= ISPCCDC_SYN_MODE_FLDPOL;
-> +
->  	if (pdata && pdata->hs_pol)
->  		syn_mode |= ISPCCDC_SYN_MODE_HDPOL;
-> 
-> @@ -1111,6 +1118,7 @@ static void ccdc_configure(struct isp_ccdc_device
-> *ccdc) const struct v4l2_rect *crop;
->  	const struct isp_format_info *fmt_info;
->  	struct v4l2_subdev_format fmt_src;
-> +	bool src_interlaced = false;
->  	unsigned int depth_out;
->  	unsigned int depth_in = 0;
->  	struct media_pad *pad;
-> @@ -1132,6 +1140,10 @@ static void ccdc_configure(struct isp_ccdc_device
-> *ccdc) fmt_src.pad = pad->index;
->  	fmt_src.which = V4L2_SUBDEV_FORMAT_ACTIVE;
->  	if (!v4l2_subdev_call(sensor, pad, get_fmt, NULL, &fmt_src)) {
-> +		if (fmt_src.format.field == V4L2_FIELD_INTERLACED ||
-> +		    fmt_src.format.field == V4L2_FIELD_INTERLACED_TB ||
-> +		    fmt_src.format.field == V4L2_FIELD_INTERLACED_BT)
-> +			src_interlaced = true;
->  		fmt_info = omap3isp_video_format_info(fmt_src.format.code);
->  		depth_in = fmt_info->width;
->  	}
-> @@ -1150,7 +1162,7 @@ static void ccdc_configure(struct isp_ccdc_device
-> *ccdc)
-> 
->  	omap3isp_configure_bridge(isp, ccdc->input, pdata, shift, bridge);
-> 
-> -	ccdc_config_sync_if(ccdc, pdata, depth_out);
-> +	ccdc_config_sync_if(ccdc, pdata, depth_out, src_interlaced);
-> 
->  	syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-> 
-> diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
-> index 9584269..32d85c2 100644
-> --- a/include/media/omap3isp.h
-> +++ b/include/media/omap3isp.h
-> @@ -57,6 +57,8 @@ enum {
->   *		ISP_LANE_SHIFT_6 - CAMEXT[13:6] -> CAM[7:0]
->   * @clk_pol: Pixel clock polarity
->   *		0 - Sample on rising edge, 1 - Sample on falling edge
-> + * @fld_pol: Field identification signal polarity
-> + *		0 - Active high, 1 - Active low
->   * @hs_pol: Horizontal synchronization polarity
->   *		0 - Active high, 1 - Active low
->   * @vs_pol: Vertical synchronization polarity
-> @@ -67,6 +69,7 @@ enum {
->  struct isp_parallel_platform_data {
->  	unsigned int data_lane_shift:2;
->  	unsigned int clk_pol:1;
-> +	unsigned int fld_pol:1;
->  	unsigned int hs_pol:1;
->  	unsigned int vs_pol:1;
->  	unsigned int data_pol:1;
--- 
-Regards,
+HDMI or DP hotplug may or may not be a different thing than what I talk
+about here. We may have two kinds of hotplug: real linux device hotplug,
+i.e. a linux device appears or is removed during runtime, or just a
+cable hotplug, handled inside a driver, which doesn't have any effect on
+the linux devices.
 
-Laurent Pinchart
+If we do implement HDMI and DP monitors with real linux drivers, then
+yes, we could use real hotplug. But we could as well have the monitor
+driver always registered, and just have a driver internal cable-hotplug
+system.
 
+To be honest, I'm not sure if implementing real hotplug is easily
+possible, as we don't have real, probable (probe-able =3D) busses. So eve=
+n
+if we'd get a hotplug event of a new display device, what kind of device
+would the bus master register? It has no way to know that.
+
+> How do you see the proposal preventing hotplug ?
+
+Well, probably it doesn't prevent. But it doesn't feel right to me.
+
+Say, if we have a DPI panel, controlled via foo-bus, which has a probing
+mechanism. When the foo-bus master detects a new hardware device, it'll
+create linux device for it. The driver for this device will then be
+probed. In the probe function it should somehow register itself to the
+cdf, or perhaps the previous entity in the chain.
+
+This sounds to me that the link is from the panel to the previous
+entity, not the other way around as you describe, and also the previous
+entity doesn't know of the panel entities.
+
+>> Third, it kinda creates a cyclical dependency: the DSS needs to know
+>> about the panel and calls ops in the panel, and the panel calls ops in=
+
+>> the DSS. I'm not sure if this is an actual problem, but I usually find=
+
+>> it simpler if calls are done only in one direction.
+>=20
+> I don't see any way around that. The panel is not a standalone entity t=
+hat can=20
+> only receive calls (as it needs to control video streams, per your requ=
+est=20
+> :-)) or only emit calls (as something needs to control it, userspace do=
+esn't=20
+> control the panel directly).
+
+Right, but as I see it, the destination of the panel's calls, and the
+source of the calls to panel are different things. The destination is
+the bus layer, dealing with the video signal being transferred. The
+source is a bit higher level thing, something that's controlling the
+display in general.
+
+>> Here we wouldn't have similar display_entity as you have, but video so=
+urces
+>> and displays. Video sources are elements in the video pipeline, and a =
+video
+>> source is used only by the next downstream element. The last element i=
+n the
+>> pipeline would not be a video source, but a display, which would be us=
+ed by
+>> the upper layer.
+>=20
+> I don't think we should handle pure sources, pure sinks (displays) and =
+mixed=20
+> entities (transceivers) differently. I prefer having abstract entities =
+that=20
+> can have a source and a sink, and expose the corresponding operations. =
+That=20
+> would make pipeline handling much easier, as the code will only need to=
+ deal=20
+> with a single type of object. Implementing support for entities with mu=
+ltiple=20
+> sinks and/or sources would also be possible.
+
+Ok. I think having pure sources is simpler model, but it's true that if
+we need to iterate and study the pipeline during runtime, it's probably
+better to have single entities with multiple sources/sinks.
+
+>> Video source's ops would deal with things related to the video bus in
+>> question, like configuring data lanes, sending DSI packets, etc. The
+>> display ops would be more high level things, like enable, update, etc.=
+
+>> Actually, I guess you could consider the display to represent and deal=
+
+>> with the whole pipeline, while video source deals with the bus between=
+
+>> two display entities.
+>=20
+> What is missing in your proposal is an explanation of how the panel is =
+
+> controlled. What does your register_display() function register the dis=
+play=20
+> with, and what then calls the display operations ?
+
+In my particular case, the omapfb calls the display operations, which is
+the higher level "manager" for the whole display. So omapfb does calls
+both to the DSS side and to the panel side of the pipeline.
+
+I agree that making calls to both ends is a bit silly, but then again, I
+think it also happens in your model, it's just hidden there.
+
+ Tomi
+
+
+
+--------------enigBD476092AD842E19B0435E94
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJQzzpLAAoJEPo9qoy8lh71insP/AuJDJUbn5Qxl0k99pqKTTts
++iGUb/ldCnUhb4MEakickx6cw0dPEXVGJ0y/7tC/fxl5CJy3aGXFUYd0JU3l9NHC
+cNNOfYqJve9Pv90UXO0j6l0z952WJazxa2p3sYtXNTWWNmEVz7QCJhvMHizxeZ56
+viVAhGnuBBtvTI4DMYnG2h2pK5suoDLDOV8l135B1EcU4xj5XXZWS8fBq5xHc/Br
+o7E/iHarYizgQ1U5zzOmHMeUdhPywFfFh1hmGMy2EamxVfn68QII00jbZSxDkTJo
+mslb/ZkkYVPEd2qrAuwJD8TZnpSXNeBk42hiqAK9MX6ML9lVXG9EE1e6WXkYcqRT
+v/AVRNr6h0/CxN8buoxIDiwK40zrY21I1xW16HKiJ6t5gG3Bse6qyPhOyf6D+GaU
+5dKEDbLZKJIqBL/uDC5smQqhkvAlVDdEgqEHStUgIp8OtGVvbOAlbFz7ZyepFrsr
+3girAb95MrYYLbX6zXAtLQT+eNEEF4jsQj9FiliqN2BaUNiCAnlPF+kdC0vztkpC
+9Rd/F468uRQaBPM+CYkbR+noyij6dS7SN894XOqcnyr/MxW9eeIUWW002hEbLUeZ
+uYvn1lJlffEjKBSizRhSh4fWmi7wA5f+qMlbi0uPNMlIdW+17gp09rjo/VXyQm3d
+M+EJPnAyVeFoZRm8yQYc
+=ORoA
+-----END PGP SIGNATURE-----
+
+--------------enigBD476092AD842E19B0435E94--
