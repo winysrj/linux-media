@@ -1,97 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:38648 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1424070Ab2LGDV7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Dec 2012 22:21:59 -0500
-Received: by mail-qc0-f174.google.com with SMTP id o22so26809qcr.19
-        for <linux-media@vger.kernel.org>; Thu, 06 Dec 2012 19:21:58 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <50C1490E.8040203@pyther.net>
-References: <50B5779A.9090807@pyther.net>
-	<50B67851.2010808@googlemail.com>
-	<50B69037.3080205@pyther.net>
-	<50B6967C.9070801@iki.fi>
-	<50B6C2DF.4020509@pyther.net>
-	<50B6C530.4010701@iki.fi>
-	<50B7B768.5070008@googlemail.com>
-	<50B80FBB.5030208@pyther.net>
-	<50BB3F2C.5080107@googlemail.com>
-	<50BB6451.7080601@iki.fi>
-	<50BB8D72.8050803@googlemail.com>
-	<50BCEC60.4040206@googlemail.com>
-	<50BD5CC3.1030100@pyther.net>
-	<CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com>
-	<50BD6310.8000808@pyther.net>
-	<CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com>
-	<50BE65F0.8020303@googlemail.com>
-	<50BEC253.4080006@pyther.net>
-	<50BF3F9A.3020803@iki.fi>
-	<50BFBE39.90901@pyther.net>
-	<50BFC445.6020305@iki.fi>
-	<50BFCBBB.5090407@pyther.net>
-	<50BFECEA.9060808@iki.fi>
-	<50BFFFF6.1000204@pyther.net>
-	<50C11301.10205@googlemail.com>
-	<50C12302.80603@pyther.net>
-	<50C1490E.8040203@pyther.net>
-Date: Thu, 6 Dec 2012 22:21:58 -0500
-Message-ID: <CAGoCfiwCUhBdkL3c9ppB42s5UpqooWP5P=H454ff_+4Jzxom4w@mail.gmail.com>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Matthew Gyurgyik <matthew@pyther.net>
-Cc: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3167 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752948Ab2LQUrd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Dec 2012 15:47:33 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id qBHKlTO9063328
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 21:47:31 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 561D21700073
+	for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 21:47:29 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20121217204729.561D21700073@alastor.dyndns.org>
+Date: Mon, 17 Dec 2012 21:47:29 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 6, 2012 at 8:40 PM, Matthew Gyurgyik <matthew@pyther.net> wrote:
-> I was able to do a bit of testing tonight and this is what I found.
->
-> A channel scan was unsuccessful:
-> http://pyther.net/a/digivox_atsc/dec06/scan.txt (no errors in dmesg)
->
-> Changing channels by pressing "h" in "mplayer dvb://" caused mplayer to
-> crash and this messages to be logged in dmesg
-> http://pyther.net/a/digivox_atsc/dec06/dmesg_mplayer_switch_channels.txt
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This looks like a combination of a misconfiguration of GPIOs and
-mplayer not properly handling an exception condition.  You should
-definitely bring this up with the mplayer developers since their app
-shouldn't crash under this circumstance.
+Results of the daily build of media_tree:
 
-> Audio is out-of-sync in mplayer. Using cache helps, but over time the audio
-> still goes out of sync.
-> http://pyther.net/a/digivox_atsc/dec06/mplayer_audio_out_of_sync.txt
+date:        Mon Dec 17 19:00:28 CET 2012
+git hash:    49cc629df16f2a15917800a8579bd9c25c41b634
+gcc version:      i686-linux-gcc (GCC) 4.7.1
+host hardware:    x86_64
+host os:          3.4.07-marune
 
-This has nothing to do with the tuner.  The tuner delivers the MPEG2
-stream already compressed and synchronized.  If you're playback is
-out-of-sync, it's probably your ALSA drivers, PulseAudio, or mplayer
-that is the culprit.
+linux-git-arm-eabi-davinci: WARNINGS
+linux-git-arm-eabi-exynos: OK
+linux-git-arm-eabi-omap: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-i686: WARNINGS
+linux-2.6.37-i686: WARNINGS
+linux-2.6.38.2-i686: WARNINGS
+linux-2.6.39.1-i686: WARNINGS
+linux-3.0-i686: WARNINGS
+linux-3.1-i686: WARNINGS
+linux-3.2.1-i686: WARNINGS
+linux-3.3-i686: WARNINGS
+linux-3.4-i686: WARNINGS
+linux-3.5-i686: WARNINGS
+linux-3.6-i686: WARNINGS
+linux-3.7-i686: ERRORS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-x86_64: WARNINGS
+linux-2.6.37-x86_64: WARNINGS
+linux-2.6.38.2-x86_64: WARNINGS
+linux-2.6.39.1-x86_64: WARNINGS
+linux-3.0-x86_64: WARNINGS
+linux-3.1-x86_64: WARNINGS
+linux-3.2.1-x86_64: WARNINGS
+linux-3.3-x86_64: WARNINGS
+linux-3.4-x86_64: WARNINGS
+linux-3.5-x86_64: WARNINGS
+linux-3.6-x86_64: WARNINGS
+linux-3.7-x86_64: ERRORS
+apps: WARNINGS
+spec-git: WARNINGS
+sparse: ERRORS
 
-> Using azap to tune and using cat /dev/dvb/adapter0/dvr0 > test.mpg to
-> generate a test.mpg
->
-> mplayer plays the file fine without audio-sync issues, but VLC and Xine
-> refuse to play it. (is this normal?)
+Detailed results are available here:
 
-What errors are VLC or Xine showing?  Unless the stream is really
-corrupt VLC and Xine should play it fine.  And if the stream were
-corrupt it wouldn't play with mplayer either?  This sounds like bugs
-in VLC and Xine.
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-There's definitely something going on in the tuner which is causing
-the channel scan to fail (and probably the tuning failure in mplayer).
- But all the stuff with actual playback causing segfaults, A/V sync
-issues, and failures to play back in certain applications are all
-userland problems that you would need to raise with the developers for
-those respective projects.
+Full logs are available here:
 
-Cheers,
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-Devin
+The V4L-DVB specification from this daily build is here:
 
---
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+http://www.xs4all.nl/~hverkuil/spec/media.html
