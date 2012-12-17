@@ -1,126 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60787 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758880Ab2LIT5M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Dec 2012 14:57:12 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Hans-Frieder Vogt <hfvogt@gmx.net>
-Subject: [PATCH RFC 11/17] fc0012: use Kernel dev_foo() logging
-Date: Sun,  9 Dec 2012 21:56:22 +0200
-Message-Id: <1355082988-6211-11-git-send-email-crope@iki.fi>
-In-Reply-To: <1355082988-6211-1-git-send-email-crope@iki.fi>
-References: <1355082988-6211-1-git-send-email-crope@iki.fi>
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:56009 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753450Ab2LQPl3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Dec 2012 10:41:29 -0500
+Received: by mail-ie0-f174.google.com with SMTP id c11so9471956ieb.19
+        for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 07:41:29 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1454034.b7COp5DhyG@avalon>
+References: <CAGGh5h0dVOsT-PCoCBtjj=+rLzViwnM2e9hG+sbWQk5iS-ThEQ@mail.gmail.com>
+	<CAGGh5h23vLD=L1D2PHwQD8XeT8edypcSx=kbf7aATQUCfQ14zg@mail.gmail.com>
+	<50CB3535.2080400@parrot.com>
+	<1454034.b7COp5DhyG@avalon>
+Date: Mon, 17 Dec 2012 16:41:29 +0100
+Message-ID: <CAGGh5h1RW9suO7gE-3Xy=5FQoW=_39oeihXuMMKHYJrnAp93cg@mail.gmail.com>
+Subject: Re: Lockup on second streamon with omap3-isp
+From: jean-philippe francois <jp.francois@cynove.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Julien BERAUD <julien.beraud@parrot.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cc: Hans-Frieder Vogt <hfvogt@gmx.net>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/fc0012-priv.h |  9 ---------
- drivers/media/tuners/fc0012.c      | 20 ++++++++++++++------
- drivers/media/tuners/fc0012.h      |  2 +-
- 3 files changed, 15 insertions(+), 16 deletions(-)
+2012/12/17 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Julien,
+>
+> On Friday 14 December 2012 15:18:29 Julien BERAUD wrote:
+>> Hi Jean-Philippe,
+>>
+>> I have had exactly the same problem and the following workaround has
+>> caused no regression on our board yet.
+>> I can't explain exactly why it works and I think that it is internal to
+>> the isp.
+>>
+>> In function ccdc_set_stream, don't disable the ccdc_subclk when stopping
+>> capture:
+>>
+>>                  ret = ccdc_disable(ccdc);
+>>                  if (ccdc->output & CCDC_OUTPUT_MEMORY)
+>>                          omap3isp_sbl_disable(isp,
+>> OMAP3_ISP_SBL_CCDC_WRITE);
+>> -               omap3isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_CCDC);
+>> +               //omap3isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_CCDC);
+>>
+>> I know that it is still a workaround but I hope that maybe it will help
+>> someone to understand the real cause of this issue.
+>
+> Do you get CCDC stop timeouts ? They are reported in the kernel log as "CCDC
+> stop timeout!".
+>
+>> Le 13/12/2012 15:14, jean-philippe francois a écrit :
+>> > Hi,
+>> >
+>> > I have news on the "IRQ storm on second streamon" problem.
+>> > Reminder :
+>> > Given a perfectly fine HSYNC / VSYNC / PIXELCLOK configuration, the
+>> > omap3-isp (at least until 3.4) will go into an interrupt storm when
+>> > streamon is called for the second time, unless you are able to stop
+>> > the sensor when not streaming. I have reproduced this on three
+>> > different board, with three different sensor.
+>> >
+>> > On board 1, the problem disappeared by itself (in fact not by itself,
+>> > see below) and the board is not in my possession anymore.
+>> > On board 2, I implemented a working s_stream operation in the subdev
+>> > driver, so the problem was solved because the sensor would effectively
+>> > stop streaming when told to, keeping the ISP + CCDC happy
+>> > On board 3, I can't stop the streaming, or I did not figure out how to
+>> > make it stop  yet.
+>> >
+>> > I tried to disable the HS_VS_IRQ, but it did not help, so I came back
+>> > looking at the code of board 1, which was running fine with a 3.4
+>> > kernel. And I discovered the problem doesn't happen if I break the
+>> > pipeline between two consecutive streamon.
+>> >
+>> > In other word if I do the following :
+>> >
+>> > media-ctl -l '16:0->5:0[1], 5:1->6:0[1]'
+>> > media-ctl -f '16:0 [SBGGR8 2560x800 (0, 0)/2560x800]'
+>> > yavta ....
+>> > yavta ...       <--------- board locks up, soft lockup is fired
+>> >
+>> > But if I do this instead :
+>> >
+>> > media-ctl -l '16:0->5:0[0], 5:1->6:0[0]'
+>> > media-ctl -l '16:0->5:0[1], 5:1->6:0[1]'
+>> > media-ctl -f '16:0 [SBGGR8 2560x800 (0, 0)/2560x800]'
+>> > yavta ....
+>> > media-ctl -l '16:0->5:0[0], 5:1->6:0[0]'
+>> > media-ctl -l '16:0->5:0[1], 5:1->6:0[1]'
+>> > media-ctl -f '16:0 [SBGGR8 2560x800 (0, 0)/2560x800]'
+>> > yavta ...       <--------- image are acquired, board doesn't lock up
+>> > anymore
+>
+> Now this really doesn't make much sense to me. Both sequences should produce
+> the exact same hardware accesses.
+>
+> Could you add a printk in isp_reg_writel
+> (drivers/media/platform/omap3isp/isp.h) and compare the register writes for
+> both sequences ?
+>
 
-diff --git a/drivers/media/tuners/fc0012-priv.h b/drivers/media/tuners/fc0012-priv.h
-index 3b98bf9..1a86ce1 100644
---- a/drivers/media/tuners/fc0012-priv.h
-+++ b/drivers/media/tuners/fc0012-priv.h
-@@ -21,15 +21,6 @@
- #ifndef _FC0012_PRIV_H_
- #define _FC0012_PRIV_H_
- 
--#define LOG_PREFIX "fc0012"
--
--#undef err
--#define err(f, arg...)  printk(KERN_ERR     LOG_PREFIX": " f "\n" , ## arg)
--#undef info
--#define info(f, arg...) printk(KERN_INFO    LOG_PREFIX": " f "\n" , ## arg)
--#undef warn
--#define warn(f, arg...) printk(KERN_WARNING LOG_PREFIX": " f "\n" , ## arg)
--
- struct fc0012_priv {
- 	struct i2c_adapter *i2c;
- 	const struct fc0012_config *cfg;
-diff --git a/drivers/media/tuners/fc0012.c b/drivers/media/tuners/fc0012.c
-index feb1594..4491f06 100644
---- a/drivers/media/tuners/fc0012.c
-+++ b/drivers/media/tuners/fc0012.c
-@@ -29,7 +29,9 @@ static int fc0012_writereg(struct fc0012_priv *priv, u8 reg, u8 val)
- 	};
- 
- 	if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
--		err("I2C write reg failed, reg: %02x, val: %02x", reg, val);
-+		dev_err(&priv->i2c->dev,
-+			"%s: I2C write reg failed, reg: %02x, val: %02x\n",
-+			KBUILD_MODNAME, reg, val);
- 		return -EREMOTEIO;
- 	}
- 	return 0;
-@@ -45,7 +47,9 @@ static int fc0012_readreg(struct fc0012_priv *priv, u8 reg, u8 *val)
- 	};
- 
- 	if (i2c_transfer(priv->i2c, msg, 2) != 2) {
--		err("I2C read reg failed, reg: %02x", reg);
-+		dev_err(&priv->i2c->dev,
-+			"%s: I2C read reg failed, reg: %02x\n",
-+			KBUILD_MODNAME, reg);
- 		return -EREMOTEIO;
- 	}
- 	return 0;
-@@ -119,7 +123,8 @@ static int fc0012_init(struct dvb_frontend *fe)
- 		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
- 
- 	if (ret)
--		err("fc0012_writereg failed: %d", ret);
-+		dev_err(&priv->i2c->dev, "%s: fc0012_writereg failed: %d\n",
-+				KBUILD_MODNAME, ret);
- 
- 	return ret;
- }
-@@ -261,7 +266,8 @@ static int fc0012_set_params(struct dvb_frontend *fe)
- 			break;
- 		}
- 	} else {
--		err("%s: modulation type not supported!", __func__);
-+		dev_err(&priv->i2c->dev, "%s: modulation type not supported!\n",
-+				KBUILD_MODNAME);
- 		return -EINVAL;
- 	}
- 
-@@ -323,7 +329,8 @@ exit:
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
- 	if (ret)
--		warn("%s: failed: %d", __func__, ret);
-+		dev_warn(&priv->i2c->dev, "%s: %s failed: %d\n",
-+				KBUILD_MODNAME, __func__, ret);
- 	return ret;
- }
- 
-@@ -413,7 +420,8 @@ err:
- 		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
- exit:
- 	if (ret)
--		warn("%s: failed: %d", __func__, ret);
-+		dev_warn(&priv->i2c->dev, "%s: %s failed: %d\n",
-+				KBUILD_MODNAME, __func__, ret);
- 	return ret;
- }
- 
-diff --git a/drivers/media/tuners/fc0012.h b/drivers/media/tuners/fc0012.h
-index 3fb53b8..54508fc 100644
---- a/drivers/media/tuners/fc0012.h
-+++ b/drivers/media/tuners/fc0012.h
-@@ -58,7 +58,7 @@ static inline struct dvb_frontend *fc0012_attach(struct dvb_frontend *fe,
- 					struct i2c_adapter *i2c,
- 					const struct fc0012_config *cfg)
- {
--	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-+	pr_warn("%s: driver disabled by Kconfig\n", __func__);
- 	return NULL;
- }
- #endif
--- 
-1.7.11.7
+And you are right, it was pure coincidence, the issue is still there.
+Sorry for the inaccurate report.
 
+Regards,
+
+Jean-Philippe François
+>> > It would be interesting to go from this workaround to the elimination of
+>> > the root cause. What can I do / test next to stop this bug from hapenning
+>> > ?
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
