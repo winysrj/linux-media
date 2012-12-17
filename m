@@ -1,115 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from juliette.telenet-ops.be ([195.130.137.74]:38042 "EHLO
-	juliette.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754812Ab2L1TXm (ORCPT
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:53192 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751253Ab2LRAN4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Dec 2012 14:23:42 -0500
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: linux-arch@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Cc: linux-m68k@vger.kernel.org
-Subject: [PATCH/RFC 0/4] Re: dma_mmap_coherent / ARCH_HAS_DMA_MMAP_COHERENT
-Date: Fri, 28 Dec 2012 20:23:30 +0100
-Message-Id: <1356722614-18224-1-git-send-email-geert@linux-m68k.org>
-In-Reply-To: <CAMuHMdVPBUzN8fsNHFzrEqev9BsvVCVR2fWySCOecjVA-J1qjg@mail.gmail.com>
-References: <CAMuHMdVPBUzN8fsNHFzrEqev9BsvVCVR2fWySCOecjVA-J1qjg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Mon, 17 Dec 2012 19:13:56 -0500
+Received: by mail-ee0-f54.google.com with SMTP id c13so1592eek.41
+        for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 16:13:54 -0800 (PST)
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+To: DRI Development <dri-devel@lists.freedesktop.org>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Aaron Plattner <aplattner@nvidia.com>
+Subject: [PATCH] [RFC] dma-buf: implement vmap refcounting in the interface logic
+Date: Tue, 18 Dec 2012 00:58:35 +0100
+Message-Id: <1355788715-22177-1-git-send-email-daniel.vetter@ffwll.ch>
+In-Reply-To: <1355787110-19968-1-git-send-email-daniel.vetter@ffwll.ch>
+References: <1355787110-19968-1-git-send-email-daniel.vetter@ffwll.ch>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Dec 16, 2012 at 5:03 PM, Geert Uytterhoeven <geert@linux-m68k.org>
-wrote:
-> drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_mmap’:
-> drivers/media/v4l2-core/videobuf2-dma-contig.c:204: error: implicit declaration of function ‘dma_mmap_coherent’
-> drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_get_base_sgt’:
-> drivers/media/v4l2-core/videobuf2-dma-contig.c:387: error: implicit declaration of function ‘dma_get_sgtable’
-> make[6]: *** [drivers/media/v4l2-core/videobuf2-dma-contig.o] Error 1
-> make[6]: Target `__build' not remade because of errors.
-> make[5]: *** [drivers/media/v4l2-core] Error 2
->
-> Both dma_mmap_coherent() and dma_get_sgtable() are defined in
-> include/asm-generic/dma-mapping-common.h only, which is included by
-> <asm/dma-mapping.h> on alpha, arm, arm64, hexagon, ia64, microblaze, mips,
-> openrisc, powerpc, s390, sh, sparc, tile, unicore32, x86.
-> Should the remaining architectures include this, too?
-> Should it be moved to <linux/dma-mapping.h>?
+All drivers which implement this need to have some sort of refcount to
+allow concurrent vmap usage. Hence implement this in the dma-buf core.
 
-I came up with an RFC-solution for this in [PATCH/RFC 3/4]
-("avr32/bfin/c6x/cris/frv/m68k/mn10300/parisc/xtensa: Add dummy get_dma_ops()")
-and [PATCH/RFC 4/4] ("common: dma-mapping: Move dma_common_*() to
-<linux/dma-mapping.h>") of this series.
+To protect against concurrent calls we need a lock, which potentially
+causes new funny locking inversions. But this shouldn't be a problem
+for exporters with statically allocated backing storage, and more
+dynamic drivers have decent issues already anyway.
 
-> Furthermore, there's ARCH_HAS_DMA_MMAP_COHERENT, which is defined
-> by powerpc only:
-> arch/powerpc/include/asm/dma-mapping.h:#define ARCH_HAS_DMA_MMAP_COHERENT
->
-> and handled in some fishy way in sound/core/pcm_native.c:
->
-> #ifndef ARCH_HAS_DMA_MMAP_COHERENT
-> /* This should be defined / handled globally! */
-> #ifdef CONFIG_ARM
-> #define ARCH_HAS_DMA_MMAP_COHERENT
-> #endif
-> #endif
->
-> /*
->  * mmap the DMA buffer on RAM
->  */
-> int snd_pcm_lib_default_mmap(struct snd_pcm_substream *substream,
->                              struct vm_area_struct *area)
-> {
->         area->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-> #ifdef ARCH_HAS_DMA_MMAP_COHERENT
->         if (!substream->ops->page &&
->             substream->dma_buffer.dev.type == SNDRV_DMA_TYPE_DEV)
->                 return dma_mmap_coherent(substream->dma_buffer.dev.dev,
->                                          area,
->                                          substream->runtime->dma_area,
->                                          substream->runtime->dma_addr,
->                                          area->vm_end - area->vm_start);
-> #elif defined(CONFIG_MIPS) && defined(CONFIG_DMA_NONCOHERENT)
->         if (substream->dma_buffer.dev.type == SNDRV_DMA_TYPE_DEV &&
->             !plat_device_is_coherent(substream->dma_buffer.dev.dev))
->                 area->vm_page_prot = pgprot_noncached(area->vm_page_prot);
-> #endif /* ARCH_HAS_DMA_MMAP_COHERENT */
->         /* mmap with fault handler */
->         area->vm_ops = &snd_pcm_vm_ops_data_fault;
->         return 0;
-> }
-> EXPORT_SYMBOL_GPL(snd_pcm_lib_default_mmap);
->
-> What's up here?
+Inspired by some refactoring patches from Aaron Plattner, who
+implemented the same idea, but only for drm/prime drivers.
 
-Probably an easy solution here is to kill ARCH_HAS_DMA_MMAP_COHERENT and
-change the code to
+v2: Check in dma_buf_release that no dangling vmaps are left.
+Suggested by Aaron Plattner. We might want to do similar checks for
+attachments, but that's for another patch. Also fix up ERR_PTR return
+for vmap.
 
-    #if defined(CONFIG_MIPS) && defined(CONFIG_DMA_NONCOHERENT)
-	    if (substream->dma_buffer.dev.type == SNDRV_DMA_TYPE_DEV &&
-		!plat_device_is_coherent(substream->dma_buffer.dev.dev))
-		    area->vm_page_prot = pgprot_noncached(area->vm_page_prot);
-    #else
-	    if (!substream->ops->page &&
-		substream->dma_buffer.dev.type == SNDRV_DMA_TYPE_DEV)
-		    return dma_mmap_coherent(substream->dma_buffer.dev.dev,
-					     area,
-					     substream->runtime->dma_area,
-					     substream->runtime->dma_addr,
-					     area->vm_end - area->vm_start);
-    #endif
+v3: Check whether the passed-in vmap address matches with the cached
+one for vunmap. Eventually we might want to remove that parameter -
+compared to the kmap functions there's no need for the vaddr for
+unmapping.  Suggested by Chris Wilson.
 
-but obviously I don't like the test for CONFIG_MIPS in generic code...
+Cc: Aaron Plattner <aplattner@nvidia.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+---
+Compile-tested only - Aaron has been bugging me too a bit too often
+about this on irc.
 
-Gr{oetje,eeting}s,
+Cheers, Daniel
+---
+ Documentation/dma-buf-sharing.txt |  6 +++++-
+ drivers/base/dma-buf.c            | 43 ++++++++++++++++++++++++++++++++++-----
+ include/linux/dma-buf.h           |  4 +++-
+ 3 files changed, 46 insertions(+), 7 deletions(-)
 
-						Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-							    -- Linus Torvalds
+diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
+index 0188903..4966b1b 100644
+--- a/Documentation/dma-buf-sharing.txt
++++ b/Documentation/dma-buf-sharing.txt
+@@ -302,7 +302,11 @@ Access to a dma_buf from the kernel context involves three steps:
+       void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
+ 
+    The vmap call can fail if there is no vmap support in the exporter, or if it
+-   runs out of vmalloc space. Fallback to kmap should be implemented.
++   runs out of vmalloc space. Fallback to kmap should be implemented. Note that
++   the dma-buf layer keeps a reference count for all vmap access and calls down
++   into the exporter's vmap function only when no vmapping exists, and only
++   unmaps it once. Protection against concurrent vmap/vunmap calls is provided
++   by taking the dma_buf->lock mutex.
+ 
+ 3. Finish access
+ 
+diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+index a3f79c4..67d3cd5 100644
+--- a/drivers/base/dma-buf.c
++++ b/drivers/base/dma-buf.c
+@@ -39,6 +39,8 @@ static int dma_buf_release(struct inode *inode, struct file *file)
+ 
+ 	dmabuf = file->private_data;
+ 
++	BUG_ON(dmabuf->vmapping_counter);
++
+ 	dmabuf->ops->release(dmabuf);
+ 	kfree(dmabuf);
+ 	return 0;
+@@ -482,12 +484,34 @@ EXPORT_SYMBOL_GPL(dma_buf_mmap);
+  */
+ void *dma_buf_vmap(struct dma_buf *dmabuf)
+ {
++	void *ptr;
++
+ 	if (WARN_ON(!dmabuf))
+ 		return NULL;
+ 
+-	if (dmabuf->ops->vmap)
+-		return dmabuf->ops->vmap(dmabuf);
+-	return NULL;
++	if (!dmabuf->ops->vmap)
++		return NULL;
++
++	mutex_lock(&dmabuf->lock);
++	if (dmabuf->vmapping_counter) {
++		dmabuf->vmapping_counter++;
++		BUG_ON(!dmabuf->vmap_ptr);
++		ptr = dmabuf->vmap_ptr;
++		goto out_unlock;
++	}
++
++	BUG_ON(dmabuf->vmap_ptr);
++
++	ptr = dmabuf->ops->vmap(dmabuf);
++	if (IS_ERR_OR_NULL(ptr))
++		goto out_unlock;
++
++	dmabuf->vmap_ptr = ptr;
++	dmabuf->vmapping_counter = 1;
++
++out_unlock:
++	mutex_unlock(&dmabuf->lock);
++	return ptr;
+ }
+ EXPORT_SYMBOL_GPL(dma_buf_vmap);
+ 
+@@ -501,7 +525,16 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
+ 	if (WARN_ON(!dmabuf))
+ 		return;
+ 
+-	if (dmabuf->ops->vunmap)
+-		dmabuf->ops->vunmap(dmabuf, vaddr);
++	BUG_ON(!dmabuf->vmap_ptr);
++	BUG_ON(dmabuf->vmapping_counter > 0);
++	BUG_ON(dmabuf->vmap_ptr != vaddr);
++
++	mutex_lock(&dmabuf->lock);
++	if (--dmabuf->vmapping_counter == 0) {
++		if (dmabuf->ops->vunmap)
++			dmabuf->ops->vunmap(dmabuf, vaddr);
++		dmabuf->vmap_ptr = NULL;
++	}
++	mutex_unlock(&dmabuf->lock);
+ }
+ EXPORT_SYMBOL_GPL(dma_buf_vunmap);
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index bd2e52c..e3bf2f6 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -119,8 +119,10 @@ struct dma_buf {
+ 	struct file *file;
+ 	struct list_head attachments;
+ 	const struct dma_buf_ops *ops;
+-	/* mutex to serialize list manipulation and attach/detach */
++	/* mutex to serialize list manipulation, attach/detach and vmap/unmap */
+ 	struct mutex lock;
++	unsigned vmapping_counter;
++	void *vmap_ptr;
+ 	void *priv;
+ };
+ 
+-- 
+1.7.11.7
 
