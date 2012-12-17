@@ -1,172 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate04.nvidia.com ([216.228.121.35]:16701 "EHLO
-	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751399Ab2LTAEG (ORCPT
+Received: from 17.mo4.mail-out.ovh.net ([46.105.41.16]:38747 "EHLO
+	mo4.mail-out.ovh.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753130Ab2LQVv0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Dec 2012 19:04:06 -0500
-Message-ID: <50D255F5.5030602@nvidia.com>
-Date: Wed, 19 Dec 2012 16:04:05 -0800
-From: Aaron Plattner <aplattner@nvidia.com>
+	Mon, 17 Dec 2012 16:51:26 -0500
+Received: from mail187.ha.ovh.net (b7.ovh.net [213.186.33.57])
+	by mo4.mail-out.ovh.net (Postfix) with SMTP id 15CC3104D8D9
+	for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 22:54:37 +0100 (CET)
+Received: from portluca.ventoso.local (unknown [192.168.10.28])
+	by ventoso.org (Postfix) with ESMTP id A49B0C26C64
+	for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 22:44:29 +0100 (CET)
+Message-ID: <50CF9290.2060403@ventoso.org>
+Date: Mon, 17 Dec 2012 22:45:52 +0100
+From: Luca Olivetti <luca@ventoso.org>
 MIME-Version: 1.0
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-CC: DRI Development <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] [RFC] dma-buf: implement vmap refcounting in the interface
- logic
-References: <1355787110-19968-1-git-send-email-daniel.vetter@ffwll.ch> <1355788715-22177-1-git-send-email-daniel.vetter@ffwll.ch>
-In-Reply-To: <1355788715-22177-1-git-send-email-daniel.vetter@ffwll.ch>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+To: linux-media@vger.kernel.org
+Subject: Re: cannot make this Asus my cinema-u3100miniplusv2 work under linux
+References: <8e9f16405c8583e35cb97bb7d7daef4b@unixproducts.com> <50CDDF9A.1080509@iki.fi> <cd31dc6ada9161825c7dff975a3da945@unixproducts.com> <50CE0AFA.9030308@iki.fi> <1af6a5408ee3ebccebc3885bba06fc69@unixproducts.com> <50CE3070.10309@iki.fi> <810ffd737b21a0f46e383a76dd4313a2@unixproducts.com> <50CE3BA0.5030503@iki.fi> <d6185b9c5a69b273609bce494f0302b1@unixproducts.com> <e479b93e0a2043d8a8f2987df502a49f@unixproducts.com>
+In-Reply-To: <e479b93e0a2043d8a8f2987df502a49f@unixproducts.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/17/2012 03:58 PM, Daniel Vetter wrote:
-> All drivers which implement this need to have some sort of refcount to
-> allow concurrent vmap usage. Hence implement this in the dma-buf core.
->
-> To protect against concurrent calls we need a lock, which potentially
-> causes new funny locking inversions. But this shouldn't be a problem
-> for exporters with statically allocated backing storage, and more
-> dynamic drivers have decent issues already anyway.
->
-> Inspired by some refactoring patches from Aaron Plattner, who
-> implemented the same idea, but only for drm/prime drivers.
->
-> v2: Check in dma_buf_release that no dangling vmaps are left.
-> Suggested by Aaron Plattner. We might want to do similar checks for
-> attachments, but that's for another patch. Also fix up ERR_PTR return
-> for vmap.
->
-> v3: Check whether the passed-in vmap address matches with the cached
-> one for vunmap. Eventually we might want to remove that parameter -
-> compared to the kmap functions there's no need for the vaddr for
-> unmapping.  Suggested by Chris Wilson.
->
-> Cc: Aaron Plattner <aplattner@nvidia.com>
-> Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-> ---
-> Compile-tested only - Aaron has been bugging me too a bit too often
-> about this on irc.
->
-> Cheers, Daniel
-> ---
->   Documentation/dma-buf-sharing.txt |  6 +++++-
->   drivers/base/dma-buf.c            | 43 ++++++++++++++++++++++++++++++++++-----
->   include/linux/dma-buf.h           |  4 +++-
->   3 files changed, 46 insertions(+), 7 deletions(-)
->
-> diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-> index 0188903..4966b1b 100644
-> --- a/Documentation/dma-buf-sharing.txt
-> +++ b/Documentation/dma-buf-sharing.txt
-> @@ -302,7 +302,11 @@ Access to a dma_buf from the kernel context involves three steps:
->         void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
->
->      The vmap call can fail if there is no vmap support in the exporter, or if it
-> -   runs out of vmalloc space. Fallback to kmap should be implemented.
-> +   runs out of vmalloc space. Fallback to kmap should be implemented. Note that
-> +   the dma-buf layer keeps a reference count for all vmap access and calls down
-> +   into the exporter's vmap function only when no vmapping exists, and only
-> +   unmaps it once. Protection against concurrent vmap/vunmap calls is provided
-> +   by taking the dma_buf->lock mutex.
->
->   3. Finish access
->
-> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-> index a3f79c4..67d3cd5 100644
-> --- a/drivers/base/dma-buf.c
-> +++ b/drivers/base/dma-buf.c
-> @@ -39,6 +39,8 @@ static int dma_buf_release(struct inode *inode, struct file *file)
->
->   	dmabuf = file->private_data;
->
-> +	BUG_ON(dmabuf->vmapping_counter);
-> +
->   	dmabuf->ops->release(dmabuf);
->   	kfree(dmabuf);
->   	return 0;
-> @@ -482,12 +484,34 @@ EXPORT_SYMBOL_GPL(dma_buf_mmap);
->    */
->   void *dma_buf_vmap(struct dma_buf *dmabuf)
->   {
-> +	void *ptr;
-> +
->   	if (WARN_ON(!dmabuf))
->   		return NULL;
->
-> -	if (dmabuf->ops->vmap)
-> -		return dmabuf->ops->vmap(dmabuf);
-> -	return NULL;
-> +	if (!dmabuf->ops->vmap)
-> +		return NULL;
-> +
-> +	mutex_lock(&dmabuf->lock);
-> +	if (dmabuf->vmapping_counter) {
-> +		dmabuf->vmapping_counter++;
-> +		BUG_ON(!dmabuf->vmap_ptr);
-> +		ptr = dmabuf->vmap_ptr;
-> +		goto out_unlock;
-> +	}
-> +
-> +	BUG_ON(dmabuf->vmap_ptr);
-> +
-> +	ptr = dmabuf->ops->vmap(dmabuf);
-> +	if (IS_ERR_OR_NULL(ptr))
-> +		goto out_unlock;
-> +
-> +	dmabuf->vmap_ptr = ptr;
-> +	dmabuf->vmapping_counter = 1;
-> +
-> +out_unlock:
-> +	mutex_unlock(&dmabuf->lock);
-> +	return ptr;
->   }
->   EXPORT_SYMBOL_GPL(dma_buf_vmap);
->
-> @@ -501,7 +525,16 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
->   	if (WARN_ON(!dmabuf))
->   		return;
->
-> -	if (dmabuf->ops->vunmap)
-> -		dmabuf->ops->vunmap(dmabuf, vaddr);
-> +	BUG_ON(!dmabuf->vmap_ptr);
-> +	BUG_ON(dmabuf->vmapping_counter > 0);
+Al 17/12/12 20:57, En/na Renato Gallo ha escrit:
 
-This should be BUG_ON(vmapping_counter == 0);
+> can i amplify the signal to improve reception ?
 
-Otherwise, this seems to work fine.
+an amplifier will amplify the noise as well as the signal (i.e., an amplifier is only useful to compensate for the losses in the cable, not to improve the signal).
 
---
-Aaron
+> why with the bowl is better ?
 
-> +	BUG_ON(dmabuf->vmap_ptr != vaddr);
-> +
-> +	mutex_lock(&dmabuf->lock);
-> +	if (--dmabuf->vmapping_counter == 0) {
-> +		if (dmabuf->ops->vunmap)
-> +			dmabuf->ops->vunmap(dmabuf, vaddr);
-> +		dmabuf->vmap_ptr = NULL;
-> +	}
-> +	mutex_unlock(&dmabuf->lock);
->   }
->   EXPORT_SYMBOL_GPL(dma_buf_vunmap);
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index bd2e52c..e3bf2f6 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -119,8 +119,10 @@ struct dma_buf {
->   	struct file *file;
->   	struct list_head attachments;
->   	const struct dma_buf_ops *ops;
-> -	/* mutex to serialize list manipulation and attach/detach */
-> +	/* mutex to serialize list manipulation, attach/detach and vmap/unmap */
->   	struct mutex lock;
-> +	unsigned vmapping_counter;
-> +	void *vmap_ptr;
->   	void *priv;
->   };
->
->
+http://en.wikipedia.org/wiki/Monopole_antenna
 
+The bowl acts as a ground plane
+
+Bye
+-- 
+Luca
