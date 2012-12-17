@@ -1,28 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from jops1.daishodai.ac.jp ([202.236.112.131]:55317 "EHLO
-	jops1.daishodai.ac.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751758Ab2LCMGv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2012 07:06:51 -0500
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:55044 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397Ab2LQBJb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Dec 2012 20:09:31 -0500
+Received: by mail-lb0-f174.google.com with SMTP id gi11so4252207lbb.19
+        for <linux-media@vger.kernel.org>; Sun, 16 Dec 2012 17:09:30 -0800 (PST)
 MIME-Version: 1.0
-Message-ID: <20121203113942.00006C89.0139@jops1.daishodai.ac.jp>
-Date: Mon, 03 Dec 2012 20:39:42 +0900
-From: "Ernest Wilson" <shimosan@jops1.daishodai.ac.jp>
-To: <info@msn.net>
-Reply-To: <ernestwilson009@zhot.net>
-Subject: 
-Content-Type: Text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Date: Sun, 16 Dec 2012 20:09:29 -0500
+Message-ID: <CAOcJUbwdzPEn14P5qA=Sqk56tcaL3neeOwQqNrgDSdGce1Ky-w@mail.gmail.com>
+Subject: [PULL] add basic DVB-S2 support for Hauppauge HVR-4400
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Mauro,
 
-REF No: L/200-26937
-BATCH No: 2007MJL-01
+Please merge:
 
+git request-pull 49cc629df16f2a15917800a8579bd9c25c41b634
+git://linuxtv.org/mkrufky/hauppauge hvr4400
+The following changes since commit 49cc629df16f2a15917800a8579bd9c25c41b634:
 
-Your e-mail address have won you 750,000 GBP in Microsoft end of year raffle draw award 2012, contact this email : (ernestwilson750@zhot.net)    with your name,address,phone number and age.
+  [media] MAINTAINERS: add si470x-usb+common and si470x-i2c entries
+(2012-12-11 18:16:13 -0200)
 
-Regards,
-Ernest Wilson.
+are available in the git repository at:
 
+  git://linuxtv.org/mkrufky/hauppauge hvr4400
 
+for you to fetch changes up to 4c8e64232d4a71e68d68b9093506966c0244a526:
+
+  cx23885: add basic DVB-S2 support for Hauppauge HVR-4400 (2012-12-16
+12:27:25 -0500)
+
+----------------------------------------------------------------
+Michael Krufky (2):
+      tda10071: add tuner_i2c_addr to struct tda10071_config
+      cx23885: add basic DVB-S2 support for Hauppauge HVR-4400
+
+ drivers/media/dvb-frontends/tda10071.c    |    2 +-
+ drivers/media/dvb-frontends/tda10071.h    |    6 ++++++
+ drivers/media/pci/cx23885/Kconfig         |    2 ++
+ drivers/media/pci/cx23885/cx23885-cards.c |   38
++++++++++++++++++++++++++++++++++++++-
+ drivers/media/pci/cx23885/cx23885-dvb.c   |   27 +++++++++++++++++++++++++++
+ drivers/media/pci/cx23885/cx23885.h       |    1 +
+ 6 files changed, 74 insertions(+), 2 deletions(-)
+
+Cheers,
+
+Mike
