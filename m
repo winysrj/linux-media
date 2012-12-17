@@ -1,216 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:41868 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752432Ab2LQQwf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Dec 2012 11:52:35 -0500
-From: Jani Nikula <jani.nikula@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	linux-fbdev@vger.kernel.org,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Tom Gall <tom.gall@linaro.org>,
-	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
-	dri-devel@lists.freedesktop.org, Rob Clark <rob.clark@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC v2 0/5] Common Display Framework
-In-Reply-To: <1608840.IleINgrx5J@avalon>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <50AF8D79.1070309@ti.com> <1608840.IleINgrx5J@avalon>
-Date: Mon, 17 Dec 2012 18:53:37 +0200
-Message-ID: <87pq28hb72.fsf@intel.com>
+Received: from mail-la0-f46.google.com ([209.85.215.46]:49571 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752808Ab2LQPEV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Dec 2012 10:04:21 -0500
+Received: by mail-la0-f46.google.com with SMTP id p5so4812449lag.19
+        for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 07:04:19 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <CAOcJUbwdzPEn14P5qA=Sqk56tcaL3neeOwQqNrgDSdGce1Ky-w@mail.gmail.com>
+References: <CAOcJUbwdzPEn14P5qA=Sqk56tcaL3neeOwQqNrgDSdGce1Ky-w@mail.gmail.com>
+Date: Mon, 17 Dec 2012 10:04:19 -0500
+Message-ID: <CAOcJUbz0yrH+_ixXOxsnZxmpgGoZdBH+1Z12tRzhr6mqQOqYMQ@mail.gmail.com>
+Subject: Re: [PULL] add basic DVB-S2 support for Hauppauge HVR-4400
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+As discussed on irc, the following pwclient commands should update the
+status of the patches in patchwork to correspond with this merge
+request:
 
-Hi Laurent -
+pwclient update -s 'superseded' 15920
+pwclient update -s 'superseded' 15921
+pwclient update -s 'accepted' 15922
 
-On Mon, 17 Dec 2012, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
-> Hi Tomi,
->
-> I finally have time to work on a v3 :-)
->
-> On Friday 23 November 2012 16:51:37 Tomi Valkeinen wrote:
->> On 2012-11-22 23:45, Laurent Pinchart wrote:
->> > From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
->> > 
->> > Hi everybody,
->> > 
->> > Here's the second RFC of what was previously known as the Generic Panel
->> > Framework.
->> 
->> Nice work! Thanks for working on this.
->> 
->> I was doing some testing with the code, seeing how to use it in omapdss.
->> Here are some thoughts:
->> 
->> In your model the DSS gets the panel devices connected to it from
->> platform data. After the DSS and the panel drivers are loaded, DSS gets
->> a notification and connects DSS and the panel.
->> 
->> I think it's a bit limited way. First of all, it'll make the DT data a
->> bit more complex (although this is not a major problem). With your
->> model, you'll need something like:
->> 
->> soc-base.dtsi:
->> 
->> dss {
->> 	dpi0: dpi {
->> 	};
->> };
->> 
->> board.dts:
->> 
->> &dpi0 {
->> 	panel = &dpi-panel;
->> };
->> 
->> / {
->> 	dpi-panel: dpi-panel {
->> 		...panel data...;
->> 	};
->> };
->> 
->> Second, it'll prevent hotplug, and even if real hotplug would not be
->> supported, it'll prevent cases where the connected panel must be found
->> dynamically (like reading ID from eeprom).
->
-> Hotplug definitely needs to be supported, as the common display framework also 
-> targets HDMI and DP. The notification mechanism was actually designed to 
-> support hotplug.
+Cheers,
 
-I can see the need for a framework for DSI panels and such (in fact Tomi
-and I have talked about it like 2-3 years ago already!) but what is the
-story for HDMI and DP? In particular, what's the relationship between
-DRM and CDF here? Is there a world domination plan to switch the DRM
-drivers to use this framework too? ;) Do you have some rough plans how
-DRM and CDF should work together in general?
+Mike
 
-BR,
-Jani.
-
-
+On Sun, Dec 16, 2012 at 8:09 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> Mauro,
 >
-> How do you see the proposal preventing hotplug ?
+> Please merge:
 >
->> Third, it kinda creates a cyclical dependency: the DSS needs to know
->> about the panel and calls ops in the panel, and the panel calls ops in
->> the DSS. I'm not sure if this is an actual problem, but I usually find
->> it simpler if calls are done only in one direction.
+> git request-pull 49cc629df16f2a15917800a8579bd9c25c41b634
+> git://linuxtv.org/mkrufky/hauppauge hvr4400
+> The following changes since commit 49cc629df16f2a15917800a8579bd9c25c41b634:
 >
-> I don't see any way around that. The panel is not a standalone entity that can 
-> only receive calls (as it needs to control video streams, per your request 
-> :-)) or only emit calls (as something needs to control it, userspace doesn't 
-> control the panel directly).
+>   [media] MAINTAINERS: add si470x-usb+common and si470x-i2c entries
+> (2012-12-11 18:16:13 -0200)
 >
->> What I suggest is take a simpler approach, something alike to how regulators
->> or gpios are used, even if slightly more complex than those: the entity that
->> has a video output (SoC's DSS, external chips) offers that video output as
->> resource. It doesn't know or care who uses it. The user of the video output
->> (panel, external chips) will find the video output (to which it is connected
->> in the HW) by some means, and will use different operations on that output
->> to operate the device.
->> 
->> This would give us something like the following DT data:
->> 
->> soc-base.dtsi:
->> 
->> dss {
->> 	dpi0: dpi {
->> 	};
->> };
->> 
->> board.dts:
->> 
->> / {
->> 	dpi-panel: dpi-panel {
->> 		source = <&dpi0>;
->> 		...panel data...;
->> 	};
->> };
->> 
->> The panel driver would do something like this in its probe:
->> 
->> int dpi_panel_probe()
->> {
->> 	// Find the video source, increase ref
->> 	src = get_video_source_from_of("source");
->> 
->> 	// Reserve the video source for us. others can still get and
->> 	// observe it, but cannot use it as video data source.
->> 	// I think this should cascade upstream, so that after this call
->> 	// each video entity from the panel to the SoC's CRTC is
->> 	// reserved and locked for this video pipeline.
->> 	reserve_video_source(src);
->> 
->> 	// set DPI HW configuration, like DPI data lines. The
->> 	// configuration would come from panel's platform data
->> 	set_dpi_config(src, config);
->> 
->> 	// register this panel as a display.
->> 	register_display(this);
->> }
->> 
->> 
->> The DSS's dpi driver would do something like:
->> 
->> int dss_dpi_probe()
->> {
->> 	// register as a DPI video source
->> 	register_video_source(this);
->> }
->> 
->> A DSI-2-DPI chip would do something like:
->> 
->> int dsi2dpi_probe()
->> {
->> 	// get, reserve and config the DSI bus from SoC
->> 	src = get_video_source_from_of("source");
->> 	reserve_video_source(src);
->> 	set_dsi_config(src, config);
->> 
->> 	// register as a DPI video source
->> 	register_video_source(this);
->> }
->> 
->> 
->> Here we wouldn't have similar display_entity as you have, but video sources
->> and displays. Video sources are elements in the video pipeline, and a video
->> source is used only by the next downstream element. The last element in the
->> pipeline would not be a video source, but a display, which would be used by
->> the upper layer.
+> are available in the git repository at:
 >
-> I don't think we should handle pure sources, pure sinks (displays) and mixed 
-> entities (transceivers) differently. I prefer having abstract entities that 
-> can have a source and a sink, and expose the corresponding operations. That 
-> would make pipeline handling much easier, as the code will only need to deal 
-> with a single type of object. Implementing support for entities with multiple 
-> sinks and/or sources would also be possible.
+>   git://linuxtv.org/mkrufky/hauppauge hvr4400
 >
->> Video source's ops would deal with things related to the video bus in
->> question, like configuring data lanes, sending DSI packets, etc. The
->> display ops would be more high level things, like enable, update, etc.
->> Actually, I guess you could consider the display to represent and deal
->> with the whole pipeline, while video source deals with the bus between
->> two display entities.
+> for you to fetch changes up to 4c8e64232d4a71e68d68b9093506966c0244a526:
 >
-> What is missing in your proposal is an explanation of how the panel is 
-> controlled. What does your register_display() function register the display 
-> with, and what then calls the display operations ?
+>   cx23885: add basic DVB-S2 support for Hauppauge HVR-4400 (2012-12-16
+> 12:27:25 -0500)
 >
-> -- 
-> Regards,
+> ----------------------------------------------------------------
+> Michael Krufky (2):
+>       tda10071: add tuner_i2c_addr to struct tda10071_config
+>       cx23885: add basic DVB-S2 support for Hauppauge HVR-4400
 >
-> Laurent Pinchart
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+>  drivers/media/dvb-frontends/tda10071.c    |    2 +-
+>  drivers/media/dvb-frontends/tda10071.h    |    6 ++++++
+>  drivers/media/pci/cx23885/Kconfig         |    2 ++
+>  drivers/media/pci/cx23885/cx23885-cards.c |   38
+> +++++++++++++++++++++++++++++++++++++-
+>  drivers/media/pci/cx23885/cx23885-dvb.c   |   27 +++++++++++++++++++++++++++
+>  drivers/media/pci/cx23885/cx23885.h       |    1 +
+>  6 files changed, 74 insertions(+), 2 deletions(-)
+>
+> Cheers,
+>
+> Mike
