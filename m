@@ -1,44 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f52.google.com ([209.85.215.52]:42436 "EHLO
-	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752071Ab2LVV7C (ORCPT
+Received: from mail.hauppauge.com ([167.206.143.4]:3351 "EHLO
+	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751368Ab2LQBMR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Dec 2012 16:59:02 -0500
-Received: by mail-la0-f52.google.com with SMTP id l5so7026990lah.11
-        for <linux-media@vger.kernel.org>; Sat, 22 Dec 2012 13:59:00 -0800 (PST)
-Message-ID: <50D62BC9.9010706@mvista.com>
-Date: Sun, 23 Dec 2012 01:53:13 +0400
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-MIME-Version: 1.0
-To: Tony Prisk <linux@prisktech.co.nz>
-CC: kernel-janitors@vger.kernel.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-kernel@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH RESEND 6/6] clk: s5p-g2d: Fix incorrect usage of IS_ERR_OR_NULL
-References: <1355852048-23188-1-git-send-email-linux@prisktech.co.nz> <1355852048-23188-7-git-send-email-linux@prisktech.co.nz>
-In-Reply-To: <1355852048-23188-7-git-send-email-linux@prisktech.co.nz>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sun, 16 Dec 2012 20:12:17 -0500
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, crope@iki.fi,
+	Michael Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH] tda10071: make sure both tuner and demod i2c addresses are specified
+Date: Sun, 16 Dec 2012 20:12:04 -0500
+Message-Id: <1355706724-25663-1-git-send-email-mkrufky@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+display an error message if either tuner_i2c_addr or demod_i2c_addr
+are not specified in the tda10071_config structure
 
-On 18-12-2012 21:34, Tony Prisk wrote:
+Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+---
+ drivers/media/dvb-frontends/tda10071.c  |   18 +++++++++++++++---
+ drivers/media/dvb-frontends/tda10071.h  |    4 ++--
+ drivers/media/pci/cx23885/cx23885-dvb.c |    2 +-
+ drivers/media/usb/em28xx/em28xx-dvb.c   |    3 ++-
+ 4 files changed, 20 insertions(+), 7 deletions(-)
 
-> Resend to include mailing lists.
-
-    Such remarks should be placed under --- tear line, not in the changelog.
-
-> Replace IS_ERR_OR_NULL with IS_ERR on clk_get results.
-
-> Signed-off-by: Tony Prisk <linux@prisktech.co.nz>
-> CC: Kyungmin Park <kyungmin.park@samsung.com>
-> CC: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> CC: linux-media@vger.kernel.org
-
-WBR, Sergei
-
+diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
+index 7103629..02f9234 100644
+--- a/drivers/media/dvb-frontends/tda10071.c
++++ b/drivers/media/dvb-frontends/tda10071.c
+@@ -30,7 +30,7 @@ static int tda10071_wr_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
+ 	u8 buf[len+1];
+ 	struct i2c_msg msg[1] = {
+ 		{
+-			.addr = priv->cfg.i2c_address,
++			.addr = priv->cfg.demod_i2c_addr,
+ 			.flags = 0,
+ 			.len = sizeof(buf),
+ 			.buf = buf,
+@@ -59,12 +59,12 @@ static int tda10071_rd_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
+ 	u8 buf[len];
+ 	struct i2c_msg msg[2] = {
+ 		{
+-			.addr = priv->cfg.i2c_address,
++			.addr = priv->cfg.demod_i2c_addr,
+ 			.flags = 0,
+ 			.len = 1,
+ 			.buf = &reg,
+ 		}, {
+-			.addr = priv->cfg.i2c_address,
++			.addr = priv->cfg.demod_i2c_addr,
+ 			.flags = I2C_M_RD,
+ 			.len = sizeof(buf),
+ 			.buf = buf,
+@@ -1202,6 +1202,18 @@ struct dvb_frontend *tda10071_attach(const struct tda10071_config *config,
+ 		goto error;
+ 	}
+ 
++	/* make sure demod i2c address is specified */
++	if (!config->demod_i2c_addr) {
++		dev_dbg(&i2c->dev, "%s: invalid demod i2c address!\n", __func__);
++		goto error;
++	}
++
++	/* make sure tuner i2c address is specified */
++	if (!config->tuner_i2c_addr) {
++		dev_dbg(&i2c->dev, "%s: invalid tuner i2c address!\n", __func__);
++		goto error;
++	}
++
+ 	/* setup the priv */
+ 	priv->i2c = i2c;
+ 	memcpy(&priv->cfg, config, sizeof(struct tda10071_config));
+diff --git a/drivers/media/dvb-frontends/tda10071.h b/drivers/media/dvb-frontends/tda10071.h
+index a20d5c4..bff1c38 100644
+--- a/drivers/media/dvb-frontends/tda10071.h
++++ b/drivers/media/dvb-frontends/tda10071.h
+@@ -28,10 +28,10 @@ struct tda10071_config {
+ 	 * Default: none, must set
+ 	 * Values: 0x55,
+ 	 */
+-	u8 i2c_address;
++	u8 demod_i2c_addr;
+ 
+ 	/* Tuner I2C address.
+-	 * Default: 0x14
++	 * Default: none, must set
+ 	 * Values: 0x14, 0x54, ...
+ 	 */
+ 	u8 tuner_i2c_addr;
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index cf84c53..a1aae56 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -662,7 +662,7 @@ static struct mt2063_config terratec_mt2063_config[] = {
+ };
+ 
+ static const struct tda10071_config hauppauge_tda10071_config = {
+-	.i2c_address = 0x05,
++	.demod_i2c_addr = 0x05,
+ 	.tuner_i2c_addr = 0x54,
+ 	.i2c_wr_max = 64,
+ 	.ts_mode = TDA10071_TS_SERIAL,
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 63f2e70..e800881 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -714,7 +714,8 @@ static struct tda18271_config em28xx_cxd2820r_tda18271_config = {
+ };
+ 
+ static const struct tda10071_config em28xx_tda10071_config = {
+-	.i2c_address = 0x55, /* (0xaa >> 1) */
++	.demod_i2c_addr = 0x55, /* (0xaa >> 1) */
++	.tuner_i2c_addr = 0x14,
+ 	.i2c_wr_max = 64,
+ 	.ts_mode = TDA10071_TS_SERIAL,
+ 	.spec_inv = 0,
+-- 
+1.7.10.4
 
