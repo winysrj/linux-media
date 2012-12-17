@@ -1,43 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxweb01do.versatel-west.de ([62.214.96.172]:33778 "HELO
-	mxweb01do.versatel-west.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752441Ab2LAPgG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Dec 2012 10:36:06 -0500
-Received: from cinnamon-sage.de (i577A3D15.versanet.de [87.122.61.21])
-	(dvb@flensrocker.de authenticated bits=0)
-	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id qB1FTJRx001197
-	for <linux-media@vger.kernel.org>; Sat, 1 Dec 2012 16:29:20 +0100
-Received: from 192.168.23.2:64486 by cinnamon-sage.de for <andreas.regel@gmx.de>,<linux-media@vger.kernel.org> ; 01.12.2012 16:29:18
-Message-ID: <50BA224F.30504@flensrocker.de>
-Date: Sat, 01 Dec 2012 16:29:19 +0100
-From: Lars Hanisch <dvb@flensrocker.de>
+Received: from na3sys009aog132.obsmtp.com ([74.125.149.250]:51703 "EHLO
+	na3sys009aog132.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750711Ab2LQFGN convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Dec 2012 00:06:13 -0500
+From: Albert Wang <twang13@marvell.com>
+To: Jonathan Corbet <corbet@lwn.net>
+CC: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Date: Sun, 16 Dec 2012 21:06:00 -0800
+Subject: RE: [PATCH V3 15/15] [media] marvell-ccic: add 3 frame buffers
+ support in DMA_CONTIG mode
+Message-ID: <477F20668A386D41ADCC57781B1F70430D13C8CD48@SC-VEXCH1.marvell.com>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+	<1355565484-15791-16-git-send-email-twang13@marvell.com>
+	<20121216095601.4a086356@hpe.lwn.net>
+	<477F20668A386D41ADCC57781B1F70430D13C8CCE7@SC-VEXCH1.marvell.com>
+ <20121216155503.2ce60997@lwn.net>
+In-Reply-To: <20121216155503.2ce60997@lwn.net>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Andreas Regel <andreas.regel@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Not receiving any messages since 2012-11-04
-References: <50BA1CAB.8050801@gmx.de>
-In-Reply-To: <50BA1CAB.8050801@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi, Jonathan
 
-Am 01.12.2012 16:05, schrieb Andreas Regel:
-> am I the only one that is receiveing no mails from linux-media since Nov 04, 2012?
 
- Here's everything fine AICT.
-
-Regards,
-Lars.
-
-> 
-> Best regards
-> Andreas
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>-----Original Message-----
+>From: Jonathan Corbet [mailto:corbet@lwn.net]
+>Sent: Monday, 17 December, 2012 06:55
+>To: Albert Wang
+>Cc: g.liakhovetski@gmx.de; linux-media@vger.kernel.org; Libin Yang
+>Subject: Re: [PATCH V3 15/15] [media] marvell-ccic: add 3 frame buffers support in
+>DMA_CONTIG mode
 >
+>On Sun, 16 Dec 2012 14:34:31 -0800
+>Albert Wang <twang13@marvell.com> wrote:
+>
+>> >What is the purpose of the "usebufs" field?  The code maintains it in
+>> >various places, but I don't see anywhere that actually uses that value for
+>> >anything.
+>> >
+>> [Albert Wang] Two buffers mode doesn't need it.
+>> But Three buffers mode need it indicates which conditions we need set the single
+>buffer flag.
+>> I used "tribufs" as the name in the previous version, but it looks it's a confused name
+>when we merged
+>> Two buffers mode and Three buffers mode with same code by removing #ifdef based
+>on your comments months ago. :)
+>> So we just changed the name with "usebufs".
+>
+>OK, I misread the code a bit, sorry.  I do find the variable confusing
+>still, but it clearly does play a role.
+>
+>I think that using three buffers by default would make sense.  I don't
+>think that increased overruns are an unbreakable ABI feature :)
+>
+[Albert Wang] OK, we can change the default to three buffers mode.
+
+>Feel free to add my ack to this one.
+>
+>Thanks,
+>
+>jon
+
+
+Thanks
+Albert Wang
+86-21-61092656
