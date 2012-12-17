@@ -1,81 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.tpi.com ([70.99.223.143]:4667 "EHLO mail.tpi.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751005Ab2LDQfo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Dec 2012 11:35:44 -0500
-Message-ID: <50BE1F6B.8030909@canonical.com>
-Date: Tue, 04 Dec 2012 09:06:03 -0700
-From: Tim Gardner <tim.gardner@canonical.com>
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:35753 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751368Ab2LQBTT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Dec 2012 20:19:19 -0500
+Received: by mail-lb0-f174.google.com with SMTP id gi11so4255840lbb.19
+        for <linux-media@vger.kernel.org>; Sun, 16 Dec 2012 17:19:18 -0800 (PST)
 MIME-Version: 1.0
-To: Ben Hutchings <ben@decadent.org.uk>
-CC: Tim Gardner <rtg.canonical@gmail.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PULL] linux-firmware: cx23885: update to Version 2.06.139
-References: <50BCEBCB.4080303@gmail.com> <1354597630.17107.42.camel@deadeye.wl.decadent.org.uk>
-In-Reply-To: <1354597630.17107.42.camel@deadeye.wl.decadent.org.uk>
+In-Reply-To: <1355707068-25751-1-git-send-email-mkrufky@linuxtv.org>
+References: <1355707068-25751-1-git-send-email-mkrufky@linuxtv.org>
+Date: Sun, 16 Dec 2012 20:19:17 -0500
+Message-ID: <CAOcJUby1M8u1KfE9Mp=cC0SLBnbhXTyAEwoe8hfyKL9f0jMGkg@mail.gmail.com>
+Subject: Re: [PATCH] tda18271: add missing entries for qam_7 to
+ tda18271_update_std_map() and tda18271_dump_std_map()
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com,
+	=?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Michael Krufky <mkrufky@linuxtv.org>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA512
+Mauro,
 
-On 12/03/2012 10:07 PM, Ben Hutchings wrote:
-> On Mon, 2012-12-03 at 11:13 -0700, Tim Gardner wrote:
->> Ben - what is your policy on extracting firmware from Windows 
->> drivers?
-> 
-<snip>
-> 
-> I'm not sure how you can say they are the same files, as you're 
-> proposing to change the contents.  The copyright on the current 
-> files belongs to the chipset vendor, Conexant, and Hauppuage 
-> *presumably* used firmware supplied by Conexant, but either of
-> them might have chosen a different licence for the versions in this
-> driver package.
-> 
+Please merge:
 
-I guess that is the root of the issue. In light of the licensing
-uncertainty I think you should just drop this pull request.
+git request-pull c6c22955f80f2db9614b01fe5a3d1cfcd8b3d848
+git://linuxtv.org/mkrufky/tuners tda18271-qam7
+The following changes since commit c6c22955f80f2db9614b01fe5a3d1cfcd8b3d848:
 
->> ----------------------------------------------------------------
->>  Tim Gardner (1): cx23885: update to Version 2.06.139
->> 
->> v4l-cx23885-avcore-01.fw |  Bin 16382 -> 16382 bytes 
->> v4l-cx23885-enc.fw       |  Bin 16382 -> 376836 bytes 2 files 
->> changed, 0 insertions(+), 0 deletions(-)
-> 
-> How odd, these two files are currently identical to each other...
-> 
-> Ben.
-> 
+  [media] dma-mapping: fix dma_common_get_sgtable() conditional
+compilation (2012-11-27 09:42:31 -0200)
 
-Indeed they are. The comment in the bug report [0] indicates that
-those files should not be identical.
+are available in the git repository at:
 
-[0]
-https://bugs.launchpad.net/ubuntu/+source/linux-firmware/+bug/569615/comments/4
+  git://linuxtv.org/mkrufky/tuners tda18271-qam7
 
-rtg
-- -- 
-Tim Gardner tim.gardner@canonical.com
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with undefined - http://www.enigmail.net/
+for you to fetch changes up to 6554906af8c145b4fa8d4ea1b9c98c20322dd132:
 
-iQIcBAEBCgAGBQJQvh9lAAoJED12yEX6FEfKYD8P/ih3NovJAZqndS8ljG/X7Pcw
-7pgQNM0WWiiwjNxcxQK+s+w/XV1QJGztLgXDduUEb3jD8nNH2qvAGXVgBKWZNSqQ
-alSF6yqvRUq8G2h6CJc6/T9MVmhaYm1GkgXRVFViLFyvjh9wc6xxD/O5SA3Fr0Q2
-J0Js4/vExIoFd8ps+9cB4+AzDqWmiEGk5FBseNLwO2zrDyzziO7tXH6K3W34n1EW
-ztVOnkFbrvVBuf/QOQFBbt06ziKINwPsyZkCyUHCWs7WXmWLLH1rvrH2CSGvQkXY
-S5fk/H1j5LRCellURpAbs9x50OWdShOQs05mSpd4eZmD1lvFqjMCCYWHn4AR2fvk
-yXi71uendvfVFfFHlN3kWHnCLICLJUa8urMRDSts3XRUFXZDijeJVWpJZJXK5m+W
-40NIkDOQVvVHWxL+W1bCiM36uE0f+9klsqfs0nWB1xERol9peaoqJhoW1VyzHEmK
-7QSt1+nezFuURfaSktG2W/WsRZuo6RI9ElOWrOVGrmnA3PoYun8KlanGyGiS+ezu
-/b2l/yxPAlanHXcAtpCcV7h+sLL9k7z5rIUZDuseHazAw14jATGu7LLpac7nvPCB
-cuYvKUeVOSPi/fkC5A+pSWMDznjr92bgTf71tlzzGTNDIq/MQCwpotxJUfOXr3Oh
-5dZzEgczjDDdYMniC6rl
-=egal
------END PGP SIGNATURE-----
+  tda18271: add missing entries for qam_7 to tda18271_update_std_map()
+and tda18271_dump_std_map() (2012-12-04 14:14:26 -0500)
+
+----------------------------------------------------------------
+Frank Sch�fer (1):
+      tda18271: add missing entries for qam_7 to
+tda18271_update_std_map() and tda18271_dump_std_map()
+
+ drivers/media/tuners/tda18271-fe.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+Regards,
+
+Mike
+
+On Sun, Dec 16, 2012 at 8:17 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> From: Frank Schäfer <fschaefer.oss@googlemail.com>
+>
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+> ---
+>  drivers/media/tuners/tda18271-fe.c |    2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/media/tuners/tda18271-fe.c b/drivers/media/tuners/tda18271-fe.c
+> index 72c26fd..e778686 100644
+> --- a/drivers/media/tuners/tda18271-fe.c
+> +++ b/drivers/media/tuners/tda18271-fe.c
+> @@ -1122,6 +1122,7 @@ static int tda18271_dump_std_map(struct dvb_frontend *fe)
+>         tda18271_dump_std_item(dvbt_7, "dvbt 7");
+>         tda18271_dump_std_item(dvbt_8, "dvbt 8");
+>         tda18271_dump_std_item(qam_6,  "qam 6 ");
+> +       tda18271_dump_std_item(qam_7,  "qam 7 ");
+>         tda18271_dump_std_item(qam_8,  "qam 8 ");
+>
+>         return 0;
+> @@ -1149,6 +1150,7 @@ static int tda18271_update_std_map(struct dvb_frontend *fe,
+>         tda18271_update_std(dvbt_7, "dvbt 7");
+>         tda18271_update_std(dvbt_8, "dvbt 8");
+>         tda18271_update_std(qam_6,  "qam 6");
+> +       tda18271_update_std(qam_7,  "qam 7");
+>         tda18271_update_std(qam_8,  "qam 8");
+>
+>         return 0;
+> --
+> 1.7.10.4
+>
