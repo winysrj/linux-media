@@ -1,77 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50549 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755609Ab2LMPJs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Dec 2012 10:09:48 -0500
-Message-ID: <50C9EF9B.6060409@iki.fi>
-Date: Thu, 13 Dec 2012 17:09:15 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:52646 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751674Ab2LQI5A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Dec 2012 03:57:00 -0500
+Received: by mail-vb0-f46.google.com with SMTP id b13so6677968vby.19
+        for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 00:56:59 -0800 (PST)
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Matthew Gyurgyik <matthew@pyther.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com> <50C48891.2050903@googlemail.com> <50C4A520.6020908@pyther.net> <CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com> <50C4BA20.8060003@googlemail.com> <50C4BAFB.60304@googlemail.com> <50C4C525.6020006@googlemail.com> <50C4D011.6010700@pyther.net> <50C60220.8050908@googlemail.com> <CAGoCfizTfZVFkNvdQuuisOugM2BGipYd_75R63nnj=K7E8ULWQ@mail.gmail.com> <50C60772.2010904@googlemail.com> <CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com> <50C6226C.8090302@iki! .fi> <50C636E7.8060003@googlemail.com> <50C64AB0.7020407@iki.fi> <50C79CD6.4060501@googlemail.com> <50C79E9A.3050301@iki.fi> <50C8F645.60308@googlemail.com> <50C8F86F.2090503@googlemail.com>
-In-Reply-To: <50C8F86F.2090503@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAKMK7uHaQ+5Yy1PDy+DE=iVN5ps6gmvSiWezapF=Kv338tZj0w@mail.gmail.com>
+References: <1355477817-5750-1-git-send-email-sumit.semwal@ti.com> <CAKMK7uHaQ+5Yy1PDy+DE=iVN5ps6gmvSiWezapF=Kv338tZj0w@mail.gmail.com>
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Mon, 17 Dec 2012 14:26:39 +0530
+Message-ID: <CAO_48GGxe5ZSeKsWO7=E-FoHXFVT7AOjwdAHv-oQk6F3qCXsOw@mail.gmail.com>
+Subject: Re: [PATCH] dma-buf: Add debugfs support
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Sumit Semwal <sumit.semwal@ti.com>,
+	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/12/2012 11:34 PM, Frank Schäfer wrote:
-> Am 12.12.2012 22:25, schrieb Frank Schäfer:
+On 14 December 2012 16:04, Daniel Vetter <daniel@ffwll.ch> wrote:
 >
-> ...
->> Am 11.12.2012 21:59, schrieb Antti Palosaari:
->>> See current af9015 driver as example how driver makes decision which
->>> variant of NEC is used. You will need something similar. Read all 4
->>> NEC bytes from the hardware and then use driver to make decision which
->>> variant it is.
->> Yes, checking for inverted address and key code bytes would be a
->> possibility...
+> Missed one ...
 >
-> The problem here is of course, that we have to configure the device first.
-> So we need to know the protocol variant before getting any bytes from
-> the device...
-
-No, you now don't see the point correctly. If you read 4 byte "full NEC" 
-code from the hardware, you will not need to know which variant it is 
-for configure hardware. 4 byte, full NEC, presents all the variants.
-
-Think it like NEC code is always 4 byte long as lower layer. All NEC 
-remotes sends 4 byte codes regardless which variant. In receiver side, 
-after decoding there is also 4 byte always. Variants are done very upper 
-layer after decoding.
-
-Let me take some existing examples:
-------------------
-rc-trekstor.c:	{ 0x0084, KEY_0 },
-This is actually 1 byte NEC, which is device id == 0.
-4 byte real code is: 00 ff 84 7b
-------------------
-rc-terratec-slim-2.c:	{ 0x800d, KEY_0 },
-This is normal, traditional, oldest, most common, 2 byte NEC.
-4 byte real code is: 80 7f 0d f2
-------------------
-rc-terratec-slim.c:	{ 0x02bd09, KEY_0 },
-Extended NEC, quite common, 3 byte NEC.
-4 byte real code is: 02 bd 09 f6
-------------------
-rc-tivo.c:	{ 0xa10c8c03, KEY_NUMERIC_0 },
-"full" NEC, 4 byte NEC.
-Not very common, but coming slowly more popular.
-4 byte real code is: a1 0c 8c 03
+> On Fri, Dec 14, 2012 at 10:36 AM,  <sumit.semwal@ti.com> wrote:
+> > +               list_for_each_entry(attach_obj, &buf_obj->attachments, node) {
+> > +                       seq_printf(s, "\t\t");
+> > +
+> > +                       seq_printf(s, "%s\n", attach_obj->dev->init_name);
+> > +                       attach_count++;
+> > +               }
+>
+> You need to hold dmabuf->lock while walking the attachment list.
+> -Daniel
 
 
-As you can see all NEC variants could be presented as 4 byte NEC. Even 
-the "one byte NEC", which comes in that case (rc-trekstor.c) "00 ff 84 
-7b" as 4 byte real notation.
+Thanks Daniel!
+
+Will update in next version.
+>
+> --
+> Daniel Vetter
+> Software Engineer, Intel Corporation
+> +41 (0) 79 365 57 48 - http://blog.ffwll.ch
 
 
-regards
-Antti
 
--- 
-http://palosaari.fi/
+Best regards,
+
+Sumit Semwal
