@@ -1,95 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3516 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752624Ab2LWVEy (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38081 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753502Ab2LQWSh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Dec 2012 16:04:54 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id qBNL4pZx098571
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sun, 23 Dec 2012 22:04:53 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 4CCAA11E00D5
-	for <linux-media@vger.kernel.org>; Sun, 23 Dec 2012 22:04:51 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20121223210451.4CCAA11E00D5@alastor.dyndns.org>
-Date: Sun, 23 Dec 2012 22:04:51 +0100 (CET)
+	Mon, 17 Dec 2012 17:18:37 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	linux-fbdev@vger.kernel.org,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Tom Gall <tom.gall@linaro.org>,
+	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
+	dri-devel@lists.freedesktop.org, Rob Clark <rob.clark@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Bryan Wu <bryan.wu@canonical.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC v2 0/5] Common Display Framework
+Date: Mon, 17 Dec 2012 23:19:53 +0100
+Message-ID: <1671267.x0lxGrFjjV@avalon>
+In-Reply-To: <87pq28hb72.fsf@intel.com>
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <1608840.IleINgrx5J@avalon> <87pq28hb72.fsf@intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Jani,
 
-Results of the daily build of media_tree:
+On Monday 17 December 2012 18:53:37 Jani Nikula wrote:
+> On Mon, 17 Dec 2012, Laurent Pinchart wrote:
+> > On Friday 23 November 2012 16:51:37 Tomi Valkeinen wrote:
+> >> On 2012-11-22 23:45, Laurent Pinchart wrote:
+> >> > From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> >> > 
+> >> > Hi everybody,
+> >> > 
+> >> > Here's the second RFC of what was previously known as the Generic Panel
+> >> > Framework.
+> >> 
+> >> Nice work! Thanks for working on this.
+> >> 
+> >> I was doing some testing with the code, seeing how to use it in omapdss.
+> >> Here are some thoughts:
+> >> 
+> >> In your model the DSS gets the panel devices connected to it from
+> >> platform data. After the DSS and the panel drivers are loaded, DSS gets
+> >> a notification and connects DSS and the panel.
+> >> 
+> >> I think it's a bit limited way. First of all, it'll make the DT data a
+> >> bit more complex (although this is not a major problem). With your
+> >> model, you'll need something like:
+> >> 
+> >> soc-base.dtsi:
+> >> 
+> >> dss {
+> >> 	dpi0: dpi {
+> >> 	};
+> >> };
+> >> 
+> >> board.dts:
+> >> 
+> >> &dpi0 {
+> >> 	panel = &dpi-panel;
+> >> };
+> >> 
+> >> / {
+> >> 	dpi-panel: dpi-panel {
+> >> 		...panel data...;
+> >> 	};
+> >> };
+> >> 
+> >> Second, it'll prevent hotplug, and even if real hotplug would not be
+> >> supported, it'll prevent cases where the connected panel must be found
+> >> dynamically (like reading ID from eeprom).
+> > 
+> > Hotplug definitely needs to be supported, as the common display framework
+> > also targets HDMI and DP. The notification mechanism was actually
+> > designed to support hotplug.
+> 
+> I can see the need for a framework for DSI panels and such (in fact Tomi
+> and I have talked about it like 2-3 years ago already!) but what is the
+> story for HDMI and DP? In particular, what's the relationship between
+> DRM and CDF here? Is there a world domination plan to switch the DRM
+> drivers to use this framework too? ;) Do you have some rough plans how
+> DRM and CDF should work together in general?
 
-date:        Sun Dec 23 19:00:21 CET 2012
-git hash:    a6bad040dacb7c0c59173feba98001ae1d4811e4
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+There's always a world domination plan, isn't there ? :-)
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: OK
-linux-git-arm-eabi-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: WARNINGS
-linux-3.5-i686: WARNINGS
-linux-3.6-i686: WARNINGS
-linux-3.7-i686: WARNINGS
-linux-3.8-rc1-i686: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: WARNINGS
-linux-3.5-x86_64: WARNINGS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-x86_64: WARNINGS
-linux-3.8-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+I certainly want CDF to be used by DRM (or more accurately KMS). That's what 
+the C stands for, common refers to sharing panel and other display entity 
+drivers between FBDEV, KMS and V4L2.
 
-Detailed results are available here:
+I currently have no plan to expose CDF internals to userspace through the KMS 
+API. We might have to do so later if the hardware complexity grows in such a 
+way that finer control than what KMS provides needs to be exposed to 
+userspace, but I don't think we're there yet. The CDF API will thus only be 
+used internally in the kernel by display controller drivers. The KMS core 
+might get functions to handle common display entity operations, but the bulk 
+of the work will be in the display controller drivers to start with. We will 
+then see what can be abstracted in KMS helper functions.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Regarding HDMI and DP, I imagine HDMI and DP drivers that would use the CDF 
+API. That's just a thought for now, I haven't tried to implement them, but it 
+would be nice to handle HDMI screens and DPI/DBI/DSI panels in a generic way.
 
-Full logs are available here:
+Do you have thoughts to share on this topic ?
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+-- 
+Regards,
 
-The V4L-DVB specification from this daily build is here:
+Laurent Pinchart
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
