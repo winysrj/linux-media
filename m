@@ -1,211 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f176.google.com ([209.85.220.176]:54830 "EHLO
-	mail-vc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751153Ab2LUN60 (ORCPT
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:60523 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751533Ab2LQI6T convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Dec 2012 08:58:26 -0500
-Received: by mail-vc0-f176.google.com with SMTP id fo13so5059500vcb.21
-        for <linux-media@vger.kernel.org>; Fri, 21 Dec 2012 05:58:25 -0800 (PST)
+	Mon, 17 Dec 2012 03:58:19 -0500
+Received: by mail-vb0-f46.google.com with SMTP id b13so6679060vby.19
+        for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 00:58:18 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <CAOcJUbwqihx8NydLR9jqOXCn3Sd8aF7XND+jeGG9mxUHOwfrNw@mail.gmail.com>
-References: <1355706724-25663-1-git-send-email-mkrufky@linuxtv.org>
-	<CAOcJUbxdvHZFqtvv5CEcgrWqof1425O+9Bp=GgE41kDm-QMrKg@mail.gmail.com>
-	<CAOcJUbwqihx8NydLR9jqOXCn3Sd8aF7XND+jeGG9mxUHOwfrNw@mail.gmail.com>
-Date: Fri, 21 Dec 2012 08:32:54 -0500
-Message-ID: <CAHAyoxw34qjQ72+xvOs+5RmLCeLpX2JWsgJg=115kzqkup5vrA@mail.gmail.com>
-Subject: Re: [PATCH] tda10071: make sure both tuner and demod i2c addresses
- are specified
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com, crope@iki.fi
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <CAO_48GFBEEz1J_o=ZRcBh8rdFUj=eQ7Gr8s0sfL9RpHjZigamA@mail.gmail.com>
+References: <1355477817-5750-1-git-send-email-sumit.semwal@ti.com>
+ <50CB1442.50002@gmail.com> <CAO_48GFBEEz1J_o=ZRcBh8rdFUj=eQ7Gr8s0sfL9RpHjZigamA@mail.gmail.com>
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Mon, 17 Dec 2012 14:27:58 +0530
+Message-ID: <CAO_48GGGXAYJrPiXEcCTR_nhh_dWSH5D_Et0pv+bmdEXKg_5XA@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: Add debugfs support
+To: Maarten Lankhorst <m.b.lankhorst@gmail.com>
+Cc: Sumit Semwal <sumit.semwal@ti.com>,
+	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-rebased against today's tip, as per your request :-)
-
-
-pwclient update -s 'superseded' 15923
-pwclient update -s 'superseded' 15930
-
-
-The following changes since commit 1b5901331ff3af4bdc1b998a056a248c9924e2d1:
-
-  [media] exynos-gsc: modify number of output/capture buffers
-(2012-12-21 10:26:44 -0200)
-
-are available in the git repository at:
-
-  git://git.linuxtv.org/mkrufky/tuners tda10071
-
-for you to fetch changes up to d562d77132333f0a7b1d704edc992a092d6d6bbe:
-
-  tda10071: make sure both tuner and demod i2c addresses are specified
-(2012-12-21 08:29:49 -0500)
-
-----------------------------------------------------------------
-Michael Krufky (1):
-      tda10071: make sure both tuner and demod i2c addresses are specified
-
- drivers/media/dvb-frontends/tda10071.c  |   18 +++++++++++++++---
- drivers/media/dvb-frontends/tda10071.h  |    4 ++--
- drivers/media/pci/cx23885/cx23885-dvb.c |    2 +-
- drivers/media/usb/em28xx/em28xx-dvb.c   |    3 ++-
- 4 files changed, 20 insertions(+), 7 deletions(-)
-
-Cheers,
-
-Mike
-
-On Mon, Dec 17, 2012 at 10:10 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> As discussed on irc, the following pwclient commands should update the
-> status of the patches in patchwork to correspond with this merge
-> request:
+On 17 December 2012 14:25, Sumit Semwal <sumit.semwal@linaro.org> wrote:
+Apologies for re-sending, since the gmail ui 'decided' to set some
+formatting options by default!
+> Hi Maarten,
 >
-> pwclient update -s 'superseded' 15923
-> pwclient update -s 'accepted' 15930
+> On 14 December 2012 17:27, Maarten Lankhorst <m.b.lankhorst@gmail.com>
+> wrote:
+>>
+>> Op 14-12-12 10:36, sumit.semwal@ti.com schreef:
+>> > From: Sumit Semwal <sumit.semwal@linaro.org>
+>> >
+>> > Add debugfs support to make it easier to print debug information
+>> > about the dma-buf buffers.
+>> >
+>> I like the idea, I don't know if it could be done in a free manner, but
+>> for bonus points
+>> could we also have the dma-buf fd be obtainable that way from a debugfs
+>> entry?
+>>
+>> Doing so would allow me to 'steal' a dma-buf from an existing mapping
+>> easily, and test against that.
+>>
+>> Also I think the name of the device and process that exported the dma-buf
+>> would be useful
+>> to have as well, even if in case of the device that would mean changing
+>> the api slightly to record it.
+>>
+>> I was thinking of having a directory structure like this:
+>>
+>> /sys/kernel/debug/dma_buf/stats
+>>
+>> and then for each dma-buf:
+>>
+>> /sys/kernel/debug/dma-buf/exporting_file.c/<number>-fd
+>> /sys/kernel/debug/dma-buf/exporting_file.c/<number>-attachments
+>> /sys/kernel/debug/dma-buf/exporting_file.c/<number>-info
+>>
+>> Opening the fd file would give you back the original fd, or fail with -EIO
+>> if refcount was dropped to 0.
+>>
+>> Would something like this be doable? I don't know debugfs that well, but I
+>> don't see why it wouldn't be,
 >
+> Let me think more about it, but I am inclined to add simple support first,
+> and then add more features to dma_buf debugfs as it grows.
 >
-> Cheers,
+> I still would want to take Daniel's suggestion on dma_buf_export_named()
+> before I push this patch, so I guess I'll try to work a little more and
+> prepare it for 3.9?
 >
-> Mike
+> I quite like your idea of .../dma-buf/<exporting_file.c>/...  , which would
+> need the above as well :)
+>>
+>>
+>> ~Maarten
+>>
+> Best regards,
+> ~Sumit.
 >
-> On Mon, Dec 17, 2012 at 10:09 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
->> Mauro,
->>
->> Please merge:
->>
->> The following changes since commit 4c8e64232d4a71e68d68b9093506966c0244a526:
->>
->>   cx23885: add basic DVB-S2 support for Hauppauge HVR-4400 (2012-12-16
->> 12:27:25 -0500)
->>
->> are available in the git repository at:
->>
->>   git://linuxtv.org/mkrufky/tuners tda10071
->>
->> for you to fetch changes up to 326e65af0104faf8a243e534eb8bfdb35b73f4ed:
->>
->>   tda10071: make sure both tuner and demod i2c addresses are specified
->> (2012-12-16 18:05:02 -0500)
->>
->> ----------------------------------------------------------------
->> Michael Krufky (1):
->>       tda10071: make sure both tuner and demod i2c addresses are specified
->>
->>  drivers/media/dvb-frontends/tda10071.c  |   18 +++++++++++++++---
->>  drivers/media/dvb-frontends/tda10071.h  |    4 ++--
->>  drivers/media/pci/cx23885/cx23885-dvb.c |    2 +-
->>  drivers/media/usb/em28xx/em28xx-dvb.c   |    3 ++-
->>  4 files changed, 20 insertions(+), 7 deletions(-)
->>
->> Cheers,
->>
->> Mike
->>
->> On Sun, Dec 16, 2012 at 8:12 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
->>> display an error message if either tuner_i2c_addr or demod_i2c_addr
->>> are not specified in the tda10071_config structure
->>>
->>> Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
->>> ---
->>>  drivers/media/dvb-frontends/tda10071.c  |   18 +++++++++++++++---
->>>  drivers/media/dvb-frontends/tda10071.h  |    4 ++--
->>>  drivers/media/pci/cx23885/cx23885-dvb.c |    2 +-
->>>  drivers/media/usb/em28xx/em28xx-dvb.c   |    3 ++-
->>>  4 files changed, 20 insertions(+), 7 deletions(-)
->>>
->>> diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
->>> index 7103629..02f9234 100644
->>> --- a/drivers/media/dvb-frontends/tda10071.c
->>> +++ b/drivers/media/dvb-frontends/tda10071.c
->>> @@ -30,7 +30,7 @@ static int tda10071_wr_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
->>>         u8 buf[len+1];
->>>         struct i2c_msg msg[1] = {
->>>                 {
->>> -                       .addr = priv->cfg.i2c_address,
->>> +                       .addr = priv->cfg.demod_i2c_addr,
->>>                         .flags = 0,
->>>                         .len = sizeof(buf),
->>>                         .buf = buf,
->>> @@ -59,12 +59,12 @@ static int tda10071_rd_regs(struct tda10071_priv *priv, u8 reg, u8 *val,
->>>         u8 buf[len];
->>>         struct i2c_msg msg[2] = {
->>>                 {
->>> -                       .addr = priv->cfg.i2c_address,
->>> +                       .addr = priv->cfg.demod_i2c_addr,
->>>                         .flags = 0,
->>>                         .len = 1,
->>>                         .buf = &reg,
->>>                 }, {
->>> -                       .addr = priv->cfg.i2c_address,
->>> +                       .addr = priv->cfg.demod_i2c_addr,
->>>                         .flags = I2C_M_RD,
->>>                         .len = sizeof(buf),
->>>                         .buf = buf,
->>> @@ -1202,6 +1202,18 @@ struct dvb_frontend *tda10071_attach(const struct tda10071_config *config,
->>>                 goto error;
->>>         }
->>>
->>> +       /* make sure demod i2c address is specified */
->>> +       if (!config->demod_i2c_addr) {
->>> +               dev_dbg(&i2c->dev, "%s: invalid demod i2c address!\n", __func__);
->>> +               goto error;
->>> +       }
->>> +
->>> +       /* make sure tuner i2c address is specified */
->>> +       if (!config->tuner_i2c_addr) {
->>> +               dev_dbg(&i2c->dev, "%s: invalid tuner i2c address!\n", __func__);
->>> +               goto error;
->>> +       }
->>> +
->>>         /* setup the priv */
->>>         priv->i2c = i2c;
->>>         memcpy(&priv->cfg, config, sizeof(struct tda10071_config));
->>> diff --git a/drivers/media/dvb-frontends/tda10071.h b/drivers/media/dvb-frontends/tda10071.h
->>> index a20d5c4..bff1c38 100644
->>> --- a/drivers/media/dvb-frontends/tda10071.h
->>> +++ b/drivers/media/dvb-frontends/tda10071.h
->>> @@ -28,10 +28,10 @@ struct tda10071_config {
->>>          * Default: none, must set
->>>          * Values: 0x55,
->>>          */
->>> -       u8 i2c_address;
->>> +       u8 demod_i2c_addr;
->>>
->>>         /* Tuner I2C address.
->>> -        * Default: 0x14
->>> +        * Default: none, must set
->>>          * Values: 0x14, 0x54, ...
->>>          */
->>>         u8 tuner_i2c_addr;
->>> diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
->>> index cf84c53..a1aae56 100644
->>> --- a/drivers/media/pci/cx23885/cx23885-dvb.c
->>> +++ b/drivers/media/pci/cx23885/cx23885-dvb.c
->>> @@ -662,7 +662,7 @@ static struct mt2063_config terratec_mt2063_config[] = {
->>>  };
->>>
->>>  static const struct tda10071_config hauppauge_tda10071_config = {
->>> -       .i2c_address = 0x05,
->>> +       .demod_i2c_addr = 0x05,
->>>         .tuner_i2c_addr = 0x54,
->>>         .i2c_wr_max = 64,
->>>         .ts_mode = TDA10071_TS_SERIAL,
->>> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
->>> index 63f2e70..e800881 100644
->>> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
->>> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
->>> @@ -714,7 +714,8 @@ static struct tda18271_config em28xx_cxd2820r_tda18271_config = {
->>>  };
->>>
->>>  static const struct tda10071_config em28xx_tda10071_config = {
->>> -       .i2c_address = 0x55, /* (0xaa >> 1) */
->>> +       .demod_i2c_addr = 0x55, /* (0xaa >> 1) */
->>> +       .tuner_i2c_addr = 0x14,
->>>         .i2c_wr_max = 64,
->>>         .ts_mode = TDA10071_TS_SERIAL,
->>>         .spec_inv = 0,
->>> --
->>> 1.7.10.4
->>>
+
+
+
+--
+Thanks and regards,
+
+Sumit Semwal
+
+Linaro Kernel Engineer - Graphics working group
+
+Linaro.org │ Open source software for ARM SoCs
+
+Follow Linaro: Facebook | Twitter | Blog
