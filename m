@@ -1,92 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:35515 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752711Ab2LKNuH (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:49725 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751442Ab2LQBVg convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Dec 2012 08:50:07 -0500
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	'Mauro Carvalho Chehab' <mchehab@infradead.org>,
-	'Pawel Osciak' <pawel@osciak.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>,
-	'Giancarlo Asnaghi' <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v3 2/4] videobuf2-dma-streaming: new videobuf2 memory allocator
-Date: Tue, 11 Dec 2012 14:54:44 +0100
-Message-ID: <1535483.0HokefWAdm@harkonnen>
-In-Reply-To: <50BF5950.2040805@redhat.com>
-References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com> <1685240.Ttn3DTWMJc@harkonnen> <50BF5950.2040805@redhat.com>
+	Sun, 16 Dec 2012 20:21:36 -0500
+Received: by mail-la0-f46.google.com with SMTP id p5so4253557lag.19
+        for <linux-media@vger.kernel.org>; Sun, 16 Dec 2012 17:21:35 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1355707068-25751-1-git-send-email-mkrufky@linuxtv.org>
+References: <1355707068-25751-1-git-send-email-mkrufky@linuxtv.org>
+Date: Sun, 16 Dec 2012 20:21:34 -0500
+Message-ID: <CAOcJUbz5Jj7qPnH+NQ4vd=6BBWPXUwwXxx-H7DqJsUF9Vj7wLA@mail.gmail.com>
+Subject: [PULL] tda18271: add missing entries for qam_7 to tda18271_update_std_map()
+ and tda18271_dump_std_map()
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com,
+	=?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry for the late answer to this.
+Please pardon the previous email...
 
-> > This allocator is needed because some device (like STA2X11 VIP) cannot
-> > work
-> > with DMA sg or DMA coherent. Some other device (like the one used by
-> > Jonathan when he proposes vb2-dma-nc allocator) can obtain much better
-> > performance with DMA streaming than coherent.
-> 
-> Ok, please add such explanations at the patch's descriptions, as it is
-> important not only for me, but to others that may need to use it..
+Mauro,
 
-OK
+Please merge:
 
-> >> 	2) why vb2-dma-config can't be patched to use dma_map_single
-> >> 
-> >> (eventually using a different vb2_io_modes bit?);
-> > 
-> > I did not modify vb2-dma-contig because I was thinking that each DMA
-> > memory
-> > allocator should reflect a DMA API.
-> 
-> The basic reason for having more than one VB low-level handling (vb2 was
-> inspired on this concept) is that some DMA APIs are very different than
-> the other ones (see vmalloc x DMA S/G for example).
-> 
-> I didn't make a diff between videobuf2-dma-streaming and
-> videobuf2-dma-contig, so I can't tell if it makes sense to merge them or
-> not, but the above argument seems too weak. I was expecting for a technical
-> reason why it wouldn't make sense for merging them.
+The following changes since commit c6c22955f80f2db9614b01fe5a3d1cfcd8b3d848:
 
-I cannot work on this now. But I think that I can do an integration like the 
-one that I pushed some month ago (a8f3c203e19b702fa5e8e83a9b6fb3c5a6d1cce4).
-Wind River made that changes to videobuf-contig and I tested, fixed and 
-pushed.
+  [media] dma-mapping: fix dma_common_get_sgtable() conditional
+compilation (2012-11-27 09:42:31 -0200)
 
-> >> 	3) what are the usecases for it.
-> >> 
-> >> Could you please detail it? Without that, one that would be needing to
-> >> write a driver will have serious doubts about what would be the right
-> >> driver for its usage. Also, please document it at the driver itself.
+are available in the git repository at:
 
-I don't have a full understand of the board so I don't know exactly why 
-dma_alloc_coherent does not work. I focused my development on previous work by 
-Wind River. I asked to Wind River (which did all the work on this board) for 
-the technical explanation about why coherent doesn't work, but they do not 
-know. That's why I made the new allocator: coherent doesn't work and HW 
-doesn't support SG.
+  git://linuxtv.org/mkrufky/tuners tda18271-qam7
 
-> I'm not a DMA performance expert. As such, from that comment, it sounded to
-> me that replacing dma-config/dma-sg by dma streaming will always give
-> "performance optimizations the hardware allow".
+for you to fetch changes up to 6554906af8c145b4fa8d4ea1b9c98c20322dd132:
 
-me too, I'm not a DMA performance expert. I'm just an user of the DMA API. On 
-my hardware simply it works only with that interface, it is not a performance 
-problem.
+  tda18271: add missing entries for qam_7 to tda18271_update_std_map()
+and tda18271_dump_std_map() (2012-12-04 14:14:26 -0500)
 
-> On a separate but related issue, while doing DMABUF tests with an Exynos4
-> hardware, using a s5p sensor, sending data to s5p-tv, I noticed a CPU
-> consumption of about 42%, which seems too high. Could it be related to
-> not using the DMA streaming API?
+----------------------------------------------------------------
+Frank Sch�fer (1):
+      tda18271: add missing entries for qam_7 to
+tda18271_update_std_map() and tda18271_dump_std_map()
 
-As I wrote above, I'm not a DMA performance expert. I skip this
+ drivers/media/tuners/tda18271-fe.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
--- 
-Federico Vaga
+Cheers,
+
+Mike
