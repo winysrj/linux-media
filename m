@@ -1,40 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51137 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758883Ab2LIT5M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Dec 2012 14:57:12 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC 14/17] af9033: update tua9001 init sequence
-Date: Sun,  9 Dec 2012 21:56:25 +0200
-Message-Id: <1355082988-6211-14-git-send-email-crope@iki.fi>
-In-Reply-To: <1355082988-6211-1-git-send-email-crope@iki.fi>
-References: <1355082988-6211-1-git-send-email-crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47449 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752678Ab2LQQII convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Dec 2012 11:08:08 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: jean-philippe francois <jp.francois@cynove.com>
+Cc: Julien BERAUD <julien.beraud@parrot.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: Lockup on second streamon with omap3-isp
+Date: Mon, 17 Dec 2012 17:09:23 +0100
+Message-ID: <15066502.oJSHXTO5Oy@avalon>
+In-Reply-To: <CAGGh5h1RW9suO7gE-3Xy=5FQoW=_39oeihXuMMKHYJrnAp93cg@mail.gmail.com>
+References: <CAGGh5h0dVOsT-PCoCBtjj=+rLzViwnM2e9hG+sbWQk5iS-ThEQ@mail.gmail.com> <1454034.b7COp5DhyG@avalon> <CAGGh5h1RW9suO7gE-3Xy=5FQoW=_39oeihXuMMKHYJrnAp93cg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/af9033_priv.h | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Hi Jean-Philippe,
 
-diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
-index d96d128..e0be040 100644
---- a/drivers/media/dvb-frontends/af9033_priv.h
-+++ b/drivers/media/dvb-frontends/af9033_priv.h
-@@ -321,8 +321,9 @@ static const struct reg_val tuner_init_tua9001[] = {
- 	{ 0x80009b, 0x05 },
- 	{ 0x80009c, 0x80 },
- 	{ 0x8000b3, 0x00 },
--	{ 0x8000c1, 0x01 },
--	{ 0x8000c2, 0x00 },
-+	{ 0x8000c5, 0x01 },
-+	{ 0x8000c6, 0x00 },
-+	{ 0x8000c9, 0x5d },
- 	{ 0x80f007, 0x00 },
- 	{ 0x80f01f, 0x82 },
- 	{ 0x80f020, 0x00 },
+On Monday 17 December 2012 16:41:29 jean-philippe francois wrote:
+> 2012/12/17 Laurent Pinchart:
+> > On Friday 14 December 2012 15:18:29 Julien BERAUD wrote:
+> >> Hi Jean-Philippe,
+> >> 
+> >> I have had exactly the same problem and the following workaround has
+> >> caused no regression on our board yet.
+> >> I can't explain exactly why it works and I think that it is internal to
+> >> the isp.
+> >> 
+> >> In function ccdc_set_stream, don't disable the ccdc_subclk when stopping
+> >> 
+> >> capture:
+> >>                  ret = ccdc_disable(ccdc);
+> >>                  if (ccdc->output & CCDC_OUTPUT_MEMORY)
+> >>                  
+> >>                          omap3isp_sbl_disable(isp,
+> >> 
+> >> OMAP3_ISP_SBL_CCDC_WRITE);
+> >> -               omap3isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_CCDC);
+> >> +               //omap3isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_CCDC);
+> >> 
+> >> I know that it is still a workaround but I hope that maybe it will help
+> >> someone to understand the real cause of this issue.
+> > 
+> > Do you get CCDC stop timeouts ? They are reported in the kernel log as
+> > "CCDC stop timeout!".
+
+Does Julien's patch fix your issue ?
+
+> >> Le 13/12/2012 15:14, jean-philippe francois a écrit :
+> >> > Hi,
+> >> > 
+> >> > I have news on the "IRQ storm on second streamon" problem.
+> >> > Reminder :
+> >> > Given a perfectly fine HSYNC / VSYNC / PIXELCLOK configuration, the
+> >> > omap3-isp (at least until 3.4) will go into an interrupt storm when
+> >> > streamon is called for the second time, unless you are able to stop
+> >> > the sensor when not streaming. I have reproduced this on three
+> >> > different board, with three different sensor.
+> >> > 
+> >> > On board 1, the problem disappeared by itself (in fact not by itself,
+> >> > see below) and the board is not in my possession anymore.
+> >> > On board 2, I implemented a working s_stream operation in the subdev
+> >> > driver, so the problem was solved because the sensor would effectively
+> >> > stop streaming when told to, keeping the ISP + CCDC happy
+> >> > On board 3, I can't stop the streaming, or I did not figure out how to
+> >> > make it stop  yet.
+> >> > 
+> >> > I tried to disable the HS_VS_IRQ, but it did not help, so I came back
+> >> > looking at the code of board 1, which was running fine with a 3.4
+> >> > kernel. And I discovered the problem doesn't happen if I break the
+> >> > pipeline between two consecutive streamon.
+> >> > 
+> >> > In other word if I do the following :
+> >> > 
+> >> > media-ctl -l '16:0->5:0[1], 5:1->6:0[1]'
+> >> > media-ctl -f '16:0 [SBGGR8 2560x800 (0, 0)/2560x800]'
+> >> > yavta ....
+> >> > yavta ...       <--------- board locks up, soft lockup is fired
+> >> > 
+> >> > But if I do this instead :
+> >> > 
+> >> > media-ctl -l '16:0->5:0[0], 5:1->6:0[0]'
+> >> > media-ctl -l '16:0->5:0[1], 5:1->6:0[1]'
+> >> > media-ctl -f '16:0 [SBGGR8 2560x800 (0, 0)/2560x800]'
+> >> > yavta ....
+> >> > media-ctl -l '16:0->5:0[0], 5:1->6:0[0]'
+> >> > media-ctl -l '16:0->5:0[1], 5:1->6:0[1]'
+> >> > media-ctl -f '16:0 [SBGGR8 2560x800 (0, 0)/2560x800]'
+> >> > yavta ...       <--------- image are acquired, board doesn't lock up
+> >> > anymore
+> > 
+> > Now this really doesn't make much sense to me. Both sequences should
+> > produce the exact same hardware accesses.
+> > 
+> > Could you add a printk in isp_reg_writel
+> > (drivers/media/platform/omap3isp/isp.h) and compare the register writes
+> > for
+> > both sequences ?
+> 
+> And you are right, it was pure coincidence, the issue is still there.
+
+Thought so :-)
+
+> Sorry for the inaccurate report.
+
+No worries.
+
+> >> > It would be interesting to go from this workaround to the elimination
+> >> > of the root cause. What can I do / test next to stop this bug from
+> >> > hapenning ?
+
 -- 
-1.7.11.7
+Regards,
+
+Laurent Pinchart
 
