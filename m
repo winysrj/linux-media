@@ -1,52 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:17145 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751965Ab2LJTmX (ORCPT
+Received: from mail.hauppauge.com ([167.206.143.4]:3235 "EHLO
+	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397Ab2LQBGU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 14:42:23 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org
-Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com,
-	thomas.abraham@linaro.org, t.figa@samsung.com,
-	sw0312.kim@samsung.com, kyungmin.park@samsung.com,
-	devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 07/13] of: Add empty of_get_next_child() function definition
-Date: Mon, 10 Dec 2012 20:41:33 +0100
-Message-id: <1355168499-5847-8-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1355168499-5847-1-git-send-email-s.nawrocki@samsung.com>
-References: <1355168499-5847-1-git-send-email-s.nawrocki@samsung.com>
+	Sun, 16 Dec 2012 20:06:20 -0500
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, Michael Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH 1/2] tda10071: add tuner_i2c_addr to struct tda10071_config
+Date: Sun, 16 Dec 2012 20:05:50 -0500
+Message-Id: <1355706351-25551-1-git-send-email-mkrufky@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an empty of_get_next_child() function definition so users can
-be build when CONFIG_OF is disabled and are not required to exclude
-OF specific parts explicitly with #ifdefs.
+The default i2c address for the tuner is 0x14,
+allow this to be overridden with a configuration parameter
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 ---
- include/linux/of.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/media/dvb-frontends/tda10071.c |    2 +-
+ drivers/media/dvb-frontends/tda10071.h |    6 ++++++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/of.h b/include/linux/of.h
-index 7df42cc..fb92acc 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -335,6 +335,13 @@ static inline bool of_have_populated_dt(void)
- #define for_each_available_child_of_node(parent, child) \
- 	while (0)
+diff --git a/drivers/media/dvb-frontends/tda10071.c b/drivers/media/dvb-frontends/tda10071.c
+index 16a4bc5..7103629 100644
+--- a/drivers/media/dvb-frontends/tda10071.c
++++ b/drivers/media/dvb-frontends/tda10071.c
+@@ -1064,7 +1064,7 @@ static int tda10071_init(struct dvb_frontend *fe)
+ 		cmd.args[2] = 0x00;
+ 		cmd.args[3] = 0x00;
+ 		cmd.args[4] = 0x00;
+-		cmd.args[5] = 0x14;
++		cmd.args[5] = (priv->cfg.tuner_i2c_addr) ? priv->cfg.tuner_i2c_addr : 0x14;
+ 		cmd.args[6] = 0x00;
+ 		cmd.args[7] = 0x03;
+ 		cmd.args[8] = 0x02;
+diff --git a/drivers/media/dvb-frontends/tda10071.h b/drivers/media/dvb-frontends/tda10071.h
+index 21163c4..a20d5c4 100644
+--- a/drivers/media/dvb-frontends/tda10071.h
++++ b/drivers/media/dvb-frontends/tda10071.h
+@@ -30,6 +30,12 @@ struct tda10071_config {
+ 	 */
+ 	u8 i2c_address;
  
-+static inline struct device_node *of_get_next_child(
-+					const struct device_node *node,
-+					struct device_node *prev)
-+{
-+	return NULL;
-+}
++	/* Tuner I2C address.
++	 * Default: 0x14
++	 * Values: 0x14, 0x54, ...
++	 */
++	u8 tuner_i2c_addr;
 +
- static inline struct device_node *of_get_child_by_name(
- 					const struct device_node *node,
- 					const char *name)
+ 	/* Max bytes I2C provider can write at once.
+ 	 * Note: Buffer is taken from the stack currently!
+ 	 * Default: none, must set
 -- 
-1.7.9.5
+1.7.10.4
 
