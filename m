@@ -1,90 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f53.google.com ([209.85.212.53]:33472 "EHLO
-	mail-vb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751387Ab2LSQNq (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:56873 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752494Ab2LRDFu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Dec 2012 11:13:46 -0500
+	Mon, 17 Dec 2012 22:05:50 -0500
+From: Albert Wang <twang13@marvell.com>
+To: Jonathan Corbet <corbet@lwn.net>
+CC: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Date: Mon, 17 Dec 2012 19:04:26 -0800
+Subject: RE: [PATCH V3 10/15] [media] marvell-ccic: split mcam-core into 2
+ parts for soc_camera support
+Message-ID: <477F20668A386D41ADCC57781B1F70430D13C8D0E3@SC-VEXCH1.marvell.com>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+	<1355565484-15791-11-git-send-email-twang13@marvell.com>
+	<20121216093717.4be8feff@hpe.lwn.net>
+	<477F20668A386D41ADCC57781B1F70430D13C8CCE4@SC-VEXCH1.marvell.com>
+ <20121217082832.7f363d05@lwn.net>
+In-Reply-To: <20121217082832.7f363d05@lwn.net>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <50D1DF42.3070008@ti.com>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<1608840.IleINgrx5J@avalon>
-	<87pq28hb72.fsf@intel.com>
-	<1671267.x0lxGrFjjV@avalon>
-	<87pq26ay2z.fsf@intel.com>
-	<CAF6AEGuSt0CL2sFGK-PZnw6+r9zhGHO4CEjJEWaR8eGhks2=UQ@mail.gmail.com>
-	<50D1DF42.3070008@ti.com>
-Date: Wed, 19 Dec 2012 10:05:27 -0600
-Message-ID: <CAF6AEGt6=RhKRnJZJVytzObvxm2GuvwADNhACOR9vnY-9n=ATw@mail.gmail.com>
-Subject: Re: [RFC v2 0/5] Common Display Framework
-From: Rob Clark <rob.clark@linaro.org>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Tom Gall <tom.gall@linaro.org>,
-	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 19, 2012 at 9:37 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On 2012-12-19 17:26, Rob Clark wrote:
->>
->> And, there are also external HDMI encoders (for example connected over
->> i2c) that can also be shared between boards.  So I think there will be
->> a number of cases where CDF is appropriate for HDMI drivers.  Although
->> trying to keep this all independent of DRM (as opposed to just
->> something similar to what drivers/gpu/i2c is today) seems a bit
->> overkill for me.  Being able to use the helpers in drm and avoiding an
->> extra layer of translation seems like the better option to me.  So my
->> vote would be drivers/gpu/cdf.
->
-> Well, we need to think about that. I would like to keep CDF independent
-> of DRM. I don't like tying different components/frameworks together if
-> there's no real need for that.
->
-> Also, something that Laurent mentioned in our face-to-face discussions:
-> Some IPs/chips can be used for other purposes than with DRM.
->
-> He had an example of a board, that (if I understood right) gets video
-> signal from somewhere outside the board, processes the signal with some
-> IPs/chips, and then outputs the signal. So there's no framebuffer, and
-> the image is not stored anywhere. I think the framework used in these
-> cases is always v4l2.
->
-> The IPs/chips in the above model may be the exact same IPs/chips that
-> are used with "normal" display. If the CDF was tied to DRM, using the
-> same drivers for normal and these streaming cases would probably not be
-> possible.
-
-Well, maybe there is a way, but it really seems to be
-over-complicating things unnecessarily to keep CDF independent of
-DRM..  there will be a lot more traditional uses of CDF compared to
-one crazy use-case.  So I don't really fancy making it more difficult
-than in needs to be for everyone.
-
-Probably the thing to do is take a step back and reconsider that one
-crazy use-case.  For example, KMS doesn't enforce that the buffer
-handled passed when you create a drm framebuffer object to scan out is
-a GEM buffer.  So on that one crazy platform, maybe it makes sense to
-have a DRM/KMS display driver that takes a handle to identify which
-video stream coming from the capture end of the pipeline.  Anyways,
-that is just an off-the-top-of-my-head idea, probably there are other
-options too.
-
-BR,
--R
-
->  Tomi
->
->
+SGksIEpvbmF0aGFuDQoNCg0KPi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+RnJvbTogSm9u
+YXRoYW4gQ29yYmV0IFttYWlsdG86Y29yYmV0QGx3bi5uZXRdDQo+U2VudDogTW9uZGF5LCAxNyBE
+ZWNlbWJlciwgMjAxMiAyMzoyOQ0KPlRvOiBBbGJlcnQgV2FuZw0KPkNjOiBnLmxpYWtob3ZldHNr
+aUBnbXguZGU7IGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZzsgTGliaW4gWWFuZw0KPlN1Ympl
+Y3Q6IFJlOiBbUEFUQ0ggVjMgMTAvMTVdIFttZWRpYV0gbWFydmVsbC1jY2ljOiBzcGxpdCBtY2Ft
+LWNvcmUgaW50byAyIHBhcnRzIGZvcg0KPnNvY19jYW1lcmEgc3VwcG9ydA0KPg0KPk9uIFN1biwg
+MTYgRGVjIDIwMTIgMTQ6MTI6MTEgLTA4MDANCj5BbGJlcnQgV2FuZyA8dHdhbmcxM0BtYXJ2ZWxs
+LmNvbT4gd3JvdGU6DQo+DQo+PiA+IC0gSXMgdGhlIHNvY19jYW1lcmEgbW9kZSBuZWNlc3Nhcnk/
+ICBJcyB0aGVyZSBzb21ldGhpbmcgeW91J3JlIHRyeWluZw0KPj4gPiAgIHRvIGRvIHRoYXQgY2Fu
+J3QgYmUgZG9uZSB3aXRob3V0IGl0PyAgT3IsIGF0IGxlYXN0LCBkb2VzIGl0IGFkZA0KPj4gPiAg
+IHN1ZmZpY2llbnQgYmVuZWZpdCB0byBiZSB3b3J0aCB0aGlzIHdvcms/ICBJdCB3b3VsZCBiZSBu
+aWNlIGlmIHRoZQ0KPj4gPiAgIHJlYXNvbmluZyBiZWhpbmQgdGhpcyBjaGFuZ2Ugd2VyZSBwdXQg
+aW50byB0aGUgY2hhbmdlbG9nLg0KPj4gPg0KPj4gW0FsYmVydCBXYW5nXSBXZSBqdXN0IHdhbnQg
+dG8gYWRkIG9uZSBtb3JlIG9wdGlvbiBmb3IgdXNlci4gOikNCj4+IEFuZCB3ZSBzcGxpdCBpdCB0
+byAyIHBhcnRzIGJlY2F1c2Ugd2Ugd2FudCB0byBrZWVwIHRoZSBvcmlnaW5hbCBtb2RlLg0KPj4N
+Cj4+ID4gLSBJZiB0aGUgc29jX2NhbWVyYSBjaGFuZ2UgaXMgZGVlbWVkIHRvIGJlIHdvcnRod2hp
+bGUsIGlzIHRoZXJlDQo+PiA+ICAgYW55dGhpbmcgcHJldmVudGluZyB5b3UgZnJvbSBkb2luZyBp
+dCAxMDAlIHNvIGl0J3MgdGhlIG9ubHkgbW9kZQ0KPj4gPiAgIHVzZWQ/DQo+PiA+DQo+PiBbQWxi
+ZXJ0IFdhbmddIE5vLCBidXQgY3VycmVudCBhbGwgTWFydmVsbCBwbGF0Zm9ybSBoYXZlIHVzZWQg
+dGhlIHNvY19jYW1lcmEgaW4gY2FtZXJhDQo+ZHJpdmVyLiA6KQ0KPj4gU28gd2UganVzdCBob3Bl
+IHRoZSBtYXJ2ZWxsLWNjaWMgY2FuIGhhdmUgdGhpcyBvcHRpb24uIDopDQo+DQo+T0ssIHNvIHRo
+aXMsIEkgdGhpbmssIGlzIHRoZSBvbmUgcmVtYWluaW5nIHBvaW50IG9mIGRpc2FncmVlbWVudCBo
+ZXJlOw0KPnVuZm9ydHVuYXRlbHkgaXQncyBhIGJpZ2dpc2ggb25lLg0KPg0KPlVzZXJzLCBJIGJl
+bGlldmUsIGRvbid0IHJlYWxseSBjYXJlIHdoaWNoIHVuZGVybHlpbmcgZnJhbWV3b3JrIHRoZSBk
+cml2ZXINCj5pcyB1c2luZzsgdGhleSBqdXN0IHdhbnQgYSBjYW1lcmEgaW1wbGVtZW50aW5nIHRo
+ZSBWNEwyIHNwZWMuICBTbywgdGhpcw0KPnBhcnRpY3VsYXIgb3B0aW9uIGRvZXMgbm90IGhhdmUg
+YW55IHJlYWwgdmFsdWUgZm9yIHRoZW0uICBCdXQgaXQgaGFzIGENCj5yZWFsIGNvc3QgaW4gdGVy
+bXMgb2YgZHVwbGljYXRlZCBjb2RlLCBhZGRlZCBjb21wbGV4aXR5LCBhbmQgbmFtZXNwYWNlDQo+
+cG9sbHV0aW9uLiAgSWYgeW91IGJlbGlldmUgSSdtIHdyb25nLCBwbGVhc2UgdGVsbCBtZSB3aHks
+IGJ1dCBJIHRoaW5rIHRoYXQNCj50aGlzIG9wdGlvbiBpcyBub3Qgd29ydGggdGhlIGNvc3QuDQo+
+DQo+VGhlIHJlYXNvbiBmb3IgdGhlIHNvY19jYW1lcmEgY29udmVyc2lvbiBpcyBiZWNhdXNlIHRo
+YXQncyBob3cgeW91cg0KPmRyaXZlcnMgZG8gaXQg4oCUIG5vdCBuZWNlc3NhcmlseSB0aGUgc3Ry
+b25nZXN0IG9mIHJlYXNvbnMuICBPZiBjb3Vyc2UsIHRoZQ0KPnJlYXNvbiBmb3Iga2VlcGluZyB0
+aGluZ3MgYXMgdGhleSBhcmUgaXMgYmVjYXVzZSB0aGF0J3MgaG93IHRoZSBpbi10cmVlDQo+ZHJp
+dmVycyBkb2VzIGl0OyBub3QgbmVjZXNzYXJpbHkgYSB3aG9sZSBsb3Qgc3Ryb25nZXIuDQo+DQo+
+SSdtIG5vdCBzb2xkIG9uIHRoZSBzb2NfY2FtZXJhIGNvbnZlcnNpb24sIGJ1dCBuZWl0aGVyIGFt
+IEkgaW1wbGFjYWJseQ0KPm9wcG9zZWQgdG8gaXQuICBCdXQgSSAqcmVhbGx5KiBkaXNsaWtlIHRo
+ZSBpZGVhIG9mIGhhdmluZyBib3RoLCBJIGRvbid0DQo+c2VlIHRoYXQgbGVhZGluZyB0byBnb29k
+IHRoaW5ncyBpbiB0aGUgbG9uZyBydW4uICBTbyBjYW4gSSBhc2sgb25lIG1vcmUNCj50aW1lOiBp
+ZiBzb2NfY2FtZXJhIGlzIGltcG9ydGFudCB0byB5b3UsIGNvdWxkIHlvdSBwbGVhc2UganVzdCBj
+b252ZXJ0IHRoZQ0KPmRyaXZlciBvdmVyIDEwMCUgYW5kIGRyb3AgdGhlIG90aGVyIG1vZGUgZW50
+aXJlbHk/ICBJdCBzZWVtcyB0aGF0IHNob3VsZA0KPmJlIGVhc2llciB0aGFuIHRyeWluZyB0byBz
+dXBwb3J0IGJvdGgsIGFuZCBpdCBzaG91bGQgY2VydGFpbmx5IGJlIGVhc2llcg0KPnRvIG1haW50
+YWluIGluIHRoZSBmdXR1cmUuDQo+DQpbQWxiZXJ0IFdhbmddIFNvIGlmIHdlIGFkZCBCX0RNQV9T
+RyBhbmQgQl9WTUFMTE9DIHN1cHBvcnQgYW5kIE9MUEMgWE8gMS4wIHN1cHBvcnQgaW4gc29jX2Nh
+bWVyYSBtb2RlLg0KVGhlbiB3ZSBjYW4ganVzdCByZW1vdmUgdGhlIG9yaWdpbmFsIG1vZGUgYW5k
+IG9ubHkgc3VwcG9ydCBzb2NfY2FtZXJhIG1vZGUgaW4gbWFydmVsbC1jY2ljPw0KDQo+SSdtIHNv
+cnJ5IHRvIGJlIG9ibm94aW91cyBhYm91dCB0aGlzLg0KPg0KPk1lYW53aGlsZSwgdGhlIGJ1bGsg
+b2YgdGhpcyBsYXN0IHBhdGNoIHNlcmllcyBzZWVtcyBnb29kOyBtb3N0IG9mIHRoZW0NCj5oYXZl
+IG15IGFja3MsIGFuZCBJIHNhdyBhY2tzIGZyb20gR3Vlbm5hZGkgb24gc29tZSBhcyB3ZWxsLiAg
+SSB3b3VsZA0KPnJlY29tbWVuZCB0aGF0IHlvdSBzZXBhcmF0ZSB0aG9zZSBvdXQgaW50byBhIGRp
+ZmZlcmVudCBzZXJpZXMgYW5kIHN1Ym1pdA0KPnRoZW0gZm9yIG1lcmdpbmcsIHByZXN1bWFibHkg
+Zm9yIDMuOS4gIFRoYXQgd2lsbCBnaXZlIHlvdSBhIGJpdCBsZXNzIGNvZGUNCj50byBjYXJyeSBn
+b2luZyBmb3J3YXJkIGFzIHRoaXMgbGFzdCBwYXJ0IGdldHMgd29ya2VkIG91dC4NCj4NCj5UaGFu
+a3MgYWdhaW4gZm9yIGRvaW5nIHRoaXMgd29yayBhbmQgcGVyc2V2ZXJpbmcgd2l0aCBpdCENCj4N
+Cj5qb24NCg0KDQpUaGFua3MNCkFsYmVydCBXYW5nDQo4Ni0yMS02MTA5MjY1Ng0K
