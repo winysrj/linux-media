@@ -1,184 +1,371 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:55312 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751030Ab2LTKxI (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:46172 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754484Ab2LRRGG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Dec 2012 05:53:08 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MFB002EZT0JL1A0@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 20 Dec 2012 10:55:42 +0000 (GMT)
-Received: from AMDN910 ([106.116.147.102])
- by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
- (7.0.4.23.0) 64bit (built Aug 10 2011))
- with ESMTPA id <0MFB00FJUSWD8O70@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 20 Dec 2012 10:53:05 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Arun Kumar K' <arun.kk@samsung.com>, linux-media@vger.kernel.org
-Cc: jtp.park@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	arun.m@samsung.com
-References: <1353579355-11994-1-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1353579355-11994-1-git-send-email-arun.kk@samsung.com>
-Subject: RE: [PATCH] [media] s5p-mfc: Flush DPB buffers during stream off
-Date: Thu, 20 Dec 2012 11:53:00 +0100
-Message-id: <018a01cddea0$2e87fc90$8b97f5b0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Tue, 18 Dec 2012 12:06:06 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
+	"David Airlie" <airlied@linux.ie>,
+	"Rob Clark" <robdclark@gmail.com>,
+	"Leela Krishna Amudala" <leelakrishna.a@gmail.com>
+Subject: =?UTF-8?q?=5BPATCHv16=202/7=5D=20video=3A=20add=20display=5Ftiming=20and=20videomode?=
+Date: Tue, 18 Dec 2012 18:04:11 +0100
+Message-Id: <1355850256-16135-3-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1355850256-16135-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1355850256-16135-1-git-send-email-s.trumtrar@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
+Add display_timing structure and the according helper functions. This allows
+the description of a display via its supported timing parameters.
 
-Thank you for your patch. Tested in my environment (Exynos4/MFC5.1)
+Also, add helper functions to convert from display timings to a generic videomode
+structure.
 
-Best wishes,
+The struct display_timing specifies all needed parameters to describe the signal
+properties of a display in one mode. This includes
+    - ranges for signals that may have min-, max- and typical values
+    - single integers for signals that can be on, off or are ignored
+    - booleans for signals that are either on or off
+
+As a display may support multiple modes like this, a struct display_timings is
+added, that holds all given struct display_timing pointers and declares the
+native mode of the display.
+
+Although a display may state that a signal can be in a range, it is driven with
+fixed values that indicate a videomode. Therefore graphic drivers don't need all
+the information of struct display_timing, but would generate a videomode from
+the given set of supported signal timings and work with that.
+
+The video subsystems all define their own structs that describe a mode and work
+with that (e.g. fb_videomode or drm_display_mode). To slowly replace all those
+various structures and allow code reuse across those subsystems, add struct
+videomode as a generic description.
+
+This patch only includes the most basic fields in struct videomode. All missing
+fields that are needed to have a really generic video mode description can be
+added at a later stage.
+
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/video/Kconfig          |    6 ++
+ drivers/video/Makefile         |    2 +
+ drivers/video/display_timing.c |   24 ++++++++
+ drivers/video/videomode.c      |   39 +++++++++++++
+ include/video/display_timing.h |  124 ++++++++++++++++++++++++++++++++++++++++
+ include/video/videomode.h      |   48 ++++++++++++++++
+ 6 files changed, 243 insertions(+)
+ create mode 100644 drivers/video/display_timing.c
+ create mode 100644 drivers/video/videomode.c
+ create mode 100644 include/video/display_timing.h
+ create mode 100644 include/video/videomode.h
+
+diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+index d08d799..2a23b18 100644
+--- a/drivers/video/Kconfig
++++ b/drivers/video/Kconfig
+@@ -33,6 +33,12 @@ config VIDEO_OUTPUT_CONTROL
+ 	  This framework adds support for low-level control of the video 
+ 	  output switch.
+ 
++config DISPLAY_TIMING
++       bool
++
++config VIDEOMODE
++       bool
++
+ menuconfig FB
+ 	tristate "Support for frame buffer devices"
+ 	---help---
+diff --git a/drivers/video/Makefile b/drivers/video/Makefile
+index 23e948e..fc30439 100644
+--- a/drivers/video/Makefile
++++ b/drivers/video/Makefile
+@@ -167,3 +167,5 @@ obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
+ 
+ #video output switch sysfs driver
+ obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
++obj-$(CONFIG_DISPLAY_TIMING) += display_timing.o
++obj-$(CONFIG_VIDEOMODE) += videomode.o
+diff --git a/drivers/video/display_timing.c b/drivers/video/display_timing.c
+new file mode 100644
+index 0000000..5e1822c
+--- /dev/null
++++ b/drivers/video/display_timing.c
+@@ -0,0 +1,24 @@
++/*
++ * generic display timing functions
++ *
++ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
++ *
++ * This file is released under the GPLv2
++ */
++
++#include <linux/export.h>
++#include <linux/slab.h>
++#include <video/display_timing.h>
++
++void display_timings_release(struct display_timings *disp)
++{
++	if (disp->timings) {
++		unsigned int i;
++
++		for (i = 0; i < disp->num_timings; i++)
++			kfree(disp->timings[i]);
++		kfree(disp->timings);
++	}
++	kfree(disp);
++}
++EXPORT_SYMBOL_GPL(display_timings_release);
+diff --git a/drivers/video/videomode.c b/drivers/video/videomode.c
+new file mode 100644
+index 0000000..21c47a2
+--- /dev/null
++++ b/drivers/video/videomode.c
+@@ -0,0 +1,39 @@
++/*
++ * generic display timing functions
++ *
++ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
++ *
++ * This file is released under the GPLv2
++ */
++
++#include <linux/errno.h>
++#include <linux/export.h>
++#include <video/display_timing.h>
++#include <video/videomode.h>
++
++int videomode_from_timing(const struct display_timings *disp,
++			  struct videomode *vm, unsigned int index)
++{
++	struct display_timing *dt;
++
++	dt = display_timings_get(disp, index);
++	if (!dt)
++		return -EINVAL;
++
++	vm->pixelclock = display_timing_get_value(&dt->pixelclock, TE_TYP);
++	vm->hactive = display_timing_get_value(&dt->hactive, TE_TYP);
++	vm->hfront_porch = display_timing_get_value(&dt->hfront_porch, TE_TYP);
++	vm->hback_porch = display_timing_get_value(&dt->hback_porch, TE_TYP);
++	vm->hsync_len = display_timing_get_value(&dt->hsync_len, TE_TYP);
++
++	vm->vactive = display_timing_get_value(&dt->vactive, TE_TYP);
++	vm->vfront_porch = display_timing_get_value(&dt->vfront_porch, TE_TYP);
++	vm->vback_porch = display_timing_get_value(&dt->vback_porch, TE_TYP);
++	vm->vsync_len = display_timing_get_value(&dt->vsync_len, TE_TYP);
++
++	vm->dmt_flags = dt->dmt_flags;
++	vm->data_flags = dt->data_flags;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(videomode_from_timing);
+diff --git a/include/video/display_timing.h b/include/video/display_timing.h
+new file mode 100644
+index 0000000..71e9a38
+--- /dev/null
++++ b/include/video/display_timing.h
+@@ -0,0 +1,124 @@
++/*
++ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
++ *
++ * description of display timings
++ *
++ * This file is released under the GPLv2
++ */
++
++#ifndef __LINUX_DISPLAY_TIMING_H
++#define __LINUX_DISPLAY_TIMING_H
++
++#include <linux/bitops.h>
++#include <linux/types.h>
++
++/* VESA display monitor timing parameters */
++#define VESA_DMT_HSYNC_LOW		BIT(0)
++#define VESA_DMT_HSYNC_HIGH		BIT(1)
++#define VESA_DMT_VSYNC_LOW		BIT(2)
++#define VESA_DMT_VSYNC_HIGH		BIT(3)
++
++/* display specific flags */
++#define DISPLAY_FLAGS_DE_LOW		BIT(0)	/* data enable flag */
++#define DISPLAY_FLAGS_DE_HIGH		BIT(1)
++#define DISPLAY_FLAGS_PIXDATA_POSEDGE	BIT(2)	/* drive data on pos. edge */
++#define DISPLAY_FLAGS_PIXDATA_NEGEDGE	BIT(3)	/* drive data on neg. edge */
++#define DISPLAY_FLAGS_INTERLACED	BIT(4)
++#define DISPLAY_FLAGS_DOUBLESCAN	BIT(5)
++
++/*
++ * A single signal can be specified via a range of minimal and maximal values
++ * with a typical value, that lies somewhere inbetween.
++ */
++struct timing_entry {
++	u32 min;
++	u32 typ;
++	u32 max;
++};
++
++enum timing_entry_index {
++	TE_MIN = 0,
++	TE_TYP = 1,
++	TE_MAX = 2,
++};
++
++/*
++ * Single "mode" entry. This describes one set of signal timings a display can
++ * have in one setting. This struct can later be converted to struct videomode
++ * (see include/video/videomode.h). As each timing_entry can be defined as a
++ * range, one struct display_timing may become multiple struct videomodes.
++ *
++ * Example: hsync active high, vsync active low
++ *
++ *				    Active Video
++ * Video  ______________________XXXXXXXXXXXXXXXXXXXXXX_____________________
++ *	  |<- sync ->|<- back ->|<----- active ----->|<- front ->|<- sync..
++ *	  |	     |	 porch  |		     |	 porch	 |
++ *
++ * HSync _|¯¯¯¯¯¯¯¯¯¯|___________________________________________|¯¯¯¯¯¯¯¯¯
++ *
++ * VSync ¯|__________|¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯|_________
++ */
++struct display_timing {
++	struct timing_entry pixelclock;
++
++	struct timing_entry hactive;		/* hor. active video */
++	struct timing_entry hfront_porch;	/* hor. front porch */
++	struct timing_entry hback_porch;	/* hor. back porch */
++	struct timing_entry hsync_len;		/* hor. sync len */
++
++	struct timing_entry vactive;		/* ver. active video */
++	struct timing_entry vfront_porch;	/* ver. front porch */
++	struct timing_entry vback_porch;	/* ver. back porch */
++	struct timing_entry vsync_len;		/* ver. sync len */
++
++	unsigned int dmt_flags;			/* VESA DMT flags */
++	unsigned int data_flags;		/* video data flags */
++};
++
++/*
++ * This describes all timing settings a display provides.
++ * The native_mode is the default setting for this display.
++ * Drivers that can handle multiple videomodes should work with this struct and
++ * convert each entry to the desired end result.
++ */
++struct display_timings {
++	unsigned int num_timings;
++	unsigned int native_mode;
++
++	struct display_timing **timings;
++};
++
++/* get value specified by index from struct timing_entry */
++static inline u32 display_timing_get_value(const struct timing_entry *te,
++					   enum timing_entry_index index)
++{
++	switch (index) {
++	case TE_MIN:
++		return te->min;
++		break;
++	case TE_TYP:
++		return te->typ;
++		break;
++	case TE_MAX:
++		return te->max;
++		break;
++	default:
++		return te->typ;
++	}
++}
++
++/* get one entry from struct display_timings */
++static inline struct display_timing *display_timings_get(const struct
++							 display_timings *disp,
++							 unsigned int index)
++{
++	if (disp->num_timings > index)
++		return disp->timings[index];
++	else
++		return NULL;
++}
++
++void display_timings_release(struct display_timings *disp);
++
++#endif
+diff --git a/include/video/videomode.h b/include/video/videomode.h
+new file mode 100644
+index 0000000..a421562
+--- /dev/null
++++ b/include/video/videomode.h
+@@ -0,0 +1,48 @@
++/*
++ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
++ *
++ * generic videomode description
++ *
++ * This file is released under the GPLv2
++ */
++
++#ifndef __LINUX_VIDEOMODE_H
++#define __LINUX_VIDEOMODE_H
++
++#include <linux/types.h>
++#include <video/display_timing.h>
++
++/*
++ * Subsystem independent description of a videomode.
++ * Can be generated from struct display_timing.
++ */
++struct videomode {
++	unsigned long pixelclock;	/* pixelclock in Hz */
++
++	u32 hactive;
++	u32 hfront_porch;
++	u32 hback_porch;
++	u32 hsync_len;
++
++	u32 vactive;
++	u32 vfront_porch;
++	u32 vback_porch;
++	u32 vsync_len;
++
++	unsigned int dmt_flags;	/* VESA DMT flags */
++	unsigned int data_flags; /* video data flags */
++};
++
++/**
++ * videomode_from_timing - convert display timing to videomode
++ * @disp: structure with all possible timing entries
++ * @vm: return value
++ * @index: index into the list of display timings in devicetree
++ *
++ * DESCRIPTION:
++ * This function converts a struct display_timing to a struct videomode.
++ */
++int videomode_from_timing(const struct display_timings *disp,
++			  struct videomode *vm, unsigned int index);
++
++#endif
 -- 
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
-
-
-> -----Original Message-----
-> From: Arun Kumar K [mailto:arun.kk@samsung.com]
-> Sent: Thursday, November 22, 2012 11:16 AM
-> To: linux-media@vger.kernel.org
-> Cc: k.debski@samsung.com; jtp.park@samsung.com; s.nawrocki@samsung.com;
-> arun.m@samsung.com; arun.kk@samsung.com
-> Subject: [PATCH] [media] s5p-mfc: Flush DPB buffers during stream off
-> 
-> Flushing of delay DPB buffers have to be done during stream off.
-> In MFC v6, it is done with a risc to host command.
-> 
-> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-> Signed-off-by: Arun Mankuzhi <arun.m@samsung.com>
-
-Acked-by: Kamil Debski <k.debski@samsung.com>
-
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc.c        |    6 ++++++
->  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    1 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |   15 +++++++++++++--
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   17 +++++++++++----
-> --
->  4 files changed, 31 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> index d3cd738..b73b6f2 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> @@ -691,6 +691,12 @@ static irqreturn_t s5p_mfc_irq(int irq, void *priv)
->  		s5p_mfc_handle_stream_complete(ctx, reason, err);
->  		break;
-> 
-> +	case S5P_MFC_R2H_CMD_DPB_FLUSH_RET:
-> +		clear_work_bit(ctx);
-> +		ctx->state = MFCINST_RUNNING;
-> +		wake_up(&ctx->queue);
-> +		goto irq_cleanup_hw;
-> +
->  	default:
->  		mfc_debug(2, "Unknown int reason\n");
->  		s5p_mfc_hw_call(dev->mfc_ops, clear_int_flags, dev); diff -
-> -git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> index f02e049..3b9b600 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> @@ -145,6 +145,7 @@ enum s5p_mfc_inst_state {
->  	MFCINST_RETURN_INST,
->  	MFCINST_ERROR,
->  	MFCINST_ABORT,
-> +	MFCINST_FLUSH,
->  	MFCINST_RES_CHANGE_INIT,
->  	MFCINST_RES_CHANGE_FLUSH,
->  	MFCINST_RES_CHANGE_END,
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> index eb6a70b..4ba62f6 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> @@ -977,24 +977,35 @@ static int s5p_mfc_stop_streaming(struct
-> vb2_queue *q)
->  					S5P_MFC_R2H_CMD_FRAME_DONE_RET, 0);
->  		aborted = 1;
->  	}
-> -	spin_lock_irqsave(&dev->irqlock, flags);
->  	if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-> +		spin_lock_irqsave(&dev->irqlock, flags);
->  		s5p_mfc_hw_call(dev->mfc_ops, cleanup_queue, &ctx-
-> >dst_queue,
->  				&ctx->vq_dst);
->  		INIT_LIST_HEAD(&ctx->dst_queue);
->  		ctx->dst_queue_cnt = 0;
->  		ctx->dpb_flush_flag = 1;
->  		ctx->dec_dst_flag = 0;
-> +		spin_unlock_irqrestore(&dev->irqlock, flags);
-> +		if (IS_MFCV6(dev) && (ctx->state == MFCINST_RUNNING)) {
-> +			ctx->state = MFCINST_FLUSH;
-> +			set_work_bit_irqsave(ctx);
-> +			s5p_mfc_clean_ctx_int_flags(ctx);
-> +			s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
-> +			if (s5p_mfc_wait_for_done_ctx(ctx,
-> +				S5P_MFC_R2H_CMD_DPB_FLUSH_RET, 0))
-> +				mfc_err("Err flushing buffers\n");
-> +		}
->  	}
->  	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-> +		spin_lock_irqsave(&dev->irqlock, flags);
->  		s5p_mfc_hw_call(dev->mfc_ops, cleanup_queue, &ctx-
-> >src_queue,
->  				&ctx->vq_src);
->  		INIT_LIST_HEAD(&ctx->src_queue);
->  		ctx->src_queue_cnt = 0;
-> +		spin_unlock_irqrestore(&dev->irqlock, flags);
->  	}
->  	if (aborted)
->  		ctx->state = MFCINST_RUNNING;
-> -	spin_unlock_irqrestore(&dev->irqlock, flags);
->  	return 0;
->  }
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> index 3a8cfd9..a47e6db 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-> @@ -1253,12 +1253,14 @@ int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx
-> *ctx)  static inline void s5p_mfc_set_flush(struct s5p_mfc_ctx *ctx,
-> int flush)  {
->  	struct s5p_mfc_dev *dev = ctx->dev;
-> -	unsigned int dpb;
-> -	if (flush)
-> -		dpb = READL(S5P_FIMV_SI_CH0_DPB_CONF_CTRL) | (1 << 14);
-> -	else
-> -		dpb = READL(S5P_FIMV_SI_CH0_DPB_CONF_CTRL) & ~(1 << 14);
-> -	WRITEL(dpb, S5P_FIMV_SI_CH0_DPB_CONF_CTRL);
-> +
-> +	if (flush) {
-> +		dev->curr_ctx = ctx->num;
-> +		s5p_mfc_clean_ctx_int_flags(ctx);
-> +		WRITEL(ctx->inst_no, S5P_FIMV_INSTANCE_ID_V6);
-> +		s5p_mfc_hw_call(dev->mfc_cmds, cmd_host2risc, dev,
-> +				S5P_FIMV_H2R_CMD_FLUSH_V6, NULL);
-> +	}
->  }
-> 
->  /* Decode a single frame */
-> @@ -1656,6 +1658,9 @@ void s5p_mfc_try_run_v6(struct s5p_mfc_dev *dev)
->  		case MFCINST_HEAD_PARSED:
->  			ret = s5p_mfc_run_init_dec_buffers(ctx);
->  			break;
-> +		case MFCINST_FLUSH:
-> +			s5p_mfc_set_flush(ctx, ctx->dpb_flush_flag);
-> +			break;
->  		case MFCINST_RES_CHANGE_INIT:
->  			s5p_mfc_run_dec_last_frames(ctx);
->  			break;
-> --
-> 1.7.0.4
-
+1.7.10.4
 
