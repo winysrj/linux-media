@@ -1,51 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from firefly.pyther.net ([50.116.37.168]:54963 "EHLO
-	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932121Ab2LEWdc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2012 17:33:32 -0500
-Message-ID: <50BFCBBB.5090407@pyther.net>
-Date: Wed, 05 Dec 2012 17:33:31 -0500
-From: Matthew Gyurgyik <matthew@pyther.net>
+Received: from mail-yh0-f45.google.com ([209.85.213.45]:60206 "EHLO
+	mail-yh0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750909Ab2LRGNJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Dec 2012 01:13:09 -0500
+Received: by mail-yh0-f45.google.com with SMTP id p34so43401yhp.32
+        for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 22:13:09 -0800 (PST)
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
+In-Reply-To: <CAD025yQoCiNaKvaCwvUWhk_jV70CPhV35UzV9MR6HtE+1baCxg@mail.gmail.com>
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<CAD025yS5rGMbiRBdDxv=YLP6_fsQndAkr+3t29_mNhcvow_SwA@mail.gmail.com>
+	<3133576.BkqAl7V01U@avalon>
+	<CAD025yQoCiNaKvaCwvUWhk_jV70CPhV35UzV9MR6HtE+1baCxg@mail.gmail.com>
+Date: Tue, 18 Dec 2012 11:43:08 +0530
+Message-ID: <CAD025yTK6pBHR41hqPQAXHcDhB7s6OE-Z1nHPF0DU1WbBiEXaw@mail.gmail.com>
+Subject: Re: [RFC v2 0/5] Common Display Framework
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
 	linux-media@vger.kernel.org
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi>
-In-Reply-To: <50BFC445.6020305@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/05/2012 05:01 PM, Antti Palosaari wrote:
-> OK, fine, I was then wrong. I have to say you have a lot of channels 
-> over there what I can see from scan result [1]. Those channels which 
-> says "tuning failed" are channels where is no transmission and those 
-> "filter timeout pid" means there is ta ransmission and demod locks. 
-> Here in Finland we have only ~4 MUX DVB-T and maybe other 4 for DVB-T2.
+Hi All,
+
+On 17 December 2012 20:55, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
 >
-> It is then actually working quite well from the developer point of 
-> view (as demod loses lock when antenna is unplugged). It means tuner 
-> and demodular are working but interface (transport stream interface, 
-> TS IF) between demod and USB-bridge is still broken.
+> Hi Vikas,
 >
-> I tried to look again your sniff if I can see what it does just before 
-> streaming starts, but unfortunately there is no any mention about 
-> those streaming packets (isoc packets where picture stream is going). 
-> Did you remove those yourself?
+> Sorry for the late reply. I now have more time to work on CDF, so delays
+> should be much shorter.
 >
-No I did not remove the the streaming packets. However I did use the 
-parse-usbsnoop.php script to generate parsed-usbsnoop.txt. The original 
-snooping log is 354M (I'm assuming it has stream data in it).
+> On Thursday 06 December 2012 10:51:15 Vikas Sajjan wrote:
+> > Hi Laurent,
+> >
+> > I was thinking of porting CDF to samsung EXYNOS 5250 platform, what I found
+> > is that, the exynos display controller is MIPI DSI based controller.
+> >
+> > But if I look at CDF patches, it has only support for MIPI DBI based Display
+> > controller.
+> >
+> > So my question is, do we have any generic framework for MIPI DSI based
+> > display controller? basically I wanted to know, how to go about porting CDF
+> > for such kind of display controller.
+>
+> MIPI DSI support is not available yet. The only reason for that is that I
+> don't have any MIPI DSI hardware to write and test the code with :-)
+>
+> The common display framework should definitely support MIPI DSI. I think the
+> existing MIPI DBI code could be used as a base, so the implementation
+> shouldn't be too high.
+>
+Yeah, i was also thinking in similar lines, below is my though for
+MIPI DSI support in CDF.
 
-I have put the entire log on the server ~85MB bzipped: 
-http://pyther.net/a/digivox_atsc/UsbSnoop.log.bz2
+o   MIPI DSI support as part of CDF framework will expose
 
-Let me know if you think I should do another snoop.
+    > mipi_dsi_register_device(mpi_device) (will be called mach-xxx-dt.c file )
 
-Thanks,
-Matthew
+   > mipi_dsi_register_driver(mipi_driver, bus ops) (will be called
+from platform specific init driver call )
 
+·       bus ops will be
+     o   read data
+     o   write data
+     o   write command
 
+>  MIPI DSI will be registered as bus_register()
+
+When MIPI DSI probe is called, it (e.g., Exynos or OMAP MIPI DSI) will
+initialize the MIPI DSI HW IP.
+
+ This probe will also parse the DT file for MIPI DSI based panel, add
+the panel device (device_add() ) to kernel and register the display
+entity with its control and  video ops with CDF.
+>
+> I can give this a try. Does the existing Exynos 5250 driver support MIPI DSI ?
+> Is the device documentation publicly available ? Can you point me to a MIPI
+> DSI panel with public documentation (preferably with an existing mainline
+> driver if possible) ?
+>
+ yeah, existing Exynos 5250 driver support MIPI DSI ass well as eDP.
+ i think device documentation is NOT available publicly.
+
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+
+-- 
+Thanks and Regards
+ Vikas Sajjan
