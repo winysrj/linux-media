@@ -1,60 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:62240 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753153Ab2LASLN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Dec 2012 13:11:13 -0500
-Received: by mail-ea0-f174.google.com with SMTP id e13so620877eaa.19
-        for <linux-media@vger.kernel.org>; Sat, 01 Dec 2012 10:11:12 -0800 (PST)
+Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:7382 "EHLO
+	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754490Ab2LRMgn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Dec 2012 07:36:43 -0500
+Date: Tue, 18 Dec 2012 13:36:40 +0100 (CET)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Jean Delvare <khali@linux-fr.org>
+cc: Julia Lawall <julia.lawall@lip6.fr>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ryan Mallon <rmallon@gmail.com>, Joe Perches <joe@perches.com>,
+	walter harms <wharms@bfs.de>, ben-linux@fluff.org,
+	w.sang@pengutronix.de, linux-i2c@vger.kernel.org,
+	Antti Palosaari <crope@iki.fi>,
+	kernel-janitors@vger.kernel.org, shubhrajyoti@ti.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for
+ i2c_msg initialization
+In-Reply-To: <20121218124640.5b1e7176@endymion.delvare>
+Message-ID: <alpine.DEB.2.02.1212181335360.1993@hadrien>
+References: <1349624323-15584-1-git-send-email-Julia.Lawall@lip6.fr> <1349624323-15584-3-git-send-email-Julia.Lawall@lip6.fr> <5071AEF3.6080108@bfs.de> <alpine.DEB.2.02.1210071839040.2745@localhost6.localdomain6> <5071B834.1010200@bfs.de>
+ <alpine.DEB.2.02.1210071917040.2745@localhost6.localdomain6> <1349633780.15802.8.camel@joe-AO722> <alpine.DEB.2.02.1210072053550.2745@localhost6.localdomain6> <1349645970.15802.12.camel@joe-AO722> <alpine.DEB.2.02.1210072342460.2745@localhost6.localdomain6>
+ <1349646718.15802.16.camel@joe-AO722> <20121007225639.364a41b4@infradead.org> <50723661.6040107@gmail.com> <alpine.DEB.2.02.1210081028340.1989@hadrien> <20121009203238.63d2275f@infradead.org> <alpine.DEB.2.02.1210110836030.2010@hadrien>
+ <20121218124640.5b1e7176@endymion.delvare>
 MIME-Version: 1.0
-In-Reply-To: <1354221910-22493-2-git-send-email-mcgrof@do-not-panic.com>
-References: <1354221910-22493-1-git-send-email-mcgrof@do-not-panic.com>
-	<1354221910-22493-2-git-send-email-mcgrof@do-not-panic.com>
-Date: Sat, 1 Dec 2012 19:11:11 +0100
-Message-ID: <CACRpkdYD=h9YL=GrwuQvBzjpek08MvumCnhX3SiXow63nLLP1Q@mail.gmail.com>
-Subject: Re: [PATCH 1/6] ux500: convert struct spinlock to spinlock_t
-From: Linus Walleij <linus.walleij@linaro.org>
-To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>,
-	Srinidhi KASAGAR <srinidhi.kasagar@stericsson.com>,
-	Arun MURTHY <arun.murthy@stericsson.com>
-Cc: linux-kernel@vger.kernel.org, tglx@linutronix.de,
-	backports@vger.kernel.org, alexander.stein@systec-electronic.com,
-	brudley@broadcom.com, rvossen@broadcom.com, arend@broadcom.com,
-	frankyl@broadcom.com, kanyan@broadcom.com,
-	linux-wireless@vger.kernel.org, brcm80211-dev-list@broadcom.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	daniel.vetter@ffwll.ch, intel-gfx@lists.freedesktop.org,
-	dri-devel@lists.freedesktop.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 29, 2012 at 9:45 PM, Luis R. Rodriguez
-<mcgrof@do-not-panic.com> wrote:
 
-> From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
->
-> spinlock_t should always be used.
->
-> I was unable to build test with allmodconfig:
->
-> mcgrof@frijol ~/linux-next (git::(no branch))$ make C=1 M=drivers/crypto/ux500/
->
->   WARNING: Symbol version dump /home/mcgrof/linux-next/Module.symvers
->            is missing; modules will have no dependencies and modversions.
->
->   LD      drivers/crypto/ux500/built-in.o
->   Building modules, stage 2.
->   MODPOST 0 modules
->
-> Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
-> Cc: Linus Walleij <linus.walleij@linaro.org>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Reported-by: Hauke Mehrtens <hauke@hauke-m.de>
-> Signed-off-by: Luis R. Rodriguez <mcgrof@do-not-panic.com>
 
-Looks correct to me.
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+On Tue, 18 Dec 2012, Jean Delvare wrote:
 
-Yours,
-Linus Walleij
+> Hi Julia,
+>
+> On Thu, 11 Oct 2012 08:45:43 +0200 (CEST), Julia Lawall wrote:
+> > I found 6 cases where there are more than 2 messages in the array.  I
+> > didn't check how many cases where there are two messages but there is
+> > something other than one read and one write.
+> >
+> > Perhaps a reasonable option would be to use
+> >
+> > I2C_MSG_READ
+> > I2C_MSG_WRITE
+> > I2C_MSG_READ_OP
+> > I2C_MSG_WRITE_OP
+> >
+> > The last two are for the few cases where more flags are specified.  As
+> > compared to the original proposal of I2C_MSG_OP, these keep the READ or
+> > WRITE idea in the macro name.  The additional argument to the OP macros
+> > would be or'd with the read or write (nothing to do in this case) flags as
+> > appropriate.
+> >
+> > Mauro proposed INIT_I2C_READ_SUBADDR for the very common case where a
+> > message array has one read and one write.  I think that putting one
+> > I2C_MSG_READ and one I2C_MSG_WRITE in this case is readable enough, and
+> > avoids the need to do something special for the cases that don't match the
+> > expectations of INIT_I2C_READ_SUBADDR.
+> >
+> > I propose not to do anything for the moment either for sizes or for
+> > message or buffer arrays that contain only one element.
+>
+> Please note that I resigned from my position of i2c subsystem
+> maintainer, so I will not handle this. If you think this is important,
+> you'll have to resubmit and Wolfram will decide what he wants to do
+> about it.
+
+OK, I had the impression that the conclusion was that the danger was
+greater than the benefit.  If there is interest in it, since I think it
+does make the code more readable, I can pick it up again.
+
+julia
