@@ -1,229 +1,331 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:50752 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750983Ab2LPVp5 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 16:45:57 -0500
-From: Albert Wang <twang13@marvell.com>
-To: Jonathan Corbet <corbet@lwn.net>
-CC: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Libin Yang <lbyang@marvell.com>
-Date: Sun, 16 Dec 2012 13:45:53 -0800
-Subject: RE: [PATCH V3 02/15] [media] marvell-ccic: add MIPI support for
- marvell-ccic driver
-Message-ID: <477F20668A386D41ADCC57781B1F70430D13C8CCDD@SC-VEXCH1.marvell.com>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
-	<1355565484-15791-3-git-send-email-twang13@marvell.com>
- <20121216085449.2a3807f6@hpe.lwn.net>
-In-Reply-To: <20121216085449.2a3807f6@hpe.lwn.net>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mga14.intel.com ([143.182.124.37]:16295 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751348Ab2LRJkK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Dec 2012 04:40:10 -0500
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Michael Krufky <mkrufky@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCHv2] dvb: or51211: apply pr_fmt and use pr_* macros instead of printk
+Date: Tue, 18 Dec 2012 11:39:51 +0200
+Message-Id: <1355823591-12137-1-git-send-email-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <CAOcJUbxUwYJL+ktLHQGdqbeRfVcRfePwnT5mfJ5GbRwkB4f9Kw@mail.gmail.com>
+References: <CAOcJUbxUwYJL+ktLHQGdqbeRfVcRfePwnT5mfJ5GbRwkB4f9Kw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Jonathan
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/media/dvb-frontends/or51211.c |   94 +++++++++++++++------------------
+ 1 file changed, 43 insertions(+), 51 deletions(-)
 
-
->-----Original Message-----
->From: Jonathan Corbet [mailto:corbet@lwn.net]
->Sent: Sunday, 16 December, 2012 23:55
->To: Albert Wang
->Cc: g.liakhovetski@gmx.de; linux-media@vger.kernel.org; Libin Yang
->Subject: Re: [PATCH V3 02/15] [media] marvell-ccic: add MIPI support for marvell-ccic
->driver
->
->On Sat, 15 Dec 2012 17:57:51 +0800
->Albert Wang <twang13@marvell.com> wrote:
->
->> From: Libin Yang <lbyang@marvell.com>
->>
->> This patch adds the MIPI support for marvell-ccic.
->> Board driver should determine whether using MIPI or not.
->
->There are limits to how deeply I can review this, since I know little about
->the MIPI mode and don't have any hardware that uses it.  So I'm assuming
->that it all works :)  My comments are on a different level.
->
->> +static int mcam_config_mipi(struct mcam_camera *mcam, int enable)
->> +{
->> +	if (mcam->bus_type == V4L2_MBUS_CSI2 && enable) {
->> +		/* Using MIPI mode and enable MIPI */
->> +		cam_dbg(mcam, "camera: DPHY3=0x%x, DPHY5=0x%x,
->DPHY6=0x%x\n",
->> +			mcam->dphy[0], mcam->dphy[1], mcam->dphy[2]);
->> +		mcam_reg_write(mcam, REG_CSI2_DPHY3, mcam->dphy[0]);
->> +		mcam_reg_write(mcam, REG_CSI2_DPHY6, mcam->dphy[2]);
->> +		mcam_reg_write(mcam, REG_CSI2_DPHY5, mcam->dphy[1]);
->
->Is there a reason you're writing them in something other than direct
->increasing order?  If so, a comment saying why might help somebody in ghe future.
->
-[Albert Wang] Oh, actually there is no strict sequence to write these MIPI registers.
-We can change it with direct increasing order, also we can add some comments for describing the definition. :)
-
->> +		if (mcam->mipi_enabled == 0) {
->> +			/*
->> +			 * 0x41 actives 1 lane
->> +			 * 0x43 actives 2 lanes
->> +			 * 0x47 actives 4 lanes
->> +			 * There is no 3 lanes case
->> +			 */
->> +			switch (mcam->lane) {
->> +			case 1:
->> +				mcam_reg_write(mcam, REG_CSI2_CTRL0, 0x41);
->> +				break;
->> +			case 2:
->> +				mcam_reg_write(mcam, REG_CSI2_CTRL0, 0x43);
->> +				break;
->> +			case 4:
->> +				mcam_reg_write(mcam, REG_CSI2_CTRL0, 0x47);
->> +				break;
->
->Can we have defined symbols rather than magic constants here?
->
-[Albert Wang] Sure, we can do it in the next version.
-
->> @@ -656,6 +701,15 @@ static void mcam_ctlr_image(struct mcam_camera *cam)
->>  	 */
->>  	mcam_reg_write_mask(cam, REG_CTRL0, C0_SIF_HVSYNC,
->>  			C0_SIFM_MASK);
->> +
->> +	/*
->> +	 * This field controls the generation of EOF(DVP only)
->> +	 */
->> +	if (cam->bus_type != V4L2_MBUS_CSI2) {
->> +		mcam_reg_set_bit(cam, REG_CTRL0,
->> +				C0_EOF_VSYNC | C0_VEDGE_CTRL);
->> +		mcam_reg_write(cam, REG_CTRL3, 0x4);
->
->Again, how about a symbol, or at least an explanation of what 0x4 means?
->
-[Albert Wang] OK, will do it.
-
->> +	}
->>  }
->>
->[...]
->> @@ -1551,6 +1615,11 @@ static int mcam_v4l_open(struct file *filp)
->>  		mcam_set_config_needed(cam, 1);
->>  	}
->>  	(cam->users)++;
->> +	cam->pll1 = devm_clk_get(cam->dev, "pll1");
->> +	if (IS_ERR(cam->pll1)) {
->> +		cam_err(cam, "Could not get pll1 clock\n");
->> +		ret = PTR_ERR(cam->pll1);
->> +	}
->
->This looks like it gets the clock in all cases?  Is that right?
->
-[Albert Wang] Em, we need it in MIPI mode, it looks we should limit the usage in the MIPI mode.
-We will update it.
-
->>  #define REG_IMGPITCH	0x24	/* Image pitch register */
->> @@ -292,7 +311,9 @@ int mccic_resume(struct mcam_camera *cam);
->>  #define	  C0_DOWNSCALE	  0x08000000	/* Enable downscaler */
->>  #define	  C0_SIFM_MASK	  0xc0000000	/* SIF mode bits */
->>  #define	  C0_SIF_HVSYNC	  0x00000000	/* Use H/VSYNC */
->> -#define	  CO_SOF_NOSYNC	  0x40000000	/* Use inband active signaling */
->> +#define	  C0_SOF_NOSYNC	  0x40000000	/* Use inband active signaling */
->> +#define	  C0_EOF_VSYNC	  0x00400000	/* Generate EOF by VSYNC */
->> +#define	  C0_VEDGE_CTRL   0x00800000	/* Detect falling edge of
->VSYNC */
->
->Being the retentive sort of guy I am, I try to keep definitions like these
->in numerical order.  Any chance you could humor me and maintain that?
->
-[Albert Wang] OK, we will update it and keep it with numerical order.
-BTW, there is a typo in CO_SOF_NOSYNC
+diff --git a/drivers/media/dvb-frontends/or51211.c b/drivers/media/dvb-frontends/or51211.c
+index 1af997e..10cfc05 100644
+--- a/drivers/media/dvb-frontends/or51211.c
++++ b/drivers/media/dvb-frontends/or51211.c
+@@ -22,6 +22,8 @@
+  *
+ */
  
->>  /* Bits below C1_444ALPHA are not present in Cafe */
->>  #define REG_CTRL1	0x40	/* Control 1 */
->> @@ -308,6 +329,7 @@ int mccic_resume(struct mcam_camera *cam);
->>  #define	  C1_TWOBUFS	  0x08000000	/* Use only two DMA buffers */
->>  #define	  C1_PWRDWN	  0x10000000	/* Power down */
->>
->> +#define REG_CTRL3	0x1ec	/* CCIC parallel mode */
->>  #define REG_CLKCTRL	0x88	/* Clock control */
->>  #define	  CLK_DIV_MASK	  0x0000ffff	/* Upper bits RW "reserved" */
->
->Here, too, I'd rather keep them in order if possible.
->
-[Albert Wang] OK, we will change it.
-
->> +/*
->> + * calc the dphy register values
->> + * There are three dphy registers being used.
->> + * dphy[0] can be set with a default value
->> + * or be calculated dynamically
->> + */
->> +void mmpcam_calc_dphy(struct mcam_camera *mcam)
->> +{
->> +	struct mmp_camera *cam = mcam_to_cam(mcam);
->> +	struct mmp_camera_platform_data *pdata = cam->pdev->dev.platform_data;
->> +	struct device *dev = &cam->pdev->dev;
->> +	unsigned long tx_clk_esc;
->> +
->> +	/*
->> +	 * If dphy[0] is calculated dynamically,
->> +	 * pdata->lane_clk should be already set
->> +	 * either in the board driver statically
->> +	 * or in the sensor driver dynamically.
->> +	 */
->> +	switch (pdata->dphy3_algo) {
->> +	case 1:
->> +		/*
->> +		 * dphy3_algo == 1
->> +		 * Calculate CSI2_DPHY3 algo for PXA910
->> +		 */
->> +		pdata->dphy[0] = ((1 + pdata->lane_clk * 80 / 1000) & 0xff) << 8
->> +			| (1 + pdata->lane_clk * 35 / 1000);
->> +		break;
->
->What are the chances of getting a comment or some other reference so that a
->naive reader like me has a chance of understanding what this calculation
->does?  Where do all those constants come from?
->
-[Albert Wang] The calculation is based on MIPI CSI2 spec, it looks it's very difficult to describe it in some sentences.
-But, anyway we will try to do it.
-
->> +	case 2:
->> +		/*
->> +		 * dphy3_algo == 2
->> +		 * Calculate CSI2_DPHY3 algo for PXA2128
->> +		 */
->> +		pdata->dphy[0] =
->> +			((2 + pdata->lane_clk * 110 / 1000) & 0xff) << 8
->> +			| (1 + pdata->lane_clk * 35 / 1000);
->> +		break;
->> +	default:
->> +		/*
->> +		 * dphy3_algo == 0
->> +		 * Use default CSI2_DPHY3 value for PXA688/PXA988
->> +		 */
->> +		dev_dbg(dev, "camera: use the default CSI2_DPHY3 value\n");
->> +	}
->> +
->> +	/*
->> +	 * pll1 will never be changed, it is a fixed value
->> +	 */
->> +
->> +	if (IS_ERR(mcam->pll1))
->> +		return;
->> +
->> +	tx_clk_esc = clk_get_rate(mcam->pll1) / 1000000 / 12;
->
->Being who I am (see "retentive" above) I'll always parenthesize an
->expression like this to make the intended order of operations explicit.
->
-[Albert Wang] Yes, an expression with parenthesis is more explicit.
->Mostly low-level comments, it's looking pretty good.
->
->jon
++#define pr_fmt(fmt)	KBUILD_MODNAME ": %s: " fmt, __func__
++
+ /*
+  * This driver needs external firmware. Please use the command
+  * "<kerneldir>/Documentation/dvb/get_dvb_firmware or51211" to
+@@ -44,9 +46,7 @@
  
+ static int debug;
+ #define dprintk(args...) \
+-	do { \
+-		if (debug) printk(KERN_DEBUG "or51211: " args); \
+-	} while (0)
++	do { if (debug) pr_debug(args); } while (0)
+ 
+ static u8 run_buf[] = {0x7f,0x01};
+ static u8 cmd_buf[] = {0x04,0x01,0x50,0x80,0x06}; // ATSC
+@@ -80,8 +80,7 @@ static int i2c_writebytes (struct or51211_state* state, u8 reg, const u8 *buf,
+ 	msg.buf		= (u8 *)buf;
+ 
+ 	if ((err = i2c_transfer (state->i2c, &msg, 1)) != 1) {
+-		printk(KERN_WARNING "or51211: i2c_writebytes error "
+-		       "(addr %02x, err == %i)\n", reg, err);
++		pr_warn("error (addr %02x, err == %i)\n", reg, err);
+ 		return -EREMOTEIO;
+ 	}
+ 
+@@ -98,8 +97,7 @@ static int i2c_readbytes(struct or51211_state *state, u8 reg, u8 *buf, int len)
+ 	msg.buf		= buf;
+ 
+ 	if ((err = i2c_transfer (state->i2c, &msg, 1)) != 1) {
+-		printk(KERN_WARNING "or51211: i2c_readbytes error "
+-		       "(addr %02x, err == %i)\n", reg, err);
++		pr_warn("error (addr %02x, err == %i)\n", reg, err);
+ 		return -EREMOTEIO;
+ 	}
+ 
+@@ -118,11 +116,11 @@ static int or51211_load_firmware (struct dvb_frontend* fe,
+ 	/* Get eprom data */
+ 	tudata[0] = 17;
+ 	if (i2c_writebytes(state,0x50,tudata,1)) {
+-		printk(KERN_WARNING "or51211:load_firmware error eprom addr\n");
++		pr_warn("error eprom addr\n");
+ 		return -1;
+ 	}
+ 	if (i2c_readbytes(state,0x50,&tudata[145],192)) {
+-		printk(KERN_WARNING "or51211: load_firmware error eprom\n");
++		pr_warn("error eprom\n");
+ 		return -1;
+ 	}
+ 
+@@ -136,32 +134,32 @@ static int or51211_load_firmware (struct dvb_frontend* fe,
+ 	state->config->reset(fe);
+ 
+ 	if (i2c_writebytes(state,state->config->demod_address,tudata,585)) {
+-		printk(KERN_WARNING "or51211: load_firmware error 1\n");
++		pr_warn("error 1\n");
+ 		return -1;
+ 	}
+ 	msleep(1);
+ 
+ 	if (i2c_writebytes(state,state->config->demod_address,
+ 			   &fw->data[393],8125)) {
+-		printk(KERN_WARNING "or51211: load_firmware error 2\n");
++		pr_warn("error 2\n");
+ 		return -1;
+ 	}
+ 	msleep(1);
+ 
+ 	if (i2c_writebytes(state,state->config->demod_address,run_buf,2)) {
+-		printk(KERN_WARNING "or51211: load_firmware error 3\n");
++		pr_warn("error 3\n");
+ 		return -1;
+ 	}
+ 
+ 	/* Wait at least 5 msec */
+ 	msleep(10);
+ 	if (i2c_writebytes(state,state->config->demod_address,run_buf,2)) {
+-		printk(KERN_WARNING "or51211: load_firmware error 4\n");
++		pr_warn("error 4\n");
+ 		return -1;
+ 	}
+ 	msleep(10);
+ 
+-	printk("or51211: Done.\n");
++	pr_info("Done.\n");
+ 	return 0;
+ };
+ 
+@@ -173,14 +171,14 @@ static int or51211_setmode(struct dvb_frontend* fe, int mode)
+ 	state->config->setmode(fe, mode);
+ 
+ 	if (i2c_writebytes(state,state->config->demod_address,run_buf,2)) {
+-		printk(KERN_WARNING "or51211: setmode error 1\n");
++		pr_warn("error 1\n");
+ 		return -1;
+ 	}
+ 
+ 	/* Wait at least 5 msec */
+ 	msleep(10);
+ 	if (i2c_writebytes(state,state->config->demod_address,run_buf,2)) {
+-		printk(KERN_WARNING "or51211: setmode error 2\n");
++		pr_warn("error 2\n");
+ 		return -1;
+ 	}
+ 
+@@ -196,7 +194,7 @@ static int or51211_setmode(struct dvb_frontend* fe, int mode)
+ 	 *             normal +/-150kHz Carrier acquisition range
+ 	 */
+ 	if (i2c_writebytes(state,state->config->demod_address,cmd_buf,3)) {
+-		printk(KERN_WARNING "or51211: setmode error 3\n");
++		pr_warn("error 3\n");
+ 		return -1;
+ 	}
+ 
+@@ -206,14 +204,14 @@ static int or51211_setmode(struct dvb_frontend* fe, int mode)
+ 	rec_buf[3] = 0x00;
+ 	msleep(20);
+ 	if (i2c_writebytes(state,state->config->demod_address,rec_buf,3)) {
+-		printk(KERN_WARNING "or51211: setmode error 5\n");
++		pr_warn("error 5\n");
+ 	}
+ 	msleep(3);
+ 	if (i2c_readbytes(state,state->config->demod_address,&rec_buf[10],2)) {
+-		printk(KERN_WARNING "or51211: setmode error 6");
++		pr_warn("error 6\n");
+ 		return -1;
+ 	}
+-	dprintk("setmode rec status %02x %02x\n",rec_buf[10],rec_buf[11]);
++	dprintk("rec status %02x %02x\n", rec_buf[10], rec_buf[11]);
+ 
+ 	return 0;
+ }
+@@ -248,15 +246,15 @@ static int or51211_read_status(struct dvb_frontend* fe, fe_status_t* status)
+ 
+ 	/* Receiver Status */
+ 	if (i2c_writebytes(state,state->config->demod_address,snd_buf,3)) {
+-		printk(KERN_WARNING "or51132: read_status write error\n");
++		pr_warn("write error\n");
+ 		return -1;
+ 	}
+ 	msleep(3);
+ 	if (i2c_readbytes(state,state->config->demod_address,rec_buf,2)) {
+-		printk(KERN_WARNING "or51132: read_status read error\n");
++		pr_warn("read error\n");
+ 		return -1;
+ 	}
+-	dprintk("read_status %x %x\n",rec_buf[0],rec_buf[1]);
++	dprintk("%x %x\n", rec_buf[0], rec_buf[1]);
+ 
+ 	if (rec_buf[0] &  0x01) { /* Receiver Lock */
+ 		*status |= FE_HAS_SIGNAL;
+@@ -306,20 +304,18 @@ static int or51211_read_snr(struct dvb_frontend* fe, u16* snr)
+ 	snd_buf[2] = 0x04;
+ 
+ 	if (i2c_writebytes(state,state->config->demod_address,snd_buf,3)) {
+-		printk(KERN_WARNING "%s: error writing snr reg\n",
+-		       __func__);
++		pr_warn("error writing snr reg\n");
+ 		return -1;
+ 	}
+ 	if (i2c_readbytes(state,state->config->demod_address,rec_buf,2)) {
+-		printk(KERN_WARNING "%s: read_status read error\n",
+-		       __func__);
++		pr_warn("read_status read error\n");
+ 		return -1;
+ 	}
+ 
+ 	state->snr = calculate_snr(rec_buf[0], 89599047);
+ 	*snr = (state->snr) >> 16;
+ 
+-	dprintk("%s: noise = 0x%02x, snr = %d.%02d dB\n", __func__, rec_buf[0],
++	dprintk("noise = 0x%02x, snr = %d.%02d dB\n", rec_buf[0],
+ 		state->snr >> 24, (((state->snr>>8) & 0xffff) * 100) >> 16);
+ 
+ 	return 0;
+@@ -375,25 +371,24 @@ static int or51211_init(struct dvb_frontend* fe)
+ 
+ 	if (!state->initialized) {
+ 		/* Request the firmware, this will block until it uploads */
+-		printk(KERN_INFO "or51211: Waiting for firmware upload "
+-		       "(%s)...\n", OR51211_DEFAULT_FIRMWARE);
++		pr_info("Waiting for firmware upload (%s)...\n",
++			OR51211_DEFAULT_FIRMWARE);
+ 		ret = config->request_firmware(fe, &fw,
+ 					       OR51211_DEFAULT_FIRMWARE);
+-		printk(KERN_INFO "or51211:Got Hotplug firmware\n");
++		pr_info("Got Hotplug firmware\n");
+ 		if (ret) {
+-			printk(KERN_WARNING "or51211: No firmware uploaded "
+-			       "(timeout or file not found?)\n");
++			pr_warn("No firmware uploaded "
++				"(timeout or file not found?)\n");
+ 			return ret;
+ 		}
+ 
+ 		ret = or51211_load_firmware(fe, fw);
+ 		release_firmware(fw);
+ 		if (ret) {
+-			printk(KERN_WARNING "or51211: Writing firmware to "
+-			       "device failed!\n");
++			pr_warn("Writing firmware to device failed!\n");
+ 			return ret;
+ 		}
+-		printk(KERN_INFO "or51211: Firmware upload complete.\n");
++		pr_info("Firmware upload complete.\n");
+ 
+ 		/* Set operation mode in Receiver 1 register;
+ 		 * type 1:
+@@ -406,7 +401,7 @@ static int or51211_init(struct dvb_frontend* fe)
+ 		 */
+ 		if (i2c_writebytes(state,state->config->demod_address,
+ 				   cmd_buf,3)) {
+-			printk(KERN_WARNING "or51211: Load DVR Error 5\n");
++			pr_warn("Load DVR Error 5\n");
+ 			return -1;
+ 		}
+ 
+@@ -419,13 +414,13 @@ static int or51211_init(struct dvb_frontend* fe)
+ 		msleep(30);
+ 		if (i2c_writebytes(state,state->config->demod_address,
+ 				   rec_buf,3)) {
+-			printk(KERN_WARNING "or51211: Load DVR Error A\n");
++			pr_warn("Load DVR Error A\n");
+ 			return -1;
+ 		}
+ 		msleep(3);
+ 		if (i2c_readbytes(state,state->config->demod_address,
+ 				  &rec_buf[10],2)) {
+-			printk(KERN_WARNING "or51211: Load DVR Error B\n");
++			pr_warn("Load DVR Error B\n");
+ 			return -1;
+ 		}
+ 
+@@ -436,13 +431,13 @@ static int or51211_init(struct dvb_frontend* fe)
+ 		msleep(20);
+ 		if (i2c_writebytes(state,state->config->demod_address,
+ 				   rec_buf,3)) {
+-			printk(KERN_WARNING "or51211: Load DVR Error C\n");
++			pr_warn("Load DVR Error C\n");
+ 			return -1;
+ 		}
+ 		msleep(3);
+ 		if (i2c_readbytes(state,state->config->demod_address,
+ 				  &rec_buf[12],2)) {
+-			printk(KERN_WARNING "or51211: Load DVR Error D\n");
++			pr_warn("Load DVR Error D\n");
+ 			return -1;
+ 		}
+ 
+@@ -454,16 +449,14 @@ static int or51211_init(struct dvb_frontend* fe)
+ 			get_ver_buf[4] = i+1;
+ 			if (i2c_writebytes(state,state->config->demod_address,
+ 					   get_ver_buf,5)) {
+-				printk(KERN_WARNING "or51211:Load DVR Error 6"
+-				       " - %d\n",i);
++				pr_warn("Load DVR Error 6 - %d\n", i);
+ 				return -1;
+ 			}
+ 			msleep(3);
+ 
+ 			if (i2c_readbytes(state,state->config->demod_address,
+ 					  &rec_buf[i*2],2)) {
+-				printk(KERN_WARNING "or51211:Load DVR Error 7"
+-				       " - %d\n",i);
++				pr_warn("Load DVR Error 7 - %d\n", i);
+ 				return -1;
+ 			}
+ 			/* If we didn't receive the right index, try again */
+@@ -473,10 +466,9 @@ static int or51211_init(struct dvb_frontend* fe)
+ 		}
+ 		dprintk("read_fwbits %10ph\n", rec_buf);
+ 
+-		printk(KERN_INFO "or51211: ver TU%02x%02x%02x VSB mode %02x"
+-		       " Status %02x\n",
+-		       rec_buf[2], rec_buf[4],rec_buf[6],
+-		       rec_buf[12],rec_buf[10]);
++		pr_info("ver TU%02x%02x%02x VSB mode %02x Status %02x\n",
++			rec_buf[2], rec_buf[4], rec_buf[6], rec_buf[12],
++			rec_buf[10]);
+ 
+ 		rec_buf[0] = 0x04;
+ 		rec_buf[1] = 0x00;
+@@ -485,13 +477,13 @@ static int or51211_init(struct dvb_frontend* fe)
+ 		msleep(20);
+ 		if (i2c_writebytes(state,state->config->demod_address,
+ 				   rec_buf,3)) {
+-			printk(KERN_WARNING "or51211: Load DVR Error 8\n");
++			pr_warn("Load DVR Error 8\n");
+ 			return -1;
+ 		}
+ 		msleep(20);
+ 		if (i2c_readbytes(state,state->config->demod_address,
+ 				  &rec_buf[8],2)) {
+-			printk(KERN_WARNING "or51211: Load DVR Error 9\n");
++			pr_warn("Load DVR Error 9\n");
+ 			return -1;
+ 		}
+ 		state->initialized = 1;
+-- 
+1.7.10.4
 
-Thanks
-Albert Wang
-86-21-61092656
