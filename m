@@ -1,114 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:47332 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754030Ab2LEOZv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Dec 2012 09:25:51 -0500
-Message-ID: <50BF5950.2040805@redhat.com>
-Date: Wed, 05 Dec 2012 12:25:20 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Federico Vaga <federico.vaga@gmail.com>
-CC: Marek Szyprowski <m.szyprowski@samsung.com>,
-	"'Mauro Carvalho Chehab'" <mchehab@infradead.org>,
-	"'Pawel Osciak'" <pawel@osciak.com>,
-	"'Hans Verkuil'" <hans.verkuil@cisco.com>,
-	"'Giancarlo Asnaghi'" <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	"'Jonathan Corbet'" <corbet@lwn.net>,
-	sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v3 2/4] videobuf2-dma-streaming: new videobuf2 memory
- allocator
-References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com> <055901cd9a52$5995fcd0$0cc1f670$%szyprowski@samsung.com> <50BE1F06.10308@redhat.com> <1685240.Ttn3DTWMJc@harkonnen>
-In-Reply-To: <1685240.Ttn3DTWMJc@harkonnen>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4274 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754957Ab2LRUr3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Dec 2012 15:47:29 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id qBIKlPnN003918
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Tue, 18 Dec 2012 21:47:27 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 729E611E00AB
+	for <linux-media@vger.kernel.org>; Tue, 18 Dec 2012 21:47:19 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20121218204719.729E611E00AB@alastor.dyndns.org>
+Date: Tue, 18 Dec 2012 21:47:19 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 05-12-2012 10:50, Federico Vaga escreveu:
-> On Tuesday 04 December 2012 14:04:22 Mauro Carvalho Chehab wrote:
->> Em 24-09-2012 09:44, Marek Szyprowski escreveu:
->>> Hello,
->>>
->>> On Monday, September 24, 2012 12:59 PM Federico Vaga wrote:
->>>> The DMA streaming allocator is similar to the DMA contig but it use the
->>>> DMA streaming interface (dma_map_single, dma_unmap_single). The
->>>> allocator allocates buffers and immediately map the memory for DMA
->>>> transfer. For each buffer prepare/finish it does a DMA synchronization.
->>
->> Hmm.. the explanation didn't convince me, e. g.:
->> 	1) why is it needed;
->
-> This allocator is needed because some device (like STA2X11 VIP) cannot work
-> with DMA sg or DMA coherent. Some other device (like the one used by Jonathan
-> when he proposes vb2-dma-nc allocator) can obtain much better performance with
-> DMA streaming than coherent.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Ok, please add such explanations at the patch's descriptions, as it is
-important not only for me, but to others that may need to use it..
+Results of the daily build of media_tree:
 
->
->> 	2) why vb2-dma-config can't be patched to use dma_map_single
->> (eventually using a different vb2_io_modes bit?);
->
-> I did not modify vb2-dma-contig because I was thinking that each DMA memory
-> allocator should reflect a DMA API.
+date:        Tue Dec 18 19:00:27 CET 2012
+git hash:    49cc629df16f2a15917800a8579bd9c25c41b634
+gcc version:      i686-linux-gcc (GCC) 4.7.1
+host hardware:    x86_64
+host os:          3.4.07-marune
 
-The basic reason for having more than one VB low-level handling (vb2 was
-inspired on this concept) is that some DMA APIs are very different than
-the other ones (see vmalloc x DMA S/G for example).
+linux-git-arm-eabi-davinci: WARNINGS
+linux-git-arm-eabi-exynos: OK
+linux-git-arm-eabi-omap: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-i686: WARNINGS
+linux-2.6.37-i686: WARNINGS
+linux-2.6.38.2-i686: WARNINGS
+linux-2.6.39.1-i686: WARNINGS
+linux-3.0-i686: WARNINGS
+linux-3.1-i686: WARNINGS
+linux-3.2.1-i686: WARNINGS
+linux-3.3-i686: WARNINGS
+linux-3.4-i686: WARNINGS
+linux-3.5-i686: WARNINGS
+linux-3.6-i686: WARNINGS
+linux-3.7-i686: ERRORS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-x86_64: WARNINGS
+linux-2.6.37-x86_64: WARNINGS
+linux-2.6.38.2-x86_64: WARNINGS
+linux-2.6.39.1-x86_64: WARNINGS
+linux-3.0-x86_64: WARNINGS
+linux-3.1-x86_64: WARNINGS
+linux-3.2.1-x86_64: WARNINGS
+linux-3.3-x86_64: WARNINGS
+linux-3.4-x86_64: WARNINGS
+linux-3.5-x86_64: WARNINGS
+linux-3.6-x86_64: WARNINGS
+linux-3.7-x86_64: ERRORS
+apps: WARNINGS
+spec-git: WARNINGS
+sparse: ERRORS
 
-I didn't make a diff between videobuf2-dma-streaming and videobuf2-dma-contig,
-so I can't tell if it makes sense to merge them or not, but the above
-argument seems too weak. I was expecting for a technical reason why
-it wouldn't make sense for merging them.
+Detailed results are available here:
 
->
->> 	3) what are the usecases for it.
->>
->> Could you please detail it? Without that, one that would be needing to
->> write a driver will have serious doubts about what would be the right
->> driver for its usage. Also, please document it at the driver itself.
->
-> I did not write all this details because the reasons to use vb2-dma-contig,
-> vb2-dma-sg or vb2-dma-streaming are the same reasons because someone choose
-> SG, coherent or streaming API. This is already documented in the DMA-*.txt
-> files, so I did not rewrite it to avoid duplication.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-I see. It doesn't hurt to add a short explanation then at the patch description,
-pointing to Documentation/DMA-API-HOWTO.txt, describing when using it instead
-of vb2-dma-config (or vb2-dma-sg) would likely give better performance results,
-and when the reverse is true.
+Full logs are available here:
 
-Btw, from Documentation/DMA-API-HOWTO.txt:
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-   "Good examples of what to use streaming mappings for are:
+The V4L-DVB specification from this daily build is here:
 
-	- Networking buffers transmitted/received by a device.
-	- Filesystem buffers written/read by a SCSI device.
-
-    The interfaces for using this type of mapping were designed in
-    such a way that an implementation can make whatever performance
-    optimizations the hardware allows.  To this end, when using
-    such mappings you must be explicit about what you want to happen."
-
-I'm not a DMA performance expert. As such, from that comment, it sounded to me
-that replacing dma-config/dma-sg by dma streaming will always give "performance
-optimizations the hardware allow".
-
-If this is always true, why to preserve the old vb2-dma-config/vb2-dma-sg?
-
-In other words, I suspect that the above is just half of the history ;)
-
-On a separate but related issue, while doing DMABUF tests with an Exynos4
-hardware, using a s5p sensor, sending data to s5p-tv, I noticed a CPU
-consumption of about 42%, which seems too high. Could it be related to
-not using the DMA streaming API?
-
-(c/c Sylwester, due to this last comment)
-
-Regards,
-Mauro
-
-
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
