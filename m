@@ -1,92 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2816 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1424824Ab2LFUwa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Dec 2012 15:52:30 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id qB6KqRHs027769
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 6 Dec 2012 21:52:29 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id E1F3265A002C
-	for <linux-media@vger.kernel.org>; Thu,  6 Dec 2012 21:52:27 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20121206205227.E1F3265A002C@alastor.dyndns.org>
-Date: Thu,  6 Dec 2012 21:52:27 +0100 (CET)
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:52819 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754924Ab2LROmL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Dec 2012 09:42:11 -0500
+Message-id: <50D080B6.1020109@samsung.com>
+Date: Tue, 18 Dec 2012 15:41:58 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Federico Vaga <federico.vaga@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	'Mauro Carvalho Chehab' <mchehab@infradead.org>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	'Hans Verkuil' <hans.verkuil@cisco.com>,
+	'Giancarlo Asnaghi' <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v3 2/4] videobuf2-dma-streaming: new videobuf2 memory
+ allocator
+References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com>
+ <1685240.Ttn3DTWMJc@harkonnen> <50BF5950.2040805@redhat.com>
+ <1535483.0HokefWAdm@harkonnen>
+In-reply-to: <1535483.0HokefWAdm@harkonnen>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hello,
 
-Results of the daily build of media_tree:
+I'm sorry for the delay, I've been terribly busy recently.
 
-date:        Thu Dec  6 19:00:20 CET 2012
-git hash:    16427faf28674451a7a0485ab0a929402f355ffd
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+On 12/11/2012 2:54 PM, Federico Vaga wrote:
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: OK
-linux-git-arm-eabi-omap: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: WARNINGS
-linux-git-x86_64: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: ERRORS
-linux-3.5-i686: ERRORS
-linux-3.6-i686: WARNINGS
-linux-3.7-rc1-i686: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: ERRORS
-linux-3.5-x86_64: ERRORS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: WARNINGS
-sparse: ERRORS
+>> > This allocator is needed because some device (like STA2X11 VIP) cannot
+>> > work
+>> > with DMA sg or DMA coherent. Some other device (like the one used by
+>> > Jonathan when he proposes vb2-dma-nc allocator) can obtain much better
+>> > performance with DMA streaming than coherent.
+>>
+>> Ok, please add such explanations at the patch's descriptions, as it is
+>> important not only for me, but to others that may need to use it..
+>
+> OK
+>
+>> >> 	2) why vb2-dma-config can't be patched to use dma_map_single
+>> >>
+>> >> (eventually using a different vb2_io_modes bit?);
+>> >
+>> > I did not modify vb2-dma-contig because I was thinking that each DMA
+>> > memory allocator should reflect a DMA API.
+>>
+>> The basic reason for having more than one VB low-level handling (vb2 was
+>> inspired on this concept) is that some DMA APIs are very different than
+>> the other ones (see vmalloc x DMA S/G for example).
+>>
+>> I didn't make a diff between videobuf2-dma-streaming and
+>> videobuf2-dma-contig, so I can't tell if it makes sense to merge them or
+>> not, but the above argument seems too weak. I was expecting for a technical
+>> reason why it wouldn't make sense for merging them.
+>
+> I cannot work on this now. But I think that I can do an integration like the
+> one that I pushed some month ago (a8f3c203e19b702fa5e8e83a9b6fb3c5a6d1cce4).
+> Wind River made that changes to videobuf-contig and I tested, fixed and
+> pushed.
+>
+>> >> 	3) what are the usecases for it.
+>> >>
+>> >> Could you please detail it? Without that, one that would be needing to
+>> >> write a driver will have serious doubts about what would be the right
+>> >> driver for its usage. Also, please document it at the driver itself.
+>
+> I don't have a full understand of the board so I don't know exactly why
+> dma_alloc_coherent does not work. I focused my development on previous work by
+> Wind River. I asked to Wind River (which did all the work on this board) for
+> the technical explanation about why coherent doesn't work, but they do not
+> know. That's why I made the new allocator: coherent doesn't work and HW
+> doesn't support SG.
 
-Detailed results are available here:
+Ok, now I see the whole image. I was convinced that this so called 
+streaming allocator is required for performance reasons, not because of 
+the broken platform support for coherent calls.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+My ultimate goal is to have support for both non-cached (coherent) and 
+cached (non-coherent) buffers in the dma mapping subsystem on top of the 
+common API. Then both types of buffers will be easily supported by 
+dma-contig vb2 allocator. Currently support for streaming-style buffers 
+requires completely different dma mapping calls, although from the 
+device driver point of view the buffers behaves similarly, so 
+implementing them as a separate allocator seems to be the best idea.
 
-Full logs are available here:
+I can take a look at the dma coherent issues with that board, but I will 
+need some help as I don't have this hardware.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+>> I'm not a DMA performance expert. As such, from that comment, it sounded to
+>> me that replacing dma-config/dma-sg by dma streaming will always give
+>> "performance optimizations the hardware allow".
+>
+> me too, I'm not a DMA performance expert. I'm just an user of the DMA API. On
+> my hardware simply it works only with that interface, it is not a performance
+> problem.
+>
+>> On a separate but related issue, while doing DMABUF tests with an Exynos4
+>> hardware, using a s5p sensor, sending data to s5p-tv, I noticed a CPU
+>> consumption of about 42%, which seems too high. Could it be related to
+>> not using the DMA streaming API?
 
-The V4L-DVB specification from this daily build is here:
+This might be related to the excessive cpu cache flushing on dma buf 
+buffers as there were some misunderstanding who is responsible of that 
+(I saw some strange code in drm, but it has been changed a few times). I 
+will add this issue to my todo list.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
+
