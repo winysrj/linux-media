@@ -1,77 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:45362 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756345Ab2LNPow (ORCPT
+Received: from server.prisktech.co.nz ([115.188.14.127]:50406 "EHLO
+	server.prisktech.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754361Ab2LRI3D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Dec 2012 10:44:52 -0500
-Received: by mail-bk0-f46.google.com with SMTP id q16so1820462bkw.19
-        for <linux-media@vger.kernel.org>; Fri, 14 Dec 2012 07:44:50 -0800 (PST)
-Message-ID: <50CB497F.6070803@googlemail.com>
-Date: Fri, 14 Dec 2012 16:45:03 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/9] em28xx: refactor the frame data processing code
-References: <1354980692-3791-1-git-send-email-fschaefer.oss@googlemail.com> <CAGoCfiw1wN+KgvNLqDSmbz5AwswPT9K48XOM4RnfKvHkmmR59g@mail.gmail.com> <50CA16EB.7060201@googlemail.com> <CAGoCfixtaQ4Jj2dW7XaAzcqEBTDj3xRnO_iCP=kOnhaxYwO2rw@mail.gmail.com> <50CB4494.2060501@googlemail.com> <CAGoCfixTeu6m0dcmpy7p=_BM8oZknCwyJ=jFPPM7bgJKC=-=jg@mail.gmail.com>
-In-Reply-To: <CAGoCfixTeu6m0dcmpy7p=_BM8oZknCwyJ=jFPPM7bgJKC=-=jg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Tue, 18 Dec 2012 03:29:03 -0500
+From: Tony Prisk <linux@prisktech.co.nz>
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Tony Prisk <linux@prisktech.co.nz>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 4/6] clk: s5p-tv: Fix incorrect usage of IS_ERR_OR_NULL
+Date: Tue, 18 Dec 2012 21:28:39 +1300
+Message-Id: <1355819321-21914-5-git-send-email-linux@prisktech.co.nz>
+In-Reply-To: <1355819321-21914-1-git-send-email-linux@prisktech.co.nz>
+References: <1355819321-21914-1-git-send-email-linux@prisktech.co.nz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 14.12.2012 16:29, schrieb Devin Heitmueller:
->>>> Yes, there will likely be heavy merge conflicts...
->>>> In which tree are the videobuf2 patches ?
->>> It's in a private tree right now, and it doesn't support VBI
->>> currently.  Once I've setup a public tree with yours and Hans changes,
->>> I'll start merging in my changes.
->> I suggest to do the conversion on top of my patches, as they should make
->> things much easier for you.
->> I unified the handling of the VBI and video buffers, leaving just a few
->> common functions dealing with the videobuf stuff.
-> Yup, that's exactly what I had planned.
->
->> In any case, we should develop against a common tree with a minimum
->> number of pending patches.
->> And we should coordinate development.
->> I don't work on further changes of the frame processing stuff at the moment.
->> Some I2C fixes/changes will be next. After that, I will try to fix
->> support for remote controls with external IR IC (connected via i2c).
->>
->>> Obviously it would be great for you to test with your webcam and make
->>> sure I didn't break anything along the way.
->> Sure, I will be glad to test your changes.
->>
->>> I've also got changes to support V4L2_FIELD_SEQ_TB, which is needed in
->>> order to take the output and feed to certain hardware deinterlacers.
->>> In reality this is pretty much just a matter of treating the video
->>> data as progressive but changing the field type indicator.
->> Ok, so I assume most of the changes will happen in em28xx_copy_video().
-> The changes really are all over the tree because it's not just vb2
-> support but also support for v4l2_fh, which means every ioctl() has a
-> change to its arguments, and there is no longer an open/close call
-> implemented.  Also significant impact on the locking model.
+Replace IS_ERR_OR_NULL with IS_ERR on clk_get results.
 
-Ok. Sounds like a lot of fun... ;)
+Signed-off-by: Tony Prisk <linux@prisktech.co.nz>
+CC: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Tomasz Stanislawski <t.stanislaws@samsung.com>
+CC: linux-media@vger.kernel.org
+---
+ drivers/media/platform/s5p-tv/hdmi_drv.c  |   10 +++++-----
+ drivers/media/platform/s5p-tv/mixer_drv.c |   10 +++++-----
+ drivers/media/platform/s5p-tv/sdo_drv.c   |   10 +++++-----
+ 3 files changed, 15 insertions(+), 15 deletions(-)
 
-If the changes are all over the tree, we will likely get more collisions.
-So we should both make our changes public as soon as possible.
-
->
->> Maybe we can then use a common copy function for video and VBI. Placing
->> the field data sequentially in the videobuf is what we already do with
->> the VBI data in em28xx_copy_vbi()
-> Let's get something that works, at which point we can tune/optimize as needed.
-
-I agree.
-
-Frank
-
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
+diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
+index 8a9cf43..1c48ca5 100644
+--- a/drivers/media/platform/s5p-tv/hdmi_drv.c
++++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
+@@ -781,27 +781,27 @@ static int hdmi_resources_init(struct hdmi_device *hdev)
+ 	/* get clocks, power */
+ 
+ 	res->hdmi = clk_get(dev, "hdmi");
+-	if (IS_ERR_OR_NULL(res->hdmi)) {
++	if (IS_ERR(res->hdmi)) {
+ 		dev_err(dev, "failed to get clock 'hdmi'\n");
+ 		goto fail;
+ 	}
+ 	res->sclk_hdmi = clk_get(dev, "sclk_hdmi");
+-	if (IS_ERR_OR_NULL(res->sclk_hdmi)) {
++	if (IS_ERR(res->sclk_hdmi)) {
+ 		dev_err(dev, "failed to get clock 'sclk_hdmi'\n");
+ 		goto fail;
+ 	}
+ 	res->sclk_pixel = clk_get(dev, "sclk_pixel");
+-	if (IS_ERR_OR_NULL(res->sclk_pixel)) {
++	if (IS_ERR(res->sclk_pixel)) {
+ 		dev_err(dev, "failed to get clock 'sclk_pixel'\n");
+ 		goto fail;
+ 	}
+ 	res->sclk_hdmiphy = clk_get(dev, "sclk_hdmiphy");
+-	if (IS_ERR_OR_NULL(res->sclk_hdmiphy)) {
++	if (IS_ERR(res->sclk_hdmiphy)) {
+ 		dev_err(dev, "failed to get clock 'sclk_hdmiphy'\n");
+ 		goto fail;
+ 	}
+ 	res->hdmiphy = clk_get(dev, "hdmiphy");
+-	if (IS_ERR_OR_NULL(res->hdmiphy)) {
++	if (IS_ERR(res->hdmiphy)) {
+ 		dev_err(dev, "failed to get clock 'hdmiphy'\n");
+ 		goto fail;
+ 	}
+diff --git a/drivers/media/platform/s5p-tv/mixer_drv.c b/drivers/media/platform/s5p-tv/mixer_drv.c
+index ca0f297..c1b2e0e 100644
+--- a/drivers/media/platform/s5p-tv/mixer_drv.c
++++ b/drivers/media/platform/s5p-tv/mixer_drv.c
+@@ -240,27 +240,27 @@ static int mxr_acquire_clocks(struct mxr_device *mdev)
+ 	struct device *dev = mdev->dev;
+ 
+ 	res->mixer = clk_get(dev, "mixer");
+-	if (IS_ERR_OR_NULL(res->mixer)) {
++	if (IS_ERR(res->mixer)) {
+ 		mxr_err(mdev, "failed to get clock 'mixer'\n");
+ 		goto fail;
+ 	}
+ 	res->vp = clk_get(dev, "vp");
+-	if (IS_ERR_OR_NULL(res->vp)) {
++	if (IS_ERR(res->vp)) {
+ 		mxr_err(mdev, "failed to get clock 'vp'\n");
+ 		goto fail;
+ 	}
+ 	res->sclk_mixer = clk_get(dev, "sclk_mixer");
+-	if (IS_ERR_OR_NULL(res->sclk_mixer)) {
++	if (IS_ERR(res->sclk_mixer)) {
+ 		mxr_err(mdev, "failed to get clock 'sclk_mixer'\n");
+ 		goto fail;
+ 	}
+ 	res->sclk_hdmi = clk_get(dev, "sclk_hdmi");
+-	if (IS_ERR_OR_NULL(res->sclk_hdmi)) {
++	if (IS_ERR(res->sclk_hdmi)) {
+ 		mxr_err(mdev, "failed to get clock 'sclk_hdmi'\n");
+ 		goto fail;
+ 	}
+ 	res->sclk_dac = clk_get(dev, "sclk_dac");
+-	if (IS_ERR_OR_NULL(res->sclk_dac)) {
++	if (IS_ERR(res->sclk_dac)) {
+ 		mxr_err(mdev, "failed to get clock 'sclk_dac'\n");
+ 		goto fail;
+ 	}
+diff --git a/drivers/media/platform/s5p-tv/sdo_drv.c b/drivers/media/platform/s5p-tv/sdo_drv.c
+index ad68bbe..269d246 100644
+--- a/drivers/media/platform/s5p-tv/sdo_drv.c
++++ b/drivers/media/platform/s5p-tv/sdo_drv.c
+@@ -341,25 +341,25 @@ static int __devinit sdo_probe(struct platform_device *pdev)
+ 
+ 	/* acquire clocks */
+ 	sdev->sclk_dac = clk_get(dev, "sclk_dac");
+-	if (IS_ERR_OR_NULL(sdev->sclk_dac)) {
++	if (IS_ERR(sdev->sclk_dac)) {
+ 		dev_err(dev, "failed to get clock 'sclk_dac'\n");
+ 		ret = -ENXIO;
+ 		goto fail;
+ 	}
+ 	sdev->dac = clk_get(dev, "dac");
+-	if (IS_ERR_OR_NULL(sdev->dac)) {
++	if (IS_ERR(sdev->dac)) {
+ 		dev_err(dev, "failed to get clock 'dac'\n");
+ 		ret = -ENXIO;
+ 		goto fail_sclk_dac;
+ 	}
+ 	sdev->dacphy = clk_get(dev, "dacphy");
+-	if (IS_ERR_OR_NULL(sdev->dacphy)) {
++	if (IS_ERR(sdev->dacphy)) {
+ 		dev_err(dev, "failed to get clock 'dacphy'\n");
+ 		ret = -ENXIO;
+ 		goto fail_dac;
+ 	}
+ 	sclk_vpll = clk_get(dev, "sclk_vpll");
+-	if (IS_ERR_OR_NULL(sclk_vpll)) {
++	if (IS_ERR(sclk_vpll)) {
+ 		dev_err(dev, "failed to get clock 'sclk_vpll'\n");
+ 		ret = -ENXIO;
+ 		goto fail_dacphy;
+@@ -367,7 +367,7 @@ static int __devinit sdo_probe(struct platform_device *pdev)
+ 	clk_set_parent(sdev->sclk_dac, sclk_vpll);
+ 	clk_put(sclk_vpll);
+ 	sdev->fout_vpll = clk_get(dev, "fout_vpll");
+-	if (IS_ERR_OR_NULL(sdev->fout_vpll)) {
++	if (IS_ERR(sdev->fout_vpll)) {
+ 		dev_err(dev, "failed to get clock 'fout_vpll'\n");
+ 		goto fail_dacphy;
+ 	}
+-- 
+1.7.9.5
 
