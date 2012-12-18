@@ -1,50 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39741 "EHLO mail.kapsi.fi"
+Received: from mout.gmx.net ([212.227.17.20]:58416 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756588Ab2LNQ4L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Dec 2012 11:56:11 -0500
-Message-ID: <50CB5A0A.3030305@iki.fi>
-Date: Fri, 14 Dec 2012 18:55:38 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1755397Ab2LRWIA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Dec 2012 17:08:00 -0500
+Received: from mailout-de.gmx.net ([10.1.76.38]) by mrigmx.server.lan
+ (mrigmx002) with ESMTP (Nemesis) id 0M6PTB-1Ssibr2pXX-00yQnY for
+ <linux-media@vger.kernel.org>; Tue, 18 Dec 2012 23:02:56 +0100
+Content-Type: multipart/mixed; boundary="========GMX228781355868174298363"
+Date: Tue, 18 Dec 2012 23:02:54 +0100
+From: "Patrick Pfyffer" <patrick.pfyffer@gmx.net>
+Message-ID: <20121218220254.228780@gmx.net>
 MIME-Version: 1.0
-To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-CC: mchehab@redhat.com, linux-media@vger.kernel.org,
-	dheitmueller@kernellabs.com
-Subject: Re: [PATCH 2/5] em28xx: respect the message size constraints for
- i2c transfers
-References: <1355502533-25636-1-git-send-email-fschaefer.oss@googlemail.com> <1355502533-25636-3-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1355502533-25636-3-git-send-email-fschaefer.oss@googlemail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Subject: Two new DVB-C scan lists for Switzerland
+To: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/14/2012 06:28 PM, Frank Schäfer wrote:
-> The em2800 can transfer up to 4 bytes per i2c message.
-> All other em25xx/em27xx/28xx chips can transfer at least 64 bytes per message.
->
-> I2C adapters should never split messages transferred via the I2C subsystem
-> into multiple message transfers, because the result will almost always NOT be
-> the same as when the whole data is transferred to the I2C client in a single
-> message.
-> If the message size exceeds the capabilities of the I2C adapter, -EOPNOTSUPP
-> should be returned.
->
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+--========GMX228781355868174298363
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+Dear linux-dvb Members
+
+I would like to kindly ask you to add the two attached new scan list to your repository.
+http://linuxtv.org/hg/dvb-apps/file/5e68946b0e0d/util/scan/dvb-c
+
+The files will add new entries for two cable networks in Switzerland:
+- GGA Pratteln
+- interGGA
+
+They are both fully non-encrypted free-to-air networks but also contain some pay-tv transponders.
 
 
-> +	if (len < 1 || len > 4)
-> +		return -EOPNOTSUPP;
+Could you also remove the list below because it's useless:
+http://linuxtv.org/hg/dvb-apps/file/5e68946b0e0d/util/scan/dvb-c/ch-unknown
 
-That patch seem to be good for my eyes, but that check for len < 1 is 
-something I would like to double checked. Generally len = 0 is OK and is 
-used some cases, probing and sometimes when all registers are read for 
-example.
+Thank you very much
 
-Did you test it returns some error for zero len messages?
+Patrick Pfyffer
 
-regards
-Antti
+--========GMX228781355868174298363
+Content-Type: application/octet-stream; name="ch-GGA-Pratteln"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="ch-GGA-Pratteln"
 
--- 
-http://palosaari.fi/
+IyBEVkItQyB0cmFuc3BvbmRlci9tdXhlcyBzY2FuCiMgR0dBIFByYXR0ZWxuLCBTd2l0emVybGFu
+ZAojIHd3dy5nZ2EtcHJhdHRlbG4uY2gKIyBOZXR3b3JrIElEOiAxODYKIyAyMDEyLTEyLTE3Cgoj
+IGZyZXEgICAgICBzciAgICAgIGZlYyAgbW9kICAgIENvbW1lbnQKQyAzMTQwMDAwMDAgNjkwMDAw
+MCBOT05FIFFBTTI1NgpDIDM2MjAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgMzc4MDAwMDAw
+IDY5MDAwMDAgTk9ORSBRQU0yNTYKQyAzOTQwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDQ3
+NDAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNDgyMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0y
+NTYgIyBUZWxlY2x1YgpDIDU3MDAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNTc4MDAwMDAw
+IDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA1ODYwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDU5
+NDAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNjAyMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0y
+NTYKQyA2NTgwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDY2NjAwMDAwMCA2OTAwMDAwIE5P
+TkUgUUFNMjU2CkMgNjc0MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYJIyBJbnRlcnRhaW5tZW50
+CkMgNjgyMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYJIyBJbnRlcnRhaW5tZW50CkMgNjkwMDAw
+MDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYJIyBJbnRlcnRhaW5tZW50CkMgNjk4MDAwMDAwIDY5MDAw
+MDAgTk9ORSBRQU0yNTYKQyA3MDYwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDcxNDAwMDAw
+MCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNzIyMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA3
+MzAwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDczODAwMDAwMCA2OTAwMDAwIE5PTkUgUUFN
+MjU2CSMgSW50ZXJ0YWlubWVudApDIDc0NjAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNzU0
+MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYJIyBJbnRlcnRhaW5tZW50CkMgNzYyMDAwMDAwIDY5
+MDAwMDAgTk9ORSBRQU0yNTYKQyA3NzAwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDc3ODAw
+MDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNzg2MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYK
+QyA3OTQwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDgwMjAwMDAwMCA2OTAwMDAwIE5PTkUg
+UUFNMjU2CkMgODEwMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA4MTgwMDAwMDAgNjkwMDAw
+MCBOT05FIFFBTTI1NgpDIDgyNjAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgODM0MDAwMDAw
+IDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA4NDIwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1Ngo=
+--========GMX228781355868174298363
+Content-Type: application/octet-stream; name="ch-interGGA"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="ch-interGGA"
+
+IyBEVkItQyB0cmFuc3BvbmRlci9tdXhlcyBzY2FuCiMgaW50ZXJHR0EsIFN3aXR6ZXJsYW5kCiMg
+d3d3LmludGVyZ2dhLWFnLmNoCiMgTmV0d29yayBJRDogNTU1CiMgMjAxMi0xMi0xOAoKIyBmcmVx
+ICAgICAgc3IgICAgICBmZWMgIG1vZCAgICBDb21tZW50CkMgNDc0MDAwMDAwIDY5MDAwMDAgTk9O
+RSBRQU0yNTYKQyA0ODIwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDQ5MDAwMDAwMCA2OTAw
+MDAwIE5PTkUgUUFNMjU2CkMgNDk4MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA1MDYwMDAw
+MDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDUxNDAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMg
+NTIyMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA1MzAwMDAwMDAgNjkwMDAwMCBOT05FIFFB
+TTI1NgpDIDYwMjAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNjEwMDAwMDAwIDY5MDAwMDAg
+Tk9ORSBRQU0yNTYKQyA2MTgwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDYyNjAwMDAwMCA2
+OTAwMDAwIE5PTkUgUUFNMjU2CkMgNjM0MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA2NDIw
+MDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDY1MDAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2
+CkMgNjU4MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA2NjYwMDAwMDAgNjkwMDAwMCBOT05F
+IFFBTTI1NgpDIDY3NDAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNjgyMDAwMDAwIDY5MDAw
+MDAgTk9ORSBRQU0yNTYKQyA2OTAwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDY5ODAwMDAw
+MCA2OTAwMDAwIE5PTkUgUUFNMjU2CkMgNzA2MDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA3
+MTQwMDAwMDAgNjkwMDAwMCBOT05FIFFBTTI1NgpDIDcyMjAwMDAwMCA2OTAwMDAwIE5PTkUgUUFN
+MjU2CkMgNzMwMDAwMDAwIDY5MDAwMDAgTk9ORSBRQU0yNTYKQyA3MzgwMDAwMDAgNjkwMDAwMCBO
+T05FIFFBTTI1NgpDIDc0NjAwMDAwMCA2OTAwMDAwIE5PTkUgUUFNMjU2Cg==
+--========GMX228781355868174298363--
