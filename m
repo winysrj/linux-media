@@ -1,80 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:9864 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751224Ab2LEIgH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Dec 2012 03:36:07 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MEJ00BMIUO1M130@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 05 Dec 2012 08:38:40 +0000 (GMT)
-Received: from [106.116.147.88] by eusync4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTPA id <0MEJ00BJBUK1R450@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 05 Dec 2012 08:36:01 +0000 (GMT)
-Message-id: <50BF0770.50809@samsung.com>
-Date: Wed, 05 Dec 2012 09:36:00 +0100
-From: Andrzej Hajda <a.hajda@samsung.com>
-MIME-version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH RFC 3/3] s5p-fimc: improved pipeline try format routine
-References: <1353684150-24581-1-git-send-email-a.hajda@samsung.com>
- <1353684150-24581-4-git-send-email-a.hajda@samsung.com>
- <50BE1CF4.9080009@samsung.com>
-In-reply-to: <50BE1CF4.9080009@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45922 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932065Ab2LRQ6Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Dec 2012 11:58:16 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicestree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
+	"David Airlie" <airlied@linux.ie>,
+	"Rob Clark" <robdclark@gmail.com>,
+	"Leela Krishna Amudala" <leelakrishna.a@gmail.com>
+Subject: [PATCHv16 4/7] fbmon: add videomode helpers
+Date: Tue, 18 Dec 2012 17:57:50 +0100
+Message-Id: <1355849873-8051-5-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1355849873-8051-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1355849873-8051-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Add a function to convert from the generic videomode to a fb_videomode.
 
-On 04.12.2012 16:55, Sylwester Nawrocki wrote:
-> Hi Andrzej,
->
-> On 11/23/2012 04:22 PM, Andrzej Hajda wrote:
->> Function support variable number of subdevs in pipe-line.
-> I'm will be applying this patch with description changed to:
->
-> Make the pipeline try format routine more generic to support any
-> number of subdevs in the pipeline, rather than hard coding it for
-> only a sensor, MIPI-CSIS and FIMC subdevs and the FIMC video node.
-Seems better :)
->
->> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
->> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->> ---
->>   drivers/media/platform/s5p-fimc/fimc-capture.c |  100 +++++++++++++++---------
->>   1 file changed, 64 insertions(+), 36 deletions(-)
->>
-> ...
->>   /**
->>    * fimc_pipeline_try_format - negotiate and/or set formats at pipeline
->>    *                            elements
->> @@ -809,65 +824,78 @@ static int fimc_pipeline_try_format(struct fimc_ctx *ctx,
-> ...
->>   		ffmt = fimc_find_format(NULL, mf->code != 0 ? &mf->code : NULL,
->>   					FMT_FLAGS_CAM, i++);
->> -		if (ffmt == NULL) {
->> -			/*
->> -			 * Notify user-space if common pixel code for
->> -			 * host and sensor does not exist.
->> -			 */
->> +		if (ffmt == NULL)
->>   			return -EINVAL;
->> -		}
->> +
-> And as we agreed, with this chunk removed from the patch. Since the comment
-> still stands.
-OK.
->
-> --
->
-> Thank you!
-> Sylwester
->
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/video/fbmon.c |   52 +++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/fb.h    |    4 ++++
+ 2 files changed, 56 insertions(+)
+
+diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
+index cef6557..17ce135 100644
+--- a/drivers/video/fbmon.c
++++ b/drivers/video/fbmon.c
+@@ -31,6 +31,7 @@
+ #include <linux/pci.h>
+ #include <linux/slab.h>
+ #include <video/edid.h>
++#include <video/videomode.h>
+ #ifdef CONFIG_PPC_OF
+ #include <asm/prom.h>
+ #include <asm/pci-bridge.h>
+@@ -1373,6 +1374,57 @@ int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_inf
+ 	kfree(timings);
+ 	return err;
+ }
++
++#if IS_ENABLED(CONFIG_VIDEOMODE)
++int fb_videomode_from_videomode(const struct videomode *vm,
++				struct fb_videomode *fbmode)
++{
++	unsigned int htotal, vtotal;
++
++	fbmode->xres = vm->hactive;
++	fbmode->left_margin = vm->hback_porch;
++	fbmode->right_margin = vm->hfront_porch;
++	fbmode->hsync_len = vm->hsync_len;
++
++	fbmode->yres = vm->vactive;
++	fbmode->upper_margin = vm->vback_porch;
++	fbmode->lower_margin = vm->vfront_porch;
++	fbmode->vsync_len = vm->vsync_len;
++
++	/* prevent division by zero in KHZ2PICOS macro */
++	fbmode->pixclock = vm->pixelclock ?
++			KHZ2PICOS(vm->pixelclock / 1000) : 0;
++
++	fbmode->sync = 0;
++	fbmode->vmode = 0;
++	if (vm->dmt_flags & VESA_DMT_HSYNC_HIGH)
++		fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
++	if (vm->dmt_flags & VESA_DMT_HSYNC_HIGH)
++		fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
++	if (vm->data_flags & DISPLAY_FLAGS_INTERLACED)
++		fbmode->vmode |= FB_VMODE_INTERLACED;
++	if (vm->data_flags & DISPLAY_FLAGS_DOUBLESCAN)
++		fbmode->vmode |= FB_VMODE_DOUBLE;
++	fbmode->flag = 0;
++
++	htotal = vm->hactive + vm->hfront_porch + vm->hback_porch +
++		 vm->hsync_len;
++	vtotal = vm->vactive + vm->vfront_porch + vm->vback_porch +
++		 vm->vsync_len;
++	/* prevent division by zero */
++	if (htotal && vtotal) {
++		fbmode->refresh = vm->pixelclock / (htotal * vtotal);
++	/* a mode must have htotal and vtotal != 0 or it is invalid */
++	} else {
++		fbmode->refresh = 0;
++		return -EINVAL;
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
++#endif
++
+ #else
+ int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
+ {
+diff --git a/include/linux/fb.h b/include/linux/fb.h
+index c7a9571..100a176 100644
+--- a/include/linux/fb.h
++++ b/include/linux/fb.h
+@@ -19,6 +19,7 @@ struct vm_area_struct;
+ struct fb_info;
+ struct device;
+ struct file;
++struct videomode;
+ 
+ /* Definitions below are used in the parsed monitor specs */
+ #define FB_DPMS_ACTIVE_OFF	1
+@@ -714,6 +715,9 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
+ extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
+ extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+ 
++extern int fb_videomode_from_videomode(const struct videomode *vm,
++				       struct fb_videomode *fbmode);
++
+ /* drivers/video/modedb.c */
+ #define VESA_MODEDB_SIZE 34
+ extern void fb_var_to_videomode(struct fb_videomode *mode,
+-- 
+1.7.10.4
 
