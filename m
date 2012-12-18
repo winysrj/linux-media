@@ -1,68 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49285 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752422Ab2LEWCP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Dec 2012 17:02:15 -0500
-Message-ID: <50BFC445.6020305@iki.fi>
-Date: Thu, 06 Dec 2012 00:01:41 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Matthew Gyurgyik <matthew@pyther.net>
-CC: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net>
-In-Reply-To: <50BFBE39.90901@pyther.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:46204 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932140Ab2LRRGN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Dec 2012 12:06:13 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
+	"David Airlie" <airlied@linux.ie>,
+	"Rob Clark" <robdclark@gmail.com>,
+	"Leela Krishna Amudala" <leelakrishna.a@gmail.com>
+Subject: [PATCHv16 0/7] of: add display helper
+Date: Tue, 18 Dec 2012 18:04:09 +0100
+Message-Id: <1355850256-16135-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/05/2012 11:35 PM, Matthew Gyurgyik wrote:
-> On 12/05/2012 07:35 AM, Antti Palosaari wrote:
->>
->> There is something really wrong.
->>
->> I am not at US expert but why the hell
->> us-Cable-Standard-center-frequencies-QAM256 scans up to 999MHz whilst
->> demodulator max is set 858? Either one is wrong.
->>
->> Also, demod seems to be HAS_LOCK about all the time. As that basic
->> LOCK flag is simply false you cannot even thing if there is correct
->> configuration on TS interface. If you start zapping that known channel
->> and then unplug & plug antenna cable did you see still all the time
->> HAS_LOCK? (it should disappear when antenna cable is unplugged).
->>
->> regards
->> Antti
->>
-> When I disconnected the coax cable, the lock went away. When I
-> reconnected FE_HAS_LOCK came back.
->
-> http://pyther.net/a/digivox_atsc/patch3/azap_disconnect_coax.txt
+Hi!
 
-OK, fine, I was then wrong. I have to say you have a lot of channels 
-over there what I can see from scan result [1]. Those channels which 
-says "tuning failed" are channels where is no transmission and those 
-"filter timeout pid" means there is ta ransmission and demod locks. Here 
-in Finland we have only ~4 MUX DVB-T and maybe other 4 for DVB-T2.
+Finally, right in time before the end of the world on friday, v16 of the
+display helpers.
 
-It is then actually working quite well from the developer point of view 
-(as demod loses lock when antenna is unplugged). It means tuner and 
-demodular are working but interface (transport stream interface, TS IF) 
-between demod and USB-bridge is still broken.
+Changes since v15:
+        - move include/linux/{videomode,display_timing}.h to include/video
+        - move include/linux/of_{videomode,display_timing}.h to include/video
+        - reimplement flags: add VESA flags and data flags
+        - let pixelclock in struct videomode be unsigned long
+        - rename of_display_timings_exists to of_display_timings_exist
+        - revise logging/error messages: replace __func__ with np->full_name
+        - rename pixelclk-inverted to pixelclk-active
+        - revise comments in code
 
-I tried to look again your sniff if I can see what it does just before 
-streaming starts, but unfortunately there is no any mention about those 
-streaming packets (isoc packets where picture stream is going). Did you 
-remove those yourself?
+Changes since v14:
+        - fix "const struct *" warning
+                (reported by: Leela Krishna Amudala <l.krishna@samsung.com>)
+        - return -EINVAL when htotal or vtotal are zero
+        - remove unreachable code in of_get_display_timings
+        - include headers in .c files and not implicit in .h
+        - sort includes alphabetically
+        - fix lower/uppercase in binding documentation
+        - rebase onto v3.7-rc7
+
+Changes since v13:
+        - fix "const struct *" warning
+                (reported by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>)
+        - prevent division by zero in fb_videomode_from_videomode
+
+Changes since v12:
+        - rename struct display_timing to via_display_timing in via subsystem
+        - fix refreshrate calculation
+        - fix "const struct *" warnings
+                (reported by: Manjunathappa, Prakash <prakash.pm@ti.com>)
+        - some CodingStyle fixes
+        - rewrite parts of commit messages and display-timings.txt
+        - let display_timing_get_value get all values instead of just typical
+
+Changes since v11:
+        - make pointers const where applicable
+        - add reviewed-by Laurent Pinchart
+
+Changes since v10:
+        - fix function name (drm_)display_mode_from_videomode
+        - add acked-by, reviewed-by, tested-by
+
+Changes since v9:
+        - don't leak memory when previous timings were correct
+        - CodingStyle fixes
+        - move blank lines around
+
+Changes since v8:
+        - fix memory leaks
+        - change API to be more consistent (foo_from_bar(struct bar, struct foo))
+        - include headers were necessary
+        - misc minor bugfixes
+
+Changes since v7:
+        - move of_xxx to drivers/video
+        - remove non-binding documentation from display-timings.txt
+        - squash display_timings and videomode in one patch
+        - misc minor fixes
+
+Changes since v6:
+        - get rid of some empty lines etc.
+        - move functions to their subsystems
+        - split of_ from non-of_ functions
+        - add at least some kerneldoc to some functions
+
+Changes since v5:
+        - removed all display stuff and just describe timings
+
+Changes since v4:
+        - refactored functions
+
+Changes since v3:
+        - print error messages
+        - free alloced memory
+        - general cleanup
+
+Changes since v2:
+        - use hardware-near property-names
+        - provide a videomode structure
+        - allow ranges for all properties (<min,typ,max>)
+        - functions to get display_mode or fb_videomode
+
+Regards,
+Steffen
 
 
-[1] http://pyther.net/a/digivox_atsc/patch3/scan.txt
 
-regards
-Antti
+Steffen Trumtrar (7):
+  viafb: rename display_timing to via_display_timing
+  video: add display_timing and videomode
+  video: add of helper for display timings/videomode
+  fbmon: add videomode helpers
+  fbmon: add of_videomode helpers
+  drm_modes: add videomode helpers
+  drm_modes: add of_videomode helpers
+
+ .../devicetree/bindings/video/display-timing.txt   |  109 +++++++++
+ drivers/gpu/drm/drm_modes.c                        |   70 ++++++
+ drivers/video/Kconfig                              |   21 ++
+ drivers/video/Makefile                             |    4 +
+ drivers/video/display_timing.c                     |   24 ++
+ drivers/video/fbmon.c                              |   94 ++++++++
+ drivers/video/of_display_timing.c                  |  239 ++++++++++++++++++++
+ drivers/video/of_videomode.c                       |   54 +++++
+ drivers/video/via/hw.c                             |    6 +-
+ drivers/video/via/hw.h                             |    2 +-
+ drivers/video/via/lcd.c                            |    2 +-
+ drivers/video/via/share.h                          |    2 +-
+ drivers/video/via/via_modesetting.c                |    8 +-
+ drivers/video/via/via_modesetting.h                |    6 +-
+ drivers/video/videomode.c                          |   39 ++++
+ include/drm/drmP.h                                 |    9 +
+ include/linux/fb.h                                 |    8 +
+ include/video/display_timing.h                     |  124 ++++++++++
+ include/video/of_display_timing.h                  |   20 ++
+ include/video/of_videomode.h                       |   18 ++
+ include/video/videomode.h                          |   48 ++++
+ 21 files changed, 894 insertions(+), 13 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/video/display-timing.txt
+ create mode 100644 drivers/video/display_timing.c
+ create mode 100644 drivers/video/of_display_timing.c
+ create mode 100644 drivers/video/of_videomode.c
+ create mode 100644 drivers/video/videomode.c
+ create mode 100644 include/video/display_timing.h
+ create mode 100644 include/video/of_display_timing.h
+ create mode 100644 include/video/of_videomode.h
+ create mode 100644 include/video/videomode.h
 
 -- 
-http://palosaari.fi/
+1.7.10.4
+
