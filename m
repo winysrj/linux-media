@@ -1,206 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:42755 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755599Ab2LNQ3D (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:46023 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755168Ab2LRQ6j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Dec 2012 11:29:03 -0500
-Received: by mail-ee0-f46.google.com with SMTP id e53so2052180eek.19
-        for <linux-media@vger.kernel.org>; Fri, 14 Dec 2012 08:29:02 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, dheitmueller@kernellabs.com,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 3/5] em28xx: fix two severe bugs in function em2800_i2c_recv_bytes()
-Date: Fri, 14 Dec 2012 17:28:51 +0100
-Message-Id: <1355502533-25636-4-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1355502533-25636-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1355502533-25636-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Tue, 18 Dec 2012 11:58:39 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicestree-discuss@lists.ozlabs.org
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
+	"David Airlie" <airlied@linux.ie>,
+	"Rob Clark" <robdclark@gmail.com>,
+	"Leela Krishna Amudala" <leelakrishna.a@gmail.com>
+Subject: [PATCHv16 6/7] drm_modes: add videomode helpers
+Date: Tue, 18 Dec 2012 17:57:52 +0100
+Message-Id: <1355849873-8051-7-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1355849873-8051-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1355849873-8051-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Function em2800_i2c_recv_bytes() has 2 severe bugs:
-1) It does not wait for the i2c read to complete before reading the received
-   message content from the bridge registers
-2) Reading more than 1 byte doesn't work
+Add conversion from videomode to drm_display_mode
 
-The former can result in data corruption, the latter always does.
-
-The rewritten code also superseds the content of function
-em2800_i2c_check_for_device().
-
-Tested with device "Terratec Cinergy 200 USB".
-
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/usb/em28xx/em28xx-i2c.c |  104 ++++++++++++++++++---------------
- drivers/media/usb/em28xx/em28xx.h     |    2 +-
- 2 Dateien geändert, 58 Zeilen hinzugefügt(+), 48 Zeilen entfernt(-)
+ drivers/gpu/drm/drm_modes.c |   37 +++++++++++++++++++++++++++++++++++++
+ include/drm/drmP.h          |    5 +++++
+ 2 files changed, 42 insertions(+)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index c508c12..940ff4d 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -73,12 +73,14 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 	if (len > 3)
- 		b2[0] = buf[3];
+diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
+index 59450f3..184a22d 100644
+--- a/drivers/gpu/drm/drm_modes.c
++++ b/drivers/gpu/drm/drm_modes.c
+@@ -35,6 +35,7 @@
+ #include <linux/export.h>
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc.h>
++#include <video/videomode.h>
  
-+	/* trigger write */
- 	ret = dev->em28xx_write_regs(dev, 4 - len, &b2[4 - len], 2 + len);
- 	if (ret != 2 + len) {
- 		em28xx_warn("writing to i2c device failed (error=%i)\n", ret);
- 		return -EIO;
- 	}
--	for (write_timeout = EM2800_I2C_WRITE_TIMEOUT; write_timeout > 0;
-+	/* wait for completion */
-+	for (write_timeout = EM2800_I2C_XFER_TIMEOUT; write_timeout > 0;
- 	     write_timeout -= 5) {
- 		ret = dev->em28xx_read_reg(dev, 0x05);
- 		if (ret == 0x80 + len - 1)
-@@ -90,66 +92,74 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+ /**
+  * drm_mode_debug_printmodeline - debug print a mode
+@@ -504,6 +505,42 @@ drm_gtf_mode(struct drm_device *dev, int hdisplay, int vdisplay, int vrefresh,
  }
+ EXPORT_SYMBOL(drm_gtf_mode);
  
- /*
-- * em2800_i2c_check_for_device()
-- * check if there is a i2c_device at the supplied address
-+ * em2800_i2c_recv_bytes()
-+ * read up to 4 bytes from the em2800 i2c device
-  */
--static int em2800_i2c_check_for_device(struct em28xx *dev, u8 addr)
-+static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- {
--	u8 msg;
-+	u8 buf2[4];
- 	int ret;
--	int write_timeout;
--	msg = addr;
--	ret = dev->em28xx_write_regs(dev, 0x04, &msg, 1);
--	if (ret < 0) {
--		em28xx_warn("setting i2c device address failed (error=%i)\n",
--			    ret);
--		return ret;
--	}
--	msg = 0x84;
--	ret = dev->em28xx_write_regs(dev, 0x05, &msg, 1);
--	if (ret < 0) {
--		em28xx_warn("preparing i2c read failed (error=%i)\n", ret);
--		return ret;
-+	int read_timeout;
-+	int i;
++#if IS_ENABLED(CONFIG_VIDEOMODE)
++int drm_display_mode_from_videomode(const struct videomode *vm,
++				    struct drm_display_mode *dmode)
++{
++	dmode->hdisplay = vm->hactive;
++	dmode->hsync_start = dmode->hdisplay + vm->hfront_porch;
++	dmode->hsync_end = dmode->hsync_start + vm->hsync_len;
++	dmode->htotal = dmode->hsync_end + vm->hback_porch;
 +
-+	if (len < 1 || len > 4)
-+		return -EOPNOTSUPP;
++	dmode->vdisplay = vm->vactive;
++	dmode->vsync_start = dmode->vdisplay + vm->vfront_porch;
++	dmode->vsync_end = dmode->vsync_start + vm->vsync_len;
++	dmode->vtotal = dmode->vsync_end + vm->vback_porch;
 +
-+	/* trigger read */
-+	buf2[1] = 0x84 + len - 1;
-+	buf2[0] = addr;
-+	ret = dev->em28xx_write_regs(dev, 0x04, buf2, 2);
-+	if (ret != 2) {
-+		em28xx_warn("failed to trigger read from i2c address 0x%x "
-+			    "(error=%i)\n", addr, ret);
-+		return (ret < 0) ? ret : -EIO;
- 	}
--	for (write_timeout = EM2800_I2C_WRITE_TIMEOUT; write_timeout > 0;
--	     write_timeout -= 5) {
--		unsigned reg = dev->em28xx_read_reg(dev, 0x5);
- 
--		if (reg == 0x94)
-+	/* wait for completion */
-+	for (read_timeout = EM2800_I2C_XFER_TIMEOUT; read_timeout > 0;
-+	     read_timeout -= 5) {
-+		ret = dev->em28xx_read_reg(dev, 0x05);
-+		if (ret == 0x84 + len - 1) {
-+			break;
-+		} else if (ret == 0x94 + len - 1) {
- 			return -ENODEV;
--		else if (reg == 0x84)
--			return 0;
-+		} else if (ret < 0) {
-+			em28xx_warn("failed to get i2c transfer status from "
-+				    "bridge register (error=%i)\n", ret);
-+			return ret;
-+		}
- 		msleep(5);
- 	}
--	return -ENODEV;
-+	if (ret != 0x84 + len - 1)
-+		em28xx_warn("read from i2c device at 0x%x timed out\n", addr);
++	dmode->clock = vm->pixelclock / 1000;
 +
-+	/* get the received message */
-+	ret = dev->em28xx_read_reg_req_len(dev, 0x00, 4-len, buf2, len);
-+	if (ret != len) {
-+		em28xx_warn("reading from i2c device at 0x%x failed: "
-+			    "couldn't get the received message from the bridge "
-+			    "(error=%i)\n", addr, ret);
-+		return (ret < 0) ? ret : -EIO;
-+	}
-+	for (i=0; i<len; i++)
-+		buf[i] = buf2[len-1-i];
++	dmode->flags = 0;
++	if (vm->dmt_flags & VESA_DMT_HSYNC_HIGH)
++		dmode->flags |= DRM_MODE_FLAG_PHSYNC;
++	else if (vm->dmt_flags & VESA_DMT_HSYNC_LOW)
++		dmode->flags |= DRM_MODE_FLAG_NHSYNC;
++	if (vm->dmt_flags & VESA_DMT_VSYNC_HIGH)
++		dmode->flags |= DRM_MODE_FLAG_PVSYNC;
++	else if (vm->dmt_flags & VESA_DMT_VSYNC_LOW)
++		dmode->flags |= DRM_MODE_FLAG_NVSYNC;
++	if (vm->data_flags & DISPLAY_FLAGS_INTERLACED)
++		dmode->flags |= DRM_MODE_FLAG_INTERLACE;
++	if (vm->data_flags & DISPLAY_FLAGS_DOUBLESCAN)
++		dmode->flags |= DRM_MODE_FLAG_DBLSCAN;
++	drm_mode_set_name(dmode);
 +
-+	return ret;
- }
++	return 0;
++}
++EXPORT_SYMBOL_GPL(drm_display_mode_from_videomode);
++#endif
++
+ /**
+  * drm_mode_set_name - set the name on a mode
+  * @mode: name will be set in this mode
+diff --git a/include/drm/drmP.h b/include/drm/drmP.h
+index 3fd8280..5fbb0fe 100644
+--- a/include/drm/drmP.h
++++ b/include/drm/drmP.h
+@@ -85,6 +85,8 @@ struct module;
+ struct drm_file;
+ struct drm_device;
  
- /*
-- * em2800_i2c_recv_bytes()
-- * read from the i2c device
-+ * em2800_i2c_check_for_device()
-+ * check if there is an i2c device at the supplied address
-  */
--static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
-+static int em2800_i2c_check_for_device(struct em28xx *dev, u8 addr)
- {
-+	u8 buf;
- 	int ret;
++struct videomode;
++
+ #include <drm/drm_os_linux.h>
+ #include <drm/drm_hashtab.h>
+ #include <drm/drm_mm.h>
+@@ -1454,6 +1456,9 @@ extern struct drm_display_mode *
+ drm_mode_create_from_cmdline_mode(struct drm_device *dev,
+ 				  struct drm_cmdline_mode *cmd);
  
--	if (len < 1 || len > 4)
--		return -EOPNOTSUPP;
--
--	/* check for the device and set i2c read address */
--	ret = em2800_i2c_check_for_device(dev, addr);
--	if (ret) {
--		em28xx_warn
--		    ("preparing read at i2c address 0x%x failed (error=%i)\n",
--		     addr, ret);
--		return ret;
--	}
--	ret = dev->em28xx_read_reg_req_len(dev, 0x0, 0x3, buf, len);
--	if (ret < 0) {
--		em28xx_warn("reading from i2c device at 0x%x failed (error=%i)",
--			    addr, ret);
--		return ret;
--	}
--	return ret;
-+	ret = em2800_i2c_recv_bytes(dev, addr, &buf, 1);
-+	if (ret == 1)
-+		return 0;
-+	return (ret < 0) ? ret : -EIO;
- }
- 
- /*
-@@ -167,7 +177,7 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 	wrcount = dev->em28xx_write_regs_req(dev, stop ? 2 : 3, addr, buf, len);
- 
- 	/* Seems to be required after a write */
--	for (write_timeout = EM2800_I2C_WRITE_TIMEOUT; write_timeout > 0;
-+	for (write_timeout = EM2800_I2C_XFER_TIMEOUT; write_timeout > 0;
- 	     write_timeout -= 5) {
- 		ret = dev->em28xx_read_reg(dev, 0x05);
- 		if (!ret)
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 062841e..dc89aaf 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -195,7 +195,7 @@
- */
- 
- /* time in msecs to wait for i2c writes to finish */
--#define EM2800_I2C_WRITE_TIMEOUT 20
-+#define EM2800_I2C_XFER_TIMEOUT		20
- 
- enum em28xx_mode {
- 	EM28XX_SUSPEND,
++extern int drm_display_mode_from_videomode(const struct videomode *vm,
++					   struct drm_display_mode *dmode);
++
+ /* Modesetting support */
+ extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
+ extern void drm_vblank_post_modeset(struct drm_device *dev, int crtc);
 -- 
 1.7.10.4
 
