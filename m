@@ -1,92 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f54.google.com ([209.85.214.54]:51133 "EHLO
-	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751432Ab2LUPip (ORCPT
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:56410 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750725Ab2LRG30 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Dec 2012 10:38:45 -0500
-Received: by mail-bk0-f54.google.com with SMTP id je9so2488887bkc.27
-        for <linux-media@vger.kernel.org>; Fri, 21 Dec 2012 07:38:43 -0800 (PST)
-Message-ID: <50D48126.8050307@googlemail.com>
-Date: Fri, 21 Dec 2012 16:32:54 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+	Tue, 18 Dec 2012 01:29:26 -0500
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] em28xx: input: fix oops on device removal
-References: <1355416457-19692-1-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1355416457-19692-1-git-send-email-fschaefer.oss@googlemail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPM=9txFJzJ0haTyBnr8hEmmqNb+gSAyBno+Zs0Z-qvVMTwz9A@mail.gmail.com>
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<CAPM=9txFJzJ0haTyBnr8hEmmqNb+gSAyBno+Zs0Z-qvVMTwz9A@mail.gmail.com>
+Date: Tue, 18 Dec 2012 00:21:32 -0600
+Message-ID: <CAF6AEGsLdLasS4=j1PsX_P8miG8NcTXMUP9VYj+4gdU8Qhm2YQ@mail.gmail.com>
+Subject: Re: [RFC v2 0/5] Common Display Framework
+From: Rob Clark <rob.clark@linaro.org>
+To: Dave Airlie <airlied@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Tom Gall <tom.gall@linaro.org>,
+	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Bryan Wu <bryan.wu@canonical.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 13.12.2012 17:34, schrieb Frank Schäfer:
-> When em28xx_ir_init() fails du to an error in em28xx_ir_change_protocol(), it
-> frees the memory of struct em28xx_IR *ir, but doesn't set the corresponding
-> pointer in the device struct to NULL.
-> On device removal, em28xx_ir_fini() gets called, which then calls
-> rc_unregister_device() with a pointer to freed memory.
+On Mon, Dec 17, 2012 at 11:04 PM, Dave Airlie <airlied@gmail.com> wrote:
+>>
+>> Many developers showed interest in the first RFC, and I've had the opportunity
+>> to discuss it with most of them. I would like to thank (in no particular
+>> order) Tomi Valkeinen for all the time he spend helping me to draft v2, Marcus
+>> Lorentzon for his useful input during Linaro Connect Q4 2012, and Linaro for
+>> inviting me to Connect and providing a venue to discuss this topic.
+>>
 >
-> Fixes bug 26572 (http://bugzilla.kernel.org/show_bug.cgi?id=26572)
+> So this might be a bit off topic but this whole CDF triggered me
+> looking at stuff I generally avoid:
 >
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->
-> Cc: stable@kernel.org	# at least all kernels since 2.6.32 (incl.)
-> ---
->  drivers/media/usb/em28xx/em28xx-input.c |    9 ++++-----
->  1 Datei geändert, 4 Zeilen hinzugefügt(+), 5 Zeilen entfernt(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-> index 660bf80..5c7d768 100644
-> --- a/drivers/media/usb/em28xx/em28xx-input.c
-> +++ b/drivers/media/usb/em28xx/em28xx-input.c
-> @@ -538,7 +538,7 @@ static int em28xx_ir_init(struct em28xx *dev)
->  	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
->  	rc = rc_allocate_device();
->  	if (!ir || !rc)
-> -		goto err_out_free;
-> +		goto error;
->  
->  	/* record handles to ourself */
->  	ir->dev = dev;
-> @@ -559,7 +559,7 @@ static int em28xx_ir_init(struct em28xx *dev)
->  	rc_type = RC_BIT_UNKNOWN;
->  	err = em28xx_ir_change_protocol(rc, &rc_type);
->  	if (err)
-> -		goto err_out_free;
-> +		goto error;
->  
->  	/* This is how often we ask the chip for IR information */
->  	ir->polling = 100; /* ms */
-> @@ -584,7 +584,7 @@ static int em28xx_ir_init(struct em28xx *dev)
->  	/* all done */
->  	err = rc_register_device(rc);
->  	if (err)
-> -		goto err_out_stop;
-> +		goto error;
->  
->  	em28xx_register_i2c_ir(dev);
->  
-> @@ -597,9 +597,8 @@ static int em28xx_ir_init(struct em28xx *dev)
->  
->  	return 0;
->  
-> - err_out_stop:
-> +error:
->  	dev->ir = NULL;
-> - err_out_free:
->  	rc_free_device(rc);
->  	kfree(ir);
->  	return err;
+> The biggest problem I'm having currently with the whole ARM graphics
+> and output world is the proliferation of platform drivers for every
+> little thing. The whole ordering of operations with respect to things
+> like suspend/resume or dynamic power management is going to be a real
+> nightmare if there are dependencies between the drivers. How do you
+> enforce ordering of s/r operations between all the various components?
 
-Ping !?
-Mauro, this patch is really easy to review and it fixes a 2 years old bug...
-Isn't this one of those patches that should be applied immediately ?
+I tend to think that sub-devices are useful just to have a way to
+probe hw which may or may not be there, since on ARM we often don't
+have any alternative.. but beyond that, suspend/resume, and other
+life-cycle aspects, they should really be treated as all one device.
+Especially to avoid undefined suspend/resume ordering.
 
-Regards,
-Frank
+CDF or some sort of mechanism to share panel drivers between drivers
+is useful.  Keeping it within drm, is probably a good idea, if nothing
+else to simplify re-use of helper fxns (like avi-infoframe stuff, for
+example) and avoid dealing with merging changes across multiple trees.
+  Treating them more like shared libraries and less like sub-devices
+which can be dynamically loaded/unloaded (ie. they should be not built
+as separate modules or suspend/resumed or probed/removed independently
+of the master driver) is a really good idea to avoid uncovering nasty
+synchronization issues later (remove vs modeset or pageflip) or
+surprising userspace in bad ways.
 
+> The other thing I'd like you guys to do is kill the idea of fbdev and
+> v4l drivers that are "shared" with the drm codebase, really just
+> implement fbdev and v4l on top of the drm layer, some people might
+> think this is some sort of maintainer thing, but really nothing else
+> makes sense, and having these shared display frameworks just to avoid
+> having using drm/kms drivers seems totally pointless. Fix the drm
+> fbdev emulation if an fbdev interface is needed. But creating a fourth
+> framework because our previous 3 frameworks didn't work out doesn't
+> seem like a situation I want to get behind too much.
 
+yeah, let's not have multiple frameworks to do the same thing.. For
+fbdev, it is pretty clear that it is a dead end.  For v4l2
+(subdev+mcf), it is perhaps bit more flexible when it comes to random
+arbitrary hw pipelines than kms.  But to take advantage of that, your
+userspace isn't going to be portable anyways, so you might as well use
+driver specific properties/ioctls.  But I tend to think that is more
+useful for cameras.  And from userspace perspective, kms planes are
+less painful to use for output than v4l2, so lets stick to drm/kms for
+output (and not try to add camera/capture support to kms).. k, thx
 
+BR,
+-R
 
-
+> Dave.
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
