@@ -1,190 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 88-149-150-131.v4.ngi.it ([88.149.150.131]:42038 "EHLO
-	vajra.unixproducts.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753654Ab2LQT5o (ORCPT
+Received: from server.prisktech.co.nz ([115.188.14.127]:58466 "EHLO
+	server.prisktech.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754363Ab2LRI3D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Dec 2012 14:57:44 -0500
-To: <linux-media@vger.kernel.org>
-Subject: Re: cannot make this Asus my cinema-u3100miniplusv2 work under linux
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Mon, 17 Dec 2012 20:57:40 +0100
-From: Renato Gallo <renatogallo@unixproducts.com>
-In-Reply-To: <d6185b9c5a69b273609bce494f0302b1@unixproducts.com>
-References: <8e9f16405c8583e35cb97bb7d7daef4b@unixproducts.com>
- <50CDDF9A.1080509@iki.fi>
- <cd31dc6ada9161825c7dff975a3da945@unixproducts.com>
- <50CE0AFA.9030308@iki.fi>
- <1af6a5408ee3ebccebc3885bba06fc69@unixproducts.com> <50CE3070.10309@iki.fi>
- <810ffd737b21a0f46e383a76dd4313a2@unixproducts.com>
- <50CE3BA0.5030503@iki.fi>
- <d6185b9c5a69b273609bce494f0302b1@unixproducts.com>
-Message-ID: <e479b93e0a2043d8a8f2987df502a49f@unixproducts.com>
+	Tue, 18 Dec 2012 03:29:03 -0500
+From: Tony Prisk <linux@prisktech.co.nz>
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Tony Prisk <linux@prisktech.co.nz>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 6/6] clk: s5p-g2d: Fix incorrect usage of IS_ERR_OR_NULL
+Date: Tue, 18 Dec 2012 21:28:41 +1300
+Message-Id: <1355819321-21914-7-git-send-email-linux@prisktech.co.nz>
+In-Reply-To: <1355819321-21914-1-git-send-email-linux@prisktech.co.nz>
+References: <1355819321-21914-1-git-send-email-linux@prisktech.co.nz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i am testing this antenna 30db on an aluminum bowl reception still 
-sketchy at times but a bit better.... which is in your opinion the most 
-powerful portable antenna ?
-can i amplify the signal to improve reception ?
-why with the bowl is better ?
+Replace IS_ERR_OR_NULL with IS_ERR on clk_get results.
 
-http://unixproducts.com/antenna2.jpg
+Signed-off-by: Tony Prisk <linux@prisktech.co.nz>
+CC: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Tomasz Stanislawski <t.stanislaws@samsung.com>
+CC: linux-media@vger.kernel.org
+---
+ drivers/media/platform/s5p-g2d/g2d.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-http://www.ebay.it/itm/130786205629?ssPageName=STRK:MEWNX:IT&_trksid=p3984.m1497.l2649#ht_2055wt_1165
+diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
+index 1bfbc32..dcd5335 100644
+--- a/drivers/media/platform/s5p-g2d/g2d.c
++++ b/drivers/media/platform/s5p-g2d/g2d.c
+@@ -715,7 +715,7 @@ static int g2d_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	dev->clk = clk_get(&pdev->dev, "sclk_fimg2d");
+-	if (IS_ERR_OR_NULL(dev->clk)) {
++	if (IS_ERR(dev->clk)) {
+ 		dev_err(&pdev->dev, "failed to get g2d clock\n");
+ 		return -ENXIO;
+ 	}
+@@ -727,7 +727,7 @@ static int g2d_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	dev->gate = clk_get(&pdev->dev, "fimg2d");
+-	if (IS_ERR_OR_NULL(dev->gate)) {
++	if (IS_ERR(dev->gate)) {
+ 		dev_err(&pdev->dev, "failed to get g2d clock gate\n");
+ 		ret = -ENXIO;
+ 		goto unprep_clk;
+-- 
+1.7.9.5
 
-
-Il 16/12/2012 22:26 Renato Gallo ha scritto:
-> I will be honored if my name will be added as reporter, thanks for
-> your kind and fast advice. I have ordered another portable (30 db)
-> antenna and will talk about that in a future reply to this thread :)
->
-> Il 16/12/2012 22:22 Antti Palosaari ha scritto:
->> That antenna is your problem.
->>
->> I will send that patch to the Kernel 3.8, but as I think it is maybe
->> too late for 3.8 it will eventually go to the 3.9 which is out
->> sometime near beginning of next summer.
->>
->> If you wish I add your name as reporter then reply. Otherwise case
->> closed. Feedback from the better antenna could be nice too.
->>
->>
->> Antti
->>
->>
->> On 12/16/2012 11:16 PM, Renato Gallo wrote:
->>> stock one that came with the device
->>>
->>> http://unixproducts.com/antenna.jpg
->>>
->>>
->>> Il 16/12/2012 21:34 Antti Palosaari ha scritto:
->>>> It is very likely weak signal issue as I said. What kind of 
->>>> antenna
->>>> you are using?
->>>>
->>>> Antti
->>>>
->>>>
->>>> On 12/16/2012 10:13 PM, Renato Gallo wrote:
->>>>> i found it is a problem with kaffeine, with other programs i can 
->>>>> lock a
->>>>> signal but reception is very very sketchy (like in unviewable).
->>>>>
->>>>> GlovX xine-lib # dmesg |grep e4000
->>>>> GlovX xine-lib # dmesg |grep FC0012
->>>>> GlovX xine-lib # dmesg |grep FC0013
->>>>> [   28.281685] fc0013: Fitipower FC0013 successfully attached.
->>>>> GlovX xine-lib # dmesg |grep FC2580
->>>>> GlovX xine-lib # dmesg |grep TUA
->>>>> GlovX xine-lib #
->>>>>
->>>>>
->>>>> Il 16/12/2012 18:55 Antti Palosaari ha scritto:
->>>>>> On 12/16/2012 07:15 PM, Renato Gallo wrote:
->>>>>>> now the modules loads and kaffeine recognizes the device but i 
->>>>>>> cannot
->>>>>>> find any channels.
->>>>>>> can it be a tuner bug ?
->>>>>>
->>>>>> I think it is bad antenna / weak signal. Try w_scan, scan, tzap.
->>>>>>
->>>>>> Could you say which RF-tuner it finds from your device? use 
->>>>>> dmesg to
->>>>>> dump output. It could be for example e4000, FC0012, FC0013, 
->>>>>> FC2580,
->>>>>> TUA9001 etc.
->>>>>>
->>>>>> Antti
->>>>>>
->>>>>>>
->>>>>>>
->>>>>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->>>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>>>> section;
->>>>>>> type = 0 pid = 0
->>>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>>>> section;
->>>>>>> type = 2 pid = 17
->>>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>>>> section;
->>>>>>> type = 4 pid = 16
->>>>>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->>>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>>>> section;
->>>>>>> type = 0 pid = 0
->>>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>>>> section;
->>>>>>> type = 2 pid = 17
->>>>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>>>> section;
->>>>>>> type = 4 pid = 16
->>>>>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->>>>>>>
->>>>>>>
->>>>>>> Il 16/12/2012 15:50 Antti Palosaari ha scritto:
->>>>>>>> On 12/16/2012 04:23 PM, Renato Gallo wrote:
->>>>>>>>> any news on this ?
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>
->>>>>>>>> Asus my cinema-u3100miniplusv2
->>>>>>>>>
->>>>>>>>> Bus 001 Device 015: ID 1b80:d3a8 Afatech
->>>>>>>>>
->>>>>>>>> [ 6956.333440] usb 1-6.3.6: new high-speed USB device number 
->>>>>>>>> 16
->>>>>>>>> using
->>>>>>>>> ehci_hcd
->>>>>>>>> [ 6956.453943] usb 1-6.3.6: New USB device found, 
->>>>>>>>> idVendor=1b80,
->>>>>>>>> idProduct=d3a8
->>>>>>>>> [ 6956.453950] usb 1-6.3.6: New USB device strings: Mfr=1,
->>>>>>>>> Product=2,
->>>>>>>>> SerialNumber=0
->>>>>>>>> [ 6956.453955] usb 1-6.3.6: Product: Rtl2832UDVB
->>>>>>>>> [ 6956.453959] usb 1-6.3.6: Manufacturer: Realtek
->>>>>>>>>
->>>>>>>>
->>>>>>>> Seems to be Realtek RTL2832U. Add that USB ID to the driver 
->>>>>>>> and test.
->>>>>>>> It is very high probability it starts working.
->>>>>>>>
->>>>>>>> Here is the patch:
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>> 
->>>>>>>> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/rtl28xxu-usb-ids
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>> Please test and report.
->>>>>>>>
->>>>>>>> regards
->>>>>>>> Antti
->>>>>>>
->>>>>>> --
->>>>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>>>> linux-media" in
->>>>>>> the body of a message to majordomo@vger.kernel.org
->>>>>>> More majordomo info at  
->>>>>>> http://vger.kernel.org/majordomo-info.html
->>>>>
->>>>> --
->>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>> linux-media" in
->>>>> the body of a message to majordomo@vger.kernel.org
->>>>> More majordomo info at  
->>>>> http://vger.kernel.org/majordomo-info.html
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe 
->>> linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
