@@ -1,83 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from firefly.pyther.net ([50.116.37.168]:49985 "EHLO
-	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751491Ab2LQBhl (ORCPT
+Received: from mail-vb0-f53.google.com ([209.85.212.53]:33472 "EHLO
+	mail-vb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751387Ab2LSQNq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 20:37:41 -0500
-Message-ID: <50CE7763.3030900@pyther.net>
-Date: Sun, 16 Dec 2012 20:37:39 -0500
-From: Matthew Gyurgyik <matthew@pyther.net>
+	Wed, 19 Dec 2012 11:13:46 -0500
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	Jarod Wilson <jwilson@redhat.com>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com> <50C4BA20.8060003@googlemail.com> <50C4BAFB.60304@googlemail.com> <50C4C525.6020006@googlemail.com> <50C4D011.6010700@pyther.net> <50C60220.8050908@googlemail.com> <CAGoCfizTfZVFkNvdQuuisOugM2BGipYd_75R63nnj=K7E8ULWQ@mail.gmail.com> <50C60772.2010904@googlemail.com> <CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com> <50C6226C.8090302@iki! .fi> <50C636E7.8060003@googlemail.com> <50C64AB0.7020407@iki.fi> <50C79CD6.4060501@googlemail.com> <50C79E9A.3050301@iki.fi> <20121213182336.2cca9da6@redhat.! com> <50CB46CE.60407@googlemail.com> <20121214173950.79bb963e@redhat.com> <20121214222631.1f191d6e@redhat.co! m> <50CBCAB9.602@iki.fi> <20121214235412.2598c91c@redhat.com> <50CC76FC.5030208@googlemail.com> <50CC7D3F.9020108@iki.fi> <50CCA39F.5000309@googlemail.co m> <50CCAAA4.4030808@iki.fi> <50CE70E0.2070809@pyther.net> <50CE74C7.90809@iki.fi>
-In-Reply-To: <50CE74C7.90809@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <50D1DF42.3070008@ti.com>
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<1608840.IleINgrx5J@avalon>
+	<87pq28hb72.fsf@intel.com>
+	<1671267.x0lxGrFjjV@avalon>
+	<87pq26ay2z.fsf@intel.com>
+	<CAF6AEGuSt0CL2sFGK-PZnw6+r9zhGHO4CEjJEWaR8eGhks2=UQ@mail.gmail.com>
+	<50D1DF42.3070008@ti.com>
+Date: Wed, 19 Dec 2012 10:05:27 -0600
+Message-ID: <CAF6AEGt6=RhKRnJZJVytzObvxm2GuvwADNhACOR9vnY-9n=ATw@mail.gmail.com>
+Subject: Re: [RFC v2 0/5] Common Display Framework
+From: Rob Clark <rob.clark@linaro.org>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Tom Gall <tom.gall@linaro.org>,
+	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/16/2012 08:26 PM, Antti Palosaari wrote:
-> On 12/17/2012 03:09 AM, Matthew Gyurgyik wrote:
->> On 12/15/2012 06:21 PM, Frank Schäfer wrote:
->>>> Matthew, could you please validate your test results and try Mauros
->>>> patches ? If it doesn't work, please create another USB-log.
->>>>
+On Wed, Dec 19, 2012 at 9:37 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> On 2012-12-19 17:26, Rob Clark wrote:
 >>
->> Sorry it took me so long to test the patch, but the results look
->> promising, I actually got various keycodes!
->>
->> dmesg: http://pyther.net/a/digivox_atsc/dec16/dmesg_remote.txt
->>
->> evtest was also generating output
->>
->> Event: time 1355705906.950551, type 4 (EV_MSC), code 4 (MSC_SCAN), value
->> 61d618e7
->> Event: time 1355705906.950551, -------------- SYN_REPORT ------------
->>
->> This is the current patch I'm using:
->> http://pyther.net/a/digivox_atsc/dec16/dmesg_remote.txt
->>
->> What needs to be done to generate a keymap file?
->>
->> Is there anything I can collect or try to do, to get channel scanning
->> working?
->>
->> Just let me know what you need me to do. I really appreciate all the
->> help!
+>> And, there are also external HDMI encoders (for example connected over
+>> i2c) that can also be shared between boards.  So I think there will be
+>> a number of cases where CDF is appropriate for HDMI drivers.  Although
+>> trying to keep this all independent of DRM (as opposed to just
+>> something similar to what drivers/gpu/i2c is today) seems a bit
+>> overkill for me.  Being able to use the helpers in drm and avoiding an
+>> extra layer of translation seems like the better option to me.  So my
+>> vote would be drivers/gpu/cdf.
 >
-> You don't need to do nothing as that remote is already there. Just
-> ensure buttons are same and we are happy.
-> http://lxr.free-electrons.com/source/drivers/media/IR/keymaps/rc-msi-digivox-iii.c?v=2.6.37
+> Well, we need to think about that. I would like to keep CDF independent
+> of DRM. I don't like tying different components/frameworks together if
+> there's no real need for that.
 >
+> Also, something that Laurent mentioned in our face-to-face discussions:
+> Some IPs/chips can be used for other purposes than with DRM.
 >
-> RC_MAP_MSI_DIGIVOX_III should be added to your device profile in order
-> to load correct keytable by default. You could test it easily, just add
-> following definition
+> He had an example of a board, that (if I understood right) gets video
+> signal from somewhere outside the board, processes the signal with some
+> IPs/chips, and then outputs the signal. So there's no framebuffer, and
+> the image is not stored anywhere. I think the framework used in these
+> cases is always v4l2.
 >
-> .ir_codes = RC_MAP_MSI_DIGIVOX_III,
->
-> to em28xx-cards.c board config and it is all.
->
-> regards
-> Antti
->
-Maybe I'm missing something but these are different key codes and lengths.
+> The IPs/chips in the above model may be the exact same IPs/chips that
+> are used with "normal" display. If the CDF was tied to DRM, using the
+> same drivers for normal and these streaming cases would probably not be
+> possible.
 
-tux:~ $ echo 0x61d643bc | wc -c  # my dmesg dump
-11
-tux:~ $ echo 0x61d601 | wc -c  # DIGIVOX mini III
-9
+Well, maybe there is a way, but it really seems to be
+over-complicating things unnecessarily to keep CDF independent of
+DRM..  there will be a lot more traditional uses of CDF compared to
+one crazy use-case.  So I don't really fancy making it more difficult
+than in needs to be for everyone.
 
-As I understand it, this was the whole reason for the patches that 
-Mauros wrote.
+Probably the thing to do is take a step back and reconsider that one
+crazy use-case.  For example, KMS doesn't enforce that the buffer
+handled passed when you create a drm framebuffer object to scan out is
+a GEM buffer.  So on that one crazy platform, maybe it makes sense to
+have a DRM/KMS display driver that takes a handle to identify which
+video stream coming from the capture end of the pipeline.  Anyways,
+that is just an off-the-top-of-my-head idea, probably there are other
+options too.
 
-Regards,
-Matthew
+BR,
+-R
 
+>  Tomi
+>
+>
