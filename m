@@ -1,62 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21120 "EHLO mx1.redhat.com"
+Received: from 7of9.schinagl.nl ([88.159.158.68]:43708 "EHLO 7of9.schinagl.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753079Ab2L0QxK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Dec 2012 11:53:10 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id qBRGrAW5006443
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 27 Dec 2012 11:53:10 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] [media] ttpci: Fix a missing Kconfig dependency
-Date: Thu, 27 Dec 2012 14:52:41 -0200
-Message-Id: <1356627162-27815-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	id S1750771Ab2LSIyo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Dec 2012 03:54:44 -0500
+Message-ID: <50D180CD.3090307@schinagl.nl>
+Date: Wed, 19 Dec 2012 09:54:37 +0100
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Jonathan McCrohan <jmccrohan@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Initial scan files troubles and brainstorming
+References: <507FE752.6010409@schinagl.nl> <50D0E7A7.90002@schinagl.nl> <50D0FAE3.5000103@gmail.com>
+In-Reply-To: <50D0FAE3.5000103@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix a Kconfig warning that appears with allmodconfig on arm:
+On 19-12-12 00:23, Jonathan McCrohan wrote:
+> Hi Oliver,
+>
+> On 18/12/12 22:01, Oliver Schinagl wrote:
+>> Unfortunatly, I have had zero replies.
+> Apologies. I wasn't subscribed to linux-media. I am now.
+>
+>> So why bring it up again? On 2012/11/30 Jakub Kasprzycki provided us
+>> with updated polish DVB-T frequencies for his region. This has yet to be
+>> merged, almost 3 weeks later.
+>>
+>> While I know people are busy and merging frequency updates doesn't seem
+>> critical, for people who somewhat depend on them, the sooner, the better.
+> I can relate. I currently have two patch files that I am trying to get
+> merged myself I have been contacting Manu and Christoph) directly
+> because previous attempts at posting to linux-media were left unattended
+> for a good period of time.
+>
+>> I'll quickly repeat why I think this approach would be quite reasonable.
+>>
+>> * dvb-apps binary changes don't result in unnecessary releases
+>> * frequency updates don't result in unnecessary dvb-app releases
+>> * Less strict requirements for commits (code reviews etc)
+>> * Possibly easier entry for new submitters
+>> * much easier to package (tag it once per month if an update was)
+>> * Separate maintainer possible
+>> * just seems more logical to have it separated ;)
+>>
+>> This obviously should find a nice home on linuxtv where it belongs!
+> I like this approach, but I'm afraid that decoupling dvb-apps and scan
+> files may result in distributions paying less attention to scan files.
+> At the moment, they are forced to update the scan files when a new
+> release of dvb-apps appears.
+So if no code changes are needed/done, but scan files are updated, a new 
+dvb-apps release needs to be made?
 
-	warning: (DVB_USB_PCTV452E) selects TTPCI_EEPROM which has unmet direct dependencies (MEDIA_SUPPORT && MEDIA_PCI_SUPPORT && MEDIA_DIGITAL_TV_SUPPORT && I2C)
+That also results in grief for packagers. Packages need to be made but 
+more importantly tested against many combinations. While the changes 
+(binary anyway) would be trivial/non-existant, it would result in 
+annoyance for packagers and could even be ignored.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/Kconfig           | 6 ++++++
- drivers/media/pci/ttpci/Kconfig | 5 -----
- 2 files changed, 6 insertions(+), 5 deletions(-)
+scanfiles could be packaged and released just as easily and since there 
+are applications already out there, that do not even use or need 
+dvb-apps, it makes sense to seperate them. TVheadend for example does 
+not need dvb-apps in any form and i'm sure there's more.
 
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index 4ef0d80..4d9b4c2 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -135,6 +135,12 @@ config DVB_NET
- 	  You may want to disable the network support on embedded devices. If
- 	  unsure say Y.
- 
-+# This Kconfig option is used by both PCI and USB drivers
-+config TTPCI_EEPROM
-+        tristate
-+        depends on I2C
-+        default n
-+
- source "drivers/media/dvb-core/Kconfig"
- 
- comment "Media drivers"
-diff --git a/drivers/media/pci/ttpci/Kconfig b/drivers/media/pci/ttpci/Kconfig
-index 314e417..0dcb8cd 100644
---- a/drivers/media/pci/ttpci/Kconfig
-+++ b/drivers/media/pci/ttpci/Kconfig
-@@ -1,8 +1,3 @@
--config TTPCI_EEPROM
--	tristate
--	depends on I2C
--	default n
--
- config DVB_AV7110
- 	tristate "AV7110 cards"
- 	depends on DVB_CORE && PCI && I2C
--- 
-1.7.11.7
+So it goes both ways :p
+>
+>> If an issue is that none of the original maintainers are not looking
+>> forward to do the job, I am willing to take maintenance on me for now.
+> To be honest, I think the current system works okay. I think more people
+> just need to be given hg commit access. This would solve the current delays.
+>
+> Jon
+>
 
