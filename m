@@ -1,59 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:45773 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753866Ab2LYQqM (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4477 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751592Ab2LSUra (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Dec 2012 11:46:12 -0500
-Date: Tue, 25 Dec 2012 17:40:21 +0100
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Sasha Levin <sasha.levin@oracle.com>
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] rc-core: don't return from store_protocols without
- releasing device mutex
-Message-ID: <20121225164021.GA13852@hardeman.nu>
-References: <1354971050-5784-1-git-send-email-sasha.levin@oracle.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1354971050-5784-1-git-send-email-sasha.levin@oracle.com>
+	Wed, 19 Dec 2012 15:47:30 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id qBJKlQq4014931
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Wed, 19 Dec 2012 21:47:28 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id A9AEC11E00AB
+	for <linux-media@vger.kernel.org>; Wed, 19 Dec 2012 21:47:26 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20121219204726.A9AEC11E00AB@alastor.dyndns.org>
+Date: Wed, 19 Dec 2012 21:47:26 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Dec 08, 2012 at 07:50:50AM -0500, Sasha Levin wrote:
->Commit c003ab1b ("[media] rc-core: add separate defines for protocol bitmaps
->and numbers") has introduced a bug which allows store_protocols() to return
->without releasing the device mutex it's holding.
->
->Doing that would cause infinite hangs waiting on device mutex next time
->around.
->
->Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Acked-by: David Härdeman <david@hardeman.nu>
+Results of the daily build of media_tree:
 
->---
-> drivers/media/rc/rc-main.c | 3 ++-
-> 1 file changed, 2 insertions(+), 1 deletion(-)
->
->diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
->index 601d1ac1..0510f4d 100644
->--- a/drivers/media/rc/rc-main.c
->+++ b/drivers/media/rc/rc-main.c
->@@ -890,7 +890,8 @@ static ssize_t store_protocols(struct device *device,
-> 
-> 		if (i == ARRAY_SIZE(proto_names)) {
-> 			IR_dprintk(1, "Unknown protocol: '%s'\n", tmp);
->-			return -EINVAL;
->+			ret = -EINVAL;
->+			goto out;
-> 		}
-> 
-> 		count++;
->-- 
->1.8.0
->
+date:        Wed Dec 19 19:00:26 CET 2012
+git hash:    49cc629df16f2a15917800a8579bd9c25c41b634
+gcc version:      i686-linux-gcc (GCC) 4.7.1
+host hardware:    x86_64
+host os:          3.4.07-marune
 
--- 
-David Härdeman
+linux-git-arm-eabi-davinci: WARNINGS
+linux-git-arm-eabi-exynos: OK
+linux-git-arm-eabi-omap: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-i686: WARNINGS
+linux-2.6.37-i686: WARNINGS
+linux-2.6.38.2-i686: WARNINGS
+linux-2.6.39.1-i686: WARNINGS
+linux-3.0-i686: WARNINGS
+linux-3.1-i686: WARNINGS
+linux-3.2.1-i686: WARNINGS
+linux-3.3-i686: WARNINGS
+linux-3.4-i686: WARNINGS
+linux-3.5-i686: WARNINGS
+linux-3.6-i686: WARNINGS
+linux-3.7-i686: ERRORS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-x86_64: WARNINGS
+linux-2.6.37-x86_64: WARNINGS
+linux-2.6.38.2-x86_64: WARNINGS
+linux-2.6.39.1-x86_64: WARNINGS
+linux-3.0-x86_64: WARNINGS
+linux-3.1-x86_64: WARNINGS
+linux-3.2.1-x86_64: WARNINGS
+linux-3.3-x86_64: WARNINGS
+linux-3.4-x86_64: WARNINGS
+linux-3.5-x86_64: WARNINGS
+linux-3.6-x86_64: WARNINGS
+linux-3.7-x86_64: ERRORS
+apps: WARNINGS
+spec-git: WARNINGS
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
