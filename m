@@ -1,150 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:24079 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752488Ab2L1XyB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Dec 2012 18:54:01 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id qBSNs15H030906
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 28 Dec 2012 18:54:01 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv3] [media] dvb: Add DVBv5 properties for quality parameters
-Date: Fri, 28 Dec 2012 21:53:34 -0200
-Message-Id: <1356738814-5608-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from nm19.bullet.mail.ird.yahoo.com ([77.238.189.76]:26342 "EHLO
+	nm19.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751919Ab2LSXBY convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Dec 2012 18:01:24 -0500
+Message-ID: <1355958053.43473.YahooMailNeo@web132104.mail.ird.yahoo.com>
+Date: Wed, 19 Dec 2012 23:00:53 +0000 (GMT)
+From: marco caminati <marco.caminati@yahoo.it>
+Reply-To: marco caminati <marco.caminati@yahoo.it>
+Subject: rtl2832u+r820t dvb-t usb
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DVBv3 quality parameters are limited on several ways:
-	- Doesn't provide any way to indicate the used measure;
-	- Userspace need to guess how to calculate the measure;
-	- Only a limited set of stats are supported;
-	- Doesn't provide QoS measure for the OFDM TPS/TMCC
-	  carriers, used to detect the network parameters for
-	  DVB-T/ISDB-T;
-	- Can't be called in a way to require them to be filled
-	  all at once (atomic reads from the hardware), with may
-	  cause troubles on interpreting them on userspace;
-	- On some OFDM delivery systems, the carriers can be
-	  independently modulated, having different properties.
-	  Currently, there's no way to report per-layer stats;
-This RFC adds the header definitions meant to solve that issues.
-After discussed, I'll write a patch for the DocBook and add support
-for it on some demods. Support for dvbv5-zap and dvbv5-scan tools
-will also have support for those features.
+I have a rtl2832u+r820t dvb-t usb dongle; I use linux (x86).
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- include/uapi/linux/dvb/frontend.h | 78 ++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 77 insertions(+), 1 deletion(-)
+There is good support for using it as sdr.
+However, using it to watch dvb-t (I am in Europa) turned out to be difficult.
+The only way that worked: downgrade my linux kernel to 2.6.33.3, and compiling these sources:
 
-v3: just a rebase of:
-	http://patchwork.linuxtv.org/patch/9578/
+https://groups.google.com/d/msg/ultra-cheap-sdr/QiIo7834sLI/7YpqSRnYud4J
 
-diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-index c12d452..a998b9a 100644
---- a/include/uapi/linux/dvb/frontend.h
-+++ b/include/uapi/linux/dvb/frontend.h
-@@ -365,7 +365,21 @@ struct dvb_frontend_event {
- #define DTV_INTERLEAVING			60
- #define DTV_LNA					61
- 
--#define DTV_MAX_COMMAND				DTV_LNA
-+/* Quality parameters */
-+#define DTV_ENUM_QUALITY	45	/* Enumerates supported QoS parameters */
-+#define DTV_QUALITY_SNR		46
-+#define DTV_QUALITY_CNR		47
-+#define DTV_QUALITY_EsNo	48
-+#define DTV_QUALITY_EbNo	49
-+#define DTV_QUALITY_RELATIVE	50
-+#define DTV_ERROR_BER		51
-+#define DTV_ERROR_PER		52
-+#define DTV_ERROR_PARAMS	53	/* Error count at TMCC or TPS carrier */
-+#define DTV_FE_STRENGTH		54
-+#define DTV_FE_SIGNAL		55
-+#define DTV_FE_UNC		56
-+
-+#define DTV_MAX_COMMAND		DTV_FE_UNC
- 
- typedef enum fe_pilot {
- 	PILOT_ON,
-@@ -452,12 +466,74 @@ struct dtv_cmds_h {
- 	__u32	reserved:30;	/* Align */
- };
- 
-+/**
-+ * Scale types for the quality parameters.
-+ * @FE_SCALE_DECIBEL: The scale is measured in dB, typically
-+ *		  used on signal measures.
-+ * @FE_SCALE_LINEAR: The scale is linear.
-+ *		     typically used on error QoS parameters.
-+ * @FE_SCALE_RELATIVE: The scale is relative.
-+ */
-+enum fecap_scale_params {
-+	FE_SCALE_DECIBEL,
-+	FE_SCALE_LINEAR,
-+	FE_SCALE_RELATIVE
-+};
-+
-+/**
-+ * struct dtv_status - Used for reading a DTV status property
-+ *
-+ * @value:	value of the measure. Should range from 0 to 0xffff;
-+ * @scale:	Filled with enum fecap_scale_params - the scale
-+ *		in usage for that parameter
-+ * @min:	minimum value. Not used if the scale is relative.
-+ *		For non-relative measures, define the measure
-+ *		associated with dtv_status.value == 0.
-+ * @max:	maximum value. Not used if the scale is	relative.
-+ *		For non-relative measures, define the measure
-+ *		associated with dtv_status.value == 0xffff.
-+ *
-+ * At userspace, min/max values should be used to calculate the
-+ * absolute value of that measure, if fecap_scale_params is not
-+ * FE_SCALE_RELATIVE, using the following formula:
-+ *	 measure = min + (value * (max - min) / 0xffff)
-+ *
-+ * For error count measures, typically, min = 0, and max = 0xffff,
-+ * and the measure represent the number of errors detected.
-+ *
-+ * Up to 4 status groups can be provided. This is for the
-+ * OFDM standards where the carriers can be grouped into
-+ * independent layers, each with its own modulation. When
-+ * such layers are used (for example, on ISDB-T), the status
-+ * should be filled with:
-+ *	stat.status[0] = global statistics;
-+ *	stat.status[1] = layer A statistics;
-+ *	stat.status[2] = layer B statistics;
-+ *	stat.status[3] = layer C statistics.
-+ * and stat.len should be filled with the latest filled status + 1.
-+ * If the frontend doesn't provide a global statistics,
-+ * stat.has_global should be 0.
-+ * Delivery systems that don't use it, should just set stat.len and
-+ * stat.has_global with 1, and fill just stat.status[0].
-+ */
-+struct dtv_status {
-+	__u16 value;
-+	__u16 scale;
-+	__s16 min;
-+	__s16 max;
-+} __attribute__ ((packed));
-+
- struct dtv_property {
- 	__u32 cmd;
- 	__u32 reserved[3];
- 	union {
- 		__u32 data;
- 		struct {
-+			__u8 len;
-+			__u8 has_global;
-+			struct dtv_status status[4];
-+		} stat;
-+		struct {
- 			__u8 data[32];
- 			__u32 len;
- 			__u32 reserved1[3];
--- 
-1.7.11.7
+which forced me to using an older commit of v4l (mercurial df33bbd60225), and to comment out all references to rtl2832u_rc_keys_map_table.
+
+In a word: it works, but the situation is disappointing.
+Since such dongles are probably to be sold massively (taking the place of the dismissed e4000-based ones), can anybody help me porting this stuff to a more maintainable form?
+
+PS: Be aware: identification of these cheap dongles can be very messy. In my case, lsusb returned 0bda:2838, which is the same as other ones having e4000 or fc0012, as ezcap EzTV646. Even the appearance can be misleading: there are e4000 looking exactly the same.
 
