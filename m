@@ -1,112 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from firefly.pyther.net ([50.116.37.168]:34321 "EHLO
-	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754523Ab2LIOuK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Dec 2012 09:50:10 -0500
-Message-ID: <50C4A520.6020908@pyther.net>
-Date: Sun, 09 Dec 2012 09:50:08 -0500
-From: Matthew Gyurgyik <matthew@pyther.net>
+Received: from mail-qa0-f42.google.com ([209.85.216.42]:57510 "EHLO
+	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751581Ab2LTDTz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Dec 2012 22:19:55 -0500
+Received: by mail-qa0-f42.google.com with SMTP id hg5so4897552qab.15
+        for <linux-media@vger.kernel.org>; Wed, 19 Dec 2012 19:19:53 -0800 (PST)
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-CC: Antti Palosaari <crope@iki.fi>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com> <50C3701D.9000700@pyther .net> <50C37DA8.4080608@googlemai l.com> <50C3B3EB.40606@pyther .net> <50C3B567.3070300@i ki.fi> <50C3B969.1090301@pyth er.net> <50C48891.2050903@googlemail.com>
-In-Reply-To: <50C48891.2050903@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPM=9twKSyYzg_Fv6JQM9tBCATgH_z8+TGPmkv_ritHH4XYOUg@mail.gmail.com>
+References: <1355477817-5750-1-git-send-email-sumit.semwal@ti.com>
+	<CAPM=9twKSyYzg_Fv6JQM9tBCATgH_z8+TGPmkv_ritHH4XYOUg@mail.gmail.com>
+Date: Thu, 20 Dec 2012 13:13:37 +1000
+Message-ID: <CAPM=9twwm59-Aa_7UWiBPWrXZbOV62HZUZJJe3oUwNGPwWAQPw@mail.gmail.com>
+Subject: Re: [PATCH] dma-buf: Add debugfs support
+From: Dave Airlie <airlied@gmail.com>
+To: sumit.semwal@ti.com
+Cc: sumit.semwal@linaro.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=005045015b6e00128604d1401e62
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/09/2012 07:48 AM, Frank Schäfer wrote:
-> Am 08.12.2012 23:04, schrieb Matthew Gyurgyik:
->> On 12/08/2012 04:47 PM, Antti Palosaari wrote:
->>> On 12/08/2012 11:40 PM, Matthew Gyurgyik wrote:
->>>> On 12/08/2012 12:49 PM, Frank Schäfer wrote:
->>>>> Am 08.12.2012 17:51, schrieb Matthew Gyurgyik:
->>>>>
->>>>> That shouldn't be necessary. I just noticed that there is a module
->>>>> parameter 'ir_debug'. ;)
->>>>> With ir_debug enabled, you should see messages
->>>>>
->>>>>           em28xx_ir_handle_key: toggle: XX, count: XX, key XXYYZZ
->>>>>
->>>>> everytime you press a button. Once we know the key codes, we can
->>>>> set up
->>>>> a key map (if it doesn't exist yet).
->>>>>
->>>>
->>>> Maybe I'm doing something wrong but didn't have any luck :(
->>>>
->>>>> [root@tux ~]# sudo rmmod em28xx_rc
->>>>> [root@tux ~]# sudo rmmod em28xx_dvb
->>>>> [root@tux ~]# sudo rmmod em28xx
->>>>> [root@tux ~]# modprobe em28xx_rc ir_debug=1
->>>>
->>>> I don't see any additional messages in dmesg.
->>>>
->>>> I verified the remote still works in windows (a stupidity check on my
->>>> part)
->>>
->>> Maybe Kernel debugs are not enabled? em28xx driver is a little bit
->>> legacy in logging too as it uses own logging whilst nowadays dynamic
->>> logging is recommended.
->>>
->>> replace KERN_DEBUG as KERN_INFO inside em28xx-input.c and test. It will
->>> change driver to use Kernel normal log writings instead of current debug
->>> ones.
->>>
->>> regards
->>> Antti
->>>
->>>
->> That unfortunately doesn't make any difference.
+--005045015b6e00128604d1401e62
+Content-Type: text/plain; charset=ISO-8859-1
+
+On Thu, Dec 20, 2012 at 11:26 AM, Dave Airlie <airlied@gmail.com> wrote:
+> On Fri, Dec 14, 2012 at 7:36 PM,  <sumit.semwal@ti.com> wrote:
+>> From: Sumit Semwal <sumit.semwal@linaro.org>
 >>
->> I even tried adding a print statment before the debug line got called
->> like this (line 97 added; em28xx-input.c):
->>   97     printk(KERN_INFO "key %02x\n", b);
->>   98     i2cdprintk("key %02x\n", b);
+>> Add debugfs support to make it easier to print debug information
+>> about the dma-buf buffers.
 >>
->
-> The relevant line is
->
-> 297        dprintk("%s: toggle: %d, count: %d, key 0x%02x%02x\n", __func__,
->
-> Change it to
->
-> 297        printk(KERN_INFO "%s: toggle: %d, count: %d, key
-> 0x%02x%02x\n", __func__,
->
-> Also double-check that the IR module (em28xx_rc) is enabled / gets loaded.
->
-> Regards,
-> Frank
->
->
-Sadly I'm still not getting anything.
 
-[root@tux ~]# rmmod em28xx_rc 
+I've attached two patches that make it work on my system, and fix the warnings,
 
-[root@tux ~]# rmmod em28xx_dvb
-[root@tux ~]# rmmod em28xx
-[root@tux ~]# lsmod | grep em28xx
-[root@tux ~]# modprobe em28xx_rc ir_debug=1
+I've used it to debug some leaks I was seeing, feel free to squash
+these patches into the original patch.
 
-[root@tux ~]# lsmod | grep em28xx
-em28xx_dvb             17075  0
-em28xx_rc               6250  0
-em28xx                 85996  2 em28xx_dvb,em28xx_rc
-rc_core                12193  3 rc_msi_digivox_iii,em28xx_rc
-dvb_core               86050  2 em28xx_dvb,lgdt3305
-tveeprom               13658  1 em28xx
-videobuf_vmalloc        4136  1 em28xx
-videobuf_core          15216  2 videobuf_vmalloc,em28xx
-v4l2_common             6927  1 em28xx
-videodev               97480  2 em28xx,v4l2_common
+Dave.
 
+--005045015b6e00128604d1401e62
+Content-Type: application/octet-stream;
+	name="0001-dma_buf-fix-debugfs-init.patch"
+Content-Disposition: attachment;
+	filename="0001-dma_buf-fix-debugfs-init.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_haxbf7dn0
 
-Just to make sure I'm not misunderstanding, the messages should get 
-logged to dmesg, correct?
+RnJvbSA1YTBiZDExZTZmNWM1NWFjZjhhOGJjYzQxOWI5NDM3Mjc4OTQ3NDg1IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBEYXZlIEFpcmxpZSA8YWlybGllZEByZWRoYXQuY29tPgpEYXRl
+OiBUaHUsIDIwIERlYyAyMDEyIDEzOjAwOjU0ICsxMDAwClN1YmplY3Q6IFtQQVRDSCAxLzJdIGRt
+YV9idWY6IGZpeCBkZWJ1Z2ZzIGluaXQKClRoZSBpbml0IGZ1bmN0aW9ucyB3YXNuJ3QgYmVlbiBj
+YWxsZWQsIHRoaXMgYWRkcyBpdCBhcyBhIHN1YnN5c19pbml0Y2FsbCwKbm90IHN1cmUgaXRzIHRo
+ZSBmdWxseSBjb3JyZWN0IHBsYWNlLCBidXQgaXQgc2VlbXMgdG8gd29yayBmaW5lLgoKU2lnbmVk
+LW9mZi1ieTogRGF2ZSBBaXJsaWUgPGFpcmxpZWRAcmVkaGF0LmNvbT4KLS0tCiBkcml2ZXJzL2Jh
+c2UvZG1hLWJ1Zi5jIHwgNSArKysrLQogMSBmaWxlIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwg
+MSBkZWxldGlvbigtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvYmFzZS9kbWEtYnVmLmMgYi9kcml2
+ZXJzL2Jhc2UvZG1hLWJ1Zi5jCmluZGV4IDI1MTA5N2QuLjViOGM5ZGYgMTAwNjQ0Ci0tLSBhL2Ry
+aXZlcnMvYmFzZS9kbWEtYnVmLmMKKysrIGIvZHJpdmVycy9iYXNlL2RtYS1idWYuYwpAQCAtNTI1
+LDEzICs1MjUsMTYgQEAgRVhQT1JUX1NZTUJPTF9HUEwoZG1hX2J1Zl92dW5tYXApOwogc3RhdGlj
+IGludCBkbWFfYnVmX2luaXRfZGVidWdmcyh2b2lkKTsKIHN0YXRpYyB2b2lkIGRtYV9idWZfdW5p
+bml0X2RlYnVnZnModm9pZCk7CiAKLXN0YXRpYyB2b2lkIF9faW5pdCBkbWFfYnVmX2luaXQodm9p
+ZCkKK3N0YXRpYyBpbnQgX19pbml0IGRtYV9idWZfaW5pdCh2b2lkKQogewogCW11dGV4X2luaXQo
+JmRiX2xpc3QubG9jayk7CiAJSU5JVF9MSVNUX0hFQUQoJmRiX2xpc3QuaGVhZCk7CiAJZG1hX2J1
+Zl9pbml0X2RlYnVnZnMoKTsKKwlyZXR1cm4gMDsKIH0KIAorc3Vic3lzX2luaXRjYWxsKGRtYV9i
+dWZfaW5pdCk7CisKIHN0YXRpYyB2b2lkIF9fZXhpdCBkbWFfYnVmX2RlaW5pdCh2b2lkKQogewog
+CWRtYV9idWZfdW5pbml0X2RlYnVnZnMoKTsKLS0gCjEuOC4wLjIKCg==
+--005045015b6e00128604d1401e62
+Content-Type: application/octet-stream;
+	name="0002-dma-buf-fix-warning-in-seq_printf.patch"
+Content-Disposition: attachment;
+	filename="0002-dma-buf-fix-warning-in-seq_printf.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_haxbf7dt1
 
-
+RnJvbSA2ZmZhZGNiZTU4MmUzYWJiNzNjMTlkNzViMjMyNTEwZGE4MjE5NDlhIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBEYXZlIEFpcmxpZSA8YWlybGllZEByZWRoYXQuY29tPgpEYXRl
+OiBUaHUsIDIwIERlYyAyMDEyIDEzOjA2OjA0ICsxMDAwClN1YmplY3Q6IFtQQVRDSCAyLzJdIGRt
+YS1idWY6IGZpeCB3YXJuaW5nIGluIHNlcV9wcmludGYKTUlNRS1WZXJzaW9uOiAxLjAKQ29udGVu
+dC1UeXBlOiB0ZXh0L3BsYWluOyBjaGFyc2V0PVVURi04CkNvbnRlbnQtVHJhbnNmZXItRW5jb2Rp
+bmc6IDhiaXQKCi9ob21lL2FpcmxpZWQvZGV2ZWwva2VybmVsL2RybS0yLjYvZHJpdmVycy9iYXNl
+L2RtYS1idWYuYzogSW4gZnVuY3Rpb24g4oCYZG1hX2J1Zl9kZXNjcmliZeKAmToKL2hvbWUvYWly
+bGllZC9kZXZlbC9rZXJuZWwvZHJtLTIuNi9kcml2ZXJzL2Jhc2UvZG1hLWJ1Zi5jOjU2Njo1OiB3
+YXJuaW5nOiBmb3JtYXQg4oCYJWTigJkgZXhwZWN0cyBhcmd1bWVudCBvZiB0eXBlIOKAmGludOKA
+mSwgYnV0IGFyZ3VtZW50IDYgaGFzIHR5cGUg4oCYbG9uZyBpbnTigJkgWy1XZm9ybWF0XQoKU2ln
+bmVkLW9mZi1ieTogRGF2ZSBBaXJsaWUgPGFpcmxpZWRAcmVkaGF0LmNvbT4KLS0tCiBkcml2ZXJz
+L2Jhc2UvZG1hLWJ1Zi5jIHwgMiArLQogMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAx
+IGRlbGV0aW9uKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9iYXNlL2RtYS1idWYuYyBiL2RyaXZl
+cnMvYmFzZS9kbWEtYnVmLmMKaW5kZXggNWI4YzlkZi4uMTMyYWFhMyAxMDA2NDQKLS0tIGEvZHJp
+dmVycy9iYXNlL2RtYS1idWYuYworKysgYi9kcml2ZXJzL2Jhc2UvZG1hLWJ1Zi5jCkBAIC01NjAs
+NyArNTYwLDcgQEAgc3RhdGljIGludCBkbWFfYnVmX2Rlc2NyaWJlKHN0cnVjdCBzZXFfZmlsZSAq
+cykKIAlsaXN0X2Zvcl9lYWNoX2VudHJ5KGJ1Zl9vYmosICZkYl9saXN0LmhlYWQsIGxpc3Rfbm9k
+ZSkgewogCQlzZXFfcHJpbnRmKHMsICJcdCIpOwogCi0JCXNlcV9wcmludGYocywgIiUwOHp1XHQl
+MDh4XHQlMDh4XHQlMDhkXG4iLAorCQlzZXFfcHJpbnRmKHMsICIlMDh6dVx0JTA4eFx0JTA4eFx0
+JTA4bGRcbiIsCiAJCQkJYnVmX29iai0+c2l6ZSwgYnVmX29iai0+ZmlsZS0+Zl9mbGFncywKIAkJ
+CQlidWZfb2JqLT5maWxlLT5mX21vZGUsCiAJCQkJYnVmX29iai0+ZmlsZS0+Zl9jb3VudC5jb3Vu
+dGVyKTsKLS0gCjEuOC4wLjIKCg==
+--005045015b6e00128604d1401e62--
