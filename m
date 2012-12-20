@@ -1,405 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:63008 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750958Ab2LaQDg (ORCPT
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:16701 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751399Ab2LTAEG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Dec 2012 11:03:36 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
-	rob.herring@calxeda.com, thomas.abraham@linaro.org,
-	t.figa@samsung.com, sw0312.kim@samsung.com,
-	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC v2 02/15] [media] Add a V4L2 OF parser
-Date: Mon, 31 Dec 2012 17:03:00 +0100
-Message-id: <1356969793-27268-3-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
-References: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
+	Wed, 19 Dec 2012 19:04:06 -0500
+Message-ID: <50D255F5.5030602@nvidia.com>
+Date: Wed, 19 Dec 2012 16:04:05 -0800
+From: Aaron Plattner <aplattner@nvidia.com>
+MIME-Version: 1.0
+To: Daniel Vetter <daniel.vetter@ffwll.ch>
+CC: DRI Development <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] [RFC] dma-buf: implement vmap refcounting in the interface
+ logic
+References: <1355787110-19968-1-git-send-email-daniel.vetter@ffwll.ch> <1355788715-22177-1-git-send-email-daniel.vetter@ffwll.ch>
+In-Reply-To: <1355788715-22177-1-git-send-email-daniel.vetter@ffwll.ch>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+On 12/17/2012 03:58 PM, Daniel Vetter wrote:
+> All drivers which implement this need to have some sort of refcount to
+> allow concurrent vmap usage. Hence implement this in the dma-buf core.
+>
+> To protect against concurrent calls we need a lock, which potentially
+> causes new funny locking inversions. But this shouldn't be a problem
+> for exporters with statically allocated backing storage, and more
+> dynamic drivers have decent issues already anyway.
+>
+> Inspired by some refactoring patches from Aaron Plattner, who
+> implemented the same idea, but only for drm/prime drivers.
+>
+> v2: Check in dma_buf_release that no dangling vmaps are left.
+> Suggested by Aaron Plattner. We might want to do similar checks for
+> attachments, but that's for another patch. Also fix up ERR_PTR return
+> for vmap.
+>
+> v3: Check whether the passed-in vmap address matches with the cached
+> one for vunmap. Eventually we might want to remove that parameter -
+> compared to the kmap functions there's no need for the vaddr for
+> unmapping.  Suggested by Chris Wilson.
+>
+> Cc: Aaron Plattner <aplattner@nvidia.com>
+> Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> ---
+> Compile-tested only - Aaron has been bugging me too a bit too often
+> about this on irc.
+>
+> Cheers, Daniel
+> ---
+>   Documentation/dma-buf-sharing.txt |  6 +++++-
+>   drivers/base/dma-buf.c            | 43 ++++++++++++++++++++++++++++++++++-----
+>   include/linux/dma-buf.h           |  4 +++-
+>   3 files changed, 46 insertions(+), 7 deletions(-)
+>
+> diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
+> index 0188903..4966b1b 100644
+> --- a/Documentation/dma-buf-sharing.txt
+> +++ b/Documentation/dma-buf-sharing.txt
+> @@ -302,7 +302,11 @@ Access to a dma_buf from the kernel context involves three steps:
+>         void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
+>
+>      The vmap call can fail if there is no vmap support in the exporter, or if it
+> -   runs out of vmalloc space. Fallback to kmap should be implemented.
+> +   runs out of vmalloc space. Fallback to kmap should be implemented. Note that
+> +   the dma-buf layer keeps a reference count for all vmap access and calls down
+> +   into the exporter's vmap function only when no vmapping exists, and only
+> +   unmaps it once. Protection against concurrent vmap/vunmap calls is provided
+> +   by taking the dma_buf->lock mutex.
+>
+>   3. Finish access
+>
+> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+> index a3f79c4..67d3cd5 100644
+> --- a/drivers/base/dma-buf.c
+> +++ b/drivers/base/dma-buf.c
+> @@ -39,6 +39,8 @@ static int dma_buf_release(struct inode *inode, struct file *file)
+>
+>   	dmabuf = file->private_data;
+>
+> +	BUG_ON(dmabuf->vmapping_counter);
+> +
+>   	dmabuf->ops->release(dmabuf);
+>   	kfree(dmabuf);
+>   	return 0;
+> @@ -482,12 +484,34 @@ EXPORT_SYMBOL_GPL(dma_buf_mmap);
+>    */
+>   void *dma_buf_vmap(struct dma_buf *dmabuf)
+>   {
+> +	void *ptr;
+> +
+>   	if (WARN_ON(!dmabuf))
+>   		return NULL;
+>
+> -	if (dmabuf->ops->vmap)
+> -		return dmabuf->ops->vmap(dmabuf);
+> -	return NULL;
+> +	if (!dmabuf->ops->vmap)
+> +		return NULL;
+> +
+> +	mutex_lock(&dmabuf->lock);
+> +	if (dmabuf->vmapping_counter) {
+> +		dmabuf->vmapping_counter++;
+> +		BUG_ON(!dmabuf->vmap_ptr);
+> +		ptr = dmabuf->vmap_ptr;
+> +		goto out_unlock;
+> +	}
+> +
+> +	BUG_ON(dmabuf->vmap_ptr);
+> +
+> +	ptr = dmabuf->ops->vmap(dmabuf);
+> +	if (IS_ERR_OR_NULL(ptr))
+> +		goto out_unlock;
+> +
+> +	dmabuf->vmap_ptr = ptr;
+> +	dmabuf->vmapping_counter = 1;
+> +
+> +out_unlock:
+> +	mutex_unlock(&dmabuf->lock);
+> +	return ptr;
+>   }
+>   EXPORT_SYMBOL_GPL(dma_buf_vmap);
+>
+> @@ -501,7 +525,16 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
+>   	if (WARN_ON(!dmabuf))
+>   		return;
+>
+> -	if (dmabuf->ops->vunmap)
+> -		dmabuf->ops->vunmap(dmabuf, vaddr);
+> +	BUG_ON(!dmabuf->vmap_ptr);
+> +	BUG_ON(dmabuf->vmapping_counter > 0);
 
-Add a V4L2 OF parser, implementing bindings, documented in
-Documentation/devicetree/bindings/media/video-interfaces.txt.
+This should be BUG_ON(vmapping_counter == 0);
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
+Otherwise, this seems to work fine.
 
-Changes since previous version:
-- merged into this one all my fixup patches from this series [1]:
-  v4l2-of: Support variable length of data-lanes property
-  v4l2-of: Add v4l2_of_parse_data_lanes() function
-  v4l2-of: Corrected v4l2_of_parse_link() function declaration
-  v4l2_of_parse_link() return value type is int, not void.
-  v4l2-of: Replace "remote" property with "remote-endpoint"
+--
+Aaron
 
-[1] https://lkml.org/lkml/2012/12/10/464
----
- drivers/media/v4l2-core/Makefile  |    3 +
- drivers/media/v4l2-core/v4l2-of.c |  249 +++++++++++++++++++++++++++++++++++++
- include/media/v4l2-of.h           |   79 ++++++++++++
- 3 files changed, 331 insertions(+)
- create mode 100644 drivers/media/v4l2-core/v4l2-of.c
- create mode 100644 include/media/v4l2-of.h
-
-diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-index c2d61d4..00f64d6 100644
---- a/drivers/media/v4l2-core/Makefile
-+++ b/drivers/media/v4l2-core/Makefile
-@@ -9,6 +9,9 @@ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
- ifeq ($(CONFIG_COMPAT),y)
-   videodev-objs += v4l2-compat-ioctl32.o
- endif
-+ifeq ($(CONFIG_OF),y)
-+  videodev-objs += v4l2-of.o
-+endif
- 
- obj-$(CONFIG_VIDEO_DEV) += videodev.o v4l2-int-device.o
- obj-$(CONFIG_VIDEO_V4L2) += v4l2-common.o
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-new file mode 100644
-index 0000000..cdac04b
---- /dev/null
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -0,0 +1,249 @@
-+/*
-+ * V4L2 OF binding parsing library
-+ *
-+ * Copyright (C) 2012 Renesas Electronics Corp.
-+ * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ */
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/slab.h>
-+#include <linux/types.h>
-+
-+#include <media/v4l2-of.h>
-+
-+/**
-+ * v4l2_of_parse_mipi_csi2() - parse MIPI CSI-2 bus properties
-+ * @node: pointer to endpoint device_node
-+ * @endpoint: pointer to v4l2_of_endpoint data structure
-+ *
-+ * Return: 0 on success or negative error value otherwise.
-+ */
-+int v4l2_of_parse_mipi_csi2(const struct device_node *node,
-+			    struct v4l2_of_endpoint *endpoint)
-+{
-+	struct v4l2_of_mipi_csi2 *mipi_csi2 = &endpoint->mipi_csi_2;
-+	u32 data_lanes[ARRAY_SIZE(mipi_csi2->data_lanes)];
-+	struct property *prop;
-+	const __be32 *lane = NULL;
-+	u32 v;
-+	int i = 0;
-+
-+	prop = of_find_property(node, "data-lanes", NULL);
-+	if (!prop)
-+		return -EINVAL;
-+	do {
-+		lane = of_prop_next_u32(prop, lane, &data_lanes[i]);
-+	} while (lane && i++ < ARRAY_SIZE(data_lanes));
-+
-+	mipi_csi2->num_data_lanes = i;
-+	while (i--)
-+		mipi_csi2->data_lanes[i] = data_lanes[i];
-+
-+	if (!of_property_read_u32(node, "clock-lanes", &v))
-+		mipi_csi2->clock_lane = v;
-+
-+	if (of_get_property(node, "clock-noncontinuous", &v))
-+		endpoint->mbus_flags |= V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
-+
-+	return 0;
-+}
-+
-+/**
-+ * v4l2_of_parse_parallel_bus() - parse parallel bus properties
-+ * @node: pointer to endpoint device_node
-+ * @endpoint: pointer to v4l2_of_endpoint data structure
-+ */
-+void v4l2_of_parse_parallel_bus(const struct device_node *node,
-+				struct v4l2_of_endpoint *endpoint)
-+{
-+	unsigned int flags = 0;
-+	u32 v;
-+
-+	if (WARN_ON(!endpoint))
-+		return;
-+
-+	if (!of_property_read_u32(node, "hsync-active", &v))
-+		flags |= v ? V4L2_MBUS_HSYNC_ACTIVE_HIGH :
-+			V4L2_MBUS_HSYNC_ACTIVE_LOW;
-+
-+	if (!of_property_read_u32(node, "vsync-active", &v))
-+		flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
-+			V4L2_MBUS_VSYNC_ACTIVE_LOW;
-+
-+	if (!of_property_read_u32(node, "pclk-sample", &v))
-+		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
-+			V4L2_MBUS_PCLK_SAMPLE_FALLING;
-+
-+	if (!of_property_read_u32(node, "field-even-active", &v))
-+		flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
-+			V4L2_MBUS_FIELD_EVEN_LOW;
-+	if (flags)
-+		endpoint->mbus_type = V4L2_MBUS_PARALLEL;
-+	else
-+		endpoint->mbus_type = V4L2_MBUS_BT656;
-+
-+	if (!of_property_read_u32(node, "data-active", &v))
-+		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
-+			V4L2_MBUS_DATA_ACTIVE_LOW;
-+
-+	if (of_get_property(node, "slave-mode", &v))
-+		flags |= V4L2_MBUS_SLAVE;
-+
-+	if (!of_property_read_u32(node, "bus-width", &v))
-+		endpoint->parallel.bus_width = v;
-+
-+	if (!of_property_read_u32(node, "data-shift", &v))
-+		endpoint->parallel.data_shift = v;
-+
-+	endpoint->mbus_flags = flags;
-+}
-+
-+/**
-+ * v4l2_of_parse_endpoint() - parse all endpoint node properties
-+ * @node: pointer to endpoint device_node
-+ * @endpoint: pointer to v4l2_of_endpoint data structure
-+ *
-+ * All properties are optional. If none are found, we don't set any flags.
-+ * This means the port has a static configuration and no properties have
-+ * to be specified explicitly.
-+ * If any properties that identify the bus as parallel are found and
-+ * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we recognise
-+ * the bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
-+ * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
-+ * The caller should hold a reference to @node.
-+ */
-+void v4l2_of_parse_endpoint(const struct device_node *node,
-+			    struct v4l2_of_endpoint *endpoint)
-+{
-+	const struct device_node *port_node = of_get_parent(node);
-+	bool data_lanes_present = false;
-+
-+	memset(endpoint, 0, sizeof(*endpoint));
-+
-+	endpoint->local_node = node;
-+
-+	/* Doesn't matter, whether the below two calls succeed */
-+	of_property_read_u32(port_node, "reg", &endpoint->port);
-+	of_property_read_u32(node, "reg", &endpoint->addr);
-+
-+	v4l2_of_parse_parallel_bus(node, endpoint);
-+
-+	/* If any parallel bus properties have been found, skip serial ones */
-+	if (endpoint->parallel.bus_width || endpoint->parallel.data_shift ||
-+	    endpoint->mbus_flags) {
-+		/* Default parallel bus-master */
-+		if (!(endpoint->mbus_flags & V4L2_MBUS_SLAVE))
-+			endpoint->mbus_flags |= V4L2_MBUS_MASTER;
-+		return;
-+	}
-+
-+	endpoint->mbus_type = V4L2_MBUS_CSI2;
-+
-+	if (!v4l2_of_parse_mipi_csi2(node, endpoint))
-+		data_lanes_present = true;
-+
-+	if ((endpoint->mipi_csi_2.clock_lane || data_lanes_present) &&
-+	    !(endpoint->mbus_flags & V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK)) {
-+		/* Default CSI-2: continuous clock */
-+		endpoint->mbus_flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-+	}
-+}
-+EXPORT_SYMBOL(v4l2_of_parse_endpoint);
-+
-+/*
-+ * Return a refcounted next "endpoint" DT node. Contrary to the common OF
-+ * practice, we do not drop the reference to previous, users have to do it
-+ * themselves, when they're done with the node.
-+ */
-+struct device_node *v4l2_of_get_next_endpoint(const struct device_node *parent,
-+					struct device_node *previous)
-+{
-+	struct device_node *child, *port;
-+
-+	if (!parent)
-+		return NULL;
-+
-+	if (!previous) {
-+		/*
-+		 * If this is the first call, we have to find a port within this
-+		 * node
-+		 */
-+		for_each_child_of_node(parent, port) {
-+			if (!of_node_cmp(port->name, "port"))
-+				break;
-+		}
-+		if (port) {
-+			/* Found a port, get a link */
-+			child = of_get_next_child(port, NULL);
-+			of_node_put(port);
-+		} else {
-+			child = NULL;
-+		}
-+		if (!child)
-+			pr_err("%s(): Invalid DT: %s has no link children!\n",
-+			       __func__, parent->name);
-+	} else {
-+		port = of_get_parent(previous);
-+		if (!port)
-+			/* Hm, has someone given us the root node?... */
-+			return NULL;
-+
-+		/* Avoid dropping previous refcount to 0 */
-+		of_node_get(previous);
-+		child = of_get_next_child(port, previous);
-+		if (child) {
-+			of_node_put(port);
-+			return child;
-+		}
-+
-+		/* No more links under this port, try the next one */
-+		do {
-+			port = of_get_next_child(parent, port);
-+			if (!port)
-+				return NULL;
-+		} while (of_node_cmp(port->name, "port"));
-+
-+		/* Pick up the first link on this port */
-+		child = of_get_next_child(port, NULL);
-+		of_node_put(port);
-+	}
-+
-+	return child;
-+}
-+EXPORT_SYMBOL(v4l2_of_get_next_endpoint);
-+
-+/**
-+ * v4l2_of_get_remote_port_parent() - get remote port's parent node
-+ * @node: pointer to local endpoint device_node
-+ *
-+ * Return: Remote device node associated with remote endpoint node linked
-+ *	   to @node. Use of_node_put() on it when done.
-+ */
-+struct device_node *v4l2_of_get_remote_port_parent(
-+			       const struct device_node *node)
-+{
-+	struct device_node *re, *tmp;
-+
-+	/* Get remote endpoint DT node. */
-+	re = of_parse_phandle(node, "remote-endpoint", 0);
-+	if (!re)
-+		return NULL;
-+
-+	/* Remote port. */
-+	tmp = of_get_parent(re);
-+	of_node_put(re);
-+	if (!tmp)
-+		return NULL;
-+
-+	/* Remote device node. */
-+	re = of_get_parent(tmp);
-+	of_node_put(tmp);
-+
-+	return re;
-+}
-+EXPORT_SYMBOL(v4l2_of_get_remote_port_parent);
-diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-new file mode 100644
-index 0000000..1aba3b3
---- /dev/null
-+++ b/include/media/v4l2-of.h
-@@ -0,0 +1,79 @@
-+/*
-+ * V4L2 OF binding parsing library
-+ *
-+ * Copyright (C) 2012 Renesas Electronics Corp.
-+ * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef _V4L2_OF_H
-+#define _V4L2_OF_H
-+
-+#include <linux/list.h>
-+#include <linux/types.h>
-+#include <linux/errno.h>
-+
-+#include <media/v4l2-mediabus.h>
-+
-+struct device_node;
-+
-+struct v4l2_of_mipi_csi2 {
-+	unsigned char data_lanes[4];
-+	unsigned char clock_lane;
-+	unsigned short num_data_lanes;
-+};
-+
-+struct v4l2_of_endpoint {
-+	unsigned int port;
-+	unsigned int addr;
-+	struct list_head head;
-+	const struct device_node *local_node;
-+	const __be32 *remote;
-+	enum v4l2_mbus_type mbus_type;
-+	unsigned int mbus_flags;
-+	union {
-+		struct {
-+			unsigned char bus_width;
-+			unsigned char data_shift;
-+		} parallel;
-+		struct v4l2_of_mipi_csi2 mipi_csi_2;
-+	};
-+};
-+
-+#ifdef CONFIG_OF
-+int v4l2_of_parse_mipi_csi2(const struct device_node *node,
-+			    struct v4l2_of_endpoint *endpoint);
-+void v4l2_of_parse_parallel_bus(const struct device_node *node,
-+				struct v4l2_of_endpoint *endpoint);
-+void v4l2_of_parse_endpoint(const struct device_node *node,
-+			    struct v4l2_of_endpoint *link);
-+struct device_node *v4l2_of_get_next_endpoint(const struct device_node *parent,
-+					struct device_node *previous);
-+struct device_node *v4l2_of_get_remote_port_parent(
-+					const struct device_node *node);
-+#else /* CONFIG_OF */
-+
-+static inline int v4l2_of_parse_endpoint(const struct device_node *node,
-+					struct v4l2_of_endpoint *link)
-+{
-+	return -ENOSYS;
-+}
-+
-+static inline struct device_node *v4l2_of_get_next_endpoint(
-+					const struct device_node *parent,
-+					struct device_node *previous)
-+{
-+	return NULL;
-+}
-+
-+static inline struct device_node *v4l2_of_get_remote_endpoint(
-+					const struct device_node *node)
-+{
-+	return NULL;
-+}
-+
-+#endif /* CONFIG_OF */
-+
-+#endif /* _V4L2_OF_H */
--- 
-1.7.9.5
+> +	BUG_ON(dmabuf->vmap_ptr != vaddr);
+> +
+> +	mutex_lock(&dmabuf->lock);
+> +	if (--dmabuf->vmapping_counter == 0) {
+> +		if (dmabuf->ops->vunmap)
+> +			dmabuf->ops->vunmap(dmabuf, vaddr);
+> +		dmabuf->vmap_ptr = NULL;
+> +	}
+> +	mutex_unlock(&dmabuf->lock);
+>   }
+>   EXPORT_SYMBOL_GPL(dma_buf_vunmap);
+> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+> index bd2e52c..e3bf2f6 100644
+> --- a/include/linux/dma-buf.h
+> +++ b/include/linux/dma-buf.h
+> @@ -119,8 +119,10 @@ struct dma_buf {
+>   	struct file *file;
+>   	struct list_head attachments;
+>   	const struct dma_buf_ops *ops;
+> -	/* mutex to serialize list manipulation and attach/detach */
+> +	/* mutex to serialize list manipulation, attach/detach and vmap/unmap */
+>   	struct mutex lock;
+> +	unsigned vmapping_counter;
+> +	void *vmap_ptr;
+>   	void *priv;
+>   };
+>
+>
 
