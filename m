@@ -1,87 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:43355 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752078Ab2LQPNX (ORCPT
+Received: from hqemgate03.nvidia.com ([216.228.121.140]:4692 "EHLO
+	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751317Ab2LTQJr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Dec 2012 10:13:23 -0500
-Received: by mail-la0-f46.google.com with SMTP id p5so4823259lag.19
-        for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 07:13:21 -0800 (PST)
+	Thu, 20 Dec 2012 11:09:47 -0500
+Message-ID: <50D3384A.2070800@nvidia.com>
+Date: Thu, 20 Dec 2012 08:09:46 -0800
+From: Aaron Plattner <aplattner@nvidia.com>
 MIME-Version: 1.0
-In-Reply-To: <CAOcJUbyE4+9WA8ZwANMVnuqZ-5betp8e0cNJ6inaj-7WTw4TBg@mail.gmail.com>
-References: <CAOcJUbyE4+9WA8ZwANMVnuqZ-5betp8e0cNJ6inaj-7WTw4TBg@mail.gmail.com>
-Date: Mon, 17 Dec 2012 10:13:21 -0500
-Message-ID: <CAOcJUbwnF0A2K5Qvfa1abbUnK98dNXuHgtGs+DpTKCYNC4my_g@mail.gmail.com>
-Subject: Re: [PULL] au0828: remove forced dependency of VIDEO_AU0828 on
- VIDEO_V4L2 | git://linuxtv.org/mkrufky/hauppauge voyager-digital
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Daniel Vetter <daniel.vetter@ffwll.ch>
+CC: DRI Development <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] [RFC] dma-buf: implement vmap refcounting in the interface
+ logic
+References: <50D255F5.5030602@nvidia.com> <1356009263-15822-1-git-send-email-daniel.vetter@ffwll.ch>
+In-Reply-To: <1356009263-15822-1-git-send-email-daniel.vetter@ffwll.ch>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As discussed on irc, the following pwclient commands should update the
-status of the patches in patchwork to correspond with this merge
-request:
+On 12/20/2012 05:14 AM, Daniel Vetter wrote:
+> All drivers which implement this need to have some sort of refcount to
+> allow concurrent vmap usage. Hence implement this in the dma-buf core.
+>
+> To protect against concurrent calls we need a lock, which potentially
+> causes new funny locking inversions. But this shouldn't be a problem
+> for exporters with statically allocated backing storage, and more
+> dynamic drivers have decent issues already anyway.
+>
+> Inspired by some refactoring patches from Aaron Plattner, who
+> implemented the same idea, but only for drm/prime drivers.
+>
+> v2: Check in dma_buf_release that no dangling vmaps are left.
+> Suggested by Aaron Plattner. We might want to do similar checks for
+> attachments, but that's for another patch. Also fix up ERR_PTR return
+> for vmap.
+>
+> v3: Check whether the passed-in vmap address matches with the cached
+> one for vunmap. Eventually we might want to remove that parameter -
+> compared to the kmap functions there's no need for the vaddr for
+> unmapping.  Suggested by Chris Wilson.
+>
+> v4: Fix a brown-paper-bag bug spotted by Aaron Plattner.
 
-pwclient update -s 'superseded' 15779
-pwclient update -s 'superseded' 15780
-pwclient update -s 'accepted' 15782
+The kernel spotted it when I tried to vunmap a buffer.  :)
 
+> Cc: Aaron Plattner <aplattner@nvidia.com>
+> Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 
-Cheers,
+Reviewed-by: Aaron Plattner <aplattner@nvidia.com>
+Tested-by: Aaron Plattner <aplattner@nvidia.com>
 
-Mike
+--
+Aaron
 
-On Tue, Dec 4, 2012 at 12:09 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> On Tue, Dec 4, 2012 at 11:29 AM, Devin Heitmueller
-> <dheitmueller@kernellabs.com> wrote:
->> On Tue, Dec 4, 2012 at 11:25 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
->>> Do you have any issues with these two patches as-is?  Any suggestions?
->>>  If not, is it OK with you if I request that Mauro merge this for v3.9
->>> ?
->>
->> I have no specific issues with the patch as-is.
->>
->> Reviewed-by: Devin Heitmueller <dheitmueller@kernellabs.com>
->>
->> --
->> Devin J. Heitmueller - Kernel Labs
->> http://www.kernellabs.com
+> ---
+>   Documentation/dma-buf-sharing.txt |  6 +++++-
+>   drivers/base/dma-buf.c            | 43 ++++++++++++++++++++++++++++++++++-----
+>   include/linux/dma-buf.h           |  4 +++-
+>   3 files changed, 46 insertions(+), 7 deletions(-)
 >
-> Thank you, Devin.
+> diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
+> index 0188903..4966b1b 100644
+> --- a/Documentation/dma-buf-sharing.txt
+> +++ b/Documentation/dma-buf-sharing.txt
+> @@ -302,7 +302,11 @@ Access to a dma_buf from the kernel context involves three steps:
+>         void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
 >
-> Mauro, please merge:
+>      The vmap call can fail if there is no vmap support in the exporter, or if it
+> -   runs out of vmalloc space. Fallback to kmap should be implemented.
+> +   runs out of vmalloc space. Fallback to kmap should be implemented. Note that
+> +   the dma-buf layer keeps a reference count for all vmap access and calls down
+> +   into the exporter's vmap function only when no vmapping exists, and only
+> +   unmaps it once. Protection against concurrent vmap/vunmap calls is provided
+> +   by taking the dma_buf->lock mutex.
 >
-> The following changes since commit 72567f3cfafe31c1612efe52e2893e960cc8dd00:
+>   3. Finish access
 >
->   au0828: update model matrix entries for 72261, 72271 & 72281
-> (2012-11-28 09:46:24 -0500)
+> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+> index a3f79c4..26b68de 100644
+> --- a/drivers/base/dma-buf.c
+> +++ b/drivers/base/dma-buf.c
+> @@ -39,6 +39,8 @@ static int dma_buf_release(struct inode *inode, struct file *file)
 >
-> are available in the git repository at:
+>   	dmabuf = file->private_data;
 >
->   git://linuxtv.org/mkrufky/hauppauge voyager-digital
+> +	BUG_ON(dmabuf->vmapping_counter);
+> +
+>   	dmabuf->ops->release(dmabuf);
+>   	kfree(dmabuf);
+>   	return 0;
+> @@ -482,12 +484,34 @@ EXPORT_SYMBOL_GPL(dma_buf_mmap);
+>    */
+>   void *dma_buf_vmap(struct dma_buf *dmabuf)
+>   {
+> +	void *ptr;
+> +
+>   	if (WARN_ON(!dmabuf))
+>   		return NULL;
 >
-> for you to fetch changes up to c67f6580bfa7922572a883437413f6480db05ef2:
+> -	if (dmabuf->ops->vmap)
+> -		return dmabuf->ops->vmap(dmabuf);
+> -	return NULL;
+> +	if (!dmabuf->ops->vmap)
+> +		return NULL;
+> +
+> +	mutex_lock(&dmabuf->lock);
+> +	if (dmabuf->vmapping_counter) {
+> +		dmabuf->vmapping_counter++;
+> +		BUG_ON(!dmabuf->vmap_ptr);
+> +		ptr = dmabuf->vmap_ptr;
+> +		goto out_unlock;
+> +	}
+> +
+> +	BUG_ON(dmabuf->vmap_ptr);
+> +
+> +	ptr = dmabuf->ops->vmap(dmabuf);
+> +	if (IS_ERR_OR_NULL(ptr))
+> +		goto out_unlock;
+> +
+> +	dmabuf->vmap_ptr = ptr;
+> +	dmabuf->vmapping_counter = 1;
+> +
+> +out_unlock:
+> +	mutex_unlock(&dmabuf->lock);
+> +	return ptr;
+>   }
+>   EXPORT_SYMBOL_GPL(dma_buf_vmap);
 >
->   au0828: break au0828_card_setup() down into smaller functions
-> (2012-12-04 10:46:38 -0500)
+> @@ -501,7 +525,16 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
+>   	if (WARN_ON(!dmabuf))
+>   		return;
 >
-> ----------------------------------------------------------------
-> Michael Krufky (2):
->       au0828: remove forced dependency of VIDEO_AU0828 on VIDEO_V4L2
->       au0828: break au0828_card_setup() down into smaller functions
+> -	if (dmabuf->ops->vunmap)
+> -		dmabuf->ops->vunmap(dmabuf, vaddr);
+> +	BUG_ON(!dmabuf->vmap_ptr);
+> +	BUG_ON(dmabuf->vmapping_counter == 0);
+> +	BUG_ON(dmabuf->vmap_ptr != vaddr);
+> +
+> +	mutex_lock(&dmabuf->lock);
+> +	if (--dmabuf->vmapping_counter == 0) {
+> +		if (dmabuf->ops->vunmap)
+> +			dmabuf->ops->vunmap(dmabuf, vaddr);
+> +		dmabuf->vmap_ptr = NULL;
+> +	}
+> +	mutex_unlock(&dmabuf->lock);
+>   }
+>   EXPORT_SYMBOL_GPL(dma_buf_vunmap);
+> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+> index bd2e52c..e3bf2f6 100644
+> --- a/include/linux/dma-buf.h
+> +++ b/include/linux/dma-buf.h
+> @@ -119,8 +119,10 @@ struct dma_buf {
+>   	struct file *file;
+>   	struct list_head attachments;
+>   	const struct dma_buf_ops *ops;
+> -	/* mutex to serialize list manipulation and attach/detach */
+> +	/* mutex to serialize list manipulation, attach/detach and vmap/unmap */
+>   	struct mutex lock;
+> +	unsigned vmapping_counter;
+> +	void *vmap_ptr;
+>   	void *priv;
+>   };
 >
->  drivers/media/usb/Kconfig               |    2 +-
->  drivers/media/usb/au0828/Kconfig        |   17 ++++++++++++++---
->  drivers/media/usb/au0828/Makefile       |    6 +++++-
->  drivers/media/usb/au0828/au0828-cards.c |   16 +++++++++++++---
->  drivers/media/usb/au0828/au0828-core.c  |   13 ++++++++++++-
->  drivers/media/usb/au0828/au0828-i2c.c   |    4 ++++
->  drivers/media/usb/au0828/au0828.h       |    2 ++
->  7 files changed, 51 insertions(+), 9 deletions(-)
 >
-> Cheers,
->
-> Mike Krufky
+
