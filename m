@@ -1,283 +1,479 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:60467 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751745Ab2LOVNz (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:64050 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750961Ab2LTV0N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Dec 2012 16:13:55 -0500
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org
-Cc: swarren@wwwdotorg.org, grant.likely@secretlab.ca,
-	rob.herring@calxeda.com, nicolas.thery@st.com,
-	s.hauer@pengutronix.de, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, devicetree-discuss@lists.ozlabs.org,
-	linux-doc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH] [media] Add common binding documentation for video interfaces
-Date: Sat, 15 Dec 2012 22:13:36 +0100
-Message-Id: <1355606016-6509-1-git-send-email-sylvester.nawrocki@gmail.com>
-In-Reply-To: <1355168499-5847-9-git-send-email-s.nawrocki@samsung.com>
-References: <1355168499-5847-9-git-send-email-s.nawrocki@samsung.com>
+	Thu, 20 Dec 2012 16:26:13 -0500
+Date: Thu, 20 Dec 2012 22:26:03 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH v2] media: V4L2: support asynchronous subdevice registration
+Message-ID: <Pine.LNX.4.64.1212202144440.27848@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-This patch adds a document describing common OF bindings for video
-capture, output and video processing devices. It is currently mainly
-focused on video capture devices, with data interfaces defined in
-standards like ITU-R BT.656 or MIPI CSI-2.
-It also documents a method of describing data links between devices.
+Currently bridge device drivers register devices for all subdevices
+synchronously, tupically, during their probing. E.g. if an I2C CMOS sensor
+is attached to a video bridge device, the bridge driver will create an I2C
+device and wait for the respective I2C driver to probe. This makes linking
+of devices straight forward, but this approach cannot be used with
+intrinsically asynchronous and unordered device registration systems like
+the Flattened Device Tree. To support such systems this patch adds an
+asynchronous subdevice registration framework to V4L2. To use it bridge 
+drivers register lists of subdevice descriptors and notifier callbacks, 
+subdevice drivers register subdevices, that they are about to probe or 
+have successfully probed. The subsystem matches subdevices against 
+hardware descriptors and calls bridge driver callbacks when matches are 
+found. Another callback is called, when the subdevice is unregistered.
 
 Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
-Hi,
 
-This is an updated version of patch [1]. My changes include resolving
-issues pointed out during review, i.e.:
- - renaming 'link' node to 'endpoint,
- - renaming 'remote' phandle to 'remote-endpoint',
- - file v4l2.txt renamed to video-interfaces.txt,
- - removed references to V4L2,
- - added short description of the example DT snippet
+v2:
 
-and additionally:
- - added "Required properties' paragraph,
- - updated description of 'data-lanes' property,
- - renamed all erroneous occurrences of 'data-width' to 'bus-width',
- - added 'bus-width' property description,
- - modified description of hsync-active, vsync-active properties,
- - added a little paragraph further explaining that each endpoint
-   node has properties determining configuration of its corresponding
-   device.
+1. Removed the notion of groups
+2. Removed probing based on platform data, now subdevice drivers decide 
+them selves, whether or not they can successfully probe
+3. To accomplish the above subdevice drivers have to actively register 
+their subdevices with the framework
+4. As last time, this has been tested with soc-camera drivers 
+(sh_mobile_ceu_camera), as long as there are no categorical NAKs to this, 
+I'll try to clean up those soc-camera patches and post them as a usage 
+example.
 
-[1] https://patchwork.kernel.org/patch/1514381/
+ drivers/media/v4l2-core/Makefile     |    3 
+ drivers/media/v4l2-core/v4l2-async.c |  282 +++++++++++++++++++++++++++++++++++
+ include/media/v4l2-async.h           |  113 ++++++++++++++
+ 3 files changed, 397 insertions(+), 1 deletion(-)
 
-I'm still unsure about the first sentence, as these bindings can be
-used for describing SoC internal connections between modules as well.
-
-I was considering adding something like:
-
-"This document describes common bindings for video capture, processing
-and output devices using data buses defined in standards like ITU-R
-BT.656, MIPI CSI-2,..."
-
-before the "General concept" paragraph.
-
-And maybe Documentation/devicetree/bindings/video/ would a better place
-for this video-interfaces.txt file ?
-
-Thanks,
-Sylwester
----
- .../devicetree/bindings/media/video-interfaces.txt |  198 ++++++++++++++++++++
- 1 files changed, 198 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/video-interfaces.txt
-
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+index d065c01..b667ced 100644
+--- a/drivers/media/v4l2-core/Makefile
++++ b/drivers/media/v4l2-core/Makefile
+@@ -5,7 +5,8 @@
+ tuner-objs	:=	tuner-core.o
+ 
+ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+-			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o
++			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o \
++			v4l2-async.o
+ ifeq ($(CONFIG_COMPAT),y)
+   videodev-objs += v4l2-compat-ioctl32.o
+ endif
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
 new file mode 100644
-index 0000000..10ebbc4
+index 0000000..f3939af
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -0,0 +1,198 @@
-+Common bindings for video data receiver and transmitter interfaces
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -0,0 +1,282 @@
++/*
++ * V4L2 asynchronous subdevice registration API
++ *
++ * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+General concept
-+---------------
++#include <linux/device.h>
++#include <linux/err.h>
++#include <linux/i2c.h>
++#include <linux/list.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/notifier.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++#include <linux/types.h>
 +
-+Video data pipelines usually consist of external devices, e.g. camera sensors,
-+controlled over an I2C, SPI or UART bus, and SoC internal IP blocks, including
-+video DMA engines and video data processors.
++#include <media/v4l2-async.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-subdev.h>
 +
-+SoC internal blocks are described by DT nodes, placed similarly to other SoC
-+blocks.  External devices are represented as child nodes of their respective
-+bus controller nodes, e.g. I2C.
++static bool match_i2c(struct device *dev, struct v4l2_async_hw_device *hw_dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	return hw_dev->bus_type == V4L2_ASYNC_BUS_I2C &&
++		hw_dev->match.i2c.adapter_id == client->adapter->nr &&
++		hw_dev->match.i2c.address == client->addr;
++}
 +
-+Data interfaces on all video devices are described by their child 'port' nodes.
-+Configuration of a port depends on other devices participating in the data
-+transfer and is described by 'endpoint' subnodes.
++static bool match_platform(struct device *dev, struct v4l2_async_hw_device *hw_dev)
++{
++	return hw_dev->bus_type == V4L2_ASYNC_BUS_PLATFORM &&
++		!strcmp(hw_dev->match.platform.name, dev_name(dev));
++}
 +
-+dev {
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+	port@0 {
-+		endpoint@0 { ... };
-+		endpoint@1 { ... };
-+	};
-+	port@1 { ... };
++static LIST_HEAD(subdev_list);
++static LIST_HEAD(notifier_list);
++static DEFINE_MUTEX(list_lock);
++
++static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
++						    struct v4l2_async_subdev_list *asdl)
++{
++	struct v4l2_async_subdev *asd = NULL;
++	bool (*match)(struct device *,
++		      struct v4l2_async_hw_device *);
++
++	list_for_each_entry (asd, &notifier->waiting, list) {
++		struct v4l2_async_hw_device *hw = &asd->hw;
++		switch (hw->bus_type) {
++		case V4L2_ASYNC_BUS_SPECIAL:
++			match = hw->match.special.match;
++			if (!match)
++				/* Match always */
++				return asd;
++			break;
++		case V4L2_ASYNC_BUS_PLATFORM:
++			match = match_platform;
++			break;
++		case V4L2_ASYNC_BUS_I2C:
++			match = match_i2c;
++			break;
++		default:
++			/* Oops */
++			match = NULL;
++			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
++				"Invalid bus-type %u on %p\n", hw->bus_type, asd);
++		}
++
++		if (match && match(asdl->dev, hw))
++			break;
++	}
++
++	return asd;
++}
++
++static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
++				   struct v4l2_async_subdev_list *asdl)
++{
++	struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, asdl);
++	if (asd) {
++		int ret;
++		/* Remove from the waiting list */
++		list_del(&asd->list);
++		asdl->asd = asd;
++		asdl->notifier = notifier;
++
++		if (notifier->bound) {
++			ret = notifier->bound(notifier, asdl);
++			if (ret < 0)
++				return ret;
++		}
++		/* Move from the global subdevice list to notifier's done */
++		list_move(&asdl->list, &notifier->done);
++
++		ret = v4l2_device_register_subdev(notifier->v4l2_dev,
++						  asdl->subdev);
++		if (ret < 0) {
++			if (notifier->unbind)
++				notifier->unbind(notifier, asdl);
++			return ret;
++		}
++
++		if (list_empty(&notifier->waiting) && notifier->complete)
++			return notifier->complete(notifier);
++
++		return 0;
++	}
++
++	return -EPROBE_DEFER;
++}
++
++static struct device *v4l2_async_unbind(struct v4l2_async_subdev_list *asdl)
++{
++	struct device *dev = asdl->dev;
++	v4l2_device_unregister_subdev(asdl->subdev);
++	/* Subdevice driver will reprobe and put asdl back onto the list */
++	list_del(&asdl->list);
++	asdl->asd = NULL;
++	/* If we handled USB devices, we'd have to lock the parent too */
++	device_release_driver(dev);
++	return dev;
++}
++
++int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
++				 struct v4l2_async_notifier *notifier)
++{
++	struct v4l2_async_subdev_list *asdl;
++	int i;
++
++	notifier->v4l2_dev = v4l2_dev;
++	INIT_LIST_HEAD(&notifier->waiting);
++	INIT_LIST_HEAD(&notifier->done);
++
++	for (i = 0; i < notifier->subdev_num; i++)
++		list_add_tail(&notifier->subdev[i]->list, &notifier->waiting);
++
++	mutex_lock(&list_lock);
++
++	/* Keep also completed notifiers on the list */
++	list_add(&notifier->list, &notifier_list);
++
++	list_for_each_entry(asdl, &subdev_list, list) {
++		int ret = v4l2_async_test_notify(notifier, asdl);
++		if (ret != -EPROBE_DEFER) {
++			mutex_unlock(&list_lock);
++			return ret;
++		}
++	}
++
++	mutex_unlock(&list_lock);
++
++	return 0;
++}
++EXPORT_SYMBOL(v4l2_async_notifier_register);
++
++void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
++{
++	struct v4l2_async_subdev_list *asdl, *tmp;
++	int i = 0;
++	struct device **dev = kcalloc(notifier->subdev_num,
++				      sizeof(*dev), GFP_KERNEL);
++	if (!dev)
++		dev_err(notifier->v4l2_dev->dev,
++			"Failed to allocate device cache!\n");
++
++	mutex_lock(&list_lock);
++
++	list_del(&notifier->list);
++
++	list_for_each_entry_safe(asdl, tmp, &notifier->done, list) {
++		if (dev)
++			dev[i++] = get_device(asdl->dev);
++		v4l2_async_unbind(asdl);
++
++		if (notifier->unbind)
++			notifier->unbind(notifier, asdl);
++	}
++
++	mutex_unlock(&list_lock);
++
++	if (dev)
++		while (i--) {
++			if (dev[i] && device_attach(dev[i]) < 0)
++				dev_err(dev[i], "Failed to re-probe to %s\n",
++					dev[i]->driver ? dev[i]->driver->name : "(none)");
++			put_device(dev[i]);
++		}
++	/*
++	 * Don't care about the waiting list, it is initialised and populated
++	 * upon notifier registration.
++	 */
++}
++EXPORT_SYMBOL(v4l2_async_notifier_unregister);
++
++int v4l2_async_subdev_bind(struct v4l2_async_subdev_list *asdl)
++{
++	struct v4l2_async_notifier *notifier;
++	int ret = 0;
++
++	mutex_lock(&list_lock);
++
++	list_for_each_entry(notifier, &notifier_list, list) {
++		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier,
++								   asdl);
++		/*
++		 * Whether or not probing succeeds - this is the right hardware
++		 * subdevice descriptor and we can provide it to the notifier
++		 */
++		if (asd) {
++			asdl->asd = asd;
++			if (notifier->bind)
++				ret = notifier->bind(notifier, asdl);
++			break;
++		}
++	}
++
++	mutex_unlock(&list_lock);
++
++	return ret;
++}
++EXPORT_SYMBOL(v4l2_async_subdev_bind);
++
++int v4l2_async_subdev_bound(struct v4l2_async_subdev_list *asdl)
++{
++	struct v4l2_async_notifier *notifier;
++
++	mutex_lock(&list_lock);
++
++	INIT_LIST_HEAD(&asdl->list);
++
++	list_for_each_entry(notifier, &notifier_list, list) {
++		int ret = v4l2_async_test_notify(notifier, asdl);
++		if (ret != -EPROBE_DEFER) {
++			mutex_unlock(&list_lock);
++			return ret;
++		}
++	}
++
++	/* None matched, wait for hot-plugging */
++	list_add(&asdl->list, &subdev_list);
++
++	mutex_unlock(&list_lock);
++
++	return 0;
++}
++EXPORT_SYMBOL(v4l2_async_subdev_bound);
++
++void v4l2_async_subdev_unbind(struct v4l2_async_subdev_list *asdl)
++{
++	struct v4l2_async_notifier *notifier = asdl->notifier;
++	struct device *dev;
++
++	if (!asdl->asd)
++		return;
++
++	mutex_lock(&list_lock);
++
++	dev = asdl->dev;
++
++	list_add(&asdl->asd->list, &notifier->waiting);
++
++	dev = get_device(asdl->dev);
++
++	v4l2_async_unbind(asdl);
++
++	if (notifier->unbind)
++		notifier->unbind(notifier, asdl);
++
++	mutex_unlock(&list_lock);
++
++	/* Re-probe with lock released - avoid a deadlock */
++	if (dev && device_attach(dev) < 0)
++		dev_err(dev, "Failed to re-probe to %s\n",
++			dev->driver ? dev->driver->name : "(none)");
++
++	put_device(dev);
++}
++EXPORT_SYMBOL(v4l2_async_subdev_unbind);
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+new file mode 100644
+index 0000000..91d436d
+--- /dev/null
++++ b/include/media/v4l2-async.h
+@@ -0,0 +1,113 @@
++/*
++ * V4L2 asynchronous subdevice registration API
++ *
++ * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef V4L2_ASYNC_H
++#define V4L2_ASYNC_H
++
++#include <linux/list.h>
++#include <linux/mutex.h>
++#include <linux/notifier.h>
++
++#include <media/v4l2-subdev.h>
++
++struct device;
++struct v4l2_device;
++struct v4l2_async_notifier;
++
++enum v4l2_async_bus_type {
++	V4L2_ASYNC_BUS_SPECIAL,
++	V4L2_ASYNC_BUS_PLATFORM,
++	V4L2_ASYNC_BUS_I2C,
 +};
 +
-+If a port can be configured to work with more than one other device on the same
-+bus, an 'endpoint' child node must be provided for each of them.  If more than
-+one port is present in a device node or there is more than one endpoint at a
-+port, a common scheme, using '#address-cells', '#size-cells' and 'reg' properties
-+is used.
++struct v4l2_async_hw_device {
++	enum v4l2_async_bus_type bus_type;
++	union {
++		struct {
++			const char *name;
++		} platform;
++		struct {
++			int adapter_id;
++			unsigned short address;
++		} i2c;
++		struct {
++			bool (*match)(struct device *,
++				      struct v4l2_async_hw_device *);
++			void *priv;
++		} special;
++	} match;
++};
 +
-+Two 'endpoint' nodes are linked with each other through their 'remote-endpoint'
-+phandles.  An endpoint subnode of a device contains all properties needed for
-+configuration of this device for data exchange with the other device.  In most
-+cases properties at the peer 'endpoint' nodes will be identical, however
-+they might need to be different when there are any signal modifications on the
-+bus between two devices, e.g. there are logic signal inverters on the lines.
++/**
++ * struct v4l2_async_subdev - sub-device descriptor, as known to a bridge
++ * @hw:		this device descriptor
++ * @list:	member in a list of subdevices
++ */
++struct v4l2_async_subdev {
++	struct v4l2_async_hw_device hw;
++	struct list_head list;
++};
 +
-+Required properties
-+-------------------
++/**
++ * v4l2_async_subdev_list - provided by subdevices
++ * @list:	member in a list of subdevices
++ * @dev:	hardware device
++ * @subdev:	V4L2 subdevice
++ * @asd:	pointer to respective struct v4l2_async_subdev
++ * @notifier:	pointer to managing notifier
++ */
++struct v4l2_async_subdev_list {
++	struct list_head list;
++	struct device *dev;
++	struct v4l2_subdev *subdev;
++	struct v4l2_async_subdev *asd;
++	struct v4l2_async_notifier *notifier;
++};
 +
-+If there is more that one 'port' or more than one 'endpoint' node following
-+properties are required in relevant parent node:
++/**
++ * v4l2_async_notifier - provided by bridges
++ * @subdev_num:	number of subdevices
++ * @subdev:	array of pointers to subdevices
++ * @v4l2_dev:	pointer to sruct v4l2_device
++ * @waiting:	list of subdevices, waiting for their drivers
++ * @done:	list of subdevices, already probed
++ * @list:	member in a global list of notifiers
++ * @bind:	a subdevice driver is about to probe one of your subdevices
++ * @bound:	a subdevice driver has successfully probed one of your subdevices
++ * @complete:	all your subdevices have been probed successfully
++ * @unbind:	a subdevice is leaving
++ */
++struct v4l2_async_notifier {
++	int subdev_num;
++	struct v4l2_async_subdev **subdev;
++	struct v4l2_device *v4l2_dev;
++	struct list_head waiting;
++	struct list_head done;
++	struct list_head list;
++	int (*bind)(struct v4l2_async_notifier *notifier,
++		    struct v4l2_async_subdev_list *asdl);
++	int (*bound)(struct v4l2_async_notifier *notifier,
++		     struct v4l2_async_subdev_list *asdl);
++	int (*complete)(struct v4l2_async_notifier *notifier);
++	void (*unbind)(struct v4l2_async_notifier *notifier,
++		       struct v4l2_async_subdev_list *asdl);
++};
 +
-+- #address-cells : number of cells required to define port number, should be 1.
-+- #size-cells    : should be zero.
-+
-+Optional endpoint properties
-+----------------------------
-+
-+- remote-endpoint : phandle to an 'endpoint' subnode of the other device node.
-+- slave-mode : a boolean property, run the link in slave mode. Default is master
-+  mode.
-+- bus-width : the number of data lines, valid for parallel buses.
-+- data-shift: on parallel data busses, if bus-width is used to specify the
-+  number of data lines, data-shift can be used to specify which data lines are
-+  used, e.g. "bus-width=<10>; data-shift=<2>;" means, that lines 9:2 are used.
-+- hsync-active : active state of HSYNC signal, 0/1 for LOW/HIGH respectively.
-+- vsync-active : active state of VSYNC signal, 0/1 for LOW/HIGH respectively.
-+  Note, that if HSYNC and VSYNC polarities are not specified, embedded
-+  synchronization may be required, where supported.
-+- data-active : similar to HSYNC and VSYNC, specifies data line polarity.
-+- field-even-active: field signal level during the even field data transmission.
-+- pclk-sample : rising (1) or falling (0) edge to sample the pixel clock signal.
-+- data-lanes : an array of physical data lane indexes. Position of an entry
-+  determines logical lane number, while the value of an entry indicates physical
-+  lane, e.g. for 2-lane MIPI CSI-2 bus we could have "data-lanes = <1>, <2>;",
-+  assuming the clock lane is on hardware lane 0. This property is valid for
-+  serial buses only (e.g. MIPI CSI-2).
-+- clock-lanes : a number of physical lane used as a clock lane.
-+- clock-noncontinuous : a boolean property to allow MIPI CSI-2 non-continuous
-+  clock mode.
-+
-+Example
-+-------
-+
-+The below example snippet describes two data pipelines.  ov772x and imx074 are
-+camera sensors with parallel and serial (MIPI CSI-2) video bus respectively.
-+Both sensors are on I2C control bus corresponding to i2c0 controller node.
-+ov772x sensor is linked directly to the ceu0 video host interface.  imx074 is
-+linked to ceu0 through MIPI CSI-2 receiver (csi2). ceu0 has a (single) DMA
-+engine writing captured data to memory.  ceu0 node has single 'port' node which
-+indicates at any time only one of following data pipeline can be active:
-+ov772x -> ceu0 or imx074 -> csi2 -> ceu0.
-+
-+	ceu0: ceu@0xfe910000 {
-+		compatible = "renesas,sh-mobile-ceu";
-+		reg = <0xfe910000 0xa0>;
-+		interrupts = <0x880>;
-+
-+		mclk: master_clock {
-+			compatible = "renesas,ceu-clock";
-+			#clock-cells = <1>;
-+			clock-frequency = <50000000>;	/* Max clock frequency */
-+			clock-output-names = "mclk";
-+		};
-+
-+		port {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			ceu0_1: endpoint@1 {
-+				reg = <1>;		/* Local endpoint # */
-+				remote = <&ov772x_1_1>;	/* Remote phandle */
-+				bus-width = <8>;	/* Used data lines */
-+				data-shift = <0>;	/* Lines 7:0 are used */
-+
-+				/* If hsync-active/vsync-active are missing,
-+				   embedded bt.605 sync is used */
-+				hsync-active = <1>;	/* Active high */
-+				vsync-active = <1>;	/* Active high */
-+				data-active = <1>;	/* Active high */
-+				pclk-sample = <1>;	/* Rising */
-+			};
-+
-+			ceu0_0: endpoint@0 {
-+				reg = <0>;
-+				remote = <&csi2_2>;
-+				immutable;
-+			};
-+		};
-+	};
-+
-+	i2c0: i2c@0xfff20000 {
-+		...
-+		ov772x_1: camera@0x21 {
-+			compatible = "omnivision,ov772x";
-+			reg = <0x21>;
-+			vddio-supply = <&regulator1>;
-+			vddcore-supply = <&regulator2>;
-+
-+			clock-frequency = <20000000>;
-+			clocks = <&mclk 0>;
-+			clock-names = "xclk";
-+
-+			port {
-+				/* With 1 endpoint per port no need in addresses. */
-+				ov772x_1_1: endpoint {
-+					bus-width = <8>;
-+					remote-endpoint = <&ceu0_1>;
-+					hsync-active = <1>;
-+					vsync-active = <0>; /* Who came up with an
-+							       inverter here ?... */
-+					data-active = <1>;
-+					pclk-sample = <1>;
-+				};
-+			};
-+		};
-+
-+		imx074: camera@0x1a {
-+			compatible = "sony,imx074";
-+			reg = <0x1a>;
-+			vddio-supply = <&regulator1>;
-+			vddcore-supply = <&regulator2>;
-+
-+			clock-frequency = <30000000>;	/* Shared clock with ov772x_1 */
-+			clocks = <&mclk 0>;
-+			clock-names = "sysclk";		/* Assuming this is the
-+							   name in the datasheet */
-+			port {
-+				imx074_1: endpoint {
-+					clock-lanes = <0>;
-+					data-lanes = <1>, <2>;
-+					remote-endpoint = <&csi2_1>;
-+				};
-+			};
-+		};
-+	};
-+
-+	csi2: csi2@0xffc90000 {
-+		compatible = "renesas,sh-mobile-csi2";
-+		reg = <0xffc90000 0x1000>;
-+		interrupts = <0x17a0>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@1 {
-+			compatible = "renesas,csi2c";	/* One of CSI2I and CSI2C. */
-+			reg = <1>;			/* CSI-2 PHY #1 of 2: PHY_S,
-+							   PHY_M has port address 0,
-+							   is unused. */
-+			csi2_1: endpoint {
-+				clock-lanes = <0>;
-+				data-lanes = <2>, <1>;
-+				remote-endpoint = <&imx074_1>;
-+			};
-+		};
-+		port@2 {
-+			reg = <2>;			/* port 2: link to the CEU */
-+
-+			csi2_2: endpoint {
-+				immutable;
-+				remote-endpoint = <&ceu0_0>;
-+			};
-+		};
-+	};
---
-1.7.4.1
++int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
++				 struct v4l2_async_notifier *notifier);
++void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
++/*
++ * If subdevice probing fails any time after v4l2_async_subdev_bind(), no clean
++ * up must be called. This function is only a message of intention.
++ */
++int v4l2_async_subdev_bind(struct v4l2_async_subdev_list *asdl);
++int v4l2_async_subdev_bound(struct v4l2_async_subdev_list *asdl);
++void v4l2_async_subdev_unbind(struct v4l2_async_subdev_list *asdl);
++#endif
+-- 
+1.7.2.5
 
