@@ -1,54 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:52646 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751674Ab2LQI5A (ORCPT
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:50923 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750972Ab2LTPiA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Dec 2012 03:57:00 -0500
-Received: by mail-vb0-f46.google.com with SMTP id b13so6677968vby.19
-        for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 00:56:59 -0800 (PST)
+	Thu, 20 Dec 2012 10:38:00 -0500
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	'Mauro Carvalho Chehab' <mchehab@infradead.org>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	'Hans Verkuil' <hans.verkuil@cisco.com>,
+	'Giancarlo Asnaghi' <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v3 2/4] videobuf2-dma-streaming: new videobuf2 memory allocator
+Date: Thu, 20 Dec 2012 16:37:50 +0100
+Message-ID: <1419875.Bts6eHGtlv@number-5>
+In-Reply-To: <50D080B6.1020109@samsung.com>
+References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com> <1535483.0HokefWAdm@harkonnen> <50D080B6.1020109@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <CAKMK7uHaQ+5Yy1PDy+DE=iVN5ps6gmvSiWezapF=Kv338tZj0w@mail.gmail.com>
-References: <1355477817-5750-1-git-send-email-sumit.semwal@ti.com> <CAKMK7uHaQ+5Yy1PDy+DE=iVN5ps6gmvSiWezapF=Kv338tZj0w@mail.gmail.com>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Mon, 17 Dec 2012 14:26:39 +0530
-Message-ID: <CAO_48GGxe5ZSeKsWO7=E-FoHXFVT7AOjwdAHv-oQk6F3qCXsOw@mail.gmail.com>
-Subject: Re: [PATCH] dma-buf: Add debugfs support
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Sumit Semwal <sumit.semwal@ti.com>,
-	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 14 December 2012 16:04, Daniel Vetter <daniel@ffwll.ch> wrote:
->
-> Missed one ...
->
-> On Fri, Dec 14, 2012 at 10:36 AM,  <sumit.semwal@ti.com> wrote:
-> > +               list_for_each_entry(attach_obj, &buf_obj->attachments, node) {
-> > +                       seq_printf(s, "\t\t");
-> > +
-> > +                       seq_printf(s, "%s\n", attach_obj->dev->init_name);
-> > +                       attach_count++;
-> > +               }
->
-> You need to hold dmabuf->lock while walking the attachment list.
-> -Daniel
+> I can take a look at the dma coherent issues with that board, but I 
+will
+> need some help as I don't have this hardware.
 
+I have the hardware, but I don't have the full knowledge of the 
+boards. As I told before, I asked to windriver which develop the 
+software for the whole board, but they cannot help me.
 
-Thanks Daniel!
-
-Will update in next version.
->
-> --
-> Daniel Vetter
-> Software Engineer, Intel Corporation
-> +41 (0) 79 365 57 48 - http://blog.ffwll.ch
-
-
-
-Best regards,
-
-Sumit Semwal
+-- 
+Federico Vaga
