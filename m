@@ -1,62 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:17353 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752430Ab2LJTqs (ORCPT
+Received: from mail-la0-f50.google.com ([209.85.215.50]:62971 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750784Ab2LUNMV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 14:46:48 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
-	rob.herring@calxeda.com, thomas.abraham@linaro.org,
-	t.figa@samsung.com, sw0312.kim@samsung.com,
-	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 07/12] ARM: EXYNOS4: Add OF_DEV_AUXDATA for FIMC,
- FIMC-LITE and CSIS
-Date: Mon, 10 Dec 2012 20:46:01 +0100
-Message-id: <1355168766-6068-8-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
-References: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
+	Fri, 21 Dec 2012 08:12:21 -0500
+Received: by mail-la0-f50.google.com with SMTP id c1so4905942lah.23
+        for <linux-media@vger.kernel.org>; Fri, 21 Dec 2012 05:12:19 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAOcJUby47hZKEB8NODjCD5DeTToCPc233H6G77jaDQ_yyVDfig@mail.gmail.com>
+References: <CAOcJUbw3Z+TTvURsOSKS0qaYY2mV3_9H5HCE2JH6vjX=QSDaDw@mail.gmail.com>
+	<CAOcJUby47hZKEB8NODjCD5DeTToCPc233H6G77jaDQ_yyVDfig@mail.gmail.com>
+Date: Fri, 21 Dec 2012 08:12:19 -0500
+Message-ID: <CAOcJUbx5+R=nDEp6189CDVTzf=0n+PgRoj2au3M2WZEOOGPQSg@mail.gmail.com>
+Subject: Re: [PULL] dvb-frontends: use %*ph[N] to dump small buffers
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add these temporary OF_DEV_AUXDATA entries so we can use clocks
-before common clock framework support for Exynos4 is available.
+Argh!  I forgot one pwclient command:
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/mach-exynos/mach-exynos4-dt.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+pwclient update -s 'accepted' 15938
 
-diff --git a/arch/arm/mach-exynos/mach-exynos4-dt.c b/arch/arm/mach-exynos/mach-exynos4-dt.c
-index d6bdcfb..6d2eaf8 100644
---- a/arch/arm/mach-exynos/mach-exynos4-dt.c
-+++ b/arch/arm/mach-exynos/mach-exynos4-dt.c
-@@ -89,6 +89,22 @@ static const struct of_dev_auxdata exynos4_auxdata_lookup[] __initconst = {
- 	OF_DEV_AUXDATA("arm,pl330", EXYNOS4_PA_PDMA1, "dma-pl330.1", NULL),
- 	OF_DEV_AUXDATA("samsung,exynos4-fb", EXYNOS4_PA_FIMD0,
- 				"exynos4-fb.0", NULL),
-+	OF_DEV_AUXDATA("samsung,exynos4210-csis", EXYNOS4_PA_MIPI_CSIS0,
-+				"s5p-mipi-csis.0", NULL),
-+	OF_DEV_AUXDATA("samsung,exynos4210-csis", EXYNOS4_PA_MIPI_CSIS1,
-+				"s5p-mipi-csis.1", NULL),
-+	OF_DEV_AUXDATA("samsung,exynos4212-fimc", EXYNOS4_PA_FIMC0,
-+				"exynos4-fimc.0", NULL),
-+	OF_DEV_AUXDATA("samsung,exynos4212-fimc", EXYNOS4_PA_FIMC1,
-+				"exynos4-fimc.1", NULL),
-+	OF_DEV_AUXDATA("samsung,exynos4212-fimc", EXYNOS4_PA_FIMC2,
-+				"exynos4-fimc.2", NULL),
-+	OF_DEV_AUXDATA("samsung,exynos4212-fimc", EXYNOS4_PA_FIMC3,
-+				"exynos4-fimc.3", NULL),
-+	OF_DEV_AUXDATA("samsung,exynos4212-fimc-lite", EXYNOS4_PA_FIMC_LITE(0),
-+				"exynos-fimc-lite.0", NULL),
-+	OF_DEV_AUXDATA("samsung,exynos4212-fimc-lite", EXYNOS4_PA_FIMC_LITE(1),
-+				"exynos-fimc-lite.1", NULL),
- 	{},
- };
- 
--- 
-1.7.9.5
+Thanks again,
 
+Mike
+
+On Fri, Dec 21, 2012 at 8:10 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> Mauro,
+>
+> updated pwclient script and pull request follows:
+>
+> pwclient update -s 'superseded' 15687
+> pwclient update -s 'superseded' 15688
+> pwclient update -s 'superseded' 15933
+>
+> The following changes since commit 5b7d8de7d2328f7b25fe4645eafee7e48f9b7df3:
+>
+>   [media] au0828: break au0828_card_setup() down into smaller
+> functions (2012-12-17 14:34:27 -0200)
+>
+> are available in the git repository at:
+>
+>   git://git.linuxtv.org/mkrufky/tuners frontends
+>
+> for you to fetch changes up to cf866aea2dd6730b20be9ad69f8829675b0e6234:
+>
+>   or51211: apply pr_fmt and use pr_* macros instead of printk
+> (2012-12-18 08:20:28 -0500)
+>
+> ----------------------------------------------------------------
+> Andy Shevchenko (3):
+>       or51211: use %*ph[N] to dump small buffers
+>       ix2505v: use %*ph[N] to dump small buffers
+>       or51211: apply pr_fmt and use pr_* macros instead of printk
+>
+>  drivers/media/dvb-frontends/ix2505v.c |    2 +-
+>  drivers/media/dvb-frontends/or51211.c |   99
+> ++++++++++++++++++++++++++++++++++++++++++++-------------------------------------------------------
+>  2 files changed, 45 insertions(+), 56 deletions(-)
+>
+> Cheers,
+>
+> Mike
+>
+> On Mon, Dec 17, 2012 at 9:16 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+>> Mauro,
+>>
+>> Please apply the following to update status in patchwork along with
+>> the following merge request...
+>>
+>> pwclient update -s 'superseded' 15687
+>> pwclient update -s 'changes requested' 15688
+>>
+>> I am marking 15687 as superseded because I broke the patch into two
+>> separate patches.  (see merge request below)
+>> 15688 causes new build warnings, so I've asked Andy to resubmit.
+>>
+>> Please merge:
+>>
+>> The following changes since commit 5b7d8de7d2328f7b25fe4645eafee7e48f9b7df3:
+>>
+>>   [media] au0828: break au0828_card_setup() down into smaller
+>> functions (2012-12-17 14:34:27 -0200)
+>>
+>> are available in the git repository at:
+>>
+>>   git://git.linuxtv.org/mkrufky/tuners frontends
+>>
+>> for you to fetch changes up to 34c87fa2214d134c0028c97d7aab3dd769bb3bf0:
+>>
+>>   ix2505v: use %*ph[N] to dump small buffers (2012-12-17 20:12:29 -0500)
+>>
+>> ----------------------------------------------------------------
+>> Andy Shevchenko (2):
+>>       or51211: use %*ph[N] to dump small buffers
+>>       ix2505v: use %*ph[N] to dump small buffers
+>>
+>>  drivers/media/dvb-frontends/ix2505v.c |    2 +-
+>>  drivers/media/dvb-frontends/or51211.c |    5 +----
+>>  2 files changed, 2 insertions(+), 5 deletions(-)
+>>
+>> Cheers,
+>>
+>> Mike
