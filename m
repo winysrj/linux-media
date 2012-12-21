@@ -1,261 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:18436 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:60807 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750853Ab2LVUKp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Dec 2012 15:10:45 -0500
-Date: Sat, 22 Dec 2012 18:10:19 -0200
+	id S1751555Ab2LUV1e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Dec 2012 16:27:34 -0500
+Date: Fri, 21 Dec 2012 19:27:14 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
 Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 16/21] em28xx: rename usb debugging module parameter
- and macro
-Message-ID: <20121222181019.775f8c3f@redhat.com>
-In-Reply-To: <1352398313-3698-17-git-send-email-fschaefer.oss@googlemail.com>
-References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
-	<1352398313-3698-17-git-send-email-fschaefer.oss@googlemail.com>
+Subject: Re: cron job: media_tree daily build: ERRORS
+Message-ID: <20121221192714.5e31fd99@redhat.com>
+In-Reply-To: <20121221204707.04F1D11E00C2@alastor.dyndns.org>
+References: <20121221204707.04F1D11E00C2@alastor.dyndns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu,  8 Nov 2012 20:11:48 +0200
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+Em Fri, 21 Dec 2012 21:47:06 +0100 (CET)
+"Hans Verkuil" <hverkuil@xs4all.nl> escreveu:
 
-> Rename module parameter isoc_debug to usb_debug and macro
-> em28xx_isocdbg to em28xx_usb dbg to reflect that they are
-> used for isoc and bulk USB transfers.
+> This message is generated daily by a cron job that builds media_tree for
+> the kernels and architectures in the list below.
 > 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-video.c |   58 +++++++++++++++----------------
->  1 Datei geändert, 28 Zeilen hinzugefügt(+), 30 Zeilen entfernt(-)
+> Results of the daily build of media_tree:
 > 
-> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> index d6de1cc..f435206 100644
-> --- a/drivers/media/usb/em28xx/em28xx-video.c
-> +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> @@ -58,13 +58,13 @@
->  		printk(KERN_INFO "%s %s :"fmt, \
->  			 dev->name, __func__ , ##arg); } while (0)
->  
-> -static unsigned int isoc_debug;
-> -module_param(isoc_debug, int, 0644);
-> -MODULE_PARM_DESC(isoc_debug, "enable debug messages [isoc transfers]");
-> +static unsigned int usb_debug;
-> +module_param(usb_debug, int, 0644);
-> +MODULE_PARM_DESC(usb_debug, "enable debug messages [isoc transfers]");
+> date:        Fri Dec 21 19:00:24 CET 2012
+> git hash:    49cc629df16f2a15917800a8579bd9c25c41b634
+> gcc version:      i686-linux-gcc (GCC) 4.7.1
+> host hardware:    x86_64
+> host os:          3.4.07-marune
+> 
+> linux-git-arm-eabi-davinci: WARNINGS
+> linux-git-arm-eabi-exynos: OK
+> linux-git-arm-eabi-omap: WARNINGS
+> linux-git-i686: WARNINGS
+> linux-git-m32r: OK
+> linux-git-mips: WARNINGS
+> linux-git-powerpc64: OK
+> linux-git-sh: OK
+> linux-git-x86_64: WARNINGS
+> linux-2.6.31.12-i686: WARNINGS
+> linux-2.6.32.6-i686: WARNINGS
+> linux-2.6.33-i686: WARNINGS
+> linux-2.6.34-i686: WARNINGS
+> linux-2.6.35.3-i686: WARNINGS
+> linux-2.6.36-i686: WARNINGS
+> linux-2.6.37-i686: WARNINGS
+> linux-2.6.38.2-i686: WARNINGS
+> linux-2.6.39.1-i686: WARNINGS
+> linux-3.0-i686: WARNINGS
+> linux-3.1-i686: WARNINGS
+> linux-3.2.1-i686: WARNINGS
+> linux-3.3-i686: WARNINGS
+> linux-3.4-i686: WARNINGS
+> linux-3.5-i686: WARNINGS
+> linux-3.6-i686: WARNINGS
+> linux-3.7-i686: ERRORS
+> linux-2.6.31.12-x86_64: WARNINGS
+> linux-2.6.32.6-x86_64: WARNINGS
+> linux-2.6.33-x86_64: WARNINGS
+> linux-2.6.34-x86_64: WARNINGS
+> linux-2.6.35.3-x86_64: WARNINGS
+> linux-2.6.36-x86_64: WARNINGS
+> linux-2.6.37-x86_64: WARNINGS
+> linux-2.6.38.2-x86_64: WARNINGS
+> linux-2.6.39.1-x86_64: WARNINGS
+> linux-3.0-x86_64: WARNINGS
+> linux-3.1-x86_64: WARNINGS
+> linux-3.2.1-x86_64: WARNINGS
+> linux-3.3-x86_64: WARNINGS
+> linux-3.4-x86_64: WARNINGS
+> linux-3.5-x86_64: WARNINGS
+> linux-3.6-x86_64: WARNINGS
+> linux-3.7-x86_64: ERRORS
+> apps: WARNINGS
+> spec-git: WARNINGS
+> sparse: ERRORS
+> 
+> Detailed results are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-NACK: usb_debug is too generic: it could refer to control URB's, stream
-URB's, and other non-URB related USB debugging. Also, it can cause 
-some harm for the ones using it.
+That can't be right!
 
-As the rest of this series don't depend on this one, I'll just skip it.
+Patch for it was applied earlier today:
+	linux-3.6-x86_64: WARNINGS
 
-IMHO, the better is to either live it as-is, to avoid breaking for
-someone with "isoc_debug" parameter on their /etc/modprobe.d, or to
-do a "deprecate" path:
+	/home/hans/work/build/media_build/v4l/tm6000-video.c: In function '__check_keep_urb':
+	/home/hans/work/build/media_build/v4l/tm6000-video.c:1926:1: warning: return from incompatible pointer type [enabled by default]
 
-	- adding a new one called "stream_debug" (or something like that);
-	- keep the old one for a while, printing a warning message to
-point that this got removed; 
-	- after a few kernel cycles, remove the legacy one.
+Are you using the yesterday's tarball? If so, understandable.
 
-Even better: simply unify all debug params into a single one, where 
-each bit means one type of debug, like what was done on other drivers.
+But this one:
+	linux-3.7-x86_64: ERRORS
 
->  
-> -#define em28xx_isocdbg(fmt, arg...) \
-> +#define em28xx_usbdbg(fmt, arg...) \
->  do {\
-> -	if (isoc_debug) { \
-> +	if (usb_debug) { \
->  		printk(KERN_INFO "%s %s :"fmt, \
->  			 dev->name, __func__ , ##arg); \
->  	} \
-> @@ -161,7 +161,7 @@ static inline void buffer_filled(struct em28xx *dev,
->  				  struct em28xx_buffer *buf)
->  {
->  	/* Advice that buffer was filled */
-> -	em28xx_isocdbg("[%p/%d] wakeup\n", buf, buf->vb.i);
-> +	em28xx_usbdbg("[%p/%d] wakeup\n", buf, buf->vb.i);
->  	buf->vb.state = VIDEOBUF_DONE;
->  	buf->vb.field_count++;
->  	do_gettimeofday(&buf->vb.ts);
-> @@ -177,7 +177,7 @@ static inline void vbi_buffer_filled(struct em28xx *dev,
->  				     struct em28xx_buffer *buf)
->  {
->  	/* Advice that buffer was filled */
-> -	em28xx_isocdbg("[%p/%d] wakeup\n", buf, buf->vb.i);
-> +	em28xx_usbdbg("[%p/%d] wakeup\n", buf, buf->vb.i);
->  
->  	buf->vb.state = VIDEOBUF_DONE;
->  	buf->vb.field_count++;
-> @@ -226,9 +226,9 @@ static void em28xx_copy_video(struct em28xx *dev,
->  	lencopy = lencopy > remain ? remain : lencopy;
->  
->  	if ((char *)startwrite + lencopy > (char *)outp + buf->vb.size) {
-> -		em28xx_isocdbg("Overflow of %zi bytes past buffer end (1)\n",
-> -			       ((char *)startwrite + lencopy) -
-> -			       ((char *)outp + buf->vb.size));
-> +		em28xx_usbdbg("Overflow of %zi bytes past buffer end (1)\n",
-> +			      ((char *)startwrite + lencopy) -
-> +			      ((char *)outp + buf->vb.size));
->  		remain = (char *)outp + buf->vb.size - (char *)startwrite;
->  		lencopy = remain;
->  	}
-> @@ -251,7 +251,7 @@ static void em28xx_copy_video(struct em28xx *dev,
->  
->  		if ((char *)startwrite + lencopy > (char *)outp +
->  		    buf->vb.size) {
-> -			em28xx_isocdbg("Overflow of %zi bytes past buffer end"
-> +			em28xx_usbdbg("Overflow of %zi bytes past buffer end"
->  				       "(2)\n",
->  				       ((char *)startwrite + lencopy) -
->  				       ((char *)outp + buf->vb.size));
-> @@ -280,24 +280,24 @@ static void em28xx_copy_vbi(struct em28xx *dev,
->  	int bytesperline;
->  
->  	if (dev == NULL) {
-> -		em28xx_isocdbg("dev is null\n");
-> +		em28xx_usbdbg("dev is null\n");
->  		return;
->  	}
->  	bytesperline = dev->vbi_width;
->  
->  	if (dma_q == NULL) {
-> -		em28xx_isocdbg("dma_q is null\n");
-> +		em28xx_usbdbg("dma_q is null\n");
->  		return;
->  	}
->  	if (buf == NULL) {
->  		return;
->  	}
->  	if (p == NULL) {
-> -		em28xx_isocdbg("p is null\n");
-> +		em28xx_usbdbg("p is null\n");
->  		return;
->  	}
->  	if (outp == NULL) {
-> -		em28xx_isocdbg("outp is null\n");
-> +		em28xx_usbdbg("outp is null\n");
->  		return;
->  	}
->  
-> @@ -351,9 +351,9 @@ static inline void print_err_status(struct em28xx *dev,
->  		break;
->  	}
->  	if (packet < 0) {
-> -		em28xx_isocdbg("URB status %d [%s].\n",	status, errmsg);
-> +		em28xx_usbdbg("URB status %d [%s].\n",	status, errmsg);
->  	} else {
-> -		em28xx_isocdbg("URB packet %d, status %d [%s].\n",
-> +		em28xx_usbdbg("URB packet %d, status %d [%s].\n",
->  			       packet, status, errmsg);
->  	}
->  }
-> @@ -368,7 +368,7 @@ static inline void get_next_buf(struct em28xx_dmaqueue *dma_q,
->  	char *outp;
->  
->  	if (list_empty(&dma_q->active)) {
-> -		em28xx_isocdbg("No active queue to serve\n");
-> +		em28xx_usbdbg("No active queue to serve\n");
->  		dev->usb_ctl.vid_buf = NULL;
->  		*buf = NULL;
->  		return;
-> @@ -396,7 +396,7 @@ static inline void vbi_get_next_buf(struct em28xx_dmaqueue *dma_q,
->  	char *outp;
->  
->  	if (list_empty(&dma_q->active)) {
-> -		em28xx_isocdbg("No active queue to serve\n");
-> +		em28xx_usbdbg("No active queue to serve\n");
->  		dev->usb_ctl.vbi_buf = NULL;
->  		*buf = NULL;
->  		return;
-> @@ -457,8 +457,7 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
->  
->  			actual_length = urb->iso_frame_desc[i].actual_length;
->  			if (actual_length > dev->max_pkt_size) {
-> -				em28xx_isocdbg("packet bigger than "
-> -					       "packet size");
-> +				em28xx_usbdbg("packet bigger than packet size");
->  				continue;
->  			}
->  
-> @@ -476,12 +475,12 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
->  		   logic simpler. Impacts of those changes should be evaluated
->  		 */
->  		if (p[0] == 0x33 && p[1] == 0x95 && p[2] == 0x00) {
-> -			em28xx_isocdbg("VBI HEADER!!!\n");
-> +			em28xx_usbdbg("VBI HEADER!!!\n");
->  			/* FIXME: Should add vbi copy */
->  			continue;
->  		}
->  		if (p[0] == 0x22 && p[1] == 0x5a) {
-> -			em28xx_isocdbg("Video frame %d, length=%i, %s\n", p[2],
-> +			em28xx_usbdbg("Video frame %d, length=%i, %s\n", p[2],
->  				       len, (p[2] & 1) ? "odd" : "even");
->  
->  			if (dev->progressive || !(p[2] & 1)) {
-> @@ -507,7 +506,7 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
->  			if (p[0] != 0x88 && p[0] != 0x22) {
->  				/* NOTE: no intermediate data packet header
->  				 * 88 88 88 88 when using bulk transfers */
-> -				em28xx_isocdbg("frame is not complete\n");
-> +				em28xx_usbdbg("frame is not complete\n");
->  				len = actual_length;
->  			} else {
->  				len = actual_length - 4;
-> @@ -569,8 +568,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
->  
->  			actual_length = urb->iso_frame_desc[i].actual_length;
->  			if (actual_length > dev->max_pkt_size) {
-> -				em28xx_isocdbg("packet bigger than "
-> -					       "packet size");
-> +				em28xx_usbdbg("packet bigger than packet size");
->  				continue;
->  			}
->  
-> @@ -590,7 +588,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
->  		if (p[0] == 0x33 && p[1] == 0x95) {
->  			dev->capture_type = 0;
->  			dev->vbi_read = 0;
-> -			em28xx_isocdbg("VBI START HEADER!!!\n");
-> +			em28xx_usbdbg("VBI START HEADER!!!\n");
->  			dev->cur_field = p[2];
->  			p += 4;
->  			len = actual_length - 4;
-> @@ -615,7 +613,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
->  			if (dev->vbi_read >= vbi_size) {
->  				/* We've already read all the VBI data, so
->  				   treat the rest as video */
-> -				em28xx_isocdbg("dev->vbi_read > vbi_size\n");
-> +				em28xx_usbdbg("dev->vbi_read > vbi_size\n");
->  			} else if ((dev->vbi_read + len) < vbi_size) {
->  				/* This entire frame is VBI data */
->  				if (dev->vbi_read == 0 &&
-> @@ -687,7 +685,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
->  				len -= 4;
->  			}
->  			if (len >= 4 && p[0] == 0x22 && p[1] == 0x5a) {
-> -				em28xx_isocdbg("Video frame %d, len=%i, %s\n",
-> +				em28xx_usbdbg("Video frame %d, len=%i, %s\n",
->  					       p[2], len, (p[2] & 1) ?
->  					       "odd" : "even");
->  				p += 4;
-> @@ -837,7 +835,7 @@ static void buffer_release(struct videobuf_queue *vq,
->  	struct em28xx_fh       *fh   = vq->priv_data;
->  	struct em28xx          *dev  = (struct em28xx *)fh->dev;
->  
-> -	em28xx_isocdbg("em28xx: called buffer_release\n");
-> +	em28xx_usbdbg("em28xx: called buffer_release\n");
->  
->  	free_buffer(vq, buf);
->  }
+	In file included from include/linux/usb/ch9.h:35:0,
+	                 from include/linux/usb.h:5,
+	                 from /home/hans/work/build/media_build/v4l/au0828.h:22,
+	                 from /home/hans/work/build/media_build/v4l/au0828-i2c.c:28:
+	include/uapi/linux/usb/ch9.h:597:19: error: expected declaration specifiers or '...' before '(' token
+	In file included from include/linux/usb/ch9.h:35:0,
+	                 from include/linux/usb.h:5,
+	                 from /home/hans/work/build/media_build/v4l/au0828.h:22,
+	                 from /home/hans/work/build/media_build/v4l/au0828-core.c:28:
+	include/uapi/linux/usb/ch9.h:597:19: error: expected declaration specifiers or '...' before '(' token
+	In file included from include/linux/usb/ch9.h:35:0,
+                	 from include/linux/usb.h:5,
+        	         from /home/hans/work/build/media_build/v4l/au0828.h:22,
+                	 from /home/hans/work/build/media_build/v4l/au0828-cards.c:22:
+	include/uapi/linux/usb/ch9.h:597:19: error: expected declaration specifiers or '...' before '(' token
 
+Is really really weird, as a fix for it was merged 27 hours ago:
+	http://git.linuxtv.org/media_build.git/commit/5a86bdd242d2489ad253c29df05663c8eda9eb9c
 
--- 
+Could you please check what's going wrong?
 
-Cheers,
+Thanks!
 Mauro
