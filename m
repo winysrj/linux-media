@@ -1,51 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp23.services.sfr.fr ([93.17.128.22]:48437 "EHLO
-	smtp23.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756604Ab2LNR2P (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:34275 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750784Ab2LUNKm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Dec 2012 12:28:15 -0500
-Message-ID: <50CB61A6.7060308@sfr.fr>
-Date: Fri, 14 Dec 2012 18:28:06 +0100
-From: Patrice Chotard <patrice.chotard@sfr.fr>
+	Fri, 21 Dec 2012 08:10:42 -0500
+Received: by mail-la0-f46.google.com with SMTP id p5so5034094lag.19
+        for <linux-media@vger.kernel.org>; Fri, 21 Dec 2012 05:10:41 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: =?iso-8859-1?b?RnLpZOlyaWM=?= <frederic.mantegazza@gbiloba.org>,
-	Patrice Chotard <patrice.chotard@sfr.fr>
-Subject: [PATCH] [media] ngene: fix dvb_pll_attach failure
-References: <50B51F7E.2030008@sfr.fr>
-In-Reply-To: <50B51F7E.2030008@sfr.fr>
+In-Reply-To: <CAOcJUbw3Z+TTvURsOSKS0qaYY2mV3_9H5HCE2JH6vjX=QSDaDw@mail.gmail.com>
+References: <CAOcJUbw3Z+TTvURsOSKS0qaYY2mV3_9H5HCE2JH6vjX=QSDaDw@mail.gmail.com>
+Date: Fri, 21 Dec 2012 08:10:41 -0500
+Message-ID: <CAOcJUby47hZKEB8NODjCD5DeTToCPc233H6G77jaDQ_yyVDfig@mail.gmail.com>
+Subject: Re: [PULL] dvb-frontends: use %*ph[N] to dump small buffers
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Before dvb_pll_attch call, be sure that drxd demodulator was
-initialized, otherwise, dvb_pll_attach() will always failed.
+Mauro,
 
-In dvb_pll_attach(), first thing done is to enable the I2C gate
-control in order to probe the pll by performing a read access.
-As demodulator was not initialized, every i2c access failed.
+updated pwclient script and pull request follows:
 
-Reported-by: frederic.mantegazza@gbiloba.org
-Signed-off-by: Patrice Chotard <patricechotard@free.fr>
----
- drivers/media/pci/ngene/ngene-cards.c |    2 ++
- 1 file changed, 2 insertions(+)
+pwclient update -s 'superseded' 15687
+pwclient update -s 'superseded' 15688
+pwclient update -s 'superseded' 15933
 
-diff --git a/drivers/media/pci/ngene/ngene-cards.c
-b/drivers/media/pci/ngene/ngene-cards.c
-index 96a13ed..e2192db 100644
---- a/drivers/media/pci/ngene/ngene-cards.c
-+++ b/drivers/media/pci/ngene/ngene-cards.c
-@@ -328,6 +328,8 @@ static int demod_attach_drxd(struct ngene_channel *chan)
- 		return -ENODEV;
- 	}
+The following changes since commit 5b7d8de7d2328f7b25fe4645eafee7e48f9b7df3:
 
-+	/* initialized the DRXD demodulator */
-+	chan->fe->ops.init(chan->fe);
- 	if (!dvb_attach(dvb_pll_attach, chan->fe, feconf->pll_address,
- 			&chan->i2c_adapter,
- 			feconf->pll_type)) {
--- 
-1.7.10.4
+  [media] au0828: break au0828_card_setup() down into smaller
+functions (2012-12-17 14:34:27 -0200)
+
+are available in the git repository at:
+
+  git://git.linuxtv.org/mkrufky/tuners frontends
+
+for you to fetch changes up to cf866aea2dd6730b20be9ad69f8829675b0e6234:
+
+  or51211: apply pr_fmt and use pr_* macros instead of printk
+(2012-12-18 08:20:28 -0500)
+
+----------------------------------------------------------------
+Andy Shevchenko (3):
+      or51211: use %*ph[N] to dump small buffers
+      ix2505v: use %*ph[N] to dump small buffers
+      or51211: apply pr_fmt and use pr_* macros instead of printk
+
+ drivers/media/dvb-frontends/ix2505v.c |    2 +-
+ drivers/media/dvb-frontends/or51211.c |   99
+++++++++++++++++++++++++++++++++++++++++++++-------------------------------------------------------
+ 2 files changed, 45 insertions(+), 56 deletions(-)
+
+Cheers,
+
+Mike
+
+On Mon, Dec 17, 2012 at 9:16 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> Mauro,
+>
+> Please apply the following to update status in patchwork along with
+> the following merge request...
+>
+> pwclient update -s 'superseded' 15687
+> pwclient update -s 'changes requested' 15688
+>
+> I am marking 15687 as superseded because I broke the patch into two
+> separate patches.  (see merge request below)
+> 15688 causes new build warnings, so I've asked Andy to resubmit.
+>
+> Please merge:
+>
+> The following changes since commit 5b7d8de7d2328f7b25fe4645eafee7e48f9b7df3:
+>
+>   [media] au0828: break au0828_card_setup() down into smaller
+> functions (2012-12-17 14:34:27 -0200)
+>
+> are available in the git repository at:
+>
+>   git://git.linuxtv.org/mkrufky/tuners frontends
+>
+> for you to fetch changes up to 34c87fa2214d134c0028c97d7aab3dd769bb3bf0:
+>
+>   ix2505v: use %*ph[N] to dump small buffers (2012-12-17 20:12:29 -0500)
+>
+> ----------------------------------------------------------------
+> Andy Shevchenko (2):
+>       or51211: use %*ph[N] to dump small buffers
+>       ix2505v: use %*ph[N] to dump small buffers
+>
+>  drivers/media/dvb-frontends/ix2505v.c |    2 +-
+>  drivers/media/dvb-frontends/or51211.c |    5 +----
+>  2 files changed, 2 insertions(+), 5 deletions(-)
+>
+> Cheers,
+>
+> Mike
