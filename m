@@ -1,70 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46089 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752078Ab2LQPOU (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:48873 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751579Ab2LUKA6 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Dec 2012 10:14:20 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
+	Fri, 21 Dec 2012 05:00:58 -0500
+From: Tomasz Figa <t.figa@samsung.com>
+To: dri-devel@lists.freedesktop.org
+Cc: Vikas Sajjan <vikas.sajjan@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
 	linux-fbdev@vger.kernel.org,
 	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
 	Tom Gall <tom.gall@linaro.org>,
 	Kyungmin Park <kyungmin.park@samsung.com>,
-	dri-devel@lists.freedesktop.org, Rob Clark <rob.clark@linaro.org>,
-	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ragesh Radhakrishnan <Ragesh.R@linaro.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
 	Philipp Zabel <p.zabel@pengutronix.de>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	Bryan Wu <bryan.wu@canonical.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	sunil joshi <joshi@samsung.com>,
 	Sumit Semwal <sumit.semwal@linaro.org>,
 	Sebastien Guiriec <s-guiriec@ti.com>,
 	linux-media@vger.kernel.org
 Subject: Re: [RFC v2 0/5] Common Display Framework
-Date: Mon, 17 Dec 2012 16:15:35 +0100
-Message-ID: <2584890.nIjxiaN4DG@avalon>
-In-Reply-To: <20121126144708.3daec09e@pyramind.ukuu.org.uk>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <50B07427.1010605@ti.com> <20121126144708.3daec09e@pyramind.ukuu.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Date: Fri, 21 Dec 2012 11:00:52 +0100
+Message-id: <7255068.DBf2OgseHL@amdc1227>
+In-reply-to: <CAD025yQoCiNaKvaCwvUWhk_jV70CPhV35UzV9MR6HtE+1baCxg@mail.gmail.com>
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <3133576.BkqAl7V01U@avalon>
+ <CAD025yQoCiNaKvaCwvUWhk_jV70CPhV35UzV9MR6HtE+1baCxg@mail.gmail.com>
+MIME-version: 1.0
+Content-transfer-encoding: 8BIT
+Content-type: text/plain; charset=iso-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alan,
+Hi Vikas,
 
-On Monday 26 November 2012 14:47:08 Alan Cox wrote:
-> On Sat, 24 Nov 2012 09:15:51 +0200 Tomi Valkeinen wrote:
-> > On 2012-11-23 21:56, Thierry Reding wrote:
-> > > On Thu, Nov 22, 2012 at 10:45:31PM +0100, Laurent Pinchart wrote:
-> > > [...]
-> > > 
-> > >> Display entities are accessed by driver using notifiers. Any driver can
-> > >> register a display entity notifier with the CDF, which then calls the
-> > >> notifier when a matching display entity is registered.
+On Tuesday 18 of December 2012 08:31:30 Vikas Sajjan wrote:
+>  Hi Laurent,
 > 
-> The framebuffer layer has some similar 'anyone can' type notifier
-> behaviour and its not a good thing. That kind of "any one can" behaviour
-> leads to some really horrible messes unless the connections and the
-> locking are well defined IMHO.
+> Thanks for the reply.
+> 
+> On 17 December 2012 20:55, Laurent Pinchart <
+> 
+> laurent.pinchart@ideasonboard.com> wrote:
+> > Hi Vikas,
+> > 
+> > Sorry for the late reply. I now have more time to work on CDF, so
+> > delays should be much shorter.
+> > 
+> > On Thursday 06 December 2012 10:51:15 Vikas Sajjan wrote:
+> > > Hi Laurent,
+> > > 
+> > > I was thinking of porting CDF to samsung EXYNOS 5250 platform, what
+> > > I
+> > 
+> > found
+> > 
+> > > is that, the exynos display controller is MIPI DSI based controller.
+> > > 
+> > > But if I look at CDF patches, it has only support for MIPI DBI based
+> > 
+> > Display
+> > 
+> > > controller.
+> > > 
+> > > So my question is, do we have any generic framework for MIPI DSI
+> > > based
+> > > display controller? basically I wanted to know, how to go about
+> > > porting
+> > 
+> > CDF
+> > 
+> > > for such kind of display controller.
+> > 
+> > MIPI DSI support is not available yet. The only reason for that is
+> > that I don't have any MIPI DSI hardware to write and test the code
+> > with :-)
+> > 
+> > The common display framework should definitely support MIPI DSI. I
+> > think the
+> > existing MIPI DBI code could be used as a base, so the implementation
+> > shouldn't be too high.
+> > 
+> > Yeah, i was also thinking in similar lines, below is my though for
+> > MIPI
+> 
+> DSI support in CDF.
+> 
+> o   MIPI DSI support as part of CDF framework will expose
+> 
+> §  mipi_dsi_register_device(mpi_device) (will be called mach-xxx-dt.c
+> file )
+> 
+> §  mipi_dsi_register_driver(mipi_driver, bus ops) (will be called from
+> platform specific init driver call )
+> 
+> ·    bus ops will be
+> 
+> o   read data
+> 
+> o   write data
+> 
+> o   write command
+> 
+> §  MIPI DSI will be registered as bus_register()
+> 
+> When MIPI DSI probe is called, it (e.g., Exynos or OMAP MIPI DSI) will
+> initialize the MIPI DSI HW IP.
+> 
+>  This probe will also parse the DT file for MIPI DSI based panel, add
+> the panel device (device_add() ) to kernel and register the display
+> entity with its control and  video ops with CDF.
+> 
+> I can give this a try.
 
-I agree with you. I dislike the FBDEV notifier model, and I definitely don't 
-intend to duplicate it in the common display framework.
+I am currently in progress of reworking Exynos MIPI DSIM code and s6e8ax0 
+LCD driver to use the v2 RFC of Common Display Framework. I have most of 
+the work done, I have just to solve several remaining problems.
 
-In the CDF model, when the display device driver registers a notifier, it 
-tells the core which device it wants to receive events for. This currently 
-takes the form of a struct device pointer, and the API will also support 
-device nodes in a future version (this is still work in progress). The goal is 
-to implement panel discovery in a way that is compatible with (and very 
-similar to) hotpluggable display discovery.
-
-Thinking about it now, the API could be cleaner and less subject to abuse if 
-the notifier was registered for a given video port instead of a given 
-connected device. I'll add that to my TODO list.
-
+Best regards,
 -- 
-Regards,
-
-Laurent Pinchart
+Tomasz Figa
+Samsung Poland R&D Center
+SW Solution Development, Linux Platform
 
