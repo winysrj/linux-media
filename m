@@ -1,47 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46623 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1030228Ab2LGNAo (ORCPT
+Received: from mail-ob0-f171.google.com ([209.85.214.171]:41272 "EHLO
+	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750812Ab2LUH7U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Dec 2012 08:00:44 -0500
-Date: Fri, 7 Dec 2012 15:00:40 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] omap3isp: preview: Lower the crop margins
-Message-ID: <20121207130040.GB2887@valkosipuli.retiisi.org.uk>
-References: <1354877797-28333-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1354880624-15528-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 21 Dec 2012 02:59:20 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1354880624-15528-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Fri, 21 Dec 2012 13:28:59 +0530
+Message-ID: <CA+V-a8vWKNdVHEopPxAVrdzq=yzE=YxWQ1Pvv8Tm+242_FDUPQ@mail.gmail.com>
+Subject: [GIT PULL FOR v3.9] Davinci VPSS Updates
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 07, 2012 at 12:43:44PM +0100, Laurent Pinchart wrote:
-> The preview engine includes filters that consume columns and lines as
-> part of their operation, thus resulting in a cropped image. To allow
-> turning those filters on/off during streaming without affecting the
-> output image size, the driver adds additional cropping to make the total
-> number of cropped columns and lines constant regardless of which filters
-> are enabled.
-> 
-> This process needlessly includes the CFA filter, as whether the filter
-> is enabled only depends on the sink pad format, which can't change
-> during streaming.
-> 
-> Exclude the CFA filter from the preview engine margins.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/platform/omap3isp/isppreview.c |   40 +++++++++++++------------
->  1 files changed, 21 insertions(+), 19 deletions(-)
+Hi Mauro,
 
-Thanks!
+Please pull the following patches for DaVinci VPSS driver.
+These patches have undergone under enormous reviews and
+are ready to be queued.
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+Thanks and Regards,
+--Prabhakar Lad
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+The following changes since commit 4bb891ebf60eb43ebd04e09bbcad24013067873f:
+
+  [media] ivtv: ivtv-driver: Replace 'flush_work_sync()' (2012-12-20
+15:22:30 -0200)
+
+are available in the git repository at:
+  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git for_mauro
+
+Manjunath Hadli (3):
+      davinci: vpss: dm365: enable ISP registers
+      davinci: vpss: dm365: set vpss clk ctrl
+      davinci: vpss: dm365: add vpss helper functions to be used in
+the main driver for setting hardware parameters
+
+ drivers/media/platform/davinci/vpss.c |   70 ++++++++++++++++++++++++++++++++-
+ include/media/davinci/vpss.h          |   16 +++++++
+ 2 files changed, 85 insertions(+), 1 deletions(-)
