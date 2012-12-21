@@ -1,68 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45856 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751368Ab2LQB1N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 20:27:13 -0500
-Message-ID: <50CE74C7.90809@iki.fi>
-Date: Mon, 17 Dec 2012 03:26:31 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Matthew Gyurgyik <matthew@pyther.net>
-CC: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	Jarod Wilson <jwilson@redhat.com>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50C4A520.6020908@pyther.net> <CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com> <50C4BA20.8060003@googlemail.com> <50C4BAFB.60304@googlemail.com> <50C4C525.6020006@googlemail.com> <50C4D011.6010700@pyther.net> <50C60220.8050908@googlemail.com> <CAGoCfizTfZVFkNvdQuuisOugM2BGipYd_75R63nnj=K7E8ULWQ@mail.gmail.com> <50C60772.2010904@googlemail.com> <CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com> <50C6226C.8090302@iki! .fi> <50C636E7.8060003@googlemail.com> <50C64AB0.7020407@iki.fi> <50C79CD6.4060501@googlemail.com> <50C79E9A.3050301@iki.fi> <20121213182336.2cca9da6@redhat.! com> <50CB46CE.60407@googlemail.com> <20121214173950.79bb963e@redhat.com> <20121214222631.1f191d6e@redhat.co! m> <50CBCAB9.602@iki.fi> <20121214235412.2598c91c@redhat.com> <50CC76FC.5030208@googlemail.com> <50CC7D3F.9020108@iki.fi> <50CCA39F.5000309@googlemail.co m> <50CCAAA4.4030808@iki.fi> <50CE70E0.2070809@pyther.net>
-In-Reply-To: <50CE70E0.2070809@pyther.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mailout1.samsung.com ([203.254.224.24]:46019 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751445Ab2LUJdM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Dec 2012 04:33:12 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MFD005TPJUTWAW0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 21 Dec 2012 18:33:11 +0900 (KST)
+Received: from amdc1342.digital.local ([106.116.147.39])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MFD003LOJV1V610@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 21 Dec 2012 18:33:11 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: jtp.park@samsung.com, arun.kk@samsung.com, s.nawrocki@samsung.com,
+	Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH v2] s5p-mfc: Fix interrupt error handling routine
+Date: Fri, 21 Dec 2012 10:32:59 +0100
+Message-id: <1356082379-7144-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/17/2012 03:09 AM, Matthew Gyurgyik wrote:
-> On 12/15/2012 06:21 PM, Frank Schäfer wrote:
->>> Matthew, could you please validate your test results and try Mauros
->>> patches ? If it doesn't work, please create another USB-log.
->>>
->
-> Sorry it took me so long to test the patch, but the results look
-> promising, I actually got various keycodes!
->
-> dmesg: http://pyther.net/a/digivox_atsc/dec16/dmesg_remote.txt
->
-> evtest was also generating output
->
-> Event: time 1355705906.950551, type 4 (EV_MSC), code 4 (MSC_SCAN), value
-> 61d618e7
-> Event: time 1355705906.950551, -------------- SYN_REPORT ------------
->
-> This is the current patch I'm using:
-> http://pyther.net/a/digivox_atsc/dec16/dmesg_remote.txt
->
-> What needs to be done to generate a keymap file?
->
-> Is there anything I can collect or try to do, to get channel scanning
-> working?
->
-> Just let me know what you need me to do. I really appreciate all the help!
+New context states were added but handling in s5p_mfc_handle_error for
+these states was not. After this patch these states are be handled
+correctly.
 
-You don't need to do nothing as that remote is already there. Just 
-ensure buttons are same and we are happy.
-http://lxr.free-electrons.com/source/drivers/media/IR/keymaps/rc-msi-digivox-iii.c?v=2.6.37
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+Hi,
 
-RC_MAP_MSI_DIGIVOX_III should be added to your device profile in order 
-to load correct keytable by default. You could test it easily, just add 
-following definition
+This is exatly the same patch as https://patchwork.kernel.org/patch/1865541/
+with an additional comment added as suggested by Sachin Kamat.
 
-.ir_codes = RC_MAP_MSI_DIGIVOX_III,
+This patch was tested by me and Arun. Unfortunately Sachin and Pawel could
+not join in and run their tests.
 
-to em28xx-cards.c board config and it is all.
+Best wishes,
+Kamil Debski
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |   88 +++++++++++++-----------------
+ 1 file changed, 37 insertions(+), 51 deletions(-)
 
-regards
-Antti
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 3afe879..5448ad1 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -412,62 +412,48 @@ leave_handle_frame:
+ }
+ 
+ /* Error handling for interrupt */
+-static void s5p_mfc_handle_error(struct s5p_mfc_ctx *ctx,
+-				 unsigned int reason, unsigned int err)
++static void s5p_mfc_handle_error(struct s5p_mfc_dev *dev,
++		struct s5p_mfc_ctx *ctx, unsigned int reason, unsigned int err)
+ {
+-	struct s5p_mfc_dev *dev;
+ 	unsigned long flags;
+ 
+-	/* If no context is available then all necessary
+-	 * processing has been done. */
+-	if (ctx == NULL)
+-		return;
+-
+-	dev = ctx->dev;
+ 	mfc_err("Interrupt Error: %08x\n", err);
+-	s5p_mfc_hw_call(dev->mfc_ops, clear_int_flags, dev);
+-	wake_up_dev(dev, reason, err);
+ 
+-	/* Error recovery is dependent on the state of context */
+-	switch (ctx->state) {
+-	case MFCINST_INIT:
+-		/* This error had to happen while acquireing instance */
+-	case MFCINST_GOT_INST:
+-		/* This error had to happen while parsing the header */
+-	case MFCINST_HEAD_PARSED:
+-		/* This error had to happen while setting dst buffers */
+-	case MFCINST_RETURN_INST:
+-		/* This error had to happen while releasing instance */
+-		clear_work_bit(ctx);
+-		wake_up_ctx(ctx, reason, err);
+-		if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+-			BUG();
+-		s5p_mfc_clock_off();
+-		ctx->state = MFCINST_ERROR;
+-		break;
+-	case MFCINST_FINISHING:
+-	case MFCINST_FINISHED:
+-	case MFCINST_RUNNING:
+-		/* It is higly probable that an error occured
+-		 * while decoding a frame */
+-		clear_work_bit(ctx);
+-		ctx->state = MFCINST_ERROR;
+-		/* Mark all dst buffers as having an error */
+-		spin_lock_irqsave(&dev->irqlock, flags);
+-		s5p_mfc_hw_call(dev->mfc_ops, cleanup_queue, &ctx->dst_queue,
+-				&ctx->vq_dst);
+-		/* Mark all src buffers as having an error */
+-		s5p_mfc_hw_call(dev->mfc_ops, cleanup_queue, &ctx->src_queue,
+-				&ctx->vq_src);
+-		spin_unlock_irqrestore(&dev->irqlock, flags);
+-		if (test_and_clear_bit(0, &dev->hw_lock) == 0)
+-			BUG();
+-		s5p_mfc_clock_off();
+-		break;
+-	default:
+-		mfc_err("Encountered an error interrupt which had not been handled\n");
+-		break;
++	if (ctx != NULL) {
++		/* Error recovery is dependent on the state of context */
++		switch (ctx->state) {
++		case MFCINST_RES_CHANGE_INIT:
++		case MFCINST_RES_CHANGE_FLUSH:
++		case MFCINST_RES_CHANGE_END:
++		case MFCINST_FINISHING:
++		case MFCINST_FINISHED:
++		case MFCINST_RUNNING:
++			/* It is higly probable that an error occured
++			 * while decoding a frame */
++			clear_work_bit(ctx);
++			ctx->state = MFCINST_ERROR;
++			/* Mark all dst buffers as having an error */
++			spin_lock_irqsave(&dev->irqlock, flags);
++			s5p_mfc_hw_call(dev->mfc_ops, cleanup_queue,
++						&ctx->dst_queue, &ctx->vq_dst);
++			/* Mark all src buffers as having an error */
++			s5p_mfc_hw_call(dev->mfc_ops, cleanup_queue,
++						&ctx->src_queue, &ctx->vq_src);
++			spin_unlock_irqrestore(&dev->irqlock, flags);
++			wake_up_ctx(ctx, reason, err);
++			break;
++		default:
++			clear_work_bit(ctx);
++			ctx->state = MFCINST_ERROR;
++			wake_up_ctx(ctx, reason, err);
++			break;
++		}
+ 	}
++	if (test_and_clear_bit(0, &dev->hw_lock) == 0)
++		BUG();
++	s5p_mfc_hw_call(dev->mfc_ops, clear_int_flags, dev);
++	s5p_mfc_clock_off();
++	wake_up_dev(dev, reason, err);
+ 	return;
+ }
+ 
+@@ -632,7 +618,7 @@ static irqreturn_t s5p_mfc_irq(int irq, void *priv)
+ 				dev->warn_start)
+ 			s5p_mfc_handle_frame(ctx, reason, err);
+ 		else
+-			s5p_mfc_handle_error(ctx, reason, err);
++			s5p_mfc_handle_error(dev, ctx, reason, err);
+ 		clear_bit(0, &dev->enter_suspend);
+ 		break;
+ 
 -- 
-http://palosaari.fi/
+1.7.9.5
+
