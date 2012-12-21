@@ -1,76 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:58550 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753571Ab2LZRt1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Dec 2012 12:49:27 -0500
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v3 0/6] V4L2 asynchronous probing + soc-camera example
-Date: Wed, 26 Dec 2012 18:49:05 +0100
-Message-Id: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de>
+Received: from mx1.redhat.com ([209.132.183.28]:11421 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751260Ab2LUSml (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Dec 2012 13:42:41 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id qBLIgfev025894
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 21 Dec 2012 13:42:41 -0500
+Date: Fri, 21 Dec 2012 16:42:18 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT-PULL fixes for 3.8] Various USB webcam fixes
+Message-ID: <20121221164218.0a535bfc@redhat.com>
+In-Reply-To: <50D47243.6070107@redhat.com>
+References: <50D47243.6070107@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is v3 (roughly) of the V4L2 asynchronous probing patch plus an 
-example soc-camera framework and 1 host, 1 sensor and 1 board conversion 
-patch set. Logically, this is based on top of my recent patch series
+Em Fri, 21 Dec 2012 15:29:23 +0100
+Hans de Goede <hdegoede@redhat.com> escreveu:
 
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/58524
+> Hi Mauro,
+> 
+> Note this pullreq superceeds my previous pullreq.
 
-and the last version of the v4l2-clock patch. If desired, a git branch can 
-be provided.
+Please, next time, be sure to reply to your old email or send a:
+	Nacked-by: 
+(as patchwork catches this special meta-tag)
 
-Thanks
-Guennadi
+tag to the previous one, otherwise I'll be handling your new pull
+request only after handling the previous one, just like what I did
+today.
 
-Guennadi Liakhovetski (6):
-  media: V4L2: support asynchronous subdevice registration
-  media: soc-camera: switch I2C subdevice drivers to use v4l2-clk
-  soc-camera: add V4L2-async support
-  sh_mobile_ceu_camera: add asynchronous subdevice probing support
-  imx074: support asynchronous probing
-  ARM: shmobile: convert ap4evb to asynchronously register camera
-    subdevices
-
- arch/arm/mach-shmobile/board-ap4evb.c              |  103 ++--
- arch/arm/mach-shmobile/clock-sh7372.c              |    1 +
- drivers/media/i2c/soc_camera/imx074.c              |   35 +-
- drivers/media/i2c/soc_camera/mt9m001.c             |   17 +-
- drivers/media/i2c/soc_camera/mt9m111.c             |   20 +-
- drivers/media/i2c/soc_camera/mt9t031.c             |   19 +-
- drivers/media/i2c/soc_camera/mt9t112.c             |   19 +-
- drivers/media/i2c/soc_camera/mt9v022.c             |   17 +-
- drivers/media/i2c/soc_camera/ov2640.c              |   19 +-
- drivers/media/i2c/soc_camera/ov5642.c              |   20 +-
- drivers/media/i2c/soc_camera/ov6650.c              |   17 +-
- drivers/media/i2c/soc_camera/ov772x.c              |   15 +-
- drivers/media/i2c/soc_camera/ov9640.c              |   17 +-
- drivers/media/i2c/soc_camera/ov9640.h              |    1 +
- drivers/media/i2c/soc_camera/ov9740.c              |   18 +-
- drivers/media/i2c/soc_camera/rj54n1cb0c.c          |   17 +-
- drivers/media/i2c/soc_camera/tw9910.c              |   18 +-
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |  135 +++-
- drivers/media/platform/soc_camera/sh_mobile_csi2.c |  164 +++--
- drivers/media/platform/soc_camera/soc_camera.c     |  681 ++++++++++++++++----
- .../platform/soc_camera/soc_camera_platform.c      |    2 +-
- drivers/media/v4l2-core/Makefile                   |    3 +-
- drivers/media/v4l2-core/v4l2-async.c               |  284 ++++++++
- drivers/media/v4l2-core/v4l2-device.c              |    2 +
- include/media/sh_mobile_ceu.h                      |    2 +
- include/media/sh_mobile_csi2.h                     |    2 +-
- include/media/soc_camera.h                         |   35 +-
- include/media/v4l2-async.h                         |  113 ++++
- 28 files changed, 1489 insertions(+), 307 deletions(-)
- create mode 100644 drivers/media/v4l2-core/v4l2-async.c
- create mode 100644 include/media/v4l2-async.h
-
--- 
-1.7.2.5
-
+Regards,
+Mauro
+Cheers,
+Mauro
