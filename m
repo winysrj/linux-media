@@ -1,479 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:64050 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750961Ab2LTV0N (ORCPT
+Received: from mail-la0-f54.google.com ([209.85.215.54]:63853 "EHLO
+	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750851Ab2LUN3F (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Dec 2012 16:26:13 -0500
-Date: Thu, 20 Dec 2012 22:26:03 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: [PATCH v2] media: V4L2: support asynchronous subdevice registration
-Message-ID: <Pine.LNX.4.64.1212202144440.27848@axis700.grange>
+	Fri, 21 Dec 2012 08:29:05 -0500
+Received: by mail-la0-f54.google.com with SMTP id j13so5073845lah.27
+        for <linux-media@vger.kernel.org>; Fri, 21 Dec 2012 05:29:03 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <CAOcJUbx5+R=nDEp6189CDVTzf=0n+PgRoj2au3M2WZEOOGPQSg@mail.gmail.com>
+References: <CAOcJUbw3Z+TTvURsOSKS0qaYY2mV3_9H5HCE2JH6vjX=QSDaDw@mail.gmail.com>
+	<CAOcJUby47hZKEB8NODjCD5DeTToCPc233H6G77jaDQ_yyVDfig@mail.gmail.com>
+	<CAOcJUbx5+R=nDEp6189CDVTzf=0n+PgRoj2au3M2WZEOOGPQSg@mail.gmail.com>
+Date: Fri, 21 Dec 2012 08:29:02 -0500
+Message-ID: <CAOcJUbxT+GRPz_XJL9L8+Rr=r9mQ2SFxZcsQRJRPsfYumghFrA@mail.gmail.com>
+Subject: Re: [PULL] dvb-frontends: use %*ph[N] to dump small buffers
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently bridge device drivers register devices for all subdevices
-synchronously, tupically, during their probing. E.g. if an I2C CMOS sensor
-is attached to a video bridge device, the bridge driver will create an I2C
-device and wait for the respective I2C driver to probe. This makes linking
-of devices straight forward, but this approach cannot be used with
-intrinsically asynchronous and unordered device registration systems like
-the Flattened Device Tree. To support such systems this patch adds an
-asynchronous subdevice registration framework to V4L2. To use it bridge 
-drivers register lists of subdevice descriptors and notifier callbacks, 
-subdevice drivers register subdevices, that they are about to probe or 
-have successfully probed. The subsystem matches subdevices against 
-hardware descriptors and calls bridge driver callbacks when matches are 
-found. Another callback is called, when the subdevice is unregistered.
+rebased against today's tip, as per your request :-)
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+pwclient update -s 'superseded' 15687
+pwclient update -s 'superseded' 15688
+pwclient update -s 'superseded' 15933
+pwclient update -s 'accepted' 15938
+pwclient update -s 'superseded' 15970
 
-v2:
 
-1. Removed the notion of groups
-2. Removed probing based on platform data, now subdevice drivers decide 
-them selves, whether or not they can successfully probe
-3. To accomplish the above subdevice drivers have to actively register 
-their subdevices with the framework
-4. As last time, this has been tested with soc-camera drivers 
-(sh_mobile_ceu_camera), as long as there are no categorical NAKs to this, 
-I'll try to clean up those soc-camera patches and post them as a usage 
-example.
+The following changes since commit 1b5901331ff3af4bdc1b998a056a248c9924e2d1:
 
- drivers/media/v4l2-core/Makefile     |    3 
- drivers/media/v4l2-core/v4l2-async.c |  282 +++++++++++++++++++++++++++++++++++
- include/media/v4l2-async.h           |  113 ++++++++++++++
- 3 files changed, 397 insertions(+), 1 deletion(-)
+  [media] exynos-gsc: modify number of output/capture buffers
+(2012-12-21 10:26:44 -0200)
 
-diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-index d065c01..b667ced 100644
---- a/drivers/media/v4l2-core/Makefile
-+++ b/drivers/media/v4l2-core/Makefile
-@@ -5,7 +5,8 @@
- tuner-objs	:=	tuner-core.o
- 
- videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
--			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o
-+			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o \
-+			v4l2-async.o
- ifeq ($(CONFIG_COMPAT),y)
-   videodev-objs += v4l2-compat-ioctl32.o
- endif
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-new file mode 100644
-index 0000000..f3939af
---- /dev/null
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -0,0 +1,282 @@
-+/*
-+ * V4L2 asynchronous subdevice registration API
-+ *
-+ * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/err.h>
-+#include <linux/i2c.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/notifier.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+#include <linux/types.h>
-+
-+#include <media/v4l2-async.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
-+
-+static bool match_i2c(struct device *dev, struct v4l2_async_hw_device *hw_dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	return hw_dev->bus_type == V4L2_ASYNC_BUS_I2C &&
-+		hw_dev->match.i2c.adapter_id == client->adapter->nr &&
-+		hw_dev->match.i2c.address == client->addr;
-+}
-+
-+static bool match_platform(struct device *dev, struct v4l2_async_hw_device *hw_dev)
-+{
-+	return hw_dev->bus_type == V4L2_ASYNC_BUS_PLATFORM &&
-+		!strcmp(hw_dev->match.platform.name, dev_name(dev));
-+}
-+
-+static LIST_HEAD(subdev_list);
-+static LIST_HEAD(notifier_list);
-+static DEFINE_MUTEX(list_lock);
-+
-+static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
-+						    struct v4l2_async_subdev_list *asdl)
-+{
-+	struct v4l2_async_subdev *asd = NULL;
-+	bool (*match)(struct device *,
-+		      struct v4l2_async_hw_device *);
-+
-+	list_for_each_entry (asd, &notifier->waiting, list) {
-+		struct v4l2_async_hw_device *hw = &asd->hw;
-+		switch (hw->bus_type) {
-+		case V4L2_ASYNC_BUS_SPECIAL:
-+			match = hw->match.special.match;
-+			if (!match)
-+				/* Match always */
-+				return asd;
-+			break;
-+		case V4L2_ASYNC_BUS_PLATFORM:
-+			match = match_platform;
-+			break;
-+		case V4L2_ASYNC_BUS_I2C:
-+			match = match_i2c;
-+			break;
-+		default:
-+			/* Oops */
-+			match = NULL;
-+			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
-+				"Invalid bus-type %u on %p\n", hw->bus_type, asd);
-+		}
-+
-+		if (match && match(asdl->dev, hw))
-+			break;
-+	}
-+
-+	return asd;
-+}
-+
-+static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
-+				   struct v4l2_async_subdev_list *asdl)
-+{
-+	struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, asdl);
-+	if (asd) {
-+		int ret;
-+		/* Remove from the waiting list */
-+		list_del(&asd->list);
-+		asdl->asd = asd;
-+		asdl->notifier = notifier;
-+
-+		if (notifier->bound) {
-+			ret = notifier->bound(notifier, asdl);
-+			if (ret < 0)
-+				return ret;
-+		}
-+		/* Move from the global subdevice list to notifier's done */
-+		list_move(&asdl->list, &notifier->done);
-+
-+		ret = v4l2_device_register_subdev(notifier->v4l2_dev,
-+						  asdl->subdev);
-+		if (ret < 0) {
-+			if (notifier->unbind)
-+				notifier->unbind(notifier, asdl);
-+			return ret;
-+		}
-+
-+		if (list_empty(&notifier->waiting) && notifier->complete)
-+			return notifier->complete(notifier);
-+
-+		return 0;
-+	}
-+
-+	return -EPROBE_DEFER;
-+}
-+
-+static struct device *v4l2_async_unbind(struct v4l2_async_subdev_list *asdl)
-+{
-+	struct device *dev = asdl->dev;
-+	v4l2_device_unregister_subdev(asdl->subdev);
-+	/* Subdevice driver will reprobe and put asdl back onto the list */
-+	list_del(&asdl->list);
-+	asdl->asd = NULL;
-+	/* If we handled USB devices, we'd have to lock the parent too */
-+	device_release_driver(dev);
-+	return dev;
-+}
-+
-+int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-+				 struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_async_subdev_list *asdl;
-+	int i;
-+
-+	notifier->v4l2_dev = v4l2_dev;
-+	INIT_LIST_HEAD(&notifier->waiting);
-+	INIT_LIST_HEAD(&notifier->done);
-+
-+	for (i = 0; i < notifier->subdev_num; i++)
-+		list_add_tail(&notifier->subdev[i]->list, &notifier->waiting);
-+
-+	mutex_lock(&list_lock);
-+
-+	/* Keep also completed notifiers on the list */
-+	list_add(&notifier->list, &notifier_list);
-+
-+	list_for_each_entry(asdl, &subdev_list, list) {
-+		int ret = v4l2_async_test_notify(notifier, asdl);
-+		if (ret != -EPROBE_DEFER) {
-+			mutex_unlock(&list_lock);
-+			return ret;
-+		}
-+	}
-+
-+	mutex_unlock(&list_lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(v4l2_async_notifier_register);
-+
-+void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_async_subdev_list *asdl, *tmp;
-+	int i = 0;
-+	struct device **dev = kcalloc(notifier->subdev_num,
-+				      sizeof(*dev), GFP_KERNEL);
-+	if (!dev)
-+		dev_err(notifier->v4l2_dev->dev,
-+			"Failed to allocate device cache!\n");
-+
-+	mutex_lock(&list_lock);
-+
-+	list_del(&notifier->list);
-+
-+	list_for_each_entry_safe(asdl, tmp, &notifier->done, list) {
-+		if (dev)
-+			dev[i++] = get_device(asdl->dev);
-+		v4l2_async_unbind(asdl);
-+
-+		if (notifier->unbind)
-+			notifier->unbind(notifier, asdl);
-+	}
-+
-+	mutex_unlock(&list_lock);
-+
-+	if (dev)
-+		while (i--) {
-+			if (dev[i] && device_attach(dev[i]) < 0)
-+				dev_err(dev[i], "Failed to re-probe to %s\n",
-+					dev[i]->driver ? dev[i]->driver->name : "(none)");
-+			put_device(dev[i]);
-+		}
-+	/*
-+	 * Don't care about the waiting list, it is initialised and populated
-+	 * upon notifier registration.
-+	 */
-+}
-+EXPORT_SYMBOL(v4l2_async_notifier_unregister);
-+
-+int v4l2_async_subdev_bind(struct v4l2_async_subdev_list *asdl)
-+{
-+	struct v4l2_async_notifier *notifier;
-+	int ret = 0;
-+
-+	mutex_lock(&list_lock);
-+
-+	list_for_each_entry(notifier, &notifier_list, list) {
-+		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier,
-+								   asdl);
-+		/*
-+		 * Whether or not probing succeeds - this is the right hardware
-+		 * subdevice descriptor and we can provide it to the notifier
-+		 */
-+		if (asd) {
-+			asdl->asd = asd;
-+			if (notifier->bind)
-+				ret = notifier->bind(notifier, asdl);
-+			break;
-+		}
-+	}
-+
-+	mutex_unlock(&list_lock);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(v4l2_async_subdev_bind);
-+
-+int v4l2_async_subdev_bound(struct v4l2_async_subdev_list *asdl)
-+{
-+	struct v4l2_async_notifier *notifier;
-+
-+	mutex_lock(&list_lock);
-+
-+	INIT_LIST_HEAD(&asdl->list);
-+
-+	list_for_each_entry(notifier, &notifier_list, list) {
-+		int ret = v4l2_async_test_notify(notifier, asdl);
-+		if (ret != -EPROBE_DEFER) {
-+			mutex_unlock(&list_lock);
-+			return ret;
-+		}
-+	}
-+
-+	/* None matched, wait for hot-plugging */
-+	list_add(&asdl->list, &subdev_list);
-+
-+	mutex_unlock(&list_lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(v4l2_async_subdev_bound);
-+
-+void v4l2_async_subdev_unbind(struct v4l2_async_subdev_list *asdl)
-+{
-+	struct v4l2_async_notifier *notifier = asdl->notifier;
-+	struct device *dev;
-+
-+	if (!asdl->asd)
-+		return;
-+
-+	mutex_lock(&list_lock);
-+
-+	dev = asdl->dev;
-+
-+	list_add(&asdl->asd->list, &notifier->waiting);
-+
-+	dev = get_device(asdl->dev);
-+
-+	v4l2_async_unbind(asdl);
-+
-+	if (notifier->unbind)
-+		notifier->unbind(notifier, asdl);
-+
-+	mutex_unlock(&list_lock);
-+
-+	/* Re-probe with lock released - avoid a deadlock */
-+	if (dev && device_attach(dev) < 0)
-+		dev_err(dev, "Failed to re-probe to %s\n",
-+			dev->driver ? dev->driver->name : "(none)");
-+
-+	put_device(dev);
-+}
-+EXPORT_SYMBOL(v4l2_async_subdev_unbind);
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-new file mode 100644
-index 0000000..91d436d
---- /dev/null
-+++ b/include/media/v4l2-async.h
-@@ -0,0 +1,113 @@
-+/*
-+ * V4L2 asynchronous subdevice registration API
-+ *
-+ * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef V4L2_ASYNC_H
-+#define V4L2_ASYNC_H
-+
-+#include <linux/list.h>
-+#include <linux/mutex.h>
-+#include <linux/notifier.h>
-+
-+#include <media/v4l2-subdev.h>
-+
-+struct device;
-+struct v4l2_device;
-+struct v4l2_async_notifier;
-+
-+enum v4l2_async_bus_type {
-+	V4L2_ASYNC_BUS_SPECIAL,
-+	V4L2_ASYNC_BUS_PLATFORM,
-+	V4L2_ASYNC_BUS_I2C,
-+};
-+
-+struct v4l2_async_hw_device {
-+	enum v4l2_async_bus_type bus_type;
-+	union {
-+		struct {
-+			const char *name;
-+		} platform;
-+		struct {
-+			int adapter_id;
-+			unsigned short address;
-+		} i2c;
-+		struct {
-+			bool (*match)(struct device *,
-+				      struct v4l2_async_hw_device *);
-+			void *priv;
-+		} special;
-+	} match;
-+};
-+
-+/**
-+ * struct v4l2_async_subdev - sub-device descriptor, as known to a bridge
-+ * @hw:		this device descriptor
-+ * @list:	member in a list of subdevices
-+ */
-+struct v4l2_async_subdev {
-+	struct v4l2_async_hw_device hw;
-+	struct list_head list;
-+};
-+
-+/**
-+ * v4l2_async_subdev_list - provided by subdevices
-+ * @list:	member in a list of subdevices
-+ * @dev:	hardware device
-+ * @subdev:	V4L2 subdevice
-+ * @asd:	pointer to respective struct v4l2_async_subdev
-+ * @notifier:	pointer to managing notifier
-+ */
-+struct v4l2_async_subdev_list {
-+	struct list_head list;
-+	struct device *dev;
-+	struct v4l2_subdev *subdev;
-+	struct v4l2_async_subdev *asd;
-+	struct v4l2_async_notifier *notifier;
-+};
-+
-+/**
-+ * v4l2_async_notifier - provided by bridges
-+ * @subdev_num:	number of subdevices
-+ * @subdev:	array of pointers to subdevices
-+ * @v4l2_dev:	pointer to sruct v4l2_device
-+ * @waiting:	list of subdevices, waiting for their drivers
-+ * @done:	list of subdevices, already probed
-+ * @list:	member in a global list of notifiers
-+ * @bind:	a subdevice driver is about to probe one of your subdevices
-+ * @bound:	a subdevice driver has successfully probed one of your subdevices
-+ * @complete:	all your subdevices have been probed successfully
-+ * @unbind:	a subdevice is leaving
-+ */
-+struct v4l2_async_notifier {
-+	int subdev_num;
-+	struct v4l2_async_subdev **subdev;
-+	struct v4l2_device *v4l2_dev;
-+	struct list_head waiting;
-+	struct list_head done;
-+	struct list_head list;
-+	int (*bind)(struct v4l2_async_notifier *notifier,
-+		    struct v4l2_async_subdev_list *asdl);
-+	int (*bound)(struct v4l2_async_notifier *notifier,
-+		     struct v4l2_async_subdev_list *asdl);
-+	int (*complete)(struct v4l2_async_notifier *notifier);
-+	void (*unbind)(struct v4l2_async_notifier *notifier,
-+		       struct v4l2_async_subdev_list *asdl);
-+};
-+
-+int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-+				 struct v4l2_async_notifier *notifier);
-+void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
-+/*
-+ * If subdevice probing fails any time after v4l2_async_subdev_bind(), no clean
-+ * up must be called. This function is only a message of intention.
-+ */
-+int v4l2_async_subdev_bind(struct v4l2_async_subdev_list *asdl);
-+int v4l2_async_subdev_bound(struct v4l2_async_subdev_list *asdl);
-+void v4l2_async_subdev_unbind(struct v4l2_async_subdev_list *asdl);
-+#endif
--- 
-1.7.2.5
+are available in the git repository at:
 
+  git://git.linuxtv.org/mkrufky/tuners frontends-andy
+
+for you to fetch changes up to d81eae5f62d705b786e8e1ad13eac78ffa95cf18:
+
+  or51211: apply pr_fmt and use pr_* macros instead of printk
+(2012-12-21 08:25:09 -0500)
+
+----------------------------------------------------------------
+Andy Shevchenko (3):
+      or51211: use %*ph[N] to dump small buffers
+      ix2505v: use %*ph[N] to dump small buffers
+      or51211: apply pr_fmt and use pr_* macros instead of printk
+
+ drivers/media/dvb-frontends/ix2505v.c |    2 +-
+ drivers/media/dvb-frontends/or51211.c |   99
+++++++++++++++++++++++++++++++++++++++++++++-------------------------------------------------------
+ 2 files changed, 45 insertions(+), 56 deletions(-)
+
+
+On Fri, Dec 21, 2012 at 8:12 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> Argh!  I forgot one pwclient command:
+>
+> pwclient update -s 'accepted' 15938
+>
+> Thanks again,
+>
+> Mike
+>
+> On Fri, Dec 21, 2012 at 8:10 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+>> Mauro,
+>>
+>> updated pwclient script and pull request follows:
+>>
+>> pwclient update -s 'superseded' 15687
+>> pwclient update -s 'superseded' 15688
+>> pwclient update -s 'superseded' 15933
+>>
+>> The following changes since commit 5b7d8de7d2328f7b25fe4645eafee7e48f9b7df3:
+>>
+>>   [media] au0828: break au0828_card_setup() down into smaller
+>> functions (2012-12-17 14:34:27 -0200)
+>>
+>> are available in the git repository at:
+>>
+>>   git://git.linuxtv.org/mkrufky/tuners frontends
+>>
+>> for you to fetch changes up to cf866aea2dd6730b20be9ad69f8829675b0e6234:
+>>
+>>   or51211: apply pr_fmt and use pr_* macros instead of printk
+>> (2012-12-18 08:20:28 -0500)
+>>
+>> ----------------------------------------------------------------
+>> Andy Shevchenko (3):
+>>       or51211: use %*ph[N] to dump small buffers
+>>       ix2505v: use %*ph[N] to dump small buffers
+>>       or51211: apply pr_fmt and use pr_* macros instead of printk
+>>
+>>  drivers/media/dvb-frontends/ix2505v.c |    2 +-
+>>  drivers/media/dvb-frontends/or51211.c |   99
+>> ++++++++++++++++++++++++++++++++++++++++++++-------------------------------------------------------
+>>  2 files changed, 45 insertions(+), 56 deletions(-)
+>>
+>> Cheers,
+>>
+>> Mike
+>>
+>> On Mon, Dec 17, 2012 at 9:16 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+>>> Mauro,
+>>>
+>>> Please apply the following to update status in patchwork along with
+>>> the following merge request...
+>>>
+>>> pwclient update -s 'superseded' 15687
+>>> pwclient update -s 'changes requested' 15688
+>>>
+>>> I am marking 15687 as superseded because I broke the patch into two
+>>> separate patches.  (see merge request below)
+>>> 15688 causes new build warnings, so I've asked Andy to resubmit.
+>>>
+>>> Please merge:
+>>>
+>>> The following changes since commit 5b7d8de7d2328f7b25fe4645eafee7e48f9b7df3:
+>>>
+>>>   [media] au0828: break au0828_card_setup() down into smaller
+>>> functions (2012-12-17 14:34:27 -0200)
+>>>
+>>> are available in the git repository at:
+>>>
+>>>   git://git.linuxtv.org/mkrufky/tuners frontends
+>>>
+>>> for you to fetch changes up to 34c87fa2214d134c0028c97d7aab3dd769bb3bf0:
+>>>
+>>>   ix2505v: use %*ph[N] to dump small buffers (2012-12-17 20:12:29 -0500)
+>>>
+>>> ----------------------------------------------------------------
+>>> Andy Shevchenko (2):
+>>>       or51211: use %*ph[N] to dump small buffers
+>>>       ix2505v: use %*ph[N] to dump small buffers
+>>>
+>>>  drivers/media/dvb-frontends/ix2505v.c |    2 +-
+>>>  drivers/media/dvb-frontends/or51211.c |    5 +----
+>>>  2 files changed, 2 insertions(+), 5 deletions(-)
+>>>
+>>> Cheers,
+>>>
+>>> Mike
