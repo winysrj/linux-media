@@ -1,157 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40997 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:18436 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750798Ab2LPVXL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 16:23:11 -0500
-Message-ID: <50CE3BA0.5030503@iki.fi>
-Date: Sun, 16 Dec 2012 23:22:40 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Renato Gallo <renatogallo@unixproducts.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: cannot make this Asus my cinema-u3100miniplusv2 work under linux
-References: <8e9f16405c8583e35cb97bb7d7daef4b@unixproducts.com> <50CDDF9A.1080509@iki.fi> <cd31dc6ada9161825c7dff975a3da945@unixproducts.com> <50CE0AFA.9030308@iki.fi> <1af6a5408ee3ebccebc3885bba06fc69@unixproducts.com> <50CE3070.10309@iki.fi> <810ffd737b21a0f46e383a76dd4313a2@unixproducts.com>
-In-Reply-To: <810ffd737b21a0f46e383a76dd4313a2@unixproducts.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1750853Ab2LVUKp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Dec 2012 15:10:45 -0500
+Date: Sat, 22 Dec 2012 18:10:19 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 16/21] em28xx: rename usb debugging module parameter
+ and macro
+Message-ID: <20121222181019.775f8c3f@redhat.com>
+In-Reply-To: <1352398313-3698-17-git-send-email-fschaefer.oss@googlemail.com>
+References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com>
+	<1352398313-3698-17-git-send-email-fschaefer.oss@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That antenna is your problem.
+Em Thu,  8 Nov 2012 20:11:48 +0200
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-I will send that patch to the Kernel 3.8, but as I think it is maybe too 
-late for 3.8 it will eventually go to the 3.9 which is out sometime near 
-beginning of next summer.
+> Rename module parameter isoc_debug to usb_debug and macro
+> em28xx_isocdbg to em28xx_usb dbg to reflect that they are
+> used for isoc and bulk USB transfers.
+> 
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-video.c |   58 +++++++++++++++----------------
+>  1 Datei geändert, 28 Zeilen hinzugefügt(+), 30 Zeilen entfernt(-)
+> 
+> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> index d6de1cc..f435206 100644
+> --- a/drivers/media/usb/em28xx/em28xx-video.c
+> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> @@ -58,13 +58,13 @@
+>  		printk(KERN_INFO "%s %s :"fmt, \
+>  			 dev->name, __func__ , ##arg); } while (0)
+>  
+> -static unsigned int isoc_debug;
+> -module_param(isoc_debug, int, 0644);
+> -MODULE_PARM_DESC(isoc_debug, "enable debug messages [isoc transfers]");
+> +static unsigned int usb_debug;
+> +module_param(usb_debug, int, 0644);
+> +MODULE_PARM_DESC(usb_debug, "enable debug messages [isoc transfers]");
 
-If you wish I add your name as reporter then reply. Otherwise case 
-closed. Feedback from the better antenna could be nice too.
+NACK: usb_debug is too generic: it could refer to control URB's, stream
+URB's, and other non-URB related USB debugging. Also, it can cause 
+some harm for the ones using it.
 
+As the rest of this series don't depend on this one, I'll just skip it.
 
-Antti
+IMHO, the better is to either live it as-is, to avoid breaking for
+someone with "isoc_debug" parameter on their /etc/modprobe.d, or to
+do a "deprecate" path:
 
+	- adding a new one called "stream_debug" (or something like that);
+	- keep the old one for a while, printing a warning message to
+point that this got removed; 
+	- after a few kernel cycles, remove the legacy one.
 
-On 12/16/2012 11:16 PM, Renato Gallo wrote:
-> stock one that came with the device
->
-> http://unixproducts.com/antenna.jpg
->
->
-> Il 16/12/2012 21:34 Antti Palosaari ha scritto:
->> It is very likely weak signal issue as I said. What kind of antenna
->> you are using?
->>
->> Antti
->>
->>
->> On 12/16/2012 10:13 PM, Renato Gallo wrote:
->>> i found it is a problem with kaffeine, with other programs i can lock a
->>> signal but reception is very very sketchy (like in unviewable).
->>>
->>> GlovX xine-lib # dmesg |grep e4000
->>> GlovX xine-lib # dmesg |grep FC0012
->>> GlovX xine-lib # dmesg |grep FC0013
->>> [   28.281685] fc0013: Fitipower FC0013 successfully attached.
->>> GlovX xine-lib # dmesg |grep FC2580
->>> GlovX xine-lib # dmesg |grep TUA
->>> GlovX xine-lib #
->>>
->>>
->>> Il 16/12/2012 18:55 Antti Palosaari ha scritto:
->>>> On 12/16/2012 07:15 PM, Renato Gallo wrote:
->>>>> now the modules loads and kaffeine recognizes the device but i cannot
->>>>> find any channels.
->>>>> can it be a tuner bug ?
->>>>
->>>> I think it is bad antenna / weak signal. Try w_scan, scan, tzap.
->>>>
->>>> Could you say which RF-tuner it finds from your device? use dmesg to
->>>> dump output. It could be for example e4000, FC0012, FC0013, FC2580,
->>>> TUA9001 etc.
->>>>
->>>> Antti
->>>>
->>>>>
->>>>>
->>>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>> section;
->>>>> type = 0 pid = 0
->>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>> section;
->>>>> type = 2 pid = 17
->>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>> section;
->>>>> type = 4 pid = 16
->>>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>> section;
->>>>> type = 0 pid = 0
->>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>> section;
->>>>> type = 2 pid = 17
->>>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading
->>>>> section;
->>>>> type = 4 pid = 16
->>>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->>>>>
->>>>>
->>>>> Il 16/12/2012 15:50 Antti Palosaari ha scritto:
->>>>>> On 12/16/2012 04:23 PM, Renato Gallo wrote:
->>>>>>> any news on this ?
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> Asus my cinema-u3100miniplusv2
->>>>>>>
->>>>>>> Bus 001 Device 015: ID 1b80:d3a8 Afatech
->>>>>>>
->>>>>>> [ 6956.333440] usb 1-6.3.6: new high-speed USB device number 16
->>>>>>> using
->>>>>>> ehci_hcd
->>>>>>> [ 6956.453943] usb 1-6.3.6: New USB device found, idVendor=1b80,
->>>>>>> idProduct=d3a8
->>>>>>> [ 6956.453950] usb 1-6.3.6: New USB device strings: Mfr=1,
->>>>>>> Product=2,
->>>>>>> SerialNumber=0
->>>>>>> [ 6956.453955] usb 1-6.3.6: Product: Rtl2832UDVB
->>>>>>> [ 6956.453959] usb 1-6.3.6: Manufacturer: Realtek
->>>>>>>
->>>>>>
->>>>>> Seems to be Realtek RTL2832U. Add that USB ID to the driver and test.
->>>>>> It is very high probability it starts working.
->>>>>>
->>>>>> Here is the patch:
->>>>>>
->>>>>>
->>>>>>
->>>>>> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/rtl28xxu-usb-ids
->>>>>>
->>>>>>
->>>>>>
->>>>>>
->>>>>> Please test and report.
->>>>>>
->>>>>> regards
->>>>>> Antti
->>>>>
->>>>> --
->>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>> linux-media" in
->>>>> the body of a message to majordomo@vger.kernel.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe
->>> linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Even better: simply unify all debug params into a single one, where 
+each bit means one type of debug, like what was done on other drivers.
+
+>  
+> -#define em28xx_isocdbg(fmt, arg...) \
+> +#define em28xx_usbdbg(fmt, arg...) \
+>  do {\
+> -	if (isoc_debug) { \
+> +	if (usb_debug) { \
+>  		printk(KERN_INFO "%s %s :"fmt, \
+>  			 dev->name, __func__ , ##arg); \
+>  	} \
+> @@ -161,7 +161,7 @@ static inline void buffer_filled(struct em28xx *dev,
+>  				  struct em28xx_buffer *buf)
+>  {
+>  	/* Advice that buffer was filled */
+> -	em28xx_isocdbg("[%p/%d] wakeup\n", buf, buf->vb.i);
+> +	em28xx_usbdbg("[%p/%d] wakeup\n", buf, buf->vb.i);
+>  	buf->vb.state = VIDEOBUF_DONE;
+>  	buf->vb.field_count++;
+>  	do_gettimeofday(&buf->vb.ts);
+> @@ -177,7 +177,7 @@ static inline void vbi_buffer_filled(struct em28xx *dev,
+>  				     struct em28xx_buffer *buf)
+>  {
+>  	/* Advice that buffer was filled */
+> -	em28xx_isocdbg("[%p/%d] wakeup\n", buf, buf->vb.i);
+> +	em28xx_usbdbg("[%p/%d] wakeup\n", buf, buf->vb.i);
+>  
+>  	buf->vb.state = VIDEOBUF_DONE;
+>  	buf->vb.field_count++;
+> @@ -226,9 +226,9 @@ static void em28xx_copy_video(struct em28xx *dev,
+>  	lencopy = lencopy > remain ? remain : lencopy;
+>  
+>  	if ((char *)startwrite + lencopy > (char *)outp + buf->vb.size) {
+> -		em28xx_isocdbg("Overflow of %zi bytes past buffer end (1)\n",
+> -			       ((char *)startwrite + lencopy) -
+> -			       ((char *)outp + buf->vb.size));
+> +		em28xx_usbdbg("Overflow of %zi bytes past buffer end (1)\n",
+> +			      ((char *)startwrite + lencopy) -
+> +			      ((char *)outp + buf->vb.size));
+>  		remain = (char *)outp + buf->vb.size - (char *)startwrite;
+>  		lencopy = remain;
+>  	}
+> @@ -251,7 +251,7 @@ static void em28xx_copy_video(struct em28xx *dev,
+>  
+>  		if ((char *)startwrite + lencopy > (char *)outp +
+>  		    buf->vb.size) {
+> -			em28xx_isocdbg("Overflow of %zi bytes past buffer end"
+> +			em28xx_usbdbg("Overflow of %zi bytes past buffer end"
+>  				       "(2)\n",
+>  				       ((char *)startwrite + lencopy) -
+>  				       ((char *)outp + buf->vb.size));
+> @@ -280,24 +280,24 @@ static void em28xx_copy_vbi(struct em28xx *dev,
+>  	int bytesperline;
+>  
+>  	if (dev == NULL) {
+> -		em28xx_isocdbg("dev is null\n");
+> +		em28xx_usbdbg("dev is null\n");
+>  		return;
+>  	}
+>  	bytesperline = dev->vbi_width;
+>  
+>  	if (dma_q == NULL) {
+> -		em28xx_isocdbg("dma_q is null\n");
+> +		em28xx_usbdbg("dma_q is null\n");
+>  		return;
+>  	}
+>  	if (buf == NULL) {
+>  		return;
+>  	}
+>  	if (p == NULL) {
+> -		em28xx_isocdbg("p is null\n");
+> +		em28xx_usbdbg("p is null\n");
+>  		return;
+>  	}
+>  	if (outp == NULL) {
+> -		em28xx_isocdbg("outp is null\n");
+> +		em28xx_usbdbg("outp is null\n");
+>  		return;
+>  	}
+>  
+> @@ -351,9 +351,9 @@ static inline void print_err_status(struct em28xx *dev,
+>  		break;
+>  	}
+>  	if (packet < 0) {
+> -		em28xx_isocdbg("URB status %d [%s].\n",	status, errmsg);
+> +		em28xx_usbdbg("URB status %d [%s].\n",	status, errmsg);
+>  	} else {
+> -		em28xx_isocdbg("URB packet %d, status %d [%s].\n",
+> +		em28xx_usbdbg("URB packet %d, status %d [%s].\n",
+>  			       packet, status, errmsg);
+>  	}
+>  }
+> @@ -368,7 +368,7 @@ static inline void get_next_buf(struct em28xx_dmaqueue *dma_q,
+>  	char *outp;
+>  
+>  	if (list_empty(&dma_q->active)) {
+> -		em28xx_isocdbg("No active queue to serve\n");
+> +		em28xx_usbdbg("No active queue to serve\n");
+>  		dev->usb_ctl.vid_buf = NULL;
+>  		*buf = NULL;
+>  		return;
+> @@ -396,7 +396,7 @@ static inline void vbi_get_next_buf(struct em28xx_dmaqueue *dma_q,
+>  	char *outp;
+>  
+>  	if (list_empty(&dma_q->active)) {
+> -		em28xx_isocdbg("No active queue to serve\n");
+> +		em28xx_usbdbg("No active queue to serve\n");
+>  		dev->usb_ctl.vbi_buf = NULL;
+>  		*buf = NULL;
+>  		return;
+> @@ -457,8 +457,7 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
+>  
+>  			actual_length = urb->iso_frame_desc[i].actual_length;
+>  			if (actual_length > dev->max_pkt_size) {
+> -				em28xx_isocdbg("packet bigger than "
+> -					       "packet size");
+> +				em28xx_usbdbg("packet bigger than packet size");
+>  				continue;
+>  			}
+>  
+> @@ -476,12 +475,12 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
+>  		   logic simpler. Impacts of those changes should be evaluated
+>  		 */
+>  		if (p[0] == 0x33 && p[1] == 0x95 && p[2] == 0x00) {
+> -			em28xx_isocdbg("VBI HEADER!!!\n");
+> +			em28xx_usbdbg("VBI HEADER!!!\n");
+>  			/* FIXME: Should add vbi copy */
+>  			continue;
+>  		}
+>  		if (p[0] == 0x22 && p[1] == 0x5a) {
+> -			em28xx_isocdbg("Video frame %d, length=%i, %s\n", p[2],
+> +			em28xx_usbdbg("Video frame %d, length=%i, %s\n", p[2],
+>  				       len, (p[2] & 1) ? "odd" : "even");
+>  
+>  			if (dev->progressive || !(p[2] & 1)) {
+> @@ -507,7 +506,7 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
+>  			if (p[0] != 0x88 && p[0] != 0x22) {
+>  				/* NOTE: no intermediate data packet header
+>  				 * 88 88 88 88 when using bulk transfers */
+> -				em28xx_isocdbg("frame is not complete\n");
+> +				em28xx_usbdbg("frame is not complete\n");
+>  				len = actual_length;
+>  			} else {
+>  				len = actual_length - 4;
+> @@ -569,8 +568,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
+>  
+>  			actual_length = urb->iso_frame_desc[i].actual_length;
+>  			if (actual_length > dev->max_pkt_size) {
+> -				em28xx_isocdbg("packet bigger than "
+> -					       "packet size");
+> +				em28xx_usbdbg("packet bigger than packet size");
+>  				continue;
+>  			}
+>  
+> @@ -590,7 +588,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
+>  		if (p[0] == 0x33 && p[1] == 0x95) {
+>  			dev->capture_type = 0;
+>  			dev->vbi_read = 0;
+> -			em28xx_isocdbg("VBI START HEADER!!!\n");
+> +			em28xx_usbdbg("VBI START HEADER!!!\n");
+>  			dev->cur_field = p[2];
+>  			p += 4;
+>  			len = actual_length - 4;
+> @@ -615,7 +613,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
+>  			if (dev->vbi_read >= vbi_size) {
+>  				/* We've already read all the VBI data, so
+>  				   treat the rest as video */
+> -				em28xx_isocdbg("dev->vbi_read > vbi_size\n");
+> +				em28xx_usbdbg("dev->vbi_read > vbi_size\n");
+>  			} else if ((dev->vbi_read + len) < vbi_size) {
+>  				/* This entire frame is VBI data */
+>  				if (dev->vbi_read == 0 &&
+> @@ -687,7 +685,7 @@ static inline int em28xx_urb_data_copy_vbi(struct em28xx *dev, struct urb *urb)
+>  				len -= 4;
+>  			}
+>  			if (len >= 4 && p[0] == 0x22 && p[1] == 0x5a) {
+> -				em28xx_isocdbg("Video frame %d, len=%i, %s\n",
+> +				em28xx_usbdbg("Video frame %d, len=%i, %s\n",
+>  					       p[2], len, (p[2] & 1) ?
+>  					       "odd" : "even");
+>  				p += 4;
+> @@ -837,7 +835,7 @@ static void buffer_release(struct videobuf_queue *vq,
+>  	struct em28xx_fh       *fh   = vq->priv_data;
+>  	struct em28xx          *dev  = (struct em28xx *)fh->dev;
+>  
+> -	em28xx_isocdbg("em28xx: called buffer_release\n");
+> +	em28xx_usbdbg("em28xx: called buffer_release\n");
+>  
+>  	free_buffer(vq, buf);
+>  }
 
 
 -- 
-http://palosaari.fi/
+
+Cheers,
+Mauro
