@@ -1,96 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f45.google.com ([209.85.213.45]:60206 "EHLO
-	mail-yh0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750909Ab2LRGNJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Dec 2012 01:13:09 -0500
-Received: by mail-yh0-f45.google.com with SMTP id p34so43401yhp.32
-        for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 22:13:09 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAD025yQoCiNaKvaCwvUWhk_jV70CPhV35UzV9MR6HtE+1baCxg@mail.gmail.com>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<CAD025yS5rGMbiRBdDxv=YLP6_fsQndAkr+3t29_mNhcvow_SwA@mail.gmail.com>
-	<3133576.BkqAl7V01U@avalon>
-	<CAD025yQoCiNaKvaCwvUWhk_jV70CPhV35UzV9MR6HtE+1baCxg@mail.gmail.com>
-Date: Tue, 18 Dec 2012 11:43:08 +0530
-Message-ID: <CAD025yTK6pBHR41hqPQAXHcDhB7s6OE-Z1nHPF0DU1WbBiEXaw@mail.gmail.com>
-Subject: Re: [RFC v2 0/5] Common Display Framework
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:17847 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752260Ab2LVXmw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Dec 2012 18:42:52 -0500
+Date: Sat, 22 Dec 2012 21:42:24 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Roland Scheidegger <rscheidegger_lists@hispeed.ch>
+Cc: linux-media@vger.kernel.org
+Subject: Re: terratec h5 rev. 3?
+Message-ID: <20121222214224.409ed60a@redhat.com>
+In-Reply-To: <50D62544.5060708@hispeed.ch>
+References: <50D3F5A8.5010903@hispeed.ch>
+	<50D62544.5060708@hispeed.ch>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+Em Sat, 22 Dec 2012 22:25:24 +0100
+Roland Scheidegger <rscheidegger_lists@hispeed.ch> escreveu:
 
-On 17 December 2012 20:55, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
->
-> Hi Vikas,
->
-> Sorry for the late reply. I now have more time to work on CDF, so delays
-> should be much shorter.
->
-> On Thursday 06 December 2012 10:51:15 Vikas Sajjan wrote:
-> > Hi Laurent,
-> >
-> > I was thinking of porting CDF to samsung EXYNOS 5250 platform, what I found
-> > is that, the exynos display controller is MIPI DSI based controller.
-> >
-> > But if I look at CDF patches, it has only support for MIPI DBI based Display
-> > controller.
-> >
-> > So my question is, do we have any generic framework for MIPI DSI based
-> > display controller? basically I wanted to know, how to go about porting CDF
-> > for such kind of display controller.
->
-> MIPI DSI support is not available yet. The only reason for that is that I
-> don't have any MIPI DSI hardware to write and test the code with :-)
->
-> The common display framework should definitely support MIPI DSI. I think the
-> existing MIPI DBI code could be used as a base, so the implementation
-> shouldn't be too high.
->
-Yeah, i was also thinking in similar lines, below is my though for
-MIPI DSI support in CDF.
+> Am 21.12.2012 06:38, schrieb linux-media-owner@vger.kernel.org:
+> > Hi,
+> > 
+> > I've recently got a terratec h5 for dvb-c and thought it would be
+> > supported but it looks like it's a newer revision not recognized by em28xx.
+> > After using the new_id hack it gets recognized and using various htc
+> > cards (notably h5 or cinergy htc stick, cards 79 and 82 respectively) it
+> > seems to _nearly_ work but not quite (I was using h5 firmware for the
+> > older version). Tuning, channel scan works however tv (or dvb radio)
+> > does not, since it appears the error rate is going through the roof
+> > (with some imagination it is possible to see some parts of the picture
+> > sometimes and hear some audio pieces). femon tells something like this:
+> 
+> <snip>
+> Hmm actually it doesn't work any better at all with windows neither, so
+> I guess it doesn't like my cable signal (I do have another mantis-based
+> pci dvb-c card which works without issue). Maybe the tuner is just crappy.
+> So I guess it wouldn't hurt to simply add the usb id of this card
+> (0ccd:10b6) as another terratec h5 (this doesn't get you the IR but it's
+> a start I guess).
+> The dvb-t part though works without issue on windows, and I could not
+> get that to work in linux (I've used kaffeine and dvb-fe-tool to force
+> the dvbt delivery system if that's supposed to work). When scanning the
+> right frequency it spew out some error messages though:
+> DvbScanFilter::timerEvent: timeout while reading section; type = 0 pid = 0
+> kaffeine(7527) DvbScanFilter::timerEvent: timeout while reading section;
+> type = 2 pid = 17
 
-o   MIPI DSI support as part of CDF framework will expose
+If DVB-T is also not working, then I suspect that the device is different
+than the previous revisions. There are two ways to connect the DRX-K with
+em28xx: serial or parallel. Maybe you need to touch that.
 
-    > mipi_dsi_register_device(mpi_device) (will be called mach-xxx-dt.c file )
-
-   > mipi_dsi_register_driver(mipi_driver, bus ops) (will be called
-from platform specific init driver call )
-
-·       bus ops will be
-     o   read data
-     o   write data
-     o   write command
-
->  MIPI DSI will be registered as bus_register()
-
-When MIPI DSI probe is called, it (e.g., Exynos or OMAP MIPI DSI) will
-initialize the MIPI DSI HW IP.
-
- This probe will also parse the DT file for MIPI DSI based panel, add
-the panel device (device_add() ) to kernel and register the display
-entity with its control and  video ops with CDF.
->
-> I can give this a try. Does the existing Exynos 5250 driver support MIPI DSI ?
-> Is the device documentation publicly available ? Can you point me to a MIPI
-> DSI panel with public documentation (preferably with an existing mainline
-> driver if possible) ?
->
- yeah, existing Exynos 5250 driver support MIPI DSI ass well as eDP.
- i think device documentation is NOT available publicly.
-
+The better would be to sniff the usb traffic using the tools at v4l-utils.git
+and see what's happening there.
+> 
+> Roland
+> 
 > --
-> Regards,
->
-> Laurent Pinchart
->
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
 -- 
-Thanks and Regards
- Vikas Sajjan
+
+Cheers,
+Mauro
