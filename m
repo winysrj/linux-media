@@ -1,103 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:46363 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755955Ab2LNPXy (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:33231 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751113Ab2LVOKF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Dec 2012 10:23:54 -0500
-Received: by mail-bk0-f46.google.com with SMTP id q16so1805139bkw.19
-        for <linux-media@vger.kernel.org>; Fri, 14 Dec 2012 07:23:52 -0800 (PST)
-Message-ID: <50CB4494.2060501@googlemail.com>
-Date: Fri, 14 Dec 2012 16:24:04 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+	Sat, 22 Dec 2012 09:10:05 -0500
+Received: by mail-ee0-f46.google.com with SMTP id e53so2966475eek.33
+        for <linux-media@vger.kernel.org>; Sat, 22 Dec 2012 06:10:04 -0800 (PST)
+Message-ID: <50D5BDAE.4030502@googlemail.com>
+Date: Sat, 22 Dec 2012 15:03:26 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/9] em28xx: refactor the frame data processing code
-References: <1354980692-3791-1-git-send-email-fschaefer.oss@googlemail.com> <CAGoCfiw1wN+KgvNLqDSmbz5AwswPT9K48XOM4RnfKvHkmmR59g@mail.gmail.com> <50CA16EB.7060201@googlemail.com> <CAGoCfixtaQ4Jj2dW7XaAzcqEBTDj3xRnO_iCP=kOnhaxYwO2rw@mail.gmail.com>
-In-Reply-To: <CAGoCfixtaQ4Jj2dW7XaAzcqEBTDj3xRnO_iCP=kOnhaxYwO2rw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] em28xx: input: fix oops on device removal
+References: <1355416457-19692-1-git-send-email-fschaefer.oss@googlemail.com> <50D48126.8050307@googlemail.com> <20121221213541.2dda362d@redhat.com>
+In-Reply-To: <20121221213541.2dda362d@redhat.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 13.12.2012 19:16, schrieb Devin Heitmueller:
-> On Thu, Dec 13, 2012 at 12:56 PM, Frank Sch�fer
-> <fschaefer.oss@googlemail.com> wrote:
->> Am 13.12.2012 18:36, schrieb Devin Heitmueller:
->>> On Sat, Dec 8, 2012 at 10:31 AM, Frank Sch�fer
->>> <fschaefer.oss@googlemail.com> wrote:
->>>> This patch series refactors the frame data processing code in em28xx-video.c to
->>>> - reduce code duplication
->>>> - fix a bug in vbi data processing
->>>> - prepare for adding em25xx/em276x frame data processing support
->>>> - clean up the code and make it easier to understand
->>> Hi Frank,
+Am 22.12.2012 00:35, schrieb Mauro Carvalho Chehab:
+> Em Fri, 21 Dec 2012 16:32:54 +0100
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>
+>> Am 13.12.2012 17:34, schrieb Frank Schäfer:
+>>> When em28xx_ir_init() fails du to an error in em28xx_ir_change_protocol(), it
+>>> frees the memory of struct em28xx_IR *ir, but doesn't set the corresponding
+>>> pointer in the device struct to NULL.
+>>> On device removal, em28xx_ir_fini() gets called, which then calls
+>>> rc_unregister_device() with a pointer to freed memory.
 >>>
->>> Do you have these patches in a git tree somewhere that I can do a git
->>> pull from?  If not then that's fine - I'll just save off the patches
->>> and apply them by hand.
->> No, I have no public git tree.
->>
->>> I've basically got your patches, fixes Hans did for v4l2 compliance,
->>> and I've got a tree that converts the driver to videobuf2 (which
->>> obviously heavily conflicts with the URB handler cleanup you did).
->>> Plan is to suck them all into a single tree, deal with the merge
->>> issues, then issue a pull request to Mauro.
->> Ahhh, videobuf2 !
->> Good to know, because I've put this on my TODO list... ;)
-> It's harder than it looks.  There are currently no other devices
-> ported to vb2 which have VBI and/or radio devices.  Hence I have to
-> refactor the locking a bit (since the URB callback feeds two different
-> VB2 queues).  In other words, there's no other driver to look at as a
-> model and copy the business logic from.
+>>> Fixes bug 26572 (http://bugzilla.kernel.org/show_bug.cgi?id=26572)
+>>>
+>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>>>
+>>> Cc: stable@kernel.org	# at least all kernels since 2.6.32 (incl.)
+>>> ---
+>>>  drivers/media/usb/em28xx/em28xx-input.c |    9 ++++-----
+>>>  1 Datei geändert, 4 Zeilen hinzugefügt(+), 5 Zeilen entfernt(-)
+>>>
+>>> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+>>> index 660bf80..5c7d768 100644
+>>> --- a/drivers/media/usb/em28xx/em28xx-input.c
+>>> +++ b/drivers/media/usb/em28xx/em28xx-input.c
+>>> @@ -538,7 +538,7 @@ static int em28xx_ir_init(struct em28xx *dev)
+>>>  	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+>>>  	rc = rc_allocate_device();
+>>>  	if (!ir || !rc)
+>>> -		goto err_out_free;
+>>> +		goto error;
+>>>  
+>>>  	/* record handles to ourself */
+>>>  	ir->dev = dev;
+>>> @@ -559,7 +559,7 @@ static int em28xx_ir_init(struct em28xx *dev)
+>>>  	rc_type = RC_BIT_UNKNOWN;
+>>>  	err = em28xx_ir_change_protocol(rc, &rc_type);
+>>>  	if (err)
+>>> -		goto err_out_free;
+>>> +		goto error;
+>>>  
+>>>  	/* This is how often we ask the chip for IR information */
+>>>  	ir->polling = 100; /* ms */
+>>> @@ -584,7 +584,7 @@ static int em28xx_ir_init(struct em28xx *dev)
+>>>  	/* all done */
+>>>  	err = rc_register_device(rc);
+>>>  	if (err)
+>>> -		goto err_out_stop;
+>>> +		goto error;
+>>>  
+>>>  	em28xx_register_i2c_ir(dev);
+>>>  
+>>> @@ -597,9 +597,8 @@ static int em28xx_ir_init(struct em28xx *dev)
+>>>  
+>>>  	return 0;
+>>>  
+>>> - err_out_stop:
+>>> +error:
+>>>  	dev->ir = NULL;
+>>> - err_out_free:
+>>>  	rc_free_device(rc);
+>>>  	kfree(ir);
+>>>  	return err;
+>> Ping !?
+>> Mauro, this patch is really easy to review and it fixes a 2 years old bug...
+>> Isn't this one of those patches that should be applied immediately ?
+> This one is not on my queue... Patchwork doesn't seem to catch it:
+>
+> http://patchwork.linuxtv.org/project/linux-media/list/?submitter=44&state=*
 
-Yeah, that's one of the reasons why I decided to do it later ;)
+Hmm... I didn't notice that.
+
+> Hmm... perhaps it is due to the accent on your name. Weird that it got
+> other patches from you. You should likely thank python for discriminating
+> e-mails with accents.
+
+My first guess would be the cc line. Maybe the comment confused patchwork...
+
+> Could you please try to re-submit it being sure that your email got
+> properly encoded with UTF-8?
+
+Sure, but 've definitely sent it UTF-8 encoded last time (using git
+send-email).
 
 >
->> Yes, there will likely be heavy merge conflicts...
->> In which tree are the videobuf2 patches ?
-> It's in a private tree right now, and it doesn't support VBI
-> currently.  Once I've setup a public tree with yours and Hans changes,
-> I'll start merging in my changes.
+> Regards,
+> Mauro
+>
+> PS.: my intention is to try to merge tomorrow all em28xx patches.
 
-I suggest to do the conversion on top of my patches, as they should make
-things much easier for you.
-I unified the handling of the VBI and video buffers, leaving just a few
-common functions dealing with the videobuf stuff.
-
-In any case, we should develop against a common tree with a minimum
-number of pending patches.
-And we should coordinate development.
-I don't work on further changes of the frame processing stuff at the moment.
-Some I2C fixes/changes will be next. After that, I will try to fix
-support for remote controls with external IR IC (connected via i2c).
-
-> Obviously it would be great for you to test with your webcam and make
-> sure I didn't break anything along the way.
-
-Sure, I will be glad to test your changes.
-
-> I've also got changes to support V4L2_FIELD_SEQ_TB, which is needed in
-> order to take the output and feed to certain hardware deinterlacers.
-> In reality this is pretty much just a matter of treating the video
-> data as progressive but changing the field type indicator.
-
-Ok, so I assume most of the changes will happen in em28xx_copy_video().
-Maybe we can then use a common copy function for video and VBI. Placing
-the field data sequentially in the videobuf is what we already do with
-the VBI data in em28xx_copy_vbi()
+Great !
 
 Regards,
 Frank
-
-> I'm generally pretty easy to find in #linuxtv or #v4l if you want to
-> discuss further.
->
-> Cheers,
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
-
