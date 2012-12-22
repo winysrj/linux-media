@@ -1,168 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25052 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:3905 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755943Ab2LOM3f (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Dec 2012 07:29:35 -0500
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id qBFCTZMQ020694
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 15 Dec 2012 07:29:35 -0500
+	id S1751722Ab2LVQyR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Dec 2012 11:54:17 -0500
+Date: Sat, 22 Dec 2012 14:53:52 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] [media] em28xx: add support for NEC proto variants on em2874 and upper
-Date: Sat, 15 Dec 2012 10:29:11 -0200
-Message-Id: <1355574552-18472-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1355574552-18472-1-git-send-email-mchehab@redhat.com>
-References: <1355574552-18472-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] em28xx: input: fix oops on device removal
+Message-ID: <20121222145352.3bac5b64@redhat.com>
+In-Reply-To: <50D5BDAE.4030502@googlemail.com>
+References: <1355416457-19692-1-git-send-email-fschaefer.oss@googlemail.com>
+	<50D48126.8050307@googlemail.com>
+	<20121221213541.2dda362d@redhat.com>
+	<50D5BDAE.4030502@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-By disabling the NEC parity check, it is possible to handle all 3 NEC
-protocol variants (32, 24 or 16 bits).
+Em Sat, 22 Dec 2012 15:03:26 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-Change the driver in order to handle all of them.
+> Am 22.12.2012 00:35, schrieb Mauro Carvalho Chehab:
+> > Em Fri, 21 Dec 2012 16:32:54 +0100
+> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+> >
+> >> Am 13.12.2012 17:34, schrieb Frank Schäfer:
+> >>> When em28xx_ir_init() fails du to an error in em28xx_ir_change_protocol(), it
+> >>> frees the memory of struct em28xx_IR *ir, but doesn't set the corresponding
+> >>> pointer in the device struct to NULL.
+> >>> On device removal, em28xx_ir_fini() gets called, which then calls
+> >>> rc_unregister_device() with a pointer to freed memory.
+> >>>
+> >>> Fixes bug 26572 (http://bugzilla.kernel.org/show_bug.cgi?id=26572)
+> >>>
+> >>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> >>>
+> >>> Cc: stable@kernel.org	# at least all kernels since 2.6.32 (incl.)
+> >>> ---
+> >>>  drivers/media/usb/em28xx/em28xx-input.c |    9 ++++-----
+> >>>  1 Datei geändert, 4 Zeilen hinzugefügt(+), 5 Zeilen entfernt(-)
+> >>>
+> >>> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+> >>> index 660bf80..5c7d768 100644
+> >>> --- a/drivers/media/usb/em28xx/em28xx-input.c
+> >>> +++ b/drivers/media/usb/em28xx/em28xx-input.c
+> >>> @@ -538,7 +538,7 @@ static int em28xx_ir_init(struct em28xx *dev)
+> >>>  	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+> >>>  	rc = rc_allocate_device();
+> >>>  	if (!ir || !rc)
+> >>> -		goto err_out_free;
+> >>> +		goto error;
+> >>>  
+> >>>  	/* record handles to ourself */
+> >>>  	ir->dev = dev;
+> >>> @@ -559,7 +559,7 @@ static int em28xx_ir_init(struct em28xx *dev)
+> >>>  	rc_type = RC_BIT_UNKNOWN;
+> >>>  	err = em28xx_ir_change_protocol(rc, &rc_type);
+> >>>  	if (err)
+> >>> -		goto err_out_free;
+> >>> +		goto error;
+> >>>  
+> >>>  	/* This is how often we ask the chip for IR information */
+> >>>  	ir->polling = 100; /* ms */
+> >>> @@ -584,7 +584,7 @@ static int em28xx_ir_init(struct em28xx *dev)
+> >>>  	/* all done */
+> >>>  	err = rc_register_device(rc);
+> >>>  	if (err)
+> >>> -		goto err_out_stop;
+> >>> +		goto error;
+> >>>  
+> >>>  	em28xx_register_i2c_ir(dev);
+> >>>  
+> >>> @@ -597,9 +597,8 @@ static int em28xx_ir_init(struct em28xx *dev)
+> >>>  
+> >>>  	return 0;
+> >>>  
+> >>> - err_out_stop:
+> >>> +error:
+> >>>  	dev->ir = NULL;
+> >>> - err_out_free:
+> >>>  	rc_free_device(rc);
+> >>>  	kfree(ir);
+> >>>  	return err;
+> >> Ping !?
+> >> Mauro, this patch is really easy to review and it fixes a 2 years old bug...
+> >> Isn't this one of those patches that should be applied immediately ?
+> > This one is not on my queue... Patchwork doesn't seem to catch it:
+> >
+> > http://patchwork.linuxtv.org/project/linux-media/list/?submitter=44&state=*
+> 
+> Hmm... I didn't notice that.
 
-Unfortunately, em2860/em2863 provide only 16 bits for the IR scancode,
-even when NEC parity is disabled. So, this change should affect only
-em2874 and newer devices, with provides up to 32 bits for the scancode.
+In any case, FYI, I typically don't even read any emails on my inbox with
+the word "PATCH" on it. I just handle whatever it is in patchwork. So, c/c me
+patches won't work, and just annoys me ;)
 
-Tested with one NEC-16, one NEC-24 and one RC5 IR.
+Instead, you need to check a few mins after posting a patch to see if patchwork
+got it.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/usb/em28xx/em28xx-input.c | 58 +++++++++++++++++++++------------
- drivers/media/usb/em28xx/em28xx-reg.h   |  1 +
- 2 files changed, 39 insertions(+), 20 deletions(-)
+Unfortunately, patchwork doesn't (yet) notify the sender when a new patch
+arrives there.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-index 660bf80..507370c 100644
---- a/drivers/media/usb/em28xx/em28xx-input.c
-+++ b/drivers/media/usb/em28xx/em28xx-input.c
-@@ -57,8 +57,8 @@ MODULE_PARM_DESC(ir_debug, "enable debug messages [IR]");
- struct em28xx_ir_poll_result {
- 	unsigned int toggle_bit:1;
- 	unsigned int read_count:7;
--	u8 rc_address;
--	u8 rc_data[4]; /* 1 byte on em2860/2880, 4 on em2874 */
-+
-+	u32 scancode;
- };
- 
- struct em28xx_IR {
-@@ -72,6 +72,7 @@ struct em28xx_IR {
- 	struct delayed_work work;
- 	unsigned int full_code:1;
- 	unsigned int last_readcount;
-+	u64 rc_type;
- 
- 	int  (*get_key)(struct em28xx_IR *, struct em28xx_ir_poll_result *);
- };
-@@ -236,11 +237,8 @@ static int default_polling_getkey(struct em28xx_IR *ir,
- 	/* Infrared read count (Reg 0x45[6:0] */
- 	poll_result->read_count = (msg[0] & 0x7f);
- 
--	/* Remote Control Address (Reg 0x46) */
--	poll_result->rc_address = msg[1];
--
--	/* Remote Control Data (Reg 0x47) */
--	poll_result->rc_data[0] = msg[2];
-+	/* Remote Control Address/Data (Regs 0x46/0x47) */
-+	poll_result->scancode = msg[1] << 8 | msg[2];
- 
- 	return 0;
- }
-@@ -266,13 +264,32 @@ static int em2874_polling_getkey(struct em28xx_IR *ir,
- 	/* Infrared read count (Reg 0x51[6:0] */
- 	poll_result->read_count = (msg[0] & 0x7f);
- 
--	/* Remote Control Address (Reg 0x52) */
--	poll_result->rc_address = msg[1];
--
--	/* Remote Control Data (Reg 0x53-55) */
--	poll_result->rc_data[0] = msg[2];
--	poll_result->rc_data[1] = msg[3];
--	poll_result->rc_data[2] = msg[4];
-+	/*
-+	 * Remote Control Address (Reg 0x52)
-+	 * Remote Control Data (Reg 0x53-0x55)
-+	 */
-+	switch (ir->rc_type) {
-+	case RC_BIT_RC5:
-+		poll_result->scancode = msg[1] << 8 | msg[2];
-+		break;
-+	case RC_BIT_NEC:
-+		if ((msg[3] ^ msg[4]) != 0xff)		/* 32 bits NEC */
-+			poll_result->scancode = (msg[1] << 24) |
-+						(msg[2] << 16) |
-+						(msg[3] << 8)  |
-+						 msg[4];
-+		else if ((msg[1] ^ msg[2]) != 0xff)	/* 24 bits NEC */
-+			poll_result->scancode = (msg[1] << 16) |
-+						(msg[2] << 8)  |
-+						 msg[3];
-+		else					/* Normal NEC */
-+			poll_result->scancode = msg[1] << 8 | msg[3];
-+		break;
-+	default:
-+		poll_result->scancode = (msg[1] << 24) | (msg[2] << 16) |
-+					(msg[3] << 8)  | msg[4];
-+		break;
-+	}
- 
- 	return 0;
- }
-@@ -294,17 +311,16 @@ static void em28xx_ir_handle_key(struct em28xx_IR *ir)
- 	}
- 
- 	if (unlikely(poll_result.read_count != ir->last_readcount)) {
--		dprintk("%s: toggle: %d, count: %d, key 0x%02x%02x\n", __func__,
-+		dprintk("%s: toggle: %d, count: %d, key 0x%04x\n", __func__,
- 			poll_result.toggle_bit, poll_result.read_count,
--			poll_result.rc_address, poll_result.rc_data[0]);
-+			poll_result.scancode);
- 		if (ir->full_code)
- 			rc_keydown(ir->rc,
--				   poll_result.rc_address << 8 |
--				   poll_result.rc_data[0],
-+				   poll_result.scancode,
- 				   poll_result.toggle_bit);
- 		else
- 			rc_keydown(ir->rc,
--				   poll_result.rc_data[0],
-+				   poll_result.scancode & 0xff,
- 				   poll_result.toggle_bit);
- 
- 		if (ir->dev->chip_id == CHIP_ID_EM2874 ||
-@@ -360,12 +376,14 @@ static int em28xx_ir_change_protocol(struct rc_dev *rc_dev, u64 *rc_type)
- 		*rc_type = RC_BIT_RC5;
- 	} else if (*rc_type & RC_BIT_NEC) {
- 		dev->board.xclk &= ~EM28XX_XCLK_IR_RC5_MODE;
--		ir_config = EM2874_IR_NEC;
-+		ir_config = EM2874_IR_NEC | EM2874_IR_NEC_NO_PARITY;
- 		ir->full_code = 1;
- 		*rc_type = RC_BIT_NEC;
- 	} else if (*rc_type != RC_BIT_UNKNOWN)
- 		rc = -EINVAL;
- 
-+	ir->rc_type = *rc_type;
-+
- 	em28xx_write_reg_bits(dev, EM28XX_R0F_XCLK, dev->board.xclk,
- 			      EM28XX_XCLK_IR_RC5_MODE);
- 
-diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
-index 6ff3682..2ad3573 100644
---- a/drivers/media/usb/em28xx/em28xx-reg.h
-+++ b/drivers/media/usb/em28xx/em28xx-reg.h
-@@ -177,6 +177,7 @@
- 
- /* em2874 IR config register (0x50) */
- #define EM2874_IR_NEC           0x00
-+#define EM2874_IR_NEC_NO_PARITY 0x01
- #define EM2874_IR_RC5           0x04
- #define EM2874_IR_RC6_MODE_0    0x08
- #define EM2874_IR_RC6_MODE_6A   0x0b
--- 
-1.7.11.7
+> > Hmm... perhaps it is due to the accent on your name. Weird that it got
+> > other patches from you. You should likely thank python for discriminating
+> > e-mails with accents.
+> 
+> My first guess would be the cc line. Maybe the comment confused patchwork...
 
+It shouldn't. C/c should be accepted properly.
+
+My guess is that it is related to accents. Patchwork has a very bad history
+with accented e-mails: python has a very bad habit of aborting any script 
+if an unknown character is detected. There are lots of patches inside
+patchwork's git tree to fix it, but there are still some cases where python
+insists to die with accented chars.
+
+> > Could you please try to re-submit it being sure that your email got
+> > properly encoded with UTF-8?
+> 
+> Sure, but 've definitely sent it UTF-8 encoded last time (using git
+> send-email).
+
+Your second patch arrived there fine. Thanks!
+
+Mauro
