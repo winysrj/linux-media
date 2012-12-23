@@ -1,133 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50630 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752360Ab2LQO52 (ORCPT
+Received: from mail-ea0-f182.google.com ([209.85.215.182]:32902 "EHLO
+	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751576Ab2LWNeL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Dec 2012 09:57:28 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Tom Gall <tom.gall@linaro.org>,
-	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC v2 0/5] Common Display Framework
-Date: Mon, 17 Dec 2012 15:58:43 +0100
-Message-ID: <2541365.P6Gsa5p3NZ@avalon>
-In-Reply-To: <20121123195607.GA20990@avionic-0098.adnet.avionic-design.de>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <20121123195607.GA20990@avionic-0098.adnet.avionic-design.de>
+	Sun, 23 Dec 2012 08:34:11 -0500
+Received: by mail-ea0-f182.google.com with SMTP id a14so2626885eaa.13
+        for <linux-media@vger.kernel.org>; Sun, 23 Dec 2012 05:34:10 -0800 (PST)
+Message-ID: <50D70864.4070903@googlemail.com>
+Date: Sun, 23 Dec 2012 14:34:28 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart2988743.Jr5vB5y2I3"; micalg="pgp-sha1"; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7Bit
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 16/21] em28xx: rename usb debugging module parameter
+ and macro
+References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com> <1352398313-3698-17-git-send-email-fschaefer.oss@googlemail.com> <20121222181019.775f8c3f@redhat.com>
+In-Reply-To: <20121222181019.775f8c3f@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Am 22.12.2012 21:10, schrieb Mauro Carvalho Chehab:
+> Em Thu,  8 Nov 2012 20:11:48 +0200
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>
+>> Rename module parameter isoc_debug to usb_debug and macro
+>> em28xx_isocdbg to em28xx_usb dbg to reflect that they are
+>> used for isoc and bulk USB transfers.
+>>
+>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>> ---
+>>  drivers/media/usb/em28xx/em28xx-video.c |   58 +++++++++++++++----------------
+>>  1 Datei geändert, 28 Zeilen hinzugefügt(+), 30 Zeilen entfernt(-)
+>>
+>> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+>> index d6de1cc..f435206 100644
+>> --- a/drivers/media/usb/em28xx/em28xx-video.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+>> @@ -58,13 +58,13 @@
+>>  		printk(KERN_INFO "%s %s :"fmt, \
+>>  			 dev->name, __func__ , ##arg); } while (0)
+>>  
+>> -static unsigned int isoc_debug;
+>> -module_param(isoc_debug, int, 0644);
+>> -MODULE_PARM_DESC(isoc_debug, "enable debug messages [isoc transfers]");
+>> +static unsigned int usb_debug;
+>> +module_param(usb_debug, int, 0644);
+>> +MODULE_PARM_DESC(usb_debug, "enable debug messages [isoc transfers]");
+> NACK: usb_debug is too generic: it could refer to control URB's, stream
+> URB's, and other non-URB related USB debugging.
 
---nextPart2988743.Jr5vB5y2I3
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Depends on what you think should be the role of this debug parameter.
 
-Hi Thierry,
+> Also, it can cause some harm for the ones using it.
+>
+> As the rest of this series don't depend on this one, I'll just skip it.
+>
+> IMHO, the better is to either live it as-is, to avoid breaking for
+> someone with "isoc_debug" parameter on their /etc/modprobe.d, or to
+> do a "deprecate" path:
+>
+> 	- adding a new one called "stream_debug" (or something like that);
+> 	- keep the old one for a while, printing a warning message to
+> point that this got removed; 
+> 	- after a few kernel cycles, remove the legacy one.
 
-On Friday 23 November 2012 20:56:07 Thierry Reding wrote:
-> On Thu, Nov 22, 2012 at 10:45:31PM +0100, Laurent Pinchart wrote:
-> [...]
-> 
-> > Display entities are accessed by driver using notifiers. Any driver can
-> > register a display entity notifier with the CDF, which then calls the
-> > notifier when a matching display entity is registered. The reason for
-> > this asynchronous mode of operation, compared to how drivers acquire
-> > regulator or clock resources, is that the display entities can use
-> > resources provided by the display driver. For instance a panel can be a
-> > child of the DBI or DSI bus controlled by the display device, or use a
-> > clock provided by that device. We can't defer the display device probe
-> > until the panel is registered and also defer the panel device probe until
-> > the display is registered. As most display drivers need to handle output
-> > devices hotplug (HDMI monitors for instance), handling other display
-> > entities through a notification system seemed to be the easiest solution.
-> > 
-> > Note that this brings a different issue after registration, as display
-> > controller and display entity drivers would take a reference to each
-> > other. Those circular references would make driver unloading impossible.
-> > One possible solution to this problem would be to simulate an unplug event
-> > for the display entity, to force the display driver to release the dislay
-> > entities it uses. We would need a userspace API for that though. Better
-> > solutions would of course be welcome.
-> 
-> Maybe I don't understand all of the underlying issues correctly, but a
-> parent/child model would seem like a better solution to me. We discussed
-> this back when designing the DT bindings for Tegra DRM and came to the
-> conclusion that the output resource of the display controller (RGB,
-> HDMI, DSI or TVO) was the most suitable candidate to be the parent of
-> the panel or display attached to it. The reason for that decision was
-> that it keeps the flow of data or addressing of nodes consistent. So the
-> chain would look something like this (on Tegra):
-> 
-> 	CPU
-> 	+-host1x
-> 	  +-dc
-> 	    +-rgb
-> 	    | +-panel
-> 	    +-hdmi
-> 	      +-monitor
-> 
-> In a natural way this makes the output resource the master of the panel
-> or display. From a programming point of view this becomes quite easy to
-> implement and is very similar to how other busses like I2C or SPI are
-> modelled. In device tree these would be represented as subnodes, while
-> with platform data some kind of lookup could be done like for regulators
-> or alternatively a board setup registration mechanism like what's in
-> place for I2C or SPI.
+So module parameters are part of the API ? Hmmm... that's new to me.
 
-That works well for panels that have a shared control and video bus (DBI, DSI) 
-or only a video bus (DPI), but breaks when you need to support panels with 
-separate control and video busses, such as panels with a parallel data bus and 
-an I2C or SPI control bus.
+> Even better: simply unify all debug params into a single one, where 
+> each bit means one type of debug, like what was done on other drivers.
 
-Both Linux and DT have a tree-based device model. Devices can have a single 
-parent, so you can't represent your panel as a child of both the video source 
-and the control bus master. We have the exact same problem in V4L2 with I2C 
-camera sensors that output video data on a separate parallel or serial bus, 
-and we decided to handle the device as a child of its control bus master. This 
-model makes usage of the Linux power management model easier (but not 
-straightforward when power management dependencies exist across video busses, 
-outside of the kernel device tree).
+Yeah, I agree, that would be the best solution.
+The whole debugging code could need an overhault, but I really can't do
+that all at once.
 
-As the common display framework should handle both panels with common control 
-and video busses and panels with separate busses in a similar fashion, DT 
-bindings needs to reference the panel through a phandle, even though in some 
-cases they could technically just be children of the display controller.
-
--- 
 Regards,
+Frank
 
-Laurent Pinchart
-
---nextPart2988743.Jr5vB5y2I3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQEcBAABAgAGBQJQzzMjAAoJEIkPb2GL7hl1JYQIAIQXvi0KWU7ltksU7wh3Su7H
-f0y8EydbKgXxgs9ZY83GMpTwDpBdWZR6rLN+FuJejKiKhxZuVJ6tn00K2U+dY3KL
-VZQW3qbmP0AXuYN67mRUiBnKdwsZi6ItyNwwJTYNwKW8i1QlLV+NMW0yfyebWyGK
-edN3FS1kgrmckUBRy32oe2+krfhHqDq5y7f1wp86QEg9M7WjBsZ40pFRlGhHKUfD
-JdUdQbQPg6UztfMaJ/WeNaVCCD2VH/9rhMRGLp5NDTpxA/dOXfMttSvl5C9WEx6e
-et1EfjfyYmw30VTIJnCQpOgSZgDG6u9qAvXdswQ/2EqlLWWSb3lpxdOMhuKkZGI=
-=y6qr
------END PGP SIGNATURE-----
-
---nextPart2988743.Jr5vB5y2I3--
 
