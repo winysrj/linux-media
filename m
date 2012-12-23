@@ -1,173 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:61572 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751625Ab2LKI5S convert rfc822-to-8bit (ORCPT
+Received: from mail-ee0-f42.google.com ([74.125.83.42]:40031 "EHLO
+	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751113Ab2LWOBJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Dec 2012 03:57:18 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH RFC v2] media: v4l2-ctrl: Add gain controls
-Date: Tue, 11 Dec 2012 09:56:42 +0100
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	LDOC <linux-doc@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Chris MacGregor <chris@cybermato.com>,
-	Rob Landley <rob@landley.net>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <1354708169-1139-1-git-send-email-prabhakar.csengg@gmail.com> <CA+V-a8t+KxCYunkrT715zQks=5HOrFk2PSM2Ss_kTj4iXg=PJg@mail.gmail.com> <20121206095431.GA2887@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20121206095431.GA2887@valkosipuli.retiisi.org.uk>
+	Sun, 23 Dec 2012 09:01:09 -0500
+Received: by mail-ee0-f42.google.com with SMTP id c41so3130510eek.15
+        for <linux-media@vger.kernel.org>; Sun, 23 Dec 2012 06:01:07 -0800 (PST)
+Message-ID: <50D70EB6.3040409@googlemail.com>
+Date: Sun, 23 Dec 2012 15:01:26 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201212110956.43081.hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 21/21] em28xx: add module parameter for selection of
+ the preferred USB transfer type
+References: <1352398313-3698-1-git-send-email-fschaefer.oss@googlemail.com> <1352398313-3698-22-git-send-email-fschaefer.oss@googlemail.com> <20121223114413.6d2c7dc1@redhat.com>
+In-Reply-To: <20121223114413.6d2c7dc1@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 6 December 2012 10:54:32 Sakari Ailus wrote:
-> Hi Prabhakar and Hans,
-> 
-> On Thu, Dec 06, 2012 at 10:24:18AM +0530, Prabhakar Lad wrote:
-> > Hi Hans,
-> > 
-> > On Wed, Dec 5, 2012 at 5:38 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > > (resend without HTML formatting)
-> > >
-> > > On Wed 5 December 2012 12:49:29 Prabhakar Lad wrote:
-> > >> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> > >>
-> > >> add support for per color component digital/analog gain controls
-> > >> and also their corresponding offset.
-> > >
-> > > Some obvious questions below...
-> > >
-> > >>
-> > >> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> > >> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> > >> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > >> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> > >> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > >> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> > >> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> > >> Cc: Hans de Goede <hdegoede@redhat.com>
-> > >> Cc: Chris MacGregor <chris@cybermato.com>
-> > >> Cc: Rob Landley <rob@landley.net>
-> > >> Cc: Jeongtae Park <jtp.park@samsung.com>
-> > >> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> > >> ---
-> > >>  Changes for v2:
-> > >>  1: Fixed review comments pointed by Laurent.
-> > >>  2: Rebased on latest tree.
-> > >>
-> > >>  Documentation/DocBook/media/v4l/controls.xml |   54 ++++++++++++++++++++++++++
-> > >>  drivers/media/v4l2-core/v4l2-ctrls.c         |   11 +++++
-> > >>  include/uapi/linux/v4l2-controls.h           |   11 +++++
-> > >>  3 files changed, 76 insertions(+), 0 deletions(-)
-> > >>
-> > >> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> > >> index 7fe5be1..847a9bb 100644
-> > >> --- a/Documentation/DocBook/media/v4l/controls.xml
-> > >> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> > >> @@ -4543,6 +4543,60 @@ interface and may change in the future.</para>
-> > >>           specific test patterns can be used to test if a device is working
-> > >>           properly.</entry>
-> > >>         </row>
-> > >> +       <row>
-> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_RED</constant></entry>
-> > >> +         <entry>integer</entry>
-> > >> +       </row>
-> > >> +       <row>
-> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN_RED</constant></entry>
-> > >> +         <entry>integer</entry>
-> > >> +       </row>
-> > >> +       <row>
-> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN_BLUE</constant></entry>
-> > >> +         <entry>integer</entry>
-> > >> +       </row>
-> > >> +       <row>
-> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_BLUE</constant></entry>
-> > >> +         <entry>integer</entry>
-> > >> +       </row>
-> > >> +       <row>
-> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_GREEN</constant></entry>
-> > >> +         <entry>integer</entry>
-> > >> +       </row>
-> > >> +       <row>
-> > >> +         <entry spanname="descr"> Some capture/sensor devices have
-> > >> +         the capability to set per color component digital/analog gain values.</entry>
-> > >> +       </row>
-> > >> +       <row>
-> > >> +         <entry spanname="id"><constant>V4L2_CID_GAIN_OFFSET</constant></entry>
-> > >> +         <entry>integer</entry>
-> > >> +       </row>
-> > >> +       <row>
-> > >> +         <entry spanname="id"><constant>V4L2_CID_BLUE_OFFSET</constant></entry>
-> > >> +         <entry>integer</entry>
-> > >> +       </row>
-> > >> +       <row>
-> > >> +         <entry spanname="id"><constant>V4L2_CID_RED_OFFSET</constant></entry>
-> > >> +         <entry>integer</entry>
-> > >> +       </row>
-> > >> +       <row>
-> > >> +         <entry spanname="id"><constant>V4L2_CID_GREEN_OFFSET</constant></entry>
-> > >> +         <entry>integer</entry>
-> > >> +       </row>
-> > >> +       <row>
-> > >> +         <entry spanname="id"><constant>V4L2_CID_GREEN_RED_OFFSET</constant></entry>
-> > >> +         <entry>integer</entry>
-> > >> +       </row>
-> > >> +       <row>
-> > >> +         <entry spanname="id"><constant>V4L2_CID_GREEN_BLUE_OFFSET</constant></entry>
-> > >> +         <entry>integer</entry>
-> > >> +       </row>
-> > >> +       <row>
-> > >> +         <entry spanname="descr"> Some capture/sensor devices have the
-> > >> +         capability to set per color component digital/analog gain offset values.
-> > >> +         V4L2_CID_GAIN_OFFSET is the global gain offset and the rest are per
-> > >> +         color component gain offsets.</entry>
-> > >
-> > > If I set both V4L2_CID_GAIN_RED and V4L2_CID_RED_OFFSET, how are they supposed
-> > > to interact? Or are they mutually exclusive?
-> > >
-> > > And if I set both V4L2_CID_GAIN_OFFSET and V4L2_CID_RED_OFFSET, how are they supposed
-> > > to interact?
-> > >
-> > > This questions should be answered in the documentation...
-> > >
-> > I haven’t worked on the hardware which supports both, What is the general
-> > behaviour when the hardware supports both per color component and global
-> > and both of them are set ? That could be helpful for me to document.
-> 
-> I'd guess most of the time only either one is supported,
+Am 23.12.2012 14:44, schrieb Mauro Carvalho Chehab:
+> Hi Frank,
+>
+> Em Thu,  8 Nov 2012 20:11:53 +0200
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>
+>> By default, isoc transfers are used if possible.
+>> With the new module parameter, bulk can be selected as the
+>> preferred USB transfer type.
+> I did some tests yesterday with prefer_bulk. IMHO, webcams should
+> select bulk mode by default, as this allows more than one camera to
+> work at the same time (I tested yesterday with 3 Silvercrest ones on
+> my notebook). With ISOC transfers, the core won't let it to happen, as
+> a single camera reserves 51% of the max allowed isoc traffic.
 
-Are you talking about GAIN_RED vs GAIN_RED_OFFSET or GAIN_OFFSET vs RED_OFFSET?
-Or both?
+Ok. I just didn't want to change the current behavior because of
+potential regressions.
+Why not change it for all devices ? Frame data processing with bulk
+transfers has a smaller overhead than with isoc (although not really
+measurable ;) ).
 
-> and when someone
-> thinks of supporting both on the same device, we can start thinking of the
-> interaction of per-component and global ones. That may be hardware specific
-> as well, so standardising it might not be possible.
-> 
-> I think it'd be far more important to know which unit is it. Many such
-> controls are indeed fixed point values but the location of the point varies.
-> For unstance, u16,u16 and u8,u8 aren't uncommon. We currently have no way to
-> tell this to the user space. This isn't in any way specific to gain or
-> offset controls, though.
+I will send a patch after christmas.
 
-There are no standardized units for gain at the moment, and I don't really see
-that happening any time soon. Fixed point isn't supported at all as a control
-type, so that will have to be converted to an integer anyway.
+>
+>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>> ---
+>>  drivers/media/usb/em28xx/em28xx-cards.c |   11 +++++++++--
+>>  1 Datei geändert, 9 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
+>>
+>> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+>> index a9344f0..7f5b303 100644
+>> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+>> @@ -61,6 +61,11 @@ static unsigned int card[]     = {[0 ... (EM28XX_MAXBOARDS - 1)] = UNSET };
+>>  module_param_array(card,  int, NULL, 0444);
+>>  MODULE_PARM_DESC(card,     "card type");
+>>  
+>> +static unsigned int prefer_bulk;
+>> +module_param(prefer_bulk, int, 0644);
+> This needs to be changed to 0444, as prefer_bulk doesn't allow changing
+> it dynamically, as the test is done during device probe, not at stream on.
 
-Prabhakar, which of these controls are actually supported by your hardware?
+Good catch !
+Can you fix it ? I'm a bit in hurry right now.
+Otherwise I will try to send a patch tomorrow.
 
-Regards,
+Merry Christmas !
+Frank
 
-	Hans
+>
+> Regards,
+> Mauro
+
