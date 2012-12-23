@@ -1,77 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58740 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754875Ab2LRNOG (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3548 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751511Ab2LWRT6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Dec 2012 08:14:06 -0500
-Date: Tue, 18 Dec 2012 14:13:24 +0100
-From: Wolfram Sang <w.sang@pengutronix.de>
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: Jean Delvare <khali@linux-fr.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ryan Mallon <rmallon@gmail.com>, Joe Perches <joe@perches.com>,
-	walter harms <wharms@bfs.de>, ben-linux@fluff.org,
-	linux-i2c@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
-	kernel-janitors@vger.kernel.org, shubhrajyoti@ti.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 13/13] drivers/media/tuners/e4000.c: use macros for
- i2c_msg initialization
-Message-ID: <20121218131324.GE2612@pengutronix.de>
-References: <1349645970.15802.12.camel@joe-AO722>
- <alpine.DEB.2.02.1210072342460.2745@localhost6.localdomain6>
- <1349646718.15802.16.camel@joe-AO722>
- <20121007225639.364a41b4@infradead.org>
- <50723661.6040107@gmail.com>
- <alpine.DEB.2.02.1210081028340.1989@hadrien>
- <20121009203238.63d2275f@infradead.org>
- <alpine.DEB.2.02.1210110836030.2010@hadrien>
- <20121218124640.5b1e7176@endymion.delvare>
- <alpine.DEB.2.02.1212181335360.1993@hadrien>
+	Sun, 23 Dec 2012 12:19:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: cron job: media_tree daily build: ERRORS
+Date: Sun, 23 Dec 2012 18:19:45 +0100
+Cc: linux-media@vger.kernel.org
+References: <20121222204617.56D2911E00C2@alastor.dyndns.org> <20121222214059.66571fcc@redhat.com>
+In-Reply-To: <20121222214059.66571fcc@redhat.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2qXFWqzzG3v1+95a"
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1212181335360.1993@hadrien>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201212231819.45197.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sun December 23 2012 00:40:59 Mauro Carvalho Chehab wrote:
+> Em Sat, 22 Dec 2012 21:46:17 +0100 (CET)
+> "Hans Verkuil" <hverkuil@xs4all.nl> escreveu:
+> 
+> > This message is generated daily by a cron job that builds media_tree for
+> > the kernels and architectures in the list below.
+> > 
+> > Results of the daily build of media_tree:
+> > 
+> > date:        Sat Dec 22 19:00:28 CET 2012
+> > git hash:    0dae88392395e228e67436cd08f084d395b39df5
+> > gcc version:      i686-linux-gcc (GCC) 4.7.1
+> > host hardware:    x86_64
+> > host os:          3.4.07-marune
+> > 
+> > linux-git-arm-eabi-davinci: ERRORS
+> > linux-git-arm-eabi-exynos: ERRORS
+> > linux-git-arm-eabi-omap: ERRORS
+> > linux-git-i686: OK
+> > linux-git-m32r: OK
+> > linux-git-mips: OK
+> > linux-git-powerpc64: OK
+> > linux-git-sh: ERRORS
+> > linux-git-x86_64: OK
+> > linux-2.6.31.12-i686: WARNINGS
+> > linux-2.6.32.6-i686: WARNINGS
+> > linux-2.6.33-i686: WARNINGS
+> > linux-2.6.34-i686: WARNINGS
+> > linux-2.6.35.3-i686: WARNINGS
+> > linux-2.6.36-i686: WARNINGS
+> > linux-2.6.37-i686: WARNINGS
+> > linux-2.6.38.2-i686: WARNINGS
+> > linux-2.6.39.1-i686: WARNINGS
+> > linux-3.0-i686: WARNINGS
+> > linux-3.1-i686: WARNINGS
+> > linux-3.2.1-i686: WARNINGS
+> > linux-3.3-i686: WARNINGS
+> > linux-3.4-i686: WARNINGS
+> > linux-3.5-i686: WARNINGS
+> > linux-3.6-i686: WARNINGS
+> > linux-3.7-i686: ERRORS
+> > linux-3.8-rc1-i686: ERRORS
+> > linux-2.6.31.12-x86_64: WARNINGS
+> > linux-2.6.32.6-x86_64: WARNINGS
+> > linux-2.6.33-x86_64: WARNINGS
+> > linux-2.6.34-x86_64: WARNINGS
+> > linux-2.6.35.3-x86_64: WARNINGS
+> > linux-2.6.36-x86_64: WARNINGS
+> > linux-2.6.37-x86_64: WARNINGS
+> > linux-2.6.38.2-x86_64: WARNINGS
+> > linux-2.6.39.1-x86_64: WARNINGS
+> > linux-3.0-x86_64: WARNINGS
+> > linux-3.1-x86_64: WARNINGS
+> > linux-3.2.1-x86_64: WARNINGS
+> > linux-3.3-x86_64: WARNINGS
+> > linux-3.4-x86_64: WARNINGS
+> > linux-3.5-x86_64: WARNINGS
+> > linux-3.6-x86_64: WARNINGS
+> > linux-3.7-x86_64: ERRORS
+> > linux-3.8-rc1-x86_64: ERRORS
+> > apps: WARNINGS
+> > spec-git: OK
+> > sparse: ERRORS
+> > 
+> > Detailed results are available here:
+> > 
+> > http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+> 
+> linux-3.7-x86_64: ERRORS
+> 
+> In file included from include/linux/usb/ch9.h:35:0,
+>                  from include/linux/usb.h:5,
+>                  from /home/hans/work/build/media_build/v4l/au0828.h:22,
+>                  from /home/hans/work/build/media_build/v4l/au0828-i2c.c:28:
+> include/uapi/linux/usb/ch9.h:597:19: error: expected declaration specifiers or '...' before '(' token
+> In file included from include/linux/usb/ch9.h:35:0,
+>                  from include/linux/usb.h:5,
+>                  from /home/hans/work/build/media_build/v4l/au0828.h:22,
+>                  from /home/hans/work/build/media_build/v4l/au0828-core.c:28:
+> include/uapi/linux/usb/ch9.h:597:19: error: expected declaration specifiers or '...' before '(' token
+> make[3]: *** [/home/hans/work/build/media_build/v4l/au0828-core.o] Error 1
+> make[3]: *** Waiting for unfinished jobs....
+> make[3]: *** [/home/hans/work/build/media_build/v4l/au0828-i2c.o] Error 1
+> In file included from include/linux/usb/ch9.h:35:0,
+>                  from include/linux/usb.h:5,
+>                  from /home/hans/work/build/media_build/v4l/au0828.h:22,
+>                  from /home/hans/work/build/media_build/v4l/au0828-cards.c:22:
+> include/uapi/linux/usb/ch9.h:597:19: error: expected declaration specifiers or '...' before '(' token
+> make[3]: *** [/home/hans/work/build/media_build/v4l/au0828-cards.o] Error 1
+> make[2]: *** [_module_/home/hans/work/build/media_build/v4l] Error 2
+> make[2]: Leaving directory `/home/hans/work/build/trees/x86_64/linux-3.7'
+> make[1]: *** [default] Error 2
+> make[1]: Leaving directory `/home/hans/work/build/media_build/v4l'
+> make: *** [all] Error 2
+> Sat Dec 22 21:41:06 CET 2012
+> 
+> It seems that it is still using an older version of the media-build.git tree.
 
---2qXFWqzzG3v1+95a
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sorry, my fault. Some test code of mine interfered with the updating of
+media_build. I've taken steps to ensure that that doesn't happen in the
+future.
 
-> > Please note that I resigned from my position of i2c subsystem
-> > maintainer, so I will not handle this. If you think this is important,
-> > you'll have to resubmit and Wolfram will decide what he wants to do
-> > about it.
->=20
-> OK, I had the impression that the conclusion was that the danger was
-> greater than the benefit.  If there is interest in it, since I think it
-> does make the code more readable, I can pick it up again.
+I did a test build earlier today and it's back to WARNINGS instead of ERRORS.
 
-TBH, there are other things coming which have higher priority, so from
-my side, currently, there is not much interest right now.
+Regards,
 
-Thanks nonetheless,
-
-   Wolfram
-
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
---2qXFWqzzG3v1+95a
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAlDQa/QACgkQD27XaX1/VRvheACgwsK3xYgkw/pySALcMFsbOkQf
-TL8An1ItUMbT2JBMRw3OkXN+pnpb073g
-=H4y4
------END PGP SIGNATURE-----
-
---2qXFWqzzG3v1+95a--
+	Hans
