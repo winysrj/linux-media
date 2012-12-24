@@ -1,254 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:41490 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751775Ab2LPSXp (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40057 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752321Ab2LXNhi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 13:23:45 -0500
-Received: by mail-ee0-f46.google.com with SMTP id e53so2824368eek.19
-        for <linux-media@vger.kernel.org>; Sun, 16 Dec 2012 10:23:44 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 5/5] em28xx: fix+improve+unify i2c error handling, debug messages and code comments
-Date: Sun, 16 Dec 2012 19:23:31 +0100
-Message-Id: <1355682211-13604-6-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1355682211-13604-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1355682211-13604-1-git-send-email-fschaefer.oss@googlemail.com>
+	Mon, 24 Dec 2012 08:37:38 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Rob Clark <rob.clark@linaro.org>, Dave Airlie <airlied@gmail.com>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Tom Gall <tom.gall@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Bryan Wu <bryan.wu@canonical.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFC v2 0/5] Common Display Framework
+Date: Mon, 24 Dec 2012 14:39:02 +0100
+Message-ID: <2197335.PVFVBmr4Hc@avalon>
+In-Reply-To: <CAKMK7uF3Ahh8isvzZr4605X3wz-TQ2EHreTUnc5K_Z0DwrY6xw@mail.gmail.com>
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <CAF6AEGsLdLasS4=j1PsX_P8miG8NcTXMUP9VYj+4gdU8Qhm2YQ@mail.gmail.com> <CAKMK7uF3Ahh8isvzZr4605X3wz-TQ2EHreTUnc5K_Z0DwrY6xw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- do not pass USB specific error codes to userspace/i2c-subsystem
-- unify the returned error codes and make them compliant with
-  the i2c subsystem spec
-- check number of actually transferred bytes (via USB) everywehere
-- fix/improve debug messages
-- improve code comments
+Hi Daniel,
 
-Changelog v2:
-- removed i2c address type/range check as requested by Antti Palosaari
+On Tuesday 18 December 2012 09:30:00 Daniel Vetter wrote:
+> On Tue, Dec 18, 2012 at 7:21 AM, Rob Clark <rob.clark@linaro.org> wrote:
+> >> The other thing I'd like you guys to do is kill the idea of fbdev and
+> >> v4l drivers that are "shared" with the drm codebase, really just
+> >> implement fbdev and v4l on top of the drm layer, some people might
+> >> think this is some sort of maintainer thing, but really nothing else
+> >> makes sense, and having these shared display frameworks just to avoid
+> >> having using drm/kms drivers seems totally pointless. Fix the drm
+> >> fbdev emulation if an fbdev interface is needed. But creating a fourth
+> >> framework because our previous 3 frameworks didn't work out doesn't
+> >> seem like a situation I want to get behind too much.
+> > 
+> > yeah, let's not have multiple frameworks to do the same thing.. For
+> > fbdev, it is pretty clear that it is a dead end.  For v4l2
+> > (subdev+mcf), it is perhaps bit more flexible when it comes to random
+> > arbitrary hw pipelines than kms.  But to take advantage of that, your
+> > userspace isn't going to be portable anyways, so you might as well use
+> > driver specific properties/ioctls.  But I tend to think that is more
+> > useful for cameras.  And from userspace perspective, kms planes are
+> > less painful to use for output than v4l2, so lets stick to drm/kms for
+> > output (and not try to add camera/capture support to kms).. k, thx
+> 
+> Yeah, I guess having a v4l device also exported by the same driver that
+> exports the drm interface might make sense in some cases. But in many cases
+> I think the video part is just an independent IP block and shuffling data
+> around with dma-buf is all we really need. So yeah, I guess sharing display
+> resources between v4l and drm kms driver should be a last resort option,
+> since coordination (especially if it's supposed to be somewhat dynamic) will
+> be extremely hairy.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-core.c |    5 +-
- drivers/media/usb/em28xx/em28xx-i2c.c  |  112 +++++++++++++++++++++++---------
- 2 Dateien geändert, 85 Zeilen hinzugefügt(+), 32 Zeilen entfernt(-)
+I totally agree. As explained in my replies to Dave and Rob, I don't want to 
+share devices between the different subsystems at runtime, but I'd like to 
+avoid writing two drivers for a single device that can be used for display and 
+graphics on one board, and video output on another board (HDMI transmitters 
+are a good example).
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index c78d38b..cd808bf 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -101,7 +101,7 @@ int em28xx_read_reg_req_len(struct em28xx *dev, u8 req, u16 reg,
- 		if (reg_debug)
- 			printk(" failed!\n");
- 		mutex_unlock(&dev->ctrl_urb_lock);
--		return ret;
-+		return usb_translate_errors(ret);
- 	}
- 
- 	if (len)
-@@ -182,6 +182,9 @@ int em28xx_write_regs_req(struct em28xx *dev, u8 req, u16 reg, char *buf,
- 			      0x0000, reg, dev->urb_buf, len, HZ);
- 	mutex_unlock(&dev->ctrl_urb_lock);
- 
-+	if (ret < 0)
-+		return usb_translate_errors(ret);
-+
- 	if (dev->wait_after_write)
- 		msleep(dev->wait_after_write);
- 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index 7118535..c57db43 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -76,18 +76,26 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 	/* trigger write */
- 	ret = dev->em28xx_write_regs(dev, 4 - len, &b2[4 - len], 2 + len);
- 	if (ret != 2 + len) {
--		em28xx_warn("writing to i2c device failed (error=%i)\n", ret);
--		return -EIO;
-+		em28xx_warn("failed to trigger write to i2c address 0x%x "
-+			    "(error=%i)\n", addr, ret);
-+		return (ret < 0) ? ret : -EIO;
- 	}
- 	/* wait for completion */
- 	for (write_timeout = EM2800_I2C_XFER_TIMEOUT; write_timeout > 0;
- 	     write_timeout -= 5) {
- 		ret = dev->em28xx_read_reg(dev, 0x05);
--		if (ret == 0x80 + len - 1)
-+		if (ret == 0x80 + len - 1) {
- 			return len;
-+		} else if (ret == 0x94 + len - 1) {
-+			return -ENODEV;
-+		} else if (ret < 0) {
-+			em28xx_warn("failed to get i2c transfer status from "
-+				    "bridge register (error=%i)\n", ret);
-+			return ret;
-+		}
- 		msleep(5);
- 	}
--	em28xx_warn("i2c write timed out\n");
-+	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
- 	return -EIO;
- }
- 
-@@ -168,24 +176,46 @@ static int em2800_i2c_check_for_device(struct em28xx *dev, u8 addr)
- static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 				 u16 len, int stop)
- {
--	int wrcount = 0;
- 	int write_timeout, ret;
- 
- 	if (len < 1 || len > 64)
- 		return -EOPNOTSUPP;
- 
--	wrcount = dev->em28xx_write_regs_req(dev, stop ? 2 : 3, addr, buf, len);
-+	/* Write to i2c device */
-+	ret = dev->em28xx_write_regs_req(dev, stop ? 2 : 3, addr, buf, len);
-+	if (ret != len) {
-+		if (ret < 0) {
-+			em28xx_warn("writing to i2c device at 0x%x failed "
-+				    "(error=%i)\n", addr, ret);
-+			return ret;
-+		} else {
-+			em28xx_warn("%i bytes write to i2c device at 0x%x "
-+				    "requested, but %i bytes written\n",
-+				    len, addr, ret);
-+			return -EIO;
-+		}
-+	}
- 
--	/* Seems to be required after a write */
-+	/* Check success of the i2c operation */
- 	for (write_timeout = EM2800_I2C_XFER_TIMEOUT; write_timeout > 0;
- 	     write_timeout -= 5) {
- 		ret = dev->em28xx_read_reg(dev, 0x05);
--		if (!ret)
--			break;
-+		if (ret == 0) { /* success */
-+			return len;
-+		} else if (ret == 0x10) {
-+			return -ENODEV;
-+		} else if (ret < 0) {
-+			em28xx_warn("failed to read i2c transfer status from "
-+				    "bridge (error=%i)\n", ret);
-+			return ret;
-+		}
- 		msleep(5);
-+		/* NOTE: do we really have to wait for success ?
-+		   Never seen anything else than 0x00 or 0x10
-+		   (even with high payload) ...			*/
- 	}
--
--	return wrcount;
-+	em28xx_warn("write to i2c device at 0x%x timed out\n", addr);
-+	return -EIO;
- }
- 
- /*
-@@ -199,14 +229,37 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
- 	if (len < 1 || len > 64)
- 		return -EOPNOTSUPP;
- 
-+	/* Read data from i2c device */
- 	ret = dev->em28xx_read_reg_req_len(dev, 2, addr, buf, len);
-+	if (ret != len) {
-+		if (ret < 0) {
-+			em28xx_warn("reading from i2c device at 0x%x failed "
-+				    "(error=%i)\n", addr, ret);
-+			return ret;
-+		} else {
-+			em28xx_warn("%i bytes requested from i2c device at "
-+				    "0x%x, but %i bytes received\n",
-+				    len, addr, ret);
-+			return -EIO;
-+		}
-+	}
-+
-+	/* Check success of the i2c operation */
-+	ret = dev->em28xx_read_reg(dev, 0x05);
- 	if (ret < 0) {
--		em28xx_warn("reading i2c device failed (error=%i)\n", ret);
-+		em28xx_warn("failed to read i2c transfer status from "
-+			    "bridge (error=%i)\n", ret);
- 		return ret;
- 	}
--	if (dev->em28xx_read_reg(dev, 0x5) != 0)
--		return -ENODEV;
--	return ret;
-+	if (ret > 0) {
-+		if (ret == 0x10) {
-+			return -ENODEV;
-+		} else {
-+			em28xx_warn("unknown i2c error (status=%i)\n", ret);
-+			return -EIO;
-+		}
-+	}
-+	return len;
- }
- 
- /*
-@@ -216,15 +269,12 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
- static int em28xx_i2c_check_for_device(struct em28xx *dev, u16 addr)
- {
- 	int ret;
-+	u8 buf;
- 
--	ret = dev->em28xx_read_reg_req(dev, 2, addr);
--	if (ret < 0) {
--		em28xx_warn("reading from i2c device failed (error=%i)\n", ret);
--		return ret;
--	}
--	if (dev->em28xx_read_reg(dev, 0x5) != 0)
--		return -ENODEV;
--	return 0;
-+	ret = em28xx_i2c_recv_bytes(dev, addr, &buf, 1);
-+	if (ret == 1)
-+		return 0;
-+	return (ret < 0) ? ret : -EIO;
- }
- 
- /*
-@@ -249,11 +299,11 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 				rc = em2800_i2c_check_for_device(dev, addr);
- 			else
- 				rc = em28xx_i2c_check_for_device(dev, addr);
--			if (rc < 0) {
--				dprintk2(2, " no device\n");
-+			if (rc == -ENODEV) {
-+				if (i2c_debug >= 2)
-+					printk(" no device\n");
- 				return rc;
- 			}
--
- 		} else if (msgs[i].flags & I2C_M_RD) {
- 			/* read bytes */
- 			if (dev->board.is_em2800)
-@@ -284,16 +334,16 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 							   msgs[i].len,
- 							   i == num - 1);
- 		}
--		if (rc < 0)
--			goto err;
-+		if (rc < 0) {
-+			if (i2c_debug >= 2)
-+				printk(" ERROR: %i\n", rc);
-+			return rc;
-+		}
- 		if (i2c_debug >= 2)
- 			printk("\n");
- 	}
- 
- 	return num;
--err:
--	dprintk2(2, " ERROR: %i\n", rc);
--	return rc;
- }
- 
- /* based on linux/sunrpc/svcauth.h and linux/hash.h
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
