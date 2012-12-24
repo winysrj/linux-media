@@ -1,48 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:54994 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752287Ab2LZRgB (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3294 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753330Ab2LXVFO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Dec 2012 12:36:01 -0500
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id 2E46B40B99
-	for <linux-media@vger.kernel.org>; Wed, 26 Dec 2012 18:35:59 +0100 (CET)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1Tnuta-0001cJ-OE
-	for linux-media@vger.kernel.org; Wed, 26 Dec 2012 18:35:58 +0100
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+	Mon, 24 Dec 2012 16:05:14 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id qBOL5B9v066755
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 24 Dec 2012 22:05:13 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 66E2911E00D9
+	for <linux-media@vger.kernel.org>; Mon, 24 Dec 2012 22:05:05 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 1/6] media: sh_mobile_ceu_camera: fix CSI2 format negotiation
-Date: Wed, 26 Dec 2012 18:35:53 +0100
-Message-Id: <1356543358-6180-2-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1356543358-6180-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1356543358-6180-1-git-send-email-g.liakhovetski@gmx.de>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20121224210505.66E2911E00D9@alastor.dyndns.org>
+Date: Mon, 24 Dec 2012 22:05:05 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CSI-2 format negotiation has been broken by a changed order of driver
-probing. Fix this by allowing an early CSI2 discovery during format
-enumeration.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-index cc46b65..cf65e7f 100644
---- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-+++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-@@ -1052,7 +1052,7 @@ static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, unsigned int
- 		return 0;
- 	}
- 
--	if (!pcdev->csi2_pdev) {
-+	if (!pcdev->pdata || !pcdev->pdata->csi2) {
- 		/* Are there any restrictions in the CSI-2 case? */
- 		ret = sh_mobile_ceu_try_bus_param(icd, fmt->bits_per_sample);
- 		if (ret < 0)
--- 
-1.7.2.5
+date:        Mon Dec 24 19:00:24 CET 2012
+git hash:    8b2aea7878f64814544d0527c659011949d52358
+gcc version:      i686-linux-gcc (GCC) 4.7.1
+host hardware:    x86_64
+host os:          3.4.07-marune
 
+linux-git-arm-eabi-davinci: WARNINGS
+linux-git-arm-eabi-exynos: OK
+linux-git-arm-eabi-omap: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-i686: WARNINGS
+linux-2.6.37-i686: WARNINGS
+linux-2.6.38.2-i686: WARNINGS
+linux-2.6.39.1-i686: WARNINGS
+linux-3.0-i686: WARNINGS
+linux-3.1-i686: WARNINGS
+linux-3.2.1-i686: WARNINGS
+linux-3.3-i686: WARNINGS
+linux-3.4-i686: WARNINGS
+linux-3.5-i686: WARNINGS
+linux-3.6-i686: WARNINGS
+linux-3.7-i686: WARNINGS
+linux-3.8-rc1-i686: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-x86_64: WARNINGS
+linux-2.6.37-x86_64: WARNINGS
+linux-2.6.38.2-x86_64: WARNINGS
+linux-2.6.39.1-x86_64: WARNINGS
+linux-3.0-x86_64: WARNINGS
+linux-3.1-x86_64: WARNINGS
+linux-3.2.1-x86_64: WARNINGS
+linux-3.3-x86_64: WARNINGS
+linux-3.4-x86_64: WARNINGS
+linux-3.5-x86_64: WARNINGS
+linux-3.6-x86_64: WARNINGS
+linux-3.7-x86_64: WARNINGS
+linux-3.8-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
