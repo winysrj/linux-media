@@ -1,80 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.data-modul.de ([212.184.205.171]:41691 "HELO
-	mailgw1.data-modul.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752041Ab2LLNbr convert rfc822-to-8bit (ORCPT
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:49027 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752884Ab2LXI24 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Dec 2012 08:31:47 -0500
-From: "Fricke, Silvio" <SFricke@data-modul.com>
-To: "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	=?iso-8859-1?Q?Guitarte_P=E9rez=2C_Jes=FAs_Fernando?=
-	<JGuitarte@data-modul.com>
-Subject: request for linux driver for Analogix ANX9804/ANX9805
-Date: Wed, 12 Dec 2012 13:20:46 +0000
-Message-ID: <CB1254936A837D40B8C8611AEC83D691065C2388@MS-DM-M01.DATA-MODUL.com>
-Content-Language: de-DE
-Content-Type: text/plain; charset=US-ASCII
-Content-ID: <1A5BE639E70894488868D66C8654BB35@DATA-MODUL.com>
-Content-Transfer-Encoding: 7BIT
+	Mon, 24 Dec 2012 03:28:56 -0500
+Received: by mail-ee0-f49.google.com with SMTP id c4so3348834eek.36
+        for <linux-media@vger.kernel.org>; Mon, 24 Dec 2012 00:28:55 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Konstantin Dimitrov <kosio.dimitrov@gmail.com>,
+	Malcolm Priestley <tvboxspy@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.9] separate Montage ts2020 from ds3000 and rs2000, support for new TeVii cards
+Date: Mon, 24 Dec 2012 11:23:56 +0300
+Message-ID: <1541475.yBqmJOQMfq@useri>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="ISO-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The following changes since commit 8b2aea7878f64814544d0527c659011949d52358:
 
-We have developed a prototype of an i.mx6 CPU-module connected to an ANALOGIX
-AN9804 chip. This is a DisplayPort/HDMI-Transmitter [1]. This is a converter for simple rgb-signals
-to DisplayPort and HDMI signals. The ANX is connected with the i.mx6 over i2c. Audio plays in this
-context also a role.
+  [media] em28xx: prefer bulk mode on webcams (2012-12-23 17:24:30 -0200)
 
-The chip has these features:
+are available in the git repository at:
 
-- DisplayPort 1.1a with HDCP 1.3
-- HDMI 1.3 with HDCP 1.2
-- HDMI 1.2 and DVI 1.0 backward compatible
+  git://git.linuxtv.org/liplianin/media_tree.git ts2020_v3.9
 
-output:
-- Dual Mode: DisplayPort or HDMI output
-- 1/2/4 lane operation at up to HBR(2.7Gbps/lane) and RBR(1.62 Gbps/lane)
-- DisplayPort mode Spread Spectrum Clock (SSC) support
-- Support up to 2560X1600(WQXGA)@60Hz with 30bpp colour depth
-- YCbCr to RGB conversion
-- 4:4:4 and 4:2:2 data input formats
-- 18/24/30/36 bits per pixel video support
-- Embedded audio support
-- HDCP encryption
+for you to fetch changes up to 2ff52e6f487c2ee841f3df9709d1b4e4416a1b15:
 
-input:
-- 18-bit DVO/LVTTL flexible video input
-- SDR and DDR data modes support
-- Deep colour up to 36bpp in DDR support
+  ts2020: separate from m88rs2000 (2012-12-24 01:26:12 +0300)
 
-audio input:
-- S/PDIF audio mode including two-channel uncompressed L-PCM and multi-channel compressed DTS
-  support
-- 32,44.1,48,88.2,96,176.4 to 192KHz audio sampling rates support
+----------------------------------------------------------------
+Igor M. Liplianin (4):
+      Tevii S421 and S632 support
+      m88rs2000: SNR BER implemented
+      ds3000: lock led procedure added
+      ts2020: separate from m88rs2000
 
-others:
-- Embedded HDCP key shared for DisplayPort, HDMI , and DVI modes
-- Programmable output swing and pre-emphasis
-- Support of upstream content protection protocol with embedded upstream keys
-- Hot Plug and Unplug detection mechanism
-- Built-in video pattern generator and audio tone generator for system self-test
+Konstantin Dimitrov (3):
+      ds3000: remove ts2020 tuner related code
+      ts2020: add ts2020 tuner driver
+      make the other drivers take use of the new ts2020 driver
 
-I have checked it, and it does not exist any kind of linux driver for the ANX9804. My company
-doesn't have currently the skills (and manpower) to bring this device to mainline kernel. Have
-someone skills and courage to bring this hardware device to mainline kernel?
-I will offer one iMX6 based development board for developing the device driver and after success of
-the project, for the developer as gift to dominate the world.
+ drivers/media/dvb-frontends/Kconfig     |   7 +++
+ drivers/media/dvb-frontends/Makefile    |   1 +
+ drivers/media/dvb-frontends/ds3000.c    | 255 +++++++++++++-------------------------------------------------------------------------
+ drivers/media/dvb-frontends/ds3000.h    |  10 ++--
+ drivers/media/dvb-frontends/m88rs2000.c | 420 +++++++++++++++++++++++++++++++++++++++++----------------------------------------------------------------------------------------------------
+ drivers/media/dvb-frontends/m88rs2000.h |   6 ---
+ drivers/media/dvb-frontends/ts2020.c    | 372 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/ts2020.h    |  50 +++++++++++++++++
+ drivers/media/pci/cx23885/Kconfig       |   1 +
+ drivers/media/pci/cx23885/cx23885-dvb.c |  11 +++-
+ drivers/media/pci/cx88/Kconfig          |   2 +
+ drivers/media/pci/cx88/cx88-dvb.c       |  11 +++-
+ drivers/media/pci/dm1105/Kconfig        |   1 +
+ drivers/media/pci/dm1105/dm1105.c       |  11 +++-
+ drivers/media/usb/dvb-usb-v2/Kconfig    |   1 +
+ drivers/media/usb/dvb-usb-v2/lmedm04.c  |   9 +++-
+ drivers/media/usb/dvb-usb/Kconfig       |   2 +
+ drivers/media/usb/dvb-usb/dw2102.c      | 143 ++++++++++++++++++++++++++++++++++++++++++++----
+ 18 files changed, 772 insertions(+), 541 deletions(-)
+ create mode 100644 drivers/media/dvb-frontends/ts2020.c
+ create mode 100644 drivers/media/dvb-frontends/ts2020.h
 
-[1] http://www.analogix.com/products/9805.html
-
-best regards,
-Silvio
-
--- 
--- S. Fricke --------------- jabber:silvio@conversation.port1024.net --
-   Data Modul AG                            TEL:    +49-89-56017-  0
-   Basic Development                        FAX:    +49-89-56017-119
-   Linux - Development                       RG: HR-Muenchen B-85591
--- Landsberger Str. 322 D-80687 Muenchen - http://www.data-modul.com 
