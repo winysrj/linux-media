@@ -1,67 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f52.google.com ([209.85.213.52]:55599 "EHLO
-	mail-yh0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754791Ab2LNOLQ (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38252 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752864Ab2LXOLE convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Dec 2012 09:11:16 -0500
-Received: by mail-yh0-f52.google.com with SMTP id o22so757186yho.11
-        for <linux-media@vger.kernel.org>; Fri, 14 Dec 2012 06:11:15 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <50CB1442.50002@gmail.com>
-References: <1355477817-5750-1-git-send-email-sumit.semwal@ti.com>
-	<50CB1442.50002@gmail.com>
-Date: Fri, 14 Dec 2012 08:11:14 -0600
-Message-ID: <CAF6AEGskmd+ZGCvcocUzjiKDGsexfhDhJNbV8feVHN7OeG4Jjg@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: Add debugfs support
-From: Rob Clark <robdclark@gmail.com>
-To: Maarten Lankhorst <m.b.lankhorst@gmail.com>
-Cc: Sumit Semwal <sumit.semwal@ti.com>,
+	Mon, 24 Dec 2012 09:11:04 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Figa <t.figa@samsung.com>
+Cc: dri-devel@lists.freedesktop.org,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	linux-fbdev@vger.kernel.org,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Tom Gall <tom.gall@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ragesh Radhakrishnan <Ragesh.R@linaro.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Bryan Wu <bryan.wu@canonical.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	sunil joshi <joshi@samsung.com>,
 	Sumit Semwal <sumit.semwal@linaro.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC v2 0/5] Common Display Framework
+Date: Mon, 24 Dec 2012 15:12:28 +0100
+Message-ID: <3445117.L94DmxEvrl@avalon>
+In-Reply-To: <7255068.DBf2OgseHL@amdc1227>
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <CAD025yQoCiNaKvaCwvUWhk_jV70CPhV35UzV9MR6HtE+1baCxg@mail.gmail.com> <7255068.DBf2OgseHL@amdc1227>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 14, 2012 at 5:57 AM, Maarten Lankhorst
-<m.b.lankhorst@gmail.com> wrote:
-> Op 14-12-12 10:36, sumit.semwal@ti.com schreef:
->> From: Sumit Semwal <sumit.semwal@linaro.org>
->>
->> Add debugfs support to make it easier to print debug information
->> about the dma-buf buffers.
->>
-> I like the idea, I don't know if it could be done in a free manner, but for bonus points
-> could we also have the dma-buf fd be obtainable that way from a debugfs entry?
->
-> Doing so would allow me to 'steal' a dma-buf from an existing mapping easily, and test against that.
->
-> Also I think the name of the device and process that exported the dma-buf would be useful
-> to have as well, even if in case of the device that would mean changing the api slightly to record it.
->
-> I was thinking of having a directory structure like this:
->
-> /sys/kernel/debug/dma_buf/stats
->
-> and then for each dma-buf:
->
-> /sys/kernel/debug/dma-buf/exporting_file.c/<number>-fd
-> /sys/kernel/debug/dma-buf/exporting_file.c/<number>-attachments
-> /sys/kernel/debug/dma-buf/exporting_file.c/<number>-info
->
-> Opening the fd file would give you back the original fd, or fail with -EIO if refcount was dropped to 0.
->
-> Would something like this be doable? I don't know debugfs that well, but I don't see why it wouldn't be,
+Hi Tomasz,
 
-yeah.. but sort of back-door's the security benefits of an anonymous fd..
+On Friday 21 December 2012 11:00:52 Tomasz Figa wrote:
+> On Tuesday 18 of December 2012 08:31:30 Vikas Sajjan wrote:
+> > On 17 December 2012 20:55, Laurent Pinchart wrote:
+> > > Hi Vikas,
+> > > 
+> > > Sorry for the late reply. I now have more time to work on CDF, so
+> > > delays should be much shorter.
+> > > 
+> > > On Thursday 06 December 2012 10:51:15 Vikas Sajjan wrote:
+> > > > Hi Laurent,
+> > > > 
+> > > > I was thinking of porting CDF to samsung EXYNOS 5250 platform, what
+> > > > I found is that, the exynos display controller is MIPI DSI based
+> > > > controller.
+> > > > 
+> > > > But if I look at CDF patches, it has only support for MIPI DBI based
+> > > > Display controller.
+> > > > 
+> > > > So my question is, do we have any generic framework for MIPI DSI
+> > > > based display controller? basically I wanted to know, how to go about
+> > > > porting CDF for such kind of display controller.
+> > > 
+> > > MIPI DSI support is not available yet. The only reason for that is
+> > > that I don't have any MIPI DSI hardware to write and test the code
+> > > with :-)
+> > > 
+> > > The common display framework should definitely support MIPI DSI. I
+> > > think the existing MIPI DBI code could be used as a base, so the
+> > > implementation shouldn't be too high.
+> > > 
+> > > Yeah, i was also thinking in similar lines, below is my though for
+> > > MIPI DSI support in CDF.
+> > 
+> > o   MIPI DSI support as part of CDF framework will expose
+> > §  mipi_dsi_register_device(mpi_device) (will be called mach-xxx-dt.c
+> > file )
+> > §  mipi_dsi_register_driver(mipi_driver, bus ops) (will be called from
+> > platform specific init driver call )
+> > ·    bus ops will be
+> > o   read data
+> > o   write data
+> > o   write command
+> > §  MIPI DSI will be registered as bus_register()
+> > 
+> > When MIPI DSI probe is called, it (e.g., Exynos or OMAP MIPI DSI) will
+> > initialize the MIPI DSI HW IP.
+> > 
+> > This probe will also parse the DT file for MIPI DSI based panel, add
+> > the panel device (device_add() ) to kernel and register the display
+> > entity with its control and  video ops with CDF.
+> > 
+> > I can give this a try.
+> 
+> I am currently in progress of reworking Exynos MIPI DSIM code and s6e8ax0
+> LCD driver to use the v2 RFC of Common Display Framework. I have most of
+> the work done, I have just to solve several remaining problems.
 
-BR,
--R
+Do you already have code that you can publish ? I'm particularly interested 
+(and I think Tomi Valkeinen would be as well) in looking at the DSI operations 
+you expose to DSI sinks (panels, transceivers, ...).
 
-> ~Maarten
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+
+Laurent Pinchart
+
