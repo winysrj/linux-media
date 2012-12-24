@@ -1,91 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:31574 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751046Ab2LJNnw (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56596 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752864Ab2LXOHg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 08:43:52 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MET00HZIHXBAA70@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 10 Dec 2012 13:46:27 +0000 (GMT)
-Received: from AMDC1061.digital.local ([106.116.147.88])
- by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
- (7.0.4.23.0) 64bit (built Aug 10 2011))
- with ESMTPA id <0MET00JXCI4V1O40@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 10 Dec 2012 13:43:50 +0000 (GMT)
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: linux-media@vger.kernel.org,
+	Mon, 24 Dec 2012 09:07:36 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Inki Dae <inki.dae@samsung.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>, Rob Clark <rob.clark@linaro.org>,
+	Dave Airlie <airlied@gmail.com>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Tom Gall <tom.gall@linaro.org>,
 	Kyungmin Park <kyungmin.park@samsung.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 0/2] V4L: Add auto focus area control and selection
-Date: Mon, 10 Dec 2012 14:43:37 +0100
-Message-id: <1355147019-25375-1-git-send-email-a.hajda@samsung.com>
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Bryan Wu <bryan.wu@canonical.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFC v2 0/5] Common Display Framework
+Date: Mon, 24 Dec 2012 15:08:58 +0100
+Message-ID: <8375165.paX7MkzlqD@avalon>
+In-Reply-To: <CAAQKjZMt+13oooEw39mOM1rF2=ss4ih1s7iVS362di-50h4+Hg@mail.gmail.com>
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <CAKMK7uF3Ahh8isvzZr4605X3wz-TQ2EHreTUnc5K_Z0DwrY6xw@mail.gmail.com> <CAAQKjZMt+13oooEw39mOM1rF2=ss4ih1s7iVS362di-50h4+Hg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This set of patches is created by Sylwester Nawrocki, with small changes by me.
+Hi Inki,
 
-This set of patches extends the camera class with control
-V4L2_CID_AUTO_FOCUS_AREA for determining the area of the frame that
-camera uses for auto-focus.
-The control takes care of three cases:
-- V4L2_AUTO_FOCUS_AREA_ALL, normal auto-focus, 
-	whole frame is used for auto-focus,
-- V4L2_AUTO_FOCUS_AREA_RECTANGLE, user provides rectangle or spot
-	as an area of interest,
-- V4L2_AUTO_FOCUS_AREA_OBJECT_DETECTION, object/face detection engine
-	of the camera should be used for auto-focus.
+On Tuesday 18 December 2012 18:38:31 Inki Dae wrote:
+> 2012/12/18 Daniel Vetter <daniel@ffwll.ch>
+> > On Tue, Dec 18, 2012 at 7:21 AM, Rob Clark <rob.clark@linaro.org> wrote:
+> > >> The other thing I'd like you guys to do is kill the idea of fbdev and
+> > >> v4l drivers that are "shared" with the drm codebase, really just
+> > >> implement fbdev and v4l on top of the drm layer, some people might
+> > >> think this is some sort of maintainer thing, but really nothing else
+> > >> makes sense, and having these shared display frameworks just to avoid
+> > >> having using drm/kms drivers seems totally pointless. Fix the drm
+> > >> fbdev emulation if an fbdev interface is needed. But creating a fourth
+> > >> framework because our previous 3 frameworks didn't work out doesn't
+> > >> seem like a situation I want to get behind too much.
+> > > 
+> > > yeah, let's not have multiple frameworks to do the same thing.. For
+> > > fbdev, it is pretty clear that it is a dead end.  For v4l2
+> > > (subdev+mcf), it is perhaps bit more flexible when it comes to random
+> > > arbitrary hw pipelines than kms.  But to take advantage of that, your
+> > > userspace isn't going to be portable anyways, so you might as well use
+> > > driver specific properties/ioctls.  But I tend to think that is more
+> > > useful for cameras.  And from userspace perspective, kms planes are
+> > > less painful to use for output than v4l2, so lets stick to drm/kms for
+> > > output (and not try to add camera/capture support to kms).. k, thx
+> > 
+> > Yeah, I guess having a v4l device also exported by the same driver
+> > that exports the drm interface might make sense in some cases. But in
+> > many cases I think the video part is just an independent IP block and
+> > shuffling data around with dma-buf is all we really need. So yeah, I
+> > guess sharing display resources between v4l and drm kms driver should
+> > be a last resort option, since coordination (especially if it's
+> > supposed to be somewhat dynamic) will be extremely hairy.
+> 
+> I think the one reason that the CDF was appeared is to avoid duplicating
+> codes. For example, we should duplicate mipi-dsi or dbi drivers into drm to
+> avoid ordering issue. And for this, those should be re-implemented in based
+> on drm framework so that those could be treated as all one device.
+> Actually, in case of Exynos, some guys tried to duplicate eDP driver into
+> exynos drm framework in same issue. So I think the best way is to avoid
+> duplicating codes and resolve ordering issue such as s/r operations between
+> all the various components.
+> 
+> And the below is my opinion,
+> 
+>                                           +--------------------------------+
+> Display Controller -------- CDF --------- |MIPI-DSI/DBI-----------LCD Panel|
+>                                           +--------------------------------+
+> 
+> 1. to access MIPI-DSI/DBI and LCD Panel drivers.
+>     - Display Controller is controlled by linux framebuffer or drm kms
+> based specific drivers like now. And each driver calls some interfaces of
+> CDF.
+> 
+> 2. to control the power of these devices.
+>     - drm kms based specific driver calls dpms operation and next the dpms
+> operation calls fb blank operation of linux framebuffer.
+>       But for this, we need some interfaces that it can connect between drm
+> and linux framebuffer framework and you can refer to the below link.
+> 
+> http://lists.freedesktop.org/archives/dri-devel/2011-July/013242.html
 
-In case of the rectangle or the spot its coordinates shall be passed
-to the driver using selection API (VIDIOC_SUBDEV_S_SELECTION) with
-V4L2_SEL_TGT_AUTO_FOCUS as a target name. In case of spot width and
-height of the rectangle shall be set to 0.
+(Just FYI, I plan to clean up the backlight framework when I'll be done with 
+CDF, to remove the FBDEV dependency)
 
-We (me and Sylwester) are not sure if this is the best solution.
+>     - linux framebuffer based driver calls fb blank operation.
+> 
+> fb blank(fb)---------pm runtime(fb)-----------fb_blank----------mipi and lcd
+> dpms(drm kms)--------pm runtime(drm kms)------fb_blank----------mipi and lcd
+> 
+> 3. suspend/resume
+>     - pm suspend/resume are implemented only in linux framebuffer or drm
+> kms based specific drivers.
+>     - MIPI-DSI/DBI and LCD Panel drivers are controlled only by fb blank
+> interfaces.
+> 
+> s/r(fb)------------------------pm runtime(fb)--------fb blank---mipi and lcd
+> s/r(drm kms)---dpms(drm kms)---pm runtime(drm kms)---fb_blank---mipi and lcd
+> 
+> 
+> We could resolve ordering issue to suspend/resume simply duplicating
+> relevant drivers but couldn't avoid duplicating codes. So I think we could
+> avoid the ordering issue using fb blank interface of linux framebuffer and
+> also duplicating codes.
 
-I would like to propose another solution which seems to me more natural,
-but probably it would require extending controls API.
-The solution is neither formalized, neither implemented at the moment.
+As I mentioned before, we have multiple ordering issues related to suspend and 
+resume. Panels and display controllers will likely want to enforce a S/R order 
+on the video bus, and control busses will also require a specific S/R order. 
+My plan is to use early suspend/late resume in the display controller driver 
+to control the video busses, and let the PM core handle control bus ordering 
+issues. This will of course need to be prototyped and tested.
 
-The solution takes an advantage of the fact VIDIOC_(G/S/TRY)_EXT_CTRLS
-ioctls can be called with multiple controls per call.
-There could be added four pseudo-controls, lets call them for short:
-LEFT, TOP, WIDTH, HEIGHT.
-Those controls could be passed together with V4L2_AUTO_FOCUS_AREA_RECTANGLE
-control in one ioctl as a kind of control parameters.
+-- 
+Regards,
 
-For example setting auto-focus spot would require calling VIDIOC_S_EXT_CTRLS
-with the following controls:
-- V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_RECTANGLE
-- LEFT = ...
-- RIGHT = ...
-
-Setting AF rectangle:
-- V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_RECTANGLE
-- LEFT = ...
-- TOP = ...
-- WIDTH = ...
-- HEIGHT = ...
-
-Setting  AF object detection:
-- V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_OBJECT_DETECTION
-
-I have presented all three cases to show the advantages of this solution:
-- atomicity - control and its parameters are passed in one call,
-- flexibility - we are not limited by a fixed number of parameters,
-- no-redundancy(?) - we can pass only required parameters
-	(no need to pass null width and height in case of spot selection),
-- extensibility - it is possible to extend parameters in the future,
-for example add parameters to V4L2_AUTO_FOCUS_AREA_OBJECT_DETECTION,
-- backward compatibility, 
-- re-usability - this schema could be used in other controls,
-	pseudo-controls could be re-used in other controls as well.
-
-I hope this e-mail will trigger some discussion about the proposed solution.
-
-Regards
-Andrzej Hajda
+Laurent Pinchart
 
