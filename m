@@ -1,48 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42477 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752668Ab2LJAqV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Dec 2012 19:46:21 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC 05/11] af9035: make remote controller optional
-Date: Mon, 10 Dec 2012 02:45:29 +0200
-Message-Id: <1355100335-2123-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1355100335-2123-1-git-send-email-crope@iki.fi>
-References: <1355100335-2123-1-git-send-email-crope@iki.fi>
+Received: from mail-oa0-f47.google.com ([209.85.219.47]:49976 "EHLO
+	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751485Ab2LXIwf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Dec 2012 03:52:35 -0500
+MIME-Version: 1.0
+In-Reply-To: <CA+55aFzXShkx-QCohNABW+S=43f9K8iyy=vFyGPpG7Tx7=VrgA@mail.gmail.com>
+References: <CADDKRnB=KYBuue10BnPpiRD=rrrATgxt-DfgLHmK-cqRAvJsUQ@mail.gmail.com>
+	<CA+55aFzXShkx-QCohNABW+S=43f9K8iyy=vFyGPpG7Tx7=VrgA@mail.gmail.com>
+Date: Mon, 24 Dec 2012 09:52:34 +0100
+Message-ID: <CADDKRnAaBOEPwgboWBAs-Wum4z7Ez7SRPruMeHjRwF6q+95urQ@mail.gmail.com>
+Subject: Re: [v3.8-rc1] Multimedia regression, ioctl(17,..)-API changed ?
+From: =?UTF-8?Q?J=C3=B6rg_Otte?= <jrg.otte@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do not compile remote controller when RC-core is disabled by Kconfig.
+Yes it works, incl. usb-camera. I am now at:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 4 ++++
- 1 file changed, 4 insertions(+)
+637704cbc95c02d18741b4a6e7a5d2397f8b28ce Merge branch
+ 'i2c-embedded/for-next' of git://git.pengutronix.de/git/wsa/linux
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index ea37b5c..19b1394 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -1146,6 +1146,7 @@ err:
- 	return ret;
- }
- 
-+#if defined(CONFIG_RC_CORE) || defined(CONFIG_RC_CORE_MODULE)
- static int af9035_rc_query(struct dvb_usb_device *d)
- {
- 	unsigned int key;
-@@ -1220,6 +1221,9 @@ err:
- 
- 	return ret;
- }
-+#else
-+	#define af9035_get_rc_config NULL
-+#endif
- 
- /* interface 0 is used by DVB-T receiver and
-    interface 1 is for remote controller (HID) */
--- 
-1.7.11.7
+Thanks, Jörg
 
+
+2012/12/23 Linus Torvalds <torvalds@linux-foundation.org>:
+> Jörg - does current git work for you? It has a patch from Rafael that
+> just reverts the insane error code, and fixed something very similar
+> for him.
+>
+> (I just pushed out, so it might take a few minutes to mirror out to
+> the public sites).
+>
+>               Linus
+>
+> On Sun, Dec 23, 2012 at 8:46 AM, Jörg Otte <jrg.otte@gmail.com> wrote:
+>> With kernel v3.8 all multimedia programs under KDE4 don't work (Kubuntu 12.04).
+>> They alltogether ( at least Dragonplayer (Mediaplayer), Knotify4
+>> (system-sound),
+>> System-Settings-Multimedia,..) are looping forever producing 100% CPU-usage
+>> and must be killed.
