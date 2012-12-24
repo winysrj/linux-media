@@ -1,130 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:49692 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754438Ab2LMRxf (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54420 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753137Ab2LXR0D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Dec 2012 12:53:35 -0500
-Received: by mail-bk0-f46.google.com with SMTP id q16so1255078bkw.19
-        for <linux-media@vger.kernel.org>; Thu, 13 Dec 2012 09:53:34 -0800 (PST)
-Message-ID: <50CA162A.8080108@googlemail.com>
-Date: Thu, 13 Dec 2012 18:53:46 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+	Mon, 24 Dec 2012 12:26:03 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jani Nikula <jani.nikula@linux.intel.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	linux-fbdev@vger.kernel.org,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Tom Gall <tom.gall@linaro.org>,
+	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
+	dri-devel@lists.freedesktop.org, Rob Clark <rob.clark@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC v2 0/5] Common Display Framework
+Date: Mon, 24 Dec 2012 18:27:27 +0100
+Message-ID: <2286035.iP368aB6Vk@avalon>
+In-Reply-To: <87pq26ay2z.fsf@intel.com>
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <1671267.x0lxGrFjjV@avalon> <87pq26ay2z.fsf@intel.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: remy.blank@pobox.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Bug 14126 (em28xx, Terratec Cinergy 200/250 USB)
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Jani,
 
-could you please take a look at kernel bug 14126
-(https://bugzilla.kernel.org/show_bug.cgi?id=14126) ?
-The bug reporter posted a patch 3 years ago (!), which seems to be valid.
+On Wednesday 19 December 2012 16:57:56 Jani Nikula wrote:
+> On Tue, 18 Dec 2012, Laurent Pinchart wrote:
+> > On Monday 17 December 2012 18:53:37 Jani Nikula wrote:
+> >> I can see the need for a framework for DSI panels and such (in fact Tomi
+> >> and I have talked about it like 2-3 years ago already!) but what is the
+> >> story for HDMI and DP? In particular, what's the relationship between
+> >> DRM and CDF here? Is there a world domination plan to switch the DRM
+> >> drivers to use this framework too? ;) Do you have some rough plans how
+> >> DRM and CDF should work together in general?
+> > 
+> > There's always a world domination plan, isn't there ? :-)
+> > 
+> > I certainly want CDF to be used by DRM (or more accurately KMS). That's
+> > what the C stands for, common refers to sharing panel and other display
+> > entity drivers between FBDEV, KMS and V4L2.
+> > 
+> > I currently have no plan to expose CDF internals to userspace through the
+> > KMS API. We might have to do so later if the hardware complexity grows in
+> > such a way that finer control than what KMS provides needs to be exposed
+> > to userspace, but I don't think we're there yet. The CDF API will thus
+> > only be used internally in the kernel by display controller drivers. The
+> > KMS core might get functions to handle common display entity operations,
+> > but the bulk of the work will be in the display controller drivers to
+> > start with. We will then see what can be abstracted in KMS helper
+> > functions.
+> > 
+> > Regarding HDMI and DP, I imagine HDMI and DP drivers that would use the
+> > CDF API. That's just a thought for now, I haven't tried to implement them,
+> > but it would be nice to handle HDMI screens and DPI/DBI/DSI panels in a
+> > generic way.
+> > 
+> > Do you have thoughts to share on this topic ?
+> 
+> It just seems to me that, at least from a DRM/KMS perspective, adding
+> another layer (=CDF) for HDMI or DP (or legacy outputs) would be
+> overengineering it. They are pretty well standardized, and I don't see there
+> would be a need to write multiple display drivers for them. Each display
+> controller has one, and can easily handle any chip specific requirements
+> right there. It's my gut feeling that an additional framework would just get
+> in the way. Perhaps there could be more common HDMI/DP helper style code in
+> DRM to reduce overlap across KMS drivers, but that's another thing.
+>
+> So is the HDMI/DP drivers using CDF a more interesting idea from a non-DRM
+> perspective? Or, put another way, is it more of an alternative to using DRM?
+> Please enlighten me if there's some real benefit here that I fail to see!
 
-As mentioned in an earlier post, I've got a Cinergy 200 USB recently and
-tried to figure out the difference between both devices:
+As Rob pointed out, you can have external HDMI/DP encoders, and even internal 
+HDMI/DP encoder IPs can be shared between SoCs and SoC vendors. CDF aims at 
+sharing a single driver between SoCs and boards for a given HDMI/DP encoder.
 
-Common:
-- handbook / product description from Terratec seems to be completely
-identical (except that the number 200 is replaced with 250)
-- both devices are looking identical
-- Empia bridge
-- saa7113
-- tda9887
-- remote control with external i2c IR IC
-- physical connectors*: antenna, line-in and line-out (stereo jack), SVIDEO
+CDF isn't an alternative to DRM/KMS. It should be seen as a framework that 
+helps DRM/KMS drivers (as well as V4L2 drivers, and possibly FBDEV drivers, 
+although those should be ported to DRM/KMS) sharing encoder and connector 
+code.
 
-(*: some pictures show an additional connector on the side, but at least
-Remys' and my device don't have it).
+> For DSI panels (or DSI-to-whatever bridges) it's of course another story.
+> You typically need a panel specific driver. And here I see the main point of
+> the whole CDF: decoupling display controllers and the panel drivers, and
+> sharing panel (and converter chip) specific drivers across display
+> controllers. Making it easy to write new drivers, as there would be a model
+> to follow. I'm definitely in favour of coming up with some framework that
+> would tackle that.
 
-Cinergy 200 USB (my device):
-- generic USB ID: eb1a:2800
-- em2800
-- no eeprom
-- no AC97 IC
-- LG TALN (tuner 66)
-- audio over USB doesn't work
-- audio line-in is shortcut with line-out
+That's the main (and original) goal of CDF (originally called Generic Panel 
+Framwork, and renamed to CDF to support encoder drivers as explained above). 
+I'm glad to know that you're in favour of it :-)
 
-Cinergy 250 USB (Remy's device):
-- unique USB ID: 0ccd:0036
-- em2820
-- eeprom
-- Empia 202 AC97
-- LG TAPC (tuner 37)
-- audio over USB works (from both, tuner and line-in)
-
-
-
-In the em28xx driver, we currently have the following board definitions:
-
-    [EM2800_BOARD_TERRATEC_CINERGY_200] = {
-        .name         = "Terratec Cinergy 200 USB",
-        .is_em2800    = 1,
-        .has_ir_i2c   = 1,
-        .tuner_type   = TUNER_LG_TALN,
-        .tda9887_conf = TDA9887_PRESENT,
-        .decoder      = EM28XX_SAA711X,
-        .input        = { {
-            .type     = EM28XX_VMUX_TELEVISION,
-            .vmux     = SAA7115_COMPOSITE2,
-            .amux     = EM28XX_AMUX_VIDEO,
-        }, {
-            .type     = EM28XX_VMUX_COMPOSITE1,
-            .vmux     = SAA7115_COMPOSITE0,
-            .amux     = EM28XX_AMUX_LINE_IN,
-        }, {
-            .type     = EM28XX_VMUX_SVIDEO,
-            .vmux     = SAA7115_SVIDEO3,
-            .amux     = EM28XX_AMUX_LINE_IN,
-        } },
-    },
-
-
-    [EM2820_BOARD_TERRATEC_CINERGY_250] = {
-        .name         = "Terratec Cinergy 250 USB",
-        .tuner_type   = TUNER_LG_PAL_NEW_TAPC,
-        .has_ir_i2c   = 1,
-        .tda9887_conf = TDA9887_PRESENT,
-        .decoder      = EM28XX_SAA711X,
-        .input        = { {
-            .type     = EM28XX_VMUX_TELEVISION,
-            .vmux     = SAA7115_COMPOSITE2,
-            .amux     = EM28XX_AMUX_LINE_IN,
-        }, {
-            .type     = EM28XX_VMUX_COMPOSITE1,
-            .vmux     = SAA7115_COMPOSITE0,
-            .amux     = EM28XX_AMUX_LINE_IN,
-        }, {
-            .type     = EM28XX_VMUX_SVIDEO,
-            .vmux     = SAA7115_SVIDEO3,
-            .amux     = EM28XX_AMUX_LINE_IN,
-        } },
-    },
-
-
-Remy wants to change .amux for TV input from EM28XX_AMUX_LINE_IN to
-EM28XX_AMUX_VIDEO, which makes sense for the device he has.
-For my Cinergy 200, neither EM28XX_AMUX_VIDEO nor EM28XX_AMUX_LINE_IN
-works, because it misses an AC97 IC.
-Another question is, if we should remove the COMPOSITE input. At least
-Remys' and my device use a COMPOSITE to SVIDEO adapter cable.
-
-The big question is now, if we can be sure that there are no other
-device variants, for which the current board definitions are right.
-Especially because of the pictures with the additional connector on the
-side...
-But these pictures are all product pictures from Terratec, no one knows
-if they have ever been sold...
-
-So I'll leave it up to you to decide, which changes to make. :D
-But it's definitely time to close this old bug report. ;)
-
+-- 
 Regards,
-Frank
+
+Laurent Pinchart
 
