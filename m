@@ -1,77 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51510 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:33313 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750795Ab2LONr0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Dec 2012 08:47:26 -0500
-Message-ID: <50CC7F4E.5060803@iki.fi>
-Date: Sat, 15 Dec 2012 15:46:54 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH 5/5] em28xx: fix+improve+unify i2c error handling, debug
- messages and code comments
-References: <1355502533-25636-1-git-send-email-fschaefer.oss@googlemail.com> <1355502533-25636-6-git-send-email-fschaefer.oss@googlemail.com> <50CB5BF8.5070201@iki.fi> <50CC7499.8020507@googlemail.com>
-In-Reply-To: <50CC7499.8020507@googlemail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	id S1752864Ab2LXPQv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Dec 2012 10:16:51 -0500
+Date: Mon, 24 Dec 2012 13:16:25 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx: module parameter prefer_bulk ?
+Message-ID: <20121224131625.128de19c@redhat.com>
+In-Reply-To: <50D83BB2.4070308@googlemail.com>
+References: <50D83BB2.4070308@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/15/2012 03:01 PM, Frank Schäfer wrote:
-> Am 14.12.2012 18:03, schrieb Antti Palosaari:
->> On 12/14/2012 06:28 PM, Frank Schäfer wrote:
->>> - check i2c slave address range (only 7 bit addresses supported)
->>> - do not pass USB specific error codes to userspace/i2c-subsystem
->>> - unify the returned error codes and make them compliant with
->>>     the i2c subsystem spec
->>> - check number of actually transferred bytes (via USB) everywehere
->>> - fix/improve debug messages
->>> - improve code comments
->>>
->>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->>
->>
->>> @@ -244,16 +294,20 @@ static int em28xx_i2c_xfer(struct i2c_adapter
->>> *i2c_adap,
->>>            dprintk2(2, "%s %s addr=%x len=%d:",
->>>                 (msgs[i].flags & I2C_M_RD) ? "read" : "write",
->>>                 i == num - 1 ? "stop" : "nonstop", addr, msgs[i].len);
->>> +        if (addr > 0xff) {
->>> +            dprintk2(2, " ERROR: 10 bit addresses not supported\n");
->>> +            return -EOPNOTSUPP;
->>> +        }
->>
->> There is own flag for 10bit I2C address. Use it (and likely not
->> compare at all addr validly like that). This kind of address
->> validation check is quite unnecessary - and after all if it is wanted
->> then correct place is somewhere in I2C routines.
->
-> Well, to be 100% sure and strict, we should check both, the flag and the
-> actual address.
-> We support 7 bit addresses only, no matter which i2c algo is used. So
-> doing the address check in each i2c routine seems to be unnecessary code
-> duplication to me ?
+Em Mon, 24 Dec 2012 12:25:38 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-I will repeat me, I see it overkill to check address correctness. And as 
-I said, that one is general validly could be done easily in I2C core - 
-so why the hell you wish make it just only for em28xx ?
+> Hi Mauro,
+> 
+> now that we prefer bulk transfers for webcams and isoc transfers for TV,
+> I wonder if prefer_bulk is still a good name for this module parameter.
+> What about something like 'usb_mode', 'usb_xfer_mode' or
+> 'frame_xfer_mode' with 0=auto, 1=prefer isoc, 2=prefer bulk ?
 
-I am quite sure if that kind of address validness are saw important they 
-are already implemented by I2C core.
+while keeping it as-is is not bad, IMHO, we can change it if people prefer
+renaming it.
 
-Make patch for I2C which does that address validation against client 
-10BIT flag and sent it to the mailing list for discussion.
+usb_xfer_mode sounds good for me. Feel free to submit a patch if you want.
 
-> BTW: with the em28xx algorithm, the i2c address is transferred as 16 bit
-> value. So 10 bit addresses COULD work in theory... ;)
+It should be noticed that we can change it while it was not upstreamed. 
 
-Could be, but I think 10bit is never used in real life.
-
-regards
-Antti
+With regards to the range, we generally use -1 for "auto" (at least, we do
+that on several other places).
 
 -- 
-http://palosaari.fi/
+
+Cheers,
+Mauro
