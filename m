@@ -1,95 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2980 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754070Ab2LYVEz (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35726 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752125Ab2LXMyX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Dec 2012 16:04:55 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id qBPL4q4r048630
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Tue, 25 Dec 2012 22:04:54 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 6A99D11E00DA
-	for <linux-media@vger.kernel.org>; Tue, 25 Dec 2012 22:04:51 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Mon, 24 Dec 2012 07:54:23 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20121225210451.6A99D11E00DA@alastor.dyndns.org>
-Date: Tue, 25 Dec 2012 22:04:51 +0100 (CET)
+Cc: hans.verkuil@cisco.com
+Subject: [PATCH v2 1/2] v4l2-compliance: Print invalid return codes in control tests
+Date: Mon, 24 Dec 2012 13:55:41 +0100
+Message-Id: <1356353742-17327-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ utils/v4l2-compliance/v4l2-test-controls.cpp |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-Results of the daily build of media_tree:
+diff --git a/utils/v4l2-compliance/v4l2-test-controls.cpp b/utils/v4l2-compliance/v4l2-test-controls.cpp
+index 27c0117..2e03551 100644
+--- a/utils/v4l2-compliance/v4l2-test-controls.cpp
++++ b/utils/v4l2-compliance/v4l2-test-controls.cpp
+@@ -153,7 +153,7 @@ static int checkQCtrl(struct node *node, struct test_queryctrl &qctrl)
+ 		qmenu.index = i;
+ 		ret = doioctl(node, VIDIOC_QUERYMENU, &qmenu);
+ 		if (ret && ret != EINVAL)
+-			return fail("invalid QUERYMENU return code\n");
++			return fail("invalid QUERYMENU return code (%d)\n", ret);
+ 		if (ret)
+ 			continue;
+ 		if (i < qctrl.minimum || i > qctrl.maximum)
+@@ -194,7 +194,7 @@ int testQueryControls(struct node *node)
+ 		if (ret == ENOTTY)
+ 			return ret;
+ 		if (ret && ret != EINVAL)
+-			return fail("invalid queryctrl return code\n");
++			return fail("invalid queryctrl return code (%d)\n", ret);
+ 		if (ret)
+ 			break;
+ 		if (checkQCtrl(node, qctrl))
+@@ -244,7 +244,7 @@ int testQueryControls(struct node *node)
+ 		qctrl.id = id;
+ 		ret = doioctl(node, VIDIOC_QUERYCTRL, &qctrl);
+ 		if (ret && ret != EINVAL)
+-			return fail("invalid queryctrl return code\n");
++			return fail("invalid queryctrl return code (%d)\n", ret);
+ 		if (ret)
+ 			continue;
+ 		if (qctrl.id != id)
+@@ -260,7 +260,7 @@ int testQueryControls(struct node *node)
+ 		qctrl.id = id;
+ 		ret = doioctl(node, VIDIOC_QUERYCTRL, &qctrl);
+ 		if (ret && ret != EINVAL)
+-			return fail("invalid queryctrl return code\n");
++			return fail("invalid queryctrl return code (%d)\n", ret);
+ 		if (ret)
+ 			break;
+ 		if (qctrl.id != id)
+@@ -352,7 +352,7 @@ int testSimpleControls(struct node *node)
+ 			ctrl.id = iter->id;
+ 			ctrl.value = iter->default_value;
+ 		} else if (ret)
+-			return fail("g_ctrl returned an error\n");
++			return fail("g_ctrl returned an error (%d)\n", ret);
+ 		else if (checkSimpleCtrl(ctrl, *iter))
+ 			return fail("invalid control %08x\n", iter->id);
+ 		
+@@ -417,7 +417,7 @@ int testSimpleControls(struct node *node)
+ 				if (!valid && !ret)
+ 					return fail("could set invalid menu item %d\n", i);
+ 				if (ret && ret != EINVAL)
+-					return fail("setting invalid menu item returned wrong error\n");
++					return fail("setting invalid menu item returned wrong error (%d)\n", ret);
+ 			}
+ 		} else {
+ 			// at least min, max and default values should work
+@@ -581,7 +581,7 @@ int testExtendedControls(struct node *node)
+ 			if (ctrls.error_idx != 0)
+ 				return fail("invalid error index read only control\n");
+ 		} else if (ret) {
+-			return fail("try_ext_ctrls returned an error\n");
++			return fail("try_ext_ctrls returned an error (%d)\n", ret);
+ 		}
+ 		
+ 		// Try to set the current value (or the default value for write only controls)
+@@ -597,7 +597,7 @@ int testExtendedControls(struct node *node)
+ 				ret = 0;
+ 			}
+ 			if (ret)
+-				return fail("s_ext_ctrls returned an error\n");
++				return fail("s_ext_ctrls returned an error (%d)\n", ret);
+ 		
+ 			if (checkExtendedCtrl(ctrl, *iter))
+ 				return fail("s_ext_ctrls returned invalid control contents (%08x)\n", iter->id);
+-- 
+1.7.8.6
 
-date:        Tue Dec 25 19:00:20 CET 2012
-git hash:    8b2aea7878f64814544d0527c659011949d52358
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
-
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: OK
-linux-git-arm-eabi-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: WARNINGS
-linux-3.5-i686: WARNINGS
-linux-3.6-i686: WARNINGS
-linux-3.7-i686: WARNINGS
-linux-3.8-rc1-i686: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: WARNINGS
-linux-3.5-x86_64: WARNINGS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-x86_64: WARNINGS
-linux-3.8-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
