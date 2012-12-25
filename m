@@ -1,91 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:53736 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750955Ab2LPQYm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 11:24:42 -0500
-Date: Sun, 16 Dec 2012 09:24:40 -0700
-From: Jonathan Corbet <corbet@lwn.net>
-To: Albert Wang <twang13@marvell.com>
-Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	Libin Yang <lbyang@marvell.com>
-Subject: Re: [PATCH V3 09/15] [media] marvell-ccic: add get_mcam function
- for marvell-ccic driver
-Message-ID: <20121216092440.110ecf5f@hpe.lwn.net>
-In-Reply-To: <1355565484-15791-10-git-send-email-twang13@marvell.com>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
-	<1355565484-15791-10-git-send-email-twang13@marvell.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1511 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753563Ab2LYLvB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Dec 2012 06:51:01 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/6] uvcvideo: Set error_idx properly for extended controls API failures
+Date: Tue, 25 Dec 2012 12:50:51 +0100
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1348758980-21683-1-git-send-email-laurent.pinchart@ideasonboard.com> <201212251215.25674.hverkuil@xs4all.nl> <1427386.yhbGQRN2rP@avalon>
+In-Reply-To: <1427386.yhbGQRN2rP@avalon>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201212251250.51838.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 15 Dec 2012 17:57:58 +0800
-Albert Wang <twang13@marvell.com> wrote:
+On Tue December 25 2012 12:23:00 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Tuesday 25 December 2012 12:15:25 Hans Verkuil wrote:
+> > On Mon December 24 2012 13:27:08 Laurent Pinchart wrote:
+> > > On Thursday 27 September 2012 17:16:15 Laurent Pinchart wrote:
+> > > > When one of the requested controls doesn't exist the error_idx field
+> > > > must reflect that situation. For G_EXT_CTRLS and S_EXT_CTRLS, error_idx
+> > > > must be set to the control count. For TRY_EXT_CTRLS, it must be set to
+> > > > the index of the unexisting control.
+> > > > 
+> > > > This issue was found by the v4l2-compliance tool.
+> > > 
+> > > I'm revisiting this patch as it has been reverted in v3.8-rc1.
+> > > 
+> > > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > ---
+> > > > 
+> > > >  drivers/media/usb/uvc/uvc_ctrl.c |   17 ++++++++++-------
+> > > >  drivers/media/usb/uvc/uvc_v4l2.c |   19 ++++++++++++-------
+> > > >  2 files changed, 22 insertions(+), 14 deletions(-)
+> > > 
+> > > [snip]
+> > > 
+> > > > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> > > > b/drivers/media/usb/uvc/uvc_v4l2.c index f00db30..e5817b9 100644
+> > > > --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> > > > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> > > > @@ -591,8 +591,10 @@ static long uvc_v4l2_do_ioctl(struct file *file,
+> > > 
+> > > [snip]
+> > > 
+> > > > @@ -637,8 +639,9 @@ static long uvc_v4l2_do_ioctl(struct file *file,
+> > > > unsigned int cmd, void *arg) ret = uvc_ctrl_get(chain, ctrl);
+> > > > 
+> > > >  			if (ret < 0) {
+> > > >  			
+> > > >  				uvc_ctrl_rollback(handle);
+> > > > 
+> > > > -				ctrls->error_idx = i;
+> > > > -				return ret;
+> > > > +				ctrls->error_idx = ret == -ENOENT
+> > > > +						 ? ctrls->count : i;
+> > > > +				return ret == -ENOENT ? -EINVAL : ret;
+> > > > 
+> > > >  			}
+> > > >  		
+> > > >  		}
+> > > >  		ctrls->error_idx = 0;
+> > > > 
+> > > > @@ -661,8 +664,10 @@ static long uvc_v4l2_do_ioctl(struct file *file,
+> > > > unsigned int cmd, void *arg) ret = uvc_ctrl_set(chain, ctrl);
+> > > > 
+> > > >  			if (ret < 0) {
+> > > >  			
+> > > >  				uvc_ctrl_rollback(handle);
+> > > > 
+> > > > -				ctrls->error_idx = i;
+> > > > -				return ret;
+> > > > +				ctrls->error_idx = (ret == -ENOENT &&
+> > > > +						    cmd == VIDIOC_S_EXT_CTRLS)
+> > > > +						 ? ctrls->count : i;
+> > > > +				return ret == -ENOENT ? -EINVAL : ret;
+> > > > 
+> > > >  			}
+> > > >  		
+> > > >  		}
+> > > 
+> > > I've reread the V4L2 specification, and the least I can say is that the
+> > > text is pretty ambiguous. Let's clarify it.
+> > > 
+> > > Is there a reason to differentiate between invalid control IDs and other
+> > > errors as far as error_idx is concerned ? It would be simpler if error_idx
+> > > was set to the index of the first error for get and try operations,
+> > > regardless of the error type. What do you think ?
+> > 
+> > There is a good reason for doing this: the G/S_EXT_CTRLS ioctls have to be
+> > as atomic as possible, i.e. it should try hard to prevent leaving the
+> > hardware in an inconsistent state because not all controls could be set. It
+> > can never be fully atomic since writing multiple registers over usb or i2c
+> > can always return errors for one of those writes, but it should certainly
+> > check for all the obvious errors first that do not require actually writing
+> > to the hardware, such as whether all the controls in the control list
+> > actually exist.
+> > 
+> > And for such errors error_idx should be set to the number of controls to
+> > indicate that none of the controls were actually set but that there was a
+> > problem with the list of controls itself.
+> 
+> For S_EXT_CTRLS, sure, but G_EXT_CTRLS doesn't modify the hardware state, so 
+> it could get all controls up to the erroneous one.
 
-> This patch adds get_mcam() inline function which is prepared for
-> adding soc_camera support in marvell-ccic driver
+I have thought about that but I decided against it. One reason is to have get
+and set behave the same since both access the hardware. The other reason is
+that even getting a control value might change the hardware state, for example
+by resetting some internal hardware counter when a register is read (it's rare
+but there is hardware like that). Furthermore, reading hardware registers can
+be slow so why not do the sanity check first?
 
-Time for a bikeshed moment: "get" generally is understood to mean
-incrementing a reference count in kernel code.  Can it have a name like
-vbq_to_mcam() instead?
+Regards,
 
-Also:
-
-> @@ -1073,14 +1073,17 @@ static int mcam_vb_queue_setup(struct vb2_queue *vq,
->  static void mcam_vb_buf_queue(struct vb2_buffer *vb)
->  {
->  	struct mcam_vb_buffer *mvb = vb_to_mvb(vb);
-> -	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
-> +	struct mcam_camera *cam = get_mcam(vb->vb2_queue);
->  	struct v4l2_pix_format *fmt = &cam->pix_format;
->  	unsigned long flags;
->  	int start;
->  	dma_addr_t dma_handle;
-> +	unsigned long size;
->  	u32 pixel_count = fmt->width * fmt->height;
->  
->  	spin_lock_irqsave(&cam->dev_lock, flags);
-> +	size = vb2_plane_size(vb, 0);
-> +	vb2_set_plane_payload(vb, 0, size);
->  	dma_handle = vb2_dma_contig_plane_dma_addr(vb, 0);
->  	BUG_ON(!dma_handle);
->  	start = (cam->state == S_BUFWAIT) && !list_empty(&cam->buffers);
-
-There is an unrelated change here that belongs in a separate patch.
-
-> @@ -1138,9 +1141,12 @@ static void mcam_vb_wait_finish(struct vb2_queue *vq)
->   */
->  static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
->  {
-> -	struct mcam_camera *cam = vb2_get_drv_priv(vq);
-> +	struct mcam_camera *cam = get_mcam(vq);
->  	unsigned int frame;
->  
-> +	if (count < 2)
-> +		return -EINVAL;
-> +
-
-Here too - unrelated change.
-
->  	if (cam->state != S_IDLE) {
->  		INIT_LIST_HEAD(&cam->buffers);
->  		return -EINVAL;
-> @@ -1170,7 +1176,7 @@ static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
->  
->  static int mcam_vb_stop_streaming(struct vb2_queue *vq)
->  {
-> -	struct mcam_camera *cam = vb2_get_drv_priv(vq);
-> +	struct mcam_camera *cam = get_mcam(vq);
->  	unsigned long flags;
->  
->  	if (cam->state == S_BUFWAIT) {
-> @@ -1181,6 +1187,7 @@ static int mcam_vb_stop_streaming(struct vb2_queue *vq)
->  	if (cam->state != S_STREAMING)
->  		return -EINVAL;
->  	mcam_ctlr_stop_dma(cam);
-> +	cam->state = S_IDLE;
-
-...and also here ...
-
-jon
+	Hans
