@@ -1,56 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:49725 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751442Ab2LQBVg convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:58550 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753571Ab2LZRt1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 20:21:36 -0500
-Received: by mail-la0-f46.google.com with SMTP id p5so4253557lag.19
-        for <linux-media@vger.kernel.org>; Sun, 16 Dec 2012 17:21:35 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1355707068-25751-1-git-send-email-mkrufky@linuxtv.org>
-References: <1355707068-25751-1-git-send-email-mkrufky@linuxtv.org>
-Date: Sun, 16 Dec 2012 20:21:34 -0500
-Message-ID: <CAOcJUbz5Jj7qPnH+NQ4vd=6BBWPXUwwXxx-H7DqJsUF9Vj7wLA@mail.gmail.com>
-Subject: [PULL] tda18271: add missing entries for qam_7 to tda18271_update_std_map()
- and tda18271_dump_std_map()
-From: Michael Krufky <mkrufky@linuxtv.org>
+	Wed, 26 Dec 2012 12:49:27 -0500
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com,
-	=?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Michael Krufky <mkrufky@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v3 0/6] V4L2 asynchronous probing + soc-camera example
+Date: Wed, 26 Dec 2012 18:49:05 +0100
+Message-Id: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please pardon the previous email...
+This is v3 (roughly) of the V4L2 asynchronous probing patch plus an 
+example soc-camera framework and 1 host, 1 sensor and 1 board conversion 
+patch set. Logically, this is based on top of my recent patch series
 
-Mauro,
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/58524
 
-Please merge:
+and the last version of the v4l2-clock patch. If desired, a git branch can 
+be provided.
 
-The following changes since commit c6c22955f80f2db9614b01fe5a3d1cfcd8b3d848:
+Thanks
+Guennadi
 
-  [media] dma-mapping: fix dma_common_get_sgtable() conditional
-compilation (2012-11-27 09:42:31 -0200)
+Guennadi Liakhovetski (6):
+  media: V4L2: support asynchronous subdevice registration
+  media: soc-camera: switch I2C subdevice drivers to use v4l2-clk
+  soc-camera: add V4L2-async support
+  sh_mobile_ceu_camera: add asynchronous subdevice probing support
+  imx074: support asynchronous probing
+  ARM: shmobile: convert ap4evb to asynchronously register camera
+    subdevices
 
-are available in the git repository at:
+ arch/arm/mach-shmobile/board-ap4evb.c              |  103 ++--
+ arch/arm/mach-shmobile/clock-sh7372.c              |    1 +
+ drivers/media/i2c/soc_camera/imx074.c              |   35 +-
+ drivers/media/i2c/soc_camera/mt9m001.c             |   17 +-
+ drivers/media/i2c/soc_camera/mt9m111.c             |   20 +-
+ drivers/media/i2c/soc_camera/mt9t031.c             |   19 +-
+ drivers/media/i2c/soc_camera/mt9t112.c             |   19 +-
+ drivers/media/i2c/soc_camera/mt9v022.c             |   17 +-
+ drivers/media/i2c/soc_camera/ov2640.c              |   19 +-
+ drivers/media/i2c/soc_camera/ov5642.c              |   20 +-
+ drivers/media/i2c/soc_camera/ov6650.c              |   17 +-
+ drivers/media/i2c/soc_camera/ov772x.c              |   15 +-
+ drivers/media/i2c/soc_camera/ov9640.c              |   17 +-
+ drivers/media/i2c/soc_camera/ov9640.h              |    1 +
+ drivers/media/i2c/soc_camera/ov9740.c              |   18 +-
+ drivers/media/i2c/soc_camera/rj54n1cb0c.c          |   17 +-
+ drivers/media/i2c/soc_camera/tw9910.c              |   18 +-
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |  135 +++-
+ drivers/media/platform/soc_camera/sh_mobile_csi2.c |  164 +++--
+ drivers/media/platform/soc_camera/soc_camera.c     |  681 ++++++++++++++++----
+ .../platform/soc_camera/soc_camera_platform.c      |    2 +-
+ drivers/media/v4l2-core/Makefile                   |    3 +-
+ drivers/media/v4l2-core/v4l2-async.c               |  284 ++++++++
+ drivers/media/v4l2-core/v4l2-device.c              |    2 +
+ include/media/sh_mobile_ceu.h                      |    2 +
+ include/media/sh_mobile_csi2.h                     |    2 +-
+ include/media/soc_camera.h                         |   35 +-
+ include/media/v4l2-async.h                         |  113 ++++
+ 28 files changed, 1489 insertions(+), 307 deletions(-)
+ create mode 100644 drivers/media/v4l2-core/v4l2-async.c
+ create mode 100644 include/media/v4l2-async.h
 
-  git://linuxtv.org/mkrufky/tuners tda18271-qam7
+-- 
+1.7.2.5
 
-for you to fetch changes up to 6554906af8c145b4fa8d4ea1b9c98c20322dd132:
-
-  tda18271: add missing entries for qam_7 to tda18271_update_std_map()
-and tda18271_dump_std_map() (2012-12-04 14:14:26 -0500)
-
-----------------------------------------------------------------
-Frank Sch�fer (1):
-      tda18271: add missing entries for qam_7 to
-tda18271_update_std_map() and tda18271_dump_std_map()
-
- drivers/media/tuners/tda18271-fe.c |    2 ++
- 1 file changed, 2 insertions(+)
-
-Cheers,
-
-Mike
