@@ -1,92 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1809 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752009Ab2LCUwd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2012 15:52:33 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id qB3KqV0Z094858
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Mon, 3 Dec 2012 21:52:32 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id D375965A0041
-	for <linux-media@vger.kernel.org>; Mon,  3 Dec 2012 21:52:30 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20121203205230.D375965A0041@alastor.dyndns.org>
-Date: Mon,  3 Dec 2012 21:52:30 +0100 (CET)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56855 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751347Ab2LZLch (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Dec 2012 06:32:37 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 1/6] uvcvideo: Set error_idx properly for extended controls API failures
+Date: Wed, 26 Dec 2012 12:33:58 +0100
+Message-ID: <22611337.csYnEZHssR@avalon>
+In-Reply-To: <201212251250.51838.hverkuil@xs4all.nl>
+References: <1348758980-21683-1-git-send-email-laurent.pinchart@ideasonboard.com> <1427386.yhbGQRN2rP@avalon> <201212251250.51838.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Hans,
 
-Results of the daily build of media_tree:
+On Tuesday 25 December 2012 12:50:51 Hans Verkuil wrote:
+> On Tue December 25 2012 12:23:00 Laurent Pinchart wrote:
+> > On Tuesday 25 December 2012 12:15:25 Hans Verkuil wrote:
+> > > On Mon December 24 2012 13:27:08 Laurent Pinchart wrote:
+> > > > On Thursday 27 September 2012 17:16:15 Laurent Pinchart wrote:
+> > > > > When one of the requested controls doesn't exist the error_idx field
+> > > > > must reflect that situation. For G_EXT_CTRLS and S_EXT_CTRLS,
+> > > > > error_idx must be set to the control count. For TRY_EXT_CTRLS, it
+> > > > > must be set to the index of the unexisting control.
+> > > > > 
+> > > > > This issue was found by the v4l2-compliance tool.
+> > > > 
+> > > > I'm revisiting this patch as it has been reverted in v3.8-rc1.
+> > > > 
+> > > > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > > ---
+> > > > > 
+> > > > >  drivers/media/usb/uvc/uvc_ctrl.c |   17 ++++++++++-------
+> > > > >  drivers/media/usb/uvc/uvc_v4l2.c |   19 ++++++++++++-------
+> > > > >  2 files changed, 22 insertions(+), 14 deletions(-)
+> > > > 
+> > > > [snip]
+> > > > 
+> > > > > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> > > > > b/drivers/media/usb/uvc/uvc_v4l2.c index f00db30..e5817b9 100644
+> > > > > --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> > > > > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> > > > > @@ -591,8 +591,10 @@ static long uvc_v4l2_do_ioctl(struct file
+> > > > > *file,
+> > > > 
+> > > > [snip]
+> > > > 
+> > > > > @@ -637,8 +639,9 @@ static long uvc_v4l2_do_ioctl(struct file *file,
+> > > > > unsigned int cmd, void *arg) ret = uvc_ctrl_get(chain, ctrl);
+> > > > >  			if (ret < 0) {
+> > > > >  				uvc_ctrl_rollback(handle);
+> > > > > 
+> > > > > -				ctrls->error_idx = i;
+> > > > > -				return ret;
+> > > > > +				ctrls->error_idx = ret == -ENOENT
+> > > > > +						 ? ctrls->count : i;
+> > > > > +				return ret == -ENOENT ? -EINVAL : ret;
+> > > > >  			}
+> > > > >  		}
+> > > > >  		ctrls->error_idx = 0;
+> > > > > @@ -661,8 +664,10 @@ static long uvc_v4l2_do_ioctl(struct file
+> > > > > *file,
+> > > > > unsigned int cmd, void *arg) ret = uvc_ctrl_set(chain, ctrl);
+> > > > >  			if (ret < 0) {
+> > > > >  				uvc_ctrl_rollback(handle);
+> > > > > 
+> > > > > -				ctrls->error_idx = i;
+> > > > > -				return ret;
+> > > > > +				ctrls->error_idx = (ret == -ENOENT &&
+> > > > > +						    cmd == VIDIOC_S_EXT_CTRLS)
+> > > > > +						 ? ctrls->count : i;
+> > > > > +				return ret == -ENOENT ? -EINVAL : ret;
+> > > > >  			}
+> > > > >  		}
+> > > > 
+> > > > I've reread the V4L2 specification, and the least I can say is that
+> > > > the text is pretty ambiguous. Let's clarify it.
+> > > > 
+> > > > Is there a reason to differentiate between invalid control IDs and
+> > > > other errors as far as error_idx is concerned ? It would be simpler if
+> > > > error_idx was set to the index of the first error for get and try
+> > > > operations, regardless of the error type. What do you think ?
+> > > 
+> > > There is a good reason for doing this: the G/S_EXT_CTRLS ioctls have to
+> > > be as atomic as possible, i.e. it should try hard to prevent leaving the
+> > > hardware in an inconsistent state because not all controls could be set.
+> > > It can never be fully atomic since writing multiple registers over usb
+> > > or i2c can always return errors for one of those writes, but it should
+> > > certainly check for all the obvious errors first that do not require
+> > > actually writing to the hardware, such as whether all the controls in
+> > > the control list actually exist.
+> > > 
+> > > And for such errors error_idx should be set to the number of controls to
+> > > indicate that none of the controls were actually set but that there was
+> > > a problem with the list of controls itself.
+> > 
+> > For S_EXT_CTRLS, sure, but G_EXT_CTRLS doesn't modify the hardware state,
+> > so it could get all controls up to the erroneous one.
+> 
+> I have thought about that but I decided against it. One reason is to have
+> get and set behave the same since both access the hardware. The other
+> reason is that even getting a control value might change the hardware
+> state, for example by resetting some internal hardware counter when a
+> register is read (it's rare but there is hardware like that). Furthermore,
+> reading hardware registers can be slow so why not do the sanity check
+> first?
 
-date:        Mon Dec  3 19:00:23 CET 2012
-git hash:    d8658bca2e5696df2b6c69bc5538f8fe54e4a01e
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+Get can indeed change the device state in rare cases, but the information 
+won't be lost, as the value of all controls before error_idx will be returned.
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: OK
-linux-git-arm-eabi-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: WARNINGS
-linux-git-x86_64: OK
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: ERRORS
-linux-3.5-i686: ERRORS
-linux-3.6-i686: WARNINGS
-linux-3.7-rc1-i686: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: ERRORS
-linux-3.5-x86_64: ERRORS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: WARNINGS
-sparse: ERRORS
+What bothers me with the current G_EXT_CTRLS implementation (beside that it's 
+very slightly more complex for the uvcvideo driver than the one I propose) is 
+that an application will have no way to know for which control G_EXT_CTRLS 
+failed. This is especially annoying during development.
 
-Detailed results are available here:
+Maybe we could leave this behaviour as driver-specific ?
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+-- 
+Regards,
 
-Full logs are available here:
+Laurent Pinchart
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
