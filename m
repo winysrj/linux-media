@@ -1,25 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4873 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752146Ab2L0L73 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Dec 2012 06:59:29 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:39465 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751151Ab2LZOxM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Dec 2012 09:53:12 -0500
+Date: Wed, 26 Dec 2012 12:00:35 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 1/6] uvcvideo: Set error_idx properly for extended controls API failures
-Date: Thu, 27 Dec 2012 12:59:15 +0100
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <1348758980-21683-1-git-send-email-laurent.pinchart@ideasonboard.com> <201212251250.51838.hverkuil@xs4all.nl> <22611337.csYnEZHssR@avalon>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 1/6] uvcvideo: Set error_idx properly for extended
+ controls API failures
+Message-ID: <20121226120035.237e242f@redhat.com>
 In-Reply-To: <22611337.csYnEZHssR@avalon>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+References: <1348758980-21683-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<1427386.yhbGQRN2rP@avalon>
+	<201212251250.51838.hverkuil@xs4all.nl>
+	<22611337.csYnEZHssR@avalon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201212271259.15502.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed December 26 2012 12:33:58 Laurent Pinchart wrote:
+Em Wed, 26 Dec 2012 12:33:58 +0100
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+
 > Hi Hans,
 > 
 > On Tuesday 25 December 2012 12:50:51 Hans Verkuil wrote:
@@ -116,22 +121,22 @@ On Wed December 26 2012 12:33:58 Laurent Pinchart wrote:
 > 
 > Get can indeed change the device state in rare cases, but the information 
 > won't be lost, as the value of all controls before error_idx will be returned.
-> 
+
+Huh? reading a control should never alter the device's state. If the hardware
+is resetting a register, then such register should be shadowed, and some other
+way to explicitly reset its value should be used.
+
 > What bothers me with the current G_EXT_CTRLS implementation (beside that it's 
 > very slightly more complex for the uvcvideo driver than the one I propose) is 
 > that an application will have no way to know for which control G_EXT_CTRLS 
 > failed. This is especially annoying during development.
-
-For S_EXT_CTRLS you can call TRY_EXT_CTRLS first to check which control failed,
-but you don't have that option for G_EXT_CTRLS. That's actually something I
-hadn't considered.
-
+> 
 > Maybe we could leave this behaviour as driver-specific ?
 
-I need to think about this some more. Is this urgent or can it wait until
-January 7th? I'm back at work by then. I am actually attempting to touch my
-computer as little as possible this vacation :-)
+driver-specific behavior for IOCTL's should be avoided, as applications will
+fail if they see something it doesn't expect.
 
-Regards,
+-- 
 
-	Hans
+Cheers,
+Mauro
