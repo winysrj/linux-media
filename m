@@ -1,141 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2005 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752722Ab2L2Ly0 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:51036 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752313Ab2LZRgB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Dec 2012 06:54:26 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: ABI breakage due to "Unsupported formats in TRY_FMT/S_FMT" recommendation
-Date: Sat, 29 Dec 2012 12:53:45 +0100
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <CAGoCfiwzFFZ+hLOKT-5cHTJOiY8ZsRVXmDx+W7x+7uMXMKWk5g@mail.gmail.com> <20121228222744.6b567a9b@redhat.com>
-In-Reply-To: <20121228222744.6b567a9b@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201212291253.45189.hverkuil@xs4all.nl>
+	Wed, 26 Dec 2012 12:36:01 -0500
+Received: from 6a.grange (6a.grange [192.168.1.11])
+	by axis700.grange (Postfix) with ESMTPS id 295E540B98
+	for <linux-media@vger.kernel.org>; Wed, 26 Dec 2012 18:35:59 +0100 (CET)
+Received: from lyakh by 6a.grange with local (Exim 4.72)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1Tnuta-0001cL-S3
+	for linux-media@vger.kernel.org; Wed, 26 Dec 2012 18:35:58 +0100
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 2/6] media: soc-camera: properly fix camera probing races
+Date: Wed, 26 Dec 2012 18:35:54 +0100
+Message-Id: <1356543358-6180-3-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1356543358-6180-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1356543358-6180-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat December 29 2012 01:27:44 Mauro Carvalho Chehab wrote:
-> Em Fri, 28 Dec 2012 14:52:24 -0500
-> Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
-> 
-> > Hi there,
-> > 
-> > So I noticed that one of the "V4L2 ambiguities" discussed at the Media
-> > Workshop relates to expected behavior with TRY_FMT/S_FMT.
-> > Specifically (from
-> > http://www.linuxtv.org/news.php?entry=2012-12-28.mchehab):
-> > 
-> > ===
-> > 1.4. Unsupported formats in TRY_FMT/S_FMT
-> > 
-> > What should a driver return in TRY_FMT/S_FMT if the requested format
-> > is not supported (possible behaviors include returning the currently
-> > selected format or a default format).
-> > The spec says this: "Drivers should not return an error code unless
-> > the input is ambiguous", but it does not explain what constitutes an
-> > ambiguous input. In my opinion TRY/S_FMT should never return an error
-> > other than EINVAL (if the buffer type is unsupported) or EBUSY (for
-> > S_FMT if streaming is in progress).
-> > Should we make a recommendation whether the currently selected format
-> > or a default format should be returned?
-> > One proposal is to just return a default format if the requested
-> > pixelformat is unsupported. Returning the currently selected format
-> > leads to inconsistent results.
-> > Results:
-> > TRY_FMT/S_FMT should never return an error when the requested format
-> > is not supported. Drivers should always return a valid format,
-> > preferably a format that is as widely supported by applications as
-> > possible.
-> > Both TRY_FMT and S_FMT should have the same behaviour. Drivers should
-> > not return different formats when getting the same input parameters.
-> > The format returned should be a driver default format if possible
-> > (stateless behaviour) but can be stateful if needed.
-> > The API spec should let clear that format retuns may be different when
-> > different video inputs (or outputs) are selected.
-> > ===
-> > 
-> > Note that this will cause ABI breakage with existing applications.  If
-> > an application expects an error condition to become aware that the
-> > requested format was not supported, that application will silently
-> > think the requested format was valid but in fact the driver is
-> > returning data in some other format.
-> > 
-> > Tvtime (one of the more popular apps for watching analog television)
-> > is one such application that will broken.
-> > 
-> > http://git.linuxtv.org/tvtime.git/blob/HEAD:/src/videoinput.c#l452
-> > 
-> > If YUVY isn't supported but UYVY is (for example, with the Hauppauge
-> > HVR-950q), the application will think it's doing YUYV when in fact the
-> > driver is returning UYVY.
-> > 
-> > MythTV is a little better (it does ultimately store the format
-> > returned by the driver), however even there it depends on an error
-> > being returned in order to know to do userland format conversion.
-> > 
-> > https://github.com/MythTV/mythtv/blob/master/mythtv/libs/libmythtv/recorders/NuppelVideoRecorder.cpp#L1367
-> > 
-> > Now it would be quite simple to change tvtime to use the expected
-> > behavior, but if backward compatibility with the ABI is of paramount
-> > importance, then we cannot proceed with this change as proposed.
-> > Don't misunderstand me - if I were inventing the API today then the
-> > proposed approach is what I would recommend - but since these parts of
-> > the ABI are something like ten years old, we have to take into account
-> > legacy applications.
-> 
-> Thanks for pointing it!
-> 
-> (c/c Hans, as he started those discussions)
-> 
-> Well, if applications will break with this change, then we need to revisit
-> the question, and decide otherwise, as it shouldn't break userspace.
-> 
-> It should be noticed, however, that currently, some drivers won't
-> return errors when S_FMT/TRY_FMT requests invalid parameters.
-> 
-> So, IMHO, what should be done is:
-> 	1) to not break userspace;
-> 	2) userspace apps should be improved to handle those drivers
-> that have a potential of breaking them;
-> 	3) clearly state at the API, and enforce via compliance tool,
-> that all drivers will behave the same.
+The recently introduced host_lock causes lockdep warnings, besides, list
+enumeration in scan_add_host() must be protected by holdint the list_lock.
+OTOH, holding .video_lock in soc_camera_open() isn't enough to protect
+the host during its building of the pipeline, because .video_lock is per
+soc-camera device. If, e.g. more than one sensor can be attached to a host
+and the user tries to open both device nodes simultaneously, host's .add()
+method can be called simultaneously for both sensors. Fix these problems
+by holding list_lock instead of .host_lock in scan_add_host() and taking
+it shortly at the beginning of soc_camera_open(), and using .host_lock to
+protect host's .add() and .remove() operations only.
 
-In my opinion these are application bugs, and not ABI breakages. As Mauro
-mentioned, some drivers don't return an error and so would always have failed
-with these apps (examples: cx18/ivtv, gspca).
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/platform/soc_camera/soc_camera.c |   22 +++++++++++++++++++---
+ include/media/soc_camera.h                     |    2 +-
+ 2 files changed, 20 insertions(+), 4 deletions(-)
 
-Do these apps even handle the case where TRY isn't implemented at all by the
-driver? (hdpvr)
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 4d7ec3d..37c53e7 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -517,7 +517,14 @@ static int soc_camera_open(struct file *file)
+ 		/* No device driver attached */
+ 		return -ENODEV;
+ 
++	/*
++	 * Don't mess with the host during probe: wait until the loop in
++	 * scan_add_host() completes
++	 */
++	if (mutex_lock_interruptible(&list_lock))
++		return -ERESTARTSYS;
+ 	ici = to_soc_camera_host(icd->parent);
++	mutex_unlock(&list_lock);
+ 
+ 	if (mutex_lock_interruptible(&icd->video_lock))
+ 		return -ERESTARTSYS;
+@@ -548,7 +555,6 @@ static int soc_camera_open(struct file *file)
+ 		if (icl->reset)
+ 			icl->reset(icd->pdev);
+ 
+-		/* Don't mess with the host during probe */
+ 		mutex_lock(&ici->host_lock);
+ 		ret = ici->ops->add(icd);
+ 		mutex_unlock(&ici->host_lock);
+@@ -602,7 +608,9 @@ esfmt:
+ eresume:
+ 	__soc_camera_power_off(icd);
+ epower:
++	mutex_lock(&ici->host_lock);
+ 	ici->ops->remove(icd);
++	mutex_unlock(&ici->host_lock);
+ eiciadd:
+ 	icd->use_count--;
+ 	module_put(ici->ops->owner);
+@@ -625,7 +633,9 @@ static int soc_camera_close(struct file *file)
+ 
+ 		if (ici->ops->init_videobuf2)
+ 			vb2_queue_release(&icd->vb2_vidq);
++		mutex_lock(&ici->host_lock);
+ 		ici->ops->remove(icd);
++		mutex_unlock(&ici->host_lock);
+ 
+ 		__soc_camera_power_off(icd);
+ 	}
+@@ -1050,7 +1060,7 @@ static void scan_add_host(struct soc_camera_host *ici)
+ {
+ 	struct soc_camera_device *icd;
+ 
+-	mutex_lock(&ici->host_lock);
++	mutex_lock(&list_lock);
+ 
+ 	list_for_each_entry(icd, &devices, list) {
+ 		if (icd->iface == ici->nr) {
+@@ -1059,7 +1069,7 @@ static void scan_add_host(struct soc_camera_host *ici)
+ 		}
+ 	}
+ 
+-	mutex_unlock(&ici->host_lock);
++	mutex_unlock(&list_lock);
+ }
+ 
+ #ifdef CONFIG_I2C_BOARDINFO
+@@ -1146,7 +1156,9 @@ static int soc_camera_probe(struct soc_camera_device *icd)
+ 	if (icl->reset)
+ 		icl->reset(icd->pdev);
+ 
++	mutex_lock(&ici->host_lock);
+ 	ret = ici->ops->add(icd);
++	mutex_unlock(&ici->host_lock);
+ 	if (ret < 0)
+ 		goto eadd;
+ 
+@@ -1218,7 +1230,9 @@ static int soc_camera_probe(struct soc_camera_device *icd)
+ 		icd->field		= mf.field;
+ 	}
+ 
++	mutex_lock(&ici->host_lock);
+ 	ici->ops->remove(icd);
++	mutex_unlock(&ici->host_lock);
+ 
+ 	mutex_unlock(&icd->video_lock);
+ 
+@@ -1240,7 +1254,9 @@ eadddev:
+ 	video_device_release(icd->vdev);
+ 	icd->vdev = NULL;
+ evdc:
++	mutex_lock(&ici->host_lock);
+ 	ici->ops->remove(icd);
++	mutex_unlock(&ici->host_lock);
+ eadd:
+ ereg:
+ 	v4l2_ctrl_handler_free(&icd->ctrl_handler);
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 6442edc..0370a95 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -62,7 +62,7 @@ struct soc_camera_device {
+ struct soc_camera_host {
+ 	struct v4l2_device v4l2_dev;
+ 	struct list_head list;
+-	struct mutex host_lock;		/* Protect during probing */
++	struct mutex host_lock;		/* Protect pipeline modifications */
+ 	unsigned char nr;		/* Host number */
+ 	u32 capabilities;
+ 	void *priv;
+-- 
+1.7.2.5
 
-There is nothing in the spec that says that you will get an error if the
-pixelformat isn't supported by the driver, in fact it says the opposite:
-
-"Very simple, inflexible devices may even ignore all input and always return
-the default parameters."
-
-We are not in the business to work around application bugs, IMHO. We can of
-course delay making these changes until those applications are fixed.
-
-I suspect that the behavior of returning an error if a pixelformat is not
-supported is a leftover from the V4L1 API (VIDIOCSPICT). When drivers were
-converted to S/TRY_FMT this method of handling unsupported pixelformats was
-probably never changed. And quite a few newer drivers copy-and-pasted that
-method. Drivers like cx18/ivtv that didn't copy-and-paste code looked at the
-API and followed what the API said.
-
-At the moment most TV drivers seem to return an error, whereas for webcams
-it is hit and miss: uvc returned an error (until it was fixed recently),
-gspca didn't. So webcam applications probably do the right thing given the
-behavior of gspca.
-
-What does xawtv do, BTW?
-
-Regards,
-
-	Hans
