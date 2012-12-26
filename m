@@ -1,88 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13151 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752916Ab2L2O7F (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Dec 2012 09:59:05 -0500
-Date: Sat, 29 Dec 2012 12:58:38 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: ABI breakage due to "Unsupported formats in TRY_FMT/S_FMT"
- recommendation
-Message-ID: <20121229125838.4cabb5a0@redhat.com>
-In-Reply-To: <20121229122334.00ea0b8a@redhat.com>
-References: <CAGoCfiwzFFZ+hLOKT-5cHTJOiY8ZsRVXmDx+W7x+7uMXMKWk5g@mail.gmail.com>
-	<20121228222744.6b567a9b@redhat.com>
-	<201212291253.45189.hverkuil@xs4all.nl>
-	<20121229122334.00ea0b8a@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.126.187]:61422 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752502Ab2LZRgC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Dec 2012 12:36:02 -0500
+Received: from 6a.grange (6a.grange [192.168.1.11])
+	by axis700.grange (Postfix) with ESMTPS id DE4B740BDE
+	for <linux-media@vger.kernel.org>; Wed, 26 Dec 2012 18:35:59 +0100 (CET)
+Received: from lyakh by 6a.grange with local (Exim 4.72)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1Tnuta-0001cH-Mt
+	for linux-media@vger.kernel.org; Wed, 26 Dec 2012 18:35:58 +0100
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 0/6] soc-camera: improvements and fixes, prepare for async
+Date: Wed, 26 Dec 2012 18:35:52 +0100
+Message-Id: <1356543358-6180-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 29 Dec 2012 12:23:34 -0200
-Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+These patches fix several issues in soc-camera drivers, preparing a 
+cleaner base for v4l2-async patches.
 
-> Em Sat, 29 Dec 2012 12:53:45 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
-> > On Sat December 29 2012 01:27:44 Mauro Carvalho Chehab wrote:
-> > > Em Fri, 28 Dec 2012 14:52:24 -0500
-> > > Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
-> > > 
-> > > > Hi there,
-> > > > 
-> > > > So I noticed that one of the "V4L2 ambiguities" discussed at the Media
-> > > > Workshop relates to expected behavior with TRY_FMT/S_FMT.
-> ...
-> > > Well, if applications will break with this change, then we need to revisit
-> > > the question, and decide otherwise, as it shouldn't break userspace.
-> > > 
-> > > It should be noticed, however, that currently, some drivers won't
-> > > return errors when S_FMT/TRY_FMT requests invalid parameters.
-> > > 
-> > > So, IMHO, what should be done is:
-> > > 	1) to not break userspace;
-> > > 	2) userspace apps should be improved to handle those drivers
-> > > that have a potential of breaking them;
-> > > 	3) clearly state at the API, and enforce via compliance tool,
-> > > that all drivers will behave the same.
-> > 
-> > In my opinion these are application bugs, and not ABI breakages. As Mauro
-> > mentioned, some drivers don't return an error and so would always have failed
-> > with these apps (examples: cx18/ivtv, gspca).
-> 
-> It is both an application bug and a potential ABI breakage.
-> 
-> Hmm... as MythTv and tvtime are meant to be used to watch TV, maybe we can
-> look on it using a different angle.
-> 
-...
-> The drivers that only support V4L2_PIX_FMT_UYVY seems to be
-> cx18, sta2x11_vip, au0828 and gspca (kinect, w996xcf). From those,
-> only cx18 and au0828 are TV drivers.
-> 
-> On a tvtime compiled without libv4l, the cx18 driver will fail with the
-> current logic, as it doesn't return an error when format doesn't
-> match. So, tvtime will fail anyway with 50% of the TV drivers that don't
-> support YUYV directly. It will also fail with most cameras, as they're
-> generally based on proprietary/bayer formats and/or may not have the
-> resolutions that tvtime requires.
+Thanks
+Guennadi
 
-Not sure if I was clear enough. In summary, what I'm saying is that:
+Guennadi Liakhovetski (6):
+  media: sh_mobile_ceu_camera: fix CSI2 format negotiation
+  media: soc-camera: properly fix camera probing races
+  soc-camera: remove struct soc_camera_device::video_lock
+  media: soc-camera: split struct soc_camera_link into host and
+    subdevice parts
+  media: soc-camera: use devm_kzalloc in subdevice drivers
+  soc-camera: fix repeated regulator requesting
 
-1) userspace apps should be fixed, as they're currently broken for cx18,
-when libv4l support is disabled;
+ drivers/media/i2c/soc_camera/imx074.c              |   27 +--
+ drivers/media/i2c/soc_camera/mt9m001.c             |   52 +++----
+ drivers/media/i2c/soc_camera/mt9m111.c             |   36 ++---
+ drivers/media/i2c/soc_camera/mt9t031.c             |   36 ++---
+ drivers/media/i2c/soc_camera/mt9t112.c             |   27 ++--
+ drivers/media/i2c/soc_camera/mt9v022.c             |   44 +++---
+ drivers/media/i2c/soc_camera/ov2640.c              |   29 ++--
+ drivers/media/i2c/soc_camera/ov5642.c              |   31 ++---
+ drivers/media/i2c/soc_camera/ov6650.c              |   30 ++--
+ drivers/media/i2c/soc_camera/ov772x.c              |   36 ++---
+ drivers/media/i2c/soc_camera/ov9640.c              |   27 ++--
+ drivers/media/i2c/soc_camera/ov9740.c              |   29 ++--
+ drivers/media/i2c/soc_camera/rj54n1cb0c.c          |   39 ++---
+ drivers/media/i2c/soc_camera/tw9910.c              |   30 ++---
+ drivers/media/platform/soc_camera/atmel-isi.c      |    4 +-
+ drivers/media/platform/soc_camera/mx1_camera.c     |    3 +-
+ drivers/media/platform/soc_camera/mx2_camera.c     |    1 -
+ drivers/media/platform/soc_camera/mx3_camera.c     |    4 +-
+ drivers/media/platform/soc_camera/omap1_camera.c   |    4 +-
+ drivers/media/platform/soc_camera/pxa_camera.c     |    6 +-
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |    6 +-
+ drivers/media/platform/soc_camera/soc_camera.c     |  167 +++++++++++---------
+ .../platform/soc_camera/soc_camera_platform.c      |    6 +-
+ include/media/soc_camera.h                         |   98 +++++++++---
+ include/media/soc_camera_platform.h                |   10 +-
+ 25 files changed, 379 insertions(+), 403 deletions(-)
 
-2) from kernelspace's perspective, it seems that the changes for the above
-affected drivers need to be postponed. If this bug happens only on
-tvtime and MythTV, then changes on drivers that don't support UYVY
-could be done anytime, but a yellow flag rised: we should be sure that
-other userspace applications and libv4l won't be affected before changing
-an existing kernel driver, as no regressions are accepted.
+-- 
+1.7.2.5
 
-Cheers,
-Mauro
