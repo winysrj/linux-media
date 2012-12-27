@@ -1,32 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:37475 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751111Ab2LCUCr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2012 15:02:47 -0500
-Received: by mail-bk0-f46.google.com with SMTP id q16so1275006bkw.19
-        for <linux-media@vger.kernel.org>; Mon, 03 Dec 2012 12:02:45 -0800 (PST)
-Message-ID: <50BD055D.70006@gmail.com>
-Date: Mon, 03 Dec 2012 21:02:37 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail-ee0-f50.google.com ([74.125.83.50]:40297 "EHLO
+	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751593Ab2L0XCi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Dec 2012 18:02:38 -0500
+Received: by mail-ee0-f50.google.com with SMTP id b45so5033080eek.37
+        for <linux-media@vger.kernel.org>; Thu, 27 Dec 2012 15:02:37 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 2/6] em28xx: refactor the code in em28xx_usb_disconnect()
+Date: Fri, 28 Dec 2012 00:02:44 +0100
+Message-Id: <1356649368-5426-3-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1356649368-5426-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1356649368-5426-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-CC: linux-media@vger.kernel.org, patches@linaro.org
-Subject: Re: [PATCH 1/1] [media] s3c-camif: Add missing version.h header file
-References: <1354517071-1003-1-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1354517071-1003-1-git-send-email-sachin.kamat@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+The main purpose of this patch is to move the call of em28xx_release_resources()
+after the call of em28xx_close_extension().
+This is necessary, because some resources might be needed/used by the extensions
+fini() functions when they get closed.
+Also mark the device as disconnected earlier in this function and unify the
+em28xx_uninit_usb_xfer() calls for analog and digital mode.
 
-On 12/03/2012 07:44 AM, Sachin Kamat wrote:
-> versioncheck script complains about missing linux/version.h header
-> file.
->
-> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c |   26 +++++++++++---------------
+ 1 Datei geändert, 11 Zeilen hinzugefügt(+), 15 Zeilen entfernt(-)
 
-Thank you for the patch. I've applied it to my tree for v3.9.
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 8496a06..40c3e45 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3478,6 +3478,8 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
+ 	if (!dev)
+ 		return;
+ 
++	dev->disconnected = 1;
++
+ 	if (dev->is_audio_only) {
+ 		mutex_lock(&dev->lock);
+ 		em28xx_close_extension(dev);
+@@ -3489,32 +3491,26 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
+ 
+ 	flush_request_modules(dev);
+ 
+-	/* wait until all current v4l2 io is finished then deallocate
+-	   resources */
+ 	mutex_lock(&dev->lock);
+ 
+ 	v4l2_device_disconnect(&dev->v4l2_dev);
+ 
+ 	if (dev->users) {
+-		em28xx_warn
+-		    ("device %s is open! Deregistration and memory "
+-		     "deallocation are deferred on close.\n",
+-		     video_device_node_name(dev->vdev));
++		em28xx_warn("device %s is open! Deregistration and memory deallocation are deferred on close.\n",
++			    video_device_node_name(dev->vdev));
+ 
+-		em28xx_uninit_usb_xfer(dev, dev->mode);
+-		dev->disconnected = 1;
+-	} else {
+-		dev->disconnected = 1;
+-		em28xx_release_resources(dev);
++		em28xx_uninit_usb_xfer(dev, EM28XX_ANALOG_MODE);
++		em28xx_uninit_usb_xfer(dev, EM28XX_DIGITAL_MODE);
+ 	}
+ 
+-	/* free DVB isoc buffers */
+-	em28xx_uninit_usb_xfer(dev, EM28XX_DIGITAL_MODE);
++	em28xx_close_extension(dev);
++	/* NOTE: must be called BEFORE the resources are released */
++
++	if (!dev->users)
++		em28xx_release_resources(dev);
+ 
+ 	mutex_unlock(&dev->lock);
+ 
+-	em28xx_close_extension(dev);
+-
+ 	if (!dev->users) {
+ 		kfree(dev->alt_max_pkt_size_isoc);
+ 		kfree(dev);
+-- 
+1.7.10.4
 
-Sylwester
