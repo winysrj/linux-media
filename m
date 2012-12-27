@@ -1,92 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1249 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751404Ab2LHUwc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Dec 2012 15:52:32 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id qB8KqTI1006858
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sat, 8 Dec 2012 21:52:31 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 92D8F1700047
-	for <linux-media@vger.kernel.org>; Sat,  8 Dec 2012 21:52:28 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20121208205228.92D8F1700047@alastor.dyndns.org>
-Date: Sat,  8 Dec 2012 21:52:28 +0100 (CET)
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4898 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752146Ab2L0Lz3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Dec 2012 06:55:29 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Kirill Smelkov <kirr@navytux.spb.ru>
+Subject: Re: [PATCH] [media] vivi: Constify structures
+Date: Thu, 27 Dec 2012 12:55:11 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1356535783-24173-1-git-send-email-kirr@navytux.spb.ru>
+In-Reply-To: <1356535783-24173-1-git-send-email-kirr@navytux.spb.ru>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201212271255.11159.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Wed December 26 2012 16:29:43 Kirill Smelkov wrote:
+> Most of *_ops and other structures in vivi.c were already declared const
+> but some have not. Constify and code/data will take less space:
+> 
+>     $ size drivers/media/platform/vivi.o
+>               text    data     bss     dec     hex filename
+>     before:  12569     248       8   12825    3219 drivers/media/platform/vivi.o
+>     after:   12308      20       8   12336    3030 drivers/media/platform/vivi.o
+> 
+> i.e. vivi.o is now ~500 bytes less.
+> 
+> Signed-off-by: Kirill Smelkov <kirr@navytux.spb.ru>
+> ---
+>  drivers/media/platform/vivi.c | 26 +++++++++++++-------------
+>  1 file changed, 13 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+> index ec65089..bed04e1 100644
+> --- a/drivers/media/platform/vivi.c
+> +++ b/drivers/media/platform/vivi.c
+> @@ -91,13 +91,13 @@ static const struct v4l2_fract
+>     ------------------------------------------------------------------*/
+>  
+>  struct vivi_fmt {
+> -	char  *name;
+> +	const char  *name;
 
-Results of the daily build of media_tree:
+Just use one space before '*' since it no longer lines up to anything.
 
-date:        Sat Dec  8 19:00:21 CET 2012
-git hash:    16427faf28674451a7a0485ab0a929402f355ffd
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+>  	u32   fourcc;          /* v4l2 format id */
+>  	u8    depth;
+>  	bool  is_yuv;
+>  };
+>  
+> -static struct vivi_fmt formats[] = {
+> +static const struct vivi_fmt formats[] = {
+>  	{
+>  		.name     = "4:2:2, packed, YUYV",
+>  		.fourcc   = V4L2_PIX_FMT_YUYV,
+> @@ -164,9 +164,9 @@ static struct vivi_fmt formats[] = {
+>  	},
+>  };
+>  
+> -static struct vivi_fmt *__get_format(u32 pixelformat)
+> +static const struct vivi_fmt *__get_format(u32 pixelformat)
+>  {
+> -	struct vivi_fmt *fmt;
+> +	const struct vivi_fmt *fmt;
+>  	unsigned int k;
+>  
+>  	for (k = 0; k < ARRAY_SIZE(formats); k++) {
+> @@ -181,7 +181,7 @@ static struct vivi_fmt *__get_format(u32 pixelformat)
+>  	return &formats[k];
+>  }
+>  
+> -static struct vivi_fmt *get_format(struct v4l2_format *f)
+> +static const struct vivi_fmt *get_format(struct v4l2_format *f)
+>  {
+>  	return __get_format(f->fmt.pix.pixelformat);
+>  }
+> @@ -191,7 +191,7 @@ struct vivi_buffer {
+>  	/* common v4l buffer stuff -- must be first */
+>  	struct vb2_buffer	vb;
+>  	struct list_head	list;
+> -	struct vivi_fmt        *fmt;
+> +	struct vivi_fmt const  *fmt;
+>  };
+>  
+>  struct vivi_dmaqueue {
+> @@ -250,7 +250,7 @@ struct vivi_dev {
+>  	int			   input;
+>  
+>  	/* video capture */
+> -	struct vivi_fmt            *fmt;
+> +	struct vivi_fmt const      *fmt;
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: OK
-linux-git-arm-eabi-omap: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: WARNINGS
-linux-git-x86_64: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: ERRORS
-linux-3.5-i686: ERRORS
-linux-3.6-i686: WARNINGS
-linux-3.7-rc1-i686: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: ERRORS
-linux-3.5-x86_64: ERRORS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: WARNINGS
-sparse: ERRORS
+'const' should be before 'struct' for consistency reasons.
 
-Detailed results are available here:
+>  	struct v4l2_fract          timeperframe;
+>  	unsigned int               width, height;
+>  	struct vb2_queue	   vb_vidq;
+> @@ -297,7 +297,7 @@ struct bar_std {
+>  
+>  /* Maximum number of bars are 10 - otherwise, the input print code
+>     should be modified */
+> -static struct bar_std bars[] = {
+> +static const struct bar_std bars[] = {
+>  	{	/* Standard ITU-R color bar sequence */
+>  		{ COLOR_WHITE, COLOR_AMBER, COLOR_CYAN, COLOR_GREEN,
+>  		  COLOR_MAGENTA, COLOR_RED, COLOR_BLUE, COLOR_BLACK, COLOR_BLACK }
+> @@ -926,7 +926,7 @@ static void vivi_unlock(struct vb2_queue *vq)
+>  }
+>  
+>  
+> -static struct vb2_ops vivi_video_qops = {
+> +static const struct vb2_ops vivi_video_qops = {
+>  	.queue_setup		= queue_setup,
+>  	.buf_prepare		= buffer_prepare,
+>  	.buf_queue		= buffer_queue,
+> @@ -957,7 +957,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+>  static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
+>  					struct v4l2_fmtdesc *f)
+>  {
+> -	struct vivi_fmt *fmt;
+> +	struct vivi_fmt const *fmt;
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+Ditto.
 
-Full logs are available here:
+>  
+>  	if (f->index >= ARRAY_SIZE(formats))
+>  		return -EINVAL;
+> @@ -993,7 +993,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+>  			struct v4l2_format *f)
+>  {
+>  	struct vivi_dev *dev = video_drvdata(file);
+> -	struct vivi_fmt *fmt;
+> +	struct vivi_fmt const *fmt;
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+Ditto.
 
-The V4L-DVB specification from this daily build is here:
+>  
+>  	fmt = get_format(f);
+>  	if (!fmt) {
+> @@ -1102,7 +1102,7 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
+>  static int vidioc_enum_frameintervals(struct file *file, void *priv,
+>  					     struct v4l2_frmivalenum *fival)
+>  {
+> -	struct vivi_fmt *fmt;
+> +	struct vivi_fmt const *fmt;
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Ditto.
+
+>  
+>  	if (fival->index)
+>  		return -EINVAL;
+> @@ -1330,7 +1330,7 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
+>  	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+>  };
+>  
+> -static struct video_device vivi_template = {
+> +static const struct video_device vivi_template = {
+>  	.name		= "vivi",
+>  	.fops           = &vivi_fops,
+>  	.ioctl_ops 	= &vivi_ioctl_ops,
+> 
+
+Regards,
+
+	Hans
