@@ -1,195 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:3268 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755627Ab2LOM3f (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Dec 2012 07:29:35 -0500
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id qBFCTZZG002061
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 15 Dec 2012 07:29:35 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] [media] em28xx: add support for RC6 mode 0 on devices that support it
-Date: Sat, 15 Dec 2012 10:29:12 -0200
-Message-Id: <1355574552-18472-3-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1355574552-18472-1-git-send-email-mchehab@redhat.com>
-References: <1355574552-18472-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:39536 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751974Ab2L0XCg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Dec 2012 18:02:36 -0500
+Received: by mail-ee0-f54.google.com with SMTP id c13so5046907eek.41
+        for <linux-media@vger.kernel.org>; Thu, 27 Dec 2012 15:02:35 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 1/6] em28xx: simplify device state tracking
+Date: Fri, 28 Dec 2012 00:02:43 +0100
+Message-Id: <1356649368-5426-2-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1356649368-5426-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1356649368-5426-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Newer em28xx chipsets (em2874 and upper) are capable of supporting
-RC6 codes, on both mode 0 (command mode, 16 bits payload size, similar
-to RC5, also called "Philips mode") and mode 6a (OEM command mode,
-with offers a few alternatives with regards to the payload size).
+DEV_INITIALIZED of enum em28xx_dev_state state is used nowhere and there is no
+need for DEV_MISCONFIGURED, so remove this enum and use a boolean field
+'disconnected' in the device struct instead.
 
-I don't have any mode 6a control ATM to test it, so, I opted to add
-support only to mode 0.
-
-After this patch, adding support to mode 6a should not be hard.
-
-Tested with a Philips television remote controller.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/usb/em28xx/em28xx-input.c | 93 +++++++++++++++++++++++++++------
- 1 file changed, 76 insertions(+), 17 deletions(-)
+ drivers/media/usb/em28xx/em28xx-cards.c |    5 ++---
+ drivers/media/usb/em28xx/em28xx-core.c  |    4 ++--
+ drivers/media/usb/em28xx/em28xx-dvb.c   |    4 ++--
+ drivers/media/usb/em28xx/em28xx-video.c |   12 +++---------
+ drivers/media/usb/em28xx/em28xx.h       |   12 ++----------
+ 5 Dateien geändert, 11 Zeilen hinzugefügt(+), 26 Zeilen entfernt(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-index 507370c..3899ea8 100644
---- a/drivers/media/usb/em28xx/em28xx-input.c
-+++ b/drivers/media/usb/em28xx/em28xx-input.c
-@@ -285,6 +285,9 @@ static int em2874_polling_getkey(struct em28xx_IR *ir,
- 		else					/* Normal NEC */
- 			poll_result->scancode = msg[1] << 8 | msg[3];
- 		break;
-+	case RC_BIT_RC6_0:
-+		poll_result->scancode = msg[1] << 8 | msg[2];
-+		break;
- 	default:
- 		poll_result->scancode = (msg[1] << 24) | (msg[2] << 16) |
- 					(msg[3] << 8)  | msg[4];
-@@ -361,15 +364,42 @@ static void em28xx_ir_stop(struct rc_dev *rc)
- 	cancel_delayed_work_sync(&ir->work);
- }
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index f5cac47..8496a06 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3501,11 +3501,10 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
+ 		     "deallocation are deferred on close.\n",
+ 		     video_device_node_name(dev->vdev));
  
--static int em28xx_ir_change_protocol(struct rc_dev *rc_dev, u64 *rc_type)
-+static int em2860_ir_change_protocol(struct rc_dev *rc_dev, u64 *rc_type)
+-		dev->state |= DEV_MISCONFIGURED;
+ 		em28xx_uninit_usb_xfer(dev, dev->mode);
+-		dev->state |= DEV_DISCONNECTED;
++		dev->disconnected = 1;
+ 	} else {
+-		dev->state |= DEV_DISCONNECTED;
++		dev->disconnected = 1;
+ 		em28xx_release_resources(dev);
+ 	}
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index b10d959..6916e87 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -77,7 +77,7 @@ int em28xx_read_reg_req_len(struct em28xx *dev, u8 req, u16 reg,
+ 	int ret;
+ 	int pipe = usb_rcvctrlpipe(dev->udev, 0);
+ 
+-	if (dev->state & DEV_DISCONNECTED)
++	if (dev->disconnected)
+ 		return -ENODEV;
+ 
+ 	if (len > URB_MAX_CTRL_SIZE)
+@@ -153,7 +153,7 @@ int em28xx_write_regs_req(struct em28xx *dev, u8 req, u16 reg, char *buf,
+ 	int ret;
+ 	int pipe = usb_sndctrlpipe(dev->udev, 0);
+ 
+-	if (dev->state & DEV_DISCONNECTED)
++	if (dev->disconnected)
+ 		return -ENODEV;
+ 
+ 	if ((len < 1) || (len > URB_MAX_CTRL_SIZE))
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index a70b19e..e206c2b 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -133,7 +133,7 @@ static inline int em28xx_dvb_urb_data_copy(struct em28xx *dev, struct urb *urb)
+ 	if (!dev)
+ 		return 0;
+ 
+-	if ((dev->state & DEV_DISCONNECTED) || (dev->state & DEV_MISCONFIGURED))
++	if (dev->disconnected)
+ 		return 0;
+ 
+ 	if (urb->status < 0)
+@@ -1320,7 +1320,7 @@ static int em28xx_dvb_fini(struct em28xx *dev)
+ 	if (dev->dvb) {
+ 		struct em28xx_dvb *dvb = dev->dvb;
+ 
+-		if (dev->state & DEV_DISCONNECTED) {
++		if (dev->disconnected) {
+ 			/* We cannot tell the device to sleep
+ 			 * once it has been unplugged. */
+ 			if (dvb->fe[0])
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 4c1726d..824f298 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -442,7 +442,7 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
+ 	if (!dev)
+ 		return 0;
+ 
+-	if ((dev->state & DEV_DISCONNECTED) || (dev->state & DEV_MISCONFIGURED))
++	if (dev->disconnected)
+ 		return 0;
+ 
+ 	if (urb->status < 0)
+@@ -790,16 +790,10 @@ handle:
+ 
+ static int check_dev(struct em28xx *dev)
  {
--	int rc = 0;
- 	struct em28xx_IR *ir = rc_dev->priv;
- 	struct em28xx *dev = ir->dev;
--	u8 ir_config = EM2874_IR_RC5;
- 
--	/* Adjust xclk based o IR table for RC5/NEC tables */
-+	/* Adjust xclk based on IR table for RC5/NEC tables */
-+	if (*rc_type & RC_BIT_RC5) {
-+		dev->board.xclk |= EM28XX_XCLK_IR_RC5_MODE;
-+		ir->full_code = 1;
-+		*rc_type = RC_BIT_RC5;
-+	} else if (*rc_type & RC_BIT_NEC) {
-+		dev->board.xclk &= ~EM28XX_XCLK_IR_RC5_MODE;
-+		ir->full_code = 1;
-+		*rc_type = RC_BIT_NEC;
-+	} else if (*rc_type & RC_BIT_UNKNOWN) {
-+		*rc_type = RC_BIT_UNKNOWN;
-+	} else {
-+		*rc_type = ir->rc_type;
-+		return -EINVAL;
-+	}
-+	ir->get_key = default_polling_getkey;
-+	em28xx_write_reg_bits(dev, EM28XX_R0F_XCLK, dev->board.xclk,
-+			      EM28XX_XCLK_IR_RC5_MODE);
-+
-+	ir->rc_type = *rc_type;
- 
-+	return 0;
-+}
-+
-+static int em2874_ir_change_protocol(struct rc_dev *rc_dev, u64 *rc_type)
-+{
-+	struct em28xx_IR *ir = rc_dev->priv;
-+	struct em28xx *dev = ir->dev;
-+	u8 ir_config = EM2874_IR_RC5;
-+
-+	/* Adjust xclk and set type based on IR table for RC5/NEC/RC6 tables */
- 	if (*rc_type & RC_BIT_RC5) {
- 		dev->board.xclk |= EM28XX_XCLK_IR_RC5_MODE;
- 		ir->full_code = 1;
-@@ -379,33 +409,47 @@ static int em28xx_ir_change_protocol(struct rc_dev *rc_dev, u64 *rc_type)
- 		ir_config = EM2874_IR_NEC | EM2874_IR_NEC_NO_PARITY;
- 		ir->full_code = 1;
- 		*rc_type = RC_BIT_NEC;
--	} else if (*rc_type != RC_BIT_UNKNOWN)
--		rc = -EINVAL;
-+	} else if (*rc_type & RC_BIT_RC6_0) {
-+		dev->board.xclk |= EM28XX_XCLK_IR_RC5_MODE;
-+		ir_config = EM2874_IR_RC6_MODE_0;
-+		ir->full_code = 1;
-+		*rc_type = RC_BIT_RC6_0;
-+	} else if (*rc_type & RC_BIT_UNKNOWN) {
-+		*rc_type = RC_BIT_UNKNOWN;
-+	} else {
-+		*rc_type = ir->rc_type;
-+		return -EINVAL;
-+	}
- 
--	ir->rc_type = *rc_type;
-+	ir->get_key = em2874_polling_getkey;
-+	em28xx_write_regs(dev, EM2874_R50_IR_CONFIG, &ir_config, 1);
- 
- 	em28xx_write_reg_bits(dev, EM28XX_R0F_XCLK, dev->board.xclk,
- 			      EM28XX_XCLK_IR_RC5_MODE);
- 
-+	ir->rc_type = *rc_type;
-+
-+	return 0;
-+}
-+static int em28xx_ir_change_protocol(struct rc_dev *rc_dev, u64 *rc_type)
-+{
-+	struct em28xx_IR *ir = rc_dev->priv;
-+	struct em28xx *dev = ir->dev;
-+
- 	/* Setup the proper handler based on the chip */
- 	switch (dev->chip_id) {
- 	case CHIP_ID_EM2860:
- 	case CHIP_ID_EM2883:
--		ir->get_key = default_polling_getkey;
--		break;
-+		return em2860_ir_change_protocol(rc_dev, rc_type);
- 	case CHIP_ID_EM2884:
- 	case CHIP_ID_EM2874:
- 	case CHIP_ID_EM28174:
--		ir->get_key = em2874_polling_getkey;
--		em28xx_write_regs(dev, EM2874_R50_IR_CONFIG, &ir_config, 1);
--		break;
-+		return em2874_ir_change_protocol(rc_dev, rc_type);
- 	default:
- 		printk("Unrecognized em28xx chip id 0x%02x: IR not supported\n",
- 			dev->chip_id);
--		rc = -EINVAL;
-+		return -EINVAL;
+-	if (dev->state & DEV_DISCONNECTED) {
++	if (dev->disconnected) {
+ 		em28xx_errdev("v4l2 ioctl: device not present\n");
+ 		return -ENODEV;
  	}
 -
--	return rc;
+-	if (dev->state & DEV_MISCONFIGURED) {
+-		em28xx_errdev("v4l2 ioctl: device is misconfigured; "
+-			      "close and open it again\n");
+-		return -EIO;
+-	}
+ 	return 0;
  }
  
- static void em28xx_register_i2c_ir(struct em28xx *dev)
-@@ -573,6 +617,21 @@ static int em28xx_ir_init(struct em28xx *dev)
- 	rc->open = em28xx_ir_start;
- 	rc->close = em28xx_ir_stop;
+@@ -2068,7 +2062,7 @@ static int em28xx_v4l2_close(struct file *filp)
+ 	if (dev->users == 1) {
+ 		/* the device is already disconnect,
+ 		   free the remaining resources */
+-		if (dev->state & DEV_DISCONNECTED) {
++		if (dev->disconnected) {
+ 			em28xx_release_resources(dev);
+ 			kfree(dev->alt_max_pkt_size_isoc);
+ 			mutex_unlock(&dev->lock);
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 062841e..7a40b92 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -437,13 +437,6 @@ struct em28xx_eeprom {
+ 	u8 string_idx_table;
+ };
  
-+	switch (dev->chip_id) {
-+	case CHIP_ID_EM2860:
-+	case CHIP_ID_EM2883:
-+		rc->allowed_protos = RC_BIT_RC5 | RC_BIT_NEC;
-+		break;
-+	case CHIP_ID_EM2884:
-+	case CHIP_ID_EM2874:
-+	case CHIP_ID_EM28174:
-+		rc->allowed_protos = RC_BIT_RC5 | RC_BIT_NEC | RC_BIT_RC6_0;
-+		break;
-+	default:
-+		err = -ENODEV;
-+		goto err_out_free;
-+	}
+-/* device states */
+-enum em28xx_dev_state {
+-	DEV_INITIALIZED = 0x01,
+-	DEV_DISCONNECTED = 0x02,
+-	DEV_MISCONFIGURED = 0x04,
+-};
+-
+ #define EM28XX_AUDIO_BUFS 5
+ #define EM28XX_NUM_AUDIO_PACKETS 64
+ #define EM28XX_AUDIO_MAX_PACKET_SIZE 196 /* static value */
+@@ -494,6 +487,8 @@ struct em28xx {
+ 	int devno;		/* marks the number of this device */
+ 	enum em28xx_chip_id chip_id;
+ 
++	unsigned char disconnected:1;	/* device has been diconnected */
 +
- 	/* By default, keep protocol field untouched */
- 	rc_type = RC_BIT_UNKNOWN;
- 	err = em28xx_ir_change_protocol(rc, &rc_type);
-@@ -615,9 +674,9 @@ static int em28xx_ir_init(struct em28xx *dev)
+ 	int audio_ifnum;
  
- 	return 0;
+ 	struct v4l2_device v4l2_dev;
+@@ -561,9 +556,6 @@ struct em28xx {
  
-- err_out_stop:
-+err_out_stop:
- 	dev->ir = NULL;
-- err_out_free:
-+err_out_free:
- 	rc_free_device(rc);
- 	kfree(ir);
- 	return err;
+ 	struct em28xx_audio adev;
+ 
+-	/* states */
+-	enum em28xx_dev_state state;
+-
+ 	/* capture state tracking */
+ 	int capture_type;
+ 	unsigned char top_field:1;
 -- 
-1.7.11.7
+1.7.10.4
 
