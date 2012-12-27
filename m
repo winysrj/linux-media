@@ -1,94 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:42571 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030312Ab2K3MEE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Nov 2012 07:04:04 -0500
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	<devel@driverdev.osuosl.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH v4 8/9] davinci: vpfe: dm365: add build infrastructure for capture driver
-Date: Fri, 30 Nov 2012 17:31:18 +0530
-Message-Id: <1354276879-27244-9-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1354276879-27244-1-git-send-email-prabhakar.lad@ti.com>
-References: <1354276879-27244-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:21120 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753079Ab2L0QxK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Dec 2012 11:53:10 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id qBRGrAW5006443
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 27 Dec 2012 11:53:10 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/2] [media] ttpci: Fix a missing Kconfig dependency
+Date: Thu, 27 Dec 2012 14:52:41 -0200
+Message-Id: <1356627162-27815-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunath Hadli <manjunath.hadli@ti.com>
+Fix a Kconfig warning that appears with allmodconfig on arm:
 
-add build infrastructure for dm365 specific modules for VPFE
-capture driver.
+	warning: (DVB_USB_PCTV452E) selects TTPCI_EEPROM which has unmet direct dependencies (MEDIA_SUPPORT && MEDIA_PCI_SUPPORT && MEDIA_DIGITAL_TV_SUPPORT && I2C)
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/staging/media/Kconfig               |    2 ++
- drivers/staging/media/Makefile              |    1 +
- drivers/staging/media/davinci_vpfe/Kconfig  |    9 +++++++++
- drivers/staging/media/davinci_vpfe/Makefile |    3 +++
- 4 files changed, 15 insertions(+), 0 deletions(-)
- create mode 100644 drivers/staging/media/davinci_vpfe/Kconfig
- create mode 100644 drivers/staging/media/davinci_vpfe/Makefile
+ drivers/media/Kconfig           | 6 ++++++
+ drivers/media/pci/ttpci/Kconfig | 5 -----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
-index 427218b..ae0abc3 100644
---- a/drivers/staging/media/Kconfig
-+++ b/drivers/staging/media/Kconfig
-@@ -23,6 +23,8 @@ source "drivers/staging/media/as102/Kconfig"
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 4ef0d80..4d9b4c2 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -135,6 +135,12 @@ config DVB_NET
+ 	  You may want to disable the network support on embedded devices. If
+ 	  unsure say Y.
  
- source "drivers/staging/media/cxd2099/Kconfig"
- 
-+source "drivers/staging/media/davinci_vpfe/Kconfig"
++# This Kconfig option is used by both PCI and USB drivers
++config TTPCI_EEPROM
++        tristate
++        depends on I2C
++        default n
 +
- source "drivers/staging/media/dt3155v4l/Kconfig"
+ source "drivers/media/dvb-core/Kconfig"
  
- source "drivers/staging/media/go7007/Kconfig"
-diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
-index aec6eb9..2b97cae 100644
---- a/drivers/staging/media/Makefile
-+++ b/drivers/staging/media/Makefile
-@@ -4,3 +4,4 @@ obj-$(CONFIG_LIRC_STAGING)	+= lirc/
- obj-$(CONFIG_SOLO6X10)		+= solo6x10/
- obj-$(CONFIG_VIDEO_DT3155)	+= dt3155v4l/
- obj-$(CONFIG_VIDEO_GO7007)	+= go7007/
-+obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
-diff --git a/drivers/staging/media/davinci_vpfe/Kconfig b/drivers/staging/media/davinci_vpfe/Kconfig
-new file mode 100644
-index 0000000..2e4a28b
---- /dev/null
-+++ b/drivers/staging/media/davinci_vpfe/Kconfig
-@@ -0,0 +1,9 @@
-+config VIDEO_DM365_VPFE
-+	tristate "DM365 VPFE Media Controller Capture Driver"
-+	depends on VIDEO_V4L2 && ARCH_DAVINCI_DM365 && !VIDEO_VPFE_CAPTURE
-+	select VIDEOBUF2_DMA_CONTIG
-+	help
-+	  Support for DM365 VPFE based Media Controller Capture driver.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called vpfe-mc-capture.
-diff --git a/drivers/staging/media/davinci_vpfe/Makefile b/drivers/staging/media/davinci_vpfe/Makefile
-new file mode 100644
-index 0000000..c64515c
---- /dev/null
-+++ b/drivers/staging/media/davinci_vpfe/Makefile
-@@ -0,0 +1,3 @@
-+obj-$(CONFIG_VIDEO_DM365_VPFE) += \
-+	dm365_isif.o dm365_ipipe_hw.o dm365_ipipe.o \
-+	dm365_resizer.o dm365_ipipeif.o vpfe_mc_capture.o vpfe_video.o
+ comment "Media drivers"
+diff --git a/drivers/media/pci/ttpci/Kconfig b/drivers/media/pci/ttpci/Kconfig
+index 314e417..0dcb8cd 100644
+--- a/drivers/media/pci/ttpci/Kconfig
++++ b/drivers/media/pci/ttpci/Kconfig
+@@ -1,8 +1,3 @@
+-config TTPCI_EEPROM
+-	tristate
+-	depends on I2C
+-	default n
+-
+ config DVB_AV7110
+ 	tristate "AV7110 cards"
+ 	depends on DVB_CORE && PCI && I2C
 -- 
-1.7.4.1
+1.7.11.7
 
