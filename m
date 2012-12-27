@@ -1,58 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ch1ehsobe001.messaging.microsoft.com ([216.32.181.181]:40133
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758561Ab2K3PGd (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60322 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752121Ab2L0TTR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Nov 2012 10:06:33 -0500
-From: Fabio Estevam <fabio.estevam@freescale.com>
-To: <g.liakhovetski@gmx.de>
-CC: <linux-media@vger.kernel.org>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH] [media] mx2_camera: Convert it to platform driver
-Date: Fri, 30 Nov 2012 13:06:21 -0200
-Message-ID: <1354287981-24545-1-git-send-email-fabio.estevam@freescale.com>
+	Thu, 27 Dec 2012 14:19:17 -0500
+Date: Thu, 27 Dec 2012 20:19:05 +0100
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Rob Clark <rob.clark@linaro.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Jani Nikula <jani.nikula@linux.intel.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	linux-fbdev@vger.kernel.org,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Tom Gall <tom.gall@linaro.org>,
+	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
+	dri-devel@lists.freedesktop.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC v2 0/5] Common Display Framework
+Message-ID: <20121227191905.GR24458@pengutronix.de>
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1671267.x0lxGrFjjV@avalon>
+ <87pq26ay2z.fsf@intel.com>
+ <2286035.iP368aB6Vk@avalon>
+ <CAF6AEGth+rriTf7X3AXytN+YXxjx4XqMB1ow6ZE2QUro-hqYgw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAF6AEGth+rriTf7X3AXytN+YXxjx4XqMB1ow6ZE2QUro-hqYgw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Converting it to platform code can make the code smaller.
+On Thu, Dec 27, 2012 at 10:04:22AM -0600, Rob Clark wrote:
+> On Mon, Dec 24, 2012 at 11:27 AM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+> > On Wednesday 19 December 2012 16:57:56 Jani Nikula wrote:
+> >> It just seems to me that, at least from a DRM/KMS perspective, adding
+> >> another layer (=CDF) for HDMI or DP (or legacy outputs) would be
+> >> overengineering it. They are pretty well standardized, and I don't see there
+> >> would be a need to write multiple display drivers for them. Each display
+> >> controller has one, and can easily handle any chip specific requirements
+> >> right there. It's my gut feeling that an additional framework would just get
+> >> in the way. Perhaps there could be more common HDMI/DP helper style code in
+> >> DRM to reduce overlap across KMS drivers, but that's another thing.
+> >>
+> >> So is the HDMI/DP drivers using CDF a more interesting idea from a non-DRM
+> >> perspective? Or, put another way, is it more of an alternative to using DRM?
+> >> Please enlighten me if there's some real benefit here that I fail to see!
+> >
+> > As Rob pointed out, you can have external HDMI/DP encoders, and even internal
+> > HDMI/DP encoder IPs can be shared between SoCs and SoC vendors. CDF aims at
+> > sharing a single driver between SoCs and boards for a given HDMI/DP encoder.
+> 
+> just fwiw, drm already has something a bit like this.. the i2c
+> encoder-slave.  With support for a couple external i2c encoders which
+> could in theory be shared between devices.
 
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
----
- drivers/media/platform/soc_camera/mx2_camera.c |   15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+The problem with this code is that it only works when the i2c device is
+registered by a master driver. Once the i2c device comes from the
+devicetree there is no possibility to find it.
 
-diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-index 791cd1d..36b4ee0 100644
---- a/drivers/media/platform/soc_camera/mx2_camera.c
-+++ b/drivers/media/platform/soc_camera/mx2_camera.c
-@@ -1912,22 +1912,11 @@ static struct platform_driver mx2_camera_driver = {
- 		.name	= MX2_CAM_DRV_NAME,
- 	},
- 	.id_table	= mx2_camera_devtype,
-+	.probe		= mx2_camera_probe,
- 	.remove		= __devexit_p(mx2_camera_remove),
- };
- 
--
--static int __init mx2_camera_init(void)
--{
--	return platform_driver_probe(&mx2_camera_driver, &mx2_camera_probe);
--}
--
--static void __exit mx2_camera_exit(void)
--{
--	return platform_driver_unregister(&mx2_camera_driver);
--}
--
--module_init(mx2_camera_init);
--module_exit(mx2_camera_exit);
-+module_platform_driver(mx2_camera_driver);
- 
- MODULE_DESCRIPTION("i.MX27/i.MX25 SoC Camera Host driver");
- MODULE_AUTHOR("Sascha Hauer <sha@pengutronix.de>");
+Sascha
+
 -- 
-1.7.9.5
-
-
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
