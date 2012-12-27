@@ -1,74 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46479 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751930Ab2LEMgN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Dec 2012 07:36:13 -0500
-Message-ID: <50BF3F9A.3020803@iki.fi>
-Date: Wed, 05 Dec 2012 14:35:38 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4873 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752146Ab2L0L73 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Dec 2012 06:59:29 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/6] uvcvideo: Set error_idx properly for extended controls API failures
+Date: Thu, 27 Dec 2012 12:59:15 +0100
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1348758980-21683-1-git-send-email-laurent.pinchart@ideasonboard.com> <201212251250.51838.hverkuil@xs4all.nl> <22611337.csYnEZHssR@avalon>
+In-Reply-To: <22611337.csYnEZHssR@avalon>
 MIME-Version: 1.0
-To: Matthew Gyurgyik <matthew@pyther.net>
-CC: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net>
-In-Reply-To: <50BEC253.4080006@pyther.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201212271259.15502.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/05/2012 05:41 AM, Matthew Gyurgyik wrote:
-> On 12/04/2012 04:06 PM, Frank Schäfer wrote:
->> I double-checked the log and it is indeed set to LGDT3305_MPEG_SERIAL,
->> but LGDT3305_TPCLK_FALLING_EDGE is used instead of
->> LGDT3305_TPCLK_RISING_EDGE.
->> OTOH, the KWorld A340 bord sets this to LGDT3305_MPEG_PARALLEL...
->>
->> Matthew, could you please test V3 of the patch ? It is written against
->> the media_tree staging/for_v3.8 (see
->> http://git.linuxtv.org/media_tree.git).
->> You could also already test the remote control key map (e.g. with evtest)
->>
->> Regards,
->> Frank
-> Version 3 has the same behavior has v2. It seems I can tune a channel,
-> but trying to watch it fails. There is no data being set to
-> /dev/dvb/adapter0/dvr0
->
-> Tune channel
->> [root@tux ~]# azap -r -c /home/pyther/channels.conf "ION LIF"
->
->> [root@tux ~]# dvbdate
->> dvbdate: Unable to get time from multiplex.
->
-> I got further on a channel scan but then encountered some errors (no
-> channels detected):
->
-> http://pyther.net/a/digivox_atsc/patch3/scan.txt
-> http://pyther.net/a/digivox_atsc/patch3/dmesg_after_scan.txt
->
-> dmesg: http://pyther.net/a/digivox_atsc/patch3/dmesg.txt
-> azap: http://pyther.net/a/digivox_atsc/patch3/azap.txt
-> dvbtraffic: http://pyther.net/a/digivox_atsc/patch3/dvbtraffic.txt
->
-> Matthew
+On Wed December 26 2012 12:33:58 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Tuesday 25 December 2012 12:50:51 Hans Verkuil wrote:
+> > On Tue December 25 2012 12:23:00 Laurent Pinchart wrote:
+> > > On Tuesday 25 December 2012 12:15:25 Hans Verkuil wrote:
+> > > > On Mon December 24 2012 13:27:08 Laurent Pinchart wrote:
+> > > > > On Thursday 27 September 2012 17:16:15 Laurent Pinchart wrote:
+> > > > > > When one of the requested controls doesn't exist the error_idx field
+> > > > > > must reflect that situation. For G_EXT_CTRLS and S_EXT_CTRLS,
+> > > > > > error_idx must be set to the control count. For TRY_EXT_CTRLS, it
+> > > > > > must be set to the index of the unexisting control.
+> > > > > > 
+> > > > > > This issue was found by the v4l2-compliance tool.
+> > > > > 
+> > > > > I'm revisiting this patch as it has been reverted in v3.8-rc1.
+> > > > > 
+> > > > > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > > > ---
+> > > > > > 
+> > > > > >  drivers/media/usb/uvc/uvc_ctrl.c |   17 ++++++++++-------
+> > > > > >  drivers/media/usb/uvc/uvc_v4l2.c |   19 ++++++++++++-------
+> > > > > >  2 files changed, 22 insertions(+), 14 deletions(-)
+> > > > > 
+> > > > > [snip]
+> > > > > 
+> > > > > > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> > > > > > b/drivers/media/usb/uvc/uvc_v4l2.c index f00db30..e5817b9 100644
+> > > > > > --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> > > > > > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> > > > > > @@ -591,8 +591,10 @@ static long uvc_v4l2_do_ioctl(struct file
+> > > > > > *file,
+> > > > > 
+> > > > > [snip]
+> > > > > 
+> > > > > > @@ -637,8 +639,9 @@ static long uvc_v4l2_do_ioctl(struct file *file,
+> > > > > > unsigned int cmd, void *arg) ret = uvc_ctrl_get(chain, ctrl);
+> > > > > >  			if (ret < 0) {
+> > > > > >  				uvc_ctrl_rollback(handle);
+> > > > > > 
+> > > > > > -				ctrls->error_idx = i;
+> > > > > > -				return ret;
+> > > > > > +				ctrls->error_idx = ret == -ENOENT
+> > > > > > +						 ? ctrls->count : i;
+> > > > > > +				return ret == -ENOENT ? -EINVAL : ret;
+> > > > > >  			}
+> > > > > >  		}
+> > > > > >  		ctrls->error_idx = 0;
+> > > > > > @@ -661,8 +664,10 @@ static long uvc_v4l2_do_ioctl(struct file
+> > > > > > *file,
+> > > > > > unsigned int cmd, void *arg) ret = uvc_ctrl_set(chain, ctrl);
+> > > > > >  			if (ret < 0) {
+> > > > > >  				uvc_ctrl_rollback(handle);
+> > > > > > 
+> > > > > > -				ctrls->error_idx = i;
+> > > > > > -				return ret;
+> > > > > > +				ctrls->error_idx = (ret == -ENOENT &&
+> > > > > > +						    cmd == VIDIOC_S_EXT_CTRLS)
+> > > > > > +						 ? ctrls->count : i;
+> > > > > > +				return ret == -ENOENT ? -EINVAL : ret;
+> > > > > >  			}
+> > > > > >  		}
+> > > > > 
+> > > > > I've reread the V4L2 specification, and the least I can say is that
+> > > > > the text is pretty ambiguous. Let's clarify it.
+> > > > > 
+> > > > > Is there a reason to differentiate between invalid control IDs and
+> > > > > other errors as far as error_idx is concerned ? It would be simpler if
+> > > > > error_idx was set to the index of the first error for get and try
+> > > > > operations, regardless of the error type. What do you think ?
+> > > > 
+> > > > There is a good reason for doing this: the G/S_EXT_CTRLS ioctls have to
+> > > > be as atomic as possible, i.e. it should try hard to prevent leaving the
+> > > > hardware in an inconsistent state because not all controls could be set.
+> > > > It can never be fully atomic since writing multiple registers over usb
+> > > > or i2c can always return errors for one of those writes, but it should
+> > > > certainly check for all the obvious errors first that do not require
+> > > > actually writing to the hardware, such as whether all the controls in
+> > > > the control list actually exist.
+> > > > 
+> > > > And for such errors error_idx should be set to the number of controls to
+> > > > indicate that none of the controls were actually set but that there was
+> > > > a problem with the list of controls itself.
+> > > 
+> > > For S_EXT_CTRLS, sure, but G_EXT_CTRLS doesn't modify the hardware state,
+> > > so it could get all controls up to the erroneous one.
+> > 
+> > I have thought about that but I decided against it. One reason is to have
+> > get and set behave the same since both access the hardware. The other
+> > reason is that even getting a control value might change the hardware
+> > state, for example by resetting some internal hardware counter when a
+> > register is read (it's rare but there is hardware like that). Furthermore,
+> > reading hardware registers can be slow so why not do the sanity check
+> > first?
+> 
+> Get can indeed change the device state in rare cases, but the information 
+> won't be lost, as the value of all controls before error_idx will be returned.
+> 
+> What bothers me with the current G_EXT_CTRLS implementation (beside that it's 
+> very slightly more complex for the uvcvideo driver than the one I propose) is 
+> that an application will have no way to know for which control G_EXT_CTRLS 
+> failed. This is especially annoying during development.
 
-There is something really wrong.
+For S_EXT_CTRLS you can call TRY_EXT_CTRLS first to check which control failed,
+but you don't have that option for G_EXT_CTRLS. That's actually something I
+hadn't considered.
 
-I am not at US expert but why the hell 
-us-Cable-Standard-center-frequencies-QAM256 scans up to 999MHz whilst 
-demodulator max is set 858? Either one is wrong.
+> Maybe we could leave this behaviour as driver-specific ?
 
-Also, demod seems to be HAS_LOCK about all the time. As that basic LOCK 
-flag is simply false you cannot even thing if there is correct 
-configuration on TS interface. If you start zapping that known channel 
-and then unplug & plug antenna cable did you see still all the time 
-HAS_LOCK? (it should disappear when antenna cable is unplugged).
+I need to think about this some more. Is this urgent or can it wait until
+January 7th? I'm back at work by then. I am actually attempting to touch my
+computer as little as possible this vacation :-)
 
-regards
-Antti
+Regards,
 
--- 
-http://palosaari.fi/
+	Hans
