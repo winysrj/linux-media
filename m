@@ -1,87 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:34357 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934052Ab2LIMsI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Dec 2012 07:48:08 -0500
-Received: by mail-ea0-f174.google.com with SMTP id e13so755158eaa.19
-        for <linux-media@vger.kernel.org>; Sun, 09 Dec 2012 04:48:07 -0800 (PST)
-Message-ID: <50C48891.2050903@googlemail.com>
-Date: Sun, 09 Dec 2012 13:48:17 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Matthew Gyurgyik <matthew@pyther.net>
-CC: Antti Palosaari <crope@iki.fi>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com> <50C3701D.9000700@pyther .net> <50C37DA8.4080608@googlemai l.com> <50C3B3EB.40606@pyther .net> <50C3B567.3070300@i ki.fi> <50C3B969.1090301@pyther.net>
-In-Reply-To: <50C3B969.1090301@pyther.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from casper.infradead.org ([85.118.1.10]:57356 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751723Ab2L0WPr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Dec 2012 17:15:47 -0500
+Date: Thu, 27 Dec 2012 20:15:12 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Fabio Estevam <fabio.estevam@freescale.com>, kernel@pengutronix.de,
+	p.zabel@pengutronix.de, javier.martin@vista-silicon.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] coda: Fix build due to iram.h rename
+Message-ID: <20121227201512.0a5c5828@infradead.org>
+In-Reply-To: <20121217093714.GI26326@pengutronix.de>
+References: <1352898282-21576-1-git-send-email-fabio.estevam@freescale.com>
+	<20121217093714.GI26326@pengutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 08.12.2012 23:04, schrieb Matthew Gyurgyik:
-> On 12/08/2012 04:47 PM, Antti Palosaari wrote:
->> On 12/08/2012 11:40 PM, Matthew Gyurgyik wrote:
->>> On 12/08/2012 12:49 PM, Frank Schäfer wrote:
->>>> Am 08.12.2012 17:51, schrieb Matthew Gyurgyik:
->>>>
->>>> That shouldn't be necessary. I just noticed that there is a module
->>>> parameter 'ir_debug'. ;)
->>>> With ir_debug enabled, you should see messages
->>>>
->>>>          em28xx_ir_handle_key: toggle: XX, count: XX, key XXYYZZ
->>>>
->>>> everytime you press a button. Once we know the key codes, we can
->>>> set up
->>>> a key map (if it doesn't exist yet).
->>>>
->>>
->>> Maybe I'm doing something wrong but didn't have any luck :(
->>>
->>>> [root@tux ~]# sudo rmmod em28xx_rc
->>>> [root@tux ~]# sudo rmmod em28xx_dvb
->>>> [root@tux ~]# sudo rmmod em28xx
->>>> [root@tux ~]# modprobe em28xx_rc ir_debug=1
->>>
->>> I don't see any additional messages in dmesg.
->>>
->>> I verified the remote still works in windows (a stupidity check on my
->>> part)
->>
->> Maybe Kernel debugs are not enabled? em28xx driver is a little bit
->> legacy in logging too as it uses own logging whilst nowadays dynamic
->> logging is recommended.
->>
->> replace KERN_DEBUG as KERN_INFO inside em28xx-input.c and test. It will
->> change driver to use Kernel normal log writings instead of current debug
->> ones.
->>
->> regards
->> Antti
->>
->>
-> That unfortunately doesn't make any difference.
->
-> I even tried adding a print statment before the debug line got called
-> like this (line 97 added; em28xx-input.c):
->  97     printk(KERN_INFO "key %02x\n", b);
->  98     i2cdprintk("key %02x\n", b);
->
+Em Mon, 17 Dec 2012 10:37:14 +0100
+Sascha Hauer <s.hauer@pengutronix.de> escreveu:
 
-The relevant line is
+> On Wed, Nov 14, 2012 at 11:04:42AM -0200, Fabio Estevam wrote:
+> > commit c045e3f13 (ARM: imx: include iram.h rather than mach/iram.h) changed the
+> > location of iram.h, which causes the following build error when building the coda
+> > driver:
+> > 
+> > drivers/media/platform/coda.c:27:23: error: mach/iram.h: No such file or directory
+> > drivers/media/platform/coda.c: In function 'coda_probe':
+> > drivers/media/platform/coda.c:2000: error: implicit declaration of function 'iram_alloc'
+> > drivers/media/platform/coda.c:2001: warning: assignment makes pointer from integer without a cast
+> > drivers/media/platform/coda.c: In function 'coda_remove':
+> > drivers/media/platform/coda.c:2024: error: implicit declaration of function 'iram_free
+> > 
+> > Since the content of iram.h is not imx specific, move it to include/linux/iram.h
+> > instead.
+> 
+> Generally we need a fix for this, but:
+> 
+> > diff --git a/arch/arm/mach-imx/iram.h b/include/linux/iram.h
+> > similarity index 100%
+> > rename from arch/arm/mach-imx/iram.h
+> > rename to include/linux/iram.h
+> 
+> We shouldn't introduce a file include/linux/iram.h which is purely i.MX
+> specific. The name is far too generic. I would rather suggest
+> include/linux/platform_data/imx-iram.h (Although it's not exactly
+> platform_data, so I'm open for better suggestions).
+> 
+> As a side note this i.MX specific iram stuff (hopefully) is obsolete
+> after the next merge window as Philip already has patches for a generic
+> iram allocator which didn't make it into this merge window.
 
-297        dprintk("%s: toggle: %d, count: %d, key 0x%02x%02x\n", __func__,
+Hi Sasha,
 
-Change it to
+This compilation breakage seems to still be happening.
 
-297        printk(KERN_INFO "%s: toggle: %d, count: %d, key
-0x%02x%02x\n", __func__,
+Just tested here with arm32 "allmodconfig", on a tree based on Linus one,
+with -next and -media patches applied on it:
 
-Also double-check that the IR module (em28xx_rc) is enabled / gets loaded.
+drivers/media//platform/coda.c:27:23: fatal error: mach/iram.h: No such file or directory
+compilation terminated.
+
+I don't mind how this would be named, but this should be fixed somehow ;)
 
 Regards,
-Frank
-
-
+Mauro
