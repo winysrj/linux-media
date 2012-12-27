@@ -1,66 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01.ipfire.org ([178.63.73.247]:43384 "EHLO
-	mail01.ipfire.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751555Ab2LJJMc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 04:12:32 -0500
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8;
- format=flowed
+Received: from smtp206.alice.it ([82.57.200.102]:58479 "EHLO smtp206.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752293Ab2L0MX3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Dec 2012 07:23:29 -0500
+Date: Thu, 27 Dec 2012 13:23:23 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCHv2 0/9] dvb-usb/m920x: support VP-7049 DVB-T USB Stick
+ and other fixes
+Message-Id: <20121227132323.27d3364fa5e7b1f7cff0db0c@studenti.unina.it>
+In-Reply-To: <1355175437-21623-1-git-send-email-ospite@studenti.unina.it>
+References: <1352158096-17737-1-git-send-email-ospite@studenti.unina.it>
+	<1355175437-21623-1-git-send-email-ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Date: Mon, 10 Dec 2012 09:12:29 +0000
-From: Arne Fitzenreiter <Arne.Fitzenreiter@ipfire.org>
-To: <linux-media@vger.kernel.org>, <trivial@kernel.org>
-Subject: [PATCH] [media] fix tua6034 pll bandwich configuration [3rd and
- last attempt]
-Message-ID: <c391b828d500549858eca574a253d69b@mail01.ipfire.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i have already send this patch twice and the mailing list but get no 
-response. (Three weeks delay between the mails).
-Why mail mails are ignored?
+On Mon, 10 Dec 2012 22:37:08 +0100
+Antonio Ospite <ospite@studenti.unina.it> wrote:
 
-The tua6034 pll is corrupted by commit "[media] dvb-pll: use DVBv5 
-parameters on set_params()"
-http://git.linuxtv.org/media_tree.git/commit/80d8d4985f280dca3c395286d13b49f910a029e7
+> Hi,
+>
 
-[SNIP]
-/* Infineon TUA6034
- * used in LG TDTP E102P
- */
--static void tua6034_bw(struct dvb_frontend *fe, u8 *buf,
--                      const struct dvb_frontend_parameters *params)
-+static void tua6034_bw(struct dvb_frontend *fe, u8 *buf)
-{
--       if (BANDWIDTH_7_MHZ != params->u.ofdm.bandwidth)
-+       u32 bw = fe->dtv_property_cache.bandwidth_hz;
-+       if (bw == 7000000)
-               buf[3] |= 0x08;
-}
-[/SNIP]
+Ping.
 
-so here is a patch to fix this typo to get the Skymaster DTMU100 
-(HANFTEK UMT010 OEM BOX)
-working again.
+> Here is a second iteration of the patchset to add support for the
+> Twinhan VP7049 DVB-T USB Stick, v1 is at:
+> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/56714
+> 
+> Patches from 1 to 7 are small fixes or refactorings to make the addition
+> of the new device easier.
+> 
+> Patches 8 and 9 are specific to the device.
+> 
+> Changes since v1:
+>   - Patches 1-7: more refactorings
+> 
+>   - Patch 9: don't add a .pre_init callback to dvb-usb, Antti convinced
+>     me that the initialization is better done just before the frontend
+>     attach is called.
+> 
+>   - Patch 9: use the RC core infrastructure, the keymap I needed was
+>     already here: I could reuse the rc-twinhan1027 driver without
+>     touching anything in it.
+> 
+> Again I deliberately ignored some checkpatch.pl warnings and errors
+> because I preferred to stick with the code style in use in the
+> dvb-usb/m920x files, let me know if you want me to do otherwise.
+> 
+> Thanks,
+>    Antonio
+> 
+> Antonio Ospite (9):
+>   [media] dvb-usb: fix indentation of a for loop
+>   [media] m920x: fix a typo in a comment
+>   [media] m920x: factor out a m920x_write_seq() function
+>   [media] m920x: factor out a m920x_parse_rc_state() function
+>   [media] m920x: avoid repeating RC state parsing at each keycode
+>   [media] m920x: introduce m920x_rc_core_query()
+>   [media] m920x: send the RC init sequence also when rc.core is used
+>   [media] get_dvb_firmware: add entry for the vp7049 firmware
+>   [media] m920x: add support for the VP-7049 Twinhan DVB-T USB Stick
+> 
+>  Documentation/dvb/get_dvb_firmware       |   15 +-
+>  drivers/media/dvb-core/dvb-usb-ids.h     |    1 +
+>  drivers/media/usb/dvb-usb/dvb-usb-init.c |   60 +++----
+>  drivers/media/usb/dvb-usb/m920x.c        |  269 ++++++++++++++++++++++++------
+>  4 files changed, 266 insertions(+), 79 deletions(-)
+> 
+> -- 
+> Antonio Ospite
+> http://ao2.it
+> 
+> A: Because it messes up the order in which people normally read text.
+>    See http://en.wikipedia.org/wiki/Posting_style
+> Q: Why is top-posting such a bad thing?
+> 
 
-Arne
 
-Resolves-bug: https://bugzilla.kernel.org/show_bug.cgi?id=51011
+-- 
+Antonio Ospite
+http://ao2.it
 
-diff -Naur linux-3.7-rc7-org/drivers/media/dvb-frontends/dvb-pll.c 
-linux-3.7-rc7/drivers/media/dvb-frontends/dvb-pll.c
---- linux-3.7-rc7-org/drivers/media/dvb-frontends/dvb-pll.c	2012-11-26 
-02:59:19.000000000 +0100
-+++ linux-3.7-rc7/drivers/media/dvb-frontends/dvb-pll.c	2012-11-27 
-09:45:16.736775252 +0100
-@@ -247,7 +247,7 @@
- static void tua6034_bw(struct dvb_frontend *fe, u8 *buf)
- {
- 	u32 bw = fe->dtv_property_cache.bandwidth_hz;
--	if (bw == 7000000)
-+	if (bw != 7000000)
- 		buf[3] |= 0x08;
- }
-
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
