@@ -1,99 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47808 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754155Ab2LKWHD (ORCPT
+Received: from georges.telenet-ops.be ([195.130.137.68]:44887 "EHLO
+	georges.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754826Ab2L1TXx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Dec 2012 17:07:03 -0500
-Date: Wed, 12 Dec 2012 00:06:56 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	LDOC <linux-doc@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Chris MacGregor <chris@cybermato.com>,
-	Rob Landley <rob@landley.net>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH RFC v2] media: v4l2-ctrl: Add gain controls
-Message-ID: <20121211220656.GD3747@valkosipuli.retiisi.org.uk>
-References: <1354708169-1139-1-git-send-email-prabhakar.csengg@gmail.com>
- <CA+V-a8t+KxCYunkrT715zQks=5HOrFk2PSM2Ss_kTj4iXg=PJg@mail.gmail.com>
- <20121206095431.GA2887@valkosipuli.retiisi.org.uk>
- <201212110956.43081.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <201212110956.43081.hverkuil@xs4all.nl>
+	Fri, 28 Dec 2012 14:23:53 -0500
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: linux-arch@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Cc: linux-m68k@vger.kernel.org,
+	Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH/RFC 3/4] avr32/bfin/c6x/cris/frv/m68k/mn10300/parisc/xtensa: Add dummy get_dma_ops()
+Date: Fri, 28 Dec 2012 20:23:33 +0100
+Message-Id: <1356722614-18224-4-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <CAMuHMdVPBUzN8fsNHFzrEqev9BsvVCVR2fWySCOecjVA-J1qjg@mail.gmail.com>
+References: <CAMuHMdVPBUzN8fsNHFzrEqev9BsvVCVR2fWySCOecjVA-J1qjg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Provide dummy versions of get_dma_ops(), as dma_mmap_attrs() and
+dma_get_sgtable_attrs() (will) need these
 
-On Tue, Dec 11, 2012 at 09:56:42AM +0100, Hans Verkuil wrote:
-...
-> > > > If I set both V4L2_CID_GAIN_RED and V4L2_CID_RED_OFFSET, how are they supposed
-> > > > to interact? Or are they mutually exclusive?
-> > > >
-> > > > And if I set both V4L2_CID_GAIN_OFFSET and V4L2_CID_RED_OFFSET, how are they supposed
-> > > > to interact?
-> > > >
-> > > > This questions should be answered in the documentation...
-> > > >
-> > > I haven’t worked on the hardware which supports both, What is the general
-> > > behaviour when the hardware supports both per color component and global
-> > > and both of them are set ? That could be helpful for me to document.
-> > 
-> > I'd guess most of the time only either one is supported,
-> 
-> Are you talking about GAIN_RED vs GAIN_RED_OFFSET or GAIN_OFFSET vs RED_OFFSET?
-> Or both?
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+---
+ arch/avr32/include/asm/dma-mapping.h    |    8 ++++++++
+ arch/blackfin/include/asm/dma-mapping.h |    8 ++++++++
+ arch/c6x/include/asm/dma-mapping.h      |    8 ++++++++
+ arch/cris/include/asm/dma-mapping.h     |    8 ++++++++
+ arch/frv/include/asm/dma-mapping.h      |    8 ++++++++
+ arch/m68k/include/asm/dma-mapping.h     |    8 ++++++++
+ arch/mn10300/include/asm/dma-mapping.h  |    8 ++++++++
+ arch/parisc/include/asm/dma-mapping.h   |    8 ++++++++
+ arch/xtensa/include/asm/dma-mapping.h   |    8 ++++++++
+ 9 files changed, 72 insertions(+), 0 deletions(-)
 
-Per-component vs. global controls.
-
-Few devices support both; AFAIR on SMIA the user can choose which one to
-use, but the driver implements neither currently.
-
-> > and when someone
-> > thinks of supporting both on the same device, we can start thinking of the
-> > interaction of per-component and global ones. That may be hardware specific
-> > as well, so standardising it might not be possible.
-> > 
-> > I think it'd be far more important to know which unit is it. Many such
-> > controls are indeed fixed point values but the location of the point varies.
-> > For unstance, u16,u16 and u8,u8 aren't uncommon. We currently have no way to
-> > tell this to the user space. This isn't in any way specific to gain or
-> > offset controls, though.
-> 
-> There are no standardized units for gain at the moment, and I don't really see
-> that happening any time soon. Fixed point isn't supported at all as a control
-> type, so that will have to be converted to an integer anyway.
-
-Do you think it'd require a new control type? There might be many; some
-devices use funny fixed point values, such as u8.u5. I guess you could use
-step for those, sure.
-
-For instance, some sensors natively use lines to tell the exposure value
-(and in low level sensors control the granularity really matters, so lines
-it should be) whereas some SoC ones could use µs instead.
-
-This is about units and prefixes IMO. Fixed point is just a prefix, such as
-milli or micro, but instead of being a power of ten it's a power of two.
-
-This would also allow telling the user about a gain control that e.g. the
-value 0x100 means "no gain".
-
-I think someone should write an RFC about this. :-)
-
+diff --git a/arch/avr32/include/asm/dma-mapping.h b/arch/avr32/include/asm/dma-mapping.h
+index aaf5199..de55309 100644
+--- a/arch/avr32/include/asm/dma-mapping.h
++++ b/arch/avr32/include/asm/dma-mapping.h
+@@ -8,6 +8,14 @@
+ #include <asm/cacheflush.h>
+ #include <asm/io.h>
+ 
++/*
++ *  Dummy to make dma_mmap_attrs()/dma_get_sgtable_attrs() happy
++ */
++static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
++{
++	return NULL;
++}
++
+ extern void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
+ 	int direction);
+ 
+diff --git a/arch/blackfin/include/asm/dma-mapping.h b/arch/blackfin/include/asm/dma-mapping.h
+index bbf4610..a2778b3 100644
+--- a/arch/blackfin/include/asm/dma-mapping.h
++++ b/arch/blackfin/include/asm/dma-mapping.h
+@@ -10,6 +10,14 @@
+ #include <asm/cacheflush.h>
+ struct scatterlist;
+ 
++/*
++ *  Dummy to make dma_mmap_attrs()/dma_get_sgtable_attrs() happy
++ */
++static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
++{
++	return NULL;
++}
++
+ void *dma_alloc_coherent(struct device *dev, size_t size,
+ 			 dma_addr_t *dma_handle, gfp_t gfp);
+ void dma_free_coherent(struct device *dev, size_t size, void *vaddr,
+diff --git a/arch/c6x/include/asm/dma-mapping.h b/arch/c6x/include/asm/dma-mapping.h
+index 3c69406..5ae2f81 100644
+--- a/arch/c6x/include/asm/dma-mapping.h
++++ b/arch/c6x/include/asm/dma-mapping.h
+@@ -17,6 +17,14 @@
+ 
+ #define dma_supported(d, m)	1
+ 
++/*
++ *  Dummy to make dma_mmap_attrs()/dma_get_sgtable_attrs() happy
++ */
++static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
++{
++	return NULL;
++}
++
+ static inline int dma_set_mask(struct device *dev, u64 dma_mask)
+ {
+ 	if (!dev->dma_mask || !dma_supported(dev, dma_mask))
+diff --git a/arch/cris/include/asm/dma-mapping.h b/arch/cris/include/asm/dma-mapping.h
+index 8588b2c..05a55aa 100644
+--- a/arch/cris/include/asm/dma-mapping.h
++++ b/arch/cris/include/asm/dma-mapping.h
+@@ -10,6 +10,14 @@
+ #include <asm/io.h>
+ #include <asm/scatterlist.h>
+ 
++/*
++ *  Dummy to make dma_mmap_attrs()/dma_get_sgtable_attrs() happy
++ */
++static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
++{
++	return NULL;
++}
++
+ #define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
+ #define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
+ 
+diff --git a/arch/frv/include/asm/dma-mapping.h b/arch/frv/include/asm/dma-mapping.h
+index dfb8110..862e9b8 100644
+--- a/arch/frv/include/asm/dma-mapping.h
++++ b/arch/frv/include/asm/dma-mapping.h
+@@ -12,6 +12,14 @@
+  * following DMA API should work.
+  */
+ 
++/*
++ *  Dummy to make dma_mmap_attrs()/dma_get_sgtable_attrs() happy
++ */
++static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
++{
++	return NULL;
++}
++
+ #define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
+ #define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
+ 
+diff --git a/arch/m68k/include/asm/dma-mapping.h b/arch/m68k/include/asm/dma-mapping.h
+index c68cdb4..d8977f5 100644
+--- a/arch/m68k/include/asm/dma-mapping.h
++++ b/arch/m68k/include/asm/dma-mapping.h
+@@ -5,6 +5,14 @@
+ 
+ struct scatterlist;
+ 
++/*
++ *  Dummy to make dma_mmap_attrs()/dma_get_sgtable_attrs() happy
++ */
++static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
++{
++	return NULL;
++}
++
+ static inline int dma_supported(struct device *dev, u64 mask)
+ {
+ 	return 1;
+diff --git a/arch/mn10300/include/asm/dma-mapping.h b/arch/mn10300/include/asm/dma-mapping.h
+index c1be439..b0cea53 100644
+--- a/arch/mn10300/include/asm/dma-mapping.h
++++ b/arch/mn10300/include/asm/dma-mapping.h
+@@ -22,6 +22,14 @@
+  * following DMA API should work.
+  */
+ 
++/*
++ *  Dummy to make dma_mmap_attrs()/dma_get_sgtable_attrs() happy
++ */
++static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
++{
++	return NULL;
++}
++
+ extern void *dma_alloc_coherent(struct device *dev, size_t size,
+ 				dma_addr_t *dma_handle, int flag);
+ 
+diff --git a/arch/parisc/include/asm/dma-mapping.h b/arch/parisc/include/asm/dma-mapping.h
+index 467bbd5..cdd450f 100644
+--- a/arch/parisc/include/asm/dma-mapping.h
++++ b/arch/parisc/include/asm/dma-mapping.h
+@@ -46,6 +46,14 @@ extern struct hppa_dma_ops pcx_dma_ops;
+ 
+ extern struct hppa_dma_ops *hppa_dma_ops;
+ 
++/*
++ *  Dummy to make dma_mmap_attrs()/dma_get_sgtable_attrs() happy
++ */
++static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
++{
++	return NULL;
++}
++
+ static inline void *
+ dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle,
+ 		   gfp_t flag)
+diff --git a/arch/xtensa/include/asm/dma-mapping.h b/arch/xtensa/include/asm/dma-mapping.h
+index 4acb5fe..0061c2d 100644
+--- a/arch/xtensa/include/asm/dma-mapping.h
++++ b/arch/xtensa/include/asm/dma-mapping.h
+@@ -26,6 +26,14 @@ extern void *consistent_alloc(int, size_t, dma_addr_t, unsigned long);
+ extern void consistent_free(void*, size_t, dma_addr_t);
+ extern void consistent_sync(void*, size_t, int);
+ 
++/*
++ *  Dummy to make dma_mmap_attrs()/dma_get_sgtable_attrs() happy
++ */
++static inline const struct dma_map_ops *get_dma_ops(struct device *dev)
++{
++	return NULL;
++}
++
+ #define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
+ #define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
+ 
 -- 
-Kind regards,
+1.7.0.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
