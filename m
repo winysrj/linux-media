@@ -1,86 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42624 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752211Ab2LXMZr (ORCPT
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:40277 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750739Ab2L1FKm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Dec 2012 07:25:47 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 1/6] uvcvideo: Set error_idx properly for extended controls API failures
-Date: Mon, 24 Dec 2012 13:27:08 +0100
-Message-ID: <1542143.Te5j8EM75x@avalon>
-In-Reply-To: <1348758980-21683-2-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1348758980-21683-1-git-send-email-laurent.pinchart@ideasonboard.com> <1348758980-21683-2-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 28 Dec 2012 00:10:42 -0500
+Received: by mail-pa0-f43.google.com with SMTP id fb10so5863510pad.30
+        for <linux-media@vger.kernel.org>; Thu, 27 Dec 2012 21:10:41 -0800 (PST)
+Message-ID: <50DD29CC.1070608@linaro.org>
+Date: Fri, 28 Dec 2012 10:40:36 +0530
+From: Tushar Behera <tushar.behera@linaro.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media@vger.kernel.org
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Patch update notification: 5 patches updated
+References: <20121226123302.24678.81659@www.linuxtv.org>
+In-Reply-To: <20121226123302.24678.81659@www.linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Thursday 27 September 2012 17:16:15 Laurent Pinchart wrote:
-> When one of the requested controls doesn't exist the error_idx field
-> must reflect that situation. For G_EXT_CTRLS and S_EXT_CTRLS, error_idx
-> must be set to the control count. For TRY_EXT_CTRLS, it must be set to
-> the index of the unexisting control.
+On 12/26/2012 06:03 PM, Patchwork wrote:
+> Hello,
 > 
-> This issue was found by the v4l2-compliance tool.
+> The following patches (submitted by you) have been updated in patchwork:
+> 
+>  * [05/14,media] atmel-isi: Update error check for unsigned variables
+>      - http://patchwork.linuxtv.org/patch/15475/
+>     was: New
+>     now: Under Review
+> 
+>  * [01/14,media] ivtv: Remove redundant check on unsigned variable
+>      - http://patchwork.linuxtv.org/patch/15479/
+>     was: New
+>     now: Under Review
+> 
+>  * [04/14,media] tlg2300: Remove redundant check on unsigned variable
+>      - http://patchwork.linuxtv.org/patch/15476/
+>     was: New
+>     now: Under Review
+> 
+>  * [02/14,media] meye: Remove redundant check on unsigned variable
+>      - http://patchwork.linuxtv.org/patch/15478/
+>     was: New
+>     now: Under Review
+> 
+>  * [03/14,media] saa7134: Remove redundant check on unsigned variable
+>      - http://patchwork.linuxtv.org/patch/15477/
+>     was: New
+>     now: Under Review
+> 
+> This email is a notification only - you do not need to respond.
+> 
 
-I'm revisiting this patch as it has been reverted in v3.8-rc1.
-
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/usb/uvc/uvc_ctrl.c |   17 ++++++++++-------
->  drivers/media/usb/uvc/uvc_v4l2.c |   19 ++++++++++++-------
->  2 files changed, 22 insertions(+), 14 deletions(-)
-
-[snip]
-
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> b/drivers/media/usb/uvc/uvc_v4l2.c index f00db30..e5817b9 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -591,8 +591,10 @@ static long uvc_v4l2_do_ioctl(struct file *file,
-
-[snip]
-
-> @@ -637,8 +639,9 @@ static long uvc_v4l2_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg) ret = uvc_ctrl_get(chain, ctrl);
->  			if (ret < 0) {
->  				uvc_ctrl_rollback(handle);
-> -				ctrls->error_idx = i;
-> -				return ret;
-> +				ctrls->error_idx = ret == -ENOENT
-> +						 ? ctrls->count : i;
-> +				return ret == -ENOENT ? -EINVAL : ret;
->  			}
->  		}
->  		ctrls->error_idx = 0;
-> @@ -661,8 +664,10 @@ static long uvc_v4l2_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg) ret = uvc_ctrl_set(chain, ctrl);
->  			if (ret < 0) {
->  				uvc_ctrl_rollback(handle);
-> -				ctrls->error_idx = i;
-> -				return ret;
-> +				ctrls->error_idx = (ret == -ENOENT &&
-> +						    cmd == VIDIOC_S_EXT_CTRLS)
-> +						 ? ctrls->count : i;
-> +				return ret == -ENOENT ? -EINVAL : ret;
->  			}
->  		}
-
-I've reread the V4L2 specification, and the least I can say is that the text 
-is pretty ambiguous. Let's clarify it.
-
-Is there a reason to differentiate between invalid control IDs and other 
-errors as far as error_idx is concerned ? It would be simpler if error_idx was 
-set to the index of the first error for get and try operations, regardless of 
-the error type. What do you think ?
+The above 5 patches may please be marked as "Obsolete" as a similar
+patches have already been merged to 3.8-rc1.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Tushar Behera
