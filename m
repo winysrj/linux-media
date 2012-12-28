@@ -1,79 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 88-149-150-131.v4.ngi.it ([88.149.150.131]:38992 "EHLO
-	vajra.unixproducts.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751093Ab2LPRPI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 12:15:08 -0500
-To: <linux-media@vger.kernel.org>
-Subject: Re: cannot make this Asus my cinema-u3100miniplusv2 work under linux
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
+Received: from mx1.redhat.com ([209.132.183.28]:11315 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751685Ab2L1Mah (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Dec 2012 07:30:37 -0500
+Date: Fri, 28 Dec 2012 10:29:28 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Alexey Klimov <klimov.linux@gmail.com>
+Subject: Fw: [patch 02/03 v2] usb hid quirks for Masterkit MA901 usb radio
+Message-ID: <20121228102928.4103390e@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Date: Sun, 16 Dec 2012 18:15:05 +0100
-From: Renato Gallo <renatogallo@unixproducts.com>
-In-Reply-To: <50CDDF9A.1080509@iki.fi>
-References: <8e9f16405c8583e35cb97bb7d7daef4b@unixproducts.com>
- <50CDDF9A.1080509@iki.fi>
-Message-ID: <cd31dc6ada9161825c7dff975a3da945@unixproducts.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-now the modules loads and kaffeine recognizes the device but i cannot 
-find any channels.
-can it be a tuner bug ?
+Hi Jiri,
+
+There's another radio device that it is incorrectly detected as an HID driver.
+As I'll be applying the driver's patch via the media tree, do you mind if I also
+apply this hid patch there?
+
+Thanks!
+Mauro
+
+Forwarded message:
+
+Date: Mon, 12 Nov 2012 07:57:03 +0100
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: [patch 02/03 v2] usb hid quirks for Masterkit MA901 usb radio
 
 
-kaffeine(5978) DvbDevice::frontendEvent: tuning failed
-kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
-section; type = 0 pid = 0
-kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
-section; type = 2 pid = 17
-kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
-section; type = 4 pid = 16
-kaffeine(5978) DvbDevice::frontendEvent: tuning failed
-kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
-section; type = 0 pid = 0
-kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
-section; type = 2 pid = 17
-kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
-section; type = 4 pid = 16
-kaffeine(5978) DvbDevice::frontendEvent: tuning failed
+Don't let Masterkit MA901 USB radio be handled by usb hid drivers.
+
+This device will be handled by radio-ma901.c driver.
+
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
 
-Il 16/12/2012 15:50 Antti Palosaari ha scritto:
-> On 12/16/2012 04:23 PM, Renato Gallo wrote:
->> any news on this ?
->>
->>
->>
->>
->>
->> Asus my cinema-u3100miniplusv2
->>
->> Bus 001 Device 015: ID 1b80:d3a8 Afatech
->>
->> [ 6956.333440] usb 1-6.3.6: new high-speed USB device number 16 
->> using
->> ehci_hcd
->> [ 6956.453943] usb 1-6.3.6: New USB device found, idVendor=1b80,
->> idProduct=d3a8
->> [ 6956.453950] usb 1-6.3.6: New USB device strings: Mfr=1, 
->> Product=2,
->> SerialNumber=0
->> [ 6956.453955] usb 1-6.3.6: Product: Rtl2832UDVB
->> [ 6956.453959] usb 1-6.3.6: Manufacturer: Realtek
->>
->
-> Seems to be Realtek RTL2832U. Add that USB ID to the driver and test.
-> It is very high probability it starts working.
->
-> Here is the patch:
-> 
-> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/rtl28xxu-usb-ids
->
-> Please test and report.
->
-> regards
-> Antti
+diff --git a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c
+index 5de3bb3..8e06569 100644
+--- a/drivers/hid/hid-core.c
++++ b/drivers/hid/hid-core.c
+@@ -2025,6 +2025,7 @@ static const struct hid_device_id hid_ignore_list[] = {
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_LD, USB_DEVICE_ID_LD_HYBRID) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_LD, USB_DEVICE_ID_LD_HEATCONTROL) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_MADCATZ, USB_DEVICE_ID_MADCATZ_BEATPAD) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_MASTERKIT, USB_DEVICE_ID_MASTERKIT_MA901RADIO) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_MCC, USB_DEVICE_ID_MCC_PMD1024LS) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_MCC, USB_DEVICE_ID_MCC_PMD1208LS) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_MICROCHIP, USB_DEVICE_ID_PICKIT1) },
+diff --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h
+index 1dcb76f..17aa4f6 100644
+--- a/drivers/hid/hid-ids.h
++++ b/drivers/hid/hid-ids.h
+@@ -533,6 +533,9 @@
+ #define USB_VENDOR_ID_MADCATZ		0x0738
+ #define USB_DEVICE_ID_MADCATZ_BEATPAD	0x4540
+ 
++#define USB_VENDOR_ID_MASTERKIT			0x16c0
++#define USB_DEVICE_ID_MASTERKIT_MA901RADIO	0x05df
++
+ #define USB_VENDOR_ID_MCC		0x09db
+ #define USB_DEVICE_ID_MCC_PMD1024LS	0x0076
+ #define USB_DEVICE_ID_MCC_PMD1208LS	0x007a
 
