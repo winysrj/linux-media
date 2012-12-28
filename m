@@ -1,69 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4616 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752673Ab2LXJZD (ORCPT
+Received: from juliette.telenet-ops.be ([195.130.137.74]:38045 "EHLO
+	juliette.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754839Ab2L1TXt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Dec 2012 04:25:03 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC/PATCH] v4l2-compliance: Reject invalid ioctl error codes
-Date: Mon, 24 Dec 2012 10:24:48 +0100
-Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com
-References: <1356301444-10191-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1356301444-10191-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201212241024.48384.hverkuil@xs4all.nl>
+	Fri, 28 Dec 2012 14:23:49 -0500
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: linux-arch@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Cc: linux-m68k@vger.kernel.org,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Chen Liqin <liqin.chen@sunplusct.com>,
+	Lennox Wu <lennox.wu@gmail.com>
+Subject: [PATCH 2/4] score: Remove unneeded <asm/dma-mapping.h>
+Date: Fri, 28 Dec 2012 20:23:32 +0100
+Message-Id: <1356722614-18224-3-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <CAMuHMdVPBUzN8fsNHFzrEqev9BsvVCVR2fWySCOecjVA-J1qjg@mail.gmail.com>
+References: <CAMuHMdVPBUzN8fsNHFzrEqev9BsvVCVR2fWySCOecjVA-J1qjg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun December 23 2012 23:24:04 Laurent Pinchart wrote:
-> The recent uvcvideo regression that broke pulseaudio/KDE (see commit
-> 9c016d61097cc39427a2f5025bdd97ac633d26a6 in the mainline kernel) was
-> caused by the uvcvideo driver returning a -ENOENT error code to
-> userspace by mistake.
-> 
-> To make sure such regressions will be caught before reaching users, test
-> ioctl error codes to make sure they're valid.
+It just includes <asm-generic/dma-mapping-broken.h>, which is already
+handled by <linux/dma-mapping.h> for the !CONFIG_HAS_DMA case (score sets
+CONFIG_NO_DMA=y).
 
-I don't like this change. Error codes should be checked in the test for
-the actual ioctl.
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Chen Liqin <liqin.chen@sunplusct.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
+---
+ arch/score/include/asm/dma-mapping.h |    6 ------
+ 1 files changed, 0 insertions(+), 6 deletions(-)
+ delete mode 100644 arch/score/include/asm/dma-mapping.h
 
-Apparently it is QUERYCTRL that is returning the wrong error code in uvc, but
-looking at the code in v4l2-test-controls.cpp it is already checking for ENOTTY
-or EINVAL and returning a failure if it is a different error code. So why is
-that not triggered in this case?
+diff --git a/arch/score/include/asm/dma-mapping.h b/arch/score/include/asm/dma-mapping.h
+deleted file mode 100644
+index f9c0193..0000000
+--- a/arch/score/include/asm/dma-mapping.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef _ASM_SCORE_DMA_MAPPING_H
+-#define _ASM_SCORE_DMA_MAPPING_H
+-
+-#include <asm-generic/dma-mapping-broken.h>
+-
+-#endif /* _ASM_SCORE_DMA_MAPPING_H */
+-- 
+1.7.0.4
 
-Regards,
-
-	Hans
-
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  utils/v4l2-compliance/v4l2-compliance.cpp |    7 +++++++
->  1 files changed, 7 insertions(+), 0 deletions(-)
-> 
-> A white list of valid error codes might be more appropriate. I can fix the
-> patch accordingly, but I'd like a general opinion first.
-> 
-> diff --git a/utils/v4l2-compliance/v4l2-compliance.cpp b/utils/v4l2-compliance/v4l2-compliance.cpp
-> index 1e4646f..ff1ad9b 100644
-> --- a/utils/v4l2-compliance/v4l2-compliance.cpp
-> +++ b/utils/v4l2-compliance/v4l2-compliance.cpp
-> @@ -112,6 +112,13 @@ int doioctl_name(struct node *node, unsigned long int request, void *parm, const
->  		fail("%s returned %d instead of 0 or -1\n", name, retval);
->  		return -1;
->  	}
-> +
-> +	/* Reject invalid error codes */
-> +	switch (errno) {
-> +	case ENOENT:
-> +		fail("%s returned invalid error %d\n", name, errno);
-> +		break;
-> +	}
->  	return e;
->  }
->  
-> 
