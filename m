@@ -1,97 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3452 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751835Ab2LDPt3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Dec 2012 10:49:29 -0500
-To: LMML <linux-media@vger.kernel.org>
-Subject: [RFC PATCH] vb2: force output buffers to fault into memory
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <pawel@osciak.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Tue, 4 Dec 2012 16:48:40 +0100
+Received: from forward2h.mail.yandex.net ([84.201.187.147]:47974 "EHLO
+	forward2h.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751318Ab2L1NTZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Dec 2012 08:19:25 -0500
+Date: Fri, 28 Dec 2012 17:12:56 +0400
+From: Kirill Smelkov <kirr@navytux.spb.ru>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH,v2] [media] vivi: Constify structures
+Message-ID: <20121228131256.GA2688@mini.zxlink>
+References: <1356535783-24173-1-git-send-email-kirr@navytux.spb.ru>
+ <201212271255.11159.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201212041648.40108.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201212271255.11159.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(repost after accidentally using HTML formatting)
+On Thu, Dec 27, 2012 at 12:55:11PM +0100, Hans Verkuil wrote:
+> On Wed December 26 2012 16:29:43 Kirill Smelkov wrote:
+> > Most of *_ops and other structures in vivi.c were already declared const
+> > but some have not. Constify and code/data will take less space:
+> > 
+> >     $ size drivers/media/platform/vivi.o
+> >               text    data     bss     dec     hex filename
+> >     before:  12569     248       8   12825    3219 drivers/media/platform/vivi.o
+> >     after:   12308      20       8   12336    3030 drivers/media/platform/vivi.o
+> > 
+> > i.e. vivi.o is now ~500 bytes less.
+> > 
+> > Signed-off-by: Kirill Smelkov <kirr@navytux.spb.ru>
+> > ---
+> >  drivers/media/platform/vivi.c | 26 +++++++++++++-------------
+> >  1 file changed, 13 insertions(+), 13 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+> > index ec65089..bed04e1 100644
+> > --- a/drivers/media/platform/vivi.c
+> > +++ b/drivers/media/platform/vivi.c
+> > @@ -91,13 +91,13 @@ static const struct v4l2_fract
+> >     ------------------------------------------------------------------*/
+> >  
+> >  struct vivi_fmt {
+> > -	char  *name;
+> > +	const char  *name;
+> 
+> Just use one space before '*' since it no longer lines up to anything.
 
-This needs a good review. The change is minor, but as I am not a mm expert,
-I'd like to get some more feedback on this. The dma-sg change has been
-successfully tested on our hardware, but I don't have any hardware to test
-the vmalloc change.
+[...]
+> > @@ -191,7 +191,7 @@ struct vivi_buffer {
+> >  	/* common v4l buffer stuff -- must be first */
+> >  	struct vb2_buffer	vb;
+> >  	struct list_head	list;
+> > -	struct vivi_fmt        *fmt;
+> > +	struct vivi_fmt const  *fmt;
+> >  };
+> >  
+> >  struct vivi_dmaqueue {
+> > @@ -250,7 +250,7 @@ struct vivi_dev {
+> >  	int			   input;
+> >  
+> >  	/* video capture */
+> > -	struct vivi_fmt            *fmt;
+> > +	struct vivi_fmt const      *fmt;
+> 
+> 'const' should be before 'struct' for consistency reasons.
 
-Note that the 'write' attribute is still stored internally and used to tell
-whether set_page_dirty_lock() should be called during put_userptr.
+It's just a matter of style, and in this case I though putting const
+after would not distract from the fact that fmt is `struct vivi_fmt *`
+and also to align types beginning with non-const ones.
 
-It is my understanding that that still makes sense, so I didn't change that.
+But anyway, style is style and this is not a big deal, so here you are
+with corrected patch.
 
-Regards,
+Thanks,
+Kirill
 
-	Hans
+---- 8< ----
+From: Kirill Smelkov <kirr@navytux.spb.ru>
+Date: Wed, 26 Dec 2012 19:23:26 +0400
+Subject: [PATCH,v2] [media] vivi: Constify structures
 
---- start patch ---
+Most of *_ops and other structures in vivi.c were already declared const
+but some have not. Constify and code/data will take less space:
 
-When calling get_user_pages for output buffers, the 'write' argument is set
-to 0 (since the DMA isn't writing to memory), This can cause unexpected results:
+    $ size drivers/media/platform/vivi.o
+              text    data     bss     dec     hex filename
+    before:  12569     248       8   12825    3219 drivers/media/platform/vivi.o
+    after:   12308      20       8   12336    3030 drivers/media/platform/vivi.o
 
-If you calloc() buffer memory and do not fill that memory afterwards, then
-the kernel assigns most of that memory to one single physical 'zero' page.
+i.e. vivi.o is now ~500 bytes less.
 
-If you queue that buffer to the V4L2 driver, then it will call get_user_pages
-and store the results. Next you dequeue it, fill the buffer and queue it
-again. Now the V4L2 core code sees the same userptr and length and expects it
-to be the same buffer that it got before and it will reuse the results of the
-previous get_user_pages call. But that still points to zero pages, whereas
-userspace filled it up and so changed the buffer to use different pages. In
-other words, the pages the V4L2 core knows about are no longer correct.
-
-The solution is to always set 'write' to 1 as this will force the kernel to
-fault in proper pages.
-
-We do this for videobuf2-dma-sg.c and videobuf2-vmalloc.c, but not for
-videobuf2-dma-contig.c since the userptr there is already supposed to
-point to contiguous memory and shouldn't use the zero page at all.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Kirill Smelkov <kirr@navytux.spb.ru>
 ---
- drivers/media/v4l2-core/videobuf2-dma-sg.c  |    3 ++-
- drivers/media/v4l2-core/videobuf2-vmalloc.c |    4 +++-
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ drivers/media/platform/vivi.c | 26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 25c3b36..c29f159 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -143,7 +143,8 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	num_pages_from_user = get_user_pages(current, current->mm,
- 					     vaddr & PAGE_MASK,
- 					     buf->sg_desc.num_pages,
--					     write,
-+					     1, /* always set write to force
-+						   faulting all pages */
- 					     1, /* force */
- 					     buf->pages,
- 					     NULL);
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index a47fd4f..c8d8519 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -107,7 +107,9 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		/* current->mm->mmap_sem is taken by videobuf2 core */
- 		n_pages = get_user_pages(current, current->mm,
- 					 vaddr & PAGE_MASK, buf->n_pages,
--					 write, 1, /* force */
-+					 1, /* always set write to force
-+					       faulting all pages */
-+					 1, /* force */
- 					 buf->pages, NULL);
- 		if (n_pages != buf->n_pages)
- 			goto fail_get_user_pages;
+ v2:
+    
+    - put 'const' always before anything, as noted by Hans Verkuil.
+    - no changes otherwise.
+
+
+diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+index ec65089..8a33a71 100644
+--- a/drivers/media/platform/vivi.c
++++ b/drivers/media/platform/vivi.c
+@@ -91,13 +91,13 @@ static const struct v4l2_fract
+    ------------------------------------------------------------------*/
+ 
+ struct vivi_fmt {
+-	char  *name;
++	const char *name;
+ 	u32   fourcc;          /* v4l2 format id */
+ 	u8    depth;
+ 	bool  is_yuv;
+ };
+ 
+-static struct vivi_fmt formats[] = {
++static const struct vivi_fmt formats[] = {
+ 	{
+ 		.name     = "4:2:2, packed, YUYV",
+ 		.fourcc   = V4L2_PIX_FMT_YUYV,
+@@ -164,9 +164,9 @@ static struct vivi_fmt formats[] = {
+ 	},
+ };
+ 
+-static struct vivi_fmt *__get_format(u32 pixelformat)
++static const struct vivi_fmt *__get_format(u32 pixelformat)
+ {
+-	struct vivi_fmt *fmt;
++	const struct vivi_fmt *fmt;
+ 	unsigned int k;
+ 
+ 	for (k = 0; k < ARRAY_SIZE(formats); k++) {
+@@ -181,7 +181,7 @@ static struct vivi_fmt *__get_format(u32 pixelformat)
+ 	return &formats[k];
+ }
+ 
+-static struct vivi_fmt *get_format(struct v4l2_format *f)
++static const struct vivi_fmt *get_format(struct v4l2_format *f)
+ {
+ 	return __get_format(f->fmt.pix.pixelformat);
+ }
+@@ -191,7 +191,7 @@ struct vivi_buffer {
+ 	/* common v4l buffer stuff -- must be first */
+ 	struct vb2_buffer	vb;
+ 	struct list_head	list;
+-	struct vivi_fmt        *fmt;
++	const struct vivi_fmt  *fmt;
+ };
+ 
+ struct vivi_dmaqueue {
+@@ -250,7 +250,7 @@ struct vivi_dev {
+ 	int			   input;
+ 
+ 	/* video capture */
+-	struct vivi_fmt            *fmt;
++	const struct vivi_fmt      *fmt;
+ 	struct v4l2_fract          timeperframe;
+ 	unsigned int               width, height;
+ 	struct vb2_queue	   vb_vidq;
+@@ -297,7 +297,7 @@ struct bar_std {
+ 
+ /* Maximum number of bars are 10 - otherwise, the input print code
+    should be modified */
+-static struct bar_std bars[] = {
++static const struct bar_std bars[] = {
+ 	{	/* Standard ITU-R color bar sequence */
+ 		{ COLOR_WHITE, COLOR_AMBER, COLOR_CYAN, COLOR_GREEN,
+ 		  COLOR_MAGENTA, COLOR_RED, COLOR_BLUE, COLOR_BLACK, COLOR_BLACK }
+@@ -926,7 +926,7 @@ static void vivi_unlock(struct vb2_queue *vq)
+ }
+ 
+ 
+-static struct vb2_ops vivi_video_qops = {
++static const struct vb2_ops vivi_video_qops = {
+ 	.queue_setup		= queue_setup,
+ 	.buf_prepare		= buffer_prepare,
+ 	.buf_queue		= buffer_queue,
+@@ -957,7 +957,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
+ 					struct v4l2_fmtdesc *f)
+ {
+-	struct vivi_fmt *fmt;
++	const struct vivi_fmt *fmt;
+ 
+ 	if (f->index >= ARRAY_SIZE(formats))
+ 		return -EINVAL;
+@@ -993,7 +993,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 			struct v4l2_format *f)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
+-	struct vivi_fmt *fmt;
++	const struct vivi_fmt *fmt;
+ 
+ 	fmt = get_format(f);
+ 	if (!fmt) {
+@@ -1102,7 +1102,7 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
+ static int vidioc_enum_frameintervals(struct file *file, void *priv,
+ 					     struct v4l2_frmivalenum *fival)
+ {
+-	struct vivi_fmt *fmt;
++	const struct vivi_fmt *fmt;
+ 
+ 	if (fival->index)
+ 		return -EINVAL;
+@@ -1330,7 +1330,7 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+-static struct video_device vivi_template = {
++static const struct video_device vivi_template = {
+ 	.name		= "vivi",
+ 	.fops           = &vivi_fops,
+ 	.ioctl_ops 	= &vivi_ioctl_ops,
 -- 
-1.7.10.4
-
+1.8.1.rc3.329.g036938a
