@@ -1,49 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:59473 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750812Ab2LDC3C (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Dec 2012 21:29:02 -0500
-Received: by mail-qc0-f174.google.com with SMTP id o22so1878191qcr.19
-        for <linux-media@vger.kernel.org>; Mon, 03 Dec 2012 18:29:00 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <50BD5CC3.1030100@pyther.net>
-References: <50B5779A.9090807@pyther.net>
-	<50B67851.2010808@googlemail.com>
-	<50B69037.3080205@pyther.net>
-	<50B6967C.9070801@iki.fi>
-	<50B6C2DF.4020509@pyther.net>
-	<50B6C530.4010701@iki.fi>
-	<50B7B768.5070008@googlemail.com>
-	<50B80FBB.5030208@pyther.net>
-	<50BB3F2C.5080107@googlemail.com>
-	<50BB6451.7080601@iki.fi>
-	<50BB8D72.8050803@googlemail.com>
-	<50BCEC60.4040206@googlemail.com>
-	<50BD5CC3.1030100@pyther.net>
-Date: Mon, 3 Dec 2012 21:29:00 -0500
-Message-ID: <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Matthew Gyurgyik <matthew@pyther.net>
-Cc: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:48829 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752082Ab2L1K0U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Dec 2012 05:26:20 -0500
+Received: by mail-pb0-f43.google.com with SMTP id um15so5844327pbc.2
+        for <linux-media@vger.kernel.org>; Fri, 28 Dec 2012 02:26:19 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, s.nawrocki@samsung.com,
+	sylvester.nawrocki@gmail.com, sachin.kamat@linaro.org,
+	patches@linaro.org
+Subject: [PATCH 1/3] [media] s5p-mfc: use mfc_err instead of printk
+Date: Fri, 28 Dec 2012 15:48:26 +0530
+Message-Id: <1356689908-6866-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 3, 2012 at 9:15 PM, Matthew Gyurgyik <matthew@pyther.net> wrote:
-> Although, it looked like tuning was semi-successful, I tried the following
->
->   * cat /dev/dvb/adapter0/dvr0 (no output)
->   * mplayer /dev/dvb/adapter0/dvr0 (no output)
->   * cat /dev/dvb/adapter0/dvr0 > test.mpg (test.mpg was 0 bytes)
+Use mfc_err for consistency. Also silences checkpatch warning.
 
-I would try running "lsusb -v" and send the output.  Make sure that
-it's not expecting to use bulk mode for DVB (which would require
-driver changes to support).
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-Devin
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+index bf7d010..bb99d3d 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+@@ -187,8 +187,7 @@ int s5p_mfc_alloc_codec_buffers_v5(struct s5p_mfc_ctx *ctx)
+ 		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->bank1_size);
+ 		if (IS_ERR(ctx->bank1_buf)) {
+ 			ctx->bank1_buf = NULL;
+-			printk(KERN_ERR
+-			       "Buf alloc for decoding failed (port A)\n");
++			mfc_err("Buf alloc for decoding failed (port A)\n");
+ 			return -ENOMEM;
+ 		}
+ 		ctx->bank1_phys = s5p_mfc_mem_cookie(
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.4.1
+
