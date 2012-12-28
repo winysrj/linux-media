@@ -1,122 +1,229 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55987 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752322Ab2LPUf2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 15:35:28 -0500
-Message-ID: <50CE3070.10309@iki.fi>
-Date: Sun, 16 Dec 2012 22:34:56 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2763 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753685Ab2L1PEn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Dec 2012 10:04:43 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Kirill Smelkov <kirr@navytux.spb.ru>
+Subject: Re: [PATCH,v2] [media] vivi: Constify structures
+Date: Fri, 28 Dec 2012 16:04:24 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1356535783-24173-1-git-send-email-kirr@navytux.spb.ru> <201212271255.11159.hverkuil@xs4all.nl> <20121228131256.GA2688@mini.zxlink>
+In-Reply-To: <20121228131256.GA2688@mini.zxlink>
 MIME-Version: 1.0
-To: Renato Gallo <renatogallo@unixproducts.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: cannot make this Asus my cinema-u3100miniplusv2 work under linux
-References: <8e9f16405c8583e35cb97bb7d7daef4b@unixproducts.com> <50CDDF9A.1080509@iki.fi> <cd31dc6ada9161825c7dff975a3da945@unixproducts.com> <50CE0AFA.9030308@iki.fi> <1af6a5408ee3ebccebc3885bba06fc69@unixproducts.com>
-In-Reply-To: <1af6a5408ee3ebccebc3885bba06fc69@unixproducts.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201212281604.24351.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is very likely weak signal issue as I said. What kind of antenna you 
-are using?
+On Fri December 28 2012 14:12:56 Kirill Smelkov wrote:
+> On Thu, Dec 27, 2012 at 12:55:11PM +0100, Hans Verkuil wrote:
+> > On Wed December 26 2012 16:29:43 Kirill Smelkov wrote:
+> > > Most of *_ops and other structures in vivi.c were already declared const
+> > > but some have not. Constify and code/data will take less space:
+> > > 
+> > >     $ size drivers/media/platform/vivi.o
+> > >               text    data     bss     dec     hex filename
+> > >     before:  12569     248       8   12825    3219 drivers/media/platform/vivi.o
+> > >     after:   12308      20       8   12336    3030 drivers/media/platform/vivi.o
+> > > 
+> > > i.e. vivi.o is now ~500 bytes less.
+> > > 
+> > > Signed-off-by: Kirill Smelkov <kirr@navytux.spb.ru>
+> > > ---
+> > >  drivers/media/platform/vivi.c | 26 +++++++++++++-------------
+> > >  1 file changed, 13 insertions(+), 13 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+> > > index ec65089..bed04e1 100644
+> > > --- a/drivers/media/platform/vivi.c
+> > > +++ b/drivers/media/platform/vivi.c
+> > > @@ -91,13 +91,13 @@ static const struct v4l2_fract
+> > >     ------------------------------------------------------------------*/
+> > >  
+> > >  struct vivi_fmt {
+> > > -	char  *name;
+> > > +	const char  *name;
+> > 
+> > Just use one space before '*' since it no longer lines up to anything.
+> 
+> [...]
+> > > @@ -191,7 +191,7 @@ struct vivi_buffer {
+> > >  	/* common v4l buffer stuff -- must be first */
+> > >  	struct vb2_buffer	vb;
+> > >  	struct list_head	list;
+> > > -	struct vivi_fmt        *fmt;
+> > > +	struct vivi_fmt const  *fmt;
+> > >  };
+> > >  
+> > >  struct vivi_dmaqueue {
+> > > @@ -250,7 +250,7 @@ struct vivi_dev {
+> > >  	int			   input;
+> > >  
+> > >  	/* video capture */
+> > > -	struct vivi_fmt            *fmt;
+> > > +	struct vivi_fmt const      *fmt;
+> > 
+> > 'const' should be before 'struct' for consistency reasons.
+> 
+> It's just a matter of style, and in this case I though putting const
+> after would not distract from the fact that fmt is `struct vivi_fmt *`
+> and also to align types beginning with non-const ones.
+> 
+> But anyway, style is style and this is not a big deal, so here you are
+> with corrected patch.
 
-Antti
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
+Regards,
 
-On 12/16/2012 10:13 PM, Renato Gallo wrote:
-> i found it is a problem with kaffeine, with other programs i can lock a
-> signal but reception is very very sketchy (like in unviewable).
->
-> GlovX xine-lib # dmesg |grep e4000
-> GlovX xine-lib # dmesg |grep FC0012
-> GlovX xine-lib # dmesg |grep FC0013
-> [   28.281685] fc0013: Fitipower FC0013 successfully attached.
-> GlovX xine-lib # dmesg |grep FC2580
-> GlovX xine-lib # dmesg |grep TUA
-> GlovX xine-lib #
->
->
-> Il 16/12/2012 18:55 Antti Palosaari ha scritto:
->> On 12/16/2012 07:15 PM, Renato Gallo wrote:
->>> now the modules loads and kaffeine recognizes the device but i cannot
->>> find any channels.
->>> can it be a tuner bug ?
->>
->> I think it is bad antenna / weak signal. Try w_scan, scan, tzap.
->>
->> Could you say which RF-tuner it finds from your device? use dmesg to
->> dump output. It could be for example e4000, FC0012, FC0013, FC2580,
->> TUA9001 etc.
->>
->> Antti
->>
->>>
->>>
->>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading section;
->>> type = 0 pid = 0
->>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading section;
->>> type = 2 pid = 17
->>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading section;
->>> type = 4 pid = 16
->>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading section;
->>> type = 0 pid = 0
->>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading section;
->>> type = 2 pid = 17
->>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading section;
->>> type = 4 pid = 16
->>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->>>
->>>
->>> Il 16/12/2012 15:50 Antti Palosaari ha scritto:
->>>> On 12/16/2012 04:23 PM, Renato Gallo wrote:
->>>>> any news on this ?
->>>>>
->>>>>
->>>>>
->>>>>
->>>>>
->>>>> Asus my cinema-u3100miniplusv2
->>>>>
->>>>> Bus 001 Device 015: ID 1b80:d3a8 Afatech
->>>>>
->>>>> [ 6956.333440] usb 1-6.3.6: new high-speed USB device number 16 using
->>>>> ehci_hcd
->>>>> [ 6956.453943] usb 1-6.3.6: New USB device found, idVendor=1b80,
->>>>> idProduct=d3a8
->>>>> [ 6956.453950] usb 1-6.3.6: New USB device strings: Mfr=1, Product=2,
->>>>> SerialNumber=0
->>>>> [ 6956.453955] usb 1-6.3.6: Product: Rtl2832UDVB
->>>>> [ 6956.453959] usb 1-6.3.6: Manufacturer: Realtek
->>>>>
->>>>
->>>> Seems to be Realtek RTL2832U. Add that USB ID to the driver and test.
->>>> It is very high probability it starts working.
->>>>
->>>> Here is the patch:
->>>>
->>>>
->>>> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/rtl28xxu-usb-ids
->>>>
->>>>
->>>>
->>>> Please test and report.
->>>>
->>>> regards
->>>> Antti
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe
->>> linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Hans
 
-
--- 
-http://palosaari.fi/
+> 
+> Thanks,
+> Kirill
+> 
+> ---- 8< ----
+> From: Kirill Smelkov <kirr@navytux.spb.ru>
+> Date: Wed, 26 Dec 2012 19:23:26 +0400
+> Subject: [PATCH,v2] [media] vivi: Constify structures
+> 
+> Most of *_ops and other structures in vivi.c were already declared const
+> but some have not. Constify and code/data will take less space:
+> 
+>     $ size drivers/media/platform/vivi.o
+>               text    data     bss     dec     hex filename
+>     before:  12569     248       8   12825    3219 drivers/media/platform/vivi.o
+>     after:   12308      20       8   12336    3030 drivers/media/platform/vivi.o
+> 
+> i.e. vivi.o is now ~500 bytes less.
+> 
+> Signed-off-by: Kirill Smelkov <kirr@navytux.spb.ru>
+> ---
+>  drivers/media/platform/vivi.c | 26 +++++++++++++-------------
+>  1 file changed, 13 insertions(+), 13 deletions(-)
+> 
+>  v2:
+>     
+>     - put 'const' always before anything, as noted by Hans Verkuil.
+>     - no changes otherwise.
+> 
+> 
+> diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
+> index ec65089..8a33a71 100644
+> --- a/drivers/media/platform/vivi.c
+> +++ b/drivers/media/platform/vivi.c
+> @@ -91,13 +91,13 @@ static const struct v4l2_fract
+>     ------------------------------------------------------------------*/
+>  
+>  struct vivi_fmt {
+> -	char  *name;
+> +	const char *name;
+>  	u32   fourcc;          /* v4l2 format id */
+>  	u8    depth;
+>  	bool  is_yuv;
+>  };
+>  
+> -static struct vivi_fmt formats[] = {
+> +static const struct vivi_fmt formats[] = {
+>  	{
+>  		.name     = "4:2:2, packed, YUYV",
+>  		.fourcc   = V4L2_PIX_FMT_YUYV,
+> @@ -164,9 +164,9 @@ static struct vivi_fmt formats[] = {
+>  	},
+>  };
+>  
+> -static struct vivi_fmt *__get_format(u32 pixelformat)
+> +static const struct vivi_fmt *__get_format(u32 pixelformat)
+>  {
+> -	struct vivi_fmt *fmt;
+> +	const struct vivi_fmt *fmt;
+>  	unsigned int k;
+>  
+>  	for (k = 0; k < ARRAY_SIZE(formats); k++) {
+> @@ -181,7 +181,7 @@ static struct vivi_fmt *__get_format(u32 pixelformat)
+>  	return &formats[k];
+>  }
+>  
+> -static struct vivi_fmt *get_format(struct v4l2_format *f)
+> +static const struct vivi_fmt *get_format(struct v4l2_format *f)
+>  {
+>  	return __get_format(f->fmt.pix.pixelformat);
+>  }
+> @@ -191,7 +191,7 @@ struct vivi_buffer {
+>  	/* common v4l buffer stuff -- must be first */
+>  	struct vb2_buffer	vb;
+>  	struct list_head	list;
+> -	struct vivi_fmt        *fmt;
+> +	const struct vivi_fmt  *fmt;
+>  };
+>  
+>  struct vivi_dmaqueue {
+> @@ -250,7 +250,7 @@ struct vivi_dev {
+>  	int			   input;
+>  
+>  	/* video capture */
+> -	struct vivi_fmt            *fmt;
+> +	const struct vivi_fmt      *fmt;
+>  	struct v4l2_fract          timeperframe;
+>  	unsigned int               width, height;
+>  	struct vb2_queue	   vb_vidq;
+> @@ -297,7 +297,7 @@ struct bar_std {
+>  
+>  /* Maximum number of bars are 10 - otherwise, the input print code
+>     should be modified */
+> -static struct bar_std bars[] = {
+> +static const struct bar_std bars[] = {
+>  	{	/* Standard ITU-R color bar sequence */
+>  		{ COLOR_WHITE, COLOR_AMBER, COLOR_CYAN, COLOR_GREEN,
+>  		  COLOR_MAGENTA, COLOR_RED, COLOR_BLUE, COLOR_BLACK, COLOR_BLACK }
+> @@ -926,7 +926,7 @@ static void vivi_unlock(struct vb2_queue *vq)
+>  }
+>  
+>  
+> -static struct vb2_ops vivi_video_qops = {
+> +static const struct vb2_ops vivi_video_qops = {
+>  	.queue_setup		= queue_setup,
+>  	.buf_prepare		= buffer_prepare,
+>  	.buf_queue		= buffer_queue,
+> @@ -957,7 +957,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+>  static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
+>  					struct v4l2_fmtdesc *f)
+>  {
+> -	struct vivi_fmt *fmt;
+> +	const struct vivi_fmt *fmt;
+>  
+>  	if (f->index >= ARRAY_SIZE(formats))
+>  		return -EINVAL;
+> @@ -993,7 +993,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+>  			struct v4l2_format *f)
+>  {
+>  	struct vivi_dev *dev = video_drvdata(file);
+> -	struct vivi_fmt *fmt;
+> +	const struct vivi_fmt *fmt;
+>  
+>  	fmt = get_format(f);
+>  	if (!fmt) {
+> @@ -1102,7 +1102,7 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
+>  static int vidioc_enum_frameintervals(struct file *file, void *priv,
+>  					     struct v4l2_frmivalenum *fival)
+>  {
+> -	struct vivi_fmt *fmt;
+> +	const struct vivi_fmt *fmt;
+>  
+>  	if (fival->index)
+>  		return -EINVAL;
+> @@ -1330,7 +1330,7 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
+>  	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+>  };
+>  
+> -static struct video_device vivi_template = {
+> +static const struct video_device vivi_template = {
+>  	.name		= "vivi",
+>  	.fops           = &vivi_fops,
+>  	.ioctl_ops 	= &vivi_ioctl_ops,
+> 
