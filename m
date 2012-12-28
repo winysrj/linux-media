@@ -1,50 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:36506 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932414Ab2LFKH1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Dec 2012 05:07:27 -0500
-Received: by mail-wi0-f170.google.com with SMTP id hq7so339752wib.1
-        for <linux-media@vger.kernel.org>; Thu, 06 Dec 2012 02:07:25 -0800 (PST)
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCHv15 2/7] video: add display_timing and videomode
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, David Airlie <airlied@linux.ie>,
-	devicetree-discuss@lists.ozlabs.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	kernel@pengutronix.de,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-In-Reply-To: <20121126153958.GA30791@pengutronix.de>
-References: <1353920848-1705-1-git-send-email-s.trumtrar@pengutronix.de> <1353920848-1705-3-git-send-email-s.trumtrar@pengutronix.de> <50B36286.7010704@ti.com> <20121126153958.GA30791@pengutronix.de>
-Date: Thu, 06 Dec 2012 10:07:18 +0000
-Message-Id: <20121206100718.C5C263E0EA4@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:25636 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753660Ab2L1OWU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Dec 2012 09:22:20 -0500
+Date: Fri, 28 Dec 2012 12:21:11 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Alexey Klimov <klimov.linux@gmail.com>
+Subject: Re: [patch 02/03 v2] usb hid quirks for Masterkit MA901 usb radio
+Message-ID: <20121228122111.7f1590ed@redhat.com>
+In-Reply-To: <alpine.LNX.2.00.1212281427120.12462@pobox.suse.cz>
+References: <20121228102928.4103390e@redhat.com>
+	<alpine.LNX.2.00.1212281427120.12462@pobox.suse.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 26 Nov 2012 16:39:58 +0100, Steffen Trumtrar <s.trumtrar@pengutronix.de> wrote:
-> On Mon, Nov 26, 2012 at 02:37:26PM +0200, Tomi Valkeinen wrote:
-> > On 2012-11-26 11:07, Steffen Trumtrar wrote:
-> > 
-> > > +/*
-> > > + * Subsystem independent description of a videomode.
-> > > + * Can be generated from struct display_timing.
-> > > + */
-> > > +struct videomode {
-> > > +	u32 pixelclock;		/* pixelclock in Hz */
-> > 
-> > I don't know if this is of any importance, but the linux clock framework
-> > manages clock rates with unsigned long. Would it be better to use the
-> > same type here?
-> > 
+Em Fri, 28 Dec 2012 14:27:56 +0100 (CET)
+Jiri Kosina <jkosina@suse.cz> escreveu:
+
+> On Fri, 28 Dec 2012, Mauro Carvalho Chehab wrote:
 > 
-> Hm, I don't know. Anyone? u32 should be large enough for a pixelclock.
+> > Hi Jiri,
+> > 
+> > There's another radio device that it is incorrectly detected as an HID driver.
+> > As I'll be applying the driver's patch via the media tree, do you mind if I also
+> > apply this hid patch there?
+> 
+> Hi Mauro,
+> 
+> please feel free to add
+> 
+> 	Acked-by: Jiri Kosina <jkosina@suse.cz>
+> 
+> and take the patch through your tree.
 
-4GHz is a pretty large pixel clock. I have no idea how conceivable it is
-that hardware will get to that speed. However, if it will ever be
-larger, then you'll need to account for that in the DT binding so that
-the pixel clock can be specified using 2 cells.
+Thank you, Jiri!
 
-g.
+Regards,
+Mauro
