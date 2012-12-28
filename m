@@ -1,102 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from firefly.pyther.net ([50.116.37.168]:57384 "EHLO
-	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932169Ab2LGBkc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Dec 2012 20:40:32 -0500
-Message-ID: <50C1490E.8040203@pyther.net>
-Date: Thu, 06 Dec 2012 20:40:30 -0500
-From: Matthew Gyurgyik <matthew@pyther.net>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-CC: Antti Palosaari <crope@iki.fi>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50B67851.2010808@googlemail.com> <50B69037.3080205@pyther.net> <50B6967C.9070801@iki.fi> <50B6C2DF.4020509@pyther.net> <50B6C530.4010701@iki.fi> <50B7B768.5070008@googlemail.com> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net>
-In-Reply-To: <50C12302.80603@pyther.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mx1.redhat.com ([209.132.183.28]:58979 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754171Ab2L1Xmx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Dec 2012 18:42:53 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id qBSNgr2w004031
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 28 Dec 2012 18:42:53 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [RFC PATCH] [media] dvb: frontend API: Add a flag to indicate that get_frontend() can be called
+Date: Fri, 28 Dec 2012 21:42:26 -0200
+Message-Id: <1356738146-9352-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/06/2012 05:58 PM, Matthew Gyurgyik wrote:
-> On 12/06/2012 04:49 PM, Frank Schäfer wrote:
->>
->>
->> Did you switch back to
->>
->>      .mpeg_mode      = LGDT3305_MPEG_SERIAL,
->>      .tpclk_edge         = LGDT3305_TPCLK_FALLING_EDGE,
->>
->> in struct lgdt3305_config em2874_lgdt3305_dev (em28xx-dvb.c) before
->> testing this ?
->>
->> You could also play with the other gpio settings.
->>
->> And the last idea (at the moment):
->>
->> +    /* 0db0:8810 MSI DIGIVOX ATSC (HU345-Q)
->> +     * Empia EM2874B + TDA18271HDC2 + LGDT3305 */
->> +    [EM2874_BOARD_MSI_DIGIVOX_ATSC] = {
->> +        .name         = "MSI DIGIVOX ATSC",
->> +        .dvb_gpio     = msi_digivox_atsc,
->> +        .has_dvb      = 1,
->> +        .tuner_type   = TUNER_ABSENT,
->> +        .ir_codes     = RC_MAP_MSI_DIGIVOX_III,        /* just a guess
->> from looking at the picture */
->> +        .xclk         = EM28XX_XCLK_FREQUENCY_12MHZ,    /* TODO */
->> +        .i2c_speed    = EM2874_I2C_SECONDARY_BUS_SELECT |
->> +                EM28XX_I2C_CLK_WAIT_ENABLE |
->> +                EM28XX_I2C_FREQ_100_KHZ,
->> +    },
->>
->> => change .xclk to 0x0f.
->> We know that 12MHz is the right xclk setting, which means 0x07. But OTOH
->> the Windows drivers seems to use 0x0f instead and we don't what 0x0f
->> means...
->>
->> Hope this helps,
->> Frank
->>
->
-> I lied, it works! I must have forgotten to do run make modules_install 
-> or something! This patch accurately states my current code changes: 
-> http://pyther.net/a/digivox_atsc/diff-Dec-06-v1.patch
->
-> I will do more testing and try more channels. Playing the stream with 
-> mplayer, the audio is clearly out-of-sync. But if I can the stream to 
-> a file, it doesn't seem out-of-sync but I will do more testing and 
-> report back.
+get_frontend() can't be called too early, as the device may not have it
+yet. Yet, get_frontend() on OFDM standards can happen before FE_HAS_LOCK,
+as the TMCC carriers (ISDB-T) or the TPS carriers (DVB-T) require a very
+low signal to noise relation to be detected. The other carriers use
+different modulations, so they require a higher SNR.
 
-I was able to do a bit of testing tonight and this is what I found.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ Documentation/DocBook/media/dvb/frontend.xml | 13 ++++++++++++-
+ drivers/media/dvb-frontends/mb86a20s.c       | 17 ++++++++++-------
+ include/uapi/linux/dvb/frontend.h            |  4 ++++
+ 3 files changed, 26 insertions(+), 8 deletions(-)
 
-A channel scan was unsuccessful:
-http://pyther.net/a/digivox_atsc/dec06/scan.txt (no errors in dmesg)
+v3: rebase it to apply with current tip and add an implementation example.
 
-Changing channels by pressing "h" in "mplayer dvb://" caused mplayer to 
-crash and this messages to be logged in dmesg
-http://pyther.net/a/digivox_atsc/dec06/dmesg_mplayer_switch_channels.txt
+Obsoletes: http://patchwork.linuxtv.org/patch/13783/
 
-Audio is out-of-sync in mplayer. Using cache helps, but over time the 
-audio still goes out of sync.
-http://pyther.net/a/digivox_atsc/dec06/mplayer_audio_out_of_sync.txt
-
-Using azap to tune and using cat /dev/dvb/adapter0/dvr0 > test.mpg to 
-generate a test.mpg
-
-mplayer plays the file fine without audio-sync issues, but VLC and Xine 
-refuse to play it. (is this normal?)
-> tux:~ $ file test.mpg
-> test.mpg: data
-
-I have upload a ~30 second capture from the card: 
-http://pyther.net/a/digivox_atsc/dec06/test.mpg (not sure if its helpful 
-or not)
-
-I really appreciate the help so far. Things are looking promising.
-
-Thanks,
-Matthew
-
-
+diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
+index 426c252..5feff4e 100644
+--- a/Documentation/DocBook/media/dvb/frontend.xml
++++ b/Documentation/DocBook/media/dvb/frontend.xml
+@@ -216,6 +216,7 @@ typedef enum fe_status {
+ 	FE_HAS_LOCK		= 0x10,
+ 	FE_TIMEDOUT		= 0x20,
+ 	FE_REINIT		= 0x40,
++	FE_HAS_PARAMETERS	= 0x80,
+ } fe_status_t;
+ </programlisting>
+ <para>to indicate the current state and/or state changes of the frontend hardware:
+@@ -244,7 +245,17 @@ typedef enum fe_status {
+ <entry align="char">FE_REINIT</entry>
+ <entry align="char">The frontend was reinitialized, application is
+ recommended to reset DiSEqC, tone and parameters</entry>
+-</row>
++</row><row>
++<entry align="char">FE_HAS_PARAMETERS</entry>
++<entry align="char"><link linkend="FE_GET_SET_PROPERTY">
++<constant>FE_GET_PROPERTY/FE_SET_PROPERTY</constant></link> or
++<link linkend="FE_GET_FRONTEND"><constant>FE_GET_FRONTEND</constant></link> can now be
++called to provide the detected network parameters.
++This should be risen for example when the DVB-T TPS/ISDB-T TMCC is locked.
++This status can be risen before FE_HAS_SYNC, as the SNR required for
++parameters detection is lower than the requirement for the other
++carriers on the OFDM delivery systems.
++</entry></row>
+ </tbody></tgroup></informaltable>
+ 
+ </section>
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index fade566..35153b6 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -333,19 +333,22 @@ static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+ 
+ 	if (val >= 2)
+-		*status |= FE_HAS_SIGNAL;
++		*status |= FE_HAS_SIGNAL;	/* Tuner locked */
+ 
+ 	if (val >= 4)
+-		*status |= FE_HAS_CARRIER;
++		*status |= FE_HAS_CARRIER;	/* Mode reliably detected */
+ 
+-	if (val >= 5)
+-		*status |= FE_HAS_VITERBI;
++	if (val >= 6)
++		*status |= FE_HAS_VITERBI;	/* PLL locked and broadband detected */
+ 
+ 	if (val >= 7)
+-		*status |= FE_HAS_SYNC;
++		*status |= FE_HAS_SYNC;		/* Frame sync */
+ 
+-	if (val >= 8)				/* Maybe 9? */
+-		*status |= FE_HAS_LOCK;
++	if (val >= 8)
++		*status |= FE_HAS_PARAMETERS;	/* TMCC locked */
++
++	if (val >= 9)
++		*status |= FE_HAS_LOCK;		/* TS output started */
+ 
+ 	dprintk("val = %d, status = 0x%02x\n", val, *status);
+ 
+diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+index c12d452..e4daeee 100644
+--- a/include/uapi/linux/dvb/frontend.h
++++ b/include/uapi/linux/dvb/frontend.h
+@@ -132,6 +132,9 @@ typedef enum fe_sec_mini_cmd {
+  * @FE_TIMEDOUT:	no lock within the last ~2 seconds
+  * @FE_REINIT:		frontend was reinitialized, application is recommended
+  *			to reset DiSEqC, tone and parameters
++ * @FE_HAS_PARAMETERS:	get_frontend() can now be called to provide the
++ *			detected network parameters. This should be risen
++ *			for example when the DVB-T TPS/ISDB-T TMCC is locked.
+  */
+ 
+ typedef enum fe_status {
+@@ -142,6 +145,7 @@ typedef enum fe_status {
+ 	FE_HAS_LOCK		= 0x10,
+ 	FE_TIMEDOUT		= 0x20,
+ 	FE_REINIT		= 0x40,
++	FE_HAS_PARAMETERS	= 0x80,
+ } fe_status_t;
+ 
+ typedef enum fe_spectral_inversion {
+-- 
+1.7.11.7
 
