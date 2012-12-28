@@ -1,122 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47449 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752678Ab2LQQII convert rfc822-to-8bit (ORCPT
+Received: from mail-qc0-f171.google.com ([209.85.216.171]:52136 "EHLO
+	mail-qc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754576Ab2L1T7S (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Dec 2012 11:08:08 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: jean-philippe francois <jp.francois@cynove.com>
-Cc: Julien BERAUD <julien.beraud@parrot.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: Lockup on second streamon with omap3-isp
-Date: Mon, 17 Dec 2012 17:09:23 +0100
-Message-ID: <15066502.oJSHXTO5Oy@avalon>
-In-Reply-To: <CAGGh5h1RW9suO7gE-3Xy=5FQoW=_39oeihXuMMKHYJrnAp93cg@mail.gmail.com>
-References: <CAGGh5h0dVOsT-PCoCBtjj=+rLzViwnM2e9hG+sbWQk5iS-ThEQ@mail.gmail.com> <1454034.b7COp5DhyG@avalon> <CAGGh5h1RW9suO7gE-3Xy=5FQoW=_39oeihXuMMKHYJrnAp93cg@mail.gmail.com>
+	Fri, 28 Dec 2012 14:59:18 -0500
+Received: by mail-qc0-f171.google.com with SMTP id d1so5684186qca.30
+        for <linux-media@vger.kernel.org>; Fri, 28 Dec 2012 11:59:17 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Date: Fri, 28 Dec 2012 14:52:24 -0500
+Message-ID: <CAGoCfiwzFFZ+hLOKT-5cHTJOiY8ZsRVXmDx+W7x+7uMXMKWk5g@mail.gmail.com>
+Subject: ABI breakage due to "Unsupported formats in TRY_FMT/S_FMT" recommendation
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Philippe,
+Hi there,
 
-On Monday 17 December 2012 16:41:29 jean-philippe francois wrote:
-> 2012/12/17 Laurent Pinchart:
-> > On Friday 14 December 2012 15:18:29 Julien BERAUD wrote:
-> >> Hi Jean-Philippe,
-> >> 
-> >> I have had exactly the same problem and the following workaround has
-> >> caused no regression on our board yet.
-> >> I can't explain exactly why it works and I think that it is internal to
-> >> the isp.
-> >> 
-> >> In function ccdc_set_stream, don't disable the ccdc_subclk when stopping
-> >> 
-> >> capture:
-> >>                  ret = ccdc_disable(ccdc);
-> >>                  if (ccdc->output & CCDC_OUTPUT_MEMORY)
-> >>                  
-> >>                          omap3isp_sbl_disable(isp,
-> >> 
-> >> OMAP3_ISP_SBL_CCDC_WRITE);
-> >> -               omap3isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_CCDC);
-> >> +               //omap3isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_CCDC);
-> >> 
-> >> I know that it is still a workaround but I hope that maybe it will help
-> >> someone to understand the real cause of this issue.
-> > 
-> > Do you get CCDC stop timeouts ? They are reported in the kernel log as
-> > "CCDC stop timeout!".
+So I noticed that one of the "V4L2 ambiguities" discussed at the Media
+Workshop relates to expected behavior with TRY_FMT/S_FMT.
+Specifically (from
+http://www.linuxtv.org/news.php?entry=2012-12-28.mchehab):
 
-Does Julien's patch fix your issue ?
+===
+1.4. Unsupported formats in TRY_FMT/S_FMT
 
-> >> Le 13/12/2012 15:14, jean-philippe francois a écrit :
-> >> > Hi,
-> >> > 
-> >> > I have news on the "IRQ storm on second streamon" problem.
-> >> > Reminder :
-> >> > Given a perfectly fine HSYNC / VSYNC / PIXELCLOK configuration, the
-> >> > omap3-isp (at least until 3.4) will go into an interrupt storm when
-> >> > streamon is called for the second time, unless you are able to stop
-> >> > the sensor when not streaming. I have reproduced this on three
-> >> > different board, with three different sensor.
-> >> > 
-> >> > On board 1, the problem disappeared by itself (in fact not by itself,
-> >> > see below) and the board is not in my possession anymore.
-> >> > On board 2, I implemented a working s_stream operation in the subdev
-> >> > driver, so the problem was solved because the sensor would effectively
-> >> > stop streaming when told to, keeping the ISP + CCDC happy
-> >> > On board 3, I can't stop the streaming, or I did not figure out how to
-> >> > make it stop  yet.
-> >> > 
-> >> > I tried to disable the HS_VS_IRQ, but it did not help, so I came back
-> >> > looking at the code of board 1, which was running fine with a 3.4
-> >> > kernel. And I discovered the problem doesn't happen if I break the
-> >> > pipeline between two consecutive streamon.
-> >> > 
-> >> > In other word if I do the following :
-> >> > 
-> >> > media-ctl -l '16:0->5:0[1], 5:1->6:0[1]'
-> >> > media-ctl -f '16:0 [SBGGR8 2560x800 (0, 0)/2560x800]'
-> >> > yavta ....
-> >> > yavta ...       <--------- board locks up, soft lockup is fired
-> >> > 
-> >> > But if I do this instead :
-> >> > 
-> >> > media-ctl -l '16:0->5:0[0], 5:1->6:0[0]'
-> >> > media-ctl -l '16:0->5:0[1], 5:1->6:0[1]'
-> >> > media-ctl -f '16:0 [SBGGR8 2560x800 (0, 0)/2560x800]'
-> >> > yavta ....
-> >> > media-ctl -l '16:0->5:0[0], 5:1->6:0[0]'
-> >> > media-ctl -l '16:0->5:0[1], 5:1->6:0[1]'
-> >> > media-ctl -f '16:0 [SBGGR8 2560x800 (0, 0)/2560x800]'
-> >> > yavta ...       <--------- image are acquired, board doesn't lock up
-> >> > anymore
-> > 
-> > Now this really doesn't make much sense to me. Both sequences should
-> > produce the exact same hardware accesses.
-> > 
-> > Could you add a printk in isp_reg_writel
-> > (drivers/media/platform/omap3isp/isp.h) and compare the register writes
-> > for
-> > both sequences ?
-> 
-> And you are right, it was pure coincidence, the issue is still there.
+What should a driver return in TRY_FMT/S_FMT if the requested format
+is not supported (possible behaviors include returning the currently
+selected format or a default format).
+The spec says this: "Drivers should not return an error code unless
+the input is ambiguous", but it does not explain what constitutes an
+ambiguous input. In my opinion TRY/S_FMT should never return an error
+other than EINVAL (if the buffer type is unsupported) or EBUSY (for
+S_FMT if streaming is in progress).
+Should we make a recommendation whether the currently selected format
+or a default format should be returned?
+One proposal is to just return a default format if the requested
+pixelformat is unsupported. Returning the currently selected format
+leads to inconsistent results.
+Results:
+TRY_FMT/S_FMT should never return an error when the requested format
+is not supported. Drivers should always return a valid format,
+preferably a format that is as widely supported by applications as
+possible.
+Both TRY_FMT and S_FMT should have the same behaviour. Drivers should
+not return different formats when getting the same input parameters.
+The format returned should be a driver default format if possible
+(stateless behaviour) but can be stateful if needed.
+The API spec should let clear that format retuns may be different when
+different video inputs (or outputs) are selected.
+===
 
-Thought so :-)
+Note that this will cause ABI breakage with existing applications.  If
+an application expects an error condition to become aware that the
+requested format was not supported, that application will silently
+think the requested format was valid but in fact the driver is
+returning data in some other format.
 
-> Sorry for the inaccurate report.
+Tvtime (one of the more popular apps for watching analog television)
+is one such application that will broken.
 
-No worries.
+http://git.linuxtv.org/tvtime.git/blob/HEAD:/src/videoinput.c#l452
 
-> >> > It would be interesting to go from this workaround to the elimination
-> >> > of the root cause. What can I do / test next to stop this bug from
-> >> > hapenning ?
+If YUVY isn't supported but UYVY is (for example, with the Hauppauge
+HVR-950q), the application will think it's doing YUYV when in fact the
+driver is returning UYVY.
 
--- 
-Regards,
+MythTV is a little better (it does ultimately store the format
+returned by the driver), however even there it depends on an error
+being returned in order to know to do userland format conversion.
 
-Laurent Pinchart
+https://github.com/MythTV/mythtv/blob/master/mythtv/libs/libmythtv/recorders/NuppelVideoRecorder.cpp#L1367
 
+Now it would be quite simple to change tvtime to use the expected
+behavior, but if backward compatibility with the ABI is of paramount
+importance, then we cannot proceed with this change as proposed.
+Don't misunderstand me - if I were inventing the API today then the
+proposed approach is what I would recommend - but since these parts of
+the ABI are something like ten years old, we have to take into account
+legacy applications.
+
+Discussion is welcome.
+
+Devin
+
+--
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
