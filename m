@@ -1,50 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:20791 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752143Ab2LJTq5 (ORCPT
+Received: from mail-ob0-f172.google.com ([209.85.214.172]:59913 "EHLO
+	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753543Ab2L1Nqw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 14:46:57 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
-	rob.herring@calxeda.com, thomas.abraham@linaro.org,
-	t.figa@samsung.com, sw0312.kim@samsung.com,
-	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 09/12] ARM: dts: Add ISP power domain node for Exynos4x12
-Date: Mon, 10 Dec 2012 20:46:03 +0100
-Message-id: <1355168766-6068-10-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
-References: <1355168766-6068-1-git-send-email-s.nawrocki@samsung.com>
+	Fri, 28 Dec 2012 08:46:52 -0500
+Received: by mail-ob0-f172.google.com with SMTP id za17so9739552obc.17
+        for <linux-media@vger.kernel.org>; Fri, 28 Dec 2012 05:46:51 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201212281124.51772.hverkuil@xs4all.nl>
+References: <1352703366.5567.18.camel@linux>
+	<201212281124.51772.hverkuil@xs4all.nl>
+Date: Fri, 28 Dec 2012 16:23:13 +0300
+Message-ID: <CALW4P+KAWBxk658qnMFQCrPYUCD4pHoY4n3sPVDzmNVvwn=JJA@mail.gmail.com>
+Subject: Re: [patch 00/03 v2] driver for Masterkit MA901 usb radio
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, dougsland@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ISP power domain is a common power domain for fimc-lite
-and fimc-is (ISP) devices.
+Hi Hans,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/boot/dts/exynos4x12.dtsi |    5 +++++
- 1 file changed, 5 insertions(+)
+On Fri, Dec 28, 2012 at 2:24 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Mon November 12 2012 07:56:06 Alexey Klimov wrote:
+>> Hi all,
+>>
+>> This is second version of small patch series for ma901 usb radio driver.
+>> Initial letter about this usb radio was sent on October 29 and can be
+>> found here: http://www.spinics.net/lists/linux-media/msg55779.html
+>>
+>> Changes:
+>>         - removed f->type check and set in vidioc_g_frequency()
+>>         - added maintainers entry patch
+>
+> For the whole patch series:
+>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> PS: Sorry for the late reply. The 'Date:' line of these emails was November 12, but
+> they were sent on November 27! So my email client sorted them way down in the list,
+> out of sight. You might want to check the date in the future...
 
-diff --git a/arch/arm/boot/dts/exynos4x12.dtsi b/arch/arm/boot/dts/exynos4x12.dtsi
-index c34810c..3cb4862 100644
---- a/arch/arm/boot/dts/exynos4x12.dtsi
-+++ b/arch/arm/boot/dts/exynos4x12.dtsi
-@@ -28,6 +28,11 @@
- 		pinctrl3 = &pinctrl_3;
- 	};
- 
-+	pd_isp: isp-power-domain@10023CA0 {
-+		compatible = "samsung,exynos4210-pd";
-+		reg = <0x10023CA0 0x20>;
-+	};
-+
- 	combiner:interrupt-controller@10440000 {
- 		interrupts = <0 0 0>, <0 1 0>, <0 2 0>, <0 3 0>,
- 			     <0 4 0>, <0 5 0>, <0 6 0>, <0 7 0>,
+Sorry!..
+It looks like i sent them from odroid-x arm board that i use to play
+with and test usb radio devices that i have.
+This arm board doesn't have battery to save RTC time and gentoo in
+current configuration doesn't use NTP to update time from internet.
+
+BTW, thanks!
+
 -- 
-1.7.9.5
-
+Best regards, Klimov Alexey
