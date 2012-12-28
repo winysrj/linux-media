@@ -1,116 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:58655 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753488Ab2LJP4I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 10:56:08 -0500
-Received: by mail-la0-f46.google.com with SMTP id p5so2040656lag.19
-        for <linux-media@vger.kernel.org>; Mon, 10 Dec 2012 07:56:06 -0800 (PST)
-Message-ID: <50C60620.2010603@googlemail.com>
-Date: Mon, 10 Dec 2012 16:56:16 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: RFC: First draft of guidelines for submitting patches to linux-media
-References: <201212101407.09338.hverkuil@xs4all.nl>
-In-Reply-To: <201212101407.09338.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:57904 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754236Ab2L1X5N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Dec 2012 18:57:13 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id qBSNvCgc022380
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 28 Dec 2012 18:57:13 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFCv3] dvb: Add DVBv5 properties for quality parameters
+Date: Fri, 28 Dec 2012 21:56:46 -0200
+Message-Id: <1356739006-22111-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 10.12.2012 14:07, schrieb Hans Verkuil:
+The DVBv3 quality parameters are limited on several ways:
+	- Doesn't provide any way to indicate the used measure;
+	- Userspace need to guess how to calculate the measure;
+	- Only a limited set of stats are supported;
+	- Doesn't provide QoS measure for the OFDM TPS/TMCC
+	  carriers, used to detect the network parameters for
+	  DVB-T/ISDB-T;
+	- Can't be called in a way to require them to be filled
+	  all at once (atomic reads from the hardware), with may
+	  cause troubles on interpreting them on userspace;
+	- On some OFDM delivery systems, the carriers can be
+	  independently modulated, having different properties.
+	  Currently, there's no way to report per-layer stats;
+This RFC adds the header definitions meant to solve that issues.
+After discussed, I'll write a patch for the DocBook and add support
+for it on some demods. Support for dvbv5-zap and dvbv5-scan tools
+will also have support for those features.
 
-<snip>
-> 3) This document describes the situation we will have when the submaintainers
-> take their place early next year. So please check if I got that part right.
-...
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ include/uapi/linux/dvb/frontend.h | 78 ++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 77 insertions(+), 1 deletion(-)
 
-> Reviewed-by/Acked-by
-> ====================
->
-> Within the media subsystem there are three levels of maintainership: Mauro
-> Carvalho Chehab is the maintainer of the whole subsystem and the
-> DVB/V4L/IR/Media Controller core code in particular, then there are a number of
-> submaintainers for specific areas of the subsystem:
->
-> - Kamil Debski: codec (aka memory-to-memory) drivers
-> - Hans de Goede: non-UVC USB webcam drivers
-> - Mike Krufky: frontends/tuners/demodulators In addition he'll be the reviewer
->   for DVB core patches.
-> - Guennadi Liakhovetski: soc-camera drivers
-> - Laurent Pinchart: sensor subdev drivers.  In addition he'll be the reviewer
->   for Media Controller core patches.
-> - Hans Verkuil: V4L2 drivers and video A/D and D/A subdev drivers (aka video
->   receivers and transmitters). In addition he'll be the reviewer for V4L2 core
->   patches.
->
-> Finally there are maintainers for specific drivers. This is documented in the
-> MAINTAINERS file.
->
-> When modifying existing code you need to get the Reviewed-by/Acked-by of the
-> maintainer of that code. So CC that maintainer when posting patches. If said
-> maintainer is unavailable then the submaintainer or even Mauro can accept it as
-> well, but that should be the exception, not the rule.
->
-> Once patches are accepted they will flow through the git tree of the
-> submaintainer to the git tree of the maintainer (Mauro) who will do a final
-> review.
->
-> There are a few exceptions: code for certain platforms goes through git trees
-> specific to that platform. The submaintainer will still review it and add a
-> acked-by or reviewed-by line, but it will not go through the submaintainer's
-> git tree.
->
-> The platform maintainers are:
->
-> TDB
->
-> In case patches touch on areas that are the responsibility of multiple
-> submaintainers, then they will decide among one another who will merge the
-> patches.
+v3: Just update http://patchwork.linuxtv.org/patch/9578/ to current tip
 
-I've read this "when the submaintainers take their place early next
-year, everything will be fine" several times now.
-But can anyone please explain me what's going to change ?
-AFAICS, the above exactly describes the _current_ situation.
-We already have sub-maintainers, sub-trees etc, right !? And the people
-listed above are already doing the same job at the moment.
-
-Looking at patchwork, it seems we are behind at least 1 complete kernel
-release cycle.
-And the reason seems to be, that (at least some) maintainers don't have
-the resources to review them in time (no reproaches !).
-
-But to me this seems to be no structural problem.
-If a maintainer (permanently) doesn't have the time to review patches,
-he should leave maintainership to someone else.
-
-So the actual problem seems to be, that we don't have enough
-maintainers/reviewers, right ?
-
-
-<snip>
-
-> Patchwork
-> =========
->
-> Patchwork is an automated system that takes care of all posted patches. It can
-> be found here: http://patchwork.linuxtv.org/project/linux-media/list/
->
-> If your patch does not appear in patchwork after [TBD], then check if you used
-> the right patch tags and if your patch is formatted correctly (no HTML, no
-> mangled lines).
->
-> Whenever you patch changes state you'll get an email informing you about that.
-
-What if people send a V2 of a patch (series). Should they mark V1 as
-superseeded themselves ?
-And what about maintainers not using patchwork ? Are they nevertheless
-supposed to take care of the status of their patches ?
-
-Regards,
-Frank
+diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+index c12d452..a998b9a 100644
+--- a/include/uapi/linux/dvb/frontend.h
++++ b/include/uapi/linux/dvb/frontend.h
+@@ -365,7 +365,21 @@ struct dvb_frontend_event {
+ #define DTV_INTERLEAVING			60
+ #define DTV_LNA					61
+ 
+-#define DTV_MAX_COMMAND				DTV_LNA
++/* Quality parameters */
++#define DTV_ENUM_QUALITY	45	/* Enumerates supported QoS parameters */
++#define DTV_QUALITY_SNR		46
++#define DTV_QUALITY_CNR		47
++#define DTV_QUALITY_EsNo	48
++#define DTV_QUALITY_EbNo	49
++#define DTV_QUALITY_RELATIVE	50
++#define DTV_ERROR_BER		51
++#define DTV_ERROR_PER		52
++#define DTV_ERROR_PARAMS	53	/* Error count at TMCC or TPS carrier */
++#define DTV_FE_STRENGTH		54
++#define DTV_FE_SIGNAL		55
++#define DTV_FE_UNC		56
++
++#define DTV_MAX_COMMAND		DTV_FE_UNC
+ 
+ typedef enum fe_pilot {
+ 	PILOT_ON,
+@@ -452,12 +466,74 @@ struct dtv_cmds_h {
+ 	__u32	reserved:30;	/* Align */
+ };
+ 
++/**
++ * Scale types for the quality parameters.
++ * @FE_SCALE_DECIBEL: The scale is measured in dB, typically
++ *		  used on signal measures.
++ * @FE_SCALE_LINEAR: The scale is linear.
++ *		     typically used on error QoS parameters.
++ * @FE_SCALE_RELATIVE: The scale is relative.
++ */
++enum fecap_scale_params {
++	FE_SCALE_DECIBEL,
++	FE_SCALE_LINEAR,
++	FE_SCALE_RELATIVE
++};
++
++/**
++ * struct dtv_status - Used for reading a DTV status property
++ *
++ * @value:	value of the measure. Should range from 0 to 0xffff;
++ * @scale:	Filled with enum fecap_scale_params - the scale
++ *		in usage for that parameter
++ * @min:	minimum value. Not used if the scale is relative.
++ *		For non-relative measures, define the measure
++ *		associated with dtv_status.value == 0.
++ * @max:	maximum value. Not used if the scale is	relative.
++ *		For non-relative measures, define the measure
++ *		associated with dtv_status.value == 0xffff.
++ *
++ * At userspace, min/max values should be used to calculate the
++ * absolute value of that measure, if fecap_scale_params is not
++ * FE_SCALE_RELATIVE, using the following formula:
++ *	 measure = min + (value * (max - min) / 0xffff)
++ *
++ * For error count measures, typically, min = 0, and max = 0xffff,
++ * and the measure represent the number of errors detected.
++ *
++ * Up to 4 status groups can be provided. This is for the
++ * OFDM standards where the carriers can be grouped into
++ * independent layers, each with its own modulation. When
++ * such layers are used (for example, on ISDB-T), the status
++ * should be filled with:
++ *	stat.status[0] = global statistics;
++ *	stat.status[1] = layer A statistics;
++ *	stat.status[2] = layer B statistics;
++ *	stat.status[3] = layer C statistics.
++ * and stat.len should be filled with the latest filled status + 1.
++ * If the frontend doesn't provide a global statistics,
++ * stat.has_global should be 0.
++ * Delivery systems that don't use it, should just set stat.len and
++ * stat.has_global with 1, and fill just stat.status[0].
++ */
++struct dtv_status {
++	__u16 value;
++	__u16 scale;
++	__s16 min;
++	__s16 max;
++} __attribute__ ((packed));
++
+ struct dtv_property {
+ 	__u32 cmd;
+ 	__u32 reserved[3];
+ 	union {
+ 		__u32 data;
+ 		struct {
++			__u8 len;
++			__u8 has_global;
++			struct dtv_status status[4];
++		} stat;
++		struct {
+ 			__u8 data[32];
+ 			__u32 len;
+ 			__u32 reserved1[3];
+-- 
+1.7.11.7
 
