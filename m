@@ -1,47 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:44353 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752631Ab2LQMyR (ORCPT
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:36190 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753969Ab2L1WG3 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Dec 2012 07:54:17 -0500
-Received: by mail-ee0-f46.google.com with SMTP id e53so3199349eek.19
-        for <linux-media@vger.kernel.org>; Mon, 17 Dec 2012 04:54:15 -0800 (PST)
-From: =?UTF-8?q?John=20T=C3=B6rnblom?= <john.tornblom@gmail.com>
-To: linux-media@vger.kernel.org, john.tornblom@gmail.com
-Subject: [PATCH] bttv: avoid flooding the kernel log when i2c debugging is disabled
-Date: Mon, 17 Dec 2012 13:53:54 +0100
-Message-Id: <1355748834-9407-1-git-send-email-john.tornblom@gmail.com>
+	Fri, 28 Dec 2012 17:06:29 -0500
+Received: by mail-ee0-f49.google.com with SMTP id c4so5286176eek.8
+        for <linux-media@vger.kernel.org>; Fri, 28 Dec 2012 14:06:27 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Konstantin Dimitrov <kosio.dimitrov@gmail.com>,
+	Malcolm Priestley <tvboxspy@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: Re: [GIT PULL FOR v3.9] separate Montage ts2020 from ds3000 and rs2000, support for new TeVii cards
+Date: Sat, 29 Dec 2012 01:06:29 +0300
+Message-ID: <13048798.3Y05dB7H81@useri>
+In-Reply-To: <20121227193338.4e14c1d6@infradead.org>
+References: <1541475.yBqmJOQMfq@useri> <20121227193338.4e14c1d6@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When the bttv driver is running without i2c_debug being set, the kernel
-log is being flooded with the string ">". This string is really a part of
-a debug message that is logged using several substrings protected by a
-conditional check.
+On 27 декабря 2012 19:33:38 Mauro Carvalho Chehab wrote:
+> Hi Igor,
+Hi Mauro,
 
-This patch adds the same conditional check to the leaked substring.
+> 
+> Em Mon, 24 Dec 2012 11:23:56 +0300
+> 
+> "Igor M. Liplianin" <liplianin@me.by> escreveu:
+> > The following changes since commit 8b2aea7878f64814544d0527c659011949d52358:
+> >   [media] em28xx: prefer bulk mode on webcams (2012-12-23 17:24:30 -0200)
+> > 
+> > are available in the git repository at:
+> >   git://git.linuxtv.org/liplianin/media_tree.git ts2020_v3.9
+> > 
+> > for you to fetch changes up to 2ff52e6f487c2ee841f3df9709d1b4e4416a1b15:
+> >   ts2020: separate from m88rs2000 (2012-12-24 01:26:12 +0300)
+> > 
+> > ----------------------------------------------------------------
+> > 
+> > Igor M. Liplianin (4):
+> >       Tevii S421 and S632 support
+> >       
+> >       
+> >       m88rs2000: SNR BER implemented
+> >       ds3000: lock led procedure added
+> >       ts2020: separate from m88rs2000
+> 
+> You forgot to add your SOB and patch descriptions on the above
+> patches.
+Actually, I made it two months ago, enough to forget.
+So, I will add SOB, description and resend. 
 
-Signed-off-by: John Törnblom <john.tornblom@gmail.com>
----
- drivers/media/pci/bt8xx/bttv-i2c.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> > Konstantin Dimitrov (3):
+> >       ds3000: remove ts2020 tuner related code
+> >       ts2020: add ts2020 tuner driver
+> >       make the other drivers take use of the new ts2020 driver
+> 
+> Those now looks correct. So, I'm applying them.
+> 
+> Regards,
+> Mauro
 
-diff --git a/drivers/media/pci/bt8xx/bttv-i2c.c b/drivers/media/pci/bt8xx/bttv-i2c.c
-index 580c8e6..da400db 100644
---- a/drivers/media/pci/bt8xx/bttv-i2c.c
-+++ b/drivers/media/pci/bt8xx/bttv-i2c.c
-@@ -173,7 +173,7 @@ bttv_i2c_sendbytes(struct bttv *btv, const struct i2c_msg *msg, int last)
- 		if (i2c_debug)
- 			pr_cont(" %02x", msg->buf[cnt]);
- 	}
--	if (!(xmit & BT878_I2C_NOSTOP))
-+	if (i2c_debug && !(xmit & BT878_I2C_NOSTOP))
- 		pr_cont(">\n");
- 	return msg->len;
- 
+Regards,
+Igor
 -- 
-1.7.8.6
-
+Igor M. Liplianin
+ Microsoft Windows Free Zone - Linux used for all Computing Tasks
