@@ -1,57 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49403 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751958Ab2LQLev (ORCPT
+Received: from mail-ia0-f173.google.com ([209.85.210.173]:39157 "EHLO
+	mail-ia0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752194Ab2L1UEe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Dec 2012 06:34:51 -0500
-Date: Mon, 17 Dec 2012 13:34:47 +0200
-From: 'Sakari Ailus' <sakari.ailus@iki.fi>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: 'Hans Verkuil' <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH 4/4] v4l: Tell user space we're using monotonic
- timestamps
-Message-ID: <20121217113447.GE4738@valkosipuli.retiisi.org.uk>
-References: <20121115220627.GB29863@valkosipuli.retiisi.org.uk>
- <1353017207-370-4-git-send-email-sakari.ailus@iki.fi>
- <201211161455.20781.hverkuil@xs4all.nl>
- <000101cddc48$6fe977e0$4fbc67a0$%debski@samsung.com>
+	Fri, 28 Dec 2012 15:04:34 -0500
+Received: by mail-ia0-f173.google.com with SMTP id w21so9025000iac.4
+        for <linux-media@vger.kernel.org>; Fri, 28 Dec 2012 12:04:33 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <000101cddc48$6fe977e0$4fbc67a0$%debski@samsung.com>
+In-Reply-To: <20121228165718.6a71f62d@redhat.com>
+References: <20121228165718.6a71f62d@redhat.com>
+Date: Fri, 28 Dec 2012 12:04:33 -0800
+Message-ID: <CAA7C2qjXmEPxogDHpG2BwQFvKTfGOWP9azZ+Qinsw_S78PO4Vg@mail.gmail.com>
+Subject: Re: [ANNOUNCE] complete notes of the San Diego's workshop
+From: VDR User <user.vdr@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+On Fri, Dec 28, 2012 at 10:57 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> This year was crazy... too much stuff on the 4Q. Only today I found some
+> time to merge all notes we took from the San Diego's summit, convert them
+> into html and publish.
+>
+> They're all available at:
+>         http://www.linuxtv.org/news.php?entry=2012-12-28.mchehab
+>
+> If you find anything wrong there, please ping me.
 
-On Mon, Dec 17, 2012 at 12:19:51PM +0100, Kamil Debski wrote:
-...
-> > > @@ -367,7 +368,8 @@ static void __fill_v4l2_buffer(struct vb2_buffer
-> > *vb, struct v4l2_buffer *b)
-> > >  	/*
-> > >  	 * Clear any buffer state related flags.
-> > >  	 */
-> > > -	b->flags &= ~V4L2_BUFFER_STATE_FLAGS;
-> > > +	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
-> > > +	b->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> 
-> As far as I know, after __fill_v4l2_buffer is run driver has no means
-> to change flags. Right?
-
-Correct. Querybuf, for example, is implemented in vb2 and no driver
-involvement is required. And we sure don't want to add it. ;)
-
-> So how should a driver, which is not using the MONOTONIC timestamps inform
-> the user space about it?
-
-We currently support only monotonic timestamps. Support for different kind
-of timestamps should be added to videobuf2 when they are needed. The drivers
-would then be using a videobuf2 equivalent of v4l2_get_timestamp().
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+It's missing the long-awaited standardized signal infos. ;)
