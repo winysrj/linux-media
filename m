@@ -1,95 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ia0-f171.google.com ([209.85.210.171]:40769 "EHLO
-	mail-ia0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752108Ab2L2Prq (ORCPT
+Received: from juliette.telenet-ops.be ([195.130.137.74]:38042 "EHLO
+	juliette.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754812Ab2L1TXm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Dec 2012 10:47:46 -0500
-Received: by mail-ia0-f171.google.com with SMTP id k27so9547708iad.16
-        for <linux-media@vger.kernel.org>; Sat, 29 Dec 2012 07:47:46 -0800 (PST)
+	Fri, 28 Dec 2012 14:23:42 -0500
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: linux-arch@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Cc: linux-m68k@vger.kernel.org
+Subject: [PATCH/RFC 0/4] Re: dma_mmap_coherent / ARCH_HAS_DMA_MMAP_COHERENT
+Date: Fri, 28 Dec 2012 20:23:30 +0100
+Message-Id: <1356722614-18224-1-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <CAMuHMdVPBUzN8fsNHFzrEqev9BsvVCVR2fWySCOecjVA-J1qjg@mail.gmail.com>
+References: <CAMuHMdVPBUzN8fsNHFzrEqev9BsvVCVR2fWySCOecjVA-J1qjg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <201212291610.59679.hverkuil@xs4all.nl>
-References: <CALF0-+U_am2qBv=ifRgeocP_OehyRZCUpdfd+y1Uqnf7B7cKJQ@mail.gmail.com>
-	<CALF0-+W4azszmaMs9QVGt9GLcFq1=Nd_ZDcqi_OShXfRfo1f4Q@mail.gmail.com>
-	<201212291610.59679.hverkuil@xs4all.nl>
-Date: Sat, 29 Dec 2012 12:39:54 -0300
-Message-ID: <CALF0-+VtTan4tqoO9TNTvn6YWSuN5FLgcsbU6259snpDsRUgoQ@mail.gmail.com>
-Subject: Re: saa711x doesn't match in easycap devices (stk1160 bridged)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Sat, Dec 29, 2012 at 12:10 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Sat December 29 2012 15:25:08 Ezequiel Garcia wrote:
->> Ccing a few more people to get some feedback.
->>
->> Toughts anyone? Have you ever seen this before?
->>
->> On Fri, Dec 28, 2012 at 11:13 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
->> > Hi everyone,
->> >
->> > Some stk1160 users (a lot acually) are reporting that stk1160 is broken.
->> > The reports come in the out of tree driver [1], but probably the issue
->> > is in mainline too.
->> >
->> > Now, it seems to me the problem is the saa711x decoder can't get matched,
->> > see a portion of dmesg.
->> >
->> > [89947.448813] usb 1-2.4: New device Syntek Semiconductor USB 2.0
->> > Video Capture Controller @ 480 Mbps (05e1:0408, interface 0, class 0)
->> > [89947.448827] usb 1-2.4: video interface 0 found
->> > [89948.200366] saa7115 21-0025: chip found @ 0x4a (ID 000000000000000)
->> > does not match a known saa711x chip.
->> > [89948.200555] stk1160: driver ver 0.9.3 successfully loaded
->> > [...]
->> >
->> > I'm working on this right now, but would like to know, given the ID
->> > seems to be NULL,
->> > what would be the right thing to do here.
->> > Perhaps, replacing the -ENODEV error by a just warning and keep going?
->> >
->> > Further debugging [2] shows the chip doesn't seem to have a proper
->> > chipid (as expected):
+On Sun, Dec 16, 2012 at 5:03 PM, Geert Uytterhoeven <geert@linux-m68k.org>
+wrote:
+> drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_mmap’:
+> drivers/media/v4l2-core/videobuf2-dma-contig.c:204: error: implicit declaration of function ‘dma_mmap_coherent’
+> drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_get_base_sgt’:
+> drivers/media/v4l2-core/videobuf2-dma-contig.c:387: error: implicit declaration of function ‘dma_get_sgtable’
+> make[6]: *** [drivers/media/v4l2-core/videobuf2-dma-contig.o] Error 1
+> make[6]: Target `__build' not remade because of errors.
+> make[5]: *** [drivers/media/v4l2-core] Error 2
 >
-> From what I understand these devices use a GM7113C device, not a SAA7113.
-> It sounds like a chinese clone of the SAA7113 to me that works *almost* the
-> same, but not quite.
+> Both dma_mmap_coherent() and dma_get_sgtable() are defined in
+> include/asm-generic/dma-mapping-common.h only, which is included by
+> <asm/dma-mapping.h> on alpha, arm, arm64, hexagon, ia64, microblaze, mips,
+> openrisc, powerpc, s390, sh, sparc, tile, unicore32, x86.
+> Should the remaining architectures include this, too?
+> Should it be moved to <linux/dma-mapping.h>?
+
+I came up with an RFC-solution for this in [PATCH/RFC 3/4]
+("avr32/bfin/c6x/cris/frv/m68k/mn10300/parisc/xtensa: Add dummy get_dma_ops()")
+and [PATCH/RFC 4/4] ("common: dma-mapping: Move dma_common_*() to
+<linux/dma-mapping.h>") of this series.
+
+> Furthermore, there's ARCH_HAS_DMA_MMAP_COHERENT, which is defined
+> by powerpc only:
+> arch/powerpc/include/asm/dma-mapping.h:#define ARCH_HAS_DMA_MMAP_COHERENT
 >
-
-Yes, that seems to be the case.
-
-> In that case the saa711x_id table should be extended with a gm7113c entry
-> and, if chosen, the chip ID check should be skipped.
+> and handled in some fishy way in sound/core/pcm_native.c:
 >
-> This means that the stk1160 driver can try probing for saa7115_auto, and if
-> that fails it should try probing for gm7113c explicitly.
+> #ifndef ARCH_HAS_DMA_MMAP_COHERENT
+> /* This should be defined / handled globally! */
+> #ifdef CONFIG_ARM
+> #define ARCH_HAS_DMA_MMAP_COHERENT
+> #endif
+> #endif
 >
-> Note that this probing technique works for all saa711x devices from saa7111
-> onwards, but it is only described explicitly in the datasheet for the saa7115.
-> So if they cloned the saa7113 based on the saa7113 datasheet, then this useful
-> but undocumented feature would not be included in their clone.
+> /*
+>  * mmap the DMA buffer on RAM
+>  */
+> int snd_pcm_lib_default_mmap(struct snd_pcm_substream *substream,
+>                              struct vm_area_struct *area)
+> {
+>         area->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
+> #ifdef ARCH_HAS_DMA_MMAP_COHERENT
+>         if (!substream->ops->page &&
+>             substream->dma_buffer.dev.type == SNDRV_DMA_TYPE_DEV)
+>                 return dma_mmap_coherent(substream->dma_buffer.dev.dev,
+>                                          area,
+>                                          substream->runtime->dma_area,
+>                                          substream->runtime->dma_addr,
+>                                          area->vm_end - area->vm_start);
+> #elif defined(CONFIG_MIPS) && defined(CONFIG_DMA_NONCOHERENT)
+>         if (substream->dma_buffer.dev.type == SNDRV_DMA_TYPE_DEV &&
+>             !plat_device_is_coherent(substream->dma_buffer.dev.dev))
+>                 area->vm_page_prot = pgprot_noncached(area->vm_page_prot);
+> #endif /* ARCH_HAS_DMA_MMAP_COHERENT */
+>         /* mmap with fault handler */
+>         area->vm_ops = &snd_pcm_vm_ops_data_fault;
+>         return 0;
+> }
+> EXPORT_SYMBOL_GPL(snd_pcm_lib_default_mmap);
 >
+> What's up here?
 
-I understand. I'll work with the users that are reporting this
-to get the best way to "probe" for this crappy chip.
+Probably an easy solution here is to kill ARCH_HAS_DMA_MMAP_COHERENT and
+change the code to
 
-Strangely, according to translated chinese GM7113c datasheet, the chip
-should return ID just as saa7113 does.
+    #if defined(CONFIG_MIPS) && defined(CONFIG_DMA_NONCOHERENT)
+	    if (substream->dma_buffer.dev.type == SNDRV_DMA_TYPE_DEV &&
+		!plat_device_is_coherent(substream->dma_buffer.dev.dev))
+		    area->vm_page_prot = pgprot_noncached(area->vm_page_prot);
+    #else
+	    if (!substream->ops->page &&
+		substream->dma_buffer.dev.type == SNDRV_DMA_TYPE_DEV)
+		    return dma_mmap_coherent(substream->dma_buffer.dev.dev,
+					     area,
+					     substream->runtime->dma_area,
+					     substream->runtime->dma_addr,
+					     area->vm_end - area->vm_start);
+    #endif
 
-It can't be **that** different, since legacy easycap driver has
-been reported to work fine (which is understandable since
-easycap driver does it's own saa7113 handling).
+but obviously I don't like the test for CONFIG_MIPS in generic code...
 
-This represents a regression for many users,
-thus my desire to obtain a fix soon.
+Gr{oetje,eeting}s,
 
-Thanks,
+						Geert
 
--- 
-    Ezequiel
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+							    -- Linus Torvalds
+
