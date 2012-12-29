@@ -1,50 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:30476 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751963Ab2L0ShZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Dec 2012 13:37:25 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id qBRIbPHB010487
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 27 Dec 2012 13:37:25 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+Received: from mail-qc0-f177.google.com ([209.85.216.177]:45854 "EHLO
+	mail-qc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752472Ab2L2TwP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Dec 2012 14:52:15 -0500
+Received: by mail-qc0-f177.google.com with SMTP id u28so5939680qcs.36
+        for <linux-media@vger.kernel.org>; Sat, 29 Dec 2012 11:52:14 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20121229122334.00ea0b8a@redhat.com>
+References: <CAGoCfiwzFFZ+hLOKT-5cHTJOiY8ZsRVXmDx+W7x+7uMXMKWk5g@mail.gmail.com>
+	<20121228222744.6b567a9b@redhat.com>
+	<201212291253.45189.hverkuil@xs4all.nl>
+	<20121229122334.00ea0b8a@redhat.com>
+Date: Sat, 29 Dec 2012 14:52:14 -0500
+Message-ID: <CAGoCfizjL=CozEwxPhvbHwBCHjYGS8VzNx1ewNHh2ebVzhVSVg@mail.gmail.com>
+Subject: Re: ABI breakage due to "Unsupported formats in TRY_FMT/S_FMT" recommendation
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] m920x: Fix CodingStyle issues
-Date: Thu, 27 Dec 2012 16:36:57 -0200
-Message-Id: <1356633417-5701-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix CodingStyle issues introduced by the last patch
+On Sat, Dec 29, 2012 at 9:23 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> On a tvtime compiled without libv4l, the cx18 driver will fail with the
+> current logic, as it doesn't return an error when format doesn't
+> match. So, tvtime will fail anyway with 50% of the TV drivers that don't
+> support YUYV directly. It will also fail with most cameras, as they're
+> generally based on proprietary/bayer formats and/or may not have the
+> resolutions that tvtime requires.
+>
+> That's said, libv4l does format conversion. So, if the logic on libv4l
+> is working properly, and as tvtime does upport libv4l upstream,
+> no real bug should be seen with tvtime, even if the device doesn't
+> support neither UYVY or YUYV.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/usb/dvb-usb/m920x.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+Tvtime doesn't use libv4l (and never has), unless you added support
+very recently and it's not in the linuxtv.org tree.  I started to look
+into making it use libv4l some months back, but libv4l only supports
+providing the video to the app in a few select formats (e.g. RGB
+formats and YUV 4:2:0).  Tvtime specifically needs the video in YUYV
+or UYVY because it does all its overlays directly onto the video
+buffer, the deinterlacers expect YUYV, and the XVideo support in the
+app currently only does YUYV.
 
-diff --git a/drivers/media/usb/dvb-usb/m920x.c b/drivers/media/usb/dvb-usb/m920x.c
-index bddd763..a70c5ea 100644
---- a/drivers/media/usb/dvb-usb/m920x.c
-+++ b/drivers/media/usb/dvb-usb/m920x.c
-@@ -191,10 +191,14 @@ static int m920x_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
- 	if (!rc_state)
- 		return -ENOMEM;
- 
--	if ((ret = m920x_read(d->udev, M9206_CORE, 0x0, M9206_RC_STATE, rc_state, 1)) != 0)
-+	ret = m920x_read(d->udev, M9206_CORE, 0x0, M9206_RC_STATE,
-+			 rc_state, 1);
-+	if (ret != 0)
- 		goto out;
- 
--	if ((ret = m920x_read(d->udev, M9206_CORE, 0x0, M9206_RC_KEY, rc_state + 1, 1)) != 0)
-+	ret = m920x_read(d->udev, M9206_CORE, 0x0, M9206_RC_KEY,
-+			 rc_state + 1, 1);
-+	if (ret != 0)
- 		goto out;
- 
- 	m920x_parse_rc_state(d, rc_state[0], state);
+Changing the app to work with 4:2:0 would mean cleaning up the rats
+nest that does all of the above functions - certainly not impossible,
+but not trivial either.  In fact, it would probably be better to add
+the colorspace conversion code to libv4l to support providing YUYV to
+the app when it asks for it.
+
+> The above also applies to MythTV, except that I'm not sure if MythTV uses
+> libv4l.
+
+It does not.
+
+There's no doubt that both MythTV and Tvtime could use an overhaul of
+their V4L2 code (which became as nasty as it is primarily due to all
+the years of the kernel's lack of specified behavior and failure to
+enforce consistency across boards).  That's not really relevant to the
+discussion at hand though, which is about breaking existing
+applications (and possibly all the apps other than the two or three
+common open source apps I raised as examples).
+
+I would love to take a half dozen tuner boards of various types and
+spend a week cleaning up Myth's code, but frankly I just don't have
+the time/energy to take on such a task.
+
+Devin
+
 -- 
-1.7.11.7
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
