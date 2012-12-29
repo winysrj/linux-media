@@ -1,55 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55333 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422686Ab2LFKMA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Dec 2012 05:12:00 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: Re: [PATCH v3] media: V4L2: add temporary clock helpers
-Date: Thu, 06 Dec 2012 11:13:07 +0100
-Message-ID: <1924195.0epdSmquU0@avalon>
-In-Reply-To: <Pine.LNX.4.64.1212060839540.15211@axis700.grange>
-References: <Pine.LNX.4.64.1212041136250.26918@axis700.grange> <1885008.m7crYYR2Uy@avalon> <Pine.LNX.4.64.1212060839540.15211@axis700.grange>
+Received: from hermes.univ-tours.fr ([193.52.209.50]:29599 "EHLO
+	hermes.univ-tours.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752290Ab2L2NLh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Dec 2012 08:11:37 -0500
+Message-ID: <50DEE9C5.7020407@lissyx.dyndns.org>
+Date: Sat, 29 Dec 2012 14:01:57 +0100
+From: Alexandre Lissy <lissyx+mozfr@lissyx.dyndns.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Alexey Klimov <klimov.linux@gmail.com>,
+	Alexandre LISSY <alexandrelissy@free.fr>
+CC: linux-media@vger.kernel.org
+Subject: Re: iMon Knob driver issue
+References: <5081109E.7060809@free.fr> <50DEDD43.3080300@free.fr> <CALW4P+++ZZXAGkn+jRVi2D4iz_UpUVUQLFDoQGGfAUMmgUhntg@mail.gmail.com>
+In-Reply-To: <CALW4P+++ZZXAGkn+jRVi2D4iz_UpUVUQLFDoQGGfAUMmgUhntg@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------040504060504020709040501"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+This is a multi-part message in MIME format.
+--------------040504060504020709040501
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 
-On Thursday 06 December 2012 08:41:41 Guennadi Liakhovetski wrote:
-> On Thu, 6 Dec 2012, Laurent Pinchart wrote:
-> > On Tuesday 04 December 2012 11:42:15 Guennadi Liakhovetski wrote:
-> > > Typical video devices like camera sensors require an external clock
-> > > source. Many such devices cannot even access their hardware registers
-> > > without a running clock. These clock sources should be controlled by
-> > > their consumers. This should be performed, using the generic clock
-> > > framework. Unfortunately so far only very few systems have been ported
-> > > to that framework. This patch adds a set of temporary helpers, mimicking
-> > > the generic clock API, to V4L2. Platforms, adopting the clock API,
-> > > should switch to using it. Eventually this temporary API should be
-> > > removed.
-> > 
-> > As discussed on Jabber, I think we should make the clock helpers use the
-> > common clock framework when available, to avoid pushing support for the
-> > two APIs to all sensor drivers. Do you plan to include that in v4 ? :-)
+Le 29/12/2012 13:31, Alexey Klimov a écrit :
+> Hello Alexandre,
 > 
-> AAMOF, no, I don't. Originally I planned to add this only when the first
-> user appears. We can also add it earlier - a test case could be hacked up
-> pretty quickly. But in either case I'd prefer to have it as a separate
-> patch.
+> On Sat, Dec 29, 2012 at 4:08 PM, Alexandre LISSY <alexandrelissy@free.fr> wrote:
+>> Hello,
+>>
+>> Please find attached a small patch for the iMon Knob driver. I've been
+> 
+> Could you please also add your Signed-off-by to the patch? It looks
+> like it's missed.
+> 
 
-OK, I'm fine with that.
+Sure, sorry for forgetting this, here it is !
 
+--------------040504060504020709040501
+Content-Type: text/x-diff;
+ name="0001-fix-iMon-Knob-event-interpretation-issues.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0001-fix-iMon-Knob-event-interpretation-issues.patch"
+
+>From cca7718a9902a4d5cffbf158b5853980a08ef930 Mon Sep 17 00:00:00 2001
+From: Alexandre Lissy <alexandrelissy@free.fr>
+Date: Sun, 2 Sep 2012 20:35:20 +0200
+Subject: [PATCH] fix: iMon Knob event interpretation issues
+
+Events for the iMon Knob pad where not correctly interpreted, resulting
+in buggy mouse movements (cursor going straight out of the screen), key
+pad only generating KEY_RIGHT and KEY_DOWN events. A reproducer is:
+
+int main(int argc, char ** argv)
+{
+        char rel_x = 0x00; printf("rel_x:%d @%s:%d\n", rel_x, __FILE__, __LINE__);
+        rel_x = 0x0f; printf("rel_x:%d @%s:%d\n", rel_x, __FILE__, __LINE__);
+        rel_x |= ~0x0f; printf("rel_x:%d @%s:%d\n", rel_x, __FILE__, __LINE__);
+
+        return 0;
+}
+
+(running on x86 or amd64)
+$ ./test
+rel_x:0 @test.c:6
+rel_x:15 @test.c:7
+rel_x:-1 @test.c:8
+
+(running on armv6)
+rel_x:0 @test.c:6
+rel_x:15 @test.c:7
+rel_x:255 @test.c:8
+
+Forcing the rel_x and rel_y variables as signed char fixes the issue.
+
+Signed-off-by: Alexandre Lissy <alexandrelissy@free.fr>
+---
+ drivers/media/rc/imon.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 5dd0386..9d30ca9 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -1225,7 +1225,7 @@ static u32 imon_panel_key_lookup(u64 code)
+ static bool imon_mouse_event(struct imon_context *ictx,
+ 			     unsigned char *buf, int len)
+ {
+-	char rel_x = 0x00, rel_y = 0x00;
++	signed char rel_x = 0x00, rel_y = 0x00;
+ 	u8 right_shift = 1;
+ 	bool mouse_input = true;
+ 	int dir = 0;
+@@ -1301,7 +1301,7 @@ static void imon_touch_event(struct imon_context *ictx, unsigned char *buf)
+ static void imon_pad_to_keys(struct imon_context *ictx, unsigned char *buf)
+ {
+ 	int dir = 0;
+-	char rel_x = 0x00, rel_y = 0x00;
++	signed char rel_x = 0x00, rel_y = 0x00;
+ 	u16 timeout, threshold;
+ 	u32 scancode = KEY_RESERVED;
+ 	unsigned long flags;
 -- 
-Regards,
+1.7.10.4
 
-Laurent Pinchart
 
+--------------040504060504020709040501--
