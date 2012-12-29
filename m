@@ -1,108 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog130.obsmtp.com ([74.125.149.143]:58043 "EHLO
-	na3sys009aog130.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750981Ab2LPWed convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 17:34:33 -0500
-From: Albert Wang <twang13@marvell.com>
-To: Jonathan Corbet <corbet@lwn.net>
-CC: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Libin Yang <lbyang@marvell.com>
-Date: Sun, 16 Dec 2012 14:34:31 -0800
-Subject: RE: [PATCH V3 15/15] [media] marvell-ccic: add 3 frame buffers
- support in DMA_CONTIG mode
-Message-ID: <477F20668A386D41ADCC57781B1F70430D13C8CCE7@SC-VEXCH1.marvell.com>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
-	<1355565484-15791-16-git-send-email-twang13@marvell.com>
- <20121216095601.4a086356@hpe.lwn.net>
-In-Reply-To: <20121216095601.4a086356@hpe.lwn.net>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ia0-f171.google.com ([209.85.210.171]:40769 "EHLO
+	mail-ia0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752108Ab2L2Prq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Dec 2012 10:47:46 -0500
+Received: by mail-ia0-f171.google.com with SMTP id k27so9547708iad.16
+        for <linux-media@vger.kernel.org>; Sat, 29 Dec 2012 07:47:46 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <201212291610.59679.hverkuil@xs4all.nl>
+References: <CALF0-+U_am2qBv=ifRgeocP_OehyRZCUpdfd+y1Uqnf7B7cKJQ@mail.gmail.com>
+	<CALF0-+W4azszmaMs9QVGt9GLcFq1=Nd_ZDcqi_OShXfRfo1f4Q@mail.gmail.com>
+	<201212291610.59679.hverkuil@xs4all.nl>
+Date: Sat, 29 Dec 2012 12:39:54 -0300
+Message-ID: <CALF0-+VtTan4tqoO9TNTvn6YWSuN5FLgcsbU6259snpDsRUgoQ@mail.gmail.com>
+Subject: Re: saa711x doesn't match in easycap devices (stk1160 bridged)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Jonathan
+Hi Hans,
 
-
->-----Original Message-----
->From: Jonathan Corbet [mailto:corbet@lwn.net]
->Sent: Monday, 17 December, 2012 00:56
->To: Albert Wang
->Cc: g.liakhovetski@gmx.de; linux-media@vger.kernel.org; Libin Yang
->Subject: Re: [PATCH V3 15/15] [media] marvell-ccic: add 3 frame buffers support in
->DMA_CONTIG mode
->
->On Sat, 15 Dec 2012 17:58:04 +0800
->Albert Wang <twang13@marvell.com> wrote:
->
->> This patch adds support of 3 frame buffers in DMA-contiguous mode.
+On Sat, Dec 29, 2012 at 12:10 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Sat December 29 2012 15:25:08 Ezequiel Garcia wrote:
+>> Ccing a few more people to get some feedback.
 >>
->> In current DMA_CONTIG mode, only 2 frame buffers can be supported.
->> Actually, Marvell CCIC can support at most 3 frame buffers.
+>> Toughts anyone? Have you ever seen this before?
 >>
->> Currently 2 frame buffers mode will be used by default.
->> To use 3 frame buffers mode, can do:
->>   define MAX_FRAME_BUFS 3
->> in mcam-core.h
+>> On Fri, Dec 28, 2012 at 11:13 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+>> > Hi everyone,
+>> >
+>> > Some stk1160 users (a lot acually) are reporting that stk1160 is broken.
+>> > The reports come in the out of tree driver [1], but probably the issue
+>> > is in mainline too.
+>> >
+>> > Now, it seems to me the problem is the saa711x decoder can't get matched,
+>> > see a portion of dmesg.
+>> >
+>> > [89947.448813] usb 1-2.4: New device Syntek Semiconductor USB 2.0
+>> > Video Capture Controller @ 480 Mbps (05e1:0408, interface 0, class 0)
+>> > [89947.448827] usb 1-2.4: video interface 0 found
+>> > [89948.200366] saa7115 21-0025: chip found @ 0x4a (ID 000000000000000)
+>> > does not match a known saa711x chip.
+>> > [89948.200555] stk1160: driver ver 0.9.3 successfully loaded
+>> > [...]
+>> >
+>> > I'm working on this right now, but would like to know, given the ID
+>> > seems to be NULL,
+>> > what would be the right thing to do here.
+>> > Perhaps, replacing the -ENODEV error by a just warning and keep going?
+>> >
+>> > Further debugging [2] shows the chip doesn't seem to have a proper
+>> > chipid (as expected):
 >
->Now that the code supports three buffers properly, is there any reason not
->to use that mode by default?
+> From what I understand these devices use a GM7113C device, not a SAA7113.
+> It sounds like a chinese clone of the SAA7113 to me that works *almost* the
+> same, but not quite.
 >
-[Albert Wang] Because the original code use the two buffers mode, so we keep it. :)
 
->Did you test that it works properly if allocation of the third buffer fails?
->
-[Albert Wang] Yes, we test it in our Marvell platforms.
+Yes, that seems to be the case.
 
->Otherwise looks OK except for one thing:
+> In that case the saa711x_id table should be extended with a gm7113c entry
+> and, if chosen, the chip ID check should be skipped.
 >
->> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h
->b/drivers/media/platform/marvell-ccic/mcam-core.h
->> index 765d47c..9bf31c8 100755
->> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
->> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
->> @@ -62,6 +62,13 @@ enum mcam_state {
->>  #define MAX_DMA_BUFS 3
->>
->>  /*
->> + * CCIC can support at most 3 frame buffers in DMA_CONTIG buffer mode
->> + * 2 - Use Two Buffers mode
->> + * 3 - Use Three Buffers mode
->> + */
->> +#define MAX_FRAME_BUFS 2 /* Current marvell-ccic used Two Buffers mode */
->> +
->> +/*
->>   * Different platforms work best with different buffer modes, so we
->>   * let the platform pick.
->>   */
->> @@ -99,6 +106,10 @@ struct mcam_frame_state {
->>  	unsigned int frames;
->>  	unsigned int singles;
->>  	unsigned int delivered;
->> +	/*
->> +	 * Only usebufs == 2 can enter single buffer mode
->> +	 */
->> +	unsigned int usebufs;
->>  };
+> This means that the stk1160 driver can try probing for saa7115_auto, and if
+> that fails it should try probing for gm7113c explicitly.
 >
->What is the purpose of the "usebufs" field?  The code maintains it in
->various places, but I don't see anywhere that actually uses that value for
->anything.
+> Note that this probing technique works for all saa711x devices from saa7111
+> onwards, but it is only described explicitly in the datasheet for the saa7115.
+> So if they cloned the saa7113 based on the saa7113 datasheet, then this useful
+> but undocumented feature would not be included in their clone.
 >
-[Albert Wang] Two buffers mode doesn't need it.
-But Three buffers mode need it indicates which conditions we need set the single buffer flag.
-I used "tribufs" as the name in the previous version, but it looks it's a confused name when we merged
-Two buffers mode and Three buffers mode with same code by removing #ifdef based on your comments months ago. :)
-So we just changed the name with "usebufs".
 
->Thanks,
->
->jon
+I understand. I'll work with the users that are reporting this
+to get the best way to "probe" for this crappy chip.
 
+Strangely, according to translated chinese GM7113c datasheet, the chip
+should return ID just as saa7113 does.
 
-Thanks
-Albert Wang
-86-21-61092656
+It can't be **that** different, since legacy easycap driver has
+been reported to work fine (which is understandable since
+easycap driver does it's own saa7113 handling).
+
+This represents a regression for many users,
+thus my desire to obtain a fix soon.
+
+Thanks,
+
+-- 
+    Ezequiel
