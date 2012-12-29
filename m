@@ -1,143 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 88-149-150-131.v4.ngi.it ([88.149.150.131]:39439 "EHLO
-	vajra.unixproducts.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752102Ab2LPVQg (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3734 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752916Ab2L2PLl convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 16:16:36 -0500
-To: <linux-media@vger.kernel.org>
-Subject: Re: cannot make this Asus my cinema-u3100miniplusv2 work under linux
+	Sat, 29 Dec 2012 10:11:41 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: saa711x doesn't match in easycap devices (stk1160 bridged)
+Date: Sat, 29 Dec 2012 16:10:59 +0100
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+References: <CALF0-+U_am2qBv=ifRgeocP_OehyRZCUpdfd+y1Uqnf7B7cKJQ@mail.gmail.com> <CALF0-+W4azszmaMs9QVGt9GLcFq1=Nd_ZDcqi_OShXfRfo1f4Q@mail.gmail.com>
+In-Reply-To: <CALF0-+W4azszmaMs9QVGt9GLcFq1=Nd_ZDcqi_OShXfRfo1f4Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Date: Sun, 16 Dec 2012 22:16:31 +0100
-From: Renato Gallo <renatogallo@unixproducts.com>
-In-Reply-To: <50CE3070.10309@iki.fi>
-References: <8e9f16405c8583e35cb97bb7d7daef4b@unixproducts.com>
- <50CDDF9A.1080509@iki.fi>
- <cd31dc6ada9161825c7dff975a3da945@unixproducts.com>
- <50CE0AFA.9030308@iki.fi>
- <1af6a5408ee3ebccebc3885bba06fc69@unixproducts.com> <50CE3070.10309@iki.fi>
-Message-ID: <810ffd737b21a0f46e383a76dd4313a2@unixproducts.com>
+Content-Type: Text/Plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Message-Id: <201212291610.59679.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-stock one that came with the device
+On Sat December 29 2012 15:25:08 Ezequiel Garcia wrote:
+> Ccing a few more people to get some feedback.
+> 
+> Toughts anyone? Have you ever seen this before?
+> 
+> On Fri, Dec 28, 2012 at 11:13 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> > Hi everyone,
+> >
+> > Some stk1160 users (a lot acually) are reporting that stk1160 is broken.
+> > The reports come in the out of tree driver [1], but probably the issue
+> > is in mainline too.
+> >
+> > Now, it seems to me the problem is the saa711x decoder can't get matched,
+> > see a portion of dmesg.
+> >
+> > [89947.448813] usb 1-2.4: New device Syntek Semiconductor USB 2.0
+> > Video Capture Controller @ 480 Mbps (05e1:0408, interface 0, class 0)
+> > [89947.448827] usb 1-2.4: video interface 0 found
+> > [89948.200366] saa7115 21-0025: chip found @ 0x4a (ID 000000000000000)
+> > does not match a known saa711x chip.
+> > [89948.200555] stk1160: driver ver 0.9.3 successfully loaded
+> > [...]
+> >
+> > I'm working on this right now, but would like to know, given the ID
+> > seems to be NULL,
+> > what would be the right thing to do here.
+> > Perhaps, replacing the -ENODEV error by a just warning and keep going?
+> >
+> > Further debugging [2] shows the chip doesn't seem to have a proper
+> > chipid (as expected):
 
-http://unixproducts.com/antenna.jpg
+>From what I understand these devices use a GM7113C device, not a SAA7113.
+It sounds like a chinese clone of the SAA7113 to me that works *almost* the
+same, but not quite.
 
+In that case the saa711x_id table should be extended with a gm7113c entry
+and, if chosen, the chip ID check should be skipped.
 
-Il 16/12/2012 21:34 Antti Palosaari ha scritto:
-> It is very likely weak signal issue as I said. What kind of antenna
-> you are using?
->
-> Antti
->
->
-> On 12/16/2012 10:13 PM, Renato Gallo wrote:
->> i found it is a problem with kaffeine, with other programs i can 
->> lock a
->> signal but reception is very very sketchy (like in unviewable).
->>
->> GlovX xine-lib # dmesg |grep e4000
->> GlovX xine-lib # dmesg |grep FC0012
->> GlovX xine-lib # dmesg |grep FC0013
->> [   28.281685] fc0013: Fitipower FC0013 successfully attached.
->> GlovX xine-lib # dmesg |grep FC2580
->> GlovX xine-lib # dmesg |grep TUA
->> GlovX xine-lib #
->>
->>
->> Il 16/12/2012 18:55 Antti Palosaari ha scritto:
->>> On 12/16/2012 07:15 PM, Renato Gallo wrote:
->>>> now the modules loads and kaffeine recognizes the device but i 
->>>> cannot
->>>> find any channels.
->>>> can it be a tuner bug ?
->>>
->>> I think it is bad antenna / weak signal. Try w_scan, scan, tzap.
->>>
->>> Could you say which RF-tuner it finds from your device? use dmesg 
->>> to
->>> dump output. It could be for example e4000, FC0012, FC0013, FC2580,
->>> TUA9001 etc.
->>>
->>> Antti
->>>
->>>>
->>>>
->>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
->>>> section;
->>>> type = 0 pid = 0
->>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
->>>> section;
->>>> type = 2 pid = 17
->>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
->>>> section;
->>>> type = 4 pid = 16
->>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
->>>> section;
->>>> type = 0 pid = 0
->>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
->>>> section;
->>>> type = 2 pid = 17
->>>> kaffeine(5978) DvbScanFilter::timerEvent: timeout while reading 
->>>> section;
->>>> type = 4 pid = 16
->>>> kaffeine(5978) DvbDevice::frontendEvent: tuning failed
->>>>
->>>>
->>>> Il 16/12/2012 15:50 Antti Palosaari ha scritto:
->>>>> On 12/16/2012 04:23 PM, Renato Gallo wrote:
->>>>>> any news on this ?
->>>>>>
->>>>>>
->>>>>>
->>>>>>
->>>>>>
->>>>>> Asus my cinema-u3100miniplusv2
->>>>>>
->>>>>> Bus 001 Device 015: ID 1b80:d3a8 Afatech
->>>>>>
->>>>>> [ 6956.333440] usb 1-6.3.6: new high-speed USB device number 16 
->>>>>> using
->>>>>> ehci_hcd
->>>>>> [ 6956.453943] usb 1-6.3.6: New USB device found, idVendor=1b80,
->>>>>> idProduct=d3a8
->>>>>> [ 6956.453950] usb 1-6.3.6: New USB device strings: Mfr=1, 
->>>>>> Product=2,
->>>>>> SerialNumber=0
->>>>>> [ 6956.453955] usb 1-6.3.6: Product: Rtl2832UDVB
->>>>>> [ 6956.453959] usb 1-6.3.6: Manufacturer: Realtek
->>>>>>
->>>>>
->>>>> Seems to be Realtek RTL2832U. Add that USB ID to the driver and 
->>>>> test.
->>>>> It is very high probability it starts working.
->>>>>
->>>>> Here is the patch:
->>>>>
->>>>>
->>>>> 
->>>>> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/rtl28xxu-usb-ids
->>>>>
->>>>>
->>>>>
->>>>> Please test and report.
->>>>>
->>>>> regards
->>>>> Antti
->>>>
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe
->>>> linux-media" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe 
->> linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This means that the stk1160 driver can try probing for saa7115_auto, and if
+that fails it should try probing for gm7113c explicitly.
+
+Note that this probing technique works for all saa711x devices from saa7111
+onwards, but it is only described explicitly in the datasheet for the saa7115.
+So if they cloned the saa7113 based on the saa7113 datasheet, then this useful
+but undocumented feature would not be included in their clone.
+
+Regards,
+
+	Hans
