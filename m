@@ -1,98 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40601 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751549Ab2LXRSV (ORCPT
+Received: from mail-qc0-f179.google.com ([209.85.216.179]:40391 "EHLO
+	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752756Ab2L2RjM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Dec 2012 12:18:21 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Rob Clark <rob.clark@linaro.org>, Dave Airlie <airlied@gmail.com>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Tom Gall <tom.gall@linaro.org>,
-	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFC v2 0/5] Common Display Framework
-Date: Mon, 24 Dec 2012 18:19:45 +0100
-Message-ID: <3156931.HXaBsp8FS6@avalon>
-In-Reply-To: <50D04C97.4080104@gmail.com>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <CAF6AEGsLdLasS4=j1PsX_P8miG8NcTXMUP9VYj+4gdU8Qhm2YQ@mail.gmail.com> <50D04C97.4080104@gmail.com>
+	Sat, 29 Dec 2012 12:39:12 -0500
+Received: by mail-qc0-f179.google.com with SMTP id b14so5869598qcs.24
+        for <linux-media@vger.kernel.org>; Sat, 29 Dec 2012 09:39:11 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <201212291253.45189.hverkuil@xs4all.nl>
+References: <CAGoCfiwzFFZ+hLOKT-5cHTJOiY8ZsRVXmDx+W7x+7uMXMKWk5g@mail.gmail.com>
+	<20121228222744.6b567a9b@redhat.com>
+	<201212291253.45189.hverkuil@xs4all.nl>
+Date: Sat, 29 Dec 2012 12:39:11 -0500
+Message-ID: <CAGoCfix-3AgrkBUtFwLYTQf3YYL9t-8D7Qrge1fvJg-Fd+aBLA@mail.gmail.com>
+Subject: Re: ABI breakage due to "Unsupported formats in TRY_FMT/S_FMT" recommendation
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On Sat, Dec 29, 2012 at 6:53 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> In my opinion these are application bugs, and not ABI breakages.
 
-On Tuesday 18 December 2012 11:59:35 Sylwester Nawrocki wrote:
-> On 12/18/2012 07:21 AM, Rob Clark wrote:
-> > On Mon, Dec 17, 2012 at 11:04 PM, Dave Airlie<airlied@gmail.com>  wrote:
-> >> So this might be a bit off topic but this whole CDF triggered me
-> >> looking at stuff I generally avoid:
-> >> 
-> >> The biggest problem I'm having currently with the whole ARM graphics
-> >> and output world is the proliferation of platform drivers for every
-> >> little thing. The whole ordering of operations with respect to things
-> >> like suspend/resume or dynamic power management is going to be a real
-> >> nightmare if there are dependencies between the drivers. How do you
-> >> enforce ordering of s/r operations between all the various components?
-> 
-> There have been already some ideas proposed to resolve this at the PM
-> subsystem level [1]. And this problem is of course not only specific to
-> platform drivers. The idea of having monolithic drivers, just because we
-> can't get the suspend/resume sequences right otherwise, doesn't really sound
-> appealing. SoC IPs get reused on multiple different SoC series, no only by
-> single manufacturer. Whole graphics/video subsystems are composed from
-> smaller blocks in SoCs, with various number of distinct sub-blocks and same
-> sub-blocks repeated different number of times in a specific SoC revision.
-> Expressing an IP as a platform device seems justified to me, often these
-> platform devices have enough differences to treat them as such. E.g. belong
-> in different power domain/use different clocks. Except there is big issue
-> with the power management... However probably more important is to be able
-> to have driver for a specific IP in a separate module.
-> 
-> And this suspend/resume ordering issue is not only about the platform
-> devices. E.g. camera subsystem can be composed of an image sensor sub-device
-> driver, which is most often an I2C client driver, and of multiple SoC
-> processing blocks. The image sensor can have dependencies on the SoC sub-
-> blocks. So even if we created monolithic driver for the SoC part, there are
-> still two pieces to get s/r ordering right - I2C client and SoC drivers. And
-> please don't propose to merge the sensor sub-device driver too. There has
-> been a lot of effort in V4L2 to separate those various functional blocks
-> into sub-devices, so they can be freely reused, without reimplementing same
-> functionality in each driver. BTW, there has been a nice talk about these
-> topics at ELCE [2], particularly slide 22 is interesting.
-> 
-> I believe the solution for these issues really needs to be sought in the PM
-> subsystem itself.
+I'm not sure if you saw the email, but Linus seems to disagree with
+your assertion quite strongly:
 
-I tend to agree with you, or at least I believe we should research a proper 
-solution in the PM framework. In the meantime, though, I think early 
-suspend/late resume might provide an intermediate solution.
+https://lkml.org/lkml/2012/12/23/75
 
-> > I tend to think that sub-devices are useful just to have a way to
-> > probe hw which may or may not be there, since on ARM we often don't
-> > have any alternative.. but beyond that, suspend/resume, and other
-> > life-cycle aspects, they should really be treated as all one device.
-> > Especially to avoid undefined suspend/resume ordering.
-> 
-> [1] https://lkml.org/lkml/2009/9/9/373
-> [2]
-> http://elinux.org/images/9/90/ELCE2012-Modular-Graphics-on-Embedded-ARM.pdf
+The change as proposed results in a situation where apps worked fine,
+user upgrades kernel, and now apps are broken.  That sounds a lot
+like:
+
+"If a change results in user programs breaking, it's a bug in the
+kernel. We never EVER blame the user programs. How hard can this be to
+understand?"
+
+> As Mauro
+> mentioned, some drivers don't return an error and so would always have failed
+> with these apps (examples: cx18/ivtv, gspca).
+
+Yeah, except uncompressed support is quite new with cx18, ivtv doesn't
+support uncompressed at all, and gspca is for webcams, not TV.
+
+> Do these apps even handle the case where TRY isn't implemented at all by the
+> driver? (hdpvr)
+
+I haven't looked at compressed formats.  Tvtime doesn't support them
+at all, and MythTV uses a completely different code path for
+compressed capture.  MythTV even has special code for the HD-PVR,
+which presumably was to work around API inconsistencies.
+
+> There is nothing in the spec that says that you will get an error if the
+> pixelformat isn't supported by the driver, in fact it says the opposite:
+>
+> "Very simple, inflexible devices may even ignore all input and always return
+> the default parameters."
+>
+> We are not in the business to work around application bugs, IMHO. We can of
+> course delay making these changes until those applications are fixed.
+
+Except those two applications aren't the only two applications in
+existence which make use of the V4L2 API.  Oh, and applications are
+supposed to continue working unmodified through kernel upgrades.
+
+> I suspect that the behavior of returning an error if a pixelformat is not
+> supported is a leftover from the V4L1 API (VIDIOCSPICT). When drivers were
+> converted to S/TRY_FMT this method of handling unsupported pixelformats was
+> probably never changed. And quite a few newer drivers copy-and-pasted that
+> method. Drivers like cx18/ivtv that didn't copy-and-paste code looked at the
+> API and followed what the API said.
+>
+> At the moment most TV drivers seem to return an error, whereas for webcams
+> it is hit and miss: uvc returned an error (until it was fixed recently),
+> gspca didn't. So webcam applications probably do the right thing given the
+> behavior of gspca.
+
+What if we returned an error but still changed the struct to specify
+the supported format?  That's not what the spec says, but it seems
+like that's what is implemented in many drivers today and what many
+applications expect to happen.
+
+No doubt, this is a mess, and if we had tighter enforcement and better
+specs before this stuff went upstream years ago, we wouldn't be in
+this situation.  But that's not the world we live in, and we have to
+deal with where we stand today.
+
+Devin
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
