@@ -1,54 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp207.alice.it ([82.57.200.103]:36129 "EHLO smtp207.alice.it"
+Received: from mx1.redhat.com ([209.132.183.28]:13151 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753332Ab2LIXS5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 Dec 2012 18:18:57 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Jacob Schloss <jacob.schloss@unlimitedautomata.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Antonio Ospite <ospite@studenti.unina.it>
-Subject: [PATCH] [media] gspca_kinect: add Kinect for Windows USB id
-Date: Mon, 10 Dec 2012 00:18:25 +0100
-Message-Id: <1355095105-23310-1-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1354948731.10575.8.camel@andromeda>
-References: <1354948731.10575.8.camel@andromeda>
+	id S1752916Ab2L2O7F (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Dec 2012 09:59:05 -0500
+Date: Sat, 29 Dec 2012 12:58:38 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: ABI breakage due to "Unsupported formats in TRY_FMT/S_FMT"
+ recommendation
+Message-ID: <20121229125838.4cabb5a0@redhat.com>
+In-Reply-To: <20121229122334.00ea0b8a@redhat.com>
+References: <CAGoCfiwzFFZ+hLOKT-5cHTJOiY8ZsRVXmDx+W7x+7uMXMKWk5g@mail.gmail.com>
+	<20121228222744.6b567a9b@redhat.com>
+	<201212291253.45189.hverkuil@xs4all.nl>
+	<20121229122334.00ea0b8a@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacob Schloss <jacob.schloss@unlimitedautomata.com>
+Em Sat, 29 Dec 2012 12:23:34 -0200
+Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
 
-Add the USB ID for the Kinect for Windows RGB camera so it can be used
-with the gspca_kinect driver.
+> Em Sat, 29 Dec 2012 12:53:45 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > On Sat December 29 2012 01:27:44 Mauro Carvalho Chehab wrote:
+> > > Em Fri, 28 Dec 2012 14:52:24 -0500
+> > > Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+> > > 
+> > > > Hi there,
+> > > > 
+> > > > So I noticed that one of the "V4L2 ambiguities" discussed at the Media
+> > > > Workshop relates to expected behavior with TRY_FMT/S_FMT.
+> ...
+> > > Well, if applications will break with this change, then we need to revisit
+> > > the question, and decide otherwise, as it shouldn't break userspace.
+> > > 
+> > > It should be noticed, however, that currently, some drivers won't
+> > > return errors when S_FMT/TRY_FMT requests invalid parameters.
+> > > 
+> > > So, IMHO, what should be done is:
+> > > 	1) to not break userspace;
+> > > 	2) userspace apps should be improved to handle those drivers
+> > > that have a potential of breaking them;
+> > > 	3) clearly state at the API, and enforce via compliance tool,
+> > > that all drivers will behave the same.
+> > 
+> > In my opinion these are application bugs, and not ABI breakages. As Mauro
+> > mentioned, some drivers don't return an error and so would always have failed
+> > with these apps (examples: cx18/ivtv, gspca).
+> 
+> It is both an application bug and a potential ABI breakage.
+> 
+> Hmm... as MythTv and tvtime are meant to be used to watch TV, maybe we can
+> look on it using a different angle.
+> 
+...
+> The drivers that only support V4L2_PIX_FMT_UYVY seems to be
+> cx18, sta2x11_vip, au0828 and gspca (kinect, w996xcf). From those,
+> only cx18 and au0828 are TV drivers.
+> 
+> On a tvtime compiled without libv4l, the cx18 driver will fail with the
+> current logic, as it doesn't return an error when format doesn't
+> match. So, tvtime will fail anyway with 50% of the TV drivers that don't
+> support YUYV directly. It will also fail with most cameras, as they're
+> generally based on proprietary/bayer formats and/or may not have the
+> resolutions that tvtime requires.
 
-Signed-off-by: Jacob Schloss <jacob.schloss@unlimitedautomata.com>
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
----
+Not sure if I was clear enough. In summary, what I'm saying is that:
 
-Thanks Jacob, I took the liberty to rebase the patch on top of
-linux-3.7.0-rc7 as the gspca location has changed from
-drivers/media/video/gspca to drivers/media/usb/gspca
+1) userspace apps should be fixed, as they're currently broken for cx18,
+when libv4l support is disabled;
 
-It will be a little easier for HdG to apply it.
+2) from kernelspace's perspective, it seems that the changes for the above
+affected drivers need to be postponed. If this bug happens only on
+tvtime and MythTV, then changes on drivers that don't support UYVY
+could be done anytime, but a yellow flag rised: we should be sure that
+other userspace applications and libv4l won't be affected before changing
+an existing kernel driver, as no regressions are accepted.
 
-Regards,
-   Antonio
-
- drivers/media/usb/gspca/kinect.c |    1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/usb/gspca/kinect.c b/drivers/media/usb/gspca/kinect.c
-index 40ad668..3773a8a 100644
---- a/drivers/media/usb/gspca/kinect.c
-+++ b/drivers/media/usb/gspca/kinect.c
-@@ -381,6 +381,7 @@ static const struct sd_desc sd_desc = {
- /* -- module initialisation -- */
- static const struct usb_device_id device_table[] = {
- 	{USB_DEVICE(0x045e, 0x02ae)},
-+	{USB_DEVICE(0x045e, 0x02bf)},
- 	{}
- };
- 
--- 
-1.7.10.4
-
+Cheers,
+Mauro
