@@ -1,70 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:53874 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751340Ab2LDC6N convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Dec 2012 21:58:13 -0500
-From: Libin Yang <lbyang@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "corbet@lwn.net" <corbet@lwn.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 3 Dec 2012 18:58:07 -0800
-Subject: RE: [PATCH 06/15] [media] marvell-ccic: add new formats support for
- marvell-ccic driver
-Message-ID: <A63A0DC671D719488CD1A6CD8BDC16CF230ABFA3AE@SC-VEXCH4.marvell.com>
-References: <1353677621-24143-1-git-send-email-twang13@marvell.com>
- <Pine.LNX.4.64.1211271218120.22273@axis700.grange>
- <477F20668A386D41ADCC57781B1F70430D1367C8E9@SC-VEXCH1.marvell.com>
-In-Reply-To: <477F20668A386D41ADCC57781B1F70430D1367C8E9@SC-VEXCH1.marvell.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2206 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753161Ab2L2Vjm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Dec 2012 16:39:42 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id qBTLdctZ093845
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sat, 29 Dec 2012 22:39:41 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 31AB811E00FC
+	for <linux-media@vger.kernel.org>; Sat, 29 Dec 2012 22:39:39 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20121229213939.31AB811E00FC@alastor.dyndns.org>
+Date: Sat, 29 Dec 2012 22:39:39 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-When I'm refining the patch based on your comments, I met an issue. Could you please help me?
+Results of the daily build of media_tree:
 
-[snip]
+date:        Sat Dec 29 19:00:17 CET 2012
+git hash:    b858c331cdf402853be2c48c8f4f77173ef04da8
+gcc version:      i686-linux-gcc (GCC) 4.7.1
+host hardware:    x86_64
+host os:          3.4.07-marune
 
+linux-git-arm-eabi-davinci: WARNINGS
+linux-git-arm-eabi-exynos: OK
+linux-git-arm-eabi-omap: ERRORS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-i686: WARNINGS
+linux-2.6.37-i686: WARNINGS
+linux-2.6.38.2-i686: WARNINGS
+linux-2.6.39.1-i686: WARNINGS
+linux-3.0-i686: WARNINGS
+linux-3.1-i686: WARNINGS
+linux-3.2.1-i686: WARNINGS
+linux-3.3-i686: WARNINGS
+linux-3.4-i686: WARNINGS
+linux-3.5-i686: WARNINGS
+linux-3.6-i686: WARNINGS
+linux-3.7-i686: WARNINGS
+linux-3.8-rc1-i686: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-x86_64: WARNINGS
+linux-2.6.37-x86_64: WARNINGS
+linux-2.6.38.2-x86_64: WARNINGS
+linux-2.6.39.1-x86_64: WARNINGS
+linux-3.0-x86_64: WARNINGS
+linux-3.1-x86_64: WARNINGS
+linux-3.2.1-x86_64: WARNINGS
+linux-3.3-x86_64: WARNINGS
+linux-3.4-x86_64: WARNINGS
+linux-3.5-x86_64: WARNINGS
+linux-3.6-x86_64: WARNINGS
+linux-3.7-x86_64: WARNINGS
+linux-3.8-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
->>> -
->>>  /*
->>>   * Configure the controller for operation; caller holds the
->>>   * device mutex.
->>> @@ -979,11 +1070,32 @@ static void mcam_vb_buf_queue(struct vb2_buffer
->>> *vb)  {
->>>  	struct mcam_vb_buffer *mvb = vb_to_mvb(vb);
->>>  	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
->>> +	struct v4l2_pix_format *fmt = &cam->pix_format;
->>>  	unsigned long flags;
->>>  	int start;
->>> +	dma_addr_t dma_handle;
->>> +	u32 base_size = fmt->width * fmt->height;
->>
->>Shouldn't you be just using bytesperline? Is stride != width * height supported?
->>
->We will update it.
+Detailed results are available here:
 
-[Libin] What I understand is width is the pixel number perline, so bytesperline = width * BytePerPixel. This means bytesperline should include Y data and UV data. 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-For example, for yuv420 legacy 8-bit, it transfers like below:
-U Y Y U Y Y U Y Y U Y Y ......
-V Y Y V Y Y V Y Y V Y Y ......
+Full logs are available here:
 
-As each Y is one byte, so all Y data length is nuber_Y_per_line * height. While the nuber_Y_per_line is the pixel_per_line, which is fmt->width.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-So for the planner, the first block is saving the Y data, whose length is nuber_Y_per_line * height, which equals to fmt->width * height.
+The V4L-DVB specification from this daily build is here:
 
-Do I understand correctly?
-
-The base_size here means the size of Y data, so it should be fmt->width * fmt->height.
-
->>>
->>>  	spin_lock_irqsave(&cam->dev_lock, flags);
->>> +	dma_handle = vb2_dma_contig_plane_dma_addr(vb, 0);
-
-Best Regards,
-Libin
+http://www.xs4all.nl/~hverkuil/spec/media.html
