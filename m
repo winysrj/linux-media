@@ -1,70 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:35580 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750739Ab2LIQTf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Dec 2012 11:19:35 -0500
-Received: by mail-ee0-f46.google.com with SMTP id e53so1122203eek.19
-        for <linux-media@vger.kernel.org>; Sun, 09 Dec 2012 08:19:34 -0800 (PST)
-Message-ID: <50C4BA20.8060003@googlemail.com>
-Date: Sun, 09 Dec 2012 17:19:44 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Matthew Gyurgyik <matthew@pyther.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50B80FBB.5030208@pyther.net> <50BB3F2C.5080107@googlemail.com> <50BB6451.7080601@iki.fi> <50BB8D72.8050803@googlemail.com> <50BCEC60.4040206@googlemail.com> <50BD5CC3.1030100@pyther.net> <CAGoCfiyNrHS9TpmOk8FKhzzViNCxazKqAOmG0S+DMRr3AQ8Gbg@mail.gmail.com> <50BD6310.8000808@pyther.net> <CAGoCfiwr88F3TW9Q_Pk7B_jTf=N9=Zn6rcERSJ4tV75sKyyRMw@mail.gmail.com> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com> <50C48891.2050903@googlemail.com> <50C4A520.6020908@pyther.net> <CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com>
-In-Reply-To: <CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:55831 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755105Ab2L2Ai4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Dec 2012 19:38:56 -0500
+Date: Fri, 28 Dec 2012 22:09:42 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: linux-arch@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-m68k@vger.kernel.org
+Subject: Re: [PATCH/RFC 4/4] common: dma-mapping: Move dma_common_*() to
+ <linux/dma-mapping.h>
+Message-ID: <20121228220942.5e6a5361@redhat.com>
+In-Reply-To: <1356722614-18224-5-git-send-email-geert@linux-m68k.org>
+References: <CAMuHMdVPBUzN8fsNHFzrEqev9BsvVCVR2fWySCOecjVA-J1qjg@mail.gmail.com>
+	<1356722614-18224-5-git-send-email-geert@linux-m68k.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 09.12.2012 16:46, schrieb Devin Heitmueller:
-> On Sun, Dec 9, 2012 at 9:50 AM, Matthew Gyurgyik <matthew@pyther.net> wrote:
->> Just to make sure I'm not misunderstanding, the messages should get logged
->> to dmesg, correct?
-> I wrote the original IR support for the em2874, but it seems to have
-> changed a bit since I submitted it.  One thing that jumps out at me is
-> if you specify a remote control of the wrong *type* (e.g. the driver
-> is configured for RC5 but the actual remote is configured for NEC),
-> then you're likely to get no events from the device.
->
-> You may wish to lookup what type of remote RC_MAP_KWORLD_315U is, and
-> try a remote that is of the other protocol type (e.g. if
-> RC_MAP_KWORLD_315U is RC5 then try a remote which is NEC).  Then see
-> if you get events.  If so, then you know you have the correct RC
-> protocol and just need to adjust the RC profile specified.
->
-> Also, it's possible the remote control is an RC6 remote, which I never
-> got around to adding em2874 driver support for.  Take a look at the
-> windows trace and see what register R50 is being set to.  In
-> particular, bits [3-2] will tell you what RC protocol the Windows
-> driver expects the remote to be.  I'm pretty sure I put the definition
-> for the relevant bits in em28xx-reg.h.
+Em Fri, 28 Dec 2012 20:23:34 +0100
+Geert Uytterhoeven <geert@linux-m68k.org> escreveu:
 
-According to the USB log, register 0x50 is set to 0x01.
+> dma_common_mmap() and dma_common_get_sgtable() are defined in
+> drivers/base/dma-mapping.c, and always compiled if CONFIG_HAS_DMA=y.
+> 
+> However, their forward declarations and the inline functions defined on top
+> of them (dma_mmap_attrs(), dma_mmap_coherent(), dma_mmap_writecombine(),
+> dma_get_sgtable_attrs()), dma_get_sgtable()) are in
+> <asm-generic/dma-mapping-common.h>, which is not included by all
+> architectures supporting CONFIG_HAS_DMA=y.  There exist no alternative
+> implementations.
+> 
+> Hence for e.g. m68k allmodconfig, I get:
+> 
+> drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_mmap’:
+> drivers/media/v4l2-core/videobuf2-dma-contig.c:204: error: implicit declaration of function ‘dma_mmap_coherent’
+> drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_get_base_sgt’:
+> drivers/media/v4l2-core/videobuf2-dma-contig.c:387: error: implicit declaration of function ‘dma_get_sgtable’
+> 
+> To fix this
+>   - Move the forward declarations and inline definitions to
+>     <linux/dma-mapping.h>, so all CONFIG_HAS_DMA=y architectures can use
+>     them,
+>   - Replace the hard "BUG_ON(!ops)" checks for dma_map_ops by soft checks,
+>     so architectures can fall back to the common code by returning NULL
+>     from their get_dma_ops(). Note that there are no "BUG_ON(!ops)" checks
+>     in other functions in <asm-generic/dma-mapping-common.h>,
+>   - Make "struct dma_map_ops *ops" const while we're at it.
+> 
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-em28xx-reg.h says:
+>From my side:
 
-/* em2874 IR config register (0x50) */
-#define EM2874_IR_NEC           0x00
-#define EM2874_IR_RC5           0x04
-#define EM2874_IR_RC6_MODE_0    0x08
-#define EM2874_IR_RC6_MODE_6A   0x0b
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Any idea what 0x01 is ?
+> ---
+>  include/asm-generic/dma-mapping-common.h |   55 ------------------------------
+>  include/linux/dma-mapping.h              |   54 +++++++++++++++++++++++++++++
+>  2 files changed, 54 insertions(+), 55 deletions(-)
+> 
+> diff --git a/include/asm-generic/dma-mapping-common.h b/include/asm-generic/dma-mapping-common.h
+> index de8bf89..2e248d8 100644
+> --- a/include/asm-generic/dma-mapping-common.h
+> +++ b/include/asm-generic/dma-mapping-common.h
+> @@ -176,59 +176,4 @@ dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
+>  #define dma_map_sg(d, s, n, r) dma_map_sg_attrs(d, s, n, r, NULL)
+>  #define dma_unmap_sg(d, s, n, r) dma_unmap_sg_attrs(d, s, n, r, NULL)
+>  
+> -extern int dma_common_mmap(struct device *dev, struct vm_area_struct *vma,
+> -			   void *cpu_addr, dma_addr_t dma_addr, size_t size);
+> -
+> -/**
+> - * dma_mmap_attrs - map a coherent DMA allocation into user space
+> - * @dev: valid struct device pointer, or NULL for ISA and EISA-like devices
+> - * @vma: vm_area_struct describing requested user mapping
+> - * @cpu_addr: kernel CPU-view address returned from dma_alloc_attrs
+> - * @handle: device-view address returned from dma_alloc_attrs
+> - * @size: size of memory originally requested in dma_alloc_attrs
+> - * @attrs: attributes of mapping properties requested in dma_alloc_attrs
+> - *
+> - * Map a coherent DMA buffer previously allocated by dma_alloc_attrs
+> - * into user space.  The coherent DMA buffer must not be freed by the
+> - * driver until the user space mapping has been released.
+> - */
+> -static inline int
+> -dma_mmap_attrs(struct device *dev, struct vm_area_struct *vma, void *cpu_addr,
+> -	       dma_addr_t dma_addr, size_t size, struct dma_attrs *attrs)
+> -{
+> -	struct dma_map_ops *ops = get_dma_ops(dev);
+> -	BUG_ON(!ops);
+> -	if (ops->mmap)
+> -		return ops->mmap(dev, vma, cpu_addr, dma_addr, size, attrs);
+> -	return dma_common_mmap(dev, vma, cpu_addr, dma_addr, size);
+> -}
+> -
+> -#define dma_mmap_coherent(d, v, c, h, s) dma_mmap_attrs(d, v, c, h, s, NULL)
+> -
+> -static inline int dma_mmap_writecombine(struct device *dev, struct vm_area_struct *vma,
+> -		      void *cpu_addr, dma_addr_t dma_addr, size_t size)
+> -{
+> -	DEFINE_DMA_ATTRS(attrs);
+> -	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
+> -	return dma_mmap_attrs(dev, vma, cpu_addr, dma_addr, size, &attrs);
+> -}
+> -
+> -int
+> -dma_common_get_sgtable(struct device *dev, struct sg_table *sgt,
+> -		       void *cpu_addr, dma_addr_t dma_addr, size_t size);
+> -
+> -static inline int
+> -dma_get_sgtable_attrs(struct device *dev, struct sg_table *sgt, void *cpu_addr,
+> -		      dma_addr_t dma_addr, size_t size, struct dma_attrs *attrs)
+> -{
+> -	struct dma_map_ops *ops = get_dma_ops(dev);
+> -	BUG_ON(!ops);
+> -	if (ops->get_sgtable)
+> -		return ops->get_sgtable(dev, sgt, cpu_addr, dma_addr, size,
+> -					attrs);
+> -	return dma_common_get_sgtable(dev, sgt, cpu_addr, dma_addr, size);
+> -}
+> -
+> -#define dma_get_sgtable(d, t, v, h, s) dma_get_sgtable_attrs(d, t, v, h, s, NULL)
+> -
+>  #endif
+> diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+> index 94af418..4b47150 100644
+> --- a/include/linux/dma-mapping.h
+> +++ b/include/linux/dma-mapping.h
+> @@ -74,6 +74,60 @@ static inline int is_device_dma_capable(struct device *dev)
+>  
+>  #ifdef CONFIG_HAS_DMA
+>  #include <asm/dma-mapping.h>
+> +
+> +extern int dma_common_mmap(struct device *dev, struct vm_area_struct *vma,
+> +			   void *cpu_addr, dma_addr_t dma_addr, size_t size);
+> +
+> +/**
+> + * dma_mmap_attrs - map a coherent DMA allocation into user space
+> + * @dev: valid struct device pointer, or NULL for ISA and EISA-like devices
+> + * @vma: vm_area_struct describing requested user mapping
+> + * @cpu_addr: kernel CPU-view address returned from dma_alloc_attrs
+> + * @handle: device-view address returned from dma_alloc_attrs
+> + * @size: size of memory originally requested in dma_alloc_attrs
+> + * @attrs: attributes of mapping properties requested in dma_alloc_attrs
+> + *
+> + * Map a coherent DMA buffer previously allocated by dma_alloc_attrs
+> + * into user space.  The coherent DMA buffer must not be freed by the
+> + * driver until the user space mapping has been released.
+> + */
+> +static inline int
+> +dma_mmap_attrs(struct device *dev, struct vm_area_struct *vma, void *cpu_addr,
+> +	       dma_addr_t dma_addr, size_t size, struct dma_attrs *attrs)
+> +{
+> +	const struct dma_map_ops *ops = get_dma_ops(dev);
+> +	if (ops && ops->mmap)
+> +		return ops->mmap(dev, vma, cpu_addr, dma_addr, size, attrs);
+> +	return dma_common_mmap(dev, vma, cpu_addr, dma_addr, size);
+> +}
+> +
+> +#define dma_mmap_coherent(d, v, c, h, s) dma_mmap_attrs(d, v, c, h, s, NULL)
+> +
+> +static inline int dma_mmap_writecombine(struct device *dev, struct vm_area_struct *vma,
+> +		      void *cpu_addr, dma_addr_t dma_addr, size_t size)
+> +{
+> +	DEFINE_DMA_ATTRS(attrs);
+> +	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
+> +	return dma_mmap_attrs(dev, vma, cpu_addr, dma_addr, size, &attrs);
+> +}
+> +
+> +int
+> +dma_common_get_sgtable(struct device *dev, struct sg_table *sgt,
+> +		       void *cpu_addr, dma_addr_t dma_addr, size_t size);
+> +
+> +static inline int
+> +dma_get_sgtable_attrs(struct device *dev, struct sg_table *sgt, void *cpu_addr,
+> +		      dma_addr_t dma_addr, size_t size, struct dma_attrs *attrs)
+> +{
+> +	const struct dma_map_ops *ops = get_dma_ops(dev);
+> +	if (ops && ops->get_sgtable)
+> +		return ops->get_sgtable(dev, sgt, cpu_addr, dma_addr, size,
+> +					attrs);
+> +	return dma_common_get_sgtable(dev, sgt, cpu_addr, dma_addr, size);
+> +}
+> +
+> +#define dma_get_sgtable(d, t, v, h, s) dma_get_sgtable_attrs(d, t, v, h, s, NULL)
+> +
+>  #else
+>  #include <asm-generic/dma-mapping-broken.h>
+>  #endif
 
-It also seems that em28xx_ir_change_protocol() always sets reg 0x05 to
-EM2874_IR_RC5...
 
-Regards,
-Frank
+-- 
 
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
-
+Cheers,
+Mauro
