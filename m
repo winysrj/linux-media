@@ -1,75 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:17084 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750893Ab2LJTl5 (ORCPT
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:50451 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754882Ab2L3Tut (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 14:41:57 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org
-Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com,
-	thomas.abraham@linaro.org, t.figa@samsung.com,
-	sw0312.kim@samsung.com, kyungmin.park@samsung.com,
-	devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 00/13] Common video input interfaces bindings and V4L2 OF
- helpers
-Date: Mon, 10 Dec 2012 20:41:26 +0100
-Message-id: <1355168499-5847-1-git-send-email-s.nawrocki@samsung.com>
+	Sun, 30 Dec 2012 14:50:49 -0500
+Received: by mail-ee0-f54.google.com with SMTP id c13so5806826eek.27
+        for <linux-media@vger.kernel.org>; Sun, 30 Dec 2012 11:50:47 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAO-Op+Es6nNRXajXdr=18jiPZTNGuZcOZ4p5UXD5ZRoN2tzobQ@mail.gmail.com>
+References: <CAO-Op+Es6nNRXajXdr=18jiPZTNGuZcOZ4p5UXD5ZRoN2tzobQ@mail.gmail.com>
+Date: Sun, 30 Dec 2012 19:50:47 +0000
+Message-ID: <CAO-Op+E5tRN-iJ34SGZecF3HihpAEhZnADWVpQb8+QcZBYLFMg@mail.gmail.com>
+Subject: media-build: ./build --main-git failed
+From: Alistair Buxton <a.j.buxton@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Output:
 
-This series is an update of work on common bindings for video capture
-interfaces [1], [2] originally started by Guennadi. I took the liberty
-of resending the original patches and adding my changes on top of it.
+al@al-desktop:~/Source$ git clone git://linuxtv.org/media_build.git
+Cloning into 'media_build'...
+remote: Counting objects: 1760, done.
 
-I just noticed there were some comments to the v5 of the bindings
-documentation and the example. I might have addressed them in next
-iteration, unless the author prefers to take care of that himself.
 
-This series adds a bunch of empty function/macro definitions for
-when CONFIG_OF(_DEVICE) is disabled, video capture interfaces common
-bindings documentation, related OF helpers and some corrections/
-enhancements of them.
+remote: Compressing objects: 100% (560/560), done.
+remote: Total 1760 (delta 1182), reused 1727 (delta 1161)
+Receiving objects: 100% (1760/1760), 416.13 KiB | 676 KiB/s, done.
+Resolving deltas: 100% (1182/1182), done.
 
-Full tree containing this patch series can be browsed at [3].
 
-[1] http://www.spinics.net/lists/linux-sh/msg13391.html
-[2] http://www.spinics.net/lists/linux-sh/msg13111.html
-[3] http://git.infradead.org/users/kmpark/linux-samsung/shortlog/refs/heads/v3.7-rc8-pq-camera-dt
+al@al-desktop:~/Source/media_build$ ./build --main-git
+Checking if the needed tools for Ubuntu 12.10 are available
+Needed package dependencies are met.
+************************************************************
+* building git://linuxtv.org/media_tree.git       git tree *
+************************************************************
+************************************************************
+* All drivers and build system are under GPLv2 License     *
+* Firmware files are under the license terms found at:     *
+* http://www.linuxtv.org/downloads/firmware/               *
+* Please abort if you don't agree with the license         *
+************************************************************
 
-Guennadi Liakhovetski (6):
-  i2c: add dummy inline functions for when CONFIG_OF_I2C(_MODULE) isn't
-    defined
-  of: add a dummy inline function for when CONFIG_OF is not defined
-  OF: define of_*_cmp() macros also if CONFIG_OF isn't set
-  OF: make a function pointer argument const
-  media: add V4L2 DT binding documentation
-  media: add a V4L2 OF parser
+Getting the latest Kernel tree. This will take some time
+Cloning into 'media'...
+remote: Counting objects: 2829101, done.
+remote: Compressing objects: 100% (428125/428125), done.
+remote: Total 2829101 (delta 2375344), reused 2827313 (delta 2373599)
+Receiving objects: 100% (2829101/2829101), 579.82 MiB | 787 KiB/s, done.
+Resolving deltas: 100% (2375344/2375344), done.
+Checking out files: 100% (41507/41507), done.
+adding remote r_media_tree to track git://linuxtv.org/media_tree.git,
+staging/for_v3.6
+updating remote media_tree
+Fetching r_media_tree
+remote: Counting objects: 21763, done.
+remote: Compressing objects: 100% (4889/4889), done.
+remote: Total 19160 (delta 16679), reused 16503 (delta 14249)
+Receiving objects: 100% (19160/19160), 3.55 MiB | 943 KiB/s, done.
+Resolving deltas: 100% (16679/16679), completed with 1145 local objects.
+>From git://linuxtv.org/media_tree
+ * [new branch]      devel/bkl  -> r_media_tree/devel/bkl
+ * [new branch]      master     -> r_media_tree/master
+ * [new branch]      staging/for_2.6.38-rc1 ->
+r_media_tree/staging/for_2.6.38-rc1
+ * [new branch]      staging/for_v2.6.37-rc1 ->
+r_media_tree/staging/for_v2.6.37-rc1
+ * [new branch]      staging/for_v2.6.38 -> r_media_tree/staging/for_v2.6.38
+ * [new branch]      staging/for_v2.6.39 -> r_media_tree/staging/for_v2.6.39
+ * [new branch]      staging/for_v2.6.40 -> r_media_tree/staging/for_v2.6.40
+ * [new branch]      staging/for_v2.6.40-rc ->
+r_media_tree/staging/for_v2.6.40-rc
+ * [new branch]      staging/for_v3.0 -> r_media_tree/staging/for_v3.0
+ * [new branch]      staging/for_v3.1 -> r_media_tree/staging/for_v3.1
+ * [new branch]      staging/for_v3.2 -> r_media_tree/staging/for_v3.2
+ * [new branch]      staging/for_v3.3 -> r_media_tree/staging/for_v3.3
+ * [new branch]      staging/for_v3.4 -> r_media_tree/staging/for_v3.4
+ * [new branch]      staging/for_v3.5 -> r_media_tree/staging/for_v3.5
+ * [new branch]      staging/for_v3.6 -> r_media_tree/staging/for_v3.6
+ * [new branch]      staging/for_v3.7 -> r_media_tree/staging/for_v3.7
+ * [new branch]      staging/for_v3.8 -> r_media_tree/staging/for_v3.8
+ * [new branch]      staging/for_v3.9 -> r_media_tree/staging/for_v3.9
+ * [new branch]      staging/leadership -> r_media_tree/staging/leadership
+ * [new branch]      staging/v2.6.35 -> r_media_tree/staging/v2.6.35
+ * [new branch]      staging/v2.6.36 -> r_media_tree/staging/v2.6.36
+ * [new branch]      staging/v2.6.37 -> r_media_tree/staging/v2.6.37
+creating a local branch media_tree
+Branch media_tree/staging/for_v3.6 set up to track remote branch
+staging/for_v3.6 from r_media_tree.
+Switched to a new branch 'media_tree/staging/for_v3.6'
+make: Entering directory `/home/al/Source/media_build/linux'
+rm -rf drivers firmware include sound .patches_applied .linked_dir
+.git_log.md5 git_log kernel_version.h
+../media/ does not contain kernel sources
+/bin/sh: 1: exit: Illegal number: -1
+make: *** [dir] Error 2
+make: Leaving directory `/home/al/Source/media_build/linux'
+Can't link the building system to the media directory. at ./build line 414.
+al@al-desktop:~/Source/media_build$
 
-Sylwester Nawrocki (7):
-  of: Add empty for_each_available_child_of_node() macro definition
-  of: Add empty of_find_device_by_node() function definition
-  of: Add empty of_get_next_child() function definition
-  v4l2-of: Support variable length of data-lanes property
-  v4l2-of: Add v4l2_of_parse_data_lanes() function
-  v4l2-of: Corrected v4l2_of_parse_link() function declaration
-  v4l2-of: Replace "remote" property with "remote-endpoint"
+Analysis:
 
- Documentation/devicetree/bindings/media/v4l2.txt |  162 ++++++++++++++++
- drivers/media/v4l2-core/Makefile                 |    3 +
- drivers/media/v4l2-core/v4l2-of.c                |  217 ++++++++++++++++++++++
- drivers/of/base.c                                |    4 +-
- include/linux/of.h                               |   36 +++-
- include/linux/of_i2c.h                           |   12 ++
- include/linux/of_platform.h                      |    7 +
- include/media/v4l2-of.h                          |   80 ++++++++
- 8 files changed, 509 insertions(+), 12 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/v4l2.txt
- create mode 100644 drivers/media/v4l2-core/v4l2-of.c
- create mode 100644 include/media/v4l2-of.h
+./build, line 18: my $main_branch = "staging/for_v3.6";
+This is the branch that gets checked out.
+
+./linux/Makefile, line 115:     @if [ ! -f
+"$(DIR)/include/uapi/linux/videodev2.h" ]; then echo "$(DIR) does not
+contain kernel sources"; exit -1; fi
+This checks for presence of "include/uapi" in checked out git branch.
+
+Problem: the git branch which is checked out by default does not contain any
+include/uapi:
+http://git.linuxtv.org/media_tree.git/tree/staging/for_v3.6:/include
 
 --
-1.7.9.5
-
+Alistair Buxton
+a.j.buxton@gmail.com
