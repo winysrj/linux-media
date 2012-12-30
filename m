@@ -1,32 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:53892 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751504Ab2LPQuJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 11:50:09 -0500
-Date: Sun, 16 Dec 2012 09:50:07 -0700
-From: Jonathan Corbet <corbet@lwn.net>
-To: Albert Wang <twang13@marvell.com>
-Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	Libin Yang <lbyang@marvell.com>
-Subject: Re: [PATCH V3 14/15] [media] marvell-ccic: use unsigned int type
- replace int type
-Message-ID: <20121216095007.4b1a64e1@hpe.lwn.net>
-In-Reply-To: <1355565484-15791-15-git-send-email-twang13@marvell.com>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
-	<1355565484-15791-15-git-send-email-twang13@marvell.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from smtp-gw1.li-life.net ([195.225.200.26]:51460 "EHLO
+	SMTP-GW1.li-life.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754508Ab2L3Qpi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Dec 2012 11:45:38 -0500
+Message-ID: <50E06E6C.80400@kaiser-linux.li>
+Date: Sun, 30 Dec 2012 17:40:12 +0100
+From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: Retrieving the Source Code & Building/Compiling the Modules
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 15 Dec 2012 17:58:03 +0800
-Albert Wang <twang13@marvell.com> wrote:
+Hi
 
-> This patch use unsigned int type replace int type in marvell-ccic.
-> 
-> These variables: frame number, buf number, irq... should be unsigned.
+I followed the instructions on:
+http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
 
-Acked-by: Jonathan Corbet <corbet@lwn.net>
+"Developer's Approach"
 
-jon
+When I edit drivers/media/dvb/ddbridge/ddbridge-core.c and do "make -C 
+../v4l", my changes are not compiled.
+
+What I am doing wrong?
+
+Thomas
+
+
