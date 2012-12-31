@@ -1,104 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45585 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752001Ab2LCUTW (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:15719 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751471Ab2LaQEU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Dec 2012 15:19:22 -0500
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:102:6d9a::80:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 31DE660099
-	for <linux-media@vger.kernel.org>; Mon,  3 Dec 2012 22:19:20 +0200 (EET)
-Date: Mon, 3 Dec 2012 22:19:18 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Mon, 31 Dec 2012 11:04:20 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.9] Monotonic video buffer timestamps
-Message-ID: <20121203201918.GO31879@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v2 12/15] ARM: dts: Add ISP power domain node for Exynos4x12
+Date: Mon, 31 Dec 2012 17:03:10 +0100
+Message-id: <1356969793-27268-13-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
+References: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The ISP power domain is a common power domain for fimc-lite
+and fimc-is (ISP) devices.
 
-This pull request contains monotonic video buffer timestamps and a fix for a
-small typo in documentation.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/boot/dts/exynos4x12.dtsi |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-Please pull.
-
-
-The following changes since commit d8658bca2e5696df2b6c69bc5538f8fe54e4a01e:
-
-  [media] omap3isp: Replace cpu_is_omap3630() with ISP revision check (2012-11-28 10:54:46 -0200)
-
-are available in the git repository at:
-  ssh://linuxtv.org/git/sailus/media_tree.git timestamp-fix-3.9
-
-Sakari Ailus (5):
-      v4l: Define video buffer flags for timestamp types
-      v4l: Helper function for obtaining timestamps
-      v4l: Convert drivers to use monotonic timestamps
-      v4l: Tell user space we're using monotonic timestamps
-      v4l: There's no __unsigned
-
- Documentation/DocBook/media/v4l/compat.xml         |   12 ++++
- Documentation/DocBook/media/v4l/io.xml             |   55 +++++++++++++++----
- Documentation/DocBook/media/v4l/v4l2.xml           |   12 ++++-
- drivers/media/common/saa7146/saa7146_fops.c        |    2 +-
- drivers/media/pci/bt8xx/bttv-driver.c              |    6 +-
- drivers/media/pci/cx23885/cx23885-core.c           |    2 +-
- drivers/media/pci/cx23885/cx23885-video.c          |    2 +-
- drivers/media/pci/cx25821/cx25821-video.c          |    2 +-
- drivers/media/pci/cx88/cx88-core.c                 |    2 +-
- drivers/media/pci/meye/meye.c                      |    8 ++--
- drivers/media/pci/saa7134/saa7134-core.c           |    2 +-
- drivers/media/pci/sta2x11/sta2x11_vip.c            |    2 +-
- drivers/media/pci/zoran/zoran_device.c             |    4 +-
- drivers/media/pci/zoran/zoran_driver.c             |    2 +-
- drivers/media/platform/blackfin/bfin_capture.c     |    4 +-
- drivers/media/platform/davinci/vpfe_capture.c      |    5 +--
- drivers/media/platform/davinci/vpif_capture.c      |    2 +-
- drivers/media/platform/davinci/vpif_display.c      |    6 +-
- drivers/media/platform/fsl-viu.c                   |    2 +-
- drivers/media/platform/omap/omap_vout.c            |    2 +-
- drivers/media/platform/omap24xxcam.c               |    2 +-
- drivers/media/platform/omap3isp/ispqueue.c         |    1 +
- drivers/media/platform/sh_vou.c                    |    2 +-
- drivers/media/platform/soc_camera/atmel-isi.c      |    2 +-
- drivers/media/platform/soc_camera/mx1_camera.c     |    2 +-
- drivers/media/platform/soc_camera/mx2_camera.c     |    4 +-
- drivers/media/platform/soc_camera/mx3_camera.c     |    2 +-
- drivers/media/platform/soc_camera/omap1_camera.c   |    2 +-
- drivers/media/platform/soc_camera/pxa_camera.c     |    2 +-
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |    2 +-
- drivers/media/platform/timblogiw.c                 |    2 +-
- drivers/media/platform/vino.c                      |   11 +++--
- drivers/media/platform/vivi.c                      |    6 +--
- drivers/media/usb/au0828/au0828-video.c            |    4 +-
- drivers/media/usb/cpia2/cpia2_usb.c                |    2 +-
- drivers/media/usb/cpia2/cpia2_v4l.c                |    5 ++-
- drivers/media/usb/cx231xx/cx231xx-417.c            |    4 +-
- drivers/media/usb/cx231xx/cx231xx-vbi.c            |    2 +-
- drivers/media/usb/cx231xx/cx231xx-video.c          |    2 +-
- drivers/media/usb/em28xx/em28xx-video.c            |    4 +-
- drivers/media/usb/pwc/pwc-if.c                     |    3 +-
- drivers/media/usb/s2255/s2255drv.c                 |    6 +--
- drivers/media/usb/sn9c102/sn9c102_core.c           |    5 +-
- drivers/media/usb/stk1160/stk1160-video.c          |    2 +-
- drivers/media/usb/stkwebcam/stk-webcam.c           |    3 +-
- drivers/media/usb/tlg2300/pd-video.c               |    2 +-
- drivers/media/usb/tm6000/tm6000-video.c            |    2 +-
- drivers/media/usb/usbvision/usbvision-core.c       |    2 +-
- drivers/media/usb/usbvision/usbvision-video.c      |    5 +-
- drivers/media/usb/zr364xx/zr364xx.c                |    6 +--
- drivers/media/v4l2-core/v4l2-common.c              |   10 ++++
- drivers/media/v4l2-core/videobuf-core.c            |    2 +-
- drivers/media/v4l2-core/videobuf2-core.c           |   10 ++--
- include/media/v4l2-common.h                        |    2 +
- include/uapi/linux/videodev2.h                     |    4 ++
- 55 files changed, 166 insertions(+), 95 deletions(-)
-
+diff --git a/arch/arm/boot/dts/exynos4x12.dtsi b/arch/arm/boot/dts/exynos4x12.dtsi
+index 179a62e..9c809b72 100644
+--- a/arch/arm/boot/dts/exynos4x12.dtsi
++++ b/arch/arm/boot/dts/exynos4x12.dtsi
+@@ -28,6 +28,11 @@
+ 		pinctrl3 = &pinctrl_3;
+ 	};
+ 
++	pd_isp: isp-power-domain@10023CA0 {
++		compatible = "samsung,exynos4210-pd";
++		reg = <0x10023CA0 0x20>;
++	};
++
+ 	combiner:interrupt-controller@10440000 {
+ 		interrupts = <0 0 0>, <0 1 0>, <0 2 0>, <0 3 0>,
+ 			     <0 4 0>, <0 5 0>, <0 6 0>, <0 7 0>,
 -- 
-Kind regards,
+1.7.9.5
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
