@@ -1,275 +1,329 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46218 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932151Ab2LOA5B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Dec 2012 19:57:01 -0500
-Message-ID: <50CBCAB9.602@iki.fi>
-Date: Sat, 15 Dec 2012 02:56:25 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Matthew Gyurgyik <matthew@pyther.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com> <50C48891.2050903@googlemail.com> <50C4A520.6020908@pyther.net> <CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com> <50C4BA20.8060003@googlemail.com> <50C4BAFB.60304@googlemail.com> <50C4C525.6020006@googlemail.com> <50C4D011.6010700@pyther.net> <50C60220.8050908@googlemail.com> <CAGoCfizTfZVFkNvdQuuisOugM2BGipYd_75R63nnj=K7E8ULWQ@mail.gmail.com> <50C60772.2010904@googlemail.com> <CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com> <50C6226C.8090302@iki! .fi> <50C636E7.8060003@googlemail.com> <50C64AB0.7020407@iki.fi> <50C79CD6.4060501@googlemail.com> <50C79E9A.3050301@iki.fi> <20121213182336.2cca9da6@redhat.! com> <50CB46CE.60407@googlemail.com> <20121214173950.79bb963e@redhat.com> <20121214222631.1f191d6e@redhat.com>
-In-Reply-To: <20121214222631.1f191d6e@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:63019 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750958Ab2LaQDp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Dec 2012 11:03:45 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v2 04/15] s5p-fimc: Support for FIMC devices instantiated
+ from the device tree
+Date: Mon, 31 Dec 2012 17:03:02 +0100
+Message-id: <1356969793-27268-5-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
+References: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/15/2012 02:26 AM, Mauro Carvalho Chehab wrote:
-> Em Fri, 14 Dec 2012 17:39:50 -0200
-> Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
->
->>> Anyway, first we have to GET the bytes from the hardware. That's our
->>> current problem !
->>> And the hardware seems to need a different setup for reg 0x50 for the
->>> different NEC sub protocols.
->>> Which means that the we need to know the sub protocol BEFORE we get any
->>> bytes from the device.
->>
->> No. All em28xx needs is to make sure that the NEC protocol will return
->> the full 32 bits scancode.
->
-> It seems a way easier/quicker to just add the proper support there at the
-> driver than keep answering to this thread ;)
->
-> Tested here with a Terratec HTC stick, and using two different IR's:
-> 	- a Terratec IR (address code 0x14 - standard NEC);
-> 	- a Pixelview IR (address code 0x866b - 24 bits NEC).
->
-> All tests were done with the very latest version of ir-keytable, found at
-> v4l-utils.git tree (http://git.linuxtv.org/v4l-utils.git).
->
-> See the results, with the Terratec table loaded (default when the
-> driver is loaded):
->
-> 	# ir-keytable -t
-> 	Testing events. Please, press CTRL-C to abort.
-> 		# Terratec IR
-> 	1355529698.198046: event type EV_MSC(0x04): scancode = 0x1402
-> 	1355529698.198046: event type EV_KEY(0x01) key_down: KEY_1(0x0001)
-> 	1355529698.198046: event type EV_SYN(0x00).
-> 	11355529698.298170: event type EV_MSC(0x04): scancode = 0x1402
-> 	1355529698.298170: event type EV_SYN(0x00).
-> 	1355529698.547998: event type EV_KEY(0x01) key_up: KEY_1(0x0001)
-> 	1355529698.547998: event type EV_SYN(0x00).
-> 		# Pixelview IR
-> 	1355530261.416415: event type EV_MSC(0x04): scancode = 0x866b01
-> 	1355530261.416415: event type EV_SYN(0x00).
-> 	1355530262.216301: event type EV_MSC(0x04): scancode = 0x866b0b
-> 	1355530262.216301: event type EV_SYN(0x00).
->
-> Replacing the keytable to the Pixelview's one:
->
-> 	# ir-keytable -w /etc/rc_keymaps/pixelview_002t -c
-> 	Read pixelview_002t table
-> 	Old keytable cleared
-> 	Wrote 26 keycode(s) to driver
-> 	Protocols changed to NEC
->
-> 	# ir-keytable -t
-> 	Testing events. Please, press CTRL-C to abort.
-> 	1355530569.420398: event type EV_MSC(0x04): scancode = 0x1402
-> 	1355530569.420398: event type EV_SYN(0x00).
-> 	1355530588.120409: event type EV_MSC(0x04): scancode = 0x866b01
-> 	1355530588.120409: event type EV_KEY(0x01) key_down: KEY_1(0x0001)
-> 	1355530591.670077: event type EV_SYN(0x00).
->
-> And, finally, keeping both keytables active at the same time:
->
-> 	# ir-keytable -c -w /etc/rc_keymaps/pixelview_002t -w /etc/rc_keymaps/nec_terratec_cinergy_xs
-> 	Read pixelview_002t table
-> 	Read nec_terratec_cinergy_xs table
-> 	Old keytable cleared
-> 	Wrote 74 keycode(s) to driver
-> 	Protocols changed to NEC
->
-> 	# sudo ir-keytable  -t
-> 	Testing events. Please, press CTRL-C to abort.
-> 	1355530856.325201: event type EV_MSC(0x04): scancode = 0x866b01
-> 	1355530856.325201: event type EV_KEY(0x01) key_down: KEY_1(0x0001)
-> 	1355530856.325201: event type EV_SYN(0x00).
-> 	11355530856.575070: event type EV_KEY(0x01) key_up: KEY_1(0x0001)
-> 	1355530856.575070: event type EV_SYN(0x00).
-> 	1355530869.125226: event type EV_MSC(0x04): scancode = 0x1402
-> 	1355530869.125226: event type EV_KEY(0x01) key_down: KEY_1(0x0001)
-> 	1355530869.125226: event type EV_SYN(0x00).
-> 	11355530869.225216: event type EV_MSC(0x04): scancode = 0x1402
-> 	1355530869.225216: event type EV_SYN(0x00).
-> 	1355530869.475075: event type EV_KEY(0x01) key_up: KEY_1(0x0001)
-> 	1355530869.475075: event type EV_SYN(0x00).
->
-> -
->
-> em28xx: add support for 24bits/32 bits NEC variants on em2874 and upper
->
-> By disabling the NEC parity check, it is possible to handle all 3 NEC
-> protocol variants (32, 24 or 16 bits).
->
-> Change the driver in order to handle all of them.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+This patch adds support for FIMC devices instantiated from devicetree
+for S5PV210 and Exynos4 SoCs. The FIMC IP features include colorspace
+conversion and scaling (mem-to-mem) and parallel/MIPI CSI2 bus video
+capture interface.
 
+Multiple SoC revision specific parameters are defined statically
+in the driver and are used for both dt and non-dt. Specific driver
+static data is selected based on the compatible property, and
+previously platform device name was used to match driver data with
+a specific SoC/IP version.
 
+Aliases are used to determine an index of the IP which is essential
+for linking FIMC IP with other ones, like MIPI-CSIS (MIPI CSI2 bus
+frontend) or FIMC-LITE and FIMC-IS ISP.
 
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ .../devicetree/bindings/media/soc/samsung-fimc.txt |   92 ++++++++++++++++++++
+ drivers/media/platform/s5p-fimc/fimc-capture.c     |    2 +-
+ drivers/media/platform/s5p-fimc/fimc-core.c        |   84 ++++++++++++------
+ 3 files changed, 148 insertions(+), 30 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
 
-
-NACK. NEC variant selection logic is broken by design.
-
-
-
-
-
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-> index 97d36b4..c84e4c8 100644
-> --- a/drivers/media/usb/em28xx/em28xx-input.c
-> +++ b/drivers/media/usb/em28xx/em28xx-input.c
-> @@ -57,8 +57,8 @@ MODULE_PARM_DESC(ir_debug, "enable debug messages [IR]");
->   struct em28xx_ir_poll_result {
->   	unsigned int toggle_bit:1;
->   	unsigned int read_count:7;
-> -	u8 rc_address;
-> -	u8 rc_data[4]; /* 1 byte on em2860/2880, 4 on em2874 */
-> +
-> +	u32 scancode;
->   };
->
->   struct em28xx_IR {
-> @@ -72,6 +72,7 @@ struct em28xx_IR {
->   	struct delayed_work work;
->   	unsigned int full_code:1;
->   	unsigned int last_readcount;
-> +	u64 rc_type;
->
->   	int  (*get_key)(struct em28xx_IR *, struct em28xx_ir_poll_result *);
->   };
-> @@ -236,11 +237,8 @@ static int default_polling_getkey(struct em28xx_IR *ir,
->   	/* Infrared read count (Reg 0x45[6:0] */
->   	poll_result->read_count = (msg[0] & 0x7f);
->
-> -	/* Remote Control Address (Reg 0x46) */
-> -	poll_result->rc_address = msg[1];
-> -
-> -	/* Remote Control Data (Reg 0x47) */
-> -	poll_result->rc_data[0] = msg[2];
-> +	/* Remote Control Address/Data (Regs 0x46/0x47) */
-> +	poll_result->scancode = msg[1] << 8 | msg[2];
->
->   	return 0;
->   }
-> @@ -266,13 +264,30 @@ static int em2874_polling_getkey(struct em28xx_IR *ir,
->   	/* Infrared read count (Reg 0x51[6:0] */
->   	poll_result->read_count = (msg[0] & 0x7f);
->
-> -	/* Remote Control Address (Reg 0x52) */
-> -	poll_result->rc_address = msg[1];
-> -
-> -	/* Remote Control Data (Reg 0x53-55) */
-> -	poll_result->rc_data[0] = msg[2];
-> -	poll_result->rc_data[1] = msg[3];
-> -	poll_result->rc_data[2] = msg[4];
-> +		/* Remote Control Address (Reg 0x52) */
-> +		/* Remote Control Data (Reg 0x53-0x55) */
-> +	switch (ir->rc_type) {
-> +	case RC_TYPE_RC5:
-> +		poll_result->scancode = msg[1] << 8 | msg[2];
-> +		break;
-> +	case RC_TYPE_NEC:
-> +		if ((msg[3] ^ msg[4]) != 0xff) 		/* 32 bits NEC */
-
-See for example KEY_CYCLEWINDOWS from RC_MAP_TIVO. Do you think it 
-works..... :-(
-
-> +			poll_result->scancode = (msg[1] << 24) |
-> +						(msg[2] << 16) |
-> +						(msg[3] << 8)  |
-> +						 msg[4];
-> +		else if ((msg[1] ^ msg[2]) != 0xff)	/* 24 bits NEC */
-> +			poll_result->scancode = (msg[1] << 16) |
-> +						(msg[3] << 8)  |
-> +						 msg[4];
-> +		else					/* Normal NEC */
-> +			poll_result->scancode = msg[1] << 8 | msg[3];
-> +		break;
-> +	default:
-> +		poll_result->scancode = (msg[1] << 24) | (msg[2] << 16) |
-> +					(msg[3] << 8)  | msg[4];
-> +		break;
-> +	}
->
->   	return 0;
->   }
-> @@ -294,17 +309,16 @@ static void em28xx_ir_handle_key(struct em28xx_IR *ir)
->   	}
->
->   	if (unlikely(poll_result.read_count != ir->last_readcount)) {
-> -		dprintk("%s: toggle: %d, count: %d, key 0x%02x%02x\n", __func__,
-> +		dprintk("%s: toggle: %d, count: %d, key 0x%04x\n", __func__,
->   			poll_result.toggle_bit, poll_result.read_count,
-> -			poll_result.rc_address, poll_result.rc_data[0]);
-> +			poll_result.scancode);
->   		if (ir->full_code)
->   			rc_keydown(ir->rc,
-> -				   poll_result.rc_address << 8 |
-> -				   poll_result.rc_data[0],
-> +				   poll_result.scancode,
->   				   poll_result.toggle_bit);
->   		else
->   			rc_keydown(ir->rc,
-> -				   poll_result.rc_data[0],
-> +				   poll_result.scancode & 0xff,
->   				   poll_result.toggle_bit);
->
->   		if (ir->dev->chip_id == CHIP_ID_EM2874 ||
-> @@ -359,11 +373,13 @@ static int em28xx_ir_change_protocol(struct rc_dev *rc_dev, u64 rc_type)
->   		ir->full_code = 1;
->   	} else if (rc_type == RC_TYPE_NEC) {
->   		dev->board.xclk &= ~EM28XX_XCLK_IR_RC5_MODE;
-> -		ir_config = EM2874_IR_NEC;
-> +		ir_config = EM2874_IR_NEC | EM2874_IR_NEC_NO_PARITY;
->   		ir->full_code = 1;
->   	} else if (rc_type != RC_TYPE_UNKNOWN)
->   		rc = -EINVAL;
->
-> +	ir->rc_type = rc_type;
-> +
->   	em28xx_write_reg_bits(dev, EM28XX_R0F_XCLK, dev->board.xclk,
->   			      EM28XX_XCLK_IR_RC5_MODE);
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
-> index 6ff3682..2ad3573 100644
-> --- a/drivers/media/usb/em28xx/em28xx-reg.h
-> +++ b/drivers/media/usb/em28xx/em28xx-reg.h
-> @@ -177,6 +177,7 @@
->
->   /* em2874 IR config register (0x50) */
->   #define EM2874_IR_NEC           0x00
-> +#define EM2874_IR_NEC_NO_PARITY 0x01
->   #define EM2874_IR_RC5           0x04
->   #define EM2874_IR_RC6_MODE_0    0x08
->   #define EM2874_IR_RC6_MODE_6A   0x0b
->
-
-
-OK, it is much better and I can even see that in Kernel than keeping 
-old, very limited implementation.
-
-My aim was just to probe whole variant selection method is quite broken, 
-and it is impossible to get working with 100% reliable. As I have said 
-loudly :) , I want 32bit scancodes for all NEC remotes, no variants at 
-all. I think you are about the only person who wants to keep current 
-multiple NEC variant implementation...
-
-
-regards
-Antti
-
-
+diff --git a/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt b/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
+new file mode 100644
+index 0000000..fab7e61
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
+@@ -0,0 +1,92 @@
++Samsung S5P/EXYNOS SoC Camera Subsystem (FIMC)
++----------------------------------------------
++
++The Exynos Camera subsystem comprises of multiple sub-devices that are
++represented by separate platform devices. Some of the IPs come in different
++variants accross the SoC revisions (FIMC) and some remain mostly unchanged
++(MIPI CSIS, FIMC-LITE).
++
++All those sub-subdevices are defined as parent nodes of the common device
++node, which also includes common properties of the whole subsystem not really
++specific to any single sub-device, like common camera port pins or external
++clocks for image sensors attached to the SoC.
++
++Common 'camera' node
++--------------------
++
++Required properties:
++
++- compatible	   : must be "samsung,fimc", "simple-bus"
++
++- pinctrl-names    : pinctrl names for camera port pinmux control, the values
++		     must be "default, "inactive".  "default" corresponds to
++		     pinmux configured for camera parallel bus; "inactive" is
++		     different from "default" only in that the CAMCLK pin is
++		     in high impedance state.
++- pinctrl-0..1	   : pinctrl properties corresponding to pinctrl-names
++
++The 'camera' node must include at least one 'fimc' child node.
++
++
++'fimc' device nodes
++-------------------
++
++Required properties:
++
++- compatible : "samsung,s5pv210-fimc" for S5PV210,
++	       "samsung,exynos4210-fimc" for Exynos4210,
++	       "samsung,exynos4212-fimc" for Exynos4212/4412 SoCs;
++- reg	     : physical base address and size of the device memory mapped
++	       registers;
++- interrupts : FIMC interrupt to the CPU should be described here;
++
++For every fimc node a numbered alias should be present in the aliases node.
++Aliases are of the form fimc<n>, where <n> is an integer (0...N) specifying
++the IP's instance index.
++
++'parallel-ports' node
++-----------------------
++
++This node should contain child 'port' nodes specifying active parallel video
++input ports. It includes camera A and camera B inputs. 'reg' property in the
++port nodes specifies the input - 0, 1 indicates input A, B respectively.
++
++Optional properties
++
++- samsung,camclk-out	 : specifies clock output for remote sensor,
++			   0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
++
++
++Example:
++
++	aliases {
++		csis0 = &csis_0;
++		fimc0 = &fimc_0;
++	};
++
++	camera {
++		compatible = "samsung,fimc", "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		status = "okay";
++
++		pinctrl-names = "default", "inactive";
++		pinctrl-0 = <&cam_port_a_clk_active>;
++		pinctrl-1 = <&cam_port_a_clk_idle>;
++
++		fimc_0: fimc@11800000 {
++			compatible = "samsung,exynos4210-fimc";
++			reg = <0x11800000 0x1000>;
++			interrupts = <0 85 0>;
++			status = "okay";
++		};
++
++		csis_0: csis@11880000 {
++			compatible = "samsung,exynos4210-csis";
++			reg = <0x11880000 0x1000>;
++			interrupts = <0 78 0>;
++			max-data-lanes = <4>;
++		};
++	};
++
++[1] Documentation/devicetree/bindings/media/soc/samsung-mipi-csis.txt
+diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
+index 18a70e4..e716753 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-capture.c
++++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
+@@ -1888,7 +1888,7 @@ int fimc_initialize_capture_subdev(struct fimc_dev *fimc)
+ 
+ 	v4l2_subdev_init(sd, &fimc_subdev_ops);
+ 	sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
+-	snprintf(sd->name, sizeof(sd->name), "FIMC.%d", fimc->pdev->id);
++	snprintf(sd->name, sizeof(sd->name), "FIMC.%d", fimc->id);
+ 
+ 	fimc->vid_cap.sd_pads[FIMC_SD_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
+ 	fimc->vid_cap.sd_pads[FIMC_SD_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
+diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/s5p-fimc/fimc-core.c
+index 2a1558a..e7eabb7 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-core.c
++++ b/drivers/media/platform/s5p-fimc/fimc-core.c
+@@ -21,6 +21,8 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/list.h>
+ #include <linux/io.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
+ #include <linux/slab.h>
+ #include <linux/clk.h>
+ #include <media/v4l2-ioctl.h>
+@@ -879,45 +881,54 @@ static int fimc_m2m_resume(struct fimc_dev *fimc)
+ 	return 0;
+ }
+ 
++static const struct of_device_id fimc_of_match[];
++
+ static int fimc_probe(struct platform_device *pdev)
+ {
+-	const struct fimc_drvdata *drv_data = fimc_get_drvdata(pdev);
+-	struct s5p_platform_fimc *pdata;
++	struct fimc_drvdata *drv_data = NULL;
++	struct device *dev = &pdev->dev;
++	const struct of_device_id *of_id;
+ 	struct fimc_dev *fimc;
+ 	struct resource *res;
+ 	int ret = 0;
+ 
+-	if (pdev->id >= drv_data->num_entities) {
+-		dev_err(&pdev->dev, "Invalid platform device id: %d\n",
+-			pdev->id);
+-		return -EINVAL;
+-	}
+-
+-	fimc = devm_kzalloc(&pdev->dev, sizeof(*fimc), GFP_KERNEL);
++	fimc = devm_kzalloc(dev, sizeof(*fimc), GFP_KERNEL);
+ 	if (!fimc)
+ 		return -ENOMEM;
+ 
+-	fimc->id = pdev->id;
++	if (dev->of_node) {
++		of_id = of_match_node(fimc_of_match, dev->of_node);
++		if (of_id)
++			drv_data = (struct fimc_drvdata *)of_id->data;
++
++		fimc->id = of_alias_get_id(dev->of_node, "fimc");
++	} else {
++		drv_data = fimc_get_drvdata(pdev);
++		fimc->id = pdev->id;
++	}
++
++	if (!drv_data || fimc->id < 0 || fimc->id >= drv_data->num_entities) {
++		dev_err(dev, "Invalid driver data or device index (%d)\n",
++			fimc->id);
++		return -EINVAL;
++	}
+ 
+ 	fimc->variant = drv_data->variant[fimc->id];
+ 	fimc->pdev = pdev;
+-	pdata = pdev->dev.platform_data;
+-	fimc->pdata = pdata;
+-
+ 	init_waitqueue_head(&fimc->irq_queue);
+ 	spin_lock_init(&fimc->slock);
+ 	mutex_init(&fimc->lock);
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	fimc->regs = devm_request_and_ioremap(&pdev->dev, res);
++	fimc->regs = devm_request_and_ioremap(dev, res);
+ 	if (fimc->regs == NULL) {
+-		dev_err(&pdev->dev, "Failed to obtain io memory\n");
++		dev_err(dev, "Failed to obtain io memory\n");
+ 		return -ENOENT;
+ 	}
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+ 	if (res == NULL) {
+-		dev_err(&pdev->dev, "Failed to get IRQ resource\n");
++		dev_err(dev, "Failed to get IRQ resource\n");
+ 		return -ENXIO;
+ 	}
+ 
+@@ -927,10 +938,10 @@ static int fimc_probe(struct platform_device *pdev)
+ 	clk_set_rate(fimc->clock[CLK_BUS], drv_data->lclk_frequency);
+ 	clk_enable(fimc->clock[CLK_BUS]);
+ 
+-	ret = devm_request_irq(&pdev->dev, res->start, fimc_irq_handler,
+-			       0, dev_name(&pdev->dev), fimc);
++	ret = devm_request_irq(dev, res->start, fimc_irq_handler,
++			       0, dev_name(dev), fimc);
+ 	if (ret) {
+-		dev_err(&pdev->dev, "failed to install irq (%d)\n", ret);
++		dev_err(dev, "failed to install irq (%d)\n", ret);
+ 		goto err_clk;
+ 	}
+ 
+@@ -939,23 +950,23 @@ static int fimc_probe(struct platform_device *pdev)
+ 		goto err_clk;
+ 
+ 	platform_set_drvdata(pdev, fimc);
+-	pm_runtime_enable(&pdev->dev);
+-	ret = pm_runtime_get_sync(&pdev->dev);
++	pm_runtime_enable(dev);
++	ret = pm_runtime_get_sync(dev);
+ 	if (ret < 0)
+ 		goto err_sd;
+ 	/* Initialize contiguous memory allocator */
+-	fimc->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
++	fimc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+ 	if (IS_ERR(fimc->alloc_ctx)) {
+ 		ret = PTR_ERR(fimc->alloc_ctx);
+ 		goto err_pm;
+ 	}
+ 
+-	dev_dbg(&pdev->dev, "FIMC.%d registered successfully\n", fimc->id);
++	dev_dbg(dev, "FIMC.%d registered successfully\n", fimc->id);
+ 
+-	pm_runtime_put(&pdev->dev);
++	pm_runtime_put(dev);
+ 	return 0;
+ err_pm:
+-	pm_runtime_put(&pdev->dev);
++	pm_runtime_put(dev);
+ err_sd:
+ 	fimc_unregister_capture_subdev(fimc);
+ err_clk:
+@@ -1267,10 +1278,24 @@ static const struct platform_device_id fimc_driver_ids[] = {
+ 		.name		= "exynos4x12-fimc",
+ 		.driver_data	= (unsigned long)&fimc_drvdata_exynos4x12,
+ 	},
+-	{},
++	{ },
+ };
+ MODULE_DEVICE_TABLE(platform, fimc_driver_ids);
+ 
++static const struct of_device_id fimc_of_match[] __devinitconst = {
++	{
++		.compatible = "samsung,s5pv210-fimc",
++		.data = &fimc_drvdata_s5pv210,
++	}, {
++		.compatible = "samsung,exynos4210-fimc",
++		.data = &fimc_drvdata_exynos4210,
++	}, {
++		.compatible = "samsung,exynos4212-fimc",
++		.data = &fimc_drvdata_exynos4x12,
++	},
++	{ /* sentinel */ },
++};
++
+ static const struct dev_pm_ops fimc_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(fimc_suspend, fimc_resume)
+ 	SET_RUNTIME_PM_OPS(fimc_runtime_suspend, fimc_runtime_resume, NULL)
+@@ -1281,9 +1306,10 @@ static struct platform_driver fimc_driver = {
+ 	.remove		= __devexit_p(fimc_remove),
+ 	.id_table	= fimc_driver_ids,
+ 	.driver = {
+-		.name	= FIMC_MODULE_NAME,
+-		.owner	= THIS_MODULE,
+-		.pm     = &fimc_pm_ops,
++		.of_match_table = of_match_ptr(fimc_of_match),
++		.name		= FIMC_MODULE_NAME,
++		.owner		= THIS_MODULE,
++		.pm     	= &fimc_pm_ops,
+ 	}
+ };
+ 
 -- 
-http://palosaari.fi/
+1.7.9.5
+
