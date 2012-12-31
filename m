@@ -1,143 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:22485 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751279Ab2LJRie convert rfc822-to-8bit (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:15682 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750958Ab2LaQDu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 12:38:34 -0500
-Date: Mon, 10 Dec 2012 15:38:16 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
-	"linux-media" <linux-media@vger.kernel.org>
-Subject: Re: RFC: First draft of guidelines for submitting patches to
- linux-media
-Message-ID: <20121210153816.0d4d9b64@redhat.com>
-In-Reply-To: <201212101727.29074.hverkuil@xs4all.nl>
-References: <201212101407.09338.hverkuil@xs4all.nl>
-	<50C60620.2010603@googlemail.com>
-	<201212101727.29074.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 31 Dec 2012 11:03:50 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v2 05/15] s5p-fimc: Support for FIMC-LITE devices
+ instantiated from the device tree
+Date: Mon, 31 Dec 2012 17:03:03 +0100
+Message-id: <1356969793-27268-6-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
+References: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 10 Dec 2012 17:27:29 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+This patch add support for binding the driver to FIMC-LITE devices
+instantiated from the device tree.
 
-> On Mon December 10 2012 16:56:16 Frank Schäfer wrote:
-> > Am 10.12.2012 14:07, schrieb Hans Verkuil:
-> > 
-> > <snip>
-> > > 3) This document describes the situation we will have when the submaintainers
-> > > take their place early next year. So please check if I got that part right.
-> > ...
-> > 
-> > > Reviewed-by/Acked-by
-> > > ====================
-> > >
-> > > Within the media subsystem there are three levels of maintainership: Mauro
-> > > Carvalho Chehab is the maintainer of the whole subsystem and the
-> > > DVB/V4L/IR/Media Controller core code in particular, then there are a number of
-> > > submaintainers for specific areas of the subsystem:
-> > >
-> > > - Kamil Debski: codec (aka memory-to-memory) drivers
-> > > - Hans de Goede: non-UVC USB webcam drivers
-> > > - Mike Krufky: frontends/tuners/demodulators In addition he'll be the reviewer
-> > >   for DVB core patches.
-> > > - Guennadi Liakhovetski: soc-camera drivers
-> > > - Laurent Pinchart: sensor subdev drivers.  In addition he'll be the reviewer
-> > >   for Media Controller core patches.
-> > > - Hans Verkuil: V4L2 drivers and video A/D and D/A subdev drivers (aka video
-> > >   receivers and transmitters). In addition he'll be the reviewer for V4L2 core
-> > >   patches.
-> > >
-> > > Finally there are maintainers for specific drivers. This is documented in the
-> > > MAINTAINERS file.
-> > >
-> > > When modifying existing code you need to get the Reviewed-by/Acked-by of the
-> > > maintainer of that code. So CC that maintainer when posting patches. If said
-> > > maintainer is unavailable then the submaintainer or even Mauro can accept it as
-> > > well, but that should be the exception, not the rule.
-> > >
-> > > Once patches are accepted they will flow through the git tree of the
-> > > submaintainer to the git tree of the maintainer (Mauro) who will do a final
-> > > review.
-> > >
-> > > There are a few exceptions: code for certain platforms goes through git trees
-> > > specific to that platform. The submaintainer will still review it and add a
-> > > acked-by or reviewed-by line, but it will not go through the submaintainer's
-> > > git tree.
-> > >
-> > > The platform maintainers are:
-> > >
-> > > TDB
-> > >
-> > > In case patches touch on areas that are the responsibility of multiple
-> > > submaintainers, then they will decide among one another who will merge the
-> > > patches.
-> > 
-> > I've read this "when the submaintainers take their place early next
-> > year, everything will be fine" several times now.
-> 
-> I doubt everything will be fine, but I sure hope it will be better at least.
-> In other words, don't expect miracles :-)
-> 
-> > But can anyone please explain me what's going to change ?
-> > AFAICS, the above exactly describes the _current_ situation.
-> > We already have sub-maintainers, sub-trees etc, right !? And the people
-> > listed above are already doing the same job at the moment.
-> > 
-> > Looking at patchwork, it seems we are behind at least 1 complete kernel
-> > release cycle.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ .../devicetree/bindings/media/soc/samsung-fimc.txt |   16 +++++
+ drivers/media/platform/s5p-fimc/fimc-lite.c        |   65 ++++++++++++++------
+ 2 files changed, 62 insertions(+), 19 deletions(-)
 
-No, this is not true; git pull requests are typically handled faster, as
-the material there is submitted either by a driver maintainer or by a
-sub-maintainer. The delay there for -git is currently 2 weeks, as we closed our
-merge window at the beginning of -rc7 (expecting that there won't be a -rc8).
+diff --git a/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt b/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
+index fab7e61..5bbda07 100644
+--- a/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
++++ b/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
+@@ -57,6 +57,22 @@ Optional properties
+ 			   0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
+ 
+ 
++'fimc-lite' device nodes
++-----------------------
++
++Required properties:
++
++- compatible : should be "samsung,exynos4212-fimc" for Exynos4212 and
++	       Exynos4412 SoCs;
++- reg	     : physical base address and size of the device memory mapped
++	       registers;
++- interrupts : should contain FIMC-LITE interrupt;
++
++For every fimc-lite node a numbered alias should be present in the aliases
++node. Aliases are in form of fimc-lite<n>, where <n> is an integer (0...N)
++specifying the IP's instance index.
++
++
+ Example:
+ 
+ 	aliases {
+diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
+index ef31c39..cfa3952 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-lite.c
++++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
+@@ -17,6 +17,7 @@
+ #include <linux/kernel.h>
+ #include <linux/list.h>
+ #include <linux/module.h>
++#include <linux/of.h>
+ #include <linux/types.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+@@ -1490,18 +1491,34 @@ static int fimc_lite_clk_get(struct fimc_lite *fimc)
+ 	return ret;
+ }
+ 
++static const struct of_device_id flite_of_match[];
++
+ static int __devinit fimc_lite_probe(struct platform_device *pdev)
+ {
+-	struct flite_drvdata *drv_data = fimc_lite_get_drvdata(pdev);
++	struct flite_drvdata *drv_data = NULL;
++	struct device *dev = &pdev->dev;
++	const struct of_device_id *of_id;
+ 	struct fimc_lite *fimc;
+ 	struct resource *res;
+ 	int ret;
+ 
+-	fimc = devm_kzalloc(&pdev->dev, sizeof(*fimc), GFP_KERNEL);
++	fimc = devm_kzalloc(dev, sizeof(*fimc), GFP_KERNEL);
+ 	if (!fimc)
+ 		return -ENOMEM;
+ 
+-	fimc->index = pdev->id;
++	if (dev->of_node) {
++		of_id = of_match_node(flite_of_match, dev->of_node);
++		if (of_id)
++			drv_data = (struct flite_drvdata *)of_id->data;
++		fimc->index = of_alias_get_id(dev->of_node, "fimc-lite");
++	} else {
++		drv_data = fimc_lite_get_drvdata(pdev);
++		fimc->index = pdev->id;
++	}
++
++	if (!drv_data || fimc->index < 0 || fimc->index >= FIMC_LITE_MAX_DEVS)
++		return -EINVAL;
++
+ 	fimc->variant = drv_data->variant[fimc->index];
+ 	fimc->pdev = pdev;
+ 
+@@ -1510,15 +1527,15 @@ static int __devinit fimc_lite_probe(struct platform_device *pdev)
+ 	mutex_init(&fimc->lock);
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	fimc->regs = devm_request_and_ioremap(&pdev->dev, res);
++	fimc->regs = devm_request_and_ioremap(dev, res);
+ 	if (fimc->regs == NULL) {
+-		dev_err(&pdev->dev, "Failed to obtain io memory\n");
++		dev_err(dev, "Failed to obtain io memory\n");
+ 		return -ENOENT;
+ 	}
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+ 	if (res == NULL) {
+-		dev_err(&pdev->dev, "Failed to get IRQ resource\n");
++		dev_err(dev, "Failed to get IRQ resource\n");
+ 		return -ENXIO;
+ 	}
+ 
+@@ -1526,10 +1543,10 @@ static int __devinit fimc_lite_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = devm_request_irq(&pdev->dev, res->start, flite_irq_handler,
+-			       0, dev_name(&pdev->dev), fimc);
++	ret = devm_request_irq(dev, res->start, flite_irq_handler,
++			       0, dev_name(dev), fimc);
+ 	if (ret) {
+-		dev_err(&pdev->dev, "Failed to install irq (%d)\n", ret);
++		dev_err(dev, "Failed to install irq (%d)\n", ret);
+ 		goto err_clk;
+ 	}
+ 
+@@ -1539,23 +1556,23 @@ static int __devinit fimc_lite_probe(struct platform_device *pdev)
+ 		goto err_clk;
+ 
+ 	platform_set_drvdata(pdev, fimc);
+-	pm_runtime_enable(&pdev->dev);
+-	ret = pm_runtime_get_sync(&pdev->dev);
++	pm_runtime_enable(dev);
++	ret = pm_runtime_get_sync(dev);
+ 	if (ret < 0)
+ 		goto err_sd;
+ 
+-	fimc->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
++	fimc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+ 	if (IS_ERR(fimc->alloc_ctx)) {
+ 		ret = PTR_ERR(fimc->alloc_ctx);
+ 		goto err_pm;
+ 	}
+-	pm_runtime_put(&pdev->dev);
++	pm_runtime_put(dev);
+ 
+-	dev_dbg(&pdev->dev, "FIMC-LITE.%d registered successfully\n",
++	dev_dbg(dev, "FIMC-LITE.%d registered successfully\n",
+ 		fimc->index);
+ 	return 0;
+ err_pm:
+-	pm_runtime_put(&pdev->dev);
++	pm_runtime_put(dev);
+ err_sd:
+ 	fimc_lite_unregister_capture_subdev(fimc);
+ err_clk:
+@@ -1646,6 +1663,12 @@ static int __devexit fimc_lite_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct dev_pm_ops fimc_lite_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(fimc_lite_suspend, fimc_lite_resume)
++	SET_RUNTIME_PM_OPS(fimc_lite_runtime_suspend, fimc_lite_runtime_resume,
++			   NULL)
++};
++
+ static struct flite_variant fimc_lite0_variant_exynos4 = {
+ 	.max_width		= 8192,
+ 	.max_height		= 8192,
+@@ -1671,17 +1694,21 @@ static struct platform_device_id fimc_lite_driver_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(platform, fimc_lite_driver_ids);
+ 
+-static const struct dev_pm_ops fimc_lite_pm_ops = {
+-	SET_SYSTEM_SLEEP_PM_OPS(fimc_lite_suspend, fimc_lite_resume)
+-	SET_RUNTIME_PM_OPS(fimc_lite_runtime_suspend, fimc_lite_runtime_resume,
+-			   NULL)
++static const struct of_device_id flite_of_match[] __devinitconst = {
++	{
++		.compatible = "samsung,exynos4212-fimc-lite",
++		.data = &fimc_lite_drvdata_exynos4,
++	},
++	{ /* sentinel */ },
+ };
++MODULE_DEVICE_TABLE(of, flite_of_match);
+ 
+ static struct platform_driver fimc_lite_driver = {
+ 	.probe		= fimc_lite_probe,
+ 	.remove		= __devexit_p(fimc_lite_remove),
+ 	.id_table	= fimc_lite_driver_ids,
+ 	.driver = {
++		.of_match_table = of_match_ptr(flite_of_match),
+ 		.name		= FIMC_LITE_DRV_NAME,
+ 		.owner		= THIS_MODULE,
+ 		.pm		= &fimc_lite_pm_ops,
+-- 
+1.7.9.5
 
-The very large of individual patches have a longer delays, due to the lack of
-driver maintainers reviews.
-
-> > And the reason seems to be, that (at least some) maintainers don't have
-> > the resources to review them in time (no reproaches !).
-> > 
-> > But to me this seems to be no structural problem.
-> > If a maintainer (permanently) doesn't have the time to review patches,
-> > he should leave maintainership to someone else.
-
-Agreed.
-
-> > 
-> > So the actual problem seems to be, that we don't have enough
-> > maintainers/reviewers, right ?
-> 
-> The main problem is that all the work is done by Mauro. Sure, people help
-> out with reviews but a lot of the final administrative and merge effort is
-> done by one person only. In particular the patch flow is something he can't
-> keep up with anymore. So by assigning official submaintainers who get access
-> to patchwork and can process patches quickly we hope that his job will become
-> a lot easier.
-> 
-> So the core two changes are 1) giving clear responsibilities to submaintainers
-> and 2) giving submaintainers access to patchwork to keep track of the patches.
-> 
-> So patch submitters no longer have to wait until Mauro gets around to cleaning
-> out patchwork. Instead the submaintainers can do that themselves and collect
-> accepted patches in their git tree and post regular pull requests for Mauro.
-> 
-> It should simplify things substantially for Mauro, we hope.
-> 
-> I think we have enough people doing reviews etc. (although more are always
-> welcome), it's the patchflow itself that is the problem.
-
-Yeah, the issue is that both reviewed, non-reviewed and rejected/commented
-patches go into the very same queue, forcing me to revisit each patch again, 
-even the rejected/commented ones, and the previous versions of newer patches.
-
-By giving rights and responsibilities to the sub-maintainers to manage their
-stuff directly at patchwork, those patches that tend to stay at patchwork for
-a long time will likely disappear, and the queue will be cleaner.
-
-Regards,
-Mauro
