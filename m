@@ -1,90 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56710 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751878Ab2LJUtV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Dec 2012 15:49:21 -0500
-Message-ID: <50C64AB0.7020407@iki.fi>
-Date: Mon, 10 Dec 2012 22:48:48 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Matthew Gyurgyik <matthew@pyther.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50BE65F0.8020303@googlemail.com> <50BEC253.4080006@pyther.net> <50BF3F9A.3020803@iki.fi> <50BFBE39.90901@pyther.net> <50BFC445.6020305@iki.fi> <50BFCBBB.5090407@pyther.net> <50BFECEA.9060808@iki.fi> <50BFFFF6.1000204@pyther.net> <50C11301.10205@googlemail.com> <50C12302.80603@pyther.net> <50C34628.5030407@googlemail.com> <50C34A50.6000207@pyther.net> <50C35AD1.3040000@googlemail.com> <50C48891.2050903@googlemail.com> <50C4A520.6020908@pyther.net> <CAGoCfiwL3pCEr2Ys48pODXqkxrmXSntH+Tf1AwCT+MEgS-_FRw@mail.gmail.com> <50C4BA20.8060003@googlemail.com> <50C4BAFB.60304@googlemail.com> <50C4C525.6020006@googlemail.com> <50C4D011.6010700@pyther.net> <50C60220.8050908@googlemail.com> <CAGoCfizTfZVFkNvdQuuisOugM2BGipYd_75R63nnj=K7E8ULWQ@mail.gmail.com> <50C60772.2010904@googlemail.com> <CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com> <50C6226C.8090302@iki! .fi> <50C636E7.8060003@googlemail.com>
-In-Reply-To: <50C636E7.8060003@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mailout2.samsung.com ([203.254.224.25]:15703 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751400Ab2LaQEH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Dec 2012 11:04:07 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v2 09/15] s5p-fimc: Use pinctrl API for camera ports
+ configuration
+Date: Mon, 31 Dec 2012 17:03:07 +0100
+Message-id: <1356969793-27268-10-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
+References: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/10/2012 09:24 PM, Frank Schäfer wrote:
-> Am 10.12.2012 18:57, schrieb Antti Palosaari:
->> On 12/10/2012 06:13 PM, Devin Heitmueller wrote:
->>> On Mon, Dec 10, 2012 at 11:01 AM, Frank Schäfer
->>>> Adding a new property to the RC profile certainly seems to be the
->>>> cleanest solution.
->>>> Do all protocols have paritiy checking ? Otherwise we could add a new
->>>> type RC_TYPE_NEC_NO_PARITY.
->>>> OTOH, introducing a new bitfield in struct rc_map might be usefull for
->>>> other flags, too, in the future...
->>>
->>> It's probably also worth mentioning that in that mode the device
->>> reports four bytes, not two.  I guess perhaps if parity is ignored it
->>> reports the data in some other format?  You will probably have to do
->>> some experimentation there.
->>
->> Uh, current em28xx NEC implementation is locked to traditional 16 bit
->> NEC, where is hw checksum used.
->>
->> Implementation should be changed to more general to support 24 and 32
->> bit NEC too. There is multiple drivers doing already that, for example
->> AF9015.
->>
->
-> Hmm... are there and documents (, links, books, ...) where I can learn
-> more about all those RC protocols ?
+Before the camera ports can be used the pinmux needs to be configured
+properly. This patch adds a function to get the pinctrl states and to
+set default camera port pinmux state during the media driver's probe().
+The camera port(s) are configured for video bus operation in this way.
 
-Specification comes here:
-NEC send always 32 bit, 4 bytes. There is 3 different "sub" protocols:
+"inactive" pinctrl state is intended for setting clock output pin(s)
+into high impedance state when camera sensors are powered off.
 
-1) 16bit NEC standard, 1 byte address code, 1 byte key code
-full 4 byte code: AA BB CC DD
-where:
-AA = address code
-BB = ~address code
-CC = key code
-DD = ~key code
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyugmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-fimc/fimc-mdevice.c |   25 ++++++++++++++++++++++++
+ drivers/media/platform/s5p-fimc/fimc-mdevice.h |    6 ++++++
+ 2 files changed, 31 insertions(+)
 
-checksum:
-AA + BB = 0xff
-CC + DD = 0xff
-
-2) 24bit NEC extended, 2 byte address code, 1 byte key code
-full 4 byte code: AA BB CC DD
-where:
-AA = address code (MSB)
-BB = address code (LSB)
-CC = key code
-DD = ~key code
-
-3) 32bit NEC full, 4 byte key code
-full 4 byte code: AA BB CC DD
-where:
-AA =
-BB =
-CC =
-DD =
-
-I am not sure if there is separate parts for address and key code in 
-case of 32bit NEC. See some existing remote keytables if there is any 
-such table. It is very rare protocol. 1) and 2) are much more common.
-
-
-regards
-Antti
-
-
+diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+index 3ac6ea8..9e4ed9e 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
++++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+@@ -1123,6 +1123,25 @@ static ssize_t fimc_md_sysfs_store(struct device *dev,
+ static DEVICE_ATTR(subdev_conf_mode, S_IWUSR | S_IRUGO,
+ 		   fimc_md_sysfs_show, fimc_md_sysfs_store);
+ 
++static int fimc_md_get_pinctrl(struct fimc_md *fmd)
++{
++	fmd->pinctl = devm_pinctrl_get_select_default(&fmd->pdev->dev);
++	if (IS_ERR(fmd->pinctl))
++		return PTR_ERR(fmd->pinctl);
++
++	fmd->pinctl_state_default = pinctrl_lookup_state(fmd->pinctl,
++						 PINCTRL_STATE_DEFAULT);
++	if (IS_ERR(fmd->pinctl_state_default))
++		return PTR_ERR(fmd->pinctl_state_default);
++
++	fmd->pinctl_state_idle = pinctrl_lookup_state(fmd->pinctl,
++						PINCTRL_STATE_INACTIVE);
++	if (IS_ERR(fmd->pinctl_state_idle))
++		return PTR_ERR(fmd->pinctl_state_idle);
++
++	return 0;
++}
++
+ static int fimc_md_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+@@ -1167,6 +1186,12 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 	/* Protect the media graph while we're registering entities */
+ 	mutex_lock(&fmd->media_dev.graph_mutex);
+ 
++	if (dev->of_node) {
++		ret = fimc_md_get_pinctrl(fmd);
++		if (ret < 0)
++			goto err_unlock;
++	}
++
+ 	if (fmd->pdev->dev.of_node)
+ 		ret = fimc_md_register_of_platform_entities(fmd);
+ 	else
+diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.h b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
+index 1b7850c..89cecaa 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-mdevice.h
++++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
+@@ -10,6 +10,7 @@
+ #define FIMC_MDEVICE_H_
+ 
+ #include <linux/clk.h>
++#include <linux/pinctrl/consumer.h>
+ #include <linux/platform_device.h>
+ #include <linux/mutex.h>
+ #include <media/media-device.h>
+@@ -25,6 +26,8 @@
+ #define FIMC_LITE_OF_NODE_NAME	"fimc_lite"
+ #define CSIS_OF_NODE_NAME	"csis"
+ 
++#define PINCTRL_STATE_INACTIVE	"inactive"
++
+ /* Group IDs of sensor, MIPI-CSIS, FIMC-LITE and the writeback subdevs. */
+ #define GRP_ID_SENSOR		(1 << 8)
+ #define GRP_ID_FIMC_IS_SENSOR	(1 << 9)
+@@ -85,6 +88,9 @@ struct fimc_md {
+ 	struct media_device media_dev;
+ 	struct v4l2_device v4l2_dev;
+ 	struct platform_device *pdev;
++	struct pinctrl *pinctl;
++	struct pinctrl_state *pinctl_state_default;
++	struct pinctrl_state *pinctl_state_idle;
+ 	bool user_subdev_api;
+ 	spinlock_t slock;
+ };
 -- 
-http://palosaari.fi/
+1.7.9.5
+
