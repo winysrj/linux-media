@@ -1,62 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f179.google.com ([209.85.220.179]:63533 "EHLO
-	mail-vc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750843Ab2LTHVL (ORCPT
+Received: from mail-pb0-f44.google.com ([209.85.160.44]:56001 "EHLO
+	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750716Ab2LaC61 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Dec 2012 02:21:11 -0500
-Received: by mail-vc0-f179.google.com with SMTP id p1so3304720vcq.24
-        for <linux-media@vger.kernel.org>; Wed, 19 Dec 2012 23:21:10 -0800 (PST)
+	Sun, 30 Dec 2012 21:58:27 -0500
+Received: by mail-pb0-f44.google.com with SMTP id uo1so6825778pbc.17
+        for <linux-media@vger.kernel.org>; Sun, 30 Dec 2012 18:58:26 -0800 (PST)
+Message-ID: <50E0FF4D.9060607@linaro.org>
+Date: Mon, 31 Dec 2012 08:28:21 +0530
+From: Tushar Behera <tushar.behera@linaro.org>
 MIME-Version: 1.0
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Thu, 20 Dec 2012 12:22:29 +0530
-Message-ID: <CAO_48GEePPaGtEsSZR+e1TDULqSmoHe5S0=+wHu8A=hYj9hMMA@mail.gmail.com>
-Subject: [GIT PULL]: dma-buf updates for 3.8
-To: Linus Torvalds <torvalds@linux-foundation.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
-	linux-media@vger.kernel.org
-Cc: Jesse Barker <jesse.barker@linaro.org>, akpm@linux-foundation.org,
-	Daniel Vetter <daniel@ffwll.ch>, Arnd Bergmann <arnd@arndb.de>,
-	Dave Airlie <airlied@linux.ie>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org
+Subject: Re: Patch update notification: 5 patches updated
+References: <20121226123302.24678.81659@www.linuxtv.org> <50DD29CC.1070608@linaro.org> <20121228102052.3c22a36c@infradead.org>
+In-Reply-To: <20121228102052.3c22a36c@infradead.org>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+On 12/28/2012 05:50 PM, Mauro Carvalho Chehab wrote:
+> Em Fri, 28 Dec 2012 10:40:36 +0530
+> Tushar Behera <tushar.behera@linaro.org> escreveu:
+> 
+>> On 12/26/2012 06:03 PM, Patchwork wrote:
+>>> Hello,
+>>>
+>>> The following patches (submitted by you) have been updated in patchwork:
+>>>
+>>>  * [05/14,media] atmel-isi: Update error check for unsigned variables
+>>>      - http://patchwork.linuxtv.org/patch/15475/
+>>>     was: New
+>>>     now: Under Review
+>>>
 
-A fairly small dma-buf pull request for 3.8 - only 2 patches. Could
-you please pull?
+I erred on tracking this particular patch. This patch is still valid.
 
-Thanks!
-~Sumit.
+Sorry for the earlier mis-communication.
 
-The following changes since commit f01af9f85855e38fbd601e033a8eac204cc4cc1c:
-
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc
-(2012-12-19 20:31:02 -0800)
-
-are available in the git repository at:
-
-
-  git://git.linaro.org/people/sumitsemwal/linux-dma-buf.git
-tags/tag-for-linus-3.8
-
-for you to fetch changes up to ada65c74059f8c104f1b467c126205471634c435:
-
-  dma-buf: remove fallback for !CONFIG_DMA_SHARED_BUFFER (2012-12-20
-12:05:06 +0530)
-
-----------------------------------------------------------------
-3.8: dma-buf minor updates
-
-----------------------------------------------------------------
-Maarten Lankhorst (1):
-      dma-buf: remove fallback for !CONFIG_DMA_SHARED_BUFFER
-
-Rob Clark (1):
-      dma-buf: might_sleep() in dma_buf_unmap_attachment()
-
- drivers/base/dma-buf.c  |    2 +
- include/linux/dma-buf.h |   99 -----------------------------------------------
- 2 files changed, 2 insertions(+), 99 deletions(-)
+-- 
+Tushar Behera
