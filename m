@@ -1,69 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:16532 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755705Ab3AHKkp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 05:40:45 -0500
-Message-id: <50EBF7A9.6070802@samsung.com>
-Date: Tue, 08 Jan 2013 11:40:41 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Federico Vaga <federico.vaga@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH v4 1/3] videobuf2-dma-contig: user can specify GFP flags
-References: <1357493343-13090-1-git-send-email-federico.vaga@gmail.com>
- <50EBC26E.5090803@samsung.com> <1609748.zs7bdcvuG8@harkonnen>
-In-reply-to: <1609748.zs7bdcvuG8@harkonnen>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:4287 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751001Ab2LaVjd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Dec 2012 16:39:33 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr19.xs4all.nl (8.13.8/8.13.8) with ESMTP id qBVLdUNO074432
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 31 Dec 2012 22:39:32 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 7892711E0100
+	for <linux-media@vger.kernel.org>; Mon, 31 Dec 2012 22:39:29 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20121231213929.7892711E0100@alastor.dyndns.org>
+Date: Mon, 31 Dec 2012 22:39:29 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 1/8/2013 11:15 AM, Federico Vaga wrote:
-> > > @@ -165,7 +161,8 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned
-> > > long size)>
-> > >   	/* align image size to PAGE_SIZE */
-> > >   	size = PAGE_ALIGN(size);
-> > >
-> > > -	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
-> GFP_KERNEL);
-> > > +	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
-> > > +									
-> GFP_KERNEL | conf->mem_flags);
-> >
-> > I think we can add GFP_DMA flag unconditionally to the vb2_dc_contig
-> > allocator.
-> > It won't hurt existing clients as most of nowadays platforms doesn't
-> > have DMA
-> > zone (GFP_DMA is ignored in such case), but it should fix the issues
-> > with some
-> > older and non-standard systems.
->
-> I did not set GFP_DMA fixed in the allocator because I do not want to brake
-> something in the future. On x86 platform GFP_DMA allocates under 16MB and this
-> limit can be too strict. When many other drivers use GFP_DMA we can saturate
-> this tiny zone.
-> As you said, this fix the issue with _older_ and _non-standard_ (like sta2x11)
-> systems. But this fix has effect on every other standard and new systems.
-> That's why I preferred to set the flag optionally.
+Results of the daily build of media_tree:
 
-Ok, then I would simply pass the flags from the driver without any 
-alternation
-in the allocator itself, so drivers can pass 'GFP_KERNEL' or
-'GFP_KERNEL | GFP_DMA' depending on their preference. Please also update 
-all
-the existing clients of vb2_dma_dc allocator.
+date:        Mon Dec 31 19:00:18 CET 2012
+git hash:    b858c331cdf402853be2c48c8f4f77173ef04da8
+gcc version:      i686-linux-gcc (GCC) 4.7.1
+host hardware:    x86_64
+host os:          3.4.07-marune
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+linux-git-arm-eabi-davinci: WARNINGS
+linux-git-arm-eabi-exynos: OK
+linux-git-arm-eabi-omap: ERRORS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-i686: WARNINGS
+linux-2.6.37-i686: WARNINGS
+linux-2.6.38.2-i686: WARNINGS
+linux-2.6.39.1-i686: WARNINGS
+linux-3.0-i686: WARNINGS
+linux-3.1-i686: WARNINGS
+linux-3.2.1-i686: WARNINGS
+linux-3.3-i686: WARNINGS
+linux-3.4-i686: WARNINGS
+linux-3.5-i686: WARNINGS
+linux-3.6-i686: WARNINGS
+linux-3.7-i686: WARNINGS
+linux-3.8-rc1-i686: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-x86_64: WARNINGS
+linux-2.6.37-x86_64: WARNINGS
+linux-2.6.38.2-x86_64: WARNINGS
+linux-2.6.39.1-x86_64: WARNINGS
+linux-3.0-x86_64: WARNINGS
+linux-3.1-x86_64: WARNINGS
+linux-3.2.1-x86_64: WARNINGS
+linux-3.3-x86_64: WARNINGS
+linux-3.4-x86_64: WARNINGS
+linux-3.5-x86_64: WARNINGS
+linux-3.6-x86_64: WARNINGS
+linux-3.7-x86_64: WARNINGS
+linux-3.8-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
