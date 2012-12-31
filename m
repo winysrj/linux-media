@@ -1,66 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:61422 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752502Ab2LZRgC (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:63082 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751471Ab2LaQE3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Dec 2012 12:36:02 -0500
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id DE4B740BDE
-	for <linux-media@vger.kernel.org>; Wed, 26 Dec 2012 18:35:59 +0100 (CET)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1Tnuta-0001cH-Mt
-	for linux-media@vger.kernel.org; Wed, 26 Dec 2012 18:35:58 +0100
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+	Mon, 31 Dec 2012 11:04:29 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 0/6] soc-camera: improvements and fixes, prepare for async
-Date: Wed, 26 Dec 2012 18:35:52 +0100
-Message-Id: <1356543358-6180-1-git-send-email-g.liakhovetski@gmx.de>
+Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v2 14/15] ARM: dts: Add camera pinctrl nodes for Exynos4x12
+ SoCs
+Date: Mon, 31 Dec 2012 17:03:12 +0100
+Message-id: <1356969793-27268-15-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
+References: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These patches fix several issues in soc-camera drivers, preparing a 
-cleaner base for v4l2-async patches.
+Add separate nodes for the CAMCLK pin and turn off pull-up on camera
+port A. Default driver strength for CAMCLK pin is increased to maximum.
+The driver strength change can be moved to board specific part if it
+is considered more appropriate.
 
-Thanks
-Guennadi
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/boot/dts/exynos4x12-pinctrl.dtsi |   33 +++++++++++++++++++++++------
+ 1 file changed, 26 insertions(+), 7 deletions(-)
 
-Guennadi Liakhovetski (6):
-  media: sh_mobile_ceu_camera: fix CSI2 format negotiation
-  media: soc-camera: properly fix camera probing races
-  soc-camera: remove struct soc_camera_device::video_lock
-  media: soc-camera: split struct soc_camera_link into host and
-    subdevice parts
-  media: soc-camera: use devm_kzalloc in subdevice drivers
-  soc-camera: fix repeated regulator requesting
-
- drivers/media/i2c/soc_camera/imx074.c              |   27 +--
- drivers/media/i2c/soc_camera/mt9m001.c             |   52 +++----
- drivers/media/i2c/soc_camera/mt9m111.c             |   36 ++---
- drivers/media/i2c/soc_camera/mt9t031.c             |   36 ++---
- drivers/media/i2c/soc_camera/mt9t112.c             |   27 ++--
- drivers/media/i2c/soc_camera/mt9v022.c             |   44 +++---
- drivers/media/i2c/soc_camera/ov2640.c              |   29 ++--
- drivers/media/i2c/soc_camera/ov5642.c              |   31 ++---
- drivers/media/i2c/soc_camera/ov6650.c              |   30 ++--
- drivers/media/i2c/soc_camera/ov772x.c              |   36 ++---
- drivers/media/i2c/soc_camera/ov9640.c              |   27 ++--
- drivers/media/i2c/soc_camera/ov9740.c              |   29 ++--
- drivers/media/i2c/soc_camera/rj54n1cb0c.c          |   39 ++---
- drivers/media/i2c/soc_camera/tw9910.c              |   30 ++---
- drivers/media/platform/soc_camera/atmel-isi.c      |    4 +-
- drivers/media/platform/soc_camera/mx1_camera.c     |    3 +-
- drivers/media/platform/soc_camera/mx2_camera.c     |    1 -
- drivers/media/platform/soc_camera/mx3_camera.c     |    4 +-
- drivers/media/platform/soc_camera/omap1_camera.c   |    4 +-
- drivers/media/platform/soc_camera/pxa_camera.c     |    6 +-
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |    6 +-
- drivers/media/platform/soc_camera/soc_camera.c     |  167 +++++++++++---------
- .../platform/soc_camera/soc_camera_platform.c      |    6 +-
- include/media/soc_camera.h                         |   98 +++++++++---
- include/media/soc_camera_platform.h                |   10 +-
- 25 files changed, 379 insertions(+), 403 deletions(-)
-
+diff --git a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
+index 56f4669..e3225d0 100644
+--- a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
++++ b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
+@@ -401,15 +401,28 @@
+ 			samsung,pin-drv = <0>;
+ 		};
+ 
+-		cam_port_a: cam-port-a {
++		cam_port_a_io: cam-port-a-io {
+ 			samsung,pins = "gpj0-0", "gpj0-1", "gpj0-2", "gpj0-3",
+ 					"gpj0-4", "gpj0-5", "gpj0-6", "gpj0-7",
+-					"gpj1-0", "gpj1-1", "gpj1-2", "gpj1-3",
+-					"gpj1-4";
++					"gpj1-0", "gpj1-1", "gpj1-2", "gpj1-4";
+ 			samsung,pin-function = <2>;
+-			samsung,pin-pud = <3>;
++			samsung,pin-pud = <0>;
+ 			samsung,pin-drv = <0>;
+ 		};
++
++		cam_port_a_clk_active: cam-port-a-clk-active {
++			samsung,pins = "gpj1-3";
++			samsung,pin-function = <2>;
++			samsung,pin-pud = <0>;
++			samsung,pin-drv = <3>;
++		};
++
++		cam_port_a_clk_idle: cam-port-a-clk-idle {
++			samsung,pins = "gpj1-3";
++			samsung,pin-function = <2>;
++			samsung,pin-pud = <0>;
++			samsung,pin-drv = <3>;
++		};
+ 	};
+ 
+ 	pinctrl@11000000 {
+@@ -834,11 +847,17 @@
+ 			samsung,pin-drv = <0>;
+ 		};
+ 
+-		cam_port_b: cam-port-b {
++		cam_port_b_io: cam-port-b-io {
+ 			samsung,pins = "gpm0-0", "gpm0-1", "gpm0-2", "gpm0-3",
+ 					"gpm0-4", "gpm0-5", "gpm0-6", "gpm0-7",
+-					"gpm1-0", "gpm1-1", "gpm2-0", "gpm2-1",
+-					"gpm2-2";
++					"gpm1-0", "gpm1-1", "gpm2-0", "gpm2-1";
++			samsung,pin-function = <3>;
++			samsung,pin-pud = <3>;
++			samsung,pin-drv = <0>;
++		};
++
++		cam_port_b_clk: cam-port-b-clk {
++			samsung,pins = "gpm2-2";
+ 			samsung,pin-function = <3>;
+ 			samsung,pin-pud = <3>;
+ 			samsung,pin-drv = <0>;
 -- 
-1.7.2.5
+1.7.9.5
 
