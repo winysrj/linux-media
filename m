@@ -1,188 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:53378 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753089Ab2LPPyy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Dec 2012 10:54:54 -0500
-Date: Sun, 16 Dec 2012 08:54:49 -0700
-From: Jonathan Corbet <corbet@lwn.net>
-To: Albert Wang <twang13@marvell.com>
-Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	Libin Yang <lbyang@marvell.com>
-Subject: Re: [PATCH V3 02/15] [media] marvell-ccic: add MIPI support for
- marvell-ccic driver
-Message-ID: <20121216085449.2a3807f6@hpe.lwn.net>
-In-Reply-To: <1355565484-15791-3-git-send-email-twang13@marvell.com>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
-	<1355565484-15791-3-git-send-email-twang13@marvell.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from mailout3.samsung.com ([203.254.224.33]:63091 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751517Ab2LaQEd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 Dec 2012 11:04:33 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v2 15/15] ARM: dts: Add camera device nodes nodes for PQ
+ board
+Date: Mon, 31 Dec 2012 17:03:13 +0100
+Message-id: <1356969793-27268-16-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
+References: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 15 Dec 2012 17:57:51 +0800
-Albert Wang <twang13@marvell.com> wrote:
+This patch adds all nodes for camera devices on example Exynos4412 SoC
+based board. This is all what's required in the board dts file to enable
+rear facing camera (S5C73M3 sensor).
 
-> From: Libin Yang <lbyang@marvell.com>
-> 
-> This patch adds the MIPI support for marvell-ccic.
-> Board driver should determine whether using MIPI or not.
+The aliases node contains entries required for the camera processing
+data path entity drivers.
 
-There are limits to how deeply I can review this, since I know little about
-the MIPI mode and don't have any hardware that uses it.  So I'm assuming
-that it all works :)  My comments are on a different level.
+The sensor nodes use standard port/remote-endpoint nodes convention.
+Internal SoC links between entities are not specified this way and
+are coded in the driver instead, as it seemed more reasonable.
 
-> +static int mcam_config_mipi(struct mcam_camera *mcam, int enable)
-> +{
-> +	if (mcam->bus_type == V4L2_MBUS_CSI2 && enable) {
-> +		/* Using MIPI mode and enable MIPI */
-> +		cam_dbg(mcam, "camera: DPHY3=0x%x, DPHY5=0x%x, DPHY6=0x%x\n",
-> +			mcam->dphy[0], mcam->dphy[1], mcam->dphy[2]);
-> +		mcam_reg_write(mcam, REG_CSI2_DPHY3, mcam->dphy[0]);
-> +		mcam_reg_write(mcam, REG_CSI2_DPHY6, mcam->dphy[2]);
-> +		mcam_reg_write(mcam, REG_CSI2_DPHY5, mcam->dphy[1]);
+The S5C73M3 sensor uses two control buses: I2C and SPI. There are
+two, i2c_0 and spi_1 bus controller child nodes assigned to it.
 
-Is there a reason you're writing them in something other than direct
-increasing order?  If so, a comment saying why might help somebody in ghe future.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/boot/dts/exynos4412-slp_pq.dts |  133 +++++++++++++++++++++++++++++++
+ 1 file changed, 133 insertions(+)
 
-> +		if (mcam->mipi_enabled == 0) {
-> +			/*
-> +			 * 0x41 actives 1 lane
-> +			 * 0x43 actives 2 lanes
-> +			 * 0x47 actives 4 lanes
-> +			 * There is no 3 lanes case
-> +			 */
-> +			switch (mcam->lane) {
-> +			case 1:
-> +				mcam_reg_write(mcam, REG_CSI2_CTRL0, 0x41);
-> +				break;
-> +			case 2:
-> +				mcam_reg_write(mcam, REG_CSI2_CTRL0, 0x43);
-> +				break;
-> +			case 4:
-> +				mcam_reg_write(mcam, REG_CSI2_CTRL0, 0x47);
-> +				break;
+diff --git a/arch/arm/boot/dts/exynos4412-slp_pq.dts b/arch/arm/boot/dts/exynos4412-slp_pq.dts
+index 3a5782d..97a4c2c 100644
+--- a/arch/arm/boot/dts/exynos4412-slp_pq.dts
++++ b/arch/arm/boot/dts/exynos4412-slp_pq.dts
+@@ -101,6 +101,34 @@
+ 		};
+ 	};
+ 
++	i2c_0: i2c@13860000 {
++		samsung,i2c-sda-delay = <100>;
++		samsung,i2c-slave-addr = <0x10>;
++		samsung,i2c-max-bus-freq = <400000>;
++		pinctrl-0 = <&i2c0_bus>;
++		status = "okay";
++
++		s5c73m3@3c {
++			compatible = "samsung,s5c73m3";
++			reg = <0x3c>;
++			gpios = <&gpm0 1 1>, /* ISP_STANDBY */
++				<&gpf1 3 1>; /* ISP_RESET */
++			vdd-int-supply = <&buck9_reg>;
++			vddio-cis-supply = <&ldo9_reg>;
++			vdda-supply = <&ldo17_reg>;
++			vddio-host-supply = <&ldo18_reg>;
++			vdd-af-supply = <&cam_af_reg>;
++			vdd-reg-supply = <&cam_io_reg>;
++			clock-frequency = <24000000>;
++
++			port {
++				s5c73m3_ep: endpoint {
++					remote-endpoint = <&csis0_ep>;
++				};
++			};
++		};
++	};
++
+ 	i2c@13890000 {
+ 		samsung,i2c-sda-delay = <100>;
+ 		samsung,i2c-slave-addr = <0x10>;
+@@ -411,6 +439,34 @@
+ 		enable-active-high;
+ 	};
+ 
++	cam_af_reg: voltage-regulator@2 {
++	        compatible = "regulator-fixed";
++		regulator-name = "CAM_AF";
++		regulator-min-microvolt = <2800000>;
++		regulator-max-microvolt = <2800000>;
++		gpio = <&gpm0 4 0>;
++		enable-active-high;
++	};
++
++	cam_io_reg: voltage-regulator@3 {
++	        compatible = "regulator-fixed";
++		regulator-name = "CAM_SENSOR_A";
++		regulator-min-microvolt = <2800000>;
++		regulator-max-microvolt = <2800000>;
++		gpio = <&gpm0 2 0>;
++		enable-active-high;
++	};
++
++	cam_isp_core_reg: voltage-regulator@4 {
++	        compatible = "regulator-fixed";
++		regulator-name = "CAM_ISP_CORE_1.2V_EN";
++		regulator-min-microvolt = <1200000>;
++		regulator-max-microvolt = <1200000>;
++		gpio = <&gpm0 3 0>;
++		enable-active-high;
++		regulator-always-on;
++	};
++
+ 	fimd0_lcd: panel {
+ 		compatible = "s6e8ax0";
+ 		reset-gpio = <&gpy4 5 0>;
+@@ -462,4 +518,81 @@
+ 		vusb_d-supply = <&ldo15_reg>;
+ 		vusb_a-supply = <&ldo12_reg>;
+ 	};
++
++	spi_1: spi@13930000 {
++		pinctrl-names = "default";
++		pinctrl-0 = <&spi1_bus>;
++		status = "okay";
++
++		s5c73m3_spi: s5c73m3 {
++			compatible = "samsung,s5c73m3";
++			spi-max-frequency = <50000000>;
++			reg = <0>;
++			controller-data {
++				cs-gpio = <&gpb 5 0>;
++				samsung,spi-feedback-delay = <2>;
++			};
++		};
++	};
++
++	camera {
++		compatible = "samsung,fimc", "simple-bus";
++		status = "okay";
++
++		pinctrl-names = "default", "inactive";
++		pinctrl-0 = <&cam_port_a_clk_active>;
++		pinctrl-1 = <&cam_port_a_clk_idle>;
++
++		fimc_0: fimc@11800000 {
++			status = "okay";
++		};
++
++		fimc_1: fimc@11810000 {
++			status = "okay";
++		};
++
++		fimc_2: fimc@11820000 {
++			status = "okay";
++		};
++
++		fimc_3: fimc@11830000 {
++			status = "okay";
++		};
++
++		csis_0: csis@11880000 {
++			status = "okay";
++			vddcore-supply = <&ldo8_reg>;
++			vddio-supply = <&ldo10_reg>;
++			clock-frequency = <160000000>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			port {
++				reg = <3>;  /* Camera C(3) MIPI */
++				csis0_ep: endpoint {
++					remote-endpoint = <&s5c73m3_ep>;
++					data-lanes = <1>, <2>, <3>, <4>;
++					samsung,csis-hs-settle = <12>;
++				};
++			};
++		};
++
++		csis_1: csis@11890000 {
++			vddcore-supply = <&ldo8_reg>;
++			vddio-supply = <&ldo10_reg>;
++			samsung,csis-hs-settle = <18>;
++			data-lanes = <1>;
++		};
++
++		fimc-is@12000000 {
++			status = "okay";
++
++			fimc_lite_0: fimc_lite@12390000 {
++				status = "okay";
++			};
++
++			fimc_lite_1: fimc_lite@123A0000 {
++				status = "okay";
++			};
++		};
++	};
+ };
+-- 
+1.7.9.5
 
-Can we have defined symbols rather than magic constants here?
-
-> @@ -656,6 +701,15 @@ static void mcam_ctlr_image(struct mcam_camera *cam)
->  	 */
->  	mcam_reg_write_mask(cam, REG_CTRL0, C0_SIF_HVSYNC,
->  			C0_SIFM_MASK);
-> +
-> +	/*
-> +	 * This field controls the generation of EOF(DVP only)
-> +	 */
-> +	if (cam->bus_type != V4L2_MBUS_CSI2) {
-> +		mcam_reg_set_bit(cam, REG_CTRL0,
-> +				C0_EOF_VSYNC | C0_VEDGE_CTRL);
-> +		mcam_reg_write(cam, REG_CTRL3, 0x4);
-
-Again, how about a symbol, or at least an explanation of what 0x4 means?
-
-> +	}
->  }
->  
-[...]
-> @@ -1551,6 +1615,11 @@ static int mcam_v4l_open(struct file *filp)
->  		mcam_set_config_needed(cam, 1);
->  	}
->  	(cam->users)++;
-> +	cam->pll1 = devm_clk_get(cam->dev, "pll1");
-> +	if (IS_ERR(cam->pll1)) {
-> +		cam_err(cam, "Could not get pll1 clock\n");
-> +		ret = PTR_ERR(cam->pll1);
-> +	}
-
-This looks like it gets the clock in all cases?  Is that right?
-
->  #define REG_IMGPITCH	0x24	/* Image pitch register */
-> @@ -292,7 +311,9 @@ int mccic_resume(struct mcam_camera *cam);
->  #define	  C0_DOWNSCALE	  0x08000000	/* Enable downscaler */
->  #define	  C0_SIFM_MASK	  0xc0000000	/* SIF mode bits */
->  #define	  C0_SIF_HVSYNC	  0x00000000	/* Use H/VSYNC */
-> -#define	  CO_SOF_NOSYNC	  0x40000000	/* Use inband active signaling */
-> +#define	  C0_SOF_NOSYNC	  0x40000000	/* Use inband active signaling */
-> +#define	  C0_EOF_VSYNC	  0x00400000	/* Generate EOF by VSYNC */
-> +#define	  C0_VEDGE_CTRL   0x00800000	/* Detect falling edge of VSYNC */
-
-Being the retentive sort of guy I am, I try to keep definitions like these
-in numerical order.  Any chance you could humor me and maintain that?
-
->  /* Bits below C1_444ALPHA are not present in Cafe */
->  #define REG_CTRL1	0x40	/* Control 1 */
-> @@ -308,6 +329,7 @@ int mccic_resume(struct mcam_camera *cam);
->  #define	  C1_TWOBUFS	  0x08000000	/* Use only two DMA buffers */
->  #define	  C1_PWRDWN	  0x10000000	/* Power down */
->  
-> +#define REG_CTRL3	0x1ec	/* CCIC parallel mode */
->  #define REG_CLKCTRL	0x88	/* Clock control */
->  #define	  CLK_DIV_MASK	  0x0000ffff	/* Upper bits RW "reserved" */
-
-Here, too, I'd rather keep them in order if possible.
-
-> +/*
-> + * calc the dphy register values
-> + * There are three dphy registers being used.
-> + * dphy[0] can be set with a default value
-> + * or be calculated dynamically
-> + */
-> +void mmpcam_calc_dphy(struct mcam_camera *mcam)
-> +{
-> +	struct mmp_camera *cam = mcam_to_cam(mcam);
-> +	struct mmp_camera_platform_data *pdata = cam->pdev->dev.platform_data;
-> +	struct device *dev = &cam->pdev->dev;
-> +	unsigned long tx_clk_esc;
-> +
-> +	/*
-> +	 * If dphy[0] is calculated dynamically,
-> +	 * pdata->lane_clk should be already set
-> +	 * either in the board driver statically
-> +	 * or in the sensor driver dynamically.
-> +	 */
-> +	switch (pdata->dphy3_algo) {
-> +	case 1:
-> +		/*
-> +		 * dphy3_algo == 1
-> +		 * Calculate CSI2_DPHY3 algo for PXA910
-> +		 */
-> +		pdata->dphy[0] = ((1 + pdata->lane_clk * 80 / 1000) & 0xff) << 8
-> +			| (1 + pdata->lane_clk * 35 / 1000);
-> +		break;
-
-What are the chances of getting a comment or some other reference so that a
-naive reader like me has a chance of understanding what this calculation
-does?  Where do all those constants come from?
-
-> +	case 2:
-> +		/*
-> +		 * dphy3_algo == 2
-> +		 * Calculate CSI2_DPHY3 algo for PXA2128
-> +		 */
-> +		pdata->dphy[0] =
-> +			((2 + pdata->lane_clk * 110 / 1000) & 0xff) << 8
-> +			| (1 + pdata->lane_clk * 35 / 1000);
-> +		break;
-> +	default:
-> +		/*
-> +		 * dphy3_algo == 0
-> +		 * Use default CSI2_DPHY3 value for PXA688/PXA988
-> +		 */
-> +		dev_dbg(dev, "camera: use the default CSI2_DPHY3 value\n");
-> +	}
-> +
-> +	/*
-> +	 * pll1 will never be changed, it is a fixed value
-> +	 */
-> +
-> +	if (IS_ERR(mcam->pll1))
-> +		return;
-> +
-> +	tx_clk_esc = clk_get_rate(mcam->pll1) / 1000000 / 12;
-
-Being who I am (see "retentive" above) I'll always parenthesize an
-expression like this to make the intended order of operations explicit.
-
-Mostly low-level comments, it's looking pretty good.
-
-jon
