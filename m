@@ -1,20 +1,21 @@
-Return-Path: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
+Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <vnishimoto@ibest.com.br>) id 1Tibg5-0006oS-I1
-	for linux-dvb@linuxtv.org; Wed, 12 Dec 2012 03:04:06 +0100
-Received: from mail-gg0-f171.google.com ([209.85.161.171])
+	(envelope-from <pika1021@gmail.com>) id 1TpVHS-0000qz-Qe
+	for linux-dvb@linuxtv.org; Mon, 31 Dec 2012 03:39:35 +0100
+Received: from mail-la0-f53.google.com ([209.85.215.53])
 	by mail.tu-berlin.de (exim-4.75/mailfrontend-2) with esmtps
 	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
-	id 1Tibg3-0003Kk-G9; Wed, 12 Dec 2012 03:04:03 +0100
-Received: by mail-gg0-f171.google.com with SMTP id 4so32609ggm.16
-	for <linux-dvb@linuxtv.org>; Tue, 11 Dec 2012 18:04:01 -0800 (PST)
-Message-ID: <50C7E60E.5000208@ibest.com.br>
-Date: Wed, 12 Dec 2012 00:03:58 -0200
-From: Vagner Nishimoto <vnishimoto@ibest.com.br>
+	id 1TpVHS-0005ni-HM; Mon, 31 Dec 2012 03:39:10 +0100
+Received: by mail-la0-f53.google.com with SMTP id fn20so3276599lab.26
+	for <linux-dvb@linuxtv.org>; Sun, 30 Dec 2012 18:39:09 -0800 (PST)
 MIME-Version: 1.0
+Date: Mon, 31 Dec 2012 10:39:09 +0800
+Message-ID: <CACJzANfzaqiDvDRbkKdXPH0sQj7RN8d+Ax8wGp3X9d55oYKOUg@mail.gmail.com>
+From: =?UTF-8?B?5p6X5Y2a5LuB?= <pika1021@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] DBV API v5
+Subject: [linux-dvb] Problem with 187f:0202(Siano Mobile Silicon Nice) not
+	automatic loading
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,174 +24,108 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"; Format="flowed"
+Content-Type: multipart/mixed; boundary="===============1936845509=="
 Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============1936845509==
+Content-Type: multipart/alternative; boundary=bcaec5555556f3694a04d21cea6d
+
+--bcaec5555556f3694a04d21cea6d
+Content-Type: text/plain; charset=UTF-8
 
 Hi,
+I tried to make a DVB-T reciever which uses ID 187f:0202(Siano Mobile
+Silicon Nice) work on my linux machine(Ubuntu 12.10 x86 32bit) and
+eventually found that only manually load 'smsdvb' module make the dvb
+device create (it won't create if just plug-in the hardware)
 
-I'm using DiBcom 8000 ISDB-T driver and openSUSE 12.2 kernel 3.4.11.
-The problem is mplayer and others players can't sintonize.
-The only program that work is VLC 2.0
+Dec 31 10:01:29 SSD-Vubuntu kernel: [ 5819.458196] usb 2-1.2: new
+high-speed USB device number 21 using ehci_hcd
+Dec 31 10:01:29 SSD-Vubuntu kernel: [ 5819.544329] usb 2-1.2: New USB
+device found, idVendor=187f, idProduct=0202
+Dec 31 10:01:29 SSD-Vubuntu kernel: [ 5819.544335] usb 2-1.2: New USB
+device strings: Mfr=1, Product=2, SerialNumber=0
+Dec 31 10:01:29 SSD-Vubuntu kernel: [ 5819.544340] usb 2-1.2: Product: MDTV
+Receiver
+Dec 31 10:01:29 SSD-Vubuntu kernel: [ 5819.544343] usb 2-1.2: Manufacturer:
+MDTV Receiver
+Dec 31 10:01:29 SSD-Vubuntu kernel: [ 5820.177202] smscore_set_device_mode:
+firmware download success: dvb_nova_12mhz_b0.inp
+Dec 31 10:01:29 SSD-Vubuntu kernel: [ 5820.180521] usbcore: registered new
+interface driver smsusb
 
-mplayer dvb://globo -v
+** % sudo modprobe smsdvb **
 
-MPlayer dev-SVN-r35127-4.7-openSUSE Linux 12.2 (x86_64)-Packman (C) 2000-20=
-12 =
+Dec 31 10:03:12 SSD-Vubuntu kernel: [ 5923.043199] DVB: registering new
+adapter (Siano Nice Digital Receiver)
+Dec 31 10:03:12 SSD-Vubuntu kernel: [ 5923.043502] usb 2-1.2: DVB:
+registering adapter 0 frontend 0 (Siano Mobile Digital MDTV Receiver)...
 
-MPlayer Team
-CPU vendor name: GenuineIntel  max cpuid level: 13
-CPU: Intel(R) Core(TM)2 Quad CPU    Q9550  @ 2.83GHz (Family: 6, Model: 23, =
+Here is another card having the similar issue
+http://www.linuxtv.org/wiki/index.php/Smart_Plus
 
-Stepping: 10)
-extended cpuid-level: 8
-extended cache-info: 402686016
-Detected cache-line size is 64 bytes
-CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNowExt: 0 SSE: 1 SSE2: 1 SSSE3: 1
-Compiled with runtime CPU detection.
-get_path('codecs.conf') -> '/home/vagner/.mplayer/codecs.conf'
-Reading optional codecs config file /home/vagner/.mplayer/codecs.conf: No s=
-uch =
+I tried to contact smsusb module's author (uris@siano-ms.com) but the
+address is broken now...
 
-file or directory
-Reading optional codecs config file /etc/mplayer/codecs.conf: No such file =
-or =
+Sincerely,
+Henry Lin <pika1021@gmail.com>
 
-directory
-Using built-in default codecs.conf.
-init_freetype
-Using MMX (with tiny bit MMX2) Optimized OnScreenDisplay
-get_path('fonts') -> '/home/vagner/.mplayer/fonts'
-Configuration: --enable-debug --prefix=3D/usr --confdir=3D/etc/mplayer =
+--bcaec5555556f3694a04d21cea6d
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
---datadir=3D/usr/share/mplayer --libdir=3D/usr/lib64 --mandir=3D/usr/share/=
-man =
+<div dir=3D"ltr"><div><div><div><div>Hi, <br></div>I tried to make a DVB-T =
+reciever which uses
+ ID 187f:0202(Siano Mobile Silicon Nice) work on my linux machine(Ubuntu
+ 12.10 x86 32bit) and eventually found that only manually load &#39;smsdvb&=
+#39;=20
+module make the dvb device create (it won&#39;t create if just plug-in the=
+=20
+hardware)<br>
+<br>Dec 31 10:01:29 SSD-Vubuntu kernel: [ 5819.458196] usb 2-1.2: new high-=
+speed USB device number 21 using ehci_hcd<br>Dec 31 10:01:29 SSD-Vubuntu ke=
+rnel: [ 5819.544329] usb 2-1.2: New USB device found, idVendor=3D187f, idPr=
+oduct=3D0202<br>
 
---disable-libdvdcss-internal --enable-runtime-cpudetection --enable-bl =
+Dec 31 10:01:29 SSD-Vubuntu kernel: [ 5819.544335] usb 2-1.2: New USB devic=
+e strings: Mfr=3D1, Product=3D2, SerialNumber=3D0<br>Dec 31 10:01:29 SSD-Vu=
+buntu kernel: [ 5819.544340] usb 2-1.2: Product: MDTV Receiver<br>Dec 31 10=
+:01:29 SSD-Vubuntu kernel: [ 5819.544343] usb 2-1.2: Manufacturer: MDTV Rec=
+eiver<br>
 
---enable-fbdev --enable-gui --enable-menu --language=3Dall --enable-xvmc =
+Dec 31 10:01:29 SSD-Vubuntu kernel: [ 5820.177202] smscore_set_device_mode:=
+ firmware download success: dvb_nova_12mhz_b0.inp<br>Dec 31 10:01:29 SSD-Vu=
+buntu kernel: [ 5820.180521] usbcore: registered new interface driver smsus=
+b<br>
 
---with-xvmclib=3DXvMCW --enable-smb --enable-joystick --enable-radio =
+<br></div>** % sudo modprobe smsdvb **<br><br>Dec 31 10:03:12 SSD-Vubuntu k=
+ernel: [ 5923.043199] DVB: registering new adapter (Siano Nice Digital Rece=
+iver)<br>Dec
+ 31 10:03:12 SSD-Vubuntu kernel: [ 5923.043502] usb 2-1.2: DVB:=20
+registering adapter 0 frontend 0 (Siano Mobile Digital MDTV Receiver)...<br=
+>
+<br>Here is another card having the similar issue<br><a href=3D"http://www.=
+linuxtv.org/wiki/index.php/Smart_Plus" target=3D"_blank">http://www.linuxtv=
+.org/wiki/index.php/Smart_Plus</a></div><br></div>I tried to contact smsusb=
+ module&#39;s author (<a href=3D"mailto:uris@siano-ms.com">uris@siano-ms.co=
+m</a>) but the address is broken now...<br>
+<br><div><div>Sincerely, <br></div>Henry Lin &lt;<a href=3D"mailto:pika1021=
+@gmail.com" target=3D"_blank">pika1021@gmail.com</a>&gt;</div></div>
 
---enable-radio-capture --enable-dvdnav --disable-nemesi --disable-wii =
-
---enable-faad --disable-tv-v4l1 --enable-v4l2 --disable-zr --disable-qtx =
-
---disable-arts --disable-esd --disable-mp3lib
-CommandLine: 'dvb://globo' '-v'
-Using nanosleep() timing
-get_path('input.conf') -> '/home/vagner/.mplayer/input.conf'
-Parsing input config file /home/vagner/.mplayer/input.conf
-Input config file /home/vagner/.mplayer/input.conf parsed: 92 binds
-get_path('globo.conf') -> '/home/vagner/.mplayer/globo.conf'
-
-Playing dvb://globo.
-get_path('sub/') -> '/home/vagner/.mplayer/sub/'
-TUNER TYPE SEEMS TO BE DVB-T
-get_path('channels.conf') -> '/home/vagner/.mplayer/channels.conf'
-get_path('channels.conf.ter') -> '/home/vagner/.mplayer/channels.conf.ter'
-get_path('channels.conf') -> '/home/vagner/.mplayer/channels.conf'
-CONFIG_READ FILE: /home/vagner/.mplayer/channels.conf, type: 2
-TER, NUM: 0, NUM_FIELDS: 11, NAME: cultura, FREQ: 533142857 PIDS:  8196  81=
-96  0
-TER, NUM: 1, NUM_FIELDS: 11, NAME: sbt, FREQ: 557142857 PIDS:  8196  8196  0
-TER, NUM: 2, NUM_FIELDS: 11, NAME: globo, FREQ: 497142857 PIDS:  8196  8196=
-  0
-TER, NUM: 3, NUM_FIELDS: 11, NAME: record, FREQ: 509142857 PIDS:  8196  819=
-6  0
-TER, NUM: 4, NUM_FIELDS: 11, NAME: redetv, FREQ: 563142857 PIDS:  8196  819=
-6  0
-TER, NUM: 5, NUM_FIELDS: 11, NAME: gazeta, FREQ: 491142857 PIDS:  8196  819=
-6  0
-TER, NUM: 6, NUM_FIELDS: 11, NAME: band, FREQ: 527142857 PIDS:  8196  8196 =
- 0
-TER, NUM: 7, NUM_FIELDS: 11, NAME: megatv, FREQ: 479142857 PIDS:  8196  819=
-6  0
-TER, NUM: 8, NUM_FIELDS: 11, NAME: canal21, FREQ: 521142857 PIDS:  8196  81=
-96  0
-TER, NUM: 9, NUM_FIELDS: 11, NAME: cnt, FREQ: 545142857 PIDS:  8196  8196  0
-TER, NUM: 10, NUM_FIELDS: 11, NAME: rit, FREQ: 569142857 PIDS:  8196  8196 =
- 0
-TER, NUM: 11, NUM_FIELDS: 11, NAME: mtv, FREQ: 575142857 PIDS:  8196  8196 =
- 0
-TER, NUM: 12, NUM_FIELDS: 11, NAME: toptv, FREQ: 587142857 PIDS:  8196  819=
-6  0
-TER, NUM: 13, NUM_FIELDS: 11, NAME: redevida, FREQ: 623142857 PIDS:  8196  =
-8196  0
-TER, NUM: 14, NUM_FIELDS: 11, NAME: tvdiario, FREQ: 701142857 PIDS:  8196  =
-8196  0
-TER, NUM: 15, NUM_FIELDS: 11, NAME: aparecida, FREQ: 635142857 PIDS:  8196 =
- 8196  0
-TER, NUM: 16, NUM_FIELDS: 11, NAME: rcnews, FREQ: 647142857 PIDS:  8196  81=
-96  0
-TER, NUM: 17, NUM_FIELDS: 11, NAME: ngt, FREQ: 671142857 PIDS:  8196  8196 =
- 0
-TER, NUM: 18, NUM_FIELDS: 11, NAME: terraviva, FREQ: 683142857 PIDS:  8196 =
- 8196  0
-TER, NUM: 19, NUM_FIELDS: 11, NAME: redebrasil, FREQ: 725142857 PIDS:  8192
-TER, NUM: 20, NUM_FIELDS: 11, NAME: mack, FREQ: 749142857 PIDS:  8196  8196=
-  0
-TER, NUM: 21, NUM_FIELDS: 11, NAME: tvcamara, FREQ: 755142857 PIDS:  8196  =
-8196  0
-TER, NUM: 22, NUM_FIELDS: 11, NAME: tvbrasil, FREQ: 767142857 PIDS:  8196  =
-8196  0
-TER, NUM: 23, NUM_FIELDS: 11, NAME: tvjusti=E7a, FREQ: 773142857 PIDS:  819=
-6  8196  0
-DVB_CONFIG, can't open device /dev/dvb/adapter1/frontend0, skipping
-DVB_CONFIG, can't open device /dev/dvb/adapter2/frontend0, skipping
-DVB_CONFIG, can't open device /dev/dvb/adapter3/frontend0, skipping
-OPEN_DVB: prog=3Dglobo, card=3D1, type=3D2
-
-dvb_streaming_start(PROG: globo, CARD: 1, FILE: (null))
-PROGRAM NUMBER 2: name=3Dglobo, freq=3D497142857
-DVB_OPEN_DEVICES(3)
-OPEN(0), file /dev/dvb/adapter0/demux0: FD=3D4, CNT=3D0
-OPEN(1), file /dev/dvb/adapter0/demux0: FD=3D5, CNT=3D1
-OPEN(2), file /dev/dvb/adapter0/demux0: FD=3D6, CNT=3D2
-DVB_SET_CHANNEL: new channel name=3Dglobo, card: 0, channel 2
-dvb_tune Freq: 497142857
-TUNE_IT, fd_frontend 3, fd_sec -1
-freq 497142857, srate 0, pol Using DVB card "DiBcom 8000 ISDB-T"
-tuning DVB-T to 497142857 Hz, bandwidth: 2
-dvb_tune, TUNING FAILED
-DVBIN_CLOSE, close(2), fd=3D6, COUNT=3D2
-DVBIN_CLOSE, close(1), fd=3D5, COUNT=3D1
-DVBIN_CLOSE, close(0), fd=3D4, COUNT=3D0
-
-vo: x11 uninit called but X11 not initialized..
-
-Exiting... (End of file)
-
-With Ubuntu 12.10 is the same.
--- =
+--bcaec5555556f3694a04d21cea6d--
 
 
-             []s
-
-             Vagner Nishimoto
-
----------------------------------------------------------------------------=
------
-vnishimoto@ibest.com.br
-vnishimoto@bol.com.br
-vnishimoto@ig.com.br
-vnishimoto@yahoo.com.br
-vnishimoto@terra.com.br
----------------------------------------------------------------------------=
------
-Get openSuSe <http://www.opensuse.org/>    Firefox Download Button
-<http://www.firefox.com/>    Thunderbird Download Button
-<http://www.getthunderbird.com/>    Get OpenOffice.org
-<http://www.openoffice.org/> Get OpenOffice.org <http://www.libreoffice.org=
-/>
----------------------------------------------------------------------------=
------
+--===============1936845509==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1936845509==--
