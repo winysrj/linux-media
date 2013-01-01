@@ -1,32 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sqdf3.vserver.nimag.net ([62.220.136.226]:50950 "EHLO
-	mail.avocats-ch.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753857Ab3A2Ph6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jan 2013 10:37:58 -0500
-Message-ID: <5107ECD5.1030307@romandie.com>
-Date: Tue, 29 Jan 2013 16:37:57 +0100
-From: Olivier Subilia <futilite@romandie.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:60016 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752437Ab3AAUED (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jan 2013 15:04:03 -0500
+Date: Tue, 1 Jan 2013 21:03:58 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Albert Wang <twang13@marvell.com>
+cc: "corbet@lwn.net" <corbet@lwn.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Subject: RE: [PATCH V3 06/15] [media] marvell-ccic: add new formats support
+ for marvell-ccic driver
+In-Reply-To: <477F20668A386D41ADCC57781B1F70430D13EA8816@SC-VEXCH1.marvell.com>
+Message-ID: <Pine.LNX.4.64.1301012102510.4048@axis700.grange>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+ <1355565484-15791-7-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1301011734070.31619@axis700.grange>
+ <477F20668A386D41ADCC57781B1F70430D13EA8816@SC-VEXCH1.marvell.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: Bug report - em28xx
-References: <CD2D9525.98B4%philschweizer@bluewin.ch> <5107DA24.5050303@romandie.com> <201301291559.26481.hverkuil@xs4all.nl>
-In-Reply-To: <201301291559.26481.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-...
+Hi Albert
 
-Found !
+On Tue, 1 Jan 2013, Albert Wang wrote:
 
-(I had to activate other entries to make em28xx appear).
+> >> +	case V4L2_PIX_FMT_YUV422P:
+> >> +	case V4L2_PIX_FMT_YUV420:
+> >> +	case V4L2_PIX_FMT_YVU420:
+> >> +		imgsz_w = (fmt->bytesperline * 4 / 3) & IMGSZ_H_MASK;
+> >> +		widthy = fmt->width;
+> >> +		widthuv = fmt->width / 2;
+> >
+> >I might be wrong, but the above doesn't look right to me. Firstly, YUV422P
+> >is a 4:2:2 format, whereas YUV420 and YVU420 are 4:2:0 formats, so, I
+> >would expect calculations for them to differ. Besides, bytesperline * 4 /
+> >3 doesn't look right for any of them. If this is what I think - total
+> >number of bytes per line, i.e., sizeimage / height, than shouldn't YAU422P
+> >have
+> >+		imgsz_w = fmt->bytesperline & IMGSZ_H_MASK;
+> >and the other two
+> >+		imgsz_w = (fmt->bytesperline * 3 / 2) & IMGSZ_H_MASK;
+> >? But maybe I'm wrong, please, double-check and confirm.
+> >
+> [Albert Wang] It looks they are both 12 bit planar format, they have same imgsz_w.
+> Anyway, we will double check it after back to office.
 
-Now the compile process is ok.
+_Both_ YUV420 and YVU420 - yes, but YUV422P is 16-bit.
 
-I have to wait this evening at home to check if the module is OK.
-
-Thank you very much for helping
-
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
