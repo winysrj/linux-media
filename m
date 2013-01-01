@@ -1,113 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4691 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752007Ab3AaHQu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 02:16:50 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFCv2 PATCH] em28xx: fix bytesperline calculation in G/TRY_FMT
-Date: Thu, 31 Jan 2013 08:16:39 +0100
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-References: <201301300901.22486.hverkuil@xs4all.nl> <201301301049.25541.hverkuil@xs4all.nl> <20130130170729.59d9e04d@redhat.com>
-In-Reply-To: <20130130170729.59d9e04d@redhat.com>
+Received: from mail-ee0-f45.google.com ([74.125.83.45]:59119 "EHLO
+	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752437Ab3AASfF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jan 2013 13:35:05 -0500
+Received: by mail-ee0-f45.google.com with SMTP id d49so6485126eek.18
+        for <linux-media@vger.kernel.org>; Tue, 01 Jan 2013 10:35:04 -0800 (PST)
+Message-ID: <50E32C55.1090003@gmail.com>
+Date: Tue, 01 Jan 2013 19:35:01 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Tony Prisk <linux@prisktech.co.nz>
+CC: Mike Turquette <mturquette@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/6] clk: s5p-fimc: Fix incorrect usage of IS_ERR_OR_NULL
+References: <1355819321-21914-1-git-send-email-linux@prisktech.co.nz> <1355819321-21914-6-git-send-email-linux@prisktech.co.nz>
+In-Reply-To: <1355819321-21914-6-git-send-email-linux@prisktech.co.nz>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201301310816.39891.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed January 30 2013 20:07:29 Mauro Carvalho Chehab wrote:
-> Em Wed, 30 Jan 2013 10:49:25 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
-> > On Wed 30 January 2013 10:40:30 Mauro Carvalho Chehab wrote:
-> > > Em Wed, 30 Jan 2013 09:01:22 +0100
-> > > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > > 
-> > > > This was part of my original em28xx patch series. That particular patch
-> > > > combined two things: this fix and the change where TRY_FMT would no
-> > > > longer return -EINVAL for unsupported pixelformats. The latter change was
-> > > > rejected (correctly), but we all forgot about the second part of the patch
-> > > > which fixed a real bug. I'm reposting just that fix.
-> > > > 
-> > > > Changes since v1:
-> > > > 
-> > > > - v1 still miscalculated the bytesperline and imagesize values (they were
-> > > >   too large).
-> > > > - G_FMT had the same calculation bug.
-> > > > 
-> > > > Tested with my em28xx.
-> > > > 
-> > > > Regards,
-> > > > 
-> > > >         Hans
-> > > > 
-> > > > The bytesperline calculation was incorrect: it used the old width instead of
-> > > > the provided width in the case of TRY_FMT, and it miscalculated the bytesperline
-> > > > value for the depth == 12 (planar YUV 4:1:1) case. For planar formats the
-> > > > bytesperline value should be the bytesperline of the widest plane, which is
-> > > > the Y plane which has 8 bits per pixel, not 12.
-> > > > 
-> > > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > > > ---
-> > > >  drivers/media/usb/em28xx/em28xx-video.c |    8 ++++----
-> > > >  1 file changed, 4 insertions(+), 4 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> > > > index 2eabf2a..6ced426 100644
-> > > > --- a/drivers/media/usb/em28xx/em28xx-video.c
-> > > > +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> > > > @@ -837,8 +837,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
-> > > >  	f->fmt.pix.width = dev->width;
-> > > >  	f->fmt.pix.height = dev->height;
-> > > >  	f->fmt.pix.pixelformat = dev->format->fourcc;
-> > > > -	f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
-> > > > -	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline  * dev->height;
-> > > > +	f->fmt.pix.bytesperline = dev->width * (dev->format->depth >> 3);
-> > > 
-> > > Why did you remove the round up here?
-> > 
-> > Because that would give the wrong result. Depth can be 8, 12 or 16. The YUV 4:1:1
-> > planar format is the one with depth 12. But for the purposes of the bytesperline
-> > calculation only the depth of the largest plane counts, which is the luma plane
-> > with a depth of 8. So for a width of 720 the value of bytesperline should be:
-> > 
-> > depth=8 -> bytesperline = 720
-> > depth=12 -> bytesperline = 720
-> 
-> With depth=12, it should be, instead, 1080, as 2 pixels need 3 bytes.
+On 12/18/2012 09:28 AM, Tony Prisk wrote:
+> Replace IS_ERR_OR_NULL with IS_ERR on clk_get results.
+>
+> Signed-off-by: Tony Prisk<linux@prisktech.co.nz>
+> CC: Kyungmin Park<kyungmin.park@samsung.com>
+> CC: Tomasz Stanislawski<t.stanislaws@samsung.com>
+> CC: linux-media@vger.kernel.org
 
-No, it's not. It's a *planar* format: first the Y plane, then the two smaller
-chroma planes. The spec says that bytesperline for planar formats refers to
-the largest plane.
-
-For this format the luma plane is one byte per pixel. Each of the two chroma
-planes have effectively two bits per pixel (actually one byte per four pixels),
-so you end up with 8+2+2=12 bits per pixel.
-
-Hence bytesperline should be 720 for this particular format.
-
-Regards,
-
-	Hans
-
-> 
-> > depth=16 -> bytesperline = 1440
-> 
-> Well,
-> 
-> depth=8 -> bytesperline =  (720 * 8) + 7) / 8 = 720
-> depth=12 -> bytesperline = (720 * 12) + 7) / 8 = 1080
-> depth=16 -> bytesperline = (720 * 16) + 7) / 8 = 1440
-> 
-> So, this sounds perfectly OK on my eyes:
-> 	f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
-> 
-> Regards,
-> Mauro
-> 
+Applied, thanks.
