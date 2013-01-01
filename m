@@ -1,50 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:45337 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757679Ab3AYR1L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jan 2013 12:27:11 -0500
-Received: by mail-ee0-f48.google.com with SMTP id t10so312592eei.7
-        for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 09:27:10 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [REVIEW PATCH 12/12] em28xx: do not claim VBI support if the device is a camera
-Date: Fri, 25 Jan 2013 18:27:02 +0100
-Message-Id: <1359134822-4585-13-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:46053 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752391Ab3AASV4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jan 2013 13:21:56 -0500
+Received: by mail-ee0-f53.google.com with SMTP id c50so6474726eek.12
+        for <linux-media@vger.kernel.org>; Tue, 01 Jan 2013 10:21:55 -0800 (PST)
+Message-ID: <50E32940.80903@gmail.com>
+Date: Tue, 01 Jan 2013 19:21:52 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Sachin Kamat <sachin.kamat@linaro.org>
+CC: linux-media@vger.kernel.org, andrzej.p@samsung.com,
+	s.nawrocki@samsung.com, patches@linaro.org
+Subject: Re: [PATCH 1/2] [media] s5p-jpeg: Use spinlock_t instead of 'struct
+ spinlock'
+References: <1356690044-8694-1-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1356690044-8694-1-git-send-email-sachin.kamat@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Avoids registering a VBI device and streaming in VBI-mode if the device is a
-camera.
+Hi Sachin,
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-core.c |    5 +++++
- 1 Datei geändert, 5 Zeilen hinzugefügt(+)
+On 12/28/2012 11:20 AM, Sachin Kamat wrote:
+> Silences the following checkpatch warning:
+> WARNING: struct spinlock should be spinlock_t
+>
+> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
+> ---
+>   drivers/media/platform/s5p-jpeg/jpeg-core.h |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+> index 022b9b9..8a4013e 100644
+> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
+> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+> @@ -62,7 +62,7 @@
+>    */
+>   struct s5p_jpeg {
+>   	struct mutex		lock;
+> -	struct spinlock		slock;
+> +	spinlock_t		slock;
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index f516a63..f743e09 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -681,6 +681,11 @@ int em28xx_vbi_supported(struct em28xx *dev)
- 	if (disable_vbi == 1)
- 		return 0;
- 
-+	if (dev->board.is_webcam)
-+		return 0;
-+
-+	/* FIXME: check subdevices for VBI support */
-+
- 	if (dev->chip_id == CHIP_ID_EM2860 ||
- 	    dev->chip_id == CHIP_ID_EM2883)
- 		return 1;
--- 
-1.7.10.4
+Thank you for these two patches, however there are already similar ones
+applied in the media tree:
 
+http://git.linuxtv.org/media_tree.git/commit/a75831f3600c479054fc3f70cd11257ab07886e2
+http://git.linuxtv.org/media_tree.git/commit/9d193b758edaad192d05ebcb8dc4cb72711bf618
+
+You were unfortunately a bit too late ;)
+
+Regards,
+Sylwester
