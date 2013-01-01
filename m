@@ -1,71 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43245 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756781Ab3A0N5g (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jan 2013 08:57:36 -0500
-Date: Sun, 27 Jan 2013 11:57:34 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: partial revert of "uvcvideo: set error_idx properly"
-Message-ID: <20130127115734.06b02554@redhat.com>
-In-Reply-To: <201301251442.59974.hverkuil@xs4all.nl>
-References: <CAKbGBLiOuyUUHd+eEm+z=THEu57b2LSDFtoN9frXASZ5BG7Huw@mail.gmail.com>
-	<201301251140.13707.hverkuil@xs4all.nl>
-	<51028B5D.8080607@redhat.com>
-	<201301251442.59974.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-ob0-f177.google.com ([209.85.214.177]:37200 "EHLO
+	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752407Ab3AAQ4E (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jan 2013 11:56:04 -0500
+Received: by mail-ob0-f177.google.com with SMTP id uo13so12027312obb.8
+        for <linux-media@vger.kernel.org>; Tue, 01 Jan 2013 08:56:01 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20130101130041.52dee65f@redhat.com>
+References: <1356739006-22111-1-git-send-email-mchehab@redhat.com>
+	<CAGoCfix=2-pXmTE149XvwT+f7j1F29L3Q-dse0y_Rc-3LKucsQ@mail.gmail.com>
+	<20130101130041.52dee65f@redhat.com>
+Date: Tue, 1 Jan 2013 22:18:49 +0530
+Message-ID: <CAHFNz9+hwx9Bpd5ZJC5RRchpvYzKUzzKv43PSzDunr403xiOsQ@mail.gmail.com>
+Subject: Re: [PATCH RFCv3] dvb: Add DVBv5 properties for quality parameters
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 25 Jan 2013 14:42:59 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Tue, Jan 1, 2013 at 8:30 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
 
-> On Fri January 25 2013 14:40:45 Hans de Goede wrote:
-> > Hi,
-> > 
-> > On 01/25/2013 11:40 AM, Hans Verkuil wrote:
-> > 
-> > <snip>
-> > 
-> > >> What I did notice is that pwc_vidioc_try_fmt returns EINVAL when
-> > >> an unsupported pixelformat is requested. IIRC we agreed that the
-> > >> correct behavior in this case is to instead just change the
-> > >> pixelformat to a default format, so I'll write a patch fixing
-> > >> this.
-> > >
-> > > There are issues with that idea in the case of TV capture cards, since
-> > > some important apps (tvtime and mythtv to a lesser extent) assume -EINVAL
-> > > in the case of unsupported pixelformats.
-> > 
-> > Oh, I thought we agreed on never returning EINVAL accept for on invalid
-> > buffer types in Barcelona ?
-> 
-> We did, but then it was discovered that apps like tvtime *rely* on such an
-> error code.
+> [RFCv4] dvb: Add DVBv5 properties for quality parameters
+>
+> The DVBv3 quality parameters are limited on several ways:
+>         - Doesn't provide any way to indicate the used measure;
+>         - Userspace need to guess how to calculate the measure;
+>         - Only a limited set of stats are supported;
+>         - Doesn't provide QoS measure for the OFDM TPS/TMCC
+>           carriers, used to detect the network parameters for
+>           DVB-T/ISDB-T;
+>         - Can't be called in a way to require them to be filled
+>           all at once (atomic reads from the hardware), with may
+>           cause troubles on interpreting them on userspace;
+>         - On some OFDM delivery systems, the carriers can be
+>           independently modulated, having different properties.
+>           Currently, there's no way to report per-layer stats;
 
-Yes. Basically, tvtime and MythTV rely on receiving an error when the format
-is not supported (I think they accept if the driver changes resolution and
-interleaving mode, though). Xawtv (and likely the other apps that use its
-code as a reference) will accept if the driver would change the video format
-to one that it is actually supported.
+per layer stats is a mythical bird, nothing of that sort does exist. If some
+driver states that it is simply due to lack of knowledge at the coding side.
 
-> 
-> All TV capture drivers that do stream I/O return EINVAL for unsupported
-> formats today. There are exceptions (cx18/ivtv/pvrusb2 (?)), but those
-> have a read() API only.
-> 
-> Very annoying...
-> 
-> Regards,
-> 
-> 	Hans
+ISDB-T uses hierarchial modulation, just like DVB-S2 or DVB-T2
+
+Once the Outer code is decoded, the OFDM segments are separated
+using Hierarchial separation. This is well described by NHK.
 
 
--- 
+"To improve mobile reception and robustness to multipath
+interference, the system performs, in symbol units, time
+interleaving plus frequency interleaving according to the
+arrangement of OFDM segments. Pilot signals for
+demodulation and control symbols consisting of TMCC
+information are combined with information symbols to an
+OFDM frame. Here, information symbols are modulated
+by Differential Binary Phase Shift Keying (DBPSK) and
+guard intervals are added at the IFFT output.
 
-Cheers,
-Mauro
+[3] Hierarchical transmission
+A mixture of fixed-reception programs and mobile reception
+programs in the transmission system is made
+possible through the application of hierarchical
+transmission achieved by band division within a channel.
+"Hierarchical transmission" means that the three elements
+of channel coding, namely, the modulation system, the
+coding rate of convolutional correction code, and the time
+interleave length, can be independently set. Time and
+frequency interleaving are each performed in their
+respective hierarchical data segment.
+As described earlier, the smallest hierarchical unit in a
+frequency spectrum is one OFDM segment."
+
+
+Please don't muck up existing working things with uber crap.
+
+Manu
