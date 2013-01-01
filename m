@@ -1,248 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f51.google.com ([209.85.160.51]:57626 "EHLO
-	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756495Ab3ANLkB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jan 2013 06:40:01 -0500
-Received: by mail-pb0-f51.google.com with SMTP id ro12so2128893pbb.10
-        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2013 03:40:00 -0800 (PST)
+Received: from moutng.kundenserver.de ([212.227.17.10]:57096 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752415Ab3AAQ4U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jan 2013 11:56:20 -0500
+Date: Tue, 1 Jan 2013 17:56:13 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Albert Wang <twang13@marvell.com>
+cc: corbet@lwn.net, linux-media@vger.kernel.org,
+	Libin Yang <lbyang@marvell.com>
+Subject: Re: [PATCH V3 06/15] [media] marvell-ccic: add new formats support
+ for marvell-ccic driver
+In-Reply-To: <1355565484-15791-7-git-send-email-twang13@marvell.com>
+Message-ID: <Pine.LNX.4.64.1301011734070.31619@axis700.grange>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+ <1355565484-15791-7-git-send-email-twang13@marvell.com>
 MIME-Version: 1.0
-In-Reply-To: <CAOw6vbLRYsmzg0YDeO9kLfxL1chr8dX6u+xdqy=YUbXyJ5kXBg@mail.gmail.com>
-References: <1357900540-19490-1-git-send-email-l.krishna@samsung.com> <CAOw6vbLRYsmzg0YDeO9kLfxL1chr8dX6u+xdqy=YUbXyJ5kXBg@mail.gmail.com>
-From: Leela Krishna Amudala <l.krishna@samsung.com>
-Date: Mon, 14 Jan 2013 17:09:40 +0530
-Message-ID: <CAL1wa8c8rs2+UM90RamH8UJpx5ctO_nC0aYkQCJbB6CL7bMkMA@mail.gmail.com>
-Subject: Re: [PATCH] [RFC] video: exynos dp: Making Exynos DP Compliant with CDF
-To: Sean Paul <seanpaul@chromium.org>
-Cc: tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sean,
-Thanks for reviewing the patch.
+On Sat, 15 Dec 2012, Albert Wang wrote:
 
-On Sat, Jan 12, 2013 at 1:30 AM, Sean Paul <seanpaul@chromium.org> wrote:
-> On Fri, Jan 11, 2013 at 5:35 AM, Leela Krishna Amudala
-> <l.krishna@samsung.com> wrote:
->> The Exynos DP transmitter is treated as an end entity in the display pipeline
->> and made this RFC patch compliant with CDF.
->>
->> Any suggestions are welcome.
->>
->
-> A few comments below. It's hard to get too much of an appreciation for
-> what you're trying to do since a bunch of the interesting parts are
-> stubbed out.
->
->> Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
->> ---
->>  drivers/video/display/display-core.c  |  2 +-
->>  drivers/video/exynos/exynos_dp_core.c | 88 +++++++++++++++++++++++++++++++++++
->>  drivers/video/exynos/exynos_dp_core.h |  6 +++
->>  3 files changed, 95 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/video/display/display-core.c b/drivers/video/display/display-core.c
->> index 5f8be30..dbad7e9 100644
->> --- a/drivers/video/display/display-core.c
->> +++ b/drivers/video/display/display-core.c
->> @@ -15,7 +15,7 @@
->>  #include <linux/list.h>
->>  #include <linux/module.h>
->>  #include <linux/mutex.h>
->> -#include <linux/videomode.h>
->> +#include <video/videomode.h>
->>
->>  #include <video/display.h>
->>
->> diff --git a/drivers/video/exynos/exynos_dp_core.c b/drivers/video/exynos/exynos_dp_core.c
->> index 4ef18e2..0f8de27b 100644
->> --- a/drivers/video/exynos/exynos_dp_core.c
->> +++ b/drivers/video/exynos/exynos_dp_core.c
->> @@ -23,6 +23,9 @@
->>  #include <video/exynos_dp.h>
->>
->>  #include "exynos_dp_core.h"
->> +#include <video/videomode.h>
->> +#include <video/display.h>
->> +#define to_panel(p) container_of(p, struct exynos_dp_device, entity)
->>
->>  static int exynos_dp_init_dp(struct exynos_dp_device *dp)
->>  {
->> @@ -1033,6 +1036,81 @@ static void exynos_dp_phy_exit(struct exynos_dp_device *dp)
->>  }
->>  #endif /* CONFIG_OF */
->>
->> +static int exynos_dp_power_on(struct exynos_dp_device *dp)
->> +{
->> +       struct platform_device *pdev = to_platform_device(dp->dev);
->> +       struct exynos_dp_platdata *pdata = pdev->dev.platform_data;
->> +
->> +       if (dp->dev->of_node) {
->> +               if (dp->phy_addr)
->> +                       exynos_dp_phy_init(dp);
->> +       } else {
->> +               if (pdata->phy_init)
->> +                       pdata->phy_init();
->> +       }
->> +
->> +       clk_prepare_enable(dp->clock);
->> +       exynos_dp_init_dp(dp);
->> +       enable_irq(dp->irq);
->> +
->> +       return 0;
->> +}
->> +
->> +static int dp_set_state(struct display_entity *entity,
->> +                       enum display_entity_state state)
->> +{
->> +       struct exynos_dp_device *dp = to_panel(entity);
->> +       struct platform_device *pdev = to_platform_device(dp->dev);
->> +       int ret = 0;
->> +
->> +       switch (state) {
->> +       case DISPLAY_ENTITY_STATE_OFF:
->> +       case DISPLAY_ENTITY_STATE_STANDBY:
->> +               ret = exynos_dp_remove(pdev);
->
-> This is incorrect, that is the module remove function. It seems like
-> it works right now since there's nothing permanent happening (like
-> platform data being freed), but there's no guarantee that this will
-> remain like that in the future.
->
-> IMO, you should factor out the common bits from remove and suspend
-> into a new function which is called from all three.
->
+> From: Libin Yang <lbyang@marvell.com>
+> 
+> This patch adds the new formats support for marvell-ccic.
+> 
+> Signed-off-by: Albert Wang <twang13@marvell.com>
+> Signed-off-by: Libin Yang <lbyang@marvell.com>
+> ---
+>  drivers/media/platform/marvell-ccic/mcam-core.c |  175 ++++++++++++++++++-----
+>  drivers/media/platform/marvell-ccic/mcam-core.h |    6 +
+>  2 files changed, 149 insertions(+), 32 deletions(-)
+> 
+> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+> index 3cc1d0c..a679917 100755
+> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
+> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
 
-Yes, I used the module remove function because it works fine with its
-current state.
-I'll factor out the common things and will create a common function.
+[snip]
 
->> +               break;
->> +       case DISPLAY_ENTITY_STATE_ON:
->> +               ret = exynos_dp_power_on(dp);
->> +               break;
->> +       }
->> +       return ret;
->> +}
->> +
->> +static int dp_get_modes(struct display_entity *entity,
->> +                       const struct videomode **modes)
->> +{
->> +       /* Rework has to be done here*/
->> +       return 1;
->
-> Returning 1 here is pretty risky since you didn't actually allocate or
-> populate a mode. I'm surprised this isn't causing some weird
-> side-effects for you.
->
+> @@ -658,49 +708,85 @@ static inline void mcam_sg_restart(struct mcam_camera *cam)
+>   */
+>  static void mcam_ctlr_image(struct mcam_camera *cam)
+>  {
+> -	int imgsz;
+>  	struct v4l2_pix_format *fmt = &cam->pix_format;
+> +	u32 widthy = 0, widthuv = 0, imgsz_h, imgsz_w;
+> +
+> +	cam_dbg(cam, "camera: bytesperline = %d; height = %d\n",
+> +		fmt->bytesperline, fmt->sizeimage / fmt->bytesperline);
+> +	imgsz_h = (fmt->height << IMGSZ_V_SHIFT) & IMGSZ_V_MASK;
+> +	imgsz_w = fmt->bytesperline & IMGSZ_H_MASK;
+> +
+> +	switch (fmt->pixelformat) {
+> +	case V4L2_PIX_FMT_YUYV:
+> +	case V4L2_PIX_FMT_UYVY:
+> +		widthy = fmt->width * 2;
+> +		widthuv = 0;
+> +		break;
+> +	case V4L2_PIX_FMT_JPEG:
+> +		imgsz_h = (fmt->sizeimage / fmt->bytesperline) << IMGSZ_V_SHIFT;
+> +		widthy = fmt->bytesperline;
+> +		widthuv = 0;
+> +		break;
+> +	case V4L2_PIX_FMT_YUV422P:
+> +	case V4L2_PIX_FMT_YUV420:
+> +	case V4L2_PIX_FMT_YVU420:
+> +		imgsz_w = (fmt->bytesperline * 4 / 3) & IMGSZ_H_MASK;
+> +		widthy = fmt->width;
+> +		widthuv = fmt->width / 2;
 
-This current code is a dummy function, That is the reason to mention
-"Rework has to be done here"
-The current DP driver is not receiving any video mode properties. So I
-have to think out how to get the same and will do the implementation.
+I might be wrong, but the above doesn't look right to me. Firstly, YUV422P 
+is a 4:2:2 format, whereas YUV420 and YVU420 are 4:2:0 formats, so, I 
+would expect calculations for them to differ. Besides, bytesperline * 4 / 
+3 doesn't look right for any of them. If this is what I think - total 
+number of bytes per line, i.e., sizeimage / height, than shouldn't YAU422P 
+have
++		imgsz_w = fmt->bytesperline & IMGSZ_H_MASK;
+and the other two
++		imgsz_w = (fmt->bytesperline * 3 / 2) & IMGSZ_H_MASK;
+? But maybe I'm wrong, please, double-check and confirm.
 
->> +}
->> +
->> +static int dp_get_size(struct display_entity *entity,
->> +                       unsigned int *width, unsigned int *height)
->> +{
->> +       struct exynos_dp_device *dp = to_panel(entity);
->> +       struct platform_device *pdev = to_platform_device(dp->dev);
->> +       /*getting pdata in older way, rework has to be done  here to
->> +         parse it from dt node */
->> +       struct exynos_dp_platdata *pdata = pdev->dev.platform_data;
->> +
->> +       /*Rework has to be done here */
->> +       *width = 1280;
->> +       *height = 800;
->> +       return 0;
->> +}
->> +
->> +static int dp_update(struct display_entity *entity,
->> +               void (*callback)(int, void *), void *data)
->> +{
->> +       /*Rework has to be done here*/
->> +       return 0;
->> +}
->> +
->> +static const struct display_entity_control_ops dp_control_ops = {
->> +       .set_state = dp_set_state,
->> +       .get_modes = dp_get_modes,
->> +       .get_size = dp_get_size,
->> +       .update = dp_update,
->> +};
->> +
->>  static int exynos_dp_probe(struct platform_device *pdev)
->>  {
->>         struct resource *res;
->> @@ -1111,6 +1189,16 @@ static int exynos_dp_probe(struct platform_device *pdev)
->>
->>         platform_set_drvdata(pdev, dp);
->>
->> +       /* setup panel entity */
->> +       dp->entity.dev = &pdev->dev;
->> +       dp->entity.release = exynos_dp_remove;
->> +       dp->entity.ops = &dp_control_ops;
->> +
->> +       ret = display_entity_register(&dp->entity);
->> +       if (ret < 0) {
->> +               pr_err("failed to register display entity\n");
->> +               return ret;
->> +       }
->>         return 0;
->>  }
->>
->> diff --git a/drivers/video/exynos/exynos_dp_core.h b/drivers/video/exynos/exynos_dp_core.h
->> index 6c567bb..eb18c10 100644
->> --- a/drivers/video/exynos/exynos_dp_core.h
->> +++ b/drivers/video/exynos/exynos_dp_core.h
->> @@ -13,6 +13,8 @@
->>  #ifndef _EXYNOS_DP_CORE_H
->>  #define _EXYNOS_DP_CORE_H
->>
->> +#include <video/display.h>
->> +
->>  enum dp_irq_type {
->>         DP_IRQ_TYPE_HP_CABLE_IN,
->>         DP_IRQ_TYPE_HP_CABLE_OUT,
->> @@ -42,6 +44,7 @@ struct exynos_dp_device {
->>         struct video_info       *video_info;
->>         struct link_train       link_train;
->>         struct work_struct      hotplug_work;
->> +       struct display_entity   entity;
->>  };
->>
->>  /* exynos_dp_reg.c */
->> @@ -133,6 +136,9 @@ void exynos_dp_config_video_slave_mode(struct exynos_dp_device *dp);
->>  void exynos_dp_enable_scrambling(struct exynos_dp_device *dp);
->>  void exynos_dp_disable_scrambling(struct exynos_dp_device *dp);
->>
->> +static int exynos_dp_power_on(struct exynos_dp_device *dp);
->> +static int exynos_dp_remove(struct platform_device *pdev);
->> +
->
-> You can just move the functions around the file as needed and avoid
-> the forward declaration.
->
+> +		break;
+> +	default:
+> +		widthy = fmt->bytesperline;
+> +		widthuv = 0;
+> +	}
+> +
+> +	mcam_reg_write_mask(cam, REG_IMGPITCH, widthuv << 16 | widthy,
+> +			IMGP_YP_MASK | IMGP_UVP_MASK);
+> +	mcam_reg_write(cam, REG_IMGSIZE, imgsz_h | imgsz_w);
+> +	mcam_reg_write(cam, REG_IMGOFFSET, 0x0);
+>  
+> -	imgsz = ((fmt->height << IMGSZ_V_SHIFT) & IMGSZ_V_MASK) |
+> -		(fmt->bytesperline & IMGSZ_H_MASK);
+> -	mcam_reg_write(cam, REG_IMGSIZE, imgsz);
+> -	mcam_reg_write(cam, REG_IMGOFFSET, 0);
+> -	/* YPITCH just drops the last two bits */
+> -	mcam_reg_write_mask(cam, REG_IMGPITCH, fmt->bytesperline,
+> -			IMGP_YP_MASK);
+>  	/*
+>  	 * Tell the controller about the image format we are using.
+>  	 */
+> -	switch (cam->pix_format.pixelformat) {
+> +	switch (fmt->pixelformat) {
+> +	case V4L2_PIX_FMT_YUV422P:
+> +		mcam_reg_write_mask(cam, REG_CTRL0,
+> +			C0_DF_YUV | C0_YUV_PLANAR | C0_YUVE_YVYU, C0_DF_MASK);
+> +		break;
+> +	case V4L2_PIX_FMT_YUV420:
+> +	case V4L2_PIX_FMT_YVU420:
+> +		mcam_reg_write_mask(cam, REG_CTRL0,
+> +			C0_DF_YUV | C0_YUV_420PL | C0_YUVE_YVYU, C0_DF_MASK);
+> +		break;
+>  	case V4L2_PIX_FMT_YUYV:
+> -	    mcam_reg_write_mask(cam, REG_CTRL0,
+> -			    C0_DF_YUV|C0_YUV_PACKED|C0_YUVE_YUYV,
+> -			    C0_DF_MASK);
+> -	    break;
+> -
+> +		mcam_reg_write_mask(cam, REG_CTRL0,
+> +			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_UYVY, C0_DF_MASK);
+> +		break;
+> +	case V4L2_PIX_FMT_UYVY:
+> +		mcam_reg_write_mask(cam, REG_CTRL0,
+> +			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_YUYV, C0_DF_MASK);
+> +		break;
+> +	case V4L2_PIX_FMT_JPEG:
+> +		mcam_reg_write_mask(cam, REG_CTRL0,
+> +			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_YUYV, C0_DF_MASK);
+> +		break;
+>  	case V4L2_PIX_FMT_RGB444:
+> -	    mcam_reg_write_mask(cam, REG_CTRL0,
+> -			    C0_DF_RGB|C0_RGBF_444|C0_RGB4_XRGB,
+> -			    C0_DF_MASK);
+> +		mcam_reg_write_mask(cam, REG_CTRL0,
+> +			C0_DF_RGB | C0_RGBF_444 | C0_RGB4_XRGB, C0_DF_MASK);
+>  		/* Alpha value? */
+> -	    break;
+> -
+> +		break;
+>  	case V4L2_PIX_FMT_RGB565:
+> -	    mcam_reg_write_mask(cam, REG_CTRL0,
+> -			    C0_DF_RGB|C0_RGBF_565|C0_RGB5_BGGR,
+> -			    C0_DF_MASK);
+> -	    break;
+> -
+> +		mcam_reg_write_mask(cam, REG_CTRL0,
+> +			C0_DF_RGB | C0_RGBF_565 | C0_RGB5_BGGR, C0_DF_MASK);
+> +		break;
+>  	default:
+> -	    cam_err(cam, "Unknown format %x\n", cam->pix_format.pixelformat);
+> -	    break;
+> +		cam_err(cam, "camera: unknown format: %#x\n", fmt->pixelformat);
+> +		break;
+>  	}
+> +
+>  	/*
+>  	 * Make sure it knows we want to use hsync/vsync.
+>  	 */
+> -	mcam_reg_write_mask(cam, REG_CTRL0, C0_SIF_HVSYNC,
+> -			C0_SIFM_MASK);
+> -
+> +	mcam_reg_write_mask(cam, REG_CTRL0, C0_SIF_HVSYNC, C0_SIFM_MASK);
+>  	/*
+>  	 * This field controls the generation of EOF(DVP only)
+>  	 */
+> @@ -711,7 +797,6 @@ static void mcam_ctlr_image(struct mcam_camera *cam)
+>  	}
+>  }
+>  
+> -
+>  /*
+>   * Configure the controller for operation; caller holds the
+>   * device mutex.
+> @@ -984,11 +1069,37 @@ static void mcam_vb_buf_queue(struct vb2_buffer *vb)
+>  {
+>  	struct mcam_vb_buffer *mvb = vb_to_mvb(vb);
+>  	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct v4l2_pix_format *fmt = &cam->pix_format;
+>  	unsigned long flags;
+>  	int start;
+> +	dma_addr_t dma_handle;
+> +	u32 pixel_count = fmt->width * fmt->height;
+>  
+>  	spin_lock_irqsave(&cam->dev_lock, flags);
+> +	dma_handle = vb2_dma_contig_plane_dma_addr(vb, 0);
+> +	BUG_ON(!dma_handle);
+>  	start = (cam->state == S_BUFWAIT) && !list_empty(&cam->buffers);
+> +
+> +	switch (cam->pix_format.pixelformat) {
+> +	case V4L2_PIX_FMT_YUV422P:
+> +		mvb->yuv_p.y = dma_handle;
 
-Yes accepted, will do this.
+The above line is common for all cases, perhaps just put it above switch?
 
-Best Wishes,
-Leela Krishna Amudala.
+> +		mvb->yuv_p.u = mvb->yuv_p.y + pixel_count;
+> +		mvb->yuv_p.v = mvb->yuv_p.u + pixel_count / 2;
+> +		break;
+> +	case V4L2_PIX_FMT_YUV420:
+> +		mvb->yuv_p.y = dma_handle;
+> +		mvb->yuv_p.u = mvb->yuv_p.y + pixel_count;
+> +		mvb->yuv_p.v = mvb->yuv_p.u + pixel_count / 4;
+> +		break;
+> +	case V4L2_PIX_FMT_YVU420:
+> +		mvb->yuv_p.y = dma_handle;
+> +		mvb->yuv_p.v = mvb->yuv_p.y + pixel_count;
+> +		mvb->yuv_p.u = mvb->yuv_p.v + pixel_count / 4;
+> +		break;
+> +	default:
+> +		mvb->yuv_p.y = dma_handle;
+> +	}
+> +
+>  	list_add(&mvb->queue, &cam->buffers);
+>  	if (cam->state == S_STREAMING && test_bit(CF_SG_RESTART, &cam->flags))
+>  		mcam_sg_restart(cam);
 
->>  /* I2C EDID Chip ID, Slave Address */
->>  #define I2C_EDID_DEVICE_ADDR                   0x50
->>  #define I2C_E_EDID_DEVICE_ADDR                 0x30
->> --
->> 1.8.0
->>
->> _______________________________________________
->> dri-devel mailing list
->> dri-devel@lists.freedesktop.org
->> http://lists.freedesktop.org/mailman/listinfo/dri-devel
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
