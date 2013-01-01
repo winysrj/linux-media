@@ -1,39 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ia0-f182.google.com ([209.85.210.182]:47750 "EHLO
-	mail-ia0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753360Ab3AVPce (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 10:32:34 -0500
-Received: by mail-ia0-f182.google.com with SMTP id w33so3321134iag.41
-        for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 07:32:34 -0800 (PST)
-MIME-Version: 1.0
-From: Oleg Shirochenkov <o.shirochenkov@gmail.com>
-Date: Tue, 22 Jan 2013 19:31:54 +0400
-Message-ID: <CAMfZRv9rE7J0ss=NDmRdhXc6=04yP18uj1v_ch_noB_igWOO3A@mail.gmail.com>
-Subject: V4L DVBSky C2800E DVB-C CI PCIe TV tuner
+Received: from mout.gmx.net ([212.227.15.19]:51412 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752467Ab3AAVkl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Jan 2013 16:40:41 -0500
+Received: from mailout-eu.gmx.com ([10.1.101.214]) by mrigmx.server.lan
+ (mrigmx001) with ESMTP (Nemesis) id 0MgJFg-1TdPZg3XC2-00Nglu for
+ <linux-media@vger.kernel.org>; Tue, 01 Jan 2013 22:40:38 +0100
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Date: Tue, 01 Jan 2013 22:40:35 +0100
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Subject: AverTV_A918R (af9035-af9033-tda18218) / patch proposal
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+From: Diorser <diorser@gmx.fr>
+Message-ID: <op.wp845xcf4bfdfw@quantal>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi.
-I was looking for supported TV-tuner on the page "DVB-C PCIe Cards" of
-LinuxTVWiki - http://www.linuxtv.org/wiki/index.php/DVB-C_PCIe_Cards
-There is no info about "DVBSky C2800E DVB-C PCIe with CI" card, DVBSky
-tells that this has "Support Linux VDR, i.e. CNVDR".
-I see no support in kernel but I've found DVBSky Support page -
-http://www.dvbsky.net/Support.html
-Inside of `linux-3.7.3-dvbsky.patch` can be found support for DVBSKY
-S950, DVBSKY S952, DVBSKY S950CI DVB-S2 CI, DVBSKY C2800E DVB-C CI.
-Some merchants report that "Mystique CaBiX-Xpress DVB-C PCIe with CI"
-is the same as "DVBSky C2800E DVB-C PCIe with CI".
+Hi all,
 
-Are there any users that can report if Mystique CaBiX-Xpress or DVBSky
-C2800E are working fine with CI support?
-Could this card be used under MythTV?
-Could these patches be included in upstream?
+After struggling some days trying to wake up a AVerTV_HD_Express_A918R  
+DVB-T card, I am stuck with a DMX_SET_PES_FILTER error reported by  
+dvbsnoop, I cannot solve (beyond my skills).
+This card is based on Afatech AF9035 +  AF9033 + NXP TDA18218HN, and then  
+very similar to AVerTV_Volar_HD_PRO_A835 (in term of components used).
 
-Also, wiki page on LinuxTVWiki tells that TBS6618 card is working fine
-under Linux when using driver from TBS, but support is not in the
-kernel, TBS provides support for many of their cards. Could these
-patches be included in some future versions of kernel too?
+You will find all details and current state at:
+http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_HD_Express_A918R
+
+In the meantime, I propose following patches to get dvb_usb_af9035  
+compatible with A918R.
+--------------------------------------------------------------------------------------
+--- /drivers/media/dvb-core/dvb-usb-ids.h
++++ /drivers/media/dvb-core/dvb-usb-ids.h
+   @@ -233,6 +233,7 @@
+   #define USB_PID_AVERMEDIA_A835                         0xa835
+   #define USB_PID_AVERMEDIA_B835                         0xb835
+  +#define USB_PID_AVERMEDIA_A918R                      0x0918
+   #define USB_PID_AVERMEDIA_1867                         0x1867
+   #define USB_PID_AVERMEDIA_A867                         0xa867
+--------------------------------------------------------------------------------------
+  --- /drivers/media/usb/dvb-usb-v2/af9035.c
+  +++ /drivers/media/usb/dvb-usb-v2/af9035.c
+  @@ -1125,6 +1125,8 @@
+          { DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_B835,
+                &af9035_props, "AVerMedia AVerTV Volar HD/PRO (A835)",  
+NULL) },
+  +       { DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A918R,
+  +             &af9035_props, "AVerMedia AverTV (A918R)", NULL) },
+          { DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_1867,
+                &af9035_props, "AVerMedia HD Volar (A867)", NULL) },
+--------------------------------------------------------------------------------------
+If someone has some ideas to solve/understand the DMX_SET_PES_FILTER  
+issue, please feel free to advise what should be tested or modified.
+Thanks, and ... Happy New Year !
+Diorser.
