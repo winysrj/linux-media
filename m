@@ -1,45 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45916 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752711Ab3ABXcP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 18:32:15 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] mt9p031: Add support for regulators
-Date: Thu, 03 Jan 2013 00:33:46 +0100
-Message-ID: <1532627.Bp59zG3znG@avalon>
-In-Reply-To: <Pine.LNX.4.64.1301022143580.13661@axis700.grange>
-References: <1357127200-7672-1-git-send-email-laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1301022143580.13661@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx1.redhat.com ([209.132.183.28]:55326 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752195Ab3AAMxF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Jan 2013 07:53:05 -0500
+Date: Tue, 1 Jan 2013 10:52:17 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Federico Vaga <federico.vaga@gmail.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	"'Mauro Carvalho Chehab'" <mchehab@infradead.org>,
+	"'Pawel Osciak'" <pawel@osciak.com>,
+	"'Hans Verkuil'" <hans.verkuil@cisco.com>,
+	"'Giancarlo Asnaghi'" <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	"'Jonathan Corbet'" <corbet@lwn.net>,
+	sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v3 2/4] videobuf2-dma-streaming: new videobuf2 memory
+ allocator
+Message-ID: <20130101105217.63d7ca9c@redhat.com>
+In-Reply-To: <1419875.Bts6eHGtlv@number-5>
+References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com>
+	<1535483.0HokefWAdm@harkonnen>
+	<50D080B6.1020109@samsung.com>
+	<1419875.Bts6eHGtlv@number-5>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Federico,
 
-Thanks for the review.
+Em Thu, 20 Dec 2012 16:37:50 +0100
+Federico Vaga <federico.vaga@gmail.com> escreveu:
 
-On Wednesday 02 January 2013 21:49:53 Guennadi Liakhovetski wrote:
-> On Wed, 2 Jan 2013, Laurent Pinchart wrote:
-> > Enable the regulators when powering the sensor up, and disable them when
-> > powering it down.
-> > 
-> > The regulators are mandatory. Boards that don't allow controlling the
-> > sensor power lines must provide dummy regulators.
+> > I can take a look at the dma coherent issues with that board, but I 
+> will
+> > need some help as I don't have this hardware.
 > 
-> I have been told several times, that (production) systems shouldn't use
-> dummy regulators, they can only be used during development until proper
-> regulators are implemented. Not that this should affect your patch, just
-> maybe we should avoid wording like "must provide dummy regulators" in
-> commit descriptions:-)
+> I have the hardware, but I don't have the full knowledge of the 
+> boards. As I told before, I asked to windriver which develop the 
+> software for the whole board, but they cannot help me.
+> 
 
-Dummy was indeed a bad choice of word, I meant fixed voltage regulators. I'll 
-fix the commit message.
+After all those discussions, I'm ok on adding this new driver, but please
+add a summary of those discussions at the patch description. As I said,
+the reason why this driver is needed is not obvious. So, it needs to be
+very well described.
 
--- 
-Regards,
+Your new "v3 3/4" patch seems OK on my eyes (I can't test it, as I don't
+have the hardware). Yet, there was one merge conflict on it.
 
-Laurent Pinchart
+Patch 1/4 of this series doesn't apply anymore (maybe it were already
+applied?).
 
+So, could you please send us a v4, rebased on the top of staging/for_v3.9
+branch of the media-tree?
+
+Thanks!
+Mauro
