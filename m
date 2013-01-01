@@ -1,42 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f45.google.com ([74.125.83.45]:63866 "EHLO
-	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754662Ab3ADN0I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 08:26:08 -0500
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	'Mauro Carvalho Chehab' <mchehab@infradead.org>,
-	'Pawel Osciak' <pawel@osciak.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>,
-	'Giancarlo Asnaghi' <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v3 2/4] videobuf2-dma-streaming: new videobuf2 memory allocator
-Date: Fri, 04 Jan 2013 14:30:44 +0100
-Message-ID: <12929800.xFTBAueAE0@harkonnen>
-In-Reply-To: <1399400.izKZgEHXnP@harkonnen>
-References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com> <20130101105217.63d7ca9c@redhat.com> <1399400.izKZgEHXnP@harkonnen>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2183 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752467Ab3AAVju (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jan 2013 16:39:50 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id r01LdkPb041544
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Tue, 1 Jan 2013 22:39:48 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id D10F01300003
+	for <linux-media@vger.kernel.org>; Tue,  1 Jan 2013 22:39:44 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130101213944.D10F01300003@alastor.dyndns.org>
+Date: Tue,  1 Jan 2013 22:39:44 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 03 January 2013 17:13:14 Federico Vaga wrote:
-> > After all those discussions, I'm ok on adding this new driver, but please
-> > add a summary of those discussions at the patch description. As I said,
-> > the reason why this driver is needed is not obvious. So, it needs to be
-> > very well described.
-> 
-> ack. I will ask more information to ST about the board because the
-> architecture side it is not in the kernel mainline, but it should be.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I have more information about DMA on the board that I'm using; probably, I can 
-make dma-contig work with my device. Unfortunately, I cannot test at the 
-moment; I hope to do a test on Monday.
+Results of the daily build of media_tree:
 
+date:        Tue Jan  1 19:00:17 CET 2013
+git hash:    8cd7085ff460ead3aba6174052a408f4ad52ac36
+gcc version:      i686-linux-gcc (GCC) 4.7.1
+host hardware:    x86_64
+host os:          3.4.07-marune
 
--- 
-Federico Vaga
+linux-git-arm-eabi-davinci: WARNINGS
+linux-git-arm-eabi-exynos: OK
+linux-git-arm-eabi-omap: ERRORS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-i686: WARNINGS
+linux-2.6.37-i686: WARNINGS
+linux-2.6.38.2-i686: WARNINGS
+linux-2.6.39.1-i686: WARNINGS
+linux-3.0-i686: WARNINGS
+linux-3.1-i686: WARNINGS
+linux-3.2.1-i686: WARNINGS
+linux-3.3-i686: WARNINGS
+linux-3.4-i686: WARNINGS
+linux-3.5-i686: WARNINGS
+linux-3.6-i686: WARNINGS
+linux-3.7-i686: WARNINGS
+linux-3.8-rc1-i686: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-x86_64: WARNINGS
+linux-2.6.37-x86_64: WARNINGS
+linux-2.6.38.2-x86_64: WARNINGS
+linux-2.6.39.1-x86_64: WARNINGS
+linux-3.0-x86_64: WARNINGS
+linux-3.1-x86_64: WARNINGS
+linux-3.2.1-x86_64: WARNINGS
+linux-3.3-x86_64: WARNINGS
+linux-3.4-x86_64: WARNINGS
+linux-3.5-x86_64: WARNINGS
+linux-3.6-x86_64: WARNINGS
+linux-3.7-x86_64: WARNINGS
+linux-3.8-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
