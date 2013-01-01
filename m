@@ -1,63 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp24.services.sfr.fr ([93.17.128.83]:59569 "EHLO
-	smtp24.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752950Ab3AFVM6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 16:12:58 -0500
-Message-ID: <50E9E8D3.6080504@sfr.fr>
-Date: Sun, 06 Jan 2013 22:12:51 +0100
-From: Patrice Chotard <patrice.chotard@sfr.fr>
+Received: from moutng.kundenserver.de ([212.227.126.186]:60140 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752295Ab3AAP2S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jan 2013 10:28:18 -0500
+Date: Tue, 1 Jan 2013 16:28:16 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Albert Wang <twang13@marvell.com>
+cc: corbet@lwn.net, linux-media@vger.kernel.org,
+	Libin Yang <lbyang@marvell.com>
+Subject: Re: [PATCH V3 02/15] [media] marvell-ccic: add MIPI support for
+ marvell-ccic driver
+In-Reply-To: <1355565484-15791-3-git-send-email-twang13@marvell.com>
+Message-ID: <Pine.LNX.4.64.1301011600060.31619@axis700.grange>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+ <1355565484-15791-3-git-send-email-twang13@marvell.com>
 MIME-Version: 1.0
-To: Emil Goode <emilgoode@gmail.com>
-CC: patricechotard@free.fr, martin.blumenstingl@googlemail.com,
-	gregkh@linuxfoundation.org, crope@iki.fi,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH] [media] ngene: Use newly created function
-References: <1357505952-14439-1-git-send-email-emilgoode@gmail.com>
-In-Reply-To: <1357505952-14439-1-git-send-email-emilgoode@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Emil,
+Hi Albert
 
-You are right, there was a missing piece of code.
+Looks quite good to me, thanks for addressing my comments! Just a minor 
+nitpick below:
 
-During merge, part of the orignal patch was missing. I have signaled it
-to Mauro who have fixed it in media_tree.
+On Sat, 15 Dec 2012, Albert Wang wrote:
 
-Regards.
-
-Le 06/01/2013 21:59, Emil Goode a écrit :
-> The function demod_attach_drxd was split into two by commit 36a495a3.
-> This resulted in a new function tuner_attach_dtt7520x that is not used.
-> We should register tuner_attach_dtt7520x as a callback in the ngene_info
-> struct in the same way as done with the other part of the split function.
+> From: Libin Yang <lbyang@marvell.com>
 > 
-> Sparse warning:
+> This patch adds the MIPI support for marvell-ccic.
+> Board driver should determine whether using MIPI or not.
 > 
-> drivers/media/pci/ngene/ngene-cards.c:333:12: warning:
->         ‘tuner_attach_dtt7520x’ defined but not used [-Wunused-function]
-> 
-> Signed-off-by: Emil Goode <emilgoode@gmail.com>
+> Signed-off-by: Albert Wang <twang13@marvell.com>
+> Signed-off-by: Libin Yang <lbyang@marvell.com>
 > ---
-> This patch is a guess at what was intended. I'm not familiar with this code
-> and I don't have the hardware to test it.
-> 
->  drivers/media/pci/ngene/ngene-cards.c |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
-> index c99f779..60605c8 100644
-> --- a/drivers/media/pci/ngene/ngene-cards.c
-> +++ b/drivers/media/pci/ngene/ngene-cards.c
-> @@ -732,6 +732,7 @@ static struct ngene_info ngene_info_terratec = {
->  	.name           = "Terratec Integra/Cinergy2400i Dual DVB-T",
->  	.io_type        = {NGENE_IO_TSIN, NGENE_IO_TSIN},
->  	.demod_attach   = {demod_attach_drxd, demod_attach_drxd},
-> +	.tuner_attach   = {tuner_attach_dtt7520x, tuner_attach_dtt7520x},
->  	.fe_config      = {&fe_terratec_dvbt_0, &fe_terratec_dvbt_1},
->  	.i2c_access     = 1,
->  };
-> 
+
+A general request for future revisions: it would help if you could list changes 
+since the last version here - after any Sob's and the "---" line.
+
+>  drivers/media/platform/marvell-ccic/mcam-core.c  |   70 ++++++++++++++++++++
+>  drivers/media/platform/marvell-ccic/mcam-core.h  |   24 ++++++-
+>  drivers/media/platform/marvell-ccic/mmp-driver.c |   75 +++++++++++++++++++++-
+>  include/media/mmp-camera.h                       |   10 +++
+>  4 files changed, 177 insertions(+), 2 deletions(-)
+
+[snip]
+
+> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+> index c4c17fe..603fa0a 100755
+> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
+> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+
+[snip]
+
+> @@ -183,8 +251,14 @@ static int mmpcam_probe(struct platform_device *pdev)
+>  	mcam = &cam->mcam;
+>  	mcam->plat_power_up = mmpcam_power_up;
+>  	mcam->plat_power_down = mmpcam_power_down;
+> +	mcam->calc_dphy = mmpcam_calc_dphy;
+> +	mcam->pll1 = NULL;
+
+Strictly speaking this is not needed, it's allocated using kzalloc(). Kinda 
+pointless to use kzalloc() and then explicitly initialise each field, 
+including 0 / NULL...
+
+>  	mcam->dev = &pdev->dev;
+>  	mcam->use_smbus = 0;
+> +	mcam->bus_type = pdata->bus_type;
+> +	mcam->dphy = pdata->dphy;
+> +	mcam->mipi_enabled = 0;
+
+ditto
+
+> +	mcam->lane = pdata->lane;
+>  	mcam->chip_id = V4L2_IDENT_ARMADA610;
+>  	mcam->buffer_mode = B_DMA_sg;
+>  	spin_lock_init(&mcam->dev_lock);
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
