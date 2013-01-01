@@ -1,95 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout3.freenet.de ([195.4.92.93]:43449 "EHLO mout3.freenet.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752742Ab3ABVEo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 16:04:44 -0500
-Date: Wed, 2 Jan 2013 21:45:12 +0100
-From: Sascha Sommer <saschasommer@freenet.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 2/5] em28xx: respect the message size constraints for
- i2c transfers
-Message-ID: <20130102214512.5e73075c@madeira.sommer.dynalias.net>
-In-Reply-To: <20121222220746.64611c08@redhat.com>
-References: <1355682211-13604-1-git-send-email-fschaefer.oss@googlemail.com>
-	<1355682211-13604-3-git-send-email-fschaefer.oss@googlemail.com>
-	<20121222220746.64611c08@redhat.com>
+Received: from casper.infradead.org ([85.118.1.10]:39929 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752197Ab3AANBq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jan 2013 08:01:46 -0500
+Date: Tue, 1 Jan 2013 11:01:13 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: ujhelyi.m@gmail.com
+Cc: linux-media@vger.kernel.org, rd@radekdostal.com
+Subject: Re: [PATCH] media: rc: gpio-ir-recv.c: change platform_data to DT
+ binding
+Message-ID: <20130101110113.75e1c626@infradead.org>
+In-Reply-To: <1355838101-972-1-git-send-email-ujhelyi.m@gmail.com>
+References: <1355838101-972-1-git-send-email-ujhelyi.m@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Matus,
 
-Am Sat, 22 Dec 2012 22:07:46 -0200
-schrieb Mauro Carvalho Chehab <mchehab@redhat.com>:
+Em Tue, 18 Dec 2012 14:41:41 +0100
+ujhelyi.m@gmail.com escreveu:
 
-> Em Sun, 16 Dec 2012 19:23:28 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+> From: Matus Ujhelyi <ujhelyi.m@gmail.com>
 > 
-> > The em2800 can transfer up to 4 bytes per i2c message.
-> > All other em25xx/em27xx/28xx chips can transfer at least 64 bytes
-> > per message.
-> > 
-> > I2C adapters should never split messages transferred via the I2C
-> > subsystem into multiple message transfers, because the result will
-> > almost always NOT be the same as when the whole data is transferred
-> > to the I2C client in a single message.
-> > If the message size exceeds the capabilities of the I2C adapter,
-> > -EOPNOTSUPP should be returned.
-> > 
-> > Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> > ---
-> >  drivers/media/usb/em28xx/em28xx-i2c.c |   44
-> > ++++++++++++++------------------- 1 Datei geändert, 18 Zeilen
-> > hinzugefügt(+), 26 Zeilen entfernt(-)
-> > 
-> > diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c
-> > b/drivers/media/usb/em28xx/em28xx-i2c.c index 44533e4..c508c12
-> > 100644 --- a/drivers/media/usb/em28xx/em28xx-i2c.c
-> > +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-> > @@ -50,14 +50,18 @@ do
-> > {							\ } while
-> > (0) 
-> >  /*
-> > - * em2800_i2c_send_max4()
-> > - * send up to 4 bytes to the i2c device
-> > + * em2800_i2c_send_bytes()
-> > + * send up to 4 bytes to the em2800 i2c device
-> >   */
-> > -static int em2800_i2c_send_max4(struct em28xx *dev, u8 addr, u8
-> > *buf, u16 len) +static int em2800_i2c_send_bytes(struct em28xx
-> > *dev, u8 addr, u8 *buf, u16 len) {
-> >  	int ret;
-> >  	int write_timeout;
-> >  	u8 b2[6];
-> > +
-> > +	if (len < 1 || len > 4)
-> > +		return -EOPNOTSUPP;
-> > +
+> Signed-off-by: Matus Ujhelyi <ujhelyi.m@gmail.com>
+
+This email lacks a proper description and doesn't c/c the DT maintainer.
+
+I'm not a DT expert, so I won't comment the specific bits there, but
+I'm more concerned if this is the right way of doing it.
+
+The thing is that this driver seems to be generic enough to be used not only
+by embedded platforms, but also for normal PCI/USB drivers for consumers
+hardware, used on x86 machines.
+
+So, it is what we generally call as an "ancillary driver", like the I2C drivers
+are.
+
+Well, I don't think that a PCI or an USB driver should use DT to pass data to 
+an ancillary driver like this one. On those non-embedded drivers, the device
+detection happens based on the PCI or USB ID, instead of on some DT info.
+That's why passing those data through DT seems a bad idea. 
+
+IMHO, all those ancillary drivers should be DT-agnostic. So, there must be an
+embedded-specific driver that will handle DT and pass the config information
+to the driver using the same way a PCI or USB driver would do (currently, via
+platform_data).
+
+As an additional benefit, this will help to avoid lots of #ifdef CONFIG_OF
+inside the ancillary driver, with is ugly and obfuscates the driver.
+
+Regards,
+Mauro
+> ---
+>  drivers/media/rc/gpio-ir-recv.c |   84 ++++++++++++++++++++++++++++++---------
+>  1 file changed, 66 insertions(+), 18 deletions(-)
 > 
-> Except if you actually tested it with all em2800 devices, I think that
-> this change just broke it for em2800.
-> 
-> Maybe Sascha could review this patch series on his em2800 devices.
-> 
-> Those devices are limited, and just like other devices (cx231xx for
-> example), the I2C bus need to split long messages, otherwise the I2C
-> devices will fail.
-> 
+> diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+> index ba1a1eb..cfba079 100644
+> --- a/drivers/media/rc/gpio-ir-recv.c
+> +++ b/drivers/media/rc/gpio-ir-recv.c
+> @@ -58,19 +58,49 @@ err_get_value:
+>  	return IRQ_HANDLED;
+>  }
+>  
+> +static const struct of_device_id gpio_ir_of_match[] = {
+> +	{
+> +		.compatible = "gpio-ir-recv",
+> +	},
+> +};
+> +MODULE_DEVICE_TABLE(of, gpio_ir_of_matchof_match);
+> +
+> +static int __devinit gpio_ir_recv_dt_probe (struct gpio_rc_dev *gpio_dev,
+> +		struct rc_dev *rcdev, struct platform_device *pdev) {
+> +
+> +	struct device_node *node = pdev->dev.of_node;
+> +
+> +	if (!node) {
+> +		pr_err("Missing gpio_nr in the DT\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (of_property_read_u32(node, "gpio_nr", &gpio_dev->gpio_nr)) {
+> +		pr_err("Missing gpio_nr in the DT\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (of_property_read_u64(node, "allowed_protos", &rcdev->allowed_protos))
+> +		rcdev->allowed_protos = RC_BIT_ALL;
+> +
+> +	if (of_property_read_bool(node, "active_low"))
+> +		gpio_dev->active_low = true;
+> +	else
+> +		gpio_dev->active_low = false;
+> +
+> +	if (of_property_read_string(node, "map_name", &rcdev->map_name))
+> +		rcdev->map_name = NULL;
+> +
+> +	return 0;
+> +}
+> +
+>  static int __devinit gpio_ir_recv_probe(struct platform_device *pdev)
+>  {
+>  	struct gpio_rc_dev *gpio_dev;
+>  	struct rc_dev *rcdev;
+>  	const struct gpio_ir_recv_platform_data *pdata =
+>  					pdev->dev.platform_data;
+> -	int rc;
+> -
+> -	if (!pdata)
+> -		return -EINVAL;
+> -
+> -	if (pdata->gpio_nr < 0)
+> -		return -EINVAL;
+> +	int rc = -EINVAL;
+>  
+>  	gpio_dev = kzalloc(sizeof(struct gpio_rc_dev), GFP_KERNEL);
+>  	if (!gpio_dev)
+> @@ -82,6 +112,28 @@ static int __devinit gpio_ir_recv_probe(struct platform_device *pdev)
+>  		goto err_allocate_device;
+>  	}
+>  
+> +	if (!pdata) {
+> +
+> +		if (gpio_ir_recv_dt_probe(gpio_dev, rcdev, pdev))
+> +			goto err_dt_create_of;
+> +
+> +	} else {
+> +
+> +		if (pdata->allowed_protos)
+> +			rcdev->allowed_protos = pdata->allowed_protos;
+> +		else
+> +			rcdev->allowed_protos = RC_BIT_ALL;
+> +		rcdev->map_name = pdata->map_name ?: RC_MAP_EMPTY;
+> +
+> +		gpio_dev->gpio_nr = pdata->gpio_nr;
+> +		gpio_dev->active_low = pdata->active_low;
+> +
+> +	}
+> +
+> +	if (gpio_dev->gpio_nr < 0) {
+> +		goto err_gpio_nr;
+> +	}
+> +
+>  	rcdev->priv = gpio_dev;
+>  	rcdev->driver_type = RC_DRIVER_IR_RAW;
+>  	rcdev->input_name = GPIO_IR_DEVICE_NAME;
+> @@ -92,20 +144,13 @@ static int __devinit gpio_ir_recv_probe(struct platform_device *pdev)
+>  	rcdev->input_id.version = 0x0100;
+>  	rcdev->dev.parent = &pdev->dev;
+>  	rcdev->driver_name = GPIO_IR_DRIVER_NAME;
+> -	if (pdata->allowed_protos)
+> -		rcdev->allowed_protos = pdata->allowed_protos;
+> -	else
+> -		rcdev->allowed_protos = RC_BIT_ALL;
+> -	rcdev->map_name = pdata->map_name ?: RC_MAP_EMPTY;
+>  
+>  	gpio_dev->rcdev = rcdev;
+> -	gpio_dev->gpio_nr = pdata->gpio_nr;
+> -	gpio_dev->active_low = pdata->active_low;
+>  
+> -	rc = gpio_request(pdata->gpio_nr, "gpio-ir-recv");
+> +	rc = gpio_request(gpio_dev->gpio_nr, "gpio-ir-recv");
+>  	if (rc < 0)
+>  		goto err_gpio_request;
+> -	rc  = gpio_direction_input(pdata->gpio_nr);
+> +	rc  = gpio_direction_input(gpio_dev->gpio_nr);
+>  	if (rc < 0)
+>  		goto err_gpio_direction_input;
+>  
+> @@ -117,7 +162,7 @@ static int __devinit gpio_ir_recv_probe(struct platform_device *pdev)
+>  
+>  	platform_set_drvdata(pdev, gpio_dev);
+>  
+> -	rc = request_any_context_irq(gpio_to_irq(pdata->gpio_nr),
+> +	rc = request_any_context_irq(gpio_to_irq(gpio_dev->gpio_nr),
+>  				gpio_ir_recv_irq,
+>  			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
+>  					"gpio-ir-recv-irq", gpio_dev);
+> @@ -131,8 +176,10 @@ err_request_irq:
+>  	rc_unregister_device(rcdev);
+>  err_register_rc_device:
+>  err_gpio_direction_input:
+> -	gpio_free(pdata->gpio_nr);
+> +	gpio_free(gpio_dev->gpio_nr);
+>  err_gpio_request:
+> +err_dt_create_of:
+> +err_gpio_nr:
+>  	rc_free_device(rcdev);
+>  	rcdev = NULL;
+>  err_allocate_device:
+> @@ -195,6 +242,7 @@ static struct platform_driver gpio_ir_recv_driver = {
+>  #ifdef CONFIG_PM
+>  		.pm	= &gpio_ir_recv_pm_ops,
+>  #endif
+> +		.of_match_table = of_match_ptr(gpio_ir_of_match),
+>  	},
+>  };
+>  module_platform_driver(gpio_ir_recv_driver);
 
-The only device that I own is the Terratec Cinergy 200 USB.
-Unfortunately I left it in my parents house so I won't be able to
-test the patch within the next two weeks. I don't know if any of the
-other devices ever transfered more than 4 bytes but as far as I
-remember the windows driver of the cinergy 200 usb did not do this.
-The traces obtained from it were the only information I had during
-development. On first sight, the splitting code looks wrong.
-
-Regards
-
-Sascha
 
 
+
+Cheers,
+Mauro
