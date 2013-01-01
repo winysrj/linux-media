@@ -1,46 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33543 "EHLO mx1.redhat.com"
+Received: from mout.gmx.net ([212.227.17.20]:60087 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752375Ab3AUNwS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jan 2013 08:52:18 -0500
-Date: Mon, 21 Jan 2013 11:51:44 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Patchwork / Bugzilla update
-Message-ID: <20130121115144.01e58f6a@redhat.com>
-In-Reply-To: <50FBEBFB.3020209@googlemail.com>
-References: <50FBEBFB.3020209@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	id S1752301Ab3AAXOX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Jan 2013 18:14:23 -0500
+Received: from mailout-eu.gmx.com ([10.1.101.216]) by mrigmx.server.lan
+ (mrigmx001) with ESMTP (Nemesis) id 0MZic4-1TbFOz1WBi-00LVtI for
+ <linux-media@vger.kernel.org>; Wed, 02 Jan 2013 00:09:19 +0100
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: AverTV_A918R (af9035-af9033-tda18218) / patch proposal
+References: <op.wp845xcf4bfdfw@quantal> <50E36298.3040009@iki.fi>
+ <op.wp88epxu4bfdfw@quantal>
+Date: Wed, 02 Jan 2013 00:09:17 +0100
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+From: Diorser <diorser@gmx.fr>
+Message-ID: <op.wp889rso4bfdfw@quantal>
+In-Reply-To: <op.wp88epxu4bfdfw@quantal>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 20 Jan 2013 14:07:07 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+Thanks for your so fast reply.
+Unfortunately, scanning output is always empty with 100% signal strength   
+(external antenna)
+I also use a AverTV super_007 with the same external antenna on a  another  
+PC with Kaffeine =Signal = 100%.
 
-> Hi Mauro,
-> 
-> the patches 16225, 16231, 16232 at patchwork are superseeded:
-> 
-> pwclient update -s 'superseded' 16225
-> pwclient update -s 'superseded' 16231
-> pwclient update -s 'superseded' 16232
+I also tried different dvb-usb-af9035-02.fw  firmware with different   
+LINK/OFDM value (I don't understand but just tried.).
+Never got any PID or channel.
+Scanning and tuning work (or seem to with w_scan or kaffeine), but no   
+data output.
 
-Updated.
+I've noticed that videobuf_dvb and videobuf_dma_sg modules are need by a   
+saa7134 card, and not by AF9035. (no videobuf / dvb_usb_af9035
+dependency).
+Don't know if it is normal or not.
 
-> The following kernel bugs can be closed as "resolved - fixed":
-> - bug 26572 "rmmod em28xx or unplugging em28xx tv adapter problem"
->   => resolved with commit 05fe2175cf87da8a5475aed422bd636475ab0412
-> "em28xx: refactor the code in em28xx_usb_disconnect()"
-> - bug 14126 "Audio input for TV mode of Terratec Cinergy 250 is
-> misconfigured"
->   => resolved with commit 5e8d02bb346d6240b029f1990ddc295d7d59685b
-> "em28xx: fix audio input for TV mode of device Terratec Cinergy 250"
+A bit frustrating to be so close to the end, but also a bit pessimistic   
+because really reaching the limit of my skills.
+Anyway, I will stay tuned in case some values need to be modified in the   
+source for test, or any updates I will try.
 
-Feel free to close them there directly.
+Many thanks.
+Diorser.
 
-Regards,
-Mauro
+On Tue, 01 Jan 2013 23:26:32 +0100, Antti Palosaari <crope@iki.fiwrote
+
+> Patch looks correct.
+>>
+> If you are talking of that error I saw wiki you mentioned it is not  
+> error. You cannot use dvbsnoop like that. You have to tune to channel  
+> first and only after device is tuned successfully pidscan is possible.
+>>
+>  # dvbsnoop -s pidscan
+>  dvbsnoop V1.4.50 -- http://dvbsnoop.sourceforge.net/
+>  Transponder PID-Scan...
+>  Error(22): DMX_SET_PES_FILTER: Invalid argument
+>>
+> If you are really sure your antenna is good (not that small antenna  
+> bundled) and it does not work then there is some bug. I bet some GPIO is  
+> wrong. Maybe you should take some sniffs using SniffUSB2.0 and look  
+> there...
+>
+> regards
+> Antti
