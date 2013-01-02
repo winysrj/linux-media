@@ -1,63 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39131 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752987Ab3ACKFd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 05:05:33 -0500
-Date: Thu, 3 Jan 2013 10:00:01 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Tony Prisk <linux@prisktech.co.nz>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Dan Carpenter <error27@gmail.com>,
-	Sergei Shtylyov <sshtylyov@mvista.com>,
-	kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH RESEND 6/6] clk: s5p-g2d: Fix incorrect usage of
-	IS_ERR_OR_NULL
-Message-ID: <20130103100000.GJ2631@n2100.arm.linux.org.uk>
-References: <1355852048-23188-1-git-send-email-linux@prisktech.co.nz> <1355852048-23188-7-git-send-email-linux@prisktech.co.nz> <50D62BC9.9010706@mvista.com> <50E32C06.5020104@gmail.com> <CA+_b7DK2zbBzbCh15ikEAeGP5h-V9gQ_YcX15O-RNvWxCk8Zfg@mail.gmail.com> <1357104713.30504.8.camel@gitbox> <20130103090520.GC7247@mwanda>
+Received: from moutng.kundenserver.de ([212.227.17.9]:58871 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752134Ab3ABLbE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 06:31:04 -0500
+Date: Wed, 2 Jan 2013 12:31:01 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+cc: linux-media@vger.kernel.org, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH RFC v2 01/15] [media] Add common video interfaces OF
+ bindings documentation
+In-Reply-To: <1356969793-27268-2-git-send-email-s.nawrocki@samsung.com>
+Message-ID: <Pine.LNX.4.64.1301021220370.7829@axis700.grange>
+References: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
+ <1356969793-27268-2-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130103090520.GC7247@mwanda>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 03, 2013 at 12:05:20PM +0300, Dan Carpenter wrote:
-> On Wed, Jan 02, 2013 at 06:31:53PM +1300, Tony Prisk wrote:
-> > Why should a _consumer_ of a clock care?  It is _very_ important that
-> > people get this idea - to a consumer, the struct clk is just an opaque
-> > cookie.  The fact that it appears to be a pointer does _not_ mean that
-> > the driver can do any kind of dereferencing on that pointer - it should
-> > never do so.
-> > 
-> > Thread can be viewed here:
-> > https://lkml.org/lkml/2012/12/20/105
-> > 
+Hi Sylwester
+
+Thanks for picking up these patches! In general both look good to me, just 
+a couple of nit-picks, that I couldn't help remarking:-)
+
+On Mon, 31 Dec 2012, Sylwester Nawrocki wrote:
+
+> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 > 
-> Ah.  Grand.  Thanks...
+> This patch adds a document describing common OF bindings for video
+> capture, output and video processing devices. It is curently mainly
+> focused on video capture devices, with data busses defined by
+> standards like ITU-R BT.656 or MIPI-CSI2.
+> It also documents a method of describing data links between devices.
 > 
-> Btw. The documentation for clk_get() really should include some of
-> this information.
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Reviewed-by: Stephen Warren <swarren@nvidia.com>
+> 
+> ---
+> 
+> This is basically a resend of my previous version of this patch [1],
+> with just a few typo/grammar issue corrections.
+> 
+> [1] http://patchwork.linuxtv.org/patch/15911/
+> ---
+>  .../devicetree/bindings/media/video-interfaces.txt |  198 ++++++++++++++++++++
+>  1 file changed, 198 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/video-interfaces.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> new file mode 100644
+> index 0000000..d1eea35
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -0,0 +1,198 @@
+> +Common bindings for video data receiver and transmitter interfaces
+> +
+> +General concept
+> +---------------
+> +
+> +Video data pipelines usually consist of external devices, e.g. camera sensors,
+> +controlled over an I2C, SPI or UART bus, and SoC internal IP blocks, including
+> +video DMA engines and video data processors.
+> +
+> +SoC internal blocks are described by DT nodes, placed similarly to other SoC
+> +blocks.  External devices are represented as child nodes of their respective
+> +bus controller nodes, e.g. I2C.
+> +
+> +Data interfaces on all video devices are described by their child 'port' nodes.
+> +Configuration of a port depends on other devices participating in the data
+> +transfer and is described by 'endpoint' subnodes.
+> +
+> +dev {
+> +	#address-cells = <1>;
+> +	#size-cells = <0>;
+> +	port@0 {
+> +		endpoint@0 { ... };
+> +		endpoint@1 { ... };
+> +	};
+> +	port@1 { ... };
+> +};
+> +
+> +If a port can be configured to work with more than one other device on the same
+> +bus, an 'endpoint' child node must be provided for each of them.  If more than
+> +one port is present in a device node or there is more than one endpoint at a
+> +port, a common scheme, using '#address-cells', '#size-cells' and 'reg' properties
+> +is used.
+> +
+> +Two 'endpoint' nodes are linked with each other through their 'remote-endpoint'
+> +phandles.  An endpoint subnode of a device contains all properties needed for
+> +configuration of this device for data exchange with the other device.  In most
+> +cases properties at the peer 'endpoint' nodes will be identical, however
+> +they might need to be different when there is any signal modifications on the
+> +bus between two devices, e.g. there are logic signal inverters on the lines.
+> +
+> +Required properties
+> +-------------------
+> +
+> +If there is more than one 'port' or more than one 'endpoint' node following
+> +properties are required in relevant parent node:
+> +
+> +- #address-cells : number of cells required to define port number, should be 1.
+> +- #size-cells    : should be zero.
+> +
+> +Optional endpoint properties
+> +----------------------------
+> +
+> +- remote-endpoint : phandle to an 'endpoint' subnode of the other device node.
 
-It *does* contain this information.  The problem is that driver authors
-_ARE_ stupid, lazy morons who don't bother to read documentation.
+This spacing before ":" looks strange to me. I personally prefer the 
+normal English rule - "x: y," i.e. no space before and a space after, but 
+I wouldn't remark on your choice of a space on each side in this specific 
+case, if it was consistent. Whereas sometimes having one space and 
+sometimes having none looks weird to me. I would go for "no space before 
+':'" throughout this document.
 
-/**
- * clk_get - lookup and obtain a reference to a clock producer.
- * @dev: device for clock "consumer"
- * @id: clock consumer ID
- *
- * Returns a struct clk corresponding to the clock producer, or
- * valid IS_ERR() condition containing errno.  The implementation
- * uses @dev and @id to determine the clock consumer, and thereby
- * the clock producer.  (IOW, @id may be identical strings, but
- * clk_get may return different clock producers depending on @dev.)
- *
- * Drivers must assume that the clock source is not enabled.
- *
- * clk_get should not be called from within interrupt context.
- */
+> +- slave-mode : a boolean property, run the link in slave mode. Default is master
+> +  mode.
+> +- bus-width : number of data lines, valid for parallel buses.
 
+As we discussed before, both "busses" and "buses" spellings are commonly 
+used at different locations around the world, but I think we should stick 
+to only one of them in a single document. It looks weird to have "buses" 
+in one line and "busses" in the following one.
+
+> +- data-shift: on parallel data busses, if bus-width is used to specify the
+> +  number of data lines, data-shift can be used to specify which data lines are
+> +  used, e.g. "bus-width=<10>; data-shift=<2>;" means, that lines 9:2 are used.
+> +- hsync-active : active state of HSYNC signal, 0/1 for LOW/HIGH respectively.
+> +- vsync-active : active state of VSYNC signal, 0/1 for LOW/HIGH respectively.
+> +  Note, that if HSYNC and VSYNC polarities are not specified, embedded
+> +  synchronization may be required, where supported.
+> +- data-active : similar to HSYNC and VSYNC, specifies data line polarity.
+> +- field-even-active: field signal level during the even field data transmission.
+> +- pclk-sample : rising (1) or falling (0) edge to sample the pixel clock signal.
+
+Yes, it was in my original document too, but don't we mean "sample data on 
+rising (1) or falling (0) edge of the pixel clock signal?"
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
