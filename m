@@ -1,80 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38676 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753583Ab3AGTiX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jan 2013 14:38:23 -0500
-Message-ID: <50EB2405.80309@iki.fi>
-Date: Mon, 07 Jan 2013 21:37:41 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Damien Bally <biribi@free.fr>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Malcolm Priestley <tvboxspy@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] usb id addition for Terratec Cinergy T Stick Dual rev.
- 2
-References: <5064A3AD.70009@free.fr> <5064ABD2.2060106@iki.fi> <5065D1AC.5030800@free.fr> <5065E487.80502@iki.fi> <1348860617.2782.26.camel@Route3278> <20120929143305.4859603e@redhat.com> <50688332.7020406@free.fr> <20121001081540.69bdae23@redhat.com> <50697CBE.8060001@iki.fi> <20121006124020.2cc2f534@redhat.com>
-In-Reply-To: <20121006124020.2cc2f534@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from server.prisktech.co.nz ([115.188.14.127]:59210 "EHLO
+	server.prisktech.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750930Ab3ABFbw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 00:31:52 -0500
+Message-ID: <1357104713.30504.8.camel@gitbox>
+Subject: Re: [PATCH RESEND 6/6] clk: s5p-g2d: Fix incorrect usage of
+ IS_ERR_OR_NULL
+From: Tony Prisk <linux@prisktech.co.nz>
+To: Dan Carpenter <error27@gmail.com>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sergei Shtylyov <sshtylyov@mvista.com>,
+	kernel-janitors@vger.kernel.org,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-kernel@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Date: Wed, 02 Jan 2013 18:31:53 +1300
+In-Reply-To: <CA+_b7DK2zbBzbCh15ikEAeGP5h-V9gQ_YcX15O-RNvWxCk8Zfg@mail.gmail.com>
+References: <1355852048-23188-1-git-send-email-linux@prisktech.co.nz>
+	 <1355852048-23188-7-git-send-email-linux@prisktech.co.nz>
+	 <50D62BC9.9010706@mvista.com> <50E32C06.5020104@gmail.com>
+	 <CA+_b7DK2zbBzbCh15ikEAeGP5h-V9gQ_YcX15O-RNvWxCk8Zfg@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/06/2012 06:40 PM, Mauro Carvalho Chehab wrote:
-> Em Mon, 01 Oct 2012 14:21:34 +0300
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> On 10/01/2012 02:15 PM, Mauro Carvalho Chehab wrote:
->>> Em Sun, 30 Sep 2012 19:36:50 +0200
->>> Damien Bally <biribi@free.fr> escreveu:
->>>
->>>>
->>>>
->>>> Le 29/09/2012 19:33, Mauro Carvalho Chehab a écrit :
->>>>     It seems that the it931x variant has bcdDevice equal to 2.00,
->>>>> from Damien's email:
->>>>>
->>>>>       idVendor           0x0ccd TerraTec Electronic GmbH
->>>>>       idProduct          0x0099
->>>>>       bcdDevice            2.00
->>>>>       iManufacturer           1 ITE Technologies, Inc.
->>>>>       iProduct                2 DVB-T TV Stick
->>>>>       iSerial                 0
->>>>>
->>>>> If the af9015 variant uses another bcdDevice, the fix should be simple.
->>>>
->>>> Alas, according to
->>>> http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_T_USB_Dual_RC the
->>>> af9015 variant appears to have the same bcdDevice. I join both lsusb
->>>> outputs for comparison.
->>>
->>> Well, then the alternative is to let both drivers to handle this USB ID,
->>> and add a code there on each of them that will check if the device is the
->>> right one, perhaps by looking at iProduct string. If the driver doesn't
->>> recognize it, it should return -ENODEV at .probe() time. The USB core will
->>> call the second driver.
->>
->> It is the easiest solution, but there should be very careful. Those
->> strings could change from device to device. I used earlier af9015 eeprom
->> hash (those string as coming from the eeprom) to map TerraTec dual
->> remote controller and git bug report quite soon as it didn't worked.
->> After I looked the reason I found out they was changed some not
->> meaningful value.
->
-> Yeah, those strings can change, especially when vendors don't care enough
-> to use a different USB ID/bcdDevice for different models. Yet, seems to
-> be the cleaner approach, among the alternatives.
+On Wed, 2013-01-02 at 08:10 +0300, Dan Carpenter wrote:
+> clk_get() returns NULL if CONFIG_HAVE_CLK is disabled.
+> 
+> I told Tony about this but everyone has been gone with end of year
+> holidays so it hasn't been addressed.
+> 
+> Tony, please fix it so people don't apply these patches until
+> clk_get() is updated to not return NULL.  It sucks to have to revert
+> patches.
+> 
+> regards,
+> dan carpenter
 
-Damien, care to test?
-http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/it9135_tuner
+I posted the query to Mike Turquette, linux-kernel and linux-arm-kernel
+mailing lists, regarding the return of NULL when HAVE_CLK is undefined.
 
-I split tuner out from IT9135 driver and due to that AF9035 driver 
-supports IT9135 too (difference between AF9035 and IT9135 is integrated 
-RF-tuner). I added iManufacturer based checks for both AF9015 and AF9035 
-drivers
+Short Answer: A return value of NULL is valid and not an error therefore
+we should be using IS_ERR, not IS_ERR_OR_NULL on clk_get results.
 
-regards
-Antti
+I see the obvious problem this creates, and asked this question:
 
--- 
-http://palosaari.fi/
+If the driver can't operate with a NULL clk, it should use a
+IS_ERR_OR_NULL test to test for failure, rather than IS_ERR.
+
+
+And Russell's answer:
+
+Why should a _consumer_ of a clock care?  It is _very_ important that
+people get this idea - to a consumer, the struct clk is just an opaque
+cookie.  The fact that it appears to be a pointer does _not_ mean that
+the driver can do any kind of dereferencing on that pointer - it should
+never do so.
+
+Thread can be viewed here:
+https://lkml.org/lkml/2012/12/20/105
+
+
+Regards
+Tony Prisk
+
