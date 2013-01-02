@@ -1,80 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:4608 "EHLO
-	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1749667Ab3AGVJa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jan 2013 16:09:30 -0500
-Date: Mon, 7 Jan 2013 22:09:27 +0100 (CET)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	kernel-janitors@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/2] drivers/media/platform/soc_camera/pxa_camera.c:
- reposition free_irq to avoid access to invalid data
-In-Reply-To: <874nisbvsh.fsf@free.fr>
-Message-ID: <alpine.DEB.2.02.1301072209090.1989@localhost6.localdomain6>
-References: <1357552816-6046-1-git-send-email-Julia.Lawall@lip6.fr> <1357552816-6046-2-git-send-email-Julia.Lawall@lip6.fr> <Pine.LNX.4.64.1301071111420.23972@axis700.grange> <874nisbvsh.fsf@free.fr>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38591 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752655Ab3ABKQQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 05:16:16 -0500
+Date: Wed, 2 Jan 2013 10:15:54 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Dan Carpenter <error27@gmail.com>,
+	Sergei Shtylyov <sshtylyov@mvista.com>,
+	kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH RESEND 6/6] clk: s5p-g2d: Fix incorrect usage of
+	IS_ERR_OR_NULL
+Message-ID: <20130102101554.GD2631@n2100.arm.linux.org.uk>
+References: <1355852048-23188-1-git-send-email-linux@prisktech.co.nz> <1355852048-23188-7-git-send-email-linux@prisktech.co.nz> <50D62BC9.9010706@mvista.com> <50E32C06.5020104@gmail.com> <CA+_b7DK2zbBzbCh15ikEAeGP5h-V9gQ_YcX15O-RNvWxCk8Zfg@mail.gmail.com> <20130102092638.GB2631@n2100.arm.linux.org.uk> <alpine.DEB.2.02.1301021031490.1994@hadrien>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1301021031490.1994@hadrien>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 7 Jan 2013, Robert Jarzmik wrote:
+On Wed, Jan 02, 2013 at 10:44:32AM +0100, Julia Lawall wrote:
+> On Wed, 2 Jan 2013, Russell King - ARM Linux wrote:
+> 
+> > On Wed, Jan 02, 2013 at 08:10:36AM +0300, Dan Carpenter wrote:
+> > > clk_get() returns NULL if CONFIG_HAVE_CLK is disabled.
+> > >
+> > > I told Tony about this but everyone has been gone with end of year
+> > > holidays so it hasn't been addressed.
+> > >
+> > > Tony, please fix it so people don't apply these patches until
+> > > clk_get() is updated to not return NULL.  It sucks to have to revert
+> > > patches.
+> >
+> > How about people stop using IS_ERR_OR_NULL for stuff which it shouldn't
+> > be used for?
+> 
+> Perhaps the cases where clk_get returns NULL could have a comment
+> indicating that NULL does not represent a failure?
 
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-> 
-> > (adding Robert to CC)
-> > I don't think any data is freed by pxa_free_dma(), it only disables DMA on 
-> > a certain channel. Theoretically there could be a different problem: 
-> > pxa_free_dma() deactivates DMA, whereas pxa_dma_start_channels() activates 
-> > it. But I think we're also protected against that: by the time 
-> > pxa_camera_remove() is called, and operation on the interface has been 
-> > stopped, client devices have been detached, pxa_camera_remove_device() has 
-> > been called, which has also stopped the interface clock. And with clock 
-> > stopped no interrupts can be generated. And the case of interrupt having 
-> > been generated before clk_disabled() and only delivered to the driver so 
-> > much later, that we're already unloading the module, seems really 
-> > impossible to me. Robert, you agree?
-> 
-> Agreed that pxa_free_dma() doesn't free anything, that one is easy :)
-> 
-> And agreed too for the second part, with a slighly different explanation :
->  - pxa_camera_remove_device() has been called as you said
->  - inside this function, check comment
->    "/* disable capture, disable interrupts */"
->    => this ensures no interrupt can be generated anymore
-> 
-> So after pxa_camera_remove_device() has been called, no interrupts can be
-> generated.
-> 
-> Yet as you said, it leaves the "almost impossible" scenario :
->  - a user begins a capture
->  - the user closes the capture device and unloads pxa-camera.ko:
->      soc_camera_close()
->        pxa_camera_remove_device()
->          the IRQ line is asserted but doesn't trigger yet the interrupt handler
->          (yes I know, improbable)
->          meanwhile, IRQs are disabled, DMA channels are stopped
->      switch_to(rmmod)
->        => yes I know, impossible, the interrupt handler must be run before, but
->        let's continue for love of discussion ...
->      rmmod pxa-camera
->        pxa_camera_remove()
->          pxa_free_dma() * 3
->          ----> here the IRQ handler kicks in !!!
->                => pxa_camera_irq()
->                     pxa_dma_start_channels()
->          ----> it hurts !
-> 
-> My call is that this is impossible because the switch_to() should run the IRQ
-> handler before pxa_camera_remove() is called.
-> 
-> So all this to say that I think we're safe, unless a heavy ion or a cosmic ray
-> strikes the PXA :)
+No.  More documentation is never the answer to people not reading
+existing documentation.
 
-Thanks for the explanation.
+> In 3.7.1, it looks like it might have been possible for NULL to be
+> returned by clk_get in arch/mips/loongson1/common/clock.c, but that
+> definition seems to be gone in a recent linux-next.  The remaining
+> definitions look OK.
 
-julia
+How about people just read the API and comply with it rather than
+doing their own thing all the time?  We've already had at least one
+instance where someone has tried using IS_ERR() with the ioremap()
+return value.
+
+Really, if you're going to program kernel space, it is very important
+that you *know* the interfaces that you're using and you comply with
+them.  Otherwise, you have no business saying that you're a kernel
+programmer.
+
+Yes, the odd mistake happens, but that's no excuse for the constant
+blatent mistakes with stuff like IS_ERR_OR_NULL() with clk_get()
+which just comes from total laziness on the part of the coder to
+understand the interfaces being used.  Hell, it's even documented
+in linux/clk.h - that just shows how many people read the
+documentation which has been around since the clk API came about.
