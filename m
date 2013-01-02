@@ -1,74 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53766 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755453Ab3AaSx1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 13:53:27 -0500
-Message-ID: <510ABD7F.6030200@iki.fi>
-Date: Thu, 31 Jan 2013 20:52:47 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.126.171]:55067 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751834Ab3ABIAb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 03:00:31 -0500
+Date: Wed, 2 Jan 2013 09:00:25 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Albert Wang <twang13@marvell.com>
+cc: corbet@lwn.net, linux-media@vger.kernel.org,
+	Libin Yang <lbyang@marvell.com>
+Subject: Re: [PATCH V3 08/15] [media] marvell-ccic: switch to resource managed
+ allocation and request
+In-Reply-To: <1355565484-15791-9-git-send-email-twang13@marvell.com>
+Message-ID: <Pine.LNX.4.64.1301020851320.7829@axis700.grange>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+ <1355565484-15791-9-git-send-email-twang13@marvell.com>
 MIME-Version: 1.0
-To: Andre Heider <a.heider@gmail.com>
-CC: Jose Alberto Reguero <jareguero@telefonica.net>,
-	Gianluca Gennari <gennarone@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: af9035 test needed!
-References: <50F05C09.3010104@iki.fi> <CAHsu+b8UAh5VD_V4Ub6g7z_5LC=NH1zuY77Yv5nBefnrEwUHMw@mail.gmail.com> <510A78D8.7030602@iki.fi> <CAHsu+b-TdcBaM_JzsON40k+4sifL27xM-AV8M6bdMt9L3ZCpeA@mail.gmail.com>
-In-Reply-To: <CAHsu+b-TdcBaM_JzsON40k+4sifL27xM-AV8M6bdMt9L3ZCpeA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jose, Gianluca,
+On Sat, 15 Dec 2012, Albert Wang wrote:
 
-On 01/31/2013 08:40 PM, Andre Heider wrote:
-> Hey,
->
-> On Thu, Jan 31, 2013 at 2:59 PM, Antti Palosaari <crope@iki.fi> wrote:
->>> On Fri, Jan 11, 2013 at 7:38 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>>
->>>> Could you test that (tda18218 & mxl5007t):
->
-> only now I see you mentioned mxl5007t too, and with the same tree as I
-> used for my 'TerraTec Cinergy T Stick Dual RC (rev. 2)', a 'AVerMedia
-> HD Volar (A867)' with a mxl5007t (and an unkown rev) works too:
->
-> usb 3-3.1.4: new high-speed USB device number 7 using xhci_hcd
-> usb 3-3.1.4: New USB device found, idVendor=07ca, idProduct=1867
-> usb 3-3.1.4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-> usb 3-3.1.4: Product: A867
-> usb 3-3.1.4: Manufacturer: AVerMedia TECHNOLOGIES, Inc
-> usb 3-3.1.4: SerialNumber: 0305770200261
-> usb 3-3.1.4: af9035_identify_state: prechip_version=00 chip_version=03
-> chip_type=3802
+> From: Libin Yang <lbyang@marvell.com>
+> 
+> This patch switchs to resource managed allocation and request in mmp-driver.
+> It can remove free resource operations.
+> 
+> Signed-off-by: Albert Wang <twang13@marvell.com>
+> Signed-off-by: Libin Yang <lbyang@marvell.com>
+> ---
+>  drivers/media/platform/marvell-ccic/mmp-driver.c |   56 ++++++++--------------
+>  1 file changed, 20 insertions(+), 36 deletions(-)
+> 
+> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+> index fec7cd8..40c243e 100755
+> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
+> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+> @@ -315,7 +315,7 @@ static int mmpcam_probe(struct platform_device *pdev)
+>  	if (!pdata)
+>  		return -ENODEV;
+>  
+> -	cam = kzalloc(sizeof(*cam), GFP_KERNEL);
+> +	cam = devm_kzalloc(&pdev->dev, sizeof(*cam), GFP_KERNEL);
+>  	if (cam == NULL)
+>  		return -ENOMEM;
+>  	cam->pdev = pdev;
+> @@ -343,14 +343,12 @@ static int mmpcam_probe(struct platform_device *pdev)
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	if (res == NULL) {
+>  		dev_err(&pdev->dev, "no iomem resource!\n");
+> -		ret = -ENODEV;
+> -		goto out_free;
+> +		return -ENODEV;
+>  	}
+> -	mcam->regs = ioremap(res->start, resource_size(res));
+> +	mcam->regs = devm_request_and_ioremap(&pdev->dev, res);
+>  	if (mcam->regs == NULL) {
+>  		dev_err(&pdev->dev, "MMIO ioremap fail\n");
+> -		ret = -ENODEV;
+> -		goto out_free;
+> +		return -ENODEV;
+>  	}
+>  	/*
+>  	 * Power/clock memory is elsewhere; get it too.  Perhaps this
+> @@ -359,14 +357,12 @@ static int mmpcam_probe(struct platform_device *pdev)
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+>  	if (res == NULL) {
+>  		dev_err(&pdev->dev, "no power resource!\n");
+> -		ret = -ENODEV;
+> -		goto out_unmap1;
+> +		return -ENODEV;
+>  	}
+> -	cam->power_regs = ioremap(res->start, resource_size(res));
+> +	cam->power_regs = devm_request_and_ioremap(&pdev->dev, res);
+>  	if (cam->power_regs == NULL) {
+>  		dev_err(&pdev->dev, "power MMIO ioremap fail\n");
+> -		ret = -ENODEV;
+> -		goto out_unmap1;
+> +		return -ENODEV;
+>  	}
+>  
+>  	mcam_init_clk(mcam, pdata, 1);
+> @@ -376,25 +372,27 @@ static int mmpcam_probe(struct platform_device *pdev)
+>  	 */
+>  	mcam->i2c_adapter = platform_get_drvdata(pdata->i2c_device);
+>  	if (mcam->i2c_adapter == NULL) {
+> -		ret = -ENODEV;
+>  		dev_err(&pdev->dev, "No i2c adapter\n");
+> -		goto out_unmap2;
+> +		ret = -ENODEV;
+> +		goto out_uninit_clk;
 
-Who one as able to test with non-working AF9035 + MxL5007T combination. 
-Does it report different chip versions? Same firmware used?
+Looks good in principle, but it will become a bit simpler yet after you 
+change your patch 03/15 to not use mcam_init_clk() for clock 
+deinitialisation, but that's going to be just a minor modification.
 
+Thanks
+Guennadi
 
-> usb 3-3.1.4: dvb_usb_v2: found a 'AVerMedia HD Volar (A867)' in cold state
-> usb 3-3.1.4: dvb_usb_v2: downloading firmware from file 'dvb-usb-af9035-02.fw'
-> usb 3-3.1.4: dvb_usb_af9035: firmware version=11.5.9.0
-> usb 3-3.1.4: dvb_usb_v2: found a 'AVerMedia HD Volar (A867)' in warm state
-> usb 3-3.1.4: dvb_usb_v2: will pass the complete MPEG2 transport stream
-> to the software demuxer
-> DVB: registering new adapter (AVerMedia HD Volar (A867))
-> i2c i2c-19: af9033: firmware version: LINK=11.5.9.0 OFDM=5.17.9.1
-> usb 3-3.1.4: DVB: registering adapter 1 frontend 0 (Afatech AF9033 (DVB-T))...
-> mxl5007t 19-0060: creating new instance
-> mxl5007t_get_chip_id: unknown rev (3f)
-> mxl5007t_get_chip_id: MxL5007T detected @ 19-0060
-> Registered IR keymap rc-empty
-> input: AVerMedia HD Volar (A867) as
-> /devices/pci0000:00/0000:00:14.0/usb3/3-3/3-3.1/3-3.1.4/rc/rc5/input29
-> rc5: AVerMedia HD Volar (A867) as
-> /devices/pci0000:00/0000:00:14.0/usb3/3-3/3-3.1/3-3.1.4/rc/rc5
-> usb 3-3.1.4: dvb_usb_v2: schedule remote query interval to 500 msecs
-> usb 3-3.1.4: dvb_usb_v2: 'AVerMedia HD Volar (A867)' successfully
-> initialized and connected
+>  	}
+>  	/*
+>  	 * Sensor GPIO pins.
+>  	 */
+> -	ret = gpio_request(pdata->sensor_power_gpio, "cam-power");
+> +	ret = devm_gpio_request(&pdev->dev, pdata->sensor_power_gpio,
+> +					"cam-power");
+>  	if (ret) {
+>  		dev_err(&pdev->dev, "Can't get sensor power gpio %d",
+>  				pdata->sensor_power_gpio);
+> -		goto out_unmap2;
+> +		goto out_uninit_clk;
+>  	}
+>  	gpio_direction_output(pdata->sensor_power_gpio, 0);
+> -	ret = gpio_request(pdata->sensor_reset_gpio, "cam-reset");
+> +	ret = devm_gpio_request(&pdev->dev, pdata->sensor_reset_gpio,
+> +					"cam-reset");
+>  	if (ret) {
+>  		dev_err(&pdev->dev, "Can't get sensor reset gpio %d",
+>  				pdata->sensor_reset_gpio);
+> -		goto out_gpio;
+> +		goto out_uninit_clk;
+>  	}
+>  	gpio_direction_output(pdata->sensor_reset_gpio, 0);
+>  
+> @@ -404,7 +402,7 @@ static int mmpcam_probe(struct platform_device *pdev)
+>  	mmpcam_power_up(mcam);
+>  	ret = mccic_register(mcam);
+>  	if (ret)
+> -		goto out_gpio2;
+> +		goto out_power_down;
+>  	/*
+>  	 * Finally, set up our IRQ now that the core is ready to
+>  	 * deal with it.
+> @@ -415,8 +413,8 @@ static int mmpcam_probe(struct platform_device *pdev)
+>  		goto out_unregister;
+>  	}
+>  	cam->irq = res->start;
+> -	ret = request_irq(cam->irq, mmpcam_irq, IRQF_SHARED,
+> -			"mmp-camera", mcam);
+> +	ret = devm_request_irq(&pdev->dev, cam->irq, mmpcam_irq, IRQF_SHARED,
+> +					"mmp-camera", mcam);
+>  	if (ret == 0) {
+>  		mmpcam_add_device(cam);
+>  		return 0;
+> @@ -424,18 +422,10 @@ static int mmpcam_probe(struct platform_device *pdev)
+>  
+>  out_unregister:
+>  	mccic_shutdown(mcam);
+> -out_gpio2:
+> +out_power_down:
+>  	mmpcam_power_down(mcam);
+> -	gpio_free(pdata->sensor_reset_gpio);
+> -out_gpio:
+> -	gpio_free(pdata->sensor_power_gpio);
+> -out_unmap2:
+> +out_uninit_clk:
+>  	mcam_init_clk(mcam, pdata, 0);
+> -	iounmap(cam->power_regs);
+> -out_unmap1:
+> -	iounmap(mcam->regs);
+> -out_free:
+> -	kfree(cam);
+>  	return ret;
+>  }
+>  
+> @@ -446,16 +436,10 @@ static int mmpcam_remove(struct mmp_camera *cam)
+>  	struct mmp_camera_platform_data *pdata;
+>  
+>  	mmpcam_remove_device(cam);
+> -	free_irq(cam->irq, mcam);
+>  	mccic_shutdown(mcam);
+>  	mmpcam_power_down(mcam);
+>  	pdata = cam->pdev->dev.platform_data;
+> -	gpio_free(pdata->sensor_reset_gpio);
+> -	gpio_free(pdata->sensor_power_gpio);
+> -	iounmap(cam->power_regs);
+> -	iounmap(mcam->regs);
+>  	mcam_init_clk(mcam, pdata, 0);
+> -	kfree(cam);
+>  	return 0;
+>  }
+>  
+> -- 
+> 1.7.9.5
+> 
 
-regards
-Antti
-
--- 
-http://palosaari.fi/
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
