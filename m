@@ -1,108 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:46027 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755254Ab3ADWjQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 17:39:16 -0500
-Received: by mail-ee0-f44.google.com with SMTP id b47so8180018eek.17
-        for <linux-media@vger.kernel.org>; Fri, 04 Jan 2013 14:39:15 -0800 (PST)
-Message-ID: <50E75A10.8090906@gmail.com>
-Date: Fri, 04 Jan 2013 23:39:12 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38544 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751404Ab3ABJcA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 04:32:00 -0500
+Date: Wed, 2 Jan 2013 09:26:38 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Dan Carpenter <error27@gmail.com>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Sergei Shtylyov <sshtylyov@mvista.com>,
+	kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH RESEND 6/6] clk: s5p-g2d: Fix incorrect usage of
+	IS_ERR_OR_NULL
+Message-ID: <20130102092638.GB2631@n2100.arm.linux.org.uk>
+References: <1355852048-23188-1-git-send-email-linux@prisktech.co.nz> <1355852048-23188-7-git-send-email-linux@prisktech.co.nz> <50D62BC9.9010706@mvista.com> <50E32C06.5020104@gmail.com> <CA+_b7DK2zbBzbCh15ikEAeGP5h-V9gQ_YcX15O-RNvWxCk8Zfg@mail.gmail.com>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR 3.9] Exynos SoC media drivers updates
-References: <50E726F4.7060704@samsung.com>
-In-Reply-To: <50E726F4.7060704@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+_b7DK2zbBzbCh15ikEAeGP5h-V9gQ_YcX15O-RNvWxCk8Zfg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/04/2013 08:01 PM, Sylwester Nawrocki wrote:
-> Hi Mauro,
->
-> Please pull the following for 3.9, it includes Exynos SoC drivers cleanups and
-> fixes. DMABUF exporting support for Exynos5 GScaler driver, device tree support
-> for Exynos MFC driver (platform bits for it got merged already for v3.8).
->
-> There is also included a patch removing deprecated image centering controls.
->
-> The following changes since commit 8cd7085ff460ead3aba6174052a408f4ad52ac36:
->
->    [media] get_dvb_firmware: Fix the location of firmware for Terratec HTC
-> (2013-01-01 11:18:26 -0200)
->
-> are available in the git repository at:
->
->    git://git.infradead.org/users/kmpark/linux-samsung media_for_v3.9
->
-> for you to fetch changes up to 36073ee2f7b3b5ae91900cb992b292404614243b:
->
->    V4L: Remove deprecated image centering controls (2013-01-04 11:35:43 +0100)
->
-> ----------------------------------------------------------------
-> Arun Kumar K (2):
->        s5p-mfc: Add device tree support
->        s5p-mfc: Flush DPB buffers during stream off
->
-> Kamil Debski (4):
->        s5p-mfc: Move firmware allocation point to avoid allocation problems
->        s5p-mfc: Correct check of vb2_dma_contig_init_ctx return value
->        s5p-mfc: Change internal buffer allocation from vb2 ops to dma_alloc_coherent
->        s5p-mfc: Context handling in open() bugfix
->
-> Sachin Kamat (9):
->        s5p-tv: Add missing braces around sizeof in sdo_drv.c
->        s5p-tv: Add missing braces around sizeof in mixer_video.c
->        s5p-tv: Add missing braces around sizeof in mixer_reg.c
->        s5p-tv: Add missing braces around sizeof in mixer_drv.c
->        s5p-tv: Add missing braces around sizeof in hdmiphy_drv.c
->        s5p-tv: Add missing braces around sizeof in hdmi_drv.c
->        s5p-mfc: Remove redundant 'break'
->        s5p-mfc: Fix a typo in error message in s5p_mfc_pm.c
->        s5p-mfc: Fix an error check
->
-> Shaik Ameer Basha (1):
->        exynos-gsc: Support dmabuf export buffer
->
-> Sylwester Nawrocki (5):
->        s5p-fimc: Avoid possible NULL pointer dereference in set_fmt op
->        s5p-fimc: Prevent potential buffer overflow
->        s5p-fimc: Prevent AB-BA deadlock during links reconfiguration
->        s5p-tv: Fix return value in sdo_probe() on error paths
->        V4L: Remove deprecated image centering controls
->
-> Tomasz Stanislawski (1):
->        s5p-tv: mixer: fix handling of VIDIOC_S_FMT
->
-> Tony Prisk (3):
->        s5p-fimc: Fix incorrect usage of IS_ERR_OR_NULL
->        s5p-tv: Fix incorrect usage of IS_ERR_OR_NULL
->        s5p-g2d: Fix incorrect usage of IS_ERR_OR_NULL
->
-> Wei Yongjun (1):
->        s5p-mfc: remove unused variable
+On Wed, Jan 02, 2013 at 08:10:36AM +0300, Dan Carpenter wrote:
+> clk_get() returns NULL if CONFIG_HAVE_CLK is disabled.
+> 
+> I told Tony about this but everyone has been gone with end of year
+> holidays so it hasn't been addressed.
+> 
+> Tony, please fix it so people don't apply these patches until
+> clk_get() is updated to not return NULL.  It sucks to have to revert
+> patches.
 
-Related patchwork commands:
-
-pwclient update -s 'accepted' 15333
-pwclient update -s 'accepted' 15565
-pwclient update -s 'accepted' 16071
-pwclient update -s 'accepted' 16072
-pwclient update -s 'accepted' 16073
-pwclient update -s 'accepted' 15657
-pwclient update -s 'accepted' 15656
-pwclient update -s 'accepted' 15658
-pwclient update -s 'accepted' 15659
-pwclient update -s 'accepted' 15660
-pwclient update -s 'accepted' 15661
-pwclient update -s 'accepted' 16013
-pwclient update -s 'superseded' 16059
-pwclient update -s 'accepted' 16060
-pwclient update -s 'accepted' 16080
-pwclient update -s 'accepted' 16081
-pwclient update -s 'accepted' 16084
-pwclient update -s 'accepted' 15647
-pwclient update -s 'superseded' 16083
-pwclient update -s 'accepted' 15765
-
+How about people stop using IS_ERR_OR_NULL for stuff which it shouldn't
+be used for?
