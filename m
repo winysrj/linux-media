@@ -1,99 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47217 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756389Ab3AHNmY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 08:42:24 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Mike Turquette <mturquette@linaro.org>
-Subject: [PATCH 2/2] omap3isp: Set cam_mclk rate directly
-Date: Tue,  8 Jan 2013 14:43:54 +0100
-Message-Id: <1357652634-17668-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1357652634-17668-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1357652634-17668-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-pb0-f47.google.com ([209.85.160.47]:63428 "EHLO
+	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752090Ab3ABMBj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 07:01:39 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Subject: [PATCH] davinci: dm355: Fix uninitialized variable compiler warnings
+Date: Wed,  2 Jan 2013 17:23:49 +0530
+Message-Id: <1357127630-8167-1-git-send-email-prabhakar.lad@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that the cam_mclk rate changes are back-propagated to dpll4_m5_ck we
-can set the cam_mclk rate directly instead of manually setting the rate
-of the parent clock.
+drivers/media/platform/davinci/dm355_ccdc.c:593:9: warning: ‘val1’ may be
+used uninitialized in this function [-Wuninitialized]
+drivers/media/platform/davinci/dm355_ccdc.c:560:6: note: ‘val1’ was declared here
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+This is a false positive but the compiler has no way to know about it,
+so initialize the variable to 0.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
 ---
- drivers/media/platform/omap3isp/isp.c |   18 ++----------------
- drivers/media/platform/omap3isp/isp.h |    8 +++-----
- 2 files changed, 5 insertions(+), 21 deletions(-)
+ drivers/media/platform/davinci/dm355_ccdc.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 07eea5b..63a583f 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1338,28 +1338,15 @@ static int isp_enable_clocks(struct isp_device *isp)
+diff --git a/drivers/media/platform/davinci/dm355_ccdc.c b/drivers/media/platform/davinci/dm355_ccdc.c
+index ce0e413..3c28aaa 100644
+--- a/drivers/media/platform/davinci/dm355_ccdc.c
++++ b/drivers/media/platform/davinci/dm355_ccdc.c
+@@ -557,7 +557,7 @@ static int ccdc_config_vdfc(struct ccdc_vertical_dft *dfc)
+  */
+ static void ccdc_config_csc(struct ccdc_csc *csc)
  {
- 	int r;
- 	unsigned long rate;
--	int divisor;
--
--	/*
--	 * cam_mclk clock chain:
--	 *   dpll4 -> dpll4_m5 -> dpll4_m5x2 -> cam_mclk
--	 *
--	 * In OMAP3630 dpll4_m5x2 != 2 x dpll4_m5 but both are
--	 * set to the same value. Hence the rate set for dpll4_m5
--	 * has to be twice of what is set on OMAP3430 to get
--	 * the required value for cam_mclk
--	 */
--	divisor = isp->revision == ISP_REVISION_15_0 ? 1 : 2;
+-	u32 val1, val2;
++	u32 val1 = 0, val2;
+ 	int i;
  
- 	r = clk_prepare_enable(isp->clock[ISP_CLK_CAM_ICK]);
- 	if (r) {
- 		dev_err(isp->dev, "failed to enable cam_ick clock\n");
- 		goto out_clk_enable_ick;
- 	}
--	r = clk_set_rate(isp->clock[ISP_CLK_DPLL4_M5_CK],
--			 CM_CAM_MCLK_HZ/divisor);
-+	r = clk_set_rate(isp->clock[ISP_CLK_CAM_MCLK], CM_CAM_MCLK_HZ);
- 	if (r) {
--		dev_err(isp->dev, "clk_set_rate for dpll4_m5_ck failed\n");
-+		dev_err(isp->dev, "clk_set_rate for cam_mclk failed\n");
- 		goto out_clk_enable_mclk;
- 	}
- 	r = clk_prepare_enable(isp->clock[ISP_CLK_CAM_MCLK]);
-@@ -1401,7 +1388,6 @@ static void isp_disable_clocks(struct isp_device *isp)
- static const char *isp_clocks[] = {
- 	"cam_ick",
- 	"cam_mclk",
--	"dpll4_m5_ck",
- 	"csi2_96m_fck",
- 	"l3_ick",
- };
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index 517d348..c77e1f2 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -147,7 +147,6 @@ struct isp_platform_callback {
-  * @ref_count: Reference count for handling multiple ISP requests.
-  * @cam_ick: Pointer to camera interface clock structure.
-  * @cam_mclk: Pointer to camera functional clock structure.
-- * @dpll4_m5_ck: Pointer to DPLL4 M5 clock structure.
-  * @csi2_fck: Pointer to camera CSI2 complexIO clock structure.
-  * @l3_ick: Pointer to OMAP3 L3 bus interface clock.
-  * @irq: Currently attached ISP ISR callbacks information structure.
-@@ -189,10 +188,9 @@ struct isp_device {
- 	u32 xclk_divisor[2];	/* Two clocks, a and b. */
- #define ISP_CLK_CAM_ICK		0
- #define ISP_CLK_CAM_MCLK	1
--#define ISP_CLK_DPLL4_M5_CK	2
--#define ISP_CLK_CSI2_FCK	3
--#define ISP_CLK_L3_ICK		4
--	struct clk *clock[5];
-+#define ISP_CLK_CSI2_FCK	2
-+#define ISP_CLK_L3_ICK		3
-+	struct clk *clock[4];
- 
- 	/* ISP modules */
- 	struct ispstat isp_af;
+ 	if (!csc->enable)
 -- 
-1.7.8.6
+1.7.4.1
 
