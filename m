@@ -1,254 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42863 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753334Ab3AYBwN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jan 2013 20:52:13 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	g.liakhovetski@gmx.de, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com, grant.likely@secretlab.ca,
-	rob.herring@calxeda.com, thomas.abraham@linaro.org,
-	t.figa@samsung.com, myungjoo.ham@samsung.com,
-	sw0312.kim@samsung.com, prabhakar.lad@ti.com,
-	devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org
-Subject: Re: [PATCH RFC v4 01/14] [media] Add common video interfaces OF bindings documentation
-Date: Fri, 25 Jan 2013 02:52:11 +0100
-Message-ID: <453041220.G3D9E6yQdS@avalon>
-In-Reply-To: <51017DB2.5050905@samsung.com>
-References: <1358969489-20420-1-git-send-email-s.nawrocki@samsung.com> <1525960.fMnIjkZnjX@avalon> <51017DB2.5050905@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mout3.freenet.de ([195.4.92.93]:43449 "EHLO mout3.freenet.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752742Ab3ABVEo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 16:04:44 -0500
+Date: Wed, 2 Jan 2013 21:45:12 +0100
+From: Sascha Sommer <saschasommer@freenet.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 2/5] em28xx: respect the message size constraints for
+ i2c transfers
+Message-ID: <20130102214512.5e73075c@madeira.sommer.dynalias.net>
+In-Reply-To: <20121222220746.64611c08@redhat.com>
+References: <1355682211-13604-1-git-send-email-fschaefer.oss@googlemail.com>
+	<1355682211-13604-3-git-send-email-fschaefer.oss@googlemail.com>
+	<20121222220746.64611c08@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hello,
 
-On Thursday 24 January 2013 19:30:10 Sylwester Nawrocki wrote:
-> On 01/24/2013 11:16 AM, Laurent Pinchart wrote:
-> [...]
+Am Sat, 22 Dec 2012 22:07:46 -0200
+schrieb Mauro Carvalho Chehab <mchehab@redhat.com>:
+
+> Em Sun, 16 Dec 2012 19:23:28 +0100
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 > 
-> >> +Data interfaces on all video devices are described by their child 'port'
-> >> +nodes. Configuration of a port depends on other devices participating in
-> >> +the data transfer and is described by 'endpoint' subnodes.
-> >> +
-> >> +dev {
-> >> +	#address-cells = <1>;
-> >> +	#size-cells = <0>;
-> >> +	port@0 {
-> >> +		endpoint@0 { ... };
-> >> +		endpoint@1 { ... };
-> >> +	};
-> >> +	port@1 { ... };
-> >> +};
-> >> +
-> >> +If a port can be configured to work with more than one other device on
-> >> +the same bus, an 'endpoint' child node must be provided for each of
-> >> +them. If more than one port is present in a device node or there is more
-> >> +than one endpoint at a port, a common scheme, using '#address-cells',
-> >> +'#size-cells' and 'reg' properties is used.
+> > The em2800 can transfer up to 4 bytes per i2c message.
+> > All other em25xx/em27xx/28xx chips can transfer at least 64 bytes
+> > per message.
 > > 
-> > Wouldn't this cause problems if the device has both video ports and a
-> > child bus ? Using #address-cells and #size-cells for the video ports would
-> > prevent the child bus from being handled in the usual way.
-> 
-> Indeed, it looks like a serious issue in these bindings.
-> 
-> > A possible solution would be to number ports with a dash instead of a @,
-> > as done in pinctrl for instance. We would then get
+> > I2C adapters should never split messages transferred via the I2C
+> > subsystem into multiple message transfers, because the result will
+> > almost always NOT be the same as when the whole data is transferred
+> > to the I2C client in a single message.
+> > If the message size exceeds the capabilities of the I2C adapter,
+> > -EOPNOTSUPP should be returned.
 > > 
-> > 	port-0 {
-> > 		endpoint-0 { ... };
-> > 		endpoint-1 { ... };
-> > 	};
-> > 	port-1 { ... };
-> 
-> Sounds like a good alternative, I can't think of any better solution at the
-> moment.
-> 
-> >> +Two 'endpoint' nodes are linked with each other through their
-> >> +'remote-endpoint' phandles.  An endpoint subnode of a device contains
-> >> +all properties needed for configuration of this device for data exchange
-> >> +with the other device.  In most cases properties at the peer 'endpoint'
-> >> +nodes will be identical, however they might need to be different when
-> >> +there is any signal modifications on the bus between two devices, e.g.
-> >> +there are logic signal inverters on the lines.
-> >> +
-> >> +Required properties
-> >> +-------------------
-> >> +
-> >> +If there is more than one 'port' or more than one 'endpoint' node
-> >> following +properties are required in relevant parent node:
-> >> +
-> >> +- #address-cells : number of cells required to define port number,
-> >> should be 1.
-> >> +- #size-cells    : should be zero.
+> > Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> > ---
+> >  drivers/media/usb/em28xx/em28xx-i2c.c |   44
+> > ++++++++++++++------------------- 1 Datei geändert, 18 Zeilen
+> > hinzugefügt(+), 26 Zeilen entfernt(-)
 > > 
-> > I wonder if we should specify whether a port is a data sink or data
-> > source. A source can be connected to multiple sinks at the same time, but
-> > a sink can only be connected to a single source. If we want to perform
-> > automatic sanity checks in the core knowing the direction might help.
+> > diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c
+> > b/drivers/media/usb/em28xx/em28xx-i2c.c index 44533e4..c508c12
+> > 100644 --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+> > +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+> > @@ -50,14 +50,18 @@ do
+> > {							\ } while
+> > (0) 
+> >  /*
+> > - * em2800_i2c_send_max4()
+> > - * send up to 4 bytes to the i2c device
+> > + * em2800_i2c_send_bytes()
+> > + * send up to 4 bytes to the em2800 i2c device
+> >   */
+> > -static int em2800_i2c_send_max4(struct em28xx *dev, u8 addr, u8
+> > *buf, u16 len) +static int em2800_i2c_send_bytes(struct em28xx
+> > *dev, u8 addr, u8 *buf, u16 len) {
+> >  	int ret;
+> >  	int write_timeout;
+> >  	u8 b2[6];
+> > +
+> > +	if (len < 1 || len > 4)
+> > +		return -EOPNOTSUPP;
+> > +
 > 
-> Multiple sources can be linked to a single sink, but only one link can be
-> active at any time.
+> Except if you actually tested it with all em2800 devices, I think that
+> this change just broke it for em2800.
 > 
-> So I'm not sure if knowing if a DT port is a data source or data sink would
-> let us to validate device tree structure statically in general.
->
-> Such source/sink property could be useful later at runtime, when data
-> pipeline is set up for streaming.
-
-Yes, I was mostly thinking about runtime.
-
-> How do you think this could be represented ? By just having boolean
-> properties like: 'source' and 'sink' in the port nodes ? Or perhaps in the
-> endpoint nodes, since some devices might be bidirectional ? I don't recall
-> any at the moment though.
-
-Source and sink properties would do. We could also use a direction property 
-that could take sink, source and bidirectional values, but that might be more 
-complex.
-
-I don't think we will have bidirectional link (as that would most probably 
-involve a very different kind of bus, and thus new bindings).
-
-> >> +Optional endpoint properties
-> >> +----------------------------
-> >> +
-> >> +- remote-endpoint: phandle to an 'endpoint' subnode of the other device
-> >> +  node.
-> >> +- slave-mode: a boolean property, run the link in slave mode.
-> >> +  Default is master mode.
-> > 
-> > What are master and slave modes ? It might be worth it describing them.
+> Maybe Sascha could review this patch series on his em2800 devices.
 > 
-> This was originally proposed by Guennadi, I think he knows exactly what's
-> the meaning of this property. I'll dig into relevant documentation to
-> find out and provide more detailed description.
+> Those devices are limited, and just like other devices (cx231xx for
+> example), the I2C bus need to split long messages, otherwise the I2C
+> devices will fail.
+> 
 
-Thank you.
+The only device that I own is the Terratec Cinergy 200 USB.
+Unfortunately I left it in my parents house so I won't be able to
+test the patch within the next two weeks. I don't know if any of the
+other devices ever transfered more than 4 bytes but as far as I
+remember the windows driver of the cinergy 200 usb did not do this.
+The traces obtained from it were the only information I had during
+development. On first sight, the splitting code looks wrong.
 
-> >> +- bus-width: number of data lines, valid for parallel busses.
-> >> +- data-shift: on parallel data busses, if bus-width is used to specify
-> >> +  the number of data lines, data-shift can be used to specify which data
-> >> +  lines are used, e.g. "bus-width=<10>; data-shift=<2>;" means, that
-> >> +  lines 9:2 are used.
-> >> +- hsync-active: active state of HSYNC signal, 0/1 for LOW/HIGH
-> >> +  respectively.
-> >> +- vsync-active: active state of VSYNC signal, 0/1 for LOW/HIGH
-> >> +  respectively. Note, that if HSYNC and VSYNC polarities are not
-> >> +  specified, embedded synchronization may be required, where supported.
-> >> +- data-active: similar to HSYNC and VSYNC, specifies data line polarity.
-> >> +- field-even-active: field signal level during the even field data
-> >> +  transmission.
-> >> +- pclk-sample: sample data on rising (1) or falling (0) edge of the
-> >> +  pixel clock signal.
-> >> +- data-lanes: an array of physical data lane indexes. Position of an
-> >> +  entry determines the logical lane number, while the value of an entry
-> >> +  indicates physical lane, e.g. for 2-lane MIPI CSI-2 bus we could have
-> >> +  "data-lanes = <1>, <2>;", assuming the clock lane is on hardware lane
-> >> +  0. This property is valid for serial busses only (e.g. MIPI CSI-2).
-> >> +- clock-lanes: an array of physical clock lane indexes. Position of an
-> >> +  entry determines the logical lane number, while the value of an entry
-> >> +  indicates physical lane, e.g. for a MIPI CSI-2 bus we could have
-> >> +  "clock-lanes = <0>;", which places the clock lane on hardware lane 0.
-> >> +  This property is valid for serial busses only (e.g. MIPI CSI-2). Note
-> >> +  that for the MIPI CSI-2 bus this array contains only one entry.
-> >> +- clock-noncontinuous: a boolean property to allow MIPI CSI-2
-> >> +  non-continuous clock mode.
-> >> +
-> >> +Example
-> >> +-------
-> >> +
-> >> +The example snippet below describes two data pipelines.  ov772x and
-> >> +imx074 are camera sensors with a parallel and serial (MIPI CSI-2) video
-> >> +bus respectively. Both sensors are on the I2C control bus corresponding
-> >> +to the i2c0 controller node.  ov772x sensor is linked directly to the
-> >> +ceu0 video host interface. imx074 is linked to ceu0 through the MIPI
-> >> +CSI-2 receiver (csi2). ceu0 has a (single) DMA engine writing captured
-> >> +data to memory.  ceu0 node has a single 'port' node which indicates that
-> >> +at any time only one of the following data pipelines can be active:
-> >> +ov772x -> ceu0 or imx074 -> csi2 -> ceu0.
-> >> +
-> >> +	ceu0: ceu@0xfe910000 {
-> >> +		compatible = "renesas,sh-mobile-ceu";
-> >> +		reg = <0xfe910000 0xa0>;
-> >> +		interrupts = <0x880>;
-> >> +
-> >> +		mclk: master_clock {
-> >> +			compatible = "renesas,ceu-clock";
-> >> +			#clock-cells = <1>;
-> >> +			clock-frequency = <50000000>;	/* Max clock frequency */
-> >> +			clock-output-names = "mclk";
-> >> +		};
-> >> +
-> >> +		port {
-> >> +			#address-cells = <1>;
-> >> +			#size-cells = <0>;
-> >> +
-> >> +			ceu0_1: endpoint@1 {
-> >> +				reg = <1>;		/* Local endpoint # */
-> >> +				remote = <&ov772x_1_1>;	/* Remote phandle */
-> >> +				bus-width = <8>;	/* Used data lines */
-> >> +				data-shift = <0>;	/* Lines 7:0 are used */
-> > 
-> > As data-shift is optional, shouldn't it be left out when equal to 0 ? It
-> > would, however, be nice to have a non-zero data-shift somewhere in the
-> > example.
-> 
-> Yes, good point. data-shift could be ommited. I'm going to increase the
-> bus-width and make data-shit non-zero.
-> 
-> >> +
-> >> +				/* If hsync-active/vsync-active are missing,
-> >> +				   embedded bt.605 sync is used */
-> >> +				hsync-active = <1>;	/* Active high */
-> >> +				vsync-active = <1>;	/* Active high */
-> >> +				data-active = <1>;	/* Active high */
-> >> +				pclk-sample = <1>;	/* Rising */
-> >> +			};
-> >> +
-> >> +			ceu0_0: endpoint@0 {
-> >> +				reg = <0>;
-> >> +				remote = <&csi2_2>;
-> >> +				immutable;
-> > 
-> > What is the immutable property for her e?
-> 
-> I was staring at this yesterday and finally I forgot to remove it. It is
-> undocumented and I think it's not supposed to be here. Guennadi, would
-> you have any comments on that ?
-> 
-> >> +			};
-> >> +		};
-> >> +	};
-> >> +
-> >> +	i2c0: i2c@0xfff20000 {
-> >> +		...
-> >> +		ov772x_1: camera@0x21 {
-> >> +			compatible = "omnivision,ov772x";
-> >> +			reg = <0x21>;
-> >> +			vddio-supply = <&regulator1>;
-> >> +			vddcore-supply = <&regulator2>;
-> >> +
-> >> +			clock-frequency = <20000000>;
-> >> +			clocks = <&mclk 0>;
-> >> +			clock-names = "xclk";
-> >> +
-> >> +			port {
-> >> +				/* With 1 endpoint per port no need in addresses. */
-> > 
-> > s/in/for/ ?
-> 
-> I proposed same change to Guennadi, but he argued that "in" is also
-> commonly used. I agreed even though 'for' seemed more natural to me.
-> I would change it, unless there is a strong opposition. :)
+Regards
 
--- 
-Regards,
+Sascha
 
-Laurent Pinchart
 
