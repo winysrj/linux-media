@@ -1,78 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3468 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752032Ab3A3IB3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jan 2013 03:01:29 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [RFCv2 PATCH] em28xx: fix bytesperline calculation in G/TRY_FMT
-Date: Wed, 30 Jan 2013 09:01:22 +0100
-Cc: Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
+Received: from mail-ee0-f45.google.com ([74.125.83.45]:33702 "EHLO
+	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751867Ab3ABVYq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 16:24:46 -0500
+Received: by mail-ee0-f45.google.com with SMTP id d49so7025966eek.18
+        for <linux-media@vger.kernel.org>; Wed, 02 Jan 2013 13:24:45 -0800 (PST)
+Message-ID: <50E4A5B6.1090005@googlemail.com>
+Date: Wed, 02 Jan 2013 22:25:10 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201301300901.22486.hverkuil@xs4all.nl>
+To: Sascha Sommer <saschasommer@freenet.de>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 2/5] em28xx: respect the message size constraints for
+ i2c transfers
+References: <1355682211-13604-1-git-send-email-fschaefer.oss@googlemail.com> <1355682211-13604-3-git-send-email-fschaefer.oss@googlemail.com> <20121222220746.64611c08@redhat.com> <20130102214512.5e73075c@madeira.sommer.dynalias.net>
+In-Reply-To: <20130102214512.5e73075c@madeira.sommer.dynalias.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This was part of my original em28xx patch series. That particular patch
-combined two things: this fix and the change where TRY_FMT would no
-longer return -EINVAL for unsupported pixelformats. The latter change was
-rejected (correctly), but we all forgot about the second part of the patch
-which fixed a real bug. I'm reposting just that fix.
+Hi Sascha,
 
-Changes since v1:
+Am 02.01.2013 21:45, schrieb Sascha Sommer:
+> Hello,
+>
+> Am Sat, 22 Dec 2012 22:07:46 -0200
+> schrieb Mauro Carvalho Chehab <mchehab@redhat.com>:
+>
+>> Em Sun, 16 Dec 2012 19:23:28 +0100
+>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>>
+>>> The em2800 can transfer up to 4 bytes per i2c message.
+>>> All other em25xx/em27xx/28xx chips can transfer at least 64 bytes
+>>> per message.
+>>>
+>>> I2C adapters should never split messages transferred via the I2C
+>>> subsystem into multiple message transfers, because the result will
+>>> almost always NOT be the same as when the whole data is transferred
+>>> to the I2C client in a single message.
+>>> If the message size exceeds the capabilities of the I2C adapter,
+>>> -EOPNOTSUPP should be returned.
+>>>
+>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>>> ---
+>>>  drivers/media/usb/em28xx/em28xx-i2c.c |   44
+>>> ++++++++++++++------------------- 1 Datei geändert, 18 Zeilen
+>>> hinzugefügt(+), 26 Zeilen entfernt(-)
+>>>
+>>> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c
+>>> b/drivers/media/usb/em28xx/em28xx-i2c.c index 44533e4..c508c12
+>>> 100644 --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+>>> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+>>> @@ -50,14 +50,18 @@ do
+>>> {							\ } while
+>>> (0) 
+>>>  /*
+>>> - * em2800_i2c_send_max4()
+>>> - * send up to 4 bytes to the i2c device
+>>> + * em2800_i2c_send_bytes()
+>>> + * send up to 4 bytes to the em2800 i2c device
+>>>   */
+>>> -static int em2800_i2c_send_max4(struct em28xx *dev, u8 addr, u8
+>>> *buf, u16 len) +static int em2800_i2c_send_bytes(struct em28xx
+>>> *dev, u8 addr, u8 *buf, u16 len) {
+>>>  	int ret;
+>>>  	int write_timeout;
+>>>  	u8 b2[6];
+>>> +
+>>> +	if (len < 1 || len > 4)
+>>> +		return -EOPNOTSUPP;
+>>> +
+>> Except if you actually tested it with all em2800 devices, I think that
+>> this change just broke it for em2800.
+>>
+>> Maybe Sascha could review this patch series on his em2800 devices.
+>>
+>> Those devices are limited, and just like other devices (cx231xx for
+>> example), the I2C bus need to split long messages, otherwise the I2C
+>> devices will fail.
+>>
+> The only device that I own is the Terratec Cinergy 200 USB.
+> Unfortunately I left it in my parents house so I won't be able to
+> test the patch within the next two weeks. I don't know if any of the
+> other devices ever transfered more than 4 bytes but as far as I
+> remember the windows driver of the cinergy 200 usb did not do this.
+> The traces obtained from it were the only information I had during
+> development. On first sight, the splitting code looks wrong.
 
-- v1 still miscalculated the bytesperline and imagesize values (they were
-  too large).
-- G_FMT had the same calculation bug.
+Thanks for your reply !
+I have a Terratec Cinergy 200 USB, too, and I used this device for
+testing the code.
+You are right, the Windows driver never transfers more than 4 bytes
+(verified with USB-logs).
+Do you know if there is something like a control flag for non-stopping
+i2c transfers ?
 
-Tested with my em28xx.
+Maybe you also noticed the following tread:
+http://www.spinics.net/lists/linux-media/msg57442.html
+
+Do you remember any details about your device ?
+One thing not mentioned in this tread is, that there seem to be multiple
+chip IDs for the EM2800.
+The em28xx only knows about ID=7 and I assume that's what you device
+uses. But the chip in my device uses ID=4...
 
 Regards,
+Frank
 
-        Hans
-
-The bytesperline calculation was incorrect: it used the old width instead of
-the provided width in the case of TRY_FMT, and it miscalculated the bytesperline
-value for the depth == 12 (planar YUV 4:1:1) case. For planar formats the
-bytesperline value should be the bytesperline of the widest plane, which is
-the Y plane which has 8 bits per pixel, not 12.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 2eabf2a..6ced426 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -837,8 +837,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- 	f->fmt.pix.width = dev->width;
- 	f->fmt.pix.height = dev->height;
- 	f->fmt.pix.pixelformat = dev->format->fourcc;
--	f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
--	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline  * dev->height;
-+	f->fmt.pix.bytesperline = dev->width * (dev->format->depth >> 3);
-+	f->fmt.pix.sizeimage = (dev->width * dev->height * dev->format->depth + 7) >> 3;
- 	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
- 
- 	/* FIXME: TOP? NONE? BOTTOM? ALTENATE? */
-@@ -906,8 +906,8 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 	f->fmt.pix.width = width;
- 	f->fmt.pix.height = height;
- 	f->fmt.pix.pixelformat = fmt->fourcc;
--	f->fmt.pix.bytesperline = (dev->width * fmt->depth + 7) >> 3;
--	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline * height;
-+	f->fmt.pix.bytesperline = width * (fmt->depth >> 3);
-+	f->fmt.pix.sizeimage = (width * height * fmt->depth + 7) >> 3;
- 	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
- 	if (dev->progressive)
- 		f->fmt.pix.field = V4L2_FIELD_NONE;
--- 
-1.7.10.4
+> Regards
+>
+> Sascha
+>
+>
 
