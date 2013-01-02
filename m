@@ -1,95 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4293 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755556Ab3AMVms (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Jan 2013 16:42:48 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0DLgiXI061652
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sun, 13 Jan 2013 22:42:46 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 139253A00119
-	for <linux-media@vger.kernel.org>; Sun, 13 Jan 2013 22:42:42 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:49534 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752633Ab3ABKxs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 05:53:48 -0500
+Received: by mail-pb0-f46.google.com with SMTP id wy7so7768565pbc.19
+        for <linux-media@vger.kernel.org>; Wed, 02 Jan 2013 02:53:48 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130113214243.139253A00119@alastor.dyndns.org>
-Date: Sun, 13 Jan 2013 22:42:42 +0100 (CET)
+Cc: k.debski@samsung.com, s.nawrocki@samsung.com,
+	sylvester.nawrocki@gmail.com, sachin.kamat@linaro.org,
+	patches@linaro.org
+Subject: [PATCH Resend] [media] s5p-mfc: Fix an error check
+Date: Wed,  2 Jan 2013 16:15:49 +0530
+Message-Id: <1357123549-14264-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Checking unsigned variable for negative value always returns false.
+Hence make this value signed as we expect it to be negative too.
 
-Results of the daily build of media_tree:
+Fixes the following smatch warning:
+drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:572
+s5p_mfc_set_enc_ref_buffer_v6() warn: unsigned 'buf_size1' is never
+less than zero.
 
-date:        Sun Jan 13 19:00:15 CET 2013
-git hash:    3151d14aa6e983aa36d51a80d0477859f9ba12af
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+Added additional description in commit message.
+Please ignore the previous patch.
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: WARNINGS
-linux-git-arm-eabi-omap: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: WARNINGS
-linux-3.5-i686: WARNINGS
-linux-3.6-i686: WARNINGS
-linux-3.7-i686: WARNINGS
-linux-3.8-rc1-i686: OK
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: WARNINGS
-linux-3.5-x86_64: WARNINGS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-x86_64: WARNINGS
-linux-3.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 5f9a5e0..91d5087 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -535,8 +535,8 @@ void s5p_mfc_get_enc_frame_buffer_v6(struct s5p_mfc_ctx *ctx,
+ int s5p_mfc_set_enc_ref_buffer_v6(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+-	size_t buf_addr1, buf_size1;
+-	int i;
++	size_t buf_addr1;
++	int i, buf_size1;
+ 
+ 	mfc_debug_enter();
+ 
+-- 
+1.7.4.1
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
