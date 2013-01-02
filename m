@@ -1,84 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:52076 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932301Ab3AITkC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 14:40:02 -0500
-Date: Wed, 9 Jan 2013 20:39:53 +0100
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: Marek Vasut <marex@denx.de>
-Cc: devicetree-discuss@lists.ozlabs.org,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	David Airlie <airlied@linux.ie>,
-	Rob Clark <robdclark@gmail.com>,
-	Leela Krishna Amudala <leelakrishna.a@gmail.com>
-Subject: Re: [PATCHv16 0/7] of: add display helper
-Message-ID: <20130109193953.GA4780@pengutronix.de>
-References: <1355850256-16135-1-git-send-email-s.trumtrar@pengutronix.de>
- <201301092012.01985.marex@denx.de>
+Received: from mail-ea0-f182.google.com ([209.85.215.182]:42718 "EHLO
+	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752702Ab3ABVMf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 16:12:35 -0500
+Received: by mail-ea0-f182.google.com with SMTP id a14so6135783eaa.13
+        for <linux-media@vger.kernel.org>; Wed, 02 Jan 2013 13:12:34 -0800 (PST)
+Message-ID: <50E4A2DA.2000400@googlemail.com>
+Date: Wed, 02 Jan 2013 22:12:58 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201301092012.01985.marex@denx.de>
+To: Antti Palosaari <crope@iki.fi>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	saschasommer@freenet.de,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 2/5] em28xx: respect the message size constraints for
+ i2c transfers
+References: <1355682211-13604-1-git-send-email-fschaefer.oss@googlemail.com> <1355682211-13604-3-git-send-email-fschaefer.oss@googlemail.com> <20121222220746.64611c08@redhat.com> <50D70DF4.2000408@googlemail.com> <20121223124624.0122504c@redhat.com> <50D837EE.6040207@googlemail.com> <50E48A89.1040901@iki.fi>
+In-Reply-To: <50E48A89.1040901@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Hi Antti,
 
-On Wed, Jan 09, 2013 at 08:12:01PM +0100, Marek Vasut wrote:
-> Dear Steffen Trumtrar,
-> 
-> I tested this on 3.8-rc1 (next 20130103) with the imx drm driver. After adding 
-> the following piece of code (quick hack), this works just fine. Thanks!
-> 
-> diff --git a/drivers/staging/imx-drm/parallel-display.c b/drivers/staging/imx-
-> drm/parallel-display.c
-> index a8064fc..e45002a 100644
-> --- a/drivers/staging/imx-drm/parallel-display.c
-> +++ b/drivers/staging/imx-drm/parallel-display.c
-> @@ -57,6 +57,7 @@ static void imx_pd_connector_destroy(struct drm_connector 
-> *connector)
->  static int imx_pd_connector_get_modes(struct drm_connector *connector)
->  {
->         struct imx_parallel_display *imxpd = con_to_imxpd(connector);
-> +       struct device_node *np = imxpd->dev->of_node;
->         int num_modes = 0;
->  
->         if (imxpd->edid) {
-> @@ -72,6 +73,15 @@ static int imx_pd_connector_get_modes(struct drm_connector 
-> *connector)
->                 num_modes++;
->         }
->  
-> +       if (np) {
-> +               struct drm_display_mode *mode = drm_mode_create(connector->dev);
-> +               of_get_drm_display_mode(np, &imxpd->mode, 0);
-> +               drm_mode_copy(mode, &imxpd->mode);
-> +               mode->type |= DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED,
-> +               drm_mode_probed_add(connector, mode);
-> +               num_modes++;
-> +       }
-> +
->         return num_modes;
->  }
-> 
+Am 02.01.2013 20:29, schrieb Antti Palosaari:
+> On 12/24/2012 01:09 PM, Frank Schäfer wrote:
+>> Am 23.12.2012 15:46, schrieb Mauro Carvalho Chehab:
+>>> Em Sun, 23 Dec 2012 14:58:12 +0100
+>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>>>
+>>>> Am 23.12.2012 01:07, schrieb Mauro Carvalho Chehab:
+>>>>> Em Sun, 16 Dec 2012 19:23:28 +0100
+>>>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>>
+>>>>> Those devices are limited, and just like other devices (cx231xx
+>>>>> for example),
+>>>>> the I2C bus need to split long messages, otherwise the I2C devices
+>>>>> will
+>>>>> fail.
+>>>> I2C adapters are supposed to fail with -EOPNOTSUPP if the message
+>>>> length
+>>>> exceeds their capabilities.
+>>>> Drivers must be able to handle this error, otherwise they have to
+>>>> be fixed.
+>>> Currently, afaikt, no V4L2 I2C client knows how to handle it.
+>>
+>> Maybe. Fortunately, it seems to cause no trouble.
+>>
+>>>   Ok, returning
+>>> -EOPNOTSUPP if the I2C data came from userspace makes sense.
+>>>
+>>>>> Btw, there was already a long discussion with regards to splitting
+>>>>> long
+>>>>> I2C messages at the I2C bus or at the I2C adapters. The decision was
+>>>>> to do it at the I2C bus logic, as it is simpler than making a code
+>>>>> at each I2C client for them to properly handle -EOPNOTSUPP and
+>>>>> implement
+>>>>> a fallback logic to reduce the transfer window until reach what's
+>>>>> supported by the device.
+>>>> While letting the i2c bus layer split messages sounds like the right
+>>>> thing to do, it is hard to realize that in practice.
+>>>> The reason is, that the needed algorithm depends on the
+>>>> capabilities and
+>>>> behavior of the i2c adapter _and_ the connected i2c client.
+>>>> The three main parameters are:
+>>>> - message size limits
+>>>> - client register width
+>>>> - automatic register index incrementation
+>>>>
+>>>> I don't know what has been discussed in past,
+>>> You'll need to dig into the ML archives. This is a recurrent theme,
+>>> and,
+>>> we have implementations doing I2C split at bus (most cases) and a few
+>>> ones doing it at the client side.
+>>
+>> Yeah, I also have a working implementation of i2c block read/write
+>> emulation in my experimental code. ;)
+>>
+>>>> but I talked to Jean
+>>>> Delvare about the message size constraints a few weeks ago.
+>>>> He told me that it doesn't make sense to try to handle this at the i2c
+>>>> subsystem level. The parameters can be different for reading and
+>>>> writing, adapter and client and things are getting complicated
+>>>> quickly.
+>>> Jean's opinion is to push it to I2C clients (and we actually do it on a
+>>> few cases), but as I explained before, there are several drivers where
+>>> this is better done at the I2C bus driver, as the I2C implementation
+>>> allows doing it easily at bus level by playing with I2C STOP bits/I2C
+>>> start bits.
+>>>
+>>> We simply have too much I2C clients, and -EOPNOTSUPP error code doesn't
+>>> tell the max size of the I2C messages. Adding a complex split logic
+>>> for every driver is not a common practice, as just a few I2C bus bridge
+>>> drivers suffer from very strict limits.
+>>
+>> Yes, and even with those who have such a strict limit, it is usually not
+>> exceeded because the clients are too 'simple'. ;)
+>>
+>>> Also, clients that split I2C messages don't actually handle
+>>> -EOPNOTSUPP.
+>>> Instead, they have an init parameter telling the maximum size of the
+>>> I2C messages accepted by the bus.
+>>>
+>>> The logic there is complex, and may require an additional logic at the
+>>> bus side, in order to warrant that no I2C stop/start bits will be sent
+>>> in the middle of a message, or otherwise the device will fail[1].
+>>>
+>>> So, it is generally simpler and more effective to just do it at the bus
+>>> side.
+>>
+>> Maybe. I have no opinion yet.
+>> My feeling is, that this should be handled by the i2c subsystem as much
+>> as possible, but
+>> a) it's complex due to the described reasons
+>> b) I have no complete concept yet
+>> c) the i2c people seem to be not very interested
+>> d) there is lots of other stuff with a higher priority on my TODO list
+>
+> Maybe you already have seen, but I did some initial stuff year or two
+> ago for implementing that but left it unimplemented as there was so
+> much stuff to check and discuss in order to agree correct solution.
+>
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg38840.html
+>
+> There is regmap which maybe could do stuff like that, I am not sure as
+> I never tested it. At least it could do some stuff top of I2C bus.
 
-Nice! I haven't tried the parallel display, but I think Philipp Zabel might
-already have a patch for it. If not, I will definitly keep your patch in my
-topic branch.
+Yes, I've read this discussion, but didn't have time to take a deeper
+look into the regmap stuff yet.
+
+For the em28xx driver itself, there is no real need for i2c block
+read/write emulation at the moment. We could save only a few lines.
+I'm also burried with lots of other stuff at the moment which has a
+higher priority for me.
+
+Please note that the whole discussion has nothing to do with this patch.
+It just removes code which isn't and has never been working.
+
+>
+> Also I heavily disagree you what goes to I2C subsystem integration.
+> That is clearly stuff which resides top of I2C bus and it is *not bus
+> dependent*. There is many other buses too having similar splitting
+> logic like SPI?
+>
+
+I don't understand you. In which points do we disagree ??
+
 
 Regards,
-Steffen
-
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Frank
