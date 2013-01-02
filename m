@@ -1,188 +1,251 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f53.google.com ([209.85.219.53]:46805 "EHLO
-	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756312Ab3APS0s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jan 2013 13:26:48 -0500
-Received: by mail-oa0-f53.google.com with SMTP id j6so1755849oag.12
-        for <linux-media@vger.kernel.org>; Wed, 16 Jan 2013 10:26:48 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20130116152151.5461221c@redhat.com>
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-	<50F522AD.8000109@iki.fi>
-	<20130115111041.6b78a935@redhat.com>
-	<50F56C63.7010503@iki.fi>
-	<50F57519.5060402@iki.fi>
-	<20130115151203.7221b1db@redhat.com>
-	<50F5BE14.9000705@iki.fi>
-	<CAHFNz9L9Lg-uttCVOk90UghM_WVbge44Ascxv4qrag3GvWetnQ@mail.gmail.com>
-	<20130116115605.0fea6d03@redhat.com>
-	<CAHFNz9KniYSbfoDHOw+=x3aA0eWqpiQd9LxgQEt3fjm1RwUc7g@mail.gmail.com>
-	<20130116152151.5461221c@redhat.com>
-Date: Wed, 16 Jan 2013 23:56:48 +0530
-Message-ID: <CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com>
-Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-da0-f54.google.com ([209.85.210.54]:54953 "EHLO
+	mail-da0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752649Ab3ABNWr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 08:22:47 -0500
+Received: by mail-da0-f54.google.com with SMTP id n2so6517917dad.41
+        for <linux-media@vger.kernel.org>; Wed, 02 Jan 2013 05:22:46 -0800 (PST)
+From: Vikas C Sajjan <vikas.sajjan@linaro.org>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: inki.dae@samsung.com, laurent.pinchart@ideasonboard.com,
+	tomi.valkeinen@ti.com, jesse.barker@linaro.org,
+	aditya.ps@samsung.com
+Subject: [PATCH 1/2] [RFC] video: exynos mipi dsi: Making Exynos MIPI Complaint with CDF
+Date: Wed,  2 Jan 2013 18:47:21 +0530
+Message-Id: <1357132642-24588-2-git-send-email-vikas.sajjan@linaro.org>
+In-Reply-To: <1357132642-24588-1-git-send-email-vikas.sajjan@linaro.org>
+References: <1357132642-24588-1-git-send-email-vikas.sajjan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 16, 2013 at 10:51 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
 
->> If you have sufficient documentation, you can scale your demodulator statistics
->> to fit in that window area. I had done something similarly with a MB86A16
->> demodulator. IIRC, some effort was done on the STV0900 and STV0903
->> demodulator support as well to fit into that convention.
->>
->> All you need to do is scale the output of your demodulator to fit into
->> that window.
->
-> To what scale? dB? linear? 0% to 100%?
+Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+---
+ drivers/video/exynos/exynos_mipi_dsi.c        |   46 ++++++++++++++++++-------
+ drivers/video/exynos/exynos_mipi_dsi_common.c |   22 ++++++++----
+ drivers/video/exynos/exynos_mipi_dsi_common.h |   12 +++----
+ include/video/exynos_mipi_dsim.h              |    5 ++-
+ 4 files changed, 56 insertions(+), 29 deletions(-)
 
+diff --git a/drivers/video/exynos/exynos_mipi_dsi.c b/drivers/video/exynos/exynos_mipi_dsi.c
+index 07d70a3..88b2aa9 100644
+--- a/drivers/video/exynos/exynos_mipi_dsi.c
++++ b/drivers/video/exynos/exynos_mipi_dsi.c
+@@ -32,14 +32,13 @@
+ #include <linux/notifier.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/pm_runtime.h>
+-
++#include <video/display.h>
+ #include <video/exynos_mipi_dsim.h>
+ 
+ #include <plat/fb.h>
+ 
+ #include "exynos_mipi_dsi_common.h"
+ #include "exynos_mipi_dsi_lowlevel.h"
+-
+ struct mipi_dsim_ddi {
+ 	int				bus_id;
+ 	struct list_head		list;
+@@ -111,12 +110,13 @@ static void exynos_mipi_update_cfg(struct mipi_dsim_device *dsim)
+ 	exynos_mipi_dsi_stand_by(dsim, 1);
+ }
+ 
+-static int exynos_mipi_dsi_early_blank_mode(struct mipi_dsim_device *dsim,
++static int exynos_mipi_dsi_early_blank_mode(struct video_source *video_source,
+ 		int power)
+ {
++	struct mipi_dsim_device *dsim = container_of(video_source,
++					struct mipi_dsim_device, video_source);
+ 	struct mipi_dsim_lcd_driver *client_drv = dsim->dsim_lcd_drv;
+ 	struct mipi_dsim_lcd_device *client_dev = dsim->dsim_lcd_dev;
+-
+ 	switch (power) {
+ 	case FB_BLANK_POWERDOWN:
+ 		if (dsim->suspended)
+@@ -139,12 +139,13 @@ static int exynos_mipi_dsi_early_blank_mode(struct mipi_dsim_device *dsim,
+ 	return 0;
+ }
+ 
+-static int exynos_mipi_dsi_blank_mode(struct mipi_dsim_device *dsim, int power)
++static int exynos_mipi_dsi_blank_mode(struct video_source *video_source, int power)
+ {
++	struct mipi_dsim_device *dsim = container_of(video_source,
++					struct mipi_dsim_device, video_source);
+ 	struct platform_device *pdev = to_platform_device(dsim->dev);
+ 	struct mipi_dsim_lcd_driver *client_drv = dsim->dsim_lcd_drv;
+ 	struct mipi_dsim_lcd_device *client_dev = dsim->dsim_lcd_dev;
+-
+ 	switch (power) {
+ 	case FB_BLANK_UNBLANK:
+ 		if (!dsim->suspended)
+@@ -319,12 +320,19 @@ static struct mipi_dsim_ddi *exynos_mipi_dsi_bind_lcd_ddi(
+ 	return NULL;
+ }
+ 
+-/* define MIPI-DSI Master operations. */
+-static struct mipi_dsim_master_ops master_ops = {
+-	.cmd_read			= exynos_mipi_dsi_rd_data,
+-	.cmd_write			= exynos_mipi_dsi_wr_data,
+-	.get_dsim_frame_done		= exynos_mipi_dsi_get_frame_done_status,
+-	.clear_dsim_frame_done		= exynos_mipi_dsi_clear_frame_done,
++static void panel_dsi_release(struct video_source *src)
++{
++	printk("dsi entity release\n");
++}
++
++static const struct common_video_source_ops dsi_common_ops = {
++};
++
++static const struct dsi_video_source_ops exynos_dsi_ops = {
++	.dcs_read			= exynos_mipi_dsi_rd_data,
++	.dcs_write			= exynos_mipi_dsi_wr_data,
++	.get_frame_done			= exynos_mipi_dsi_get_frame_done_status,
++	.clear_frame_done		= exynos_mipi_dsi_clear_frame_done,
+ 	.set_early_blank_mode		= exynos_mipi_dsi_early_blank_mode,
+ 	.set_blank_mode			= exynos_mipi_dsi_blank_mode,
+ };
+@@ -362,7 +370,6 @@ static int exynos_mipi_dsi_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	dsim->dsim_config = dsim_config;
+-	dsim->master_ops = &master_ops;
+ 
+ 	mutex_init(&dsim->lock);
+ 
+@@ -463,6 +470,19 @@ static int exynos_mipi_dsi_probe(struct platform_device *pdev)
+ 
+ 	dsim->suspended = false;
+ 
++	dsim->video_source.dev = &pdev->dev;
++	dsim->video_source.release = panel_dsi_release;
++	dsim->video_source.common_ops = &dsi_common_ops;
++	dsim->video_source.ops.dsi = &exynos_dsi_ops;
++	dsim->video_source.name = "exynos";
++
++	ret = video_source_register(&dsim->video_source);
++	if (ret < 0) {
++		printk("dsi entity register failed\n");
++		goto err_bind;
++	}
++	printk("dsi entity registered: %p\n", &dsim->video_source);
++	return 0;
+ done:
+ 	platform_set_drvdata(pdev, dsim);
+ 
+diff --git a/drivers/video/exynos/exynos_mipi_dsi_common.c b/drivers/video/exynos/exynos_mipi_dsi_common.c
+index 3cd29a4..e59911e 100644
+--- a/drivers/video/exynos/exynos_mipi_dsi_common.c
++++ b/drivers/video/exynos/exynos_mipi_dsi_common.c
+@@ -153,11 +153,12 @@ static void exynos_mipi_dsi_long_data_wr(struct mipi_dsim_device *dsim,
+ 		}
+ 	}
+ }
+-
+-int exynos_mipi_dsi_wr_data(struct mipi_dsim_device *dsim, unsigned int data_id,
+-	const unsigned char *data0, unsigned int data_size)
++int exynos_mipi_dsi_wr_data(struct video_source *video_source, int data_id,
++	u8 *data0, size_t data_size)
+ {
+ 	unsigned int check_rx_ack = 0;
++	struct mipi_dsim_device *dsim = container_of(video_source,
++				struct mipi_dsim_device, video_source);
+ 
+ 	if (dsim->state == DSIM_STATE_ULPS) {
+ 		dev_err(dsim->dev, "state is ULPS.\n");
+@@ -340,12 +341,14 @@ static unsigned int exynos_mipi_dsi_response_size(unsigned int req_size)
+ 	}
+ }
+ 
+-int exynos_mipi_dsi_rd_data(struct mipi_dsim_device *dsim, unsigned int data_id,
+-	unsigned int data0, unsigned int req_size, u8 *rx_buf)
++int exynos_mipi_dsi_rd_data(struct video_source *video_source, int data_id,
++			u8 data0, u8 *rx_buf,size_t req_size)
+ {
+ 	unsigned int rx_data, rcv_pkt, i;
+ 	u8 response = 0;
+ 	u16 rxsize;
++	struct mipi_dsim_device *dsim = container_of(video_source,
++				struct mipi_dsim_device, video_source);
+ 
+ 	if (dsim->state == DSIM_STATE_ULPS) {
+ 		dev_err(dsim->dev, "state is ULPS.\n");
+@@ -843,13 +846,18 @@ int exynos_mipi_dsi_set_data_transfer_mode(struct mipi_dsim_device *dsim,
+ 	return 0;
+ }
+ 
+-int exynos_mipi_dsi_get_frame_done_status(struct mipi_dsim_device *dsim)
++int exynos_mipi_dsi_get_frame_done_status(struct video_source *video_source)
+ {
++	 struct mipi_dsim_device *dsim = container_of(video_source,
++				struct mipi_dsim_device, video_source);
++
+ 	return _exynos_mipi_dsi_get_frame_done_status(dsim);
+ }
+ 
+-int exynos_mipi_dsi_clear_frame_done(struct mipi_dsim_device *dsim)
++int exynos_mipi_dsi_clear_frame_done(struct video_source *video_source)
+ {
++	 struct mipi_dsim_device *dsim = container_of(video_source,
++				struct mipi_dsim_device, video_source);
+ 	_exynos_mipi_dsi_clear_frame_done(dsim);
+ 
+ 	return 0;
+diff --git a/drivers/video/exynos/exynos_mipi_dsi_common.h b/drivers/video/exynos/exynos_mipi_dsi_common.h
+index 4125522..cd89154 100644
+--- a/drivers/video/exynos/exynos_mipi_dsi_common.h
++++ b/drivers/video/exynos/exynos_mipi_dsi_common.h
+@@ -18,10 +18,10 @@
+ static DECLARE_COMPLETION(dsim_rd_comp);
+ static DECLARE_COMPLETION(dsim_wr_comp);
+ 
+-int exynos_mipi_dsi_wr_data(struct mipi_dsim_device *dsim, unsigned int data_id,
+-	const unsigned char *data0, unsigned int data_size);
+-int exynos_mipi_dsi_rd_data(struct mipi_dsim_device *dsim, unsigned int data_id,
+-	unsigned int data0, unsigned int req_size, u8 *rx_buf);
++int exynos_mipi_dsi_rd_data(struct video_source *video_source, int data_id,
++				u8 data0, u8 *rx_buf,size_t req_size);
++int exynos_mipi_dsi_wr_data(struct video_source *video_source, int data_id,
++				u8 *data0, size_t data_size);
+ irqreturn_t exynos_mipi_dsi_interrupt_handler(int irq, void *dev_id);
+ void exynos_mipi_dsi_init_interrupt(struct mipi_dsim_device *dsim);
+ int exynos_mipi_dsi_init_dsim(struct mipi_dsim_device *dsim);
+@@ -35,8 +35,8 @@ int exynos_mipi_dsi_set_data_transfer_mode(struct mipi_dsim_device *dsim,
+ 		unsigned int mode);
+ int exynos_mipi_dsi_enable_frame_done_int(struct mipi_dsim_device *dsim,
+ 	unsigned int enable);
+-int exynos_mipi_dsi_get_frame_done_status(struct mipi_dsim_device *dsim);
+-int exynos_mipi_dsi_clear_frame_done(struct mipi_dsim_device *dsim);
++int exynos_mipi_dsi_get_frame_done_status(struct video_source *video_source);
++int exynos_mipi_dsi_clear_frame_done(struct video_source *video_source);
+ 
+ extern struct fb_info *registered_fb[FB_MAX] __read_mostly;
+ 
+diff --git a/include/video/exynos_mipi_dsim.h b/include/video/exynos_mipi_dsim.h
+index 83ce5e6..e50438e 100644
+--- a/include/video/exynos_mipi_dsim.h
++++ b/include/video/exynos_mipi_dsim.h
+@@ -17,7 +17,7 @@
+ 
+ #include <linux/device.h>
+ #include <linux/fb.h>
+-
++#include <video/display.h>
+ #define PANEL_NAME_SIZE		(32)
+ 
+ /*
+@@ -225,9 +225,8 @@ struct mipi_dsim_device {
+ 	unsigned int			irq;
+ 	void __iomem			*reg_base;
+ 	struct mutex			lock;
+-
++	struct video_source		video_source;
+ 	struct mipi_dsim_config		*dsim_config;
+-	struct mipi_dsim_master_ops	*master_ops;
+ 	struct mipi_dsim_lcd_device	*dsim_lcd_dev;
+ 	struct mipi_dsim_lcd_driver	*dsim_lcd_drv;
+ 
+-- 
+1.7.9.5
 
-It is in a db scale, scaled to the window, IIRC. In an application, you can
-convert that window area, you can convert it into a linear scale as well.
-
-
->
-> As there's no way to tell what's the used scale, if some scale is required,
-> _all_ demods are required to be converted to that scale, otherwise, userspace
-> can't rely on the scale.
->
-> Are you capable of doing such change on _all demods? If not, please stop
-> arguing that the existing API can be fixable.
->
-> Besides that, changing the existing stats to whatever scale breaks
-> userspace compatibility.
->
-> BREAKING USERSPACE IS A BIG NO.
->
-
-Consider this simple situation:
-Your new API is using get_frontend and is polling the hardware, Now an
-existing application is also doing monitoring of the statistics. So, now all
-the decision box calculations are screwed.
-Now, WHO BROKE USERSPACE ?
-
-The same situation will happen for any new API that's going to be built.
-
-Scaling the output values of a demodulator, which doesn't behave in
-accordance to the specifications is NOT BREAKING USERSPACE.
-
-
->> What you are stating are just excuses, that do not exist.
->>
->> The same issue will exist, even with a new API and newer drivers not complying
->> to that API. I don't understand, why you fail to accept that fact.
->
-> Newer drivers that don't implement an API right (being the a new one or an
-> existing one) need to be fixed before being merged.
->
-> It is as simple as that.
-
-
-Okay, so what happens when a device that doesn't fit into your QoS
-API, or that the
-outputs of it are broken because of your API ?
-I don't think it is that simple.
-
-
->> >> What is eventually wanted is a 0-100% scale, a self rotating counter etc scaled
->> >> to a maxima minima, rather than adding in complexities. This already exists,
->> >> all it needs to do is add some more devices to be scaled to that convention.
->> >> And more importantly, one is not going to get that real professional
->> >> measurements
->> >>  from these *home segment* devices. One of the chipset manufacturers once told
->> >> me that the PC segment never was interested in any real world performance
->> >> oriented devices, it is all about cost and hence it is stuck with such
->> >> low devices.
->> >
->> > The DVB API should be able to fit on both home and professional segment.
->>
->>
->> I don't see any professional hardware drivers being written for the
->> Linux DVB API.
->
-> From the feedbacks we're getting during the media mini-summits,
-> there are vendors that seem to be working on it. Anyway, what I'm saying
-> is that the API should not be bound to any specific market segment.
->
-> If drivers will be submitted upstream for professional hardware or not
-> is a separate issue.
-
-
-You are the one who had been touting all along on many linux-media threads,
-on linux-kernel threads and what not; that API changes should not be made
-for hardware that is not submitted upstream. So, I don't buy your argument
-at all. Why did you argue with nvidia people that they shouldn't use dma-buf,
-unless their driver is upstream. The same should hold good for what you are
-talking now as well.
-
-
-
->> >
->> > Anyway, the existing API will be kept. Userspace may opt to use the legacy
->> > API if they're not interested on a scaled value.
->>
->>
->> That is simply stating, that whatever other people like it or not, you
->> will whack
->> nonsense in.
->
-> No. I'm simply stating that removing the existing API is not an option.
->
-> Also, plese stop with fallacy: it is not me saying that the existing API
-> is broken. I'm just the poor guy that is trying to fix the already known
-> issue. Several users, userspace developers and kernelspace developers
-> complain about the existing stats API. Even _you_ submitted a proposal
-> years ago for a new stats API to try solving those issues.
-
-
-I submitted a proposal to distinguish between the various statistics modes
-used by different devices. But eventually it was found that it wasn't possible
-to fit *all* devices that do exist into any convention. That was why I didn't
-pursue that proposal further.
-
->From what I learned from that, such information provided should be the
-simplest possible thing, if we were to generalize on a large set of devices.
-When being generalized with a large set of devices, however clever you are
-or whatever technical might you have, you will still have issues with some
-devices or the other. The end thoughts gathered from many people was that
-such a generalization is futile, unless it is made for a very specific usecase.
-A home user targeted API gets too complex and unusable in such an
- approach, making it harder for everyone altogether. As some other
-people (I guess Klaus did) said, even an idiot should be able to make out
-what it is, rather than trying to figure out what is what.
-
-In any case, a true atomic operation cannot be made, for the same reasons
-associated with consumer equipment based, or the so called Home segment
-as described earlier. In such a case, it makes no difference if the existing
-statistics related calls are made in a serialized way (driver also has to
-serialize anyway). Other than that serialization, most demods have
-restrictions that some operations it won't do simultaneously. So it doesn't
-make any difference in real life. By having such a bloated API, you can just
-more jeer that you are the author of that bloatware and nothing more than
-that.
-
-
->
-> It is a common sense that the existing API is broken. If my proposal
-> requires adjustments, please comment on each specific patchset, instead
-> of filling this thread of destructive and useless complains.
-
-
-No, the concept of such a generalization is broken, as each new device will
-be different and trying to make more generalization is a waste of developer
-time and effort. The simplest approach would be to do a coarse approach,
-which is not a perfect world, but it will do some good results for all the
-people who use Linux-DVB. Still, repeating myself we are not dealing with
-high end professional devices. If we have such devices, then it makes sense
-to start such a discussion. Anyway professional devices will need a lot of
-other API extensions, so your arguments on the need for professional
-devices that do not exist are pointless and not agreeable to.
-
-Manu
