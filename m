@@ -1,149 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:34881 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753417Ab3AJLcR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 06:32:17 -0500
-From: Jani Nikula <jani.nikula@linux.intel.com>
-To: Inki Dae <inki.dae@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: sunil joshi <joshi@samsung.com>, dri-devel@lists.freedesktop.org,
-	Rob Clark <rob.clark@linaro.org>, tomi.valkeinen@ti.com,
-	aditya.ps@samsung.com, Vikas Sajjan <vikas.sajjan@linaro.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] [RFC] video: display: Adding frame related ops to MIPI DSI video source struct
-In-Reply-To: <CAAQKjZMsH3xNdTD5D7L90KJhYforgEvL0_6rBKXNyPyB_P04iQ@mail.gmail.com>
-References: <1357132642-24588-1-git-send-email-vikas.sajjan@linaro.org> <67872310.6yRVsVsClR@amdc1227> <CAD025yQHuW3O-Wqwjjsf79UcXjxezUZEwoY-P1J5Fqb+OB+gHA@mail.gmail.com> <3145597.3X0nZfdYRE@avalon> <CAAQKjZMsH3xNdTD5D7L90KJhYforgEvL0_6rBKXNyPyB_P04iQ@mail.gmail.com>
-Date: Thu, 10 Jan 2013 13:33:11 +0200
-Message-ID: <87ehhtxog8.fsf@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:31142 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752677Ab3ABOkA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 09:40:00 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 8BIT
+Content-type: text/plain; charset=UTF-8; format=flowed
+Message-id: <50E446BB.7090609@samsung.com>
+Date: Wed, 02 Jan 2013 15:39:55 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-m68k@vger.kernel.org
+Subject: Re: [PATCH/RFC 0/4] Re: dma_mmap_coherent / ARCH_HAS_DMA_MMAP_COHERENT
+References: <CAMuHMdVPBUzN8fsNHFzrEqev9BsvVCVR2fWySCOecjVA-J1qjg@mail.gmail.com>
+ <1356722614-18224-1-git-send-email-geert@linux-m68k.org>
+In-reply-to: <1356722614-18224-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 10 Jan 2013, Inki Dae <inki.dae@samsung.com> wrote:
-> 2013/1/10 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> Hi Vikas,
->>
->> Thank you for the patch.
->>
->> On Friday 04 January 2013 10:24:04 Vikas Sajjan wrote:
->>> On 3 January 2013 16:29, Tomasz Figa <t.figa@samsung.com> wrote:
->>> > On Wednesday 02 of January 2013 18:47:22 Vikas C Sajjan wrote:
->>> >> From: Vikas Sajjan <vikas.sajjan@linaro.org>
->>> >>
->>> >> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
->>> >> ---
->>> >>
->>> >>  include/video/display.h |    6 ++++++
->>> >>  1 file changed, 6 insertions(+)
->>> >>
->>> >> diff --git a/include/video/display.h b/include/video/display.h
->>> >> index b639fd0..fb2f437 100644
->>> >> --- a/include/video/display.h
->>> >> +++ b/include/video/display.h
->>> >> @@ -117,6 +117,12 @@ struct dsi_video_source_ops {
->>> >>
->>> >>       void (*enable_hs)(struct video_source *src, bool enable);
->>> >>
->>> >> +     /* frame related */
->>> >> +     int (*get_frame_done)(struct video_source *src);
->>> >> +     int (*clear_frame_done)(struct video_source *src);
->>> >> +     int (*set_early_blank_mode)(struct video_source *src, int power);
->>> >> +     int (*set_blank_mode)(struct video_source *src, int power);
->>> >> +
->>> >
->>> > I'm not sure if all those extra ops are needed in any way.
->>> >
->>> > Looking and Exynos MIPI DSIM driver, set_blank_mode is handling only
->>> > FB_BLANK_UNBLANK status, which basically equals to the already existing
->>> > enable operation, while set_early_blank mode handles only
->>> > FB_BLANK_POWERDOWN, being equal to disable callback.
->>>
->>> Right, exynos_mipi_dsi_blank_mode() only supports FB_BLANK_UNBLANK as
->>> of now, but FB_BLANK_NORMAL will be supported in future.
->>> If not for Exynos, i think it will be need for other SoCs which
->>> support FB_BLANK_UNBLANK and FB_BLANK_NORMAL.
->>
->> Could you please explain in a bit more details what the set_early_blank_mode
->> and set_blank_mode operations do ?
->>
->>> > Both get_frame_done and clear_frame_done do not look at anything used at
->>> > the moment and if frame done status monitoring will be ever needed, I
->>> > think a better way should be implemented.
->>>
->>> You are right, as of now Exynos MIPI DSI Panels are NOT using these
->>> callbacks, but as you mentioned we will need frame done status monitoring
->>> anyways, so i included these callbacks here. Will check, if we can implement
->>> any better method.
->>
->> Do you expect the entity drivers (and in particular the panel drivers) to
->> require frame done notification ? If so, could you explain your use case(s) ?
->>
+Hello,
+
+On 12/28/2012 8:23 PM, Geert Uytterhoeven wrote:
+> On Sun, Dec 16, 2012 at 5:03 PM, Geert Uytterhoeven <geert@linux-m68k.org>
+> wrote:
+> > drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_mmap’:
+> > drivers/media/v4l2-core/videobuf2-dma-contig.c:204: error: implicit declaration of function ‘dma_mmap_coherent’
+> > drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_get_base_sgt’:
+> > drivers/media/v4l2-core/videobuf2-dma-contig.c:387: error: implicit declaration of function ‘dma_get_sgtable’
+> > make[6]: *** [drivers/media/v4l2-core/videobuf2-dma-contig.o] Error 1
+> > make[6]: Target `__build' not remade because of errors.
+> > make[5]: *** [drivers/media/v4l2-core] Error 2
+> >
+> > Both dma_mmap_coherent() and dma_get_sgtable() are defined in
+> > include/asm-generic/dma-mapping-common.h only, which is included by
+> > <asm/dma-mapping.h> on alpha, arm, arm64, hexagon, ia64, microblaze, mips,
+> > openrisc, powerpc, s390, sh, sparc, tile, unicore32, x86.
+> > Should the remaining architectures include this, too?
+> > Should it be moved to <linux/dma-mapping.h>?
 >
-> Hi Laurent,
+> I came up with an RFC-solution for this in [PATCH/RFC 3/4]
+> ("avr32/bfin/c6x/cris/frv/m68k/mn10300/parisc/xtensa: Add dummy get_dma_ops()")
+> and [PATCH/RFC 4/4] ("common: dma-mapping: Move dma_common_*() to
+> <linux/dma-mapping.h>") of this series.
 >
-> As you know, there are two types of MIPI-DSI based lcd panels, RGB and
-> CPU mode. In case of CPU mode lcd panel, it has its own framebuffer
-> internally and the image in the framebuffer is transferred on lcd
-> panel in 60Hz itself. But for this, there is something we should
-> consider. The display controller with CPU mode doens't transfer image
-> data to MIPI-DSI controller itself. So we should set trigger bit of
-> the display controller to 1 to do it and also check whether the data
-> transmission in the framebuffer is done on lcd panel to avoid tearing
-> issue and some confliction issue(A) between read and write operations
-> like below,
-
-Quite right. Just to elaborate, in the MIPI DSI spec the two types are
-called Video Mode and Command Mode display modules, of which the latter
-has a framebuffer of its own. Update of the display module framebuffer
-has to dodge the scanning of the buffer by the display module's
-controller to avoid tearing. For that, info about the controller's
-scanline is required. There are basically three ways for this:
-
-1) polling the scanline using DCS get_scan_line command
-
-2) enabling tearing effect reporting, and turning over bus ownership to
-the display module for subsequent tearing effect signal (vertical
-blanking) reporting by the module at the specified scanline
-
-3) external GPIO line (outside of DSI PHY spec) to report tearing effect
-signal
-
-For an example, drivers/video/omap2/displays/panel-taal.c supports
-option #2 via OMAP DSI and option #3 independently.
-
-
-BR,
-Jani.
-
-
+> > Furthermore, there's ARCH_HAS_DMA_MMAP_COHERENT, which is defined
+> > by powerpc only:
+> > arch/powerpc/include/asm/dma-mapping.h:#define ARCH_HAS_DMA_MMAP_COHERENT
+> >
+> > and handled in some fishy way in sound/core/pcm_native.c:
+> >
+> > #ifndef ARCH_HAS_DMA_MMAP_COHERENT
+> > /* This should be defined / handled globally! */
+> > #ifdef CONFIG_ARM
+> > #define ARCH_HAS_DMA_MMAP_COHERENT
+> > #endif
+> > #endif
+> >
+> > /*
+> >  * mmap the DMA buffer on RAM
+> >  */
+> > int snd_pcm_lib_default_mmap(struct snd_pcm_substream *substream,
+> >                              struct vm_area_struct *area)
+> > {
+> >         area->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
+> > #ifdef ARCH_HAS_DMA_MMAP_COHERENT
+> >         if (!substream->ops->page &&
+> >             substream->dma_buffer.dev.type == SNDRV_DMA_TYPE_DEV)
+> >                 return dma_mmap_coherent(substream->dma_buffer.dev.dev,
+> >                                          area,
+> >                                          substream->runtime->dma_area,
+> >                                          substream->runtime->dma_addr,
+> >                                          area->vm_end - area->vm_start);
+> > #elif defined(CONFIG_MIPS) && defined(CONFIG_DMA_NONCOHERENT)
+> >         if (substream->dma_buffer.dev.type == SNDRV_DMA_TYPE_DEV &&
+> >             !plat_device_is_coherent(substream->dma_buffer.dev.dev))
+> >                 area->vm_page_prot = pgprot_noncached(area->vm_page_prot);
+> > #endif /* ARCH_HAS_DMA_MMAP_COHERENT */
+> >         /* mmap with fault handler */
+> >         area->vm_ops = &snd_pcm_vm_ops_data_fault;
+> >         return 0;
+> > }
+> > EXPORT_SYMBOL_GPL(snd_pcm_lib_default_mmap);
+> >
+> > What's up here?
 >
-> lcd_panel_frame_done_interrrupt_handler()
-> {
->         ...
->         if (mipi-dsi frame done)
->                 trigger display controller;
->         ...
-> }
+> Probably an easy solution here is to kill ARCH_HAS_DMA_MMAP_COHERENT and
+> change the code to
 >
-> A. the issue that LCD panel can access its own framebuffer while some
-> new data from MIPI-DSI controller is being written in the framebuffer.
+>      #if defined(CONFIG_MIPS) && defined(CONFIG_DMA_NONCOHERENT)
+> 	    if (substream->dma_buffer.dev.type == SNDRV_DMA_TYPE_DEV &&
+> 		!plat_device_is_coherent(substream->dma_buffer.dev.dev))
+> 		    area->vm_page_prot = pgprot_noncached(area->vm_page_prot);
+>      #else
+> 	    if (!substream->ops->page &&
+> 		substream->dma_buffer.dev.type == SNDRV_DMA_TYPE_DEV)
+> 		    return dma_mmap_coherent(substream->dma_buffer.dev.dev,
+> 					     area,
+> 					     substream->runtime->dma_area,
+> 					     substream->runtime->dma_addr,
+> 					     area->vm_end - area->vm_start);
+>      #endif
 >
-> But I think there might be better way to avoid such thing.
->
-> Thanks,
-> Inki Dae
->
->> --
->> Regards,
->>
->> Laurent Pinchart
->>
->> _______________________________________________
->> dri-devel mailing list
->> dri-devel@lists.freedesktop.org
->> http://lists.freedesktop.org/mailman/listinfo/dri-devel
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+> but obviously I don't like the test for CONFIG_MIPS in generic code...
+
+I think that the best way of handling it would be to move this code to MIPS
+specific dma_mmap_coherent() implementation.
+
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
