@@ -1,71 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f41.google.com ([209.85.214.41]:54723 "EHLO
-	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752974Ab3AGKxf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 05:53:35 -0500
-Received: by mail-bk0-f41.google.com with SMTP id jg9so8339061bkc.28
-        for <linux-media@vger.kernel.org>; Mon, 07 Jan 2013 02:53:34 -0800 (PST)
-Message-ID: <50EAA778.6000307@gmail.com>
-Date: Mon, 07 Jan 2013 11:46:16 +0100
-From: Jiri Slaby <jirislaby@gmail.com>
-MIME-Version: 1.0
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-CC: linux-media <linux-media@vger.kernel.org>, pfister@linuxtv.org,
-	adq_dvb@lidskialf.net, js@linuxtv.org, cus@fazekas.hu,
-	mws@linuxtv.org, jmccrohan@gmail.com, shaulkr@gmail.com,
-	mkrufky@linuxtv.org, mchehab@redhat.com, lubomir.carik@gmail.com,
-	Christoph Pfister <christophpfister@gmail.com>
-Subject: Re: [RFC] Initial scan files troubles and brainstorming
-References: <507FE752.6010409@schinagl.nl> <50D0E7A7.90002@schinagl.nl>
-In-Reply-To: <50D0E7A7.90002@schinagl.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33122 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752674Ab3ABLNi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 06:13:38 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: [PATCH 1/2] mt9m032: Fix PLL setup
+Date: Wed,  2 Jan 2013 12:15:03 +0100
+Message-Id: <1357125304-6128-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/18/2012 11:01 PM, Oliver Schinagl wrote:
-> Unfortunatly, I have had zero replies.
+The MT9M032 PLL was assumed to be identical to the MT9P031 PLL but
+differs significantly. Update the registers definitions and PLL limits
+according to the datasheet.
 
-Hmm, it's sad there is a silence in this thread from linux-media guys :/.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/mt9m032.c |   24 +++++++++++++-----------
+ 1 files changed, 13 insertions(+), 11 deletions(-)
 
-> So why bring it up again? On 2012/11/30 Jakub Kasprzycki provided us
-> with updated polish DVB-T frequencies for his region. This has yet to be
-> merged, almost 3 weeks later.
-
-I sent a patch for cz data too:
-https://patchwork.kernel.org/patch/1844201/
-
-> I'll quickly repeat why I think this approach would be quite reasonable.
-> 
-> * dvb-apps binary changes don't result in unnecessary releases
-> * frequency updates don't result in unnecessary dvb-app releases
-> * Less strict requirements for commits (code reviews etc)
-
-Well the code should be reviewed still. See commit a2e96055db297 in your
-repo, it's bogus. The freq added is in kHz instead of MHz.
-
-> * Possibly easier entry for new submitters
-> * much easier to package (tag it once per month if an update was)
-> * Separate maintainer possible
-> * just seems more logical to have it separated ;)
-
-The downside is you have to change the URL in kaffeine sources as
-kaffeine generates its scan file from that repo (on the server side and
-the client downloads then http://kaffeine.kde.org/scanfile.dvb.qz).
-
-> This obviously should find a nice home on linuxtv where it belongs!
-
-At best.
-
-> Here is my personal repository with the work I mentioned done.
-> git://git.schinagl.nl/dvb_frequency_scanfiles.git
-> 
-> If an issue is that none of the original maintainers are not looking
-> forward to do the job, I am willing to take maintenance on me for now.
-
-Ping? Anybody? I would help with that too as I hate resending patches.
-But the first step I would do is a conversion to GIT. HG is demented to
-begin with.
-
+diff --git a/drivers/media/i2c/mt9m032.c b/drivers/media/i2c/mt9m032.c
+index f80c1d7e..30d755a 100644
+--- a/drivers/media/i2c/mt9m032.c
++++ b/drivers/media/i2c/mt9m032.c
+@@ -87,7 +87,7 @@
+ #define MT9M032_RESTART					0x0b
+ #define MT9M032_RESET					0x0d
+ #define MT9M032_PLL_CONFIG1				0x11
+-#define		MT9M032_PLL_CONFIG1_OUTDIV_MASK		0x3f
++#define		MT9M032_PLL_CONFIG1_PREDIV_MASK		0x3f
+ #define		MT9M032_PLL_CONFIG1_MUL_SHIFT		8
+ #define MT9M032_READ_MODE1				0x1e
+ #define MT9M032_READ_MODE2				0x20
+@@ -106,6 +106,8 @@
+ #define		MT9M032_GAIN_AMUL_SHIFT			6
+ #define		MT9M032_GAIN_ANALOG_MASK		0x3f
+ #define MT9M032_FORMATTER1				0x9e
++#define		MT9M032_FORMATTER1_PLL_P1_6		(1 << 8)
++#define		MT9M032_FORMATTER1_PARALLEL		(1 << 12)
+ #define MT9M032_FORMATTER2				0x9f
+ #define		MT9M032_FORMATTER2_DOUT_EN		0x1000
+ #define		MT9M032_FORMATTER2_PIXCLK_EN		0x2000
+@@ -121,8 +123,6 @@
+ #define		MT9P031_PLL_CONTROL_PWROFF		0x0050
+ #define		MT9P031_PLL_CONTROL_PWRON		0x0051
+ #define		MT9P031_PLL_CONTROL_USEPLL		0x0052
+-#define MT9P031_PLL_CONFIG2				0x11
+-#define		MT9P031_PLL_CONFIG2_P1_DIV_MASK		0x1f
+ 
+ struct mt9m032 {
+ 	struct v4l2_subdev subdev;
+@@ -255,13 +255,14 @@ static int mt9m032_setup_pll(struct mt9m032 *sensor)
+ 		.n_max = 64,
+ 		.m_min = 16,
+ 		.m_max = 255,
+-		.p1_min = 1,
+-		.p1_max = 128,
++		.p1_min = 6,
++		.p1_max = 7,
+ 	};
+ 
+ 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+ 	struct mt9m032_platform_data *pdata = sensor->pdata;
+ 	struct aptina_pll pll;
++	u16 reg_val;
+ 	int ret;
+ 
+ 	pll.ext_clock = pdata->ext_clock;
+@@ -274,18 +275,19 @@ static int mt9m032_setup_pll(struct mt9m032 *sensor)
+ 	sensor->pix_clock = pdata->pix_clock;
+ 
+ 	ret = mt9m032_write(client, MT9M032_PLL_CONFIG1,
+-			    (pll.m << MT9M032_PLL_CONFIG1_MUL_SHIFT)
+-			    | (pll.p1 - 1));
+-	if (!ret)
+-		ret = mt9m032_write(client, MT9P031_PLL_CONFIG2, pll.n - 1);
++			    (pll.m << MT9M032_PLL_CONFIG1_MUL_SHIFT) |
++			    ((pll.n - 1) & MT9M032_PLL_CONFIG1_PREDIV_MASK));
+ 	if (!ret)
+ 		ret = mt9m032_write(client, MT9P031_PLL_CONTROL,
+ 				    MT9P031_PLL_CONTROL_PWRON |
+ 				    MT9P031_PLL_CONTROL_USEPLL);
+ 	if (!ret)		/* more reserved, Continuous, Master Mode */
+ 		ret = mt9m032_write(client, MT9M032_READ_MODE1, 0x8006);
+-	if (!ret)		/* Set 14-bit mode, select 7 divider */
+-		ret = mt9m032_write(client, MT9M032_FORMATTER1, 0x111e);
++	if (!ret) {
++		reg_val = (pll.p1 == 6 ? MT9M032_FORMATTER1_PLL_P1_6 : 0)
++			| MT9M032_FORMATTER1_PARALLEL | 0x001e; /* 14-bit */
++		ret = mt9m032_write(client, MT9M032_FORMATTER1, reg_val);
++	}
+ 
+ 	return ret;
+ }
 -- 
-js
+1.7.8.6
+
