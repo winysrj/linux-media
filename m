@@ -1,58 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64756 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755561Ab3AECzS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jan 2013 21:55:18 -0500
-Date: Sat, 5 Jan 2013 00:54:44 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 10/15] em28xx: fix broken TRY_FMT.
-Message-ID: <20130105005444.361b2604@redhat.com>
-In-Reply-To: <1357333186-8466-11-git-send-email-dheitmueller@kernellabs.com>
-References: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
-	<1357333186-8466-11-git-send-email-dheitmueller@kernellabs.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:57757 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752497Ab3ABDex (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jan 2013 22:34:53 -0500
+Received: by mail-pb0-f54.google.com with SMTP id wz12so7621262pbc.27
+        for <linux-media@vger.kernel.org>; Tue, 01 Jan 2013 19:34:52 -0800 (PST)
+Message-ID: <50E3AAD8.6080703@gmail.com>
+Date: Tue, 01 Jan 2013 20:34:48 -0700
+From: Nathan Friess <nathan.friess@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Hauppauge 2250 IR support
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans/Devin,
+Hi,
 
-Em Fri,  4 Jan 2013 15:59:40 -0500
-Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+Is there any support for the IR port on Hauppauge WinTV-HVR-2250 cards 
+at this time?
 
-> TRY_FMT should not return an error if a pixelformat is unsupported. Instead just
-> pick a common pixelformat.
-> 
-> Also the bytesperline calculation was incorrect: it used the old width instead of
-> the provided with, and it miscalculated the bytesperline value for the depth == 12
-> case.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-video.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> index a91a248..7c09b55 100644
-> --- a/drivers/media/usb/em28xx/em28xx-video.c
-> +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> @@ -821,7 +821,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
->  	if (!fmt) {
->  		em28xx_videodbg("Fourcc format (%08x) invalid.\n",
->  				f->fmt.pix.pixelformat);
-> -		return -EINVAL;
-> +		fmt = format_by_fourcc(V4L2_PIX_FMT_YUYV);
+After a lot of googling, there seems to be some reports that the IR did 
+work at some point using the ir-kbd-i2c driver, but most results are 
+from 2010 or older.  Loading that driver on a 3.7.1 kernel doesn't seem 
+to do anything (nothing shows up in dmesg and no devices in /dev/input/ 
+appear).  I also have the latest media_tree from git, built it, and 
+tried it with no success.
 
-This change has the potential of causing userspace regressions, so,
-for now, I won't apply such change.
+The saa7164 module which is used for the video components does seem to 
+make some i2c buses available, as shown in /sys/bus/i2c/devices:
 
-We need to discuss it better, before risk breaking things, and likely fix
-applications first.
+i2c-2 -> ../../../devices/pci0000:00/0000: 
+00:1c.3/0000:03:00.0/i2c-2
+i2c-3 -> ../../../devices/pci0000:00/0000: 
+00:1c.3/0000:03:00.0/i2c-3
+i2c-4 -> ../../../devices/pci0000:00/0000: 
+00:1c.3/0000:03:00.0/i2c-4
 
-Regards,
-Mauro
+but it seems that no devices are detected on the bus.  Am I missing a 
+step, or is IR support on this card not possible?
+
+Thanks,
+
+Nathan
