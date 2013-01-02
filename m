@@ -1,66 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4567 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751833Ab3AUJxu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jan 2013 04:53:50 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Jan Stumpf <Jan.Stumpf@asctec.de>
-Subject: Re: [cx231xx] Support for Arm / Omap working at all?
-Date: Mon, 21 Jan 2013 10:53:43 +0100
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <5AFD6ADC04BAC644902876711A98009E43BC3C18@ASCTECSBS2.asctec.local>
-In-Reply-To: <5AFD6ADC04BAC644902876711A98009E43BC3C18@ASCTECSBS2.asctec.local>
+Received: from moutng.kundenserver.de ([212.227.17.8]:60895 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752413Ab3ABKTO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 05:19:14 -0500
+Date: Wed, 2 Jan 2013 11:19:04 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+cc: linux-media <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: DT bindings for subdevices
+In-Reply-To: <CA+V-a8uK38_HrYa2ic5soLE=Ge0aK3=PObNCs_xMf=PAzcwBcg@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1301021100130.7829@axis700.grange>
+References: <CA+V-a8uK38_HrYa2ic5soLE=Ge0aK3=PObNCs_xMf=PAzcwBcg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201301211053.43912.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu January 17 2013 08:31:50 Jan Stumpf wrote:
-> Hi!
-> 
-> I'm trying to get an Hauppauge Live Usb 2 video grabber to run on on Omap4 (Gumstix Duovero). I'm using Sakomans omap-3.6 head kernel sources from http://git.sakoman.com/git/gitweb.cgi?p=linux.git;a=summary . The hardware is successfully detected on the USB host port, the driver loads perfectly including the firmware. With v4l2-ctl --all I can see if thee video signal on the composite port is ok or if the sync is lost, but as soon as I use any v4l2 software (e.g. yavta) to grab some images the driver uses 100% of the cpu, returns the first image and after some seconds I see EPROTO (-71) errors in dmesg. First I get " cx231xx #0: can't change interface 3 alt. no to 0 (err=-71)" and then "UsbInterface::sendCommand, failed with status --71"
-> 
-> I did the following tests:
-> 
-> - checked that all patches I found (e.g from http://git.linuxtv.org/mchehab/cx231xx.git) are included in my kernel, including the URB DMA related patches and the timing patches
-> - tried the same on an Gumstix Overo (Overo Fire and Overo WarerStorm) on several different header boards.
-> - tried older kernels (3.2 and 2.6.32) with rougly the same results or known errors due to missing patches
-> 
-> Unfortunately I can't use other capture devices because the final hardware is custom made with the cx23102 chip :-( I could use an omap3 instead of an omap4, but omap4 is preferred.
-> 
-> My questions are: 
-> 
-> - Did anybody ever used the cx231xx driver with an omap3 or omap4 successfully? 
+Hi Prabhakar
 
-I'm pretty sure the answer is that you're the first to try it.
+On Wed, 2 Jan 2013, Prabhakar Lad wrote:
 
-> - If yes, could you let me know the kernel version and maybe the config? 
-> - Any hints what I could try? I'm an expirienced embedded C programmer but I dont have much expirience in USB kernel drivers. 
-
-A few months back I was working on improving this driver and I made a number
-of fixes that are available in my git tree:
-
-http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/cx231xx
-
-In particular this patch might be relevant:
-
-http://git.linuxtv.org/hverkuil/media_tree.git/commit/7bcf29cf460569c523b15d3c0dfed1397a7b770e
-
-Regards,
-
-	Hans
-
+> Hi,
 > 
-> Any help is greatly appriciated!
+> This is my first step towards DT support for media, Question might be
+> bit amateur :)
+
+No worries, we're all doing our first steps in this direction right at the 
+moment. These two recent threads should give you an idea as to where we 
+stand atm:
+
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/58646
+
+and (optionally, to a lesser extent)
+
+http://www.spinics.net/lists/linux-media/index.html#57836
+
+> In the video pipeline there will be external devices (decoders/camera)
+> connected via
+> i2c, spi, csi. This sub-devices take platform data. So question is
+> moving ahead and
+> adding DT support for this subdevices how should this platform data be
+> passed through.
+> Should it be different properties for different devices.
+
+Mostly, yes.
+
+> For example the mt9t001 sensor takes following platform data:
+> struct mt9t001_platform_data {
+> 	unsigned int clk_pol:1;
+
+This would presumably be the standard "pclk-sample" property from the 
+first of the above two quoted threads
+
+> 	unsigned int ext_clk;
+
+Is this the frequency? This should be replaced by a phandle, linking to a 
+clock device-tree node, assuming, your platform is implementing the 
+generic clock API. If it isn't yet, not a problem either:-) In either case 
+your sensor driver shall be using the v4l2_clk API to retrieve the clock 
+rate and your camera host driver should be providing a matching v4l2_clk 
+instance and implementing its methods, including retrieving the frequency.
+
+> };
+> similarly mt9p031 takes following platform data:
 > 
-> Thanks in Advance!
+> struct mt9p031_platform_data {
+> 	int (*set_xclk)(struct v4l2_subdev *subdev, int hz);
+
+Not sure what the xclk is, but, presumable, this should be ported to 
+v4l2_clk too.
+
+> 	int reset;
+
+This is a GPIO number, used to reset the chip. You should use a property, 
+probably, calling it "reset-gpios", specifying the desired GPIO.
+
+> 	int ext_freq;
+> 	int target_freq;
+
+Presumably, ext_freq should be retrieved, using v4l2_clk_get_rate() and 
+target_freq could be a proprietary property of your device.
+
+Thanks
+Guennadi
+
+> };
 > 
-> Jan--
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> should this all be individual properties ?
 > 
+> Regards,
+> --Prabhakar
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
