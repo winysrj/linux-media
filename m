@@ -1,59 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:53494 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753965Ab3ADSN1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 13:13:27 -0500
-Received: by mail-la0-f48.google.com with SMTP id ej20so9975506lab.7
-        for <linux-media@vger.kernel.org>; Fri, 04 Jan 2013 10:13:26 -0800 (PST)
+Received: from 88-149-150-131.v4.ngi.it ([88.149.150.131]:44599 "EHLO
+	vajra.unixproducts.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752399Ab3ABCTo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jan 2013 21:19:44 -0500
+To: <linux-media@vger.kernel.org>
+Subject: Re: cannot make this Asus my cinema-u3100miniplusv2 work under linux
 MIME-Version: 1.0
-In-Reply-To: <50E6E0FC.7060903@iki.fi>
-References: <50E6E0FC.7060903@iki.fi>
-Date: Fri, 4 Jan 2013 13:13:25 -0500
-Message-ID: <CAOcJUbz=csJ0iVSPSf1ihtO6KdQQOob7tXMi-2yrgc-jmEsXbQ@mail.gmail.com>
-Subject: Re: RFC run time configuration parameter checks in subdriver
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Wed, 02 Jan 2013 03:19:39 +0100
+From: Renato Gallo <renatogallo@unixproducts.com>
+In-Reply-To: <50E1F117.3080105@iki.fi>
+References: <8e9f16405c8583e35cb97bb7d7daef4b@unixproducts.com>
+ <50CDDF9A.1080509@iki.fi>
+ <cd31dc6ada9161825c7dff975a3da945@unixproducts.com>
+ <50CE0AFA.9030308@iki.fi>
+ <1af6a5408ee3ebccebc3885bba06fc69@unixproducts.com> <50CE3070.10309@iki.fi>
+ <810ffd737b21a0f46e383a76dd4313a2@unixproducts.com>
+ <50CE3BA0.5030503@iki.fi>
+ <d6185b9c5a69b273609bce494f0302b1@unixproducts.com>
+ <e479b93e0a2043d8a8f2987df502a49f@unixproducts.com>
+ <50CF9290.2060403@ventoso.org>
+ <3093cb24f3c05ac9cf62810fc918fca2@unixproducts.com>
+ <50E1F117.3080105@iki.fi>
+Message-ID: <fa52701982997bd895d533558c53ee64@unixproducts.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 4, 2013 at 9:02 AM, Antti Palosaari <crope@iki.fi> wrote:
-> I would like to discuss if there is idea to validate subdriver parameters
-> explicitly at run-time when subdriver module is load.
+anyone can explain to me why i cannot seem to catch anything else than 
+rai and how can i use a legally bought scart into an omnikey reader to 
+get scrambled channels ?
+
+Il 31/12/2012 21:09 Antti Palosaari ha scritto:
+> No! You will need a real antenna, not amplifier(?) like that. One of
+> the best and easily available antennas in EU are Televes DAT75 and 
+> few
+> Triax models. Compare DAT75 and your antenna, DAT75 is 19dB and your
+> is 30dB, guess which one is still 1000x better.
 >
-> There is configuration parameters for about every driver like:
-> * I2C address
-> * clock frequency
->
-> Nowadays, when main driver loads subdriver, it passes those static
-> compile-time parameters to the subdriver, those parameters are not mainly
-> validated at all. That could lead situation device is not working, instead
-> it is will fail with some error, like I/O as I2C address is wrong.
->
-> As these parameters are set compile time, this situation affects only
-> developers which are adding support for new hardware.
+> You will not likely need that heavy antenna like DAT75 as you still
+> have a signal. Some 10-20 euros 1m long Yagi is enough.
 >
 > regards
 > Antti
-
-As Linux itself appeals most to developers, or at least we as
-developers want to encourage Linux users to be involved in their
-operating system, I believe it is indeed best to provide checking and
-error reporting for the sake of development (especially by newcomer
-programmers) during driver bring-up *and* for the use case of users
-themselves.
-
-I understand that you are very concerned with "bloat" of what you
-consider to be potentially unnecessary checks, but I do believe that
-this is better for the grand scheme of things.  If you have concerns
-about "bloat" then I would indeed find it friendly to make these such
-checks conditional to be included in debug mode, only.  (or if the
-kernel is compiled with the media subsystem's "advanced debug" flag
-enabled)
-
-Is that a fair compromise?
-
-Cheers,
-
-Mike Krufky
+>
+> On 12/18/2012 12:32 AM, Renato Gallo wrote:
+>> is there any kind of filter so that i can filter out the noise and 
+>> then
+>> amplify the signal ?
+>>
+>> Il 17/12/2012 22:45 Luca Olivetti ha scritto:
+>>> Al 17/12/12 20:57, En/na Renato Gallo ha escrit:
+>>>
+>>>> can i amplify the signal to improve reception ?
+>>>
+>>> an amplifier will amplify the noise as well as the signal (i.e., an
+>>> amplifier is only useful to compensate for the losses in the cable,
+>>> not to improve the signal).
+>>>
+>>>> why with the bowl is better ?
+>>>
+>>> http://en.wikipedia.org/wiki/Monopole_antenna
+>>>
+>>> The bowl acts as a ground plane
+>>>
+>>> Bye
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe 
+>> linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
