@@ -1,88 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35165 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750800Ab3AJOZk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 09:25:40 -0500
-Date: Thu, 10 Jan 2013 12:25:06 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: thomas.schorpp@gmail.com
-Cc: Soby Mathew <soby.linuxtv@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: global mutex in dvb_usercopy (dvbdev.c)
-Message-ID: <20130110122506.08494aae@redhat.com>
-In-Reply-To: <50EE223B.80204@gmail.com>
-References: <CAGzWAsgZGu8_JTrE1GvnpbR+W92fvRycfFhAX2NbZ9VZqorJ6w@mail.gmail.com>
-	<20130109213043.GB7500@zorro.zusammrottung.local>
-	<50EE223B.80204@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-oa0-f45.google.com ([209.85.219.45]:33546 "EHLO
+	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752090Ab3ABMZc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 07:25:32 -0500
+Received: by mail-oa0-f45.google.com with SMTP id i18so13037986oag.18
+        for <linux-media@vger.kernel.org>; Wed, 02 Jan 2013 04:25:32 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CACKLOr1sn8E8qGJm1KriEEzPtFOH+2JXdpywY7o4yXe4vWQp2Q@mail.gmail.com>
+References: <1351599395-16833-1-git-send-email-javier.martin@vista-silicon.com>
+	<1351599395-16833-2-git-send-email-javier.martin@vista-silicon.com>
+	<CAOMZO5C0yvvXs38B4zt46zsjphif-tg=FoEjBeoLx7iQUut62Q@mail.gmail.com>
+	<Pine.LNX.4.64.1210301327090.29432@axis700.grange>
+	<CACKLOr0r2w-=f=PUU-s7x302Jvp3urBZcRQa3pjArZYx0BSjtg@mail.gmail.com>
+	<Pine.LNX.4.64.1210301547300.29432@axis700.grange>
+	<CAOMZO5CbGz_OW6tx1gAGDrhrS4Mp4f4UrdvLVFS+sh4UVTG46A@mail.gmail.com>
+	<CACKLOr1sn8E8qGJm1KriEEzPtFOH+2JXdpywY7o4yXe4vWQp2Q@mail.gmail.com>
+Date: Wed, 2 Jan 2013 10:25:31 -0200
+Message-ID: <CAOMZO5ACPWoM_SoDCf5JrU1iVt=qXOZz15r0H-Bkt1GLPY04mw@mail.gmail.com>
+Subject: Re: [PATCH 1/4] media: mx2_camera: Remove i.mx25 support.
+From: Fabio Estevam <festevam@gmail.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, fabio.estevam@freescale.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 10 Jan 2013 03:06:51 +0100
-thomas schorpp <thomas.schorpp@gmail.com> escreveu:
+Hi Javier,
 
-> On 09.01.2013 22:30, Nikolaus Schulz wrote:
-> > On Tue, Jan 08, 2013 at 12:05:47PM +0530, Soby Mathew wrote:
-> >> Hi Everyone,
-> >>      I have a doubt regarding about the global mutex lock in
-> >> dvb_usercopy(drivers/media/dvb-core/dvbdev.c, line 382) .
-> >>
-> >>
-> >> /* call driver */
-> >> mutex_lock(&dvbdev_mutex);
-> >> if ((err = func(file, cmd, parg)) == -ENOIOCTLCMD)
-> >> err = -EINVAL;
-> >> mutex_unlock(&dvbdev_mutex);
-> >>
-> >>
-> >> Why is this mutex needed? When I check similar functions like
-> >> video_usercopy, this kind of global locking is not present when func()
-> >> is called.
-> >
-> > I cannot say anything about video_usercopy(), but as it happens, there's
-> > a patch[1] queued for Linux 3.9 that will hopefully replace the mutex in
-> > dvb_usercopy() with more fine-grained locking.
-> >
-> > Nikolaus
-> >
-> > [1] http://git.linuxtv.org/media_tree.git/commit/30ad64b8ac539459f8975aa186421ef3db0bb5cb
-> 
-> "Unfortunately, frontend ioctls can be blocked by the frontend thread for several seconds; this leads to unacceptable lock contention."
-> Especially the stv0297 signal locking, as it turned out in situations of bad signal input or my cable providers outtage today it has slowed down dvb_ttpci (notable as OSD- output latency and possibly driver buffer overflows of budget source devices) that much that I had to disable tuning with parm --outputonly in vdr-plugin-dvbsddevice.
-> 
-> Can anyone confirm that and have a look at the other frontend drivers for tuners needing as much driver control?
-> 
-> I will try to apply the patch manually to Linux 3.2 and check with Latencytop tomorrow.
+On Wed, Jan 2, 2013 at 10:18 AM, javier Martin
+<javier.martin@vista-silicon.com> wrote:
 
-Well, an ioctl's should not block for a long time, if the device is opened
-with O_NONBLOCK. Unfortunately, not all drivers follow this rule, and
-blocks.
+> That's great. Did you need to change anything in the mx2 camera driver
+> for mx25 to work? Have you already submitted the patches?
 
-The right fix seem to have a logic at stv0297 that would do the signal 
-locking in background, or to use the already-existent DVB frontend
-thread, and answering to userspace the last cached result, instead of
-actively talking with the frontend device driver.
+I only touched board file code:
+http://www.spinics.net/lists/arm-kernel/msg210216.html
 
-Both approaches have advantages and disadvantages. In any case, a change
-like that at dvb core has the potential of causing troubles to userspace,
-although I think it is the better thing to do, at the long term.
+,and have only verified that camera probe worked on mx25pdk.
 
-> 
-> y
-> tom
-> 
-> 
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
 
-
--- 
-
-Cheers,
-Mauro
+Fabio Estevam
