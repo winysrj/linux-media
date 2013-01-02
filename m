@@ -1,114 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:62851 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756099Ab3AURRb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jan 2013 12:17:31 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, arm@kernel.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
-	Ben Dooks <ben-linux@fluff.org>,
-	David Airlie <airlied@linux.ie>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	James Morris <james.l.morris@oracle.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Mike Turquette <mturquette@linaro.org>, Rob Clark <rob@ti.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	Shawn Guo <shawn.guo@linaro.org>, alsa-devel@alsa-project.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org
-Subject: [PATCH 00/15] ARM build regressions in v3.8
-Date: Mon, 21 Jan 2013 17:15:53 +0000
-Message-Id: <1358788568-11137-1-git-send-email-arnd@arndb.de>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58437 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752090Ab3ABLpO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 06:45:14 -0500
+Received: from avalon.ideasonboard.com (unknown [91.178.66.146])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 049E8359DC
+	for <linux-media@vger.kernel.org>; Wed,  2 Jan 2013 12:45:12 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] mt9p031: Add support for regulators
+Date: Wed,  2 Jan 2013 12:46:40 +0100
+Message-Id: <1357127200-7672-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I know this comes late, but we have a number of broken
-configurations in ARM in v3.8 that were still building
-in v3.7, and I'd like to get them all fixed in the
-final 3.8 release.
+Enable the regulators when powering the sensor up, and disable them when
+powering it down.
 
-It would be nice if the respective maintainers could
-have a look at these patches and apply them directly
-when they are happy with them.
+The regulators are mandatory. Boards that don't allow controlling the
+sensor power lines must provide dummy regulators.
 
-The first patch in the series is strictly speaking
-not a build error but just a warning, but it is a
-particularly annoying one that came in through the
-latest binutils release rather than a kernel change.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/mt9p031.c |   24 ++++++++++++++++++++++++
+ 1 files changed, 24 insertions(+), 0 deletions(-)
 
-The same binutils update also broke the samsung
-and w90x900 platforms.
-
-A few of the other changes are the result of the
-imx multiplatform conversion. I'm not really fixing
-those here, just picking up the pieces. It would
-be much nicer if we could actually get those drivers
-to work again with CONFIG_MULTIPLATFORM enabled
-rather than just disabling them, but it may be
-much too late for that. At least the drivers don't
-seem to be too essential, as they are only built
-in allyesconfig but not in any of the defconfigs.
-
-	Arnd
-
-Arnd Bergmann (15):
-  ARM: compressed/head.S: work around new binutils warning
-  ARM: mvebu: build coherency_ll.S for arch=armv7-a
-  ARM: samsung: fix assembly syntax for new gas
-  ARM: w90x900: fix legacy assembly syntax
-  ASoC: fsl: fiq and dma cannot both be modules
-  clk: export __clk_get_name
-  drm/exynos: don't include plat/gpio-cfg.h
-  drm/exynos: fimd and ipp are broken on multiplatform
-  media: coda: don't build on multiplatform
-  mfd/vexpress: export vexpress_config_func_{put,get}
-  mtd: davinci_nand: fix OF support
-  USB: gadget/freescale: disable non-multiplatform drivers
-  USB: ehci: make orion and mxc bus glues coexist
-  samples/seccomp: be less stupid about cross compiling
-  staging/omapdrm: don't build on multiplatform
-
- arch/arm/boot/compressed/Makefile                |    2 +-
- arch/arm/boot/compressed/head.S                  |   12 ++++++++++++
- arch/arm/mach-mvebu/coherency_ll.S               |    1 +
- arch/arm/mach-s3c24xx/include/mach/debug-macro.S |   12 ++++++------
- arch/arm/mach-s3c24xx/include/mach/entry-macro.S |    4 ++--
- arch/arm/mach-s3c24xx/pm-h1940.S                 |    2 +-
- arch/arm/mach-s3c24xx/sleep-s3c2410.S            |   12 ++++++------
- arch/arm/mach-s3c24xx/sleep-s3c2412.S            |   12 ++++++------
- arch/arm/mach-w90x900/include/mach/entry-macro.S |    4 ++--
- arch/arm/plat-samsung/include/plat/debug-macro.S |   18 +++++++++---------
- drivers/clk/clk.c                                |    1 +
- drivers/gpu/drm/exynos/Kconfig                   |    4 ++--
- drivers/gpu/drm/exynos/exynos_hdmi.c             |    1 -
- drivers/media/platform/Kconfig                   |    2 +-
- drivers/mfd/vexpress-config.c                    |    3 ++-
- drivers/mtd/nand/davinci_nand.c                  |    2 +-
- drivers/staging/omapdrm/Kconfig                  |    2 +-
- drivers/usb/gadget/Kconfig                       |    3 ++-
- drivers/usb/host/ehci-hcd.c                      |   16 +++++++++++++++-
- samples/seccomp/Makefile                         |    2 ++
- sound/soc/fsl/Kconfig                            |    3 +++
- 21 files changed, 76 insertions(+), 42 deletions(-)
-
+diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+index e0bad59..ecf4492 100644
+--- a/drivers/media/i2c/mt9p031.c
++++ b/drivers/media/i2c/mt9p031.c
+@@ -19,6 +19,7 @@
+ #include <linux/i2c.h>
+ #include <linux/log2.h>
+ #include <linux/pm.h>
++#include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+ 
+@@ -121,6 +122,10 @@ struct mt9p031 {
+ 	struct mutex power_lock; /* lock to protect power_count */
+ 	int power_count;
+ 
++	struct regulator *vaa;
++	struct regulator *vdd;
++	struct regulator *vdd_io;
++
+ 	enum mt9p031_model model;
+ 	struct aptina_pll pll;
+ 	int reset;
+@@ -264,6 +269,11 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
+ 		usleep_range(1000, 2000);
+ 	}
+ 
++	/* Bring up the supplies */
++	regulator_enable(mt9p031->vdd);
++	regulator_enable(mt9p031->vdd_io);
++	regulator_enable(mt9p031->vaa);
++
+ 	/* Emable clock */
+ 	if (mt9p031->pdata->set_xclk)
+ 		mt9p031->pdata->set_xclk(&mt9p031->subdev,
+@@ -285,6 +295,10 @@ static void mt9p031_power_off(struct mt9p031 *mt9p031)
+ 		usleep_range(1000, 2000);
+ 	}
+ 
++	regulator_disable(mt9p031->vaa);
++	regulator_disable(mt9p031->vdd_io);
++	regulator_disable(mt9p031->vdd);
++
+ 	if (mt9p031->pdata->set_xclk)
+ 		mt9p031->pdata->set_xclk(&mt9p031->subdev, 0);
+ }
+@@ -937,6 +951,16 @@ static int mt9p031_probe(struct i2c_client *client,
+ 	mt9p031->model = did->driver_data;
+ 	mt9p031->reset = -1;
+ 
++	mt9p031->vaa = devm_regulator_get(&client->dev, "vaa");
++	mt9p031->vdd = devm_regulator_get(&client->dev, "vdd");
++	mt9p031->vdd_io = devm_regulator_get(&client->dev, "vdd_io");
++
++	if (IS_ERR(mt9p031->vaa) || IS_ERR(mt9p031->vdd) ||
++	    IS_ERR(mt9p031->vdd_io)) {
++		dev_err(&client->dev, "Unable to get regulators\n");
++		return -ENODEV;
++	}
++
+ 	v4l2_ctrl_handler_init(&mt9p031->ctrls, ARRAY_SIZE(mt9p031_ctrls) + 6);
+ 
+ 	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
 -- 
-1.7.10.4
-Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: James Morris <james.l.morris@oracle.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mike Turquette <mturquette@linaro.org>
-Cc: Rob Clark <rob@ti.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Shawn Guo <shawn.guo@linaro.org>
-Cc: alsa-devel@alsa-project.org
-Cc: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org
-Cc: linux-usb@vger.kernel.org
+1.7.8.6
+
