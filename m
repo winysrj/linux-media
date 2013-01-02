@@ -1,39 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f48.google.com ([209.85.214.48]:45821 "EHLO
-	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752380Ab3AUVZ7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jan 2013 16:25:59 -0500
-Received: by mail-bk0-f48.google.com with SMTP id jk14so786591bkc.21
-        for <linux-media@vger.kernel.org>; Mon, 21 Jan 2013 13:25:57 -0800 (PST)
-Message-ID: <50FDB28A.20803@googlemail.com>
-Date: Mon, 21 Jan 2013 22:26:34 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Received: from mail-oa0-f44.google.com ([209.85.219.44]:39348 "EHLO
+	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752670Ab3ABN3n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 08:29:43 -0500
+Received: by mail-oa0-f44.google.com with SMTP id n5so13097409oag.31
+        for <linux-media@vger.kernel.org>; Wed, 02 Jan 2013 05:29:43 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Patchwork / Bugzilla update
-References: <50FBEBFB.3020209@googlemail.com> <20130121115144.01e58f6a@redhat.com>
-In-Reply-To: <20130121115144.01e58f6a@redhat.com>
+In-Reply-To: <CACKLOr2DB4-ag7v=csVySeeff9tRV7-_yRNwS6vHht9s6CL45g@mail.gmail.com>
+References: <1351599395-16833-1-git-send-email-javier.martin@vista-silicon.com>
+	<1351599395-16833-2-git-send-email-javier.martin@vista-silicon.com>
+	<CAOMZO5C0yvvXs38B4zt46zsjphif-tg=FoEjBeoLx7iQUut62Q@mail.gmail.com>
+	<Pine.LNX.4.64.1210301327090.29432@axis700.grange>
+	<CACKLOr0r2w-=f=PUU-s7x302Jvp3urBZcRQa3pjArZYx0BSjtg@mail.gmail.com>
+	<Pine.LNX.4.64.1210301547300.29432@axis700.grange>
+	<CAOMZO5CbGz_OW6tx1gAGDrhrS4Mp4f4UrdvLVFS+sh4UVTG46A@mail.gmail.com>
+	<CACKLOr1sn8E8qGJm1KriEEzPtFOH+2JXdpywY7o4yXe4vWQp2Q@mail.gmail.com>
+	<CAOMZO5ACPWoM_SoDCf5JrU1iVt=qXOZz15r0H-Bkt1GLPY04mw@mail.gmail.com>
+	<CACKLOr2DB4-ag7v=csVySeeff9tRV7-_yRNwS6vHht9s6CL45g@mail.gmail.com>
+Date: Wed, 2 Jan 2013 11:29:42 -0200
+Message-ID: <CAOMZO5BRLPObojEuYfksQ-nYVTrBzVjT28YndtYRhV0O3-aAyw@mail.gmail.com>
+Subject: Re: [PATCH 1/4] media: mx2_camera: Remove i.mx25 support.
+From: Fabio Estevam <festevam@gmail.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, fabio.estevam@freescale.com
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 21.01.2013 14:51, schrieb Mauro Carvalho Chehab:
-,,,
->> The following kernel bugs can be closed as "resolved - fixed":
->> - bug 26572 "rmmod em28xx or unplugging em28xx tv adapter problem"
->>   => resolved with commit 05fe2175cf87da8a5475aed422bd636475ab0412
->> "em28xx: refactor the code in em28xx_usb_disconnect()"
->> - bug 14126 "Audio input for TV mode of Terratec Cinergy 250 is
->> misconfigured"
->>   => resolved with commit 5e8d02bb346d6240b029f1990ddc295d7d59685b
->> "em28xx: fix audio input for TV mode of device Terratec Cinergy 250"
-> Feel free to close them there directly.
+On Wed, Jan 2, 2013 at 10:35 AM, javier Martin
+<javier.martin@vista-silicon.com> wrote:
 
-Unfortunately, I don't have the necessary rights to change bug statuses. :(
+> Sorry Fabio but IMHO that's not enough. The probe() callback may work
+> properly but it doesn't mean that buffer and HW handling for i.MX25
+> are functional.
+> The condition to keep i.MX25 support in this file was that you were
+> going to fix it but instead you have just added board support for a
+> broken driver.
+>
+> I'd like to hear Guennadi's view on the matter but I think we've given
+> plenty of time for this.
+
+Sounds fair. Go ahead and remove mx25 camera support then.
+
+I would not be able to further debug this driver.
 
 Regards,
-Frank
 
+Fabio Estevam
