@@ -1,68 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f43.google.com ([74.125.83.43]:41034 "EHLO
-	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750899Ab3AWWWS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jan 2013 17:22:18 -0500
-Received: by mail-ee0-f43.google.com with SMTP id c50so4212401eek.30
-        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2013 14:22:16 -0800 (PST)
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42721 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752383Ab3ABLGw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 06:06:52 -0500
+Received: from avalon.localnet (unknown [91.178.66.146])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 6EFB535A69
+	for <linux-media@vger.kernel.org>; Wed,  2 Jan 2013 12:06:51 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	sylvester.nawrocki@gmail.com
-Subject: [PATCH RFC v3 3/6] V4L: Add v4l2_event_subdev_unsubscribe() helper function
-Date: Wed, 23 Jan 2013 23:21:58 +0100
-Message-Id: <1358979721-17473-4-git-send-email-sylvester.nawrocki@gmail.com>
-In-Reply-To: <1358979721-17473-1-git-send-email-sylvester.nawrocki@gmail.com>
-References: <1358979721-17473-1-git-send-email-sylvester.nawrocki@gmail.com>
+Subject: [GIT PULL FOR v3.9] Subdev registration fix
+Date: Wed, 02 Jan 2013 12:08:20 +0100
+Message-ID: <5657247.oav9LVKzGh@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a v4l2 core helper function that can be used as the subdev
-.unsubscribe_event handler. This allows to eliminate some
-boilerplate from drivers that are only handling the control events.
+Hi Mauro,
 
-Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
----
- drivers/media/v4l2-core/v4l2-event.c |    7 +++++++
- include/media/v4l2-event.h           |    4 +++-
- 2 files changed, 10 insertions(+), 1 deletions(-)
+The following changes since commit 8cd7085ff460ead3aba6174052a408f4ad52ac36:
 
-diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-index c720092..86dcb54 100644
---- a/drivers/media/v4l2-core/v4l2-event.c
-+++ b/drivers/media/v4l2-core/v4l2-event.c
-@@ -311,3 +311,10 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(v4l2_event_unsubscribe);
-+
-+int v4l2_event_subdev_unsubscribe(struct v4l2_subdev *sd, struct v4l2_fh *fh,
-+				  struct v4l2_event_subscription *sub)
-+{
-+	return v4l2_event_unsubscribe(fh, sub);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_event_subdev_unsubscribe);
-diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-index eff85f9..be05d01 100644
---- a/include/media/v4l2-event.h
-+++ b/include/media/v4l2-event.h
-@@ -64,6 +64,7 @@
-  */
- 
- struct v4l2_fh;
-+struct v4l2_subdev;
- struct v4l2_subscribed_event;
- struct video_device;
- 
-@@ -129,5 +130,6 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- 			   const struct v4l2_event_subscription *sub);
- void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
--
-+int v4l2_event_subdev_unsubscribe(struct v4l2_subdev *sd, struct v4l2_fh *fh,
-+				  struct v4l2_event_subscription *sub);
- #endif /* V4L2_EVENT_H */
+  [media] get_dvb_firmware: Fix the location of firmware for Terratec HTC 
+(2013-01-01 11:18:26 -0200)
+
+are available in the git repository at:
+  git://linuxtv.org/pinchartl/media.git v4l2/core
+
+Laurent Pinchart (1):
+      v4l: Reset subdev v4l2_dev field to NULL if registration fails
+
+ drivers/media/v4l2-core/v4l2-device.c |   30 ++++++++++++++----------------
+ 1 files changed, 14 insertions(+), 16 deletions(-)
+
 -- 
-1.7.4.1
+Regards,
+
+Laurent Pinchart
 
