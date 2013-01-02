@@ -1,81 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44188 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752134Ab3ABL3Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 06:29:16 -0500
-Date: Wed, 2 Jan 2013 12:29:08 +0100
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Fabio Estevam <fabio.estevam@freescale.com>, kernel@pengutronix.de,
-	p.zabel@pengutronix.de, javier.martin@vista-silicon.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] coda: Fix build due to iram.h rename
-Message-ID: <20130102112908.GI26326@pengutronix.de>
-References: <1352898282-21576-1-git-send-email-fabio.estevam@freescale.com>
- <20121217093714.GI26326@pengutronix.de>
- <20121227201512.0a5c5828@infradead.org>
+Received: from mail-we0-f180.google.com ([74.125.82.180]:40683 "EHLO
+	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752090Ab3ABM0y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 07:26:54 -0500
+Received: by mail-we0-f180.google.com with SMTP id t57so6476091wey.25
+        for <linux-media@vger.kernel.org>; Wed, 02 Jan 2013 04:26:52 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20121227201512.0a5c5828@infradead.org>
+In-Reply-To: <CAOMZO5CbGz_OW6tx1gAGDrhrS4Mp4f4UrdvLVFS+sh4UVTG46A@mail.gmail.com>
+References: <1351599395-16833-1-git-send-email-javier.martin@vista-silicon.com>
+	<1351599395-16833-2-git-send-email-javier.martin@vista-silicon.com>
+	<CAOMZO5C0yvvXs38B4zt46zsjphif-tg=FoEjBeoLx7iQUut62Q@mail.gmail.com>
+	<Pine.LNX.4.64.1210301327090.29432@axis700.grange>
+	<CACKLOr0r2w-=f=PUU-s7x302Jvp3urBZcRQa3pjArZYx0BSjtg@mail.gmail.com>
+	<Pine.LNX.4.64.1210301547300.29432@axis700.grange>
+	<CAOMZO5CbGz_OW6tx1gAGDrhrS4Mp4f4UrdvLVFS+sh4UVTG46A@mail.gmail.com>
+Date: Wed, 2 Jan 2013 13:18:52 +0100
+Message-ID: <CACKLOr1sn8E8qGJm1KriEEzPtFOH+2JXdpywY7o4yXe4vWQp2Q@mail.gmail.com>
+Subject: Re: [PATCH 1/4] media: mx2_camera: Remove i.mx25 support.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, fabio.estevam@freescale.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Fabio, Guennadi,
+sorry for the long delay but I've been out of the office for a month
+and without internet access.
 
-On Thu, Dec 27, 2012 at 08:15:12PM -0200, Mauro Carvalho Chehab wrote:
-> Em Mon, 17 Dec 2012 10:37:14 +0100
-> Sascha Hauer <s.hauer@pengutronix.de> escreveu:
-> 
-> > On Wed, Nov 14, 2012 at 11:04:42AM -0200, Fabio Estevam wrote:
-> > > commit c045e3f13 (ARM: imx: include iram.h rather than mach/iram.h) changed the
-> > > location of iram.h, which causes the following build error when building the coda
-> > > driver:
-> > > 
-> > > drivers/media/platform/coda.c:27:23: error: mach/iram.h: No such file or directory
-> > > drivers/media/platform/coda.c: In function 'coda_probe':
-> > > drivers/media/platform/coda.c:2000: error: implicit declaration of function 'iram_alloc'
-> > > drivers/media/platform/coda.c:2001: warning: assignment makes pointer from integer without a cast
-> > > drivers/media/platform/coda.c: In function 'coda_remove':
-> > > drivers/media/platform/coda.c:2024: error: implicit declaration of function 'iram_free
-> > > 
-> > > Since the content of iram.h is not imx specific, move it to include/linux/iram.h
-> > > instead.
-> > 
-> > Generally we need a fix for this, but:
-> > 
-> > > diff --git a/arch/arm/mach-imx/iram.h b/include/linux/iram.h
-> > > similarity index 100%
-> > > rename from arch/arm/mach-imx/iram.h
-> > > rename to include/linux/iram.h
-> > 
-> > We shouldn't introduce a file include/linux/iram.h which is purely i.MX
-> > specific. The name is far too generic. I would rather suggest
-> > include/linux/platform_data/imx-iram.h (Although it's not exactly
-> > platform_data, so I'm open for better suggestions).
-> > 
-> > As a side note this i.MX specific iram stuff (hopefully) is obsolete
-> > after the next merge window as Philip already has patches for a generic
-> > iram allocator which didn't make it into this merge window.
-> 
-> Hi Sasha,
-> 
-> This compilation breakage seems to still be happening.
-> 
-> Just tested here with arm32 "allmodconfig", on a tree based on Linus one,
-> with -next and -media patches applied on it:
-> 
-> drivers/media//platform/coda.c:27:23: fatal error: mach/iram.h: No such file or directory
-> compilation terminated.
-> 
-> I don't mind how this would be named, but this should be fixed somehow ;)
+On 27 November 2012 14:05, Fabio Estevam <festevam@gmail.com> wrote:
+> I just added the camera support to mach-mx25_3ds.c (which I will
+> submit it soon to arm kernel list) and it works fine:
+>
+> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
+> mx2-camera imx25-camera.0: Camera driver attached to camera 0
+> ov2640 0-0030: ov2640 Product ID 26:42 Manufacturer ID 7f:a2
+> i2c i2c-0: OV2640 Probed
+> mx2-camera imx25-camera.0: Camera driver detached from camera 0
+> mx2-camera imx25-camera.0: MX2 Camera (CSI) driver probed, clock
+> frequency: 22166666
+>
+> Could we please keep the mx25 support?
 
-I will prepare a patch for this next week when I'm back in the office.
+That's great. Did you need to change anything in the mx2 camera driver
+for mx25 to work? Have you already submitted the patches?
 
-Sascha
+Regards.
 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
