@@ -1,39 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:42183 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750809Ab3AHE1X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 23:27:23 -0500
-Date: Tue, 8 Jan 2013 13:27:20 +0900
-From: Simon Horman <horms@verge.net.au>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 6/6] ARM: shmobile: convert ap4evb to asynchronously
- register camera subdevices
-Message-ID: <20130108042720.GA25895@verge.net.au>
-References: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de>
- <1356544151-6313-7-git-send-email-g.liakhovetski@gmx.de>
+Received: from mout.gmx.net ([212.227.15.19]:52375 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752250Ab3ABAX1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Jan 2013 19:23:27 -0500
+Received: from mailout-eu.gmx.com ([10.1.101.216]) by mrigmx.server.lan
+ (mrigmx002) with ESMTP (Nemesis) id 0MaoLM-1TaAb92s6E-00KSs0 for
+ <linux-media@vger.kernel.org>; Wed, 02 Jan 2013 01:23:25 +0100
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Antti Palosaari" <crope@iki.fi>
+Subject: Re: AverTV_A918R (af9035-af9033-tda18218) / patch proposal
+References: <op.wp845xcf4bfdfw@quantal> <50E36298.3040009@iki.fi>
+ <op.wp9b661h4bfdfw@quantal>
+Date: Wed, 02 Jan 2013 01:23:23 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1356544151-6313-7-git-send-email-g.liakhovetski@gmx.de>
+Content-Transfer-Encoding: 7bit
+From: Diorser <diorser@gmx.fr>
+Message-ID: <op.wp9co90r4bfdfw@quantal>
+In-Reply-To: <op.wp9b661h4bfdfw@quantal>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 26, 2012 at 06:49:11PM +0100, Guennadi Liakhovetski wrote:
-> Register the imx074 camera I2C and the CSI-2 platform devices directly
-> in board platform data instead of letting the sh_mobile_ceu_camera driver
-> and the soc-camera framework register them at their run-time. This uses
-> the V4L2 asynchronous subdevice probing capability.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Just to compare, this is the same tzap test made on same channel with a  
+AverTV 007 (saa7134) on a another PC, with same antenna.
+It works perfectly.
 
-Hi Guennadi,
-
-could you let me know what if any dependencies this patch has.
-And the status of any dependencies.
+tzap -r TEST
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+reading channels from file '~/.tzap/channels.conf'
+tuning to 586167000 Hz
+video pid 0x0200, audio pid 0x028a
+status 00 | signal b2b2 | snr 2929 | ber 0001fffe | unc 00000000 |
+status 1f | signal b2b2 | snr fefe | ber 0000004e | unc ffffffff |  
+FE_HAS_LOCK
+status 1f | signal b2b2 | snr fefe | ber 00000050 | unc 00000000 |  
+FE_HAS_LOCK
+status 1f | signal b2b2 | snr fefe | ber 0000005c | unc 00000000 |  
+FE_HAS_LOCK
+status 1f | signal b1b1 | snr fefe | ber 00000054 | unc 00000000 |  
+FE_HAS_LOCK
+status 1f | signal b2b2 | snr fefe | ber 0000004e | unc 00000000 |  
+FE_HAS_LOCK
+status 1f | signal b2b2 | snr ffff | ber 00000050 | unc 00000000 |  
+FE_HAS_LOCK
+status 1f | signal b1b1 | snr ffff | ber 00000052 | unc 00000000 |  
+FE_HAS_LOCK
+status 1f | signal b2b2 | snr ffff | ber 00000050 | unc 00000000 |  
+FE_HAS_LOCK
+status 1f | signal b1b1 | snr ffff | ber 0000004a | unc 00000000 |  
+FE_HAS_LOCK
+status 1f | signal b1b1 | snr ffff | ber 00000050 | unc 00000000 |  
+FE_HAS_LOCK
+status 1f | signal b1b1 | snr ffff | ber 0000004e | unc 00000000 |  
+FE_HAS_LOCK
+status 1f | signal b1b1 | snr ffff | ber 00000044 | unc 00000000 |  
+FE_HAS_LOCK
+status 1f | signal b2b2 | snr ffff | ber 0000004a | unc 00000000 |  
+FE_HAS_LOCK
+status 1f | signal b2b2 | snr ffff | ber 0000004e | unc 00000000 |  
+FE_HAS_LOCK
