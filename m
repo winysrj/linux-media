@@ -1,65 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f173.google.com ([209.85.214.173]:53112 "EHLO
-	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752070Ab3AQShS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 13:37:18 -0500
-Received: by mail-ob0-f173.google.com with SMTP id xn12so2831487obc.4
-        for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 10:37:17 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <50F84276.3080909@iki.fi>
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-	<20130116152151.5461221c@redhat.com>
-	<CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com>
-	<2817386.vHx2V41lNt@f17simon>
-	<20130116200153.3ec3ee7d@redhat.com>
-	<CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com>
-	<50F7C57A.6090703@iki.fi>
-	<20130117145036.55745a60@redhat.com>
-	<50F831AA.8010708@iki.fi>
-	<20130117161126.6b2e809d@redhat.com>
-	<50F84276.3080909@iki.fi>
-Date: Fri, 18 Jan 2013 00:07:17 +0530
-Message-ID: <CAHFNz9JDqYnrmNDt0_nBJMgzAymZSCXBbwY5MHR8AkMopPPQOA@mail.gmail.com>
-Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Simon Farnsworth <simon.farnsworth@onelan.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33125 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752546Ab3ABLNi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 06:13:38 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: [PATCH 2/2] mt9m032: Define MT9M032_READ_MODE1 bits
+Date: Wed,  2 Jan 2013 12:15:04 +0100
+Message-Id: <1357125304-6128-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1357125304-6128-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1357125304-6128-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 17, 2013 at 11:57 PM, Antti Palosaari <crope@iki.fi> wrote:
+Replace hardcoded values with #define's.
 
->
->
-> Resetting counters when user tunes channel sounds the only correct option.
->
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/mt9m032.c |   22 +++++++++++++++++++++-
+ 1 files changed, 21 insertions(+), 1 deletions(-)
 
-This might not be correct, especially when we have true Multiple Input Streams.
-The tune might be single, but the filter setup would be different. In
-which case it
-wouldn't correct to do a reset of the counters ona tune. Resetting the counters
-should be the responsibility of the driver. As I said in an earlier
-post, anything
-other than the driver handling any statistical event monitoring, such an API is
-broken for sure, without even reading single line of code for that API for which
- it is written for.
+diff --git a/drivers/media/i2c/mt9m032.c b/drivers/media/i2c/mt9m032.c
+index 30d755a..de150d3 100644
+--- a/drivers/media/i2c/mt9m032.c
++++ b/drivers/media/i2c/mt9m032.c
+@@ -90,6 +90,24 @@
+ #define		MT9M032_PLL_CONFIG1_PREDIV_MASK		0x3f
+ #define		MT9M032_PLL_CONFIG1_MUL_SHIFT		8
+ #define MT9M032_READ_MODE1				0x1e
++#define		MT9M032_READ_MODE1_OUTPUT_BAD_FRAMES	(1 << 13)
++#define		MT9M032_READ_MODE1_MAINTAIN_FRAME_RATE	(1 << 12)
++#define		MT9M032_READ_MODE1_XOR_LINE_VALID	(1 << 11)
++#define		MT9M032_READ_MODE1_CONT_LINE_VALID	(1 << 10)
++#define		MT9M032_READ_MODE1_INVERT_TRIGGER	(1 << 9)
++#define		MT9M032_READ_MODE1_SNAPSHOT		(1 << 8)
++#define		MT9M032_READ_MODE1_GLOBAL_RESET		(1 << 7)
++#define		MT9M032_READ_MODE1_BULB_EXPOSURE	(1 << 6)
++#define		MT9M032_READ_MODE1_INVERT_STROBE	(1 << 5)
++#define		MT9M032_READ_MODE1_STROBE_ENABLE	(1 << 4)
++#define		MT9M032_READ_MODE1_STROBE_START_TRIG1	(0 << 2)
++#define		MT9M032_READ_MODE1_STROBE_START_EXP	(1 << 2)
++#define		MT9M032_READ_MODE1_STROBE_START_SHUTTER	(2 << 2)
++#define		MT9M032_READ_MODE1_STROBE_START_TRIG2	(3 << 2)
++#define		MT9M032_READ_MODE1_STROBE_END_TRIG1	(0 << 0)
++#define		MT9M032_READ_MODE1_STROBE_END_EXP	(1 << 0)
++#define		MT9M032_READ_MODE1_STROBE_END_SHUTTER	(2 << 0)
++#define		MT9M032_READ_MODE1_STROBE_END_TRIG2	(3 << 0)
+ #define MT9M032_READ_MODE2				0x20
+ #define		MT9M032_READ_MODE2_VFLIP_SHIFT		15
+ #define		MT9M032_READ_MODE2_HFLIP_SHIFT		14
+@@ -282,7 +300,9 @@ static int mt9m032_setup_pll(struct mt9m032 *sensor)
+ 				    MT9P031_PLL_CONTROL_PWRON |
+ 				    MT9P031_PLL_CONTROL_USEPLL);
+ 	if (!ret)		/* more reserved, Continuous, Master Mode */
+-		ret = mt9m032_write(client, MT9M032_READ_MODE1, 0x8006);
++		ret = mt9m032_write(client, MT9M032_READ_MODE1, 0x8000 |
++				    MT9M032_READ_MODE1_STROBE_START_EXP |
++				    MT9M032_READ_MODE1_STROBE_END_SHUTTER);
+ 	if (!ret) {
+ 		reg_val = (pll.p1 == 6 ? MT9M032_FORMATTER1_PLL_P1_6 : 0)
+ 			| MT9M032_FORMATTER1_PARALLEL | 0x001e; /* 14-bit */
+-- 
+1.7.8.6
 
-
-> OK, maybe we will see in near future if that works well or not. I think that
-> for calculating of PER it is required to start continuous polling to keep up
-> total block counters. Maybe updating UCB counter continously needs that too,
-> so it should work.
-
-
-With multi-standard demodulators, some of them PER compute is a by-product
-of some internal demodulator algorithmic operation. In some cases, it might
-require a loop in the driver. As I said, again; It is very hard/wrong
-to do basic
-generalizations.
-
-Manu
