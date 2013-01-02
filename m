@@ -1,98 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:10951 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752207Ab3AFNTa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jan 2013 08:19:30 -0500
-Date: Sun, 6 Jan 2013 11:18:55 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	LMML <linux-media@vger.kernel.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Tushar Behera <tushar.behera@linaro.org>
-Subject: Re: [GIT PULL FOR 3.9] Exynos SoC media drivers updates
-Message-ID: <20130106111855.6ae61650@redhat.com>
-In-Reply-To: <50E97900.4060100@gmail.com>
-References: <50E726F4.7060704@samsung.com>
-	<50E96F6D.9080206@gmail.com>
-	<20130106104157.5ffb5f6c@redhat.com>
-	<201301061353.52306.hverkuil@xs4all.nl>
-	<50E97900.4060100@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.17.10]:62922 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752297Ab3ABIQX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 03:16:23 -0500
+Date: Wed, 2 Jan 2013 09:16:21 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Jonathan Corbet <corbet@lwn.net>
+cc: Albert Wang <twang13@marvell.com>, linux-media@vger.kernel.org,
+	Libin Yang <lbyang@marvell.com>
+Subject: Re: [PATCH V3 09/15] [media] marvell-ccic: add get_mcam function
+ for marvell-ccic driver
+In-Reply-To: <20121216092440.110ecf5f@hpe.lwn.net>
+Message-ID: <Pine.LNX.4.64.1301020914590.7829@axis700.grange>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+ <1355565484-15791-10-git-send-email-twang13@marvell.com>
+ <20121216092440.110ecf5f@hpe.lwn.net>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 06 Jan 2013 14:15:44 +0100
-Sylwester Nawrocki <sylvester.nawrocki@gmail.com> escreveu:
+On Sun, 16 Dec 2012, Jonathan Corbet wrote:
 
-> On 01/06/2013 01:53 PM, Hans Verkuil wrote:
-> >>>>>> Tomasz Stanislawski (1):
-> >>>>>>          s5p-tv: mixer: fix handling of VIDIOC_S_FMT
-> >>>>
-> >>>> I'll drop this one for now. Devin raised a point: such changes would break
-> >>>> existing applications.
-> >>>>
-> >>>> So, we'll need to revisit this topic before changing the drivers.
-> >>>>
-> >>>> Btw, I failed to find the corresponding patch at patchwork:
-> >>>> 	http://patchwork.linuxtv.org/project/linux-media/list/?state=*&q=VIDIOC_S_FMT
-> >>>>
-> >>>> So, its status update may be wrong after flushing your pwclient commands.
-> >>>
-> >>> Hmm, I got this patch from Tomasz by e-mail and added it to the pull
-> >>> request.
-> >>> I think it wasn't sent to the mailing list, but I noticed it only after
-> >>> sending you the pull requests, when was preparing the pwclient commands.
-> >>> I've just posted it now, sorry. The link is here:
-> >>> http://patchwork.linuxtv.org/patch/16143
-> >>>
-> >>> Tomasz created this patch specifically for the purpose of format negotiation
-> >>> in video pipeline in the application we used to test various scenarios with
-> >>> DMABUF. I agree this patch has a potential of breaking buggy user space
-> >>> applications. I can't see other solution for it right now, there seems even
-> >>> to be no possibility to return some flag in VIDIOC_S_FMT indicating that
-> >>> format has been modified and is valid, when -EINVAL was returned. This
-> >>> sounds
-> >>> ugly anyway, but could ensure backward compatibility for applications that
-> >>> exppect EINVAL when format has been changed. BTW, I wonder if it is only
-> >>> fourcc,
-> >>> or other format parameters as well - like width, height, some applications
-> >>> expect to get EINVAL when those have changed.
-> >>
-> >> The patch makes the driver compliant to v4l-compilance, as its behavior asks
-> >> for such change, after some discussions we had this year in San Diego. At that
-> >> time, we all believed that such change were safe.
-> >>
-> >> However, we can't do it like proposed there (and on other patches from Hans).
-> >>
-> >> The fact is that tvtime and mythtv applications (maybe more) will fail
-> >> if the returned format is different than the requested ones, as they
-> >> don't check for the returned value.
-> >>
-> >> As no regressions on userspace are allowed, we need to re-discuss this issue.
-> >>
-> >> While this doesn't happen, I'll postpone such patches.
-> >
-> > This is a video output device. So this patch will never affect tvtime/mythtv/etc.
-> > I have no problem with this change being merged.
+> On Sat, 15 Dec 2012 17:57:58 +0800
+> Albert Wang <twang13@marvell.com> wrote:
 > 
-> TBH, I very much doubt anyone would complain in case of this driver. I'm not
-> certain if there is complete support for even one board in the mainline 
-> kernel,
-> likely only Origen A. AFAIK most applications use either Exynos DRM driver,
-> that has support for all features available in s5p-tv driver, or 
-> framebuffer
-> emulation on top of v4l2 output interface (there were in the past RFC 
-> patches
-> posted for vb2 adding FB emulation) is used. Although I agree with Mauro in
-> principle, I think chances of above patch causing any trouble to anyone are
-> close to zero.
+> > This patch adds get_mcam() inline function which is prepared for
+> > adding soc_camera support in marvell-ccic driver
+> 
+> Time for a bikeshed moment: "get" generally is understood to mean
+> incrementing a reference count in kernel code.  Can it have a name like
+> vbq_to_mcam() instead?
+> 
+> Also:
+> 
+> > @@ -1073,14 +1073,17 @@ static int mcam_vb_queue_setup(struct vb2_queue *vq,
+> >  static void mcam_vb_buf_queue(struct vb2_buffer *vb)
+> >  {
+> >  	struct mcam_vb_buffer *mvb = vb_to_mvb(vb);
+> > -	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
+> > +	struct mcam_camera *cam = get_mcam(vb->vb2_queue);
+> >  	struct v4l2_pix_format *fmt = &cam->pix_format;
+> >  	unsigned long flags;
+> >  	int start;
+> >  	dma_addr_t dma_handle;
+> > +	unsigned long size;
+> >  	u32 pixel_count = fmt->width * fmt->height;
+> >  
+> >  	spin_lock_irqsave(&cam->dev_lock, flags);
+> > +	size = vb2_plane_size(vb, 0);
+> > +	vb2_set_plane_payload(vb, 0, size);
+> >  	dma_handle = vb2_dma_contig_plane_dma_addr(vb, 0);
+> >  	BUG_ON(!dma_handle);
+> >  	start = (cam->state == S_BUFWAIT) && !list_empty(&cam->buffers);
+> 
+> There is an unrelated change here that belongs in a separate patch.
 
-Yes, I see your point. Yet, it doesn't hurt to keep it on hold for a couple
-weeks while we discuss it at the ML.
+Right, agree.
 
-Regards,
-Mauro
+Thanks
+Guennadi
+
+> > @@ -1138,9 +1141,12 @@ static void mcam_vb_wait_finish(struct vb2_queue *vq)
+> >   */
+> >  static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
+> >  {
+> > -	struct mcam_camera *cam = vb2_get_drv_priv(vq);
+> > +	struct mcam_camera *cam = get_mcam(vq);
+> >  	unsigned int frame;
+> >  
+> > +	if (count < 2)
+> > +		return -EINVAL;
+> > +
+> 
+> Here too - unrelated change.
+> 
+> >  	if (cam->state != S_IDLE) {
+> >  		INIT_LIST_HEAD(&cam->buffers);
+> >  		return -EINVAL;
+> > @@ -1170,7 +1176,7 @@ static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
+> >  
+> >  static int mcam_vb_stop_streaming(struct vb2_queue *vq)
+> >  {
+> > -	struct mcam_camera *cam = vb2_get_drv_priv(vq);
+> > +	struct mcam_camera *cam = get_mcam(vq);
+> >  	unsigned long flags;
+> >  
+> >  	if (cam->state == S_BUFWAIT) {
+> > @@ -1181,6 +1187,7 @@ static int mcam_vb_stop_streaming(struct vb2_queue *vq)
+> >  	if (cam->state != S_STREAMING)
+> >  		return -EINVAL;
+> >  	mcam_ctlr_stop_dma(cam);
+> > +	cam->state = S_IDLE;
+> 
+> ...and also here ...
+> 
+> jon
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
