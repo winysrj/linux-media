@@ -1,63 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39870 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752909Ab3AUSw4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jan 2013 13:52:56 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mike Turquette <mturquette@linaro.org>,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/2] OMAP3 ISP: Simplify clock usage
-Date: Mon, 21 Jan 2013 19:54:38 +0100
-Message-ID: <4222427.SJZRgZMHGN@avalon>
-In-Reply-To: <20130121171812.GJ15361@atomide.com>
-References: <1357652634-17668-1-git-send-email-laurent.pinchart@ideasonboard.com> <3133387.jv7osGsLR0@avalon> <20130121171812.GJ15361@atomide.com>
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:50609 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752090Ab3ABLyZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 06:54:25 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Subject: [PATCH] davinci: dm644x: fix enum ccdc_gama_width and enum ccdc_data_size comparision warning
+Date: Wed,  2 Jan 2013 17:23:50 +0530
+Message-Id: <1357127630-8167-2-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1357127630-8167-1-git-send-email-prabhakar.lad@ti.com>
+References: <1357127630-8167-1-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tony,
+while the effect is harmless this patch fixes following build warning,
 
-On Monday 21 January 2013 09:18:12 Tony Lindgren wrote:
-> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [130121 05:37]:
-> > On Monday 14 January 2013 17:10:15 Mike Turquette wrote:
-> > > Quoting Laurent Pinchart (2013-01-08 05:43:52)
-> > > 
-> > > > Hello,
-> > > > 
-> > > > Now that the OMAP3 supports the common clock framework, clock rate
-> > > > back-propagation is available for the ISP clocks. Instead of setting
-> > > > the cam_mclk parent clock rate to control the cam_mclk clock rate, we
-> > > > can mark the dpll4_m5x2_ck_3630 and cam_mclk clocks as supporting
-> > > > back-propagation, and set the cam_mclk rate directly. This simplifies
-> > > > the ISP clocks configuration.
-> > > 
-> > > I'm pleased to see this feature get used on OMAP.  Plus your driver gets
-> > > a negative diffstat :)
-> > > 
-> > > Reviewed-by: Mike Turquette <mturquette@linaro.org>
-> > 
-> > Thanks.
-> > 
-> > Would you like to take the arch/ patch in your tree, or should I push it
-> > through the linux-media tree along with the omap3isp patch ?
-> 
-> The arch/arm/*omap* clock changes need to be queued by Paul to avoid
-> potential stupid merge conflicts when the clock data gets moved to
-> live under drivers/clk/omap.
+drivers/media/platform/davinci/dm644x_ccdc.c: In function ‘validate_ccdc_param’:
+drivers/media/platform/davinci/dm644x_ccdc.c:233:32: warning: comparison between
+‘enum ccdc_gama_width’ and ‘enum ccdc_data_size’ [-Wenum-compare]
 
-OK. The omap3isp patch can go through Paul's tree as well, it won't conflict 
-with other changes to the driver in this merge window.
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+---
+ drivers/media/platform/davinci/dm644x_ccdc.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-Paul, can you take both patches together ? If so I'll send you a pull request.
-
+diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
+index ee7942b..42b473a 100644
+--- a/drivers/media/platform/davinci/dm644x_ccdc.c
++++ b/drivers/media/platform/davinci/dm644x_ccdc.c
+@@ -228,9 +228,12 @@ static void ccdc_readregs(void)
+ static int validate_ccdc_param(struct ccdc_config_params_raw *ccdcparam)
+ {
+ 	if (ccdcparam->alaw.enable) {
++		u32 gama_wd = ccdcparam->alaw.gama_wd;
++		u32 data_sz = ccdcparam->data_sz;
++
+ 		if ((ccdcparam->alaw.gama_wd > CCDC_GAMMA_BITS_09_0) ||
+ 		    (ccdcparam->alaw.gama_wd < CCDC_GAMMA_BITS_15_6) ||
+-		    (ccdcparam->alaw.gama_wd < ccdcparam->data_sz)) {
++		    (gama_wd < data_sz)) {
+ 			dev_dbg(ccdc_cfg.dev, "\nInvalid data line select");
+ 			return -1;
+ 		}
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.4.1
 
