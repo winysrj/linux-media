@@ -1,65 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58609 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753067Ab3AFR1Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jan 2013 12:27:25 -0500
-Date: Sun, 6 Jan 2013 15:26:50 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Nickolai Zeldovich <nickolai@csail.mit.edu>
-Subject: Fw: [PATCH] drivers/media/usb/dvb-usb/dib0700_core.c: fix left
- shift
-Message-ID: <20130106152650.2a89b31d@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50902 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753580Ab3ACSe3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 13:34:29 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH 1/3] sh_vou: Don't modify const variable in sh_vou_s_crop()
+Date: Thu,  3 Jan 2013 19:35:55 +0100
+Message-Id: <1357238157-18115-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Not sure what happened, but this patch didn't arrive linux-media.
+The crop rectangle is const, make a local copy instead of modifying it.
 
-Let me forward.
-
-Regards,
-Mauro
-
-Forwarded message:
-
-Date: Sat,  5 Jan 2013 14:13:05 -0500
-From: Nickolai Zeldovich <nickolai@csail.mit.edu>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Nickolai Zeldovich <nickolai@csail.mit.edu>, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH] drivers/media/usb/dvb-usb/dib0700_core.c: fix left shift
-
-
-Fix bug introduced in 7757ddda6f4febbc52342d82440dd4f7a7d4f14f, where
-instead of bit-negating the bitmask, the bit position was bit-negated
-instead.
-
-Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/usb/dvb-usb/dib0700_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/sh_vou.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
-index 19b5ed2..92e195a 100644
---- a/drivers/media/usb/dvb-usb/dib0700_core.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_core.c
-@@ -587,7 +587,7 @@ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- 		if (onoff)
- 			st->channel_state |=	1 << (adap->id);
- 		else
--			st->channel_state |=	1 << ~(adap->id);
-+			st->channel_state &=  ~(1 << (adap->id));
- 	} else {
- 		if (onoff)
- 			st->channel_state |=	1 << (adap->fe_adap[0].stream.props.endpoint-2);
+diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+index 85fd312..43278de 100644
+--- a/drivers/media/platform/sh_vou.c
++++ b/drivers/media/platform/sh_vou.c
+@@ -937,7 +937,7 @@ static int sh_vou_s_crop(struct file *file, void *fh, const struct v4l2_crop *a)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct sh_vou_device *vou_dev = video_get_drvdata(vdev);
+-	struct v4l2_rect *rect = &a->c;
++	const struct v4l2_rect *rect = &a->c;
+ 	struct v4l2_crop sd_crop = {.type = V4L2_BUF_TYPE_VIDEO_OUTPUT};
+ 	struct v4l2_pix_format *pix = &vou_dev->pix;
+ 	struct sh_vou_geometry geo;
+@@ -961,16 +961,16 @@ static int sh_vou_s_crop(struct file *file, void *fh, const struct v4l2_crop *a)
+ 	else
+ 		img_height_max = 576;
+ 
+-	v4l_bound_align_image(&rect->width, 0, VOU_MAX_IMAGE_WIDTH, 1,
+-			      &rect->height, 0, img_height_max, 1, 0);
++	geo.output = *rect;
++	v4l_bound_align_image(&geo.output.width, 0, VOU_MAX_IMAGE_WIDTH, 1,
++			      &geo.output.height, 0, img_height_max, 1, 0);
+ 
+-	if (rect->width + rect->left > VOU_MAX_IMAGE_WIDTH)
+-		rect->left = VOU_MAX_IMAGE_WIDTH - rect->width;
++	if (geo.output.width + geo.output.left > VOU_MAX_IMAGE_WIDTH)
++		geo.output.left = VOU_MAX_IMAGE_WIDTH - geo.output.width;
+ 
+-	if (rect->height + rect->top > img_height_max)
+-		rect->top = img_height_max - rect->height;
++	if (geo.output.height + geo.output.top > img_height_max)
++		geo.output.top = img_height_max - geo.output.height;
+ 
+-	geo.output = *rect;
+ 	geo.in_width = pix->width;
+ 	geo.in_height = pix->height;
+ 
 -- 
-1.7.10.4
+1.7.8.6
 
-
-
--- 
-
-Cheers,
-Mauro
