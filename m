@@ -1,87 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50646 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755275Ab3AXTMI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jan 2013 14:12:08 -0500
-Date: Thu, 24 Jan 2013 21:12:03 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, jtp.park@samsung.com,
-	arun.kk@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	hverkuil@xs4all.nl, verkuil@xs4all.nl,
-	Marek Szyprowski <m.szyprowski@samsung.com>, pawel@osciak.com,
-	'Kyungmin Park' <kyungmin.park@samsung.com>
-Subject: Re: [PATCH 3/3 v2] v4l: Set proper timestamp type in selected
- drivers which use videobuf2
-Message-ID: <20130124191202.GE18639@valkosipuli.retiisi.org.uk>
-References: <1359030907-9883-1-git-send-email-k.debski@samsung.com>
- <1359030907-9883-4-git-send-email-k.debski@samsung.com>
- <1751468.SnZ1UQG0Bu@avalon>
- <04b801cdfa47$e0414b90$a0c3e2b0$%debski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <04b801cdfa47$e0414b90$a0c3e2b0$%debski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:14450 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753430Ab3ACTyl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 14:54:41 -0500
+Date: Thu, 3 Jan 2013 17:53:59 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+Subject: Re: [PATCH RFCv3] dvb: Add DVBv5 properties for quality parameters
+Message-ID: <20130103175359.5fc157eb@redhat.com>
+In-Reply-To: <CAHFNz9J1ziYfSb8zZbxsNoFfCC5SyW9iJKEA3y7HA__zU9oqpA@mail.gmail.com>
+References: <1356739006-22111-1-git-send-email-mchehab@redhat.com>
+	<CAGoCfix=2-pXmTE149XvwT+f7j1F29L3Q-dse0y_Rc-3LKucsQ@mail.gmail.com>
+	<20130101130041.52dee65f@redhat.com>
+	<CAHFNz9+hwx9Bpd5ZJC5RRchpvYzKUzzKv43PSzDunr403xiOsQ@mail.gmail.com>
+	<50E5A515.4050500@iki.fi>
+	<CAHFNz9+-ixyYpAE1egC_s=MSk+t+si-tLTR=T8GK9QoK=vdf5A@mail.gmail.com>
+	<20130103172735.0aa1db6d@redhat.com>
+	<CAHFNz9J1ziYfSb8zZbxsNoFfCC5SyW9iJKEA3y7HA__zU9oqpA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+Em Fri, 4 Jan 2013 01:02:02 +0530
+Manu Abraham <abraham.manu@gmail.com> escreveu:
 
-On Thu, Jan 24, 2013 at 04:31:26PM +0100, Kamil Debski wrote:
-> Hi,
+> On Fri, Jan 4, 2013 at 12:57 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+> > Em Fri, 4 Jan 2013 00:39:25 +0530
+> > Manu Abraham <abraham.manu@gmail.com> escreveu:
+> >
+> >> Hi Antti,
+> >>
+> >> On Thu, Jan 3, 2013 at 9:04 PM, Antti Palosaari <crope@iki.fi> wrote:
+> >> > On 01/01/2013 06:48 PM, Manu Abraham wrote:
+> >> >>
+> >> >> On Tue, Jan 1, 2013 at 8:30 PM, Mauro Carvalho Chehab
+> >> >> <mchehab@redhat.com> wrote:
+> >> >>
+> >> >>> [RFCv4] dvb: Add DVBv5 properties for quality parameters
+> >> >>>
+> >> >>> The DVBv3 quality parameters are limited on several ways:
+> >> >>>          - Doesn't provide any way to indicate the used measure;
+> >> >>>          - Userspace need to guess how to calculate the measure;
+> >> >>>          - Only a limited set of stats are supported;
+> >> >>>          - Doesn't provide QoS measure for the OFDM TPS/TMCC
+> >> >>>            carriers, used to detect the network parameters for
+> >> >>>            DVB-T/ISDB-T;
+> >> >>>          - Can't be called in a way to require them to be filled
+> >> >>>            all at once (atomic reads from the hardware), with may
+> >> >>>            cause troubles on interpreting them on userspace;
+> >> >>>          - On some OFDM delivery systems, the carriers can be
+> >> >>>            independently modulated, having different properties.
+> >> >>>            Currently, there's no way to report per-layer stats;
+> >> >>
+> >> >>
+> >> >> per layer stats is a mythical bird, nothing of that sort does exist. If
+> >> >> some
+> >> >> driver states that it is simply due to lack of knowledge at the coding
+> >> >> side.
+> >> >>
+> >> >> ISDB-T uses hierarchial modulation, just like DVB-S2 or DVB-T2
+> >> >
+> >> >
+> >> > Manu, you confused now two concept (which are aimed to resolve same real
+> >> > life problem) - hierarchical coding and multiple transport stream. Both are
+> >> > quite similar on lower level of radio channel, but differs on upper levels.
+> >> >
+> >> > Hierarchical is a little bit weird baby as it remuxes those lower lever
+> >> > radio channels (called layers in case of ISDB-T) to one single mux!
+> >>
+> >> That is not really correct. There is one single OFDM channel, the layers
+> >> are processed via hierarchial separation. Stuffing exists, to maintain
+> >> constant rate.
+> >>
+> >> http://farm9.staticflickr.com/8077/8343296328_e1e375b519_b_d.jpg
+> >>
+> >> When rate is constant within the same channel..
+> >> (The only case what I can think parameters could be different with a
+> >> constant rate,
+> >> is that stuffing frames are unaccounted for. Most likely a bug ?)
+> >
+> > What did you smoke? That picture has nothing to do with ISDB!
+> >
 > 
-> > From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> > Sent: Thursday, January 24, 2013 1:51 PM
-> > 
-> > Hi Kamil,
-> > 
-> > Thanks for the patch.
-> > 
-> > On Thursday 24 January 2013 13:35:07 Kamil Debski wrote:
-> > > Set proper timestamp type in drivers that I am sure that use either
-> > > MONOTONIC or COPY timestamps. Other drivers will correctly report
-> > > UNKNOWN timestamp type instead of assuming that all drivers use
-> > > monotonic timestamps.
-> > 
-> > I've replied to 2/3 before seeing this patch, sorry (although the reply
-> > is still valid from a bisection point of view).
+> ARIB STD – B31
+> Version 1.6-E2
+> －17－
+> Fig. 3-2 shows the basic configuration of the channel coding.
 > 
-> Ok, it might be a good idea to squash these two patches.
-> 
-> > 
-> > Do you have a list of those other drivers using vb2 that will report an
-> > unknown timestamp type ?
-> 
-> Here are the drivers:
-> 
-> drivers/media/platform/coda.c
-> drivers/media/platform/exynos-gsc/gsc-m2m.c
-> drivers/media/platform/m2m-deinterlace.c
-> drivers/media/platform/marvell-ccic/mcam-core.c
-> drivers/media/platform/mem2mem_testdev.c
-> drivers/media/platform/mx2_emmaprp.c
-> drivers/media/platform/s5p-fimc/fimc-m2m.c
-> drivers/media/platform/s5p-g2d/g2d.c
-> drivers/media/platform/s5p-jpeg/jpeg-core.c
-> drivers/media/platform/s5p-tv/mixer_video.c
-> 
-> These drivers do not fill the timestamp field at all.
+> It just shows, you understand crap.
 
-I wonder what should we do to those. Based on a quick look, only mcam-core.c
-and s5p-tv/mixer_video.c seem not to be mem-to-mem devices. So the rest
-should be COPY, I presume. At least the one I checked seem to have 1:1 ratio
-between output and capture buffers.
+That is the picture you need to look, not the random one you picked.
+It clearly shows there that, after the hierarchical coding done by
+the "Division of TS into hierarchical levels", the TS packets are
+split into 3 independent channels, each with its own convolutional
+coding, carrier modulation, etc.
 
-I know you didn't break them; they were already broken... But I don't think
-it'd be that big task to fix them either. Now that your patchset introduces
-the COPY timestamp it'd be nice to see it being properly used, rather than
-letting applications see lots of UNKNOWN timestamps again. Do you think you
-could have time for that?
+This picture shows how each program is split at the FDM sub-carriers:
+	http://en.wikipedia.org/wiki/File:ISDB-T_CH_Seg_Prog_allocation.jpg.svg
 
--- 
-Kind regards,
+There, LD programs are at segment 0 (S0). HD programs use 12 segments
+and SD programs use 4 segments.
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+As each segment group has a different spectrum (as they're using FDM),
+and are modulated with different encoding schemas (modulation type, FEC,
+etc), they have different QoS measures.
+
+Segment 0 (the one at the center of the spectrum) is less sensitive to
+inter-channel interference. That's why it is used for LD programs.
+
+
+Cheers,
+Mauro
