@@ -1,79 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f45.google.com ([209.85.160.45]:49063 "EHLO
-	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754902Ab3AYKEQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jan 2013 05:04:16 -0500
-Received: by mail-pb0-f45.google.com with SMTP id rq13so127905pbb.32
-        for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 02:04:15 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	devicetree-discuss@lists.ozlabs.org
-Cc: k.debski@samsung.com, inki.dae@samsung.com,
-	sachin.kamat@linaro.org, ajaykumar.rs@samsung.com,
-	patches@linaro.org, s.nawrocki@samsung.com
-Subject: [PATCH 1/2] [media] s5p-g2d: Add DT based discovery support
-Date: Fri, 25 Jan 2013 15:25:21 +0530
-Message-Id: <1359107722-9974-1-git-send-email-sachin.kamat@linaro.org>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3562 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754151Ab3ACVkX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 16:40:23 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id r03LeIJF021108
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Thu, 3 Jan 2013 22:40:21 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 54502168A0266
+	for <linux-media@vger.kernel.org>; Thu,  3 Jan 2013 22:40:17 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130103214017.54502168A0266@alastor.dyndns.org>
+Date: Thu,  3 Jan 2013 22:40:17 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds device tree based discovery support to G2D driver
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/platform/s5p-g2d/g2d.c |   17 ++++++++++++++++-
- 1 files changed, 16 insertions(+), 1 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
-index 7e41529..210e142 100644
---- a/drivers/media/platform/s5p-g2d/g2d.c
-+++ b/drivers/media/platform/s5p-g2d/g2d.c
-@@ -18,6 +18,7 @@
- #include <linux/slab.h>
- #include <linux/clk.h>
- #include <linux/interrupt.h>
-+#include <linux/of.h>
- 
- #include <linux/platform_device.h>
- #include <media/v4l2-mem2mem.h>
-@@ -796,7 +797,8 @@ static int g2d_probe(struct platform_device *pdev)
- 	}
- 
- 	def_frame.stride = (def_frame.width * def_frame.fmt->depth) >> 3;
--	dev->variant = g2d_get_drv_data(pdev);
-+	if (!pdev->dev.of_node)
-+		dev->variant = g2d_get_drv_data(pdev);
- 
- 	return 0;
- 
-@@ -844,6 +846,18 @@ static struct g2d_variant g2d_drvdata_v4x = {
- 	.hw_rev = TYPE_G2D_4X, /* Revision 4.1 for Exynos4X12 and Exynos5 */
- };
- 
-+static const struct of_device_id exynos_g2d_match[] = {
-+	{
-+		.compatible = "samsung,g2d-v3",
-+		.data = &g2d_drvdata_v3x,
-+	}, {
-+		.compatible = "samsung,g2d-v41",
-+		.data = &g2d_drvdata_v4x,
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, exynos_g2d_match);
-+
- static struct platform_device_id g2d_driver_ids[] = {
- 	{
- 		.name = "s5p-g2d",
-@@ -863,6 +877,7 @@ static struct platform_driver g2d_pdrv = {
- 	.driver		= {
- 		.name = G2D_NAME,
- 		.owner = THIS_MODULE,
-+		.of_match_table = of_match_ptr(exynos_g2d_match),
- 	},
- };
- 
--- 
-1.7.4.1
+date:        Thu Jan  3 19:00:18 CET 2013
+git hash:    8cd7085ff460ead3aba6174052a408f4ad52ac36
+gcc version:      i686-linux-gcc (GCC) 4.7.1
+host hardware:    x86_64
+host os:          3.4.07-marune
 
+linux-git-arm-eabi-davinci: WARNINGS
+linux-git-arm-eabi-exynos: OK
+linux-git-arm-eabi-omap: ERRORS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-i686: WARNINGS
+linux-2.6.37-i686: WARNINGS
+linux-2.6.38.2-i686: WARNINGS
+linux-2.6.39.1-i686: WARNINGS
+linux-3.0-i686: WARNINGS
+linux-3.1-i686: WARNINGS
+linux-3.2.1-i686: WARNINGS
+linux-3.3-i686: WARNINGS
+linux-3.4-i686: WARNINGS
+linux-3.5-i686: WARNINGS
+linux-3.6-i686: WARNINGS
+linux-3.7-i686: WARNINGS
+linux-3.8-rc1-i686: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-x86_64: WARNINGS
+linux-2.6.37-x86_64: WARNINGS
+linux-2.6.38.2-x86_64: WARNINGS
+linux-2.6.39.1-x86_64: WARNINGS
+linux-3.0-x86_64: WARNINGS
+linux-3.1-x86_64: WARNINGS
+linux-3.2.1-x86_64: WARNINGS
+linux-3.3-x86_64: WARNINGS
+linux-3.4-x86_64: WARNINGS
+linux-3.5-x86_64: WARNINGS
+linux-3.6-x86_64: WARNINGS
+linux-3.7-x86_64: WARNINGS
+linux-3.8-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
