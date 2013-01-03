@@ -1,98 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([46.65.169.142]:34581 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754413Ab3A2MTe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jan 2013 07:19:34 -0500
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 5/5] [media] redrat3: fix transmit return value and overrun
-Date: Tue, 29 Jan 2013 12:19:31 +0000
-Message-Id: <1359461971-27492-5-git-send-email-sean@mess.org>
-In-Reply-To: <1359461971-27492-1-git-send-email-sean@mess.org>
-References: <1359461971-27492-1-git-send-email-sean@mess.org>
+Received: from na3sys009aog129.obsmtp.com ([74.125.149.142]:60316 "EHLO
+	na3sys009aog129.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753815Ab3ACT1V convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Jan 2013 14:27:21 -0500
+From: Albert Wang <twang13@marvell.com>
+To: Nicolas THERY <nicolas.thery@st.com>
+CC: Jonathan Corbet <corbet@lwn.net>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Date: Thu, 3 Jan 2013 11:27:11 -0800
+Subject: RE: [PATCH V3 03/15] [media] marvell-ccic: add clock tree support
+ for marvell-ccic driver
+Message-ID: <477F20668A386D41ADCC57781B1F70430D13EA8B26@SC-VEXCH1.marvell.com>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+ <1355565484-15791-4-git-send-email-twang13@marvell.com>
+ <20121216090305.13e6bca1@hpe.lwn.net>
+ <477F20668A386D41ADCC57781B1F70430D13C8CCDE@SC-VEXCH1.marvell.com>
+ <50E5C1E2.9090204@st.com>
+In-Reply-To: <50E5C1E2.9090204@st.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If more than 127 different lengths are transmitted then the driver causes
-an overrun on sample_lens. Try to send as much as possible and return the
-amount sent.
+Hi, Nicolas
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/redrat3.c | 18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+Thank you for your reminder. :)
 
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index 1800326..1b37fe2 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -195,9 +195,6 @@ struct redrat3_dev {
- 	dma_addr_t dma_in;
- 	dma_addr_t dma_out;
- 
--	/* locks this structure */
--	struct mutex lock;
--
- 	/* rx signal timeout timer */
- 	struct timer_list rx_timeout;
- 	u32 hw_timeout;
-@@ -922,8 +919,7 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
- 		return -EAGAIN;
- 	}
- 
--	if (count > (RR3_DRIVER_MAXLENS * 2))
--		return -EINVAL;
-+	count = min_t(unsigned, count, RR3_MAX_SIG_SIZE - RR3_TX_TRAILER_LEN);
- 
- 	/* rr3 will disable rc detector on transmit */
- 	rr3->det_enabled = false;
-@@ -936,24 +932,22 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
- 	}
- 
- 	for (i = 0; i < count; i++) {
-+		cur_sample_len = redrat3_us_to_len(txbuf[i]);
- 		for (lencheck = 0; lencheck < curlencheck; lencheck++) {
--			cur_sample_len = redrat3_us_to_len(txbuf[i]);
- 			if (sample_lens[lencheck] == cur_sample_len)
- 				break;
- 		}
- 		if (lencheck == curlencheck) {
--			cur_sample_len = redrat3_us_to_len(txbuf[i]);
- 			rr3_dbg(dev, "txbuf[%d]=%u, pos %d, enc %u\n",
- 				i, txbuf[i], curlencheck, cur_sample_len);
--			if (curlencheck < 255) {
-+			if (curlencheck < RR3_DRIVER_MAXLENS) {
- 				/* now convert the value to a proper
- 				 * rr3 value.. */
- 				sample_lens[curlencheck] = cur_sample_len;
- 				curlencheck++;
- 			} else {
--				dev_err(dev, "signal too long\n");
--				ret = -EINVAL;
--				goto out;
-+				count = i - 1;
-+				break;
- 			}
- 		}
- 	}
-@@ -1087,6 +1081,7 @@ static struct rc_dev *redrat3_init_rc_dev(struct redrat3_dev *rr3)
- 	rc->tx_ir = redrat3_transmit_ir;
- 	rc->s_tx_carrier = redrat3_set_tx_carrier;
- 	rc->driver_name = DRIVER_NAME;
-+	rc->rx_resolution = US_TO_NS(2);
- 	rc->map_name = RC_MAP_HAUPPAUGE;
- 
- 	ret = rc_register_device(rc);
-@@ -1202,7 +1197,6 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 			  rr3->bulk_out_buf, ep_out->wMaxPacketSize,
- 			  (usb_complete_t)redrat3_write_bulk_callback, rr3);
- 
--	mutex_init(&rr3->lock);
- 	rr3->udev = udev;
- 
- 	redrat3_reset(rr3);
--- 
-1.8.1
+Happy New Year!
 
+>-----Original Message-----
+>From: Nicolas THERY [mailto:nicolas.thery@st.com]
+>Sent: Friday, 04 January, 2013 01:38
+>To: Albert Wang
+>Cc: Jonathan Corbet; g.liakhovetski@gmx.de; linux-media@vger.kernel.org; Libin Yang
+>Subject: Re: [PATCH V3 03/15] [media] marvell-ccic: add clock tree support for marvell-
+>ccic driver
+>
+>
+>
+>On 2012-12-16 22:51, Albert Wang wrote:
+>[...]
+>>>>
+>>>> +static void mcam_clk_set(struct mcam_camera *mcam, int on)
+>>>> +{
+>>>> +	unsigned int i;
+>>>> +
+>>>> +	if (on) {
+>>>> +		for (i = 0; i < mcam->clk_num; i++) {
+>>>> +			if (mcam->clk[i])
+>>>> +				clk_enable(mcam->clk[i]);
+>>>> +		}
+>>>> +	} else {
+>>>> +		for (i = mcam->clk_num; i > 0; i--) {
+>>>> +			if (mcam->clk[i - 1])
+>>>> +				clk_disable(mcam->clk[i - 1]);
+>>>> +		}
+>>>> +	}
+>>>> +}
+>>>
+>>> A couple of minor comments:
+>>>
+>>> - This function is always called with a constant value for "on".  It would
+>>>   be easier to read (and less prone to unfortunate brace errors) if it
+>>>   were just two functions: mcam_clk_enable() and mcam_clk_disable().
+>>>
+>> [Albert Wang] OK, that's fine to split it to 2 functions. :)
+>>
+>>> - I'd write the second for loop as:
+>>>
+>>> 	for (i = mcal->clk_num - 1; i >= 0; i==) {
+>>>
+>>>   just to match the values used in the other direction and avoid the
+>>>   subscript arithmetic.
+>>>
+>> [Albert Wang] Yes, we can improve it. :)
+>
+>Bewar: i is unsigned so testing i >= 0 will loop forever.
+>
+[Albert Wang] Yes, it looks my original code can work. :)
+>[...]
+
+Thanks
+Albert Wang
+86-21-61092656
