@@ -1,49 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f41.google.com ([74.125.83.41]:42216 "EHLO
-	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753050Ab3AJVWn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 16:22:43 -0500
-Received: by mail-ee0-f41.google.com with SMTP id d41so540868eek.28
-        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 13:22:41 -0800 (PST)
-Message-ID: <50EF311E.4010602@gmail.com>
-Date: Thu, 10 Jan 2013 22:22:38 +0100
-From: Jiri Slaby <jirislaby@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59390 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753047Ab3ACKod (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 05:44:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: DT bindings for subdevices
+Date: Thu, 03 Jan 2013 11:46:01 +0100
+Message-ID: <2733366.zi1OCRLXdc@avalon>
+In-Reply-To: <Pine.LNX.4.64.1301021100130.7829@axis700.grange>
+References: <CA+V-a8uK38_HrYa2ic5soLE=Ge0aK3=PObNCs_xMf=PAzcwBcg@mail.gmail.com> <Pine.LNX.4.64.1301021100130.7829@axis700.grange>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Oliver Schinagl <oliver+list@schinagl.nl>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Johannes Stezenbach <js@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
-	Christoph Pfister <christophpfister@gmail.com>
-Subject: Re: [RFC] Initial scan files troubles and brainstorming
-References: <507FE752.6010409@schinagl.nl> <50D0E7A7.90002@schinagl.nl> <50EAA778.6000307@gmail.com> <50EAC41D.4040403@schinagl.nl> <20130108200149.GB408@linuxtv.org> <50ED3BBB.4040405@schinagl.nl> <20130109084143.5720a1d6@redhat.com> <CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com> <20130109124158.50ddc834@redhat.com> <CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com> <50EF0A4F.1000604@gmail.com> <CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com> <CAOcJUbwya++5nW_MKvGOGbeXCbxFgahu_AWEGBb6TLNx0Pz53A@mail.gmail.com> <CAHFNz9JTGZ1MmFCGqyyP0F4oa6t4048O+EYX50zH2J-axpkGVA@mail.gmail.com> <50EF2155.5060905@schinagl.nl> <CAHFNz9KxaShq=F1ePVbcz1j8jTv3ourn=xHM8kMFE_wiAU5JRA@mail.gmail.com> <50EF256B.8030308@gmail.com> <CAHFNz9KbwzYV_YLY-9StTn0DRV+vvFFhiG6FGcbjQ-EYV5S4wA@mail.gmail.com> <50EF276C.1080101@gmail.com> <CAHFNz9+h0srknbngfhhvqwxzu=iM_fLPOVj8ebschx7EUt8=YA@mail.gmail.com>
-In-Reply-To: <CAHFNz9+h0srknbngfhhvqwxzu=iM_fLPOVj8ebschx7EUt8=YA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/10/2013 09:49 PM, Manu Abraham wrote:
-> On 1/11/13, Jiri Slaby <jirislaby@gmail.com> wrote:
->> On 01/10/2013 09:38 PM, Manu Abraham wrote:
->>> The format can be definitely changed. There's no issue to it.
->>
->> No you cannot. Applications depend on that, it's part of the dvb ABI. If
->> you changed that, you would do the same mistake as Mauro let it flowing
->> through his tree and it was pointed out by Linus in the link you sent...
+Hi,
+
+On Wednesday 02 January 2013 11:19:04 Guennadi Liakhovetski wrote:
+> On Wed, 2 Jan 2013, Prabhakar Lad wrote:
+> > Hi,
+> > 
+> > This is my first step towards DT support for media, Question might be
+> > bit amateur :)
 > 
-> I understand what you are thinking, but that's not exactly about it. The format
-> can simply be updated by adding newer params to it's end, thus not breaking
-> any of the applications.
+> No worries, we're all doing our first steps in this direction right at the
+> moment. These two recent threads should give you an idea as to where we
+> stand atm:
+> 
+> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/58646
+> 
+> and (optionally, to a lesser extent)
+> 
+> http://www.spinics.net/lists/linux-media/index.html#57836
+> 
+> > In the video pipeline there will be external devices (decoders/camera)
+> > connected via i2c, spi, csi. This sub-devices take platform data. So
+> > question is moving ahead and adding DT support for this subdevices how
+> > should this platform data be passed through. Should it be different
+> > properties for different devices.
+> 
+> Mostly, yes.
+> 
+> > For example the mt9t001 sensor takes following platform data:
+> > struct mt9t001_platform_data {
+> > 
+> > 	unsigned int clk_pol:1;
+> 
+> This would presumably be the standard "pclk-sample" property from the
+> first of the above two quoted threads
+> 
+> > 	unsigned int ext_clk;
+> 
+> Is this the frequency? This should be replaced by a phandle, linking to a
+> clock device-tree node, assuming, your platform is implementing the
+> generic clock API. If it isn't yet, not a problem either:-) In either case
+> your sensor driver shall be using the v4l2_clk API to retrieve the clock
+> rate and your camera host driver should be providing a matching v4l2_clk
+> instance and implementing its methods, including retrieving the frequency.
+> 
+> > };
+> > similarly mt9p031 takes following platform data:
+> > 
+> > struct mt9p031_platform_data {
+> > 
+> > 	int (*set_xclk)(struct v4l2_subdev *subdev, int hz);
+> 
+> Not sure what the xclk is, but, presumable, this should be ported to
+> v4l2_clk too.
 
-OK, but that still does not explain why it is requisite to have the data
-along with the sources. There is no problem in updating both the files
-and scandata separately, because it has to be compatible.
+I'm porting the OMAP3 ISP driver to the common clock framework and have ported 
+the mt9p031 driver in the process. I still need to test the patches, I'll then 
+post them.
 
-Also I'm not sure whether adding a column at the end wouldn't break the
-apps.
+> > 	int reset;
+> 
+> This is a GPIO number, used to reset the chip. You should use a property,
+> probably, calling it "reset-gpios", specifying the desired GPIO.
+> 
+> > 	int ext_freq;
+> > 	int target_freq;
+> 
+> Presumably, ext_freq should be retrieved, using v4l2_clk_get_rate() and
+> target_freq could be a proprietary property of your device.
+> 
+> Thanks
+> Guennadi
+> 
+> > };
+> > 
+> > should this all be individual properties ?
 
 -- 
-js
+Regards,
+
+Laurent Pinchart
+
