@@ -1,57 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:49170 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753392Ab3ACPpW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 10:45:22 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MG2001EF3RJLA20@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 Jan 2013 00:45:21 +0900 (KST)
-Received: from amdc1344.digital.local ([106.116.147.32])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MG2002B73RD7GA0@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 Jan 2013 00:45:21 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 1/5] s5p-fimc: Avoid possible NULL pointer dereference in
- set_fmt op
-Date: Thu, 03 Jan 2013 16:45:06 +0100
-Message-id: <1357227910-28870-1-git-send-email-s.nawrocki@samsung.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39132 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753073Ab3ACKFm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 05:05:42 -0500
+Date: Thu, 3 Jan 2013 10:00:27 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Dan Carpenter <error27@gmail.com>,
+	Sergei Shtylyov <sshtylyov@mvista.com>,
+	kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH RESEND 6/6] clk: s5p-g2d: Fix incorrect usage of
+	IS_ERR_OR_NULL
+Message-ID: <20130103100027.GK2631@n2100.arm.linux.org.uk>
+References: <1355852048-23188-1-git-send-email-linux@prisktech.co.nz> <1355852048-23188-7-git-send-email-linux@prisktech.co.nz> <50D62BC9.9010706@mvista.com> <50E32C06.5020104@gmail.com> <CA+_b7DK2zbBzbCh15ikEAeGP5h-V9gQ_YcX15O-RNvWxCk8Zfg@mail.gmail.com> <1357104713.30504.8.camel@gitbox> <20130103090520.GC7247@mwanda> <alpine.DEB.2.02.1301031010400.1989@hadrien>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.02.1301031010400.1989@hadrien>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixes following issue found with a static analysis tool:
-Pointer 'ffmt' returned from call to function 'fimc_capture_try_format'
-at line 1522 may be NULL and may be dereferenced at line 1535.
+On Thu, Jan 03, 2013 at 10:14:13AM +0100, Julia Lawall wrote:
+> On Thu, 3 Jan 2013, Dan Carpenter wrote:
+> 
+> > On Wed, Jan 02, 2013 at 06:31:53PM +1300, Tony Prisk wrote:
+> > > On Wed, 2013-01-02 at 08:10 +0300, Dan Carpenter wrote:
+> > > > clk_get() returns NULL if CONFIG_HAVE_CLK is disabled.
+> > > >
+> > > > I told Tony about this but everyone has been gone with end of year
+> > > > holidays so it hasn't been addressed.
+> > > >
+> > > > Tony, please fix it so people don't apply these patches until
+> > > > clk_get() is updated to not return NULL.  It sucks to have to revert
+> > > > patches.
+> > > >
+> > > > regards,
+> > > > dan carpenter
+> > >
+> > > I posted the query to Mike Turquette, linux-kernel and linux-arm-kernel
+> > > mailing lists, regarding the return of NULL when HAVE_CLK is undefined.
+> > >
+> > > Short Answer: A return value of NULL is valid and not an error therefore
+> > > we should be using IS_ERR, not IS_ERR_OR_NULL on clk_get results.
+> > >
+> > > I see the obvious problem this creates, and asked this question:
+> > >
+> > > If the driver can't operate with a NULL clk, it should use a
+> > > IS_ERR_OR_NULL test to test for failure, rather than IS_ERR.
+> > >
+> > >
+> > > And Russell's answer:
+> > >
+> > > Why should a _consumer_ of a clock care?  It is _very_ important that
+> > > people get this idea - to a consumer, the struct clk is just an opaque
+> > > cookie.  The fact that it appears to be a pointer does _not_ mean that
+> > > the driver can do any kind of dereferencing on that pointer - it should
+> > > never do so.
+> > >
+> > > Thread can be viewed here:
+> > > https://lkml.org/lkml/2012/12/20/105
+> > >
+> >
+> > Ah.  Grand.  Thanks...
+> >
+> > Btw. The documentation for clk_get() really should include some of
+> > this information.  I know Russell thinks that the driver authors are
+> > stupid and lazy, and it's probably true.  But if everyone makes the
+> > same mistake over and over, then it probably means we could put a
+> > special note:
+> >
+> > "Do not check this with IS_ERR_OR_NULL().  Null values are not an
+> > error.  Drivers should treat the return value as an opaque cookie
+> > and they should not dereference it."
+> >
+> > This is probably there in the file somewhere else, but I searched
+> > for "opaque", "cookie", and "dereference" and I didn't find
+> > anything.  I'm not saying the documentation isn't perfect, just that
+> > driver authors are lazy and stupid but we can't kill them so we have
+> > to live with them.
+> 
+> I still think it would also be helpful for the definition that returns
+> NULL to have some documentation associated with it.  Having a feature
+> disabled and then trying to use the feature could reasonably considered to
+> lead to a failure, so it is not obvious what the NULL represents.
 
-Although it shouldn't happen in practice, add the NULL pointer check
-to be on the safe side.
-
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-capture.c |    4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
-index 95e6a78..aad0850 100644
---- a/drivers/media/platform/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
-@@ -1561,5 +1561,9 @@ static int fimc_subdev_set_fmt(struct v4l2_subdev *sd,
- 		*mf = fmt->format;
- 		return 0;
- 	}
-+	/* There must be a bug in the driver if this happens */
-+	if (WARN_ON(ffmt == NULL))
-+		return -EINVAL;
-+
- 	/* Update RGB Alpha control state and value range */
- 	fimc_alpha_ctrl_update(ctx);
-
---
-1.7.9.5
+/**
+ * clk_get - lookup and obtain a reference to a clock producer.
+ * @dev: device for clock "consumer"
+ * @id: clock consumer ID
+ *
+ * Returns a struct clk corresponding to the clock producer, or
+ * valid IS_ERR() condition containing errno.  The implementation
+ * uses @dev and @id to determine the clock consumer, and thereby
+ * the clock producer.  (IOW, @id may be identical strings, but
+ * clk_get may return different clock producers depending on @dev.)
+ *
+ * Drivers must assume that the clock source is not enabled.
+ *
+ * clk_get should not be called from within interrupt context.
+ */
 
