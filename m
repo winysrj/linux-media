@@ -1,55 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31193 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754776Ab3AJUh7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 15:37:59 -0500
-Date: Thu, 10 Jan 2013 18:37:18 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Oliver Schinagl <oliver+list@schinagl.nl>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Jiri Slaby <jirislaby@gmail.com>,
-	Johannes Stezenbach <js@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
-	Christoph Pfister <christophpfister@gmail.com>
-Subject: Re: [RFC] Initial scan files troubles and brainstorming
-Message-ID: <20130110183718.735fe71d@redhat.com>
-In-Reply-To: <CAHFNz9KxaShq=F1ePVbcz1j8jTv3ourn=xHM8kMFE_wiAU5JRA@mail.gmail.com>
-References: <507FE752.6010409@schinagl.nl>
-	<50D0E7A7.90002@schinagl.nl>
-	<50EAA778.6000307@gmail.com>
-	<50EAC41D.4040403@schinagl.nl>
-	<20130108200149.GB408@linuxtv.org>
-	<50ED3BBB.4040405@schinagl.nl>
-	<20130109084143.5720a1d6@redhat.com>
-	<CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com>
-	<20130109124158.50ddc834@redhat.com>
-	<CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com>
-	<50EF0A4F.1000604@gmail.com>
-	<CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com>
-	<CAOcJUbwya++5nW_MKvGOGbeXCbxFgahu_AWEGBb6TLNx0Pz53A@mail.gmail.com>
-	<CAHFNz9JTGZ1MmFCGqyyP0F4oa6t4048O+EYX50zH2J-axpkGVA@mail.gmail.com>
-	<50EF2155.5060905@schinagl.nl>
-	<CAHFNz9KxaShq=F1ePVbcz1j8jTv3ourn=xHM8kMFE_wiAU5JRA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39131 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752987Ab3ACKFd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 05:05:33 -0500
+Date: Thu, 3 Jan 2013 10:00:01 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Tony Prisk <linux@prisktech.co.nz>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Dan Carpenter <error27@gmail.com>,
+	Sergei Shtylyov <sshtylyov@mvista.com>,
+	kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH RESEND 6/6] clk: s5p-g2d: Fix incorrect usage of
+	IS_ERR_OR_NULL
+Message-ID: <20130103100000.GJ2631@n2100.arm.linux.org.uk>
+References: <1355852048-23188-1-git-send-email-linux@prisktech.co.nz> <1355852048-23188-7-git-send-email-linux@prisktech.co.nz> <50D62BC9.9010706@mvista.com> <50E32C06.5020104@gmail.com> <CA+_b7DK2zbBzbCh15ikEAeGP5h-V9gQ_YcX15O-RNvWxCk8Zfg@mail.gmail.com> <1357104713.30504.8.camel@gitbox> <20130103090520.GC7247@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130103090520.GC7247@mwanda>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 11 Jan 2013 01:55:34 +0530
-Manu Abraham <abraham.manu@gmail.com> escreveu:
-
-> On 1/11/13, Oliver Schinagl <oliver+list@schinagl.nl> wrote:
-> >> they can say anything what they want, which makes no sense at all.
-> > Well there are a few apps that do use the initial scanfile tree, but do
-> > not use any of the dvb-apps.
-> >
-> > (tvheadend, kaffeine appearantly, i'm guessing VDR and MythTV aswell?)
+On Thu, Jan 03, 2013 at 12:05:20PM +0300, Dan Carpenter wrote:
+> On Wed, Jan 02, 2013 at 06:31:53PM +1300, Tony Prisk wrote:
+> > Why should a _consumer_ of a clock care?  It is _very_ important that
+> > people get this idea - to a consumer, the struct clk is just an opaque
+> > cookie.  The fact that it appears to be a pointer does _not_ mean that
+> > the driver can do any kind of dereferencing on that pointer - it should
+> > never do so.
+> > 
+> > Thread can be viewed here:
+> > https://lkml.org/lkml/2012/12/20/105
+> > 
 > 
-> Only tvheadend and kaffeine AFAIK. VDR and MythTV have their own formats.
+> Ah.  Grand.  Thanks...
+> 
+> Btw. The documentation for clk_get() really should include some of
+> this information.
 
-Both mplayer and vlc work with the channels-conf files.
+It *does* contain this information.  The problem is that driver authors
+_ARE_ stupid, lazy morons who don't bother to read documentation.
 
-Cheers,
-Mauro
+/**
+ * clk_get - lookup and obtain a reference to a clock producer.
+ * @dev: device for clock "consumer"
+ * @id: clock consumer ID
+ *
+ * Returns a struct clk corresponding to the clock producer, or
+ * valid IS_ERR() condition containing errno.  The implementation
+ * uses @dev and @id to determine the clock consumer, and thereby
+ * the clock producer.  (IOW, @id may be identical strings, but
+ * clk_get may return different clock producers depending on @dev.)
+ *
+ * Drivers must assume that the clock source is not enabled.
+ *
+ * clk_get should not be called from within interrupt context.
+ */
+
