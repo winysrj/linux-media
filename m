@@ -1,35 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([74.50.51.50]:41021 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753850Ab3AVC5X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jan 2013 21:57:23 -0500
-Date: Tue, 22 Jan 2013 02:57:22 +0000 (UTC)
-From: Paul Walmsley <paul@pwsan.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Tony Lindgren <tony@atomide.com>,
-	Mike Turquette <mturquette@linaro.org>,
-	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 0/2] OMAP3 ISP: Simplify clock usage
-In-Reply-To: <4222427.SJZRgZMHGN@avalon>
-Message-ID: <alpine.DEB.2.00.1301220256040.25789@utopia.booyaka.com>
-References: <1357652634-17668-1-git-send-email-laurent.pinchart@ideasonboard.com> <3133387.jv7osGsLR0@avalon> <20130121171812.GJ15361@atomide.com> <4222427.SJZRgZMHGN@avalon>
+Received: from moutng.kundenserver.de ([212.227.17.9]:52922 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753476Ab3ACQd3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 11:33:29 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 133/493] remove use of __devexit_p
+Date: Thu, 3 Jan 2013 16:33:24 +0000
+Cc: Bill Pemberton <wfp5p@virginia.edu>, gregkh@linuxfoundation.org,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	Heungjun Kim <riverful.kim@samsung.com>,
+	David =?utf-8?q?H=C3=A4rdeman?= <david@hardeman.nu>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	mjpeg-users@lists.sourceforge.net,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu> <1353349642-3677-133-git-send-email-wfp5p@virginia.edu>
+In-Reply-To: <1353349642-3677-133-git-send-email-wfp5p@virginia.edu>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201301031633.24214.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 21 Jan 2013, Laurent Pinchart wrote:
+On Monday 19 November 2012, Bill Pemberton wrote:
+> CONFIG_HOTPLUG is going away as an option so __devexit_p is no longer
+> needed.
 
-> OK. The omap3isp patch can go through Paul's tree as well, it won't conflict 
-> with other changes to the driver in this merge window.
-> 
-> Paul, can you take both patches together ? If so I'll send you a pull request.
+I've seen a few cases where __devexit was incorrectly paired with __exit_p().
+Have you checked for those as well? It may be worth removing those at the
+same time.
 
-Yes I'll take them, as long as they won't cause conflicts outside of 
-arch/arm/mach-omap2.  Otherwise the OMAP3 ISP patch should wait until the 
-early v3.9-rc integration fixes timeframe.
-
-
-- Paul
+	Arnd
