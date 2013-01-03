@@ -1,47 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f53.google.com ([209.85.212.53]:54974 "EHLO
-	mail-vb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754865Ab3ADU74 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 15:59:56 -0500
-Received: by mail-vb0-f53.google.com with SMTP id b23so17012594vbz.12
-        for <linux-media@vger.kernel.org>; Fri, 04 Jan 2013 12:59:55 -0800 (PST)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 03/15] em28xx: fix VIDIOC_DBG_G_CHIP_IDENT compliance errors.
-Date: Fri,  4 Jan 2013 15:59:33 -0500
-Message-Id: <1357333186-8466-4-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:52009 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753220Ab3ACN3O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 08:29:14 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH] tvp7002: use devm_kzalloc() instead of kzalloc()
+Date: Thu,  3 Jan 2013 18:52:42 +0530
+Message-Id: <1357219362-9080-4-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1357219362-9080-1-git-send-email-prabhakar.lad@ti.com>
+References: <1357219362-9080-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+I2C drivers can use devm_kzalloc() too in their .probe() methods. Doing so
+simplifies their clean up paths.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index f025440..b71df42 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1403,6 +1403,14 @@ static int vidioc_g_chip_ident(struct file *file, void *priv,
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+---
+ drivers/media/i2c/tvp7002.c |   10 ++--------
+ 1 files changed, 2 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+index fb6a5b5..2d4c86e 100644
+--- a/drivers/media/i2c/tvp7002.c
++++ b/drivers/media/i2c/tvp7002.c
+@@ -1036,7 +1036,7 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
+ 		return -ENODEV;
+ 	}
  
- 	chip->ident = V4L2_IDENT_NONE;
- 	chip->revision = 0;
-+	if (chip->match.type == V4L2_CHIP_MATCH_HOST) {
-+		if (v4l2_chip_match_host(&chip->match))
-+			chip->ident = V4L2_IDENT_NONE;
-+		return 0;
-+	}
-+	if (chip->match.type != V4L2_CHIP_MATCH_I2C_DRIVER &&
-+	    chip->match.type != V4L2_CHIP_MATCH_I2C_ADDR)
-+		return -EINVAL;
+-	device = kzalloc(sizeof(struct tvp7002), GFP_KERNEL);
++	device = devm_kzalloc(&c->dev, sizeof(struct tvp7002), GFP_KERNEL);
  
- 	v4l2_device_call_all(&dev->v4l2_dev, 0, core, g_chip_ident, chip);
+ 	if (!device)
+ 		return -ENOMEM;
+@@ -1088,17 +1088,12 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
+ 			V4L2_CID_GAIN, 0, 255, 1, 0);
+ 	sd->ctrl_handler = &device->hdl;
+ 	if (device->hdl.error) {
+-		int err = device->hdl.error;
+-
+ 		v4l2_ctrl_handler_free(&device->hdl);
+-		kfree(device);
+-		return err;
++		return device->hdl.error;
+ 	}
+ 	v4l2_ctrl_handler_setup(&device->hdl);
+ 
+ found_error:
+-	if (error < 0)
+-		kfree(device);
+ 
+ 	return error;
+ }
+@@ -1120,7 +1115,6 @@ static int tvp7002_remove(struct i2c_client *c)
+ 
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&device->hdl);
+-	kfree(device);
+ 	return 0;
+ }
  
 -- 
-1.7.9.5
+1.7.4.1
 
