@@ -1,100 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46032 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754710Ab3AYM2K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jan 2013 07:28:10 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org, jtp.park@samsung.com,
-	arun.kk@samsung.com, s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-	hverkuil@xs4all.nl, m.szyprowski@samsung.com, pawel@osciak.com
-Subject: Re: [PATCH 0/2 v3] Add proper timestamp types handling in videobuf2
-Date: Fri, 25 Jan 2013 13:28:08 +0100
-Message-ID: <2638149.FJjr4FCfB8@avalon>
-In-Reply-To: <1359109797-12698-1-git-send-email-k.debski@samsung.com>
-References: <1359109797-12698-1-git-send-email-k.debski@samsung.com>
+Received: from mail-ob0-f178.google.com ([209.85.214.178]:55066 "EHLO
+	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752796Ab3ACCxW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 21:53:22 -0500
+Received: by mail-ob0-f178.google.com with SMTP id eh20so13323419obb.37
+        for <linux-media@vger.kernel.org>; Wed, 02 Jan 2013 18:53:21 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <007301cde917$0c97b180$25c71480$%debski@samsung.com>
+References: <1356689908-6866-1-git-send-email-sachin.kamat@linaro.org>
+	<1356689908-6866-2-git-send-email-sachin.kamat@linaro.org>
+	<007301cde917$0c97b180$25c71480$%debski@samsung.com>
+Date: Thu, 3 Jan 2013 08:23:21 +0530
+Message-ID: <CAK9yfHyoq=irmzjyiJnMK_f=-8jiQMKAEEakWLhy8TFKHsE7Jw@mail.gmail.com>
+Subject: Re: [PATCH 2/3] [media] s5p-mfc: Remove redundant 'break'
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	sylvester.nawrocki@gmail.com, patches@linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+Thanks Kamil.
 
-Thanks for the patches.
+I assume you have 'Acked' this patch as well :)
 
-On Friday 25 January 2013 11:29:55 Kamil Debski wrote:
-> Hi,
-> 
-> This is the third version of the patch posted earlier this month.
-> After the discussion a WARN_ON was added to inform if the driver is not
-> setting timestamp type when initialising the videobuf2 queue. Small
-> correction to the documentation was also made and two patche were squashed
-> to avoid problems with bisect.
-> 
-> Also the davinci/vpbe_display.c driver was modified to correctly report the
-> use of MONOTONIC timestamp type.
-
-For the whole series,
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
+On 2 January 2013 23:59, Kamil Debski <k.debski@samsung.com> wrote:
+> Hi Sachin,
+>
+> Thank you for your patch.
+>
 > Best wishes,
+> --
 > Kamil Debski
-> 
-> PS. Below please find the original cover letter.
-> 
-> Hi,
-> 
-> The recent addition of timestamp types (and monotonic timestamp) left some
-> room for improvement. First of all not all drivers use monotonic timestamp.
-> There are for example mem2mem drivers that copy the timestamp from the
-> OUTPUT buffer to the corresponding CAPTURE buffer. Some videobuf2 drivers
-> do not fill the timestamp field altogether (yeah, I can agree that a
-> constant is monotonic, but still...).
-> 
-> Hence, I propose the following change to videobuf2. After applying this
-> patch the default timestamp type is UNKNOWN. It is up to the driver to set
-> the timestamp type to either MONOTONIC or COPY in vb2_queue_init.
-> 
-> This patch also adds setting proper timestamp type value in case of drivers
-> where I determined that type. This list might be missing some drivers, but
-> in these cases it will leave the UNKNOWN type which is a safe assumption.
-> 
-> Best wishes,
-> Kamil Debski
-> 
-> 
-> 
-> Kamil Debski (2):
->   v4l: Define video buffer flag for the COPY timestamp type
->   vb2: Add support for non monotonic timestamps
-> 
->  Documentation/DocBook/media/v4l/io.xml             |    6 ++++++
->  drivers/media/platform/blackfin/bfin_capture.c     |    1 +
->  drivers/media/platform/davinci/vpbe_display.c      |    1 +
->  drivers/media/platform/davinci/vpif_capture.c      |    1 +
->  drivers/media/platform/davinci/vpif_display.c      |    1 +
->  drivers/media/platform/s3c-camif/camif-capture.c   |    1 +
->  drivers/media/platform/s5p-fimc/fimc-capture.c     |    1 +
->  drivers/media/platform/s5p-fimc/fimc-lite.c        |    1 +
->  drivers/media/platform/s5p-mfc/s5p_mfc.c           |    2 ++
->  drivers/media/platform/soc_camera/atmel-isi.c      |    1 +
->  drivers/media/platform/soc_camera/mx2_camera.c     |    1 +
->  drivers/media/platform/soc_camera/mx3_camera.c     |    1 +
->  .../platform/soc_camera/sh_mobile_ceu_camera.c     |    1 +
->  drivers/media/platform/vivi.c                      |    1 +
->  drivers/media/usb/pwc/pwc-if.c                     |    1 +
->  drivers/media/usb/stk1160/stk1160-v4l.c            |    1 +
->  drivers/media/usb/uvc/uvc_queue.c                  |    1 +
->  drivers/media/v4l2-core/videobuf2-core.c           |    8 ++++++--
->  include/media/videobuf2-core.h                     |    1 +
->  include/uapi/linux/videodev2.h                     |    1 +
->  20 files changed, 31 insertions(+), 2 deletions(-)
+> Linux Platform Group
+> Samsung Poland R&D Center
+>
+>> -----Original Message-----
+>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>> owner@vger.kernel.org] On Behalf Of Sachin Kamat
+>> Sent: Friday, December 28, 2012 11:18 AM
+>> To: linux-media@vger.kernel.org
+>> Cc: k.debski@samsung.com; s.nawrocki@samsung.com;
+>> sylvester.nawrocki@gmail.com; sachin.kamat@linaro.org;
+>> patches@linaro.org
+>> Subject: [PATCH 2/3] [media] s5p-mfc: Remove redundant 'break'
+>>
+>> The code returns before this statement. Hence not required.
+>> Silences the following smatch message:
+>> drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c:525
+>> s5p_mfc_set_dec_frame_buffer_v5() info: ignoring unreachable code.
+>>
+>> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+>> ---
+>>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |    1 -
+>>  1 files changed, 0 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+>> b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+>> index bb99d3d..b0f277e 100644
+>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+>> @@ -522,7 +522,6 @@ int s5p_mfc_set_dec_frame_buffer_v5(struct
+>> s5p_mfc_ctx *ctx)
+>>               mfc_err("Unknown codec for decoding (%x)\n",
+>>                       ctx->codec_mode);
+>>               return -EINVAL;
+>> -             break;
+>>       }
+>>       frame_size = ctx->luma_size;
+>>       frame_size_ch = ctx->chroma_size;
+>> --
+>> 1.7.4.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>> in the body of a message to majordomo@vger.kernel.org More majordomo
+>> info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+
+
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+With warm regards,
+Sachin
