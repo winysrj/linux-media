@@ -1,92 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:61553 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755838Ab3AFNPs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 08:15:48 -0500
-Received: by mail-ee0-f44.google.com with SMTP id b47so9082029eek.3
-        for <linux-media@vger.kernel.org>; Sun, 06 Jan 2013 05:15:47 -0800 (PST)
-Message-ID: <50E97900.4060100@gmail.com>
-Date: Sun, 06 Jan 2013 14:15:44 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail-we0-f171.google.com ([74.125.82.171]:48496 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753779Ab3ACS0y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 13:26:54 -0500
+Received: by mail-we0-f171.google.com with SMTP id u3so7541474wey.30
+        for <linux-media@vger.kernel.org>; Thu, 03 Jan 2013 10:26:53 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org, saschasommer@freenet.de,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v3 1/5] em28xx: respect the message size constraints for i2c transfers
+Date: Thu,  3 Jan 2013 19:27:02 +0100
+Message-Id: <1357237626-3358-2-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1357237626-3358-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1357237626-3358-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Tushar Behera <tushar.behera@linaro.org>
-Subject: Re: [GIT PULL FOR 3.9] Exynos SoC media drivers updates
-References: <50E726F4.7060704@samsung.com> <50E96F6D.9080206@gmail.com> <20130106104157.5ffb5f6c@redhat.com> <201301061353.52306.hverkuil@xs4all.nl>
-In-Reply-To: <201301061353.52306.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/06/2013 01:53 PM, Hans Verkuil wrote:
->>>>>> Tomasz Stanislawski (1):
->>>>>>          s5p-tv: mixer: fix handling of VIDIOC_S_FMT
->>>>
->>>> I'll drop this one for now. Devin raised a point: such changes would break
->>>> existing applications.
->>>>
->>>> So, we'll need to revisit this topic before changing the drivers.
->>>>
->>>> Btw, I failed to find the corresponding patch at patchwork:
->>>> 	http://patchwork.linuxtv.org/project/linux-media/list/?state=*&q=VIDIOC_S_FMT
->>>>
->>>> So, its status update may be wrong after flushing your pwclient commands.
->>>
->>> Hmm, I got this patch from Tomasz by e-mail and added it to the pull
->>> request.
->>> I think it wasn't sent to the mailing list, but I noticed it only after
->>> sending you the pull requests, when was preparing the pwclient commands.
->>> I've just posted it now, sorry. The link is here:
->>> http://patchwork.linuxtv.org/patch/16143
->>>
->>> Tomasz created this patch specifically for the purpose of format negotiation
->>> in video pipeline in the application we used to test various scenarios with
->>> DMABUF. I agree this patch has a potential of breaking buggy user space
->>> applications. I can't see other solution for it right now, there seems even
->>> to be no possibility to return some flag in VIDIOC_S_FMT indicating that
->>> format has been modified and is valid, when -EINVAL was returned. This
->>> sounds
->>> ugly anyway, but could ensure backward compatibility for applications that
->>> exppect EINVAL when format has been changed. BTW, I wonder if it is only
->>> fourcc,
->>> or other format parameters as well - like width, height, some applications
->>> expect to get EINVAL when those have changed.
->>
->> The patch makes the driver compliant to v4l-compilance, as its behavior asks
->> for such change, after some discussions we had this year in San Diego. At that
->> time, we all believed that such change were safe.
->>
->> However, we can't do it like proposed there (and on other patches from Hans).
->>
->> The fact is that tvtime and mythtv applications (maybe more) will fail
->> if the returned format is different than the requested ones, as they
->> don't check for the returned value.
->>
->> As no regressions on userspace are allowed, we need to re-discuss this issue.
->>
->> While this doesn't happen, I'll postpone such patches.
->
-> This is a video output device. So this patch will never affect tvtime/mythtv/etc.
-> I have no problem with this change being merged.
+The em2800 can transfer up to 4 bytes per i2c message.
+All other em25xx/em27xx/28xx chips can transfer at least 64 bytes per message.
 
-TBH, I very much doubt anyone would complain in case of this driver. I'm not
-certain if there is complete support for even one board in the mainline 
-kernel,
-likely only Origen A. AFAIK most applications use either Exynos DRM driver,
-that has support for all features available in s5p-tv driver, or 
-framebuffer
-emulation on top of v4l2 output interface (there were in the past RFC 
-patches
-posted for vb2 adding FB emulation) is used. Although I agree with Mauro in
-principle, I think chances of above patch causing any trouble to anyone are
-close to zero.
+I2C adapters should never split messages transferred via the I2C subsystem
+into multiple message transfers, because the result will almost always NOT be
+the same as when the whole data is transferred to the I2C client in a single
+message.
+If the message size exceeds the capabilities of the I2C adapter, -EOPNOTSUPP
+should be returned.
 
---
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-i2c.c |   44 ++++++++++++++-------------------
+ 1 Datei geändert, 18 Zeilen hinzugefügt(+), 26 Zeilen entfernt(-)
 
-Regards,
-Sylwester
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 39c5a3e..b5ea231 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -50,14 +50,18 @@ do {							\
+ } while (0)
+ 
+ /*
+- * em2800_i2c_send_max4()
+- * send up to 4 bytes to the i2c device
++ * em2800_i2c_send_bytes()
++ * send up to 4 bytes to the em2800 i2c device
+  */
+-static int em2800_i2c_send_max4(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
++static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+ {
+ 	int ret;
+ 	int write_timeout;
+ 	u8 b2[6];
++
++	if (len < 1 || len > 4)
++		return -EOPNOTSUPP;
++
+ 	BUG_ON(len < 1 || len > 4);
+ 	b2[5] = 0x80 + len - 1;
+ 	b2[4] = addr;
+@@ -86,29 +90,6 @@ static int em2800_i2c_send_max4(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+ }
+ 
+ /*
+- * em2800_i2c_send_bytes()
+- */
+-static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+-{
+-	u8 *bufPtr = buf;
+-	int ret;
+-	int wrcount = 0;
+-	int count;
+-	int maxLen = 4;
+-	while (len > 0) {
+-		count = (len > maxLen) ? maxLen : len;
+-		ret = em2800_i2c_send_max4(dev, addr, bufPtr, count);
+-		if (ret > 0) {
+-			len -= count;
+-			bufPtr += count;
+-			wrcount += count;
+-		} else
+-			return (ret < 0) ? ret : -EFAULT;
+-	}
+-	return wrcount;
+-}
+-
+-/*
+  * em2800_i2c_check_for_device()
+  * check if there is a i2c_device at the supplied address
+  */
+@@ -150,6 +131,10 @@ static int em2800_i2c_check_for_device(struct em28xx *dev, u8 addr)
+ static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
+ {
+ 	int ret;
++
++	if (len < 1 || len > 4)
++		return -EOPNOTSUPP;
++
+ 	/* check for the device and set i2c read address */
+ 	ret = em2800_i2c_check_for_device(dev, addr);
+ 	if (ret) {
+@@ -176,6 +161,9 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+ 	int wrcount = 0;
+ 	int write_timeout, ret;
+ 
++	if (len < 1 || len > 64)
++		return -EOPNOTSUPP;
++
+ 	wrcount = dev->em28xx_write_regs_req(dev, stop ? 2 : 3, addr, buf, len);
+ 
+ 	/* Seems to be required after a write */
+@@ -197,6 +185,10 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
+ {
+ 	int ret;
++
++	if (len < 1 || len > 64)
++		return -EOPNOTSUPP;
++
+ 	ret = dev->em28xx_read_reg_req_len(dev, 2, addr, buf, len);
+ 	if (ret < 0) {
+ 		em28xx_warn("reading i2c device failed (error=%i)\n", ret);
+-- 
+1.7.10.4
+
