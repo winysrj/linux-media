@@ -1,78 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:15239 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:56218 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752326Ab3AVLQJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 06:16:09 -0500
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0MBG9OY018375
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 06:16:09 -0500
+	id S1753668Ab3ACT2V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Jan 2013 14:28:21 -0500
+Date: Thu, 3 Jan 2013 17:27:35 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 4/7] [media] mb86a20s: fix interleaving and FEC retrival
-Date: Tue, 22 Jan 2013 09:15:30 -0200
-Message-Id: <1358853333-21554-4-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1358853333-21554-1-git-send-email-mchehab@redhat.com>
-References: <1358853333-21554-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+Subject: Re: [PATCH RFCv3] dvb: Add DVBv5 properties for quality parameters
+Message-ID: <20130103172735.0aa1db6d@redhat.com>
+In-Reply-To: <CAHFNz9+-ixyYpAE1egC_s=MSk+t+si-tLTR=T8GK9QoK=vdf5A@mail.gmail.com>
+References: <1356739006-22111-1-git-send-email-mchehab@redhat.com>
+	<CAGoCfix=2-pXmTE149XvwT+f7j1F29L3Q-dse0y_Rc-3LKucsQ@mail.gmail.com>
+	<20130101130041.52dee65f@redhat.com>
+	<CAHFNz9+hwx9Bpd5ZJC5RRchpvYzKUzzKv43PSzDunr403xiOsQ@mail.gmail.com>
+	<50E5A515.4050500@iki.fi>
+	<CAHFNz9+-ixyYpAE1egC_s=MSk+t+si-tLTR=T8GK9QoK=vdf5A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Get the proper bits from the TMCC table registers.
+Em Fri, 4 Jan 2013 00:39:25 +0530
+Manu Abraham <abraham.manu@gmail.com> escreveu:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-frontends/mb86a20s.c | 22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+> Hi Antti,
+> 
+> On Thu, Jan 3, 2013 at 9:04 PM, Antti Palosaari <crope@iki.fi> wrote:
+> > On 01/01/2013 06:48 PM, Manu Abraham wrote:
+> >>
+> >> On Tue, Jan 1, 2013 at 8:30 PM, Mauro Carvalho Chehab
+> >> <mchehab@redhat.com> wrote:
+> >>
+> >>> [RFCv4] dvb: Add DVBv5 properties for quality parameters
+> >>>
+> >>> The DVBv3 quality parameters are limited on several ways:
+> >>>          - Doesn't provide any way to indicate the used measure;
+> >>>          - Userspace need to guess how to calculate the measure;
+> >>>          - Only a limited set of stats are supported;
+> >>>          - Doesn't provide QoS measure for the OFDM TPS/TMCC
+> >>>            carriers, used to detect the network parameters for
+> >>>            DVB-T/ISDB-T;
+> >>>          - Can't be called in a way to require them to be filled
+> >>>            all at once (atomic reads from the hardware), with may
+> >>>            cause troubles on interpreting them on userspace;
+> >>>          - On some OFDM delivery systems, the carriers can be
+> >>>            independently modulated, having different properties.
+> >>>            Currently, there's no way to report per-layer stats;
+> >>
+> >>
+> >> per layer stats is a mythical bird, nothing of that sort does exist. If
+> >> some
+> >> driver states that it is simply due to lack of knowledge at the coding
+> >> side.
+> >>
+> >> ISDB-T uses hierarchial modulation, just like DVB-S2 or DVB-T2
+> >
+> >
+> > Manu, you confused now two concept (which are aimed to resolve same real
+> > life problem) - hierarchical coding and multiple transport stream. Both are
+> > quite similar on lower level of radio channel, but differs on upper levels.
+> >
+> > Hierarchical is a little bit weird baby as it remuxes those lower lever
+> > radio channels (called layers in case of ISDB-T) to one single mux!
+> 
+> That is not really correct. There is one single OFDM channel, the layers
+> are processed via hierarchial separation. Stuffing exists, to maintain
+> constant rate.
+> 
+> http://farm9.staticflickr.com/8077/8343296328_e1e375b519_b_d.jpg
+> 
+> When rate is constant within the same channel..
+> (The only case what I can think parameters could be different with a
+> constant rate,
+> is that stuffing frames are unaccounted for. Most likely a bug ?)
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index 40c6183..8f4fff1 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -413,7 +413,7 @@ static int mb86a20s_get_modulation(struct mb86a20s_state *state,
- 	rc = mb86a20s_readreg(state, 0x6e);
- 	if (rc < 0)
- 		return rc;
--	switch ((rc & 0x70) >> 4) {
-+	switch ((rc >> 4) & 0x07) {
- 	case 0:
- 		return DQPSK;
- 	case 1:
-@@ -446,7 +446,7 @@ static int mb86a20s_get_fec(struct mb86a20s_state *state,
- 	rc = mb86a20s_readreg(state, 0x6e);
- 	if (rc < 0)
- 		return rc;
--	switch (rc) {
-+	switch ((rc >> 4) & 0x07) {
- 	case 0:
- 		return FEC_1_2;
- 	case 1:
-@@ -481,9 +481,21 @@ static int mb86a20s_get_interleaving(struct mb86a20s_state *state,
- 	rc = mb86a20s_readreg(state, 0x6e);
- 	if (rc < 0)
- 		return rc;
--	if (rc > 3)
--		return -EINVAL;	/* Not used */
--	return rc;
-+
-+	switch ((rc >> 4) & 0x07) {
-+	case 1:
-+		return GUARD_INTERVAL_1_4;
-+	case 2:
-+		return GUARD_INTERVAL_1_8;
-+	case 3:
-+		return GUARD_INTERVAL_1_16;
-+	case 4:
-+		return GUARD_INTERVAL_1_32;
-+
-+	default:
-+	case 0:
-+		return GUARD_INTERVAL_AUTO;
-+	}
- }
- 
- static int mb86a20s_get_segment_count(struct mb86a20s_state *state,
--- 
-1.7.11.7
+What did you smoke? That picture has nothing to do with ISDB!
 
+ISDB not only does hierarchical split. It also splits the OFDM carriers
+into 3 layers, each layer with its own modulation, guard interval, inner
+FEC, etc. Each of those layers behave as an independent channel,
+providing different bit rates.
+
+
+Cheers,
+Mauro
