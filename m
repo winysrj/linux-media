@@ -1,526 +1,482 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26407 "EHLO mx1.redhat.com"
+Received: from 7of9.schinagl.nl ([88.159.158.68]:37591 "EHLO 7of9.schinagl.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755882Ab3AOCbe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jan 2013 21:31:34 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0F2VYBk014222
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 14 Jan 2013 21:31:34 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv10 04/15] mb86a20s: Update QoS statistics at FE read_status
-Date: Tue, 15 Jan 2013 00:30:50 -0200
-Message-Id: <1358217061-14982-5-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	id S1753052Ab3ACPRs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Jan 2013 10:17:48 -0500
+Message-ID: <50E5A116.9070307@schinagl.nl>
+Date: Thu, 03 Jan 2013 16:17:42 +0100
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: thomas.schorpp@gmail.com
+CC: linux-media@vger.kernel.org, j@jannau.net, jarod@redhat.com
+Subject: Re: [BUG] crystalhd git.linuxtv.org kernel driver: unable to handle
+ kernel paging requests, improper (spin)locking(?) and paging
+References: <50E3E643.7070701@gmail.com>
+In-Reply-To: <50E3E643.7070701@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of providing separate callbacks to read the several FE
-status properties, the better seems to use just one method that will:
+I actually am one of the few that has one of those decoders so should be 
+able to test things when needed. Just let me know what to test and I 
+will try to comply
 
-    - Read lock status;
-    - Read signal strength;
-    - if locked, get TMCC data;
-    - if locked, get DVB status.
-
-As the DVB frontend thread will call this method on every 3 seconds,
-all QoS data will be updated together, with is a good thing.
-
-It also prevents userspace to generate undesired I2C traffic.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-frontends/mb86a20s.c | 372 +++++++++++++++++++++++++++++----
- 1 file changed, 336 insertions(+), 36 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index 4ff3a0c..0f8d9bc 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -43,6 +43,12 @@ struct mb86a20s_state {
- 	struct dvb_frontend frontend;
- 
- 	bool need_init;
-+
-+	/*
-+	 * QoS measure flags to be used to know when it is possible to
-+	 * artificially generate a "global" measure, based on all 3 layers
-+	 */
-+	bool read_ber[3];
- };
- 
- struct regdata {
-@@ -92,7 +98,7 @@ static struct regdata mb86a20s_init[] = {
- 	{ 0x04, 0x13 }, { 0x05, 0xff },
- 	{ 0x04, 0x15 }, { 0x05, 0x4e },
- 	{ 0x04, 0x16 }, { 0x05, 0x20 },
--	{ 0x52, 0x01 },
-+	{ 0x52, 0x01 },				/* Turn on BER before Viterbi */
- 	{ 0x50, 0xa7 }, { 0x51, 0xff },
- 	{ 0x50, 0xa8 }, { 0x51, 0xff },
- 	{ 0x50, 0xa9 }, { 0x51, 0xff },
-@@ -117,8 +123,8 @@ static struct regdata mb86a20s_init[] = {
- 	{ 0x50, 0xb6 }, { 0x51, 0xff },
- 	{ 0x50, 0xb7 }, { 0x51, 0xff },
- 	{ 0x50, 0x50 }, { 0x51, 0x02 },
--	{ 0x50, 0x51 }, { 0x51, 0x04 },
--	{ 0x45, 0x04 },
-+	{ 0x50, 0x51 }, { 0x51, 0x04 },		/* MER symbol 4 */
-+	{ 0x45, 0x04 },				/* CN symbol 4 */
- 	{ 0x48, 0x04 },
- 	{ 0x50, 0xd5 }, { 0x51, 0x01 },		/* Serial */
- 	{ 0x50, 0xd6 }, { 0x51, 0x1f },
-@@ -174,6 +180,20 @@ static struct regdata mb86a20s_reset_reception[] = {
- 	{ 0x08, 0x00 },
- };
- 
-+static struct regdata mb86a20s_vber_reset[] = {
-+	{ 0x53, 0x00 },	/* VBER Counter reset */
-+	{ 0x53, 0x07 },
-+};
-+
-+static struct regdata mb86a20s_clear_stats[] = {
-+	{ 0x5f, 0x00 },	/* SBER Counter reset */
-+	{ 0x5f, 0x07 },
-+
-+	{ 0x50, 0xb1 },	/* PBER Counter reset */
-+	{ 0x51, 0x07 },
-+	{ 0x51, 0x01 },
-+};
-+
- static int mb86a20s_i2c_writereg(struct mb86a20s_state *state,
- 			     u8 i2c_addr, int reg, int data)
- {
-@@ -221,7 +241,7 @@ static int mb86a20s_i2c_readreg(struct mb86a20s_state *state,
- 
- 	if (rc != 2) {
- 		rc("%s: reg=0x%x (error=%d)\n", __func__, reg, rc);
--		return rc;
-+		return (rc < 0) ? rc : -EIO;
- 	}
- 
- 	return val;
-@@ -276,59 +296,61 @@ err:
- 	return rc;
- }
- 
--static int mb86a20s_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
-+static int mb86a20s_read_signal_strength(struct dvb_frontend *fe)
- {
- 	struct mb86a20s_state *state = fe->demodulator_priv;
-+	int rc;
- 	unsigned rf_max, rf_min, rf;
--	u8	 val;
--
--	dprintk("\n");
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
- 
- 	/* Does a binary search to get RF strength */
- 	rf_max = 0xfff;
- 	rf_min = 0;
- 	do {
- 		rf = (rf_max + rf_min) / 2;
--		mb86a20s_writereg(state, 0x04, 0x1f);
--		mb86a20s_writereg(state, 0x05, rf >> 8);
--		mb86a20s_writereg(state, 0x04, 0x20);
--		mb86a20s_writereg(state, 0x04, rf);
-+		rc = mb86a20s_writereg(state, 0x04, 0x1f);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x05, rf >> 8);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x04, 0x20);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x04, rf);
-+		if (rc < 0)
-+			return rc;
- 
--		val = mb86a20s_readreg(state, 0x02);
--		if (val & 0x08)
-+		rc = mb86a20s_readreg(state, 0x02);
-+		if (rc < 0)
-+			return rc;
-+		if (rc & 0x08)
- 			rf_min = (rf_max + rf_min) / 2;
- 		else
- 			rf_max = (rf_max + rf_min) / 2;
- 		if (rf_max - rf_min < 4) {
--			*strength = (((rf_max + rf_min) / 2) * 65535) / 4095;
--			break;
-+			rf = (rf_max + rf_min) / 2;
-+
-+			/* Rescale it from 2^12 (4096) to 2^16 */
-+			rf <<= (16 - 12);
-+			dprintk("signal strength = %d\n", rf);
-+			return (rf);
- 		}
- 	} while (1);
- 
--	dprintk("signal strength = %d\n", *strength);
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
--
- 	return 0;
- }
- 
- static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
- {
- 	struct mb86a20s_state *state = fe->demodulator_priv;
--	u8 val;
-+	int val;
- 
- 	dprintk("\n");
- 	*status = 0;
- 
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
- 	val = mb86a20s_readreg(state, 0x0a) & 0xf;
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
-+	if (val < 0)
-+		return val;
- 
- 	if (val >= 2)
- 		*status |= FE_HAS_SIGNAL;
-@@ -530,9 +552,6 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
- 	/* Reset frontend cache to default values */
- 	mb86a20s_reset_frontend_cache(fe);
- 
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
--
- 	/* Check for partial reception */
- 	rc = mb86a20s_writereg(state, 0x6d, 0x85);
- 	if (rc < 0)
-@@ -609,15 +628,295 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
- 			break;
- 		}
- 	}
-+	return 0;
-+
-+error:
-+	/* per-layer info is incomplete; discard all per-layer */
-+	c->isdbt_layer_enabled = 0;
-+
-+	return rc;
-+}
-+
-+static int mb86a20s_reset_counters(struct dvb_frontend *fe)
-+{
-+	struct mb86a20s_state *state = fe->demodulator_priv;
-+	int rc, val, i;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	/* Set the QoS clear status for most stats */
-+
-+	/* BER counter reset */
-+	rc = mb86a20s_writeregdata(state, mb86a20s_vber_reset);
-+	if (rc < 0)
-+		goto err;
-+	for (i = 0; i < 3; i++)
-+		state->read_ber[i] = true;
-+
-+	/* MER, PER counter reset */
-+	rc = mb86a20s_writeregdata(state, mb86a20s_clear_stats);
-+	if (rc < 0)
-+		goto err;
-+
-+	/* CNR counter reset */
-+	rc = mb86a20s_readreg(state, 0x45);
-+	if (rc < 0)
-+		goto err;
-+	val = rc;
-+	rc = mb86a20s_writereg(state, 0x45, val | 0x10);
-+	if (rc < 0)
-+		goto err;
-+	rc = mb86a20s_writereg(state, 0x45, val & 0x6f);
-+	if (rc < 0)
-+		goto err;
-+
-+	/* MER counter reset */
-+	rc = mb86a20s_writereg(state, 0x50, 0x50);
-+	if (rc < 0)
-+		goto err;
-+	rc = mb86a20s_readreg(state, 0x51);
-+	if (rc < 0)
-+		goto err;
-+	val = rc;
-+	rc = mb86a20s_writereg(state, 0x51, val | 0x01);
-+	if (rc < 0)
-+		goto err;
-+	rc = mb86a20s_writereg(state, 0x51, val & 0x06);
-+	if (rc < 0)
-+		goto err;
-+
-+err:
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+	return rc;
-+}
-+
-+static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
-+					  unsigned layer,
-+					  u32 *error, u32 *count)
-+{
-+	struct mb86a20s_state *state = fe->demodulator_priv;
-+	u8 byte[3];
-+	int rc;
-+
-+	if (layer >= 3)
-+		return -EINVAL;
-+
-+	/* Check if the BER measures are already available */
-+	rc = mb86a20s_readreg(state, 0x54);
-+	if (rc < 0)
-+		return rc;
-+
-+	/* Check if data is available for that layer */
-+	if (!(rc & (1 << layer)))
-+		return -EBUSY;
-+
-+	/* Read Bit Error Count */
-+	rc = mb86a20s_readreg(state, 0x55 + layer * 3);
-+	if (rc < 0)
-+		return rc;
-+	byte[0] = rc;
-+	rc = mb86a20s_readreg(state, 0x56 + layer * 3);
-+	if (rc < 0)
-+		return rc;
-+	byte[1] = rc;
-+	rc = mb86a20s_readreg(state, 0x57 + layer * 3);
-+	if (rc < 0)
-+		return rc;
-+	byte[2] = rc;
-+	*error = byte[0] << 16 | byte[1] << 8 | byte[2];
-+
-+	/* Read Bit Count */
-+	rc = mb86a20s_writereg(state, 0x50, 0xa7 + layer * 3);
-+	if (rc < 0)
-+		return rc;
-+	rc = mb86a20s_readreg(state, 0x51);
-+	if (rc < 0)
-+		return rc;
-+	byte[0] = rc;
-+	rc = mb86a20s_writereg(state, 0x50, 0xa8 + layer * 3);
-+	if (rc < 0)
-+		return rc;
-+	rc = mb86a20s_readreg(state, 0x51);
-+	if (rc < 0)
-+		return rc;
-+	byte[1] = rc;
-+	rc = mb86a20s_writereg(state, 0x50, 0xa9 + layer * 3);
-+	if (rc < 0)
-+		return rc;
-+	rc = mb86a20s_readreg(state, 0x51);
-+	if (rc < 0)
-+		return rc;
-+	byte[2] = rc;
-+	*count = byte[0] << 16 | byte[1] << 8 | byte[2];
-+
-+	return rc;
-+}
-+
-+static void mb86a20s_stats_not_ready(struct dvb_frontend *fe)
-+{
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	int i;
-+
-+	/* Fill the length of each status counter */
-+
-+	/* Only global stats */
-+	c->strength.len = 1;
-+
-+	/* Per-layer stats - 3 layers + global */
-+	c->cnr.len = 4;
-+	c->bit_error.len = 4;
-+	c->bit_count.len = 4;
-+	c->block_error.len = 4;
-+	c->block_count.len = 4;
-+
-+	/* Signal is always available */
-+	c->strength.stat[0].scale = FE_SCALE_RELATIVE;
-+	c->strength.stat[0].uvalue = 0;
-+
-+	/* Put all of them at FE_SCALE_NOT_AVAILABLE */
-+	for (i = 0; i < 4; i++) {
-+		c->cnr.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
-+		c->bit_error.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
-+		c->bit_count.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
-+		c->block_error.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
-+		c->block_count.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
-+	}
-+}
-+
-+static int mb86a20s_get_stats(struct dvb_frontend *fe)
-+{
-+	struct mb86a20s_state *state = fe->demodulator_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	int rc = 0, i;
-+	u32 bit_error = 0, bit_count = 0;
-+	u32 t_bit_error = 0, t_bit_count = 0;
-+	int active_layers = 0, ber_layers = 0;
-+
-+	/* Get per-layer stats */
-+	for (i = 0; i < 3; i++) {
-+		if (c->isdbt_layer_enabled & (1 << i)) {
-+			/* Layer is active and has rc segments */
-+			active_layers++;
-+
-+			if (state->read_ber[i]) {
-+				/* Handle BER before vterbi */
-+				rc = mb86a20s_get_ber_before_vterbi(fe, i, &bit_error,
-+								&bit_count);
-+				if (rc >= 0) {
-+					c->bit_error.stat[1 + i].scale = FE_SCALE_COUNTER;
-+					c->bit_error.stat[1 + i].uvalue += bit_error;
-+					c->bit_count.stat[1 + i].scale = FE_SCALE_COUNTER;
-+					c->bit_count.stat[1 + i].uvalue += bit_count;
-+
-+					state->read_ber[i] = false;
-+				} else if (rc != -EBUSY) {
-+					/*
-+					 * If an I/O error happened,
-+					 * measures are now unavailable
-+					 */
-+					c->bit_error.stat[1 + i].scale = FE_SCALE_NOT_AVAILABLE;
-+					c->bit_count.stat[1 + i].scale = FE_SCALE_NOT_AVAILABLE;
-+				}
-+			}
-+			if (!state->read_ber[i]) {
-+				/* Update total BER counter */
-+				t_bit_error += c->bit_error.stat[1 + i].uvalue;
-+				t_bit_count += c->bit_count.stat[1 + i].uvalue;
-+
-+				ber_layers++;
-+			}
-+		}
-+	}
-+
-+	if (active_layers == ber_layers) {
-+		/*
-+		 * All BER values are read. We can now calculate the total BER
-+		 * And ask for another BER measure
-+		 *
-+		 * Total Bit Error/Count is calculated as the sum of the
-+		 * bit errors on all active layers.
-+		 */
-+		c->bit_error.stat[0].scale = FE_SCALE_COUNTER;
-+		c->bit_error.stat[0].uvalue += t_bit_error;
-+		c->bit_count.stat[0].scale = FE_SCALE_COUNTER;
-+		c->bit_count.stat[0].uvalue += t_bit_count;
-+
-+		/* Reset counters to collect new data */
-+		rc = mb86a20s_writeregdata(state, mb86a20s_vber_reset);
-+
-+		/* All BER measures need to be collected when ready */
-+		for (i = 0; i < 3; i++)
-+			state->read_ber[i] = true;
-+	}
-+	return rc;
-+}
-+
-+static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
-+					  fe_status_t *status)
-+{
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	int rc;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	/* Get lock */
-+	rc = mb86a20s_read_status(fe, status);
-+	if (!(*status & FE_HAS_LOCK)) {
-+		mb86a20s_stats_not_ready(fe);
-+		mb86a20s_reset_frontend_cache(fe);
-+	}
-+	if (rc < 0)
-+		goto error;
-+
-+	/* Get signal strength */
-+	rc = mb86a20s_read_signal_strength(fe);
-+	if (rc < 0) {
-+		mb86a20s_stats_not_ready(fe);
-+		mb86a20s_reset_frontend_cache(fe);
-+		goto error;
-+	}
-+	/* Fill signal strength */
-+	c->strength.stat[0].uvalue = rc;
-+
-+	if (*status & FE_HAS_LOCK) {
-+		/* Get TMCC info*/
-+		rc = mb86a20s_get_frontend(fe);
-+		if (rc < 0)
-+			goto error;
-+
-+		/* Get QoS statistics */
-+		rc = mb86a20s_get_stats(fe);
-+		if (rc < 0)
-+			goto error;
-+	}
-+	goto ok;
- 
- error:
-+	mb86a20s_stats_not_ready(fe);
-+
-+ok:
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1);
- 
- 	return rc;
-+}
-+
-+static int mb86a20s_read_signal_strength_from_cache(struct dvb_frontend *fe,
-+						    u16 *strength)
-+{
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 
-+
-+	*strength = c->strength.stat[0].uvalue;
-+
-+	return 0;
- }
- 
-+
- static int mb86a20s_tune(struct dvb_frontend *fe,
- 			bool re_tune,
- 			unsigned int mode_flags,
-@@ -632,7 +931,7 @@ static int mb86a20s_tune(struct dvb_frontend *fe,
- 		rc = mb86a20s_set_frontend(fe);
- 
- 	if (!(mode_flags & FE_TUNE_MODE_ONESHOT))
--		mb86a20s_read_status(fe, status);
-+		mb86a20s_read_status_and_stats(fe, status);
- 
- 	return rc;
- }
-@@ -712,10 +1011,11 @@ static struct dvb_frontend_ops mb86a20s_ops = {
- 
- 	.init = mb86a20s_initfe,
- 	.set_frontend = mb86a20s_set_frontend,
--	.get_frontend = mb86a20s_get_frontend,
--	.read_status = mb86a20s_read_status,
--	.read_signal_strength = mb86a20s_read_signal_strength,
-+	.read_status = mb86a20s_read_status_and_stats,
-+	.read_signal_strength = mb86a20s_read_signal_strength_from_cache,
- 	.tune = mb86a20s_tune,
-+
-+	.reset_qos_counters = mb86a20s_reset_counters,
- };
- 
- MODULE_DESCRIPTION("DVB Frontend module for Fujitsu mb86A20s hardware");
--- 
-1.7.11.7
+On 02-01-13 08:48, thomas schorpp wrote:
+> Hello guys,
+>
+> I'm working on supporting BCM 970012/15 crystalhd decoder in userspace 
+> video/tv apps and
+>
+> can't find where to report bugs of
+>
+> http://git.linuxtv.org/jarod/crystalhd.git
+> <devinheitmueller> I think he just borrowed our git server.
+>
+> So I borrow this list to get more developers, testers and sw- quality 
+> guys in.
+>
+> Forgot to mention the attached Oopses under high load and 
+> "multithreading" in half automated stress/mass testing.
+>
+> Scenario e.g.:
+> Dec 29 15:58:29 vdr1 kernel: [ 5698.364950] crystalhd 0000:02:00.0: 
+> Opening new user[0] handle
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.557932] crystalhd 0000:02:00.0: 
+> Opening new user[0] handle
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.846312] crystalhd 0000:02:00.0: 
+> Close the handle first..
+>
+> Looks like the driver is not "threadsave", rebuilding kernel with 
+> spinlock debugging, should show more up.
+>
+> y
+> tom
+>
+> -Att: Kernel OOPS bt, etc
+>
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568671] BUG: unable to handle 
+> kernel paging request at 2062696c
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568678] IP: [<2062696c>] 0x2062696b
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568681] *pdpt = 0000000008497001 
+> *pde = 0000000000000000
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568684] Oops: 0010 [#4] PREEMPT
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568731] Modules linked in: md5 
+> crypto_hash cpufreq_stats cpufreq_powersave cpufreq_userspace 
+> cpufreq_conservative bnep bluetooth crc16 binfmt_misc uinput fuse nfsd 
+> exportfs auth_rpcgss nfs_acl nfs lockd sunrpc nf_conntrack_ipv6 
+> nf_defrag_ipv6 ip6table_filter ip6_tables nf_conntrack_ipv4 
+> nf_defrag_ipv4 xt_state nf_conntrack xt_limit iptable_filter ip_tables 
+> af_packet ipv6 w83627ehf hwmon_vid hwmon uvcvideo isl6405 cryptomgr 
+> aead dvb_pll tda10086 saa7134_dvb tuner arc4 crypto_blkcipher 
+> crypto_algapi tda10021 snd_usb_audio snd_usbmidi_lib snd_hwdep rt73usb 
+> snd_pcm_oss rt2x00usb rt2x00lib stv0297 mac80211 snd_intel8x0 
+> snd_ac97_codec snd_mixer_oss ac97_bus joydev snd_seq_dummy snd_pcm 
+> videobuf_dvb snd_seq_oss hid_sunplus hid_generic saa7134 
+> videobuf2_vmalloc videobuf2_memops usbhid cfg80211 videobuf2_core 
+> snd_seq_midi hid snd_page_alloc snd_rawmidi budget_av dvb_ttpci 
+> crc_itu_t crypto budget_core saa7146_vv ttpci_eeprom saa7146 dvb_core 
+> snd_seq_midi_eve
+> n
+> t tveeprom videobuf_dma_sg
+> Dec 29 15:56:10 vdr1 kernel: videobuf_core v4l2_common snd_seq rc_core 
+> videodev snd_seq_device crystalhd(O) snd_timer shpchp snd rng_core 
+> pci_hotplug serio_raw pcspkr i2c_i801 8250_pnp 8250 soundcore 
+> serial_core acpi_cpufreq mperf processor evdev ext3 mbcache jbd sg 
+> sr_mod sd_mod crc_t10dif cdrom ata_piix ahci libahci uhci_hcd libata 
+> ehci_hcd scsi_mod usbcore
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568770] Pid: 11841, comm: mplayer 
+> Tainted: G      D    O 3.6.10-PM #8    /Alviso
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568772] EIP: 0060:[<2062696c>] 
+> EFLAGS: 00010286 CPU: 0
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568775] EIP is at 0x2062696c
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568777] EAX: 00370042 EBX: 
+> c843c000 ECX: 636e3800 EDX: 00001c10
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568778] ESI: 000238fc EDI: 
+> fb0068fc EBP: c842dea8 ESP: c842de74
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568780]  DS: 007b ES: 007b FS: 
+> 0000 GS: 0033 SS: 0068
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568781] CR0: 8005003b CR2: 
+> 2062696c CR3: 084d9000 CR4: 000007f0
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568783] DR0: 00000000 DR1: 
+> 00000000 DR2: 00000000 DR3: 00000000
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568784] DR6: ffff0ff0 DR7: 00000400
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568786] Process mplayer (pid: 
+> 11841, ti=c842c000 task=f0aba940 task.ti=c842c000)
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568787] Stack:
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568793]  fa18a569 ffffff10 
+> c117e3f6 00000060 00010246 002a8464 f7138064 fafe3000
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568798]  002a8440 c117e811 
+> f5920988 fafe3000 c843c000 c842ded8 fa18564d c842ded8
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568803]  fa182597 f595a400 
+> f595a62c c842ded8 fa182977 002a8464 f5920900 f595a400
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568804] Call Trace:
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568818]  [<fa18a569>] ? 
+> crystalhd_link_download_fw+0x189/0x300 [crystalhd]
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568823]  [<c117e3f6>] ? 
+> __copy_from_user_ll+0xd6/0xf0
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568828]  [<c117e811>] ? 
+> _copy_from_user+0x41/0xb0
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568839]  [<fa18564d>] 
+> bc_cproc_download_fw+0xed/0x150 [crystalhd]
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568846]  [<fa182597>] ? 
+> chd_dec_proc_user_data+0x237/0x320 [crystalhd]
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568854]  [<fa182977>] ? 
+> chd_dec_alloc_iodata+0xf7/0x120 [crystalhd]
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568861]  [<fa182b5e>] 
+> chd_dec_ioctl+0x16e/0x1c0 [crystalhd]
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568870]  [<fa185560>] ? 
+> bc_proc_in_completion+0x70/0x70 [crystalhd]
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568877]  [<fa1829f0>] ? 
+> chd_dec_free_iodata+0x50/0x50 [crystalhd]
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568881]  [<c10f4355>] 
+> do_vfs_ioctl+0x535/0x580
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568886]  [<c10685ef>] ? 
+> ktime_get+0x6f/0xf0
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568891]  [<c101ca56>] ? 
+> lapic_next_event+0x16/0x20
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568895]  [<c106f287>] ? 
+> clockevents_program_event+0xe7/0x130
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568898]  [<c10e4ab8>] ? 
+> fget_light+0xe8/0x120
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568901]  [<c10e4ad1>] ? 
+> fget_light+0x101/0x120
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568904]  [<c10e4a30>] ? 
+> fget_light+0x60/0x120
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568906]  [<c10f43cd>] 
+> sys_ioctl+0x2d/0x60
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568910]  [<c137238c>] 
+> sysenter_do_call+0x12/0x32
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568914]  [<c1360000>] ? 
+> asus_hides_smbus_hostbridge+0x264/0x269
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568917] Code:  Bad EIP value.
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568922] EIP: [<2062696c>] 
+> 0x2062696c SS:ESP 0068:c842de74
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568923] CR2: 000000002062696c
+> Dec 29 15:56:10 vdr1 kernel: [ 5558.568926] ---[ end trace 
+> f5ae98f349325070 ]---
+>
+> Dec 29 15:58:29 vdr1 kernel: [ 5698.364950] crystalhd 0000:02:00.0: 
+> Opening new user[0] handle
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.557932] crystalhd 0000:02:00.0: 
+> Opening new user[0] handle
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.846312] crystalhd 0000:02:00.0: 
+> Close the handle first..
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.858268] crystalhd 0000:02:00.0: 
+> Closing user[0] handle via ioctl with mode 1417200
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.961171] crystalhd_hw_stats: 
+> Invalid Arguments
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.961204] BUG: unable to handle 
+> kernel NULL pointer dereference at 00000040
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] IP: [<c11848d8>] 
+> do_raw_spin_trylock+0x8/0x50
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] *pdpt = 0000000030a1d001 
+> *pde = 0000000000000000
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] Oops: 0000 [#5] PREEMPT
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] Modules linked in: md5 
+> crypto_hash cpufreq_stats cpufreq_powersave cpufreq_userspace 
+> cpufreq_conservative bnep bluetooth crc16 binfmt_misc uinput fuse nfsd 
+> exportfs auth_rpcgss nfs_acl nfs lockd sunrpc nf_conntrack_ipv6 
+> nf_defrag_ipv6 ip6table_filter ip6_tables nf_conntrack_ipv4 
+> nf_defrag_ipv4 xt_state nf_conntrack xt_limit iptable_filter ip_tables 
+> af_packet ipv6 w83627ehf hwmon_vid hwmon uvcvideo isl6405 cryptomgr 
+> aead dvb_pll tda10086 saa7134_dvb tuner arc4 crypto_blkcipher 
+> crypto_algapi tda10021 snd_usb_audio snd_usbmidi_lib snd_hwdep rt73usb 
+> snd_pcm_oss rt2x00usb rt2x00lib stv0297 mac80211 snd_intel8x0 
+> snd_ac97_codec snd_mixer_oss ac97_bus joydev snd_seq_dummy snd_pcm 
+> videobuf_dvb snd_seq_oss hid_sunplus hid_generic saa7134 
+> videobuf2_vmalloc videobuf2_memops usbhid cfg80211 videobuf2_core 
+> snd_seq_midi hid snd_page_alloc snd_rawmidi budget_av dvb_ttpci 
+> crc_itu_t crypto budget_core saa7146_vv ttpci_eeprom saa7146 dvb_core 
+> snd_seq_midi_eve
+> n
+> t tveeprom videobuf_dma_sg
+> Dec 29 15:58:30 vdr1 kernel: videobuf_core v4l2_common snd_seq rc_core 
+> videodev snd_seq_device crystalhd(O) snd_timer shpchp snd rng_core 
+> pci_hotplug serio_raw pcspkr i2c_i801 8250_pnp 8250 soundcore 
+> serial_core acpi_cpufreq mperf processor evdev ext3 mbcache jbd sg 
+> sr_mod sd_mod crc_t10dif cdrom ata_piix ahci libahci uhci_hcd libata 
+> ehci_hcd scsi_mod usbcore
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] Pid: 11927, comm: mplayer 
+> Tainted: G      D    O 3.6.10-PM #8    /Alviso
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] EIP: 0060:[<c11848d8>] 
+> EFLAGS: 00210046 CPU: 0
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] EIP is at 
+> do_raw_spin_trylock+0x8/0x50
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] EAX: 00000040 EBX: 
+> 00000000 ECX: 00000040 EDX: 00000000
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] ESI: 00000040 EDI: 
+> 00200292 EBP: c85a7e5c ESP: c85a7e58
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  DS: 007b ES: 007b FS: 
+> 0000 GS: 0033 SS: 0068
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] CR0: 8005003b CR2: 
+> 00000040 CR3: 34276000 CR4: 000007f0
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] DR0: 00000000 DR1: 
+> 00000000 DR2: 00000000 DR3: 00000000
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] DR6: ffff0ff0 DR7: 00000400
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] Process mplayer (pid: 
+> 11927, ti=c85a6000 task=f48ce720 task.ti=c85a6000)
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] Stack:
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  00000050 c85a7e80 
+> c136c9b5 00000000 00000002 00000000 fa184bd6 f5955c00
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  f5920988 00000000 
+> c85a7ed8 fa184bd6 00000218 c85a6000 00000000 c85a7eb0
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  c117e811 09ce6618 
+> 0c955c00 f5955c00 00000000 09ce6618 c85a7ed8 fa1823b9
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] Call Trace:
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  [<c136c9b5>] 
+> _raw_spin_lock_irqsave+0x55/0x90
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  [<fa184bd6>] ? 
+> bc_cproc_get_stats+0x226/0x280 [crystalhd]
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  [<fa184bd6>] 
+> bc_cproc_get_stats+0x226/0x280 [crystalhd]
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  [<c117e811>] ? 
+> _copy_from_user+0x41/0xb0
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  [<fa1823b9>] ? 
+> chd_dec_proc_user_data+0x59/0x320 [crystalhd]
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  [<fa182977>] ? 
+> chd_dec_alloc_iodata+0xf7/0x120 [crystalhd]
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  [<fa182b5e>] 
+> chd_dec_ioctl+0x16e/0x1c0 [crystalhd]
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  [<fa1849b0>] ? 
+> bc_cproc_reset_stats+0x20/0x20 [crystalhd]
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  [<fa1829f0>] ? 
+> chd_dec_free_iodata+0x50/0x50 [crystalhd]
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  [<c10f4355>] 
+> do_vfs_ioctl+0x535/0x580
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  [<c104e73e>] ? 
+> hrtimer_nanosleep+0x6e/0xf0
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  [<c10e4ab8>] ? 
+> fget_light+0xe8/0x120
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  [<c10e4ad1>] ? 
+> fget_light+0x101/0x120
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  [<c10e4a30>] ? 
+> fget_light+0x60/0x120
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  [<c10f43cd>] 
+> sys_ioctl+0x2d/0x60
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005]  [<c137238c>] 
+> sysenter_do_call+0x12/0x32
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] Code: a2 66 90 c7 43 08 00 
+> 00 00 00 8b 75 f8 8b 7d fc a1 2c dc 4e c1 89 43 0c 8b 5d f4 89 ec 5d 
+> c3 8d 74 26 00 55 89 c1 89 e5 53 31 db <8b> 00 c7 01 00 00 00 00 84 c0 
+> 0f 9f c3 85 db 74 17 a1 2c dc 4e
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] EIP: [<c11848d8>] 
+> do_raw_spin_trylock+0x8/0x50 SS:ESP 0068:c85a7e58
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] CR2: 0000000000000040
+> Dec 29 15:58:30 vdr1 kernel: [ 5698.962005] ---[ end trace 
+> f5ae98f349325071 ]---
+> Dec 29 15:58:30 vdr1 kernel: [ 5699.232992] note: mplayer[11927] 
+> exited with preempt_count 1
+> Dec 29 15:58:30 vdr1 kernel: [ 5699.251706] crystalhd 0000:02:00.0: 
+> Opening new user[0] handle
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.281871] BUG: unable to handle 
+> kernel paging request at 6e757474
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] IP: [<6e757474>] 0x6e757473
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] *pdpt = 000000002fb8b001 
+> *pde = 0000000000000000
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] Oops: 0010 [#6] PREEMPT
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] Modules linked in: md5 
+> crypto_hash cpufreq_stats cpufreq_powersave cpufreq_userspace 
+> cpufreq_conservative bnep bluetooth crc16 binfmt_misc uinput fuse nfsd 
+> exportfs auth_rpcgss nfs_acl nfs lockd sunrpc nf_conntrack_ipv6 
+> nf_defrag_ipv6 ip6table_filter ip6_tables nf_conntrack_ipv4 
+> nf_defrag_ipv4 xt_state nf_conntrack xt_limit iptable_filter ip_tables 
+> af_packet ipv6 w83627ehf hwmon_vid hwmon uvcvideo isl6405 cryptomgr 
+> aead dvb_pll tda10086 saa7134_dvb tuner arc4 crypto_blkcipher 
+> crypto_algapi tda10021 snd_usb_audio snd_usbmidi_lib snd_hwdep rt73usb 
+> snd_pcm_oss rt2x00usb rt2x00lib stv0297 mac80211 snd_intel8x0 
+> snd_ac97_codec snd_mixer_oss ac97_bus joydev snd_seq_dummy snd_pcm 
+> videobuf_dvb snd_seq_oss hid_sunplus hid_generic saa7134 
+> videobuf2_vmalloc videobuf2_memops usbhid cfg80211 videobuf2_core 
+> snd_seq_midi hid snd_page_alloc snd_rawmidi budget_av dvb_ttpci 
+> crc_itu_t crypto budget_core saa7146_vv ttpci_eeprom saa7146 dvb_core 
+> snd_seq_midi_eve
+> n
+> t tveeprom videobuf_dma_sg
+> Dec 29 15:58:31 vdr1 kernel: videobuf_core v4l2_common snd_seq rc_core 
+> videodev snd_seq_device crystalhd(O) snd_timer shpchp snd rng_core 
+> pci_hotplug serio_raw pcspkr i2c_i801 8250_pnp 8250 soundcore 
+> serial_core acpi_cpufreq mperf processor evdev ext3 mbcache jbd sg 
+> sr_mod sd_mod crc_t10dif cdrom ata_piix ahci libahci uhci_hcd libata 
+> ehci_hcd scsi_mod usbcore
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] Pid: 11926, comm: mplayer 
+> Tainted: G      D    O 3.6.10-PM #8    /Alviso
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] EIP: 0060:[<6e757474>] 
+> EFLAGS: 00210206 CPU: 0
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] EIP is at 0x6e757474
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] EAX: 726f6863 EBX: 
+> c538c000 ECX: 00000000 EDX: 00001c08
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] ESI: 000251ac EDI: 
+> fb55c1a8 EBP: c8497ea8 ESP: c8497e74
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  DS: 007b ES: 007b FS: 
+> 0000 GS: 0033 SS: 0068
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] CR0: 8005003b CR2: 
+> 6e757474 CR3: 34276000 CR4: 000007f0
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] DR0: 00000000 DR1: 
+> 00000000 DR2: 00000000 DR3: 00000000
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] DR6: ffff0ff0 DR7: 00000400
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] Process mplayer (pid: 
+> 11926, ti=c8496000 task=f48c8000 task.ti=c8496000)
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] Stack:
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  fa18a556 ffffffbe 
+> c117e3f6 00000060 00210246 002a8464 f7138064 fb537000
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  002a8440 c117e811 
+> f5920988 fb537000 c538c000 c8497ed8 fa18564d c8497ed8
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  fa182597 f595a000 
+> f595a22c c8497ed8 fa182977 002a8464 f5920900 f595a000
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] Call Trace:
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<fa18a556>] ? 
+> crystalhd_link_download_fw+0x176/0x300 [crystalhd]
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c117e3f6>] ? 
+> __copy_from_user_ll+0xd6/0xf0
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c117e811>] ? 
+> _copy_from_user+0x41/0xb0
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<fa18564d>] 
+> bc_cproc_download_fw+0xed/0x150 [crystalhd]
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<fa182597>] ? 
+> chd_dec_proc_user_data+0x237/0x320 [crystalhd]
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<fa182977>] ? 
+> chd_dec_alloc_iodata+0xf7/0x120 [crystalhd]
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<fa182b5e>] 
+> chd_dec_ioctl+0x16e/0x1c0 [crystalhd]
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<fa185560>] ? 
+> bc_proc_in_completion+0x70/0x70 [crystalhd]
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<fa1829f0>] ? 
+> chd_dec_free_iodata+0x50/0x50 [crystalhd]
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c10f4355>] 
+> do_vfs_ioctl+0x535/0x580
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c136c865>] ? 
+> _raw_spin_lock+0x65/0x70
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c109c156>] ? 
+> handle_fasteoi_irq+0xb6/0xd0
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c10e4ab8>] ? 
+> fget_light+0xe8/0x120
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c10e4ad1>] ? 
+> fget_light+0x101/0x120
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c10e4a30>] ? 
+> fget_light+0x60/0x120
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c10f43cd>] 
+> sys_ioctl+0x2d/0x60
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c137238c>] 
+> sysenter_do_call+0x12/0x32
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] Code:  Bad EIP value.
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] EIP: [<6e757474>] 
+> 0x6e757474 SS:ESP 0068:c8497e74
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] CR2: 000000006e757474
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.538480] ---[ end trace 
+> f5ae98f349325072 ]---
+> Dec 29 15:58:33 vdr1 kernel: [ 5701.629049] crystalhd 0000:02:00.0: 
+> F/w Signature mismatch
+> Dec 29 15:58:33 vdr1 kernel: [ 5701.629065] crystalhd 0000:02:00.0: 
+> Firmware Download Failure!! - 21
+> Dec 29 15:58:33 vdr1 kernel: [ 5701.754795] crystalhd 0000:02:00.0: 
+> Closing user[0] handle via ioctl with mode 1417200
+>
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.281871] BUG: unable to handle 
+> kernel paging request at 6e757474
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] IP: [<6e757474>] 0x6e757473
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] *pdpt = 000000002fb8b001 
+> *pde = 0000000000000000
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] Oops: 0010 [#6] PREEMPT
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] Modules linked in: md5 
+> crypto_hash cpufreq_stats cpufreq_powersave cpufreq_userspace 
+> cpufreq_conservative bnep bluetooth crc16 binfmt_misc uinput fuse nfsd 
+> exportfs auth_rpcgss nfs_acl nfs lockd sunrpc nf_conntrack_ipv6 
+> nf_defrag_ipv6 ip6table_filter ip6_tables nf_conntrack_ipv4 
+> nf_defrag_ipv4 xt_state nf_conntrack xt_limit iptable_filter ip_tables 
+> af_packet ipv6 w83627ehf hwmon_vid hwmon uvcvideo isl6405 cryptomgr 
+> aead dvb_pll tda10086 saa7134_dvb tuner arc4 crypto_blkcipher 
+> crypto_algapi tda10021 snd_usb_audio snd_usbmidi_lib snd_hwdep rt73usb 
+> snd_pcm_oss rt2x00usb rt2x00lib stv0297 mac80211 snd_intel8x0 
+> snd_ac97_codec snd_mixer_oss ac97_bus joydev snd_seq_dummy snd_pcm 
+> videobuf_dvb snd_seq_oss hid_sunplus hid_generic saa7134 
+> videobuf2_vmalloc videobuf2_memops usbhid cfg80211 videobuf2_core 
+> snd_seq_midi hid snd_page_alloc snd_rawmidi budget_av dvb_ttpci 
+> crc_itu_t crypto budget_core saa7146_vv ttpci_eeprom saa7146 dvb_core 
+> snd_seq_midi_eve
+> n
+> t tveeprom videobuf_dma_sg
+> Dec 29 15:58:31 vdr1 kernel: videobuf_core v4l2_common snd_seq rc_core 
+> videodev snd_seq_device crystalhd(O) snd_timer shpchp snd rng_core 
+> pci_hotplug serio_raw pcspkr i2c_i801 8250_pnp 8250 soundcore 
+> serial_core acpi_cpufreq mperf processor evdev ext3 mbcache jbd sg 
+> sr_mod sd_mod crc_t10dif cdrom ata_piix ahci libahci uhci_hcd libata 
+> ehci_hcd scsi_mod usbcore
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] Pid: 11926, comm: mplayer 
+> Tainted: G      D    O 3.6.10-PM #8    /Alviso
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] EIP: 0060:[<6e757474>] 
+> EFLAGS: 00210206 CPU: 0
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] EIP is at 0x6e757474
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] EAX: 726f6863 EBX: 
+> c538c000 ECX: 00000000 EDX: 00001c08
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] ESI: 000251ac EDI: 
+> fb55c1a8 EBP: c8497ea8 ESP: c8497e74
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  DS: 007b ES: 007b FS: 
+> 0000 GS: 0033 SS: 0068
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] CR0: 8005003b CR2: 
+> 6e757474 CR3: 34276000 CR4: 000007f0
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] DR0: 00000000 DR1: 
+> 00000000 DR2: 00000000 DR3: 00000000
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] DR6: ffff0ff0 DR7: 00000400
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] Process mplayer (pid: 
+> 11926, ti=c8496000 task=f48c8000 task.ti=c8496000)
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] Stack:
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  fa18a556 ffffffbe 
+> c117e3f6 00000060 00210246 002a8464 f7138064 fb537000
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  002a8440 c117e811 
+> f5920988 fb537000 c538c000 c8497ed8 fa18564d c8497ed8
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  fa182597 f595a000 
+> f595a22c c8497ed8 fa182977 002a8464 f5920900 f595a000
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] Call Trace:
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<fa18a556>] ? 
+> crystalhd_link_download_fw+0x176/0x300 [crystalhd]
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c117e3f6>] ? 
+> __copy_from_user_ll+0xd6/0xf0
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c117e811>] ? 
+> _copy_from_user+0x41/0xb0
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<fa18564d>] 
+> bc_cproc_download_fw+0xed/0x150 [crystalhd]
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<fa182597>] ? 
+> chd_dec_proc_user_data+0x237/0x320 [crystalhd]
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<fa182977>] ? 
+> chd_dec_alloc_iodata+0xf7/0x120 [crystalhd]
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<fa182b5e>] 
+> chd_dec_ioctl+0x16e/0x1c0 [crystalhd]
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<fa185560>] ? 
+> bc_proc_in_completion+0x70/0x70 [crystalhd]
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<fa1829f0>] ? 
+> chd_dec_free_iodata+0x50/0x50 [crystalhd]
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c10f4355>] 
+> do_vfs_ioctl+0x535/0x580
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c136c865>] ? 
+> _raw_spin_lock+0x65/0x70
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c109c156>] ? 
+> handle_fasteoi_irq+0xb6/0xd0
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c10e4ab8>] ? 
+> fget_light+0xe8/0x120
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c10e4ad1>] ? 
+> fget_light+0x101/0x120
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c10e4a30>] ? 
+> fget_light+0x60/0x120
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c10f43cd>] 
+> sys_ioctl+0x2d/0x60
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005]  [<c137238c>] 
+> sysenter_do_call+0x12/0x32
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] Code:  Bad EIP value.
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] EIP: [<6e757474>] 
+> 0x6e757474 SS:ESP 0068:c8497e74
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.282005] CR2: 000000006e757474
+> Dec 29 15:58:31 vdr1 kernel: [ 5699.538480] ---[ end trace 
+> f5ae98f349325072 ]---
+> Dec 29 15:58:33 vdr1 kernel: [ 5701.629049] crystalhd 0000:02:00.0: 
+> F/w Signature mismatch
+> Dec 29 15:58:33 vdr1 kernel: [ 5701.629065] crystalhd 0000:02:00.0: 
+> Firmware Download Failure!! - 21
+> Dec 29 15:58:33 vdr1 kernel: [ 5701.754795] crystalhd 0000:02:00.0: 
+> Closing user[0] handle via ioctl with mode 1417200
+>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
